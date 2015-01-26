@@ -1,168 +1,218 @@
 From: Ana Rey Botello <ana@soleta.eu>
-Subject: [libnftnl v2 2/2] tests: add unit tests for counters
-Date: Mon, 26 Jan 2015 20:43:31 +0100
-Message-ID: <65bfae59a26c8229e0745cbb4174b77d116cb74b.1422299705.git.ana@soleta.eu>
+Subject: [nft v2 2/2] tests: regression: Add counters support
+Date: Mon, 26 Jan 2015 20:43:32 +0100
+Message-ID: <ed618d875791ba89bc32fcaa840b8a4fb6879da2.1422299750.git.ana@soleta.eu>
 References: <cover.1422299627.git.ana@soleta.eu>
-Cc: Ana Rey Botello <ana@soleta.eu>
+Cc: Ana Rey <ana@soleta.eu>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 129.166.216.87.static.jazztel.es ([87.216.166.129]:47441 "EHLO
+Received: from 129.166.216.87.static.jazztel.es ([87.216.166.129]:47442 "EHLO
 	correo.soleta.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756240AbbAZTm6 (ORCPT
+	with ESMTP id S1756216AbbAZTm6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 26 Jan 2015 14:42:58 -0500
 In-Reply-To: <cover.1422299627.git.ana@soleta.eu>
-In-Reply-To: <cover.1422299705.git.ana@soleta.eu>
-References: <cover.1422299705.git.ana@soleta.eu>
+In-Reply-To: <cover.1422299750.git.ana@soleta.eu>
+References: <cover.1422299750.git.ana@soleta.eu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This adds unit test for counters and updates the expr-counter test.
+From: Ana Rey <ana@soleta.eu>
+
+This adds the accounter support into this regression test and the test
+file ip/counter.c.
 
 Signed-off-by: Ana Rey Botello <ana@soleta.eu>
 ---
- tests/Makefile.am             |    4 ++
- tests/nft-counter-test.c      |   86 +++++++++++++++++++++++++++++++++++++++++
- tests/nft-expr_counter-test.c |    4 ++
- 3 files changed, 94 insertions(+)
- create mode 100644 tests/nft-counter-test.c
+ tests/regression/ip/counter.t |   15 ++++++
+ tests/regression/nft-test.py  |  110 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 125 insertions(+)
+ create mode 100644 tests/regression/ip/counter.t
 
-diff --git a/tests/Makefile.am b/tests/Makefile.am
-index c0356f1..471cda5 100644
---- a/tests/Makefile.am
-+++ b/tests/Makefile.am
-@@ -9,6 +9,7 @@ check_PROGRAMS = 	nft-parsing-test		\
- 			nft-chain-test			\
- 			nft-rule-test			\
- 			nft-set-test			\
-+			nft-counter-test		\
- 			nft-expr_bitwise-test		\
- 			nft-expr_byteorder-test		\
- 			nft-expr_counter-test		\
-@@ -44,6 +45,9 @@ nft_rule_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
- nft_set_test_SOURCES = nft-set-test.c
- nft_set_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
- 
-+nft_counter_test_SOURCES = nft-counter-test.c
-+nft_counter_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
-+
- nft_expr_bitwise_test_SOURCES = nft-expr_bitwise-test.c
- nft_expr_bitwise_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
- 
-diff --git a/tests/nft-counter-test.c b/tests/nft-counter-test.c
+diff --git a/tests/regression/ip/counter.t b/tests/regression/ip/counter.t
 new file mode 100644
-index 0000000..6a96ab5
+index 0000000..783b433
 --- /dev/null
-+++ b/tests/nft-counter-test.c
-@@ -0,0 +1,86 @@
-+/*
-+ * (C) 2015 by Ana Rey <ana@soleta.eu>
-+ * (C) 2014 Pablo Neira Ayuso <pablo@netfilter.org>
-+ * (C) 2014 Intra2net AG <http://www.intra2net.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ */
++++ b/tests/regression/ip/counter.t
+@@ -0,0 +1,15 @@
++*ip;test-ip4
++*inet;test-inet
++:input;type filter hook input priority 0
 +
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <netinet/in.h>
-+#include <linux/netfilter/nf_tables.h>
++> counter1;ok
++> counter2;ok
++> counter3;ok
 +
-+#include <libnftnl/counter.h>
++ip daddr 192.168.0.1 counter name counter1;ok;ip daddr 192.168.0.1 counter counter1
++ip daddr 192.168.0.2 counter name counter1;ok;ip daddr 192.168.0.2 counter counter1
 +
-+static int test_ok = 1;
++ip daddr 192.168.0.1 counter name counter2;ok;ip daddr 192.168.0.1 counter counter2
++ip daddr 192.168.0.2 counter name counter3;ok;ip daddr 192.168.0.2 counter counter3
 +
-+static void print_err(const char *msg)
-+{
-+	test_ok = 0;
-+	printf("\033[31mERROR:\e[0m %s\n", msg);
-+}
-+
-+static void cmp_nft_counter(struct nft_counter *a, struct nft_counter *b)
-+{
-+	if (strcmp(nft_counter_attr_get_str(a, NFT_COUNTER_ATTR_TABLE),
-+		   nft_counter_attr_get_str(b, NFT_COUNTER_ATTR_TABLE)) != 0)
-+		print_err("Counter table mismatches");
-+	if (strcmp(nft_counter_attr_get_str(a, NFT_COUNTER_ATTR_NAME),
-+		   nft_counter_attr_get_str(b, NFT_COUNTER_ATTR_NAME)) != 0)
-+		print_err("Counter name mismatches");
-+	if (nft_counter_attr_get_u32(a, NFT_COUNTER_ATTR_FAMILY) !=
-+	    nft_counter_attr_get_u32(b, NFT_COUNTER_ATTR_FAMILY))
-+		print_err("Counter family mismatches");
-+	if (nft_counter_attr_get_u32(a, NFT_COUNTER_ATTR_USE) !=
-+	    nft_counter_attr_get_u32(b, NFT_COUNTER_ATTR_USE))
-+		print_err("Counter use mismatches");
-+	if (nft_counter_attr_get_u64(a, NFT_COUNTER_ATTR_PKTS) !=
-+	    nft_counter_attr_get_u64(b, NFT_COUNTER_ATTR_PKTS))
-+		print_err("Counter packets mismatches");
-+	if (nft_counter_attr_get_u64(a, NFT_COUNTER_ATTR_BYTES) !=
-+	    nft_counter_attr_get_u64(b, NFT_COUNTER_ATTR_BYTES))
-+		print_err("Counter bytes mismatches");
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	struct nft_counter *a, *b = NULL;
-+	char buf[4096];
-+	struct nlmsghdr *nlh;
-+
-+	a = nft_counter_alloc();
-+	b = nft_counter_alloc();
-+	if (a == NULL || b == NULL)
-+		print_err("OOM");
-+
-+	nft_counter_attr_set_str(a, NFT_COUNTER_ATTR_TABLE, "test-table");
-+	nft_counter_attr_set_str(a, NFT_COUNTER_ATTR_NAME, "counter-name");
-+	nft_counter_attr_set_u32(a, NFT_COUNTER_ATTR_FAMILY, 0x12345678);
-+	nft_counter_attr_set_u32(a, NFT_COUNTER_ATTR_USE, 0x12345678);
-+	nft_counter_attr_set_u64(a, NFT_COUNTER_ATTR_PKTS, 0x123456789abcdef0);
-+	nft_counter_attr_set_u64(a, NFT_COUNTER_ATTR_BYTES, 0x123456789abcdef0);
-+
-+	/* cmd extracted from include/linux/netfilter/nf_tables.h */
-+	nlh = nft_counter_nlmsg_build_hdr(buf, NFT_MSG_NEWCOUNTER, AF_INET,
-+					  0, 1234);
-+	nft_counter_nlmsg_build_payload(nlh, a);
-+
-+	if (nft_counter_nlmsg_parse(nlh, b) < 0)
-+		print_err("parsing problems");
-+
-+	cmp_nft_counter(a, b);
-+
-+	nft_counter_free(a); nft_counter_free(b);
-+
-+	if (!test_ok)
-+		exit(EXIT_FAILURE);
-+
-+	printf("%s: \033[32mOK\e[0m\n", argv[0]);
-+	return EXIT_SUCCESS;
-+}
-diff --git a/tests/nft-expr_counter-test.c b/tests/nft-expr_counter-test.c
-index e27d20a..a961fa7 100644
---- a/tests/nft-expr_counter-test.c
-+++ b/tests/nft-expr_counter-test.c
-@@ -36,6 +36,9 @@ static void cmp_nft_rule_expr(struct nft_rule_expr *rule_a,
- 	if (nft_rule_expr_get_u64(rule_a, NFT_EXPR_CTR_PACKETS) !=
- 	    nft_rule_expr_get_u64(rule_b, NFT_EXPR_CTR_PACKETS))
- 		print_err("Expr NFT_EXPR_CTR_PACKETS mismatches");
-+	if (strcmp(nft_rule_expr_get_str(rule_a, NFT_EXPR_CTR_NAME),
-+		   nft_rule_expr_get_str(rule_b, NFT_EXPR_CTR_NAME)) != 0)
-+		print_err("Expr NFT_EXPR_CTR_NAME mismatches");
- }
++ip daddr 192.168.0.2 counter name not-counter;fail
+diff --git a/tests/regression/nft-test.py b/tests/regression/nft-test.py
+index 7e5b475..ab95c27 100755
+--- a/tests/regression/nft-test.py
++++ b/tests/regression/nft-test.py
+@@ -27,6 +27,7 @@ log_file = None
+ table_list = []
+ chain_list = []
+ all_set = dict()
++all_counter = dict()
+ signal_received = 0
  
- int main(int argc, char *argv[])
-@@ -56,6 +59,7 @@ int main(int argc, char *argv[])
- 	if (ex == NULL)
- 		print_err("OOM");
  
-+	nft_rule_expr_set_str(ex, NFT_EXPR_CTR_NAME, "counter-name");
- 	nft_rule_expr_set_u64(ex, NFT_EXPR_CTR_BYTES, 0x123456789abcdef0);
- 	nft_rule_expr_set_u64(ex, NFT_EXPR_CTR_PACKETS, 0x123456789abcdef0);
- 	nft_rule_add_expr(a, ex);
+@@ -404,6 +405,81 @@ def set_check_element(rule1, rule2):
+     return ret
+ 
+ 
++def counter_add(counter_info, table_list, filename, lineno):
++    '''
++    Adds an counter.
++    '''
++
++    if not table_list:
++        reason = "Missing table to add rule"
++        print_error(reason, filename, lineno)
++        return -1
++
++    for table in table_list:
++        if counter_exist(counter_info[0], table, filename, lineno):
++            reason = "This counter " + counter_info + " exists in " + \
++                table[1] + ". I cannot add it again"
++            print_error(reason, filename, lineno)
++            return -1
++
++        table_info = " " + table[0] + " " + table[1] + " "
++        counter_text = " " + counter_info[0]
++        cmd = "nft add counter" + table_info + counter_text
++        ret = execute_cmd(cmd, filename, lineno)
++
++        if (ret == 0 and counter_info[1].rstrip() == "fail") or \
++           (ret != 0 and counter_info[1].rstrip() == "ok"):
++                reason = cmd + ": " + "I cannot add the counter " + \
++                         counter_info[0]
++                print_error(reason, filename, lineno)
++                return -1
++
++        if not counter_exist(counter_info[0], table, filename, lineno):
++            reason = "I have just added the counter " + counter_info[0] + \
++                " to the table " + table[1] + " but it does not exist"
++            print_error(reason, filename, lineno)
++            return -1
++
++    return 0
++
++
++def counter_delete(all_counter, table, filename=None, lineno=None):
++    '''
++    Deletes counter and its content.
++    '''
++
++    for counter_name in all_counter.keys():
++        # Check if exists the counter
++        if not counter_exist(counter_name, table, filename, lineno):
++            reason = "The counter " + counter_name + \
++                " does not exist, I cannot delete it"
++            print_error(reason, filename, lineno)
++            return -1
++
++        # We delete the counter.
++        table_info = " " + table[0] + " " + table[1] + " "
++        cmd = "nft delete counter " + table_info + " " + counter_name
++        ret = execute_cmd(cmd, filename, lineno)
++        # Check if the counter still exists after I deleted it.
++        if ret != 0 or counter_exist(counter_name, table, filename, lineno):
++            reason = "Cannot remove the counter " + counter_name
++            print_error(reason, filename, lineno)
++            return -1
++
++    return 0
++
++
++def counter_exist(counter_name, table, filename, lineno):
++    '''
++    Check if the counter exists.
++    '''
++    table_info = " " + table[0] + " " + table[1] + " "
++    cmd = "nft list counter" + table_info + counter_name
++    ret = execute_cmd(cmd, filename, lineno)
++
++    return True if (ret == 0) else False
++
++
+ def output_clean(pre_output, chain):
+     pos_chain = pre_output[0].find(chain)
+     if pos_chain == -1:
+@@ -527,6 +603,8 @@ def cleanup_on_exit():
+             ret = chain_delete(chain, table, "", "")
+         if all_set:
+             ret = set_delete(all_set, table)
++        if all_counter:
++            ret = counter_delete(all_counter, table)
+         ret = table_delete(table)
+ 
+ 
+@@ -619,6 +697,19 @@ def set_element_process(element_line, filename, lineno):
+                             table_list, filename, lineno)
+ 
+ 
++def counter_process(counter_line, filename, lineno):
++    counter_info = []
++    counter_name = counter_line.split(";")[0]
++    counter_info.append(counter_name)
++    counter_state = counter_line.split(";")[1]  # ok or fail
++    counter_info.append(counter_state)
++    ret = counter_add(counter_info, table_list, filename, lineno)
++    if ret == 0:
++        all_counter[counter_name] = set()
++
++    return ret
++
++
+ def run_test_file(filename, force_all_family_option, specific_file):
+     '''
+     Runs a test file
+@@ -674,6 +765,16 @@ def run_test_file(filename, force_all_family_option, specific_file):
+             passed += 1
+             continue
+ 
++        if line[0] == ">":  # Adds this counter
++            counter_line = line[1:].strip()
++            ret = counter_process(counter_line, filename, lineno)
++            tests += 1
++            if ret == -1:
++                total_test_passed = False
++                continue
++            passed += 1
++            continue
++
+         if line[0] == "?":  # Adds elements in a set
+             element_line = line.rstrip()[1:].split(";")
+             ret = set_element_process(element_line, filename, lineno)
+@@ -729,6 +830,14 @@ def run_test_file(filename, force_all_family_option, specific_file):
+                 reason = "There is a problem when we delete a set"
+                 print_error(reason, filename, lineno)
+ 
++        # We delete counter.
++        if all_counter:
++            ret = counter_delete(all_counter, table, filename, lineno)
++            if ret != 0:
++                total_test_passed = False
++                reason = "There is a problem when we delete an counter"
++                print_error(reason, filename, lineno)
++
+         # We delete tables.
+         ret = table_delete(table, filename, lineno)
+ 
+@@ -749,6 +858,7 @@ def run_test_file(filename, force_all_family_option, specific_file):
+     del table_list[:]
+     del chain_list[:]
+     all_set.clear()
++    all_counter.clear()
+ 
+     return [tests, passed, total_warning, total_error, total_unit_run]
+ 
 -- 
 1.7.10.4
 
