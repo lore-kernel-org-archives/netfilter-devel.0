@@ -1,27 +1,47 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [PATCH 1/2] rhashtable: Introduce rhashtable_walk_*
-Date: Mon, 26 Jan 2015 08:20:00 +0000
-Message-ID: <20150126082000.GA22262@casper.infradead.org>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH 1/2] rhashtable: Introduce rhashtable_walk_*
+Date: Mon, 26 Jan 2015 10:09:24 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6D1CAD2C12@AcuExch.aculab.com>
 References: <20150125232040.GA17936@gondor.apana.org.au>
  <E1YFWUl-0004gE-SH@gondolin.me.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Ying Xue <ying.xue@windriver.com>, davem@davemloft.net,
-	kaber@trash.net, paulmck@linux.vnet.ibm.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:59243 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753477AbbAZIUE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Jan 2015 03:20:04 -0500
-Content-Disposition: inline
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+To: 'Herbert Xu' <herbert@gondor.apana.org.au>,
+	Thomas Graf <tgraf@suug.ch>, Ying Xue <ying.xue@windriver.com>,
+	"davem@davemloft.net" <davem@davemloft.net>,
+	"kaber@trash.net" <kaber@trash.net>,
+	"paulmck@linux.vnet.ibm.com" <paulmck@linux.vnet.ibm.com>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <E1YFWUl-0004gE-SH@gondolin.me.apana.org.au>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 01/26/15 at 10:21am, Herbert Xu wrote:
+From: Herbert Xu
+> Some existing rhashtable users get too intimate with it by walking
+> the buckets directly.  This prevents us from easily changing the
+> internals of rhashtable.
+> 
+> This patch adds the helpers rhashtable_walk_init/next/end which
+> will replace these custom walkers.
+> 
+> They are meant to be usable for both procfs seq_file walks as well
+> as walking by a netlink dump.  The iterator structure should fit
+> inside a netlink dump cb structure, with at least one element to
+> spare.
+...
+> +/**
+> + * rhashtable_walk_start - Start a hash table walk
+> + * @iter:	Hash table iterator
+> + *
+> + * Start a hash table walk.
+> + *
+> + * Returns zero if successful.  Returns -EINTR if we couldn't
+> + * obtain the resize lock.
+> + */
 > +int rhashtable_walk_start(struct rhashtable_iter *iter)
 > +{
 > +	struct rhashtable *ht = iter->ht;
@@ -35,64 +55,17 @@ On 01/26/15 at 10:21am, Herbert Xu wrote:
 > +
 > +	return err;
 > +}
-> +EXPORT_SYMBOL_GPL(rhashtable_walk_start);
 
-This doesn't seem to work for Netlink dumps as it would define
-a RCU read side section across user read()s.
+That doesn't look right to me.
+Surely you shouldn't be calling rcu_read_lock() when the mutex
+request is interrupted.
 
-I assume you relying on RCU to defer the initial table relinking
-in the resizing to be postponed. Wouldn't it be better to hold
-the mutex instead, we could sleep during the dump.
+So maybe:
+	err = mutex_lock_interruptible(&ht->mutex);
+	if (err)
+		return err;
+	rcu_read_lock();
+	return 0;
+}
 
-> +/**
-> + * rhashtable_walk_next - Return the next object and advance the iterator
-> + * @iter:	Hash table iterator
-> + *
-> + * Note that you must call rhashtable_walk_stop when you are finished
-> + * with the walk.
-> + *
-> + * Returns the next object or NULL when the end of the table is reached.
-> + */
-> +void *rhashtable_walk_next(struct rhashtable_iter *iter)
-> +{
-> +	const struct bucket_table *tbl;
-> +	struct rhashtable *ht = iter->ht;
-> +	struct rhash_head *p = iter->p;
-> +
-> +	tbl = rht_dereference_rcu(ht->tbl, ht);
-> +
-> +	if (p) {
-> +		p = rht_dereference_bucket(p->next, tbl, iter->slot);
-> +		goto next;
-> +	}
-> +
-> +	for (; iter->slot < tbl->size; iter->slot++) {
-> +		int skip = iter->skip;
-> +
-> +		iter->lock = bucket_lock(tbl, iter->slot);
-> +		spin_lock_bh(iter->lock);
-> +
-> +		rht_for_each(p, tbl, iter->slot) {
-> +			if (!skip)
-> +				break;
-> +			skip--;
-> +		}
-> +
-> +next:
-> +		if (!rht_is_a_nulls(p)) {
-> +			iter->skip++;
-> +			iter->p = p;
-> +			return rht_obj(ht, p);
-
-Same here, we leave the iterator with the bucket lock held.
-
-> +		}
-> +		spin_unlock_bh(iter->lock);
-> +
-> +		iter->skip = 0;
-> +	}
-> +
-> +	iter->p = NULL;
-> +	return NULL;
-> +}
-> +EXPORT_SYMBOL_GPL(rhashtable_walk_next);
+	David
