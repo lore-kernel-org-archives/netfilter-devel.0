@@ -1,510 +1,132 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [libnftnl PATCH 4/5 v3] example: Parse and create netlink message using the new parsing functions.
-Date: Mon, 26 Jan 2015 14:04:01 +0100
-Message-ID: <1422277441-20414-1-git-send-email-alvaroneay@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:55011 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751244AbbAZNDv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Jan 2015 08:03:51 -0500
-Received: by mail-wi0-f173.google.com with SMTP id r20so9730605wiv.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 26 Jan 2015 05:03:50 -0800 (PST)
-Received: from localhost.localdomain (129.166.216.87.static.jazztel.es. [87.216.166.129])
-        by mx.google.com with ESMTPSA id dn2sm13852396wib.14.2015.01.26.05.03.49
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 26 Jan 2015 05:03:49 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Richard Guy Briggs <rgb@tricolour.ca>
+Subject: NetDev 0.1 conference post-CFP deadline weekly update
+Date: Mon, 26 Jan 2015 08:35:42 -0500
+Message-ID: <20150126133542.GX30763@toccata2.tricolour.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: info@netdev01.org, speakers@netdev01.org, attendees@netdev01.org
+To: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	lwn@lwn.net, netdev01@lists.netfilter.org, lartc@vger.kernel.org,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-With this example, we can parse the elements in the ruleset and create the
-netlink message with the action associated. For example:
+Fellow netheads:
 
-- Flush ruleset
-- Add, delete or flush tables/chains
-- Add, delete sets
-- Add, delete set elements
-- Add, delete, replace or prepend rules
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
----
-[changes in v3]
- * Rename the example to use another more clear.
- * Change the help to explain better the use of this file.
+New Sponsors (All listed at: https://www.netdev01.org/sponsors)
+=============
+We are pleased to announce a sixth sponsor:
+CENGN http://www.cengn.ca/
 
- examples/Makefile.am              |    4 +
- examples/nft-ruleset-parse-file.c |  439 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 443 insertions(+)
- create mode 100644 examples/nft-ruleset-parse-file.c
 
-diff --git a/examples/Makefile.am b/examples/Makefile.am
-index fafcb76..e002d36 100644
---- a/examples/Makefile.am
-+++ b/examples/Makefile.am
-@@ -22,6 +22,7 @@ check_PROGRAMS = nft-table-add		\
- 		 nft-set-elem-get	\
- 		 nft-set-elem-del	\
- 		 nft-ruleset-get	\
-+		 nft-ruleset-parse-file	\
- 		 nft-compat-get
- 
- nft_table_add_SOURCES = nft-table-add.c
-@@ -90,5 +91,8 @@ nft_set_elem_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
- nft_ruleset_get_SOURCES = nft-ruleset-get.c
- nft_ruleset_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
- 
-+nft_ruleset_parse_file_SOURCES = nft-ruleset-parse-file.c
-+nft_ruleset_parse_file_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
-+
- nft_compat_get_SOURCES = nft-compat-get.c
- nft_compat_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
-diff --git a/examples/nft-ruleset-parse-file.c b/examples/nft-ruleset-parse-file.c
-new file mode 100644
-index 0000000..7e8d989
---- /dev/null
-+++ b/examples/nft-ruleset-parse-file.c
-@@ -0,0 +1,439 @@
-+/*
-+ * (C) 2014 by Alvaro Neira Ayuso <alvaroneay@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <stdlib.h>
-+#include <time.h>
-+#include <string.h>
-+#include <stddef.h>     /* for offsetof */
-+#include <netinet/in.h>
-+#include <netinet/ip.h>
-+#include <netinet/tcp.h>
-+#include <arpa/inet.h>
-+#include <sys/types.h>
-+#include <sys/socket.h>
-+#include <errno.h>
-+
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nfnetlink.h>
-+#include <linux/netfilter/nf_tables.h>
-+
-+#include <libmnl/libmnl.h>
-+#include <libnftnl/ruleset.h>
-+#include <libnftnl/table.h>
-+#include <libnftnl/chain.h>
-+#include <libnftnl/rule.h>
-+#include <libnftnl/set.h>
-+
-+struct mnl_nlmsg_batch *batch;
-+uint32_t seq;
-+
-+static int nft_ruleset_flush_rules(struct nft_parse_ctx *ctx);
-+
-+static int nft_ruleset_set_elems(struct nft_parse_ctx *ctx, uint32_t ctx_cmd)
-+{
-+	struct nft_set_elems_iter *iter_elems;
-+	struct nft_set_elem *elem;
-+	struct nft_set *tmp;
-+	uint16_t type = 0, cmd = 0;
-+	struct nlmsghdr *nlh;
-+	struct nft_set *set;
-+
-+	set = nft_ruleset_ctx_attr_get(ctx, NFT_RULESET_CTX_SET);
-+	if (set == NULL)
-+		return -1;
-+
-+	switch (ctx_cmd) {
-+	case NFT_CMD_ADD:
-+		cmd = NFT_MSG_NEWSETELEM;
-+		type = NLM_F_CREATE|NLM_F_EXCL|NLM_F_ACK;
-+		break;
-+	case NFT_CMD_DELETE:
-+		cmd = NFT_MSG_DELSETELEM;
-+		type = NLM_F_ACK;
-+		break;
-+	}
-+
-+	iter_elems = nft_set_elems_iter_create(set);
-+	elem = nft_set_elems_iter_next(iter_elems);
-+	while (elem != NULL) {
-+		tmp = nft_set_alloc();
-+		if (tmp == NULL)
-+			return -1;
-+
-+		nft_set_attr_set(tmp, NFT_SET_ATTR_TABLE,
-+				 nft_set_attr_get_str(set, NFT_SET_ATTR_TABLE));
-+		nft_set_attr_set(tmp, NFT_SET_ATTR_NAME,
-+				 nft_set_attr_get_str(set, NFT_SET_ATTR_NAME));
-+
-+		nft_set_elem_add(tmp, elem);
-+
-+		nlh = nft_set_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+					      cmd,
-+					      nft_set_attr_get_u32(set,
-+							   NFT_SET_ATTR_FAMILY),
-+					      type, seq++);
-+		nft_set_elems_nlmsg_build_payload(nlh, tmp);
-+		mnl_nlmsg_batch_next(batch);
-+		elem = nft_set_elems_iter_next(iter_elems);
-+	}
-+
-+	nft_set_free(set);
-+	return 0;
-+}
-+
-+static int nft_ruleset_set(struct nft_parse_ctx *ctx, uint32_t ctx_cmd)
-+{
-+
-+	struct nlmsghdr *nlh;
-+	uint16_t type = 0, cmd = 0;
-+	struct nft_set *set;
-+
-+	set = nft_ruleset_ctx_attr_get(ctx, NFT_RULESET_CTX_SET);
-+	if (set == NULL)
-+		return -1;
-+
-+	switch (ctx_cmd) {
-+	case NFT_CMD_ADD:
-+		cmd = NFT_MSG_NEWSET;
-+		type = NLM_F_CREATE|NLM_F_ACK;
-+		break;
-+	case NFT_CMD_DELETE:
-+		cmd = NFT_MSG_DELSET;
-+		type = NLM_F_ACK;
-+		break;
-+	}
-+
-+	nlh = nft_set_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+				      cmd,
-+				      nft_set_attr_get_u32(set,
-+							   NFT_SET_ATTR_FAMILY),
-+				      type,
-+				      seq++);
-+
-+	nft_set_nlmsg_build_payload(nlh, set);
-+
-+	mnl_nlmsg_batch_next(batch);
-+
-+	if (nft_ruleset_set_elems(ctx, ctx_cmd) < 0)
-+		return -1;
-+
-+	return 0;
-+}
-+
-+static int nft_ruleset_rule(struct nft_parse_ctx *ctx, uint32_t ctx_cmd)
-+{
-+	struct nlmsghdr *nlh;
-+	uint16_t type = 0, cmd = 0;
-+	struct nft_rule *rule;
-+
-+	rule = nft_ruleset_ctx_attr_get(ctx, NFT_RULESET_CTX_RULE);
-+	if (rule == NULL)
-+		return -1;
-+
-+	switch (ctx_cmd) {
-+	case NFT_CMD_ADD:
-+		cmd = NFT_MSG_NEWRULE;
-+		type = NLM_F_APPEND|NLM_F_CREATE|NLM_F_ACK;
-+		nft_rule_attr_unset(rule, NFT_RULE_ATTR_HANDLE);
-+		break;
-+	case NFT_CMD_DELETE:
-+		cmd = NFT_MSG_DELRULE;
-+		type = NLM_F_ACK;
-+		break;
-+	case NFT_CMD_REPLACE:
-+		cmd = NFT_MSG_NEWRULE;
-+		type = NLM_F_REPLACE|NLM_F_ACK;
-+		break;
-+	case NFT_CMD_INSERT:
-+		cmd = NFT_MSG_NEWRULE;
-+		type = NLM_F_CREATE|NLM_F_ACK;
-+		nft_rule_attr_unset(rule, NFT_RULE_ATTR_HANDLE);
-+		break;
-+	}
-+
-+	nlh = nft_rule_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+				       cmd,
-+				       nft_rule_attr_get_u32(rule,
-+							  NFT_RULE_ATTR_FAMILY),
-+				       type,
-+				       seq++);
-+
-+	nft_rule_nlmsg_build_payload(nlh, rule);
-+
-+	mnl_nlmsg_batch_next(batch);
-+	nft_rule_free(rule);
-+	return 0;
-+}
-+
-+static int nft_ruleset_chain(struct nft_parse_ctx *ctx, uint32_t ctx_cmd)
-+{
-+	struct nlmsghdr *nlh;
-+	uint16_t type = 0, cmd = 0;
-+	struct nft_chain *chain;
-+
-+	chain = nft_ruleset_ctx_attr_get(ctx, NFT_RULESET_CTX_CHAIN);
-+	if (chain == NULL)
-+		return -1;
-+
-+	switch (ctx_cmd) {
-+	case NFT_CMD_ADD:
-+		cmd = NFT_MSG_NEWCHAIN;
-+		type = NLM_F_CREATE|NLM_F_ACK;
-+		break;
-+	case NFT_CMD_DELETE:
-+		cmd = NFT_MSG_DELCHAIN;
-+		type = NLM_F_ACK;
-+		break;
-+	case NFT_CMD_FLUSH:
-+		return nft_ruleset_flush_rules(ctx);
-+	}
-+
-+	nft_chain_attr_unset(chain, NFT_CHAIN_ATTR_HANDLE);
-+	nlh = nft_chain_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+					cmd,
-+					nft_chain_attr_get_u32(chain,
-+							 NFT_CHAIN_ATTR_FAMILY),
-+					type,
-+					seq++);
-+
-+	nft_chain_nlmsg_build_payload(nlh, chain);
-+
-+	mnl_nlmsg_batch_next(batch);
-+	nft_chain_free(chain);
-+	return 0;
-+}
-+
-+static int nft_ruleset_table(struct nft_parse_ctx *ctx, uint32_t ctx_cmd)
-+{
-+	struct nlmsghdr *nlh;
-+	uint16_t type = 0, cmd = 0;
-+	struct nft_table *table;
-+
-+	table = nft_ruleset_ctx_attr_get(ctx, NFT_RULESET_CTX_TABLE);
-+	if (table == NULL)
-+		return -1;
-+
-+	switch (ctx_cmd) {
-+	case NFT_CMD_ADD:
-+		cmd = NFT_MSG_NEWTABLE;
-+		type = NLM_F_CREATE|NLM_F_ACK;
-+		break;
-+	case NFT_CMD_DELETE:
-+		cmd = NFT_MSG_DELTABLE;
-+		type = NLM_F_ACK;
-+		break;
-+	case NFT_CMD_FLUSH:
-+		return nft_ruleset_flush_rules(ctx);
-+	}
-+
-+	nlh = nft_table_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
-+					cmd,
-+					nft_table_attr_get_u32(table,
-+							 NFT_TABLE_ATTR_FAMILY),
-+					type,
-+					seq++);
-+
-+	nft_table_nlmsg_build_payload(nlh, table);
-+	mnl_nlmsg_batch_next(batch);
-+	nft_table_free(table);
-+	return 0;
-+}
-+
-+static int nft_ruleset_flush_rules(struct nft_parse_ctx *ctx)
-+{
-+	struct nft_rule *nlr;
-+	struct nft_table *nlt;
-+	struct nft_chain *nlc;
-+	uint32_t *type = nft_ruleset_ctx_attr_get(ctx,
-+						 NFT_RULESET_CTX_TYPE);
-+
-+	nlr = nft_rule_alloc();
-+	if (nlr == NULL)
-+		return -1;
-+
-+	switch (*type) {
-+	case NFT_RULESET_TYPE_TABLE:
-+		nlt = nft_ruleset_ctx_attr_get(ctx, NFT_RULESET_CTX_TABLE);
-+		nft_rule_attr_set(nlr, NFT_RULE_ATTR_TABLE,
-+				  nft_table_attr_get(nlt, NFT_TABLE_ATTR_NAME));
-+		nft_rule_attr_set(nlr, NFT_RULE_ATTR_FAMILY,
-+				nft_table_attr_get(nlt, NFT_TABLE_ATTR_FAMILY));
-+		break;
-+	case NFT_RULESET_TYPE_CHAIN:
-+		nlc = nft_ruleset_ctx_attr_get(ctx, NFT_RULESET_CTX_CHAIN);
-+		nft_rule_attr_set(nlr, NFT_RULE_ATTR_TABLE,
-+				  nft_chain_attr_get(nlc,
-+						     NFT_CHAIN_ATTR_TABLE));
-+		nft_rule_attr_set(nlr, NFT_RULE_ATTR_CHAIN,
-+				  nft_chain_attr_get(nlc,
-+						     NFT_CHAIN_ATTR_NAME));
-+		nft_rule_attr_set(nlr, NFT_RULE_ATTR_FAMILY,
-+				nft_chain_attr_get(nlc, NFT_TABLE_ATTR_FAMILY));
-+		break;
-+	}
-+
-+	nft_ruleset_ctx_attr_set(ctx, NFT_RULESET_CTX_RULE, nlr);
-+	return nft_ruleset_rule(ctx, NFT_CMD_DELETE);
-+}
-+
-+static int nft_ruleset_flush_ruleset(struct nft_parse_ctx *ctx)
-+{
-+	struct nft_table *nlt;
-+
-+	nlt = nft_table_alloc();
-+	if (nlt == NULL)
-+		return -1;
-+
-+	nft_ruleset_ctx_attr_set(ctx, NFT_RULESET_CTX_TABLE, nlt);
-+	return nft_ruleset_table(ctx, NFT_CMD_DELETE);
-+}
-+
-+static int ruleset_elems_cb(struct nft_parse_ctx *ctx)
-+{
-+	uint32_t *ctx_cmd = nft_ruleset_ctx_attr_get(ctx,
-+						     NFT_RULESET_CTX_CMD);
-+	uint32_t *type = nft_ruleset_ctx_attr_get(ctx,
-+						  NFT_RULESET_CTX_TYPE);
-+
-+	switch (*type) {
-+	case NFT_RULESET_TYPE_TABLE:
-+		if (nft_ruleset_table(ctx, *ctx_cmd) < 0)
-+			return -1;
-+		break;
-+	case NFT_RULESET_TYPE_CHAIN:
-+		if (nft_ruleset_chain(ctx, *ctx_cmd) < 0)
-+			return -1;
-+		break;
-+	case NFT_RULESET_TYPE_RULE:
-+		if (nft_ruleset_rule(ctx, *ctx_cmd) < 0)
-+			return -1;
-+		break;
-+	case NFT_RULESET_TYPE_SET:
-+		if (nft_ruleset_set(ctx, *ctx_cmd) < 0)
-+			return -1;
-+		break;
-+	case NFT_RULESET_TYPE_SET_ELEMS:
-+		if (nft_ruleset_set_elems(ctx, *ctx_cmd) < 0)
-+			return -1;
-+		break;
-+	case NFT_RULESET_TYPE_RULESET:
-+		if (nft_ruleset_flush_ruleset(ctx) < 0)
-+			return -1;
-+		break;
-+	}
-+	return 0;
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	struct nft_parse_err *err;
-+	const char *filename;
-+	FILE *fp;
-+	int ret = -1, len, batching, portid;
-+	uint32_t ruleset_seq;
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	struct mnl_socket *nl;
-+
-+	if (argc < 2) {
-+		printf("Usage: %s <file>\n", argv[0]);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	fp = fopen(argv[1], "r");
-+	if (fp == NULL) {
-+		printf("unable to open file %s: %s\n", argv[1],
-+		       strerror(errno));
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	err = nft_parse_err_alloc();
-+	if (err == NULL) {
-+		perror("error");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	batching = nft_batch_is_supported();
-+	if (batching < 0) {
-+		perror("Cannot talk to nfnetlink");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	seq = time(NULL);
-+	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
-+
-+	if (batching) {
-+		nft_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
-+		mnl_nlmsg_batch_next(batch);
-+	}
-+	ruleset_seq = seq;
-+
-+	filename = argv[1];
-+	len = strlen(filename);
-+	if (strcmp(&filename[len-5], ".json") == 0)
-+		ret = nft_ruleset_parse_file_cb(NFT_PARSE_JSON, fp, err, NULL,
-+						&ruleset_elems_cb);
-+	else if (strcmp(&filename[len-4], ".xml") == 0)
-+		ret = nft_ruleset_parse_file_cb(NFT_PARSE_XML, fp, err, NULL,
-+						&ruleset_elems_cb);
-+	else {
-+		printf("the filename %s must to end in .xml or .json\n",
-+			filename);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (ret < 0) {
-+		nft_parse_perror("fail", err);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	fclose(fp);
-+
-+	if (batching) {
-+		nft_batch_end(mnl_nlmsg_batch_current(batch), seq++);
-+		mnl_nlmsg_batch_next(batch);
-+	}
-+
-+	nl = mnl_socket_open(NETLINK_NETFILTER);
-+	if (nl == NULL) {
-+		perror("mnl_socket_open");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
-+		perror("mnl_socket_bind");
-+		exit(EXIT_FAILURE);
-+	}
-+	portid = mnl_socket_get_portid(nl);
-+
-+	mnl_nlmsg_fprintf(stdout, mnl_nlmsg_batch_head(batch),
-+			  mnl_nlmsg_batch_size(batch), sizeof(struct nfgenmsg));
-+
-+	if (mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
-+			      mnl_nlmsg_batch_size(batch)) < 0) {
-+		perror("mnl_socket_send");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	mnl_nlmsg_batch_stop(batch);
-+
-+	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+	while (ret > 0) {
-+		ret = mnl_cb_run(buf, ret, ruleset_seq, portid, NULL, NULL);
-+		if (ret <= 0)
-+			break;
-+		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+	}
-+	if (ret == -1) {
-+		perror("error");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	mnl_socket_close(nl);
-+	return EXIT_SUCCESS;
-+}
--- 
-1.7.10.4
+Hotel earlybird special rates have expired as of this past Friday.
+There are lots of big and small hotels in Ottawa, but they will fill up
+fast as Winterlude approaches, so book something soon.  There may be
+some possibilities to billet locally, but don't leave it last minute.
 
+The call for proposal deadline was this past Saturday, so expect a
+schedule to be published this week.
+
+
+Here is the post-CFP deadline update of the activity so far in NetDev
+0.1 you may have missed if you aren't following the RSS feed or twitter:
+
+
+Confirmed keynote speaker:
+==========================
+David S. Miller - The Current State of Linux kernel Networking.
+
+
+Accepted talks: (All listed: https://www.netdev01.org/sessions )
+==========================
+The case for eliminating inconsistencies between Linux kernel IPv4/IPv6 API
+https://www.netdev01.org/sessions/25
+Roopa Prabhu
+
+Networking in Containers and Container Clusters
+https://www.netdev01.org/sessions/27
+Victor Marmol
+
+ipvlan
+https://www.netdev01.org/sessions/28
+Mahesh Bandewar
+
+BIRD Internet Routing Daemon
+https://www.netdev01.org/sessions/29
+Ondrej Zajicek
+
+Cooperative networking virtualization for the industrial server applications
+https://www.netdev01.org/news/46
+Vasiliy Tolstoy, Sergey Kovalev
+
+
+Accepted Tutorials (All listed: https://www.netdev01.org/sessions )
+===================
+Hardware Accelerating Linux Network Functions
+https://www.netdev01.org/sessions/24
+Roopa Prabhu, Toshiaki Makita
+
+nftables tutorial
+https://www.netdev01.org/sessions/30
+Pablo Neira Ayuso, Patrick McHardy
+
+
+Accepted BoFs:
+===================
+Netfilter BoF
+https://www.netdev01.org/sessions/26
+Pete Bohmann, David Gervais, Josh Hunt
+
+
+All of the accepted proposals are new work.  A couple of proposals have been
+returned for rework prior to acceptance.  There are a few proposals
+currently making their way through the technical committee vetting
+process.  The committee has so far been very impressed with the quality
+of proposals submitted.
+
+
+More coming in future updates.
+If you've gotten this far reading - please go and register.
+Registration https://onlineregistrations.ca/netdev01/
+$100/day, or $350 for 4 days (Cdn dollars, reel cheep at the moment).
+(online reg closes Feb 12th). Again:
+Registering earlier rather than later helps us plan properly for numbers
+of attendees, ensuring venue sizes and supplies are appropriate without
+wasting resources.
+
+
+Sponsors:
+=========
+NetDev 0.1 would like to gratefully acknowledge all our sponsors: 
+https://netdev01.org/sponsors
+CENGN			http://www.cengn.ca/
+Google			https://www.google.ca
+Qualcomm		https://www.qualcomm.com/
+Verizon			http://www.verizon.com/
+Cumulus Networks	http://cumulusnetworks.com/
+Mojatatu Networks	http://mojatatu.com/
+
+
+Important Dates:
+==========================
+December 2, 2014	Call for Papers opens
+December 10, 2014	Registration opens
+January 23, 2015	Hotel discount rates deadline
+January 24, 2015	Call for sessions deadline
+February 12, 2015	On-line registration closes
+February 14-17, 2015	Conference days
+
+-------------------------------------------------------------------------------
+THE Technical Conference on Linux Networking, February 14-17, 2015, Ottawa, Canada
+https://netdev01.org/
+
+Contact:			info@netdev01.info
+Main site:			https://www.netdev01.org/
+Announcement:			https://www.netdev01.org/announce
+CFP:				https://www.netdev01.org/cfp
+Travel/hotel/weather/clothing:	https://www.netdev01.org/travel
+RSS feed:			https://netdev01.org/atom
+Follow us on Twitter: @netdev01	https://twitter.com/netdev01
