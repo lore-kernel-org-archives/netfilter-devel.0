@@ -1,7 +1,7 @@
-From: Thomas Graf <tgraf@suug.ch>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 1/2] rhashtable: Introduce rhashtable_walk_*
-Date: Tue, 27 Jan 2015 11:40:28 +0000
-Message-ID: <20150127114028.GG22262@casper.infradead.org>
+Date: Tue, 27 Jan 2015 13:09:50 +0000
+Message-ID: <20150127130950.GA3950@acer.localdomain>
 References: <20150126222259.GC30116@gondor.apana.org.au>
  <20150126.143613.1798698028405169123.davem@davemloft.net>
  <20150126224216.GA30551@gondor.apana.org.au>
@@ -14,23 +14,18 @@ References: <20150126222259.GC30116@gondor.apana.org.au>
  <20150127112304.GA4548@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, David.Laight@ACULAB.COM,
-	ying.xue@windriver.com, kaber@trash.net,
+Cc: Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>,
+	David.Laight@ACULAB.COM, ying.xue@windriver.com,
 	paulmck@linux.vnet.ibm.com, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 To: Herbert Xu <herbert@gondor.apana.org.au>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:37946 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752514AbbA0Lka (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Jan 2015 06:40:30 -0500
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20150127112304.GA4548@gondor.apana.org.au>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 01/27/15 at 10:23pm, Herbert Xu wrote:
+On 27.01, Herbert Xu wrote:
 > On Tue, Jan 27, 2015 at 11:16:04AM +0000, Thomas Graf wrote:
 > > 
 > > No objection. I have a patch prepared which allows the user to
@@ -46,19 +41,6 @@ On 01/27/15 at 10:23pm, Herbert Xu wrote:
 > for everybody, just those that always take a lock on inserts/removals
 > and therefore don't need per-bucket locks.
 
-Understood. No objection, happy to review patches. I initially did
-keep sync/async separate and it lead to considerable code duplication
-and complexity. I figured that if a user needs sync insert they could
-provide their own locking. I missed to allow controlling the async
-resize though. Again, feel free to give a shot, no objections.
-
-This is unrelated to resize run control though, the reason is that
-I'm converting tcp_hashinfo et al and they require a hybrid approach.
-The tables may be too big to construct a parallel data structure, we
-don't want to hold off inserts or deletes while the expensive dump
-is underway. Even though we can't build a shadow structure while
-locking everybody else out, we still want to provide a way to somehow
-achieve consistent information. I think that NLM_F_INTR with fallback
-to restarting the dump is a good option and very easy to implement. In
-that case, we want to lock out resize from dumping iterations but
-still allow parallel insert/delete.
+Actually I have a patchset queued that adds runtime additions and
+removals, both active and timeout based. So netfilter won't have
+pure synchronous behaviour anymore.
