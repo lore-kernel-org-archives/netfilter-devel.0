@@ -1,46 +1,37 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2] rhashtable: Introduce rhashtable_walk_*
-Date: Tue, 27 Jan 2015 13:09:50 +0000
-Message-ID: <20150127130950.GA3950@acer.localdomain>
-References: <20150126222259.GC30116@gondor.apana.org.au>
- <20150126.143613.1798698028405169123.davem@davemloft.net>
- <20150126224216.GA30551@gondor.apana.org.au>
- <20150126233100.GA31108@gondor.apana.org.au>
- <20150127094541.GC22262@casper.infradead.org>
- <20150127095454.GA2695@gondor.apana.org.au>
- <20150127101512.GE22262@casper.infradead.org>
- <20150127102420.GA3777@gondor.apana.org.au>
- <20150127111604.GF22262@casper.infradead.org>
- <20150127112304.GA4548@gondor.apana.org.au>
+From: "Ander Juaristi Alamos" <ajuaristi@gmx.es>
+Subject: I want to help. Pointers?
+Date: Tue, 27 Jan 2015 15:54:37 +0100
+Message-ID: <trinity-571be5ef-c013-4701-a21f-61e757c49572-1422370477691@3capp-mailcom-bs06>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>,
-	David.Laight@ACULAB.COM, ying.xue@windriver.com,
-	paulmck@linux.vnet.ibm.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150127112304.GA4548@gondor.apana.org.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mout.gmx.net ([212.227.15.15]:51823 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754644AbbA0Oyk convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Jan 2015 09:54:40 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 27.01, Herbert Xu wrote:
-> On Tue, Jan 27, 2015 at 11:16:04AM +0000, Thomas Graf wrote:
-> > 
-> > No objection. I have a patch prepared which allows the user to
-> > provide ht->mutex himself so nfset can provide its own existing
-> > mutex to rhashtable and lock out the resizes from inserts,
-> > removals and dump iterations automatically That would restore the
-> > old behaviour of the nfset API without major surgery.
-> 
-> If you take the mutex you might as well just make it synchronous.
-> There is zero difference.
-> 
-> Maybe you misunderstood my email.  I'm not making it synchronous
-> for everybody, just those that always take a lock on inserts/removals
-> and therefore don't need per-bucket locks.
+Hi all,
 
-Actually I have a patchset queued that adds runtime additions and
-removals, both active and timeout based. So netfilter won't have
-pure synchronous behaviour anymore.
+I'd love to help with this project. I was thinking of starting with nft=
+, fixing some of the bugs listed in its Bugzilla page. However, I can't=
+ see much activity there. All the submitted bugs have status "NEW" (exc=
+ept one), and are assigned to the same person, which I think is the def=
+ault. Is it OK if I pick one item from the list and start working on it=
+ (after discussing it with you, of course), or do they have to be revie=
+wed first? I haven't found any formal instructions of working with bugs=
+/feature requests apart from the guidelines provided at http://www.netf=
+ilter.org/documentation/FAQ/netfilter-faq-4.html#ss4.4.
+=C2=A0
+Regards,
+
+- AJ
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
