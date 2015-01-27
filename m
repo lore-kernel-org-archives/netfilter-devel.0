@@ -1,7 +1,7 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
+From: Thomas Graf <tgraf@suug.ch>
 Subject: Re: [PATCH 1/2] rhashtable: Introduce rhashtable_walk_*
-Date: Tue, 27 Jan 2015 21:24:20 +1100
-Message-ID: <20150127102420.GA3777@gondor.apana.org.au>
+Date: Tue, 27 Jan 2015 11:16:04 +0000
+Message-ID: <20150127111604.GF22262@casper.infradead.org>
 References: <E1YFWUl-0004gE-SH@gondolin.me.apana.org.au>
  <063D6719AE5E284EB5DD2968C1650D6D1CAD2C12@AcuExch.aculab.com>
  <20150126222259.GC30116@gondor.apana.org.au>
@@ -11,50 +11,29 @@ References: <E1YFWUl-0004gE-SH@gondolin.me.apana.org.au>
  <20150127094541.GC22262@casper.infradead.org>
  <20150127095454.GA2695@gondor.apana.org.au>
  <20150127101512.GE22262@casper.infradead.org>
+ <20150127102420.GA3777@gondor.apana.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: David Miller <davem@davemloft.net>, David.Laight@ACULAB.COM,
 	ying.xue@windriver.com, kaber@trash.net,
 	paulmck@linux.vnet.ibm.com, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: Thomas Graf <tgraf@suug.ch>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from helcar.apana.org.au ([209.40.204.226]:40791 "EHLO
-	helcar.apana.org.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757465AbbA0KYy (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Jan 2015 05:24:54 -0500
+To: Herbert Xu <herbert@gondor.apana.org.au>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150127101512.GE22262@casper.infradead.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20150127102420.GA3777@gondor.apana.org.au>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jan 27, 2015 at 10:15:12AM +0000, Thomas Graf wrote:
->
-> Because libraries like libnl already handle this transparently for
-> various user space apps. Those apps are not even aware of the problem
-> and always get a consistent dump if the kernel implements INTR.
+On 01/27/15 at 09:24pm, Herbert Xu wrote:
+> The point is that for netfilter as it stands it makes no sense
+> to go lockless because its modus operandi is to hold a single
+> lock over everything, including walking/dumping.
 
-Did you see Dave's message? He said those that dump need to create
-their own data structure so there is no point in proceeding with
-any of this work within rhashtable.
- 
-> Because making it synchronous does not help the Netlink dump problem
-> at all, see below.
-> 
-> Also, a sync resize causes a random inserts/removal to take a lot
-> longer. This leads to less predictable insert/removal times. I have
-> no objection to offering both sync and async resizing as long as the
-> choice of balance is configurable.
+No objection. I have a patch prepared which allows the user to
+provide ht->mutex himself so nfset can provide its own existing
+mutex to rhashtable and lock out the resizes from inserts,
+removals and dump iterations automatically That would restore the
+old behaviour of the nfset API without major surgery.
 
-So what?  They can switch over to lockless mode if they care.
-
-The point is that for netfilter as it stands it makes no sense
-to go lockless because its modus operandi is to hold a single
-lock over everything, including walking/dumping.
-
-Cheers,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+I was just waiting on your walker as you requested a hold off.
