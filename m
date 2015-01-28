@@ -1,42 +1,103 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2] rhashtable: Introduce rhashtable_walk_*
-Date: Wed, 28 Jan 2015 19:07:16 +0000
-Message-ID: <20150128190715.GA4764@acer.localdomain>
-References: <20150126224216.GA30551@gondor.apana.org.au>
- <20150126233100.GA31108@gondor.apana.org.au>
- <20150127094541.GC22262@casper.infradead.org>
- <20150127095454.GA2695@gondor.apana.org.au>
- <20150127101512.GE22262@casper.infradead.org>
- <20150127102420.GA3777@gondor.apana.org.au>
- <20150127111604.GF22262@casper.infradead.org>
- <20150127112304.GA4548@gondor.apana.org.au>
- <20150127130950.GA3950@acer.localdomain>
- <20150127203657.GA9061@gondor.apana.org.au>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
+Subject: NetDev 0.1 Schedule delay update
+Date: Wed, 28 Jan 2015 08:24:47 -0500
+Message-ID: <54C8E31F.5080808@mojatatu.com>
+Reply-To: info@netdev01.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>,
-	David.Laight@ACULAB.COM, ying.xue@windriver.com,
-	paulmck@linux.vnet.ibm.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54326 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757963AbbA1U05 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Jan 2015 15:26:57 -0500
-Content-Disposition: inline
-In-Reply-To: <20150127203657.GA9061@gondor.apana.org.au>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: info@netdev01.org, speakers@netdev01.org, attendees@netdev01.org
+To: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	lwn@lwn.net, netdev01@lists.netfilter.org, lartc@vger.kernel.org,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 28.01, Herbert Xu wrote:
-> On Tue, Jan 27, 2015 at 01:09:50PM +0000, Patrick McHardy wrote:
-> >
-> > Actually I have a patchset queued that adds runtime additions and
-> > removals, both active and timeout based. So netfilter won't have
-> > pure synchronous behaviour anymore.
-> 
-> Can you show us the patchset?
 
-Sure, will send it over tomorrow.
+Fellow netheads,
+
+On behalf of rgb and the tech committee:
+
+Schedule update
+----------------
+We apologize, the schedule will not be ready until Thursday.
+The content is so good we are having a hard time coming up
+with a schedule which is not going to conflict with anybody's interest.
+
+We have finalized all the technical content. Every accepted proposal is
+now listed at:
+https://www.netdev01.org/sessions
+
+To help you plan your trip it should be understood that we are planning
+to have the first two days to be tutorial, workshop and BOF days. The
+next two days to be talks. There are some non-technical BOFs which
+are still in the pipeline - watch the RSS feed or twitter.
+
+New talks since last time:
+--------------------------
+John Fastabend - Flow API: An abstraction for hardware flow tables
+https://www.netdev01.org/news/50
+
+New Tutorials since last time:
+------------------------------
+1) Cong Wang, Jamal Hadi Salim - Linux Traffic Control (TC) tutorial
+https://www.netdev01.org/news/48
+2) Jon Maloy - Introduction to basics of TIPC
+https://www.netdev01.org/news/49
+
+And as rgb already posted,Hotel update:
+
+The hotel has agreed, on a best effort basis to extend the
+netdev01 rate of $159.00 or $179.00 (depending on the type of room
+required).  Please dont procastinate and book now.  We are competing
+against a few tourist activities for hotel rooms going on around the
+area at the same time (example:
+http://www.ottawafestivals.ca/events/winterlude-2/).
+
+Do your reservations at:
+https://www.starwoodmeeting.com/StarGroupsWeb/res?id=1412035802&key=1AC9C1F8
+
+If you dont succeed getting the reservation, send us email at
+info at netdev01.org; we will try to bat for you but we cant guarantee
+results.
+
+conference registration at:
+https://onlineregistrations.ca/netdev01/
+
+Sponsors:
+=========
+NetDev 0.1 would like to gratefully acknowledge all our sponsors:
+https://netdev01.org/sponsors
+CENGN                   http://www.cengn.ca/
+Google                  https://www.google.ca
+Qualcomm                https://www.qualcomm.com/
+Verizon                 http://www.verizon.com/
+Cumulus Networks        http://cumulusnetworks.com/
+Mojatatu Networks       http://mojatatu.com/
+
+Important Dates:
+==========================
+December 2, 2014        Call for Papers opens
+December 10, 2014       Registration opens
+January 23, 2015        Hotel discount rates deadline
+January 24, 2015        Call for sessions deadline
+February 12, 2015       On-line registration closes
+February 14-17, 2015    Conference days
+
+-------------------------------------------------------------------------------
+THE Technical Conference on Linux Networking, February 14-17, 2015, 
+Ottawa, Canada
+https://netdev01.org/
+
+Contact:                        info@xxxxxxxxxxxxx
+Main site:                      https://www.netdev01.org/
+Announcement:                   https://www.netdev01.org/announce
+CFP:                            https://www.netdev01.org/cfp
+Travel/hotel/weather/clothing:  https://www.netdev01.org/travel
+RSS feed:                       https://netdev01.org/atom
+Follow us on Twitter: @netdev01 https://twitter.com/netdev01
+
+
+cheers,
+jamal
