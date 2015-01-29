@@ -1,29 +1,41 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [PATCH 2/2] netlink: Use rhashtable walk iterator
-Date: Thu, 29 Jan 2015 22:27:08 +0000
-Message-ID: <20150129222708.GC12928@casper.infradead.org>
-References: <20150127231950.GA11374@gondor.apana.org.au>
- <E1YGFRB-0002yg-Ry@gondolin.me.apana.org.au>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/2] rhashtable: Add walk iterator primitives and use
+ them in netlink
+Date: Thu, 29 Jan 2015 14:42:46 -0800 (PST)
+Message-ID: <20150129.144246.1383921666389409323.davem@davemloft.net>
+References: <20150122084924.GA4720@gondor.apana.org.au>
+	<20150125232040.GA17936@gondor.apana.org.au>
+	<20150127231950.GA11374@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Ying Xue <ying.xue@windriver.com>, davem@davemloft.net,
-	kaber@trash.net, paulmck@linux.vnet.ibm.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: tgraf@suug.ch, ying.xue@windriver.com, kaber@trash.net,
+	paulmck@linux.vnet.ibm.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: herbert@gondor.apana.org.au
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <E1YGFRB-0002yg-Ry@gondolin.me.apana.org.au>
+In-Reply-To: <20150127231950.GA11374@gondor.apana.org.au>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 01/28/15 at 10:20am, Herbert Xu wrote:
-> This patch gets rid of the manual rhashtable walk in netlink
-> which touches rhashtable internals that should not be exposed.
-> It does so by using the rhashtable iterator primitives.
-> 
-> In fact the existing code was very buggy.  Some sockets weren't
-> shown at all while others were shown more than once.
->  
-> Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Date: Wed, 28 Jan 2015 10:19:50 +1100
 
-Acked-by: Thomas Graf <tgraf@suug.ch>
+> On Mon, Jan 26, 2015 at 10:20:40AM +1100, Herbert Xu wrote:
+>> 
+>> Here are the first two patches, one to add the primitives and one
+>> to demonstrate its use in netlink.  In fact while testing this I
+>> found that the existing netlink walking code is totally broken.
+> 
+> So this is a repost of the same thing.  These lockless iterators
+> won't be usable by netfilter as it stands because it wants to do
+> nested walks and also isn't currently lockless.
+> 
+> However, I'll wait for Patrick to post his pending patches to see
+> what exactly he needs before implementing helpers for that case.
+
+I'm holding off on this series for now.
+
+Let me know if you want me to do something different.
+
+Thanks.
