@@ -1,106 +1,52 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCHv4 RFC 1/1] bridge: forward IPv6 fragmented packets when
  passing netfilter
-Date: Fri, 30 Jan 2015 18:17:01 +0100
-Message-ID: <20150130171701.GA7529@salvia>
+Date: Fri, 30 Jan 2015 18:25:20 +0100
+Message-ID: <20150130172520.GA7545@salvia>
 References: <20150127093951.GE1373@breakpoint.cc>
  <1422400522-9306-1-git-send-email-bernhard.thaler@wvnet.at>
+ <20150130171701.GA7529@salvia>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="sm4nu43k4a2Rpi4c"
+Content-Type: multipart/mixed; boundary="5mCyUwZo2JvN/JJP"
 Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
 To: Bernhard Thaler <bernhard.thaler@wvnet.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57991 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59223 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752114AbbA3ROB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Jan 2015 12:14:01 -0500
+	id S1759704AbbA3RWR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 Jan 2015 12:22:17 -0500
 Content-Disposition: inline
-In-Reply-To: <1422400522-9306-1-git-send-email-bernhard.thaler@wvnet.at>
+In-Reply-To: <20150130171701.GA7529@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---sm4nu43k4a2Rpi4c
+--5mCyUwZo2JvN/JJP
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-On Wed, Jan 28, 2015 at 12:15:21AM +0100, Bernhard Thaler wrote:
-> -#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
->  static int br_nf_dev_queue_xmit(struct sk_buff *skb)
+On Fri, Jan 30, 2015 at 06:17:01PM +0100, Pablo Neira Ayuso wrote:
+> On Wed, Jan 28, 2015 at 12:15:21AM +0100, Bernhard Thaler wrote:
+> > -#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
+> >  static int br_nf_dev_queue_xmit(struct sk_buff *skb)
+> 
+> Made small changes to this function, see patch attached.
+> 
+> >  {
+> >  	int ret;
+> >  	int frag_max_size;
 
-Made small changes to this function, see patch attached.
+Actually, we can also get rid of this frag_max_size variable,
+otherwise we'll have a compilation warning with NF_DEFRAG disabled for
+both IPv4 and IPv6.
 
->  {
->  	int ret;
->  	int frag_max_size;
-> +#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
-> +	const struct nf_ipv6_ops *v6ops = nf_get_ipv6_ops();
+So I made this small change too.
 
-declare this variable and initialize in the scope of the if() branch.
-
-> +#endif
->  
->  	/* This is wrong! We should preserve the original fragment
->  	 * boundaries by preserving frag_list rather than refragmenting.
->  	 */
-> +#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
->  	if (skb->protocol == htons(ETH_P_IP) &&
->  	    skb->len + nf_bridge_mtu_reduction(skb) > skb->dev->mtu &&
->  	    !skb_is_gso(skb)) {
-> @@ -781,17 +817,30 @@ static int br_nf_dev_queue_xmit(struct sk_buff *skb)
->  			return NF_DROP;
->  		IPCB(skb)->frag_max_size = frag_max_size;
->  		ret = ip_fragment(skb, br_dev_queue_push_xmit);
-> -	} else
-> -		ret = br_dev_queue_push_xmit(skb);
-> +		return ret;
-
-removed ret, instead simply return ip_fragment(...)
-
-> +	}
-> +#endif
-> +#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
-> +	if (skb->protocol == htons(ETH_P_IPV6) &&
-> +	    skb->len + nf_bridge_mtu_reduction(skb) > skb->dev->mtu &&
-> +	    !skb_is_gso(skb)) {
-> +		frag_max_size = BR_INPUT_SKB_CB(skb)->frag_max_size;
-> +		if (br_validate_ipv6(skb))
-> +			/* Drop invalid packet */
-> +			return NF_DROP;
-> +		IP6CB(skb)->frag_max_size = frag_max_size;
-> +
-> +		if (v6ops) {
-> +			ret = v6ops->fragment(skb, br_dev_queue_push_xmit);
-> +			return ret;
-> +		}
-
-add else here and return -EMSGSIZE. I think it's not worth even try to
-send the packet when is larger than mtu.
-
-> +	}
-> +#endif
-> +
-> +	ret = br_dev_queue_push_xmit(skb);
->  
->  	return ret;
->  }
-
-See patch attached with the minor changes that I indicated above.
-
-BTW, will you also follow up with a new version of
-
-http://patchwork.ozlabs.org/patch/418305/ ?
-
-that applies on top of this change, which is the original patch that
-you needed mainstream.
-
-Let me know, thanks.
-
---sm4nu43k4a2Rpi4c
+--5mCyUwZo2JvN/JJP
 Content-Type: text/x-diff; charset=us-ascii
 Content-Disposition: attachment; filename="0001-br_netfilter-forward-IPv6-fragmented-packets-when-pa.patch"
 
->From 01ef54eb933cd5effcf34f1e0d33b90979d3a659 Mon Sep 17 00:00:00 2001
+>From 0e5b1418f97c0ad044257bcd57f3bb9589736db2 Mon Sep 17 00:00:00 2001
 From: Bernhard Thaler <bernhard.thaler@wvnet.at>
 Date: Wed, 28 Jan 2015 00:15:21 +0100
 Subject: [PATCH] br_netfilter: forward IPv6 fragmented packets when passing
@@ -191,11 +137,11 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
  include/linux/netfilter_ipv6.h |    1 +
  include/net/ipv6.h             |    1 +
- net/bridge/br_netfilter.c      |  225 ++++++++++++++++++++++++----------------
+ net/bridge/br_netfilter.c      |  229 +++++++++++++++++++++++-----------------
  net/bridge/br_private.h        |    6 +-
  net/ipv6/ip6_output.c          |    1 +
  net/ipv6/netfilter.c           |    1 +
- 6 files changed, 143 insertions(+), 92 deletions(-)
+ 6 files changed, 143 insertions(+), 96 deletions(-)
 
 diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
 index 64dad1cc..7c832ba 100644
@@ -222,7 +168,7 @@ index 4292929..aecbead 100644
  /*
   *	Equivalent of ipv4 struct ip
 diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index 65728e0..8b6d693 100644
+index 65728e0..01b01b8 100644
 --- a/net/bridge/br_netfilter.c
 +++ b/net/bridge/br_netfilter.c
 @@ -34,6 +34,7 @@
@@ -451,7 +397,7 @@ index 65728e0..8b6d693 100644
  		return NF_DROP;
  
  	nf_bridge_put(skb->nf_bridge);
-@@ -763,15 +796,14 @@ static unsigned int br_nf_forward_arp(const struct nf_hook_ops *ops,
+@@ -763,35 +796,41 @@ static unsigned int br_nf_forward_arp(const struct nf_hook_ops *ops,
  	return NF_STOLEN;
  }
  
@@ -459,8 +405,8 @@ index 65728e0..8b6d693 100644
  static int br_nf_dev_queue_xmit(struct sk_buff *skb)
  {
 -	int ret;
- 	int frag_max_size;
- 
+-	int frag_max_size;
+-
  	/* This is wrong! We should preserve the original fragment
  	 * boundaries by preserving frag_list rather than refragmenting.
  	 */
@@ -468,13 +414,15 @@ index 65728e0..8b6d693 100644
  	if (skb->protocol == htons(ETH_P_IP) &&
  	    skb->len + nf_bridge_mtu_reduction(skb) > skb->dev->mtu &&
  	    !skb_is_gso(skb)) {
-@@ -780,18 +812,29 @@ static int br_nf_dev_queue_xmit(struct sk_buff *skb)
+-		frag_max_size = BR_INPUT_SKB_CB(skb)->frag_max_size;
+ 		if (br_parse_ip_options(skb))
  			/* Drop invalid packet */
  			return NF_DROP;
- 		IPCB(skb)->frag_max_size = frag_max_size;
+-		IPCB(skb)->frag_max_size = frag_max_size;
 -		ret = ip_fragment(skb, br_dev_queue_push_xmit);
 -	} else
 -		ret = br_dev_queue_push_xmit(skb);
++		IPCB(skb)->frag_max_size = BR_INPUT_SKB_CB(skb)->frag_max_size;
 +		return ip_fragment(skb, br_dev_queue_push_xmit);
 +	}
 +#endif
@@ -483,6 +431,11 @@ index 65728e0..8b6d693 100644
 +	    skb->len + nf_bridge_mtu_reduction(skb) > skb->dev->mtu &&
 +	    !skb_is_gso(skb)) {
 +		const struct nf_ipv6_ops *v6ops = nf_get_ipv6_ops();
++
++		if (br_validate_ipv6(skb))
++			/* Drop invalid packet */
++			return NF_DROP;
++		IP6CB(skb)->frag_max_size = BR_INPUT_SKB_CB(skb)->frag_max_size;
  
 -	return ret;
 -}
@@ -491,12 +444,6 @@ index 65728e0..8b6d693 100644
 -{
 -        return br_dev_queue_push_xmit(skb);
 -}
-+		frag_max_size = BR_INPUT_SKB_CB(skb)->frag_max_size;
-+		if (br_validate_ipv6(skb))
-+			/* Drop invalid packet */
-+			return NF_DROP;
-+		IP6CB(skb)->frag_max_size = frag_max_size;
-+
 +		if (v6ops)
 +			return v6ops->fragment(skb, br_dev_queue_push_xmit);
 +		else
@@ -560,4 +507,4 @@ index 398377a..3080815 100644
 1.7.10.4
 
 
---sm4nu43k4a2Rpi4c--
+--5mCyUwZo2JvN/JJP--
