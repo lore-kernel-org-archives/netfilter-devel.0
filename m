@@ -1,34 +1,34 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH 9/9] netfilter: nf_tables: add support for dynamic set
- updates
-Date: Fri, 30 Jan 2015 20:28:45 +1100
-Message-ID: <20150130092845.GA18725@gondor.apana.org.au>
-References: <1422603994-5836-1-git-send-email-kaber@trash.net>
- <1422603994-5836-10-git-send-email-kaber@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 9/9] netfilter: nf_tables: add support for dynamic set updates
+Date: Fri, 30 Jan 2015 10:08:46 +0000
+Message-ID: <C08F666A-DAAF-4C61-A9F3-DBB3D936B4B4@trash.net>
+References: <1422603994-5836-1-git-send-email-kaber@trash.net> <1422603994-5836-10-git-send-email-kaber@trash.net> <20150130092845.GA18725@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Cc: tgraf@suug.ch, davem@davemloft.net, David.Laight@ACULAB.COM,
 	ying.xue@windriver.com, paulmck@linux.vnet.ibm.com,
 	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Herbert Xu <herbert@gondor.apana.org.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from helcar.apana.org.au ([209.40.204.226]:42347 "EHLO
-	helcar.apana.org.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759856AbbA3J3Z (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:35205 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753675AbbA3KJA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Jan 2015 04:29:25 -0500
-Content-Disposition: inline
-In-Reply-To: <1422603994-5836-10-git-send-email-kaber@trash.net>
+	Fri, 30 Jan 2015 05:09:00 -0500
+In-Reply-To: <20150130092845.GA18725@gondor.apana.org.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jan 30, 2015 at 07:46:34AM +0000, Patrick McHardy wrote:
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
+Am 30. Januar 2015 09:28:45 GMT+00:00, schrieb Herbert Xu <herbert@gondor.apana.org.au>:
+>On Fri, Jan 30, 2015 at 07:46:34AM +0000, Patrick McHardy wrote:
+>> Signed-off-by: Patrick McHardy <kaber@trash.net>
+>
+>I presume this can't create any jumps/gotos, right?
 
-I presume this can't create any jumps/gotos, right?
+So far not, just data mappings. Not sure yet if there is a valid use case for jumps.
+>
+>Thanks,
 
-Thanks,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+
