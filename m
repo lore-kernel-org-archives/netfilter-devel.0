@@ -1,36 +1,103 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ebtables-compat PATCH 2/2] ebtables-compat: add mark target
- extension
-Date: Fri, 30 Jan 2015 19:51:55 +0100
-Message-ID: <20150130185155.GB23146@salvia>
-References: <20150129164433.21224.14657.stgit@nfdev.cica.es>
- <20150129164439.21224.8860.stgit@nfdev.cica.es>
+Subject: Re: [libnftnl PATCH 3/4 v4] example: Parse and create netlink
+ message using the new parsing functions.
+Date: Fri, 30 Jan 2015 20:43:53 +0100
+Message-ID: <20150130194353.GA23741@salvia>
+References: <1422628525-28109-1-git-send-email-alvaroneay@gmail.com>
+ <1422628525-28109-3-git-send-email-alvaroneay@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45635 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51876 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751820AbbA3Ssv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Jan 2015 13:48:51 -0500
+	id S1751342AbbA3Tkt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 Jan 2015 14:40:49 -0500
 Content-Disposition: inline
-In-Reply-To: <20150129164439.21224.8860.stgit@nfdev.cica.es>
+In-Reply-To: <1422628525-28109-3-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 29, 2015 at 05:44:39PM +0100, Arturo Borrero Gonzalez wrote:
-> +static void brmark_final_check(unsigned int flags)
+On Fri, Jan 30, 2015 at 03:35:24PM +0100, Alvaro Neira Ayuso wrote:
+> +							   NFT_SET_ATTR_FAMILY),
+> +					      type, seq++);
+> +		nft_set_elems_nlmsg_build_payload(nlh, tmp);
+> +		mnl_nlmsg_batch_next(batch);
+> +		elem = nft_set_elems_iter_next(iter_elems);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int nft_ruleset_set(const struct nft_parse_ctx *ctx, uint32_t ctx_cmd)
 > +{
-> +	if (!flags)
-> +		xtables_error(PARAMETER_PROBLEM,
-> +			      "You must specify some option");
+> +
+> +	struct nlmsghdr *nlh;
+> +	uint16_t type = 0, cmd = 0;
+> +	struct nft_set *set;
+> +
+> +	set = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_SET);
+> +	if (set == NULL)
+> +		return -1;
+> +
+> +	switch (ctx_cmd) {
+> +	case NFT_CMD_ADD:
+> +		cmd = NFT_MSG_NEWSET;
 
-You can provide better error reporting by checking this flags:
+Please, choose variable name that stick to the semantics: this is nl_type.
 
-        if (!(flags & OPTION1 | OPTION2 | OPTION3))
-                xtables_error(..., "you have to specify at least one of these: --option1, --option2, --option3");
-        if (!(flags & OPTION4))
-                xtables_error(..., "--option4 is mandatory");
+> +		type = NLM_F_CREATE|NLM_F_ACK;
 
-Please, revisit this.
+and this is nl_flags.
+
+Then, you don't need that ctx_cmd and cmd. Make this change to all
+similar functions in this code.
+
+> +		break;
+> +	case NFT_CMD_DELETE:
+> +		cmd = NFT_MSG_DELSET;
+> +		type = NLM_F_ACK;
+> +		break;
+> +	}
+> +
+> +	nlh = nft_set_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
+> +				      cmd,
+> +				      nft_set_attr_get_u32(set,
+> +							   NFT_SET_ATTR_FAMILY),
+> +				      type,
+> +				      seq++);
+> +
+> +	nft_set_nlmsg_build_payload(nlh, set);
+> +
+> +	mnl_nlmsg_batch_next(batch);
+> +
+> +	if (nft_ruleset_set_elems(ctx, ctx_cmd) < 0)
+> +		return -1;
+> +
+> +	return 0;
+> +}
+> +
+> +static int nft_ruleset_rule(const struct nft_parse_ctx *ctx, uint32_t ctx_cmd,
+> +			    struct nft_rule *nlr)
+> +{
+> +	struct nlmsghdr *nlh;
+> +	uint16_t type = 0, cmd = 0;
+> +	struct nft_rule *rule;
+> +
+> +	if (nft_ruleset_ctx_is_set(ctx, NFT_RULESET_CTX_RULE))
+> +		rule = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_RULE);
+> +	else
+> +		rule = nlr;
+> +
+> +	if (rule == NULL)
+> +		return -1;
+> +
+> +	switch (ctx_cmd) {
+> +	case NFT_CMD_ADD:
+> +		cmd = NFT_MSG_NEWRULE;
+> +		type = NLM_F_APPEND|NLM_F_CREATE|NLM_F_ACK;
+> +		nft_rule_attr_unset(rule, NFT_RULE_ATTR_HANDLE);
+
+This reminds me that we need a NFT_RULE_OF_NOHANDLE to skip exporting
+the handling on demand via nft_rule_snprintf().
