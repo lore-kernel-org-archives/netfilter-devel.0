@@ -1,40 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/9] nftables: reject NFT_SET_ELEM_INTERVAL_END flag for
- non-interval sets
-Date: Fri, 30 Jan 2015 19:00:21 +0100
-Message-ID: <20150130180021.GA12318@salvia>
-References: <1422603994-5836-1-git-send-email-kaber@trash.net>
- <1422603994-5836-3-git-send-email-kaber@trash.net>
- <20150130173107.GA9243@salvia>
- <20150130175525.GA8670@acer.localdomain>
+Subject: Re: [nf-next PATCH v2] netfilter: nft_compat: add ebtables support
+Date: Fri, 30 Jan 2015 19:00:45 +0100
+Message-ID: <20150130180045.GA12255@salvia>
+References: <20150129183432.12221.94390.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: herbert@gondor.apana.org.au, tgraf@suug.ch, davem@davemloft.net,
-	David.Laight@ACULAB.COM, ying.xue@windriver.com,
-	paulmck@linux.vnet.ibm.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36308 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36347 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759733AbbA3R5Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Jan 2015 12:57:25 -0500
+	id S1759733AbbA3R5s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 Jan 2015 12:57:48 -0500
 Content-Disposition: inline
-In-Reply-To: <20150130175525.GA8670@acer.localdomain>
+In-Reply-To: <20150129183432.12221.94390.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jan 30, 2015 at 05:55:26PM +0000, Patrick McHardy wrote:
-> On 30.01, Pablo Neira Ayuso wrote:
-> > Hi Patrick,
-> > 
-> > Unless you have any concern, I'm going to apply this and 8/9 to
-> > nf-next, so you don't need to resend these two sanitization fixes.
+On Thu, Jan 29, 2015 at 07:34:42PM +0100, Arturo Borrero Gonzalez wrote:
+> This patch extends nft_compat to support ebtables extensions.
 > 
-> This one is not needed for mainline so far since nft_hash validates
-> on its own. It is only required since my series centralizes that
-> validation once the set extensions are added.
-> 
-> For 8/9, sure.
+> ebtables verdict codes are translated to the ones used by the nf_tables engine,
+> so we can properly use ebtables target extensions from nft_compat.
 
-OK, I'll take 8/9 then, thanks!
+Applied with minor nitpick, thanks Arturo.
+
+> diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+> index 265e190..73ec6ef 100644
+> --- a/net/netfilter/nft_compat.c
+> +++ b/net/netfilter/nft_compat.c
+> @@ -66,7 +68,7 @@ static void nft_target_eval(const struct nft_expr *expr,
+>  	if (pkt->xt.hotdrop)
+>  		ret = NF_DROP;
+>  
+> -	switch(ret) {
+> +	switch (ret) {
+>  	case XT_CONTINUE:
+>  		data[NFT_REG_VERDICT].verdict = NFT_CONTINUE;
+>  		break;
+> @@ -74,6 +76,44 @@ static void nft_target_eval(const struct nft_expr *expr,
+>  		data[NFT_REG_VERDICT].verdict = ret;
+>  		break;
+>  	}
+> +
+> +	return;
+
+Removed this return, we don't need it.
+
+> +}
