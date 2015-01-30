@@ -1,297 +1,188 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH 9/9] netfilter: nf_tables: add support for dynamic set
- updates
-Date: Fri, 30 Jan 2015 22:29:40 +1100
-Message-ID: <20150130112940.GA19754@gondor.apana.org.au>
-References: <1422603994-5836-1-git-send-email-kaber@trash.net>
- <1422603994-5836-10-git-send-email-kaber@trash.net>
- <20150130092845.GA18725@gondor.apana.org.au>
- <C08F666A-DAAF-4C61-A9F3-DBB3D936B4B4@trash.net>
- <20150130101802.GA19073@gondor.apana.org.au>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [ebtables-compat PATCH v2] ebtables-compat: add mark_m match
+ extension
+Date: Fri, 30 Jan 2015 12:43:08 +0100
+Message-ID: <20150130114249.18370.9281.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: tgraf@suug.ch, davem@davemloft.net, David.Laight@ACULAB.COM,
-	ying.xue@windriver.com, paulmck@linux.vnet.ibm.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from helcar.apana.org.au ([209.40.204.226]:58502 "EHLO
-	helcar.apana.org.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753874AbbA3LaR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Jan 2015 06:30:17 -0500
-Content-Disposition: inline
-In-Reply-To: <20150130101802.GA19073@gondor.apana.org.au>
+Received: from smtp4.cica.es ([150.214.5.182]:46542 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754630AbbA3LnT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 Jan 2015 06:43:19 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jan 30, 2015 at 09:18:02PM +1100, Herbert Xu wrote:
-> 
-> OK so it looks like you really do need a totally lockless walk.
-> So I'll reshape my iterators to do that.
+Translate mark_m match extension to the xtables-compat environment.
 
-OK here is a completely untested patch that implements a totally
-lockless walk with restart-on-resize support.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+v2: this is a resend plus cleaning up some commented code.
 
-diff --git a/include/linux/rhashtable.h b/include/linux/rhashtable.h
-index 6d7e840..a0e5b08 100644
---- a/include/linux/rhashtable.h
-+++ b/include/linux/rhashtable.h
-@@ -18,6 +18,7 @@
- #ifndef _LINUX_RHASHTABLE_H
- #define _LINUX_RHASHTABLE_H
- 
-+#include <linux/compiler.h>
- #include <linux/list_nulls.h>
- #include <linux/workqueue.h>
- #include <linux/mutex.h>
-@@ -110,6 +111,7 @@ struct rhashtable_params {
-  * @p: Configuration parameters
-  * @run_work: Deferred worker to expand/shrink asynchronously
-  * @mutex: Mutex to protect current/future table swapping
-+ * @walkers: List of active walkers
-  * @being_destroyed: True if table is set up for destruction
-  */
- struct rhashtable {
-@@ -120,9 +122,36 @@ struct rhashtable {
- 	struct rhashtable_params	p;
- 	struct work_struct		run_work;
- 	struct mutex                    mutex;
-+	struct list_head		walkers;
- 	bool                            being_destroyed;
- };
- 
-+/**
-+ * struct rhashtable_walker - Hash table walker
-+ * @list: List entry on list of walkers
-+ * @resize: Resize event occured
+ extensions/libebt_mark_m.c                  |  116 +++++++++++++++++++++++++++
+ include/linux/netfilter_bridge/ebt_mark_m.h |   16 ++++
+ iptables/xtables-eb.c                       |    1 
+ 3 files changed, 133 insertions(+)
+ create mode 100644 extensions/libebt_mark_m.c
+ create mode 100644 include/linux/netfilter_bridge/ebt_mark_m.h
+
+diff --git a/extensions/libebt_mark_m.c b/extensions/libebt_mark_m.c
+new file mode 100644
+index 0000000..d806c65
+--- /dev/null
++++ b/extensions/libebt_mark_m.c
+@@ -0,0 +1,116 @@
++/* ebt_mark_m
++ *
++ * Authors:
++ * Bart De Schuymer <bdschuym@pandora.be>
++ *
++ * July, 2002
++ *
++ * Adapted by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
++ * to use libxtables for ebtables-compat in 2015.
 + */
-+struct rhashtable_walker {
-+	struct list_head list;
-+	bool resize;
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <getopt.h>
++#include <xtables.h>
++#include <linux/netfilter_bridge/ebt_mark_m.h>
++
++#define MARK '1'
++
++static struct option brmark_m_opts[] = {
++	{ .name = "mark",	.has_arg = true, .val = MARK },
++	XT_GETOPT_TABLEEND,
 +};
 +
-+/**
-+ * struct rhashtable_iter - Hash table iterator, fits into netlink cb
-+ * @ht: Table to iterate through
-+ * @p: Current pointer
-+ * @walker: Associated rhashtable walker
-+ * @slot: Current slot
-+ * @skip: Number of entries to skip in slot
-+ */
-+struct rhashtable_iter {
-+	struct rhashtable *ht;
-+	struct rhash_head *p;
-+	struct rhashtable_walker *walker;
-+	unsigned int slot;
-+	unsigned int skip;
++static void brmark_m_print_help(void)
++{
++	printf(
++"mark option:\n"
++"--mark    [!] [value][/mask]: Match nfmask value (see man page)\n");
++}
++
++static void brmark_m_init(struct xt_entry_match *match)
++{
++	struct ebt_mark_m_info *info = (struct ebt_mark_m_info *)match->data;
++
++	info->mark = 0;
++	info->mask = 0;
++	info->invert = 0;
++	info->bitmask = 0;
++}
++
++#define OPT_MARK 0x01
++static int
++brmark_m_parse(int c, char **argv, int invert, unsigned int *flags,
++	       const void *entry, struct xt_entry_match **match)
++{
++	struct ebt_mark_m_info *info = (struct ebt_mark_m_info *)
++				       (*match)->data;
++	char *end;
++
++	switch (c) {
++	case MARK:
++		if (invert)
++			info->invert = 1;
++		info->mark = strtoul(optarg, &end, 0);
++		info->bitmask = EBT_MARK_AND;
++		if (*end == '/') {
++			if (end == optarg)
++				info->bitmask = EBT_MARK_OR;
++			info->mask = strtoul(end+1, &end, 0);
++		} else {
++			info->mask = 0xffffffff;
++		}
++		if (*end != '\0' || end == optarg)
++			xtables_error(PARAMETER_PROBLEM, "Bad mark value '%s'",
++				      optarg);
++		break;
++	default:
++		return 0;
++	}
++	return 1;
++}
++
++static void brmark_m_final_check(unsigned int flags)
++{
++	if (!flags)
++		xtables_error(PARAMETER_PROBLEM,
++			      "You must specify proper arguments");
++}
++
++static void brmark_m_print(const void *ip, const struct xt_entry_match *match,
++			   int numeric)
++{
++	struct ebt_mark_m_info *info = (struct ebt_mark_m_info *)match->data;
++
++	printf("--mark ");
++	if (info->invert)
++		printf("! ");
++	if (info->bitmask == EBT_MARK_OR)
++		printf("/0x%lx ", info->mask);
++	else if (info->mask != 0xffffffff)
++		printf("0x%lx/0x%lx ", info->mark, info->mask);
++	else
++		printf("0x%lx ", info->mark);
++}
++
++static struct xtables_match brmark_m_match = {
++	.name		= "mark_m",
++	.revision	= 0,
++	.version	= XTABLES_VERSION,
++	.family		= NFPROTO_BRIDGE,
++	.size		= XT_ALIGN(sizeof(struct ebt_mark_m_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct ebt_mark_m_info)),
++	.init		= brmark_m_init,
++	.help		= brmark_m_print_help,
++	.parse		= brmark_m_parse,
++	.final_check	= brmark_m_final_check,
++	.print		= brmark_m_print,
++	.extra_opts	= brmark_m_opts,
 +};
 +
- static inline unsigned long rht_marker(const struct rhashtable *ht, u32 hash)
- {
- 	return NULLS_MARKER(ht->p.nulls_base + hash);
-@@ -178,6 +207,12 @@ bool rhashtable_lookup_compare_insert(struct rhashtable *ht,
- 				      bool (*compare)(void *, void *),
- 				      void *arg);
- 
-+int rhashtable_walk_init(struct rhashtable *ht, struct rhashtable_iter *iter);
-+void rhashtable_walk_exit(struct rhashtable_iter *iter);
-+int rhashtable_walk_start(struct rhashtable_iter *iter) __acquires(RCU);
-+void *rhashtable_walk_next(struct rhashtable_iter *iter);
-+void rhashtable_walk_stop(struct rhashtable_iter *iter) __releases(RCU);
++void _init(void)
++{
++	xtables_register_match(&brmark_m_match);
++}
+diff --git a/include/linux/netfilter_bridge/ebt_mark_m.h b/include/linux/netfilter_bridge/ebt_mark_m.h
+new file mode 100644
+index 0000000..410f9e5
+--- /dev/null
++++ b/include/linux/netfilter_bridge/ebt_mark_m.h
+@@ -0,0 +1,16 @@
++#ifndef __LINUX_BRIDGE_EBT_MARK_M_H
++#define __LINUX_BRIDGE_EBT_MARK_M_H
 +
- void rhashtable_destroy(struct rhashtable *ht);
- 
- #define rht_dereference(p, ht) \
-diff --git a/lib/rhashtable.c b/lib/rhashtable.c
-index 71c6aa1..a3e9e5c 100644
---- a/lib/rhashtable.c
-+++ b/lib/rhashtable.c
-@@ -485,11 +485,15 @@ static void rht_deferred_worker(struct work_struct *work)
- {
- 	struct rhashtable *ht;
- 	struct bucket_table *tbl;
-+	struct rhashtable_walker *walker;
- 
- 	ht = container_of(work, struct rhashtable, run_work);
- 	mutex_lock(&ht->mutex);
- 	tbl = rht_dereference(ht->tbl, ht);
- 
-+	list_for_each_entry(walker, &ht->walkers, list)
-+		walker->resize = true;
++#include <linux/types.h>
 +
- 	if (ht->p.grow_decision && ht->p.grow_decision(ht, tbl->size))
- 		rhashtable_expand(ht);
- 	else if (ht->p.shrink_decision && ht->p.shrink_decision(ht, tbl->size))
-@@ -813,6 +817,165 @@ exit:
++#define EBT_MARK_AND 0x01
++#define EBT_MARK_OR 0x02
++#define EBT_MARK_MASK (EBT_MARK_AND | EBT_MARK_OR)
++struct ebt_mark_m_info {
++	unsigned long mark, mask;
++	__u8 invert;
++	__u8 bitmask;
++};
++#define EBT_MARK_MATCH "mark_m"
++
++#endif
+diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
+index 27a1c16..0ac39d0 100644
+--- a/iptables/xtables-eb.c
++++ b/iptables/xtables-eb.c
+@@ -640,6 +640,7 @@ static void ebt_load_matches(void)
+ 	opts = ebt_original_options;
+ 	ebt_load_match("802_3");
+ 	ebt_load_match("ip");
++	ebt_load_match("mark_m");
  }
- EXPORT_SYMBOL_GPL(rhashtable_lookup_compare_insert);
  
-+/**
-+ * rhashtable_walk_init - Initialise an iterator
-+ * @ht:		Table to walk over
-+ * @iter:	Hash table Iterator
-+ *
-+ * This function prepares a hash table walk.
-+ *
-+ * Note that if you restart a walk after rhashtable_walk_stop you
-+ * may see the same object twice.  Also, you may miss objects if
-+ * there are removals in between rhashtable_walk_stop and the next
-+ * call to rhashtable_walk_start.
-+ *
-+ * For a completely stable walk you should construct your own data
-+ * structure outside the hash table.
-+ *
-+ * This function may sleep so you must not call it from interrupt
-+ * context or with spin locks held.
-+ *
-+ * You must call rhashtable_walk_exit if this function returns
-+ * successfully.
-+ */
-+int rhashtable_walk_init(struct rhashtable *ht, struct rhashtable_iter *iter)
-+{
-+	int err;
-+
-+	iter->ht = ht;
-+	iter->p = NULL;
-+	iter->slot = 0;
-+	iter->skip = 0;
-+
-+	iter->walk = kmalloc(sizeof(*iter->walk), GFP_KERNEL);
-+	if (!iter->walk)
-+		return -ENOMEM;
-+
-+	mutex_lock(&ht->mutex);
-+	list_add(&iter->walker->list, &ht->walkers);
-+	mutex_unlock(&ht->mutex);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(rhashtable_walk_init);
-+
-+/**
-+ * rhashtable_walk_exit - Free an iterator
-+ * @iter:	Hash table Iterator
-+ *
-+ * This function frees resources allocated by rhashtable_walk_init.
-+ */
-+void rhashtable_walk_exit(struct rhashtable_iter *iter)
-+{
-+	mutex_lock(&ht->mutex);
-+	list_del(&iter->walker->list);
-+	mutex_unlock(&ht->mutex);
-+	kfree(iter->walker);
-+}
-+EXPORT_SYMBOL_GPL(rhashtable_walk_exit);
-+
-+/**
-+ * rhashtable_walk_start - Start a hash table walk
-+ * @iter:	Hash table iterator
-+ *
-+ * Start a hash table walk.  Note that we take the RCU lock in all
-+ * cases including when we return an error.  So you must always call
-+ * rhashtable_walk_stop to clean up.
-+ *
-+ * Returns zero if successful.
-+ *
-+ * Returns -EAGAIN if resize event occured.  Note that the iterator
-+ * will rewind back to the beginning and you may use it immediately
-+ * by calling rhashtable_walk_next.
-+ */
-+int rhashtable_walk_start(struct rhashtable_iter *iter)
-+{
-+	rcu_read_lock();
-+
-+	if (iter->walker->resize) {
-+		iter->slot = 0;
-+		iter->skip = 0;
-+		iter->walker->resize = false;
-+		return -EAGAIN;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * rhashtable_walk_next - Return the next object and advance the iterator
-+ * @iter:	Hash table iterator
-+ *
-+ * Note that you must call rhashtable_walk_stop when you are finished
-+ * with the walk.
-+ *
-+ * Returns the next object or NULL when the end of the table is reached.
-+ *
-+ * Returns -EAGAIN if resize event occured.  Note that the iterator
-+ * will rewind back to the beginning and you may continue to use it.
-+ */
-+void *rhashtable_walk_next(struct rhashtable_iter *iter)
-+{
-+	const struct bucket_table *tbl;
-+	struct rhashtable *ht = iter->ht;
-+	struct rhash_head *p = iter->p;
-+	void *obj = NULL;
-+
-+	tbl = rht_dereference_rcu(ht->tbl, ht);
-+
-+	if (p) {
-+		p = rht_dereference_bucket_rcu(p->next, tbl, iter->slot);
-+		goto next;
-+	}
-+
-+	for (; iter->slot < tbl->size; iter->slot++) {
-+		int skip = iter->skip;
-+
-+		rht_for_each_rcu(p, tbl, iter->slot) {
-+			if (!skip)
-+				break;
-+			skip--;
-+		}
-+
-+next:
-+		if (!rht_is_a_nulls(p)) {
-+			iter->skip++;
-+			iter->p = p;
-+			obj = rht_obj(ht, p);
-+			goto out;
-+		}
-+
-+		iter->skip = 0;
-+	}
-+
-+	iter->p = NULL;
-+
-+out:
-+	if (iter->walker->resize) {
-+		iter->p = NULL;
-+		iter->slot = 0;
-+		iter->skip = 0;
-+		iter->walker->resize = false;
-+		return ERR_PTR(-EAGAIN);
-+	}
-+
-+	return obj;
-+}
-+EXPORT_SYMBOL_GPL(rhashtable_walk_next);
-+
-+/**
-+ * rhashtable_walk_stop - Finish a hash table walk
-+ * @iter:	Hash table iterator
-+ *
-+ * Finish a hash table walk.
-+ */
-+void rhashtable_walk_stop(struct rhashtable_iter *iter)
-+{
-+	rcu_read_unlock();
-+	iter->p = NULL;
-+}
-+EXPORT_SYMBOL_GPL(rhashtable_walk_stop);
-+
- static size_t rounded_hashtable_size(struct rhashtable_params *params)
- {
- 	return max(roundup_pow_of_two(params->nelem_hint * 4 / 3),
+ static void ebt_add_match(struct xtables_match *m,
 
-Cheers,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
