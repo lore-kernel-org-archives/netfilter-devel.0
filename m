@@ -1,54 +1,34 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2] rhashtable: Introduce rhashtable_walk_*
-Date: Fri, 30 Jan 2015 08:10:56 +0000
-Message-ID: <20150130081055.GA6164@acer.localdomain>
-References: <20150127094541.GC22262@casper.infradead.org>
- <20150127095454.GA2695@gondor.apana.org.au>
- <20150127101512.GE22262@casper.infradead.org>
- <20150127102420.GA3777@gondor.apana.org.au>
- <20150127111604.GF22262@casper.infradead.org>
- <20150127112304.GA4548@gondor.apana.org.au>
- <20150127130950.GA3950@acer.localdomain>
- <20150127203657.GA9061@gondor.apana.org.au>
- <20150128190715.GA4764@acer.localdomain>
- <20150130055859.GA17149@gondor.apana.org.au>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCH 9/9] netfilter: nf_tables: add support for dynamic set
+ updates
+Date: Fri, 30 Jan 2015 20:28:45 +1100
+Message-ID: <20150130092845.GA18725@gondor.apana.org.au>
+References: <1422603994-5836-1-git-send-email-kaber@trash.net>
+ <1422603994-5836-10-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Thomas Graf <tgraf@suug.ch>, David Miller <davem@davemloft.net>,
-	David.Laight@ACULAB.COM, ying.xue@windriver.com,
-	paulmck@linux.vnet.ibm.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: tgraf@suug.ch, davem@davemloft.net, David.Laight@ACULAB.COM,
+	ying.xue@windriver.com, paulmck@linux.vnet.ibm.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34309 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751939AbbA3ILD (ORCPT
+Received: from helcar.apana.org.au ([209.40.204.226]:42347 "EHLO
+	helcar.apana.org.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759856AbbA3J3Z (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Jan 2015 03:11:03 -0500
+	Fri, 30 Jan 2015 04:29:25 -0500
 Content-Disposition: inline
-In-Reply-To: <20150130055859.GA17149@gondor.apana.org.au>
+In-Reply-To: <1422603994-5836-10-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 30.01, Herbert Xu wrote:
-> On Wed, Jan 28, 2015 at 07:07:16PM +0000, Patrick McHardy wrote:
-> > On 28.01, Herbert Xu wrote:
-> > > On Tue, Jan 27, 2015 at 01:09:50PM +0000, Patrick McHardy wrote:
-> > > >
-> > > > Actually I have a patchset queued that adds runtime additions and
-> > > > removals, both active and timeout based. So netfilter won't have
-> > > > pure synchronous behaviour anymore.
-> > > 
-> > > Can you show us the patchset?
-> > 
-> > Sure, will send it over tomorrow.
-> 
-> So how are you handling the locking in these cases?
+On Fri, Jan 30, 2015 at 07:46:34AM +0000, Patrick McHardy wrote:
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-Insertion is handled using the rhashtable internal locks. GC happens
-in work context and takes the rhashtable mutex, then walks the table
-similar to nft_hash_walk and removes stale entries.
+I presume this can't create any jumps/gotos, right?
 
-Still need to work out something to reduce RCU grace periods
-(currently ignored) and make sure we don't race between ->get/->remove
-in the netlink API and GC.
+Thanks,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
