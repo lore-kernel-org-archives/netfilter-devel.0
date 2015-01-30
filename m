@@ -1,58 +1,52 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/9] nftables: reject NFT_SET_ELEM_INTERVAL_END flag for
- non-interval sets
-Date: Fri, 30 Jan 2015 18:31:07 +0100
-Message-ID: <20150130173107.GA9243@salvia>
-References: <1422603994-5836-1-git-send-email-kaber@trash.net>
- <1422603994-5836-3-git-send-email-kaber@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: herbert@gondor.apana.org.au, tgraf@suug.ch, davem@davemloft.net,
-	David.Laight@ACULAB.COM, ying.xue@windriver.com,
-	paulmck@linux.vnet.ibm.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH nf] netfilter: nf_tables: fix leaks in error path of nf_tables_newchain()
+Date: Fri, 30 Jan 2015 18:38:11 +0100
+Message-ID: <1422639491-9417-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60249 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33019 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752723AbbA3R2H (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Jan 2015 12:28:07 -0500
-Content-Disposition: inline
-In-Reply-To: <1422603994-5836-3-git-send-email-kaber@trash.net>
+	id S1752144AbbA3RfJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 Jan 2015 12:35:09 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Patrick,
+Release statistics and module refcount on memory allocation problems.
 
-Unless you have any concern, I'm going to apply this and 8/9 to
-nf-next, so you don't need to resend these two sanitization fixes.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_tables_api.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-Thanks.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index b543606..1ff04bc 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1264,8 +1264,10 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 		nft_ctx_init(&ctx, skb, nlh, afi, table, chain, nla);
+ 		trans = nft_trans_alloc(&ctx, NFT_MSG_NEWCHAIN,
+ 					sizeof(struct nft_trans_chain));
+-		if (trans == NULL)
++		if (trans == NULL) {
++			free_percpu(stats);
+ 			return -ENOMEM;
++		}
+ 
+ 		nft_trans_chain_stats(trans) = stats;
+ 		nft_trans_chain_update(trans) = true;
+@@ -1321,8 +1323,10 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 		hookfn = type->hooks[hooknum];
+ 
+ 		basechain = kzalloc(sizeof(*basechain), GFP_KERNEL);
+-		if (basechain == NULL)
++		if (basechain == NULL) {
++			module_put(type->owner);
+ 			return -ENOMEM;
++		}
+ 
+ 		if (nla[NFTA_CHAIN_COUNTERS]) {
+ 			stats = nft_stats_alloc(nla[NFTA_CHAIN_COUNTERS]);
+-- 
+1.7.10.4
 
-On Fri, Jan 30, 2015 at 07:46:27AM +0000, Patrick McHardy wrote:
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
-> ---
->  net/netfilter/nf_tables_api.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-> index 129a8da..92ba4a0 100644
-> --- a/net/netfilter/nf_tables_api.c
-> +++ b/net/netfilter/nf_tables_api.c
-> @@ -3112,6 +3112,9 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
->  		elem.flags = ntohl(nla_get_be32(nla[NFTA_SET_ELEM_FLAGS]));
->  		if (elem.flags & ~NFT_SET_ELEM_INTERVAL_END)
->  			return -EINVAL;
-> +		if (!(set->flags & NFT_SET_INTERVAL) &&
-> +		    elem.flags & NFT_SET_ELEM_INTERVAL_END)
-> +			return -EINVAL;
->  	}
->  
->  	if (set->flags & NFT_SET_MAP) {
-> -- 
-> 2.1.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
