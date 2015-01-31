@@ -1,66 +1,49 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH 2/4 v2] src: add support to import json/xml with
- the new syntax
-Date: Fri, 30 Jan 2015 20:56:52 +0100
-Message-ID: <20150130195652.GB23741@salvia>
-References: <1422628525-28109-1-git-send-email-alvaroneay@gmail.com>
- <1422628525-28109-2-git-send-email-alvaroneay@gmail.com>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: [PATCH 0/2] rhashtable: Add walk iterator primitives and use them in
+ netlink
+Date: Sat, 31 Jan 2015 14:13:56 +1100
+Message-ID: <20150131031356.GA26781@gondor.apana.org.au>
+References: <20150122084924.GA4720@gondor.apana.org.au>
+ <20150125232040.GA17936@gondor.apana.org.au>
+ <20150127231950.GA11374@gondor.apana.org.au>
+ <20150129.144246.1383921666389409323.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Cc: tgraf@suug.ch, ying.xue@windriver.com, kaber@trash.net,
+	paulmck@linux.vnet.ibm.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53181 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753785AbbA3Tx7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Jan 2015 14:53:59 -0500
+Received: from helcar.apana.org.au ([209.40.204.226]:53498 "EHLO
+	helcar.apana.org.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753422AbbAaDOY (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 Jan 2015 22:14:24 -0500
 Content-Disposition: inline
-In-Reply-To: <1422628525-28109-2-git-send-email-alvaroneay@gmail.com>
+In-Reply-To: <20150129.144246.1383921666389409323.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jan 30, 2015 at 03:35:23PM +0100, Alvaro Neira Ayuso wrote:
-> diff --git a/src/ruleset.c b/src/ruleset.c
-> index 3fb381d..0c8eadf 100644
-> --- a/src/ruleset.c
-> +++ b/src/ruleset.c
-> @@ -32,6 +32,31 @@ struct nft_ruleset {
->  	uint16_t		flags;
->  };
->  
-> +struct nft_parse_ctx {
-> +	uint32_t cmd;
-> +	uint32_t type;
-> +	uint32_t format;
-> +	union {
-> +		struct nft_table *table;
-> +		struct nft_chain *chain;
-> +		struct nft_rule *rule;
-> +		struct nft_set *set;
-> +		struct nft_set_elem *set_elem;
-> +	};
-> +	union {
-> +		json_t *json;
-> +		mxml_node_t *xml;
-> +	};
-> +
+On Thu, Jan 29, 2015 at 02:42:46PM -0800, David Miller wrote:
+> 
+> I'm holding off on this series for now.
+> 
+> Let me know if you want me to do something different.
 
-Please, put all private fields below a comment like:
+No problems.  Here is a new version of these two patches which
+hopefully should work on netfilter as well.
 
-/* These fields below are not exposed to the user */
+Note that the major functional difference compared to the previous
+one is that resizes are now handled properly and will cause the
+iterator to restart from scratch.
 
-> +	uint32_t set_id;
-> +	struct nft_set_list *set_list;
+However, as with all existing hash table walker implementations,
+if you remove an element from the chain that we're walking over
+while we're waiting for user-space to give us a new buffer, then
+the walk may miss elements that are still on that chain.
 
-These two are private too, and include uint32_t format here too.
-
-> +	void *data;
-
-This 'data' public, so place it above that comment.
-
-So if we need to have a look at this later on, we easily know what is
-exposed and what is not.
-
-> +	int (*cb)(const struct nft_parse_ctx *ctx);
-> +	uint16_t flags;
-> +};
+Thanks,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
