@@ -1,194 +1,45 @@
 From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: [PATCH 2/2] netlink: Use rhashtable walk iterator
-Date: Sat, 31 Jan 2015 14:14:59 +1100
-Message-ID: <E1YHOWR-00071f-Dc@gondolin.me.apana.org.au>
-References: <20150131031356.GA26781@gondor.apana.org.au>
-To: David Miller <davem@davemloft.net>, tgraf@suug.ch,
-	ying.xue@windriver.com, kaber@trash.net,
-	paulmck@linux.vnet.ibm.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH 7/9] netfilter: nft_hash: add support for timeouts
+Date: Sat, 31 Jan 2015 15:29:20 +1100
+Message-ID: <20150131042920.GA27480@gondor.apana.org.au>
+References: <1422603994-5836-1-git-send-email-kaber@trash.net>
+ <1422603994-5836-8-git-send-email-kaber@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: tgraf@suug.ch, davem@davemloft.net, David.Laight@ACULAB.COM,
+	ying.xue@windriver.com, paulmck@linux.vnet.ibm.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1422603994-5836-8-git-send-email-kaber@trash.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This patch gets rid of the manual rhashtable walk in netlink
-which touches rhashtable internals that should not be exposed.
-It does so by using the rhashtable iterator primitives.
+On Fri, Jan 30, 2015 at 07:46:32AM +0000, Patrick McHardy wrote:
+>
+> +	mutex_lock(&priv->ht.mutex);
+> +	tbl = rht_dereference(priv->ht.tbl, &priv->ht);
+> +	for (i = 0; i < tbl->size; i++) {
+> +		rht_for_each_entry_safe(he, pos, next, tbl, i, node) {
+> +			if (!nft_set_ext_exists(&he->ext, NFT_SET_EXT_TIMEOUT))
+> +				continue;
+> +			timeout = *nft_set_ext_timeout(&he->ext);
+> +			if (time_before(jiffies, timeout))
+> +				continue;
+> +
+> +			rhashtable_remove(&priv->ht, &he->node);
+> +			nft_hash_elem_destroy(set, he);
+> +		}
+> +	}
+> +	mutex_unlock(&priv->ht.mutex);
 
-In fact the existing code was very buggy.  Some sockets weren't
-shown at all while others were shown more than once.
- 
-Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
----
+What if somebody is currently walking over the table? Shouldn't
+you do an RCU free here instead of immediately destroying the
+element?
 
- net/netlink/af_netlink.c |  130 +++++++++++++++++++++++------------------------
- 1 file changed, 64 insertions(+), 66 deletions(-)
-
-diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
-index d77b346..2c7a95a 100644
---- a/net/netlink/af_netlink.c
-+++ b/net/netlink/af_netlink.c
-@@ -2884,99 +2884,97 @@ EXPORT_SYMBOL(nlmsg_notify);
- #ifdef CONFIG_PROC_FS
- struct nl_seq_iter {
- 	struct seq_net_private p;
-+	struct rhashtable_iter hti;
- 	int link;
--	int hash_idx;
- };
- 
--static struct sock *netlink_seq_socket_idx(struct seq_file *seq, loff_t pos)
-+static int netlink_walk_start(struct nl_seq_iter *iter)
- {
--	struct nl_seq_iter *iter = seq->private;
--	int i, j;
--	struct netlink_sock *nlk;
--	struct sock *s;
--	loff_t off = 0;
--
--	for (i = 0; i < MAX_LINKS; i++) {
--		struct rhashtable *ht = &nl_table[i].hash;
--		const struct bucket_table *tbl = rht_dereference_rcu(ht->tbl, ht);
--
--		for (j = 0; j < tbl->size; j++) {
--			struct rhash_head *node;
--
--			rht_for_each_entry_rcu(nlk, node, tbl, j, node) {
--				s = (struct sock *)nlk;
-+	int err;
- 
--				if (sock_net(s) != seq_file_net(seq))
--					continue;
--				if (off == pos) {
--					iter->link = i;
--					iter->hash_idx = j;
--					return s;
--				}
--				++off;
--			}
--		}
-+	err = rhashtable_walk_init(&nl_table[iter->link].hash, &iter->hti);
-+	if (err) {
-+		iter->link = MAX_LINKS;
-+		return err;
- 	}
--	return NULL;
-+
-+	err = rhashtable_walk_start(&iter->hti);
-+	return err == -EAGAIN ? 0 : err;
- }
- 
--static void *netlink_seq_start(struct seq_file *seq, loff_t *pos)
--	__acquires(RCU)
-+static void netlink_walk_stop(struct nl_seq_iter *iter)
- {
--	rcu_read_lock();
--	return *pos ? netlink_seq_socket_idx(seq, *pos - 1) : SEQ_START_TOKEN;
-+	rhashtable_walk_stop(&iter->hti);
-+	rhashtable_walk_exit(&iter->hti);
- }
- 
--static void *netlink_seq_next(struct seq_file *seq, void *v, loff_t *pos)
-+static void *__netlink_seq_next(struct seq_file *seq)
- {
--	struct rhashtable *ht;
--	const struct bucket_table *tbl;
--	struct rhash_head *node;
-+	struct nl_seq_iter *iter = seq->private;
- 	struct netlink_sock *nlk;
--	struct nl_seq_iter *iter;
--	struct net *net;
--	int i, j;
- 
--	++*pos;
-+	do {
-+		for (;;) {
-+			int err;
- 
--	if (v == SEQ_START_TOKEN)
--		return netlink_seq_socket_idx(seq, 0);
-+			nlk = rhashtable_walk_next(&iter->hti);
- 
--	net = seq_file_net(seq);
--	iter = seq->private;
--	nlk = v;
-+			if (IS_ERR(nlk)) {
-+				if (PTR_ERR(nlk) == -EAGAIN)
-+					continue;
- 
--	i = iter->link;
--	ht = &nl_table[i].hash;
--	tbl = rht_dereference_rcu(ht->tbl, ht);
--	rht_for_each_entry_rcu_continue(nlk, node, nlk->node.next, tbl, iter->hash_idx, node)
--		if (net_eq(sock_net((struct sock *)nlk), net))
--			return nlk;
-+				return nlk;
-+			}
- 
--	j = iter->hash_idx + 1;
-+			if (nlk)
-+				break;
- 
--	do {
-+			netlink_walk_stop(iter);
-+			if (++iter->link >= MAX_LINKS)
-+				return NULL;
- 
--		for (; j < tbl->size; j++) {
--			rht_for_each_entry_rcu(nlk, node, tbl, j, node) {
--				if (net_eq(sock_net((struct sock *)nlk), net)) {
--					iter->link = i;
--					iter->hash_idx = j;
--					return nlk;
--				}
--			}
-+			err = netlink_walk_start(iter);
-+			if (err)
-+				return ERR_PTR(err);
- 		}
-+	} while (sock_net(&nlk->sk) != seq_file_net(seq));
- 
--		j = 0;
--	} while (++i < MAX_LINKS);
-+	return nlk;
-+}
- 
--	return NULL;
-+static void *netlink_seq_start(struct seq_file *seq, loff_t *posp)
-+{
-+	struct nl_seq_iter *iter = seq->private;
-+	void *obj = SEQ_START_TOKEN;
-+	loff_t pos;
-+	int err;
-+
-+	iter->link = 0;
-+
-+	err = netlink_walk_start(iter);
-+	if (err)
-+		return ERR_PTR(err);
-+
-+	for (pos = *posp; pos && obj && !IS_ERR(obj); pos--)
-+		obj = __netlink_seq_next(seq);
-+
-+	return obj;
-+}
-+
-+static void *netlink_seq_next(struct seq_file *seq, void *v, loff_t *pos)
-+{
-+	++*pos;
-+	return __netlink_seq_next(seq);
- }
- 
- static void netlink_seq_stop(struct seq_file *seq, void *v)
--	__releases(RCU)
- {
--	rcu_read_unlock();
-+	struct nl_seq_iter *iter = seq->private;
-+
-+	if (iter->link >= MAX_LINKS)
-+		return;
-+
-+	netlink_walk_stop(iter);
- }
- 
- 
+Cheers,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
