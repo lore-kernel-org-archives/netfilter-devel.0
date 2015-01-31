@@ -1,49 +1,34 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 7/9] netfilter: nft_hash: add support for timeouts
-Date: Sat, 31 Jan 2015 12:16:12 +0000
-Message-ID: <20150131121611.GA31500@acer.localdomain>
-References: <1422603994-5836-1-git-send-email-kaber@trash.net>
- <1422603994-5836-8-git-send-email-kaber@trash.net>
- <20150131042920.GA27480@gondor.apana.org.au>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [GIT PULL nf] IPVS Fixes for v3.19
+Date: Sat, 31 Jan 2015 21:40:57 +0100
+Message-ID: <20150131204057.GA4866@salvia>
+References: <1422580938-31520-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: tgraf@suug.ch, davem@davemloft.net, David.Laight@ACULAB.COM,
-	ying.xue@windriver.com, paulmck@linux.vnet.ibm.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48386 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750976AbbAaMQW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 31 Jan 2015 07:16:22 -0500
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150131042920.GA27480@gondor.apana.org.au>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1422580938-31520-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 31.01, Herbert Xu wrote:
-> On Fri, Jan 30, 2015 at 07:46:32AM +0000, Patrick McHardy wrote:
-> >
-> > +	mutex_lock(&priv->ht.mutex);
-> > +	tbl = rht_dereference(priv->ht.tbl, &priv->ht);
-> > +	for (i = 0; i < tbl->size; i++) {
-> > +		rht_for_each_entry_safe(he, pos, next, tbl, i, node) {
-> > +			if (!nft_set_ext_exists(&he->ext, NFT_SET_EXT_TIMEOUT))
-> > +				continue;
-> > +			timeout = *nft_set_ext_timeout(&he->ext);
-> > +			if (time_before(jiffies, timeout))
-> > +				continue;
-> > +
-> > +			rhashtable_remove(&priv->ht, &he->node);
-> > +			nft_hash_elem_destroy(set, he);
-> > +		}
-> > +	}
-> > +	mutex_unlock(&priv->ht.mutex);
+On Fri, Jan 30, 2015 at 10:22:17AM +0900, Simon Horman wrote:
+> Hi Pablo,
 > 
-> What if somebody is currently walking over the table? Shouldn't
-> you do an RCU free here instead of immediately destroying the
-> element?
+> please consider this fix for v3.19.
+> 
+> It resolves a crash in xfrm reported by Florian Wiessner.
+> 
+> I believe this problem manifests since 0a5ebb8000c5 ("ipv4: Pass explicit
+> daddr arg to ip_send_reply().") which was included in v2.6.39.
+> 
+> Julian reports that the patch has been tested on net tree (Dec 7), 3.14.25,
+> 3.12.33, 3.10.61. 3.4.104 needs a modified fix that resolves rejects. It
+> applies with little fuzz on 3.2.64. Please let us know if we should post
+> separate 3.2 and 3.4 patches.
 
-Yes, that's what I meant in mail 0/x regarding the existing races.
-Probably will add some fixed sized batching here.
+Pulled, thanks Simon.
