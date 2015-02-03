@@ -1,46 +1,60 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL nf] IPVS Fixes for v3.19
-Date: Tue, 3 Feb 2015 12:47:17 +0100
-Message-ID: <20150203114717.GA4934@salvia>
-References: <1422580938-31520-1-git-send-email-horms@verge.net.au>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [ebtables-compat PATCH 2/2] ebtables-compat: add mark target extension
+Date: Tue, 3 Feb 2015 16:21:46 +0100
+Message-ID: <CAOkSjBhtNQrM=tkcUDnR2xT9UqwD_aN8n=ry=19H8n06N3NQZA@mail.gmail.com>
+References: <20150129164433.21224.14657.stgit@nfdev.cica.es>
+ <20150129164439.21224.8860.stgit@nfdev.cica.es> <20150130185155.GB23146@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1422580938-31520-1-git-send-email-horms@verge.net.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-la0-f52.google.com ([209.85.215.52]:60517 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756084AbbBCPWI convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 Feb 2015 10:22:08 -0500
+Received: by mail-la0-f52.google.com with SMTP id ge10so52847767lab.11
+        for <netfilter-devel@vger.kernel.org>; Tue, 03 Feb 2015 07:22:06 -0800 (PST)
+In-Reply-To: <20150130185155.GB23146@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jan 30, 2015 at 10:22:17AM +0900, Simon Horman wrote:
-> Hi Pablo,
-> 
-> please consider this fix for v3.19.
-> 
-> It resolves a crash in xfrm reported by Florian Wiessner.
-> 
-> I believe this problem manifests since 0a5ebb8000c5 ("ipv4: Pass explicit
-> daddr arg to ip_send_reply().") which was included in v2.6.39.
-> 
-> Julian reports that the patch has been tested on net tree (Dec 7), 3.14.25,
-> 3.12.33, 3.10.61. 3.4.104 needs a modified fix that resolves rejects. It
-> applies with little fuzz on 3.2.64. Please let us know if we should post
-> separate 3.2 and 3.4 patches.
+On 30 January 2015 at 19:51, Pablo Neira Ayuso <pablo@netfilter.org> wr=
+ote:
+> On Thu, Jan 29, 2015 at 05:44:39PM +0100, Arturo Borrero Gonzalez wro=
+te:
+>> +static void brmark_final_check(unsigned int flags)
+>> +{
+>> +     if (!flags)
+>> +             xtables_error(PARAMETER_PROBLEM,
+>> +                           "You must specify some option");
+>
+> You can provide better error reporting by checking this flags:
+>
+>         if (!(flags & OPTION1 | OPTION2 | OPTION3))
+>                 xtables_error(..., "you have to specify at least one =
+of these: --option1, --option2, --option3");
+>         if (!(flags & OPTION4))
+>                 xtables_error(..., "--option4 is mandatory");
+>
 
-Regarding -stable. This seems to apply cleanly to:
+Actually these kind of checks are done in the parser itself. I just
+can't report here nothing that weren't reported already regarding
+options combination.
+The only thing I can report is the absence of mark, which isn't
+related to 'flags '.
 
-3.10.x
-3.12.x
-3.14.x
-3.18.x
+Also, I discovered these final_check() functions were not being called
+at all in ebt-compat.
 
-Not compiled tested yet, just clean application.
-
-Lower versions need some backporting, I leave this to you to evaluate
-if it is worth the effort.
-
-Thanks!
+So, sending a couple of patches...
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
