@@ -1,197 +1,168 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nft iptable-compat and TCPMSS target
-Date: Tue, 3 Feb 2015 19:04:15 +0100
-Message-ID: <20150203180415.GA14644@salvia>
-References: <364870882.1567460.1420807001598.JavaMail.zimbra@tpip.net>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="J/dobhs11T7y2rNN"
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Andreas Schultz <aschultz@tpip.net>
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <364870882.1567460.1420807001598.JavaMail.zimbra@tpip.net>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Ana Rey Botello <ana@soleta.eu>
+Subject: [v4 nf 0/5] Named counter objects support in nft
+Date: Wed,  4 Feb 2015 19:55:08 +0100
+Message-ID: <cover.1423075525.git.ana@soleta.eu>
+Cc: Ana Rey Botello <ana@soleta.eu>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 129.166.216.87.static.jazztel.es ([87.216.166.129]:48222 "EHLO
+	correo.soleta.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161429AbbBDSya (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Feb 2015 13:54:30 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+Hi,
+
+With this patchset, we add named counter objects support. It is similar
+to nfacct in iptables.
+
+Examples of use in nft of this new feature:
+i
+* Add a new counter:
+nft add counter ip filter http-traffic
+nft add counter ip filter https-traffic
+
+* Delete the counter (No rule uses this counter)
+nft delete counter ip filter https-traffic
+
+* Set the counter to a rule.
+nft add rule ip filter output tcp dport 80 counter name http-traffic
+nft add rule ip filter output tcp dport 443 counter name https-traffic
+
+* Reset the number of bytes and packets of the counter.
+nft reset counter ip filter http-traffic
+
+* List all counter:
+nft list counters
+
+* List information about the counter.
+nft list counter ip test https-traffic
+
+Example of the table with some counter:
+ # nft list table ip test
+
+    table ip filter {
+            counter http-traffic { pkts 779 bytes 99495}
+            counter https-traffic { pkts 189 bytes 37824}
+
+            chain output {
+                     type filter hook output priority 0;
+                     tcp dport http counter name http-traffic
+                     tcp dport https counter name https-traffic
+            }
+    }
+
+It is difficult to reuse the existing code of nfacct because:
+ * nfacct does not have transation support transactions.
+ * We need something that integrated well to nf_tables.
+
+No quota support yet.
+
+[Changes in v4]
+* Add supppot for "nft list counters" command
+* Add support for reset counter command in nft:
+  Example: "nft reset counter ip test counter1"
+* Add support for reset counters command in nft.
+  Example:  "nft reset counters"
+* Add named counters with default values.
+  Example: nft add counter ip test c1 { packets 2 bytes 10}
+
+These changes were sugguested by Pablo Neira
+
+[Changes in v3]
+* Delete the patch " Rename from nft_counter to nft_counter_priv". Now, we
+use "nft_counter" and nft_named_ctr names.
+* Add support for NFT_NAMED_CTR_INACTIVE
+These changes were sugguested by Pablo Neira
+
+* Fix a kernel panic
+
+[Changes in v2]
+* This deletes the acct module and uses the counter module.
+* This renames from nft_counter to nft_counter_priv struct
+* This uses _COUNTER_ names instead of _ACCT_ names in variables and functions
+* Rename acct netlink attributes to named counter netlink attributes. The new
+names are NFTA_NAMED_CTR_XXX
+* This limits NFT_CTR_MAXNAMELEN to 16
+* This fixes some memory problems
+
+These changes were sugguested by Pablo Neira and Patrick McHardy.
 
 
---J/dobhs11T7y2rNN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Ana Rey Botello (1):
+  netfilter: add named counters support
 
-On Fri, Jan 09, 2015 at 12:36:41PM +0000, Andreas Schultz wrote:
-> Hi,
-> 
-> A few xt targets do check that the match condition is correct for them.
-> xt_TCPMSS is one of them. Since nft_compat does not (and probably can
-> not) pass the match condition into the target check, the target check
-> will fail.
-> 
-> So all xt targets that perform checks on their match conditions are
-> unusable with nft_compat.
-> 
-> Is this expected behavior or a bug?
+ include/net/netfilter/nf_tables.h        |   47 +++
+ include/uapi/linux/netfilter/nf_tables.h |   31 ++
+ net/netfilter/nf_tables_api.c            |  482 +++++++++++++++++++++++++++++-
+ net/netfilter/nft_counter.c              |   97 +++++-
+ 4 files changed, 651 insertions(+), 6 deletions(-)
 
-It's known issue, see:
+[libnftnf]
+Ana Rey (1):
+  src: Add named counters support
 
-http://www.spinics.net/lists/netfilter-devel/msg23831.html
+Ana Rey Botello (1):
+  tests: add unit tests for counters
 
-But we already resolved the problem for all of the extensions that
-that email indicates.
+ examples/Makefile.am                |   27 +-
+ examples/nft-counter-add.c          |  140 ++++++++
+ examples/nft-counter-del.c          |  135 +++++++
+ examples/nft-counter-get.c          |  137 +++++++
+ examples/nft-counter-reset.c        |  123 +++++++
+ examples/nft-counters-get.c         |  136 +++++++
+ examples/nft-rule-counter-add.c     |  222 ++++++++++++
+ include/buffer.h                    |    1 +
+ include/libnftnl/Makefile.am        |    3 +-
+ include/libnftnl/counter.h          |   97 +++++
+ include/libnftnl/expr.h             |    1 +
+ include/linux/netfilter/nf_tables.h |   31 ++
+ src/Makefile.am                     |    1 +
+ src/counter.c                       |  673 +++++++++++++++++++++++++++++++++++
+ src/expr/counter.c                  |   48 ++-
+ src/internal.h                      |    6 +
+ src/libnftnl.map                    |   30 ++
+ tests/Makefile.am                   |    4 +
+ tests/nft-counter-test.c            |   86 +++++
+ tests/nft-expr_counter-test.c       |    4 +
+ tests/test-script.sh                |    1 +
+ 21 files changed, 1902 insertions(+), 4 deletions(-)
+ create mode 100644 examples/nft-counter-add.c
+ create mode 100644 examples/nft-counter-del.c
+ create mode 100644 examples/nft-counter-get.c
+ create mode 100644 examples/nft-counter-reset.c
+ create mode 100644 examples/nft-counters-get.c
+ create mode 100644 examples/nft-rule-counter-add.c
+ create mode 100644 include/libnftnl/counter.h
+ create mode 100644 src/counter.c
+ create mode 100644 tests/nft-counter-test.c
 
-The only two affected extensions so far I can track on the tree are
-TCPMSS and CLUSTERIP.
+[nft]
+Ana Rey (2):
+  src: Add named counters support
+  tests: regression: Add counters support
 
-CLUSTERIP is supersedes by xt_cluster, and it's known to have problems
-with dynamic interfaces.
+ include/linux/netfilter/nf_tables.h |   30 ++++
+ include/mnl.h                       |   11 ++
+ include/netlink.h                   |   27 +++
+ include/rule.h                      |   47 ++++++
+ include/statement.h                 |    1 +
+ src/evaluate.c                      |   14 +-
+ src/mnl.c                           |  135 +++++++++++++++
+ src/netlink.c                       |  318 +++++++++++++++++++++++++++++++++++
+ src/netlink_delinearize.c           |    3 +
+ src/netlink_linearize.c             |    4 +
+ src/parser_bison.y                  |  101 ++++++++++-
+ src/rule.c                          |  154 +++++++++++++++++
+ src/scanner.l                       |    2 +
+ src/statement.c                     |    8 +-
+ tests/regression/ip/counter.t       |   15 ++
+ tests/regression/nft-test.py        |  110 ++++++++++++
+ 16 files changed, 972 insertions(+), 8 deletions(-)
+ create mode 100644 tests/regression/ip/counter.t
 
-TCPMSS would be good to have access to it from nft_compat.
-
-I'm attaching an untested patch to address this.
-
---J/dobhs11T7y2rNN
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-RFC-netfilter-fix-crash-in-CLUSTERIP-and-TCPMSS-when.patch"
-
->From 43c161caa656fb032fd4f12db2bda3e5083efd2b Mon Sep 17 00:00:00 2001
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue, 3 Feb 2015 18:19:30 +0100
-Subject: [PATCH] [RFC] netfilter: fix crash in CLUSTERIP and TCPMSS when used
- from nft_compat
-
-Currently, we have two iptables extensions that cannot be used from the
-xt over nft compat layer. The problem is that both need to real access
-to the full blown ipt_entry to validate that the rule comes with the
-right dependencies. This check was introduced to overcome the lack of
-sufficient userspace dependency validation in iptables.
-
-To resolve this problem, this patch introduces a new field to the
-xt_tgchk_param structure that tell us if the target is executed from
-nft_compat context.
-
-The two affected extensions are:
-
-1) CLUSTERIP, this target has been supersedes by xt_cluster. So just
-   bail out by returning -EOPNOTSUPP.
-
-2) TCPMSS. Relax the checking when used from nft_compat and make sure
-   that we skip !syn packets in case userspace provides a wrong
-   configuration. This allows us to use this feature from nft_compat.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/linux/netfilter/x_tables.h |    1 +
- net/ipv4/netfilter/ipt_CLUSTERIP.c |    5 +++++
- net/netfilter/nft_compat.c         |    1 +
- net/netfilter/xt_TCPMSS.c          |   26 +++++++++++++++++++-------
- 4 files changed, 26 insertions(+), 7 deletions(-)
-
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index a3e215b..a7bbfc4e 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -92,6 +92,7 @@ struct xt_tgchk_param {
- 	void *targinfo;
- 	unsigned int hook_mask;
- 	u_int8_t family;
-+	bool nft_compat;
- };
- 
- /* Target destructor parameters */
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index e90f83a..f5ee75f 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -367,6 +367,11 @@ static int clusterip_tg_check(const struct xt_tgchk_param *par)
- 	struct clusterip_config *config;
- 	int ret;
- 
-+	if (par->nft_compat) {
-+		pr_err("cannot use this target from nftables compat\n");
-+		return -EOPNOTSUPP;
-+	}
-+
- 	if (cipinfo->hash_mode != CLUSTERIP_HASHMODE_SIP &&
- 	    cipinfo->hash_mode != CLUSTERIP_HASHMODE_SIP_SPT &&
- 	    cipinfo->hash_mode != CLUSTERIP_HASHMODE_SIP_SPT_DPT) {
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 265e190..f463099 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -114,6 +114,7 @@ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
- 		par->hook_mask = 0;
- 	}
- 	par->family	= ctx->afi->family;
-+	par->nft_compat = true;
- }
- 
- static void target_compat_from_user(struct xt_target *t, void *in, void *out)
-diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
-index e762de5..cb3b5c1 100644
---- a/net/netfilter/xt_TCPMSS.c
-+++ b/net/netfilter/xt_TCPMSS.c
-@@ -83,7 +83,7 @@ tcpmss_mangle_packet(struct sk_buff *skb,
- 		     unsigned int minlen)
- {
- 	const struct xt_tcpmss_info *info = par->targinfo;
--	struct tcphdr *tcph;
-+	struct tcphdr *tcph, _tcph;
- 	int len, tcp_hdrlen;
- 	unsigned int i;
- 	__be16 oldval;
-@@ -94,19 +94,22 @@ tcpmss_mangle_packet(struct sk_buff *skb,
- 	if (par->fragoff != 0)
- 		return 0;
- 
--	if (!skb_make_writable(skb, skb->len))
--		return -1;
-+	tcph = skb_header_pointer(skb, tcphoff, sizeof(_tcph), &_tcph);
-+	if (!tcph)
-+		return 0;
- 
--	len = skb->len - tcphoff;
--	if (len < (int)sizeof(struct tcphdr))
--		return -1;
-+	if (unlikely(!tcph->syn))
-+		return 0;
- 
--	tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
- 	tcp_hdrlen = tcph->doff * 4;
-+	len = skb->len - tcphoff;
- 
- 	if (len < tcp_hdrlen)
- 		return -1;
- 
-+	if (!skb_make_writable(skb, skb->len))
-+		return -1;
-+
- 	if (info->mss == XT_TCPMSS_CLAMP_PMTU) {
- 		struct net *net = dev_net(par->in ? par->in : par->out);
- 		unsigned int in_mtu = tcpmss_reverse_mtu(net, skb, family);
-@@ -277,6 +280,12 @@ static int tcpmss_tg4_check(const struct xt_tgchk_param *par)
- 			"FORWARD, OUTPUT and POSTROUTING hooks\n");
- 		return -EINVAL;
- 	}
-+	/* Don't care about rules without --syn from nftables compat. The
-+	 * packet is safe, it just skips non-syn packets.
-+	 */
-+	if (par->nft_compat)
-+		return 0;
-+
- 	xt_ematch_foreach(ematch, e)
- 		if (find_syn_match(ematch))
- 			return 0;
-@@ -299,6 +308,9 @@ static int tcpmss_tg6_check(const struct xt_tgchk_param *par)
- 			"FORWARD, OUTPUT and POSTROUTING hooks\n");
- 		return -EINVAL;
- 	}
-+	if (par->nft_compat)
-+		return 0;
-+
- 	xt_ematch_foreach(ematch, e)
- 		if (find_syn_match(ematch))
- 			return 0;
 -- 
 1.7.10.4
 
-
---J/dobhs11T7y2rNN--
