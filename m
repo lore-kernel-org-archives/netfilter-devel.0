@@ -1,159 +1,1195 @@
 From: Ana Rey Botello <ana@soleta.eu>
-Subject: [v4 nf 1/1] netfilter: add named counters support
-Date: Wed,  4 Feb 2015 19:55:09 +0100
-Message-ID: <7e75ecf5afbb6c7545db8c440e3c8ef4478df5f7.1423075525.git.ana@soleta.eu>
-References: <cover.1423075525.git.ana@soleta.eu>
-Cc: Ana Rey Botello <ana@soleta.eu>
+Subject: [v4 libnftnl 1/2] src: Add named counters support
+Date: Wed,  4 Feb 2015 19:55:53 +0100
+Message-ID: <f5955fa5ba54818762481553f7bb6df54ceb701b.1423075545.git.ana@soleta.eu>
+References: <cover.1423075545.git.ana@soleta.eu>
+Cc: Ana Rey <ana@soleta.eu>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 129.166.216.87.static.jazztel.es ([87.216.166.129]:48223 "EHLO
+Received: from 129.166.216.87.static.jazztel.es ([87.216.166.129]:48227 "EHLO
 	correo.soleta.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161299AbbBDSyb (ORCPT
+	with ESMTP id S966844AbbBDSzR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Feb 2015 13:54:31 -0500
-In-Reply-To: <cover.1423075525.git.ana@soleta.eu>
-In-Reply-To: <cover.1423075525.git.ana@soleta.eu>
-References: <cover.1423075525.git.ana@soleta.eu>
+	Wed, 4 Feb 2015 13:55:17 -0500
+In-Reply-To: <cover.1423075545.git.ana@soleta.eu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add support for the named counter object. It is similar to nfacct in
-iptables.
+From: Ana Rey <ana@soleta.eu>
 
-Some examples of use in nft of this new feature:
+Add support for named counter objects and named counter expression.
+
+Moreover, this adds some examples to add/delete/get/reset the named counter
+object and add rules using an existing counter.
+
+Example of how to use those examples:
 
 * Add a new counter:
-nft add counter ip filter http-traffic
-nft add counter ip filter https-traffic
+ # ./examples/nft-counter-add ip test counter1
 
-* Add a new counter with a specific values:
-nft add counter ip filter https-traffic { packets 100 bytes 2000}
+ # ./examples/nft-counter-get ip test counter1 default
+ table test family ip counter counter1 packet 0 bytes 0
 
-* Delete the counter (No rule uses this counter)
-nft delete counter ip filter https-traffic
+ * Delete the counter:
+ # ./examples/nft-counter-del ip test counter1
 
-* Set the counter to a rule.
-nft add rule ip filter output tcp dport 80 counter name http-traffic
-nft add rule ip filter output tcp dport 443 counter name https-traffic
+ * Set the counter to a rule:
+ # ./examples/nft-rule-add ip test output
 
-* Reset the number of bytes and packets of the counter.
-nft reset counter ip filter http-traffic
+ * Reset the counter:
+ # ./examples/nft-counter-reset ip test counter1
 
-* Reset the number of bytes and packets of all counter.
-nft reset counters
+ * List the information counter:
+ # ./examples/nft-counter-get ip test counter1
 
-* List all counter:
-nft list counters
+ * List the information counters
+ # ./examples/nft-counters-get ip test
 
-* List information about the counter.
-nft list counter ip test https-traffic
-
-Example of the table with some counter:
-
- # nft list table ip test
-
-table ip filter {
-        counter http-traffic { pkts 779 bytes 99495}
-        counter https-traffic { pkts 189 bytes 37824}
-
-        chain output {
-                 type filter hook output priority 0;
-                 tcp dport http counter name http-traffic
-                 tcp dport https counter name https-traffic
-        }
-}
+The kernel support is added in the commit:
+netfilter: add counters support
 
 Signed-off-by: Ana Rey Botello <ana@soleta.eu>
 ---
- include/net/netfilter/nf_tables.h        |   47 +++
- include/uapi/linux/netfilter/nf_tables.h |   31 ++
- net/netfilter/nf_tables_api.c            |  482 +++++++++++++++++++++++++++++-
- net/netfilter/nft_counter.c              |   97 +++++-
- 4 files changed, 651 insertions(+), 6 deletions(-)
+ examples/Makefile.am                |   27 +-
+ examples/nft-counter-add.c          |  140 ++++++++
+ examples/nft-counter-del.c          |  135 +++++++
+ examples/nft-counter-get.c          |  137 +++++++
+ examples/nft-counter-reset.c        |  123 +++++++
+ examples/nft-counters-get.c         |  136 +++++++
+ examples/nft-rule-counter-add.c     |  222 ++++++++++++
+ include/buffer.h                    |    1 +
+ include/libnftnl/Makefile.am        |    3 +-
+ include/libnftnl/counter.h          |   97 +++++
+ include/libnftnl/expr.h             |    1 +
+ include/linux/netfilter/nf_tables.h |   31 ++
+ src/Makefile.am                     |    1 +
+ src/counter.c                       |  673 +++++++++++++++++++++++++++++++++++
+ src/expr/counter.c                  |   48 ++-
+ src/internal.h                      |    6 +
+ src/libnftnl.map                    |   30 ++
+ 17 files changed, 1807 insertions(+), 4 deletions(-)
+ create mode 100644 examples/nft-counter-add.c
+ create mode 100644 examples/nft-counter-del.c
+ create mode 100644 examples/nft-counter-get.c
+ create mode 100644 examples/nft-counter-reset.c
+ create mode 100644 examples/nft-counters-get.c
+ create mode 100644 examples/nft-rule-counter-add.c
+ create mode 100644 include/libnftnl/counter.h
+ create mode 100644 src/counter.c
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 9eaaa78..2d636ac 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -408,6 +408,16 @@ struct nft_trans {
- 	char				data[0];
+diff --git a/examples/Makefile.am b/examples/Makefile.am
+index fafcb76..167680a 100644
+--- a/examples/Makefile.am
++++ b/examples/Makefile.am
+@@ -22,7 +22,14 @@ check_PROGRAMS = nft-table-add		\
+ 		 nft-set-elem-get	\
+ 		 nft-set-elem-del	\
+ 		 nft-ruleset-get	\
+-		 nft-compat-get
++		 nft-compat-get		\
++		 nft-counter-add	\
++		 nft-counter-get	\
++		 nft-counters-get	\
++		 nft-counter-reset	\
++		 nft-rule-counter-add	\
++		 nft-counter-del
++
+ 
+ nft_table_add_SOURCES = nft-table-add.c
+ nft_table_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+@@ -92,3 +99,21 @@ nft_ruleset_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+ 
+ nft_compat_get_SOURCES = nft-compat-get.c
+ nft_compat_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
++
++nft_counter_add_SOURCES = nft-counter-add.c
++nft_counter_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
++
++nft_counter_get_SOURCES = nft-counter-get.c
++nft_counter_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
++
++nft_counters_get_SOURCES = nft-counters-get.c
++nft_counters_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
++
++nft_counter_reset_SOURCES = nft-counter-reset.c
++nft_counter_reset_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
++
++nft_counter_del_SOURCES = nft-counter-del.c
++nft_counter_del_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
++
++nft_rule_counter_add_SOURCES = nft-rule-counter-add.c
++nft_rule_counter_add_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+diff --git a/examples/nft-counter-add.c b/examples/nft-counter-add.c
+new file mode 100644
+index 0000000..aee3f35
+--- /dev/null
++++ b/examples/nft-counter-add.c
+@@ -0,0 +1,140 @@
++/*
++ * (C) 2014 by Ana Rey Botello <ana@soleta.eu>
++ * (C) 2014 Pablo Neira Ayuso <pablo@netfilter.org>
++ * (C) 2014 Intra2net AG <http://www.intra2net.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <stdlib.h>
++#include <time.h>
++#include <string.h>
++#include <netinet/in.h>
++
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++
++#include <libmnl/libmnl.h>
++#include <libnftnl/table.h>
++#include <libnftnl/counter.h>
++
++static struct nft_counter *counter_add_parse(int argc, char *argv[])
++{
++	struct nft_counter *counter;
++	uint16_t family;
++
++	if (strcmp(argv[1], "ip") == 0)
++		family = NFPROTO_IPV4;
++	else if (strcmp(argv[1], "ip6") == 0)
++		family = NFPROTO_IPV6;
++	else if (strcmp(argv[1], "bridge") == 0)
++		family = NFPROTO_BRIDGE;
++	else if (strcmp(argv[1], "arp") == 0)
++		family = NFPROTO_ARP;
++	else {
++		fprintf(stderr, "Unknown family: ip, ip6, bridge, arp\n");
++		return NULL;
++	}
++
++	counter = nft_counter_alloc();
++	if (counter == NULL) {
++		perror("OOM");
++		return NULL;
++	}
++
++	nft_counter_attr_set_str(counter, NFT_COUNTER_ATTR_NAME, argv[3]);
++	nft_counter_attr_set_str(counter, NFT_COUNTER_ATTR_TABLE, argv[2]);
++	nft_counter_attr_set_u32(counter, NFT_COUNTER_ATTR_FAMILY, family);
++	nft_counter_attr_set_u64(counter, NFT_COUNTER_ATTR_PKTS, 0);
++	nft_counter_attr_set_u64(counter, NFT_COUNTER_ATTR_BYTES, 0);
++
++	return counter;
++}
++
++int main(int argc, char *argv[])
++{
++	struct mnl_socket *nl;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
++	uint32_t portid, seq, counter_seq, family;
++	struct nft_counter *counter;
++	struct mnl_nlmsg_batch *batch;
++	int ret, batching;
++
++	if (argc != 4) {
++		fprintf(stderr, "%s <family> <table> <counter>\n", argv[0]);
++		exit(EXIT_FAILURE);
++	}
++
++	counter = counter_add_parse(argc, argv);
++	if (counter == NULL)
++		exit(EXIT_FAILURE);
++
++
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		perror("mnl_socket_open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		perror("mnl_socket_bind");
++		exit(EXIT_FAILURE);
++	}
++
++	batching = nft_batch_is_supported();
++	if (batching < 0) {
++		perror("cannot talk to nfnetlink");
++		exit(EXIT_FAILURE);
++	}
++
++	seq = time(NULL);
++	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
++
++	if (batching) {
++		nft_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
++		mnl_nlmsg_batch_next(batch);
++	}
++	counter_seq = seq;
++	family = nft_counter_attr_get_u32(counter, NFT_COUNTER_ATTR_FAMILY);
++	nlh = nft_counter_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
++					  NFT_MSG_NEWCOUNTER, family,
++					  NLM_F_CREATE|NLM_F_ACK, seq++);
++
++	nft_counter_nlmsg_build_payload(nlh, counter);
++	nft_counter_free(counter);
++	mnl_nlmsg_batch_next(batch);
++
++	if (batching) {
++		nft_batch_end(mnl_nlmsg_batch_current(batch), seq++);
++		mnl_nlmsg_batch_next(batch);
++	}
++
++	ret = mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
++				mnl_nlmsg_batch_size(batch));
++	if (ret == -1) {
++		perror("mnl_socket_sendto");
++		exit(EXIT_FAILURE);
++	}
++
++	mnl_nlmsg_batch_stop(batch);
++	portid = mnl_socket_get_portid(nl);
++
++	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	while (ret > 0) {
++		ret = mnl_cb_run(buf, ret, counter_seq, portid, NULL, NULL);
++		if (ret <= 0)
++			break;
++		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	}
++	if (ret == -1) {
++		perror("error");
++		exit(EXIT_FAILURE);
++	}
++	mnl_socket_close(nl);
++
++	return EXIT_SUCCESS;
++}
+diff --git a/examples/nft-counter-del.c b/examples/nft-counter-del.c
+new file mode 100644
+index 0000000..38e68e7
+--- /dev/null
++++ b/examples/nft-counter-del.c
+@@ -0,0 +1,135 @@
++/*
++ * (C) 2014 by Ana Rey Botello <ana@soleta.eu>
++ * (C) 2014 Pablo Neira Ayuso <pablo@netfilter.org>
++ * (C) 2014 Intra2net AG <http://www.intra2net.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <stdlib.h>
++#include <time.h>
++#include <string.h>
++#include <netinet/in.h>
++
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++
++#include <libmnl/libmnl.h>
++#include <libnftnl/counter.h>
++
++static struct nft_counter *counter_del_parse(int argc, char *argv[])
++{
++	struct nft_counter *counter;
++	uint16_t family;
++
++	if (strcmp(argv[1], "ip") == 0)
++		family = NFPROTO_IPV4;
++	else if (strcmp(argv[1], "ip6") == 0)
++		family = NFPROTO_IPV6;
++	else if (strcmp(argv[1], "bridge") == 0)
++		family = NFPROTO_BRIDGE;
++	else if (strcmp(argv[1], "arp") == 0)
++		family = NFPROTO_ARP;
++	else {
++		fprintf(stderr, "Unknown family: ip, ip6, bridge, arp\n");
++		return NULL;
++	}
++
++	counter = nft_counter_alloc();
++	if (counter == NULL) {
++		perror("OOM");
++		return NULL;
++	}
++
++	nft_counter_attr_set_str(counter, NFT_COUNTER_ATTR_TABLE, argv[2]);
++	nft_counter_attr_set_u32(counter, NFT_COUNTER_ATTR_FAMILY, family);
++	nft_counter_attr_set_str(counter, NFT_COUNTER_ATTR_NAME, argv[3]);
++
++	return counter;
++}
++
++int main(int argc, char *argv[])
++{
++	struct mnl_socket *nl;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
++	uint32_t portid, seq, table_seq, family;
++	struct nft_counter *counter;
++	struct mnl_nlmsg_batch *batch;
++	int ret, batching;
++
++	if (argc != 4) {
++		fprintf(stderr, "%s <family> <table> <counter>\n", argv[0]);
++		exit(EXIT_FAILURE);
++	}
++
++	counter = counter_del_parse(argc, argv);
++	if (counter == NULL)
++		exit(EXIT_FAILURE);
++
++	batching = nft_batch_is_supported();
++	if (batching < 0) {
++		perror("cannot talk to nfnetlink");
++		exit(EXIT_FAILURE);
++	}
++
++	seq = time(NULL);
++	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
++
++	if (batching) {
++		nft_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
++		mnl_nlmsg_batch_next(batch);
++	}
++
++	table_seq = seq;
++	family = nft_counter_attr_get_u32(counter, NFT_COUNTER_ATTR_FAMILY);
++	nlh = nft_counter_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
++				       NFT_MSG_DELCOUNTER, family,
++				       NLM_F_ACK, seq++);
++	nft_counter_nlmsg_build_payload(nlh, counter);
++	mnl_nlmsg_batch_next(batch);
++	nft_counter_free(counter);
++
++	if (batching) {
++		nft_batch_end(mnl_nlmsg_batch_current(batch), seq++);
++		mnl_nlmsg_batch_next(batch);
++	}
++
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		perror("mnl_socket_open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		perror("mnl_socket_bind");
++		exit(EXIT_FAILURE);
++	}
++	portid = mnl_socket_get_portid(nl);
++
++	if (mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
++			      mnl_nlmsg_batch_size(batch)) < 0) {
++		perror("mnl_socket_send");
++		exit(EXIT_FAILURE);
++	}
++
++	mnl_nlmsg_batch_stop(batch);
++
++	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	while (ret > 0) {
++		ret = mnl_cb_run(buf, ret, table_seq, portid, NULL, NULL);
++		if (ret <= 0)
++			break;
++		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	}
++	if (ret == -1) {
++		printf("error\n");
++		exit(EXIT_FAILURE);
++	}
++	mnl_socket_close(nl);
++
++	return EXIT_SUCCESS;
++}
+diff --git a/examples/nft-counter-get.c b/examples/nft-counter-get.c
+new file mode 100644
+index 0000000..b30c8b2
+--- /dev/null
++++ b/examples/nft-counter-get.c
+@@ -0,0 +1,137 @@
++/*
++ * (C) 2014 by Ana Rey Botello <ana@soleta.eu>
++ * (C) 2014 Pablo Neira Ayuso <pablo@netfilter.org>
++ * (C) 2014 Intra2net AG <http://www.intra2net.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <stdlib.h>
++#include <time.h>
++#include <string.h>
++#include <netinet/in.h>
++
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++
++#include <libmnl/libmnl.h>
++#include <libnftnl/counter.h>
++
++static int counter_cb(const struct nlmsghdr *nlh, void *data)
++{
++	struct nft_counter *counter;
++	char buf[4096];
++	uint32_t *type = data;
++
++	counter = nft_counter_alloc();
++	if (counter == NULL) {
++		perror("OOM");
++		goto err;
++	}
++
++	if (nft_counter_nlmsg_parse(nlh, counter) < 0) {
++		perror("nft_counter_nlmsg_parse");
++		goto err_free;
++	}
++	nft_counter_snprintf(buf, sizeof(buf), counter, *type, 0);
++	printf("%s\n", buf);
++
++err_free:
++	nft_counter_free(counter);
++err:
++	return MNL_CB_OK;
++}
++
++int main(int argc, char *argv[])
++{
++	struct mnl_socket *nl;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
++	uint32_t portid, seq, family;
++	struct nft_counter *counter = NULL;
++	int ret;
++	uint32_t type = NFT_OUTPUT_DEFAULT;
++
++	if (argc < 4 || argc > 5) {
++		fprintf(stderr,
++			"%s <family> <table> <counter> [<default|xml|json>]\n",
++			argv[0]);
++		return EXIT_FAILURE;
++	}
++
++	if (strcmp(argv[1], "ip") == 0)
++		family = NFPROTO_IPV4;
++	else if (strcmp(argv[1], "ip6") == 0)
++		family = NFPROTO_IPV6;
++	else if (strcmp(argv[1], "bridge") == 0)
++		family = NFPROTO_BRIDGE;
++	else if (strcmp(argv[1], "arp") == 0)
++		family = NFPROTO_ARP;
++	else if (strcmp(argv[1], "unspec") == 0)
++		family = NFPROTO_UNSPEC;
++	else {
++		fprintf(stderr,
++			"Unknown family: ip, ip6, bridge, arp, unspec\n");
++		exit(EXIT_FAILURE);
++	}
++	if (strcmp(argv[argc-1], "xml") == 0) {
++		type = NFT_OUTPUT_XML;
++		argv[argc-1] = NULL;
++		argc--;
++	} else if (strcmp(argv[argc-1], "json") == 0) {
++		type = NFT_OUTPUT_JSON;
++		argv[argc-1] = NULL;
++		argc--;
++	} else if (strcmp(argv[argc - 1], "default") == 0) {
++		argc--;
++	}
++	counter = nft_counter_alloc();
++	if (counter == NULL) {
++		perror("OOM");
++		exit(EXIT_FAILURE);
++	}
++
++	seq = time(NULL);
++	nlh = nft_counter_nlmsg_build_hdr(buf, NFT_MSG_GETCOUNTER, family,
++					  NLM_F_ACK, seq);
++	nft_counter_attr_set_str(counter, NFT_COUNTER_ATTR_NAME, argv[3]);
++	nft_counter_attr_set_str(counter, NFT_COUNTER_ATTR_TABLE, argv[2]);
++	nft_counter_nlmsg_build_payload(nlh, counter);
++	nft_counter_free(counter);
++
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		perror("mnl_socket_open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		perror("mnl_socket_bind");
++		exit(EXIT_FAILURE);
++	}
++	portid = mnl_socket_get_portid(nl);
++
++	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
++		perror("mnl_socket_send");
++		exit(EXIT_FAILURE);
++	}
++
++	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	while (ret > 0) {
++		ret = mnl_cb_run(buf, ret, seq, portid, counter_cb, &type);
++		if (ret <= 0)
++			break;
++		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	}
++
++	if (ret == -1) {
++		perror("error");
++		exit(EXIT_FAILURE);
++	}
++	mnl_socket_close(nl);
++
++	return EXIT_SUCCESS;
++}
+diff --git a/examples/nft-counter-reset.c b/examples/nft-counter-reset.c
+new file mode 100644
+index 0000000..effb518
+--- /dev/null
++++ b/examples/nft-counter-reset.c
+@@ -0,0 +1,123 @@
++/*
++ * (C) 2014 by Ana Rey Botello <ana@soleta.eu>
++ * (C) 2014 Pablo Neira Ayuso <pablo@netfilter.org>
++ * (C) 2014 Intra2net AG <http://www.intra2net.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <stdlib.h>
++#include <time.h>
++#include <string.h>
++#include <netinet/in.h>
++
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++
++#include <libmnl/libmnl.h>
++#include <libnftnl/counter.h>
++
++static int counter_cb(const struct nlmsghdr *nlh, void *data)
++{
++	struct nft_counter *counter;
++
++	counter = nft_counter_alloc();
++	if (counter == NULL) {
++		perror("OOM");
++		goto err;
++	}
++
++	if (nft_counter_nlmsg_parse(nlh, counter) < 0) {
++		perror("nft_counter_nlmsg_parse");
++		goto err_free;
++	}
++err_free:
++	nft_counter_free(counter);
++err:
++	return MNL_CB_OK;
++}
++
++int main(int argc, char *argv[])
++{
++	struct mnl_socket *nl;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
++	uint32_t portid, seq, family;
++	struct nft_counter *counter = NULL;
++	int ret;
++	uint32_t type = NFT_OUTPUT_DEFAULT;
++
++	if (argc != 4) {
++		fprintf(stderr,
++			"%s <family> <table> <counter>\n",
++			argv[0]);
++		return EXIT_FAILURE;
++	}
++
++	if (strcmp(argv[1], "ip") == 0)
++		family = NFPROTO_IPV4;
++	else if (strcmp(argv[1], "ip6") == 0)
++		family = NFPROTO_IPV6;
++	else if (strcmp(argv[1], "bridge") == 0)
++		family = NFPROTO_BRIDGE;
++	else if (strcmp(argv[1], "arp") == 0)
++		family = NFPROTO_ARP;
++	else if (strcmp(argv[1], "unspec") == 0)
++		family = NFPROTO_UNSPEC;
++	else {
++		fprintf(stderr,
++			"Unknown family: ip, ip6, bridge, arp, unspec\n");
++		exit(EXIT_FAILURE);
++	}
++
++	counter = nft_counter_alloc();
++	if (counter == NULL) {
++		perror("OOM");
++		exit(EXIT_FAILURE);
++	}
++
++	seq = time(NULL);
++	nlh = nft_counter_nlmsg_build_hdr(buf, NFT_MSG_GETCOUNTER_ZERO, family,
++					  NLM_F_ACK, seq);
++	nft_counter_attr_set_str(counter, NFT_COUNTER_ATTR_NAME, argv[3]);
++	nft_counter_attr_set_str(counter, NFT_COUNTER_ATTR_TABLE, argv[2]);
++	nft_counter_nlmsg_build_payload(nlh, counter);
++	nft_counter_free(counter);
++
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		perror("mnl_socket_open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		perror("mnl_socket_bind");
++		exit(EXIT_FAILURE);
++	}
++	portid = mnl_socket_get_portid(nl);
++
++	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
++		perror("mnl_socket_send");
++		exit(EXIT_FAILURE);
++	}
++
++	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++
++	while (ret > 0) {
++		ret = mnl_cb_run(buf, ret, seq, portid, counter_cb, &type);
++		if (ret <= 0)
++			break;
++		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	}
++
++	if (ret == -1) {
++		perror("error");
++		exit(EXIT_FAILURE);
++	}
++	mnl_socket_close(nl);
++
++	return EXIT_SUCCESS;
++}
+diff --git a/examples/nft-counters-get.c b/examples/nft-counters-get.c
+new file mode 100644
+index 0000000..b023325
+--- /dev/null
++++ b/examples/nft-counters-get.c
+@@ -0,0 +1,136 @@
++/*
++ * (C) 2014 by Ana Rey Botello <ana@soleta.eu>
++ * (C) 2014 Pablo Neira Ayuso <pablo@netfilter.org>
++ * (C) 2014 Intra2net AG <http://www.intra2net.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <stdlib.h>
++#include <time.h>
++#include <string.h>
++#include <netinet/in.h>
++
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++
++#include <libmnl/libmnl.h>
++#include <libnftnl/counter.h>
++
++static int counter_cb(const struct nlmsghdr *nlh, void *data)
++{
++	struct nft_counter *counter;
++	char buf[4096];
++	uint32_t *type = data;
++
++	counter = nft_counter_alloc();
++	if (counter == NULL) {
++		perror("OOM");
++		goto err;
++	}
++
++	if (nft_counter_nlmsg_parse(nlh, counter) < 0) {
++		perror("nft_counter_nlmsg_parse");
++		goto err_free;
++	}
++	nft_counter_snprintf(buf, sizeof(buf), counter, *type, 0);
++	printf("%s\n", buf);
++
++err_free:
++	nft_counter_free(counter);
++err:
++	return MNL_CB_OK;
++}
++
++int main(int argc, char *argv[])
++{
++	struct mnl_socket *nl;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct nlmsghdr *nlh;
++	uint32_t portid, seq, family;
++	struct nft_counter *counter = NULL;
++	int ret;
++	uint32_t type = NFT_OUTPUT_DEFAULT;
++
++	if (argc < 3 || argc > 4) {
++		fprintf(stderr,
++			"%s <family> <table> [<default|xml|json>]\n",
++			argv[0]);
++		return EXIT_FAILURE;
++	}
++
++	if (strcmp(argv[1], "ip") == 0)
++		family = NFPROTO_IPV4;
++	else if (strcmp(argv[1], "ip6") == 0)
++		family = NFPROTO_IPV6;
++	else if (strcmp(argv[1], "bridge") == 0)
++		family = NFPROTO_BRIDGE;
++	else if (strcmp(argv[1], "arp") == 0)
++		family = NFPROTO_ARP;
++	else if (strcmp(argv[1], "unspec") == 0)
++		family = NFPROTO_UNSPEC;
++	else {
++		fprintf(stderr,
++			"Unknown family: ip, ip6, bridge, arp, unspec\n");
++		exit(EXIT_FAILURE);
++	}
++	if (strcmp(argv[argc-1], "xml") == 0) {
++		type = NFT_OUTPUT_XML;
++		argv[argc-1] = NULL;
++		argc--;
++	} else if (strcmp(argv[argc-1], "json") == 0) {
++		type = NFT_OUTPUT_JSON;
++		argv[argc-1] = NULL;
++		argc--;
++	} else if (strcmp(argv[argc - 1], "default") == 0) {
++		argc--;
++	}
++	counter = nft_counter_alloc();
++	if (counter == NULL) {
++		perror("OOM");
++		exit(EXIT_FAILURE);
++	}
++
++	seq = time(NULL);
++	nlh = nft_counter_nlmsg_build_hdr(buf, NFT_MSG_GETCOUNTER, family,
++					  NLM_F_DUMP | NLM_F_ACK, seq);
++	nft_counter_attr_set_str(counter, NFT_COUNTER_ATTR_TABLE, argv[2]);
++	nft_counter_nlmsg_build_payload(nlh, counter);
++	nft_counter_free(counter);
++
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		perror("mnl_socket_open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		perror("mnl_socket_bind");
++		exit(EXIT_FAILURE);
++	}
++	portid = mnl_socket_get_portid(nl);
++
++	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
++		perror("mnl_socket_send");
++		exit(EXIT_FAILURE);
++	}
++
++	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	while (ret > 0) {
++		ret = mnl_cb_run(buf, ret, seq, portid, counter_cb, &type);
++		if (ret <= 0)
++			break;
++		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	}
++
++	if (ret == -1) {
++		perror("error");
++		exit(EXIT_FAILURE);
++	}
++	mnl_socket_close(nl);
++
++	return EXIT_SUCCESS;
++}
+diff --git a/examples/nft-rule-counter-add.c b/examples/nft-rule-counter-add.c
+new file mode 100644
+index 0000000..f55af3e
+--- /dev/null
++++ b/examples/nft-rule-counter-add.c
+@@ -0,0 +1,222 @@
++/*
++ * (C) 2014 by Ana Rey Botello <ana@soleta.eu>
++ * (C) 2014 Pablo Neira Ayuso <pablo@netfilter.org>
++ * (C) 2014 Intra2net AG <http://www.intra2net.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ */
++
++#include <stdlib.h>
++#include <time.h>
++#include <string.h>
++#include <stddef.h>	/* for offsetof */
++#include <netinet/in.h>
++#include <netinet/ip.h>
++#include <netinet/tcp.h>
++#include <arpa/inet.h>
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <errno.h>
++
++#include <linux/netfilter.h>
++#include <linux/netfilter/nfnetlink.h>
++#include <linux/netfilter/nf_tables.h>
++
++#include <libmnl/libmnl.h>
++#include <libnftnl/rule.h>
++#include <libnftnl/expr.h>
++
++static void add_payload(struct nft_rule *r, uint32_t base, uint32_t dreg,
++			uint32_t offset, uint32_t len)
++{
++	struct nft_rule_expr *e;
++
++	e = nft_rule_expr_alloc("payload");
++	if (e == NULL) {
++		perror("expr payload oom");
++		exit(EXIT_FAILURE);
++	}
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_PAYLOAD_BASE, base);
++	nft_rule_expr_set_u32(e, NFT_EXPR_PAYLOAD_DREG, dreg);
++	nft_rule_expr_set_u32(e, NFT_EXPR_PAYLOAD_OFFSET, offset);
++	nft_rule_expr_set_u32(e, NFT_EXPR_PAYLOAD_LEN, len);
++
++	nft_rule_add_expr(r, e);
++}
++
++static void add_cmp(struct nft_rule *r, uint32_t sreg, uint32_t op,
++		    const void *data, uint32_t data_len)
++{
++	struct nft_rule_expr *e;
++
++	e = nft_rule_expr_alloc("cmp");
++	if (e == NULL) {
++		perror("expr cmp oom");
++		exit(EXIT_FAILURE);
++	}
++
++	nft_rule_expr_set_u32(e, NFT_EXPR_CMP_SREG, sreg);
++	nft_rule_expr_set_u32(e, NFT_EXPR_CMP_OP, op);
++	nft_rule_expr_set(e, NFT_EXPR_CMP_DATA, data, data_len);
++	nft_rule_add_expr(r, e);
++}
++
++static void add_counter(struct nft_rule *r)
++{
++	struct nft_rule_expr *e;
++
++	e = nft_rule_expr_alloc("counter");
++	if (e == NULL) {
++		perror("expr counter oom");
++		exit(EXIT_FAILURE);
++	}
++	nft_rule_expr_set_str(e, NFT_EXPR_CTR_NAME, "counter1");
++
++	nft_rule_add_expr(r, e);
++}
++
++static struct nft_rule *setup_rule(uint8_t family, const char *table,
++				   const char *chain, const char *handle)
++{
++	struct nft_rule *r = NULL;
++	uint8_t proto;
++	uint16_t dport;
++	uint64_t handle_num;
++
++	r = nft_rule_alloc();
++	if (r == NULL) {
++		perror("OOM");
++		exit(EXIT_FAILURE);
++	}
++
++	nft_rule_attr_set(r, NFT_RULE_ATTR_TABLE, table);
++	nft_rule_attr_set(r, NFT_RULE_ATTR_CHAIN, chain);
++	nft_rule_attr_set_u32(r, NFT_RULE_ATTR_FAMILY, family);
++	if (handle != NULL) {
++		handle_num = atoll(handle);
++		nft_rule_attr_set_u64(r, NFT_RULE_ATTR_POSITION, handle_num);
++	}
++
++	proto = IPPROTO_TCP;
++	add_payload(r, NFT_PAYLOAD_NETWORK_HEADER, NFT_REG_1,
++		    offsetof(struct iphdr, protocol), sizeof(uint8_t));
++	add_cmp(r, NFT_REG_1, NFT_CMP_EQ, &proto, sizeof(uint8_t));
++
++	dport = htons(80);
++	add_payload(r, NFT_PAYLOAD_TRANSPORT_HEADER, NFT_REG_1,
++		    offsetof(struct tcphdr, dest), sizeof(uint16_t));
++	add_cmp(r, NFT_REG_1, NFT_CMP_EQ, &dport, sizeof(uint16_t));
++
++	add_counter(r);
++	return r;
++}
++
++static void nft_mnl_batch_put(char *buf, uint16_t type, uint32_t seq)
++{
++	struct nlmsghdr *nlh;
++	struct nfgenmsg *nfg;
++
++	nlh = mnl_nlmsg_put_header(buf);
++	nlh->nlmsg_type = type;
++	nlh->nlmsg_flags = NLM_F_REQUEST;
++	nlh->nlmsg_seq = seq;
++
++	nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
++	nfg->nfgen_family = AF_INET;
++	nfg->version = NFNETLINK_V0;
++	nfg->res_id = NFNL_SUBSYS_NFTABLES;
++}
++
++int main(int argc, char *argv[])
++{
++	struct mnl_socket *nl;
++	struct nft_rule *r;
++	struct nlmsghdr *nlh;
++	struct mnl_nlmsg_batch *batch;
++	uint8_t family;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	char buf2[MNL_SOCKET_BUFFER_SIZE];
++	uint32_t seq = time(NULL);
++	int ret;
++
++	if (argc < 4 || argc > 5) {
++		fprintf(stderr,
++			"Usage: %s <family> <table> <chain>\n", argv[0]);
++		exit(EXIT_FAILURE);
++	}
++
++	if (strcmp(argv[1], "ip") == 0)
++		family = NFPROTO_IPV4;
++	else if (strcmp(argv[1], "ip6") == 0)
++		family = NFPROTO_IPV6;
++	else {
++		fprintf(stderr, "Unknown family: ip, ip6\n");
++		exit(EXIT_FAILURE);
++	}
++
++	if (argc != 5)
++		r = setup_rule(family, argv[2], argv[3], NULL);
++	else
++		r = setup_rule(family, argv[2], argv[3], argv[4]);
++
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		perror("mnl_socket_open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		perror("mnl_socket_bind");
++		exit(EXIT_FAILURE);
++	}
++
++	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
++
++	nft_mnl_batch_put(mnl_nlmsg_batch_current(batch),
++			  NFNL_MSG_BATCH_BEGIN, seq++);
++	mnl_nlmsg_batch_next(batch);
++
++	nlh = nft_rule_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
++				       NFT_MSG_NEWRULE,
++				       nft_rule_attr_get_u32(r, NFT_RULE_ATTR_FAMILY),
++				       NLM_F_APPEND|NLM_F_CREATE|NLM_F_ACK,
++				       seq++);
++
++	nft_rule_nlmsg_build_payload(nlh, r);
++	nft_rule_snprintf(buf2, sizeof(buf), r, NFT_OUTPUT_JSON, 0);
++	nft_rule_free(r);
++	mnl_nlmsg_batch_next(batch);
++
++	nft_mnl_batch_put(mnl_nlmsg_batch_current(batch), NFNL_MSG_BATCH_END,
++			 seq++);
++	mnl_nlmsg_batch_next(batch);
++
++	ret = mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
++				mnl_nlmsg_batch_size(batch));
++	if (ret == -1) {
++		perror("mnl_socket_sendto");
++		exit(EXIT_FAILURE);
++	}
++
++	mnl_nlmsg_batch_stop(batch);
++
++	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	if (ret == -1) {
++		perror("mnl_socket_recvfrom");
++		exit(EXIT_FAILURE);
++	}
++
++	ret = mnl_cb_run(buf, ret, 0, mnl_socket_get_portid(nl), NULL, NULL);
++	if (ret < 0) {
++		perror("mnl_cb_run");
++		exit(EXIT_FAILURE);
++	}
++
++	mnl_socket_close(nl);
++	return EXIT_SUCCESS;
++}
+diff --git a/include/buffer.h b/include/buffer.h
+index 2b497f2..aef7dbb 100644
+--- a/include/buffer.h
++++ b/include/buffer.h
+@@ -37,6 +37,7 @@ int nft_buf_reg(struct nft_buf *b, int type, union nft_data_reg *reg,
+ #define BYTES			"bytes"
+ #define CHAIN			"chain"
+ #define CODE			"code"
++#define COUNTER			"counter"
+ #define DATA			"data"
+ #define DIR			"dir"
+ #define DREG			"dreg"
+diff --git a/include/libnftnl/Makefile.am b/include/libnftnl/Makefile.am
+index 010c01f..52051d0 100644
+--- a/include/libnftnl/Makefile.am
++++ b/include/libnftnl/Makefile.am
+@@ -5,4 +5,5 @@ pkginclude_HEADERS = table.h		\
+ 		     set.h		\
+ 		     ruleset.h		\
+ 		     common.h		\
+-		     gen.h
++		     gen.h		\
++		     counter.h
+diff --git a/include/libnftnl/counter.h b/include/libnftnl/counter.h
+new file mode 100644
+index 0000000..55118e8
+--- /dev/null
++++ b/include/libnftnl/counter.h
+@@ -0,0 +1,97 @@
++#ifndef _LIBNFTNL_COUNTER_H_
++#define _LIBNFTNL_COUNTER_H_
++
++#include <stdio.h>
++#include <stdint.h>
++#include <stdbool.h>
++#include <sys/types.h>
++
++#include <libnftnl/common.h>
++
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++struct nft_counter;
++
++struct nft_counter *nft_counter_alloc(void);
++void nft_counter_free(struct nft_counter *counter);
++
++enum {
++	NFT_COUNTER_ATTR_PKTS = 0,
++	NFT_COUNTER_ATTR_BYTES,
++	NFT_COUNTER_ATTR_NAME,
++	NFT_COUNTER_ATTR_TABLE,
++	NFT_COUNTER_ATTR_FAMILY,
++	NFT_COUNTER_ATTR_USE,
++	NFT_COUNTER_ATTR_ID,
++	__NFT_COUNTER_ATTR_MAX
++};
++#define NFT_COUNTER_ATTR_MAX (__NFT_COUNTER_ATTR_MAX - 1)
++
++bool nft_counter_attr_is_set(const struct nft_counter *counter, uint16_t attr);
++void nft_counter_attr_unset(struct nft_counter *counter, uint16_t attr);
++void nft_counter_attr_set(struct nft_counter *counter, uint16_t attr,
++			  const void *data);
++void nft_counter_attr_set_data(struct nft_counter *counter, uint16_t attr,
++			       const void *data, uint32_t data_len);
++const void *nft_counter_attr_get(struct nft_counter *counter, uint16_t attr);
++const void *nft_counter_attr_get_data(struct nft_counter *counter,
++				      uint16_t attr, uint64_t *data_len);
++
++void nft_counter_attr_set_u32(struct nft_counter *counter, uint16_t attr,
++			      uint32_t data);
++void nft_counter_attr_set_u64(struct nft_counter *counter, uint16_t attr,
++			      uint64_t data);
++void nft_counter_attr_set_str(struct nft_counter *counter, uint16_t attr,
++			      const char *str);
++uint32_t nft_counter_attr_get_u32(struct nft_counter *counter, uint16_t attr);
++uint64_t nft_counter_attr_get_u64(struct nft_counter *counter, uint16_t attr);
++const char *nft_counter_attr_get_str(struct nft_counter *counter,
++				     uint16_t attr);
++
++struct nlmsghdr;
++
++void nft_counter_nlmsg_build_payload(struct nlmsghdr *nlh,
++				     const struct nft_counter *counter);
++
++int nft_counter_parse(struct nft_counter *counter, enum nft_parse_type type,
++		      const char *data, struct nft_parse_err *err);
++int nft_counter_parse_file(struct nft_counter *counter,
++			   enum nft_parse_type type, FILE *fp,
++			   struct nft_parse_err *err);
++int nft_counter_snprintf(char *buf, size_t size, struct nft_counter *counter,
++			 uint32_t type, uint32_t flags);
++int nft_counter_fprintf(FILE *fp, struct nft_counter *counter, uint32_t type,
++			uint32_t flags);
++
++#define nft_counter_nlmsg_build_hdr	nft_nlmsg_build_hdr
++int nft_counter_nlmsg_parse(const struct nlmsghdr *nlh,
++			    struct nft_counter *counter);
++struct nft_counter_list;
++
++struct nft_counter_list *nft_counter_list_alloc(void);
++void nft_counter_list_free(struct nft_counter_list *list);
++int nft_counter_list_is_empty(struct nft_counter_list *list);
++int nft_counter_list_foreach(struct nft_counter_list *counter_list,
++			     int (*cb)(struct nft_counter *counter, void *data),
++			     void *data);
++void nft_counter_list_add(struct nft_counter *counter,
++			  struct nft_counter_list *list);
++void nft_counter_list_add_tail(struct nft_counter *counter,
++			       struct nft_counter_list *list);
++void nft_counter_list_del(struct nft_counter *counter);
++
++struct nft_counter_list_iter;
++
++struct nft_counter_list_iter *
++nft_counter_list_iter_create(struct nft_counter_list *l);
++struct nft_counter *
++nft_counter_list_iter_next(struct nft_counter_list_iter *iter);
++void nft_counter_list_iter_destroy(struct nft_counter_list_iter *iter);
++
++#ifdef __cplusplus
++} /* extern "C" */
++#endif
++
++#endif /* _LIBNFTNL_COUNTER_H_ */
+diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
+index 9f25993..263d37a 100644
+--- a/include/libnftnl/expr.h
++++ b/include/libnftnl/expr.h
+@@ -71,6 +71,7 @@ enum {
+ enum {
+ 	NFT_EXPR_CTR_PACKETS	= NFT_RULE_EXPR_ATTR_BASE,
+ 	NFT_EXPR_CTR_BYTES,
++	NFT_EXPR_CTR_NAME,
  };
  
-+struct nft_trans_counter {
-+	struct nft_named_ctr	*counter;
-+	u32			counter_id;
-+};
-+
-+#define nft_trans_counter(trans)	\
-+	(((struct nft_trans_counter *)trans->data)->counter)
-+#define nft_trans_counter_id(trans)	\
-+	(((struct nft_trans_counter *)trans->data)->counter_id)
-+
- struct nft_trans_rule {
- 	struct nft_rule			*rule;
- };
-@@ -572,6 +582,7 @@ unsigned int nft_do_chain(struct nft_pktinfo *pkt,
-  *	@list: used internally
-  *	@chains: chains in the table
-  *	@sets: sets in the table
-+ *	@counters: counters in the table
-  *	@hgenerator: handle generator state
-  *	@use: number of chain references to this table
-  *	@flags: table flag (see enum nft_table_flags)
-@@ -581,6 +592,7 @@ struct nft_table {
- 	struct list_head		list;
- 	struct list_head		chains;
- 	struct list_head		sets;
-+	struct list_head		counters;
- 	u64				hgenerator;
- 	u32				use;
- 	u16				flags;
-@@ -639,6 +651,41 @@ void nft_unregister_chain_type(const struct nf_chain_type *);
- int nft_register_expr(struct nft_expr_type *);
- void nft_unregister_expr(struct nft_expr_type *);
- 
-+/**
-+ * struct nft_counter - nf_tables counter_priv instance
-+ *
-+ * @pkts:  number of packets
-+ * @bytes:  number of bytes
-+ */
-+struct nft_counter {
-+	seqlock_t	lock;
-+	u64		bytes;
-+	u64		packets;
-+};
-+
-+/**
-+ * struct nft_named_ctr - nf_tables counter instance
-+ *
-+ * @list: table counter list node
-+ * @name: name of the counter
-+ * @counter:  nft_priv_counter
-+ * @bytes:  number of bytes
-+ * @use: number of rule references to this counter
-+ * @flags: counter flags
-+ */
-+struct nft_named_ctr {
-+	struct list_head	list;
-+	char			name[NFT_CTR_MAXNAMELEN];
-+	struct nft_counter	counter;
-+	u32			use:31,
-+				flags:1;
-+};
-+
-+void nft_counter_put(struct nft_named_ctr *counter);
-+int nft_counter_get(struct nft_named_ctr *counter);
-+struct nft_named_ctr *nf_tables_counter_lookup(const struct nft_table *table,
-+					       const struct nlattr *nla);
-+
- #define nft_dereference(p)					\
- 	nfnl_dereference(p, NFNL_SUBSYS_NFTABLES)
- 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 832bc46..da19f57 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
+ enum {
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 832bc46..c3e0ee2 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
 @@ -2,6 +2,7 @@
  #define _LINUX_NF_TABLES_H
  
@@ -200,7 +1236,7 @@ index 832bc46..da19f57 100644
  #define NFTA_COUNTER_MAX	(__NFTA_COUNTER_MAX - 1)
  
  /**
-+ * enum nft_named_ctr_attributes - nf_tables named counter netlink attributes
++ * enum nft_named_counter_attributes - nf_tables named counter netlink attributes
 + *
 + * @NFTA_NAMED_CTR_NAME: named counter name (NLA_STRING)
 + * @NFTA_NAMED_CTR_TABLE: table name (NLA_STRING)
@@ -208,7 +1244,7 @@ index 832bc46..da19f57 100644
 + * @NFTA_NAMED_CTR_BYTES: number of bytes (NLA_U64)
 + * @NFTA_NAMED_CTR_PACKETS: number of packets (NLA_U64)
 + */
-+enum nft_named_ctr_attributes {
++enum nft_named_counter_attributes {
 +	NFTA_NAMED_CTR_UNSPEC,
 +	NFTA_NAMED_CTR_NAME,
 +	NFTA_NAMED_CTR_TABLE,
@@ -223,705 +1259,904 @@ index 832bc46..da19f57 100644
   * enum nft_log_attributes - nf_tables log expression netlink attributes
   *
   * @NFTA_LOG_GROUP: netlink group to send messages to (NLA_U32)
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 1ff04bc..e803cbf 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -325,6 +325,41 @@ static int nft_delset(struct nft_ctx *ctx, struct nft_set *set)
- 	return err;
- }
- 
-+#define NFT_NAMED_CTR_INACTIVE		(1 << 0)
+diff --git a/src/Makefile.am b/src/Makefile.am
+index c77c3cc..934fa9b 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -8,6 +8,7 @@ libnftnl_la_LDFLAGS = -Wl,--version-script=$(srcdir)/libnftnl.map	\
+ libnftnl_la_SOURCES = utils.c		\
+ 		      buffer.c		\
+ 		      common.c		\
++		      counter.c		\
+ 		      gen.c		\
+ 		      table.c		\
+ 		      chain.c		\
+diff --git a/src/counter.c b/src/counter.c
+new file mode 100644
+index 0000000..6e0abfc
+--- /dev/null
++++ b/src/counter.c
+@@ -0,0 +1,673 @@
++/*
++ * (C) 2014 by Ana Rey Botello <ana@soleta.eu>
++ * (C) 2014 Pablo Neira Ayuso <pablo@netfilter.org>
++ * (C) 2014 Intra2net AG <http://www.intra2net.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published
++ * by the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ */
++#include "internal.h"
 +
-+static int nft_trans_counter_add(struct nft_ctx *ctx, int msg_type,
-+				 struct nft_named_ctr *counter)
-+{
-+	struct nft_trans *trans;
++#include <time.h>
++#include <endian.h>
++#include <stdint.h>
++#include <limits.h>
++#include <stdlib.h>
++#include <string.h>
++#include <netinet/in.h>
++#include <errno.h>
++#include <inttypes.h>
 +
-+	trans = nft_trans_alloc(ctx, msg_type,
-+				sizeof(struct nft_trans_counter));
-+	if (!trans)
-+		return -ENOMEM;
++#include <linux/types.h>
++#include <linux/netfilter/nfnetlink.h>
++#include <linux/netfilter/nf_tables.h>
 +
-+	if (msg_type == NFT_MSG_NEWCOUNTER)
-+		counter->flags |= NFT_NAMED_CTR_INACTIVE;
++#include <libmnl/libmnl.h>
++#include <libnftnl/table.h>
++#include <libnftnl/counter.h>
++#include <buffer.h>
 +
-+	nft_trans_counter(trans) = counter;
-+	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
-+
-+	return 0;
-+}
-+
-+static int nft_delcounter(struct nft_ctx *ctx, struct nft_named_ctr *counter)
-+{
-+	int err;
-+
-+	err = nft_trans_counter_add(ctx, NFT_MSG_DELCOUNTER, counter);
-+	if (err < 0)
-+		return err;
-+
-+	list_del_rcu(&counter->list);
-+	ctx->table->use--;
-+
-+	return err;
-+}
-+
- /*
-  * Tables
-  */
-@@ -694,6 +729,7 @@ static int nf_tables_newtable(struct sock *nlsk, struct sk_buff *skb,
- 	nla_strlcpy(table->name, name, nla_len(name));
- 	INIT_LIST_HEAD(&table->chains);
- 	INIT_LIST_HEAD(&table->sets);
-+	INIT_LIST_HEAD(&table->counters);
- 	table->flags = flags;
- 
- 	nft_ctx_init(&ctx, skb, nlh, afi, table, NULL, nla);
-@@ -712,6 +748,7 @@ static int nft_flush_table(struct nft_ctx *ctx)
- 	int err;
- 	struct nft_chain *chain, *nc;
- 	struct nft_set *set, *ns;
-+	struct nft_named_ctr *counter, *na;
- 
- 	list_for_each_entry(chain, &ctx->table->chains, list) {
- 		ctx->chain = chain;
-@@ -730,7 +767,11 @@ static int nft_flush_table(struct nft_ctx *ctx)
- 		if (err < 0)
- 			goto out;
- 	}
--
-+	list_for_each_entry_safe(counter, na, &ctx->table->counters, list) {
-+		err = nft_delcounter(ctx, counter);
-+		if (err < 0)
-+			goto out;
-+	}
- 	list_for_each_entry_safe(chain, nc, &ctx->table->chains, list) {
- 		ctx->chain = chain;
- 
-@@ -3392,6 +3433,395 @@ err:
- 	return err;
- }
- 
-+static const struct nla_policy nft_named_ctr_policy[NFTA_NAMED_CTR_MAX + 1] = {
-+	[NFTA_NAMED_CTR_NAME]		= { .type = NLA_NUL_STRING,
-+					    .len = NFT_CTR_MAXNAMELEN - 1 },
-+	[NFTA_NAMED_CTR_BYTES]		= { .type = NLA_U64 },
-+	[NFTA_NAMED_CTR_PACKETS]	= { .type = NLA_U64 },
++struct nft_counter {
++	struct list_head	list;
++	const char		*name;
++	const char		*table;
++	uint32_t		family;
++	uint64_t		pkts;
++	uint64_t		bytes;
++	uint32_t		use;
++	uint32_t		flags;
 +};
 +
-+struct nft_named_ctr *nf_tables_counter_lookup(const struct nft_table *table,
-+					       const struct nlattr *nla)
++struct nft_counter *nft_counter_alloc(void)
 +{
-+	struct nft_named_ctr *counter;
++	struct nft_counter *counter;
 +
-+	if (!nla)
-+		return ERR_PTR(-EINVAL);
++	counter = calloc(1, sizeof(struct nft_counter));
++	if (counter == NULL)
++		return NULL;
 +
-+	list_for_each_entry(counter, &table->counters, list) {
-+		if (!nla_strcmp(nla, counter->name))
-+			return counter;
-+	}
-+
-+	return ERR_PTR(-ENOENT);
++	return counter;
 +}
-+EXPORT_SYMBOL_GPL(nf_tables_counter_lookup);
++EXPORT_SYMBOL(nft_counter_alloc);
 +
-+static int nft_ctx_init_from_counter(struct nft_ctx *ctx,
-+				     const struct sk_buff *skb,
-+				     const struct nlmsghdr *nlh,
-+				     const struct nlattr * const nla[])
++void nft_counter_free(struct nft_counter *counter)
 +{
-+	struct net *net = sock_net(skb->sk);
-+	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
-+	struct nft_af_info *afi = NULL;
-+	struct nft_table *table = NULL;
++	if (counter->name != NULL)
++		xfree(counter->name);
++	if (counter->table != NULL)
++		xfree(counter->table);
 +
-+	if (nfmsg->nfgen_family != NFPROTO_UNSPEC) {
-+		afi = nf_tables_afinfo_lookup(net, nfmsg->nfgen_family, false);
-+		if (IS_ERR(afi))
-+			return PTR_ERR(afi);
++	xfree(counter);
++}
++EXPORT_SYMBOL(nft_counter_free);
++
++bool nft_counter_attr_is_set(const struct nft_counter *counter, uint16_t attr)
++{
++	return counter->flags & (1 << attr);
++}
++EXPORT_SYMBOL(nft_counter_attr_is_set);
++
++void nft_counter_attr_unset(struct nft_counter *counter, uint16_t attr)
++{
++	if (!(counter->flags & (1 << attr)))
++		return;
++
++	switch (attr) {
++	case NFT_COUNTER_ATTR_NAME:
++		if (counter->name) {
++			xfree(counter->name);
++			counter->name = NULL;
++		}
++		break;
++	case NFT_COUNTER_ATTR_TABLE:
++		if (counter->table) {
++			xfree(counter->table);
++			counter->table = NULL;
++		}
++		break;
++	case NFT_COUNTER_ATTR_BYTES:
++	case NFT_COUNTER_ATTR_PKTS:
++	case NFT_COUNTER_ATTR_USE:
++	case NFT_COUNTER_ATTR_FAMILY:
++		break;
++	}
++	counter->flags &= ~(1 << attr);
++}
++EXPORT_SYMBOL(nft_counter_attr_unset);
++
++static uint32_t nft_counter_attr_validate[NFT_COUNTER_ATTR_MAX + 1] = {
++	[NFT_COUNTER_ATTR_BYTES]	= sizeof(uint64_t),
++	[NFT_COUNTER_ATTR_PKTS]		= sizeof(uint64_t),
++	[NFT_COUNTER_ATTR_FAMILY]	= sizeof(uint32_t),
++};
++
++void nft_counter_attr_set_data(struct nft_counter *counter, uint16_t attr,
++			       const void *data, uint32_t data_len)
++{
++	if (attr > NFT_COUNTER_ATTR_MAX)
++		return;
++
++	nft_assert_validate(data, nft_counter_attr_validate, attr, data_len);
++
++	switch (attr) {
++	case NFT_COUNTER_ATTR_NAME:
++		if (counter->name)
++			xfree(counter->name);
++
++		counter->name = strdup(data);
++		break;
++	case NFT_COUNTER_ATTR_TABLE:
++		if (counter->table)
++			xfree(counter->table);
++
++		counter->table = strdup(data);
++		break;
++	case NFT_COUNTER_ATTR_BYTES:
++		counter->bytes = *((uint64_t *)data);
++		break;
++	case NFT_COUNTER_ATTR_PKTS:
++		counter->pkts = *((uint64_t *)data);
++		break;
++	case NFT_COUNTER_ATTR_USE:
++		counter->use = *((uint32_t *)data);
++		break;
++	case NFT_COUNTER_ATTR_FAMILY:
++		counter->family = *((uint32_t *)data);
++		break;
++	}
++	counter->flags |= (1 << attr);
++}
++EXPORT_SYMBOL(nft_counter_attr_set_data);
++
++void nft_counter_attr_set(struct nft_counter *counter, uint16_t attr,
++			  const void *data)
++{
++	nft_counter_attr_set_data(counter, attr, data,
++				  nft_counter_attr_validate[attr]);
++}
++EXPORT_SYMBOL(nft_counter_attr_set);
++
++void nft_counter_attr_set_u64(struct nft_counter *counter, uint16_t attr,
++			      uint64_t val)
++{
++	nft_counter_attr_set_data(counter, attr, &val, sizeof(uint64_t));
++}
++EXPORT_SYMBOL(nft_counter_attr_set_u64);
++
++void nft_counter_attr_set_u32(struct nft_counter *counter, uint16_t attr,
++			      uint32_t val)
++{
++	nft_counter_attr_set_data(counter, attr, &val, sizeof(uint32_t));
++}
++EXPORT_SYMBOL(nft_counter_attr_set_u32);
++
++void nft_counter_attr_set_str(struct nft_counter *counter, uint16_t attr,
++			      const char *str)
++{
++	nft_counter_attr_set(counter, attr, str);
++}
++EXPORT_SYMBOL(nft_counter_attr_set_str);
++
++const void *nft_counter_attr_get_data(struct nft_counter *counter,
++				      uint16_t attr, uint64_t *data_len)
++{
++	if (!(counter->flags & (1 << attr)))
++		return NULL;
++
++	switch (attr) {
++	case NFT_COUNTER_ATTR_NAME:
++		return counter->name;
++	case NFT_COUNTER_ATTR_TABLE:
++		return counter->table;
++	case NFT_COUNTER_ATTR_BYTES:
++		*data_len = sizeof(uint64_t);
++		return &counter->bytes;
++	case NFT_COUNTER_ATTR_PKTS:
++		*data_len = sizeof(uint64_t);
++		return &counter->pkts;
++	case NFT_COUNTER_ATTR_FAMILY:
++		*data_len = sizeof(uint32_t);
++		return &counter->family;
++	case NFT_COUNTER_ATTR_USE:
++		*data_len = sizeof(uint32_t);
++		return &counter->use;
++	}
++	return NULL;
++}
++EXPORT_SYMBOL(nft_counter_attr_get_data);
++
++const void *nft_counter_attr_get(struct nft_counter *counter, uint16_t attr)
++{
++	uint64_t data_len;
++
++	return nft_counter_attr_get_data(counter, attr, &data_len);
++}
++EXPORT_SYMBOL(nft_counter_attr_get);
++
++uint64_t nft_counter_attr_get_u64(struct nft_counter *counter, uint16_t attr)
++{
++	const void *ret = nft_counter_attr_get(counter, attr);
++
++	return ret == NULL ? 0 : *((uint64_t *)ret);
++}
++EXPORT_SYMBOL(nft_counter_attr_get_u64);
++
++uint32_t nft_counter_attr_get_u32(struct nft_counter *counter, uint16_t attr)
++{
++	const void *ret = nft_counter_attr_get(counter, attr);
++
++	return ret == NULL ? 0 : *((uint32_t *)ret);
++}
++EXPORT_SYMBOL(nft_counter_attr_get_u32);
++
++const char *nft_counter_attr_get_str(struct nft_counter *counter, uint16_t attr)
++{
++	return nft_counter_attr_get(counter, attr);
++}
++EXPORT_SYMBOL(nft_counter_attr_get_str);
++
++void nft_counter_nlmsg_build_payload(struct nlmsghdr *nlh,
++				     const struct nft_counter *counter)
++{
++	if (counter->flags & (1 << NFT_COUNTER_ATTR_NAME))
++		mnl_attr_put_strz(nlh, NFTA_NAMED_CTR_NAME, counter->name);
++	if (counter->flags & (1 << NFT_COUNTER_ATTR_TABLE))
++		mnl_attr_put_strz(nlh, NFTA_NAMED_CTR_TABLE, counter->table);
++	if (counter->flags & (1 << NFT_COUNTER_ATTR_BYTES)) {
++		mnl_attr_put_u64(nlh, NFTA_NAMED_CTR_BYTES,
++				 htobe64(counter->bytes));
++	}
++	if (counter->flags & (1 << NFT_COUNTER_ATTR_PKTS)) {
++		mnl_attr_put_u64(nlh, NFTA_NAMED_CTR_PACKETS,
++				 htobe64(counter->pkts));
++	}
++	if (counter->flags & (1 << NFT_COUNTER_ATTR_USE))
++		mnl_attr_put_u32(nlh, NFTA_NAMED_CTR_USE, htonl(counter->use));
++}
++EXPORT_SYMBOL(nft_counter_nlmsg_build_payload);
++
++static int nft_counter_parse_attr_cb(const struct nlattr *attr, void *data)
++{
++	const struct nlattr **tb = data;
++	int type = mnl_attr_get_type(attr);
++
++	if (mnl_attr_type_valid(attr, NFTA_NAMED_CTR_MAX) < 0)
++		return MNL_CB_OK;
++
++	switch (type) {
++	case NFTA_NAMED_CTR_NAME:
++	case NFTA_NAMED_CTR_TABLE:
++		if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0)
++			abi_breakage();
++		break;
++	case NFTA_NAMED_CTR_BYTES:
++	case NFTA_NAMED_CTR_PACKETS:
++		if (mnl_attr_validate(attr, MNL_TYPE_U64) < 0)
++			abi_breakage();
++		break;
++	case NFTA_NAMED_CTR_USE:
++		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
++			abi_breakage();
++		break;
 +	}
 +
-+	if (nla[NFTA_NAMED_CTR_TABLE]) {
-+		if (!afi)
-+			return -EAFNOSUPPORT;
++	tb[type] = attr;
++	return MNL_CB_OK;
++}
 +
-+		table = nf_tables_table_lookup(afi, nla[NFTA_NAMED_CTR_TABLE]);
-+		if (IS_ERR(table))
-+			return PTR_ERR(table);
-+		if (table->flags & NFT_TABLE_INACTIVE)
-+			return -ENOENT;
++int nft_counter_nlmsg_parse(const struct nlmsghdr *nlh,
++			    struct nft_counter *counter)
++{
++	struct nlattr *tb[NFTA_NAMED_CTR_MAX + 1] = {};
++	struct nfgenmsg *nfg = mnl_nlmsg_get_payload(nlh);
++
++	if (mnl_attr_parse(nlh, sizeof(*nfg), nft_counter_parse_attr_cb, tb) < 0)
++		return -1;
++
++	if (tb[NFTA_NAMED_CTR_NAME]) {
++		counter->name =
++			strdup(mnl_attr_get_str(tb[NFTA_NAMED_CTR_NAME]));
++		counter->flags |= (1 << NFT_COUNTER_ATTR_NAME);
++	}
++	if (tb[NFTA_NAMED_CTR_TABLE]) {
++		counter->table =
++			strdup(mnl_attr_get_str(tb[NFTA_NAMED_CTR_TABLE]));
++		counter->flags |= (1 << NFT_COUNTER_ATTR_TABLE);
++	}
++	if (tb[NFTA_NAMED_CTR_BYTES]) {
++		counter->bytes =
++			 be64toh(mnl_attr_get_u64(tb[NFTA_NAMED_CTR_BYTES]));
++		counter->flags |= (1 << NFT_COUNTER_ATTR_BYTES);
++	}
++	if (tb[NFTA_NAMED_CTR_PACKETS]) {
++		counter->pkts =
++			 be64toh(mnl_attr_get_u64(tb[NFTA_NAMED_CTR_PACKETS]));
++		counter->flags |= (1 << NFT_COUNTER_ATTR_PKTS);
++	}
++	if (tb[NFTA_NAMED_CTR_USE]) {
++		counter->use = ntohl(mnl_attr_get_u32(tb[NFTA_NAMED_CTR_USE]));
++		counter->flags |= (1 << NFT_COUNTER_ATTR_USE);
 +	}
 +
-+	nft_ctx_init(ctx, skb, nlh, afi, table, NULL, nla);
++	counter->family = nfg->nfgen_family;
++	counter->flags |= (1 << NFT_COUNTER_ATTR_FAMILY);
 +
 +	return 0;
 +}
++EXPORT_SYMBOL(nft_counter_nlmsg_parse);
 +
-+static int nf_tables_newcounter(struct sock *nlsk, struct sk_buff *skb,
-+				const struct nlmsghdr *nlh,
-+				const struct nlattr * const nla[])
++#ifdef XML_PARSING
++int nft_mxml_counter_parse(mxml_node_t *tree, struct nft_counter *counter,
++			   struct nft_parse_err *err)
 +{
-+	struct nft_ctx ctx;
-+	const struct nlattr *name;
-+	struct nft_named_ctr *counter, *matching;
-+	int err;
++	const char *name, *table;
++	uint64_t pkts, bytes;
++	uint32_t family, use;
 +
-+	if (!nla[NFTA_NAMED_CTR_NAME] || !nla[NFTA_NAMED_CTR_TABLE])
-+		return -EINVAL;
++	name = nft_mxml_str_parse(tree, "counter", MXML_DESCEND_FIRST,
++				  NFT_XML_MAND, err);
++	if (name != NULL)
++		nft_counter_attr_set_str(counter, NFT_COUNTER_ATTR_NAME, name);
 +
-+	err = nft_ctx_init_from_counter(&ctx, skb, nlh, nla);
-+	if (err < 0)
-+		return err;
-+
-+	 if (ctx.table->use == UINT_MAX)
-+		return -EOVERFLOW;
-+
-+	matching = nf_tables_counter_lookup(ctx.table,
-+					    nla[NFTA_NAMED_CTR_NAME]);
-+	if (!IS_ERR(matching)) {
-+		if (nlh->nlmsg_flags & NLM_F_EXCL)
-+			return -EEXIST;
-+
-+		return -EOPNOTSUPP;
++	table = nft_mxml_str_parse(tree, "table", MXML_DESCEND_FIRST,
++				  NFT_XML_MAND, err);
++	if (table != NULL) {
++		nft_counter_attr_set_str(counter, NFT_COUNTER_ATTR_TABLE,
++					 table);
++	}
++	if (nft_mxml_num_parse(tree, "family", MXML_DESCEND, BASE_DEC,
++			       &family, NFT_TYPE_U32, NFT_XML_MAND,
++			       err) == 0) {
++		nft_counter_attr_set_u32(counter, NFT_COUNTER_ATTR_FAMILY,
++					 family);
 +	}
 +
-+	if (!(nlh->nlmsg_flags & NLM_F_CREATE))
-+		return -ENOENT;
++	if (nft_mxml_num_parse(tree, "pkts", MXML_DESCEND, BASE_DEC,
++			       &pkts, NFT_TYPE_U64, NFT_XML_MAND, err) == 0)
++		nft_counter_attr_set_u64(counter, NFT_COUNTER_ATTR_PKTS, pkts);
 +
-+	counter = kzalloc(sizeof(*counter), GFP_KERNEL);
++	if (nft_mxml_num_parse(tree, "bytes", MXML_DESCEND, BASE_DEC,
++			       &bytes, NFT_TYPE_U64, NFT_XML_MAND, err) == 0) {
++		nft_counter_attr_set_u64(counter, NFT_COUNTER_ATTR_BYTES,
++					 bytes);
++	}
++	if (nft_mxml_num_parse(tree, "use", MXML_DESCEND, BASE_DEC,
++			       &use, NFT_TYPE_U32, NFT_XML_MAND, err) == 0)
++		nft_counter_attr_set_u32(counter, NFT_COUNTER_ATTR_USE, use);
++
++
++	return 0;
++}
++#endif
++
++static int nft_counter_xml_parse(struct nft_counter *counter, const void *data,
++				 struct nft_parse_err *err,
++				 enum nft_parse_input input)
++{
++#ifdef XML_PARSING
++	int ret;
++	mxml_node_t *tree = nft_mxml_build_tree(data, "counter", err, input);
++
++	if (tree == NULL)
++		return -1;
++
++	ret = nft_mxml_counter_parse(tree, counter, err);
++	mxmlDelete(tree);
++	return ret;
++#else
++	errno = EOPNOTSUPP;
++	return -1;
++#endif
++}
++
++#ifdef JSON_PARSING
++int nft_jansson_parse_counter(struct nft_counter *counter, json_t *tree,
++			      struct nft_parse_err *err)
++{
++	json_t *root;
++	const char *name, *table;
++	uint64_t bytes, pkts;
++	uint32_t family, use;
++
++	root = nft_jansson_get_node(tree, "counter", err);
++	if (root == NULL)
++		return -1;
++
++	name = nft_jansson_parse_str(root, "name", err);
++	if (name != NULL)
++		nft_counter_attr_set_str(counter, NFT_COUNTER_ATTR_NAME, name);
++
++	table = nft_jansson_parse_str(root, "table", err);
++	if (table != NULL)
++		nft_counter_attr_set_str(counter, NFT_COUNTER_ATTR_TABLE, table);
++
++	if (nft_jansson_parse_val(root, "family", NFT_TYPE_U32, &family,
++				  err) == 0)
++		nft_counter_attr_set_u32(counter, NFT_COUNTER_ATTR_PKTS, family);
++
++	if (nft_jansson_parse_val(root, "pkts", NFT_TYPE_U64, &pkts, err) == 0)
++		nft_counter_attr_set_u64(counter, NFT_COUNTER_ATTR_PKTS, pkts);
++
++	if (nft_jansson_parse_val(root, "bytes", NFT_TYPE_U64, &bytes,
++				  err) == 0)
++		nft_counter_attr_set_u64(counter, NFT_COUNTER_ATTR_BYTES, bytes);
++
++	if (nft_jansson_parse_val(root, "use", NFT_TYPE_U32, &use,
++				  err) == 0)
++		nft_counter_attr_set_u32(counter, NFT_COUNTER_ATTR_USE, use);
++
++	return 0;
++}
++#endif
++
++static int nft_counter_json_parse(struct nft_counter *counter, const void *json,
++				  struct nft_parse_err *err,
++				  enum nft_parse_input input)
++{
++#ifdef JSON_PARSING
++	json_t *tree;
++	json_error_t error;
++	int ret;
++
++	tree = nft_jansson_create_root(json, &error, err, input);
++	if (tree == NULL)
++		return -1;
++
++	ret = nft_jansson_parse_counter(counter, tree, err);
++
++	nft_jansson_free_root(tree);
++
++	return ret;
++#else
++	errno = EOPNOTSUPP;
++	return -1;
++#endif
++}
++
++static int nft_counter_do_parse(struct nft_counter *counter,
++				enum nft_parse_type type, const void *data,
++				struct nft_parse_err *err,
++				enum nft_parse_input input)
++{
++	int ret;
++	struct nft_parse_err perr;
++
++	switch (type) {
++	case NFT_PARSE_XML:
++		ret = nft_counter_xml_parse(counter, data, &perr, input);
++		break;
++	case NFT_PARSE_JSON:
++		ret = nft_counter_json_parse(counter, data, &perr, input);
++		break;
++	default:
++		ret = -1;
++		errno = EOPNOTSUPP;
++		break;
++	}
++
++	if (err != NULL)
++		*err = perr;
++
++	return ret;
++}
++
++int nft_counter_parse(struct nft_counter *counter, enum nft_parse_type type,
++		      const char *data, struct nft_parse_err *err)
++{
++	return nft_counter_do_parse(counter, type, data, err, NFT_PARSE_BUFFER);
++}
++EXPORT_SYMBOL(nft_counter_parse);
++
++int nft_counter_parse_file(struct nft_counter *counter,
++			   enum nft_parse_type type, FILE *fp,
++			   struct nft_parse_err *err)
++{
++	return nft_counter_do_parse(counter, type, fp, err, NFT_PARSE_FILE);
++}
++EXPORT_SYMBOL(nft_counter_parse_file);
++
++static int nft_counter_export(char *buf, size_t size,
++			      struct nft_counter *counter, int type)
++{
++	NFT_BUF_INIT(b, buf, size);
++	nft_buf_open(&b, type, COUNTER);
++
++	if (counter->flags & (1 << NFT_COUNTER_ATTR_NAME))
++		nft_buf_str(&b, type, counter->name, NAME);
++	if (counter->flags & (1 << NFT_COUNTER_ATTR_TABLE))
++		nft_buf_str(&b, type, counter->table, TABLE);
++	if (counter->flags & (1 << NFT_COUNTER_ATTR_FAMILY))
++		nft_buf_str(&b, type, nft_family2str(counter->family), FAMILY);
++	if (counter->flags & (1 << NFT_COUNTER_ATTR_PKTS))
++		nft_buf_u64(&b, type, counter->pkts, PACKETS);
++	if (counter->flags & (1 << NFT_COUNTER_ATTR_BYTES))
++		nft_buf_u64(&b, type, counter->bytes, BYTES);
++	if (counter->flags & (1 << NFT_COUNTER_ATTR_USE))
++		nft_buf_u32(&b, type, counter->use, USE);
++	nft_buf_close(&b, type, COUNTER);
++
++	return nft_buf_done(&b);
++}
++
++static int nft_counter_snprintf_default(char *buf, size_t size,
++					struct nft_counter *counter)
++{
++	return snprintf(buf, size,
++			"table %s family %s counter %s packet %"PRIu64" bytes %"PRIu64" use %d",
++			counter->table,
++			nft_family2str(counter->family),
++			counter->name,
++			counter->pkts,
++			counter->bytes,
++			counter->use);
++}
++
++int nft_counter_snprintf(char *buf, size_t len, struct nft_counter *counter,
++			 uint32_t type, uint32_t flags)
++{
++	switch (type) {
++	case NFT_OUTPUT_DEFAULT:
++		return nft_counter_snprintf_default(buf, len, counter);
++	case NFT_OUTPUT_XML:
++	case NFT_OUTPUT_JSON:
++		return  nft_counter_export(buf, len, counter, type);
++	default:
++		break;
++	}
++	return -1;
++}
++EXPORT_SYMBOL(nft_counter_snprintf);
++
++static int nft_counter_do_snprintf(char *buf, size_t size, void *counter,
++				   uint32_t type, uint32_t flags)
++{
++	return nft_counter_snprintf(buf, size, counter, type, flags);
++}
++
++int nft_counter_fprintf(FILE *fp, struct nft_counter *counter, uint32_t type,
++			uint32_t flags)
++{
++	return nft_fprintf(fp, counter, type, flags, nft_counter_do_snprintf);
++}
++EXPORT_SYMBOL(nft_counter_fprintf);
++
++struct nft_counter_list {
++	struct list_head list;
++};
++
++struct nft_counter_list *nft_counter_list_alloc(void)
++{
++	struct nft_counter_list *list;
++
++	list = calloc(1, sizeof(struct nft_counter_list));
++	if (list == NULL)
++		return NULL;
++
++	INIT_LIST_HEAD(&list->list);
++
++	return list;
++}
++EXPORT_SYMBOL(nft_counter_list_alloc);
++
++void nft_counter_list_free(struct nft_counter_list *list)
++{
++	struct nft_counter *counter, *tmp;
++
++	list_for_each_entry_safe(counter, tmp, &list->list, list) {
++		list_del(&counter->list);
++		nft_counter_free(counter);
++	}
++	xfree(list);
++}
++EXPORT_SYMBOL(nft_counter_list_free);
++
++int nft_counter_list_is_empty(struct nft_counter_list *list)
++{
++	return list_empty(&list->list);
++}
++EXPORT_SYMBOL(nft_counter_list_is_empty);
++
++void nft_counter_list_add(struct nft_counter *counter,
++			  struct nft_counter_list *list)
++{
++	list_add(&counter->list, &list->list);
++}
++EXPORT_SYMBOL(nft_counter_list_add);
++
++void nft_counter_list_add_tail(struct nft_counter *counter,
++			       struct nft_counter_list *list)
++{
++	list_add_tail(&counter->list, &list->list);
++}
++EXPORT_SYMBOL(nft_counter_list_add_tail);
++
++void nft_counter_list_del(struct nft_counter *counter)
++{
++	list_del(&counter->list);
++}
++EXPORT_SYMBOL(nft_counter_list_del);
++
++int nft_counter_list_foreach(struct nft_counter_list *counter_list,
++			     int (*cb)(struct nft_counter *counter, void *data),
++			     void *data)
++{
++	struct nft_counter *cur, *tmp;
++	int ret;
++
++	list_for_each_entry_safe(cur, tmp, &counter_list->list, list) {
++		ret = cb(cur, data);
++		if (ret < 0)
++			return ret;
++	}
++	return 0;
++}
++EXPORT_SYMBOL(nft_counter_list_foreach);
++
++struct nft_counter_list_iter {
++	struct nft_counter_list	*list;
++	struct nft_counter	*cur;
++};
++
++struct nft_counter_list_iter *
++nft_counter_list_iter_create(struct nft_counter_list *l)
++{
++	struct nft_counter_list_iter *iter;
++
++	iter = calloc(1, sizeof(struct nft_counter_list_iter));
++	if (iter == NULL)
++		return NULL;
++
++	iter->list = l;
++	if (nft_counter_list_is_empty(l))
++		iter->cur = NULL;
++	else
++		iter->cur = list_entry(l->list.next, struct nft_counter, list);
++
++	return iter;
++}
++EXPORT_SYMBOL(nft_counter_list_iter_create);
++
++struct nft_counter *
++nft_counter_list_iter_next(struct nft_counter_list_iter *iter)
++{
++	struct nft_counter *counter = iter->cur;
++
 +	if (!counter)
-+		return -ENOMEM;
++		return NULL;
 +
-+	name = nla[NFTA_NAMED_CTR_NAME];
-+	nla_strlcpy(counter->name, name, NFT_CTR_MAXNAMELEN);
++	iter->cur = list_entry(iter->cur->list.next, struct nft_counter, list);
++	if (&iter->cur->list == iter->list->list.next)
++		return NULL;
 +
-+	if (nla[NFTA_NAMED_CTR_BYTES]) {
-+		counter->counter.bytes =
-+			be64_to_cpu(nla_get_be64(nla[NFTA_NAMED_CTR_BYTES]));
-+	}
-+
-+	if (nla[NFTA_NAMED_CTR_PACKETS]) {
-+		counter->counter.packets =
-+			be64_to_cpu(nla_get_be64(nla[NFTA_NAMED_CTR_PACKETS]));
-+	}
-+
-+	seqlock_init(&counter->counter.lock);
-+
-+	err = nft_trans_counter_add(&ctx, NFT_MSG_NEWCOUNTER, counter);
-+	if (err < 0)
-+		goto err;
-+
-+	list_add_tail_rcu(&counter->list, &ctx.table->counters);
-+	ctx.table->use++;
-+
-+	return 0;
-+err:
-+	kfree(counter);
-+	return err;
++	return counter;
 +}
++EXPORT_SYMBOL(nft_counter_list_iter_next);
 +
-+static int nf_tables_fill_counter(struct sk_buff *skb,
-+				  const struct nft_ctx *ctx,
-+				  struct nft_named_ctr *counter,
-+				  u16 event, u16 flags, u32 type)
++void nft_counter_list_iter_destroy(struct nft_counter_list_iter *iter)
 +{
-+	struct nfgenmsg *nfmsg;
-+	struct nlmsghdr *nlh;
-+	u32 portid = ctx->portid;
-+	u32 seq = ctx->seq;
-+	u64 pkts, bytes;
-+
-+	event |= NFNL_SUBSYS_NFTABLES << 8;
-+	nlh = nlmsg_put(skb, portid, seq, event, sizeof(struct nfgenmsg),
-+			flags);
-+	if (!nlh)
-+		goto nla_put_failure;
-+
-+	nfmsg = nlmsg_data(nlh);
-+	nfmsg->nfgen_family	= ctx->afi->family;
-+	nfmsg->version		= NFNETLINK_V0;
-+	nfmsg->res_id		= htons(ctx->net->nft.base_seq & 0xffff);
-+
-+	if (type == NFT_MSG_GETCOUNTER_ZERO) {
-+		write_seqlock_bh(&counter->counter.lock);
-+		counter->counter.bytes = 0;
-+		counter->counter.packets = 0;
-+		bytes	= counter->counter.bytes;
-+		pkts	= counter->counter.packets;
-+		write_sequnlock_bh(&counter->counter.lock);
-+	} else {
-+		do {
-+			seq = read_seqbegin(&counter->counter.lock);
-+			bytes	= counter->counter.bytes;
-+			pkts	= counter->counter.packets;
-+		} while (read_seqretry(&counter->counter.lock, seq));
-+	}
-+
-+	if (nla_put_string(skb, NFTA_NAMED_CTR_TABLE, ctx->table->name) ||
-+	    nla_put_string(skb, NFTA_NAMED_CTR_NAME, counter->name) ||
-+	    nla_put_be64(skb, NFTA_NAMED_CTR_PACKETS, cpu_to_be64(pkts)) ||
-+	    nla_put_be64(skb, NFTA_NAMED_CTR_BYTES, cpu_to_be64(bytes)) ||
-+	    nla_put_be32(skb, NFTA_NAMED_CTR_USE, htonl(counter->use)))
-+		goto nla_put_failure;
-+
-+	return nlmsg_end(skb, nlh);
-+
-+nla_put_failure:
-+	nlmsg_trim(skb, nlh);
-+	return -1;
++	xfree(iter);
 +}
-+
-+static int nf_tables_counter_notify(const struct nft_ctx *ctx,
-+				    struct nft_named_ctr *counter,
-+				    int event, gfp_t gfp_flags)
-+{
-+	struct sk_buff *skb;
-+	u32 portid = ctx->portid;
-+	int err;
-+
-+	if (!ctx->report &&
-+	    !nfnetlink_has_listeners(ctx->net, NFNLGRP_NFTABLES))
-+		return 0;
-+
-+	err = -ENOBUFS;
-+	skb = nlmsg_new(NLMSG_GOODSIZE, gfp_flags);
-+	if (!skb)
-+		goto err;
-+
-+	err = nf_tables_fill_counter(skb, ctx, counter, event, 0, 0);
-+	if (err < 0) {
-+		kfree_skb(skb);
-+		goto err;
-+	}
-+
-+	err = nfnetlink_send(skb, ctx->net, portid, NFNLGRP_NFTABLES,
-+			     ctx->report, gfp_flags);
-+err:
-+	if (err < 0)
-+		nfnetlink_set_err(ctx->net, portid, NFNLGRP_NFTABLES, err);
-+	return err;
-+}
-+
-+static int nf_tables_delcounter(struct sock *nlsk, struct sk_buff *skb,
-+				const struct nlmsghdr *nlh,
-+				const struct nlattr * const nla[])
-+{
-+	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
-+	struct nft_named_ctr *counter;
-+	struct nft_ctx ctx;
-+	int err;
-+
-+	if (nfmsg->nfgen_family == NFPROTO_UNSPEC)
-+		return -EAFNOSUPPORT;
-+	if (!nla[NFTA_NAMED_CTR_TABLE])
-+		return -EINVAL;
-+
-+	err = nft_ctx_init_from_counter(&ctx, skb, nlh, nla);
-+	if (err < 0)
-+		return err;
-+
-+	counter = nf_tables_counter_lookup(ctx.table, nla[NFTA_NAMED_CTR_NAME]);
-+	if (IS_ERR(counter))
-+		return PTR_ERR(counter);
-+	if (counter->flags & NFT_NAMED_CTR_INACTIVE)
-+		return -ENOENT;
-+	if (counter->use > 0)
-+		return -EBUSY;
-+
-+	return nft_delcounter(&ctx, counter);
-+}
-+
-+static int nf_tables_dump_counter(struct sk_buff *skb,
-+				  struct netlink_callback *cb)
-+{
-+	struct nft_named_ctr *counter;
-+	unsigned int idx, s_idx = cb->args[0];
-+	struct nft_af_info *afi;
-+	struct nft_table *table, *cur_table = (struct nft_table *)cb->args[2];
-+	struct net *net = sock_net(skb->sk);
-+	int cur_family = cb->args[3];
-+	struct nft_ctx *ctx = cb->data, ctx_counter;
-+
-+	if (cb->args[1])
-+		return skb->len;
-+
-+	rcu_read_lock();
-+	cb->seq = net->nft.base_seq;
-+	list_for_each_entry_rcu(afi, &net->nft.af_info, list) {
-+		if (ctx->afi && ctx->afi != afi)
-+			continue;
-+
-+		if (cur_family) {
-+			if (afi->family != cur_family)
-+				continue;
-+
-+			cur_family = 0;
-+		}
-+		list_for_each_entry_rcu(table, &afi->tables, list) {
-+			if (ctx->table && ctx->table != table)
-+				continue;
-+
-+			if (cur_table) {
-+				if (cur_table != table)
-+					continue;
-+
-+				cur_table = NULL;
-+			}
-+			idx = 0;
-+			list_for_each_entry_rcu(counter, &table->counters,
-+						list) {
-+				if (idx < s_idx)
-+					goto cont;
-+
-+				ctx_counter = *ctx;
-+				ctx_counter.table = table;
-+				ctx_counter.afi = afi;
-+				if (nf_tables_fill_counter(skb, &ctx_counter,
-+							   counter,
-+							   NFT_MSG_NEWCOUNTER,
-+							   NLM_F_MULTI,
-+							   0) < 0) {
-+					cb->args[0] = idx;
-+					cb->args[2] = (unsigned long)table;
-+					cb->args[3] = afi->family;
-+					goto done;
-+				}
-+				nl_dump_check_consistent(cb, nlmsg_hdr(skb));
-+cont:
-+				idx++;
-+			}
-+			if (s_idx)
-+				s_idx = 0;
-+		}
-+	}
-+	cb->args[1] = 1;
-+done:
-+	rcu_read_unlock();
-+	return skb->len;
-+}
-+
-+static int nf_tables_dump_counter_done(struct netlink_callback *cb)
-+{
-+	kfree(cb->data);
-+
-+	return 0;
-+}
-+
-+static int nf_tables_getcounter(struct sock *nlsk, struct sk_buff *skb,
-+				const struct nlmsghdr *nlh,
-+				const struct nlattr * const nla[])
-+{
-+	struct nft_ctx ctx;
-+	struct sk_buff *skb2;
-+	int err, ret;
-+	struct nft_named_ctr *counter;
-+	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
-+
-+	/* Verify existence before starting dump */
-+	err = nft_ctx_init_from_counter(&ctx, skb, nlh, nla);
-+	if (err < 0)
-+		return err;
-+
-+	if (nlh->nlmsg_flags & NLM_F_DUMP) {
-+		struct netlink_dump_control c = {
-+			.dump = nf_tables_dump_counter,
-+			.done = nf_tables_dump_counter_done,
-+		};
-+		struct nft_ctx *ctx_dump;
-+
-+		ctx_dump = kmalloc(sizeof(*ctx_dump), GFP_KERNEL);
-+		if (!ctx_dump)
-+			return -ENOMEM;
-+
-+		*ctx_dump = ctx;
-+		c.data = ctx_dump;
-+
-+		return netlink_dump_start(nlsk, skb, nlh, &c);
-+	}
-+
-+	/* Only accept unspec with dump */
-+	if (nfmsg->nfgen_family == NFPROTO_UNSPEC)
-+		return -EAFNOSUPPORT;
-+
-+	counter = nf_tables_counter_lookup(ctx.table, nla[NFTA_NAMED_CTR_NAME]);
-+	if (IS_ERR(counter))
-+		return PTR_ERR(counter);
-+
-+	if (counter->flags & NFT_NAMED_CTR_INACTIVE)
-+		return -ENOENT;
-+
-+	skb2 = alloc_skb(NLMSG_GOODSIZE, GFP_KERNEL);
-+	if (!skb2)
-+		return -ENOMEM;
-+
-+	err = nf_tables_fill_counter(skb2, &ctx, counter, NFT_MSG_NEWCOUNTER, 0,
-+				     NFNL_MSG_TYPE(nlh->nlmsg_type));
-+	if (err < 0)
-+		goto err;
-+
-+	ret = nlmsg_unicast(nlsk, skb2, NETLINK_CB(skb).portid);
-+
-+	/* this avoids a loop in nfnetlink. */
-+	return ret == -EAGAIN ? -ENOBUFS : ret;
-+
-+err:
-+	kfree_skb(skb2);
-+	return err;
-+}
-+
-+void nft_counter_put(struct nft_named_ctr *counter)
-+{
-+	counter->use--;
-+	module_put(THIS_MODULE);
-+}
-+EXPORT_SYMBOL_GPL(nft_counter_put);
-+
-+int nft_counter_get(struct nft_named_ctr *counter)
-+{
-+	if (!try_module_get(THIS_MODULE))
-+		return -ENOENT;
-+
-+	if (counter->use == UINT_MAX)
-+		return -EOVERFLOW;
-+
-+	counter->use++;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(nft_counter_get);
-+
- static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
- 	[NFT_MSG_NEWTABLE] = {
- 		.call_batch	= nf_tables_newtable,
-@@ -3471,6 +3901,26 @@ static const struct nfnl_callback nf_tables_cb[NFT_MSG_MAX] = {
- 	[NFT_MSG_GETGEN] = {
- 		.call		= nf_tables_getgen,
- 	},
-+	[NFT_MSG_NEWCOUNTER] = {
-+		.call_batch	= nf_tables_newcounter,
-+		.attr_count	= NFTA_NAMED_CTR_MAX,
-+		.policy		= nft_named_ctr_policy,
-+	},
-+	[NFT_MSG_GETCOUNTER] = {
-+		.call		= nf_tables_getcounter,
-+		.attr_count	= NFTA_NAMED_CTR_MAX,
-+		.policy		= nft_named_ctr_policy,
-+	},
-+	[NFT_MSG_GETCOUNTER_ZERO] = {
-+		.call		= nf_tables_getcounter,
-+		.attr_count	= NFTA_NAMED_CTR_MAX,
-+		.policy		= nft_named_ctr_policy,
-+	},
-+	[NFT_MSG_DELCOUNTER] = {
-+		.call_batch	= nf_tables_delcounter,
-+		.attr_count	= NFTA_NAMED_CTR_MAX,
-+		.policy		= nft_named_ctr_policy,
-+	},
++EXPORT_SYMBOL(nft_counter_list_iter_destroy);
+diff --git a/src/expr/counter.c b/src/expr/counter.c
+index e9abc5b..bcfef93 100644
+--- a/src/expr/counter.c
++++ b/src/expr/counter.c
+@@ -27,6 +27,7 @@
+ struct nft_expr_counter {
+ 	uint64_t	pkts;
+ 	uint64_t	bytes;
++	const char	*name;
  };
  
- static void nft_chain_commit_update(struct nft_trans *trans)
-@@ -3509,6 +3959,9 @@ static void nf_tables_commit_release(struct nft_trans *trans)
- 	case NFT_MSG_DELSET:
- 		nft_set_destroy(nft_trans_set(trans));
+ static int
+@@ -42,6 +43,11 @@ nft_rule_expr_counter_set(struct nft_rule_expr *e, uint16_t type,
+ 	case NFT_EXPR_CTR_PACKETS:
+ 		ctr->pkts = *((uint64_t *)data);
  		break;
-+	case NFT_MSG_DELCOUNTER:
-+		kfree(nft_trans_counter(trans));
++	case NFT_EXPR_CTR_NAME:
++		if (ctr->name)
++			xfree(ctr->name);
++		ctr->name = strdup(data);
++		break;
+ 	default:
+ 		return -1;
+ 	}
+@@ -61,6 +67,9 @@ nft_rule_expr_counter_get(const struct nft_rule_expr *e, uint16_t type,
+ 	case NFT_EXPR_CTR_PACKETS:
+ 		*data_len = sizeof(ctr->pkts);
+ 		return &ctr->pkts;
++	case NFT_EXPR_CTR_NAME:
++		*data_len = sizeof(ctr->name);
++		return ctr->name;
+ 	}
+ 	return NULL;
+ }
+@@ -79,6 +88,10 @@ static int nft_rule_expr_counter_cb(const struct nlattr *attr, void *data)
+ 		if (mnl_attr_validate(attr, MNL_TYPE_U64) < 0)
+ 			abi_breakage();
+ 		break;
++	case NFTA_COUNTER_NAME:
++		if (mnl_attr_validate(attr, MNL_TYPE_NUL_STRING) < 0)
++			abi_breakage();
 +		break;
  	}
- 	kfree(trans);
+ 
+ 	tb[type] = attr;
+@@ -94,6 +107,8 @@ nft_rule_expr_counter_build(struct nlmsghdr *nlh, struct nft_rule_expr *e)
+ 		mnl_attr_put_u64(nlh, NFTA_COUNTER_BYTES, htobe64(ctr->bytes));
+ 	if (e->flags & (1 << NFT_EXPR_CTR_PACKETS))
+ 		mnl_attr_put_u64(nlh, NFTA_COUNTER_PACKETS, htobe64(ctr->pkts));
++	if (e->flags & (1 << NFT_EXPR_CTR_NAME))
++		mnl_attr_put_strz(nlh, NFTA_COUNTER_NAME, ctr->name);
  }
-@@ -3614,6 +4067,20 @@ static int nf_tables_commit(struct sk_buff *skb)
- 			}
- 			nft_trans_destroy(trans);
- 			break;
-+		case NFT_MSG_NEWCOUNTER:
-+			nft_trans_counter(trans)->flags &= ~NFT_NAMED_CTR_INACTIVE;
-+			nf_tables_counter_notify(&trans->ctx,
-+						 nft_trans_counter(trans),
-+						 NFT_MSG_NEWCOUNTER,
-+						 GFP_KERNEL);
-+			nft_trans_destroy(trans);
-+			break;
-+		case NFT_MSG_DELCOUNTER:
-+			nf_tables_counter_notify(&trans->ctx,
-+						 nft_trans_counter(trans),
-+						 NFT_MSG_DELCOUNTER,
-+						 GFP_KERNEL);
-+			break;
- 		}
+ 
+ static int
+@@ -113,6 +128,12 @@ nft_rule_expr_counter_parse(struct nft_rule_expr *e, struct nlattr *attr)
+ 		ctr->pkts = be64toh(mnl_attr_get_u64(tb[NFTA_COUNTER_PACKETS]));
+ 		e->flags |= (1 << NFT_EXPR_CTR_PACKETS);
  	}
++	if (tb[NFTA_COUNTER_NAME]) {
++		if (ctr->name)
++			xfree(ctr->name);
++		ctr->name = strdup(mnl_attr_get_str(tb[NFTA_COUNTER_NAME]));
++		e->flags |= (1 << NFT_EXPR_CTR_NAME);
++	}
  
-@@ -3644,6 +4111,9 @@ static void nf_tables_abort_release(struct nft_trans *trans)
- 	case NFT_MSG_NEWSET:
- 		nft_set_destroy(nft_trans_set(trans));
- 		break;
-+	case NFT_MSG_NEWCOUNTER:
-+		kfree(nft_trans_counter(trans));
-+		break;
- 	}
- 	kfree(trans);
- }
-@@ -3722,6 +4192,16 @@ static int nf_tables_abort(struct sk_buff *skb)
- 			nft_trans_elem_set(trans)->nelems++;
- 			nft_trans_destroy(trans);
- 			break;
-+		case NFT_MSG_NEWCOUNTER:
-+			trans->ctx.table->use--;
-+			list_del_rcu(&nft_trans_counter(trans)->list);
-+			break;
-+		case NFT_MSG_DELCOUNTER:
-+			trans->ctx.table->use++;
-+			list_add_tail_rcu(&nft_trans_counter(trans)->list,
-+					  &trans->ctx.table->counters);
-+			nft_trans_destroy(trans);
-+			break;
- 		}
- 	}
- 
-diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index c89ee48..fe0f219 100644
---- a/net/netfilter/nft_counter.c
-+++ b/net/netfilter/nft_counter.c
-@@ -17,10 +17,8 @@
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables.h>
- 
--struct nft_counter {
--	seqlock_t	lock;
--	u64		bytes;
--	u64		packets;
-+struct nft_named_ctr_expr {
-+	struct nft_named_ctr *counter;
- };
- 
- static void nft_counter_eval(const struct nft_expr *expr,
-@@ -35,6 +33,18 @@ static void nft_counter_eval(const struct nft_expr *expr,
- 	write_sequnlock_bh(&priv->lock);
- }
- 
-+static void nft_named_ctr_eval(const struct nft_expr *expr,
-+			       struct nft_data data[NFT_REG_MAX + 1],
-+			       const struct nft_pktinfo *pkt)
-+{
-+	struct nft_named_ctr_expr *priv = nft_expr_priv(expr);
-+
-+	write_seqlock_bh(&priv->counter->counter.lock);
-+	priv->counter->counter.bytes += pkt->skb->len;
-+	priv->counter->counter.packets++;
-+	write_sequnlock_bh(&priv->counter->counter.lock);
-+}
-+
- static int nft_counter_dump(struct sk_buff *skb, const struct nft_expr *expr)
- {
- 	struct nft_counter *priv = nft_expr_priv(expr);
-@@ -58,11 +68,42 @@ nla_put_failure:
- 	return -1;
- }
- 
-+static int nft_named_ctr_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+{
-+	struct nft_named_ctr_expr *priv = nft_expr_priv(expr);
-+	unsigned int seq;
-+	u64 bytes;
-+	u64 packets;
-+
-+	if (nla_put_string(skb, NFTA_COUNTER_NAME, priv->counter->name))
-+		goto nla_put_failure;
-+
-+	do {
-+		seq = read_seqbegin(&priv->counter->counter.lock);
-+		bytes	= priv->counter->counter.bytes;
-+		packets	= priv->counter->counter.packets;
-+	} while (read_seqretry(&priv->counter->counter.lock, seq));
-+
-+	if (nla_put_be64(skb, NFTA_COUNTER_BYTES, cpu_to_be64(bytes)))
-+		goto nla_put_failure;
-+	if (nla_put_be64(skb, NFTA_COUNTER_PACKETS, cpu_to_be64(packets)))
-+		goto nla_put_failure;
-+
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
-+}
-+
- static const struct nla_policy nft_counter_policy[NFTA_COUNTER_MAX + 1] = {
- 	[NFTA_COUNTER_PACKETS]	= { .type = NLA_U64 },
- 	[NFTA_COUNTER_BYTES]	= { .type = NLA_U64 },
- };
- 
-+static const struct nla_policy nft_named_ctr_policy[NFTA_COUNTER_MAX + 1] = {
-+	[NFTA_COUNTER_NAME]	= { .type = NLA_STRING },
-+};
-+
- static int nft_counter_init(const struct nft_ctx *ctx,
- 			    const struct nft_expr *expr,
- 			    const struct nlattr * const tb[])
-@@ -78,6 +119,33 @@ static int nft_counter_init(const struct nft_ctx *ctx,
  	return 0;
  }
+@@ -123,6 +144,7 @@ nft_rule_expr_counter_json_parse(struct nft_rule_expr *e, json_t *root,
+ {
+ #ifdef JSON_PARSING
+ 	uint64_t uval64;
++	const char *counter_name;
  
-+static int nft_named_ctr_init(const struct nft_ctx *ctx,
-+			      const struct nft_expr *expr,
-+			      const struct nlattr * const tb[])
-+{
-+	struct nft_named_ctr_expr *priv = nft_expr_priv(expr);
-+	struct nft_named_ctr *counter;
-+
-+	if (!tb[NFTA_COUNTER_NAME])
-+		return -EINVAL;
-+
-+	counter = nf_tables_counter_lookup(ctx->table, tb[NFTA_COUNTER_NAME]);
-+	if (IS_ERR(counter))
-+		return -ENOENT;
-+
-+	priv->counter = counter;
-+
-+	return nft_counter_get(priv->counter);
-+}
-+
-+static void nft_named_ctr_destroy(const struct nft_ctx *ctx,
-+				  const struct nft_expr *expr)
-+{
-+	struct nft_named_ctr_expr *priv = nft_expr_priv(expr);
-+
-+	nft_counter_put(priv->counter);
-+}
-+
- static struct nft_expr_type nft_counter_type;
- static const struct nft_expr_ops nft_counter_ops = {
- 	.type		= &nft_counter_type,
-@@ -87,9 +155,28 @@ static const struct nft_expr_ops nft_counter_ops = {
- 	.dump		= nft_counter_dump,
- };
+ 	if (nft_jansson_parse_val(root, "pkts", NFT_TYPE_U64, &uval64,
+ 				  err) == 0)
+@@ -132,6 +154,10 @@ nft_rule_expr_counter_json_parse(struct nft_rule_expr *e, json_t *root,
+ 				  err) == 0)
+ 		nft_rule_expr_set_u64(e, NFT_EXPR_CTR_BYTES, uval64);
  
-+static const struct nft_expr_ops nft_named_ctr_ops = {
-+	.type		= &nft_counter_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_counter)),
-+	.eval		= nft_named_ctr_eval,
-+	.init		= nft_named_ctr_init,
-+	.dump		= nft_named_ctr_dump,
-+	.destroy	= nft_named_ctr_destroy,
-+};
++	counter_name = nft_jansson_parse_str(root, "name", err);
++	if (counter_name != NULL)
++		nft_rule_expr_set_str(e, NFT_EXPR_CTR_NAME, counter_name);
 +
-+static const struct nft_expr_ops *
-+nft_counter_select_ops(const struct nft_ctx *ctx,
-+		       const struct nlattr * const tb[])
-+{
-+	if (tb[NFTA_COUNTER_NAME])
-+		return &nft_named_ctr_ops;
+ 	return 0;
+ #else
+ 	errno = EOPNOTSUPP;
+@@ -145,6 +171,7 @@ nft_rule_expr_counter_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree,
+ {
+ #ifdef XML_PARSING
+ 	uint64_t pkts, bytes;
++	const char *counter_name;
+ 
+ 	if (nft_mxml_num_parse(tree, "pkts", MXML_DESCEND_FIRST, BASE_DEC,
+ 			       &pkts, NFT_TYPE_U64, NFT_XML_MAND,  err) == 0)
+@@ -154,6 +181,12 @@ nft_rule_expr_counter_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree,
+ 			       &bytes, NFT_TYPE_U64, NFT_XML_MAND, err) == 0)
+ 		nft_rule_expr_set_u64(e, NFT_EXPR_CTR_BYTES, bytes);
+ 
++	counter_name = nft_mxml_str_parse(tree, "name", MXML_DESCEND_FIRST,
++					  NFT_XML_MAND, err);
 +
-+	return &nft_counter_ops;
-+}
++	if (counter_name != NULL)
++		nft_rule_expr_set_str(e, NFT_EXPR_CTR_NAME, counter_name);
 +
- static struct nft_expr_type nft_counter_type __read_mostly = {
- 	.name		= "counter",
--	.ops		= &nft_counter_ops,
-+	.select_ops	= &nft_counter_select_ops,
- 	.policy		= nft_counter_policy,
- 	.maxattr	= NFTA_COUNTER_MAX,
- 	.owner		= THIS_MODULE,
+ 	return 0;
+ #else
+ 	errno = EOPNOTSUPP;
+@@ -161,6 +194,7 @@ nft_rule_expr_counter_xml_parse(struct nft_rule_expr *e, mxml_node_t *tree,
+ #endif
+ }
+ 
++
+ static int nft_rule_expr_counter_export(char *buf, size_t size,
+ 					struct nft_rule_expr *e, int type)
+ {
+@@ -171,6 +205,8 @@ static int nft_rule_expr_counter_export(char *buf, size_t size,
+ 		nft_buf_u64(&b, type, ctr->pkts, PKTS);
+ 	if (e->flags & (1 << NFT_EXPR_CTR_BYTES))
+ 		nft_buf_u64(&b, type, ctr->bytes, BYTES);
++	if (e->flags & (1 << NFT_EXPR_CTR_NAME))
++		nft_buf_str(&b, type, ctr->name, NAME);
+ 
+ 	return nft_buf_done(&b);
+ }
+@@ -179,9 +215,17 @@ static int nft_rule_expr_counter_snprintf_default(char *buf, size_t len,
+ 						  struct nft_rule_expr *e)
+ {
+ 	struct nft_expr_counter *ctr = nft_expr_data(e);
++	int size = len, offset = 0, ret = 0;
++
++	if (e->flags & (1 << NFT_EXPR_CTR_NAME)) {
++		ret = snprintf(buf, len, "%s ", ctr->name);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++	ret = snprintf(buf + offset, len, "pkts %"PRIu64" bytes %"PRIu64" ",
++		       ctr->pkts, ctr->bytes);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	return snprintf(buf, len, "pkts %"PRIu64" bytes %"PRIu64" ",
+-			ctr->pkts, ctr->bytes);
++	return offset;
+ }
+ 
+ static int nft_rule_expr_counter_snprintf(char *buf, size_t len, uint32_t type,
+diff --git a/src/internal.h b/src/internal.h
+index db9af11..4d32ea3 100644
+--- a/src/internal.h
++++ b/src/internal.h
+@@ -90,6 +90,9 @@ int nft_mxml_rule_parse(mxml_node_t *tree, struct nft_rule *r,
+ struct nft_set;
+ int nft_mxml_set_parse(mxml_node_t *tree, struct nft_set *s,
+ 		       struct nft_parse_err *err);
++struct nft_counter;
++int nft_mxml_counter_parse(mxml_node_t *tree, struct nft_counter *counter,
++			   struct nft_parse_err *err);
+ #endif
+ 
+ struct nft_set_list;
+@@ -139,6 +142,9 @@ int nft_jansson_parse_rule(struct nft_rule *r, json_t *tree,
+ struct nft_set;
+ int nft_jansson_parse_set(struct nft_set *s, json_t *tree,
+ 			  struct nft_parse_err *err);
++struct nft_counter;
++int nft_jansson_parse_counter(struct nft_counter *counter, json_t *tree,
++			      struct nft_parse_err *err);
+ #endif
+ 
+ const char *nft_family2str(uint32_t family);
+diff --git a/src/libnftnl.map b/src/libnftnl.map
+index be7b998..3f3a9e9 100644
+--- a/src/libnftnl.map
++++ b/src/libnftnl.map
+@@ -226,4 +226,34 @@ LIBNFTNL_1.2 {
+   nft_gen_nlmsg_parse;
+   nft_gen_snprintf;
+   nft_gen_fprintf;
++
++  nft_counter_alloc;
++  nft_counter_free;
++  nft_counter_attr_is_set;
++  nft_counter_attr_unset;
++  nft_counter_attr_set;
++  nft_counter_attr_get;
++  nft_counter_attr_set_u64;
++  nft_counter_attr_set_u32;
++  nft_counter_attr_set_str;
++  nft_counter_attr_get_u64;
++  nft_counter_attr_get_u32;
++  nft_counter_attr_get_str;
++  nft_counter_parse;
++  nft_counter_parse_file;
++  nft_counter_snprintf;
++  nft_counter_fprintf;
++  nft_counter_nlmsg_build_payload;
++  nft_counter_nlmsg_parse;
++  nft_counter_list_alloc;
++  nft_counter_list_free;
++  nft_counter_list_is_empty;
++  nft_counter_list_foreach;
++  nft_counter_list_add;
++  nft_counter_list_add_tail;
++  nft_counter_list_del;
++  nft_counter_list_iter_create;
++  nft_counter_list_iter_next;
++  nft_counter_list_iter_destroy;
++
+ } LIBNFTNL_1.1;
 -- 
 1.7.10.4
 
