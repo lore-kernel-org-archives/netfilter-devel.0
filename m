@@ -1,70 +1,70 @@
-From: Richard Guy Briggs <rgb@tricolour.ca>
-Subject: NetDev 0.1 final schedule and new sponsor update
-Date: Thu, 5 Feb 2015 08:05:18 -0500
-Message-ID: <20150205130518.GK4239@toccata2.tricolour.ca>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [ANNOUNCE] netdev0.1 netfilter BoF
+Date: Thu, 05 Feb 2015 21:20:46 +0100
+Message-ID: <38443B73-3871-4046-A2B1-3FA96E35D2CD@trash.net>
+References: <54D2B6B2.8070004@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: info@netdev01.org, speakers@netdev01.org, attendees@netdev01.org
-To: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	lwn@lwn.net, netdev01@lists.netfilter.org, lartc@vger.kernel.org,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	"Bohman, Pete" <pbohman@akamai.com>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Josh Hunt <johunt@akamai.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:33197 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754293AbbBEUYI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Feb 2015 15:24:08 -0500
+In-Reply-To: <54D2B6B2.8070004@akamai.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Fellow netheads:
+Am 5. Februar 2015 01:17:54 MEZ, schrieb Josh Hunt <johunt@akamai.com>:
+>We will be leading a BoF discussing netfilter development and issues in
+>
+>iptables, ipset, and nftables at netdev0.1 in Ottawa coming up in a few
+>
+>weeks.
+>
+>Our timeslot is currently scheduled for Sunday, Feb 15 @ 9am, but
+>please 
+>refer to https://www.netdev01.org/schedule in case there are any 
+>schedule changes.
+>
+>The topics we intend to cover will be based around Akamai's usage, 
+>deployment, and the issues we've come across.
+>
+>Some examples of those topics are:
+>   * The need for supported interfaces from netfilter components.
+>   * The handling of large (1 million to 25 million entry) sets, both 
+>with ipsets and nft sets.
+>   * Limitations in existing iptables functionality.
+>     * For ex, issues with hashlimit implementation and proposals to 
+>extend it.
+>
+>We'll also look at the current standing of nftables and discuss some 
+>basic performance as it pertains to our environment, as well as, 
+>backwards compatibility, and possible new features in nftables.
+>
+>We hope to bring together interested stakeholders and interested
+>parties 
+>to discuss the above along with any other related netfilter topics you 
+>would like to discuss. The BoF is scheduled for two hours.
+>
+>If you have items you'd like to add to the agenda and/or present,
+>please 
+>contact me.
+
+I'll be there.
+
+Cheers,
+Patrick
+
+>
+>Thanks
+>Josh & Pete
 
 
-New Sponsor:
-==========================
-We thank Intel for supporting Netdev01. Intel is well known in its
-tradition for supporting open source projects.  http://www.intel.com/
-
-
-Schedule:
-==========================
-The final schedule is out coded with session links.
-	https://www.netdev01.org/schedule
-
-
-Registration:
-==========================
-https://onlineregistrations.ca/netdev01/
-$100/day, or $350 for 4 days (Cdn dollars). (online reg closes Feb 12th)
-Please register as early as practical.  Registering helps us plan properly for
-numbers of attendees, ensuring venue sizes and supplies are appropriate without
-wasting resources.
-
-
-Hotel discount rates deadline extended
-==========================
-The Westin Hotel may still have rooms for Netdev01 available.
-There are lots of big and small hotels in Ottawa, but they will fill up
-fast as Winterlude approaches, so book something soon.  There may be
-some possibilities to billet locally, but don't leave it last minute.
-Make your reservations at:
-https://www.starwoodmeeting.com/StarGroupsWeb/res?id=1412035802&key=1AC9C1F8
-
-
-Sponsors:
-=========
-NetDev 0.1 would like to gratefully acknowledge all our sponsors: 
-https://netdev01.org/sponsors
-CENGN			http://www.cengn.ca/
-Google			https://www.google.ca
-Qualcomm		https://www.qualcomm.com/
-Verizon			http://www.verizon.com/
-Cumulus Networks	http://cumulusnetworks.com/
-Mojatatu Networks	http://mojatatu.com/
-
-
--------------------------------------------------------------------------------
-THE Technical Conference on Linux Networking, February 14-17, 2015, Ottawa, Canada
-https://netdev01.org/
-
-Contact:			info@netdev01.info
-Main site:			https://www.netdev01.org/
-Travel/hotel/weather/clothing:	https://www.netdev01.org/travel
-RSS feed:			https://netdev01.org/atom
-Follow us on Twitter: @netdev01	https://twitter.com/netdev01
