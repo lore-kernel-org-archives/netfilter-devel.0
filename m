@@ -1,52 +1,520 @@
-From: Josh Hunt <johunt@akamai.com>
-Subject: [ANNOUNCE] netdev0.1 netfilter BoF
-Date: Wed, 04 Feb 2015 18:17:54 -0600
-Message-ID: <54D2B6B2.8070004@akamai.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	"Bohman, Pete" <pbohman@akamai.com>, kaber@trash.net,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [libnftnl PATCH 3/4 v6] example: Parse and create netlink message using the new parsing functions.
+Date: Thu,  5 Feb 2015 11:30:13 +0100
+Message-ID: <1423132214-10699-3-git-send-email-alvaroneay@gmail.com>
+References: <1423132214-10699-1-git-send-email-alvaroneay@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from prod-mail-xrelay06.akamai.com ([96.6.114.98]:58990 "EHLO
-	prod-mail-xrelay06.akamai.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966308AbbBEAZC (ORCPT
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:49617 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756675AbbBEKd1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Feb 2015 19:25:02 -0500
+	Thu, 5 Feb 2015 05:33:27 -0500
+Received: by mail-wg0-f46.google.com with SMTP id l2so6756265wgh.5
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Feb 2015 02:33:26 -0800 (PST)
+Received: from localhost.localdomain (129.166.216.87.static.jazztel.es. [87.216.166.129])
+        by mx.google.com with ESMTPSA id fw5sm6736507wjb.14.2015.02.05.02.33.24
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 05 Feb 2015 02:33:25 -0800 (PST)
+In-Reply-To: <1423132214-10699-1-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We will be leading a BoF discussing netfilter development and issues in 
-iptables, ipset, and nftables at netdev0.1 in Ottawa coming up in a few 
-weeks.
+With this example, we can parse the elements in the ruleset and create the
+netlink message with the action associated. For example:
 
-Our timeslot is currently scheduled for Sunday, Feb 15 @ 9am, but please 
-refer to https://www.netdev01.org/schedule in case there are any 
-schedule changes.
+- Flush ruleset
+- Add, delete or flush tables/chains
+- Add, delete sets
+- Add, delete set elements
+- Add, delete, replace or prepend rules
 
-The topics we intend to cover will be based around Akamai's usage, 
-deployment, and the issues we've come across.
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+---
+[changes in v6]
+* Cosmetic changes
 
-Some examples of those topics are:
-   * The need for supported interfaces from netfilter components.
-   * The handling of large (1 million to 25 million entry) sets, both 
-with ipsets and nft sets.
-   * Limitations in existing iptables functionality.
-     * For ex, issues with hashlimit implementation and proposals to 
-extend it.
+ examples/Makefile.am              |    4 +
+ examples/nft-ruleset-parse-file.c |  448 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 452 insertions(+)
+ create mode 100644 examples/nft-ruleset-parse-file.c
 
-We'll also look at the current standing of nftables and discuss some 
-basic performance as it pertains to our environment, as well as, 
-backwards compatibility, and possible new features in nftables.
+diff --git a/examples/Makefile.am b/examples/Makefile.am
+index fafcb76..e002d36 100644
+--- a/examples/Makefile.am
++++ b/examples/Makefile.am
+@@ -22,6 +22,7 @@ check_PROGRAMS = nft-table-add		\
+ 		 nft-set-elem-get	\
+ 		 nft-set-elem-del	\
+ 		 nft-ruleset-get	\
++		 nft-ruleset-parse-file	\
+ 		 nft-compat-get
+ 
+ nft_table_add_SOURCES = nft-table-add.c
+@@ -90,5 +91,8 @@ nft_set_elem_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+ nft_ruleset_get_SOURCES = nft-ruleset-get.c
+ nft_ruleset_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+ 
++nft_ruleset_parse_file_SOURCES = nft-ruleset-parse-file.c
++nft_ruleset_parse_file_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
++
+ nft_compat_get_SOURCES = nft-compat-get.c
+ nft_compat_get_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+diff --git a/examples/nft-ruleset-parse-file.c b/examples/nft-ruleset-parse-file.c
+new file mode 100644
+index 0000000..d2950c6
+--- /dev/null
++++ b/examples/nft-ruleset-parse-file.c
+@@ -0,0 +1,448 @@
++/*
++ * (C) 2014 by Alvaro Neira Ayuso <alvaroneay@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <stdlib.h>
++#include <time.h>
++#include <string.h>
++#include <stddef.h>     /* for offsetof */
++#include <netinet/in.h>
++#include <netinet/ip.h>
++#include <netinet/tcp.h>
++#include <arpa/inet.h>
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <errno.h>
++
++#include <linux/netfilter.h>
++#include <linux/netfilter/nfnetlink.h>
++#include <linux/netfilter/nf_tables.h>
++
++#include <libmnl/libmnl.h>
++#include <libnftnl/ruleset.h>
++#include <libnftnl/table.h>
++#include <libnftnl/chain.h>
++#include <libnftnl/rule.h>
++#include <libnftnl/set.h>
++
++struct mnl_nlmsg_batch *batch;
++uint32_t seq;
++
++static int nft_ruleset_flush_rules(const struct nft_parse_ctx *ctx);
++
++static int nft_ruleset_set_elems(const struct nft_parse_ctx *ctx,
++				 uint32_t cmd)
++{
++	struct nft_set_elems_iter *iter_elems;
++	struct nft_set_elem *elem;
++	struct nft_set *tmp;
++	uint16_t nl_type = 0, nl_flags = 0;
++	struct nlmsghdr *nlh;
++	struct nft_set *set;
++
++	set = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_SET);
++	if (set == NULL)
++		return -1;
++
++	switch (cmd) {
++	case NFT_CMD_ADD:
++		nl_type = NFT_MSG_NEWSETELEM;
++		nl_flags = NLM_F_CREATE|NLM_F_EXCL|NLM_F_ACK;
++		break;
++	case NFT_CMD_DELETE:
++		nl_type = NFT_MSG_DELSETELEM;
++		nl_flags = NLM_F_ACK;
++		break;
++	}
++
++	iter_elems = nft_set_elems_iter_create(set);
++	elem = nft_set_elems_iter_next(iter_elems);
++	while (elem != NULL) {
++		tmp = nft_set_alloc();
++		if (tmp == NULL)
++			return -1;
++
++		nft_set_attr_set(tmp, NFT_SET_ATTR_TABLE,
++				 nft_set_attr_get_str(set, NFT_SET_ATTR_TABLE));
++		nft_set_attr_set(tmp, NFT_SET_ATTR_NAME,
++				 nft_set_attr_get_str(set, NFT_SET_ATTR_NAME));
++
++		nft_set_elem_add(tmp, elem);
++
++		nlh = nft_set_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
++					      nl_type,
++					      nft_set_attr_get_u32(set,
++							   NFT_SET_ATTR_FAMILY),
++					      nl_flags, seq++);
++		nft_set_elems_nlmsg_build_payload(nlh, tmp);
++		mnl_nlmsg_batch_next(batch);
++		elem = nft_set_elems_iter_next(iter_elems);
++	}
++
++	return 0;
++}
++
++static int nft_ruleset_set(const struct nft_parse_ctx *ctx, uint32_t cmd)
++{
++
++	struct nlmsghdr *nlh;
++	uint16_t nl_type = 0, nl_flags = 0;
++	struct nft_set *set;
++
++	set = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_SET);
++	if (set == NULL)
++		return -1;
++
++	switch (cmd) {
++	case NFT_CMD_ADD:
++		nl_type = NFT_MSG_NEWSET;
++		nl_flags = NLM_F_CREATE|NLM_F_ACK;
++		break;
++	case NFT_CMD_DELETE:
++		nl_type = NFT_MSG_DELSET;
++		nl_flags = NLM_F_ACK;
++		break;
++	}
++
++	nlh = nft_set_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
++				      nl_type,
++				      nft_set_attr_get_u32(set,
++							   NFT_SET_ATTR_FAMILY),
++				      nl_flags,
++				      seq++);
++
++	nft_set_nlmsg_build_payload(nlh, set);
++	mnl_nlmsg_batch_next(batch);
++
++	if (nft_ruleset_set_elems(ctx, cmd) < 0)
++		return -1;
++
++	return 0;
++}
++
++static int nft_ruleset_rule(const struct nft_parse_ctx *ctx, uint32_t cmd,
++			    struct nft_rule *nlr)
++{
++	struct nlmsghdr *nlh;
++	uint16_t nl_type = 0, nl_flags = 0;
++	struct nft_rule *rule;
++
++	if (nft_ruleset_ctx_is_set(ctx, NFT_RULESET_CTX_RULE))
++		rule = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_RULE);
++	else
++		rule = nlr;
++
++	if (rule == NULL)
++		return -1;
++
++	switch (cmd) {
++	case NFT_CMD_ADD:
++		nl_type = NFT_MSG_NEWRULE;
++		nl_flags = NLM_F_APPEND|NLM_F_CREATE|NLM_F_ACK;
++		nft_rule_attr_unset(rule, NFT_RULE_ATTR_HANDLE);
++		break;
++	case NFT_CMD_DELETE:
++		nl_type = NFT_MSG_DELRULE;
++		nl_flags = NLM_F_ACK;
++		break;
++	case NFT_CMD_REPLACE:
++		nl_type = NFT_MSG_NEWRULE;
++		nl_flags = NLM_F_REPLACE|NLM_F_ACK;
++		break;
++	case NFT_CMD_INSERT:
++		nl_type = NFT_MSG_NEWRULE;
++		nl_flags = NLM_F_CREATE|NLM_F_ACK;
++		nft_rule_attr_unset(rule, NFT_RULE_ATTR_HANDLE);
++		break;
++	}
++
++	nlh = nft_rule_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
++				       nl_type,
++				       nft_rule_attr_get_u32(rule,
++							  NFT_RULE_ATTR_FAMILY),
++				       nl_flags,
++				       seq++);
++
++	nft_rule_nlmsg_build_payload(nlh, rule);
++	mnl_nlmsg_batch_next(batch);
++
++	nft_rule_free(rule);
++	return 0;
++}
++
++static int nft_ruleset_chain(const struct nft_parse_ctx *ctx, uint32_t cmd)
++{
++	struct nlmsghdr *nlh;
++	uint16_t nl_type = 0, nl_flags = 0;
++	struct nft_chain *chain;
++
++	chain = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_CHAIN);
++	if (chain == NULL)
++		return -1;
++
++	switch (cmd) {
++	case NFT_CMD_ADD:
++		nl_type = NFT_MSG_NEWCHAIN;
++		nl_flags = NLM_F_CREATE|NLM_F_ACK;
++		break;
++	case NFT_CMD_DELETE:
++		nl_type = NFT_MSG_DELCHAIN;
++		nl_flags = NLM_F_ACK;
++		break;
++	case NFT_CMD_FLUSH:
++		return nft_ruleset_flush_rules(ctx);
++	}
++
++	nft_chain_attr_unset(chain, NFT_CHAIN_ATTR_HANDLE);
++	nlh = nft_chain_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
++					nl_type,
++					nft_chain_attr_get_u32(chain,
++							 NFT_CHAIN_ATTR_FAMILY),
++					nl_flags,
++					seq++);
++
++	nft_chain_nlmsg_build_payload(nlh, chain);
++	mnl_nlmsg_batch_next(batch);
++
++	nft_chain_free(chain);
++	return 0;
++}
++
++static int nft_ruleset_table(const struct nft_parse_ctx *ctx, uint32_t cmd,
++			     struct nft_table *nlt)
++{
++	struct nlmsghdr *nlh;
++	uint16_t nl_type = 0, nl_flags = 0;
++	struct nft_table *table;
++
++	if (nft_ruleset_ctx_is_set(ctx, NFT_RULESET_CTX_TABLE))
++		table = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_TABLE);
++	else
++		table = nlt;
++
++	if (table == NULL)
++		return -1;
++
++	switch (cmd) {
++	case NFT_CMD_ADD:
++		nl_type = NFT_MSG_NEWTABLE;
++		nl_flags = NLM_F_CREATE|NLM_F_ACK;
++		break;
++	case NFT_CMD_DELETE:
++		nl_type = NFT_MSG_DELTABLE;
++		nl_flags = NLM_F_ACK;
++		break;
++	case NFT_CMD_FLUSH:
++		return nft_ruleset_flush_rules(ctx);
++	}
++
++	nlh = nft_table_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
++					nl_type,
++					nft_table_attr_get_u32(table,
++							 NFT_TABLE_ATTR_FAMILY),
++					nl_flags,
++					seq++);
++
++	nft_table_nlmsg_build_payload(nlh, table);
++	mnl_nlmsg_batch_next(batch);
++
++	nft_table_free(table);
++	return 0;
++}
++
++static int nft_ruleset_flush_rules(const struct nft_parse_ctx *ctx)
++{
++	struct nft_rule *nlr;
++	struct nft_table *nlt;
++	struct nft_chain *nlc;
++	uint32_t type;
++
++	nlr = nft_rule_alloc();
++	if (nlr == NULL)
++		return -1;
++
++	type = nft_ruleset_ctx_get_u32(ctx, NFT_RULESET_CTX_TYPE);
++	switch (type) {
++	case NFT_RULESET_TABLE:
++		nlt = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_TABLE);
++		nft_rule_attr_set(nlr, NFT_RULE_ATTR_TABLE,
++				  nft_table_attr_get(nlt, NFT_TABLE_ATTR_NAME));
++		nft_rule_attr_set(nlr, NFT_RULE_ATTR_FAMILY,
++				nft_table_attr_get(nlt, NFT_TABLE_ATTR_FAMILY));
++		break;
++	case NFT_RULESET_CHAIN:
++		nlc = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_CHAIN);
++		nft_rule_attr_set(nlr, NFT_RULE_ATTR_TABLE,
++				  nft_chain_attr_get(nlc,
++						     NFT_CHAIN_ATTR_TABLE));
++		nft_rule_attr_set(nlr, NFT_RULE_ATTR_CHAIN,
++				  nft_chain_attr_get(nlc,
++						     NFT_CHAIN_ATTR_NAME));
++		nft_rule_attr_set(nlr, NFT_RULE_ATTR_FAMILY,
++				nft_chain_attr_get(nlc, NFT_TABLE_ATTR_FAMILY));
++		break;
++	}
++
++	return nft_ruleset_rule(ctx, NFT_CMD_DELETE, nlr);
++}
++
++static int nft_ruleset_flush_ruleset(const struct nft_parse_ctx *ctx)
++{
++	struct nft_table *nlt;
++
++	nlt = nft_table_alloc();
++	if (nlt == NULL)
++		return -1;
++
++	return nft_ruleset_table(ctx, NFT_CMD_DELETE, nlt);
++}
++
++static int ruleset_elems_cb(const struct nft_parse_ctx *ctx)
++{
++	uint32_t cmd;
++	uint32_t type;
++
++	type = nft_ruleset_ctx_get_u32(ctx, NFT_RULESET_CTX_TYPE);
++	cmd = nft_ruleset_ctx_get_u32(ctx, NFT_RULESET_CTX_CMD);
++
++	switch (type) {
++	case NFT_RULESET_TABLE:
++		if (nft_ruleset_table(ctx, cmd, NULL) < 0)
++			return -1;
++		break;
++	case NFT_RULESET_CHAIN:
++		if (nft_ruleset_chain(ctx, cmd) < 0)
++			return -1;
++		break;
++	case NFT_RULESET_RULE:
++		if (nft_ruleset_rule(ctx, cmd, NULL) < 0)
++			return -1;
++		break;
++	case NFT_RULESET_SET:
++		if (nft_ruleset_set(ctx, cmd) < 0)
++			return -1;
++		break;
++	case NFT_RULESET_SET_ELEMS:
++		if (nft_ruleset_set_elems(ctx, cmd) < 0)
++			return -1;
++		break;
++	case NFT_RULESET_RULESET:
++		if (nft_ruleset_flush_ruleset(ctx) < 0)
++			return -1;
++		break;
++	}
++	return 0;
++}
++
++int main(int argc, char *argv[])
++{
++	struct nft_parse_err *err;
++	const char *filename;
++	FILE *fp;
++	int ret = -1, len, batching, portid;
++	uint32_t ruleset_seq;
++	char buf[MNL_SOCKET_BUFFER_SIZE];
++	struct mnl_socket *nl;
++
++	if (argc < 2) {
++		printf("Usage: %s <file>\n", argv[0]);
++		exit(EXIT_FAILURE);
++	}
++
++	fp = fopen(argv[1], "r");
++	if (fp == NULL) {
++		printf("unable to open file %s: %s\n", argv[1],
++		       strerror(errno));
++		exit(EXIT_FAILURE);
++	}
++
++	err = nft_parse_err_alloc();
++	if (err == NULL) {
++		perror("error");
++		exit(EXIT_FAILURE);
++	}
++
++	batching = nft_batch_is_supported();
++	if (batching < 0) {
++		perror("Cannot talk to nfnetlink");
++		exit(EXIT_FAILURE);
++	}
++
++	seq = time(NULL);
++	batch = mnl_nlmsg_batch_start(buf, sizeof(buf));
++
++	if (batching) {
++		nft_batch_begin(mnl_nlmsg_batch_current(batch), seq++);
++		mnl_nlmsg_batch_next(batch);
++	}
++	ruleset_seq = seq;
++
++	filename = argv[1];
++	len = strlen(filename);
++	if (strcmp(&filename[len-5], ".json") == 0)
++		ret = nft_ruleset_parse_file_cb(NFT_PARSE_JSON, fp, err, NULL,
++						&ruleset_elems_cb);
++	else if (strcmp(&filename[len-4], ".xml") == 0)
++		ret = nft_ruleset_parse_file_cb(NFT_PARSE_XML, fp, err, NULL,
++						&ruleset_elems_cb);
++	else {
++		printf("the filename %s must to end in .xml or .json\n",
++			filename);
++		exit(EXIT_FAILURE);
++	}
++
++	if (ret < 0) {
++		nft_parse_perror("fail", err);
++		exit(EXIT_FAILURE);
++	}
++
++	fclose(fp);
++
++	if (batching) {
++		nft_batch_end(mnl_nlmsg_batch_current(batch), seq++);
++		mnl_nlmsg_batch_next(batch);
++	}
++
++	nl = mnl_socket_open(NETLINK_NETFILTER);
++	if (nl == NULL) {
++		perror("mnl_socket_open");
++		exit(EXIT_FAILURE);
++	}
++
++	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
++		perror("mnl_socket_bind");
++		exit(EXIT_FAILURE);
++	}
++	portid = mnl_socket_get_portid(nl);
++
++	mnl_nlmsg_fprintf(stdout, mnl_nlmsg_batch_head(batch),
++			  mnl_nlmsg_batch_size(batch), sizeof(struct nfgenmsg));
++
++	if (mnl_socket_sendto(nl, mnl_nlmsg_batch_head(batch),
++			      mnl_nlmsg_batch_size(batch)) < 0) {
++		perror("mnl_socket_send");
++		exit(EXIT_FAILURE);
++	}
++
++	mnl_nlmsg_batch_stop(batch);
++
++	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	while (ret > 0) {
++		ret = mnl_cb_run(buf, ret, ruleset_seq, portid, NULL, NULL);
++		if (ret <= 0)
++			break;
++		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
++	}
++	if (ret == -1) {
++		perror("error");
++		exit(EXIT_FAILURE);
++	}
++
++	mnl_socket_close(nl);
++	return EXIT_SUCCESS;
++}
+-- 
+1.7.10.4
 
-We hope to bring together interested stakeholders and interested parties 
-to discuss the above along with any other related netfilter topics you 
-would like to discuss. The BoF is scheduled for two hours.
-
-If you have items you'd like to add to the agenda and/or present, please 
-contact me.
-
-Thanks
-Josh & Pete
