@@ -1,53 +1,48 @@
 From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: [PATCH 1/3] Add revision field for xt_entry_target
-Date: Fri, 6 Feb 2015 15:26:28 +0800
-Message-ID: <1423207590-13423-1-git-send-email-gaofeng@cn.fujitsu.com>
+Subject: [PATCH 3/3] Update the manpage for MARK target
+Date: Fri, 6 Feb 2015 15:26:30 +0800
+Message-ID: <1423207590-13423-3-git-send-email-gaofeng@cn.fujitsu.com>
+References: <1423207590-13423-1-git-send-email-gaofeng@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Cc: <pablo@netfilter.org>, Gao feng <gaofeng@cn.fujitsu.com>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:21570 "EHLO
+Received: from cn.fujitsu.com ([59.151.112.132]:27225 "EHLO
 	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750788AbbBFH0s (ORCPT
+	with ESMTP id S1751226AbbBFH0y (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Feb 2015 02:26:48 -0500
+	Fri, 6 Feb 2015 02:26:54 -0500
+In-Reply-To: <1423207590-13423-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This filed is useful if we want to add TARGET which
-has revision for arptables rules.
-
-Also make sure xt_entry_target is consistent with
-the definition in kernel.
-
 Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
 ---
- include/linux/netfilter_arp/arp_tables.h | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arptables.8 | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
-index 0acda66..ccf8cd0 100644
---- a/include/linux/netfilter_arp/arp_tables.h
-+++ b/include/linux/netfilter_arp/arp_tables.h
-@@ -19,7 +19,7 @@
+diff --git a/arptables.8 b/arptables.8
+index 78b2c60..a0ada83 100644
+--- a/arptables.8
++++ b/arptables.8
+@@ -315,6 +315,16 @@ sify the packet into a specific CBQ class).
+ Set the major and minor  class  value.  The  values  are  always
+ interpreted as hexadecimal even if no 0x prefix is given.
  
- #include <linux/netfilter_arp.h>
- 
--#define ARPT_FUNCTION_MAXNAMELEN 30
-+#define ARPT_FUNCTION_MAXNAMELEN 29
- #define ARPT_TABLE_MAXNAMELEN 32
- 
- #define ARPT_DEV_ADDR_LEN_MAX 16
-@@ -69,6 +69,8 @@ struct arpt_entry_target
- 
- 			/* Used by userspace */
- 			char name[ARPT_FUNCTION_MAXNAMELEN];
++.SS MARK
++This  module  allows you to set the skb->mark value (and thus classify
++the packet by the mark in u32)
 +
-+			u_int8_t revision;
- 		} user;
- 		struct {
- 			u_int16_t target_size;
++.TP
++.BR "--set-mark mark"
++
++Set the mark value.  The  values  are  always
++interpreted as hexadecimal even if no 0x prefix is given.
++
+ .SH MAILINGLISTS
+ .BR "" "See " http://netfilter.org/mailinglists.html
+ .SH SEE ALSO
 -- 
 2.1.0
 
