@@ -1,1218 +1,893 @@
 From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [libnftnl PATCH 2/4 v7] src: add support to import json/xml with the new command syntax
-Date: Fri,  6 Feb 2015 14:24:27 +0100
-Message-ID: <1423229069-652-2-git-send-email-alvaroneay@gmail.com>
-References: <1423229069-652-1-git-send-email-alvaroneay@gmail.com>
+Subject: [libnftnl PATCH 1/4 v7] src: add command tag in json/xml export support
+Date: Fri,  6 Feb 2015 14:24:26 +0100
+Message-ID: <1423229069-652-1-git-send-email-alvaroneay@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:46234 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751194AbbBFNYo (ORCPT
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:55453 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750760AbbBFNYm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Feb 2015 08:24:44 -0500
-Received: by mail-wg0-f50.google.com with SMTP id b13so13423976wgh.9
-        for <netfilter-devel@vger.kernel.org>; Fri, 06 Feb 2015 05:24:42 -0800 (PST)
+	Fri, 6 Feb 2015 08:24:42 -0500
+Received: by mail-wg0-f49.google.com with SMTP id k14so13489963wgh.8
+        for <netfilter-devel@vger.kernel.org>; Fri, 06 Feb 2015 05:24:41 -0800 (PST)
 Received: from localhost.localdomain (129.166.216.87.static.jazztel.es. [87.216.166.129])
-        by mx.google.com with ESMTPSA id oo8sm3404670wjc.1.2015.02.06.05.24.41
+        by mx.google.com with ESMTPSA id oo8sm3404670wjc.1.2015.02.06.05.24.39
         for <netfilter-devel@vger.kernel.org>
         (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 06 Feb 2015 05:24:41 -0800 (PST)
-In-Reply-To: <1423229069-652-1-git-send-email-alvaroneay@gmail.com>
+        Fri, 06 Feb 2015 05:24:40 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds support to parse the new syntax in xml/json. This patch adds two
-new different functions nft_ruleset_parse_*_cb. The ruleset contais differents
-objects (tables, chains, set and rules) of nftables. With these functions,
-we can pass a callback functions as parameter and we can call for each objects.
+Currently, we can't do incremental updates. For example:
 
-These functions use a new structure as parameter called nft_parse_ctx. This
-structure contains the command associated, the type of the object (table, chain,
-rule, set or set element) and the object.
+If we have a ruleset like:
 
-Also, with this changes, we support to parse another new ruleset syntax:
+table ip filter {
+	chain input {
+		type filter hook input priority 0;
+	}
+}
 
-	{"nftables":[{"add":[{"element":{"name":"blackhole","table":"filter"
-	"family":"ip","key_type":7,"key_len":4,"set_elem":[{"key":{
-	"reg":{"type":"value","len":4,"data0":"0x0403a8c0"}}}]}}]}]}
+The new syntax is:
 
-With this new "element", we can make incremental changes to set elements.
+{"nftables":[{"add":[{"table":{"name":"filter",...}}]}]}
 
-In short, these functions offer us the possibility to make incremental changes
-to the ruleset.
+Moreover, this patch adds support to export this new command tag. We support
+all the actions that we can do with nft, they are:
 
-Moreover, this patch consolidate the code in the ruleset xml/json import
-support.
+- Add, delete and flush tables/chains.
+- Add, delete, replace and insert rules.
+- Add and delete sets.
+- Add and delete set elements.
+- Flush ruleset.
 
-Another interesting goal is extend (in the future) the ruleset
-structure with information like the command associated to each object.
+You only need to add the command tag:
+
+	{"nftables":[{"delete":[{...}, {...},...}]}]}
+		      ^^^^^^^^
+		    command tag
+
+The possible fields that we can use are "add", "delete", "flush", "insert",
+"replace" and "flush". For example:
+
+- Flush table or chain:
+
+	{"nftables":[{"flush":[{"table":{"name":...}}]}]}
+
+  To flush a chain. Replace the table with the chain in json format
+
+- Delete table, chain, set or rule:
+
+	{"nftables":[{"delete":[{"chain":{"name":...}]}]}
+
+  To delete a table, set or rule. Replace chain with the table, set or rule in
+  json format.
+
+- Replace a rule:
+
+	{"nftables":[{"replace":[{"rule":{...}}]}]}
+
+- Insert a rule:
+
+	{"nftables":[{"insert":[{"rule":{...}}]}]}
+
+We can export to the new syntax using the event flags and also you can use
+the new functions nft_*_cmd_snprintf. In these functions, you can specify the
+command that you want to set with your ruleset like a parameter.
 
 Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
 [changes in v7]
- * Add the atribute CTX_DATA to set it. Also, to get it in userspace.
- * Fix the conflict with the previously patch changes in libnftnl.map
+ * Don't expose the functions nft_*_cmd_snprintf and make it static.
 
- include/libnftnl/ruleset.h |   32 ++
- src/internal.h             |    3 +
- src/libnftnl.map           |    8 +
- src/ruleset.c              |  824 +++++++++++++++++++++++++++-----------------
- src/set.c                  |   12 +
- src/utils.c                |   17 +
- 6 files changed, 589 insertions(+), 307 deletions(-)
+ include/buffer.h          |    7 ++++
+ include/libnftnl/common.h |    9 +++++
+ src/buffer.c              |   22 +++++++++++
+ src/chain.c               |   23 ++++++++---
+ src/common.c              |   93 ++++++++++++++++++++++++---------------------
+ src/gen.c                 |   23 ++++++++---
+ src/internal.h            |   19 +++++----
+ src/rule.c                |   23 ++++++++---
+ src/ruleset.c             |   51 +++++++++++++++++++------
+ src/set.c                 |   23 ++++++++---
+ src/set_elem.c            |   24 +++++++++---
+ src/table.c               |   23 ++++++++---
+ src/utils.c               |   24 ++++++++++--
+ 13 files changed, 261 insertions(+), 103 deletions(-)
 
-diff --git a/include/libnftnl/ruleset.h b/include/libnftnl/ruleset.h
-index 1a3e22f..aa1d92d 100644
---- a/include/libnftnl/ruleset.h
-+++ b/include/libnftnl/ruleset.h
-@@ -25,11 +25,43 @@ enum {
- 	NFT_RULESET_ATTR_RULELIST,
- };
+diff --git a/include/buffer.h b/include/buffer.h
+index 2b497f2..badffe6 100644
+--- a/include/buffer.h
++++ b/include/buffer.h
+@@ -24,7 +24,9 @@ int nft_buf_done(struct nft_buf *b);
+ union nft_data_reg;
  
-+enum nft_ruleset_type {
-+	NFT_RULESET_UNSPEC = 0,
-+	NFT_RULESET_RULESET,
-+	NFT_RULESET_TABLE,
-+	NFT_RULESET_CHAIN,
-+	NFT_RULESET_RULE,
-+	NFT_RULESET_SET,
-+	NFT_RULESET_SET_ELEMS,
-+};
-+
- bool nft_ruleset_attr_is_set(const struct nft_ruleset *r, uint16_t attr);
- void nft_ruleset_attr_unset(struct nft_ruleset *r, uint16_t attr);
- void nft_ruleset_attr_set(struct nft_ruleset *r, uint16_t attr, void *data);
- void *nft_ruleset_attr_get(const struct nft_ruleset *r, uint16_t attr);
+ int nft_buf_open(struct nft_buf *b, int type, const char *tag);
++int nft_buf_open_array(struct nft_buf *b, int type, const char *tag);
+ int nft_buf_close(struct nft_buf *b, int type, const char *tag);
++int nft_buf_close_array(struct nft_buf *b, int type, const char *tag);
  
-+enum {
-+	NFT_RULESET_CTX_CMD = 0,
-+	NFT_RULESET_CTX_TYPE,
-+	NFT_RULESET_CTX_TABLE,
-+	NFT_RULESET_CTX_CHAIN,
-+	NFT_RULESET_CTX_RULE,
-+	NFT_RULESET_CTX_SET,
-+	NFT_RULESET_CTX_DATA,
-+};
-+
-+struct nft_parse_ctx;
-+bool nft_ruleset_ctx_is_set(const struct nft_parse_ctx *ctx, uint16_t attr);
-+void *nft_ruleset_ctx_get(const struct nft_parse_ctx *ctx, uint16_t attr);
-+uint32_t nft_ruleset_ctx_get_u32(const struct nft_parse_ctx *ctx,
-+				 uint16_t attr);
-+
-+int nft_ruleset_parse_file_cb(enum nft_parse_type type, FILE *fp,
-+			      struct nft_parse_err *err, void *data,
-+			      int (*cb)(const struct nft_parse_ctx *ctx));
-+int nft_ruleset_parse_buffer_cb(enum nft_parse_type type, const char *buffer,
-+				struct nft_parse_err *err, void *data,
-+				int (*cb)(const struct nft_parse_ctx *ctx));
- int nft_ruleset_parse(struct nft_ruleset *rs, enum nft_parse_type type,
- 		      const char *data, struct nft_parse_err *err);
- int nft_ruleset_parse_file(struct nft_ruleset *rs, enum nft_parse_type type,
-diff --git a/src/internal.h b/src/internal.h
-index a846d1e..f273140 100644
---- a/src/internal.h
-+++ b/src/internal.h
-@@ -139,6 +139,8 @@ int nft_jansson_parse_rule(struct nft_rule *r, json_t *tree,
- struct nft_set;
- int nft_jansson_parse_set(struct nft_set *s, json_t *tree,
- 			  struct nft_parse_err *err);
-+int nft_jansson_parse_elem(struct nft_set *s, json_t *tree,
-+			   struct nft_parse_err *err);
+ int nft_buf_u32(struct nft_buf *b, int type, uint32_t value, const char *tag);
+ int nft_buf_s32(struct nft_buf *b, int type, uint32_t value, const char *tag);
+@@ -76,5 +78,10 @@ int nft_buf_reg(struct nft_buf *b, int type, union nft_data_reg *reg,
+ #define UNIT			"unit"
+ #define USE			"use"
+ #define XOR			"xor"
++#define ADD			"add"
++#define INSERT			"insert"
++#define DELETE			"delete"
++#define REPLACE			"replace"
++#define FLUSH			"flush"
+ 
  #endif
- 
- const char *nft_family2str(uint32_t family);
-@@ -148,6 +150,7 @@ const char *nft_verdict2str(uint32_t verdict);
- int nft_str2verdict(const char *verdict, int *verdict_num);
- int nft_flag2cmd(uint32_t flags, uint32_t *cmd);
- int nft_get_value(enum nft_type type, void *val, void *out);
-+uint32_t nft_str2cmd(const char *cmd);
- 
- #include <stdio.h>
- int nft_fprintf(FILE *fp, void *obj, uint32_t cmd, uint32_t type,
-diff --git a/src/libnftnl.map b/src/libnftnl.map
-index be7b998..7c74fbc 100644
---- a/src/libnftnl.map
-+++ b/src/libnftnl.map
-@@ -227,3 +227,11 @@ LIBNFTNL_1.2 {
-   nft_gen_snprintf;
-   nft_gen_fprintf;
- } LIBNFTNL_1.1;
-+
-+LIBNFTNL_1.2.0 {
-+  nft_ruleset_ctx_is_set;
-+  nft_ruleset_ctx_get;
-+  nft_ruleset_ctx_get_u32;
-+  nft_ruleset_parse_file_cb;
-+  nft_ruleset_parse_buffer_cb;
-+} LIBNFTNL_1.2;
-diff --git a/src/ruleset.c b/src/ruleset.c
-index e9c22a1..1c58bba 100644
---- a/src/ruleset.c
-+++ b/src/ruleset.c
-@@ -32,6 +32,32 @@ struct nft_ruleset {
- 	uint16_t		flags;
+diff --git a/include/libnftnl/common.h b/include/libnftnl/common.h
+index fa3ab60..26f15c9 100644
+--- a/include/libnftnl/common.h
++++ b/include/libnftnl/common.h
+@@ -21,6 +21,15 @@ enum nft_output_flags {
+ 	NFT_OF_EVENT_ANY	= (NFT_OF_EVENT_NEW | NFT_OF_EVENT_DEL),
  };
  
-+struct nft_parse_ctx {
-+	enum nft_cmd_type cmd;
-+	enum nft_ruleset_type type;
-+	union {
-+		struct nft_table	*table;
-+		struct nft_chain	*chain;
-+		struct nft_rule		*rule;
-+		struct nft_set		*set;
-+		struct nft_set_elem	*set_elem;
-+	};
-+	void *data;
-+
-+	/* These fields below are not exposed to the user */
-+	union {
-+		json_t			*json;
-+		mxml_node_t		*xml;
-+	};
-+
-+	uint32_t format;
-+	uint32_t set_id;
-+	struct nft_set_list *set_list;
-+
-+	int (*cb)(const struct nft_parse_ctx *ctx);
-+	uint16_t flags;
++enum nft_cmd_type {
++	NFT_CMD_UNSPEC		= 0,
++	NFT_CMD_ADD,
++	NFT_CMD_INSERT,
++	NFT_CMD_DELETE,
++	NFT_CMD_REPLACE,
++	NFT_CMD_FLUSH,
 +};
 +
- struct nft_ruleset *nft_ruleset_alloc(void)
- {
- 	return calloc(1, sizeof(struct nft_ruleset));
-@@ -131,230 +157,419 @@ void *nft_ruleset_attr_get(const struct nft_ruleset *r, uint16_t attr)
- }
- EXPORT_SYMBOL(nft_ruleset_attr_get);
- 
--#ifdef JSON_PARSING
--static int nft_ruleset_json_parse_tables(struct nft_ruleset *rs, json_t *array,
--					 struct nft_parse_err *err)
-+bool nft_ruleset_ctx_is_set(const struct nft_parse_ctx *ctx, uint16_t attr)
-+{
-+	return ctx->flags & (1 << attr);
-+}
-+EXPORT_SYMBOL(nft_ruleset_ctx_is_set);
-+
-+void *nft_ruleset_ctx_get(const struct nft_parse_ctx *ctx, uint16_t attr)
-+{
-+	if (!(ctx->flags & (1 << attr)))
-+		return NULL;
-+
-+	switch (attr) {
-+	case NFT_RULESET_CTX_CMD:
-+		return (void *)&ctx->cmd;
-+	case NFT_RULESET_CTX_TYPE:
-+		return (void *)&ctx->type;
-+	case NFT_RULESET_CTX_TABLE:
-+		return ctx->table;
-+	case NFT_RULESET_CTX_CHAIN:
-+		return ctx->chain;
-+	case NFT_RULESET_CTX_RULE:
-+		return ctx->rule;
-+	case NFT_RULESET_CTX_SET:
-+		return ctx->set;
-+	case NFT_RULESET_CTX_DATA:
-+		return ctx->data;
-+	default:
-+		return NULL;
-+	}
-+}
-+EXPORT_SYMBOL(nft_ruleset_ctx_get);
-+
-+uint32_t nft_ruleset_ctx_get_u32(const struct nft_parse_ctx *ctx, uint16_t attr)
-+{
-+	const void *ret = nft_ruleset_ctx_get(ctx, attr);
-+	return ret == NULL ? 0 : *((uint32_t *)ret);
-+}
-+EXPORT_SYMBOL(nft_ruleset_ctx_get_u32);
-+
-+#if defined(JSON_PARSING) || defined(XML_PARSING)
-+static void nft_ruleset_ctx_unset(struct nft_parse_ctx *ctx, uint16_t attr)
-+{
-+	if (!(ctx->flags & (1 << attr)))
-+		return;
-+
-+	switch (attr) {
-+	case NFT_RULESET_CTX_CMD:
-+	case NFT_RULESET_CTX_TYPE:
-+		break;
-+	case NFT_RULESET_CTX_TABLE:
-+		ctx->table = NULL;
-+		break;
-+	case NFT_RULESET_CTX_CHAIN:
-+		ctx->chain = NULL;
-+		break;
-+	case NFT_RULESET_CTX_RULE:
-+		ctx->rule = NULL;
-+		break;
-+	case NFT_RULESET_CTX_SET:
-+		ctx->set = NULL;
-+		break;
-+	case NFT_RULESET_CTX_DATA:
-+		ctx->data = NULL;
-+		break;
-+	}
-+	ctx->flags &= ~(1 << attr);
-+}
-+
-+static void nft_ruleset_ctx_set(struct nft_parse_ctx *ctx, uint16_t attr,
-+				void *data)
-+{
-+	switch (attr) {
-+	case NFT_RULESET_CTX_CMD:
-+		nft_ruleset_ctx_unset(ctx, NFT_RULESET_CTX_CMD);
-+		ctx->cmd = *((uint32_t *)data);
-+		break;
-+	case NFT_RULESET_CTX_TYPE:
-+		nft_ruleset_ctx_unset(ctx, NFT_RULESET_CTX_TYPE);
-+		ctx->type = *((uint32_t *)data);
-+		break;
-+	case NFT_RULESET_CTX_TABLE:
-+		nft_ruleset_ctx_unset(ctx, NFT_RULESET_CTX_TABLE);
-+		ctx->table = data;
-+		break;
-+	case NFT_RULESET_CTX_CHAIN:
-+		nft_ruleset_ctx_unset(ctx, NFT_RULESET_CTX_CHAIN);
-+		ctx->chain = data;
-+		break;
-+	case NFT_RULESET_CTX_RULE:
-+		nft_ruleset_ctx_unset(ctx, NFT_RULESET_CTX_RULE);
-+		ctx->rule = data;
-+		break;
-+	case NFT_RULESET_CTX_SET:
-+		nft_ruleset_ctx_unset(ctx, NFT_RULESET_CTX_SET);
-+		ctx->set = data;
-+		break;
-+	case NFT_RULESET_CTX_DATA:
-+		nft_ruleset_ctx_unset(ctx, NFT_RULESET_CTX_DATA);
-+		ctx->data = data;
-+		break;
-+	}
-+	ctx->flags |= (1 << attr);
-+}
-+
-+static void nft_ruleset_ctx_set_u32(struct nft_parse_ctx *ctx, uint16_t attr,
-+				    uint32_t val)
-+{
-+	nft_ruleset_ctx_set(ctx, attr, &val);
-+}
-+
-+static int nft_ruleset_parse_tables(struct nft_parse_ctx *ctx,
-+				    struct nft_parse_err *err)
- {
--	int i, len;
--	json_t *node;
- 	struct nft_table *table;
--	struct nft_table_list *list = nft_table_list_alloc();
- 
--	if (list == NULL) {
-+	table = nft_table_alloc();
-+	if (table == NULL) {
- 		errno = ENOMEM;
- 		return -1;
+ enum nft_parse_type {
+ 	NFT_PARSE_NONE		= 0,
+ 	NFT_PARSE_XML,
+diff --git a/src/buffer.c b/src/buffer.c
+index d64f944..63cf2b8 100644
+--- a/src/buffer.c
++++ b/src/buffer.c
+@@ -71,6 +71,17 @@ int nft_buf_open(struct nft_buf *b, int type, const char *tag)
  	}
- 
--	len = json_array_size(array);
--	for (i = 0; i < len; i++) {
--		node = json_array_get(array, i);
--		if (node == NULL) {
--			errno = EINVAL;
--			goto err;
--		}
--
--		if (!(nft_jansson_node_exist(node, "table")))
--			continue;
--
--		table = nft_table_alloc();
--		if (table == NULL) {
--			errno = ENOMEM;
-+	switch (ctx->format) {
-+	case NFT_OUTPUT_JSON:
-+#ifdef JSON_PARSING
-+		if (nft_jansson_parse_table(table, ctx->json, err) < 0)
- 			goto err;
--		}
--
--		if (nft_jansson_parse_table(table, node, err) < 0) {
--			nft_table_free(table);
-+#endif
-+		break;
-+	case NFT_OUTPUT_XML:
-+#ifdef XML_PARSING
-+		if (nft_mxml_table_parse(ctx->xml, table, err) < 0)
- 			goto err;
--		}
--
--		nft_table_list_add_tail(table, list);
-+#endif
-+		break;
-+	default:
-+		return -1;
- 	}
- 
--	if (!nft_table_list_is_empty(list))
--		nft_ruleset_attr_set(rs, NFT_RULESET_ATTR_TABLELIST, list);
--	else
--		nft_table_list_free(list);
-+	nft_ruleset_ctx_set_u32(ctx, NFT_RULESET_CTX_TYPE, NFT_RULESET_TABLE);
-+	nft_ruleset_ctx_set(ctx, NFT_RULESET_CTX_TABLE, table);
-+	if (ctx->cb(ctx) < 0)
-+		goto err;
- 
- 	return 0;
- err:
--	nft_table_list_free(list);
-+	nft_table_free(table);
- 	return -1;
  }
  
--static int nft_ruleset_json_parse_chains(struct nft_ruleset *rs, json_t *array,
--					 struct nft_parse_err *err)
-+static int nft_ruleset_parse_chains(struct nft_parse_ctx *ctx,
-+				    struct nft_parse_err *err)
- {
--	int i, len;
--	json_t *node;
- 	struct nft_chain *chain;
--	struct nft_chain_list *list = nft_chain_list_alloc();
- 
--	if (list == NULL) {
-+	chain = nft_chain_alloc();
-+	if (chain == NULL) {
- 		errno = ENOMEM;
- 		return -1;
- 	}
- 
--	len = json_array_size(array);
--	for (i = 0; i < len; i++) {
--		node = json_array_get(array, i);
--		if (node == NULL) {
--			errno = EINVAL;
-+	switch (ctx->format) {
-+	case NFT_OUTPUT_JSON:
-+#ifdef JSON_PARSING
-+		if (nft_jansson_parse_chain(chain, ctx->json, err) < 0)
- 			goto err;
--		}
--
--		if (!(nft_jansson_node_exist(node, "chain")))
--			continue;
--
--		chain = nft_chain_alloc();
--		if (chain == NULL) {
--			errno = ENOMEM;
-+#endif
-+		break;
-+	case NFT_OUTPUT_XML:
-+#ifdef XML_PARSING
-+		if (nft_mxml_chain_parse(ctx->xml, chain, err) < 0)
- 			goto err;
--		}
-+#endif
-+		break;
-+	default:
-+		return -1;
-+	}
- 
--		if (nft_jansson_parse_chain(chain, node, err) < 0) {
--			nft_chain_free(chain);
--			goto err;
--		}
-+	nft_ruleset_ctx_set_u32(ctx, NFT_RULESET_CTX_TYPE, NFT_RULESET_CHAIN);
-+	nft_ruleset_ctx_set(ctx, NFT_RULESET_CTX_CHAIN, chain);
-+	if (ctx->cb(ctx) < 0)
-+		goto err;
- 
--		nft_chain_list_add_tail(chain, list);
--	}
-+	return 0;
-+err:
-+	nft_chain_free(chain);
-+	return -1;
-+}
-+
-+static int nft_ruleset_parse_set(struct nft_parse_ctx *ctx,
-+				 struct nft_set *set, uint32_t type,
-+				 struct nft_parse_err *err)
++int nft_buf_open_array(struct nft_buf *b, int type, const char *tag)
 +{
-+	nft_set_attr_set_u32(set, NFT_SET_ATTR_ID, ctx->set_id++);
-+	nft_set_list_add_tail(set, ctx->set_list);
- 
--	if (!nft_chain_list_is_empty(list))
--		nft_ruleset_attr_set(rs, NFT_RULESET_ATTR_CHAINLIST, list);
--	else
--		nft_chain_list_free(list);
-+	nft_ruleset_ctx_set_u32(ctx, NFT_RULESET_CTX_TYPE, type);
-+	nft_ruleset_ctx_set(ctx, NFT_RULESET_CTX_SET, set);
-+	if (ctx->cb(ctx) < 0)
-+		goto err;
- 
- 	return 0;
- err:
--	nft_chain_list_free(list);
-+	nft_set_free(set);
- 	return -1;
- }
- 
--static int nft_ruleset_json_parse_sets(struct nft_ruleset *rs, json_t *array,
-+static int nft_ruleset_parse_set_elems(struct nft_parse_ctx *ctx,
- 				       struct nft_parse_err *err)
- {
--	int i, len;
--	uint32_t set_id = 0;
--	json_t *node;
- 	struct nft_set *set;
--	struct nft_set_list *list = nft_set_list_alloc();
- 
--	if (list == NULL) {
-+	set = nft_set_alloc();
-+	if (set == NULL) {
- 		errno = ENOMEM;
- 		return -1;
- 	}
- 
--	len = json_array_size(array);
--	for (i = 0; i < len; i++) {
--		node = json_array_get(array, i);
--		if (node == NULL) {
--			errno = EINVAL;
-+	switch (ctx->format) {
++	switch (type) {
 +	case NFT_OUTPUT_JSON:
-+#ifdef JSON_PARSING
-+		if (nft_jansson_parse_elem(set, ctx->json, err) < 0)
- 			goto err;
--		}
-+#endif
-+		break;
++		return nft_buf_put(b, "{\"%s\":[", tag);
 +	case NFT_OUTPUT_XML:
-+#ifdef XML_PARSING
-+		if (nft_mxml_set_parse(ctx->xml, set, err) < 0)
-+			goto err;
-+#endif
-+		break;
 +	default:
-+		return -1;
-+	}
- 
--		if (!(nft_jansson_node_exist(node, "set")))
--			continue;
-+	return nft_ruleset_parse_set(ctx, set, NFT_RULESET_SET_ELEMS, err);
-+err:
-+	nft_set_free(set);
-+	return -1;
-+}
- 
--		set = nft_set_alloc();
--		if (set == NULL) {
--			errno = ENOMEM;
--			goto err;
--		}
-+static int nft_ruleset_parse_sets(struct nft_parse_ctx *ctx,
-+				  struct nft_parse_err *err)
-+{
-+	struct nft_set *set;
-+
-+	set = nft_set_alloc();
-+	if (set == NULL) {
-+		errno = ENOMEM;
-+		return -1;
-+	}
- 
--		if (nft_jansson_parse_set(set, node, err) < 0) {
--			nft_set_free(set);
-+	switch (ctx->format) {
-+	case NFT_OUTPUT_JSON:
-+#ifdef JSON_PARSING
-+		if (nft_jansson_parse_set(set, ctx->json, err) < 0)
- 			goto err;
--		}
-+#endif
-+		break;
-+	case NFT_OUTPUT_XML:
-+#ifdef XML_PARSING
-+		if (nft_mxml_set_parse(ctx->xml, set, err) < 0)
-+			goto err;
-+#endif
-+		break;
-+	default:
-+		return -1;
-+	}
- 
--		nft_set_attr_set_u32(set, NFT_SET_ATTR_ID, set_id++);
--		nft_set_list_add_tail(set, list);
-+	return nft_ruleset_parse_set(ctx, set, NFT_RULESET_SET, err);
-+err:
-+	nft_set_free(set);
-+	return -1;
-+}
-+
-+static int nft_ruleset_parse_rules(struct nft_parse_ctx *ctx,
-+				   struct nft_parse_err *err)
-+{
-+	struct nft_rule *rule;
-+
-+	rule = nft_rule_alloc();
-+	if (rule == NULL) {
-+		errno = ENOMEM;
-+		return -1;
- 	}
- 
--	if (!nft_set_list_is_empty(list))
--		nft_ruleset_attr_set(rs, NFT_RULESET_ATTR_SETLIST, list);
--	else
--		nft_set_list_free(list);
-+	switch (ctx->format) {
-+	case NFT_OUTPUT_JSON:
-+#ifdef JSON_PARSING
-+		if (nft_jansson_parse_rule(rule, ctx->json, err,
-+					   ctx->set_list) < 0)
-+			goto err;
-+#endif
-+		break;
-+	case NFT_OUTPUT_XML:
-+#ifdef XML_PARSING
-+		if (nft_mxml_rule_parse(ctx->xml, rule, err, ctx->set_list) < 0)
-+			goto err;
-+#endif
-+		break;
-+	default:
-+		return -1;
-+	}
-+
-+	nft_ruleset_ctx_set_u32(ctx, NFT_RULESET_CTX_TYPE, NFT_RULESET_RULE);
-+	nft_ruleset_ctx_set(ctx, NFT_RULESET_CTX_RULE, rule);
-+	if (ctx->cb(ctx) < 0)
-+		goto err;
- 
- 	return 0;
- err:
--	nft_set_list_free(list);
-+	nft_rule_free(rule);
- 	return -1;
- }
-+#endif
- 
--static int nft_ruleset_json_parse_rules(struct nft_ruleset *rs, json_t *array,
--					struct nft_parse_err *err)
-+#ifdef JSON_PARSING
-+static int nft_ruleset_json_parse_ruleset(struct nft_parse_ctx *ctx,
-+					  struct nft_parse_err *err)
- {
--	int i, len;
--	json_t *node;
--	struct nft_rule *rule = NULL;
--	struct nft_rule_list *list = nft_rule_list_alloc();
-+	json_t *node, *array = ctx->json;
-+	int len, i;
- 
--	if (list == NULL) {
--		errno = ENOMEM;
-+	ctx->set_list = nft_set_list_alloc();
-+	if (ctx->set_list == NULL)
- 		return -1;
--	}
- 
- 	len = json_array_size(array);
- 	for (i = 0; i < len; i++) {
- 		node = json_array_get(array, i);
- 		if (node == NULL) {
- 			errno = EINVAL;
--			goto err;
--		}
--
--		if (!(nft_jansson_node_exist(node, "rule")))
--			continue;
--
--		rule = nft_rule_alloc();
--		if (rule == NULL) {
--			errno = ENOMEM;
--			goto err;
-+			return -1;
- 		}
- 
--		if (nft_jansson_parse_rule(rule, node, err, rs->set_list) < 0) {
--			nft_rule_free(rule);
--			goto err;
-+		ctx->json = node;
-+		if (nft_jansson_node_exist(node, "table")) {
-+			if (nft_ruleset_parse_tables(ctx, err) < 0)
-+				return -1;
-+		} else if (nft_jansson_node_exist(node, "chain")) {
-+			if (nft_ruleset_parse_chains(ctx, err) < 0)
-+				return -1;
-+		} else if (nft_jansson_node_exist(node, "set")) {
-+			if (nft_ruleset_parse_sets(ctx, err) < 0)
-+				return -1;
-+		} else if (nft_jansson_node_exist(node, "rule")) {
-+			if (nft_ruleset_parse_rules(ctx, err) < 0)
-+				return -1;
-+		} else if (nft_jansson_node_exist(node, "element")) {
-+			if (nft_ruleset_parse_set_elems(ctx, err) < 0)
-+				return -1;
-+		} else {
-+			return -1;
- 		}
--
--		nft_rule_list_add_tail(rule, list);
- 	}
- 
--	if (!nft_rule_list_is_empty(list))
--		nft_ruleset_attr_set(rs, NFT_RULESET_ATTR_RULELIST, list);
--	else
--		nft_rule_list_free(list);
-+	if (len == 0 && ctx->cmd == NFT_CMD_FLUSH) {
-+		nft_ruleset_ctx_set_u32(ctx, NFT_RULESET_CTX_TYPE,
-+					NFT_RULESET_RULESET);
-+		if (ctx->cb(ctx) < 0)
-+			return -1;
-+	}
- 
- 	return 0;
--err:
--	nft_rule_list_free(list);
--	return -1;
- }
- 
--static int nft_ruleset_json_parse_ruleset(struct nft_ruleset *rs, json_t *array,
--					  struct nft_parse_err *err)
-+static int nft_ruleset_json_parse_cmd(const char *cmd,
-+				      struct nft_parse_err *err,
-+				      struct nft_parse_ctx *ctx)
- {
--	if (nft_ruleset_json_parse_tables(rs, array, err) != 0)
--		return -1;
-+	uint32_t cmdnum;
-+	json_t *nodecmd;
- 
--	if (nft_ruleset_json_parse_chains(rs, array, err) != 0)
-+	cmdnum = nft_str2cmd(cmd);
-+	if (cmdnum == NFT_CMD_UNSPEC) {
-+		err->error = NFT_PARSE_EMISSINGNODE;
-+		err->node_name = strdup(cmd);
- 		return -1;
-+	}
- 
--	if (nft_ruleset_json_parse_sets(rs, array, err) != 0)
--		return -1;
-+	nft_ruleset_ctx_set_u32(ctx, NFT_RULESET_CTX_CMD, cmdnum);
- 
--	if (nft_ruleset_json_parse_rules(rs, array, err) != 0)
--		return -1;
-+	nodecmd = json_object_get(ctx->json, cmd);
-+	if (nodecmd == NULL)
 +		return 0;
-+
-+	ctx->json = nodecmd;
-+	if (nft_ruleset_json_parse_ruleset(ctx, err) != 0)
-+		goto err;
- 
- 	return 0;
-+err:
-+	return -1;
- }
- #endif
- 
--static int nft_ruleset_json_parse(struct nft_ruleset *rs, const void *json,
--				  struct nft_parse_err *err, enum nft_parse_input input)
-+static int nft_ruleset_json_parse(const void *json,
-+				  struct nft_parse_err *err,
-+				  enum nft_parse_input input,
-+				  enum nft_parse_type type, void *arg,
-+				  int (*cb)(const struct nft_parse_ctx *ctx))
- {
- #ifdef JSON_PARSING
--	json_t *root, *array;
-+	json_t *root, *array, *node;
- 	json_error_t error;
-+	int i, len;
-+	const char *key;
-+	struct nft_parse_ctx ctx;
-+
-+	ctx.cb = cb;
-+	ctx.format = type;
-+
-+	if (arg != NULL)
-+		nft_ruleset_ctx_set(&ctx, NFT_RULESET_CTX_DATA, arg);
- 
- 	root = nft_jansson_create_root(json, &error, err, input);
- 	if (root == NULL)
-@@ -366,8 +581,21 @@ static int nft_ruleset_json_parse(struct nft_ruleset *rs, const void *json,
- 		goto err;
- 	}
- 
--	if (nft_ruleset_json_parse_ruleset(rs, array, err) != 0)
--		goto err;
-+	len = json_array_size(array);
-+	for (i = 0; i < len; i++) {
-+		node = json_array_get(array, i);
-+		if (node == NULL) {
-+			errno = EINVAL;
-+			goto err;
-+		}
-+		ctx.json = node;
-+		key = json_object_iter_key(json_object_iter(node));
-+		if (key == NULL)
-+			goto err;
-+
-+		if (nft_ruleset_json_parse_cmd(key, err, &ctx) < 0)
-+			goto err;
 +	}
- 
- 	nft_jansson_free_root(root);
- 	return 0;
-@@ -381,203 +609,113 @@ err:
++}
++
+ int nft_buf_close(struct nft_buf *b, int type, const char *tag)
+ {
+ 	switch (type) {
+@@ -90,6 +101,17 @@ int nft_buf_close(struct nft_buf *b, int type, const char *tag)
+ 	}
  }
  
- #ifdef XML_PARSING
--static int
--nft_ruleset_xml_parse_tables(struct nft_ruleset *rs, mxml_node_t *tree,
--			     struct nft_parse_err *err)
-+static int nft_ruleset_xml_parse_ruleset(struct nft_parse_ctx *ctx,
-+					 struct nft_parse_err *err)
- {
--	mxml_node_t *node;
--	struct nft_table *table;
--	struct nft_table_list *table_list = nft_table_list_alloc();
--	if (table_list == NULL) {
--		errno = ENOMEM;
--		return -1;
--	}
--
--	for (node = mxmlFindElement(tree, tree, "table", NULL, NULL,
--				    MXML_DESCEND_FIRST);
--	     node != NULL;
--	     node = mxmlFindElement(node, tree, "table", NULL, NULL,
--				    MXML_NO_DESCEND)) {
--		table = nft_table_alloc();
--		if (table == NULL)
--			goto err_free;
--
--		if (nft_mxml_table_parse(node, table, err) != 0) {
--			nft_table_free(table);
--			goto err_free;
--		}
--
--		nft_table_list_add_tail(table, table_list);
--	}
--
--	if (!nft_table_list_is_empty(table_list))
--		nft_ruleset_attr_set(rs, NFT_RULESET_ATTR_TABLELIST,
--				     table_list);
--	else
--		nft_table_list_free(table_list);
-+	const char *node_type;
-+	mxml_node_t *node, *array = ctx->xml;
-+	int len = 0;
- 
--	return 0;
--err_free:
--	nft_table_list_free(table_list);
--	return -1;
--}
--
--static int
--nft_ruleset_xml_parse_chains(struct nft_ruleset *rs, mxml_node_t *tree,
--			     struct nft_parse_err *err)
--{
--	mxml_node_t *node;
--	struct nft_chain *chain;
--	struct nft_chain_list *chain_list = nft_chain_list_alloc();
--	if (chain_list == NULL) {
-+	ctx->set_list = nft_set_list_alloc();
-+	if (ctx->set_list == NULL) {
- 		errno = ENOMEM;
- 		return -1;
- 	}
- 
--	for (node = mxmlFindElement(tree, tree, "chain", NULL, NULL,
-+	for (node = mxmlFindElement(array, array, NULL, NULL, NULL,
- 				    MXML_DESCEND_FIRST);
- 	     node != NULL;
--	     node = mxmlFindElement(node, tree, "chain", NULL, NULL,
-+	     node = mxmlFindElement(node, array, NULL, NULL, NULL,
- 				    MXML_NO_DESCEND)) {
--		chain = nft_chain_alloc();
--		if (chain == NULL)
--			goto err_free;
--
--		if (nft_mxml_chain_parse(node, chain, err) != 0) {
--			nft_chain_free(chain);
--			goto err_free;
--		}
--
--		nft_chain_list_add_tail(chain, chain_list);
--	}
--
--	if (!nft_chain_list_is_empty(chain_list))
--		nft_ruleset_attr_set(rs, NFT_RULESET_ATTR_CHAINLIST,
--				     chain_list);
--	else
--		nft_chain_list_free(chain_list);
--
--	return 0;
--err_free:
--	nft_chain_list_free(chain_list);
--	return -1;
--}
--
--static int
--nft_ruleset_xml_parse_sets(struct nft_ruleset *rs, mxml_node_t *tree,
--			   struct nft_parse_err *err)
--{
--	uint32_t set_id = 0;
--	mxml_node_t *node;
--	struct nft_set *set;
--	struct nft_set_list *set_list = nft_set_list_alloc();
--	if (set_list == NULL) {
--		errno = ENOMEM;
--		return -1;
-+		len++;
-+		node_type = node->value.opaque;
-+		ctx->xml = node;
-+		if (strcmp(node_type, "table") == 0) {
-+			if (nft_ruleset_parse_tables(ctx, err) != 0)
-+				return -1;
-+		} else if (strcmp(node_type, "chain") == 0) {
-+			if (nft_ruleset_parse_chains(ctx, err) != 0)
-+				return -1;
-+		} else if (strcmp(node_type, "set") == 0) {
-+			if (nft_ruleset_parse_sets(ctx, err) != 0)
-+				return -1;
-+		} else if (strcmp(node_type, "rule") == 0) {
-+			if (nft_ruleset_parse_rules(ctx, err) != 0)
-+				return -1;
-+		} else if (strcmp(node_type, "element") == 0) {
-+			if (nft_ruleset_parse_set_elems(ctx, err) != 0)
-+				return -1;
-+		} else
-+			return -1;
- 	}
- 
--	for (node = mxmlFindElement(tree, tree, "set", NULL, NULL,
--				    MXML_DESCEND_FIRST);
--	     node != NULL;
--	     node = mxmlFindElement(node, tree, "set", NULL, NULL,
--				    MXML_NO_DESCEND)) {
--		set = nft_set_alloc();
--		if (set == NULL)
--			goto err_free;
--
--		if (nft_mxml_set_parse(node, set, err) != 0) {
--			nft_set_free(set);
--			goto err_free;
--		}
--
--		nft_set_attr_set_u32(set, NFT_SET_ATTR_ID, set_id++);
--		nft_set_list_add_tail(set, set_list);
-+	if (len == 0 && ctx->cmd == NFT_CMD_FLUSH) {
-+		nft_ruleset_ctx_set_u32(ctx, NFT_RULESET_CTX_TYPE,
-+				        NFT_RULESET_RULESET);
-+		if (ctx->cb(ctx) < 0)
-+			return -1;
- 	}
- 
--	if (!nft_set_list_is_empty(set_list))
--		nft_ruleset_attr_set(rs, NFT_RULESET_ATTR_SETLIST, set_list);
--	else
--		nft_set_list_free(set_list);
--
- 	return 0;
--err_free:
--	nft_set_list_free(set_list);
--	return -1;
- }
- 
--static int
--nft_ruleset_xml_parse_rules(struct nft_ruleset *rs, mxml_node_t *tree,
--			    struct nft_parse_err *err,
--			    struct nft_set_list *set_list)
-+static int nft_ruleset_xml_parse_cmd(const char *cmd, struct nft_parse_err *err,
-+				     struct nft_parse_ctx *ctx)
- {
--	mxml_node_t *node;
--	struct nft_rule *rule;
--	struct nft_rule_list *rule_list = nft_rule_list_alloc();
--	if (rule_list == NULL) {
--		errno = ENOMEM;
-+	uint32_t cmdnum;
-+	mxml_node_t *nodecmd;
-+
-+	cmdnum = nft_str2cmd(cmd);
-+	if (cmdnum == NFT_CMD_UNSPEC) {
-+		err->error = NFT_PARSE_EMISSINGNODE;
-+		err->node_name = strdup(cmd);
- 		return -1;
- 	}
- 
--	for (node = mxmlFindElement(tree, tree, "rule", NULL, NULL,
--				    MXML_DESCEND_FIRST);
--	     node != NULL;
--	     node = mxmlFindElement(node, tree, "rule", NULL, NULL,
--				    MXML_NO_DESCEND)) {
--		rule = nft_rule_alloc();
--		if (rule == NULL)
--			goto err_free;
-+	nodecmd = mxmlFindElement(ctx->xml, ctx->xml, cmd, NULL, NULL,
-+				  MXML_DESCEND_FIRST);
- 
--		if (nft_mxml_rule_parse(node, rule, err, set_list) != 0) {
--			nft_rule_free(rule);
--			goto err_free;
--		}
-+	ctx->xml = nodecmd;
-+	nft_ruleset_ctx_set_u32(ctx, NFT_RULESET_CTX_CMD, cmdnum);
- 
--		nft_rule_list_add_tail(rule, rule_list);
--	}
--
--	if (!nft_rule_list_is_empty(rule_list))
--		nft_ruleset_attr_set(rs, NFT_RULESET_ATTR_RULELIST, rule_list);
--	else
--		nft_rule_list_free(rule_list);
-+	if (nft_ruleset_xml_parse_ruleset(ctx, err) != 0)
-+		goto err;
- 
- 	return 0;
--err_free:
--	nft_rule_list_free(rule_list);
-+err:
- 	return -1;
- }
--
--static int nft_ruleset_xml_parse_ruleset(struct nft_ruleset *rs,
--					 mxml_node_t *tree,
--					 struct nft_parse_err *err)
--{
--	if (nft_ruleset_xml_parse_tables(rs, tree, err) != 0)
--		return -1;
--
--	if (nft_ruleset_xml_parse_chains(rs, tree, err) != 0)
--		return -1;
--
--	if (nft_ruleset_xml_parse_sets(rs, tree, err) != 0)
--		return -1;
--
--	if (nft_ruleset_xml_parse_rules(rs, tree, err, rs->set_list) != 0)
--		return -1;
--
--	return 0;
--}
- #endif
- 
--static int nft_ruleset_xml_parse(struct nft_ruleset *rs, const void *xml,
--				 struct nft_parse_err *err, enum nft_parse_input input)
-+static int nft_ruleset_xml_parse(const void *xml, struct nft_parse_err *err,
-+				 enum nft_parse_input input,
-+				 enum nft_parse_type type, void *arg,
-+				 int (*cb)(const struct nft_parse_ctx *ctx))
- {
- #ifdef XML_PARSING
--	mxml_node_t *tree;
-+	mxml_node_t *tree, *nodecmd = NULL;
-+	char *cmd;
-+	struct nft_parse_ctx ctx;
-+
-+	ctx.cb = cb;
-+	ctx.format = type;
-+
-+	if (arg != NULL)
-+		nft_ruleset_ctx_set(&ctx, NFT_RULESET_CTX_DATA, arg);
- 
- 	tree = nft_mxml_build_tree(xml, "nftables", err, input);
- 	if (tree == NULL)
- 		return -1;
- 
--	if (nft_ruleset_xml_parse_ruleset(rs, tree, err) != 0)
--		goto err;
-+	ctx.xml = tree;
-+
-+	nodecmd = mxmlWalkNext(tree, tree, MXML_DESCEND_FIRST);
-+	while (nodecmd != NULL) {
-+		cmd = nodecmd->value.opaque;
-+		if (nft_ruleset_xml_parse_cmd(cmd, err, &ctx) < 0)
-+			goto err;
-+		nodecmd = mxmlWalkNext(tree, tree, MXML_NO_DESCEND);
++int nft_buf_close_array(struct nft_buf *b, int type, const char *tag)
++{
++	switch (type) {
++	case NFT_OUTPUT_JSON:
++		return nft_buf_put(b, "]}");
++	case NFT_OUTPUT_XML:
++	default:
++		return 0;
 +	}
- 
- 	mxmlDelete(tree);
- 	return 0;
-@@ -591,18 +729,18 @@ err:
++}
++
+ int nft_buf_u32(struct nft_buf *b, int type, uint32_t value, const char *tag)
+ {
+ 	switch (type) {
+diff --git a/src/chain.c b/src/chain.c
+index 26ad14d..eb9fdd3 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -847,12 +847,12 @@ static int nft_chain_snprintf_default(char *buf, size_t size,
+ 	return offset;
  }
  
- static int
--nft_ruleset_do_parse(struct nft_ruleset *r, enum nft_parse_type type,
--		     const void *data, struct nft_parse_err *err,
--		     enum nft_parse_input input)
-+nft_ruleset_do_parse(enum nft_parse_type type, const void *data,
-+		     struct nft_parse_err *err, enum nft_parse_input input,
-+		     void *arg, int (*cb)(const struct nft_parse_ctx *ctx))
+-int nft_chain_snprintf(char *buf, size_t size, struct nft_chain *c,
+-		       uint32_t type, uint32_t flags)
++static int nft_chain_cmd_snprintf(char *buf, size_t size, struct nft_chain *c,
++				  uint32_t cmd, uint32_t type, uint32_t flags)
  {
- 	int ret;
+ 	int ret, len = size, offset = 0;
+ 
+-	ret = nft_event_header_snprintf(buf+offset, len, type, flags);
++	ret = nft_cmd_header_snprintf(buf + offset, len, cmd, type, flags);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
  
  	switch (type) {
- 	case NFT_PARSE_XML:
--		ret = nft_ruleset_xml_parse(r, data, err, input);
-+		ret = nft_ruleset_xml_parse(data, err, input, type, arg, cb);
- 		break;
- 	case NFT_PARSE_JSON:
--		ret = nft_ruleset_json_parse(r, data, err, input);
-+		ret = nft_ruleset_json_parse(data, err, input, type, arg, cb);
- 		break;
- 	default:
- 		ret = -1;
-@@ -613,17 +751,89 @@ nft_ruleset_do_parse(struct nft_ruleset *r, enum nft_parse_type type,
- 	return ret;
- }
+@@ -869,15 +869,25 @@ int nft_chain_snprintf(char *buf, size_t size, struct nft_chain *c,
  
-+int nft_ruleset_parse_file_cb(enum nft_parse_type type, FILE *fp,
-+			      struct nft_parse_err *err, void *data,
-+			      int (*cb)(const struct nft_parse_ctx *ctx))
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	ret = nft_event_footer_snprintf(buf+offset, len, type, flags);
++	ret = nft_cmd_footer_snprintf(buf + offset, len, cmd, type, flags);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	return offset;
+ }
++
++int nft_chain_snprintf(char *buf, size_t size, struct nft_chain *c,
++		       uint32_t type, uint32_t flags)
 +{
-+	return nft_ruleset_do_parse(type, fp, err, NFT_PARSE_FILE, data, cb);
++	uint32_t cmd;
++
++	nft_flag2cmd(flags, &cmd);
++	return nft_chain_cmd_snprintf(buf, size, c, cmd, type, flags);
 +}
-+EXPORT_SYMBOL(nft_ruleset_parse_file_cb);
-+
-+int nft_ruleset_parse_buffer_cb(enum nft_parse_type type, const char *buffer,
-+				struct nft_parse_err *err, void *data,
-+				int (*cb)(const struct nft_parse_ctx *ctx))
-+{
-+	return nft_ruleset_do_parse(type, buffer, err, NFT_PARSE_BUFFER, data,
-+				    cb);
-+}
-+EXPORT_SYMBOL(nft_ruleset_parse_buffer_cb);
-+
-+static int nft_ruleset_init_ruleset(const struct nft_parse_ctx *ctx)
-+{
-+	struct nft_ruleset *r = ctx->data;
-+	struct nft_table_list *table_list = r->table_list;
-+	struct nft_chain_list *chain_list = r->chain_list;
-+	struct nft_rule_list *rule_list = r->rule_list;
-+	struct nft_set_list *set_list = r->set_list;
-+
-+	if (ctx->cmd != NFT_CMD_ADD)
-+		return -1;
-+
-+	switch (ctx->type) {
-+	case NFT_RULESET_TABLE:
-+		if (table_list == NULL) {
-+			table_list = nft_table_list_alloc();
-+			nft_ruleset_attr_set(r, NFT_RULESET_ATTR_TABLELIST,
-+					     table_list);
-+		}
-+		nft_table_list_add_tail(ctx->table, table_list);
-+		break;
-+	case NFT_RULESET_CHAIN:
-+		if (chain_list == NULL) {
-+			chain_list = nft_chain_list_alloc();
-+			nft_ruleset_attr_set(r, NFT_RULESET_ATTR_CHAINLIST,
-+					     chain_list);
-+		}
-+		nft_chain_list_add_tail(ctx->chain, chain_list);
-+		break;
-+	case NFT_RULESET_SET:
-+		if (set_list == NULL) {
-+			set_list = nft_set_list_alloc();
-+			nft_ruleset_attr_set(r, NFT_RULESET_ATTR_SETLIST,
-+					     set_list);
-+		}
-+		nft_set_list_add_tail(ctx->set, set_list);
-+		break;
-+	case NFT_RULESET_RULE:
-+		if (rule_list == NULL) {
-+			rule_list = nft_rule_list_alloc();
-+			nft_ruleset_attr_set(r, NFT_RULESET_ATTR_RULELIST,
-+					     rule_list);
-+		}
-+		nft_rule_list_add_tail(ctx->rule, rule_list);
-+		break;
-+	case NFT_RULESET_RULESET:
-+		break;
-+	default:
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+
- int nft_ruleset_parse(struct nft_ruleset *r, enum nft_parse_type type,
- 		      const char *data, struct nft_parse_err *err)
+ EXPORT_SYMBOL(nft_chain_snprintf);
+ 
+ static inline int nft_chain_do_snprintf(char *buf, size_t size, void *c,
+-					uint32_t type, uint32_t flags)
++					uint32_t cmd, uint32_t type,
++					uint32_t flags)
  {
--	return nft_ruleset_do_parse(r, type, data, err, NFT_PARSE_BUFFER);
-+	return nft_ruleset_parse_buffer_cb(type, data, err, r,
-+					   nft_ruleset_init_ruleset);
+ 	return nft_chain_snprintf(buf, size, c, type, flags);
  }
- EXPORT_SYMBOL(nft_ruleset_parse);
- 
- int nft_ruleset_parse_file(struct nft_ruleset *rs, enum nft_parse_type type,
- 			   FILE *fp, struct nft_parse_err *err)
+@@ -885,7 +895,8 @@ static inline int nft_chain_do_snprintf(char *buf, size_t size, void *c,
+ int nft_chain_fprintf(FILE *fp, struct nft_chain *c, uint32_t type,
+ 		      uint32_t flags)
  {
--	return nft_ruleset_do_parse(rs, type, fp, err, NFT_PARSE_FILE);
-+	return nft_ruleset_parse_file_cb(type, fp, err, rs,
-+					 nft_ruleset_init_ruleset);
+-	return nft_fprintf(fp, c, type, flags, nft_chain_do_snprintf);
++	return nft_fprintf(fp, c, NFT_CMD_UNSPEC, type, flags,
++			   nft_chain_do_snprintf);
  }
- EXPORT_SYMBOL(nft_ruleset_parse_file);
+ EXPORT_SYMBOL(nft_chain_fprintf);
  
-diff --git a/src/set.c b/src/set.c
-index 80d7981..f6c1308 100644
---- a/src/set.c
-+++ b/src/set.c
-@@ -511,6 +511,18 @@ int nft_jansson_parse_set(struct nft_set *s, json_t *tree,
- 
- 	return nft_jansson_parse_set_info(s, root, err);
- }
-+
-+int nft_jansson_parse_elem(struct nft_set *s, json_t *tree,
-+			   struct nft_parse_err *err)
-+{
-+	json_t *root;
-+
-+	root = nft_jansson_get_node(tree, "element", err);
-+	if (root == NULL)
-+		return -1;
-+
-+	return nft_jansson_parse_set_info(s, root, err);
-+}
- #endif
- 
- static int nft_set_json_parse(struct nft_set *s, const void *json,
-diff --git a/src/utils.c b/src/utils.c
-index 6ef0ef4..7ea0e23 100644
---- a/src/utils.c
-+++ b/src/utils.c
-@@ -16,6 +16,7 @@
- #include <arpa/inet.h>
- #include <errno.h>
- #include <inttypes.h>
+diff --git a/src/common.c b/src/common.c
+index a6f2508..98218aa 100644
+--- a/src/common.c
++++ b/src/common.c
+@@ -16,10 +16,19 @@
+ #include <libmnl/libmnl.h>
+ #include <libnftnl/common.h>
+ #include <libnftnl/set.h>
 +#include <buffer.h>
  
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
-@@ -193,6 +194,22 @@ int nft_flag2cmd(uint32_t flags, uint32_t *cmd)
+ #include <errno.h>
+ #include "internal.h"
+ 
++const char *cmd2tag[] = {
++	[NFT_CMD_ADD]			= ADD,
++	[NFT_CMD_INSERT]		= INSERT,
++	[NFT_CMD_DELETE]		= DELETE,
++	[NFT_CMD_REPLACE]		= REPLACE,
++	[NFT_CMD_FLUSH]			= FLUSH,
++};
++
+ struct nlmsghdr *nft_nlmsg_build_hdr(char *buf, uint16_t cmd, uint16_t family,
+ 				     uint16_t type, uint32_t seq)
+ {
+@@ -70,86 +79,82 @@ int nft_parse_perror(const char *msg, struct nft_parse_err *err)
+ }
+ EXPORT_SYMBOL(nft_parse_perror);
+ 
+-int nft_event_header_snprintf(char *buf, size_t size, uint32_t type,
+-			      uint32_t flags)
++int nft_cmd_header_snprintf(char *buf, size_t size, uint32_t cmd, uint32_t type,
++			    uint32_t flags)
+ {
+-	int ret = 0;
++	NFT_BUF_INIT(b, buf, size);
+ 
+-	if (!(flags & NFT_OF_EVENT_ANY))
++	if (cmd == NFT_CMD_UNSPEC)
+ 		return 0;
+ 
+ 	switch (type) {
+ 	case NFT_OUTPUT_XML:
+-		if (flags & NFT_OF_EVENT_NEW) {
+-			ret = snprintf(buf, size, "<event><type>new</type>");
+-		} else if (flags & NFT_OF_EVENT_DEL) {
+-			ret = snprintf(buf, size,
+-				       "<event><type>delete</type>");
+-		} else {
+-			ret = snprintf(buf, size,
+-				       "<event><type>unknown</type>");
+-		}
++		nft_buf_open(&b, type, cmd2tag[cmd]);
+ 		break;
+ 	case NFT_OUTPUT_JSON:
+-		if (flags & NFT_OF_EVENT_NEW) {
+-			ret = snprintf(buf, size, "{event:{type:\"new\",{\"");
+-		} else if (flags & NFT_OF_EVENT_DEL) {
+-			ret = snprintf(buf, size,
+-				       "{event:{type:\"delete\",{\"");
+-		} else {
+-			ret = snprintf(buf, size,
+-				       "{event:{type:\"unknown\",{\"");
+-		}
++		nft_buf_open_array(&b, type, cmd2tag[cmd]);
+ 		break;
+ 	default:
+-		if (flags & NFT_OF_EVENT_NEW) {
+-			ret = snprintf(buf, size, "%9s", "[NEW] ");
+-		} else if (flags & NFT_OF_EVENT_DEL) {
+-			ret = snprintf(buf, size, "%9s", "[DELETE] ");
+-		} else {
+-			ret = snprintf(buf, size, "%9s", "[unknown] ");
++		switch (cmd) {
++		case NFT_CMD_ADD:
++			return snprintf(buf, size, "%9s", "[ADD] ");
++		case NFT_CMD_DELETE:
++			return snprintf(buf, size, "%9s", "[DELETE] ");
++		default:
++			return snprintf(buf, size, "%9s", "[unknown] ");
+ 		}
+ 		break;
+ 	}
+-	return ret;
++	return nft_buf_done(&b);
+ }
+ 
+-static int nft_event_header_fprintf_cb(char *buf, size_t size, void *unused,
+-				       uint32_t type, uint32_t flags)
++static int nft_cmd_header_fprintf_cb(char *buf, size_t size, void *obj,
++				     uint32_t cmd, uint32_t type,
++				     uint32_t flags)
+ {
+-	return nft_event_header_snprintf(buf, size, type, flags);
++	return nft_cmd_header_snprintf(buf, size, cmd, type, flags);
+ }
+ 
+-int nft_event_header_fprintf(FILE *fp, uint32_t type, uint32_t flags)
++int nft_cmd_header_fprintf(FILE *fp, uint32_t cmd, uint32_t type,
++			   uint32_t flags)
+ {
+-	return nft_fprintf(fp, NULL, type, flags, nft_event_header_fprintf_cb);
++	return nft_fprintf(fp, NULL, cmd, type, flags,
++			   nft_cmd_header_fprintf_cb);
+ }
+ 
+-int nft_event_footer_snprintf(char *buf, size_t size, uint32_t type,
+-			      uint32_t flags)
++int nft_cmd_footer_snprintf(char *buf, size_t size, uint32_t cmd, uint32_t type,
++			    uint32_t flags)
+ {
+-	if (!(flags & NFT_OF_EVENT_ANY))
++	NFT_BUF_INIT(b, buf, size);
++
++	if (cmd == NFT_CMD_UNSPEC)
+ 		return 0;
+ 
+ 	switch (type) {
+ 	case NFT_OUTPUT_XML:
+-		return snprintf(buf, size, "</event>");
++		nft_buf_close(&b, type, cmd2tag[cmd]);
++		break;
+ 	case NFT_OUTPUT_JSON:
+-		return snprintf(buf, size, "}}}");
++		nft_buf_close_array(&b, type, 0);
++		break;
+ 	default:
+ 		return 0;
+ 	}
++	return nft_buf_done(&b);
+ }
+ 
+-static int nft_event_footer_fprintf_cb(char *buf, size_t size, void *unused,
+-				       uint32_t type, uint32_t flags)
++static int nft_cmd_footer_fprintf_cb(char *buf, size_t size, void *obj,
++				     uint32_t cmd, uint32_t type,
++				     uint32_t flags)
+ {
+-	return nft_event_footer_snprintf(buf, size, type, flags);
++	return nft_cmd_footer_snprintf(buf, size, cmd, type, flags);
+ }
+ 
+-int nft_event_footer_fprintf(FILE *fp, uint32_t type, uint32_t flags)
++int nft_cmd_footer_fprintf(FILE *fp, uint32_t cmd, uint32_t type,
++			   uint32_t flags)
+ {
+-	return nft_fprintf(fp, NULL, type, flags, nft_event_footer_fprintf_cb);
++	return nft_fprintf(fp, NULL, cmd, type, flags,
++			   nft_cmd_footer_fprintf_cb);
+ }
+ 
+ static void nft_batch_build_hdr(char *buf, uint16_t type, uint32_t seq)
+diff --git a/src/gen.c b/src/gen.c
+index 21d3a49..e3e6797 100644
+--- a/src/gen.c
++++ b/src/gen.c
+@@ -161,12 +161,12 @@ static int nft_gen_snprintf_default(char *buf, size_t size, struct nft_gen *gen)
+ 	return snprintf(buf, size, "ruleset generation ID %u", gen->id);
+ }
+ 
+-int nft_gen_snprintf(char *buf, size_t size, struct nft_gen *gen,
+-		       uint32_t type, uint32_t flags)
++static int nft_gen_cmd_snprintf(char *buf, size_t size, struct nft_gen *gen,
++				uint32_t cmd, uint32_t type, uint32_t flags)
+ {
+ 	int ret, len = size, offset = 0;
+ 
+-	ret = nft_event_header_snprintf(buf + offset, len, type, flags);
++	ret = nft_cmd_header_snprintf(buf + offset, len, cmd, type, flags);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	switch(type) {
+@@ -178,15 +178,25 @@ int nft_gen_snprintf(char *buf, size_t size, struct nft_gen *gen,
+ 	}
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	ret = nft_event_footer_snprintf(buf + offset, len, type, flags);
++	ret = nft_cmd_footer_snprintf(buf + offset, len, cmd, type, flags);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	return offset;
+ }
++
++int nft_gen_snprintf(char *buf, size_t size, struct nft_gen *gen, uint32_t type,
++		     uint32_t flags)
++{
++	uint32_t cmd;
++
++	nft_flag2cmd(flags, &cmd);
++	return nft_gen_cmd_snprintf(buf, size, gen, cmd, type, flags);
++}
+ EXPORT_SYMBOL(nft_gen_snprintf);
+ 
+ static inline int nft_gen_do_snprintf(char *buf, size_t size, void *gen,
+-				      uint32_t type, uint32_t flags)
++				      uint32_t cmd, uint32_t type,
++				      uint32_t flags)
+ {
+ 	return nft_gen_snprintf(buf, size, gen, type, flags);
+ }
+@@ -194,6 +204,7 @@ static inline int nft_gen_do_snprintf(char *buf, size_t size, void *gen,
+ int nft_gen_fprintf(FILE *fp, struct nft_gen *gen, uint32_t type,
+ 		    uint32_t flags)
+ {
+-	return nft_fprintf(fp, gen, type, flags, nft_gen_do_snprintf);
++	return nft_fprintf(fp, gen, NFT_CMD_UNSPEC, type, flags,
++			   nft_gen_do_snprintf);
+ }
+ EXPORT_SYMBOL(nft_gen_fprintf);
+diff --git a/src/internal.h b/src/internal.h
+index db9af11..a846d1e 100644
+--- a/src/internal.h
++++ b/src/internal.h
+@@ -146,16 +146,21 @@ int nft_str2family(const char *family);
+ int nft_strtoi(const char *string, int base, void *number, enum nft_type type);
+ const char *nft_verdict2str(uint32_t verdict);
+ int nft_str2verdict(const char *verdict, int *verdict_num);
++int nft_flag2cmd(uint32_t flags, uint32_t *cmd);
+ int nft_get_value(enum nft_type type, void *val, void *out);
+ 
+ #include <stdio.h>
+-int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags, int (*snprintf_cb)(char *buf, size_t bufsiz, void *obj, uint32_t type, uint32_t flags));
+-int nft_event_header_snprintf(char *buf, size_t bufsize,
+-			      uint32_t format, uint32_t flags);
+-int nft_event_header_fprintf(FILE *fp, uint32_t format, uint32_t flags);
+-int nft_event_footer_snprintf(char *buf, size_t bufsize,
+-			      uint32_t format, uint32_t flags);
+-int nft_event_footer_fprintf(FILE *fp, uint32_t format, uint32_t flags);
++int nft_fprintf(FILE *fp, void *obj, uint32_t cmd, uint32_t type,
++		uint32_t flags, int (*snprintf_cb)(char *buf, size_t bufsiz,
++		void *obj, uint32_t cmd, uint32_t type, uint32_t flags));
++int nft_cmd_header_snprintf(char *buf, size_t bufsize, uint32_t cmd,
++			    uint32_t format, uint32_t flags);
++int nft_cmd_header_fprintf(FILE *fp, uint32_t cmd, uint32_t format,
++			   uint32_t flags);
++int nft_cmd_footer_snprintf(char *buf, size_t bufsize, uint32_t cmd,
++			    uint32_t format, uint32_t flags);
++int nft_cmd_footer_fprintf(FILE *fp, uint32_t cmd, uint32_t format,
++			   uint32_t flags);
+ 
+ struct expr_ops;
+ 
+diff --git a/src/rule.c b/src/rule.c
+index ac5136c..84b9c1e 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -963,15 +963,15 @@ static int nft_rule_snprintf_default(char *buf, size_t size, struct nft_rule *r,
+ 	return offset;
+ }
+ 
+-int nft_rule_snprintf(char *buf, size_t size, struct nft_rule *r,
+-		       uint32_t type, uint32_t flags)
++static int nft_rule_cmd_snprintf(char *buf, size_t size, struct nft_rule *r,
++				 uint32_t cmd, uint32_t type, uint32_t flags)
+ {
+ 	int ret, len = size, offset = 0;
+ 	uint32_t inner_flags = flags;
+ 
+ 	inner_flags &= ~NFT_OF_EVENT_ANY;
+ 
+-	ret = nft_event_header_snprintf(buf+offset, len, type, flags);
++	ret = nft_cmd_header_snprintf(buf + offset, len, cmd, type, flags);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	switch(type) {
+@@ -993,15 +993,25 @@ int nft_rule_snprintf(char *buf, size_t size, struct nft_rule *r,
+ 
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	ret = nft_event_footer_snprintf(buf+offset, len, type, flags);
++	ret = nft_cmd_footer_snprintf(buf + offset, len, cmd, type, flags);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	return offset;
+ }
++
++int nft_rule_snprintf(char *buf, size_t size, struct nft_rule *r,
++		      uint32_t type, uint32_t flags)
++{
++	uint32_t cmd;
++
++	nft_flag2cmd(flags, &cmd);
++	return nft_rule_cmd_snprintf(buf, size, r, cmd, type, flags);
++}
+ EXPORT_SYMBOL(nft_rule_snprintf);
+ 
+ static inline int nft_rule_do_snprintf(char *buf, size_t size, void *r,
+-				       uint32_t type, uint32_t flags)
++				       uint32_t cmd, uint32_t type,
++				       uint32_t flags)
+ {
+ 	return nft_rule_snprintf(buf, size, r, type, flags);
+ }
+@@ -1009,7 +1019,8 @@ static inline int nft_rule_do_snprintf(char *buf, size_t size, void *r,
+ int nft_rule_fprintf(FILE *fp, struct nft_rule *r, uint32_t type,
+ 		     uint32_t flags)
+ {
+-	return nft_fprintf(fp, r, type, flags, nft_rule_do_snprintf);
++	return nft_fprintf(fp, r, NFT_CMD_UNSPEC, type, flags,
++			   nft_rule_do_snprintf);
+ }
+ EXPORT_SYMBOL(nft_rule_fprintf);
+ 
+diff --git a/src/ruleset.c b/src/ruleset.c
+index c29c307..e9c22a1 100644
+--- a/src/ruleset.c
++++ b/src/ruleset.c
+@@ -784,7 +784,7 @@ nft_ruleset_snprintf_rule(char *buf, size_t size,
+ 
+ static int
+ nft_ruleset_do_snprintf(char *buf, size_t size, const struct nft_ruleset *rs,
+-			uint32_t type, uint32_t flags)
++			uint32_t cmd, uint32_t type, uint32_t flags)
+ {
+ 	int ret, len = size, offset = 0;
+ 	void *prev = NULL;
+@@ -793,10 +793,10 @@ nft_ruleset_do_snprintf(char *buf, size_t size, const struct nft_ruleset *rs,
+ 	/* dont pass events flags to child calls of _snprintf() */
+ 	inner_flags &= ~NFT_OF_EVENT_ANY;
+ 
+-	ret = nft_event_header_snprintf(buf+offset, len, type, flags);
++	ret = snprintf(buf + offset, len, "%s", nft_ruleset_o_opentag(type));
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	ret = snprintf(buf+offset, len, "%s", nft_ruleset_o_opentag(type));
++	ret = nft_cmd_header_snprintf(buf + offset, len, cmd, type, flags);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	if (nft_ruleset_attr_is_set(rs, NFT_RULESET_ATTR_TABLELIST) &&
+@@ -848,23 +848,41 @@ nft_ruleset_do_snprintf(char *buf, size_t size, const struct nft_ruleset *rs,
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	}
+ 
+-	ret = snprintf(buf+offset, len, "%s", nft_ruleset_o_closetag(type));
++	ret = nft_cmd_footer_snprintf(buf + offset, len, cmd, type, flags);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	ret = nft_event_footer_snprintf(buf+offset, len, type, flags);
++	ret = snprintf(buf + offset, len, "%s", nft_ruleset_o_closetag(type));
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	return offset;
+ }
+ 
++static int nft_ruleset_cmd_snprintf(char *buf, size_t size,
++				    const struct nft_ruleset *r, uint32_t cmd,
++				    uint32_t type, uint32_t flags)
++{
++	switch (type) {
++	case NFT_OUTPUT_DEFAULT:
++	case NFT_OUTPUT_XML:
++	case NFT_OUTPUT_JSON:
++		return nft_ruleset_do_snprintf(buf, size, r, cmd, type, flags);
++	default:
++		errno = EOPNOTSUPP;
++		return -1;
++	}
++}
++
+ int nft_ruleset_snprintf(char *buf, size_t size, const struct nft_ruleset *r,
+ 			 uint32_t type, uint32_t flags)
+ {
++	uint32_t cmd;
++
++	nft_flag2cmd(flags, &cmd);
+ 	switch (type) {
+ 	case NFT_OUTPUT_DEFAULT:
+ 	case NFT_OUTPUT_XML:
+ 	case NFT_OUTPUT_JSON:
+-		return nft_ruleset_do_snprintf(buf, size, r, type, flags);
++		return nft_ruleset_cmd_snprintf(buf, size, r, cmd, type, flags);
+ 	default:
+ 		errno = EOPNOTSUPP;
+ 		return -1;
+@@ -1017,8 +1035,8 @@ err:
+ 		return -1;			\
+ 	len += ret;
+ 
+-int nft_ruleset_fprintf(FILE *fp, const struct nft_ruleset *rs, uint32_t type,
+-			uint32_t flags)
++static int nft_ruleset_cmd_fprintf(FILE *fp, const struct nft_ruleset *rs,
++				   uint32_t cmd, uint32_t type, uint32_t flags)
+ {
+ 	int len = 0, ret = 0;
+ 	void *prev = NULL;
+@@ -1027,10 +1045,10 @@ int nft_ruleset_fprintf(FILE *fp, const struct nft_ruleset *rs, uint32_t type,
+ 	/* dont pass events flags to child calls of _snprintf() */
+ 	inner_flags &= ~NFT_OF_EVENT_ANY;
+ 
+-	ret = nft_event_header_fprintf(fp, type, flags);
++	ret = fprintf(fp, "%s", nft_ruleset_o_opentag(type));
+ 	NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
+ 
+-	ret = fprintf(fp, "%s", nft_ruleset_o_opentag(type));
++	ret = nft_cmd_header_fprintf(fp, cmd, type, flags);
+ 	NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
+ 
+ 	if ((nft_ruleset_attr_is_set(rs, NFT_RULESET_ATTR_TABLELIST)) &&
+@@ -1075,12 +1093,21 @@ int nft_ruleset_fprintf(FILE *fp, const struct nft_ruleset *rs, uint32_t type,
+ 		NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
+ 	}
+ 
+-	ret = fprintf(fp, "%s", nft_ruleset_o_closetag(type));
++	ret = nft_cmd_footer_fprintf(fp, cmd, type, flags);
+ 	NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
+ 
+-	ret = nft_event_footer_fprintf(fp, type, flags);
++	ret = fprintf(fp, "%s", nft_ruleset_o_closetag(type));
+ 	NFT_FPRINTF_RETURN_OR_FIXLEN(ret, len);
+ 
+ 	return len;
+ }
++
++int nft_ruleset_fprintf(FILE *fp, const struct nft_ruleset *rs, uint32_t type,
++			uint32_t flags)
++{
++	uint32_t cmd;
++
++	nft_flag2cmd(flags, &cmd);
++	return nft_ruleset_cmd_fprintf(fp, rs, cmd, type, flags);
++}
+ EXPORT_SYMBOL(nft_ruleset_fprintf);
+diff --git a/src/set.c b/src/set.c
+index 4fd786a..80d7981 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -889,8 +889,8 @@ static int nft_set_snprintf_xml(char *buf, size_t size, struct nft_set *s,
+ 	return offset;
+ }
+ 
+-int nft_set_snprintf(char *buf, size_t size, struct nft_set *s,
+-		     uint32_t type, uint32_t flags)
++static int nft_set_cmd_snprintf(char *buf, size_t size, struct nft_set *s,
++				uint32_t cmd, uint32_t type, uint32_t flags)
+ {
+ 	int ret, len = size, offset = 0;
+ 	uint32_t inner_flags = flags;
+@@ -898,7 +898,7 @@ int nft_set_snprintf(char *buf, size_t size, struct nft_set *s,
+ 	/* prevent set_elems to print as events */
+ 	inner_flags &= ~NFT_OF_EVENT_ANY;
+ 
+-	ret = nft_event_header_snprintf(buf+offset, len, type, flags);
++	ret = nft_cmd_header_snprintf(buf + offset, len, cmd, type, flags);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	switch(type) {
+@@ -919,15 +919,25 @@ int nft_set_snprintf(char *buf, size_t size, struct nft_set *s,
+ 
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	ret = nft_event_footer_snprintf(buf+offset, len, type, flags);
++	ret = nft_cmd_footer_snprintf(buf + offset, len, cmd, type, flags);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	return offset;
+ }
++
++int nft_set_snprintf(char *buf, size_t size, struct nft_set *s,
++		     uint32_t type, uint32_t flags)
++{
++	uint32_t cmd;
++
++	nft_flag2cmd(flags, &cmd);
++	return nft_set_cmd_snprintf(buf, size, s, cmd, type, flags);
++}
+ EXPORT_SYMBOL(nft_set_snprintf);
+ 
+ static inline int nft_set_do_snprintf(char *buf, size_t size, void *s,
+-				      uint32_t type, uint32_t flags)
++				      uint32_t cmd, uint32_t type,
++				      uint32_t flags)
+ {
+ 	return nft_set_snprintf(buf, size, s, type, flags);
+ }
+@@ -935,7 +945,8 @@ static inline int nft_set_do_snprintf(char *buf, size_t size, void *s,
+ int nft_set_fprintf(FILE *fp, struct nft_set *s, uint32_t type,
+ 		    uint32_t flags)
+ {
+-	return nft_fprintf(fp, s, type, flags, nft_set_do_snprintf);
++	return nft_fprintf(fp, s, NFT_CMD_UNSPEC, type, flags,
++			   nft_set_do_snprintf);
+ }
+ EXPORT_SYMBOL(nft_set_fprintf);
+ 
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 4f52b1a..bc82cd3 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -614,12 +614,13 @@ static int nft_set_elem_snprintf_xml(char *buf, size_t size,
+ 	return offset;
+ }
+ 
+-int nft_set_elem_snprintf(char *buf, size_t size, struct nft_set_elem *e,
+-			   uint32_t type, uint32_t flags)
++static int nft_set_elem_cmd_snprintf(char *buf, size_t size,
++				     struct nft_set_elem *e, uint32_t cmd,
++				     uint32_t type, uint32_t flags)
+ {
+ 	int ret, len = size, offset = 0;
+ 
+-	ret = nft_event_header_snprintf(buf+offset, len, type, flags);
++	ret = nft_cmd_header_snprintf(buf + offset, len, cmd, type, flags);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	switch(type) {
+@@ -638,15 +639,25 @@ int nft_set_elem_snprintf(char *buf, size_t size, struct nft_set_elem *e,
+ 
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	ret = nft_event_footer_snprintf(buf+offset, len, type, flags);
++	ret = nft_cmd_footer_snprintf(buf + offset, len, cmd, type, flags);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	return offset;
+ }
++
++int nft_set_elem_snprintf(char *buf, size_t size, struct nft_set_elem *e,
++			      uint32_t type, uint32_t flags)
++{
++	uint32_t cmd;
++
++	nft_flag2cmd(flags, &cmd);
++	return nft_set_elem_cmd_snprintf(buf, size, e, cmd, type, flags);
++}
+ EXPORT_SYMBOL(nft_set_elem_snprintf);
+ 
+ static inline int nft_set_elem_do_snprintf(char *buf, size_t size, void *e,
+-					   uint32_t type, uint32_t flags)
++					   uint32_t cmd, uint32_t type,
++					   uint32_t flags)
+ {
+ 	return nft_set_elem_snprintf(buf, size, e, type, flags);
+ }
+@@ -654,7 +665,8 @@ static inline int nft_set_elem_do_snprintf(char *buf, size_t size, void *e,
+ int nft_set_elem_fprintf(FILE *fp, struct nft_set_elem *se, uint32_t type,
+ 			 uint32_t flags)
+ {
+-	return nft_fprintf(fp, se, type, flags, nft_set_elem_do_snprintf);
++	return nft_fprintf(fp, se, NFT_CMD_UNSPEC, type, flags,
++			   nft_set_elem_do_snprintf);
+ }
+ EXPORT_SYMBOL(nft_set_elem_fprintf);
+ 
+diff --git a/src/table.c b/src/table.c
+index e947394..94147a8 100644
+--- a/src/table.c
++++ b/src/table.c
+@@ -419,12 +419,12 @@ static int nft_table_snprintf_default(char *buf, size_t size, struct nft_table *
+ 			t->table_flags, t->use);
+ }
+ 
+-int nft_table_snprintf(char *buf, size_t size, struct nft_table *t,
+-		       uint32_t type, uint32_t flags)
++static int nft_table_cmd_snprintf(char *buf, size_t size, struct nft_table *t,
++				  uint32_t cmd, uint32_t type, uint32_t flags)
+ {
+ 	int ret, len = size, offset = 0;
+ 
+-	ret = nft_event_header_snprintf(buf+offset, len, type, flags);
++	ret = nft_cmd_header_snprintf(buf + offset, len, cmd, type, flags);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	switch (type) {
+@@ -440,15 +440,25 @@ int nft_table_snprintf(char *buf, size_t size, struct nft_table *t,
+ 	}
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-	ret = nft_event_footer_snprintf(buf+offset, len, type, flags);
++	ret = nft_cmd_footer_snprintf(buf + offset, len, cmd, type, flags);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 	return offset;
+ }
++
++int nft_table_snprintf(char *buf, size_t size, struct nft_table *t,
++		       uint32_t type, uint32_t flags)
++{
++	uint32_t cmd;
++
++	nft_flag2cmd(flags, &cmd);
++	return nft_table_cmd_snprintf(buf, size, t, cmd, type, flags);
++}
+ EXPORT_SYMBOL(nft_table_snprintf);
+ 
+ static inline int nft_table_do_snprintf(char *buf, size_t size, void *t,
+-					uint32_t type, uint32_t flags)
++					uint32_t cmd, uint32_t type,
++					uint32_t flags)
+ {
+ 	return nft_table_snprintf(buf, size, t, type, flags);
+ }
+@@ -456,7 +466,8 @@ static inline int nft_table_do_snprintf(char *buf, size_t size, void *t,
+ int nft_table_fprintf(FILE *fp, struct nft_table *t, uint32_t type,
+ 		      uint32_t flags)
+ {
+-	return nft_fprintf(fp, t, type, flags, nft_table_do_snprintf);
++	return nft_fprintf(fp, t, NFT_CMD_UNSPEC, type, flags,
++			   nft_table_do_snprintf);
+ }
+ EXPORT_SYMBOL(nft_table_fprintf);
+ 
+diff --git a/src/utils.c b/src/utils.c
+index 9013b68..6ef0ef4 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -177,16 +177,32 @@ int nft_str2verdict(const char *verdict, int *verdict_num)
  	return -1;
  }
  
-+uint32_t nft_str2cmd(const char *cmd)
+-int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags,
++int nft_flag2cmd(uint32_t flags, uint32_t *cmd)
 +{
-+	if (strcmp(cmd, ADD) == 0)
-+		return NFT_CMD_ADD;
-+	else if (strcmp(cmd, INSERT) == 0)
-+		return NFT_CMD_INSERT;
-+	else if (strcmp(cmd, DELETE) == 0)
-+		return NFT_CMD_DELETE;
-+	else if (strcmp(cmd, REPLACE) == 0)
-+		return NFT_CMD_REPLACE;
-+	else if (strcmp(cmd, FLUSH) == 0)
-+		return NFT_CMD_FLUSH;
++	if (!(flags & NFT_OF_EVENT_ANY)) {
++		*cmd = NFT_CMD_UNSPEC;
++		return 0;
++	} else if (flags & NFT_OF_EVENT_NEW) {
++		*cmd = NFT_CMD_ADD;
++		return 0;
++	} else if (flags & NFT_OF_EVENT_DEL) {
++		*cmd = NFT_CMD_DELETE;
++		return 0;
++	}
 +
-+	return NFT_CMD_UNSPEC;
++	return -1;
 +}
 +
- int nft_fprintf(FILE *fp, void *obj, uint32_t cmd, uint32_t type, uint32_t flags,
++int nft_fprintf(FILE *fp, void *obj, uint32_t cmd, uint32_t type, uint32_t flags,
  		int (*snprintf_cb)(char *buf, size_t bufsiz, void *obj,
- 				   uint32_t cmd, uint32_t type, uint32_t flags))
+-				   uint32_t type, uint32_t flags))
++				   uint32_t cmd, uint32_t type, uint32_t flags))
+ {
+ 	char _buf[NFT_SNPRINTF_BUFSIZ];
+ 	char *buf = _buf;
+ 	size_t bufsiz = sizeof(_buf);
+ 	int ret;
+ 
+-	ret = snprintf_cb(buf, bufsiz, obj, type, flags);
++	ret = snprintf_cb(buf, bufsiz, obj, cmd, type, flags);
+ 	if (ret <= 0)
+ 		goto out;
+ 
+@@ -197,7 +213,7 @@ int nft_fprintf(FILE *fp, void *obj, uint32_t type, uint32_t flags,
+ 		if (buf == NULL)
+ 			return -1;
+ 
+-		ret = snprintf_cb(buf, bufsiz, obj, type, flags);
++		ret = snprintf_cb(buf, bufsiz, obj, cmd, type, flags);
+ 		if (ret <= 0)
+ 			goto out;
+ 	}
 -- 
 1.7.10.4
 
