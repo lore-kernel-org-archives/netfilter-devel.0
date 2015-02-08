@@ -1,26 +1,56 @@
-From: "Antonio Vinal" <ferderodcal@aol.jp>
-Subject: Please respond!!!
-Date: Thu, 5 Feb 2015 20:47:03 -0000
-Message-ID: <201502052344.t15NiRM9004412__10911.9563516744$1423340029$gmane$org@ufps.kuban.su>
-Reply-To: <barr.antoniovinal@yahoo.com.hk>
+From: Josh Hunt <johunt@akamai.com>
+Subject: nft hash set expansion problem
+Date: Sun, 08 Feb 2015 13:38:59 -0600
+Message-ID: <54D7BB53.2050203@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="Windows-1251"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-To: undisclosed-recipients:;
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>, kaber@trash.net,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Thomas Graf <tgraf@suug.ch>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ufps.kuban.su ([62.183.43.38]:51352 "EHLO ufps.kuban.su"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755873AbbBGUNm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 7 Feb 2015 15:13:42 -0500
+Received: from prod-mail-xrelay07.akamai.com ([72.246.2.115]:44049 "EHLO
+	prod-mail-xrelay07.akamai.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753833AbbBHTjB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 8 Feb 2015 14:39:01 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello friend!
+Nft hash sets are unable to expand past the initial # of buckets. This 
+is b/c nft hash sets don't define the max_shift parameter and so 
+rht_grow_above_75():
 
-I would like to contact you personally for an important proposal that could of interest to you.
-I send this email only to know if this email address is functional.
-I have something very important to discuss with you. Contact me for details by:  Email: fernrodyup12@aol.jp with your direct contacts.
+         return atomic_read(&ht->nelems) > (new_size / 4 * 3) &&
+                (ht->p.max_shift && atomic_read(&ht->shift) < 
+ht->p.max_shift);
 
-Kind regards.
-Antonio Vi?al.
+can't return true.
+
+It's not clear to me if this is intentional; requiring users of 
+rhashtables define a max_shift in order to support expansion, or a bug 
+in the grow decision function?
+
+Here's a possible fix if it's the latter. Let me know and I can submit 
+something formal if that's the case.
+
+diff --git a/lib/rhashtable.c b/lib/rhashtable.c
+index e96fc00..2c51617 100644
+--- a/lib/rhashtable.c
++++ b/lib/rhashtable.c
+@@ -250,7 +250,7 @@ bool rht_grow_above_75(const struct rhashtable *ht, 
+size_t new_size)
+  {
+         /* Expand table when exceeding 75% load */
+         return atomic_read(&ht->nelems) > (new_size / 4 * 3) &&
+-              (ht->p.max_shift && atomic_read(&ht->shift) < 
+ht->p.max_shift);
++              (ht->p.max_shift ? atomic_read(&ht->shift) < 
+ht->p.max_shift : 1);
+  }
+  EXPORT_SYMBOL_GPL(rht_grow_above_75);
+
+Thanks
+Josh
+
+
