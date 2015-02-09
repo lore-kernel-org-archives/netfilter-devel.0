@@ -1,36 +1,55 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: Re: nft hash set expansion problem
-Date: Sun, 08 Feb 2015 23:43:03 +0100
-Message-ID: <54D7E677.5050708@iogearbox.net>
-References: <54D7BB53.2050203@akamai.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Thomas Graf <tgraf@suug.ch>,
-	Pablo Neira Ayuso <pablo@netfilter.org>, kaber@trash.net,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Josh Hunt <johunt@akamai.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <54D7BB53.2050203@akamai.com>
-Sender: netdev-owner@vger.kernel.org
+From: Simon Horman <horms@verge.net.au>
+Subject: [PATCH nf] ipvs: fix inability to remove a mixed-family RS
+Date: Mon,  9 Feb 2015 14:25:08 +0900
+Message-ID: <1423459508-15517-2-git-send-email-horms@verge.net.au>
+References: <1423459508-15517-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	Alexey Andriyanov <alan@al-an.info>,
+	Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1423459508-15517-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 02/08/2015 08:38 PM, Josh Hunt wrote:
-> Nft hash sets are unable to expand past the initial # of buckets. This is b/c nft hash sets don't define the max_shift parameter and so rht_grow_above_75():
-...
-> diff --git a/lib/rhashtable.c b/lib/rhashtable.c
-> index e96fc00..2c51617 100644
-> --- a/lib/rhashtable.c
-> +++ b/lib/rhashtable.c
-> @@ -250,7 +250,7 @@ bool rht_grow_above_75(const struct rhashtable *ht, size_t new_size)
->   {
->          /* Expand table when exceeding 75% load */
->          return atomic_read(&ht->nelems) > (new_size / 4 * 3) &&
-> -              (ht->p.max_shift && atomic_read(&ht->shift) < ht->p.max_shift);
-> +              (ht->p.max_shift ? atomic_read(&ht->shift) < ht->p.max_shift : 1);
->   }
->   EXPORT_SYMBOL_GPL(rht_grow_above_75);
+From: Alexey Andriyanov <alan@al-an.info>
 
-This seems not correct as we want to have an upper limit for
-rhashtable expansions. It's better to define a max_shift for
-nftables, instead.
+The current code prevents any operation with a mixed-family dest
+unless IP_VS_CONN_F_TUNNEL flag is set. The problem is that it's impossible
+for the client to follow this rule, because ip_vs_genl_parse_dest does
+not even read the destination conn_flags when cmd = IPVS_CMD_DEL_DEST
+(need_full_dest = 0).
+
+Also, not every client can pass this flag when removing a dest. ipvsadm,
+for example, does not support the "-i" command line option together with
+the "-d" option.
+
+This change disables any checks for mixed-family on IPVS_CMD_DEL_DEST command.
+
+Signed-off-by: Alexey Andriyanov <alan@al-an.info>
+Fixes: bc18d37f676f ("ipvs: Allow heterogeneous pools now that we support them")
+Acked-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+---
+ net/netfilter/ipvs/ip_vs_ctl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index b8295a4..fdcda8b 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -3399,7 +3399,7 @@ static int ip_vs_genl_set_cmd(struct sk_buff *skb, struct genl_info *info)
+ 		if (udest.af == 0)
+ 			udest.af = svc->af;
+ 
+-		if (udest.af != svc->af) {
++		if (udest.af != svc->af && cmd != IPVS_CMD_DEL_DEST) {
+ 			/* The synchronization protocol is incompatible
+ 			 * with mixed family services
+ 			 */
+-- 
+2.1.4
+
