@@ -1,33 +1,25 @@
-From: Josh Hunt <johunt@akamai.com>
-Subject: Re: nft hash set expansion problem
-Date: Mon, 09 Feb 2015 09:28:35 -0600
-Message-ID: <54D8D223.8040502@akamai.com>
-References: <54D7BB53.2050203@akamai.com> <54D7E677.5050708@iogearbox.net> <54D8C7D0.9030803@akamai.com> <20150209152127.GA29739@casper.infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+From: Ramil Khantimirov <ramil@stormwall.pro>
+Subject: (unknown)
+Date: Mon, 9 Feb 2015 19:40:07 +0300
+Message-ID: <E6DCC100-D7A8-47E4-9BF7-335A584EF95C@stormwall.pro>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2070.6\))
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Daniel Borkmann <daniel@iogearbox.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>, kaber@trash.net,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Thomas Graf <tgraf@suug.ch>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20150209152127.GA29739@casper.infradead.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from forward16.mail.yandex.net ([95.108.253.141]:34803 "EHLO
+	forward16.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760686AbbBIQrt (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Feb 2015 11:47:49 -0500
+Received: from smtp17.mail.yandex.net (smtp17.mail.yandex.net [95.108.252.17])
+	by forward16.mail.yandex.net (Yandex) with ESMTP id 79F5FD211B4
+	for <netfilter-devel@vger.kernel.org>; Mon,  9 Feb 2015 19:40:08 +0300 (MSK)
+Received: from smtp17.mail.yandex.net (localhost [127.0.0.1])
+	by smtp17.mail.yandex.net (Yandex) with ESMTP id 48B4E190013E
+	for <netfilter-devel@vger.kernel.org>; Mon,  9 Feb 2015 19:40:08 +0300 (MSK)
+Subject: 
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02/09/2015 09:21 AM, Thomas Graf wrote:
-> On 02/09/15 at 08:44am, Josh Hunt wrote:
->> On 02/08/2015 04:43 PM, Daniel Borkmann wrote:
->>> This seems not correct as we want to have an upper limit for
->>> rhashtable expansions. It's better to define a max_shift for
->>> nftables, instead.
->>
->> Thanks Daniel that's what I wanted to know. I'll fix this on the nft_hash
->> side.
->
-> I agree it does not make sense to allow unlimited growth.
-> Can you enforce a max_shift > 0 in rhashtable_init() while you
-> are at it?
->
-
-Yeah I'll do that as well.
+subscribe netfilter-devel
