@@ -1,47 +1,31 @@
-From: Josh Hunt <johunt@akamai.com>
+From: Thomas Graf <tgraf@suug.ch>
 Subject: Re: nft hash set expansion problem
-Date: Mon, 09 Feb 2015 08:44:32 -0600
-Message-ID: <54D8C7D0.9030803@akamai.com>
-References: <54D7BB53.2050203@akamai.com> <54D7E677.5050708@iogearbox.net>
+Date: Mon, 9 Feb 2015 15:21:27 +0000
+Message-ID: <20150209152127.GA29739@casper.infradead.org>
+References: <54D7BB53.2050203@akamai.com>
+ <54D7E677.5050708@iogearbox.net>
+ <54D8C7D0.9030803@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Thomas Graf <tgraf@suug.ch>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Daniel Borkmann <daniel@iogearbox.net>,
 	Pablo Neira Ayuso <pablo@netfilter.org>, kaber@trash.net,
 	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Daniel Borkmann <daniel@iogearbox.net>
+To: Josh Hunt <johunt@akamai.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <54D7E677.5050708@iogearbox.net>
+Content-Disposition: inline
+In-Reply-To: <54D8C7D0.9030803@akamai.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 02/08/2015 04:43 PM, Daniel Borkmann wrote:
-> On 02/08/2015 08:38 PM, Josh Hunt wrote:
->> Nft hash sets are unable to expand past the initial # of buckets. This
->> is b/c nft hash sets don't define the max_shift parameter and so
->> rht_grow_above_75():
-> ...
->> diff --git a/lib/rhashtable.c b/lib/rhashtable.c
->> index e96fc00..2c51617 100644
->> --- a/lib/rhashtable.c
->> +++ b/lib/rhashtable.c
->> @@ -250,7 +250,7 @@ bool rht_grow_above_75(const struct rhashtable
->> *ht, size_t new_size)
->>   {
->>          /* Expand table when exceeding 75% load */
->>          return atomic_read(&ht->nelems) > (new_size / 4 * 3) &&
->> -              (ht->p.max_shift && atomic_read(&ht->shift) <
->> ht->p.max_shift);
->> +              (ht->p.max_shift ? atomic_read(&ht->shift) <
->> ht->p.max_shift : 1);
->>   }
->>   EXPORT_SYMBOL_GPL(rht_grow_above_75);
->
-> This seems not correct as we want to have an upper limit for
-> rhashtable expansions. It's better to define a max_shift for
-> nftables, instead.
+On 02/09/15 at 08:44am, Josh Hunt wrote:
+> On 02/08/2015 04:43 PM, Daniel Borkmann wrote:
+> >This seems not correct as we want to have an upper limit for
+> >rhashtable expansions. It's better to define a max_shift for
+> >nftables, instead.
+> 
+> Thanks Daniel that's what I wanted to know. I'll fix this on the nft_hash
+> side.
 
-Thanks Daniel that's what I wanted to know. I'll fix this on the 
-nft_hash side.
-
-Josh
+I agree it does not make sense to allow unlimited growth.
+Can you enforce a max_shift > 0 in rhashtable_init() while you
+are at it? 
