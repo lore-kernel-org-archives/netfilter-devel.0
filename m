@@ -1,235 +1,47 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [ebtables-compat PATCH 2/2] ebtables-compat: add log watcher
- extension
-Date: Mon, 09 Feb 2015 13:16:17 +0100
-Message-ID: <20150209121617.13393.15626.stgit@nfdev.cica.es>
-References: <20150209121612.13393.90335.stgit@nfdev.cica.es>
+From: Josh Hunt <johunt@akamai.com>
+Subject: Re: nft hash set expansion problem
+Date: Mon, 09 Feb 2015 08:44:32 -0600
+Message-ID: <54D8C7D0.9030803@akamai.com>
+References: <54D7BB53.2050203@akamai.com> <54D7E677.5050708@iogearbox.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: giuseppelng@gmail.com, pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:55697 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932198AbbBIMQ1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Feb 2015 07:16:27 -0500
-In-Reply-To: <20150209121612.13393.90335.stgit@nfdev.cica.es>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Thomas Graf <tgraf@suug.ch>,
+	Pablo Neira Ayuso <pablo@netfilter.org>, kaber@trash.net,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Daniel Borkmann <daniel@iogearbox.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <54D7E677.5050708@iogearbox.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This patch adds the log 'watcher' extension.
+On 02/08/2015 04:43 PM, Daniel Borkmann wrote:
+> On 02/08/2015 08:38 PM, Josh Hunt wrote:
+>> Nft hash sets are unable to expand past the initial # of buckets. This
+>> is b/c nft hash sets don't define the max_shift parameter and so
+>> rht_grow_above_75():
+> ...
+>> diff --git a/lib/rhashtable.c b/lib/rhashtable.c
+>> index e96fc00..2c51617 100644
+>> --- a/lib/rhashtable.c
+>> +++ b/lib/rhashtable.c
+>> @@ -250,7 +250,7 @@ bool rht_grow_above_75(const struct rhashtable
+>> *ht, size_t new_size)
+>>   {
+>>          /* Expand table when exceeding 75% load */
+>>          return atomic_read(&ht->nelems) > (new_size / 4 * 3) &&
+>> -              (ht->p.max_shift && atomic_read(&ht->shift) <
+>> ht->p.max_shift);
+>> +              (ht->p.max_shift ? atomic_read(&ht->shift) <
+>> ht->p.max_shift : 1);
+>>   }
+>>   EXPORT_SYMBOL_GPL(rht_grow_above_75);
+>
+> This seems not correct as we want to have an upper limit for
+> rhashtable expansions. It's better to define a max_shift for
+> nftables, instead.
 
-The work was started by Giuseppe Longo <giuseppelng@gmail.com> and finised
-by me.
+Thanks Daniel that's what I wanted to know. I'll fix this on the 
+nft_hash side.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- extensions/libebt_log.c |  197 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 197 insertions(+)
- create mode 100644 extensions/libebt_log.c
-
-diff --git a/extensions/libebt_log.c b/extensions/libebt_log.c
-new file mode 100644
-index 0000000..0799185
---- /dev/null
-+++ b/extensions/libebt_log.c
-@@ -0,0 +1,197 @@
-+/*
-+ * Bart De Schuymer <bdschuym@pandora.be>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * Giuseppe Longo <giuseppelng@gmail.com> adapted the original code to the
-+ * xtables-compat environment in 2015.
-+ *
-+ */
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <syslog.h>
-+#include <string.h>
-+#include <getopt.h>
-+#include <xtables.h>
-+#include <linux/netfilter_bridge/ebt_log.h>
-+
-+#define LOG_DEFAULT_LEVEL LOG_INFO
-+
-+#define LOG_PREFIX '1'
-+#define LOG_LEVEL  '2'
-+#define LOG_ARP    '3'
-+#define LOG_IP     '4'
-+#define LOG_LOG    '5'
-+#define LOG_IP6    '6'
-+
-+typedef struct _code {
-+	char *c_name;
-+	int c_val;
-+} CODE;
-+
-+static CODE eight_priority[] = {
-+	{ "emerg", LOG_EMERG },
-+	{ "alert", LOG_ALERT },
-+	{ "crit", LOG_CRIT },
-+	{ "error", LOG_ERR },
-+	{ "warning", LOG_WARNING },
-+	{ "notice", LOG_NOTICE },
-+	{ "info", LOG_INFO },
-+	{ "debug", LOG_DEBUG }
-+};
-+
-+static int name_to_loglevel(const char *arg)
-+{
-+	int i;
-+
-+	for (i = 0; i < 8; i++)
-+		if (!strcmp(arg, eight_priority[i].c_name))
-+			return eight_priority[i].c_val;
-+
-+	/* return bad loglevel */
-+	return 9;
-+}
-+
-+static const struct option brlog_opts[] = {
-+	{ .name = "log-prefix",		.has_arg = true,  .val = LOG_PREFIX },
-+	{ .name = "log-level",		.has_arg = true,  .val = LOG_LEVEL  },
-+	{ .name = "log-arp",		.has_arg = false, .val = LOG_ARP    },
-+	{ .name = "log-ip",		.has_arg = false, .val = LOG_IP     },
-+	{ .name = "log",		.has_arg = false, .val = LOG_LOG    },
-+	{ .name = "log-ip6",		.has_arg = false, .val = LOG_IP6    },
-+	XT_GETOPT_TABLEEND,
-+};
-+
-+static void brlog_help(void)
-+{
-+	int i;
-+
-+	printf(
-+"log options:\n"
-+"--log               : use this if you're not specifying anything\n"
-+"--log-level level   : level = [1-8] or a string\n"
-+"--log-prefix prefix : max. %d chars.\n"
-+"--log-ip            : put ip info. in the log for ip packets\n"
-+"--log-arp           : put (r)arp info. in the log for (r)arp packets\n"
-+"--log-ip6           : put ip6 info. in the log for ip6 packets\n"
-+	, EBT_LOG_PREFIX_SIZE - 1);
-+	for (i = 0; i < 8; i++)
-+		printf("%d = %s\n", eight_priority[i].c_val,
-+				    eight_priority[i].c_name);
-+}
-+
-+static void brlog_init(struct xt_entry_target *t)
-+{
-+	struct ebt_log_info *loginfo = (struct ebt_log_info *)t->data;
-+
-+	loginfo->bitmask = 0;
-+	loginfo->prefix[0] = '\0';
-+	loginfo->loglevel = LOG_NOTICE;
-+}
-+
-+static int brlog_parse(int c, char **argv, int invert, unsigned int *flags,
-+		       const void *entry, struct xt_entry_target **target)
-+{
-+	struct ebt_log_info *loginfo = (struct ebt_log_info *)(*target)->data;
-+	long int i;
-+	char *end;
-+
-+	switch (c) {
-+	case LOG_PREFIX:
-+		if (invert)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "Unexpected `!` after --log-prefix");
-+		if (strlen(optarg) > sizeof(loginfo->prefix) - 1)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "Prefix too long");
-+		if (strchr(optarg, '\"'))
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "Use of \\\" is not allowed"
-+				      " in the prefix");
-+		strcpy((char *)loginfo->prefix, (char *)optarg);
-+		break;
-+	case LOG_LEVEL:
-+		i = strtol(optarg, &end, 16);
-+		if (*end != '\0' || i < 0 || i > 7)
-+			loginfo->loglevel = name_to_loglevel(optarg);
-+		else
-+			loginfo->loglevel = i;
-+
-+		if (loginfo->loglevel == 9)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "Problem with the log-level");
-+		break;
-+	case LOG_IP:
-+		if (invert)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "Unexpected `!' after --log-ip");
-+		loginfo->bitmask |= EBT_LOG_IP;
-+		break;
-+	case LOG_ARP:
-+		if (invert)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "Unexpected `!' after --log-arp");
-+		loginfo->bitmask |= EBT_LOG_ARP;
-+	case LOG_LOG:
-+		if (invert)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "Unexpected `!' after --log");
-+		break;
-+	case LOG_IP6:
-+		if (invert)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "Unexpected `!' after --log-ip6");
-+		loginfo->bitmask |= EBT_LOG_IP6;
-+		break;
-+	default:
-+		return 0;
-+	}
-+
-+	*flags |= loginfo->bitmask;
-+	return 1;
-+}
-+
-+static void brlog_final_check(unsigned int flags)
-+{
-+}
-+
-+static void brlog_print(const void *ip, const struct xt_entry_target *target,
-+			int numeric)
-+{
-+	struct ebt_log_info *loginfo = (struct ebt_log_info *)target->data;
-+
-+	printf("--log-level %s --log-prefix \"%s\"",
-+		eight_priority[loginfo->loglevel].c_name,
-+		loginfo->prefix);
-+
-+	if (loginfo->bitmask & EBT_LOG_IP)
-+		printf(" --log-ip");
-+	if (loginfo->bitmask & EBT_LOG_ARP)
-+		printf(" --log-arp");
-+	if (loginfo->bitmask & EBT_LOG_IP6)
-+		printf(" --log-ip6");
-+	printf(" ");
-+}
-+
-+static struct xtables_target brlog_target = {
-+	.name		= "log",
-+	.revision	= 0,
-+	.version	= XTABLES_VERSION,
-+	.family		= NFPROTO_BRIDGE,
-+	.size		= XT_ALIGN(sizeof(struct ebt_log_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct ebt_log_info)),
-+	.init		= brlog_init,
-+	.help		= brlog_help,
-+	.parse		= brlog_parse,
-+	.final_check	= brlog_final_check,
-+	.print		= brlog_print,
-+	.extra_opts	= brlog_opts,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_target(&brlog_target);
-+}
-
+Josh
