@@ -1,49 +1,42 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
+From: Thomas Graf <tgraf@suug.ch>
 Subject: Re: [PATCH 1/3] rhashtable: require max_shift definition
-Date: Tue, 10 Feb 2015 18:06:39 +0100
-Message-ID: <54DA3A9F.9090608@iogearbox.net>
-References: <1423529311-26050-1-git-send-email-johunt@akamai.com> <1423529311-26050-2-git-send-email-johunt@akamai.com> <20150210005801.GA8951@casper.infradead.org> <54D9C18B.5090208@iogearbox.net> <54DA2A13.5010204@akamai.com>
+Date: Tue, 10 Feb 2015 17:22:41 +0000
+Message-ID: <20150210172241.GB9301@casper.infradead.org>
+References: <1423529311-26050-1-git-send-email-johunt@akamai.com>
+ <1423529311-26050-2-git-send-email-johunt@akamai.com>
+ <20150210005801.GA8951@casper.infradead.org>
+ <54D9C18B.5090208@iogearbox.net>
+ <54DA2A13.5010204@akamai.com>
+ <54DA3A9F.9090608@iogearbox.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Thomas Graf <tgraf@suug.ch>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Josh Hunt <johunt@akamai.com>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Josh Hunt <johunt@akamai.com>
+To: Daniel Borkmann <daniel@iogearbox.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:50951 "EHLO
-	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751609AbbBJRGo (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:60768 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751658AbbBJRWp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Feb 2015 12:06:44 -0500
-In-Reply-To: <54DA2A13.5010204@akamai.com>
+	Tue, 10 Feb 2015 12:22:45 -0500
+Content-Disposition: inline
+In-Reply-To: <54DA3A9F.9090608@iogearbox.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02/10/2015 04:56 PM, Josh Hunt wrote:
-> On 02/10/2015 02:30 AM, Daniel Borkmann wrote:
->> On 02/10/2015 01:58 AM, Thomas Graf wrote:
->>> On 02/09/15 at 07:48pm, Josh Hunt wrote:
->>>>       if ((params->key_len && !params->hashfn) ||
->>>> -        (!params->key_len && !params->obj_hashfn))
->>>> +        (!params->key_len && !params->obj_hashfn) ||
->>>> +        (!params->max_shift))
->>>>           return -EINVAL;
->>>
->>> You can drop the parenthesis around the new max_shift check.
->>
->> Also, I think the test should be expanded to check if there's
->> a grow_decision given and only in that case require max_shift
->> to be non-zero, otherwise we would require users who don't
->> want to expand their table to give a upper expansion limit.
->
-> This is a good point. I'll make this change.
->
-> max_shift restricts the # of buckets, but should there be an optional parameter, maxelems, to set a ceiling on the # of elements in a table also? If not, I believe users will be able to add an "unlimited" # of entries to the existing buckets, whether or not a grow_decision fn is defined.
+On 02/10/15 at 06:06pm, Daniel Borkmann wrote:
+> Hm, given that min_shift/max_shift are parameters that directly
+> concern internals of rhashtable i.e. are tightly coupled to expand
+> and shrink functionality, I'd say that depending on the use case,
+> a maxelem limit should rather be handled outside of it, if it's
+> truly an issue/concern.
 
-Hm, given that min_shift/max_shift are parameters that directly
-concern internals of rhashtable i.e. are tightly coupled to expand
-and shrink functionality, I'd say that depending on the use case,
-a maxelem limit should rather be handled outside of it, if it's
-truly an issue/concern.
+Agreed, Netlink already uses the atomic counter of rhashtable to
+enforce  upper limit of table entries:
+
+        err = -ENOMEM;
+        if (BITS_PER_LONG > 32 &&
+            unlikely(atomic_read(&table->hash.nelems) >= UINT_MAX))
+                goto err;
