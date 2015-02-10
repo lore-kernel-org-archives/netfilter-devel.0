@@ -1,83 +1,47 @@
-From: Richard Guy Briggs <rgb@tricolour.ca>
-Subject: NetDev 0.1 online registration deadline Feb 12 (Thursday)
-Date: Tue, 10 Feb 2015 10:21:21 -0500
-Message-ID: <20150210152121.GN27821@toccata2.tricolour.ca>
+From: Josh Hunt <johunt@akamai.com>
+Subject: Re: [PATCH 1/3] rhashtable: require max_shift definition
+Date: Tue, 10 Feb 2015 09:56:03 -0600
+Message-ID: <54DA2A13.5010204@akamai.com>
+References: <1423529311-26050-1-git-send-email-johunt@akamai.com> <1423529311-26050-2-git-send-email-johunt@akamai.com> <20150210005801.GA8951@casper.infradead.org> <54D9C18B.5090208@iogearbox.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: info@netdev01.org, speakers@netdev01.org, attendees@netdev01.org
-To: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	lwn@lwn.net, netdev01@lists.netfilter.org, lartc@vger.kernel.org,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	swan-dev@lists.libreswan.org, swan@lists.libreswan.org,
-	users@lists.openswan.org, dev@lists.openswan.org
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Daniel Borkmann <daniel@iogearbox.net>, Thomas Graf <tgraf@suug.ch>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from prod-mail-xrelay07.akamai.com ([72.246.2.115]:33765 "EHLO
+	prod-mail-xrelay07.akamai.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752003AbbBJP4F (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Feb 2015 10:56:05 -0500
+In-Reply-To: <54D9C18B.5090208@iogearbox.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Fellow netheads:
+On 02/10/2015 02:30 AM, Daniel Borkmann wrote:
+> On 02/10/2015 01:58 AM, Thomas Graf wrote:
+>> On 02/09/15 at 07:48pm, Josh Hunt wrote:
+>>>       if ((params->key_len && !params->hashfn) ||
+>>> -        (!params->key_len && !params->obj_hashfn))
+>>> +        (!params->key_len && !params->obj_hashfn) ||
+>>> +        (!params->max_shift))
+>>>           return -EINVAL;
+>>
+>> You can drop the parenthesis around the new max_shift check.
+>
+> Also, I think the test should be expanded to check if there's
+> a grow_decision given and only in that case require max_shift
+> to be non-zero, otherwise we would require users who don't
+> want to expand their table to give a upper expansion limit.
 
+This is a good point. I'll make this change.
 
-NetDev 0.1 starts in 4 days.
+max_shift restricts the # of buckets, but should there be an optional 
+parameter, maxelems, to set a ceiling on the # of elements in a table 
+also? If not, I believe users will be able to add an "unlimited" # of 
+entries to the existing buckets, whether or not a grow_decision fn is 
+defined.
 
-
-Registration:
-==========================
-Online registration ends Thursday the 12th at midnight.  Registration is
-possible on site, but may incur a late registration fee.
-https://onlineregistrations.ca/netdev01/
-$100/day, or $350 for 4 days (Cdn dollars).
-
-
-There have been additions made to the "travel" section of the web site
-concerning local transit details, weather and clothing.  Please check it
-before travelling so you know what to expect.
-Travel/hotel/weather/clothing:	https://www.netdev01.org/travel
-
-
-Hotel:
-==========================
-The Westin Hotel may still have rooms for Netdev01 available.
-There are lots of big and small hotels in Ottawa, but they will fill up
-fast as Winterlude approaches, so book something soon.  There may be
-some possibilities to billet locally, but don't leave it last minute.
-Make your reservations at:
-https://www.starwoodmeeting.com/StarGroupsWeb/res?id=1412035802&key=1AC9C1F8
-
-
-Schedule:
-==========================
-The final schedule is out coded with session links.
-	https://www.netdev01.org/schedule
-
-
-Sponsors:
-=========
-NetDev 0.1 would like to gratefully acknowledge all our sponsors: 
-https://netdev01.org/sponsors
-Intel			http://www.intel.com/
-CENGN			http://www.cengn.ca/
-Google			https://www.google.ca
-Qualcomm		https://www.qualcomm.com/
-Verizon			http://www.verizon.com/
-Cumulus Networks	http://cumulusnetworks.com/
-Mojatatu Networks	http://mojatatu.com/
-
-
--------------------------------------------------------------------------------
-THE Technical Conference on Linux Networking, February 14-17, 2015, Ottawa, Canada
-https://netdev01.org/
-
-Contact:			info@netdev01.info
-Main site:			https://www.netdev01.org/
-Travel/hotel/weather/clothing:	https://www.netdev01.org/travel
-RSS feed:			https://netdev01.org/atom
-Follow us on Twitter: @netdev01	https://twitter.com/netdev01
-
-	slainte mhath, RGB
-
---
-Richard Guy Briggs               --  ~\    -- ~\             <hpv.tricolour.ca>
-<www.TriColour.ca>                 --  \___   o \@      @        Ride yer bike!
-Ottawa, ON, CANADA                  --  Lo_>__M__\\/\%__\\/\%
-Vote! -- <greenparty.ca>_____GTVS6#790__(*)__(*)________(*)(*)_________________
+Josh
