@@ -1,67 +1,71 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/3] Add revision field for xt_entry_target
-Date: Wed, 11 Feb 2015 16:52:27 +0100
-Message-ID: <20150211155227.GA7790@salvia>
-References: <1423207590-13423-1-git-send-email-gaofeng@cn.fujitsu.com>
+From: Pablo Neira Ayuso <pneira@us.es>
+Subject: [ANNOUNCE] 11th Netfilter Workshop in Budapest, Hungary
+Date: Wed, 11 Feb 2015 18:31:52 +0100
+Message-ID: <20150211173152.GA9093@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Gao feng <gaofeng@cn.fujitsu.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="EeQfGwPcQSOJBaQU"
+Cc: netfilter@vger.kernel.org, coreteam@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44176 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37058 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752848AbbBKPtS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Feb 2015 10:49:18 -0500
+	id S1753104AbbBKR2i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Feb 2015 12:28:38 -0500
 Content-Disposition: inline
-In-Reply-To: <1423207590-13423-1-git-send-email-gaofeng@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Feb 06, 2015 at 03:26:28PM +0800, Gao feng wrote:
-> This filed is useful if we want to add TARGET which
-> has revision for arptables rules.
-> 
-> Also make sure xt_entry_target is consistent with
-> the definition in kernel.
-> 
-> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
-> ---
->  include/linux/netfilter_arp/arp_tables.h | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
-> index 0acda66..ccf8cd0 100644
-> --- a/include/linux/netfilter_arp/arp_tables.h
-> +++ b/include/linux/netfilter_arp/arp_tables.h
-> @@ -19,7 +19,7 @@
->  
->  #include <linux/netfilter_arp.h>
->  
-> -#define ARPT_FUNCTION_MAXNAMELEN 30
-> +#define ARPT_FUNCTION_MAXNAMELEN 29
->  #define ARPT_TABLE_MAXNAMELEN 32
->  
->  #define ARPT_DEV_ADDR_LEN_MAX 16
-> @@ -69,6 +69,8 @@ struct arpt_entry_target
->  
->  			/* Used by userspace */
->  			char name[ARPT_FUNCTION_MAXNAMELEN];
-> +
-> +			u_int8_t revision;
 
-This structure is not exposed to userspace and I don't find any client
-of it in this code:
+--EeQfGwPcQSOJBaQU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-include/uapi/linux/netfilter_arp/arp_tables.h:#define arpt_entry_target xt_entry_target
+Hi!
 
-and arp_tables uses xt_entry_target all the time.
+We are happy to announce the next edition in the workshop series. This
+year the event will take place in Budapest, Hungary, from 22th to 26th
+June, 2015.
 
-I guess you can get rid of this dead code. Then, update the cached
-copy and also include x_tables.h definition in the arptables tree.
+Attendance is free but it requires an invitation. You may consider
+attending if you are involved in any aspect of the Linux networking
+development, and more specifically the development of Netfilter and
+the Linux Virtual Server projects. Please, send us an email to
+coreteam@netfilter.org before 31th March (strict deadline). We also
+welcome presentations on Netfilter-related third party software (using
+our framework and libraries) as long as they are released under a
+free/opensource license. Your proposal must include a title, short
+abstract (500 words maximum) and estimated time to present it. We have
+a very limited number of invitations!
 
->  		} user;
->  		struct {
->  			u_int16_t target_size;
-> -- 
-> 2.1.0
-> 
+We are looking for sponsors, if you think you can help us to get funds
+to run the workshop, please, contact me and I'll be glad to send you
+our sponsorship policy.
+
+Regards.
+
+[1] http://workshop.netfilter.org/2015/
+
+--EeQfGwPcQSOJBaQU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJU25IIAAoJENRkgb0u2ZAZj/8QAIpZAiuf2DDfDKwc7BSAOENS
+u3N59OJ6Dih2CA7RoOMEmLnV+e+vXsTaAIBSrPsDmI8v01b7ymjMHpOPY/iM2Pzi
+v9M/mDlS5kzJMRP0MFhwplxz1bbfwp6BkcM8WdcSICEWryP7/o4VChAK4yIpF1Cl
+4YqWBiVglZslpVwJnZU7CFIVTIubYk1mzzNQK/iW55YZD4aLdWIZyXHklJAjOdaC
+9V0eyXO59kypSWWBN/X0V8B2/KB3SyiAYrEBpoDExLD3T0pCXaBGhZnBJl8awjOw
+94AP9zXaoHtcJKRboeIx1pl5S7pSwQr9DfOqjQDvGJZjS3jxoua2YcODKrDEx5Iz
+HO+yOo3X6YOsop7fUa3kNzpleqhqJw4X4y8D7PFa6mmARmNq7psRHFUqkRJJ4+6E
+aUMtVqlH93kq1F7oaNUXaBxG0F/Af9AvDW3Xw5Y/ZvHcfk/+JHPP1AUQyawWFHEp
+pML0X4JjKa9d0mr5fBBeK0TukEQpBYK379+oLbGm89Mt6jWQN8hpkSGOuMLUI8uU
+o1XHBPW9n6ydpey+6ukieSkuhl5LEhPAbk2KWlNDW/5zOpIB75ESL9RHZpuClRzj
+aIDuWnOflnQVD2MgiZCXRq3qq7l1FK3ve3Stvxh/aOnDUJdGq5ve3arfYvtr2Npw
+8gtLEfyATK8xLhQhmmz9
+=3C9z
+-----END PGP SIGNATURE-----
+
+--EeQfGwPcQSOJBaQU--
