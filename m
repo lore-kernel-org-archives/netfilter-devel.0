@@ -1,94 +1,96 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH] rule: don't release the tree parameter in the
- function nft_jansson_parse_rule
-Date: Wed, 11 Feb 2015 00:49:34 +0100
-Message-ID: <20150210234934.GB4547@salvia>
-References: <1423586774-20383-1-git-send-email-alvaroneay@gmail.com>
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: Re: [PATCH 2/3] Add MARK target for arptables
+Date: Wed, 11 Feb 2015 16:58:20 +0800
+Message-ID: <54DB19AC.6010107@cn.fujitsu.com>
+References: <1423207590-13423-1-git-send-email-gaofeng@cn.fujitsu.com> <1423207590-13423-2-git-send-email-gaofeng@cn.fujitsu.com> <20150210231852.GA3715@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43548 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751887AbbBJXq2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Feb 2015 18:46:28 -0500
-Content-Disposition: inline
-In-Reply-To: <1423586774-20383-1-git-send-email-alvaroneay@gmail.com>
+Received: from cn.fujitsu.com ([59.151.112.132]:60376 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751166AbbBKI6R (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Feb 2015 03:58:17 -0500
+In-Reply-To: <20150210231852.GA3715@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 10, 2015 at 05:46:13PM +0100, Alvaro Neira Ayuso wrote:
-> The function nft_jansson_parse_rule receives the tree like parameter and we
-> release it inside the functions. We use this function in the ruleset import
-> support. Therefore, we release the child nodes in the tree that  contains the
-> rule information before to release the tree. Then, if we import a ruleset,
-> valgrind shows:
+On 02/11/2015 07:18 AM, Pablo Neira Ayuso wrote:
+> On Fri, Feb 06, 2015 at 03:26:29PM +0800, Gao feng wrote:
+>> We can use MARK target to set make value for
+>> arp packet.
+>>
+>> Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+>> ---
+>>  extensions/Makefile    |   2 +-
+>>  extensions/arpt_MARK.c | 119 +++++++++++++++++++++++++++++++++++++++++++++++++
+>>  2 files changed, 120 insertions(+), 1 deletion(-)
+>>  create mode 100644 extensions/arpt_MARK.c
+>>
+>> diff --git a/extensions/Makefile b/extensions/Makefile
+>> index 09b244e..0189cc9 100644
+>> --- a/extensions/Makefile
+>> +++ b/extensions/Makefile
+>> @@ -1,6 +1,6 @@
+>>  #! /usr/bin/make
+>>  
+>> -EXT_FUNC+=standard mangle CLASSIFY
+>> +EXT_FUNC+=standard mangle CLASSIFY MARK
+>>  EXT_OBJS+=$(foreach T,$(EXT_FUNC), extensions/arpt_$(T).o)
+>>  
+>>  extensions/ebt_%.o: extensions/arpt_%.c include/arptables.h include/arptables_common.h
+>> diff --git a/extensions/arpt_MARK.c b/extensions/arpt_MARK.c
+>> new file mode 100644
+>> index 0000000..ce24bdb
+>> --- /dev/null
+>> +++ b/extensions/arpt_MARK.c
+>> @@ -0,0 +1,119 @@
+>> +/*
+>> + * (C) 2015 by Gao feng <gaofeng@cn.fujitsu.com>
+>> + *
+>> + * arpt_MARK.c -- arptables extension to set mark for arp packet
+>> + *
+>> + *	This program is free software; you can redistribute it and/or modify
+>> + *	it under the terms of the GNU General Public License as published by
+>> + *	the Free Software Foundation; either version 2 of the License, or
+>> + *	(at your option) any later version.
+>> + *
+>> + *	This program is distributed in the hope that it will be useful,
+>> + *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + *	GNU General Public License for more details.
+>> + *
+>> + *	You should have received a copy of the GNU General Public License
+>> + *	along with this program; if not, write to the Free Software
+>> + *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+>> + */
+>> +
+>> +#include <stdio.h>
+>> +#include <getopt.h>
+>> +#include <arptables.h>
+>> +#include <linux/netfilter/xt_mark.h>
+>> +#include <linux/netfilter/x_tables.h>
+>> +
+>> +static void
+>> +help(void)
+>> +{
+>> +	printf(
+>> +"MARK target v%s options:\n"
+>> +"--set-mark mark : set the mark value\n",
+>> +	ARPTABLES_VERSION);
+>> +}
+>> +
+>> +#define MARK_OPT 1
+>> +
+>> +static struct option opts[] = {
+>> +	{ "set-mark"   , required_argument, 0, MARK_OPT },
+>> +	{0}
 > 
-> ==16551== Invalid write of size 8
-> ==16551==    at 0x5EC92AA: json_delete (in
-> /usr/lib/x86_64-linux-gnu/libjansson.so.4.3.1)
-> ==16551==    by 0x5EC4FC4: ??? (in
-> /usr/lib/x86_64-linux-gnu/libjansson.so.4.3.1)
-> ==16551==    by 0x5EC5058: ??? (in
-> /usr/lib/x86_64-linux-gnu/libjansson.so.4.3.1)
-> ==16551==    by 0x5EC9270: json_delete (in
-> /usr/lib/x86_64-linux-gnu/libjansson.so.4.3.1)
-> ==16551==    by 0x5EC92B4: json_delete (in
-> /usr/lib/x86_64-linux-gnu/libjansson.so.4.3.1)
-> ==16551==    by 0x5EC4FC4: ??? (in
-> /usr/lib/x86_64-linux-gnu/libjansson.so.4.3.1)
-> ==16551==    by 0x5EC5058: ??? (in
-> /usr/lib/x86_64-linux-gnu/libjansson.so.4.3.1)
-> ==16551==    by 0x5EC9270: json_delete (in
-> /usr/lib/x86_64-linux-gnu/libjansson.so.4.3.1)
-> ==16551==    by 0x50455D0: nft_ruleset_json_parse (ruleset.c:557)
-> ==16551==    by 0x50458AE: nft_ruleset_do_parse (ruleset.c:696)
-> ==16551==    by 0x408AEC: do_command (rule.c:1317)
-> ==16551==    by 0x406B05: nft_run (main.c:194)
-> 
-> With this patch, we release the tree only in the function nft_rule_json_parse
-> (the caller function of nft_jansson_parse_rule).
-> 
-> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-> ---
->  src/rule.c |    8 +++++---
->  1 file changed, 5 insertions(+), 3 deletions(-)
-> 
-> diff --git a/src/rule.c b/src/rule.c
-> index 7f4d049..028dc2e 100644
-> --- a/src/rule.c
-> +++ b/src/rule.c
-> @@ -597,10 +597,8 @@ int nft_jansson_parse_rule(struct nft_rule *r, json_t *tree,
->  		nft_rule_add_expr(r, e);
->  	}
->  
-> -	nft_jansson_free_root(tree);
->  	return 0;
->  err:
-> -	nft_jansson_free_root(tree);
->  	return -1;
->  }
->  #endif
-> @@ -613,12 +611,16 @@ static int nft_rule_json_parse(struct nft_rule *r, const void *json,
->  #ifdef JSON_PARSING
->  	json_t *tree;
->  	json_error_t error;
-> +	int ret;
->  
->  	tree = nft_jansson_create_root(json, &error, err, input);
->  	if (tree == NULL)
->  		return -1;
->  
-> -	return nft_jansson_parse_rule(r, tree, err, set_list);
-> +	ret = nft_jansson_parse_rule(r, tree, err, set_list);
-> +
-> +	nft_jansson_free_root(tree);
+> Please, add all options that MARK support according to man
+> iptables-extensions.
 
-I like this cleanup.
+Get, will do. thanks!
 
-It's a good idea to release things from the same function where you
-allocate for tracebility and readability reasons.
-
-But I don't understand why this is fixing the valgrind spot that you
-indicate above.
