@@ -1,67 +1,57 @@
 From: Chris Vine <chris@cvine.freeserve.co.uk>
-Subject: Re: xt_recent fails with kernel 3.19.0
-Date: Thu, 12 Feb 2015 10:51:45 +0000
-Message-ID: <20150212105145.5e0177c0@bother.homenet>
-References: <20150212102553.0bd25767@bother.homenet>
+Subject: Re: xt_recent broken in kernel 3.19.0 + PATCH
+Date: Thu, 12 Feb 2015 10:54:17 +0000
+Message-ID: <20150212105417.0379fed8@bother.homenet>
+References: <20150211092834.65f8ae80@bother.homenet>
+	<20150211183121.6688aec8@bother.homenet>
+	<CAM_iQpVmxw_XfzP7yaPWbhu8UBujebm1vjumgPPH1TUdHgs0rA@mail.gmail.com>
+	<20150212083533.GC22887@breakpoint.cc>
+	<20150212102616.786da70c@bother.homenet>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sidious.london.02.net ([82.132.130.152]:41753 "EHLO
-	mail.o2.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752766AbbBLKvn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Feb 2015 05:51:43 -0500
-Received: from bother.homenet (82.132.232.222) by mail.o2.co.uk (8.5.140.03)
-        id 54DB28DA005A2C66 for netfilter-devel@vger.kernel.org; Thu, 12 Feb 2015 10:51:41 +0000
-Received: from bother.homenet (localhost [127.0.0.1])
-	by bother.homenet (Postfix) with ESMTP id E90548CC32
-	for <netfilter-devel@vger.kernel.org>; Thu, 12 Feb 2015 10:51:45 +0000 (GMT)
-In-Reply-To: <20150212102553.0bd25767@bother.homenet>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Cong Wang <xiyou.wangcong@gmail.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	Linux Kernel Network Developers <netdev@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150212102616.786da70c@bother.homenet>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 12 Feb 2015 10:25:53 +0000
+On Thu, 12 Feb 2015 10:26:16 +0000
 Chris Vine <chris@cvine.freeserve.co.uk> wrote:
-> Loading 'recent' xtables match support for iptables fails where the
-> following sample rule is appended with SSH_TRIES set to 4:
+> On Thu, 12 Feb 2015 09:35:33 +0100
+> Florian Westphal <fw@strlen.de> wrote:
+> > Cong Wang <xiyou.wangcong@gmail.com> wrote:
+> > > (Cc'ing netdev and netfilter-devel lists)
+> > 
+> > Thanks for forwarding.
+> > 
+> > > > Chris Vine <chris@cvine.freeserve.co.uk> wrote:
+> > > >>   iptables -D SSH_CHAIN -m conntrack --ctstate NEW \
+> > > >>     -m recent --update --seconds $SSH_LOGIN_PERIOD --hitcount
+> > > >> $SSH_TRIES -j DROP
+> > > > --- linux-3.19.0/net/netfilter/xt_recent.c~     2015-02-10
+> > > > 09:18:44.657376355 +0000 +++
+> > > > linux-3.19.0/net/netfilter/xt_recent.c      2015-02-11
+> > > > 17:58:33.311608835 +0000 @@ -378,7 +378,7 @@
+> > > > mutex_lock(&recent_mutex); t = recent_table_lookup(recent_net,
+> > > > info->name); if (t != NULL) {
+> > > > -               if (info->hit_count > t->nstamps_max_mask) {
+> > > > +               if (info->hit_count > t->nstamps_max_mask + 1) {
+> > 
+> > Looks good. Chris, could you formally submit this patch to
+> > netfilter-devel@vger.kernel.org?
+> > 
+> > Thanks!
 > 
->   iptables -A SSH_CHAIN -m conntrack --ctstate NEW \
->     -m recent --update --seconds $SSH_LOGIN_PERIOD --hitcount
-> $SSH_TRIES -j DROP
-> 
-> It fails with this message:
-> 
->   kernel: xt_recent: hitcount (4) is larger than packets to be
->   remembered (4) for table DEFAULT
-> 
-> This appears to be due to an off-by-one error in testing the hit
-> count in recent_mt_check().  This occurs because nstamp_mask is set
-> to one less than the value of ip_pkt_list_tot (if any) or of
-> hit_count rounded up to a power of two value.  When that hit count
-> boundary is actually reached nstamp_mask is therefore exceeded by one.
-> 
-> I can't say I fully understand the heuristics of nstamp_mask, but the
-> patch below deals with this and works for me(TM).
-> 
-> Signed-of-by: Chris Vine <vine.chris@gmail.com>
-> 
-> --- linux-3.19.0/net/netfilter/xt_recent.c~	2015-02-10
-> 09:18:44.657376355 +0000 +++
-> linux-3.19.0/net/netfilter/xt_recent.c	2015-02-11
-> 17:58:33.311608835 +0000 @@ -378,7 +378,7 @@
-> mutex_lock(&recent_mutex); t = recent_table_lookup(recent_net,
-> info->name); if (t != NULL) {
-> -		if (info->hit_count > t->nstamps_max_mask) {
-> +		if (info->hit_count > t->nstamps_max_mask + 1) {
->  			pr_info("hitcount (%u) is larger than
-> packets to be remembered (%u) for table %s\n", info->hit_count,
-> t->nstamps_max_mask + 1, info->name);
+> Done.
 
-Scrub that.  This now fails when SSH_TRIES is set to other than a power
-of two boundary.  There seems to be something fundamentally wrong with
-the heuristic employed here.
+On further testing I see that that patch only solves the problem if
+SSH_TRIES is set to a power of two boundary.  You still get an error
+loading the rule if it is anything else.  I think there is something
+wrong with the nstamp_mask heuristic which is used here.
 
 Chris
-the
