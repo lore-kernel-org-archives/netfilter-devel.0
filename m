@@ -1,68 +1,60 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: nft_compat: fix module refcount underflow
-Date: Thu, 12 Feb 2015 22:21:33 +0100
-Message-ID: <1423776093-7032-1-git-send-email-pablo@netfilter.org>
-Cc: arturo.borrero.glez@gmail.com
-To: netfilter-devel@vger.kernel.org
+From: Chris Vine <chris@cvine.freeserve.co.uk>
+Subject: Re: xt_recent fails with kernel 3.19.0
+Date: Thu, 12 Feb 2015 21:34:10 +0000
+Message-ID: <20150212213410.5a91da77@bother.homenet>
+References: <20150212102553.0bd25767@bother.homenet>
+	<20150212105145.5e0177c0@bother.homenet>
+	<20150212110931.6db17d7c@bother.homenet>
+	<20150212113643.GA13795@breakpoint.cc>
+	<20150212115202.GD22887@breakpoint.cc>
+	<20150212170412.2317d1e3@bother.homenet>
+	<20150212170931.GF22887@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53634 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751913AbbBLVS1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Feb 2015 16:18:27 -0500
+Received: from smtpout4.wanadoo.co.uk ([80.12.242.68]:35269 "EHLO
+	smtpout.wanadoo.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750881AbbBLVeH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 12 Feb 2015 16:34:07 -0500
+In-Reply-To: <20150212170931.GF22887@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Feb 12 18:20:42 nfdev kernel: ------------[ cut here ]------------
-Feb 12 18:20:42 nfdev kernel: WARNING: CPU: 4 PID: 4359 at kernel/module.c:963 module_put+0x9b/0xba()
-Feb 12 18:20:42 nfdev kernel: CPU: 4 PID: 4359 Comm: ebtables-compat Tainted: G        W      3.19.0-rc6+ #43
-[...]
-Feb 12 18:20:42 nfdev kernel: Call Trace:
-Feb 12 18:20:42 nfdev kernel: [<ffffffff815fd911>] dump_stack+0x4c/0x65
-Feb 12 18:20:42 nfdev kernel: [<ffffffff8103e6f7>] warn_slowpath_common+0x9c/0xb6
-Feb 12 18:20:42 nfdev kernel: [<ffffffff8109919f>] ? module_put+0x9b/0xba
-Feb 12 18:20:42 nfdev kernel: [<ffffffff8103e726>] warn_slowpath_null+0x15/0x17
-Feb 12 18:20:42 nfdev kernel: [<ffffffff8109919f>] module_put+0x9b/0xba
-Feb 12 18:20:42 nfdev kernel: [<ffffffff813ecf7c>] nft_match_destroy+0x45/0x4c
-Feb 12 18:20:42 nfdev kernel: [<ffffffff813e683f>] nf_tables_rule_destroy+0x28/0x70
+On Thu, 12 Feb 2015 18:09:31 +0100
+Florian Westphal <fw@strlen.de> wrote:
+[snip]
+> > This patch seems to be doing
+> > something different, and I note that nstamps_max_mask is
+> > unconditionally set later in recent_mt_check() anyway.
+> 
+> No, its only set if recent_table_lookup returns NULL.
+> We return soon after we bump the refcnt when we take this branch.
 
-Reported-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_compat.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+You probably are working on a more up-to-date branch.  Your patch
+assigning to nstamps_max_mask is only executed if recent_table_lookup()
+does not return NULL.  In the 3.19.0 kernel, the assignment to
+nstamps_max_mask in line 404 also only occurs if recent_table_lookup()
+does not return NULL.
+ 
+> > Can the check for the value of hit_count simply be omitted?  In what
+> > circumstances can it be anything other than true?
+> 
+> You mean when nstamp_mask > t->nstamps_max_mask is false?
+> 
+> e.g.
+> iptables -A foo -m recent --hitcount 5
+> iptables -A foo -m recent --hitcount 4
+> 
+> (2nd rule finds existing table with mask 7).
 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index c598f74..1279cd8 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -625,8 +625,12 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 		struct xt_match *match = nft_match->ops.data;
- 
- 		if (strcmp(match->name, mt_name) == 0 &&
--		    match->revision == rev && match->family == family)
-+		    match->revision == rev && match->family == family) {
-+			if (!try_module_get(match->me))
-+				return ERR_PTR(-ENOENT);
-+
- 			return &nft_match->ops;
-+		}
- 	}
- 
- 	match = xt_request_find_match(family, mt_name, rev);
-@@ -695,8 +699,12 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 		struct xt_target *target = nft_target->ops.data;
- 
- 		if (strcmp(target->name, tg_name) == 0 &&
--		    target->revision == rev && target->family == family)
-+		    target->revision == rev && target->family == family) {
-+			if (!try_module_get(target->me))
-+				return ERR_PTR(-ENOENT);
-+
- 			return &nft_target->ops;
-+		}
- 	}
- 
- 	target = xt_request_find_target(family, tg_name, rev);
--- 
-1.7.10.4
+There's the rub I suspect, but as I say, I don't know your code.  Let's
+leave it at that: if I apply the off-by-one patch it works for me
+(provided I don't change settings, which I don't in ordinary usage).  I
+will wait for whatever you and/or others come up with in due course to
+solve it.
 
+Chris
