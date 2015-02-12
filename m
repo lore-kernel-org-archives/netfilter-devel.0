@@ -1,42 +1,71 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [GIT PULL nf-next] IPVS Enhancements for v3.20
-Date: Thu, 12 Feb 2015 08:02:30 +0900
-Message-ID: <20150211230229.GD2096@verge.net.au>
-References: <1423549929-25064-1-git-send-email-horms@verge.net.au>
- <20150211151053.GA4698@salvia>
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: Re: xt_recent broken in kernel 3.19.0 + PATCH
+Date: Wed, 11 Feb 2015 19:15:29 -0800
+Message-ID: <CAM_iQpVmxw_XfzP7yaPWbhu8UBujebm1vjumgPPH1TUdHgs0rA@mail.gmail.com>
+References: <20150211092834.65f8ae80@bother.homenet>
+	<20150211183121.6688aec8@bother.homenet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+Content-Type: text/plain; charset=UTF-8
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
 	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150211151053.GA4698@salvia>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	Linux Kernel Network Developers <netdev@vger.kernel.org>
+To: Chris Vine <chris@cvine.freeserve.co.uk>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:36789 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754745AbbBLDPa (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Feb 2015 22:15:30 -0500
+In-Reply-To: <20150211183121.6688aec8@bother.homenet>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Feb 11, 2015 at 04:10:53PM +0100, Pablo Neira Ayuso wrote:
-> On Tue, Feb 10, 2015 at 03:32:08PM +0900, Simon Horman wrote:
-> > Hi Pablo,
-> > 
-> > please consider this enhancement for v3.20.
-> > 
-> > It adds support for 64-bit rates in IPVS statistics.
-> > 
-> > 
-> > The following changes since commit 4c1017aa80c95a74703139bb95c4ce0d130efe4d:
-> > 
-> >   netfilter: nft_lookup: add missing attribute validation for NFTA_LOOKUP_SET_ID (2015-01-30 19:08:20 +0100)
-> > 
-> > are available in the git repository at:
-> > 
-> >   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs-for-v3.20
-> 
-> Pulled, thanks.
-> 
-> If merge window closes (I still have a little pending request), I'll
-> keep this in nf-next until it reopens again for the next round.
+(Cc'ing netdev and netfilter-devel lists)
 
-Thanks, there is no urgency for this change AFIC.
+On Wed, Feb 11, 2015 at 10:31 AM, Chris Vine
+<chris@cvine.freeserve.co.uk> wrote:
+> On Wed, 11 Feb 2015 09:28:34 +0000
+> Chris Vine <chris@cvine.freeserve.co.uk> wrote:
+>> With kernel 3.19.0, the following iptables rule, where SSH_TRIES is
+>> set to 4:
+>>
+>>   iptables -D SSH_CHAIN -m conntrack --ctstate NEW \
+>>     -m recent --update --seconds $SSH_LOGIN_PERIOD --hitcount
+>> $SSH_TRIES -j DROP
+>>
+>> generates this error message in syslog:
+>>
+>>   kernel: xt_recent: hitcount (4) is larger than packets to be
+>>   remembered (4) for table DEFAULT
+>>
+>> and the rule fails to install in the table.  No error is generated
+>> with kernel 3.18.6.
+>
+> The rule provoking this should of course have been the one appending
+> the rule, which is:
+>
+>   iptables -A SSH_CHAIN -m conntrack --ctstate NEW \
+>     -m recent --update --seconds $SSH_LOGIN_PERIOD --hitcount $SSH_TRIES -j DROP
+>
+> On looking at the code, the changes in the 3.19 kernel seem not to have
+> been tested and there is an off-by-one error.  The patch below restores
+> behaviour to be identical to that found in the 3.18 kernel.
+>
+> Chris
+>
+> --- linux-3.19.0/net/netfilter/xt_recent.c~     2015-02-10 09:18:44.657376355 +0000
+> +++ linux-3.19.0/net/netfilter/xt_recent.c      2015-02-11 17:58:33.311608835 +0000
+> @@ -378,7 +378,7 @@
+>         mutex_lock(&recent_mutex);
+>         t = recent_table_lookup(recent_net, info->name);
+>         if (t != NULL) {
+> -               if (info->hit_count > t->nstamps_max_mask) {
+> +               if (info->hit_count > t->nstamps_max_mask + 1) {
+>                         pr_info("hitcount (%u) is larger than packets to be remembered (%u) for table %s\n",
+>                                 info->hit_count, t->nstamps_max_mask + 1,
+>                                 info->name);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
