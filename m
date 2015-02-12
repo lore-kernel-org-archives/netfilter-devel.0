@@ -1,53 +1,49 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [PATCH] netfilter: nft_compat: fix sparse warning
-Date: Thu, 12 Feb 2015 11:14:09 +0100
-Message-ID: <20150212101408.20533.19035.stgit@nfdev.cica.es>
+From: Chris Vine <chris@cvine.freeserve.co.uk>
+Subject: Re: xt_recent broken in kernel 3.19.0 + PATCH
+Date: Thu, 12 Feb 2015 10:26:16 +0000
+Message-ID: <20150212102616.786da70c@bother.homenet>
+References: <20150211092834.65f8ae80@bother.homenet>
+	<20150211183121.6688aec8@bother.homenet>
+	<CAM_iQpVmxw_XfzP7yaPWbhu8UBujebm1vjumgPPH1TUdHgs0rA@mail.gmail.com>
+	<20150212083533.GC22887@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:47775 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751037AbbBLKOY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Feb 2015 05:14:24 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Cong Wang <xiyou.wangcong@gmail.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	Linux Kernel Network Developers <netdev@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150212083533.GC22887@breakpoint.cc>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
->> net/netfilter/nft_compat.c:140:37: sparse: incorrect type in assignment (different base types)
-   net/netfilter/nft_compat.c:140:37:    expected restricted __be16 [usertype] ethproto
-   net/netfilter/nft_compat.c:140:37:    got unsigned char [unsigned] [usertype] proto
->> net/netfilter/nft_compat.c:351:37: sparse: incorrect type in assignment (different base types)
-   net/netfilter/nft_compat.c:351:37:    expected restricted __be16 [usertype] ethproto
-   net/netfilter/nft_compat.c:351:37:    got unsigned char [unsigned] [usertype] proto
+On Thu, 12 Feb 2015 09:35:33 +0100
+Florian Westphal <fw@strlen.de> wrote:
+> Cong Wang <xiyou.wangcong@gmail.com> wrote:
+> > (Cc'ing netdev and netfilter-devel lists)
+> 
+> Thanks for forwarding.
+> 
+> > > Chris Vine <chris@cvine.freeserve.co.uk> wrote:
+> > >>   iptables -D SSH_CHAIN -m conntrack --ctstate NEW \
+> > >>     -m recent --update --seconds $SSH_LOGIN_PERIOD --hitcount
+> > >> $SSH_TRIES -j DROP
+> > > --- linux-3.19.0/net/netfilter/xt_recent.c~     2015-02-10
+> > > 09:18:44.657376355 +0000 +++
+> > > linux-3.19.0/net/netfilter/xt_recent.c      2015-02-11
+> > > 17:58:33.311608835 +0000 @@ -378,7 +378,7 @@
+> > > mutex_lock(&recent_mutex); t = recent_table_lookup(recent_net,
+> > > info->name); if (t != NULL) {
+> > > -               if (info->hit_count > t->nstamps_max_mask) {
+> > > +               if (info->hit_count > t->nstamps_max_mask + 1) {
+> 
+> Looks good. Chris, could you formally submit this patch to
+> netfilter-devel@vger.kernel.org?
+> 
+> Thanks!
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- net/netfilter/nft_compat.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Done.
 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index c598f74..b5dc651 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -137,7 +137,7 @@ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
- 		entry->e6.ipv6.invflags = inv ? IP6T_INV_PROTO : 0;
- 		break;
- 	case NFPROTO_BRIDGE:
--		entry->ebt.ethproto = proto;
-+		entry->ebt.ethproto = (__force __be16)proto;
- 		entry->ebt.invflags = inv ? EBT_IPROTO : 0;
- 		break;
- 	}
-@@ -348,7 +348,7 @@ nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
- 		entry->e6.ipv6.invflags = inv ? IP6T_INV_PROTO : 0;
- 		break;
- 	case NFPROTO_BRIDGE:
--		entry->ebt.ethproto = proto;
-+		entry->ebt.ethproto = (__force __be16)proto;
- 		entry->ebt.invflags = inv ? EBT_IPROTO : 0;
- 		break;
- 	}
-
+Chris
