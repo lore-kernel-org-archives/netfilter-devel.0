@@ -1,100 +1,68 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [PATCH v2] netfilter: nft_compat: fix sparse warning
-Date: Thu, 12 Feb 2015 19:23:11 +0100
-Message-ID: <20150212182218.4842.31064.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] netfilter: nft_compat: fix module refcount underflow
+Date: Thu, 12 Feb 2015 22:21:33 +0100
+Message-ID: <1423776093-7032-1-git-send-email-pablo@netfilter.org>
+Cc: arturo.borrero.glez@gmail.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:49624 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751272AbbBLSXX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Feb 2015 13:23:23 -0500
+Received: from mail.us.es ([193.147.175.20]:53634 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751913AbbBLVS1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 12 Feb 2015 16:18:27 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->> net/netfilter/nft_compat.c:140:37: sparse: incorrect type in assignment (different base types)
-   net/netfilter/nft_compat.c:140:37:    expected restricted __be16 [usertype] ethproto
-   net/netfilter/nft_compat.c:140:37:    got unsigned char [unsigned] [usertype] proto
->> net/netfilter/nft_compat.c:351:37: sparse: incorrect type in assignment (different base types)
-   net/netfilter/nft_compat.c:351:37:    expected restricted __be16 [usertype] ethproto
-   net/netfilter/nft_compat.c:351:37:    got unsigned char [unsigned] [usertype] proto
+Feb 12 18:20:42 nfdev kernel: ------------[ cut here ]------------
+Feb 12 18:20:42 nfdev kernel: WARNING: CPU: 4 PID: 4359 at kernel/module.c:963 module_put+0x9b/0xba()
+Feb 12 18:20:42 nfdev kernel: CPU: 4 PID: 4359 Comm: ebtables-compat Tainted: G        W      3.19.0-rc6+ #43
+[...]
+Feb 12 18:20:42 nfdev kernel: Call Trace:
+Feb 12 18:20:42 nfdev kernel: [<ffffffff815fd911>] dump_stack+0x4c/0x65
+Feb 12 18:20:42 nfdev kernel: [<ffffffff8103e6f7>] warn_slowpath_common+0x9c/0xb6
+Feb 12 18:20:42 nfdev kernel: [<ffffffff8109919f>] ? module_put+0x9b/0xba
+Feb 12 18:20:42 nfdev kernel: [<ffffffff8103e726>] warn_slowpath_null+0x15/0x17
+Feb 12 18:20:42 nfdev kernel: [<ffffffff8109919f>] module_put+0x9b/0xba
+Feb 12 18:20:42 nfdev kernel: [<ffffffff813ecf7c>] nft_match_destroy+0x45/0x4c
+Feb 12 18:20:42 nfdev kernel: [<ffffffff813e683f>] nf_tables_rule_destroy+0x28/0x70
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Reported-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: use u16 for protocol and then cast it to __be16
-
- net/netfilter/nft_compat.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ net/netfilter/nft_compat.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index c598f74..4a9c662 100644
+index c598f74..1279cd8 100644
 --- a/net/netfilter/nft_compat.c
 +++ b/net/netfilter/nft_compat.c
-@@ -123,7 +123,7 @@ static void
- nft_target_set_tgchk_param(struct xt_tgchk_param *par,
- 			   const struct nft_ctx *ctx,
- 			   struct xt_target *target, void *info,
--			   union nft_entry *entry, u8 proto, bool inv)
-+			   union nft_entry *entry, u16 proto, bool inv)
- {
- 	par->net	= ctx->net;
- 	par->table	= ctx->table->name;
-@@ -137,7 +137,7 @@ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
- 		entry->e6.ipv6.invflags = inv ? IP6T_INV_PROTO : 0;
- 		break;
- 	case NFPROTO_BRIDGE:
--		entry->ebt.ethproto = proto;
-+		entry->ebt.ethproto = (__force __be16)proto;
- 		entry->ebt.invflags = inv ? EBT_IPROTO : 0;
- 		break;
- 	}
-@@ -171,7 +171,7 @@ static const struct nla_policy nft_rule_compat_policy[NFTA_RULE_COMPAT_MAX + 1]
- 	[NFTA_RULE_COMPAT_FLAGS]	= { .type = NLA_U32 },
- };
+@@ -625,8 +625,12 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 		struct xt_match *match = nft_match->ops.data;
  
--static int nft_parse_compat(const struct nlattr *attr, u8 *proto, bool *inv)
-+static int nft_parse_compat(const struct nlattr *attr, u16 *proto, bool *inv)
- {
- 	struct nlattr *tb[NFTA_RULE_COMPAT_MAX+1];
- 	u32 flags;
-@@ -203,7 +203,7 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	struct xt_target *target = expr->ops->data;
- 	struct xt_tgchk_param par;
- 	size_t size = XT_ALIGN(nla_len(tb[NFTA_TARGET_INFO]));
--	u8 proto = 0;
-+	u16 proto = 0;
- 	bool inv = false;
- 	union nft_entry e = {};
- 	int ret;
-@@ -334,7 +334,7 @@ static const struct nla_policy nft_match_policy[NFTA_MATCH_MAX + 1] = {
- static void
- nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
- 			  struct xt_match *match, void *info,
--			  union nft_entry *entry, u8 proto, bool inv)
-+			  union nft_entry *entry, u16 proto, bool inv)
- {
- 	par->net	= ctx->net;
- 	par->table	= ctx->table->name;
-@@ -348,7 +348,7 @@ nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
- 		entry->e6.ipv6.invflags = inv ? IP6T_INV_PROTO : 0;
- 		break;
- 	case NFPROTO_BRIDGE:
--		entry->ebt.ethproto = proto;
-+		entry->ebt.ethproto = (__force __be16)proto;
- 		entry->ebt.invflags = inv ? EBT_IPROTO : 0;
- 		break;
+ 		if (strcmp(match->name, mt_name) == 0 &&
+-		    match->revision == rev && match->family == family)
++		    match->revision == rev && match->family == family) {
++			if (!try_module_get(match->me))
++				return ERR_PTR(-ENOENT);
++
+ 			return &nft_match->ops;
++		}
  	}
-@@ -385,7 +385,7 @@ nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	struct xt_match *match = expr->ops->data;
- 	struct xt_mtchk_param par;
- 	size_t size = XT_ALIGN(nla_len(tb[NFTA_MATCH_INFO]));
--	u8 proto = 0;
-+	u16 proto = 0;
- 	bool inv = false;
- 	union nft_entry e = {};
- 	int ret;
+ 
+ 	match = xt_request_find_match(family, mt_name, rev);
+@@ -695,8 +699,12 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 		struct xt_target *target = nft_target->ops.data;
+ 
+ 		if (strcmp(target->name, tg_name) == 0 &&
+-		    target->revision == rev && target->family == family)
++		    target->revision == rev && target->family == family) {
++			if (!try_module_get(target->me))
++				return ERR_PTR(-ENOENT);
++
+ 			return &nft_target->ops;
++		}
+ 	}
+ 
+ 	target = xt_request_find_target(family, tg_name, rev);
+-- 
+1.7.10.4
 
