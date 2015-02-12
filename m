@@ -1,66 +1,100 @@
-From: Chris Vine <chris@cvine.freeserve.co.uk>
-Subject: Re: xt_recent fails with kernel 3.19.0
-Date: Thu, 12 Feb 2015 17:04:12 +0000
-Message-ID: <20150212170412.2317d1e3@bother.homenet>
-References: <20150212102553.0bd25767@bother.homenet>
-	<20150212105145.5e0177c0@bother.homenet>
-	<20150212110931.6db17d7c@bother.homenet>
-	<20150212113643.GA13795@breakpoint.cc>
-	<20150212115202.GD22887@breakpoint.cc>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [PATCH v2] netfilter: nft_compat: fix sparse warning
+Date: Thu, 12 Feb 2015 19:23:11 +0100
+Message-ID: <20150212182218.4842.31064.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpout2.wanadoo.co.uk ([80.12.242.42]:22687 "EHLO
-	smtpout.wanadoo.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751625AbbBLRLu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Feb 2015 12:11:50 -0500
-In-Reply-To: <20150212115202.GD22887@breakpoint.cc>
+Received: from smtp3.cica.es ([150.214.5.190]:49624 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751272AbbBLSXX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 12 Feb 2015 13:23:23 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 12 Feb 2015 12:52:02 +0100
-Florian Westphal <fw@strlen.de> wrote:
-> Florian Westphal <fw@strlen.de> wrote:
-> > I'll see if we can fix this in a better way.
-> 
-> What about this, it will transparently grow the table as needed,
-> we simply have to take the lock and make sure we zap all existing
-> entries (needed since those entries don't have enough room for
-> the larger nstamp_mask entry count)?
-> 
-> diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-> --- a/net/netfilter/xt_recent.c
-> +++ b/net/netfilter/xt_recent.c
-> @@ -378,12 +378,11 @@ static int recent_mt_check(const struct
-> xt_mtchk_param *par, mutex_lock(&recent_mutex);
->  	t = recent_table_lookup(recent_net, info->name);
->  	if (t != NULL) {
-> -		if (info->hit_count > t->nstamps_max_mask) {
-> -			pr_info("hitcount (%u) is larger than packets to be remembered (%u) for table %s\n",
-> -				info->hit_count, t->nstamps_max_mask + 1,
-> -				info->name);
-> -			ret = -EINVAL;
-> -			goto out;
-> +		if (nstamp_mask > t->nstamps_max_mask) {
-> +			spin_lock_bh(&recent_lock);
-> +			recent_table_flush(t);
-> +			t->nstamps_max_mask = nstamp_mask;
-> +			spin_unlock_bh(&recent_lock);
->  		}
->  
->  		t->refcnt++;
+>> net/netfilter/nft_compat.c:140:37: sparse: incorrect type in assignment (different base types)
+   net/netfilter/nft_compat.c:140:37:    expected restricted __be16 [usertype] ethproto
+   net/netfilter/nft_compat.c:140:37:    got unsigned char [unsigned] [usertype] proto
+>> net/netfilter/nft_compat.c:351:37: sparse: incorrect type in assignment (different base types)
+   net/netfilter/nft_compat.c:351:37:    expected restricted __be16 [usertype] ethproto
+   net/netfilter/nft_compat.c:351:37:    got unsigned char [unsigned] [usertype] proto
 
-I don't know your code but forgive me for asking one thing.  The
-previous versions of this code (both in the 3.18 and 3.19 kernels)
-checked the value of hit_count for sanity.  This patch seems to be doing
-something different, and I note that nstamps_max_mask is
-unconditionally set later in recent_mt_check() anyway.
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+v2: use u16 for protocol and then cast it to __be16
 
-Can the check for the value of hit_count simply be omitted?  In what
-circumstances can it be anything other than true?
+ net/netfilter/nft_compat.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-Chris
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index c598f74..4a9c662 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -123,7 +123,7 @@ static void
+ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
+ 			   const struct nft_ctx *ctx,
+ 			   struct xt_target *target, void *info,
+-			   union nft_entry *entry, u8 proto, bool inv)
++			   union nft_entry *entry, u16 proto, bool inv)
+ {
+ 	par->net	= ctx->net;
+ 	par->table	= ctx->table->name;
+@@ -137,7 +137,7 @@ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
+ 		entry->e6.ipv6.invflags = inv ? IP6T_INV_PROTO : 0;
+ 		break;
+ 	case NFPROTO_BRIDGE:
+-		entry->ebt.ethproto = proto;
++		entry->ebt.ethproto = (__force __be16)proto;
+ 		entry->ebt.invflags = inv ? EBT_IPROTO : 0;
+ 		break;
+ 	}
+@@ -171,7 +171,7 @@ static const struct nla_policy nft_rule_compat_policy[NFTA_RULE_COMPAT_MAX + 1]
+ 	[NFTA_RULE_COMPAT_FLAGS]	= { .type = NLA_U32 },
+ };
+ 
+-static int nft_parse_compat(const struct nlattr *attr, u8 *proto, bool *inv)
++static int nft_parse_compat(const struct nlattr *attr, u16 *proto, bool *inv)
+ {
+ 	struct nlattr *tb[NFTA_RULE_COMPAT_MAX+1];
+ 	u32 flags;
+@@ -203,7 +203,7 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	struct xt_target *target = expr->ops->data;
+ 	struct xt_tgchk_param par;
+ 	size_t size = XT_ALIGN(nla_len(tb[NFTA_TARGET_INFO]));
+-	u8 proto = 0;
++	u16 proto = 0;
+ 	bool inv = false;
+ 	union nft_entry e = {};
+ 	int ret;
+@@ -334,7 +334,7 @@ static const struct nla_policy nft_match_policy[NFTA_MATCH_MAX + 1] = {
+ static void
+ nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
+ 			  struct xt_match *match, void *info,
+-			  union nft_entry *entry, u8 proto, bool inv)
++			  union nft_entry *entry, u16 proto, bool inv)
+ {
+ 	par->net	= ctx->net;
+ 	par->table	= ctx->table->name;
+@@ -348,7 +348,7 @@ nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
+ 		entry->e6.ipv6.invflags = inv ? IP6T_INV_PROTO : 0;
+ 		break;
+ 	case NFPROTO_BRIDGE:
+-		entry->ebt.ethproto = proto;
++		entry->ebt.ethproto = (__force __be16)proto;
+ 		entry->ebt.invflags = inv ? EBT_IPROTO : 0;
+ 		break;
+ 	}
+@@ -385,7 +385,7 @@ nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	struct xt_match *match = expr->ops->data;
+ 	struct xt_mtchk_param par;
+ 	size_t size = XT_ALIGN(nla_len(tb[NFTA_MATCH_INFO]));
+-	u8 proto = 0;
++	u16 proto = 0;
+ 	bool inv = false;
+ 	union nft_entry e = {};
+ 	int ret;
+
