@@ -1,532 +1,235 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [arpt-compat PATCH] arptables-compat: add mangle target extension
-Date: Fri, 13 Feb 2015 11:38:02 +0100
-Message-ID: <20150213103801.31735.70857.stgit@nfdev.cica.es>
+From: Josh Hunt <johunt@akamai.com>
+Subject: softlockups when trying to restore an nft set of 1M entries
+Date: Fri, 13 Feb 2015 05:59:19 -0600
+Message-ID: <54DDE717.6090703@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Thomas Graf <tgraf@suug.ch>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:40304 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752390AbbBMKiT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Feb 2015 05:38:19 -0500
+Received: from prod-mail-xrelay02.akamai.com ([72.246.2.14]:43099 "EHLO
+	prod-mail-xrelay02.akamai.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752303AbbBML7V (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 13 Feb 2015 06:59:21 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds support to use the mangle target extensions, along with
-the required changes in the surrounding code.
+In my testing of nftables sets for our netdev bof discussion I came=20
+across this problem where if I try and do a set restore of 1M entries=20
+the machine gets into a softlockup state. Once this is triggered the=20
+system has to be rebooted.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- extensions/GNUmakefile.in         |   46 +++++++-
- extensions/libarpt_mangle.c       |  204 +++++++++++++++++++++++++++++++++++++
- iptables/nft-arp.c                |   23 ++--
- iptables/xtables-arp-standalone.c |   30 +----
- iptables/xtables-arp.c            |   13 ++
- libxtables/xtables.c              |   13 ++
- 6 files changed, 284 insertions(+), 45 deletions(-)
- create mode 100644 extensions/libarpt_mangle.c
+I can trigger the case by generating a simple nft rules file which=20
+defines a set of type ipv4_addr. Something like this:
 
-diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index 9eb4bf9..4e94bd0 100644
---- a/extensions/GNUmakefile.in
-+++ b/extensions/GNUmakefile.in
-@@ -40,19 +40,23 @@ endif
- #
- pfx_build_mod := $(patsubst ${srcdir}/libxt_%.c,%,$(sort $(wildcard ${srcdir}/libxt_*.c)))
- pfb_build_mod := $(patsubst ${srcdir}/libebt_%.c,%,$(sort $(wildcard ${srcdir}/libebt_*.c)))
-+pfa_build_mod := $(patsubst ${srcdir}/libarpt_%.c,%,$(sort $(wildcard ${srcdir}/libarpt_*.c)))
- pfx_symlinks  := NOTRACK state
- @ENABLE_IPV4_TRUE@ pf4_build_mod := $(patsubst ${srcdir}/libipt_%.c,%,$(sort $(wildcard ${srcdir}/libipt_*.c)))
- @ENABLE_IPV6_TRUE@ pf6_build_mod := $(patsubst ${srcdir}/libip6t_%.c,%,$(sort $(wildcard ${srcdir}/libip6t_*.c)))
- pfx_build_mod := $(filter-out @blacklist_modules@,${pfx_build_mod})
- pfb_build_mod := $(filter-out @blacklist_modules@,${pfb_build_mod})
-+pfa_build_mod := $(filter-out @blacklist_modules@,${pfa_build_mod})
- pf4_build_mod := $(filter-out @blacklist_modules@,${pf4_build_mod})
- pf6_build_mod := $(filter-out @blacklist_modules@,${pf6_build_mod})
- pfx_objs      := $(patsubst %,libxt_%.o,${pfx_build_mod})
- pfb_objs      := $(patsubst %,libebt_%.o,${pfb_build_mod})
-+pfa_objs      := $(patsubst %,libarpt_%.o,${pfa_build_mod})
- pf4_objs      := $(patsubst %,libipt_%.o,${pf4_build_mod})
- pf6_objs      := $(patsubst %,libip6t_%.o,${pf6_build_mod})
- pfx_solibs    := $(patsubst %,libxt_%.so,${pfx_build_mod} ${pfx_symlinks})
- pfb_solibs    := $(patsubst %,libebt_%.so,${pfb_build_mod})
-+pfa_solibs    := $(patsubst %,libarpt_%.so,${pfa_build_mod})
- pf4_solibs    := $(patsubst %,libipt_%.so,${pf4_build_mod})
- pf6_solibs    := $(patsubst %,libip6t_%.so,${pf6_build_mod})
- 
-@@ -60,14 +64,15 @@ pf6_solibs    := $(patsubst %,libip6t_%.so,${pf6_build_mod})
- #
- # Building blocks
- #
--targets := libext.a libext4.a libext6.a libext_ebt.a matches.man targets.man
-+targets := libext.a libext4.a libext6.a libext_ebt.a libext_arpt.a matches.man targets.man
- targets_install :=
- @ENABLE_STATIC_TRUE@ libext_objs := ${pfx_objs}
- @ENABLE_STATIC_TRUE@ libext_ebt_objs := ${pfb_objs}
-+@ENABLE_STATIC_TRUE@ libext_arpt_objs := ${pfa_objs}
- @ENABLE_STATIC_TRUE@ libext4_objs := ${pf4_objs}
- @ENABLE_STATIC_TRUE@ libext6_objs := ${pf6_objs}
--@ENABLE_STATIC_FALSE@ targets += ${pfx_solibs} ${pfb_solibs} ${pf4_solibs} ${pf6_solibs}
--@ENABLE_STATIC_FALSE@ targets_install += ${pfx_solibs} ${pfb_solibs} ${pf4_solibs} ${pf6_solibs}
-+@ENABLE_STATIC_FALSE@ targets += ${pfx_solibs} ${pfb_solibs} ${pf4_solibs} ${pf6_solibs} ${pfa_solibs}
-+@ENABLE_STATIC_FALSE@ targets_install += ${pfx_solibs} ${pfb_solibs} ${pf4_solibs} ${pf6_solibs} ${pfa_solibs}
- 
- .SECONDARY:
- 
-@@ -80,7 +85,7 @@ install: ${targets_install}
- 	if test -n "${targets_install}"; then install -pm0755 $^ "${DESTDIR}${xtlibdir}/"; fi;
- 
- clean:
--	rm -f *.o *.oo *.so *.a {matches,targets}.man initext.c initext4.c initext6.c initextb.c;
-+	rm -f *.o *.oo *.so *.a {matches,targets}.man initext.c initext4.c initext6.c initextb.c initexta.c;
- 	rm -f .*.d .*.dd;
- 
- distclean: clean
-@@ -126,6 +131,9 @@ libext.a: initext.o ${libext_objs}
- libext_ebt.a: initextb.o ${libext_ebt_objs}
- 	${AM_VERBOSE_AR} ${AR} crs $@ $^;
- 
-+libext_arpt.a: initexta.o ${libext_arpt_objs}
-+	${AM_VERBOSE_AR} ${AR} crs $@ $^;
-+
- libext4.a: initext4.o ${libext4_objs}
- 	${AM_VERBOSE_AR} ${AR} crs $@ $^;
- 
-@@ -134,6 +142,7 @@ libext6.a: initext6.o ${libext6_objs}
- 
- initext_func  := $(addprefix xt_,${pfx_build_mod})
- initextb_func := $(addprefix ebt_,${pfb_build_mod})
-+initexta_func := $(addprefix arpt_,${pfa_build_mod})
- initext4_func := $(addprefix ipt_,${pf4_build_mod})
- initext6_func := $(addprefix ip6t_,${pf6_build_mod})
- 
-@@ -147,6 +156,11 @@ initext6_func := $(addprefix ip6t_,${pf6_build_mod})
- 	cmp -s $@ $@.tmp || mv $@.tmp $@; \
- 	rm -f $@.tmp;
- 
-+.initexta.dd: FORCE
-+	@echo "${initexta_func}" >$@.tmp; \
-+	cmp -s $@ $@.tmp || mv $@.tmp $@; \
-+	rm -f $@.tmp;
-+
- .initext4.dd: FORCE
- 	@echo "${initext4_func}" >$@.tmp; \
- 	cmp -s $@ $@.tmp || mv $@.tmp $@; \
-@@ -189,6 +203,22 @@ initextb.c: .initextb.dd
- 	echo "}" >>$@; \
- 	);
- 
-+initexta.c: .initexta.dd
-+	${AM_VERBOSE_GEN}
-+	@( \
-+	echo "" >$@; \
-+	for i in ${initexta_func}; do \
-+		echo "extern void lib$${i}_init(void);" >>$@; \
-+	done; \
-+	echo "void init_extensionsa(void);" >>$@; \
-+	echo "void init_extensionsa(void)" >>$@; \
-+	echo "{" >>$@; \
-+	for i in ${initexta_func}; do \
-+		echo  " ""lib$${i}_init();" >>$@; \
-+	done; \
-+	echo "}" >>$@; \
-+	);
-+
- initext4.c: .initext4.dd
- 	${AM_VERBOSE_GEN}
- 	@( \
-@@ -249,8 +279,8 @@ man_run    = \
- 		fi; \
- 	done >$@;
- 
--matches.man: .initext.dd .initextb.dd .initext4.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
--	$(call man_run,$(call ex_matches,${pfx_build_mod} ${pfb_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
-+matches.man: .initext.dd .initextb.dd .initexta.dd .initext4.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
-+	$(call man_run,$(call ex_matches,${pfx_build_mod} ${pfb_build_mod} ${pfa_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
- 
--targets.man: .initext.dd .initext4.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
--	$(call man_run,$(call ex_targets,${pfx_build_mod} ${pfb_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
-+targets.man: .initext.dd .initextb.dd .initexta.dd .initext4.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
-+	$(call man_run,$(call ex_targets,${pfx_build_mod} ${pfb_build_mod} ${pfa_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
-diff --git a/extensions/libarpt_mangle.c b/extensions/libarpt_mangle.c
-new file mode 100644
-index 0000000..03c31a9
---- /dev/null
-+++ b/extensions/libarpt_mangle.c
-@@ -0,0 +1,204 @@
-+/*
-+ * Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> adapted
-+ * this code to libxtables for arptables-compat in 2015
-+ */
-+
-+#include <stdio.h>
-+#include <netdb.h>
-+#include <string.h>
-+#include <stdlib.h>
-+#include <limits.h>
-+#include <getopt.h>
-+#include <netinet/ether.h>
-+#include <xtables.h>
-+#include <linux/netfilter_arp/arpt_mangle.h>
-+#include "iptables/nft.h"
-+#include "iptables/nft-arp.h"
-+
-+static void arpmangle_print_help(void)
-+{
-+	printf(
-+	"mangle target options:\n"
-+	"--mangle-ip-s IP address\n"
-+	"--mangle-ip-d IP address\n"
-+	"--mangle-mac-s MAC address\n"
-+	"--mangle-mac-d MAC address\n"
-+	"--mangle-target target (DROP, CONTINUE or ACCEPT -- default is ACCEPT)\n");
-+}
-+
-+#define MANGLE_IPS    '1'
-+#define MANGLE_IPT    '2'
-+#define MANGLE_DEVS   '3'
-+#define MANGLE_DEVT   '4'
-+#define MANGLE_TARGET '5'
-+
-+static struct option arpmangle_opts[] = {
-+	{ .name = "mangle-ip-s",	.has_arg = true, .val = MANGLE_IPS },
-+	{ .name = "mangle-ip-d",	.has_arg = true, .val = MANGLE_IPT },
-+	{ .name = "mangle-mac-s",	.has_arg = true, .val = MANGLE_DEVS },
-+	{ .name = "mangle-mac-d",	.has_arg = true, .val = MANGLE_DEVT },
-+	{ .name = "mangle-target",	.has_arg = true, .val = MANGLE_TARGET },
-+	XT_GETOPT_TABLEEND,
-+};
-+
-+static void arpmangle_init(struct xt_entry_target *target)
-+{
-+	struct arpt_mangle *mangle = (struct arpt_mangle *)target->data;
-+
-+	mangle->target = NF_ACCEPT;
-+}
-+
-+static int
-+arpmangle_parse(int c, char **argv, int invert, unsigned int *flags,
-+		const void *entry, struct xt_entry_target **target)
-+{
-+	struct arpt_mangle *mangle = (struct arpt_mangle *)(*target)->data;
-+	struct in_addr *ipaddr, mask;
-+	struct ether_addr *macaddr;
-+	const struct arpt_entry *e = (const struct arpt_entry *)entry;
-+	unsigned int nr;
-+	int ret = 1;
-+
-+	memset(&mask, 0, sizeof(mask));
-+
-+	switch (c) {
-+	case MANGLE_IPS:
-+		xtables_ipparse_any(optarg, &ipaddr, &mask, &nr);
-+		mangle->u_s.src_ip.s_addr = ipaddr->s_addr;
-+		free(ipaddr);
-+		mangle->flags |= ARPT_MANGLE_SIP;
-+		break;
-+	case MANGLE_IPT:
-+		xtables_ipparse_any(optarg, &ipaddr, &mask, &nr);
-+		mangle->u_t.tgt_ip.s_addr = ipaddr->s_addr;
-+		free(ipaddr);
-+		mangle->flags |= ARPT_MANGLE_TIP;
-+		break;
-+	case MANGLE_DEVS:
-+		if (e->arp.arhln_mask == 0)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "no --h-length defined");
-+		if (e->arp.invflags & ARPT_INV_ARPHLN)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "! --h-length not allowed for "
-+				      "--mangle-mac-s");
-+		if (e->arp.arhln != 6)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "only --h-length 6 supported");
-+		macaddr = ether_aton(optarg);
-+		if (macaddr == NULL)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "invalid source MAC");
-+		memcpy(mangle->src_devaddr, macaddr, e->arp.arhln);
-+		mangle->flags |= ARPT_MANGLE_SDEV;
-+		break;
-+	case MANGLE_DEVT:
-+		if (e->arp.arhln_mask == 0)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "no --h-length defined");
-+		if (e->arp.invflags & ARPT_INV_ARPHLN)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "! hln not allowed for --mangle-mac-d");
-+		if (e->arp.arhln != 6)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "only --h-length 6 supported");
-+		macaddr = ether_aton(optarg);
-+		if (macaddr == NULL)
-+			xtables_error(PARAMETER_PROBLEM, "invalid target MAC");
-+		memcpy(mangle->tgt_devaddr, macaddr, e->arp.arhln);
-+		mangle->flags |= ARPT_MANGLE_TDEV;
-+		break;
-+	case MANGLE_TARGET:
-+		if (!strcmp(optarg, "DROP"))
-+			mangle->target = NF_DROP;
-+		else if (!strcmp(optarg, "ACCEPT"))
-+			mangle->target = NF_ACCEPT;
-+		else if (!strcmp(optarg, "CONTINUE"))
-+			mangle->target = XT_CONTINUE;
-+		else
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "bad target for --mangle-target");
-+		break;
-+	default:
-+		ret = 0;
-+	}
-+
-+	return ret;
-+}
-+
-+static void arpmangle_final_check(unsigned int flags)
-+{
-+}
-+
-+static void print_mac(const unsigned char *mac, int l)
-+{
-+	int j;
-+
-+	for (j = 0; j < l; j++)
-+		printf("%02x%s", mac[j],
-+			(j==l-1) ? "" : ":");
-+}
-+
-+static void
-+arpmangle_print(const void *ip, const struct xt_entry_target *target,
-+		int numeric)
-+{
-+	struct arpt_mangle *m = (struct arpt_mangle *)(target->data);
-+	char buf[100];
-+
-+	if (m->flags & ARPT_MANGLE_SIP) {
-+		if (numeric)
-+			sprintf(buf, "%s",
-+				xtables_ipaddr_to_numeric(&(m->u_s.src_ip)));
-+		else
-+			sprintf(buf, "%s",
-+				xtables_ipaddr_to_anyname(&(m->u_s.src_ip)));
-+		printf("--mangle-ip-s %s ", buf);
-+	}
-+	if (m->flags & ARPT_MANGLE_SDEV) {
-+		printf("--mangle-mac-s ");
-+		print_mac((unsigned char *)m->src_devaddr, 6);
-+		printf(" ");
-+	}
-+	if (m->flags & ARPT_MANGLE_TIP) {
-+		if (numeric)
-+			sprintf(buf, "%s",
-+				xtables_ipaddr_to_numeric(&(m->u_t.tgt_ip)));
-+		else
-+			sprintf(buf, "%s",
-+				xtables_ipaddr_to_anyname(&(m->u_t.tgt_ip)));
-+		printf("--mangle-ip-d %s ", buf);
-+	}
-+	if (m->flags & ARPT_MANGLE_TDEV) {
-+		printf("--mangle-mac-d ");
-+		print_mac((unsigned char *)m->tgt_devaddr, 6);
-+		printf(" ");
-+	}
-+	if (m->target != NF_ACCEPT) {
-+		printf("--mangle-target ");
-+		if (m->target == NF_DROP)
-+			printf("DROP ");
-+		else
-+			printf("CONTINUE ");
-+	}
-+}
-+
-+static struct xtables_target arpmangle_target = {
-+	.name		= "mangle",
-+	.revision	= 0,
-+	.version	= XTABLES_VERSION,
-+	.family		= NFPROTO_ARP,
-+	.size		= XT_ALIGN(sizeof(struct arpt_mangle)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct arpt_mangle)),
-+	.help		= arpmangle_print_help,
-+	.init		= arpmangle_init,
-+	.parse		= arpmangle_parse,
-+	.final_check	= arpmangle_final_check,
-+	.print		= arpmangle_print,
-+	.extra_opts	= arpmangle_opts,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_target(&arpmangle_target);
-+}
-diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
-index 24b31c5..d51aa8a 100644
---- a/iptables/nft-arp.c
-+++ b/iptables/nft-arp.c
-@@ -402,12 +402,13 @@ void nft_rule_to_arptables_command_state(struct nft_rule *r,
- 
- 	nft_rule_expr_iter_destroy(iter);
- 
--	if (cs->target != NULL)
--		cs->jumpto = cs->target->name;
--	else if (cs->jumpto != NULL)
--		cs->target = xtables_find_target(cs->jumpto, XTF_TRY_LOAD);
-+	if (cs->jumpto != NULL)
-+		return;
-+
-+	if (cs->target != NULL && cs->target->name != NULL)
-+		cs->target = xtables_find_target(cs->target->name, XTF_TRY_LOAD);
- 	else
--		cs->jumpto = "";
-+		cs->jumpto = "CONTINUE";
- }
- 
- static void nft_arp_print_header(unsigned int format, const char *chain,
-@@ -585,13 +586,13 @@ nft_arp_print_firewall(struct nft_rule *r, unsigned int num,
- 
- 	print_fw_details(&cs.fw, format);
- 
--	if (strlen(cs.jumpto) > 0) {
--		printf("-j %s\n", cs.jumpto);
-+	printf("-j ");
-+
-+	if (cs.jumpto != NULL) {
-+		printf("%s", cs.jumpto);
- 	} else if (cs.target) {
--		if (cs.target->print)
--			/* Print the target information. */
--			cs.target->print(&cs.fw, cs.target->t,
--					 format & FMT_NUMERIC);
-+		printf("%s ", cs.target->name);
-+		cs.target->print(&cs.fw, cs.target->t, format & FMT_NUMERIC);
- 	}
- 
- 	if (!(format & FMT_NOCOUNTS)) {
-diff --git a/iptables/xtables-arp-standalone.c b/iptables/xtables-arp-standalone.c
-index 182dd9f..6553d28 100644
---- a/iptables/xtables-arp-standalone.c
-+++ b/iptables/xtables-arp-standalone.c
-@@ -41,18 +41,7 @@
- 
- #include "xtables-multi.h"
- 
--extern struct xtables_globals xtables_globals;
--extern const char *program_version, *program_name;
--
--static const struct xtables_afinfo afinfo_arp = {
--        .kmod          = "arp_tables",
--        .proc_exists   = "/proc/net/arp_tables_names",
--        .libprefix     = "libarp_",
--        .family        = NFPROTO_ARP,
--        .ipproto       = IPPROTO_IP,
--        .so_rev_match  = -1,
--        .so_rev_target = -1,
--};
-+extern struct xtables_globals arptables_globals;
- 
- int xtables_arp_main(int argc, char *argv[])
- {
-@@ -62,22 +51,17 @@ int xtables_arp_main(int argc, char *argv[])
- 		.family = NFPROTO_ARP,
- 	};
- 
--	xtables_globals.program_name = "arptables";
--	/* This code below could be replaced by xtables_init_all, which
--	 * doesn't support NFPROTO_ARP yet.
--	 */
--	xtables_init();
--	afinfo = &afinfo_arp;
--	ret = xtables_set_params(&xtables_globals);
-+	arptables_globals.program_name = "arptables";
-+	ret = xtables_init_all(&arptables_globals, NFPROTO_ARP);
- 	if (ret < 0) {
--		fprintf(stderr, "%s/%s Failed to initialize xtables\n",
--				xtables_globals.program_name,
--				xtables_globals.program_version);
-+		fprintf(stderr, "%s/%s Failed to initialize arptables-compat\n",
-+			arptables_globals.program_name,
-+			arptables_globals.program_version);
- 		exit(1);
- 	}
- 
- #if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
--	init_extensions();
-+	init_extensionsa();
- #endif
- 
- 	ret = do_commandarp(&h, argc, argv, &table);
-diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
-index c92b9e7..20b987f 100644
---- a/iptables/xtables-arp.c
-+++ b/iptables/xtables-arp.c
-@@ -44,6 +44,7 @@
- #include <sys/wait.h>
- #include <net/if.h>
- #include <netinet/ether.h>
-+#include <iptables.h>
- #include <xtables.h>
- 
- #include "xshared.h"
-@@ -152,7 +153,13 @@ static struct option *opts = original_opts;
- static unsigned int global_option_offset = 0;
- 
- extern void xtables_exit_error(enum xtables_exittype status, const char *msg, ...);
--extern struct xtables_globals xtables_globals;
-+struct xtables_globals arptables_globals = {
-+	.option_offset		= 0,
-+	.program_version	= IPTABLES_VERSION,
-+	.orig_opts		= original_opts,
-+	.exit_err		= xtables_exit_error,
-+	.compat_rev		= nft_compatible_revision,
-+};
- 
- /* Table of legal combinations of commands and options.  If any of the
-  * given commands make an option legal, that option is legal (applies to
-@@ -833,11 +840,11 @@ static struct xtables_target *command_jump(struct arpt_entry *fw,
- 	xs_init_target(target);
- 
- 	if (target->x6_options != NULL)
--		opts = xtables_options_xfrm(xtables_globals.orig_opts,
-+		opts = xtables_options_xfrm(arptables_globals.orig_opts,
- 					    opts, target->x6_options,
- 					    &target->option_offset);
- 	else
--		opts = xtables_merge_options(xtables_globals.orig_opts,
-+		opts = xtables_merge_options(arptables_globals.orig_opts,
- 					     opts, target->extra_opts,
- 					     &target->option_offset);
- 
-diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-index 16e4d96..0200c7a 100644
---- a/libxtables/xtables.c
-+++ b/libxtables/xtables.c
-@@ -178,6 +178,16 @@ static const struct xtables_afinfo afinfo_bridge = {
- 	.so_rev_target = -1,
- };
- 
-+static const struct xtables_afinfo afinfo_arp = {
-+	.kmod          = "arp_tables",
-+	.proc_exists   = "/proc/net/eb_tables_names",
-+	.libprefix     = "libarpt_",
-+	.family        = NFPROTO_ARP,
-+	.ipproto       = IPPROTO_IP,
-+	.so_rev_match  = -1,
-+	.so_rev_target = -1,
-+};
-+
- const struct xtables_afinfo *afinfo;
- 
- /* Search path for Xtables .so files */
-@@ -237,6 +247,9 @@ void xtables_set_nfproto(uint8_t nfproto)
- 	case NFPROTO_BRIDGE:
- 		afinfo = &afinfo_bridge;
- 		break;
-+	case NFPROTO_ARP:
-+		afinfo = &afinfo_arp;
-+		break;
- 	default:
- 		fprintf(stderr, "libxtables: unhandled NFPROTO in %s\n",
- 		        __func__);
+flush ruleset
+table ip filter {
+         set blackhole {
+                 type ipv4_addr
+         }
+         chain input {
+                  type filter hook input priority 0;
+         }
 
+         chain forward {
+                  type filter hook forward priority 0;
+         }
+
+         chain output {
+                  type filter hook output priority 0;
+         }
+}
+
+except inside the set definition above I add 1M random ipv4 addresses.=20
+Running "nft -f <filename>" will reproduce the problem. I also saw this=
+=20
+when trying to do a restore of 250k entries.
+
+There are a few problems going on from what I can tell. The first is
+the set defaults to 4 buckets and during restores the # of buckets does=
+=20
+not increase. I'm currently investigating to understand why we don't=20
+expand the set on restores. However my guess into why we're=20
+softlockuping here is that we're trying to shove 1M entries into 4=20
+buckets :)
+
+Second, the user has no way to tune the # of initial buckets. My=20
+patchset "nft hash set expansion fixes" fixes this. If I tune the hash=20
+to use a reasonable # of buckets for 1M entries. I do not see the=20
+softlockup problem.
+
+I ran these tests using the current net-next.
+
+Here's some of the softlockup output. Let me know if you'd like more=20
+info, etc.
+
+[  328.092675] NMI watchdog: BUG: soft lockup - CPU#4 stuck for 22s!=20
+[nft:3921]
+[  328.100185] Modules linked in: nft_hash nft_rbtree nf_tables_ipv4=20
+nf_tables nfnetlink iptable_filter ip_tables x_tables dm_crypt=20
+ipmi_devintf ipmi_msghandler i2c_dev ipv6 coretemp hwmon bnx2x ptp=20
+pps_core i2c_i801 lpc_ich i2c_core mfd_core crc32c_generic crc32c_intel=
+=20
+ie31200_edac libcrc32c edac_core mdio ext4 jbd2 crc16 raid10 raid456=20
+async_raid6_recov async_pq rai=EF=BF=BD6_pq async_xor xor async_memcpy =
+async_tx=20
+raid1 raid0 linear md_mod dm_mod ahci libahci libata mpt2sas=20
+scsi_transport_sas raid_class
+[  328.151902] CPU: 4 PID: 3921 Comm: nft Not tainted 3.19.0-rc7+ #28
+[  328.158542] Hardware name: CIARA TECHNOLOGIES 1X8-X6 SSD 16G=20
+10GE/S5530WG2NR-LE-2T-AKA, BIOS 7.008 14/04/2014
+[  328.169289] task: ffff880407266210 ti: ffff880400ff0000 task.ti:=20
+ffff880400ff0000
+[  328.177609] RIP: 0010:[<ffffffff8134dd41>]  [<ffffffff8134dd41>]=20
+memcmp+0x11/0x50
+[  328.186043] RSP: 0018:ffff880400ff38d8  EFLAGS: 00000202
+[  328.191811] RAX: 00000000000000f4 RBX: ffff88040f000340 RCX:=20
+00000000000000e3
+[  328.199407] RDX: 0000000000000004 RSI: ffff880400ff39f0 RDI:=20
+ffff8803f37ce7e8
+[  328.207000] RBP: ffff880400ff38d8 R08: 00000000000000d9 R09:=20
+00000000ffffffdf
+[  328.214593] R10: 0000000000000015 R11: dead000000100100 R12:=20
+000412d000000010
+[  328.222189] R13: 00000040=EF=BF=BD000000b R14: ffffffff000492d0 R15:=
+=20
+ffff880400ff3928
+[  328.229781] FS:  00007f7ddf1d6700(0000) GS:ffff88041fd00000(0000)=20
+knlGS:0000000000000000
+[  328.238709] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  328.244909] CR2: 00007f3b0d890000 CR3: 000000040ae41000 CR4:=20
+00000000001407e0
+[  328.252505] DR0: 0000000000000000 DR1: 0000000000000000 DR2:=20
+0000000000000000
+[  328.260100] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7:=20
+0000000000000400
+[  328.267692] Stack:
+[  328.270171]  ffff880400ff3908 ffffffffa056160a ffff880400ff38f8=20
+ffff8800379b2290
+[  328.278805]  ffffffffa05615d0 ffff880400ff3968 ffff880400ff3958=20
+ffffffff8135a25d
+[  328.287437]  ffff88040c86a300 0495cff0a054a125 0000000000000000=20
+ffff8800379b2200
+[  328.296070] Call Trace:
+[  328.298983]  [<ffffffffa056160a>] nft_hash_compare+0x3a/0x88 [nft_ha=
+sh]
+[  328.306054]  [<ffffffffa05615d0>] ? nft_hash_lookup+0x60/0x60 [nft_h=
+ash]
+[  328.313218]  [<ffffffff8135a25d>] rhashtable_lookup_compare+0x6d/0xb=
+0
+[  328.320118]  [<ffffffffa0561560>] nft_has=EF=BF=BD_get+0x30/0x40 [nf=
+t_hash]
+[  328.326846]  [<ffffffffa054a4d4>] nft_add_set_elem+0x164/0x3b0=20
+[nf_tables]
+[  328.334180]  [<ffffffffa0546fdc>] ? nft_trans_set_add+0x2c/0xa0=20
+[nf_tables]
+[  328.341602]  [<ffffffffa0561000>] ? 0xffffffffa0561000
+[  328.347205]  [<ffffffffa054d85f>] ? nf_tables_newset+0x7df/0x8d0=20
+[nf_tables]
+[  328.354711]  [<ffffffff8136ca52>] ? nla_strcmp+0x42/0x50
+[  328.360489]  [<ffffffffa0546b14>] ? nf_tables_table_lookup+0x44/0x80=
+=20
+[nf_tables]
+[  328.368723]  [<ffffffffa054da1e>] nf_tables_newsetelem+0xce/0x170=20
+[nf_tables]
+[  328.376316]  [<ffffffffa054093c>] nfnetlink_rcv_batch+0x33c/0x430=20
+[nfnetlink]
+[  328.383913]  [<ffffffffa05406ed>] ? nfnetlink_rcv_batch+0xed/0x430=20
+[nfnetlink]
+[  328.391974]  [<ffffffffa0540abf>] nfnetlink_rcv+0x8f/0xc8 [nfnetlink=
+]
+[  328.398876]  [<ffffffff81568a92>] netlink_unicast+0x182/0x210
+[  328.405082]  [<ffffffff81568f58>] netlink_sendmsg+0x378/0x3e0
+[  328.411295]  [<ffffffff8151ec2f>] do_sock_sendmsg+0x8f/0xa0
+[  328.417327]  [<ffffffff8151ec50>] sock_sendmsg+0x10/0x20
+[  328.423097]  [<ffffffff81521655>] ___sys_sendmsg+0x315/0x330
+[  328.429216]  [<ffffffff810daacc>] ? acct_account_cputime+0x1c/0x20
+[  328.435859]  [<ffffffff81078f5d>] ? account_system_time+0x9d/0x190
+[  328.442502]  [<ffffffff81078a55>] ? local_clock+0x25/0x30
+[  328.448364]  [<ffffffff8109faf8>] ? rcu_eqs_enter+0x68/0x90
+[  328.454399]  [<ffffffff810daacc>] ? acct_account_cputime+0x1c/0x20
+[  328.461042]  [<ffffffff81078eb1>] ? account_user_time+0x91/0xa0
+[  328.467423]  [<ffffffff81522469>] __sys_sendmsg+0x49/0x90
+[  328.473287]  [<ffffffff81616dfd>] ? int_check_syscall_exit_work+0x34=
+/0x3d
+[  328.480534]  [<ffffffff815224c9>] SyS_sendmsg+0x19/0x20
+[  328.486223]  [<ffffffff81616bd2>] system_call_fastpath+0x12/0x17
+[  328.492690] Code: c3 66 0f 1f 84 00 00 00 00 00 31 c0 c6 06 00 5d c3=
+=20
+66 0f 1f 84 00 00 00 00 00 55 31 c0 48 85 d2 48 89 e5 74 2f 0f b6 07 0f=
+=20
+b6 0e <29> c8 75 25 48 83 ea 01 31 c9 eb 18 0f 1f 00 44 0f b6 4c 0f 01
+[  331.718616] INFO: rcu_sched self-detected stall on CPU[  331.720614]=
+=20
+INFO: rcu_sched detected stalls on CPUs/tasks: { 4} (detected by 0,=20
+t=3D30002 jiffies, g=3D6997, c=3D6996, q=3D0)
+[  331.720617] Task dump for CPU 4:
+[  331.720618] nft             R  running task        0  3921   3876=20
+0x00080008
+[  331.720620]  ffff88041fffad80 000000000001a5e8 000000000000003e=20
+000000000000003f
+[  331.720621]  0000000000000000 ffff8803f41ac000 ffff88040f000340=20
+0000000000000000
+[  331.720622]  0000000000000000 ffff88040f0012c0 ffff88040f000340=20
+ffff880400ff3818
+[  331.720623] Call Trace:
+[  331.720625]  [<ffffffff8116d593>] ? kmem_getpages+0xb3/0x110
+[  331.720629]  [<ffffffff8116ec26>] ? cache_grow+0x146/0x210
+[  331.720630]  [<ffffffff8134dd3e>] ? memcmp+0xe/0x50
+[  331.720634]  [<ffffffff8136ccf0>] ? nla_parse+0x90/0x110
+[  331.720636]  [<ffffffffa056160a>] ? nft_hash_compare+0x3a/0x88 [nft_=
+hash]
+[  331.720638]  [<ffffffffa05615d0>] ? nft_hash_lookup+0x60/0x60 [nft_h=
+ash]
+[  331.720639]  [<ffffffff8135a25d>] ? rhashtable_lookup_compare+0x6d/0=
+xb0
+[  331.720641]  [<ffffffffa0=EF=BF=BD61560>] ? nf=EF=BF=BD_hash_get+0x3=
+0/0x40 [nft_hash]
+[  331.720642]  [<ffffffffa054a4d4>] ? nft_add_set_elem+0x164/0x3b0=20
+[nf_tables]
+[  331.720645]  [<ffffffffa0546fdc>] ? nft_trans_set_add+0x2c/0xa0=20
+[nf_tables]
+[  331.720647]  [<ffffffffa0561000>] ? 0xffffffffa0561000
+[  331.720654]  [<ffffffffa054d85f>] ? nf_tables_newset+0x7df/0x8d0=20
+[nf_tables]
+[  331.720656]  [<ffffffff8136ca52>] ? nla_strcmp+0x42/0x50
+[  331.720657]  [<ffffffffa0546b14>] ? nf_tables_table_lookup+0x44/0x80=
+=20
+[nf_tables]
+[  331.720659]  [<ffffffffa054da1e>] ? nf_tables_newsetelem+0xce/0x170=20
+[nf_tables]
+[  331.720661]  [<ffffffffa054093c>] ? nfnetlink_rcv_atch+0x33c/0x430=20
+[nfnetlink]
+[  331.720663]  [<ffffffffa05406ed>] ? nfnetlink_rcv_batch+0xed/0x430=20
+[nfnetlink]
+[  331.720664]  [<ffffffffa0540abf>] ? nfnetlink_rcv+0x8f/0xc8 [nfnetli=
+nk]
+[  331.720665]  [<ffffffff81568a92>] ? netlink_unicast+0x182/0x210
+[  331.720668]  [<ffffffff81568f58>] ? netlink_sendmsg+0x378/0x3e0
+[  331.720670]  [<ffffffff8151ec2f>] ? do_sock_sendmsg+0x8f/0xa0
+[  331.720672]  [<ffffffff8151ec50>] ? sock_sendmsg+0x10/0x20
+[  331.720673]  [<ffffffff81521655>] ? ___sys_sendmsg+0x315/0x330
+[  331.720675]  [<ffffffff810daacc>] ? acct_account_cputime+0x1c/0x20
+[  331.720677]  [<ffffffff81078f5d>] ? account_system_time+0x9d/0x190
+[  331.720679]  [<ffffffff81078a55>] ? local_clock+0x25/0x30
+[  331.720680]  [<ffffffff8109faf8>] ? rcu_eqs_enter+0x68/0x90
+[  331.720683]  [<ffffffff810daacc>] ? acct_account_cputime+0x1c/0x20
+[  331.720684]  [<ffffffff81078eb1>] ? account_user_time+0x91/0xa0
+[  331.720685]  [<ffffffff81522469>] ? __sys_sendmsg+0x49/0x90
+[  331.720687]  [<ffffffff81616dfd>] ? int_check_syscall_exit_work+0x34=
+/0x3d
+[  331.720690]  [<ffffffff815224c9>] ? SyS_sendmsg+0x19/0x20
+[  331.720691]  [<ffffffff81616bd2>] ? system_call_fastpath+0x12/0x17
+
+Thanks
+Josh
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
