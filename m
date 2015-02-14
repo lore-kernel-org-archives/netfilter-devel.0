@@ -1,85 +1,41 @@
-From: Cong Wang <cwang@twopensource.com>
+From: Thomas Graf <tgraf@suug.ch>
 Subject: Re: softlockups when trying to restore an nft set of 1M entries
-Date: Fri, 13 Feb 2015 15:21:43 -0800
-Message-ID: <CAHA+R7NMD4nUoQoo5o7jQT1w0pGLP4dWhWyjzeYGH6YwXqcjZw@mail.gmail.com>
+Date: Sat, 14 Feb 2015 04:32:10 +0000
+Message-ID: <20150214043210.GA16393@casper.infradead.org>
 References: <54DDE717.6090703@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Thomas Graf <tgraf@suug.ch>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: Josh Hunt <johunt@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ie0-f180.google.com ([209.85.223.180]:42458 "EHLO
-	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752297AbbBMXVo (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:58285 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753520AbbBNEcO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Feb 2015 18:21:44 -0500
-Received: by iecrp18 with SMTP id rp18so7750822iec.9
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Feb 2015 15:21:44 -0800 (PST)
+	Fri, 13 Feb 2015 23:32:14 -0500
+Content-Disposition: inline
 In-Reply-To: <54DDE717.6090703@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Feb 13, 2015 at 3:59 AM, Josh Hunt <johunt@akamai.com> wrote:
-> In my testing of nftables sets for our netdev bof discussion I came across
-> this problem where if I try and do a set restore of 1M entries the machine
-> gets into a softlockup state. Once this is triggered the system has to be
-> rebooted.
->
-> I can trigger the case by generating a simple nft rules file which defines a
-> set of type ipv4_addr. Something like this:
->
-> flush ruleset
-> table ip filter {
->         set blackhole {
->                 type ipv4_addr
->         }
->         chain input {
->                  type filter hook input priority 0;
->         }
->
->         chain forward {
->                  type filter hook forward priority 0;
->         }
->
->         chain output {
->                  type filter hook output priority 0;
->         }
-> }
->
+On 02/13/15 at 05:59am, Josh Hunt wrote:
 > except inside the set definition above I add 1M random ipv4 addresses.
 > Running "nft -f <filename>" will reproduce the problem. I also saw this when
 > trying to do a restore of 250k entries.
->
+> 
 > There are a few problems going on from what I can tell. The first is
 > the set defaults to 4 buckets and during restores the # of buckets does not
 > increase. I'm currently investigating to understand why we don't expand the
 > set on restores. However my guess into why we're softlockuping here is that
 > we're trying to shove 1M entries into 4 buckets :)
->
-> Second, the user has no way to tune the # of initial buckets. My patchset
-> "nft hash set expansion fixes" fixes this. If I tune the hash to use a
-> reasonable # of buckets for 1M entries. I do not see the softlockup problem.
->
-> I ran these tests using the current net-next.
->
-> Here's some of the softlockup output. Let me know if you'd like more info,
-> etc.
 
-I guess we need a cond_resched() in the loop:
+Agreed. If you grow from 4 to cover 1M entries you need countless
+growth cycles and you end up creating huge chains which will make the
+ongoing expands take even longer.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 199fd0f..c07b334 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3234,6 +3234,7 @@ static int nf_tables_newsetelem(struct sock
-*nlsk, struct sk_buff *skb,
-                if (err < 0)
-                        break;
+I think we need to implement Herbert's suggestion and have inserts
+fail if a certain upper watermark is reached.
 
-+               cond_resched();
-                set->nelems++;
-        }
-        return err;
+I'm also investigating if we can grow by n*2 instead of just *2.
