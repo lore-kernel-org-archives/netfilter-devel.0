@@ -1,223 +1,81 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next] netfilter: bridge: rework reject handling
-Date: Mon, 16 Feb 2015 18:57:53 +0100
-Message-ID: <1424109473-24078-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [libnftnl PATCH] ruleset: fix crash if we free sets included in the set_list
+Date: Mon, 16 Feb 2015 20:32:14 +0100
+Message-ID: <1424115135-32323-1-git-send-email-alvaroneay@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52105 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753512AbbBPR56 (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:47761 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754266AbbBPTb6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Feb 2015 12:57:58 -0500
+	Mon, 16 Feb 2015 14:31:58 -0500
+Received: by mail-wi0-f172.google.com with SMTP id l15so28149802wiw.5
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Feb 2015 11:31:57 -0800 (PST)
+Received: from localhost.localdomain ([77.231.217.213])
+        by mx.google.com with ESMTPSA id dx11sm21263818wjb.23.2015.02.16.11.31.56
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 16 Feb 2015 11:31:56 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-bridge reject handling is not straightforward, there are many subtle
-differences depending on configuration.
+When we parse a ruleset which has a rule using a set. First step is parse the
+set, set up an id and add it to a set list. Later, we use this set list to find
+the set associated to the rule and we set up the set id to the expression
+(lookup expression) of the rule.
 
-skb->dev is either the bridge port (PRE_ROUTING) or the bridge
-itself (INPUT), so we need to use indev instead.
+The problem is if we return this set using the function
+nft_ruleset_parse_file_cb and we free this set. We have a crash when we try to
+iterate in the set list.
 
-Also, checksum validation will only work reliably if we trim skb
-according to the l3 header size.
+This patch solves it, creating and copying the set to another and adding the new
+copy to the set list.
 
-While at it, add csum validation for ipv6 and skip existing tests
-if skb was already checked e.g. by GRO.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 ---
- net/bridge/netfilter/nft_reject_bridge.c | 84 +++++++++++++++++++++++++-------
- 1 file changed, 66 insertions(+), 18 deletions(-)
+ src/ruleset.c |   25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
 
-diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilter/nft_reject_bridge.c
-index b0330ae..aedc5eb 100644
---- a/net/bridge/netfilter/nft_reject_bridge.c
-+++ b/net/bridge/netfilter/nft_reject_bridge.c
-@@ -21,6 +21,7 @@
- #include <net/ip.h>
- #include <net/ip6_checksum.h>
- #include <linux/netfilter_bridge.h>
-+#include <linux/netfilter_ipv6.h>
- #include "../br_private.h"
- 
- static void nft_reject_br_push_etherhdr(struct sk_buff *oldskb,
-@@ -36,7 +37,12 @@ static void nft_reject_br_push_etherhdr(struct sk_buff *oldskb,
- 	skb_pull(nskb, ETH_HLEN);
+diff --git a/src/ruleset.c b/src/ruleset.c
+index 89ea344..0b6e0e0 100644
+--- a/src/ruleset.c
++++ b/src/ruleset.c
+@@ -308,12 +308,33 @@ err:
+ 	return -1;
  }
  
--static void nft_reject_br_send_v4_tcp_reset(struct sk_buff *oldskb, int hook)
-+/* We cannot use oldskb->dev, it can be either bridge device (NF_BRIDGE INPUT)
-+ * or the bridge port (NF_BRIDGE PREROUTING).
-+ */
-+static void nft_reject_br_send_v4_tcp_reset(struct sk_buff *oldskb,
-+					    const struct net_device *dev,
-+					    int hook)
- {
- 	struct sk_buff *nskb;
- 	struct iphdr *niph;
-@@ -65,11 +71,12 @@ static void nft_reject_br_send_v4_tcp_reset(struct sk_buff *oldskb, int hook)
- 
- 	nft_reject_br_push_etherhdr(oldskb, nskb);
- 
--	br_deliver(br_port_get_rcu(oldskb->dev), nskb);
-+	br_deliver(br_port_get_rcu(dev), nskb);
- }
- 
--static void nft_reject_br_send_v4_unreach(struct sk_buff *oldskb, int hook,
--					  u8 code)
-+static void nft_reject_br_send_v4_unreach(struct sk_buff *oldskb,
-+					  const struct net_device *dev,
-+					  int hook, u8 code)
- {
- 	struct sk_buff *nskb;
- 	struct iphdr *niph;
-@@ -77,8 +84,9 @@ static void nft_reject_br_send_v4_unreach(struct sk_buff *oldskb, int hook,
- 	unsigned int len;
- 	void *payload;
- 	__wsum csum;
-+	u8 proto;
- 
--	if (!nft_bridge_iphdr_validate(oldskb))
-+	if (oldskb->csum_bad || !nft_bridge_iphdr_validate(oldskb))
- 		return;
- 
- 	/* IP header checks: fragment. */
-@@ -91,7 +99,17 @@ static void nft_reject_br_send_v4_unreach(struct sk_buff *oldskb, int hook,
- 	if (!pskb_may_pull(oldskb, len))
- 		return;
- 
--	if (nf_ip_checksum(oldskb, hook, ip_hdrlen(oldskb), 0))
-+	if (pskb_trim_rcsum(oldskb, htons(ip_hdr(oldskb)->tot_len)))
-+		return;
++static int nft_ruleset_add_set(struct nft_parse_ctx *ctx, struct nft_set *set)
++{
++	struct nft_set *newset;
++	const char *set_name;
++	int set_id;
 +
-+	if (ip_hdr(oldskb)->protocol == IPPROTO_TCP ||
-+	    ip_hdr(oldskb)->protocol == IPPROTO_UDP)
-+		proto = ip_hdr(oldskb)->protocol;
-+	else
-+		proto = 0;
++	newset = nft_set_alloc();
++	if (newset == NULL)
++		return -1;
 +
-+	if (!skb_csum_unnecessary(oldskb) &&
-+	    nf_ip_checksum(oldskb, hook, ip_hdrlen(oldskb), proto))
- 		return;
- 
- 	nskb = alloc_skb(sizeof(struct iphdr) + sizeof(struct icmphdr) +
-@@ -120,11 +138,13 @@ static void nft_reject_br_send_v4_unreach(struct sk_buff *oldskb, int hook,
- 
- 	nft_reject_br_push_etherhdr(oldskb, nskb);
- 
--	br_deliver(br_port_get_rcu(oldskb->dev), nskb);
-+	br_deliver(br_port_get_rcu(dev), nskb);
- }
- 
- static void nft_reject_br_send_v6_tcp_reset(struct net *net,
--					    struct sk_buff *oldskb, int hook)
-+					    struct sk_buff *oldskb,
-+					    const struct net_device *dev,
-+					    int hook)
- {
- 	struct sk_buff *nskb;
- 	const struct tcphdr *oth;
-@@ -152,12 +172,37 @@ static void nft_reject_br_send_v6_tcp_reset(struct net *net,
- 
- 	nft_reject_br_push_etherhdr(oldskb, nskb);
- 
--	br_deliver(br_port_get_rcu(oldskb->dev), nskb);
-+	br_deliver(br_port_get_rcu(dev), nskb);
++	set_name = nft_set_attr_get_str(set, NFT_SET_ATTR_NAME);
++	nft_set_attr_set_str(newset, NFT_SET_ATTR_NAME, set_name);
++
++	set_id = ctx->set_id++;
++	nft_set_attr_set_u32(set, NFT_SET_ATTR_ID, set_id);
++	nft_set_attr_set_u32(newset, NFT_SET_ATTR_ID, set_id);
++
++	nft_set_list_add_tail(newset, ctx->set_list);
++	return 0;
 +}
 +
-+static bool reject6_br_csum_ok(struct sk_buff *skb, int hook)
-+{
-+	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
-+	int thoff;
-+	__be16 fo;
-+	u8 proto = ip6h->nexthdr;
-+
-+	if (skb->csum_bad)
-+		return false;
-+
-+	if (skb_csum_unnecessary(skb))
-+		return true;
-+
-+	if (ip6h->payload_len &&
-+	    pskb_trim_rcsum(skb, ntohs(ip6h->payload_len) + sizeof(*ip6h)))
-+		return false;
-+
-+	thoff = ipv6_skip_exthdr(skb, ((u8*)(ip6h+1) - skb->data), &proto, &fo);
-+	if (thoff < 0 || thoff >= skb->len || (fo & htons(~0x7)) != 0)
-+		return false;
-+
-+	return nf_ip6_checksum(skb, hook, thoff, proto) == 0;
- }
- 
- static void nft_reject_br_send_v6_unreach(struct net *net,
--					  struct sk_buff *oldskb, int hook,
--					  u8 code)
-+					  struct sk_buff *oldskb,
-+					  const struct net_device *dev,
-+					  int hook, u8 code)
+ static int nft_ruleset_parse_set(struct nft_parse_ctx *ctx,
+ 				 struct nft_set *set, uint32_t type,
+ 				 struct nft_parse_err *err)
  {
- 	struct sk_buff *nskb;
- 	struct ipv6hdr *nip6h;
-@@ -176,6 +221,9 @@ static void nft_reject_br_send_v6_unreach(struct net *net,
- 	if (!pskb_may_pull(oldskb, len))
- 		return;
+-	nft_set_attr_set_u32(set, NFT_SET_ATTR_ID, ctx->set_id++);
+-	nft_set_list_add_tail(set, ctx->set_list);
++	if (nft_ruleset_add_set(ctx, set) < 0)
++		goto err;
  
-+	if (!reject6_br_csum_ok(oldskb, hook))
-+		return;
-+
- 	nskb = alloc_skb(sizeof(struct iphdr) + sizeof(struct icmp6hdr) +
- 			 LL_MAX_HEADER + len, GFP_ATOMIC);
- 	if (!nskb)
-@@ -205,7 +253,7 @@ static void nft_reject_br_send_v6_unreach(struct net *net,
- 
- 	nft_reject_br_push_etherhdr(oldskb, nskb);
- 
--	br_deliver(br_port_get_rcu(oldskb->dev), nskb);
-+	br_deliver(br_port_get_rcu(dev), nskb);
- }
- 
- static void nft_reject_bridge_eval(const struct nft_expr *expr,
-@@ -224,16 +272,16 @@ static void nft_reject_bridge_eval(const struct nft_expr *expr,
- 	case htons(ETH_P_IP):
- 		switch (priv->type) {
- 		case NFT_REJECT_ICMP_UNREACH:
--			nft_reject_br_send_v4_unreach(pkt->skb,
-+			nft_reject_br_send_v4_unreach(pkt->skb, pkt->in,
- 						      pkt->ops->hooknum,
- 						      priv->icmp_code);
- 			break;
- 		case NFT_REJECT_TCP_RST:
--			nft_reject_br_send_v4_tcp_reset(pkt->skb,
-+			nft_reject_br_send_v4_tcp_reset(pkt->skb, pkt->in,
- 							pkt->ops->hooknum);
- 			break;
- 		case NFT_REJECT_ICMPX_UNREACH:
--			nft_reject_br_send_v4_unreach(pkt->skb,
-+			nft_reject_br_send_v4_unreach(pkt->skb, pkt->in,
- 						      pkt->ops->hooknum,
- 						      nft_reject_icmp_code(priv->icmp_code));
- 			break;
-@@ -242,16 +290,16 @@ static void nft_reject_bridge_eval(const struct nft_expr *expr,
- 	case htons(ETH_P_IPV6):
- 		switch (priv->type) {
- 		case NFT_REJECT_ICMP_UNREACH:
--			nft_reject_br_send_v6_unreach(net, pkt->skb,
-+			nft_reject_br_send_v6_unreach(net, pkt->skb, pkt->in,
- 						      pkt->ops->hooknum,
- 						      priv->icmp_code);
- 			break;
- 		case NFT_REJECT_TCP_RST:
--			nft_reject_br_send_v6_tcp_reset(net, pkt->skb,
-+			nft_reject_br_send_v6_tcp_reset(net, pkt->skb, pkt->in,
- 							pkt->ops->hooknum);
- 			break;
- 		case NFT_REJECT_ICMPX_UNREACH:
--			nft_reject_br_send_v6_unreach(net, pkt->skb,
-+			nft_reject_br_send_v6_unreach(net, pkt->skb, pkt->in,
- 						      pkt->ops->hooknum,
- 						      nft_reject_icmpv6_code(priv->icmp_code));
- 			break;
+ 	nft_ruleset_ctx_set_u32(ctx, NFT_RULESET_CTX_TYPE, type);
+ 	nft_ruleset_ctx_set(ctx, NFT_RULESET_CTX_SET, set);
 -- 
-2.0.5
+1.7.10.4
 
