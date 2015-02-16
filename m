@@ -1,327 +1,253 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [iptables PATCH] arpt-compat: mangle extension support
-Date: Mon, 16 Feb 2015 11:52:52 +0100
-Message-ID: <20150216105220.4788.79619.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: giuseppelng@gmail.com, pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH -next v3] netfilter: reject: don't send icmp error if csum is invalid
+Date: Mon, 16 Feb 2015 18:54:04 +0100
+Message-ID: <1424109244-23649-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:40948 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754710AbbBPKxH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Feb 2015 05:53:07 -0500
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52096 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753410AbbBPRyJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Feb 2015 12:54:09 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch gives support in arpt-compat to use the mangle extension.
+tcp resets are never emitted if the packet that triggers the
+reject/reset has an invalid checksum.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+For icmp error responses there was no such check.
+It allows to distinguish icmp response generated via
+
+iptables -I INPUT -p udp --dport 42 -j REJECT
+
+and those emitted by network stack (won't respond if csum is invalid,
+REJECT does).
+
+Arguably its possible to avoid this by using conntrack and only
+using REJECT with -m conntrack NEW/RELATED.
+
+However, this doesn't work when connection tracking is not in use
+or when using nf_conntrack_checksum=0.
+
+Furthermore, sending errors in response to invalid csums doesn't make
+much sense so just add similar test as in nf_send_reset.
+
+Validate csum if needed and only send the response if it is ok.
+
+Reference: http://bugzilla.redhat.com/show_bug.cgi?id=1169829
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
-Please ignore patch http://patchwork.ozlabs.org/patch/439479/
+ Changes since V2:
+  use proto 0 for l4 protocols other than tcp/udp if skb
+  checksum hasn't been validated yet.
 
- extensions/GNUmakefile.in         |   46 +++++++++++++++++++++++++++++++------
- extensions/libarp_mangle.c        |    0 
- iptables/nft-arp.c                |   23 ++++++++++---------
- iptables/xtables-arp-standalone.c |   30 ++++++------------------
- iptables/xtables-arp.c            |   13 ++++++++--
- libxtables/xtables.c              |   13 ++++++++++
- 6 files changed, 80 insertions(+), 45 deletions(-)
- rename extensions/{libxt_mangle.c => libarp_mangle.c} (100%)
+ include/net/netfilter/ipv4/nf_reject.h |  6 +-----
+ include/net/netfilter/ipv6/nf_reject.h | 11 ++---------
+ net/ipv4/netfilter/ipt_REJECT.c        | 17 +++++++++--------
+ net/ipv4/netfilter/nf_reject_ipv4.c    | 23 ++++++++++++++++++++++
+ net/ipv4/netfilter/nft_reject_ipv4.c   |  3 ++-
+ net/ipv6/netfilter/nf_reject_ipv6.c    | 35 ++++++++++++++++++++++++++++++++++
+ net/netfilter/nft_reject_inet.c        |  6 ++++--
+ 7 files changed, 76 insertions(+), 25 deletions(-)
 
-diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
-index 9eb4bf9..929a02b 100644
---- a/extensions/GNUmakefile.in
-+++ b/extensions/GNUmakefile.in
-@@ -40,19 +40,23 @@ endif
- #
- pfx_build_mod := $(patsubst ${srcdir}/libxt_%.c,%,$(sort $(wildcard ${srcdir}/libxt_*.c)))
- pfb_build_mod := $(patsubst ${srcdir}/libebt_%.c,%,$(sort $(wildcard ${srcdir}/libebt_*.c)))
-+pfa_build_mod := $(patsubst ${srcdir}/libarp_%.c,%,$(sort $(wildcard ${srcdir}/libarp_*.c)))
- pfx_symlinks  := NOTRACK state
- @ENABLE_IPV4_TRUE@ pf4_build_mod := $(patsubst ${srcdir}/libipt_%.c,%,$(sort $(wildcard ${srcdir}/libipt_*.c)))
- @ENABLE_IPV6_TRUE@ pf6_build_mod := $(patsubst ${srcdir}/libip6t_%.c,%,$(sort $(wildcard ${srcdir}/libip6t_*.c)))
- pfx_build_mod := $(filter-out @blacklist_modules@,${pfx_build_mod})
- pfb_build_mod := $(filter-out @blacklist_modules@,${pfb_build_mod})
-+pfa_build_mod := $(filter-out @blacklist_modules@,${pfa_build_mod})
- pf4_build_mod := $(filter-out @blacklist_modules@,${pf4_build_mod})
- pf6_build_mod := $(filter-out @blacklist_modules@,${pf6_build_mod})
- pfx_objs      := $(patsubst %,libxt_%.o,${pfx_build_mod})
- pfb_objs      := $(patsubst %,libebt_%.o,${pfb_build_mod})
-+pfa_objs      := $(patsubst %,libarp_%.o,${pfa_build_mod})
- pf4_objs      := $(patsubst %,libipt_%.o,${pf4_build_mod})
- pf6_objs      := $(patsubst %,libip6t_%.o,${pf6_build_mod})
- pfx_solibs    := $(patsubst %,libxt_%.so,${pfx_build_mod} ${pfx_symlinks})
- pfb_solibs    := $(patsubst %,libebt_%.so,${pfb_build_mod})
-+pfa_solibs    := $(patsubst %,libarp_%.so,${pfa_build_mod})
- pf4_solibs    := $(patsubst %,libipt_%.so,${pf4_build_mod})
- pf6_solibs    := $(patsubst %,libip6t_%.so,${pf6_build_mod})
+diff --git a/include/net/netfilter/ipv4/nf_reject.h b/include/net/netfilter/ipv4/nf_reject.h
+index 03e928a..8641275 100644
+--- a/include/net/netfilter/ipv4/nf_reject.h
++++ b/include/net/netfilter/ipv4/nf_reject.h
+@@ -5,11 +5,7 @@
+ #include <net/ip.h>
+ #include <net/icmp.h>
  
-@@ -60,14 +64,15 @@ pf6_solibs    := $(patsubst %,libip6t_%.so,${pf6_build_mod})
- #
- # Building blocks
- #
--targets := libext.a libext4.a libext6.a libext_ebt.a matches.man targets.man
-+targets := libext.a libext4.a libext6.a libext_ebt.a libext_arp.a matches.man targets.man
- targets_install :=
- @ENABLE_STATIC_TRUE@ libext_objs := ${pfx_objs}
- @ENABLE_STATIC_TRUE@ libext_ebt_objs := ${pfb_objs}
-+@ENABLE_STATIC_TRUE@ libext_arp_objs := ${pfa_objs}
- @ENABLE_STATIC_TRUE@ libext4_objs := ${pf4_objs}
- @ENABLE_STATIC_TRUE@ libext6_objs := ${pf6_objs}
--@ENABLE_STATIC_FALSE@ targets += ${pfx_solibs} ${pfb_solibs} ${pf4_solibs} ${pf6_solibs}
--@ENABLE_STATIC_FALSE@ targets_install += ${pfx_solibs} ${pfb_solibs} ${pf4_solibs} ${pf6_solibs}
-+@ENABLE_STATIC_FALSE@ targets += ${pfx_solibs} ${pfb_solibs} ${pf4_solibs} ${pf6_solibs} ${pfa_solibs}
-+@ENABLE_STATIC_FALSE@ targets_install += ${pfx_solibs} ${pfb_solibs} ${pf4_solibs} ${pf6_solibs} ${pfa_solibs}
+-static inline void nf_send_unreach(struct sk_buff *skb_in, int code)
+-{
+-	icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
+-}
+-
++void nf_send_unreach(struct sk_buff *skb_in, int code, int hook);
+ void nf_send_reset(struct sk_buff *oldskb, int hook);
  
- .SECONDARY:
+ const struct tcphdr *nf_reject_ip_tcphdr_get(struct sk_buff *oldskb,
+diff --git a/include/net/netfilter/ipv6/nf_reject.h b/include/net/netfilter/ipv6/nf_reject.h
+index 23216d4..0ae445d 100644
+--- a/include/net/netfilter/ipv6/nf_reject.h
++++ b/include/net/netfilter/ipv6/nf_reject.h
+@@ -3,15 +3,8 @@
  
-@@ -80,7 +85,7 @@ install: ${targets_install}
- 	if test -n "${targets_install}"; then install -pm0755 $^ "${DESTDIR}${xtlibdir}/"; fi;
+ #include <linux/icmpv6.h>
  
- clean:
--	rm -f *.o *.oo *.so *.a {matches,targets}.man initext.c initext4.c initext6.c initextb.c;
-+	rm -f *.o *.oo *.so *.a {matches,targets}.man initext.c initext4.c initext6.c initextb.c initexta.c;
- 	rm -f .*.d .*.dd;
+-static inline void
+-nf_send_unreach6(struct net *net, struct sk_buff *skb_in, unsigned char code,
+-	     unsigned int hooknum)
+-{
+-	if (hooknum == NF_INET_LOCAL_OUT && skb_in->dev == NULL)
+-		skb_in->dev = net->loopback_dev;
+-
+-	icmpv6_send(skb_in, ICMPV6_DEST_UNREACH, code, 0);
+-}
++void nf_send_unreach6(struct net *net, struct sk_buff *skb_in, unsigned char code,
++		      unsigned int hooknum);
  
- distclean: clean
-@@ -126,6 +131,9 @@ libext.a: initext.o ${libext_objs}
- libext_ebt.a: initextb.o ${libext_ebt_objs}
- 	${AM_VERBOSE_AR} ${AR} crs $@ $^;
+ void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook);
  
-+libext_arp.a: initexta.o ${libext_arp_objs}
-+	${AM_VERBOSE_AR} ${AR} crs $@ $^;
+diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
+index 8f48f55..87907d4 100644
+--- a/net/ipv4/netfilter/ipt_REJECT.c
++++ b/net/ipv4/netfilter/ipt_REJECT.c
+@@ -34,31 +34,32 @@ static unsigned int
+ reject_tg(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+ 	const struct ipt_reject_info *reject = par->targinfo;
++	int hook = par->hooknum;
+ 
+ 	switch (reject->with) {
+ 	case IPT_ICMP_NET_UNREACHABLE:
+-		nf_send_unreach(skb, ICMP_NET_UNREACH);
++		nf_send_unreach(skb, ICMP_NET_UNREACH, hook);
+ 		break;
+ 	case IPT_ICMP_HOST_UNREACHABLE:
+-		nf_send_unreach(skb, ICMP_HOST_UNREACH);
++		nf_send_unreach(skb, ICMP_HOST_UNREACH, hook);
+ 		break;
+ 	case IPT_ICMP_PROT_UNREACHABLE:
+-		nf_send_unreach(skb, ICMP_PROT_UNREACH);
++		nf_send_unreach(skb, ICMP_PROT_UNREACH, hook);
+ 		break;
+ 	case IPT_ICMP_PORT_UNREACHABLE:
+-		nf_send_unreach(skb, ICMP_PORT_UNREACH);
++		nf_send_unreach(skb, ICMP_PORT_UNREACH, hook);
+ 		break;
+ 	case IPT_ICMP_NET_PROHIBITED:
+-		nf_send_unreach(skb, ICMP_NET_ANO);
++		nf_send_unreach(skb, ICMP_NET_ANO, hook);
+ 		break;
+ 	case IPT_ICMP_HOST_PROHIBITED:
+-		nf_send_unreach(skb, ICMP_HOST_ANO);
++		nf_send_unreach(skb, ICMP_HOST_ANO, hook);
+ 		break;
+ 	case IPT_ICMP_ADMIN_PROHIBITED:
+-		nf_send_unreach(skb, ICMP_PKT_FILTERED);
++		nf_send_unreach(skb, ICMP_PKT_FILTERED, hook);
+ 		break;
+ 	case IPT_TCP_RESET:
+-		nf_send_reset(skb, par->hooknum);
++		nf_send_reset(skb, hook);
+ 	case IPT_ICMP_ECHOREPLY:
+ 		/* Doesn't happen. */
+ 		break;
+diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+index 536da7b..b7405eb 100644
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -164,4 +164,27 @@ void nf_send_reset(struct sk_buff *oldskb, int hook)
+ }
+ EXPORT_SYMBOL_GPL(nf_send_reset);
+ 
++void nf_send_unreach(struct sk_buff *skb_in, int code, int hook)
++{
++	struct iphdr *iph = ip_hdr(skb_in);
++	u8 proto;
 +
- libext4.a: initext4.o ${libext4_objs}
- 	${AM_VERBOSE_AR} ${AR} crs $@ $^;
- 
-@@ -134,6 +142,7 @@ libext6.a: initext6.o ${libext6_objs}
- 
- initext_func  := $(addprefix xt_,${pfx_build_mod})
- initextb_func := $(addprefix ebt_,${pfb_build_mod})
-+initexta_func := $(addprefix arp_,${pfa_build_mod})
- initext4_func := $(addprefix ipt_,${pf4_build_mod})
- initext6_func := $(addprefix ip6t_,${pf6_build_mod})
- 
-@@ -147,6 +156,11 @@ initext6_func := $(addprefix ip6t_,${pf6_build_mod})
- 	cmp -s $@ $@.tmp || mv $@.tmp $@; \
- 	rm -f $@.tmp;
- 
-+.initexta.dd: FORCE
-+	@echo "${initexta_func}" >$@.tmp; \
-+	cmp -s $@ $@.tmp || mv $@.tmp $@; \
-+	rm -f $@.tmp;
-+
- .initext4.dd: FORCE
- 	@echo "${initext4_func}" >$@.tmp; \
- 	cmp -s $@ $@.tmp || mv $@.tmp $@; \
-@@ -189,6 +203,22 @@ initextb.c: .initextb.dd
- 	echo "}" >>$@; \
- 	);
- 
-+initexta.c: .initexta.dd
-+	${AM_VERBOSE_GEN}
-+	@( \
-+	echo "" >$@; \
-+	for i in ${initexta_func}; do \
-+		echo "extern void lib$${i}_init(void);" >>$@; \
-+	done; \
-+	echo "void init_extensionsa(void);" >>$@; \
-+	echo "void init_extensionsa(void)" >>$@; \
-+	echo "{" >>$@; \
-+	for i in ${initexta_func}; do \
-+		echo  " ""lib$${i}_init();" >>$@; \
-+	done; \
-+	echo "}" >>$@; \
-+	);
-+
- initext4.c: .initext4.dd
- 	${AM_VERBOSE_GEN}
- 	@( \
-@@ -249,8 +279,8 @@ man_run    = \
- 		fi; \
- 	done >$@;
- 
--matches.man: .initext.dd .initextb.dd .initext4.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
--	$(call man_run,$(call ex_matches,${pfx_build_mod} ${pfb_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
-+matches.man: .initext.dd .initextb.dd .initexta.dd .initext4.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
-+	$(call man_run,$(call ex_matches,${pfx_build_mod} ${pfb_build_mod} ${pfa_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
- 
--targets.man: .initext.dd .initext4.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
--	$(call man_run,$(call ex_targets,${pfx_build_mod} ${pfb_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
-+targets.man: .initext.dd .initextb.dd .initexta.dd .initext4.dd .initext6.dd $(wildcard ${srcdir}/lib*.man)
-+	$(call man_run,$(call ex_targets,${pfx_build_mod} ${pfb_build_mod} ${pfa_build_mod} ${pf4_build_mod} ${pf6_build_mod} ${pfx_symlinks}))
-diff --git a/extensions/libxt_mangle.c b/extensions/libarp_mangle.c
-similarity index 100%
-rename from extensions/libxt_mangle.c
-rename to extensions/libarp_mangle.c
-diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
-index 24b31c5..d51aa8a 100644
---- a/iptables/nft-arp.c
-+++ b/iptables/nft-arp.c
-@@ -402,12 +402,13 @@ void nft_rule_to_arptables_command_state(struct nft_rule *r,
- 
- 	nft_rule_expr_iter_destroy(iter);
- 
--	if (cs->target != NULL)
--		cs->jumpto = cs->target->name;
--	else if (cs->jumpto != NULL)
--		cs->target = xtables_find_target(cs->jumpto, XTF_TRY_LOAD);
-+	if (cs->jumpto != NULL)
++	if (skb_in->csum_bad || iph->frag_off & htons(IP_OFFSET))
 +		return;
 +
-+	if (cs->target != NULL && cs->target->name != NULL)
-+		cs->target = xtables_find_target(cs->target->name, XTF_TRY_LOAD);
- 	else
--		cs->jumpto = "";
-+		cs->jumpto = "CONTINUE";
- }
- 
- static void nft_arp_print_header(unsigned int format, const char *chain,
-@@ -585,13 +586,13 @@ nft_arp_print_firewall(struct nft_rule *r, unsigned int num,
- 
- 	print_fw_details(&cs.fw, format);
- 
--	if (strlen(cs.jumpto) > 0) {
--		printf("-j %s\n", cs.jumpto);
-+	printf("-j ");
++	if (skb_csum_unnecessary(skb_in)) {
++		icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
++		return;
++	}
 +
-+	if (cs.jumpto != NULL) {
-+		printf("%s", cs.jumpto);
- 	} else if (cs.target) {
--		if (cs.target->print)
--			/* Print the target information. */
--			cs.target->print(&cs.fw, cs.target->t,
--					 format & FMT_NUMERIC);
-+		printf("%s ", cs.target->name);
-+		cs.target->print(&cs.fw, cs.target->t, format & FMT_NUMERIC);
- 	}
- 
- 	if (!(format & FMT_NOCOUNTS)) {
-diff --git a/iptables/xtables-arp-standalone.c b/iptables/xtables-arp-standalone.c
-index 182dd9f..6553d28 100644
---- a/iptables/xtables-arp-standalone.c
-+++ b/iptables/xtables-arp-standalone.c
-@@ -41,18 +41,7 @@
- 
- #include "xtables-multi.h"
- 
--extern struct xtables_globals xtables_globals;
--extern const char *program_version, *program_name;
--
--static const struct xtables_afinfo afinfo_arp = {
--        .kmod          = "arp_tables",
--        .proc_exists   = "/proc/net/arp_tables_names",
--        .libprefix     = "libarp_",
--        .family        = NFPROTO_ARP,
--        .ipproto       = IPPROTO_IP,
--        .so_rev_match  = -1,
--        .so_rev_target = -1,
--};
-+extern struct xtables_globals arptables_globals;
- 
- int xtables_arp_main(int argc, char *argv[])
- {
-@@ -62,22 +51,17 @@ int xtables_arp_main(int argc, char *argv[])
- 		.family = NFPROTO_ARP,
- 	};
- 
--	xtables_globals.program_name = "arptables";
--	/* This code below could be replaced by xtables_init_all, which
--	 * doesn't support NFPROTO_ARP yet.
--	 */
--	xtables_init();
--	afinfo = &afinfo_arp;
--	ret = xtables_set_params(&xtables_globals);
-+	arptables_globals.program_name = "arptables";
-+	ret = xtables_init_all(&arptables_globals, NFPROTO_ARP);
- 	if (ret < 0) {
--		fprintf(stderr, "%s/%s Failed to initialize xtables\n",
--				xtables_globals.program_name,
--				xtables_globals.program_version);
-+		fprintf(stderr, "%s/%s Failed to initialize arptables-compat\n",
-+			arptables_globals.program_name,
-+			arptables_globals.program_version);
- 		exit(1);
- 	}
- 
- #if defined(ALL_INCLUSIVE) || defined(NO_SHARED_LIBS)
--	init_extensions();
-+	init_extensionsa();
- #endif
- 
- 	ret = do_commandarp(&h, argc, argv, &table);
-diff --git a/iptables/xtables-arp.c b/iptables/xtables-arp.c
-index c92b9e7..20b987f 100644
---- a/iptables/xtables-arp.c
-+++ b/iptables/xtables-arp.c
-@@ -44,6 +44,7 @@
- #include <sys/wait.h>
- #include <net/if.h>
- #include <netinet/ether.h>
-+#include <iptables.h>
- #include <xtables.h>
- 
- #include "xshared.h"
-@@ -152,7 +153,13 @@ static struct option *opts = original_opts;
- static unsigned int global_option_offset = 0;
- 
- extern void xtables_exit_error(enum xtables_exittype status, const char *msg, ...);
--extern struct xtables_globals xtables_globals;
-+struct xtables_globals arptables_globals = {
-+	.option_offset		= 0,
-+	.program_version	= IPTABLES_VERSION,
-+	.orig_opts		= original_opts,
-+	.exit_err		= xtables_exit_error,
-+	.compat_rev		= nft_compatible_revision,
-+};
- 
- /* Table of legal combinations of commands and options.  If any of the
-  * given commands make an option legal, that option is legal (applies to
-@@ -833,11 +840,11 @@ static struct xtables_target *command_jump(struct arpt_entry *fw,
- 	xs_init_target(target);
- 
- 	if (target->x6_options != NULL)
--		opts = xtables_options_xfrm(xtables_globals.orig_opts,
-+		opts = xtables_options_xfrm(arptables_globals.orig_opts,
- 					    opts, target->x6_options,
- 					    &target->option_offset);
- 	else
--		opts = xtables_merge_options(xtables_globals.orig_opts,
-+		opts = xtables_merge_options(arptables_globals.orig_opts,
- 					     opts, target->extra_opts,
- 					     &target->option_offset);
- 
-diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-index 16e4d96..0200c7a 100644
---- a/libxtables/xtables.c
-+++ b/libxtables/xtables.c
-@@ -178,6 +178,16 @@ static const struct xtables_afinfo afinfo_bridge = {
- 	.so_rev_target = -1,
- };
- 
-+static const struct xtables_afinfo afinfo_arp = {
-+	.kmod          = "arp_tables",
-+	.proc_exists   = "/proc/net/eb_tables_names",
-+	.libprefix     = "libarpt_",
-+	.family        = NFPROTO_ARP,
-+	.ipproto       = IPPROTO_IP,
-+	.so_rev_match  = -1,
-+	.so_rev_target = -1,
-+};
++	if (iph->protocol == IPPROTO_TCP || iph->protocol == IPPROTO_UDP)
++		proto = iph->protocol;
++	else
++		proto = 0;
 +
- const struct xtables_afinfo *afinfo;
++	if (nf_ip_checksum(skb_in, hook, ip_hdrlen(skb_in), proto) == 0)
++		icmp_send(skb_in, ICMP_DEST_UNREACH, code, 0);
++}
++EXPORT_SYMBOL_GPL(nf_send_unreach);
++
+ MODULE_LICENSE("GPL");
+diff --git a/net/ipv4/netfilter/nft_reject_ipv4.c b/net/ipv4/netfilter/nft_reject_ipv4.c
+index d729542..16a5d4d 100644
+--- a/net/ipv4/netfilter/nft_reject_ipv4.c
++++ b/net/ipv4/netfilter/nft_reject_ipv4.c
+@@ -27,7 +27,8 @@ static void nft_reject_ipv4_eval(const struct nft_expr *expr,
  
- /* Search path for Xtables .so files */
-@@ -237,6 +247,9 @@ void xtables_set_nfproto(uint8_t nfproto)
- 	case NFPROTO_BRIDGE:
- 		afinfo = &afinfo_bridge;
+ 	switch (priv->type) {
+ 	case NFT_REJECT_ICMP_UNREACH:
+-		nf_send_unreach(pkt->skb, priv->icmp_code);
++		nf_send_unreach(pkt->skb, priv->icmp_code,
++				pkt->ops->hooknum);
  		break;
-+	case NFPROTO_ARP:
-+		afinfo = &afinfo_arp;
-+		break;
- 	default:
- 		fprintf(stderr, "libxtables: unhandled NFPROTO in %s\n",
- 		        __func__);
+ 	case NFT_REJECT_TCP_RST:
+ 		nf_send_reset(pkt->skb, pkt->ops->hooknum);
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index d05b364..68e0bb4 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -208,4 +208,39 @@ void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
+ }
+ EXPORT_SYMBOL_GPL(nf_send_reset6);
+ 
++static bool reject6_csum_ok(struct sk_buff *skb, int hook)
++{
++	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
++	int thoff;
++	__be16 fo;
++	u8 proto;
++
++	if (skb->csum_bad)
++		return false;
++
++	if (skb_csum_unnecessary(skb))
++		return true;
++
++	proto = ip6h->nexthdr;
++	thoff = ipv6_skip_exthdr(skb, ((u8*)(ip6h+1) - skb->data), &proto, &fo);
++
++	if (thoff < 0 || thoff >= skb->len || (fo & htons(~0x7)) != 0)
++		return false;
++
++	return nf_ip6_checksum(skb, hook, thoff, proto) == 0;
++}
++
++void nf_send_unreach6(struct net *net, struct sk_buff *skb_in,
++		      unsigned char code, unsigned int hooknum)
++{
++	if (!reject6_csum_ok(skb_in, hooknum))
++		return;
++
++	if (hooknum == NF_INET_LOCAL_OUT && skb_in->dev == NULL)
++		skb_in->dev = net->loopback_dev;
++
++	icmpv6_send(skb_in, ICMPV6_DEST_UNREACH, code, 0);
++}
++EXPORT_SYMBOL_GPL(nf_send_unreach6);
++
+ MODULE_LICENSE("GPL");
+diff --git a/net/netfilter/nft_reject_inet.c b/net/netfilter/nft_reject_inet.c
+index 7b5f9d5..9287711 100644
+--- a/net/netfilter/nft_reject_inet.c
++++ b/net/netfilter/nft_reject_inet.c
+@@ -28,14 +28,16 @@ static void nft_reject_inet_eval(const struct nft_expr *expr,
+ 	case NFPROTO_IPV4:
+ 		switch (priv->type) {
+ 		case NFT_REJECT_ICMP_UNREACH:
+-			nf_send_unreach(pkt->skb, priv->icmp_code);
++			nf_send_unreach(pkt->skb, priv->icmp_code,
++					pkt->ops->hooknum);
+ 			break;
+ 		case NFT_REJECT_TCP_RST:
+ 			nf_send_reset(pkt->skb, pkt->ops->hooknum);
+ 			break;
+ 		case NFT_REJECT_ICMPX_UNREACH:
+ 			nf_send_unreach(pkt->skb,
+-					nft_reject_icmp_code(priv->icmp_code));
++					nft_reject_icmp_code(priv->icmp_code),
++					pkt->ops->hooknum);
+ 			break;
+ 		}
+ 		break;
+-- 
+2.0.5
 
