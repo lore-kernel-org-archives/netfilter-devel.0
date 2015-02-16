@@ -1,94 +1,73 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH net] netfilter: xt_socket: fix a stack corruption bug
-Date: Sun, 15 Feb 2015 19:03:45 -0800
-Message-ID: <1424055825.4942.50.camel@edumazet-glaptop2.roam.corp.google.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [PATCH] netfilter: nft_compat: add support for arptables extensions
+Date: Mon, 16 Feb 2015 11:32:28 +0100
+Message-ID: <20150216103227.4630.10051.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: Balazs Scheidler <bazsi@balabit.hu>,
-	KOVACS Krisztian <hidden@balabit.hu>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3.cica.es ([150.214.5.190]:38448 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755386AbbBPKci (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Feb 2015 05:32:38 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Dumazet <edumazet@google.com>
+This patch adds support to arptables extensions from nft_compat.
 
-As soon as extract_icmp6_fields() returns, its local storage (automatic
-variables) is deallocated and can be overwritten.
-
-Lets add an additional parameter to make sure storage is valid long
-enough.
-
-While we are at it, adds some const qualifiers.
-
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Fixes: b64c9256a9b76 ("tproxy: added IPv6 support to the socket match")
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- net/netfilter/xt_socket.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ net/netfilter/nft_compat.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index 1ba67931eb1b..13332dbf291d 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -243,12 +243,13 @@ static int
- extract_icmp6_fields(const struct sk_buff *skb,
- 		     unsigned int outside_hdrlen,
- 		     int *protocol,
--		     struct in6_addr **raddr,
--		     struct in6_addr **laddr,
-+		     const struct in6_addr **raddr,
-+		     const struct in6_addr **laddr,
- 		     __be16 *rport,
--		     __be16 *lport)
-+		     __be16 *lport,
-+		     struct ipv6hdr *ipv6_var)
- {
--	struct ipv6hdr *inside_iph, _inside_iph;
-+	const struct ipv6hdr *inside_iph;
- 	struct icmp6hdr *icmph, _icmph;
- 	__be16 *ports, _ports[2];
- 	u8 inside_nexthdr;
-@@ -263,12 +264,14 @@ extract_icmp6_fields(const struct sk_buff *skb,
- 	if (icmph->icmp6_type & ICMPV6_INFOMSG_MASK)
- 		return 1;
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 1279cd8..29fbcf2 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -20,6 +20,7 @@
+ #include <linux/netfilter_ipv4/ip_tables.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
+ #include <linux/netfilter_bridge/ebtables.h>
++#include <linux/netfilter_arp/arp_tables.h>
+ #include <net/netfilter/nf_tables.h>
  
--	inside_iph = skb_header_pointer(skb, outside_hdrlen + sizeof(_icmph), sizeof(_inside_iph), &_inside_iph);
-+	inside_iph = skb_header_pointer(skb, outside_hdrlen + sizeof(_icmph),
-+					sizeof(*ipv6_var), ipv6_var);
- 	if (inside_iph == NULL)
- 		return 1;
- 	inside_nexthdr = inside_iph->nexthdr;
+ static int nft_compat_chain_validate_dependency(const char *tablename,
+@@ -42,6 +43,7 @@ union nft_entry {
+ 	struct ipt_entry e4;
+ 	struct ip6t_entry e6;
+ 	struct ebt_entry ebt;
++	struct arpt_entry arp;
+ };
  
--	inside_hdrlen = ipv6_skip_exthdr(skb, outside_hdrlen + sizeof(_icmph) + sizeof(_inside_iph),
-+	inside_hdrlen = ipv6_skip_exthdr(skb, outside_hdrlen + sizeof(_icmph) +
-+					      sizeof(*ipv6_var),
- 					 &inside_nexthdr, &inside_fragoff);
- 	if (inside_hdrlen < 0)
- 		return 1; /* hjm: Packet has no/incomplete transport layer headers. */
-@@ -315,10 +318,10 @@ xt_socket_get_sock_v6(struct net *net, const u8 protocol,
- static bool
- socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
- {
--	struct ipv6hdr *iph = ipv6_hdr(skb);
-+	struct ipv6hdr ipv6_var, *iph = ipv6_hdr(skb);
- 	struct udphdr _hdr, *hp = NULL;
- 	struct sock *sk = skb->sk;
--	struct in6_addr *daddr = NULL, *saddr = NULL;
-+	const struct in6_addr *daddr = NULL, *saddr = NULL;
- 	__be16 uninitialized_var(dport), uninitialized_var(sport);
- 	int thoff = 0, uninitialized_var(tproto);
- 	const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
-@@ -342,7 +345,7 @@ socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
- 
- 	} else if (tproto == IPPROTO_ICMPV6) {
- 		if (extract_icmp6_fields(skb, thoff, &tproto, &saddr, &daddr,
--					 &sport, &dport))
-+					 &sport, &dport, &ipv6_var))
- 			return false;
- 	} else {
- 		return false;
+ static inline void
+@@ -140,6 +142,8 @@ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
+ 		entry->ebt.ethproto = proto;
+ 		entry->ebt.invflags = inv ? EBT_IPROTO : 0;
+ 		break;
++	case NFPROTO_ARP:
++		break;
+ 	}
+ 	par->entryinfo	= entry;
+ 	par->target	= target;
+@@ -351,6 +355,8 @@ nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
+ 		entry->ebt.ethproto = proto;
+ 		entry->ebt.invflags = inv ? EBT_IPROTO : 0;
+ 		break;
++	case NFPROTO_ARP:
++		break;
+ 	}
+ 	par->entryinfo	= entry;
+ 	par->match	= match;
+@@ -537,6 +543,9 @@ nfnl_compat_get(struct sock *nfnl, struct sk_buff *skb,
+ 	case NFPROTO_BRIDGE:
+ 		fmt = "ebt_%s";
+ 		break;
++	case NFPROTO_ARP:
++		fmt = "arpt_%s";
++		break;
+ 	default:
+ 		pr_err("nft_compat: unsupported protocol %d\n",
+ 			nfmsg->nfgen_family);
+
