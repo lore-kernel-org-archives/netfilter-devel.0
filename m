@@ -1,41 +1,94 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: softlockups when trying to restore an nft set of 1M entries
-Date: Sat, 14 Feb 2015 04:32:10 +0000
-Message-ID: <20150214043210.GA16393@casper.infradead.org>
-References: <54DDE717.6090703@akamai.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH net] netfilter: xt_socket: fix a stack corruption bug
+Date: Sun, 15 Feb 2015 19:03:45 -0800
+Message-ID: <1424055825.4942.50.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Balazs Scheidler <bazsi@balabit.hu>,
+	KOVACS Krisztian <hidden@balabit.hu>,
 	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Josh Hunt <johunt@akamai.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:58285 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753520AbbBNEcO (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Feb 2015 23:32:14 -0500
-Content-Disposition: inline
-In-Reply-To: <54DDE717.6090703@akamai.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 02/13/15 at 05:59am, Josh Hunt wrote:
-> except inside the set definition above I add 1M random ipv4 addresses.
-> Running "nft -f <filename>" will reproduce the problem. I also saw this when
-> trying to do a restore of 250k entries.
-> 
-> There are a few problems going on from what I can tell. The first is
-> the set defaults to 4 buckets and during restores the # of buckets does not
-> increase. I'm currently investigating to understand why we don't expand the
-> set on restores. However my guess into why we're softlockuping here is that
-> we're trying to shove 1M entries into 4 buckets :)
+From: Eric Dumazet <edumazet@google.com>
 
-Agreed. If you grow from 4 to cover 1M entries you need countless
-growth cycles and you end up creating huge chains which will make the
-ongoing expands take even longer.
+As soon as extract_icmp6_fields() returns, its local storage (automatic
+variables) is deallocated and can be overwritten.
 
-I think we need to implement Herbert's suggestion and have inserts
-fail if a certain upper watermark is reached.
+Lets add an additional parameter to make sure storage is valid long
+enough.
 
-I'm also investigating if we can grow by n*2 instead of just *2.
+While we are at it, adds some const qualifiers.
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Fixes: b64c9256a9b76 ("tproxy: added IPv6 support to the socket match")
+---
+ net/netfilter/xt_socket.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
+
+diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
+index 1ba67931eb1b..13332dbf291d 100644
+--- a/net/netfilter/xt_socket.c
++++ b/net/netfilter/xt_socket.c
+@@ -243,12 +243,13 @@ static int
+ extract_icmp6_fields(const struct sk_buff *skb,
+ 		     unsigned int outside_hdrlen,
+ 		     int *protocol,
+-		     struct in6_addr **raddr,
+-		     struct in6_addr **laddr,
++		     const struct in6_addr **raddr,
++		     const struct in6_addr **laddr,
+ 		     __be16 *rport,
+-		     __be16 *lport)
++		     __be16 *lport,
++		     struct ipv6hdr *ipv6_var)
+ {
+-	struct ipv6hdr *inside_iph, _inside_iph;
++	const struct ipv6hdr *inside_iph;
+ 	struct icmp6hdr *icmph, _icmph;
+ 	__be16 *ports, _ports[2];
+ 	u8 inside_nexthdr;
+@@ -263,12 +264,14 @@ extract_icmp6_fields(const struct sk_buff *skb,
+ 	if (icmph->icmp6_type & ICMPV6_INFOMSG_MASK)
+ 		return 1;
+ 
+-	inside_iph = skb_header_pointer(skb, outside_hdrlen + sizeof(_icmph), sizeof(_inside_iph), &_inside_iph);
++	inside_iph = skb_header_pointer(skb, outside_hdrlen + sizeof(_icmph),
++					sizeof(*ipv6_var), ipv6_var);
+ 	if (inside_iph == NULL)
+ 		return 1;
+ 	inside_nexthdr = inside_iph->nexthdr;
+ 
+-	inside_hdrlen = ipv6_skip_exthdr(skb, outside_hdrlen + sizeof(_icmph) + sizeof(_inside_iph),
++	inside_hdrlen = ipv6_skip_exthdr(skb, outside_hdrlen + sizeof(_icmph) +
++					      sizeof(*ipv6_var),
+ 					 &inside_nexthdr, &inside_fragoff);
+ 	if (inside_hdrlen < 0)
+ 		return 1; /* hjm: Packet has no/incomplete transport layer headers. */
+@@ -315,10 +318,10 @@ xt_socket_get_sock_v6(struct net *net, const u8 protocol,
+ static bool
+ socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+-	struct ipv6hdr *iph = ipv6_hdr(skb);
++	struct ipv6hdr ipv6_var, *iph = ipv6_hdr(skb);
+ 	struct udphdr _hdr, *hp = NULL;
+ 	struct sock *sk = skb->sk;
+-	struct in6_addr *daddr = NULL, *saddr = NULL;
++	const struct in6_addr *daddr = NULL, *saddr = NULL;
+ 	__be16 uninitialized_var(dport), uninitialized_var(sport);
+ 	int thoff = 0, uninitialized_var(tproto);
+ 	const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
+@@ -342,7 +345,7 @@ socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
+ 
+ 	} else if (tproto == IPPROTO_ICMPV6) {
+ 		if (extract_icmp6_fields(skb, thoff, &tproto, &saddr, &daddr,
+-					 &sport, &dport))
++					 &sport, &dport, &ipv6_var))
+ 			return false;
+ 	} else {
+ 		return false;
