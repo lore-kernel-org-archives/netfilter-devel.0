@@ -1,55 +1,30 @@
-From: Mikko Rapeli <mikko.rapeli@iki.fi>
-Subject: [PATCH 44/45] nf_conntrack_tuple_common.h: include linux/types.h and linux/netfilter.h
-Date: Tue, 17 Feb 2015 00:05:47 +0100
-Message-ID: <1424127948-22484-45-git-send-email-mikko.rapeli@iki.fi>
-References: <1424127948-22484-1-git-send-email-mikko.rapeli@iki.fi>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 43/45] include/uapi/linux/netfilter_bridge.h: include
+ if.h
+Date: Tue, 17 Feb 2015 01:02:50 +0100 (CET)
+Message-ID: <alpine.LSU.2.11.1502170101520.32748@nerf60.vanv.qr>
+References: <1424127948-22484-1-git-send-email-mikko.rapeli@iki.fi> <1424127948-22484-44-git-send-email-mikko.rapeli@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Mikko Rapeli <mikko.rapeli@iki.fi>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-api@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51941 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752702AbbBPXIO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Feb 2015 18:08:14 -0500
-In-Reply-To: <1424127948-22484-1-git-send-email-mikko.rapeli@iki.fi>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, linux-api@vger.kernel.org
+To: Mikko Rapeli <mikko.rapeli@iki.fi>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1424127948-22484-44-git-send-email-mikko.rapeli@iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-=46ixes userspace compilation errors like:
-error: unknown type name =E2=80=98__be16=E2=80=99
+On Tuesday 2015-02-17 00:05, Mikko Rapeli wrote:
 
-Signed-off-by: Mikko Rapeli <mikko.rapeli@iki.fi>
----
- include/uapi/linux/netfilter/nf_conntrack_tuple_common.h | 3 +++
- 1 file changed, 3 insertions(+)
+>Fixes userspace compilation errors like:
+>
+>error: field =E2=80=98in=E2=80=99 has incomplete type
+>struct in_addr in;
+>=20
+>+#include <linux/if.h>
 
-diff --git a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h b=
-/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
-index 2f6bbc5..a9c3834 100644
---- a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
-+++ b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
-@@ -1,6 +1,9 @@
- #ifndef _NF_CONNTRACK_TUPLE_COMMON_H
- #define _NF_CONNTRACK_TUPLE_COMMON_H
-=20
-+#include <linux/types.h>
-+#include <linux/netfilter.h>
-+
- enum ip_conntrack_dir {
- 	IP_CT_DIR_ORIGINAL,
- 	IP_CT_DIR_REPLY,
---=20
-2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Patch 36/45 included linux/in.h instead of linux/if.h for addressing "i=
+n has incomplete
+type". Should this be used here too?
