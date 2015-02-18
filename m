@@ -1,62 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] rule: fix object ordering via nft -f
-Date: Wed, 18 Feb 2015 04:39:12 +0100
-Message-ID: <1424230752-4040-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 2/2] netfilter: nf_tables: don't uninitialize element from core
+Date: Wed, 18 Feb 2015 04:52:26 +0100
+Message-ID: <1424231546-4886-2-git-send-email-pablo@netfilter.org>
+References: <1424231546-4886-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37462 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37972 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751769AbbBRDf6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Feb 2015 22:35:58 -0500
+	id S1752507AbbBRDtO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Feb 2015 22:49:14 -0500
+In-Reply-To: <1424231546-4886-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The objects need to be loaded in the following ordering:
-
-	#1 tables
-	#2 chains
-	#3 sets
-	#4 rules
-
-We have to make sure that chains are in place by when we add rules with
-jumps/gotos. Similarly, we have to make sure that the sets are in place
-by when rules reference them.
-
-Without this patch, you may hit ENOENT errors depending on your ruleset
-configuration.
+The corresponding set implementation is responsible for this when
+destroying the element. This prevents a table refcount underflow
+when deleting elements.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/rule.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ net/netfilter/nf_tables_api.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff --git a/src/rule.c b/src/rule.c
-index feafe26..8d76fd0 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -658,14 +658,19 @@ static int do_add_table(struct netlink_ctx *ctx, const struct handle *h,
- 	if (netlink_add_table(ctx, h, loc, table, excl) < 0)
- 		return -1;
- 	if (table != NULL) {
-+		list_for_each_entry(chain, &table->chains, list) {
-+			if (netlink_add_chain(ctx, &chain->handle,
-+					      &chain->location, chain,
-+					      excl) < 0)
-+				return -1;
-+		}
- 		list_for_each_entry(set, &table->sets, list) {
- 			handle_merge(&set->handle, &table->handle);
- 			if (do_add_set(ctx, &set->handle, set) < 0)
- 				return -1;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 199fd0f..d49aa91 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3613,11 +3613,6 @@ static int nf_tables_commit(struct sk_buff *skb)
+ 						 NFT_MSG_DELSETELEM, 0);
+ 			te->set->ops->get(te->set, &te->elem);
+ 			te->set->ops->remove(te->set, &te->elem);
+-			nft_data_uninit(&te->elem.key, NFT_DATA_VALUE);
+-			if (te->elem.flags & NFT_SET_MAP) {
+-				nft_data_uninit(&te->elem.data,
+-						te->set->dtype);
+-			}
+ 			nft_trans_destroy(trans);
+ 			break;
  		}
- 		list_for_each_entry(chain, &table->chains, list) {
--			if (do_add_chain(ctx, &chain->handle, &chain->location,
--					 chain, excl) < 0)
-+			if (netlink_add_rule_list(ctx, h, &chain->rules) < 0)
- 				return -1;
- 		}
- 	}
 -- 
 1.7.10.4
 
