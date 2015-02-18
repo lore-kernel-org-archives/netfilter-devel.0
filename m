@@ -1,43 +1,49 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH RESEND] Add element count to bitmap and hash headers
-Date: Wed, 18 Feb 2015 04:54:16 +0100
-Message-ID: <20150218035416.GA4945@salvia>
-References: <1424187335-5968-1-git-send-email-emunson@akamai.com>
- <20150217155331.GA3341@salvia>
- <alpine.DEB.2.10.1502172223580.16817@blackhole.kfki.hu>
+From: Ana Rey <ana@soleta.eu>
+Subject: Re: [v4 nf 0/5] Named counter objects support in nft
+Date: Wed, 18 Feb 2015 13:17:46 +0100
+Message-ID: <54E482EA.3060306@soleta.eu>
+References: <cover.1423075525.git.ana@soleta.eu> <20150217172301.GA7558@acer.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, johunt@akamai.com,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Eric B Munson <emunson@akamai.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+To: Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38055 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752438AbbBRDuz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Feb 2015 22:50:55 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1502172223580.16817@blackhole.kfki.hu>
+Received: from 129.166.216.87.static.jazztel.es ([87.216.166.129]:55479 "EHLO
+	correo.soleta.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750974AbbBRMQw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Feb 2015 07:16:52 -0500
+In-Reply-To: <20150217172301.GA7558@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 17, 2015 at 10:35:40PM +0100, Jozsef Kadlecsik wrote:
-> On Tue, 17 Feb 2015, Pablo Neira Ayuso wrote:
-> 
-> > On Tue, Feb 17, 2015 at 10:35:35AM -0500, Eric B Munson wrote:
-> > > It would be useful for userspace to query the size of an ipset.  This
-> > > data is held for both the bitmask and hash types, however, it is not
-> > > exposed to userspace.  This patch uses the otherwise unused attribute
-> > > IPSET_ATTR_ELEMENTS to indicate the size in the the header that is
-> > > exported to userspace.
-> > 
-> > Thanks for your patch.
-> > 
-> > I think Jozsef will need the userspace bits for his library and
-> > utility.
-> 
-> Yes, that's missing from the patch. Also, I don't like any change which 
-> affects the userspace but not expressed in new set type revision. Later on 
-> the new revision makes much simpler to identify why the "Elements: is 
-> missing from the listing of a set.
 
-Please address Jozsef's feedback and resubmit. Thanks.
+
+On 17/02/15 18:23, Patrick McHardy wrote:
+> On 04.02, Ana Rey Botello wrote:
+>> Hi,
+>>
+>> With this patchset, we add named counter objects support. It is similar
+>> to nfacct in iptables.
+> 
+> Thanks for doing this work. I have some patches coming up very soon
+> which have kind of an intersection with your work, so I'd ask for a
+> little bit of patience until we can integrate them.
+
+ok, I'll be patient.
+
+> 
+> Basically what my patches will do is to allow to statically or
+> dynamically "stateify" and expression type, including counters.
+> Your patches are one of the missing pieces in doing that, however
+> we most likely want to change them in a way that they not only
+> allow access to counter objects, but any kind of expression. Its
+> a rather minor change to your work, but requires some things I'm
+> still working on. Hope to have something ready by the end of next
+> week.
+> 
+> I'll keep you posted.
+> 
