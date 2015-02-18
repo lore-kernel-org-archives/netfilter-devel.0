@@ -1,153 +1,175 @@
-From: Bojan Prtvar <prtvar.b@gmail.com>
-Subject: [PATCH] net: Remove state argument from skb_find_text()
-Date: Thu, 19 Feb 2015 00:16:48 +0100
-Message-ID: <1424301408-3659-1-git-send-email-prtvar.b@gmail.com>
-Cc: tgraf@suug.ch, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, dan.carpenter@oracle.com,
-	Bojan Prtvar <prtvar.b@gmail.com>
-To: netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH v2] iptables-compat: unset context flags in netlink delinearize step
+Date: Thu, 19 Feb 2015 00:32:21 +0100
+Message-ID: <1424302341-21509-1-git-send-email-pablo@netfilter.org>
+Cc: arturo.borrero.glez@gmail.com
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:60727 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751382AbbBRX3E (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Feb 2015 18:29:04 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Although it is clear that textsearch state is intentionally passed to skb_find_text() as uninitialized argument, it was never used by the callers. Therefore, we can simplify skb_find_text() by making it local variable.
+Once the data that the compare expression provides have been digested.
 
-Signed-off-by: Bojan Prtvar <prtvar.b@gmail.com>
+For example:
+
+-A INPUT -i noexist -p udplite -s 10.10.10.10/32 -d 10.0.0.10/32 -j ACCEPT
+
+doesn't show anymore the following broken output via iptables-compat-save:
+
+-A INPUT -i
+
++t -p udplite -s 10.10.10.10/32 -d 10.0.0.10/32 -j ACCEPT
+
+Reported-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/linux/skbuff.h              |    3 +--
- net/core/skbuff.c                   |    9 ++++-----
- net/netfilter/nf_conntrack_amanda.c |   10 +++-------
- net/netfilter/xt_string.c           |    4 +---
- net/sched/em_text.c                 |    3 +--
- 5 files changed, 10 insertions(+), 19 deletions(-)
+ iptables/nft-arp.c    |   12 ++++++++----
+ iptables/nft-ipv4.c   |   14 ++++++++++----
+ iptables/nft-ipv6.c   |   20 ++++++++++++--------
+ iptables/nft-shared.c |    8 ++++++--
+ 4 files changed, 36 insertions(+), 18 deletions(-)
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 08074a8..6cc1b7d 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -776,8 +776,7 @@ unsigned int skb_seq_read(unsigned int consumed, const u8 **data,
- void skb_abort_seq_read(struct skb_seq_state *st);
+diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
+index 0567201..523b3ec 100644
+--- a/iptables/nft-arp.c
++++ b/iptables/nft-arp.c
+@@ -337,10 +337,12 @@ static void nft_arp_parse_payload(struct nft_xt_ctx *ctx,
+ 					   fw->arp.arhln) {
+ 			get_cmp_data(e, &addr, sizeof(addr), &inv);
+ 			fw->arp.src.s_addr = addr.s_addr;
+-			if (ctx->flags & NFT_XT_CTX_BITWISE)
++			if (ctx->flags & NFT_XT_CTX_BITWISE) {
+ 				parse_mask_ipv4(ctx, &fw->arp.smsk);
+-			else
++				ctx->flags &= ~NFT_XT_CTX_BITWISE;
++			} else {
+ 				fw->arp.smsk.s_addr = 0xffffffff;
++			}
  
- unsigned int skb_find_text(struct sk_buff *skb, unsigned int from,
--			   unsigned int to, struct ts_config *config,
--			   struct ts_state *state);
-+			   unsigned int to, struct ts_config *config);
+ 			if (inv)
+ 				fw->arp.invflags |= ARPT_INV_SRCIP;
+@@ -349,10 +351,12 @@ static void nft_arp_parse_payload(struct nft_xt_ctx *ctx,
+ 						  sizeof(struct in_addr)) {
+ 			get_cmp_data(e, &addr, sizeof(addr), &inv);
+ 			fw->arp.tgt.s_addr = addr.s_addr;
+-			if (ctx->flags & NFT_XT_CTX_BITWISE)
++			if (ctx->flags & NFT_XT_CTX_BITWISE) {
+ 				parse_mask_ipv4(ctx, &fw->arp.tmsk);
+-			else
++				ctx->flags &= ~NFT_XT_CTX_BITWISE;
++			} else {
+ 				fw->arp.tmsk.s_addr = 0xffffffff;
++			}
  
- /*
-  * Packet hash types specify the type of hash in skb_set_hash.
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index 1b62343..c0e64f7 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -2747,7 +2747,6 @@ static void skb_ts_finish(struct ts_config *conf, struct ts_state *state)
-  * @from: search offset
-  * @to: search limit
-  * @config: textsearch configuration
-- * @state: uninitialized textsearch state variable
-  *
-  * Finds a pattern in the skb data according to the specified
-  * textsearch configuration. Use textsearch_next() to retrieve
-@@ -2755,17 +2754,17 @@ static void skb_ts_finish(struct ts_config *conf, struct ts_state *state)
-  * to the first occurrence or UINT_MAX if no match was found.
-  */
- unsigned int skb_find_text(struct sk_buff *skb, unsigned int from,
--			   unsigned int to, struct ts_config *config,
--			   struct ts_state *state)
-+			   unsigned int to, struct ts_config *config)
- {
-+	struct ts_state state;
- 	unsigned int ret;
- 
- 	config->get_next_block = skb_ts_get_next_block;
- 	config->finish = skb_ts_finish;
- 
--	skb_prepare_seq_read(skb, from, to, TS_SKB_CB(state));
-+	skb_prepare_seq_read(skb, from, to, TS_SKB_CB(&state));
- 
--	ret = textsearch_find(config, state);
-+	ret = textsearch_find(config, &state);
- 	return (ret <= to - from ? ret : UINT_MAX);
- }
- EXPORT_SYMBOL(skb_find_text);
-diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
-index b8b95f4..57a26cc 100644
---- a/net/netfilter/nf_conntrack_amanda.c
-+++ b/net/netfilter/nf_conntrack_amanda.c
-@@ -88,7 +88,6 @@ static int amanda_help(struct sk_buff *skb,
- 		       struct nf_conn *ct,
- 		       enum ip_conntrack_info ctinfo)
- {
--	struct ts_state ts;
- 	struct nf_conntrack_expect *exp;
- 	struct nf_conntrack_tuple *tuple;
- 	unsigned int dataoff, start, stop, off, i;
-@@ -113,23 +112,20 @@ static int amanda_help(struct sk_buff *skb,
- 		return NF_ACCEPT;
- 	}
- 
--	memset(&ts, 0, sizeof(ts));
- 	start = skb_find_text(skb, dataoff, skb->len,
--			      search[SEARCH_CONNECT].ts, &ts);
-+			      search[SEARCH_CONNECT].ts);
- 	if (start == UINT_MAX)
- 		goto out;
- 	start += dataoff + search[SEARCH_CONNECT].len;
- 
--	memset(&ts, 0, sizeof(ts));
- 	stop = skb_find_text(skb, start, skb->len,
--			     search[SEARCH_NEWLINE].ts, &ts);
-+			     search[SEARCH_NEWLINE].ts);
- 	if (stop == UINT_MAX)
- 		goto out;
- 	stop += start;
- 
- 	for (i = SEARCH_DATA; i <= SEARCH_INDEX; i++) {
--		memset(&ts, 0, sizeof(ts));
--		off = skb_find_text(skb, start, stop, search[i].ts, &ts);
-+		off = skb_find_text(skb, start, stop, search[i].ts);
- 		if (off == UINT_MAX)
- 			continue;
- 		off += start + search[i].len;
-diff --git a/net/netfilter/xt_string.c b/net/netfilter/xt_string.c
-index d3c48b1..0bc3460 100644
---- a/net/netfilter/xt_string.c
-+++ b/net/netfilter/xt_string.c
-@@ -26,14 +26,12 @@ static bool
- string_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_string_info *conf = par->matchinfo;
--	struct ts_state state;
- 	bool invert;
- 
--	memset(&state, 0, sizeof(struct ts_state));
- 	invert = conf->u.v1.flags & XT_STRING_FLAG_INVERT;
- 
- 	return (skb_find_text((struct sk_buff *)skb, conf->from_offset,
--			     conf->to_offset, conf->config, &state)
-+			     conf->to_offset, conf->config)
- 			     != UINT_MAX) ^ invert;
+ 			if (inv)
+ 				fw->arp.invflags |= ARPT_INV_TGTIP;
+diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
+index ed30920..140093c 100644
+--- a/iptables/nft-ipv4.c
++++ b/iptables/nft-ipv4.c
+@@ -123,6 +123,8 @@ static void get_frag(struct nft_xt_ctx *ctx, struct nft_rule_expr *e, bool *inv)
+ 		*inv = true;
+ 	else
+ 		*inv = false;
++
++	ctx->flags &= ~NFT_XT_CTX_BITWISE;
  }
  
-diff --git a/net/sched/em_text.c b/net/sched/em_text.c
-index 15d353d..21bc53f 100644
---- a/net/sched/em_text.c
-+++ b/net/sched/em_text.c
-@@ -34,7 +34,6 @@ static int em_text_match(struct sk_buff *skb, struct tcf_ematch *m,
- {
- 	struct text_match *tm = EM_TEXT_PRIV(m);
- 	int from, to;
--	struct ts_state state;
+ static const char *mask_to_str(uint32_t mask)
+@@ -178,10 +180,12 @@ static void nft_ipv4_parse_payload(struct nft_xt_ctx *ctx,
+ 	case offsetof(struct iphdr, saddr):
+ 		get_cmp_data(e, &addr, sizeof(addr), &inv);
+ 		cs->fw.ip.src.s_addr = addr.s_addr;
+-		if (ctx->flags & NFT_XT_CTX_BITWISE)
++		if (ctx->flags & NFT_XT_CTX_BITWISE) {
+ 			parse_mask_ipv4(ctx, &cs->fw.ip.smsk);
+-		else
++			ctx->flags &= ~NFT_XT_CTX_BITWISE;
++		} else {
+ 			cs->fw.ip.smsk.s_addr = 0xffffffff;
++		}
  
- 	from = tcf_get_base_ptr(skb, tm->from_layer) - skb->data;
- 	from += tm->from_offset;
-@@ -42,7 +41,7 @@ static int em_text_match(struct sk_buff *skb, struct tcf_ematch *m,
- 	to = tcf_get_base_ptr(skb, tm->to_layer) - skb->data;
- 	to += tm->to_offset;
+ 		if (inv)
+ 			cs->fw.ip.invflags |= IPT_INV_SRCIP;
+@@ -189,10 +193,12 @@ static void nft_ipv4_parse_payload(struct nft_xt_ctx *ctx,
+ 	case offsetof(struct iphdr, daddr):
+ 		get_cmp_data(e, &addr, sizeof(addr), &inv);
+ 		cs->fw.ip.dst.s_addr = addr.s_addr;
+-		if (ctx->flags & NFT_XT_CTX_BITWISE)
++		if (ctx->flags & NFT_XT_CTX_BITWISE) {
+ 			parse_mask_ipv4(ctx, &cs->fw.ip.dmsk);
+-		else
++			ctx->flags &= ~NFT_XT_CTX_BITWISE;
++		} else {
+ 			cs->fw.ip.dmsk.s_addr = 0xffffffff;
++		}
  
--	return skb_find_text(skb, from, to, tm->config, &state) != UINT_MAX;
-+	return skb_find_text(skb, from, to, tm->config) != UINT_MAX;
+ 		if (inv)
+ 			cs->fw.ip.invflags |= IPT_INV_DSTIP;
+diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
+index 37365da..d50b138 100644
+--- a/iptables/nft-ipv6.c
++++ b/iptables/nft-ipv6.c
+@@ -126,10 +126,12 @@ static void nft_ipv6_parse_payload(struct nft_xt_ctx *ctx,
+ 	case offsetof(struct ip6_hdr, ip6_src):
+ 		get_cmp_data(e, &addr, sizeof(addr), &inv);
+ 		memcpy(cs->fw6.ipv6.src.s6_addr, &addr, sizeof(addr));
+-                if (ctx->flags & NFT_XT_CTX_BITWISE)
+-                        parse_mask_ipv6(ctx, &cs->fw6.ipv6.smsk);
+-                else
+-                        memset(&cs->fw.ip.smsk, 0xff, sizeof(struct in6_addr));
++		if (ctx->flags & NFT_XT_CTX_BITWISE) {
++			parse_mask_ipv6(ctx, &cs->fw6.ipv6.smsk);
++			ctx->flags &= ~NFT_XT_CTX_BITWISE;
++		} else {
++			memset(&cs->fw.ip.smsk, 0xff, sizeof(struct in6_addr));
++		}
+ 
+ 		if (inv)
+ 			cs->fw6.ipv6.invflags |= IPT_INV_SRCIP;
+@@ -137,10 +139,12 @@ static void nft_ipv6_parse_payload(struct nft_xt_ctx *ctx,
+ 	case offsetof(struct ip6_hdr, ip6_dst):
+ 		get_cmp_data(e, &addr, sizeof(addr), &inv);
+ 		memcpy(cs->fw6.ipv6.dst.s6_addr, &addr, sizeof(addr));
+-                if (ctx->flags & NFT_XT_CTX_BITWISE)
+-                        parse_mask_ipv6(ctx, &cs->fw6.ipv6.dmsk);
+-                else
+-                        memset(&cs->fw.ip.dmsk, 0xff, sizeof(struct in6_addr));
++		if (ctx->flags & NFT_XT_CTX_BITWISE) {
++			parse_mask_ipv6(ctx, &cs->fw6.ipv6.dmsk);
++			ctx->flags &= ~NFT_XT_CTX_BITWISE;
++		} else {
++			memset(&cs->fw.ip.dmsk, 0xff, sizeof(struct in6_addr));
++		}
+ 
+ 		if (inv)
+ 			cs->fw6.ipv6.invflags |= IPT_INV_DSTIP;
+diff --git a/iptables/nft-shared.c b/iptables/nft-shared.c
+index 620da3e..1182f56 100644
+--- a/iptables/nft-shared.c
++++ b/iptables/nft-shared.c
+@@ -434,11 +434,15 @@ void nft_parse_cmp(struct nft_xt_ctx *ctx, struct nft_rule_expr *e)
+ 	if (ctx->reg && reg != ctx->reg)
+ 		return;
+ 
+-	if (ctx->flags & NFT_XT_CTX_META)
++	if (ctx->flags & NFT_XT_CTX_META) {
+ 		ops->parse_meta(ctx, e, data);
++		ctx->flags &= ~NFT_XT_CTX_META;
++	}
+ 	/* bitwise context is interpreted from payload */
+-	if (ctx->flags & NFT_XT_CTX_PAYLOAD)
++	if (ctx->flags & NFT_XT_CTX_PAYLOAD) {
+ 		ops->parse_payload(ctx, e, data);
++		ctx->flags &= ~NFT_XT_CTX_PAYLOAD;
++	}
  }
  
- static int em_text_change(struct tcf_proto *tp, void *data, int len,
+ void nft_parse_counter(struct nft_rule_expr *e, struct xt_counters *counters)
 -- 
-1.7.9.5
+1.7.10.4
+
