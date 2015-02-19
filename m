@@ -1,27 +1,32 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: iptables: add more test cases and minor bug fixes
-Date: Thu, 19 Feb 2015 16:24:27 +0100
-Message-ID: <20150219152427.GA3410@salvia>
+Subject: Re: [PATCH 1/7] extensions: remove MIRROR
+Date: Thu, 19 Feb 2015 16:27:40 +0100
+Message-ID: <20150219152740.GB3410@salvia>
 References: <1424351483-27617-1-git-send-email-fw@strlen.de>
+ <1424351483-27617-2-git-send-email-fw@strlen.de>
+ <alpine.LSU.2.11.1502191428000.27892@nerf60.vanv.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52398 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53020 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750856AbbBSPVQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Feb 2015 10:21:16 -0500
+	id S1751137AbbBSPYR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Feb 2015 10:24:17 -0500
 Content-Disposition: inline
-In-Reply-To: <1424351483-27617-1-git-send-email-fw@strlen.de>
+In-Reply-To: <alpine.LSU.2.11.1502191428000.27892@nerf60.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 19, 2015 at 02:11:16PM +0100, Florian Westphal wrote:
-> Will push to master soon if there are no objections.
-> iptables-test.py should now be complete enough to replace the old
-> iptables-save format "test" files, so I'm going to remove the tests/
-> directory as well.
+On Thu, Feb 19, 2015 at 02:28:53PM +0100, Jan Engelhardt wrote:
+> On Thursday 2015-02-19 14:11, Florian Westphal wrote:
+> 
+> >removed from the kernel back in 2003.
+> 
+> Last time I remember, Pablo wanted to keep this. Because modern iptables 
+> may still be used with overly old preexisting kernels.
 
-Nice you added more regression test, this will also help us with the
-iptables-compat stuff, thanks Florian!
+No objections from my side to get rid of these old extensions.
