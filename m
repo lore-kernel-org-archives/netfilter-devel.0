@@ -1,31 +1,67 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: iptables: add more test cases and minor bug fixes
-Date: Thu, 19 Feb 2015 17:49:20 +0100
-Message-ID: <20150219164920.GD24297@breakpoint.cc>
-References: <1424351483-27617-1-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:59301 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751797AbbBSQtW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Feb 2015 11:49:22 -0500
-Content-Disposition: inline
-In-Reply-To: <1424351483-27617-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/4] Netfilter/IPVS fixes for net
+Date: Thu, 19 Feb 2015 19:19:16 +0100
+Message-ID: <1424369960-10988-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Florian Westphal <fw@strlen.de> wrote:
-> Will push to master soon if there are no objections.
-> iptables-test.py should now be complete enough to replace the old
-> iptables-save format "test" files, so I'm going to remove the tests/
-> directory as well.
+Hi David,
 
-pushed everthing plus/tests/ dir removal, I amended the ip6t_dst change
-to not include the unrelated whitspace changes.
+The following patchset contains updates for your net tree, they are:
 
-Thanks,
-Florian
+1) Fix removal of destination in IPVS when the new mixed family support
+   is used, from Alexey Andriyanov via Simon Horman.
+
+2) Fix module refcount undeflow in nft_compat when reusing a match /
+   target.
+
+3) Fix iptables-restore when the recent match is used with a new hitcount
+   that exceeds threshold, from Florian Westphal.
+
+4) Fix stack corruption in xt_socket due to using stack storage to save
+   the inner IPv6 header, from Eric Dumazet.
+
+I'll follow up soon with another batch with more fixes that are still
+cooking.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 42b5212fee4f57907e9415b18fe19c13e65574bc:
+
+  xen-netback: stop the guest rx thread after a fatal error (2015-02-02 19:39:04 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to 78296c97ca1fd3b104f12e1f1fbc06c46635990b:
+
+  netfilter: xt_socket: fix a stack corruption bug (2015-02-16 17:00:48 +0100)
+
+----------------------------------------------------------------
+Alexey Andriyanov (1):
+      ipvs: fix inability to remove a mixed-family RS
+
+Eric Dumazet (1):
+      netfilter: xt_socket: fix a stack corruption bug
+
+Florian Westphal (1):
+      netfilter: xt_recent: don't reject rule if new hitcount exceeds table max
+
+Pablo Neira Ayuso (1):
+      netfilter: nft_compat: fix module refcount underflow
+
+ net/netfilter/ipvs/ip_vs_ctl.c |    2 +-
+ net/netfilter/nft_compat.c     |   12 ++++++++++--
+ net/netfilter/xt_recent.c      |   11 +++++------
+ net/netfilter/xt_socket.c      |   21 ++++++++++++---------
+ 4 files changed, 28 insertions(+), 18 deletions(-)
