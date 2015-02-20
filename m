@@ -1,63 +1,33 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [PATCH v2] iptables-compat: unset context flags in netlink
- delinearize step
-Date: Fri, 20 Feb 2015 20:11:11 +0100
-Message-ID: <CAOkSjBhaFMPxZ9qKOtHS5wDz3c_K_hcFVD2QdOZUfwN5oJwuSg@mail.gmail.com>
-References: <1424302341-21509-1-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net: Remove state argument from skb_find_text()
+Date: Fri, 20 Feb 2015 17:22:33 -0500 (EST)
+Message-ID: <20150220.172233.1250644959779215916.davem@davemloft.net>
+References: <1424301408-3659-1-git-send-email-prtvar.b@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f41.google.com ([209.85.215.41]:38043 "EHLO
-	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754938AbbBTTLe convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Feb 2015 14:11:34 -0500
-Received: by lamq1 with SMTP id q1so8066904lam.5
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Feb 2015 11:11:33 -0800 (PST)
-In-Reply-To: <1424302341-21509-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, tgraf@suug.ch,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	dan.carpenter@oracle.com
+To: prtvar.b@gmail.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1424301408-3659-1-git-send-email-prtvar.b@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 19 February 2015 at 00:32, Pablo Neira Ayuso <pablo@netfilter.org> w=
-rote:
-> Once the data that the compare expression provides have been digested=
-=2E
->
-> For example:
->
-> -A INPUT -i noexist -p udplite -s 10.10.10.10/32 -d 10.0.0.10/32 -j A=
-CCEPT
->
-> doesn't show anymore the following broken output via iptables-compat-=
-save:
->
-> -A INPUT -i
->
-> +t -p udplite -s 10.10.10.10/32 -d 10.0.0.10/32 -j ACCEPT
->
-> Reported-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  iptables/nft-arp.c    |   12 ++++++++----
->  iptables/nft-ipv4.c   |   14 ++++++++++----
->  iptables/nft-ipv6.c   |   20 ++++++++++++--------
->  iptables/nft-shared.c |    8 ++++++--
->  4 files changed, 36 insertions(+), 18 deletions(-)
+From: Bojan Prtvar <prtvar.b@gmail.com>
+Date: Thu, 19 Feb 2015 00:16:48 +0100
 
-It works (v2).
+> Although it is clear that textsearch state is intentionally passed
+> to skb_find_text() as uninitialized argument, it was never used by
+> the callers. Therefore, we can simplify skb_find_text() by making it
+> local variable.
+> 
+> Signed-off-by: Bojan Prtvar <prtvar.b@gmail.com>
 
-Tested-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Although I partially agree with Pablo's response these interfaces were
+designed to be able to hold state across calls, nobody uses them this
+way yet.  So this change is fine and we can resurrect the argument
+if a use appears in the future.
 
-best regards.
-
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+However, your patch doesn't apply cleanly, please respin.
