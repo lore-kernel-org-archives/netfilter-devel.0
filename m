@@ -1,91 +1,63 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf] netfilter: nf_tables: fix addition/deletion of elements from commit/abort
-Date: Fri, 20 Feb 2015 17:11:10 +0100
-Message-ID: <1424448670-4458-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [PATCH v2] iptables-compat: unset context flags in netlink
+ delinearize step
+Date: Fri, 20 Feb 2015 20:11:11 +0100
+Message-ID: <CAOkSjBhaFMPxZ9qKOtHS5wDz3c_K_hcFVD2QdOZUfwN5oJwuSg@mail.gmail.com>
+References: <1424302341-21509-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38205 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754228AbbBTQHw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Feb 2015 11:07:52 -0500
+Received: from mail-la0-f41.google.com ([209.85.215.41]:38043 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754938AbbBTTLe convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Feb 2015 14:11:34 -0500
+Received: by lamq1 with SMTP id q1so8066904lam.5
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Feb 2015 11:11:33 -0800 (PST)
+In-Reply-To: <1424302341-21509-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We have several problems in this path:
+On 19 February 2015 at 00:32, Pablo Neira Ayuso <pablo@netfilter.org> w=
+rote:
+> Once the data that the compare expression provides have been digested=
+=2E
+>
+> For example:
+>
+> -A INPUT -i noexist -p udplite -s 10.10.10.10/32 -d 10.0.0.10/32 -j A=
+CCEPT
+>
+> doesn't show anymore the following broken output via iptables-compat-=
+save:
+>
+> -A INPUT -i
+>
+> +t -p udplite -s 10.10.10.10/32 -d 10.0.0.10/32 -j ACCEPT
+>
+> Reported-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  iptables/nft-arp.c    |   12 ++++++++----
+>  iptables/nft-ipv4.c   |   14 ++++++++++----
+>  iptables/nft-ipv6.c   |   20 ++++++++++++--------
+>  iptables/nft-shared.c |    8 ++++++--
+>  4 files changed, 36 insertions(+), 18 deletions(-)
 
-1) There is a use-after-free when removing individual elements from
-   the commit path.
+It works (v2).
 
-2) We have to uninit() the data part of the element from the abort
-   path to avoid a chain refcount leak.
+Tested-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 
-3) We have to check for set->flags to see if there's a mapping, instead
-   of the element flags.
+best regards.
 
-4) We have to check for !(flags & NFT_SET_ELEM_INTERVAL_END) to skip
-   elements that are part of the interval that have no data part, so
-   they don't need to be uninit().
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-This fix replaces the following two patches:
-
-http://patchwork.ozlabs.org/patch/440781/
-http://patchwork.ozlabs.org/patch/440782/
-
-Thanks to Patrick for helping on discussing this fix!
-
- net/netfilter/nf_tables_api.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 199fd0f..a8c9462 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -3612,12 +3612,11 @@ static int nf_tables_commit(struct sk_buff *skb)
- 						 &te->elem,
- 						 NFT_MSG_DELSETELEM, 0);
- 			te->set->ops->get(te->set, &te->elem);
--			te->set->ops->remove(te->set, &te->elem);
- 			nft_data_uninit(&te->elem.key, NFT_DATA_VALUE);
--			if (te->elem.flags & NFT_SET_MAP) {
--				nft_data_uninit(&te->elem.data,
--						te->set->dtype);
--			}
-+			if (te->set->flags & NFT_SET_MAP &&
-+			    !(te->elem.flags & NFT_SET_ELEM_INTERVAL_END))
-+				nft_data_uninit(&te->elem.data, te->set->dtype);
-+			te->set->ops->remove(te->set, &te->elem);
- 			nft_trans_destroy(trans);
- 			break;
- 		}
-@@ -3658,7 +3657,7 @@ static int nf_tables_abort(struct sk_buff *skb)
- {
- 	struct net *net = sock_net(skb->sk);
- 	struct nft_trans *trans, *next;
--	struct nft_set *set;
-+	struct nft_trans_elem *te;
- 
- 	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
- 		switch (trans->msg_type) {
-@@ -3719,9 +3718,13 @@ static int nf_tables_abort(struct sk_buff *skb)
- 			break;
- 		case NFT_MSG_NEWSETELEM:
- 			nft_trans_elem_set(trans)->nelems--;
--			set = nft_trans_elem_set(trans);
--			set->ops->get(set, &nft_trans_elem(trans));
--			set->ops->remove(set, &nft_trans_elem(trans));
-+			te = (struct nft_trans_elem *)trans->data;
-+			te->set->ops->get(te->set, &te->elem);
-+			nft_data_uninit(&te->elem.key, NFT_DATA_VALUE);
-+			if (te->set->flags & NFT_SET_MAP &&
-+			    !(te->elem.flags & NFT_SET_ELEM_INTERVAL_END))
-+				nft_data_uninit(&te->elem.data, te->set->dtype);
-+			te->set->ops->remove(te->set, &te->elem);
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_DELSETELEM:
--- 
-1.7.10.4
-
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
