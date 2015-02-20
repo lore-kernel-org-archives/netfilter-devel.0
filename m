@@ -1,44 +1,91 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] tests: regression: any/meta: revisit meta tests
-Date: Fri, 20 Feb 2015 16:58:33 +0100
-Message-ID: <20150220155833.GD3834@salvia>
-References: <1424431734-2305-1-git-send-email-anarey@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Ana Rey Botello <anarey@gmail.com>
+Subject: [PATCH nf] netfilter: nf_tables: fix addition/deletion of elements from commit/abort
+Date: Fri, 20 Feb 2015 17:11:10 +0100
+Message-ID: <1424448670-4458-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36500 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38205 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752566AbbBTPzI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Feb 2015 10:55:08 -0500
-Content-Disposition: inline
-In-Reply-To: <1424431734-2305-1-git-send-email-anarey@gmail.com>
+	id S1754228AbbBTQHw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Feb 2015 11:07:52 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Feb 20, 2015 at 12:28:54PM +0100, Ana Rey Botello wrote:
-> From: Ana Rey <anarey@gmail.com>
-> 
-> Add, delete and rewrite some default outputs depending on the case.
-> 
-> Signed-off-by: Ana Rey <anarey@gmail.com>
-> ---
->  tests/regression/any/meta.t |   28 ++++++++++++++--------------
->  1 file changed, 14 insertions(+), 14 deletions(-)
-> 
-> diff --git a/tests/regression/any/meta.t b/tests/regression/any/meta.t
-> index f11fd00..4b3d3fa 100644
-> --- a/tests/regression/any/meta.t
-> +++ b/tests/regression/any/meta.t
-> @@ -9,8 +9,8 @@
->  meta length 1000;ok
->  meta length 22;ok
->  meta length != 233;ok
-> -meta length 33-45;ok
-> -meta length != 33-45;ok
-> +meta length 33-45;ok;meta length >= 33 meta length <= 45
-> +meta length != 33-45;ok;meta length < 33 meta length > 45
+We have several problems in this path:
 
-I'd rather like to get this fixed in nft, it should be not too
-complicated to make it.
+1) There is a use-after-free when removing individual elements from
+   the commit path.
+
+2) We have to uninit() the data part of the element from the abort
+   path to avoid a chain refcount leak.
+
+3) We have to check for set->flags to see if there's a mapping, instead
+   of the element flags.
+
+4) We have to check for !(flags & NFT_SET_ELEM_INTERVAL_END) to skip
+   elements that are part of the interval that have no data part, so
+   they don't need to be uninit().
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+This fix replaces the following two patches:
+
+http://patchwork.ozlabs.org/patch/440781/
+http://patchwork.ozlabs.org/patch/440782/
+
+Thanks to Patrick for helping on discussing this fix!
+
+ net/netfilter/nf_tables_api.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 199fd0f..a8c9462 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3612,12 +3612,11 @@ static int nf_tables_commit(struct sk_buff *skb)
+ 						 &te->elem,
+ 						 NFT_MSG_DELSETELEM, 0);
+ 			te->set->ops->get(te->set, &te->elem);
+-			te->set->ops->remove(te->set, &te->elem);
+ 			nft_data_uninit(&te->elem.key, NFT_DATA_VALUE);
+-			if (te->elem.flags & NFT_SET_MAP) {
+-				nft_data_uninit(&te->elem.data,
+-						te->set->dtype);
+-			}
++			if (te->set->flags & NFT_SET_MAP &&
++			    !(te->elem.flags & NFT_SET_ELEM_INTERVAL_END))
++				nft_data_uninit(&te->elem.data, te->set->dtype);
++			te->set->ops->remove(te->set, &te->elem);
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		}
+@@ -3658,7 +3657,7 @@ static int nf_tables_abort(struct sk_buff *skb)
+ {
+ 	struct net *net = sock_net(skb->sk);
+ 	struct nft_trans *trans, *next;
+-	struct nft_set *set;
++	struct nft_trans_elem *te;
+ 
+ 	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
+ 		switch (trans->msg_type) {
+@@ -3719,9 +3718,13 @@ static int nf_tables_abort(struct sk_buff *skb)
+ 			break;
+ 		case NFT_MSG_NEWSETELEM:
+ 			nft_trans_elem_set(trans)->nelems--;
+-			set = nft_trans_elem_set(trans);
+-			set->ops->get(set, &nft_trans_elem(trans));
+-			set->ops->remove(set, &nft_trans_elem(trans));
++			te = (struct nft_trans_elem *)trans->data;
++			te->set->ops->get(te->set, &te->elem);
++			nft_data_uninit(&te->elem.key, NFT_DATA_VALUE);
++			if (te->set->flags & NFT_SET_MAP &&
++			    !(te->elem.flags & NFT_SET_ELEM_INTERVAL_END))
++				nft_data_uninit(&te->elem.data, te->set->dtype);
++			te->set->ops->remove(te->set, &te->elem);
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_DELSETELEM:
+-- 
+1.7.10.4
+
