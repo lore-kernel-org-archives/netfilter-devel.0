@@ -1,36 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/4] Netfilter/IPVS fixes for net
-Date: Fri, 20 Feb 2015 17:36:41 -0500 (EST)
-Message-ID: <20150220.173641.1875151436508088235.davem@davemloft.net>
-References: <1424369960-10988-1-git-send-email-pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nf] netfilter: nf_tables: fix addition/deletion of
+ elements from commit/abort
+Date: Sat, 21 Feb 2015 10:39:18 +0000
+Message-ID: <20150221103917.GA1683@acer.localdomain>
+References: <1424448670-4458-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1424369960-10988-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:48893 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750749AbbBUKjW (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 21 Feb 2015 05:39:22 -0500
+Content-Disposition: inline
+In-Reply-To: <1424448670-4458-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu, 19 Feb 2015 19:19:16 +0100
+On 20.02, Pablo Neira Ayuso wrote:
+> We have several problems in this path:
+> 
+> 1) There is a use-after-free when removing individual elements from
+>    the commit path.
+> 
+> 2) We have to uninit() the data part of the element from the abort
+>    path to avoid a chain refcount leak.
+> 
+> 3) We have to check for set->flags to see if there's a mapping, instead
+>    of the element flags.
+> 
+> 4) We have to check for !(flags & NFT_SET_ELEM_INTERVAL_END) to skip
+>    elements that are part of the interval that have no data part, so
+>    they don't need to be uninit().
 
-> The following patchset contains updates for your net tree, they are:
-> 
-> 1) Fix removal of destination in IPVS when the new mixed family support
->    is used, from Alexey Andriyanov via Simon Horman.
-> 
-> 2) Fix module refcount undeflow in nft_compat when reusing a match /
->    target.
-> 
-> 3) Fix iptables-restore when the recent match is used with a new hitcount
->    that exceeds threshold, from Florian Westphal.
-> 
-> 4) Fix stack corruption in xt_socket due to using stack storage to save
->    the inner IPv6 header, from Eric Dumazet.
-> 
-> I'll follow up soon with another batch with more fixes that are still
-> cooking.
-
-Pulled, thanks Pablo.
+Just wondering, in the delete case, don't we need to set the flags in
+the sets' ->get() function for this to work?
