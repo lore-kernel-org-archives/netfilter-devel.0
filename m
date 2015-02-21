@@ -1,39 +1,104 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nf] netfilter: nf_tables: fix addition/deletion of
- elements from commit/abort
-Date: Sat, 21 Feb 2015 10:39:18 +0000
-Message-ID: <20150221103917.GA1683@acer.localdomain>
-References: <1424448670-4458-1-git-send-email-pablo@netfilter.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [PATCH v3] netfilter: nft_compat: don't truncate ethernet protocol
+ type to u8
+Date: Sat, 21 Feb 2015 19:30:55 +0100
+Message-ID: <20150221183014.26341.83261.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48893 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750749AbbBUKjW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 21 Feb 2015 05:39:22 -0500
-Content-Disposition: inline
-In-Reply-To: <1424448670-4458-1-git-send-email-pablo@netfilter.org>
+Received: from smtp3.cica.es ([150.214.5.190]:43807 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752106AbbBUSbG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 21 Feb 2015 13:31:06 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 20.02, Pablo Neira Ayuso wrote:
-> We have several problems in this path:
-> 
-> 1) There is a use-after-free when removing individual elements from
->    the commit path.
-> 
-> 2) We have to uninit() the data part of the element from the abort
->    path to avoid a chain refcount leak.
-> 
-> 3) We have to check for set->flags to see if there's a mapping, instead
->    of the element flags.
-> 
-> 4) We have to check for !(flags & NFT_SET_ELEM_INTERVAL_END) to skip
->    elements that are part of the interval that have no data part, so
->    they don't need to be uninit().
+Use u16 for protocol and then cast it to __be16
 
-Just wondering, in the delete case, don't we need to set the flags in
-the sets' ->get() function for this to work?
+>> net/netfilter/nft_compat.c:140:37: sparse: incorrect type in assignment (different base types)
+   net/netfilter/nft_compat.c:140:37:    expected restricted __be16 [usertype] ethproto
+   net/netfilter/nft_compat.c:140:37:    got unsigned char [unsigned] [usertype] proto
+>> net/netfilter/nft_compat.c:351:37: sparse: incorrect type in assignment (different base types)
+   net/netfilter/nft_compat.c:351:37:    expected restricted __be16 [usertype] ethproto
+   net/netfilter/nft_compat.c:351:37:    got unsigned char [unsigned] [usertype] proto
+
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+v2: use u16 for protocol and then cast it to __be16
+v3: reword title and explain the change in the description.
+
+ net/netfilter/nft_compat.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index c598f74..4a9c662 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -123,7 +123,7 @@ static void
+ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
+ 			   const struct nft_ctx *ctx,
+ 			   struct xt_target *target, void *info,
+-			   union nft_entry *entry, u8 proto, bool inv)
++			   union nft_entry *entry, u16 proto, bool inv)
+ {
+ 	par->net	= ctx->net;
+ 	par->table	= ctx->table->name;
+@@ -137,7 +137,7 @@ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
+ 		entry->e6.ipv6.invflags = inv ? IP6T_INV_PROTO : 0;
+ 		break;
+ 	case NFPROTO_BRIDGE:
+-		entry->ebt.ethproto = proto;
++		entry->ebt.ethproto = (__force __be16)proto;
+ 		entry->ebt.invflags = inv ? EBT_IPROTO : 0;
+ 		break;
+ 	}
+@@ -171,7 +171,7 @@ static const struct nla_policy nft_rule_compat_policy[NFTA_RULE_COMPAT_MAX + 1]
+ 	[NFTA_RULE_COMPAT_FLAGS]	= { .type = NLA_U32 },
+ };
+ 
+-static int nft_parse_compat(const struct nlattr *attr, u8 *proto, bool *inv)
++static int nft_parse_compat(const struct nlattr *attr, u16 *proto, bool *inv)
+ {
+ 	struct nlattr *tb[NFTA_RULE_COMPAT_MAX+1];
+ 	u32 flags;
+@@ -203,7 +203,7 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	struct xt_target *target = expr->ops->data;
+ 	struct xt_tgchk_param par;
+ 	size_t size = XT_ALIGN(nla_len(tb[NFTA_TARGET_INFO]));
+-	u8 proto = 0;
++	u16 proto = 0;
+ 	bool inv = false;
+ 	union nft_entry e = {};
+ 	int ret;
+@@ -334,7 +334,7 @@ static const struct nla_policy nft_match_policy[NFTA_MATCH_MAX + 1] = {
+ static void
+ nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
+ 			  struct xt_match *match, void *info,
+-			  union nft_entry *entry, u8 proto, bool inv)
++			  union nft_entry *entry, u16 proto, bool inv)
+ {
+ 	par->net	= ctx->net;
+ 	par->table	= ctx->table->name;
+@@ -348,7 +348,7 @@ nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
+ 		entry->e6.ipv6.invflags = inv ? IP6T_INV_PROTO : 0;
+ 		break;
+ 	case NFPROTO_BRIDGE:
+-		entry->ebt.ethproto = proto;
++		entry->ebt.ethproto = (__force __be16)proto;
+ 		entry->ebt.invflags = inv ? EBT_IPROTO : 0;
+ 		break;
+ 	}
+@@ -385,7 +385,7 @@ nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	struct xt_match *match = expr->ops->data;
+ 	struct xt_mtchk_param par;
+ 	size_t size = XT_ALIGN(nla_len(tb[NFTA_MATCH_INFO]));
+-	u8 proto = 0;
++	u16 proto = 0;
+ 	bool inv = false;
+ 	union nft_entry e = {};
+ 	int ret;
+
