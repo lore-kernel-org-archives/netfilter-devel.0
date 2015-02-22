@@ -1,104 +1,157 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [PATCH v3] netfilter: nft_compat: don't truncate ethernet protocol
- type to u8
-Date: Sat, 21 Feb 2015 19:30:55 +0100
-Message-ID: <20150221183014.26341.83261.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:43807 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752106AbbBUSbG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 21 Feb 2015 13:31:06 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Bojan Prtvar <prtvar.b@gmail.com>
+Subject: [PATCH v2] net: Remove state argument from skb_find_text()
+Date: Sun, 22 Feb 2015 11:46:35 +0100
+Message-ID: <1424601995-17318-1-git-send-email-prtvar.b@gmail.com>
+Cc: tgraf@suug.ch, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, dan.carpenter@oracle.com,
+	davem@davemloft.net, Bojan Prtvar <prtvar.b@gmail.com>
+To: netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Use u16 for protocol and then cast it to __be16
+Although it is clear that textsearch state is intentionally passed to
+skb_find_text() as uninitialized argument, it was never used by the
+callers. Therefore, we can simplify skb_find_text() by making it
+local variable.
 
->> net/netfilter/nft_compat.c:140:37: sparse: incorrect type in assignment (different base types)
-   net/netfilter/nft_compat.c:140:37:    expected restricted __be16 [usertype] ethproto
-   net/netfilter/nft_compat.c:140:37:    got unsigned char [unsigned] [usertype] proto
->> net/netfilter/nft_compat.c:351:37: sparse: incorrect type in assignment (different base types)
-   net/netfilter/nft_compat.c:351:37:    expected restricted __be16 [usertype] ethproto
-   net/netfilter/nft_compat.c:351:37:    got unsigned char [unsigned] [usertype] proto
-
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Signed-off-by: Bojan Prtvar <prtvar.b@gmail.com>
 ---
-v2: use u16 for protocol and then cast it to __be16
-v3: reword title and explain the change in the description.
+v2: Rebased against current linux-next
 
- net/netfilter/nft_compat.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ include/linux/skbuff.h              |    3 +--
+ net/core/skbuff.c                   |    9 ++++-----
+ net/netfilter/nf_conntrack_amanda.c |   10 +++-------
+ net/netfilter/xt_string.c           |    3 +--
+ net/sched/em_text.c                 |    3 +--
+ 5 files changed, 10 insertions(+), 18 deletions(-)
 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index c598f74..4a9c662 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -123,7 +123,7 @@ static void
- nft_target_set_tgchk_param(struct xt_tgchk_param *par,
- 			   const struct nft_ctx *ctx,
- 			   struct xt_target *target, void *info,
--			   union nft_entry *entry, u8 proto, bool inv)
-+			   union nft_entry *entry, u16 proto, bool inv)
- {
- 	par->net	= ctx->net;
- 	par->table	= ctx->table->name;
-@@ -137,7 +137,7 @@ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
- 		entry->e6.ipv6.invflags = inv ? IP6T_INV_PROTO : 0;
- 		break;
- 	case NFPROTO_BRIDGE:
--		entry->ebt.ethproto = proto;
-+		entry->ebt.ethproto = (__force __be16)proto;
- 		entry->ebt.invflags = inv ? EBT_IPROTO : 0;
- 		break;
- 	}
-@@ -171,7 +171,7 @@ static const struct nla_policy nft_rule_compat_policy[NFTA_RULE_COMPAT_MAX + 1]
- 	[NFTA_RULE_COMPAT_FLAGS]	= { .type = NLA_U32 },
- };
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index 30007af..d898b32 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -870,8 +870,7 @@ unsigned int skb_seq_read(unsigned int consumed, const u8 **data,
+ void skb_abort_seq_read(struct skb_seq_state *st);
  
--static int nft_parse_compat(const struct nlattr *attr, u8 *proto, bool *inv)
-+static int nft_parse_compat(const struct nlattr *attr, u16 *proto, bool *inv)
+ unsigned int skb_find_text(struct sk_buff *skb, unsigned int from,
+-			   unsigned int to, struct ts_config *config,
+-			   struct ts_state *state);
++			   unsigned int to, struct ts_config *config);
+ 
+ /*
+  * Packet hash types specify the type of hash in skb_set_hash.
+diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+index 88c613e..374e43b 100644
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -2865,7 +2865,6 @@ static void skb_ts_finish(struct ts_config *conf, struct ts_state *state)
+  * @from: search offset
+  * @to: search limit
+  * @config: textsearch configuration
+- * @state: uninitialized textsearch state variable
+  *
+  * Finds a pattern in the skb data according to the specified
+  * textsearch configuration. Use textsearch_next() to retrieve
+@@ -2873,17 +2872,17 @@ static void skb_ts_finish(struct ts_config *conf, struct ts_state *state)
+  * to the first occurrence or UINT_MAX if no match was found.
+  */
+ unsigned int skb_find_text(struct sk_buff *skb, unsigned int from,
+-			   unsigned int to, struct ts_config *config,
+-			   struct ts_state *state)
++			   unsigned int to, struct ts_config *config)
  {
- 	struct nlattr *tb[NFTA_RULE_COMPAT_MAX+1];
- 	u32 flags;
-@@ -203,7 +203,7 @@ nft_target_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	struct xt_target *target = expr->ops->data;
- 	struct xt_tgchk_param par;
- 	size_t size = XT_ALIGN(nla_len(tb[NFTA_TARGET_INFO]));
--	u8 proto = 0;
-+	u16 proto = 0;
- 	bool inv = false;
- 	union nft_entry e = {};
- 	int ret;
-@@ -334,7 +334,7 @@ static const struct nla_policy nft_match_policy[NFTA_MATCH_MAX + 1] = {
- static void
- nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
- 			  struct xt_match *match, void *info,
--			  union nft_entry *entry, u8 proto, bool inv)
-+			  union nft_entry *entry, u16 proto, bool inv)
++	struct ts_state state;
+ 	unsigned int ret;
+ 
+ 	config->get_next_block = skb_ts_get_next_block;
+ 	config->finish = skb_ts_finish;
+ 
+-	skb_prepare_seq_read(skb, from, to, TS_SKB_CB(state));
++	skb_prepare_seq_read(skb, from, to, TS_SKB_CB(&state));
+ 
+-	ret = textsearch_find(config, state);
++	ret = textsearch_find(config, &state);
+ 	return (ret <= to - from ? ret : UINT_MAX);
+ }
+ EXPORT_SYMBOL(skb_find_text);
+diff --git a/net/netfilter/nf_conntrack_amanda.c b/net/netfilter/nf_conntrack_amanda.c
+index b8b95f4..57a26cc 100644
+--- a/net/netfilter/nf_conntrack_amanda.c
++++ b/net/netfilter/nf_conntrack_amanda.c
+@@ -88,7 +88,6 @@ static int amanda_help(struct sk_buff *skb,
+ 		       struct nf_conn *ct,
+ 		       enum ip_conntrack_info ctinfo)
  {
- 	par->net	= ctx->net;
- 	par->table	= ctx->table->name;
-@@ -348,7 +348,7 @@ nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
- 		entry->e6.ipv6.invflags = inv ? IP6T_INV_PROTO : 0;
- 		break;
- 	case NFPROTO_BRIDGE:
--		entry->ebt.ethproto = proto;
-+		entry->ebt.ethproto = (__force __be16)proto;
- 		entry->ebt.invflags = inv ? EBT_IPROTO : 0;
- 		break;
+-	struct ts_state ts;
+ 	struct nf_conntrack_expect *exp;
+ 	struct nf_conntrack_tuple *tuple;
+ 	unsigned int dataoff, start, stop, off, i;
+@@ -113,23 +112,20 @@ static int amanda_help(struct sk_buff *skb,
+ 		return NF_ACCEPT;
  	}
-@@ -385,7 +385,7 @@ nft_match_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	struct xt_match *match = expr->ops->data;
- 	struct xt_mtchk_param par;
- 	size_t size = XT_ALIGN(nla_len(tb[NFTA_MATCH_INFO]));
--	u8 proto = 0;
-+	u16 proto = 0;
- 	bool inv = false;
- 	union nft_entry e = {};
- 	int ret;
-
+ 
+-	memset(&ts, 0, sizeof(ts));
+ 	start = skb_find_text(skb, dataoff, skb->len,
+-			      search[SEARCH_CONNECT].ts, &ts);
++			      search[SEARCH_CONNECT].ts);
+ 	if (start == UINT_MAX)
+ 		goto out;
+ 	start += dataoff + search[SEARCH_CONNECT].len;
+ 
+-	memset(&ts, 0, sizeof(ts));
+ 	stop = skb_find_text(skb, start, skb->len,
+-			     search[SEARCH_NEWLINE].ts, &ts);
++			     search[SEARCH_NEWLINE].ts);
+ 	if (stop == UINT_MAX)
+ 		goto out;
+ 	stop += start;
+ 
+ 	for (i = SEARCH_DATA; i <= SEARCH_INDEX; i++) {
+-		memset(&ts, 0, sizeof(ts));
+-		off = skb_find_text(skb, start, stop, search[i].ts, &ts);
++		off = skb_find_text(skb, start, stop, search[i].ts);
+ 		if (off == UINT_MAX)
+ 			continue;
+ 		off += start + search[i].len;
+diff --git a/net/netfilter/xt_string.c b/net/netfilter/xt_string.c
+index 5699adb..0bc3460 100644
+--- a/net/netfilter/xt_string.c
++++ b/net/netfilter/xt_string.c
+@@ -26,13 +26,12 @@ static bool
+ string_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+ 	const struct xt_string_info *conf = par->matchinfo;
+-	struct ts_state state;
+ 	bool invert;
+ 
+ 	invert = conf->u.v1.flags & XT_STRING_FLAG_INVERT;
+ 
+ 	return (skb_find_text((struct sk_buff *)skb, conf->from_offset,
+-			     conf->to_offset, conf->config, &state)
++			     conf->to_offset, conf->config)
+ 			     != UINT_MAX) ^ invert;
+ }
+ 
+diff --git a/net/sched/em_text.c b/net/sched/em_text.c
+index f03c3de..73e2ed5 100644
+--- a/net/sched/em_text.c
++++ b/net/sched/em_text.c
+@@ -34,7 +34,6 @@ static int em_text_match(struct sk_buff *skb, struct tcf_ematch *m,
+ {
+ 	struct text_match *tm = EM_TEXT_PRIV(m);
+ 	int from, to;
+-	struct ts_state state;
+ 
+ 	from = tcf_get_base_ptr(skb, tm->from_layer) - skb->data;
+ 	from += tm->from_offset;
+@@ -42,7 +41,7 @@ static int em_text_match(struct sk_buff *skb, struct tcf_ematch *m,
+ 	to = tcf_get_base_ptr(skb, tm->to_layer) - skb->data;
+ 	to += tm->to_offset;
+ 
+-	return skb_find_text(skb, from, to, tm->config, &state) != UINT_MAX;
++	return skb_find_text(skb, from, to, tm->config) != UINT_MAX;
+ }
+ 
+ static int em_text_change(struct net *net, void *data, int len,
+-- 
+1.7.9.5
