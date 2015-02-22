@@ -1,35 +1,65 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2] net: Remove state argument from skb_find_text()
-Date: Sun, 22 Feb 2015 16:01:34 -0500 (EST)
-Message-ID: <20150222.160134.1858529175720867561.davem@davemloft.net>
-References: <1424601995-17318-1-git-send-email-prtvar.b@gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, tgraf@suug.ch,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	dan.carpenter@oracle.com
-To: prtvar.b@gmail.com
+From: Simon Horman <horms@verge.net.au>
+Subject: [PATCH] ipvs: add missing ip_vs_pe_put in sync code
+Date: Sun, 22 Feb 2015 16:25:00 -0500
+Message-ID: <1424640300-30364-2-git-send-email-horms@verge.net.au>
+References: <1424640300-30364-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:49274 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751601AbbBVVBi (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:43501 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752021AbbBVVZP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 22 Feb 2015 16:01:38 -0500
-In-Reply-To: <1424601995-17318-1-git-send-email-prtvar.b@gmail.com>
+	Sun, 22 Feb 2015 16:25:15 -0500
+In-Reply-To: <1424640300-30364-1-git-send-email-horms@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Bojan Prtvar <prtvar.b@gmail.com>
-Date: Sun, 22 Feb 2015 11:46:35 +0100
+From: Julian Anastasov <ja@ssi.bg>
 
-> Although it is clear that textsearch state is intentionally passed to
-> skb_find_text() as uninitialized argument, it was never used by the
-> callers. Therefore, we can simplify skb_find_text() by making it
-> local variable.
-> 
-> Signed-off-by: Bojan Prtvar <prtvar.b@gmail.com>
-> ---
-> v2: Rebased against current linux-next
+ip_vs_conn_fill_param_sync() gets in param.pe a module
+reference for persistence engine from __ip_vs_pe_getbyname()
+but forgets to put it. Problem occurs in backup for
+sync protocol v1 (2.6.39).
 
-Applied, thanks.
+Also, pe_data usually comes in sync messages for
+connection templates and ip_vs_conn_new() copies
+the pointer only in this case. Make sure pe_data
+is not leaked if it comes unexpectedly for normal
+connections. Leak can happen only if bogus messages
+are sent to backup server.
+
+Fixes: fe5e7a1efb66 ("IPVS: Backup, Adding Version 1 receive capability")
+Signed-off-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+---
+ net/netfilter/ipvs/ip_vs_sync.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+index c47ffd7..d93ceeb 100644
+--- a/net/netfilter/ipvs/ip_vs_sync.c
++++ b/net/netfilter/ipvs/ip_vs_sync.c
+@@ -896,6 +896,8 @@ static void ip_vs_proc_conn(struct net *net, struct ip_vs_conn_param *param,
+ 			IP_VS_DBG(2, "BACKUP, add new conn. failed\n");
+ 			return;
+ 		}
++		if (!(flags & IP_VS_CONN_F_TEMPLATE))
++			kfree(param->pe_data);
+ 	}
+ 
+ 	if (opt)
+@@ -1169,6 +1171,7 @@ static inline int ip_vs_proc_sync_conn(struct net *net, __u8 *p, __u8 *msg_end)
+ 				(opt_flags & IPVS_OPT_F_SEQ_DATA ? &opt : NULL)
+ 				);
+ #endif
++	ip_vs_pe_put(param.pe);
+ 	return 0;
+ 	/* Error exit */
+ out:
+-- 
+2.1.4
+
