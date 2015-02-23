@@ -1,44 +1,38 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [GIT PULL] Second Round of IPVS Fixes for v3.20
-Date: Sun, 22 Feb 2015 16:24:59 -0500
-Message-ID: <1424640300-30364-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [iptables PATCH] libxt_quota: fix _save() invert syntax
+Date: Mon, 23 Feb 2015 11:31:11 +0100
+Message-ID: <20150223103111.2927.44023.stgit@nfdev.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:43504 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752021AbbBVVZT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 22 Feb 2015 16:25:19 -0500
+Received: from smtp3.cica.es ([150.214.5.190]:50435 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751951AbbBWKbX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Feb 2015 05:31:23 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Space is misplaced.
 
-please consider this fix for v3.20.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ extensions/libxt_quota.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-This patch resolves some memory leaks in connection
-synchronisation code that date back to v2.6.39.
+diff --git a/extensions/libxt_quota.c b/extensions/libxt_quota.c
+index ff498da..ff7dd2a 100644
+--- a/extensions/libxt_quota.c
++++ b/extensions/libxt_quota.c
+@@ -37,7 +37,7 @@ quota_save(const void *ip, const struct xt_entry_match *match)
+ 	const struct xt_quota_info *q = (const void *)match->data;
+ 
+ 	if (q->flags & XT_QUOTA_INVERT)
+-		printf("! ");
++		printf(" !");
+ 	printf(" --quota %llu", (unsigned long long) q->quota);
+ }
+ 
 
-
-The following changes since commit 78296c97ca1fd3b104f12e1f1fbc06c46635990b:
-
-  netfilter: xt_socket: fix a stack corruption bug (2015-02-16 17:00:48 +0100)
-
-are available in the git repository at:
-
-  https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes2-for-v3.20
-
-for you to fetch changes up to 528c943f3bb919aef75ab2fff4f00176f09a4019:
-
-  ipvs: add missing ip_vs_pe_put in sync code (2015-02-22 16:16:36 -0500)
-
-----------------------------------------------------------------
-Julian Anastasov (1):
-      ipvs: add missing ip_vs_pe_put in sync code
-
- net/netfilter/ipvs/ip_vs_sync.c | 3 +++
- 1 file changed, 3 insertions(+)
