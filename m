@@ -1,41 +1,50 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Ottawa and slow hash-table resize
-Date: Mon, 23 Feb 2015 10:49:04 -0800
-Message-ID: <20150223184904.GA24955@linux.vnet.ibm.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: josh@joshtriplett.org
+Subject: Re: Ottawa and slow hash-table resize
+Date: Mon, 23 Feb 2015 11:12:01 -0800
+Message-ID: <20150223191201.GA4355@cloud>
+References: <20150223184904.GA24955@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	josh@joshtriplett.org
-To: alexei.starovoitov@gmail.com, herbert@gondor.apana.org.au,
+Cc: alexei.starovoitov@gmail.com, herbert@gondor.apana.org.au,
 	tgraf@suug.ch, kaber@trash.net, davem@davemloft.net,
-	ying.xue@windriver.com
-Return-path: <netdev-owner@vger.kernel.org>
+	ying.xue@windriver.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:46059 "EHLO
+	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751055AbbBWTMJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Feb 2015 14:12:09 -0500
 Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20150223184904.GA24955@linux.vnet.ibm.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello!
+On Mon, Feb 23, 2015 at 10:49:04AM -0800, Paul E. McKenney wrote:
+> Hello!
+> 
+> Alexei mentioned that there was some excitement a couple of weeks ago in
+> Ottawa, something about the resizing taking forever when there were large
+> numbers of concurrent additions.  One approach comes to mind:
+> 
+> o	Currently, the hash table does not allow additions concurrently
+> 	with resize operations.  One way to allow this would be to
+> 	have the addition operations add to the new hash table at the
+> 	head of the lists.  This would clearly require also updating the
+> 	pointers used to control the unzip operation.
 
-Alexei mentioned that there was some excitement a couple of weeks ago in
-Ottawa, something about the resizing taking forever when there were large
-numbers of concurrent additions.  One approach comes to mind:
+In theory, resizes should only take the locks for the buckets they're
+currently unzipping, and adds should take those same locks.  Neither one
+should take a whole-table lock, other than resize excluding concurrent
+resizes.  Is that still insufficient?
 
-o	Currently, the hash table does not allow additions concurrently
-	with resize operations.  One way to allow this would be to
-	have the addition operations add to the new hash table at the
-	head of the lists.  This would clearly require also updating the
-	pointers used to control the unzip operation.
+> o	Count the number of entries added during the resize operation.
+> 	Then, at the end of the resize operation, if enough entries have
+> 	been added, do a resize, but by multiple factors of two if
+> 	need be.
 
-o	Count the number of entries added during the resize operation.
-	Then, at the end of the resize operation, if enough entries have
-	been added, do a resize, but by multiple factors of two if
-	need be.
+Yeah, the add/remove statistics used for tracking would need some
+special handling to avoid being a table-wide bottleneck.
 
-This should allow the table to take arbitrarily large numbers of updates
-during a resize operation.  There are some other possibilities if this
-approach does not work out.
-
-Thoughts?
-
-							Thanx, Paul
+- Josh Triplett
