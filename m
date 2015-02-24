@@ -1,52 +1,54 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nf] netfilter: nf_tables: fix addition/deletion of
- elements from commit/abort
-Date: Tue, 24 Feb 2015 14:39:33 +0000
-Message-ID: <20150224143932.GA3713@acer.localdomain>
-References: <1424448670-4458-1-git-send-email-pablo@netfilter.org>
- <20150221103917.GA1683@acer.localdomain>
- <20150224135315.GA4322@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Josh Hunt <johunt@akamai.com>
+Subject: [PATCH v2 2/2] nft_hash: define max_shift rhashtable parameter
+Date: Tue, 24 Feb 2015 11:10:58 -0500
+Message-ID: <1424794259-30241-3-git-send-email-johunt@akamai.com>
+References: <1424794259-30241-1-git-send-email-johunt@akamai.com>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Josh Hunt <johunt@akamai.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>, Thomas Graf <tgraf@suug.ch>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45067 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750748AbbBXOjh (ORCPT
+Received: from prod-mail-xrelay08.akamai.com ([96.6.114.112]:46258 "EHLO
+	prod-mail-xrelay08.akamai.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752392AbbBXQLC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Feb 2015 09:39:37 -0500
-Content-Disposition: inline
-In-Reply-To: <20150224135315.GA4322@salvia>
+	Tue, 24 Feb 2015 11:11:02 -0500
+In-Reply-To: <1424794259-30241-1-git-send-email-johunt@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 24.02, Pablo Neira Ayuso wrote:
-> On Sat, Feb 21, 2015 at 10:39:18AM +0000, Patrick McHardy wrote:
-> > On 20.02, Pablo Neira Ayuso wrote:
-> > > We have several problems in this path:
-> > > 
-> > > 1) There is a use-after-free when removing individual elements from
-> > >    the commit path.
-> > > 
-> > > 2) We have to uninit() the data part of the element from the abort
-> > >    path to avoid a chain refcount leak.
-> > > 
-> > > 3) We have to check for set->flags to see if there's a mapping, instead
-> > >    of the element flags.
-> > > 
-> > > 4) We have to check for !(flags & NFT_SET_ELEM_INTERVAL_END) to skip
-> > >    elements that are part of the interval that have no data part, so
-> > >    they don't need to be uninit().
-> > 
-> > Just wondering, in the delete case, don't we need to set the flags in
-> > the sets' ->get() function for this to work?
-> 
-> They are already set from hash and rbtree, so we only need to add the
-> check for NFT_SET_ELEM_INTERVAL_END from the commit path in nf_tables_api.c
-> 
-> Unless you have any further concern, I'll pass up this soon.
+You must define a max_shift parameter to rhashtable or else the table cannot
+grow. This sets max_shift for nft_hash to 24, which will allow the table to
+grow to 2^24 or 16 million buckets.
 
-Right, in the hash case it's 0 anyways and rbtree does set them.
+Signed-off-by: Josh Hunt <johunt@akamai.com>
+---
+ net/netfilter/nft_hash.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-Looks good to me.
+diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
+index 61e6c40..839ed30 100644
+--- a/net/netfilter/nft_hash.c
++++ b/net/netfilter/nft_hash.c
+@@ -23,6 +23,9 @@
+ /* We target a hash table size of 4, element hint is 75% of final size */
+ #define NFT_HASH_ELEMENT_HINT 3
+ 
++/* Set default of 2^24 buckets or 16 million entries */
++#define NFT_HASH_MAX_ELEMENTS 24
++
+ struct nft_hash_elem {
+ 	struct rhash_head		node;
+ 	struct nft_data			key;
+@@ -192,6 +195,7 @@ static int nft_hash_init(const struct nft_set *set,
+ 		.key_offset = offsetof(struct nft_hash_elem, key),
+ 		.key_len = set->klen,
+ 		.hashfn = jhash,
++		.max_shift = NFT_HASH_MAX_ELEMENTS,
+ 		.grow_decision = rht_grow_above_75,
+ 		.shrink_decision = rht_shrink_below_30,
+ 	};
+-- 
+1.7.9.5
+
