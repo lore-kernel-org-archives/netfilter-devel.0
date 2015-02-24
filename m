@@ -1,55 +1,40 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: nf_tables: fix addition/deletion of
- elements from commit/abort
-Date: Tue, 24 Feb 2015 19:53:19 +0100
-Message-ID: <20150224185319.GA32638@salvia>
-References: <1424448670-4458-1-git-send-email-pablo@netfilter.org>
- <20150221103917.GA1683@acer.localdomain>
- <20150224135315.GA4322@salvia>
- <20150224143932.GA3713@acer.localdomain>
+Subject: Re: [PATCH nft v2] main: display errors through stderr
+Date: Tue, 24 Feb 2015 20:01:40 +0100
+Message-ID: <20150224190140.GA32754@salvia>
+References: <1424802770-31213-1-git-send-email-pablo@netfilter.org>
+ <20150224183505.GN3713@acer.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, alexandre@r42.ch
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44580 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45841 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753251AbbBXStr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Feb 2015 13:49:47 -0500
+	id S1753580AbbBXS6I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Feb 2015 13:58:08 -0500
 Content-Disposition: inline
-In-Reply-To: <20150224143932.GA3713@acer.localdomain>
+In-Reply-To: <20150224183505.GN3713@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 24, 2015 at 02:39:33PM +0000, Patrick McHardy wrote:
+On Tue, Feb 24, 2015 at 06:35:05PM +0000, Patrick McHardy wrote:
 > On 24.02, Pablo Neira Ayuso wrote:
-> > On Sat, Feb 21, 2015 at 10:39:18AM +0000, Patrick McHardy wrote:
-> > > On 20.02, Pablo Neira Ayuso wrote:
-> > > > We have several problems in this path:
-> > > > 
-> > > > 1) There is a use-after-free when removing individual elements from
-> > > >    the commit path.
-> > > > 
-> > > > 2) We have to uninit() the data part of the element from the abort
-> > > >    path to avoid a chain refcount leak.
-> > > > 
-> > > > 3) We have to check for set->flags to see if there's a mapping, instead
-> > > >    of the element flags.
-> > > > 
-> > > > 4) We have to check for !(flags & NFT_SET_ELEM_INTERVAL_END) to skip
-> > > >    elements that are part of the interval that have no data part, so
-> > > >    they don't need to be uninit().
-> > > 
-> > > Just wondering, in the delete case, don't we need to set the flags in
-> > > the sets' ->get() function for this to work?
+> > Debugging still goes through stdout as Patrick requests.
 > > 
-> > They are already set from hash and rbtree, so we only need to add the
-> > check for NFT_SET_ELEM_INTERVAL_END from the commit path in nf_tables_api.c
-> > 
-> > Unless you have any further concern, I'll pass up this soon.
+> > Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1000
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > 
-> Right, in the hash case it's 0 anyways and rbtree does set them.
-> 
-> Looks good to me.
+> Thinking about it, EREC_INFORMATIONAL should also go to stdout I
+> suppose. But since we don't have any of those yet, we can change
+> it once we get the first message of this type.
 
-Ok, I'll pass this to David, thanks.
+I just remembered that bison is currently using stderr as output for
+debugging.
+
+We're also telling people to save their rulesets via:
+
+        nft list ruleset > file
+
+If debugging still goes to stdout this will cause them problems. Not
+sure yet we should use stdout for debugging.
