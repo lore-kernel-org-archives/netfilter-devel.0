@@ -1,43 +1,38 @@
 From: Thomas Graf <tgraf@suug.ch>
 Subject: Re: Ottawa and slow hash-table resize
-Date: Tue, 24 Feb 2015 08:37:14 +0000
-Message-ID: <20150224083714.GB17306@casper.infradead.org>
-References: <20150223191201.GA4355@cloud>
- <20150223210358.GB806@casper.infradead.org>
- <20150223215248.GA15405@linux.vnet.ibm.com>
- <20150223.173252.397503088215638994.davem@davemloft.net>
- <20150223230619.GD15405@linux.vnet.ibm.com>
+Date: Tue, 24 Feb 2015 08:59:09 +0000
+Message-ID: <20150224085909.GC17306@casper.infradead.org>
+References: <20150223184904.GA24955@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, josh@joshtriplett.org,
-	alexei.starovoitov@gmail.com, herbert@gondor.apana.org.au,
+Cc: alexei.starovoitov@gmail.com, herbert@gondor.apana.org.au,
 	kaber@trash.net, ying.xue@windriver.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:44226 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750748AbbBXIhT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Feb 2015 03:37:19 -0500
+	netfilter-devel@vger.kernel.org, josh@joshtriplett.org
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	davem@davemloft.net
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150223230619.GD15405@linux.vnet.ibm.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20150223184904.GA24955@linux.vnet.ibm.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 02/23/15 at 03:06pm, Paul E. McKenney wrote:
-> On Mon, Feb 23, 2015 at 05:32:52PM -0500, David Miller wrote:
-> > I just did a quick scan of all code paths that do inserts into an
-> > rhashtable, and it seems like all of them can easily block.  So why
-> > don't we do that?  Make inserts sleep on an rhashtable expansion
-> > waitq.
-> > 
-> > There could even be a counter of pending inserts, so the expander can
-> > decide to expand further before waking the inserting threads up.
+On 02/23/15 at 10:49am, Paul E. McKenney wrote:
+> Hello!
 > 
-> Should be reasonably simple, and certainly seems worth a try!
+> Alexei mentioned that there was some excitement a couple of weeks ago in
+> Ottawa, something about the resizing taking forever when there were large
+> numbers of concurrent additions.  One approach comes to mind:
 
-Agreed. Definitely desirable for nft_hash. I like the pending counter
-idea. I'm experimenting with various ideas on blocking inserts for
-Netlink. Blocking too long might open DoS vectors as one app could
-easily delay the creation of sockets for other applications.
+@Dave et al,
+Just want to make sure we have the same level of understanding of
+urgency for this. The only practical problem experienced so far is
+loading n*1M entries into an nft_hash set which takes 3s for 4M
+entries upon restore. A regular add is actually fine as it provides
+a hint and sizes the table accordingly.
+
+I agree that rhashtable should be improved to better handle many
+inserts on small tables but wanted to make sure whether anyone thinks
+this needs urgent fixing in 3.20 or whether we can take some time to
+fully understand all scenarios and experiment with ideas and then
+propose solutions for the next merge window. I also have the TCP hash
+tables on my radar while improving this.
