@@ -1,49 +1,36 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: Re: [PATCH v2 1/2] rhashtable: require max_shift if grow_decision
- defined
-Date: Tue, 24 Feb 2015 20:48:10 +0100
-Message-ID: <54ECD57A.1080709@iogearbox.net>
-References: <1424794259-30241-1-git-send-email-johunt@akamai.com>	<1424794259-30241-2-git-send-email-johunt@akamai.com> <20150224.131828.1632037288300527014.davem@davemloft.net>
+From: Markus Teich <teichm@fs.tum.de>
+Subject: [libmnl] portability of getpagesize() in libmnl.h
+Date: Tue, 24 Feb 2015 21:45:50 +0100
+Message-ID: <20150224204550.GZ3453@trolle>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, kaber@trash.net, tgraf@suug.ch,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>, johunt@akamai.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20150224.131828.1632037288300527014.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from hermod.fs.tum.de ([129.187.202.12]:36350 "EHLO hermod.fs.tum.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753127AbbBXUvA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Feb 2015 15:51:00 -0500
+Received: from localhost (dslb-188-110-065-108.188.110.pools.vodafone-ip.de [188.110.65.108])
+	(using TLSv1.2 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by hermod.fs.tum.de (FachschaftsNachrichtenDienst) with ESMTPSA id C7B6CE043D
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Feb 2015 21:44:48 +0100 (CET)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02/24/2015 07:18 PM, David Miller wrote:
-...
-> I've already said today that I think this whole indirection stuff
-> with grow and shrink decisions should simply go away.
->
-> Everyone defines it to the generic rhashtable routine, therefore
-> that should just be made private to lib/rhashtable.c, called
-> directly, and the methods completely removed.
->
-> Given that, this change makes no sense.
->
-> When a limit is not specified, we should unconditionally grow rather
-> than refuse to grow.  One should not be required to specify this at
-> all.  If you have no idea what limit might be reasonable, you specify
-> nothing at all and just let available memory be the limiting factor.
+Heyho,
 
-I agree.
+the getpagesize() call in line
 
-Fwiw, I believe this behavior came in as a regression via commit
-c0c09bfdc415 ("rhashtable: avoid unnecessary wakeup for worker queue").
-Initially, if no max_shift was specified, we'd just expand further.
+#define MNL_SOCKET_BUFFER_SIZE (getpagesize() < 8192L ? getpagesize() : 8192L)
 
-I can take care of these above two fixups tomorrow, if you want.
-I presume you want to route both via -net, or just the growth limit
-issue via -net?
+of libmnl.h seems to be less portable than sysconf(_SC_PAGESIZE) as suggested by
+the getpagesize man page. getpagesize() needs e.g. _BSD_SOURCE while sysconf()
+does not.
 
-I also have some optimizations I was working on last week for
-net-next, but I would wait for a -net into -net-next merge after
-that to avoid merge conflicts, if that's fine. ;)
+Would you consider fixing this or should I write a patch?
 
-Thanks,
-Daniel
+(I'm not on the list, so please leave me a CC)
+
+--Markus
