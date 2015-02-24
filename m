@@ -1,64 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Ottawa and slow hash-table resize
-Date: Tue, 24 Feb 2015 10:48:39 +0000
-Message-ID: <20150224104839.GM3713@acer.localdomain>
-References: <20150223191201.GA4355@cloud>
- <20150223210358.GB806@casper.infradead.org>
- <20150223215248.GA15405@linux.vnet.ibm.com>
- <20150223.173252.397503088215638994.davem@davemloft.net>
- <20150223230619.GD15405@linux.vnet.ibm.com>
- <20150224083714.GB17306@casper.infradead.org>
- <20150224103918.GJ3713@acer.localdomain>
- <063D6719AE5E284EB5DD2968C1650D6D1CAE9D64@AcuExch.aculab.com>
+From: Sourabh Rudrawar <sourabh.rudrawar@gmail.com>
+Subject: =?utf-8?b?bGlibmV0ZmlsdGVyX2Nvbm50cmFjaw==?= API is not working
+Date: Tue, 24 Feb 2015 11:02:14 +0000 (UTC)
+Message-ID: <loom.20150224T113432-322@post.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Thomas Graf <tgraf@suug.ch>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	David Miller <davem@davemloft.net>,
-	"josh@joshtriplett.org" <josh@joshtriplett.org>,
-	"alexei.starovoitov@gmail.com" <alexei.starovoitov@gmail.com>,
-	"herbert@gondor.apana.org.au" <herbert@gondor.apana.org.au>,
-	"ying.xue@windriver.com" <ying.xue@windriver.com>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: David Laight <David.Laight@ACULAB.COM>
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43510 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753501AbbBXKsp (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Feb 2015 05:48:45 -0500
-Content-Disposition: inline
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D1CAE9D64@AcuExch.aculab.com>
+Received: from plane.gmane.org ([80.91.229.3]:56118 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751044AbbBXLCe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Feb 2015 06:02:34 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
+	id 1YQDG3-0006mg-1E
+	for netfilter-devel@vger.kernel.org; Tue, 24 Feb 2015 12:02:31 +0100
+Received: from 115.113.153.34.static-pune.vsnl.net.in ([115.113.153.34.static-pune.vsnl.net.in])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Feb 2015 12:02:31 +0100
+Received: from sourabh.rudrawar by 115.113.153.34.static-pune.vsnl.net.in with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Feb 2015 12:02:31 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 24.02, David Laight wrote:
-> From: Patrick McHardy
-> > On 24.02, Thomas Graf wrote:
-> > > On 02/23/15 at 03:06pm, Paul E. McKenney wrote:
-> > > > On Mon, Feb 23, 2015 at 05:32:52PM -0500, David Miller wrote:
-> > > > > I just did a quick scan of all code paths that do inserts into an
-> > > > > rhashtable, and it seems like all of them can easily block.  So why
-> > > > > don't we do that?  Make inserts sleep on an rhashtable expansion
-> > > > > waitq.
-> > > > >
-> > > > > There could even be a counter of pending inserts, so the expander can
-> > > > > decide to expand further before waking the inserting threads up.
-> > > >
-> > > > Should be reasonably simple, and certainly seems worth a try!
-> > >
-> > > Agreed. Definitely desirable for nft_hash. I like the pending counter
-> > > idea. I'm experimenting with various ideas on blocking inserts for
-> > > Netlink. Blocking too long might open DoS vectors as one app could
-> > > easily delay the creation of sockets for other applications.
-> > 
-> > Regarding nft_hash, blocking in the netlink path certainly seems fine,
-> > but we will soon also have inserts from the packet processing path,
-> > where we obviously can't block.
-> 
-> Why not an option to do a synchronous 'expand on insert' for
-> codepaths that can block?
+Hi, 
+ 
+ I am using ubuntu-12.04-desktop version in Virtual Box.I am testing
+utils/conntrack_events.c using libnetfilter_conntrack API. But I get stuck on 
+    TEST: waiting for 10 events...
+And no event get caught even if I keep this running forever.
 
-Sounds perfectly fine to me, just wanted to point out that we also need
-to handle the non-synchronous case properly.
+
+
+Thanks
+Sourabh
+
