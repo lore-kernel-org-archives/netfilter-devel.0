@@ -1,86 +1,55 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: Ottawa and slow hash-table resize
-Date: Tue, 24 Feb 2015 12:09:44 -0500 (EST)
-Message-ID: <20150224.120944.866231994361475327.davem@davemloft.net>
-References: <20150223230619.GD15405@linux.vnet.ibm.com>
-	<20150224083714.GB17306@casper.infradead.org>
-	<20150224103918.GJ3713@acer.localdomain>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: tgraf@suug.ch, paulmck@linux.vnet.ibm.com, josh@joshtriplett.org,
-	alexei.starovoitov@gmail.com, herbert@gondor.apana.org.au,
-	ying.xue@windriver.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+From: Josh Hunt <johunt@akamai.com>
+Subject: [PATCH v3 2/2] nft_hash: define max_shift rhashtable parameter
+Date: Tue, 24 Feb 2015 12:25:36 -0500
+Message-ID: <1424798736-11857-3-git-send-email-johunt@akamai.com>
+References: <1424798736-11857-1-git-send-email-johunt@akamai.com>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Josh Hunt <johunt@akamai.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>, Thomas Graf <tgraf@suug.ch>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:48551 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752326AbbBXRJr (ORCPT
+Received: from prod-mail-xrelay06.akamai.com ([96.6.114.98]:56105 "EHLO
+	prod-mail-xrelay06.akamai.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752848AbbBXRZi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Feb 2015 12:09:47 -0500
-In-Reply-To: <20150224103918.GJ3713@acer.localdomain>
+	Tue, 24 Feb 2015 12:25:38 -0500
+In-Reply-To: <1424798736-11857-1-git-send-email-johunt@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 24 Feb 2015 10:39:18 +0000
+You must define a max_shift parameter to rhashtable or else the table cannot
+grow. This sets max_shift for nft_hash to 24, which will allow the table to
+grow to 2^24 or 16 million buckets.
 
-> On 24.02, Thomas Graf wrote:
->> On 02/23/15 at 03:06pm, Paul E. McKenney wrote:
->> > On Mon, Feb 23, 2015 at 05:32:52PM -0500, David Miller wrote:
->> > > I just did a quick scan of all code paths that do inserts into an
->> > > rhashtable, and it seems like all of them can easily block.  So why
->> > > don't we do that?  Make inserts sleep on an rhashtable expansion
->> > > waitq.
->> > > 
->> > > There could even be a counter of pending inserts, so the expander can
->> > > decide to expand further before waking the inserting threads up.
->> > 
->> > Should be reasonably simple, and certainly seems worth a try!
->> 
->> Agreed. Definitely desirable for nft_hash. I like the pending counter
->> idea. I'm experimenting with various ideas on blocking inserts for
->> Netlink. Blocking too long might open DoS vectors as one app could
->> easily delay the creation of sockets for other applications.
-> 
-> Regarding nft_hash, blocking in the netlink path certainly seems fine,
-> but we will soon also have inserts from the packet processing path,
-> where we obviously can't block.
+Acked-by: Thomas Graf <tgraf@suug.ch>
+Signed-off-by: Josh Hunt <johunt@akamai.com>
+---
+ net/netfilter/nft_hash.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-Indeed, I remembered last night that for TCP sockets blocking will not
-work at all.
-
-And having a flood of 1 million new TCP connections all at once
-shouldn't knock us over.
-
-Therefore, we will need to find a way to handle this problem without
-being able to block on insert.
-
-Thinking about this, if inserts occur during a pending resize, if the
-nelems of the table has exceeded even the grow threshold for the new
-table, it makes no sense to allow these async inserts as they are
-going to make the resize take longer and prolong the pain.
-
-On one hand I like the async resize because it means that an insert
-that triggers the resize doesn't incur a huge latency spike since
-it was simply unlucky to be the resize trigger event.  The async
-resize smoothes out the cost of the resize across the system.
-
-This scheme works really well if, on average, the resize operation
-completes before enough subsequent inserts occur to exceed even
-the resized tables resize threshold.
-
-So I think what I'm getting at is that we can allow parallel inserts
-but only up until the point where the resized tables thresholds are
-exceeded.
-
-Looking at how to implement this, I think that there is too much
-configurability to this code.  There is no reason to have indirect
-calls for the grow decision.  This should be a quick test, but it's
-not because we go through ->grow_decision.  It should just be
-rht_grow_above_75 or whatever, and inline this crap!
-
-Nobody even uses this indirection capability, it's therefore over
-engineered :-)
+diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
+index 61e6c40..a32df35 100644
+--- a/net/netfilter/nft_hash.c
++++ b/net/netfilter/nft_hash.c
+@@ -23,6 +23,9 @@
+ /* We target a hash table size of 4, element hint is 75% of final size */
+ #define NFT_HASH_ELEMENT_HINT 3
+ 
++/* Set default of 2^24 buckets or 16 million entries */
++#define NFT_HASH_MAX_BUCKETS 24
++
+ struct nft_hash_elem {
+ 	struct rhash_head		node;
+ 	struct nft_data			key;
+@@ -192,6 +195,7 @@ static int nft_hash_init(const struct nft_set *set,
+ 		.key_offset = offsetof(struct nft_hash_elem, key),
+ 		.key_len = set->klen,
+ 		.hashfn = jhash,
++		.max_shift = NFT_HASH_MAX_BUCKETS,
+ 		.grow_decision = rht_grow_above_75,
+ 		.shrink_decision = rht_shrink_below_30,
+ 	};
+-- 
+1.7.9.5
 
