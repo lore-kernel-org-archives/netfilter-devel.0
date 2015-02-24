@@ -1,62 +1,27 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Ottawa and slow hash-table resize
-Date: Tue, 24 Feb 2015 16:25:22 +0000
-Message-ID: <20150224162521.GK3713@acer.localdomain>
-References: <20150223184904.GA24955@linux.vnet.ibm.com>
- <20150224085909.GC17306@casper.infradead.org>
- <54EC46AB.3030302@iogearbox.net>
- <20150224104232.GK3713@acer.localdomain>
- <54ECA374.7060402@akamai.com>
+From: Thomas Graf <tgraf@suug.ch>
+Subject: Re: [PATCH v2 1/2] rhashtable: require max_shift if grow_decision
+ defined
+Date: Tue, 24 Feb 2015 16:40:03 +0000
+Message-ID: <20150224164003.GB21107@casper.infradead.org>
+References: <1424794259-30241-1-git-send-email-johunt@akamai.com>
+ <1424794259-30241-2-git-send-email-johunt@akamai.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Daniel Borkmann <daniel@iogearbox.net>,
-	Thomas Graf <tgraf@suug.ch>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	davem@davemloft.net, alexei.starovoitov@gmail.com,
-	herbert@gondor.apana.org.au, ying.xue@windriver.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	josh@joshtriplett.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Daniel Borkmann <daniel@iogearbox.net>
 To: Josh Hunt <johunt@akamai.com>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <54ECA374.7060402@akamai.com>
+In-Reply-To: <1424794259-30241-2-git-send-email-johunt@akamai.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 24.02, Josh Hunt wrote:
-> On 02/24/2015 04:42 AM, Patrick McHardy wrote:
-> >On 24.02, Daniel Borkmann wrote:
-> >>
-> >>Simplest fix would be, similarly as in other users:
-> >>
-> >>diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-> >>index 61e6c40..47abdca 100644
-> >>--- a/net/netfilter/nft_hash.c
-> >>+++ b/net/netfilter/nft_hash.c
-> >>@@ -192,6 +192,7 @@ static int nft_hash_init(const struct nft_set *set,
-> >>  		.key_offset = offsetof(struct nft_hash_elem, key),
-> >>  		.key_len = set->klen,
-> >>  		.hashfn = jhash,
-> >>+		.max_shift = 20, /* 1M */
-> >>  		.grow_decision = rht_grow_above_75,
-> >>  		.shrink_decision = rht_shrink_below_30,
-> >>  	};
-> >>
-> >>But I presume Josh wanted to resend his code ... or wait for nft
-> >>folks to further review?
-> >
-> >We're perfectly fine with that patch, although I'd say lets use a
-> >slightly larger value (24) to cover what we know people are doing
-> >using ipset.
+On 02/24/15 at 11:10am, Josh Hunt wrote:
+> If an rhashtable user defines a grow_decision fn they must also define a
+> max_shift parameter.
 > 
-> I just sent a patch similar to Daniel's in the set 'nft hash resize fixes'
-> using a max_shift value of 24. I still think this value should be tunable,
-> but sent the patch to fix the immediate expansion problem for now.
+> Signed-off-by: Josh Hunt <johunt@akamai.com>
 
-Thanks. I actually don't think we should require that parameter at
-all, any limits shouldn't be imposed by the data structure but by
-the code using it. We're perfectly fine using the available memory
-as a limit if the users wants this, provided that hash expansion
-succeeds and the lookups stay fast.
-
-But for now let's just fix the immediate problem, I agree.
+Acked-by: Thomas Graf <tgraf@suug.ch>
