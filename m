@@ -1,76 +1,249 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: Ottawa and slow hash-table resize
-Date: Tue, 24 Feb 2015 17:50:14 +0000
-Message-ID: <20150224175014.GA29802@casper.infradead.org>
-References: <20150223230619.GD15405@linux.vnet.ibm.com>
- <20150224083714.GB17306@casper.infradead.org>
- <20150224103918.GJ3713@acer.localdomain>
- <20150224.120944.866231994361475327.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, paulmck@linux.vnet.ibm.com, josh@joshtriplett.org,
-	alexei.starovoitov@gmail.com, herbert@gondor.apana.org.au,
-	ying.xue@windriver.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150224.120944.866231994361475327.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 1/2] src: complete meta priority support
+Date: Tue, 24 Feb 2015 19:05:29 +0100
+Message-ID: <1424801130-29052-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:35908 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752445AbbBXSCI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Feb 2015 13:02:08 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02/24/15 at 12:09pm, David Miller wrote:
-> And having a flood of 1 million new TCP connections all at once
-> shouldn't knock us over.
-> 
-> Therefore, we will need to find a way to handle this problem without
-> being able to block on insert.
+This patch adds the missing bits to scan and parse the meta priority
+string. The output code to list it has been also reworked.
 
-One possible way to handle this is to have users like TCP grow
-quicker than 2x. Maybe start with 16x and grow slower and slower
-using a log function. (No, we do not want rhashtable congestion
-control algos ;-)
+To match the skbuff priority you can use:
 
-> Thinking about this, if inserts occur during a pending resize, if the
-> nelems of the table has exceeded even the grow threshold for the new
-> table, it makes no sense to allow these async inserts as they are
-> going to make the resize take longer and prolong the pain.
+ nft add rule filter forward meta priority :ffff
+ nft add rule filter forward meta priority ffff:
+ nft add rule filter forward meta priority abcd:1234
 
-Let's say we start with an initial table size of 16K (we can make
-this system memory depenend) and we grow by 8x. New inserts go
-into the new table immediately so as soon as we have 12K entries
-we'll grow right to 128K buckets. As we grow above 75K we'll start
-growing to 1024K buckets. New entries already go to the 1024K
-buckets at this point given that the first grow cycle should be
-fast. The 2nd grow cycle would take an est 6 RCU grace periods.
-This would also still give us a max of 8K bucket locks which
-should be good enough as well.
+and to set it, you can use:
 
-Just thinking this out loud. Still working on this.
+ nft add rule filter forward meta priority set abcd:1234
 
-> On one hand I like the async resize because it means that an insert
-> that triggers the resize doesn't incur a huge latency spike since
-> it was simply unlucky to be the resize trigger event.  The async
-> resize smoothes out the cost of the resize across the system.
-> 
-> This scheme works really well if, on average, the resize operation
-> completes before enough subsequent inserts occur to exceed even
-> the resized tables resize threshold.
-> 
-> So I think what I'm getting at is that we can allow parallel inserts
-> but only up until the point where the resized tables thresholds are
-> exceeded.
-> 
-> Looking at how to implement this, I think that there is too much
-> configurability to this code.  There is no reason to have indirect
-> calls for the grow decision.  This should be a quick test, but it's
-> not because we go through ->grow_decision.  It should just be
-> rht_grow_above_75 or whatever, and inline this crap!
-> 
-> Nobody even uses this indirection capability, it's therefore over
-> engineered :-)
+flex performs longest prefix matching when scanning patterns so there is
+not conflict with IPv6 addresses.
 
-Another option is to only call the grow_decision once every N inserts
-or removals (32? 64?) and handle updates as batches. No objection
-to ditching the grow/shrink function for now though. Not sure we
-anyone actually needs different growth semantics.
+There's still a possible clash with:
+
+	nft add rule filter input tcp dport vmap { 25:accept, 28:drop }
+
+where "25:acce" and "28:d" are interpreted as a meta priority.
+
+I think it's reasonable to tell people that they have to separate the
+key and the data that represent the element tuple with a whitespace
+separator between the colon, at least until we find a better way to
+handle this.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+@Patrick: You proposed an alternative to this time ago:
+
+http://patchwork.ozlabs.org/patch/320066/
+
+but after applying a similar patch here, that seem to break many other
+stuff according to the nft-test.py regression tests.
+
+ src/meta.c                  |   33 +++++++++++++-------------------
+ src/scanner.l               |   44 +++++++++++++++++++++++++++++++++++++++++++
+ tests/regression/any/meta.t |   21 ++++++++++++---------
+ tests/regression/inet/tcp.t |    3 +--
+ 4 files changed, 70 insertions(+), 31 deletions(-)
+
+diff --git a/src/meta.c b/src/meta.c
+index ad57228..5f93ade 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -10,6 +10,7 @@
+  * Development of this code funded by Astaro AG (http://www.astaro.com/)
+  */
+ 
++#include <errno.h>
+ #include <stddef.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+@@ -71,9 +72,11 @@ static void tchandle_type_print(const struct expr *expr)
+ 
+ 	switch(handle) {
+ 	case TC_H_ROOT:
+-		printf("root\n");
++		printf("root");
++		break;
+ 	case TC_H_UNSPEC:
+-		printf("none\n");
++		printf("none");
++		break;
+ 	default:
+ 		if (TC_H_MAJ(handle) == 0)
+ 			printf(":%04x", TC_H_MIN(handle));
+@@ -92,40 +95,30 @@ static struct error_record *tchandle_type_parse(const struct expr *sym,
+ {
+ 	uint32_t handle;
+ 
+-	if (strcmp(sym->identifier, "root") == 0)
++	if (strcmp(sym->identifier, "root") == 0) {
+ 		handle = TC_H_ROOT;
+-	else if (strcmp(sym->identifier, "none") == 0)
++	} else if (strcmp(sym->identifier, "none") == 0) {
+ 		handle = TC_H_UNSPEC;
+-	else if (sym->identifier[0] == ':') {
+-		if (sscanf(sym->identifier, ":%04x", &handle) < 0)
+-			goto err;
+-	} else if (sym->identifier[strlen(sym->identifier)-1] == ':') {
+-		if (sscanf(sym->identifier, "%04x:", &handle) < 0)
+-			goto err;
+-
+-		handle <<= 16;
+ 	} else {
+-		uint32_t min, max;
+-
+-		if (sscanf(sym->identifier, "%04x:%04x", &min, &max) < 0)
++		errno = 0;
++		handle = strtoul(sym->identifier, NULL, 0);
++		if (errno != 0)
+ 			goto err;
+-
+-		handle = max << 16 | min;
+ 	}
++
+ 	*res = constant_expr_alloc(&sym->location, sym->dtype,
+ 				   BYTEORDER_HOST_ENDIAN,
+ 				   sizeof(handle) * BITS_PER_BYTE, &handle);
+ 	return NULL;
+ err:
+-	return error(&sym->location, "Could not parse %s",
+-		     sym->dtype->desc);
++	return error(&sym->location, "Could not parse %s", sym->dtype->desc);
+ }
+ 
+ static const struct datatype tchandle_type = {
+ 	.type		= TYPE_TC_HANDLE,
+ 	.name		= "tc_handle",
+ 	.desc		= "TC handle",
+-	.byteorder	= BYTEORDER_BIG_ENDIAN,
++	.byteorder	= BYTEORDER_HOST_ENDIAN,
+ 	.size		= 4 * BITS_PER_BYTE,
+ 	.basetype	= &integer_type,
+ 	.print		= tchandle_type_print,
+diff --git a/src/scanner.l b/src/scanner.l
+index 73c4f8b..0120c9f 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -167,6 +167,11 @@ macaddr		(([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2})
+ ip4addr		(([[:digit:]]{1,3}"."){3}([[:digit:]]{1,3}))
+ ip6addr		({v680}|{v67}|{v66}|{v65}|{v64}|{v63}|{v62}|{v61}|{v60})
+ 
++prio1		({hexdigit}{1,4}:)
++prio2		(:{hexdigit}{1,4})
++prio3		({hexdigit}{1,4}:{hexdigit}{1,4})
++
++priority	({prio1}|{prio2}|{prio3})
+ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ 
+ %option prefix="nft_"
+@@ -477,6 +482,45 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ 				return NUM;
+ 			}
+ 
++{priority}		{
++				char *colon;
++				char *str = xstrdup(yytext);
++				uint16_t prio = 0;
++
++				yylval->val = 0;
++
++				if (yytext[0] == ':') {
++					colon = str;
++				} else {
++					colon = strchr(str, ':');
++					if (colon == NULL)
++						return STRING;
++
++					errno = 0;
++					prio = strtoull(str, NULL, 16);
++					if (errno != 0) {
++						xfree(str);
++						yylval->string = xstrdup(yytext);
++						return STRING;
++					}
++					yylval->val = (prio << 16);
++					if (str[strlen(str) - 1] == ':')
++						return NUM;
++				}
++
++				*colon = '\0';
++				errno = 0;
++				prio = strtoull(colon + 1, NULL, 16);
++				if (errno != 0) {
++					xfree(str);
++					yylval->string = xstrdup(yytext);
++					return STRING;
++				}
++				xfree(str);
++				yylval->val |= prio;
++				return NUM;
++			}
++
+ {quotedstring}		{
+ 				yytext[yyleng - 1] = '\0';
+ 				yylval->string = xstrdup(yytext + 1);
+diff --git a/tests/regression/any/meta.t b/tests/regression/any/meta.t
+index f11fd00..c472832 100644
+--- a/tests/regression/any/meta.t
++++ b/tests/regression/any/meta.t
+@@ -34,15 +34,18 @@ meta l4proto { 33, 55, 67, 88};ok;meta l4proto { 33, 55, 67, 88}
+ meta l4proto { 33-55};ok
+ - meta l4proto != { 33-55};ok
+ 
+-- meta priority :aabb;ok
+-- meta priority bcad:dadc;ok
+-- meta priority aabb:;ok
+-- meta priority != :aabb;ok
+-- meta priority != bcad:dadc;ok
+-- meta priority != aabb:;ok
+-- meta priority bcad:dada-bcad:dadc;ok
+-- meta priority != bcad:dada-bcad:dadc;ok
+-- meta priority {bcad:dada, bcad:dadc, aaaa:bbbb};ok
++meta priority root;ok
++meta priority none;ok
++meta priority :aabb;ok
++meta priority bcad:dadc;ok
++meta priority aabb:;ok
++meta priority != :aabb;ok
++meta priority != bcad:dadc;ok
++meta priority != aabb:;ok
++meta priority bcad:dada-bcad:dadc;ok
++meta priority != bcad:dada-bcad:dadc;ok
++meta priority {bcad:dada, bcad:dadc, aaaa:bbbb};ok
++meta priority set cafe:beef;ok
+ - meta priority != {bcad:dada, bcad:dadc, aaaa:bbbb};ok
+ 
+ meta mark 0x4;ok;mark 0x00000004
+diff --git a/tests/regression/inet/tcp.t b/tests/regression/inet/tcp.t
+index f72ec52..c1d6b42 100644
+--- a/tests/regression/inet/tcp.t
++++ b/tests/regression/inet/tcp.t
+@@ -13,7 +13,6 @@ tcp dport { 33-55};ok
+ - tcp dport != { 33-55};ok
+ tcp dport {telnet, http, https} accept;ok;tcp dport { 443, 23, 80} accept
+ tcp dport vmap { 22 : accept, 23 : drop };ok
+-tcp dport vmap { 25:accept, 28:drop };ok
+ tcp dport { 22, 53, 80, 110 };ok
+ - tcp dport != { 22, 53, 80, 110 };ok
+ # BUG: invalid expression type set
+@@ -27,7 +26,7 @@ tcp sport { 33, 55, 67, 88};ok
+ - tcp sport != { 33, 55, 67, 88};ok
+ tcp sport { 33-55};ok
+ - tcp sport != { 33-55};ok
+-tcp sport vmap { 25:accept, 28:drop };ok
++tcp sport vmap { 25 : accept, 28 : drop };ok
+ 
+ tcp sport 8080 drop;ok
+ tcp sport 1024 tcp dport 22;ok
+-- 
+1.7.10.4
+
