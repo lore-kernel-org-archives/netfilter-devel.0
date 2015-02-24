@@ -1,50 +1,43 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [libnftnl PATCH] ruleset: crash in path error when we build the xml tree
-Date: Tue, 24 Feb 2015 09:10:33 +0100
-Message-ID: <1424765433-4975-2-git-send-email-alvaroneay@gmail.com>
-References: <1424765433-4975-1-git-send-email-alvaroneay@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Thomas Graf <tgraf@suug.ch>
+Subject: Re: Ottawa and slow hash-table resize
+Date: Tue, 24 Feb 2015 08:37:14 +0000
+Message-ID: <20150224083714.GB17306@casper.infradead.org>
+References: <20150223191201.GA4355@cloud>
+ <20150223210358.GB806@casper.infradead.org>
+ <20150223215248.GA15405@linux.vnet.ibm.com>
+ <20150223.173252.397503088215638994.davem@davemloft.net>
+ <20150223230619.GD15405@linux.vnet.ibm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: David Miller <davem@davemloft.net>, josh@joshtriplett.org,
+	alexei.starovoitov@gmail.com, herbert@gondor.apana.org.au,
+	kaber@trash.net, ying.xue@windriver.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:46951 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751044AbbBXIK1 (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:44226 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750748AbbBXIhT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Feb 2015 03:10:27 -0500
-Received: by wggy19 with SMTP id y19so3573437wgg.13
-        for <netfilter-devel@vger.kernel.org>; Tue, 24 Feb 2015 00:10:26 -0800 (PST)
-Received: from localhost.localdomain ([77.231.217.213])
-        by mx.google.com with ESMTPSA id mb20sm19357878wic.18.2015.02.24.00.10.25
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 24 Feb 2015 00:10:26 -0800 (PST)
-In-Reply-To: <1424765433-4975-1-git-send-email-alvaroneay@gmail.com>
+	Tue, 24 Feb 2015 03:37:19 -0500
+Content-Disposition: inline
+In-Reply-To: <20150223230619.GD15405@linux.vnet.ibm.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Crash when we try to release a tree that is not initialized.
+On 02/23/15 at 03:06pm, Paul E. McKenney wrote:
+> On Mon, Feb 23, 2015 at 05:32:52PM -0500, David Miller wrote:
+> > I just did a quick scan of all code paths that do inserts into an
+> > rhashtable, and it seems like all of them can easily block.  So why
+> > don't we do that?  Make inserts sleep on an rhashtable expansion
+> > waitq.
+> > 
+> > There could even be a counter of pending inserts, so the expander can
+> > decide to expand further before waking the inserting threads up.
+> 
+> Should be reasonably simple, and certainly seems worth a try!
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
----
- src/ruleset.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/src/ruleset.c b/src/ruleset.c
-index 9e8965c..8549130 100644
---- a/src/ruleset.c
-+++ b/src/ruleset.c
-@@ -669,8 +669,10 @@ static int nft_ruleset_xml_parse(const void *xml, struct nft_parse_err *err,
- 		nft_ruleset_ctx_set(&ctx, NFT_RULESET_CTX_DATA, arg);
- 
- 	tree = nft_mxml_build_tree(xml, "nftables", err, input);
--	if (tree == NULL)
--		goto err;
-+	if (tree == NULL) {
-+		nft_set_list_free(ctx.set_list);
-+		return -1;
-+	}
- 
- 	ctx.xml = tree;
- 
--- 
-1.7.10.4
-
+Agreed. Definitely desirable for nft_hash. I like the pending counter
+idea. I'm experimenting with various ideas on blocking inserts for
+Netlink. Blocking too long might open DoS vectors as one app could
+easily delay the creation of sockets for other applications.
