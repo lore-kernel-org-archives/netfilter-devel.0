@@ -1,50 +1,29 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nft v2] main: display errors through stderr
-Date: Tue, 24 Feb 2015 18:35:05 +0000
-Message-ID: <20150224183505.GN3713@acer.localdomain>
-References: <1424802770-31213-1-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [GIT PULL] Second Round of IPVS Fixes for v3.20
+Date: Tue, 24 Feb 2015 19:41:12 +0100
+Message-ID: <20150224184112.GA32265@salvia>
+References: <1424640300-30364-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, alexandre@r42.ch
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46685 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751824AbbBXSfM (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Feb 2015 13:35:12 -0500
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1424802770-31213-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1424640300-30364-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 24.02, Pablo Neira Ayuso wrote:
-> Debugging still goes through stdout as Patrick requests.
+On Sun, Feb 22, 2015 at 04:24:59PM -0500, Simon Horman wrote:
+> Hi Pablo,
 > 
-> Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1000
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> please consider this fix for v3.20.
+> 
+> This patch resolves some memory leaks in connection
+> synchronisation code that date back to v2.6.39.
 
-Thinking about it, EREC_INFORMATIONAL should also go to stdout I
-suppose. But since we don't have any of those yet, we can change
-it once we get the first message of this type.
+Pulled, thanks.
 
-> ---
->  src/main.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/src/main.c b/src/main.c
-> index b447aad..4590c30 100644
-> --- a/src/main.c
-> +++ b/src/main.c
-> @@ -361,7 +361,7 @@ int main(int argc, char * const *argv)
->  		rc = NFT_EXIT_FAILURE;
->  out:
->  	scanner_destroy(scanner);
-> -	erec_print_list(stdout, &msgs);
-> +	erec_print_list(stderr, &msgs);
->  
->  	xfree(buf);
->  	return rc;
-> -- 
-> 1.7.10.4
-> 
+Applied cleanly starting 3.10 here.
