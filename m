@@ -1,29 +1,42 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+From: Josh Hunt <johunt@akamai.com>
 Subject: Re: [PATCH v3 0/2] nft hash resize fixes
-Date: Tue, 24 Feb 2015 18:35:29 +0100
-Message-ID: <54ECB661.9050306@6wind.com>
-References: <1424798736-11857-1-git-send-email-johunt@akamai.com>
-Reply-To: nicolas.dichtel@6wind.com
+Date: Tue, 24 Feb 2015 11:42:35 -0600
+Message-ID: <54ECB80B.3040800@akamai.com>
+References: <1424798736-11857-1-git-send-email-johunt@akamai.com> <54ECB661.9050306@6wind.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	Daniel Borkmann <daniel@iogearbox.net>
-To: Josh Hunt <johunt@akamai.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
+To: nicolas.dichtel@6wind.com, Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>, Thomas Graf <tgraf@suug.ch>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1424798736-11857-1-git-send-email-johunt@akamai.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from prod-mail-xrelay06.akamai.com ([96.6.114.98]:33901 "EHLO
+	prod-mail-xrelay06.akamai.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753565AbbBXRmh (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Feb 2015 12:42:37 -0500
+In-Reply-To: <54ECB661.9050306@6wind.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 24/02/2015 18:25, Josh Hunt a =C3=A9crit :
-> v3:
->   * Renames NFT_HASH_MAX_ELEMENTS to NFT_HASH_MAX_BUCKETS
->   * Add Acked-by for Thomas
->
-> Josh Hunt (2):
->    rhashtable: require max_shift if grow_decision defined
->    nft_hash: define max_shift rhashtable parameter
-Patches should be inverted to avoid breaking bisection.
+On 02/24/2015 11:35 AM, Nicolas Dichtel wrote:
+> Le 24/02/2015 18:25, Josh Hunt a =C3=A9crit :
+>> v3:
+>>   * Renames NFT_HASH_MAX_ELEMENTS to NFT_HASH_MAX_BUCKETS
+>>   * Add Acked-by for Thomas
+>>
+>> Josh Hunt (2):
+>>    rhashtable: require max_shift if grow_decision defined
+>>    nft_hash: define max_shift rhashtable parameter
+> Patches should be inverted to avoid breaking bisection.
+
+Agreed. Will fix in next rev.
+
+Josh
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
