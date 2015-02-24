@@ -1,53 +1,42 @@
-From: Josh Hunt <johunt@akamai.com>
+From: Thomas Graf <tgraf@suug.ch>
 Subject: Re: [PATCH v2 1/2] rhashtable: require max_shift if grow_decision
  defined
-Date: Tue, 24 Feb 2015 16:36:00 -0600
-Message-ID: <54ECFCD0.5080903@akamai.com>
-References: <1424794259-30241-1-git-send-email-johunt@akamai.com>	<1424794259-30241-2-git-send-email-johunt@akamai.com> <20150224.131828.1632037288300527014.davem@davemloft.net>
+Date: Tue, 24 Feb 2015 22:49:15 +0000
+Message-ID: <20150224224915.GB1199@casper.infradead.org>
+References: <1424794259-30241-2-git-send-email-johunt@akamai.com>
+ <20150224.131828.1632037288300527014.davem@davemloft.net>
+ <54ECD57A.1080709@iogearbox.net>
+ <20150224.163137.12835478467735127.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, kaber@trash.net, tgraf@suug.ch,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	daniel@iogearbox.net
+Content-Type: text/plain; charset=us-ascii
+Cc: daniel@iogearbox.net, johunt@akamai.com, pablo@netfilter.org,
+	kaber@trash.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
 To: David Miller <davem@davemloft.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from prod-mail-xrelay08.akamai.com ([96.6.114.112]:34742 "EHLO
-	prod-mail-xrelay08.akamai.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751908AbbBXWgD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Feb 2015 17:36:03 -0500
-In-Reply-To: <20150224.131828.1632037288300527014.davem@davemloft.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150224.163137.12835478467735127.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 02/24/2015 12:18 PM, David Miller wrote:
-> From: Josh Hunt <johunt@akamai.com>
-> Date: Tue, 24 Feb 2015 11:10:57 -0500
->
->> If an rhashtable user defines a grow_decision fn they must also define a
->> max_shift parameter.
->>
->> Signed-off-by: Josh Hunt <johunt@akamai.com>
->
-> I've already said today that I think this whole indirection stuff
-> with grow and shrink decisions should simply go away.
->
-> Everyone defines it to the generic rhashtable routine, therefore
-> that should just be made private to lib/rhashtable.c, called
-> directly, and the methods completely removed.
->
-> Given that, this change makes no sense.
->
-> When a limit is not specified, we should unconditionally grow rather
-> than refuse to grow.  One should not be required to specify this at
-> all.  If you have no idea what limit might be reasonable, you specify
-> nothing at all and just let available memory be the limiting factor.
->
+On 02/24/15 at 04:31pm, David Miller wrote:
+> From: Daniel Borkmann <daniel@iogearbox.net>
+> > Fwiw, I believe this behavior came in as a regression via commit
+> > c0c09bfdc415 ("rhashtable: avoid unnecessary wakeup for worker
+> > queue").
+> > Initially, if no max_shift was specified, we'd just expand further.
+> >
+> > I can take care of these above two fixups tomorrow, if you want.
 
-I don't particularly care how this gets fixed at this point, just that 
-it gets fixed. Right now nft hash sets can't expand b/c of this 
-limitation. If we fix it by removing the max_shift requirement that 
-works for me :)
+Thanks!
 
-Josh
+> > I presume you want to route both via -net, or just the growth limit
+> > issue via -net?
+> 
+> Let's fix as much crap as we can in -net.  I'm going to have to do
+> a huge backport of all the rhashtables to -stable at some point
+> too.
+
+All fixes except 2-3 should only affect the post per bucket lock
+era. The fixes tags should be correct but I'll double check. I can
+take care of the backports if you like.
