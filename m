@@ -1,34 +1,82 @@
 From: Josh Hunt <johunt@akamai.com>
-Subject: [PATCH v2 0/2] nft hash resize fixes
-Date: Tue, 24 Feb 2015 11:10:56 -0500
-Message-ID: <1424794259-30241-1-git-send-email-johunt@akamai.com>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Josh Hunt <johunt@akamai.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>, Thomas Graf <tgraf@suug.ch>
+Subject: Re: Ottawa and slow hash-table resize
+Date: Tue, 24 Feb 2015 10:14:44 -0600
+Message-ID: <54ECA374.7060402@akamai.com>
+References: <20150223184904.GA24955@linux.vnet.ibm.com> <20150224085909.GC17306@casper.infradead.org> <54EC46AB.3030302@iogearbox.net> <20150224104232.GK3713@acer.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Thomas Graf <tgraf@suug.ch>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	davem@davemloft.net, alexei.starovoitov@gmail.com,
+	herbert@gondor.apana.org.au, ying.xue@windriver.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	josh@joshtriplett.org
+To: Patrick McHardy <kaber@trash.net>,
+	Daniel Borkmann <daniel@iogearbox.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from prod-mail-xrelay08.akamai.com ([96.6.114.112]:46257 "EHLO
-	prod-mail-xrelay08.akamai.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752450AbbBXQLC (ORCPT
+Received: from prod-mail-xrelay06.akamai.com ([96.6.114.98]:36672 "EHLO
+	prod-mail-xrelay06.akamai.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752244AbbBXQOr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Feb 2015 11:11:02 -0500
+	Tue, 24 Feb 2015 11:14:47 -0500
+In-Reply-To: <20150224104232.GK3713@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is the minimal set of changes to get rhashtable expansion working with nft
-hash sets. I will provide a followup patchset allowing the user to tune the
-max size of the set.
+On 02/24/2015 04:42 AM, Patrick McHardy wrote:
+> On 24.02, Daniel Borkmann wrote:
+>> On 02/24/2015 09:59 AM, Thomas Graf wrote:
+>>> On 02/23/15 at 10:49am, Paul E. McKenney wrote:
+>>>> Hello!
+>>>>
+>>>> Alexei mentioned that there was some excitement a couple of weeks ago in
+>>>> Ottawa, something about the resizing taking forever when there were large
+>>>> numbers of concurrent additions.  One approach comes to mind:
+>>>
+>>> @Dave et al,
+>>> Just want to make sure we have the same level of understanding of
+>>> urgency for this. The only practical problem experienced so far is
+>>> loading n*1M entries into an nft_hash set which takes 3s for 4M
+>>> entries upon restore. A regular add is actually fine as it provides
+>>> a hint and sizes the table accordingly.
+>>
+>> Btw, there is one remaining bug in nft that Josh Hunt found which
+>> should go into 3.20/4.0, it's not in -net tree, so it could have
+>> affected testing with nft. We're currently missing max_shift
+>> parameter in nft's rhashtable initialization.
+>>
+>> This means that there will be _no_ expansions as rht_grow_above_75()
+>> will end up always returning false. It's not that dramatic when you
+>> have a proper hint provided, but when you start out small
+>> (NFT_HASH_ELEMENT_HINT = 3) and try to squeeze 1M entries into it,
+>> it might take a while.
+>>
+>> Simplest fix would be, similarly as in other users:
+>>
+>> diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
+>> index 61e6c40..47abdca 100644
+>> --- a/net/netfilter/nft_hash.c
+>> +++ b/net/netfilter/nft_hash.c
+>> @@ -192,6 +192,7 @@ static int nft_hash_init(const struct nft_set *set,
+>>   		.key_offset = offsetof(struct nft_hash_elem, key),
+>>   		.key_len = set->klen,
+>>   		.hashfn = jhash,
+>> +		.max_shift = 20, /* 1M */
+>>   		.grow_decision = rht_grow_above_75,
+>>   		.shrink_decision = rht_shrink_below_30,
+>>   	};
+>>
+>> But I presume Josh wanted to resend his code ... or wait for nft
+>> folks to further review?
+>
+> We're perfectly fine with that patch, although I'd say lets use a
+> slightly larger value (24) to cover what we know people are doing
+> using ipset.
+>
 
+I just sent a patch similar to Daniel's in the set 'nft hash resize 
+fixes' using a max_shift value of 24. I still think this value should be 
+tunable, but sent the patch to fix the immediate expansion problem for now.
 
-Josh Hunt (2):
-  rhashtable: require max_shift if grow_decision defined
-  nft_hash: define max_shift rhashtable parameter
-
- lib/rhashtable.c         |    3 ++-
- net/netfilter/nft_hash.c |    4 ++++
- 2 files changed, 6 insertions(+), 1 deletion(-)
-
--- 
-1.7.9.5
-
+Josh
