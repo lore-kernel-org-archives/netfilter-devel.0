@@ -1,33 +1,45 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH v3] ruleset: fix crash if we free sets included
- in the set_list
-Date: Tue, 24 Feb 2015 14:47:56 +0100
-Message-ID: <20150224134756.GC3589@salvia>
-References: <1424765433-4975-1-git-send-email-alvaroneay@gmail.com>
+Subject: Re: [PATCH nf] netfilter: nf_tables: fix addition/deletion of
+ elements from commit/abort
+Date: Tue, 24 Feb 2015 14:53:15 +0100
+Message-ID: <20150224135315.GA4322@salvia>
+References: <1424448670-4458-1-git-send-email-pablo@netfilter.org>
+ <20150221103917.GA1683@acer.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35841 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37019 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751436AbbBXNo1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Feb 2015 08:44:27 -0500
+	id S1751776AbbBXNto (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Feb 2015 08:49:44 -0500
 Content-Disposition: inline
-In-Reply-To: <1424765433-4975-1-git-send-email-alvaroneay@gmail.com>
+In-Reply-To: <20150221103917.GA1683@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 24, 2015 at 09:10:32AM +0100, Alvaro Neira Ayuso wrote:
-> When we parse a ruleset which has a rule using a set. First step is parse the
-> set, set up an id and add it to a set list. Later, we use this set list to find
-> the set associated to the rule and we set up the set id to the expression
-> (lookup expression) of the rule.
+On Sat, Feb 21, 2015 at 10:39:18AM +0000, Patrick McHardy wrote:
+> On 20.02, Pablo Neira Ayuso wrote:
+> > We have several problems in this path:
+> > 
+> > 1) There is a use-after-free when removing individual elements from
+> >    the commit path.
+> > 
+> > 2) We have to uninit() the data part of the element from the abort
+> >    path to avoid a chain refcount leak.
+> > 
+> > 3) We have to check for set->flags to see if there's a mapping, instead
+> >    of the element flags.
+> > 
+> > 4) We have to check for !(flags & NFT_SET_ELEM_INTERVAL_END) to skip
+> >    elements that are part of the interval that have no data part, so
+> >    they don't need to be uninit().
 > 
-> The problem is if we return this set using the function
-> nft_ruleset_parse_file_cb and we free this set. We have a crash when we try to
-> iterate in the set list.
-> 
-> This patch solves it, cloning the set and adding the new set to the set list.
+> Just wondering, in the delete case, don't we need to set the flags in
+> the sets' ->get() function for this to work?
 
-Applied, thanks.
+They are already set from hash and rbtree, so we only need to add the
+check for NFT_SET_ELEM_INTERVAL_END from the commit path in nf_tables_api.c
+
+Unless you have any further concern, I'll pass up this soon.
