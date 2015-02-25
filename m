@@ -1,49 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2 1/2] rhashtable: require max_shift if grow_decision
- defined
-Date: Tue, 24 Feb 2015 21:12:56 -0500 (EST)
-Message-ID: <20150224.211256.2012225739825347238.davem@davemloft.net>
-References: <54ECD57A.1080709@iogearbox.net>
-	<20150224.163137.12835478467735127.davem@davemloft.net>
-	<20150224224915.GB1199@casper.infradead.org>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: Ottawa and slow hash-table resize
+Date: Wed, 25 Feb 2015 21:55:47 +1300
+Message-ID: <20150225085547.GA2982@gondor.apana.org.au>
+References: <20150223230619.GD15405@linux.vnet.ibm.com>
+ <20150224083714.GB17306@casper.infradead.org>
+ <20150224103918.GJ3713@acer.localdomain>
+ <20150224.120944.866231994361475327.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: daniel@iogearbox.net, johunt@akamai.com, pablo@netfilter.org,
-	kaber@trash.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: tgraf@suug.ch
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:53242 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752121AbbBYCM6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Feb 2015 21:12:58 -0500
-In-Reply-To: <20150224224915.GB1199@casper.infradead.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net, tgraf@suug.ch, paulmck@linux.vnet.ibm.com,
+	josh@joshtriplett.org, alexei.starovoitov@gmail.com,
+	ying.xue@windriver.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150224.120944.866231994361475327.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Thomas Graf <tgraf@suug.ch>
-Date: Tue, 24 Feb 2015 22:49:15 +0000
+On Tue, Feb 24, 2015 at 12:09:44PM -0500, David Miller wrote:
+>
+> So I think what I'm getting at is that we can allow parallel inserts
+> but only up until the point where the resized tables thresholds are
+> exceeded.
 
-> On 02/24/15 at 04:31pm, David Miller wrote:
->> From: Daniel Borkmann <daniel@iogearbox.net>
->> Let's fix as much crap as we can in -net.  I'm going to have to do
->> a huge backport of all the rhashtables to -stable at some point
->> too.
-> 
-> All fixes except 2-3 should only affect the post per bucket lock
-> era. The fixes tags should be correct but I'll double check. I can
-> take care of the backports if you like.
+Agreed.  At some point you have to either resize immediately
+or fail the insertion.
 
-There were several bugs that are only cured by the "per bucket
-lock era" version fo rhashtable.
+Note that once my rehash work is complete there is another option
+of allowing multiple resizes.  That is, if we reach the limit
+while a resize is still ongoing we simply start a new one
+immediately.
 
-I only applied all of that work to net-next at the time because
-suspected we'd still have to hash all of that out.
+I'm just coming back form vacation so please be patient and give
+me a chance to finish this off.
 
-Therefore, all of the rhashtable stuff that went into 4.0-rc1
-is going to need to be backported.
-
-I also really wish Herbert Xu didn't drop off the map on this work, we
-could really use his expertiece and suggestions right now. :-/
+Cheers,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
