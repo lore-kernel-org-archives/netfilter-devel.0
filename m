@@ -1,28 +1,35 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: Ottawa and slow hash-table resize
-Date: Wed, 25 Feb 2015 17:38:53 +0000
-Message-ID: <20150225173853.GD18416@casper.infradead.org>
-References: <20150223230619.GD15405@linux.vnet.ibm.com>
- <20150224083714.GB17306@casper.infradead.org>
- <20150224103918.GJ3713@acer.localdomain>
- <20150224.120944.866231994361475327.davem@davemloft.net>
- <20150225085547.GA2982@gondor.apana.org.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, kaber@trash.net,
-	paulmck@linux.vnet.ibm.com, josh@joshtriplett.org,
-	alexei.starovoitov@gmail.com, ying.xue@windriver.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150225085547.GA2982@gondor.apana.org.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Eric Leblond <eric@regit.org>
+Subject: [nft PATCH 2/3] regression: add test on counter related issue
+Date: Thu, 26 Feb 2015 00:51:09 +0100
+Message-ID: <1424908270-554-3-git-send-email-eric@regit.org>
+References: <1424908270-554-1-git-send-email-eric@regit.org>
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@regit.org>
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ks28632.kimsufi.com ([91.121.96.152]:42929 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932138AbbBZATy (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Feb 2015 19:19:54 -0500
+In-Reply-To: <1424908270-554-1-git-send-email-eric@regit.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02/25/15 at 09:55pm, Herbert Xu wrote:
-> I'm just coming back form vacation so please be patient and give
-> me a chance to finish this off.
+Signed-off-by: Eric Leblond <eric@regit.org>
+---
+ tests/regression/ip/ip.t | 2 ++
+ 1 file changed, 2 insertions(+)
 
-I'm waiting for your rehash work to complete before I touch
-anything else at this point.
+diff --git a/tests/regression/ip/ip.t b/tests/regression/ip/ip.t
+index a781de5..0d056ab 100644
+--- a/tests/regression/ip/ip.t
++++ b/tests/regression/ip/ip.t
+@@ -105,3 +105,5 @@ ip saddr != 192.168.1.3-192.168.33.55;ok;ip saddr < 192.168.1.3 ip saddr > 192.1
+ ip daddr 192.168.0.1;ok
+ ip daddr 192.168.0.1 drop;ok
+ ip daddr 192.168.0.2 log;ok
++
++ip protocol 6 counter tcp dport 223 accept;ok;ip protocol 6 counter packets 0 bytes 0 tcp dport 223 accept
+-- 
+2.1.4
+
