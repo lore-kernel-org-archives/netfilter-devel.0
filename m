@@ -1,92 +1,63 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [bug report] ct_sip_parse_numerical_param() error handling
-Date: Thu, 26 Feb 2015 17:22:04 +0300
-Message-ID: <20150226142204.GA14815@mwanda>
+From: Pedro Alvarez <pedro.alvarez@codethink.co.uk>
+Subject: [PATCH] ebtables: Cache a copy of the v3.16 kernel headers in the
+ ebtables tree
+Date: Thu, 26 Feb 2015 16:37:56 +0000
+Message-ID: <54EF4BE4.4020002@codethink.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:18872 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753872AbbBZOWZ (ORCPT
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:39535 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752549AbbBZQiB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Feb 2015 09:22:25 -0500
-Content-Disposition: inline
+	Thu, 26 Feb 2015 11:38:01 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by ducie-dc1.codethink.co.uk (Postfix) with ESMTP id 4128746090E
+	for <netfilter-devel@vger.kernel.org>; Thu, 26 Feb 2015 16:38:00 +0000 (GMT)
+Received: from ducie-dc1.codethink.co.uk ([127.0.0.1])
+	by localhost (ducie-dc1.codethink.co.uk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id ZhnmDTO-kNlO for <netfilter-devel@vger.kernel.org>;
+	Thu, 26 Feb 2015 16:37:57 +0000 (GMT)
+Received: from [10.24.2.121] (unknown [10.24.2.121])
+	by ducie-dc1.codethink.co.uk (Postfix) with ESMTPSA id B03D8460928
+	for <netfilter-devel@vger.kernel.org>; Thu, 26 Feb 2015 16:37:56 +0000 (GMT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Patrick McHardy,
+Hi everyone.
 
-The patch 2bbb21168a90: "[NETFILTER]: nf_conntrack_sip: introduce URI
-and header parameter parsing helpers" from Mar 25, 2008, leads to the
-following static checker warning:
+I've had some problems trying to build ebtables with the v3.19 kernels headers,
+failing to build with the following error:
 
-	net/netfilter/nf_conntrack_sip.c:1230 process_register_request()
-		warn: bool is not less than zero.
+gcc -Wall -Wunused -Werror -fPIC -O3 -DPROGVERSION=\"2.0.10-4\"
+-DPROGNAME=\"ebtables\" -DPROGDATE=\"December\ 2011\"
+-D_PATH_ETHERTYPES=\"/etc/ethertypes\" -DEBTD_ARGC_MAX=50
+-DEBTD_CMDLINE_MAXLN=2048 -DLOCKFILE=\"/var/lib/ebtables/lock\"
+-DLOCKDIR=\"/var/lib/ebtables/\" -c -o extensions/ebt_ulog.o
+extensions/ebt_ulog.c -Iinclude/
+extensions/ebt_ulog.c:17:45: fatal error: linux/netfilter_bridge/ebt_ulog.h: No
+such file or directory
+ #include <linux/netfilter_bridge/ebt_ulog.h>
+                                             ^
 
-	net/netfilter/nf_conntrack_sip.c:1336 process_register_response()
-		warn: bool is not less than zero.
+After some discussion on IRC we agreed there were 2 possible solutions:
 
-The problem is ct_sip_parse_numerical_param() returns zero on failure
-but two of the callers expect negative error codes.
+ -1: Disable 'ulog' in the extensions/Makefile
 
-net/netfilter/nf_conntrack_sip.c
-  1307          if (ct_sip_get_header(ct, *dptr, 0, *datalen, SIP_HDR_EXPIRES,
-  1308                                &matchoff, &matchlen) > 0)
-  1309                  expires = simple_strtoul(*dptr + matchoff, NULL, 10);
-                        ^^^^^^^
-We set expires.
+ -2: Cache the headers needed in the ebtables tree.
 
-  1310  
-  1311          while (1) {
-  1312                  unsigned int c_expires = expires;
-                                     ^^^^^^^^^^^^^^^^^^^^
-and c_expires.
+I decided to go for 2, and here is the patch:
 
-  1313  
-  1314                  ret = ct_sip_parse_header_uri(ct, *dptr, &coff, *datalen,
-  1315                                                SIP_HDR_CONTACT, &in_contact,
-  1316                                                &matchoff, &matchlen,
-  1317                                                &addr, &port);
-  1318                  if (ret < 0) {
-  1319                          nf_ct_helper_log(skb, ct, "cannot parse contact");
-  1320                          return NF_DROP;
-  1321                  } else if (ret == 0)
-  1322                          break;
-  1323  
-  1324                  /* We don't support third-party registrations */
-  1325                  if (!nf_inet_addr_cmp(&ct->tuplehash[dir].tuple.dst.u3, &addr))
-  1326                          continue;
-  1327  
-  1328                  if (ct_sip_parse_transport(ct, *dptr, matchoff + matchlen,
-  1329                                             *datalen, &proto) == 0)
-  1330                          continue;
-  1331  
-  1332                  ret = ct_sip_parse_numerical_param(ct, *dptr,
-  1333                                                     matchoff + matchlen,
-  1334                                                     *datalen, "expires=",
-  1335                                                     NULL, NULL, &c_expires);
-                                                                        ^^^^^^^^^
-  1336                  if (ret < 0) {
-                            ^^^^^^^
-"ret" is never negative.
+  Repo: git://git.baserock.org/delta/ebtables.git
+  Branch: baserock/pedroalvarez/ebt_ulog-fix
+  Sha1: 13747a56890cc710b2b4d420edc03a6c2714f40e
 
-  1337                          nf_ct_helper_log(skb, ct, "cannot parse expires");
-  1338                          return NF_DROP;
-  1339                  }
-  1340                  if (c_expires == 0)
-                            ^^^^^^^^^^^^^^
-On the first error path in ct_sip_parse_numerical_param(), if
-ct_sip_header_search() failes then we return the original c_expires.  On
-the other error path we set it to zero.
+NOTE: I didn't want to send a diff, since it would be big and nonsense, but I
+can do that if needed.
 
-  1341                          break;
-  1342                  if (refresh_signalling_expectation(ct, &addr, proto, port,
-  1343                                                     c_expires))
-  1344                          return NF_ACCEPT;
-  1345          }
-  1346  
+Regards!
 
-regards,
-dan carpenter
+-- 
+Pedro
