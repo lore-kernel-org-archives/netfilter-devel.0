@@ -1,57 +1,75 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv2] ebtables: Cache a copy of the v3.16 kernel headers in
- the ebtables tree
-Date: Fri, 27 Feb 2015 12:23:49 +0100
-Message-ID: <20150227112349.GA3407@salvia>
-References: <54EF4BE4.4020002@codethink.co.uk>
- <20150226193054.GA5142@salvia>
- <54EFA21A.5090507@codethink.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pedro Alvarez <pedro.alvarez@codethink.co.uk>
+From: Pedro Alvarez <pedro.alvarez@codethink.co.uk>
+Subject: [PATCHv3] ebtables: Add kernel headers needed from v3.16
+Date: Fri, 27 Feb 2015 11:54:09 +0000
+Message-ID: <1425038050-31511-1-git-send-email-pedro.alvarez@codethink.co.uk>
+References: <54EFA21A.5090507@codethink.co.uk>
+Cc: Pedro Alvarez <pedro.alvarez@codethink.co.uk>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37011 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752050AbbB0LUQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Feb 2015 06:20:16 -0500
-Content-Disposition: inline
+Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:36474 "EHLO
+	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752368AbbB0LyW (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Feb 2015 06:54:22 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by ducie-dc1.codethink.co.uk (Postfix) with ESMTP id BF2DD46099C
+	for <netfilter-devel@vger.kernel.org>; Fri, 27 Feb 2015 11:54:20 +0000 (GMT)
 In-Reply-To: <54EFA21A.5090507@codethink.co.uk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 26, 2015 at 10:45:46PM +0000, Pedro Alvarez wrote:
-> On 26/02/15 19:30, Pablo Neira Ayuso wrote:
-> >On Thu, Feb 26, 2015 at 04:37:56PM +0000, Pedro Alvarez wrote:
-> >>
-> >>I decided to go for 2, and here is the patch:
-> >
-> >Yes, we have to go 2 as we did in iptables.
-> >
-> >>   Repo: git://git.baserock.org/delta/ebtables.git
-> >>   Branch: baserock/pedroalvarez/ebt_ulog-fix
-> >>   Sha1: 13747a56890cc710b2b4d420edc03a6c2714f40e
-> >>
-> >>NOTE: I didn't want to send a diff, since it would be big and nonsense, but I
-> >>can do that if needed.
-> >
-> >OK, but it should be sufficient to include netfilter_bridge headers
-> >for each supported extension, including types.h and filter.h as we do
-> >in iptables.
-> 
-> Hi Pablo, thanks for taking a look at my patch.
-> 
-> Yeah, you are right, here is the second version of the patch [1]
-> following your suggestion.
-> 
-> Repo: git://git.baserock.org/delta/ebtables.git
-> Branch: baserock/pedroalvarez/ebt_ulog-fix-v2
-> Sha1: 04d387f29184907dd61f7e6b23b0dd9ef3913c50
+Fixes ebtables build with new kernel headers (See commit message)
 
-Please, remove filter.h, we don't need it for ebtables.
+v3:
+ * Don't add filter.h
 
-It would be good if you can send the patch to
-netfilter-devel@vger.kernel.org, it's ~25 KBytes which sounds
-reasonable size.
+v2
+ * Just add netfilter_bridge headers, types.h and filter.h
 
-Thanks.
+
+Pedro Alvarez (1):
+  Add kernel headers needed from v3.16
+
+ include/linux/netfilter_bridge.h              | 27 +++++++++++
+ include/linux/netfilter_bridge/ebt_802_3.h    | 63 ++++++++++++++++++++++++++
+ include/linux/netfilter_bridge/ebt_among.h    | 64 +++++++++++++++++++++++++++
+ include/linux/netfilter_bridge/ebt_arp.h      | 36 +++++++++++++++
+ include/linux/netfilter_bridge/ebt_arpreply.h | 10 +++++
+ include/linux/netfilter_bridge/ebt_ip.h       | 44 ++++++++++++++++++
+ include/linux/netfilter_bridge/ebt_ip6.h      | 50 +++++++++++++++++++++
+ include/linux/netfilter_bridge/ebt_limit.h    | 24 ++++++++++
+ include/linux/netfilter_bridge/ebt_log.h      | 20 +++++++++
+ include/linux/netfilter_bridge/ebt_mark_m.h   | 16 +++++++
+ include/linux/netfilter_bridge/ebt_mark_t.h   | 23 ++++++++++
+ include/linux/netfilter_bridge/ebt_nat.h      | 13 ++++++
+ include/linux/netfilter_bridge/ebt_nflog.h    | 23 ++++++++++
+ include/linux/netfilter_bridge/ebt_pkttype.h  | 12 +++++
+ include/linux/netfilter_bridge/ebt_redirect.h | 10 +++++
+ include/linux/netfilter_bridge/ebt_stp.h      | 46 +++++++++++++++++++
+ include/linux/netfilter_bridge/ebt_ulog.h     | 38 ++++++++++++++++
+ include/linux/netfilter_bridge/ebt_vlan.h     | 22 +++++++++
+ include/linux/types.h                         | 51 +++++++++++++++++++++
+ 19 files changed, 592 insertions(+)
+ create mode 100644 include/linux/netfilter_bridge.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_802_3.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_among.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_arp.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_arpreply.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_ip.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_ip6.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_limit.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_log.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_mark_m.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_mark_t.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_nat.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_nflog.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_pkttype.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_redirect.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_stp.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_ulog.h
+ create mode 100644 include/linux/netfilter_bridge/ebt_vlan.h
+ create mode 100644 include/linux/types.h
+
+-- 
+2.1.4
+
