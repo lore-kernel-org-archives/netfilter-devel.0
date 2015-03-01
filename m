@@ -1,780 +1,604 @@
-From: Pedro Alvarez <pedro.alvarez@codethink.co.uk>
-Subject: [PATCH] Add kernel headers needed from v3.16
-Date: Fri, 27 Feb 2015 11:54:10 +0000
-Message-ID: <1425038050-31511-2-git-send-email-pedro.alvarez@codethink.co.uk>
-References: <54EFA21A.5090507@codethink.co.uk>
- <1425038050-31511-1-git-send-email-pedro.alvarez@codethink.co.uk>
-Cc: Pedro Alvarez <pedro.alvarez@codethink.co.uk>
+From: =?UTF-8?B?TWFya3VzIEvDtnR0ZXI=?= <koetter@rrzn.uni-hannover.de>
+Subject: [RFC] nft trace
+Date: Sun, 01 Mar 2015 19:06:13 +0100
+Message-ID: <54F35515.5050807@rrzn.uni-hannover.de>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------070702080100060908010503"
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ducie-dc1.codethink.co.uk ([185.25.241.215]:36477 "EHLO
-	ducie-dc1.codethink.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752623AbbB0LyX (ORCPT
+Received: from mailout2.uni-hannover.de ([130.75.2.114]:33205 "EHLO
+	mailout2.uni-hannover.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751752AbbCASQs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Feb 2015 06:54:23 -0500
+	Sun, 1 Mar 2015 13:16:48 -0500
 Received: from localhost (localhost [127.0.0.1])
-	by ducie-dc1.codethink.co.uk (Postfix) with ESMTP id 31669460A25
-	for <netfilter-devel@vger.kernel.org>; Fri, 27 Feb 2015 11:54:22 +0000 (GMT)
-In-Reply-To: <1425038050-31511-1-git-send-email-pedro.alvarez@codethink.co.uk>
+	by mailout2.uni-hannover.de (Postfix) with ESMTP id 89890607E
+	for <netfilter-devel@vger.kernel.org>; Sun,  1 Mar 2015 19:06:11 +0100 (CET)
+Received: from mailout2.uni-hannover.de ([127.0.0.1])
+	by localhost (mailout2.uni-hannover.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 6cP7SyPnPbVb for <netfilter-devel@vger.kernel.org>;
+	Sun,  1 Mar 2015 19:06:11 +0100 (CET)
+Received: from [192.168.53.226] (p5DDA5F6D.dip0.t-ipconnect.de [93.218.95.109])
+	(Authenticated sender: koetter@rrzn.uni-hannover.de)
+	by mailout2.uni-hannover.de (Postfix) with ESMTPSA id D2198607C
+	for <netfilter-devel@vger.kernel.org>; Sun,  1 Mar 2015 19:06:10 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Ebtables fails to compile with versions of the linux headers greater
-than v3.16 with this error:
+This is a multi-part message in MIME format.
+--------------070702080100060908010503
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-  extensions/ebt_ulog.c:17:45: fatal error: linux/netfilter_bridge/ebt_ulog.h: No such file or directory
-   #include <linux/netfilter_bridge/ebt_ulog.h>
+Hi,
 
-This patch adds netfilter_bridge headers for every supported
-extension, including filter.h and types.h, to avoid this problem and
-future problems with changes in the kernel headers.
----
- include/linux/netfilter_bridge.h              | 27 +++++++++++
- include/linux/netfilter_bridge/ebt_802_3.h    | 63 ++++++++++++++++++++++++++
- include/linux/netfilter_bridge/ebt_among.h    | 64 +++++++++++++++++++++++++++
- include/linux/netfilter_bridge/ebt_arp.h      | 36 +++++++++++++++
- include/linux/netfilter_bridge/ebt_arpreply.h | 10 +++++
- include/linux/netfilter_bridge/ebt_ip.h       | 44 ++++++++++++++++++
- include/linux/netfilter_bridge/ebt_ip6.h      | 50 +++++++++++++++++++++
- include/linux/netfilter_bridge/ebt_limit.h    | 24 ++++++++++
- include/linux/netfilter_bridge/ebt_log.h      | 20 +++++++++
- include/linux/netfilter_bridge/ebt_mark_m.h   | 16 +++++++
- include/linux/netfilter_bridge/ebt_mark_t.h   | 23 ++++++++++
- include/linux/netfilter_bridge/ebt_nat.h      | 13 ++++++
- include/linux/netfilter_bridge/ebt_nflog.h    | 23 ++++++++++
- include/linux/netfilter_bridge/ebt_pkttype.h  | 12 +++++
- include/linux/netfilter_bridge/ebt_redirect.h | 10 +++++
- include/linux/netfilter_bridge/ebt_stp.h      | 46 +++++++++++++++++++
- include/linux/netfilter_bridge/ebt_ulog.h     | 38 ++++++++++++++++
- include/linux/netfilter_bridge/ebt_vlan.h     | 22 +++++++++
- include/linux/types.h                         | 51 +++++++++++++++++++++
- 19 files changed, 592 insertions(+)
- create mode 100644 include/linux/netfilter_bridge.h
- create mode 100644 include/linux/netfilter_bridge/ebt_802_3.h
- create mode 100644 include/linux/netfilter_bridge/ebt_among.h
- create mode 100644 include/linux/netfilter_bridge/ebt_arp.h
- create mode 100644 include/linux/netfilter_bridge/ebt_arpreply.h
- create mode 100644 include/linux/netfilter_bridge/ebt_ip.h
- create mode 100644 include/linux/netfilter_bridge/ebt_ip6.h
- create mode 100644 include/linux/netfilter_bridge/ebt_limit.h
- create mode 100644 include/linux/netfilter_bridge/ebt_log.h
- create mode 100644 include/linux/netfilter_bridge/ebt_mark_m.h
- create mode 100644 include/linux/netfilter_bridge/ebt_mark_t.h
- create mode 100644 include/linux/netfilter_bridge/ebt_nat.h
- create mode 100644 include/linux/netfilter_bridge/ebt_nflog.h
- create mode 100644 include/linux/netfilter_bridge/ebt_pkttype.h
- create mode 100644 include/linux/netfilter_bridge/ebt_redirect.h
- create mode 100644 include/linux/netfilter_bridge/ebt_stp.h
- create mode 100644 include/linux/netfilter_bridge/ebt_ulog.h
- create mode 100644 include/linux/netfilter_bridge/ebt_vlan.h
- create mode 100644 include/linux/types.h
+the only thing which I do not like about
+https://github.com/commonism/iptables-trace
+is the timing.
+Getting released more than 10 years after iptables had it's initial 
+release, I decided to address nft in time.
 
-diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
-new file mode 100644
-index 0000000..c4dbfd9
---- /dev/null
-+++ b/include/linux/netfilter_bridge.h
-@@ -0,0 +1,27 @@
-+#ifndef __LINUX_BRIDGE_NETFILTER_H
-+#define __LINUX_BRIDGE_NETFILTER_H
-+
-+/* bridge-specific defines for netfilter. 
-+ */
-+
-+#include <linux/netfilter.h>
-+#include <linux/if_ether.h>
-+#include <linux/if_vlan.h>
-+#include <linux/if_pppox.h>
-+
-+/* Bridge Hooks */
-+/* After promisc drops, checksum checks. */
-+#define NF_BR_PRE_ROUTING	0
-+/* If the packet is destined for this box. */
-+#define NF_BR_LOCAL_IN		1
-+/* If the packet is destined for another interface. */
-+#define NF_BR_FORWARD		2
-+/* Packets coming from a local process. */
-+#define NF_BR_LOCAL_OUT		3
-+/* Packets about to hit the wire. */
-+#define NF_BR_POST_ROUTING	4
-+/* Not really a hook, but used for the ebtables broute table */
-+#define NF_BR_BROUTING		5
-+#define NF_BR_NUMHOOKS		6
-+
-+#endif /* __LINUX_BRIDGE_NETFILTER_H */
-diff --git a/include/linux/netfilter_bridge/ebt_802_3.h b/include/linux/netfilter_bridge/ebt_802_3.h
-new file mode 100644
-index 0000000..70028c1
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_802_3.h
-@@ -0,0 +1,63 @@
-+#ifndef __LINUX_BRIDGE_EBT_802_3_H
-+#define __LINUX_BRIDGE_EBT_802_3_H
-+
-+#include <linux/types.h>
-+#include <linux/if_ether.h>
-+
-+#define EBT_802_3_SAP 0x01
-+#define EBT_802_3_TYPE 0x02
-+
-+#define EBT_802_3_MATCH "802_3"
-+
-+/*
-+ * If frame has DSAP/SSAP value 0xaa you must check the SNAP type
-+ * to discover what kind of packet we're carrying. 
-+ */
-+#define CHECK_TYPE 0xaa
-+
-+/*
-+ * Control field may be one or two bytes.  If the first byte has
-+ * the value 0x03 then the entire length is one byte, otherwise it is two.
-+ * One byte controls are used in Unnumbered Information frames.
-+ * Two byte controls are used in Numbered Information frames.
-+ */
-+#define IS_UI 0x03
-+
-+#define EBT_802_3_MASK (EBT_802_3_SAP | EBT_802_3_TYPE | EBT_802_3)
-+
-+/* ui has one byte ctrl, ni has two */
-+struct hdr_ui {
-+	__u8 dsap;
-+	__u8 ssap;
-+	__u8 ctrl;
-+	__u8 orig[3];
-+	__be16 type;
+So, I propose to add a new command to nft - "trace".
+
+nft trace uses libnetfilter_log receive log messages, and gathers 
+information from messages prefixed with "TRACE: ".
+It looks up the chain, rule, and action, and prints a human readable 
+representation.
+
+such as
+
+> IN=eth0 OUT= SRC=141.30.13.10 DST=10.0.2.15 LEN=1408 TOS=0x00 PREC=0x00 TTL=64 ID=60563
+>         filter input (#2) NFMARK=0x0
+>                  ip protocol icmp nftrace set 1
+>         filter input (#3) NFMARK=0x0
+>                  icmp type { echo-request, echo-reply} counter packets 5 bytes 420
+>         filter input (#4) NFMARK=0x0
+>                  ip protocol icmp jump test-0-0
+>         filter test-0-0 (#1) NFMARK=0x1
+>                  mark set 0x00000001
+>         filter test-0-0 (#3) NFMARK=0x2
+>                  mark set 0x00000002
+>         filter test-0-0 NFMARK=0x2
+>                  => RETURN
+>         filter input (#5) NFMARK=0x2
+>                  ip protocol icmp goto test-1-0
+>         filter test-1-0 (#1) NFMARK=0x2
+>                  ip protocol vmap { tcp : drop, icmp : jump test-0-0}
+>         filter test-0-0 (#1) NFMARK=0x1
+>                  mark set 0x00000001
+>         filter test-0-0 (#3) NFMARK=0x2
+>                  mark set 0x00000002
+>         filter test-0-0 NFMARK=0x2
+>                  => RETURN
+>         filter test-1-0 NFMARK=0x2
+>                  => RETURN
+>         filter input NFMARK=0x2
+>                 ACCEPT
+
+
+So you can set an nftrace meta on a packet you want to debug, and use 
+"nft trace" to follow the packets on their way through the kernel.
+You can use "limit" to limit the amount of packets traced to 1 packet a 
+second, making things smooth and easy to follow and avoiding overlaps 
+when printing the trace.
+The start of a trace is detected by looking for a nftrace meta on the 
+currently matching rule, if it is set, you can print the packet header.
+
+I really recommend such trace functionality, it is of great use to me 
+when using iptables. And as I doubt nftables rulesets will get any 
+easier to debug, I'm looking to get trace into nft.
+In mose cases it is enough to know the ip address of the service which 
+does not work, setup a trace rule, follow the packet, see where it gets 
+lost. iptables-trace basically changed the way I write/adjust rules, and 
+I want to keep it it this way with nft.
+
+None of this works with current kernels, as changes to the netlink 
+logging infrastructure in v3.17 prevent TRACE messages from being 
+relayed to netlink.
+I filed a report here:
+http://bugzilla.netfilter.org/show_bug.cgi?id=1003
+
+Using NULL as nf_loginfo works for me (messages end up in group 0 as 
+before), but in order to get a first class trace functionality I'm 
+looking to get NFLOG arguments to TRACE, so you can set a group and be a 
+of type ULOG in the kernel, and get relayed to userspace.
+For compatibility, TRACE without additional arguments can still be of 
+type LOG, as it was before.
+Having NFLOG groups would even allow multiple "nft trace" instances 
+without interfering with each other, each instance addressing a 
+different group.
+
+Making this change in a compatible way for 
+xtables/iptables/ip6tables/nftables requires quite some work on 
+userspace and kernel space for all of the software providing TRACE 
+functionality.
+
+Attached is a patch on current nftables which can be used as technical 
+demo, it is ugly, incomplete and rough, but short and will work for 
+something to look at.
+To use this, I patched my kernel to log TRACE messages using NULL as 
+nf_loginfo as mentioned before.
+
+I'd love a response regarding the odds of getting the nft trace 
+functionality merged - I promise to continue working on it, clean things 
+up, I'll take care it is optional and does not tie nft to 
+libnetfilter_conntrack (e.g. for embedded platforms).
+Same for changing TRACE to accept arguments - fixing the regression by 
+using NULL as nf_loginfo for trace is trivial but ... having NFLOG 
+groups in TRACE can be really handy.
+
+
+
+MfG
+Markus Kötter
+
+--------------070702080100060908010503
+Content-Type: text/x-patch;
+ name="nft_trace_demo.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="nft_trace_demo.diff"
+
+diff --git a/include/rule.h b/include/rule.h
+index 491411e..325ac0f 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -119,6 +119,7 @@ struct chain {
+ 	const char		*type;
+ 	struct scope		scope;
+ 	struct list_head	rules;
++	uint32_t		policy;
+ };
+ 
+ extern const char *chain_type_name_lookup(const char *name);
+@@ -224,6 +225,7 @@ extern void set_print_plain(const struct set *s);
+  * @CMD_EXPORT:		export the ruleset in a given format
+  * @CMD_MONITOR:	event listener
+  * @CMD_DESCRIBE:	describe an expression
++ * @CMD_TRACE:		print the packets trace
+  */
+ enum cmd_ops {
+ 	CMD_INVALID,
+@@ -237,6 +239,7 @@ enum cmd_ops {
+ 	CMD_EXPORT,
+ 	CMD_MONITOR,
+ 	CMD_DESCRIBE,
++	CMD_TRACE,
+ };
+ 
+ /**
+@@ -253,6 +256,7 @@ enum cmd_ops {
+  * @CMD_OBJ_EXPR:	expression
+  * @CMD_OBJ_MONITOR:	monitor
+  * @CMD_OBJ_EXPORT:	export
++ * @CMD_OBJ_TRACE:	trace
+  */
+ enum cmd_obj {
+ 	CMD_OBJ_INVALID,
+@@ -266,6 +270,7 @@ enum cmd_obj {
+ 	CMD_OBJ_EXPR,
+ 	CMD_OBJ_MONITOR,
+ 	CMD_OBJ_EXPORT,
++	CMD_OBJ_TRACE,
+ };
+ 
+ struct export {
+@@ -296,6 +301,14 @@ struct monitor {
+ struct monitor *monitor_alloc(uint32_t format, uint32_t type, const char *event);
+ void monitor_free(struct monitor *m);
+ 
++struct trace {
++	struct location	location;
 +};
 +
-+struct hdr_ni {
-+	__u8 dsap;
-+	__u8 ssap;
-+	__be16 ctrl;
-+	__u8  orig[3];
-+	__be16 type;
-+};
-+
-+struct ebt_802_3_hdr {
-+	__u8  daddr[ETH_ALEN];
-+	__u8  saddr[ETH_ALEN];
-+	__be16 len;
-+	union {
-+		struct hdr_ui ui;
-+		struct hdr_ni ni;
-+	} llc;
-+};
++struct trace *trace_alloc(void);
++void trace_free(struct trace *m);
 +
 +
-+struct ebt_802_3_info {
-+	__u8  sap;
-+	__be16 type;
-+	__u8  bitmask;
-+	__u8  invflags;
-+};
+ /**
+  * struct cmd - command statement
+  *
+@@ -325,6 +338,7 @@ struct cmd {
+ 		struct table	*table;
+ 		struct monitor	*monitor;
+ 		struct export	*export;
++		struct trace	*trace;
+ 	};
+ 	const void		*arg;
+ };
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 2410fd3..2123013 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -57,4 +57,4 @@ mini-gmp.o: AM_CFLAGS += -Wno-sign-compare
+ nft_SOURCES +=	mini-gmp.c
+ endif
+ 
+-nft_LDADD	= ${LIBMNL_LIBS} ${LIBNFTNL_LIBS}
++nft_LDADD	= ${LIBMNL_LIBS} ${LIBNFTNL_LIBS} -lnetfilter_log
+diff --git a/src/evaluate.c b/src/evaluate.c
+index a3484c6..6f7913d 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1971,6 +1971,8 @@ int cmd_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
+ 		return 0;
+ 	case CMD_MONITOR:
+ 		return cmd_evaluate_monitor(ctx, cmd);
++	case CMD_TRACE:
++		return 0; //cmd_evaluate_trace(ctx, cmd);
+ 	default:
+ 		BUG("invalid command operation %u\n", cmd->op);
+ 	};
+diff --git a/src/netlink.c b/src/netlink.c
+index 84d9d27..17aabd4 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -675,6 +675,10 @@ static struct chain *netlink_delinearize_chain(struct netlink_ctx *ctx,
+ 		chain->flags        |= CHAIN_F_BASECHAIN;
+ 	}
+ 
++	if (nft_chain_attr_is_set(nlc, NFT_CHAIN_ATTR_TYPE))
++		chain->policy =
++		nft_chain_attr_get_u32(nlc, NFT_CHAIN_ATTR_POLICY);
 +
-+#endif /* __LINUX_BRIDGE_EBT_802_3_H */
-diff --git a/include/linux/netfilter_bridge/ebt_among.h b/include/linux/netfilter_bridge/ebt_among.h
-new file mode 100644
-index 0000000..bd4e3ad
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_among.h
-@@ -0,0 +1,64 @@
-+#ifndef __LINUX_BRIDGE_EBT_AMONG_H
-+#define __LINUX_BRIDGE_EBT_AMONG_H
+ 	return chain;
+ }
+ 
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index fd2407c..447f07b 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -190,6 +190,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token DESCRIBE			"describe"
+ %token EXPORT			"export"
+ %token MONITOR			"monitor"
++%token TRACE			"trace"
+ 
+ %token ACCEPT			"accept"
+ %token DROP			"drop"
+@@ -402,8 +403,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <cmd>			line
+ %destructor { cmd_free($$); }	line
+ 
+-%type <cmd>			base_cmd add_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
+-%destructor { cmd_free($$); }	base_cmd add_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
++%type <cmd>			base_cmd add_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd trace_cmd
++%destructor { cmd_free($$); }	base_cmd add_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd trace_cmd
+ 
+ %type <handle>			table_spec tables_spec chain_spec chain_identifier ruleid_spec ruleset_spec
+ %destructor { handle_free(&$$); } table_spec tables_spec chain_spec chain_identifier ruleid_spec ruleset_spec
+@@ -640,6 +641,7 @@ base_cmd		:	/* empty */	add_cmd		{ $$ = $1; }
+ 			|	EXPORT		export_cmd	{ $$ = $2; }
+ 			|	MONITOR		monitor_cmd	{ $$ = $2; }
+ 			|	DESCRIBE	describe_cmd	{ $$ = $2; }
++			|	TRACE		trace_cmd	{ $$ = $2; }
+ 			;
+ 
+ add_cmd			:	TABLE		table_spec
+@@ -809,6 +811,16 @@ export_cmd		:	export_format
+ 			}
+ 			;
+ 
++trace_cmd	:
++			{
++				struct handle h = { .family = NFPROTO_UNSPEC };
++				struct trace *t = trace_alloc();
++				t->location = @-1;
++				$$ = cmd_alloc(CMD_TRACE, CMD_OBJ_TRACE, &h, &@$, t);
++			}
++			;
 +
-+#include <linux/types.h>
 +
-+#define EBT_AMONG_DST 0x01
-+#define EBT_AMONG_SRC 0x02
-+
-+/* Grzegorz Borowiak <grzes@gnu.univ.gda.pl> 2003
-+ * 
-+ * Write-once-read-many hash table, used for checking if a given
-+ * MAC address belongs to a set or not and possibly for checking
-+ * if it is related with a given IPv4 address.
-+ *
-+ * The hash value of an address is its last byte.
-+ * 
-+ * In real-world ethernet addresses, values of the last byte are
-+ * evenly distributed and there is no need to consider other bytes.
-+ * It would only slow the routines down.
-+ *
-+ * For MAC address comparison speedup reasons, we introduce a trick.
-+ * MAC address is mapped onto an array of two 32-bit integers.
-+ * This pair of integers is compared with MAC addresses in the
-+ * hash table, which are stored also in form of pairs of integers
-+ * (in `cmp' array). This is quick as it requires only two elementary
-+ * number comparisons in worst case. Further, we take advantage of
-+ * fact that entropy of 3 last bytes of address is larger than entropy
-+ * of 3 first bytes. So first we compare 4 last bytes of addresses and
-+ * if they are the same we compare 2 first.
-+ *
-+ * Yes, it is a memory overhead, but in 2003 AD, who cares?
-+ */
-+
-+struct ebt_mac_wormhash_tuple {
-+	__u32 cmp[2];
-+	__be32 ip;
-+};
-+
-+struct ebt_mac_wormhash {
-+	int table[257];
-+	int poolsize;
-+	struct ebt_mac_wormhash_tuple pool[0];
-+};
-+
-+#define ebt_mac_wormhash_size(x) ((x) ? sizeof(struct ebt_mac_wormhash) \
-+		+ (x)->poolsize * sizeof(struct ebt_mac_wormhash_tuple) : 0)
-+
-+struct ebt_among_info {
-+	int wh_dst_ofs;
-+	int wh_src_ofs;
-+	int bitmask;
-+};
-+
-+#define EBT_AMONG_DST_NEG 0x1
-+#define EBT_AMONG_SRC_NEG 0x2
-+
-+#define ebt_among_wh_dst(x) ((x)->wh_dst_ofs ? \
-+	(struct ebt_mac_wormhash*)((char*)(x) + (x)->wh_dst_ofs) : NULL)
-+#define ebt_among_wh_src(x) ((x)->wh_src_ofs ? \
-+	(struct ebt_mac_wormhash*)((char*)(x) + (x)->wh_src_ofs) : NULL)
-+
-+#define EBT_AMONG_MATCH "among"
-+
-+#endif
-diff --git a/include/linux/netfilter_bridge/ebt_arp.h b/include/linux/netfilter_bridge/ebt_arp.h
-new file mode 100644
-index 0000000..522f3e4
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_arp.h
-@@ -0,0 +1,36 @@
-+#ifndef __LINUX_BRIDGE_EBT_ARP_H
-+#define __LINUX_BRIDGE_EBT_ARP_H
-+
-+#include <linux/types.h>
-+
-+#define EBT_ARP_OPCODE 0x01
-+#define EBT_ARP_HTYPE 0x02
-+#define EBT_ARP_PTYPE 0x04
-+#define EBT_ARP_SRC_IP 0x08
-+#define EBT_ARP_DST_IP 0x10
-+#define EBT_ARP_SRC_MAC 0x20
-+#define EBT_ARP_DST_MAC 0x40
-+#define EBT_ARP_GRAT 0x80
-+#define EBT_ARP_MASK (EBT_ARP_OPCODE | EBT_ARP_HTYPE | EBT_ARP_PTYPE | \
-+   EBT_ARP_SRC_IP | EBT_ARP_DST_IP | EBT_ARP_SRC_MAC | EBT_ARP_DST_MAC | \
-+   EBT_ARP_GRAT)
-+#define EBT_ARP_MATCH "arp"
-+
-+struct ebt_arp_info
+ monitor_cmd		:	monitor_event	monitor_object	monitor_format
+ 			{
+ 				struct handle h = { .family = NFPROTO_UNSPEC };
+diff --git a/src/rule.c b/src/rule.c
+index 8d76fd0..9cb8715 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -573,6 +573,19 @@ void monitor_free(struct monitor *m)
+ 	xfree(m);
+ }
+ 
++struct trace *trace_alloc(void)
 +{
-+	__be16 htype;
-+	__be16 ptype;
-+	__be16 opcode;
-+	__be32 saddr;
-+	__be32 smsk;
-+	__be32 daddr;
-+	__be32 dmsk;
-+	unsigned char smaddr[ETH_ALEN];
-+	unsigned char smmsk[ETH_ALEN];
-+	unsigned char dmaddr[ETH_ALEN];
-+	unsigned char dmmsk[ETH_ALEN];
-+	__u8  bitmask;
-+	__u8  invflags;
++	struct trace *tr;
++
++	tr = xmalloc(sizeof(struct trace));
++	return tr;
++}
++
++void trace_free(struct trace *tr)
++{
++	xfree(tr);
++}
++
+ void cmd_free(struct cmd *cmd)
+ {
+ 	handle_free(&cmd->handle);
+@@ -602,6 +615,9 @@ void cmd_free(struct cmd *cmd)
+ 		case CMD_OBJ_EXPORT:
+ 			export_free(cmd->export);
+ 			break;
++		case CMD_OBJ_TRACE:
++			trace_free(cmd->trace);
++			break;
+ 		default:
+ 			BUG("invalid command object type %u\n", cmd->obj);
+ 		}
+@@ -945,6 +961,251 @@ static int do_command_rename(struct netlink_ctx *ctx, struct cmd *cmd)
+ 	return 0;
+ }
+ 
++#include <libnetfilter_log/libnetfilter_log.h>
++#include "netlink.h"
++#include "mnl.h"
++
++static void *memrchr(const void *s, int c, size_t n)
++{
++    const unsigned char *cp;
++
++    if (n != 0) {
++	cp = (unsigned char *)s + n;
++	do {
++	    if (*(--cp) == (unsigned char)c)
++		return((void *)cp);
++	} while (--n != 0);
++    }
++    return((void *)0);
++}
++
++struct trace_prefix
++{
++	char *table;
++	char *chain;
++	char *action;
++	char *num;
 +};
 +
-+#endif
-diff --git a/include/linux/netfilter_bridge/ebt_arpreply.h b/include/linux/netfilter_bridge/ebt_arpreply.h
-new file mode 100644
-index 0000000..7e77896
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_arpreply.h
-@@ -0,0 +1,10 @@
-+#ifndef __LINUX_BRIDGE_EBT_ARPREPLY_H
-+#define __LINUX_BRIDGE_EBT_ARPREPLY_H
-+
-+struct ebt_arpreply_info {
-+	unsigned char mac[ETH_ALEN];
-+	int target;
-+};
-+#define EBT_ARPREPLY_TARGET "arpreply"
-+
-+#endif
-diff --git a/include/linux/netfilter_bridge/ebt_ip.h b/include/linux/netfilter_bridge/ebt_ip.h
-new file mode 100644
-index 0000000..c4bbc41
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_ip.h
-@@ -0,0 +1,44 @@
-+/*
-+ *  ebt_ip
-+ *
-+ *	Authors:
-+ *	Bart De Schuymer <bart.de.schuymer@pandora.be>
-+ *
-+ *  April, 2002
-+ *
-+ *  Changes:
-+ *    added ip-sport and ip-dport
-+ *    Innominate Security Technologies AG <mhopf@innominate.com>
-+ *    September, 2002
-+ */
-+
-+#ifndef __LINUX_BRIDGE_EBT_IP_H
-+#define __LINUX_BRIDGE_EBT_IP_H
-+
-+#include <linux/types.h>
-+
-+#define EBT_IP_SOURCE 0x01
-+#define EBT_IP_DEST 0x02
-+#define EBT_IP_TOS 0x04
-+#define EBT_IP_PROTO 0x08
-+#define EBT_IP_SPORT 0x10
-+#define EBT_IP_DPORT 0x20
-+#define EBT_IP_MASK (EBT_IP_SOURCE | EBT_IP_DEST | EBT_IP_TOS | EBT_IP_PROTO |\
-+ EBT_IP_SPORT | EBT_IP_DPORT )
-+#define EBT_IP_MATCH "ip"
-+
-+/* the same values are used for the invflags */
-+struct ebt_ip_info {
-+	__be32 saddr;
-+	__be32 daddr;
-+	__be32 smsk;
-+	__be32 dmsk;
-+	__u8  tos;
-+	__u8  protocol;
-+	__u8  bitmask;
-+	__u8  invflags;
-+	__u16 sport[2];
-+	__u16 dport[2];
-+};
-+
-+#endif
-diff --git a/include/linux/netfilter_bridge/ebt_ip6.h b/include/linux/netfilter_bridge/ebt_ip6.h
-new file mode 100644
-index 0000000..42b8896
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_ip6.h
-@@ -0,0 +1,50 @@
-+/*
-+ *  ebt_ip6
-+ *
-+ *	Authors:
-+ * Kuo-Lang Tseng <kuo-lang.tseng@intel.com>
-+ * Manohar Castelino <manohar.r.castelino@intel.com>
-+ *
-+ *  Jan 11, 2008
-+ *
-+ */
-+
-+#ifndef __LINUX_BRIDGE_EBT_IP6_H
-+#define __LINUX_BRIDGE_EBT_IP6_H
-+
-+#include <linux/types.h>
-+
-+#define EBT_IP6_SOURCE 0x01
-+#define EBT_IP6_DEST 0x02
-+#define EBT_IP6_TCLASS 0x04
-+#define EBT_IP6_PROTO 0x08
-+#define EBT_IP6_SPORT 0x10
-+#define EBT_IP6_DPORT 0x20
-+#define EBT_IP6_ICMP6 0x40
-+
-+#define EBT_IP6_MASK (EBT_IP6_SOURCE | EBT_IP6_DEST | EBT_IP6_TCLASS |\
-+		      EBT_IP6_PROTO | EBT_IP6_SPORT | EBT_IP6_DPORT | \
-+		      EBT_IP6_ICMP6)
-+#define EBT_IP6_MATCH "ip6"
-+
-+/* the same values are used for the invflags */
-+struct ebt_ip6_info {
-+	struct in6_addr saddr;
-+	struct in6_addr daddr;
-+	struct in6_addr smsk;
-+	struct in6_addr dmsk;
-+	__u8  tclass;
-+	__u8  protocol;
-+	__u8  bitmask;
-+	__u8  invflags;
-+	union {
-+		__u16 sport[2];
-+		__u8 icmpv6_type[2];
-+	};
-+	union {
-+		__u16 dport[2];
-+		__u8 icmpv6_code[2];
-+	};
-+};
-+
-+#endif
-diff --git a/include/linux/netfilter_bridge/ebt_limit.h b/include/linux/netfilter_bridge/ebt_limit.h
-new file mode 100644
-index 0000000..66d80b3
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_limit.h
-@@ -0,0 +1,24 @@
-+#ifndef __LINUX_BRIDGE_EBT_LIMIT_H
-+#define __LINUX_BRIDGE_EBT_LIMIT_H
-+
-+#include <linux/types.h>
-+
-+#define EBT_LIMIT_MATCH "limit"
-+
-+/* timings are in milliseconds. */
-+#define EBT_LIMIT_SCALE 10000
-+
-+/* 1/10,000 sec period => max of 10,000/sec.  Min rate is then 429490
-+   seconds, or one every 59 hours. */
-+
-+struct ebt_limit_info {
-+	__u32 avg;    /* Average secs between packets * scale */
-+	__u32 burst;  /* Period multiplier for upper limit. */
-+
-+	/* Used internally by the kernel */
-+	unsigned long prev;
-+	__u32 credit;
-+	__u32 credit_cap, cost;
-+};
-+
-+#endif
-diff --git a/include/linux/netfilter_bridge/ebt_log.h b/include/linux/netfilter_bridge/ebt_log.h
-new file mode 100644
-index 0000000..7e7f1d1
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_log.h
-@@ -0,0 +1,20 @@
-+#ifndef __LINUX_BRIDGE_EBT_LOG_H
-+#define __LINUX_BRIDGE_EBT_LOG_H
-+
-+#include <linux/types.h>
-+
-+#define EBT_LOG_IP 0x01 /* if the frame is made by ip, log the ip information */
-+#define EBT_LOG_ARP 0x02
-+#define EBT_LOG_NFLOG 0x04
-+#define EBT_LOG_IP6 0x08
-+#define EBT_LOG_MASK (EBT_LOG_IP | EBT_LOG_ARP | EBT_LOG_IP6)
-+#define EBT_LOG_PREFIX_SIZE 30
-+#define EBT_LOG_WATCHER "log"
-+
-+struct ebt_log_info {
-+	__u8 loglevel;
-+	__u8 prefix[EBT_LOG_PREFIX_SIZE];
-+	__u32 bitmask;
-+};
-+
-+#endif
-diff --git a/include/linux/netfilter_bridge/ebt_mark_m.h b/include/linux/netfilter_bridge/ebt_mark_m.h
-new file mode 100644
-index 0000000..410f9e5
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_mark_m.h
-@@ -0,0 +1,16 @@
-+#ifndef __LINUX_BRIDGE_EBT_MARK_M_H
-+#define __LINUX_BRIDGE_EBT_MARK_M_H
-+
-+#include <linux/types.h>
-+
-+#define EBT_MARK_AND 0x01
-+#define EBT_MARK_OR 0x02
-+#define EBT_MARK_MASK (EBT_MARK_AND | EBT_MARK_OR)
-+struct ebt_mark_m_info {
-+	unsigned long mark, mask;
-+	__u8 invert;
-+	__u8 bitmask;
-+};
-+#define EBT_MARK_MATCH "mark_m"
-+
-+#endif
-diff --git a/include/linux/netfilter_bridge/ebt_mark_t.h b/include/linux/netfilter_bridge/ebt_mark_t.h
-new file mode 100644
-index 0000000..7d5a268
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_mark_t.h
-@@ -0,0 +1,23 @@
-+#ifndef __LINUX_BRIDGE_EBT_MARK_T_H
-+#define __LINUX_BRIDGE_EBT_MARK_T_H
-+
-+/* The target member is reused for adding new actions, the
-+ * value of the real target is -1 to -NUM_STANDARD_TARGETS.
-+ * For backward compatibility, the 4 lsb (2 would be enough,
-+ * but let's play it safe) are kept to designate this target.
-+ * The remaining bits designate the action. By making the set
-+ * action 0xfffffff0, the result will look ok for older
-+ * versions. [September 2006] */
-+#define MARK_SET_VALUE (0xfffffff0)
-+#define MARK_OR_VALUE  (0xffffffe0)
-+#define MARK_AND_VALUE (0xffffffd0)
-+#define MARK_XOR_VALUE (0xffffffc0)
-+
-+struct ebt_mark_t_info {
-+	unsigned long mark;
-+	/* EBT_ACCEPT, EBT_DROP, EBT_CONTINUE or EBT_RETURN */
-+	int target;
-+};
-+#define EBT_MARK_TARGET "mark"
-+
-+#endif
-diff --git a/include/linux/netfilter_bridge/ebt_nat.h b/include/linux/netfilter_bridge/ebt_nat.h
-new file mode 100644
-index 0000000..5e74e3b
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_nat.h
-@@ -0,0 +1,13 @@
-+#ifndef __LINUX_BRIDGE_EBT_NAT_H
-+#define __LINUX_BRIDGE_EBT_NAT_H
-+
-+#define NAT_ARP_BIT  (0x00000010)
-+struct ebt_nat_info {
-+	unsigned char mac[ETH_ALEN];
-+	/* EBT_ACCEPT, EBT_DROP, EBT_CONTINUE or EBT_RETURN */
-+	int target;
-+};
-+#define EBT_SNAT_TARGET "snat"
-+#define EBT_DNAT_TARGET "dnat"
-+
-+#endif
-diff --git a/include/linux/netfilter_bridge/ebt_nflog.h b/include/linux/netfilter_bridge/ebt_nflog.h
-new file mode 100644
-index 0000000..df829fc
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_nflog.h
-@@ -0,0 +1,23 @@
-+#ifndef __LINUX_BRIDGE_EBT_NFLOG_H
-+#define __LINUX_BRIDGE_EBT_NFLOG_H
-+
-+#include <linux/types.h>
-+
-+#define EBT_NFLOG_MASK 0x0
-+
-+#define EBT_NFLOG_PREFIX_SIZE 64
-+#define EBT_NFLOG_WATCHER "nflog"
-+
-+#define EBT_NFLOG_DEFAULT_GROUP		0x1
-+#define EBT_NFLOG_DEFAULT_THRESHOLD	1
-+
-+struct ebt_nflog_info {
-+	__u32 len;
-+	__u16 group;
-+	__u16 threshold;
-+	__u16 flags;
-+	__u16 pad;
-+	char prefix[EBT_NFLOG_PREFIX_SIZE];
-+};
-+
-+#endif				/* __LINUX_BRIDGE_EBT_NFLOG_H */
-diff --git a/include/linux/netfilter_bridge/ebt_pkttype.h b/include/linux/netfilter_bridge/ebt_pkttype.h
-new file mode 100644
-index 0000000..c241bad
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_pkttype.h
-@@ -0,0 +1,12 @@
-+#ifndef __LINUX_BRIDGE_EBT_PKTTYPE_H
-+#define __LINUX_BRIDGE_EBT_PKTTYPE_H
-+
-+#include <linux/types.h>
-+
-+struct ebt_pkttype_info {
-+	__u8 pkt_type;
-+	__u8 invert;
-+};
-+#define EBT_PKTTYPE_MATCH "pkttype"
-+
-+#endif
-diff --git a/include/linux/netfilter_bridge/ebt_redirect.h b/include/linux/netfilter_bridge/ebt_redirect.h
-new file mode 100644
-index 0000000..dd9622c
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_redirect.h
-@@ -0,0 +1,10 @@
-+#ifndef __LINUX_BRIDGE_EBT_REDIRECT_H
-+#define __LINUX_BRIDGE_EBT_REDIRECT_H
-+
-+struct ebt_redirect_info {
-+	/* EBT_ACCEPT, EBT_DROP, EBT_CONTINUE or EBT_RETURN */
-+	int target;
-+};
-+#define EBT_REDIRECT_TARGET "redirect"
-+
-+#endif
-diff --git a/include/linux/netfilter_bridge/ebt_stp.h b/include/linux/netfilter_bridge/ebt_stp.h
-new file mode 100644
-index 0000000..1025b9f
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_stp.h
-@@ -0,0 +1,46 @@
-+#ifndef __LINUX_BRIDGE_EBT_STP_H
-+#define __LINUX_BRIDGE_EBT_STP_H
-+
-+#include <linux/types.h>
-+
-+#define EBT_STP_TYPE		0x0001
-+
-+#define EBT_STP_FLAGS		0x0002
-+#define EBT_STP_ROOTPRIO	0x0004
-+#define EBT_STP_ROOTADDR	0x0008
-+#define EBT_STP_ROOTCOST	0x0010
-+#define EBT_STP_SENDERPRIO	0x0020
-+#define EBT_STP_SENDERADDR	0x0040
-+#define EBT_STP_PORT		0x0080
-+#define EBT_STP_MSGAGE		0x0100
-+#define EBT_STP_MAXAGE		0x0200
-+#define EBT_STP_HELLOTIME	0x0400
-+#define EBT_STP_FWDD		0x0800
-+
-+#define EBT_STP_MASK		0x0fff
-+#define EBT_STP_CONFIG_MASK	0x0ffe
-+
-+#define EBT_STP_MATCH "stp"
-+
-+struct ebt_stp_config_info {
-+	__u8 flags;
-+	__u16 root_priol, root_priou;
-+	char root_addr[6], root_addrmsk[6];
-+	__u32 root_costl, root_costu;
-+	__u16 sender_priol, sender_priou;
-+	char sender_addr[6], sender_addrmsk[6];
-+	__u16 portl, portu;
-+	__u16 msg_agel, msg_ageu;
-+	__u16 max_agel, max_ageu;
-+	__u16 hello_timel, hello_timeu;
-+	__u16 forward_delayl, forward_delayu;
-+};
-+
-+struct ebt_stp_info {
-+	__u8 type;
-+	struct ebt_stp_config_info config;
-+	__u16 bitmask;
-+	__u16 invflags;
-+};
-+
-+#endif
-diff --git a/include/linux/netfilter_bridge/ebt_ulog.h b/include/linux/netfilter_bridge/ebt_ulog.h
-new file mode 100644
-index 0000000..89a6bec
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_ulog.h
-@@ -0,0 +1,38 @@
-+#ifndef _EBT_ULOG_H
-+#define _EBT_ULOG_H
-+
-+#include <linux/types.h>
-+
-+#define EBT_ULOG_DEFAULT_NLGROUP 0
-+#define EBT_ULOG_DEFAULT_QTHRESHOLD 1
-+#define EBT_ULOG_MAXNLGROUPS 32 /* hardcoded netlink max */
-+#define EBT_ULOG_PREFIX_LEN 32
-+#define EBT_ULOG_MAX_QLEN 50
-+#define EBT_ULOG_WATCHER "ulog"
-+#define EBT_ULOG_VERSION 1
-+
-+struct ebt_ulog_info {
-+	__u32 nlgroup;
-+	unsigned int cprange;
-+	unsigned int qthreshold;
-+	char prefix[EBT_ULOG_PREFIX_LEN];
-+};
-+
-+typedef struct ebt_ulog_packet_msg {
-+	int version;
-+	char indev[IFNAMSIZ];
-+	char outdev[IFNAMSIZ];
-+	char physindev[IFNAMSIZ];
-+	char physoutdev[IFNAMSIZ];
-+	char prefix[EBT_ULOG_PREFIX_LEN];
-+	struct timeval stamp;
-+	unsigned long mark;
-+	unsigned int hook;
-+	size_t data_len;
-+	/* The complete packet, including Ethernet header and perhaps
-+	 * the VLAN header is appended */
-+	unsigned char data[0] __attribute__
-+	                      ((aligned (__alignof__(struct ebt_ulog_info))));
-+} ebt_ulog_packet_msg_t;
-+
-+#endif /* _EBT_ULOG_H */
-diff --git a/include/linux/netfilter_bridge/ebt_vlan.h b/include/linux/netfilter_bridge/ebt_vlan.h
-new file mode 100644
-index 0000000..967d1d5
---- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_vlan.h
-@@ -0,0 +1,22 @@
-+#ifndef __LINUX_BRIDGE_EBT_VLAN_H
-+#define __LINUX_BRIDGE_EBT_VLAN_H
-+
-+#include <linux/types.h>
-+
-+#define EBT_VLAN_ID	0x01
-+#define EBT_VLAN_PRIO	0x02
-+#define EBT_VLAN_ENCAP	0x04
-+#define EBT_VLAN_MASK (EBT_VLAN_ID | EBT_VLAN_PRIO | EBT_VLAN_ENCAP)
-+#define EBT_VLAN_MATCH "vlan"
-+
-+struct ebt_vlan_info {
-+	__u16 id;		/* VLAN ID {1-4095} */
-+	__u8 prio;		/* VLAN User Priority {0-7} */
-+	__be16 encap;		/* VLAN Encapsulated frame code {0-65535} */
-+	__u8 bitmask;		/* Args bitmask bit 1=1 - ID arg,
-+				   bit 2=1 User-Priority arg, bit 3=1 encap*/
-+	__u8 invflags;		/* Inverse bitmask  bit 1=1 - inversed ID arg, 
-+				   bit 2=1 - inversed Pirority arg */
-+};
-+
-+#endif
-diff --git a/include/linux/types.h b/include/linux/types.h
-new file mode 100644
-index 0000000..23ea78f
---- /dev/null
-+++ b/include/linux/types.h
-@@ -0,0 +1,51 @@
-+#ifndef _LINUX_TYPES_H
-+#define _LINUX_TYPES_H
-+
-+#include <asm/types.h>
-+
-+#ifndef __ASSEMBLY__
-+
-+#include <linux/posix_types.h>
-+
-+
-+/*
-+ * Below are truly Linux-specific types that should never collide with
-+ * any application/library that wants linux/types.h.
-+ */
-+
-+#ifdef __CHECKER__
-+#define __bitwise__ __attribute__((bitwise))
-+#else
-+#define __bitwise__
-+#endif
-+#ifdef __CHECK_ENDIAN__
-+#define __bitwise __bitwise__
-+#else
-+#define __bitwise
-+#endif
-+
-+typedef __u16 __bitwise __le16;
-+typedef __u16 __bitwise __be16;
-+typedef __u32 __bitwise __le32;
-+typedef __u32 __bitwise __be32;
-+typedef __u64 __bitwise __le64;
-+typedef __u64 __bitwise __be64;
-+
-+typedef __u16 __bitwise __sum16;
-+typedef __u32 __bitwise __wsum;
-+
-+/*
-+ * aligned_u64 should be used in defining kernel<->userspace ABIs to avoid
-+ * common 32/64-bit compat problems.
-+ * 64-bit values align to 4-byte boundaries on x86_32 (and possibly other
-+ * architectures) and to 8-byte boundaries on 64-bit architectures.  The new
-+ * aligned_64 type enforces 8-byte alignment so that structs containing
-+ * aligned_64 values have the same alignment on 32-bit and 64-bit architectures.
-+ * No conversions are necessary between 32-bit user-space and a 64-bit kernel.
-+ */
-+#define __aligned_u64 __u64 __attribute__((aligned(8)))
-+#define __aligned_be64 __be64 __attribute__((aligned(8)))
-+#define __aligned_le64 __le64 __attribute__((aligned(8)))
-+
-+#endif /*  __ASSEMBLY__ */
-+#endif /* _LINUX_TYPES_H */
--- 
-2.1.4
++static int parse_trace_prefix(char *prefix, struct trace_prefix *td)
++{
++	static const char *TRACE = "TRACE: ";
++	char *pos = prefix;
++	char *end = NULL;
++
++//	printf("%s\n", prefix);
++	/* "TRACE: filter:input:rule:2 " */
++	if (strncmp(prefix, TRACE, strlen(TRACE)) != 0)
++		return -1;
++
++	pos += strlen(TRACE);
++	end = pos + strlen(pos);
++	/* "filter:input:rule:2 " */
++	/* TABLE:CHAIN:ACTION:NUM */
++	/* parse reverse as : is allowed in iptables chain names */
++	if ( (end=memrchr(pos, ':', end-pos)) == NULL )
++		goto invalid_format_error;
++	*end = '\0';
++	td->num = end+1;
++
++	if ( (end=memrchr(pos, ':', end-1-pos)) == NULL )
++		goto invalid_format_error;
++	*end = '\0';
++	td->action = end+1;
++
++	td->table = pos;
++
++	if ( (end=strchr(pos, ':')) == NULL )
++		goto invalid_format_error;
++	*end = '\0';
++	td->chain = end + 1;
++
++//	printf("table '%s' chain '%s' action '%s' num '%s'\n", td->table, td->chain, td->action, td->num);
++
++	return 0;
++invalid_format_error:
++	return -1;
++}
++
++static int create_cache(struct netlink_ctx *ctx, struct handle *h, struct location *loc)
++{
++	struct table *t, *nt;
++	struct set *s, *ns;
++	struct chain *c, *nc;
++	struct rule *r, *rc;
++	struct netlink_ctx tmpctx;
++	LIST_HEAD(msgs);
++	struct handle filter;
++
++	/* create cache */
++	memset(&tmpctx, 0, sizeof(tmpctx));
++	init_list_head(&msgs);
++	tmpctx.msgs = &msgs;
++
++	if (netlink_list_tables(ctx, h, loc) < 0)
++		return -1;
++
++	printf("XXXXXXXXXXXXXX\n");
++	list_for_each_entry_safe(t, nt, &ctx->list, list) {
++		printf("%s\n", t->handle.table);
++		table_add_hash(t);
++
++		filter.family = t->handle.family;
++		filter.table = t->handle.table;
++		filter.chain = NULL;
++
++		init_list_head(&tmpctx.list);
++
++		if (netlink_list_sets(&tmpctx, &filter, loc) < 0)
++			return -1;
++
++		list_for_each_entry_safe(s, ns, &tmpctx.list, list) {
++			if (netlink_get_setelems(&tmpctx, &s->handle, loc, s) < 0)
++				return -1;
++			list_move_tail(&s->list, &t->sets);
++			set_add_hash(s, t);
++		}
++
++		init_list_head(&tmpctx.list);
++
++		if (netlink_list_chains(&tmpctx, &filter, loc) < 0)
++			return -1;
++
++		list_for_each_entry_safe(c, nc, &tmpctx.list, list) {
++			chain_add_hash(c, t);
++		}
++
++		init_list_head(&tmpctx.list);
++
++		if (netlink_list_table(&tmpctx, &filter, loc) < 0)
++			return -1;
++
++		list_for_each_entry_safe(r, rc, &tmpctx.list, list) {
++			c = chain_lookup(t, &r->handle);
++			if (c == NULL) {
++				c = chain_alloc(r->handle.chain);
++				chain_add_hash(c, t);
++			}
++			list_move_tail(&r->list, &c->rules);
++		}
++		init_list_head(&tmpctx.list);
++	}
++	return 0;
++}
++
++static int trace_cb(struct nflog_g_handle *gh, struct nfgenmsg *nfmsg,
++			  struct nflog_data *nfa, void *data)
++{
++	struct trace_prefix td = {};
++	char *prefix = NULL;
++	struct handle h;
++	struct table *table;
++	struct chain *chain;
++	struct rule *rule = NULL;
++	const struct stmt *stmt;
++	int i;
++
++	prefix = strdup(nflog_get_prefix(nfa));
++	if (parse_trace_prefix(prefix, &td) != 0)
++		goto invalid_format_error;
++
++	h.table = td.table;
++	h.family = NFPROTO_IPV4;
++	table = table_lookup(&h);
++
++	h.chain = td.chain;
++	chain = chain_lookup(table, &h);
++
++	if (strcmp(td.action, "rule") == 0) {
++		i = atoi(td.num);
++		list_for_each_entry(rule, &chain->rules, list) {
++			if (--i != 0)
++				continue;
++			break;
++		}
++		list_for_each_entry(stmt, &rule->stmts, list) {
++			if (stmt->ops->type == STMT_META &&
++				stmt->meta.key == NFT_META_NFTRACE)
++			{
++				printf("\n%s\n", "a->b");
++				break;
++			}
++		}
++	}
++
++
++	if (strcmp(td.action, "policy") == 0) {
++		char *policies[NF_MAX_VERDICT] = {
++			[NF_DROP] = "DROP",
++			[NF_ACCEPT] = "ACCEPT",
++			[NF_QUEUE] = "QUEUE",
++		};
++		printf("\t%s %s NFMARK=0x%x\n", td.table, td.chain, nflog_get_nfmark(nfa));
++		printf("\t\t%s\n", policies[chain->policy]);
++	} else
++	if (strcmp(td.action, "rule") == 0) {
++		printf("\t%s %s (#%i) NFMARK=0x%x\n", td.table, td.chain, atoi(td.num), nflog_get_nfmark(nfa));
++		printf("\t\t");
++		rule_print(rule);
++		printf("\n");
++	} else
++	if (strcmp(td.action, "return") == 0) {
++		printf("\t%s %s NFMARK=0x%x\n", td.table, td.chain, nflog_get_nfmark(nfa));
++		printf("\t\t => RETURN\n");
++	}
++
++invalid_format_error:
++	free(prefix);
++	return 0;
++}
++static int do_command_trace(struct netlink_ctx *ctx, struct cmd *cmd)
++{
++	struct nflog_handle *h;
++	struct nflog_g_handle *qh;
++	int fd;
++	int rv=0;
++	char buf[4096];
++
++	struct handle x = { .family = NFPROTO_IPV4 };
++	create_cache(ctx, &x, &cmd->location);
++
++    h = nflog_open();
++	if (!h) {
++		fprintf(stderr, "error during nflog_open()\n");
++		exit(1);
++	}
++	if (nflog_unbind_pf(h, AF_INET) < 0) {
++		fprintf(stderr, "error nflog_unbind_pf()\n");
++		exit(1);
++
++	}
++
++	if (nflog_bind_pf(h, AF_INET) < 0 ){
++		fprintf(stderr, "error during nflog_bind_pf()\n");
++		exit(1);
++	}
++
++	qh = nflog_bind_group(h, 0);
++	if (!qh) {
++		fprintf(stderr, "no handle for grup 0\n");
++		exit(1);
++	}
++
++	if (nflog_set_mode(qh, NFULNL_COPY_PACKET, 0xffff) < 0) {
++		fprintf(stderr, "can't set packet copy mode\n");
++		exit(1);
++	}
++
++	fd = nflog_fd(h);
++	nflog_callback_register(qh, &trace_cb, ctx);
++
++	while ((rv = recv(fd, buf, sizeof(buf), 0)) && rv >= 0) {
++		nflog_handle_packet(h, buf, rv);
++	}
++
++	return 0;
++}
++
+ static int do_command_monitor(struct netlink_ctx *ctx, struct cmd *cmd)
+ {
+ 	struct table *t, *nt;
+@@ -1029,6 +1290,8 @@ int do_command(struct netlink_ctx *ctx, struct cmd *cmd)
+ 		return do_command_monitor(ctx, cmd);
+ 	case CMD_DESCRIBE:
+ 		return do_command_describe(ctx, cmd);
++	case CMD_TRACE:
++		return do_command_trace(ctx, cmd);
+ 	default:
+ 		BUG("invalid command object type %u\n", cmd->obj);
+ 	}
+diff --git a/src/scanner.l b/src/scanner.l
+index 73c4f8b..4f8ace4 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -263,6 +263,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "rename"		{ return RENAME; }
+ "export"		{ return EXPORT; }
+ "monitor"		{ return MONITOR; }
++"trace"			{ return TRACE; }
+ 
+ "position"		{ return POSITION; }
+ "comment"		{ return COMMENT; }
 
+--------------070702080100060908010503--
