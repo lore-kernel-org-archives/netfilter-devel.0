@@ -1,69 +1,66 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nftables transaction semantics
-Date: Mon, 2 Mar 2015 13:08:35 +0100
-Message-ID: <20150302120835.GA16802@salvia>
-References: <20150302115141.GC6142@acer.localdomain>
+Subject: Re: [PATCH -next v3] netfilter: reject: don't send icmp error if
+ csum is invalid
+Date: Mon, 2 Mar 2015 13:09:34 +0100
+Message-ID: <20150302120934.GA16605@salvia>
+References: <1424109244-23649-1-git-send-email-fw@strlen.de>
+ <20150302111834.GA4780@salvia>
+ <20150302113347.GC23622@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37052 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37396 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751258AbbCBMFC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Mar 2015 07:05:02 -0500
+	id S1750824AbbCBMF4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Mar 2015 07:05:56 -0500
 Content-Disposition: inline
-In-Reply-To: <20150302115141.GC6142@acer.localdomain>
+In-Reply-To: <20150302113347.GC23622@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 02, 2015 at 11:51:41AM +0000, Patrick McHardy wrote:
-> I'm looking at the nftables transaction code and wondering about the
-> semantics of GET operations intermixed with ADD/DEL operations:
+On Mon, Mar 02, 2015 at 12:33:47PM +0100, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Mon, Feb 16, 2015 at 06:54:04PM +0100, Florian Westphal wrote:
+> > > diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+> > > index d05b364..68e0bb4 100644
+> > > --- a/net/ipv6/netfilter/nf_reject_ipv6.c
+> > > +++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+> > > @@ -208,4 +208,39 @@ void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
+> > >  }
+> > >  EXPORT_SYMBOL_GPL(nf_send_reset6);
+> > >  
+> > > +static bool reject6_csum_ok(struct sk_buff *skb, int hook)
+> > > +{
+> > > +	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
+> > > +	int thoff;
+> > > +	__be16 fo;
+> > > +	u8 proto;
+> > > +
+> > > +	if (skb->csum_bad)
+> > > +		return false;
+> > > +
+> > > +	if (skb_csum_unnecessary(skb))
+> > > +		return true;
+> > > +
+> > > +	proto = ip6h->nexthdr;
+> > > +	thoff = ipv6_skip_exthdr(skb, ((u8*)(ip6h+1) - skb->data), &proto, &fo);
+> > > +
+> > > +	if (thoff < 0 || thoff >= skb->len || (fo & htons(~0x7)) != 0)
+> > > +		return false;
+> > 
+> > I think you can use thoff and fragoff from struct xt_action_param, so
+> > we can save some cycles here.
 > 
-> AFAIK there are currently some inconsistencies:
+> No, I don't think so.  Seems its onl set for rules that use "-p" option,
+> see f.e.
 > 
-> - new sets get marked as inactive and invisible to GET until the
->   transaction is supported. So
+> net/ipv6/netfilter/ip6_tables.c which fill this only in case we have
 > 
->   ADD set
->   GET set
+>         /* look for the desired protocol header */
+>         if((ip6info->flags & IP6T_F_PROTO)) {
 > 
->   will return ENOENT.
+> in ip6_packet_match().
 
-These two follow different paths.
-
-The ADD is included in the batch, the GET doesn't. So we won't see the
-object until we have finish processing a full batch.
-
-    ADD set
-    --------> batch OK, commit
-    GET set
-
-> - Rule GET operations OTOH don't care about the activeness of the rule
->   at all, so
-> 
->   DEL rule
->   GET rule
-> 
->   will return the rule even though it is actually deleted.
->
->   ADD rule
->   GET rule
->   transaction fail
-> 
->   Will equally return the rule even though it will afterwards not be
->   present.
-> 
-> So the general question is how to properly handle this. GET operations
-> should obviously take activeness into account and not return deleted
-> objects.
-
-You have DUMP_INTR if a get happens while updating any of the lists.
-
-> The next question would be how to handle failed transactions. We should
-> obviously only return new objects if the transaction actually succeeds,
-> so I guess this means handling GET requests in the commit path.
-
-Userspace will notice the interference via the netlink flag and will
-retry from scratch.
+Right, I'll enqueue this for the next pull request, sorry.
