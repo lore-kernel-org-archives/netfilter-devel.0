@@ -1,49 +1,45 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/5] Netfilter updates for net-next
-Date: Mon, 02 Mar 2015 14:55:30 -0500 (EST)
-Message-ID: <20150302.145530.168636281637118075.davem@davemloft.net>
-References: <1425296627-16391-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Subject: [libnftnl PATCH] mxml: test if the root node name is initialized before to compare it.
+Date: Mon,  2 Mar 2015 20:58:38 +0100
+Message-ID: <1425326318-22936-1-git-send-email-alvaroneay@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:53242 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754062AbbCBTzc (ORCPT
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:39707 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754126AbbCBT6U (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Mar 2015 14:55:32 -0500
-In-Reply-To: <1425296627-16391-1-git-send-email-pablo@netfilter.org>
+	Mon, 2 Mar 2015 14:58:20 -0500
+Received: by widex7 with SMTP id ex7so17678002wid.4
+        for <netfilter-devel@vger.kernel.org>; Mon, 02 Mar 2015 11:58:19 -0800 (PST)
+Received: from localhost.localdomain ([77.231.225.145])
+        by mx.google.com with ESMTPSA id n1sm17450796wib.11.2015.03.02.11.58.17
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 02 Mar 2015 11:58:18 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon,  2 Mar 2015 12:43:42 +0100
+If the root node name is not correctly initialized, we have a crash.
 
-> A small batch with accumulated updates in nf-next, mostly IPVS updates,
-> they are:
-> 
-> 1) Add 64-bits stats counters to IPVS, from Julian Anastasov.
-> 
-> 2) Move NETFILTER_XT_MATCH_ADDRTYPE out of NETFILTER_ADVANCED as docker
-> seem to require this, from Anton Blanchard.
-> 
-> 3) Use boolean instead of numeric value in set_match_v*(), from
-> coccinelle via Fengguang Wu.
-> 
-> 4) Allows rescheduling of new connections in IPVS when port reuse is
-> detected, from Marcelo Ricardo Leitner.
-> 
-> 5) Add missing bits to support arptables extensions from nft_compat,
-> from Arturo Borrero.
-> 
-> Patrick is preparing a large batch to enhance the set infrastructure,
-> named expressions among other things, that should follow up soon after
-> this batch.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+---
+ src/mxml.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Pulled, thanks a lot Pablo.
+diff --git a/src/mxml.c b/src/mxml.c
+index 0001ba0..b68f86f 100644
+--- a/src/mxml.c
++++ b/src/mxml.c
+@@ -43,7 +43,8 @@ mxml_node_t *nft_mxml_build_tree(const void *data, const char *treename,
+ 		goto err;
+ 	}
+ 
+-	if (strcmp(tree->value.opaque, treename) == 0)
++	if (tree->value.opaque != NULL &&
++	    strcmp(tree->value.opaque, treename) == 0)
+ 		return tree;
+ 
+ 	err->error = NFT_PARSE_EMISSINGNODE;
+-- 
+1.7.10.4
+
