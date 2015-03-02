@@ -1,68 +1,80 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH -next v3] netfilter: reject: don't send icmp error if
- csum is invalid
-Date: Mon, 2 Mar 2015 12:33:47 +0100
-Message-ID: <20150302113347.GC23622@breakpoint.cc>
-References: <1424109244-23649-1-git-send-email-fw@strlen.de>
- <20150302111834.GA4780@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53026 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751357AbbCBLdt (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Mar 2015 06:33:49 -0500
-Content-Disposition: inline
-In-Reply-To: <20150302111834.GA4780@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/5] Netfilter updates for net-next
+Date: Mon,  2 Mar 2015 12:43:42 +0100
+Message-ID: <1425296627-16391-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Mon, Feb 16, 2015 at 06:54:04PM +0100, Florian Westphal wrote:
-> > diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
-> > index d05b364..68e0bb4 100644
-> > --- a/net/ipv6/netfilter/nf_reject_ipv6.c
-> > +++ b/net/ipv6/netfilter/nf_reject_ipv6.c
-> > @@ -208,4 +208,39 @@ void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
-> >  }
-> >  EXPORT_SYMBOL_GPL(nf_send_reset6);
-> >  
-> > +static bool reject6_csum_ok(struct sk_buff *skb, int hook)
-> > +{
-> > +	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
-> > +	int thoff;
-> > +	__be16 fo;
-> > +	u8 proto;
-> > +
-> > +	if (skb->csum_bad)
-> > +		return false;
-> > +
-> > +	if (skb_csum_unnecessary(skb))
-> > +		return true;
-> > +
-> > +	proto = ip6h->nexthdr;
-> > +	thoff = ipv6_skip_exthdr(skb, ((u8*)(ip6h+1) - skb->data), &proto, &fo);
-> > +
-> > +	if (thoff < 0 || thoff >= skb->len || (fo & htons(~0x7)) != 0)
-> > +		return false;
-> 
-> I think you can use thoff and fragoff from struct xt_action_param, so
-> we can save some cycles here.
+Hi David,
 
-No, I don't think so.  Seems its onl set for rules that use "-p" option,
-see f.e.
+A small batch with accumulated updates in nf-next, mostly IPVS updates,
+they are:
 
-net/ipv6/netfilter/ip6_tables.c which fill this only in case we have
+1) Add 64-bits stats counters to IPVS, from Julian Anastasov.
 
-        /* look for the desired protocol header */
-        if((ip6info->flags & IP6T_F_PROTO)) {
+2) Move NETFILTER_XT_MATCH_ADDRTYPE out of NETFILTER_ADVANCED as docker
+seem to require this, from Anton Blanchard.
 
-in ip6_packet_match().
+3) Use boolean instead of numeric value in set_match_v*(), from
+coccinelle via Fengguang Wu.
 
-> I can take over these patches and make this changes if you like, let
-> me know. Thanks.
+4) Allows rescheduling of new connections in IPVS when port reuse is
+detected, from Marcelo Ricardo Leitner.
 
-I have no objections if you can find a way to avoid ipv6_skip_exthdr() call.
+5) Add missing bits to support arptables extensions from nft_compat,
+from Arturo Borrero.
+
+Patrick is preparing a large batch to enhance the set infrastructure,
+named expressions among other things, that should follow up soon after
+this batch.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 4c1017aa80c95a74703139bb95c4ce0d130efe4d:
+
+  netfilter: nft_lookup: add missing attribute validation for NFTA_LOOKUP_SET_ID (2015-01-30 19:08:20 +0100)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+
+for you to fetch changes up to 5f15893943bfdc804e8703c5aa2c8dd8bf7ddf3f:
+
+  netfilter: nft_compat: add support for arptables extensions (2015-03-02 12:28:13 +0100)
+
+----------------------------------------------------------------
+Anton Blanchard (1):
+      netfilter: Don't hide NETFILTER_XT_MATCH_ADDRTYPE behind NETFILTER_ADVANCED
+
+Arturo Borrero (1):
+      netfilter: nft_compat: add support for arptables extensions
+
+Julian Anastasov (1):
+      ipvs: use 64-bit rates in stats
+
+Marcelo Ricardo Leitner (1):
+      ipvs: allow rescheduling of new connections when port reuse is detected
+
+Wu Fengguang (1):
+      netfilter: ipset: fix boolreturn.cocci warnings
+
+ Documentation/networking/ipvs-sysctl.txt |   21 ++++
+ include/net/ip_vs.h                      |   61 +++++++---
+ include/uapi/linux/ip_vs.h               |    7 +-
+ net/netfilter/Kconfig                    |    2 +-
+ net/netfilter/ipvs/ip_vs_core.c          |   69 +++++++----
+ net/netfilter/ipvs/ip_vs_ctl.c           |  182 ++++++++++++++++++++----------
+ net/netfilter/ipvs/ip_vs_est.c           |  102 ++++++++---------
+ net/netfilter/ipvs/ip_vs_sync.c          |   21 +++-
+ net/netfilter/nft_compat.c               |    9 ++
+ net/netfilter/xt_set.c                   |    4 +-
+ 10 files changed, 326 insertions(+), 152 deletions(-)
