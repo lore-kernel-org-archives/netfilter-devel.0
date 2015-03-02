@@ -1,51 +1,25 @@
-From: Markus Koetter <koetter@rrzn.uni-hannover.de>
-Subject: Re: [RFC] nft trace
-Date: Mon, 02 Mar 2015 08:33:51 +0100
-Message-ID: <54F4125F.60203@rrzn.uni-hannover.de>
-References: <54F35515.5050807@rrzn.uni-hannover.de> <20150302002004.GA9881@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] header: use sysconf() instead of getpagesize()
+Date: Mon, 2 Mar 2015 12:06:00 +0100
+Message-ID: <20150302110600.GA5220@salvia>
+References: <20150226130837.GA3655@salvia>
+ <1424957883-12444-1-git-send-email-markus.teich@stusta.mhn.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Markus Teich <markus.teich@stusta.mhn.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout2.uni-hannover.de ([130.75.2.114]:42644 "EHLO
-	mailout2.uni-hannover.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751098AbbCBHdx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Mar 2015 02:33:53 -0500
-In-Reply-To: <20150302002004.GA9881@salvia>
+Received: from mail.us.es ([193.147.175.20]:40382 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751258AbbCBLCY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Mar 2015 06:02:24 -0500
+Content-Disposition: inline
+In-Reply-To: <1424957883-12444-1-git-send-email-markus.teich@stusta.mhn.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Thu, Feb 26, 2015 at 02:38:03PM +0100, Markus Teich wrote:
+> The sysconf(_SC_PAGESIZE) call is more portable since it does not need
+> _BSD_SOURCE defined.
 
-On 03/02/2015 01:20 AM, Pablo Neira Ayuso wrote:
-> I think it's reasonable to have some tracing command intergrated into
-> nft, but we still have to discuss the text output layout.
-
-The formatting of the "TRACE: " prefix as used by nftables does not=20
-provide the same amount of information as with iptables.
-In case of goto/jump/return, the rulenum provided by iptables allows=20
-accessing a rule which has the "target" set, so you can see where to=20
-you'll end up.
-In nftables, the rulenum provided in case of a return is worthless -=20
-there is no such rule, so you can't lookup the target.
-=46or goto/jump it may be possible to lookup the target in some cases, =
-but=20
-at least not when using vmap.
-
-So - if we'll discuss the text output layout anyway, let's consider the=
-=20
-text input as well. Specifying the target explicitly in case of a=20
-jump/goto/return in the "TRACE: " prefix provides value.
-
-
-MfG
-Markus K=F6tter
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks.
