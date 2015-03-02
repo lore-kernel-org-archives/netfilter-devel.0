@@ -1,45 +1,36 @@
-From: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-Subject: [libnftnl PATCH] mxml: test if the root node name is initialized before to compare it.
-Date: Mon,  2 Mar 2015 20:58:38 +0100
-Message-ID: <1425326318-22936-1-git-send-email-alvaroneay@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: "Mr. Juan Sebastian Morato" <noreply@popfax.com>
+Subject: Confidential Letter
+Date: Mon, 02 Mar 2015 04:47:23 +0100
+Message-ID: <20150302034730.E6C8D36F80C__17088.3599821993$1425331146$gmane$org@mail.quartzbg.ro>
+Reply-To: juan_morato@yahoo.es
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: Recipients <noreply@popfax.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:39707 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754126AbbCBT6U (ORCPT
+Received: from mail.quartzbg.ro ([82.79.64.94]:39878 "EHLO mail.quartzbg.ro"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751891AbbCBVSv convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Mar 2015 14:58:20 -0500
-Received: by widex7 with SMTP id ex7so17678002wid.4
-        for <netfilter-devel@vger.kernel.org>; Mon, 02 Mar 2015 11:58:19 -0800 (PST)
-Received: from localhost.localdomain ([77.231.225.145])
-        by mx.google.com with ESMTPSA id n1sm17450796wib.11.2015.03.02.11.58.17
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 02 Mar 2015 11:58:18 -0800 (PST)
+	Mon, 2 Mar 2015 16:18:51 -0500
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If the root node name is not correctly initialized, we have a crash.
+Dear Friend, 
 
-Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
----
- src/mxml.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+I am Mr. Juan Sebastian Morato, the Auditor General of Unicaja Bank Madrid. In the course of my auditing, I discovered a floating fund in an account, which was opened in 1990 at Cam Bank before it was bought over by Unicaja Group which I am the auditor belonging to a dead foreigner Mr. Kenny who died in 2004. Every effort made to track any member of his family or next of kin has since failed; hence I got in contact with you to stand as his next of kin since you bear the same last name. He died leaving no heir or a will.
 
-diff --git a/src/mxml.c b/src/mxml.c
-index 0001ba0..b68f86f 100644
---- a/src/mxml.c
-+++ b/src/mxml.c
-@@ -43,7 +43,8 @@ mxml_node_t *nft_mxml_build_tree(const void *data, const char *treename,
- 		goto err;
- 	}
- 
--	if (strcmp(tree->value.opaque, treename) == 0)
-+	if (tree->value.opaque != NULL &&
-+	    strcmp(tree->value.opaque, treename) == 0)
- 		return tree;
- 
- 	err->error = NFT_PARSE_EMISSINGNODE;
--- 
-1.7.10.4
+My intention is to transfer this sum of 5.5M in the aforementioned account to a safe account. I am therefore proposing that you quietly partner with me and provide an account or set up a new one that will serve the purpose of receiving this fund. For your assistance in this venture, I am ready to part with a good percentage of the entire funds. After going through the deceased person's records and files, I discovered that:
 
+(1) No one has operated this account since 2004
+(2) He died without an heir; hence the money has been floating.
+(3) No other person knows about this account and there was no known beneficiary.
+
+If I do not remit this money urgently, it would be forfeited and subsequently converted to company's funds, which will benefit only the directors of my firm. This money can be approved to you legally as with all the necessary documentary approvals in your name. However, you would be required to show some proof of claim, which I will provide you with and also guide you on how to make your applications.
+
+Please do give me a reply on my private e-mail juan.morato1@1email.eu or fax 00 34 917 692 656 so that I can send you detailed information on the modalities of my proposition. I completely trust you to keep this proposition absolutely confidential. Kindly forward your telephone number where I can reach you easily. I look forward to your prompt response.
+
+Best Regards,
+Mr. Juan Sebastian Morato
+Fax: 00 34 917 692 656
