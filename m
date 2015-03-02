@@ -1,24 +1,68 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nft_compat: add support for arptables
- extensions
-Date: Mon, 2 Mar 2015 12:29:13 +0100
-Message-ID: <20150302112913.GA6905@salvia>
-References: <20150216103227.4630.10051.stgit@nfdev.cica.es>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH -next v3] netfilter: reject: don't send icmp error if
+ csum is invalid
+Date: Mon, 2 Mar 2015 12:33:47 +0100
+Message-ID: <20150302113347.GC23622@breakpoint.cc>
+References: <1424109244-23649-1-git-send-email-fw@strlen.de>
+ <20150302111834.GA4780@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49950 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752518AbbCBLZk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Mar 2015 06:25:40 -0500
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53026 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751357AbbCBLdt (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Mar 2015 06:33:49 -0500
 Content-Disposition: inline
-In-Reply-To: <20150216103227.4630.10051.stgit@nfdev.cica.es>
+In-Reply-To: <20150302111834.GA4780@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Feb 16, 2015 at 11:32:28AM +0100, Arturo Borrero Gonzalez wrote:
-> This patch adds support to arptables extensions from nft_compat.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Mon, Feb 16, 2015 at 06:54:04PM +0100, Florian Westphal wrote:
+> > diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+> > index d05b364..68e0bb4 100644
+> > --- a/net/ipv6/netfilter/nf_reject_ipv6.c
+> > +++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+> > @@ -208,4 +208,39 @@ void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
+> >  }
+> >  EXPORT_SYMBOL_GPL(nf_send_reset6);
+> >  
+> > +static bool reject6_csum_ok(struct sk_buff *skb, int hook)
+> > +{
+> > +	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
+> > +	int thoff;
+> > +	__be16 fo;
+> > +	u8 proto;
+> > +
+> > +	if (skb->csum_bad)
+> > +		return false;
+> > +
+> > +	if (skb_csum_unnecessary(skb))
+> > +		return true;
+> > +
+> > +	proto = ip6h->nexthdr;
+> > +	thoff = ipv6_skip_exthdr(skb, ((u8*)(ip6h+1) - skb->data), &proto, &fo);
+> > +
+> > +	if (thoff < 0 || thoff >= skb->len || (fo & htons(~0x7)) != 0)
+> > +		return false;
+> 
+> I think you can use thoff and fragoff from struct xt_action_param, so
+> we can save some cycles here.
 
-Applied, thanks Arturo.
+No, I don't think so.  Seems its onl set for rules that use "-p" option,
+see f.e.
+
+net/ipv6/netfilter/ip6_tables.c which fill this only in case we have
+
+        /* look for the desired protocol header */
+        if((ip6info->flags & IP6T_F_PROTO)) {
+
+in ip6_packet_match().
+
+> I can take over these patches and make this changes if you like, let
+> me know. Thanks.
+
+I have no objections if you can find a way to avoid ipv6_skip_exthdr() call.
