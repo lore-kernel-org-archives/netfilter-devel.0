@@ -1,28 +1,40 @@
-From: nfnty <arch@nfnty.se>
-Subject: NFLOG and Namespaces
-Date: Mon, 02 Mar 2015 03:01:23 +0100
-Message-ID: <54F3C473.6070700@nfnty.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:39378 "EHLO
-	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753143AbbCBCHs (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Mar 2015 21:07:48 -0500
-Received: from mail.nfnty.se (81.230.53.172) by smtp-gw21.han.skanova.net (8.5.142.07)
-        id 54EF7C1F0009EA41 for netfilter-devel@vger.kernel.org; Mon, 2 Mar 2015 03:01:24 +0100
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT PULL nf-next] IPVS Enhancements for v4.1
+Date: Mon,  2 Mar 2015 11:39:22 +0900
+Message-ID: <1425263963-6660-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Why aren't packets between bridge and namespace logged via NFLOG?
+Hi Pablo,
 
-Related:
+please consider this enhancement from Marcelo Ricardo Leitner to IPVS for v4.1.
+It allows rescheduling of new connections when port reuse is detected.
 
-https://docs.docker.com/articles/networking/#building-a-point-to-point-connection
-http://www.spinics.net/lists/netfilter-devel/msg24503.html
-https://lkml.org/lkml/2011/7/1/233
-https://lists.linux-foundation.org/pipermail/containers/2013-February/031730.html
+The following changes since commit 7f73b9f1ca7334eec0ff9a40e37ece92dd3e420f:
 
-//nfnty
+  netfilter: ipset: fix boolreturn.cocci warnings (2015-02-11 16:13:30 +0100)
+
+are available in the git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs-for-v4.1
+
+for you to fetch changes up to d752c364571743d696c2a54a449ce77550c35ac5:
+
+  ipvs: allow rescheduling of new connections when port reuse is detected (2015-02-25 13:46:35 +0900)
+
+----------------------------------------------------------------
+Marcelo Ricardo Leitner (1):
+      ipvs: allow rescheduling of new connections when port reuse is detected
+
+ Documentation/networking/ipvs-sysctl.txt | 21 ++++++++++++++++++++
+ include/net/ip_vs.h                      | 11 +++++++++++
+ net/netfilter/ipvs/ip_vs_core.c          | 33 ++++++++++++++++++++++++++++----
+ net/netfilter/ipvs/ip_vs_ctl.c           |  8 ++++++++
+ net/netfilter/ipvs/ip_vs_sync.c          | 21 ++++++++++++++++++--
+ 5 files changed, 88 insertions(+), 6 deletions(-)
