@@ -1,47 +1,28 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC] nft trace
-Date: Mon, 2 Mar 2015 01:20:04 +0100
-Message-ID: <20150302002004.GA9881@salvia>
-References: <54F35515.5050807@rrzn.uni-hannover.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Markus =?iso-8859-1?Q?K=F6tter?= <koetter@rrzn.uni-hannover.de>
+From: nfnty <arch@nfnty.se>
+Subject: NFLOG and Namespaces
+Date: Mon, 02 Mar 2015 03:01:23 +0100
+Message-ID: <54F3C473.6070700@nfnty.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55244 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751937AbbCBAQ2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Mar 2015 19:16:28 -0500
-Content-Disposition: inline
-In-Reply-To: <54F35515.5050807@rrzn.uni-hannover.de>
+Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:39378 "EHLO
+	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753143AbbCBCHs (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 1 Mar 2015 21:07:48 -0500
+Received: from mail.nfnty.se (81.230.53.172) by smtp-gw21.han.skanova.net (8.5.142.07)
+        id 54EF7C1F0009EA41 for netfilter-devel@vger.kernel.org; Mon, 2 Mar 2015 03:01:24 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Cc'ing Patrick.
+Why aren't packets between bridge and namespace logged via NFLOG?
 
-On Sun, Mar 01, 2015 at 07:06:13PM +0100, Markus K=F6tter wrote:
-[...]
-> I'd love a response regarding the odds of getting the nft trace
-> functionality merged - I promise to continue working on it, clean
-> things up, I'll take care it is optional and does not tie nft to
-> libnetfilter_conntrack (e.g. for embedded platforms).
+Related:
 
-You can use libmnl, I think there's a example on the tree, so you
-don't really need to rely on libnetfilter_log.
+https://docs.docker.com/articles/networking/#building-a-point-to-point-connection
+http://www.spinics.net/lists/netfilter-devel/msg24503.html
+https://lkml.org/lkml/2011/7/1/233
+https://lists.linux-foundation.org/pipermail/containers/2013-February/031730.html
 
-It would be good to have a netlink interface to configure nf_log, to
-provide a replacement for the existing /proc interface and allow
-further configurability (indicate the nfnetlink log group instead of
-defaulting on zero). I agree the existing interface to configure the
-prefered logging stub is not nice.
-
-I think it's reasonable to have some tracing command intergrated into
-nft, but we still have to discuss the text output layout. No
-objections from my side if you want to get that rfc patch in better
-shape and send us patches.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+//nfnty
