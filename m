@@ -1,65 +1,155 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 1/3] netfilter: nf_tables: fix transaction race condition
-Date: Tue,  3 Mar 2015 20:04:18 +0000
-Message-ID: <1425413060-6187-2-git-send-email-kaber@trash.net>
+Subject: [PATCH 3/3] netfilter: nf_tables: fix userdata length overflow
+Date: Tue,  3 Mar 2015 20:04:20 +0000
+Message-ID: <1425413060-6187-4-git-send-email-kaber@trash.net>
 References: <1425413060-6187-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44926 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:44930 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756437AbbCCUE0 (ORCPT
+	with ESMTP id S1756437AbbCCUE1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Mar 2015 15:04:26 -0500
+	Tue, 3 Mar 2015 15:04:27 -0500
 In-Reply-To: <1425413060-6187-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-A race condition exists in the rule transaction code for rules that
-get added and removed within the same transaction.
+The NFT_USERDATA_MAXLEN is defined to 256, however we only have a u8
+to store its size. Introduce a struct nft_userdata which contains a
+length field and indicate its presence using a single bit in the rule.
 
-The new rule starts out as inactive in the current and active in the
-next generation and is inserted into the ruleset. When it is deleted,
-it is additionally set to inactive in the next generation as well.
-
-On commit the next generation is begun, then the actions are finalized.
-For the new rule this would mean clearing out the inactive bit for
-the previously current, now next generation.
-
-However nft_rule_clear() clears out the bits for *both* generations,
-activating the rule in the current generation, where it should be
-deactivated due to being deleted. The rule will thus be active until
-the deletion is finalized, removing the rule from the ruleset.
-
-Similarly, when aborting a transaction for the same case, the undo
-of insertion will remove it from the RCU protected rule list, the
-deletion will clear out all bits. However until the next RCU
-synchronization after all operations have been undone, the rule is
-active on CPUs which can still see the rule on the list.
-
-Generally, there may never be any modifications of the current
-generations' inactive bit since this defeats the entire purpose of
-atomicity. Change nft_rule_clear() to only touch the next generations
-bit to fix this.
+The length field of struct nft_userdata is also a u8, however we don't
+store zero sized data, so the actual length is udata->len + 1.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- net/netfilter/nf_tables_api.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/net/netfilter/nf_tables.h | 22 +++++++++++++++++++---
+ net/netfilter/nf_tables_api.c     | 28 +++++++++++++++++++---------
+ 2 files changed, 38 insertions(+), 12 deletions(-)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index a8c9462..6fb532b 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -227,7 +227,7 @@ nft_rule_deactivate_next(struct net *net, struct nft_rule *rule)
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 9eaaa78..decb9a0 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -119,6 +119,22 @@ int nft_validate_data_load(const struct nft_ctx *ctx, enum nft_registers reg,
+ 			   const struct nft_data *data,
+ 			   enum nft_data_types type);
  
- static inline void nft_rule_clear(struct net *net, struct nft_rule *rule)
- {
--	rule->genmask = 0;
-+	rule->genmask &= ~(1 << gencursor_next(net));
++
++/**
++ *	struct nft_userdata - user defined data associated with an object
++ *
++ *	@len: length of the data
++ *	@data: content
++ *
++ *	The presence of user data is indicated in an object specific fashion,
++ *	so a length of zero can't occur and the value "len" indicates data
++ *	of length len + 1.
++ */
++struct nft_userdata {
++	u8			len;
++	unsigned char		data[0];
++};
++
+ /**
+  *	struct nft_set_elem - generic representation of set elements
+  *
+@@ -380,7 +396,7 @@ static inline void *nft_expr_priv(const struct nft_expr *expr)
+  *	@handle: rule handle
+  *	@genmask: generation mask
+  *	@dlen: length of expression data
+- *	@ulen: length of user data (used for comments)
++ *	@udata: user data is appended to the rule
+  *	@data: expression data
+  */
+ struct nft_rule {
+@@ -388,7 +404,7 @@ struct nft_rule {
+ 	u64				handle:42,
+ 					genmask:2,
+ 					dlen:12,
+-					ulen:8;
++					udata:1;
+ 	unsigned char			data[]
+ 		__attribute__((aligned(__alignof__(struct nft_expr))));
+ };
+@@ -476,7 +492,7 @@ static inline struct nft_expr *nft_expr_last(const struct nft_rule *rule)
+ 	return (struct nft_expr *)&rule->data[rule->dlen];
  }
  
- static int
+-static inline void *nft_userdata(const struct nft_rule *rule)
++static inline struct nft_userdata *nft_userdata(const struct nft_rule *rule)
+ {
+ 	return (void *)&rule->data[rule->dlen];
+ }
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 7baafd5..74e4b87 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1711,9 +1711,12 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
+ 	}
+ 	nla_nest_end(skb, list);
+ 
+-	if (rule->ulen &&
+-	    nla_put(skb, NFTA_RULE_USERDATA, rule->ulen, nft_userdata(rule)))
+-		goto nla_put_failure;
++	if (rule->udata) {
++		struct nft_userdata *udata = nft_userdata(rule);
++		if (nla_put(skb, NFTA_RULE_USERDATA, udata->len + 1,
++			    udata->data) < 0)
++			goto nla_put_failure;
++	}
+ 
+ 	nlmsg_end(skb, nlh);
+ 	return 0;
+@@ -1896,11 +1899,12 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+ 	struct nft_table *table;
+ 	struct nft_chain *chain;
+ 	struct nft_rule *rule, *old_rule = NULL;
++	struct nft_userdata *udata;
+ 	struct nft_trans *trans = NULL;
+ 	struct nft_expr *expr;
+ 	struct nft_ctx ctx;
+ 	struct nlattr *tmp;
+-	unsigned int size, i, n, ulen = 0;
++	unsigned int size, i, n, ulen = 0, usize = 0;
+ 	int err, rem;
+ 	bool create;
+ 	u64 handle, pos_handle;
+@@ -1973,11 +1977,14 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+ 	if (size >= 1 << 12)
+ 		goto err1;
+ 
+-	if (nla[NFTA_RULE_USERDATA])
++	if (nla[NFTA_RULE_USERDATA]) {
+ 		ulen = nla_len(nla[NFTA_RULE_USERDATA]);
++		if (ulen > 0)
++			usize = sizeof(struct nft_userdata) + ulen;
++	}
+ 
+ 	err = -ENOMEM;
+-	rule = kzalloc(sizeof(*rule) + size + ulen, GFP_KERNEL);
++	rule = kzalloc(sizeof(*rule) + size + usize, GFP_KERNEL);
+ 	if (rule == NULL)
+ 		goto err1;
+ 
+@@ -1985,10 +1992,13 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+ 
+ 	rule->handle = handle;
+ 	rule->dlen   = size;
+-	rule->ulen   = ulen;
++	rule->udata  = ulen ? 1 : 0;
+ 
+-	if (ulen)
+-		nla_memcpy(nft_userdata(rule), nla[NFTA_RULE_USERDATA], ulen);
++	if (ulen) {
++		udata = nft_userdata(rule);
++		udata->len = ulen - 1;
++		nla_memcpy(udata->data, nla[NFTA_RULE_USERDATA], ulen);
++	}
+ 
+ 	expr = nft_expr_first(rule);
+ 	for (i = 0; i < n; i++) {
 -- 
 2.1.0
 
