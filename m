@@ -1,59 +1,100 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/3] netfilter: nf_tables: fix transaction race condition
-Date: Wed, 4 Mar 2015 16:26:13 +0000
-Message-ID: <20150304162612.GS29506@acer.localdomain>
-References: <1425413060-6187-1-git-send-email-kaber@trash.net>
- <1425413060-6187-2-git-send-email-kaber@trash.net>
- <20150304161801.GA3878@salvia>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [iptables PATCH] arptables-compat: add support for the CLASSIFY
+ target
+Date: Wed, 04 Mar 2015 17:50:26 +0100
+Message-ID: <20150304165025.16011.70236.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52699 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758789AbbCDQ0R (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Mar 2015 11:26:17 -0500
-Content-Disposition: inline
-In-Reply-To: <20150304161801.GA3878@salvia>
+Received: from smtp3.cica.es ([150.214.5.190]:43099 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757904AbbCDQug (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Mar 2015 11:50:36 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 04.03, Pablo Neira Ayuso wrote:
-> On Tue, Mar 03, 2015 at 08:04:18PM +0000, Patrick McHardy wrote:
-> > A race condition exists in the rule transaction code for rules that
-> > get added and removed within the same transaction.
-> > 
-> > The new rule starts out as inactive in the current and active in the
-> > next generation and is inserted into the ruleset. When it is deleted,
-> > it is additionally set to inactive in the next generation as well.
-> > 
-> > On commit the next generation is begun, then the actions are finalized.
-> > For the new rule this would mean clearing out the inactive bit for
-> > the previously current, now next generation.
-> > 
-> > However nft_rule_clear() clears out the bits for *both* generations,
-> > activating the rule in the current generation, where it should be
-> > deactivated due to being deleted. The rule will thus be active until
-> > the deletion is finalized, removing the rule from the ruleset.
-> > 
-> > Similarly, when aborting a transaction for the same case, the undo
-> > of insertion will remove it from the RCU protected rule list, the
-> > deletion will clear out all bits. However until the next RCU
-> > synchronization after all operations have been undone, the rule is
-> > active on CPUs which can still see the rule on the list.
-> > 
-> > Generally, there may never be any modifications of the current
-> > generations' inactive bit since this defeats the entire purpose of
-> > atomicity. Change nft_rule_clear() to only touch the next generations
-> > bit to fix this.
-> 
-> I think we can get rid of the nft_rule_clear() call from the error
-> path of nf_tables_newrule() too.
+This patch adds support to arptables-compat for the CLASSIFY target.
 
-I don't think so, we deactivate the old rule for NLM_F_REPLACE and
-need to undo that on error.
+An extra space in the print path is deleted so the target is correctly
+printed.
 
-Or are you talking about getting rid of the entire error handling
-for NLM_F_REPLACE and have it taken care of by the abort() path?
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ extensions/libxt_CLASSIFY.c |   44 +++++++++++++++++++++++++++++++------------
+ iptables/nft-arp.c          |    2 +-
+ 2 files changed, 33 insertions(+), 13 deletions(-)
+
+diff --git a/extensions/libxt_CLASSIFY.c b/extensions/libxt_CLASSIFY.c
+index e04657a..cd016d8 100644
+--- a/extensions/libxt_CLASSIFY.c
++++ b/extensions/libxt_CLASSIFY.c
+@@ -73,20 +73,40 @@ CLASSIFY_save(const void *ip, const struct xt_entry_target *target)
+ 	       TC_H_MAJ(clinfo->priority)>>16, TC_H_MIN(clinfo->priority));
+ }
+ 
+-static struct xtables_target classify_target = { 
+-	.family		= NFPROTO_UNSPEC,
+-	.name		= "CLASSIFY",
+-	.version	= XTABLES_VERSION,
+-	.size		= XT_ALIGN(sizeof(struct xt_classify_target_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct xt_classify_target_info)),
+-	.help		= CLASSIFY_help,
+-	.print		= CLASSIFY_print,
+-	.save		= CLASSIFY_save,
+-	.x6_parse	= CLASSIFY_parse,
+-	.x6_options	= CLASSIFY_opts,
++static void
++arpCLASSIFY_print(const void *ip, const struct xt_entry_target *target,
++		  int numeric)
++{
++	CLASSIFY_save(ip, target);
++}
++
++static struct xtables_target classify_target[] = {
++	{
++		.family		= NFPROTO_UNSPEC,
++		.name		= "CLASSIFY",
++		.version	= XTABLES_VERSION,
++		.size		= XT_ALIGN(sizeof(struct xt_classify_target_info)),
++		.userspacesize	= XT_ALIGN(sizeof(struct xt_classify_target_info)),
++		.help		= CLASSIFY_help,
++		.print		= CLASSIFY_print,
++		.save		= CLASSIFY_save,
++		.x6_parse	= CLASSIFY_parse,
++		.x6_options	= CLASSIFY_opts,
++	},
++	{
++		.family		= NFPROTO_ARP,
++		.name		= "CLASSIFY",
++		.version	= XTABLES_VERSION,
++		.size		= XT_ALIGN(sizeof(struct xt_classify_target_info)),
++		.userspacesize	= XT_ALIGN(sizeof(struct xt_classify_target_info)),
++		.help		= CLASSIFY_help,
++		.print		= arpCLASSIFY_print,
++		.x6_parse	= CLASSIFY_parse,
++		.x6_options	= CLASSIFY_opts,
++	},
+ };
+ 
+ void _init(void)
+ {
+-	xtables_register_target(&classify_target);
++	xtables_register_targets(classify_target, ARRAY_SIZE(classify_target));
+ }
+diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
+index 523b3ec..503c65a 100644
+--- a/iptables/nft-arp.c
++++ b/iptables/nft-arp.c
+@@ -593,7 +593,7 @@ nft_arp_print_firewall(struct nft_rule *r, unsigned int num,
+ 	if (cs.jumpto != NULL && strcmp(cs.jumpto, "") != 0) {
+ 		printf("-j %s", cs.jumpto);
+ 	} else if (cs.target) {
+-		printf("-j %s ", cs.target->name);
++		printf("-j %s", cs.target->name);
+ 		cs.target->print(&cs.fw, cs.target->t, format & FMT_NUMERIC);
+ 	}
+ 
+
