@@ -1,72 +1,90 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/3] netfilter: nf_tables: fix transaction race condition
-Date: Wed, 4 Mar 2015 17:38:37 +0000
-Message-ID: <20150304173837.GZ29506@acer.localdomain>
-References: <1425413060-6187-1-git-send-email-kaber@trash.net>
- <1425413060-6187-2-git-send-email-kaber@trash.net>
- <20150304161801.GA3878@salvia>
- <20150304162612.GS29506@acer.localdomain>
- <20150304170102.GA7589@salvia>
- <20150304170355.GW29506@acer.localdomain>
- <20150304172828.GA9044@salvia>
- <20150304173603.GY29506@acer.localdomain>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftnl PATCH] mxml: test if the root node name is initialized
+ before to compare it.
+Date: Wed, 4 Mar 2015 20:03:18 +0100
+Message-ID: <20150304190318.GA15705@salvia>
+References: <1425326318-22936-1-git-send-email-alvaroneay@gmail.com>
+ <20150302233504.GA5166@salvia>
+ <54F5BAFE.3070000@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: =?iso-8859-1?Q?=C1lvaro?= Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:53131 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759372AbbCDRim (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Mar 2015 12:38:42 -0500
+Received: from mail.us.es ([193.147.175.20]:57509 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757793AbbCDS7l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Mar 2015 13:59:41 -0500
 Content-Disposition: inline
-In-Reply-To: <20150304173603.GY29506@acer.localdomain>
+In-Reply-To: <54F5BAFE.3070000@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 04.03, Patrick McHardy wrote:
-> On 04.03, Pablo Neira Ayuso wrote:
-> > On Wed, Mar 04, 2015 at 05:03:56PM +0000, Patrick McHardy wrote:
-> > > 
-> > > I agree on the simplification, but I don't see any problem with this.
-> > 
-> > Let me see, from the replacement path:
-> > 
-> >        trans = nft_trans_rule_add(&ctx, NFT_MSG_DELRULE,
-> >                                   old_rule);
-> >        ...
-> >        nft_rule_deactivate_next(net, old_rule);
-> >        chain->use--;
-> >        list_add_tail_rcu(&rule->list, &old_rule->list);
-> > 
-> > So we basically:
-> > 
-> > 1) add transaction object to delete the old rule
-> > 2) deactivate the old rule
-> > 3) reduce the chain use counter
-> > 4) add the new rule after the old rule
-> > 
-> > Then, if we fail to add the transaction for the new rule, what we have
-> > in err3 says:
-> > 
-> > 1) We remove the new rule from the chain, we couldn't add a
-> >    transaction object for this, so we have to manually undo this.
-> > 2) We remove the old rule (but it should actually be left there in
-> >    place).
-> > 3) Clear the old rule generation bits, as it needs to be active in the
-> >    next generation given that we failed (this undoes step2)
-> > 4) Release the transaction object.
-> > 5) Restore chain use counter.
-> > 
-> > #3, #4 and #5 can be handled from the abort path.
-> > 
-> > #2 should not be there I think.
-> 
-> I still don't see where we remove the old rule. We activate it
-> and remove the transaction object, but that's it.
-> 
-> Where do you see this?
+On Tue, Mar 03, 2015 at 02:45:34PM +0100, =C1lvaro Neira Ayuso wrote:
+> El 03/03/15 a las 00:35, Pablo Neira Ayuso escribi=F3:
+> >On Mon, Mar 02, 2015 at 08:58:38PM +0100, Alvaro Neira Ayuso wrote:
+> >>If the root node name is not correctly initialized, we have a crash=
+=2E
+> >
+> >Under what circunstances may tree->value.opaque be NULL?
+>=20
+> The function mxmlLoadFile doesn't work correctly. With my patch to
+> import ruleset in json and xml. I have seen that if we use a ruleset
+> in json and use the command nft import xml.
 
-Ok got it, I misread the code and through we'd only delete the
-transaction object. Ok, so I agree that this actually fixes a bug :)
+OK, so this bug can be triggered by malformed input.
+
+> The function mxmlLoadFile returns a tree without any information
+> inside.  Therefore, when we try to verify that the name of the first
+> node is the same of the parameter, we have a crash.
+>=20
+> We have two ways to solve it. Test if the node is NULL and:
+>  1- show an error that the node is not found.
+>  2- show an error that the input is not correctly.
+>=20
+> I have thought that the best is the first. But I can change it.
+
+I think we have to make robust checks on the input, if what we get is
+not "sane" then it's not worth going further.
+
+So I'd suggest you modify this lines a bit below:
+
+        if (tree->value.opaque =3D=3D NULL) {
+                err->error =3D NFT_PARSE_EBADINPUT;
+                goto err;
+        }
+
+to look like:
+
+        if (tree =3D=3D NULL || tree->value.opaque =3D=3D NULL) {
+                err->error =3D NFT_PARSE_EBADINPUT;
+                goto err;
+        }
+
+> >>---
+> >>  src/mxml.c |    3 ++-
+> >>  1 file changed, 2 insertions(+), 1 deletion(-)
+> >>
+> >>diff --git a/src/mxml.c b/src/mxml.c
+> >>index 0001ba0..b68f86f 100644
+> >>--- a/src/mxml.c
+> >>+++ b/src/mxml.c
+> >>@@ -43,7 +43,8 @@ mxml_node_t *nft_mxml_build_tree(const void *data=
+, const char *treename,
+> >>  		goto err;
+> >>  	}
+> >>
+> >>-	if (strcmp(tree->value.opaque, treename) =3D=3D 0)
+> >>+	if (tree->value.opaque !=3D NULL &&
+> >>+	    strcmp(tree->value.opaque, treename) =3D=3D 0)
+> >>  		return tree;
+> >>
+> >>  	err->error =3D NFT_PARSE_EMISSINGNODE;
+> >>--
+> >>1.7.10.4de
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
