@@ -1,73 +1,72 @@
-From: Eric B Munson <emunson@akamai.com>
-Subject: Re: [PATCH RESEND] Add element count to hash headers
-Date: Wed, 04 Mar 2015 09:39:48 -0500
-Message-ID: <54F71934.6000303@akamai.com>
-References: <1424289208-6164-1-git-send-email-emunson@akamai.com> <54F67D2E.5050003@akamai.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/3] netfilter: nf_tables: fix transaction race condition
+Date: Wed, 4 Mar 2015 17:18:01 +0100
+Message-ID: <20150304161801.GA3878@salvia>
+References: <1425413060-6187-1-git-send-email-kaber@trash.net>
+ <1425413060-6187-2-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Josh Hunt <johunt@akamai.com>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from prod-mail-xrelay07.akamai.com ([72.246.2.115]:59857 "EHLO
-	prod-mail-xrelay07.akamai.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758720AbbCDOjt (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Mar 2015 09:39:49 -0500
-In-Reply-To: <54F67D2E.5050003@akamai.com>
+Received: from mail.us.es ([193.147.175.20]:55648 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932325AbbCDQO1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Mar 2015 11:14:27 -0500
+Content-Disposition: inline
+In-Reply-To: <1425413060-6187-2-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Tue, Mar 03, 2015 at 08:04:18PM +0000, Patrick McHardy wrote:
+> A race condition exists in the rule transaction code for rules that
+> get added and removed within the same transaction.
+> 
+> The new rule starts out as inactive in the current and active in the
+> next generation and is inserted into the ruleset. When it is deleted,
+> it is additionally set to inactive in the next generation as well.
+> 
+> On commit the next generation is begun, then the actions are finalized.
+> For the new rule this would mean clearing out the inactive bit for
+> the previously current, now next generation.
+> 
+> However nft_rule_clear() clears out the bits for *both* generations,
+> activating the rule in the current generation, where it should be
+> deactivated due to being deleted. The rule will thus be active until
+> the deletion is finalized, removing the rule from the ruleset.
+> 
+> Similarly, when aborting a transaction for the same case, the undo
+> of insertion will remove it from the RCU protected rule list, the
+> deletion will clear out all bits. However until the next RCU
+> synchronization after all operations have been undone, the rule is
+> active on CPUs which can still see the rule on the list.
+> 
+> Generally, there may never be any modifications of the current
+> generations' inactive bit since this defeats the entire purpose of
+> atomicity. Change nft_rule_clear() to only touch the next generations
+> bit to fix this.
 
-On 03/03/2015 10:34 PM, Josh Hunt wrote:
-> On 02/18/2015 01:53 PM, Eric B Munson wrote:
->> snip
->> 
-> 
-> Jozsef
-> 
-> Can you clarify what you're looking for when you mentioned (in a 
-> previous mail) "I don't like any change which affects the userspace
-> but not expressed in new set type revision."? Are we breaking ABI
-> here by adding a new field to print out the # of elements in a
-> hash? Would it be better to default this to off and only print it
-> if a new flag were presented?
+I think we can get rid of the nft_rule_clear() call from the error
+path of nf_tables_newrule() too.
 
-To be clear, we aren't adding a new field.  This field exists already
-and is not in use for hash sets.
-
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
+> ---
+>  net/netfilter/nf_tables_api.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> I guess I don't see why we should rev all of the hash types for
-> this change when we're not really adding any functionality to them.
-> We can rev the ver of the library to signify a change here. Would
-> that help?
+> diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+> index a8c9462..6fb532b 100644
+> --- a/net/netfilter/nf_tables_api.c
+> +++ b/net/netfilter/nf_tables_api.c
+> @@ -227,7 +227,7 @@ nft_rule_deactivate_next(struct net *net, struct nft_rule *rule)
+>  
+>  static inline void nft_rule_clear(struct net *net, struct nft_rule *rule)
+>  {
+> -	rule->genmask = 0;
+> +	rule->genmask &= ~(1 << gencursor_next(net));
+>  }
+>  
+>  static int
+> -- 
+> 2.1.0
 > 
-> If we do need to add a new revision I think we may want to step
-> back and make sure there's no other information we want to expose
-> first and if there is do it all in one shot to minimize the # of
-> revisions.
-> 
-> Thanks for your help. Josh
-> 
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJU9xkuAAoJELbVsDOpoOa9eFgP/1FEhgQw/zrHxVhsPTi1uYRz
-h1ftmpOgkgqJWEBsGoydOr+hbYATIgoU6O829jH84OKFQdoPCl00uqO7XXLB601C
-ii1OPxb57iHL9/FnbTAHuSKqBhzQPwUSWuICISLulgAMD25an5eckbnRR/i8h0SW
-kEbDitCBFRqyKRJZXSSS36oQuryd9j/pH2UYxE5vtQ9oiTW+MXxK7HvzDE6RTssz
-rpVW3lbPXnLucMt4te1V4iX7t7r0f7UVcQuQGSOSEm1jB+94+AIowaoUzJDNkC6E
-JMMERSOS9RI7LerlG+5iy13nFQgOcTwxX/Xfhy5CNl7v7w6biVzzS18Kf2qwdFmt
-yOM/InBpwecE8VoTM2tlP6WLqpsNEE/aaiA7vLiqKU+U7xSYBN6o+8w0FdpKtasx
-+TNqr7wfKBx/oyvZQSb13YQ89ci/gDeVczO51peoNhQn9zy+XY41DSLrdCPfa9HZ
-x1lkiazFP/x07WpHPKs+g4AuMNkQ0vTkowVkH3orcBRnqUxinngAsnkefXC1TZ96
-L38bJXLkOC//YfE+i/RtzzuX5KN6rbiw//h5nM3m0bg6Ri7royZuAtgt2ZoYDM0m
-SmxD1bX7lqi46G4FvPMDCzD/NlelMNJkNWAlvsWFx1K5TC4jXQhDMIjDv9Mpz2PT
-vI1LkbGQ2JYLUGBNmTzz
-=pny3
------END PGP SIGNATURE-----
