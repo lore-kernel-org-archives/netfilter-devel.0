@@ -1,25 +1,32 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables PATCH v2 2/2] arptables-compat: delete extra space in
- target printing
-Date: Thu, 5 Mar 2015 21:57:14 +0100
-Message-ID: <20150305205714.GB5385@salvia>
-References: <20150305184720.4584.92956.stgit@nfdev.cica.es>
- <20150305184743.4584.4220.stgit@nfdev.cica.es>
+Subject: Re: [libnftnl PATCH v10] example: : add nft-ruleset-parse-file.
+Date: Thu, 5 Mar 2015 22:01:23 +0100
+Message-ID: <20150305210123.GA6231@salvia>
+References: <1425322779-6689-1-git-send-email-alvaroneay@gmail.com>
+ <1425322779-6689-2-git-send-email-alvaroneay@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35297 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35640 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754131AbbCEUxf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Mar 2015 15:53:35 -0500
+	id S1754021AbbCEU5l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Mar 2015 15:57:41 -0500
 Content-Disposition: inline
-In-Reply-To: <20150305184743.4584.4220.stgit@nfdev.cica.es>
+In-Reply-To: <1425322779-6689-2-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Mar 05, 2015 at 07:47:52PM +0100, Arturo Borrero Gonzalez wrote:
-> This is an extra space, let's get rid of it.
+On Mon, Mar 02, 2015 at 07:59:39PM +0100, Alvaro Neira Ayuso wrote:
+> With this example, we can parse the objects in the ruleset and create the
+> netlink message with the action associated. For example:
+> 
+> - Flush ruleset
+> - Add, delete or flush tables/chains
+> - Add, delete sets
+> - Add, delete set elements
+> - Add, delete, replace or prepend rules
 
-Also applied, thanks Arturo.
+Applied, thanks. Please add a filter in git commit to strip the full
+stop from the patch title.
