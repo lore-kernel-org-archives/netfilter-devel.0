@@ -1,43 +1,28 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [iptables PATCH v2 2/2] arptables-compat: delete extra space in
- target printing
-Date: Thu, 05 Mar 2015 19:47:52 +0100
-Message-ID: <20150305184743.4584.4220.stgit@nfdev.cica.es>
-References: <20150305184720.4584.92956.stgit@nfdev.cica.es>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/3] netfilter: nf_tables fixes
+Date: Thu, 5 Mar 2015 21:23:33 +0100
+Message-ID: <20150305202333.GA3997@salvia>
+References: <1425413060-6187-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:42629 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751083AbbCESsA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Mar 2015 13:48:00 -0500
-In-Reply-To: <20150305184720.4584.92956.stgit@nfdev.cica.es>
+Received: from mail.us.es ([193.147.175.20]:60084 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754210AbbCEUTz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Mar 2015 15:19:55 -0500
+Content-Disposition: inline
+In-Reply-To: <1425413060-6187-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is an extra space, let's get rid of it.
+On Tue, Mar 03, 2015 at 08:04:17PM +0000, Patrick McHardy wrote:
+> I'm starting to push over my nftables set patches, as a first
+> batch these three patches fix some bugs I noticed in the process:
+> 
+> * a race condition in the transaction code
+> * a possible rule dlen overflow
+> * a possible userdata ulen overflow
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
-v2: split in two patches
-
- iptables/nft-arp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/iptables/nft-arp.c b/iptables/nft-arp.c
-index 523b3ec..503c65a 100644
---- a/iptables/nft-arp.c
-+++ b/iptables/nft-arp.c
-@@ -593,7 +593,7 @@ nft_arp_print_firewall(struct nft_rule *r, unsigned int num,
- 	if (cs.jumpto != NULL && strcmp(cs.jumpto, "") != 0) {
- 		printf("-j %s", cs.jumpto);
- 	} else if (cs.target) {
--		printf("-j %s ", cs.target->name);
-+		printf("-j %s", cs.target->name);
- 		cs.target->print(&cs.fw, cs.target->t, format & FMT_NUMERIC);
- 	}
- 
-
+Applied, thanks a lot Patrick.
