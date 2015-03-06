@@ -1,38 +1,51 @@
-From: "Ceraon Co.,Ltd" <info@ceraeon.com>
-Subject: Re: Unique items
-Date: Fri, 6 Mar 2015 03:29:20 GMT
-Message-ID: <CgRksMEzeVwBby4FT7yaXitjuGCTybj5pusJhKYUKOtI@ceraeon.com>
-Reply-To: pascaisurim@gmail.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
-	format=flowed
-Content-Transfer-Encoding: 7BIT
-To: "netfilter-devel" <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ceraeon.com ([172.245.60.148]:60637 "EHLO ceraeon.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750785AbbCFD3w convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Mar 2015 22:29:52 -0500
-Received: from [192.168.1.11] (unknown [41.82.174.65])
-	by ceraeon.com (Postfix) with ESMTPA id E81766C28CB5
-	for <netfilter-devel@vger.kernel.org>; Fri,  6 Mar 2015 06:21:56 +0300 (MSK)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Alexander Drozdov <al.drozdov@gmail.com>
+Subject: [PATCH] netfilter: ipset: make ip_set_get_ip*_port to use skb_network_offset
+Date: Fri,  6 Mar 2015 13:44:06 +0300
+Message-ID: <1425638646-5906-1-git-send-email-al.drozdov@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Alexander Drozdov <al.drozdov@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Dear Sir/Madam,
+All the ipset functions respect skb->network_header value,
+except for ip_set_get_ip4_port() & ip_set_get_ip6_port(). The
+functions should use skb_network_offset() to get the transport
+header offset.
 
-This is Pascal Scrim from Ceraon Co.,Ltd, one of our costumers refer us to your product, we have seen your product sample and we have concluded to place a large order on your product.We require that you please send us quotations, pricing and also you company certificate for final approval.
+Signed-off-by: Alexander Drozdov <al.drozdov@gmail.com>
+---
+ net/netfilter/ipset/ip_set_getport.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Please kindly send me your latest catalog. Also, inform me about the Minimum Order Quantity, Delivery time or FOB,We sould like you know if you can accept the payment terms as LC instead of TT, or can send the deposit as TT but the balance as LC, which is better for you?
-Waiting your soonest reply
-
-Thank you
-Best Regards
-Pascal Scrim
-5th Floor, Oak Sendai Bldg.,
-2-5-1 Honcho, Aoba-ku Sendai-shi,
-Miyagi-ken 980-0014
-Email:pascaisurim@gmail.com
-TEL : +81-022-223-2180/+81 3-3586-0055
-
+diff --git a/net/netfilter/ipset/ip_set_getport.c b/net/netfilter/ipset/ip_set_getport.c
+index 29fb01d..1981f02 100644
+--- a/net/netfilter/ipset/ip_set_getport.c
++++ b/net/netfilter/ipset/ip_set_getport.c
+@@ -98,7 +98,7 @@ ip_set_get_ip4_port(const struct sk_buff *skb, bool src,
+ 		    __be16 *port, u8 *proto)
+ {
+ 	const struct iphdr *iph = ip_hdr(skb);
+-	unsigned int protooff = ip_hdrlen(skb);
++	unsigned int protooff = skb_network_offset(skb) + ip_hdrlen(skb);
+ 	int protocol = iph->protocol;
+ 
+ 	/* See comments at tcp_match in ip_tables.c */
+@@ -135,7 +135,9 @@ ip_set_get_ip6_port(const struct sk_buff *skb, bool src,
+ 	__be16 frag_off = 0;
+ 
+ 	nexthdr = ipv6_hdr(skb)->nexthdr;
+-	protoff = ipv6_skip_exthdr(skb, sizeof(struct ipv6hdr), &nexthdr,
++	protoff = ipv6_skip_exthdr(skb,
++				   skb_network_offset(skb) +
++					sizeof(struct ipv6hdr), &nexthdr,
+ 				   &frag_off);
+ 	if (protoff < 0 || (frag_off & htons(~0x7)) != 0)
+ 		return false;
+-- 
+1.9.1
