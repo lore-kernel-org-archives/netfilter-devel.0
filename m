@@ -1,32 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH v10] example: : add nft-ruleset-parse-file.
-Date: Thu, 5 Mar 2015 22:01:23 +0100
-Message-ID: <20150305210123.GA6231@salvia>
-References: <1425322779-6689-1-git-send-email-alvaroneay@gmail.com>
- <1425322779-6689-2-git-send-email-alvaroneay@gmail.com>
+Subject: Re: [PATCH 0/3] netfilter: nf_tables cleanups
+Date: Fri, 6 Mar 2015 01:13:18 +0100
+Message-ID: <20150306001318.GA18260@salvia>
+References: <1425413406-6804-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35640 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:54463 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754021AbbCEU5l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Mar 2015 15:57:41 -0500
+	id S1753328AbbCFAJh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Mar 2015 19:09:37 -0500
 Content-Disposition: inline
-In-Reply-To: <1425322779-6689-2-git-send-email-alvaroneay@gmail.com>
+In-Reply-To: <1425413406-6804-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 02, 2015 at 07:59:39PM +0100, Alvaro Neira Ayuso wrote:
-> With this example, we can parse the objects in the ruleset and create the
-> netlink message with the action associated. For example:
+On Tue, Mar 03, 2015 at 08:10:03PM +0000, Patrick McHardy wrote:
+> These patches for -next contain some cleanups which are not directly
+> related to the following set patches, so I'm sending them seperately
+> for easier review:
 > 
-> - Flush ruleset
-> - Add, delete or flush tables/chains
-> - Add, delete sets
-> - Add, delete set elements
-> - Add, delete, replace or prepend rules
+>  * move the reoccuring checks for skb->nf_trace to an inline function
+>  * consolidate similar invocations of nft_trace_packet()
+>  * rearrange nf_tables.h so related things are next to each other
 
-Applied, thanks. Please add a filter in git commit to strip the full
-stop from the patch title.
+Applied, thanks Patrick.
+
+I'll send another net-next batch with accumulated patches just after
+David gets the pending fixes. Then ask for net to go into net-next,
+sorry I cannot go any faster.
