@@ -1,63 +1,192 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: don't output error message redundantly
-Date: Fri, 06 Mar 2015 22:29:53 +0100
-Message-ID: <15FC4A3E-A6E5-4008-8DAD-DD9601826A41@trash.net>
-References: <53CF53DD.6020308@cn.fujitsu.com> <20140724114946.GA21812@salvia> <C2AFD992-D4FF-4E8A-98D6-209D9C691C18@trash.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH RESEND] Add element count to hash headers
+Date: Fri, 6 Mar 2015 22:45:08 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1503062148590.29108@blackhole.kfki.hu>
+References: <1424289208-6164-1-git-send-email-emunson@akamai.com> <54F67D2E.5050003@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Duan Jiong <duanj.fnst@cn.fujitsu.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Eric B Munson <emunson@akamai.com>,
+	netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Josh Hunt <johunt@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40348 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751276AbbCFVab (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Mar 2015 16:30:31 -0500
-In-Reply-To: <C2AFD992-D4FF-4E8A-98D6-209D9C691C18@trash.net>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:47136 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751904AbbCFVnY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 6 Mar 2015 16:43:24 -0500
+In-Reply-To: <54F67D2E.5050003@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 6. M=C3=A4rz 2015 22:27:09 MEZ, schrieb Patrick McHardy <kaber@trash=
-=2Enet>:
->Am 24. Juli 2014 13:49:46 MESZ, schrieb Pablo Neira Ayuso
-><pablo@netfilter.org>:
->>On Wed, Jul 23, 2014 at 02:19:09PM +0800, Duan Jiong wrote:
->>>=20
->>> The function led_trigger_register() will only return -EEXIST when
->>> error arises.
->>>=20
->>> Signed-off-by: Duan Jiong <duanj.fnst@cn.fujitsu.com>
->>> ---
->>>  net/netfilter/xt_LED.c | 4 +---
->>>  1 file changed, 1 insertion(+), 3 deletions(-)
->>>=20
->>> diff --git a/net/netfilter/xt_LED.c b/net/netfilter/xt_LED.c
->>> index 993de2b..b47a58c 100644
->>> --- a/net/netfilter/xt_LED.c
->>> +++ b/net/netfilter/xt_LED.c
->>> @@ -133,9 +133,7 @@ static int led_tg_check(const struct
->>xt_tgchk_param *par)
->>> =20
->>>  	err =3D led_trigger_register(&ledinternal->netfilter_led_trigger)=
-;
->>>  	if (err) {
->>> -		pr_warning("led_trigger_register() failed\n");
->>> -		if (err =3D=3D -EEXIST)
->>> -			pr_warning("Trigger name is already in use.\n");
->>> +		pr_warning("Trigger name is already in use.\n");
->>
->>This should be pr_err() since the rule fails to be loaded if
->>led_trigger_register() fails.
->
->I disagree with this patch, any error and EEXIST are two different
->things.
+Hi Josh,
 
-Sorry didn't notice mails on my tablet were 9 months out oft sync :)
+On Tue, 3 Mar 2015, Josh Hunt wrote:
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> On 02/18/2015 01:53 PM, Eric B Munson wrote:
+> > It would be useful for userspace to query the size of an ipset hash,
+> > however, this data is not exposed to userspace outside of counting the
+> > number of member entries.  This patch uses the attribute
+> > IPSET_ATTR_ELEMENTS to indicate the size in the the header that is
+> > exported to userspace.  This field is then printed by the userspace
+> > tool for hashes.
+> > 
+> > Because it is only meaningful for hashes to report their size, the
+> > output is conditional on the set type.  To do this checking the
+> > MATCH_TYPENAME macro was moved to utils.h.
+> > 
+> > Signed-off-by: Eric B Munson <emunson@akamai.com>
+> > Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> > Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Cc: Josh Hunt <johunt@akamai.com>
+> > ---
+> >   include/libipset/utils.h                     |  3 +++
+> >   kernel/net/netfilter/ipset/ip_set_hash_gen.h |  3 ++-
+> >   lib/errcode.c                                |  2 --
+> >   lib/session.c                                | 14 ++++++++++++--
+> >   4 files changed, 17 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/include/libipset/utils.h b/include/libipset/utils.h
+> > index 3cd29da..ceedd45 100644
+> > --- a/include/libipset/utils.h
+> > +++ b/include/libipset/utils.h
+> > @@ -19,6 +19,9 @@
+> >   #define STRCASEQ(a, b)		(strcasecmp(a, b) == 0)
+> >   #define STRNCASEQ(a, b, n)	(strncasecmp(a, b, n) == 0)
+> > 
+> > +/* Match set type names */
+> > +#define MATCH_TYPENAME(a, b)    STRNEQ(a, b, strlen(b))
+> > +
+> >   /* Stringify tokens */
+> >   #define _STR(c)			#c
+> >   #define STR(c)			_STR(c)
+> > diff --git a/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+> > b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+> > index 885105b..2000a20 100644
+> > --- a/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+> > +++ b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+> > @@ -1040,7 +1040,8 @@ mtype_head(struct ip_set *set, struct sk_buff *skb)
+> >   		goto nla_put_failure;
+> >   #endif
+> >   	if (nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref - 1)) ||
+> > -	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE, htonl(memsize)))
+> > +	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE, htonl(memsize)) ||
+> > +	    nla_put_net32(skb, IPSET_ATTR_ELEMENTS, htonl(h->elements)))
+> >   		goto nla_put_failure;
+> >   	if (unlikely(ip_set_put_flags(skb, set)))
+> >   		goto nla_put_failure;
+> > diff --git a/lib/errcode.c b/lib/errcode.c
+> > index 8eb275b..3881121 100644
+> > --- a/lib/errcode.c
+> > +++ b/lib/errcode.c
+> > @@ -148,8 +148,6 @@ static const struct ipset_errcode_table
+> > list_errcode_table[] = {
+> >   	{ },
+> >   };
+> > 
+> > -#define MATCH_TYPENAME(a, b)	STRNEQ(a, b, strlen(b))
+> > -
+> >   /**
+> >    * ipset_errcode - interpret a kernel error code
+> >    * @session: session structure
+> > diff --git a/lib/session.c b/lib/session.c
+> > index 013d9d8..07f3396 100644
+> > --- a/lib/session.c
+> > +++ b/lib/session.c
+> > @@ -931,6 +931,10 @@ list_create(struct ipset_session *session, struct
+> > nlattr *nla[])
+> >   		safe_dprintf(session, ipset_print_number, IPSET_OPT_MEMSIZE);
+> >   		safe_snprintf(session, "\nReferences: ");
+> >   		safe_dprintf(session, ipset_print_number,
+> > IPSET_OPT_REFERENCES);
+> > +		if (MATCH_TYPENAME(type->name , "hash:")) {
+> > +			safe_snprintf(session, "\nNum Entries: ");
+
+It's just a minor thing, but please do not abbreviate.
+
+> > +			safe_dprintf(session, ipset_print_number,
+> > IPSET_OPT_ELEMENTS);
+> > +		}
+> >   		safe_snprintf(session,
+> >   			session->envopts & IPSET_ENV_LIST_HEADER ?
+> >   			"\n" : "\nMembers:\n");
+> > @@ -940,10 +944,16 @@ list_create(struct ipset_session *session, struct
+> > nlattr *nla[])
+> >   		safe_dprintf(session, ipset_print_number, IPSET_OPT_MEMSIZE);
+> >   		safe_snprintf(session, "</memsize>\n<references>");
+> >   		safe_dprintf(session, ipset_print_number,
+> > IPSET_OPT_REFERENCES);
+> > +		safe_snprintf(session, "</references>\n");
+> > +		if (MATCH_TYPENAME(type->name , "hash:")) {
+> > +			safe_snprintf(session, "<numentries>");
+> > +			safe_dprintf(session, ipset_print_number,
+> > IPSET_OPT_ELEMENTS);
+> > +			safe_snprintf(session, "</numentries>\n");
+> > +		}
+> >   		safe_snprintf(session,
+> >   			session->envopts & IPSET_ENV_LIST_HEADER ?
+> > -			"</references>\n</header>\n" :
+> > -			"</references>\n</header>\n<members>\n");
+> > +			"</header>\n" :
+> > +			"</header>\n<members>\n");
+> >   		break;
+> >   	default:
+> >   		break;
+> > 
+> 
+> Can you clarify what you're looking for when you mentioned (in a 
+> previous mail) "I don't like any change which affects the userspace but 
+> not expressed in new set type revision."? Are we breaking ABI here by 
+> adding a new field to print out the # of elements in a hash? Would it be 
+> better to default this to off and only print it if a new flag were 
+> presented?
+
+Technically speaking there's nothing wrong with the patch. But I have a 
+couple of small issues, actually all non-critical, still...
+
+The new revision for the set types may be an exaggregation. My concern was 
+to make easier to "solve" reports like "Number of elements not listed, 
+why?". If the new feature is expressed in a revision number (both in the 
+kernel module of the set types and the userspace parts), then it's simple 
+to say "check and compare the output of 'modinfo modulename' and 'ipset 
+help'". Otherwise it's hard to figure out which part is missing the new 
+feature: kernel, userspace or both. But it may be too much fussing on my 
+part :-)
+
+The new line in the output "breaks" any script which parses the listing 
+and not prepared that such change may occur (actually, the testsuite 
+itself must be fixed therefore too). At the same time I don't really like 
+the idea of a new flag to turn on the printing of the info - just print 
+it.
+
+The listing becomes non-uniform and type-dependent, because it's 
+restricted to the hash types. But therefore should we add the listing of 
+the number of elements to the bitmap and list types too? For the hash 
+types, the data comes free - for the other types is must be calculated at 
+every listing.
+
+Also, the number of the elements may easily be wrong for sets with 
+timeout: the counter does not take into account the just timed out entries 
+but the listing of the elements does. Even if we check the timed out 
+entries for the counter, entries may time out by the time it's they turn 
+to be listed. At least it should be documented in the manpage.
+ 
+> I guess I don't see why we should rev all of the hash types for this 
+> change when we're not really adding any functionality to them. We can 
+> rev the ver of the library to signify a change here. Would that help?
+
+The revision counter is the best we have to express new features. It's not 
+elegant at all.
+ 
+> If we do need to add a new revision I think we may want to step back and 
+> make sure there's no other information we want to expose first and if 
+> there is do it all in one shot to minimize the # of revisions.
+
+What kind of additional information do you have in mind?
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
