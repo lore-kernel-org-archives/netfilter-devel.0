@@ -1,64 +1,44 @@
-From: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCH nf-next 0/8] netfilter: untangle bridge and bridge
  netfilter
-Date: Mon, 9 Mar 2015 14:59:10 +0100
-Message-ID: <20150309135910.GC1528@breakpoint.cc>
+Date: Mon, 9 Mar 2015 17:47:23 +0100
+Message-ID: <20150309164723.GA3731@salvia>
 References: <1425513160-496-1-git-send-email-fw@strlen.de>
  <20150309130253.GA6677@salvia>
+ <20150309131356.GB28039@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	azhou@nicira.com
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:40525 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753698AbbCIQnm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Mar 2015 12:43:42 -0400
 Content-Disposition: inline
-In-Reply-To: <20150309130253.GA6677@salvia>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20150309131356.GB28039@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > nf_bridge is kmalloced blob with some extra information, including
-> > the bridge in and outports (mainly for iptables' physdev match).
-> > It also has various state bits so we know what manipulations
-> > have been performed by bridge netfilter on the skb (e.g.
-> > ppp header stripping).
-> >
-> > nf_bridge also provides scratch space where br_netfilter saves
-> > (and later restores) various things, e.g. ipv4 address for
-> > dnat detection, mac address to fix up ip fragmented skbs, etc.
+On Mon, Mar 09, 2015 at 02:13:56PM +0100, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> 
+> > I'm preparing a new net-next batch, I can quickly take these three if
+> > you agree:
 > > 
-> > But in almost all cases we can avoid using ->data completely.
+> > 1/8 bridge: move mac header copying into br_netfilter
+> > 2/8 netfilter: bridge: move nf_bridge_update_protocol to where its used
+> > 4/8 netfilter: bridge: refactor conditional in br_nf_dev_queue_xmit
 > 
-> I think one of the goals of this patchset is to prepare the removal of
-> that nf_bridge pointer from sk_buff which sounds as a good idea to me.
+> Sure.  I can then submit the entire series (i.e. part1 without these 3
+> plus part2).  I have no further br netfilter changes after that.
 > 
-> Did you consider to implement this scratchpad area using a per-cpu
-> area? I mean, something similar to what we used to have in
-> ip_conntrack for events:
+> > Regarding 3/8, I think we can move that code to br_netfilter.c so we
+> > reduce ifdef pollution a bit and keep as much of this monster code
+> > fenced under that file. Please, see patch attached.
+> 
+> Sure.
 
-I see that I misread part of what you wrote.
-
-We cannot use percpu data for nf_bridge_info; at least its not trivial
-to do (I tried).
-
-Main issues are:
-- nfqueue (we have to save/restore info)
-- local delivery (skb is enqueued in backlog)
-- skb is dropped (we need to reset scratch data)
-- DNAT mac hack (skb can be queued in qdisc).
-
-We _can_ use percpu data for passing the original mac
-header to the ip_fragment output function.  But, as mentioned,
-there is a patch in netdev patchwork that adds extra output
-parameter for use with OVS so it seems cleaner to (re-) use common
-api in both OVS and br netfilter.
-
-> BTW, 6/8 I think needs some ifdef to make sure NF_CONNTRACK is in
-> placed.
-
-Right, thanks for catching this.
-
-> 7/8 needs NF_BRDIGE_MAX_MAC_HEADER_LENGTH which seems to have
-> a small typo in it, well these are dependent of 4/8 anyway.
-
-Sorry -- I'm dense -- what typo? :-)
+OK, I'll push these four small changes in the follow nf-next pull
+request then, so you and Andry can sort out this. Thanks Florian.
