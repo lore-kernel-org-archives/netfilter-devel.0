@@ -1,192 +1,216 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH RESEND] Add element count to hash headers
-Date: Fri, 6 Mar 2015 22:45:08 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1503062148590.29108@blackhole.kfki.hu>
-References: <1424289208-6164-1-git-send-email-emunson@akamai.com> <54F67D2E.5050003@akamai.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next 0/8] netfilter: untangle bridge and bridge
+ netfilter
+Date: Mon, 9 Mar 2015 14:02:53 +0100
+Message-ID: <20150309130253.GA6677@salvia>
+References: <1425513160-496-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Eric B Munson <emunson@akamai.com>,
-	netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Josh Hunt <johunt@akamai.com>
+Content-Type: multipart/mixed; boundary="sdtB3X0nJg68CQEu"
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:47136 "EHLO smtp1.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:46346 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751904AbbCFVnY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Mar 2015 16:43:24 -0500
-In-Reply-To: <54F67D2E.5050003@akamai.com>
+	id S1751443AbbCIM7M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Mar 2015 08:59:12 -0400
+Content-Disposition: inline
+In-Reply-To: <1425513160-496-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Josh,
 
-On Tue, 3 Mar 2015, Josh Hunt wrote:
+--sdtB3X0nJg68CQEu
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> On 02/18/2015 01:53 PM, Eric B Munson wrote:
-> > It would be useful for userspace to query the size of an ipset hash,
-> > however, this data is not exposed to userspace outside of counting the
-> > number of member entries.  This patch uses the attribute
-> > IPSET_ATTR_ELEMENTS to indicate the size in the the header that is
-> > exported to userspace.  This field is then printed by the userspace
-> > tool for hashes.
-> > 
-> > Because it is only meaningful for hashes to report their size, the
-> > output is conditional on the set type.  To do this checking the
-> > MATCH_TYPENAME macro was moved to utils.h.
-> > 
-> > Signed-off-by: Eric B Munson <emunson@akamai.com>
-> > Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> > Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> > Cc: Josh Hunt <johunt@akamai.com>
-> > ---
-> >   include/libipset/utils.h                     |  3 +++
-> >   kernel/net/netfilter/ipset/ip_set_hash_gen.h |  3 ++-
-> >   lib/errcode.c                                |  2 --
-> >   lib/session.c                                | 14 ++++++++++++--
-> >   4 files changed, 17 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/include/libipset/utils.h b/include/libipset/utils.h
-> > index 3cd29da..ceedd45 100644
-> > --- a/include/libipset/utils.h
-> > +++ b/include/libipset/utils.h
-> > @@ -19,6 +19,9 @@
-> >   #define STRCASEQ(a, b)		(strcasecmp(a, b) == 0)
-> >   #define STRNCASEQ(a, b, n)	(strncasecmp(a, b, n) == 0)
-> > 
-> > +/* Match set type names */
-> > +#define MATCH_TYPENAME(a, b)    STRNEQ(a, b, strlen(b))
-> > +
-> >   /* Stringify tokens */
-> >   #define _STR(c)			#c
-> >   #define STR(c)			_STR(c)
-> > diff --git a/kernel/net/netfilter/ipset/ip_set_hash_gen.h
-> > b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
-> > index 885105b..2000a20 100644
-> > --- a/kernel/net/netfilter/ipset/ip_set_hash_gen.h
-> > +++ b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
-> > @@ -1040,7 +1040,8 @@ mtype_head(struct ip_set *set, struct sk_buff *skb)
-> >   		goto nla_put_failure;
-> >   #endif
-> >   	if (nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref - 1)) ||
-> > -	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE, htonl(memsize)))
-> > +	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE, htonl(memsize)) ||
-> > +	    nla_put_net32(skb, IPSET_ATTR_ELEMENTS, htonl(h->elements)))
-> >   		goto nla_put_failure;
-> >   	if (unlikely(ip_set_put_flags(skb, set)))
-> >   		goto nla_put_failure;
-> > diff --git a/lib/errcode.c b/lib/errcode.c
-> > index 8eb275b..3881121 100644
-> > --- a/lib/errcode.c
-> > +++ b/lib/errcode.c
-> > @@ -148,8 +148,6 @@ static const struct ipset_errcode_table
-> > list_errcode_table[] = {
-> >   	{ },
-> >   };
-> > 
-> > -#define MATCH_TYPENAME(a, b)	STRNEQ(a, b, strlen(b))
-> > -
-> >   /**
-> >    * ipset_errcode - interpret a kernel error code
-> >    * @session: session structure
-> > diff --git a/lib/session.c b/lib/session.c
-> > index 013d9d8..07f3396 100644
-> > --- a/lib/session.c
-> > +++ b/lib/session.c
-> > @@ -931,6 +931,10 @@ list_create(struct ipset_session *session, struct
-> > nlattr *nla[])
-> >   		safe_dprintf(session, ipset_print_number, IPSET_OPT_MEMSIZE);
-> >   		safe_snprintf(session, "\nReferences: ");
-> >   		safe_dprintf(session, ipset_print_number,
-> > IPSET_OPT_REFERENCES);
-> > +		if (MATCH_TYPENAME(type->name , "hash:")) {
-> > +			safe_snprintf(session, "\nNum Entries: ");
+Hi Florian,
 
-It's just a minor thing, but please do not abbreviate.
-
-> > +			safe_dprintf(session, ipset_print_number,
-> > IPSET_OPT_ELEMENTS);
-> > +		}
-> >   		safe_snprintf(session,
-> >   			session->envopts & IPSET_ENV_LIST_HEADER ?
-> >   			"\n" : "\nMembers:\n");
-> > @@ -940,10 +944,16 @@ list_create(struct ipset_session *session, struct
-> > nlattr *nla[])
-> >   		safe_dprintf(session, ipset_print_number, IPSET_OPT_MEMSIZE);
-> >   		safe_snprintf(session, "</memsize>\n<references>");
-> >   		safe_dprintf(session, ipset_print_number,
-> > IPSET_OPT_REFERENCES);
-> > +		safe_snprintf(session, "</references>\n");
-> > +		if (MATCH_TYPENAME(type->name , "hash:")) {
-> > +			safe_snprintf(session, "<numentries>");
-> > +			safe_dprintf(session, ipset_print_number,
-> > IPSET_OPT_ELEMENTS);
-> > +			safe_snprintf(session, "</numentries>\n");
-> > +		}
-> >   		safe_snprintf(session,
-> >   			session->envopts & IPSET_ENV_LIST_HEADER ?
-> > -			"</references>\n</header>\n" :
-> > -			"</references>\n</header>\n<members>\n");
-> > +			"</header>\n" :
-> > +			"</header>\n<members>\n");
-> >   		break;
-> >   	default:
-> >   		break;
-> > 
+On Thu, Mar 05, 2015 at 12:52:32AM +0100, Florian Westphal wrote:
+> bridge_netfilter.h contains various helpers, some only used by br_netfilter,
+> others however are also called in bridge or even ip stack.
 > 
-> Can you clarify what you're looking for when you mentioned (in a 
-> previous mail) "I don't like any change which affects the userspace but 
-> not expressed in new set type revision."? Are we breaking ABI here by 
-> adding a new field to print out the # of elements in a hash? Would it be 
-> better to default this to off and only print it if a new flag were 
-> presented?
+> Lets start untangling bridge, bridge netfilter, and the
+> rest of the ip stack (esp. ip_fragment).
+> 
+> This changes ip_fragment() so that bridge netfilter
+> can pass in the required information as arguments instead
+> of using skb->nf_bridge to pass some extra information to it.
+> 
+> Another problem with br_netfilter and the way its plumbed to
+> ip/ip6-tables (physdev match) is skb->nf_bridge.
+> 
+> nf_bridge is kmalloced blob with some extra information, including
+> the bridge in and outports (mainly for iptables' physdev match).
+> It also has various state bits so we know what manipulations
+> have been performed by bridge netfilter on the skb (e.g.
+> ppp header stripping).
+>
+> nf_bridge also provides scratch space where br_netfilter saves
+> (and later restores) various things, e.g. ipv4 address for
+> dnat detection, mac address to fix up ip fragmented skbs, etc.
+> 
+> But in almost all cases we can avoid using ->data completely.
 
-Technically speaking there's nothing wrong with the patch. But I have a 
-couple of small issues, actually all non-critical, still...
+I think one of the goals of this patchset is to prepare the removal of
+that nf_bridge pointer from sk_buff which sounds as a good idea to me.
 
-The new revision for the set types may be an exaggregation. My concern was 
-to make easier to "solve" reports like "Number of elements not listed, 
-why?". If the new feature is expressed in a revision number (both in the 
-kernel module of the set types and the userspace parts), then it's simple 
-to say "check and compare the output of 'modinfo modulename' and 'ipset 
-help'". Otherwise it's hard to figure out which part is missing the new 
-feature: kernel, userspace or both. But it may be too much fussing on my 
-part :-)
+Did you consider to implement this scratchpad area using a per-cpu
+area? I mean, something similar to what we used to have in
+ip_conntrack for events:
 
-The new line in the output "breaks" any script which parses the listing 
-and not prepared that such change may occur (actually, the testsuite 
-itself must be fixed therefore too). At the same time I don't really like 
-the idea of a new flag to turn on the printing of the info - just print 
-it.
+http://www.cs.fsu.edu/~baker/devices/lxr/http/source/linux/net/netfilter/nf_conntrack_ecache.c?v=2.6.25#L65
 
-The listing becomes non-uniform and type-dependent, because it's 
-restricted to the hash types. But therefore should we add the listing of 
-the number of elements to the bitmap and list types too? For the hash 
-types, the data comes free - for the other types is must be calculated at 
-every listing.
+Following that approach, I think we could avoid changing the
+ip_fragment() interface. My concern is that these changes are too
+specific of br_netfilter, which is not a good reference client of it
+given all its design problems.
 
-Also, the number of the elements may easily be wrong for sets with 
-timeout: the counter does not take into account the just timed out entries 
-but the listing of the elements does. Even if we check the timed out 
-entries for the counter, entries may time out by the time it's they turn 
-to be listed. At least it should be documented in the manpage.
+I'm preparing a new net-next batch, I can quickly take these three if
+you agree:
+
+1/8 bridge: move mac header copying into br_netfilter
+2/8 netfilter: bridge: move nf_bridge_update_protocol to where its used
+4/8 netfilter: bridge: refactor conditional in br_nf_dev_queue_xmit
+
+Regarding 3/8, I think we can move that code to br_netfilter.c so we
+reduce ifdef pollution a bit and keep as much of this monster code
+fenced under that file. Please, see patch attached.
+
+BTW, 6/8 I think needs some ifdef to make sure NF_CONNTRACK is in
+placed. 7/8 needs NF_BRDIGE_MAX_MAC_HEADER_LENGTH which seems to have
+a small typo in it, well these are dependent of 4/8 anyway.
+
+Let me know, thanks a lot!
+
+--sdtB3X0nJg68CQEu
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0001-netfilter-brige-move-DNAT-helper-to-br_netfilter.patch"
+
+>From 57a8e6c3ac46601615f0df0ccc98e6481c8017a9 Mon Sep 17 00:00:00 2001
+From: Florian Westphal <fw@strlen.de>
+Date: Thu, 5 Mar 2015 00:52:35 +0100
+Subject: [PATCH] netfilter: brige: move DNAT helper to br_netfilter
+
+Only one caller, there is no need to keep this in a header.
+Move it to br_netfilter.c where this belongs to.
+
+Based on patch from Florian Westphal.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/linux/netfilter_bridge.h |   12 ------------
+ net/bridge/br_device.c           |    5 +----
+ net/bridge/br_netfilter.c        |   32 ++++++++++++++++++++++++++++++++
+ net/bridge/br_private.h          |    5 +++++
+ 4 files changed, 38 insertions(+), 16 deletions(-)
+
+diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
+index dd580a9..bb39113 100644
+--- a/include/linux/netfilter_bridge.h
++++ b/include/linux/netfilter_bridge.h
+@@ -44,18 +44,6 @@ static inline unsigned int nf_bridge_mtu_reduction(const struct sk_buff *skb)
+ }
  
-> I guess I don't see why we should rev all of the hash types for this 
-> change when we're not really adding any functionality to them. We can 
-> rev the ver of the library to signify a change here. Would that help?
-
-The revision counter is the best we have to express new features. It's not 
-elegant at all.
- 
-> If we do need to add a new revision I think we may want to step back and 
-> make sure there's no other information we want to expose first and if 
-> there is do it all in one shot to minimize the # of revisions.
-
-What kind of additional information do you have in mind?
-
-Best regards,
-Jozsef
+ int br_handle_frame_finish(struct sk_buff *skb);
+-/* Only used in br_device.c */
+-static inline int br_nf_pre_routing_finish_bridge_slow(struct sk_buff *skb)
+-{
+-	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
 -
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+-	skb_pull(skb, ETH_HLEN);
+-	nf_bridge->mask ^= BRNF_BRIDGED_DNAT;
+-	skb_copy_to_linear_data_offset(skb, -(ETH_HLEN-ETH_ALEN),
+-				       skb->nf_bridge->data, ETH_HLEN-ETH_ALEN);
+-	skb->dev = nf_bridge->physindev;
+-	return br_handle_frame_finish(skb);
+-}
+ 
+ /* This is called by the IP fragmenting code and it ensures there is
+  * enough room for the encapsulating header (if there is one). */
+diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
+index ffd379d..294cbcc 100644
+--- a/net/bridge/br_device.c
++++ b/net/bridge/br_device.c
+@@ -36,13 +36,10 @@ netdev_tx_t br_dev_xmit(struct sk_buff *skb, struct net_device *dev)
+ 	u16 vid = 0;
+ 
+ 	rcu_read_lock();
+-#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+-	if (skb->nf_bridge && (skb->nf_bridge->mask & BRNF_BRIDGED_DNAT)) {
+-		br_nf_pre_routing_finish_bridge_slow(skb);
++	if (br_nf_prerouting_finish_bridge(skb)) {
+ 		rcu_read_unlock();
+ 		return NETDEV_TX_OK;
+ 	}
+-#endif
+ 
+ 	u64_stats_update_begin(&brstats->syncp);
+ 	brstats->tx_packets++;
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index ef1fe28..a8361c7 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -892,6 +892,38 @@ static unsigned int ip_sabotage_in(const struct nf_hook_ops *ops,
+ 	return NF_ACCEPT;
+ }
+ 
++/* This is called when br_netfilter has called into iptables/netfilter,
++ * and DNAT has taken place on a bridge-forwarded packet.
++ *
++ * neigh->output has created a new MAC header, with local br0 MAC
++ * as saddr.
++ *
++ * This restores the original MAC saddr of the bridged packet
++ * before invoking bridge forward logic to transmit the packet.
++ */
++static void br_nf_pre_routing_finish_bridge_slow(struct sk_buff *skb)
++{
++	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
++
++	skb_pull(skb, ETH_HLEN);
++	nf_bridge->mask &= ~BRNF_BRIDGED_DNAT;
++
++	skb_copy_to_linear_data_offset(skb, -(ETH_HLEN-ETH_ALEN),
++				       skb->nf_bridge->data, ETH_HLEN-ETH_ALEN);
++	skb->dev = nf_bridge->physindev;
++	br_handle_frame_finish(skb);
++}
++
++int br_nf_prerouting_finish_bridge(struct sk_buff *skb)
++{
++	if (skb->nf_bridge && (skb->nf_bridge->mask & BRNF_BRIDGED_DNAT)) {
++		br_nf_pre_routing_finish_bridge_slow(skb);
++		return 1;
++	}
++	return 0;
++}
++EXPORT_SYMBOL_GPL(br_nf_prerouting_finish_bridge);
++
+ void br_netfilter_enable(void)
+ {
+ }
+diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
+index de09199..d63fc17 100644
+--- a/net/bridge/br_private.h
++++ b/net/bridge/br_private.h
+@@ -764,10 +764,15 @@ static inline int br_vlan_enabled(struct net_bridge *br)
+ 
+ /* br_netfilter.c */
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
++int br_nf_prerouting_finish_bridge(struct sk_buff *skb);
+ int br_nf_core_init(void);
+ void br_nf_core_fini(void);
+ void br_netfilter_rtable_init(struct net_bridge *);
+ #else
++static inline int br_nf_prerouting_finish_bridge(struct sk_buff *skb)
++{
++        return 0;
++}
+ static inline int br_nf_core_init(void) { return 0; }
+ static inline void br_nf_core_fini(void) {}
+ #define br_netfilter_rtable_init(x)
+-- 
+1.7.10.4
+
+
+--sdtB3X0nJg68CQEu--
