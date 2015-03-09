@@ -1,65 +1,64 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 03/12] netfilter: ipt_CLUSTERIP: deprecate it in favour of xt_cluster
-Date: Mon,  9 Mar 2015 18:14:26 +0100
-Message-ID: <1425921275-9171-4-git-send-email-pablo@netfilter.org>
-References: <1425921275-9171-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+From: David Miller <davem@redhat.com>
+Subject: Re: [PATCH nf-next 0/8] netfilter: untangle bridge and bridge
+ netfilter
+Date: Mon, 09 Mar 2015 13:16:13 -0400 (EDT)
+Message-ID: <20150309.131613.2015932954920552655.davem@redhat.com>
+References: <1425513160-496-1-git-send-email-fw@strlen.de>
+	<20150309130253.GA6677@salvia>
+	<20150309131356.GB28039@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, azhou@nicira.com
+To: fw@strlen.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47194 "EHLO mail.us.es"
+Received: from mx1.redhat.com ([209.132.183.28]:35160 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932072AbbCIRLD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Mar 2015 13:11:03 -0400
-In-Reply-To: <1425921275-9171-1-git-send-email-pablo@netfilter.org>
+	id S1751012AbbCIRQ1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Mar 2015 13:16:27 -0400
+In-Reply-To: <20150309131356.GB28039@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-xt_cluster supersedes ipt_CLUSTERIP since it can be also used in
-gateway configurations (not only from the backend side).
+From: Florian Westphal <fw@strlen.de>
+Date: Mon, 9 Mar 2015 14:13:56 +0100
 
-ipt_CLUSTER is also known to leak the netdev that it uses on
-device removal, which requires a rather large fix to workaround
-the problem: http://patchwork.ozlabs.org/patch/358629/
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> 
+> [ CC Andy, see below for ip_fragment api discussion ]
+> 
+>> > Lets start untangling bridge, bridge netfilter, and the
+>> > rest of the ip stack (esp. ip_fragment).
+>> > 
+>> > This changes ip_fragment() so that bridge netfilter
+>> > can pass in the required information as arguments instead
+>> > of using skb->nf_bridge to pass some extra information to it.
+>> > 
+>> > Another problem with br_netfilter and the way its plumbed to
+>> > ip/ip6-tables (physdev match) is skb->nf_bridge.
+>> > 
+>> > nf_bridge is kmalloced blob with some extra information, including
+>> > the bridge in and outports (mainly for iptables' physdev match).
+>> > It also has various state bits so we know what manipulations
+>> > have been performed by bridge netfilter on the skb (e.g.
+>> > ppp header stripping).
+>> >
+>> > nf_bridge also provides scratch space where br_netfilter saves
+>> > (and later restores) various things, e.g. ipv4 address for
+>> > dnat detection, mac address to fix up ip fragmented skbs, etc.
+>> > 
+>> > But in almost all cases we can avoid using ->data completely.
+>> 
+>> I think one of the goals of this patchset is to prepare the removal of
+>> that nf_bridge pointer from sk_buff which sounds as a good idea to me.
+> 
+> The 2nd (and last half) of the set folds nf_bridge_info into skbuff,
+> at the end (where its not initialized at allocation time).
+> 
+> The struct is a lot smaller by then (16 bytes on 64bit, 12 on 32bit)
+> so we'd increase skbuff size only by 8.
 
-So let's deprecate this so we can probably kill code this in the
-future.
+Sorry, increases in size of any kind of sk_buff are strongly discouraged.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/net/netns/x_tables.h       |    1 +
- net/ipv4/netfilter/ipt_CLUSTERIP.c |    7 +++++++
- 2 files changed, 8 insertions(+)
-
-diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
-index c24060e..4d6597a 100644
---- a/include/net/netns/x_tables.h
-+++ b/include/net/netns/x_tables.h
-@@ -9,6 +9,7 @@ struct ebt_table;
- struct netns_xt {
- 	struct list_head tables[NFPROTO_NUMPROTO];
- 	bool notrack_deprecated_warning;
-+	bool clusterip_deprecated_warning;
- #if defined(CONFIG_BRIDGE_NF_EBTABLES) || \
-     defined(CONFIG_BRIDGE_NF_EBTABLES_MODULE)
- 	struct ebt_table *broute_table;
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index e90f83a..f75e9df 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -418,6 +418,13 @@ static int clusterip_tg_check(const struct xt_tgchk_param *par)
- 	if (ret < 0)
- 		pr_info("cannot load conntrack support for proto=%u\n",
- 			par->family);
-+
-+	if (!par->net->xt.clusterip_deprecated_warning) {
-+		pr_info("ipt_CLUSTERIP is deprecated and it will removed soon, "
-+			"use xt_cluster instead\n");
-+		par->net->xt.clusterip_deprecated_warning = true;
-+	}
-+
- 	return ret;
- }
- 
--- 
-1.7.10.4
-
+Especially for something like nfbridge.
