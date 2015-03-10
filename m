@@ -1,103 +1,84 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH v3 2/2] src: add import command
-Date: Tue, 10 Mar 2015 11:21:07 +0100
-Message-ID: <20150310102107.GB27395@salvia>
-References: <1425981858-10687-1-git-send-email-alvaroneay@gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [nft PATCH] src: add tee statement support
+Date: Tue, 10 Mar 2015 11:31:00 +0100
+Message-ID: <CAOkSjBhq2z0kmq3Xd_smgcj+JoVCn7kEJHCRz2ccRc5FTVpiGw@mail.gmail.com>
+References: <20150309193820.6763.36920.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36258 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752182AbbCJKRU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Mar 2015 06:17:20 -0400
-Content-Disposition: inline
-In-Reply-To: <1425981858-10687-1-git-send-email-alvaroneay@gmail.com>
+Received: from mail-lb0-f176.google.com ([209.85.217.176]:41664 "EHLO
+	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751295AbbCJKbV convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Mar 2015 06:31:21 -0400
+Received: by lbvp9 with SMTP id p9so617568lbv.8
+        for <netfilter-devel@vger.kernel.org>; Tue, 10 Mar 2015 03:31:20 -0700 (PDT)
+In-Reply-To: <20150309193820.6763.36920.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 10, 2015 at 11:04:18AM +0100, Alvaro Neira Ayuso wrote:
-> diff --git a/src/rule.c b/src/rule.c
-> index 8d76fd0..8c58a2b 100644
-> --- a/src/rule.c
-> +++ b/src/rule.c
-> @@ -20,6 +20,7 @@
->  #include <rule.h>
->  #include <utils.h>
->  #include <netlink.h>
-> +#include <mnl.h>
->  
->  #include <libnftnl/common.h>
->  #include <libnftnl/ruleset.h>
-> @@ -555,6 +556,21 @@ void export_free(struct export *e)
->  	xfree(e);
->  }
->  
-> +struct import *import_alloc(uint32_t format)
-> +{
-> +	struct import *import;
+On 9 March 2015 at 20:38, Arturo Borrero Gonzalez
+<arturo.borrero.glez@gmail.com> wrote:
+> The syntax is:
+>  tee gw <addr> [oifname <str>]
+>
+[...]
+>
+> +tee_stmt               :       tee_stmt_alloc  tee_stmt_opt
+> +                       ;
 > +
-> +	import = xmalloc(sizeof(struct import));
-> +	import->format = format;
+> +tee_stmt_alloc         :       TEE
+> +                       {
+> +                               $$ =3D tee_stmt_alloc(&@$);
+> +                       }
+> +                       ;
 > +
-> +	return import;
-> +}
+> +tee_stmt_opt           :       GW              expr
+> +                       {
+> +                               $<stmt>0->tee.gw =3D $2;
+> +                       }
+> +                       |       OIFNAME         STRING
+> +                       {
+> +                               $<stmt>0->tee.oifname =3D strdup($2);
+> +                       }
+> +                       ;
 > +
-> +void import_free(struct import *i)
-> +{
-> +	xfree(i);
-> +}
-> +
->  struct monitor *monitor_alloc(uint32_t format, uint32_t type, const char *event)
->  {
->  	struct monitor *mon;
-> @@ -599,6 +615,9 @@ void cmd_free(struct cmd *cmd)
->  		case CMD_OBJ_MONITOR:
->  			monitor_free(cmd->monitor);
->  			break;
-> +		case CMD_OBJ_IMPORT:
-> +			import_free(cmd->import);
-> +			break;
->  		case CMD_OBJ_EXPORT:
->  			export_free(cmd->export);
->  			break;
-> @@ -1006,6 +1025,322 @@ static int do_command_describe(struct netlink_ctx *ctx, struct cmd *cmd)
->  	return 0;
->  }
->  
-> +struct ruleset_parse {
-> +	struct netlink_ctx *nl_ctx;
-> +	struct cmd *cmd;
-> +};
-> +
-> +static int ruleset_parse_setelems(const struct nft_parse_ctx *ctx)
-> +{
-> +	const struct ruleset_parse *rp;
-> +	struct nft_set *set;
-> +	uint32_t cmd;
-> +	int ret = -1;
-> +
-> +	set = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_SET);
-> +	rp = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_DATA);
-> +
-> +	cmd = nft_ruleset_ctx_get_u32(ctx, NFT_RULESET_CTX_CMD);
-> +	switch (cmd) {
-> +	case NFT_CMD_ADD:
-> +		ret = mnl_nft_setelem_batch_add(set, 0, rp->nl_ctx->seqnum);
-> +		break;
-> +	case NFT_CMD_DELETE:
-> +		ret = mnl_nft_setelem_batch_del(set, 0, rp->nl_ctx->seqnum);
-> +		break;
-> +	default:
-> +		errno = EOPNOTSUPP;
-> +		break;
-> +	}
-> +
-> +	if (ret < 0)
-> +		netlink_io_error(rp->nl_ctx, &rp->cmd->location,
-> +				 "Could not import set_elems: %s",
-> +				 strerror(errno));
 
-I think rp->cmd->location is unset, so this will crash. Could you
-validate this by forcing an error to make sure it works?
+This grammar is not completely right.
+
+However, using something like this:
+
+tee_stmt                :       TEE             tee_stmt_opts
+                        {
+                                $$ =3D tee_stmt_alloc(&@$);
+                        }
+                        ;
+
+tee_stmt_opts           :       tee_stmt_opts   tee_stmt_opt
+                        |       tee_stmt_opt
+                        ;
+
+tee_stmt_opt            :       GW              expr
+                        {
+                                $<stmt>0->tee.gw =3D $2;
+                        }
+                        |       OIFNAME         string
+                        {
+                                $<stmt>0->tee.oifname =3D strdup($2);
+                        }
+                        ;
+
+lead to shift/reduce conflicts, because expr can be `OIFNAME string'.
+
+Any idea?
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
