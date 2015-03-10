@@ -1,86 +1,132 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nft PATCH v3 2/2] src: add import command
-Date: Tue, 10 Mar 2015 11:37:46 +0100
-Message-ID: <20150310103737.GC4538@acer.localdomain>
-References: <1425981858-10687-1-git-send-email-alvaroneay@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: bridge: use rcu hook to resolve br_netfilter dependency
+Date: Tue, 10 Mar 2015 12:25:55 +0100
+Message-ID: <1425986755-3648-1-git-send-email-pablo@netfilter.org>
+Cc: simon.horman@netronome.com, fw@strlen.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:39246 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751026AbbCJKhu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Mar 2015 06:37:50 -0400
-Content-Disposition: inline
-In-Reply-To: <1425981858-10687-1-git-send-email-alvaroneay@gmail.com>
+Received: from mail.us.es ([193.147.175.20]:36936 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750892AbbCJLWO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Mar 2015 07:22:14 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 10.03, Alvaro Neira Ayuso wrote:
-> @@ -275,6 +279,13 @@ struct export {
->  struct export *export_alloc(uint32_t format);
->  void export_free(struct export *e);
->  
-> +struct import {
-> +	uint32_t	format;
-> +};
-> +
-> +struct import *import_alloc(uint32_t format);
-> +void import_free(struct import *i);
+e5de75b ("netfilter: bridge: move DNAT helper to br_netfilter") results
+in the following link problem:
 
-How about a common struct for both commands? "format", "import_export",
-...
+net/bridge/br_device.c:29: undefined reference to `br_nf_prerouting_finish_bridge`
 
-> +import_cmd		:	import_format
+Moreover it creates a hard dependency between br_netfilter and the
+bridge core, which is what we've been trying to avoid so far.
 
-Same here, please change export_format to something common.
+Resolve this problem by using a hook structure so we reduce #ifdef
+pollution and keep bridge netfilter specific code under br_netfilter.c
+which was the original intention.
 
-> +static int ruleset_parse_setelems(const struct nft_parse_ctx *ctx)
-> +{
-> +	const struct ruleset_parse *rp;
-> +	struct nft_set *set;
-> +	uint32_t cmd;
-> +	int ret = -1;
-> +
-> +	set = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_SET);
-> +	rp = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_DATA);
-> +
-> +	cmd = nft_ruleset_ctx_get_u32(ctx, NFT_RULESET_CTX_CMD);
-> +	switch (cmd) {
-> +	case NFT_CMD_ADD:
-> +		ret = mnl_nft_setelem_batch_add(set, 0, rp->nl_ctx->seqnum);
-> +		break;
-> +	case NFT_CMD_DELETE:
-> +		ret = mnl_nft_setelem_batch_del(set, 0, rp->nl_ctx->seqnum);
-> +		break;
-> +	default:
-> +		errno = EOPNOTSUPP;
-> +		break;
+Reported-by: Simon Horman <simon.horman@netronome.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/bridge/br_device.c    |    7 ++++++-
+ net/bridge/br_netfilter.c |    9 +++++++--
+ net/bridge/br_private.h   |   10 +++++-----
+ 3 files changed, 18 insertions(+), 8 deletions(-)
 
-This would be a BUG, no? Same question for all similar cases.
+diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
+index 294cbcc..4ff77a1 100644
+--- a/net/bridge/br_device.c
++++ b/net/bridge/br_device.c
+@@ -25,6 +25,9 @@
+ #define COMMON_FEATURES (NETIF_F_SG | NETIF_F_FRAGLIST | NETIF_F_HIGHDMA | \
+ 			 NETIF_F_GSO_MASK | NETIF_F_HW_CSUM)
+ 
++const struct nf_br_ops __rcu *nf_br_ops __read_mostly;
++EXPORT_SYMBOL_GPL(nf_br_ops);
++
+ /* net device transmit always called with BH disabled */
+ netdev_tx_t br_dev_xmit(struct sk_buff *skb, struct net_device *dev)
+ {
+@@ -33,10 +36,12 @@ netdev_tx_t br_dev_xmit(struct sk_buff *skb, struct net_device *dev)
+ 	struct net_bridge_fdb_entry *dst;
+ 	struct net_bridge_mdb_entry *mdst;
+ 	struct pcpu_sw_netstats *brstats = this_cpu_ptr(br->stats);
++	const struct nf_br_ops *nf_ops;
+ 	u16 vid = 0;
+ 
+ 	rcu_read_lock();
+-	if (br_nf_prerouting_finish_bridge(skb)) {
++	nf_ops = rcu_dereference(nf_br_ops);
++	if (nf_ops && nf_ops->br_dev_xmit_hook(skb)) {
+ 		rcu_read_unlock();
+ 		return NETDEV_TX_OK;
+ 	}
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index a8361c7..b260a97 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -914,7 +914,7 @@ static void br_nf_pre_routing_finish_bridge_slow(struct sk_buff *skb)
+ 	br_handle_frame_finish(skb);
+ }
+ 
+-int br_nf_prerouting_finish_bridge(struct sk_buff *skb)
++static int br_nf_dev_xmit(struct sk_buff *skb)
+ {
+ 	if (skb->nf_bridge && (skb->nf_bridge->mask & BRNF_BRIDGED_DNAT)) {
+ 		br_nf_pre_routing_finish_bridge_slow(skb);
+@@ -922,7 +922,10 @@ int br_nf_prerouting_finish_bridge(struct sk_buff *skb)
+ 	}
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(br_nf_prerouting_finish_bridge);
++
++static const struct nf_br_ops br_ops = {
++	.br_dev_xmit_hook =	br_nf_dev_xmit,
++};
+ 
+ void br_netfilter_enable(void)
+ {
+@@ -1061,12 +1064,14 @@ static int __init br_netfilter_init(void)
+ 		return -ENOMEM;
+ 	}
+ #endif
++	RCU_INIT_POINTER(nf_br_ops, &br_ops);
+ 	printk(KERN_NOTICE "Bridge firewalling registered\n");
+ 	return 0;
+ }
+ 
+ static void __exit br_netfilter_fini(void)
+ {
++	RCU_INIT_POINTER(nf_br_ops, NULL);
+ 	nf_unregister_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
+ #ifdef CONFIG_SYSCTL
+ 	unregister_net_sysctl_table(brnf_sysctl_header);
+diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
+index d63fc17..7b6e235 100644
+--- a/net/bridge/br_private.h
++++ b/net/bridge/br_private.h
+@@ -762,17 +762,17 @@ static inline int br_vlan_enabled(struct net_bridge *br)
+ }
+ #endif
+ 
++struct nf_br_ops {
++	int (*br_dev_xmit_hook)(struct sk_buff *skb);
++};
++extern const struct nf_br_ops __rcu *nf_br_ops;
++
+ /* br_netfilter.c */
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+-int br_nf_prerouting_finish_bridge(struct sk_buff *skb);
+ int br_nf_core_init(void);
+ void br_nf_core_fini(void);
+ void br_netfilter_rtable_init(struct net_bridge *);
+ #else
+-static inline int br_nf_prerouting_finish_bridge(struct sk_buff *skb)
+-{
+-        return 0;
+-}
+ static inline int br_nf_core_init(void) { return 0; }
+ static inline void br_nf_core_fini(void) {}
+ #define br_netfilter_rtable_init(x)
+-- 
+1.7.10.4
 
-> +static int do_command_import(struct netlink_ctx *ctx, struct cmd *cmd)
-> +{
-> +	int ret;
-> +	struct nft_parse_err *err;
-> +	struct ruleset_parse rp = {
-> +		.nl_ctx = ctx,
-> +		.cmd = cmd
-
-Please align, makes it easier to read.
-
-> +	ret = nft_ruleset_parse_file_cb(cmd->import->format, stdin, err, &rp,
-> +					ruleset_parse_cb);
-> +	if (ret < 0)
-> +		nft_parse_perror("unable to import. Parsing failed", err);
-
-I'd suggest a ": parsing failed", makes it clear that its only a single
-error, not two.
-
-> +
-> +	nft_parse_err_free(err);
-> +	return ret;
-> +}
-> +
