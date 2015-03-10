@@ -1,84 +1,86 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [nft PATCH] src: add tee statement support
-Date: Tue, 10 Mar 2015 11:31:00 +0100
-Message-ID: <CAOkSjBhq2z0kmq3Xd_smgcj+JoVCn7kEJHCRz2ccRc5FTVpiGw@mail.gmail.com>
-References: <20150309193820.6763.36920.stgit@nfdev.cica.es>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [nft PATCH v3 2/2] src: add import command
+Date: Tue, 10 Mar 2015 11:37:46 +0100
+Message-ID: <20150310103737.GC4538@acer.localdomain>
+References: <1425981858-10687-1-git-send-email-alvaroneay@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:41664 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751295AbbCJKbV convert rfc822-to-8bit (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:39246 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026AbbCJKhu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Mar 2015 06:31:21 -0400
-Received: by lbvp9 with SMTP id p9so617568lbv.8
-        for <netfilter-devel@vger.kernel.org>; Tue, 10 Mar 2015 03:31:20 -0700 (PDT)
-In-Reply-To: <20150309193820.6763.36920.stgit@nfdev.cica.es>
+	Tue, 10 Mar 2015 06:37:50 -0400
+Content-Disposition: inline
+In-Reply-To: <1425981858-10687-1-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 9 March 2015 at 20:38, Arturo Borrero Gonzalez
-<arturo.borrero.glez@gmail.com> wrote:
-> The syntax is:
->  tee gw <addr> [oifname <str>]
->
-[...]
->
-> +tee_stmt               :       tee_stmt_alloc  tee_stmt_opt
-> +                       ;
+On 10.03, Alvaro Neira Ayuso wrote:
+> @@ -275,6 +279,13 @@ struct export {
+>  struct export *export_alloc(uint32_t format);
+>  void export_free(struct export *e);
+>  
+> +struct import {
+> +	uint32_t	format;
+> +};
 > +
-> +tee_stmt_alloc         :       TEE
-> +                       {
-> +                               $$ =3D tee_stmt_alloc(&@$);
-> +                       }
-> +                       ;
+> +struct import *import_alloc(uint32_t format);
+> +void import_free(struct import *i);
+
+How about a common struct for both commands? "format", "import_export",
+...
+
+> +import_cmd		:	import_format
+
+Same here, please change export_format to something common.
+
+> +static int ruleset_parse_setelems(const struct nft_parse_ctx *ctx)
+> +{
+> +	const struct ruleset_parse *rp;
+> +	struct nft_set *set;
+> +	uint32_t cmd;
+> +	int ret = -1;
 > +
-> +tee_stmt_opt           :       GW              expr
-> +                       {
-> +                               $<stmt>0->tee.gw =3D $2;
-> +                       }
-> +                       |       OIFNAME         STRING
-> +                       {
-> +                               $<stmt>0->tee.oifname =3D strdup($2);
-> +                       }
-> +                       ;
+> +	set = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_SET);
+> +	rp = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_DATA);
 > +
+> +	cmd = nft_ruleset_ctx_get_u32(ctx, NFT_RULESET_CTX_CMD);
+> +	switch (cmd) {
+> +	case NFT_CMD_ADD:
+> +		ret = mnl_nft_setelem_batch_add(set, 0, rp->nl_ctx->seqnum);
+> +		break;
+> +	case NFT_CMD_DELETE:
+> +		ret = mnl_nft_setelem_batch_del(set, 0, rp->nl_ctx->seqnum);
+> +		break;
+> +	default:
+> +		errno = EOPNOTSUPP;
+> +		break;
 
-This grammar is not completely right.
+This would be a BUG, no? Same question for all similar cases.
 
-However, using something like this:
+> +static int do_command_import(struct netlink_ctx *ctx, struct cmd *cmd)
+> +{
+> +	int ret;
+> +	struct nft_parse_err *err;
+> +	struct ruleset_parse rp = {
+> +		.nl_ctx = ctx,
+> +		.cmd = cmd
 
-tee_stmt                :       TEE             tee_stmt_opts
-                        {
-                                $$ =3D tee_stmt_alloc(&@$);
-                        }
-                        ;
+Please align, makes it easier to read.
 
-tee_stmt_opts           :       tee_stmt_opts   tee_stmt_opt
-                        |       tee_stmt_opt
-                        ;
+> +	ret = nft_ruleset_parse_file_cb(cmd->import->format, stdin, err, &rp,
+> +					ruleset_parse_cb);
+> +	if (ret < 0)
+> +		nft_parse_perror("unable to import. Parsing failed", err);
 
-tee_stmt_opt            :       GW              expr
-                        {
-                                $<stmt>0->tee.gw =3D $2;
-                        }
-                        |       OIFNAME         string
-                        {
-                                $<stmt>0->tee.oifname =3D strdup($2);
-                        }
-                        ;
+I'd suggest a ": parsing failed", makes it clear that its only a single
+error, not two.
 
-lead to shift/reduce conflicts, because expr can be `OIFNAME string'.
-
-Any idea?
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +
+> +	nft_parse_err_free(err);
+> +	return ret;
+> +}
+> +
