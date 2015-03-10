@@ -1,107 +1,112 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH next] netfilter: fix sparse warnings in reject handling
-Date: Mon,  9 Mar 2015 23:04:15 +0100
-Message-ID: <1425938655-9549-1-git-send-email-fw@strlen.de>
+Subject: [PATCH -next v2] netfilter: bridge: query conntrack about skb dnat
+Date: Tue, 10 Mar 2015 05:08:19 +0100
+Message-ID: <1425960499-8997-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44473 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44994 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751026AbbCIWEZ (ORCPT
+	by vger.kernel.org with ESMTP id S1751019AbbCJEIb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Mar 2015 18:04:25 -0400
+	Tue, 10 Mar 2015 00:08:31 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-make C=1 CF=-D__CHECK_ENDIAN__ shows following:
+ask conntrack instead of storing ipv4 address in nf_bridge_info->data.
 
-net/bridge/netfilter/nft_reject_bridge.c:65:50: warning: incorrect type in argument 3 (different base types)
-net/bridge/netfilter/nft_reject_bridge.c:65:50:    expected restricted __be16 [usertype] protocol [..]
-net/bridge/netfilter/nft_reject_bridge.c:102:37: warning: cast from restricted __be16
-net/bridge/netfilter/nft_reject_bridge.c:102:37: warning: incorrect type in argument 1 (different base types) [..]
-net/bridge/netfilter/nft_reject_bridge.c:121:50: warning: incorrect type in argument 3 (different base types) [..]
-net/bridge/netfilter/nft_reject_bridge.c:168:52: warning: incorrect type in argument 3 (different base types) [..]
-net/bridge/netfilter/nft_reject_bridge.c:233:52: warning: incorrect type in argument 3 (different base types) [..]
+Ths avoids the need to use ->data during NF_PRE_ROUTING.
+Only two functions that need ->data remain.
 
-Caused by two (harmless) errors:
-1. htons() instead of ntohs()
-2. __be16 for protocol in nf_reject_ipXhdr_put API, use u8 instead.
+These will be addressed in followup patches.
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/ipv4/nf_reject.h   | 2 +-
- include/net/netfilter/ipv6/nf_reject.h   | 2 +-
- net/bridge/netfilter/nft_reject_bridge.c | 2 +-
- net/ipv4/netfilter/nf_reject_ipv4.c      | 2 +-
- net/ipv6/netfilter/nf_reject_ipv6.c      | 2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+ changes since v2: add IS_ENABLED test so we don't build-barf when
+ NF_CONNTRACK=n.
 
-diff --git a/include/net/netfilter/ipv4/nf_reject.h b/include/net/netfilter/ipv4/nf_reject.h
-index 8641275..77862c3 100644
---- a/include/net/netfilter/ipv4/nf_reject.h
-+++ b/include/net/netfilter/ipv4/nf_reject.h
-@@ -12,7 +12,7 @@ const struct tcphdr *nf_reject_ip_tcphdr_get(struct sk_buff *oldskb,
- 					     struct tcphdr *_oth, int hook);
- struct iphdr *nf_reject_iphdr_put(struct sk_buff *nskb,
- 				  const struct sk_buff *oldskb,
--				  __be16 protocol, int ttl);
-+				  __u8 protocol, int ttl);
- void nf_reject_ip_tcphdr_put(struct sk_buff *nskb, const struct sk_buff *oldskb,
- 			     const struct tcphdr *oth);
+ Resending this outside of the rest of the series since it has no
+ dependencies.
+
+ include/linux/netfilter_bridge.h |  6 ------
+ net/bridge/br_netfilter.c        | 27 +++++++++++++++++++++------
+ 2 files changed, 21 insertions(+), 12 deletions(-)
+
+diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
+index bb39113..de123d7 100644
+--- a/include/linux/netfilter_bridge.h
++++ b/include/linux/netfilter_bridge.h
+@@ -54,12 +54,6 @@ static inline unsigned int nf_bridge_pad(const struct sk_buff *skb)
+ 	return 0;
+ }
  
-diff --git a/include/net/netfilter/ipv6/nf_reject.h b/include/net/netfilter/ipv6/nf_reject.h
-index 0ae445d..0ea4fa3 100644
---- a/include/net/netfilter/ipv6/nf_reject.h
-+++ b/include/net/netfilter/ipv6/nf_reject.h
-@@ -13,7 +13,7 @@ const struct tcphdr *nf_reject_ip6_tcphdr_get(struct sk_buff *oldskb,
- 					      unsigned int *otcplen, int hook);
- struct ipv6hdr *nf_reject_ip6hdr_put(struct sk_buff *nskb,
- 				     const struct sk_buff *oldskb,
--				     __be16 protocol, int hoplimit);
-+				     __u8 protocol, int hoplimit);
- void nf_reject_ip6_tcphdr_put(struct sk_buff *nskb,
- 			      const struct sk_buff *oldskb,
- 			      const struct tcphdr *oth, unsigned int otcplen);
-diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilter/nft_reject_bridge.c
-index 5c6c965..54a2fdf 100644
---- a/net/bridge/netfilter/nft_reject_bridge.c
-+++ b/net/bridge/netfilter/nft_reject_bridge.c
-@@ -99,7 +99,7 @@ static void nft_reject_br_send_v4_unreach(struct sk_buff *oldskb,
- 	if (!pskb_may_pull(oldskb, len))
- 		return;
- 
--	if (pskb_trim_rcsum(oldskb, htons(ip_hdr(oldskb)->tot_len)))
-+	if (pskb_trim_rcsum(oldskb, ntohs(ip_hdr(oldskb)->tot_len)))
- 		return;
- 
- 	if (ip_hdr(oldskb)->protocol == IPPROTO_TCP ||
-diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-index b7405eb..c5b794d 100644
---- a/net/ipv4/netfilter/nf_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nf_reject_ipv4.c
-@@ -43,7 +43,7 @@ EXPORT_SYMBOL_GPL(nf_reject_ip_tcphdr_get);
- 
- struct iphdr *nf_reject_iphdr_put(struct sk_buff *nskb,
- 				  const struct sk_buff *oldskb,
--				  __be16 protocol, int ttl)
-+				  __u8 protocol, int ttl)
+-struct bridge_skb_cb {
+-	union {
+-		__be32 ipv4;
+-	} daddr;
+-};
+-
+ static inline void br_drop_fake_rtable(struct sk_buff *skb)
  {
- 	struct iphdr *niph, *oiph = ip_hdr(oldskb);
+ 	struct dst_entry *dst = skb_dst(skb);
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index a8361c7..f92a1f7 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -37,17 +37,16 @@
+ #include <net/route.h>
+ #include <net/netfilter/br_netfilter.h>
  
-diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
-index 68e0bb4..3afdce0 100644
---- a/net/ipv6/netfilter/nf_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nf_reject_ipv6.c
-@@ -65,7 +65,7 @@ EXPORT_SYMBOL_GPL(nf_reject_ip6_tcphdr_get);
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++#include <net/netfilter/nf_conntrack.h>
++#endif
++
+ #include <asm/uaccess.h>
+ #include "br_private.h"
+ #ifdef CONFIG_SYSCTL
+ #include <linux/sysctl.h>
+ #endif
  
- struct ipv6hdr *nf_reject_ip6hdr_put(struct sk_buff *nskb,
- 				     const struct sk_buff *oldskb,
--				     __be16 protocol, int hoplimit)
-+				     __u8 protocol, int hoplimit)
- {
- 	struct ipv6hdr *ip6h;
- 	const struct ipv6hdr *oip6h = ipv6_hdr(oldskb);
+-#define skb_origaddr(skb)	 (((struct bridge_skb_cb *) \
+-				 (skb->nf_bridge->data))->daddr.ipv4)
+-#define store_orig_dstaddr(skb)	 (skb_origaddr(skb) = ip_hdr(skb)->daddr)
+-#define dnat_took_place(skb)	 (skb_origaddr(skb) != ip_hdr(skb)->daddr)
+-
+ #ifdef CONFIG_SYSCTL
+ static struct ctl_table_header *brnf_sysctl_header;
+ static int brnf_call_iptables __read_mostly = 1;
+@@ -322,6 +321,22 @@ free_skb:
+ 	return 0;
+ }
+ 
++static bool dnat_took_place(const struct sk_buff *skb)
++{
++#if IS_ENABLED(CONFIG_NF_CONNTRACK)
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct;
++
++	ct = nf_ct_get(skb, &ctinfo);
++	if (!ct || nf_ct_is_untracked(ct))
++		return false;
++
++	return test_bit(IPS_DST_NAT_BIT, &ct->status);
++#else
++	return false;
++#endif
++}
++
+ /* This requires some explaining. If DNAT has taken place,
+  * we will need to fix up the destination Ethernet address.
+  *
+@@ -625,7 +640,7 @@ static unsigned int br_nf_pre_routing(const struct nf_hook_ops *ops,
+ 		return NF_DROP;
+ 	if (!setup_pre_routing(skb))
+ 		return NF_DROP;
+-	store_orig_dstaddr(skb);
++
+ 	skb->protocol = htons(ETH_P_IP);
+ 
+ 	NF_HOOK(NFPROTO_IPV4, NF_INET_PRE_ROUTING, skb, skb->dev, NULL,
 -- 
 2.0.5
 
