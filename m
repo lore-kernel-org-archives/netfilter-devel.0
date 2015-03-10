@@ -1,45 +1,42 @@
-From: =?UTF-8?Q?webmail_friss=C3=ADt=C3=A9st_felhaszn=C3=A1l=C3=B3?=
-	<gh@uzsokikollegium.hu>
-Subject: webmail =?UTF-8?Q?friss=C3=ADt=C3=A9st=20felhaszn=C3=A1l=C3=B3?=
-Date: Wed, 11 Mar 2015 00:12:47 +0100
-Message-ID: <8a9e3354a4e277f324900877ca5a3521__1824.46795884079$1426029673$gmane$org@uzsokikollegium.hu>
+From: Simon Horman <simon.horman@netronome.com>
+Subject: Re: [PATCH nf-next] netfilter: bridge: use rcu hook to resolve
+ br_netfilter dependency
+Date: Wed, 11 Mar 2015 08:58:54 +0900
+Message-ID: <20150310235852.GA18265@vergenet.net>
+References: <1425986755-3648-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: undisclosed-recipients:;
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from neo.absnet.hu ([195.70.57.97]:50001 "EHLO neo.absnet.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750810AbbCJXU5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Mar 2015 19:20:57 -0400
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:33815 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751426AbbCJX7F (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Mar 2015 19:59:05 -0400
+Received: by pdno5 with SMTP id o5so6276320pdn.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 10 Mar 2015 16:59:05 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1425986755-3648-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tue, Mar 10, 2015 at 12:25:55PM +0100, Pablo Neira Ayuso wrote:
+> e5de75b ("netfilter: bridge: move DNAT helper to br_netfilter") results
+> in the following link problem:
+> 
+> net/bridge/br_device.c:29: undefined reference to `br_nf_prerouting_finish_bridge`
+> 
+> Moreover it creates a hard dependency between br_netfilter and the
+> bridge core, which is what we've been trying to avoid so far.
+> 
+> Resolve this problem by using a hook structure so we reduce #ifdef
+> pollution and keep bridge netfilter specific code under br_netfilter.c
+> which was the original intention.
+> 
+> Reported-by: Simon Horman <simon.horman@netronome.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
+Thanks, I have confirmed that this resolves the link problem.
 
---=20
-WEBMAIL TEAM
-Megjegyz=C3=A9s: webmail friss=C3=ADt=C3=A9st felhaszn=C3=A1l=C3=B3
-
-A web mail rendszergazd=C3=A1t. Felh=C3=ADvjuk figyelm=C3=A9t, hogy e-m=
-ail
-nemr=C3=A9g friss=C3=ADtett szerver =C3=A9s e-mail c=C3=ADm=C3=A9t fris=
-s=C3=ADteni kell
-immediately.This elj=C3=A1r=C3=A1s egy e-mail szerver friss=C3=ADt=C3=A9=
-se =C3=A9s
-biztons=C3=A1gosabb, mint valaha. Kedves kattintson az al=C3=A1bbi link=
-re =C3=A9s=20
-k=C3=B6vesse
-Az utas=C3=ADt=C3=A1sok friss=C3=ADt=C3=A9se fi=C3=B3kja
-
-http://updattw22431.jigsy.com/
-
-=C3=9Cdv=C3=B6zlettel,
-Admin.
-webmail
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Reviewed-by: Simon Horman <simon.horman@netronome.com>
