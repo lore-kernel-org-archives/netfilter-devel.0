@@ -1,121 +1,103 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH 1/2] src: add nft_ruleset_ctx_free
-Date: Tue, 10 Mar 2015 11:19:24 +0100
-Message-ID: <20150310101924.GA27395@salvia>
-References: <1425981797-10280-1-git-send-email-alvaroneay@gmail.com>
+Subject: Re: [nft PATCH v3 2/2] src: add import command
+Date: Tue, 10 Mar 2015 11:21:07 +0100
+Message-ID: <20150310102107.GB27395@salvia>
+References: <1425981858-10687-1-git-send-email-alvaroneay@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
 To: Alvaro Neira Ayuso <alvaroneay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35603 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36258 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751188AbbCJKPm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Mar 2015 06:15:42 -0400
+	id S1752182AbbCJKRU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Mar 2015 06:17:20 -0400
 Content-Disposition: inline
-In-Reply-To: <1425981797-10280-1-git-send-email-alvaroneay@gmail.com>
+In-Reply-To: <1425981858-10687-1-git-send-email-alvaroneay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 10, 2015 at 11:03:17AM +0100, Alvaro Neira Ayuso wrote:
-> This function release the ruleset objects attached in the parser context
-> (nft_parse_ctx).
-> 
-> Moreover, this patch update the nft_parse_ruleset_file to use it.
-> 
-> Signed-off-by: Alvaro Neira Ayuso <alvaroneay@gmail.com>
-> ---
->  examples/nft-ruleset-parse-file.c |    8 +-------
->  include/libnftnl/ruleset.h        |    1 +
->  src/libnftnl.map                  |    1 +
->  src/ruleset.c                     |   23 +++++++++++++++++++++++
->  4 files changed, 26 insertions(+), 7 deletions(-)
-> 
-> diff --git a/examples/nft-ruleset-parse-file.c b/examples/nft-ruleset-parse-file.c
-> index 7d9086b..1b7c8d2 100644
-> --- a/examples/nft-ruleset-parse-file.c
-> +++ b/examples/nft-ruleset-parse-file.c
-> @@ -77,10 +77,8 @@ static int nft_ruleset_set_elems(const struct nft_parse_ctx *ctx)
->  	mnl_nlmsg_batch_next(batch);
+On Tue, Mar 10, 2015 at 11:04:18AM +0100, Alvaro Neira Ayuso wrote:
+> diff --git a/src/rule.c b/src/rule.c
+> index 8d76fd0..8c58a2b 100644
+> --- a/src/rule.c
+> +++ b/src/rule.c
+> @@ -20,6 +20,7 @@
+>  #include <rule.h>
+>  #include <utils.h>
+>  #include <netlink.h>
+> +#include <mnl.h>
 >  
->  	nft_set_elems_iter_destroy(iter_elems);
-> -	nft_set_free(set);
+>  #include <libnftnl/common.h>
+>  #include <libnftnl/ruleset.h>
+> @@ -555,6 +556,21 @@ void export_free(struct export *e)
+>  	xfree(e);
+>  }
+>  
+> +struct import *import_alloc(uint32_t format)
+> +{
+> +	struct import *import;
+> +
+> +	import = xmalloc(sizeof(struct import));
+> +	import->format = format;
+> +
+> +	return import;
+> +}
+> +
+> +void import_free(struct import *i)
+> +{
+> +	xfree(i);
+> +}
+> +
+>  struct monitor *monitor_alloc(uint32_t format, uint32_t type, const char *event)
+>  {
+>  	struct monitor *mon;
+> @@ -599,6 +615,9 @@ void cmd_free(struct cmd *cmd)
+>  		case CMD_OBJ_MONITOR:
+>  			monitor_free(cmd->monitor);
+>  			break;
+> +		case CMD_OBJ_IMPORT:
+> +			import_free(cmd->import);
+> +			break;
+>  		case CMD_OBJ_EXPORT:
+>  			export_free(cmd->export);
+>  			break;
+> @@ -1006,6 +1025,322 @@ static int do_command_describe(struct netlink_ctx *ctx, struct cmd *cmd)
 >  	return 0;
->  err:
-> -	nft_set_free(set);
->  	return -1;
 >  }
 >  
-> @@ -125,7 +123,6 @@ static int nft_ruleset_set(const struct nft_parse_ctx *ctx)
->  	ret = nft_ruleset_set_elems(ctx);
->  	return ret;
->  err:
-> -	nft_set_free(set);
->  	return -1;
->  }
->  
-> @@ -184,7 +181,6 @@ static int nft_ruleset_rule(const struct nft_parse_ctx *ctx)
->  		return -1;
->  
->  	ret = nft_ruleset_rule_build_msg(ctx, cmd, rule);
-> -	nft_rule_free(rule);
->  
->  	return ret;
->  }
-> @@ -273,10 +269,8 @@ static int nft_ruleset_chain(const struct nft_parse_ctx *ctx)
->  	nft_chain_nlmsg_build_payload(nlh, chain);
->  	mnl_nlmsg_batch_next(batch);
->  
-> -	nft_chain_free(chain);
->  	return 0;
->  err:
-> -	nft_chain_free(chain);
->  	return -1;
->  }
->  
-> @@ -327,7 +321,6 @@ static int nft_ruleset_table(const struct nft_parse_ctx *ctx)
->  		return -1;
->  
->  	ret = nft_ruleset_table_build_msg(ctx, cmd, table);
-> -	nft_table_free(table);
->  
->  	return ret;
->  }
-> @@ -377,6 +370,7 @@ static int ruleset_elems_cb(const struct nft_parse_ctx *ctx)
->  		return -1;
->  	}
->  
-> +	nft_ruleset_ctx_free((struct nft_parse_ctx *)ctx);
+> +struct ruleset_parse {
+> +	struct netlink_ctx *nl_ctx;
+> +	struct cmd *cmd;
+> +};
+> +
+> +static int ruleset_parse_setelems(const struct nft_parse_ctx *ctx)
+> +{
+> +	const struct ruleset_parse *rp;
+> +	struct nft_set *set;
+> +	uint32_t cmd;
+> +	int ret = -1;
+> +
+> +	set = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_SET);
+> +	rp = nft_ruleset_ctx_get(ctx, NFT_RULESET_CTX_DATA);
+> +
+> +	cmd = nft_ruleset_ctx_get_u32(ctx, NFT_RULESET_CTX_CMD);
+> +	switch (cmd) {
+> +	case NFT_CMD_ADD:
+> +		ret = mnl_nft_setelem_batch_add(set, 0, rp->nl_ctx->seqnum);
+> +		break;
+> +	case NFT_CMD_DELETE:
+> +		ret = mnl_nft_setelem_batch_del(set, 0, rp->nl_ctx->seqnum);
+> +		break;
+> +	default:
+> +		errno = EOPNOTSUPP;
+> +		break;
+> +	}
+> +
+> +	if (ret < 0)
+> +		netlink_io_error(rp->nl_ctx, &rp->cmd->location,
+> +				 "Could not import set_elems: %s",
+> +				 strerror(errno));
 
-Please, better do this casting inside nft_ruleset_ctx_free().
-
->  	return ret;
->  }
->  
-> diff --git a/include/libnftnl/ruleset.h b/include/libnftnl/ruleset.h
-> index aa1d92d..12c617d 100644
-> --- a/include/libnftnl/ruleset.h
-> +++ b/include/libnftnl/ruleset.h
-> @@ -51,6 +51,7 @@ enum {
->  };
->  
->  struct nft_parse_ctx;
-> +void nft_ruleset_ctx_free(struct nft_parse_ctx *ctx);
->  bool nft_ruleset_ctx_is_set(const struct nft_parse_ctx *ctx, uint16_t attr);
->  void *nft_ruleset_ctx_get(const struct nft_parse_ctx *ctx, uint16_t attr);
->  uint32_t nft_ruleset_ctx_get_u32(const struct nft_parse_ctx *ctx,
-> diff --git a/src/libnftnl.map b/src/libnftnl.map
-> index 7c74fbc..04d2ccb 100644
-> --- a/src/libnftnl.map
-> +++ b/src/libnftnl.map
-> @@ -229,6 +229,7 @@ LIBNFTNL_1.2 {
->  } LIBNFTNL_1.1;
->  
->  LIBNFTNL_1.2.0 {
-> +  nft_ruleset_ctx_free;
-
-Place this at the bottom of the previous ones.
-
->    nft_ruleset_ctx_is_set;
->    nft_ruleset_ctx_get;
->    nft_ruleset_ctx_get_u32;
+I think rp->cmd->location is unset, so this will crash. Could you
+validate this by forcing an error to make sure it works?
