@@ -1,108 +1,63 @@
-From: Glen Miner <shaggie76@hotmail.com>
-Subject: iptables at scale
-Date: Wed, 11 Mar 2015 15:10:01 -0400
-Message-ID: <SNT152-W61FA9088D57B93B1B5C878B8190@phx.gbl>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH RESEND] Add element count to hash headers
+Date: Wed, 11 Mar 2015 20:20:33 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1503112012020.12147@blackhole.kfki.hu>
+References: <1424289208-6164-1-git-send-email-emunson@akamai.com> <54F67D2E.5050003@akamai.com> <alpine.DEB.2.10.1503062148590.29108@blackhole.kfki.hu> <54FDEEE5.4020101@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Josh Hunt <johunt@akamai.com>, netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Eric B Munson <emunson@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from snt004-omc1s50.hotmail.com ([65.54.61.87]:52832 "EHLO
-	SNT004-OMC1S50.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751724AbbCKTPD convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Mar 2015 15:15:03 -0400
+Received: from smtp-in.kfki.hu ([148.6.0.28]:42089 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751538AbbCKTSp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Mar 2015 15:18:45 -0400
+In-Reply-To: <54FDEEE5.4020101@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We built a proxy system on top of netfilter for our online game; it wor=
-ks pretty well but we've run into some problems at scale that I thought=
- you might be interested in. I'm also keenly interested in any feedback=
- or suggestions that you may have for scaling higher because the market=
-s we're moving into need a lot more proxies than iptables can handle ri=
-ght now.
+On Mon, 9 Mar 2015, Eric B Munson wrote:
 
-What it does: makes UDP NAT proxies so people with strict-NAT or multi-=
-layer NAT can communicate. This essentially works out to be 4 iptables =
-rules created for a pair of peers. They talk to our server and our serv=
-er makes it look like they're talking to each other; fighting bad NAT w=
-ith our NAT is somewhat ironic but it's quite elegant.
+> > The new line in the output "breaks" any script which parses the
+> > listing and not prepared that such change may occur (actually, the
+> > testsuite itself must be fixed therefore too). At the same time I
+> > don't really like the idea of a new flag to turn on the printing of
+> > the info - just print it.
+> 
+> I will make sure that V2 includes any necessary changes to the test suite.
 
-The good: the system load scales *very* well -- we have it servicing th=
-ousands of players and 40+mbit of game traffic on a single node right n=
-ow and the CPU is 95% idle.
+Thanks in advance.
 
-The bad: under load we're creating or deleting rules 10-20 times per se=
-cond and want to scale that much higher.=A0
+> > The listing becomes non-uniform and type-dependent, because it's 
+> > restricted to the hash types. But therefore should we add the
+> > listing of the number of elements to the bitmap and list types too?
+> > For the hash types, the data comes free - for the other types is
+> > must be calculated at every listing.
+> 
+> This is the reason I only added it for the hash type.  I don't have
+> any objection to adding it to the bitmap and list types as well but I
+> didn't have a consumer for that information in mind to justify the
+> extra calculations at run time.  Plus, the libipset consumer could
+> count entries in output just as well as the library itself.
 
-Our initial implementation used sudo iptables however this had consider=
-able overhead; we were able to cut that time in half by converting 4 ip=
-tables calls into 1 iptables-restore with noflush. We then rewrote our =
-server to run as root and use the native iptc APIs (knowing full well w=
-e're at the mercy of things changing) and this made things about 20x fa=
-ster.
+That would be a little complicated (I mean to count the entries from 
+libipset): the library should cache all the entries to count them, finish 
+printing the header by the element count and then print the elements.
 
-The ugly: as the number if iptables rules increases the time required t=
-o modify the table grows. At first this is linear but it starts to go s=
-uper-linear after about 16,000 rules or so;=A0=A0I assume it's blowing =
-out a CPU cache.
+But "ipset" supports the terse list mode when just the header is listed, 
+without the elements. So I believe it's just better to calculate the 
+element count in the kernel header function for the bitmap and list types 
+as well. It can be a lazy counting, without taking into account the 
+possible timed out entries: that way the element counter is at least 
+consistent.
 
-Here's some real world numbers for creation time (again, note 1 proxy =3D=
- 4 iptables rules)
+Let's skip bumping the revision numbers for the set types.
 
-The first 100 proxies take under 1ms each
-At 750 proxies we're seeing them take 10ms each
-At 4000 proxies we're at 70ms each
-At 5000 proxies we're at 100-160ms each (it's erratic)
-
-I can post a graph somewhere if people want to see it.
-
-I did a bit of timing; for the 1st proxy created it's very fast:
-
-104us iptc_init
-19us=A0=A02x iptc_insert_entry and 2x iptc_append_entry
-50us ipc_commit
-65us iptc_free
-
-At the 5000 proxy / 20,000 rule mark the timings are nearly 1000x longe=
-r; note timings are in=A0milliseconds instead of=A0microseconds:
-
-38 ms for iptc_init("nat");
-0.05 ms for 2x iptc_insert_entry and 2x iptc_append_entry
-72 ms for iptc_commit
-5.5 ms for iptc_free
-
-My test machine is an old Intel(R) Pentium(R) D =A0CPU 2.66GHz (obvious=
-ly we use big iron for production servers) and I've observed the same s=
-caling problems in production.
-
-At this point I'm getting desperate and am questioning my sanity -- loo=
-king at the iptc interfaces I just don't see how I could improve things=
- -- even the allocator overhead for 20,000 rules is painful. The best I=
- can do is a whole lot of async back flips to batch up operations that =
-have accumulated while we were grinding in iptc_* and try to flush them=
- through in a single init/commit -- I might be eating over 100ms of lat=
-ency per batch but I might be able to sustain a higher throughput.
-
-Will nftables scale any better? I'm not sure how much headache it would=
- be to ride the bleeding edge but if that's what it takes I'll do it.=A0
-
-Is there any way to shard the tables so that I can operate on smaller s=
-lices? I'm sure the answer here is 'no.'
-
-I haven't looked at libiptc's internals -- I assume the problem is the =
-current pattern of 'get it all, modify it, put it all back.' I'm guessi=
-ng that since nobody has yet made it support incremental changes that t=
-his is probably not easy.
-
-Thoughts, suggestions and criticism welcome.
-
--g
-
-
-
- 		 	   		  --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
