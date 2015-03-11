@@ -1,60 +1,47 @@
-From: Jan Engelhardt <jengelh@inai.de>
+From: Glen Miner <shaggie76@hotmail.com>
 Subject: RE: iptables at scale
-Date: Wed, 11 Mar 2015 22:44:17 +0100 (CET)
-Message-ID: <alpine.LSU.2.11.1503112242290.9828@nerf40.vanv.qr>
-References: <SNT152-W61FA9088D57B93B1B5C878B8190@phx.gbl>,<CAJ26g5SeC-shnX+PT2nijqJMLk45zg8VVqvEVk7xG-6r7XgP-w@mail.gmail.com> <SNT152-W53EABE020E8B236DF21FE0B8190@phx.gbl>
+Date: Wed, 11 Mar 2015 17:54:20 -0400
+Message-ID: <SNT152-W704BB03A2583E6AB5F1631B8190@phx.gbl>
+References: <SNT152-W61FA9088D57B93B1B5C878B8190@phx.gbl>,<CAJ26g5SeC-shnX+PT2nijqJMLk45zg8VVqvEVk7xG-6r7XgP-w@mail.gmail.com>
+ <SNT152-W53EABE020E8B236DF21FE0B8190@phx.gbl>,<alpine.LSU.2.11.1503112242290.9828@nerf40.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Glen Miner <shaggie76@hotmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:48858 "EHLO ares41.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752154AbbCKVoS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Mar 2015 17:44:18 -0400
-In-Reply-To: <SNT152-W53EABE020E8B236DF21FE0B8190@phx.gbl>
+Received: from snt004-omc1s43.hotmail.com ([65.54.61.80]:50923 "EHLO
+	SNT004-OMC1S43.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752853AbbCKVyV convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Mar 2015 17:54:21 -0400
+In-Reply-To: <alpine.LSU.2.11.1503112242290.9828@nerf40.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+> If all you do is the NAT mappings, then directly using conntrack(8)
+> and/or libnetfilter_conntrack should suffice, especially since UDP CT
+> entries stay around until their known timeout.
 
-On Wednesday 2015-03-11 22:27, Glen Miner wrote:
->>=20
->> What exactly are these four rules, and what do they accomplish?=C2=A0
->
->echo "*nat
->:PREROUTING - [0:0]
->-I PREROUTING -p udp -s $aAddr --sport $aPort -d $nAddr --dport $bnPor=
-t -j DNAT --to $bAddr:$bPort
->-I PREROUTING -p udp -s $bAddr --sport $bPort -d $nAddr --dport $anPor=
-t -j DNAT --to $aAddr:$aPort
->:POSTROUTING - [0:0]
->-A POSTROUTING -p udp -s $aAddr --sport $aPort -d $bAddr --dport $bPor=
-t =C2=A0-j SNAT --to $nAddr:$anPort
->-A POSTROUTING -p udp -s $bAddr --sport $bPort -d $aAddr --dport $aPor=
-t =C2=A0-j SNAT --to $nAddr:$bnPort
->COMMIT
->" | iptables-restore --noflush
->
->> You won't be happy changing iptables rules on the fly for each=C2=A0
->> customer. Hire somebody who can program in C, point them at the=20
->> iptables kernel NAT module implementation, and maybe ipset, and get=20
->> them hacking away at a solution that works without table manipulatio=
-n.=20
->
->I can program in C; like I said: I translated the above command + some
->conntrack junk to direct function calls to skip process creation and p=
-arsing
->logic for 20x better performance. However, it's not really clear where=
- I'd go
->instead short of reinventing iptables / conntrack and lord knows what =
-else.
+Hmm. That's basically what you said back in January:
 
-If all you do is the NAT mappings, then directly using conntrack(8)
-and/or libnetfilter_conntrack should suffice, especially since UDP CT
-entries stay around until their known timeout.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+List: netfilter
+Subject: Re: Stateless NAT with iptables
+From: Jan Engelhardt
+Date: 2015-01-09 23:54:16
+
+http://marc.info/?l=netfilter&m=142084805119379&w=2
+
+But I tried that and couldn't get it working; Marcelo Ricardo Leitner said
+
+"Having the conntrack entry is not enough to get your packets NATed"
+
+List: netfilter
+Subject: Re: Stateless NAT with iptables
+From: Marcelo Ricardo Leitner <marcelo.leitner () gmail ! com>
+Date: 2015-01-12 22:06:31
+Message-ID: 54B44567.2050707 () gmail ! com
+
+Which seemed to match my observations. I'll go back in the hole if people here seem to think it's viable and I'm missing something, though.
+
+Thanks for reading!
+-g 		 	   		  
