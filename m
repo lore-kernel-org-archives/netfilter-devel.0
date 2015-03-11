@@ -1,42 +1,46 @@
-From: Simon Horman <simon.horman@netronome.com>
-Subject: Re: [PATCH nf-next] netfilter: bridge: use rcu hook to resolve
- br_netfilter dependency
-Date: Wed, 11 Mar 2015 08:58:54 +0900
-Message-ID: <20150310235852.GA18265@vergenet.net>
-References: <1425986755-3648-1-git-send-email-pablo@netfilter.org>
+From: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
+Subject: Re: [PATCH 43/45] include/uapi/linux/netfilter_bridge.h: include if.h
+Date: Wed, 11 Mar 2015 03:49:53 +0200
+Message-ID: <20150311014952.GF12550@lakka.kapsi.fi>
+References: <1424127948-22484-1-git-send-email-mikko.rapeli@iki.fi>
+ <1424127948-22484-44-git-send-email-mikko.rapeli@iki.fi>
+ <alpine.LSU.2.11.1502170101520.32748@nerf60.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:33815 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751426AbbCJX7F (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Mar 2015 19:59:05 -0400
-Received: by pdno5 with SMTP id o5so6276320pdn.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 10 Mar 2015 16:59:05 -0700 (PDT)
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jan Engelhardt <jengelh-9+2X+4sQBs8@public.gmane.org>
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1425986755-3648-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <alpine.LSU.2.11.1502170101520.32748-G+YmpvGGOO3H9RFtKMg/Ng@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Mar 10, 2015 at 12:25:55PM +0100, Pablo Neira Ayuso wrote:
-> e5de75b ("netfilter: bridge: move DNAT helper to br_netfilter") results
-> in the following link problem:
-> 
-> net/bridge/br_device.c:29: undefined reference to `br_nf_prerouting_finish_bridge`
-> 
-> Moreover it creates a hard dependency between br_netfilter and the
-> bridge core, which is what we've been trying to avoid so far.
-> 
-> Resolve this problem by using a hook structure so we reduce #ifdef
-> pollution and keep bridge netfilter specific code under br_netfilter.c
-> which was the original intention.
-> 
-> Reported-by: Simon Horman <simon.horman@netronome.com>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+On Tue, Feb 17, 2015 at 01:02:50AM +0100, Jan Engelhardt wrote:
+> On Tuesday 2015-02-17 00:05, Mikko Rapeli wrote:
+>=20
+> >Fixes userspace compilation errors like:
+> >
+> >error: field =E2=80=98in=E2=80=99 has incomplete type
+> >struct in_addr in;
+> >=20
+> >+#include <linux/if.h>
+>=20
+> Patch 36/45 included linux/in.h instead of linux/if.h for addressing =
+"in has incomplete
+> type". Should this be used here too?
 
-Thanks, I have confirmed that this resolves the link problem.
+It could, yes. It seems I cut some corners since this was hiding behind=
+ it:
 
-Reviewed-by: Simon Horman <simon.horman@netronome.com>
+In file included from ./linux/netfilter_bridge.h:11:0,
+                 from ./linux/netfilter_bridge.c:1:
+=2E/linux/if_pppox.h:42:11: error: =E2=80=98IFNAMSIZ=E2=80=99 undeclare=
+d here (not in a function)
+  char          dev[IFNAMSIZ];          /* Local device to use */
+
+I'll fix these.
+
+-Mikko
