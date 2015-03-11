@@ -1,94 +1,66 @@
-From: Stephen Hemminger <shemming@brocade.com>
-Subject: Re: [PATCH] netfilter: Zero the tuple in
- nfnl_cthelper_parse_tuple()
-Date: Wed, 11 Mar 2015 14:16:39 -0700
-Message-ID: <20150311141639.0627dc0a@urahara>
-References: <5500AD43.3070402@brocade.com>
+From: Glen Miner <shaggie76@hotmail.com>
+Subject: RE: iptables at scale
+Date: Wed, 11 Mar 2015 17:27:35 -0400
+Message-ID: <SNT152-W53EABE020E8B236DF21FE0B8190@phx.gbl>
+References: <SNT152-W61FA9088D57B93B1B5C878B8190@phx.gbl>,<CAJ26g5SeC-shnX+PT2nijqJMLk45zg8VVqvEVk7xG-6r7XgP-w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Cc: <pablo@netfilter.org>, <netfilter-devel@vger.kernel.org>,
-	<netdev@vger.kernel.org>
-To: Ian Wilson <iwilson@brocade.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx0a-000f0801.pphosted.com ([67.231.144.122]:35619 "EHLO
-	mx0a-000f0801.pphosted.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751160AbbCKVRD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Mar 2015 17:17:03 -0400
-In-Reply-To: <5500AD43.3070402@brocade.com>
+Received: from snt004-omc1s16.hotmail.com ([65.55.90.27]:64537 "EHLO
+	SNT004-OMC1S16.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751300AbbCKV1g convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Mar 2015 17:27:36 -0400
+In-Reply-To: <CAJ26g5SeC-shnX+PT2nijqJMLk45zg8VVqvEVk7xG-6r7XgP-w@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 11 Mar 2015 21:01:55 +0000
-Ian Wilson <iwilson@brocade.com> wrote:
 
->  From 0d63c5b06276d7946ba2f1f4aace4f0486ec74cf Mon Sep 17 00:00:00 2001
-> From: Ian Wilson <iwilson@brocade.com>
-> Date: Wed, 11 Mar 2015 20:34:21 +0000
-> Subject: [PATCH] netfilter: Zero the tuple in nfnl_cthelper_parse_tuple()
-> 
-> nfnl_cthelper_parse_tuple() is called from nfnl_cthelper_new(),
-> nfnl_cthelper_get() and nfnl_cthelper_del().  In each case they pass
-> a pointer to an nf_conntrack_tuple data structure local variable:
-> 
->      struct nf_conntrack_tuple tuple;
->      ...
->      ret = nfnl_cthelper_parse_tuple(&tuple, tb[NFCTH_TUPLE]);
-> 
-> The problem is that this local variable is not initialized, and
-> nfnl_cthelper_parse_tuple() only initializes two fields: src.l3num and
-> dst.protonum.  This leaves all other fields with undefined values
-> based on whatever is on the stack:
-> 
->      tuple->src.l3num = ntohs(nla_get_be16(tb[NFCTH_TUPLE_L3PROTONUM]));
->      tuple->dst.protonum = nla_get_u8(tb[NFCTH_TUPLE_L4PROTONUM]);
-> 
-> The symptom observed was that when the rpc and tns helpers were added
-> then traffic to port 1536 was being sent to user-space.
-> 
-> ---
->   net/netfilter/nfnetlink_cthelper.c | 3 +++
->   1 file changed, 3 insertions(+)
-> 
-> diff --git a/net/netfilter/nfnetlink_cthelper.c 
-> b/net/netfilter/nfnetlink_cthelper.c
-> index a5599fc..01f4c45 100644
-> --- a/net/netfilter/nfnetlink_cthelper.c
-> +++ b/net/netfilter/nfnetlink_cthelper.c
-> @@ -77,6 +77,9 @@ nfnl_cthelper_parse_tuple(struct nf_conntrack_tuple 
-> *tuple,
->       if (!tb[NFCTH_TUPLE_L3PROTONUM] || !tb[NFCTH_TUPLE_L4PROTONUM])
->           return -EINVAL;
-> 
-> +     /* Not all fields are initialized so first zero the tuple */
-> +    memset(tuple, 0, sizeof(struct nf_conntrack_tuple));
-> +
->       tuple->src.l3num = ntohs(nla_get_be16(tb[NFCTH_TUPLE_L3PROTONUM]));
->       tuple->dst.protonum = nla_get_u8(tb[NFCTH_TUPLE_L4PROTONUM]);
-> 
+>> What it does: makes UDP NAT proxies so people with strict-NAT or=20
+> multi-layer NAT can communicate. This essentially works out to be 4=20
+> iptables rules created for a pair of peers. They talk to our server a=
+nd=20
+> our server makes it look like they're talking to each other; fighting=
+=20
+> bad NAT with our NAT is somewhat ironic but it's quite elegant.=20
+>=20
+> What exactly are these four rules, and what do they accomplish?=A0
 
-The code looks correct but you still have some more hurdles.
-1. Don't use Outlook to send patches, it corrupts line wrapping.
-2. Missing signed off by
-3. Indentation is wrong.
+aAddr : aPort is player A's real ip : port
+bAddr : bPort=A0is=A0player B's=A0real=A0ip=A0: port
+nAddr : anPort is what player B uses to talk to A
+nAddr : bnPort is what player A uses to talk to B
 
-$ ~/kernel/linux/scripts/checkpatch.pl /tmp/nfnt.patch 
-ERROR: patch seems to be corrupt (line wrapped?)
-#60: FILE: net/netfilter/nfnetlink_cthelper.c:76:
-*tuple,
+echo "*nat
+:PREROUTING - [0:0]
+-I PREROUTING -p udp -s $aAddr --sport $aPort -d $nAddr --dport $bnPort=
+ -j DNAT --to $bAddr:$bPort
+-I PREROUTING -p udp -s $bAddr --sport $bPort -d $nAddr --dport $anPort=
+ -j DNAT --to $aAddr:$aPort
+:POSTROUTING - [0:0]
+-A POSTROUTING -p udp -s $aAddr --sport $aPort -d $bAddr --dport $bPort=
+ =A0-j SNAT --to $nAddr:$anPort
+-A POSTROUTING -p udp -s $bAddr --sport $bPort -d $aAddr --dport $aPort=
+ =A0-j SNAT --to $nAddr:$bnPort
+COMMIT
+" | iptables-restore --noflush
 
-WARNING: please, no spaces at the start of a line
-#65: FILE: net/netfilter/nfnetlink_cthelper.c:81:
-+    memset(tuple, 0, sizeof(struct nf_conntrack_tuple));$
+> You won't be happy changing iptables rules on the fly for each=A0
+> customer. Hire somebody who can program in C, point them at the=20
+> iptables kernel NAT module implementation, and maybe ipset, and get=20
+> them hacking away at a solution that works without table manipulation=
+=2E=20
 
-ERROR: Missing Signed-off-by: line(s)
+I can program in C; like I said: I translated the above command + some =
+conntrack junk to direct function calls to skip process creation and pa=
+rsing logic for 20x better performance. However, it's not really clear =
+where I'd go instead short of reinventing iptables / conntrack and lord=
+ knows what else. Are you suggesting I write my own kernel hooks?
 
-total: 2 errors, 1 warnings, 0 checks, 10 lines checked
-
-/tmp/nfnt.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-
+-g 		 	   		  --
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
