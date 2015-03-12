@@ -1,65 +1,53 @@
-From: Scott Wood <scottwood@freescale.com>
-Subject: [PATCH 02/22] netfilter: %pF is only for function pointers
-Date: Wed, 11 Mar 2015 22:13:37 -0500
-Message-ID: <1426130037-17956-2-git-send-email-scottwood@freescale.com>
-References: <1426130037-17956-1-git-send-email-scottwood@freescale.com>
+From: Ian Wilson <iwilson@brocade.com>
+Subject: [PATCH] netfilter: Zero the tuple in nfnl_cthelper_parse_tuple()
+Date: Thu, 12 Mar 2015 09:37:58 +0000
+Message-ID: <1426153078-20863-1-git-send-email-iwilson@brocade.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Cc: Scott Wood <scottwood@freescale.com>, <netdev@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>, <lvs-devel@vger.kernel.org>
-To: <trivial@kernel.org>, <linux-kernel@vger.kernel.org>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <1426130037-17956-1-git-send-email-scottwood@freescale.com>
-Sender: lvs-devel-owner@vger.kernel.org
+Cc: Ian Wilson <iwilson@brocade.com>,
+	<netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>
+To: <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Use %pS for actual addresses, otherwise you'll get bad output
-on arches like ppc64 where %pF expects a function descriptor.
+nfnl_cthelper_parse_tuple() is called from nfnl_cthelper_new(),
+nfnl_cthelper_get() and nfnl_cthelper_del().  In each case they pass
+a pointer to an nf_conntrack_tuple data structure local variable:
 
-Signed-off-by: Scott Wood <scottwood@freescale.com>
-Cc: netdev@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
-Cc: lvs-devel@vger.kernel.org
+    struct nf_conntrack_tuple tuple;
+    ...
+    ret = nfnl_cthelper_parse_tuple(&tuple, tb[NFCTH_TUPLE]);
+
+The problem is that this local variable is not initialized, and
+nfnl_cthelper_parse_tuple() only initializes two fields: src.l3num and
+dst.protonum.  This leaves all other fields with undefined values
+based on whatever is on the stack:
+
+    tuple->src.l3num = ntohs(nla_get_be16(tb[NFCTH_TUPLE_L3PROTONUM]));
+    tuple->dst.protonum = nla_get_u8(tb[NFCTH_TUPLE_L4PROTONUM]);
+
+The symptom observed was that when the rpc and tns helpers were added
+then traffic to port 1536 was being sent to user-space.
+
+Signed-off-by: Ian Wilson <iwilson@brocade.com>
 ---
- net/netfilter/ipvs/ip_vs_conn.c | 2 +-
- net/netfilter/ipvs/ip_vs_ctl.c  | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/nfnetlink_cthelper.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
-index b0f7b62..f9f3c3d 100644
---- a/net/netfilter/ipvs/ip_vs_conn.c
-+++ b/net/netfilter/ipvs/ip_vs_conn.c
-@@ -184,7 +184,7 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
- 		hlist_add_head_rcu(&cp->c_list, &ip_vs_conn_tab[hash]);
- 		ret = 1;
- 	} else {
--		pr_err("%s(): request for already hashed, called from %pF\n",
-+		pr_err("%s(): request for already hashed, called from %pS\n",
- 		       __func__, __builtin_return_address(0));
- 		ret = 0;
- 	}
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index ed99448..bd1ef52 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -300,7 +300,7 @@ static int ip_vs_svc_hash(struct ip_vs_service *svc)
- 	unsigned int hash;
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index a5599fc..54330fb 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -77,6 +77,9 @@ nfnl_cthelper_parse_tuple(struct nf_conntrack_tuple *tuple,
+ 	if (!tb[NFCTH_TUPLE_L3PROTONUM] || !tb[NFCTH_TUPLE_L4PROTONUM])
+ 		return -EINVAL;
  
- 	if (svc->flags & IP_VS_SVC_F_HASHED) {
--		pr_err("%s(): request for already hashed, called from %pF\n",
-+		pr_err("%s(): request for already hashed, called from %pS\n",
- 		       __func__, __builtin_return_address(0));
- 		return 0;
- 	}
-@@ -334,7 +334,7 @@ static int ip_vs_svc_hash(struct ip_vs_service *svc)
- static int ip_vs_svc_unhash(struct ip_vs_service *svc)
- {
- 	if (!(svc->flags & IP_VS_SVC_F_HASHED)) {
--		pr_err("%s(): request for unhash flagged, called from %pF\n",
-+		pr_err("%s(): request for unhash flagged, called from %pS\n",
- 		       __func__, __builtin_return_address(0));
- 		return 0;
- 	}
++	/* Not all fields are initialized so first zero the tuple */
++	memset(tuple, 0, sizeof(struct nf_conntrack_tuple));
++
+ 	tuple->src.l3num = ntohs(nla_get_be16(tb[NFCTH_TUPLE_L3PROTONUM]));
+ 	tuple->dst.protonum = nla_get_u8(tb[NFCTH_TUPLE_L4PROTONUM]);
+ 
 -- 
-2.1.0
-
+1.9.1
