@@ -1,47 +1,65 @@
-From: Glen Miner <shaggie76@hotmail.com>
-Subject: RE: iptables at scale
-Date: Wed, 11 Mar 2015 17:54:20 -0400
-Message-ID: <SNT152-W704BB03A2583E6AB5F1631B8190@phx.gbl>
-References: <SNT152-W61FA9088D57B93B1B5C878B8190@phx.gbl>,<CAJ26g5SeC-shnX+PT2nijqJMLk45zg8VVqvEVk7xG-6r7XgP-w@mail.gmail.com>
- <SNT152-W53EABE020E8B236DF21FE0B8190@phx.gbl>,<alpine.LSU.2.11.1503112242290.9828@nerf40.vanv.qr>
+From: Scott Wood <scottwood@freescale.com>
+Subject: [PATCH 02/22] netfilter: %pF is only for function pointers
+Date: Wed, 11 Mar 2015 22:13:37 -0500
+Message-ID: <1426130037-17956-2-git-send-email-scottwood@freescale.com>
+References: <1426130037-17956-1-git-send-email-scottwood@freescale.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from snt004-omc1s43.hotmail.com ([65.54.61.80]:50923 "EHLO
-	SNT004-OMC1S43.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752853AbbCKVyV convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Mar 2015 17:54:21 -0400
-In-Reply-To: <alpine.LSU.2.11.1503112242290.9828@nerf40.vanv.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain
+Cc: Scott Wood <scottwood@freescale.com>, <netdev@vger.kernel.org>,
+	<netfilter-devel@vger.kernel.org>, <lvs-devel@vger.kernel.org>
+To: <trivial@kernel.org>, <linux-kernel@vger.kernel.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1426130037-17956-1-git-send-email-scottwood@freescale.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-> If all you do is the NAT mappings, then directly using conntrack(8)
-> and/or libnetfilter_conntrack should suffice, especially since UDP CT
-> entries stay around until their known timeout.
+Use %pS for actual addresses, otherwise you'll get bad output
+on arches like ppc64 where %pF expects a function descriptor.
 
-Hmm. That's basically what you said back in January:
+Signed-off-by: Scott Wood <scottwood@freescale.com>
+Cc: netdev@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+Cc: lvs-devel@vger.kernel.org
+---
+ net/netfilter/ipvs/ip_vs_conn.c | 2 +-
+ net/netfilter/ipvs/ip_vs_ctl.c  | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-List: netfilter
-Subject: Re: Stateless NAT with iptables
-From: Jan Engelhardt
-Date: 2015-01-09 23:54:16
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index b0f7b62..f9f3c3d 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -184,7 +184,7 @@ static inline int ip_vs_conn_hash(struct ip_vs_conn *cp)
+ 		hlist_add_head_rcu(&cp->c_list, &ip_vs_conn_tab[hash]);
+ 		ret = 1;
+ 	} else {
+-		pr_err("%s(): request for already hashed, called from %pF\n",
++		pr_err("%s(): request for already hashed, called from %pS\n",
+ 		       __func__, __builtin_return_address(0));
+ 		ret = 0;
+ 	}
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index ed99448..bd1ef52 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -300,7 +300,7 @@ static int ip_vs_svc_hash(struct ip_vs_service *svc)
+ 	unsigned int hash;
+ 
+ 	if (svc->flags & IP_VS_SVC_F_HASHED) {
+-		pr_err("%s(): request for already hashed, called from %pF\n",
++		pr_err("%s(): request for already hashed, called from %pS\n",
+ 		       __func__, __builtin_return_address(0));
+ 		return 0;
+ 	}
+@@ -334,7 +334,7 @@ static int ip_vs_svc_hash(struct ip_vs_service *svc)
+ static int ip_vs_svc_unhash(struct ip_vs_service *svc)
+ {
+ 	if (!(svc->flags & IP_VS_SVC_F_HASHED)) {
+-		pr_err("%s(): request for unhash flagged, called from %pF\n",
++		pr_err("%s(): request for unhash flagged, called from %pS\n",
+ 		       __func__, __builtin_return_address(0));
+ 		return 0;
+ 	}
+-- 
+2.1.0
 
-http://marc.info/?l=netfilter&m=142084805119379&w=2
-
-But I tried that and couldn't get it working; Marcelo Ricardo Leitner said
-
-"Having the conntrack entry is not enough to get your packets NATed"
-
-List: netfilter
-Subject: Re: Stateless NAT with iptables
-From: Marcelo Ricardo Leitner <marcelo.leitner () gmail ! com>
-Date: 2015-01-12 22:06:31
-Message-ID: 54B44567.2050707 () gmail ! com
-
-Which seemed to match my observations. I'll go back in the hole if people here seem to think it's viable and I'm missing something, though.
-
-Thanks for reading!
--g 		 	   		  
