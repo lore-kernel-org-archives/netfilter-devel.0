@@ -1,38 +1,39 @@
-From: Florian Westphal <fw@strlen.de>
+From: Oliver Hartkopp <socketcan@hartkopp.net>
 Subject: Re: [PATCH v2 nf-next 3/6] netfilter: bridge: use skb->cb to track
  otherhost mangling
-Date: Thu, 12 Mar 2015 19:35:03 +0100
-Message-ID: <20150312183503.GB12169@breakpoint.cc>
-References: <1426179925-18220-1-git-send-email-fw@strlen.de>
- <1426179925-18220-4-git-send-email-fw@strlen.de>
- <5501D498.4050003@hartkopp.net>
- <20150312183113.GA12169@breakpoint.cc>
+Date: Thu, 12 Mar 2015 19:40:09 +0100
+Message-ID: <5501DD89.4070408@hartkopp.net>
+References: <1426179925-18220-1-git-send-email-fw@strlen.de> <1426179925-18220-4-git-send-email-fw@strlen.de> <5501D498.4050003@hartkopp.net> <20150312183113.GA12169@breakpoint.cc> <20150312183503.GB12169@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Oliver Hartkopp <socketcan@hartkopp.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	Eyal Birger <eyal.birger@gmail.com>
 To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53930 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751764AbbCLSfF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Mar 2015 14:35:05 -0400
-Content-Disposition: inline
-In-Reply-To: <20150312183113.GA12169@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20150312183503.GB12169@breakpoint.cc>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Florian Westphal <fw@strlen.de> wrote:
-> > > +	BUILD_BUG_ON(sizeof(struct nf_bridge_skb_cb) > FIELD_SIZEOF(struct sk_buff, cb));
-> > > +
-> > 
-> > Please use sock_skb_cb_check_size(size) for cb size checking which is the
-> > 'new' check for cb sizes for netdev.
+On 03/12/2015 07:35 PM, Florian Westphal wrote:
+> Florian Westphal <fw@strlen.de> wrote:
+>>>> +	BUILD_BUG_ON(sizeof(struct nf_bridge_skb_cb) > FIELD_SIZEOF(struct sk_buff, cb));
+>>>> +
+>>>
+>>> Please use sock_skb_cb_check_size(size) for cb size checking which is the
+>>> 'new' check for cb sizes for netdev.
+>>
+>> I can do this for conistency, but its technically not needed here.
 > 
-> I can do this for conistency, but its technically not needed here.
+> I take that back, it would actually be inconsistent to use
+> sock_skb_cb_check_size since nf_bridge skbs will not be associated with
+> sockets.
+> 
 
-I take that back, it would actually be inconsistent to use
-sock_skb_cb_check_size since nf_bridge skbs will not be associated with
-sockets.
+Ok. I just wanted to make sure that the use of the cb[]-space doesn't clash
+with the new space that's acquired by the dropcount stuff.
+
+Sorry for the noise :-)
+
+Best regards,
+Oliver
