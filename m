@@ -1,26 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables PATCH 2/2] ebtables-compat: fix rule deleting with -D
- in rules with no target
-Date: Fri, 13 Mar 2015 12:16:01 +0100
-Message-ID: <20150313111601.GC8730@salvia>
-References: <20150311175457.30898.35962.stgit@nfdev.cica.es>
- <20150311175502.30898.36762.stgit@nfdev.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+From: Richard Weinberger <richard@nod.at>
+Subject: [PATCH 2/4] nfc: Fix portid type in urelease_work
+Date: Fri, 13 Mar 2015 12:31:14 +0100
+Message-ID: <1426246276-15839-3-git-send-email-richard@nod.at>
+References: <1426246276-15839-1-git-send-email-richard@nod.at>
+Cc: linux-wireless@vger.kernel.org, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	sameo@linux.intel.com, aloisio.almeida@openbossa.org,
+	lauro.venancio@openbossa.org, davem@davemloft.net,
+	kadlec@blackhole.kfki.hu, kaber@trash.net, pablo@netfilter.org,
+	Richard Weinberger <richard@nod.at>
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34174 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751946AbbCMLML (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Mar 2015 07:12:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20150311175502.30898.36762.stgit@nfdev.cica.es>
+Received: from mail.sigma-star.at ([95.130.255.111]:14385 "EHLO
+	mail.sigma-star.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753137AbbCMLhN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 13 Mar 2015 07:37:13 -0400
+In-Reply-To: <1426246276-15839-1-git-send-email-richard@nod.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 11, 2015 at 06:55:03PM +0100, Arturo Borrero Gonzalez wrote:
-> Before this patch, rule deleting with -D produces segfault in rules
-> with no target.
+portid is an unsigned integer. Fix urelease_work to
+match all other portid user in the kernel.
 
-Applied, thanks.
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ net/nfc/netlink.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/nfc/netlink.c b/net/nfc/netlink.c
+index 14a2d11..1f12c4c 100644
+--- a/net/nfc/netlink.c
++++ b/net/nfc/netlink.c
+@@ -1583,8 +1583,8 @@ static const struct genl_ops nfc_genl_ops[] = {
+ 
+ 
+ struct urelease_work {
+-	struct	work_struct w;
+-	int	portid;
++	struct		work_struct w;
++	unsigned int	portid;
+ };
+ 
+ static void nfc_urelease_event_work(struct work_struct *work)
+-- 
+1.8.4.5
+
