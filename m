@@ -1,52 +1,40 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: netfilter: Fix potential crash in nft_hash walker
-Date: Fri, 13 Mar 2015 11:50:50 +0100
-Message-ID: <20150313105050.GA3546@salvia>
-References: <20150312235214.GA26546@gondor.apana.org.au>
+Subject: Re: [PATCH] netfilter: Zero the tuple in nfnl_cthelper_parse_tuple()
+Date: Fri, 13 Mar 2015 12:08:48 +0100
+Message-ID: <20150313110848.GA5818@salvia>
+References: <1426153078-20863-1-git-send-email-iwilson@brocade.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, tgraf@suug.ch,
-	netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Ian Wilson <iwilson@brocade.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:58810 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753436AbbCMLFJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 13 Mar 2015 07:05:09 -0400
 Content-Disposition: inline
-In-Reply-To: <20150312235214.GA26546@gondor.apana.org.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1426153078-20863-1-git-send-email-iwilson@brocade.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 13, 2015 at 10:52:14AM +1100, Herbert Xu wrote:
-> When we get back an EAGAIN from rhashtable_walk_next we were
-> treating it as a valid object which obviously doesn't work too
-> well.
->     
-> Luckily this is hard to trigger so it seems nobody has run into
-> it yet.
->     
-> This patch fixes it by redoing the next call when we get an EAGAIN.
-
-I'll enqueue this for nf, thanks Herbert.
-
-> Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+On Thu, Mar 12, 2015 at 09:37:58AM +0000, Ian Wilson wrote:
+> nfnl_cthelper_parse_tuple() is called from nfnl_cthelper_new(),
+> nfnl_cthelper_get() and nfnl_cthelper_del().  In each case they pass
+> a pointer to an nf_conntrack_tuple data structure local variable:
 > 
-> diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-> index c82df0a..37c15e6 100644
-> --- a/net/netfilter/nft_hash.c
-> +++ b/net/netfilter/nft_hash.c
-> @@ -153,6 +153,8 @@ static void nft_hash_walk(const struct nft_ctx *ctx, const struct nft_set *set,
->  				iter->err = err;
->  				goto out;
->  			}
-> +
-> +			continue;
->  		}
->  
->  		if (iter->count < iter->skip)
-> -- 
-> Email: Herbert Xu <herbert@gondor.apana.org.au>
-> Home Page: http://gondor.apana.org.au/~herbert/
-> PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>     struct nf_conntrack_tuple tuple;
+>     ...
+>     ret = nfnl_cthelper_parse_tuple(&tuple, tb[NFCTH_TUPLE]);
+> 
+> The problem is that this local variable is not initialized, and
+> nfnl_cthelper_parse_tuple() only initializes two fields: src.l3num and
+> dst.protonum.  This leaves all other fields with undefined values
+> based on whatever is on the stack:
+> 
+>     tuple->src.l3num = ntohs(nla_get_be16(tb[NFCTH_TUPLE_L3PROTONUM]));
+>     tuple->dst.protonum = nla_get_u8(tb[NFCTH_TUPLE_L4PROTONUM]);
+> 
+> The symptom observed was that when the rpc and tns helpers were added
+> then traffic to port 1536 was being sent to user-space.
+
+Applied, thanks. I'll pass this to -stable too.
