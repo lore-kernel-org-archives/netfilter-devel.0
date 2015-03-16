@@ -1,111 +1,108 @@
 From: Sergey Popovich <popovich_sergei@mail.ua>
-Subject: netfilter: ipset: Fix double free of comment string when adding element
-Date: Mon, 16 Mar 2015 15:40:15 +0200
-Message-ID: <c711808889c4462a07d4caa715c9fa62569e5510.1426509747.git.popovich_sergei@mail.ua>
+Subject: netfilter: ipset: Properly calculate extensions offsets and total length
+Date: Mon, 16 Mar 2015 15:40:11 +0200
+Message-ID: <1d1a78681eb40d67d9be6e93a4821b2814d6d21e.1426509747.git.popovich_sergei@mail.ua>
 References: <cover.1426509747.git.popovich_sergei@mail.ua>
 To: netfilter-devel@vger.kernel.org, popovich_sergei@mail.ru
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fallback3.mail.ru ([94.100.181.189]:33322 "EHLO
+Received: from fallback3.mail.ru ([94.100.181.189]:33302 "EHLO
 	fallback3.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753442AbbCPNvi (ORCPT
+	with ESMTP id S1753334AbbCPNvi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 16 Mar 2015 09:51:38 -0400
 Received: from smtp32.i.mail.ru (smtp32.i.mail.ru [94.100.177.92])
-	by fallback3.mail.ru (mPOP.Fallback_MX) with ESMTP id 7C4A4146EF142
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Mar 2015 16:40:22 +0300 (MSK)
+	by fallback3.mail.ru (mPOP.Fallback_MX) with ESMTP id D2102146EECFD
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Mar 2015 16:40:21 +0300 (MSK)
 In-Reply-To: <cover.1426509747.git.popovich_sergei@mail.ua>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When new element added hbucket_elem_add() is called to allocate
-new ahash slot when number of elements (n->pos) in bucket reaches
-current bucket size (n->size). New ahash slot area initialized
-with zeros. In case there is room for element in the current
-slot hbucket_elem_add() returns without initializing area
-for the new element.
+Offsets and total length returned by the ip_set_elem_len()
+calculated incorrectly as initial set element length (i.e.
+len parameter) is used multiple times in offset calculations,
+also affecting set element total length.
 
-This is ok for the most cases, as we use ip_set_ext_destroy()
-to free resources used by the extensions. Currently only comment
-extension should be destroyed. Destroying comment also initializes
-pointer to string to NULL, so that on slot reuse in mtype_add()
-ip_set_init_comment() does not free already freed comment string.
+Use initial set element length as start offset, do not add aligned
+extension offset to the offset. Return offset as total length of
+the set element.
 
-However in case of call sequence mtype_del() -> mtype_add()
-for set with comment extension enabled it might happen that
-ahash_data() points to the dirty area, where comment extension
-data area has it's pointer set to already freed area, causing
-ip_set_init_comment() in mtype_add() to double free comment
-string.
+This reduces memory requirements on per element basic for the
+hash:* type of sets.
 
-This happens if mtype_del()/mtype_expire() deletes non-last
-element from the slot in bucket (and ip_set_ext_destroy()
-properly initializes comment string to NULL), then we use
-memcpy() to copy last element in place of the deleted element
-and finally decrement first free element position n->pos.
+For example output from 'ipset -terse list test-1' on 64-bit PC,
+where test-1 is generated via following script:
 
-Later if new element added to the bucket it's data area is not
-clear, and ip_set_init_comment() in mtype_add() will attempt
-to free comment string used by an valid element previously
-seen at last position or double free area if that element
-already deleted.
+  #!/bin/bash
 
-In most cases this leads to oops as slab cache structures
-gets corrupted.
+  set_name='test-1'
 
-Test case for this condition is following:
+  ipset create "$set_name" hash:net family inet \
+              timeout 10800 counters comment \
+              hashsize 65536 maxelem 65536
 
-  1. Use current upstream ipset code.
-  2. Compile kernel with CONFIG_DEBUG_SLAB=y
-  3. Use following script to reproduce condition:
+  declare -i o3 o4
+  fmt="add $set_name 192.168.%u.%u\n"
 
-    #!/bin/bash
-
-    ipset -exist create test-1 hash:net family inet comment \
-           hashsize 65536 maxelem 65536
-
-    declare -i cmd_add_index=0 cmd_del_index=1
-    declare -a cmd_a=(
-        [cmd_add_index]="add"
-        [$cmd_del_index]="del"
-    )
-    declare -i cmd_index cmd_a_size=${#cmd_a[@]} o4
-
-    fmt="%s test-1 10.0.10.%u%s\n"
-
-    while :; do
+  for ((o3 = 0; o3 < 256; o3++)); do
       for ((o4 = 0; o4 < 256; o4++)); do
-          cmd_index=$((RANDOM % cmd_a_size))
-          [ $cmd_index -eq $cmd_add_index ] &&
-              comment=" comment $RANDOM" ||
-              comment=
-          printf "$fmt" "${cmd_a[$cmd_index]}" $o4 "$comment"
+          printf "$fmt" $o3 $o4
       done
-    done |ipset -exist restore
+  done |ipset -exist restore
 
-    ipset destroy test-1
+BEFORE this patch is applied
 
-An slab debug reports would be generated reporting memory
-double free conditions and memory corruptions.
+  # ipset -terse list test-1
+  Name: test-1
+  Type: hash:net
+  Revision: 6
+  Header: family inet hashsize 65536 maxelem 65536
+timeout 10800 counters comment
+  Size in memory: 26348440
 
-Fix by initializing memory area for new element in mtype_add().
+and AFTER applying patch
+
+  # ipset -terse list test-1
+  Name: test-1
+  Type: hash:net
+  Revision: 6
+  Header: family inet hashsize 65536 maxelem 65536
+timeout 10800 counters comment
+  Size in memory: 7706392
+  References: 0
 
 Signed-off-by: Sergey Popovich <popovich_sergei@mail.ua>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h |    1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/ipset/ip_set_core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index fcf75be..e886d18 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -695,6 +695,7 @@ reuse_slot:
- 			goto out;
- 		}
- 		data = ahash_data(n, n->pos++, set->dsize);
-+		memset(data, 0, set->dsize);
- #ifdef IP_SET_HASH_WITH_NETS
- 		for (i = 0; i < IPSET_NET_COUNT; i++)
- 			mtype_add_cidr(h, SCIDR(d->cidr, i), NLEN(set->family),
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index d259da3..fb1f2b4 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -365,7 +365,7 @@ size_t
+ ip_set_elem_len(struct ip_set *set, struct nlattr *tb[], size_t len)
+ {
+ 	enum ip_set_ext_id id;
+-	size_t offset = 0;
++	size_t offset = len;
+ 	u32 cadt_flags = 0;
+ 
+ 	if (tb[IPSET_ATTR_CADT_FLAGS])
+@@ -375,12 +375,12 @@ ip_set_elem_len(struct ip_set *set, struct nlattr *tb[], size_t len)
+ 	for (id = 0; id < IPSET_EXT_ID_MAX; id++) {
+ 		if (!add_extension(id, cadt_flags, tb))
+ 			continue;
+-		offset += ALIGN(len + offset, ip_set_extensions[id].align);
++		offset = ALIGN(offset, ip_set_extensions[id].align);
+ 		set->offset[id] = offset;
+ 		set->extensions |= ip_set_extensions[id].type;
+ 		offset += ip_set_extensions[id].len;
+ 	}
+-	return len + offset;
++	return offset;
+ }
+ EXPORT_SYMBOL_GPL(ip_set_elem_len);
+ 
 -- 
 1.7.10.4
 
