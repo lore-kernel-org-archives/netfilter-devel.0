@@ -1,108 +1,87 @@
 From: Sergey Popovich <popovich_sergei@mail.ua>
-Subject: netfilter: ipset: Properly calculate extensions offsets and total length
-Date: Mon, 16 Mar 2015 15:40:11 +0200
-Message-ID: <1d1a78681eb40d67d9be6e93a4821b2814d6d21e.1426509747.git.popovich_sergei@mail.ua>
-References: <cover.1426509747.git.popovich_sergei@mail.ua>
-To: netfilter-devel@vger.kernel.org, popovich_sergei@mail.ru
+Subject: ipset: Proposed improvements to the kernel code
+Date: Mon, 16 Mar 2015 15:29:01 +0200
+Message-ID: <2984705.dCFJb2qqrb@tuxracer>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fallback3.mail.ru ([94.100.181.189]:33302 "EHLO
-	fallback3.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753334AbbCPNvi (ORCPT
+Received: from fallback1.mail.ru ([94.100.181.184]:46598 "EHLO
+	fallback1.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751793AbbCPODD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Mar 2015 09:51:38 -0400
-Received: from smtp32.i.mail.ru (smtp32.i.mail.ru [94.100.177.92])
-	by fallback3.mail.ru (mPOP.Fallback_MX) with ESMTP id D2102146EECFD
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Mar 2015 16:40:21 +0300 (MSK)
-In-Reply-To: <cover.1426509747.git.popovich_sergei@mail.ua>
+	Mon, 16 Mar 2015 10:03:03 -0400
+Received: from smtp14.mail.ru (smtp14.mail.ru [94.100.181.95])
+	by fallback1.mail.ru (mPOP.Fallback_MX) with ESMTP id 2A30D52DBFDD
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Mar 2015 16:29:04 +0300 (MSK)
+Received: from [195.234.68.4] (port=48709 helo=tuxracer.localnet)
+	by smtp14.mail.ru with esmtpa (envelope-from <popovich_sergei@mail.ua>)
+	id 1YXV4n-0001If-Fj
+	for netfilter-devel@vger.kernel.org; Mon, 16 Mar 2015 16:29:01 +0300
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Offsets and total length returned by the ip_set_elem_len()
-calculated incorrectly as initial set element length (i.e.
-len parameter) is used multiple times in offset calculations,
-also affecting set element total length.
 
-Use initial set element length as start offset, do not add aligned
-extension offset to the offset. Return offset as total length of
-the set element.
+Hello community.
 
-This reduces memory requirements on per element basic for the
-hash:* type of sets.
+I have a lot of changes to the kernel code of ipset subsystem for current
+nf-next (and upstream kernel therefore) split into the following major
+categories in order I wish to supply them to the upstream.
 
-For example output from 'ipset -terse list test-1' on 64-bit PC,
-where test-1 is generated via following script:
+  * Bugfixes
+      There is not too much, but exists in upstream, few of which is stability
+      critical.
 
-  #!/bin/bash
+  * Code cleanups
+      Changes to make code more readable, and other things.
 
-  set_name='test-1'
+  * Improvements to the ipset core set/type/variant 
+    registration/deregistration and other parts of the core.
+     
+  * Improvements for bitmap:* set types where two variants implemented:
+    one for set without extensions and another for set with extensions.
 
-  ipset create "$set_name" hash:net family inet \
-              timeout 10800 counters comment \
-              hashsize 65536 maxelem 65536
+  * Improvements for hash:*, where hash buckets still stores array
+    of set elements, but all element iterations is done via bitmap using
+    ffs()/ffz(). There is no error prone memcpy() of elements within bucket.
 
-  declare -i o3 o4
-  fmt="add $set_name 192.168.%u.%u\n"
+  * Improvements for list:set, where main change is to move to the
+    standard linux linked lists implementation.
 
-  for ((o3 = 0; o3 < 256; o3++)); do
-      for ((o4 = 0; o4 < 256; o4++)); do
-          printf "$fmt" $o3 $o4
-      done
-  done |ipset -exist restore
+  * Improve counters extension implementation to move from
+    atomic64_t variables used to store statistics to per-CPU variables.
 
-BEFORE this patch is applied
+All of these changes are made with primary goal in mind: prepare
+code for conversion from read/write locking to the RCU.
 
-  # ipset -terse list test-1
-  Name: test-1
-  Type: hash:net
-  Revision: 6
-  Header: family inet hashsize 65536 maxelem 65536
-timeout 10800 counters comment
-  Size in memory: 26348440
+Currently my patch series consists of nearly 170 patches. I wish to
+supply each of them divided into categories I described above.
 
-and AFTER applying patch
+I choose to send patches against current nf-next instead of
+ipset upstream as last one seems already constains some attempts
+to implement RCU in the ipset. On this mailing list I found discussion
+about some weakness in proposed RCU implementation.
 
-  # ipset -terse list test-1
-  Name: test-1
-  Type: hash:net
-  Revision: 6
-  Header: family inet hashsize 65536 maxelem 65536
-timeout 10800 counters comment
-  Size in memory: 7706392
-  References: 0
+I think my implementation after all code prepare is ready for review.
 
-Signed-off-by: Sergey Popovich <popovich_sergei@mail.ua>
----
- net/netfilter/ipset/ip_set_core.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+All commits contains meaningful descriptions (I hope) and code
+is well commented where it is really necessary.
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index d259da3..fb1f2b4 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -365,7 +365,7 @@ size_t
- ip_set_elem_len(struct ip_set *set, struct nlattr *tb[], size_t len)
- {
- 	enum ip_set_ext_id id;
--	size_t offset = 0;
-+	size_t offset = len;
- 	u32 cadt_flags = 0;
- 
- 	if (tb[IPSET_ATTR_CADT_FLAGS])
-@@ -375,12 +375,12 @@ ip_set_elem_len(struct ip_set *set, struct nlattr *tb[], size_t len)
- 	for (id = 0; id < IPSET_EXT_ID_MAX; id++) {
- 		if (!add_extension(id, cadt_flags, tb))
- 			continue;
--		offset += ALIGN(len + offset, ip_set_extensions[id].align);
-+		offset = ALIGN(offset, ip_set_extensions[id].align);
- 		set->offset[id] = offset;
- 		set->extensions |= ip_set_extensions[id].type;
- 		offset += ip_set_extensions[id].len;
- 	}
--	return len + offset;
-+	return offset;
- }
- EXPORT_SYMBOL_GPL(ip_set_elem_len);
- 
+Main development is done for 3.2.x series of kernel, and adopted
+to the current upstream (actually cosmetics changes to apply patches).
+
+As userspace ipset 6.23 utility is used and all changes does not
+include any kernel<->user space API/ABI breaks.
+
+Tests are performed on both 32/64 bit arches with kernel compiled
+for debugging running ipset regression test suite. Only i386/x86_64 
+architectures are used for tests.
+
+Thanks for your patience for reading this, please take time to review
+and possibly accept my work.
+
 -- 
-1.7.10.4
+SP5474-RIPE
+Sergey Popovich
 
