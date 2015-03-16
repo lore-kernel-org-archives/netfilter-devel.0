@@ -1,40 +1,82 @@
-From: Philipp Kerling <philipp.kerling@tu-ilmenau.de>
-Subject: Using kernel ip_tables headers in C++
-Date: Sun, 15 Mar 2015 14:26:33 +0100
-Message-ID: <1426425993.8827.7.camel@tu-ilmenau.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next 0/8] netfilter: untangle bridge and bridge
+ netfilter
+Date: Mon, 16 Mar 2015 13:38:54 +0100
+Message-ID: <20150316123854.GA5564@salvia>
+References: <1425513160-496-1-git-send-email-fw@strlen.de>
+ <20150309130253.GA6677@salvia>
+ <20150309135910.GC1528@breakpoint.cc>
+ <20150314090035.GA3561@salvia>
+ <20150314111325.GG14761@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smail.rz.tu-ilmenau.de ([141.24.4.149]:38350 "EHLO
-	smail.rz.tu-ilmenau.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752440AbbCONgF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 15 Mar 2015 09:36:05 -0400
-Received: from hiraizumi.lan (dslb-094-222-075-045.094.222.pools.vodafone-ip.de [94.222.75.45])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	by smail.rz.tu-ilmenau.de (Postfix) with ESMTPSA id B8F515EE09
-	for <netfilter-devel@vger.kernel.org>; Sun, 15 Mar 2015 14:26:32 +0100 (CET)
+Received: from mail.us.es ([193.147.175.20]:37765 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753062AbbCPMfL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Mar 2015 08:35:11 -0400
+Content-Disposition: inline
+In-Reply-To: <20150314111325.GG14761@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Good day,
+Hi Florian,
 
-the current iptables headers do not allow the inclusion in C++ code
-because of some pointer arithmetic issues in
-include/linux/netfilter_ipv4/ip_tables.h and
-include/linux/netfilter_ipv6/ip6_tables.h. Now there is a patch
-available already at
-https://marc.info/?l=netfilter-devel&m=134906873228460 that was
-submitted two years ago. What is the current state on this? IMHO, it
-should be trivial to apply and does not have any downsides or
-side-effects. It's only a "clarification" of what the current code does
-in C mode anyway. But it would make C++ developers very happy. GCC is
-nice enough to only output warnings, but CLang isn't. It just bails out
-with "error: arithmetic on a pointer to void".
+On Sat, Mar 14, 2015 at 12:13:25PM +0100, Florian Westphal wrote:
+> I think that currently it doesn't matter what solution we'll pick in the
+> end, I'd first like to send all my refactoring patches.
+> 
+> With those patches, it reduces the nf_bridge_info content that we need
+> to the physin and physout devices, plus a two-bit state in skb.
+> 
+> Then, if you still think that ->cb is too fragile I'd be happy to add
+> the lookup table method.  For the normal case of bridge forwarding, it
+> shouldn't be needed though, perhaps we could also use a hybrid approach,
+> cb-based fastpath for forwarding, lookup-table slowpath for dnat and
+> local delivery cases.
 
-Regards
-Philipp Kerling
+I think the use of skb->cb introduces another dependency between
+br_netfilter and the core, which is what we should avoid.  I still
+have concerns regarding future extensibility issues that this may
+introduce:
 
+1) If we want to shrink the skb->cb in size, br_netfilter would limit
+   this shrink since we'll have to keep enough room for our internal
+   private information, even if most people will not need this.
+
+2) If inet or qdisc private info size needs to be increased for
+   whatever reason, we may run out of space to keep the br_netfilter data
+   after it. And we cannot ask David to allow us to allocate more bytes
+   for skb->cb to resolve this.
+
+I think we have to find some permanent solution to isolate this
+br_netfilter code as much as possible. Then, focus on providing a
+replacement including the minimal set of features for what most users
+are using br_netfilter, I would say:
+
+* nfqueue support
+* transparent proxying
+* some simple way to perform stateless NAT (mangle mac and IP address
+  to place the packet in the right interface).
+
+so we can point them to nf_tables to progressively migrate to a better
+environment, the overall goal to me is to deprecate this br_netfilter
+thing.
+
+I think we can use the per-cpu cache + global hashtable to look up for
+nf_bridge data (using skbuff as index). The forwarded traffic will
+find its nf_bridge info most of the time in the cache without having
+to follow the slow lookup path.
+
+> One other solution would be to use skb->cb but not store bridge device
+> pointers but the ifindexes instead (we currently don't hold any
+> device refcounts either so the current method isn't 100% safe either since
+> such device can be removed ...).
+
+Good catch, I think it would be great to start by fixing this problem
+first.
+
+Let me know,
+Thanks!
