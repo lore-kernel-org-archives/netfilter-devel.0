@@ -1,117 +1,92 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH net-next] netfilter: Remove uses of seq_<foo> return values
-Date: Mon, 16 Mar 2015 11:25:17 -0700
-Message-ID: <1426530317.23897.27.camel@perches.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ipset: Proposed improvements to the kernel code
+Date: Mon, 16 Mar 2015 20:30:02 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1503162026490.23975@blackhole.kfki.hu>
+References: <2984705.dCFJb2qqrb@tuxracer>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Sergey Popovich <popovich_sergei@mail.ua>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtprelay0109.hostedemail.com ([216.40.44.109]:51867 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932728AbbCPSZX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Mar 2015 14:25:23 -0400
+Received: from smtp-in.kfki.hu ([148.6.0.25]:45055 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754207AbbCPT2M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Mar 2015 15:28:12 -0400
+In-Reply-To: <2984705.dCFJb2qqrb@tuxracer>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The seq_printf/seq_puts/seq_putc return values, because they
-are frequently misused, will eventually be converted to void.
+Hi Sergey,
 
-See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
-     seq_has_overflowed() and make public")
+On Mon, 16 Mar 2015, Sergey Popovich wrote:
 
-Miscellanea:
+> I have a lot of changes to the kernel code of ipset subsystem for current
+> nf-next (and upstream kernel therefore) split into the following major
+> categories in order I wish to supply them to the upstream.
+> 
+>   * Bugfixes
+>       There is not too much, but exists in upstream, few of which is stability
+>       critical.
+> 
+>   * Code cleanups
+>       Changes to make code more readable, and other things.
+> 
+>   * Improvements to the ipset core set/type/variant 
+>     registration/deregistration and other parts of the core.
+>      
+>   * Improvements for bitmap:* set types where two variants implemented:
+>     one for set without extensions and another for set with extensions.
+> 
+>   * Improvements for hash:*, where hash buckets still stores array
+>     of set elements, but all element iterations is done via bitmap using
+>     ffs()/ffz(). There is no error prone memcpy() of elements within bucket.
+> 
+>   * Improvements for list:set, where main change is to move to the
+>     standard linux linked lists implementation.
+> 
+>   * Improve counters extension implementation to move from
+>     atomic64_t variables used to store statistics to per-CPU variables.
+> 
+> All of these changes are made with primary goal in mind: prepare
+> code for conversion from read/write locking to the RCU.
+> 
+> Currently my patch series consists of nearly 170 patches. I wish to
+> supply each of them divided into categories I described above.
+> 
+> I choose to send patches against current nf-next instead of
+> ipset upstream as last one seems already constains some attempts
+> to implement RCU in the ipset. On this mailing list I found discussion
+> about some weakness in proposed RCU implementation.
+> 
+> I think my implementation after all code prepare is ready for review.
+> 
+> All commits contains meaningful descriptions (I hope) and code
+> is well commented where it is really necessary.
+> 
+> Main development is done for 3.2.x series of kernel, and adopted
+> to the current upstream (actually cosmetics changes to apply patches).
+> 
+> As userspace ipset 6.23 utility is used and all changes does not
+> include any kernel<->user space API/ABI breaks.
+> 
+> Tests are performed on both 32/64 bit arches with kernel compiled
+> for debugging running ipset regression test suite. Only i386/x86_64 
+> architectures are used for tests.
+> 
+> Thanks for your patience for reading this, please take time to review
+> and possibly accept my work.
 
-o realign arguments
+Please rebase your patches against the ipset git tree: the development 
+happens there and patches are submitted from the ipset git tree to 
+nf-next. Also, do not forget to create numbered patches in the future. 
+Thanks!
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c |  4 +++-
- net/netfilter/nf_conntrack_acct.c                     |  8 +++++---
- net/netfilter/nf_conntrack_expect.c                   |  4 +++-
- net/netfilter/nfnetlink_log.c                         | 12 +++++++-----
- 4 files changed, 18 insertions(+), 10 deletions(-)
+I'm able to apply one single patch from your current series.
 
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-index a460a87..f0dfe92 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-@@ -300,7 +300,9 @@ static int exp_seq_show(struct seq_file *s, void *v)
- 		    __nf_ct_l3proto_find(exp->tuple.src.l3num),
- 		    __nf_ct_l4proto_find(exp->tuple.src.l3num,
- 					 exp->tuple.dst.protonum));
--	return seq_putc(s, '\n');
-+	seq_putc(s, '\n');
-+
-+	return 0;
- }
- 
- static const struct seq_operations exp_seq_ops = {
-diff --git a/net/netfilter/nf_conntrack_acct.c b/net/netfilter/nf_conntrack_acct.c
-index a4b5e2a..45da11a 100644
---- a/net/netfilter/nf_conntrack_acct.c
-+++ b/net/netfilter/nf_conntrack_acct.c
-@@ -47,9 +47,11 @@ seq_print_acct(struct seq_file *s, const struct nf_conn *ct, int dir)
- 		return 0;
- 
- 	counter = acct->counter;
--	return seq_printf(s, "packets=%llu bytes=%llu ",
--			  (unsigned long long)atomic64_read(&counter[dir].packets),
--			  (unsigned long long)atomic64_read(&counter[dir].bytes));
-+	seq_printf(s, "packets=%llu bytes=%llu ",
-+		   (unsigned long long)atomic64_read(&counter[dir].packets),
-+		   (unsigned long long)atomic64_read(&counter[dir].bytes));
-+
-+	return 0;
- };
- EXPORT_SYMBOL_GPL(seq_print_acct);
- 
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 91a1837..7a17070 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -561,7 +561,9 @@ static int exp_seq_show(struct seq_file *s, void *v)
- 				   helper->expect_policy[expect->class].name);
- 	}
- 
--	return seq_putc(s, '\n');
-+	seq_putc(s, '\n');
-+
-+	return 0;
- }
- 
- static const struct seq_operations exp_seq_ops = {
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 11d85b3..db5e3a8 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -998,11 +998,13 @@ static int seq_show(struct seq_file *s, void *v)
- {
- 	const struct nfulnl_instance *inst = v;
- 
--	return seq_printf(s, "%5d %6d %5d %1d %5d %6d %2d\n",
--			  inst->group_num,
--			  inst->peer_portid, inst->qlen,
--			  inst->copy_mode, inst->copy_range,
--			  inst->flushtimeout, atomic_read(&inst->use));
-+	seq_printf(s, "%5d %6d %5d %1d %5d %6d %2d\n",
-+		   inst->group_num,
-+		   inst->peer_portid, inst->qlen,
-+		   inst->copy_mode, inst->copy_range,
-+		   inst->flushtimeout, atomic_read(&inst->use));
-+
-+	return 0;
- }
- 
- static const struct seq_operations nful_seq_ops = {
-
-
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
