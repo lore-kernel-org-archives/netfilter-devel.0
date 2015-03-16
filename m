@@ -1,57 +1,43 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 4/4] netfilter: Fix format string of nfnetlink_queue proc
- file
-Date: Mon, 16 Mar 2015 14:11:13 +0100
-Message-ID: <20150316131113.GA5744@salvia>
-References: <1426246276-15839-1-git-send-email-richard@nod.at>
- <1426246276-15839-5-git-send-email-richard@nod.at>
- <20150313121539.GA14488@salvia>
- <5502E99A.2060901@nod.at>
- <20150313135329.GA6054@salvia>
- <5502F28F.9050601@nod.at>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org, sameo@linux.intel.com,
-	aloisio.almeida@openbossa.org, lauro.venancio@openbossa.org,
-	davem@davemloft.net, kadlec@blackhole.kfki.hu, kaber@trash.net
-To: Richard Weinberger <richard@nod.at>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5502F28F.9050601@nod.at>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Sergey Popovich <popovich_sergei@mail.ua>
+Subject: netfilter: ipset: Use first timed out entry when no matching entry exists
+Date: Mon, 16 Mar 2015 15:40:12 +0200
+Message-ID: <ae7bbb6830d7690190e66ed4c9ccb4eda2fdb024.1426509747.git.popovich_sergei@mail.ua>
+References: <cover.1426509747.git.popovich_sergei@mail.ua>
+To: netfilter-devel@vger.kernel.org, popovich_sergei@mail.ru
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from fallback4.mail.ru ([94.100.181.169]:49005 "EHLO
+	fallback4.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751989AbbCPNkY (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Mar 2015 09:40:24 -0400
+Received: from smtp32.i.mail.ru (smtp32.i.mail.ru [94.100.177.92])
+	by fallback4.mail.ru (mPOP.Fallback_MX) with ESMTP id DDFEB34BB81
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Mar 2015 16:40:20 +0300 (MSK)
+In-Reply-To: <cover.1426509747.git.popovich_sergei@mail.ua>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 13, 2015 at 03:22:07PM +0100, Richard Weinberger wrote:
-> Am 13.03.2015 um 14:53 schrieb Pablo Neira Ayuso:
-> >> You mean statistics via netlink attributes? I can add that!
-> > 
-> > Add a new NFQNL_CFG_CMD_STATS command to request the statistics. If
-> > NLM_F_DUMP is set, then we'll basically provide the full list of
-> > instances. Otherwise, in case you want to retrieve stats for a
-> > specific netlink socket, you can use the netlink portID as index.
-> > And you'll have to add attributes for this new command, yes.
-> 
-> This was my plan. Thanks for the pointer!
+In timeout enabled sets, when no matching entry is found, use
+first timed out entry slot.
 
-It would be great if you can contribute this new interface.
+Signed-off-by: Sergey Popovich <popovich_sergei@mail.ua>
+---
+ net/netfilter/ipset/ip_set_hash_gen.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> >> But I think we should also fix the format string of the proc file
-> >> as the fix is easy and non-intrusive.
-> > 
-> > Unfortunately we don't know how many people are relying on that
-> > output, I prefer to remain conservative and provide a proper netlink
-> > interface for this.
-> 
-> I understand your concerns but an application which is able to parse positive
-> and negative numbers can also parse pure positives.
-> Just made a small test application, glibc's %d in sscanf() can also deal with UINT_MAX.
-> And I don't expect that applications to check whether the returned values from
-> /proc/net/netfilter/nfnetlink_queue are between INT_MIN and INT_MAX.
-> 
-> That said, I'd have assumed that an user would report negative values as plain kernel bug.
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index 974ff38..c55bbbf 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -654,7 +654,7 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 		/* Reuse first timed out entry */
+ 		if (SET_WITH_TIMEOUT(set) &&
+ 		    ip_set_timeout_expired(ext_timeout(data, set)) &&
+-		    j != AHASH_MAX(h) + 1)
++		    j == AHASH_MAX(h) + 1)
+ 			j = i;
+ 	}
+ 	if (h->elements >= h->maxelem && SET_WITH_FORCEADD(set) && n->pos) {
+-- 
+1.7.10.4
 
-Makes sense, please fix net/netfilter/nfnetlink_log.c too.
-
-Thanks.
