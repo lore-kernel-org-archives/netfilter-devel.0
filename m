@@ -1,127 +1,121 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: netfilter: ipset: Properly calculate extensions offsets and
- total length
-Date: Mon, 16 Mar 2015 20:30:48 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1503162030080.23975@blackhole.kfki.hu>
-References: <cover.1426509747.git.popovich_sergei@mail.ua> <1d1a78681eb40d67d9be6e93a4821b2814d6d21e.1426509747.git.popovich_sergei@mail.ua>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: iptables at scale
+Date: Tue, 17 Mar 2015 09:52:32 +1300
+Message-ID: <20150317095232.23a153e9@redhat.com>
+References: <SNT152-W61FA9088D57B93B1B5C878B8190@phx.gbl>
+	<CAJ26g5SeC-shnX+PT2nijqJMLk45zg8VVqvEVk7xG-6r7XgP-w@mail.gmail.com>
+	<SNT152-W53EABE020E8B236DF21FE0B8190@phx.gbl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, popovich_sergei@mail.ru
-To: Sergey Popovich <popovich_sergei@mail.ua>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: brouer@redhat.com,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Glen Miner <shaggie76@hotmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:46465 "EHLO smtp1.kfki.hu"
+Received: from mx1.redhat.com ([209.132.183.28]:40833 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932486AbbCPT24 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Mar 2015 15:28:56 -0400
-In-Reply-To: <1d1a78681eb40d67d9be6e93a4821b2814d6d21e.1426509747.git.popovich_sergei@mail.ua>
+	id S1750949AbbCPUwj convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Mar 2015 16:52:39 -0400
+In-Reply-To: <SNT152-W53EABE020E8B236DF21FE0B8190@phx.gbl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 16 Mar 2015, Sergey Popovich wrote:
+On Wed, 11 Mar 2015 17:27:35 -0400
+Glen Miner <shaggie76@hotmail.com> wrote:
 
-> Offsets and total length returned by the ip_set_elem_len()
-> calculated incorrectly as initial set element length (i.e.
-> len parameter) is used multiple times in offset calculations,
-> also affecting set element total length.
-> 
-> Use initial set element length as start offset, do not add aligned
-> extension offset to the offset. Return offset as total length of
-> the set element.
-> 
-> This reduces memory requirements on per element basic for the
-> hash:* type of sets.
-> 
-> For example output from 'ipset -terse list test-1' on 64-bit PC,
-> where test-1 is generated via following script:
-> 
->   #!/bin/bash
-> 
->   set_name='test-1'
-> 
->   ipset create "$set_name" hash:net family inet \
->               timeout 10800 counters comment \
->               hashsize 65536 maxelem 65536
-> 
->   declare -i o3 o4
->   fmt="add $set_name 192.168.%u.%u\n"
-> 
->   for ((o3 = 0; o3 < 256; o3++)); do
->       for ((o4 = 0; o4 < 256; o4++)); do
->           printf "$fmt" $o3 $o4
->       done
->   done |ipset -exist restore
-> 
-> BEFORE this patch is applied
-> 
->   # ipset -terse list test-1
->   Name: test-1
->   Type: hash:net
->   Revision: 6
->   Header: family inet hashsize 65536 maxelem 65536
-> timeout 10800 counters comment
->   Size in memory: 26348440
-> 
-> and AFTER applying patch
-> 
->   # ipset -terse list test-1
->   Name: test-1
->   Type: hash:net
->   Revision: 6
->   Header: family inet hashsize 65536 maxelem 65536
-> timeout 10800 counters comment
->   Size in memory: 7706392
->   References: 0
-> 
-> Signed-off-by: Sergey Popovich <popovich_sergei@mail.ua>
+> >> What it does: makes UDP NAT proxies so people with strict-NAT or=20
+> > multi-layer NAT can communicate. This essentially works out to be 4=
+=20
+> > iptables rules created for a pair of peers. They talk to our server=
+ and=20
+> > our server makes it look like they're talking to each other; fighti=
+ng=20
+> > bad NAT with our NAT is somewhat ironic but it's quite elegant.=20
+> >=20
+> > What exactly are these four rules, and what do they accomplish?=C2=A0
+>=20
+> aAddr : aPort is player A's real ip : port
+> bAddr : bPort=C2=A0is=C2=A0player B's=C2=A0real=C2=A0ip=C2=A0: port
+> nAddr : anPort is what player B uses to talk to A
+> nAddr : bnPort is what player A uses to talk to B
+>=20
+> echo "*nat
+> :PREROUTING - [0:0]
+> -I PREROUTING -p udp -s $aAddr --sport $aPort -d $nAddr --dport $bnPo=
+rt -j DNAT --to $bAddr:$bPort
+> -I PREROUTING -p udp -s $bAddr --sport $bPort -d $nAddr --dport $anPo=
+rt -j DNAT --to $aAddr:$aPort
+> :POSTROUTING - [0:0]
+> -A POSTROUTING -p udp -s $aAddr --sport $aPort -d $bAddr --dport $bPo=
+rt =C2=A0-j SNAT --to $nAddr:$anPort
+> -A POSTROUTING -p udp -s $bAddr --sport $bPort -d $aAddr --dport $aPo=
+rt =C2=A0-j SNAT --to $nAddr:$bnPort
+> COMMIT
+> " | iptables-restore --noflush
 
-Good catch, you are right. Patch is applied.
+It looks like you will have a very long list of rules in PREROUTING and
+POSTROUTING.  You will likely have a scalability issues due to this, as
+iptables will process these rules linear.  Thus, as you add more rules,
+the overhead per packet increase.  You are basically shooting yourself
+in the foot, by building your ruleset like this.
 
+I solved the iptables update speed back in 2007-2008, and also had a
+method for building a subnet-skeleton search tree with iptables chains,
+what reduced the lookup complexity from O(n) to O(log N).
+
+See my user-presentation:
+ http://people.netfilter.org/hawk/presentations/nfws2008/nfws2008_userd=
+ay_iptables_scale.pdf
+
+See my developer presentation:
+ http://people.netfilter.org/hawk/presentations/nfws2008/nfws2008_devel=
+opers_iptables_scale.pdf
+
+The iptables update speed, I on-purpose "only" fixed for
+chain-lookups.  I left-in the scalability problem of updating a very
+long list-of-rules in a single chain, because if someone would do that
+(like you) they should experience this slowdown, and hopefully stop to
+think about weather they are doing some thing wrong, like you ;-).  (As
+you are only inserting or adding rules, not adding or deleting rules in
+the middle of the chain, you are not hitting the really bad parts).
+
+
+> > You won't be happy changing iptables rules on the fly for each=C2=A0
+> > customer. Hire somebody who can program in C, point them at the=20
+> > iptables kernel NAT module implementation, and maybe ipset, and get=
+=20
+> > them hacking away at a solution that works without table manipulati=
+on.=20
+>=20
+> I can program in C; like I said: I translated the above command +
+> some conntrack junk to direct function calls to skip process creation
+> and parsing logic for 20x better performance. However, it's not
+> really clear where I'd go instead short of reinventing iptables /
+> conntrack and lord knows what else. Are you suggesting I write my own
+> kernel hooks?
+
+With my experience today, I would probably have written a simple
+netfilter/iptables module that would do the work, having a hash-table
+to match my rules, and be externally configurable via netlink messages
+(to add and remove customers).  (Which is basically what Jan said about
+hiring somebody with experience).
+
+Today, we have nftables.  I'm not very experienced with nftables, but I
+think that you problem might be solvable by using nftables "set"
+functionality.  Reducing your entire ruleset to 4 nftables "set" rules.
+
+A third option, is using conntrack-tools [1], like Jan also mentioned.
+[1] http://netfilter.org/projects/conntrack-tools/index.html
+
+--=20
 Best regards,
-Jozsef
-
-> ---
->  net/netfilter/ipset/ip_set_core.c |    6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> index d259da3..fb1f2b4 100644
-> --- a/net/netfilter/ipset/ip_set_core.c
-> +++ b/net/netfilter/ipset/ip_set_core.c
-> @@ -365,7 +365,7 @@ size_t
->  ip_set_elem_len(struct ip_set *set, struct nlattr *tb[], size_t len)
->  {
->  	enum ip_set_ext_id id;
-> -	size_t offset = 0;
-> +	size_t offset = len;
->  	u32 cadt_flags = 0;
->  
->  	if (tb[IPSET_ATTR_CADT_FLAGS])
-> @@ -375,12 +375,12 @@ ip_set_elem_len(struct ip_set *set, struct nlattr *tb[], size_t len)
->  	for (id = 0; id < IPSET_EXT_ID_MAX; id++) {
->  		if (!add_extension(id, cadt_flags, tb))
->  			continue;
-> -		offset += ALIGN(len + offset, ip_set_extensions[id].align);
-> +		offset = ALIGN(offset, ip_set_extensions[id].align);
->  		set->offset[id] = offset;
->  		set->extensions |= ip_set_extensions[id].type;
->  		offset += ip_set_extensions[id].len;
->  	}
-> -	return len + offset;
-> +	return offset;
->  }
->  EXPORT_SYMBOL_GPL(ip_set_elem_len);
->  
-> -- 
-> 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
