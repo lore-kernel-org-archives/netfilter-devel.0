@@ -1,68 +1,43 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v2 nf-next 1/6] net: untangle ip_fragment and bridge
- netfilter
-Date: Tue, 17 Mar 2015 21:40:28 +0100
-Message-ID: <20150317204028.GC26394@breakpoint.cc>
-References: <20150316225545.GA4454@salvia>
- <20150317.004224.595812379252826772.davem@davemloft.net>
- <20150317101152.GB26394@breakpoint.cc>
- <20150317.131250.1794140944101735383.davem@davemloft.net>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH] rule: delete extra space in rule indentation
+Date: Tue, 17 Mar 2015 22:23:27 +0100
+Message-ID: <20150317212327.20080.81689.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: fw@strlen.de, pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, azhou@nicira.com
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:38171 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752852AbbCQUkb (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Mar 2015 16:40:31 -0400
-Content-Disposition: inline
-In-Reply-To: <20150317.131250.1794140944101735383.davem@davemloft.net>
+Received: from smtp3.cica.es ([150.214.5.190]:38449 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752392AbbCQVXi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Mar 2015 17:23:38 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David Miller <davem@davemloft.net> wrote:
-> From: Florian Westphal <fw@strlen.de>
-> Date: Tue, 17 Mar 2015 11:11:52 +0100
-> 
-> > And doing route lookups will break things for some people, we have zero
-> > guarantee that a bridge has the needed routing information,
-> > its valid to not even configure a default gateway on a bridge.
-> 
-> Then without a proper route you absolutely cannot choose an
-> appropriate MTU from which to perform fragmentation.
+Annoying extra space in rule indentation.
 
-Just to clarify, this ip_fragment call is done only for frames that
-are forwarded by the bridge, i.e. not routed.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/rule.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-All interfaces have the same MTU.
+diff --git a/src/rule.c b/src/rule.c
+index 8d76fd0..9403c1e 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -237,11 +237,11 @@ void rule_print(const struct rule *rule)
+ 	const struct stmt *stmt;
+ 
+ 	list_for_each_entry(stmt, &rule->stmts, list) {
+-		printf(" ");
+ 		stmt->ops->print(stmt);
++		printf(" ");
+ 	}
+ 	if (handle_output > 0)
+-		printf(" # handle %" PRIu64, rule->handle.handle);
++		printf("# handle %" PRIu64, rule->handle.handle);
+ }
+ 
+ struct scope *scope_init(struct scope *scope, const struct scope *parent)
 
-So why would we need to chose an MTU different than the device
-mtu, or larger than the largest reassembled packet?
-
-Ideally, the bridge would re-create the original fragments it received
-on 1:1 basis to make it fully transparent, and to make the bridge behave
-as if it would not do the defrag layering violations in the first place.
-
-> Just accept that basic fact.
-
-For a router I'd agree, but, then again, we're a bridge.  Normally we
-would not fragment at all.  The bridge defragmentation should not be
-observable by external entity.  No increase, no decrease of mtu, 1:1
-fragment passthrough illusion.
-
-I can leave ip_fragment alone and, when skb->nf_bridge goes away,
-just replace
-
-#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-        if (skb->nf_bridge)
-	      mtu -= nf_bridge_mtu_reduction(skb);
-#endif
-and
-
-ll_rs = LL_RESERVED_SPACE_EXTRA(rt->dst.dev, nf_bridge_pad(skb));
-
-With a functionally equivalent "solution".
-But I'd really prefer to move these kludges out of the ip stack for good.
