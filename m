@@ -1,160 +1,213 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset: Proposed improvements to the kernel code
-Date: Tue, 17 Mar 2015 15:45:02 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1503171459340.25136@blackhole.kfki.hu>
-References: <2984705.dCFJb2qqrb@tuxracer> <1543409.17Fue4MmIJ@tuxracer> <alpine.DEB.2.10.1503171132190.25136@blackhole.kfki.hu> <17192717.ykyp7yZVki@tuxracer>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Sergey Popovich <popovich_sergei@mail.ua>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft v2] src: allow to specify the default policy for base chains
+Date: Tue, 17 Mar 2015 16:54:14 +0100
+Message-ID: <1426607654-5341-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:50681 "EHLO smtp0.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:47814 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754090AbbCQOnP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Mar 2015 10:43:15 -0400
-In-Reply-To: <17192717.ykyp7yZVki@tuxracer>
+	id S1754095AbbCQPub (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Mar 2015 11:50:31 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 17 Mar 2015, Sergey Popovich wrote:
+The new syntax is:
 
-> I did not say that you should do anything, I just give an option (like 
-> branch) to let you quickly see changes I made if you wish. Maybe you 
-> find them totally useless:)
+ nft add chain filter input { hook input type filter priority 0\; policy accept\; }
 
-I see - a branch costs nothing, so that's no problem. Then create a 
-numbered list of the patches, put them in a tar file and let me know from 
-where I can download it.
+but the previous syntax is still allowed:
+
+ nft add chain filter input { hook input type filter priority 0\; }
+
+this assumes default policy to accept.
+
+If the base chain already exists, you can update the policy via:
+
+ nft add chain filter input { policy drop\; }
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+v2: modify syntax to implement policy as an independent statement
+
+ doc/nft.xml        |    1 +
+ include/rule.h     |    2 ++
+ src/netlink.c      |   13 ++++++++++++-
+ src/parser_bison.y |   21 +++++++++++++++++++++
+ src/rule.c         |   23 +++++++++++++++++++----
+ 5 files changed, 55 insertions(+), 5 deletions(-)
+
+diff --git a/doc/nft.xml b/doc/nft.xml
+index 696a4c3..8d79016 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -456,6 +456,7 @@ filter input iif $int_ifs accept
+ 				<arg choice="req"><replaceable>chain</replaceable></arg>
+ 				<arg choice="req"><replaceable>hook</replaceable></arg>
+ 				<arg choice="req"><replaceable>priority</replaceable></arg>
++				<arg choice="req"><replaceable>policy</replaceable></arg>
+ 			</cmdsynopsis>
+ 			<cmdsynopsis>
+ 				<group choice="req">
+diff --git a/include/rule.h b/include/rule.h
+index 90836bc..97959f7 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -111,6 +111,7 @@ enum chain_flags {
+  * @hookstr:	unified and human readable hook name (base chains)
+  * @hooknum:	hook number (base chains)
+  * @priority:	hook priority (base chains)
++ * @policy:	default chain policy (base chains)
+  * @type:	chain type
+  * @rules:	rules contained in the chain
+  */
+@@ -122,6 +123,7 @@ struct chain {
+ 	const char		*hookstr;
+ 	unsigned int		hooknum;
+ 	int			priority;
++	int			policy;
+ 	const char		*type;
+ 	struct scope		scope;
+ 	struct list_head	rules;
+diff --git a/src/netlink.c b/src/netlink.c
+index 8c37ec5..2d1fb79 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -508,6 +508,10 @@ static int netlink_add_chain_compat(struct netlink_ctx *ctx,
+ 		nft_chain_attr_set_str(nlc, NFT_CHAIN_ATTR_TYPE,
+ 				       chain->type);
+ 	}
++	if (chain->policy != -1)
++		nft_chain_attr_set_u32(nlc, NFT_CHAIN_ATTR_POLICY,
++				       chain->policy);
++
+ 	netlink_dump_chain(nlc);
+ 	err = mnl_nft_chain_add(nf_sock, nlc, excl ? NLM_F_EXCL : 0);
+ 	nft_chain_free(nlc);
+@@ -535,6 +539,10 @@ static int netlink_add_chain_batch(struct netlink_ctx *ctx,
+ 		nft_chain_attr_set_str(nlc, NFT_CHAIN_ATTR_TYPE,
+ 				       chain->type);
+ 	}
++	if (chain->policy != -1)
++		nft_chain_attr_set_u32(nlc, NFT_CHAIN_ATTR_POLICY,
++				       chain->policy);
++
+ 	netlink_dump_chain(nlc);
+ 	err = mnl_nft_chain_batch_add(nlc, excl ? NLM_F_EXCL : 0,
+ 				      ctx->seqnum);
+@@ -665,13 +673,16 @@ static struct chain *netlink_delinearize_chain(struct netlink_ctx *ctx,
  
-> On the other hand I'm worry about if I start supplying my patch series 
-> (say this takes one month) there is no major changes will be entered to 
-> the master ipset git tree, so I get rebase again and again, as actually 
-> happened before commit 920ddfa09 where I have made some changes (bug 
-> fixes at that moment).
-
-Such things may happen when multiple patches flow in and some parts are 
-just modified. But in such a case like this, changes can be communicated 
-back and forth.
-
-> > > For example quick overview of the current RCU implementation in the 
-> > > ip_set_core.c gives no hint on how all further readers are prevented 
-> > > from entering set before it is being destroyed (i.e. we can destroy 
-> > > core set data structures with ip_set_destroy_set() while they being 
-> > > accessed by the ip_set_test().
-> > 
-> > That's excluded by the set references: set can be destroyed only when it's
-> > reference counter is zero and ip_set_test() can be called for referenced
-> > sets only.
-> 
-> I did not agree with this since ip_set.c:ip_set_destroy_set() after 
-> checking of reference counters is called, but ip_set(inst, index) = NULL 
-> (which itself looks unclear since pointer assignments alone not 
-> guaranteed to be atomic, thus rcu_assign_pointer() and friends exists) 
-> used without any RCU grace period waiters like synchronize_rcu().
-
-No. Please check xt_set.c and all the checkentry functions: sets are 
-referenced there and until such reference is not created, no 
-ip_set_test|add|del() function can use the set. The reference is released 
-in the match/target destroy functions - and the set can be destroyed only 
-after that. When the pointer assigment happens above, there cannot be any 
-user of the set, there's no need for any protection.
-
-> Yes I see rcu_barrier() is used in each set module, however it is more 
-> for waiting of callbacks to complete (or kfree_rcu).
-
-It's called from the module unload path. Actually, at that time there 
-isn't any set belonging to the given set type (because otherwise the 
-module could not be removed).
+ 	if (nft_chain_attr_is_set(nlc, NFT_CHAIN_ATTR_HOOKNUM) &&
+ 	    nft_chain_attr_is_set(nlc, NFT_CHAIN_ATTR_PRIO) &&
+-	    nft_chain_attr_is_set(nlc, NFT_CHAIN_ATTR_TYPE)) {
++	    nft_chain_attr_is_set(nlc, NFT_CHAIN_ATTR_TYPE) &&
++	    nft_chain_attr_is_set(nlc, NFT_CHAIN_ATTR_POLICY)) {
+ 		chain->hooknum       =
+ 			nft_chain_attr_get_u32(nlc, NFT_CHAIN_ATTR_HOOKNUM);
+ 		chain->priority      =
+ 			nft_chain_attr_get_s32(nlc, NFT_CHAIN_ATTR_PRIO);
+ 		chain->type          =
+ 			xstrdup(nft_chain_attr_get_str(nlc, NFT_CHAIN_ATTR_TYPE));
++		chain->policy          =
++			nft_chain_attr_get_u32(nlc, NFT_CHAIN_ATTR_POLICY);
+ 		chain->flags        |= CHAIN_F_BASECHAIN;
+ 	}
  
-> Therefore ip_set_test() could easily enter set structures before 
-> ip_set(inst, index) = NULL and destroyed in the ip_set_destroy_set() at 
-> the same time.
-
-That simply cannot happen due to the reference counter protection.
-
-> There is other things to consider: ip_set_add()/ip_set_del() and of course
-> timeout enabled set gc routine (I known del_timer_sync() is the first
-> in ->destroy() method).
-> 
-> set_bit(j, n->used);
-> 	if (old != ERR_PTR(-ENOENT)) {
-> 		rcu_assign_pointer(hbucket(t, key), n);
-> 
-> This looks as data publishing prior to using it where bit is set before 
-> pointer to the new data assigned to the bucket.
-
-When new hashbucket is created, the set_bit() call is actually an 
-initialization.
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 6fc834d..ea3ff52 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -913,6 +913,7 @@ chain_block		:	/* empty */	{ $$ = $<chain>-1; }
+ 			|	chain_block	common_block
+ 	     		|	chain_block	stmt_seperator
+ 			|	chain_block	hook_spec	stmt_seperator
++			|	chain_block	policy_spec	stmt_seperator
+ 			|	chain_block	rule		stmt_seperator
+ 			{
+ 				list_add_tail(&$2->list, &$1->rules);
+@@ -1070,6 +1071,26 @@ hook_spec		:	TYPE		STRING		HOOK		STRING		PRIORITY	NUM
+ 			}
+ 			;
  
-> Calling ip_set_ext_destroy() concurrently with readers seems also not
-> friendly. Currently this is only for commens, but if any other extension,
-> used by the readers is added problems will arise.
-
-As I mentioned, that's the only part which needs fixing.
++policy_spec		:	POLICY		ACCEPT
++			{
++				if ($<chain>0->policy != -1) {
++					erec_queue(error(&@$, "you cannot set chain policy twice"),
++						   state->msgs);
++					YYERROR;
++				}
++				$<chain>0->policy	= NF_ACCEPT;
++			}
++			|	POLICY		DROP
++			{
++				if ($<chain>0->policy != -1) {
++					erec_queue(error(&@$, "you cannot set chain policy twice"),
++						   state->msgs);
++					YYERROR;
++				}
++				$<chain>0->policy	= NF_DROP;
++			}
++			;
++
+ identifier		:	STRING
+ 			;
  
-> In general any modification to the data should be consistent for 
-> concurrent readers all times, and should be only modified/released after 
-> RCU grace period (or in case of RCU-bh after one softirq scheduling). 
-> Modification data inline seems worse to me.
-
-When data can safely be modified, then that's the better approach.
+diff --git a/src/rule.c b/src/rule.c
+index 3c92589..d11a0c0 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -336,6 +336,8 @@ struct chain *chain_alloc(const char *name)
+ 	init_list_head(&chain->scope.symbols);
+ 	if (name != NULL)
+ 		chain->handle.chain = xstrdup(name);
++
++	chain->policy = -1;
+ 	return chain;
+ }
  
-> > > Also I don't think there is a good idea to modify cidr book keeping 
-> > > data without any protection from the concurrent readers.
-> > 
-> > cidr book keeping was changed so that it is safe to modify it without 
-> > any protection. The worst case is that a reader loops at the same cidr 
-> > value twice.
-> 
-> Anyway this seems worse to me.
-
-Why? No data corruption can happen and that's the fastest way. The worst 
-case scenario is not the common case.
+@@ -425,15 +427,27 @@ static const char *hooknum2str(unsigned int family, unsigned int hooknum)
+ 	return "unknown";
+ }
  
-> > The main point of the ipset git tree is to keep and maintain support
-> > kernel versions back to the last (i.e. 2.6.32) longterm kernel tree.
-> 
-> However debugging locking issues without lockdep is much harder and
-> having one when it is available seems good.
-
-It can probably be added in a wrapper which gives noop for older kernels.
++static const char *chain_policy2str(uint32_t policy)
++{
++	switch (policy) {
++	case NF_DROP:
++		return "drop";
++	case NF_ACCEPT:
++		return "accept";
++	}
++	return "unknown";
++}
++
+ static void chain_print(const struct chain *chain)
+ {
+ 	struct rule *rule;
  
-> > > Using test_bit() in the fastpath loops to skip empty entries with 
-> > > bitmap probably wastes more time than using ffs()/ffz().
-> > 
-> > I'm sure patches for that can be applied without any problem.
-> 
-> With minimal, since ffs()/ffz() may be architecture specific, or even 
-> generic taking unsigned long. However on 32 bit arches sizeof(unsigned 
-> long) == 4, but net:iface uses up to 64 slots, so u64 type should be 
-> used with __ffs64().
-> 
-> As for optimizations I have many other small ones:)
+ 	printf("\tchain %s {\n", chain->handle.chain);
+ 	if (chain->flags & CHAIN_F_BASECHAIN) {
+-		printf("\t\t type %s hook %s priority %d;\n", chain->type,
++		printf("\t\t type %s hook %s priority %d; policy %s;\n",
++		       chain->type,
+ 		       hooknum2str(chain->handle.family, chain->hooknum),
+-		       chain->priority);
++		       chain->priority, chain_policy2str(chain->policy));
+ 	}
+ 	list_for_each_entry(rule, &chain->rules, list) {
+ 		printf("\t\t");
+@@ -452,9 +466,10 @@ void chain_print_plain(const struct chain *chain)
+ 	       chain->handle.table, chain->handle.chain);
+ 
+ 	if (chain->flags & CHAIN_F_BASECHAIN) {
+-		printf(" { type %s hook %s priority %d; }", chain->type,
++		printf(" { type %s hook %s priority %d; policy %s; }",
++		       chain->type,
+ 		       hooknum2str(chain->handle.family, chain->hooknum),
+-		       chain->priority);
++		       chain->priority, chain_policy2str(chain->policy));
+ 	}
+ 
+ 	printf("\n");
+-- 
+1.7.10.4
 
-Great, I'm looking forward for improvements!
-
-> > > Providing additionall variant callback ->uref() to handle references
-> > > seems confusing in aspects of set dump: we release set items prior to
-> > > dumping them. Furthermore due to netlink_dump_start() nature (callbacks)
-> > > there is no guarantee that we do not get pointer to the new table after
-> > > resize (for hashes) where all dumps become inconsistent anyway. Running
-> > > via callbacks implies no locking on the entire ipset structures (checked
-> > > with lockdep), only first call of the callback may be locked with NFNL.
-> > 
-> > The uref() callback is required for the parallel resizing and dumping:
-> > dumping keeps the original hash table and the uref referecen counter tells
-> > the system which function should destroy it: resizing (because there are
-> > no parallel dump using the old hash table) or the dumping (because
-> > resizing successfully created a new hash table).
-> 
-> Yes, I'm already aware of this problem.
-
-The problem is already solved in the current ipset git tree.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
