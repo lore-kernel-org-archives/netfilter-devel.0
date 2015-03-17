@@ -1,50 +1,67 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf] netfilter: nf_tables: allow to change chain policy without hook if it exists
-Date: Tue, 17 Mar 2015 13:45:41 +0100
-Message-ID: <1426596341-3533-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nft 2/3] parser: allow to reorder chain options
+Date: Tue, 17 Mar 2015 12:42:31 +0000
+Message-ID: <20150317124230.GN21401@acer.localdomain>
+References: <1426594385-24063-1-git-send-email-pablo@netfilter.org>
+ <1426594385-24063-2-git-send-email-pablo@netfilter.org>
+ <20150317121514.GM21401@acer.localdomain>
+ <20150317122932.GA16527@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49270 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752206AbbCQMmC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Mar 2015 08:42:02 -0400
+Received: from stinky.trash.net ([213.144.137.162]:41684 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752206AbbCQMmf (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Mar 2015 08:42:35 -0400
+Content-Disposition: inline
+In-Reply-To: <20150317122932.GA16527@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If there's an existing base chain, we have to allow changing the default
-policy without indicating the hook information.
+On 17.03, Pablo Neira Ayuso wrote:
+> On Tue, Mar 17, 2015 at 12:15:14PM +0000, Patrick McHardy wrote:
+> > On 17.03, Pablo Neira Ayuso wrote:
+> > > This allows all possible combinations to work:
+> > > 
+> > >  nft add chain filter input { type filter hook input priority 0 \; }
+> > >  nft add chain filter input { priority 0 type filter hook input \; }
+> > 
+> > 
+> > I don't object to being able to change the order of type and hook,
+> > but priority logically belongs to the hook keyword, why change this?
+> 
+> When displaying the chain configuration, this shows in order.
+> 
+> But we're humans and I don't see a good reason why we should force
+> humans to order things in some specific way.
 
-However, if the chain exists, we have to enforce the presence of the
-hook attribute.
+I can see multiple reasons.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-This allows this syntax:
+First one is, it logically belongs together since the priority is a
+property of the hook, similar to that "prefix" belongs to "log" and
+"rate" belongs to limit. We (I presume) agree that
+"log rate limit 1/sec prefix bla" isn't something we want to support.
+In fact this is just the mess that we had in iptables and which
+created a lot of problems in the parser.
 
- nft add chain filter input { policy drop\; }
+Which brings us to the second point, having a strict grammar makes
+it easier to avoid conflicts in the grammar. I don't suppose we
+will ever need a priority which is a property of the type, but
+with this patch, it would be impossible.
 
-for an existing input base chain.
+Next is the confusion created by a loose grammar. If you consider
+iproute2, if things don't work people start to google, they find
+an example where a different, but equivalent keyword is used,
+they get even more confused and start wasting their time be
+reordering things or replacing keywords with equivalent ones.
 
- net/netfilter/nf_tables_api.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+And I simply don't see what we gain by doing this. In fact I don't
+even buy that "human" argument, I think its easier to remember
+a single well defined case than this exception, which is in fact
+also an exception to what we do anywhere else in nftables.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 6ab7779..ac1a952 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1225,7 +1225,10 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
- 
- 	if (nla[NFTA_CHAIN_POLICY]) {
- 		if ((chain != NULL &&
--		    !(chain->flags & NFT_BASE_CHAIN)) ||
-+		    !(chain->flags & NFT_BASE_CHAIN)))
-+			return -EOPNOTSUPP;
-+
-+		if (chain == NULL &&
- 		    nla[NFTA_CHAIN_HOOK] == NULL)
- 			return -EOPNOTSUPP;
- 
--- 
-1.7.10.4
-
+My personal opinion is actually that type and hook should use a
+stmt_seperator since they are two seperate things.
