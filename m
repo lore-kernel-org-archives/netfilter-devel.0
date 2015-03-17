@@ -1,35 +1,42 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] Use stdlib uint* instead of u_int*
-Date: Tue, 17 Mar 2015 17:08:56 +0100
-Message-ID: <20150317160856.GA5769@salvia>
-References: <1426540063-17099-1-git-send-email-nwmcsween@gmail.com>
- <1426540063-17099-2-git-send-email-nwmcsween@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Nathan McSween <nwmcsween@gmail.com>
+Subject: [PATCH nft] evaluate: missing break; in str2hooknum()
+Date: Tue, 17 Mar 2015 17:25:32 +0100
+Message-ID: <1426609532-6462-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50723 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:54017 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753328AbbCQQFI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Mar 2015 12:05:08 -0400
-Content-Disposition: inline
-In-Reply-To: <1426540063-17099-2-git-send-email-nwmcsween@gmail.com>
+	id S1754599AbbCQQVt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Mar 2015 12:21:49 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-git am report trailing whitespace errors when applying this patch:
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/evaluate.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-libnfnetlink/.git/rebase-apply/patch:38:
-trailing whitespace.
-                                                   uint8_t, uint8_t, 
-libnfnetlink/.git/rebase-apply/patch:300:
-trailing whitespace.
- * nfnl_nfa_addattr16 - Add uint16_t attribute to struct nfattr 
-libnfnetlink/.git/rebase-apply/patch:336:
-trailing whitespace.
- * nfnl_nfa_addattr32 - Add uint32_t attribute to struct nfattr 
-warning: 3 lines add whitespace errors.
+diff --git a/src/evaluate.c b/src/evaluate.c
+index a3484c6..7ecb793 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1786,6 +1786,7 @@ static uint32_t str2hooknum(uint32_t family, const char *hook)
+ 			return NF_INET_POST_ROUTING;
+ 		else if (!strcmp(hook, "output"))
+ 			return NF_INET_LOCAL_OUT;
++		break;
+ 	case NFPROTO_ARP:
+ 		if (!strcmp(hook, "input"))
+ 			return NF_ARP_IN;
+@@ -1793,6 +1794,7 @@ static uint32_t str2hooknum(uint32_t family, const char *hook)
+ 			return NF_ARP_FORWARD;
+ 		else if (!strcmp(hook, "output"))
+ 			return NF_ARP_OUT;
++		break;
+ 	default:
+ 		break;
+ 	}
+-- 
+1.7.10.4
 
-Please, fix this and resend. Don't forget to include your
-Signed-off-by: tag, thanks.
