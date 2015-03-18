@@ -1,55 +1,41 @@
-From: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: Re: [PATCH 1/3] Add revision field for xt_entry_target
-Date: Wed, 18 Mar 2015 09:59:59 +0000
-Message-ID: <A43879EB4A7F5F449E2CA8148EA79E516CAE20@G08CNEXMBPEKD01.g08.fujitsu.local>
-References: <A43879EB4A7F5F449E2CA8148EA79E516C88A2@G08CNEXMBPEKD01.g08.fujitsu.local>,
+Date: Wed, 18 Mar 2015 11:07:13 +0100
+Message-ID: <20150318100713.GA2774@salvia>
+References: <A43879EB4A7F5F449E2CA8148EA79E516C88A2@G08CNEXMBPEKD01.g08.fujitsu.local>
  <20150318094449.GA7279@salvia>
-Reply-To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+ <A43879EB4A7F5F449E2CA8148EA79E516CAE20@G08CNEXMBPEKD01.g08.fujitsu.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "pablo@netfilter.org" <pablo@netfilter.org>
+To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:65201 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932930AbbCRJ7v (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Mar 2015 05:59:51 -0400
-Content-Language: zh-CN
+Received: from mail.us.es ([193.147.175.20]:40708 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755118AbbCRKDW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Mar 2015 06:03:22 -0400
+Content-Disposition: inline
+In-Reply-To: <A43879EB4A7F5F449E2CA8148EA79E516CAE20@G08CNEXMBPEKD01.g08.fujitsu.local>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-DQpoaSBwYWJsbw0KPkZyb206IG5ldGZpbHRlci1kZXZlbC1vd25lcg0KPkRhdGU6IDIwMTUtMDMt
-MTgNCj5UbzogWmhhbmcsIENodW55dS/nq6Ag5pil5a6HDQo+U3ViamVjdDogUmU6IFtQQVRDSCAx
-LzNdIEFkZCByZXZpc2lvbiBmaWVsZCBmb3IgeHRfZW50cnlfdGFyZ2V0DQo+DQo+T24gV2VkLCBN
-YXIgMTgsIDIwMTUgYXQgMDI6NDc6MzNBTSArMDAwMCwgWmhhbmcsIENodW55dSB3cm90ZToNCj4+
-ID4+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9hcnAvYXJwX3RhYmxlcy5o
-IGIvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXJfYXJwL2FycF90YWJsZXMuaA0KPj4gPj4gaW5kZXgg
-MGFjZGE2Ni4uY2NmOGNkMCAxMDA2NDQNCj4+ID4+IC0tLSBhL2luY2x1ZGUvbGludXgvbmV0Zmls
-dGVyX2FycC9hcnBfdGFibGVzLmgNCj4+ID4+ICsrKyBiL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVy
-X2FycC9hcnBfdGFibGVzLmgNCj4+ID4+IEBAIC0xOSw3ICsxOSw3IEBADQo+PiA+PiANCj4+ID4+
-ICAjaW5jbHVkZSA8bGludXgvbmV0ZmlsdGVyX2FycC5oPg0KPj4gPj4gDQo+PiA+PiAtI2RlZmlu
-ZSBBUlBUX0ZVTkNUSU9OX01BWE5BTUVMRU4gMzANCj4+ID4+ICsjZGVmaW5lIEFSUFRfRlVOQ1RJ
-T05fTUFYTkFNRUxFTiAyOQ0KPj4gPj4gICNkZWZpbmUgQVJQVF9UQUJMRV9NQVhOQU1FTEVOIDMy
-DQo+PiA+PiANCj4+ID4+ICAjZGVmaW5lIEFSUFRfREVWX0FERFJfTEVOX01BWCAxNg0KPj4gPj4g
-QEAgLTY5LDYgKzY5LDggQEAgc3RydWN0IGFycHRfZW50cnlfdGFyZ2V0DQo+PiA+PiANCj4+ID4+
-ICAgICAgICAgICAgICAgICAgICAgIC8qIFVzZWQgYnkgdXNlcnNwYWNlICovDQo+PiA+PiAgICAg
-ICAgICAgICAgICAgICAgICBjaGFyIG5hbWVbQVJQVF9GVU5DVElPTl9NQVhOQU1FTEVOXTsNCj4+
-ID4+ICsNCj4+ID4+ICsgICAgICAgICAgICAgICAgICAgIHVfaW50OF90IHJldmlzaW9uOw0KPj4g
-Pg0KPj4gPlRoaXMgc3RydWN0dXJlIGlzIG5vdCBleHBvc2VkIHRvIHVzZXJzcGFjZSBhbmQgSSBk
-b24ndCBmaW5kIGFueSBjbGllbnQNCj4+ID5vZiBpdCBpbiB0aGlzIGNvZGU6DQo+PiA+DQo+PiA+
-aW5jbHVkZS91YXBpL2xpbnV4L25ldGZpbHRlcl9hcnAvYXJwX3RhYmxlcy5oOiNkZWZpbmUgYXJw
-dF9lbnRyeV90YXJnZXQgeHRfZW50cnlfdGFyZ2V0DQo+PiA+DQo+PiA+YW5kIGFycF90YWJsZXMg
-dXNlcyB4dF9lbnRyeV90YXJnZXQgYWxsIHRoZSB0aW1lLg0KPj4NCj4+IHJldmlzaW9uIGlzIHVz
-ZWQgdG8gbWFya190ZyBpbiBrZXJuZWwgZmlsZSA6IGtlcm5lbC0zLjE0L25ldC9uZXRmaWx0ZXIv
-eHRfbWFyay5jDQo+DQo+Rm9yZ2V0IGl0LCBJIGdvdCBjb25mdXNlZCBieSB0aGUgbmV0L25ldGZp
-bHRlci94dF9yZXBsZGF0YS5oIHRyaWNrZXJ5LA0KPnNvcnJ5LiBQbGVhc2UsIHJlc3VibWl0IHRo
-aXMgcGF0Y2ggb25jZSB5b3UgaGF2ZSBleHRlbmRlZCB0aGUNCj51c2Vyc3BhY2UgYXJwIG1hcmsg
-ZXh0ZW5zaW9uIHRvIGV4YWN0bHkgbWlycm9yIHdoYXQgbWFyayBjYW4gZG8gaW4NCj5pcHRhYmxl
-cy9pcDZ0YWJsZXMuDQpvaywgaSB3aWxsIGRvIGl0IGZvciByZXZpc2lvbg0KYWxzbyBhZGQgLS1h
-bmQtbWFyayBhbmQgLS1vci1tYXJrDQptYXliZSB0b28gbWFueSBjb2RlIHRvIGFkZC4NCj4NCj5U
-aGFua3MuDQo+LS0NCj5UbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGlu
-ZSAidW5zdWJzY3JpYmUgbmV0ZmlsdGVyLWRldmVsIiBpbg0KPnRoZSBib2R5IG9mIGEgbWVzc2Fn
-ZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+TW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAg
-aHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1s
+On Wed, Mar 18, 2015 at 09:59:59AM +0000, Zhang, Chunyu wrote:
+> >Please, resubmit this patch once you have extended the
+> >userspace arp mark extension to exactly mirror what mark can do in
+> >iptables/ip6tables.
+>
+> ok, i will do it for revision
+> also add --and-mark and --or-mark
+> maybe too many code to add.
+
+Please, add exactly the same:
+
+"MARK target options:\n"
+"  --set-mark value                   Set nfmark value\n"
+"  --and-mark value                   Binary AND the nfmark with value\n"
+"  --or-mark  value                   Binary OR  the nfmark with value\n");
+
+We'll have arptables-compat over nftables ready soon, and things get
+easier for us if we get arptables in sync with iptables.
+
+Thanks.
