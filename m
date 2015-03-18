@@ -1,63 +1,55 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next] netfilter: nf_tables: consolidate error path of nf_tables_newtable()
-Date: Wed, 18 Mar 2015 10:50:00 +0100
-Message-ID: <1426672200-7686-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+Subject: Re: Re: [PATCH 1/3] Add revision field for xt_entry_target
+Date: Wed, 18 Mar 2015 09:59:59 +0000
+Message-ID: <A43879EB4A7F5F449E2CA8148EA79E516CAE20@G08CNEXMBPEKD01.g08.fujitsu.local>
+References: <A43879EB4A7F5F449E2CA8148EA79E516C88A2@G08CNEXMBPEKD01.g08.fujitsu.local>,
+ <20150318094449.GA7279@salvia>
+Reply-To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "pablo@netfilter.org" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34265 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751074AbbCRJqO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Mar 2015 05:46:14 -0400
+Received: from cn.fujitsu.com ([59.151.112.132]:65201 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932930AbbCRJ7v (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Mar 2015 05:59:51 -0400
+Content-Language: zh-CN
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index ea51833..a072d87 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -687,11 +687,10 @@ static int nf_tables_newtable(struct sock *nlsk, struct sk_buff *skb,
- 	if (!try_module_get(afi->owner))
- 		return -EAFNOSUPPORT;
- 
-+	err = -ENOMEM;
- 	table = kzalloc(sizeof(*table), GFP_KERNEL);
--	if (table == NULL) {
--		module_put(afi->owner);
--		return -ENOMEM;
--	}
-+	if (table == NULL)
-+		goto err1;
- 
- 	nla_strlcpy(table->name, name, NFT_TABLE_MAXNAMELEN);
- 	INIT_LIST_HEAD(&table->chains);
-@@ -700,13 +699,16 @@ static int nf_tables_newtable(struct sock *nlsk, struct sk_buff *skb,
- 
- 	nft_ctx_init(&ctx, skb, nlh, afi, table, NULL, nla);
- 	err = nft_trans_table_add(&ctx, NFT_MSG_NEWTABLE);
--	if (err < 0) {
--		kfree(table);
--		module_put(afi->owner);
--		return err;
--	}
-+	if (err < 0)
-+		goto err2;
-+
- 	list_add_tail_rcu(&table->list, &afi->tables);
- 	return 0;
-+err2:
-+	kfree(table);
-+err1:
-+	module_put(afi->owner);
-+	return err;
- }
- 
- static int nft_flush_table(struct nft_ctx *ctx)
--- 
-1.7.10.4
-
+DQpoaSBwYWJsbw0KPkZyb206IG5ldGZpbHRlci1kZXZlbC1vd25lcg0KPkRhdGU6IDIwMTUtMDMt
+MTgNCj5UbzogWmhhbmcsIENodW55dS/nq6Ag5pil5a6HDQo+U3ViamVjdDogUmU6IFtQQVRDSCAx
+LzNdIEFkZCByZXZpc2lvbiBmaWVsZCBmb3IgeHRfZW50cnlfdGFyZ2V0DQo+DQo+T24gV2VkLCBN
+YXIgMTgsIDIwMTUgYXQgMDI6NDc6MzNBTSArMDAwMCwgWmhhbmcsIENodW55dSB3cm90ZToNCj4+
+ID4+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9hcnAvYXJwX3RhYmxlcy5o
+IGIvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXJfYXJwL2FycF90YWJsZXMuaA0KPj4gPj4gaW5kZXgg
+MGFjZGE2Ni4uY2NmOGNkMCAxMDA2NDQNCj4+ID4+IC0tLSBhL2luY2x1ZGUvbGludXgvbmV0Zmls
+dGVyX2FycC9hcnBfdGFibGVzLmgNCj4+ID4+ICsrKyBiL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVy
+X2FycC9hcnBfdGFibGVzLmgNCj4+ID4+IEBAIC0xOSw3ICsxOSw3IEBADQo+PiA+PiANCj4+ID4+
+ICAjaW5jbHVkZSA8bGludXgvbmV0ZmlsdGVyX2FycC5oPg0KPj4gPj4gDQo+PiA+PiAtI2RlZmlu
+ZSBBUlBUX0ZVTkNUSU9OX01BWE5BTUVMRU4gMzANCj4+ID4+ICsjZGVmaW5lIEFSUFRfRlVOQ1RJ
+T05fTUFYTkFNRUxFTiAyOQ0KPj4gPj4gICNkZWZpbmUgQVJQVF9UQUJMRV9NQVhOQU1FTEVOIDMy
+DQo+PiA+PiANCj4+ID4+ICAjZGVmaW5lIEFSUFRfREVWX0FERFJfTEVOX01BWCAxNg0KPj4gPj4g
+QEAgLTY5LDYgKzY5LDggQEAgc3RydWN0IGFycHRfZW50cnlfdGFyZ2V0DQo+PiA+PiANCj4+ID4+
+ICAgICAgICAgICAgICAgICAgICAgIC8qIFVzZWQgYnkgdXNlcnNwYWNlICovDQo+PiA+PiAgICAg
+ICAgICAgICAgICAgICAgICBjaGFyIG5hbWVbQVJQVF9GVU5DVElPTl9NQVhOQU1FTEVOXTsNCj4+
+ID4+ICsNCj4+ID4+ICsgICAgICAgICAgICAgICAgICAgIHVfaW50OF90IHJldmlzaW9uOw0KPj4g
+Pg0KPj4gPlRoaXMgc3RydWN0dXJlIGlzIG5vdCBleHBvc2VkIHRvIHVzZXJzcGFjZSBhbmQgSSBk
+b24ndCBmaW5kIGFueSBjbGllbnQNCj4+ID5vZiBpdCBpbiB0aGlzIGNvZGU6DQo+PiA+DQo+PiA+
+aW5jbHVkZS91YXBpL2xpbnV4L25ldGZpbHRlcl9hcnAvYXJwX3RhYmxlcy5oOiNkZWZpbmUgYXJw
+dF9lbnRyeV90YXJnZXQgeHRfZW50cnlfdGFyZ2V0DQo+PiA+DQo+PiA+YW5kIGFycF90YWJsZXMg
+dXNlcyB4dF9lbnRyeV90YXJnZXQgYWxsIHRoZSB0aW1lLg0KPj4NCj4+IHJldmlzaW9uIGlzIHVz
+ZWQgdG8gbWFya190ZyBpbiBrZXJuZWwgZmlsZSA6IGtlcm5lbC0zLjE0L25ldC9uZXRmaWx0ZXIv
+eHRfbWFyay5jDQo+DQo+Rm9yZ2V0IGl0LCBJIGdvdCBjb25mdXNlZCBieSB0aGUgbmV0L25ldGZp
+bHRlci94dF9yZXBsZGF0YS5oIHRyaWNrZXJ5LA0KPnNvcnJ5LiBQbGVhc2UsIHJlc3VibWl0IHRo
+aXMgcGF0Y2ggb25jZSB5b3UgaGF2ZSBleHRlbmRlZCB0aGUNCj51c2Vyc3BhY2UgYXJwIG1hcmsg
+ZXh0ZW5zaW9uIHRvIGV4YWN0bHkgbWlycm9yIHdoYXQgbWFyayBjYW4gZG8gaW4NCj5pcHRhYmxl
+cy9pcDZ0YWJsZXMuDQpvaywgaSB3aWxsIGRvIGl0IGZvciByZXZpc2lvbg0KYWxzbyBhZGQgLS1h
+bmQtbWFyayBhbmQgLS1vci1tYXJrDQptYXliZSB0b28gbWFueSBjb2RlIHRvIGFkZC4NCj4NCj5U
+aGFua3MuDQo+LS0NCj5UbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGlu
+ZSAidW5zdWJzY3JpYmUgbmV0ZmlsdGVyLWRldmVsIiBpbg0KPnRoZSBib2R5IG9mIGEgbWVzc2Fn
+ZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+TW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAg
+aHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1s
