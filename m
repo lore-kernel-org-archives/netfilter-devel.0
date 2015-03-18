@@ -1,456 +1,273 @@
 From: Bernhard Thaler <bernhard.thaler@wvnet.at>
-Subject: [PATCH 2/4] bridge: forward IPv6 fragmented packets when passing netfilter
-Date: Wed, 18 Mar 2015 22:53:08 +0100
-Message-ID: <1426715589-16898-1-git-send-email-bernhard.thaler@wvnet.at>
-References: <20150130172520.GA7545@salvia>
+Subject: [PATCHv2 1/4] bridge: detect NAT66 correctly and change MAC address
+Date: Wed, 18 Mar 2015 22:52:11 +0100
+Message-ID: <1426715531-16862-1-git-send-email-bernhard.thaler@wvnet.at>
+References: <54AF1B47.7020601@wvnet.at>
 Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
-	Bernhard Thaler <bernhard.thaler@wvnet.at>
+	Bernhard Thaler <bernhard.thaler@wvnet.at>,
+	Sven Eckelmann <sven@open-mesh.com>
 To: pablo@netfilter.org, kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smarthost1.wvnet.at ([62.212.174.130]:38643 "EHLO
+Received: from smarthost1.wvnet.at ([62.212.174.130]:20998 "EHLO
 	smarthost2.wvnet.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756978AbbCRV7X (ORCPT
+	with ESMTP id S1756973AbbCRV7W (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Mar 2015 17:59:23 -0400
+	Wed, 18 Mar 2015 17:59:22 -0400
 Received: from smtp.wvnet.at (localhost [127.0.0.1])
-	by smarthost1.wvnet.at (Postfix) with ESMTP id 89BB6FD5FCD
-	for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2015 22:53:37 +0100 (CET)
-In-Reply-To: <20150130172520.GA7545@salvia>
+	by smarthost1.wvnet.at (Postfix) with ESMTP id 96C45FD5F81
+	for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2015 22:53:01 +0100 (CET)
+In-Reply-To: <54AF1B47.7020601@wvnet.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-IPv6 fragmented packets are not forwarded on an ethernet bridge
-with netfilter ip6_tables loaded. e.g. steps to reproduce
+IPv4 allows to redirect any traffic over a bridge to the local machine using
+iptables.
 
-1) create a simple bridge like this
+$ sysctl -w net.bridge.bridge-nf-call-iptables=1
+$ iptables -t nat -A PREROUTING -p tcp -m tcp --dport 8080 \
+  -j REDIRECT --to-ports 81
 
-        modprobe br_netfilter
-        brctl addbr br0
-        brctl addif br0 eth0
-        brctl addif br0 eth2
-        ifconfig eth0 up
-        ifconfig eth2 up
-        ifconfig br0 up
+This didn't work with ip6tables because the redirect was not correctly detected.
+The bridge pre-routing (finish) netfilter hook has to check for a possible
+redirect and then fix the destination mac address. This makes it possible to
+use the ip6tables rules for local DNAT REDIRECT similar to the IPv4 version.
 
-2) place a host with an IPv6 address on each side of the bridge
+$ sysctl -w net.bridge.bridge-nf-call-ip6tables=1
+$ ip6tables -t nat -A PREROUTING -p tcp -m tcp --dport 8080 \
+  -j REDIRECT --to-ports 81
 
-        set IPv6 address on host A:
-        ip -6 addr add fd01:2345:6789:1::1/64 dev eth0
-
-        set IPv6 address on host B:
-        ip -6 addr add fd01:2345:6789:1::2/64 dev eth0
-
-3) run a simple ping command on host A with packets > MTU
-
-        ping6 -s 4000 fd01:2345:6789:1::2
-
-4) wait some time and run e.g. "ip6tables -t nat -nvL" on the bridge
-
-IPv6 fragmented packets traverse the bridge cleanly until "ip6tables -t nat -nvL"
-is run. As soon as it is run (and netfilter modules are loaded) IPv6 fragmented
-packets do not traverse the bridge any more (you see no more responses in ping's
-output).
-
-After applying this patch IPv6 fragmented packets traverse the bridge cleanly
-in above scenario.
-
+Signed-off-by: Sven Eckelmann <sven@open-mesh.com>
+[bernhard.thaler@wvnet.at: rebased, adjust function order]
+[bernhard.thaler@wvnet.at: rebased, add indirect call to ip6_route_input]
 Signed-off-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Call ip6_fragment() indirectly via nf_ipv6_ops from br_nf_dev_queue_xmit().
-This solution was suggested by Florian Westphal in order not to have a direct
-dependency on ipv6.ko.
+Patch revision history:
 
-Introduce br_validate_ipv6() to do some validity checks on the IPv6 packet
-in br_nf_pre_routing_finish_ipv6() and br_nf_dev_queue_xmit().
-Factor checks in br_nf_pre_routing_finish_ipv6() into br_parse_validate_ipv6()
-as suggested by Florian Westphal.
+v2
+* re-base again to davem's current net-next
+* add indirect call to ip6_route_input via nf_ipv6_ops to avoid 
+  direct dependency to ipv6.ko just because of function calls
 
-Change function order to have check_hbh_len() before br_validate_ipv6() to
-call it from there.
+v1
+* rebase "bridge: Allow to redirect IPv6 traffic to local machine"
+  to davem's current net-next
+* adjust function order to avoid prototype for br_nf_pre_routing_finish_bridge
+   
+(v0)
+* originally there were two patches solving this problem
+* Patch from Sven Eckelmann was chosen to base solution on 
+  see: bridge: Allow to redirect IPv6 traffic to local machine
+  see: bridge: Fix NAT66ed IPv6 packets not being bridged correctly
 
-ip6_fragment() yields a NULL pointer dereference when handling packets coming
-from br_nf_dev_queue_xmit().  IP6_INC_STATS(), ip6_dst_idev(skb_dst(skb)) did
-crash the kernel like this:
+ include/linux/netfilter_bridge.h |    2 +
+ include/linux/netfilter_ipv6.h   |    1 +
+ net/bridge/br_netfilter.c        |  128 +++++++++++++++++++++++++++++---------
+ net/ipv6/netfilter.c             |    1 +
+ 4 files changed, 102 insertions(+), 30 deletions(-)
 
-BUG: unable to handle kernel NULL pointer dereference at 000000000000037a
-IP: [<ffffffff814cba2a>] ip6_fragment+0x99a/0x1290
-PGD 3bc3f067 PUD 3bc12067 PMD 0
-Oops: 0000 [#1] SMP
-...
-
-As suggested by Pablo Neira Ayuso use union in net_bridge to store either
-fake_rtable or fake_rt6_info. This solves NULL pointer dereference above.
-
-After applying this patch, in the same setup as stated above fragmented IPv6
-packets traverse the bridge even after running "ip6tables -t nat -nvL" / net-
-filter modules loaded. This was tested using overlong IPv6 ICMP ping packets
-as described above.
-Some tests were performed crafting invalid headers (e.g. ipv6 version field
-set to 5) to test checks in br_validate_ipv6(), however these packets do
-not seem to reach changed code parts and seem to be dropped at an earlier
-stage (more testing needed with invalid / fuzzed packets).
-
-Changes since v4:
-* rebase to davem's current net-next
-* remove EXPORT_SYMBOL() for ip6_fragment() 
-* simplify conditionals within br_nf_dev_queue_xmit() 
-
- include/linux/netfilter_ipv6.h |    1 +
- net/bridge/br_netfilter.c      |  234 +++++++++++++++++++++++-----------------
- net/bridge/br_private.h        |    6 +-
- net/ipv6/netfilter.c           |    3 +-
- 4 files changed, 145 insertions(+), 99 deletions(-)
-
+diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
+index bb39113..419f3db 100644
+--- a/include/linux/netfilter_bridge.h
++++ b/include/linux/netfilter_bridge.h
+@@ -2,6 +2,7 @@
+ #define __LINUX_BRIDGE_NETFILTER_H
+ 
+ #include <uapi/linux/netfilter_bridge.h>
++#include <uapi/linux/in6.h>
+ 
+ 
+ enum nf_br_hook_priorities {
+@@ -57,6 +58,7 @@ static inline unsigned int nf_bridge_pad(const struct sk_buff *skb)
+ struct bridge_skb_cb {
+ 	union {
+ 		__be32 ipv4;
++		struct in6_addr ipv6;
+ 	} daddr;
+ };
+ 
 diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index e2d1969..7755d5c 100644
+index 64dad1cc..e2d1969 100644
 --- a/include/linux/netfilter_ipv6.h
 +++ b/include/linux/netfilter_ipv6.h
-@@ -26,6 +26,7 @@ struct nf_ipv6_ops {
+@@ -25,6 +25,7 @@ void ipv6_netfilter_fini(void);
+ struct nf_ipv6_ops {
  	int (*chk_addr)(struct net *net, const struct in6_addr *addr,
  			const struct net_device *dev, int strict);
- 	void (*route_input)(struct sk_buff *skb);
-+	int (*fragment)(struct sk_buff *skb, int (*output)(struct sk_buff *));
++	void (*route_input)(struct sk_buff *skb);
  };
  
  extern const struct nf_ipv6_ops __rcu *nf_ipv6_ops;
 diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index 775d638..0e129fb 100644
+index b260a97..775d638 100644
 --- a/net/bridge/br_netfilter.c
 +++ b/net/bridge/br_netfilter.c
-@@ -34,6 +34,7 @@
+@@ -45,8 +45,14 @@
  
- #include <net/ip.h>
- #include <net/ipv6.h>
-+#include <net/addrconf.h>
- #include <net/route.h>
- #include <net/netfilter/br_netfilter.h>
+ #define skb_origaddr(skb)	 (((struct bridge_skb_cb *) \
+ 				 (skb->nf_bridge->data))->daddr.ipv4)
++#define skb_origaddr6(skb)	 (((struct bridge_skb_cb *) \
++				 (skb->nf_bridge->data))->daddr.ipv6)
+ #define store_orig_dstaddr(skb)	 (skb_origaddr(skb) = ip_hdr(skb)->daddr)
++#define store_orig_dstaddr6(skb) (skb_origaddr6(skb) = ipv6_hdr(skb)->daddr)
+ #define dnat_took_place(skb)	 (skb_origaddr(skb) != ip_hdr(skb)->daddr)
++#define dnat_took_place6(skb)	 (memcmp(&skb_origaddr6(skb), \
++				 &ipv6_hdr(skb)->daddr, \
++				 sizeof(ipv6_hdr(skb)->daddr)) != 0)
  
-@@ -245,6 +246,109 @@ drop:
- 	return -1;
+ #ifdef CONFIG_SYSCTL
+ static struct ctl_table_header *brnf_sysctl_header;
+@@ -247,36 +253,6 @@ static void nf_bridge_update_protocol(struct sk_buff *skb)
+ 		skb->protocol = htons(ETH_P_PPP_SES);
  }
  
-+/* We only check the length. A bridge shouldn't do hop-by-hop stuff anyway */
-+static int check_hbh_len(struct sk_buff *skb)
-+{
-+	unsigned char *raw = (u8 *)(ipv6_hdr(skb) + 1);
-+	u32 pkt_len;
-+	const unsigned char *nh = skb_network_header(skb);
-+	int off = raw - nh;
-+	int len = (raw[1] + 1) << 3;
-+
-+	if ((raw + len) - skb->data > skb_headlen(skb))
-+		goto bad;
-+
-+	off += 2;
-+	len -= 2;
-+
-+	while (len > 0) {
-+		int optlen = nh[off + 1] + 2;
-+
-+		switch (nh[off]) {
-+		case IPV6_TLV_PAD1:
-+			optlen = 1;
-+			break;
-+
-+		case IPV6_TLV_PADN:
-+			break;
-+
-+		case IPV6_TLV_JUMBO:
-+			if (nh[off + 1] != 4 || (off & 3) != 2)
-+				goto bad;
-+			pkt_len = ntohl(*(__be32 *) (nh + off + 2));
-+			if (pkt_len <= IPV6_MAXPLEN ||
-+			    ipv6_hdr(skb)->payload_len)
-+				goto bad;
-+			if (pkt_len > skb->len - sizeof(struct ipv6hdr))
-+				goto bad;
-+			if (pskb_trim_rcsum(skb,
-+					    pkt_len + sizeof(struct ipv6hdr)))
-+				goto bad;
-+			nh = skb_network_header(skb);
-+			break;
-+		default:
-+			if (optlen > len)
-+				goto bad;
-+			break;
-+		}
-+		off += optlen;
-+		len -= optlen;
-+	}
-+	if (len == 0)
-+		return 0;
-+bad:
-+	return -1;
-+}
-+
-+/* Equivalent to br_parse_ip_options for IPv6 */
-+static int br_validate_ipv6(struct sk_buff *skb)
-+{
-+	const struct ipv6hdr *hdr;
-+	struct net_device *dev = skb->dev;
-+	struct inet6_dev *idev = in6_dev_get(skb->dev);
-+	u32 pkt_len;
-+	u8 ip6h_len = sizeof(struct ipv6hdr);
-+
-+	if (!pskb_may_pull(skb, ip6h_len))
-+		goto inhdr_error;
-+
-+	if (skb->len < ip6h_len)
-+		goto drop;
-+
-+	hdr = ipv6_hdr(skb);
-+
-+	if (hdr->version != 6)
-+		goto inhdr_error;
-+
-+	pkt_len = ntohs(hdr->payload_len);
-+
-+	if (pkt_len || hdr->nexthdr != NEXTHDR_HOP) {
-+		if (pkt_len + ip6h_len > skb->len) {
-+			IP6_INC_STATS_BH(dev_net(dev), idev,
-+					 IPSTATS_MIB_INTRUNCATEDPKTS);
-+			goto drop;
-+		}
-+		if (pskb_trim_rcsum(skb, pkt_len + ip6h_len)) {
-+			IP6_INC_STATS_BH(dev_net(dev), idev,
-+					 IPSTATS_MIB_INDISCARDS);
-+			goto drop;
-+		}
-+	}
-+	if (hdr->nexthdr == NEXTHDR_HOP && check_hbh_len(skb))
-+		goto drop;
-+
-+	memset(IP6CB(skb), 0, sizeof(struct inet6_skb_parm));
-+	/* No IP options in IPv6 header; however it should be
-+	 * checked if some next headers need special treatment
-+	 */
-+	return 0;
-+
-+inhdr_error:
-+	IP6_INC_STATS_BH(dev_net(dev), idev, IPSTATS_MIB_INHDRERRORS);
-+drop:
-+	return -1;
-+}
-+
- static void nf_bridge_update_protocol(struct sk_buff *skb)
- {
- 	if (skb->nf_bridge->mask & BRNF_8021Q)
-@@ -342,6 +446,10 @@ static int br_nf_pre_routing_finish_ipv6(struct sk_buff *skb)
- 	struct rtable *rt;
- 	struct net_device *dev = skb->dev;
- 	const struct nf_ipv6_ops *v6ops = nf_get_ipv6_ops();
-+	int frag_max_size;
-+
-+	frag_max_size = IP6CB(skb)->frag_max_size;
-+	BR_INPUT_SKB_CB(skb)->frag_max_size = frag_max_size;
- 
- 	if (nf_bridge->mask & BRNF_PKT_TYPE) {
- 		skb->pkt_type = PACKET_OTHERHOST;
-@@ -543,92 +651,17 @@ static struct net_device *setup_pre_routing(struct sk_buff *skb)
- 	return skb->dev;
- }
- 
--/* We only check the length. A bridge shouldn't do any hop-by-hop stuff anyway */
--static int check_hbh_len(struct sk_buff *skb)
+-/* PF_BRIDGE/PRE_ROUTING *********************************************/
+-/* Undo the changes made for ip6tables PREROUTING and continue the
+- * bridge PRE_ROUTING hook. */
+-static int br_nf_pre_routing_finish_ipv6(struct sk_buff *skb)
 -{
--	unsigned char *raw = (u8 *)(ipv6_hdr(skb) + 1);
--	u32 pkt_len;
--	const unsigned char *nh = skb_network_header(skb);
--	int off = raw - nh;
--	int len = (raw[1] + 1) << 3;
+-	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
+-	struct rtable *rt;
 -
--	if ((raw + len) - skb->data > skb_headlen(skb))
--		goto bad;
--
--	off += 2;
--	len -= 2;
--
--	while (len > 0) {
--		int optlen = nh[off + 1] + 2;
--
--		switch (nh[off]) {
--		case IPV6_TLV_PAD1:
--			optlen = 1;
--			break;
--
--		case IPV6_TLV_PADN:
--			break;
--
--		case IPV6_TLV_JUMBO:
--			if (nh[off + 1] != 4 || (off & 3) != 2)
--				goto bad;
--			pkt_len = ntohl(*(__be32 *) (nh + off + 2));
--			if (pkt_len <= IPV6_MAXPLEN ||
--			    ipv6_hdr(skb)->payload_len)
--				goto bad;
--			if (pkt_len > skb->len - sizeof(struct ipv6hdr))
--				goto bad;
--			if (pskb_trim_rcsum(skb,
--					    pkt_len + sizeof(struct ipv6hdr)))
--				goto bad;
--			nh = skb_network_header(skb);
--			break;
--		default:
--			if (optlen > len)
--				goto bad;
--			break;
--		}
--		off += optlen;
--		len -= optlen;
+-	if (nf_bridge->mask & BRNF_PKT_TYPE) {
+-		skb->pkt_type = PACKET_OTHERHOST;
+-		nf_bridge->mask ^= BRNF_PKT_TYPE;
 -	}
--	if (len == 0)
--		return 0;
--bad:
--	return -1;
+-	nf_bridge->mask ^= BRNF_NF_BRIDGE_PREROUTING;
 -
+-	rt = bridge_parent_rtable(nf_bridge->physindev);
+-	if (!rt) {
+-		kfree_skb(skb);
+-		return 0;
+-	}
+-	skb_dst_set_noref(skb, &rt->dst);
+-
+-	skb->dev = nf_bridge->physindev;
+-	nf_bridge_update_protocol(skb);
+-	nf_bridge_push_encap_header(skb);
+-	NF_HOOK_THRESH(NFPROTO_BRIDGE, NF_BR_PRE_ROUTING, skb, skb->dev, NULL,
+-		       br_handle_frame_finish, 1);
+-
+-	return 0;
 -}
 -
- /* Replicate the checks that IPv6 does on packet reception and pass the packet
-- * to ip6tables, which doesn't support NAT, so things are fairly simple. */
-+ * to ip6tables.
+ /* Obtain the correct destination MAC address, while preserving the original
+  * source MAC address. If we already know this address, we just copy it. If we
+  * don't, we use the neighbour framework to find out. In both cases, we make
+@@ -322,6 +298,97 @@ free_skb:
+ 	return 0;
+ }
+ 
++/* PF_BRIDGE/PRE_ROUTING *********************************************/
++/* Undo the changes made for ip6tables PREROUTING and continue the
++ * bridge PRE_ROUTING hook.
 + */
- static unsigned int br_nf_pre_routing_ipv6(const struct nf_hook_ops *ops,
- 					   struct sk_buff *skb,
- 					   const struct net_device *in,
- 					   const struct net_device *out,
- 					   int (*okfn)(struct sk_buff *))
- {
--	const struct ipv6hdr *hdr;
--	u32 pkt_len;
--
--	if (skb->len < sizeof(struct ipv6hdr))
--		return NF_DROP;
--
--	if (!pskb_may_pull(skb, sizeof(struct ipv6hdr)))
--		return NF_DROP;
--
--	hdr = ipv6_hdr(skb);
--
--	if (hdr->version != 6)
--		return NF_DROP;
--
--	pkt_len = ntohs(hdr->payload_len);
--
--	if (pkt_len || hdr->nexthdr != NEXTHDR_HOP) {
--		if (pkt_len + sizeof(struct ipv6hdr) > skb->len)
--			return NF_DROP;
--		if (pskb_trim_rcsum(skb, pkt_len + sizeof(struct ipv6hdr)))
--			return NF_DROP;
--	}
--	if (hdr->nexthdr == NEXTHDR_HOP && check_hbh_len(skb))
-+	if (br_validate_ipv6(skb))
-+		/* Drop invalid packet */
++
++/* This requires some explaining. If DNAT has taken place,
++ * we will need to fix up the destination Ethernet address.
++ *
++ * There are two cases to consider:
++ * 1. The packet was DNAT'ed to a device in the same bridge
++ *    port group as it was received on. We can still bridge
++ *    the packet.
++ * 2. The packet was DNAT'ed to a different device, either
++ *    a non-bridged device or another bridge port group.
++ *    The packet will need to be routed.
++ *
++ * The correct way of distinguishing between these two cases is to
++ * call ip6_route_input() and to look at skb->dst->dev, which is
++ * changed to the destination device if ip6_route_input() succeeds.
++ * ip6_route_input() is called indirectly via v6ops->route_input to
++ * avoid direct dependency to ipv6.ko due to function calls.
++ *
++ * Let's first consider the case that ip6_route_input() succeeds:
++ *
++ * If the output device equals the logical bridge device the packet
++ * came in on, we can consider this bridging. The corresponding MAC
++ * address will be obtained in br_nf_pre_routing_finish_bridge.
++ * Otherwise, the packet is considered to be routed and we just
++ * change the destination MAC address so that the packet will
++ * later be passed up to the IP stack to be routed. For a redirected
++ * packet, ip6_route_input() will give back the localhost as output device,
++ * which differs from the bridge device.
++ *
++ * Let's now consider the case that ip6_route_input() fails:
++ *
++ * This can be because the destination address is martian, in which case
++ * the packet will be dropped.
++ */
++static int br_nf_pre_routing_finish_ipv6(struct sk_buff *skb)
++{
++	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
++	struct rtable *rt;
++	struct net_device *dev = skb->dev;
++	const struct nf_ipv6_ops *v6ops = nf_get_ipv6_ops();
++
++	if (nf_bridge->mask & BRNF_PKT_TYPE) {
++		skb->pkt_type = PACKET_OTHERHOST;
++		nf_bridge->mask ^= BRNF_PKT_TYPE;
++	}
++	nf_bridge->mask ^= BRNF_NF_BRIDGE_PREROUTING;
++
++	if (dnat_took_place6(skb)) {
++		skb_dst_drop(skb);
++		v6ops->route_input(skb);
++
++		if (skb_dst(skb)->error) {
++			kfree_skb(skb);
++			return 0;
++		}
++
++		if (skb_dst(skb)->dev == dev) {
++			skb->dev = nf_bridge->physindev;
++			nf_bridge_update_protocol(skb);
++			nf_bridge_push_encap_header(skb);
++			NF_HOOK_THRESH(NFPROTO_BRIDGE,
++				       NF_BR_PRE_ROUTING,
++				       skb, skb->dev, NULL,
++				       br_nf_pre_routing_finish_bridge,
++				       1);
++			return 0;
++		}
++		memcpy(eth_hdr(skb)->h_dest, dev->dev_addr, ETH_ALEN);
++		skb->pkt_type = PACKET_HOST;
++	} else {
++		rt = bridge_parent_rtable(nf_bridge->physindev);
++		if (!rt) {
++			kfree_skb(skb);
++			return 0;
++		}
++		skb_dst_set_noref(skb, &rt->dst);
++	}
++
++	skb->dev = nf_bridge->physindev;
++	nf_bridge_update_protocol(skb);
++	nf_bridge_push_encap_header(skb);
++	NF_HOOK_THRESH(NFPROTO_BRIDGE, NF_BR_PRE_ROUTING, skb, skb->dev, NULL,
++		       br_handle_frame_finish, 1);
++
++	return 0;
++}
++
+ /* This requires some explaining. If DNAT has taken place,
+  * we will need to fix up the destination Ethernet address.
+  *
+@@ -570,6 +637,7 @@ static unsigned int br_nf_pre_routing_ipv6(const struct nf_hook_ops *ops,
+ 	if (!setup_pre_routing(skb))
  		return NF_DROP;
  
- 	nf_bridge_put(skb->nf_bridge);
-@@ -839,7 +872,7 @@ static unsigned int br_nf_forward_arp(const struct nf_hook_ops *ops,
- 	return NF_STOLEN;
- }
- 
--#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
-+#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4) || IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
- static bool nf_bridge_copy_header(struct sk_buff *skb)
- {
- 	int err;
-@@ -866,38 +899,45 @@ static int br_nf_push_frag_xmit(struct sk_buff *skb)
- 
- 	return br_dev_queue_push_xmit(skb);
- }
-+#endif
- 
- static int br_nf_dev_queue_xmit(struct sk_buff *skb)
- {
--	int ret;
--	int frag_max_size;
- 	unsigned int mtu_reserved;
- 
--	if (skb_is_gso(skb) || skb->protocol != htons(ETH_P_IP))
-+	mtu_reserved = nf_bridge_mtu_reduction(skb);
-+	if (skb_is_gso(skb) || skb->len + mtu_reserved <= skb->dev->mtu)
- 		return br_dev_queue_push_xmit(skb);
- 
--	mtu_reserved = nf_bridge_mtu_reduction(skb);
-+#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
- 	/* This is wrong! We should preserve the original fragment
- 	 * boundaries by preserving frag_list rather than refragmenting.
- 	 */
--	if (skb->len + mtu_reserved > skb->dev->mtu) {
--		frag_max_size = BR_INPUT_SKB_CB(skb)->frag_max_size;
-+	if (skb->protocol == htons(ETH_P_IP)) {
- 		if (br_parse_ip_options(skb))
- 			/* Drop invalid packet */
- 			return NF_DROP;
--		IPCB(skb)->frag_max_size = frag_max_size;
--		ret = ip_fragment(skb, br_nf_push_frag_xmit);
--	} else
--		ret = br_dev_queue_push_xmit(skb);
-+		IPCB(skb)->frag_max_size = BR_INPUT_SKB_CB(skb)->frag_max_size;
-+		return ip_fragment(skb, br_nf_push_frag_xmit);
-+	}
-+#endif
-+#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
-+	if (skb->protocol == htons(ETH_P_IPV6)) {
-+		const struct nf_ipv6_ops *v6ops = nf_get_ipv6_ops();
- 
--	return ret;
--}
--#else
--static int br_nf_dev_queue_xmit(struct sk_buff *skb)
--{
--        return br_dev_queue_push_xmit(skb);
--}
-+		if (br_validate_ipv6(skb))
-+			/* Drop invalid packet */
-+			return NF_DROP;
-+		IP6CB(skb)->frag_max_size = BR_INPUT_SKB_CB(skb)->frag_max_size;
-+
-+		if (v6ops)
-+			return v6ops->fragment(skb, br_nf_push_frag_xmit);
-+		else
-+			return -EMSGSIZE;
-+	}
- #endif
-+	return br_dev_queue_push_xmit(skb);
-+}
- 
- /* PF_BRIDGE/POST_ROUTING ********************************************/
- static unsigned int br_nf_post_routing(const struct nf_hook_ops *ops,
-diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
-index b46fa0c..e464a0f 100644
---- a/net/bridge/br_private.h
-+++ b/net/bridge/br_private.h
-@@ -18,6 +18,7 @@
- #include <linux/netpoll.h>
- #include <linux/u64_stats_sync.h>
- #include <net/route.h>
-+#include <net/ip6_fib.h>
- #include <linux/if_vlan.h>
- 
- #define BR_HASH_BITS 8
-@@ -214,7 +215,10 @@ struct net_bridge
- 	spinlock_t			hash_lock;
- 	struct hlist_head		hash[BR_HASH_SIZE];
- #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
--	struct rtable 			fake_rtable;
-+	union {
-+		struct rtable		fake_rtable;
-+		struct rt6_info		fake_rt6_info;
-+	};
- 	bool				nf_call_iptables;
- 	bool				nf_call_ip6tables;
- 	bool				nf_call_arptables;
++	store_orig_dstaddr6(skb);
+ 	skb->protocol = htons(ETH_P_IPV6);
+ 	NF_HOOK(NFPROTO_IPV6, NF_INET_PRE_ROUTING, skb, skb->dev, NULL,
+ 		br_nf_pre_routing_finish_ipv6);
 diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index 0cd8ec9..d8cdbe9 100644
+index 398377a..0cd8ec9 100644
 --- a/net/ipv6/netfilter.c
 +++ b/net/ipv6/netfilter.c
-@@ -191,7 +191,8 @@ static __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
+@@ -191,6 +191,7 @@ static __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
  
  static const struct nf_ipv6_ops ipv6ops = {
  	.chk_addr	= ipv6_chk_addr,
--	.route_input    = ip6_route_input
-+	.route_input    = ip6_route_input,
-+	.fragment	= ip6_fragment
++	.route_input    = ip6_route_input
  };
  
  static const struct nf_afinfo nf_ip6_afinfo = {
