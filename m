@@ -1,44 +1,81 @@
-From: "E-mail System." <gne@dioshosp.hu>
-Subject: Webmail =?iso-8859-2?Q?El=F5fizet=F5?=
-Date: Tue, 17 Mar 2015 22:59:29 +0100 (CET)
-Message-ID: <b09b5e71d244c087d019594ba1f0e40c.squirrel__22761.3331670456$1426630611$gmane$org@webmail.csmekhm.hu>
+From: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+Subject: Re: [PATCH 1/3] Add revision field for xt_entry_target
+Date: Wed, 18 Mar 2015 02:47:33 +0000
+Message-ID: <A43879EB4A7F5F449E2CA8148EA79E516C88A2@G08CNEXMBPEKD01.g08.fujitsu.local>
+Reply-To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: unlisted-recipients:; (no To-header on input)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "pablo@netfilter.org" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.hodtav.hu ([85.90.183.194]:58925 "EHLO mail.hodtav.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932265AbbCQWQe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Mar 2015 18:16:34 -0400
+Received: from cn.fujitsu.com ([59.151.112.132]:39111 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754316AbbCRCr1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Mar 2015 22:47:27 -0400
+Content-Language: zh-CN
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-
-
-Kedves: Webmail El=F5fizet=F5
-
-=46elh=EDvjuk figyelm=E9t, hogy az e-mail fi=F3k meghaladta
-t=E1rol=F3kapacit=E1s. =D6n nem tud k=FCldeni =E9s fogadni e-maileket =E9=
-s a
-e-mail fi=F3kja t=F6rl=E9sre ker=FCl a szerver=FCnkr=F5l. A probl=E9ma =
-elker=FCl=E9se
-=E9rdek=E9ben,
-Kattintson ide friss=EDtse a sz=E1mla.
-
-
-http://mailhusite.jigsy.com
-
-K=F6sz=F6n=F6m.
-
-Rendszergazda E-mail System.
-K=F6sz=F6nj=FCk az egy=FCttm?k=F6d=E9st!
-Lev=E9l a Web Team @ 2015
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+aGkgUGFibG8NCg0KPk9uIEZyaSwgRmViIDA2LCAyMDE1IGF0IDAzOjI2OjI4UE0gKzA4MDAsIEdh
+byBmZW5nIHdyb3RlOg0KPj4gVGhpcyBmaWxlZCBpcyB1c2VmdWwgaWYgd2Ugd2FudCB0byBhZGQg
+VEFSR0VUIHdoaWNoDQo+PiBoYXMgcmV2aXNpb24gZm9yIGFycHRhYmxlcyBydWxlcy4NCj4+DQo+
+PiBBbHNvIG1ha2Ugc3VyZSB4dF9lbnRyeV90YXJnZXQgaXMgY29uc2lzdGVudCB3aXRoDQo+PiB0
+aGUgZGVmaW5pdGlvbiBpbiBrZXJuZWwuDQo+Pg0KPj4gU2lnbmVkLW9mZi1ieTogR2FvIGZlbmcg
+PGdhb2ZlbmdAeHh4eHh4eHh4eHh4eHg+DQo+PiAtLS0NCj4+ICBpbmNsdWRlL2xpbnV4L25ldGZp
+bHRlcl9hcnAvYXJwX3RhYmxlcy5oIHwgNCArKystDQo+PiAgMSBmaWxlIGNoYW5nZWQsIDMgaW5z
+ZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQ0KPj4NCj4+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xp
+bnV4L25ldGZpbHRlcl9hcnAvYXJwX3RhYmxlcy5oIGIvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXJf
+YXJwL2FycF90YWJsZXMuaA0KPj4gaW5kZXggMGFjZGE2Ni4uY2NmOGNkMCAxMDA2NDQNCj4+IC0t
+LSBhL2luY2x1ZGUvbGludXgvbmV0ZmlsdGVyX2FycC9hcnBfdGFibGVzLmgNCj4+ICsrKyBiL2lu
+Y2x1ZGUvbGludXgvbmV0ZmlsdGVyX2FycC9hcnBfdGFibGVzLmgNCj4+IEBAIC0xOSw3ICsxOSw3
+IEBADQo+PiANCj4+ICAjaW5jbHVkZSA8bGludXgvbmV0ZmlsdGVyX2FycC5oPg0KPj4gDQo+PiAt
+I2RlZmluZSBBUlBUX0ZVTkNUSU9OX01BWE5BTUVMRU4gMzANCj4+ICsjZGVmaW5lIEFSUFRfRlVO
+Q1RJT05fTUFYTkFNRUxFTiAyOQ0KPj4gICNkZWZpbmUgQVJQVF9UQUJMRV9NQVhOQU1FTEVOIDMy
+DQo+PiANCj4+ICAjZGVmaW5lIEFSUFRfREVWX0FERFJfTEVOX01BWCAxNg0KPj4gQEAgLTY5LDYg
+KzY5LDggQEAgc3RydWN0IGFycHRfZW50cnlfdGFyZ2V0DQo+PiANCj4+ICAgICAgICAgICAgICAg
+ICAgICAgIC8qIFVzZWQgYnkgdXNlcnNwYWNlICovDQo+PiAgICAgICAgICAgICAgICAgICAgICBj
+aGFyIG5hbWVbQVJQVF9GVU5DVElPTl9NQVhOQU1FTEVOXTsNCj4+ICsNCj4+ICsgICAgICAgICAg
+ICAgICAgICAgIHVfaW50OF90IHJldmlzaW9uOw0KPg0KPlRoaXMgc3RydWN0dXJlIGlzIG5vdCBl
+eHBvc2VkIHRvIHVzZXJzcGFjZSBhbmQgSSBkb24ndCBmaW5kIGFueSBjbGllbnQNCj5vZiBpdCBp
+biB0aGlzIGNvZGU6DQo+DQo+aW5jbHVkZS91YXBpL2xpbnV4L25ldGZpbHRlcl9hcnAvYXJwX3Rh
+Ymxlcy5oOiNkZWZpbmUgYXJwdF9lbnRyeV90YXJnZXQgeHRfZW50cnlfdGFyZ2V0DQo+DQo+YW5k
+IGFycF90YWJsZXMgdXNlcyB4dF9lbnRyeV90YXJnZXQgYWxsIHRoZSB0aW1lLg0KcmV2aXNpb24g
+aXMgdXNlZCB0byBtYXJrX3RnIGluIGtlcm5lbCBmaWxlIDoga2VybmVsLTMuMTQvbmV0L25ldGZp
+bHRlci94dF9tYXJrLmMNCg0Kc3RhdGljIHN0cnVjdCB4dF90YXJnZXQgbWFya190Z19yZWcgX19y
+ZWFkX21vc3RseSA9IHsNCiAgICAgICAgLm5hbWUgICAgICAgICAgID0gIk1BUksiLA0KICAgICAg
+ICAucmV2aXNpb24gICAgICAgPSAyLA0KICAgICAgICAuZmFtaWx5ICAgICAgICAgPSBORlBST1RP
+X1VOU1BFQywNCiAgICAgICAgLnRhcmdldCAgICAgICAgID0gbWFya190ZywNCiAgICAgICAgLnRh
+cmdldHNpemUgICAgID0gc2l6ZW9mKHN0cnVjdCB4dF9tYXJrX3RnaW5mbzIpLA0KICAgICAgICAu
+bWUgICAgICAgICAgICAgPSBUSElTX01PRFVMRSwNCn07DQo+DQo+SSBndWVzcyB5b3UgY2FuIGdl
+dCByaWQgb2YgdGhpcyBkZWFkIGNvZGUuIFRoZW4sIHVwZGF0ZSB0aGUgY2FjaGVkDQo+Y29weSBh
+bmQgYWxzbyBpbmNsdWRlIHhfdGFibGVzLmggZGVmaW5pdGlvbiBpbiB0aGUgYXJwdGFibGVzIHRy
+ZWUuDQpkbyB5b3UgbWVhbiAsICAgaW4gYXJwdGFibGUgc2hvdWRsZSB3cml0ZSBsaWtlICB4dGFi
+bGVzX3RhcmdldCA/DQoNCmlwdGFibGVzL2V4dGVuc2lvbnMvbGlieHRfTUFSSy5jDQpzdGF0aWMg
+c3RydWN0IHh0YWJsZXNfdGFyZ2V0IG1hcmtfdGdfcmVnW10gPSB7DQogICAgICAgIHsgIA0KICAg
+ICAgICAgICAgICAgIC5mYW1pbHkgICAgICAgID0gTkZQUk9UT19VTlNQRUMsDQogICAgICAgICAg
+ICAgICAgLm5hbWUgICAgICAgICAgPSAiTUFSSyIsDQogICAgICAgICAgICAgICAgLnZlcnNpb24g
+ICAgICAgPSBYVEFCTEVTX1ZFUlNJT04sDQogICAgICAgICAgICAgICAgLnJldmlzaW9uICAgICAg
+PSAwLA0KICAgICAgICAgICAgICAgIC5zaXplICAgICAgICAgID0gWFRfQUxJR04oc2l6ZW9mKHN0
+cnVjdCB4dF9tYXJrX3RhcmdldF9pbmZvKSksDQogICAgICAgICAgICAgICAgLnVzZXJzcGFjZXNp
+emUgPSBYVF9BTElHTihzaXplb2Yoc3RydWN0IHh0X21hcmtfdGFyZ2V0X2luZm8pKSwNCiAgICAg
+ICAgICAgICAgICAuaGVscCAgICAgICAgICA9IE1BUktfaGVscCwNCiAgICAgICAgICAgICAgICAu
+cHJpbnQgICAgICAgICA9IE1BUktfcHJpbnRfdjAsDQogICAgICAgICAgICAgICAgLnNhdmUgICAg
+ICAgICAgPSBNQVJLX3NhdmVfdjAsDQogICAgICAgICAgICAgICAgLng2X3BhcnNlICAgICAgPSBN
+QVJLX3BhcnNlX3YwLA0KICAgICAgICAgICAgICAgIC54Nl9mY2hlY2sgICAgID0gTUFSS19jaGVj
+aywNCiAgICAgICAgICAgICAgICAueDZfb3B0aW9ucyAgICA9IE1BUktfb3B0cywNCiAgICAgICAg
+fSwgDQogICAgICAgIHsgIA0KICAgICAgICAgICAgICAgIC5mYW1pbHkgICAgICAgID0gTkZQUk9U
+T19JUFY0LA0KICAgICAgICAgICAgICAgIC5uYW1lICAgICAgICAgID0gIk1BUksiLA0KICAgICAg
+ICAgICAgICAgIC52ZXJzaW9uICAgICAgID0gWFRBQkxFU19WRVJTSU9OLA0KICAgICAgICAgICAg
+ICAgIC5yZXZpc2lvbiAgICAgID0gMSwNCiAgICAgICAgICAgICAgICAuc2l6ZSAgICAgICAgICA9
+IFhUX0FMSUdOKHNpemVvZihzdHJ1Y3QgeHRfbWFya190YXJnZXRfaW5mb192MSkpLA0KICAgICAg
+ICAgICAgICAgIC51c2Vyc3BhY2VzaXplID0gWFRfQUxJR04oc2l6ZW9mKHN0cnVjdCB4dF9tYXJr
+X3RhcmdldF9pbmZvX3YxKSksDQogICAgICAgICAgICAgICAgLmhlbHAgICAgICAgICAgPSBNQVJL
+X2hlbHAsDQogICAgICAgICAgICAgICAgLnByaW50ICAgICAgICAgPSBNQVJLX3ByaW50X3YxLA0K
+ICAgICAgICAgICAgICAgIC5zYXZlICAgICAgICAgID0gTUFSS19zYXZlX3YxLA0KICAgICAgICAg
+ICAgICAgIC54Nl9wYXJzZSAgICAgID0gTUFSS19wYXJzZV92MSwNCiAgICAgICAgICAgICAgICAu
+eDZfZmNoZWNrICAgICA9IE1BUktfY2hlY2ssDQogICAgICAgICAgICAgICAgLng2X29wdGlvbnMg
+ICAgPSBNQVJLX29wdHMsDQogICAgICAgIH0sDQo+DQo+PiAgICAgICAgICAgICAgfSB1c2VyOw0K
+Pj4gICAgICAgICAgICAgIHN0cnVjdCB7DQo+PiAgICAgICAgICAgICAgICAgICAgICB1X2ludDE2
+X3QgdGFyZ2V0X3NpemU7DQo+PiAtLQ0KPj4gMi4xLjANCj4+IA==
