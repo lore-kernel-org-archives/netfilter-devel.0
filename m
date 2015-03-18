@@ -1,62 +1,79 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH v2] rule: delete extra space in rule indentation
-Date: Wed, 18 Mar 2015 11:43:24 +0100
-Message-ID: <20150318104252.25344.59683.stgit@nfdev.cica.es>
+From: Pavel Odintsov <pavel.odintsov@gmail.com>
+Subject: Can't link C++ program to libipset
+Date: Wed, 18 Mar 2015 14:20:48 +0300
+Message-ID: <CALgsdbeBy=wDnyEpZTrGb0=HKPB9kcS03m=jPzCLfzotyA7P8Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, pablo@netfilter.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:44466 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755457AbbCRKnf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Mar 2015 06:43:35 -0400
+Received: from mail-we0-f172.google.com ([74.125.82.172]:35646 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755819AbbCRLUu convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Mar 2015 07:20:50 -0400
+Received: by webcq43 with SMTP id cq43so29546629web.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2015 04:20:49 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Annoying extra space in rule indentation:
+Hello, folks!
 
-Example before this patch:
+I trying to integrate ipset to my flood monitoring toolkit
+https://github.com/FastVPSEestiOu/fastnetmon but can't link it
+correctly.
 
-table ip6 test_table {
-	chain test_chain {
-		 counter tcp dport { 22, 80, 443} accept # handle 1
-		^
-	}
-}
+Here you can find my code:
+https://gist.github.com/pavel-odintsov/b2277822e5c88e136550
 
-Example after this patch:
+I installed recent version from Git:
+cd /usr/src
+git clone git://git.netfilter.org/ipset.git
+apt-get install -y automake libtool
+=2E/autogen.sh
+=2E/configure --prefix=3D/opt/ipset
+make install
 
-table ip6 test_table {
-	chain test_chain {
-		counter tcp dport { 22, 80, 443} accept # handle 1
-	}
-}
+And tried link my tool with libipset but haven't any success:
+g++ ipset.c  -I/opt/ipset/include/ -L/opt/ipset/lib -lipset
+ipset.c: In function =E2=80=98int main()=E2=80=99:
+ipset.c:15:37: warning: deprecated conversion from string constant to
+=E2=80=98char*=E2=80=99 [-Wwrite-strings]
+ipset.c:15:37: warning: deprecated conversion from string constant to
+=E2=80=98char*=E2=80=99 [-Wwrite-strings]
+/tmp/ccWP0vdf.o:ipset.c:function ban_ip(char*, char*): error:
+undefined reference to 'ipset_session_init(int (*)(char const*, ...))'
+/tmp/ccWP0vdf.o:ipset.c:function ban_ip(char*, char*): error:
+undefined reference to 'ipset_parse_setname(ipset_session*, ipset_opt,
+char const*)'
+/tmp/ccWP0vdf.o:ipset.c:function ban_ip(char*, char*): error:
+undefined reference to 'ipset_type_get(ipset_session*, ipset_cmd)'
+/tmp/ccWP0vdf.o:ipset.c:function ban_ip(char*, char*): error:
+undefined reference to 'ipset_session_error(ipset_session const*)'
+/tmp/ccWP0vdf.o:ipset.c:function ban_ip(char*, char*): error:
+undefined reference to 'ipset_parse_elem(ipset_session*, bool, char
+const*)'
+/tmp/ccWP0vdf.o:ipset.c:function ban_ip(char*, char*): error:
+undefined reference to 'ipset_session_error(ipset_session const*)'
+/tmp/ccWP0vdf.o:ipset.c:function ban_ip(char*, char*): error:
+undefined reference to 'ipset_cmd(ipset_session*, ipset_cmd, unsigned
+int)'
+/tmp/ccWP0vdf.o:ipset.c:function ban_ip(char*, char*): error:
+undefined reference to 'ipset_session_fini(ipset_session*)'
+collect2: error: ld returned 1 exit status
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
-v2: include examples in patch description.
+But if i change g++ to gcc everything passed with flying colors:
+gcc ipset.c  -I/opt/ipset/include/ -L/opt/ipset/lib -lipset
 
- src/rule.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+My toolkit written in C++ and I need ability to link it directly with l=
+ibipset.
 
-diff --git a/src/rule.c b/src/rule.c
-index 8d76fd0..9403c1e 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -237,11 +237,11 @@ void rule_print(const struct rule *rule)
- 	const struct stmt *stmt;
- 
- 	list_for_each_entry(stmt, &rule->stmts, list) {
--		printf(" ");
- 		stmt->ops->print(stmt);
-+		printf(" ");
- 	}
- 	if (handle_output > 0)
--		printf(" # handle %" PRIu64, rule->handle.handle);
-+		printf("# handle %" PRIu64, rule->handle.handle);
- }
- 
- struct scope *scope_init(struct scope *scope, const struct scope *parent)
+Thank you for attention to my problem!
 
+--=20
+Sincerely yours, Pavel Odintsov
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
