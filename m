@@ -1,71 +1,81 @@
 From: Bernhard Thaler <bernhard.thaler@wvnet.at>
-Subject: [PATCH 3/4] netfilter: bridge: add mtu size reduction to ip6_fragment()
-Date: Wed, 18 Mar 2015 22:54:44 +0100
-Message-ID: <1426715684-16939-1-git-send-email-bernhard.thaler@wvnet.at>
+Subject: [PATCH 4/4] netfilter: bridge: rename br_parse_ip_options and delete unneeded code
+Date: Wed, 18 Mar 2015 22:56:08 +0100
+Message-ID: <1426715768-17011-1-git-send-email-bernhard.thaler@wvnet.at>
 Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
 	Bernhard Thaler <bernhard.thaler@wvnet.at>
 To: pablo@netfilter.org, kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smarthost1.wvnet.at ([62.212.174.130]:35510 "EHLO
+Received: from smarthost1.wvnet.at ([62.212.174.130]:57460 "EHLO
 	smarthost2.wvnet.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750905AbbCRWEW (ORCPT
+	with ESMTP id S1755157AbbCRWEW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 18 Mar 2015 18:04:22 -0400
 Received: from smtp.wvnet.at (localhost [127.0.0.1])
-	by smarthost1.wvnet.at (Postfix) with ESMTP id CA98EFD5FE7
-	for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2015 22:55:15 +0100 (CET)
+	by smarthost1.wvnet.at (Postfix) with ESMTP id E66A8FD6059
+	for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2015 22:56:38 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-ip6_fragment() was not called by netfilter bridge code before changes in
-"bridge: forward IPv6 fragmented packets when passing" and lacks mtu size
-reduction as found in ip_fragment().
+br_parse_ip_options() does not parse any IP options, it validates IP
+packets as a whole and the function name is misleading.
 
-Add mtu size reductions based on ip_fragment() code.
+Rename it and delete unneeded assignment of iph variable.
 
 Signed-off-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
 ---
-Patch needs further testing in specific scenarios (e.g. fragmented IPv6
-packet within PPPoE over bridge) to confirm correct operation.
+ net/bridge/br_netfilter.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
- net/ipv6/ip6_output.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
-
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index 0a04a37..9b5aeef 100644
---- a/net/ipv6/ip6_output.c
-+++ b/net/ipv6/ip6_output.c
-@@ -40,6 +40,7 @@
- #include <linux/slab.h>
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index 0e129fb..2d73565 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -198,7 +198,7 @@ static inline void nf_bridge_save_header(struct sk_buff *skb)
+  * expected format
+  */
  
- #include <linux/netfilter.h>
-+#include <linux/netfilter_bridge.h>
- #include <linux/netfilter_ipv6.h>
+-static int br_parse_ip_options(struct sk_buff *skb)
++static int br_validate_ipv4(struct sk_buff *skb)
+ {
+ 	const struct iphdr *iph;
+ 	struct net_device *dev = skb->dev;
+@@ -300,7 +300,7 @@ bad:
+ 	return -1;
+ }
  
- #include <net/sock.h>
-@@ -578,6 +579,10 @@ int ip6_fragment(struct sk_buff *skb, int (*output)(struct sk_buff *))
- 			mtu = np->frag_size;
+-/* Equivalent to br_parse_ip_options for IPv6 */
++/* Equivalent to br_validate_ipv4 for IPv6 */
+ static int br_validate_ipv6(struct sk_buff *skb)
+ {
+ 	const struct ipv6hdr *hdr;
+@@ -718,7 +718,7 @@ static unsigned int br_nf_pre_routing(const struct nf_hook_ops *ops,
+ 
+ 	nf_bridge_pull_encap_header_rcsum(skb);
+ 
+-	if (br_parse_ip_options(skb))
++	if (br_validate_ipv4(skb))
+ 		return NF_DROP;
+ 
+ 	nf_bridge_put(skb->nf_bridge);
+@@ -819,7 +819,7 @@ static unsigned int br_nf_forward_ip(const struct nf_hook_ops *ops,
+ 		nf_bridge->mask |= BRNF_PKT_TYPE;
  	}
- 	mtu -= hlen + sizeof(struct frag_hdr);
-+#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
-+	if (skb->nf_bridge)
-+		mtu -= nf_bridge_mtu_reduction(skb);
-+#endif
  
- 	if (skb_has_frag_list(skb)) {
- 		int first_len = skb_pagelen(skb);
-@@ -717,7 +722,10 @@ slow_path:
+-	if (pf == NFPROTO_IPV4 && br_parse_ip_options(skb))
++	if (pf == NFPROTO_IPV4 && br_validate_ipv4(skb))
+ 		return NF_DROP;
+ 
+ 	/* The physdev module checks on this */
+@@ -914,7 +914,7 @@ static int br_nf_dev_queue_xmit(struct sk_buff *skb)
+ 	 * boundaries by preserving frag_list rather than refragmenting.
  	 */
- 
- 	*prevhdr = NEXTHDR_FRAGMENT;
--	hroom = LL_RESERVED_SPACE(rt->dst.dev);
-+	/* for bridged IP traffic encapsulated inside f.e. a vlan header,
-+	 * we need to make room for the encapsulating header
-+	 */
-+	hroom = LL_RESERVED_SPACE_EXTRA(rt->dst.dev, nf_bridge_pad(skb));
- 	troom = rt->dst.dev->needed_tailroom;
- 
- 	/*
+ 	if (skb->protocol == htons(ETH_P_IP)) {
+-		if (br_parse_ip_options(skb))
++		if (br_validate_ipv4(skb))
+ 			/* Drop invalid packet */
+ 			return NF_DROP;
+ 		IPCB(skb)->frag_max_size = BR_INPUT_SKB_CB(skb)->frag_max_size;
 -- 
 1.7.10.4
 
