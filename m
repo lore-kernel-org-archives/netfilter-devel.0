@@ -1,41 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Re: [PATCH 1/3] Add revision field for xt_entry_target
-Date: Wed, 18 Mar 2015 11:07:13 +0100
-Message-ID: <20150318100713.GA2774@salvia>
-References: <A43879EB4A7F5F449E2CA8148EA79E516C88A2@G08CNEXMBPEKD01.g08.fujitsu.local>
- <20150318094449.GA7279@salvia>
- <A43879EB4A7F5F449E2CA8148EA79E516CAE20@G08CNEXMBPEKD01.g08.fujitsu.local>
+Subject: Re: [nft PATCH] rule: delete extra space in rule indentation
+Date: Wed, 18 Mar 2015 11:10:27 +0100
+Message-ID: <20150318101027.GA18800@salvia>
+References: <20150317212327.20080.81689.stgit@nfdev.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40708 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41989 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755118AbbCRKDW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Mar 2015 06:03:22 -0400
+	id S1755185AbbCRKGf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Mar 2015 06:06:35 -0400
 Content-Disposition: inline
-In-Reply-To: <A43879EB4A7F5F449E2CA8148EA79E516CAE20@G08CNEXMBPEKD01.g08.fujitsu.local>
+In-Reply-To: <20150317212327.20080.81689.stgit@nfdev.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 18, 2015 at 09:59:59AM +0000, Zhang, Chunyu wrote:
-> >Please, resubmit this patch once you have extended the
-> >userspace arp mark extension to exactly mirror what mark can do in
-> >iptables/ip6tables.
->
-> ok, i will do it for revision
-> also add --and-mark and --or-mark
-> maybe too many code to add.
+On Tue, Mar 17, 2015 at 10:23:27PM +0100, Arturo Borrero Gonzalez wrote:
+> Annoying extra space in rule indentation.
 
-Please, add exactly the same:
+What "extra space" are you refering to?
 
-"MARK target options:\n"
-"  --set-mark value                   Set nfmark value\n"
-"  --and-mark value                   Binary AND the nfmark with value\n"
-"  --or-mark  value                   Binary OR  the nfmark with value\n");
+Could you include a small proof of it in the description? Thanks.
 
-We'll have arptables-compat over nftables ready soon, and things get
-easier for us if we get arptables in sync with iptables.
-
-Thanks.
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> ---
+>  src/rule.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/src/rule.c b/src/rule.c
+> index 8d76fd0..9403c1e 100644
+> --- a/src/rule.c
+> +++ b/src/rule.c
+> @@ -237,11 +237,11 @@ void rule_print(const struct rule *rule)
+>  	const struct stmt *stmt;
+>  
+>  	list_for_each_entry(stmt, &rule->stmts, list) {
+> -		printf(" ");
+>  		stmt->ops->print(stmt);
+> +		printf(" ");
+>  	}
+>  	if (handle_output > 0)
+> -		printf(" # handle %" PRIu64, rule->handle.handle);
+> +		printf("# handle %" PRIu64, rule->handle.handle);
+>  }
+>  
+>  struct scope *scope_init(struct scope *scope, const struct scope *parent)
+> 
