@@ -1,52 +1,41 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nft PATCH v2] rule: delete extra space in rule indentation
-Date: Thu, 19 Mar 2015 12:16:09 +0000
-Message-ID: <20150319121608.GI6892@acer.localdomain>
-References: <20150318104252.25344.59683.stgit@nfdev.cica.es>
- <20150318171637.GA5346@salvia>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH] rule: fix chain details align indentations
+Date: Thu, 19 Mar 2015 13:37:59 +0100
+Message-ID: <20150319123759.28211.63107.stgit@nfdev.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59776 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751351AbbCSMQN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Mar 2015 08:16:13 -0400
-Content-Disposition: inline
-In-Reply-To: <20150318171637.GA5346@salvia>
+Received: from smtp3.cica.es ([150.214.5.190]:35725 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751316AbbCSMiK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Mar 2015 08:38:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 18.03, Pablo Neira Ayuso wrote:
-> On Wed, Mar 18, 2015 at 11:43:24AM +0100, Arturo Borrero Gonzalez wrote:
-> > Annoying extra space in rule indentation:
-> > 
-> > Example before this patch:
-> > 
-> > table ip6 test_table {
-> > 	chain test_chain {
-> > 		 counter tcp dport { 22, 80, 443} accept # handle 1
-> > 		^
-> > 	}
-> > }
-> > 
-> > Example after this patch:
-> > 
-> > table ip6 test_table {
-> > 	chain test_chain {
-> > 		counter tcp dport { 22, 80, 443} accept # handle 1
-> > 	}
-> > }
-> 
-> Applied, thanks.
+f.i:
+	 type filter hook output priority 0; policy accept;
+	ip daddr @test counter packets 14 bytes 1176
 
-We now have misaligned output, f.i.
+Reported-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/rule.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-         type filter hook output priority 0; policy accept;
-        ip daddr @test counter packets 14 bytes 1176
+diff --git a/src/rule.c b/src/rule.c
+index 0400dec..7114380 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -444,7 +444,7 @@ static void chain_print(const struct chain *chain)
+ 
+ 	printf("\tchain %s {\n", chain->handle.chain);
+ 	if (chain->flags & CHAIN_F_BASECHAIN) {
+-		printf("\t\t type %s hook %s priority %d; policy %s;\n",
++		printf("\t\ttype %s hook %s priority %d; policy %s;\n",
+ 		       chain->type,
+ 		       hooknum2str(chain->handle.family, chain->hooknum),
+ 		       chain->priority, chain_policy2str(chain->policy));
 
-Arturo, please check the remaining print functions and adjust them
-accordingly.
