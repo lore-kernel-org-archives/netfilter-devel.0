@@ -1,57 +1,163 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [PATCH v2] add systemd service file
-Date: Fri, 20 Mar 2015 11:25:42 +0100
-Message-ID: <CAOkSjBhEa2cZxRreZhSLyxyH7YPv_SWFwvkr=pjYvZXXY-tLWA@mail.gmail.com>
-References: <20150320105320.58266b67@turingmachine>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: restore rule tracing via nfnetlink_log
+Date: Fri, 20 Mar 2015 11:54:30 +0100
+Message-ID: <1426848870-4136-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: =?UTF-8?Q?J=C3=B6rg_Thalheim?= <joerg@higgsboson.tk>
+Cc: koetter@rrzn.uni-hannover.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:33117 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751653AbbCTK0E convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Mar 2015 06:26:04 -0400
-Received: by lbbrr9 with SMTP id rr9so7484811lbb.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Mar 2015 03:26:02 -0700 (PDT)
-In-Reply-To: <20150320105320.58266b67@turingmachine>
+Received: from mail.us.es ([193.147.175.20]:41464 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751342AbbCTKuu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Mar 2015 06:50:50 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 20 March 2015 at 10:53, J=C3=B6rg Thalheim <joerg@higgsboson.tk> wro=
-te:
-> The last PATCH was rejected, because it has added an integration scri=
-pt.
-> This PATCH however only adds a service file, with no other dependency=
- but the
-> userpace nft program.
->
+Since fab4085 ("netfilter: log: nf_log_packet() as real unified
+interface"), the loginfo structure that is passed to nf_log_packet() is
+used to explicitly indicate the logger type you want to use.
 
-Again, my opinion is: this belongs to distributions.
+This is a problem for people tracing rules through nfnetlink_log since
+packets are always routed to the NF_LOG_TYPE logger after the
+aforementioned patch.
 
-> my motivation was the following:
->
-> - Providing a service file upstream hopefully lead to consistent beha=
-viour across distributions
-> - The people, who know how to deal with nft, are usually the upstream=
- developer itself
-> - The provided service should be reusable without any modification in=
- any distribution
->   and should preserve maintainers from reinventing the wheel all the =
-time
->   (debian currently does not provide atomic reloading in sid for exam=
-ple;
->   archlinux does, but it doesn't set ProtectSystem and ProtectHome)
->
+We can fix this by removing the trace loginfo structures, but that stil=
+l
+changes the log level from 4 to 5 for tracing messages and there may be
+someone relying on this outthere. So let's just introduce a new
+nf_log_trace() function that restores the former behaviour.
 
-It turns out that the debian package do reload the ruleset atomically.
-We can further discuss the debian stuff in other place though.
+Reported-by: Markus K=C3=B6tter <koetter@rrzn.uni-hannover.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_log.h  |   10 ++++++++++
+ net/ipv4/netfilter/ip_tables.c  |    6 +++---
+ net/ipv6/netfilter/ip6_tables.c |    6 +++---
+ net/netfilter/nf_log.c          |   24 ++++++++++++++++++++++++
+ net/netfilter/nf_tables_core.c  |    8 ++++----
+ 5 files changed, 44 insertions(+), 10 deletions(-)
 
+diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_=
+log.h
+index 534e1f2..57639fc 100644
+--- a/include/net/netfilter/nf_log.h
++++ b/include/net/netfilter/nf_log.h
+@@ -79,6 +79,16 @@ void nf_log_packet(struct net *net,
+ 		   const struct nf_loginfo *li,
+ 		   const char *fmt, ...);
+=20
++__printf(8, 9)
++void nf_log_trace(struct net *net,
++		  u_int8_t pf,
++		  unsigned int hooknum,
++		  const struct sk_buff *skb,
++		  const struct net_device *in,
++		  const struct net_device *out,
++		  const struct nf_loginfo *li,
++		  const char *fmt, ...);
++
+ struct nf_log_buf;
+=20
+ struct nf_log_buf *nf_log_buf_open(void);
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tab=
+les.c
+index 99e810f..cf5e82f 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -272,9 +272,9 @@ static void trace_packet(const struct sk_buff *skb,
+ 		    &chainname, &comment, &rulenum) !=3D 0)
+ 			break;
+=20
+-	nf_log_packet(net, AF_INET, hook, skb, in, out, &trace_loginfo,
+-		      "TRACE: %s:%s:%s:%u ",
+-		      tablename, chainname, comment, rulenum);
++	nf_log_trace(net, AF_INET, hook, skb, in, out, &trace_loginfo,
++		     "TRACE: %s:%s:%s:%u ",
++		     tablename, chainname, comment, rulenum);
+ }
+ #endif
+=20
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_t=
+ables.c
+index e080fbb..bb00c6f 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -298,9 +298,9 @@ static void trace_packet(const struct sk_buff *skb,
+ 		    &chainname, &comment, &rulenum) !=3D 0)
+ 			break;
+=20
+-	nf_log_packet(net, AF_INET6, hook, skb, in, out, &trace_loginfo,
+-		      "TRACE: %s:%s:%s:%u ",
+-		      tablename, chainname, comment, rulenum);
++	nf_log_trace(net, AF_INET6, hook, skb, in, out, &trace_loginfo,
++		     "TRACE: %s:%s:%s:%u ",
++		     tablename, chainname, comment, rulenum);
+ }
+ #endif
+=20
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index 0d8448f..675d12c 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -212,6 +212,30 @@ void nf_log_packet(struct net *net,
+ }
+ EXPORT_SYMBOL(nf_log_packet);
+=20
++void nf_log_trace(struct net *net,
++		  u_int8_t pf,
++		  unsigned int hooknum,
++		  const struct sk_buff *skb,
++		  const struct net_device *in,
++		  const struct net_device *out,
++		  const struct nf_loginfo *loginfo, const char *fmt, ...)
++{
++	va_list args;
++	char prefix[NF_LOG_PREFIXLEN];
++	const struct nf_logger *logger;
++
++	rcu_read_lock();
++	logger =3D rcu_dereference(net->nf.nf_loggers[pf]);
++	if (logger) {
++		va_start(args, fmt);
++		vsnprintf(prefix, sizeof(prefix), fmt, args);
++		va_end(args);
++		logger->logfn(net, pf, hooknum, skb, in, out, loginfo, prefix);
++	}
++	rcu_read_unlock();
++}
++EXPORT_SYMBOL(nf_log_trace);
++
+ #define S_SIZE (1024 - (sizeof(unsigned int) + 1))
+=20
+ struct nf_log_buf {
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_c=
+ore.c
+index 3b90eb2..2d298dc 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -94,10 +94,10 @@ static void nft_trace_packet(const struct nft_pktin=
+fo *pkt,
+ {
+ 	struct net *net =3D dev_net(pkt->in ? pkt->in : pkt->out);
+=20
+-	nf_log_packet(net, pkt->xt.family, pkt->ops->hooknum, pkt->skb, pkt->=
+in,
+-		      pkt->out, &trace_loginfo, "TRACE: %s:%s:%s:%u ",
+-		      chain->table->name, chain->name, comments[type],
+-		      rulenum);
++	nf_log_trace(net, pkt->xt.family, pkt->ops->hooknum, pkt->skb, pkt->i=
+n,
++		     pkt->out, &trace_loginfo, "TRACE: %s:%s:%s:%u ",
++		     chain->table->name, chain->name, comments[type],
++		     rulenum);
+ }
+=20
+ unsigned int
 --=20
-Arturo Borrero Gonz=C3=A1lez
+1.7.10.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
