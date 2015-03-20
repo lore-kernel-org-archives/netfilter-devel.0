@@ -1,43 +1,39 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH v2] add systemd service file
-Date: Fri, 20 Mar 2015 12:06:47 +0100 (CET)
-Message-ID: <alpine.LSU.2.11.1503201203430.21239@nerf40.vanv.qr>
-References: <20150320105304.043069e6@turingmachine>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: =?UTF-8?Q?J=C3=B6rg_Thalheim?= <joerg@higgsboson.tk>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: xt_TPROXY: fix invflags check in tproxy_tg6_check()
+Date: Fri, 20 Mar 2015 14:00:32 +0100
+Message-ID: <1426856432-6375-1-git-send-email-pablo@netfilter.org>
+Cc: balazs.scheidler@balabit.com, hidden@balabit.hu, fw@strlen.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:55416 "EHLO ares41.inai.de"
+Received: from mail.us.es ([193.147.175.20]:52427 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750966AbbCTLGt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Mar 2015 07:06:49 -0400
-In-Reply-To: <20150320105304.043069e6@turingmachine>
+	id S1751693AbbCTM4r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Mar 2015 08:56:47 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+We have to check for IP6T_INV_PROTO in invflags, instead of flags.
 
-On Friday 2015-03-20 10:53, J=C3=B6rg Thalheim wrote:
->=20
->+AC_PATH_TOOL(PKGCONFIG, pkg-config)
->+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_TPROXY.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Sure you don't want to actually use PKG_PROG_PKG_CONFIG?
+diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
+index ef8a926..50e1e5a 100644
+--- a/net/netfilter/xt_TPROXY.c
++++ b/net/netfilter/xt_TPROXY.c
+@@ -513,8 +513,8 @@ static int tproxy_tg6_check(const struct xt_tgchk_param *par)
+ {
+ 	const struct ip6t_ip6 *i = par->entryinfo;
+ 
+-	if ((i->proto == IPPROTO_TCP || i->proto == IPPROTO_UDP)
+-	    && !(i->flags & IP6T_INV_PROTO))
++	if ((i->proto == IPPROTO_TCP || i->proto == IPPROTO_UDP) &&
++	    !(i->invflags & IP6T_INV_PROTO))
+ 		return 0;
+ 
+ 	pr_info("Can be used only in combination with "
+-- 
+1.7.10.4
 
->@@ -0,0 +1,17 @@
->+[Unit]
->+Description=3DNetfilter Tables
-
-That is rather non-descript. It should perhaps say something
-involving "network packet filter".
-
->+[Install]
->+WantedBy=3Dmulti-user.target
-
-This ought to be basic.target.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
