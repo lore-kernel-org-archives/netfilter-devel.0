@@ -1,136 +1,51 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2/2] netfilter: nft_hash: convert to use rhashtable callbacks
-Date: Sat, 21 Mar 2015 15:38:10 +0000
-Message-ID: <1426952290-18962-3-git-send-email-kaber@trash.net>
-References: <1426952290-18962-1-git-send-email-kaber@trash.net>
-Cc: davem@davemloft.net, herbert@gondor.apana.org.au, tgraf@suug.ch,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Subject: Re: [PATCH v2] add systemd service file
+Date: Sat, 21 Mar 2015 17:45:33 +0000
+Message-ID: <20150321174532.GA16593@acer.localdomain>
+References: <20150320105320.58266b67@turingmachine>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: =?iso-8859-1?Q?J=F6rg?= Thalheim <joerg@higgsboson.tk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46537 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:47213 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751452AbbCUPi1 (ORCPT
+	with ESMTP id S1751709AbbCURph (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 21 Mar 2015 11:38:27 -0400
-In-Reply-To: <1426952290-18962-1-git-send-email-kaber@trash.net>
+	Sat, 21 Mar 2015 13:45:37 -0400
+Content-Disposition: inline
+In-Reply-To: <20150320105320.58266b67@turingmachine>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-A following patch will convert sets to use so called set extensions,
-where the key is not located in a fixed position anymore. This will
-require rhashtable hashing and comparison callbacks to be used.
+On 20.03, J=F6rg Thalheim wrote:
+> The last PATCH was rejected, because it has added an integration scri=
+pt.
+> This PATCH however only adds a service file, with no other dependency=
+ but the
+> userpace nft program.
+>=20
+> my motivation was the following:
+>=20
+> - Providing a service file upstream hopefully lead to consistent beha=
+viour across distributions
+> - The people, who know how to deal with nft, are usually the upstream=
+ developer itself
+> - The provided service should be reusable without any modification in=
+ any distribution=20
+>   and should preserve maintainers from reinventing the wheel all the =
+time=20
+>   (debian currently does not provide atomic reloading in sid for exam=
+ple;=20
+>   archlinux does, but it doesn't set ProtectSystem and ProtectHome)
+>=20
+> I hope you can agree with this. Thanks
 
-As preparation, convert nft_hash to use these callbacks without any
-functional changes.
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- net/netfilter/nft_hash.c | 54 +++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 49 insertions(+), 5 deletions(-)
-
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index e815940..4de73b3 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -33,16 +33,50 @@ struct nft_hash_elem {
- 	struct nft_data			data[];
- };
- 
-+struct nft_hash_cmp_arg {
-+	const struct nft_set		*set;
-+	const struct nft_data		*key;
-+};
-+
- static const struct rhashtable_params nft_hash_params;
- 
-+static inline u32 nft_hash_key(const void *data, u32 len, u32 seed)
-+{
-+	const struct nft_hash_cmp_arg *arg = data;
-+
-+	return jhash(arg->key, len, seed);
-+}
-+
-+static inline u32 nft_hash_obj(const void *data, u32 len, u32 seed)
-+{
-+	const struct nft_hash_elem *he = data;
-+
-+	return jhash(&he->key, len, seed);
-+}
-+
-+static inline int nft_hash_cmp(struct rhashtable_compare_arg *arg,
-+			       const void *ptr)
-+{
-+	const struct nft_hash_cmp_arg *x = arg->key;
-+	const struct nft_hash_elem *he = ptr;
-+
-+	if (nft_data_cmp(&he->key, x->key, x->set->klen))
-+		return 1;
-+	return 0;
-+}
-+
- static bool nft_hash_lookup(const struct nft_set *set,
- 			    const struct nft_data *key,
- 			    struct nft_data *data)
- {
- 	struct nft_hash *priv = nft_set_priv(set);
- 	const struct nft_hash_elem *he;
-+	struct nft_hash_cmp_arg arg = {
-+		.set	 = set,
-+		.key	 = key,
-+	};
- 
--	he = rhashtable_lookup_fast(&priv->ht, key, nft_hash_params);
-+	he = rhashtable_lookup_fast(&priv->ht, &arg, nft_hash_params);
- 	if (he && set->flags & NFT_SET_MAP)
- 		nft_data_copy(data, he->data);
- 
-@@ -54,6 +88,10 @@ static int nft_hash_insert(const struct nft_set *set,
- {
- 	struct nft_hash *priv = nft_set_priv(set);
- 	struct nft_hash_elem *he;
-+	struct nft_hash_cmp_arg arg = {
-+		.set	 = set,
-+		.key	 = &elem->key,
-+	};
- 	unsigned int size;
- 	int err;
- 
-@@ -72,7 +110,8 @@ static int nft_hash_insert(const struct nft_set *set,
- 	if (set->flags & NFT_SET_MAP)
- 		nft_data_copy(he->data, &elem->data);
- 
--	err = rhashtable_insert_fast(&priv->ht, &he->node, nft_hash_params);
-+	err = rhashtable_lookup_insert_key(&priv->ht, &arg, &he->node,
-+					   nft_hash_params);
- 	if (err)
- 		kfree(he);
- 
-@@ -102,8 +141,12 @@ static int nft_hash_get(const struct nft_set *set, struct nft_set_elem *elem)
- {
- 	struct nft_hash *priv = nft_set_priv(set);
- 	struct nft_hash_elem *he;
-+	struct nft_hash_cmp_arg arg = {
-+		.set	 = set,
-+		.key	 = &elem->key,
-+	};
- 
--	he = rhashtable_lookup_fast(&priv->ht, &elem->key, nft_hash_params);
-+	he = rhashtable_lookup_fast(&priv->ht, &arg, nft_hash_params);
- 	if (!he)
- 		return -ENOENT;
- 
-@@ -172,8 +215,9 @@ static unsigned int nft_hash_privsize(const struct nlattr * const nla[])
- 
- static const struct rhashtable_params nft_hash_params = {
- 	.head_offset	= offsetof(struct nft_hash_elem, node),
--	.key_offset	= offsetof(struct nft_hash_elem, key),
--	.hashfn		= jhash,
-+	.hashfn		= nft_hash_key,
-+	.obj_hashfn	= nft_hash_obj,
-+	.obj_cmpfn	= nft_hash_cmp,
- };
- 
- static int nft_hash_init(const struct nft_set *set,
--- 
-2.1.0
-
+I'm think this is a good idea. However I don't know much about systemd
+myself so please take care of Jan's suggestions first.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
