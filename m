@@ -1,40 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next] netfilter: ip6t_REJECT: check for IP6T_F_PROTO
-Date: Sat, 21 Mar 2015 20:30:10 +0100
-Message-ID: <1426966210-13583-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Subject: 11th Netfilter Workshop coming up soon
+Date: Sat, 21 Mar 2015 20:40:18 +0100
+Message-ID: <20150321194018.GA13667@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	lvs-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58272 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58713 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751600AbbCUT0Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 21 Mar 2015 15:26:24 -0400
+	id S1751645AbbCUTgZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 21 Mar 2015 15:36:25 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Make sure IP6T_F_PROTO is set to enforce layer 4 protocol matching from
-the ip6_tables core.
+Hi!
 
-Suggested-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv6/netfilter/ip6t_REJECT.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+We're already working on the next edition in the Netfilter workshop
+series. This year this event will take place in Budapest, Hungary,
+from 22th to 26th June, 2015 [1].
 
-diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
-index 544b0a9..12331ef 100644
---- a/net/ipv6/netfilter/ip6t_REJECT.c
-+++ b/net/ipv6/netfilter/ip6t_REJECT.c
-@@ -83,7 +83,8 @@ static int reject_tg6_check(const struct xt_tgchk_param *par)
- 		return -EINVAL;
- 	} else if (rejinfo->with == IP6T_TCP_RESET) {
- 		/* Must specify that it's a TCP packet */
--		if (e->ipv6.proto != IPPROTO_TCP ||
-+		if (!(e->ipv6.flags & IP6T_F_PROTO) ||
-+		    e->ipv6.proto != IPPROTO_TCP ||
- 		    (e->ipv6.invflags & XT_INV_PROTO)) {
- 			pr_info("TCP_RESET illegal for non-tcp\n");
- 			return -EINVAL;
--- 
-1.7.10.4
+Attendance is free but it requires an invitation, and we have very
+limited number of invitations this year! You may consider attending if
+you are involved in any aspect of the Linux networking development,
+and more specifically the development of Netfilter and the Linux
+Virtual Server (IPVS) projects.
 
+If you want to apply for attendance, please, send us an email to
+coreteam@netfilter.org before 31th March (strict deadline) including a
+Netfilter topic/proposal you would like to present to the developer
+community. Your proposal must include a title, short abstract (500
+words maximum) and estimated time to present it.
+
+We also welcome presentations on Netfilter-related third party
+software (using our framework and libraries) as long as they are
+released under a FOSS license.
+
+We are looking for sponsors too, if you think you can help us to get
+funds to run the workshop, please, contact me and I'll be glad to send
+you our sponsorship policy.
+
+Regards.
+
+[1] http://workshop.netfilter.org/2015/
