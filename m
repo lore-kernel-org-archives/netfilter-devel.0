@@ -1,41 +1,27 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/6] netfilter: nf_tables: allow to change chain policy without hook if it exists
-Date: Sun, 22 Mar 2015 19:46:35 +0100
-Message-ID: <1427049998-5665-4-git-send-email-pablo@netfilter.org>
-References: <1427049998-5665-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1427049998-5665-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: Re: [PATCH nf-next] netfilter: bridge: kill nf_bridge_pad
+Date: Sun, 22 Mar 2015 20:03:35 +0100
+Message-ID: <20150322190335.GA10422@salvia>
+References: <1426708531-6343-1-git-send-email-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:34537 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751820AbbCVS7k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 22 Mar 2015 14:59:40 -0400
+Content-Disposition: inline
+In-Reply-To: <1426708531-6343-1-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-If there's an existing base chain, we have to allow to change the
-default policy without indicating the hook information.
+On Wed, Mar 18, 2015 at 08:55:31PM +0100, Florian Westphal wrote:
+> The br_netfilter frag output function calls skb_cow_head() so in
+> case it needs a larger headroom to e.g. re-add a previously stripped PPPOE
+> or VLAN header things will still work (at cost of reallocation).
+> 
+> We can then move nf_bridge_encap_header_len to br_netfilter.
 
-However, if the chain doesn't exists, we have to enforce the presence of
-the hook attribute.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 6ab7779..ac1a952 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1225,7 +1225,10 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
- 
- 	if (nla[NFTA_CHAIN_POLICY]) {
- 		if ((chain != NULL &&
--		    !(chain->flags & NFT_BASE_CHAIN)) ||
-+		    !(chain->flags & NFT_BASE_CHAIN)))
-+			return -EOPNOTSUPP;
-+
-+		if (chain == NULL &&
- 		    nla[NFTA_CHAIN_HOOK] == NULL)
- 			return -EOPNOTSUPP;
- 
--- 
-1.7.10.4
+Applied, thanks.
