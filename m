@@ -1,45 +1,67 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/5] netfilter: nf_tables: assorted patches
-Date: Sun, 22 Mar 2015 20:17:44 +0100
-Message-ID: <20150322191744.GA10457@salvia>
-References: <1426951158-18168-1-git-send-email-kaber@trash.net>
+Subject: Re: nft 0.4, crash on list
+Date: Sun, 22 Mar 2015 20:29:00 +0100
+Message-ID: <20150322192900.GA14885@salvia>
+References: <fded527361344541342afa2478b5ca9a@visp.net.lb>
+ <74645ce188ee403b5ffcf2303046f694@visp.net.lb>
+ <a457f2eac526c6fe6e6f80634358d587@visp.net.lb>
+ <20150322053313.GA16931@acer.localdomain>
+ <d029673de6d7994d231a4a37df763951@visp.net.lb>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: Patrick McHardy <kaber@trash.net>, Netdev <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org, stable@vger.kernel.org
+To: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35711 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36406 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752014AbbCVTN4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 22 Mar 2015 15:13:56 -0400
+	id S1751794AbbCVTZH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 22 Mar 2015 15:25:07 -0400
 Content-Disposition: inline
-In-Reply-To: <1426951158-18168-1-git-send-email-kaber@trash.net>
+In-Reply-To: <d029673de6d7994d231a4a37df763951@visp.net.lb>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Mar 21, 2015 at 03:19:13PM +0000, Patrick McHardy wrote:
-> Hi Pablo,
-> 
-> following are five more or less assorted patches for nf_tables:
-> 
-> * fix for a minor locking issue in nft_rbtree
-> * move the struct net pointer from the chain to the base chain
-> * check for invalid NFT_SET_ELEM_INTERVAL_END centrally
-> * restruct struct nft_hash as preparation for following patches
-> * minor indentation cleanup for nft_hash
+On Sun, Mar 22, 2015 at 10:05:10AM +0200, Denys Fedoryshchenko wrote:
+> On 2015-03-22 07:33, Patrick McHardy wrote:
+> >On 22.03, Denys Fedoryshchenko wrote:
+> >>Sorry for noise, seems git version working fine!
+> >
+> >Still this shouldn't be happening. Just to confirm, you were using an
+> >unpatched kernel and by git you mean nftables git?
+>
+> Yes, correct. I tested on 3.18.8 and 3.19.2 vanilla kernels (x86_64).
+> On nftables 0.4 it does crash, on nftables git it doesn't.
 
-Applied 1/5 and 3/5.
+I sent this fix to -stable by March 10th but this doesn't show up in
+3.18.x and 3.19.x yet.
 
-2/5 needs possible_net_t which is not yet in nf-next. Also 4/5 and 5/5
-need changes from net-next.
+[ upstream commit 02263db00b6cb98701332aa257c07ca549c2324b ]
 
-I'll apply these once I get that new type into nf-next. Will send a
-nf-next pull request asap, sorry.
+We have several problems in this path:
 
-> I'm sending these patches seperately from the main set changes to ease
-> review. Regarding the nft_rbtree fix, I'll provide a backport for
-> nf.git seperately.
+1) There is a use-after-free when removing individual elements from
+   the commit path.
 
-No problem, I'll pass the rbtree fix to -stable.
+2) We have to uninit() the data part of the element from the abort
+   path to avoid a chain refcount leak.
 
-Thanks Patrick.
+3) We have to check for set->flags to see if there's a mapping,
+instead
+   of the element flags.
+
+4) We have to check for !(flags & NFT_SET_ELEM_INTERVAL_END) to skip
+   elements that are part of the interval that have no data part, so
+   they don't need to be uninit().
+
+Cc: <stable@vger.kernel.org> # 3.18.x
+Cc: <stable@vger.kernel.org> # 3.19.x
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+> >>On 2015-03-22 00:49, Denys Fedoryshchenko wrote:
+> >>>Additionally, if i will do "nft flush table mangle" , with this table
+> >>>added i will get this:
+> >>>[   42.800078] ------------[ cut here ]------------
+> >>>[   42.800092] WARNING: CPU: 3 PID: 2868 at
+> >>>net/netfilter/nf_tables_api.c:4122 nft_data_uninit+0x35/0x50
+> >>>[nf_tables]()
