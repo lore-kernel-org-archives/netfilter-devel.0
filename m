@@ -1,49 +1,38 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2] rhashtable: provide len to obj_hashfn
-Date: Sun, 22 Mar 2015 07:31:09 +0000
-Message-ID: <20150322073108.GA7910@acer.localdomain>
-References: <1426952290-18962-1-git-send-email-kaber@trash.net>
- <1426952290-18962-2-git-send-email-kaber@trash.net>
- <20150321230618.GB31869@gondor.apana.org.au>
- <20150322044746.GA31192@acer.localdomain>
- <20150322072202.GA2125@gondor.apana.org.au>
+From: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
+Subject: Re: nft 0.4, crash on list
+Date: Sun, 22 Mar 2015 10:05:10 +0200
+Message-ID: <d029673de6d7994d231a4a37df763951@visp.net.lb>
+References: <fded527361344541342afa2478b5ca9a@visp.net.lb>
+ <74645ce188ee403b5ffcf2303046f694@visp.net.lb>
+ <a457f2eac526c6fe6e6f80634358d587@visp.net.lb>
+ <20150322053313.GA16931@acer.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, davem@davemloft.net, tgraf@suug.ch,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Herbert Xu <herbert@gondor.apana.org.au>
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netdev <netdev@vger.kernel.org>, Pablo <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150322072202.GA2125@gondor.apana.org.au>
+In-Reply-To: <20150322053313.GA16931@acer.localdomain>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 22.03, Herbert Xu wrote:
-> On Sun, Mar 22, 2015 at 04:47:47AM +0000, Patrick McHardy wrote:
-> >
-> > Correct, the set extensions are added on demand and contain an offset
-> > for every extension type. The offset is usually not, but may be
-> > different for different elements.
-> > 
-> > Embedding the offset is not something I want to do. Again, this stuff
-> > is meant to be as compact as possible and it serves no purpose at all.
-> > What is the problem with using these callbacks?
+On 2015-03-22 07:33, Patrick McHardy wrote:
+> On 22.03, Denys Fedoryshchenko wrote:
+>> Sorry for noise, seems git version working fine!
 > 
-> Maybe I'm not seeing everything but from this patch and what
-> you sent me last time ([PATCH 0/9 WIP] nf_tables: set extensions
-> and dynamic updates) it appears that NFT_SET_EXT_KEY is always
-> present so if you always added it first to the template it would
-> be at a fixed offset, no?
+> Still this shouldn't be happening. Just to confirm, you were using an
+> unpatched kernel and by git you mean nftables git?
+Yes, correct. I tested on 3.18.8 and 3.19.2 vanilla kernels (x86_64).
+On nftables 0.4 it does crash, on nftables git it doesn't.
 
-That's true so far, however I have a trie set implementation queued up
-that will make this optional. For nft_hash, sure, it will always be
-present, wouldn't make much sense otherwise :)
-
-The offset is currently fixed, however that's not something that is
-guaranteed by the implementation but purely by how the code is
-arranged. It would be somewhat fragile to rely on this.
-
-> But whatever, I don't really care about this so go ahead and add
-> the key length to obj_hash.
-
-Thanks for the review!
+> 
+> 
+>> On 2015-03-22 00:49, Denys Fedoryshchenko wrote:
+>> >Additionally, if i will do "nft flush table mangle" , with this table
+>> >added i will get this:
+>> >[   42.800078] ------------[ cut here ]------------
+>> >[   42.800092] WARNING: CPU: 3 PID: 2868 at
+>> >net/netfilter/nf_tables_api.c:4122 nft_data_uninit+0x35/0x50
+>> >[nf_tables]()
