@@ -1,51 +1,47 @@
-From: Laurent Bercot <ska-devel@skarnet.org>
-Subject: Re: [PATCH libnftnl] src: restore static array with expression operations
-Date: Mon, 23 Mar 2015 14:37:01 +0100
-Message-ID: <551016FD.1020909@skarnet.org>
-References: <1427111052-5510-1-git-send-email-pablo@netfilter.org> <20150323114411.GH603@acer.localdomain> <20150323123400.GA6511@salvia> <20150323130805.GN603@acer.localdomain> <5510135A.9020809@skarnet.org> <20150323133306.GW603@acer.localdomain>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH libnftnl] src: restore static array with expression
+ operations
+Date: Mon, 23 Mar 2015 13:54:33 +0000
+Message-ID: <20150323135432.GX603@acer.localdomain>
+References: <1427111052-5510-1-git-send-email-pablo@netfilter.org>
+ <20150323114411.GH603@acer.localdomain>
+ <20150323123400.GA6511@salvia>
+ <20150323130805.GN603@acer.localdomain>
+ <5510135A.9020809@skarnet.org>
+ <20150323133306.GW603@acer.localdomain>
+ <551016FD.1020909@skarnet.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Laurent Bercot <ska-devel@skarnet.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.tech.numericable.fr ([82.216.111.39]:44441 "EHLO
-	smtp3.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752218AbbCWNhA (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:61991 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753079AbbCWNyh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Mar 2015 09:37:00 -0400
-In-Reply-To: <20150323133306.GW603@acer.localdomain>
+	Mon, 23 Mar 2015 09:54:37 -0400
+Content-Disposition: inline
+In-Reply-To: <551016FD.1020909@skarnet.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On 23.03, Laurent Bercot wrote:
+> 
+>  Here is the first mail I sent to netfilter@.
+>  The whole thread can be read at
+>  http://comments.gmane.org/gmane.comp.security.firewalls.netfilter.general/47842
 
-  Here is the first mail I sent to netfilter@.
-  The whole thread can be read at
-  http://comments.gmane.org/gmane.comp.security.firewalls.netfilter.general/47842
 
------
-  Hello,
+Thanks. Seems the reason is that the linker will discard unused
+symbols and from its' perspective the contructors are unused.
 
-  (Platform: Intel Atom (x86_64), Linux 3.19.1, musl 1.1.7,
-latest nftables/libnftnl/libmnl from git. All iptables modules
-out of the kernel, all necessary nftables modules in.)
+I tried experimenting with __attribute__((used)) but it doesn't
+help.
 
-  I can flush tables, create tables and create chains with nft
-without trouble; however, every time I try and add a rule to
-a chain, no matter what chain, no matter in what table, I get
-the following error:
+What does work is using
 
-  netlink.c:182: Memory allocation failure
+-Wl,--whole-archive libnftnl.a -Wl,--no-whole-archive
 
-  I dug a bit and found that the error always happens when
-alloc_nft_expr() is called for the *first* time (which is also
-the last, since nft exits at that point...) and it is always
-called with the argument "payload".
-
-  What is happening ? Anything I could do to help fix it ?
-  Thanks,
-
--- 
-  Laurent
------
+Not sure if we want to take this path, but it seems acceptable to
+me.
