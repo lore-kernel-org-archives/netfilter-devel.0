@@ -1,33 +1,55 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 4/4] netfilter: bridge: rename br_parse_ip_options and
- delete unneeded code
-Date: Mon, 23 Mar 2015 13:43:22 +0100
-Message-ID: <20150323124322.GB6203@breakpoint.cc>
-References: <1426715768-17011-1-git-send-email-bernhard.thaler@wvnet.at>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH libnftnl] src: restore static array with expression
+ operations
+Date: Mon, 23 Mar 2015 13:08:06 +0000
+Message-ID: <20150323130805.GN603@acer.localdomain>
+References: <1427111052-5510-1-git-send-email-pablo@netfilter.org>
+ <20150323114411.GH603@acer.localdomain>
+ <20150323123400.GA6511@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, kadlec@blackhole.kfki.hu,
-	netfilter-devel@vger.kernel.org, fw@strlen.de
-To: Bernhard Thaler <bernhard.thaler@wvnet.at>
+Cc: netfilter-devel@vger.kernel.org, ska-devel@skarnet.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:43794 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752278AbbCWMn3 (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:61652 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752300AbbCWNIL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Mar 2015 08:43:29 -0400
+	Mon, 23 Mar 2015 09:08:11 -0400
 Content-Disposition: inline
-In-Reply-To: <1426715768-17011-1-git-send-email-bernhard.thaler@wvnet.at>
+In-Reply-To: <20150323123400.GA6511@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Bernhard Thaler <bernhard.thaler@wvnet.at> wrote:
-> br_parse_ip_options() does not parse any IP options, it validates IP
-> packets as a whole and the function name is misleading.
+On 23.03, Pablo Neira Ayuso wrote:
+> On Mon, Mar 23, 2015 at 11:44:11AM +0000, Patrick McHardy wrote:
+> > On 23.03, Pablo Neira Ayuso wrote:
+> > > We cannot use __attribute__((constructor)) to register the supported
+> > > expressions in runtime when the library is statically linked. This lead
+> > > us to some explicit libnftnl_init() function that needs to be called
+> > > from the main() function of the client program.
+> > 
+> > Just wondering, why not? They should still be invoked, right?
+> 
+> This seems to run when the shared library is loaded. When the build is
+> static, that never happens.
+> 
+> In iptables, we're resolving this with an init_extensions() function
+> that is called from main() so these are registered in run-time. I
+> would like to skip such explicit call from the client programs.
+> 
+> If you have any better solution, let me know. I actually liked that
+> the expression class, including its registration was self-contained
+> :-(.
 
-Right.
-> Rename it and delete unneeded assignment of iph variable.
+Yeah, me too. Do you have a pointer to the bug report? I'm surprised
+that they are not invoked, from what I can tell that should happen in
+any case.
 
-?
-
-I don't see any change in this regard.
-
+> 
+> > > This patch reverts 4dd0772 ("expr: use __attribute__((constructor)) to
+> > > register expression").
+> > > 
+> > > Reported-by: Laurent Bercot <ska-devel@skarnet.org>
+> > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
