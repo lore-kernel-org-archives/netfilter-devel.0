@@ -1,31 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/8] Netfilter updates for net-next
-Date: Mon, 23 Mar 2015 22:03:06 -0400 (EDT)
-Message-ID: <20150323.220306.1069658156024146687.davem@davemloft.net>
-References: <1427110584-5190-1-git-send-email-pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCHv2 4/4] netfilter: bridge: rename br_parse_ip_options and
+ delete unneeded code
+Date: Tue, 24 Mar 2015 13:14:20 +0100
+Message-ID: <20150324121420.GB1685@breakpoint.cc>
+References: <20150323124322.GB6203@breakpoint.cc>
+ <1427149789-1713-1-git-send-email-bernhard.thaler@wvnet.at>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1427110584-5190-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: pablo@netfilter.org, kadlec@blackhole.kfki.hu,
+	netfilter-devel@vger.kernel.org, fw@strlen.de
+To: Bernhard Thaler <bernhard.thaler@wvnet.at>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:47228 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751643AbbCXMOX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Mar 2015 08:14:23 -0400
+Content-Disposition: inline
+In-Reply-To: <1427149789-1713-1-git-send-email-bernhard.thaler@wvnet.at>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 23 Mar 2015 12:36:16 +0100
-
-> The following patchset contains Netfilter updates for net-next.
-> Basically, more incremental updates for br_netfilter from Florian
-> Westphal, small nf_tables updates (including one fix for rb-tree
-> locking) and small two-liner to add extra validation for the REJECT6
-> target.
+Bernhard Thaler <bernhard.thaler@wvnet.at> wrote:
+> br_parse_ip_options() does not parse any IP options, it validates IP
+> packets as a whole and the function name is misleading.
 > 
-> More specifically, they are:
-...
-> You can pull these changes from:
+> Rename br_parse_ip_options() and delete unneeded double assignment
+> of iph variable.
 > 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+> Signed-off-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
+> ---
+> @@ -216,7 +216,6 @@ static int br_parse_ip_options(struct sk_buff *skb)
+>  	if (!pskb_may_pull(skb, iph->ihl*4))
+>  		goto inhdr_error;
+>  
+> -	iph = ip_hdr(skb);
 
-Pulled, thanks a lot Pablo.
+pskb_may_pull() might invalidate the network header, we have to refetch
+iph because of this.
