@@ -1,61 +1,142 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: #include <net/ip_vs.h> without CONFIG_IP_VS (error: 'struct net'
- has no member named 'ipvs')
-Date: Wed, 25 Mar 2015 10:02:20 +0900
-Message-ID: <20150325010220.GB1767@verge.net.au>
-References: <CACna6rzvfCZfPrW5qSihJWPSTXzvz4WXkzk_GqqqBUpdxaDT=g@mail.gmail.com>
+From: Zhang Chunyu <zhangcy@cn.fujitsu.com>
+Subject: [PATCH V2 1/4] Add revision field for xt_entry_target
+Date: Tue, 24 Mar 2015 21:57:33 -0400
+Message-ID: <1427248656-8851-2-git-send-email-zhangcy@cn.fujitsu.com>
+References: <1427248656-8851-1-git-send-email-zhangcy@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org,
-	JunweiZhang <junwei.zhang@6wind.com>,
-	Nicolas Dichtel <nicolas.dichtel@6wind.com>,
-	Julian Anastasov <ja@ssi.bg>
-To: =?utf-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+Content-Type: text/plain
+Cc: zhangcy <zhangcy@cn.fujitsu.com>, Gao feng <gaofeng@cn.fujitsu.com>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:39112 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752577AbbCYBCX (ORCPT
+Received: from cn.fujitsu.com ([59.151.112.132]:22186 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752608AbbCYCLk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Mar 2015 21:02:23 -0400
-Content-Disposition: inline
-In-Reply-To: <CACna6rzvfCZfPrW5qSihJWPSTXzvz4WXkzk_GqqqBUpdxaDT=g@mail.gmail.com>
+	Tue, 24 Mar 2015 22:11:40 -0400
+In-Reply-To: <1427248656-8851-1-git-send-email-zhangcy@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 24, 2015 at 07:02:25PM +0100, Rafa=C5=82 Mi=C5=82ecki wrote=
-:
-> Hello,
->=20
-> In my out-of-tree code I used to include include/net/ip_vs.h just to
-> make use of a trivial helper ip_vs_check_diff4. I wasn't really using
-> anything from net/netfilter/ipvs/ip_vs*.c.
->=20
-> Starting with kernel 3.11 I'm getting this error when compiling my mo=
-dule:
-> include/net/ip_vs.h: In function 'net_ipvs':
-> include/net/ip_vs.h:35:12: error: 'struct net' has no member named 'i=
-pvs'
->=20
-> This is caused by the commit 8b4d14d8eb36874daf159d33dcccd4746a6f3189
-> netns: exclude ipvs from struct net when IPVS disabled
-> http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit=
-/?id=3D8b4d14d8eb36874daf159d33dcccd4746a6f3189
->=20
-> I was thinking that including any Linux header should be safe, no
-> matter what kernel configuration is used. Am I correct about this?
->=20
-> Should net_ipvs from include/net/ip_vs.h be fixed to e.g. return NULL
-> if CONFIG_IP_VS isn't enabled?
+From: zhangcy <zhangcy@cn.fujitsu.com>
 
-That seems like a reasonable solution to me.
+This filed is useful if we want to add TARGET which
+has revision for arptables rules.
 
-Would you care to propose a patch that notes the following:
+Also make sure xt_entry_target is consistent with
+the definition in kernel.
 
-=46ixes: 8b4d14d8eb368 ("netns: exclude ipvs from struct net when IPVS =
-disabled")
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+Signed-off-by: Zhang Chunyu <zhangcy@cn.fujitsu.com>
+---
+ arptables.c                              | 2 ++
+ extensions/arpt_CLASSIFY.c               | 1 +
+ extensions/arpt_mangle.c                 | 1 +
+ extensions/arpt_standard.c               | 1 +
+ include/arptables.h                      | 6 ++++++
+ include/linux/netfilter_arp/arp_tables.h | 3 ++-
+ 6 files changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/arptables.c b/arptables.c
+index 845e226..3f24ef1 100644
+--- a/arptables.c
++++ b/arptables.c
+@@ -2067,6 +2067,7 @@ int do_command(int argc, char *argv[], char **table, arptc_handle_t *handle)
+ 				target->t->u.target_size = size;
+ 				strncpy(target->t->u.user.name, jumpto, sizeof(target->t->u.user.name));
+ 				target->t->u.user.name[sizeof(target->t->u.user.name)-1] = '\0';
++				target->t->u.user.revision = target->revision;
+ /*
+ 				target->init(target->t, &fw.nfcache);
+ */
+@@ -2391,6 +2392,7 @@ int do_command(int argc, char *argv[], char **table, arptc_handle_t *handle)
+ 			target->t = fw_calloc(1, size);
+ 			target->t->u.target_size = size;
+ 			strcpy(target->t->u.user.name, jumpto);
++			target->t->u.user.revision = target->revision;
+ 			target->init(target->t);
+ 		}
+ 
+diff --git a/extensions/arpt_CLASSIFY.c b/extensions/arpt_CLASSIFY.c
+index cb5770b..7893aed 100644
+--- a/extensions/arpt_CLASSIFY.c
++++ b/extensions/arpt_CLASSIFY.c
+@@ -105,6 +105,7 @@ struct arptables_target classify
+ 	ARPTABLES_VERSION,
+ 	ARPT_ALIGN(sizeof(struct xt_classify_target_info)),
+ 	ARPT_ALIGN(sizeof(struct xt_classify_target_info)),
++	0,
+ 	&help,
+ 	&init,
+ 	&parse,
+diff --git a/extensions/arpt_mangle.c b/extensions/arpt_mangle.c
+index c38fc16..502fc2b 100644
+--- a/extensions/arpt_mangle.c
++++ b/extensions/arpt_mangle.c
+@@ -199,6 +199,7 @@ struct arptables_target change
+     ARPTABLES_VERSION,
+     ARPT_ALIGN(sizeof(struct arpt_mangle)),
+     ARPT_ALIGN(sizeof(struct arpt_mangle)),
++	0,
+     &help,
+     &init,
+     &parse,
+diff --git a/extensions/arpt_standard.c b/extensions/arpt_standard.c
+index cb3891d..c647316 100644
+--- a/extensions/arpt_standard.c
++++ b/extensions/arpt_standard.c
+@@ -54,6 +54,7 @@ struct arptables_target standard
+     ARPTABLES_VERSION,
+     ARPT_ALIGN(sizeof(int)),
+     ARPT_ALIGN(sizeof(int)),
++	0,
+     &help,
+     &init,
+     &parse,
+diff --git a/include/arptables.h b/include/arptables.h
+index 820b664..82e6e9a 100644
+--- a/include/arptables.h
++++ b/include/arptables.h
+@@ -32,6 +32,9 @@ struct arptables_match
+ 	/* Size of match data relevent for userspace comparison purposes */
+ 	size_t userspacesize;
+ 
++	/* Revision of target (0 by default). */
++	u_int8_t revision;
++
+ 	/* Function which prints out usage message. */
+ 	void (*help)(void);
+ 
+@@ -81,6 +84,9 @@ struct arptables_target
+ 	/* Size of target data relevent for userspace comparison purposes */
+ 	size_t userspacesize;
+ 
++	/* Revision of target (0 by default). */
++	u_int8_t revision;
++
+ 	/* Function which prints out usage message. */
+ 	void (*help)(void);
+ 
+diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
+index 0acda66..0bf2457 100644
+--- a/include/linux/netfilter_arp/arp_tables.h
++++ b/include/linux/netfilter_arp/arp_tables.h
+@@ -19,7 +19,7 @@
+ 
+ #include <linux/netfilter_arp.h>
+ 
+-#define ARPT_FUNCTION_MAXNAMELEN 30
++#define ARPT_FUNCTION_MAXNAMELEN 29
+ #define ARPT_TABLE_MAXNAMELEN 32
+ 
+ #define ARPT_DEV_ADDR_LEN_MAX 16
+@@ -69,6 +69,7 @@ struct arpt_entry_target
+ 
+ 			/* Used by userspace */
+ 			char name[ARPT_FUNCTION_MAXNAMELEN];
++			u_int8_t revision;
+ 		} user;
+ 		struct {
+ 			u_int16_t target_size;
+-- 
+1.7.12.4
+
