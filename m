@@ -1,71 +1,51 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 3/3] parser: remove duplicated grammar for chain policy
-Date: Wed, 25 Mar 2015 21:00:27 +0000
-Message-ID: <1427317227-11313-3-git-send-email-kaber@trash.net>
-References: <1427317227-11313-1-git-send-email-kaber@trash.net>
+Subject: [PATCH 1/3] netlink: fix use after free in netlink_get_table()
+Date: Wed, 25 Mar 2015 21:00:25 +0000
+Message-ID: <1427317227-11313-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51968 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:51964 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750863AbbCYVAc (ORCPT
+	with ESMTP id S1750863AbbCYVAa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Mar 2015 17:00:32 -0400
-In-Reply-To: <1427317227-11313-1-git-send-email-kaber@trash.net>
+	Wed, 25 Mar 2015 17:00:30 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- src/parser_bison.y | 19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ src/netlink.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index ea3ff52..b86381d 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -409,7 +409,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %destructor { handle_free(&$$); } table_spec tables_spec chain_spec chain_identifier ruleid_spec ruleset_spec
- %type <handle>			set_spec set_identifier
- %destructor { handle_free(&$$); } set_spec set_identifier
--%type <val>			handle_spec family_spec family_spec_explicit position_spec
-+%type <val>			handle_spec family_spec family_spec_explicit position_spec chain_policy
+diff --git a/src/netlink.c b/src/netlink.c
+index 24dda67..f957295 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -953,19 +953,19 @@ int netlink_get_table(struct netlink_ctx *ctx, const struct handle *h,
  
- %type <table>			table_block_alloc table_block
- %destructor { close_scope(state); table_free($$); }	table_block_alloc
-@@ -1071,26 +1071,21 @@ hook_spec		:	TYPE		STRING		HOOK		STRING		PRIORITY	NUM
- 			}
- 			;
+ 	nlt = alloc_nft_table(h);
+ 	err = mnl_nft_table_get(nf_sock, nlt, 0);
+-	nft_table_free(nlt);
+-
+ 	if (err < 0) {
+ 		netlink_io_error(ctx, loc,
+ 				 "Could not receive table from kernel: %s",
+ 				 strerror(errno));
+-		return err;
++		goto out;
+ 	}
  
--policy_spec		:	POLICY		ACCEPT
-+policy_spec		:	POLICY		chain_policy
- 			{
- 				if ($<chain>0->policy != -1) {
- 					erec_queue(error(&@$, "you cannot set chain policy twice"),
- 						   state->msgs);
- 					YYERROR;
- 				}
--				$<chain>0->policy	= NF_ACCEPT;
--			}
--			|	POLICY		DROP
--			{
--				if ($<chain>0->policy != -1) {
--					erec_queue(error(&@$, "you cannot set chain policy twice"),
--						   state->msgs);
--					YYERROR;
--				}
--				$<chain>0->policy	= NF_DROP;
-+				$<chain>0->policy	= $2;
- 			}
- 			;
+ 	ntable = netlink_delinearize_table(ctx, nlt);
+ 	table->flags = ntable->flags;
+ 	xfree(ntable);
+-	return 0;
++out:
++	nft_table_free(nlt);
++	return err;
+ }
  
-+chain_policy		:	ACCEPT		{ $$ = NF_ACCEPT; }
-+			|	DROP		{ $$ = NF_DROP;   }
-+			;
-+
- identifier		:	STRING
- 			;
- 
+ int netlink_list_table(struct netlink_ctx *ctx, const struct handle *h,
 -- 
 2.1.0
 
