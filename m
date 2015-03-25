@@ -1,56 +1,83 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/5] netfilter: nft_hash: restore struct nft_hash
-Date: Wed, 25 Mar 2015 11:57:55 +0000
-Message-ID: <20150325115755.GC26242@acer.localdomain>
-References: <1426951158-18168-1-git-send-email-kaber@trash.net>
- <1426951158-18168-5-git-send-email-kaber@trash.net>
- <20150325111900.GA6526@salvia>
- <20150325112213.GZ26242@acer.localdomain>
- <20150325112847.GA27600@salvia>
- <20150325113025.GA26242@acer.localdomain>
- <20150325115047.GA25732@casper.infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net
-To: Thomas Graf <tgraf@suug.ch>
+Subject: [PATCH 1/6] rhashtable: provide len to obj_hashfn
+Date: Wed, 25 Mar 2015 13:07:45 +0000
+Message-ID: <1427288870-26336-2-git-send-email-kaber@trash.net>
+References: <1427288870-26336-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:47502 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:48259 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752055AbbCYL6A (ORCPT
+	with ESMTP id S1752289AbbCYNHy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Mar 2015 07:58:00 -0400
-Content-Disposition: inline
-In-Reply-To: <20150325115047.GA25732@casper.infradead.org>
+	Wed, 25 Mar 2015 09:07:54 -0400
+In-Reply-To: <1427288870-26336-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 25.03, Thomas Graf wrote:
-> On 03/25/15 at 11:30am, Patrick McHardy wrote:
-> > I'm getting really annoyed that people keep sending patches touching
-> > this stuff without CCing either netfilter-devel or me personally.
-> > 
-> > This is just causing unnecessary work. The code in nft_hash is going
-> > to get replaced anyways, so now I can rebase 30 patches for no gain
-> > at all.
-> > 
-> > If you touch netfilter, CC the relevant lists and people please.
-> > Thanks!
-> 
-> Sorry about that Patrick. Not copying you on the nft_hash change
-> was a mistake. I apologize. I was only aware of your following
-> patchset which seemed compatible with my changes.
+nftables sets will be converted to use so called setextensions, moving
+the key to a non-fixed position. To hash it, the obj_hashfn must be used,
+however it so far doesn't receive the length parameter.
 
-Its usually not a big deal if you forget, but it has happened
-too many times recently with rhashtable, so I was getting a little
-upset. Anyways, apology accepted :)
+Pass the key length to obj_hashfn() and convert existing users.
 
-> "[PATCH 0/2] netfilter: preparatory patches for set extensions"
-> 
-> If your larger patchset resolves the RCU lockdep splash in nft_hash
-> then we can also just revert 6b6f302ce ("rhashtable: Add
-> rhashtable_free_and_destroy()") or I can rebase it on top of your
-> series.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ include/linux/rhashtable.h | 6 ++++--
+ lib/rhashtable.c           | 2 +-
+ net/netlink/af_netlink.c   | 2 +-
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
-I'd like to prevent further delays, so I've already started merging
-everything on top of that change. Thanks anyway.
+diff --git a/include/linux/rhashtable.h b/include/linux/rhashtable.h
+index 99f2e49..e23d242 100644
+--- a/include/linux/rhashtable.h
++++ b/include/linux/rhashtable.h
+@@ -88,7 +88,7 @@ struct rhashtable_compare_arg {
+ };
+ 
+ typedef u32 (*rht_hashfn_t)(const void *data, u32 len, u32 seed);
+-typedef u32 (*rht_obj_hashfn_t)(const void *data, u32 seed);
++typedef u32 (*rht_obj_hashfn_t)(const void *data, u32 len, u32 seed);
+ typedef int (*rht_obj_cmpfn_t)(struct rhashtable_compare_arg *arg,
+ 			       const void *obj);
+ 
+@@ -242,7 +242,9 @@ static inline unsigned int rht_head_hashfn(
+ 	const char *ptr = rht_obj(ht, he);
+ 
+ 	return likely(params.obj_hashfn) ?
+-	       rht_bucket_index(tbl, params.obj_hashfn(ptr, tbl->hash_rnd)) :
++	       rht_bucket_index(tbl, params.obj_hashfn(ptr, params.key_len ?:
++							    ht->p.key_len,
++						       tbl->hash_rnd)) :
+ 	       rht_key_hashfn(ht, tbl, ptr + params.key_offset, params);
+ }
+ 
+diff --git a/lib/rhashtable.c b/lib/rhashtable.c
+index 4b7b7e6..4898442 100644
+--- a/lib/rhashtable.c
++++ b/lib/rhashtable.c
+@@ -691,7 +691,7 @@ static u32 rhashtable_jhash2(const void *key, u32 length, u32 seed)
+  *	struct rhash_head	node;
+  * };
+  *
+- * u32 my_hash_fn(const void *data, u32 seed)
++ * u32 my_hash_fn(const void *data, u32 len, u32 seed)
+  * {
+  *	struct test_obj *obj = data;
+  *
+diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
+index 4caa809..19909d0 100644
+--- a/net/netlink/af_netlink.c
++++ b/net/netlink/af_netlink.c
+@@ -3127,7 +3127,7 @@ static struct pernet_operations __net_initdata netlink_net_ops = {
+ 	.exit = netlink_net_exit,
+ };
+ 
+-static inline u32 netlink_hash(const void *data, u32 seed)
++static inline u32 netlink_hash(const void *data, u32 len, u32 seed)
+ {
+ 	const struct netlink_sock *nlk = data;
+ 	struct netlink_compare_arg arg;
+-- 
+2.1.0
+
