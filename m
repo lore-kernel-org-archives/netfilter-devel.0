@@ -1,51 +1,64 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 2/2] netfilter: x_tables: fix cgroup's
- NF_INET_LOCAL_IN sk lookups
-Date: Wed, 25 Mar 2015 21:26:59 +0100
-Message-ID: <20150325202659.GA27374@salvia>
-References: <cover.1427209409.git.daniel@iogearbox.net>
- <20fdc704558880831cbbaa8bba5e4855591cd4ba.1427209409.git.daniel@iogearbox.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: daniel@zonque.org, fw@strlen.de, a.perevalov@samsung.com,
-	netfilter-devel@vger.kernel.org
-To: Daniel Borkmann <daniel@iogearbox.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 2/3] netlink_delinarize: fix payload dependency killing of link layer dependencies
+Date: Wed, 25 Mar 2015 21:00:26 +0000
+Message-ID: <1427317227-11313-2-git-send-email-kaber@trash.net>
+References: <1427317227-11313-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56885 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753214AbbCYUXB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Mar 2015 16:23:01 -0400
-Content-Disposition: inline
-In-Reply-To: <20fdc704558880831cbbaa8bba5e4855591cd4ba.1427209409.git.daniel@iogearbox.net>
+Received: from stinky.trash.net ([213.144.137.162]:51965 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751092AbbCYVAb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Mar 2015 17:00:31 -0400
+In-Reply-To: <1427317227-11313-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 24, 2015 at 04:30:29PM +0100, Daniel Borkmann wrote:
-> While originally only being intended for outgoing traffic, commit
-> a00e76349f35 ("netfilter: x_tables: allow to use cgroup match for
-> LOCAL_IN nf hooks") enabled xt_cgroups for the NF_INET_LOCAL_IN hook
-> as well, in order to allow for nfacct accounting.
-> 
-> This basically was under the assumption that socket early demux will
-> resolve it. It's correct that demux happens after PRE_ROUTING, but
-> before LOCAL_IN.
-> 
-> However, that as-is only partially works, i.e. it works for the case
-> of established TCP and connected UDP sockets when early demux is
-> enabled, but not for various other ingress scenarios e.g. unconnected
-> UDP, request sockets, etc.
->
-> Instead of reverting commit a00e76349f35, I think it's worth to fix
-> it up as there are applications requiring xt_cgroup to match on
-> ingress and egress side. In order to do so, we need to perform a
-> full lookup on skb->sk (ingress) miss, similarly as being done in
-> xt_socket.
-> 
-> Therefore, we need to make use of shared helpers xt_sk_lookup() and
-> xt_sk_lookup6(). Thanks to Daniel for the report and also additional
-> testing.
+payload_dependency_kill() does not properly handle dependencies for link
+layer expressions. Since those dependencies are logically defined on an
+even lower layer (device layer), we don't have a payload base for them,
+meaning they will use PROTO_BASE_INVALID, which is skipped.
 
-So this is basically needed when early demux is disabled?
+So instead of storing the payload base on which the dependency is defined,
+we store the base of the layer for which the dependency applies, meaning
+dependencies defined by the device layer will properly work.
 
-This is a rather large rework, I would like to know what scenarios
-we're not currently catching with the existing code.
+This fixes killing the dependency of ether saddr, instead of
+
+iiftype ether ether ether saddr ...
+
+we now only display
+
+ether saddr ...
+
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ src/netlink_delinearize.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 387bb67..ec1a964 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -753,7 +753,7 @@ struct rule_pp_ctx {
+ static void payload_dependency_kill(struct rule_pp_ctx *ctx, struct expr *expr)
+ {
+ 	if (ctx->pbase != PROTO_BASE_INVALID &&
+-	    ctx->pbase == expr->payload.base - 1 &&
++	    ctx->pbase == expr->payload.base &&
+ 	    ctx->pdep != NULL) {
+ 		list_del(&ctx->pdep->list);
+ 		stmt_free(ctx->pdep);
+@@ -766,7 +766,7 @@ static void payload_dependency_store(struct rule_pp_ctx *ctx,
+ 				     struct stmt *stmt,
+ 				     enum proto_bases base)
+ {
+-	ctx->pbase = base;
++	ctx->pbase = base + 1;
+ 	ctx->pdep  = stmt;
+ }
+ 
+-- 
+2.1.0
+
