@@ -1,26 +1,42 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] netfilter: nft_meta: use raw_smp_processor_id()
-Date: Wed, 25 Mar 2015 12:20:17 +0100
-Message-ID: <20150325112017.GB6553@salvia>
-References: <1427270996-6311-1-git-send-email-kaber@trash.net>
- <1427270996-6311-2-git-send-email-kaber@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 4/5] netfilter: nft_hash: restore struct nft_hash
+Date: Wed, 25 Mar 2015 11:22:13 +0000
+Message-ID: <20150325112213.GZ26242@acer.localdomain>
+References: <1426951158-18168-1-git-send-email-kaber@trash.net>
+ <1426951158-18168-5-git-send-email-kaber@trash.net>
+ <20150325111900.GA6526@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51603 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752700AbbCYLQT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Mar 2015 07:16:19 -0400
+Received: from stinky.trash.net ([213.144.137.162]:47114 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751347AbbCYLWS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Mar 2015 07:22:18 -0400
 Content-Disposition: inline
-In-Reply-To: <1427270996-6311-2-git-send-email-kaber@trash.net>
+In-Reply-To: <20150325111900.GA6526@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 25, 2015 at 08:09:56AM +0000, Patrick McHardy wrote:
-> Using smp_processor_id() triggers warnings with PREEMPT_RCU. There is no
-> point in disabling preemption since we only collect the numeric value,
-> so use raw_smp_processor_id() instead.
+On 25.03, Pablo Neira Ayuso wrote:
+> On Sat, Mar 21, 2015 at 03:19:17PM +0000, Patrick McHardy wrote:
+> > Following patches will add new private members, restore struct nft_hash
+> > as preparation.
+> 
+> [2/2] netfilter: nft_hash: convert to use rhashtable callbacks
+> [1/2] rhashtable: provide len to obj_hashfn
+> [5/5] netfilter: nft_hash: indent rhashtable parameters
+> [4/5] netfilter: nft_hash: restore struct nft_hash
+> 
+> These patches don't apply anymore because of yesterday changes from
+> Thomas Graf:
+> 
+> http://git.kernel.org/cgit/linux/kernel/git/davem/net-next.git/log/?qt=author&q=Thomas+Graf
+> 
+> :-(
 
-Also applied, thanks.
+Crap, they already sunk down in my tree :/
+
+If you push out what you currently have, I'll rebase everything.
