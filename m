@@ -1,50 +1,52 @@
-From: Zhang Chunyu <zhangcy@cn.fujitsu.com>
-Subject: [PATCH V2 3/4] Update the manpage for MARK target
-Date: Tue, 24 Mar 2015 21:57:35 -0400
-Message-ID: <1427248656-8851-4-git-send-email-zhangcy@cn.fujitsu.com>
-References: <1427248656-8851-1-git-send-email-zhangcy@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Cc: Zhang Chunyu <zhangcy@cn.fujitsu.com>,
-	Gao feng <gaofeng@cn.fujitsu.com>
-To: <netfilter-devel@vger.kernel.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH] nft-test: don't use colors if output is not a tty
+Date: Wed, 25 Mar 2015 07:31:50 +0000
+Message-ID: <1427268710-2889-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org, anarey@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:22186 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752761AbbCYCLm (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:44768 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750717AbbCYHby (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Mar 2015 22:11:42 -0400
-In-Reply-To: <1427248656-8851-1-git-send-email-zhangcy@cn.fujitsu.com>
+	Wed, 25 Mar 2015 03:31:54 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
-Signed-off-by: Zhang Chunyu <zhangcy@cn.fujitsu.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- arptables.8 | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ tests/regression/nft-test.py | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff --git a/arptables.8 b/arptables.8
-index 78b2c60..a0ada83 100644
---- a/arptables.8
-+++ b/arptables.8
-@@ -315,6 +315,16 @@ sify the packet into a specific CBQ class).
- Set the major and minor  class  value.  The  values  are  always
- interpreted as hexadecimal even if no 0x prefix is given.
+diff --git a/tests/regression/nft-test.py b/tests/regression/nft-test.py
+index 2677127..559ad41 100755
+--- a/tests/regression/nft-test.py
++++ b/tests/regression/nft-test.py
+@@ -31,12 +31,18 @@ signal_received = 0
  
-+.SS MARK
-+This  module  allows you to set the skb->mark value (and thus classify
-+the packet by the mark in u32)
-+
-+.TP
-+.BR "--set-mark mark"
-+
-+Set the mark value.  The  values  are  always
-+interpreted as hexadecimal even if no 0x prefix is given.
-+
- .SH MAILINGLISTS
- .BR "" "See " http://netfilter.org/mailinglists.html
- .SH SEE ALSO
+ 
+ class Colors:
+-    HEADER = '\033[95m'
+-    GREEN = '\033[92m'
+-    YELLOW = '\033[93m'
+-    RED = '\033[91m'
+-    ENDC = '\033[0m'
+-
++    if sys.stdout.isatty():
++        HEADER = '\033[95m'
++        GREEN = '\033[92m'
++        YELLOW = '\033[93m'
++        RED = '\033[91m'
++        ENDC = '\033[0m'
++    else:
++        HEADER = ''
++        GREEN = ''
++        YELLOW = ''
++        RED = ''
++        ENDC = ''
+ 
+ def print_error(reason, filename=None, lineno=None):
+     '''
 -- 
-1.7.12.4
+2.1.0
 
