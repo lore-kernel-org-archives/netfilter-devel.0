@@ -1,83 +1,51 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH V2] ipvs: disable inline net_ipvs function with CONFIG_IP_VS
- not being set
-Date: Wed, 25 Mar 2015 22:04:23 +0200 (EET)
-Message-ID: <alpine.LFD.2.11.1503252148420.1795@ja.home.ssi.bg>
-References: <1427273637-29151-1-git-send-email-zajec5@gmail.com> <1427275043-1192-1-git-send-email-zajec5@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next 2/2] netfilter: x_tables: fix cgroup's
+ NF_INET_LOCAL_IN sk lookups
+Date: Wed, 25 Mar 2015 21:26:59 +0100
+Message-ID: <20150325202659.GA27374@salvia>
+References: <cover.1427209409.git.daniel@iogearbox.net>
+ <20fdc704558880831cbbaa8bba5e4855591cd4ba.1427209409.git.daniel@iogearbox.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811672-1866668304-1427313865=:1795"
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	Nicolas Dichtel <nicolas.dichtel@6wind.com>,
-	Simon Horman <horms@verge.net.au>
-To: =?UTF-8?Q?Rafa=C5=82_Mi=C5=82ecki?= <zajec5@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: daniel@zonque.org, fw@strlen.de, a.perevalov@samsung.com,
+	netfilter-devel@vger.kernel.org
+To: Daniel Borkmann <daniel@iogearbox.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:56756 "EHLO ja.ssi.bg"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752187AbbCYURo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Mar 2015 16:17:44 -0400
-In-Reply-To: <1427275043-1192-1-git-send-email-zajec5@gmail.com>
+Received: from mail.us.es ([193.147.175.20]:56885 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753214AbbCYUXB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Mar 2015 16:23:01 -0400
+Content-Disposition: inline
+In-Reply-To: <20fdc704558880831cbbaa8bba5e4855591cd4ba.1427209409.git.daniel@iogearbox.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
----1463811672-1866668304-1427313865=:1795
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-
-
-	Hello,
-
-On Wed, 25 Mar 2015, Rafał Miłecki wrote:
-
-> Including net/ip_vs.h without CONFIG_IP_VS was causing:
-> include/net/ip_vs.h: In function 'net_ipvs':
-> include/net/ip_vs.h:35:12: error: 'struct net' has no member named 'ipvs'
+On Tue, Mar 24, 2015 at 04:30:29PM +0100, Daniel Borkmann wrote:
+> While originally only being intended for outgoing traffic, commit
+> a00e76349f35 ("netfilter: x_tables: allow to use cgroup match for
+> LOCAL_IN nf hooks") enabled xt_cgroups for the NF_INET_LOCAL_IN hook
+> as well, in order to allow for nfacct accounting.
 > 
-> Fixes: 8b4d14d8eb368 ("netns: exclude ipvs from struct net when IPVS disabled")
-> Signed-off-by: Rafał Miłecki <zajec5@gmail.com>
-> ---
-> V2: Disable function totally instead of returning NULL.
-
-	While this version is better, the commit message
-looks scary, it should explain that problem happens only
-for modules out of kernel tree, we do not want other admins
-to wonder whether they need this commit for their trees.
-
-	And of course, it is better to implement your
-own ip_vs_check_diff4 version, it is some inline stuff...
-
-> ---
->  include/net/ip_vs.h | 2 ++
->  1 file changed, 2 insertions(+)
+> This basically was under the assumption that socket early demux will
+> resolve it. It's correct that demux happens after PRE_ROUTING, but
+> before LOCAL_IN.
 > 
-> diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-> index 615b20b..e6f2f2a 100644
-> --- a/include/net/ip_vs.h
-> +++ b/include/net/ip_vs.h
-> @@ -29,11 +29,13 @@
->  #endif
->  #include <net/net_namespace.h>		/* Netw namespace */
->  
-> +#if IS_ENABLED(CONFIG_IP_VS)
->  /* Generic access of ipvs struct */
->  static inline struct netns_ipvs *net_ipvs(struct net* net)
->  {
->  	return net->ipvs;
->  }
-> +#endif
->  
->  /* Get net ptr from skb in traffic cases
->   * use skb_sknet when call is from userland (ioctl or netlink)
-> -- 
-> 1.8.4.5
+> However, that as-is only partially works, i.e. it works for the case
+> of established TCP and connected UDP sockets when early demux is
+> enabled, but not for various other ingress scenarios e.g. unconnected
+> UDP, request sockets, etc.
+>
+> Instead of reverting commit a00e76349f35, I think it's worth to fix
+> it up as there are applications requiring xt_cgroup to match on
+> ingress and egress side. In order to do so, we need to perform a
+> full lookup on skb->sk (ingress) miss, similarly as being done in
+> xt_socket.
+> 
+> Therefore, we need to make use of shared helpers xt_sk_lookup() and
+> xt_sk_lookup6(). Thanks to Daniel for the report and also additional
+> testing.
 
-Regards
+So this is basically needed when early demux is disabled?
 
---
-Julian Anastasov <ja@ssi.bg>
----1463811672-1866668304-1427313865=:1795--
+This is a rather large rework, I would like to know what scenarios
+we're not currently catching with the existing code.
