@@ -1,42 +1,35 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2/2] netfilter: nft_meta: use raw_smp_processor_id()
-Date: Wed, 25 Mar 2015 08:09:56 +0000
-Message-ID: <1427270996-6311-2-git-send-email-kaber@trash.net>
-References: <1427270996-6311-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCHv3 4/4] netfilter: bridge: rename br_parse_ip_options
+Date: Wed, 25 Mar 2015 09:15:52 +0100
+Message-ID: <20150325081552.GF1685@breakpoint.cc>
+References: <5512685D.2010804@wvnet.at>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: pablo@netfilter.org, kadlec@blackhole.kfki.hu,
+	netfilter-devel@vger.kernel.org, fw@strlen.de
+To: Bernhard Thaler <bernhard.thaler@wvnet.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45369 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751220AbbCYILU (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52597 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750735AbbCYIQB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Mar 2015 04:11:20 -0400
-In-Reply-To: <1427270996-6311-1-git-send-email-kaber@trash.net>
+	Wed, 25 Mar 2015 04:16:01 -0400
+Content-Disposition: inline
+In-Reply-To: <5512685D.2010804@wvnet.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Using smp_processor_id() triggers warnings with PREEMPT_RCU. There is no
-point in disabling preemption since we only collect the numeric value,
-so use raw_smp_processor_id() instead.
+Bernhard Thaler <bernhard.thaler@wvnet.at> wrote:
+> br_parse_ip_options() does not parse any IP options, it validates IP
+> packets as a whole and the function name is misleading.
+> 
+> Rename br_parse_ip_options().
+> 
+> Signed-off-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- net/netfilter/nft_meta.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Looks good to me, but your MUA mangled this patch (line breaks, whitespace
+damage) so the patch doesn't apply cleanly anymore.
 
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index abe6811..5197874 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -153,7 +153,7 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 		}
- 		break;
- 	case NFT_META_CPU:
--		dest->data[0] = smp_processor_id();
-+		dest->data[0] = raw_smp_processor_id();
- 		break;
- 	case NFT_META_IIFGROUP:
- 		if (in == NULL)
--- 
-2.1.0
+Try mailing the patch to yourself and apply it, if that works
+you're good to go.
 
