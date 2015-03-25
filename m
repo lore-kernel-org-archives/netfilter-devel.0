@@ -1,71 +1,54 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 2/2] netfilter: x_tables: fix cgroup's
- NF_INET_LOCAL_IN sk lookups
-Date: Wed, 25 Mar 2015 17:03:00 +0100
-Message-ID: <20150325160300.GA3722@salvia>
-References: <cover.1427209409.git.daniel@iogearbox.net>
- <20fdc704558880831cbbaa8bba5e4855591cd4ba.1427209409.git.daniel@iogearbox.net>
+Subject: Re: ipset: Proposed improvements to the kernel code
+Date: Wed, 25 Mar 2015 17:05:36 +0100
+Message-ID: <20150325160536.GA4360@salvia>
+References: <2984705.dCFJb2qqrb@tuxracer>
+ <alpine.DEB.2.10.1503171459340.25136@blackhole.kfki.hu>
+ <4532245.8hNB4lJHyg@tuxracer>
+ <14722035.jXe0WcxyPC@tuxracer>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: daniel@zonque.org, fw@strlen.de, a.perevalov@samsung.com,
-	netfilter-devel@vger.kernel.org
-To: Daniel Borkmann <daniel@iogearbox.net>
+Cc: netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: Sergey Popovich <popovich_sergei@mail.ua>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41315 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41797 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932318AbbCYP7L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Mar 2015 11:59:11 -0400
+	id S932515AbbCYQBn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Mar 2015 12:01:43 -0400
 Content-Disposition: inline
-In-Reply-To: <20fdc704558880831cbbaa8bba5e4855591cd4ba.1427209409.git.daniel@iogearbox.net>
+In-Reply-To: <14722035.jXe0WcxyPC@tuxracer>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 24, 2015 at 04:30:29PM +0100, Daniel Borkmann wrote:
-> diff --git a/net/netfilter/xt_cgroup.c b/net/netfilter/xt_cgroup.c
-> index 7198d66..cd2468d 100644
-> --- a/net/netfilter/xt_cgroup.c
-> +++ b/net/netfilter/xt_cgroup.c
-> @@ -16,8 +16,11 @@
->  #include <linux/module.h>
->  #include <linux/netfilter/x_tables.h>
->  #include <linux/netfilter/xt_cgroup.h>
-> +
->  #include <net/sock.h>
->  
-> +#include "xt_sk_helper.h"
-> +
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Daniel Borkmann <dborkman@redhat.com>");
->  MODULE_DESCRIPTION("Xtables: process control group matching");
-> @@ -34,38 +37,85 @@ static int cgroup_mt_check(const struct xt_mtchk_param *par)
->  	return 0;
->  }
->  
-> -static bool
-> -cgroup_mt(const struct sk_buff *skb, struct xt_action_param *par)
-> +static bool cgroup_mt(const struct sk_buff *skb,
-> +		      const struct xt_action_param *par,
-> +		      struct sock *(*cgroup_mt_slow)(const struct sk_buff *skb,
-> +						     const struct net_device *indev))
->  {
->  	const struct xt_cgroup_info *info = par->matchinfo;
-> +	struct sock *sk = skb->sk;
-> +	u32 sk_classid;
-> +
-> +	if (sk) {
-> +		sk_classid = sk->sk_classid;
-> +	} else {
-> +		if (par->in != NULL)
-> +			sk = cgroup_mt_slow(skb, par->in);
+On Wed, Mar 25, 2015 at 04:54:54PM +0200, Sergey Popovich wrote:
+> > > > I did not say that you should do anything, I just give an option (like
+> > > > branch) to let you quickly see changes I made if you wish. Maybe you
+> > > > find them totally useless:)
+> > > 
+> > > I see - a branch costs nothing, so that's no problem. Then create a
+> > > numbered list of the patches, put them in a tar file and let me know from
+> > > where I can download it.
+> > 
+> > Thanks Jozsef, I have prepare patches for you and put link to the series.
+> > 
+> > http://ftp.payport.com.ua/users/sergey/public/netfilter-devel-2015031701.tar
+> > 
+> > These patches will be against nf-next for simplicity and I'm already rebase
+> > them, so for first review just fresh nf-next will be needed.
+> > 
+> 
+> Fixes to the first series. One of the most important is the fixes to set and 
+> their data netlink dumping consistency. Just to complete series.
+> 
+> Netlink dumping consistency was inspired by the recent ipset git tree fixes
+> to this problem. However I think there are other problems with consistent
+> data dumping exists which my series tries to addess.
+> 
+> As the first series this is for nf-next git tree, not ipset git tree.
+> 
+> http://ftp.payport.com.ua/users/sergey/public/netfilter-devel-2015032501.tar
 
-Is this working with timewait sock?
+Could please send small batch (not more than 10 patches in one go,
+please) to the mailing list so everyone can help in reviewing this?
 
-> +		if (sk == NULL)
-> +			return false;
-> +
-> +		sk_classid = sk->sk_classid;
-> +		sock_gen_put(sk);
-> +	}
-> +
-> +	return (info->id == sk_classid) ^ info->invert;
-> +}
+Thanks.
