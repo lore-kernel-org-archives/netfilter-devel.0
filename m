@@ -1,51 +1,56 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 0/5] netfilter: nf_tables: set timeout support
-Date: Thu, 26 Mar 2015 12:39:35 +0000
-Message-ID: <1427373580-19310-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH V3 1/2] Add revision field for xt_entry_target
+Date: Thu, 26 Mar 2015 13:45:02 +0100
+Message-ID: <20150326124502.GA5372@salvia>
+References: <1427362410-9255-1-git-send-email-zhangcy@cn.fujitsu.com>
+ <1427362410-9255-2-git-send-email-zhangcy@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, Gao feng <gaofeng@cn.fujitsu.com>
+To: Zhang Chunyu <zhangcy@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58129 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751797AbbCZMjn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2015 08:39:43 -0400
+Received: from mail.us.es ([193.147.175.20]:54015 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752471AbbCZMlG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Mar 2015 08:41:06 -0400
+Content-Disposition: inline
+In-Reply-To: <1427362410-9255-2-git-send-email-zhangcy@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-These patches add support for set timeouts. Sets can have a default
-timeout value that can be overriden by element specific timeouts.
+On Thu, Mar 26, 2015 at 05:33:29AM -0400, Zhang Chunyu wrote:
+> ---
+>  arptables.c                              | 2 ++
+>  extensions/arpt_CLASSIFY.c               | 1 +
+>  extensions/arpt_mangle.c                 | 1 +
+>  extensions/arpt_standard.c               | 1 +
+>  include/arptables.h                      | 6 ++++++
+>  include/linux/netfilter_arp/arp_tables.h | 3 ++-
+>  6 files changed, 13 insertions(+), 1 deletion(-)
+>
+[...] 
+> diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
+> index 0acda66..0bf2457 100644
+> --- a/include/linux/netfilter_arp/arp_tables.h
+> +++ b/include/linux/netfilter_arp/arp_tables.h
+> @@ -19,7 +19,7 @@
+>  
+>  #include <linux/netfilter_arp.h>
+>  
+> -#define ARPT_FUNCTION_MAXNAMELEN 30
+> +#define ARPT_FUNCTION_MAXNAMELEN 29
+>  #define ARPT_TABLE_MAXNAMELEN 32
+>  
+>  #define ARPT_DEV_ADDR_LEN_MAX 16
+> @@ -69,6 +69,7 @@ struct arpt_entry_target
+>  
+>  			/* Used by userspace */
+>  			char name[ARPT_FUNCTION_MAXNAMELEN];
+> +			u_int8_t revision;
+>  		} user;
+>  		struct {
+>  			u_int16_t target_size;
 
-Removal of expired elements will usually be performed by a garbage
-collector for two reasons: avoiding an excessive number of timers
-and because data deinit has to happen in process context.
-
-The first two patches add the required netlink attributes, parsing,
-dump etc. A set of GC helper functions for batched RCU element
-destruction is added in patch three, some synchronization helpers
-to avoid races between async GC and netlink insertion and removal
-of elements are added in patch four.
-
-Following patches will use this infrastrucure to support set updates
-from the packet classification path for dynamic sets and dynamic
-flow state maintenance.
-
-Please apply, thanks!
-
-
-Patrick McHardy (5):
-  netfilter: nf_tables: add set timeout API support
-  netfilter: nf_tables: add set element timeout support
-  netfilter: nf_tables: add set garbage collection helpers
-  netfilter: nf_tables: add GC synchronization helpers
-  netfilter: nft_hash: add support for timeouts
-
- include/net/netfilter/nf_tables.h        | 125 +++++++++++++++++++++++++++++++
- include/uapi/linux/netfilter/nf_tables.h |  10 +++
- net/netfilter/nf_tables_api.c            | 110 +++++++++++++++++++++++++--
- net/netfilter/nft_hash.c                 |  80 +++++++++++++++++++-
- 4 files changed, 316 insertions(+), 9 deletions(-)
-
--- 
-2.1.0
-
+Could you also resubmit the kernel patch to adds this? Please, no need
+to resend the full userspace series, just send the kernel patch as a
+follow up.
