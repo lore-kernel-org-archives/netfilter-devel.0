@@ -1,178 +1,134 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 1/5] netfilter: nf_tables: add set timeout API support
-Date: Thu, 26 Mar 2015 12:39:36 +0000
-Message-ID: <1427373580-19310-2-git-send-email-kaber@trash.net>
+Subject: [PATCH 3/5] netfilter: nf_tables: add set garbage collection helpers
+Date: Thu, 26 Mar 2015 12:39:38 +0000
+Message-ID: <1427373580-19310-4-git-send-email-kaber@trash.net>
 References: <1427373580-19310-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58130 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:58135 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752148AbbCZMjo (ORCPT
+	with ESMTP id S1752207AbbCZMjp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2015 08:39:44 -0400
+	Thu, 26 Mar 2015 08:39:45 -0400
 In-Reply-To: <1427373580-19310-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add set timeout support to the netlink API. Sets with timeout support
-enabled can have a default timeout value and garbage collection interval
-specified.
+Add helpers for GC batch destruction: since element destruction needs
+a RCU grace period for all set implementations, add some helper functions
+for asynchronous batch destruction. Elements are collected in a batch
+structure, which is asynchronously released using RCU once its full.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- include/net/netfilter/nf_tables.h        |  9 +++++++++
- include/uapi/linux/netfilter/nf_tables.h |  6 ++++++
- net/netfilter/nf_tables_api.c            | 30 ++++++++++++++++++++++++++++--
- 3 files changed, 43 insertions(+), 2 deletions(-)
+ include/net/netfilter/nf_tables.h | 56 +++++++++++++++++++++++++++++++++++++++
+ net/netfilter/nf_tables_api.c     | 25 +++++++++++++++++
+ 2 files changed, 81 insertions(+)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index b8cd60d..8936803 100644
+index f2726c5..6fd4495 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -258,6 +258,8 @@ void nft_unregister_set(struct nft_set_ops *ops);
-  * 	@dtype: data type (verdict or numeric type defined by userspace)
-  * 	@size: maximum set size
-  * 	@nelems: number of elements
-+ * 	@timeout: default timeout value in msecs
-+ * 	@gc_int: garbage collection interval in msecs
-  *	@policy: set parameterization (see enum nft_set_policies)
-  * 	@ops: set ops
-  * 	@pnet: network namespace
-@@ -274,6 +276,8 @@ struct nft_set {
- 	u32				dtype;
- 	u32				size;
- 	u32				nelems;
-+	u64				timeout;
-+	u32				gc_int;
- 	u16				policy;
- 	/* runtime data below here */
- 	const struct nft_set_ops	*ops ____cacheline_aligned;
-@@ -295,6 +299,11 @@ struct nft_set *nf_tables_set_lookup(const struct nft_table *table,
- struct nft_set *nf_tables_set_lookup_byid(const struct net *net,
- 					  const struct nlattr *nla);
+@@ -460,6 +460,62 @@ static inline struct nft_set_ext *nft_set_elem_ext(const struct nft_set *set,
+ void nft_set_elem_destroy(const struct nft_set *set, void *elem);
  
-+static inline unsigned long nft_set_gc_interval(const struct nft_set *set)
+ /**
++ *	struct nft_set_gc_batch_head - nf_tables set garbage collection batch
++ *
++ *	@rcu: rcu head
++ *	@set: set the elements belong to
++ *	@cnt: count of elements
++ */
++struct nft_set_gc_batch_head {
++	struct rcu_head			rcu;
++	const struct nft_set		*set;
++	unsigned int			cnt;
++};
++
++#define NFT_SET_GC_BATCH_SIZE	((PAGE_SIZE -				  \
++				  sizeof(struct nft_set_gc_batch_head)) / \
++				 sizeof(void *))
++
++/**
++ *	struct nft_set_gc_batch - nf_tables set garbage collection batch
++ *
++ * 	@head: GC batch head
++ * 	@elems: garbage collection elements
++ */
++struct nft_set_gc_batch {
++	struct nft_set_gc_batch_head	head;
++	void				*elems[NFT_SET_GC_BATCH_SIZE];
++};
++
++struct nft_set_gc_batch *nft_set_gc_batch_alloc(const struct nft_set *set,
++						gfp_t gfp);
++void nft_set_gc_batch_release(struct rcu_head *rcu);
++
++static inline void nft_set_gc_batch_complete(struct nft_set_gc_batch *gcb)
 +{
-+	return set->gc_int ? msecs_to_jiffies(set->gc_int) : HZ;
++	if (gcb != NULL)
++		call_rcu(&gcb->head.rcu, nft_set_gc_batch_release);
 +}
 +
- /**
-  *	struct nft_set_binding - nf_tables set binding
++static inline struct nft_set_gc_batch *
++nft_set_gc_batch_check(const struct nft_set *set, struct nft_set_gc_batch *gcb,
++		       gfp_t gfp)
++{
++	if (gcb != NULL) {
++		if (gcb->head.cnt + 1 < ARRAY_SIZE(gcb->elems))
++			return gcb;
++		nft_set_gc_batch_complete(gcb);
++	}
++	return nft_set_gc_batch_alloc(set, gfp);
++}
++
++static inline void nft_set_gc_batch_add(struct nft_set_gc_batch *gcb,
++					void *elem)
++{
++	gcb->elems[gcb->head.cnt++] = elem;
++}
++
++/**
+  *	struct nft_expr_type - nf_tables expression type
   *
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index b978393..971d245 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -208,12 +208,14 @@ enum nft_rule_compat_attributes {
-  * @NFT_SET_CONSTANT: set contents may not change while bound
-  * @NFT_SET_INTERVAL: set contains intervals
-  * @NFT_SET_MAP: set is used as a dictionary
-+ * @NFT_SET_TIMEOUT: set uses timeouts
-  */
- enum nft_set_flags {
- 	NFT_SET_ANONYMOUS		= 0x1,
- 	NFT_SET_CONSTANT		= 0x2,
- 	NFT_SET_INTERVAL		= 0x4,
- 	NFT_SET_MAP			= 0x8,
-+	NFT_SET_TIMEOUT			= 0x10,
- };
- 
- /**
-@@ -252,6 +254,8 @@ enum nft_set_desc_attributes {
-  * @NFTA_SET_POLICY: selection policy (NLA_U32)
-  * @NFTA_SET_DESC: set description (NLA_NESTED)
-  * @NFTA_SET_ID: uniquely identifies a set in a transaction (NLA_U32)
-+ * @NFTA_SET_TIMEOUT: default timeout value (NLA_U64)
-+ * @NFTA_SET_GC_INTERVAL: garbage collection interval (NLA_U32)
-  */
- enum nft_set_attributes {
- 	NFTA_SET_UNSPEC,
-@@ -265,6 +269,8 @@ enum nft_set_attributes {
- 	NFTA_SET_POLICY,
- 	NFTA_SET_DESC,
- 	NFTA_SET_ID,
-+	NFTA_SET_TIMEOUT,
-+	NFTA_SET_GC_INTERVAL,
- 	__NFTA_SET_MAX
- };
- #define NFTA_SET_MAX		(__NFTA_SET_MAX - 1)
+  *	@select_ops: function to select nft_expr_ops
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 5604c2d..6320b64 100644
+index 9e032db..138e47f 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -2216,6 +2216,8 @@ static const struct nla_policy nft_set_policy[NFTA_SET_MAX + 1] = {
- 	[NFTA_SET_POLICY]		= { .type = NLA_U32 },
- 	[NFTA_SET_DESC]			= { .type = NLA_NESTED },
- 	[NFTA_SET_ID]			= { .type = NLA_U32 },
-+	[NFTA_SET_TIMEOUT]		= { .type = NLA_U64 },
-+	[NFTA_SET_GC_INTERVAL]		= { .type = NLA_U32 },
- };
+@@ -3482,6 +3482,31 @@ static int nf_tables_delsetelem(struct sock *nlsk, struct sk_buff *skb,
+ 	return err;
+ }
  
- static const struct nla_policy nft_set_desc_policy[NFTA_SET_DESC_MAX + 1] = {
-@@ -2366,6 +2368,13 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
- 			goto nla_put_failure;
- 	}
- 
-+	if (set->timeout &&
-+	    nla_put_be64(skb, NFTA_SET_TIMEOUT, cpu_to_be64(set->timeout)))
-+		goto nla_put_failure;
-+	if (set->gc_int &&
-+	    nla_put_be32(skb, NFTA_SET_GC_INTERVAL, htonl(set->gc_int)))
-+		goto nla_put_failure;
++void nft_set_gc_batch_release(struct rcu_head *rcu)
++{
++	struct nft_set_gc_batch *gcb;
++	unsigned int i;
 +
- 	if (set->policy != NFT_SET_POL_PERFORMANCE) {
- 		if (nla_put_be32(skb, NFTA_SET_POLICY, htonl(set->policy)))
- 			goto nla_put_failure;
-@@ -2578,7 +2587,8 @@ static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
- 	char name[IFNAMSIZ];
- 	unsigned int size;
- 	bool create;
--	u32 ktype, dtype, flags, policy;
-+	u64 timeout;
-+	u32 ktype, dtype, flags, policy, gc_int;
- 	struct nft_set_desc desc;
- 	int err;
- 
-@@ -2605,7 +2615,8 @@ static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
- 	if (nla[NFTA_SET_FLAGS] != NULL) {
- 		flags = ntohl(nla_get_be32(nla[NFTA_SET_FLAGS]));
- 		if (flags & ~(NFT_SET_ANONYMOUS | NFT_SET_CONSTANT |
--			      NFT_SET_INTERVAL | NFT_SET_MAP))
-+			      NFT_SET_INTERVAL | NFT_SET_MAP |
-+			      NFT_SET_TIMEOUT))
- 			return -EINVAL;
- 	}
- 
-@@ -2631,6 +2642,19 @@ static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
- 	} else if (flags & NFT_SET_MAP)
- 		return -EINVAL;
- 
-+	timeout = 0;
-+	if (nla[NFTA_SET_TIMEOUT] != NULL) {
-+		if (!(flags & NFT_SET_TIMEOUT))
-+			return -EINVAL;
-+		timeout = be64_to_cpu(nla_get_be64(nla[NFTA_SET_TIMEOUT]));
-+	}
-+	gc_int = 0;
-+	if (nla[NFTA_SET_GC_INTERVAL] != NULL) {
-+		if (!(flags & NFT_SET_TIMEOUT))
-+			return -EINVAL;
-+		gc_int = ntohl(nla_get_be32(nla[NFTA_SET_GC_INTERVAL]));
-+	}
++	gcb = container_of(rcu, struct nft_set_gc_batch, head.rcu);
++	for (i = 0; i < gcb->head.cnt; i++)
++		nft_set_elem_destroy(gcb->head.set, gcb->elems[i]);
++	kfree(gcb);
++}
++EXPORT_SYMBOL_GPL(nft_set_gc_batch_release);
 +
- 	policy = NFT_SET_POL_PERFORMANCE;
- 	if (nla[NFTA_SET_POLICY] != NULL)
- 		policy = ntohl(nla_get_be32(nla[NFTA_SET_POLICY]));
-@@ -2699,6 +2723,8 @@ static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
- 	set->flags = flags;
- 	set->size  = desc.size;
- 	set->policy = policy;
-+	set->timeout = timeout;
-+	set->gc_int = gc_int;
- 
- 	err = ops->init(set, &desc, nla);
- 	if (err < 0)
++struct nft_set_gc_batch *nft_set_gc_batch_alloc(const struct nft_set *set,
++						gfp_t gfp)
++{
++	struct nft_set_gc_batch *gcb;
++
++	gcb = kzalloc(sizeof(*gcb), gfp);
++	if (gcb == NULL)
++		return gcb;
++	gcb->head.set = set;
++	return gcb;
++}
++EXPORT_SYMBOL_GPL(nft_set_gc_batch_alloc);
++
+ static int nf_tables_fill_gen_info(struct sk_buff *skb, struct net *net,
+ 				   u32 portid, u32 seq)
+ {
 -- 
 2.1.0
 
