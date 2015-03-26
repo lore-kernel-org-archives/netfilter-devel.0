@@ -1,124 +1,142 @@
-From: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
-Subject: Re: Re: [PATCH V2 2/4] Add MARK target for arptables
-Date: Thu, 26 Mar 2015 01:43:28 +0000
-Message-ID: <A43879EB4A7F5F449E2CA8148EA79E516EE156@G08CNEXMBPEKD01.g08.fujitsu.local>
-References: <1427248656-8851-1-git-send-email-zhangcy@cn.fujitsu.com>,
- <1427248656-8851-3-git-send-email-zhangcy@cn.fujitsu.com>,
- <20150325161608.GA4787@salvia>
-Reply-To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+From: Zhang Chunyu <zhangcy@cn.fujitsu.com>
+Subject: [PATCH V3 1/2] Add revision field for xt_entry_target
+Date: Thu, 26 Mar 2015 05:33:29 -0400
+Message-ID: <1427362410-9255-2-git-send-email-zhangcy@cn.fujitsu.com>
+References: <1427362410-9255-1-git-send-email-zhangcy@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	=?utf-8?B?R2FvLCBGZW5nL+mrmCDls7A=?= <gaofeng@cn.fujitsu.com>
-To: "pablo@netfilter.org" <pablo@netfilter.org>
+Content-Type: text/plain
+Cc: zhangcy <zhangcy@cn.fujitsu.com>, Gao feng <gaofeng@cn.fujitsu.com>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:61417 "EHLO
+Received: from cn.fujitsu.com ([59.151.112.132]:25311 "EHLO
 	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751082AbbCZBnk (ORCPT
+	with ESMTP id S1751342AbbCZKBG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Mar 2015 21:43:40 -0400
-Content-Language: zh-CN
+	Thu, 26 Mar 2015 06:01:06 -0400
+In-Reply-To: <1427362410-9255-1-git-send-email-zhangcy@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-DQoNCj5Gcm9tOiBuZXRmaWx0ZXItZGV2ZWwtb3duZXINCj5EYXRlOiAyMDE1LTAzLTI2DQo+VG86
-IFpoYW5nLCBDaHVueXUv56ugIOaYpeWuhw0KPlN1YmplY3Q6IFJlOiBbUEFUQ0ggVjIgMi80XSBB
-ZGQgTUFSSyB0YXJnZXQgZm9yIGFycHRhYmxlcw0KPg0KPk9uIFR1ZSwgTWFyIDI0LCAyMDE1IGF0
-IDA5OjU3OjM0UE0gLTA0MDAsIFpoYW5nIENodW55dSB3cm90ZToNCj4+IFdlIGNhbiB1c2UgTUFS
-SyB0YXJnZXQgdG8gc2V0IG1ha2UgdmFsdWUgZm9yIGFycCBwYWNrZXQuDQo+Pg0KPj4gU2lnbmVk
-LW9mZi1ieTogR2FvIGZlbmcgPGdhb2ZlbmdAY24uZnVqaXRzdS5jb20+DQo+PiBTaWduZWQtb2Zm
-LWJ5OiBaaGFuZyBDaHVueXUgPHpoYW5nY3lAY24uZnVqaXRzdS5jb20+DQo+PiAtLS0NCj4+ICBl
-eHRlbnNpb25zL01ha2VmaWxlICAgIHwgICAyICstDQo+PiAgZXh0ZW5zaW9ucy9hcnB0X01BUksu
-YyB8IDExOSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-DQo+PiAgMiBmaWxlcyBjaGFuZ2VkLCAxMjAgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQ0K
-Pj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBleHRlbnNpb25zL2FycHRfTUFSSy5jDQo+Pg0KPj4gZGlm
-ZiAtLWdpdCBhL2V4dGVuc2lvbnMvTWFrZWZpbGUgYi9leHRlbnNpb25zL01ha2VmaWxlDQo+PiBp
-bmRleCAwOWIyNDRlLi4wMTg5Y2M5IDEwMDY0NA0KPj4gLS0tIGEvZXh0ZW5zaW9ucy9NYWtlZmls
-ZQ0KPj4gKysrIGIvZXh0ZW5zaW9ucy9NYWtlZmlsZQ0KPj4gQEAgLTEsNiArMSw2IEBADQo+PiAg
-IyEgL3Vzci9iaW4vbWFrZQ0KPj4gDQo+PiAtRVhUX0ZVTkMrPXN0YW5kYXJkIG1hbmdsZSBDTEFT
-U0lGWQ0KPj4gK0VYVF9GVU5DKz1zdGFuZGFyZCBtYW5nbGUgQ0xBU1NJRlkgTUFSSw0KPj4gIEVY
-VF9PQkpTKz0kKGZvcmVhY2ggVCwkKEVYVF9GVU5DKSwgZXh0ZW5zaW9ucy9hcnB0XyQoVCkubykN
-Cj4+IA0KPj4gIGV4dGVuc2lvbnMvZWJ0XyUubzogZXh0ZW5zaW9ucy9hcnB0XyUuYyBpbmNsdWRl
-L2FycHRhYmxlcy5oIGluY2x1ZGUvYXJwdGFibGVzX2NvbW1vbi5oDQo+PiBkaWZmIC0tZ2l0IGEv
-ZXh0ZW5zaW9ucy9hcnB0X01BUksuYyBiL2V4dGVuc2lvbnMvYXJwdF9NQVJLLmMNCj4+IG5ldyBm
-aWxlIG1vZGUgMTAwNjQ0DQo+PiBpbmRleCAwMDAwMDAwLi5kOWFlYzhiDQo+PiAtLS0gL2Rldi9u
-dWxsDQo+PiArKysgYi9leHRlbnNpb25zL2FycHRfTUFSSy5jDQo+PiBAQCAtMCwwICsxLDExOSBA
-QA0KPj4gKy8qDQo+PiArICogKEMpIDIwMTQgYnkgR2FvIEZlbmcgPGdhb2ZlbmdAY24uZnVqaXRz
-dS5jb20+DQo+PiArICoNCj4+ICsgKiBhcnB0X01BUksuYyAtLSBhcnB0YWJsZXMgZXh0ZW5zaW9u
-IHRvIHNldCBtYXJrIGZvciBhcnAgcGFja2V0DQo+PiArICoNCj4+ICsgKiAgIFRoaXMgcHJvZ3Jh
-bSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5
-DQo+PiArICogICBpdCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBM
-aWNlbnNlIGFzIHB1Ymxpc2hlZCBieQ0KPj4gKyAqICAgdGhlIEZyZWUgU29mdHdhcmUgRm91bmRh
-dGlvbjsgZWl0aGVyIHZlcnNpb24gMiBvZiB0aGUgTGljZW5zZSwgb3INCj4+ICsgKiAgIChhdCB5
-b3VyIG9wdGlvbikgYW55IGxhdGVyIHZlcnNpb24uDQo+PiArICoNCj4+ICsgKiAgIFRoaXMgcHJv
-Z3JhbSBpcyBkaXN0cmlidXRlZCBpbiB0aGUgaG9wZSB0aGF0IGl0IHdpbGwgYmUgdXNlZnVsLA0K
-Pj4gKyAqICAgYnV0IFdJVEhPVVQgQU5ZIFdBUlJBTlRZOyB3aXRob3V0IGV2ZW4gdGhlIGltcGxp
-ZWQgd2FycmFudHkgb2YNCj4+ICsgKiAgIE1FUkNIQU5UQUJJTElUWSBvciBGSVRORVNTIEZPUiBB
-IFBBUlRJQ1VMQVIgUFVSUE9TRS4gIFNlZSB0aGUNCj4+ICsgKiAgIEdOVSBHZW5lcmFsIFB1Ymxp
-YyBMaWNlbnNlIGZvciBtb3JlIGRldGFpbHMuDQo+PiArICoNCj4+ICsgKiAgIFlvdSBzaG91bGQg
-aGF2ZSByZWNlaXZlZCBhIGNvcHkgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlDQo+
-PiArICogICBhbG9uZyB3aXRoIHRoaXMgcHJvZ3JhbTsgaWYgbm90LCB3cml0ZSB0byB0aGUgRnJl
-ZSBTb2Z0d2FyZQ0KPj4gKyAqICAgRm91bmRhdGlvbiwgSW5jLiwgNjc1IE1hc3MgQXZlLCBDYW1i
-cmlkZ2UsIE1BIDAyMTM5LCBVU0EuDQo+PiArICovDQo+PiArDQo+PiArI2luY2x1ZGUgPHN0ZGlv
-Lmg+DQo+PiArI2luY2x1ZGUgPGdldG9wdC5oPg0KPj4gKyNpbmNsdWRlIDxhcnB0YWJsZXMuaD4N
-Cj4+ICsjaW5jbHVkZSA8bGludXgvbmV0ZmlsdGVyL3h0X21hcmsuaD4NCj4+ICsjaW5jbHVkZSA8
-bGludXgvbmV0ZmlsdGVyL3h0X01BUksuaD4NCj4+ICsjaW5jbHVkZSA8bGludXgvbmV0ZmlsdGVy
-L3hfdGFibGVzLmg+DQo+PiArDQo+PiArc3RhdGljIHZvaWQNCj4+ICtoZWxwKHZvaWQpDQo+DQo+
-UGxhY2UgdGhpcyBpbiB0aGUgc2FtZSBsaW5lLCBpZS4NCj4NCj5zdGF0aWMgdm9pZCBoZWxwKHZv
-aWQpDQpvay4gd2lsbCBmaXggaXQgaW4gdjMuDQo+DQo+PiArew0KPj4gKyAgICAgcHJpbnRmKA0K
-Pj4gKyJNQVJLIHRhcmdldCB2JXMgb3B0aW9uczpcbiINCj4+ICsiLS1zZXQtbWFyayBtYXJrIDog
-c2V0IHRoZSBtYXJrIHZhbHVlXG4iLA0KPj4gKyAgICAgQVJQVEFCTEVTX1ZFUlNJT04pOw0KPj4g
-K30NCj4+ICsNCj4+ICsjZGVmaW5lIE1BUktfT1BUIDENCj4+ICsNCj4+ICtzdGF0aWMgc3RydWN0
-IG9wdGlvbiBvcHRzW10gPSB7DQo+PiArICAgICB7ICJzZXQtbWFyayIgICAsIHJlcXVpcmVkX2Fy
-Z3VtZW50LCAwLCBNQVJLX09QVCB9LA0KPg0KPkNvdWxkIHlvdSB1c2UgQzk5IGluaXRpYWxpemF0
-aW9uIGZvciB0aGlzPw0KPg0KPkkga25vdyBvdGhlciBleHRlbnNpb25zIGRvbid0IGJlY2F1c2Ug
-dGhpcyBjb2RlIGlzIHJhdGhlciBvbGQsIGJ1dCBpdA0KPndvdWxkIGJlIGdvb2QgdG8gZ29vZCBh
-dCBsZWFzdCBuZXcgY29kZSBpbiBiZXR0ZXIgc2hhcGUuDQpvay4gd2lsbCBmaXggaXQgaW4gdjMu
-DQo+DQo+PiArICAgICB7MH0NCj4+ICt9Ow0KPj4gKw0KPj4gK3N0YXRpYyB2b2lkDQo+PiAraW5p
-dChzdHJ1Y3QgYXJwdF9lbnRyeV90YXJnZXQgKnQpDQo+PiArew0KPj4gKyAgICAgc3RydWN0IHh0
-X21hcmtfdGdpbmZvMiAqaW5mbyA9IChzdHJ1Y3QgeHRfbWFya190Z2luZm8yICopIHQtPmRhdGE7
-DQo+PiArDQo+PiArICAgICBpbmZvLT5tYXJrID0gMDsNCj4+ICt9DQo+PiArDQo+PiArc3RhdGlj
-IGludA0KPj4gK3BhcnNlKGludCBjLCBjaGFyICoqYXJndiwgaW50IGludmVydCwgdW5zaWduZWQg
-aW50ICpmbGFncywNCj4+ICsgICAgIGNvbnN0IHN0cnVjdCBhcnB0X2VudHJ5ICplLA0KPj4gKyAg
-ICAgc3RydWN0IGFycHRfZW50cnlfdGFyZ2V0ICoqdCkNCj4+ICt7DQo+PiArICAgICBzdHJ1Y3Qg
-eHRfbWFya190Z2luZm8yICppbmZvID0gKHN0cnVjdCB4dF9tYXJrX3RnaW5mbzIgKikoKnQpLT5k
-YXRhOw0KPj4gKyAgICAgaW50IGk7DQo+PiArDQo+PiArICAgICBzd2l0Y2ggKGMpIHsNCj4+ICsg
-ICAgICAgICAgICAgY2FzZSBNQVJLX09QVDoNCj4NCj5XZSBwcmVmZXI6DQo+DQo+ICAgICAgICBz
-d2l0Y2ggKGMpIHsNCj4gICAgICAgIGNhc2UgTUFSS19PUFQ6DQo+ICAgICAgICAgICAgICAgIC4u
-Lg0Kb2suIHdpbGwgZml4IGl0IGluIHYzLg0KPg0KPj4gKyAgICAgICAgICAgICAgICAgICAgIGlm
-IChzc2NhbmYoYXJndltvcHRpbmQtMV0sICIleCIsICZpKSAhPSAxKSB7DQo+PiArICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICBleGl0X2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVNLA0KPj4gKyAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJCYWQgbWFyayB2YWx1
-ZSBgJXMnIiwgb3B0YXJnKTsNCj4NCj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGV4
-aXRfZXJyb3IoLi4uDQo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICJCYWQgbWFyay4uLiINCj4NCj4+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHJldHVy
-biAwOw0KPj4gKyAgICAgICAgICAgICAgICAgICAgIH0NCj4+ICsgICAgICAgICAgICAgICAgICAg
-ICBpbmZvLT5tYXJrID0gaTsNCj4+ICsgICAgICAgICAgICAgICAgICAgICBpZiAoKmZsYWdzKQ0K
-Pj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZXhpdF9lcnJvcihQQVJBTUVURVJfUFJP
-QkxFTSwNCj4+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAi
-Q0xBU1NJRlk6IENhbid0IHNwZWNpZnkgLS1zZXQtbWFyayB0d2ljZSIpOw0KPj4gKyAgICAgICAg
-ICAgICAgICAgICAgICpmbGFncyA9IDE7DQo+PiArICAgICAgICAgICAgICAgICAgICAgYnJlYWs7
-DQo+PiArICAgICAgICAgICAgIGRlZmF1bHQ6DQo+PiArICAgICAgICAgICAgICAgICAgICAgcmV0
-dXJuIDA7DQo+PiArICAgICB9DQo+PiArICAgICByZXR1cm4gMTsNCj4+ICt9DQo+PiArDQo+PiAr
-c3RhdGljIHZvaWQgZmluYWxfY2hlY2sodW5zaWduZWQgaW50IGZsYWdzKQ0KPj4gK3sNCj4+ICsg
-ICAgIGlmICghZmxhZ3MpDQo+PiArICAgICAgICAgICAgIGV4aXRfZXJyb3IoUEFSQU1FVEVSX1BS
-T0JMRU0sICJNQVJLOiBQYXJhbWV0ZXIgLS1zZXQtbWFyayBpcyByZXF1aXJlZCIpOw0KPj4gK30N
-Cj4+ICsNCj4+ICtzdGF0aWMgdm9pZCBwcmludChjb25zdCBzdHJ1Y3QgYXJwdF9hcnAgKmlwLA0K
-Pj4gKyAgICAgY29uc3Qgc3RydWN0IGFycHRfZW50cnlfdGFyZ2V0ICp0YXJnZXQsIGludCBudW1l
-cmljKQ0KPj4gK3sNCj4+ICsgICAgIHN0cnVjdCB4dF9tYXJrX3RnaW5mbzIgKmluZm8gPSAoc3Ry
-dWN0IHh0X21hcmtfdGdpbmZvMiAqKSh0YXJnZXQtPmRhdGEpOw0KPj4gKw0KPj4gKyAgICAgcHJp
-bnRmKCItLXNldC1tYXJrICV4ICIsIGluZm8tPm1hcmspOw0KPj4gK30NCj4+ICsNCj4+ICtzdGF0
-aWMgdm9pZA0KPj4gK3NhdmUoY29uc3Qgc3RydWN0IGFycHRfYXJwICppcCwgY29uc3Qgc3RydWN0
-IGFycHRfZW50cnlfdGFyZ2V0ICp0YXJnZXQpDQo+PiArew0KPj4gK30NCj4+ICsNCj4+ICtzdGF0
-aWMNCj4+ICtzdHJ1Y3QgYXJwdGFibGVzX3RhcmdldCBtYXJrDQo+PiArPSB7IE5VTEwsDQo+PiAr
-ICAgICAiTUFSSyIsDQo+PiArICAgICBBUlBUQUJMRVNfVkVSU0lPTiwNCj4+ICsgICAgIEFSUFRf
-QUxJR04oc2l6ZW9mKHN0cnVjdCB4dF9tYXJrX3RnaW5mbzIpKSwNCj4+ICsgICAgIEFSUFRfQUxJ
-R04oc2l6ZW9mKHN0cnVjdCB4dF9tYXJrX3RnaW5mbzIpKSwNCj4+ICsgICAgIDIsDQo+PiArICAg
-ICAmaGVscCwNCj4+ICsgICAgICZpbml0LA0KPj4gKyAgICAgJnBhcnNlLA0KPj4gKyAgICAgJmZp
-bmFsX2NoZWNrLA0KPj4gKyAgICAgJnByaW50LA0KPj4gKyAgICAgJnNhdmUsDQo+PiArICAgICBv
-cHRzDQo+DQo+UGxlYXNlLCB1c2UgQzk5IHN0cnVjdHVyZSBpbml0aWFsaXphdGlvbiBoZXJlIHRv
-by4NCm9rLiB3aWxsIGZpeCBpdCBpbiB2My4NCg0KdGhhbmtzIQ0KPg0KPj4gK307DQo+PiArDQo+
-PiArc3RhdGljIHZvaWQgX2luaXQodm9pZCkgX19hdHRyaWJ1dGVfXyAoKGNvbnN0cnVjdG9yKSk7
-DQo+PiArc3RhdGljIHZvaWQgX2luaXQodm9pZCkNCj4+ICt7DQo+PiArICAgICByZWdpc3Rlcl90
-YXJnZXQoJm1hcmspOw0KPj4gK30NCj4+IC0tDQo+PiAxLjcuMTIuNA0KPj4NCj4+IC0tDQo=
+From: zhangcy <zhangcy@cn.fujitsu.com>
+
+This filed is useful if we want to add TARGET which
+has revision for arptables rules.
+
+Also make sure xt_entry_target is consistent with
+the definition in kernel.
+
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+Signed-off-by: Zhang Chunyu <zhangcy@cn.fujitsu.com>
+---
+ arptables.c                              | 2 ++
+ extensions/arpt_CLASSIFY.c               | 1 +
+ extensions/arpt_mangle.c                 | 1 +
+ extensions/arpt_standard.c               | 1 +
+ include/arptables.h                      | 6 ++++++
+ include/linux/netfilter_arp/arp_tables.h | 3 ++-
+ 6 files changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/arptables.c b/arptables.c
+index 845e226..3f24ef1 100644
+--- a/arptables.c
++++ b/arptables.c
+@@ -2067,6 +2067,7 @@ int do_command(int argc, char *argv[], char **table, arptc_handle_t *handle)
+ 				target->t->u.target_size = size;
+ 				strncpy(target->t->u.user.name, jumpto, sizeof(target->t->u.user.name));
+ 				target->t->u.user.name[sizeof(target->t->u.user.name)-1] = '\0';
++				target->t->u.user.revision = target->revision;
+ /*
+ 				target->init(target->t, &fw.nfcache);
+ */
+@@ -2391,6 +2392,7 @@ int do_command(int argc, char *argv[], char **table, arptc_handle_t *handle)
+ 			target->t = fw_calloc(1, size);
+ 			target->t->u.target_size = size;
+ 			strcpy(target->t->u.user.name, jumpto);
++			target->t->u.user.revision = target->revision;
+ 			target->init(target->t);
+ 		}
+ 
+diff --git a/extensions/arpt_CLASSIFY.c b/extensions/arpt_CLASSIFY.c
+index cb5770b..7893aed 100644
+--- a/extensions/arpt_CLASSIFY.c
++++ b/extensions/arpt_CLASSIFY.c
+@@ -105,6 +105,7 @@ struct arptables_target classify
+ 	ARPTABLES_VERSION,
+ 	ARPT_ALIGN(sizeof(struct xt_classify_target_info)),
+ 	ARPT_ALIGN(sizeof(struct xt_classify_target_info)),
++	0,
+ 	&help,
+ 	&init,
+ 	&parse,
+diff --git a/extensions/arpt_mangle.c b/extensions/arpt_mangle.c
+index c38fc16..502fc2b 100644
+--- a/extensions/arpt_mangle.c
++++ b/extensions/arpt_mangle.c
+@@ -199,6 +199,7 @@ struct arptables_target change
+     ARPTABLES_VERSION,
+     ARPT_ALIGN(sizeof(struct arpt_mangle)),
+     ARPT_ALIGN(sizeof(struct arpt_mangle)),
++	0,
+     &help,
+     &init,
+     &parse,
+diff --git a/extensions/arpt_standard.c b/extensions/arpt_standard.c
+index cb3891d..c647316 100644
+--- a/extensions/arpt_standard.c
++++ b/extensions/arpt_standard.c
+@@ -54,6 +54,7 @@ struct arptables_target standard
+     ARPTABLES_VERSION,
+     ARPT_ALIGN(sizeof(int)),
+     ARPT_ALIGN(sizeof(int)),
++	0,
+     &help,
+     &init,
+     &parse,
+diff --git a/include/arptables.h b/include/arptables.h
+index 820b664..82e6e9a 100644
+--- a/include/arptables.h
++++ b/include/arptables.h
+@@ -32,6 +32,9 @@ struct arptables_match
+ 	/* Size of match data relevent for userspace comparison purposes */
+ 	size_t userspacesize;
+ 
++	/* Revision of target (0 by default). */
++	u_int8_t revision;
++
+ 	/* Function which prints out usage message. */
+ 	void (*help)(void);
+ 
+@@ -81,6 +84,9 @@ struct arptables_target
+ 	/* Size of target data relevent for userspace comparison purposes */
+ 	size_t userspacesize;
+ 
++	/* Revision of target (0 by default). */
++	u_int8_t revision;
++
+ 	/* Function which prints out usage message. */
+ 	void (*help)(void);
+ 
+diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
+index 0acda66..0bf2457 100644
+--- a/include/linux/netfilter_arp/arp_tables.h
++++ b/include/linux/netfilter_arp/arp_tables.h
+@@ -19,7 +19,7 @@
+ 
+ #include <linux/netfilter_arp.h>
+ 
+-#define ARPT_FUNCTION_MAXNAMELEN 30
++#define ARPT_FUNCTION_MAXNAMELEN 29
+ #define ARPT_TABLE_MAXNAMELEN 32
+ 
+ #define ARPT_DEV_ADDR_LEN_MAX 16
+@@ -69,6 +69,7 @@ struct arpt_entry_target
+ 
+ 			/* Used by userspace */
+ 			char name[ARPT_FUNCTION_MAXNAMELEN];
++			u_int8_t revision;
+ 		} user;
+ 		struct {
+ 			u_int16_t target_size;
+-- 
+1.7.12.4
+
