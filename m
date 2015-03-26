@@ -1,209 +1,178 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 5/5] netfilter: nft_hash: add support for timeouts
-Date: Thu, 26 Mar 2015 12:39:40 +0000
-Message-ID: <1427373580-19310-6-git-send-email-kaber@trash.net>
+Subject: [PATCH 1/5] netfilter: nf_tables: add set timeout API support
+Date: Thu, 26 Mar 2015 12:39:36 +0000
+Message-ID: <1427373580-19310-2-git-send-email-kaber@trash.net>
 References: <1427373580-19310-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58133 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:58130 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752160AbbCZMjr (ORCPT
+	with ESMTP id S1752148AbbCZMjo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2015 08:39:47 -0400
+	Thu, 26 Mar 2015 08:39:44 -0400
 In-Reply-To: <1427373580-19310-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add support for element timeouts to nft_hash. The lookup and walking
-functions are changed to ignore timed out elements, a periodic garbage
-collection task cleans out expired entries.
+Add set timeout support to the netlink API. Sets with timeout support
+enabled can have a default timeout value and garbage collection interval
+specified.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- include/net/netfilter/nf_tables.h |  5 +++
- net/netfilter/nft_hash.c          | 80 +++++++++++++++++++++++++++++++++++++--
- 2 files changed, 81 insertions(+), 4 deletions(-)
+ include/net/netfilter/nf_tables.h        |  9 +++++++++
+ include/uapi/linux/netfilter/nf_tables.h |  6 ++++++
+ net/netfilter/nf_tables_api.c            | 30 ++++++++++++++++++++++++++++--
+ 3 files changed, 43 insertions(+), 2 deletions(-)
 
 diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 1ea13fc..a785699 100644
+index b8cd60d..8936803 100644
 --- a/include/net/netfilter/nf_tables.h
 +++ b/include/net/netfilter/nf_tables.h
-@@ -294,6 +294,11 @@ static inline void *nft_set_priv(const struct nft_set *set)
- 	return (void *)set->data;
- }
- 
-+static inline struct nft_set *nft_set_container_of(const void *priv)
-+{
-+	return (void *)priv - offsetof(struct nft_set, data);
-+}
-+
- struct nft_set *nf_tables_set_lookup(const struct nft_table *table,
- 				     const struct nlattr *nla);
+@@ -258,6 +258,8 @@ void nft_unregister_set(struct nft_set_ops *ops);
+  * 	@dtype: data type (verdict or numeric type defined by userspace)
+  * 	@size: maximum set size
+  * 	@nelems: number of elements
++ * 	@timeout: default timeout value in msecs
++ * 	@gc_int: garbage collection interval in msecs
+  *	@policy: set parameterization (see enum nft_set_policies)
+  * 	@ops: set ops
+  * 	@pnet: network namespace
+@@ -274,6 +276,8 @@ struct nft_set {
+ 	u32				dtype;
+ 	u32				size;
+ 	u32				nelems;
++	u64				timeout;
++	u32				gc_int;
+ 	u16				policy;
+ 	/* runtime data below here */
+ 	const struct nft_set_ops	*ops ____cacheline_aligned;
+@@ -295,6 +299,11 @@ struct nft_set *nf_tables_set_lookup(const struct nft_table *table,
  struct nft_set *nf_tables_set_lookup_byid(const struct net *net,
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index c7e1a9d..2a00da9 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -15,6 +15,7 @@
- #include <linux/log2.h>
- #include <linux/jhash.h>
- #include <linux/netlink.h>
-+#include <linux/workqueue.h>
- #include <linux/rhashtable.h>
- #include <linux/netfilter.h>
- #include <linux/netfilter/nf_tables.h>
-@@ -25,6 +26,7 @@
+ 					  const struct nlattr *nla);
  
- struct nft_hash {
- 	struct rhashtable		ht;
-+	struct delayed_work		gc_work;
- };
- 
- struct nft_hash_elem {
-@@ -62,6 +64,8 @@ static inline int nft_hash_cmp(struct rhashtable_compare_arg *arg,
- 
- 	if (nft_data_cmp(nft_set_ext_key(&he->ext), x->key, x->set->klen))
- 		return 1;
-+	if (nft_set_elem_expired(&he->ext))
-+		return 1;
- 	if (!nft_set_elem_active(&he->ext, x->genmask))
- 		return 1;
- 	return 0;
-@@ -107,6 +111,7 @@ static void nft_hash_activate(const struct nft_set *set,
- 	struct nft_hash_elem *he = elem->priv;
- 
- 	nft_set_elem_change_active(set, &he->ext);
-+	nft_set_elem_clear_busy(&he->ext);
- }
- 
- static void *nft_hash_deactivate(const struct nft_set *set,
-@@ -120,9 +125,15 @@ static void *nft_hash_deactivate(const struct nft_set *set,
- 		.key	 = &elem->key,
- 	};
- 
-+	rcu_read_lock();
- 	he = rhashtable_lookup_fast(&priv->ht, &arg, nft_hash_params);
--	if (he != NULL)
--		nft_set_elem_change_active(set, &he->ext);
-+	if (he != NULL) {
-+		if (!nft_set_elem_mark_busy(&he->ext))
-+			nft_set_elem_change_active(set, &he->ext);
-+		else
-+			he = NULL;
-+	}
-+	rcu_read_unlock();
- 
- 	return he;
- }
-@@ -170,6 +181,8 @@ static void nft_hash_walk(const struct nft_ctx *ctx, const struct nft_set *set,
- 
- 		if (iter->count < iter->skip)
- 			goto cont;
-+		if (nft_set_elem_expired(&he->ext))
-+			goto cont;
- 		if (!nft_set_elem_active(&he->ext, genmask))
- 			goto cont;
- 
-@@ -188,6 +201,54 @@ out:
- 	rhashtable_walk_exit(&hti);
- }
- 
-+static void nft_hash_gc(struct work_struct *work)
++static inline unsigned long nft_set_gc_interval(const struct nft_set *set)
 +{
-+	const struct nft_set *set;
-+	struct nft_hash_elem *he;
-+	struct nft_hash *priv;
-+	struct nft_set_gc_batch *gcb = NULL;
-+	struct rhashtable_iter hti;
-+	int err;
-+
-+	priv = container_of(work, struct nft_hash, gc_work.work);
-+	set  = nft_set_container_of(priv);
-+
-+	err = rhashtable_walk_init(&priv->ht, &hti);
-+	if (err)
-+		goto schedule;
-+
-+	err = rhashtable_walk_start(&hti);
-+	if (err && err != -EAGAIN)
-+		goto out;
-+
-+	while ((he = rhashtable_walk_next(&hti))) {
-+		if (IS_ERR(he)) {
-+			if (PTR_ERR(he) != -EAGAIN)
-+				goto out;
-+			continue;
-+		}
-+
-+		if (!nft_set_elem_expired(&he->ext))
-+			continue;
-+		if (nft_set_elem_mark_busy(&he->ext))
-+			continue;
-+
-+		gcb = nft_set_gc_batch_check(set, gcb, GFP_ATOMIC);
-+		if (gcb == NULL)
-+			goto out;
-+		rhashtable_remove_fast(&priv->ht, &he->node, nft_hash_params);
-+		nft_set_gc_batch_add(gcb, he);
-+	}
-+out:
-+	rhashtable_walk_stop(&hti);
-+	rhashtable_walk_exit(&hti);
-+
-+	nft_set_gc_batch_complete(gcb);
-+schedule:
-+	queue_delayed_work(system_power_efficient_wq, &priv->gc_work,
-+			   nft_set_gc_interval(set));
++	return set->gc_int ? msecs_to_jiffies(set->gc_int) : HZ;
 +}
 +
- static unsigned int nft_hash_privsize(const struct nlattr * const nla[])
- {
- 	return sizeof(struct nft_hash);
-@@ -207,11 +268,20 @@ static int nft_hash_init(const struct nft_set *set,
- {
- 	struct nft_hash *priv = nft_set_priv(set);
- 	struct rhashtable_params params = nft_hash_params;
-+	int err;
- 
- 	params.nelem_hint = desc->size ?: NFT_HASH_ELEMENT_HINT;
- 	params.key_len	  = set->klen;
- 
--	return rhashtable_init(&priv->ht, &params);
-+	err = rhashtable_init(&priv->ht, &params);
-+	if (err < 0)
-+		return err;
-+
-+	INIT_DEFERRABLE_WORK(&priv->gc_work, nft_hash_gc);
-+	if (set->flags & NFT_SET_TIMEOUT)
-+		queue_delayed_work(system_power_efficient_wq, &priv->gc_work,
-+				   nft_set_gc_interval(set));
-+	return 0;
- }
- 
- static void nft_hash_elem_destroy(void *ptr, void *arg)
-@@ -223,6 +293,7 @@ static void nft_hash_destroy(const struct nft_set *set)
- {
- 	struct nft_hash *priv = nft_set_priv(set);
- 
-+	cancel_delayed_work_sync(&priv->gc_work);
- 	rhashtable_free_and_destroy(&priv->ht, nft_hash_elem_destroy,
- 				    (void *)set);
- }
-@@ -264,7 +335,7 @@ static struct nft_set_ops nft_hash_ops __read_mostly = {
- 	.remove		= nft_hash_remove,
- 	.lookup		= nft_hash_lookup,
- 	.walk		= nft_hash_walk,
--	.features	= NFT_SET_MAP,
-+	.features	= NFT_SET_MAP | NFT_SET_TIMEOUT,
- 	.owner		= THIS_MODULE,
+ /**
+  *	struct nft_set_binding - nf_tables set binding
+  *
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index b978393..971d245 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -208,12 +208,14 @@ enum nft_rule_compat_attributes {
+  * @NFT_SET_CONSTANT: set contents may not change while bound
+  * @NFT_SET_INTERVAL: set contains intervals
+  * @NFT_SET_MAP: set is used as a dictionary
++ * @NFT_SET_TIMEOUT: set uses timeouts
+  */
+ enum nft_set_flags {
+ 	NFT_SET_ANONYMOUS		= 0x1,
+ 	NFT_SET_CONSTANT		= 0x2,
+ 	NFT_SET_INTERVAL		= 0x4,
+ 	NFT_SET_MAP			= 0x8,
++	NFT_SET_TIMEOUT			= 0x10,
  };
  
-@@ -284,3 +355,4 @@ module_exit(nft_hash_module_exit);
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
- MODULE_ALIAS_NFT_SET();
+ /**
+@@ -252,6 +254,8 @@ enum nft_set_desc_attributes {
+  * @NFTA_SET_POLICY: selection policy (NLA_U32)
+  * @NFTA_SET_DESC: set description (NLA_NESTED)
+  * @NFTA_SET_ID: uniquely identifies a set in a transaction (NLA_U32)
++ * @NFTA_SET_TIMEOUT: default timeout value (NLA_U64)
++ * @NFTA_SET_GC_INTERVAL: garbage collection interval (NLA_U32)
+  */
+ enum nft_set_attributes {
+ 	NFTA_SET_UNSPEC,
+@@ -265,6 +269,8 @@ enum nft_set_attributes {
+ 	NFTA_SET_POLICY,
+ 	NFTA_SET_DESC,
+ 	NFTA_SET_ID,
++	NFTA_SET_TIMEOUT,
++	NFTA_SET_GC_INTERVAL,
+ 	__NFTA_SET_MAX
+ };
+ #define NFTA_SET_MAX		(__NFTA_SET_MAX - 1)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 5604c2d..6320b64 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -2216,6 +2216,8 @@ static const struct nla_policy nft_set_policy[NFTA_SET_MAX + 1] = {
+ 	[NFTA_SET_POLICY]		= { .type = NLA_U32 },
+ 	[NFTA_SET_DESC]			= { .type = NLA_NESTED },
+ 	[NFTA_SET_ID]			= { .type = NLA_U32 },
++	[NFTA_SET_TIMEOUT]		= { .type = NLA_U64 },
++	[NFTA_SET_GC_INTERVAL]		= { .type = NLA_U32 },
+ };
+ 
+ static const struct nla_policy nft_set_desc_policy[NFTA_SET_DESC_MAX + 1] = {
+@@ -2366,6 +2368,13 @@ static int nf_tables_fill_set(struct sk_buff *skb, const struct nft_ctx *ctx,
+ 			goto nla_put_failure;
+ 	}
+ 
++	if (set->timeout &&
++	    nla_put_be64(skb, NFTA_SET_TIMEOUT, cpu_to_be64(set->timeout)))
++		goto nla_put_failure;
++	if (set->gc_int &&
++	    nla_put_be32(skb, NFTA_SET_GC_INTERVAL, htonl(set->gc_int)))
++		goto nla_put_failure;
 +
+ 	if (set->policy != NFT_SET_POL_PERFORMANCE) {
+ 		if (nla_put_be32(skb, NFTA_SET_POLICY, htonl(set->policy)))
+ 			goto nla_put_failure;
+@@ -2578,7 +2587,8 @@ static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
+ 	char name[IFNAMSIZ];
+ 	unsigned int size;
+ 	bool create;
+-	u32 ktype, dtype, flags, policy;
++	u64 timeout;
++	u32 ktype, dtype, flags, policy, gc_int;
+ 	struct nft_set_desc desc;
+ 	int err;
+ 
+@@ -2605,7 +2615,8 @@ static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
+ 	if (nla[NFTA_SET_FLAGS] != NULL) {
+ 		flags = ntohl(nla_get_be32(nla[NFTA_SET_FLAGS]));
+ 		if (flags & ~(NFT_SET_ANONYMOUS | NFT_SET_CONSTANT |
+-			      NFT_SET_INTERVAL | NFT_SET_MAP))
++			      NFT_SET_INTERVAL | NFT_SET_MAP |
++			      NFT_SET_TIMEOUT))
+ 			return -EINVAL;
+ 	}
+ 
+@@ -2631,6 +2642,19 @@ static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
+ 	} else if (flags & NFT_SET_MAP)
+ 		return -EINVAL;
+ 
++	timeout = 0;
++	if (nla[NFTA_SET_TIMEOUT] != NULL) {
++		if (!(flags & NFT_SET_TIMEOUT))
++			return -EINVAL;
++		timeout = be64_to_cpu(nla_get_be64(nla[NFTA_SET_TIMEOUT]));
++	}
++	gc_int = 0;
++	if (nla[NFTA_SET_GC_INTERVAL] != NULL) {
++		if (!(flags & NFT_SET_TIMEOUT))
++			return -EINVAL;
++		gc_int = ntohl(nla_get_be32(nla[NFTA_SET_GC_INTERVAL]));
++	}
++
+ 	policy = NFT_SET_POL_PERFORMANCE;
+ 	if (nla[NFTA_SET_POLICY] != NULL)
+ 		policy = ntohl(nla_get_be32(nla[NFTA_SET_POLICY]));
+@@ -2699,6 +2723,8 @@ static int nf_tables_newset(struct sock *nlsk, struct sk_buff *skb,
+ 	set->flags = flags;
+ 	set->size  = desc.size;
+ 	set->policy = policy;
++	set->timeout = timeout;
++	set->gc_int = gc_int;
+ 
+ 	err = ops->init(set, &desc, nla);
+ 	if (err < 0)
 -- 
 2.1.0
 
