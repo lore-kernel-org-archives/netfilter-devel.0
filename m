@@ -1,32 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/6] netfilter: set extensions
-Date: Thu, 26 Mar 2015 12:06:48 +0100
-Message-ID: <20150326110648.GA3734@salvia>
-References: <1427288870-26336-1-git-send-email-kaber@trash.net>
+Subject: Re: [PATCH 0/4] netfilter: nf_tables: set transactions
+Date: Thu, 26 Mar 2015 12:09:49 +0100
+Message-ID: <20150326110949.GB3734@salvia>
+References: <1427292530-28529-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>, g@salvia
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46918 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47824 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752213AbbCZLC5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2015 07:02:57 -0400
+	id S1752312AbbCZLFu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Mar 2015 07:05:50 -0400
 Content-Disposition: inline
-In-Reply-To: <1427288870-26336-1-git-send-email-kaber@trash.net>
+In-Reply-To: <1427292530-28529-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 25, 2015 at 01:07:44PM +0000, Patrick McHardy wrote:
-> The following patches add so called "set extensions" to maintain optional
-> per element data for nft sets and converts nf_tables to use them.
-> 
-> Following patches will use these set extensions to add some features from
-> ipset which we are currently missing, namely timeouts and comments, as
-> well as set transactions, variable sized data for concatenations and
-> per-flow expressions. I'll send the next batch as soon as these have been
-> merged.
-> 
-> Please apply, thanks!
+On Wed, Mar 25, 2015 at 02:08:46PM +0000, Patrick McHardy wrote:
+> These patches add transaction support to set elements. It pretty much
+> resembles the existing transaction support, the changelogs explain it
+> in more detail.
+
+Thanks a lot for finishing this support.
+
+> As a by-product the patches get rid of the RCU grace period for every
+> nft_hash element that is destroyed, we now have only the single global
+> transaction grace perdiod independantly of what we destroy.
+
+Great work.
 
 Applied, thanks Patrick!
