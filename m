@@ -1,47 +1,51 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/4] netfilter: nf_tables: set transactions
-Date: Thu, 26 Mar 2015 11:14:36 +0000
-Message-ID: <20150326111436.GI3526@acer.localdomain>
-References: <1427292530-28529-1-git-send-email-kaber@trash.net>
- <20150326110949.GB3734@salvia>
- <20150326110700.GH3526@acer.localdomain>
- <20150326111530.GA3769@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: ipset: Proposed improvements to the kernel code
+Date: Thu, 26 Mar 2015 12:26:12 +0100
+Message-ID: <20150326112552.GA3881@salvia>
+References: <2984705.dCFJb2qqrb@tuxracer>
+ <14722035.jXe0WcxyPC@tuxracer>
+ <20150325160536.GA4360@salvia>
+ <7893986.4pVhdOQPzb@tuxracer>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Sergey Popovich <popovich_sergei@mail.ua>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57410 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751025AbbCZLOk (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2015 07:14:40 -0400
+Received: from mail.us.es ([193.147.175.20]:52841 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751334AbbCZLWR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Mar 2015 07:22:17 -0400
 Content-Disposition: inline
-In-Reply-To: <20150326111530.GA3769@salvia>
+In-Reply-To: <7893986.4pVhdOQPzb@tuxracer>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 26.03, Pablo Neira Ayuso wrote:
-> On Thu, Mar 26, 2015 at 11:07:01AM +0000, Patrick McHardy wrote:
-> > On 26.03, Pablo Neira Ayuso wrote:
-> > > On Wed, Mar 25, 2015 at 02:08:46PM +0000, Patrick McHardy wrote:
-> > > > These patches add transaction support to set elements. It pretty much
-> > > > resembles the existing transaction support, the changelogs explain it
-> > > > in more detail.
-> > > 
-> > > Thanks a lot for finishing this support.
-> > > 
-> > > > As a by-product the patches get rid of the RCU grace period for every
-> > > > nft_hash element that is destroyed, we now have only the single global
-> > > > transaction grace perdiod independantly of what we destroy.
-> > > 
-> > > Great work.
-> > > 
-> > > Applied, thanks Patrick!
-> > 
-> > Thanks! Next batch will follow shortly :)
+On Wed, Mar 25, 2015 at 06:11:26PM +0200, Sergey Popovich wrote:
+> > On Wed, Mar 25, 2015 at 04:54:54PM +0200, Sergey Popovich wrote:
 > 
-> I'm going to send a pull request to try to keep the batch relatively
-> small, so the next batch will just sit for a while on the list, OK?
+> > Could please send small batch (not more than 10 patches in one go,
+> > please) to the mailing list so everyone can help in reviewing this?
+> 
+> Not a problem.
+> 
+> My series of patches for nf-next, while Jozsef would like to receive
+> patches against ipset git tree and rebase may take a while.
+> 
+> Main problem with rebase is that my series implementing RCU, but
+> this implementation differs from one found in the current ipset git
+> tree.
+> 
+> This causes excessive number of conflicts, requiring lot of porting
+> to ipset git tree.
+> 
+> As option I could send only bugfixes to the current nf-next, of course
+> if Jozsef acknowledges them.
 
-Sure, no problem.
+Jozsef wants that you route the patches through the ipset tree, so
+please use that tree as reference.
+
+Sending bugfixes in first place make sense to me, Cc'ing
+netfilter-devel as inline patches (eg. git-send-mail) so everyone here
+can help reviewing them.
+
+Thanks.
