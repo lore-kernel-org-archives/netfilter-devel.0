@@ -1,245 +1,205 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH libnftnl 1/2] set: add support for set timeouts
-Date: Thu, 26 Mar 2015 13:10:19 +0000
-Message-ID: <1427375420-24892-2-git-send-email-kaber@trash.net>
+Subject: [PATCH libnftnl 2/2] set_elem: add timeout support
+Date: Thu, 26 Mar 2015 13:10:20 +0000
+Message-ID: <1427375420-24892-3-git-send-email-kaber@trash.net>
 References: <1427375420-24892-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58480 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:58482 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751797AbbCZNKY (ORCPT
+	with ESMTP id S1752042AbbCZNKZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2015 09:10:24 -0400
+	Thu, 26 Mar 2015 09:10:25 -0400
 In-Reply-To: <1427375420-24892-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- include/libnftnl/set.h              |  4 +++
- include/linux/netfilter/nf_tables.h |  6 +++++
- include/set.h                       |  2 ++
+ include/libnftnl/set.h              |  4 ++++
+ include/linux/netfilter/nf_tables.h |  4 ++++
+ include/set_elem.h                  |  2 ++
  src/libnftnl.map                    |  2 ++
- src/set.c                           | 50 +++++++++++++++++++++++++++++++++++++
- 5 files changed, 64 insertions(+)
+ src/set_elem.c                      | 38 +++++++++++++++++++++++++++++++++++++
+ 5 files changed, 50 insertions(+)
 
 diff --git a/include/libnftnl/set.h b/include/libnftnl/set.h
-index 55a47b0..5c4109f 100644
+index 5c4109f..db38d6b 100644
 --- a/include/libnftnl/set.h
 +++ b/include/libnftnl/set.h
-@@ -20,6 +20,8 @@ enum {
- 	NFT_SET_ATTR_ID,
- 	NFT_SET_ATTR_POLICY,
- 	NFT_SET_ATTR_DESC_SIZE,
-+	NFT_SET_ATTR_TIMEOUT,
-+	NFT_SET_ATTR_GC_INTERVAL,
- 	__NFT_SET_ATTR_MAX
+@@ -90,6 +90,8 @@ enum {
+ 	NFT_SET_ELEM_ATTR_VERDICT,
+ 	NFT_SET_ELEM_ATTR_CHAIN,
+ 	NFT_SET_ELEM_ATTR_DATA,
++	NFT_SET_ELEM_ATTR_TIMEOUT,
++	NFT_SET_ELEM_ATTR_EXPIRATION,
  };
- #define NFT_SET_ATTR_MAX (__NFT_SET_ATTR_MAX - 1)
-@@ -37,6 +39,7 @@ void nft_set_attr_set(struct nft_set *s, uint16_t attr, const void *data);
- void nft_set_attr_set_data(struct nft_set *s, uint16_t attr, const void *data,
- 			   uint32_t data_len);
- void nft_set_attr_set_u32(struct nft_set *s, uint16_t attr, uint32_t val);
-+void nft_set_attr_set_u64(struct nft_set *s, uint16_t attr, uint64_t val);
- void nft_set_attr_set_str(struct nft_set *s, uint16_t attr, const char *str);
  
- const void *nft_set_attr_get(struct nft_set *s, uint16_t attr);
-@@ -44,6 +47,7 @@ const void *nft_set_attr_get_data(struct nft_set *s, uint16_t attr,
- 				  uint32_t *data_len);
- const char *nft_set_attr_get_str(struct nft_set *s, uint16_t attr);
- uint32_t nft_set_attr_get_u32(struct nft_set *s, uint16_t attr);
-+uint64_t nft_set_attr_get_u64(struct nft_set *s, uint16_t attr);
+ struct nft_set_elem;
+@@ -104,11 +106,13 @@ void nft_set_elem_add(struct nft_set *s, struct nft_set_elem *elem);
+ void nft_set_elem_attr_unset(struct nft_set_elem *s, uint16_t attr);
+ void nft_set_elem_attr_set(struct nft_set_elem *s, uint16_t attr, const void *data, uint32_t data_len);
+ void nft_set_elem_attr_set_u32(struct nft_set_elem *s, uint16_t attr, uint32_t val);
++void nft_set_elem_attr_set_u64(struct nft_set_elem *s, uint16_t attr, uint64_t val);
+ void nft_set_elem_attr_set_str(struct nft_set_elem *s, uint16_t attr, const char *str);
  
- struct nlmsghdr;
+ const void *nft_set_elem_attr_get(struct nft_set_elem *s, uint16_t attr, uint32_t *data_len);
+ const char *nft_set_elem_attr_get_str(struct nft_set_elem *s, uint16_t attr);
+ uint32_t nft_set_elem_attr_get_u32(struct nft_set_elem *s, uint16_t attr);
++uint64_t nft_set_elem_attr_get_u64(struct nft_set_elem *s, uint16_t attr);
+ 
+ bool nft_set_elem_attr_is_set(const struct nft_set_elem *s, uint16_t attr);
  
 diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 832bc46..8671505 100644
+index 8671505..6894ba3 100644
 --- a/include/linux/netfilter/nf_tables.h
 +++ b/include/linux/netfilter/nf_tables.h
-@@ -207,12 +207,14 @@ enum nft_rule_compat_attributes {
-  * @NFT_SET_CONSTANT: set contents may not change while bound
-  * @NFT_SET_INTERVAL: set contains intervals
-  * @NFT_SET_MAP: set is used as a dictionary
-+ * @NFT_SET_TIMEOUT: set uses timeouts
+@@ -289,12 +289,16 @@ enum nft_set_elem_flags {
+  * @NFTA_SET_ELEM_KEY: key value (NLA_NESTED: nft_data)
+  * @NFTA_SET_ELEM_DATA: data value of mapping (NLA_NESTED: nft_data_attributes)
+  * @NFTA_SET_ELEM_FLAGS: bitmask of nft_set_elem_flags (NLA_U32)
++ * @NFTA_SET_ELEM_TIMEOUT: timeout value (NLA_U64)
++ * @NFTA_SET_ELEM_EXPIRATION: expiration time (NLA_U64)
   */
- enum nft_set_flags {
- 	NFT_SET_ANONYMOUS		= 0x1,
- 	NFT_SET_CONSTANT		= 0x2,
- 	NFT_SET_INTERVAL		= 0x4,
- 	NFT_SET_MAP			= 0x8,
-+	NFT_SET_TIMEOUT			= 0x10,
+ enum nft_set_elem_attributes {
+ 	NFTA_SET_ELEM_UNSPEC,
+ 	NFTA_SET_ELEM_KEY,
+ 	NFTA_SET_ELEM_DATA,
+ 	NFTA_SET_ELEM_FLAGS,
++	NFTA_SET_ELEM_TIMEOUT,
++	NFTA_SET_ELEM_EXPIRATION,
+ 	__NFTA_SET_ELEM_MAX
  };
- 
- /**
-@@ -251,6 +253,8 @@ enum nft_set_desc_attributes {
-  * @NFTA_SET_POLICY: selection policy (NLA_U32)
-  * @NFTA_SET_DESC: set description (NLA_NESTED)
-  * @NFTA_SET_ID: uniquely identifies a set in a transaction (NLA_U32)
-+ * @NFTA_SET_TIMEOUT: default timeout value (NLA_U64)
-+ * @NFTA_SET_GC_INTERVAL: garbage collection interval (NLA_U32)
-  */
- enum nft_set_attributes {
- 	NFTA_SET_UNSPEC,
-@@ -264,6 +268,8 @@ enum nft_set_attributes {
- 	NFTA_SET_POLICY,
- 	NFTA_SET_DESC,
- 	NFTA_SET_ID,
-+	NFTA_SET_TIMEOUT,
-+	NFTA_SET_GC_INTERVAL,
- 	__NFTA_SET_MAX
- };
- #define NFTA_SET_MAX		(__NFTA_SET_MAX - 1)
-diff --git a/include/set.h b/include/set.h
-index 29b9ce5..008ed6e 100644
---- a/include/set.h
-+++ b/include/set.h
-@@ -22,6 +22,8 @@ struct nft_set {
- 	struct list_head	element_list;
- 
+ #define NFTA_SET_ELEM_MAX	(__NFTA_SET_ELEM_MAX - 1)
+diff --git a/include/set_elem.h b/include/set_elem.h
+index 467c1a0..de864db 100644
+--- a/include/set_elem.h
++++ b/include/set_elem.h
+@@ -9,6 +9,8 @@ struct nft_set_elem {
+ 	union nft_data_reg	key;
+ 	union nft_data_reg	data;
  	uint32_t		flags;
-+	uint32_t		gc_interval;
 +	uint64_t		timeout;
++	uint64_t		expiration;
  };
  
- struct nft_set_list;
+ #endif
 diff --git a/src/libnftnl.map b/src/libnftnl.map
-index c0b2031..84018a7 100644
+index 84018a7..01eba13 100644
 --- a/src/libnftnl.map
 +++ b/src/libnftnl.map
-@@ -124,10 +124,12 @@ global:
-   nft_set_attr_is_set;
-   nft_set_attr_set;
-   nft_set_attr_set_u32;
-+  nft_set_attr_set_u64;
-   nft_set_attr_set_str;
-   nft_set_attr_get;
-   nft_set_attr_get_str;
-   nft_set_attr_get_u32;
-+  nft_set_attr_get_u64;
-   nft_set_nlmsg_build_payload;
-   nft_set_nlmsg_parse;
-   nft_set_parse;
-diff --git a/src/set.c b/src/set.c
-index 70b4bc6..d58c9e1 100644
---- a/src/set.c
-+++ b/src/set.c
-@@ -88,6 +88,8 @@ void nft_set_attr_unset(struct nft_set *s, uint16_t attr)
- 	case NFT_SET_ATTR_ID:
- 	case NFT_SET_ATTR_POLICY:
- 	case NFT_SET_ATTR_DESC_SIZE:
-+	case NFT_SET_ATTR_TIMEOUT:
-+	case NFT_SET_ATTR_GC_INTERVAL:
+@@ -158,10 +158,12 @@ global:
+   nft_set_elem_attr_unset;
+   nft_set_elem_attr_set;
+   nft_set_elem_attr_set_u32;
++  nft_set_elem_attr_set_u64;
+   nft_set_elem_attr_set_str;
+   nft_set_elem_attr_get;
+   nft_set_elem_attr_get_str;
+   nft_set_elem_attr_get_u32;
++  nft_set_elem_attr_get_u64;
+   nft_set_elem_nlmsg_build_payload;
+   nft_set_elem_parse;
+   nft_set_elem_parse_file;
+diff --git a/src/set_elem.c b/src/set_elem.c
+index e822acc..5760902 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -70,6 +70,8 @@ void nft_set_elem_attr_unset(struct nft_set_elem *s, uint16_t attr)
+ 	case NFT_SET_ELEM_ATTR_KEY:	/* NFTA_SET_ELEM_KEY */
+ 	case NFT_SET_ELEM_ATTR_VERDICT:	/* NFTA_SET_ELEM_DATA */
+ 	case NFT_SET_ELEM_ATTR_DATA:	/* NFTA_SET_ELEM_DATA */
++	case NFT_SET_ELEM_ATTR_TIMEOUT:	/* NFTA_SET_ELEM_TIMEOUT */
++	case NFT_SET_ELEM_ATTR_EXPIRATION:	/* NFTA_SET_ELEM_EXPIRATION */
  		break;
  	default:
  		return;
-@@ -106,6 +108,8 @@ static uint32_t nft_set_attr_validate[NFT_SET_ATTR_MAX + 1] = {
- 	[NFT_SET_ATTR_FAMILY]		= sizeof(uint32_t),
- 	[NFT_SET_ATTR_POLICY]		= sizeof(uint32_t),
- 	[NFT_SET_ATTR_DESC_SIZE]	= sizeof(uint32_t),
-+	[NFT_SET_ATTR_TIMEOUT]		= sizeof(uint64_t),
-+	[NFT_SET_ATTR_GC_INTERVAL]	= sizeof(uint32_t),
- };
- 
- void nft_set_attr_set_data(struct nft_set *s, uint16_t attr, const void *data,
-@@ -156,6 +160,12 @@ void nft_set_attr_set_data(struct nft_set *s, uint16_t attr, const void *data,
- 	case NFT_SET_ATTR_DESC_SIZE:
- 		s->desc.size = *((uint32_t *)data);
+@@ -103,6 +105,9 @@ void nft_set_elem_attr_set(struct nft_set_elem *s, uint16_t attr,
+ 		memcpy(s->data.val, data, data_len);
+ 		s->data.len = data_len;
  		break;
-+	case NFT_SET_ATTR_TIMEOUT:
++	case NFT_SET_ELEM_ATTR_TIMEOUT:	/* NFTA_SET_ELEM_TIMEOUT */
 +		s->timeout = *((uint64_t *)data);
 +		break;
-+	case NFT_SET_ATTR_GC_INTERVAL:
-+		s->gc_interval = *((uint32_t *)data);
-+		break;
+ 	default:
+ 		return;
  	}
- 	s->flags |= (1 << attr);
+@@ -116,6 +121,12 @@ void nft_set_elem_attr_set_u32(struct nft_set_elem *s, uint16_t attr, uint32_t v
  }
-@@ -173,6 +183,12 @@ void nft_set_attr_set_u32(struct nft_set *s, uint16_t attr, uint32_t val)
- }
- EXPORT_SYMBOL(nft_set_attr_set_u32);
+ EXPORT_SYMBOL(nft_set_elem_attr_set_u32);
  
-+void nft_set_attr_set_u64(struct nft_set *s, uint16_t attr, uint64_t val)
++void nft_set_elem_attr_set_u64(struct nft_set_elem *s, uint16_t attr, uint64_t val)
 +{
-+	nft_set_attr_set(s, attr, &val);
++	nft_set_elem_attr_set(s, attr, &val, sizeof(uint64_t));
 +}
-+EXPORT_SYMBOL(nft_set_attr_set_u64);
++EXPORT_SYMBOL(nft_set_elem_attr_set_u64);
 +
- void nft_set_attr_set_str(struct nft_set *s, uint16_t attr, const char *str)
+ void nft_set_elem_attr_set_str(struct nft_set_elem *s, uint16_t attr, const char *str)
  {
- 	nft_set_attr_set(s, attr, str);
-@@ -217,6 +233,12 @@ const void *nft_set_attr_get_data(struct nft_set *s, uint16_t attr,
- 	case NFT_SET_ATTR_DESC_SIZE:
- 		*data_len = sizeof(uint32_t);
- 		return &s->desc.size;
-+	case NFT_SET_ATTR_TIMEOUT:
-+		*data_len = sizeof(uint64_t);
+ 	nft_set_elem_attr_set(s, attr, str, strlen(str));
+@@ -140,6 +151,10 @@ const void *nft_set_elem_attr_get(struct nft_set_elem *s, uint16_t attr, uint32_
+ 	case NFT_SET_ELEM_ATTR_DATA:	/* NFTA_SET_ELEM_DATA */
+ 		*data_len = s->data.len;
+ 		return &s->data.val;
++	case NFT_SET_ELEM_ATTR_TIMEOUT:	/* NFTA_SET_ELEM_TIMEOUT */
 +		return &s->timeout;
-+	case NFT_SET_ATTR_GC_INTERVAL:
-+		*data_len = sizeof(uint32_t);
-+		return &s->gc_interval;
++	case NFT_SET_ELEM_ATTR_EXPIRATION:	/* NFTA_SET_ELEM_EXPIRATION */
++		return &s->expiration;
  	}
  	return NULL;
  }
-@@ -246,6 +268,17 @@ uint32_t nft_set_attr_get_u32(struct nft_set *s, uint16_t attr)
+@@ -161,6 +176,14 @@ uint32_t nft_set_elem_attr_get_u32(struct nft_set_elem *s, uint16_t attr)
  }
- EXPORT_SYMBOL(nft_set_attr_get_u32);
+ EXPORT_SYMBOL(nft_set_elem_attr_get_u32);
  
-+uint64_t nft_set_attr_get_u64(struct nft_set *s, uint16_t attr)
++uint64_t nft_set_elem_attr_get_u64(struct nft_set_elem *s, uint16_t attr)
 +{
-+	uint32_t data_len;
-+	const uint64_t *val = nft_set_attr_get_data(s, attr, &data_len);
-+
-+	nft_assert(val, attr, data_len == sizeof(uint64_t));
-+
-+	return val ? *val : 0;
++	uint32_t size;
++	uint64_t val = *((uint64_t *)nft_set_elem_attr_get(s, attr, &size));
++	return val;
 +}
-+EXPORT_SYMBOL(nft_set_attr_get_u64);
++EXPORT_SYMBOL(nft_set_elem_attr_get_u64);
 +
- struct nft_set *nft_set_clone(const struct nft_set *set)
+ struct nft_set_elem *nft_set_elem_clone(struct nft_set_elem *elem)
  {
- 	struct nft_set *newset;
-@@ -310,6 +343,10 @@ void nft_set_nlmsg_build_payload(struct nlmsghdr *nlh, struct nft_set *s)
- 		mnl_attr_put_u32(nlh, NFTA_SET_POLICY, htonl(s->policy));
- 	if (s->flags & (1 << NFT_SET_ATTR_DESC_SIZE))
- 		nft_set_nlmsg_build_desc_payload(nlh, s);
-+	if (s->flags & (1 << NFT_SET_ATTR_TIMEOUT))
-+		mnl_attr_put_u64(nlh, NFTA_SET_TIMEOUT, htobe64(s->timeout));
-+	if (s->flags & (1 << NFT_SET_ATTR_GC_INTERVAL))
-+		mnl_attr_put_u32(nlh, NFTA_SET_GC_INTERVAL, htonl(s->gc_interval));
- }
- EXPORT_SYMBOL(nft_set_nlmsg_build_payload);
+ 	struct nft_set_elem *newelem;
+@@ -182,6 +205,8 @@ void nft_set_elem_nlmsg_build_payload(struct nlmsghdr *nlh,
+ {
+ 	if (e->flags & (1 << NFT_SET_ELEM_ATTR_FLAGS))
+ 		mnl_attr_put_u32(nlh, NFTA_SET_ELEM_FLAGS, htonl(e->set_elem_flags));
++	if (e->flags & (1 << NFT_SET_ELEM_ATTR_TIMEOUT))
++		mnl_attr_put_u64(nlh, NFTA_SET_ELEM_TIMEOUT, htobe64(e->timeout));
+ 	if (e->flags & (1 << NFT_SET_ELEM_ATTR_KEY)) {
+ 		struct nlattr *nest1;
  
-@@ -334,9 +371,14 @@ static int nft_set_parse_attr_cb(const struct nlattr *attr, void *data)
- 	case NFTA_SET_DATA_LEN:
- 	case NFTA_SET_ID:
- 	case NFTA_SET_POLICY:
-+	case NFTA_SET_GC_INTERVAL:
+@@ -262,6 +287,11 @@ static int nft_set_elem_parse_attr_cb(const struct nlattr *attr, void *data)
  		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
  			abi_breakage();
  		break;
-+	case NFTA_SET_TIMEOUT:
++	case NFTA_SET_ELEM_TIMEOUT:
++	case NFTA_SET_ELEM_EXPIRATION:
 +		if (mnl_attr_validate(attr, MNL_TYPE_U64) < 0)
 +			abi_breakage();
 +		break;
- 	case NFTA_SET_DESC:
+ 	case NFTA_SET_ELEM_KEY:
+ 	case NFTA_SET_ELEM_DATA:
  		if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0)
- 			abi_breakage();
-@@ -427,6 +469,14 @@ int nft_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set *s)
- 		s->policy = ntohl(mnl_attr_get_u32(tb[NFTA_SET_POLICY]));
- 		s->flags |= (1 << NFT_SET_ATTR_POLICY);
+@@ -293,6 +323,14 @@ static int nft_set_elems_parse2(struct nft_set *s, const struct nlattr *nest)
+ 			ntohl(mnl_attr_get_u32(tb[NFTA_SET_ELEM_FLAGS]));
+ 		e->flags |= (1 << NFT_SET_ELEM_ATTR_FLAGS);
  	}
-+	if (tb[NFTA_SET_TIMEOUT]) {
-+		s->timeout = be64toh(mnl_attr_get_u64(tb[NFTA_SET_TIMEOUT]));
-+		s->flags |= (1 << NFT_SET_ATTR_TIMEOUT);
++	if (tb[NFTA_SET_ELEM_TIMEOUT]) {
++		e->timeout = be64toh(mnl_attr_get_u64(tb[NFTA_SET_ELEM_TIMEOUT]));
++		e->flags |= (1 << NFT_SET_ELEM_ATTR_TIMEOUT);
 +	}
-+	if (tb[NFTA_SET_GC_INTERVAL]) {
-+		s->gc_interval = ntohl(mnl_attr_get_u32(tb[NFTA_SET_GC_INTERVAL]));
-+		s->flags |= (1 << NFT_SET_ATTR_GC_INTERVAL);
++	if (tb[NFTA_SET_ELEM_EXPIRATION]) {
++		e->expiration = be64toh(mnl_attr_get_u64(tb[NFTA_SET_ELEM_EXPIRATION]));
++		e->flags |= (1 << NFT_SET_ELEM_ATTR_EXPIRATION);
 +	}
- 	if (tb[NFTA_SET_DESC])
- 		ret = nft_set_desc_parse(s, tb[NFTA_SET_DESC]);
- 
+         if (tb[NFTA_SET_ELEM_KEY]) {
+ 		ret = nft_parse_data(&e->key, tb[NFTA_SET_ELEM_KEY], &type);
+ 		e->flags |= (1 << NFT_SET_ELEM_ATTR_KEY);
 -- 
 2.1.0
 
