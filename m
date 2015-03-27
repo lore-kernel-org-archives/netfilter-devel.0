@@ -1,55 +1,56 @@
-From: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
-Subject: Re: Re: [PATCH V3 1/2] Add revision field for xt_entry_target
-Date: Fri, 27 Mar 2015 01:34:06 +0000
-Message-ID: <A43879EB4A7F5F449E2CA8148EA79E516F33E1@G08CNEXMBPEKD01.g08.fujitsu.local>
-References: <1427362410-9255-1-git-send-email-zhangcy@cn.fujitsu.com>,
- <1427362410-9255-2-git-send-email-zhangcy@cn.fujitsu.com>,
- <20150326124502.GA5372@salvia>
-Reply-To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next v2 2/2] netfilter: x_tables: fix cgroup's
+ NF_INET_LOCAL_IN sk lookups
+Date: Fri, 27 Mar 2015 03:10:14 +0100
+Message-ID: <20150327021014.GA3142@salvia>
+References: <cover.1427394874.git.daniel@iogearbox.net>
+ <213b822a711fb7af77f6ecbdfbe41a079b27ddcb.1427394874.git.daniel@iogearbox.net>
+ <20150327001408.GD3545@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "pablo@netfilter.org" <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: daniel@zonque.org, fw@strlen.de, a.perevalov@samsung.com,
+	netfilter-devel@vger.kernel.org
+To: Daniel Borkmann <daniel@iogearbox.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:41085 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753201AbbC0BeK (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2015 21:34:10 -0400
-Content-Language: zh-CN
+Received: from mail.us.es ([193.147.175.20]:54110 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752694AbbC0CGQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Mar 2015 22:06:16 -0400
+Content-Disposition: inline
+In-Reply-To: <20150327001408.GD3545@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-DQpoaSBwYWJsbw0KDQo+RnJvbTogUGFibG8gTmVpcmEgQXl1c28NCj5EYXRlOiAyMDE1LTAzLTI2
-DQo+VG86IFpoYW5nLCBDaHVueXUv56ugIOaYpeWuhw0KPlN1YmplY3Q6IFJlOiBbUEFUQ0ggVjMg
-MS8yXSBBZGQgcmV2aXNpb24gZmllbGQgZm9yIHh0X2VudHJ5X3RhcmdldA0KPg0KPk9uIFRodSwg
-TWFyIDI2LCAyMDE1IGF0IDA1OjMzOjI5QU0gLTA0MDAsIFpoYW5nIENodW55dSB3cm90ZToNCj4+
-IC0tLQ0KPj4gIGFycHRhYmxlcy5jICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAyICsr
-DQo+PiAgZXh0ZW5zaW9ucy9hcnB0X0NMQVNTSUZZLmMgICAgICAgICAgICAgICB8IDEgKw0KPj4g
-IGV4dGVuc2lvbnMvYXJwdF9tYW5nbGUuYyAgICAgICAgICAgICAgICAgfCAxICsNCj4+ICBleHRl
-bnNpb25zL2FycHRfc3RhbmRhcmQuYyAgICAgICAgICAgICAgIHwgMSArDQo+PiAgaW5jbHVkZS9h
-cnB0YWJsZXMuaCAgICAgICAgICAgICAgICAgICAgICB8IDYgKysrKysrDQo+PiAgaW5jbHVkZS9s
-aW51eC9uZXRmaWx0ZXJfYXJwL2FycF90YWJsZXMuaCB8IDMgKystDQo+PiAgNiBmaWxlcyBjaGFu
-Z2VkLCAxMyBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pDQo+Pg0KPlsuLi5dDQo+PiBkaWZm
-IC0tZ2l0IGEvaW5jbHVkZS9saW51eC9uZXRmaWx0ZXJfYXJwL2FycF90YWJsZXMuaCBiL2luY2x1
-ZGUvbGludXgvbmV0ZmlsdGVyX2FycC9hcnBfdGFibGVzLmgNCj4+IGluZGV4IDBhY2RhNjYuLjBi
-ZjI0NTcgMTAwNjQ0DQo+PiAtLS0gYS9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9hcnAvYXJwX3Rh
-Ymxlcy5oDQo+PiArKysgYi9pbmNsdWRlL2xpbnV4L25ldGZpbHRlcl9hcnAvYXJwX3RhYmxlcy5o
-DQo+PiBAQCAtMTksNyArMTksNyBAQA0KPj4gDQo+PiAgI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRl
-cl9hcnAuaD4NCj4+IA0KPj4gLSNkZWZpbmUgQVJQVF9GVU5DVElPTl9NQVhOQU1FTEVOIDMwDQo+
-PiArI2RlZmluZSBBUlBUX0ZVTkNUSU9OX01BWE5BTUVMRU4gMjkNCj4+ICAjZGVmaW5lIEFSUFRf
-VEFCTEVfTUFYTkFNRUxFTiAzMg0KPj4gDQo+PiAgI2RlZmluZSBBUlBUX0RFVl9BRERSX0xFTl9N
-QVggMTYNCj4+IEBAIC02OSw2ICs2OSw3IEBAIHN0cnVjdCBhcnB0X2VudHJ5X3RhcmdldA0KPj4g
-DQo+PiAgICAgICAgICAgICAgICAgICAgICAgLyogVXNlZCBieSB1c2Vyc3BhY2UgKi8NCj4+ICAg
-ICAgICAgICAgICAgICAgICAgICBjaGFyIG5hbWVbQVJQVF9GVU5DVElPTl9NQVhOQU1FTEVOXTsN
-Cj4+ICsgICAgICAgICAgICAgICAgICAgICB1X2ludDhfdCByZXZpc2lvbjsNCj4+ICAgICAgICAg
-ICAgICAgfSB1c2VyOw0KPj4gICAgICAgICAgICAgICBzdHJ1Y3Qgew0KPj4gICAgICAgICAgICAg
-ICAgICAgICAgIHVfaW50MTZfdCB0YXJnZXRfc2l6ZTsNCj4NCj5Db3VsZCB5b3UgYWxzbyByZXN1
-Ym1pdCB0aGUga2VybmVsIHBhdGNoIHRvIGFkZHMgdGhpcz8gUGxlYXNlLCBubyBuZWVkDQo+dG8g
-cmVzZW5kIHRoZSBmdWxsIHVzZXJzcGFjZSBzZXJpZXMsIGp1c3Qgc2VuZCB0aGUga2VybmVsIHBh
-dGNoIGFzIGENCj5mb2xsb3cgdXAuDQoNCmRvIHlvdSBtZWFuOg0KPiAtI2RlZmluZSBBUlBUX0ZV
-TkNUSU9OX01BWE5BTUVMRU4gMzANCg0KPiArI2RlZmluZSBBUlBUX0ZVTkNUSU9OX01BWE5BTUVM
-RU4gMjkNCmRvIHRoaXMgaW4gYW5vdGhlciAgcGF0Y2ggLCAgbGlrZSB0aGlzID8NCnBhdGNoMTog
-IGNoYW5nZSBBUlBUX0ZVTkNUSU9OX01BWE5BTUVMRU4NCnBhdGNoMjogIGFkZCByZXZpc2lvbg0K
-cGF0Y2gzOiAgYWRkIGFycCBtYXJr
+On Fri, Mar 27, 2015 at 01:14:08AM +0100, Pablo Neira Ayuso wrote:
+> > diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+> > index 971cd75..044bd22 100644
+> > --- a/net/netfilter/Kconfig
+> > +++ b/net/netfilter/Kconfig
+> > @@ -960,8 +960,13 @@ config NETFILTER_XT_MATCH_BPF
+> >  
+> >  config NETFILTER_XT_MATCH_CGROUP
+> >  	tristate '"control group" match support'
+> > +	depends on NETFILTER_XTABLES
+> 
+> why this? I think NETFILTER_ADVANCED is sufficient.
+> 
+> >  	depends on NETFILTER_ADVANCED
+> > +	depends on !NF_CONNTRACK || NF_CONNTRACK
+> 
+> why conntrack?
+> 
+> > +	depends on (IPV6 || IPV6=n)
+> 
+> Do we depend on any ipv6 symbol?
+> 
+> >  	depends on CGROUPS
+> > +	select NF_DEFRAG_IPV4
+> > +	select NF_DEFRAG_IPV6 if IP6_NF_IPTABLES
+> 
+> No need for defrag either.
+
+Wait, now I see why you need this.
+
+What started a simple cgroup match extension is turning into a more
+complicated thing. And you want to do firewalling with this, which
+doesn't work for other socket families than TCP and UDP.
