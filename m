@@ -1,59 +1,50 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nft PATCH 2/3] src: add xt compat support
-Date: Fri, 27 Mar 2015 13:14:11 +0000
-Message-ID: <20150327131411.GA3001@acer.localdomain>
-References: <20150325191556.13491.88761.stgit@nfdev2.cica.es>
- <20150325191602.13491.63370.stgit@nfdev2.cica.es>
- <20150325194441.GA26737@salvia>
- <CAOkSjBivwzs8X+y1PRqG8-hg4b-0QQ_NXfJ38YoT9V05vt7Bag@mail.gmail.com>
- <20150327123139.GA10614@salvia>
- <CAOkSjBivXDdt7S4=iPVJT0cubNFML2UeBgRQjecSr_XucDYDAg@mail.gmail.com>
- <20150327131354.GA11617@salvia>
+From: Justin Michael Schwartzbeck <justinmschw@gmail.com>
+Subject: How to do a NAT lookup from the kernel?
+Date: Fri, 27 Mar 2015 10:13:59 -0500
+Message-ID: <CAGEc96mSM_jAMPUVTHWQkdOTXrK3iTo8iboHW=6KO6ELEO3i6Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35077 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752214AbbC0NOQ (ORCPT
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:32924 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753486AbbC0POB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Mar 2015 09:14:16 -0400
-Content-Disposition: inline
-In-Reply-To: <20150327131354.GA11617@salvia>
+	Fri, 27 Mar 2015 11:14:01 -0400
+Received: by wgbgs4 with SMTP id gs4so11596700wgb.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Mar 2015 08:13:59 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 27.03, Pablo Neira Ayuso wrote:
-> On Fri, Mar 27, 2015 at 01:59:31PM +0100, Arturo Borrero Gonzalez wrote:
-> > >> >> index 0000000..414f3d1
-> > >> >> --- /dev/null
-> > >> >> +++ b/include/xt.h
-> > >> >> @@ -0,0 +1,100 @@
-> > >> >> +#ifndef _NFT_XT_H_
-> > >> >> +#define _NFT_XT_H_
-> > >> >> +
-> > >> >> +#include <net/if.h>
-> > >> >> +
-> > >> >> +/* Fake ebt_entry */
-> > >> >> +struct ebt_entry {
-> > >> >
-> > >> > I think you can avoid this if you:
-> > >> >
-> > >> > #include <linux/netfilter_bridge/ebtables.h>
-> > >>
-> > >> Can't include <linux/netfilter_bridge/ebtables.h> because it includes
-> > >> <linux/if.h> and clash with <net/if.h>
-> > >
-> > > There must be a clean way to fix this without embedding the ebt_entry
-> > > structure.
-> > 
-> > We seem to have the same problem in ebtables-compat:
-> > 
-> > http://git.netfilter.org/iptables/tree/iptables/nft-bridge.h#n32
-> 
-> Try to find a way to fix it there too ;-)
+Hi,
 
-Can't we switch to the linux includes? We're Linux only anyways :)
+I have been trying to figure out how to do a NAT lookup from the
+kernel. I have been looking at connection tracking in the
+documentation but I can't figure out exactly what this is capable of
+or whether it can do what I want it to do.
+
+This is my situation in detail: I have a client VM, a dNAT VM, and a
+proxy VM. HTTP/HTTPS traffic from the client is routed to the dNAT VM
+and is destination natted (via iptables rule) to the proxy VM and
+proxy port. Right now I am having trouble with path MTU discovery and
+am wanting to write a module that forwards ICMP (no route to host)
+packets associated with an HTTP connection (sent back from the client)
+back to the HTTP proxy and rewrites the translated IP/ports according
+to what is in the NAT table for that connection. So basically when the
+dNAT receives an ICMP (no route to host, fragmentation needed) from
+the client side, I want to be able to look in the NAT table and do a
+lookup on the source IP, destination IP, source port, and destination
+port and find the associated connection to the proxy server. I know
+this is possible because when I establish the connection I can do a
+cat on /proc/net/nf_conntrack and get the full information, for
+example, when the client makes a connection to slashdot this gets
+printed:
+
+ipv4     2 tcp      6 86396 ESTABLISHED src=(client vm ip)
+dst=(slashdot ip) sport=1028 dport=80 src=(proxy vm ip) dst=(dnat vm
+ip) sport=8080 dport=1028 [ASSURED] mark=0 secmark=0 use=2
+
+The thing is I want to be able to get this information from within the
+kernel. Any tips on how to do this?
+
+Thanks so much.
