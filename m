@@ -1,64 +1,58 @@
 From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: [PATCH -nf] netfilter: x_tables: fix cgroup matching on non-full sks
-Date: Fri, 27 Mar 2015 19:37:41 +0100
-Message-ID: <63c15d588bb75294ed013671be1aff791126d142.1427479072.git.daniel@iogearbox.net>
+Subject: [PATCH -iptables] cgroup, man: improve man-page bits
+Date: Fri, 27 Mar 2015 19:38:36 +0100
+Message-ID: <0e6bc44eee1b69940683cadcead21fe545066b89.1427481150.git.daniel@iogearbox.net>
 Cc: netfilter-devel@vger.kernel.org,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Alexey Perevalov <a.perevalov@samsung.com>
+	Daniel Borkmann <daniel@iogearbox.net>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:40579 "EHLO
+Received: from www62.your-server.de ([213.133.104.62]:40808 "EHLO
 	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751888AbbC0Shp (ORCPT
+	with ESMTP id S1752284AbbC0Sij (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Mar 2015 14:37:45 -0400
+	Fri, 27 Mar 2015 14:38:39 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-While originally only being intended for outgoing traffic, commit
-a00e76349f35 ("netfilter: x_tables: allow to use cgroup match for
-LOCAL_IN nf hooks") enabled xt_cgroups for the NF_INET_LOCAL_IN hook
-as well, in order to allow for nfacct accounting.
+Document limitations when in use with INPUT until we found a
+better solution. Also fix up indent in the example section.
 
-Besides being currently limited to early demuxes only, commit
-a00e76349f35 forgot to add a check if we deal with full sockets,
-i.e. in this case not with time wait sockets. TCP time wait sockets
-do not have the same memory layout as full sockets, a lower memory
-footprint and consequently also don't have a sk_classid member;
-probing for sk_classid member there could potentially lead to a
-crash.
-
-Fixes: a00e76349f35 ("netfilter: x_tables: allow to use cgroup match for LOCAL_IN nf hooks")
-Cc: Alexey Perevalov <a.perevalov@samsung.com>
 Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
 ---
- (As discussed the fix for xt_cgroups, so it can be queued for
-  -stable. In nf-next speak that would be !sk_fullsock(skb->sk).)
+ extensions/libxt_cgroup.man | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
- net/netfilter/xt_cgroup.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/xt_cgroup.c b/net/netfilter/xt_cgroup.c
-index 7198d66..d64aca0 100644
---- a/net/netfilter/xt_cgroup.c
-+++ b/net/netfilter/xt_cgroup.c
-@@ -16,6 +16,7 @@
- #include <linux/module.h>
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_cgroup.h>
-+#include <net/tcp_states.h> /* for TCP_TIME_WAIT */
- #include <net/sock.h>
+diff --git a/extensions/libxt_cgroup.man b/extensions/libxt_cgroup.man
+index 456a031..d0eb09b 100644
+--- a/extensions/libxt_cgroup.man
++++ b/extensions/libxt_cgroup.man
+@@ -2,13 +2,21 @@
+ [\fB!\fP] \fB\-\-cgroup\fP \fIfwid\fP
+ Match corresponding cgroup for this packet.
  
- MODULE_LICENSE("GPL");
-@@ -39,7 +40,7 @@ cgroup_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_cgroup_info *info = par->matchinfo;
- 
--	if (skb->sk == NULL)
-+	if (skb->sk == NULL || skb->sk->sk_state == TCP_TIME_WAIT)
- 		return false;
- 
- 	return (info->id == skb->sk->sk_classid) ^ info->invert;
+-Can be used to assign particular firewall policies for aggregated
+-task/jobs on the system. This allows for more fine-grained firewall
+-policies that only match for a subset of the system's processes.
+-fwid is the maker set through the net_cls cgroup's id.
++Can be used in the OUTPUT chain to assign particular firewall
++policies for aggregated task/jobs on the system. This allows
++for more fine-grained firewall policies that only match for a
++subset of the system's processes. fwid is the maker set through
++the net_cls cgroup's id.
++
++\fBIMPORTANT\fP: when being used in the INPUT chain, the cgroup
++matcher is currently only of limited functionality, meaning it
++will only match on packets that are processed for local sockets
++through early socket demuxing. Therefore, general usage on the
++INPUT chain is disadviced unless the implications are well
++understood.
+ .PP
+ Example:
+-.PP
++.IP
+ iptables \-A OUTPUT \-p tcp \-\-sport 80 \-m cgroup ! \-\-cgroup 1
+ \-j DROP
+ .PP
 -- 
 1.9.3
 
