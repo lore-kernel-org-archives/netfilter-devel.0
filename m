@@ -1,56 +1,65 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next v2 2/2] netfilter: x_tables: fix cgroup's
- NF_INET_LOCAL_IN sk lookups
-Date: Fri, 27 Mar 2015 03:10:14 +0100
-Message-ID: <20150327021014.GA3142@salvia>
-References: <cover.1427394874.git.daniel@iogearbox.net>
- <213b822a711fb7af77f6ecbdfbe41a079b27ddcb.1427394874.git.daniel@iogearbox.net>
- <20150327001408.GD3545@salvia>
+From: Sergey Popovich <popovich_sergei@mail.ua>
+Subject: Re: ipset: Proposed improvements to the kernel code
+Date: Fri, 27 Mar 2015 09:41:14 +0200
+Message-ID: <6932701.ml7noqIVyU@tuxracer>
+References: <2984705.dCFJb2qqrb@tuxracer> <14722035.jXe0WcxyPC@tuxracer> <alpine.DEB.2.10.1503262309450.870@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: daniel@zonque.org, fw@strlen.de, a.perevalov@samsung.com,
-	netfilter-devel@vger.kernel.org
-To: Daniel Borkmann <daniel@iogearbox.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54110 "EHLO mail.us.es"
+Received: from smtp39.i.mail.ru ([94.100.177.99]:40580 "EHLO smtp39.i.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752694AbbC0CGQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2015 22:06:16 -0400
-Content-Disposition: inline
-In-Reply-To: <20150327001408.GD3545@salvia>
+	id S1753595AbbC0HlX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Mar 2015 03:41:23 -0400
+In-Reply-To: <alpine.DEB.2.10.1503262309450.870@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 27, 2015 at 01:14:08AM +0100, Pablo Neira Ayuso wrote:
-> > diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-> > index 971cd75..044bd22 100644
-> > --- a/net/netfilter/Kconfig
-> > +++ b/net/netfilter/Kconfig
-> > @@ -960,8 +960,13 @@ config NETFILTER_XT_MATCH_BPF
-> >  
-> >  config NETFILTER_XT_MATCH_CGROUP
-> >  	tristate '"control group" match support'
-> > +	depends on NETFILTER_XTABLES
-> 
-> why this? I think NETFILTER_ADVANCED is sufficient.
-> 
-> >  	depends on NETFILTER_ADVANCED
-> > +	depends on !NF_CONNTRACK || NF_CONNTRACK
-> 
-> why conntrack?
-> 
-> > +	depends on (IPV6 || IPV6=n)
-> 
-> Do we depend on any ipv6 symbol?
-> 
-> >  	depends on CGROUPS
-> > +	select NF_DEFRAG_IPV4
-> > +	select NF_DEFRAG_IPV6 if IP6_NF_IPTABLES
-> 
-> No need for defrag either.
+> On Wed, 25 Mar 2015, Sergey Popovich wrote:
 
-Wait, now I see why you need this.
+> > Netlink dumping consistency was inspired by the recent ipset git tree
+> > fixes
+> > to this problem. However I think there are other problems with consistent
+> > data dumping exists which my series tries to addess.
+> > 
+> > As the first series this is for nf-next git tree, not ipset git tree.
+> > 
+> > http://ftp.payport.com.ua/users/sergey/public/netfilter-devel-2015032501.t
+> > ar
+> I can review them but the patches need to be ported to the ipset git tree.
+> 
 
-What started a simple cgroup match extension is turning into a more
-complicated thing. And you want to do firewalling with this, which
-doesn't work for other socket families than TCP and UDP.
+I'm fully understand your point of view. And aggree with you as maintainer
+and core developer of the ipset project.
+
+However from my point of view this looks just horrible. I'm not happy with
+taking much of time of making same work two times and rebase patches
+against new tree.
+
+So I decide to give my patch series status "works for me" and leave anything
+as is. Without any rebase to the ipset git tree.
+
+>From private mails I known about your plans about in kernel ipset tree 
+(especially nf-next and mainline kernel therefore) and I'm compliment
+these changes.
+
+Thanks for interest and reviewing of my series.
+
+> Best regards,
+> Jozsef
+> -
+> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+> Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+>           H-1525 Budapest 114, POB. 49, Hungary
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
+> in the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+SP5474-RIPE
+Sergey Popovich
+
