@@ -1,65 +1,75 @@
-From: Sergey Popovich <popovich_sergei@mail.ua>
-Subject: Re: ipset: Proposed improvements to the kernel code
-Date: Fri, 27 Mar 2015 09:41:14 +0200
-Message-ID: <6932701.ml7noqIVyU@tuxracer>
-References: <2984705.dCFJb2qqrb@tuxracer> <14722035.jXe0WcxyPC@tuxracer> <alpine.DEB.2.10.1503262309450.870@blackhole.kfki.hu>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Subject: Re: [PATCH nf-next v2 1/2] netfilter: x_tables: refactor lookup helpers
+ from xt_socket
+Date: Fri, 27 Mar 2015 09:18:51 +0100
+Message-ID: <5515126B.3030204@iogearbox.net>
+References: <cover.1427394874.git.daniel@iogearbox.net> <647fedfdea7781dbe48a8cb720b4715ef769cd05.1427394874.git.daniel@iogearbox.net> <20150327000644.GC3545@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: daniel@zonque.org, fw@strlen.de, a.perevalov@samsung.com,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp39.i.mail.ru ([94.100.177.99]:40580 "EHLO smtp39.i.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753595AbbC0HlX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Mar 2015 03:41:23 -0400
-In-Reply-To: <alpine.DEB.2.10.1503262309450.870@blackhole.kfki.hu>
+Received: from www62.your-server.de ([213.133.104.62]:51692 "EHLO
+	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752788AbbC0IS6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Mar 2015 04:18:58 -0400
+In-Reply-To: <20150327000644.GC3545@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> On Wed, 25 Mar 2015, Sergey Popovich wrote:
+On 03/27/2015 01:06 AM, Pablo Neira Ayuso wrote:
+> On Thu, Mar 26, 2015 at 08:14:47PM +0100, Daniel Borkmann wrote:
+>> The socket lookup helpers are also needed for fixing xt_cgroups,
+>> therefore refactor them into shareable helper functions.
+>>
+>> This simplifies and optimizes the xt_socket code itself a bit
+>> as well, i.e. time to verdict for early demux sockets should be
+>> much faster than previously:
+>>
+>> We've unnecessarily extracted proto, {s,d}addr and {s,d}ports
+>> from the skb data, accessing possible conntrack information,
+>> etc even though we were not even calling into the socket lookup
+>> via xt_socket_get_sock_v4() due to skb->sk hit.
+>>
+>> After this patch, we only proceed the slow-path when we have an
+>> actual skb->sk miss.
+>>
+>> Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
+>> Cc: Daniel Mack <daniel@zonque.org>
+>> Cc: Florian Westphal <fw@strlen.de>
+>> ---
+>>   net/netfilter/xt_sk_helper.h | 282 +++++++++++++++++++++++++++++++++++++++++
+>>   net/netfilter/xt_socket.c    | 293 +++----------------------------------------
+>>   2 files changed, 300 insertions(+), 275 deletions(-)
+>>   create mode 100644 net/netfilter/xt_sk_helper.h
+>>
+>> diff --git a/net/netfilter/xt_sk_helper.h b/net/netfilter/xt_sk_helper.h
+>> new file mode 100644
+>> index 0000000..604b7ac
+>> --- /dev/null
+>> +++ b/net/netfilter/xt_sk_helper.h
+>
+> Please, no code in a header file. Instead split the content of this
+> file in two:
+>
+> * net/ipv4/netfilter/nf_sock_ipv4.c
+> * net/ipv6/netfilter/nf_sock_ipv6.c
+>
+> You will have the corresponding Kconfig and Makefile trickery too.
+>
+> Also rename all those functions to the prefix nf_sock_*
+>
+> The Kconfig for xt_socket should contain:
+>
+> select NF_SOCK_IPV4
+> select NF_SOCK_IPV6 if IP6_NF_IPTABLES
+>
+> This is how we're doing with other extensions to share code between xt
+> and nft, you will help us if you do it like that.
 
-> > Netlink dumping consistency was inspired by the recent ipset git tree
-> > fixes
-> > to this problem. However I think there are other problems with consistent
-> > data dumping exists which my series tries to addess.
-> > 
-> > As the first series this is for nf-next git tree, not ipset git tree.
-> > 
-> > http://ftp.payport.com.ua/users/sergey/public/netfilter-devel-2015032501.t
-> > ar
-> I can review them but the patches need to be ported to the ipset git tree.
-> 
-
-I'm fully understand your point of view. And aggree with you as maintainer
-and core developer of the ipset project.
-
-However from my point of view this looks just horrible. I'm not happy with
-taking much of time of making same work two times and rebase patches
-against new tree.
-
-So I decide to give my patch series status "works for me" and leave anything
-as is. Without any rebase to the ipset git tree.
-
->From private mails I known about your plans about in kernel ipset tree 
-(especially nf-next and mainline kernel therefore) and I'm compliment
-these changes.
-
-Thanks for interest and reviewing of my series.
-
-> Best regards,
-> Jozsef
-> -
-> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-> Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
->           H-1525 Budapest 114, POB. 49, Hungary
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
-> in the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-SP5474-RIPE
-Sergey Popovich
-
+Okay, sure. I wasn't aware of that, but it sounds like a better
+way to go and would also ease the migration of xt_socket into
+nft, which is even better. Will do.
