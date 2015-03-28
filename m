@@ -1,58 +1,52 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: [PATCH -iptables] cgroup, man: improve man-page bits
-Date: Fri, 27 Mar 2015 19:38:36 +0100
-Message-ID: <0e6bc44eee1b69940683cadcead21fe545066b89.1427481150.git.daniel@iogearbox.net>
-Cc: netfilter-devel@vger.kernel.org,
-	Daniel Borkmann <daniel@iogearbox.net>
-To: pablo@netfilter.org
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ipset: Proposed improvements to the kernel code
+Date: Sat, 28 Mar 2015 21:44:07 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1503282138470.16315@blackhole.kfki.hu>
+References: <2984705.dCFJb2qqrb@tuxracer> <14722035.jXe0WcxyPC@tuxracer> <alpine.DEB.2.10.1503262309450.870@blackhole.kfki.hu> <6932701.ml7noqIVyU@tuxracer>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Sergey Popovich <popovich_sergei@mail.ua>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:40808 "EHLO
-	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752284AbbC0Sij (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Mar 2015 14:38:39 -0400
+Received: from smtp-in.kfki.hu ([148.6.0.28]:43666 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752198AbbC1UmN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 28 Mar 2015 16:42:13 -0400
+In-Reply-To: <6932701.ml7noqIVyU@tuxracer>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Document limitations when in use with INPUT until we found a
-better solution. Also fix up indent in the example section.
+On Fri, 27 Mar 2015, Sergey Popovich wrote:
 
-Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
----
- extensions/libxt_cgroup.man | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+> > I can review them but the patches need to be ported to the ipset git 
+> > tree.
+> 
+> I'm fully understand your point of view. And aggree with you as 
+> maintainer and core developer of the ipset project.
+> 
+> However from my point of view this looks just horrible. I'm not happy 
+> with taking much of time of making same work two times and rebase 
+> patches against new tree.
+> 
+> So I decide to give my patch series status "works for me" and leave anything
+> as is. Without any rebase to the ipset git tree.
+> 
+> >From private mails I known about your plans about in kernel ipset tree 
+> (especially nf-next and mainline kernel therefore) and I'm compliment
+> these changes.
+> 
+> Thanks for interest and reviewing of my series.
 
-diff --git a/extensions/libxt_cgroup.man b/extensions/libxt_cgroup.man
-index 456a031..d0eb09b 100644
---- a/extensions/libxt_cgroup.man
-+++ b/extensions/libxt_cgroup.man
-@@ -2,13 +2,21 @@
- [\fB!\fP] \fB\-\-cgroup\fP \fIfwid\fP
- Match corresponding cgroup for this packet.
- 
--Can be used to assign particular firewall policies for aggregated
--task/jobs on the system. This allows for more fine-grained firewall
--policies that only match for a subset of the system's processes.
--fwid is the maker set through the net_cls cgroup's id.
-+Can be used in the OUTPUT chain to assign particular firewall
-+policies for aggregated task/jobs on the system. This allows
-+for more fine-grained firewall policies that only match for a
-+subset of the system's processes. fwid is the maker set through
-+the net_cls cgroup's id.
-+
-+\fBIMPORTANT\fP: when being used in the INPUT chain, the cgroup
-+matcher is currently only of limited functionality, meaning it
-+will only match on packets that are processed for local sockets
-+through early socket demuxing. Therefore, general usage on the
-+INPUT chain is disadviced unless the implications are well
-+understood.
- .PP
- Example:
--.PP
-+.IP
- iptables \-A OUTPUT \-p tcp \-\-sport 80 \-m cgroup ! \-\-cgroup 1
- \-j DROP
- .PP
--- 
-1.9.3
+I do appreciate your work. However I cannot undo your decision not to base 
+your patches on the ipset git tree.
 
+I'll review your patches and apply what can be or logically fit, keeping 
+your credits.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
