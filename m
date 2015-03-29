@@ -1,27 +1,96 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/15] Netfilter updates for net-next
-Date: Sun, 29 Mar 2015 12:48:27 -0700 (PDT)
-Message-ID: <20150329.124827.1059541720930853220.davem@davemloft.net>
-References: <1427371622-4466-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1427371622-4466-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Bernhard Thaler <bernhard.thaler@wvnet.at>
+Subject: [PATCHv4 4/4] netfilter: bridge: rename br_parse_ip_options
+Date: Sun, 29 Mar 2015 23:26:09 +0200
+Message-ID: <1427664369-23422-1-git-send-email-bernhard.thaler@wvnet.at>
+References: <20150325081552.GF1685@breakpoint.cc>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
+	Bernhard Thaler <bernhard.thaler@wvnet.at>
+To: pablo@netfilter.org, kadlec@blackhole.kfki.hu
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smarthost2.wvnet.at ([62.212.174.131]:6045 "EHLO
+	mx-out.wvnet.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752601AbbC2V06 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 29 Mar 2015 17:26:58 -0400
+Received: from smtp.wvnet.at (localhost [127.0.0.1])
+	by mx-out.wvnet.at (Postfix) with ESMTP id B883D436158
+	for <netfilter-devel@vger.kernel.org>; Sun, 29 Mar 2015 23:26:57 +0200 (CEST)
+In-Reply-To: <20150325081552.GF1685@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu, 26 Mar 2015 13:06:47 +0100
+br_parse_ip_options() does not parse any IP options, it validates IP
+packets as a whole and the function name is misleading.
 
-> The following patchset contains Netfilter updates for your net-next tree.
-> Basically, nf_tables updates to add the set extension infrastructure and finish
-> the transaction for sets from Patrick McHardy. More specifically, they are:
- ...
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+Rename br_parse_ip_options().
 
-Pulled, thanks Pablo.
+Signed-off-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
+---
+
+v4
+* re-post due to errors in v3 formatting introduced by my MUA
+
+v3
+* re-assignment of iph variable needed because pskb_may_pull() can
+invalidate the network header
+* same patch as v1 again
+
+v2
+* first patch did not contain statement removing double iph variable
+  assignment
+
+ net/bridge/br_netfilter.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index 0e129fb..2d73565 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -198,7 +198,7 @@ static inline void nf_bridge_save_header(struct sk_buff *skb)
+  * expected format
+  */
+ 
+-static int br_parse_ip_options(struct sk_buff *skb)
++static int br_validate_ipv4(struct sk_buff *skb)
+ {
+ 	const struct iphdr *iph;
+ 	struct net_device *dev = skb->dev;
+@@ -300,7 +300,7 @@ bad:
+ 	return -1;
+ }
+ 
+-/* Equivalent to br_parse_ip_options for IPv6 */
++/* Equivalent to br_validate_ipv4 for IPv6 */
+ static int br_validate_ipv6(struct sk_buff *skb)
+ {
+ 	const struct ipv6hdr *hdr;
+@@ -718,7 +718,7 @@ static unsigned int br_nf_pre_routing(const struct nf_hook_ops *ops,
+ 
+ 	nf_bridge_pull_encap_header_rcsum(skb);
+ 
+-	if (br_parse_ip_options(skb))
++	if (br_validate_ipv4(skb))
+ 		return NF_DROP;
+ 
+ 	nf_bridge_put(skb->nf_bridge);
+@@ -819,7 +819,7 @@ static unsigned int br_nf_forward_ip(const struct nf_hook_ops *ops,
+ 		nf_bridge->mask |= BRNF_PKT_TYPE;
+ 	}
+ 
+-	if (pf == NFPROTO_IPV4 && br_parse_ip_options(skb))
++	if (pf == NFPROTO_IPV4 && br_validate_ipv4(skb))
+ 		return NF_DROP;
+ 
+ 	/* The physdev module checks on this */
+@@ -914,7 +914,7 @@ static int br_nf_dev_queue_xmit(struct sk_buff *skb)
+ 	 * boundaries by preserving frag_list rather than refragmenting.
+ 	 */
+ 	if (skb->protocol == htons(ETH_P_IP)) {
+-		if (br_parse_ip_options(skb))
++		if (br_validate_ipv4(skb))
+ 			/* Drop invalid packet */
+ 			return NF_DROP;
+ 		IPCB(skb)->frag_max_size = BR_INPUT_SKB_CB(skb)->frag_max_size;
+-- 
+1.7.10.4
+
