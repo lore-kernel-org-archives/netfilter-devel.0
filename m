@@ -1,231 +1,84 @@
-From: Zhang Chunyu <zhangcy@cn.fujitsu.com>
-Subject: [PATCH V4 3/3] Add MARK target for arptables
-Date: Sun, 29 Mar 2015 22:35:48 -0400
-Message-ID: <1427682948-18699-4-git-send-email-zhangcy@cn.fujitsu.com>
-References: <1427682948-18699-1-git-send-email-zhangcy@cn.fujitsu.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [nft PATCH 2/3] src: add xt compat support
+Date: Mon, 30 Mar 2015 12:19:29 +0200
+Message-ID: <CAOkSjBiV4NXMx5FZz_82HhA+ZkSsCXZ1K3u47Uc77ikVkgcU6A@mail.gmail.com>
+References: <20150325191556.13491.88761.stgit@nfdev2.cica.es>
+ <20150325191602.13491.63370.stgit@nfdev2.cica.es> <20150325194441.GA26737@salvia>
+ <CAOkSjBivwzs8X+y1PRqG8-hg4b-0QQ_NXfJ38YoT9V05vt7Bag@mail.gmail.com>
+ <20150327123139.GA10614@salvia> <CAOkSjBivXDdt7S4=iPVJT0cubNFML2UeBgRQjecSr_XucDYDAg@mail.gmail.com>
+ <20150327131354.GA11617@salvia> <20150327131411.GA3001@acer.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: Zhang Chunyu <zhangcy@cn.fujitsu.com>,
-	Gao feng <gaofeng@cn.fujitsu.com>
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:1443 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752743AbbC3Ctr (ORCPT
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:33736 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750875AbbC3KTu convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 Mar 2015 22:49:47 -0400
-In-Reply-To: <1427682948-18699-1-git-send-email-zhangcy@cn.fujitsu.com>
+	Mon, 30 Mar 2015 06:19:50 -0400
+Received: by wgbgs4 with SMTP id gs4so77287703wgb.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Mar 2015 03:19:49 -0700 (PDT)
+In-Reply-To: <20150327131411.GA3001@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We can use MARK target to set make value for arp packet.
+On 27 March 2015 at 14:14, Patrick McHardy <kaber@trash.net> wrote:
+> On 27.03, Pablo Neira Ayuso wrote:
+>> On Fri, Mar 27, 2015 at 01:59:31PM +0100, Arturo Borrero Gonzalez wr=
+ote:
+>> > >> >> index 0000000..414f3d1
+>> > >> >> --- /dev/null
+>> > >> >> +++ b/include/xt.h
+>> > >> >> @@ -0,0 +1,100 @@
+>> > >> >> +#ifndef _NFT_XT_H_
+>> > >> >> +#define _NFT_XT_H_
+>> > >> >> +
+>> > >> >> +#include <net/if.h>
+>> > >> >> +
+>> > >> >> +/* Fake ebt_entry */
+>> > >> >> +struct ebt_entry {
+>> > >> >
+>> > >> > I think you can avoid this if you:
+>> > >> >
+>> > >> > #include <linux/netfilter_bridge/ebtables.h>
+>> > >>
+>> > >> Can't include <linux/netfilter_bridge/ebtables.h> because it in=
+cludes
+>> > >> <linux/if.h> and clash with <net/if.h>
+>> > >
+>> > > There must be a clean way to fix this without embedding the ebt_=
+entry
+>> > > structure.
+>> >
+>> > We seem to have the same problem in ebtables-compat:
+>> >
+>> > http://git.netfilter.org/iptables/tree/iptables/nft-bridge.h#n32
+>>
+>> Try to find a way to fix it there too ;-)
+>
+> Can't we switch to the linux includes? We're Linux only anyways :)
 
-Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
-Signed-off-by: Zhang Chunyu <zhangcy@cn.fujitsu.com>
----
- arptables.8            |  17 ++++++
- extensions/Makefile    |   2 +-
- extensions/arpt_MARK.c | 151 +++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 169 insertions(+), 1 deletion(-)
- create mode 100644 extensions/arpt_MARK.c
+It doesn't seem to be that simple:
+ * src/meta.c uses if_nametoindex() and if_indextoname() which are
+defined in <net/if.h> and not in <linux/if.h>.
+ * <xtables.h> uses <net/if.h> and replacing it leads to also touch
+<include/libiptc/ipt_kernel_headers.h>
 
-diff --git a/arptables.8 b/arptables.8
-index 78b2c60..676b884 100644
---- a/arptables.8
-+++ b/arptables.8
-@@ -315,6 +315,23 @@ sify the packet into a specific CBQ class).
- Set the major and minor  class  value.  The  values  are  always
- interpreted as hexadecimal even if no 0x prefix is given.
- 
-+.SS MARK
-+This  module  allows you to set the skb->mark value (and thus classify
-+the packet by the mark in u32)
-+
-+.TP
-+.BR "--set-mark mark"
-+Set the mark value. The  values  are  always
-+interpreted as hexadecimal even if no 0x prefix is given
-+
-+.TP
-+.BR "--and-mark mark"
-+Binary AND the mark with bits.
-+
-+.TP
-+.BR "--or-mark mark"
-+Binary OR the mark with bits.
-+
- .SH MAILINGLISTS
- .BR "" "See " http://netfilter.org/mailinglists.html
- .SH SEE ALSO
-diff --git a/extensions/Makefile b/extensions/Makefile
-index 09b244e..0189cc9 100644
---- a/extensions/Makefile
-+++ b/extensions/Makefile
-@@ -1,6 +1,6 @@
- #! /usr/bin/make
- 
--EXT_FUNC+=standard mangle CLASSIFY
-+EXT_FUNC+=standard mangle CLASSIFY MARK
- EXT_OBJS+=$(foreach T,$(EXT_FUNC), extensions/arpt_$(T).o)
- 
- extensions/ebt_%.o: extensions/arpt_%.c include/arptables.h include/arptables_common.h
-diff --git a/extensions/arpt_MARK.c b/extensions/arpt_MARK.c
-new file mode 100644
-index 0000000..698161e
---- /dev/null
-+++ b/extensions/arpt_MARK.c
-@@ -0,0 +1,151 @@
-+/*
-+ * (C) 2014 by Gao Feng <gaofeng@cn.fujitsu.com>
-+ *
-+ * arpt_MARK.c -- arptables extension to set mark for arp packet
-+ *
-+ *	This program is free software; you can redistribute it and/or modify
-+ *	it under the terms of the GNU General Public License as published by
-+ *	the Free Software Foundation; either version 2 of the License, or
-+ *	(at your option) any later version.
-+ *
-+ *	This program is distributed in the hope that it will be useful,
-+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *	GNU General Public License for more details.
-+ *
-+ *	You should have received a copy of the GNU General Public License
-+ *	along with this program; if not, write to the Free Software
-+ *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <stdio.h>
-+#include <getopt.h>
-+#include <arptables.h>
-+#include <linux/netfilter/xt_mark.h>
-+#include <linux/netfilter/xt_MARK.h>
-+#include <linux/netfilter/x_tables.h>
-+
-+static void help(void)
-+{
-+	printf(
-+"MARK target v%s options:\n"
-+"--set-mark mark : set the mark value\n"
-+"--and-mark value : binary AND the mark with value\n"
-+"--or-mark value : binary OR the mark with value\n",
-+	ARPTABLES_VERSION);
-+}
-+
-+#define MARK_OPT 1
-+#define AND_MARK_OPT 2
-+#define OR_MARK_OPT 3
-+
-+
-+static struct option opts[] = {
-+	{ .name = "set-mark", .has_arg = required_argument, .flag = 0, .val = MARK_OPT },
-+	{ .name = "and-mark", .has_arg = required_argument, .flag = 0, .val = AND_MARK_OPT },
-+	{ .name = "or-mark", .has_arg = required_argument, .flag = 0, .val =  OR_MARK_OPT },
-+	{ .name = NULL}
-+};
-+
-+static void init(struct arpt_entry_target *t)
-+{
-+	struct xt_mark_tginfo2 *info = (struct xt_mark_tginfo2 *) t->data;
-+
-+	info->mark = 0;
-+}
-+
-+static int parse(int c, char **argv, int invert, unsigned int *flags,
-+	const struct arpt_entry *e,
-+	struct arpt_entry_target **t)
-+{
-+	struct xt_mark_tginfo2 *info = (struct xt_mark_tginfo2 *)(*t)->data;
-+	int i;
-+
-+	switch (c) {
-+	case MARK_OPT:
-+		if (sscanf(argv[optind-1], "%x", &i) != 1) {
-+			exit_error(PARAMETER_PROBLEM,
-+				"Bad mark value `%s'", optarg);
-+			return 0;
-+		}
-+		info->mark = i;
-+		if (*flags)
-+			exit_error(PARAMETER_PROBLEM,
-+				"MARK: Can't specify --set-mark twice");
-+		*flags = 1;
-+		break;
-+	case AND_MARK_OPT:
-+		if (sscanf(argv[optind-1], "%x", &i) != 1) {
-+			exit_error(PARAMETER_PROBLEM,
-+				"Bad mark value `%s'", optarg);
-+			return 0;
-+		}
-+		info->mark = 0;
-+		info->mask = ~i;
-+		if (*flags)
-+			exit_error(PARAMETER_PROBLEM,
-+				"MARK: Can't specify --and-mark twice");
-+		*flags = 1;
-+		break;
-+	case OR_MARK_OPT:
-+		if (sscanf(argv[optind-1], "%x", &i) != 1) {
-+			exit_error(PARAMETER_PROBLEM,
-+				"Bad mark value `%s'", optarg);
-+			return 0;
-+		}
-+		info->mark = info->mask = i;
-+		if (*flags)
-+			exit_error(PARAMETER_PROBLEM,
-+				"MARK: Can't specify --or-mark twice");
-+		*flags = 1;
-+		break;
-+	default:
-+		return 0;
-+	}
-+	return 1;
-+}
-+
-+static void final_check(unsigned int flags)
-+{
-+	if (!flags)
-+		exit_error(PARAMETER_PROBLEM, "MARK: Parameter --set-mark/--and-mark/--or-mark is required");
-+}
-+
-+static void print(const struct arpt_arp *ip,
-+	const struct arpt_entry_target *target, int numeric)
-+{
-+	struct xt_mark_tginfo2 *info = (struct xt_mark_tginfo2 *)(target->data);
-+	
-+	if (info->mark == 0)
-+		printf("--and-mark %x", (unsigned int)(uint32_t)~info->mask);
-+	else if (info->mark == info->mask)
-+		printf("--or-mark %x", info->mark);
-+	else
-+		printf("--set-mark %x", info->mark);
-+}
-+
-+static void save(const struct arpt_arp *ip, const struct arpt_entry_target *target)
-+{
-+}
-+
-+static struct arptables_target mark = {
-+	.next          = NULL,
-+	.name          = "MARK",
-+	.version       = ARPTABLES_VERSION,
-+	.size          = ARPT_ALIGN(sizeof(struct xt_mark_tginfo2)),
-+	.userspacesize = ARPT_ALIGN(sizeof(struct xt_mark_tginfo2)),
-+	.revision      = 2,
-+	.help          = help,
-+	.init          = init,
-+	.parse         = parse,
-+	.final_check   = final_check,
-+	.print         = print,
-+	.save          = save,
-+	.extra_opts    = opts
-+};
-+
-+static void _init(void) __attribute__ ((constructor));
-+static void _init(void)
-+{
-+	register_target(&mark);
-+}
--- 
-1.7.12.4
+Should I workaround these two?
 
+Could you please suggest any replacement for if_nametoindex() and
+if_indextoname()?
+
+regards
+
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
