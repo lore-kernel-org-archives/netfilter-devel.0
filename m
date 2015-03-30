@@ -1,96 +1,45 @@
-From: Bernhard Thaler <bernhard.thaler@wvnet.at>
-Subject: [PATCHv4 4/4] netfilter: bridge: rename br_parse_ip_options
-Date: Sun, 29 Mar 2015 23:26:09 +0200
-Message-ID: <1427664369-23422-1-git-send-email-bernhard.thaler@wvnet.at>
-References: <20150325081552.GF1685@breakpoint.cc>
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
-	Bernhard Thaler <bernhard.thaler@wvnet.at>
-To: pablo@netfilter.org, kadlec@blackhole.kfki.hu
+From: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+Subject: Re: Re: [PATCH V3 1/2] Add revision field for xt_entry_target
+Date: Mon, 30 Mar 2015 01:30:32 +0000
+Message-ID: <A43879EB4A7F5F449E2CA8148EA79E517004EE@G08CNEXMBPEKD01.g08.fujitsu.local>
+References: <1427362410-9255-1-git-send-email-zhangcy@cn.fujitsu.com>,
+ <1427362410-9255-2-git-send-email-zhangcy@cn.fujitsu.com>,
+ <20150326124502.GA5372@salvia>,
+ <A43879EB4A7F5F449E2CA8148EA79E516F33E1@G08CNEXMBPEKD01.g08.fujitsu.local>,
+ <20150327110224.GA9316@salvia>
+Reply-To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "netfilter-devel-owner@vger.kernel.org"
+	<netfilter-devel-owner@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smarthost2.wvnet.at ([62.212.174.131]:6045 "EHLO
-	mx-out.wvnet.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752601AbbC2V06 (ORCPT
+Received: from cn.fujitsu.com ([59.151.112.132]:58692 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752425AbbC3Bac (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 Mar 2015 17:26:58 -0400
-Received: from smtp.wvnet.at (localhost [127.0.0.1])
-	by mx-out.wvnet.at (Postfix) with ESMTP id B883D436158
-	for <netfilter-devel@vger.kernel.org>; Sun, 29 Mar 2015 23:26:57 +0200 (CEST)
-In-Reply-To: <20150325081552.GF1685@breakpoint.cc>
+	Sun, 29 Mar 2015 21:30:32 -0400
+Content-Language: zh-CN
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-br_parse_ip_options() does not parse any IP options, it validates IP
-packets as a whole and the function name is misleading.
-
-Rename br_parse_ip_options().
-
-Signed-off-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
----
-
-v4
-* re-post due to errors in v3 formatting introduced by my MUA
-
-v3
-* re-assignment of iph variable needed because pskb_may_pull() can
-invalidate the network header
-* same patch as v1 again
-
-v2
-* first patch did not contain statement removing double iph variable
-  assignment
-
- net/bridge/br_netfilter.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index 0e129fb..2d73565 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -198,7 +198,7 @@ static inline void nf_bridge_save_header(struct sk_buff *skb)
-  * expected format
-  */
- 
--static int br_parse_ip_options(struct sk_buff *skb)
-+static int br_validate_ipv4(struct sk_buff *skb)
- {
- 	const struct iphdr *iph;
- 	struct net_device *dev = skb->dev;
-@@ -300,7 +300,7 @@ bad:
- 	return -1;
- }
- 
--/* Equivalent to br_parse_ip_options for IPv6 */
-+/* Equivalent to br_validate_ipv4 for IPv6 */
- static int br_validate_ipv6(struct sk_buff *skb)
- {
- 	const struct ipv6hdr *hdr;
-@@ -718,7 +718,7 @@ static unsigned int br_nf_pre_routing(const struct nf_hook_ops *ops,
- 
- 	nf_bridge_pull_encap_header_rcsum(skb);
- 
--	if (br_parse_ip_options(skb))
-+	if (br_validate_ipv4(skb))
- 		return NF_DROP;
- 
- 	nf_bridge_put(skb->nf_bridge);
-@@ -819,7 +819,7 @@ static unsigned int br_nf_forward_ip(const struct nf_hook_ops *ops,
- 		nf_bridge->mask |= BRNF_PKT_TYPE;
- 	}
- 
--	if (pf == NFPROTO_IPV4 && br_parse_ip_options(skb))
-+	if (pf == NFPROTO_IPV4 && br_validate_ipv4(skb))
- 		return NF_DROP;
- 
- 	/* The physdev module checks on this */
-@@ -914,7 +914,7 @@ static int br_nf_dev_queue_xmit(struct sk_buff *skb)
- 	 * boundaries by preserving frag_list rather than refragmenting.
- 	 */
- 	if (skb->protocol == htons(ETH_P_IP)) {
--		if (br_parse_ip_options(skb))
-+		if (br_validate_ipv4(skb))
- 			/* Drop invalid packet */
- 			return NF_DROP;
- 		IPCB(skb)->frag_max_size = BR_INPUT_SKB_CB(skb)->frag_max_size;
--- 
-1.7.10.4
-
+DQoNCj5Gcm9tOiBuZXRmaWx0ZXItZGV2ZWwtb3duZXINCj5EYXRlOiAyMDE1LTAzLTI3DQo+VG86
+IFpoYW5nLCBDaHVueXUv56ugIOaYpeWuhw0KPlN1YmplY3Q6IFJlOiBSZTogW1BBVENIIFYzIDEv
+Ml0gQWRkIHJldmlzaW9uIGZpZWxkIGZvciB4dF9lbnRyeV90YXJnZXQNCj4NCj5PbiBGcmksIE1h
+ciAyNywgMjAxNSBhdCAwMTozNDowNkFNICswMDAwLCBaaGFuZywgQ2h1bnl1IHdyb3RlOg0KPj4g
+PkZyb206IFBhYmxvIE5laXJhIEF5dXNvDQo+PiA+RGF0ZTogMjAxNS0wMy0yNg0KPj4gPlRvOiBa
+aGFuZywgQ2h1bnl1L+eroCDmmKXlrocNCj4+ID5TdWJqZWN0OiBSZTogW1BBVENIIFYzIDEvMl0g
+QWRkIHJldmlzaW9uIGZpZWxkIGZvciB4dF9lbnRyeV90YXJnZXQNCj4+ID4NCj4+ID5Db3VsZCB5
+b3UgYWxzbyByZXN1Ym1pdCB0aGUga2VybmVsIHBhdGNoIHRvIGFkZHMgdGhpcz8gUGxlYXNlLCBu
+byBuZWVkDQo+PiA+dG8gcmVzZW5kIHRoZSBmdWxsIHVzZXJzcGFjZSBzZXJpZXMsIGp1c3Qgc2Vu
+ZCB0aGUga2VybmVsIHBhdGNoIGFzIGENCj4+ID5mb2xsb3cgdXAuDQo+Pg0KPj4gZG8geW91IG1l
+YW46DQo+PiA+IC0jZGVmaW5lIEFSUFRfRlVOQ1RJT05fTUFYTkFNRUxFTiAzMA0KPj4NCj4+ID4g
+KyNkZWZpbmUgQVJQVF9GVU5DVElPTl9NQVhOQU1FTEVOIDI5DQo+PiBkbyB0aGlzIGluIGFub3Ro
+ZXIgIHBhdGNoICwgIGxpa2UgdGhpcyA/DQo+DQo+SSBtZWFuIHRoaXM6DQo+DQo+aHR0cDovL3Bh
+dGNod29yay5vemxhYnMub3JnL3BhdGNoLzQzNzA2NS8NCg0Kb2suICBnZXQgaXQuDQp3aWxsIGRv
+IA0KPg0KPmJ1dCBuZXZlciBtaW5kLCBJJ2xsIHRha2UgdGhhdCBvcmlnaW5hbCBwYXRjaC4gVGhh
+bmtzLg0KPi0tDQo+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUg
+InVuc3Vic2NyaWJlIG5ldGZpbHRlci1kZXZlbCIgaW4NCj50aGUgYm9keSBvZiBhIG1lc3NhZ2Ug
+dG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0
+dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA==
