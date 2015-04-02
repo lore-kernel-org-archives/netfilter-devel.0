@@ -1,37 +1,33 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf-next 0/6] netfilter: prepare for skb->nf_bridge removal
-Date: Thu,  2 Apr 2015 14:31:39 +0200
-Message-ID: <1427977905-9927-1-git-send-email-fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Peter Sagerson <psagers@ignorare.net>
+Subject: ulogd2 memory bug?
+Date: Thu, 2 Apr 2015 12:30:57 -0700
+Message-ID: <5D463327-1046-49FF-B5F6-0F7496216B47@ignorare.net>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2070.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44233 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753000AbbDBMb4 (ORCPT
+Received: from aspen.ignorare.net ([173.255.208.5]:56209 "EHLO
+	aspen.ignorare.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751149AbbDBTjW convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Apr 2015 08:31:56 -0400
+	Thu, 2 Apr 2015 15:39:22 -0400
+Received: from [172.16.1.12] (unknown [162.246.92.110])
+	(using TLSv1 with cipher ECDHE-RSA-AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	(Authenticated sender: psagers@ignorare.net)
+	by aspen.ignorare.net (Postfix) with ESMTPSA id B4D77A2C09
+	for <netfilter-devel@vger.kernel.org>; Thu,  2 Apr 2015 12:30:58 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This series prepares skb->nf_bridge pointer removal.
+Hello,
 
-This is a resend without the ip_fragment changes since
-its not clear to me (yet) how to resolve that.
+I was just looking through the ulogd2 source to get a handle on some of the netfilter APIs and noticed something odd in ulogd_inpflow_NFCT.c/build_nfct_filter_dir().[1][2] Unless I'm missing something, it appears that nfct_filter_add_attr is being passed a pointer to uninitialized stack memory.
 
-This also means that this resend doesn't include the skb->nf_bridge
-removal since the 'mtu reduction' in ip_fragment() should
-be made private to bridge netfilter first.
+Thanks,
+Peter
 
-Feedback welcome.
 
- include/linux/netfilter_bridge.h           |   28 +++++-
- include/linux/skbuff.h                     |    8 +
- net/bridge/br_netfilter.c                  |  127 +++++++++++++++++------------
- net/ipv4/netfilter/nf_reject_ipv4.c        |    4 
- net/ipv6/netfilter/nf_reject_ipv6.c        |    4 
- net/netfilter/ipset/ip_set_hash_netiface.c |   32 +++++--
- net/netfilter/nf_log_common.c              |    5 -
- net/netfilter/nf_queue.c                   |   18 ++--
- net/netfilter/nfnetlink_log.c              |   17 ++-
- net/netfilter/nfnetlink_queue_core.c       |   28 ++++--
- net/netfilter/xt_physdev.c                 |   34 +++++--
- 11 files changed, 204 insertions(+), 101 deletions(-)
+[1] http://git.netfilter.org/ulogd2/tree/input/flow/ulogd_inpflow_NFCT.c#n1167
+[2] http://git.netfilter.org/ulogd2/tree/input/flow/ulogd_inpflow_NFCT.c#n1179
