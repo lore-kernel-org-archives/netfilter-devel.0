@@ -1,47 +1,52 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH V4 0/3] Add mark target
-Date: Thu, 2 Apr 2015 10:57:31 +0200
-Message-ID: <20150402085731.GA24296@salvia>
-References: <1427682948-18699-1-git-send-email-zhangcy@cn.fujitsu.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 0/5] netfilter: nf_tables: set timeout support
+Date: Thu, 2 Apr 2015 11:20:02 +0200
+Message-ID: <20150402092001.GA9108@acer.localdomain>
+References: <1427373580-19310-1-git-send-email-kaber@trash.net>
+ <20150402085200.GA18386@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Zhang Chunyu <zhangcy@cn.fujitsu.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44629 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751772AbbDBIx3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Apr 2015 04:53:29 -0400
+Received: from stinky.trash.net ([213.144.137.162]:58496 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752628AbbDBJUI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 Apr 2015 05:20:08 -0400
 Content-Disposition: inline
-In-Reply-To: <1427682948-18699-1-git-send-email-zhangcy@cn.fujitsu.com>
+In-Reply-To: <20150402085200.GA18386@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Mar 29, 2015 at 10:35:45PM -0400, Zhang Chunyu wrote:
-> v1:
->   add mark target for arptables
+On 02.04, Pablo Neira Ayuso wrote:
+> On Thu, Mar 26, 2015 at 12:39:35PM +0000, Patrick McHardy wrote:
+> > These patches add support for set timeouts. Sets can have a default
+> > timeout value that can be overriden by element specific timeouts.
+> > 
+> > Removal of expired elements will usually be performed by a garbage
+> > collector for two reasons: avoiding an excessive number of timers
+> > and because data deinit has to happen in process context.
+> > 
+> > The first two patches add the required netlink attributes, parsing,
+> > dump etc. A set of GC helper functions for batched RCU element
+> > destruction is added in patch three, some synchronization helpers
+> > to avoid races between async GC and netlink insertion and removal
+> > of elements are added in patch four.
+> > 
+> > Following patches will use this infrastrucure to support set updates
+> > from the packet classification path for dynamic sets and dynamic
+> > flow state maintenance.
+> > 
+> > Please apply, thanks!
 > 
-> v2:
->   add --and-mark
->   add --or-mark
->   add revision for common api
-> 
-> v3:
->   fold 2/4, 3/4 and 4/4 patch into one single patch
->   use C99 initialization
->   change some format
-> 
-> V4:
->   resubmit the kernel patch
+> Series applied, thanks Patrick.
 
-net/netfilter/xt_mark.c is missing a small change, you have to add
-MODULE_ALIAS("arpt_MARK").
+Thanks, I'll send the next batch soon.
 
-And after that, I hitting here:
+> BTW, what's your plan with the rbtree and timeouts?
 
-# arptables -I OUTPUT -j MARK --set-mark 1
-arptables: Protocol wrong type for socket
-
-With my arptables patches applied in first place, so I suspect the
-right revision is not being set in what we send to the kernel from
-userspace.
+No specific plans so far. It would be fairly easy to add them, however
+we'll always chose nft_hash unless intervals are used anyway, and in
+that case it doesn't make too much sense to have timeouts as long
+as we have no real knowledge of intervals within the kernel.
