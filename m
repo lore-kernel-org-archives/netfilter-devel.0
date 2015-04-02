@@ -1,52 +1,43 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/5] netfilter: nf_tables: set timeout support
-Date: Thu, 2 Apr 2015 11:20:02 +0200
-Message-ID: <20150402092001.GA9108@acer.localdomain>
-References: <1427373580-19310-1-git-send-email-kaber@trash.net>
- <20150402085200.GA18386@salvia>
+From: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+Subject: Re: Re: [PATCH V4 0/3] Add mark target
+Date: Thu, 2 Apr 2015 10:04:50 +0000
+Message-ID: <A43879EB4A7F5F449E2CA8148EA79E51711D6B@G08CNEXMBPEKD01.g08.fujitsu.local>
+References: <1427682948-18699-1-git-send-email-zhangcy@cn.fujitsu.com>,
+ <20150402085731.GA24296@salvia>
+Reply-To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "pablo@netfilter.org" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58496 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752628AbbDBJUI (ORCPT
+Received: from cn.fujitsu.com ([59.151.112.132]:45812 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751497AbbDBKEk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Apr 2015 05:20:08 -0400
-Content-Disposition: inline
-In-Reply-To: <20150402085200.GA18386@salvia>
+	Thu, 2 Apr 2015 06:04:40 -0400
+Content-Language: zh-CN
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02.04, Pablo Neira Ayuso wrote:
-> On Thu, Mar 26, 2015 at 12:39:35PM +0000, Patrick McHardy wrote:
-> > These patches add support for set timeouts. Sets can have a default
-> > timeout value that can be overriden by element specific timeouts.
-> > 
-> > Removal of expired elements will usually be performed by a garbage
-> > collector for two reasons: avoiding an excessive number of timers
-> > and because data deinit has to happen in process context.
-> > 
-> > The first two patches add the required netlink attributes, parsing,
-> > dump etc. A set of GC helper functions for batched RCU element
-> > destruction is added in patch three, some synchronization helpers
-> > to avoid races between async GC and netlink insertion and removal
-> > of elements are added in patch four.
-> > 
-> > Following patches will use this infrastrucure to support set updates
-> > from the packet classification path for dynamic sets and dynamic
-> > flow state maintenance.
-> > 
-> > Please apply, thanks!
-> 
-> Series applied, thanks Patrick.
-
-Thanks, I'll send the next batch soon.
-
-> BTW, what's your plan with the rbtree and timeouts?
-
-No specific plans so far. It would be fairly easy to add them, however
-we'll always chose nft_hash unless intervals are used anyway, and in
-that case it doesn't make too much sense to have timeouts as long
-as we have no real knowledge of intervals within the kernel.
+DQoNCj5Gcm9tOiBQYWJsbyBOZWlyYSBBeXVzbw0KPkRhdGU6IDIwMTUtMDQtMDINCj5UbzogWmhh
+bmcsIENodW55dS/nq6Ag5pil5a6HDQo+U3ViamVjdDogUmU6IFtQQVRDSCBWNCAwLzNdIEFkZCBt
+YXJrIHRhcmdldA0KPg0KPk9uIFN1biwgTWFyIDI5LCAyMDE1IGF0IDEwOjM1OjQ1UE0gLTA0MDAs
+IFpoYW5nIENodW55dSB3cm90ZToNCj4+IHYxOg0KPj4gICBhZGQgbWFyayB0YXJnZXQgZm9yIGFy
+cHRhYmxlcw0KPj4gDQo+PiB2MjoNCj4+ICAgYWRkIC0tYW5kLW1hcmsNCj4+ICAgYWRkIC0tb3It
+bWFyaw0KPj4gICBhZGQgcmV2aXNpb24gZm9yIGNvbW1vbiBhcGkNCj4+IA0KPj4gdjM6DQo+PiAg
+IGZvbGQgMi80LCAzLzQgYW5kIDQvNCBwYXRjaCBpbnRvIG9uZSBzaW5nbGUgcGF0Y2gNCj4+ICAg
+dXNlIEM5OSBpbml0aWFsaXphdGlvbg0KPj4gICBjaGFuZ2Ugc29tZSBmb3JtYXQNCj4+IA0KPj4g
+VjQ6DQo+PiAgIHJlc3VibWl0IHRoZSBrZXJuZWwgcGF0Y2gNCj4NCj5uZXQvbmV0ZmlsdGVyL3h0
+X21hcmsuYyBpcyBtaXNzaW5nIGEgc21hbGwgY2hhbmdlLCB5b3UgaGF2ZSB0byBhZGQNCj5NT0RV
+TEVfQUxJQVMoImFycHRfTUFSSyIpLg0KPg0KPkFuZCBhZnRlciB0aGF0LCBJIGhpdHRpbmcgaGVy
+ZToNCj4NCj4jIGFycHRhYmxlcyAtSSBPVVRQVVQgLWogTUFSSyAtLXNldC1tYXJrIDENCj5hcnB0
+YWJsZXM6IFByb3RvY29sIHdyb25nIHR5cGUgZm9yIHNvY2tldA0KDQppIHdpbGwgYWRkIE1PRFVM
+RV9BTElBUygiYXJwdF9NQVJLIikuIA0Kd2lsbCB0ZXN0IGFuZCBhbnN3ZXIgYWdhaW4NCg0Kbm93
+IGkgdXNlIO+8mg0KIyBtb2Rwcm9iZSB4dF9tYXJrDQojIC4vYXJwdGFibGVzICAtSSBPVVRQVVQg
+LWogTUFSSyAtLXNldC1tYXJrIDENCiMgLi9hcnB0YWJsZXMgLS1saXN0DQpDaGFpbiBJTlBVVCAo
+cG9saWN5IEFDQ0VQVCkNCg0KQ2hhaW4gT1VUUFVUIChwb2xpY3kgQUNDRVBUKQ0KLWogTUFSSyAt
+LXNldC1tYXJrIDENCg0KQ2hhaW4gRk9SV0FSRCAocG9saWN5IEFDQ0VQVCkNCg0KDQo+DQo+V2l0
+aCBteSBhcnB0YWJsZXMgcGF0Y2hlcyBhcHBsaWVkIGluIGZpcnN0IHBsYWNlLCBzbyBJIHN1c3Bl
+Y3QgdGhlDQo+cmlnaHQgcmV2aXNpb24gaXMgbm90IGJlaW5nIHNldCBpbiB3aGF0IHdlIHNlbmQg
+dG8gdGhlIGtlcm5lbCBmcm9tDQo+dXNlcnNwYWNlLg==
