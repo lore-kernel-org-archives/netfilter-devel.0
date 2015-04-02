@@ -1,134 +1,103 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf-next 4/6] netfilter: bridge: add and use nf_bridge_info_get helper
-Date: Thu,  2 Apr 2015 14:31:43 +0200
-Message-ID: <1427977905-9927-5-git-send-email-fw@strlen.de>
+Subject: [PATCH v2 nf-next 3/6] netfilter: physdev: use helpers
+Date: Thu,  2 Apr 2015 14:31:42 +0200
+Message-ID: <1427977905-9927-4-git-send-email-fw@strlen.de>
 References: <1427977905-9927-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44236 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44235 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753018AbbDBMb4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753012AbbDBMb4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 2 Apr 2015 08:31:56 -0400
 In-Reply-To: <1427977905-9927-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Don't access skb->nf_bridge directly, this pointer will be removed soon.
+Avoid skb->nf_bridge accesses where possible.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
  no changes since v1.
 
- net/bridge/br_netfilter.c | 24 ++++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
+ net/netfilter/xt_physdev.c | 34 ++++++++++++++++++++++------------
+ 1 file changed, 22 insertions(+), 12 deletions(-)
 
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index ca1cb67..301f12b 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -124,6 +124,11 @@ struct brnf_frag_data {
- static DEFINE_PER_CPU(struct brnf_frag_data, brnf_frag_data_storage);
- #endif
+diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
+index 50a5204..1caaccb 100644
+--- a/net/netfilter/xt_physdev.c
++++ b/net/netfilter/xt_physdev.c
+@@ -25,16 +25,15 @@ MODULE_ALIAS("ip6t_physdev");
+ static bool
+ physdev_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+-	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long))));
+ 	const struct xt_physdev_info *info = par->matchinfo;
++	const struct net_device *physdev;
+ 	unsigned long ret;
+ 	const char *indev, *outdev;
+-	const struct nf_bridge_info *nf_bridge;
  
-+static struct nf_bridge_info *nf_bridge_info_get(const struct sk_buff *skb)
-+{
-+	return skb->nf_bridge;
-+}
+ 	/* Not a bridged IP packet or no info available yet:
+ 	 * LOCAL_OUT/mangle and LOCAL_OUT/nat don't know if
+ 	 * the destination device will be a bridge. */
+-	if (!(nf_bridge = skb->nf_bridge)) {
++	if (!skb->nf_bridge) {
+ 		/* Return MATCH if the invert flags of the used options are on */
+ 		if ((info->bitmask & XT_PHYSDEV_OP_BRIDGED) &&
+ 		    !(info->invert & XT_PHYSDEV_OP_BRIDGED))
+@@ -54,30 +53,41 @@ physdev_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 		return true;
+ 	}
+ 
++	physdev = nf_bridge_get_physoutdev(skb);
++	outdev = physdev ? physdev->name : NULL;
 +
- static inline struct rtable *bridge_parent_rtable(const struct net_device *dev)
- {
- 	struct net_bridge_port *port;
-@@ -268,7 +273,7 @@ static void nf_bridge_update_protocol(struct sk_buff *skb)
-  * bridge PRE_ROUTING hook. */
- static int br_nf_pre_routing_finish_ipv6(struct sk_buff *skb)
- {
--	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
-+	struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
- 	struct rtable *rt;
+ 	/* This only makes sense in the FORWARD and POSTROUTING chains */
+ 	if ((info->bitmask & XT_PHYSDEV_OP_BRIDGED) &&
+-	    (!!nf_bridge->physoutdev ^ !(info->invert & XT_PHYSDEV_OP_BRIDGED)))
++	    (!!outdev ^ !(info->invert & XT_PHYSDEV_OP_BRIDGED)))
+ 		return false;
  
- 	if (nf_bridge->mask & BRNF_PKT_TYPE) {
-@@ -300,7 +305,6 @@ static int br_nf_pre_routing_finish_ipv6(struct sk_buff *skb)
-  */
- static int br_nf_pre_routing_finish_bridge(struct sk_buff *skb)
- {
--	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
- 	struct neighbour *neigh;
- 	struct dst_entry *dst;
- 
-@@ -310,6 +314,7 @@ static int br_nf_pre_routing_finish_bridge(struct sk_buff *skb)
- 	dst = skb_dst(skb);
- 	neigh = dst_neigh_lookup_skb(dst, skb);
- 	if (neigh) {
-+		struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
- 		int ret;
- 
- 		if (neigh->hh.hh_len) {
-@@ -396,7 +401,7 @@ static int br_nf_pre_routing_finish(struct sk_buff *skb)
- {
- 	struct net_device *dev = skb->dev;
- 	struct iphdr *iph = ip_hdr(skb);
--	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
-+	struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
- 	struct rtable *rt;
- 	int err;
- 	int frag_max_size;
-@@ -488,7 +493,7 @@ static struct net_device *brnf_get_logical_dev(struct sk_buff *skb, const struct
- /* Some common code for IPv4/IPv6 */
- static struct net_device *setup_pre_routing(struct sk_buff *skb)
- {
--	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
-+	struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
- 
- 	if (skb->pkt_type == PACKET_OTHERHOST) {
- 		skb->pkt_type = PACKET_HOST;
-@@ -687,7 +692,7 @@ static unsigned int br_nf_local_in(const struct nf_hook_ops *ops,
- /* PF_BRIDGE/FORWARD *************************************************/
- static int br_nf_forward_finish(struct sk_buff *skb)
- {
--	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
-+	struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
- 	struct net_device *in;
- 
- 	if (!IS_ARP(skb) && !IS_VLAN_ARP(skb)) {
-@@ -738,6 +743,10 @@ static unsigned int br_nf_forward_ip(const struct nf_hook_ops *ops,
- 	if (!nf_bridge_unshare(skb))
- 		return NF_DROP;
- 
-+	nf_bridge = nf_bridge_info_get(skb);
-+	if (!nf_bridge)
-+		return NF_DROP;
++	physdev = nf_bridge_get_physindev(skb);
++	indev = physdev ? physdev->name : NULL;
 +
- 	parent = bridge_parent(out);
- 	if (!parent)
- 		return NF_DROP;
-@@ -751,7 +760,6 @@ static unsigned int br_nf_forward_ip(const struct nf_hook_ops *ops,
+ 	if ((info->bitmask & XT_PHYSDEV_OP_ISIN &&
+-	    (!nf_bridge->physindev ^ !!(info->invert & XT_PHYSDEV_OP_ISIN))) ||
++	    (!indev ^ !!(info->invert & XT_PHYSDEV_OP_ISIN))) ||
+ 	    (info->bitmask & XT_PHYSDEV_OP_ISOUT &&
+-	    (!nf_bridge->physoutdev ^ !!(info->invert & XT_PHYSDEV_OP_ISOUT))))
++	    (!outdev ^ !!(info->invert & XT_PHYSDEV_OP_ISOUT))))
+ 		return false;
  
- 	nf_bridge_pull_encap_header(skb);
+ 	if (!(info->bitmask & XT_PHYSDEV_OP_IN))
+ 		goto match_outdev;
+-	indev = nf_bridge->physindev ? nf_bridge->physindev->name : nulldevname;
+-	ret = ifname_compare_aligned(indev, info->physindev, info->in_mask);
  
--	nf_bridge = skb->nf_bridge;
- 	if (skb->pkt_type == PACKET_OTHERHOST) {
- 		skb->pkt_type = PACKET_HOST;
- 		nf_bridge->mask |= BRNF_PKT_TYPE;
-@@ -886,7 +894,7 @@ static unsigned int br_nf_post_routing(const struct nf_hook_ops *ops,
- 				       const struct net_device *out,
- 				       int (*okfn)(struct sk_buff *))
- {
--	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
-+	struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
- 	struct net_device *realoutdev = bridge_parent(skb->dev);
- 	u_int8_t pf;
+-	if (!ret ^ !(info->invert & XT_PHYSDEV_OP_IN))
+-		return false;
++	if (indev) {
++		ret = ifname_compare_aligned(indev, info->physindev,
++					     info->in_mask);
++
++		if (!ret ^ !(info->invert & XT_PHYSDEV_OP_IN))
++			return false;
++	}
  
-@@ -955,7 +963,7 @@ static unsigned int ip_sabotage_in(const struct nf_hook_ops *ops,
-  */
- static void br_nf_pre_routing_finish_bridge_slow(struct sk_buff *skb)
- {
--	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
-+	struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
+ match_outdev:
+ 	if (!(info->bitmask & XT_PHYSDEV_OP_OUT))
+ 		return true;
+-	outdev = nf_bridge->physoutdev ?
+-		 nf_bridge->physoutdev->name : nulldevname;
++
++	if (!outdev)
++		return false;
++
+ 	ret = ifname_compare_aligned(outdev, info->physoutdev, info->out_mask);
  
- 	skb_pull(skb, ETH_HLEN);
- 	nf_bridge->mask &= ~BRNF_BRIDGED_DNAT;
+ 	return (!!ret ^ !(info->invert & XT_PHYSDEV_OP_OUT));
 -- 
 2.0.5
 
