@@ -1,43 +1,87 @@
-From: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
-Subject: Re: Re: [PATCH V4 0/3] Add mark target
-Date: Thu, 2 Apr 2015 10:04:50 +0000
-Message-ID: <A43879EB4A7F5F449E2CA8148EA79E51711D6B@G08CNEXMBPEKD01.g08.fujitsu.local>
-References: <1427682948-18699-1-git-send-email-zhangcy@cn.fujitsu.com>,
- <20150402085731.GA24296@salvia>
-Reply-To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next 02/14] net: untangle ip_fragment and bridge
+ netfilter
+Date: Thu, 2 Apr 2015 14:16:09 +0200
+Message-ID: <20150402121609.GC21789@breakpoint.cc>
+References: <1427920600-20366-1-git-send-email-fw@strlen.de>
+ <1427920600-20366-3-git-send-email-fw@strlen.de>
+ <20150401.230921.232085782289557923.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "pablo@netfilter.org" <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: fw@strlen.de, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:45812 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751497AbbDBKEk (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44178 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752107AbbDBMQL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Apr 2015 06:04:40 -0400
-Content-Language: zh-CN
+	Thu, 2 Apr 2015 08:16:11 -0400
+Content-Disposition: inline
+In-Reply-To: <20150401.230921.232085782289557923.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-DQoNCj5Gcm9tOiBQYWJsbyBOZWlyYSBBeXVzbw0KPkRhdGU6IDIwMTUtMDQtMDINCj5UbzogWmhh
-bmcsIENodW55dS/nq6Ag5pil5a6HDQo+U3ViamVjdDogUmU6IFtQQVRDSCBWNCAwLzNdIEFkZCBt
-YXJrIHRhcmdldA0KPg0KPk9uIFN1biwgTWFyIDI5LCAyMDE1IGF0IDEwOjM1OjQ1UE0gLTA0MDAs
-IFpoYW5nIENodW55dSB3cm90ZToNCj4+IHYxOg0KPj4gICBhZGQgbWFyayB0YXJnZXQgZm9yIGFy
-cHRhYmxlcw0KPj4gDQo+PiB2MjoNCj4+ICAgYWRkIC0tYW5kLW1hcmsNCj4+ICAgYWRkIC0tb3It
-bWFyaw0KPj4gICBhZGQgcmV2aXNpb24gZm9yIGNvbW1vbiBhcGkNCj4+IA0KPj4gdjM6DQo+PiAg
-IGZvbGQgMi80LCAzLzQgYW5kIDQvNCBwYXRjaCBpbnRvIG9uZSBzaW5nbGUgcGF0Y2gNCj4+ICAg
-dXNlIEM5OSBpbml0aWFsaXphdGlvbg0KPj4gICBjaGFuZ2Ugc29tZSBmb3JtYXQNCj4+IA0KPj4g
-VjQ6DQo+PiAgIHJlc3VibWl0IHRoZSBrZXJuZWwgcGF0Y2gNCj4NCj5uZXQvbmV0ZmlsdGVyL3h0
-X21hcmsuYyBpcyBtaXNzaW5nIGEgc21hbGwgY2hhbmdlLCB5b3UgaGF2ZSB0byBhZGQNCj5NT0RV
-TEVfQUxJQVMoImFycHRfTUFSSyIpLg0KPg0KPkFuZCBhZnRlciB0aGF0LCBJIGhpdHRpbmcgaGVy
-ZToNCj4NCj4jIGFycHRhYmxlcyAtSSBPVVRQVVQgLWogTUFSSyAtLXNldC1tYXJrIDENCj5hcnB0
-YWJsZXM6IFByb3RvY29sIHdyb25nIHR5cGUgZm9yIHNvY2tldA0KDQppIHdpbGwgYWRkIE1PRFVM
-RV9BTElBUygiYXJwdF9NQVJLIikuIA0Kd2lsbCB0ZXN0IGFuZCBhbnN3ZXIgYWdhaW4NCg0Kbm93
-IGkgdXNlIO+8mg0KIyBtb2Rwcm9iZSB4dF9tYXJrDQojIC4vYXJwdGFibGVzICAtSSBPVVRQVVQg
-LWogTUFSSyAtLXNldC1tYXJrIDENCiMgLi9hcnB0YWJsZXMgLS1saXN0DQpDaGFpbiBJTlBVVCAo
-cG9saWN5IEFDQ0VQVCkNCg0KQ2hhaW4gT1VUUFVUIChwb2xpY3kgQUNDRVBUKQ0KLWogTUFSSyAt
-LXNldC1tYXJrIDENCg0KQ2hhaW4gRk9SV0FSRCAocG9saWN5IEFDQ0VQVCkNCg0KDQo+DQo+V2l0
-aCBteSBhcnB0YWJsZXMgcGF0Y2hlcyBhcHBsaWVkIGluIGZpcnN0IHBsYWNlLCBzbyBJIHN1c3Bl
-Y3QgdGhlDQo+cmlnaHQgcmV2aXNpb24gaXMgbm90IGJlaW5nIHNldCBpbiB3aGF0IHdlIHNlbmQg
-dG8gdGhlIGtlcm5lbCBmcm9tDQo+dXNlcnNwYWNlLg==
+David Miller <davem@davemloft.net> wrote:
+> From: Florian Westphal <fw@strlen.de>
+> Date: Wed,  1 Apr 2015 22:36:28 +0200
+> 
+> > Add mtu arguments to ip_fragment and remove the bridge netfilter mtu
+> > helper.
+> 
+> I told you I disagree with this approach.  Anything that adds
+> an 'mtu' argument to ip_fragment() I am not even going to look
+> at seriously, there must be device context when you call that
+> function.
+
+Not sure.  There is one case where we must not use device mtu:
+if DF was set on one of the fragments, we must not increase fragment
+size, thats why I added the MTU argument to make sure that largest
+fragment size will be the upper boundary.
+
+I don't see where we break PMTUD or induce any other kind of
+breakage after this change.
+
+For the non-df case the original sizes of the fragments
+don't matter since any device in the path will (re)fragment.
+
+> Furthermore, and even more importantly, right now what bridge
+> netfilter does with fragmentation is _terminally_ broken.
+
+I didn't claim it wasn't :-]
+
+> This is why you must use something like GRO/GSO, which is built
+> to positively and provably preserve the geometry of SKBs as they
+> are packed and unpacked.
+
+Thats not as trivial as it sounds.
+GRO only aggregates same-size packets.
+
+All the fragments might have different sizes.
+
+Futhermore we need to handle overlapping fragments, duplicates and
+arrival of fragments in any order.
+
+Preserving the original skbs and sending those instead of
+refragmentation doesn't work either since the reassembled skb might have
+been subject to NAT.
+
+So the only possible compromise I see is to record/store all fragment sizes
+in the correct logical order (according to offset) and use that as
+'replay split points', i.e. we'd still end up not using the device mtu
+when undoing the defrag operation.
+
+We'd also not have full transparency unless we would also re-create
+the overlapping and duplicate packets that we might have seen, and
+send the refragmented skbs in the same order as we received them.
+
+I don't think thats something we want in ip stack, so we'd have
+to (re)implement ip (de|re)-fragmentation for the bridge in bridge
+netfilter.
+
+Is that what you had in mind?
+
+Or do you see some way to re-use existing implementation without
+fuglifying normal defrag operations?
+
+Thanks.
