@@ -1,87 +1,228 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next 02/14] net: untangle ip_fragment and bridge
- netfilter
-Date: Thu, 2 Apr 2015 14:16:09 +0200
-Message-ID: <20150402121609.GC21789@breakpoint.cc>
-References: <1427920600-20366-1-git-send-email-fw@strlen.de>
- <1427920600-20366-3-git-send-email-fw@strlen.de>
- <20150401.230921.232085782289557923.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: fw@strlen.de, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Subject: [PATCH nf-next] netfilter: x_tables: don't extract flow keys on early demuxed sks in socket match
+Date: Thu,  2 Apr 2015 14:28:30 +0200
+Message-ID: <11bd4dd88cf6bf5a91b70ef80185c4778fa41364.1427972980.git.daniel@iogearbox.net>
+Cc: netfilter-devel@vger.kernel.org,
+	Daniel Borkmann <daniel@iogearbox.net>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44178 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752107AbbDBMQL (ORCPT
+Received: from www62.your-server.de ([213.133.104.62]:33588 "EHLO
+	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753086AbbDBM2d (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Apr 2015 08:16:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20150401.230921.232085782289557923.davem@davemloft.net>
+	Thu, 2 Apr 2015 08:28:33 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David Miller <davem@davemloft.net> wrote:
-> From: Florian Westphal <fw@strlen.de>
-> Date: Wed,  1 Apr 2015 22:36:28 +0200
-> 
-> > Add mtu arguments to ip_fragment and remove the bridge netfilter mtu
-> > helper.
-> 
-> I told you I disagree with this approach.  Anything that adds
-> an 'mtu' argument to ip_fragment() I am not even going to look
-> at seriously, there must be device context when you call that
-> function.
+Currently in xt_socket, we take advantage of early demuxed sockets
+since commit 00028aa37098 ("netfilter: xt_socket: use IP early demux")
+in order to avoid a second socket lookup in the fast path, but we
+only make partial use of this:
 
-Not sure.  There is one case where we must not use device mtu:
-if DF was set on one of the fragments, we must not increase fragment
-size, thats why I added the MTU argument to make sure that largest
-fragment size will be the upper boundary.
+We still unnecessarily parse headers, extract proto, {s,d}addr and
+{s,d}ports from the skb data, accessing possible conntrack information,
+etc even though we were not even calling into the socket lookup via
+xt_socket_get_sock_{v4,v6}() due to skb->sk hit, meaning those cycles
+can be spared.
 
-I don't see where we break PMTUD or induce any other kind of
-breakage after this change.
+After this patch, we only proceed the slower, manual lookup path
+when we have a skb->sk miss, thus time to match verdict for early
+demuxed sockets will improve further, which might be i.e. interesting
+for use cases such as mentioned in 681f130f39e1 ("netfilter: xt_socket:
+add XT_SOCKET_NOWILDCARD flag").
 
-For the non-df case the original sizes of the fragments
-don't matter since any device in the path will (re)fragment.
+Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
+---
+ [ Ripped that part out of the original xt_cgroup/xt_socket set, as
+   I think it's useful as is. Thanks! ]
 
-> Furthermore, and even more importantly, right now what bridge
-> netfilter does with fragmentation is _terminally_ broken.
+ net/netfilter/xt_socket.c | 96 +++++++++++++++++++++++++----------------------
+ 1 file changed, 51 insertions(+), 45 deletions(-)
 
-I didn't claim it wasn't :-]
+diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
+index 895534e..5838cc1 100644
+--- a/net/netfilter/xt_socket.c
++++ b/net/netfilter/xt_socket.c
+@@ -143,13 +143,10 @@ static bool xt_socket_sk_is_transparent(struct sock *sk)
+ 	}
+ }
+ 
+-static bool
+-socket_match(const struct sk_buff *skb, struct xt_action_param *par,
+-	     const struct xt_socket_mtinfo1 *info)
++static struct sock *xt_socket_lookup_slow_v4(const struct sk_buff *skb,
++					     const struct net_device *indev)
+ {
+ 	const struct iphdr *iph = ip_hdr(skb);
+-	struct udphdr _hdr, *hp = NULL;
+-	struct sock *sk = skb->sk;
+ 	__be32 uninitialized_var(daddr), uninitialized_var(saddr);
+ 	__be16 uninitialized_var(dport), uninitialized_var(sport);
+ 	u8 uninitialized_var(protocol);
+@@ -159,12 +156,15 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
+ #endif
+ 
+ 	if (iph->protocol == IPPROTO_UDP || iph->protocol == IPPROTO_TCP) {
++		struct udphdr _hdr, *hp;
++
+ 		hp = skb_header_pointer(skb, ip_hdrlen(skb),
+ 					sizeof(_hdr), &_hdr);
+ 		if (hp == NULL)
+-			return false;
++			return NULL;
+ 
+ 		protocol = iph->protocol;
++
+ 		saddr = iph->saddr;
+ 		sport = hp->source;
+ 		daddr = iph->daddr;
+@@ -172,16 +172,17 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
+ 
+ 	} else if (iph->protocol == IPPROTO_ICMP) {
+ 		if (extract_icmp4_fields(skb, &protocol, &saddr, &daddr,
+-					&sport, &dport))
+-			return false;
++					 &sport, &dport))
++			return NULL;
+ 	} else {
+-		return false;
++		return NULL;
+ 	}
+ 
+ #ifdef XT_SOCKET_HAVE_CONNTRACK
+-	/* Do the lookup with the original socket address in case this is a
+-	 * reply packet of an established SNAT-ted connection. */
+-
++	/* Do the lookup with the original socket address in
++	 * case this is a reply packet of an established
++	 * SNAT-ted connection.
++	 */
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 	if (ct && !nf_ct_is_untracked(ct) &&
+ 	    ((iph->protocol != IPPROTO_ICMP &&
+@@ -197,10 +198,18 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
+ 	}
+ #endif
+ 
++	return xt_socket_get_sock_v4(dev_net(skb->dev), protocol, saddr, daddr,
++				     sport, dport, indev);
++}
++
++static bool
++socket_match(const struct sk_buff *skb, struct xt_action_param *par,
++	     const struct xt_socket_mtinfo1 *info)
++{
++	struct sock *sk = skb->sk;
++
+ 	if (!sk)
+-		sk = xt_socket_get_sock_v4(dev_net(skb->dev), protocol,
+-					   saddr, daddr, sport, dport,
+-					   par->in);
++		sk = xt_socket_lookup_slow_v4(skb, par->in);
+ 	if (sk) {
+ 		bool wildcard;
+ 		bool transparent = true;
+@@ -225,12 +234,7 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
+ 			sk = NULL;
+ 	}
+ 
+-	pr_debug("proto %hhu %pI4:%hu -> %pI4:%hu (orig %pI4:%hu) sock %p\n",
+-		 protocol, &saddr, ntohs(sport),
+-		 &daddr, ntohs(dport),
+-		 &iph->daddr, hp ? ntohs(hp->dest) : 0, sk);
+-
+-	return (sk != NULL);
++	return sk != NULL;
+ }
+ 
+ static bool
+@@ -327,28 +331,26 @@ xt_socket_get_sock_v6(struct net *net, const u8 protocol,
+ 	return NULL;
+ }
+ 
+-static bool
+-socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
++static struct sock *xt_socket_lookup_slow_v6(const struct sk_buff *skb,
++					     const struct net_device *indev)
+ {
+-	struct ipv6hdr ipv6_var, *iph = ipv6_hdr(skb);
+-	struct udphdr _hdr, *hp = NULL;
+-	struct sock *sk = skb->sk;
+-	const struct in6_addr *daddr = NULL, *saddr = NULL;
+ 	__be16 uninitialized_var(dport), uninitialized_var(sport);
+-	int thoff = 0, uninitialized_var(tproto);
+-	const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
++	const struct in6_addr *daddr = NULL, *saddr = NULL;
++	struct ipv6hdr *iph = ipv6_hdr(skb);
++	int thoff = 0, tproto;
+ 
+ 	tproto = ipv6_find_hdr(skb, &thoff, -1, NULL, NULL);
+ 	if (tproto < 0) {
+ 		pr_debug("unable to find transport header in IPv6 packet, dropping\n");
+-		return NF_DROP;
++		return NULL;
+ 	}
+ 
+ 	if (tproto == IPPROTO_UDP || tproto == IPPROTO_TCP) {
+-		hp = skb_header_pointer(skb, thoff,
+-					sizeof(_hdr), &_hdr);
++		struct udphdr _hdr, *hp;
++
++		hp = skb_header_pointer(skb, thoff, sizeof(_hdr), &_hdr);
+ 		if (hp == NULL)
+-			return false;
++			return NULL;
+ 
+ 		saddr = &iph->saddr;
+ 		sport = hp->source;
+@@ -356,17 +358,27 @@ socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
+ 		dport = hp->dest;
+ 
+ 	} else if (tproto == IPPROTO_ICMPV6) {
++		struct ipv6hdr ipv6_var;
++
+ 		if (extract_icmp6_fields(skb, thoff, &tproto, &saddr, &daddr,
+ 					 &sport, &dport, &ipv6_var))
+-			return false;
++			return NULL;
+ 	} else {
+-		return false;
++		return NULL;
+ 	}
+ 
++	return xt_socket_get_sock_v6(dev_net(skb->dev), tproto, saddr, daddr,
++				     sport, dport, indev);
++}
++
++static bool
++socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
++{
++	const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
++	struct sock *sk = skb->sk;
++
+ 	if (!sk)
+-		sk = xt_socket_get_sock_v6(dev_net(skb->dev), tproto,
+-					   saddr, daddr, sport, dport,
+-					   par->in);
++		sk = xt_socket_lookup_slow_v6(skb, par->in);
+ 	if (sk) {
+ 		bool wildcard;
+ 		bool transparent = true;
+@@ -391,13 +403,7 @@ socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
+ 			sk = NULL;
+ 	}
+ 
+-	pr_debug("proto %hhd %pI6:%hu -> %pI6:%hu "
+-		 "(orig %pI6:%hu) sock %p\n",
+-		 tproto, saddr, ntohs(sport),
+-		 daddr, ntohs(dport),
+-		 &iph->daddr, hp ? ntohs(hp->dest) : 0, sk);
+-
+-	return (sk != NULL);
++	return sk != NULL;
+ }
+ #endif
+ 
+-- 
+1.9.3
 
-> This is why you must use something like GRO/GSO, which is built
-> to positively and provably preserve the geometry of SKBs as they
-> are packed and unpacked.
-
-Thats not as trivial as it sounds.
-GRO only aggregates same-size packets.
-
-All the fragments might have different sizes.
-
-Futhermore we need to handle overlapping fragments, duplicates and
-arrival of fragments in any order.
-
-Preserving the original skbs and sending those instead of
-refragmentation doesn't work either since the reassembled skb might have
-been subject to NAT.
-
-So the only possible compromise I see is to record/store all fragment sizes
-in the correct logical order (according to offset) and use that as
-'replay split points', i.e. we'd still end up not using the device mtu
-when undoing the defrag operation.
-
-We'd also not have full transparency unless we would also re-create
-the overlapping and duplicate packets that we might have seen, and
-send the refragmented skbs in the same order as we received them.
-
-I don't think thats something we want in ip stack, so we'd have
-to (re)implement ip (de|re)-fragmentation for the bridge in bridge
-netfilter.
-
-Is that what you had in mind?
-
-Or do you see some way to re-use existing implementation without
-fuglifying normal defrag operations?
-
-Thanks.
