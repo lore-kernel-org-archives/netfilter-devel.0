@@ -1,228 +1,112 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: [PATCH nf-next] netfilter: x_tables: don't extract flow keys on early demuxed sks in socket match
-Date: Thu,  2 Apr 2015 14:28:30 +0200
-Message-ID: <11bd4dd88cf6bf5a91b70ef80185c4778fa41364.1427972980.git.daniel@iogearbox.net>
-Cc: netfilter-devel@vger.kernel.org,
-	Daniel Borkmann <daniel@iogearbox.net>
-To: pablo@netfilter.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 nf-next 5/6] netfilter: bridge: start splitting mask into public/private chunks
+Date: Thu,  2 Apr 2015 14:31:44 +0200
+Message-ID: <1427977905-9927-6-git-send-email-fw@strlen.de>
+References: <1427977905-9927-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:33588 "EHLO
-	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753086AbbDBM2d (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44237 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753455AbbDBMb5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Apr 2015 08:28:33 -0400
+	Thu, 2 Apr 2015 08:31:57 -0400
+In-Reply-To: <1427977905-9927-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently in xt_socket, we take advantage of early demuxed sockets
-since commit 00028aa37098 ("netfilter: xt_socket: use IP early demux")
-in order to avoid a second socket lookup in the fast path, but we
-only make partial use of this:
+->mask is a bit info field that mixes various use cases.
 
-We still unnecessarily parse headers, extract proto, {s,d}addr and
-{s,d}ports from the skb data, accessing possible conntrack information,
-etc even though we were not even calling into the socket lookup via
-xt_socket_get_sock_{v4,v6}() due to skb->sk hit, meaning those cycles
-can be spared.
+In particular, we have flags that are mutually exlusive, and flags that
+are only used within br_netfilter while others need to be exposed to
+other parts of the kernel.
 
-After this patch, we only proceed the slower, manual lookup path
-when we have a skb->sk miss, thus time to match verdict for early
-demuxed sockets will improve further, which might be i.e. interesting
-for use cases such as mentioned in 681f130f39e1 ("netfilter: xt_socket:
-add XT_SOCKET_NOWILDCARD flag").
+Remove BRNF_8021Q/PPPoE flags.  They're mutually exclusive and only
+needed within br_netfilter context.
 
-Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- [ Ripped that part out of the original xt_cgroup/xt_socket set, as
-   I think it's useful as is. Thanks! ]
+ Change since v1:
+ - rebase without (deferred) ip_fragment patch.
+  this means nf_bridge_mtu_reduction() cannot be moved
+  to br_netfilter.c for now.
 
- net/netfilter/xt_socket.c | 96 +++++++++++++++++++++++++----------------------
- 1 file changed, 51 insertions(+), 45 deletions(-)
+ include/linux/netfilter_bridge.h |  4 +---
+ include/linux/skbuff.h           |  5 +++++
+ net/bridge/br_netfilter.c        | 15 +++++++++++----
+ 3 files changed, 17 insertions(+), 7 deletions(-)
 
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index 895534e..5838cc1 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -143,13 +143,10 @@ static bool xt_socket_sk_is_transparent(struct sock *sk)
- 	}
- }
+diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
+index e1d96bc..d47a32d 100644
+--- a/include/linux/netfilter_bridge.h
++++ b/include/linux/netfilter_bridge.h
+@@ -20,12 +20,10 @@ enum nf_br_hook_priorities {
+ #define BRNF_PKT_TYPE			0x01
+ #define BRNF_BRIDGED_DNAT		0x02
+ #define BRNF_NF_BRIDGE_PREROUTING	0x08
+-#define BRNF_8021Q			0x10
+-#define BRNF_PPPoE			0x20
  
--static bool
--socket_match(const struct sk_buff *skb, struct xt_action_param *par,
--	     const struct xt_socket_mtinfo1 *info)
-+static struct sock *xt_socket_lookup_slow_v4(const struct sk_buff *skb,
-+					     const struct net_device *indev)
+ static inline unsigned int nf_bridge_mtu_reduction(const struct sk_buff *skb)
  {
- 	const struct iphdr *iph = ip_hdr(skb);
--	struct udphdr _hdr, *hp = NULL;
--	struct sock *sk = skb->sk;
- 	__be32 uninitialized_var(daddr), uninitialized_var(saddr);
- 	__be16 uninitialized_var(dport), uninitialized_var(sport);
- 	u8 uninitialized_var(protocol);
-@@ -159,12 +156,15 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
- #endif
- 
- 	if (iph->protocol == IPPROTO_UDP || iph->protocol == IPPROTO_TCP) {
-+		struct udphdr _hdr, *hp;
-+
- 		hp = skb_header_pointer(skb, ip_hdrlen(skb),
- 					sizeof(_hdr), &_hdr);
- 		if (hp == NULL)
--			return false;
-+			return NULL;
- 
- 		protocol = iph->protocol;
-+
- 		saddr = iph->saddr;
- 		sport = hp->source;
- 		daddr = iph->daddr;
-@@ -172,16 +172,17 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
- 
- 	} else if (iph->protocol == IPPROTO_ICMP) {
- 		if (extract_icmp4_fields(skb, &protocol, &saddr, &daddr,
--					&sport, &dport))
--			return false;
-+					 &sport, &dport))
-+			return NULL;
- 	} else {
--		return false;
-+		return NULL;
- 	}
- 
- #ifdef XT_SOCKET_HAVE_CONNTRACK
--	/* Do the lookup with the original socket address in case this is a
--	 * reply packet of an established SNAT-ted connection. */
--
-+	/* Do the lookup with the original socket address in
-+	 * case this is a reply packet of an established
-+	 * SNAT-ted connection.
-+	 */
- 	ct = nf_ct_get(skb, &ctinfo);
- 	if (ct && !nf_ct_is_untracked(ct) &&
- 	    ((iph->protocol != IPPROTO_ICMP &&
-@@ -197,10 +198,18 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
- 	}
- #endif
- 
-+	return xt_socket_get_sock_v4(dev_net(skb->dev), protocol, saddr, daddr,
-+				     sport, dport, indev);
-+}
-+
-+static bool
-+socket_match(const struct sk_buff *skb, struct xt_action_param *par,
-+	     const struct xt_socket_mtinfo1 *info)
-+{
-+	struct sock *sk = skb->sk;
-+
- 	if (!sk)
--		sk = xt_socket_get_sock_v4(dev_net(skb->dev), protocol,
--					   saddr, daddr, sport, dport,
--					   par->in);
-+		sk = xt_socket_lookup_slow_v4(skb, par->in);
- 	if (sk) {
- 		bool wildcard;
- 		bool transparent = true;
-@@ -225,12 +234,7 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
- 			sk = NULL;
- 	}
- 
--	pr_debug("proto %hhu %pI4:%hu -> %pI4:%hu (orig %pI4:%hu) sock %p\n",
--		 protocol, &saddr, ntohs(sport),
--		 &daddr, ntohs(dport),
--		 &iph->daddr, hp ? ntohs(hp->dest) : 0, sk);
--
--	return (sk != NULL);
-+	return sk != NULL;
+-	if (unlikely(skb->nf_bridge->mask & BRNF_PPPoE))
++	if (skb->nf_bridge->orig_proto == BRNF_PROTO_PPPOE)
+ 		return PPPOE_SES_HLEN;
+ 	return 0;
  }
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index f66a089..6f75fb5 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -166,6 +166,11 @@ struct nf_conntrack {
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ struct nf_bridge_info {
+ 	atomic_t		use;
++	enum {
++		BRNF_PROTO_UNCHANGED,
++		BRNF_PROTO_8021Q,
++		BRNF_PROTO_PPPOE
++	} orig_proto;
+ 	unsigned int		mask;
+ 	struct net_device	*physindev;
+ 	struct net_device	*physoutdev;
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index 301f12b..ab1e988 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -262,10 +262,16 @@ drop:
  
- static bool
-@@ -327,28 +331,26 @@ xt_socket_get_sock_v6(struct net *net, const u8 protocol,
- 	return NULL;
- }
- 
--static bool
--socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
-+static struct sock *xt_socket_lookup_slow_v6(const struct sk_buff *skb,
-+					     const struct net_device *indev)
+ static void nf_bridge_update_protocol(struct sk_buff *skb)
  {
--	struct ipv6hdr ipv6_var, *iph = ipv6_hdr(skb);
--	struct udphdr _hdr, *hp = NULL;
--	struct sock *sk = skb->sk;
--	const struct in6_addr *daddr = NULL, *saddr = NULL;
- 	__be16 uninitialized_var(dport), uninitialized_var(sport);
--	int thoff = 0, uninitialized_var(tproto);
--	const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
-+	const struct in6_addr *daddr = NULL, *saddr = NULL;
-+	struct ipv6hdr *iph = ipv6_hdr(skb);
-+	int thoff = 0, tproto;
- 
- 	tproto = ipv6_find_hdr(skb, &thoff, -1, NULL, NULL);
- 	if (tproto < 0) {
- 		pr_debug("unable to find transport header in IPv6 packet, dropping\n");
--		return NF_DROP;
-+		return NULL;
- 	}
- 
- 	if (tproto == IPPROTO_UDP || tproto == IPPROTO_TCP) {
--		hp = skb_header_pointer(skb, thoff,
--					sizeof(_hdr), &_hdr);
-+		struct udphdr _hdr, *hp;
-+
-+		hp = skb_header_pointer(skb, thoff, sizeof(_hdr), &_hdr);
- 		if (hp == NULL)
--			return false;
-+			return NULL;
- 
- 		saddr = &iph->saddr;
- 		sport = hp->source;
-@@ -356,17 +358,27 @@ socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
- 		dport = hp->dest;
- 
- 	} else if (tproto == IPPROTO_ICMPV6) {
-+		struct ipv6hdr ipv6_var;
-+
- 		if (extract_icmp6_fields(skb, thoff, &tproto, &saddr, &daddr,
- 					 &sport, &dport, &ipv6_var))
--			return false;
-+			return NULL;
- 	} else {
--		return false;
-+		return NULL;
- 	}
- 
-+	return xt_socket_get_sock_v6(dev_net(skb->dev), tproto, saddr, daddr,
-+				     sport, dport, indev);
-+}
-+
-+static bool
-+socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
-+	struct sock *sk = skb->sk;
-+
- 	if (!sk)
--		sk = xt_socket_get_sock_v6(dev_net(skb->dev), tproto,
--					   saddr, daddr, sport, dport,
--					   par->in);
-+		sk = xt_socket_lookup_slow_v6(skb, par->in);
- 	if (sk) {
- 		bool wildcard;
- 		bool transparent = true;
-@@ -391,13 +403,7 @@ socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
- 			sk = NULL;
- 	}
- 
--	pr_debug("proto %hhd %pI6:%hu -> %pI6:%hu "
--		 "(orig %pI6:%hu) sock %p\n",
--		 tproto, saddr, ntohs(sport),
--		 daddr, ntohs(dport),
--		 &iph->daddr, hp ? ntohs(hp->dest) : 0, sk);
--
--	return (sk != NULL);
-+	return sk != NULL;
+-	if (skb->nf_bridge->mask & BRNF_8021Q)
++	switch (skb->nf_bridge->orig_proto) {
++	case BRNF_PROTO_8021Q:
+ 		skb->protocol = htons(ETH_P_8021Q);
+-	else if (skb->nf_bridge->mask & BRNF_PPPoE)
++		break;
++	case BRNF_PROTO_PPPOE:
+ 		skb->protocol = htons(ETH_P_PPP_SES);
++		break;
++	case BRNF_PROTO_UNCHANGED:
++		break;
++	}
  }
- #endif
  
+ /* PF_BRIDGE/PRE_ROUTING *********************************************/
+@@ -503,10 +509,11 @@ static struct net_device *setup_pre_routing(struct sk_buff *skb)
+ 	nf_bridge->mask |= BRNF_NF_BRIDGE_PREROUTING;
+ 	nf_bridge->physindev = skb->dev;
+ 	skb->dev = brnf_get_logical_dev(skb, skb->dev);
++
+ 	if (skb->protocol == htons(ETH_P_8021Q))
+-		nf_bridge->mask |= BRNF_8021Q;
++		nf_bridge->orig_proto = BRNF_PROTO_8021Q;
+ 	else if (skb->protocol == htons(ETH_P_PPP_SES))
+-		nf_bridge->mask |= BRNF_PPPoE;
++		nf_bridge->orig_proto = BRNF_PROTO_PPPOE;
+ 
+ 	/* Must drop socket now because of tproxy. */
+ 	skb_orphan(skb);
 -- 
-1.9.3
+2.0.5
 
