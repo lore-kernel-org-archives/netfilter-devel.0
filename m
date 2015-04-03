@@ -1,50 +1,88 @@
-From: Alexander Holler <holler@ahsoftware.de>
-Subject: Re: [PATCH] parser: add kludges for "param-problem" and "redirect"
-Date: Fri, 03 Apr 2015 20:06:14 +0200
-Message-ID: <551ED696.4070001@ahsoftware.de>
-References: <551BEF7F.3050908@ahsoftware.de> <1428083429-7042-1-git-send-email-holler@ahsoftware.de>
+From: Fabian Frederick <fabf@skynet.be>
+Subject: Re: [PATCH 4/9 net-next] ipv6: replace if/BUG by BUG_ON
+Date: Fri, 3 Apr 2015 22:02:32 +0200 (CEST)
+Message-ID: <911278303.335976.1428091352576.open-xchange@webmail.nmp.proximus.be>
+References: <1427749998-28464-1-git-send-email-fabf@skynet.be> <1427749998-28464-4-git-send-email-fabf@skynet.be> <551A1983.40408@miraclelinux.com> <20150331.111752.1605776715849912657.davem@davemloft.net>
+Reply-To: Fabian Frederick <fabf@skynet.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	Eric Leblond <eric@regit.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from h1446028.stratoserver.net ([85.214.92.142]:56501 "EHLO
-	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752463AbbDCSGU (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Apr 2015 14:06:20 -0400
-Received: from wandq.ahsoftware (p4FC37D76.dip0.t-ipconnect.de [79.195.125.118])
-	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail.ahsoftware.de (Postfix) with ESMTPSA id D48D82C9C1C8
-	for <netfilter-devel@vger.kernel.org>; Fri,  3 Apr 2015 20:06:18 +0200 (CEST)
-In-Reply-To: <1428083429-7042-1-git-send-email-holler@ahsoftware.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: pablo@netfilter.org, coreteam@netfilter.org,
+	herbert@gondor.apana.org.au, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, yoshfuji@linux-ipv6.org,
+	netfilter-devel@vger.kernel.org, steffen.klassert@secunet.com,
+	jmorris@namei.org, kuznet@ms2.inr.ac.ru, kadlec@blackhole.kfki.hu,
+	kaber@trash.net
+To: hideaki.yoshifuji@miraclelinux.com,
+	David Miller <davem@davemloft.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150331.111752.1605776715849912657.davem@davemloft.net>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Am 03.04.2015 um 19:50 schrieb Alexander Holler:
-> Context sensitive handling of "param-problem" and "redirect" is necessary
-> to allow usage of them as token or as string for icmp types.
+
+
+> On 31 March 2015 at 17:17 David Miller <davem@davemloft.net> wrote:
 >
-> Without this patch, e.g. the following fails:
 >
-> nft add rule filter input icmp type redirect accept
-> nft add rule filter input icmpv6 type param-problem accept
+> From: YOSHIFUJI Hideaki <hideaki.yoshifuji@miraclelinux.com>
+> Date: Tue, 31 Mar 2015 12:50:27 +0900
 >
-> Signed-off-by: Alexander Holler <holler@ahsoftware.de>
-> ---
+> > Hi,
+> >
+> > Fabian Frederick wrote:
+> >> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+> >> ---
+> >>=C2=A0 net/ipv6/addrconf.c=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0| 3 +--
+> >>=C2=A0 net/ipv6/esp6.c=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0| 3 +--
+> >>=C2=A0 net/ipv6/netfilter/nf_conntrack_reasm.c | 3 +--
+> >>=C2=A0 3 files changed, 3 insertions(+), 6 deletions(-)
+> >>
+> >> diff --git a/net/ipv6/addrconf.c b/net/ipv6/addrconf.c
+> >> index 2660263..e205918 100644
+> >> --- a/net/ipv6/addrconf.c
+> >> +++ b/net/ipv6/addrconf.c
+> >> @@ -4805,8 +4805,7 @@ static int inet6_set_link_af(struct net_devi=
+ce *dev,
+> >> const struct nlattr *nla)
+> >>=C2=A0 =C2=A0 if (!idev)
+> >>=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return -EAFNOSUPPORT;
+> >>=C2=A0
+> >> -=C2=A0 if (nla_parse_nested(tb, IFLA_INET6_MAX, nla, NULL) < 0)
+> >> -=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG();
+> >> +=C2=A0 BUG_ON(nla_parse_nested(tb, IFLA_INET6_MAX, nla, NULL) < 0=
+);
+> >>=C2=A0
+> >
+> > NACK, I do not prefer using BUG_ON() with side effects.
+>
+> Agreed, I do not like these changes at all and will not be
+> applying them.
 
-Just in case of, I have not tested this extensively.
+I guess patches like these should be reverted then ?
 
-So please be careful with that patch and review it.
+e3f0b86b996d
+"ipv6: Use BUG_ON"
 
-E.g. I'm not sure if I might have forgotten to set icmp_flag = 0 in 
-another desctructor than those two I've added it too because I haven't 
-tested rules which are using "redirect" or param-problem as token and 
-not just as string to describe an icmp type as in the above two statements.
+8242fc33925c
+"net: ipv6: Use BUG_ON"
+
+Some existing BUG_ON() as well ? ; eg second one in net/decnet/dn_rules=
+=2Ec:
+void __init dn_fib_rules_init(void)
+{
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 dn_fib_rules_ops =3D
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 fib_rules_regis=
+ter(&dn_fib_rules_ops_template, &init_net);
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG_ON(IS_ERR(dn_fib_rules_ops));
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 BUG_ON(fib_default_rule_add(dn_fib_rules_op=
+s, 0x7fff,
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 RT_TABLE_MAIN, 0))=
+;
+}
 
 Regards,
-
-Alexander Holler
+=46abian
