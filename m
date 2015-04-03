@@ -1,33 +1,65 @@
-From: Peter Sagerson <psagers@ignorare.net>
-Subject: ulogd2 memory bug?
-Date: Thu, 2 Apr 2015 12:30:57 -0700
-Message-ID: <5D463327-1046-49FF-B5F6-0F7496216B47@ignorare.net>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2070.6\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-To: netfilter-devel@vger.kernel.org
+From: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+Subject: Re: Re: [PATCH V4 0/3] Add mark target
+Date: Fri, 3 Apr 2015 03:21:59 +0000
+Message-ID: <A43879EB4A7F5F449E2CA8148EA79E51715AFC@G08CNEXMBPEKD01.g08.fujitsu.local>
+References: <1427682948-18699-1-git-send-email-zhangcy@cn.fujitsu.com>,
+ <20150402085731.GA24296@salvia>,
+ <A43879EB4A7F5F449E2CA8148EA79E51711D6B@G08CNEXMBPEKD01.g08.fujitsu.local>
+Reply-To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "netfilter-devel-owner@vger.kernel.org"
+	<netfilter-devel-owner@vger.kernel.org>,
+	"pablo@netfilter.org" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from aspen.ignorare.net ([173.255.208.5]:56209 "EHLO
-	aspen.ignorare.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751149AbbDBTjW convert rfc822-to-8bit (ORCPT
+Received: from cn.fujitsu.com ([59.151.112.132]:58742 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752208AbbDCDW3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Apr 2015 15:39:22 -0400
-Received: from [172.16.1.12] (unknown [162.246.92.110])
-	(using TLSv1 with cipher ECDHE-RSA-AES128-SHA (128/128 bits))
-	(No client certificate requested)
-	(Authenticated sender: psagers@ignorare.net)
-	by aspen.ignorare.net (Postfix) with ESMTPSA id B4D77A2C09
-	for <netfilter-devel@vger.kernel.org>; Thu,  2 Apr 2015 12:30:58 -0700 (PDT)
+	Thu, 2 Apr 2015 23:22:29 -0400
+Content-Language: zh-CN
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
-
-I was just looking through the ulogd2 source to get a handle on some of the netfilter APIs and noticed something odd in ulogd_inpflow_NFCT.c/build_nfct_filter_dir().[1][2] Unless I'm missing something, it appears that nfct_filter_add_attr is being passed a pointer to uninitialized stack memory.
-
-Thanks,
-Peter
-
-
-[1] http://git.netfilter.org/ulogd2/tree/input/flow/ulogd_inpflow_NFCT.c#n1167
-[2] http://git.netfilter.org/ulogd2/tree/input/flow/ulogd_inpflow_NFCT.c#n1179
+DQoNCj5Gcm9tOiBuZXRmaWx0ZXItZGV2ZWwtb3duZXINCj5EYXRlOiAyMDE1LTA0LTAyDQo+VG86
+IHBhYmxvQG5ldGZpbHRlci5vcmcNCj5TdWJqZWN0OiBSZTogUmU6IFtQQVRDSCBWNCAwLzNdIEFk
+ZCBtYXJrIHRhcmdldA0KPg0KPg0KPg0KPj5Gcm9tOiBQYWJsbyBOZWlyYSBBeXVzbw0KPj5EYXRl
+OiAyMDE1LTA0LTAyDQo+PlRvOiBaaGFuZywgQ2h1bnl1L+eroCDmmKXlrocNCj4+U3ViamVjdDog
+UmU6IFtQQVRDSCBWNCAwLzNdIEFkZCBtYXJrIHRhcmdldA0KPj4NCj4+T24gU3VuLCBNYXIgMjks
+IDIwMTUgYXQgMTA6MzU6NDVQTSAtMDQwMCwgWmhhbmcgQ2h1bnl1IHdyb3RlOg0KPj4+IHYxOg0K
+Pj4+ICAgYWRkIG1hcmsgdGFyZ2V0IGZvciBhcnB0YWJsZXMNCj4+PiANCj4+PiB2MjoNCj4+PiAg
+IGFkZCAtLWFuZC1tYXJrDQo+Pj4gICBhZGQgLS1vci1tYXJrDQo+Pj4gICBhZGQgcmV2aXNpb24g
+Zm9yIGNvbW1vbiBhcGkNCj4+PiANCj4+PiB2MzoNCj4+PiAgIGZvbGQgMi80LCAzLzQgYW5kIDQv
+NCBwYXRjaCBpbnRvIG9uZSBzaW5nbGUgcGF0Y2gNCj4+PiAgIHVzZSBDOTkgaW5pdGlhbGl6YXRp
+b24NCj4+PiAgIGNoYW5nZSBzb21lIGZvcm1hdA0KPj4+IA0KPj4+IFY0Og0KPj4+ICAgcmVzdWJt
+aXQgdGhlIGtlcm5lbCBwYXRjaA0KPj4NCj4+bmV0L25ldGZpbHRlci94dF9tYXJrLmMgaXMgbWlz
+c2luZyBhIHNtYWxsIGNoYW5nZSwgeW91IGhhdmUgdG8gYWRkDQo+Pk1PRFVMRV9BTElBUygiYXJw
+dF9NQVJLIikuDQo+Pg0KPj5BbmQgYWZ0ZXIgdGhhdCwgSSBoaXR0aW5nIGhlcmU6DQo+Pg0KPj4j
+IGFycHRhYmxlcyAtSSBPVVRQVVQgLWogTUFSSyAtLXNldC1tYXJrIDENCj4+YXJwdGFibGVzOiBQ
+cm90b2NvbCB3cm9uZyB0eXBlIGZvciBzb2NrZXQNCj4NCj5pIHdpbGwgYWRkIE1PRFVMRV9BTElB
+UygiYXJwdF9NQVJLIikuIA0KPndpbGwgdGVzdCBhbmQgYW5zd2VyIGFnYWluDQpuZXQvbmV0Zmls
+dGVyL3h0X21hcmsuYyAgd2lsbCBhZGQgOg0KMS4gIE1PRFVMRV9BTElBUygiYXJwdF9NQVJLIiku
+DQoyLiANCnN0YXRpYyBzdHJ1Y3QgeHRfdGFyZ2V0IG1hcmtfdGdfcmVnW10gX19yZWFkX21vc3Rs
+eSA9IHsNCiAgICB7DQoJICAgIC5uYW1lICAgICAgICAgICA9ICJNQVJLIiwNCgkgICAgLnJldmlz
+aW9uICAgICAgID0gMiwNCgkgICAgLmZhbWlseSAgICAgICAgID0gTkZQUk9UT19VTlNQRUMsDQoJ
+ICAgIC50YXJnZXQgICAgICAgICA9IG1hcmtfdGcsDQoJICAgIC50YXJnZXRzaXplICAgICA9IHNp
+emVvZihzdHJ1Y3QgeHRfbWFya190Z2luZm8yKSwNCgkgICAgLm1lICAgICAgICAgICAgID0gVEhJ
+U19NT0RVTEUsDQogICAgfSwNCiAgICB7DQoJICAgIC5uYW1lICAgICAgICAgICA9ICJNQVJLIiwN
+CgkgICAgLnJldmlzaW9uICAgICAgID0gMiwNCgkgICAgLmZhbWlseSAgICAgICAgID0gTkZQUk9U
+T19BUlAsICAgICAgICAgICAgICAgIDwgPT09IGhlcmUgIQ0KCSAgICAudGFyZ2V0ICAgICAgICAg
+PSBtYXJrX3RnLA0KCSAgICAudGFyZ2V0c2l6ZSAgICAgPSBzaXplb2Yoc3RydWN0IHh0X21hcmtf
+dGdpbmZvMiksDQoJICAgIC5tZSAgICAgICAgICAgICA9IFRISVNfTU9EVUxFLA0KICAgIH0NCn07
+DQoNCmkgd2lsbCBmaXggaXQgaW4gdjUgDQo+DQo+bm93IGkgdXNlIO+8mg0KPiMgbW9kcHJvYmUg
+eHRfbWFyaw0KPiMgLi9hcnB0YWJsZXMgIC1JIE9VVFBVVCAtaiBNQVJLIC0tc2V0LW1hcmsgMQ0K
+PiMgLi9hcnB0YWJsZXMgLS1saXN0DQo+Q2hhaW4gSU5QVVQgKHBvbGljeSBBQ0NFUFQpDQo+DQo+
+Q2hhaW4gT1VUUFVUIChwb2xpY3kgQUNDRVBUKQ0KPi1qIE1BUksgLS1zZXQtbWFyayAxDQo+DQo+
+Q2hhaW4gRk9SV0FSRCAocG9saWN5IEFDQ0VQVCkNCj4NCj4NCj4+DQo+PldpdGggbXkgYXJwdGFi
+bGVzIHBhdGNoZXMgYXBwbGllZCBpbiBmaXJzdCBwbGFjZSwgc28gSSBzdXNwZWN0IHRoZQ0KPj5y
+aWdodCByZXZpc2lvbiBpcyBub3QgYmVpbmcgc2V0IGluIHdoYXQgd2Ugc2VuZCB0byB0aGUga2Vy
+bmVsIGZyb20NCj4+dXNlcnNwYWNlLgTvv717Lm7vv70r77+977+977+977+977+977+977+9KyXv
+v73vv71sendt77+977+9Yu+/veunsu+/ve+/vXLvv73vv716d++/vX4pbXrvv71e77+977+9Yu+/
+ve+/vV5u77+9cu+/ve+/ve+/vXrvv70a77+977+9aO+/ve+/ve+/ve+/vSbvv73vv70e77+9R++/
+ve+/ve+/vWjvv70DKO+/vemaju+/vd2iaiLvv73vv70a77+9G23vv73vv73vv73vv73vv71677+9
+3pbvv73vv73vv71m77+977+977+9aO+/ve+/ve+/vX7vv71t77+9
