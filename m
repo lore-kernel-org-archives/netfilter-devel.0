@@ -1,65 +1,94 @@
-From: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
-Subject: Re: Re: [PATCH V4 0/3] Add mark target
-Date: Fri, 3 Apr 2015 03:21:59 +0000
-Message-ID: <A43879EB4A7F5F449E2CA8148EA79E51715AFC@G08CNEXMBPEKD01.g08.fujitsu.local>
-References: <1427682948-18699-1-git-send-email-zhangcy@cn.fujitsu.com>,
- <20150402085731.GA24296@salvia>,
- <A43879EB4A7F5F449E2CA8148EA79E51711D6B@G08CNEXMBPEKD01.g08.fujitsu.local>
-Reply-To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "netfilter-devel-owner@vger.kernel.org"
-	<netfilter-devel-owner@vger.kernel.org>,
-	"pablo@netfilter.org" <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: x_tables: don't bail out on mismatching revision
+Date: Fri,  3 Apr 2015 13:22:04 +0200
+Message-ID: <1428060124-7710-1-git-send-email-pablo@netfilter.org>
+Cc: zhangcy@cn.fujitsu.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:58742 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752208AbbDCDW3 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Apr 2015 23:22:29 -0400
-Content-Language: zh-CN
+Received: from mail.us.es ([193.147.175.20]:33079 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750775AbbDCLSK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Apr 2015 07:18:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-DQoNCj5Gcm9tOiBuZXRmaWx0ZXItZGV2ZWwtb3duZXINCj5EYXRlOiAyMDE1LTA0LTAyDQo+VG86
-IHBhYmxvQG5ldGZpbHRlci5vcmcNCj5TdWJqZWN0OiBSZTogUmU6IFtQQVRDSCBWNCAwLzNdIEFk
-ZCBtYXJrIHRhcmdldA0KPg0KPg0KPg0KPj5Gcm9tOiBQYWJsbyBOZWlyYSBBeXVzbw0KPj5EYXRl
-OiAyMDE1LTA0LTAyDQo+PlRvOiBaaGFuZywgQ2h1bnl1L+eroCDmmKXlrocNCj4+U3ViamVjdDog
-UmU6IFtQQVRDSCBWNCAwLzNdIEFkZCBtYXJrIHRhcmdldA0KPj4NCj4+T24gU3VuLCBNYXIgMjks
-IDIwMTUgYXQgMTA6MzU6NDVQTSAtMDQwMCwgWmhhbmcgQ2h1bnl1IHdyb3RlOg0KPj4+IHYxOg0K
-Pj4+ICAgYWRkIG1hcmsgdGFyZ2V0IGZvciBhcnB0YWJsZXMNCj4+PiANCj4+PiB2MjoNCj4+PiAg
-IGFkZCAtLWFuZC1tYXJrDQo+Pj4gICBhZGQgLS1vci1tYXJrDQo+Pj4gICBhZGQgcmV2aXNpb24g
-Zm9yIGNvbW1vbiBhcGkNCj4+PiANCj4+PiB2MzoNCj4+PiAgIGZvbGQgMi80LCAzLzQgYW5kIDQv
-NCBwYXRjaCBpbnRvIG9uZSBzaW5nbGUgcGF0Y2gNCj4+PiAgIHVzZSBDOTkgaW5pdGlhbGl6YXRp
-b24NCj4+PiAgIGNoYW5nZSBzb21lIGZvcm1hdA0KPj4+IA0KPj4+IFY0Og0KPj4+ICAgcmVzdWJt
-aXQgdGhlIGtlcm5lbCBwYXRjaA0KPj4NCj4+bmV0L25ldGZpbHRlci94dF9tYXJrLmMgaXMgbWlz
-c2luZyBhIHNtYWxsIGNoYW5nZSwgeW91IGhhdmUgdG8gYWRkDQo+Pk1PRFVMRV9BTElBUygiYXJw
-dF9NQVJLIikuDQo+Pg0KPj5BbmQgYWZ0ZXIgdGhhdCwgSSBoaXR0aW5nIGhlcmU6DQo+Pg0KPj4j
-IGFycHRhYmxlcyAtSSBPVVRQVVQgLWogTUFSSyAtLXNldC1tYXJrIDENCj4+YXJwdGFibGVzOiBQ
-cm90b2NvbCB3cm9uZyB0eXBlIGZvciBzb2NrZXQNCj4NCj5pIHdpbGwgYWRkIE1PRFVMRV9BTElB
-UygiYXJwdF9NQVJLIikuIA0KPndpbGwgdGVzdCBhbmQgYW5zd2VyIGFnYWluDQpuZXQvbmV0Zmls
-dGVyL3h0X21hcmsuYyAgd2lsbCBhZGQgOg0KMS4gIE1PRFVMRV9BTElBUygiYXJwdF9NQVJLIiku
-DQoyLiANCnN0YXRpYyBzdHJ1Y3QgeHRfdGFyZ2V0IG1hcmtfdGdfcmVnW10gX19yZWFkX21vc3Rs
-eSA9IHsNCiAgICB7DQoJICAgIC5uYW1lICAgICAgICAgICA9ICJNQVJLIiwNCgkgICAgLnJldmlz
-aW9uICAgICAgID0gMiwNCgkgICAgLmZhbWlseSAgICAgICAgID0gTkZQUk9UT19VTlNQRUMsDQoJ
-ICAgIC50YXJnZXQgICAgICAgICA9IG1hcmtfdGcsDQoJICAgIC50YXJnZXRzaXplICAgICA9IHNp
-emVvZihzdHJ1Y3QgeHRfbWFya190Z2luZm8yKSwNCgkgICAgLm1lICAgICAgICAgICAgID0gVEhJ
-U19NT0RVTEUsDQogICAgfSwNCiAgICB7DQoJICAgIC5uYW1lICAgICAgICAgICA9ICJNQVJLIiwN
-CgkgICAgLnJldmlzaW9uICAgICAgID0gMiwNCgkgICAgLmZhbWlseSAgICAgICAgID0gTkZQUk9U
-T19BUlAsICAgICAgICAgICAgICAgIDwgPT09IGhlcmUgIQ0KCSAgICAudGFyZ2V0ICAgICAgICAg
-PSBtYXJrX3RnLA0KCSAgICAudGFyZ2V0c2l6ZSAgICAgPSBzaXplb2Yoc3RydWN0IHh0X21hcmtf
-dGdpbmZvMiksDQoJICAgIC5tZSAgICAgICAgICAgICA9IFRISVNfTU9EVUxFLA0KICAgIH0NCn07
-DQoNCmkgd2lsbCBmaXggaXQgaW4gdjUgDQo+DQo+bm93IGkgdXNlIO+8mg0KPiMgbW9kcHJvYmUg
-eHRfbWFyaw0KPiMgLi9hcnB0YWJsZXMgIC1JIE9VVFBVVCAtaiBNQVJLIC0tc2V0LW1hcmsgMQ0K
-PiMgLi9hcnB0YWJsZXMgLS1saXN0DQo+Q2hhaW4gSU5QVVQgKHBvbGljeSBBQ0NFUFQpDQo+DQo+
-Q2hhaW4gT1VUUFVUIChwb2xpY3kgQUNDRVBUKQ0KPi1qIE1BUksgLS1zZXQtbWFyayAxDQo+DQo+
-Q2hhaW4gRk9SV0FSRCAocG9saWN5IEFDQ0VQVCkNCj4NCj4NCj4+DQo+PldpdGggbXkgYXJwdGFi
-bGVzIHBhdGNoZXMgYXBwbGllZCBpbiBmaXJzdCBwbGFjZSwgc28gSSBzdXNwZWN0IHRoZQ0KPj5y
-aWdodCByZXZpc2lvbiBpcyBub3QgYmVpbmcgc2V0IGluIHdoYXQgd2Ugc2VuZCB0byB0aGUga2Vy
-bmVsIGZyb20NCj4+dXNlcnNwYWNlLgTvv717Lm7vv70r77+977+977+977+977+977+977+9KyXv
-v73vv71sendt77+977+9Yu+/veunsu+/ve+/vXLvv73vv716d++/vX4pbXrvv71e77+977+9Yu+/
-ve+/vV5u77+9cu+/ve+/ve+/vXrvv70a77+977+9aO+/ve+/ve+/ve+/vSbvv73vv70e77+9R++/
-ve+/ve+/vWjvv70DKO+/vemaju+/vd2iaiLvv73vv70a77+9G23vv73vv73vv73vv73vv71677+9
-3pbvv73vv73vv71m77+977+977+9aO+/ve+/ve+/vX7vv71t77+9
+We have to give a chance to find the match/target that is registered using the
+NFPROTO_UNSPEC family. This is causing us problems to add MARK target support to
+arptables since we need to register an explicit struct xt_target for the
+NFPROTO_ARP family.
+
+Remove the -EPROTOTYPE error that was introduced long time ago in 2e4e6a1
+("[NETFILTER] x_tables: Abstraction layer for {ip,ip6,arp}_tables"). I cannot
+find any userspace code relying on this error code. So let's just instead bail
+out with -ENOENT.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+@Zhang: please, give a test to this and let me know if this resolves the
+problem for you, so we avoid to register the redundant xt_target structure for
+MARK. Thanks.
+
+ net/netfilter/x_tables.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 51a459c..a7baf90 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -182,7 +182,6 @@ EXPORT_SYMBOL(xt_unregister_matches);
+ struct xt_match *xt_find_match(u8 af, const char *name, u8 revision)
+ {
+ 	struct xt_match *m;
+-	int err = -ENOENT;
+ 
+ 	mutex_lock(&xt[af].mutex);
+ 	list_for_each_entry(m, &xt[af].match, list) {
+@@ -192,8 +191,7 @@ struct xt_match *xt_find_match(u8 af, const char *name, u8 revision)
+ 					mutex_unlock(&xt[af].mutex);
+ 					return m;
+ 				}
+-			} else
+-				err = -EPROTOTYPE; /* Found something. */
++			}
+ 		}
+ 	}
+ 	mutex_unlock(&xt[af].mutex);
+@@ -202,7 +200,7 @@ struct xt_match *xt_find_match(u8 af, const char *name, u8 revision)
+ 		/* Try searching again in the family-independent list */
+ 		return xt_find_match(NFPROTO_UNSPEC, name, revision);
+ 
+-	return ERR_PTR(err);
++	return ERR_PTR(-ENOENT);
+ }
+ EXPORT_SYMBOL(xt_find_match);
+ 
+@@ -225,7 +223,6 @@ EXPORT_SYMBOL_GPL(xt_request_find_match);
+ struct xt_target *xt_find_target(u8 af, const char *name, u8 revision)
+ {
+ 	struct xt_target *t;
+-	int err = -ENOENT;
+ 
+ 	mutex_lock(&xt[af].mutex);
+ 	list_for_each_entry(t, &xt[af].target, list) {
+@@ -235,8 +232,7 @@ struct xt_target *xt_find_target(u8 af, const char *name, u8 revision)
+ 					mutex_unlock(&xt[af].mutex);
+ 					return t;
+ 				}
+-			} else
+-				err = -EPROTOTYPE; /* Found something. */
++			}
+ 		}
+ 	}
+ 	mutex_unlock(&xt[af].mutex);
+@@ -245,7 +241,7 @@ struct xt_target *xt_find_target(u8 af, const char *name, u8 revision)
+ 		/* Try searching again in the family-independent list */
+ 		return xt_find_target(NFPROTO_UNSPEC, name, revision);
+ 
+-	return ERR_PTR(err);
++	return ERR_PTR(-ENOENT);
+ }
+ EXPORT_SYMBOL(xt_find_target);
+ 
+-- 
+1.7.10.4
+
