@@ -1,43 +1,37 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: SYNPROXY module with bridge
-Date: Sun, 5 Apr 2015 15:04:51 +0200
-Message-ID: <20150405130450.GF23433@acer.localdomain>
-References: <551F008F.6050200@4vendeta.com>
- <20150405114729.GC23433@acer.localdomain>
- <55212FFA.9050204@4vendeta.com>
+From: Alexander Holler <holler@ahsoftware.de>
+Subject: Re: [PATCH v2] parser: add kludges for "param-problem" and "redirect"
+Date: Sun, 05 Apr 2015 21:07:39 +0200
+Message-ID: <552187FB.60904@ahsoftware.de>
+References: <551FC211.6000907@ahsoftware.de> <1428145986-15421-1-git-send-email-holler@ahsoftware.de> <20150404115550.GA5832@salvia> <20150405113214.GA23433@acer.localdomain> <20150405121104.GD23433@acer.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kadlec@netfilter.org,
-	fw@strlen.de, marc+nf@mbsi.ca, gandalf@netfilter.org,
-	yasuyuki@netfilter.org
-To: Todor Todorov <root@4vendeta.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	Eric Leblond <eric@regit.org>
+To: Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57930 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751721AbbDENE4 (ORCPT
+Received: from h1446028.stratoserver.net ([85.214.92.142]:57315 "EHLO
+	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752384AbbDETHu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Apr 2015 09:04:56 -0400
-Content-Disposition: inline
-In-Reply-To: <55212FFA.9050204@4vendeta.com>
+	Sun, 5 Apr 2015 15:07:50 -0400
+Received: from wandq.ahsoftware (p4FC37E09.dip0.t-ipconnect.de [79.195.126.9])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.ahsoftware.de (Postfix) with ESMTPSA id AEF262C9C1CA
+	for <netfilter-devel@vger.kernel.org>; Sun,  5 Apr 2015 21:07:46 +0200 (CEST)
+In-Reply-To: <20150405121104.GD23433@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[changed CC to netfilter-devel]
+Am 05.04.2015 um 14:11 schrieb Patrick McHardy:
+> On 05.04, Patrick McHardy wrote:
 
-On 05.04, Todor Todorov wrote:
-> Hello,
-> 
-> I was check and as you said REJECT target also doesn't work in Bridge.
+>> Basically this involves splitting the expression types into lhs (non-const)
+>> and rhs (const) parts. Keywords on the RHS side can be caught using an
+>> error statement and deferred to resolution during runtime.
 
-It does work on bridges, this is why I asked you to have a look at it.
+Sounds like trial and error. ;)
 
-> Where is the problem - in "br.c" or it must add a check in "ipt_synproxy.c"
-> for is the packet coming from bridged interface?
-> I find this patch for reject in bridge but doesn't work - http://markmail.org/message/zkd57gfh7htcbyvc#query:+page:1+mid:spwhgpx2jl6iholn+state:results
-> 
-> Any help would be useful to me...
-
-The REJECT target basically does what is necessary for SYNPROXY as well.
-Instead of routing newly generated packets, their outgoing ports must
-be determined based on the original packet, additionally you need to
-add a link layer header to them.
