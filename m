@@ -1,44 +1,57 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/9] netfilter: Compress hook function signatures.
-Date: Sat, 04 Apr 2015 11:54:49 -0400 (EDT)
-Message-ID: <20150404.115449.726785874523228309.davem@davemloft.net>
-References: <20150403.220734.1272465850706339981.davem@davemloft.net>
-	<20150404114928.GA3829@salvia>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH v2] parser: add kludges for "param-problem" and "redirect"
+Date: Sun, 5 Apr 2015 13:32:14 +0200
+Message-ID: <20150405113214.GA23433@acer.localdomain>
+References: <551FC211.6000907@ahsoftware.de>
+ <1428145986-15421-1-git-send-email-holler@ahsoftware.de>
+ <20150404115550.GA5832@salvia>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	hannes@stressinduktion.org, jiri@resnulli.us
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Alexander Holler <holler@ahsoftware.de>,
+	netfilter-devel@vger.kernel.org,
+	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	Eric Leblond <eric@regit.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:56917 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752256AbbDDPyx (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:57341 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751211AbbDELcX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 4 Apr 2015 11:54:53 -0400
-In-Reply-To: <20150404114928.GA3829@salvia>
+	Sun, 5 Apr 2015 07:32:23 -0400
+Content-Disposition: inline
+In-Reply-To: <20150404115550.GA5832@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Sat, 4 Apr 2015 13:49:28 +0200
-
-> Nice series. If you route them through net-next, please add:
+On 04.04, Pablo Neira Ayuso wrote:
+> On Sat, Apr 04, 2015 at 01:13:06PM +0200, Alexander Holler wrote:
+> > Context sensitive handling of "param-problem" and "redirect" is necessary
+> > to allow usage of them as token or as string for icmp types.
+> [...]
 > 
-> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> I think we need some evaluation step at scanner level. This new
+> evaluation routine needs to understand the token semantics to set some
+> context information.
+> 
+> "redirect"		{ return scanner_evaluate(ctx, REDIRECT); }
+> 
+> We have to catch up more use cases such as sets and concatenations. I
+> started a patch here, a bit more generalized than this when you
+> reported this problem (we actually already knew about it).
+> 
+> @Patrick, any better idea?
 
-Ok, thanks for reviewing Pablo.  I'll take them through my tree
-as it will make the okfn() signature change simpler to just add
-on top.
+This won't work because the grammar currently allows both cases.
 
-> Regarding Jiri's okfn() signature changes, please let me know on those
-> patches, they will simplify a patchset I'll submit soon. And count on
-> me to help on that change too, of course.
+The proper solution IMO is to change the grammar so we know where such
+keywords are keywords and where they are constants.
 
-I'm working on reworking Jiri's submission right now, but I need to be
-careful about the nf_queue.c stuff so it will take a day or two.
+Basically this involves splitting the expression types into lhs (non-const)
+and rhs (const) parts. Keywords on the RHS side can be caught using an
+error statement and deferred to resolution during runtime.
 
-I will post a series and at a minimum wait for your review.
+The second benefit is that we can then use the grammar for tab completion.
 
-Thanks again Pablo.
-
+I have patches for this, but as I'm currently trying to get the remaining
+set and concat patches submitted, I won't be able to work on this until
+after the merge window closes.
