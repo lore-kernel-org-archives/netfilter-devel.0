@@ -1,34 +1,39 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH v2] parser: add kludges for "param-problem" and "redirect"
-Date: Sun, 5 Apr 2015 13:42:23 +0200
-Message-ID: <20150405114215.GB23433@acer.localdomain>
+Date: Sun, 5 Apr 2015 14:11:06 +0200
+Message-ID: <20150405121104.GD23433@acer.localdomain>
 References: <551FC211.6000907@ahsoftware.de>
  <1428145986-15421-1-git-send-email-holler@ahsoftware.de>
  <20150404115550.GA5832@salvia>
- <551FD970.7030105@ahsoftware.de>
+ <20150405113214.GA23433@acer.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: multipart/mixed; boundary="W/nzBZO5zC0uMSeA"
+Cc: Alexander Holler <holler@ahsoftware.de>,
 	netfilter-devel@vger.kernel.org,
 	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
 	Eric Leblond <eric@regit.org>
-To: Alexander Holler <holler@ahsoftware.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57407 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:57573 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751023AbbDELm1 (ORCPT
+	with ESMTP id S1751059AbbDEMLN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Apr 2015 07:42:27 -0400
+	Sun, 5 Apr 2015 08:11:13 -0400
 Content-Disposition: inline
-In-Reply-To: <551FD970.7030105@ahsoftware.de>
+In-Reply-To: <20150405113214.GA23433@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 04.04, Alexander Holler wrote:
-> Am 04.04.2015 um 13:55 schrieb Pablo Neira Ayuso:
+
+--W/nzBZO5zC0uMSeA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On 05.04, Patrick McHardy wrote:
+> On 04.04, Pablo Neira Ayuso wrote:
 > > On Sat, Apr 04, 2015 at 01:13:06PM +0200, Alexander Holler wrote:
-> >> Context sensitive handling of "param-problem" and "redirect" is necessary
-> >> to allow usage of them as token or as string for icmp types.
+> > > Context sensitive handling of "param-problem" and "redirect" is necessary
+> > > to allow usage of them as token or as string for icmp types.
 > > [...]
 > > 
 > > I think we need some evaluation step at scanner level. This new
@@ -43,27 +48,91 @@ On 04.04, Alexander Holler wrote:
 > > 
 > > @Patrick, any better idea?
 > 
-> Hmm. Looks ambitious.
+> This won't work because the grammar currently allows both cases.
 > 
-> I've no idea if it's worse to spend the time to build a general solution
-> instead of doing it like I did. It looks like you want to build a state
-> machine inside that scanner_evaluate() which means you have to use it
-> for every token, if I've understood your idea correctly.
+> The proper solution IMO is to change the grammar so we know where such
+> keywords are keywords and where they are constants.
 > 
-> How many ambigious tokens do exist besides redirect and param-problem
-> for which I've now added a "mini state machine"?
+> Basically this involves splitting the expression types into lhs (non-const)
+> and rhs (const) parts. Keywords on the RHS side can be caught using an
+> error statement and deferred to resolution during runtime.
 
-These cases keep coming up and we actually can't even know all cases
-since many expressions use externally defined constants, f.i. services,
-routing marks, realms etc, interface names and many more. We really
-need a generic solution, at least in the mid term.
+Actually, it even seems to work without doing the splitting. This patch
+shows the basic idea. We add a error token to symbol_expr, convert the
+erroneous keyword to a symbolic expression and push it to the evaluation
+step. Without the split to LHS/RHS it can't handle cases like "TCP",
+but it does handle all keywords that are not the first one of an expression.
 
-> Sorry, but I'm not actively following this project or the mailing lists,
-> and thus have no real overview over existing problems. I've just fixed a
-> problem I've encountered while switching some of my systems from
-> iptables to nftables.
+The redirect case seems to be working fine:
 
-I'm not opposed to a short term fix until we have something generic.
-However we used a different approach so far (for different cases though)
-and I'd like to at least check whether something similar will work
-in this case.
+<cmdline>:1:15-23: Evaluate
+filter output icmp type redirect
+              ^^^^^^^^^
+ip protocol
+
+<cmdline>:1:15-23: Evaluate
+filter output icmp type redirect
+              ^^^^^^^^^
+icmp
+
+<cmdline>:1:25-32: Evaluate
+filter output icmp type redirect
+                        ^^^^^^^^
+$redirect
+
+<cmdline>:1:25-32: Evaluate
+filter output icmp type redirect
+                        ^^^^^^^^
+redirect
+
+ip filter output 
+  [ payload load 1b @ network header + 9 => reg 1 ]
+  [ cmp eq reg 1 0x00000001 ]
+  [ payload load 1b @ transport header + 0 => reg 1 ]
+  [ cmp eq reg 1 0x00000005 ]
+
+This needs a lot of testing though since it has the potential to break
+things quite badly. Since I'm busy, maybe someone else wants to start by
+running the testsuite with this patch applied.
+
+--W/nzBZO5zC0uMSeA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="x.diff"
+
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index b86381d..8d39c67 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1583,6 +1583,30 @@ symbol_expr		:	string
+ 						       $2);
+ 				xfree($2);
+ 			}
++			|	error
++			{
++				struct error_record *erec;
++				char *tmp;
++
++				if (yytoken != TOKEN_EOF) {
++					tmp = xstrdup(yytname[yytoken] + 1);
++					tmp[strlen(tmp) - 1] = '\0';
++					$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
++							       current_scope(state),
++							       tmp);
++					xfree(tmp);
++
++					erec = list_entry(state->msgs->prev,
++							  struct error_record, list);
++					list_del(&erec->list);
++					xfree(erec);
++
++					yyclearin;
++					yyerrok;
++				} else {
++					YYABORT;
++				}
++			}
+ 			;
+ 
+ integer_expr		:	NUM
+
+--W/nzBZO5zC0uMSeA--
