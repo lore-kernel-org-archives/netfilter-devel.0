@@ -1,108 +1,37 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 3/4] netfilter: nf_tables: support different set binding types
-Date: Sun,  5 Apr 2015 14:41:07 +0200
-Message-ID: <1428237668-31789-4-git-send-email-kaber@trash.net>
-References: <1428237668-31789-1-git-send-email-kaber@trash.net>
+Subject: [PATCH] netfilter: nf_tables: support per element userdata
+Date: Sun,  5 Apr 2015 14:43:37 +0200
+Message-ID: <1428237818-31963-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57774 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:57790 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751472AbbDEMlM (ORCPT
+	with ESMTP id S1751913AbbDEMnl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Apr 2015 08:41:12 -0400
-In-Reply-To: <1428237668-31789-1-git-send-email-kaber@trash.net>
+	Sun, 5 Apr 2015 08:43:41 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently a set binding is assumed to be related to a lookup and, in
-case of maps, a data load.
+This patch adds support for attaching arbitrary userdata to set elements,
+such as comments, DNS information etc. The type of information is determined
+by userspace.
 
-In order to use bindings for set updates, the loop detection checks
-must be restricted to map operations only. Add a flags member to the
-binding struct to hold the set "action" flags such as NFT_SET_MAP,
-and perform loop detection based on these.
+This is the last patch related to sets for the time being, the next
+series will add support for concatenations, before finally adding
+stateful expression support to sets.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- include/net/netfilter/nf_tables.h |  2 ++
- net/netfilter/nf_tables_api.c     | 11 ++++++++---
- net/netfilter/nft_lookup.c        |  2 ++
- 3 files changed, 12 insertions(+), 3 deletions(-)
+Please apply, thanks!
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 7464233..e7e6365 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -316,6 +316,7 @@ static inline unsigned long nft_set_gc_interval(const struct nft_set *set)
-  *
-  *	@list: set bindings list node
-  *	@chain: chain containing the rule bound to the set
-+ *	@flags: set action flags
-  *
-  *	A set binding contains all information necessary for validation
-  *	of new elements added to a bound set.
-@@ -323,6 +324,7 @@ static inline unsigned long nft_set_gc_interval(const struct nft_set *set)
- struct nft_set_binding {
- 	struct list_head		list;
- 	const struct nft_chain		*chain;
-+	u32				flags;
- };
- 
- int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 27d1bf5..90b8984 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2811,12 +2811,13 @@ int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
- 	if (!list_empty(&set->bindings) && set->flags & NFT_SET_ANONYMOUS)
- 		return -EBUSY;
- 
--	if (set->flags & NFT_SET_MAP) {
-+	if (binding->flags & NFT_SET_MAP) {
- 		/* If the set is already bound to the same chain all
- 		 * jumps are already validated for that chain.
- 		 */
- 		list_for_each_entry(i, &set->bindings, list) {
--			if (i->chain == binding->chain)
-+			if (binding->flags & NFT_SET_MAP &&
-+			    i->chain == binding->chain)
- 				goto bind;
- 		}
- 
-@@ -3312,6 +3313,9 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
- 				.chain	= (struct nft_chain *)binding->chain,
- 			};
- 
-+			if (!(binding->flags & NFT_SET_MAP))
-+				continue;
-+
- 			err = nft_validate_data_load(&bind_ctx, dreg,
- 						     &data, d2.type);
- 			if (err < 0)
-@@ -4063,7 +4067,8 @@ static int nf_tables_check_loops(const struct nft_ctx *ctx,
- 			continue;
- 
- 		list_for_each_entry(binding, &set->bindings, list) {
--			if (binding->chain != chain)
-+			if (!(binding->flags & NFT_SET_MAP) ||
-+			    binding->chain != chain)
- 				continue;
- 
- 			iter.skip 	= 0;
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index a5f30b8..d8cf86f 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -92,6 +92,8 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- 	} else if (set->flags & NFT_SET_MAP)
- 		return -EINVAL;
- 
-+	priv->binding.flags = set->flags & NFT_SET_MAP;
-+
- 	err = nf_tables_bind_set(ctx, set, &priv->binding);
- 	if (err < 0)
- 		return err;
+
+Patrick McHardy (1):
+  netfilter: nf_tables: support optional userdata for set elements
+
+ include/net/netfilter/nf_tables.h        |  7 +++++++
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nf_tables_api.c            | 34 ++++++++++++++++++++++++++++++++
+ 3 files changed, 43 insertions(+)
+
 -- 
 2.1.0
 
