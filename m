@@ -1,55 +1,48 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [iptables PATCH] ebtables-compat: fix misplaced function attribute
- on ebt_print_error()
-Date: Mon, 06 Apr 2015 16:05:28 +0200
-Message-ID: <20150406140528.30059.48340.stgit@nfdev2.cica.es>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/4] Prevent UDP tunnels from operating on garbage
+ socket
+Date: Mon, 06 Apr 2015 12:41:14 -0400 (EDT)
+Message-ID: <20150406.124114.924455461962119301.davem@davemloft.net>
+References: <20150405.221847.2119086885797169021.davem@davemloft.net>
+	<CALx6S348YyYxrT+3fcXEFz=w6BYFGZwcQ6iD1PjzVePotioJKw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp4.cica.es ([150.214.5.182]:51960 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753328AbbDFOFi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Apr 2015 10:05:38 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	pablo@netfilter.org, hannes@stressinduktion.org, jiri@resnulli.us
+To: tom@herbertland.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CALx6S348YyYxrT+3fcXEFz=w6BYFGZwcQ6iD1PjzVePotioJKw@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Arturo Borrero Gonzalez <aborrero@nfdev2.cica.es>
+From: Tom Herbert <tom@herbertland.com>
+Date: Mon, 6 Apr 2015 06:59:21 -0700
 
-xtables-eb.c:305:1: warning: empty declaration
- } __attribute__((noreturn, format(printf,2,3)));
- ^
-xtables-eb.c:311:2: warning: initialization makes '__attribute__((noreturn))' qualified function pointer from unqualified
-  .exit_err  = ebt_print_error,
-  ^
+> On Sun, Apr 5, 2015 at 7:18 PM, David Miller <davem@davemloft.net> wrote:
+>>
+>> So this should do the rest of the work such that when we encapsulate
+>> into a UDP tunnel, the output path works on the UDP tunnel's socket
+>> rather than skb->sk.
+>>
+> Doesn't this contradict "udp: Do not require sock in
+> udp_tunnel_xmit_skb" patch?  How is the skbuf getting set with a
+> garbage socket?
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- iptables/xtables-eb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+It's not a garbage socket, but it could be a socket for a completely
+different address family than ipv4/ipv6.  The canonical example is
+AF_PACKET transmitting over an encapsulating device.
 
-diff --git a/iptables/xtables-eb.c b/iptables/xtables-eb.c
-index ddef14a..c8b5d4f 100644
---- a/iptables/xtables-eb.c
-+++ b/iptables/xtables-eb.c
-@@ -292,7 +292,7 @@ static struct option ebt_original_options[] =
- 	{ 0 }
- };
- 
--static void
-+static void __attribute__((__noreturn__,format(printf,2,3)))
- ebt_print_error(enum xtables_exittype status, const char *format, ...)
- {
- 	va_list l;
-@@ -302,7 +302,7 @@ ebt_print_error(enum xtables_exittype status, const char *format, ...)
- 	fprintf(stderr, ".\n");
- 	va_end(l);
- 	exit(-1);
--} __attribute__((noreturn, format(printf,2,3)));
-+}
- 
- struct xtables_globals ebtables_globals = {
- 	.option_offset 		= 0,
+Tom if you are saying that skb->sk should be reset to the tunnel
+socket, that doesn't work and is completely broken.
 
+You must retain the original skb->sk of the application so that socket
+memory accounting does not break.  You can't just rewrite skb->sk
+during tunnel encapsulation.
+
+That's the whole point these changes.
+
+If an AF_PACKET socket transmits over a UDP encapsulating tunnel device
+we want skb->sk to be the AF_PACKET socket for socket memory accounting
+purposes, and pass down explicitly the UDP tunnel socket through the
+output path starting at the point of UDP encapsulation.
