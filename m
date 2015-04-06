@@ -1,28 +1,83 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/4] Prevent UDP tunnels from operating on garbage
- socket
-Date: Mon, 06 Apr 2015 15:38:57 -0400 (EDT)
-Message-ID: <20150406.153857.2087257516868035001.davem@davemloft.net>
-References: <20150406.124114.924455461962119301.davem@davemloft.net>
-	<20150406.131700.185460014498109286.davem@davemloft.net>
-	<CALx6S34CvOZN3dZjXr6_1afCbUDu2718cCGPk2Sm1Nkq8wCGKA@mail.gmail.com>
+From: Alexander Holler <holler@ahsoftware.de>
+Subject: Re: [PATCH v2] parser: add kludges for "param-problem" and "redirect"
+Date: Mon, 06 Apr 2015 22:41:34 +0200
+Message-ID: <5522EF7E.30101@ahsoftware.de>
+References: <551FC211.6000907@ahsoftware.de> <1428145986-15421-1-git-send-email-holler@ahsoftware.de> <20150404115550.GA5832@salvia> <20150405113214.GA23433@acer.localdomain> <20150405121104.GD23433@acer.localdomain> <552187FB.60904@ahsoftware.de> <20150406015128.GA20515@acer.localdomain> <55224776.4040108@ahsoftware.de> <55224B70.1070309@ahsoftware.de> <55224E82.3010206@ahsoftware.de> <20150406112543.GB24191@acer.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Cc: hannes@stressinduktion.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, jiri@resnulli.us, pablo@netfilter.org
-To: tom@herbertland.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CALx6S34CvOZN3dZjXr6_1afCbUDu2718cCGPk2Sm1Nkq8wCGKA@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org,
+	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	Eric Leblond <eric@regit.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from h1446028.stratoserver.net ([85.214.92.142]:51403 "EHLO
+	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752903AbbDFUlq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Apr 2015 16:41:46 -0400
+Received: from wandq.ahsoftware (p4FC37568.dip0.t-ipconnect.de [79.195.117.104])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.ahsoftware.de (Postfix) with ESMTPSA id BA4542C9C1C3
+	for <netfilter-devel@vger.kernel.org>; Mon,  6 Apr 2015 22:41:43 +0200 (CEST)
+In-Reply-To: <20150406112543.GB24191@acer.localdomain>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Tom Herbert <tom@herbertland.com>
-Date: Mon, 6 Apr 2015 10:27:31 -0700
+Am 06.04.2015 um 13:25 schrieb Patrick McHardy:
+> On 06.04, Alexander Holler wrote:
+>> Am 06.04.2015 um 11:01 schrieb Alexander Holler:
+>>> Am 06.04.2015 um 10:44 schrieb Alexander Holler:
+>>>> Am 06.04.2015 um 03:51 schrieb Patrick McHardy:
+>>>>> On 05.04, Alexander Holler wrote:
+>>>>>> Am 05.04.2015 um 14:11 schrieb Patrick McHardy:
+>>>>>>> On 05.04, Patrick McHardy wrote:
+>>>>>>
+>>>>>>>> Basically this involves splitting the expression types into lhs
+>>>>>>>> (non-const)
+>>>>>>>> and rhs (const) parts. Keywords on the RHS side can be caught
+>>>>>>>> using an
+>>>>>>>> error statement and deferred to resolution during runtime.
+>>>>>>
+>>>>>> Sounds like trial and error. ;)
+>>>>>
+>>>>> The approach is, the patch isn't, it changes the grammar to have
+>>>>> these kinds of errors in a defined state. The patch I sent
+>>>>> however is, but I'm quite sure i understand the implications.
+>>>>
+>>>> Just to mention it, there is still the possibility to define and use
+>>>> keywords for all the icmp type names.
+>>>
+>>> Preferable with names as used in icmp.h and icmpv6.h. As these are
+>>> defines in C-headers, there is very high probability that these names
+>>> are unique, even across a large number of different sets of type or
+>>> other names.
+>>
+>> That would also remove the need to look up what name nft uses if would be
+>> clear that the names are the same as defined in c-headers.
+>>
+>> E.g. the ICMPv6 parameter-problem is good example. In the linux headers it
+>> is called ICMPV6_PARAMPROB, nft named it param-problem and in documentations
+>> it is often named as parameter-problem.
+>>
+>> So if nft would use icmpv6_paramprob, the documentation could just refer to
+>> the c-headers.
+> 
+> No, an icmpv6_ prefix is redundant and I don't see any benefit in doing
+> that. "Documentations", whatever that is, don't matter, what matters is
+> our documentation. And whether we point people to that or some header
+> file really doesn't matter, except that we don't expect people to read
+> header files to use nft. Its a tool for admins, not programmers.
 
-> Seems like this is creating inconsistencies with other tunneling. We don't
-> have socket for GRE, IPIP, or and there's no concept of a udp socket for
-> GUE.
+Obviously it isn't redundant, otherwise I wouldn't had to write a patch
+for a problem which now exists since quiet some time (can't remember
+when I've first stumbled over it, maybe half a year or even a year).
 
-In those cases, we'll pass a NULL socket down and routines like sk_mc_loop()
-can accommodate that.
+Anyway, thanks for fixing it, regardless if you apply my patch or
+something else.
+
+Regards,
+
+Alexander Holler
