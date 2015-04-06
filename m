@@ -1,50 +1,45 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/4] Prevent UDP tunnels from operating on garbage
- socket
-Date: Mon, 06 Apr 2015 13:17:00 -0400 (EDT)
-Message-ID: <20150406.131700.185460014498109286.davem@davemloft.net>
-References: <20150405.221847.2119086885797169021.davem@davemloft.net>
-	<CALx6S348YyYxrT+3fcXEFz=w6BYFGZwcQ6iD1PjzVePotioJKw@mail.gmail.com>
-	<20150406.124114.924455461962119301.davem@davemloft.net>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [iptables PATCH] list: fix prefetch dummy
+Date: Mon, 06 Apr 2015 20:05:41 +0200
+Message-ID: <20150406180541.7031.97131.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	pablo@netfilter.org, hannes@stressinduktion.org, jiri@resnulli.us
-To: tom@herbertland.com
+Cc: kaber@trash.net, pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:46907 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891AbbDFRRD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Apr 2015 13:17:03 -0400
-In-Reply-To: <20150406.124114.924455461962119301.davem@davemloft.net>
+Received: from smtp3.cica.es ([150.214.5.190]:39951 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752673AbbDFSFt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Apr 2015 14:05:49 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: David Miller <davem@davemloft.net>
-Date: Mon, 06 Apr 2015 12:41:14 -0400 (EDT)
+linux_list.h:381:59: warning: right-hand operand of comma expression has no effect [-Wunused-value]
+  for (pos = list_entry((head)->next, typeof(*pos), member), \
+                                                           ^
+libiptc.c:552:2: note: in expansion of macro 'list_for_each_entry'
+  list_for_each_entry(c, &h->chains, list) {
+  ^
 
-> Tom if you are saying that skb->sk should be reset to the tunnel
-> socket, that doesn't work and is completely broken.
+[ Patch copied from one similar of Patrick McHardy on libnftnl ]
 
-Thinking some more, I think what you are missing is that deeper in the
-ipv4/ipv6 transmit call chain we do things like sk_mc_loop() etc. on
-the socket and we cannot just do it on skb->sk.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ libiptc/linux_list.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-To make that work correctly we must pass the tunnel socket down
-through the ipv4/ipv6 packet output paths, via netfilter hooks
-if necessary.
+diff --git a/libiptc/linux_list.h b/libiptc/linux_list.h
+index abdcf88..559e33c 100644
+--- a/libiptc/linux_list.h
++++ b/libiptc/linux_list.h
+@@ -27,7 +27,7 @@
+ 	1; \
+ })
+ 
+-#define prefetch(x)		1
++#define prefetch(x)		((void)0)
+ 
+ /* empty define to make this work in userspace -HW */
+ #define smp_wmb()
 
-I am also really disappointed with the call signature of the udp
-tunnel send paths.  You have to be honest with yourself and agree
-that something with 11 arguments is not a well designed interface.
-
-Now that hopefully you can see that the socket is actually required,
-can possibly use that to trim the function signature down for
-udp_tunnel{,6}_xmit_skb()?
-
-Worst case, make a "struct udp_tunnel_state" just like I made a "struct
-nf_hook_state" for the netfilter hooks.
-
-Thanks.
