@@ -1,41 +1,31 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH v2] parser: add kludges for "param-problem" and "redirect"
-Date: Mon, 6 Apr 2015 03:51:28 +0200
-Message-ID: <20150406015128.GA20515@acer.localdomain>
-References: <551FC211.6000907@ahsoftware.de>
- <1428145986-15421-1-git-send-email-holler@ahsoftware.de>
- <20150404115550.GA5832@salvia>
- <20150405113214.GA23433@acer.localdomain>
- <20150405121104.GD23433@acer.localdomain>
- <552187FB.60904@ahsoftware.de>
+From: David Miller <davem@davemloft.net>
+Subject: [PATCH 0/4] Prevent UDP tunnels from operating on garbage socket
+Date: Sun, 05 Apr 2015 22:18:47 -0400 (EDT)
+Message-ID: <20150405.221847.2119086885797169021.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org,
-	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	Eric Leblond <eric@regit.org>
-To: Alexander Holler <holler@ahsoftware.de>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+	hannes@stressinduktion.org, jiri@resnulli.us
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62756 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752632AbbDFBvc (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:41593 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752632AbbDFCSv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Apr 2015 21:51:32 -0400
-Content-Disposition: inline
-In-Reply-To: <552187FB.60904@ahsoftware.de>
+	Sun, 5 Apr 2015 22:18:51 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 05.04, Alexander Holler wrote:
-> Am 05.04.2015 um 14:11 schrieb Patrick McHardy:
-> > On 05.04, Patrick McHardy wrote:
-> 
-> >> Basically this involves splitting the expression types into lhs (non-const)
-> >> and rhs (const) parts. Keywords on the RHS side can be caught using an
-> >> error statement and deferred to resolution during runtime.
-> 
-> Sounds like trial and error. ;)
 
-The approach is, the patch isn't, it changes the grammar to have
-these kinds of errors in a defined state. The patch I sent
-however is, but I'm quite sure i understand the implications.
+So this should do the rest of the work such that when we encapsulate
+into a UDP tunnel, the output path works on the UDP tunnel's socket
+rather than skb->sk.
+
+Part of this work is based upon changes done by Jiri Pirko some time
+ago.
+
+Basically the first step is to pass the socket through the nf_hook
+okfn(), and then next we do the same for the UDP tunnel xmit routines.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
