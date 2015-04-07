@@ -1,58 +1,49 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [iptables PATCH] list: fix prefetch dummy
-Date: Tue, 7 Apr 2015 10:37:42 +0200 (CEST)
-Message-ID: <alpine.LSU.2.20.1504071036001.29221@nerf40.vanv.qr>
-References: <20150406180541.7031.97131.stgit@nfdev2.cica.es> <552326ED.9040500@gmail.com>
+From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Subject: Re: [PATCH 0/4] Prevent UDP tunnels from operating on garbage socket
+Date: Tue, 07 Apr 2015 13:27:33 +0200
+Message-ID: <1428406053.3932555.250169221.75848497@webmail.messagingengine.com>
+References: <20150406.124114.924455461962119301.davem@davemloft.net>
+ <20150406.131700.185460014498109286.davem@davemloft.net>
+ <CALx6S35bZ6t9d+cpHRXYS94N6rGuHhACMAt9Bj6UzCwBuomBSA@mail.gmail.com>
+ <20150406.235118.65925113152002205.davem@davemloft.net>
+ <CALx6S36f8SQQoNvzPyCNk4=0LbH4Od6ZtdDn0DCA2sZGZHMx2g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	netfilter-devel@vger.kernel.org, kaber@trash.net,
-	pablo@netfilter.org
-To: Alexander Duyck <alexander.duyck@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:53695 "EHLO ares41.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751150AbbDGIhn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Apr 2015 04:37:43 -0400
-In-Reply-To: <552326ED.9040500@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	pablo@netfilter.org,
+	=?UTF-8?Q?Ji=C5=99=C3=AD=20P=C3=ADrko?= <jiri@resnulli.us>
+To: Tom Herbert <tom@herbertland.com>,
+	David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CALx6S36f8SQQoNvzPyCNk4=0LbH4Od6ZtdDn0DCA2sZGZHMx2g@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 2015-04-07 02:38, Alexander Duyck wrote:
+On Tue, Apr 7, 2015, at 06:45, Tom Herbert wrote:
+> On Mon, Apr 6, 2015 at 8:51 PM, David Miller <davem@davemloft.net> wrote:
+> > I don't see what is convoluted about using the correct socket for
+> > sending L3 protocol frames.  That's in fact how it's _supposed_ to
+> > work.  And consistently having a proper matching socket available
+> > makes it so that, long-term, we'll never have to deal with this issue
+> > ever again.
+> 
+> I guess this is where I'm confused. We can send just about anything
+> over GRE also, but have never needed a transmit socket for that. Is
+> UDP encapsulation so different, or is GRE equally broken also? Also,
+> will we need to add the socket to FOU and GUE then?
 
->On 04/06/2015 11:05 AM, Arturo Borrero Gonzalez wrote:
->> linux_list.h:381:59: warning: right-hand operand of comma expression has no effect [-Wunused-value]
->>   for (pos = list_entry((head)->next, typeof(*pos), member), \
->>                                                            ^
->> libiptc.c:552:2: note: in expansion of macro 'list_for_each_entry'
->>   list_for_each_entry(c, &h->chains, list) {
->>   ^
->>
->> [ Patch copied from one similar of Patrick McHardy on libnftnl ]
->>
->> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
->> ---
->>  libiptc/linux_list.h |    2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/libiptc/linux_list.h b/libiptc/linux_list.h
->> index abdcf88..559e33c 100644
->> --- a/libiptc/linux_list.h
->> +++ b/libiptc/linux_list.h
->> @@ -27,7 +27,7 @@
->>  	1; \
->>  })
->>  
->> -#define prefetch(x)		1
->> +#define prefetch(x)		((void)0)
->>  
->>  /* empty define to make this work in userspace -HW */
->>  #define smp_wmb()
->>
->
->Why not just use "do {} while (0)"?  I know that is what is used in the
->kernel for functions that don't do anything.
+GRE, FOU, GUE in case of sk_mc_loop and the destination is a multicast
+address, we imply sk_mc_loop() == true, what is not what we want. Tunnel
+sockets deliberately set mc_loop to false but we cannot adhere to them,
+yet. David's patchset changes that.
 
-I may be getting the terms wrong, but:
-do{}while(0) is not an expression, it is a (block) control statement.
-In particular, do{}while(0) won't evaluate to an rvalue.
+Also, I saw one inconsistency with sk_bound_dev_if in netfilter which
+doesn't get solved by this patchset (it uses skb->sk->sk_bound_dev_if
+unconditionally).
+
+I think that having a struct-sock carrying over meta-information is a
+good thing.
+
+Thanks,
+Hannes
