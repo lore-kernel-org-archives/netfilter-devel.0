@@ -1,57 +1,32 @@
-From: Tom Herbert <tom@herbertland.com>
-Subject: Re: [PATCH 0/4] Prevent UDP tunnels from operating on garbage socket
-Date: Mon, 6 Apr 2015 19:43:11 -0700
-Message-ID: <CALx6S35bZ6t9d+cpHRXYS94N6rGuHhACMAt9Bj6UzCwBuomBSA@mail.gmail.com>
-References: <20150405.221847.2119086885797169021.davem@davemloft.net>
-	<CALx6S348YyYxrT+3fcXEFz=w6BYFGZwcQ6iD1PjzVePotioJKw@mail.gmail.com>
-	<20150406.124114.924455461962119301.davem@davemloft.net>
-	<20150406.131700.185460014498109286.davem@davemloft.net>
+From: Zhang Chunyu <zhangcy@cn.fujitsu.com>
+Subject: [PATCH] Add NFPROTO_ARP for mark target
+Date: Mon, 6 Apr 2015 22:45:15 -0400
+Message-ID: <1428374716-15108-1-git-send-email-zhangcy@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	pablo@netfilter.org, hannes@stressinduktion.org,
-	=?UTF-8?B?SmnFmcOtIFDDrXJrbw==?= <jiri@resnulli.us>
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20150406.131700.185460014498109286.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain
+Cc: Zhang Chunyu <zhangcy@cn.fujitsu.com>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([59.151.112.132]:48362 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752884AbbDGC73 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Apr 2015 22:59:29 -0400
+Received: from G08CNEXCHPEKD03.g08.fujitsu.local (localhost.localdomain [127.0.0.1])
+	by edo.cn.fujitsu.com (8.14.3/8.13.1) with ESMTP id t372wK7C029429
+	for <netfilter-devel@vger.kernel.org>; Tue, 7 Apr 2015 10:58:20 +0800
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Apr 6, 2015 at 10:17 AM, David Miller <davem@davemloft.net> wrote:
-> From: David Miller <davem@davemloft.net>
-> Date: Mon, 06 Apr 2015 12:41:14 -0400 (EDT)
->
->> Tom if you are saying that skb->sk should be reset to the tunnel
->> socket, that doesn't work and is completely broken.
->
-> Thinking some more, I think what you are missing is that deeper in the
-> ipv4/ipv6 transmit call chain we do things like sk_mc_loop() etc. on
-> the socket and we cannot just do it on skb->sk.
->
-> To make that work correctly we must pass the tunnel socket down
-> through the ipv4/ipv6 packet output paths, via netfilter hooks
-> if necessary.
->
-> I am also really disappointed with the call signature of the udp
-> tunnel send paths.  You have to be honest with yourself and agree
-> that something with 11 arguments is not a well designed interface.
->
-> Now that hopefully you can see that the socket is actually required,
-> can possibly use that to trim the function signature down for
-> udp_tunnel{,6}_xmit_skb()?
->
-To be honest, requiring an additional socket to transmit UDP
-encapsulation seems really convoluted to me, especially considering
-that this is just trying trying to solve AF_PACKET in nf which seems
-like a narrow use case.  Is there no way to test for AF_PACKET sockets
-and take action at a lower function?  Does every type encapsulation
-need its own UDP socket, or can you just have one which set from the
-udp_tunnel when family of skb->sk is AF_PACKET?
+this patch is for arptables --set-mark 
+http://www.spinics.net/lists/netfilter-devel/msg35913.html
 
-Thanks,
-Tom
+Zhang Chunyu (1):
+  Add NFPROTO_ARP for mark
 
-> Worst case, make a "struct udp_tunnel_state" just like I made a "struct
-> nf_hook_state" for the netfilter hooks.
->
-> Thanks.
+ net/netfilter/xt_mark.c | 31 +++++++++++++++++++++----------
+ 1 file changed, 21 insertions(+), 10 deletions(-)
+
+-- 
+1.7.12.4
+
