@@ -1,49 +1,70 @@
-From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Subject: Re: [PATCH 1/4] netfilter: Add nf_hook_state initializer function.
-Date: Tue, 7 Apr 2015 09:45:35 -0700
-Message-ID: <20150407164530.GA6008@Alexeis-MBP.westell.com>
-References: <20150405.221854.118353659007886815.davem@davemloft.net>
- <1428414081.3965860.250247565.2F639A0C@webmail.messagingengine.com>
- <20150407.115821.441881623894604515.davem@davemloft.net>
+From: Alexander Duyck <alexander.h.duyck@redhat.com>
+Subject: Re: [iptables PATCH] list: fix prefetch dummy
+Date: Tue, 07 Apr 2015 10:45:32 -0700
+Message-ID: <552417BC.6050807@redhat.com>
+References: <20150406180541.7031.97131.stgit@nfdev2.cica.es> <552326ED.9040500@gmail.com> <alpine.LSU.2.20.1504071036001.29221@nerf40.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: hannes@stressinduktion.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-	jiri@resnulli.us
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	netfilter-devel@vger.kernel.org, kaber@trash.net,
+	pablo@netfilter.org
+To: Jan Engelhardt <jengelh@inai.de>,
+	Alexander Duyck <alexander.duyck@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ig0-f174.google.com ([209.85.213.174]:37128 "EHLO
-	mail-ig0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754949AbbDGQph (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Apr 2015 12:45:37 -0400
-Content-Disposition: inline
-In-Reply-To: <20150407.115821.441881623894604515.davem@davemloft.net>
+Received: from mx1.redhat.com ([209.132.183.28]:40705 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752620AbbDGRpf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Apr 2015 13:45:35 -0400
+In-Reply-To: <alpine.LSU.2.20.1504071036001.29221@nerf40.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 07, 2015 at 11:58:21AM -0400, David Miller wrote:
-> From: Hannes Frederic Sowa <hannes@stressinduktion.org>
-> Date: Tue, 07 Apr 2015 15:41:21 +0200
-> 
-> > Minor suggestion:
-> > 
-> > I think we can return the structure as a whole:
-> > 
-> > static inline struct nf_hook_state nf_hook_state_init(unsigned int hook,
-> > ...).
-> > 
-> > Being static inline it should not make any difference.
-> 
-> If by some insane possibility this does not get inlined, this structure
-> gets copied to and from the kernel stack on some cpu ABIs in order to
-> return it.
-> 
-> Never return structures from functions, ever.
 
-+1
+On 04/07/2015 01:37 AM, Jan Engelhardt wrote:
+> On Tuesday 2015-04-07 02:38, Alexander Duyck wrote:
+>
+>> On 04/06/2015 11:05 AM, Arturo Borrero Gonzalez wrote:
+>>> linux_list.h:381:59: warning: right-hand operand of comma expression has no effect [-Wunused-value]
+>>>    for (pos = list_entry((head)->next, typeof(*pos), member), \
+>>>                                                             ^
+>>> libiptc.c:552:2: note: in expansion of macro 'list_for_each_entry'
+>>>    list_for_each_entry(c, &h->chains, list) {
+>>>    ^
+>>>
+>>> [ Patch copied from one similar of Patrick McHardy on libnftnl ]
+>>>
+>>> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+>>> ---
+>>>   libiptc/linux_list.h |    2 +-
+>>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/libiptc/linux_list.h b/libiptc/linux_list.h
+>>> index abdcf88..559e33c 100644
+>>> --- a/libiptc/linux_list.h
+>>> +++ b/libiptc/linux_list.h
+>>> @@ -27,7 +27,7 @@
+>>>   	1; \
+>>>   })
+>>>   
+>>> -#define prefetch(x)		1
+>>> +#define prefetch(x)		((void)0)
+>>>   
+>>>   /* empty define to make this work in userspace -HW */
+>>>   #define smp_wmb()
+>>>
+>> Why not just use "do {} while (0)"?  I know that is what is used in the
+>> kernel for functions that don't do anything.
+> I may be getting the terms wrong, but:
+> do{}while(0) is not an expression, it is a (block) control statement.
+> In particular, do{}while(0) won't evaluate to an rvalue.
 
-I bet Dave alluding to insane sparc psABI requirements in that area.
-Some horror stories there.
-Never return structures. Ever!
+Right.  That is the point in this case.  I am assuming what Arturo is 
+trying to accomplish since you shouldn't be able to evaluate ((void)0) 
+as an rvalue either.
 
+The prefetch(x) is an empty statement which is being cast as a void to 
+avoid a compiler warning, so it falls into the first case as defined in: 
+http://kernelnewbies.org/FAQ/DoWhile0
+
+- Alex
