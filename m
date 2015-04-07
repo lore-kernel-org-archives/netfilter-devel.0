@@ -1,72 +1,58 @@
 From: Hannes Frederic Sowa <hannes@stressinduktion.org>
-Subject: Re: [PATCH 3/4] netfilter: Pass socket pointer down through okfn().
-Date: Tue, 07 Apr 2015 20:56:40 +0200
-Message-ID: <1428433000.1370458.250399053.27D6D503@webmail.messagingengine.com>
-References: <20150405.221904.606225054570296194.davem@davemloft.net>
- <1428417869.2928.1.camel@stressinduktion.org>
- <20150407153533.GA3979@salvia>
- <20150407.120122.1683603489877737371.davem@davemloft.net>
+Subject: Re: [PATCH 4/4] udp_tunnel: Pass UDP socket down through
+ udp_tunnel{,6}_xmit_skb().
+Date: Tue, 07 Apr 2015 21:14:20 +0200
+Message-ID: <1428434060.1373881.250400989.21CC8071@webmail.messagingengine.com>
+References: <20150405.221909.1825232827861250716.davem@davemloft.net>
+ <CALx6S35rK35GFZAcqygjGNRUhC=vJx60TYLFDUeUd2bAim7Vzg@mail.gmail.com>
+ <1428421534.2928.3.camel@stressinduktion.org>
+ <CALx6S37vo+9mDJKnkOhJXjArDLDju7hw4N5_Ggoir_U-OqmdAw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	jiri@resnulli.us
-To: David Miller <davem@davemloft.net>, pablo@netfilter.org
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+	=?UTF-8?Q?Ji=C5=99=C3=AD=20P=C3=ADrko?= <jiri@resnulli.us>
+To: Tom Herbert <tom@herbertland.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:34287 "EHLO
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:36488 "EHLO
 	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752968AbbDGS4k (ORCPT
+	by vger.kernel.org with ESMTP id S1750883AbbDGTOX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Apr 2015 14:56:40 -0400
-Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
-	by mailout.nyi.internal (Postfix) with ESMTP id 71B4A20CE2
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2015 14:56:36 -0400 (EDT)
-In-Reply-To: <20150407.120122.1683603489877737371.davem@davemloft.net>
+	Tue, 7 Apr 2015 15:14:23 -0400
+Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
+	by mailout.nyi.internal (Postfix) with ESMTP id 0616620CC2
+	for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2015 15:14:16 -0400 (EDT)
+In-Reply-To: <CALx6S37vo+9mDJKnkOhJXjArDLDju7hw4N5_Ggoir_U-OqmdAw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 7, 2015, at 18:01, David Miller wrote:
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
-> Date: Tue, 7 Apr 2015 17:35:33 +0200
-> 
-> > On Tue, Apr 07, 2015 at 04:44:29PM +0200, Hannes Frederic Sowa wrote:
-> >> On So, 2015-04-05 at 22:19 -0400, David Miller wrote:
-> >> > --- a/include/linux/netfilter.h
-> >> > +++ b/include/linux/netfilter.h
-> >> > @@ -54,7 +54,7 @@ struct nf_hook_state {
-> >> >  	struct net_device *in;
-> >> >  	struct net_device *out;
-> >> >  	struct sock *sk;
-> >> > -	int (*okfn)(struct sk_buff *);
-> >> > +	int (*okfn)(struct sock *, struct sk_buff *);
-> >> >  };
-> >> 
-> >> If we give okfn the signature int (*okfn)(struct nf_hook_state *); then
-> >> we would not need to touch anything else to enhance this.
-> >> 
-> >> What do you think?
-> > 
-> > I guess you mean something like:
-> > 
-> >         int (*okfn)(struct sk_buff *, struct nf_hook_state *);
-> > 
+On Tue, Apr 7, 2015, at 20:56, Tom Herbert wrote:
+> On Tue, Apr 7, 2015 at 8:45 AM, Hannes Frederic Sowa
+> <hannes@stressinduktion.org> wrote:
+> >> > --- a/net/ipv6/ip6_tunnel.c
+> >> > +++ b/net/ipv6/ip6_tunnel.c
+> >> > @@ -1100,7 +1100,7 @@ static int ip6_tnl_xmit2(struct sk_buff *skb,
+> >> >         ipv6h->nexthdr = proto;
+> >> >         ipv6h->saddr = fl6->saddr;
+> >> >         ipv6h->daddr = fl6->daddr;
+> >> > -       ip6tunnel_xmit(skb, dev);
+> >> > +       ip6tunnel_xmit(NULL, skb, dev);
+> >>
+> >> By same should logic iptunnel_xmit call in ip_tunnel_xmit should take
+> >> NULL arg for socket?
+> >
+> > Sure!
+> >
+> Actually, for consistency amongst all the IP encapsulation protocols
+> and given Dave's comments on how this is supposed to work, maybe for
+> the v4 and v6 tunnels we could have a raw AF_INET{6} socket opened for
+> all the tunnels to use when ip_tunnel_xmit is called. If it makes a
+> difference for UDP encapsulation, a UDP socket could also be opened.
 
-Yes, correct of course.
+Yes, agreed.
 
-> > I agree that would save us from more changes on the okfn() signature.
-> > I think it's OK if that change is introduced once we have some client
-> > code that needs it, I mean in a follow up patch.
-> 
-> No, becuase this means things like ip_finish_output(), and even
-> generic functions like dst_output(), dev_loopback_xmit(), and friends
-> will have netfilter specific arguments, and that is not acceptable.
-> 
-> Please do not suggest this.
-
-This idea would imply to e.g. rename nf_hook_state into something not
-associated with netfilter. Otherwise I don't see any dependencies on
-netfilter.
-
-I like the patches as-is and if not necessary we don't need to do this.
-
-Thanks!
+Currently the semantics seem fine to me. vxlan needs this because it is
+communicating via multicast addresses and thus we depend on correct
+mc_loop behaviour. Which other tunnel protocols could be affected by
+this, too?
