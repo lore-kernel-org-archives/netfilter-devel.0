@@ -1,39 +1,40 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 1/4] netfilter: Add nf_hook_state initializer function.
-Date: Tue, 07 Apr 2015 11:58:21 -0400 (EDT)
-Message-ID: <20150407.115821.441881623894604515.davem@davemloft.net>
-References: <20150405.221854.118353659007886815.davem@davemloft.net>
-	<1428414081.3965860.250247565.2F639A0C@webmail.messagingengine.com>
+Subject: Re: [PATCH 3/4] netfilter: Pass socket pointer down through okfn().
+Date: Tue, 07 Apr 2015 11:59:34 -0400 (EDT)
+Message-ID: <20150407.115934.1965685795824815835.davem@davemloft.net>
+References: <20150405.221904.606225054570296194.davem@davemloft.net>
+	<1428417869.2928.1.camel@stressinduktion.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	pablo@netfilter.org, jiri@resnulli.us
 To: hannes@stressinduktion.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:55901 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753345AbbDGP63 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Apr 2015 11:58:29 -0400
-In-Reply-To: <1428414081.3965860.250247565.2F639A0C@webmail.messagingengine.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1428417869.2928.1.camel@stressinduktion.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 From: Hannes Frederic Sowa <hannes@stressinduktion.org>
-Date: Tue, 07 Apr 2015 15:41:21 +0200
+Date: Tue, 07 Apr 2015 16:44:29 +0200
 
-> Minor suggestion:
+> On So, 2015-04-05 at 22:19 -0400, David Miller wrote:
+>> --- a/include/linux/netfilter.h
+>> +++ b/include/linux/netfilter.h
+>> @@ -54,7 +54,7 @@ struct nf_hook_state {
+>>  	struct net_device *in;
+>>  	struct net_device *out;
+>>  	struct sock *sk;
+>> -	int (*okfn)(struct sk_buff *);
+>> +	int (*okfn)(struct sock *, struct sk_buff *);
+>>  };
 > 
-> I think we can return the structure as a whole:
+> If we give okfn the signature int (*okfn)(struct nf_hook_state *); then
+> we would not need to touch anything else to enhance this.
 > 
-> static inline struct nf_hook_state nf_hook_state_init(unsigned int hook,
-> ...).
-> 
-> Being static inline it should not make any difference.
+> What do you think?
 
-If by some insane possibility this does not get inlined, this structure
-gets copied to and from the kernel stack on some cpu ABIs in order to
-return it.
+We do not want nf_hook_state being an argument for non-netfilter output
+functions in the various protocols.
 
-Never return structures from functions, ever.
+So this is a terrible idea.
