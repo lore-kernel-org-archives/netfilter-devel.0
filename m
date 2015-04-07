@@ -1,57 +1,57 @@
-From: Alexander Duyck <alexander.duyck@gmail.com>
-Subject: Re: [iptables PATCH] list: fix prefetch dummy
-Date: Mon, 06 Apr 2015 17:38:05 -0700
-Message-ID: <552326ED.9040500@gmail.com>
-References: <20150406180541.7031.97131.stgit@nfdev2.cica.es>
+From: Tom Herbert <tom@herbertland.com>
+Subject: Re: [PATCH 0/4] Prevent UDP tunnels from operating on garbage socket
+Date: Mon, 6 Apr 2015 19:43:11 -0700
+Message-ID: <CALx6S35bZ6t9d+cpHRXYS94N6rGuHhACMAt9Bj6UzCwBuomBSA@mail.gmail.com>
+References: <20150405.221847.2119086885797169021.davem@davemloft.net>
+	<CALx6S348YyYxrT+3fcXEFz=w6BYFGZwcQ6iD1PjzVePotioJKw@mail.gmail.com>
+	<20150406.124114.924455461962119301.davem@davemloft.net>
+	<20150406.131700.185460014498109286.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, pablo@netfilter.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:36323 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752726AbbDGAiH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Apr 2015 20:38:07 -0400
-Received: by pabsx10 with SMTP id sx10so60273627pab.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Apr 2015 17:38:06 -0700 (PDT)
-In-Reply-To: <20150406180541.7031.97131.stgit@nfdev2.cica.es>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	pablo@netfilter.org, hannes@stressinduktion.org,
+	=?UTF-8?B?SmnFmcOtIFDDrXJrbw==?= <jiri@resnulli.us>
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20150406.131700.185460014498109286.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 04/06/2015 11:05 AM, Arturo Borrero Gonzalez wrote:
-> linux_list.h:381:59: warning: right-hand operand of comma expression has no effect [-Wunused-value]
->   for (pos = list_entry((head)->next, typeof(*pos), member), \
->                                                            ^
-> libiptc.c:552:2: note: in expansion of macro 'list_for_each_entry'
->   list_for_each_entry(c, &h->chains, list) {
->   ^
+On Mon, Apr 6, 2015 at 10:17 AM, David Miller <davem@davemloft.net> wrote:
+> From: David Miller <davem@davemloft.net>
+> Date: Mon, 06 Apr 2015 12:41:14 -0400 (EDT)
 >
-> [ Patch copied from one similar of Patrick McHardy on libnftnl ]
+>> Tom if you are saying that skb->sk should be reset to the tunnel
+>> socket, that doesn't work and is completely broken.
 >
-> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> ---
->  libiptc/linux_list.h |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> Thinking some more, I think what you are missing is that deeper in the
+> ipv4/ipv6 transmit call chain we do things like sk_mc_loop() etc. on
+> the socket and we cannot just do it on skb->sk.
 >
-> diff --git a/libiptc/linux_list.h b/libiptc/linux_list.h
-> index abdcf88..559e33c 100644
-> --- a/libiptc/linux_list.h
-> +++ b/libiptc/linux_list.h
-> @@ -27,7 +27,7 @@
->  	1; \
->  })
->  
-> -#define prefetch(x)		1
-> +#define prefetch(x)		((void)0)
->  
->  /* empty define to make this work in userspace -HW */
->  #define smp_wmb()
+> To make that work correctly we must pass the tunnel socket down
+> through the ipv4/ipv6 packet output paths, via netfilter hooks
+> if necessary.
 >
+> I am also really disappointed with the call signature of the udp
+> tunnel send paths.  You have to be honest with yourself and agree
+> that something with 11 arguments is not a well designed interface.
+>
+> Now that hopefully you can see that the socket is actually required,
+> can possibly use that to trim the function signature down for
+> udp_tunnel{,6}_xmit_skb()?
+>
+To be honest, requiring an additional socket to transmit UDP
+encapsulation seems really convoluted to me, especially considering
+that this is just trying trying to solve AF_PACKET in nf which seems
+like a narrow use case.  Is there no way to test for AF_PACKET sockets
+and take action at a lower function?  Does every type encapsulation
+need its own UDP socket, or can you just have one which set from the
+udp_tunnel when family of skb->sk is AF_PACKET?
 
-Why not just use "do {} while (0)"?  I know that is what is used in the
-kernel for functions that don't do anything.
+Thanks,
+Tom
 
-- Alex
+> Worst case, make a "struct udp_tunnel_state" just like I made a "struct
+> nf_hook_state" for the netfilter hooks.
+>
+> Thanks.
