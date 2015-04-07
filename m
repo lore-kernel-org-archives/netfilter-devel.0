@@ -1,52 +1,46 @@
-From: Alexander Duyck <alexander.h.duyck@redhat.com>
-Subject: Re: [iptables PATCH] list: fix prefetch dummy
-Date: Tue, 07 Apr 2015 12:29:25 -0700
-Message-ID: <55243015.8020402@redhat.com>
-References: <20150406180541.7031.97131.stgit@nfdev2.cica.es> <552326ED.9040500@gmail.com> <alpine.LSU.2.20.1504071036001.29221@nerf40.vanv.qr> <552417BC.6050807@redhat.com> <alpine.LSU.2.20.1504072010530.17563@nerf40.vanv.qr>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 4/4] udp_tunnel: Pass UDP socket down through
+ udp_tunnel{,6}_xmit_skb().
+Date: Tue, 07 Apr 2015 15:30:44 -0400 (EDT)
+Message-ID: <20150407.153044.772260953305341361.davem@davemloft.net>
+References: <20150405.221909.1825232827861250716.davem@davemloft.net>
+	<CALx6S35rK35GFZAcqygjGNRUhC=vJx60TYLFDUeUd2bAim7Vzg@mail.gmail.com>
+	<1428421534.2928.3.camel@stressinduktion.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Alexander Duyck <alexander.duyck@gmail.com>,
-	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	netfilter-devel@vger.kernel.org, kaber@trash.net,
-	pablo@netfilter.org
-To: Jan Engelhardt <jengelh@inai.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40147 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751906AbbDGT3h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Apr 2015 15:29:37 -0400
-In-Reply-To: <alpine.LSU.2.20.1504072010530.17563@nerf40.vanv.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: tom@herbertland.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+	jiri@resnulli.us
+To: hannes@stressinduktion.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1428421534.2928.3.camel@stressinduktion.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 04/07/2015 11:17 AM, Jan Engelhardt wrote:
->
-> On Tuesday 2015-04-07 19:45, Alexander Duyck wrote:
->>>>>   -#define prefetch(x)		1
->>>>> +#define prefetch(x)		((void)0)
->>>>>
->>>> Why not just use "do {} while (0)"?  I know that is what is used in the
->>>> kernel for functions that don't do anything.
->>> I may be getting the terms wrong, but:
->>> do{}while(0) is not an expression, it is a (block) control statement.
->>> In particular, do{}while(0) won't evaluate to an rvalue.
->>
->> Right.  That is the point in this case.  I am assuming what Arturo is trying to
->> accomplish since you shouldn't be able to evaluate ((void)0) as an rvalue
->> either.
->
-> The difference is that
->
-> 	int i;
-> 	i = 1, (void)0;
->
-> compiles, while
->
-> 	i = 1, do{}while(0);
->
+From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Date: Tue, 07 Apr 2015 17:45:34 +0200
 
-Okay, that explains it.  It is being used inside the init, condition, 
-and post process sections of a for loop.  Thanks for explaining it.
+> On Mo, 2015-04-06 at 23:02 -0700, Tom Herbert wrote:
+>> On Sun, Apr 5, 2015 at 7:19 PM, David Miller <davem@davemloft.net> wrote:
+>> > diff --git a/net/ipv6/ip6_tunnel.c b/net/ipv6/ip6_tunnel.c
+>> > index b6a211a..5cafd92 100644
+>> > --- a/net/ipv6/ip6_tunnel.c
+>> > +++ b/net/ipv6/ip6_tunnel.c
+>> > @@ -1100,7 +1100,7 @@ static int ip6_tnl_xmit2(struct sk_buff *skb,
+>> >         ipv6h->nexthdr = proto;
+>> >         ipv6h->saddr = fl6->saddr;
+>> >         ipv6h->daddr = fl6->daddr;
+>> > -       ip6tunnel_xmit(skb, dev);
+>> > +       ip6tunnel_xmit(NULL, skb, dev);
+>> 
+>> By same should logic iptunnel_xmit call in ip_tunnel_xmit should take
+>> NULL arg for socket?
+> 
+> Sure!
+> 
+> Thanks, otherwise the patches look good!
+> 
+> Acked-by: Hannes Frederic Sowa <hannes@stressinduktion.org>
 
-- Alex
+Ok I've made this adjustment and will push the series out, thanks everyone.
