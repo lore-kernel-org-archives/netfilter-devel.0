@@ -1,99 +1,57 @@
-From: Zhang Chunyu <zhangcy@cn.fujitsu.com>
-Subject: [PATCH] Add NFPROTO_ARP for mark
-Date: Mon, 6 Apr 2015 22:45:16 -0400
-Message-ID: <1428374716-15108-2-git-send-email-zhangcy@cn.fujitsu.com>
-References: <1428374716-15108-1-git-send-email-zhangcy@cn.fujitsu.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/4] Prevent UDP tunnels from operating on garbage
+ socket
+Date: Mon, 06 Apr 2015 23:51:18 -0400 (EDT)
+Message-ID: <20150406.235118.65925113152002205.davem@davemloft.net>
+References: <20150406.124114.924455461962119301.davem@davemloft.net>
+	<20150406.131700.185460014498109286.davem@davemloft.net>
+	<CALx6S35bZ6t9d+cpHRXYS94N6rGuHhACMAt9Bj6UzCwBuomBSA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: Zhang Chunyu <zhangcy@cn.fujitsu.com>
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	pablo@netfilter.org, hannes@stressinduktion.org, jiri@resnulli.us
+To: tom@herbertland.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:18459 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752986AbbDGC7a (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:50681 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753055AbbDGDvW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Apr 2015 22:59:30 -0400
-Received: from G08CNEXCHPEKD03.g08.fujitsu.local (localhost.localdomain [127.0.0.1])
-	by edo.cn.fujitsu.com (8.14.3/8.13.1) with ESMTP id t372wMq6029432
-	for <netfilter-devel@vger.kernel.org>; Tue, 7 Apr 2015 10:58:22 +0800
-In-Reply-To: <1428374716-15108-1-git-send-email-zhangcy@cn.fujitsu.com>
+	Mon, 6 Apr 2015 23:51:22 -0400
+In-Reply-To: <CALx6S35bZ6t9d+cpHRXYS94N6rGuHhACMAt9Bj6UzCwBuomBSA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-need add NFPROTO_ARP and MODULE_ALIAS for arptables -mark
+From: Tom Herbert <tom@herbertland.com>
+Date: Mon, 6 Apr 2015 19:43:11 -0700
 
-Signed-off-by: Zhang Chunyu <zhangcy@cn.fujitsu.com>
----
- net/netfilter/xt_mark.c | 31 +++++++++++++++++++++----------
- 1 file changed, 21 insertions(+), 10 deletions(-)
+> To be honest, requiring an additional socket to transmit UDP
+> encapsulation seems really convoluted to me, especially considering
+> that this is just trying trying to solve AF_PACKET in nf which seems
+> like a narrow use case.  Is there no way to test for AF_PACKET sockets
+> and take action at a lower function?  Does every type encapsulation
+> need its own UDP socket, or can you just have one which set from the
+> udp_tunnel when family of skb->sk is AF_PACKET?
 
-diff --git a/net/netfilter/xt_mark.c b/net/netfilter/xt_mark.c
-index 2334523..5778062 100644
---- a/net/netfilter/xt_mark.c
-+++ b/net/netfilter/xt_mark.c
-@@ -23,6 +23,7 @@ MODULE_ALIAS("ipt_mark");
- MODULE_ALIAS("ip6t_mark");
- MODULE_ALIAS("ipt_MARK");
- MODULE_ALIAS("ip6t_MARK");
-+MODULE_ALIAS("arpt_MARK");
- 
- static unsigned int
- mark_tg(struct sk_buff *skb, const struct xt_action_param *par)
-@@ -41,13 +42,23 @@ mark_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	return ((skb->mark & info->mask) == info->mark) ^ info->invert;
- }
- 
--static struct xt_target mark_tg_reg __read_mostly = {
--	.name           = "MARK",
--	.revision       = 2,
--	.family         = NFPROTO_UNSPEC,
--	.target         = mark_tg,
--	.targetsize     = sizeof(struct xt_mark_tginfo2),
--	.me             = THIS_MODULE,
-+static struct xt_target mark_tg_reg[] __read_mostly = {
-+	{
-+		.name           = "MARK",
-+		.revision       = 2,
-+		.family         = NFPROTO_UNSPEC,
-+		.target         = mark_tg,
-+		.targetsize     = sizeof(struct xt_mark_tginfo2),
-+		.me             = THIS_MODULE,
-+	},
-+	{
-+		.name           = "MARK",
-+		.revision       = 2,
-+		.family         = NFPROTO_ARP,
-+		.target         = mark_tg,
-+		.targetsize     = sizeof(struct xt_mark_tginfo2),
-+		.me             = THIS_MODULE,
-+	}
- };
- 
- static struct xt_match mark_mt_reg __read_mostly = {
-@@ -63,12 +74,12 @@ static int __init mark_mt_init(void)
- {
- 	int ret;
- 
--	ret = xt_register_target(&mark_tg_reg);
-+	ret = xt_register_targets(mark_tg_reg, ARRAY_SIZE(mark_tg_reg));
- 	if (ret < 0)
- 		return ret;
- 	ret = xt_register_match(&mark_mt_reg);
- 	if (ret < 0) {
--		xt_unregister_target(&mark_tg_reg);
-+		xt_unregister_targets(mark_tg_reg, ARRAY_SIZE(mark_tg_reg));
- 		return ret;
- 	}
- 	return 0;
-@@ -77,7 +88,7 @@ static int __init mark_mt_init(void)
- static void __exit mark_mt_exit(void)
- {
- 	xt_unregister_match(&mark_mt_reg);
--	xt_unregister_target(&mark_tg_reg);
-+	xt_unregister_targets(mark_tg_reg, ARRAY_SIZE(mark_tg_reg));
- }
- 
- module_init(mark_mt_init);
--- 
-1.7.12.4
+This has nothing to do with netfilter.
 
+This has everything to do with being able to pass a socket down
+through the complete ipv4/ipv6 output path.  That's the only
+reason netfilter needed to be touched.
+
+The ipv4/ipv6 output call paths have the NF hooks in the middle, and
+the NF hooks determine what the call signature is for the rest of the
+output path.  That's why it needed to be adjusted.
+
+For ipv6 fragmentation, in particular, having the right ipv4/ipv6
+socket is going to be important.
+
+AF_PACKET is not an isolated case, just the most likely example.  It's
+just as easy to trigger this problem for other protocol families too.
+You can send appletalk packets over VXLAN.
+
+I don't see what is convoluted about using the correct socket for
+sending L3 protocol frames.  That's in fact how it's _supposed_ to
+work.  And consistently having a proper matching socket available
+makes it so that, long-term, we'll never have to deal with this issue
+ever again.
