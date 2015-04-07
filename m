@@ -1,56 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 3/4] netfilter: Pass socket pointer down through okfn().
-Date: Tue, 07 Apr 2015 12:01:22 -0400 (EDT)
-Message-ID: <20150407.120122.1683603489877737371.davem@davemloft.net>
-References: <20150405.221904.606225054570296194.davem@davemloft.net>
-	<1428417869.2928.1.camel@stressinduktion.org>
-	<20150407153533.GA3979@salvia>
+From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Subject: Re: [PATCH 1/4] netfilter: Add nf_hook_state initializer function.
+Date: Tue, 7 Apr 2015 09:45:35 -0700
+Message-ID: <20150407164530.GA6008@Alexeis-MBP.westell.com>
+References: <20150405.221854.118353659007886815.davem@davemloft.net>
+ <1428414081.3965860.250247565.2F639A0C@webmail.messagingengine.com>
+ <20150407.115821.441881623894604515.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: hannes@stressinduktion.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, jiri@resnulli.us
-To: pablo@netfilter.org
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+	jiri@resnulli.us
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:55929 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754093AbbDGQBZ (ORCPT
+Received: from mail-ig0-f174.google.com ([209.85.213.174]:37128 "EHLO
+	mail-ig0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754949AbbDGQph (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Apr 2015 12:01:25 -0400
-In-Reply-To: <20150407153533.GA3979@salvia>
+	Tue, 7 Apr 2015 12:45:37 -0400
+Content-Disposition: inline
+In-Reply-To: <20150407.115821.441881623894604515.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue, 7 Apr 2015 17:35:33 +0200
-
-> On Tue, Apr 07, 2015 at 04:44:29PM +0200, Hannes Frederic Sowa wrote:
->> On So, 2015-04-05 at 22:19 -0400, David Miller wrote:
->> > --- a/include/linux/netfilter.h
->> > +++ b/include/linux/netfilter.h
->> > @@ -54,7 +54,7 @@ struct nf_hook_state {
->> >  	struct net_device *in;
->> >  	struct net_device *out;
->> >  	struct sock *sk;
->> > -	int (*okfn)(struct sk_buff *);
->> > +	int (*okfn)(struct sock *, struct sk_buff *);
->> >  };
->> 
->> If we give okfn the signature int (*okfn)(struct nf_hook_state *); then
->> we would not need to touch anything else to enhance this.
->> 
->> What do you think?
+On Tue, Apr 07, 2015 at 11:58:21AM -0400, David Miller wrote:
+> From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+> Date: Tue, 07 Apr 2015 15:41:21 +0200
 > 
-> I guess you mean something like:
+> > Minor suggestion:
+> > 
+> > I think we can return the structure as a whole:
+> > 
+> > static inline struct nf_hook_state nf_hook_state_init(unsigned int hook,
+> > ...).
+> > 
+> > Being static inline it should not make any difference.
 > 
->         int (*okfn)(struct sk_buff *, struct nf_hook_state *);
+> If by some insane possibility this does not get inlined, this structure
+> gets copied to and from the kernel stack on some cpu ABIs in order to
+> return it.
 > 
-> I agree that would save us from more changes on the okfn() signature.
-> I think it's OK if that change is introduced once we have some client
-> code that needs it, I mean in a follow up patch.
+> Never return structures from functions, ever.
 
-No, becuase this means things like ip_finish_output(), and even
-generic functions like dst_output(), dev_loopback_xmit(), and friends
-will have netfilter specific arguments, and that is not acceptable.
++1
 
-Please do not suggest this.
+I bet Dave alluding to insane sparc psABI requirements in that area.
+Some horror stories there.
+Never return structures. Ever!
+
