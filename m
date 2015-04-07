@@ -1,49 +1,99 @@
 From: Hannes Frederic Sowa <hannes@stressinduktion.org>
-Subject: Re: [PATCH 0/4] Prevent UDP tunnels from operating on garbage socket
-Date: Tue, 07 Apr 2015 13:27:33 +0200
-Message-ID: <1428406053.3932555.250169221.75848497@webmail.messagingengine.com>
-References: <20150406.124114.924455461962119301.davem@davemloft.net>
- <20150406.131700.185460014498109286.davem@davemloft.net>
- <CALx6S35bZ6t9d+cpHRXYS94N6rGuHhACMAt9Bj6UzCwBuomBSA@mail.gmail.com>
- <20150406.235118.65925113152002205.davem@davemloft.net>
- <CALx6S36f8SQQoNvzPyCNk4=0LbH4Od6ZtdDn0DCA2sZGZHMx2g@mail.gmail.com>
+Subject: Re: [PATCH 1/4] netfilter: Add nf_hook_state initializer function.
+Date: Tue, 07 Apr 2015 15:41:21 +0200
+Message-ID: <1428414081.3965860.250247565.2F639A0C@webmail.messagingengine.com>
+References: <20150405.221854.118353659007886815.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	pablo@netfilter.org,
-	=?UTF-8?Q?Ji=C5=99=C3=AD=20P=C3=ADrko?= <jiri@resnulli.us>
-To: Tom Herbert <tom@herbertland.com>,
-	David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CALx6S36f8SQQoNvzPyCNk4=0LbH4Od6ZtdDn0DCA2sZGZHMx2g@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+	jiri@resnulli.us
+To: David Miller <davem@davemloft.net>, netdev@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:34275 "EHLO
+	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753263AbbDGNlV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Apr 2015 09:41:21 -0400
+Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
+	by mailout.nyi.internal (Postfix) with ESMTP id 5F06820C10
+	for <netfilter-devel@vger.kernel.org>; Tue,  7 Apr 2015 09:41:17 -0400 (EDT)
+In-Reply-To: <20150405.221854.118353659007886815.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 7, 2015, at 06:45, Tom Herbert wrote:
-> On Mon, Apr 6, 2015 at 8:51 PM, David Miller <davem@davemloft.net> wrote:
-> > I don't see what is convoluted about using the correct socket for
-> > sending L3 protocol frames.  That's in fact how it's _supposed_ to
-> > work.  And consistently having a proper matching socket available
-> > makes it so that, long-term, we'll never have to deal with this issue
-> > ever again.
+
+
+On Mon, Apr 6, 2015, at 04:18, David Miller wrote:
 > 
-> I guess this is where I'm confused. We can send just about anything
-> over GRE also, but have never needed a transmit socket for that. Is
-> UDP encapsulation so different, or is GRE equally broken also? Also,
-> will we need to add the socket to FOU and GUE then?
+> This way we can consolidate where we setup new nf_hook_state objects,
+> to make sure the entire thing is initialized.
+> 
+> The only other place an nf_hook_object is instantiated is nf_queue,
+> wherein a structure copy is used.
+> 
+> Signed-off-by: David S. Miller <davem@davemloft.net>
+> ---
+>  include/linux/netfilter.h | 26 ++++++++++++++++++--------
+>  1 file changed, 18 insertions(+), 8 deletions(-)
+> 
+> diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+> index c480c43..b8c88f3 100644
+> --- a/include/linux/netfilter.h
+> +++ b/include/linux/netfilter.h
+> @@ -54,6 +54,21 @@ struct nf_hook_state {
+>  	int (*okfn)(struct sk_buff *);
+>  };
+>  
+> +static inline void nf_hook_state_init(struct nf_hook_state *p,
+> +                                     unsigned int hook,
+> +                                     int thresh, u_int8_t pf,
+> +                                     struct net_device *indev,
+> +                                     struct net_device *outdev,
+> +                                     int (*okfn)(struct sk_buff *))
+> +{
+> +       p->hook = hook;
+> +       p->thresh = thresh;
+> +       p->pf = pf;
+> +       p->in = indev;
+> +       p->out = outdev;
+> +       p->okfn = okfn;
+> +}
+> +
 
-GRE, FOU, GUE in case of sk_mc_loop and the destination is a multicast
-address, we imply sk_mc_loop() == true, what is not what we want. Tunnel
-sockets deliberately set mc_loop to false but we cannot adhere to them,
-yet. David's patchset changes that.
+Minor suggestion:
 
-Also, I saw one inconsistency with sk_bound_dev_if in netfilter which
-doesn't get solved by this patchset (it uses skb->sk->sk_bound_dev_if
-unconditionally).
+I think we can return the structure as a whole:
 
-I think that having a struct-sock carrying over meta-information is a
-good thing.
+static inline struct nf_hook_state nf_hook_state_init(unsigned int hook,
+...).
 
-Thanks,
-Hannes
+Being static inline it should not make any difference.
+
+
+>  typedef unsigned int nf_hookfn(const struct nf_hook_ops *ops,
+>  			       struct sk_buff *skb,
+>  			       const struct nf_hook_state *state);
+> @@ -142,15 +157,10 @@ static inline int nf_hook_thresh(u_int8_t pf,
+> unsigned int hook,
+>  				 int (*okfn)(struct sk_buff *), int thresh)
+>  {
+>  	if (nf_hooks_active(pf, hook)) {
+> -               struct nf_hook_state state = {
+> -                       .hook = hook,
+> -                       .thresh = thresh,
+> -                       .pf = pf,
+> -                       .in = indev,
+> -                       .out = outdev,
+> -                       .okfn = okfn
+> -               };
+> +               struct nf_hook_state state;
+>  
+> +               nf_hook_state_init(&state, hook, thresh, pf,
+> +                                  indev, outdev, okfn);
+
+state = nf_hook_state_init(hook, thresh, pf, indev, outdev, okfn);
+
+>  		return nf_hook_slow(skb, &state);
+>  	}
+>  	return 1;
