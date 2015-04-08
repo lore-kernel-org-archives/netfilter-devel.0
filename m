@@ -1,1245 +1,300 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH 3/4] src: add xt compat support
-Date: Wed, 08 Apr 2015 19:48:29 +0200
-Message-ID: <20150408174829.28553.71132.stgit@nfdev2.cica.es>
-References: <20150408174818.28553.96128.stgit@nfdev2.cica.es>
+Subject: [nft PATCH 1/4] include: cache a copy of kernel ebtables.h
+Date: Wed, 08 Apr 2015 19:48:18 +0200
+Message-ID: <20150408174818.28553.96128.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net, pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp4.cica.es ([150.214.5.182]:38448 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:33948 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754688AbbDHRsk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Apr 2015 13:48:40 -0400
-In-Reply-To: <20150408174818.28553.96128.stgit@nfdev2.cica.es>
+	id S1752771AbbDHRs1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Apr 2015 13:48:27 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Arturo Borrero Gonzalez <aborrero@nfdev2.cica.es>
 
-At compilation time, you have to pass this option.
+Required for next patches.
 
-  # ./configure --with-xtables
-
-And libxtables needs to be installed in your system.
-
-This patch allows you to use xt extensions from nft, eg.
-
-  # nft add rule filter output \
-	tcp flags syn xt target TCPMSS [ --clamp-mss-to-pmtu ]
-
-This provides access to all existing xt modules from nft. Users can
-meanwhile use xt extension until we can provide native expressions.
-
-You can build this optionally, if disabled it displays an error:
-
-  # nft add rule filter output tcp flags syn xt target TCPMSS [ --clamp-mss-to-pmtu ]
-  <cmdline>:1:38-77: Error: this build does not support xtables
-  add rule filter output tcp flags syn xt target TCPMSS [ --clamp-mss-to-pmtu ]
-                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-so you know your build doesn't support this.
-
-Limitations:
-
-* Beware of clashes with keywords, eg. state, from bison parser.
-* Better xt parsing errors for unknown options.
-
-This is joint work with Arturo Borrero Gonzalez.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- configure.ac              |   13 +
- include/statement.h       |    4 
- include/xt.h              |  105 +++++++
- src/Makefile.am           |    8 +
- src/evaluate.c            |    3 
- src/main.c                |   12 +
- src/netlink_delinearize.c |    6 
- src/netlink_linearize.c   |    3 
- src/parser_bison.y        |   57 ++++
- src/rule.c                |    1 
- src/scanner.l             |   15 +
- src/statement.c           |   42 +++
- src/xt.c                  |  673 +++++++++++++++++++++++++++++++++++++++++++++
- 13 files changed, 939 insertions(+), 3 deletions(-)
- create mode 100644 include/xt.h
- create mode 100644 src/xt.c
+ include/linux/netfilter_bridge/ebtables.h |  266 +++++++++++++++++++++++++++++
+ 1 file changed, 266 insertions(+)
+ create mode 100644 include/linux/netfilter_bridge/ebtables.h
 
-diff --git a/configure.ac b/configure.ac
-index d8f949a..f51acb9 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -92,6 +92,16 @@ AC_DEFINE([HAVE_LIBREADLINE], [1], [])
- AC_SUBST(with_cli)
- AM_CONDITIONAL([BUILD_CLI], [test "x$with_cli" != xno])
- 
-+AC_ARG_WITH([xtables], [AS_HELP_STRING([--with-xtables],
-+            [Use libxtables for iptables interaction)])],
-+	    [with_libxtables=yes], [with_libxtables=no])
-+AS_IF([test "x$with_libxtables" != xno], [
-+PKG_CHECK_MODULES([XTABLES], [xtables >= 1.4.21])
-+AC_DEFINE([HAVE_LIBXTABLES], [1], [0])
-+])
-+AC_SUBST(with_libxtables)
-+AM_CONDITIONAL([BUILD_XTABLES], [test "x$with_libxtables" == xyes])
-+
- # Checks for header files.
- AC_HEADER_STDC
- AC_HEADER_ASSERT
-@@ -136,4 +146,5 @@ echo "
- nft configuration:
-   cli support:			${with_cli}
-   enable debugging:		${with_debug}
--  use mini-gmp:			${with_mini_gmp}"
-+  use mini-gmp:			${with_mini_gmp}
-+  libxtables support:		${with_libxtables}"
-diff --git a/include/statement.h b/include/statement.h
-index d143121..1f97116 100644
---- a/include/statement.h
-+++ b/include/statement.h
-@@ -3,6 +3,7 @@
- 
- #include <list.h>
- #include <expression.h>
-+#include <xt.h>
- 
- extern struct stmt *expr_stmt_alloc(const struct location *loc,
- 				    struct expr *expr);
-@@ -120,6 +121,7 @@ extern struct stmt *ct_stmt_alloc(const struct location *loc,
-  * @STMT_REDIR:		redirect statement
-  * @STMT_QUEUE:		QUEUE statement
-  * @STMT_CT:		conntrack statement
-+ * @STMT_XT:		XT statement
-  */
- enum stmt_types {
- 	STMT_INVALID,
-@@ -135,6 +137,7 @@ enum stmt_types {
- 	STMT_REDIR,
- 	STMT_QUEUE,
- 	STMT_CT,
-+	STMT_XT,
- };
- 
- /**
-@@ -184,6 +187,7 @@ struct stmt {
- 		struct redir_stmt	redir;
- 		struct queue_stmt	queue;
- 		struct ct_stmt		ct;
-+		struct xt_stmt		xt;
- 	};
- };
- 
-diff --git a/include/xt.h b/include/xt.h
+diff --git a/include/linux/netfilter_bridge/ebtables.h b/include/linux/netfilter_bridge/ebtables.h
 new file mode 100644
-index 0000000..4ca81de
+index 0000000..a225911
 --- /dev/null
-+++ b/include/xt.h
-@@ -0,0 +1,105 @@
-+#ifndef _NFT_XT_H_
-+#define _NFT_XT_H_
-+
-+#include <net/if.h>
-+#include <arpa/inet.h>
-+#include <netinet/in.h>
-+#include <limits.h>
-+#include <net/ethernet.h>
-+#include <statement.h>
-+
-+struct netlink_linearize_ctx;
-+struct netlink_parse_ctx;
-+struct nft_rule_expr;
-+struct rule_pp_ctx;
-+struct rule;
-+
-+#ifdef HAVE_LIBXTABLES
-+
-+#include <linux/netfilter_bridge/ebtables.h>
-+#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter_ipv6/ip6_tables.h>
-+#include <linux/netfilter_arp/arp_tables.h>
-+
-+union nft_entry {
-+	struct ipt_entry	e4;
-+	struct ip6t_entry	e6;
-+	struct ebt_entry	ebt;
-+	struct arpt_entry	arp;
-+};
-+
-+void xt_stmt_release(const struct stmt *stmt);
-+const char *xt_stmt_name(const struct stmt *stmt);
-+void xt_stmt_save(const struct stmt *stmt);
-+
-+int stmt_evaluate_xt(struct eval_ctx *ctx, struct stmt *stmt);
-+
-+void netlink_gen_xt_stmt(struct netlink_linearize_ctx *ctx,
-+			 const struct stmt *stmt);
-+
-+void netlink_parse_target(struct netlink_parse_ctx *ctx,
-+			  const struct location *loc,
-+			  const struct nft_rule_expr *nle);
-+void netlink_parse_match(struct netlink_parse_ctx *ctx,
-+			 const struct location *loc,
-+			 const struct nft_rule_expr *nle);
-+void stmt_xt_postprocess(struct rule_pp_ctx *rctx, struct stmt *stmt,
-+			 struct rule *rule);
-+#else /* HAVE_LIBXTABLES */
-+
-+static inline void xt_stmt_destroy_internals(const struct stmt *stmt) {}
-+
-+static inline const char *xt_stmt_name(const struct stmt *stmt)
-+{
-+	return "unknown";
-+}
-+static inline void xt_stmt_save(const struct stmt *stmt) {}
-+
-+static inline int stmt_evaluate_xt(struct eval_ctx *ctx, struct stmt *stmt)
-+{
-+	return stmt_error(ctx, stmt, "this build does not support xtables");
-+}
-+
-+static inline void netlink_gen_xt_stmt(struct netlink_linearize_ctx *ctx,
-+				       const struct stmt *stmt) {}
-+
-+static inline void netlink_parse_target(struct netlink_parse_ctx *ctx,
-+                                 const struct location *loc,
-+                                 const struct nft_rule_expr *nle) {}
-+static inline void netlink_parse_match(struct netlink_parse_ctx *ctx,
-+                                 const struct location *loc,
-+                                 const struct nft_rule_expr *nle) {}
-+static inline void stmt_xt_postprocess(struct rule_pp_ctx *rctx,
-+				       struct stmt *stmt, struct rule *rule) {}
-+
-+#endif /* HAVE_LIBXTABLES */
-+
-+/**
-+ * enum nft_xt_type - xtables statement types
++++ b/include/linux/netfilter_bridge/ebtables.h
+@@ -0,0 +1,266 @@
++/*
++ *  ebtables
 + *
-+ * @NFT_XT_MATCH:	match
-+ * @NFT_XT_TARGET:	target
-+ * @NFT_XT_WATCHER:	watcher (only for the bridge family)
++ *	Authors:
++ *	Bart De Schuymer		<bdschuym@pandora.be>
++ *
++ *  ebtables.c,v 2.0, April, 2002
++ *
++ *  This code is stongly inspired on the iptables code which is
++ *  Copyright (C) 1999 Paul `Rusty' Russell & Michael J. Neuling
 + */
-+enum nft_xt_type {
-+	NFT_XT_MATCH = 0,
-+	NFT_XT_TARGET,
-+	NFT_XT_WATCHER,
-+	NFT_XT_MAX
++
++#ifndef __LINUX_BRIDGE_EFF_H
++#define __LINUX_BRIDGE_EFF_H
++#include <linux/netfilter_bridge.h>
++
++#define EBT_TABLE_MAXNAMELEN 32
++#define EBT_CHAIN_MAXNAMELEN EBT_TABLE_MAXNAMELEN
++#define EBT_FUNCTION_MAXNAMELEN EBT_TABLE_MAXNAMELEN
++
++/* verdicts >0 are "branches" */
++#define EBT_ACCEPT   -1
++#define EBT_DROP     -2
++#define EBT_CONTINUE -3
++#define EBT_RETURN   -4
++#define NUM_STANDARD_TARGETS   4
++/* ebtables target modules store the verdict inside an int. We can
++ * reclaim a part of this int for backwards compatible extensions.
++ * The 4 lsb are more than enough to store the verdict. */
++#define EBT_VERDICT_BITS 0x0000000F
++
++struct xt_match;
++struct xt_target;
++
++struct ebt_counter {
++	uint64_t pcnt;
++	uint64_t bcnt;
 +};
 +
-+struct xt_stmt {
-+	const char                      *name;
-+	enum nft_xt_type                type;
-+	uint32_t                        proto;
++struct ebt_replace {
++	char name[EBT_TABLE_MAXNAMELEN];
++	unsigned int valid_hooks;
++	/* nr of rules in the table */
++	unsigned int nentries;
++	/* total size of the entries */
++	unsigned int entries_size;
++	/* start of the chains */
++	struct ebt_entries *hook_entry[NF_BR_NUMHOOKS];
++	/* nr of counters userspace expects back */
++	unsigned int num_counters;
++	/* where the kernel will put the old counters */
++	struct ebt_counter *counters;
++	char *entries;
++};
++
++struct ebt_replace_kernel {
++	char name[EBT_TABLE_MAXNAMELEN];
++	unsigned int valid_hooks;
++	/* nr of rules in the table */
++	unsigned int nentries;
++	/* total size of the entries */
++	unsigned int entries_size;
++	/* start of the chains */
++	struct ebt_entries *hook_entry[NF_BR_NUMHOOKS];
++	/* nr of counters userspace expects back */
++	unsigned int num_counters;
++	/* where the kernel will put the old counters */
++	struct ebt_counter *counters;
++	char *entries;
++};
++
++struct ebt_entries {
++	/* this field is always set to zero
++	 * See EBT_ENTRY_OR_ENTRIES.
++	 * Must be same size as ebt_entry.bitmask */
++	unsigned int distinguisher;
++	/* the chain name */
++	char name[EBT_CHAIN_MAXNAMELEN];
++	/* counter offset for this chain */
++	unsigned int counter_offset;
++	/* one standard (accept, drop, return) per hook */
++	int policy;
++	/* nr. of entries */
++	unsigned int nentries;
++	/* entry list */
++	char data[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
++};
++
++/* used for the bitmask of struct ebt_entry */
++
++/* This is a hack to make a difference between an ebt_entry struct and an
++ * ebt_entries struct when traversing the entries from start to end.
++ * Using this simplifies the code a lot, while still being able to use
++ * ebt_entries.
++ * Contrary, iptables doesn't use something like ebt_entries and therefore uses
++ * different techniques for naming the policy and such. So, iptables doesn't
++ * need a hack like this.
++ */
++#define EBT_ENTRY_OR_ENTRIES 0x01
++/* these are the normal masks */
++#define EBT_NOPROTO 0x02
++#define EBT_802_3 0x04
++#define EBT_SOURCEMAC 0x08
++#define EBT_DESTMAC 0x10
++#define EBT_F_MASK (EBT_NOPROTO | EBT_802_3 | EBT_SOURCEMAC | EBT_DESTMAC \
++   | EBT_ENTRY_OR_ENTRIES)
++
++#define EBT_IPROTO 0x01
++#define EBT_IIN 0x02
++#define EBT_IOUT 0x04
++#define EBT_ISOURCE 0x8
++#define EBT_IDEST 0x10
++#define EBT_ILOGICALIN 0x20
++#define EBT_ILOGICALOUT 0x40
++#define EBT_INV_MASK (EBT_IPROTO | EBT_IIN | EBT_IOUT | EBT_ILOGICALIN \
++   | EBT_ILOGICALOUT | EBT_ISOURCE | EBT_IDEST)
++
++struct ebt_entry_match {
 +	union {
-+		struct xtables_match    *match;
-+		struct xtables_target   *target;
-+	};
-+	const char                      *opts;
-+	union nft_entry                 entry;
++		char name[EBT_FUNCTION_MAXNAMELEN];
++		struct xt_match *match;
++	} u;
++	/* size of data */
++	unsigned int match_size;
++	unsigned char data[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
 +};
 +
-+extern struct stmt *xt_stmt_alloc(const struct location *loc);
-+
-+#endif /* _NFT_XT_H_ */
-diff --git a/src/Makefile.am b/src/Makefile.am
-index fd63219..8c59449 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -8,6 +8,9 @@ AM_CPPFLAGS += -DDEFAULT_INCLUDE_PATH="\"${sysconfdir}\"" \
- if BUILD_DEBUG
- AM_CPPFLAGS += -g -DDEBUG
- endif
-+if BUILD_XTABLES
-+AM_CPPFLAGS += ${XTABLES_CFLAGS}
-+endif
- 
- AM_CFLAGS = -Wall								\
- 	    -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations	\
-@@ -59,3 +62,8 @@ nft_SOURCES +=	mini-gmp.c
- endif
- 
- nft_LDADD	= ${LIBMNL_LIBS} ${LIBNFTNL_LIBS}
-+
-+if BUILD_XTABLES
-+nft_SOURCES +=	xt.c
-+nft_LDADD   +=  ${XTABLES_LIBS}
-+endif
-diff --git a/src/evaluate.c b/src/evaluate.c
-index b216fb1..f5154e6 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -27,6 +27,7 @@
- #include <erec.h>
- #include <gmputil.h>
- #include <utils.h>
-+#include <xt.h>
- 
- static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr);
- 
-@@ -1658,6 +1659,8 @@ int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
- 		return stmt_evaluate_redir(ctx, stmt);
- 	case STMT_QUEUE:
- 		return stmt_evaluate_queue(ctx, stmt);
-+	case STMT_XT:
-+		return stmt_evaluate_xt(ctx, stmt);
- 	default:
- 		BUG("unknown statement type %s\n", stmt->ops->name);
- 	}
-diff --git a/src/main.c b/src/main.c
-index 4590c30..c560d49 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -254,10 +254,18 @@ int main(int argc, char * const *argv)
- 	char *buf = NULL, *filename = NULL;
- 	unsigned int len;
- 	bool interactive = false;
--	int i, val, rc = NFT_EXIT_SUCCESS;
-+	int i, val, rc = NFT_EXIT_SUCCESS, fake_argc = argc;
-+
-+	/* This avoids a clash with libxtables getopt_long parser */
-+	for (i = 0; i < argc; i++) {
-+		if (argv[i][0] == '[') {
-+			fake_argc = i;
-+			break;
-+		}
-+	}
- 
- 	while (1) {
--		val = getopt_long(argc, argv, OPTSTRING, options, NULL);
-+		val = getopt_long(fake_argc, argv, OPTSTRING, options, NULL);
- 		if (val == -1)
- 			break;
- 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index e0bb726..6794a2d 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -25,6 +25,7 @@
- #include <utils.h>
- #include <erec.h>
- #include <sys/socket.h>
-+#include <xt.h>
- 
- static void __fmtstring(3, 4) netlink_error(struct netlink_parse_ctx *ctx,
- 					    const struct location *loc,
-@@ -710,6 +711,8 @@ static const struct {
- 	{ .name = "masq",	.parse = netlink_parse_masq },
- 	{ .name = "redir",	.parse = netlink_parse_redir },
- 	{ .name = "queue",	.parse = netlink_parse_queue },
-+	{ .name = "target",	.parse = netlink_parse_target },
-+	{ .name = "match",	.parse = netlink_parse_match },
- };
- 
- static int netlink_parse_expr(struct nft_rule_expr *nle, void *arg)
-@@ -1124,6 +1127,9 @@ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *r
- 		case STMT_REJECT:
- 			stmt_reject_postprocess(rctx, stmt);
- 			break;
-+		case STMT_XT:
-+			stmt_xt_postprocess(&rctx, stmt, rule);
-+			break;
- 		default:
- 			break;
- 		}
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 6a637a4..0c84d54 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -18,6 +18,7 @@
- #include <netlink.h>
- #include <gmputil.h>
- #include <utils.h>
-+#include <xt.h>
- 
- static void netlink_put_register(struct nft_rule_expr *nle,
- 				 uint32_t attr, uint32_t reg)
-@@ -821,6 +822,8 @@ static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
- 		return netlink_gen_queue_stmt(ctx, stmt);
- 	case STMT_CT:
- 		return netlink_gen_ct_stmt(ctx, stmt);
-+	case STMT_XT:
-+		return netlink_gen_xt_stmt(ctx, stmt);
- 	default:
- 		BUG("unknown statement type %s\n", stmt->ops->name);
- 	}
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index b86381d..6311832 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -382,6 +382,13 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %token FULLY_RANDOM		"fully-random"
- %token PERSISTENT		"persistent"
- 
-+%token XT			"xt"
-+%token MATCH			"match"
-+%token TARGET			"target"
-+%token WATCHER			"watcher"
-+%token <string> XTOPTS		"xtoptions"
-+%destructor { xfree($$); }	XTOPTS
-+
- %token QUEUE			"queue"
- %token QUEUENUM			"num"
- %token BYPASS			"bypass"
-@@ -449,6 +456,12 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %type <stmt>			nat_stmt nat_stmt_alloc masq_stmt masq_stmt_alloc redir_stmt redir_stmt_alloc
- %destructor { stmt_free($$); }	nat_stmt nat_stmt_alloc masq_stmt masq_stmt_alloc redir_stmt redir_stmt_alloc
- %type <val>			nf_nat_flags nf_nat_flag
-+
-+%type <stmt>			xt_stmt
-+%destructor { stmt_free($$); }	xt_stmt
-+%type <string>			xt_name xt_opts
-+%destructor { xfree($$); }	xt_name xt_opts
-+
- %type <stmt>			queue_stmt queue_stmt_alloc
- %destructor { stmt_free($$); }	queue_stmt queue_stmt_alloc
- %type <val>			queue_stmt_flags queue_stmt_flag
-@@ -1236,6 +1249,7 @@ stmt			:	verdict_stmt
- 			|	ct_stmt
- 			|	masq_stmt
- 			|	redir_stmt
-+			|	xt_stmt
- 			;
- 
- verdict_stmt		:	verdict_expr
-@@ -1499,6 +1513,49 @@ redir_stmt_arg		:	TO	expr
- 			}
- 			;
- 
-+xt_stmt			:       XT	MATCH	xt_name xt_opts
-+			{
-+				$$ = xt_stmt_alloc(&@$);
-+				$$->xt.name = $3;
-+				$$->xt.type = NFT_XT_MATCH;
-+				$$->xt.opts = $4;
-+			}
-+			|	XT	TARGET	xt_name	xt_opts
-+			{
-+				$$ = xt_stmt_alloc(&@$);
-+				$$->xt.name = $3;
-+				$$->xt.type = NFT_XT_TARGET;
-+				$$->xt.opts = $4;
-+			}
-+			|	XT	WATCHER	xt_name	xt_opts
-+			{
-+				$$ = xt_stmt_alloc(&@$);
-+				$$->xt.name = $3;
-+				$$->xt.type = NFT_XT_WATCHER;
-+				$$->xt.opts = $4;
-+			}
-+			;
-+
-+xt_opts			:	/* empty */	{ $$ = NULL; }
-+			|	XTOPTS		{ $$ = $1; }
-+			;
-+
-+xt_name			:	STRING		{ $$ = $1; }
-+			|	STATE		{ $$ = xstrdup("state"); }
-+			|	COMMENT		{ $$ = xstrdup("comment"); }
-+			|	AH		{ $$ = xstrdup("ah"); }
-+			|	ESP		{ $$ = xstrdup("esp"); }
-+			|	TCP		{ $$ = xstrdup("tcp"); }
-+			|	UDP		{ $$ = xstrdup("udp"); }
-+			|	UDPLITE		{ $$ = xstrdup("udplite"); }
-+			|	SCTP		{ $$ = xstrdup("sctp"); }
-+			|	ICMP		{ $$ = xstrdup("icmp"); }
-+			|	IP		{ $$ = xstrdup("ip"); }
-+			|	VLAN		{ $$ = xstrdup("vlan"); }
-+			|	LOG		{ $$ = xstrdup("log"); }
-+			|	MARK		{ $$ = xstrdup("mark"); }
-+			;
-+
- nf_nat_flags		:	nf_nat_flag
- 			|	nf_nat_flags	COMMA	nf_nat_flag
- 			{
-diff --git a/src/rule.c b/src/rule.c
-index 7114380..c7c5e20 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -820,6 +820,7 @@ static void table_cleanup(struct table *table)
- 	}
- }
- 
-+#include <xt.h>
- static int do_list_table(struct netlink_ctx *ctx, struct cmd *cmd,
- 			 struct table *table)
- {
-diff --git a/src/scanner.l b/src/scanner.l
-index 73c4f8b..f89d27f 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -113,6 +113,7 @@ hexstring	0[xX]{hexdigit}+
- range		({decstring}?:{decstring}?)
- letter		[a-zA-Z]
- string		({letter})({letter}|{digit}|[/\-_\.])*
-+xtopts		\[({letter}|{digit}|[!/\-_\.\"\:\, ])*\]
- quotedstring	\"[^"]*\"
- comment		#.*$
- slash		\/
-@@ -449,6 +450,15 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "proto-dst"		{ return PROTO_DST; }
- "label"			{ return LABEL; }
- 
-+"xt"			{ return XT; }
-+"match"			{ return MATCH; }
-+"target"		{ return TARGET; }
-+"watcher"		{ return WATCHER; }
-+"802_3"			{
-+				yylval->string = xstrdup("802_3");
-+				return STRING;
-+			}
-+
- "xml"			{ return XML; }
- "json"			{ return JSON; }
- 
-@@ -488,6 +498,11 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- 				return STRING;
- 			}
- 
-+{xtopts}		{
-+				yylval->string = xstrdup(yytext);
-+				return XTOPTS;
-+			}
-+
- \\{newline}		{
- 				reset_pos(yyget_extra(yyscanner), yylloc);
- 			}
-diff --git a/src/statement.c b/src/statement.c
-index d72c6e9..d3056d9 100644
---- a/src/statement.c
-+++ b/src/statement.c
-@@ -23,6 +23,7 @@
- #include <statement.h>
- #include <utils.h>
- #include <list.h>
-+#include <xt.h>
- 
- #include <netinet/in.h>
- #include <linux/netfilter/nf_nat.h>
-@@ -377,3 +378,44 @@ struct stmt *redir_stmt_alloc(const struct location *loc)
- {
- 	return stmt_alloc(loc, &redir_stmt_ops);
- }
-+
-+static const char *xt_type_name[NFT_XT_MAX] = {
-+	[NFT_XT_MATCH]	= "match",
-+	[NFT_XT_TARGET]	= "target",
-+	[NFT_XT_WATCHER]= "watcher",
++struct ebt_entry_watcher {
++	union {
++		char name[EBT_FUNCTION_MAXNAMELEN];
++		struct xt_target *watcher;
++	} u;
++	/* size of data */
++	unsigned int watcher_size;
++	unsigned char data[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
 +};
 +
-+static const char *xt_stmt_to_type(enum nft_xt_type type)
-+{
-+	if (type > NFT_XT_MAX)
-+		return "unknown";
-+
-+	return xt_type_name[type];
-+}
-+
-+static void xt_stmt_print(const struct stmt *stmt)
-+{
-+	printf("xt %s %s ", xt_stmt_to_type(stmt->xt.type),
-+			    xt_stmt_name(stmt));
-+	xt_stmt_save(stmt);
-+}
-+
-+static void xt_stmt_destroy(struct stmt *stmt)
-+{
-+	xfree(stmt->xt.name);
-+	xfree(stmt->xt.opts);
-+
-+	xt_stmt_release(stmt);
-+}
-+
-+static const struct stmt_ops xt_stmt_ops = {
-+	.type		= STMT_XT,
-+	.name		= "xt",
-+	.print		= xt_stmt_print,
-+	.destroy	= xt_stmt_destroy,
++struct ebt_entry_target {
++	union {
++		char name[EBT_FUNCTION_MAXNAMELEN];
++		struct xt_target *target;
++	} u;
++	/* size of data */
++	unsigned int target_size;
++	unsigned char data[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
 +};
 +
-+struct stmt *xt_stmt_alloc(const struct location *loc)
-+{
-+	return stmt_alloc(loc, &xt_stmt_ops);
-+}
-diff --git a/src/xt.c b/src/xt.c
-new file mode 100644
-index 0000000..d2110a4
---- /dev/null
-+++ b/src/xt.c
-@@ -0,0 +1,673 @@
-+/*
-+ * Copyright (c) 2013-2015 Pablo Neira Ayuso <pablo@netfilter.org>
-+ * Copyright (c) 2015 Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modifyi
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <stdlib.h>
-+#include <time.h>
-+#include <string.h>
-+#include <xtables.h>
-+#include <utils.h>
-+#include <getopt.h>
-+#include <ctype.h>	/* for isspace */
-+#include <statement.h>
-+#include <rule.h>
-+#include <netlink.h>
-+#include <xt.h>
-+#include <erec.h>
-+
-+#include <libmnl/libmnl.h>
-+#include <linux/netfilter/nfnetlink.h>
-+#include <linux/netfilter/nf_tables_compat.h>
-+#include <linux/netfilter_ipv4/ip_tables.h>
-+
-+#include <libnftnl/rule.h>
-+#include <libnftnl/expr.h>
-+
-+void xt_stmt_release(const struct stmt *stmt)
-+{
-+	switch (stmt->xt.type) {
-+	case NFT_XT_MATCH:
-+		if (!stmt->xt.match)
-+			break;
-+		if (stmt->xt.match->m)
-+			xfree(stmt->xt.match->m);
-+		xfree(stmt->xt.match);
-+		break;
-+	case NFT_XT_WATCHER:
-+	case NFT_XT_TARGET:
-+		if (!stmt->xt.target)
-+			break;
-+		if (stmt->xt.target->t)
-+			xfree(stmt->xt.target->t);
-+		xfree(stmt->xt.target);
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
-+const char *xt_stmt_name(const struct stmt *stmt)
-+{
-+	switch (stmt->xt.type) {
-+	case NFT_XT_MATCH:
-+		if (stmt->xt.match == NULL)
-+			break;
-+		if (stmt->xt.match->alias)
-+			return stmt->xt.match->alias(stmt->xt.match->m);
-+		break;
-+	case NFT_XT_TARGET:
-+	case NFT_XT_WATCHER:
-+		if (stmt->xt.target == NULL)
-+			break;
-+		if (stmt->xt.target->alias)
-+			return stmt->xt.target->alias(stmt->xt.target->t);
-+		break;
-+	default:
-+		return "unknown";
-+	}
-+
-+	return stmt->xt.name;
-+}
-+
-+void xt_stmt_save(const struct stmt *stmt)
-+{
-+	printf("[");
-+
-+	switch (stmt->xt.type) {
-+	case NFT_XT_MATCH:
-+		if (stmt->xt.match == NULL && stmt->xt.opts)
-+			fprintf(stdout, "%s", stmt->xt.opts);
-+		else if (stmt->xt.match->save)
-+			stmt->xt.match->save(&stmt->xt.entry,
-+					     stmt->xt.match->m);
-+		else if (stmt->xt.match->print)
-+			stmt->xt.match->print(&stmt->xt.entry,
-+					      stmt->xt.match->m, 0);
-+		break;
-+	case NFT_XT_WATCHER:
-+	case NFT_XT_TARGET:
-+		if (stmt->xt.target == NULL && stmt->xt.opts)
-+			fprintf(stdout, "%s", stmt->xt.opts);
-+		else if (stmt->xt.target->save)
-+			stmt->xt.target->save(NULL, stmt->xt.target->t);
-+		else if (stmt->xt.target->print)
-+			stmt->xt.target->print(NULL, stmt->xt.target->t, 0);
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	printf(" ]");
-+}
-+
-+static void *xt_entry_data_alloc(struct xt_stmt *xt)
-+{
-+
-+	uint32_t size = 0;
-+
-+	switch (xt->type) {
-+	case NFT_XT_MATCH:
-+		size = XT_ALIGN(sizeof(struct xt_entry_match)) +
-+		       xt->match->size;
-+		break;
-+	case NFT_XT_WATCHER:
-+	case NFT_XT_TARGET:
-+		size = XT_ALIGN(sizeof(struct xt_entry_target)) +
-+		       xt->target->size;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return xzalloc(size);
-+}
-+
-+static void nft_entry_setup(struct xt_stmt *xt, uint32_t af)
-+{
-+	switch (af) {
-+	case NFPROTO_IPV4:
-+		xt->entry.e4.ip.proto = xt->proto;
-+		break;
-+	case NFPROTO_IPV6:
-+		xt->entry.e6.ipv6.proto = xt->proto;
-+		break;
-+	case NFPROTO_BRIDGE:
-+		xt->entry.ebt.ethproto = xt->proto;
-+		break;
-+	case NFPROTO_ARP:
-+		xt->entry.arp.arp.arhln_mask = 0xff;
-+		xt->entry.arp.arp.arhln = 6;
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
-+static uint32_t xt_proto(const struct proto_ctx *pctx)
-+{
-+	const struct proto_desc *desc = NULL;
-+
-+	if (pctx->family == NFPROTO_BRIDGE) {
-+		desc = pctx->protocol[PROTO_BASE_NETWORK_HDR].desc;
-+		if (desc == NULL)
-+			return 0;
-+		if (strcmp(desc->name, "ip") == 0)
-+			return __constant_htons(ETH_P_IP);
-+		if (strcmp(desc->name, "ip6") == 0)
-+			return __constant_htons(ETH_P_IPV6);
-+		return 0;
-+	}
-+
-+	desc = pctx->protocol[PROTO_BASE_TRANSPORT_HDR].desc;
-+	if (desc == NULL)
-+		return 0;
-+	if (strcmp(desc->name, "tcp") == 0)
-+		return IPPROTO_TCP;
-+	else if (strcmp(desc->name, "udp") == 0)
-+		return IPPROTO_UDP;
-+	else if (strcmp(desc->name, "udplite") == 0)
-+		return IPPROTO_UDPLITE;
-+	else if (strcmp(desc->name, "sctp") == 0)
-+		return IPPROTO_SCTP;
-+	else if (strcmp(desc->name, "dccp") == 0)
-+		return IPPROTO_DCCP;
-+	else if (strcmp(desc->name, "esp") == 0)
-+		return IPPROTO_ESP;
-+	else if (strcmp(desc->name, "ah") == 0)
-+		return IPPROTO_AH;
-+
-+	return 0;
-+}
-+
-+static struct xtables_target *xt_target_clone(struct xtables_target *t)
-+{
-+	struct xtables_target *clone;
-+
-+	clone = xzalloc(sizeof(struct xtables_target));
-+	memcpy(clone, t, sizeof(struct xtables_target));
-+	return clone;
-+}
-+
-+static struct xtables_match *xt_match_clone(struct xtables_match *m)
-+{
-+	struct xtables_match *clone;
-+
-+	clone = xzalloc(sizeof(struct xtables_match));
-+	memcpy(clone, m, sizeof(struct xtables_match));
-+	return clone;
-+}
-+
-+/*
-+ * Evaluation
-+ */
-+
-+static struct option original_opts[] = {
-+	{ NULL },
++#define EBT_STANDARD_TARGET "standard"
++struct ebt_standard_target {
++	struct ebt_entry_target target;
++	int verdict;
 +};
 +
-+static int xt_target_to_binary(struct xt_stmt *xt, int argc, char *argv[],
-+			       uint32_t af)
-+{
-+	struct option *opt;
-+	unsigned int offset;
-+	int c;
-+
-+	xt->target->t = xt_entry_data_alloc(xt);
-+	nft_entry_setup(xt, af);
-+
-+	if (xt->target->x6_options != NULL)
-+		opt = xtables_options_xfrm(original_opts, NULL,
-+					   xt->target->x6_options,
-+					   &offset);
-+	else
-+		opt = xtables_merge_options(original_opts, NULL,
-+					    xt->target->extra_opts,
-+					    &offset);
-+
-+	if (xt->target->init != NULL)
-+		xt->target->init(xt->target->t);
-+
-+	/* Reset internal state of getopt_long. */
-+	optind = 0;
-+	/* Suppress error messages. */
-+	opterr = 0;
-+
-+	while ((c = getopt_long(argc, argv, "-:", opt, NULL)) != -1) {
-+
-+		c -= offset;
-+		xtables_option_tpcall(xt->target->option_offset + c,
-+				      argv, 0, xt->target, &xt->entry);
-+	}
-+
-+	/* Reset parsing flags */
-+	xt->target->tflags = 0;
-+	xfree(opt);
-+
-+	return 0;
-+}
-+
-+static int xt_match_to_binary(struct xt_stmt *xt, int argc, char *argv[],
-+			      uint32_t af)
-+{
-+	struct option *opt;
-+	unsigned int offset;
-+	bool invert = false;
-+	int c;
-+
-+	xt->match->m = xt_entry_data_alloc(xt);
-+	nft_entry_setup(xt, af);
-+
-+	if (xt->match->x6_options != NULL)
-+		opt = xtables_options_xfrm(original_opts, NULL,
-+					   xt->match->x6_options,
-+					   &offset);
-+	else
-+		opt = xtables_merge_options(original_opts, NULL,
-+					    xt->match->extra_opts,
-+					    &offset);
-+
-+	if (xt->match->init != NULL)
-+		xt->match->init(xt->match->m);
-+
-+	/* Reset internal state of getopt_long. */
-+	optind = 0;
-+	/* Suppress error messages. */
-+	opterr = 0;
-+
-+	while ((c = getopt_long(argc, argv, "-:", opt, NULL)) != -1) {
-+		switch (c) {
-+		case 1:
-+			invert = true;
-+			continue;
-+		default:
-+			break;
-+		}
-+
-+		if (optarg != NULL && optarg[0] == '!' && optarg[1] == '\0') {
-+			invert = true;
-+			optarg = argv[optind];
-+		}
-+
-+		c -= offset;
-+		xtables_option_mpcall(xt->match->option_offset + c,
-+				      argv, invert, xt->match,
-+				      &xt->entry);
-+		if (invert)
-+			invert = false;
-+	}
-+
-+	/* Reset parsing flags */
-+	xt->match->mflags = 0;
-+	xfree(opt);
-+
-+	return 0;
-+}
-+
-+/* An xt extension doesn't have more than arguments. */
-+#define MAX_ARG			64
-+
-+static int string_to_argv(const char *str, char *argv[], uint32_t argc_max)
-+{
-+	uint32_t i, k = 1, len = 0;
-+	bool atquote = false, dupquote = false;
-+
-+	if (str == NULL)
-+		return 0;
-+
-+	/* skip first/last char, are '[' and ']' */
-+	for (i = 1; i < strlen(str) - 1; i++) {
-+		if (k == argc_max)
-+			goto err;
-+
-+		if (str[i] == '"') {
-+			if (!atquote)
-+				dupquote = true;
-+			atquote = !atquote;
-+		}
-+
-+		if (isspace(str[i]) && !atquote) {
-+			if (len <= 0)
-+				continue;
-+
-+			if (dupquote) {
-+				argv[k] = strndup(&str[i - len + 1], len - 2);
-+				dupquote = false;
-+			} else {
-+				argv[k] = strndup(&str[i - len], len);
-+			}
-+
-+			k++;
-+			len = 0;
-+		} else {
-+			len++;
-+		}
-+	}
-+	return k;
-+err:
-+	for (i = 0; i < k; i++)
-+		free(argv[i]);
-+	return -1;
-+}
-+
-+int stmt_evaluate_xt(struct eval_ctx *ctx, struct stmt *stmt)
-+{
-+	char *argv[MAX_ARG] = { "iptables" };
-+	struct xtables_match *mt;
-+	struct xtables_target *tg;
-+	int argc, i, err;
-+
-+	argc = string_to_argv(stmt->xt.opts, argv, MAX_ARG);
-+	if (argc < 0)
-+		return stmt_error(ctx, stmt, "too many xt options");
-+
-+	for (i = 0; i < argc; i++) {
-+		printf("argv[%d] '%s'\n", i, argv[i]);
-+	}
-+
-+	xtables_set_nfproto(ctx->pctx.family);
-+	stmt->xt.proto = xt_proto(&ctx->pctx);
-+
-+	if (stmt->xt.type == NFT_XT_WATCHER &&
-+	    ctx->pctx.family != NFPROTO_BRIDGE)
-+		return stmt_error(ctx, stmt,
-+				  "watcher only available in bridge family");
-+
-+	switch (stmt->xt.type) {
-+	case NFT_XT_MATCH:
-+		mt = xtables_find_match(stmt->xt.name, XTF_TRY_LOAD, NULL);
-+		if (!mt)
-+			return stmt_error(ctx, stmt, "unknown match %s",
-+					  stmt->xt.name);
-+
-+		stmt->xt.match = xt_match_clone(mt);
-+		err = xt_match_to_binary(&stmt->xt, argc, argv,
-+					 ctx->pctx.family);
-+		break;
-+	case NFT_XT_TARGET:
-+	case NFT_XT_WATCHER:
-+		tg = xtables_find_target(stmt->xt.name, XTF_TRY_LOAD);
-+		if (!tg)
-+			return stmt_error(ctx, stmt, "unknown target %s",
-+					  stmt->xt.name);
-+
-+		stmt->xt.target = xt_target_clone(tg);
-+		err = xt_target_to_binary(&stmt->xt, argc, argv,
-+					 ctx->pctx.family);
-+		break;
-+	default:
-+		BUG("Unknown xt type %d\n", stmt->xt.type);
-+	}
-+
-+	if (stmt->xt.type == NFT_XT_TARGET)
-+		stmt->flags |= STMT_F_TERMINAL;
-+
-+	for (i = 1; i < argc; i++)
-+		xfree(argv[i]);
-+
-+	if (err < 0)
-+		return stmt_error(ctx, stmt, "failed to parse");
-+
-+	return 0;
-+}
-+
-+/*
-+ * Delinearization
-+ */
-+
-+void netlink_parse_match(struct netlink_parse_ctx *ctx,
-+			 const struct location *loc,
-+			 const struct nft_rule_expr *nle)
-+{
-+	struct stmt *stmt;
-+	const char *name;
-+	struct xtables_match *mt;
-+	const char *mtinfo;
-+	struct xt_entry_match *m;
-+	uint32_t mt_len;
-+
-+	xtables_set_nfproto(ctx->table->handle.family);
-+
-+	name = nft_rule_expr_get_str(nle, NFT_EXPR_MT_NAME);
-+
-+	mt = xtables_find_match(name, XTF_TRY_LOAD, NULL);
-+	if (!mt)
-+		BUG("XT match %s not found\n", name);
-+
-+	mtinfo = nft_rule_expr_get(nle, NFT_EXPR_MT_INFO, &mt_len);
-+
-+	m = xzalloc(sizeof(struct xt_entry_match) + mt_len);
-+	memcpy(&m->data, mtinfo, mt_len);
-+
-+	m->u.match_size = mt_len + XT_ALIGN(sizeof(struct xt_entry_match));
-+	m->u.user.revision = nft_rule_expr_get_u32(nle, NFT_EXPR_MT_REV);
-+
-+	stmt = xt_stmt_alloc(loc);
-+	stmt->xt.name = strdup(name);
-+	stmt->xt.type = NFT_XT_MATCH;
-+	stmt->xt.match = xt_match_clone(mt);
-+	stmt->xt.match->m = m;
-+
-+	list_add_tail(&stmt->list, &ctx->rule->stmts);
-+}
-+
-+void netlink_parse_target(struct netlink_parse_ctx *ctx,
-+			  const struct location *loc,
-+			  const struct nft_rule_expr *nle)
-+{
-+	struct stmt *stmt;
-+	const char *name;
-+	struct xtables_target *tg;
-+	const void *tginfo;
-+	struct xt_entry_target *t;
-+	size_t size;
-+	uint32_t tg_len;
-+
-+	xtables_set_nfproto(ctx->table->handle.family);
-+
-+	name = nft_rule_expr_get_str(nle, NFT_EXPR_TG_NAME);
-+	tg = xtables_find_target(name, XTF_TRY_LOAD);
-+	if (!tg)
-+		BUG("XT target %s not found\n", name);
-+
-+	tginfo = nft_rule_expr_get(nle, NFT_EXPR_TG_INFO, &tg_len);
-+
-+	size = XT_ALIGN(sizeof(struct xt_entry_target)) + tg_len;
-+	t = xzalloc(size);
-+	memcpy(&t->data, tginfo, tg_len);
-+	t->u.target_size = size;
-+	t->u.user.revision = nft_rule_expr_get_u32(nle, NFT_EXPR_TG_REV);
-+	strcpy(t->u.user.name, tg->name);
-+
-+	stmt = xt_stmt_alloc(loc);
-+	stmt->xt.name = strdup(name);
-+	stmt->xt.type = NFT_XT_TARGET;
-+	stmt->xt.target = xt_target_clone(tg);
-+	stmt->xt.target->t = t;
-+
-+	list_add_tail(&stmt->list, &ctx->rule->stmts);
-+}
-+
-+static bool is_watcher(uint32_t family, struct stmt *stmt)
-+{
-+	if (family != NFPROTO_BRIDGE)
-+		return false;
-+
-+	if (stmt->xt.type != NFT_XT_TARGET)
-+		return false;
-+
-+	/* this has to be hardcoded :-( */
-+	if (strcmp(stmt->xt.name, "log") == 0)
-+		return true;
-+	if (strcmp(stmt->xt.name, "nflog") == 0)
-+		return true;
-+
-+	return false;
-+}
-+
-+void stmt_xt_postprocess(struct rule_pp_ctx *rctx, struct stmt *stmt,
-+			 struct rule *rule)
-+{
-+	if (is_watcher(rctx->pctx.family, stmt))
-+		stmt->xt.type = NFT_XT_WATCHER;
-+
-+	stmt->xt.proto = xt_proto(&rctx->pctx);
-+	nft_entry_setup(&stmt->xt, rctx->pctx.family);
-+}
-+
-+/*
-+ * Linearization
-+ */
-+
-+static const char *xt_stmt_real_name(const struct stmt *stmt)
-+{
-+	switch (stmt->xt.type) {
-+	case NFT_XT_MATCH:
-+		if (stmt->xt.match->real_name)
-+			return stmt->xt.match->real_name;
-+		break;
-+	case NFT_XT_TARGET:
-+	case NFT_XT_WATCHER:
-+		if (stmt->xt.target->real_name)
-+			return stmt->xt.target->real_name;
-+		break;
-+	default:
-+		return "unknown";
-+	}
-+
-+	return stmt->xt.name;
-+}
-+
-+static void *xt_match_info(const void *entry)
-+{
-+	return (char *)entry + XT_ALIGN(sizeof(struct xt_entry_match));
-+}
-+
-+static void *xt_target_info(const void *entry)
-+{
-+	return (char *)entry + XT_ALIGN(sizeof(struct xt_entry_target));
-+}
-+
-+void netlink_gen_xt_stmt(struct netlink_linearize_ctx *ctx,
-+			 const struct stmt *stmt)
-+{
-+	struct nft_rule_expr *nle;
-+	void *info;
-+
-+	switch (stmt->xt.type) {
-+	case NFT_XT_MATCH:
-+		info = xzalloc(stmt->xt.match->size);
-+		memcpy(info, xt_match_info(stmt->xt.match->m),
-+		       stmt->xt.match->size);
-+
-+		nle = nft_rule_expr_alloc("match");
-+		if (nle == NULL)
-+			memory_allocation_error();
-+
-+		nft_rule_expr_set_str(nle, NFT_EXPR_MT_NAME,
-+				      xt_stmt_real_name(stmt));
-+		nft_rule_expr_set_u32(nle, NFT_EXPR_MT_REV,
-+				      stmt->xt.match->revision);
-+		nft_rule_expr_set(nle, NFT_EXPR_MT_INFO, info,
-+				  stmt->xt.match->userspacesize);
-+		nft_rule_add_expr(ctx->nlr, nle);
-+		break;
-+	case NFT_XT_TARGET:
-+	case NFT_XT_WATCHER:
-+		info = xzalloc(stmt->xt.target->size);
-+		memcpy(info, xt_target_info(stmt->xt.target->t),
-+		       stmt->xt.target->size);
-+
-+		nle = nft_rule_expr_alloc("target");
-+		if (nle == NULL)
-+			memory_allocation_error();
-+
-+		nft_rule_expr_set_str(nle, NFT_EXPR_TG_NAME,
-+				      xt_stmt_real_name(stmt));
-+		nft_rule_expr_set_u32(nle, NFT_EXPR_TG_REV,
-+				      stmt->xt.target->revision);
-+		nft_rule_expr_set(nle, NFT_EXPR_TG_INFO, info,
-+				  stmt->xt.target->userspacesize);
-+		nft_rule_add_expr(ctx->nlr, nle);
-+		break;
-+	default:
-+		BUG("Unknown xt type %d\n", stmt->xt.type);
-+	}
-+
-+	if (stmt->xt.proto) {
-+		nft_rule_attr_set_u32(ctx->nlr, NFT_RULE_ATTR_COMPAT_PROTO,
-+				      stmt->xt.proto);
-+		nft_rule_attr_set_u32(ctx->nlr, NFT_RULE_ATTR_COMPAT_FLAGS, 0);
-+	}
-+}
-+
-+static int nft_xt_compatible_revision(const char *name, uint8_t rev, int opt)
-+{
-+	struct mnl_socket *nl;
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	struct nlmsghdr *nlh;
-+	uint32_t portid, seq, type;
-+	struct nfgenmsg *nfg;
-+	int ret = 0;
-+
-+	if (opt == IPT_SO_GET_REVISION_MATCH)
-+		type = 0;
-+	else
-+		type = 1;
-+
-+	nlh = mnl_nlmsg_put_header(buf);
-+	nlh->nlmsg_type = (NFNL_SUBSYS_NFT_COMPAT << 8) | NFNL_MSG_COMPAT_GET;
-+	nlh->nlmsg_flags = NLM_F_REQUEST | NLM_F_ACK;
-+	nlh->nlmsg_seq = seq = time(NULL);
-+
-+	nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
-+	nfg->nfgen_family = AF_INET;
-+	nfg->version = NFNETLINK_V0;
-+	nfg->res_id = 0;
-+
-+	mnl_attr_put_strz(nlh, NFTA_COMPAT_NAME, name);
-+	mnl_attr_put_u32(nlh, NFTA_COMPAT_REV, htonl(rev));
-+	mnl_attr_put_u32(nlh, NFTA_COMPAT_TYPE, htonl(type));
-+
-+	nl = mnl_socket_open(NETLINK_NETFILTER);
-+	if (nl == NULL)
-+		return 0;
-+
-+	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0)
-+		goto err;
-+
-+	portid = mnl_socket_get_portid(nl);
-+
-+	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0)
-+		goto err;
-+
-+	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+	if (ret == -1)
-+		goto err;
-+
-+	ret = mnl_cb_run(buf, ret, seq, portid, NULL, NULL);
-+	if (ret == -1)
-+		goto err;
-+
-+err:
-+	mnl_socket_close(nl);
-+
-+	return ret < 0 ? 0 : 1;
-+}
-+
-+static struct xtables_globals xt_nft_globals = {
-+	.program_name		= "nft",
-+	.program_version	= PACKAGE_VERSION,
-+	.orig_opts		= original_opts,
-+	.compat_rev		= nft_xt_compatible_revision,
++/* one entry */
++struct ebt_entry {
++	/* this needs to be the first field */
++	unsigned int bitmask;
++	unsigned int invflags;
++	__be16 ethproto;
++	/* the physical in-dev */
++	char in[IFNAMSIZ];
++	/* the logical in-dev */
++	char logical_in[IFNAMSIZ];
++	/* the physical out-dev */
++	char out[IFNAMSIZ];
++	/* the logical out-dev */
++	char logical_out[IFNAMSIZ];
++	unsigned char sourcemac[ETH_ALEN];
++	unsigned char sourcemsk[ETH_ALEN];
++	unsigned char destmac[ETH_ALEN];
++	unsigned char destmsk[ETH_ALEN];
++	/* sizeof ebt_entry + matches */
++	unsigned int watchers_offset;
++	/* sizeof ebt_entry + matches + watchers */
++	unsigned int target_offset;
++	/* sizeof ebt_entry + matches + watchers + target */
++	unsigned int next_offset;
++	unsigned char elems[0] __attribute__ ((aligned (__alignof__(struct ebt_replace))));
 +};
 +
-+static void __init xt_init(void)
-+{
-+	/* Default to IPv4, but this changes in runtime */
-+	xtables_init_all(&xt_nft_globals, NFPROTO_IPV4);
-+}
++/* {g,s}etsockopt numbers */
++#define EBT_BASE_CTL            128
++
++#define EBT_SO_SET_ENTRIES      (EBT_BASE_CTL)
++#define EBT_SO_SET_COUNTERS     (EBT_SO_SET_ENTRIES+1)
++#define EBT_SO_SET_MAX          (EBT_SO_SET_COUNTERS+1)
++
++#define EBT_SO_GET_INFO         (EBT_BASE_CTL)
++#define EBT_SO_GET_ENTRIES      (EBT_SO_GET_INFO+1)
++#define EBT_SO_GET_INIT_INFO    (EBT_SO_GET_ENTRIES+1)
++#define EBT_SO_GET_INIT_ENTRIES (EBT_SO_GET_INIT_INFO+1)
++#define EBT_SO_GET_MAX          (EBT_SO_GET_INIT_ENTRIES+1)
++
++
++/* blatently stolen from ip_tables.h
++ * fn returns 0 to continue iteration */
++#define EBT_MATCH_ITERATE(e, fn, args...)                   \
++({                                                          \
++	unsigned int __i;                                   \
++	int __ret = 0;                                      \
++	struct ebt_entry_match *__match;                    \
++	                                                    \
++	for (__i = sizeof(struct ebt_entry);                \
++	     __i < (e)->watchers_offset;                    \
++	     __i += __match->match_size +                   \
++	     sizeof(struct ebt_entry_match)) {              \
++		__match = (void *)(e) + __i;                \
++		                                            \
++		__ret = fn(__match , ## args);              \
++		if (__ret != 0)                             \
++			break;                              \
++	}                                                   \
++	if (__ret == 0) {                                   \
++		if (__i != (e)->watchers_offset)            \
++			__ret = -EINVAL;                    \
++	}                                                   \
++	__ret;                                              \
++})
++
++#define EBT_WATCHER_ITERATE(e, fn, args...)                 \
++({                                                          \
++	unsigned int __i;                                   \
++	int __ret = 0;                                      \
++	struct ebt_entry_watcher *__watcher;                \
++	                                                    \
++	for (__i = e->watchers_offset;                      \
++	     __i < (e)->target_offset;                      \
++	     __i += __watcher->watcher_size +               \
++	     sizeof(struct ebt_entry_watcher)) {            \
++		__watcher = (void *)(e) + __i;              \
++		                                            \
++		__ret = fn(__watcher , ## args);            \
++		if (__ret != 0)                             \
++			break;                              \
++	}                                                   \
++	if (__ret == 0) {                                   \
++		if (__i != (e)->target_offset)              \
++			__ret = -EINVAL;                    \
++	}                                                   \
++	__ret;                                              \
++})
++
++#define EBT_ENTRY_ITERATE(entries, size, fn, args...)       \
++({                                                          \
++	unsigned int __i;                                   \
++	int __ret = 0;                                      \
++	struct ebt_entry *__entry;                          \
++	                                                    \
++	for (__i = 0; __i < (size);) {                      \
++		__entry = (void *)(entries) + __i;          \
++		__ret = fn(__entry , ## args);              \
++		if (__ret != 0)                             \
++			break;                              \
++		if (__entry->bitmask != 0)                  \
++			__i += __entry->next_offset;        \
++		else                                        \
++			__i += sizeof(struct ebt_entries);  \
++	}                                                   \
++	if (__ret == 0) {                                   \
++		if (__i != (size))                          \
++			__ret = -EINVAL;                    \
++	}                                                   \
++	__ret;                                              \
++})
++
++#endif /* __LINUX_BRIDGE_EFF_H */
 
