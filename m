@@ -1,73 +1,77 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] Use stdlib uint* instead of u_int*
-Date: Wed, 8 Apr 2015 19:54:04 +0200
-Message-ID: <20150408175404.GA5146@salvia>
-References: <1428098686-17843-1-git-send-email-nwmcsween@gmail.com>
+Subject: Re: [kernel PATCH] uapi: ebtables: don't include linux/if.h
+Date: Wed, 8 Apr 2015 19:59:40 +0200
+Message-ID: <20150408175940.GA5358@salvia>
+References: <20150408174140.25208.67942.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Nathan McSween <nwmcsween@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57077 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:57815 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753652AbbDHRty (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Apr 2015 13:49:54 -0400
+	id S1753050AbbDHRza (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Apr 2015 13:55:30 -0400
 Content-Disposition: inline
-In-Reply-To: <1428098686-17843-1-git-send-email-nwmcsween@gmail.com>
+In-Reply-To: <20150408174140.25208.67942.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 03, 2015 at 10:04:46PM +0000, Nathan McSween wrote:
-[...]
-> diff --git a/include/libnfnetlink/linux_nfnetlink.h b/include/libnfnetlink/linux_nfnetlink.h
-> index 76a8550..7b843c6 100644
-> --- a/include/libnfnetlink/linux_nfnetlink.h
-> +++ b/include/libnfnetlink/linux_nfnetlink.h
-> @@ -1,5 +1,6 @@
->  #ifndef _NFNETLINK_H
->  #define _NFNETLINK_H
-> +#include <stdint.h>
->  #include <linux/types.h>
->  #include <libnfnetlink/linux_nfnetlink_compat.h>
->  
-> @@ -25,9 +26,9 @@ enum nfnetlink_groups {
->  /* General form of address family dependent message.
->   */
->  struct nfgenmsg {
-> -	u_int8_t  nfgen_family;		/* AF_xxx */
-> -	u_int8_t  version;		/* nfnetlink version */
-> -	u_int16_t    res_id;		/* resource id */
-> +	uint8_t  nfgen_family;		/* AF_xxx */
-> +	uint8_t  version;		/* nfnetlink version */
-> +	uint16_t    res_id;		/* resource id */
+On Wed, Apr 08, 2015 at 07:41:40PM +0200, Arturo Borrero Gonzalez wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> linux/if.h creates conflicts in userspace with net/if.h
+> 
+> By using it here we force userspace to use linux/if.h while
+> net/if.h may be needed.
 
-This header file is a copy of what you can get from the Linux kernel
-source tree. We shouldn't change this, instead you can refresh it.
+I'm going to add here that:
 
->  };
->  
->  #define NFNETLINK_V0	0
-> @@ -59,7 +60,7 @@ struct nfnl_callback
->  	int (*call)(struct sock *nl, struct sk_buff *skb, 
->  		struct nlmsghdr *nlh, struct nlattr *cda[]);
->  	const struct nla_policy *policy;	/* netlink attribute policy */
-> -	const u_int16_t attr_count;		/* number of nlattr's */
-> +	const uint16_t attr_count;		/* number of nlattr's */
->  };
->  
->  struct nfnetlink_subsystem
-> @@ -76,7 +77,7 @@ extern int nfnetlink_subsys_unregister(const struct nfnetlink_subsystem *n);
->  extern int nfnetlink_has_listeners(unsigned int group);
->  extern int nfnetlink_send(struct sk_buff *skb, u32 pid, unsigned group, 
->  			  int echo);
-> -extern int nfnetlink_unicast(struct sk_buff *skb, u_int32_t pid, int flags);
-> +extern int nfnetlink_unicast(struct sk_buff *skb, uint32_t pid, int flags);
->  
->  #define MODULE_ALIAS_NFNL_SUBSYS(subsys) \
->  	MODULE_ALIAS("nfnetlink-subsys-" __stringify(subsys))
-> diff --git a/include/libnfnetlink/linux_nfnetlink_compat.h b/include/libnfnetlink/linux_nfnetlink_compat.h
-> index e145176..cd094fc 100644
-> --- a/include/libnfnetlink/linux_nfnetlink_compat.h
-> +++ b/include/libnfnetlink/linux_nfnetlink_compat.h
+include/linux/netfilter_ipv4/ip_tables.h and
+include/linux/netfilter_ipv6/ip6_tables.h
 
-Same thing with this file.
+don't include linux/if.h and they also refer to IFNAMSIZ, so they are
+expecting userspace to include use net/if.h from the client program.
+
+This has been causing us problems in the xt over nft layer.
+
+If nobody objects, I'll push this to nf-next.
+
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> ---
+>  include/linux/netfilter_bridge/ebtables.h      |    3 ++-
+>  include/uapi/linux/netfilter_bridge/ebtables.h |    2 --
+>  2 files changed, 2 insertions(+), 3 deletions(-)
+> 
+> diff --git a/include/linux/netfilter_bridge/ebtables.h b/include/linux/netfilter_bridge/ebtables.h
+> index 34e7a2b..f1bd396 100644
+> --- a/include/linux/netfilter_bridge/ebtables.h
+> +++ b/include/linux/netfilter_bridge/ebtables.h
+> @@ -12,9 +12,10 @@
+>  #ifndef __LINUX_BRIDGE_EFF_H
+>  #define __LINUX_BRIDGE_EFF_H
+>  
+> +#include <linux/if.h>
+> +#include <linux/if_ether.h>
+>  #include <uapi/linux/netfilter_bridge/ebtables.h>
+>  
+> -
+>  /* return values for match() functions */
+>  #define EBT_MATCH 0
+>  #define EBT_NOMATCH 1
+> diff --git a/include/uapi/linux/netfilter_bridge/ebtables.h b/include/uapi/linux/netfilter_bridge/ebtables.h
+> index ba99336..773dfe8 100644
+> --- a/include/uapi/linux/netfilter_bridge/ebtables.h
+> +++ b/include/uapi/linux/netfilter_bridge/ebtables.h
+> @@ -12,9 +12,7 @@
+>  
+>  #ifndef _UAPI__LINUX_BRIDGE_EFF_H
+>  #define _UAPI__LINUX_BRIDGE_EFF_H
+> -#include <linux/if.h>
+>  #include <linux/netfilter_bridge.h>
+> -#include <linux/if_ether.h>
+>  
+>  #define EBT_TABLE_MAXNAMELEN 32
+>  #define EBT_CHAIN_MAXNAMELEN EBT_TABLE_MAXNAMELEN
+> 
