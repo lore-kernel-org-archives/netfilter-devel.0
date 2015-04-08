@@ -1,44 +1,36 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] netfilter: Fix switch statement warnings with recent
- gcc.
-Date: Wed, 08 Apr 2015 15:21:04 -0400 (EDT)
-Message-ID: <20150408.152104.2035331217337764143.davem@davemloft.net>
-References: <20150407.230542.359453916233129441.davem@davemloft.net>
-	<20150408164614.GA22526@salvia>
+Subject: Re: [PATCH 0/4] Prevent UDP tunnels from operating on garbage
+ socket
+Date: Wed, 08 Apr 2015 16:03:03 -0400 (EDT)
+Message-ID: <20150408.160303.1536044900311728443.davem@davemloft.net>
+References: <20150406.235118.65925113152002205.davem@davemloft.net>
+	<CALx6S36f8SQQoNvzPyCNk4=0LbH4Od6ZtdDn0DCA2sZGZHMx2g@mail.gmail.com>
+	<1428406053.3932555.250169221.75848497@webmail.messagingengine.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+Cc: tom@herbertland.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+	jiri@resnulli.us
+To: hannes@stressinduktion.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:40645 "EHLO
+Received: from shards.monkeyblade.net ([149.20.54.216]:40960 "EHLO
 	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753400AbbDHTVG (ORCPT
+	with ESMTP id S1753076AbbDHUDI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Apr 2015 15:21:06 -0400
-In-Reply-To: <20150408164614.GA22526@salvia>
+	Wed, 8 Apr 2015 16:03:08 -0400
+In-Reply-To: <1428406053.3932555.250169221.75848497@webmail.messagingengine.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed, 8 Apr 2015 18:46:14 +0200
+From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Date: Tue, 07 Apr 2015 13:27:33 +0200
 
-> On Tue, Apr 07, 2015 at 11:05:42PM -0400, David Miller wrote:
->> 
->> More recent GCC warns about two kinds of switch statement uses:
->> 
->> 1) Switching on an enumeration, but not having an explicit case
->>    statement for all members of the enumeration.  To show the
->>    compiler this is intentional, we simply add a default case
->>    with nothing more than a break statement.
->> 
->> 2) Switching on a boolean value.  I think this warning is dumb
->>    but nevertheless you get it wholesale with -Wswitch.
->> 
->> This patch cures all such warnings in netfilter.
->> 
->> Signed-off-by: David S. Miller <davem@davemloft.net>
-> 
-> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Also, I saw one inconsistency with sk_bound_dev_if in netfilter which
+> doesn't get solved by this patchset (it uses skb->sk->sk_bound_dev_if
+> unconditionally).
 
-Ok I tossed this into net-next, thanks for reviewing.
+I looked at this quickly, and it'll take a bit of (mechanical) work to
+resolve.  Basically you have to get the socket down to ip_route_me_harder()
+and sometimes that code path is coming from that XT targets, which don't
+take the nf_hook_state as an argument or anything like that (yet).
