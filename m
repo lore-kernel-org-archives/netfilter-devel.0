@@ -1,62 +1,104 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [kernel PATCH] uapi: ebtables: don't include linux/if.h
-Date: Wed, 08 Apr 2015 19:41:40 +0200
-Message-ID: <20150408174140.25208.67942.stgit@nfdev2.cica.es>
+Subject: [iptables PATCH] libxtables: extensions find based also on family
+Date: Wed, 08 Apr 2015 19:42:19 +0200
+Message-ID: <20150408174219.25244.24487.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net, pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:38321 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:38338 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753475AbbDHRlt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Apr 2015 13:41:49 -0400
+	id S1753475AbbDHRm1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Apr 2015 13:42:27 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+When using libxtables with an external program (nft) which switches family
+contexts (using xtables_set_nfproto()), the extensions finding proccess
+needs to be smarter and also know about the family.
 
-linux/if.h creates conflicts in userspace with net/if.h
+We want to avoid this situation:
 
-By using it here we force userspace to use linux/if.h while
-net/if.h may be needed.
+ 1) user first sets context to IPv6
+ 2) xtables_find_target() finds & load ip6t_REJECT and uses it
+ 3) context switch to IPv4
+ 4) user then tries to use ipt_REJECT
+ 5) xtables_find_target() will find ip6t_REJECT instead (same target name)
+ 6) using ip6t_REJECT as ipt_REJECT can cause a lot of troubles
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- include/linux/netfilter_bridge/ebtables.h      |    3 ++-
- include/uapi/linux/netfilter_bridge/ebtables.h |    2 --
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ libxtables/xtables.c |   22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/netfilter_bridge/ebtables.h b/include/linux/netfilter_bridge/ebtables.h
-index 34e7a2b..f1bd396 100644
---- a/include/linux/netfilter_bridge/ebtables.h
-+++ b/include/linux/netfilter_bridge/ebtables.h
-@@ -12,9 +12,10 @@
- #ifndef __LINUX_BRIDGE_EFF_H
- #define __LINUX_BRIDGE_EFF_H
+diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+index 9df12ce..c56d7dd 100644
+--- a/libxtables/xtables.c
++++ b/libxtables/xtables.c
+@@ -603,6 +603,17 @@ static void *load_extension(const char *search_path, const char *af_prefix,
+ }
+ #endif
  
-+#include <linux/if.h>
-+#include <linux/if_ether.h>
- #include <uapi/linux/netfilter_bridge/ebtables.h>
++static bool extension_cmp(const char *name1, const char *name2,
++			  uint32_t family)
++{
++	if ((strcmp(name1, name2) == 0) &&
++	    ((family == afinfo->family) ||
++	     (family == NFPROTO_UNSPEC)))
++		return true;
++
++	return false;
++}
++
+ struct xtables_match *
+ xtables_find_match(const char *name, enum xtables_tryload tryload,
+ 		   struct xtables_rule_match **matches)
+@@ -625,7 +636,7 @@ xtables_find_match(const char *name, enum xtables_tryload tryload,
  
--
- /* return values for match() functions */
- #define EBT_MATCH 0
- #define EBT_NOMATCH 1
-diff --git a/include/uapi/linux/netfilter_bridge/ebtables.h b/include/uapi/linux/netfilter_bridge/ebtables.h
-index ba99336..773dfe8 100644
---- a/include/uapi/linux/netfilter_bridge/ebtables.h
-+++ b/include/uapi/linux/netfilter_bridge/ebtables.h
-@@ -12,9 +12,7 @@
+ 	/* Trigger delayed initialization */
+ 	for (dptr = &xtables_pending_matches; *dptr; ) {
+-		if (strcmp(name, (*dptr)->name) == 0) {
++		if (extension_cmp(name, (*dptr)->name, (*dptr)->family)) {
+ 			ptr = *dptr;
+ 			*dptr = (*dptr)->next;
+ 			ptr->next = NULL;
+@@ -636,7 +647,7 @@ xtables_find_match(const char *name, enum xtables_tryload tryload,
+ 	}
  
- #ifndef _UAPI__LINUX_BRIDGE_EFF_H
- #define _UAPI__LINUX_BRIDGE_EFF_H
--#include <linux/if.h>
- #include <linux/netfilter_bridge.h>
--#include <linux/if_ether.h>
+ 	for (ptr = xtables_matches; ptr; ptr = ptr->next) {
+-		if (strcmp(name, ptr->name) == 0) {
++		if (extension_cmp(name, ptr->name, ptr->family)) {
+ 			struct xtables_match *clone;
  
- #define EBT_TABLE_MAXNAMELEN 32
- #define EBT_CHAIN_MAXNAMELEN EBT_TABLE_MAXNAMELEN
+ 			/* First match of this type: */
+@@ -686,7 +697,8 @@ xtables_find_match(const char *name, enum xtables_tryload tryload,
+ 		newentry = xtables_malloc(sizeof(struct xtables_rule_match));
+ 
+ 		for (i = matches; *i; i = &(*i)->next) {
+-			if (strcmp(name, (*i)->match->name) == 0)
++			if (extension_cmp(name, (*i)->match->name,
++					  (*i)->match->family))
+ 				(*i)->completed = true;
+ 		}
+ 		newentry->match = ptr;
+@@ -714,7 +726,7 @@ xtables_find_target(const char *name, enum xtables_tryload tryload)
+ 
+ 	/* Trigger delayed initialization */
+ 	for (dptr = &xtables_pending_targets; *dptr; ) {
+-		if (strcmp(name, (*dptr)->name) == 0) {
++		if (extension_cmp(name, (*dptr)->name, (*dptr)->family)) {
+ 			ptr = *dptr;
+ 			*dptr = (*dptr)->next;
+ 			ptr->next = NULL;
+@@ -725,7 +737,7 @@ xtables_find_target(const char *name, enum xtables_tryload tryload)
+ 	}
+ 
+ 	for (ptr = xtables_targets; ptr; ptr = ptr->next) {
+-		if (strcmp(name, ptr->name) == 0)
++		if (extension_cmp(name, ptr->name, ptr->family))
+ 			break;
+ 	}
+ 
 
