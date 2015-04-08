@@ -1,8 +1,7 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH 2/4] src: expose delinearize/linearize structures and
- stmt_error()
-Date: Wed, 08 Apr 2015 19:48:24 +0200
-Message-ID: <20150408174824.28553.30834.stgit@nfdev2.cica.es>
+Subject: [nft PATCH 4/4] tests: regression: add xt compat tests
+Date: Wed, 08 Apr 2015 19:48:34 +0200
+Message-ID: <20150408174834.28553.53067.stgit@nfdev2.cica.es>
 References: <20150408174818.28553.96128.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,216 +9,183 @@ Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net, pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:33956 "EHLO smtp.cica.es"
+Received: from smtp4.cica.es ([150.214.5.182]:38453 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754688AbbDHRsc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Apr 2015 13:48:32 -0400
+	id S1754753AbbDHRsn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Apr 2015 13:48:43 -0400
 In-Reply-To: <20150408174818.28553.96128.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+This patch adds several regression test for the xt compat stuff.
 
-Needed by the follow up xt compatibility layer patch.
+Note the current output is:
+ ip/xt.t: 25 unit tests, 0 error, 0 warning
+ ip6/xt.t: 25 unit tests, 0 error, 0 warning
+ bridge/xt.t: 26 unit tests, 0 error, 0 warning
+ arp/xt.t: 12 unit tests, 0 error, 0 warning
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- include/erec.h            |   12 ++++++++++++
- include/netlink.h         |   39 +++++++++++++++++++++++++++++++++++++++
- src/erec.c                |   17 +++++++++++++++++
- src/evaluate.c            |   26 ++------------------------
- src/netlink_delinearize.c |   13 -------------
- src/netlink_linearize.c   |    5 -----
- 6 files changed, 70 insertions(+), 42 deletions(-)
+ tests/regression/bridge/xt.t |   45 ++++++++++++++++++++++++++++++++++++++++++
+ tests/regression/ip/xt.t     |   45 ++++++++++++++++++++++++++++++++++++++++++
+ tests/regression/ip6/xt.t    |   45 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 135 insertions(+)
+ create mode 100644 tests/regression/bridge/xt.t
+ create mode 100644 tests/regression/ip/xt.t
+ create mode 100644 tests/regression/ip6/xt.t
 
-diff --git a/include/erec.h b/include/erec.h
-index 25df1d0..a4422bc 100644
---- a/include/erec.h
-+++ b/include/erec.h
-@@ -3,6 +3,7 @@
- 
- #include <nftables.h>
- #include <utils.h>
-+#include <rule.h>
- 
- /**
-  * enum error_record_types
-@@ -61,4 +62,15 @@ static inline void erec_queue(struct error_record *erec,
- extern void erec_print(FILE *f, const struct error_record *erec);
- extern void erec_print_list(FILE *f, struct list_head *list);
- 
+diff --git a/tests/regression/bridge/xt.t b/tests/regression/bridge/xt.t
+new file mode 100644
+index 0000000..b3f4beb
+--- /dev/null
++++ b/tests/regression/bridge/xt.t
+@@ -0,0 +1,45 @@
++*bridge;test-bridge
++:test-forward;type filter hook forward priority 0
 +
-+int __fmtstring(4, 5) __binary_error(struct eval_ctx *ctx,
-+				     const struct location *l1,
-+				     const struct location *l2,
-+				     const char *fmt, ...);
++# standard load of match, target, watcher
++xt match 802_3 [ --802_3-sap 0x1 ];ok;xt match 802_3 [--802_3-sap 0x01  ]
++xt target mark [ --mark-set 0x1 ];ok;xt target mark [--mark-set 0x1 --mark-target ACCEPT ]
++xt watcher log [ ];ok;xt watcher log [--log-level notice --log-prefix ""  ]
++xt watcher log;ok;xt watcher log [--log-level notice --log-prefix ""  ]
 +
-+#define stmt_error(ctx, s1, fmt, args...) \
-+	__binary_error(ctx, &(s1)->location, NULL, fmt, ## args)
-+#define stmt_binary_error(ctx, s1, s2, fmt, args...) \
-+	__binary_error(ctx, &(s1)->location, &(s2)->location, fmt, ## args)
++# more than one argument in a single statement
++xt match 802_3 [ --802_3-sap 0x1 --802_3-type 0x2 ];ok;xt match 802_3 [--802_3-sap 0x01 --802_3-type 0x0002  ]
++xt target mark [ --mark-set 0x1 --mark-target CONTINUE ];ok;xt target mark [--mark-set 0x1 --mark-target CONTINUE ]
++xt watcher log [ --log-level notice --log-prefix "test" ];ok;xt watcher log [--log-level notice --log-prefix "test"  ]
 +
- #endif /* NFTABLES_EREC_H */
-diff --git a/include/netlink.h b/include/netlink.h
-index 9f24ea5..34fc085 100644
---- a/include/netlink.h
-+++ b/include/netlink.h
-@@ -12,6 +12,45 @@
- 
- #include <rule.h>
- 
-+/** struct netlink_linearize_ctx
-+ *
-+ * @nlr:	nftnl rule object
-+ * @reg_low:	next spare register
-+ */
-+struct netlink_linearize_ctx {
-+	struct nft_rule		*nlr;
-+	unsigned int		reg_low;
-+};
++# repeated statement with different argument (also testing final statement flag)
++xt match 802_3 [ --802_3-sap 0x1 --802_3-type 0x2 ] xt match 802_3 [ --802_3-type 0x3 --802_3-sap 0x4 ];ok;xt match 802_3 [--802_3-sap 0x01 --802_3-type 0x0002  ] xt match 802_3 [--802_3-sap 0x04 --802_3-type 0x0003  ]
++xt target mark [ --mark-set 0x1 --mark-target CONTINUE ] xt target mark [ --mark-set 0x1 ];fail
++xt watcher log [ --log-level notice ] xt watcher log [ --log-level notice --log-prefix "test" ];ok;xt watcher log [--log-level notice --log-prefix ""  ] xt watcher log [--log-level notice --log-prefix "test"  ]
 +
-+/**
-+ * struct netlink_parse_ctx
-+ *
-+ * @msgs:	message queue
-+ * @table:	current table
-+ * @rule:	pointer to current rule that is being delinearized
-+ * @expr:	registers
-+ */
-+struct netlink_parse_ctx {
-+	struct list_head	*msgs;
-+	struct table		*table;
-+	struct rule		*rule;
-+	struct expr		*registers[NFT_REG_MAX + 1];
-+};
++# statement with weird/invalid options
++xt match mark_m [ --test ];fail
++xt target mark [];ok;xt target mark [--mark-set 0x0 --mark-target ACCEPT ]
++xt target mark;ok;xt target mark [--mark-set 0x0 --mark-target ACCEPT ]
++xt watcher log [];ok;xt watcher log [--log-level notice --log-prefix ""  ]
++xt watcher log [--test];ok;xt watcher log [--log-level notice --log-prefix ""  ]
 +
-+/**
-+ * struct rule_pp_ctx
-+ *
-+ * @pctx:	protocol context
-+ * @pbase:	protocol base
-+ * @pdep:	dependency statement
-+ */
-+struct rule_pp_ctx {
-+	struct proto_ctx	pctx;
-+	enum proto_bases	pbase;
-+	struct stmt		*pdep;
-+};
++# statement with invalid argument
++xt match 802_3 [ --802_3-sap -1 ];fail
++xt target mark [ --mark-target TEST ];fail
++xt watcher log [ --log-level test ];fail
 +
++# inversions
++xt match 802_3 [ ! --802_3-sap 0x1 ];ok;xt match 802_3 [--802_3-sap ! 0x01  ]
++xt match 802_3 [ --802_3-sap ! 0x1 ];ok;xt match 802_3 [--802_3-sap ! 0x01  ]
++ether type ip xt match ip [ --ip-src ! 1.1.1.1 ];ok;ether type ip xt match ip [--ip-src ! 1.1.1.1  ]
 +
- extern const struct input_descriptor indesc_netlink;
- extern const struct location netlink_location;
- 
-diff --git a/src/erec.c b/src/erec.c
-index 810e9bf..ba331a5 100644
---- a/src/erec.c
-+++ b/src/erec.c
-@@ -166,3 +166,20 @@ void erec_print_list(FILE *f, struct list_head *list)
- 		erec_destroy(erec);
- 	}
- }
++# protocol context games
++xt match ip [ --ip-src 1.1.1.1 ];fail
++ether type ip xt match ip [ --ip-src 1.1.1.1 ];ok;ether type ip xt match ip [--ip-src 1.1.1.1  ]
++ether type ip6 xt match ip [ --ip-src 1.1.1.1 ];fail
++ether type ip xt match ip [ --ip-proto tcp --ip-sport 123 ];ok;ether type ip xt match ip [--ip-proto tcp --ip-sport 123  ]
 +
-+int __fmtstring(4, 5) __binary_error(struct eval_ctx *ctx,
-+				     const struct location *l1,
-+				     const struct location *l2,
-+				     const char *fmt, ...)
-+{
-+	struct error_record *erec;
-+	va_list ap;
++# quoted strings
++xt watcher log [ --log-prefix \"test test\" ];ok;xt watcher log [--log-level notice --log-prefix "test test"  ]
++xt watcher log [ --log-prefix \"test test \" ];ok;xt watcher log [--log-level notice --log-prefix "test test "  ]
+diff --git a/tests/regression/ip/xt.t b/tests/regression/ip/xt.t
+new file mode 100644
+index 0000000..0ee3a21
+--- /dev/null
++++ b/tests/regression/ip/xt.t
+@@ -0,0 +1,45 @@
++*ip;nat
++:test-postrouting;type nat hook postrouting priority 0
 +
-+	va_start(ap, fmt);
-+	erec = erec_vcreate(EREC_ERROR, l1, fmt, ap);
-+	if (l2 != NULL)
-+		erec_add_location(erec, l2);
-+	va_end(ap);
-+	erec_queue(erec, ctx->msgs);
-+	return -1;
-+}
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 7ecb793..b216fb1 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -36,32 +36,10 @@ static const char *byteorder_names[] = {
- 	[BYTEORDER_BIG_ENDIAN]		= "big endian",
- };
- 
--static int __fmtstring(4, 5) __stmt_binary_error(struct eval_ctx *ctx,
--						 const struct location *l1,
--						 const struct location *l2,
--						 const char *fmt, ...)
--{
--	struct error_record *erec;
--	va_list ap;
--
--	va_start(ap, fmt);
--	erec = erec_vcreate(EREC_ERROR, l1, fmt, ap);
--	if (l2 != NULL)
--		erec_add_location(erec, l2);
--	va_end(ap);
--	erec_queue(erec, ctx->msgs);
--	return -1;
--
--}
--
--#define stmt_error(ctx, s1, fmt, args...) \
--	__stmt_binary_error(ctx, &(s1)->location, NULL, fmt, ## args)
--#define stmt_binary_error(ctx, s1, s2, fmt, args...) \
--	__stmt_binary_error(ctx, &(s1)->location, &(s2)->location, fmt, ## args)
- #define chain_error(ctx, s1, fmt, args...) \
--	__stmt_binary_error(ctx, &(s1)->location, NULL, fmt, ## args)
-+	__binary_error(ctx, &(s1)->location, NULL, fmt, ## args)
- #define monitor_error(ctx, s1, fmt, args...) \
--	__stmt_binary_error(ctx, &(s1)->location, NULL, fmt, ## args)
-+	__binary_error(ctx, &(s1)->location, NULL, fmt, ## args)
- 
- static int __fmtstring(3, 4) set_error(struct eval_ctx *ctx,
- 				       const struct set *set,
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index ec1a964..e0bb726 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -26,13 +26,6 @@
- #include <erec.h>
- #include <sys/socket.h>
- 
--struct netlink_parse_ctx {
--	struct list_head	*msgs;
--	struct table		*table;
--	struct rule		*rule;
--	struct expr		*registers[NFT_REG_MAX + 1];
--};
--
- static void __fmtstring(3, 4) netlink_error(struct netlink_parse_ctx *ctx,
- 					    const struct location *loc,
- 					    const char *fmt, ...)
-@@ -741,12 +734,6 @@ static int netlink_parse_expr(struct nft_rule_expr *nle, void *arg)
- 	return 0;
- }
- 
--struct rule_pp_ctx {
--	struct proto_ctx	pctx;
--	enum proto_bases	pbase;
--	struct stmt		*pdep;
--};
--
- /*
-  * Kill a redundant payload dependecy that is implied by a higher layer payload expression.
-  */
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 9bef67b..6a637a4 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -19,11 +19,6 @@
- #include <gmputil.h>
- #include <utils.h>
- 
--struct netlink_linearize_ctx {
--	struct nft_rule		*nlr;
--	unsigned int		reg_low;
--};
--
- static void netlink_put_register(struct nft_rule_expr *nle,
- 				 uint32_t attr, uint32_t reg)
- {
++# standard load of match, target, watcher
++ip protocol 6 xt match multiport [ --dports 123,234,345 ];ok
++xt target MASQUERADE;ok;xt target MASQUERADE [ ]
++xt target LOG;ok;xt target LOG [ ]
++xt target LOG [];ok;xt target LOG [ ]
++xt target LOG [ ];ok;xt target LOG [ ]
++xt watcher log;fail
++
++# foreing extensions
++xt match 802_3 [ --802_3-sap 0x1 ];fail
++xt target mark [ --mark-set 0x1 ];fail
++
++# more than one argument in a single statement
++xt match conntrack [ --ctstate NEW --ctdir ORIGINAL ];ok
++xt target SNAT [ --to-source 10.0.0.10 --persistent ];ok
++
++# repeated statement with different argument (also testing final statement flag)
++xt match conntrack [ --ctstate NEW ] xt match conntrack [ --ctstate ESTABLISHED ] xt match conntrack [ --ctstate NEW,ESTABLISHED ];ok
++xt target SNAT [ --to-source 10.0.0.10 ] xt target SNAT [ --to-source 10.0.0.10 ];fail
++
++# statement with weird/invalid options
++xt match conntrack [ --asdasd --asdasd ];fail
++xt match multiport;fail
++xt match multiport [];fail
++xt match multiport [ ];fail
++xt target SNAT [ --asdasd --asdasd ];fail
++
++# statement with invalid argument
++xt match conntrack [ --ctstate TEST ];fail
++xt target SNAT [ --to-source asd ];fail
++
++# inversions
++xt match conntrack [ ! --ctstate NEW ! --ctstatus CONFIRMED --ctdir REPLY ];ok
++
++# protocol context games
++ip protocol 6 xt match multiport [ --dports 1,2,3 ]; ok
++ip protocol 17 xt match multiport [ --dports 1,2,3 ]; ok
++xt match multiport [ --dports 1,2,3 ]; fail
++
++# quoted strings
++xt match comment [ --comment \"test test\" ];ok;xt match comment [ --comment "test test" ]
++xt target LOG [ --log-prefix \"test test\" ];ok;xt target LOG [ --log-prefix "test test" ]
+diff --git a/tests/regression/ip6/xt.t b/tests/regression/ip6/xt.t
+new file mode 100644
+index 0000000..0ee3a21
+--- /dev/null
++++ b/tests/regression/ip6/xt.t
+@@ -0,0 +1,45 @@
++*ip;nat
++:test-postrouting;type nat hook postrouting priority 0
++
++# standard load of match, target, watcher
++ip protocol 6 xt match multiport [ --dports 123,234,345 ];ok
++xt target MASQUERADE;ok;xt target MASQUERADE [ ]
++xt target LOG;ok;xt target LOG [ ]
++xt target LOG [];ok;xt target LOG [ ]
++xt target LOG [ ];ok;xt target LOG [ ]
++xt watcher log;fail
++
++# foreing extensions
++xt match 802_3 [ --802_3-sap 0x1 ];fail
++xt target mark [ --mark-set 0x1 ];fail
++
++# more than one argument in a single statement
++xt match conntrack [ --ctstate NEW --ctdir ORIGINAL ];ok
++xt target SNAT [ --to-source 10.0.0.10 --persistent ];ok
++
++# repeated statement with different argument (also testing final statement flag)
++xt match conntrack [ --ctstate NEW ] xt match conntrack [ --ctstate ESTABLISHED ] xt match conntrack [ --ctstate NEW,ESTABLISHED ];ok
++xt target SNAT [ --to-source 10.0.0.10 ] xt target SNAT [ --to-source 10.0.0.10 ];fail
++
++# statement with weird/invalid options
++xt match conntrack [ --asdasd --asdasd ];fail
++xt match multiport;fail
++xt match multiport [];fail
++xt match multiport [ ];fail
++xt target SNAT [ --asdasd --asdasd ];fail
++
++# statement with invalid argument
++xt match conntrack [ --ctstate TEST ];fail
++xt target SNAT [ --to-source asd ];fail
++
++# inversions
++xt match conntrack [ ! --ctstate NEW ! --ctstatus CONFIRMED --ctdir REPLY ];ok
++
++# protocol context games
++ip protocol 6 xt match multiport [ --dports 1,2,3 ]; ok
++ip protocol 17 xt match multiport [ --dports 1,2,3 ]; ok
++xt match multiport [ --dports 1,2,3 ]; fail
++
++# quoted strings
++xt match comment [ --comment \"test test\" ];ok;xt match comment [ --comment "test test" ]
++xt target LOG [ --log-prefix \"test test\" ];ok;xt target LOG [ --log-prefix "test test" ]
 
