@@ -1,36 +1,62 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2 nf-next 0/6] netfilter: prepare for skb->nf_bridge
- removal
-Date: Wed, 8 Apr 2015 19:10:22 +0200
-Message-ID: <20150408171022.GA27927@salvia>
-References: <1427977905-9927-1-git-send-email-fw@strlen.de>
- <20150408164727.GA1638@salvia>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [kernel PATCH] uapi: ebtables: don't include linux/if.h
+Date: Wed, 08 Apr 2015 19:41:40 +0200
+Message-ID: <20150408174140.25208.67942.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49432 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753519AbbDHRGL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Apr 2015 13:06:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20150408164727.GA1638@salvia>
+Received: from smtp3.cica.es ([150.214.5.190]:38321 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753475AbbDHRlt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Apr 2015 13:41:49 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 08, 2015 at 06:47:27PM +0200, Pablo Neira Ayuso wrote:
-> On Thu, Apr 02, 2015 at 02:31:39PM +0200, Florian Westphal wrote:
-> > This series prepares skb->nf_bridge pointer removal.
-> > 
-> > This is a resend without the ip_fragment changes since
-> > its not clear to me (yet) how to resolve that.
-> > 
-> > This also means that this resend doesn't include the skb->nf_bridge
-> > removal since the 'mtu reduction' in ip_fragment() should
-> > be made private to bridge netfilter first.
-> 
-> Series applied, thanks Florian.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 
-BTW, I have resolved conflicts with David's changes on the netfilter's
-okfn() signature. Let me know if you find any problem in it. Thanks.
+linux/if.h creates conflicts in userspace with net/if.h
+
+By using it here we force userspace to use linux/if.h while
+net/if.h may be needed.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ include/linux/netfilter_bridge/ebtables.h      |    3 ++-
+ include/uapi/linux/netfilter_bridge/ebtables.h |    2 --
+ 2 files changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/include/linux/netfilter_bridge/ebtables.h b/include/linux/netfilter_bridge/ebtables.h
+index 34e7a2b..f1bd396 100644
+--- a/include/linux/netfilter_bridge/ebtables.h
++++ b/include/linux/netfilter_bridge/ebtables.h
+@@ -12,9 +12,10 @@
+ #ifndef __LINUX_BRIDGE_EFF_H
+ #define __LINUX_BRIDGE_EFF_H
+ 
++#include <linux/if.h>
++#include <linux/if_ether.h>
+ #include <uapi/linux/netfilter_bridge/ebtables.h>
+ 
+-
+ /* return values for match() functions */
+ #define EBT_MATCH 0
+ #define EBT_NOMATCH 1
+diff --git a/include/uapi/linux/netfilter_bridge/ebtables.h b/include/uapi/linux/netfilter_bridge/ebtables.h
+index ba99336..773dfe8 100644
+--- a/include/uapi/linux/netfilter_bridge/ebtables.h
++++ b/include/uapi/linux/netfilter_bridge/ebtables.h
+@@ -12,9 +12,7 @@
+ 
+ #ifndef _UAPI__LINUX_BRIDGE_EFF_H
+ #define _UAPI__LINUX_BRIDGE_EFF_H
+-#include <linux/if.h>
+ #include <linux/netfilter_bridge.h>
+-#include <linux/if_ether.h>
+ 
+ #define EBT_TABLE_MAXNAMELEN 32
+ #define EBT_CHAIN_MAXNAMELEN EBT_TABLE_MAXNAMELEN
+
