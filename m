@@ -1,32 +1,24 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] monitor: fix missing space after chain name
-Date: Wed, 8 Apr 2015 19:06:45 +0200
-Message-ID: <20150408170645.GA26356@salvia>
-References: <20150407150514.1615.70626.stgit@nfdev2.cica.es>
+Subject: Re: [PATCH -iptables] cgroup, man: improve man-page bits
+Date: Wed, 8 Apr 2015 19:08:38 +0200
+Message-ID: <20150408170838.GA27885@salvia>
+References: <0e6bc44eee1b69940683cadcead21fe545066b89.1427481150.git.daniel@iogearbox.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: Daniel Borkmann <daniel@iogearbox.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48800 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49183 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932305AbbDHRCf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Apr 2015 13:02:35 -0400
+	id S1754184AbbDHRE3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Apr 2015 13:04:29 -0400
 Content-Disposition: inline
-In-Reply-To: <20150407150514.1615.70626.stgit@nfdev2.cica.es>
+In-Reply-To: <0e6bc44eee1b69940683cadcead21fe545066b89.1427481150.git.daniel@iogearbox.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 07, 2015 at 05:05:14PM +0200, Arturo Borrero Gonzalez wrote:
-> Due to change f3ff9e9 ("rule: delete extra space in rule indentation") in
-> function rule_print(), a missing space happens in monitor.
-> 
-> before this patch:
->  % nft monitor
->  add rule ip test-table test-chainip protocol tcp
-> 
-> after this patch:
->  % nft monitor
->  add rule ip test-table test-chain ip protocol tcp
+On Fri, Mar 27, 2015 at 07:38:36PM +0100, Daniel Borkmann wrote:
+> Document limitations when in use with INPUT until we found a
+> better solution. Also fix up indent in the example section.
 
-Applied, thanks Arturo.
+Applied, thanks.
