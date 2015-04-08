@@ -1,58 +1,36 @@
-From: Hannes Frederic Sowa <hannes@stressinduktion.org>
-Subject: Re: [PATCH 4/4] udp_tunnel: Pass UDP socket down through
- udp_tunnel{,6}_xmit_skb().
-Date: Wed, 08 Apr 2015 17:03:02 +0200
-Message-ID: <1428505382.873082.250792005.6B704B17@webmail.messagingengine.com>
-References: <1428421534.2928.3.camel@stressinduktion.org>
- <20150407.153044.772260953305341361.davem@davemloft.net>
- <1428449099.869458.250499317.11121567@webmail.messagingengine.com>
- <20150407.221328.1961195097281515709.davem@davemloft.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: Fix switch statement warnings with recent gcc.
+Date: Wed, 8 Apr 2015 18:46:14 +0200
+Message-ID: <20150408164614.GA22526@salvia>
+References: <20150407.230542.359453916233129441.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: rick.jones2@hp.com, tom@herbertland.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-	jiri@resnulli.us
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
 To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:35891 "EHLO
-	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753411AbbDHPDD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Apr 2015 11:03:03 -0400
-Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
-	by mailout.nyi.internal (Postfix) with ESMTP id 4E7E120BFB
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Apr 2015 11:02:59 -0400 (EDT)
-In-Reply-To: <20150407.221328.1961195097281515709.davem@davemloft.net>
+Received: from mail.us.es ([193.147.175.20]:44500 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753364AbbDHQmJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Apr 2015 12:42:09 -0400
+Content-Disposition: inline
+In-Reply-To: <20150407.230542.359453916233129441.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 8, 2015, at 04:13, David Miller wrote:
-> From: Hannes Frederic Sowa <hannes@stressinduktion.org>
-> Date: Wed, 08 Apr 2015 01:24:59 +0200
+On Tue, Apr 07, 2015 at 11:05:42PM -0400, David Miller wrote:
 > 
-> > There is one small problem which already was present before this patch
-> > because of my change b6a7719aedd7e5 ("ipv4: hash net ptr into
-> > fragmentation bucket selection"). It uses sock_net in iptunnel_xmit,
-> > which causes a NULL ptr panic. This patchset did make it more visible
-> > because of the explicit NULL passing but the bug was introduced by my
-> > patch.
-> > 
-> > Just wanted to let you know if reports are coming in - I fix it up
-> > tomorrow. I will also explore the possibility to give each tunnel at
-> > least a raw socket, what Tom proposed.
-> > 
-> > Rick Jones identified this, thanks!
+> More recent GCC warns about two kinds of switch statement uses:
 > 
-> Looking into this I also notice that ipip6_tunnel_xmit() passes
-> in skb->sk, that needs to be NULL too.
+> 1) Switching on an enumeration, but not having an explicit case
+>    statement for all members of the enumeration.  To show the
+>    compiler this is intentional, we simply add a default case
+>    with nothing more than a break statement.
 > 
-> Want to take care of that along with your sock_net() fix?
+> 2) Switching on a boolean value.  I think this warning is dumb
+>    but nevertheless you get it wholesale with -Wswitch.
+> 
+> This patch cures all such warnings in netfilter.
+> 
+> Signed-off-by: David S. Miller <davem@davemloft.net>
 
-Yep, did so and used the simple solution for now.
-
-I am currently trying to check if it makes sense to remove ignore_df and
-always use the socket context.
-
-Bye,
-Hannes
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
