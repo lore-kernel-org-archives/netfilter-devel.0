@@ -1,54 +1,78 @@
-From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: Re: [nft PATCH 1/4] include: cache a copy of kernel ebtables.h
-Date: Wed, 8 Apr 2015 17:22:49 -0700
-Message-ID: <20150408172249.49bbc646@urahara>
-References: <20150408174818.28553.96128.stgit@nfdev2.cica.es>
+From: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+Subject: Re: Re: [PATCH] Add NFPROTO_ARP for mark
+Date: Thu, 9 Apr 2015 03:54:33 +0000
+Message-ID: <A43879EB4A7F5F449E2CA8148EA79E5172E8F2@G08CNEXMBPEKD01.g08.fujitsu.local>
+References: <1428374716-15108-1-git-send-email-zhangcy@cn.fujitsu.com>,
+ <1428374716-15108-2-git-send-email-zhangcy@cn.fujitsu.com>,
+ <20150408174911.GA4683@salvia>
+Reply-To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
-	pablo@netfilter.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "pablo@netfilter.org" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:36079 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754232AbbDIAWo (ORCPT
+Received: from cn.fujitsu.com ([59.151.112.132]:8045 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932416AbbDIDyZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Apr 2015 20:22:44 -0400
-Received: by pabsx10 with SMTP id sx10so130924824pab.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Apr 2015 17:22:44 -0700 (PDT)
-In-Reply-To: <20150408174818.28553.96128.stgit@nfdev2.cica.es>
+	Wed, 8 Apr 2015 23:54:25 -0400
+Content-Language: zh-CN
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 08 Apr 2015 19:48:18 +0200
-Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
-
-> From: Arturo Borrero Gonzalez <aborrero@nfdev2.cica.es>
-> 
-> Required for next patches.
-> 
-> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-
-If you are going to import a kernel header, it should be the exact version
-produced by doing: 
-  $ make headers_install
-in the kernel source directory
-the result of that make is files in usr/include/linux
-
-And your version differs:
-
-
-$ diff -up usr/include/linux/netfilter_bridge/ebtables.h /tmp/ebtables.h 
---- usr/include/linux/netfilter_bridge/ebtables.h	2015-02-05 10:17:17.865621216 -0800
-+++ /tmp/ebtables.h	2015-04-08 17:20:40.265458995 -0700
-@@ -12,9 +12,7 @@
- 
- #ifndef __LINUX_BRIDGE_EFF_H
- #define __LINUX_BRIDGE_EFF_H
--#include <linux/if.h>
- #include <linux/netfilter_bridge.h>
--#include <linux/if_ether.h>
- 
- #define EBT_TABLE_MAXNAMELEN 32
- #define EBT_CHAIN_MAXNAMELEN EBT_TABLE_MAXNAMELEN
+DQoNCj5Gcm9tOiBQYWJsbyBOZWlyYSBBeXVzbw0KPkRhdGU6IDIwMTUtMDQtMDkNCj5UbzogWmhh
+bmcsIENodW55dS/nq6Ag5pil5a6HDQo+U3ViamVjdDogUmU6IFtQQVRDSF0gQWRkIE5GUFJPVE9f
+QVJQIGZvciBtYXJrDQo+DQo+T24gTW9uLCBBcHIgMDYsIDIwMTUgYXQgMTA6NDU6MTZQTSAtMDQw
+MCwgWmhhbmcgQ2h1bnl1IHdyb3RlOg0KPj4gbmVlZCBhZGQgTkZQUk9UT19BUlAgYW5kIE1PRFVM
+RV9BTElBUyBmb3IgYXJwdGFibGVzIC1tYXJrDQo+Pg0KPj4gU2lnbmVkLW9mZi1ieTogWmhhbmcg
+Q2h1bnl1IDx6aGFuZ2N5QGNuLmZ1aml0c3UuY29tPg0KPj4gLS0tDQo+PiAgbmV0L25ldGZpbHRl
+ci94dF9tYXJrLmMgfCAzMSArKysrKysrKysrKysrKysrKysrKystLS0tLS0tLS0tDQo+PiAgMSBm
+aWxlIGNoYW5nZWQsIDIxIGluc2VydGlvbnMoKyksIDEwIGRlbGV0aW9ucygtKQ0KPj4NCj4+IGRp
+ZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVyL3h0X21hcmsuYyBiL25ldC9uZXRmaWx0ZXIveHRfbWFy
+ay5jDQo+PiBpbmRleCAyMzM0NTIzLi41Nzc4MDYyIDEwMDY0NA0KPj4gLS0tIGEvbmV0L25ldGZp
+bHRlci94dF9tYXJrLmMNCj4+ICsrKyBiL25ldC9uZXRmaWx0ZXIveHRfbWFyay5jDQo+PiBAQCAt
+MjMsNiArMjMsNyBAQCBNT0RVTEVfQUxJQVMoImlwdF9tYXJrIik7DQo+PiAgTU9EVUxFX0FMSUFT
+KCJpcDZ0X21hcmsiKTsNCj4+ICBNT0RVTEVfQUxJQVMoImlwdF9NQVJLIik7DQo+PiAgTU9EVUxF
+X0FMSUFTKCJpcDZ0X01BUksiKTsNCj4+ICtNT0RVTEVfQUxJQVMoImFycHRfTUFSSyIpOw0KPg0K
+PlRoaXMgbGl0dGxlIGNoYW5nZSBhYm92ZSBpcyBmaW5lLg0KPg0KPj4gIHN0YXRpYyB1bnNpZ25l
+ZCBpbnQNCj4+ICBtYXJrX3RnKHN0cnVjdCBza19idWZmICpza2IsIGNvbnN0IHN0cnVjdCB4dF9h
+Y3Rpb25fcGFyYW0gKnBhcikNCj4+IEBAIC00MSwxMyArNDIsMjMgQEAgbWFya19tdChjb25zdCBz
+dHJ1Y3Qgc2tfYnVmZiAqc2tiLCBzdHJ1Y3QgeHRfYWN0aW9uX3BhcmFtICpwYXIpDQo+PiAgICAg
+ICByZXR1cm4gKChza2ItPm1hcmsgJiBpbmZvLT5tYXNrKSA9PSBpbmZvLT5tYXJrKSBeIGluZm8t
+PmludmVydDsNCj4+ICB9DQo+PiANCj4+IC1zdGF0aWMgc3RydWN0IHh0X3RhcmdldCBtYXJrX3Rn
+X3JlZyBfX3JlYWRfbW9zdGx5ID0gew0KPj4gLSAgICAgLm5hbWUgICAgICAgICAgID0gIk1BUksi
+LA0KPj4gLSAgICAgLnJldmlzaW9uICAgICAgID0gMiwNCj4+IC0gICAgIC5mYW1pbHkgICAgICAg
+ICA9IE5GUFJPVE9fVU5TUEVDLA0KPj4gLSAgICAgLnRhcmdldCAgICAgICAgID0gbWFya190ZywN
+Cj4+IC0gICAgIC50YXJnZXRzaXplICAgICA9IHNpemVvZihzdHJ1Y3QgeHRfbWFya190Z2luZm8y
+KSwNCj4+IC0gICAgIC5tZSAgICAgICAgICAgICA9IFRISVNfTU9EVUxFLA0KPj4gK3N0YXRpYyBz
+dHJ1Y3QgeHRfdGFyZ2V0IG1hcmtfdGdfcmVnW10gX19yZWFkX21vc3RseSA9IHsNCj4+ICsgICAg
+IHsNCj4+ICsgICAgICAgICAgICAgLm5hbWUgICAgICAgICAgID0gIk1BUksiLA0KPj4gKyAgICAg
+ICAgICAgICAucmV2aXNpb24gICAgICAgPSAyLA0KPj4gKyAgICAgICAgICAgICAuZmFtaWx5ICAg
+ICAgICAgPSBORlBST1RPX1VOU1BFQywNCj4+ICsgICAgICAgICAgICAgLnRhcmdldCAgICAgICAg
+ID0gbWFya190ZywNCj4+ICsgICAgICAgICAgICAgLnRhcmdldHNpemUgICAgID0gc2l6ZW9mKHN0
+cnVjdCB4dF9tYXJrX3RnaW5mbzIpLA0KPj4gKyAgICAgICAgICAgICAubWUgICAgICAgICAgICAg
+PSBUSElTX01PRFVMRSwNCj4+ICsgICAgIH0sDQo+PiArICAgICB7DQo+PiArICAgICAgICAgICAg
+IC5uYW1lICAgICAgICAgICA9ICJNQVJLIiwNCj4+ICsgICAgICAgICAgICAgLnJldmlzaW9uICAg
+ICAgID0gMiwNCj4+ICsgICAgICAgICAgICAgLmZhbWlseSAgICAgICAgID0gTkZQUk9UT19BUlAs
+DQo+PiArICAgICAgICAgICAgIC50YXJnZXQgICAgICAgICA9IG1hcmtfdGcsDQo+PiArICAgICAg
+ICAgICAgIC50YXJnZXRzaXplICAgICA9IHNpemVvZihzdHJ1Y3QgeHRfbWFya190Z2luZm8yKSwN
+Cj4+ICsgICAgICAgICAgICAgLm1lICAgICAgICAgICAgID0gVEhJU19NT0RVTEUsDQo+PiArICAg
+ICB9DQo+PiAgfTsNCj4NCj5Zb3UgZG9uJ3QgbmVlZCB0aGlzLg0KPg0KPlRoZSBwcm9ibGVtIGlz
+IGhlcmUgdGhhdCB5b3VyIHBhdGNoOg0KPg0KPmh0dHA6Ly9wYXRjaHdvcmsub3psYWJzLm9yZy9w
+YXRjaC80NTU5NjYvDQo+DQo+aXMgbWlzc2luZyB0aGlzIGNodW5rOg0KPg0KPmRpZmYgLS1naXQg
+YS9saWJhcnB0Yy9saWJhcnB0Y19pbmNsLmMgYi9saWJhcnB0Yy9saWJhcnB0Y19pbmNsLmMNCj5p
+bmRleCBhMDM0OTMwLi44NzQwNGNlIDEwMDY0NA0KPi0tLSBhL2xpYmFycHRjL2xpYmFycHRjX2lu
+Y2wuYw0KPisrKyBiL2xpYmFycHRjL2xpYmFycHRjX2luY2wuYw0KPkBAIC04NzIsNyArODcyLDcg
+QEAgbWFwX3RhcmdldChjb25zdCBUQ19IQU5ETEVfVCBoYW5kbGUsDQo+ICAgICAgICAvKiBtZW1z
+ZXQgdG8gYWxsIDAgZm9yIHlvdXIgbWVtY21wIGNvbnZlbmllbmNlLiAqLw0KPiAgICAgICAgbWVt
+c2V0KHQtPnUudXNlci5uYW1lICsgc3RybGVuKHQtPnUudXNlci5uYW1lKSwNCj4gICAgICAgICAg
+ICAgICAwLA0KPi0gICAgICAgICAgICAgIEZVTkNUSU9OX01BWE5BTUVMRU4gLSBzdHJsZW4odC0+
+dS51c2VyLm5hbWUpKTsNCj4rICAgICAgICAgICAgICBGVU5DVElPTl9NQVhOQU1FTEVOIC0gMSAt
+IHN0cmxlbih0LT51LnVzZXIubmFtZSkpOw0KPiAgICAgICAgcmV0dXJuIDE7DQo+IH0NCj4NCj5P
+dGhlcndpc2UsIHRoZSByZXZpc2lvbiBudW1iZXIgaXMgemVyb2VkLg0KPg0KPkFuZCB5b3UgZG9u
+J3QgbmVlZDogaHR0cDovL3BhdGNod29yay5vemxhYnMub3JnL3BhdGNoLzQ1NTk2NS8uDQo+DQo+
+UGxlYXNlLCByZWJhc2UgeW91ciB1c2Vyc3BhY2UgcGF0Y2hlcyBvbiB0b3Agb2YgY3VycmVudCBh
+cnB0YWJsZXMgZ2l0DQo+YW5kIHJlc3VibWl0LiBUaGFua3MuDQpnZXQgaXQg44CCd2lsbCBkb+OA
+gg0Kd2h5IGFycHRhYmxlcyAtLXNldC1tYXJrIGNhbiB3b3JrICwgd2hlbiBhZGQgIE5GUFJPVE9f
+QVJQIHRvIHh0X21hcmsgPw==
