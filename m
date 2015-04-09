@@ -1,66 +1,65 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: [PATCH 5/5 v2] netfilter: Fix format string of nfnetlink_log
- proc file
-Date: Thu, 9 Apr 2015 18:43:42 -0400
-Message-ID: <20150409184342.4c3737a5@gandalf.local.home>
-References: <1428616637-21690-1-git-send-email-richard@nod.at>
-	<1428616637-21690-5-git-send-email-richard@nod.at>
-	<1428619177.5413.15.camel@perches.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft v2 3/3] src: add xt compat support
+Date: Fri, 10 Apr 2015 00:56:26 +0200
+Message-ID: <20150409225626.GA4215@salvia>
+References: <1428598514-1915-1-git-send-email-pablo@netfilter.org>
+ <1428598514-1915-3-git-send-email-pablo@netfilter.org>
+ <20150409203616.GA27610@acer.localdomain>
+ <20150409205135.GG20653@breakpoint.cc>
+ <20150409223417.GA3205@salvia>
+ <20150409223622.GI20653@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Richard Weinberger <richard@nod.at>, netdev@vger.kernel.org,
-	linux-wireless@vger.kernel.org, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-	sameo@linux.intel.com, aloisio.almeida@openbossa.org,
-	lauro.venancio@openbossa.org, davem@davemloft.net,
-	kadlec@blackhole.kfki.hu, kaber@trash.net, pablo@netfilter.org
-To: Joe Perches <joe@perches.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1428619177.5413.15.camel@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
+	arturo.borrero.glez@gmail.com
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:60827 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753529AbbDIWwT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Apr 2015 18:52:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20150409223622.GI20653@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 09 Apr 2015 15:39:37 -0700
-Joe Perches <joe@perches.com> wrote:
+On Fri, Apr 10, 2015 at 12:36:22AM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>
+> > > Whats the point of providing a 'native' replacement for an existing xtables
+> > > target if we can just use the xtables version?
+> > 
+> > Have a look a hashlimit, multiport and all of our existing combo
+> > match/targets.  They are a mess. We're now going towards a way more
+> > flexible and generic (lego fashion) framework that will provide all
+> > kind of combos without relying on this kind of Frankenstein
+> > extensions.
+> 
+> Sure, but do you really want to add native expression equivalents for
+> things like quota match, '-m time', '-j CLUSTERIP' ... ?
 
-> And Steven,
-> 
-> commit e71456ae9871
-> ("netfilter: Remove checks of seq_printf() return values")
-> mistakenly converted this to use seq_has_overflowed()
-> 
-> Ideally all seq_show functions would be converted from
-> 
-> int foo_seq_show(...)
-> {
-> 	seq_printf(s, ...);
-> 	return seq_has_overflowed(s);
-> }
-> 
-> to
-> 
-> int foo_seq_show(...)
-> {
-> 	seq_printf(s, ...);
-> 	return 0;
-> }
-> 
-> I made that mistake in a patch and corrected it later.
-> 
-> Here's a suggested -next patch:
-> 
-> Perhaps it shouldn't be submitted now as it may conflict
-> with what Richard might submit if he propses an equivalent
-> patch to above for -next.
-> 
-> There is an appropriate use of return seq_has_overflowed in: 
-> 
-> net/netfilter/xt_hashlimit.c:825:       return seq_has_overflowed(s);
-> 
-> That's not a seq_show function, it's a helper for one.
+We don't want to rush to add a native expression that is going to map 1:1
+to these matches/targets. We need time to think and to discuss how to
+implement these in a nice (generic) fashion.
 
-I have other things to work on, so feel free to fix it up among
-yourselves.
+But if users need these features, they can migrate to nftables while
+keeping those in their ruleset through compat.
 
--- Steve
+> And wrt. the existing combos, are you positive that your xlate tool
+> will always be able to translate everything to nft native expressions?
+>
+> I'm specifically thinking about side-effects, e.g. -m recent which can
+> also be manipulated externally to ruleset via /proc...
+> 
+> So i am afraid that 100% compat is not doable except by retaining all
+> matches/targets (or at least some of them).
+
+We'll provide a translation which means that the returns the closest
+approximation to what they need.
+
+That will not save them from reading the new documentation and
+familiarizing with the new framework and tools. But we'll relieve the
+pain of migration in some way.
+
+As I said, the only way to get people moving forward is to provide
+good reasons to learn the new tool and start using it.
