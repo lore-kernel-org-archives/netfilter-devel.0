@@ -1,36 +1,62 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/4] Prevent UDP tunnels from operating on garbage
- socket
-Date: Wed, 08 Apr 2015 16:03:03 -0400 (EDT)
-Message-ID: <20150408.160303.1536044900311728443.davem@davemloft.net>
-References: <20150406.235118.65925113152002205.davem@davemloft.net>
-	<CALx6S36f8SQQoNvzPyCNk4=0LbH4Od6ZtdDn0DCA2sZGZHMx2g@mail.gmail.com>
-	<1428406053.3932555.250169221.75848497@webmail.messagingengine.com>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: Re: [iptables PATCH] list: fix prefetch dummy
+Date: Wed, 8 Apr 2015 17:18:25 -0700
+Message-ID: <20150408171825.40368215@urahara>
+References: <20150406180541.7031.97131.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: tom@herbertland.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-	jiri@resnulli.us
-To: hannes@stressinduktion.org
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
+	pablo@netfilter.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:40960 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753076AbbDHUDI (ORCPT
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:33356 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752898AbbDIASV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Apr 2015 16:03:08 -0400
-In-Reply-To: <1428406053.3932555.250169221.75848497@webmail.messagingengine.com>
+	Wed, 8 Apr 2015 20:18:21 -0400
+Received: by paboj16 with SMTP id oj16so130967137pab.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 08 Apr 2015 17:18:21 -0700 (PDT)
+In-Reply-To: <20150406180541.7031.97131.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Hannes Frederic Sowa <hannes@stressinduktion.org>
-Date: Tue, 07 Apr 2015 13:27:33 +0200
+On Mon, 06 Apr 2015 20:05:41 +0200
+Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
 
-> Also, I saw one inconsistency with sk_bound_dev_if in netfilter which
-> doesn't get solved by this patchset (it uses skb->sk->sk_bound_dev_if
-> unconditionally).
+> linux_list.h:381:59: warning: right-hand operand of comma expression has no effect [-Wunused-value]
+>   for (pos = list_entry((head)->next, typeof(*pos), member), \
+>                                                            ^
+> libiptc.c:552:2: note: in expansion of macro 'list_for_each_entry'
+>   list_for_each_entry(c, &h->chains, list) {
+>   ^
+> 
+> [ Patch copied from one similar of Patrick McHardy on libnftnl ]
+> 
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> ---
+>  libiptc/linux_list.h |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/libiptc/linux_list.h b/libiptc/linux_list.h
+> index abdcf88..559e33c 100644
+> --- a/libiptc/linux_list.h
+> +++ b/libiptc/linux_list.h
+> @@ -27,7 +27,7 @@
+>  	1; \
+>  })
+>  
+> -#define prefetch(x)		1
+> +#define prefetch(x)		((void)0)
+>  
+>  /* empty define to make this work in userspace -HW */
+>  #define smp_wmb()
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-I looked at this quickly, and it'll take a bit of (mechanical) work to
-resolve.  Basically you have to get the socket down to ip_route_me_harder()
-and sometimes that code path is coming from that XT targets, which don't
-take the nf_hook_state as an argument or anything like that (yet).
+The kernel dropped the prefetch() in the list macros a couple
+of years ago. The prefetch() had no performance gain and hurt
+in several cases.
