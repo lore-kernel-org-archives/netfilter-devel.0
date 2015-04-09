@@ -1,85 +1,51 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH nft v2 3/3] src: add xt compat support
-Date: Fri, 10 Apr 2015 00:18:29 +0100
-Message-ID: <20150409231828.GA13473@acer.localdomain>
+Date: Fri, 10 Apr 2015 00:21:06 +0100
+Message-ID: <20150409232106.GB13473@acer.localdomain>
 References: <1428598514-1915-1-git-send-email-pablo@netfilter.org>
  <1428598514-1915-3-git-send-email-pablo@netfilter.org>
  <20150409203616.GA27610@acer.localdomain>
- <20150409223356.GA3108@salvia>
+ <20150409205135.GG20653@breakpoint.cc>
+ <20150409223417.GA3205@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, arturo.borrero.glez@gmail.com
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	arturo.borrero.glez@gmail.com
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34586 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:34605 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754231AbbDIXSd (ORCPT
+	with ESMTP id S1755443AbbDIXVL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Apr 2015 19:18:33 -0400
+	Thu, 9 Apr 2015 19:21:11 -0400
 Content-Disposition: inline
-In-Reply-To: <20150409223356.GA3108@salvia>
+In-Reply-To: <20150409223417.GA3205@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 On 10.04, Pablo Neira Ayuso wrote:
-> On Thu, Apr 09, 2015 at 09:36:17PM +0100, Patrick McHardy wrote:
-> > > At compilation time, you have to pass this option.
-> > > 
-> > >   # ./configure --with-xtables
-> > > 
-> > > And libxtables needs to be installed in your system.
-> > > 
-> > > This patch allows you to use xt extensions from nft, eg.
-> > > 
-> > >   # nft add rule filter output \
-> > >         tcp flags syn xt target TCPMSS [ --clamp-mss-to-pmtu ]
-> > 
-> > Before review this patch, my main question is - are we sure we want to do
-> > this? How will this affect our plans to get rid of the iptables code
-> > at some point in the future? Arguably its a compatibility question, if we
-> > support this in nft people will use it and we can't simply remove it.
+> On Thu, Apr 09, 2015 at 10:51:35PM +0200, Florian Westphal wrote:
+> > Why would I want to re-write a working nft+compat ruleset to one
+> > that only uses native expressions?
 > 
-> Good question.
-> 
-> I think we'll have to live with both codebases for quite a while
-> anyway, unfortunately we cannot skip that.
+> The fact is that we cannot push users to use nf_tables, but we can
+> provide good reasons to adopt the native replacements and tools to
+> migrate easily.
 
-Absolutely. I just want to make sure we don't prolong it unnecessarily,
-or even for ever.
- 
-> I think this code provides a way for users to easily migrate from
-> iptables to nftables.
-> 
-> They will only need to:
-> 
->         iptables-compat-restore < ipt-ruleset.file
-> 
-> then, switch to nft and type:
-> 
->         nft list ruleset > nft-ruleset.file
-> 
-> and start to replacing to native expressions progressively.
-> 
-> We also have a prototype translation layer (see xlate in the iptables
-> tree), that will provide an automatic translation whenever possible.
+We actually can by translating their iptables ruleset transparently.
 
-Yes, that's a very good thing to have.
-
-> The idea is that they will periodically run something like:
+> > Whats the point of providing a 'native' replacement for an existing xtables
+> > target if we can just use the xtables version?
 > 
->         nft --migrate nft-ruleset.file
-> 
-> that will detect xt statements and will translate them to native
-> expressions whenever possible.
-> 
-> I think we have to ease adoption through these facilities, and new
-> nice features, of course.
+> Have a look a hashlimit, multiport and all of our existing combo
+> match/targets.  They are a mess. We're now going towards a way more
+> flexible and generic (lego fashion) framework that will provide all
+> kind of combos without relying on this kind of Frankenstein
+> extensions.
 
-I agree, my concern is just putting this into nft where we can't remove
-it easily again. Having the translation to native is great. Supporting
-xt natively is an entirely different story since chances are very high
-that people will just leave the xt compat expressions in the ruleset.
+The thing is, my adding missing features we can make a case by case
+decision of whether it makes sense and how to implement it properly.
 
-We can tell them to periodically update their rulesets. They still won't
-do it, and there are legitimate reasons not to since the nft ruleset
-might have been changed.
+The "whether it makes sense" decision is taken away from us by providing
+the xt compat thing. It might very well not make sense to have a 1:1
+mapping in nft but to express things differently.
