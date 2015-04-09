@@ -1,32 +1,41 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH 05/20] netfilter: nft_hash: add support for timeouts
-Date: Thu, 9 Apr 2015 13:39:18 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6D1CB17C7C@AcuExch.aculab.com>
-References: <1428579304-5520-1-git-send-email-pablo@netfilter.org>
- <1428579304-5520-6-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH 4/4] tests: regression: add xt compat tests
+Date: Thu, 9 Apr 2015 17:46:43 +0200
+Message-ID: <20150409154643.GA5738@salvia>
+References: <20150408174818.28553.96128.stgit@nfdev2.cica.es>
+ <20150408174834.28553.53067.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Cc: "davem@davemloft.net" <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: 'Pablo Neira Ayuso' <pablo@netfilter.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1428579304-5520-6-git-send-email-pablo@netfilter.org>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:35027 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755331AbbDIPmg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Apr 2015 11:42:36 -0400
+Content-Disposition: inline
+In-Reply-To: <20150408174834.28553.53067.stgit@nfdev2.cica.es>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso
-> Sent: 09 April 2015 12:35
-...
-> Add support for element timeouts to nft_hash. The lookup and walking
-> functions are changed to ignore timed out elements, a periodic garbage
-> collection task cleans out expired entries.
+On Wed, Apr 08, 2015 at 07:48:34PM +0200, Arturo Borrero Gonzalez wrote:
+> This patch adds several regression test for the xt compat stuff.
+> 
+> Note the current output is:
+>  ip/xt.t: 25 unit tests, 0 error, 0 warning
+>  ip6/xt.t: 25 unit tests, 0 error, 0 warning
+>  bridge/xt.t: 26 unit tests, 0 error, 0 warning
+>  arp/xt.t: 12 unit tests, 0 error, 0 warning
 
-You probably want to delete timed out entries during insert.
-If you do that you don't really need a garbage collector.
+arp/xt.t is missing in the patchset, please resend this.
 
-I'd also worry about re-adding a timed out entry.
-
-	David
+> 
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> ---
+>  tests/regression/bridge/xt.t |   45 ++++++++++++++++++++++++++++++++++++++++++
+>  tests/regression/ip/xt.t     |   45 ++++++++++++++++++++++++++++++++++++++++++
+>  tests/regression/ip6/xt.t    |   45 ++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 135 insertions(+)
+>  create mode 100644 tests/regression/bridge/xt.t
+>  create mode 100644 tests/regression/ip/xt.t
+>  create mode 100644 tests/regression/ip6/xt.t
