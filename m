@@ -1,48 +1,100 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [nft PATCH 1/4] include: cache a copy of kernel ebtables.h
-Date: Thu, 9 Apr 2015 10:18:41 +0200
-Message-ID: <CAOkSjBgmbim7fNMk1grB=SYn8JNhehPwWiooQN1DgCh8DHYtsQ@mail.gmail.com>
-References: <20150408174818.28553.96128.stgit@nfdev2.cica.es> <20150408172249.49bbc646@urahara>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Re: [PATCH] Add NFPROTO_ARP for mark
+Date: Thu, 9 Apr 2015 12:41:49 +0200
+Message-ID: <20150409104149.GA3568@salvia>
+References: <1428374716-15108-1-git-send-email-zhangcy@cn.fujitsu.com>
+ <1428374716-15108-2-git-send-email-zhangcy@cn.fujitsu.com>
+ <20150408174911.GA4683@salvia>
+ <A43879EB4A7F5F449E2CA8148EA79E5172E8F2@G08CNEXMBPEKD01.g08.fujitsu.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Stephen Hemminger <stephen@networkplumber.org>
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f170.google.com ([209.85.217.170]:35813 "EHLO
-	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752017AbbDIITD convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Apr 2015 04:19:03 -0400
-Received: by lbbuc2 with SMTP id uc2so81911866lbb.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 09 Apr 2015 01:19:01 -0700 (PDT)
-In-Reply-To: <20150408172249.49bbc646@urahara>
+Received: from mail.us.es ([193.147.175.20]:42828 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932736AbbDIKhj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Apr 2015 06:37:39 -0400
+Content-Disposition: inline
+In-Reply-To: <A43879EB4A7F5F449E2CA8148EA79E5172E8F2@G08CNEXMBPEKD01.g08.fujitsu.local>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 9 April 2015 at 02:22, Stephen Hemminger <stephen@networkplumber.org=
-> wrote:
-> On Wed, 08 Apr 2015 19:48:18 +0200
-> Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
+On Thu, Apr 09, 2015 at 03:54:33AM +0000, Zhang, Chunyu wrote:
+> >From: Pablo Neira Ayuso
+> >Date: 2015-04-09
+> >To: Zhang, Chunyu/=E7=AB=A0 =E6=98=A5=E5=AE=87
+> >Subject: Re: [PATCH] Add NFPROTO_ARP for mark
+[...]
+> >> @@ -41,13 +42,23 @@ mark_mt(const struct sk_buff *skb, struct xt_a=
+ction_param *par)
+> >>       return ((skb->mark & info->mask) =3D=3D info->mark) ^ info->=
+invert;
+> >>  }
+> >>=20
+> >> -static struct xt_target mark_tg_reg __read_mostly =3D {
+> >> -     .name           =3D "MARK",
+> >> -     .revision       =3D 2,
+> >> -     .family         =3D NFPROTO_UNSPEC,
+> >> -     .target         =3D mark_tg,
+> >> -     .targetsize     =3D sizeof(struct xt_mark_tginfo2),
+> >> -     .me             =3D THIS_MODULE,
+> >> +static struct xt_target mark_tg_reg[] __read_mostly =3D {
+> >> +     {
+> >> +             .name           =3D "MARK",
+> >> +             .revision       =3D 2,
+> >> +             .family         =3D NFPROTO_UNSPEC,
+> >> +             .target         =3D mark_tg,
+> >> +             .targetsize     =3D sizeof(struct xt_mark_tginfo2),
+> >> +             .me             =3D THIS_MODULE,
+> >> +     },
+> >> +     {
+> >> +             .name           =3D "MARK",
+> >> +             .revision       =3D 2,
+> >> +             .family         =3D NFPROTO_ARP,
+> >> +             .target         =3D mark_tg,
+> >> +             .targetsize     =3D sizeof(struct xt_mark_tginfo2),
+> >> +             .me             =3D THIS_MODULE,
+> >> +     }
+> >>  };
+> >
+> >You don't need this.
+> >
+> >The problem is here that your patch:
+> >
+> >http://patchwork.ozlabs.org/patch/455966/
+> >
+> >is missing this chunk:
+> >
+> >diff --git a/libarptc/libarptc_incl.c b/libarptc/libarptc_incl.c
+> >index a034930..87404ce 100644
+> >--- a/libarptc/libarptc_incl.c
+> >+++ b/libarptc/libarptc_incl.c
+> >@@ -872,7 +872,7 @@ map_target(const TC_HANDLE_T handle,
+> >        /* memset to all 0 for your memcmp convenience. */
+> >        memset(t->u.user.name + strlen(t->u.user.name),
+> >               0,
+> >-              FUNCTION_MAXNAMELEN - strlen(t->u.user.name));
+> >+              FUNCTION_MAXNAMELEN - 1 - strlen(t->u.user.name));
+> >        return 1;
+> > }
+> >
+> >Otherwise, the revision number is zeroed.
+> >
+> >And you don't need: http://patchwork.ozlabs.org/patch/455965/.
+> >
+> >Please, rebase your userspace patches on top of current arptables gi=
+t
+> >and resubmit. Thanks.
 >
->> From: Arturo Borrero Gonzalez <aborrero@nfdev2.cica.es>
->>
->> Required for next patches.
->>
->> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.co=
-m>
->
-> If you are going to import a kernel header, it should be the exact ve=
-rsion
-> produced by doing:
+> get it =E3=80=82will do=E3=80=82
+> why arptables --set-mark can work , when add  NFPROTO_ARP to xt_mark =
+?
 
-Kernel patch: http://patchwork.ozlabs.org/patch/459393/
+I guess you're still using the userspace patches you sent.
 
---=20
-Arturo Borrero Gonz=C3=A1lez
+If you rebase on top of current arptables HEAD, that will not work.
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
