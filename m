@@ -1,85 +1,157 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nft parser and names for constants (was [PATCH v2] parser: add
- kludges for "param-problem" and "redirect")
-Date: Thu, 9 Apr 2015 12:07:45 +0100
-Message-ID: <20150409110745.GI12203@acer.localdomain>
-References: <20150404115550.GA5832@salvia>
- <20150405113214.GA23433@acer.localdomain>
- <20150405121104.GD23433@acer.localdomain>
- <552187FB.60904@ahsoftware.de>
- <20150406015128.GA20515@acer.localdomain>
- <55224776.4040108@ahsoftware.de>
- <55224B70.1070309@ahsoftware.de>
- <55224E82.3010206@ahsoftware.de>
- <20150406112543.GB24191@acer.localdomain>
- <552659D6.8090902@ahsoftware.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org,
-	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	Eric Leblond <eric@regit.org>
-To: Alexander Holler <holler@ahsoftware.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62484 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932767AbbDILHv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Apr 2015 07:07:51 -0400
-Content-Disposition: inline
-In-Reply-To: <552659D6.8090902@ahsoftware.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 00/20] Netfilter updates for net-next
+Date: Thu,  9 Apr 2015 13:34:44 +0200
+Message-ID: <1428579304-5520-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 09.04, Alexander Holler wrote:
-> >>E.g. the ICMPv6 parameter-problem is good example. In the linux headers it
-> >>is called ICMPV6_PARAMPROB, nft named it param-problem and in documentations
-> >>it is often named as parameter-problem.
-> >>
-> >>So if nft would use icmpv6_paramprob, the documentation could just refer to
-> >>the c-headers.
-> >
-> >No, an icmpv6_ prefix is redundant and I don't see any benefit in doing
-> >that. "Documentations", whatever that is, don't matter, what matters is
-> >our documentation. And whether we point people to that or some header
-> >file really doesn't matter, except that we don't expect people to read
-> >header files to use nft. Its a tool for admins, not programmers.
-> 
-> Even some admins can code.
-> 
-> Because nft is just at 0.4 and not widely used (or usable), I decided it's
-> worse to write another follow up in order to try to fix things before they
-> can't be fixed anymore.
-> 
-> 1. I don't think that a brutforce-approach like "if error try something
-> else" is the right way to fix a problem in the parser.
+Hi David,
 
-Its perfectly fine in this case since the error is only caught in spots
-where we expect symbolic constants. So basically its treating the next
-keyword as symbolic constant no matter what.
+The following patchset contains Netfilter updates for your net-next tree.
+They are:
 
-> 2. "icmpv6_paramprob" (or even something like "icmpv6_parameter-problem")
-> doesn't have something redundant. It's a name for constant and e.g.
-> "icmp_redirect" is a much more descriptive name than just "redirect" because
-> "icmp_redirect" describes the context too and thus the name is much more
-> verbose and readable (besides that it would fix the problem the parser
-> currently has).
+* nf_tables set timeout infrastructure from Patrick Mchardy.
 
-It is redundant since it can only occur in the context of ICMP expressions.
-icmp type icmp_redirect is obviously redundant.
+1) Add support for set timeout support.
 
-> 3. I don't see why admins have to use another set of names for constants
-> than developers. Inventing a new set of names for a list of constants for
-> which there already exist a very widely used set of names just leads to more
-> confusion. And if it's ok to invent new names, why does nft use
-> "param-problem" and not "parameter-problem"? Of course, I would suggest to
-> use the existing name icmp_parameterprob (like it's used in every
-> c/c++-source).
+2) Add support for set element timeouts using the new set extension
+   infrastructure.
 
-In case of ICMP we use the same names that iptables used, so this actually
-spares admins from getting used to new constants. We're not going to use
-source code identifiers, there's no benefit at all, especially if you
-consider that Linux headers use different identifiers than the BSD headers.
+4) Add garbage collection helper functions to get rid of stale elements.
+   Elements are accumulated in a batch that are asynchronously released
+   via RCU when the batch is full.
 
-But I agree, ICMPv6 shouldn't use param-problem but parameter-problem for
-consistency with both ICMP and ip6tables.
+5) Add garbage collection synchronization helpers. This introduces a new
+   element busy bit to address concurrent access from the netlink API and the
+   garbage collector.
+
+5) Add timeout support for the nft_hash set implementation. The garbage
+   collector peridically checks for stale elements from the workqueue.
+
+* iptables/nftables cgroup fixes:
+
+6) Ignore non full-socket objects from the input path, otherwise cgroup
+   match may crash, from Daniel Borkmann.
+
+7) Fix cgroup in nf_tables.
+
+8) Save some cycles from xt_socket by skipping packet header parsing when
+   skb->sk is already set because of early demux. Also from Daniel.
+
+* br_netfilter updates from Florian Westphal.
+
+9) Save frag_max_size and restore it from the forward path too.
+
+10) Use a per-cpu area to restore the original source MAC address when traffic
+    is DNAT'ed.
+
+11) Add helper functions to access physical devices.
+
+12) Use these new physdev helper function from xt_physdev.
+
+13) Add another nf_bridge_info_get() helper function to fetch the br_netfilter
+    state information.
+
+14) Annotate original layer 2 protocol number in nf_bridge info, instead of
+    using kludgy flags.
+
+15) Also annotate the pkttype mangling when the packet travels back and forth
+    from the IP to the bridge layer, instead of using a flag.
+
+
+* More nf_tables set enhancement from Patrick:
+
+16) Fix possible usage of set variant that doesn't support timeouts.
+
+17) Avoid spurious "set is full" errors from Netlink API when there are pending
+    stale elements scheduled to be released.
+
+18) Restrict loop checks to set maps.
+
+19) Add support for dynamic set updates from the packet path.
+
+20) Add support to store optional user data (eg. comments) per set element.
+
+BTW, I have also pulled net-next into nf-next to anticipate the conflict
+resolution between your okfn() signature changes and Florian's br_netfilter
+updates.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit ee90b81203a91d4e5385622811ee7872b5bcfe76:
+
+  hv_netvsc: Fix the packet free when it is in skb headroom (2015-04-07 18:45:33 -0400)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+
+for you to fetch changes up to aadd51aa71f8d013c818a312bb2a0c5714830dbc:
+
+  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next (2015-04-08 18:30:21 +0200)
+
+----------------------------------------------------------------
+
+Daniel Borkmann (2):
+      netfilter: x_tables: fix cgroup matching on non-full sks
+      netfilter: x_tables: don't extract flow keys on early demuxed sks in socket match
+
+Florian Westphal (7):
+      netfilter: bridge: really save frag_max_size between PRE and POST_ROUTING
+      netfilter: bridge: don't use nf_bridge_info data to store mac header
+      netfilter: bridge: add helpers for fetching physin/outdev
+      netfilter: physdev: use helpers
+      netfilter: bridge: add and use nf_bridge_info_get helper
+      netfilter: bridge: start splitting mask into public/private chunks
+      netfilter: bridge: make BRNF_PKT_TYPE flag a bool
+
+Pablo Neira Ayuso (2):
+      netfilter: nft_meta: fix cgroup matching
+      Merge git://git.kernel.org/.../davem/net-next
+
+Patrick McHardy (10):
+      netfilter: nf_tables: add set timeout API support
+      netfilter: nf_tables: add set element timeout support
+      netfilter: nf_tables: add set garbage collection helpers
+      netfilter: nf_tables: add GC synchronization helpers
+      netfilter: nft_hash: add support for timeouts
+      netfilter: nf_tables: fix set selection when timeouts are requested
+      netfilter: nf_tables: prepare set element accounting for async updates
+      netfilter: nf_tables: support different set binding types
+      netfilter: nf_tables: add support for dynamic set updates
+      netfilter: nf_tables: support optional userdata for set elements
+
+ include/linux/netfilter_bridge.h           |   28 +++-
+ include/linux/skbuff.h                     |    8 +-
+ include/net/netfilter/nf_tables.h          |  155 +++++++++++++++++++-
+ include/net/netfilter/nf_tables_core.h     |    3 +
+ include/uapi/linux/netfilter/nf_tables.h   |   39 +++++
+ net/bridge/br_netfilter.c                  |  144 +++++++++++-------
+ net/ipv4/netfilter/nf_reject_ipv4.c        |    4 +-
+ net/ipv6/netfilter/nf_reject_ipv6.c        |    4 +-
+ net/netfilter/Makefile                     |    2 +-
+ net/netfilter/ipset/ip_set_hash_netiface.c |   32 +++-
+ net/netfilter/nf_log_common.c              |    5 +-
+ net/netfilter/nf_queue.c                   |   18 ++-
+ net/netfilter/nf_tables_api.c              |  186 +++++++++++++++++++++---
+ net/netfilter/nf_tables_core.c             |    7 +
+ net/netfilter/nfnetlink_log.c              |   17 ++-
+ net/netfilter/nfnetlink_queue_core.c       |   28 ++--
+ net/netfilter/nft_dynset.c                 |  218 ++++++++++++++++++++++++++++
+ net/netfilter/nft_hash.c                   |  117 ++++++++++++++-
+ net/netfilter/nft_lookup.c                 |    2 +
+ net/netfilter/nft_meta.c                   |    5 +-
+ net/netfilter/xt_cgroup.c                  |    2 +-
+ net/netfilter/xt_physdev.c                 |   34 +++--
+ net/netfilter/xt_socket.c                  |   95 ++++++------
+ 23 files changed, 973 insertions(+), 180 deletions(-)
+ create mode 100644 net/netfilter/nft_dynset.c
