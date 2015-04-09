@@ -1,64 +1,102 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables PATCH] list: fix prefetch dummy
-Date: Thu, 9 Apr 2015 12:45:03 +0200
-Message-ID: <20150409104503.GB3568@salvia>
-References: <20150406180541.7031.97131.stgit@nfdev2.cica.es>
- <20150408171825.40368215@urahara>
+From: Alexander Holler <holler@ahsoftware.de>
+Subject: nft parser and names for constants (was [PATCH v2] parser: add kludges
+ for "param-problem" and "redirect")
+Date: Thu, 09 Apr 2015 12:52:06 +0200
+Message-ID: <552659D6.8090902@ahsoftware.de>
+References: <551FC211.6000907@ahsoftware.de> <1428145986-15421-1-git-send-email-holler@ahsoftware.de> <20150404115550.GA5832@salvia> <20150405113214.GA23433@acer.localdomain> <20150405121104.GD23433@acer.localdomain> <552187FB.60904@ahsoftware.de> <20150406015128.GA20515@acer.localdomain> <55224776.4040108@ahsoftware.de> <55224B70.1070309@ahsoftware.de> <55224E82.3010206@ahsoftware.de> <20150406112543.GB24191@acer.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Stephen Hemminger <stephen@networkplumber.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org,
+	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	Eric Leblond <eric@regit.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43740 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755307AbbDIKkw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Apr 2015 06:40:52 -0400
-Content-Disposition: inline
-In-Reply-To: <20150408171825.40368215@urahara>
+Received: from h1446028.stratoserver.net ([85.214.92.142]:35687 "EHLO
+	mail.ahsoftware.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933205AbbDIKwS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Apr 2015 06:52:18 -0400
+Received: from wandq.ahsoftware (p4FC379E9.dip0.t-ipconnect.de [79.195.121.233])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.ahsoftware.de (Postfix) with ESMTPSA id E2C1D2C9C1BB
+	for <netfilter-devel@vger.kernel.org>; Thu,  9 Apr 2015 12:52:14 +0200 (CEST)
+In-Reply-To: <20150406112543.GB24191@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 08, 2015 at 05:18:25PM -0700, Stephen Hemminger wrote:
-> On Mon, 06 Apr 2015 20:05:41 +0200
-> Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
-> 
-> > linux_list.h:381:59: warning: right-hand operand of comma expression has no effect [-Wunused-value]
-> >   for (pos = list_entry((head)->next, typeof(*pos), member), \
-> >                                                            ^
-> > libiptc.c:552:2: note: in expansion of macro 'list_for_each_entry'
-> >   list_for_each_entry(c, &h->chains, list) {
-> >   ^
-> > 
-> > [ Patch copied from one similar of Patrick McHardy on libnftnl ]
-> > 
-> > Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> > ---
-> >  libiptc/linux_list.h |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/libiptc/linux_list.h b/libiptc/linux_list.h
-> > index abdcf88..559e33c 100644
-> > --- a/libiptc/linux_list.h
-> > +++ b/libiptc/linux_list.h
-> > @@ -27,7 +27,7 @@
-> >  	1; \
-> >  })
-> >  
-> > -#define prefetch(x)		1
-> > +#define prefetch(x)		((void)0)
-> >  
-> >  /* empty define to make this work in userspace -HW */
-> >  #define smp_wmb()
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> The kernel dropped the prefetch() in the list macros a couple
-> of years ago. The prefetch() had no performance gain and hurt
-> in several cases.
+Am 06.04.2015 um 13:25 schrieb Patrick McHardy:
+> On 06.04, Alexander Holler wrote:
+>> Am 06.04.2015 um 11:01 schrieb Alexander Holler:
+>>> Am 06.04.2015 um 10:44 schrieb Alexander Holler:
+>>>> Am 06.04.2015 um 03:51 schrieb Patrick McHardy:
+>>>>> On 05.04, Alexander Holler wrote:
+>>>>>> Am 05.04.2015 um 14:11 schrieb Patrick McHardy:
+>>>>>>> On 05.04, Patrick McHardy wrote:
+>>>>>>
+>>>>>>>> Basically this involves splitting the expression types into lhs
+>>>>>>>> (non-const)
+>>>>>>>> and rhs (const) parts. Keywords on the RHS side can be caught
+>>>>>>>> using an
+>>>>>>>> error statement and deferred to resolution during runtime.
+>>>>>>
+>>>>>> Sounds like trial and error. ;)
+>>>>>
+>>>>> The approach is, the patch isn't, it changes the grammar to have
+>>>>> these kinds of errors in a defined state. The patch I sent
+>>>>> however is, but I'm quite sure i understand the implications.
+>>>>
+>>>> Just to mention it, there is still the possibility to define and use
+>>>> keywords for all the icmp type names.
+>>>
+>>> Preferable with names as used in icmp.h and icmpv6.h. As these are
+>>> defines in C-headers, there is very high probability that these names
+>>> are unique, even across a large number of different sets of type or
+>>> other names.
+>>
+>> That would also remove the need to look up what name nft uses if would be
+>> clear that the names are the same as defined in c-headers.
+>>
+>> E.g. the ICMPv6 parameter-problem is good example. In the linux headers it
+>> is called ICMPV6_PARAMPROB, nft named it param-problem and in documentations
+>> it is often named as parameter-problem.
+>>
+>> So if nft would use icmpv6_paramprob, the documentation could just refer to
+>> the c-headers.
+>
+> No, an icmpv6_ prefix is redundant and I don't see any benefit in doing
+> that. "Documentations", whatever that is, don't matter, what matters is
+> our documentation. And whether we point people to that or some header
+> file really doesn't matter, except that we don't expect people to read
+> header files to use nft. Its a tool for admins, not programmers.
 
-We have an old copy of linux's list.h in our userspace trees. We can
-probably refresh those to get them in sync with current at some point.
+Even some admins can code.
+
+
+Because nft is just at 0.4 and not widely used (or usable), I decided 
+it's worse to write another follow up in order to try to fix things 
+before they can't be fixed anymore.
+
+
+1. I don't think that a brutforce-approach like "if error try something 
+else" is the right way to fix a problem in the parser.
+
+2. "icmpv6_paramprob" (or even something like 
+"icmpv6_parameter-problem") doesn't have something redundant. It's a 
+name for constant and e.g. "icmp_redirect" is a much more descriptive 
+name than just "redirect" because "icmp_redirect" describes the context 
+too and thus the name is much more verbose and readable (besides that it 
+would fix the problem the parser currently has).
+
+3. I don't see why admins have to use another set of names for constants 
+than developers. Inventing a new set of names for a list of constants 
+for which there already exist a very widely used set of names just leads 
+to more confusion. And if it's ok to invent new names, why does nft use 
+"param-problem" and not "parameter-problem"? Of course, I would suggest 
+to use the existing name icmp_parameterprob (like it's used in every 
+c/c++-source).
+
+Alexander Holler
+
