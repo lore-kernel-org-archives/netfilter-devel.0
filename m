@@ -1,38 +1,25 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: Re: [PATCH 1/7] net: refactor __netif_receive_skb_core
-Date: Fri, 10 Apr 2015 15:47:34 +0200
-Message-ID: <5527D476.6030306@iogearbox.net>
-References: <1428668142-4006-1-git-send-email-pablo@netfilter.org> <1428668142-4006-2-git-send-email-pablo@netfilter.org>
+From: Thomas Graf <tgraf@suug.ch>
+Subject: Re: [PATCH 0/7 RFC] Netfilter/nf_tables ingress support
+Date: Fri, 10 Apr 2015 14:22:05 +0100
+Message-ID: <20150410132205.GF23070@casper.infradead.org>
+References: <1428668142-4006-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, netdev@vger.kernel.org, davem@davemloft.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
+	netdev@vger.kernel.org, davem@davemloft.net
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1428668142-4006-2-git-send-email-pablo@netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <1428668142-4006-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 04/10/2015 02:15 PM, Pablo Neira Ayuso wrote:
-> This patch splits __netif_receive_skb_core() in smaller functions to improve
-> maintainability.
->
-> The function __netif_receive_skb_core() has been split in two:
->
-> * __netif_receive_skb_ingress(), to perform all actions up to
->    ingress filtering.
->
-> * __netif_receive_skb_finish(), if the ingress filter accepts this
->    packet, pass it to the corresponding packet_type function handler for further
-> processing.
->
-> This patch also adds __NET_RX_ANOTHER_ROUND that is used when the packet is
-> stripped off from the vlan header or in case the rx_handler needs it.
->
-> This also prepares the introduction of the netfilter ingress hook.
+On 04/10/15 at 02:15pm, Pablo Neira Ayuso wrote:
+> This patchset adds the Netfilter hook at the ingress path, in a per-device
+> fashion. This also comes with the new nf_tables 'netdev' family support to
+> provide access to users to the existing nf_tables features. This includes the
+> transactional netlink API and the enhanced set infrastructure.  Several patches
+> come in first place to prepare this support, including the refactoring of
+> __netif_receive_skb_core() to accomodate the new hook.
 
-Out of curiosity, what is actually the performance impact on all
-of this? We were just arguing on a different matter on two more
-instructions in the fast-path, here it's refactoring the whole
-function into several ones, I presume gcc won't inline it.
+Is the goal to eventually replace ebtables with this?
