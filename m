@@ -1,32 +1,34 @@
-From: "Mrs. Zhang Xiao" <egonzalez@reacciun.ve>
-Subject: Re.
-Date: Fri, 10 Apr 2015 15:29:12 +0800
-Message-ID: <20150410072927.A705C2236F0__260.583827230398$1428652958$gmane$org@smtpa.reacciun.ve>
-Reply-To: 2069650583@qq.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: Recipients <egonzalez@reacciun.ve>
+From: nfnty <arch@nfnty.se>
+Subject: Namespaces and NFLOG
+Date: Fri, 10 Apr 2015 13:47:26 +0200
+Message-ID: <5527B84E.1050904@nfnty.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpa.reacciun.ve ([150.188.4.63]:52971 "EHLO smtpa.reacciun.ve"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753909AbbDJICH convert rfc822-to-8bit (ORCPT
+Received: from smtp-gw11.han.skanova.net ([81.236.55.20]:39501 "EHLO
+	smtp-gw11.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754648AbbDJLxb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Apr 2015 04:02:07 -0400
-Content-Description: Mail message body
+	Fri, 10 Apr 2015 07:53:31 -0400
+Received: from mail.nfnty.se (81.230.53.172) by smtp-gw11.han.skanova.net (8.5.142.07)
+        id 54E6F83200DBE124 for netfilter-devel@vger.kernel.org; Fri, 10 Apr 2015 13:47:28 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Dear,
+Hey,
 
-I seek for your sincerity and trust in a deal which involved a total sum of 60,000,000.00 United states dollars. I need to know you and know your location. This really matter to the success of this deal.If interested respond to me for more details. 
+Posted this issue back in March without response.
 
-Yours Sincerely.
-Mrs. Zhang Xiao (Accounts book Keeper)
-Angang Steel Company Limited
-396 Nan Zhong Hua Lu, Tie Dong District Anshan, Liaoning 114021, China.
+Why aren't namespaces logged via NFLOG?
 
----
-This email is free from viruses and malware because avast! Antivirus protection is active.
-http://www.avast.com
+Rules, including counters, work as otherwise expected using nftables.
 
+Related:
+
+https://docs.docker.com/articles/networking/#how-docker-networks-a-container
+http://www.spinics.net/lists/netfilter-devel/msg24503.html
+https://lkml.org/lkml/2011/7/1/233
+https://lists.linux-foundation.org/pipermail/containers/2013-February/031730.html
+
+//nfnty
