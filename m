@@ -1,45 +1,45 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [PATCH 5/7] net: add netfilter ingress hook
-Date: Fri, 10 Apr 2015 14:21:20 +0100
-Message-ID: <20150410132120.GE23070@casper.infradead.org>
-References: <1428668142-4006-1-git-send-email-pablo@netfilter.org>
- <1428668142-4006-6-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 5/5 v2] netfilter: Fix format string of nfnetlink_log
+ proc file
+Date: Fri, 10 Apr 2015 12:40:27 -0700 (PDT)
+Message-ID: <20150410.124027.1369874709878370130.davem@davemloft.net>
+References: <1428616637-21690-5-git-send-email-richard@nod.at>
+	<1428619177.5413.15.camel@perches.com>
+	<55277C47.4080201@nod.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
-	netdev@vger.kernel.org, davem@davemloft.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:33960 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933614AbbDJNVW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Apr 2015 09:21:22 -0400
-Content-Disposition: inline
-In-Reply-To: <1428668142-4006-6-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: joe@perches.com, rostedt@goodmis.org, netdev@vger.kernel.org,
+	linux-wireless@vger.kernel.org, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	sameo@linux.intel.com, aloisio.almeida@openbossa.org,
+	lauro.venancio@openbossa.org, kadlec@blackhole.kfki.hu,
+	kaber@trash.net, pablo@netfilter.org
+To: richard@nod.at
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <55277C47.4080201@nod.at>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 04/10/15 at 02:15pm, Pablo Neira Ayuso wrote:
->  static int __netif_receive_skb_ingress(struct sk_buff *skb, bool pfmemalloc,
->  				       struct net_device *orig_dev)
->  {
-> @@ -3772,6 +3800,8 @@ skip_taps:
->  	if (!skb)
->  		return NET_RX_DROP;
->  #endif
-> +	if (nf_hook_ingress_active(skb))
-> +		return nf_hook_ingress(skb, pt_prev, orig_dev, pfmemalloc);
->  
->  	return __netif_receive_skb_finish(skb, pfmemalloc, pt_prev, orig_dev);
->  }
+From: Richard Weinberger <richard@nod.at>
+Date: Fri, 10 Apr 2015 09:31:19 +0200
 
-I would favour if we avoid for every subsystem to manage its ingress
-filter pointers in net_device. From a net_device perspective, all it
-takes is a single pointer which points to a single linked list of
-filters which need to be run through. These entries could represent
-an ingress qdisc or a netfilter chain or something else (L2 ingress
-qdisc?).
+> Am 10.04.2015 um 00:39 schrieb Joe Perches:
+>> On Thu, 2015-04-09 at 23:57 +0200, Richard Weinberger wrote:
+>>> The printed values are all of type unsigned integer, therefore use
+>>> %u instead of %d. Otherwise an user can face negative values.
+>> 
+>> Hey Richard.
+>> 
+>> Just to clarify, this patch is for net and not for net-next
+>> as net-next has removed the seq_printf return uses.
+>> 
+>> Are you going to submit an equivalent patch for net-next?
+> 
+> Hmm, you are right. It took me a few minutes to figure out what happened
+> because I did rebase my patches to net-next and fixed up 5/5 already.
+> Reading yesterday's bash history shows that I've used
+> git format-patch in a wrong way such that the comments from the old
+> branch were taken.
 
-I know it's only 24 bytes but I'm trying hard to keep net_device below
-2K.
+I'm waiting for you to respin this series against net-next, thanks.
