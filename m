@@ -1,41 +1,32 @@
-From: Richard Weinberger <richard@nod.at>
-Subject: Re: [PATCH 5/5 v2] netfilter: Fix format string of nfnetlink_log
- proc file
-Date: Fri, 10 Apr 2015 09:31:19 +0200
-Message-ID: <55277C47.4080201@nod.at>
-References: <1428616637-21690-1-git-send-email-richard@nod.at>	 <1428616637-21690-5-git-send-email-richard@nod.at> <1428619177.5413.15.camel@perches.com>
+From: "Mrs. Zhang Xiao" <egonzalez@reacciun.ve>
+Subject: Re.
+Date: Fri, 10 Apr 2015 15:29:12 +0800
+Message-ID: <20150410072927.A705C2236F0__260.583827230398$1428652958$gmane$org@smtpa.reacciun.ve>
+Reply-To: 2069650583@qq.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
-Cc: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org, sameo@linux.intel.com,
-	aloisio.almeida@openbossa.org, lauro.venancio@openbossa.org,
-	davem@davemloft.net, kadlec@blackhole.kfki.hu, kaber@trash.net,
-	pablo@netfilter.org
-To: Joe Perches <joe@perches.com>, Steven Rostedt <rostedt@goodmis.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1428619177.5413.15.camel@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: Recipients <egonzalez@reacciun.ve>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtpa.reacciun.ve ([150.188.4.63]:52971 "EHLO smtpa.reacciun.ve"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753909AbbDJICH convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Apr 2015 04:02:07 -0400
+Content-Description: Mail message body
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 10.04.2015 um 00:39 schrieb Joe Perches:
-> On Thu, 2015-04-09 at 23:57 +0200, Richard Weinberger wrote:
->> The printed values are all of type unsigned integer, therefore use
->> %u instead of %d. Otherwise an user can face negative values.
-> 
-> Hey Richard.
-> 
-> Just to clarify, this patch is for net and not for net-next
-> as net-next has removed the seq_printf return uses.
-> 
-> Are you going to submit an equivalent patch for net-next?
+Dear,
 
-Hmm, you are right. It took me a few minutes to figure out what happened
-because I did rebase my patches to net-next and fixed up 5/5 already.
-Reading yesterday's bash history shows that I've used
-git format-patch in a wrong way such that the comments from the old
-branch were taken.
+I seek for your sincerity and trust in a deal which involved a total sum of 60,000,000.00 United states dollars. I need to know you and know your location. This really matter to the success of this deal.If interested respond to me for more details. 
 
-Thanks,
-//richard
+Yours Sincerely.
+Mrs. Zhang Xiao (Accounts book Keeper)
+Angang Steel Company Limited
+396 Nan Zhong Hua Lu, Tie Dong District Anshan, Liaoning 114021, China.
+
+---
+This email is free from viruses and malware because avast! Antivirus protection is active.
+http://www.avast.com
+
