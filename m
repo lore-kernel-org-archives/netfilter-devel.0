@@ -1,33 +1,41 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 5/5] netfilter: nft_dynset: dynamic stateful expression instantiation
-Date: Sat, 11 Apr 2015 10:46:42 +0100
-Message-ID: <1428745602-31799-6-git-send-email-kaber@trash.net>
-References: <1428745602-31799-1-git-send-email-kaber@trash.net>
+Subject: [PATCH 0/5] netfilter: nf_tables: dynamic stateful expression instantiation
+Date: Sat, 11 Apr 2015 10:46:37 +0100
+Message-ID: <1428745602-31799-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49259 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:49248 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932263AbbDKJqt (ORCPT
+	with ESMTP id S1752271AbbDKJqp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Apr 2015 05:46:49 -0400
-In-Reply-To: <1428745602-31799-1-git-send-email-kaber@trash.net>
+	Sat, 11 Apr 2015 05:46:45 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Support instantiating stateful expressions based on a template that
-are associated with dynamically created set entries. The expressions
-are evaluated when adding or updating the set element.
+The following patches are the grand finale of my nf_tables set work,
+using all the building blocks put in place by the previous patches
+to support something like iptables hashlimit, but a lot more powerful.
 
-This allows to maintain per flow state using the existing set
-infrastructure and expression types, with arbitrary definitions of
-a flow.
+Sets are extended to allow attaching expressions to set elements.
+The dynset expression dynamically instantiates these expressions
+based on a template when creating new set elements and evaluates
+them for all new or updated set members.
 
-Usage is currently restricted to anonymous sets, meaning only a single
-binding can exist, since the desired semantics of multiple independant
-bindings haven't been defined so far.
+In combination with concatenations this effectively creates state
+tables for arbitrary combinations of keys, using the existing
+expression types to maintain that state. Regular set GC takes care
+of purging expired states.
 
-Examples (userspace syntax is still WIP):
+We currently support two different stateful expressions, counter
+and limit. Using limit as a template we can express the functionality
+of hashlimit, but completely unrestricted in the combination of keys.
+Using counter we can perform accounting for arbitrary flows.
+
+The following examples from patch 5/5 show some possibilities.
+Userspace syntax is still WIP, especially the listing of state
+tables will most likely be seperated from normal set listings
+and use a more structured format:
 
 1. Limit the rate of new SSH connections per host, similar to iptables
    hashlimit:
@@ -63,168 +71,33 @@ The resulting set content after a Xmas-scan look like this:
 	192.168.122.1 . psh | ack : counter packets 35 bytes 3144
 }
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- include/uapi/linux/netfilter/nf_tables.h |  2 ++
- net/netfilter/nft_dynset.c               | 52 +++++++++++++++++++++++++++++---
- 2 files changed, 50 insertions(+), 4 deletions(-)
+In the future the "expressions attached to elements" will be extended
+to also support user created non-stateful expressions to allow to
+efficiently select beween a set of parameter sets, f.i. a set of log
+statements with different prefixes based on the interface, which currently
+require one rule each. This will most likely have to wait until the next
+kernel version though.
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 4894238..5fa1cd0 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -567,6 +567,7 @@ enum nft_dynset_ops {
-  * @NFTA_DYNSET_SREG_KEY: source register of the key (NLA_U32)
-  * @NFTA_DYNSET_SREG_DATA: source register of the data (NLA_U32)
-  * @NFTA_DYNSET_TIMEOUT: timeout value for the new element (NLA_U64)
-+ * @NFTA_DYNSET_EXPR: expression (NLA_NESTED: nft_expr_attributes)
-  */
- enum nft_dynset_attributes {
- 	NFTA_DYNSET_UNSPEC,
-@@ -576,6 +577,7 @@ enum nft_dynset_attributes {
- 	NFTA_DYNSET_SREG_KEY,
- 	NFTA_DYNSET_SREG_DATA,
- 	NFTA_DYNSET_TIMEOUT,
-+	NFTA_DYNSET_EXPR,
- 	__NFTA_DYNSET_MAX,
- };
- #define NFTA_DYNSET_MAX		(__NFTA_DYNSET_MAX - 1)
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 03699d5..311e21c 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -23,6 +23,7 @@ struct nft_dynset {
- 	enum nft_registers		sreg_key:8;
- 	enum nft_registers		sreg_data:8;
- 	u64				timeout;
-+	struct nft_expr			*expr;
- 	struct nft_set_binding		binding;
- };
- 
-@@ -30,6 +31,7 @@ static void *nft_dynset_new(struct nft_set *set, const struct nft_expr *expr,
- 			    struct nft_regs *regs)
- {
- 	const struct nft_dynset *priv = nft_expr_priv(expr);
-+	struct nft_set_ext *ext;
- 	u64 timeout;
- 	void *elem;
- 
-@@ -44,7 +46,13 @@ static void *nft_dynset_new(struct nft_set *set, const struct nft_expr *expr,
- 	if (elem == NULL) {
- 		if (set->size)
- 			atomic_dec(&set->nelems);
-+		return NULL;
- 	}
-+
-+	ext = nft_set_elem_ext(set, elem);
-+	if (priv->expr != NULL)
-+		nft_expr_clone(nft_set_ext_expr(ext), priv->expr);
-+
- 	return elem;
- }
- 
-@@ -55,18 +63,25 @@ static void nft_dynset_eval(const struct nft_expr *expr,
- 	const struct nft_dynset *priv = nft_expr_priv(expr);
- 	struct nft_set *set = priv->set;
- 	const struct nft_set_ext *ext;
-+	const struct nft_expr *sexpr;
- 	u64 timeout;
- 
- 	if (set->ops->update(set, &regs->data[priv->sreg_key], nft_dynset_new,
- 			     expr, regs, &ext)) {
-+		sexpr = nft_set_ext_expr(ext);
-+
- 		if (priv->op == NFT_DYNSET_OP_UPDATE &&
- 		    nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION)) {
- 			timeout = priv->timeout ? : set->timeout;
- 			*nft_set_ext_expiration(ext) = jiffies + timeout;
--			return;
--		}
--	}
-+		} else if (sexpr == NULL)
-+			goto out;
- 
-+		if (sexpr != NULL)
-+			sexpr->ops->eval(sexpr, regs, pkt);
-+		return;
-+	}
-+out:
- 	regs->verdict.code = NFT_BREAK;
- }
- 
-@@ -77,6 +92,7 @@ static const struct nla_policy nft_dynset_policy[NFTA_DYNSET_MAX + 1] = {
- 	[NFTA_DYNSET_SREG_KEY]	= { .type = NLA_U32 },
- 	[NFTA_DYNSET_SREG_DATA]	= { .type = NLA_U32 },
- 	[NFTA_DYNSET_TIMEOUT]	= { .type = NLA_U64 },
-+	[NFTA_DYNSET_EXPR]	= { .type = NLA_NESTED },
- };
- 
- static int nft_dynset_init(const struct nft_ctx *ctx,
-@@ -142,10 +158,29 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 	} else if (set->flags & NFT_SET_MAP)
- 		return -EINVAL;
- 
-+	if (tb[NFTA_DYNSET_EXPR] != NULL) {
-+		if (!(set->flags & NFT_SET_EVAL))
-+			return -EINVAL;
-+		if (!(set->flags & NFT_SET_ANONYMOUS))
-+			return -EOPNOTSUPP;
-+
-+		priv->expr = nft_expr_init(ctx, tb[NFTA_DYNSET_EXPR]);
-+		if (IS_ERR(priv->expr))
-+			return PTR_ERR(priv->expr);
-+
-+		err = -EOPNOTSUPP;
-+		if (!(priv->expr->ops->type->flags & NFT_EXPR_STATEFUL))
-+			goto err1;
-+	} else if (set->flags & NFT_SET_EVAL)
-+		return -EINVAL;
-+
- 	nft_set_ext_prepare(&priv->tmpl);
- 	nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_KEY, set->klen);
- 	if (set->flags & NFT_SET_MAP)
- 		nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_DATA, set->dlen);
-+	if (priv->expr != NULL)
-+		nft_set_ext_add_length(&priv->tmpl, NFT_SET_EXT_EXPR,
-+				       priv->expr->ops->size);
- 	if (set->flags & NFT_SET_TIMEOUT) {
- 		if (timeout || set->timeout)
- 			nft_set_ext_add(&priv->tmpl, NFT_SET_EXT_EXPIRATION);
-@@ -155,10 +190,15 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 
- 	err = nf_tables_bind_set(ctx, set, &priv->binding);
- 	if (err < 0)
--		return err;
-+		goto err1;
- 
- 	priv->set = set;
- 	return 0;
-+
-+err1:
-+	if (priv->expr != NULL)
-+		nft_expr_destroy(ctx, priv->expr);
-+	return err;
- }
- 
- static void nft_dynset_destroy(const struct nft_ctx *ctx,
-@@ -167,6 +207,8 @@ static void nft_dynset_destroy(const struct nft_ctx *ctx,
- 	struct nft_dynset *priv = nft_expr_priv(expr);
- 
- 	nf_tables_unbind_set(ctx, priv->set, &priv->binding);
-+	if (priv->expr != NULL)
-+		nft_expr_destroy(ctx, priv->expr);
- }
- 
- static int nft_dynset_dump(struct sk_buff *skb, const struct nft_expr *expr)
-@@ -184,6 +226,8 @@ static int nft_dynset_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 		goto nla_put_failure;
- 	if (nla_put_be64(skb, NFTA_DYNSET_TIMEOUT, cpu_to_be64(priv->timeout)))
- 		goto nla_put_failure;
-+	if (priv->expr && nft_expr_dump(skb, NFTA_DYNSET_EXPR, priv->expr))
-+		goto nla_put_failure;
- 	return 0;
- 
- nla_put_failure:
+
+Please apply, thanks!
+
+
+Patrick McHardy (5):
+  netfilter: nf_tables: add helper functions for expression handling
+  netfilter: nf_tables: prepare for expressions associated to set elements
+  netfilter: nf_tables: mark stateful expressions
+  netfilter: nf_tables: add flag to indicate set contains expressions
+  netfilter: nft_dynset: dynamic stateful expression instantiation
+
+ include/net/netfilter/nf_tables.h        | 24 +++++++++++
+ include/uapi/linux/netfilter/nf_tables.h |  6 +++
+ net/netfilter/nf_tables_api.c            | 73 +++++++++++++++++++++++++++++---
+ net/netfilter/nft_counter.c              |  1 +
+ net/netfilter/nft_dynset.c               | 52 +++++++++++++++++++++--
+ net/netfilter/nft_limit.c                |  1 +
+ net/netfilter/nft_lookup.c               |  3 ++
+ 7 files changed, 149 insertions(+), 11 deletions(-)
+
 -- 
 2.1.0
 
