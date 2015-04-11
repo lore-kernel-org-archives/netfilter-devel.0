@@ -1,103 +1,142 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 0/5] netfilter: nf_tables: dynamic stateful expression instantiation
-Date: Sat, 11 Apr 2015 10:46:37 +0100
-Message-ID: <1428745602-31799-1-git-send-email-kaber@trash.net>
+Subject: [PATCH 1/5] netfilter: nf_tables: add helper functions for expression handling
+Date: Sat, 11 Apr 2015 10:46:38 +0100
+Message-ID: <1428745602-31799-2-git-send-email-kaber@trash.net>
+References: <1428745602-31799-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49248 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:49249 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752271AbbDKJqp (ORCPT
+	with ESMTP id S1752433AbbDKJqq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Apr 2015 05:46:45 -0400
+	Sat, 11 Apr 2015 05:46:46 -0400
+In-Reply-To: <1428745602-31799-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The following patches are the grand finale of my nf_tables set work,
-using all the building blocks put in place by the previous patches
-to support something like iptables hashlimit, but a lot more powerful.
+Add helper functions for initializing, cloning, dumping and destroying
+a single expression that is not part of a rule.
 
-Sets are extended to allow attaching expressions to set elements.
-The dynset expression dynamically instantiates these expressions
-based on a template when creating new set elements and evaluates
-them for all new or updated set members.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ include/net/netfilter/nf_tables.h | 13 +++++++++
+ net/netfilter/nf_tables_api.c     | 56 +++++++++++++++++++++++++++++++++++----
+ 2 files changed, 64 insertions(+), 5 deletions(-)
 
-In combination with concatenations this effectively creates state
-tables for arbitrary combinations of keys, using the existing
-expression types to maintain that state. Regular set GC takes care
-of purging expired states.
-
-We currently support two different stateful expressions, counter
-and limit. Using limit as a template we can express the functionality
-of hashlimit, but completely unrestricted in the combination of keys.
-Using counter we can perform accounting for arbitrary flows.
-
-The following examples from patch 5/5 show some possibilities.
-Userspace syntax is still WIP, especially the listing of state
-tables will most likely be seperated from normal set listings
-and use a more structured format:
-
-1. Limit the rate of new SSH connections per host, similar to iptables
-   hashlimit:
-
-# nft filter input tcp dport ssh ct state new \
-	flow ip saddr timeout 60s \
-	limit 10/second \
-	accept
-
-2. Account network traffic between each set of /24 networks:
-
-# nft filter forward \
-	flow ip saddr & 255.255.255.0 . ip daddr & 255.255.255.0 \
-	counter
-
-3. Account traffic to each host per user:
-
-# nft filter output \
-	flow skuid . ip daddr \
-	counter
-
-4. Account traffic for each combination of source address and TCP flags:
-
-# nft filter input \
-	flow ip saddr . tcp flags \
-	counter
-
-The resulting set content after a Xmas-scan look like this:
-
-{
-	192.168.122.1 . fin | psh | urg : counter packets 1001 bytes 40040,
-	192.168.122.1 . ack : counter packets 74 bytes 3848,
-	192.168.122.1 . psh | ack : counter packets 35 bytes 3144
-}
-
-In the future the "expressions attached to elements" will be extended
-to also support user created non-stateful expressions to allow to
-efficiently select beween a set of parameter sets, f.i. a set of log
-statements with different prefixes based on the interface, which currently
-require one rule each. This will most likely have to wait until the next
-kernel version though.
-
-
-Please apply, thanks!
-
-
-Patrick McHardy (5):
-  netfilter: nf_tables: add helper functions for expression handling
-  netfilter: nf_tables: prepare for expressions associated to set elements
-  netfilter: nf_tables: mark stateful expressions
-  netfilter: nf_tables: add flag to indicate set contains expressions
-  netfilter: nft_dynset: dynamic stateful expression instantiation
-
- include/net/netfilter/nf_tables.h        | 24 +++++++++++
- include/uapi/linux/netfilter/nf_tables.h |  6 +++
- net/netfilter/nf_tables_api.c            | 73 +++++++++++++++++++++++++++++---
- net/netfilter/nft_counter.c              |  1 +
- net/netfilter/nft_dynset.c               | 52 +++++++++++++++++++++--
- net/netfilter/nft_limit.c                |  1 +
- net/netfilter/nft_lookup.c               |  3 ++
- 7 files changed, 149 insertions(+), 11 deletions(-)
-
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index cb42da1..e21623c 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -1,6 +1,7 @@
+ #ifndef _NET_NF_TABLES_H
+ #define _NET_NF_TABLES_H
+ 
++#include <linux/module.h>
+ #include <linux/list.h>
+ #include <linux/netfilter.h>
+ #include <linux/netfilter/nfnetlink.h>
+@@ -641,6 +642,18 @@ static inline void *nft_expr_priv(const struct nft_expr *expr)
+ 	return (void *)expr->data;
+ }
+ 
++struct nft_expr *nft_expr_init(const struct nft_ctx *ctx,
++			       const struct nlattr *nla);
++void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
++int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
++		  const struct nft_expr *expr);
++
++static inline void nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
++{
++	__module_get(src->ops->type->owner);
++	memcpy(dst, src, src->ops->size);
++}
++
+ /**
+  *	struct nft_rule - nf_tables rule
+  *
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index ed0e70e..e97bee5 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1545,6 +1545,23 @@ nla_put_failure:
+ 	return -1;
+ };
+ 
++int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
++		  const struct nft_expr *expr)
++{
++	struct nlattr *nest;
++
++	nest = nla_nest_start(skb, attr);
++	if (!nest)
++		goto nla_put_failure;
++	if (nf_tables_fill_expr_info(skb, expr) < 0)
++		goto nla_put_failure;
++	nla_nest_end(skb, nest);
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
+ struct nft_expr_info {
+ 	const struct nft_expr_ops	*ops;
+ 	struct nlattr			*tb[NFT_EXPR_MAXATTR + 1];
+@@ -1622,6 +1639,39 @@ static void nf_tables_expr_destroy(const struct nft_ctx *ctx,
+ 	module_put(expr->ops->type->owner);
+ }
+ 
++struct nft_expr *nft_expr_init(const struct nft_ctx *ctx,
++			       const struct nlattr *nla)
++{
++	struct nft_expr_info info;
++	struct nft_expr *expr;
++	int err;
++
++	err = nf_tables_expr_parse(ctx, nla, &info);
++	if (err < 0)
++		goto err1;
++
++	err = -ENOMEM;
++	expr = kzalloc(info.ops->size, GFP_KERNEL);
++	if (expr == NULL)
++		goto err2;
++
++	err = nf_tables_newexpr(ctx, &info, expr);
++	if (err < 0)
++		goto err2;
++
++	return expr;
++err2:
++	module_put(info.ops->type->owner);
++err1:
++	return ERR_PTR(err);
++}
++
++void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr)
++{
++	nf_tables_expr_destroy(ctx, expr);
++	kfree(expr);
++}
++
+ /*
+  * Rules
+  */
+@@ -1703,12 +1753,8 @@ static int nf_tables_fill_rule_info(struct sk_buff *skb, struct net *net,
+ 	if (list == NULL)
+ 		goto nla_put_failure;
+ 	nft_rule_for_each_expr(expr, next, rule) {
+-		struct nlattr *elem = nla_nest_start(skb, NFTA_LIST_ELEM);
+-		if (elem == NULL)
+-			goto nla_put_failure;
+-		if (nf_tables_fill_expr_info(skb, expr) < 0)
++		if (nft_expr_dump(skb, NFTA_LIST_ELEM, expr) < 0)
+ 			goto nla_put_failure;
+-		nla_nest_end(skb, elem);
+ 	}
+ 	nla_nest_end(skb, list);
+ 
 -- 
 2.1.0
 
