@@ -1,66 +1,34 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2/2] datatype: less strict time parsing
-Date: Sat, 11 Apr 2015 15:00:30 +0100
-Message-ID: <1428760830-6135-3-git-send-email-kaber@trash.net>
-References: <1428760830-6135-1-git-send-email-kaber@trash.net>
+Subject: [PATCH RFC 0/2] nftables: fix time parsing
+Date: Sat, 11 Apr 2015 15:00:28 +0100
+Message-ID: <1428760830-6135-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50807 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:50803 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753477AbbDKOAf (ORCPT
+	with ESMTP id S1753477AbbDKOAe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Apr 2015 10:00:35 -0400
-In-Reply-To: <1428760830-6135-1-git-send-email-kaber@trash.net>
+	Sat, 11 Apr 2015 10:00:34 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Don't require hours to be in range 0-23 and minutes/seconds in range 0-59.
-The time_type is used for relative times where it is entirely reasonable
-to specify 180s instead of 3m.
+These patches attempt to fix time parsing to not require quotation marks
+around the time spec and loosen the checks so times can also be specified
+in smaller units.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- src/datatype.c | 12 ------------
- 1 file changed, 12 deletions(-)
+Some testing indicates it works fine, however I'd put them into a branch
+for 4.1 since I mainly need this fixed for the set timeout support.
 
-diff --git a/src/datatype.c b/src/datatype.c
-index 0772b50..1c83715 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -831,10 +831,6 @@ static struct error_record *time_type_parse(const struct expr *sym,
- 			}
- 			h = str2int(tmp, c, k);
- 			k = 0;
--			if (h > 23) {
--				return error(&sym->location,
--					     "Hour needs to be 0-23");
--			}
- 			mask |= HOUR;
- 			break;
- 		case 'm':
-@@ -844,10 +840,6 @@ static struct error_record *time_type_parse(const struct expr *sym,
- 			}
- 			m = str2int(tmp, c, k);
- 			k = 0;
--			if (m > 59) {
--				return error(&sym->location,
--					     "Minute needs to be 0-59");
--			}
- 			mask |= MIN;
- 			break;
- 		case 's':
-@@ -857,10 +849,6 @@ static struct error_record *time_type_parse(const struct expr *sym,
- 			}
- 			s = str2int(tmp, c, k);
- 			k = 0;
--			if (s > 59) {
--				return error(&sym->location,
--					     "second needs to be 0-59");
--			}
- 			mask |= SECS;
- 			break;
- 		default:
+
+Patrick McHardy (2):
+  datatype: fix parsing of time type
+  datatype: less strict time parsing
+
+ src/datatype.c | 16 ----------------
+ src/scanner.l  |  7 +++++++
+ 2 files changed, 7 insertions(+), 16 deletions(-)
+
 -- 
 2.1.0
 
