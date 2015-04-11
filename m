@@ -1,404 +1,451 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 05/14] netfilter: nf_tables: introduce nft_validate_register_load()
-Date: Sat, 11 Apr 2015 02:27:30 +0100
-Message-ID: <1428715659-31358-6-git-send-email-kaber@trash.net>
+Subject: [PATCH 08/14] netfilter: nf_tables: convert expressions to u32 register pointers
+Date: Sat, 11 Apr 2015 02:27:33 +0100
+Message-ID: <1428715659-31358-9-git-send-email-kaber@trash.net>
 References: <1428715659-31358-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46118 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46124 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751967AbbDKB1v (ORCPT
+	with ESMTP id S1754941AbbDKB1z (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Apr 2015 21:27:51 -0400
+	Fri, 10 Apr 2015 21:27:55 -0400
 In-Reply-To: <1428715659-31358-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Change nft_validate_input_register() to not only validate the input
-register number, but also the length of the load, and rename it to
-nft_validate_register_load() to reflect that change.
+Simple conversion to use u32 pointers to the beginning of the registers
+to keep follow up patches smaller.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- include/net/netfilter/nf_tables.h |  3 +--
- net/netfilter/nf_tables_api.c     | 13 +++++++++----
- net/netfilter/nft_bitwise.c       |  5 ++---
- net/netfilter/nft_byteorder.c     |  7 ++-----
- net/netfilter/nft_cmp.c           | 25 +++++++++++++------------
- net/netfilter/nft_ct.c            |  4 +++-
- net/netfilter/nft_dynset.c        |  4 ++--
- net/netfilter/nft_lookup.c        |  2 +-
- net/netfilter/nft_meta.c          |  6 +++++-
- net/netfilter/nft_nat.c           | 26 +++++++++++++++++++-------
- net/netfilter/nft_redir.c         |  7 +++++--
- 11 files changed, 62 insertions(+), 40 deletions(-)
+ net/bridge/netfilter/nft_meta_bridge.c |  4 +--
+ net/netfilter/nf_tables_core.c         |  8 ++---
+ net/netfilter/nft_bitwise.c            | 10 +++----
+ net/netfilter/nft_byteorder.c          |  8 ++---
+ net/netfilter/nft_ct.c                 | 38 ++++++++++++------------
+ net/netfilter/nft_exthdr.c             |  4 +--
+ net/netfilter/nft_meta.c               | 54 ++++++++++++++++------------------
+ net/netfilter/nft_payload.c            |  4 +--
+ 8 files changed, 63 insertions(+), 67 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index a8d4bd3..9cc3d55 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -112,13 +112,12 @@ static inline enum nft_registers nft_type_to_reg(enum nft_data_types type)
- 	return type == NFT_DATA_VERDICT ? NFT_REG_VERDICT : NFT_REG_1;
- }
- 
--int nft_validate_input_register(enum nft_registers reg);
-+int nft_validate_register_load(enum nft_registers reg, unsigned int len);
- int nft_validate_register_store(const struct nft_ctx *ctx,
- 				enum nft_registers reg,
- 				const struct nft_data *data,
- 				enum nft_data_types type, unsigned int len);
- 
--
- /**
-  *	struct nft_userdata - user defined data associated with an object
-  *
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index f01e89fe..d47f12b 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4122,22 +4122,27 @@ static int nf_tables_check_loops(const struct nft_ctx *ctx,
- }
- 
- /**
-- *	nft_validate_input_register - validate an expressions' input register
-+ *	nft_validate_register_load - validate a load from a register
-  *
-  *	@reg: the register number
-+ *	@len: the length of the data
-  *
-  * 	Validate that the input register is one of the general purpose
-- * 	registers.
-+ * 	registers and that the length of the load is within the bounds.
-  */
--int nft_validate_input_register(enum nft_registers reg)
-+int nft_validate_register_load(enum nft_registers reg, unsigned int len)
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+index f0dfa38..6184b15 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -24,7 +24,7 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
  {
- 	if (reg <= NFT_REG_VERDICT)
- 		return -EINVAL;
- 	if (reg > NFT_REG_MAX)
- 		return -ERANGE;
-+	if (len == 0)
-+		return -EINVAL;
-+	if (len > FIELD_SIZEOF(struct nft_data, data))
-+		return -ERANGE;
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(nft_validate_input_register);
-+EXPORT_SYMBOL_GPL(nft_validate_register_load);
+ 	const struct nft_meta *priv = nft_expr_priv(expr);
+ 	const struct net_device *in = pkt->in, *out = pkt->out;
+-	struct nft_data *dest = &regs->data[priv->dreg];
++	u32 *dest = &regs->data[priv->dreg].data[0];
+ 	const struct net_bridge_port *p;
  
- /**
-  *	nft_validate_register_store - validate an expressions' register store
+ 	switch (priv->key) {
+@@ -40,7 +40,7 @@ static void nft_meta_bridge_get_eval(const struct nft_expr *expr,
+ 		goto out;
+ 	}
+ 
+-	strncpy((char *)dest->data, p->br->dev->name, sizeof(dest->data));
++	strncpy((char *)dest, p->br->dev->name, IFNAMSIZ);
+ 	return;
+ out:
+ 	return nft_meta_get_eval(expr, regs, pkt);
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index 667cdf0..5ef07d1 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -81,7 +81,7 @@ static bool nft_payload_fast_eval(const struct nft_expr *expr,
+ {
+ 	const struct nft_payload *priv = nft_expr_priv(expr);
+ 	const struct sk_buff *skb = pkt->skb;
+-	struct nft_data *dest = &regs->data[priv->dreg];
++	u32 *dest = &regs->data[priv->dreg].data[0];
+ 	unsigned char *ptr;
+ 
+ 	if (priv->base == NFT_PAYLOAD_NETWORK_HEADER)
+@@ -95,11 +95,11 @@ static bool nft_payload_fast_eval(const struct nft_expr *expr,
+ 		return false;
+ 
+ 	if (priv->len == 2)
+-		*(u16 *)dest->data = *(u16 *)ptr;
++		*(u16 *)dest = *(u16 *)ptr;
+ 	else if (priv->len == 4)
+-		*(u32 *)dest->data = *(u32 *)ptr;
++		*(u32 *)dest = *(u32 *)ptr;
+ 	else
+-		*(u8 *)dest->data = *(u8 *)ptr;
++		*(u8 *)dest = *(u8 *)ptr;
+ 	return true;
+ }
+ 
 diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
-index d312052..60050ee 100644
+index 2b8f518..d55b545 100644
 --- a/net/netfilter/nft_bitwise.c
 +++ b/net/netfilter/nft_bitwise.c
-@@ -63,10 +63,9 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
- 	    tb[NFTA_BITWISE_XOR] == NULL)
- 		return -EINVAL;
+@@ -30,14 +30,12 @@ static void nft_bitwise_eval(const struct nft_expr *expr,
+ 			     const struct nft_pktinfo *pkt)
+ {
+ 	const struct nft_bitwise *priv = nft_expr_priv(expr);
+-	const struct nft_data *src = &regs->data[priv->sreg];
+-	struct nft_data *dst = &regs->data[priv->dreg];
++	const u32  *src = &regs->data[priv->sreg].data[0];
++	u32 *dst = &regs->data[priv->dreg].data[0];
+ 	unsigned int i;
  
--	priv->len = ntohl(nla_get_be32(tb[NFTA_BITWISE_LEN]));
--
-+	priv->len  = ntohl(nla_get_be32(tb[NFTA_BITWISE_LEN]));
- 	priv->sreg = ntohl(nla_get_be32(tb[NFTA_BITWISE_SREG]));
--	err = nft_validate_input_register(priv->sreg);
-+	err = nft_validate_register_load(priv->sreg, priv->len);
- 	if (err < 0)
- 		return err;
+-	for (i = 0; i < DIV_ROUND_UP(priv->len, 4); i++) {
+-		dst->data[i] = (src->data[i] & priv->mask.data[i]) ^
+-			       priv->xor.data[i];
+-	}
++	for (i = 0; i < DIV_ROUND_UP(priv->len, 4); i++)
++		dst[i] = (src[i] & priv->mask.data[i]) ^ priv->xor.data[i];
+ }
  
+ static const struct nla_policy nft_bitwise_policy[NFTA_BITWISE_MAX + 1] = {
 diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
-index 848bce0..f34bfbd 100644
+index 48fbfa3..d6290db 100644
 --- a/net/netfilter/nft_byteorder.c
 +++ b/net/netfilter/nft_byteorder.c
-@@ -96,10 +96,6 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
- 		return -EINVAL;
- 	}
- 
--	priv->len = ntohl(nla_get_be32(tb[NFTA_BYTEORDER_LEN]));
--	if (priv->len == 0 || priv->len > FIELD_SIZEOF(struct nft_data, data))
--		return -EINVAL;
--
- 	priv->size = ntohl(nla_get_be32(tb[NFTA_BYTEORDER_SIZE]));
- 	switch (priv->size) {
- 	case 2:
-@@ -110,7 +106,8 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
- 	}
- 
- 	priv->sreg = ntohl(nla_get_be32(tb[NFTA_BYTEORDER_SREG]));
--	err = nft_validate_input_register(priv->sreg);
-+	priv->len  = ntohl(nla_get_be32(tb[NFTA_BYTEORDER_LEN]));
-+	err = nft_validate_register_load(priv->sreg, priv->len);
- 	if (err < 0)
- 		return err;
- 
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index e2b3f51..17e9b8b 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -75,12 +75,15 @@ static int nft_cmp_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	struct nft_data_desc desc;
- 	int err;
- 
--	priv->sreg = ntohl(nla_get_be32(tb[NFTA_CMP_SREG]));
--	priv->op = ntohl(nla_get_be32(tb[NFTA_CMP_OP]));
--
- 	err = nft_data_init(NULL, &priv->data, &desc, tb[NFTA_CMP_DATA]);
- 	BUG_ON(err < 0);
- 
-+	priv->sreg = ntohl(nla_get_be32(tb[NFTA_CMP_SREG]));
-+	err = nft_validate_register_load(priv->sreg, desc.len);
-+	if (err < 0)
-+		return err;
-+
-+	priv->op  = ntohl(nla_get_be32(tb[NFTA_CMP_OP]));
- 	priv->len = desc.len;
- 	return 0;
- }
-@@ -122,13 +125,17 @@ static int nft_cmp_fast_init(const struct nft_ctx *ctx,
- 	u32 mask;
- 	int err;
- 
--	priv->sreg = ntohl(nla_get_be32(tb[NFTA_CMP_SREG]));
--
- 	err = nft_data_init(NULL, &data, &desc, tb[NFTA_CMP_DATA]);
- 	BUG_ON(err < 0);
--	desc.len *= BITS_PER_BYTE;
- 
-+	priv->sreg = ntohl(nla_get_be32(tb[NFTA_CMP_SREG]));
-+	err = nft_validate_register_load(priv->sreg, desc.len);
-+	if (err < 0)
-+		return err;
-+
-+	desc.len *= BITS_PER_BYTE;
- 	mask = nft_cmp_fast_mask(desc.len);
-+
- 	priv->data = data.data[0] & mask;
- 	priv->len  = desc.len;
- 	return 0;
-@@ -167,7 +174,6 @@ nft_cmp_select_ops(const struct nft_ctx *ctx, const struct nlattr * const tb[])
+@@ -30,13 +30,13 @@ static void nft_byteorder_eval(const struct nft_expr *expr,
+ 			       const struct nft_pktinfo *pkt)
  {
- 	struct nft_data_desc desc;
- 	struct nft_data data;
--	enum nft_registers sreg;
- 	enum nft_cmp_ops op;
- 	int err;
+ 	const struct nft_byteorder *priv = nft_expr_priv(expr);
+-	struct nft_data *src = &regs->data[priv->sreg];
+-	struct nft_data *dst = &regs->data[priv->dreg];
++	u32 *src = &regs->data[priv->sreg].data[0];
++	u32 *dst = &regs->data[priv->dreg].data[0];
+ 	union { u32 u32; u16 u16; } *s, *d;
+ 	unsigned int i;
  
-@@ -176,11 +182,6 @@ nft_cmp_select_ops(const struct nft_ctx *ctx, const struct nlattr * const tb[])
- 	    tb[NFTA_CMP_DATA] == NULL)
- 		return ERR_PTR(-EINVAL);
+-	s = (void *)src->data;
+-	d = (void *)dst->data;
++	s = (void *)src;
++	d = (void *)dst;
  
--	sreg = ntohl(nla_get_be32(tb[NFTA_CMP_SREG]));
--	err = nft_validate_input_register(sreg);
--	if (err < 0)
--		return ERR_PTR(err);
--
- 	op = ntohl(nla_get_be32(tb[NFTA_CMP_OP]));
- 	switch (op) {
- 	case NFT_CMP_EQ:
+ 	switch (priv->size) {
+ 	case 4:
 diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 1fa6799..f024be4 100644
+index 232fd82..0aea670 100644
 --- a/net/netfilter/nft_ct.c
 +++ b/net/netfilter/nft_ct.c
-@@ -316,12 +316,14 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
- 			   const struct nlattr * const tb[])
+@@ -35,7 +35,7 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
+ 			    const struct nft_pktinfo *pkt)
  {
- 	struct nft_ct *priv = nft_expr_priv(expr);
-+	unsigned int len;
- 	int err;
+ 	const struct nft_ct *priv = nft_expr_priv(expr);
+-	struct nft_data *dest = &regs->data[priv->dreg];
++	u32 *dest = &regs->data[priv->dreg].data[0];
+ 	enum ip_conntrack_info ctinfo;
+ 	const struct nf_conn *ct;
+ 	const struct nf_conn_help *help;
+@@ -54,7 +54,7 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
+ 			state = NF_CT_STATE_UNTRACKED_BIT;
+ 		else
+ 			state = NF_CT_STATE_BIT(ctinfo);
+-		dest->data[0] = state;
++		*dest = state;
+ 		return;
+ 	}
  
- 	priv->key = ntohl(nla_get_be32(tb[NFTA_CT_KEY]));
+@@ -63,26 +63,26 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
+ 
  	switch (priv->key) {
+ 	case NFT_CT_DIRECTION:
+-		dest->data[0] = CTINFO2DIR(ctinfo);
++		*dest = CTINFO2DIR(ctinfo);
+ 		return;
+ 	case NFT_CT_STATUS:
+-		dest->data[0] = ct->status;
++		*dest = ct->status;
+ 		return;
  #ifdef CONFIG_NF_CONNTRACK_MARK
  	case NFT_CT_MARK:
-+		len = FIELD_SIZEOF(struct nf_conn, mark);
- 		break;
+-		dest->data[0] = ct->mark;
++		*dest = ct->mark;
+ 		return;
  #endif
- 	default:
-@@ -329,7 +331,7 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+ #ifdef CONFIG_NF_CONNTRACK_SECMARK
+ 	case NFT_CT_SECMARK:
+-		dest->data[0] = ct->secmark;
++		*dest = ct->secmark;
+ 		return;
+ #endif
+ 	case NFT_CT_EXPIRATION:
+ 		diff = (long)jiffies - (long)ct->timeout.expires;
+ 		if (diff < 0)
+ 			diff = 0;
+-		dest->data[0] = jiffies_to_msecs(diff);
++		*dest = jiffies_to_msecs(diff);
+ 		return;
+ 	case NFT_CT_HELPER:
+ 		if (ct->master == NULL)
+@@ -93,7 +93,7 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
+ 		helper = rcu_dereference(help->helper);
+ 		if (helper == NULL)
+ 			goto err;
+-		strncpy((char *)dest->data, helper->name, sizeof(dest->data));
++		strncpy((char *)dest, helper->name, NF_CT_HELPER_NAME_LEN);
+ 		return;
+ #ifdef CONFIG_NF_CONNTRACK_LABELS
+ 	case NFT_CT_LABELS: {
+@@ -101,15 +101,15 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
+ 		unsigned int size;
+ 
+ 		if (!labels) {
+-			memset(dest->data, 0, sizeof(dest->data));
++			memset(dest, 0, NF_CT_LABELS_MAX_SIZE);
+ 			return;
+ 		}
+ 
+ 		size = labels->words * sizeof(long);
+-		memcpy(dest->data, labels->bits, size);
+-		if (size < sizeof(dest->data))
+-			memset(((char *) dest->data) + size, 0,
+-			       sizeof(dest->data) - size);
++		memcpy(dest, labels->bits, size);
++		if (size < NF_CT_LABELS_MAX_SIZE)
++			memset(((char *) dest) + size, 0,
++			       NF_CT_LABELS_MAX_SIZE - size);
+ 		return;
  	}
- 
- 	priv->sreg = ntohl(nla_get_be32(tb[NFTA_CT_SREG]));
--	err = nft_validate_input_register(priv->sreg);
-+	err = nft_validate_register_load(priv->sreg, len);
- 	if (err < 0)
- 		return err;
- 
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index eeb72de..3ea52b7 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -124,7 +124,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
+ #endif
+@@ -118,24 +118,24 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
+ 	tuple = &ct->tuplehash[priv->dir].tuple;
+ 	switch (priv->key) {
+ 	case NFT_CT_L3PROTOCOL:
+-		dest->data[0] = nf_ct_l3num(ct);
++		*dest = nf_ct_l3num(ct);
+ 		return;
+ 	case NFT_CT_SRC:
+-		memcpy(dest->data, tuple->src.u3.all,
++		memcpy(dest, tuple->src.u3.all,
+ 		       nf_ct_l3num(ct) == NFPROTO_IPV4 ? 4 : 16);
+ 		return;
+ 	case NFT_CT_DST:
+-		memcpy(dest->data, tuple->dst.u3.all,
++		memcpy(dest, tuple->dst.u3.all,
+ 		       nf_ct_l3num(ct) == NFPROTO_IPV4 ? 4 : 16);
+ 		return;
+ 	case NFT_CT_PROTOCOL:
+-		dest->data[0] = nf_ct_protonum(ct);
++		*dest = nf_ct_protonum(ct);
+ 		return;
+ 	case NFT_CT_PROTO_SRC:
+-		dest->data[0] = (__force __u16)tuple->src.u.all;
++		*dest = (__force __u16)tuple->src.u.all;
+ 		return;
+ 	case NFT_CT_PROTO_DST:
+-		dest->data[0] = (__force __u16)tuple->dst.u.all;
++		*dest = (__force __u16)tuple->dst.u.all;
+ 		return;
  	}
+ 	return;
+diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
+index 2480af7..a85db75 100644
+--- a/net/netfilter/nft_exthdr.c
++++ b/net/netfilter/nft_exthdr.c
+@@ -30,7 +30,7 @@ static void nft_exthdr_eval(const struct nft_expr *expr,
+ 			    const struct nft_pktinfo *pkt)
+ {
+ 	struct nft_exthdr *priv = nft_expr_priv(expr);
+-	struct nft_data *dest = &regs->data[priv->dreg];
++	u32 *dest = &regs->data[priv->dreg].data[0];
+ 	unsigned int offset = 0;
+ 	int err;
  
- 	priv->sreg_key = ntohl(nla_get_be32(tb[NFTA_DYNSET_SREG_KEY]));
--	err = nft_validate_input_register(priv->sreg_key);
-+	err = nft_validate_register_load(priv->sreg_key, set->klen);;
- 	if (err < 0)
- 		return err;
+@@ -39,7 +39,7 @@ static void nft_exthdr_eval(const struct nft_expr *expr,
+ 		goto err;
+ 	offset += priv->offset;
  
-@@ -135,7 +135,7 @@ static int nft_dynset_init(const struct nft_ctx *ctx,
- 			return -EOPNOTSUPP;
- 
- 		priv->sreg_data = ntohl(nla_get_be32(tb[NFTA_DYNSET_SREG_DATA]));
--		err = nft_validate_input_register(priv->sreg_data);
-+		err = nft_validate_register_load(priv->sreg_data, set->dlen);
- 		if (err < 0)
- 			return err;
- 	} else if (set->flags & NFT_SET_MAP)
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index 3574543..8fc0d18 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -71,7 +71,7 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- 	}
- 
- 	priv->sreg = ntohl(nla_get_be32(tb[NFTA_LOOKUP_SREG]));
--	err = nft_validate_input_register(priv->sreg);
-+	err = nft_validate_register_load(priv->sreg, set->klen);
- 	if (err < 0)
- 		return err;
- 
+-	if (skb_copy_bits(pkt->skb, offset, dest->data, priv->len) < 0)
++	if (skb_copy_bits(pkt->skb, offset, dest, priv->len) < 0)
+ 		goto err;
+ 	return;
+ err:
 diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index fbaee1d..0ae6bb7 100644
+index 3f11c0b..a6da806 100644
 --- a/net/netfilter/nft_meta.c
 +++ b/net/netfilter/nft_meta.c
-@@ -267,20 +267,24 @@ int nft_meta_set_init(const struct nft_ctx *ctx,
- 		      const struct nlattr * const tb[])
- {
- 	struct nft_meta *priv = nft_expr_priv(expr);
-+	unsigned int len;
- 	int err;
+@@ -31,56 +31,56 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 	const struct nft_meta *priv = nft_expr_priv(expr);
+ 	const struct sk_buff *skb = pkt->skb;
+ 	const struct net_device *in = pkt->in, *out = pkt->out;
+-	struct nft_data *dest = &regs->data[priv->dreg];
++	u32 *dest = &regs->data[priv->dreg].data[0];
  
- 	priv->key = ntohl(nla_get_be32(tb[NFTA_META_KEY]));
  	switch (priv->key) {
- 	case NFT_META_MARK:
+ 	case NFT_META_LEN:
+-		dest->data[0] = skb->len;
++		*dest = skb->len;
+ 		break;
+ 	case NFT_META_PROTOCOL:
+-		*(__be16 *)dest->data = skb->protocol;
++		*(__be16 *)dest = skb->protocol;
+ 		break;
+ 	case NFT_META_NFPROTO:
+-		dest->data[0] = pkt->ops->pf;
++		*dest = pkt->ops->pf;
+ 		break;
+ 	case NFT_META_L4PROTO:
+-		dest->data[0] = pkt->tprot;
++		*dest = pkt->tprot;
+ 		break;
  	case NFT_META_PRIORITY:
-+		len = sizeof(u32);
-+		break;
- 	case NFT_META_NFTRACE:
-+		len = sizeof(u8);
+-		dest->data[0] = skb->priority;
++		*dest = skb->priority;
+ 		break;
+ 	case NFT_META_MARK:
+-		dest->data[0] = skb->mark;
++		*dest = skb->mark;
+ 		break;
+ 	case NFT_META_IIF:
+ 		if (in == NULL)
+ 			goto err;
+-		dest->data[0] = in->ifindex;
++		*dest = in->ifindex;
+ 		break;
+ 	case NFT_META_OIF:
+ 		if (out == NULL)
+ 			goto err;
+-		dest->data[0] = out->ifindex;
++		*dest = out->ifindex;
+ 		break;
+ 	case NFT_META_IIFNAME:
+ 		if (in == NULL)
+ 			goto err;
+-		strncpy((char *)dest->data, in->name, sizeof(dest->data));
++		strncpy((char *)dest, in->name, IFNAMSIZ);
+ 		break;
+ 	case NFT_META_OIFNAME:
+ 		if (out == NULL)
+ 			goto err;
+-		strncpy((char *)dest->data, out->name, sizeof(dest->data));
++		strncpy((char *)dest, out->name, IFNAMSIZ);
+ 		break;
+ 	case NFT_META_IIFTYPE:
+ 		if (in == NULL)
+ 			goto err;
+-		*(u16 *)dest->data = in->type;
++		*(u16 *)dest = in->type;
+ 		break;
+ 	case NFT_META_OIFTYPE:
+ 		if (out == NULL)
+ 			goto err;
+-		*(u16 *)dest->data = out->type;
++		*(u16 *)dest = out->type;
+ 		break;
+ 	case NFT_META_SKUID:
+ 		if (skb->sk == NULL || !sk_fullsock(skb->sk))
+@@ -93,8 +93,7 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 			goto err;
+ 		}
+ 
+-		dest->data[0] =
+-			from_kuid_munged(&init_user_ns,
++		*dest =	from_kuid_munged(&init_user_ns,
+ 				skb->sk->sk_socket->file->f_cred->fsuid);
+ 		read_unlock_bh(&skb->sk->sk_callback_lock);
+ 		break;
+@@ -108,8 +107,7 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 			read_unlock_bh(&skb->sk->sk_callback_lock);
+ 			goto err;
+ 		}
+-		dest->data[0] =
+-			from_kgid_munged(&init_user_ns,
++		*dest =	from_kgid_munged(&init_user_ns,
+ 				 skb->sk->sk_socket->file->f_cred->fsgid);
+ 		read_unlock_bh(&skb->sk->sk_callback_lock);
+ 		break;
+@@ -119,33 +117,33 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 
+ 		if (dst == NULL)
+ 			goto err;
+-		dest->data[0] = dst->tclassid;
++		*dest = dst->tclassid;
+ 		break;
+ 	}
+ #endif
+ #ifdef CONFIG_NETWORK_SECMARK
+ 	case NFT_META_SECMARK:
+-		dest->data[0] = skb->secmark;
++		*dest = skb->secmark;
+ 		break;
+ #endif
+ 	case NFT_META_PKTTYPE:
+ 		if (skb->pkt_type != PACKET_LOOPBACK) {
+-			dest->data[0] = skb->pkt_type;
++			*dest = skb->pkt_type;
+ 			break;
+ 		}
+ 
+ 		switch (pkt->ops->pf) {
+ 		case NFPROTO_IPV4:
+ 			if (ipv4_is_multicast(ip_hdr(skb)->daddr))
+-				dest->data[0] = PACKET_MULTICAST;
++				*dest = PACKET_MULTICAST;
+ 			else
+-				dest->data[0] = PACKET_BROADCAST;
++				*dest = PACKET_BROADCAST;
+ 			break;
+ 		case NFPROTO_IPV6:
+ 			if (ipv6_hdr(skb)->daddr.s6_addr[0] == 0xFF)
+-				dest->data[0] = PACKET_MULTICAST;
++				*dest = PACKET_MULTICAST;
+ 			else
+-				dest->data[0] = PACKET_BROADCAST;
++				*dest = PACKET_BROADCAST;
+ 			break;
+ 		default:
+ 			WARN_ON(1);
+@@ -153,22 +151,22 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 		}
+ 		break;
+ 	case NFT_META_CPU:
+-		dest->data[0] = raw_smp_processor_id();
++		*dest = raw_smp_processor_id();
+ 		break;
+ 	case NFT_META_IIFGROUP:
+ 		if (in == NULL)
+ 			goto err;
+-		dest->data[0] = in->group;
++		*dest = in->group;
+ 		break;
+ 	case NFT_META_OIFGROUP:
+ 		if (out == NULL)
+ 			goto err;
+-		dest->data[0] = out->group;
++		*dest = out->group;
+ 		break;
+ 	case NFT_META_CGROUP:
+ 		if (skb->sk == NULL || !sk_fullsock(skb->sk))
+ 			goto err;
+-		dest->data[0] = skb->sk->sk_classid;
++		*dest = skb->sk->sk_classid;
  		break;
  	default:
- 		return -EOPNOTSUPP;
- 	}
- 
- 	priv->sreg = ntohl(nla_get_be32(tb[NFTA_META_SREG]));
--	err = nft_validate_input_register(priv->sreg);
-+	err = nft_validate_register_load(priv->sreg, len);
- 	if (err < 0)
- 		return err;
- 
-diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index a0837c6..0897a80 100644
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -119,6 +119,7 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 			const struct nlattr * const tb[])
+ 		WARN_ON(1);
+diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
+index 14247c5..6bb0592 100644
+--- a/net/netfilter/nft_payload.c
++++ b/net/netfilter/nft_payload.c
+@@ -23,7 +23,7 @@ static void nft_payload_eval(const struct nft_expr *expr,
  {
- 	struct nft_nat *priv = nft_expr_priv(expr);
-+	unsigned int alen, plen;
- 	u32 family;
- 	int err;
+ 	const struct nft_payload *priv = nft_expr_priv(expr);
+ 	const struct sk_buff *skb = pkt->skb;
+-	struct nft_data *dest = &regs->data[priv->dreg];
++	u32 *dest = &regs->data[priv->dreg].data[0];
+ 	int offset;
  
-@@ -146,17 +147,25 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		return -EINVAL;
- 
- 	family = ntohl(nla_get_be32(tb[NFTA_NAT_FAMILY]));
--	if (family != AF_INET && family != AF_INET6)
--		return -EAFNOSUPPORT;
- 	if (family != ctx->afi->family)
- 		return -EOPNOTSUPP;
-+
-+	switch (family) {
-+	case NFPROTO_IPV4:
-+		alen = FIELD_SIZEOF(struct nf_nat_range, min_addr.ip);
-+		break;
-+	case NFPROTO_IPV6:
-+		alen = FIELD_SIZEOF(struct nf_nat_range, min_addr.ip6);
-+		break;
-+	default:
-+		return -EAFNOSUPPORT;
-+	}
- 	priv->family = family;
- 
- 	if (tb[NFTA_NAT_REG_ADDR_MIN]) {
- 		priv->sreg_addr_min =
- 			ntohl(nla_get_be32(tb[NFTA_NAT_REG_ADDR_MIN]));
--
--		err = nft_validate_input_register(priv->sreg_addr_min);
-+		err = nft_validate_register_load(priv->sreg_addr_min, alen);
- 		if (err < 0)
- 			return err;
- 
-@@ -164,7 +173,8 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 			priv->sreg_addr_max =
- 				ntohl(nla_get_be32(tb[NFTA_NAT_REG_ADDR_MAX]));
- 
--			err = nft_validate_input_register(priv->sreg_addr_max);
-+			err = nft_validate_register_load(priv->sreg_addr_max,
-+							 alen);
- 			if (err < 0)
- 				return err;
- 		} else {
-@@ -172,11 +182,12 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 		}
+ 	switch (priv->base) {
+@@ -43,7 +43,7 @@ static void nft_payload_eval(const struct nft_expr *expr,
  	}
+ 	offset += priv->offset;
  
-+	plen = FIELD_SIZEOF(struct nf_nat_range, min_addr.all);
- 	if (tb[NFTA_NAT_REG_PROTO_MIN]) {
- 		priv->sreg_proto_min =
- 			ntohl(nla_get_be32(tb[NFTA_NAT_REG_PROTO_MIN]));
- 
--		err = nft_validate_input_register(priv->sreg_proto_min);
-+		err = nft_validate_register_load(priv->sreg_proto_min, plen);
- 		if (err < 0)
- 			return err;
- 
-@@ -184,7 +195,8 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 			priv->sreg_proto_max =
- 				ntohl(nla_get_be32(tb[NFTA_NAT_REG_PROTO_MAX]));
- 
--			err = nft_validate_input_register(priv->sreg_proto_max);
-+			err = nft_validate_register_load(priv->sreg_proto_max,
-+							 plen);
- 			if (err < 0)
- 				return err;
- 		} else {
-diff --git a/net/netfilter/nft_redir.c b/net/netfilter/nft_redir.c
-index d7e9e93..9819466 100644
---- a/net/netfilter/nft_redir.c
-+++ b/net/netfilter/nft_redir.c
-@@ -44,17 +44,19 @@ int nft_redir_init(const struct nft_ctx *ctx,
- 		   const struct nlattr * const tb[])
- {
- 	struct nft_redir *priv = nft_expr_priv(expr);
-+	unsigned int plen;
- 	int err;
- 
- 	err = nft_redir_validate(ctx, expr, NULL);
- 	if (err < 0)
- 		return err;
- 
-+	plen = FIELD_SIZEOF(struct nf_nat_range, min_addr.all);
- 	if (tb[NFTA_REDIR_REG_PROTO_MIN]) {
- 		priv->sreg_proto_min =
- 			ntohl(nla_get_be32(tb[NFTA_REDIR_REG_PROTO_MIN]));
- 
--		err = nft_validate_input_register(priv->sreg_proto_min);
-+		err = nft_validate_register_load(priv->sreg_proto_min, plen);
- 		if (err < 0)
- 			return err;
- 
-@@ -62,7 +64,8 @@ int nft_redir_init(const struct nft_ctx *ctx,
- 			priv->sreg_proto_max =
- 				ntohl(nla_get_be32(tb[NFTA_REDIR_REG_PROTO_MAX]));
- 
--			err = nft_validate_input_register(priv->sreg_proto_max);
-+			err = nft_validate_register_load(priv->sreg_proto_max,
-+							 plen);
- 			if (err < 0)
- 				return err;
- 		} else {
+-	if (skb_copy_bits(skb, offset, dest->data, priv->len) < 0)
++	if (skb_copy_bits(skb, offset, dest, priv->len) < 0)
+ 		goto err;
+ 	return;
+ err:
 -- 
 2.1.0
 
