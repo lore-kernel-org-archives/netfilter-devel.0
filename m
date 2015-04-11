@@ -1,117 +1,66 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 2/5] netfilter: nf_tables: prepare for expressions associated to set elements
-Date: Sat, 11 Apr 2015 10:46:39 +0100
-Message-ID: <1428745602-31799-3-git-send-email-kaber@trash.net>
-References: <1428745602-31799-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49252 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752366AbbDKJqr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Apr 2015 05:46:47 -0400
-In-Reply-To: <1428745602-31799-1-git-send-email-kaber@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 5/7] net: add netfilter ingress hook
+Date: Sat, 11 Apr 2015 14:55:02 +0200
+Message-ID: <20150411125502.GA3810@salvia>
+References: <1428668142-4006-1-git-send-email-pablo@netfilter.org>
+ <1428668142-4006-6-git-send-email-pablo@netfilter.org>
+ <20150410132120.GE23070@casper.infradead.org>
+ <20150410133610.GA19454@acer.localdomain>
+ <20150410201719.GC5968@salvia>
+ <20150410213312.GA23727@acer.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Thomas Graf <tgraf@suug.ch>, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, davem@davemloft.net
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150410213312.GA23727@acer.localdomain>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Preparation to attach expressions to set elements: add a set extension
-type to hold an expression and dump the expression information with the
-set element.
+On Fri, Apr 10, 2015 at 10:33:12PM +0100, Patrick McHardy wrote:
+> On 10.04, Pablo Neira Ayuso wrote:
+> > On Fri, Apr 10, 2015 at 02:36:11PM +0100, Patrick McHardy wrote:
+> > > 
+> > > I'm wondering if the hook is the right abstraction at all. Netfilter hooks
+> > > require async resumption (okfn) support, which is why all the refactoring is
+> > > needed. Is that something that we need for NF_PROTO_NETDEV? For ingress
+> > > userspace queueing *might* actually work if the missing pieces are added,
+> > > but for offloaded rules it obviously can not work.
+> > 
+> > For userspace queueing from ingress we still have to call
+> > skb_share_check() and hold a reference to orig_dev from the escape
+> > path. But this support is still missing in nf_tables (actually, we
+> > only support NFPROTO_IPV4 and NFPROTO_IPV6 at this moment, see patch
+> > attached). Regarding offload, this path will not see any packet.
+> 
+> We do support all families using the regular NF_QUEUE verdict of course.
+> But yes, nf_queue.c will simply drop packets that don't have a netfilter
+> AF registered.
+> 
+> But my question is whether queueing is something that is even worth
+> considering for the NFPROTO_NETDEV family. As I said, it will at best
+> work for ingress anyways and that will actually be more tricky than just
+> calling skb_share_check(), we need to take care of keeping valid
+> references to all the data you currently store in the CB, including the
+> packet_type, the device, things attached to the skb at this point to
+> the stack etc.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- include/net/netfilter/nf_tables.h        | 7 +++++++
- include/uapi/linux/netfilter/nf_tables.h | 2 ++
- net/netfilter/nf_tables_api.c            | 9 +++++++++
- 3 files changed, 18 insertions(+)
+I think we only need to hold the reference on orig_dev. The pt_prev
+pointer in skb CB can actually be removed. Other things attached to
+the skb we already handle this from nf_queue to make sure they don't
+vanish.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index e21623c..d45a871 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -371,6 +371,7 @@ void nf_tables_unbind_set(const struct nft_ctx *ctx, struct nft_set *set,
-  *	@NFT_SET_EXT_TIMEOUT: element timeout
-  *	@NFT_SET_EXT_EXPIRATION: element expiration time
-  *	@NFT_SET_EXT_USERDATA: user data associated with the element
-+ *	@NFT_SET_EXT_EXPR: expression assiociated with the element
-  *	@NFT_SET_EXT_NUM: number of extension types
-  */
- enum nft_set_extensions {
-@@ -380,6 +381,7 @@ enum nft_set_extensions {
- 	NFT_SET_EXT_TIMEOUT,
- 	NFT_SET_EXT_EXPIRATION,
- 	NFT_SET_EXT_USERDATA,
-+	NFT_SET_EXT_EXPR,
- 	NFT_SET_EXT_NUM
- };
- 
-@@ -491,6 +493,11 @@ static inline struct nft_userdata *nft_set_ext_userdata(const struct nft_set_ext
- 	return nft_set_ext(ext, NFT_SET_EXT_USERDATA);
- }
- 
-+static inline struct nft_expr *nft_set_ext_expr(const struct nft_set_ext *ext)
-+{
-+	return nft_set_ext(ext, NFT_SET_EXT_EXPR);
-+}
-+
- static inline bool nft_set_elem_expired(const struct nft_set_ext *ext)
- {
- 	return nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION) &&
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index be8584c..f9c5af2 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -322,6 +322,7 @@ enum nft_set_elem_flags {
-  * @NFTA_SET_ELEM_TIMEOUT: timeout value (NLA_U64)
-  * @NFTA_SET_ELEM_EXPIRATION: expiration time (NLA_U64)
-  * @NFTA_SET_ELEM_USERDATA: user data (NLA_BINARY)
-+ * @NFTA_SET_ELEM_EXPR: expression (NLA_NESTED: nft_expr_attributes)
-  */
- enum nft_set_elem_attributes {
- 	NFTA_SET_ELEM_UNSPEC,
-@@ -331,6 +332,7 @@ enum nft_set_elem_attributes {
- 	NFTA_SET_ELEM_TIMEOUT,
- 	NFTA_SET_ELEM_EXPIRATION,
- 	NFTA_SET_ELEM_USERDATA,
-+	NFTA_SET_ELEM_EXPR,
- 	__NFTA_SET_ELEM_MAX
- };
- #define NFTA_SET_ELEM_MAX	(__NFTA_SET_ELEM_MAX - 1)
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index e97bee5..8830811 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2904,6 +2904,9 @@ const struct nft_set_ext_type nft_set_ext_types[] = {
- 	[NFT_SET_EXT_DATA]		= {
- 		.align	= __alignof__(u32),
- 	},
-+	[NFT_SET_EXT_EXPR]		= {
-+		.align	= __alignof__(struct nft_expr),
-+	},
- 	[NFT_SET_EXT_FLAGS]		= {
- 		.len	= sizeof(u8),
- 		.align	= __alignof__(u8),
-@@ -2990,6 +2993,10 @@ static int nf_tables_fill_setelem(struct sk_buff *skb,
- 			  set->dlen) < 0)
- 		goto nla_put_failure;
- 
-+	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPR) &&
-+	    nft_expr_dump(skb, NFTA_SET_ELEM_EXPR, nft_set_ext_expr(ext)) < 0)
-+		goto nla_put_failure;
-+
- 	if (nft_set_ext_exists(ext, NFT_SET_EXT_FLAGS) &&
- 	    nla_put_be32(skb, NFTA_SET_ELEM_FLAGS,
- 		         htonl(*nft_set_ext_flags(ext))))
-@@ -3276,6 +3283,8 @@ void nft_set_elem_destroy(const struct nft_set *set, void *elem)
- 	nft_data_uninit(nft_set_ext_key(ext), NFT_DATA_VALUE);
- 	if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA))
- 		nft_data_uninit(nft_set_ext_data(ext), set->dtype);
-+	if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPR))
-+		nf_tables_expr_destroy(NULL, nft_set_ext_expr(ext));
- 
- 	kfree(elem);
- }
--- 
-2.1.0
+> If we decide not to support queueing for this family we don't have to
+> use netfilter hooks for this and all the refactoring for async resume
+> becomes unnecessary.
 
+I think the refactoring is worth. Have a look at the current state of
+this function. It has grown with features along time and it got many
+gotos that force you travel back and forth when reading this code.
+
+Regarding the nf_queue support at ingress, I don't see any major
+technical obstacule at this moment to support this and I think that
+existing programs that inspect traffic from userspace can benefit from
+this feature (eg. IPS).
