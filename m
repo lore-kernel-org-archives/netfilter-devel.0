@@ -1,41 +1,26 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 05/20] netfilter: nft_hash: add support for timeouts
-Date: Sat, 11 Apr 2015 15:40:55 +0200
-Message-ID: <20150411134055.GA9116@salvia>
-References: <1428579304-5520-1-git-send-email-pablo@netfilter.org>
- <1428579304-5520-6-git-send-email-pablo@netfilter.org>
- <063D6719AE5E284EB5DD2968C1650D6D1CB17C7C@AcuExch.aculab.com>
+Subject: Re: [PATCH 00/14] netfilter: nf_tables: concatenation support
+Date: Sat, 11 Apr 2015 15:47:25 +0200
+Message-ID: <20150411134725.GA9651@salvia>
+References: <1428715659-31358-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"davem@davemloft.net" <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: David Laight <David.Laight@ACULAB.COM>
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51555 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51937 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755368AbbDKNgp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Apr 2015 09:36:45 -0400
+	id S1754196AbbDKNnM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 11 Apr 2015 09:43:12 -0400
 Content-Disposition: inline
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D1CB17C7C@AcuExch.aculab.com>
+In-Reply-To: <1428715659-31358-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 09, 2015 at 01:39:18PM +0000, David Laight wrote:
-> From: Pablo Neira Ayuso
-> > Sent: 09 April 2015 12:35
-> ...
-> > Add support for element timeouts to nft_hash. The lookup and walking
-> > functions are changed to ignore timed out elements, a periodic garbage
-> > collection task cleans out expired entries.
-> 
-> You probably want to delete timed out entries during insert.
-> If you do that you don't really need a garbage collector.
+On Sat, Apr 11, 2015 at 02:27:25AM +0100, Patrick McHardy wrote:
+> The following patches add support for concatenations, which allow multi
+> dimensional exact matches in O(1).
 
-Exploring a synchronous solution from the Netlink API sounds like an
-interesting idea to me.
-
-> I'd also worry about re-adding a timed out entry.
-
-It seems we re-add it as a new entry.
+Thanks Patrick. I think it would be good to get userspace in sync with
+what we already have in mainstream. This is going to get way to far
+from what we have in master.
