@@ -1,65 +1,139 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 5/7] net: add netfilter ingress hook
-Date: Fri, 10 Apr 2015 22:33:12 +0100
-Message-ID: <20150410213312.GA23727@acer.localdomain>
-References: <1428668142-4006-1-git-send-email-pablo@netfilter.org>
- <1428668142-4006-6-git-send-email-pablo@netfilter.org>
- <20150410132120.GE23070@casper.infradead.org>
- <20150410133610.GA19454@acer.localdomain>
- <20150410201719.GC5968@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Thomas Graf <tgraf@suug.ch>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, davem@davemloft.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 00/14] netfilter: nf_tables: concatenation support
+Date: Sat, 11 Apr 2015 02:27:25 +0100
+Message-ID: <1428715659-31358-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43110 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46109 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751560AbbDJVdR (ORCPT
+	with ESMTP id S1752981AbbDKB1n (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Apr 2015 17:33:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20150410201719.GC5968@salvia>
+	Fri, 10 Apr 2015 21:27:43 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 10.04, Pablo Neira Ayuso wrote:
-> On Fri, Apr 10, 2015 at 02:36:11PM +0100, Patrick McHardy wrote:
-> > 
-> > I'm wondering if the hook is the right abstraction at all. Netfilter hooks
-> > require async resumption (okfn) support, which is why all the refactoring is
-> > needed. Is that something that we need for NF_PROTO_NETDEV? For ingress
-> > userspace queueing *might* actually work if the missing pieces are added,
-> > but for offloaded rules it obviously can not work.
-> 
-> For userspace queueing from ingress we still have to call
-> skb_share_check() and hold a reference to orig_dev from the escape
-> path. But this support is still missing in nf_tables (actually, we
-> only support NFPROTO_IPV4 and NFPROTO_IPV6 at this moment, see patch
-> attached). Regarding offload, this path will not see any packet.
+The following patches add support for concatenations, which allow multi
+dimensional exact matches in O(1).
 
-We do support all families using the regular NF_QUEUE verdict of course.
-But yes, nf_queue.c will simply drop packets that don't have a netfilter
-AF registered.
+The basic idea is to split the data registers, currently consisting of
+4 registers of 16 bytes each, into smaller units, 16 registers of 4
+bytes each, and making sure each register store always leaves the
+full 32 bit in a well defined state, meaning smaller stores will
+zero the remaining bits.
 
-But my question is whether queueing is something that is even worth
-considering for the NFPROTO_NETDEV family. As I said, it will at best
-work for ingress anyways and that will actually be more tricky than just
-calling skb_share_check(), we need to take care of keeping valid
-references to all the data you currently store in the CB, including the
-packet_type, the device, things attached to the skb at this point to
-the stack etc.
+Based on that, we can load multiple adjacent registers with different
+values, thereby building a concatenated bigger value, and use that
+value for set lookups.
 
-If we decide not to support queueing for this family we don't have to
-use netfilter hooks for this and all the refactoring for async resume
-becomes unnecessary. 
+Sets are changed to use variable sized extensions for their key and
+data values, removing the fixed limit of 16 bytes while saving memory
+if less space is needed.
 
-> >From db2fba74dea98b69ee7615fca86b9847bc42887f Mon Sep 17 00:00:00 2001
-> From: Pablo Neira Ayuso <pablo@netfilter.org>
-> Date: Fri, 10 Apr 2015 21:40:58 +0200
-> Subject: [PATCH] netfilter: nf_tables: restrict nft_queue to AF_INET and
->  AF_INET6
-> 
-> Other families need the corresponding struct nf_afinfo in place to work.
-> Restrict it to NFPROTO_IPV4 and NFPROTO_IPV6 until the necessary code is in
-> place.
+As a side effect, these patches will allow some nice optimizations in
+the future, like using jhash2 in nft_hash, removing the masking in
+nft_cmp_fast, optimized data comparison using 32 bit word size etc.
+These are not done so far however.
+
+The patches are split up as follows:
+
+ * the first five patches add length validation to register loads and
+   stores to make sure we stay within bounds and prepare the validation
+   functions for the new addressing mode
+
+ * the next patches prepare for changing to 32 bit addressing by
+   introducing a struct nft_regs, which holds the verdict register as
+   well as the data registers. The verdict members are moved to a new
+   struct nft_verdict to allow to pull struct nft_data out of the stack.
+
+ * the next patches contain preparatory conversions of expressions and
+   sets to use 32 bit addressing
+
+ * the next patch introduces so far unused register conversion helpers
+   for parsing and dumping register numbers over netlink
+
+ * following is the real conversion to 32 bit addressing, consisting of
+   replacing struct nft_data in struct nft_regs by an array of u32s and
+   actually translating and validating the new register numbers.
+
+ * the final two patches add support for variable sized data items and
+   variable sized keys / data in set elements
+
+The patches have been verified to work correctly with nft binaries using
+both old and new addressing.
+
+Examples:
+
+# MAC address filter
+nft add set filter test { type ether_addr . ipv4_addr }
+nft add element filter test {
+	52:54:00:73:c0:55 . 192.168.122.128,
+	...
+}
+
+nft filter input ether saddr . ip saddr @test counter
+
+# Also works with dynamic set updates:
+nft add set filter test { type ipv4_addr . inet_service; timeout 60s }
+
+nft filter input set update ip daddr . tcp dport @test
+nft filter output ip saddr . tcp sport @test counter
+
+
+Please apply, thanks!
+
+
+Patrick McHardy (14):
+  netfilter: nf_tables: validate len in nft_validate_data_load()
+  netfilter: nf_tables: rename nft_validate_data_load()
+  netfilter: nft_lookup: use nft_validate_register_store() to validate types
+  netfilter: nf_tables: kill nft_validate_output_register()
+  netfilter: nf_tables: introduce nft_validate_register_load()
+  netfilter: nf_tables: get rid of NFT_REG_VERDICT usage
+  netfilter: nf_tables: use struct nft_verdict within struct nft_data
+  netfilter: nf_tables: convert expressions to u32 register pointers
+  netfilter: nf_tables: kill nft_data_cmp()
+  netfilter: nf_tables: convert sets to u32 data pointers
+  netfilter: nf_tables: add register parsing/dumping helpers
+  netfilter: nf_tables: switch registers to 32 bit addressing
+  netfilter: nf_tables: support variable sized data in nft_data_init()
+  netfilter: nf_tables: variable sized set element keys / data
+
+ include/net/netfilter/nf_tables.h        |  79 +++++++-----
+ include/net/netfilter/nft_meta.h         |   4 +-
+ include/uapi/linux/netfilter/nf_tables.h |  34 +++++-
+ net/bridge/netfilter/nft_meta_bridge.c   |  26 ++--
+ net/bridge/netfilter/nft_reject_bridge.c |   6 +-
+ net/ipv4/netfilter/nft_masq_ipv4.c       |   9 +-
+ net/ipv4/netfilter/nft_redir_ipv4.c      |  11 +-
+ net/ipv4/netfilter/nft_reject_ipv4.c     |   4 +-
+ net/ipv6/netfilter/nft_masq_ipv6.c       |   7 +-
+ net/ipv6/netfilter/nft_redir_ipv6.c      |  11 +-
+ net/ipv6/netfilter/nft_reject_ipv6.c     |   4 +-
+ net/netfilter/nf_tables_api.c            | 198 +++++++++++++++++++------------
+ net/netfilter/nf_tables_core.c           |  41 +++----
+ net/netfilter/nft_bitwise.c              |  37 +++---
+ net/netfilter/nft_byteorder.c            |  40 +++----
+ net/netfilter/nft_cmp.c                  |  44 +++----
+ net/netfilter/nft_compat.c               |  14 +--
+ net/netfilter/nft_counter.c              |   2 +-
+ net/netfilter/nft_ct.c                   | 110 +++++++++++------
+ net/netfilter/nft_dynset.c               |  25 ++--
+ net/netfilter/nft_exthdr.c               |  23 ++--
+ net/netfilter/nft_hash.c                 |  19 ++-
+ net/netfilter/nft_immediate.c            |  18 ++-
+ net/netfilter/nft_limit.c                |   4 +-
+ net/netfilter/nft_log.c                  |   2 +-
+ net/netfilter/nft_lookup.c               |  28 ++---
+ net/netfilter/nft_meta.c                 | 107 +++++++++--------
+ net/netfilter/nft_nat.c                  |  71 ++++++-----
+ net/netfilter/nft_payload.c              |  24 ++--
+ net/netfilter/nft_queue.c                |   4 +-
+ net/netfilter/nft_rbtree.c               |  15 ++-
+ net/netfilter/nft_redir.c                |  19 +--
+ net/netfilter/nft_reject_inet.c          |   5 +-
+ 33 files changed, 580 insertions(+), 465 deletions(-)
+
+-- 
+2.1.0
+
