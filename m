@@ -1,33 +1,66 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 00/14] netfilter: nf_tables: concatenation support
-Date: Sat, 11 Apr 2015 14:47:45 +0100
-Message-ID: <20150411134745.GD15268@acer.localdomain>
-References: <1428715659-31358-1-git-send-email-kaber@trash.net>
- <20150411134725.GA9651@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 2/2] datatype: less strict time parsing
+Date: Sat, 11 Apr 2015 15:00:30 +0100
+Message-ID: <1428760830-6135-3-git-send-email-kaber@trash.net>
+References: <1428760830-6135-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50731 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:50807 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754196AbbDKNrt (ORCPT
+	with ESMTP id S1753477AbbDKOAf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Apr 2015 09:47:49 -0400
-Content-Disposition: inline
-In-Reply-To: <20150411134725.GA9651@salvia>
+	Sat, 11 Apr 2015 10:00:35 -0400
+In-Reply-To: <1428760830-6135-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11.04, Pablo Neira Ayuso wrote:
-> On Sat, Apr 11, 2015 at 02:27:25AM +0100, Patrick McHardy wrote:
-> > The following patches add support for concatenations, which allow multi
-> > dimensional exact matches in O(1).
-> 
-> Thanks Patrick. I think it would be good to get userspace in sync with
-> what we already have in mainstream. This is going to get way to far
-> from what we have in master.
+Don't require hours to be in range 0-23 and minutes/seconds in range 0-59.
+The time_type is used for relative times where it is entirely reasonable
+to specify 180s instead of 3m.
 
-Well, I don't want to add all that stuff to master since I suppose we'll
-have a release for 4.0 soon. I'm however right now preparing the patchset
-for a 4.1 branch.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ src/datatype.c | 12 ------------
+ 1 file changed, 12 deletions(-)
+
+diff --git a/src/datatype.c b/src/datatype.c
+index 0772b50..1c83715 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -831,10 +831,6 @@ static struct error_record *time_type_parse(const struct expr *sym,
+ 			}
+ 			h = str2int(tmp, c, k);
+ 			k = 0;
+-			if (h > 23) {
+-				return error(&sym->location,
+-					     "Hour needs to be 0-23");
+-			}
+ 			mask |= HOUR;
+ 			break;
+ 		case 'm':
+@@ -844,10 +840,6 @@ static struct error_record *time_type_parse(const struct expr *sym,
+ 			}
+ 			m = str2int(tmp, c, k);
+ 			k = 0;
+-			if (m > 59) {
+-				return error(&sym->location,
+-					     "Minute needs to be 0-59");
+-			}
+ 			mask |= MIN;
+ 			break;
+ 		case 's':
+@@ -857,10 +849,6 @@ static struct error_record *time_type_parse(const struct expr *sym,
+ 			}
+ 			s = str2int(tmp, c, k);
+ 			k = 0;
+-			if (s > 59) {
+-				return error(&sym->location,
+-					     "second needs to be 0-59");
+-			}
+ 			mask |= SECS;
+ 			break;
+ 		default:
+-- 
+2.1.0
+
