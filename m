@@ -1,380 +1,260 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 10/10] nftables: add set statement
-Date: Sun, 12 Apr 2015 13:16:18 +0100
-Message-ID: <1428840978-27226-11-git-send-email-kaber@trash.net>
+Subject: [PATCH 07/10] set: add timeout support for sets
+Date: Sun, 12 Apr 2015 13:16:15 +0100
+Message-ID: <1428840978-27226-8-git-send-email-kaber@trash.net>
 References: <1428840978-27226-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58920 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:58911 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751337AbbDLMQb (ORCPT
+	with ESMTP id S1751704AbbDLMQ1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 12 Apr 2015 08:16:31 -0400
+	Sun, 12 Apr 2015 08:16:27 -0400
 In-Reply-To: <1428840978-27226-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The set statement is used to dynamically add or update elements in a set.
+Timeout support can be enabled in one of two ways:
 
-Syntax:
+1. Using a default timeout value:
 
-# nft filter input set add tcp dport @myset
-# nft filter input set add ip saddr timeout 10s @myset
-# nft filter input set update ip saddr timeout 10s @myset
+set test {
+	type ipv4_addr;
+	timeout 1h;
+}
+
+2. Using the timeout flag without a default:
+
+set test {
+	type ipv4_addr;
+	flags timeout;
+}
+
+Optionally a garbage collection interval can be specified using
+
+gc-interval <interval>;
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- include/linux/netfilter/nf_tables.h | 27 ++++++++++++++++++++++++++
- include/statement.h                 | 11 +++++++++++
- src/evaluate.c                      | 28 ++++++++++++++++++++++++++-
- src/netlink_delinearize.c           | 38 +++++++++++++++++++++++++++++++++++++
- src/netlink_linearize.c             | 24 +++++++++++++++++++++++
- src/parser_bison.y                  | 18 ++++++++++++++++++
- src/scanner.l                       |  1 +
- src/statement.c                     | 31 ++++++++++++++++++++++++++++++
- 8 files changed, 177 insertions(+), 1 deletion(-)
+ include/linux/netfilter/nf_tables.h |  6 ++++++
+ include/rule.h                      |  5 +++++
+ src/evaluate.c                      |  4 ++++
+ src/netlink.c                       | 10 ++++++++++
+ src/parser_bison.y                  | 13 +++++++++++++
+ src/rule.c                          | 23 ++++++++++++++++++++++-
+ src/scanner.l                       |  2 ++
+ 7 files changed, 62 insertions(+), 1 deletion(-)
 
 diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 334b389..0e96443 100644
+index 832bc46..8671505 100644
 --- a/include/linux/netfilter/nf_tables.h
 +++ b/include/linux/netfilter/nf_tables.h
-@@ -516,6 +516,33 @@ enum nft_lookup_attributes {
- };
- #define NFTA_LOOKUP_MAX		(__NFTA_LOOKUP_MAX - 1)
- 
-+enum nft_dynset_ops {
-+	NFT_DYNSET_OP_ADD,
-+	NFT_DYNSET_OP_UPDATE,
-+};
-+
-+/**
-+ * enum nft_dynset_attributes - dynset expression attributes
-+ *
-+ * @NFTA_DYNSET_SET_NAME: name of set the to add data to (NLA_STRING)
-+ * @NFTA_DYNSET_SET_ID: uniquely identifier of the set in the transaction (NLA_U32)
-+ * @NFTA_DYNSET_OP: operation (NLA_U32)
-+ * @NFTA_DYNSET_SREG_KEY: source register of the key (NLA_U32)
-+ * @NFTA_DYNSET_SREG_DATA: source register of the data (NLA_U32)
-+ * @NFTA_DYNSET_TIMEOUT: timeout value for the new element (NLA_U64)
-+ */
-+enum nft_dynset_attributes {
-+	NFTA_DYNSET_UNSPEC,
-+	NFTA_DYNSET_SET_NAME,
-+	NFTA_DYNSET_SET_ID,
-+	NFTA_DYNSET_OP,
-+	NFTA_DYNSET_SREG_KEY,
-+	NFTA_DYNSET_SREG_DATA,
-+	NFTA_DYNSET_TIMEOUT,
-+	__NFTA_DYNSET_MAX,
-+};
-+#define NFTA_DYNSET_MAX		(__NFTA_DYNSET_MAX - 1)
-+
- /**
-  * enum nft_payload_bases - nf_tables payload expression offset bases
-  *
-diff --git a/include/statement.h b/include/statement.h
-index d143121..48e6130 100644
---- a/include/statement.h
-+++ b/include/statement.h
-@@ -104,6 +104,14 @@ extern struct stmt *ct_stmt_alloc(const struct location *loc,
- 				  enum nft_ct_keys key,
- 				  struct expr *expr);
- 
-+struct set_stmt {
-+	struct expr		*set;
-+	struct expr		*key;
-+	enum nft_dynset_ops	op;
-+};
-+
-+extern struct stmt *set_stmt_alloc(const struct location *loc);
-+
- /**
-  * enum stmt_types - statement types
-  *
-@@ -120,6 +128,7 @@ extern struct stmt *ct_stmt_alloc(const struct location *loc,
-  * @STMT_REDIR:		redirect statement
-  * @STMT_QUEUE:		QUEUE statement
-  * @STMT_CT:		conntrack statement
-+ * @STMT_SET:		set statement
+@@ -207,12 +207,14 @@ enum nft_rule_compat_attributes {
+  * @NFT_SET_CONSTANT: set contents may not change while bound
+  * @NFT_SET_INTERVAL: set contains intervals
+  * @NFT_SET_MAP: set is used as a dictionary
++ * @NFT_SET_TIMEOUT: set uses timeouts
   */
- enum stmt_types {
- 	STMT_INVALID,
-@@ -135,6 +144,7 @@ enum stmt_types {
- 	STMT_REDIR,
- 	STMT_QUEUE,
- 	STMT_CT,
-+	STMT_SET,
+ enum nft_set_flags {
+ 	NFT_SET_ANONYMOUS		= 0x1,
+ 	NFT_SET_CONSTANT		= 0x2,
+ 	NFT_SET_INTERVAL		= 0x4,
+ 	NFT_SET_MAP			= 0x8,
++	NFT_SET_TIMEOUT			= 0x10,
  };
  
  /**
-@@ -184,6 +194,7 @@ struct stmt {
- 		struct redir_stmt	redir;
- 		struct queue_stmt	queue;
- 		struct ct_stmt		ct;
-+		struct set_stmt		set;
- 	};
+@@ -251,6 +253,8 @@ enum nft_set_desc_attributes {
+  * @NFTA_SET_POLICY: selection policy (NLA_U32)
+  * @NFTA_SET_DESC: set description (NLA_NESTED)
+  * @NFTA_SET_ID: uniquely identifies a set in a transaction (NLA_U32)
++ * @NFTA_SET_TIMEOUT: default timeout value (NLA_U64)
++ * @NFTA_SET_GC_INTERVAL: garbage collection interval (NLA_U32)
+  */
+ enum nft_set_attributes {
+ 	NFTA_SET_UNSPEC,
+@@ -264,6 +268,8 @@ enum nft_set_attributes {
+ 	NFTA_SET_POLICY,
+ 	NFTA_SET_DESC,
+ 	NFTA_SET_ID,
++	NFTA_SET_TIMEOUT,
++	NFTA_SET_GC_INTERVAL,
+ 	__NFTA_SET_MAX
+ };
+ #define NFTA_SET_MAX		(__NFTA_SET_MAX - 1)
+diff --git a/include/rule.h b/include/rule.h
+index 97959f7..5d44599 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -173,6 +173,7 @@ enum set_flags {
+ 	SET_F_CONSTANT		= 0x2,
+ 	SET_F_INTERVAL		= 0x4,
+ 	SET_F_MAP		= 0x8,
++	SET_F_TIMEOUT		= 0x10,
  };
  
+ /**
+@@ -183,6 +184,8 @@ enum set_flags {
+  * @location:	location the set was defined/declared at
+  * @refcnt:	reference count
+  * @flags:	bitmask of set flags
++ * @gc_int:	garbage collection interval
++ * @timeout:	default timeout value
+  * @keytype:	key data type
+  * @keylen:	key length
+  * @datatype:	mapping data type
+@@ -197,6 +200,8 @@ struct set {
+ 	struct location		location;
+ 	unsigned int		refcnt;
+ 	uint32_t		flags;
++	uint32_t		gc_int;
++	uint64_t		timeout;
+ 	const struct datatype	*keytype;
+ 	unsigned int		keylen;
+ 	const struct datatype	*datatype;
 diff --git a/src/evaluate.c b/src/evaluate.c
-index 04ca08d..e260a80 100644
+index 37db107..04ca08d 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -614,7 +614,7 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
- 	struct expr *i, *next;
- 
- 	list_for_each_entry_safe(i, next, &(*expr)->expressions, list) {
--		if (dtype && off == 0)
-+		if (expr_is_constant(*expr) && dtype && off == 0)
- 			return expr_binary_error(ctx->msgs, i, *expr,
- 						 "unexpected concat component, "
- 						 "expecting %s",
-@@ -1661,6 +1661,30 @@ static int stmt_evaluate_log(struct eval_ctx *ctx, struct stmt *stmt)
- 	return 0;
- }
- 
-+static int stmt_evaluate_set(struct eval_ctx *ctx, struct stmt *stmt)
-+{
-+	expr_set_context(&ctx->ectx, NULL, 0);
-+	if (expr_evaluate(ctx, &stmt->set.set) < 0)
-+		return -1;
-+	if (stmt->set.set->ops->type != EXPR_SET_REF)
-+		return expr_error(ctx->msgs, stmt->set.set,
-+				  "Expression does not refer to a set");
-+
-+	if (stmt_evaluate_arg(ctx, stmt,
-+			      stmt->set.set->set->keytype,
-+			      stmt->set.set->set->keylen,
-+			      &stmt->set.key) < 0)
-+		return -1;
-+	if (expr_is_constant(stmt->set.key))
-+		return expr_error(ctx->msgs, stmt->set.key,
-+				  "Key expression can not be constant");
-+	if (stmt->set.key->comment != NULL)
-+		return expr_error(ctx->msgs, stmt->set.key,
-+				  "Key expression comments are not supported");
-+
-+	return 0;
-+}
-+
- int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
- {
- #ifdef DEBUG
-@@ -1695,6 +1719,8 @@ int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
- 		return stmt_evaluate_redir(ctx, stmt);
- 	case STMT_QUEUE:
- 		return stmt_evaluate_queue(ctx, stmt);
-+	case STMT_SET:
-+		return stmt_evaluate_set(ctx, stmt);
- 	default:
- 		BUG("unknown statement type %s\n", stmt->ops->name);
+@@ -1737,6 +1737,10 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
+ 			return -1;
  	}
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index c564a8a..89d8522 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -694,6 +694,40 @@ static void netlink_parse_queue(struct netlink_parse_ctx *ctx,
- 	list_add_tail(&stmt->list, &ctx->rule->stmts);
- }
  
-+static void netlink_parse_dynset(struct netlink_parse_ctx *ctx,
-+				 const struct location *loc,
-+				 const struct nft_rule_expr *nle)
-+{
-+	struct expr *expr;
-+	struct stmt *stmt;
-+	struct set *set;
-+	enum nft_registers sreg;
-+	const char *name;
++	/* Default timeout value implies timeout support */
++	if (set->timeout)
++		set->flags |= SET_F_TIMEOUT;
 +
-+	sreg = netlink_parse_register(nle, NFT_EXPR_DYNSET_SREG_KEY);
-+	expr = netlink_get_register(ctx, loc, sreg);
-+	if (expr == NULL)
-+		return netlink_error(ctx, loc,
-+				     "Dynset statement has no key expression");
-+
-+	expr = set_elem_expr_alloc(&expr->location, expr);
-+	expr->timeout = nft_rule_expr_get_u64(nle, NFT_EXPR_DYNSET_TIMEOUT);
-+
-+	name = nft_rule_expr_get_str(nle, NFT_EXPR_DYNSET_SET_NAME);
-+	set  = set_lookup(ctx->table, name);
-+	if (set == NULL)
-+		return netlink_error(ctx, loc,
-+				     "Unknown set '%s' in dynset statement",
-+				     name);
-+
-+	stmt = set_stmt_alloc(loc);
-+	stmt->set.set = set_ref_expr_alloc(loc, set);
-+	stmt->set.op  = nft_rule_expr_get_u32(nle, NFT_EXPR_DYNSET_OP);
-+	stmt->set.key = expr;
-+
-+	list_add_tail(&stmt->list, &ctx->rule->stmts);
-+}
-+
- static const struct {
- 	const char	*name;
- 	void		(*parse)(struct netlink_parse_ctx *ctx,
-@@ -717,6 +751,7 @@ static const struct {
- 	{ .name = "masq",	.parse = netlink_parse_masq },
- 	{ .name = "redir",	.parse = netlink_parse_redir },
- 	{ .name = "queue",	.parse = netlink_parse_queue },
-+	{ .name = "dynset",	.parse = netlink_parse_dynset },
- };
+ 	if (!(set->flags & SET_F_MAP))
+ 		return 0;
  
- static int netlink_parse_expr(struct nft_rule_expr *nle, void *arg)
-@@ -1140,6 +1175,9 @@ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *r
- 		case STMT_REJECT:
- 			stmt_reject_postprocess(rctx, stmt);
- 			break;
-+		case STMT_SET:
-+			expr_postprocess(&rctx, stmt, &stmt->set.key);
-+			break;
- 		default:
- 			break;
- 		}
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index d1414c1..09ba2ef 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -800,6 +800,28 @@ static void netlink_gen_ct_stmt(struct netlink_linearize_ctx *ctx,
- 	nft_rule_add_expr(ctx->nlr, nle);
- }
- 
-+static void netlink_gen_set_stmt(struct netlink_linearize_ctx *ctx,
-+				 const struct stmt *stmt)
-+{
-+	struct nft_rule_expr *nle;
-+	enum nft_registers sreg_key;
-+
-+	sreg_key = get_register(ctx);
-+	netlink_gen_expr(ctx, stmt->set.key, sreg_key);
-+	release_register(ctx);
-+
-+	nle = alloc_nft_expr("dynset");
-+	netlink_put_register(nle, NFT_EXPR_DYNSET_SREG_KEY, sreg_key);
-+	nft_rule_expr_set_u64(nle, NFT_EXPR_DYNSET_TIMEOUT,
-+			      stmt->set.key->timeout);
-+	nft_rule_expr_set_u32(nle, NFT_EXPR_DYNSET_OP, stmt->set.op);
-+	nft_rule_expr_set_str(nle, NFT_EXPR_DYNSET_SET_NAME,
-+			      stmt->set.set->set->handle.set);
-+	nft_rule_expr_set_u32(nle, NFT_EXPR_DYNSET_SET_ID,
-+			      stmt->set.set->set->handle.set_id);
-+	nft_rule_add_expr(ctx->nlr, nle);
-+}
-+
- static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
- 			     const struct stmt *stmt)
- {
-@@ -828,6 +850,8 @@ static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
- 		return netlink_gen_queue_stmt(ctx, stmt);
- 	case STMT_CT:
- 		return netlink_gen_ct_stmt(ctx, stmt);
-+	case STMT_SET:
-+		return netlink_gen_set_stmt(ctx, stmt);
- 	default:
- 		BUG("unknown statement type %s\n", stmt->ops->name);
+diff --git a/src/netlink.c b/src/netlink.c
+index 75fbb25..337d8a1 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -908,6 +908,11 @@ static struct set *netlink_delinearize_set(struct netlink_ctx *ctx,
+ 		set->datalen = data_len * BITS_PER_BYTE;
  	}
+ 
++	if (nft_set_attr_is_set(nls, NFT_SET_ATTR_TIMEOUT))
++		set->timeout = nft_set_attr_get_u64(nls, NFT_SET_ATTR_TIMEOUT);
++	if (nft_set_attr_is_set(nls, NFT_SET_ATTR_GC_INTERVAL))
++		set->gc_int  = nft_set_attr_get_u32(nls, NFT_SET_ATTR_GC_INTERVAL);
++
+ 	if (nft_set_attr_is_set(nls, NFT_SET_ATTR_POLICY))
+ 		set->policy = nft_set_attr_get_u32(nls, NFT_SET_ATTR_POLICY);
+ 
+@@ -939,6 +944,11 @@ int netlink_add_set(struct netlink_ctx *ctx, const struct handle *h,
+ 		nft_set_attr_set_u32(nls, NFT_SET_ATTR_DATA_LEN,
+ 				     set->datalen / BITS_PER_BYTE);
+ 	}
++	if (set->timeout)
++		nft_set_attr_set_u64(nls, NFT_SET_ATTR_TIMEOUT, set->timeout);
++	if (set->gc_int)
++		nft_set_attr_set_u32(nls, NFT_SET_ATTR_GC_INTERVAL, set->gc_int);
++
+ 	set->handle.set_id = ++set_id;
+ 	nft_set_attr_set_u32(nls, NFT_SET_ATTR_ID, set->handle.set_id);
+ 
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 0f2d71a..eac3fcb 100644
+index 9fbc590..8083187 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -181,6 +181,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %token INET			"inet"
+@@ -201,6 +201,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
  
- %token ADD			"add"
-+%token UPDATE			"update"
- %token CREATE			"create"
- %token INSERT			"insert"
- %token DELETE			"delete"
-@@ -456,6 +457,9 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %type <stmt>			queue_stmt queue_stmt_alloc
- %destructor { stmt_free($$); }	queue_stmt queue_stmt_alloc
- %type <val>			queue_stmt_flags queue_stmt_flag
-+%type <stmt>			set_stmt
-+%destructor { stmt_free($$); }	set_stmt
-+%type <val>			set_stmt_op
+ %token CONSTANT			"constant"
+ %token INTERVAL			"interval"
++%token TIMEOUT			"timeout"
++%token GC_INTERVAL		"gc-interval"
+ %token ELEMENTS			"elements"
  
- %type <expr>			symbol_expr verdict_expr integer_expr
- %destructor { expr_free($$); }	symbol_expr verdict_expr integer_expr
-@@ -1267,6 +1271,7 @@ stmt			:	verdict_stmt
- 			|	ct_stmt
- 			|	masq_stmt
- 			|	redir_stmt
-+			|	set_stmt
- 			;
- 
- verdict_stmt		:	verdict_expr
-@@ -1579,6 +1584,19 @@ queue_stmt_flag		:	BYPASS	{ $$ = NFT_QUEUE_FLAG_BYPASS; }
- 			|	FANOUT	{ $$ = NFT_QUEUE_FLAG_CPU_FANOUT; }
- 			;
- 
-+set_stmt		:	SET	set_stmt_op	set_elem_expr	symbol_expr
+ %token POLICY			"policy"
+@@ -944,6 +946,16 @@ set_block		:	/* empty */	{ $$ = $<set>-1; }
+ 				$1->flags = $3;
+ 				$$ = $1;
+ 			}
++			|	set_block	TIMEOUT		time_spec	stmt_seperator
 +			{
-+				$$ = set_stmt_alloc(&@$);
-+				$$->set.op  = $2;
-+				$$->set.key = $3;
-+				$$->set.set = $4;
++				$1->timeout = $3 * 1000;
++				$$ = $1;
 +			}
-+			;
-+
-+set_stmt_op		:	ADD	{ $$ = NFT_DYNSET_OP_ADD; }
-+			|	UPDATE	{ $$ = NFT_DYNSET_OP_UPDATE; }
-+			;
-+
- match_stmt		:	relational_expr
++			|	set_block	GC_INTERVAL	time_spec	stmt_seperator
++			{
++				$1->gc_int = $3 * 1000;
++				$$ = $1;
++			}
+ 			|	set_block	ELEMENTS	'='		set_expr
  			{
- 				$$ = expr_stmt_alloc(&@$, $1);
+ 				$1->init = $4;
+@@ -961,6 +973,7 @@ set_flag_list		:	set_flag_list	COMMA		set_flag
+ 
+ set_flag		:	CONSTANT	{ $$ = SET_F_CONSTANT; }
+ 			|	INTERVAL	{ $$ = SET_F_INTERVAL; }
++			|	TIMEOUT		{ $$ = SET_F_TIMEOUT; }
+ 			;
+ 
+ map_block_alloc		:	/* empty */
+diff --git a/src/rule.c b/src/rule.c
+index 86cf080..a9ed749 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -136,6 +136,7 @@ static void do_set_print(const struct set *set, struct print_fmt_options *opts)
+ {
+ 	const char *delim = "";
+ 	const char *type;
++	uint32_t flags;
+ 
+ 	type = set->flags & SET_F_MAP ? "map" : "set";
+ 	printf("%s%s", opts->tab, type);
+@@ -167,7 +168,12 @@ static void do_set_print(const struct set *set, struct print_fmt_options *opts)
+ 		}
+ 	}
+ 
+-	if (set->flags & (SET_F_CONSTANT | SET_F_INTERVAL)) {
++	flags = set->flags;
++	/* "timeout" flag is redundant if a default timeout exists */
++	if (set->timeout)
++		flags &= ~SET_F_TIMEOUT;
++
++	if (flags & (SET_F_CONSTANT | SET_F_INTERVAL | SET_F_TIMEOUT)) {
+ 		printf("%s%sflags ", opts->tab, opts->tab);
+ 		if (set->flags & SET_F_CONSTANT) {
+ 			printf("%sconstant", delim);
+@@ -177,6 +183,21 @@ static void do_set_print(const struct set *set, struct print_fmt_options *opts)
+ 			printf("%sinterval", delim);
+ 			delim = ",";
+ 		}
++		if (set->flags & SET_F_TIMEOUT) {
++			printf("%stimeout", delim);
++			delim = ",";
++		}
++		printf("%s", opts->nl);
++	}
++
++	if (set->timeout) {
++		printf("%s%stimeout ", opts->tab, opts->tab);
++		time_print(set->timeout / 1000);
++		printf("%s", opts->nl);
++	}
++	if (set->gc_int) {
++		printf("%s%sgc-interval ", opts->tab, opts->tab);
++		time_print(set->gc_int / 1000);
+ 		printf("%s", opts->nl);
+ 	}
+ 
 diff --git a/src/scanner.l b/src/scanner.l
-index 4231d27..985ea2a 100644
+index 27d95bf..4231d27 100644
 --- a/src/scanner.l
 +++ b/src/scanner.l
-@@ -257,6 +257,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "inet"			{ return INET; }
+@@ -271,6 +271,8 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
  
- "add"			{ return ADD; }
-+"update"		{ return UPDATE; }
- "create"		{ return CREATE; }
- "insert"		{ return INSERT; }
- "delete"		{ return DELETE; }
-diff --git a/src/statement.c b/src/statement.c
-index d72c6e9..9ebc593 100644
---- a/src/statement.c
-+++ b/src/statement.c
-@@ -377,3 +377,34 @@ struct stmt *redir_stmt_alloc(const struct location *loc)
- {
- 	return stmt_alloc(loc, &redir_stmt_ops);
- }
-+
-+static const char * const set_stmt_op_names[] = {
-+	[NFT_DYNSET_OP_ADD]	= "add",
-+	[NFT_DYNSET_OP_UPDATE]	= "update",
-+};
-+
-+static void set_stmt_print(const struct stmt *stmt)
-+{
-+	printf("set %s ", set_stmt_op_names[stmt->set.op]);
-+	expr_print(stmt->set.key);
-+	printf(" ");
-+	expr_print(stmt->set.set);
-+}
-+
-+static void set_stmt_destroy(struct stmt *stmt)
-+{
-+	expr_free(stmt->set.key);
-+	expr_free(stmt->set.set);
-+}
-+
-+static const struct stmt_ops set_stmt_ops = {
-+	.type		= STMT_SET,
-+	.name		= "set",
-+	.print		= set_stmt_print,
-+	.destroy	= set_stmt_destroy,
-+};
-+
-+struct stmt *set_stmt_alloc(const struct location *loc)
-+{
-+	return stmt_alloc(loc, &set_stmt_ops);
-+}
+ "constant"		{ return CONSTANT; }
+ "interval"		{ return INTERVAL; }
++"timeout"		{ return TIMEOUT; }
++"gc-interval"		{ return GC_INTERVAL; }
+ "elements"		{ return ELEMENTS; }
+ 
+ "policy"		{ return POLICY; }
 -- 
 2.1.0
 
