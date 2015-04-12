@@ -1,55 +1,46 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 6/5] netfilter: nft_dynset: make sure expr extension exists
- before using it
-Date: Sun, 12 Apr 2015 21:26:55 +0100
-Message-ID: <20150412202651.GG4568@acer.localdomain>
-References: <1428745602-31799-1-git-send-email-kaber@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Richard Weinberger <richard@nod.at>
+Subject: [PATCH 2/5 v4] nfc: Fix portid type in urelease_work
+Date: Mon, 13 Apr 2015 00:52:36 +0200
+Message-ID: <1428879159-19237-2-git-send-email-richard@nod.at>
+References: <1428879159-19237-1-git-send-email-richard@nod.at>
+Cc: linux-wireless@vger.kernel.org, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	sameo@linux.intel.com, aloisio.almeida@openbossa.org,
+	lauro.venancio@openbossa.org, davem@davemloft.net,
+	kadlec@blackhole.kfki.hu, kaber@trash.net, pablo@netfilter.org,
+	Richard Weinberger <richard@nod.at>
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62120 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751862AbbDLU1R (ORCPT
+Received: from mail.sigma-star.at ([95.130.255.111]:14386 "EHLO
+	mail.sigma-star.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752485AbbDLWwt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 12 Apr 2015 16:27:17 -0400
-Content-Disposition: inline
-In-Reply-To: <1428745602-31799-1-git-send-email-kaber@trash.net>
+	Sun, 12 Apr 2015 18:52:49 -0400
+In-Reply-To: <1428879159-19237-1-git-send-email-richard@nod.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch fixes a bug in patch 5/5 (netfilter: nft_dynset: dynamic
-stateful expression instantiation), we need to make sure the expr
-extension exists without using it to avoid a crash with normal
-set updates.
+portid is an unsigned integer. Fix urelease_work to
+match all other portid user in the kernel.
 
-If possible, please simply fold it into 5/5.
+Signed-off-by: Richard Weinberger <richard@nod.at>
+---
+ net/nfc/netlink.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks!
-
-commit 6609a3aad8ad8c1e60a4b757d626aeb69fae8066
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Sun Apr 12 21:24:31 2015 +0100
-
-    netfilter: nft_dynset: make sure expr extension exists before using it
-    
-    Fix a crash when using dynset without an expression.
-    
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
-
-diff --git a/net/netfilter/nft_dynset.c b/net/netfilter/nft_dynset.c
-index 311e21c..513a8ef 100644
---- a/net/netfilter/nft_dynset.c
-+++ b/net/netfilter/nft_dynset.c
-@@ -68,7 +68,9 @@ static void nft_dynset_eval(const struct nft_expr *expr,
+diff --git a/net/nfc/netlink.c b/net/nfc/netlink.c
+index 14a2d11..3763036 100644
+--- a/net/nfc/netlink.c
++++ b/net/nfc/netlink.c
+@@ -1584,7 +1584,7 @@ static const struct genl_ops nfc_genl_ops[] = {
  
- 	if (set->ops->update(set, &regs->data[priv->sreg_key], nft_dynset_new,
- 			     expr, regs, &ext)) {
--		sexpr = nft_set_ext_expr(ext);
-+		sexpr = NULL;
-+		if (nft_set_ext_exists(ext, NFT_SET_EXT_EXPR))
-+			sexpr = nft_set_ext_expr(ext);
+ struct urelease_work {
+ 	struct	work_struct w;
+-	int	portid;
++	u32	portid;
+ };
  
- 		if (priv->op == NFT_DYNSET_OP_UPDATE &&
- 		    nft_set_ext_exists(ext, NFT_SET_EXT_EXPIRATION)) {
+ static void nfc_urelease_event_work(struct work_struct *work)
+-- 
+1.8.4.5
+
