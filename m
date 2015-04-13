@@ -1,51 +1,24 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/7 RFC] Netfilter/nf_tables ingress support
-Date: Sun, 12 Apr 2015 21:14:21 -0400 (EDT)
-Message-ID: <20150412.211421.1771298417488412635.davem@davemloft.net>
-References: <1428668142-4006-1-git-send-email-pablo@netfilter.org>
-	<20150410132205.GF23070@casper.infradead.org>
-	<20150410200901.GB5968@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 00/14] netfilter: nf_tables: concatenation support
+Date: Mon, 13 Apr 2015 20:07:22 +0200
+Message-ID: <20150413180722.GA3292@salvia>
+References: <1428715659-31358-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: tgraf@suug.ch, netfilter-devel@vger.kernel.org, kaber@trash.net,
-	netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:48182 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752199AbbDMBOY (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 12 Apr 2015 21:14:24 -0400
-In-Reply-To: <20150410200901.GB5968@salvia>
+Received: from mail.us.es ([193.147.175.20]:56813 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750833AbbDMSDH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Apr 2015 14:03:07 -0400
+Content-Disposition: inline
+In-Reply-To: <1428715659-31358-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Fri, 10 Apr 2015 22:09:01 +0200
+On Sat, Apr 11, 2015 at 02:27:25AM +0100, Patrick McHardy wrote:
+> The following patches add support for concatenations, which allow multi
+> dimensional exact matches in O(1).
 
-> On Fri, Apr 10, 2015 at 02:22:05PM +0100, Thomas Graf wrote:
->> On 04/10/15 at 02:15pm, Pablo Neira Ayuso wrote:
->> > This patchset adds the Netfilter hook at the ingress path, in a per-device
->> > fashion. This also comes with the new nf_tables 'netdev' family support to
->> > provide access to users to the existing nf_tables features. This includes the
->> > transactional netlink API and the enhanced set infrastructure.  Several patches
->> > come in first place to prepare this support, including the refactoring of
->> > __netif_receive_skb_core() to accomodate the new hook.
->> 
->> Is the goal to eventually replace ebtables with this?
-> 
-> No, nftables comes with a bridge family that will eventually replace
-> ebtables.
-
-It's always been the case that if you want to do L2 or lower level
-stuff, you use the ingress classifier, packet actions, and qdiscs.
-
-If you want to do higher level things, NF hooks provide that facility.
-
-The only example I've seen is packet counting, and one could do that
-just as easily with the ingress qdisc.
-
-So given what I've been shown so far I'm very far from convinced that
-this new hook in an already over polluted, most critical of all
-critical code paths, is justified at all.
+Series applied, thanks Patrick.
