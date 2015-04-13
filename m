@@ -1,58 +1,125 @@
-From: "Luis R. Rodriguez" <mcgrof@suse.com>
-Subject: Re: Looking for extensible kernel database format
-Date: Mon, 13 Apr 2015 11:09:21 -0700
-Message-ID: <CAB=NE6Uf9dtFKexFq=k+RYFZWqSCdKT68bpdAEbHsaUofjpSJQ@mail.gmail.com>
-References: <CAB=NE6W4Q2ngB6CF8pG=OV6=q+9CTcwA6UGhdgS+OCT++N2GJA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: linux-wireless <linux-wireless@vger.kernel.org>,
-	Matthew Garrett <mjg59@srcf.ucam.org>,
-	Kees Cook <kees@outflux.net>,
-	Ming Lei <ming.lei@canonical.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Seth Forshee <seth.forshee@canonical.com>,
-	"Luis R. Rodriguez" <mcgrof@suse.com>,
-	netfilter-devel@vger.kernel.org
-To: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAB=NE6W4Q2ngB6CF8pG=OV6=q+9CTcwA6UGhdgS+OCT++N2GJA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: nf_tables: get rid of the expression example code
+Date: Mon, 13 Apr 2015 20:17:01 +0200
+Message-ID: <1428949021-13729-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:58671 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751084AbbDMSMq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Apr 2015 14:12:46 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 9, 2015 at 5:57 PM, Luis R. Rodriguez
-<mcgrof@do-not-panic.com> wrote:
-> Hey folks,
->
-> next week I'd like to address replacing the need for CRDA [0] as a
-> udev helper with in-kernel functionality  There's a few motivations
-> for this but a good one is that the kernel already has now
-> cryptographic support to verify the integrity of the regulatory
-> database, just as it has support for verifying the integrity of
-> modules / firmware. We'd use something like:
->
-> request_file(file_reqs)
->
-> Where the file_reqs provides the requirements, including cryptographic
-> requirements, and I suspect we'd use LSM to vet for the cryptographic
-> needs of the file.
->
-> Now other than this step CRDA currently *reads* a database and today
-> we have our own format. If we want to extend this though we will have
-> to issue a new regdb format and old kernels might not be compatible
-> with the new format. This is a typical database problem and I'm hoping
-> we are not the first to deal with this. What *extensible* kernel
-> database format are there already, are they generic already? I'd
-> prefer something already using netlink.
->
-> Any recommendations?
->
-> [0] https://wireless.wiki.kernel.org/en/developers/regulatory/crda
+There's a example template in tree that got out of sync along time, remove it.
 
-OK I haven't heard back so will just work towards a very simple
-extensible db and proceed as planned to reuse the existing
-request_firmware_direct() API but with cryptographic requirements and
-vetting through LSM.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_expr_template.c |   94 -------------------------------------
+ 1 file changed, 94 deletions(-)
+ delete mode 100644 net/netfilter/nft_expr_template.c
 
- Luis
+diff --git a/net/netfilter/nft_expr_template.c b/net/netfilter/nft_expr_template.c
+deleted file mode 100644
+index b6eed4d..0000000
+--- a/net/netfilter/nft_expr_template.c
++++ /dev/null
+@@ -1,94 +0,0 @@
+-/*
+- * Copyright (c) 2008-2009 Patrick McHardy <kaber@trash.net>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * Development of this code funded by Astaro AG (http://www.astaro.com/)
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/init.h>
+-#include <linux/netlink.h>
+-#include <linux/netfilter.h>
+-#include <linux/netfilter/nf_tables.h>
+-#include <net/netfilter/nf_tables.h>
+-
+-struct nft_template {
+-
+-};
+-
+-static void nft_template_eval(const struct nft_expr *expr,
+-			      struct nft_data data[NFT_REG_MAX + 1],
+-			      const struct nft_pktinfo *pkt)
+-{
+-	struct nft_template *priv = nft_expr_priv(expr);
+-
+-}
+-
+-static const struct nla_policy nft_template_policy[NFTA_TEMPLATE_MAX + 1] = {
+-	[NFTA_TEMPLATE_ATTR]		= { .type = NLA_U32 },
+-};
+-
+-static int nft_template_init(const struct nft_ctx *ctx,
+-			   const struct nft_expr *expr,
+-			   const struct nlattr * const tb[])
+-{
+-	struct nft_template *priv = nft_expr_priv(expr);
+-
+-	return 0;
+-}
+-
+-static void nft_template_destroy(const struct nft_ctx *ctx,
+-			       const struct nft_expr *expr)
+-{
+-	struct nft_template *priv = nft_expr_priv(expr);
+-
+-}
+-
+-static int nft_template_dump(struct sk_buff *skb, const struct nft_expr *expr)
+-{
+-	const struct nft_template *priv = nft_expr_priv(expr);
+-
+-	NLA_PUT_BE32(skb, NFTA_TEMPLATE_ATTR, priv->field);
+-	return 0;
+-
+-nla_put_failure:
+-	return -1;
+-}
+-
+-static struct nft_expr_type nft_template_type;
+-static const struct nft_expr_ops nft_template_ops = {
+-	.type		= &nft_template_type,
+-	.size		= NFT_EXPR_SIZE(sizeof(struct nft_template)),
+-	.eval		= nft_template_eval,
+-	.init		= nft_template_init,
+-	.destroy	= nft_template_destroy,
+-	.dump		= nft_template_dump,
+-};
+-
+-static struct nft_expr_type nft_template_type __read_mostly = {
+-	.name		= "template",
+-	.ops		= &nft_template_ops,
+-	.policy		= nft_template_policy,
+-	.maxattr	= NFTA_TEMPLATE_MAX,
+-	.owner		= THIS_MODULE,
+-};
+-
+-static int __init nft_template_module_init(void)
+-{
+-	return nft_register_expr(&nft_template_type);
+-}
+-
+-static void __exit nft_template_module_exit(void)
+-{
+-	nft_unregister_expr(&nft_template_type);
+-}
+-
+-module_init(nft_template_module_init);
+-module_exit(nft_template_module_exit);
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+-MODULE_ALIAS_NFT_EXPR("template");
+-- 
+1.7.10.4
+
