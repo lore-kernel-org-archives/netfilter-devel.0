@@ -1,17 +1,17 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [libnftnl PATCH] expr: dynset: fix json/xml parsing
-Date: Mon, 13 Apr 2015 21:07:19 +0200
-Message-ID: <20150413190719.26645.76710.stgit@nfdev2.cica.es>
+Subject: [libnftnl PATCH v2] expr: dynset: fix json/xml parsing
+Date: Mon, 13 Apr 2015 21:08:21 +0200
+Message-ID: <20150413190800.26738.53260.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net, pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp4.cica.es ([150.214.5.182]:39207 "EHLO smtp.cica.es"
+Received: from smtp4.cica.es ([150.214.5.182]:39224 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751328AbbDMTH3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Apr 2015 15:07:29 -0400
+	id S932289AbbDMTI3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Apr 2015 15:08:29 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -45,11 +45,13 @@ expr/dynset.c:228:31: error: 'NFT_EXPR_DYNSET_DREG' undeclared (first use in thi
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
+v2: previous patch version was unrefreshed. Sorry for the noise.
+
  src/expr/dynset.c |   48 ++++++++++++++++++++++++++++++++++--------------
  1 file changed, 34 insertions(+), 14 deletions(-)
 
 diff --git a/src/expr/dynset.c b/src/expr/dynset.c
-index a2c1946..3c61144 100644
+index a2c1946..034ef32 100644
 --- a/src/expr/dynset.c
 +++ b/src/expr/dynset.c
 @@ -187,17 +187,28 @@ nft_rule_expr_dynset_json_parse(struct nft_rule_expr *e, json_t *root,
@@ -63,7 +65,7 @@ index a2c1946..3c61144 100644
  	set_name = nft_jansson_parse_str(root, "set", err);
  	if (set_name != NULL)
 -		nft_rule_expr_dynset_str(e, NFT_EXPR_DYNSET_SET, set_name);
-+		nft_rule_expr_set_str(e, NFT_EXPR_DYNSET_SET, set_name);
++		nft_rule_expr_set_str(e, NFT_EXPR_DYNSET_SET_NAME, set_name);
  
 -	if (nft_jansson_parse_reg(root, "sreg", NFT_TYPE_U32, &sreg, err) == 0)
 -		nft_rule_expr_dynset_u32(e, NFT_EXPR_DYNSET_SREG, sreg);
@@ -99,7 +101,7 @@ index a2c1946..3c61144 100644
  				      NFT_XML_MAND, err);
  	if (set_name != NULL)
 -		nft_rule_expr_dynset_str(e, NFT_EXPR_DYNSET_SET, set_name);
-+		nft_rule_expr_set_str(e, NFT_EXPR_DYNSET_SET, set_name);
++		nft_rule_expr_set_str(e, NFT_EXPR_DYNSET_SET_NAME, set_name);
 +
 +	if (nft_mxml_reg_parse(tree, "sreg_key", &uval32, MXML_DESCEND,
 +			       NFT_XML_MAND, err) == 0)
