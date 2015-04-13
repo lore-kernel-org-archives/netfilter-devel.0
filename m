@@ -1,125 +1,27 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next] netfilter: nf_tables: get rid of the expression example code
-Date: Mon, 13 Apr 2015 20:17:01 +0200
-Message-ID: <1428949021-13729-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nf-next] netfilter: nf_tables: get rid of the expression
+ example code
+Date: Mon, 13 Apr 2015 19:14:03 +0100
+Message-ID: <20150413181403.GB20275@acer.localdomain>
+References: <1428949021-13729-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58671 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751084AbbDMSMq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Apr 2015 14:12:46 -0400
+Received: from stinky.trash.net ([213.144.137.162]:38509 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751319AbbDMSOJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Apr 2015 14:14:09 -0400
+Content-Disposition: inline
+In-Reply-To: <1428949021-13729-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-There's a example template in tree that got out of sync along time, remove it.
+On 13.04, Pablo Neira Ayuso wrote:
+> There's a example template in tree that got out of sync along time, remove it.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_expr_template.c |   94 -------------------------------------
- 1 file changed, 94 deletions(-)
- delete mode 100644 net/netfilter/nft_expr_template.c
-
-diff --git a/net/netfilter/nft_expr_template.c b/net/netfilter/nft_expr_template.c
-deleted file mode 100644
-index b6eed4d..0000000
---- a/net/netfilter/nft_expr_template.c
-+++ /dev/null
-@@ -1,94 +0,0 @@
--/*
-- * Copyright (c) 2008-2009 Patrick McHardy <kaber@trash.net>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * Development of this code funded by Astaro AG (http://www.astaro.com/)
-- */
--
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/netlink.h>
--#include <linux/netfilter.h>
--#include <linux/netfilter/nf_tables.h>
--#include <net/netfilter/nf_tables.h>
--
--struct nft_template {
--
--};
--
--static void nft_template_eval(const struct nft_expr *expr,
--			      struct nft_data data[NFT_REG_MAX + 1],
--			      const struct nft_pktinfo *pkt)
--{
--	struct nft_template *priv = nft_expr_priv(expr);
--
--}
--
--static const struct nla_policy nft_template_policy[NFTA_TEMPLATE_MAX + 1] = {
--	[NFTA_TEMPLATE_ATTR]		= { .type = NLA_U32 },
--};
--
--static int nft_template_init(const struct nft_ctx *ctx,
--			   const struct nft_expr *expr,
--			   const struct nlattr * const tb[])
--{
--	struct nft_template *priv = nft_expr_priv(expr);
--
--	return 0;
--}
--
--static void nft_template_destroy(const struct nft_ctx *ctx,
--			       const struct nft_expr *expr)
--{
--	struct nft_template *priv = nft_expr_priv(expr);
--
--}
--
--static int nft_template_dump(struct sk_buff *skb, const struct nft_expr *expr)
--{
--	const struct nft_template *priv = nft_expr_priv(expr);
--
--	NLA_PUT_BE32(skb, NFTA_TEMPLATE_ATTR, priv->field);
--	return 0;
--
--nla_put_failure:
--	return -1;
--}
--
--static struct nft_expr_type nft_template_type;
--static const struct nft_expr_ops nft_template_ops = {
--	.type		= &nft_template_type,
--	.size		= NFT_EXPR_SIZE(sizeof(struct nft_template)),
--	.eval		= nft_template_eval,
--	.init		= nft_template_init,
--	.destroy	= nft_template_destroy,
--	.dump		= nft_template_dump,
--};
--
--static struct nft_expr_type nft_template_type __read_mostly = {
--	.name		= "template",
--	.ops		= &nft_template_ops,
--	.policy		= nft_template_policy,
--	.maxattr	= NFTA_TEMPLATE_MAX,
--	.owner		= THIS_MODULE,
--};
--
--static int __init nft_template_module_init(void)
--{
--	return nft_register_expr(&nft_template_type);
--}
--
--static void __exit nft_template_module_exit(void)
--{
--	nft_unregister_expr(&nft_template_type);
--}
--
--module_init(nft_template_module_init);
--module_exit(nft_template_module_exit);
--
--MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
--MODULE_ALIAS_NFT_EXPR("template");
--- 
-1.7.10.4
-
+Acked-by: Patrick McHardy <kaber@trash.net>
