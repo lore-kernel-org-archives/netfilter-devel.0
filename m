@@ -1,50 +1,69 @@
-From: Thomas Graf <tgraf@suug.ch>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
 Subject: Re: [PATCH 0/7 RFC] Netfilter/nf_tables ingress support
-Date: Tue, 14 Apr 2015 11:32:02 +0100
-Message-ID: <20150414103202.GC14022@casper.infradead.org>
-References: <1428668142-4006-1-git-send-email-pablo@netfilter.org>
- <20150410132205.GF23070@casper.infradead.org>
- <20150410200901.GB5968@salvia>
- <20150412.211421.1771298417488412635.davem@davemloft.net>
- <20150413201913.GD20275@acer.localdomain>
- <20150414090048.GA14022@casper.infradead.org>
- <20150414090559.GH22725@acer.localdomain>
- <20150414100846.GB14022@casper.infradead.org>
- <20150414101339.GC3004@acer.localdomain>
+Date: Tue, 14 Apr 2015 08:27:48 -0400
+Message-ID: <552D07C4.1020509@mojatatu.com>
+References: <1428668142-4006-1-git-send-email-pablo@netfilter.org> <20150410132205.GF23070@casper.infradead.org> <20150410200901.GB5968@salvia> <20150412.211421.1771298417488412635.davem@davemloft.net> <20150413201913.GD20275@acer.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, pablo@netfilter.org,
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, tgraf@suug.ch,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:55915 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754311AbbDNKcE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Apr 2015 06:32:04 -0400
-Content-Disposition: inline
-In-Reply-To: <20150414101339.GC3004@acer.localdomain>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20150413201913.GD20275@acer.localdomain>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 04/14/15 at 11:13am, Patrick McHardy wrote:
-> I would actually expect them to use neither TC nor nft, so the most
-> interesting number would be the impact if not used. Additionally I'd
-> like to see the numbers for moving ingress to use the netfilter hook
-> if it is actually used.
-> 
-> The costs of TC actions vs nft are actually not relevant in my
-> opinion since we're not replacing anything.
+On 04/13/15 16:19, Patrick McHardy wrote:
 
-Ingress filtering to implement distribtued packet filters is very
-relevant for data centers. The times of no-policy data centers are
-gone with multi tenancy.
+> I'm going to jump in here since I think a good case for this can be
+> made. It's going to be a bit longer, sorry. You can skip to the
+> examples after the first three paragraphs since it's just a lot of
+> TC bashing :)
 
-Not all packets are routed so at least some of the filtering must
-occur before prerouting. I'm afraid you can't take yourself out
-of the fast path that easily ;-)
+Patrick, maybe i am misunderstanding.
+Here I am arguing against Alexei for introducing a couple of
+statements for the sake of performance and you want to put netfilter
+on that code path and maybe move ingress to be dependent on netfilter
+further up the stack? I know you are trying to sell the virtues
+of nft but since you are busy bashing here, how about this polite
+statement:
+Netfilter is not known for its performance. Even with the ingress qlock
+tc will outperform an equivalent operation done via netfilter.
+Last i poked:
+As the number of rules goes up, the performance difference goes up
+significantly as well. When you mention the ingress qdisc lock
+the analogy would be saying like saying "tc is overweight" when
+infact netfilter is obese. tc can get better and there is effort
+to get rid of the  lock (i am aware of efforts in that direction).
+Having said that netfilter is more usable than tc - but that usability
+is costly.
 
-This is not a pledge specific to nft. I would like to see more
-numbers in general. We are putting APIs and frameworks in place that
-we can't remove afterwards without knowing how they really scale and
-perform.
+I like your example use case but I am not sure why you think those use
+cases cant be trivially implemented with tc actions? I see a table
+per cpu which is updated with info gleaned from arriving packets
+as described by policy.
+Maybe i am missing the connection.
+
+In regards to ipt or conntrack; i am sure we could use your help
+(and Pablo has been very nice to us) to make it a smoother experience.
+We are trying not to replicate what you have done and therefore
+reusing your code. OTOH, if i understood correctly you are talking
+about replacing all these actions with ones you are going to write.
+If you see issues we should fix them. Again, it would be preferable
+if there are ways you can help make this even more seamless. And if
+you decide you want to use something in tc we should make it smooth for
+you.
+But using conntrack or ipt or whatever new thing in the netfilter
+code is optional for tc. Enforcing it by default is wrong. I also dont
+believe in monopolies for classifiers. Sure nft is nice but i should
+be able to use bpf if needed. It will make sense in some cases.
+This is the design tc has. I know having a single approach as does
+nft does reduce ui confusions - but even in your case a refresh is
+needed (as in the introduction of nft). And i am sure that is not the
+last time you'll do it. That experience transformation
+is much smoother with tc when introducing a new classifier.
+
+cheers,
+jamal
