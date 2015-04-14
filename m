@@ -1,52 +1,44 @@
-From: John Fastabend <john.r.fastabend@intel.com>
+From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
 Subject: Re: [PATCH 0/7 RFC] Netfilter/nf_tables ingress support
-Date: Tue, 14 Apr 2015 08:12:18 -0700
-Message-ID: <552D2E52.8020303@intel.com>
-References: <1428668142-4006-1-git-send-email-pablo@netfilter.org> <20150410132205.GF23070@casper.infradead.org> <20150410200901.GB5968@salvia> <20150412.211421.1771298417488412635.davem@davemloft.net> <20150413201913.GD20275@acer.localdomain> <552D07C4.1020509@mojatatu.com>
+Date: Tue, 14 Apr 2015 08:36:15 -0700
+Message-ID: <20150414153613.GA2781@Alexeis-MBP.westell.com>
+References: <1428668142-4006-1-git-send-email-pablo@netfilter.org>
+ <20150410132205.GF23070@casper.infradead.org>
+ <20150410200901.GB5968@salvia>
+ <20150412.211421.1771298417488412635.davem@davemloft.net>
+ <20150413201913.GD20275@acer.localdomain>
+ <552D07C4.1020509@mojatatu.com>
+ <552D2E52.8020303@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, tgraf@suug.ch,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jamal Hadi Salim <jhs@mojatatu.com>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Jamal Hadi Salim <jhs@mojatatu.com>,
 	Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>
+	David Miller <davem@davemloft.net>, pablo@netfilter.org,
+	tgraf@suug.ch, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: John Fastabend <john.r.fastabend@intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:25922 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755495AbbDNPN1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Apr 2015 11:13:27 -0400
-In-Reply-To: <552D07C4.1020509@mojatatu.com>
+Received: from mail-ig0-f182.google.com ([209.85.213.182]:38604 "EHLO
+	mail-ig0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932864AbbDNPgT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Apr 2015 11:36:19 -0400
+Content-Disposition: inline
+In-Reply-To: <552D2E52.8020303@intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 04/14/2015 05:27 AM, Jamal Hadi Salim wrote:
-> On 04/13/15 16:19, Patrick McHardy wrote:
-> 
->> I'm going to jump in here since I think a good case for this can be
->> made. It's going to be a bit longer, sorry. You can skip to the
->> examples after the first three paragraphs since it's just a lot of
->> TC bashing :)
-> 
-> Patrick, maybe i am misunderstanding.
-> Here I am arguing against Alexei for introducing a couple of
-> statements for the sake of performance and you want to put netfilter
-> on that code path and maybe move ingress to be dependent on netfilter
-> further up the stack? I know you are trying to sell the virtues
-> of nft but since you are busy bashing here, how about this polite
-> statement:
-> Netfilter is not known for its performance. Even with the ingress qlock
-> tc will outperform an equivalent operation done via netfilter.
+On Tue, Apr 14, 2015 at 08:12:18AM -0700, John Fastabend wrote:
+>
+> I was hoping to push the skb lists onto something like rte_ring
+> used by the DPDK folks or possibly some of the lockless ring work Jesper
+> created. This is needed for many qdisc's to drop the qlock but not the
+> ingress qdisc. Been busy working on switch bits lately but might be
+> able to pick this up next merge window.
 
-avoiding the nft vs tc vs ebpf debate I will the ingress qlock is not
-needed anymore I just haven't got to removing it yet. Its not actually
-protecting any data structures though.
+I've spent quite a bit of time reanalyzying your work ;) It seems
+only trivial stuff left to drop ingress spinlock. Can you send me
+your TC test scripts ? I'm only starting building mine and they're
+not covering everything. Roughly I'm creating namespaces and running
+traffic between them while varying csum/gso/gro offload settings.
 
-I was hoping to push the skb lists onto something like rte_ring
-used by the DPDK folks or possibly some of the lockless ring work Jesper
-created. This is needed for many qdisc's to drop the qlock but not the
-ingress qdisc. Been busy working on switch bits lately but might be
-able to pick this up next merge window.
-
-Thanks,
-John
