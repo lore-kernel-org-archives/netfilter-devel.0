@@ -1,75 +1,52 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nftables: oob crash w. verdict maps & jumps
-Date: Tue, 14 Apr 2015 15:28:38 +0100
-Message-ID: <20150414142837.GB7874@acer.localdomain>
-References: <20150414135023.GC13744@breakpoint.cc>
- <20150414140330.GA7874@acer.localdomain>
- <20150414141757.GD13744@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH -next] netfilter: nf_tables: fix wrong length for jump/goto verdicts
+Date: Tue, 14 Apr 2015 16:44:14 +0200
+Message-ID: <1429022654-24585-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:47392 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753196AbbDNO2m (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37341 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932582AbbDNOoZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Apr 2015 10:28:42 -0400
-Content-Disposition: inline
-In-Reply-To: <20150414141757.GD13744@breakpoint.cc>
+	Tue, 14 Apr 2015 10:44:25 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 14.04, Florian Westphal wrote:
-> Patrick McHardy <kaber@trash.net> wrote:
-> > > So account for d2.len (8), but then later copy a size of set->dlen (16) in
-> > > nft_set_elem_init:
-> > > 
-> > > 3272         if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA))
-> > > 3273                 memcpy(nft_set_ext_data(ext), data, set->dlen);
-> > > 
-> > > Could someone please look at this?  I'm not sure what the intent is/was.
-> > > 
-> > > My hunch is that the check should be
-> > > 
-> > >  if (set->dtype != NFT_DATA_VERDICT || d2.len != set->dlen)
-> > 
-> > We actually only care about userspace provided length for data.
-> > The verdict representation is internal, so we want to determine
-> > the size ourselves.
-> 
-> I see, makes sense.
-> 
-> > > and libnftnl should also send a dlen of 16, like it already does for
-> > > accept/drop.
-> > 
-> > I'm surprsided, because in nf_tables_newset, for verdict maps we do:
-> > 
-> >                         desc.dlen = sizeof(struct nft_verdict);
-> > 
-> > in nft_verdict_init() we do:
-> > 
-> >                 desc->len = sizeof(data->verdict);
-> > 
-> > So it should work out. I don't see how we could have arrived at the
-> > value 8.
-> 
-> Thanks for the hint, we set dlen size to sizeof(void*) in this function,
-> this makes the error go away:
+NFT_JUMP/GOTO erronously sets length to sizeof(void *).
 
-Crap :)
+We then allocate insufficient memory when such element is added to a vmap.
 
-> @@ -4355,7 +4355,7 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
->  
->                 chain->use++;
->                 data->verdict.chain = chain;
-> -               desc->len = sizeof(data);
-> +               desc->len = sizeof(*data);
->                 break;
->         }
-> 
-> Perhaps it would be better to set desc->len unconditionally, seems we want to set it to 16 unconditionally
-> regardless of data->verdict.code?
+Suggested-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_tables_api.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Yeah, that seems unnecessary error prone. Lets set it to sizeof(data->verdict)
-unconditionally I would say.
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 78af83b..ad9d11f 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4340,7 +4340,6 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
+ 	case NFT_CONTINUE:
+ 	case NFT_BREAK:
+ 	case NFT_RETURN:
+-		desc->len = sizeof(data->verdict);
+ 		break;
+ 	case NFT_JUMP:
+ 	case NFT_GOTO:
+@@ -4355,10 +4354,10 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
+ 
+ 		chain->use++;
+ 		data->verdict.chain = chain;
+-		desc->len = sizeof(data);
+ 		break;
+ 	}
+ 
++	desc->len = sizeof(data->verdict);
+ 	desc->type = NFT_DATA_VERDICT;
+ 	return 0;
+ }
+-- 
+2.0.5
+
