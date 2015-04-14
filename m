@@ -1,52 +1,52 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next] netfilter: nf_tables: fix wrong length for jump/goto verdicts
-Date: Tue, 14 Apr 2015 16:44:14 +0200
-Message-ID: <1429022654-24585-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: John Fastabend <john.r.fastabend@intel.com>
+Subject: Re: [PATCH 0/7 RFC] Netfilter/nf_tables ingress support
+Date: Tue, 14 Apr 2015 08:12:18 -0700
+Message-ID: <552D2E52.8020303@intel.com>
+References: <1428668142-4006-1-git-send-email-pablo@netfilter.org> <20150410132205.GF23070@casper.infradead.org> <20150410200901.GB5968@salvia> <20150412.211421.1771298417488412635.davem@davemloft.net> <20150413201913.GD20275@acer.localdomain> <552D07C4.1020509@mojatatu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, tgraf@suug.ch,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Jamal Hadi Salim <jhs@mojatatu.com>,
+	Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37341 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932582AbbDNOoZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Apr 2015 10:44:25 -0400
+Received: from mga02.intel.com ([134.134.136.20]:25922 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755495AbbDNPN1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Apr 2015 11:13:27 -0400
+In-Reply-To: <552D07C4.1020509@mojatatu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-NFT_JUMP/GOTO erronously sets length to sizeof(void *).
+On 04/14/2015 05:27 AM, Jamal Hadi Salim wrote:
+> On 04/13/15 16:19, Patrick McHardy wrote:
+> 
+>> I'm going to jump in here since I think a good case for this can be
+>> made. It's going to be a bit longer, sorry. You can skip to the
+>> examples after the first three paragraphs since it's just a lot of
+>> TC bashing :)
+> 
+> Patrick, maybe i am misunderstanding.
+> Here I am arguing against Alexei for introducing a couple of
+> statements for the sake of performance and you want to put netfilter
+> on that code path and maybe move ingress to be dependent on netfilter
+> further up the stack? I know you are trying to sell the virtues
+> of nft but since you are busy bashing here, how about this polite
+> statement:
+> Netfilter is not known for its performance. Even with the ingress qlock
+> tc will outperform an equivalent operation done via netfilter.
 
-We then allocate insufficient memory when such element is added to a vmap.
+avoiding the nft vs tc vs ebpf debate I will the ingress qlock is not
+needed anymore I just haven't got to removing it yet. Its not actually
+protecting any data structures though.
 
-Suggested-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_tables_api.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+I was hoping to push the skb lists onto something like rte_ring
+used by the DPDK folks or possibly some of the lockless ring work Jesper
+created. This is needed for many qdisc's to drop the qlock but not the
+ingress qdisc. Been busy working on switch bits lately but might be
+able to pick this up next merge window.
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 78af83b..ad9d11f 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4340,7 +4340,6 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
- 	case NFT_CONTINUE:
- 	case NFT_BREAK:
- 	case NFT_RETURN:
--		desc->len = sizeof(data->verdict);
- 		break;
- 	case NFT_JUMP:
- 	case NFT_GOTO:
-@@ -4355,10 +4354,10 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
- 
- 		chain->use++;
- 		data->verdict.chain = chain;
--		desc->len = sizeof(data);
- 		break;
- 	}
- 
-+	desc->len = sizeof(data->verdict);
- 	desc->type = NFT_DATA_VERDICT;
- 	return 0;
- }
--- 
-2.0.5
-
+Thanks,
+John
