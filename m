@@ -1,30 +1,27 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 5/5 v4] netfilter: Fix format string of nfnetlink_log
- proc file
-Date: Mon, 13 Apr 2015 16:35:52 -0400 (EDT)
-Message-ID: <20150413.163552.745090447524548507.davem@davemloft.net>
-References: <1428879159-19237-1-git-send-email-richard@nod.at>
-	<1428879159-19237-5-git-send-email-richard@nod.at>
+Subject: Re: [PATCH 00/21] Netfilter updates for net-next
+Date: Mon, 13 Apr 2015 22:18:19 -0400 (EDT)
+Message-ID: <20150413.221819.1629197374995321994.davem@davemloft.net>
+References: <1428953401-4838-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org, sameo@linux.intel.com,
-	aloisio.almeida@openbossa.org, lauro.venancio@openbossa.org,
-	kadlec@blackhole.kfki.hu, kaber@trash.net, pablo@netfilter.org
-To: richard@nod.at
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1428879159-19237-5-git-send-email-richard@nod.at>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:55965 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750935AbbDNCSV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Apr 2015 22:18:21 -0400
+In-Reply-To: <1428953401-4838-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Richard Weinberger <richard@nod.at>
-Date: Mon, 13 Apr 2015 00:52:39 +0200
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 13 Apr 2015 21:29:39 +0200
 
-> The printed values are all of type unsigned integer, therefore use
-> %u instead of %d. Otherwise an user can face negative values.
-> 
-> Signed-off-by: Richard Weinberger <richard@nod.at>
+> A final pull request, I know it's very late but this time I think
+> it's worth a bit of rush.
 
-Applied.
+Pulled, thanks Pablo.
