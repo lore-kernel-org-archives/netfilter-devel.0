@@ -1,66 +1,51 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [PATCH nf-next v3] netfilter: x_tables: add context to know if
- extension runs from nft_compat
-Date: Wed, 15 Apr 2015 10:40:39 +0200
-Message-ID: <CAOkSjBgx5cmjOZhqGKi4si+cA2-AiMPN97KOFfJt45pah8FvLw@mail.gmail.com>
-References: <1425311196-5271-1-git-send-email-pablo@netfilter.org>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Subject: Re: [PATCH 0/7 RFC] Netfilter/nf_tables ingress support
+Date: Wed, 15 Apr 2015 11:19:08 +0200
+Message-ID: <552E2D0C.6090809@iogearbox.net>
+References: <1428668142-4006-1-git-send-email-pablo@netfilter.org> <20150410132205.GF23070@casper.infradead.org> <20150410200901.GB5968@salvia> <20150412.211421.1771298417488412635.davem@davemloft.net> <20150413201913.GD20275@acer.localdomain> <552D07C4.1020509@mojatatu.com> <552D2E52.8020303@intel.com> <20150414153613.GA2781@Alexeis-MBP.westell.com> <552E14B4.7060907@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>, fw@strlen.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: John Fastabend <john.r.fastabend@intel.com>,
+	Jamal Hadi Salim <jhs@mojatatu.com>,
+	Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>, pablo@netfilter.org,
+	tgraf@suug.ch, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: John Fastabend <john.fastabend@gmail.com>,
+	Alexei Starovoitov <alexei.starovoitov@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:32803 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752981AbbDOIlB convert rfc822-to-8bit (ORCPT
+Received: from www62.your-server.de ([213.133.104.62]:48060 "EHLO
+	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753385AbbDOJTS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Apr 2015 04:41:01 -0400
-Received: by layy10 with SMTP id y10so27238245lay.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Apr 2015 01:41:00 -0700 (PDT)
-In-Reply-To: <1425311196-5271-1-git-send-email-pablo@netfilter.org>
+	Wed, 15 Apr 2015 05:19:18 -0400
+In-Reply-To: <552E14B4.7060907@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2 March 2015 at 16:46, Pablo Neira Ayuso <pablo@netfilter.org> wrote=
-:
-> Currently, we have four xtables extensions that cannot be used from t=
-he
-> xt over nft compat layer. The problem is that they need real access t=
-o
-> the full blown xt_entry to validate that the rule comes with the righ=
-t
-> dependencies. This check was introduced to overcome the lack of
-> sufficient userspace dependency validation in iptables.
+On 04/15/2015 09:35 AM, John Fastabend wrote:
+> On 04/14/2015 08:36 AM, Alexei Starovoitov wrote:
+>> On Tue, Apr 14, 2015 at 08:12:18AM -0700, John Fastabend wrote:
+>>>
+>>> I was hoping to push the skb lists onto something like rte_ring
+>>> used by the DPDK folks or possibly some of the lockless ring work Jesper
+>>> created. This is needed for many qdisc's to drop the qlock but not the
+>>> ingress qdisc. Been busy working on switch bits lately but might be
+>>> able to pick this up next merge window.
+>>
+>> I've spent quite a bit of time reanalyzying your work ;) It seems
+>> only trivial stuff left to drop ingress spinlock. Can you send me
+>> your TC test scripts ? I'm only starting building mine and they're
+>> not covering everything. Roughly I'm creating namespaces and running
+>> traffic between them while varying csum/gso/gro offload settings.
 >
-> To resolve this problem, this patch introduces a new field to the
-> xt_tgchk_param structure that tell us if the extension is run from
-> nft_compat context.
+> I'll dig up my scripts and post them to github this weekend. They
+> are a bit organized and all over the place at the moment.
 >
-> The four affected extensions are:
->
-> 1) CLUSTERIP, this target has been superseded by xt_cluster. So just
->    bail out by returning -EINVAL.
->
-> 2) TCPMSS. Relax the checking when used from nft_compat. If used with
->    the wrong configuration, it will corrupt !syn packets by adding TC=
-P
->    MSS option.
->
-> 3) SYNPROXY6. Don't check for e->ipv6.flags if used from nft_compat.
->
-> 4) ebt_stp. Relax the check to make sure it uses the reserved
->    destination MAC address for STP.
->
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> Maybe we can build a master repository. I know there a lot of different
+> scripts running around, for example I already collected a few from
+> Jamal and I think Cong must have some as well.
 
-Tested-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sounds awesome, I think that will be really useful for better test
+coverage.
