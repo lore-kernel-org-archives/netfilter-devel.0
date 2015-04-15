@@ -1,45 +1,109 @@
-From: Jesper Dangaard Brouer <brouer@redhat.com>
+From: John Fastabend <john.fastabend@gmail.com>
 Subject: Re: [PATCH 0/7 RFC] Netfilter/nf_tables ingress support
-Date: Tue, 14 Apr 2015 22:05:32 +0200
-Message-ID: <20150414220532.1ad69f24@redhat.com>
-References: <1428668142-4006-1-git-send-email-pablo@netfilter.org>
-	<20150410132205.GF23070@casper.infradead.org>
-	<20150410200901.GB5968@salvia>
-	<20150412.211421.1771298417488412635.davem@davemloft.net>
-	<20150413201913.GD20275@acer.localdomain>
-	<20150414090048.GA14022@casper.infradead.org>
-	<20150414090559.GH22725@acer.localdomain>
-	<20150414100846.GB14022@casper.infradead.org>
-	<20150414101339.GC3004@acer.localdomain>
-	<20150414103202.GC14022@casper.infradead.org>
+Date: Wed, 15 Apr 2015 00:35:16 -0700
+Message-ID: <552E14B4.7060907@gmail.com>
+References: <1428668142-4006-1-git-send-email-pablo@netfilter.org> <20150410132205.GF23070@casper.infradead.org> <20150410200901.GB5968@salvia> <20150412.211421.1771298417488412635.davem@davemloft.net> <20150413201913.GD20275@acer.localdomain> <552D07C4.1020509@mojatatu.com> <552D2E52.8020303@intel.com> <20150414153613.GA2781@Alexeis-MBP.westell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: brouer@redhat.com, Patrick McHardy <kaber@trash.net>,
-	pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+Cc: John Fastabend <john.r.fastabend@intel.com>,
+	Jamal Hadi Salim <jhs@mojatatu.com>,
+	Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>, pablo@netfilter.org,
+	tgraf@suug.ch, netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org
-To: Thomas Graf <tgraf@suug.ch>
+To: Alexei Starovoitov <alexei.starovoitov@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60384 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753698AbbDNUFg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Apr 2015 16:05:36 -0400
-In-Reply-To: <20150414103202.GC14022@casper.infradead.org>
+Received: from mail-vn0-f51.google.com ([209.85.216.51]:40619 "EHLO
+	mail-vn0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752896AbbDOHfc (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Apr 2015 03:35:32 -0400
+In-Reply-To: <20150414153613.GA2781@Alexeis-MBP.westell.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 14 Apr 2015 11:32:02 +0100 Thomas Graf <tgraf@suug.ch> wrote:
+On 04/14/2015 08:36 AM, Alexei Starovoitov wrote:
+> On Tue, Apr 14, 2015 at 08:12:18AM -0700, John Fastabend wrote:
+>>
+>> I was hoping to push the skb lists onto something like rte_ring
+>> used by the DPDK folks or possibly some of the lockless ring work Jesper
+>> created. This is needed for many qdisc's to drop the qlock but not the
+>> ingress qdisc. Been busy working on switch bits lately but might be
+>> able to pick this up next merge window.
+>
+> I've spent quite a bit of time reanalyzying your work ;) It seems
+> only trivial stuff left to drop ingress spinlock. Can you send me
+> your TC test scripts ? I'm only starting building mine and they're
+> not covering everything. Roughly I'm creating namespaces and running
+> traffic between them while varying csum/gso/gro offload settings.
+>
 
-> This is not a pledge specific to nft. I would like to see more
-> numbers in general. We are putting APIs and frameworks in place that
-> we can't remove afterwards without knowing how they really scale and
-> perform.
+I'll dig up my scripts and post them to github this weekend. They
+are a bit organized and all over the place at the moment.
 
-I also vote for more performance numbers and measurements ;-)
+Maybe we can build a master repository. I know there a lot of different
+scripts running around, for example I already collected a few from
+Jamal and I think Cong must have some as well.
+
+Here is a patch that has been running on my dev box sans the quick
+port to Dave's master tree. It seems to work at least it has been
+running on my dev box for a few months. But I haven't had a chance to
+run any recent perf numbers on it. Actually what I would really like
+is to drop the lock on pfifo_fast with a lockless skb ring and make
+drivers expose a descriptor ring per core (most already do anyways).
+
+---
+
+net: sched: run ingress qdisc without locks
+
+From: John Fastabend <john.r.fastabend@intel.com>
+
+Signed-off-by: John Fastabend <john.r.fastabend@intel.com>
+---
+  net/core/dev.c          |    2 --
+  net/sched/sch_ingress.c |    3 ++-
+  2 files changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/net/core/dev.c b/net/core/dev.c
+index af4a1b0..9b34a18 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -3547,10 +3547,8 @@ static int ing_filter(struct sk_buff *skb, struct 
+netdev_queue *rxq)
+
+  	q = rcu_dereference(rxq->qdisc);
+  	if (q != &noop_qdisc) {
+-		spin_lock(qdisc_lock(q));
+  		if (likely(!test_bit(__QDISC_STATE_DEACTIVATED, &q->state)))
+  			result = qdisc_enqueue_root(skb, q);
+-		spin_unlock(qdisc_lock(q));
+  	}
+
+  	return result;
+diff --git a/net/sched/sch_ingress.c b/net/sched/sch_ingress.c
+index 4cdbfb8..a2542ac 100644
+--- a/net/sched/sch_ingress.c
++++ b/net/sched/sch_ingress.c
+@@ -69,7 +69,7 @@ static int ingress_enqueue(struct sk_buff *skb, struct 
+Qdisc *sch)
+  	switch (result) {
+  	case TC_ACT_SHOT:
+  		result = TC_ACT_SHOT;
+-		qdisc_qstats_drop(sch);
++		qdisc_qstats_drop_cpu(sch);
+  		break;
+  	case TC_ACT_STOLEN:
+  	case TC_ACT_QUEUED:
+@@ -91,6 +91,7 @@ static int ingress_enqueue(struct sk_buff *skb, struct 
+Qdisc *sch)
+  static int ingress_init(struct Qdisc *sch, struct nlattr *opt)
+  {
+  	net_inc_ingress_queue();
++	sch->flags |= TCQ_F_CPUSTATS;
+
+  	return 0;
+  }
 
 -- 
-Best regards,
-  Jesper Dangaard Brouer
-  MSc.CS, Sr. Network Kernel Developer at Red Hat
-  Author of http://www.iptv-analyzer.org
-  LinkedIn: http://www.linkedin.com/in/brouer
+John Fastabend         Intel Corporation
