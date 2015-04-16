@@ -1,109 +1,72 @@
-From: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
-Subject: Re: Re: [PATCH] Add NFPROTO_ARP for mark
-Date: Thu, 16 Apr 2015 05:45:01 +0000
-Message-ID: <A43879EB4A7F5F449E2CA8148EA79E5175836F@G08CNEXMBPEKD01.g08.fujitsu.local>
-References: <1428374716-15108-1-git-send-email-zhangcy@cn.fujitsu.com>,
- <1428374716-15108-2-git-send-email-zhangcy@cn.fujitsu.com>,
- <20150408174911.GA4683@salvia>,
- <A43879EB4A7F5F449E2CA8148EA79E5172E8F2@G08CNEXMBPEKD01.g08.fujitsu.local>,
- <20150409104149.GA3568@salvia>,
- <A43879EB4A7F5F449E2CA8148EA79E51758324@G08CNEXMBPEKD01.g08.fujitsu.local>
-Reply-To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/7] net: refactor __netif_receive_skb_core
+Date: Thu, 16 Apr 2015 06:49:05 +0100
+Message-ID: <20150416054904.GC3285@acer.localdomain>
+References: <1428668142-4006-1-git-send-email-pablo@netfilter.org>
+ <1428668142-4006-2-git-send-email-pablo@netfilter.org>
+ <5527D476.6030306@iogearbox.net>
+ <20150415180927.4592eb6e@brouer.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "pablo@netfilter.org" <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Daniel Borkmann <daniel@iogearbox.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	davem@davemloft.net
+To: Jesper Dangaard Brouer <netdev@brouer.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:4166 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750882AbbDPFow (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:64585 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750952AbbDPFtN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Apr 2015 01:44:52 -0400
-Content-Language: zh-CN
+	Thu, 16 Apr 2015 01:49:13 -0400
+Content-Disposition: inline
+In-Reply-To: <20150415180927.4592eb6e@brouer.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-DQoNCj5Gcm9tOiBuZXRmaWx0ZXItZGV2ZWwtb3duZXINCj5EYXRlOiAyMDE1LTA0LTE2DQo+VG86
-IHBhYmxvQG5ldGZpbHRlci5vcmcNCj5TdWJqZWN0OiBSZTogUmU6IFtQQVRDSF0gQWRkIE5GUFJP
-VE9fQVJQIGZvciBtYXJrDQo+DQo+DQo+aGkgcGFibG8NCj4NCj4+RnJvbTogUGFibG8gTmVpcmEg
-QXl1c28NCj4+RGF0ZTogMjAxNS0wNC0wOQ0KPj5UbzogWmhhbmcsIENodW55dS/nq6Ag5pil5a6H
-DQo+PlN1YmplY3Q6IFJlOiBSZTogW1BBVENIXSBBZGQgTkZQUk9UT19BUlAgZm9yIG1hcmsNCj4+
-DQo+Pk9uIFRodSwgQXByIDA5LCAyMDE1IGF0IDAzOjU0OjMzQU0gKzAwMDAsIFpoYW5nLCBDaHVu
-eXUgd3JvdGU6DQo+Pj4gPkZyb206IFBhYmxvIE5laXJhIEF5dXNvDQo+Pj4gPkRhdGU6IDIwMTUt
-MDQtMDkNCj4+PiA+VG86IFpoYW5nLCBDaHVueXUv56ugIOaYpeWuhw0KPj4+ID5TdWJqZWN0OiBS
-ZTogW1BBVENIXSBBZGQgTkZQUk9UT19BUlAgZm9yIG1hcmsNCj4+Wy4uLl0NCj4+PiA+PiBAQCAt
-NDEsMTMgKzQyLDIzIEBAIG1hcmtfbXQoY29uc3Qgc3RydWN0IHNrX2J1ZmYgKnNrYiwgc3RydWN0
-IHh0X2FjdGlvbl9wYXJhbSAqcGFyKQ0KPj4+ID4+ICAgICAgIHJldHVybiAoKHNrYi0+bWFyayAm
-IGluZm8tPm1hc2spID09IGluZm8tPm1hcmspIF4gaW5mby0+aW52ZXJ0Ow0KPj4+ID4+ICB9DQo+
-Pj4gPj4NCj4+PiA+PiAtc3RhdGljIHN0cnVjdCB4dF90YXJnZXQgbWFya190Z19yZWcgX19yZWFk
-X21vc3RseSA9IHsNCj4+PiA+PiAtICAgICAubmFtZSAgICAgICAgICAgPSAiTUFSSyIsDQo+Pj4g
-Pj4gLSAgICAgLnJldmlzaW9uICAgICAgID0gMiwNCj4+PiA+PiAtICAgICAuZmFtaWx5ICAgICAg
-ICAgPSBORlBST1RPX1VOU1BFQywNCj4+PiA+PiAtICAgICAudGFyZ2V0ICAgICAgICAgPSBtYXJr
-X3RnLA0KPj4+ID4+IC0gICAgIC50YXJnZXRzaXplICAgICA9IHNpemVvZihzdHJ1Y3QgeHRfbWFy
-a190Z2luZm8yKSwNCj4+PiA+PiAtICAgICAubWUgICAgICAgICAgICAgPSBUSElTX01PRFVMRSwN
-Cj4+PiA+PiArc3RhdGljIHN0cnVjdCB4dF90YXJnZXQgbWFya190Z19yZWdbXSBfX3JlYWRfbW9z
-dGx5ID0gew0KPj4+ID4+ICsgICAgIHsNCj4+PiA+PiArICAgICAgICAgICAgIC5uYW1lICAgICAg
-ICAgICA9ICJNQVJLIiwNCj4+PiA+PiArICAgICAgICAgICAgIC5yZXZpc2lvbiAgICAgICA9IDIs
-DQo+Pj4gPj4gKyAgICAgICAgICAgICAuZmFtaWx5ICAgICAgICAgPSBORlBST1RPX1VOU1BFQywN
-Cj4+PiA+PiArICAgICAgICAgICAgIC50YXJnZXQgICAgICAgICA9IG1hcmtfdGcsDQo+Pj4gPj4g
-KyAgICAgICAgICAgICAudGFyZ2V0c2l6ZSAgICAgPSBzaXplb2Yoc3RydWN0IHh0X21hcmtfdGdp
-bmZvMiksDQo+Pj4gPj4gKyAgICAgICAgICAgICAubWUgICAgICAgICAgICAgPSBUSElTX01PRFVM
-RSwNCj4+PiA+PiArICAgICB9LA0KPj4+ID4+ICsgICAgIHsNCj4+PiA+PiArICAgICAgICAgICAg
-IC5uYW1lICAgICAgICAgICA9ICJNQVJLIiwNCj4+PiA+PiArICAgICAgICAgICAgIC5yZXZpc2lv
-biAgICAgICA9IDIsDQo+Pj4gPj4gKyAgICAgICAgICAgICAuZmFtaWx5ICAgICAgICAgPSBORlBS
-T1RPX0FSUCwNCj4+PiA+PiArICAgICAgICAgICAgIC50YXJnZXQgICAgICAgICA9IG1hcmtfdGcs
-DQo+Pj4gPj4gKyAgICAgICAgICAgICAudGFyZ2V0c2l6ZSAgICAgPSBzaXplb2Yoc3RydWN0IHh0
-X21hcmtfdGdpbmZvMiksDQo+Pj4gPj4gKyAgICAgICAgICAgICAubWUgICAgICAgICAgICAgPSBU
-SElTX01PRFVMRSwNCj4+PiA+PiArICAgICB9DQo+Pj4gPj4gIH07DQo+Pj4gPg0KPj4+ID5Zb3Ug
-ZG9uJ3QgbmVlZCB0aGlzLg0KPj4+ID4NCj4+PiA+VGhlIHByb2JsZW0gaXMgaGVyZSB0aGF0IHlv
-dXIgcGF0Y2g6DQo+Pj4gPg0KPj4+ID5odHRwOi8vcGF0Y2h3b3JrLm96bGFicy5vcmcvcGF0Y2gv
-NDU1OTY2Lw0KPj4+ID4NCj4+PiA+aXMgbWlzc2luZyB0aGlzIGNodW5rOg0KPj4+ID4NCj4+PiA+
-ZGlmZiAtLWdpdCBhL2xpYmFycHRjL2xpYmFycHRjX2luY2wuYyBiL2xpYmFycHRjL2xpYmFycHRj
-X2luY2wuYw0KPj4+ID5pbmRleCBhMDM0OTMwLi44NzQwNGNlIDEwMDY0NA0KPj4+ID4tLS0gYS9s
-aWJhcnB0Yy9saWJhcnB0Y19pbmNsLmMNCj4+PiA+KysrIGIvbGliYXJwdGMvbGliYXJwdGNfaW5j
-bC5jDQo+Pj4gPkBAIC04NzIsNyArODcyLDcgQEAgbWFwX3RhcmdldChjb25zdCBUQ19IQU5ETEVf
-VCBoYW5kbGUsDQo+Pj4gPiAgICAgICAgLyogbWVtc2V0IHRvIGFsbCAwIGZvciB5b3VyIG1lbWNt
-cCBjb252ZW5pZW5jZS4gKi8NCj4+PiA+ICAgICAgICBtZW1zZXQodC0+dS51c2VyLm5hbWUgKyBz
-dHJsZW4odC0+dS51c2VyLm5hbWUpLA0KPj4+ID4gICAgICAgICAgICAgICAwLA0KPj4+ID4tICAg
-ICAgICAgICAgICBGVU5DVElPTl9NQVhOQU1FTEVOIC0gc3RybGVuKHQtPnUudXNlci5uYW1lKSk7
-DQo+Pj4gPisgICAgICAgICAgICAgIEZVTkNUSU9OX01BWE5BTUVMRU4gLSAxIC0gc3RybGVuKHQt
-PnUudXNlci5uYW1lKSk7DQo+Pj4gPiAgICAgICAgcmV0dXJuIDE7DQo+Pj4gPiB9DQo+DQo+MS4g
-DQo+bWF5YmUgc2hvdWxkIGNoYW5nZSBsaWtlIHRoaXPvvJ8NCj4NCj5kaWZmIC0tZ2l0IGEvbGli
-YXJwdGMvbGliYXJwdGNfaW5jbC5jIGIvbGliYXJwdGMvbGliYXJwdGNfaW5jbC5jDQo+aW5kZXgg
-YTAzNDkzMC4uNDA0OWNiZCAxMDA2NDQNCj4tLS0gYS9saWJhcnB0Yy9saWJhcnB0Y19pbmNsLmMN
-Cj4rKysgYi9saWJhcnB0Yy9saWJhcnB0Y19pbmNsLmMNCj5AQCAtODcyLDcgKzg3Miw3IEBAIG1h
-cF90YXJnZXQoY29uc3QgVENfSEFORExFX1QgaGFuZGxlLA0KPiAgICAgICAgLyogbWVtc2V0IHRv
-IGFsbCAwIGZvciB5b3VyIG1lbWNtcCBjb252ZW5pZW5jZS4gKi8NCj4gICAgICAgIG1lbXNldCh0
-LT51LnVzZXIubmFtZSArIHN0cmxlbih0LT51LnVzZXIubmFtZSksDQo+ICAgICAgICAgICAgICAg
-MCwNCj4tICAgICAgICAgICAgICBGVU5DVElPTl9NQVhOQU1FTEVOIC0gc3RybGVuKHQtPnUudXNl
-ci5uYW1lKSk7DQo+KyAgICAgICAgICAgICAgWFRfRVhURU5TSU9OX01BWE5BTUVMRU4gLSBzdHJs
-ZW4odC0+dS51c2VyLm5hbWUpKTsNCj4gICAgICAgIHJldHVybiAxOw0KPiB9DQo+DQo+Mi4gbWFi
-eWUgaGF2ZSBvdGhlciA0IHBsYWNlcyBzaG91bGQgY2hhbmdlIO+8nw0KPmFycHRhYmxlcy5jOjIz
-MzA6ICAgICAgIGlmIChjaGFpbiAmJiBzdHJsZW4oY2hhaW4pID4gQVJQVF9GVU5DVElPTl9NQVhO
-QU1FTEVOKQ0KPmFycHRhYmxlcy5jOjIzMzM6ICAgICAgICAgICAgICAgICAgICAgICAgICBjaGFp
-biwgQVJQVF9GVU5DVElPTl9NQVhOQU1FTEVOKTsNCj5pbmNsdWRlL2xpbnV4L25ldGZpbHRlci94
-X3RhYmxlcy5oOjcxOiAgY2hhciBlcnJvcm5hbWVbWFRfRlVOQ1RJT05fTUFYTkFNRUxFTl07DQo+
-bGliYXJwdGMvbGliYXJwdGNfaW5jbC5jOjgyNzogICBtZW1zZXQodC0+dGFyZ2V0LnUudXNlci5u
-YW1lLCAwLCBGVU5DVElPTl9NQVhOQU1FTEVOKTsNCg0Kb3IgY2hhbmdlIGxpa2UgdGhpcyDvvJoN
-CmRpZmYgLS1naXQgYS9saWJhcnB0Yy9saWJhcnB0Yy5jIGIvbGliYXJwdGMvbGliYXJwdGMuYw0K
-aW5kZXggMDAyNWE3NS4uMTliNzNkMCAxMDA2NDQNCi0tLSBhL2xpYmFycHRjL2xpYmFycHRjLmMN
-CisrKyBiL2xpYmFycHRjL2xpYmFycHRjLmMNCkBAIC00Nyw3ICs0Nyw3IEBAIHR5cGVkZWYgdW5z
-aWduZWQgaW50IHNvY2tsZW5fdDsNCiANCiAjZGVmaW5lIEVOVFJZX0lURVJBVEUgICAgICAgICAg
-QVJQVF9FTlRSWV9JVEVSQVRFDQogI2RlZmluZSBUQUJMRV9NQVhOQU1FTEVOICAgICAgIEFSUFRf
-VEFCTEVfTUFYTkFNRUxFTg0KLSNkZWZpbmUgRlVOQ1RJT05fTUFYTkFNRUxFTiAgICBBUlBUX0ZV
-TkNUSU9OX01BWE5BTUVMRU4NCisjZGVmaW5lIEZVTkNUSU9OX01BWE5BTUVMRU4gICAgWFRfRVhU
-RU5TSU9OX01BWE5BTUVMRU4NCiANCiAjZGVmaW5lIEdFVF9UQVJHRVQgICAgICAgICAgICAgYXJw
-dF9nZXRfdGFyZ2V0DQo+Pj4gPg0KPj4+ID5PdGhlcndpc2UsIHRoZSByZXZpc2lvbiBudW1iZXIg
-aXMgemVyb2VkLg0KPj4+ID4NCj4+PiA+QW5kIHlvdSBkb24ndCBuZWVkOiBodHRwOi8vcGF0Y2h3
-b3JrLm96bGFicy5vcmcvcGF0Y2gvNDU1OTY1Ly4NCj4+PiA+DQo+Pj4gPlBsZWFzZSwgcmViYXNl
-IHlvdXIgdXNlcnNwYWNlIHBhdGNoZXMgb24gdG9wIG9mIGN1cnJlbnQgYXJwdGFibGVzIGdpdA0K
-Pj4+ID5hbmQgcmVzdWJtaXQuIFRoYW5rcy4NCj4+Pg0KPj4+IGdldCBpdCDjgIJ3aWxsIGRv44CC
-DQo+Pj4gd2h5IGFycHRhYmxlcyAtLXNldC1tYXJrIGNhbiB3b3JrICwgd2hlbiBhZGQgIE5GUFJP
-VE9fQVJQIHRvIHh0X21hcmsgPw0KPj4NCj4+SSBndWVzcyB5b3UncmUgc3RpbGwgdXNpbmcgdGhl
-IHVzZXJzcGFjZSBwYXRjaGVzIHlvdSBzZW50Lg0KPj4NCj4+SWYgeW91IHJlYmFzZSBvbiB0b3Ag
-b2YgY3VycmVudCBhcnB0YWJsZXMgSEVBRCwgdGhhdCB3aWxsIG5vdCB3b3JrLk7vv73vv73vv73v
-v73vv71y77+977+9ee+/ve+/ve+/vWLvv71Y77+977+9x6d277+9Xu+/vSneunsubu+/vSvvv73v
-v73vv71677+977+916t177+93pYp77+977+977+9dyofamfvv73vv73vv70e77+977+977+977+9
-77+93aJqL++/ve+/ve+/vXrvv73elu+/ve+/vTLvv73eme+/ve+/ve+/vSbvv70p36Hvv71h77+9
-77+9f++/ve+/vR7vv71H77+977+977+9aO+/vQ/vv71qOit277+977+977+9d++/vdml
+On 15.04, Jesper Dangaard Brouer wrote:
+> > Out of curiosity, what is actually the performance impact on all
+> > of this? We were just arguing on a different matter on two more
+> > instructions in the fast-path, here it's refactoring the whole
+> > function into several ones, I presume gcc won't inline it.
+> 
+> Pablo asked me to performance test this change.  Full test report below.
+> 
+> The performance effect (of this patch) depend on the Gcc compiler
+> version.
+> 
+> Two tests:
+>  1. IP-forwarding (unloaded netfilter modules)
+>  2. Early drop in iptables "raw" table
+> 
+> With GCC 4.4.7, which does not inline the new functions
+> (__netif_receive_skb_ingress and __netif_receive_skb_finish) the
+> performance impact/regression is definitly measurable.
+> 
+> With GCC 4.4.7:
+>  1. IP-forwarding: +25.18 ns (slower) (-27776 pps)
+>  2. Early-drop   :  +7.55 ns (slower) (-66577 pps)
+> 
+> With GCC 4.9.1, the new functions gets inlined, thus the refactor
+> splitup of __netif_receive_skb_core() is basically "cancled".
+> Strangly there is a small improvement for forwarding, likely due to
+> some lucky assember reordering that give less icache/fetch-misses.
+> The early-drop improvement is below accuracy levels, can cannot be
+> trusted.
+> 
+> With GCC 4.9.1:
+>  1. IP-forwarding: -10.05ns (faster) (+17532 pps)
+>  2. Early-drop   :  -1.54ns (faster) (+16216 pps) below accuracy levels
+> 
+> I don't know what to conclude, as the result depend on the compiler
+> version... but these kind of change do affect performance, and should
+> be tested/measured.
+
+Thanks Jesper. This effect without inlinging was to be expected I guess.
+The interesting question would be a patch that uses nf_hook() without okfn
+callback, moves the ingress qdisc to register with the netfilter ingress
+hook and moves the TTL tracking of ing_filter() to the ingress qdisc,
+where it belongs.
+
+My expectation would be that this would result in an overall performance
+gain.
