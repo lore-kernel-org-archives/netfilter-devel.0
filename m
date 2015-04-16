@@ -1,62 +1,91 @@
-From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Subject: Re: [PATCH 0/7 RFC] Netfilter/nf_tables ingress support
-Date: Wed, 15 Apr 2015 09:24:35 -0700
-Message-ID: <20150415162434.GA3490@Alexeis-MBP.westell.com>
-References: <1428668142-4006-1-git-send-email-pablo@netfilter.org>
- <20150410132205.GF23070@casper.infradead.org>
- <20150410200901.GB5968@salvia>
- <20150412.211421.1771298417488412635.davem@davemloft.net>
- <20150413201913.GD20275@acer.localdomain>
- <552D07C4.1020509@mojatatu.com>
- <552D2E52.8020303@intel.com>
- <20150414153613.GA2781@Alexeis-MBP.westell.com>
- <552E14B4.7060907@gmail.com>
+From: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+Subject: Re: Re: [PATCH] Add NFPROTO_ARP for mark
+Date: Thu, 16 Apr 2015 05:39:31 +0000
+Message-ID: <A43879EB4A7F5F449E2CA8148EA79E51758324@G08CNEXMBPEKD01.g08.fujitsu.local>
+References: <1428374716-15108-1-git-send-email-zhangcy@cn.fujitsu.com>,
+ <1428374716-15108-2-git-send-email-zhangcy@cn.fujitsu.com>,
+ <20150408174911.GA4683@salvia>,
+ <A43879EB4A7F5F449E2CA8148EA79E5172E8F2@G08CNEXMBPEKD01.g08.fujitsu.local>,
+ <20150409104149.GA3568@salvia>
+Reply-To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: John Fastabend <john.r.fastabend@intel.com>,
-	Jamal Hadi Salim <jhs@mojatatu.com>,
-	Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>, pablo@netfilter.org,
-	tgraf@suug.ch, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: John Fastabend <john.fastabend@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "pablo@netfilter.org" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f44.google.com ([209.85.218.44]:36714 "EHLO
-	mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756336AbbDOQYk (ORCPT
+Received: from cn.fujitsu.com ([59.151.112.132]:10274 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750755AbbDPFjY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Apr 2015 12:24:40 -0400
-Content-Disposition: inline
-In-Reply-To: <552E14B4.7060907@gmail.com>
+	Thu, 16 Apr 2015 01:39:24 -0400
+Content-Language: zh-CN
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 15, 2015 at 12:35:16AM -0700, John Fastabend wrote:
->
-> I'll dig up my scripts and post them to github this weekend. They
-> are a bit organized and all over the place at the moment.
-> 
-> Maybe we can build a master repository. I know there a lot of different
-> scripts running around, for example I already collected a few from
-> Jamal and I think Cong must have some as well.
-
-great. let's start building a proper testsuite.
-
-> diff --git a/net/sched/sch_ingress.c b/net/sched/sch_ingress.c
-> index 4cdbfb8..a2542ac 100644
-> --- a/net/sched/sch_ingress.c
-> +++ b/net/sched/sch_ingress.c
-> @@ -69,7 +69,7 @@ static int ingress_enqueue(struct sk_buff *skb, struct
-> Qdisc *sch)
->  	switch (result) {
->  	case TC_ACT_SHOT:
->  		result = TC_ACT_SHOT;
-> -		qdisc_qstats_drop(sch);
-> +		qdisc_qstats_drop_cpu(sch);
-
-Your quick patch missed updating:
-- qdisc_bstats_update(sch, skb);
-+ qdisc_bstats_update_cpu(sch, skb);
-
-I've tried the same :)
-
+DQpoaSBwYWJsbw0KDQo+RnJvbTogUGFibG8gTmVpcmEgQXl1c28NCj5EYXRlOiAyMDE1LTA0LTA5
+DQo+VG86IFpoYW5nLCBDaHVueXUv56ugIOaYpeWuhw0KPlN1YmplY3Q6IFJlOiBSZTogW1BBVENI
+XSBBZGQgTkZQUk9UT19BUlAgZm9yIG1hcmsNCj4NCj5PbiBUaHUsIEFwciAwOSwgMjAxNSBhdCAw
+Mzo1NDozM0FNICswMDAwLCBaaGFuZywgQ2h1bnl1IHdyb3RlOg0KPj4gPkZyb206IFBhYmxvIE5l
+aXJhIEF5dXNvDQo+PiA+RGF0ZTogMjAxNS0wNC0wOQ0KPj4gPlRvOiBaaGFuZywgQ2h1bnl1L+er
+oCDmmKXlrocNCj4+ID5TdWJqZWN0OiBSZTogW1BBVENIXSBBZGQgTkZQUk9UT19BUlAgZm9yIG1h
+cmsNCj5bLi4uXQ0KPj4gPj4gQEAgLTQxLDEzICs0MiwyMyBAQCBtYXJrX210KGNvbnN0IHN0cnVj
+dCBza19idWZmICpza2IsIHN0cnVjdCB4dF9hY3Rpb25fcGFyYW0gKnBhcikNCj4+ID4+ICAgICAg
+IHJldHVybiAoKHNrYi0+bWFyayAmIGluZm8tPm1hc2spID09IGluZm8tPm1hcmspIF4gaW5mby0+
+aW52ZXJ0Ow0KPj4gPj4gIH0NCj4+ID4+DQo+PiA+PiAtc3RhdGljIHN0cnVjdCB4dF90YXJnZXQg
+bWFya190Z19yZWcgX19yZWFkX21vc3RseSA9IHsNCj4+ID4+IC0gICAgIC5uYW1lICAgICAgICAg
+ICA9ICJNQVJLIiwNCj4+ID4+IC0gICAgIC5yZXZpc2lvbiAgICAgICA9IDIsDQo+PiA+PiAtICAg
+ICAuZmFtaWx5ICAgICAgICAgPSBORlBST1RPX1VOU1BFQywNCj4+ID4+IC0gICAgIC50YXJnZXQg
+ICAgICAgICA9IG1hcmtfdGcsDQo+PiA+PiAtICAgICAudGFyZ2V0c2l6ZSAgICAgPSBzaXplb2Yo
+c3RydWN0IHh0X21hcmtfdGdpbmZvMiksDQo+PiA+PiAtICAgICAubWUgICAgICAgICAgICAgPSBU
+SElTX01PRFVMRSwNCj4+ID4+ICtzdGF0aWMgc3RydWN0IHh0X3RhcmdldCBtYXJrX3RnX3JlZ1td
+IF9fcmVhZF9tb3N0bHkgPSB7DQo+PiA+PiArICAgICB7DQo+PiA+PiArICAgICAgICAgICAgIC5u
+YW1lICAgICAgICAgICA9ICJNQVJLIiwNCj4+ID4+ICsgICAgICAgICAgICAgLnJldmlzaW9uICAg
+ICAgID0gMiwNCj4+ID4+ICsgICAgICAgICAgICAgLmZhbWlseSAgICAgICAgID0gTkZQUk9UT19V
+TlNQRUMsDQo+PiA+PiArICAgICAgICAgICAgIC50YXJnZXQgICAgICAgICA9IG1hcmtfdGcsDQo+
+PiA+PiArICAgICAgICAgICAgIC50YXJnZXRzaXplICAgICA9IHNpemVvZihzdHJ1Y3QgeHRfbWFy
+a190Z2luZm8yKSwNCj4+ID4+ICsgICAgICAgICAgICAgLm1lICAgICAgICAgICAgID0gVEhJU19N
+T0RVTEUsDQo+PiA+PiArICAgICB9LA0KPj4gPj4gKyAgICAgew0KPj4gPj4gKyAgICAgICAgICAg
+ICAubmFtZSAgICAgICAgICAgPSAiTUFSSyIsDQo+PiA+PiArICAgICAgICAgICAgIC5yZXZpc2lv
+biAgICAgICA9IDIsDQo+PiA+PiArICAgICAgICAgICAgIC5mYW1pbHkgICAgICAgICA9IE5GUFJP
+VE9fQVJQLA0KPj4gPj4gKyAgICAgICAgICAgICAudGFyZ2V0ICAgICAgICAgPSBtYXJrX3RnLA0K
+Pj4gPj4gKyAgICAgICAgICAgICAudGFyZ2V0c2l6ZSAgICAgPSBzaXplb2Yoc3RydWN0IHh0X21h
+cmtfdGdpbmZvMiksDQo+PiA+PiArICAgICAgICAgICAgIC5tZSAgICAgICAgICAgICA9IFRISVNf
+TU9EVUxFLA0KPj4gPj4gKyAgICAgfQ0KPj4gPj4gIH07DQo+PiA+DQo+PiA+WW91IGRvbid0IG5l
+ZWQgdGhpcy4NCj4+ID4NCj4+ID5UaGUgcHJvYmxlbSBpcyBoZXJlIHRoYXQgeW91ciBwYXRjaDoN
+Cj4+ID4NCj4+ID5odHRwOi8vcGF0Y2h3b3JrLm96bGFicy5vcmcvcGF0Y2gvNDU1OTY2Lw0KPj4g
+Pg0KPj4gPmlzIG1pc3NpbmcgdGhpcyBjaHVuazoNCj4+ID4NCj4+ID5kaWZmIC0tZ2l0IGEvbGli
+YXJwdGMvbGliYXJwdGNfaW5jbC5jIGIvbGliYXJwdGMvbGliYXJwdGNfaW5jbC5jDQo+PiA+aW5k
+ZXggYTAzNDkzMC4uODc0MDRjZSAxMDA2NDQNCj4+ID4tLS0gYS9saWJhcnB0Yy9saWJhcnB0Y19p
+bmNsLmMNCj4+ID4rKysgYi9saWJhcnB0Yy9saWJhcnB0Y19pbmNsLmMNCj4+ID5AQCAtODcyLDcg
+Kzg3Miw3IEBAIG1hcF90YXJnZXQoY29uc3QgVENfSEFORExFX1QgaGFuZGxlLA0KPj4gPiAgICAg
+ICAgLyogbWVtc2V0IHRvIGFsbCAwIGZvciB5b3VyIG1lbWNtcCBjb252ZW5pZW5jZS4gKi8NCj4+
+ID4gICAgICAgIG1lbXNldCh0LT51LnVzZXIubmFtZSArIHN0cmxlbih0LT51LnVzZXIubmFtZSks
+DQo+PiA+ICAgICAgICAgICAgICAgMCwNCj4+ID4tICAgICAgICAgICAgICBGVU5DVElPTl9NQVhO
+QU1FTEVOIC0gc3RybGVuKHQtPnUudXNlci5uYW1lKSk7DQo+PiA+KyAgICAgICAgICAgICAgRlVO
+Q1RJT05fTUFYTkFNRUxFTiAtIDEgLSBzdHJsZW4odC0+dS51c2VyLm5hbWUpKTsNCj4+ID4gICAg
+ICAgIHJldHVybiAxOw0KPj4gPiB9DQoNCjEuIA0KbWF5YmUgc2hvdWxkIGNoYW5nZSBsaWtlIHRo
+aXPvvJ8NCg0KZGlmZiAtLWdpdCBhL2xpYmFycHRjL2xpYmFycHRjX2luY2wuYyBiL2xpYmFycHRj
+L2xpYmFycHRjX2luY2wuYw0KaW5kZXggYTAzNDkzMC4uNDA0OWNiZCAxMDA2NDQNCi0tLSBhL2xp
+YmFycHRjL2xpYmFycHRjX2luY2wuYw0KKysrIGIvbGliYXJwdGMvbGliYXJwdGNfaW5jbC5jDQpA
+QCAtODcyLDcgKzg3Miw3IEBAIG1hcF90YXJnZXQoY29uc3QgVENfSEFORExFX1QgaGFuZGxlLA0K
+ICAgICAgICAvKiBtZW1zZXQgdG8gYWxsIDAgZm9yIHlvdXIgbWVtY21wIGNvbnZlbmllbmNlLiAq
+Lw0KICAgICAgICBtZW1zZXQodC0+dS51c2VyLm5hbWUgKyBzdHJsZW4odC0+dS51c2VyLm5hbWUp
+LA0KICAgICAgICAgICAgICAgMCwNCi0gICAgICAgICAgICAgIEZVTkNUSU9OX01BWE5BTUVMRU4g
+LSBzdHJsZW4odC0+dS51c2VyLm5hbWUpKTsNCisgICAgICAgICAgICAgIFhUX0VYVEVOU0lPTl9N
+QVhOQU1FTEVOIC0gc3RybGVuKHQtPnUudXNlci5uYW1lKSk7DQogICAgICAgIHJldHVybiAxOw0K
+IH0NCg0KMi4gbWFieWUgaGF2ZSBvdGhlciA0IHBsYWNlcyBzaG91bGQgY2hhbmdlIO+8nw0KYXJw
+dGFibGVzLmM6MjMzMDogICAgICAgaWYgKGNoYWluICYmIHN0cmxlbihjaGFpbikgPiBBUlBUX0ZV
+TkNUSU9OX01BWE5BTUVMRU4pDQphcnB0YWJsZXMuYzoyMzMzOiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgY2hhaW4sIEFSUFRfRlVOQ1RJT05fTUFYTkFNRUxFTik7DQppbmNsdWRlL2xpbnV4L25l
+dGZpbHRlci94X3RhYmxlcy5oOjcxOiAgY2hhciBlcnJvcm5hbWVbWFRfRlVOQ1RJT05fTUFYTkFN
+RUxFTl07DQpsaWJhcnB0Yy9saWJhcnB0Y19pbmNsLmM6ODI3OiAgIG1lbXNldCh0LT50YXJnZXQu
+dS51c2VyLm5hbWUsIDAsIEZVTkNUSU9OX01BWE5BTUVMRU4pOw0KPj4gPg0KPj4gPk90aGVyd2lz
+ZSwgdGhlIHJldmlzaW9uIG51bWJlciBpcyB6ZXJvZWQuDQo+PiA+DQo+PiA+QW5kIHlvdSBkb24n
+dCBuZWVkOiBodHRwOi8vcGF0Y2h3b3JrLm96bGFicy5vcmcvcGF0Y2gvNDU1OTY1Ly4NCj4+ID4N
+Cj4+ID5QbGVhc2UsIHJlYmFzZSB5b3VyIHVzZXJzcGFjZSBwYXRjaGVzIG9uIHRvcCBvZiBjdXJy
+ZW50IGFycHRhYmxlcyBnaXQNCj4+ID5hbmQgcmVzdWJtaXQuIFRoYW5rcy4NCj4+DQo+PiBnZXQg
+aXQg44CCd2lsbCBkb+OAgg0KPj4gd2h5IGFycHRhYmxlcyAtLXNldC1tYXJrIGNhbiB3b3JrICwg
+d2hlbiBhZGQgIE5GUFJPVE9fQVJQIHRvIHh0X21hcmsgPw0KPg0KPkkgZ3Vlc3MgeW91J3JlIHN0
+aWxsIHVzaW5nIHRoZSB1c2Vyc3BhY2UgcGF0Y2hlcyB5b3Ugc2VudC4NCj4NCj5JZiB5b3UgcmVi
+YXNlIG9uIHRvcCBvZiBjdXJyZW50IGFycHRhYmxlcyBIRUFELCB0aGF0IHdpbGwgbm90IHdvcmsu
