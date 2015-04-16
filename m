@@ -1,72 +1,136 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/7] net: refactor __netif_receive_skb_core
-Date: Thu, 16 Apr 2015 06:49:05 +0100
-Message-ID: <20150416054904.GC3285@acer.localdomain>
-References: <1428668142-4006-1-git-send-email-pablo@netfilter.org>
- <1428668142-4006-2-git-send-email-pablo@netfilter.org>
- <5527D476.6030306@iogearbox.net>
- <20150415180927.4592eb6e@brouer.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Re: [PATCH] Add NFPROTO_ARP for mark
+Date: Thu, 16 Apr 2015 13:06:03 +0200
+Message-ID: <20150416110603.GA3451@salvia>
+References: <1428374716-15108-1-git-send-email-zhangcy@cn.fujitsu.com>
+ <1428374716-15108-2-git-send-email-zhangcy@cn.fujitsu.com>
+ <20150408174911.GA4683@salvia>
+ <A43879EB4A7F5F449E2CA8148EA79E5172E8F2@G08CNEXMBPEKD01.g08.fujitsu.local>
+ <20150409104149.GA3568@salvia>
+ <A43879EB4A7F5F449E2CA8148EA79E51758324@G08CNEXMBPEKD01.g08.fujitsu.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Daniel Borkmann <daniel@iogearbox.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	davem@davemloft.net
-To: Jesper Dangaard Brouer <netdev@brouer.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64585 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750952AbbDPFtN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Apr 2015 01:49:13 -0400
+Received: from mail.us.es ([193.147.175.20]:38678 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752642AbbDPLBv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Apr 2015 07:01:51 -0400
 Content-Disposition: inline
-In-Reply-To: <20150415180927.4592eb6e@brouer.com>
+In-Reply-To: <A43879EB4A7F5F449E2CA8148EA79E51758324@G08CNEXMBPEKD01.g08.fujitsu.local>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 15.04, Jesper Dangaard Brouer wrote:
-> > Out of curiosity, what is actually the performance impact on all
-> > of this? We were just arguing on a different matter on two more
-> > instructions in the fast-path, here it's refactoring the whole
-> > function into several ones, I presume gcc won't inline it.
-> 
-> Pablo asked me to performance test this change.  Full test report below.
-> 
-> The performance effect (of this patch) depend on the Gcc compiler
-> version.
-> 
-> Two tests:
->  1. IP-forwarding (unloaded netfilter modules)
->  2. Early drop in iptables "raw" table
-> 
-> With GCC 4.4.7, which does not inline the new functions
-> (__netif_receive_skb_ingress and __netif_receive_skb_finish) the
-> performance impact/regression is definitly measurable.
-> 
-> With GCC 4.4.7:
->  1. IP-forwarding: +25.18 ns (slower) (-27776 pps)
->  2. Early-drop   :  +7.55 ns (slower) (-66577 pps)
-> 
-> With GCC 4.9.1, the new functions gets inlined, thus the refactor
-> splitup of __netif_receive_skb_core() is basically "cancled".
-> Strangly there is a small improvement for forwarding, likely due to
-> some lucky assember reordering that give less icache/fetch-misses.
-> The early-drop improvement is below accuracy levels, can cannot be
-> trusted.
-> 
-> With GCC 4.9.1:
->  1. IP-forwarding: -10.05ns (faster) (+17532 pps)
->  2. Early-drop   :  -1.54ns (faster) (+16216 pps) below accuracy levels
-> 
-> I don't know what to conclude, as the result depend on the compiler
-> version... but these kind of change do affect performance, and should
-> be tested/measured.
+On Thu, Apr 16, 2015 at 05:39:31AM +0000, Zhang, Chunyu wrote:
+>=20
+> hi pablo
+>=20
+> >From: Pablo Neira Ayuso
+> >Date: 2015-04-09
+> >To: Zhang, Chunyu/=E7=AB=A0 =E6=98=A5=E5=AE=87
+> >Subject: Re: Re: [PATCH] Add NFPROTO_ARP for mark
+> >
+> >On Thu, Apr 09, 2015 at 03:54:33AM +0000, Zhang, Chunyu wrote:
+> >> >From: Pablo Neira Ayuso
+> >> >Date: 2015-04-09
+> >> >To: Zhang, Chunyu/=E7=AB=A0 =E6=98=A5=E5=AE=87
+> >> >Subject: Re: [PATCH] Add NFPROTO_ARP for mark
+> >[...]
+> >> >> @@ -41,13 +42,23 @@ mark_mt(const struct sk_buff *skb, struct x=
+t_action_param *par)
+> >> >>       return ((skb->mark & info->mask) =3D=3D info->mark) ^ inf=
+o->invert;
+> >> >>  }
+> >> >>
+> >> >> -static struct xt_target mark_tg_reg __read_mostly =3D {
+> >> >> -     .name           =3D "MARK",
+> >> >> -     .revision       =3D 2,
+> >> >> -     .family         =3D NFPROTO_UNSPEC,
+> >> >> -     .target         =3D mark_tg,
+> >> >> -     .targetsize     =3D sizeof(struct xt_mark_tginfo2),
+> >> >> -     .me             =3D THIS_MODULE,
+> >> >> +static struct xt_target mark_tg_reg[] __read_mostly =3D {
+> >> >> +     {
+> >> >> +             .name           =3D "MARK",
+> >> >> +             .revision       =3D 2,
+> >> >> +             .family         =3D NFPROTO_UNSPEC,
+> >> >> +             .target         =3D mark_tg,
+> >> >> +             .targetsize     =3D sizeof(struct xt_mark_tginfo2=
+),
+> >> >> +             .me             =3D THIS_MODULE,
+> >> >> +     },
+> >> >> +     {
+> >> >> +             .name           =3D "MARK",
+> >> >> +             .revision       =3D 2,
+> >> >> +             .family         =3D NFPROTO_ARP,
+> >> >> +             .target         =3D mark_tg,
+> >> >> +             .targetsize     =3D sizeof(struct xt_mark_tginfo2=
+),
+> >> >> +             .me             =3D THIS_MODULE,
+> >> >> +     }
+> >> >>  };
+> >> >
+> >> >You don't need this.
+> >> >
+> >> >The problem is here that your patch:
+> >> >
+> >> >http://patchwork.ozlabs.org/patch/455966/
+> >> >
+> >> >is missing this chunk:
+> >> >
+> >> >diff --git a/libarptc/libarptc_incl.c b/libarptc/libarptc_incl.c
+> >> >index a034930..87404ce 100644
+> >> >--- a/libarptc/libarptc_incl.c
+> >> >+++ b/libarptc/libarptc_incl.c
+> >> >@@ -872,7 +872,7 @@ map_target(const TC_HANDLE_T handle,
+> >> >        /* memset to all 0 for your memcmp convenience. */
+> >> >        memset(t->u.user.name + strlen(t->u.user.name),
+> >> >               0,
+> >> >-              FUNCTION_MAXNAMELEN - strlen(t->u.user.name));
+> >> >+              FUNCTION_MAXNAMELEN - 1 - strlen(t->u.user.name));
+> >> >        return 1;
+> >> > }
+>=20
+> 1.=20
+> maybe should change like this=EF=BC=9F
+>=20
+> diff --git a/libarptc/libarptc_incl.c b/libarptc/libarptc_incl.c
+> index a034930..4049cbd 100644
+> --- a/libarptc/libarptc_incl.c
+> +++ b/libarptc/libarptc_incl.c
+> @@ -872,7 +872,7 @@ map_target(const TC_HANDLE_T handle,
+>         /* memset to all 0 for your memcmp convenience. */
+>         memset(t->u.user.name + strlen(t->u.user.name),
+>                0,
+> -              FUNCTION_MAXNAMELEN - strlen(t->u.user.name));
+> +              XT_EXTENSION_MAXNAMELEN - strlen(t->u.user.name));
 
-Thanks Jesper. This effect without inlinging was to be expected I guess.
-The interesting question would be a patch that uses nf_hook() without okfn
-callback, moves the ingress qdisc to register with the netfilter ingress
-hook and moves the TTL tracking of ing_filter() to the ingress qdisc,
-where it belongs.
+No, you can't do this.
 
-My expectation would be that this would result in an overall performance
-gain.
+After getting arptables userspace in sync with kernel headers, you can
+see that:
+
+#define ARPT_FUNCTION_MAXNAMELEN XT_FUNCTION_MAXNAMELEN
+
+and:
+
+libarptc/libarptc.c:#define FUNCTION_MAXNAMELEN ARPT_FUNCTION_MAXNAMELE=
+N
+
+You have to do it the way I suggested.
+
+Another motivation to make it the way I indicated is that this will be
+in sync with iptables/ip6tables.
+
+Anyway, I have just pushed this branch:
+
+http://git.netfilter.org/arptables/log/?h=3Dnext
+
+to try to close this discussion.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
