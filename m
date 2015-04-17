@@ -1,136 +1,99 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
 Subject: Re: Re: [PATCH] Add NFPROTO_ARP for mark
-Date: Thu, 16 Apr 2015 13:06:03 +0200
-Message-ID: <20150416110603.GA3451@salvia>
-References: <1428374716-15108-1-git-send-email-zhangcy@cn.fujitsu.com>
- <1428374716-15108-2-git-send-email-zhangcy@cn.fujitsu.com>
- <20150408174911.GA4683@salvia>
- <A43879EB4A7F5F449E2CA8148EA79E5172E8F2@G08CNEXMBPEKD01.g08.fujitsu.local>
- <20150409104149.GA3568@salvia>
- <A43879EB4A7F5F449E2CA8148EA79E51758324@G08CNEXMBPEKD01.g08.fujitsu.local>
+Date: Fri, 17 Apr 2015 01:38:11 +0000
+Message-ID: <A43879EB4A7F5F449E2CA8148EA79E5175C3CB@G08CNEXMBPEKD01.g08.fujitsu.local>
+References: <1428374716-15108-1-git-send-email-zhangcy@cn.fujitsu.com>,
+ <1428374716-15108-2-git-send-email-zhangcy@cn.fujitsu.com>,
+ <20150408174911.GA4683@salvia>,
+ <A43879EB4A7F5F449E2CA8148EA79E5172E8F2@G08CNEXMBPEKD01.g08.fujitsu.local>,
+ <20150409104149.GA3568@salvia>,
+ <A43879EB4A7F5F449E2CA8148EA79E51758324@G08CNEXMBPEKD01.g08.fujitsu.local>,
+ <20150416110603.GA3451@salvia>
+Reply-To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "Zhang, Chunyu" <zhangcy@cn.fujitsu.com>
+To: "pablo@netfilter.org" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38678 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752642AbbDPLBv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Apr 2015 07:01:51 -0400
-Content-Disposition: inline
-In-Reply-To: <A43879EB4A7F5F449E2CA8148EA79E51758324@G08CNEXMBPEKD01.g08.fujitsu.local>
+Received: from cn.fujitsu.com ([59.151.112.132]:29267 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751434AbbDQBjh (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Apr 2015 21:39:37 -0400
+Content-Language: zh-CN
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 16, 2015 at 05:39:31AM +0000, Zhang, Chunyu wrote:
->=20
-> hi pablo
->=20
-> >From: Pablo Neira Ayuso
-> >Date: 2015-04-09
-> >To: Zhang, Chunyu/=E7=AB=A0 =E6=98=A5=E5=AE=87
-> >Subject: Re: Re: [PATCH] Add NFPROTO_ARP for mark
-> >
-> >On Thu, Apr 09, 2015 at 03:54:33AM +0000, Zhang, Chunyu wrote:
-> >> >From: Pablo Neira Ayuso
-> >> >Date: 2015-04-09
-> >> >To: Zhang, Chunyu/=E7=AB=A0 =E6=98=A5=E5=AE=87
-> >> >Subject: Re: [PATCH] Add NFPROTO_ARP for mark
-> >[...]
-> >> >> @@ -41,13 +42,23 @@ mark_mt(const struct sk_buff *skb, struct x=
-t_action_param *par)
-> >> >>       return ((skb->mark & info->mask) =3D=3D info->mark) ^ inf=
-o->invert;
-> >> >>  }
-> >> >>
-> >> >> -static struct xt_target mark_tg_reg __read_mostly =3D {
-> >> >> -     .name           =3D "MARK",
-> >> >> -     .revision       =3D 2,
-> >> >> -     .family         =3D NFPROTO_UNSPEC,
-> >> >> -     .target         =3D mark_tg,
-> >> >> -     .targetsize     =3D sizeof(struct xt_mark_tginfo2),
-> >> >> -     .me             =3D THIS_MODULE,
-> >> >> +static struct xt_target mark_tg_reg[] __read_mostly =3D {
-> >> >> +     {
-> >> >> +             .name           =3D "MARK",
-> >> >> +             .revision       =3D 2,
-> >> >> +             .family         =3D NFPROTO_UNSPEC,
-> >> >> +             .target         =3D mark_tg,
-> >> >> +             .targetsize     =3D sizeof(struct xt_mark_tginfo2=
-),
-> >> >> +             .me             =3D THIS_MODULE,
-> >> >> +     },
-> >> >> +     {
-> >> >> +             .name           =3D "MARK",
-> >> >> +             .revision       =3D 2,
-> >> >> +             .family         =3D NFPROTO_ARP,
-> >> >> +             .target         =3D mark_tg,
-> >> >> +             .targetsize     =3D sizeof(struct xt_mark_tginfo2=
-),
-> >> >> +             .me             =3D THIS_MODULE,
-> >> >> +     }
-> >> >>  };
-> >> >
-> >> >You don't need this.
-> >> >
-> >> >The problem is here that your patch:
-> >> >
-> >> >http://patchwork.ozlabs.org/patch/455966/
-> >> >
-> >> >is missing this chunk:
-> >> >
-> >> >diff --git a/libarptc/libarptc_incl.c b/libarptc/libarptc_incl.c
-> >> >index a034930..87404ce 100644
-> >> >--- a/libarptc/libarptc_incl.c
-> >> >+++ b/libarptc/libarptc_incl.c
-> >> >@@ -872,7 +872,7 @@ map_target(const TC_HANDLE_T handle,
-> >> >        /* memset to all 0 for your memcmp convenience. */
-> >> >        memset(t->u.user.name + strlen(t->u.user.name),
-> >> >               0,
-> >> >-              FUNCTION_MAXNAMELEN - strlen(t->u.user.name));
-> >> >+              FUNCTION_MAXNAMELEN - 1 - strlen(t->u.user.name));
-> >> >        return 1;
-> >> > }
->=20
-> 1.=20
-> maybe should change like this=EF=BC=9F
->=20
-> diff --git a/libarptc/libarptc_incl.c b/libarptc/libarptc_incl.c
-> index a034930..4049cbd 100644
-> --- a/libarptc/libarptc_incl.c
-> +++ b/libarptc/libarptc_incl.c
-> @@ -872,7 +872,7 @@ map_target(const TC_HANDLE_T handle,
->         /* memset to all 0 for your memcmp convenience. */
->         memset(t->u.user.name + strlen(t->u.user.name),
->                0,
-> -              FUNCTION_MAXNAMELEN - strlen(t->u.user.name));
-> +              XT_EXTENSION_MAXNAMELEN - strlen(t->u.user.name));
-
-No, you can't do this.
-
-After getting arptables userspace in sync with kernel headers, you can
-see that:
-
-#define ARPT_FUNCTION_MAXNAMELEN XT_FUNCTION_MAXNAMELEN
-
-and:
-
-libarptc/libarptc.c:#define FUNCTION_MAXNAMELEN ARPT_FUNCTION_MAXNAMELE=
-N
-
-You have to do it the way I suggested.
-
-Another motivation to make it the way I indicated is that this will be
-in sync with iptables/ip6tables.
-
-Anyway, I have just pushed this branch:
-
-http://git.netfilter.org/arptables/log/?h=3Dnext
-
-to try to close this discussion.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+DQoNCj5Gcm9tOiBuZXRmaWx0ZXItZGV2ZWwtb3duZXINCj5EYXRlOiAyMDE1LTA0LTE2DQo+VG86
+IFpoYW5nLCBDaHVueXUv56ugIOaYpeWuhw0KPlN1YmplY3Q6IFJlOiBSZTogW1BBVENIXSBBZGQg
+TkZQUk9UT19BUlAgZm9yIG1hcmsNCj4NCj5PbiBUaHUsIEFwciAxNiwgMjAxNSBhdCAwNTozOToz
+MUFNICswMDAwLCBaaGFuZywgQ2h1bnl1IHdyb3RlOg0KPj4gDQo+PiBoaSBwYWJsbw0KPj4gDQo+
+PiA+RnJvbTogUGFibG8gTmVpcmEgQXl1c28NCj4+ID5EYXRlOiAyMDE1LTA0LTA5DQo+PiA+VG86
+IFpoYW5nLCBDaHVueXUv56ugIOaYpeWuhw0KPj4gPlN1YmplY3Q6IFJlOiBSZTogW1BBVENIXSBB
+ZGQgTkZQUk9UT19BUlAgZm9yIG1hcmsNCj4+ID4NCj4+ID5PbiBUaHUsIEFwciAwOSwgMjAxNSBh
+dCAwMzo1NDozM0FNICswMDAwLCBaaGFuZywgQ2h1bnl1IHdyb3RlOg0KPj4gPj4gPkZyb206IFBh
+YmxvIE5laXJhIEF5dXNvDQo+PiA+PiA+RGF0ZTogMjAxNS0wNC0wOQ0KPj4gPj4gPlRvOiBaaGFu
+ZywgQ2h1bnl1L+eroCDmmKXlrocNCj4+ID4+ID5TdWJqZWN0OiBSZTogW1BBVENIXSBBZGQgTkZQ
+Uk9UT19BUlAgZm9yIG1hcmsNCj4+ID5bLi4uXQ0KPj4gPj4gPj4gQEAgLTQxLDEzICs0MiwyMyBA
+QCBtYXJrX210KGNvbnN0IHN0cnVjdCBza19idWZmICpza2IsIHN0cnVjdCB4dF9hY3Rpb25fcGFy
+YW0gKnBhcikNCj4+ID4+ID4+ICAgICAgIHJldHVybiAoKHNrYi0+bWFyayAmIGluZm8tPm1hc2sp
+ID09IGluZm8tPm1hcmspIF4gaW5mby0+aW52ZXJ0Ow0KPj4gPj4gPj4gIH0NCj4+ID4+ID4+DQo+
+PiA+PiA+PiAtc3RhdGljIHN0cnVjdCB4dF90YXJnZXQgbWFya190Z19yZWcgX19yZWFkX21vc3Rs
+eSA9IHsNCj4+ID4+ID4+IC0gICAgIC5uYW1lICAgICAgICAgICA9ICJNQVJLIiwNCj4+ID4+ID4+
+IC0gICAgIC5yZXZpc2lvbiAgICAgICA9IDIsDQo+PiA+PiA+PiAtICAgICAuZmFtaWx5ICAgICAg
+ICAgPSBORlBST1RPX1VOU1BFQywNCj4+ID4+ID4+IC0gICAgIC50YXJnZXQgICAgICAgICA9IG1h
+cmtfdGcsDQo+PiA+PiA+PiAtICAgICAudGFyZ2V0c2l6ZSAgICAgPSBzaXplb2Yoc3RydWN0IHh0
+X21hcmtfdGdpbmZvMiksDQo+PiA+PiA+PiAtICAgICAubWUgICAgICAgICAgICAgPSBUSElTX01P
+RFVMRSwNCj4+ID4+ID4+ICtzdGF0aWMgc3RydWN0IHh0X3RhcmdldCBtYXJrX3RnX3JlZ1tdIF9f
+cmVhZF9tb3N0bHkgPSB7DQo+PiA+PiA+PiArICAgICB7DQo+PiA+PiA+PiArICAgICAgICAgICAg
+IC5uYW1lICAgICAgICAgICA9ICJNQVJLIiwNCj4+ID4+ID4+ICsgICAgICAgICAgICAgLnJldmlz
+aW9uICAgICAgID0gMiwNCj4+ID4+ID4+ICsgICAgICAgICAgICAgLmZhbWlseSAgICAgICAgID0g
+TkZQUk9UT19VTlNQRUMsDQo+PiA+PiA+PiArICAgICAgICAgICAgIC50YXJnZXQgICAgICAgICA9
+IG1hcmtfdGcsDQo+PiA+PiA+PiArICAgICAgICAgICAgIC50YXJnZXRzaXplICAgICA9IHNpemVv
+ZihzdHJ1Y3QgeHRfbWFya190Z2luZm8yKSwNCj4+ID4+ID4+ICsgICAgICAgICAgICAgLm1lICAg
+ICAgICAgICAgID0gVEhJU19NT0RVTEUsDQo+PiA+PiA+PiArICAgICB9LA0KPj4gPj4gPj4gKyAg
+ICAgew0KPj4gPj4gPj4gKyAgICAgICAgICAgICAubmFtZSAgICAgICAgICAgPSAiTUFSSyIsDQo+
+PiA+PiA+PiArICAgICAgICAgICAgIC5yZXZpc2lvbiAgICAgICA9IDIsDQo+PiA+PiA+PiArICAg
+ICAgICAgICAgIC5mYW1pbHkgICAgICAgICA9IE5GUFJPVE9fQVJQLA0KPj4gPj4gPj4gKyAgICAg
+ICAgICAgICAudGFyZ2V0ICAgICAgICAgPSBtYXJrX3RnLA0KPj4gPj4gPj4gKyAgICAgICAgICAg
+ICAudGFyZ2V0c2l6ZSAgICAgPSBzaXplb2Yoc3RydWN0IHh0X21hcmtfdGdpbmZvMiksDQo+PiA+
+PiA+PiArICAgICAgICAgICAgIC5tZSAgICAgICAgICAgICA9IFRISVNfTU9EVUxFLA0KPj4gPj4g
+Pj4gKyAgICAgfQ0KPj4gPj4gPj4gIH07DQo+PiA+PiA+DQo+PiA+PiA+WW91IGRvbid0IG5lZWQg
+dGhpcy4NCj4+ID4+ID4NCj4+ID4+ID5UaGUgcHJvYmxlbSBpcyBoZXJlIHRoYXQgeW91ciBwYXRj
+aDoNCj4+ID4+ID4NCj4+ID4+ID5odHRwOi8vcGF0Y2h3b3JrLm96bGFicy5vcmcvcGF0Y2gvNDU1
+OTY2Lw0KPj4gPj4gPg0KPj4gPj4gPmlzIG1pc3NpbmcgdGhpcyBjaHVuazoNCj4+ID4+ID4NCj4+
+ID4+ID5kaWZmIC0tZ2l0IGEvbGliYXJwdGMvbGliYXJwdGNfaW5jbC5jIGIvbGliYXJwdGMvbGli
+YXJwdGNfaW5jbC5jDQo+PiA+PiA+aW5kZXggYTAzNDkzMC4uODc0MDRjZSAxMDA2NDQNCj4+ID4+
+ID4tLS0gYS9saWJhcnB0Yy9saWJhcnB0Y19pbmNsLmMNCj4+ID4+ID4rKysgYi9saWJhcnB0Yy9s
+aWJhcnB0Y19pbmNsLmMNCj4+ID4+ID5AQCAtODcyLDcgKzg3Miw3IEBAIG1hcF90YXJnZXQoY29u
+c3QgVENfSEFORExFX1QgaGFuZGxlLA0KPj4gPj4gPiAgICAgICAgLyogbWVtc2V0IHRvIGFsbCAw
+IGZvciB5b3VyIG1lbWNtcCBjb252ZW5pZW5jZS4gKi8NCj4+ID4+ID4gICAgICAgIG1lbXNldCh0
+LT51LnVzZXIubmFtZSArIHN0cmxlbih0LT51LnVzZXIubmFtZSksDQo+PiA+PiA+ICAgICAgICAg
+ICAgICAgMCwNCj4+ID4+ID4tICAgICAgICAgICAgICBGVU5DVElPTl9NQVhOQU1FTEVOIC0gc3Ry
+bGVuKHQtPnUudXNlci5uYW1lKSk7DQo+PiA+PiA+KyAgICAgICAgICAgICAgRlVOQ1RJT05fTUFY
+TkFNRUxFTiAtIDEgLSBzdHJsZW4odC0+dS51c2VyLm5hbWUpKTsNCj4+ID4+ID4gICAgICAgIHJl
+dHVybiAxOw0KPj4gPj4gPiB9DQo+PiANCj4+IDEuIA0KPj4gbWF5YmUgc2hvdWxkIGNoYW5nZSBs
+aWtlIHRoaXPvvJ8NCj4+IA0KPj4gZGlmZiAtLWdpdCBhL2xpYmFycHRjL2xpYmFycHRjX2luY2wu
+YyBiL2xpYmFycHRjL2xpYmFycHRjX2luY2wuYw0KPj4gaW5kZXggYTAzNDkzMC4uNDA0OWNiZCAx
+MDA2NDQNCj4+IC0tLSBhL2xpYmFycHRjL2xpYmFycHRjX2luY2wuYw0KPj4gKysrIGIvbGliYXJw
+dGMvbGliYXJwdGNfaW5jbC5jDQo+PiBAQCAtODcyLDcgKzg3Miw3IEBAIG1hcF90YXJnZXQoY29u
+c3QgVENfSEFORExFX1QgaGFuZGxlLA0KPj4gICAgICAgICAvKiBtZW1zZXQgdG8gYWxsIDAgZm9y
+IHlvdXIgbWVtY21wIGNvbnZlbmllbmNlLiAqLw0KPj4gICAgICAgICBtZW1zZXQodC0+dS51c2Vy
+Lm5hbWUgKyBzdHJsZW4odC0+dS51c2VyLm5hbWUpLA0KPj4gICAgICAgICAgICAgICAgMCwNCj4+
+IC0gICAgICAgICAgICAgIEZVTkNUSU9OX01BWE5BTUVMRU4gLSBzdHJsZW4odC0+dS51c2VyLm5h
+bWUpKTsNCj4+ICsgICAgICAgICAgICAgIFhUX0VYVEVOU0lPTl9NQVhOQU1FTEVOIC0gc3RybGVu
+KHQtPnUudXNlci5uYW1lKSk7DQo+DQo+Tm8sIHlvdSBjYW4ndCBkbyB0aGlzLg0KPg0KPkFmdGVy
+IGdldHRpbmcgYXJwdGFibGVzIHVzZXJzcGFjZSBpbiBzeW5jIHdpdGgga2VybmVsIGhlYWRlcnMs
+IHlvdSBjYW4NCj5zZWUgdGhhdDoNCj4NCj4jZGVmaW5lIEFSUFRfRlVOQ1RJT05fTUFYTkFNRUxF
+TiBYVF9GVU5DVElPTl9NQVhOQU1FTEVODQo+DQo+YW5kOg0KPg0KPmxpYmFycHRjL2xpYmFycHRj
+LmM6I2RlZmluZSBGVU5DVElPTl9NQVhOQU1FTEVOIEFSUFRfRlVOQ1RJT05fTUFYTkFNRUxFTg0K
+Pg0KPllvdSBoYXZlIHRvIGRvIGl0IHRoZSB3YXkgSSBzdWdnZXN0ZWQuDQo+DQo+QW5vdGhlciBt
+b3RpdmF0aW9uIHRvIG1ha2UgaXQgdGhlIHdheSBJIGluZGljYXRlZCBpcyB0aGF0IHRoaXMgd2ls
+bCBiZQ0KPmluIHN5bmMgd2l0aCBpcHRhYmxlcy9pcDZ0YWJsZXMuDQo+DQo+QW55d2F5LCBJIGhh
+dmUganVzdCBwdXNoZWQgdGhpcyBicmFuY2g6DQo+DQo+aHR0cDovL2dpdC5uZXRmaWx0ZXIub3Jn
+L2FycHRhYmxlcy9sb2cvP2g9bmV4dA0KPg0KPnRvIHRyeSB0byBjbG9zZSB0aGlzIGRpc2N1c3Np
+b24uDQoNCm9rLiAgdGhhbmtzLg0KDQo+LS0NCj5UbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlz
+dDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbmV0ZmlsdGVyLWRldmVsIiBpbg0KPnRoZSBi
+b2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+TW9yZSBtYWpv
+cmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1s
