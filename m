@@ -1,42 +1,130 @@
-From: Zhang Chunyu <zhangcy@cn.fujitsu.com>
-Subject: [PATCH] Add arpt_MARK to xt_mark
-Date: Fri, 17 Apr 2015 10:21:32 +0800
-Message-ID: <1429237292-17701-1-git-send-email-zhangcy@cn.fujitsu.com>
+From: Daniel Collins <daniel.collins@smoothwall.net>
+Subject: [PATCH] Allow use of 'socket' match in OUTPUT
+Date: Mon, 20 Apr 2015 11:19:16 +0100
+Message-ID: <CAOmdcgWRmvq=4Fd8WN=QwptAXNUST49uAPU1BLa=ykterAyPhw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: Zhang Chunyu <zhangcy@cn.fujitsu.com>
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=047d7bf0c58e2581e80514254321
+Cc: Harry Mason <harry.mason@smoothwall.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:10420 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750810AbbDQCb1 (ORCPT
+Received: from exprod7og106.obsmtp.com ([64.18.2.165]:38028 "HELO
+	exprod7og106.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753949AbbDTKTS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Apr 2015 22:31:27 -0400
-Received: from G08CNEXCHPEKD03.g08.fujitsu.local (localhost.localdomain [127.0.0.1])
-	by edo.cn.fujitsu.com (8.14.3/8.13.1) with ESMTP id t3H2UEZV001455
-	for <netfilter-devel@vger.kernel.org>; Fri, 17 Apr 2015 10:30:14 +0800
+	Mon, 20 Apr 2015 06:19:18 -0400
+Received: by wiun10 with SMTP id n10so85519022wiu.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2015 03:19:16 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-for http://git.netfilter.org/arptables/commit/?h=next&id=4bb2f8340783fd3a3f70aa6f8807428a280f8474
+--047d7bf0c58e2581e80514254321
+Content-Type: text/plain; charset=UTF-8
 
-Signed-off-by: Zhang Chunyu <zhangcy@cn.fujitsu.com>
----
- net/netfilter/xt_mark.c | 1 +
- 1 file changed, 1 insertion(+)
+Hi
 
-diff --git a/net/netfilter/xt_mark.c b/net/netfilter/xt_mark.c
-index 2334523..ebd41dc 100644
---- a/net/netfilter/xt_mark.c
-+++ b/net/netfilter/xt_mark.c
-@@ -23,6 +23,7 @@ MODULE_ALIAS("ipt_mark");
- MODULE_ALIAS("ip6t_mark");
- MODULE_ALIAS("ipt_MARK");
- MODULE_ALIAS("ip6t_MARK");
-+MODULE_ALIAS("arpt_MARK");
- 
- static unsigned int
- mark_tg(struct sk_buff *skb, const struct xt_action_param *par)
+A little background: The 'socket' match is used with the tproxy
+feature, so a process may bind to and spoof an arbitrary client IP
+address. In iptables, the socket match is used in PREROUTING to match
+any traffic addressed to such sockets, we then use that to set a mark
+on the packet and force it to be routed locally rather than being
+passed onto the real holder of that IP address.
+
+If tproxy AND iptables-controlled policy routing (i.e. set mark in
+OUTPUT, use that in ip rule) is in use AND the new egress interface
+has a lower MTU than the original AND the server sent us a SYN-ACK
+packet with an MSS larger than the new egress interface can transmit,
+Linux will generate an ICMP fragmentation needed message, but we don't
+get to process that since socket cannot be used in OUTPUT.
+
+The attached patch only makes the changes for IPv4, it looks like IPv6
+wants similar changes, but I don't have anything available to easily
+test that.
+
+I would greatly appreciate any feedback on this patch, pointers if
+anything it does is wrong, or even alternative ways to solve this
+problem.
+
+Thanks
+
 -- 
-2.3.5
 
+Daniel Collins
+Software Developer
+
+smoothwall
+daniel.collins@smoothwall.com
+www.smoothwall.com
+
+Head Office : 1 John Charles Way, Leeds, LS12 6QA, United Kingdom
+Tech Office : Eagle Point, Little Park Farm Road, Fareham, PO15 5TD,
+United Kingdom
+US Office : 8008 Corporate Center Dr #410, Charlotte, NC 28226, United States
+
+Telephone: UK: +44 870-199-9500 US: +1 800-959-3760
+
+Smoothwall Limited is registered in England, Company Number: 4298247
+and whose registered address is 1 John Charles Way, Leeds, LS12 6QA
+United Kingdom.
+
+--047d7bf0c58e2581e80514254321
+Content-Type: text/x-patch; charset=US-ASCII; name="socket-in-output.patch"
+Content-Disposition: attachment; filename="socket-in-output.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_i8pqarrn0
+
+QXV0aG9yOiBIYXJyeSBNYXNvbiA8aGFycnkubWFzb25Ac21vb3Rod2FsbC5uZXQ+CkF1dGhvcjog
+RGFuaWVsIENvbGxpbnMgPGRhbmllbC5jb2xsaW5zQHNtb290aHdhbGwubmV0PgpEZXNjcmlwdGlv
+bjogQWxsb3cgdXNlIG9mIHRoZSAnc29ja2V0JyBpcHRhYmxlcyBtYXRjaCBpbiBPVVRQVVQsIGZv
+ciB0aGUgcHVycG9zZQogb2YgY2FwdHVyaW5nIGFuZCByZXJvdXRpbmcgZnJhZ21lbnRhdGlvbi1u
+ZWVkZWQgbWVzc2FnZXMgZ2VuZXJhdGVkIGluIHJlc3BvbnNlCiB0byBhIHRwcm94eSBzb2NrZXQg
+dHJ5aW5nIHRvIHNlbmQgbWVzc2FnZXMgbGFyZ2VyIHRoYW4gcGVybWl0dGVkIGJ5IHRoZSBNVFUg
+b2YKIHRoZSBlZ3Jlc3MgaW50ZXJmYWNlIGNob3NlbiBieSByZXJvdXRpbmcuCi0tLSBhL25ldC9u
+ZXRmaWx0ZXIveHRfc29ja2V0LmMKKysrIGIvbmV0L25ldGZpbHRlci94dF9zb2NrZXQuYwpAQCAt
+MTE1LDE2ICsxMTUsMTYgQEAKIHh0X3NvY2tldF9nZXRfc29ja192NChzdHJ1Y3QgbmV0ICpuZXQs
+IGNvbnN0IHU4IHByb3RvY29sLAogCQkgICAgICBjb25zdCBfX2JlMzIgc2FkZHIsIGNvbnN0IF9f
+YmUzMiBkYWRkciwKIAkJICAgICAgY29uc3QgX19iZTE2IHNwb3J0LCBjb25zdCBfX2JlMTYgZHBv
+cnQsCi0JCSAgICAgIGNvbnN0IHN0cnVjdCBuZXRfZGV2aWNlICppbikKKwkJICAgICAgY29uc3Qg
+aW50IGlmaW5kZXgpCiB7CiAJc3dpdGNoIChwcm90b2NvbCkgewogCWNhc2UgSVBQUk9UT19UQ1A6
+CiAJCXJldHVybiBfX2luZXRfbG9va3VwKG5ldCwgJnRjcF9oYXNoaW5mbywKIAkJCQkgICAgIHNh
+ZGRyLCBzcG9ydCwgZGFkZHIsIGRwb3J0LAotCQkJCSAgICAgaW4tPmlmaW5kZXgpOworCQkJCSAg
+ICAgaWZpbmRleCk7CiAJY2FzZSBJUFBST1RPX1VEUDoKIAkJcmV0dXJuIHVkcDRfbGliX2xvb2t1
+cChuZXQsIHNhZGRyLCBzcG9ydCwgZGFkZHIsIGRwb3J0LAotCQkJCSAgICAgICBpbi0+aWZpbmRl
+eCk7CisJCQkJICAgICAgIGlmaW5kZXgpOwogCX0KIAlyZXR1cm4gTlVMTDsKIH0KQEAgLTE4Mywx
+MCArMTgzLDM1IEBACiAJfQogI2VuZGlmCiAKLQlpZiAoIXNrKQotCQlzayA9IHh0X3NvY2tldF9n
+ZXRfc29ja192NChkZXZfbmV0KHNrYi0+ZGV2KSwgcHJvdG9jb2wsCisJLyogRm9yIGlucHV0IHBh
+Y2tldHMsIHNrIGlzIHRoZSBkZXN0aW5hdGlvbiBzb2NrZXQsIHNvIGlmIGl0IGlzIGFscmVhZHkK
+KwkgKiBkZWZpbmVkIHRoZXJlIGlzIG5vIG5lZWQgdG8gc2VhcmNoIGFnYWluLgorCSAqCisJICog
+Rm9yIG91dHB1dCBwYWNrZXRzLCBzayB3aWxsIGJlIHRoZSBzb3VyY2Ugc29ja2V0LCBidXQgd2Ug
+YXJlCisJICogaW50ZXJlc3RlZCBpbiB0aGUgZGVzdGluYXRpb24gc29ja2V0LCBzbyBmb3JjZSBh
+IGxvb2t1cC4gVGhpcworCSAqIHN1cHBvcnRzIGxvY2FsbHkgZ2VuZXJhdGVkIElDTVAgZXJyb3Jz
+IGZvciBzb2NrZXRzIHdpdGggbm9uLWxvY2FsCisJICogYWRkcmVzc2VzLgorCSovCisJaWYgKCFw
+YXItPmluIHx8ICFzaykgeworCQkvKiBDaGVjayBmb3Igc29ja2V0cyBpbiB0aGUgbmV0d29yayBu
+YW1lc3BhY2UgYXNzb2NpYXRlZCB3aXRoCisJCSAqIHRoZSBwYWNrZXRzIGRldmljZSwgaWYgaXQg
+aGFzIG9uZSAoaS5lLiBpcyBhbiBpbmNvbW1pbmcgcGFja2V0KSwKKwkJICogZWxzZSB1c2UgdGhl
+IG91dGdvaW5nIGRldmljZSBtYWRlIGJ5IHRoZSByb3V0aW5nIGRlY2lzaW9uLgorCQkgKgorCQkg
+KiBTdG9sZW4gZnJvbSBuZXQvaXB2NC9pY21wLmMKKwkJKi8KKwkJc3RydWN0IG5ldCAqbmV0ID0g
+ZGV2X25ldChza2ItPmRldiA/OiBza2JfZHN0KHNrYiktPmRldik7CisKKwkJLyogaWZpbmRleCBp
+cyB1c2VkIHdoZW4gbG9va2luZyB1cCBzb2NrZXQgaWYgYW55IHNvY2tldHMgYXJlCisJCSAqIGJv
+dW5kIHRvIGEgc3BlY2lmaWMgaW50ZXJmYWNlLCB3ZSBrbm93IHRoZSBkZXZpY2Ugb24gdGhlCisJ
+CSAqIGlucHV0IHNpZGUsIGJ1dCByZXNvcnQgdG8gaWdub3JpbmcgYW55IHN1Y2ggc29ja2V0cyBv
+biB0aGUKKwkJICogb3V0cHV0IHNpZGUuCisJCSovCisJCWludCBpZmluZGV4ID0gcGFyLT5pbiA/
+IHBhci0+aW4tPmlmaW5kZXggOiAwOworCisJCXNrID0geHRfc29ja2V0X2dldF9zb2NrX3Y0KG5l
+dCwgcHJvdG9jb2wsCiAJCQkJCSAgIHNhZGRyLCBkYWRkciwgc3BvcnQsIGRwb3J0LAotCQkJCQkg
+ICBwYXItPmluKTsKKwkJCQkJICAgaWZpbmRleCk7CisJfQorCiAJaWYgKHNrKSB7CiAJCWJvb2wg
+d2lsZGNhcmQ7CiAJCWJvb2wgdHJhbnNwYXJlbnQgPSB0cnVlOwpAQCAtNDE3LDcgKzQ0Miw4IEBA
+CiAJCS5mYW1pbHkJCT0gTkZQUk9UT19JUFY0LAogCQkubWF0Y2gJCT0gc29ja2V0X210NF92MCwK
+IAkJLmhvb2tzCQk9ICgxIDw8IE5GX0lORVRfUFJFX1JPVVRJTkcpIHwKLQkJCQkgICgxIDw8IE5G
+X0lORVRfTE9DQUxfSU4pLAorCQkJCSAgKDEgPDwgTkZfSU5FVF9MT0NBTF9JTikgfAorCQkJCSAg
+KDEgPDwgTkZfSU5FVF9MT0NBTF9PVVQpLAogCQkubWUJCT0gVEhJU19NT0RVTEUsCiAJfSwKIAl7
+CkBAIC00MjgsNyArNDU0LDggQEAKIAkJLmNoZWNrZW50cnkJPSBzb2NrZXRfbXRfdjFfY2hlY2ss
+CiAJCS5tYXRjaHNpemUJPSBzaXplb2Yoc3RydWN0IHh0X3NvY2tldF9tdGluZm8xKSwKIAkJLmhv
+b2tzCQk9ICgxIDw8IE5GX0lORVRfUFJFX1JPVVRJTkcpIHwKLQkJCQkgICgxIDw8IE5GX0lORVRf
+TE9DQUxfSU4pLAorCQkJCSAgKDEgPDwgTkZfSU5FVF9MT0NBTF9JTikgfAorCQkJCSAgKDEgPDwg
+TkZfSU5FVF9MT0NBTF9PVVQpLAogCQkubWUJCT0gVEhJU19NT0RVTEUsCiAJfSwKICNpZmRlZiBY
+VF9TT0NLRVRfSEFWRV9JUFY2CkBAIC00NTIsNyArNDc5LDggQEAKIAkJLmNoZWNrZW50cnkJPSBz
+b2NrZXRfbXRfdjJfY2hlY2ssCiAJCS5tYXRjaHNpemUJPSBzaXplb2Yoc3RydWN0IHh0X3NvY2tl
+dF9tdGluZm8xKSwKIAkJLmhvb2tzCQk9ICgxIDw8IE5GX0lORVRfUFJFX1JPVVRJTkcpIHwKLQkJ
+CQkgICgxIDw8IE5GX0lORVRfTE9DQUxfSU4pLAorCQkJCSAgKDEgPDwgTkZfSU5FVF9MT0NBTF9J
+TikgfAorCQkJCSAgKDEgPDwgTkZfSU5FVF9MT0NBTF9PVVQpLAogCQkubWUJCT0gVEhJU19NT0RV
+TEUsCiAJfSwKICNpZmRlZiBYVF9TT0NLRVRfSEFWRV9JUFY2Cg==
+--047d7bf0c58e2581e80514254321--
