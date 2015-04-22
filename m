@@ -1,59 +1,32 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: bridge: fix NULL deref in physin/out ifindex helpers
-Date: Mon, 20 Apr 2015 12:35:47 +0200
-Message-ID: <1429526147-4058-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Nikita Klimov <nikita@klimov.us>
+Subject: roadmap of the nftables development
+Date: Wed, 22 Apr 2015 12:31:48 +0300
+Message-ID: <874mo8wl00.fsf@klimov-ThinkPad-T530.i-did-not-set--mail-host-address--so-tickle-me>
+Mime-Version: 1.0
+Content-Type: text/plain
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:47047 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754538AbbDTKfx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Apr 2015 06:35:53 -0400
+Received: from mail.jaur.su ([78.108.88.47]:37155 "EHLO mail.jaur.su"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S934373AbbDVJ4C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Apr 2015 05:56:02 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.jaur.su (Postfix) with ESMTP id D861F1275A4
+	for <netfilter-devel@vger.kernel.org>; Wed, 22 Apr 2015 13:49:38 +0400 (MSK)
+Received: from mail.jaur.su ([127.0.0.1])
+	by localhost (mail.jaur.su [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id NTwvMfS29ZDe for <netfilter-devel@vger.kernel.org>;
+	Wed, 22 Apr 2015 13:49:36 +0400 (MSK)
+Received: from localhost (unknown [81.95.28.29])
+	by mail.jaur.su (Postfix) with ESMTPSA id 16A591275A2
+	for <netfilter-devel@vger.kernel.org>; Wed, 22 Apr 2015 13:49:35 +0400 (MSK)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Might not have an outdev yet. We'll oops when iface goes down while skbs
-are still nfqueue'd:
-
-RIP: 0010:[<ffffffff81422a2f>]  [<ffffffff81422a2f>] dev_cmp+0x4f/0x80
-nfqnl_rcv_dev_event+0xe2/0x150
-notifier_call_chain+0x53/0xa0
-
-Fixes: c737b7c4510026 ("netfilter: bridge: add helpers for fetching physin/outdev")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
-diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
-index ab8f76d..f2fdb5a 100644
---- a/include/linux/netfilter_bridge.h
-+++ b/include/linux/netfilter_bridge.h
-@@ -39,12 +39,24 @@ static inline void br_drop_fake_rtable(struct sk_buff *skb)
- 
- static inline int nf_bridge_get_physinif(const struct sk_buff *skb)
- {
--	return skb->nf_bridge ? skb->nf_bridge->physindev->ifindex : 0;
-+	struct nf_bridge_info *nf_bridge;
-+
-+	if (skb->nf_bridge == NULL)
-+		return 0;
-+
-+	nf_bridge = skb->nf_bridge;
-+	return nf_bridge->physindev ? nf_bridge->physindev->ifindex : 0;
- }
- 
- static inline int nf_bridge_get_physoutif(const struct sk_buff *skb)
- {
--	return skb->nf_bridge ? skb->nf_bridge->physoutdev->ifindex : 0;
-+	struct nf_bridge_info *nf_bridge;
-+
-+	if (skb->nf_bridge == NULL)
-+		return 0;
-+
-+	nf_bridge = skb->nf_bridge;
-+	return nf_bridge->physoutdev ? nf_bridge->physoutdev->ifindex : 0;
- }
- 
- static inline struct net_device *
--- 
-2.0.5
-
+Hello everyone.
+I want to thank the authors of the nftables project. This project solved
+most of the problems that exist for a long time. I am extremely
+interested in the stable release that came out, which can be
+use in production. Therefore, I would like to offer its assistance in
+development. Is there any roadmap for the release of the stable
+release?
