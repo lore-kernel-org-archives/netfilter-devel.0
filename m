@@ -1,49 +1,55 @@
-From: David Miller <davem@davemloft.net>
-Subject: [PATCH] netfilter; Add some missing default cases to switch
- statements in nft_reject.
-Date: Mon, 27 Apr 2015 13:21:36 -0400 (EDT)
-Message-ID: <20150427.132136.1140998595054330703.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-7
-Content-Transfer-Encoding: base64
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: netdev@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/2] Netfilter fixes for net
+Date: Mon, 27 Apr 2015 20:41:55 +0200
+Message-ID: <1430160117-21150-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:56059 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752965AbbD0RVk (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 27 Apr 2015 13:21:40 -0400
+Received: from mail.us.es ([193.147.175.20]:44469 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753040AbbD0Sha (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 27 Apr 2015 14:37:30 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-DQpUaGlzIGZpeGVzOg0KDQo9PT09PT09PT09PT09PT09PT09PQ0KbmV0L25ldGZpbHRlci9uZnRf
-cmVqZWN0LmM6IEluIGZ1bmN0aW9uIKFuZnRfcmVqZWN0X2R1bXCiOg0KbmV0L25ldGZpbHRlci9u
-ZnRfcmVqZWN0LmM6NjE6Mjogd2FybmluZzogZW51bWVyYXRpb24gdmFsdWUgoU5GVF9SRUpFQ1Rf
-VENQX1JTVKIgbm90IGhhbmRsZWQgaW4gc3dpdGNoIFstV3N3aXRjaF0NCiAgc3dpdGNoIChwcml2
-LT50eXBlKSB7DQogIF4NCm5ldC9uZXRmaWx0ZXIvbmZ0X3JlamVjdC5jOjYxOjI6IHdhcm5pbmc6
-IGVudW1lcmF0aW9uIHZhbHVlIKFORlRfUkVKRUNUX0lDTVBYX1VOUkVBQ0iiIG5vdCBoYW5kbGVk
-IGluIHN3aXRjaCBbLVdzd2lcDQp0Y2hdDQpuZXQvbmV0ZmlsdGVyL25mdF9yZWplY3RfaW5ldC5j
-OiBJbiBmdW5jdGlvbiChbmZ0X3JlamVjdF9pbmV0X2R1bXCiOg0KbmV0L25ldGZpbHRlci9uZnRf
-cmVqZWN0X2luZXQuYzoxMDU6Mjogd2FybmluZzogZW51bWVyYXRpb24gdmFsdWUgoU5GVF9SRUpF
-Q1RfVENQX1JTVKIgbm90IGhhbmRsZWQgaW4gc3dpdGNoIFstV3N3aVwNCnRjaF0NCiAgc3dpdGNo
-IChwcml2LT50eXBlKSB7DQogIF4NCj09PT09PT09PT09PT09PT09PT09DQoNClNpZ25lZC1vZmYt
-Ynk6IERhdmlkIFMuIE1pbGxlciA8ZGF2ZW1AZGF2ZW1sb2Z0Lm5ldD4NCi0tLQ0KDQpJIGp1c3Qg
-cHVzaGVkIHRoaXMgaW50byB0aGUgJ25ldCcgdHJlZSwganVzdCBGWUkuLi4NCg0KIG5ldC9uZXRm
-aWx0ZXIvbmZ0X3JlamVjdC5jICAgICAgfCAyICsrDQogbmV0L25ldGZpbHRlci9uZnRfcmVqZWN0
-X2luZXQuYyB8IDIgKysNCiAyIGZpbGVzIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKQ0KDQpkaWZm
-IC0tZ2l0IGEvbmV0L25ldGZpbHRlci9uZnRfcmVqZWN0LmMgYi9uZXQvbmV0ZmlsdGVyL25mdF9y
-ZWplY3QuYw0KaW5kZXggNTdkM2UxYS4uMDUyMmZjOSAxMDA2NDQNCi0tLSBhL25ldC9uZXRmaWx0
-ZXIvbmZ0X3JlamVjdC5jDQorKysgYi9uZXQvbmV0ZmlsdGVyL25mdF9yZWplY3QuYw0KQEAgLTYz
-LDYgKzYzLDggQEAgaW50IG5mdF9yZWplY3RfZHVtcChzdHJ1Y3Qgc2tfYnVmZiAqc2tiLCBjb25z
-dCBzdHJ1Y3QgbmZ0X2V4cHIgKmV4cHIpDQogCQlpZiAobmxhX3B1dF91OChza2IsIE5GVEFfUkVK
-RUNUX0lDTVBfQ09ERSwgcHJpdi0+aWNtcF9jb2RlKSkNCiAJCQlnb3RvIG5sYV9wdXRfZmFpbHVy
-ZTsNCiAJCWJyZWFrOw0KKwlkZWZhdWx0Og0KKwkJYnJlYWs7DQogCX0NCiANCiAJcmV0dXJuIDA7
-DQpkaWZmIC0tZ2l0IGEvbmV0L25ldGZpbHRlci9uZnRfcmVqZWN0X2luZXQuYyBiL25ldC9uZXRm
-aWx0ZXIvbmZ0X3JlamVjdF9pbmV0LmMNCmluZGV4IDYyY2FiZWUuLjYzNWRiYmEgMTAwNjQ0DQot
-LS0gYS9uZXQvbmV0ZmlsdGVyL25mdF9yZWplY3RfaW5ldC5jDQorKysgYi9uZXQvbmV0ZmlsdGVy
-L25mdF9yZWplY3RfaW5ldC5jDQpAQCAtMTA4LDYgKzEwOCw4IEBAIHN0YXRpYyBpbnQgbmZ0X3Jl
-amVjdF9pbmV0X2R1bXAoc3RydWN0IHNrX2J1ZmYgKnNrYiwNCiAJCWlmIChubGFfcHV0X3U4KHNr
-YiwgTkZUQV9SRUpFQ1RfSUNNUF9DT0RFLCBwcml2LT5pY21wX2NvZGUpKQ0KIAkJCWdvdG8gbmxh
-X3B1dF9mYWlsdXJlOw0KIAkJYnJlYWs7DQorCWRlZmF1bHQ6DQorCQlicmVhazsNCiAJfQ0KIA0K
-IAlyZXR1cm4gMDsNCi0tIA0KMi4zLjUNCg0K
+Hi David,
+
+The following patchset contains Netfilter fixes for your net tree,
+they are:
+
+1) Fix a crash in nf_tables when dictionaries are used from the ruleset,
+   due to memory corruption, from Florian Westphal.
+
+2) Fix another crash in nf_queue when used with br_netfilter. Also from
+   Florian.
+
+Both fixes are related to new stuff that got in 4.0-rc.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit b357a364c57c940ddb932224542494363df37378:
+
+  inet: fix possible panic in reqsk_queue_unlink() (2015-04-24 11:39:15 -0400)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to 547c4b547e07dcc60874b6ef6252dd49ff74aec1:
+
+  netfilter: bridge: fix NULL deref in physin/out ifindex helpers (2015-04-24 20:51:40 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (2):
+      netfilter: nf_tables: fix wrong length for jump/goto verdicts
+      netfilter: bridge: fix NULL deref in physin/out ifindex helpers
+
+ include/linux/netfilter_bridge.h |   16 ++++++++++++++--
+ net/netfilter/nf_tables_api.c    |    3 +--
+ 2 files changed, 15 insertions(+), 4 deletions(-)
