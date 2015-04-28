@@ -1,51 +1,30 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/2] netfilter: nf_tables: fix wrong length for jump/goto verdicts
-Date: Mon, 27 Apr 2015 20:41:56 +0200
-Message-ID: <1430160117-21150-2-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/2] Netfilter fixes for net
+Date: Mon, 27 Apr 2015 23:13:49 -0400 (EDT)
+Message-ID: <20150427.231349.1619965797196652700.davem@davemloft.net>
 References: <1430160117-21150-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <1430160117-21150-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 27 Apr 2015 20:41:55 +0200
 
-NFT_JUMP/GOTO erronously sets length to sizeof(void *).
+> The following patchset contains Netfilter fixes for your net tree,
+> they are:
+> 
+> 1) Fix a crash in nf_tables when dictionaries are used from the ruleset,
+>    due to memory corruption, from Florian Westphal.
+> 
+> 2) Fix another crash in nf_queue when used with br_netfilter. Also from
+>    Florian.
+> 
+> Both fixes are related to new stuff that got in 4.0-rc.
 
-We then allocate insufficient memory when such element is added to a vmap.
-
-Suggested-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 78af83b..ad9d11f 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4340,7 +4340,6 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
- 	case NFT_CONTINUE:
- 	case NFT_BREAK:
- 	case NFT_RETURN:
--		desc->len = sizeof(data->verdict);
- 		break;
- 	case NFT_JUMP:
- 	case NFT_GOTO:
-@@ -4355,10 +4354,10 @@ static int nft_verdict_init(const struct nft_ctx *ctx, struct nft_data *data,
- 
- 		chain->use++;
- 		data->verdict.chain = chain;
--		desc->len = sizeof(data);
- 		break;
- 	}
- 
-+	desc->len = sizeof(data->verdict);
- 	desc->type = NFT_DATA_VERDICT;
- 	return 0;
- }
--- 
-1.7.10.4
+Pulled, thanks Pablo.
