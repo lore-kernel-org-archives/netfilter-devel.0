@@ -1,137 +1,71 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/6 RFC] Netfilter ingress support (v2)
-Date: Wed, 29 Apr 2015 20:53:03 +0200
-Message-ID: <1430333589-4940-1-git-send-email-pablo@netfilter.org>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Subject: Re: [PATCH 6/6] net: move qdisc ingress filtering on top of netfilter
+ ingress hooks
+Date: Wed, 29 Apr 2015 22:27:05 +0200
+Message-ID: <55413E99.5000807@iogearbox.net>
+References: <1430333589-4940-1-git-send-email-pablo@netfilter.org> <1430333589-4940-7-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: davem@davemloft.net, netdev@vger.kernel.org, jhs@mojatatu.com
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from www62.your-server.de ([213.133.104.62]:54526 "EHLO
+	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750788AbbD2U1K (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 Apr 2015 16:27:10 -0400
+In-Reply-To: <1430333589-4940-7-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On 04/29/2015 08:53 PM, Pablo Neira Ayuso wrote:
+> Port qdisc ingress on top of the Netfilter ingress allows us to detach the
+> qdisc ingress filtering code from the core, so now it resides where it really
+> belongs.
 
-This is a second round of the patchset to add Netfilter ingress support. This
-new patchset introduces the necessary updates in 3 steps:
+Hm, but that means, in case you have a tc ingress qdisc attached
+with one single (ideal) or more (less ideal) classifier/actions,
+the path we _now_ have to traverse just to a single tc classifier
+invocation is, if I spot this correctly, f.e.:
 
-0) Three some small cleanups and preparation patches to support this.
+  __netif_receive_skb_core()
+  `-> nf_hook_ingress()
+   `-> nf_hook_do_ingress()
+    `-> nf_hook_slow()
+     `-> [for each entry in hook list]
+      `-> nf_iterate()
+       `-> (*elemp)->hook()
+        `-> handle_ing()
+         `-> ing_filter()
+          `-> qdisc_enqueue_root()
+           `-> sch->enqueue()
+            `-> ingress_enqueue()
+             `-> tc_classify()
+              `-> tc_classify_compat()
+               `-> [for each attached classifier]
+                `-> tp->classify()
+                 `-> f.e. cls_bpf_classify()
+                  `-> [for each classifier from plist]
+                   `-> BPF_PROG_RUN()
 
-1) Move the generic hook infrastructure to net/core/hooks.c. This avoids the
-   dependency between the layer 2 and 3 hooks.
+What was actually mentioned in the other thread where we'd like to
+see a more lightweight ingress qdisc is to cut that down tremendously
+to increase pps rate, as provided, that we would be able to process
+a path roughly like:
 
-2) Add the Netfilter ingress hook just after the ingress qdisc. This introduces
-   a penalty in the critical ingress path, but this is canceled in the next
-   final step.
+  __netif_receive_skb_core()
+  `-> tc_classify()
+   `-> tc_classify_compat()
+     `-> [for each attached classifier]
+       `-> tp->classify()
+         `-> f.e. cls_bpf_classify()
+           `-> [for each classifier from plist]
+             `-> BPF_PROG_RUN()
 
-3) Port the ingress qdisc on top of the Netfilter ingress hook infrastructure
-   as suggested by Patrick. This also provides flexible configurations since
-   you can combine nftables with the existing ingress qdisc by placing the
-   ingress filter chain before or after it. Another nice side effect of this
-   change is that most of the qdisc ingress code that is embedded into
-   net/core/dev.c now can be placed in net/sched/sch_ingress.c
+Therefore, I think it would be better to not wrap that ingress qdisc
+part of the patch set into even more layers. What do you think?
 
-This patchset provides the basic infrastructure to allow the use of nftables
-from ingress, this just needs some extra boiler plate code in place to add the
-new 'netdev' family already posted [2][1] on top of this. This opens the window
-to existing nftables core features that are not present in qdisc ingress and
-that can be used out-of-the-box, most relevantly:
-
-1) Multi-dimensional key dictionary lookups: You can build tuples composed on N
-   selectors (any kind of supported selector) and find the action to be
-   performed on the packet in practical O(1).
-
-	ip saddr . ip daddr . tcp dport { \
-		2.2.2.2 . 3.3.3.3 . 80 : ...action here..., \
-		..., \
-	}
-
-2) Arbitrary stateful flow tables. Basically, based on whatever tuple of
-   selectors, we can dynamically create elements from the packet path that are
-   inserted in the set. These elements store the internal state information,
-   using the set extension infrastructure, so follow up packets match that
-   element and update the internal stateful information.
-
-        flow ip saddr . tcp dport counter
-
-   where the content listing would look like:
-
-	{
-		1.2.3.4 . 80 : counter packets 1001 bytes 40040,
-		1.2.3.4 . 443 : counter packets 123 bytes 3000,
-		...
-	}
-
-3) Transactions: tc comes with no way to atomically update rulesets. This
-   basically requires the introduction of a new batch-based interface similar
-   to what we already have in nftables.
-
-These would require in qdisc ingress a similar virtual machine approach to
-address this in a generic fashion, a generic set infrastructure and a new
-netlink interface to support batches, updates from the userspace side, which is
-basically what nftables provides.
-
->From the userspace side: Nice syntax, well-defined grammar, unified interface,
-support new protocols without kernel upgrades (You will only need to upgrade
-the userspace nft tool to add native support protocol layout) among many others.
-
-Wrt. performance numbers, the critical ingress path when no ingress filters
-are registered is not affected:
-
-* Without patchset:
-
-  Result: OK: 11901881(c11901881+d0) usec, 10000000 (60byte,0frags)
-  840203pps 403Mb/sec (403297440bps) errors: 10000000
-
-* With patchset:
-
-  Result: OK: 11885627(c11885627+d0) usec, 10000000 (60byte,0frags)
-  841352pps 403Mb/sec (403848960bps) errors: 10000000
-
-I have obtained these numbers using Alexei's rx patch for pktgen to benchmark
-the netif_receive_core() path.
-
-In summary, this provides the facility to keep both tc and netfilter in place,
-while the user can select what they prefer to filter from ingress. Many scripts
-on the Internet and documentation already show that many of them have been
-using iptables from prerouting as alternative, when it came to IP traffic,
-since long time already.
-
-Patrick already indicated more arguments at:
-
-	http://www.spinics.net/lists/netdev/msg325210.html
-
-Thanks.
-
-[1] http://patchwork.ozlabs.org/patch/460065/
-[2] http://patchwork.ozlabs.org/patch/460062/
-
-Pablo Neira Ayuso (6):
-  netfilter: cleanup struct nf_hook_ops indentation
-  netfilter: add hook list to nf_hook_state
-  netfilter: add nf_hook_list_active()
-  netfilter: move generic hook infrastructure into net/core/hooks.c
-  net: add netfilter ingress hook
-  net: move qdisc ingress filtering on top of netfilter ingress hooks
-
- MAINTAINERS                       |    1 +
- include/linux/netdevice.h         |    4 +
- include/linux/netfilter.h         |   92 +------------------
- include/linux/netfilter_hooks.h   |  118 ++++++++++++++++++++++++
- include/linux/netfilter_ingress.h |   44 +++++++++
- include/linux/rtnetlink.h         |   13 ---
- include/net/netfilter/nf_queue.h  |    1 +
- include/uapi/linux/netfilter.h    |    6 ++
- net/Kconfig                       |   14 +++
- net/core/Makefile                 |    1 +
- net/core/dev.c                    |  106 +++++----------------
- net/core/hooks.c                  |  182 +++++++++++++++++++++++++++++++++++++
- net/netfilter/core.c              |  151 +-----------------------------
- net/netfilter/nf_internals.h      |    2 -
- net/sched/Kconfig                 |    1 +
- net/sched/sch_ingress.c           |   60 +++++++++++-
- 16 files changed, 457 insertions(+), 339 deletions(-)
- create mode 100644 include/linux/netfilter_hooks.h
- create mode 100644 include/linux/netfilter_ingress.h
- create mode 100644 net/core/hooks.c
-
--- 
-1.7.10.4
+Thanks,
+Daniel
