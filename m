@@ -1,17 +1,47 @@
-From: David Miller <davem@davemloft.net>
-Subject: net-next is now OPEN
-Date: Wed, 29 Apr 2015 17:08:21 -0400 (EDT)
-Message-ID: <20150429.170821.1440756964940107639.davem@davemloft.net>
+From: Cong Wang <cwang@twopensource.com>
+Subject: Re: [PATCH 6/6] net: move qdisc ingress filtering on top of netfilter
+ ingress hooks
+Date: Wed, 29 Apr 2015 14:53:58 -0700
+Message-ID: <CAHA+R7NWeOLTjgAd9xQNcVP=snNOiH0aLy0FyUWzqdH+gVbJ9g@mail.gmail.com>
+References: <1430333589-4940-1-git-send-email-pablo@netfilter.org>
+	<1430333589-4940-7-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, linux-wireless@vger.kernel.org
-To: netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org,
+	David Miller <davem@davemloft.net>,
+	netdev <netdev@vger.kernel.org>,
+	Jamal Hadi Salim <jhs@mojatatu.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:32985 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751531AbbD2VyA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 Apr 2015 17:54:00 -0400
+Received: by wgin8 with SMTP id n8so42904194wgi.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Apr 2015 14:53:58 -0700 (PDT)
+In-Reply-To: <1430333589-4940-7-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+On Wed, Apr 29, 2015 at 11:53 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> diff --git a/net/sched/Kconfig b/net/sched/Kconfig
+> index 2274e72..23b57da 100644
+> --- a/net/sched/Kconfig
+> +++ b/net/sched/Kconfig
+> @@ -312,6 +312,7 @@ config NET_SCH_PIE
+>  config NET_SCH_INGRESS
+>         tristate "Ingress Qdisc"
+>         depends on NET_CLS_ACT
+> +       select NETFILTER_INGRESS
+>         ---help---
+>           Say Y here if you want to use classifiers for incoming packets.
+>           If unsure, say Y.
 
 
-The net-next tree is now open for submissions.
+So now it impossible to compile ingress Qdics without netfilters...
 
-Fire away...
+(I know you moved them into net/core/, but still they are netfilter API's.)
+
+Why do we have to mix different layers? IOW, why not just keep TC at L2
+and netfilters at L3 even just w.r.t. API?
