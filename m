@@ -1,30 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/2] Netfilter fixes for net
-Date: Mon, 27 Apr 2015 23:13:49 -0400 (EDT)
-Message-ID: <20150427.231349.1619965797196652700.davem@davemloft.net>
-References: <1430160117-21150-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1430160117-21150-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Natanael Copa <ncopa@alpinelinux.org>
+Subject: [PATCH libnetfilter_log] Add include needed for integer type definition.
+Date: Wed, 29 Apr 2015 10:50:58 +0200
+Message-ID: <1430297458-20973-1-git-send-email-ncopa@alpinelinux.org>
+Cc: Natanael Copa <ncopa@alpinelinux.org>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.alpinelinux.org ([74.117.189.114]:55804 "EHLO
+	mail.alpinelinux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422789AbbD2I60 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 Apr 2015 04:58:26 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 27 Apr 2015 20:41:55 +0200
+The sys/types.h is needed for u_int*_t types.
 
-> The following patchset contains Netfilter fixes for your net tree,
-> they are:
-> 
-> 1) Fix a crash in nf_tables when dictionaries are used from the ruleset,
->    due to memory corruption, from Florian Westphal.
-> 
-> 2) Fix another crash in nf_queue when used with br_netfilter. Also from
->    Florian.
-> 
-> Both fixes are related to new stuff that got in 4.0-rc.
+Signed-off-by: Natanael Copa <ncopa@alpinelinux.org>
+---
+ include/libnetfilter_log/libipulog.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-Pulled, thanks Pablo.
+diff --git a/include/libnetfilter_log/libipulog.h b/include/libnetfilter_log/libipulog.h
+index 8a4ae2a..1093bdd 100644
+--- a/include/libnetfilter_log/libipulog.h
++++ b/include/libnetfilter_log/libipulog.h
+@@ -4,6 +4,7 @@
+ #include <errno.h>
+ #include <unistd.h>
+ #include <fcntl.h>
++#include <sys/types.h>
+ 
+ /* FIXME: glibc sucks */
+ #ifndef MSG_TRUNC 
+-- 
+2.3.6
+
