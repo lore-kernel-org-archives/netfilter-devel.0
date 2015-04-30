@@ -1,68 +1,55 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCH 6/6] net: move qdisc ingress filtering on top of
  netfilter ingress hooks
-Date: Thu, 30 Apr 2015 12:12:04 +0200
-Message-ID: <20150430101204.GA3167@salvia>
-References: <1430333589-4940-1-git-send-email-pablo@netfilter.org>
- <1430333589-4940-7-git-send-email-pablo@netfilter.org>
- <55413E99.5000807@iogearbox.net>
+Date: Thu, 30 Apr 2015 12:28:41 +0200
+Message-ID: <20150430102841.GA3373@salvia>
+References: <55413E99.5000807@iogearbox.net>
  <20150429233205.GA3416@salvia>
- <55417545.30103@iogearbox.net>
- <20150430003019.GE7025@acer.localdomain>
- <55417A3A.50405@iogearbox.net>
- <20150430004839.GG7025@acer.localdomain>
- <20150430011633.GA12674@Alexeis-MBP.westell.com>
+ <20150430003740.GF7025@acer.localdomain>
+ <55417F80.4000506@iogearbox.net>
+ <20150430014316.GB7956@acer.localdomain>
+ <554194E9.5040002@mojatatu.com>
+ <20150430032921.GB8950@acer.localdomain>
+ <20150430040535.GH8950@acer.localdomain>
+ <20150430060256.GA12790@Alexeis-MBP.westell.com>
+ <5541F4E9.8080009@iogearbox.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	Daniel Borkmann <daniel@iogearbox.net>,
+Cc: Alexei Starovoitov <alexei.starovoitov@gmail.com>,
+	Patrick McHardy <kaber@trash.net>,
+	Jamal Hadi Salim <jhs@mojatatu.com>,
 	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, jhs@mojatatu.com
-To: Alexei Starovoitov <alexei.starovoitov@gmail.com>
+	netdev@vger.kernel.org
+To: Daniel Borkmann <daniel@iogearbox.net>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150430011633.GA12674@Alexeis-MBP.westell.com>
+In-Reply-To: <5541F4E9.8080009@iogearbox.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Apr 29, 2015 at 06:16:35PM -0700, Alexei Starovoitov wrote:
-> On Thu, Apr 30, 2015 at 02:48:39AM +0200, Patrick McHardy wrote:
-> > Netfilter is based on hook chains. The cost when only using a single hook
-> > is minimal (as Pablo showed in his numbers), but even if only using
-> > TC and a single netfilter classifier chain, there has to be some relative
-> > ordering and the hooks provide this in a generic way.
->
-> Unfortunately the numbers that Pablo shown are not measuring
-> the right thing.
+On Thu, Apr 30, 2015 at 11:24:57AM +0200, Daniel Borkmann wrote:
+> On 04/30/2015 08:02 AM, Alexei Starovoitov wrote:
+> ...
+> >My point is that I agree that cleanup of ingress qdisc is needed.
+> >I disagree with drastic measures.
+> >Just add your nf_hook to ingress and let's see how things evolve.
+> >We have rx_handler and all of ptype hooks in there. One can argue
+> >that rx_handler overlaps with nf_hook too ? ;)
+> >We cannot generalize them all under one 'hook' infra.
+> >nf needs to do nf_hook_state_init() and pass it around which
+> >no one else needs. That's the cost others should not pay.
+> 
+> +1
 
-The numbers I've shown were measuring the critical ingress path. I
-never posted numbers on generic hook infrastructure.
+Actually, the state object can be useful to resolve the major bug in
+actions that mangle skbs in an illegal way, as we can use it to pass
+back to the ingress path the new skb_shared_check()'ed skb.
 
-> > 840203pps 403Mb/sec
->
-> this is 20 times less than what they should be.
+The genericity that they state object introduces comes with a cost, no
+doubt, but it helps to extend things later on and resolve tricky
+situation like the one above without large patches to propagate new
+state information that you need all over the code.
 
-It's ~10% less, because obviously we run more code in the generic hook
-infrastructure, as they provide more features. So far it was only
-possible to register one single chain at ingress. Eric Dumazet already
-indicated that this benchmark only measures *one single CPU* and
-icache is fully populated. The numbers with smp will go worse because
-of the central lock contention.
-
-These are the numbers I got banging *one single CPU*:
-
-* Without patches + qdisc ingress:
-
-Result: OK: 16298126(c16298125+d0) usec, 10000000 (60byte,0frags)
-  613567pps 294Mb/sec (294512160bps) errors: 10000000
-
-* With patches + qdisc ingress on top of hooks:
-
-Result: OK: 18339281(c18339280+d0) usec, 10000000 (60byte,0frags)
-  545277pps 261Mb/sec (261732960bps) errors: 10000000
-
-* With patches + nftables ingress chain:
-
-Result: OK: 17118167(c17118167+d0) usec, 10000000 (60byte,0frags)
-
-  584174pps 280Mb/sec (280403520bps) errors: 10000000
+Regarding the performance argument that is repeating over and over
+again, we all here are quite aware here that there's is a *good room
+for improvement* in qdisc ingress itself...
