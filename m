@@ -1,53 +1,62 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
 Subject: Re: [PATCH 6/6] net: move qdisc ingress filtering on top of
  netfilter ingress hooks
-Date: Thu, 30 Apr 2015 18:36:34 +0200
-Message-ID: <20150430163634.GA3814@salvia>
-References: <20150430003019.GE7025@acer.localdomain>
+Date: Thu, 30 Apr 2015 12:05:09 -0700
+Message-ID: <20150430190508.GA13037@Alexeis-MBP.westell.com>
+References: <1430333589-4940-1-git-send-email-pablo@netfilter.org>
+ <1430333589-4940-7-git-send-email-pablo@netfilter.org>
+ <55413E99.5000807@iogearbox.net>
+ <20150429233205.GA3416@salvia>
+ <55417545.30103@iogearbox.net>
+ <20150430003019.GE7025@acer.localdomain>
  <55417A3A.50405@iogearbox.net>
  <20150430004839.GG7025@acer.localdomain>
  <20150430011633.GA12674@Alexeis-MBP.westell.com>
- <20150430013452.GA7956@acer.localdomain>
- <554191F9.3010301@mojatatu.com>
- <20150430031138.GA8950@acer.localdomain>
- <5542182A.800@mojatatu.com>
- <20150430153317.GA3230@salvia>
- <554253B5.40801@iogearbox.net>
+ <20150430101204.GA3167@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jamal Hadi Salim <jhs@mojatatu.com>,
-	Patrick McHardy <kaber@trash.net>,
-	Alexei Starovoitov <alexei.starovoitov@gmail.com>,
+Cc: Patrick McHardy <kaber@trash.net>,
+	Daniel Borkmann <daniel@iogearbox.net>,
 	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org
-To: Daniel Borkmann <daniel@iogearbox.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50938 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750839AbbD3QcE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Apr 2015 12:32:04 -0400
+	netdev@vger.kernel.org, jhs@mojatatu.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <554253B5.40801@iogearbox.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20150430101204.GA3167@salvia>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Apr 30, 2015 at 06:09:25PM +0200, Daniel Borkmann wrote:
-> I think both have different use cases, though, but on cls_bpf side you
-> have maps infrastructure that is evolving as well. Not really speaking
-> about the other remaining classifiers, however. I also don't want to go
-> any further into this vim vs emacs debate. ;) And, personally, I also
-> don't have any issue offering alternatives to users.
+On Thu, Apr 30, 2015 at 12:12:04PM +0200, Pablo Neira Ayuso wrote:
 > 
-> However, I still disagree with moving ingress behind this artificial
-> barrier if it's just not necessary. I believe, in your RFC v1 patch,
-> you had a second ingress hook as a static key for nft, I tend to like
-> that much better consensus-wise. Both subsystems should not put
-> unnecessary barriers into their way, really.
+> These are the numbers I got banging *one single CPU*:
+> 
+> * Without patches + qdisc ingress:
+> 
+> Result: OK: 16298126(c16298125+d0) usec, 10000000 (60byte,0frags)
+>   613567pps 294Mb/sec (294512160bps) errors: 10000000
+> 
+> * With patches + qdisc ingress on top of hooks:
+> 
+> Result: OK: 18339281(c18339280+d0) usec, 10000000 (60byte,0frags)
+>   545277pps 261Mb/sec (261732960bps) errors: 10000000
+> 
+> * With patches + nftables ingress chain:
+> 
+> Result: OK: 17118167(c17118167+d0) usec, 10000000 (60byte,0frags)
+> 
+>   584174pps 280Mb/sec (280403520bps) errors: 10000000
 
-I'm evolving to think that it would be good to have a single entry
-point for ingress filtering.
+So in other words you're saying: tc has to live with 12%
+slowdown (613k / 545k) only because _you_ want one hook
+for both nft and tc ?!
 
-But where are the barriers? These unfounded performance claims are
-simply absurd, qdisc ingress barely performs a bit better just because
-it executes a bit less code and only in the single CPU scenario with
-no rules at all.
+The numbers from my box are 22.4 Mpps vs 18 Mpps which is 24%
+slowdown for TC due to nf_hook.
+Notice I'm seeing _millions_ packet per second processed by
+netif_receive_skb->ingress_qdisc->u32
+whereas you're talking about _thousands_.
+Even if your box is very old, it still doesn't explain this
+huge difference.
+Please post 'perf report' numbers, so we can help analyze
+what is actually being measured. I bet netif_receive_skb
+is not even in top 10.
