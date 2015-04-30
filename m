@@ -1,40 +1,35 @@
 From: Daniel Borkmann <daniel@iogearbox.net>
 Subject: Re: [PATCH 6/6] net: move qdisc ingress filtering on top of netfilter
  ingress hooks
-Date: Thu, 30 Apr 2015 02:00:21 +0200
-Message-ID: <55417095.9030202@iogearbox.net>
-References: <1430333589-4940-1-git-send-email-pablo@netfilter.org> <1430333589-4940-7-git-send-email-pablo@netfilter.org> <55413E99.5000807@iogearbox.net> <20150429233600.GA7025@acer.localdomain>
+Date: Thu, 30 Apr 2015 02:10:33 +0200
+Message-ID: <554172F9.7040002@iogearbox.net>
+References: <1430333589-4940-1-git-send-email-pablo@netfilter.org> <1430333589-4940-7-git-send-email-pablo@netfilter.org> <55413E99.5000807@iogearbox.net> <20150429233205.GA3416@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
 	netdev@vger.kernel.org, jhs@mojatatu.com
-To: Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20150429233600.GA7025@acer.localdomain>
+In-Reply-To: <20150429233205.GA3416@salvia>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 04/30/2015 01:36 AM, Patrick McHardy wrote:
+On 04/30/2015 01:32 AM, Pablo Neira Ayuso wrote:
 ...
-> You obviously realize this callchain is fully made up by yourself
+> Actually, the extra cost is roughly (getting inlined stuff away and
+> other non-relevant stuff):
+>
+>      `-> nf_hook_slow()
+>       `-> [for each entry in hook list]
+>        `-> nf_iterate()
+>         `-> (*elemp)->hook()
 
-Hence, I wrote path, not call chain, I guess that should have been
-clear.
+Yep, agreed.
 
-[...]
-> The difference is very simple: where we had an indirect call to
-> q->enqueue before (and a lot of crap that didn't belong there),
-> we now have a call to nf_hook_slow, followed by the hook invocation.
+> as part of the generic hook infrastructure, which comes with extra
+> flexibility in return. I think the main concern so far was not to harm
+> the critical netif_receive_core() path, and this patchset proves not
+> to affect this.
 
-Sure, but what I wanted to express is that from an architectural
-point of view down to invoking a classifier, we now have a list of
-hooks, one element of those can be ingress qdisc and that one can
-have lists of classifier/actions by itself, etc. That doesn't seem
-sound wrt 'where it really belongs'.
-
-Personally, I have no objections if you want to use netfilter on
-ingress, don't get me wrong, but that ingress qdisc part doesn't
-really fit in there, and moving it behind netfilter facilities does
-have additional cost for a packet.
+Correct, as you use the static key and hide everything behind it.
