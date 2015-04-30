@@ -1,67 +1,57 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 6/6] net: move qdisc ingress filtering on top of
- netfilter ingress hooks
-Date: Thu, 30 Apr 2015 02:15:20 +0200
-Message-ID: <20150430001519.GD7025@acer.localdomain>
-References: <1430333589-4940-1-git-send-email-pablo@netfilter.org>
- <1430333589-4940-7-git-send-email-pablo@netfilter.org>
- <55413E99.5000807@iogearbox.net>
- <20150429233600.GA7025@acer.localdomain>
- <55417095.9030202@iogearbox.net>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Subject: Re: [PATCH 6/6] net: move qdisc ingress filtering on top of netfilter
+ ingress hooks
+Date: Thu, 30 Apr 2015 02:20:21 +0200
+Message-ID: <55417545.30103@iogearbox.net>
+References: <1430333589-4940-1-git-send-email-pablo@netfilter.org> <1430333589-4940-7-git-send-email-pablo@netfilter.org> <55413E99.5000807@iogearbox.net> <20150429233205.GA3416@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
 	netdev@vger.kernel.org, jhs@mojatatu.com
-To: Daniel Borkmann <daniel@iogearbox.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55417095.9030202@iogearbox.net>
+In-Reply-To: <20150429233205.GA3416@salvia>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 30.04, Daniel Borkmann wrote:
-> On 04/30/2015 01:36 AM, Patrick McHardy wrote:
-> ...
-> >You obviously realize this callchain is fully made up by yourself
-> 
-> Hence, I wrote path, not call chain, I guess that should have been
-> clear.
-> 
-> [...]
-> >The difference is very simple: where we had an indirect call to
-> >q->enqueue before (and a lot of crap that didn't belong there),
-> >we now have a call to nf_hook_slow, followed by the hook invocation.
-> 
-> Sure, but what I wanted to express is that from an architectural
-> point of view down to invoking a classifier, we now have a list of
-> hooks, one element of those can be ingress qdisc and that one can
-> have lists of classifier/actions by itself, etc. That doesn't seem
-> sound wrt 'where it really belongs'.
-> 
-> Personally, I have no objections if you want to use netfilter on
-> ingress, don't get me wrong, but that ingress qdisc part doesn't
-> really fit in there, and moving it behind netfilter facilities does
-> have additional cost for a packet.
+On 04/30/2015 01:32 AM, Pablo Neira Ayuso wrote:
+...
+>> Therefore, I think it would be better to not wrap that ingress qdisc
+>> part of the patch set into even more layers. What do you think?
+>
+> I think the main front to improve performance in qdisc ingress is to
+> remove the central spinlock that is harming scalability. There's also
+> the built-in rule counters there that look problematic. So I would
+> focus on improving performance from the qdisc ingress core
+> infrastructure itself.
+>
+> On the bugfix front, the illegal mangling of shared skb from actions
+> like stateless nat and bpf look also important to be addressed to me.
+> David already suggested to propagate some state object that keeps a
+> pointer to the skb that is passed to the action. Thus, the action can
+> clone it and get the skb back to the ingress path. I started a
+> patchset to do so here, it's a bit large since it requires quite a lot
+> of function signature adjustment.
+>
+> I can also see there were also intentions to support userspace
+> queueing at some point since TC_ACT_QUEUED has been there since the
+> beginning.  That should be possible at some point using this
+> infrastructure (once there are no further concerns on the
+> netif_receive_core_finish() patch as soon as gcc 4.9 and follow up
+> versions keep inlining this new function).
 
-It does, and Pablo made up for this cost by moving the TTL tracking
-to ingress where it actually belongs. This would obviously also be
-possible without his patchset, but the fact is, nobody seemed to
-have cared for the past ten years, we have from today a basically
-zero cost feature and people can decide what the want for themselves,
-there is no added cost for people not using it, there is no added
-cost for people using ingress.
+Wrt the other mail, just thinking out loud ... do you see a longer-term
+possibility of further generalizing the gen hooks infrastructure, so that
+actually classifier from tc could attach (disregarding the nf_* naming
+scheme for now) ...
 
-As for "really fit", ingress started off as living on a netfilter
-hook and only moved to a direct invocation somewhere around 2.6.12
-IIRC. As I was mentioning earlier, ingress *qdisc* is a hack in
-itself since there is no freaking queuing, its a hack to invoke
-classifier chains, so actually netfilter is *the better* abstraction
-to do this. And it's not netfilter, its packet hooks for classification
-purposes.
+     `-> nf_hook_slow()
+      `-> [for each entry in hook list]   <-- here as an entry
+       `-> nf_iterate()
+        `-> (*elemp)->hook()
 
-To me all these arguments have to very negative sounds. It has always
-been like this - and it hasn't. And we want ingress queueing to be
-the exclusive way to do this. And this quite frankly sucks for all
-the reasons stated before. Its a hack, its not queueing, it doesn't
-cost anything, let the people decide what they actually want to use.
+... as well?
+
+Thanks,
+Daniel
