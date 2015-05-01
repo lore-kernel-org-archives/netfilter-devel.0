@@ -1,60 +1,41 @@
-From: Jamal Hadi Salim <jhs@mojatatu.com>
-Subject: Re: [PATCH 6/6] net: move qdisc ingress filtering on top of netfilter
- ingress hooks
-Date: Thu, 30 Apr 2015 21:15:35 -0400
-Message-ID: <5542D3B7.1060307@mojatatu.com>
-References: <20150429233205.GA3416@salvia> <55417545.30103@iogearbox.net> <20150430003019.GE7025@acer.localdomain> <55417A3A.50405@iogearbox.net> <20150430004839.GG7025@acer.localdomain> <20150430011633.GA12674@Alexeis-MBP.westell.com> <20150430013452.GA7956@acer.localdomain> <554191F9.3010301@mojatatu.com> <20150430031138.GA8950@acer.localdomain> <5542182A.800@mojatatu.com> <20150430153317.GA3230@salvia>
+From: Linus =?utf-8?Q?L=C3=BCssing?= <linus.luessing@c0d3.blue>
+Subject: Matching MLD with ip6tables
+Date: Fri, 1 May 2015 04:56:12 +0200
+Message-ID: <20150501025612.GB2465@odroid>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>,
-	Alexei Starovoitov <alexei.starovoitov@gmail.com>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=utf-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ig0-f177.google.com ([209.85.213.177]:36719 "EHLO
-	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750966AbbEABPi (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Apr 2015 21:15:38 -0400
-Received: by igblo3 with SMTP id lo3so29232859igb.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Apr 2015 18:15:37 -0700 (PDT)
-In-Reply-To: <20150430153317.GA3230@salvia>
+Received: from mail.passe0815.de ([188.40.49.9]:44050 "EHLO mail.passe0815.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753211AbbEADD7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 30 Apr 2015 23:03:59 -0400
+Received: from mail.passe0815.de (localhost [127.0.0.1])
+	by mail.passe0815.de (Postfix) with ESMTP id 9269F586503
+	for <netfilter-devel@vger.kernel.org>; Fri,  1 May 2015 04:56:13 +0200 (CEST)
+Received: from localhost (unknown [IPv6:2001:67c:2d50:0:b571:10f4:7627:69e7])
+ (using TLSv1.2 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+ (No client certificate requested)
+ by mail.passe0815.de (Postfix) with ESMTPSA id A3E7C586502
+ for <netfilter-devel@vger.kernel.org>; Fri,  1 May 2015 04:56:12 +0200 (CEST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo,
+Hi,
 
-On 04/30/15 11:33, Pablo Neira Ayuso wrote:
+According to RFC4890 ("Recommendations for Filtering ICMPv6
+Messages in Firewalls"), page 35, a rule like this should match
+MLD packets:
 
->
-> You keep saying that qdisc ingress outperforms, that's only right for
-> just a very slight difference when comparing it with no rules on
-> single CPU (when ported to the common playground of the generic hook
-> infrastructure). On SMP nftables will outperform, even more if the
-> ruleset is arranged in a non-linear list fashion, with all the new
-> tricks that we got.
->
+$ ip6tables -A icmpv6-filter -p icmpv6 --icmpv6-type {130,131,132,143} ...
 
-I am interested to see the numbers. I think this would be a great paper;
-it is extremely tempting to spend time on it.
+However, this does not seem to work for me. My guess is that it
+does not match because --protocol is not 'icmpv6' but actually
+the hop-by-hop-option first. Is this a bug in the RFC (and if so,
+should I report it on some IETF mailing list?)?
 
-> Anyway, let's take this "nftables vs. qdisc ingress" discussion to an
-> end. I think the main point of this discussion is to provide a generic
-> entry point to ingress filtering (for both qdisc ingress and nftables)
-> that, if unused, doesn't harm performance of the critical path
-> netif_receive_core() path at all. Thus, users can choose what they
-> want, I have heard you saying several times: "To each their poison"
-> and I like that.
->
+Also, is there a way to somehow match IPv6 protocols with IPv6
+options in between?
 
-Yes - but my good friend Patrick is not saying that.
-I dont want to turn on netfilter in order to get tc actions on ingress.
-And i dont want to be slowed down because now the code path has become
-longer. We are trying to prune the code path. If somehow you can work to
-not affect performance then we can live well together.
-
-cheers,
-jamal
+Cheers, Linus
