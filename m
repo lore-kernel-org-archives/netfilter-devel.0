@@ -1,90 +1,117 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 19/34] netfilter: ipset: Use SET_WITH_*() helpers to test set extensions
-Date: Sat,  2 May 2015 19:28:08 +0200
-Message-ID: <1430587703-3387-20-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 11/34] netfilter: ipset: Make sure listing doesn't grab a set which is just being destroyed.
+Date: Sat,  2 May 2015 19:28:00 +0200
+Message-ID: <1430587703-3387-12-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1430587703-3387-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:36976 "EHLO smtp2.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:51349 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751642AbbEBR2I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 May 2015 13:28:08 -0400
+	id S1751414AbbEBR2F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 May 2015 13:28:05 -0400
 In-Reply-To: <1430587703-3387-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Sergey Popovich <popovich_sergei@mail.ua>
+There was a small window when all sets are destroyed and a concurrent
+listing of all sets could grab a set which is just being destroyed.
 
-Signed-off-by: Sergey Popovich <popovich_sergei@mail.ua>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_core.c     | 12 ++++++------
- net/netfilter/ipset/ip_set_hash_gen.h |  2 +-
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ net/netfilter/ipset/ip_set_core.c | 27 +++++++++++++++++++++------
+ 1 file changed, 21 insertions(+), 6 deletions(-)
 
 diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index d0a098a..3010252 100644
+index 5f801b3..b00dd23 100644
 --- a/net/netfilter/ipset/ip_set_core.c
 +++ b/net/netfilter/ipset/ip_set_core.c
-@@ -391,12 +391,12 @@ ip_set_get_extensions(struct ip_set *set, struct nlattr *tb[],
- {
- 	u64 fullmark;
- 	if (tb[IPSET_ATTR_TIMEOUT]) {
--		if (!(set->extensions & IPSET_EXT_TIMEOUT))
-+		if (!SET_WITH_TIMEOUT(set))
- 			return -IPSET_ERR_TIMEOUT;
- 		ext->timeout = ip_set_timeout_uget(tb[IPSET_ATTR_TIMEOUT]);
- 	}
- 	if (tb[IPSET_ATTR_BYTES] || tb[IPSET_ATTR_PACKETS]) {
--		if (!(set->extensions & IPSET_EXT_COUNTER))
-+		if (!SET_WITH_COUNTER(set))
- 			return -IPSET_ERR_COUNTER;
- 		if (tb[IPSET_ATTR_BYTES])
- 			ext->bytes = be64_to_cpu(nla_get_be64(
-@@ -406,25 +406,25 @@ ip_set_get_extensions(struct ip_set *set, struct nlattr *tb[],
- 						   tb[IPSET_ATTR_PACKETS]));
- 	}
- 	if (tb[IPSET_ATTR_COMMENT]) {
--		if (!(set->extensions & IPSET_EXT_COMMENT))
-+		if (!SET_WITH_COMMENT(set))
- 			return -IPSET_ERR_COMMENT;
- 		ext->comment = ip_set_comment_uget(tb[IPSET_ATTR_COMMENT]);
- 	}
- 	if (tb[IPSET_ATTR_SKBMARK]) {
--		if (!(set->extensions & IPSET_EXT_SKBINFO))
-+		if (!SET_WITH_SKBINFO(set))
- 			return -IPSET_ERR_SKBINFO;
- 		fullmark = be64_to_cpu(nla_get_be64(tb[IPSET_ATTR_SKBMARK]));
- 		ext->skbmark = fullmark >> 32;
- 		ext->skbmarkmask = fullmark & 0xffffffff;
- 	}
- 	if (tb[IPSET_ATTR_SKBPRIO]) {
--		if (!(set->extensions & IPSET_EXT_SKBINFO))
-+		if (!SET_WITH_SKBINFO(set))
- 			return -IPSET_ERR_SKBINFO;
- 		ext->skbprio = be32_to_cpu(nla_get_be32(
- 					    tb[IPSET_ATTR_SKBPRIO]));
- 	}
- 	if (tb[IPSET_ATTR_SKBQUEUE]) {
--		if (!(set->extensions & IPSET_EXT_SKBINFO))
-+		if (!SET_WITH_SKBINFO(set))
- 			return -IPSET_ERR_SKBINFO;
- 		ext->skbqueue = be16_to_cpu(nla_get_be16(
- 					    tb[IPSET_ATTR_SKBQUEUE]));
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 884f2bb..d2c7362 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -412,7 +412,7 @@ mtype_destroy(struct ip_set *set)
- {
- 	struct htype *h = set->data;
+@@ -32,7 +32,8 @@ static DEFINE_RWLOCK(ip_set_ref_lock);		/* protects the set refs */
+ struct ip_set_net {
+ 	struct ip_set * __rcu *ip_set_list;	/* all individual sets */
+ 	ip_set_id_t	ip_set_max;	/* max number of sets */
+-	int		is_deleted;	/* deleted by ip_set_net_exit */
++	bool		is_deleted;	/* deleted by ip_set_net_exit */
++	bool		is_destroyed;	/* all sets are destroyed */
+ };
+ static int ip_set_net_id __read_mostly;
  
--	if (set->extensions & IPSET_EXT_TIMEOUT)
-+	if (SET_WITH_TIMEOUT(set))
- 		del_timer_sync(&h->gc);
+@@ -991,12 +992,15 @@ ip_set_destroy(struct sock *ctnl, struct sk_buff *skb,
+ 				goto out;
+ 			}
+ 		}
++		inst->is_destroyed = true;
+ 		read_unlock_bh(&ip_set_ref_lock);
+ 		for (i = 0; i < inst->ip_set_max; i++) {
+ 			s = ip_set(inst, i);
+ 			if (s != NULL)
+ 				ip_set_destroy_set(inst, i);
+ 		}
++		/* Modified by ip_set_destroy() only, which is serialized */
++		inst->is_destroyed = false;
+ 	} else {
+ 		s = find_set_and_id(inst, nla_data(attr[IPSET_ATTR_SETNAME]),
+ 				    &i);
+@@ -1275,12 +1279,19 @@ dump_last:
+ 		 dump_type, dump_flags, cb->args[IPSET_CB_INDEX]);
+ 	for (; cb->args[IPSET_CB_INDEX] < max; cb->args[IPSET_CB_INDEX]++) {
+ 		index = (ip_set_id_t) cb->args[IPSET_CB_INDEX];
++		write_lock_bh(&ip_set_ref_lock);
+ 		set = ip_set(inst, index);
+-		if (set == NULL) {
++		if (set == NULL || inst->is_destroyed) {
++			write_unlock_bh(&ip_set_ref_lock);
+ 			if (dump_type == DUMP_ONE) {
+ 				ret = -ENOENT;
+ 				goto out;
+ 			}
++			if (inst->is_destroyed) {
++				/* All sets are just being destroyed */
++				ret = 0;
++				goto out;
++			}
+ 			continue;
+ 		}
+ 		/* When dumping all sets, we must dump "sorted"
+@@ -1288,14 +1299,17 @@ dump_last:
+ 		 */
+ 		if (dump_type != DUMP_ONE &&
+ 		    ((dump_type == DUMP_ALL) ==
+-		     !!(set->type->features & IPSET_DUMP_LAST)))
++		     !!(set->type->features & IPSET_DUMP_LAST))) {
++			write_unlock_bh(&ip_set_ref_lock);
+ 			continue;
++		}
+ 		pr_debug("List set: %s\n", set->name);
+ 		if (!cb->args[IPSET_CB_ARG0]) {
+ 			/* Start listing: make sure set won't be destroyed */
+ 			pr_debug("reference set\n");
+-			__ip_set_get(set);
++			set->ref++;
+ 		}
++		write_unlock_bh(&ip_set_ref_lock);
+ 		nlh = start_msg(skb, NETLINK_CB(cb->skb).portid,
+ 				cb->nlh->nlmsg_seq, flags,
+ 				IPSET_CMD_LIST);
+@@ -1978,7 +1992,8 @@ ip_set_net_init(struct net *net)
+ 	list = kzalloc(sizeof(struct ip_set *) * inst->ip_set_max, GFP_KERNEL);
+ 	if (!list)
+ 		return -ENOMEM;
+-	inst->is_deleted = 0;
++	inst->is_deleted = false;
++	inst->is_destroyed = false;
+ 	rcu_assign_pointer(inst->ip_set_list, list);
+ 	return 0;
+ }
+@@ -1991,7 +2006,7 @@ ip_set_net_exit(struct net *net)
+ 	struct ip_set *set = NULL;
+ 	ip_set_id_t i;
  
- 	mtype_ahash_destroy(set,
+-	inst->is_deleted = 1; /* flag for ip_set_nfnl_put */
++	inst->is_deleted = true; /* flag for ip_set_nfnl_put */
+ 
+ 	for (i = 0; i < inst->ip_set_max; i++) {
+ 		set = ip_set(inst, i);
 -- 
 1.8.5.1
 
