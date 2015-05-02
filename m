@@ -1,356 +1,108 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 17/34] netfilter: ipset: Preprocessor directices cleanup
-Date: Sat,  2 May 2015 19:28:06 +0200
-Message-ID: <1430587703-3387-18-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 31/34] netfilter: ipset: Make sure dumping can't grab set being just destroyed
+Date: Sat,  2 May 2015 19:28:20 +0200
+Message-ID: <1430587703-3387-32-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1430587703-3387-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:36700 "EHLO smtp1.kfki.hu"
+Received: from smtp1.kfki.hu ([148.6.0.26]:36729 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751612AbbEBR2I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 May 2015 13:28:08 -0400
+	id S1751182AbbEBR2L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 May 2015 13:28:11 -0400
 In-Reply-To: <1430587703-3387-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Sergey Popovich <popovich_sergei@mail.ua>
+Use the proper is_destroyed value and set the pointer to NULL under
+the ip_set_ref_lock.
 
- * Undefine mtype_data_reset_elem before defining.
-
- * Remove duplicated mtype_gc_init undefine, move
-   mtype_gc_init define closer to mtype_gc define.
-
- * Use htype instead of HTYPE in IPSET_TOKEN(HTYPE, _create)().
-
- * Remove PF definition from sets: no more used.
-
-Signed-off-by: Sergey Popovich <popovich_sergei@mail.ua>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h        | 7 ++++---
- net/netfilter/ipset/ip_set_hash_ip.c         | 3 ---
- net/netfilter/ipset/ip_set_hash_ipmark.c     | 3 ---
- net/netfilter/ipset/ip_set_hash_ipport.c     | 3 ---
- net/netfilter/ipset/ip_set_hash_ipportip.c   | 3 ---
- net/netfilter/ipset/ip_set_hash_ipportnet.c  | 3 ---
- net/netfilter/ipset/ip_set_hash_mac.c        | 1 -
- net/netfilter/ipset/ip_set_hash_net.c        | 3 ---
- net/netfilter/ipset/ip_set_hash_netiface.c   | 3 ---
- net/netfilter/ipset/ip_set_hash_netnet.c     | 3 ---
- net/netfilter/ipset/ip_set_hash_netport.c    | 3 ---
- net/netfilter/ipset/ip_set_hash_netportnet.c | 3 ---
- 12 files changed, 4 insertions(+), 34 deletions(-)
+ net/netfilter/ipset/ip_set_core.c | 26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index 24a102f..884f2bb 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -168,6 +168,7 @@ htable_bits(u32 hashsize)
- #undef mtype_data_equal
- #undef mtype_do_data_match
- #undef mtype_data_set_flags
-+#undef mtype_data_reset_elem
- #undef mtype_data_reset_flags
- #undef mtype_data_netmask
- #undef mtype_data_list
-@@ -181,7 +182,6 @@ htable_bits(u32 hashsize)
- #undef mtype_ahash_memsize
- #undef mtype_flush
- #undef mtype_destroy
--#undef mtype_gc_init
- #undef mtype_same_set
- #undef mtype_kadt
- #undef mtype_uadt
-@@ -216,6 +216,7 @@ htable_bits(u32 hashsize)
- #define mtype_data_list		IPSET_TOKEN(MTYPE, _data_list)
- #define mtype_data_next		IPSET_TOKEN(MTYPE, _data_next)
- #define mtype_elem		IPSET_TOKEN(MTYPE, _elem)
-+
- #define mtype_ahash_destroy	IPSET_TOKEN(MTYPE, _ahash_destroy)
- #define mtype_ext_cleanup	IPSET_TOKEN(MTYPE, _ext_cleanup)
- #define mtype_add_cidr		IPSET_TOKEN(MTYPE, _add_cidr)
-@@ -223,7 +224,6 @@ htable_bits(u32 hashsize)
- #define mtype_ahash_memsize	IPSET_TOKEN(MTYPE, _ahash_memsize)
- #define mtype_flush		IPSET_TOKEN(MTYPE, _flush)
- #define mtype_destroy		IPSET_TOKEN(MTYPE, _destroy)
--#define mtype_gc_init		IPSET_TOKEN(MTYPE, _gc_init)
- #define mtype_same_set		IPSET_TOKEN(MTYPE, _same_set)
- #define mtype_kadt		IPSET_TOKEN(MTYPE, _kadt)
- #define mtype_uadt		IPSET_TOKEN(MTYPE, _uadt)
-@@ -239,6 +239,7 @@ htable_bits(u32 hashsize)
- #define mtype_head		IPSET_TOKEN(MTYPE, _head)
- #define mtype_list		IPSET_TOKEN(MTYPE, _list)
- #define mtype_gc		IPSET_TOKEN(MTYPE, _gc)
-+#define mtype_gc_init		IPSET_TOKEN(MTYPE, _gc_init)
- #define mtype_variant		IPSET_TOKEN(MTYPE, _variant)
- #define mtype_data_match	IPSET_TOKEN(MTYPE, _data_match)
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index eeaa9a0..4061557 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -957,12 +957,9 @@ ip_set_setname_policy[IPSET_ATTR_CMD_MAX + 1] = {
+ };
  
-@@ -1202,7 +1203,7 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
- 	u8 netmask;
- #endif
- 	size_t hsize;
--	struct HTYPE *h;
-+	struct htype *h;
- 	struct htable *t;
+ static void
+-ip_set_destroy_set(struct ip_set_net *inst, ip_set_id_t index)
++ip_set_destroy_set(struct ip_set *set)
+ {
+-	struct ip_set *set = ip_set(inst, index);
+-
+ 	pr_debug("set: %s\n",  set->name);
+-	ip_set(inst, index) = NULL;
  
- #ifndef IP_SET_PROTO_UNDEF
-diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
-index 247cbc4..7bf17e6 100644
---- a/net/netfilter/ipset/ip_set_hash_ip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ip.c
-@@ -74,7 +74,6 @@ hash_ip4_data_next(struct hash_ip4_elem *next, const struct hash_ip4_elem *e)
+ 	/* Must call it without holding any lock */
+ 	set->variant->destroy(set);
+@@ -1006,8 +1003,10 @@ ip_set_destroy(struct sock *ctnl, struct sk_buff *skb,
+ 		read_unlock_bh(&ip_set_ref_lock);
+ 		for (i = 0; i < inst->ip_set_max; i++) {
+ 			s = ip_set(inst, i);
+-			if (s != NULL)
+-				ip_set_destroy_set(inst, i);
++			if (s != NULL) {
++				ip_set(inst, i) = NULL;
++				ip_set_destroy_set(s);
++			}
+ 		}
+ 		/* Modified by ip_set_destroy() only, which is serialized */
+ 		inst->is_destroyed = false;
+@@ -1021,9 +1020,10 @@ ip_set_destroy(struct sock *ctnl, struct sk_buff *skb,
+ 			ret = -IPSET_ERR_BUSY;
+ 			goto out;
+ 		}
++		ip_set(inst, i) = NULL;
+ 		read_unlock_bh(&ip_set_ref_lock);
+ 
+-		ip_set_destroy_set(inst, i);
++		ip_set_destroy_set(s);
+ 	}
+ 	return 0;
+ out:
+@@ -1263,6 +1263,7 @@ ip_set_dump_start(struct sk_buff *skb, struct netlink_callback *cb)
+ 	unsigned int flags = NETLINK_CB(cb->skb).portid ? NLM_F_MULTI : 0;
+ 	struct ip_set_net *inst = ip_set_pernet(sock_net(skb->sk));
+ 	u32 dump_type, dump_flags;
++	bool is_destroyed;
+ 	int ret = 0;
+ 
+ 	if (!cb->args[IPSET_CB_DUMP]) {
+@@ -1291,13 +1292,14 @@ dump_last:
+ 		index = (ip_set_id_t) cb->args[IPSET_CB_INDEX];
+ 		write_lock_bh(&ip_set_ref_lock);
+ 		set = ip_set(inst, index);
+-		if (set == NULL || inst->is_destroyed) {
++		is_destroyed = inst->is_destroyed;
++		if (set == NULL || is_destroyed) {
+ 			write_unlock_bh(&ip_set_ref_lock);
+ 			if (dump_type == DUMP_ONE) {
+ 				ret = -ENOENT;
+ 				goto out;
+ 			}
+-			if (inst->is_destroyed) {
++			if (is_destroyed) {
+ 				/* All sets are just being destroyed */
+ 				ret = 0;
+ 				goto out;
+@@ -2020,8 +2022,10 @@ ip_set_net_exit(struct net *net)
+ 
+ 	for (i = 0; i < inst->ip_set_max; i++) {
+ 		set = ip_set(inst, i);
+-		if (set != NULL)
+-			ip_set_destroy_set(inst, i);
++		if (set != NULL) {
++			ip_set(inst, i) = NULL;
++			ip_set_destroy_set(set);
++		}
+ 	}
+ 	kfree(rcu_dereference_protected(inst->ip_set_list, 1));
  }
- 
- #define MTYPE		hash_ip4
--#define PF		4
- #define HOST_MASK	32
- #include "ip_set_hash_gen.h"
- 
-@@ -208,12 +207,10 @@ hash_ip6_data_next(struct hash_ip4_elem *next, const struct hash_ip6_elem *e)
- }
- 
- #undef MTYPE
--#undef PF
- #undef HOST_MASK
- #undef HKEY_DATALEN
- 
- #define MTYPE		hash_ip6
--#define PF		6
- #define HOST_MASK	128
- 
- #define IP_SET_EMIT_CREATE
-diff --git a/net/netfilter/ipset/ip_set_hash_ipmark.c b/net/netfilter/ipset/ip_set_hash_ipmark.c
-index 03c08ef..94c9c25 100644
---- a/net/netfilter/ipset/ip_set_hash_ipmark.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipmark.c
-@@ -77,7 +77,6 @@ hash_ipmark4_data_next(struct hash_ipmark4_elem *next,
- }
- 
- #define MTYPE           hash_ipmark4
--#define PF              4
- #define HOST_MASK       32
- #define HKEY_DATALEN	sizeof(struct hash_ipmark4_elem)
- #include "ip_set_hash_gen.h"
-@@ -204,12 +203,10 @@ hash_ipmark6_data_next(struct hash_ipmark4_elem *next,
- }
- 
- #undef MTYPE
--#undef PF
- #undef HOST_MASK
- #undef HKEY_DATALEN
- 
- #define MTYPE		hash_ipmark6
--#define PF		6
- #define HOST_MASK	128
- #define HKEY_DATALEN	sizeof(struct hash_ipmark6_elem)
- #define	IP_SET_EMIT_CREATE
-diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
-index 7dc9304..8553d09 100644
---- a/net/netfilter/ipset/ip_set_hash_ipport.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipport.c
-@@ -84,7 +84,6 @@ hash_ipport4_data_next(struct hash_ipport4_elem *next,
- }
- 
- #define MTYPE           hash_ipport4
--#define PF              4
- #define HOST_MASK       32
- #define HKEY_DATALEN	sizeof(struct hash_ipport4_elem)
- #include "ip_set_hash_gen.h"
-@@ -245,12 +244,10 @@ hash_ipport6_data_next(struct hash_ipport4_elem *next,
- }
- 
- #undef MTYPE
--#undef PF
- #undef HOST_MASK
- #undef HKEY_DATALEN
- 
- #define MTYPE		hash_ipport6
--#define PF		6
- #define HOST_MASK	128
- #define HKEY_DATALEN	sizeof(struct hash_ipport6_elem)
- #define	IP_SET_EMIT_CREATE
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/ipset/ip_set_hash_ipportip.c
-index af70f86..961ea56 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
-@@ -86,7 +86,6 @@ hash_ipportip4_data_next(struct hash_ipportip4_elem *next,
- 
- /* Common functions */
- #define MTYPE		hash_ipportip4
--#define PF		4
- #define HOST_MASK	32
- #include "ip_set_hash_gen.h"
- 
-@@ -254,11 +253,9 @@ hash_ipportip6_data_next(struct hash_ipportip4_elem *next,
- }
- 
- #undef MTYPE
--#undef PF
- #undef HOST_MASK
- 
- #define MTYPE		hash_ipportip6
--#define PF		6
- #define HOST_MASK	128
- #define IP_SET_EMIT_CREATE
- #include "ip_set_hash_gen.h"
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-index 89e3ec3..d50e2ca 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-@@ -130,7 +130,6 @@ hash_ipportnet4_data_next(struct hash_ipportnet4_elem *next,
- }
- 
- #define MTYPE		hash_ipportnet4
--#define PF		4
- #define HOST_MASK	32
- #include "ip_set_hash_gen.h"
- 
-@@ -381,11 +380,9 @@ hash_ipportnet6_data_next(struct hash_ipportnet4_elem *next,
- }
- 
- #undef MTYPE
--#undef PF
- #undef HOST_MASK
- 
- #define MTYPE		hash_ipportnet6
--#define PF		6
- #define HOST_MASK	128
- #define IP_SET_EMIT_CREATE
- #include "ip_set_hash_gen.h"
-diff --git a/net/netfilter/ipset/ip_set_hash_mac.c b/net/netfilter/ipset/ip_set_hash_mac.c
-index 809461b..cb59dd9 100644
---- a/net/netfilter/ipset/ip_set_hash_mac.c
-+++ b/net/netfilter/ipset/ip_set_hash_mac.c
-@@ -62,7 +62,6 @@ hash_mac4_data_next(struct hash_mac4_elem *next,
- }
- 
- #define MTYPE		hash_mac4
--#define PF		4
- #define HOST_MASK	32
- #define IP_SET_EMIT_CREATE
- #define IP_SET_PROTO_UNDEF
-diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
-index 8e88005..1cdc8c8 100644
---- a/net/netfilter/ipset/ip_set_hash_net.c
-+++ b/net/netfilter/ipset/ip_set_hash_net.c
-@@ -109,7 +109,6 @@ hash_net4_data_next(struct hash_net4_elem *next,
- }
- 
- #define MTYPE		hash_net4
--#define PF		4
- #define HOST_MASK	32
- #include "ip_set_hash_gen.h"
- 
-@@ -277,11 +276,9 @@ hash_net6_data_next(struct hash_net4_elem *next,
- }
- 
- #undef MTYPE
--#undef PF
- #undef HOST_MASK
- 
- #define MTYPE		hash_net6
--#define PF		6
- #define HOST_MASK	128
- #define IP_SET_EMIT_CREATE
- #include "ip_set_hash_gen.h"
-diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
-index 3c5ee94..2631c42 100644
---- a/net/netfilter/ipset/ip_set_hash_netiface.c
-+++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -131,7 +131,6 @@ hash_netiface4_data_next(struct hash_netiface4_elem *next,
- }
- 
- #define MTYPE		hash_netiface4
--#define PF		4
- #define HOST_MASK	32
- #define HKEY_DATALEN	sizeof(struct hash_netiface4_elem_hashed)
- #include "ip_set_hash_gen.h"
-@@ -358,12 +357,10 @@ hash_netiface6_data_next(struct hash_netiface4_elem *next,
- }
- 
- #undef MTYPE
--#undef PF
- #undef HOST_MASK
- #undef HKEY_DATALEN
- 
- #define MTYPE		hash_netiface6
--#define PF		6
- #define HOST_MASK	128
- #define HKEY_DATALEN	sizeof(struct hash_netiface6_elem_hashed)
- #define IP_SET_EMIT_CREATE
-diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ipset/ip_set_hash_netnet.c
-index 4e41086..1dc4878 100644
---- a/net/netfilter/ipset/ip_set_hash_netnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netnet.c
-@@ -128,7 +128,6 @@ hash_netnet4_data_next(struct hash_netnet4_elem *next,
- }
- 
- #define MTYPE		hash_netnet4
--#define PF		4
- #define HOST_MASK	32
- #include "ip_set_hash_gen.h"
- 
-@@ -354,11 +353,9 @@ hash_netnet6_data_next(struct hash_netnet4_elem *next,
- }
- 
- #undef MTYPE
--#undef PF
- #undef HOST_MASK
- 
- #define MTYPE		hash_netnet6
--#define PF		6
- #define HOST_MASK	128
- #define IP_SET_EMIT_CREATE
- #include "ip_set_hash_gen.h"
-diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
-index 5c00026..8563cb0 100644
---- a/net/netfilter/ipset/ip_set_hash_netport.c
-+++ b/net/netfilter/ipset/ip_set_hash_netport.c
-@@ -125,7 +125,6 @@ hash_netport4_data_next(struct hash_netport4_elem *next,
- }
- 
- #define MTYPE		hash_netport4
--#define PF		4
- #define HOST_MASK	32
- #include "ip_set_hash_gen.h"
- 
-@@ -340,11 +339,9 @@ hash_netport6_data_next(struct hash_netport4_elem *next,
- }
- 
- #undef MTYPE
--#undef PF
- #undef HOST_MASK
- 
- #define MTYPE		hash_netport6
--#define PF		6
- #define HOST_MASK	128
- #define IP_SET_EMIT_CREATE
- #include "ip_set_hash_gen.h"
-diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
-index fcf8020..61663c6 100644
---- a/net/netfilter/ipset/ip_set_hash_netportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
-@@ -139,7 +139,6 @@ hash_netportnet4_data_next(struct hash_netportnet4_elem *next,
- }
- 
- #define MTYPE		hash_netportnet4
--#define PF		4
- #define HOST_MASK	32
- #include "ip_set_hash_gen.h"
- 
-@@ -411,11 +410,9 @@ hash_netportnet6_data_next(struct hash_netportnet4_elem *next,
- }
- 
- #undef MTYPE
--#undef PF
- #undef HOST_MASK
- 
- #define MTYPE		hash_netportnet6
--#define PF		6
- #define HOST_MASK	128
- #define IP_SET_EMIT_CREATE
- #include "ip_set_hash_gen.h"
 -- 
 1.8.5.1
 
