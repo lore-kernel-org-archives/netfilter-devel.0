@@ -1,233 +1,123 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 32/34] netfilter: ipset: RCU safe comment extension handling
-Date: Sat,  2 May 2015 19:28:21 +0200
-Message-ID: <1430587703-3387-33-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 29/34] netfilter: ipset: Fix hashing for ipv6 sets
+Date: Sat,  2 May 2015 19:28:18 +0200
+Message-ID: <1430587703-3387-30-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1430587703-3387-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:51408 "EHLO smtp0.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:51400 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751802AbbEBR2L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 May 2015 13:28:11 -0400
+	id S1751772AbbEBR2K (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 May 2015 13:28:10 -0400
 In-Reply-To: <1430587703-3387-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Complete the transition to RCU with RCU safe comment extension handling.
+From: Sergey Popovich <popovich_sergei@mail.ua>
 
+HKEY_DATALEN remains defined after first inclusion
+of ip_set_hash_gen.h, so it is incorrectly reused
+for IPv6 code.
+
+Undefine HKEY_DATALEN in ip_set_hash_gen.h at the end.
+
+Also remove some useless defines of HKEY_DATALEN in
+ip_set_hash_{ip{,mark,port},netiface}.c as ip_set_hash_gen.h
+defines it correctly for such set types anyway.
+
+Signed-off-by: Sergey Popovich <popovich_sergei@mail.ua>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/linux/netfilter/ipset/ip_set.h         |  7 ++++-
- include/linux/netfilter/ipset/ip_set_comment.h | 38 ++++++++++++++++++--------
- net/netfilter/ipset/ip_set_bitmap_gen.h        | 19 +++++++++----
- net/netfilter/ipset/ip_set_list_set.c          | 17 ++++++++----
- 4 files changed, 57 insertions(+), 24 deletions(-)
+ net/netfilter/ipset/ip_set_hash_gen.h      | 2 ++
+ net/netfilter/ipset/ip_set_hash_ip.c       | 1 -
+ net/netfilter/ipset/ip_set_hash_ipmark.c   | 3 ---
+ net/netfilter/ipset/ip_set_hash_ipport.c   | 3 ---
+ net/netfilter/ipset/ip_set_hash_netiface.c | 1 -
+ 5 files changed, 2 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index d7215d5..344616d 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -108,8 +108,13 @@ struct ip_set_counter {
- 	atomic64_t packets;
- };
- 
-+struct ip_set_comment_rcu {
-+	struct rcu_head rcu;
-+	char str[0];
-+};
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index d2c7362..b00b44b 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -1325,3 +1325,5 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
+ 	return 0;
+ }
+ #endif /* IP_SET_EMIT_CREATE */
 +
- struct ip_set_comment {
--	char *str;
-+	struct ip_set_comment_rcu __rcu *c;
- };
++#undef HKEY_DATALEN
+diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
+index e2e2820..99ea053 100644
+--- a/net/netfilter/ipset/ip_set_hash_ip.c
++++ b/net/netfilter/ipset/ip_set_hash_ip.c
+@@ -205,7 +205,6 @@ hash_ip6_data_next(struct hash_ip4_elem *next, const struct hash_ip6_elem *e)
  
- struct ip_set_skbinfo {
-diff --git a/include/linux/netfilter/ipset/ip_set_comment.h b/include/linux/netfilter/ipset/ip_set_comment.h
-index 21217ea..8d02485 100644
---- a/include/linux/netfilter/ipset/ip_set_comment.h
-+++ b/include/linux/netfilter/ipset/ip_set_comment.h
-@@ -16,41 +16,57 @@ ip_set_comment_uget(struct nlattr *tb)
- 	return nla_data(tb);
- }
+ #undef MTYPE
+ #undef HOST_MASK
+-#undef HKEY_DATALEN
  
-+/* Called from uadd only, protected by the set spinlock.
-+ * The kadt functions don't use the comment extensions in any way.
-+ */
- static inline void
- ip_set_init_comment(struct ip_set_comment *comment,
- 		    const struct ip_set_ext *ext)
- {
-+	struct ip_set_comment_rcu *c = rcu_dereference_protected(comment->c, 1);
- 	size_t len = ext->comment ? strlen(ext->comment) : 0;
+ #define MTYPE		hash_ip6
+ #define HOST_MASK	128
+diff --git a/net/netfilter/ipset/ip_set_hash_ipmark.c b/net/netfilter/ipset/ip_set_hash_ipmark.c
+index da82cc8..c7d61f3 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipmark.c
++++ b/net/netfilter/ipset/ip_set_hash_ipmark.c
+@@ -78,7 +78,6 @@ hash_ipmark4_data_next(struct hash_ipmark4_elem *next,
  
--	if (unlikely(comment->str)) {
--		kfree(comment->str);
--		comment->str = NULL;
-+	if (unlikely(c)) {
-+		kfree_rcu(c, rcu);
-+		rcu_assign_pointer(comment->c, NULL);
- 	}
- 	if (!len)
- 		return;
- 	if (unlikely(len > IPSET_MAX_COMMENT_SIZE))
- 		len = IPSET_MAX_COMMENT_SIZE;
--	comment->str = kzalloc(len + 1, GFP_ATOMIC);
--	if (unlikely(!comment->str))
-+	c = kzalloc(sizeof(*c) + len + 1, GFP_ATOMIC);
-+	if (unlikely(!c))
- 		return;
--	strlcpy(comment->str, ext->comment, len + 1);
-+	strlcpy(c->str, ext->comment, len + 1);
-+	rcu_assign_pointer(comment->c, c);
- }
+ #define MTYPE           hash_ipmark4
+ #define HOST_MASK       32
+-#define HKEY_DATALEN	sizeof(struct hash_ipmark4_elem)
+ #include "ip_set_hash_gen.h"
  
-+/* Used only when dumping a set, protected by rcu_read_lock_bh() */
- static inline int
- ip_set_put_comment(struct sk_buff *skb, struct ip_set_comment *comment)
- {
--	if (!comment->str)
-+	struct ip_set_comment_rcu *c = rcu_dereference_bh(comment->c);
-+
-+	if (!c)
- 		return 0;
--	return nla_put_string(skb, IPSET_ATTR_COMMENT, comment->str);
-+	return nla_put_string(skb, IPSET_ATTR_COMMENT, c->str);
- }
+ static int
+@@ -201,11 +200,9 @@ hash_ipmark6_data_next(struct hash_ipmark4_elem *next,
  
-+/* Called from uadd/udel, flush or the garbage collectors protected
-+ * by the set spinlock.
-+ * Called when the set is destroyed and when there can't be any user
-+ * of the set data anymore.
-+ */
- static inline void
- ip_set_comment_free(struct ip_set_comment *comment)
- {
--	if (unlikely(!comment->str))
-+	struct ip_set_comment_rcu *c;
-+
-+	c = rcu_dereference_protected(comment->c, 1);
-+	if (unlikely(!c))
- 		return;
--	kfree(comment->str);
--	comment->str = NULL;
-+	kfree_rcu(c, rcu);
-+	rcu_assign_pointer(comment->c, NULL);
- }
+ #undef MTYPE
+ #undef HOST_MASK
+-#undef HKEY_DATALEN
  
- #endif
-diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
-index 6660f2a..86429f3 100644
---- a/net/netfilter/ipset/ip_set_bitmap_gen.h
-+++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
-@@ -209,10 +209,13 @@ mtype_list(const struct ip_set *set,
- 	struct nlattr *adt, *nested;
- 	void *x;
- 	u32 id, first = cb->args[IPSET_CB_ARG0];
-+	int ret = 0;
+ #define MTYPE		hash_ipmark6
+ #define HOST_MASK	128
+-#define HKEY_DATALEN	sizeof(struct hash_ipmark6_elem)
+ #define	IP_SET_EMIT_CREATE
+ #include "ip_set_hash_gen.h"
  
- 	adt = ipset_nest_start(skb, IPSET_ATTR_ADT);
- 	if (!adt)
- 		return -EMSGSIZE;
-+	/* Extensions may be replaced */
-+	rcu_read_lock();
- 	for (; cb->args[IPSET_CB_ARG0] < map->elements;
- 	     cb->args[IPSET_CB_ARG0]++) {
- 		id = cb->args[IPSET_CB_ARG0];
-@@ -228,9 +231,11 @@ mtype_list(const struct ip_set *set,
- 		if (!nested) {
- 			if (id == first) {
- 				nla_nest_cancel(skb, adt);
--				return -EMSGSIZE;
--			} else
--				goto nla_put_failure;
-+				ret = -EMSGSIZE;
-+				goto out;
-+			}
-+
-+			goto nla_put_failure;
- 		}
- 		if (mtype_do_list(skb, map, id, set->dsize))
- 			goto nla_put_failure;
-@@ -244,16 +249,18 @@ mtype_list(const struct ip_set *set,
- 	/* Set listing finished */
- 	cb->args[IPSET_CB_ARG0] = 0;
+diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
+index 650ab31..702882b 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipport.c
++++ b/net/netfilter/ipset/ip_set_hash_ipport.c
+@@ -85,7 +85,6 @@ hash_ipport4_data_next(struct hash_ipport4_elem *next,
  
--	return 0;
-+	goto out;
+ #define MTYPE           hash_ipport4
+ #define HOST_MASK       32
+-#define HKEY_DATALEN	sizeof(struct hash_ipport4_elem)
+ #include "ip_set_hash_gen.h"
  
- nla_put_failure:
- 	nla_nest_cancel(skb, nested);
- 	if (unlikely(id == first)) {
- 		cb->args[IPSET_CB_ARG0] = 0;
--		return -EMSGSIZE;
-+		ret = -EMSGSIZE;
- 	}
- 	ipset_nest_end(skb, adt);
--	return 0;
-+out:
-+	rcu_read_unlock();
-+	return ret;
- }
+ static int
+@@ -239,11 +238,9 @@ hash_ipport6_data_next(struct hash_ipport4_elem *next,
  
- static void
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index 507d1ab..76a1c5f 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -477,6 +477,7 @@ list_set_list(const struct ip_set *set,
- 	struct nlattr *atd, *nested;
- 	u32 i = 0, first = cb->args[IPSET_CB_ARG0];
- 	struct set_elem *e;
-+	int ret = 0;
+ #undef MTYPE
+ #undef HOST_MASK
+-#undef HKEY_DATALEN
  
- 	atd = ipset_nest_start(skb, IPSET_ATTR_ADT);
- 	if (!atd)
-@@ -487,6 +488,7 @@ list_set_list(const struct ip_set *set,
- 		i++;
- 	}
+ #define MTYPE		hash_ipport6
+ #define HOST_MASK	128
+-#define HKEY_DATALEN	sizeof(struct hash_ipport6_elem)
+ #define	IP_SET_EMIT_CREATE
+ #include "ip_set_hash_gen.h"
  
-+	rcu_read_lock();
- 	list_for_each_entry_from(e, &map->members, list) {
- 		i++;
- 		if (SET_WITH_TIMEOUT(set) &&
-@@ -496,9 +498,10 @@ list_set_list(const struct ip_set *set,
- 		if (!nested) {
- 			if (i == first) {
- 				nla_nest_cancel(skb, atd);
--				return -EMSGSIZE;
--			} else
--				goto nla_put_failure;
-+				ret = -EMSGSIZE;
-+				goto out;
-+			}
-+			goto nla_put_failure;
- 		}
- 		if (nla_put_string(skb, IPSET_ATTR_NAME,
- 				   ip_set_name_byindex(map->net, e->id)))
-@@ -511,17 +514,19 @@ list_set_list(const struct ip_set *set,
- 	ipset_nest_end(skb, atd);
- 	/* Set listing finished */
- 	cb->args[IPSET_CB_ARG0] = 0;
--	return 0;
-+	goto out;
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index a480eca..3e7f12a 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -355,7 +355,6 @@ hash_netiface6_data_next(struct hash_netiface4_elem *next,
  
- nla_put_failure:
- 	nla_nest_cancel(skb, nested);
- 	if (unlikely(i == first)) {
- 		cb->args[IPSET_CB_ARG0] = 0;
--		return -EMSGSIZE;
-+		ret = -EMSGSIZE;
- 	}
- 	cb->args[IPSET_CB_ARG0] = i - 1;
- 	ipset_nest_end(skb, atd);
--	return 0;
-+out:
-+	rcu_read_unlock();
-+	return ret;
- }
+ #undef MTYPE
+ #undef HOST_MASK
+-#undef HKEY_DATALEN
  
- static bool
+ #define MTYPE		hash_netiface6
+ #define HOST_MASK	128
 -- 
 1.8.5.1
 
