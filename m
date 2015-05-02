@@ -1,499 +1,233 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 20/34] netfilter: ipset: Check extensions attributes before getting extensions.
-Date: Sat,  2 May 2015 19:28:09 +0200
-Message-ID: <1430587703-3387-21-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 32/34] netfilter: ipset: RCU safe comment extension handling
+Date: Sat,  2 May 2015 19:28:21 +0200
+Message-ID: <1430587703-3387-33-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1430587703-3387-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:36704 "EHLO smtp1.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:51408 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751664AbbEBR2I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 May 2015 13:28:08 -0400
+	id S1751802AbbEBR2L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 May 2015 13:28:11 -0400
 In-Reply-To: <1430587703-3387-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Sergey Popovich <popovich_sergei@mail.ua>
+Complete the transition to RCU with RCU safe comment extension handling.
 
-Make all extensions attributes checks within ip_set_get_extensions()
-and reduce number of duplicated code.
-
-Signed-off-by: Sergey Popovich <popovich_sergei@mail.ua>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_bitmap_ip.c       |  8 +-------
- net/netfilter/ipset/ip_set_bitmap_ipmac.c    |  8 +-------
- net/netfilter/ipset/ip_set_bitmap_port.c     |  8 +-------
- net/netfilter/ipset/ip_set_core.c            | 10 ++++++++++
- net/netfilter/ipset/ip_set_hash_ip.c         | 14 +-------------
- net/netfilter/ipset/ip_set_hash_ipmark.c     | 14 +-------------
- net/netfilter/ipset/ip_set_hash_ipport.c     | 14 +-------------
- net/netfilter/ipset/ip_set_hash_ipportip.c   | 14 +-------------
- net/netfilter/ipset/ip_set_hash_ipportnet.c  | 14 +-------------
- net/netfilter/ipset/ip_set_hash_mac.c        |  8 +-------
- net/netfilter/ipset/ip_set_hash_net.c        | 16 ++--------------
- net/netfilter/ipset/ip_set_hash_netiface.c   | 16 ++--------------
- net/netfilter/ipset/ip_set_hash_netnet.c     | 16 ++--------------
- net/netfilter/ipset/ip_set_hash_netport.c    | 16 ++--------------
- net/netfilter/ipset/ip_set_hash_netportnet.c | 16 ++--------------
- net/netfilter/ipset/ip_set_list_set.c        |  8 +-------
- 16 files changed, 30 insertions(+), 170 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h         |  7 ++++-
+ include/linux/netfilter/ipset/ip_set_comment.h | 38 ++++++++++++++++++--------
+ net/netfilter/ipset/ip_set_bitmap_gen.h        | 19 +++++++++----
+ net/netfilter/ipset/ip_set_list_set.c          | 17 ++++++++----
+ 4 files changed, 57 insertions(+), 24 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
-index f078c4e..a080516 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ip.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
-@@ -137,13 +137,7 @@ bitmap_ip_uadt(struct ip_set *set, struct nlattr *tb[],
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
- 	int ret = 0;
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index d7215d5..344616d 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -108,8 +108,13 @@ struct ip_set_counter {
+ 	atomic64_t packets;
+ };
  
--	if (unlikely(!tb[IPSET_ATTR_IP] ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)   ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+	if (unlikely(!tb[IPSET_ATTR_IP]))
- 		return -IPSET_ERR_PROTOCOL;
++struct ip_set_comment_rcu {
++	struct rcu_head rcu;
++	char str[0];
++};
++
+ struct ip_set_comment {
+-	char *str;
++	struct ip_set_comment_rcu __rcu *c;
+ };
  
- 	if (tb[IPSET_ATTR_LINENO])
-diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-index 392ba6d..5c3bb34 100644
---- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
-@@ -246,13 +246,7 @@ bitmap_ipmac_uadt(struct ip_set *set, struct nlattr *tb[],
- 	u32 ip = 0;
- 	int ret = 0;
- 
--	if (unlikely(!tb[IPSET_ATTR_IP] ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)   ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+	if (unlikely(!tb[IPSET_ATTR_IP]))
- 		return -IPSET_ERR_PROTOCOL;
- 
- 	if (tb[IPSET_ATTR_LINENO])
-diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
-index e69619a..d61a9f7 100644
---- a/net/netfilter/ipset/ip_set_bitmap_port.c
-+++ b/net/netfilter/ipset/ip_set_bitmap_port.c
-@@ -137,13 +137,7 @@ bitmap_port_uadt(struct ip_set *set, struct nlattr *tb[],
- 	int ret = 0;
- 
- 	if (unlikely(!ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)   ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO)))
- 		return -IPSET_ERR_PROTOCOL;
- 
- 	if (tb[IPSET_ATTR_LINENO])
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 3010252..eeaa9a0 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -383,6 +383,7 @@ ip_set_elem_len(struct ip_set *set, struct nlattr *tb[], size_t len)
- 	}
- 	return offset;
+ struct ip_set_skbinfo {
+diff --git a/include/linux/netfilter/ipset/ip_set_comment.h b/include/linux/netfilter/ipset/ip_set_comment.h
+index 21217ea..8d02485 100644
+--- a/include/linux/netfilter/ipset/ip_set_comment.h
++++ b/include/linux/netfilter/ipset/ip_set_comment.h
+@@ -16,41 +16,57 @@ ip_set_comment_uget(struct nlattr *tb)
+ 	return nla_data(tb);
  }
-+
- EXPORT_SYMBOL_GPL(ip_set_elem_len);
  
- int
-@@ -390,6 +391,15 @@ ip_set_get_extensions(struct ip_set *set, struct nlattr *tb[],
- 		      struct ip_set_ext *ext)
++/* Called from uadd only, protected by the set spinlock.
++ * The kadt functions don't use the comment extensions in any way.
++ */
+ static inline void
+ ip_set_init_comment(struct ip_set_comment *comment,
+ 		    const struct ip_set_ext *ext)
  {
- 	u64 fullmark;
++	struct ip_set_comment_rcu *c = rcu_dereference_protected(comment->c, 1);
+ 	size_t len = ext->comment ? strlen(ext->comment) : 0;
+ 
+-	if (unlikely(comment->str)) {
+-		kfree(comment->str);
+-		comment->str = NULL;
++	if (unlikely(c)) {
++		kfree_rcu(c, rcu);
++		rcu_assign_pointer(comment->c, NULL);
+ 	}
+ 	if (!len)
+ 		return;
+ 	if (unlikely(len > IPSET_MAX_COMMENT_SIZE))
+ 		len = IPSET_MAX_COMMENT_SIZE;
+-	comment->str = kzalloc(len + 1, GFP_ATOMIC);
+-	if (unlikely(!comment->str))
++	c = kzalloc(sizeof(*c) + len + 1, GFP_ATOMIC);
++	if (unlikely(!c))
+ 		return;
+-	strlcpy(comment->str, ext->comment, len + 1);
++	strlcpy(c->str, ext->comment, len + 1);
++	rcu_assign_pointer(comment->c, c);
+ }
+ 
++/* Used only when dumping a set, protected by rcu_read_lock_bh() */
+ static inline int
+ ip_set_put_comment(struct sk_buff *skb, struct ip_set_comment *comment)
+ {
+-	if (!comment->str)
++	struct ip_set_comment_rcu *c = rcu_dereference_bh(comment->c);
 +
-+	if (unlikely(!ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		return -IPSET_ERR_PROTOCOL;
++	if (!c)
+ 		return 0;
+-	return nla_put_string(skb, IPSET_ATTR_COMMENT, comment->str);
++	return nla_put_string(skb, IPSET_ATTR_COMMENT, c->str);
+ }
+ 
++/* Called from uadd/udel, flush or the garbage collectors protected
++ * by the set spinlock.
++ * Called when the set is destroyed and when there can't be any user
++ * of the set data anymore.
++ */
+ static inline void
+ ip_set_comment_free(struct ip_set_comment *comment)
+ {
+-	if (unlikely(!comment->str))
++	struct ip_set_comment_rcu *c;
 +
- 	if (tb[IPSET_ATTR_TIMEOUT]) {
- 		if (!SET_WITH_TIMEOUT(set))
- 			return -IPSET_ERR_TIMEOUT;
-diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
-index db41e29..3ad61fe 100644
---- a/net/netfilter/ipset/ip_set_hash_ip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ip.c
-@@ -108,13 +108,7 @@ hash_ip4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	u32 ip = 0, ip_to = 0, hosts;
- 	int ret = 0;
++	c = rcu_dereference_protected(comment->c, 1);
++	if (unlikely(!c))
+ 		return;
+-	kfree(comment->str);
+-	comment->str = NULL;
++	kfree_rcu(c, rcu);
++	rcu_assign_pointer(comment->c, NULL);
+ }
  
--	if (unlikely(!tb[IPSET_ATTR_IP] ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)   ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+	if (unlikely(!tb[IPSET_ATTR_IP]))
- 		return -IPSET_ERR_PROTOCOL;
+ #endif
+diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
+index 6660f2a..86429f3 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_gen.h
++++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+@@ -209,10 +209,13 @@ mtype_list(const struct ip_set *set,
+ 	struct nlattr *adt, *nested;
+ 	void *x;
+ 	u32 id, first = cb->args[IPSET_CB_ARG0];
++	int ret = 0;
  
- 	if (tb[IPSET_ATTR_LINENO])
-@@ -248,12 +242,6 @@ hash_ip6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	int ret;
+ 	adt = ipset_nest_start(skb, IPSET_ATTR_ADT);
+ 	if (!adt)
+ 		return -EMSGSIZE;
++	/* Extensions may be replaced */
++	rcu_read_lock();
+ 	for (; cb->args[IPSET_CB_ARG0] < map->elements;
+ 	     cb->args[IPSET_CB_ARG0]++) {
+ 		id = cb->args[IPSET_CB_ARG0];
+@@ -228,9 +231,11 @@ mtype_list(const struct ip_set *set,
+ 		if (!nested) {
+ 			if (id == first) {
+ 				nla_nest_cancel(skb, adt);
+-				return -EMSGSIZE;
+-			} else
+-				goto nla_put_failure;
++				ret = -EMSGSIZE;
++				goto out;
++			}
++
++			goto nla_put_failure;
+ 		}
+ 		if (mtype_do_list(skb, map, id, set->dsize))
+ 			goto nla_put_failure;
+@@ -244,16 +249,18 @@ mtype_list(const struct ip_set *set,
+ 	/* Set listing finished */
+ 	cb->args[IPSET_CB_ARG0] = 0;
  
- 	if (unlikely(!tb[IPSET_ATTR_IP] ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE) ||
- 		     tb[IPSET_ATTR_IP_TO] ||
- 		     tb[IPSET_ATTR_CIDR]))
- 		return -IPSET_ERR_PROTOCOL;
-diff --git a/net/netfilter/ipset/ip_set_hash_ipmark.c b/net/netfilter/ipset/ip_set_hash_ipmark.c
-index ee87c6a..0bf56aa 100644
---- a/net/netfilter/ipset/ip_set_hash_ipmark.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipmark.c
-@@ -110,13 +110,7 @@ hash_ipmark4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	int ret;
+-	return 0;
++	goto out;
  
- 	if (unlikely(!tb[IPSET_ATTR_IP] ||
--		     !ip_set_attr_netorder(tb, IPSET_ATTR_MARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		     !ip_set_attr_netorder(tb, IPSET_ATTR_MARK)))
- 		return -IPSET_ERR_PROTOCOL;
+ nla_put_failure:
+ 	nla_nest_cancel(skb, nested);
+ 	if (unlikely(id == first)) {
+ 		cb->args[IPSET_CB_ARG0] = 0;
+-		return -EMSGSIZE;
++		ret = -EMSGSIZE;
+ 	}
+ 	ipset_nest_end(skb, adt);
+-	return 0;
++out:
++	rcu_read_unlock();
++	return ret;
+ }
  
- 	if (tb[IPSET_ATTR_LINENO])
-@@ -245,12 +239,6 @@ hash_ipmark6_uadt(struct ip_set *set, struct nlattr *tb[],
- 
- 	if (unlikely(!tb[IPSET_ATTR_IP] ||
- 		     !ip_set_attr_netorder(tb, IPSET_ATTR_MARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE) ||
- 		     tb[IPSET_ATTR_IP_TO] ||
- 		     tb[IPSET_ATTR_CIDR]))
- 		return -IPSET_ERR_PROTOCOL;
-diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
-index 93431d3..0178d15 100644
---- a/net/netfilter/ipset/ip_set_hash_ipport.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipport.c
-@@ -119,13 +119,7 @@ hash_ipport4_uadt(struct ip_set *set, struct nlattr *tb[],
- 
- 	if (unlikely(!tb[IPSET_ATTR_IP] ||
- 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO)))
- 		return -IPSET_ERR_PROTOCOL;
- 
- 	if (tb[IPSET_ATTR_LINENO])
-@@ -288,12 +282,6 @@ hash_ipport6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (unlikely(!tb[IPSET_ATTR_IP] ||
- 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE) ||
- 		     tb[IPSET_ATTR_IP_TO] ||
- 		     tb[IPSET_ATTR_CIDR]))
- 		return -IPSET_ERR_PROTOCOL;
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/ipset/ip_set_hash_ipportip.c
-index a13c26d..bd4f7cb 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportip.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
-@@ -121,13 +121,7 @@ hash_ipportip4_uadt(struct ip_set *set, struct nlattr *tb[],
- 
- 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
- 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO)))
- 		return -IPSET_ERR_PROTOCOL;
- 
- 	if (tb[IPSET_ATTR_LINENO])
-@@ -296,12 +290,6 @@ hash_ipportip6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
- 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE) ||
- 		     tb[IPSET_ATTR_IP_TO] ||
- 		     tb[IPSET_ATTR_CIDR]))
- 		return -IPSET_ERR_PROTOCOL;
-diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-index c40e1f3..8662f19 100644
---- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
-@@ -176,13 +176,7 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
- 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
- 		return -IPSET_ERR_PROTOCOL;
- 
- 	if (tb[IPSET_ATTR_LINENO])
-@@ -432,13 +426,7 @@ hash_ipportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
- 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE) ||
- 		     tb[IPSET_ATTR_IP_TO] ||
- 		     tb[IPSET_ATTR_CIDR]))
- 		return -IPSET_ERR_PROTOCOL;
-diff --git a/net/netfilter/ipset/ip_set_hash_mac.c b/net/netfilter/ipset/ip_set_hash_mac.c
-index cb59dd9..3b4f579 100644
---- a/net/netfilter/ipset/ip_set_hash_mac.c
-+++ b/net/netfilter/ipset/ip_set_hash_mac.c
-@@ -102,13 +102,7 @@ hash_mac4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
- 	int ret;
- 
--	if (unlikely(!tb[IPSET_ATTR_ETHER] ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)   ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+	if (unlikely(!tb[IPSET_ATTR_ETHER]))
- 		return -IPSET_ERR_PROTOCOL;
- 
- 	if (tb[IPSET_ATTR_LINENO])
-diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
-index 8bc768d..16ddce3 100644
---- a/net/netfilter/ipset/ip_set_hash_net.c
-+++ b/net/netfilter/ipset/ip_set_hash_net.c
-@@ -147,13 +147,7 @@ hash_net4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	int ret;
- 
- 	if (unlikely(!tb[IPSET_ATTR_IP] ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
- 		return -IPSET_ERR_PROTOCOL;
- 
- 	if (tb[IPSET_ATTR_LINENO])
-@@ -319,13 +313,7 @@ hash_net6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	int ret;
- 
- 	if (unlikely(!tb[IPSET_ATTR_IP] ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
- 		return -IPSET_ERR_PROTOCOL;
- 	if (unlikely(tb[IPSET_ATTR_IP_TO]))
- 		return -IPSET_ERR_HASH_RANGE_UNSUPPORTED;
-diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
-index 0408695..b885476 100644
---- a/net/netfilter/ipset/ip_set_hash_netiface.c
-+++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -207,13 +207,7 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
- 
- 	if (unlikely(!tb[IPSET_ATTR_IP] ||
- 		     !tb[IPSET_ATTR_IFACE] ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
- 		return -IPSET_ERR_PROTOCOL;
- 
- 	if (tb[IPSET_ATTR_LINENO])
-@@ -421,13 +415,7 @@ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
- 
- 	if (unlikely(!tb[IPSET_ATTR_IP] ||
- 		     !tb[IPSET_ATTR_IFACE] ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
- 		return -IPSET_ERR_PROTOCOL;
- 	if (unlikely(tb[IPSET_ATTR_IP_TO]))
- 		return -IPSET_ERR_HASH_RANGE_UNSUPPORTED;
-diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ipset/ip_set_hash_netnet.c
-index b8858f2..10da0b6 100644
---- a/net/netfilter/ipset/ip_set_hash_netnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netnet.c
-@@ -169,13 +169,7 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- 
- 	e.cidr[0] = e.cidr[1] = HOST_MASK;
- 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
- 		return -IPSET_ERR_PROTOCOL;
- 
- 	if (tb[IPSET_ATTR_LINENO])
-@@ -400,13 +394,7 @@ hash_netnet6_uadt(struct ip_set *set, struct nlattr *tb[],
- 
- 	e.cidr[0] = e.cidr[1] = HOST_MASK;
- 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
- 		return -IPSET_ERR_PROTOCOL;
- 	if (unlikely(tb[IPSET_ATTR_IP_TO] || tb[IPSET_ATTR_IP2_TO]))
- 		return -IPSET_ERR_HASH_RANGE_UNSUPPORTED;
-diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
-index fc4b6bf..0efaf5b 100644
---- a/net/netfilter/ipset/ip_set_hash_netport.c
-+++ b/net/netfilter/ipset/ip_set_hash_netport.c
-@@ -169,13 +169,7 @@ hash_netport4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (unlikely(!tb[IPSET_ATTR_IP] ||
- 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
- 		return -IPSET_ERR_PROTOCOL;
- 
- 	if (tb[IPSET_ATTR_LINENO])
-@@ -390,13 +384,7 @@ hash_netport6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (unlikely(!tb[IPSET_ATTR_IP] ||
- 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
- 		return -IPSET_ERR_PROTOCOL;
- 	if (unlikely(tb[IPSET_ATTR_IP_TO]))
- 		return -IPSET_ERR_HASH_RANGE_UNSUPPORTED;
-diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
-index 6d3edc3..e7dda56 100644
---- a/net/netfilter/ipset/ip_set_hash_netportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
-@@ -187,13 +187,7 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
- 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
- 		return -IPSET_ERR_PROTOCOL;
- 
- 	if (tb[IPSET_ATTR_LINENO])
-@@ -466,13 +460,7 @@ hash_netportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
- 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
- 		return -IPSET_ERR_PROTOCOL;
- 	if (unlikely(tb[IPSET_ATTR_IP_TO] || tb[IPSET_ATTR_IP2_TO]))
- 		return -IPSET_ERR_HASH_RANGE_UNSUPPORTED;
+ static void
 diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index f71b8e5..898c197 100644
+index 507d1ab..76a1c5f 100644
 --- a/net/netfilter/ipset/ip_set_list_set.c
 +++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -358,13 +358,7 @@ list_set_uadt(struct ip_set *set, struct nlattr *tb[],
- 	int ret = 0;
+@@ -477,6 +477,7 @@ list_set_list(const struct ip_set *set,
+ 	struct nlattr *atd, *nested;
+ 	u32 i = 0, first = cb->args[IPSET_CB_ARG0];
+ 	struct set_elem *e;
++	int ret = 0;
  
- 	if (unlikely(!tb[IPSET_ATTR_NAME] ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
--		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
-+		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
- 		return -IPSET_ERR_PROTOCOL;
+ 	atd = ipset_nest_start(skb, IPSET_ATTR_ADT);
+ 	if (!atd)
+@@ -487,6 +488,7 @@ list_set_list(const struct ip_set *set,
+ 		i++;
+ 	}
  
- 	if (tb[IPSET_ATTR_LINENO])
++	rcu_read_lock();
+ 	list_for_each_entry_from(e, &map->members, list) {
+ 		i++;
+ 		if (SET_WITH_TIMEOUT(set) &&
+@@ -496,9 +498,10 @@ list_set_list(const struct ip_set *set,
+ 		if (!nested) {
+ 			if (i == first) {
+ 				nla_nest_cancel(skb, atd);
+-				return -EMSGSIZE;
+-			} else
+-				goto nla_put_failure;
++				ret = -EMSGSIZE;
++				goto out;
++			}
++			goto nla_put_failure;
+ 		}
+ 		if (nla_put_string(skb, IPSET_ATTR_NAME,
+ 				   ip_set_name_byindex(map->net, e->id)))
+@@ -511,17 +514,19 @@ list_set_list(const struct ip_set *set,
+ 	ipset_nest_end(skb, atd);
+ 	/* Set listing finished */
+ 	cb->args[IPSET_CB_ARG0] = 0;
+-	return 0;
++	goto out;
+ 
+ nla_put_failure:
+ 	nla_nest_cancel(skb, nested);
+ 	if (unlikely(i == first)) {
+ 		cb->args[IPSET_CB_ARG0] = 0;
+-		return -EMSGSIZE;
++		ret = -EMSGSIZE;
+ 	}
+ 	cb->args[IPSET_CB_ARG0] = i - 1;
+ 	ipset_nest_end(skb, atd);
+-	return 0;
++out:
++	rcu_read_unlock();
++	return ret;
+ }
+ 
+ static bool
 -- 
 1.8.5.1
 
