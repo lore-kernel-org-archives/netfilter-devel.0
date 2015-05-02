@@ -1,252 +1,160 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 06/34] netfilter: ipset: Fix parallel resizing and listing of the same set
-Date: Sat,  2 May 2015 19:27:55 +0200
-Message-ID: <1430587703-3387-7-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 03/34] netfilter: ipset: Introduce RCU locking in bitmap:* types
+Date: Sat,  2 May 2015 19:27:52 +0200
+Message-ID: <1430587703-3387-4-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1430587703-3387-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:36668 "EHLO smtp1.kfki.hu"
+Received: from smtp2.kfki.hu ([148.6.0.28]:36943 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751182AbbEBR2F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1751417AbbEBR2F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Sat, 2 May 2015 13:28:05 -0400
 In-Reply-To: <1430587703-3387-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When elements added to a hash:* type of set and resizing triggered,
-parallel listing could start to list the original set (before resizing)
-and "continue" with listing the new set. Fix it by references and
-using the original hash table for listing. Therefore the destroying of
-the original hash table may happen from the resizing or listing functions.
+There's nothing much required because the bitmap types use atomic
+bit operations. However the logic of adding elements slightly changed:
+first the MAC address updated (which is not atomic), then the element
+activated (added).
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- include/linux/netfilter/ipset/ip_set.h | 13 ++++++----
- net/netfilter/ipset/ip_set_core.c      | 29 ++++++++++++----------
- net/netfilter/ipset/ip_set_hash_gen.h  | 44 ++++++++++++++++++++++++++++++----
- 3 files changed, 65 insertions(+), 21 deletions(-)
+ net/netfilter/ipset/ip_set_bitmap_gen.h   | 14 ++++++++++----
+ net/netfilter/ipset/ip_set_bitmap_ip.c    |  3 ++-
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c | 13 +++++++++++--
+ net/netfilter/ipset/ip_set_bitmap_port.c  |  3 ++-
+ 4 files changed, 25 insertions(+), 8 deletions(-)
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index a6b7b58..77789e5 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -176,6 +176,9 @@ struct ip_set_type_variant {
- 	/* List elements */
- 	int (*list)(const struct ip_set *set, struct sk_buff *skb,
- 		    struct netlink_callback *cb);
-+	/* Keep listing private when resizing runs parallel */
-+	void (*uref)(struct ip_set *set, struct netlink_callback *cb,
-+		     bool start);
+diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
+index 6f024a8..6660f2a 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_gen.h
++++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+@@ -144,10 +144,12 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
  
- 	/* Return true if "b" set is the same as "a"
- 	 * according to the create set parameters */
-@@ -380,12 +383,12 @@ ip_set_init_counter(struct ip_set_counter *counter,
- 
- /* Netlink CB args */
- enum {
--	IPSET_CB_NET = 0,
--	IPSET_CB_DUMP,
--	IPSET_CB_INDEX,
--	IPSET_CB_ARG0,
-+	IPSET_CB_NET = 0,	/* net namespace */
-+	IPSET_CB_DUMP,		/* dump single set/all sets */
-+	IPSET_CB_INDEX,		/* set index */
-+	IPSET_CB_PRIVATE,	/* set private data */
-+	IPSET_CB_ARG0,		/* type specific */
- 	IPSET_CB_ARG1,
--	IPSET_CB_ARG2,
- };
- 
- /* register and unregister set references */
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index a8e55c8..90f1ede 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -1177,12 +1177,16 @@ ip_set_swap(struct sock *ctnl, struct sk_buff *skb,
- static int
- ip_set_dump_done(struct netlink_callback *cb)
- {
--	struct ip_set_net *inst = (struct ip_set_net *)cb->args[IPSET_CB_NET];
- 	if (cb->args[IPSET_CB_ARG0]) {
--		pr_debug("release set %s\n",
--			 ip_set(inst, cb->args[IPSET_CB_INDEX])->name);
--		__ip_set_put_byindex(inst,
--			(ip_set_id_t) cb->args[IPSET_CB_INDEX]);
-+		struct ip_set_net *inst =
-+			(struct ip_set_net *)cb->args[IPSET_CB_NET];
-+		ip_set_id_t index = (ip_set_id_t) cb->args[IPSET_CB_INDEX];
-+		struct ip_set *set = ip_set(inst, index);
-+
-+		if (set->variant->uref)
-+			set->variant->uref(set, cb, false);
-+		pr_debug("release set %s\n", set->name);
-+		__ip_set_put_byindex(inst, index);
+ 	if (ret == IPSET_ADD_FAILED) {
+ 		if (SET_WITH_TIMEOUT(set) &&
+-		    ip_set_timeout_expired(ext_timeout(x, set)))
++		    ip_set_timeout_expired(ext_timeout(x, set))) {
+ 			ret = 0;
+-		else if (!(flags & IPSET_FLAG_EXIST))
++		} else if (!(flags & IPSET_FLAG_EXIST)) {
++			set_bit(e->id, map->members);
+ 			return -IPSET_ERR_EXIST;
++		}
+ 		/* Element is re-added, cleanup extensions */
+ 		ip_set_ext_destroy(set, x);
  	}
+@@ -165,6 +167,10 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 		ip_set_init_comment(ext_comment(x, set), ext);
+ 	if (SET_WITH_SKBINFO(set))
+ 		ip_set_init_skbinfo(ext_skbinfo(x, set), ext);
++
++	/* Activate element */
++	set_bit(e->id, map->members);
++
  	return 0;
  }
-@@ -1213,12 +1217,6 @@ dump_init(struct netlink_callback *cb, struct ip_set_net *inst)
- 	nla_parse(cda, IPSET_ATTR_CMD_MAX,
- 		  attr, nlh->nlmsg_len - min_len, ip_set_setname_policy);
  
--	/* cb->args[IPSET_CB_NET]:	net namespace
--	 *         [IPSET_CB_DUMP]:	dump single set/all sets
--	 *         [IPSET_CB_INDEX]: 	set index
--	 *         [IPSET_CB_ARG0]:	type specific
--	 */
--
- 	if (cda[IPSET_ATTR_SETNAME]) {
- 		struct ip_set *set;
+@@ -260,7 +266,7 @@ mtype_gc(unsigned long ul_set)
  
-@@ -1325,6 +1323,8 @@ dump_last:
- 				goto release_refcount;
- 			if (dump_flags & IPSET_FLAG_LIST_HEADER)
- 				goto next_set;
-+			if (set->variant->uref)
-+				set->variant->uref(set, cb, true);
- 			/* Fall through and add elements */
- 		default:
- 			rcu_read_lock_bh();
-@@ -1341,6 +1341,8 @@ dump_last:
- 		dump_type = DUMP_LAST;
- 		cb->args[IPSET_CB_DUMP] = dump_type | (dump_flags << 16);
- 		cb->args[IPSET_CB_INDEX] = 0;
-+		if (set && set->variant->uref)
-+			set->variant->uref(set, cb, false);
- 		goto dump_last;
- 	}
- 	goto out;
-@@ -1355,7 +1357,10 @@ next_set:
- release_refcount:
- 	/* If there was an error or set is done, release set */
- 	if (ret || !cb->args[IPSET_CB_ARG0]) {
--		pr_debug("release set %s\n", ip_set(inst, index)->name);
-+		set = ip_set(inst, index);
-+		if (set->variant->uref)
-+			set->variant->uref(set, cb, false);
-+		pr_debug("release set %s\n", set->name);
- 		__ip_set_put_byindex(inst, index);
- 		cb->args[IPSET_CB_ARG0] = 0;
- 	}
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index a2ca17a..91e5327 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -76,6 +76,8 @@ struct hbucket {
+ 	/* We run parallel with other readers (test element)
+ 	 * but adding/deleting new entries is locked out */
+-	read_lock_bh(&set->lock);
++	spin_lock_bh(&set->lock);
+ 	for (id = 0; id < map->elements; id++)
+ 		if (mtype_gc_test(id, map, set->dsize)) {
+ 			x = get_ext(set, map, id);
+@@ -269,7 +275,7 @@ mtype_gc(unsigned long ul_set)
+ 				ip_set_ext_destroy(set, x);
+ 			}
+ 		}
+-	read_unlock_bh(&set->lock);
++	spin_unlock_bh(&set->lock);
  
- /* The hash table: the table size stored here in order to make resizing easy */
- struct htable {
-+	atomic_t ref;		/* References for resizing */
-+	atomic_t uref;		/* References for dumping */
- 	u8 htable_bits;		/* size of hash table == 2^htable_bits */
- 	struct hbucket __rcu * bucket[0]; /* hashtable buckets */
- };
-@@ -185,6 +187,7 @@ htable_bits(u32 hashsize)
- #undef mtype_del
- #undef mtype_test_cidrs
- #undef mtype_test
-+#undef mtype_uref
- #undef mtype_expire
- #undef mtype_resize
- #undef mtype_head
-@@ -226,6 +229,7 @@ htable_bits(u32 hashsize)
- #define mtype_del		IPSET_TOKEN(MTYPE, _del)
- #define mtype_test_cidrs	IPSET_TOKEN(MTYPE, _test_cidrs)
- #define mtype_test		IPSET_TOKEN(MTYPE, _test)
-+#define mtype_uref		IPSET_TOKEN(MTYPE, _uref)
- #define mtype_expire		IPSET_TOKEN(MTYPE, _expire)
- #define mtype_resize		IPSET_TOKEN(MTYPE, _resize)
- #define mtype_head		IPSET_TOKEN(MTYPE, _head)
-@@ -567,6 +571,8 @@ retry:
- 
- 	spin_lock_bh(&set->lock);
- 	orig = __ipset_dereference_protected(h->table, 1);
-+	atomic_set(&orig->ref, 1);
-+	atomic_inc(&orig->uref);
- 	pr_debug("attempt to resize set %s from %u to %u, t %p\n",
- 		 set->name, orig->htable_bits, htable_bits, orig);
- 	for (i = 0; i < jhash_size(orig->htable_bits); i++) {
-@@ -610,6 +616,8 @@ retry:
- 						ret = -ENOMEM;
- 				}
- 				if (ret < 0) {
-+					atomic_set(&orig->ref, 0);
-+					atomic_dec(&orig->uref);
- 					spin_unlock_bh(&set->lock);
- 					mtype_ahash_destroy(set, t, false);
- 					if (ret == -EAGAIN)
-@@ -640,7 +648,11 @@ retry:
- 
- 	pr_debug("set %s resized from %u (%p) to %u (%p)\n", set->name,
- 		 orig->htable_bits, orig, t->htable_bits, t);
--	mtype_ahash_destroy(set, orig, false);
-+	/* If there's nobody else dumping the table, destroy it */
-+	if (atomic_dec_and_test(&orig->uref)) {
-+		pr_debug("Table destroy by resize %p\n", orig);
-+		mtype_ahash_destroy(set, orig, false);
-+	}
- 
- out:
- #ifdef IP_SET_HASH_WITH_NETS
-@@ -1039,12 +1051,35 @@ nla_put_failure:
- 	return -EMSGSIZE;
+ 	map->gc.expires = jiffies + IPSET_GC_PERIOD(set->timeout) * HZ;
+ 	add_timer(&map->gc);
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
+index 55b083e..487513b 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -80,7 +80,7 @@ static inline int
+ bitmap_ip_do_add(const struct bitmap_ip_adt_elem *e, struct bitmap_ip *map,
+ 		 u32 flags, size_t dsize)
+ {
+-	return !!test_and_set_bit(e->id, map->members);
++	return !!test_bit(e->id, map->members);
  }
  
-+/* Make possible to run dumping parallel with resizing */
-+static void
-+mtype_uref(struct ip_set *set, struct netlink_callback *cb, bool start)
-+{
-+	struct htype *h = set->data;
-+	struct htable *t;
-+
-+	if (start) {
-+		rcu_read_lock_bh();
-+		t = rcu_dereference_bh_nfnl(h->table);
-+		atomic_inc(&t->uref);
-+		cb->args[IPSET_CB_PRIVATE] = (unsigned long) t;
-+		rcu_read_unlock_bh();
-+	} else if (cb->args[IPSET_CB_PRIVATE]) {
-+		t = (struct htable *) cb->args[IPSET_CB_PRIVATE];
-+		if (atomic_dec_and_test(&t->uref) && atomic_read(&t->ref)) {
-+			/* Resizing didn't destroy the hash table */
-+			pr_debug("Table destroy by dump: %p\n", t);
-+			mtype_ahash_destroy(set, t, false);
-+		}
-+		cb->args[IPSET_CB_PRIVATE] = 0;
-+	}
-+}
-+
- /* Reply a LIST/SAVE request: dump the elements of the specified set */
- static int
- mtype_list(const struct ip_set *set,
- 	   struct sk_buff *skb, struct netlink_callback *cb)
+ static inline int
+@@ -377,6 +377,7 @@ bitmap_ip_init(void)
+ static void __exit
+ bitmap_ip_fini(void)
  {
--	const struct htype *h = set->data;
- 	const struct htable *t;
- 	struct nlattr *atd, *nested;
- 	const struct hbucket *n;
-@@ -1059,11 +1094,11 @@ mtype_list(const struct ip_set *set,
- 		return -EMSGSIZE;
++	rcu_barrier();
+ 	ip_set_type_unregister(&bitmap_ip_type);
+ }
  
- 	pr_debug("list hash set %s\n", set->name);
--	t = rcu_dereference_bh_nfnl(h->table);
-+	t = (const struct htable *) cb->args[IPSET_CB_PRIVATE];
- 	for (; cb->args[IPSET_CB_ARG0] < jhash_size(t->htable_bits);
- 	     cb->args[IPSET_CB_ARG0]++) {
- 		incomplete = skb_tail_pointer(skb);
--		n = rcu_dereference_bh(hbucket(t, cb->args[IPSET_CB_ARG0]));
-+		n = hbucket(t, cb->args[IPSET_CB_ARG0]);
- 		pr_debug("cb->arg bucket: %lu, t %p n %p\n",
- 			 cb->args[IPSET_CB_ARG0], t, n);
- 		if (n == NULL)
-@@ -1133,6 +1168,7 @@ static const struct ip_set_type_variant mtype_variant = {
- 	.flush	= mtype_flush,
- 	.head	= mtype_head,
- 	.list	= mtype_list,
-+	.uref	= mtype_uref,
- 	.resize	= mtype_resize,
- 	.same_set = mtype_same_set,
- };
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index 8610474..8f3f1cd 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -146,15 +146,23 @@ bitmap_ipmac_do_add(const struct bitmap_ipmac_adt_elem *e,
+ 	struct bitmap_ipmac_elem *elem;
+ 
+ 	elem = get_elem(map->extensions, e->id, dsize);
+-	if (test_and_set_bit(e->id, map->members)) {
++	if (test_bit(e->id, map->members)) {
+ 		if (elem->filled == MAC_FILLED) {
+-			if (e->ether && (flags & IPSET_FLAG_EXIST))
++			if (e->ether &&
++			    (flags & IPSET_FLAG_EXIST) &&
++			    !ether_addr_equal(e->ether, elem->ether)) {
++				/* memcpy isn't atomic */
++				clear_bit(e->id, map->members);
++				smp_mb__after_atomic();
+ 				memcpy(elem->ether, e->ether, ETH_ALEN);
++			}
+ 			return IPSET_ADD_FAILED;
+ 		} else if (!e->ether)
+ 			/* Already added without ethernet address */
+ 			return IPSET_ADD_FAILED;
+ 		/* Fill the MAC address and trigger the timer activation */
++		clear_bit(e->id, map->members);
++		smp_mb__after_atomic();
+ 		memcpy(elem->ether, e->ether, ETH_ALEN);
+ 		elem->filled = MAC_FILLED;
+ 		return IPSET_ADD_START_STORED_TIMEOUT;
+@@ -414,6 +422,7 @@ bitmap_ipmac_init(void)
+ static void __exit
+ bitmap_ipmac_fini(void)
+ {
++	rcu_barrier();
+ 	ip_set_type_unregister(&bitmap_ipmac_type);
+ }
+ 
+diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
+index 005dd36..e69619a 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -73,7 +73,7 @@ static inline int
+ bitmap_port_do_add(const struct bitmap_port_adt_elem *e,
+ 		   struct bitmap_port *map, u32 flags, size_t dsize)
+ {
+-	return !!test_and_set_bit(e->id, map->members);
++	return !!test_bit(e->id, map->members);
+ }
+ 
+ static inline int
+@@ -311,6 +311,7 @@ bitmap_port_init(void)
+ static void __exit
+ bitmap_port_fini(void)
+ {
++	rcu_barrier();
+ 	ip_set_type_unregister(&bitmap_port_type);
+ }
+ 
 -- 
 1.8.5.1
 
