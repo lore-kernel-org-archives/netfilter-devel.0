@@ -1,47 +1,49 @@
-From: Liu Hua <sdu.liu@huawei.com>
-Subject: [PATCH] netfilter: fix dependency issues between IPv6 defragmentation and ip6tables
-Date: Sun,  3 May 2015 17:50:18 +0800
-Message-ID: <1430646618-7625-1-git-send-email-sdu.liu@huawei.com>
-Cc: sdu.liu@huawei.com, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, liusdu@126.com
-To: davem@davemloft.net, kadlec@blackhole.kfki.hu, kaber@trash.net,
-	pablo@netfilter.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] netfilter: fix dependency issues between IPv6
+ defragmentation and ip6tables
+Date: Sun, 3 May 2015 13:07:15 +0200
+Message-ID: <20150503110715.GE22481@breakpoint.cc>
+References: <1430646618-7625-1-git-send-email-sdu.liu@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: davem@davemloft.net, kadlec@blackhole.kfki.hu, kaber@trash.net,
+	pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	liusdu@126.com
+To: Liu Hua <sdu.liu@huawei.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m50-111.126.com ([123.125.50.111]:60810 "EHLO m50-111.126.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751060AbbECKVz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 May 2015 06:21:55 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44250 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751062AbbECLHf (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 May 2015 07:07:35 -0400
+Content-Disposition: inline
+In-Reply-To: <1430646618-7625-1-git-send-email-sdu.liu@huawei.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit f6318e558806c925029dc101f14874be9f9fa78f fix some related issue
-when ip6tables is enabled. But when IP6_NF_IPTABLES is disabled and
-NETFILTER_XT_TARGET_TPROXY is enabled. We will meet build failure with
-"net/built-in.o: In function `tproxy_tg_init':
-net/netfilter/xt_TPROXY.c:588: undefined reference to `nf_defrag_ipv6_enable'
-"
-So this patch change the Kconfig as ipv4 does.
+Liu Hua <sdu.liu@huawei.com> wrote:
+> commit f6318e558806c925029dc101f14874be9f9fa78f fix some related issue
+> when ip6tables is enabled. But when IP6_NF_IPTABLES is disabled and
+> NETFILTER_XT_TARGET_TPROXY is enabled. We will meet build failure with
+> "net/built-in.o: In function `tproxy_tg_init':
+> net/netfilter/xt_TPROXY.c:588: undefined reference to `nf_defrag_ipv6_enable'
+> "
+> So this patch change the Kconfig as ipv4 does.
+> --- a/net/netfilter/Kconfig
+> +++ b/net/netfilter/Kconfig
+> @@ -865,7 +865,7 @@ config NETFILTER_XT_TARGET_TPROXY
+>  	depends on (IPV6 || IPV6=n)
+>  	depends on IP_NF_MANGLE
+>  	select NF_DEFRAG_IPV4
+> -	select NF_DEFRAG_IPV6 if IP6_NF_IPTABLES
+> +	select NF_DEFRAG_IPV6
 
-Signed-off-by: Liu Hua <sdu.liu@huawei.com>
----
- net/netfilter/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+If IP6_NF_IPTABLES is not set, why would we have to pick
+up IPV6 defragmentation?
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index f70e34a..34f54a8 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -865,7 +865,7 @@ config NETFILTER_XT_TARGET_TPROXY
- 	depends on (IPV6 || IPV6=n)
- 	depends on IP_NF_MANGLE
- 	select NF_DEFRAG_IPV4
--	select NF_DEFRAG_IPV6 if IP6_NF_IPTABLES
-+	select NF_DEFRAG_IPV6
- 	help
- 	  This option adds a `TPROXY' target, which is somewhat similar to
- 	  REDIRECT.  It can only be used in the mangle table and is useful
--- 
-1.9.1
+Without ip6tables, TPROXY cannot be used for ipv6; in fact;
+xt_TPROXY should be built without ipv6 support in this case.
 
-
+My guess is that you have TPROXY=y but DEFRAG_IPV6=m, but that
+might warrant a better fix (xt_socket seems to have same issue).
