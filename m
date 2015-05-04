@@ -1,99 +1,54 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: Re: [PATCH nf-next] netfilter: conntrack: add support for flextuples
-Date: Mon, 04 May 2015 15:51:37 +0200
-Message-ID: <55477969.4000407@iogearbox.net>
-References: <776b8819c85c83088478b933a35691133055347a.1430733932.git.daniel@iogearbox.net> <20150504103451.GA12200@salvia> <55475F13.1000304@iogearbox.net> <20150504130828.GA3607@salvia>
+From: Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Subject: Re: [PATCH 0/4] Netfilter ingress support (v3)
+Date: Mon, 4 May 2015 08:56:40 -0700
+Message-ID: <20150504155639.GA14367@Alexeis-MBP.westell.com>
+References: <1430736649-3546-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, Thomas Graf <tgraf@suug.ch>,
-	Madhu Challa <challa@noironetworks.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org, kaber@trash.net, jhs@mojatatu.com
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:58695 "EHLO
-	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751252AbbEDNvj (ORCPT
+Received: from mail-ie0-f176.google.com ([209.85.223.176]:32799 "EHLO
+	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750779AbbEDP4p (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 May 2015 09:51:39 -0400
-In-Reply-To: <20150504130828.GA3607@salvia>
+	Mon, 4 May 2015 11:56:45 -0400
+Content-Disposition: inline
+In-Reply-To: <1430736649-3546-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 05/04/2015 03:08 PM, Pablo Neira Ayuso wrote:
-> On Mon, May 04, 2015 at 01:59:15PM +0200, Daniel Borkmann wrote:
->> Hi Pablo,
->>
->> On 05/04/2015 12:34 PM, Pablo Neira Ayuso wrote:
->>> On Mon, May 04, 2015 at 12:23:41PM +0200, Daniel Borkmann wrote:
->>>> This patch adds support for the possibility of doing NAT with
->>>> conflicting IP address/ports tuples from multiple, isolated
->>>> tenants, represented as network namespaces and netfilter zones.
->>>> For such internal VRFs, traffic is directed to a single or shared
->>>> pool of public IP address/port range for the external/public VRF.
->>>>
->>>> Or in other words, this allows for doing NAT *between* VRFs
->>>> instead of *inside* VRFs without requiring each tenant to NAT
->>>> twice or to use its own dedicated IP address to SNAT to, also
->>>> with the side effect to not requiring to expose a unique marker
->>>> per tenant in the data center to the public.
->>>>
->>>> Simplified example scheme:
->>>>
->>>>    +--- VRF A ---+  +--- CT Zone 1 --------+
->>>>    | 10.1.1.1/8  +--+ 10.1.1.1 ESTABLISHED |
->>>>    +-------------+  +--+-------------------+
->>>>                        |
->>>>                     +--+--+
->>>>                     | L3  +-SNAT-[20.1.1.1:20000-40000]--eth0
->>>>                     +--+--+
->>>>                        |
->>>>    +-- VRF B ----+  +--- CT Zone 2 --------+
->>>>    | 10.1.1.1/8  +--+ 10.1.1.1 ESTABLISHED |
->>>>    +-------------+  +----------------------+
->>>
->>> So, it's the skb->mark that survives between the containers.  I'm not
->>> sure it makes sense to keep a zone 0 from the container that performs
->>> SNAT. Instead, we can probably restore the zone based on the
->>> skb->mark. The problem is that the existing zone is u16. In nftables,
->>> Patrick already mentioned about supporting casting so we can do
->>> something like:
->>>
->>>          ct zone set (u16)meta mark
->>>
->>> So you can reserve a part of the skb->mark to map it to the zone. I'm
->>> not very convinced about this.
->>
->> Thanks for the feedback! I'm not yet sure though, I understood the
->> above suggestion to the described problem fully so far, i.e. how
->> would replies on the SNAT find the correct zone again?
->
->  From the original direction, you can set the zone based on the mark:
->
->          -m mark --mark 1 -j CT --zone 1
->
-> Then, from the reply direction, you can restore it:
->
->          -m conntrack --ctzone 1 -j MARK --set-mark 1
->          ...
->
-> --ctzone is not supported though, it would need a new revision for the
-> conntrack match.
+On Mon, May 04, 2015 at 12:50:45PM +0200, Pablo Neira Ayuso wrote:
+> Hi,
+> 
+> Another round of the patchset to add Netfilter ingress support. This new
+> patchset introduces the necessary updates in 2 steps:
+> 
+> 1) Add minismalistic ingress hook infrastructure that allows to register one
+>    client at a time, so you hit -EBUSY in case the hook is in use. Basically,
+>    we have a function pointer that is rcu-protected to invoke the corresponding
+>    filter framework which has minimal performance impact in the critical ingress
+>    path and avoid more pollution in it. This patch also ports the ingress qdisc
+>    on top of this.
+...
+> In summary, this provides the facility to keep both tc and netfilter in place,
+> while the user can select what they prefer to filter from ingress.
 
-Ok, thanks a lot, now I see what you mean.
+wow, I have to say I'm impressed. That's the most genius way to
+really kill TC.
+Patch 1 looks good, patch 2,3,4 are nicely building on top...
+until somebody starts asking how patch 5 will look.
+In the future netfilter ingress module will be loaded along with
+other iptables modules just like conntrack is today and users
+who would want to use ingress tc would have to _unload_
+netfilter_ingress module, but if it has interesting dependencies
+it may mean to unload iptables and the rest.
+So at the end the users will have a binary choice either to use
+iptables/nft or use tc, because they won't be able to co-exist
+because ingress_hook is the only one.
+I don't understand this 'tc hate'. Why go out of the way to
+make TC more difficult to use ?
+Just add _new_ hook for netfilter ingress and both subsystems
+can happily co-exist.
 
-If I'm not missing something, I would see two problems with that: the
-first would be that the zone match would be linear, f.e. if we support
-100 or more zones, we would need to walk through the rules linearly until
-we find --mark 100, right?
-
-The other issue is that from reply direction (when the packet comes in
-with the translated addr), we couldn't match in the connection tracking
-table on the correct zone. The above restore rule would assume that the
-match itself already has taken place and was successfully, no? (That is
-actually why we are direction based: --flextuple ORIGINAL|REPLY.)
-
->> Our issue simplified, basically boils down to: given are two zones,
->> both use IP address <A>, both zones want to talk to IP address <B> in
->> a third zone. To let those two with <A> talk to <B>, connections are
->> being routed + SNATed from a non-unique to a unique address/port
->> tuple [which the proposed approach solves], so they can talk to <B>.
