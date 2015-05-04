@@ -1,78 +1,59 @@
-From: Florian Westphal <fw@strlen.de>
+From: Jamal Hadi Salim <jhs@mojatatu.com>
 Subject: Re: [PATCH 0/4] Netfilter ingress support (v3)
-Date: Mon, 4 May 2015 18:19:56 +0200
-Message-ID: <20150504161956.GK22481@breakpoint.cc>
-References: <1430736649-3546-1-git-send-email-pablo@netfilter.org>
- <20150504155639.GA14367@Alexeis-MBP.westell.com>
+Date: Mon, 04 May 2015 13:21:32 -0400
+Message-ID: <5547AA9C.3030300@mojatatu.com>
+References: <1430736649-3546-1-git-send-email-pablo@netfilter.org> <20150504155639.GA14367@Alexeis-MBP.westell.com> <20150504161956.GK22481@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, kaber@trash.net, jhs@mojatatu.com
-To: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150504155639.GA14367@Alexeis-MBP.westell.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	netdev@vger.kernel.org, kaber@trash.net
+To: Florian Westphal <fw@strlen.de>,
+	Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ig0-f172.google.com ([209.85.213.172]:36078 "EHLO
+	mail-ig0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751065AbbEDRVf (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 May 2015 13:21:35 -0400
+Received: by igblo3 with SMTP id lo3so89554005igb.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 04 May 2015 10:21:34 -0700 (PDT)
+In-Reply-To: <20150504161956.GK22481@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Alexei Starovoitov <alexei.starovoitov@gmail.com> wrote:
-> > Another round of the patchset to add Netfilter ingress support. This new
-> > patchset introduces the necessary updates in 2 steps:
-> > 
-> > 1) Add minismalistic ingress hook infrastructure that allows to register one
-> >    client at a time, so you hit -EBUSY in case the hook is in use. Basically,
-> >    we have a function pointer that is rcu-protected to invoke the corresponding
-> >    filter framework which has minimal performance impact in the critical ingress
-> >    path and avoid more pollution in it. This patch also ports the ingress qdisc
-> >    on top of this.
-> ...
-> > In summary, this provides the facility to keep both tc and netfilter in place,
-> > while the user can select what they prefer to filter from ingress.
-> 
-> wow, I have to say I'm impressed. That's the most genius way to
-> really kill TC.
-> Patch 1 looks good, patch 2,3,4 are nicely building on top...
-> until somebody starts asking how patch 5 will look.
-> In the future netfilter ingress module will be loaded along with
-> other iptables modules just like conntrack is today and users
-> who would want to use ingress tc would have to _unload_
-> netfilter_ingress module, but if it has interesting dependencies
-> it may mean to unload iptables and the rest.
+On 05/04/15 12:19, Florian Westphal wrote:
+> Alexei Starovoitov <alexei.starovoitov@gmail.com> wrote:
 
-FWIW while I think this is a valid concern, I believe its unfounded.
+>> wow, I have to say I'm impressed. That's the most genius way to
+>> really kill TC.
+>> Patch 1 looks good, patch 2,3,4 are nicely building on top...
+>> until somebody starts asking how patch 5 will look.
+>> In the future netfilter ingress module will be loaded along with
+>> other iptables modules just like conntrack is today and users
+>> who would want to use ingress tc would have to _unload_
+>> netfilter_ingress module, but if it has interesting dependencies
+>> it may mean to unload iptables and the rest.
+>
+> FWIW while I think this is a valid concern, I believe its unfounded.
+>
+> netfilter_ingress must not force run-time
+> dependencies like 'oh, you want tc, too bad, no conntrack for you)'.
+>
+> (and i don't see any need for such a dependency).
+>
 
-netfilter_ingress must not force run-time
-dependencies like 'oh, you want tc, too bad, no conntrack for you)'.
+It is an either-or choice. You cant have both. The _evil genius_ part i
+think is that distros which ship with iptables rules and conntracking
+on are going to not even turn on tc and my scripts now have to go
+unload one.
+But even if the scripts worked (perhaps there are plans to make sure
+all scripts continue to work transparently), i care about performance
+and  youve suddenly taken that away from me.
 
-(and i don't see any need for such a dependency).
+So i would agree with adding the two hooks. Priority should be given
+to tc in the code path.
 
-> So at the end the users will have a binary choice either to use
-> iptables/nft or use tc, because they won't be able to co-exist
-> because ingress_hook is the only one.
-> I don't understand this 'tc hate'. Why go out of the way to
-> make TC more difficult to use ?
-
-I don't see this having anything to do with 'TC hate'.
-
-Lets face it, tc and netfilter are horrid when it comes to play
-nice with each other, and functionality provided by both partially
-overlaps.
-
-Just look at all the hacks we have in tc to use netfilter (iptables,
-conntrack) functionality, or even iptables CLASSIFY target (aka
-"tc filters are too hard for me").
-
-In case there is later some really good reason why you need both
-tc ingress and nft ingress simultaneously then we can always revisit this
-and add a second hook for coexistence, at the expense of more
-complexity.
-
-> Just add _new_ hook for netfilter ingress and both subsystems
-> can happily co-exist.
-
-I don't see a use case where you'd need both tc ingress and nft
-ingress at the same time.  Can you elaborate?
-
-At the moment I think having two hooks provides no advantage, it only
-complicates code.
+cheers,
+jamal
