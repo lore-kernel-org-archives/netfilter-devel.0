@@ -1,47 +1,39 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [PATCH 0/4] Netfilter ingress support (v3)
-Date: Tue, 5 May 2015 01:04:14 +0200
-Message-ID: <20150504230414.GB8279@pox.localdomain>
-References: <1430736649-3546-1-git-send-email-pablo@netfilter.org>
- <20150504155639.GA14367@Alexeis-MBP.westell.com>
- <20150504161956.GK22481@breakpoint.cc>
- <5547AA9C.3030300@mojatatu.com>
- <20150504174358.GN22481@breakpoint.cc>
- <5547BEC4.4090400@mojatatu.com>
- <20150504185941.GA17061@breakpoint.cc>
- <20150504200506.GA14604@Alexeis-MacBook-Pro.local>
- <20150504222131.GA4348@salvia>
+From: Ravi Kerur <rkerur@gmail.com>
+Subject: Re: Q on contribution to Netfilter
+Date: Tue, 05 May 2015 15:51:27 -0700
+Message-ID: <5549496F.7070905@gmail.com>
+References: <5540C2C4.7070506@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Alexei Starovoitov <alexei.starovoitov@gmail.com>,
-	Florian Westphal <fw@strlen.de>,
-	Jamal Hadi Salim <jhs@mojatatu.com>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, kaber@trash.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150504222131.GA4348@salvia>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:33429 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751588AbbEEWve (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 May 2015 18:51:34 -0400
+Received: by pacwv17 with SMTP id wv17so208122987pac.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 05 May 2015 15:51:34 -0700 (PDT)
+Received: from [10.120.73.66] ([144.49.131.1])
+        by mx.google.com with ESMTPSA id ie3sm16827920pbb.49.2015.05.05.15.51.33
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Tue, 05 May 2015 15:51:33 -0700 (PDT)
+In-Reply-To: <5540C2C4.7070506@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 05/05/15 at 12:21am, Pablo Neira Ayuso wrote:
-> On Mon, May 04, 2015 at 01:05:08PM -0700, Alexei Starovoitov wrote:
-> > [...] TC critical path becomes slower with extra dereference and
-> > indirect jump.
-> 
-> You complained on the performance impact of the initial generic hook
-> infrastructure that allows qdisc ingress and nft to co-exist, fair
-> enough.
-> 
-> I came back with an even more simple hook infrastructure, to address
-> performance concerns, and you indicate that an *extra dereference and
-> indirect jump* makes this slowier and that both cannot co-exist with
-> this.
-> 
-> Well, any kind of hook generalization will need at least those minimal
-> changes. And that allows us to move code that belongs to sch_ingress.
-> That got embedded into net/core/dev.c because at the time this code
-> was made when there was no RCU around.
 
-Does anything speak against a separate hook with a static key?
+
+On 4/29/2015 4:38 AM, Ravi Kerur wrote:
+> Netfilter team,
+> 
+> I want to contribute/help to Netfilter project(s) and wanted help on where to look for information on contribution. On netfilter.org, it suggests to send an email to developer's mailing list. I can contribute to bug fixing, code refactoring, code cleanup to start with. Please let me know if there is a way for me to contribute.
+> 
+
+Please let me know if it's ok to start with running checkpatch against the code. I don't want it to be annoying to developers so want to make sure. I don't see TODO list or anything similar for interested developers to contribute so any inputs appreciated.
+
+> Thanks,
+> Ravi
+> 
