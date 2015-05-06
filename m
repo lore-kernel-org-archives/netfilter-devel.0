@@ -1,111 +1,87 @@
-From: Denys Vlasenko <dvlasenk@redhat.com>
-Subject: [PATCH] netfilter: ipset: deinline ip_set_put_extensions()
-Date: Wed,  6 May 2015 16:28:57 +0200
-Message-ID: <1430922537-28428-1-git-send-email-dvlasenk@redhat.com>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"Eric W. Biederman" <ebiederm@xmission.com>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Jiri Pirko <jpirko@redhat.com>, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Daniel Borkmann <daniel@iogearbox.net>
+Subject: Re: [PATCH nf-next] netfilter: conntrack: add support for flextuples
+Date: Wed, 06 May 2015 20:00:42 +0200
+Message-ID: <554A56CA.4040101@iogearbox.net>
+References: <776b8819c85c83088478b933a35691133055347a.1430733932.git.daniel@iogearbox.net> <20150504103451.GA12200@salvia> <55475F13.1000304@iogearbox.net> <20150504130828.GA3607@salvia> <20150504134733.GB1405@pox.localdomain> <20150506142741.GA3547@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Madhu Challa <challa@noironetworks.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Thomas Graf <tgraf@suug.ch>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from www62.your-server.de ([213.133.104.62]:52272 "EHLO
+	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751489AbbEFSAq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 6 May 2015 14:00:46 -0400
+In-Reply-To: <20150506142741.GA3547@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On x86 allyesconfig build:
-The function compiles to 489 bytes of machine code.
-It has 25 callsites.
+Hi Pablo,
 
-    text    data       bss       dec     hex filename
-82441375 22255384 20627456 125324215 7784bb7 vmlinux.before
-82434909 22255384 20627456 125317749 7783275 vmlinux
+On 05/06/2015 04:27 PM, Pablo Neira Ayuso wrote:
+> On Mon, May 04, 2015 at 03:47:33PM +0200, Thomas Graf wrote:
+> [...]
+>> Given that the multiple source zones which talk to a common
+>> destination zone may have conflicting IPs, the SNAT must either
+>> occur in the source zone where the source address is still unique
+>> or the CT tuple must be made unique with a source zone identifier
+>> so that the SNAT can occur in the destination zone.
+>>
+>> Doing the SNAT in the source zone requires to use a unique IP pool
+>> to map to for each source zone as otherwise IP sources may clash again
+>> in the destination zone. We obviously can't do --SNAT -to 10.1.1.1 in
+>> two namespaces and then just route into a third namespace. This
+>> approach is not scalable in a container environment with 100s or even
+>> 1000s of containers each in its own network namespace.
+>>
+>> What we want to do instead is to do the SNAT in the destination zone
+>> where we can have a single SNAT rule which overs all source zones.
+>> This allows inter namespace communication in a /31 with minimal waste
+>> of addresses.
+>
+> Thanks for explaining. So you need to allocate an unique tuple using
+> the mark to avoid the clashes for the first packet that goes original
+> using the same pool. Then, the NAT engine will allocate an unique
+> tuple in the reply direction.
 
-Signed-off-by: Denys Vlasenko <dvlasenk@redhat.com>
-CC: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-CC: Eric W. Biederman <ebiederm@xmission.com>
-CC: David S. Miller <davem@davemloft.net>
-CC: Jan Engelhardt <jengelh@medozas.de>
-CC: Jiri Pirko <jpirko@redhat.com>
-CC: linux-kernel@vger.kernel.org
-CC: netdev@vger.kernel.org
-CC: netfilter-devel@vger.kernel.org
----
- include/linux/netfilter/ipset/ip_set.h | 24 ++----------------------
- net/netfilter/ipset/ip_set_core.c      | 25 +++++++++++++++++++++++++
- 2 files changed, 27 insertions(+), 22 deletions(-)
+Yes, that's correct. In original direction, due to the overlapping
+tuple the ct-mark is considered as well for the match, and in reply
+direction SNAT chooses already a unique tuple. That's essentially
+the rationale for our use case with SNAT.
 
-diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
-index f1606fa..bf6e018 100644
---- a/include/linux/netfilter/ipset/ip_set.h
-+++ b/include/linux/netfilter/ipset/ip_set.h
-@@ -534,29 +534,9 @@ bitmap_bytes(u32 a, u32 b)
- #include <linux/netfilter/ipset/ip_set_timeout.h>
- #include <linux/netfilter/ipset/ip_set_comment.h>
- 
--static inline int
-+int
- ip_set_put_extensions(struct sk_buff *skb, const struct ip_set *set,
--		      const void *e, bool active)
--{
--	if (SET_WITH_TIMEOUT(set)) {
--		unsigned long *timeout = ext_timeout(e, set);
--
--		if (nla_put_net32(skb, IPSET_ATTR_TIMEOUT,
--			htonl(active ? ip_set_timeout_get(timeout)
--				: *timeout)))
--			return -EMSGSIZE;
--	}
--	if (SET_WITH_COUNTER(set) &&
--	    ip_set_put_counter(skb, ext_counter(e, set)))
--		return -EMSGSIZE;
--	if (SET_WITH_COMMENT(set) &&
--	    ip_set_put_comment(skb, ext_comment(e, set)))
--		return -EMSGSIZE;
--	if (SET_WITH_SKBINFO(set) &&
--	    ip_set_put_skbinfo(skb, ext_skbinfo(e, set)))
--		return -EMSGSIZE;
--	return 0;
--}
-+		      const void *e, bool active);
- 
- #define IP_SET_INIT_KEXT(skb, opt, set)			\
- 	{ .bytes = (skb)->len, .packets = 1,		\
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index d259da3..6539b74 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -432,6 +432,31 @@ ip_set_get_extensions(struct ip_set *set, struct nlattr *tb[],
- }
- EXPORT_SYMBOL_GPL(ip_set_get_extensions);
- 
-+int
-+ip_set_put_extensions(struct sk_buff *skb, const struct ip_set *set,
-+		      const void *e, bool active)
-+{
-+	if (SET_WITH_TIMEOUT(set)) {
-+		unsigned long *timeout = ext_timeout(e, set);
-+
-+		if (nla_put_net32(skb, IPSET_ATTR_TIMEOUT,
-+			htonl(active ? ip_set_timeout_get(timeout)
-+				: *timeout)))
-+			return -EMSGSIZE;
-+	}
-+	if (SET_WITH_COUNTER(set) &&
-+	    ip_set_put_counter(skb, ext_counter(e, set)))
-+		return -EMSGSIZE;
-+	if (SET_WITH_COMMENT(set) &&
-+	    ip_set_put_comment(skb, ext_comment(e, set)))
-+		return -EMSGSIZE;
-+	if (SET_WITH_SKBINFO(set) &&
-+	    ip_set_put_skbinfo(skb, ext_skbinfo(e, set)))
-+		return -EMSGSIZE;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(ip_set_put_extensions);
-+
- /*
-  * Creating/destroying/renaming/swapping affect the existence and
-  * the properties of a set. All of these can be executed from userspace
--- 
-1.8.1.4
+> But what is the use case for -j CT --flextuple reply ? By when you see
+> the reply packet the tuple was already created.
+
+Given this change is completely NAT agnostic, we can keep it as a
+generic addition to the conntracker. Given that the mark is very
+flexible, I think it could also be used for load balancing as a
+different usage.
+
+> Another question is if it makes sense to have part of the flows using
+> your flextuple idea while some others not, ie.
+>
+>          -s x.y.z.w/24 -j CT --flextuple original
+>
+> so shouldn't this be a global switch that includes the skb->mark
+> only for packets coming in the original direction?
+
+I first thought about a global sysctl switch, but eventually found
+this config possibility from iptables side much cleaner resp. better
+integrated. I think if the environment is correctly configured for
+that, such a partial flextuple scenario works, too.
+
+> I also wonder how you're going to deal with port redirections. This
+> only seem to be working SNAT/masquerade to me if the NAT happens from
+> VRF side.
+
+In our case, we'd like to use the flextuple when we're explicitly
+configuring iptables with SNAT. For DNAT, one could reuse it in a
+different, somewhat reversed example we previously had and together
+with mark based routing and match on the reply side.
+
+Thanks a lot,
+Daniel
