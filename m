@@ -1,59 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: conntrack: add support for flextuples
-Date: Thu, 7 May 2015 20:10:24 +0200
-Message-ID: <20150507181004.GA3470@salvia>
-References: <776b8819c85c83088478b933a35691133055347a.1430733932.git.daniel@iogearbox.net>
- <20150504103451.GA12200@salvia>
- <55475F13.1000304@iogearbox.net>
- <20150504130828.GA3607@salvia>
- <20150504134733.GB1405@pox.localdomain>
- <20150506142741.GA3547@salvia>
- <554A56CA.4040101@iogearbox.net>
- <20150506185040.GA14459@salvia>
- <554B5407.1060203@iogearbox.net>
+Subject: Re: [PATCH 10/34] netfilter: ipset: Missing rcu protection in
+ mtype_list() fixed
+Date: Thu, 7 May 2015 20:19:18 +0200
+Message-ID: <20150507181918.GA3654@salvia>
+References: <1430587703-3387-1-git-send-email-kadlec@blackhole.kfki.hu>
+ <1430587703-3387-11-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Thomas Graf <tgraf@suug.ch>, netfilter-devel@vger.kernel.org,
-	Madhu Challa <challa@noironetworks.com>
-To: Daniel Borkmann <daniel@iogearbox.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40695 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42197 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751068AbbEGSF4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 May 2015 14:05:56 -0400
+	id S1751097AbbEGSOu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 May 2015 14:14:50 -0400
 Content-Disposition: inline
-In-Reply-To: <554B5407.1060203@iogearbox.net>
+In-Reply-To: <1430587703-3387-11-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Daniel,
-
-On Thu, May 07, 2015 at 02:01:11PM +0200, Daniel Borkmann wrote:
-> ...
-> >>>Another question is if it makes sense to have part of the flows using
-> >>>your flextuple idea while some others not, ie.
-> >>>
-> >>>         -s x.y.z.w/24 -j CT --flextuple original
-> >>>
-> >>>so shouldn't this be a global switch that includes the skb->mark
-> >>>only for packets coming in the original direction?
-> >>
-> >>I first thought about a global sysctl switch, but eventually found
-> >>this config possibility from iptables side much cleaner resp. better
-> >>integrated. I think if the environment is correctly configured for
-> >>that, such a partial flextuple scenario works, too.
-> >
-> >This is consuming two ct status bits, these are exposed to userspace,
-> >and we have a limited number of bits there. The one in the original
-> >direction might be justified for the SNAT case in the specific
-> >scenario that you show.
+On Sat, May 02, 2015 at 07:27:59PM +0200, Jozsef Kadlecsik wrote:
+> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> ---
+>  net/netfilter/ipset/ip_set_hash_gen.h | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
 > 
-> Okay, agreed. I will respin the set with --flextuple ORIGINAL direction
-> allowed where we'd for now only consume a single status bit. If later
-> on there's a need to extend this for REPLY (or even hybrid), we still
-> have the option to extend it.
+> diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+> index 91e5327..69f2b25 100644
+> --- a/net/netfilter/ipset/ip_set_hash_gen.h
+> +++ b/net/netfilter/ipset/ip_set_hash_gen.h
+> @@ -1095,10 +1095,12 @@ mtype_list(const struct ip_set *set,
+>  
+>  	pr_debug("list hash set %s\n", set->name);
+>  	t = (const struct htable *) cb->args[IPSET_CB_PRIVATE];
+> +	/* Expire may replace a hbucket with another one */
+> +	rcu_read_lock();
 
-I would like to know if it makes sense to add this later on. Would you
-elaborate a useful DNAT scenario where this can be useful?
+You should have rebase the previous patches to fix this from the
+original patchset.
 
-Thanks.
+I don't think it was good idea to keep this large patchset in the
+queue, specially with the RCU patches. They are rather critical, and
+many follow up not so important patches follow up later on.
+
+I will come back to review the rcu patches, I still have concerns
+there.
+
+If you're OK, I'll take as much as I can that is independent your RCU
+changes, so you don't need to resend this large patchset, but you will
+need to rebase though.
+
+Sorry.
