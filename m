@@ -1,55 +1,60 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: Re: [PATCH nf-next] netfilter: conntrack: add support for flextuples
-Date: Thu, 07 May 2015 14:01:11 +0200
-Message-ID: <554B5407.1060203@iogearbox.net>
-References: <776b8819c85c83088478b933a35691133055347a.1430733932.git.daniel@iogearbox.net> <20150504103451.GA12200@salvia> <55475F13.1000304@iogearbox.net> <20150504130828.GA3607@salvia> <20150504134733.GB1405@pox.localdomain> <20150506142741.GA3547@salvia> <554A56CA.4040101@iogearbox.net> <20150506185040.GA14459@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Thomas Graf <tgraf@suug.ch>, netfilter-devel@vger.kernel.org,
-	Madhu Challa <challa@noironetworks.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:54873 "EHLO
-	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750841AbbEGMBQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 May 2015 08:01:16 -0400
-In-Reply-To: <20150506185040.GA14459@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Tommi Rantala <tt.rantala@gmail.com>
+Subject: [PATCH] ipvs: fix memory leak in ip_vs_ctl.c
+Date: Thu,  7 May 2015 15:12:21 +0300
+Message-ID: <1431000741-7599-1-git-send-email-tt.rantala@gmail.com>
+Cc: netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Tommi Rantala <tt.rantala@gmail.com>
+To: Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+Fix memory leak introduced in commit a0840e2e165a ("IPVS: netns,
+ip_vs_ctl local vars moved to ipvs struct."):
 
-On 05/06/2015 08:50 PM, Pablo Neira Ayuso wrote:
-> On Wed, May 06, 2015 at 08:00:42PM +0200, Daniel Borkmann wrote:
->> On 05/06/2015 04:27 PM, Pablo Neira Ayuso wrote:
-> [...]
+unreferenced object 0xffff88005785b800 (size 2048):
+  comm "(-localed)", pid 1434, jiffies 4294755650 (age 1421.089s)
+  hex dump (first 32 bytes):
+    bb 89 0b 83 ff ff ff ff b0 78 f0 4e 00 88 ff ff  .........x.N....
+    04 00 00 00 a4 01 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff8262ea8e>] kmemleak_alloc+0x4e/0xb0
+    [<ffffffff811fba74>] __kmalloc_track_caller+0x244/0x430
+    [<ffffffff811b88a0>] kmemdup+0x20/0x50
+    [<ffffffff823276b7>] ip_vs_control_net_init+0x1f7/0x510
+    [<ffffffff8231d630>] __ip_vs_init+0x100/0x250
+    [<ffffffff822363a1>] ops_init+0x41/0x190
+    [<ffffffff82236583>] setup_net+0x93/0x150
+    [<ffffffff82236cc2>] copy_net_ns+0x82/0x140
+    [<ffffffff810ab13d>] create_new_namespaces+0xfd/0x190
+    [<ffffffff810ab49a>] unshare_nsproxy_namespaces+0x5a/0xc0
+    [<ffffffff810833e3>] SyS_unshare+0x173/0x310
+    [<ffffffff8265cbd7>] system_call_fastpath+0x12/0x6f
+    [<ffffffffffffffff>] 0xffffffffffffffff
 
-Thanks for your feedback!
-...
->>> Another question is if it makes sense to have part of the flows using
->>> your flextuple idea while some others not, ie.
->>>
->>>          -s x.y.z.w/24 -j CT --flextuple original
->>>
->>> so shouldn't this be a global switch that includes the skb->mark
->>> only for packets coming in the original direction?
->>
->> I first thought about a global sysctl switch, but eventually found
->> this config possibility from iptables side much cleaner resp. better
->> integrated. I think if the environment is correctly configured for
->> that, such a partial flextuple scenario works, too.
->
-> This is consuming two ct status bits, these are exposed to userspace,
-> and we have a limited number of bits there. The one in the original
-> direction might be justified for the SNAT case in the specific
-> scenario that you show.
+Signed-off-by: Tommi Rantala <tt.rantala@gmail.com>
+---
+ net/netfilter/ipvs/ip_vs_ctl.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Okay, agreed. I will respin the set with --flextuple ORIGINAL direction
-allowed where we'd for now only consume a single status bit. If later
-on there's a need to extend this for REPLY (or even hybrid), we still
-have the option to extend it.
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index 4953267..285eae3 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -3823,6 +3823,9 @@ static void __net_exit ip_vs_control_net_cleanup_sysctl(struct net *net)
+ 	cancel_work_sync(&ipvs->defense_work.work);
+ 	unregister_net_sysctl_table(ipvs->sysctl_hdr);
+ 	ip_vs_stop_estimator(net, &ipvs->tot_stats);
++
++	if (!net_eq(net, &init_net))
++		kfree(ipvs->sysctl_tbl);
+ }
+ 
+ #else
+-- 
+1.9.3
 
-Thanks,
-Daniel
