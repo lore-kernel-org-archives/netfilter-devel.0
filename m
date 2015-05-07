@@ -1,44 +1,77 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] net: deinline netif_tx_stop_queue() and
- netif_tx_stop_all_queues()
-Date: Thu, 07 May 2015 11:44:37 -0700
-Message-ID: <1431024277.18597.11.camel@perches.com>
-References: <1430998870-1453-1-git-send-email-dvlasenk@redhat.com>
-	 <554B9D82.80101@gmail.com>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH] ipvs: fix memory leak in ip_vs_ctl.c
+Date: Thu, 7 May 2015 22:06:12 +0300 (EEST)
+Message-ID: <alpine.LFD.2.11.1505072204130.1748@ja.home.ssi.bg>
+References: <1431000741-7599-1-git-send-email-tt.rantala@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Denys Vlasenko <dvlasenk@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jiri Pirko <jpirko@redhat.com>, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Alexander Duyck <alexander.duyck@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <554B9D82.80101@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Hans Schillstrom <hans.schillstrom@ericsson.com>,
+	netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Tommi Rantala <tt.rantala@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1431000741-7599-1-git-send-email-tt.rantala@gmail.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2015-05-07 at 10:14 -0700, Alexander Duyck wrote:
-> On 05/07/2015 04:41 AM, Denys Vlasenko wrote:
-> > These functions compile to ~60 bytes of machine code each.
-> >
-> > With this .config: http://busybox.net/~vda/kernel_config
-> > there are 617 calls to netif_tx_stop_queue()
-> > and 49 calls to netif_tx_stop_all_queues() in vmlinux.
-> >
-> > Code size is reduced by 27 kbytes:
 
-[]
+	Hello,
 
-> This is the WARN_ON action.  One thing you might try doing is moving 
-> this to a function of its own instead of moving the entire thing out of 
-> being an inline.  You may find you still get most of the space savings 
-> as I wonder if the string for the printk isn't being duplicated for each 
-> caller.
+On Thu, 7 May 2015, Tommi Rantala wrote:
 
-It is effectively duplicated (with different prefixes) if there is a
-#define pr_fmt(fmt) "some_prefix: " fmt
-before this code is reached.  That's most callers now.
+> Fix memory leak introduced in commit a0840e2e165a ("IPVS: netns,
+> ip_vs_ctl local vars moved to ipvs struct."):
+> 
+> unreferenced object 0xffff88005785b800 (size 2048):
+>   comm "(-localed)", pid 1434, jiffies 4294755650 (age 1421.089s)
+>   hex dump (first 32 bytes):
+>     bb 89 0b 83 ff ff ff ff b0 78 f0 4e 00 88 ff ff  .........x.N....
+>     04 00 00 00 a4 01 00 00 00 00 00 00 00 00 00 00  ................
+>   backtrace:
+>     [<ffffffff8262ea8e>] kmemleak_alloc+0x4e/0xb0
+>     [<ffffffff811fba74>] __kmalloc_track_caller+0x244/0x430
+>     [<ffffffff811b88a0>] kmemdup+0x20/0x50
+>     [<ffffffff823276b7>] ip_vs_control_net_init+0x1f7/0x510
+>     [<ffffffff8231d630>] __ip_vs_init+0x100/0x250
+>     [<ffffffff822363a1>] ops_init+0x41/0x190
+>     [<ffffffff82236583>] setup_net+0x93/0x150
+>     [<ffffffff82236cc2>] copy_net_ns+0x82/0x140
+>     [<ffffffff810ab13d>] create_new_namespaces+0xfd/0x190
+>     [<ffffffff810ab49a>] unshare_nsproxy_namespaces+0x5a/0xc0
+>     [<ffffffff810833e3>] SyS_unshare+0x173/0x310
+>     [<ffffffff8265cbd7>] system_call_fastpath+0x12/0x6f
+>     [<ffffffffffffffff>] 0xffffffffffffffff
+> 
+> Signed-off-by: Tommi Rantala <tt.rantala@gmail.com>
 
-The code that doesn't have a pr_fmt should get symbol deduplicated
-at link time.
+	Looks good to me. Simon, please apply!
+
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+> ---
+>  net/netfilter/ipvs/ip_vs_ctl.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index 4953267..285eae3 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -3823,6 +3823,9 @@ static void __net_exit ip_vs_control_net_cleanup_sysctl(struct net *net)
+>  	cancel_work_sync(&ipvs->defense_work.work);
+>  	unregister_net_sysctl_table(ipvs->sysctl_hdr);
+>  	ip_vs_stop_estimator(net, &ipvs->tot_stats);
+> +
+> +	if (!net_eq(net, &init_net))
+> +		kfree(ipvs->sysctl_tbl);
+>  }
+>  
+>  #else
+> -- 
+> 1.9.3
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
