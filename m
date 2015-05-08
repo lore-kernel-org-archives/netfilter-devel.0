@@ -1,55 +1,47 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 02/34] netfilter: ipset: Prepare the ipset core to use
- RCU at set level
-Date: Fri, 8 May 2015 21:58:15 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1505082157260.16001@blackhole.kfki.hu>
-References: <1430587703-3387-1-git-send-email-kadlec@blackhole.kfki.hu> <1430587703-3387-3-git-send-email-kadlec@blackhole.kfki.hu> <20150507233942.GA3971@salvia>
+Subject: Re: [PATCH 04/34] netfilter: ipset: Introduce RCU locking in hash:*
+ types
+Date: Fri, 8 May 2015 22:13:19 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1505082201460.16001@blackhole.kfki.hu>
+References: <1430587703-3387-1-git-send-email-kadlec@blackhole.kfki.hu> <1430587703-3387-5-git-send-email-kadlec@blackhole.kfki.hu> <20150507235202.GB3971@salvia>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:60264 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:43488 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752886AbbEHT5r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 May 2015 15:57:47 -0400
-In-Reply-To: <20150507233942.GA3971@salvia>
+	id S932123AbbEHUMw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 8 May 2015 16:12:52 -0400
+In-Reply-To: <20150507235202.GB3971@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 On Fri, 8 May 2015, Pablo Neira Ayuso wrote:
 
-> On Sat, May 02, 2015 at 07:27:51PM +0200, Jozsef Kadlecsik wrote:
-> > Replace rwlock_t with spinlock_t in "struct ip_set" and change the locking
-> > accordingly. Also, simplify the timeout routines.
+> On Sat, May 02, 2015 at 07:27:53PM +0200, Jozsef Kadlecsik wrote:
+> > Three types of data need to be protected in the case of the hash types:
 > > 
-> > Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> > ---
-> [...]
-> > diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> > index d259da3..a8e55c8 100644
-> > --- a/net/netfilter/ipset/ip_set_core.c
-> > +++ b/net/netfilter/ipset/ip_set_core.c
-> > @@ -208,15 +208,15 @@ ip_set_type_register(struct ip_set_type *type)
-> >  		pr_warn("ip_set type %s, family %s with revision min %u already registered!\n",
-> >  			type->name, family_name(type->family),
-> >  			type->revision_min);
-> > -		ret = -EINVAL;
-> > -		goto unlock;
-> > +		ip_set_type_unlock();
-> > +		return -EINVAL;
-> >  	}
-> >  	list_add_rcu(&type->list, &ip_set_type_list);
-> >  	pr_debug("type %s, family %s, revision %u:%u registered.\n",
-> >  		 type->name, family_name(type->family),
-> >  		 type->revision_min, type->revision_max);
-> > -unlock:
-> >  	ip_set_type_unlock();
-> > +	synchronize_rcu();
+> > a. The hash buckets: standard rcu pointer operations are used.
+> > b. The allocated elements in the hash buckets: a bitmap is used
+> >    for book-keeping to tell which elements in the hash bucket are
+> >    used or free.
+> > c. Networks per cidr values and the cidr values themselves: the fix
+> >    sized arrays need no protection. The values are modified in such
+> >    an order that in the worst case an element testing is repeated
+> >    again with the same cidr value.
 > 
-> You don't need to call synchronize() after list_add_rcu().
+> Did you consider using the rhashtable implementation under
+> lib/rhashtable.c? Do you think there is any chance to accommodate that
+> into ipset? If possible, it would avoid from dealing with this
+> complexity.
 
-Ohh, thanks! I'll correct that in the next version of the patches.
+The cidr book-keeping (c) must be kept in the rhashtable implementation 
+too. If the speed optimization (arrays as hash elements) is ported over, 
+then (b) must be preserved too. What remains is actually simpler than 
+rhashtable itself. I must look into rhashtable deeper in order to check 
+other required features like enforced hard limit on the number of 
+elements/hash size (instead of memory limit).
 
 Best regards,
 Jozsef
