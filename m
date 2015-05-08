@@ -1,55 +1,37 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 10/34] netfilter: ipset: Missing rcu protection in
- mtype_list() fixed
-Date: Fri, 8 May 2015 02:03:43 +0200
-Message-ID: <20150508000343.GA18705@salvia>
-References: <1430587703-3387-1-git-send-email-kadlec@blackhole.kfki.hu>
- <1430587703-3387-11-git-send-email-kadlec@blackhole.kfki.hu>
- <20150507181918.GA3654@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46705 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751197AbbEGX7W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 May 2015 19:59:22 -0400
-Content-Disposition: inline
-In-Reply-To: <20150507181918.GA3654@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT PULL nf] IPVS Fixes for v4.1
+Date: Fri,  8 May 2015 18:10:26 +0900
+Message-ID: <1431076227-13893-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, May 07, 2015 at 08:19:18PM +0200, Pablo Neira Ayuso wrote:
-[...]
-> I will come back to review the rcu patches, I still have concerns
-> there.
-> 
-> If you're OK, I'll take as much as I can that is independent your RCU
-> changes, so you don't need to resend this large patchset, but you will
-> need to rebase though.
+Hi Pablo,
 
-Unless you have any concern, I'm going to start by applying this batch
-of 15 patches:
+please consider this fix for v4.1.
 
-netfilter: ipset: Use better include files in xt_set.c
-netfilter: ipset: Improve preprocessor macros checks
-netfilter: ipset: Fix hashing for ipv6 sets
-netfilter: ipset: Fix ext_*() macros
-netfilter: ipset: Check for comment netlink attribute length
-netfilter: ipset: Return bool values instead of int
-netfilter: ipset: Use HOST_MASK literal to represent host address CIDR len
-netfilter: ipset: Check IPSET_ATTR_PORT only once
-netfilter: ipset: Return ipset error instead of bool
-netfilter: ipset: Preprocessor directices cleanup
-netfilter: ipset: No need to make nomatch bitfield
-netfilter: ipset: Properly calculate extensions offsets and total length
-netfilter: ipset: make ip_set_get_ip*_port to use skb_network_offset
-netfilter: ipset: Give a better name to a macro in ip_set_core.c
-netfilter: ipset: Fix sparse warning
+It resolves a memory leak which appears to have been around since v3.18.
 
-It would be good if other small patches come in first place if
-possible. Otherwise, I'd suggest you focus on a next batch with the
-rcu conversion, that will be already quite large.
+The following changes since commit 39376ccb1968ba9f83e2a880a8bf02ad5dea44e1:
 
-Thanks Jozsef.
+  Merge git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf (2015-04-27 23:12:34 -0400)
+
+are available in the git repository at:
+
+  https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes-for-v4.1
+
+for you to fetch changes up to f30bf2a5cac6c60ab366c4bc6db913597bf4d6ab:
+
+  ipvs: fix memory leak in ip_vs_ctl.c (2015-05-08 17:58:54 +0900)
+
+----------------------------------------------------------------
+Tommi Rantala (1):
+      ipvs: fix memory leak in ip_vs_ctl.c
+
+ net/netfilter/ipvs/ip_vs_ctl.c | 3 +++
+ 1 file changed, 3 insertions(+)
