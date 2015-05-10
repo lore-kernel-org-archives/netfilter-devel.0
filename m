@@ -1,34 +1,35 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Eric Leblond <eric@regit.org>
 Subject: Re: ulogd 2.0.5
-Date: Sun, 10 May 2015 20:16:44 +0200
-Message-ID: <20150510181644.GA3978@salvia>
+Date: Sun, 10 May 2015 20:11:01 +0200
+Message-ID: <1431281461.29730.1.camel@regit.org>
 References: <B384F5AD-D21D-4313-BCD1-FDF3DD049967@bootc.net>
- <1431281461.29730.1.camel@regit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Chris Boot <bootc@bootc.net>, netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@regit.org>
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Chris Boot <bootc@bootc.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46045 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751466AbbEJSMA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 10 May 2015 14:12:00 -0400
-Content-Disposition: inline
-In-Reply-To: <1431281461.29730.1.camel@regit.org>
+Received: from ks28632.kimsufi.com ([91.121.96.152]:49418 "EHLO
+	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751857AbbEJScl (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 10 May 2015 14:32:41 -0400
+In-Reply-To: <B384F5AD-D21D-4313-BCD1-FDF3DD049967@bootc.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, May 10, 2015 at 08:11:01PM +0200, Eric Leblond wrote:
-> Hello Cris,
-> 
-> On Sun, 2015-05-10 at 16:37 +0100, Chris Boot wrote:
-> > Hi Eric, Pablo,
-> > 
-> > Has ulogd 2.0.5 been released? 
-> 
-> Yes, I'm waiting for the website to be ready to do the announce. I hope
-> website publication will be done in the coming days.
+Hello Cris,
 
-Sorry, that's my fault, I'll catch up that asap.
+On Sun, 2015-05-10 at 16:37 +0100, Chris Boot wrote:
+> Hi Eric, Pablo,
+> 
+> Has ulogd 2.0.5 been released? 
 
-Thanks for your patience.
+Yes, I'm waiting for the website to be ready to do the announce. I hope
+website publication will be done in the coming days.
+
+BR,
+-- 
+Eric Leblond <eric@regit.org>
+
