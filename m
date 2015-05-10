@@ -1,77 +1,60 @@
-From: Eric Leblond <eric@regit.org>
-Subject: [ANNOUNCE] ulogd 2.0.5 release
-Date: Sun, 10 May 2015 21:40:35 +0200
-Message-ID: <1431286835.21627.3.camel@regit.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-j3PVfRiGTQbNzXmJyRnT"
-Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
-	netfilter-announce@lists.netfilter.org, lwn@lwn.net
-To: Netfilter Devel <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Chris Boot <bootc@bootc.net>
+Subject: Re: ulogd 2.0.5
+Date: Sun, 10 May 2015 22:38:06 +0100
+Message-ID: <F73E9909-44B6-42C0-81DF-16E2CE793DAE@bootc.net>
+References: <B384F5AD-D21D-4313-BCD1-FDF3DD049967@bootc.net> <1431281461.29730.1.camel@regit.org> <20150510181644.GA3978@salvia> <20150510183750.GA4534@salvia>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2098\))
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Eric Leblond <eric@regit.org>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from kamaji.grokhost.net ([87.117.218.43]:39722 "EHLO
+	kamaji.grokhost.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751653AbbEJViP convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 10 May 2015 17:38:15 -0400
+In-Reply-To: <20150510183750.GA4534@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+On 10 May 2015, at 19:37, Pablo Neira Ayuso <pablo@netfilter.org> wrote=
+:
+> On Sun, May 10, 2015 at 08:16:44PM +0200, Pablo Neira Ayuso wrote:
+>> On Sun, May 10, 2015 at 08:11:01PM +0200, Eric Leblond wrote:
+>>> Hello Cris,
+>>>=20
+>>> On Sun, 2015-05-10 at 16:37 +0100, Chris Boot wrote:
+>>>> Hi Eric, Pablo,
+>>>>=20
+>>>> Has ulogd 2.0.5 been released?=20
+>>>=20
+>>> Yes, I'm waiting for the website to be ready to do the announce. I =
+hope
+>>> website publication will be done in the coming days.
+>>=20
+>> Sorry, that's my fault, I'll catch up that asap.
+>=20
+> Just push it out the homepage update.
 
---=-j3PVfRiGTQbNzXmJyRnT
-Content-Type: multipart/mixed; boundary="=-cee/EmCTJ/vU7XRMMarL"
+Hi Pablo, Eric,
 
+Thanks for getting that pushed out so quickly. I=E2=80=99m hoping to up=
+load 2.0.5 to Debian sid/unstable in the next few days.
 
---=-cee/EmCTJ/vU7XRMMarL
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Eric: thanks for the bug report about the endianness issues. I=E2=80=99=
+ll pick that up with the stable folks to see if it=E2=80=99s feasible t=
+o get an update into the first point release.
 
-Hi!
+Cheers,
+Chris
 
-The Netfilter project proudly presents:
-
-	ulogd 2.0.5
-
-This release fixes build on recent systems where Linux headers don't
-contain anymore ULOG header files. It also fixes JSON output on big
-endian system.
-
-A big thanks to Jimmy Jones, Vincent Bernat for their contributions. See
-ChangeLog that comes attached to this email for more details.
-
-You can download it from:
-
-http://www.netfilter.org/projects/ulogd/downloads.html
-ftp://ftp.netfilter.org/pub/ulogd/
-
-Have fun!
 --=20
-Eric Leblond <eric@regit.org>
-Blog: https://home.regit.org/
+Chris Boot
+bootc@bootc.net
 
---=-cee/EmCTJ/vU7XRMMarL
-Content-Disposition: attachment; filename="changes-ulogd-2.0.5.txt"
-Content-Type: text/plain; name="changes-ulogd-2.0.5.txt"; charset="UTF-8"
-Content-Transfer-Encoding: base64
-
-RXJpYyBMZWJsb25kICg0KToKICAgICAgZ2l0aWdub3JlOiBhZGQgbWFucGFnZQogICAgICBTZXQg
-cmVsZWFzZSBudW1iZXIgdG8gMi4wLjUuCiAgICAgIEFkZCBmbGFnIHRvIGRpc2FibGUgVUxPRyBp
-bnB1dCBwbHVnaW4KICAgICAgQWRkIG1pc3NpbmcgZW5hYmxldmFsIHRvIGNvbmZpZ3VyZQoKSmlt
-bXkgSm9uZXMgKDEpOgogICAgICBGaXggSlNPTiBvdXRwdXQgb24gYmlnIGVuZGlhbiBzeXN0ZW1z
-CgpQYWJsbyBOZWlyYSBBeXVzbyAoMSk6CiAgICAgIGluY2x1ZGU6IGtlZXAgYSBjb3B5IG9mIGxp
-bnV4L25ldGZpbHRlcl9pcHY0L2lwdF9VTE9HLmgKClZpbmNlbnQgQmVybmF0ICgxKToKICAgICAg
-Z2l0aWdub3JlOiBpZ25vcmUgZ2VuZXJhdGVkIGRvY3VtZW50YXRpb24KCg==
-
-
---=-cee/EmCTJ/vU7XRMMarL--
-
---=-j3PVfRiGTQbNzXmJyRnT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iEYEABECAAYFAlVPtDgACgkQnxA7CdMWjzJF3QCcCXab7R7495m2aDNKwcTtGr2u
-7BEAnR2l8irddUK20I/eMKYEMm7Hleox
-=d1Pp
------END PGP SIGNATURE-----
-
---=-j3PVfRiGTQbNzXmJyRnT--
-
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
