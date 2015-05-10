@@ -1,28 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: deinline netif_tx_stop_queue() and
- netif_tx_stop_all_queues()
-Date: Sat, 09 May 2015 22:27:45 -0400 (EDT)
-Message-ID: <20150509.222745.411555396353592046.davem@davemloft.net>
-References: <1430998870-1453-1-git-send-email-dvlasenk@redhat.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: jpirko@redhat.com, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: dvlasenk@redhat.com
+From: Chris Boot <bootc@bootc.net>
+Subject: ulogd 2.0.5
+Date: Sun, 10 May 2015 16:37:56 +0100
+Message-ID: <B384F5AD-D21D-4313-BCD1-FDF3DD049967@bootc.net>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2098\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Cc: Eric Leblond <eric@regit.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:47529 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752007AbbEJC1r (ORCPT
+Received: from kamaji.grokhost.net ([87.117.218.43]:38684 "EHLO
+	kamaji.grokhost.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751381AbbEJPpG convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 9 May 2015 22:27:47 -0400
-In-Reply-To: <1430998870-1453-1-git-send-email-dvlasenk@redhat.com>
+	Sun, 10 May 2015 11:45:06 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Denys Vlasenko <dvlasenk@redhat.com>
-Date: Thu,  7 May 2015 13:41:10 +0200
+Hi Eric, Pablo,
 
-> These functions compile to ~60 bytes of machine code each.
+Has ulogd 2.0.5 been released? I see there is a tag in Git and files in ftp://ftp.netfilter.org/pub/ulogd/, but not in http://netfilter.org/projects/ulogd/files/ and no release announcement on http://netfilter.org/projects/ulogd/downloads.html or in http://www.netfilter.org/news.html.
 
-As others have suggested, just kill the WARN_ON().
+Thanks,
+Chris
+
+-- 
+Chris Boot
+bootc@bootc.net
+
+
+
