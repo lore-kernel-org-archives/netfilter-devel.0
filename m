@@ -1,115 +1,72 @@
-From: Denys Vlasenko <dvlasenk@redhat.com>
-Subject: [PATCH] net: deinline netif_tx_stop_all_queues(), remove WARN_ON in netif_tx_stop_queue()
-Date: Mon, 11 May 2015 21:17:53 +0200
-Message-ID: <1431371873-26969-1-git-send-email-dvlasenk@redhat.com>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>,
-	Alexei Starovoitov <alexei.starovoitov@gmail.com>,
-	Alexander Duyck <alexander.duyck@gmail.com>,
-	Joe Perches <joe@perches.com>, Jiri Pirko <jpirko@redhat.com>,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Klaus Ethgen <Klaus+lkml@ethgen.de>
+Subject: Re: Probably bug in netfilter hashlimit extension
+Date: Mon, 11 May 2015 22:09:00 +0100
+Message-ID: <20150511210900.GA11413@ikki.ethgen.ch>
+References: <20150511125834.GA19053@ikki.ethgen.ch>
+ <20150511135037.GA7877@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1; x-action=pgp-signed
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from tschil.ethgen.ch ([5.9.7.51]:58285 "EHLO tschil.ethgen.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752129AbbEKVJJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 May 2015 17:09:09 -0400
+In-Reply-To: <20150511135037.GA7877@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-These functions compile to 60 bytes of machine code each.
-With this .config: http://busybox.net/~vda/kernel_config
-there are 617 calls of netif_tx_stop_queue()
-and 49 calls of netif_tx_stop_all_queues() in vmlinux.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
 
-To fix this, remove WARN_ON in netif_tx_stop_queue()
-as suggested by davem, and deinline netif_tx_stop_all_queues().
+Hi,
 
-Change in code size is about 20k:
+Am Mo den 11. Mai 2015 um 14:50 schrieb Florian Westphal:
+> Klaus Ethgen <Klaus+lkml@ethgen.de> wrote:
+> > Recently I tried to mitigate some slow attacks via netfilter rule
+> > utilizing hashlimit target. I used the following specification:
+> > 
+> >    -A DETECT_INVALID -m hashlimit --hashlimit-upto 10/hour --hashlimit-mode srcip --hashlimit-name attack_invalid -j RETURN
+> > 
+> > Now I seen some strange stuff. The counter in
+> > /proc/net/ipt_hashlimit/attack_invalid only counts from 60 back to 0 and
+> > then the entry disappears. Than means that a rate of 10/hour will never
+> > ever be detected at all.
+> 
+> Can't reproduce this with 4.0 on x86_64, using iptables 1.4.21 (64bit):
+> 3598 127.0.0.1:0->0.0.0.0:0 8119296 57600000 11520000
 
-   text      data      bss       dec     hex filename
-82426986 22255416 20627456 125309858 77813a2 vmlinux.before
-82406248 22255416 20627456 125289120 777c2a0 vmlinux
+- From your post I also tried and are not able to reproduce it on
+localhost.
 
-gcc-4.7.2 still creates deinlined version of netif_tx_stop_queue
-sometimes:
+... And after flushing the table and reinstalling the filter, the
+problem is gone completly.
 
-$ nm --size-sort vmlinux | grep netif_tx_stop_queue | wc -l
-190
+I just think now, that it is not initializing the hashlimit correctly
+when overwriting a table with iptables-restore that already has such a
+hastable in use with the same name. I never removed entries, I always
+replaced them with iptables-restore.
 
-ffffffff81b558a8 <netif_tx_stop_queue>:
-ffffffff81b558a8:       55                      push   %rbp
-ffffffff81b558a9:       48 89 e5                mov    %rsp,%rbp
-ffffffff81b558ac:       f0 80 8f e0 01 00 00    lock orb $0x1,0x1e0(%rdi)
-ffffffff81b558b3:       01
-ffffffff81b558b4:       5d                      pop    %rbp
-ffffffff81b558b5:       c3                      retq
+Thanks for the final hint and sorry to have brought that to the list.
 
-This needs additional fixing.
+Regards
+   Klaus
+- -- 
+Klaus Ethgen                              http://www.ethgen.ch/
+pub  4096R/4E20AF1C 2011-05-16   Klaus Ethgen <Klaus@Ethgen.de>
+Fingerprint: 85D4 CA42 952C 949B 1753  62B3 79D0 B06F 4E20 AF1C
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-Signed-off-by: Denys Vlasenko <dvlasenk@redhat.com>
-CC: Alexei Starovoitov <alexei.starovoitov@gmail.com>
-CC: Alexander Duyck <alexander.duyck@gmail.com>
-CC: Joe Perches <joe@perches.com>
-CC: David S. Miller <davem@davemloft.net>
-CC: Jiri Pirko <jpirko@redhat.com>
-CC: linux-kernel@vger.kernel.org
-CC: netdev@vger.kernel.org
-CC: netfilter-devel@vger.kernel.org
----
- include/linux/netdevice.h | 14 +-------------
- net/core/dev.c            | 11 +++++++++++
- 2 files changed, 12 insertions(+), 13 deletions(-)
-
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index dcf6ec2..536169e 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -2548,10 +2548,6 @@ static inline void netif_tx_wake_all_queues(struct net_device *dev)
- 
- static inline void netif_tx_stop_queue(struct netdev_queue *dev_queue)
- {
--	if (WARN_ON(!dev_queue)) {
--		pr_info("netif_stop_queue() cannot be called before register_netdev()\n");
--		return;
--	}
- 	set_bit(__QUEUE_STATE_DRV_XOFF, &dev_queue->state);
- }
- 
-@@ -2567,15 +2563,7 @@ static inline void netif_stop_queue(struct net_device *dev)
- 	netif_tx_stop_queue(netdev_get_tx_queue(dev, 0));
- }
- 
--static inline void netif_tx_stop_all_queues(struct net_device *dev)
--{
--	unsigned int i;
--
--	for (i = 0; i < dev->num_tx_queues; i++) {
--		struct netdev_queue *txq = netdev_get_tx_queue(dev, i);
--		netif_tx_stop_queue(txq);
--	}
--}
-+void netif_tx_stop_all_queues(struct net_device *dev);
- 
- static inline bool netif_tx_queue_stopped(const struct netdev_queue *dev_queue)
- {
-diff --git a/net/core/dev.c b/net/core/dev.c
-index 962ee9d..11e0128 100644
---- a/net/core/dev.c
-+++ b/net/core/dev.c
-@@ -6261,6 +6261,17 @@ static int netif_alloc_netdev_queues(struct net_device *dev)
- 	return 0;
- }
- 
-+void netif_tx_stop_all_queues(struct net_device *dev)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < dev->num_tx_queues; i++) {
-+		struct netdev_queue *txq = netdev_get_tx_queue(dev, i);
-+		netif_tx_stop_queue(txq);
-+	}
-+}
-+EXPORT_SYMBOL(netif_tx_stop_all_queues);
-+
- /**
-  *	register_netdevice	- register a network device
-  *	@dev: device to register
--- 
-1.8.1.4
+iQGcBAEBCgAGBQJVURpmAAoJEKZ8CrGAGfas3fkL/RWUXo6JF5AvpqFTT20vTiSL
+tYjOYYo2/ar9kYxIk44kGy5xg+/mSMou8t6NUakMtY1D6Sgip4we9KgBuE3ljDCH
+Je4AW232oVC9PP5F1fhP1asSKYsGfymMAeiZwFgm5rtgGjP5a+zhNRYhF/EL622I
+g4qOrYJ2TKqqu718WkHiuy+YBPv05p1AdlMO+Tw1MQbtJlm7/0ltiVFEU2UZNBj+
+U0o+m0mikgCXVchFZVywyl+2ADmKF5n4MW78Kk/VtM/6hFetM0ztFJ0tCCFz59se
+Tr+hYu5Z24MpepLW5e7Jy1NFRCD+goubgnnQjX+KIh1oiwtWaFGkF0YrMI1I0bEV
+kp0sjMSZS05P8XU5FrPusvHvMDfN+G9yKR6NDbcIIFpmqBXUI/5FHsKikBIUbCQR
+CmPL6KY2kIQ43XezF/s+6ZknZRRakahZXmrXisGZVh5D6eztCYCl0o7yI/hYfsUl
+C3kq+hv6HbGBhr2ll/8sc600Qo7V1iP1javE2REy3Q==
+=Afco
+-----END PGP SIGNATURE-----
