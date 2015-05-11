@@ -1,165 +1,78 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH nf] conntrack: RFC5961 challenge ACK confuse conntrack
- LAST-ACK transition
-Date: Mon, 11 May 2015 12:02:17 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1505111155120.30455@blackhole.kfki.hu>
-References: <20150507125416.29956.24745.stgit@dragon>
+From: Klaus Ethgen <Klaus+lkml@ethgen.de>
+Subject: Probably bug in netfilter hashlimit extension
+Date: Mon, 11 May 2015 13:58:35 +0100
+Message-ID: <20150511125834.GA19053@ikki.ethgen.ch>
+Reply-To: Klaus+lkml@ethgen.de
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Jesper Dangaard Brouer <brouer@redhat.com>
+Content-Type: text/plain; charset=iso-8859-1; x-action=pgp-signed
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:48227 "EHLO smtp1.kfki.hu"
+Received: from tschil.ethgen.ch ([5.9.7.51]:57121 "EHLO tschil.ethgen.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752996AbbEKKBt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 May 2015 06:01:49 -0400
-In-Reply-To: <20150507125416.29956.24745.stgit@dragon>
+	id S1752037AbbEKNkg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 May 2015 09:40:36 -0400
+Received: from home.ethgen.de ([94.247.217.2] helo=ikki.ket)
+	by tschil.ethgen.ch with esmtpsa (TLS1.2:RSA_AES_128_CBC_SHA1:128)
+	(Exim 4.80)
+	(envelope-from <klaus@ethgen.de>)
+	id 1YrnI3-0001gH-I0
+	for netfilter-devel@vger.kernel.org; Mon, 11 May 2015 14:58:35 +0200
+Received: from klaus by ikki.ket with local (Exim 4.85)
+	(envelope-from <klaus@ikki.ethgen.ch>)
+	id 1YrnI3-00050j-44
+	for netfilter-devel@vger.kernel.org; Mon, 11 May 2015 14:58:35 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
 
-On Thu, 7 May 2015, Jesper Dangaard Brouer wrote:
+Resend to netfilter-devel@vger.kernel.org, posted first to lkml.
 
-> In compliance with RFC5961, the network stack send challenge ACK in
-> response to spurious SYN packets, since commit 0c228e833c88 ("tcp:
-> Restore RFC5961-compliant behavior for SYN packets").
-> 
-> This pose a problem for netfilter conntrack in state LAST_ACK, because
-> this challenge ACK is (falsely) seen as ACKing last FIN, causing a
-> false state transition (into TIME_WAIT).
-> 
-> The challenge ACK is hard to distinguish from real last ACK.  Thus,
-> solution introduce a flag that tracks the potential for seeing a
-> challenge ACK, in case a SYN packet is let through and current state
-> is LAST_ACK.
-> 
-> When conntrack transition LAST_ACK to TIME_WAIT happens, this flag is
-> used for determining if we are expecting a challenge ACK.
-> 
-> Scapy based reproducer script avail here:
->  https://github.com/netoptimizer/network-testing/blob/master/scapy/tcp_hacks_3WHS_LAST_ACK.py
-> 
-> Fixes: 0c228e833c88 ("tcp: Restore RFC5961-compliant behavior for SYN packets")
-> Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Recently I tried to mitigate some slow attacks via netfilter rule
+utilizing hashlimit target. I used the following specification:
 
-The patch looks OK to me, thanks Jesper.
+   -A DETECT_INVALID -m hashlimit --hashlimit-upto 10/hour --hashlimit-mode srcip --hashlimit-name attack_invalid -j RETURN
 
-Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Now I seen some strange stuff. The counter in
+/proc/net/ipt_hashlimit/attack_invalid only counts from 60 back to 0 and
+then the entry disappears. Than means that a rate of 10/hour will never
+ever be detected at all.
 
-Best regards,
-Jozsef
-> ---
-> 
->  include/uapi/linux/netfilter/nf_conntrack_tcp.h |    3 ++
->  net/netfilter/nf_conntrack_proto_tcp.c          |   35 +++++++++++++++++++++--
->  2 files changed, 35 insertions(+), 3 deletions(-)
-> 
-> diff --git a/include/uapi/linux/netfilter/nf_conntrack_tcp.h b/include/uapi/linux/netfilter/nf_conntrack_tcp.h
-> index 9993a42..ef9f80f 100644
-> --- a/include/uapi/linux/netfilter/nf_conntrack_tcp.h
-> +++ b/include/uapi/linux/netfilter/nf_conntrack_tcp.h
-> @@ -42,6 +42,9 @@ enum tcp_conntrack {
->  /* The field td_maxack has been set */
->  #define IP_CT_TCP_FLAG_MAXACK_SET		0x20
->  
-> +/* Marks possibility for expected RFC5961 challenge ACK */
-> +#define IP_CT_EXP_CHALLENGE_ACK 		0x40
-> +
->  struct nf_ct_tcp_flags {
->  	__u8 flags;
->  	__u8 mask;
-> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-> index 5caa0c4..ad0db66 100644
-> --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> @@ -202,7 +202,7 @@ static const u8 tcp_conntracks[2][6][TCP_CONNTRACK_MAX] = {
->   *	sES -> sES	:-)
->   *	sFW -> sCW	Normal close request answered by ACK.
->   *	sCW -> sCW
-> - *	sLA -> sTW	Last ACK detected.
-> + *	sLA -> sTW	Last ACK detected (RFC5961 challenged)
->   *	sTW -> sTW	Retransmitted last ACK. Remain in the same state.
->   *	sCL -> sCL
->   */
-> @@ -261,7 +261,7 @@ static const u8 tcp_conntracks[2][6][TCP_CONNTRACK_MAX] = {
->   *	sES -> sES	:-)
->   *	sFW -> sCW	Normal close request answered by ACK.
->   *	sCW -> sCW
-> - *	sLA -> sTW	Last ACK detected.
-> + *	sLA -> sTW	Last ACK detected (RFC5961 challenged)
->   *	sTW -> sTW	Retransmitted last ACK.
->   *	sCL -> sCL
->   */
-> @@ -906,6 +906,7 @@ static int tcp_packet(struct nf_conn *ct,
->  					1 : ct->proto.tcp.last_win;
->  			ct->proto.tcp.seen[ct->proto.tcp.last_dir].td_scale =
->  				ct->proto.tcp.last_wscale;
-> +			ct->proto.tcp.last_flags &= ~IP_CT_EXP_CHALLENGE_ACK;
->  			ct->proto.tcp.seen[ct->proto.tcp.last_dir].flags =
->  				ct->proto.tcp.last_flags;
->  			memset(&ct->proto.tcp.seen[dir], 0,
-> @@ -923,7 +924,9 @@ static int tcp_packet(struct nf_conn *ct,
->  		 * may be in sync but we are not. In that case, we annotate
->  		 * the TCP options and let the packet go through. If it is a
->  		 * valid SYN packet, the server will reply with a SYN/ACK, and
-> -		 * then we'll get in sync. Otherwise, the server ignores it. */
-> +		 * then we'll get in sync. Otherwise, the server potentially
-> +		 * respons with a challenge ACK if implementing RFC5961.
-> +		 */
->  		if (index == TCP_SYN_SET && dir == IP_CT_DIR_ORIGINAL) {
->  			struct ip_ct_tcp_state seen = {};
->  
-> @@ -939,6 +942,13 @@ static int tcp_packet(struct nf_conn *ct,
->  				ct->proto.tcp.last_flags |=
->  					IP_CT_TCP_FLAG_SACK_PERM;
->  			}
-> +			/* Mark the potential for RFC5961 challenge ACK,
-> +			 * this pose a special problem for LAST_ACK state
-> +			 * as ACK is intrepretated as ACKing last FIN.
-> +			 */
-> +			if (old_state == TCP_CONNTRACK_LAST_ACK)
-> +				ct->proto.tcp.last_flags |=
-> +					IP_CT_EXP_CHALLENGE_ACK;
->  		}
->  		spin_unlock_bh(&ct->lock);
->  		if (LOG_INVALID(net, IPPROTO_TCP))
-> @@ -970,6 +980,25 @@ static int tcp_packet(struct nf_conn *ct,
->  			nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
->  				  "nf_ct_tcp: invalid state ");
->  		return -NF_ACCEPT;
-> +	case TCP_CONNTRACK_TIME_WAIT:
-> +		/* RFC5961 compliance cause stack to send "challenge-ACK"
-> +		 * e.g. in response to spurious SYNs.  Conntrack MUST
-> +		 * not believe this ACK is acking last FIN.
-> +		 */
-> +		if (old_state == TCP_CONNTRACK_LAST_ACK
-> +		    && index == TCP_ACK_SET
-> +		    && ct->proto.tcp.last_dir != dir
-> +		    && ct->proto.tcp.last_index == TCP_SYN_SET
-> +		    && (ct->proto.tcp.last_flags & IP_CT_EXP_CHALLENGE_ACK)) {
-> +			/* Detected RFC5961 challenge ACK */
-> +			ct->proto.tcp.last_flags &= ~IP_CT_EXP_CHALLENGE_ACK;
-> +			spin_unlock_bh(&ct->lock);
-> +			if (LOG_INVALID(net, IPPROTO_TCP))
-> +				nf_log_packet(net, pf, 0, skb, NULL, NULL, NULL,
-> +				      "nf_ct_tcp: challenge-ACK ignored ");
-> +			return NF_ACCEPT; /* Don't change state */
-> +		}
-> +		break;
->  	case TCP_CONNTRACK_CLOSE:
->  		if (index == TCP_RST_SET
->  		    && (ct->proto.tcp.seen[!dir].flags & IP_CT_TCP_FLAG_MAXACK_SET)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+On that box I use kernel 3.16.0 from debian backport to oldstable Which
+seems to be somewhat equal to 3.16.7. So maybe that bug has beed find
+earlier or is even fixed upstream. I have no easy way to upgrade that
+kernel short term as the box is productive.
 
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Shorter times like 30/hour with a slightly bigger burst (10 instead of
+the default 5) seems to work as expected but is not able to detect the
+attacks due to the slow rate.
+
+Am I the only who seen that behaviour or is that a known limitation? I
+find no such notes anywhere that there is a limit here. (Although I
+would believe that there is a high limit somewhere. But then I would
+expect them to be returend with some errno when trying to set a to high
+value.)
+
+Please keep me in Cc as I do not monitor this List that often.
+
+Regards
+   Klaus
+- -- 
+Klaus Ethgen                              http://www.ethgen.ch/
+pub  4096R/4E20AF1C 2011-05-16   Klaus Ethgen <Klaus@Ethgen.de>
+Fingerprint: 85D4 CA42 952C 949B 1753  62B3 79D0 B06F 4E20 AF1C
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQGcBAEBCgAGBQJVUKdyAAoJEKZ8CrGAGfasMGQL/3BXsjHwkRp/THoc6sY22CeK
+NfA42d0Yc05Jg0MNrvAZk8X7dnSuqpzyEju8/VsFEuwkE4oUkMMf5OCMYo8SpXuT
+cC+hGslOOmF3NW/VvK+6q75c0XERFV91WFSgE5MwFJQHbLYTLcVGYxShSkhQhwMU
+8gqzfBbOLmoI1FyU8tVZtMgyLbsp8U/TerHRs2RDgCE6PeAy3t6zukU/ld60RtFe
+FVrn/oMVBTxrv5EPWUBeV93LC7t/HHiBW8yPxrzY11DfTUP/0OCzZnHcW5JOOzoU
+AYcLKbt+VwVxpZQtLJT/FdZOsJuJT7rJna/RJvCgiZgkvF+mvQXTYOOYhac7o1C7
+pylXEbs6CRKs8Ou1itLkkoCPR6j3PuDOUR9afiLbA9/wINOxHEr7uBTse3l6Vs+S
+XRbESdTAjc1tMLO7BaCMf+5w9qSwzS/xz7cLDLmwPhN+W9B0u6eUHP8CTOmlZT6j
+k6+KrE9c2xv8NwcNBZP/7yqbagaZL47W3qIhxrTGCw==
+=aszC
+-----END PGP SIGNATURE-----
