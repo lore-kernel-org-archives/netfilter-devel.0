@@ -1,79 +1,115 @@
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: Re: Probably bug in netfilter hashlimit extension
-Date: Mon, 11 May 2015 09:35:38 -0700
-Message-ID: <CAM_iQpUjnv+NA=9K=gc+NdSncgRBJtQLoQGmDn-7BsMpRbxQpw@mail.gmail.com>
-References: <20150511092941.GA8739@ikki.ethgen.ch>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Linux Kernel Network Developers <netdev@vger.kernel.org>,
+From: Denys Vlasenko <dvlasenk@redhat.com>
+Subject: [PATCH] net: deinline netif_tx_stop_all_queues(), remove WARN_ON in netif_tx_stop_queue()
+Date: Mon, 11 May 2015 21:17:53 +0200
+Message-ID: <1431371873-26969-1-git-send-email-dvlasenk@redhat.com>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>,
+	Alexei Starovoitov <alexei.starovoitov@gmail.com>,
+	Alexander Duyck <alexander.duyck@gmail.com>,
+	Joe Perches <joe@perches.com>, Jiri Pirko <jpirko@redhat.com>,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: Klaus+lkml@ethgen.de
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:34003 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750876AbbEKQfi (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 May 2015 12:35:38 -0400
-In-Reply-To: <20150511092941.GA8739@ikki.ethgen.ch>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: "David S. Miller" <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-(Cc'ing netdev and netfilter-devel)
+These functions compile to 60 bytes of machine code each.
+With this .config: http://busybox.net/~vda/kernel_config
+there are 617 calls of netif_tx_stop_queue()
+and 49 calls of netif_tx_stop_all_queues() in vmlinux.
 
-On Mon, May 11, 2015 at 2:29 AM, Klaus Ethgen <Klaus+lkml@ethgen.de> wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA512
->
-> Recently I tried to mitigate some slow attacks via netfilter rule
-> utilizing hashlimit target. I used the following specification:
->
->    -A DETECT_INVALID -m hashlimit --hashlimit-upto 10/hour --hashlimit-mode srcip --hashlimit-name attack_invalid -j RETURN
->
-> Now I seen some strange stuff. The counter in
-> /proc/net/ipt_hashlimit/attack_invalid only counts from 60 back to 0 and
-> then the entry disappears. Than means that a rate of 10/hour will never
-> ever be detected at all.
->
-> On that box I use kernel 3.16.0 from debian backport to oldstable Which
-> seems to be somewhat equal to 3.16.7. So maybe that bug has beed find
-> earlier or is even fixed upstream. I have no easy way to upgrade that
-> kernel short term as the box is productive.
->
-> Shorter times like 30/hour with a slightly bigger burst (10 instead of
-> the default 5) seems to work as expected but is not able to detect the
-> attacks due to the slow rate.
->
-> Am I the only who seen that behaviour or is that a known limitation? I
-> find no such notes anywhere that there is a limit here. (Although I
-> would believe that there is a high limit somewhere. But then I would
-> expect them to be returend with some errno when trying to set a to high
-> value.)
->
-> Please keep me in Cc as I do not monitor this List that often.
->
-> Regards
->    Klaus
-> - --
-> Klaus Ethgen                              http://www.ethgen.ch/
-> pub  4096R/4E20AF1C 2011-05-16   Klaus Ethgen <Klaus@Ethgen.de>
-> Fingerprint: 85D4 CA42 952C 949B 1753  62B3 79D0 B06F 4E20 AF1C
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1
->
-> iQGcBAEBCgAGBQJVUHZ/AAoJEKZ8CrGAGfasiOQMAJC5FATdWhstS+60vIwn+Iyp
-> 6/dprBI9zppfS9FtKvjCEYbrzmDKpTCfST5jtC7F6VRdfMeqgfFZ9wpdOk4VGJ6c
-> PgpUTGN8tUrD3oLlWtd+uPIeQ5U02h2Y6Lh5YNc+iAd2fExCqixM6vExdD+5ayWy
-> jcG/h7rC3rm332VTQNbAso7XLeMqiUVLwGn5CpbvW+A5kyePlVfjrONQ+fgBME7v
-> xlEH4GbLgr/K2GYrJLbGcXbIAXuYHi1NyykKE3YkJIptIdTHLZmJXA79h4gGpvNj
-> JoatHhMi3WpjxHNFSc8NXnmszJd+60PSNRu3hgGW5nkJQh6tFArGOsru2gIYLKt0
-> HJcO0H+gHi3sYgXRl4MxzN7GxrQjJcEL/wg+kNH8MUXZVhy4wprZoxsDiSEsmyFa
-> il9ZSbzbDX9ipCqeLb6fq+5XmQ+KkzGnzV0RZAbV372kDL+r2ck4K1tI+plDch/y
-> 3ivFycT6NDtmPyPW1bJ2whHsLaRG1uu9VgWcEnLoFg==
-> =SvVH
-> -----END PGP SIGNATURE-----
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+To fix this, remove WARN_ON in netif_tx_stop_queue()
+as suggested by davem, and deinline netif_tx_stop_all_queues().
+
+Change in code size is about 20k:
+
+   text      data      bss       dec     hex filename
+82426986 22255416 20627456 125309858 77813a2 vmlinux.before
+82406248 22255416 20627456 125289120 777c2a0 vmlinux
+
+gcc-4.7.2 still creates deinlined version of netif_tx_stop_queue
+sometimes:
+
+$ nm --size-sort vmlinux | grep netif_tx_stop_queue | wc -l
+190
+
+ffffffff81b558a8 <netif_tx_stop_queue>:
+ffffffff81b558a8:       55                      push   %rbp
+ffffffff81b558a9:       48 89 e5                mov    %rsp,%rbp
+ffffffff81b558ac:       f0 80 8f e0 01 00 00    lock orb $0x1,0x1e0(%rdi)
+ffffffff81b558b3:       01
+ffffffff81b558b4:       5d                      pop    %rbp
+ffffffff81b558b5:       c3                      retq
+
+This needs additional fixing.
+
+Signed-off-by: Denys Vlasenko <dvlasenk@redhat.com>
+CC: Alexei Starovoitov <alexei.starovoitov@gmail.com>
+CC: Alexander Duyck <alexander.duyck@gmail.com>
+CC: Joe Perches <joe@perches.com>
+CC: David S. Miller <davem@davemloft.net>
+CC: Jiri Pirko <jpirko@redhat.com>
+CC: linux-kernel@vger.kernel.org
+CC: netdev@vger.kernel.org
+CC: netfilter-devel@vger.kernel.org
+---
+ include/linux/netdevice.h | 14 +-------------
+ net/core/dev.c            | 11 +++++++++++
+ 2 files changed, 12 insertions(+), 13 deletions(-)
+
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index dcf6ec2..536169e 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -2548,10 +2548,6 @@ static inline void netif_tx_wake_all_queues(struct net_device *dev)
+ 
+ static inline void netif_tx_stop_queue(struct netdev_queue *dev_queue)
+ {
+-	if (WARN_ON(!dev_queue)) {
+-		pr_info("netif_stop_queue() cannot be called before register_netdev()\n");
+-		return;
+-	}
+ 	set_bit(__QUEUE_STATE_DRV_XOFF, &dev_queue->state);
+ }
+ 
+@@ -2567,15 +2563,7 @@ static inline void netif_stop_queue(struct net_device *dev)
+ 	netif_tx_stop_queue(netdev_get_tx_queue(dev, 0));
+ }
+ 
+-static inline void netif_tx_stop_all_queues(struct net_device *dev)
+-{
+-	unsigned int i;
+-
+-	for (i = 0; i < dev->num_tx_queues; i++) {
+-		struct netdev_queue *txq = netdev_get_tx_queue(dev, i);
+-		netif_tx_stop_queue(txq);
+-	}
+-}
++void netif_tx_stop_all_queues(struct net_device *dev);
+ 
+ static inline bool netif_tx_queue_stopped(const struct netdev_queue *dev_queue)
+ {
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 962ee9d..11e0128 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -6261,6 +6261,17 @@ static int netif_alloc_netdev_queues(struct net_device *dev)
+ 	return 0;
+ }
+ 
++void netif_tx_stop_all_queues(struct net_device *dev)
++{
++	unsigned int i;
++
++	for (i = 0; i < dev->num_tx_queues; i++) {
++		struct netdev_queue *txq = netdev_get_tx_queue(dev, i);
++		netif_tx_stop_queue(txq);
++	}
++}
++EXPORT_SYMBOL(netif_tx_stop_all_queues);
++
+ /**
+  *	register_netdevice	- register a network device
+  *	@dev: device to register
+-- 
+1.8.1.4
