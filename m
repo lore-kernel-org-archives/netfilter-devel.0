@@ -1,94 +1,54 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH net-next] netfilter: Use correct return for seq_show
- functions
-Date: Tue, 12 May 2015 18:28:23 -0700
-Message-ID: <1431480503.2884.110.camel@perches.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net: deinline netif_tx_stop_all_queues(), remove
+ WARN_ON in netif_tx_stop_queue()
+Date: Tue, 12 May 2015 23:05:58 -0400 (EDT)
+Message-ID: <20150512.230558.437567720437090973.davem@davemloft.net>
+References: <1431371873-26969-1-git-send-email-dvlasenk@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
+Cc: alexei.starovoitov@gmail.com, alexander.duyck@gmail.com,
+	joe@perches.com, jpirko@redhat.com, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: dvlasenk@redhat.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1431371873-26969-1-git-send-email-dvlasenk@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Using seq_has_overflowed doesn't produce the right return value.
-Either 0 or -1 is, but 0 is much more common and works well when
-seq allocation retries.
+From: Denys Vlasenko <dvlasenk@redhat.com>
+Date: Mon, 11 May 2015 21:17:53 +0200
 
-I believe this doesn't matter as the initial allocation is always
-sufficient, this is just a correctness patch.
+> These functions compile to 60 bytes of machine code each.
+> With this .config: http://busybox.net/~vda/kernel_config
+> there are 617 calls of netif_tx_stop_queue()
+> and 49 calls of netif_tx_stop_all_queues() in vmlinux.
+> 
+> To fix this, remove WARN_ON in netif_tx_stop_queue()
+> as suggested by davem, and deinline netif_tx_stop_all_queues().
+> 
+> Change in code size is about 20k:
+> 
+>    text      data      bss       dec     hex filename
+> 82426986 22255416 20627456 125309858 77813a2 vmlinux.before
+> 82406248 22255416 20627456 125289120 777c2a0 vmlinux
+> 
+> gcc-4.7.2 still creates deinlined version of netif_tx_stop_queue
+> sometimes:
+> 
+> $ nm --size-sort vmlinux | grep netif_tx_stop_queue | wc -l
+> 190
+> 
+> ffffffff81b558a8 <netif_tx_stop_queue>:
+> ffffffff81b558a8:       55                      push   %rbp
+> ffffffff81b558a9:       48 89 e5                mov    %rsp,%rbp
+> ffffffff81b558ac:       f0 80 8f e0 01 00 00    lock orb $0x1,0x1e0(%rdi)
+> ffffffff81b558b3:       01
+> ffffffff81b558b4:       5d                      pop    %rbp
+> ffffffff81b558b5:       c3                      retq
+> 
+> This needs additional fixing.
+> 
+> Signed-off-by: Denys Vlasenko <dvlasenk@redhat.com>
 
-Miscellanea:
-
-o Don't use strlen, use *ptr to determine if a string
-  should be emitted like all the other tests here
-o Delete unnecessary return statements
-
-Signed-off-by: Joe Perches <joe@perches.com>
----
- net/netfilter/nfnetlink_queue_core.c |  2 +-
- net/netfilter/x_tables.c             | 18 ++++++------------
- 2 files changed, 7 insertions(+), 13 deletions(-)
-
-diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-index 0b98c74..bec7c60 100644
---- a/net/netfilter/nfnetlink_queue_core.c
-+++ b/net/netfilter/nfnetlink_queue_core.c
-@@ -1257,7 +1257,7 @@ static int seq_show(struct seq_file *s, void *v)
- 		   inst->copy_mode, inst->copy_range,
- 		   inst->queue_dropped, inst->queue_user_dropped,
- 		   inst->id_sequence, 1);
--	return seq_has_overflowed(s);
-+	return 0;
- }
- 
- static const struct seq_operations nfqnl_seq_ops = {
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 51a459c..8303246 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -947,11 +947,9 @@ static int xt_table_seq_show(struct seq_file *seq, void *v)
- {
- 	struct xt_table *table = list_entry(v, struct xt_table, list);
- 
--	if (strlen(table->name)) {
-+	if (*table->name)
- 		seq_printf(seq, "%s\n", table->name);
--		return seq_has_overflowed(seq);
--	} else
--		return 0;
-+	return 0;
- }
- 
- static const struct seq_operations xt_table_seq_ops = {
-@@ -1087,10 +1085,8 @@ static int xt_match_seq_show(struct seq_file *seq, void *v)
- 		if (trav->curr == trav->head)
- 			return 0;
- 		match = list_entry(trav->curr, struct xt_match, list);
--		if (*match->name == '\0')
--			return 0;
--		seq_printf(seq, "%s\n", match->name);
--		return seq_has_overflowed(seq);
-+		if (*match->name)
-+			seq_printf(seq, "%s\n", match->name);
- 	}
- 	return 0;
- }
-@@ -1142,10 +1138,8 @@ static int xt_target_seq_show(struct seq_file *seq, void *v)
- 		if (trav->curr == trav->head)
- 			return 0;
- 		target = list_entry(trav->curr, struct xt_target, list);
--		if (*target->name == '\0')
--			return 0;
--		seq_printf(seq, "%s\n", target->name);
--		return seq_has_overflowed(seq);
-+		if (*target->name)
-+			seq_printf(seq, "%s\n", target->name);
- 	}
- 	return 0;
- }
+Applied, thank you.
