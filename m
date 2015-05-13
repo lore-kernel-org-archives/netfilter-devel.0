@@ -1,75 +1,39 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 10/34] netfilter: ipset: Missing rcu protection in
- mtype_list() fixed
-Date: Wed, 13 May 2015 18:32:19 +0200
-Message-ID: <20150513163219.GA27541@salvia>
-References: <1430587703-3387-1-git-send-email-kadlec@blackhole.kfki.hu>
- <1430587703-3387-11-git-send-email-kadlec@blackhole.kfki.hu>
- <20150507181918.GA3654@salvia>
- <20150508000343.GA18705@salvia>
- <alpine.DEB.2.10.1505082213350.16001@blackhole.kfki.hu>
+From: Alexei Starovoitov <ast@plumgrid.com>
+Subject: Re: [PATCH 4/5] net: add CONFIG_NET_INGRESS to enable ingress filtering
+Date: Wed, 13 May 2015 09:55:36 -0700
+Message-ID: <55538208.2090504@plumgrid.com>
+References: <1431533978-26901-1-git-send-email-pablo@netfilter.org> <1431533978-26901-5-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: davem@davemloft.net, netdev@vger.kernel.org, jhs@mojatatu.com,
+	daniel@iogearbox.net, eric.dumazet@gmail.com, kaber@trash.net
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36527 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965341AbbEMQ1d (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 May 2015 12:27:33 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1505082213350.16001@blackhole.kfki.hu>
+Received: from mail-ie0-f182.google.com ([209.85.223.182]:34335 "EHLO
+	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753381AbbEMQzj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 May 2015 12:55:39 -0400
+Received: by iecmd7 with SMTP id md7so37753429iec.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 May 2015 09:55:39 -0700 (PDT)
+In-Reply-To: <1431533978-26901-5-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, May 08, 2015 at 10:15:14PM +0200, Jozsef Kadlecsik wrote:
-> On Fri, 8 May 2015, Pablo Neira Ayuso wrote:
-> 
-> > On Thu, May 07, 2015 at 08:19:18PM +0200, Pablo Neira Ayuso wrote:
-> > [...]
-> > > I will come back to review the rcu patches, I still have concerns
-> > > there.
-> > > 
-> > > If you're OK, I'll take as much as I can that is independent your RCU
-> > > changes, so you don't need to resend this large patchset, but you will
-> > > need to rebase though.
-> > 
-> > Unless you have any concern, I'm going to start by applying this batch
-> > of 15 patches:
-> > 
-> > netfilter: ipset: Use better include files in xt_set.c
-> > netfilter: ipset: Improve preprocessor macros checks
-> > netfilter: ipset: Fix hashing for ipv6 sets
-> > netfilter: ipset: Fix ext_*() macros
-> > netfilter: ipset: Check for comment netlink attribute length
-> > netfilter: ipset: Return bool values instead of int
-> > netfilter: ipset: Use HOST_MASK literal to represent host address CIDR len
-> > netfilter: ipset: Check IPSET_ATTR_PORT only once
-> > netfilter: ipset: Return ipset error instead of bool
-> > netfilter: ipset: Preprocessor directices cleanup
-> > netfilter: ipset: No need to make nomatch bitfield
-> > netfilter: ipset: Properly calculate extensions offsets and total length
-> > netfilter: ipset: make ip_set_get_ip*_port to use skb_network_offset
-> > netfilter: ipset: Give a better name to a macro in ip_set_core.c
-> > netfilter: ipset: Fix sparse warning
-> > 
-> > It would be good if other small patches come in first place if
-> > possible. Otherwise, I'd suggest you focus on a next batch with the
-> > rcu conversion, that will be already quite large.
-> 
-> OK. I'll work on the rebasing after the patches above are applied.
+On 5/13/15 9:19 AM, Pablo Neira Ayuso wrote:
+> This new config switch enables the ingress filtering infrastructure that is
+> controlled through the ingress_needed static key. This prepares the
+> introduction of the Netfilter ingress hook that resides under this unique
+> static key.
+>
+> Note that CONFIG_SCH_INGRESS automatically selects this, that should be no
+> problem since this also depends on CONFIG_NET_CLS_ACT.
+>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-I just pushed out this, you can start preparing a new batch.
+Looks good to me.
 
-Please, do the following changes in the next batch:
+Acked-by: Alexei Starovoitov <ast@plumgrid.com>
 
-1) Collapse the RCU fix to the master patch, where it belongs.
-2) Add the rcu_barrier() to the patch that starts requiring this.
-3) Remove the synchronize_rcu() after list_add_rcu() since it's not
-   needed.
-
-Regarding rhashtable, I understand your implementation is simpler, but
-it would be good if you can give it a further look as you said, I
-guess other fellows will probably ask the same as I did.
-
-Let me know if I can help, thanks for your patience Jozsef!
