@@ -1,46 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 5/5] netfilter: add netfilter ingress hook after
- handle_ing() under unique static key
-Date: Thu, 14 May 2015 01:11:07 -0400 (EDT)
-Message-ID: <20150514.011107.2098064573628886880.davem@davemloft.net>
-References: <1431533978-26901-1-git-send-email-pablo@netfilter.org>
-	<1431533978-26901-6-git-send-email-pablo@netfilter.org>
-	<5553A7B9.7030203@6wind.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH -next] netfilter: bridge: neigh_head and physoutdev can't
+ be used at same time
+Date: Thu, 14 May 2015 12:52:26 +0200
+Message-ID: <20150514105226.GA4832@salvia>
+References: <1430683528-29050-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, jhs@mojatatu.com, daniel@iogearbox.net,
-	eric.dumazet@gmail.com, kaber@trash.net, ast@plumgrid.com
-To: nicolas.dichtel@6wind.com
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:60419 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933286AbbENFLK convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 May 2015 01:11:10 -0400
-In-Reply-To: <5553A7B9.7030203@6wind.com>
+Received: from mail.us.es ([193.147.175.20]:35743 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932627AbbENKrr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 May 2015 06:47:47 -0400
+Content-Disposition: inline
+In-Reply-To: <1430683528-29050-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Date: Wed, 13 May 2015 21:36:25 +0200
+On Sun, May 03, 2015 at 10:05:28PM +0200, Florian Westphal wrote:
+> The neigh_header is only needed when we detect DNAT after prerouting
+> and neigh cache didn't have a mac address for us.
+> 
+> The output port has not been chosen yet so we can re-use the storage
+> area, bringing struct size down to 32 bytes on x86_64.
 
-> Le 13/05/2015 18:19, Pablo Neira Ayuso a =E9crit :
-> [snip]
->> --- /dev/null
->> +++ b/include/linux/netfilter_ingress.h
-> [snip]
->> +static inline void nf_hook_ingress_init(struct net_device *dev)
->> +{
->> +        INIT_LIST_HEAD(&dev->nf_hooks_ingress);
-> nit: this line is indented with spaces instead of a tab.
+Applied, thanks for your patience.
 
-I took care of this when I applied Pablo's series.
-
-Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
