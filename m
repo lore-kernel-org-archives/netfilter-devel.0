@@ -1,32 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: avoid build error if TPROXY/SOCKET=y &&
- NF_DEFRAG_IPV6=m
-Date: Fri, 15 May 2015 21:05:24 +0200
-Message-ID: <20150515190524.GA11008@salvia>
-References: <1431000958-671-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH nf] conntrack: RFC5961 challenge ACK confuse conntrack
+ LAST-ACK transition
+Date: Fri, 15 May 2015 21:06:33 +0200
+Message-ID: <20150515190633.GA11015@salvia>
+References: <20150507125416.29956.24745.stgit@dragon>
+ <alpine.DEB.2.10.1505111155120.30455@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34234 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753507AbbEOTAk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 May 2015 15:00:40 -0400
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1431000958-671-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.10.1505111155120.30455@blackhole.kfki.hu>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, May 07, 2015 at 02:15:58PM +0200, Florian Westphal wrote:
-> With TPROXY=y but DEFRAG_IPV6=m we get build failure:
+On Mon, May 11, 2015 at 12:02:17PM +0200, Jozsef Kadlecsik wrote:
+> Hi,
 > 
-> net/built-in.o: In function `tproxy_tg_init':
-> net/netfilter/xt_TPROXY.c:588: undefined reference to `nf_defrag_ipv6_enable'
+> On Thu, 7 May 2015, Jesper Dangaard Brouer wrote:
 > 
-> If DEFRAG_IPV6 is modular, TPROXY must be too.
-> (or both must be builtin).
+> > In compliance with RFC5961, the network stack send challenge ACK in
+> > response to spurious SYN packets, since commit 0c228e833c88 ("tcp:
+> > Restore RFC5961-compliant behavior for SYN packets").
+> > 
+> > This pose a problem for netfilter conntrack in state LAST_ACK, because
+> > this challenge ACK is (falsely) seen as ACKing last FIN, causing a
+> > false state transition (into TIME_WAIT).
+> > 
+> > The challenge ACK is hard to distinguish from real last ACK.  Thus,
+> > solution introduce a flag that tracks the potential for seeing a
+> > challenge ACK, in case a SYN packet is let through and current state
+> > is LAST_ACK.
+> > 
+> > When conntrack transition LAST_ACK to TIME_WAIT happens, this flag is
+> > used for determining if we are expecting a challenge ACK.
+> > 
+> > Scapy based reproducer script avail here:
+> >  https://github.com/netoptimizer/network-testing/blob/master/scapy/tcp_hacks_3WHS_LAST_ACK.py
+> > 
+> > Fixes: 0c228e833c88 ("tcp: Restore RFC5961-compliant behavior for SYN packets")
+> > Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
 > 
-> This enforces =m for both.
+> The patch looks OK to me, thanks Jesper.
+> 
+> Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-Applied, thanks Florian.
+Applied, thanks.
