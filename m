@@ -1,11 +1,8 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable] netfilter: restore rule tracing via nfnetlink_log
-Date: Sat, 16 May 2015 20:50:49 +0200
-Message-ID: <1431802251-4781-5-git-send-email-pablo@netfilter.org>
+Subject: [PATCH -stable] netfilter: Zero the tuple in nfnl_cthelper_parse_tuple()
+Date: Sat, 16 May 2015 20:50:46 +0200
+Message-ID: <1431802251-4781-2-git-send-email-pablo@netfilter.org>
 References: <1431802251-4781-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
 To: stable@vger.kernel.org
 Return-path: <stable-owner@vger.kernel.org>
@@ -13,149 +10,53 @@ In-Reply-To: <1431802251-4781-1-git-send-email-pablo@netfilter.org>
 Sender: stable-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[ upstream commit 4017a7ee693d1cae6735c0dac21594a7c6416c4c ]
+From: Ian Wilson <iwilson@brocade.com>
 
-Since fab4085 ("netfilter: log: nf_log_packet() as real unified
-interface"), the loginfo structure that is passed to nf_log_packet() is
-used to explicitly indicate the logger type you want to use.
+[ upstream commit 78146572b9cd20452da47951812f35b1ad4906be ]
 
-This is a problem for people tracing rules through nfnetlink_log since
-packets are always routed to the NF_LOG_TYPE logger after the
-aforementioned patch.
+nfnl_cthelper_parse_tuple() is called from nfnl_cthelper_new(),
+nfnl_cthelper_get() and nfnl_cthelper_del().  In each case they pass
+a pointer to an nf_conntrack_tuple data structure local variable:
 
-We can fix this by removing the trace loginfo structures, but that stil=
-l
-changes the log level from 4 to 5 for tracing messages and there may be
-someone relying on this outthere. So let's just introduce a new
-nf_log_trace() function that restores the former behaviour.
+    struct nf_conntrack_tuple tuple;
+    ...
+    ret = nfnl_cthelper_parse_tuple(&tuple, tb[NFCTH_TUPLE]);
 
+The problem is that this local variable is not initialized, and
+nfnl_cthelper_parse_tuple() only initializes two fields: src.l3num and
+dst.protonum.  This leaves all other fields with undefined values
+based on whatever is on the stack:
+
+    tuple->src.l3num = ntohs(nla_get_be16(tb[NFCTH_TUPLE_L3PROTONUM]));
+    tuple->dst.protonum = nla_get_u8(tb[NFCTH_TUPLE_L4PROTONUM]);
+
+The symptom observed was that when the rpc and tns helpers were added
+then traffic to port 1536 was being sent to user-space.
+
+Cc: <stable@vger.kernel.org> # 3.10.x
+Cc: <stable@vger.kernel.org> # 3.12.x
+Cc: <stable@vger.kernel.org> # 3.14.x
 Cc: <stable@vger.kernel.org> # 3.18.x
 Cc: <stable@vger.kernel.org> # 3.19.x
-Reported-by: Markus K=C3=B6tter <koetter@rrzn.uni-hannover.de>
+Signed-off-by: Ian Wilson <iwilson@brocade.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_log.h  |   10 ++++++++++
- net/ipv4/netfilter/ip_tables.c  |    6 +++---
- net/ipv6/netfilter/ip6_tables.c |    6 +++---
- net/netfilter/nf_log.c          |   24 ++++++++++++++++++++++++
- net/netfilter/nf_tables_core.c  |    8 ++++----
- 5 files changed, 44 insertions(+), 10 deletions(-)
+ net/netfilter/nfnetlink_cthelper.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_=
-log.h
-index 534e1f2..57639fc 100644
---- a/include/net/netfilter/nf_log.h
-+++ b/include/net/netfilter/nf_log.h
-@@ -79,6 +79,16 @@ void nf_log_packet(struct net *net,
- 		   const struct nf_loginfo *li,
- 		   const char *fmt, ...);
-=20
-+__printf(8, 9)
-+void nf_log_trace(struct net *net,
-+		  u_int8_t pf,
-+		  unsigned int hooknum,
-+		  const struct sk_buff *skb,
-+		  const struct net_device *in,
-+		  const struct net_device *out,
-+		  const struct nf_loginfo *li,
-+		  const char *fmt, ...);
+diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
+index a5599fc..54330fb 100644
+--- a/net/netfilter/nfnetlink_cthelper.c
++++ b/net/netfilter/nfnetlink_cthelper.c
+@@ -77,6 +77,9 @@ nfnl_cthelper_parse_tuple(struct nf_conntrack_tuple *tuple,
+ 	if (!tb[NFCTH_TUPLE_L3PROTONUM] || !tb[NFCTH_TUPLE_L4PROTONUM])
+ 		return -EINVAL;
+ 
++	/* Not all fields are initialized so first zero the tuple */
++	memset(tuple, 0, sizeof(struct nf_conntrack_tuple));
 +
- struct nf_log_buf;
-=20
- struct nf_log_buf *nf_log_buf_open(void);
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tab=
-les.c
-index 99e810f..cf5e82f 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -272,9 +272,9 @@ static void trace_packet(const struct sk_buff *skb,
- 		    &chainname, &comment, &rulenum) !=3D 0)
- 			break;
-=20
--	nf_log_packet(net, AF_INET, hook, skb, in, out, &trace_loginfo,
--		      "TRACE: %s:%s:%s:%u ",
--		      tablename, chainname, comment, rulenum);
-+	nf_log_trace(net, AF_INET, hook, skb, in, out, &trace_loginfo,
-+		     "TRACE: %s:%s:%s:%u ",
-+		     tablename, chainname, comment, rulenum);
- }
- #endif
-=20
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_t=
-ables.c
-index e080fbb..bb00c6f 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -298,9 +298,9 @@ static void trace_packet(const struct sk_buff *skb,
- 		    &chainname, &comment, &rulenum) !=3D 0)
- 			break;
-=20
--	nf_log_packet(net, AF_INET6, hook, skb, in, out, &trace_loginfo,
--		      "TRACE: %s:%s:%s:%u ",
--		      tablename, chainname, comment, rulenum);
-+	nf_log_trace(net, AF_INET6, hook, skb, in, out, &trace_loginfo,
-+		     "TRACE: %s:%s:%s:%u ",
-+		     tablename, chainname, comment, rulenum);
- }
- #endif
-=20
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index 0d8448f..675d12c 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -212,6 +212,30 @@ void nf_log_packet(struct net *net,
- }
- EXPORT_SYMBOL(nf_log_packet);
-=20
-+void nf_log_trace(struct net *net,
-+		  u_int8_t pf,
-+		  unsigned int hooknum,
-+		  const struct sk_buff *skb,
-+		  const struct net_device *in,
-+		  const struct net_device *out,
-+		  const struct nf_loginfo *loginfo, const char *fmt, ...)
-+{
-+	va_list args;
-+	char prefix[NF_LOG_PREFIXLEN];
-+	const struct nf_logger *logger;
-+
-+	rcu_read_lock();
-+	logger =3D rcu_dereference(net->nf.nf_loggers[pf]);
-+	if (logger) {
-+		va_start(args, fmt);
-+		vsnprintf(prefix, sizeof(prefix), fmt, args);
-+		va_end(args);
-+		logger->logfn(net, pf, hooknum, skb, in, out, loginfo, prefix);
-+	}
-+	rcu_read_unlock();
-+}
-+EXPORT_SYMBOL(nf_log_trace);
-+
- #define S_SIZE (1024 - (sizeof(unsigned int) + 1))
-=20
- struct nf_log_buf {
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_c=
-ore.c
-index 3b90eb2..2d298dc 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -94,10 +94,10 @@ static void nft_trace_packet(const struct nft_pktin=
-fo *pkt,
- {
- 	struct net *net =3D dev_net(pkt->in ? pkt->in : pkt->out);
-=20
--	nf_log_packet(net, pkt->xt.family, pkt->ops->hooknum, pkt->skb, pkt->=
-in,
--		      pkt->out, &trace_loginfo, "TRACE: %s:%s:%s:%u ",
--		      chain->table->name, chain->name, comments[type],
--		      rulenum);
-+	nf_log_trace(net, pkt->xt.family, pkt->ops->hooknum, pkt->skb, pkt->i=
-n,
-+		     pkt->out, &trace_loginfo, "TRACE: %s:%s:%s:%u ",
-+		     chain->table->name, chain->name, comments[type],
-+		     rulenum);
- }
-=20
- unsigned int
---=20
+ 	tuple->src.l3num = ntohs(nla_get_be16(tb[NFCTH_TUPLE_L3PROTONUM]));
+ 	tuple->dst.protonum = nla_get_u8(tb[NFCTH_TUPLE_L4PROTONUM]);
+ 
+-- 
 1.7.10.4
