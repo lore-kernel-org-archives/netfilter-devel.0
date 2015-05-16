@@ -1,46 +1,49 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable] netfilter: nf_tables: fix error handling of rule replacement
-Date: Sat, 16 May 2015 20:50:45 +0200
-Message-ID: <1431802251-4781-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH -stable] netfilter: nf_tables: check for overflow of rule dlen field
+Date: Sat, 16 May 2015 20:50:47 +0200
+Message-ID: <1431802251-4781-3-git-send-email-pablo@netfilter.org>
+References: <1431802251-4781-1-git-send-email-pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
 To: stable@vger.kernel.org
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:43084 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753650AbbEPSqL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 16 May 2015 14:46:11 -0400
+In-Reply-To: <1431802251-4781-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-[ upstream commit 59900e0a019e7c2bdb7809a03ed5742d311b15b3 ]
+From: Patrick McHardy <kaber@trash.net>
 
-In general, if a transaction object is added to the list successfully,
-we can rely on the abort path to undo what we've done. This allows us to
-simplify the error handling of the rule replacement path in
-nf_tables_newrule().
+[ upstream commit 9889840f5988ecfd43b00c9abb83c1804e21406b ]
 
-This implicitly fixes an unnecessary removal of the old rule, which
-needs to be left in place if we fail to replace.
+Check that the space required for the expressions doesn't exceed the
+size of the dlen field, which would lead to the iterators crashing.
 
 Cc: <stable@vger.kernel.org> # 3.18.x
 Cc: <stable@vger.kernel.org> # 3.19.x
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_tables_api.c |    6 ------
- 1 file changed, 6 deletions(-)
+ net/netfilter/nf_tables_api.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 74e4b87..6ab7779 100644
+index 6fb532b..7baafd5 100644
 --- a/net/netfilter/nf_tables_api.c
 +++ b/net/netfilter/nf_tables_api.c
-@@ -2045,12 +2045,6 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+@@ -1968,6 +1968,10 @@ static int nf_tables_newrule(struct sock *nlsk, struct sk_buff *skb,
+ 			n++;
+ 		}
+ 	}
++	/* Check for overflow of dlen field */
++	err = -EFBIG;
++	if (size >= 1 << 12)
++		goto err1;
  
- err3:
- 	list_del_rcu(&rule->list);
--	if (trans) {
--		list_del_rcu(&nft_trans_rule(trans)->list);
--		nft_rule_clear(net, nft_trans_rule(trans));
--		nft_trans_destroy(trans);
--		chain->use++;
--	}
- err2:
- 	nf_tables_rule_destroy(&ctx, rule);
- err1:
+ 	if (nla[NFTA_RULE_USERDATA])
+ 		ulen = nla_len(nla[NFTA_RULE_USERDATA]);
 -- 
 1.7.10.4
+
