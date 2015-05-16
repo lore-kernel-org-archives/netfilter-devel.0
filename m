@@ -1,51 +1,52 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable] netfilter: nf_tables: allow to change chain policy without hook if it exists
-Date: Sat, 16 May 2015 20:50:50 +0200
-Message-ID: <1431802251-4781-6-git-send-email-pablo@netfilter.org>
+Subject: [PATCH -stable] netfilter: nft_compat: set IP6T_F_PROTO flag if protocol is set
+Date: Sat, 16 May 2015 20:50:48 +0200
+Message-ID: <1431802251-4781-4-git-send-email-pablo@netfilter.org>
 References: <1431802251-4781-1-git-send-email-pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
 To: stable@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43092 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751974AbbEPSqN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 May 2015 14:46:13 -0400
+Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <1431802251-4781-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-[ upstream commit d6b6cb1d3e6f78d55c2d4043d77d0d8def3f3b99 ]
+[ upstream commit 749177ccc74f9c6d0f51bd78a15c652a2134aa11 ]
 
-If there's an existing base chain, we have to allow to change the
-default policy without indicating the hook information.
-
-However, if the chain doesn't exists, we have to enforce the presence of
-the hook attribute.
+ip6tables extensions check for this flag to restrict match/target to a
+given protocol. Without this flag set, SYNPROXY6 returns an error.
 
 Cc: <stable@vger.kernel.org> # 3.14.x
 Cc: <stable@vger.kernel.org> # 3.18.x
 Cc: <stable@vger.kernel.org> # 3.19.x
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Acked-by: Patrick McHardy <kaber@trash.net>
 ---
- net/netfilter/nf_tables_api.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ net/netfilter/nft_compat.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 6ab7779..ac1a952 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1225,7 +1225,10 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
- 
- 	if (nla[NFTA_CHAIN_POLICY]) {
- 		if ((chain != NULL &&
--		    !(chain->flags & NFT_BASE_CHAIN)) ||
-+		    !(chain->flags & NFT_BASE_CHAIN)))
-+			return -EOPNOTSUPP;
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 213584c..65f3e2b 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -133,6 +133,9 @@ nft_target_set_tgchk_param(struct xt_tgchk_param *par,
+ 		entry->e4.ip.invflags = inv ? IPT_INV_PROTO : 0;
+ 		break;
+ 	case AF_INET6:
++		if (proto)
++			entry->e6.ipv6.flags |= IP6T_F_PROTO;
 +
-+		if (chain == NULL &&
- 		    nla[NFTA_CHAIN_HOOK] == NULL)
- 			return -EOPNOTSUPP;
- 
+ 		entry->e6.ipv6.proto = proto;
+ 		entry->e6.ipv6.invflags = inv ? IP6T_INV_PROTO : 0;
+ 		break;
+@@ -344,6 +347,9 @@ nft_match_set_mtchk_param(struct xt_mtchk_param *par, const struct nft_ctx *ctx,
+ 		entry->e4.ip.invflags = inv ? IPT_INV_PROTO : 0;
+ 		break;
+ 	case AF_INET6:
++		if (proto)
++			entry->e6.ipv6.flags |= IP6T_F_PROTO;
++
+ 		entry->e6.ipv6.proto = proto;
+ 		entry->e6.ipv6.invflags = inv ? IP6T_INV_PROTO : 0;
+ 		break;
 -- 
 1.7.10.4
-
