@@ -1,62 +1,51 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable] netfilter: Zero the tuple in nfnl_cthelper_parse_tuple()
-Date: Sat, 16 May 2015 20:50:46 +0200
-Message-ID: <1431802251-4781-2-git-send-email-pablo@netfilter.org>
+Subject: [PATCH -stable] netfilter: nf_tables: allow to change chain policy without hook if it exists
+Date: Sat, 16 May 2015 20:50:50 +0200
+Message-ID: <1431802251-4781-6-git-send-email-pablo@netfilter.org>
 References: <1431802251-4781-1-git-send-email-pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
 To: stable@vger.kernel.org
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:43092 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751974AbbEPSqN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 16 May 2015 14:46:13 -0400
 In-Reply-To: <1431802251-4781-1-git-send-email-pablo@netfilter.org>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Ian Wilson <iwilson@brocade.com>
+[ upstream commit d6b6cb1d3e6f78d55c2d4043d77d0d8def3f3b99 ]
 
-[ upstream commit 78146572b9cd20452da47951812f35b1ad4906be ]
+If there's an existing base chain, we have to allow to change the
+default policy without indicating the hook information.
 
-nfnl_cthelper_parse_tuple() is called from nfnl_cthelper_new(),
-nfnl_cthelper_get() and nfnl_cthelper_del().  In each case they pass
-a pointer to an nf_conntrack_tuple data structure local variable:
+However, if the chain doesn't exists, we have to enforce the presence of
+the hook attribute.
 
-    struct nf_conntrack_tuple tuple;
-    ...
-    ret = nfnl_cthelper_parse_tuple(&tuple, tb[NFCTH_TUPLE]);
-
-The problem is that this local variable is not initialized, and
-nfnl_cthelper_parse_tuple() only initializes two fields: src.l3num and
-dst.protonum.  This leaves all other fields with undefined values
-based on whatever is on the stack:
-
-    tuple->src.l3num = ntohs(nla_get_be16(tb[NFCTH_TUPLE_L3PROTONUM]));
-    tuple->dst.protonum = nla_get_u8(tb[NFCTH_TUPLE_L4PROTONUM]);
-
-The symptom observed was that when the rpc and tns helpers were added
-then traffic to port 1536 was being sent to user-space.
-
-Cc: <stable@vger.kernel.org> # 3.10.x
-Cc: <stable@vger.kernel.org> # 3.12.x
 Cc: <stable@vger.kernel.org> # 3.14.x
 Cc: <stable@vger.kernel.org> # 3.18.x
 Cc: <stable@vger.kernel.org> # 3.19.x
-Signed-off-by: Ian Wilson <iwilson@brocade.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_cthelper.c |    3 +++
- 1 file changed, 3 insertions(+)
+ net/netfilter/nf_tables_api.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index a5599fc..54330fb 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -77,6 +77,9 @@ nfnl_cthelper_parse_tuple(struct nf_conntrack_tuple *tuple,
- 	if (!tb[NFCTH_TUPLE_L3PROTONUM] || !tb[NFCTH_TUPLE_L4PROTONUM])
- 		return -EINVAL;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 6ab7779..ac1a952 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1225,7 +1225,10 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
  
-+	/* Not all fields are initialized so first zero the tuple */
-+	memset(tuple, 0, sizeof(struct nf_conntrack_tuple));
+ 	if (nla[NFTA_CHAIN_POLICY]) {
+ 		if ((chain != NULL &&
+-		    !(chain->flags & NFT_BASE_CHAIN)) ||
++		    !(chain->flags & NFT_BASE_CHAIN)))
++			return -EOPNOTSUPP;
 +
- 	tuple->src.l3num = ntohs(nla_get_be16(tb[NFCTH_TUPLE_L3PROTONUM]));
- 	tuple->dst.protonum = nla_get_u8(tb[NFCTH_TUPLE_L4PROTONUM]);
++		if (chain == NULL &&
+ 		    nla[NFTA_CHAIN_HOOK] == NULL)
+ 			return -EOPNOTSUPP;
  
 -- 
 1.7.10.4
+
