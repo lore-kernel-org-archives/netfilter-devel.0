@@ -1,82 +1,63 @@
 From: Felix Janda <felix.janda@posteo.de>
-Subject: [ebtables PATCH 1/2] extensions: Use stdint types
-Date: Sat, 16 May 2015 12:22:39 +0200
-Message-ID: <20150516102239.GI14201@euler>
+Subject: [ebtables PATCH 2/2] ethernetdb.h: Remove C++ specific compiler hint
+ macro _THROW
+Date: Sat, 16 May 2015 12:31:58 +0200
+Message-ID: <20150516102328.GJ14201@euler>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:32975 "EHLO mx02.posteo.de"
+Received: from mx02.posteo.de ([89.146.194.165]:43799 "EHLO mx02.posteo.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751018AbbEPKXJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 May 2015 06:23:09 -0400
+	id S1750810AbbEPKco (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 16 May 2015 06:32:44 -0400
 Received: from dovecot03.posteo.de (unknown [185.67.36.28])
-	by mx02.posteo.de (Postfix) with ESMTPS id 4C68925AF534
-	for <netfilter-devel@vger.kernel.org>; Sat, 16 May 2015 12:23:08 +0200 (CEST)
+	by mx02.posteo.de (Postfix) with ESMTPS id C4D4925A3DFD
+	for <netfilter-devel@vger.kernel.org>; Sat, 16 May 2015 12:32:43 +0200 (CEST)
 Received: from mail.posteo.de (localhost [127.0.0.1])
-	by dovecot03.posteo.de (Postfix) with ESMTPSA id 3lpjNr14tLz5vN2
-	for <netfilter-devel@vger.kernel.org>; Sat, 16 May 2015 12:23:08 +0200 (CEST)
+	by dovecot03.posteo.de (Postfix) with ESMTPSA id 3lpjbv3QJPz5vN4
+	for <netfilter-devel@vger.kernel.org>; Sat, 16 May 2015 12:32:43 +0200 (CEST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Fixes compilation with musl libc
+
 Signed-off-by: Felix Janda <felix.janda@posteo.de>
 ---
- extensions/ebt_ip6.c   |  4 ++--
- extensions/ebt_limit.c | 10 +++++-----
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ include/ethernetdb.h | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/extensions/ebt_ip6.c b/extensions/ebt_ip6.c
-index e3e0956..dd48547 100644
---- a/extensions/ebt_ip6.c
-+++ b/extensions/ebt_ip6.c
-@@ -53,8 +53,8 @@ static const struct option opts[] =
+diff --git a/include/ethernetdb.h b/include/ethernetdb.h
+index 46d8bfd..1683abe 100644
+--- a/include/ethernetdb.h
++++ b/include/ethernetdb.h
+@@ -38,21 +38,20 @@ struct ethertypeent {
  
- struct icmpv6_names {
- 	const char *name;
--	u_int8_t type;
--	u_int8_t code_min, code_max;
-+	uint8_t type;
-+	uint8_t code_min, code_max;
- };
+ /* Open ethertype data base files and mark them as staying open even
+    after a later search if STAY_OPEN is non-zero.  */
+-extern void setethertypeent(int __stay_open) __THROW;
++extern void setethertypeent(int __stay_open);
  
- static const struct icmpv6_names icmpv6_codes[] = {
-diff --git a/extensions/ebt_limit.c b/extensions/ebt_limit.c
-index ee40e5c..d189a09 100644
---- a/extensions/ebt_limit.c
-+++ b/extensions/ebt_limit.c
-@@ -59,11 +59,11 @@ static void print_help(void)
- "                                default %u\n", EBT_LIMIT_BURST);
- }
+ /* Close ethertype data base files and clear `stay open' flag.  */
+-extern void endethertypeent(void) __THROW;
++extern void endethertypeent(void);
  
--static int parse_rate(const char *rate, u_int32_t *val)
-+static int parse_rate(const char *rate, uint32_t *val)
- {
- 	const char *delim;
--	u_int32_t r;
--	u_int32_t mult = 1;  /* Seconds by default. */
-+	uint32_t r;
-+	uint32_t mult = 1;  /* Seconds by default. */
+ /* Get next entry from ethertype data base file.  Open data base if
+    necessary.  */
+-extern struct ethertypeent *getethertypeent(void) __THROW;
++extern struct ethertypeent *getethertypeent(void);
  
- 	delim = strchr(rate, '/');
- 	if (delim) {
-@@ -151,7 +151,7 @@ static void final_check(const struct ebt_u_entry *entry,
- struct rates
- {
- 	const char *name;
--	u_int32_t mult;
-+	uint32_t mult;
- };
+ /* Return entry from ethertype data base for network with NAME.  */
+-extern struct ethertypeent *getethertypebyname(__const char *__name)
+-    __THROW;
++extern struct ethertypeent *getethertypebyname(__const char *__name);
  
- static struct rates g_rates[] =
-@@ -162,7 +162,7 @@ static struct rates g_rates[] =
- 	{ "sec", EBT_LIMIT_SCALE }
- };
+ /* Return entry from ethertype data base which number is PROTO.  */
+-extern struct ethertypeent *getethertypebynumber(int __ethertype) __THROW;
++extern struct ethertypeent *getethertypebynumber(int __ethertype);
  
--static void print_rate(u_int32_t period)
-+static void print_rate(uint32_t period)
- {
- 	unsigned int i;
  
+ #endif				/* ethernetdb.h */
 -- 
 2.3.6
