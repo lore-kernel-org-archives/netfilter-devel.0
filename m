@@ -1,44 +1,84 @@
 From: Felix Janda <felix.janda@posteo.de>
-Subject: Re: [ulogd2 PATCH 3/4] ulogd: Use (FILE *)(-1) as dummy logfile when
- logging to syslog
-Date: Sat, 16 May 2015 17:36:02 +0200
-Message-ID: <20150516153344.GA3410@euler>
-References: <20150516130459.GD14201@euler>
- <alpine.LSU.2.20.1505161658530.8092@nerf40.vanv.qr>
+Subject: [ulogd2 PATCHv2] ulogd: Use /dev/null as dummy logfile when logging
+ to syslog
+Date: Sat, 16 May 2015 17:43:23 +0200
+Message-ID: <20150516154040.GA3782@euler>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:59640 "EHLO mx02.posteo.de"
+Received: from mx02.posteo.de ([89.146.194.165]:38961 "EHLO mx02.posteo.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751591AbbEPPgZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 May 2015 11:36:25 -0400
+	id S1753639AbbEPPnx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 16 May 2015 11:43:53 -0400
+Received: from dovecot04.posteo.de (unknown [185.67.36.27])
+	by mx02.posteo.de (Postfix) with ESMTPS id 961AB25A211F
+	for <netfilter-devel@vger.kernel.org>; Sat, 16 May 2015 17:43:52 +0200 (CEST)
+Received: from mail.posteo.de (localhost [127.0.0.1])
+	by dovecot04.posteo.de (Postfix) with ESMTPSA id 3lprVw2fBxzFpW3
+	for <netfilter-devel@vger.kernel.org>; Sat, 16 May 2015 17:43:52 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.20.1505161658530.8092@nerf40.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Saturday 2015-05-16 15:37, Felix Janda wrote:
-> 
-> >-static FILE syslog_dummy;
-> >+#define SYSLOG_DUMMY ((FILE *)(-1))
-> 
-> ^This will likely introduce a "cast to pointer from integer of different 
-> size" warning on LP64 targets.
-> 
-> syslog_dummy = fopen("/dev/null", "w");
-> 
-> would be, at the cost of one more open fd, a "nice" solution,
-> since syslog_dummy is guaranteed to be unique, without making
-> any assumptions about any magic value(s) being unused.
+Fixes compilation error with musl libc:
 
-This seems seems like a cleaner approach.
-Preparing a new patch...
+ulogd.c:86:13: error: storage size of 'syslog_dummy' isn't known
+ static FILE syslog_dummy;
 
-> That, or turn the assumptive macro into
-> 	#define SYSLOG_DUMMY ((FILE *)(intptr_t)-1)
+Signed-off-by: Felix Janda <felix.janda@posteo.de>
+---
+ src/ulogd.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-Thanks,
-Felix
+diff --git a/src/ulogd.c b/src/ulogd.c
+index e7cde39..958c30a 100644
+--- a/src/ulogd.c
++++ b/src/ulogd.c
+@@ -83,7 +83,7 @@ static char *ulogd_logfile = NULL;
+ static const char *ulogd_configfile = ULOGD_CONFIGFILE;
+ static const char *ulogd_pidfile = NULL;
+ static int ulogd_pidfile_fd = -1;
+-static FILE syslog_dummy;
++static FILE *syslog_dummy;
+ 
+ static int info_mode = 0;
+ 
+@@ -427,7 +427,7 @@ void __ulogd_log(int level, char *file, int line, const char *format, ...)
+ 	if (level < loglevel_ce.u.value)
+ 		return;
+ 
+-	if (logfile == &syslog_dummy) {
++	if (logfile == syslog_dummy) {
+ 		/* FIXME: this omits the 'file' string */
+ 		va_start(ap, format);
+ 		vsyslog(ulogd2syslog_level(level), format, ap);
+@@ -950,7 +950,7 @@ static int logfile_open(const char *name)
+ 		logfile = stdout;
+ 	} else if (!strcmp(name, "syslog")) {
+ 		openlog("ulogd", LOG_PID, LOG_DAEMON);
+-		logfile = &syslog_dummy;
++		logfile = syslog_dummy = fopen("/dev/null", "w");
+ 	} else {
+ 		logfile = fopen(ulogd_logfile, "a");
+ 		if (!logfile) {
+@@ -1240,7 +1240,7 @@ static void sigterm_handler(int signal)
+ 	unload_plugins();
+ #endif
+ 
+-	if (logfile != NULL  && logfile != stdout && logfile != &syslog_dummy) {
++	if (logfile != NULL  && logfile != stdout) {
+ 		fclose(logfile);
+ 		logfile = NULL;
+ 	}
+@@ -1262,7 +1262,7 @@ static void signal_handler(int signal)
+ 	switch (signal) {
+ 	case SIGHUP:
+ 		/* reopen logfile */
+-		if (logfile != stdout && logfile != &syslog_dummy) {
++		if (logfile != stdout && logfile != syslog_dummy) {
+ 			fclose(logfile);
+ 			logfile = fopen(ulogd_logfile, "a");
+  			if (!logfile) {
+-- 
+2.3.6
