@@ -1,76 +1,46 @@
 From: Felix Janda <felix.janda@posteo.de>
-Subject: [arptables PATCH 2/2] Remove support for libc5
-Date: Sat, 16 May 2015 10:31:41 +0200
-Message-ID: <20150516083141.GB14201@euler>
+Subject: [conntrack-tools PATCH 1/6] configure: Add AM_PROG_AR to silence
+ automake warning
+Date: Sat, 16 May 2015 11:19:02 +0200
+Message-ID: <20150516083153.GC14201@euler>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:60168 "EHLO mx02.posteo.de"
+Received: from mx02.posteo.de ([89.146.194.165]:37363 "EHLO mx02.posteo.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932145AbbEPIb5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 May 2015 04:31:57 -0400
+	id S1755053AbbEPJTR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 16 May 2015 05:19:17 -0400
 Received: from dovecot03.posteo.de (unknown [185.67.36.28])
-	by mx02.posteo.de (Postfix) with ESMTPS id E139725B17D7
-	for <netfilter-devel@vger.kernel.org>; Sat, 16 May 2015 10:31:55 +0200 (CEST)
+	by mx02.posteo.de (Postfix) with ESMTPS id E52B725A3DEA
+	for <netfilter-devel@vger.kernel.org>; Sat, 16 May 2015 11:19:16 +0200 (CEST)
 Received: from mail.posteo.de (localhost [127.0.0.1])
-	by dovecot03.posteo.de (Postfix) with ESMTPSA id 3lpfwW48XMz5vNB
-	for <netfilter-devel@vger.kernel.org>; Sat, 16 May 2015 10:31:55 +0200 (CEST)
+	by dovecot03.posteo.de (Postfix) with ESMTPSA id 3lpgz85f7Gz5vND
+	for <netfilter-devel@vger.kernel.org>; Sat, 16 May 2015 11:19:16 +0200 (CEST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fixes compilation with musl libc
+/usr/share/automake-1.13/am/ltlibrary.am: warning: 'ct_helper_tns.la': linking libtool libraries using a non-POSIX
+/usr/share/automake-1.13/am/ltlibrary.am: archiver requires 'AM_PROG_AR' in 'configure.ac'
+src/helpers/Makefile.am:3:   while processing Libtool library 'ct_helper_tns.la'
 
 Signed-off-by: Felix Janda <felix.janda@posteo.de>
 ---
- include/libarptc/arpt_kernel_headers.h | 12 ------------
- libarptc/libarptc.c                    |  4 ----
- 2 files changed, 16 deletions(-)
+ configure.ac | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/include/libarptc/arpt_kernel_headers.h b/include/libarptc/arpt_kernel_headers.h
-index 442cc54..140e999 100644
---- a/include/libarptc/arpt_kernel_headers.h
-+++ b/include/libarptc/arpt_kernel_headers.h
-@@ -5,7 +5,6 @@
+diff --git a/configure.ac b/configure.ac
+index f0800d6..523a192 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -14,6 +14,7 @@ AC_SUBST([libdl_LIBS])
  
- #include <limits.h>
- 
--#if defined(__GLIBC__) && __GLIBC__ == 2
- #include <netinet/ip.h>
- #include <netinet/in.h>
- #include <netinet/ip_icmp.h>
-@@ -14,16 +13,5 @@
- #include <netinet/ether.h>
- #include <net/if.h>
- #include <sys/types.h>
--#else
--#include <sys/socket.h>
--#include <linux/ip.h>
--#include <linux/in.h>
--#include <linux/if.h>
--#include <linux/icmp.h>
--#include <linux/tcp.h>
--#include <linux/udp.h>
--#include <linux/types.h>
--#include <linux/in6.h>
--#endif
- 
- #endif
-diff --git a/libarptc/libarptc.c b/libarptc/libarptc.c
-index f03dd0b..71602c2 100644
---- a/libarptc/libarptc.c
-+++ b/libarptc/libarptc.c
-@@ -23,10 +23,6 @@
- #define inline
- #endif
- 
--#if !defined(__GLIBC__) || (__GLIBC__ < 2)
--typedef unsigned int socklen_t;
--#endif
--
- #include "libarptc/libarptc.h"
- 
- #define IP_VERSION	4
+ AC_PROG_CC
+ AC_DISABLE_STATIC
++AM_PROG_AR
+ AM_PROG_LIBTOOL
+ AC_PROG_INSTALL
+ AC_PROG_LN_S
 -- 
 2.3.6
