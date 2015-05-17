@@ -1,33 +1,99 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: cthelper's and default QueueLen -- bug?
-Date: Sun, 17 May 2015 17:24:22 +0200
-Message-ID: <20150517152422.GA4501@salvia>
-References: <1431009715.6436.2.camel@REM-DF8MK12.vyatta.com>
+From: fruggeri@aristanetworks.com (Francesco Ruggeri)
+Subject: [PATCH 1/1] netfilter: Fix kernel panic in nfulnl_rcv_nl_event
+Date: Sun, 17 May 2015 14:30:31 -0700
+Message-ID: <20150517213031.4ABD2480853@fruggeri-Arora18.sjc.aristanetworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Chas Williams III <Charles.Williams@brocade.com>
+Content-Transfer-Encoding: 7bit
+Cc: gaofeng@cn.fujitsu.com, dvlasenk@redhat.com,
+	netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	pablo@netfilter.org, fruggeri@arista.com
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39889 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753024AbbEQPTa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 17 May 2015 11:19:30 -0400
-Content-Disposition: inline
-In-Reply-To: <1431009715.6436.2.camel@REM-DF8MK12.vyatta.com>
+Received: from prod-mx.aristanetworks.com ([162.210.130.12]:2591 "EHLO
+	prod-mx.aristanetworks.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751306AbbEQVgC (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 17 May 2015 17:36:02 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 07, 2015 at 08:41:55AM -0600, Chas Williams III wrote:
-> conntracked.conf states that the default QueueLen is 1024.
-> 
-> 	# Maximum number of packets waiting in the queue to receive
-> 	# a verdict from user-space. Default is 1024.
-> 
-> However, if the config file doesn't specify a queue length, the
-> default length is zero (due to the calloc() allocation).  The
-> queue always seems to be pushed up to the kernel regardless
-> in cthelper_nfqueue_setup() so the kernel default is overwritten.
+nfnetlink_log_init registers netlink callback nfulnl_rcv_nl_event before
+registering the pernet_subsys, but the callback relies on data structures
+allocated by pernet init functions.
+When nfnetlink_log is loaded, if a netlink message is received after
+the netlink callback is registered but before the pernet_subsys is
+registered, the kernel will panic in the sequence
 
-Would you send a patch that I can apply via git am to fix this?
+nfulnl_rcv_nl_event
+  nfnl_log_pernet
+    net_generic
+      BUG_ON(id == 0)  where id is nfnl_log_net_id.
 
-Thanks for reporting.
+The panic can be easily reproduced in 4.0.3 by:
+
+while true ;do modprobe nfnetlink_log ; rmmod nfnetlink_log ; done &
+while true ;do ip netns add dummy ; ip netns del dummy ; done &
+
+This patch moves register_pernet_subsys to earlier in nfnetlink_log_init.
+
+Notice that the BUG_ON hit in 4.0.3 was recently removed in 2591ffd308
+["netns: remove BUG_ONs from net_generic()"].
+
+Signed-off-by: Francesco Ruggeri <fruggeri@arista.com>
+---
+ net/netfilter/nfnetlink_log.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 3ad9126..536ced5 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -1075,6 +1075,12 @@ static int __init nfnetlink_log_init(void)
+ {
+ 	int status = -ENOMEM;
+ 
++	status = register_pernet_subsys(&nfnl_log_net_ops);
++	if (status < 0) {
++		pr_err("failed to register pernet ops\n");
++		goto out;
++	}
++
+ 	netlink_register_notifier(&nfulnl_rtnl_notifier);
+ 	status = nfnetlink_subsys_register(&nfulnl_subsys);
+ 	if (status < 0) {
+@@ -1088,28 +1094,23 @@ static int __init nfnetlink_log_init(void)
+ 		goto cleanup_subsys;
+ 	}
+ 
+-	status = register_pernet_subsys(&nfnl_log_net_ops);
+-	if (status < 0) {
+-		pr_err("failed to register pernet ops\n");
+-		goto cleanup_logger;
+-	}
+ 	return status;
+ 
+-cleanup_logger:
+-	nf_log_unregister(&nfulnl_logger);
+ cleanup_subsys:
+ 	nfnetlink_subsys_unregister(&nfulnl_subsys);
+ cleanup_netlink_notifier:
+ 	netlink_unregister_notifier(&nfulnl_rtnl_notifier);
++	unregister_pernet_subsys(&nfnl_log_net_ops);
++out:
+ 	return status;
+ }
+ 
+ static void __exit nfnetlink_log_fini(void)
+ {
+-	unregister_pernet_subsys(&nfnl_log_net_ops);
+ 	nf_log_unregister(&nfulnl_logger);
+ 	nfnetlink_subsys_unregister(&nfulnl_subsys);
+ 	netlink_unregister_notifier(&nfulnl_rtnl_notifier);
++	unregister_pernet_subsys(&nfnl_log_net_ops);
+ }
+ 
+ MODULE_DESCRIPTION("netfilter userspace logging");
+-- 
+1.8.1.4
+
