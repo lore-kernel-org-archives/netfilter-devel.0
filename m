@@ -1,33 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/4] Netfilter fixes for net
-Date: Sat, 16 May 2015 16:45:29 -0400 (EDT)
-Message-ID: <20150516.164529.22426720638810224.davem@davemloft.net>
-References: <1431802038-4502-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1431802038-4502-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Sat, 16 May 2015 20:47:14 +0200
+Subject: Re: cthelper's and default QueueLen -- bug?
+Date: Sun, 17 May 2015 17:24:22 +0200
+Message-ID: <20150517152422.GA4501@salvia>
+References: <1431009715.6436.2.camel@REM-DF8MK12.vyatta.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Chas Williams III <Charles.Williams@brocade.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:39889 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753024AbbEQPTa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 17 May 2015 11:19:30 -0400
+Content-Disposition: inline
+In-Reply-To: <1431009715.6436.2.camel@REM-DF8MK12.vyatta.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-> The following patchset contains Netfilter fixes for your net tree, they are:
+On Thu, May 07, 2015 at 08:41:55AM -0600, Chas Williams III wrote:
+> conntracked.conf states that the default QueueLen is 1024.
 > 
-> 1) Fix a leak in IPVS, the sysctl table is not released accordingly when
->    destroying a netns, patch from Tommi Rantala.
+> 	# Maximum number of packets waiting in the queue to receive
+> 	# a verdict from user-space. Default is 1024.
 > 
-> 2) Fix a build error when TPROXY and socket are built-in but IPv6 defrag is
->    compiled as module, from Florian Westphal.
-> 
-> 3) Fix TCP tracket wrt. RFC5961 challenge ACK when in LAST_ACK state, patch
->    from Jesper Dangaard Brouer.
-> 
-> 4) Fix a bogus WARN_ON() in nf_tables when deleting a set element that stores
->    a map, from Mirek Kratochvil.
+> However, if the config file doesn't specify a queue length, the
+> default length is zero (due to the calloc() allocation).  The
+> queue always seems to be pushed up to the kernel regardless
+> in cthelper_nfqueue_setup() so the kernel default is overwritten.
 
-Pulled, thanks Pablo.
+Would you send a patch that I can apply via git am to fix this?
+
+Thanks for reporting.
