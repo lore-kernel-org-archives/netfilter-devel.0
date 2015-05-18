@@ -1,48 +1,35 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 10/21] netfilter: ipset: Return bool values instead of int
-Date: Mon, 18 May 2015 18:52:55 +0200
-Message-ID: <20150518165255.GA5035@salvia>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/21] Netfilter updates for net-next
+Date: Mon, 18 May 2015 14:48:01 -0400 (EDT)
+Message-ID: <20150518.144801.1094911523054567923.davem@davemloft.net>
 References: <1431966324-4494-1-git-send-email-pablo@netfilter.org>
- <1431966324-4494-11-git-send-email-pablo@netfilter.org>
- <1431966690.2870.27.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Sergey Popovich <popovich_sergei@mail.ua>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org
-To: Joe Perches <joe@perches.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49256 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750957AbbERQsD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 May 2015 12:48:03 -0400
-Content-Disposition: inline
-In-Reply-To: <1431966690.2870.27.camel@perches.com>
+Received: from shards.monkeyblade.net ([149.20.54.216]:58945 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754005AbbERSsI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 May 2015 14:48:08 -0400
+In-Reply-To: <1431966324-4494-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 18, 2015 at 09:31:30AM -0700, Joe Perches wrote:
-> On Mon, 2015-05-18 at 18:25 +0200, Pablo Neira Ayuso wrote:
-> > From: Sergey Popovich <popovich_sergei@mail.ua>
-> []
-> > diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
-> []
-> > @@ -56,15 +56,15 @@ hash_ip4_data_equal(const struct hash_ip4_elem *e1,
-> >  	return e1->ip == e2->ip;
-> >  }
-> >  
-> > -static inline bool
-> > +static bool
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 18 May 2015 18:25:03 +0200
+
+> The following patchset contains Netfilter updates for net-next. Briefly
+> speaking, cleanups and minor fixes for ipset from Jozsef Kadlecsik and
+> Serget Popovich, more incremental updates to make br_netfilter a better
+> place from Florian Westphal, ARP support to the x_tables mark match /
+> target from and context Zhang Chunyu and the addition of context to know
+> that the x_tables runs through nft_compat. More specifically, they are:
+ ...
+> You can pull these changes from:
 > 
-> It's nicer when a change like this, which doesn't fit the
-> subject description, is explained or described in the commit log.
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
 
-I indicated this in the patchset description:
-
-"10) Return true/false instead of 0/1 in functions that return boolean
-     in the ipset code."
-
-but I agree that this should show in the description as well to make
-this self-contained.
-
-I'll put a closer look on this next time, sorry.
+Pulled, thanks Pablo.
