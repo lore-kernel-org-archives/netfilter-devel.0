@@ -1,51 +1,158 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] netfilter: Fix kernel panic in nfulnl_rcv_nl_event
-Date: Wed, 20 May 2015 13:39:09 +0200
-Message-ID: <20150520113909.GA10948@salvia>
-References: <20150517213031.4ABD2480853@fruggeri-Arora18.sjc.aristanetworks.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, gaofeng@cn.fujitsu.com,
-	dvlasenk@redhat.com, netfilter-devel@vger.kernel.org,
-	davem@davemloft.net, fruggeri@arista.com
-To: Francesco Ruggeri <fruggeri@aristanetworks.com>
+Subject: [PATCH nf] netfilter: nfnetlink_{log,queue}: Register pernet in first place
+Date: Wed, 20 May 2015 13:44:27 +0200
+Message-ID: <1432122267-12028-1-git-send-email-pablo@netfilter.org>
+Cc: fruggeri@aristanetworks.com, gaofeng@cn.fujitsu.com,
+	dvlasenk@redhat.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41817 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43473 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751213AbbETLeU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 May 2015 07:34:20 -0400
-Content-Disposition: inline
-In-Reply-To: <20150517213031.4ABD2480853@fruggeri-Arora18.sjc.aristanetworks.com>
+	id S1751882AbbETLjm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 20 May 2015 07:39:42 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, May 17, 2015 at 02:30:31PM -0700, Francesco Ruggeri wrote:
-> nfnetlink_log_init registers netlink callback nfulnl_rcv_nl_event before
-> registering the pernet_subsys, but the callback relies on data structures
-> allocated by pernet init functions.
-> When nfnetlink_log is loaded, if a netlink message is received after
-> the netlink callback is registered but before the pernet_subsys is
-> registered, the kernel will panic in the sequence
-> 
-> nfulnl_rcv_nl_event
->   nfnl_log_pernet
->     net_generic
->       BUG_ON(id == 0)  where id is nfnl_log_net_id.
-> 
-> The panic can be easily reproduced in 4.0.3 by:
-> 
-> while true ;do modprobe nfnetlink_log ; rmmod nfnetlink_log ; done &
-> while true ;do ip netns add dummy ; ip netns del dummy ; done &
-> 
-> This patch moves register_pernet_subsys to earlier in nfnetlink_log_init.
-> 
-> Notice that the BUG_ON hit in 4.0.3 was recently removed in 2591ffd308
-> ["netns: remove BUG_ONs from net_generic()"].
+From: Francesco Ruggeri <fruggeri@aristanetworks.com>
 
-I'm going to send a v2 of this patch with two changes:
+nfnetlink_{log,queue}_init() register the netlink callback nf*_rcv_nl_event
+before registering the pernet_subsys, but the callback relies on data
+structures allocated by pernet init functions.
 
-* We have the same problem in nfnetlink_queue.
-* Remove status = -ENOMEM as it is scratched soon thereafter.
+When nfnetlink_{log,queue} is loaded, if a netlink message is received after
+the netlink callback is registered but before the pernet_subsys is registered,
+the kernel will panic in the sequence
 
-Please, have a look at the patch I'll send after this and confirm this
-looks good to you.
+nfulnl_rcv_nl_event
+  nfnl_log_pernet
+    net_generic
+      BUG_ON(id == 0)  where id is nfnl_log_net_id.
+
+The panic can be easily reproduced in 4.0.3 by:
+
+while true ;do modprobe nfnetlink_log ; rmmod nfnetlink_log ; done &
+while true ;do ip netns add dummy ; ip netns del dummy ; done &
+
+This patch moves register_pernet_subsys to earlier in nfnetlink_log_init.
+
+Notice that the BUG_ON hit in 4.0.3 was recently removed in 2591ffd308
+["netns: remove BUG_ONs from net_generic()"].
+
+Signed-off-by: Francesco Ruggeri <fruggeri@arista.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Follow up version after: http://patchwork.ozlabs.org/patch/473228/
+
+In this v2:
+- Remove status = -ENOMEM initialization.
+- Propagate the same fix to nfnetlink_queue.
+
+ net/netfilter/nfnetlink_log.c        |   19 ++++++++++---------
+ net/netfilter/nfnetlink_queue_core.c |   18 +++++++++---------
+ 2 files changed, 19 insertions(+), 18 deletions(-)
+
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 3ad9126..4ef1fae 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -1073,7 +1073,13 @@ static struct pernet_operations nfnl_log_net_ops = {
+ 
+ static int __init nfnetlink_log_init(void)
+ {
+-	int status = -ENOMEM;
++	int status;
++
++	status = register_pernet_subsys(&nfnl_log_net_ops);
++	if (status < 0) {
++		pr_err("failed to register pernet ops\n");
++		goto out;
++	}
+ 
+ 	netlink_register_notifier(&nfulnl_rtnl_notifier);
+ 	status = nfnetlink_subsys_register(&nfulnl_subsys);
+@@ -1088,28 +1094,23 @@ static int __init nfnetlink_log_init(void)
+ 		goto cleanup_subsys;
+ 	}
+ 
+-	status = register_pernet_subsys(&nfnl_log_net_ops);
+-	if (status < 0) {
+-		pr_err("failed to register pernet ops\n");
+-		goto cleanup_logger;
+-	}
+ 	return status;
+ 
+-cleanup_logger:
+-	nf_log_unregister(&nfulnl_logger);
+ cleanup_subsys:
+ 	nfnetlink_subsys_unregister(&nfulnl_subsys);
+ cleanup_netlink_notifier:
+ 	netlink_unregister_notifier(&nfulnl_rtnl_notifier);
++	unregister_pernet_subsys(&nfnl_log_net_ops);
++out:
+ 	return status;
+ }
+ 
+ static void __exit nfnetlink_log_fini(void)
+ {
+-	unregister_pernet_subsys(&nfnl_log_net_ops);
+ 	nf_log_unregister(&nfulnl_logger);
+ 	nfnetlink_subsys_unregister(&nfulnl_subsys);
+ 	netlink_unregister_notifier(&nfulnl_rtnl_notifier);
++	unregister_pernet_subsys(&nfnl_log_net_ops);
+ }
+ 
+ MODULE_DESCRIPTION("netfilter userspace logging");
+diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+index 0b98c74..11c7682 100644
+--- a/net/netfilter/nfnetlink_queue_core.c
++++ b/net/netfilter/nfnetlink_queue_core.c
+@@ -1317,7 +1317,13 @@ static struct pernet_operations nfnl_queue_net_ops = {
+ 
+ static int __init nfnetlink_queue_init(void)
+ {
+-	int status = -ENOMEM;
++	int status;
++
++	status = register_pernet_subsys(&nfnl_queue_net_ops);
++	if (status < 0) {
++		pr_err("nf_queue: failed to register pernet ops\n");
++		goto out;
++	}
+ 
+ 	netlink_register_notifier(&nfqnl_rtnl_notifier);
+ 	status = nfnetlink_subsys_register(&nfqnl_subsys);
+@@ -1326,19 +1332,13 @@ static int __init nfnetlink_queue_init(void)
+ 		goto cleanup_netlink_notifier;
+ 	}
+ 
+-	status = register_pernet_subsys(&nfnl_queue_net_ops);
+-	if (status < 0) {
+-		pr_err("nf_queue: failed to register pernet ops\n");
+-		goto cleanup_subsys;
+-	}
+ 	register_netdevice_notifier(&nfqnl_dev_notifier);
+ 	nf_register_queue_handler(&nfqh);
+ 	return status;
+ 
+-cleanup_subsys:
+-	nfnetlink_subsys_unregister(&nfqnl_subsys);
+ cleanup_netlink_notifier:
+ 	netlink_unregister_notifier(&nfqnl_rtnl_notifier);
++out:
+ 	return status;
+ }
+ 
+@@ -1346,9 +1346,9 @@ static void __exit nfnetlink_queue_fini(void)
+ {
+ 	nf_unregister_queue_handler();
+ 	unregister_netdevice_notifier(&nfqnl_dev_notifier);
+-	unregister_pernet_subsys(&nfnl_queue_net_ops);
+ 	nfnetlink_subsys_unregister(&nfqnl_subsys);
+ 	netlink_unregister_notifier(&nfqnl_rtnl_notifier);
++	unregister_pernet_subsys(&nfnl_queue_net_ops);
+ 
+ 	rcu_barrier(); /* Wait for completion of call_rcu()'s */
+ }
+-- 
+1.7.10.4
+
