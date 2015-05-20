@@ -1,45 +1,24 @@
-From: Luis Henriques <luis.henriques@canonical.com>
-Subject: Re: [PATCH -stable] netfilter: nf_tables: fix error handling of rule
- replacement
-Date: Wed, 20 May 2015 13:12:39 +0100
-Message-ID: <20150520121239.GA1708@ares>
-References: <1431802251-4781-1-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnetfilter_log PATCH] Make it possible to build libipulog
+Date: Wed, 20 May 2015 14:21:12 +0200
+Message-ID: <20150520122112.GA22832@salvia>
+References: <20150515184031.GA16749@euler>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: stable@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <stable-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Felix Janda <felix.janda@posteo.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:55203 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751530AbbETMQm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 20 May 2015 08:16:42 -0400
 Content-Disposition: inline
-In-Reply-To: <1431802251-4781-1-git-send-email-pablo@netfilter.org>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20150515184031.GA16749@euler>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, May 16, 2015 at 08:50:45PM +0200, Pablo Neira Ayuso wrote:
-> [ upstream commit 59900e0a019e7c2bdb7809a03ed5742d311b15b3 ]
->
+On Fri, May 15, 2015 at 08:40:31PM +0200, Felix Janda wrote:
+> commit a1b392b4156db984ab2b695a4a70d113f70cb9b8 had unintentionally
+> disabled building of libipulog unconditionally
 
-Thank you, Pablo.
-
-I've took a look at these 7 patches, and most of them seem to be
-applicable to the 3.16 kernel as well.  I'm queuing the following set
-for the next 3.16 release:
-
- 59900e0a019e ("netfilter: nf_tables: fix error handling of rule replac=
-ement")
- 78146572b9cd ("netfilter: Zero the tuple in nfnl_cthelper_parse_tuple(=
-)")
- 9889840f5988 ("netfilter: nf_tables: check for overflow of rule dlen f=
-ield")
- 749177ccc74f ("netfilter: nft_compat: set IP6T_F_PROTO flag if protoco=
-l is set")
- d6b6cb1d3e6f ("netfilter: nf_tables: allow to change chain policy with=
-out hook if it exists")
- 16c45eda9603 ("netfilter: nft_rbtree: fix locking")
-
-So, from your initial set, I've dropped only 4017a7ee693d ("netfilter:
-restore rule tracing via nfnetlink_log").
-
-Cheers,
---
-Lu=EDs
+Applied, thanks.
