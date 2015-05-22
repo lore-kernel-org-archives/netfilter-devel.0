@@ -1,30 +1,63 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: Harden iptables memory allocator
-Date: Fri, 22 May 2015 10:59:44 +0200 (CEST)
-Message-ID: <alpine.LSU.2.20.1505221056510.29609@nerf40.vanv.qr>
-References: <CAOp4FwQ5a=kKWDjGdpdHV7i3SX1msaqDkTrwYL2y=2+Bd690Cg@mail.gmail.com> <1432284611.3364.14.camel@stressinduktion.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: Loganaden Velvindron <loganaden@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Hannes Frederic Sowa <hannes@stressinduktion.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:50269 "EHLO ares41.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757164AbbEVI7p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 May 2015 04:59:45 -0400
-In-Reply-To: <1432284611.3364.14.camel@stressinduktion.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/3] Netfilter fixes for net
+Date: Fri, 22 May 2015 12:34:03 +0200
+Message-ID: <1432290846-4310-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+Hi David,
 
-On Friday 2015-05-22 10:50, Hannes Frederic Sowa wrote:
->
->> + if ((nmemb >= MUL_NO_OVERFLOW || size >= MUL_NO_OVERFLOW) &&
->
->if ((nmemb|size) >= MUL_NO_OVERFLOW) && ...
+The following patchset contain Netfilter fixes for your net tree, they are:
 
-I am sure there are many C tricks one can do, but iptables is
-hardly that time-critical to warrant such.
-The compiler should perhaps learn to do such an optimization
-if it does not already.
+1) Fix a race in nfnetlink_log and nfnetlink_queue that can lead to a crash.
+   This problem is due to wrong order in the per-net registration and netlink
+   socket events. Patch from Francesco Ruggeri.
+
+2) Make sure that counters that userspace pass us are higher than 0 in all the
+   x_tables frontends. Discovered via Trinity, patch from Dave Jones.
+
+3) Revert a patch for br_netfilter to rely on the conntrack status bits. This
+   breaks stateless IPv6 NAT transformations. Patch from Florian Westphal.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 13c3ed6a92724d8c8cb148a14b0ae190ddfe7413:
+
+  vxlan: correct typo in call to unregister_netdevice_queue (2015-05-18 16:57:09 -0400)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to faecbb45ebefb20260ad4a631e011e93c896cb73:
+
+  Revert "netfilter: bridge: query conntrack about skb dnat" (2015-05-20 13:51:25 +0200)
+
+----------------------------------------------------------------
+Dave Jones (1):
+      netfilter: ensure number of counters is >0 in do_replace()
+
+Florian Westphal (1):
+      Revert "netfilter: bridge: query conntrack about skb dnat"
+
+Francesco Ruggeri (1):
+      netfilter: nfnetlink_{log,queue}: Register pernet in first place
+
+ include/linux/skbuff.h               |    1 +
+ net/bridge/br_netfilter.c            |   27 +++++++++------------------
+ net/bridge/netfilter/ebtables.c      |    4 ++++
+ net/ipv4/netfilter/arp_tables.c      |    6 ++++++
+ net/ipv4/netfilter/ip_tables.c       |    6 ++++++
+ net/ipv6/netfilter/ip6_tables.c      |    6 ++++++
+ net/netfilter/nfnetlink_log.c        |   19 ++++++++++---------
+ net/netfilter/nfnetlink_queue_core.c |   18 +++++++++---------
+ 8 files changed, 51 insertions(+), 36 deletions(-)
