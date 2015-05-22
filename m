@@ -1,153 +1,199 @@
-From: Loganaden Velvindron <logan@elandsys.com>
-Subject: Re: Harden iptables memory allocator
-Date: Thu, 21 May 2015 12:29:56 -0700
-Message-ID: <20150521192956.GA21427@mx.elandsys.com>
-References: <CAOp4FwQ5a=kKWDjGdpdHV7i3SX1msaqDkTrwYL2y=2+Bd690Cg@mail.gmail.com>
+From: zhanghailiang <zhang.zhanghailiang@huawei.com>
+Subject: Re: [PATCH COLO-Frame v5 00/29] COarse-grain LOck-stepping(COLO)
+ Virtual Machines for Non-stop Service
+Date: Fri, 22 May 2015 14:26:46 +0800
+Message-ID: <555ECC26.9050607@huawei.com>
+References: <1432196001-10352-1-git-send-email-zhang.zhanghailiang@huawei.com> <20150521113007.GH2129@work-vm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Loganaden Velvindron <loganaden@gmail.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: <peter.huangpeng@huawei.com>, <qemu-devel@nongnu.org>,
+	<quintela@redhat.com>, <amit.shah@redhat.com>, <eblake@redhat.com>,
+	<berrange@redhat.com>, <eddie.dong@intel.com>,
+	<yunhong.jiang@intel.com>, <wency@cn.fujitsu.com>,
+	<lizhijian@cn.fujitsu.com>, <arei.gonglei@huawei.com>,
+	<david@gibson.dropbear.id.au>, <netfilter-devel@vger.kernel.org>
+To: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ns1.qubic.net ([208.69.177.116]:60580 "EHLO mx.elandsys.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422732AbbEUUAD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 May 2015 16:00:03 -0400
-Content-Disposition: inline
-In-Reply-To: <CAOp4FwQ5a=kKWDjGdpdHV7i3SX1msaqDkTrwYL2y=2+Bd690Cg@mail.gmail.com>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:56672 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751834AbbEVG1X (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 May 2015 02:27:23 -0400
+In-Reply-To: <20150521113007.GH2129@work-vm>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 21, 2015 at 06:42:49PM +0000, Loganaden Velvindron wrote:
-> Hi All,
-> 
-> A number of Open Source projects such as OpenSSH, nsd, unbound,
-> OpenBSD and FreeBSD have implemented a safe replacement for
-> malloc(x*y) idiom which may lead to overflows.
-> 
-> Quoting from man page:
-> Consider calloc() or the extension reallocarray() when there is
-> multiplication in the size argument of malloc() or realloc(). For
-> example, avoid this common idiom as it may lead to integer overflow:
-> 
-> if ((p = malloc(num * size)) == NULL)
-> err(1, "malloc");
-> 
-> A drop-in replacement is the OpenBSD extension reallocarray():
-> 
-> if ((p = reallocarray(NULL, num, size)) == NULL)
-> err(1, "reallocarray");
-> 
-> 
-> Replacing malloc() with reallocarray() has led to one vulnerability
-> being mitigated:
-> See here: https://www.kb.cert.org/vuls/id/695940
-> 
-> The other advantage is that reallocarray() is faster than calloc(x*y)
-> as there is no zero'ing overhead.
-> 
-> Patch below with a few conversions to reallocarray(). -- Feedback welcomed !
-> 
+On 2015/5/21 19:30, Dr. David Alan Gilbert wrote:
+> * zhanghailiang (zhang.zhanghailiang@huawei.com) wrote:
+>> This is the 5th version of COLO, here is only COLO frame part, include: VM checkpoint,
+>> failover, proxy API, block replication API, not include block replication.
+>> The block part has been sent by wencongyang:
+>> "[Qemu-devel] [PATCH COLO-Block v5 00/15] Block replication for continuous checkpoints"
+>>
+>> we have finished some new features and optimization on COLO (As a development branch in github),
+>> but for easy of review, it is better to keep it simple now, so we will not add too much new
+>> codes into this frame patch set before it been totally reviewed.
+>>
+>> You can get the latest integrated qemu colo patches from github (Include Block part):
+>> https://github.com/coloft/qemu/commits/colo-v1.2-basic
+>> https://github.com/coloft/qemu/commits/colo-v1.2-developing (more features)
+>>
+>> Please NOTE the difference between these two branch.
+>> colo-v1.2-basic is exactly same with this patch series, which has basic features of COLO.
+>> Compared with colo-v1.2-basic, colo-v1.2-developing has some optimization in the
+>> process of checkpoint, including:
+>>     1) separate ram and device save/load process to reduce size of extra memory
+>>        used during checkpoint
+>>     2) live migrate part of dirty pages to slave during sleep time.
+>> Besides, we add some statistic info in colo-v1.2-developing, which you can get these stat
+>> info by using command 'info migrate'.
+>>
+>> You can test any branch of the above,
+>> about how to test COLO, Please reference to the follow link.
+>> http://wiki.qemu.org/Features/COLO.
+>
+> Thanks, I'll try these out over the next few days.
+> It would be good to use some tags on the colo-proxy git;
+> it would be a bit confusing for people trying to use your previous
+> qemu patches if they fetched todays colo-proxy tree.
+>
 
-Gmail broke the patch. Sorry for that.
+Hi Dave,
 
-Sending it using my other account:
+I have put tags on the colo-proxy in github, thanks for your suggestion.
+And one more thing, to test this new version, you have to rebuild your kernel and iptables,
+since there are some modification :)
 
-diff --git a/include/xtables.h b/include/xtables.h
-index bad11a8..e18b4cd 100644
---- a/include/xtables.h
-+++ b/include/xtables.h
-@@ -418,6 +418,7 @@ extern void xtables_init(void);
- extern void xtables_set_nfproto(uint8_t);
- extern void *xtables_calloc(size_t, size_t);
- extern void *xtables_malloc(size_t);
-+extern void *xtables_reallocarray(void *, size_t, size_t);
- extern void *xtables_realloc(void *, size_t);
- 
- extern int xtables_insmod(const char *, const char *, bool);
-diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
-index 8db13b4..8964c1e 100644
---- a/iptables/ip6tables.c
-+++ b/iptables/ip6tables.c
-@@ -858,7 +858,7 @@ for_each_chain6(int (*fn)(const xt_chainlabel, int, struct xtc_handle *),
- 		chain = ip6tc_next_chain(handle);
- 	}
- 
--	chains = xtables_malloc(sizeof(xt_chainlabel) * chaincount);
-+	chains = xtables_reallocarray(NULL, chaincount, sizeof(xt_chainlabel));
- 	i = 0;
- 	chain = ip6tc_first_chain(handle);
- 	while (chain) {
-diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-index 5357d12..1f62aa3 100644
---- a/libxtables/xtables.c
-+++ b/libxtables/xtables.c
-@@ -15,6 +15,23 @@
-  *	along with this program; if not, write to the Free Software
-  *	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  */
-+
-+/* xtables_reallocarray.c is under: 
-+ * Copyright (c) 2008 Otto Moerbeek <otto@drijf.net>
-+ *
-+ * Permission to use, copy, modify, and distribute this software for any
-+ * purpose with or without fee is hereby granted, provided that the above
-+ * copyright notice and this permission notice appear in all copies.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-+*/
-+
- #include "config.h"
- #include <ctype.h>
- #include <errno.h>
-@@ -308,6 +325,23 @@ void *xtables_malloc(size_t size)
- 	return p;
- }
- 
-+/*
-+ * This is sqrt(SIZE_MAX+1), as s1*s2 <= SIZE_MAX
-+ * if both s1 < MUL_NO_OVERFLOW and s2 < MUL_NO_OVERFLOW
-+ */
-+#define MUL_NO_OVERFLOW	((size_t)1 << (sizeof(size_t) * 4))
-+
-+void *
-+xtables_reallocarray(void *optr, size_t nmemb, size_t size)
-+{
-+	if ((nmemb >= MUL_NO_OVERFLOW || size >= MUL_NO_OVERFLOW) &&
-+	    nmemb > 0 && SIZE_MAX / nmemb < size) {
-+		perror("ip[6]tables: reallocarray failed");
-+		exit(1);
-+	}
-+	return xtables_realloc(optr, size * nmemb);
-+}
-+
- void *xtables_realloc(void *ptr, size_t size)
- {
- 	void *p;
-@@ -1432,8 +1466,8 @@ void xtables_ipparse_multiple(const char *name, struct in_addr **addrpp,
- 		++loop; /* skip ',' */
- 	}
- 
--	*addrpp = xtables_malloc(sizeof(struct in_addr) * count);
--	*maskpp = xtables_malloc(sizeof(struct in_addr) * count);
-+	*addrpp = xtables_reallocarray(NULL, count, sizeof(struct in_addr));
-+	*maskpp = xtables_reallocarray(NULL, count, sizeof(struct in_addr));
- 
- 	loop = name;
- 
-@@ -1753,8 +1787,8 @@ xtables_ip6parse_multiple(const char *name, struct in6_addr **addrpp,
- 		++loop; /* skip ',' */
- 	}
- 
--	*addrpp = xtables_malloc(sizeof(struct in6_addr) * count);
--	*maskpp = xtables_malloc(sizeof(struct in6_addr) * count);
-+	*addrpp = xtables_reallocarray(NULL, count, sizeof(struct in6_addr));
-+	*maskpp = xtables_reallocarray(NULL, count, sizeof(struct in6_addr));
- 
- 	loop = name;
- 
+Thanks,
+zhanghailiang
+
+>
+>>
+>> COLO is still in early stage,
+>> your comments and feedback are warmly welcomed.
+>>
+>> Cc: netfilter-devel@vger.kernel.org
+>>
+>> TODO:
+>> 1. Strengthen failover
+>> 2. COLO function switch on/off
+>> 2. Optimize proxy part, include proxy script.
+>>    1) Remove the limitation of forward network link.
+>>    2) Reuse the nfqueue_entry and NF_STOLEN to enqueue skb
+>> 3. The capability of continuous FT
+>>
+>> v5:
+>> - Replace the previous communication way between proxy and qemu with nfnetlink
+>> - Remove the 'forward device'parameter of xt_PMYCOLO, and now we use iptables command
+>> to set the 'forward device'
+>> - Turn DPRINTF into trace_ calls as Dave's suggestion
+>>
+>> v4:
+>> - New block replication scheme (use image-fleecing for sencondary side)
+>> - Adress some comments from Eric Blake and Dave
+>> - Add commmand colo-set-checkpoint-period to set the time of periodic checkpoint
+>> - Add a delay (100ms) between continuous checkpoint requests to ensure VM
+>>    run 100ms at least since last pause.
+>> v3:
+>> - use proxy instead of colo agent to compare network packets
+>> - add block replication
+>> - Optimize failover disposal
+>> - handle shutdown
+>>
+>> v2:
+>> - use QEMUSizedBuffer/QEMUFile as COLO buffer
+>> - colo support is enabled by default
+>> - add nic replication support
+>> - addressed comments from Eric Blake and Dr. David Alan Gilbert
+>>
+>> v1:
+>> - implement the frame of colo
+>>
+>> Wen Congyang (1):
+>>    COLO: Add block replication into colo process
+>>
+>> zhanghailiang (28):
+>>    configure: Add parameter for configure to enable/disable COLO support
+>>    migration: Introduce capability 'colo' to migration
+>>    COLO: migrate colo related info to slave
+>>    migration: Integrate COLO checkpoint process into migration
+>>    migration: Integrate COLO checkpoint process into loadvm
+>>    COLO: Implement colo checkpoint protocol
+>>    COLO: Add a new RunState RUN_STATE_COLO
+>>    QEMUSizedBuffer: Introduce two help functions for qsb
+>>    COLO: Save VM state to slave when do checkpoint
+>>    COLO RAM: Load PVM's dirty page into SVM's RAM cache temporarily
+>>    COLO VMstate: Load VM state into qsb before restore it
+>>    arch_init: Start to trace dirty pages of SVM
+>>    COLO RAM: Flush cached RAM into SVM's memory
+>>    COLO failover: Introduce a new command to trigger a failover
+>>    COLO failover: Implement COLO master/slave failover work
+>>    COLO failover: Don't do failover during loading VM's state
+>>    COLO: Add new command parameter 'colo_nicname' 'colo_script' for net
+>>    COLO NIC: Init/remove colo nic devices when add/cleanup tap devices
+>>    COLO NIC: Implement colo nic device interface configure()
+>>    COLO NIC : Implement colo nic init/destroy function
+>>    COLO NIC: Some init work related with proxy module
+>>    COLO: Handle nfnetlink message from proxy module
+>>    COLO: Do checkpoint according to the result of packets comparation
+>>    COLO: Improve checkpoint efficiency by do additional periodic
+>>      checkpoint
+>>    COLO: Add colo-set-checkpoint-period command
+>>    COLO NIC: Implement NIC checkpoint and failover
+>>    COLO: Disable qdev hotplug when VM is in COLO mode
+>>    COLO: Implement shutdown checkpoint
+>>
+>>   arch_init.c                            | 243 +++++++++-
+>>   configure                              |  36 +-
+>>   hmp-commands.hx                        |  30 ++
+>>   hmp.c                                  |  14 +
+>>   hmp.h                                  |   2 +
+>>   include/exec/cpu-all.h                 |   1 +
+>>   include/migration/migration-colo.h     |  57 +++
+>>   include/migration/migration-failover.h |  22 +
+>>   include/migration/migration.h          |   3 +
+>>   include/migration/qemu-file.h          |   3 +-
+>>   include/net/colo-nic.h                 |  27 ++
+>>   include/net/net.h                      |   3 +
+>>   include/sysemu/sysemu.h                |   3 +
+>>   migration/Makefile.objs                |   2 +
+>>   migration/colo-comm.c                  |  68 +++
+>>   migration/colo-failover.c              |  48 ++
+>>   migration/colo.c                       | 836 +++++++++++++++++++++++++++++++++
+>>   migration/migration.c                  |  60 ++-
+>>   migration/qemu-file-buf.c              |  58 +++
+>>   net/Makefile.objs                      |   1 +
+>>   net/colo-nic.c                         | 420 +++++++++++++++++
+>>   net/tap.c                              |  45 +-
+>>   qapi-schema.json                       |  42 +-
+>>   qemu-options.hx                        |  10 +-
+>>   qmp-commands.hx                        |  41 ++
+>>   savevm.c                               |   2 +-
+>>   scripts/colo-proxy-script.sh           |  88 ++++
+>>   stubs/Makefile.objs                    |   1 +
+>>   stubs/migration-colo.c                 |  58 +++
+>>   trace-events                           |  11 +
+>>   vl.c                                   |  39 +-
+>>   31 files changed, 2235 insertions(+), 39 deletions(-)
+>>   create mode 100644 include/migration/migration-colo.h
+>>   create mode 100644 include/migration/migration-failover.h
+>>   create mode 100644 include/net/colo-nic.h
+>>   create mode 100644 migration/colo-comm.c
+>>   create mode 100644 migration/colo-failover.c
+>>   create mode 100644 migration/colo.c
+>>   create mode 100644 net/colo-nic.c
+>>   create mode 100755 scripts/colo-proxy-script.sh
+>>   create mode 100644 stubs/migration-colo.c
+>>
+>> --
+>> 1.7.12.4
+>>
+>>
+> --
+> Dr. David Alan Gilbert / dgilbert@redhat.com / Manchester, UK
+>
+> .
+>
+
+
