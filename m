@@ -1,35 +1,68 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/3] Netfilter fixes for net
-Date: Fri, 22 May 2015 14:33:53 -0400 (EDT)
-Message-ID: <20150522.143353.1996617853428090735.davem@davemloft.net>
-References: <1432290846-4310-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1432290846-4310-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH -next] netfilter: remove unused comefrom hookmask argument
+Date: Sun, 24 May 2015 01:00:41 +0200
+Message-ID: <1432422041-13960-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:39998 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752215AbbEWXAy (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 23 May 2015 19:00:54 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Fri, 22 May 2015 12:34:03 +0200
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/ipv4/netfilter/ip_tables.c  | 4 +---
+ net/ipv6/netfilter/ip6_tables.c | 4 +---
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-> The following patchset contain Netfilter fixes for your net tree, they are:
-> 
-> 1) Fix a race in nfnetlink_log and nfnetlink_queue that can lead to a crash.
->    This problem is due to wrong order in the per-net registration and netlink
->    socket events. Patch from Francesco Ruggeri.
-> 
-> 2) Make sure that counters that userspace pass us are higher than 0 in all the
->    x_tables frontends. Discovered via Trinity, patch from Dave Jones.
-> 
-> 3) Revert a patch for br_netfilter to rely on the conntrack status bits. This
->    breaks stateless IPv6 NAT transformations. Patch from Florian Westphal.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index c69db7f..583779f 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1441,7 +1441,6 @@ static int
+ compat_find_calc_match(struct xt_entry_match *m,
+ 		       const char *name,
+ 		       const struct ipt_ip *ip,
+-		       unsigned int hookmask,
+ 		       int *size)
+ {
+ 	struct xt_match *match;
+@@ -1510,8 +1509,7 @@ check_compat_entry_size_and_hooks(struct compat_ipt_entry *e,
+ 	entry_offset = (void *)e - (void *)base;
+ 	j = 0;
+ 	xt_ematch_foreach(ematch, e) {
+-		ret = compat_find_calc_match(ematch, name,
+-					     &e->ip, e->comefrom, &off);
++		ret = compat_find_calc_match(ematch, name, &e->ip, &off);
+ 		if (ret != 0)
+ 			goto release_matches;
+ 		++j;
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 1a732a1..d54f049 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1456,7 +1456,6 @@ static int
+ compat_find_calc_match(struct xt_entry_match *m,
+ 		       const char *name,
+ 		       const struct ip6t_ip6 *ipv6,
+-		       unsigned int hookmask,
+ 		       int *size)
+ {
+ 	struct xt_match *match;
+@@ -1525,8 +1524,7 @@ check_compat_entry_size_and_hooks(struct compat_ip6t_entry *e,
+ 	entry_offset = (void *)e - (void *)base;
+ 	j = 0;
+ 	xt_ematch_foreach(ematch, e) {
+-		ret = compat_find_calc_match(ematch, name,
+-					     &e->ipv6, e->comefrom, &off);
++		ret = compat_find_calc_match(ematch, name, &e->ipv6, &off);
+ 		if (ret != 0)
+ 			goto release_matches;
+ 		++j;
+-- 
+2.0.5
 
-Pulled, thanks Pablo.
