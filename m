@@ -1,95 +1,59 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 1/1] netfilter: Added vlan matching extension
-Date: Mon, 25 May 2015 23:51:08 +0200
-Message-ID: <20150525215108.GH3629@breakpoint.cc>
-References: <1432586250-42147-1-git-send-email-eddi@guardicore.com>
+From: Simon Horman <simon.horman@netronome.com>
+Subject: Re: [PATCH 1/3 nf-next] netfilter: default CONFIG_NETFILTER_INGRESS
+ to y
+Date: Tue, 26 May 2015 09:44:44 +0900
+Message-ID: <20150526004441.GA23370@vergenet.net>
+References: <1432558004-13481-1-git-send-email-pablo@netfilter.org>
+ <1432558004-13481-2-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Eddie Linder <eddi@guardicore.com>
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
+	netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:42073 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751085AbbEYVvK (ORCPT
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:32797 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751134AbbEZAoy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 May 2015 17:51:10 -0400
+	Mon, 25 May 2015 20:44:54 -0400
+Received: by padbw4 with SMTP id bw4so79755157pad.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 May 2015 17:44:54 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1432586250-42147-1-git-send-email-eddi@guardicore.com>
+In-Reply-To: <1432558004-13481-2-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eddie Linder <eddi@guardicore.com> wrote:
-> Signed-off-by: Eddie Linder <eddi@guardicore.com>
+Hi Pablo,
 
-Why do we need a vlan tag match in iptables?
-For bridged traffic we have ebtables' net/bridge/netfilter/ebt_vlan.c .
+On Mon, May 25, 2015 at 02:46:40PM +0200, Pablo Neira Ayuso wrote:
+> Useful to compile-test all options.
+> 
+> Suggested-by: by Alexei Stavoroitov <ast@plumgrid.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-And for routed traffic you'd just use -i vlan.id.0 or whatever?
+There seems to be a stray "by" between ':' and Alexi's name.
 
-What is this match being used for, and more importantly where/how?
-(Is this for call-iptables=1 invocation from bridge netfilter?)
-
-Nevertheless, a couple of comments below.
-
-> diff --git a/include/uapi/linux/netfilter/Kbuild b/include/uapi/linux/netfilter/Kbuild
-> index 1d973d2..2ca36db 100644
-> --- a/include/uapi/linux/netfilter/Kbuild
-> +++ b/include/uapi/linux/netfilter/Kbuild
-> @@ -85,3 +85,4 @@ header-y += xt_tcpmss.h
->  header-y += xt_tcpudp.h
->  header-y += xt_time.h
->  header-y += xt_u32.h
-> +header-y += xt_vlan.h
-> diff --git a/include/uapi/linux/netfilter/xt_vlan.h b/include/uapi/linux/netfilter/xt_vlan.h
-> new file mode 100644
-> index 0000000..3c31b6b
-> --- /dev/null
-> +++ b/include/uapi/linux/netfilter/xt_vlan.h
-> @@ -0,0 +1,11 @@
-> +#ifndef _XT_VLAN_H
-> +#define _XT_VLAN_H
-> +
-> +
-> +struct xt_vlan_info {
-> +	unsigned short vlan_id;
-> +	unsigned char vlan_pcp;
-
-Please consider using explicit types for all of these, i.e.
-	__u16 vlan_id;
-	__u8 vlan_pcp;
-
-> +MODULE_ALIAS("ipt_vlan");
-> +MODULE_ALIAS("ip6t_vlan");
-> +MODULE_ALIAS("ipt_VLAN");
-> +MODULE_ALIAS("ip6t_VLAN");
-
-_VLAN aliases are only needed for -j VLAN target, which isn't
-added here, please remove them.
-
-> +static bool vlan_mt(const struct sk_buff *skb, struct xt_action_param *par)
-> +{
-> +	const struct xt_vlan_info *info = par->matchinfo;
-> +	u16 vlan_tci = ~VLAN_TAG_PRESENT;
-> +	bool ret;
-> +
-> +	if (skb->vlan_tci & VLAN_TAG_PRESENT)
-> +		/* Strip the 4096 bit (invalid vlan) from the vlan tci bits */
-> +		vlan_tci = skb->vlan_tci;
-
-if (skb_vlan_tag_present(skb))
-	vlan_tci = skb_vlan_tag_get(skb);
-
-> +	else {
-> +		if (unlikely(skb->len < VLAN_ETH_HLEN &&
-
-This is weird.  Why test len < VLAN_ETH_HLEN (> ? >= ? )
-
-> +			     skb->protocol == htons(ETH_P_8021Q)))
-> +			if (unlikely(!parse_vlan(skb, &vlan_tci)))
-> +				return false;
-> +			else
-> +				return false;
-> +	}
-
-Why call parse_vlan?  We always return false without looking at
-vlan_tci...
+> ---
+>  net/netfilter/Kconfig |    1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+> index db1c674..9a89e7c 100644
+> --- a/net/netfilter/Kconfig
+> +++ b/net/netfilter/Kconfig
+> @@ -3,6 +3,7 @@ menu "Core Netfilter Configuration"
+>  
+>  config NETFILTER_INGRESS
+>  	bool "Netfilter ingress support"
+> +	default y
+>  	select NET_INGRESS
+>  	help
+>  	  This allows you to classify packets from ingress using the Netfilter
+> -- 
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
