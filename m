@@ -1,41 +1,44 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCH nft] src: add netdev family support
-Date: Tue, 26 May 2015 18:52:04 +0200
-Message-ID: <20150526165204.GA13360@acer.localdomain>
+Date: Tue, 26 May 2015 19:17:47 +0200
+Message-ID: <20150526171747.GA5758@salvia>
 References: <1432558004-13481-1-git-send-email-pablo@netfilter.org>
  <1432558004-13481-6-git-send-email-pablo@netfilter.org>
+ <20150526165204.GA13360@acer.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44541 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754869AbbEZQwI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 May 2015 12:52:08 -0400
+Received: from mail.us.es ([193.147.175.20]:55860 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751992AbbEZRMr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 May 2015 13:12:47 -0400
 Content-Disposition: inline
-In-Reply-To: <1432558004-13481-6-git-send-email-pablo@netfilter.org>
+In-Reply-To: <20150526165204.GA13360@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 25.05, Pablo Neira Ayuso wrote:
-> diff --git a/include/rule.h b/include/rule.h
-> index 97959f7..06ec2ff 100644
-> --- a/include/rule.h
-> +++ b/include/rule.h
-> @@ -72,6 +72,7 @@ enum table_flags {
->   *
->   * @list:	list node
->   * @handle:	table handle
-> + * @dev:	network device name (only for netdev family)
->   * @location:	location the table was defined at
->   * @chains:	chains contained in the table
->   * @sets:	sets contained in the table
-> @@ -80,6 +81,7 @@ enum table_flags {
->  struct table {
->  	struct list_head	list;
->  	struct handle		handle;
-> +	const char		*dev;
+On Tue, May 26, 2015 at 06:52:04PM +0200, Patrick McHardy wrote:
+> On 25.05, Pablo Neira Ayuso wrote:
+> > diff --git a/include/rule.h b/include/rule.h
+> > index 97959f7..06ec2ff 100644
+> > --- a/include/rule.h
+> > +++ b/include/rule.h
+> > @@ -72,6 +72,7 @@ enum table_flags {
+> >   *
+> >   * @list:	list node
+> >   * @handle:	table handle
+> > + * @dev:	network device name (only for netdev family)
+> >   * @location:	location the table was defined at
+> >   * @chains:	chains contained in the table
+> >   * @sets:	sets contained in the table
+> > @@ -80,6 +81,7 @@ enum table_flags {
+> >  struct table {
+> >  	struct list_head	list;
+> >  	struct handle		handle;
+> > +	const char		*dev;
+> 
+> I think this logically belongs into struct handle itself.
 
-I think this logically belongs into struct handle itself.
+Thanks Patrick, I'll move this to the handle.
