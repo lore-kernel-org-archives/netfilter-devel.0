@@ -1,112 +1,77 @@
-From: Simon Horman <simon.horman@netronome.com>
-Subject: Re: [PATCH 2/3 nf-next] netfilter: nf_tables: allow to bind table to
- net_device
-Date: Tue, 26 May 2015 09:48:41 +0900
-Message-ID: <20150526004840.GB23370@vergenet.net>
-References: <1432558004-13481-1-git-send-email-pablo@netfilter.org>
- <1432558004-13481-3-git-send-email-pablo@netfilter.org>
+From: Bernhard Thaler <bernhard.thaler@wvnet.at>
+Subject: ebtables not working correctly with 1086bbe97a074844188c6c988fa0b1a98c3ccbb9
+Date: Tue, 26 May 2015 04:09:41 +0200
+Message-ID: <5563D5E5.70502@wvnet.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
-	netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: davej@codemonkey.org.uk, Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:34055 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751045AbbEZAsw (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 May 2015 20:48:52 -0400
-Received: by pdbki1 with SMTP id ki1so36547965pdb.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 May 2015 17:48:51 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1432558004-13481-3-git-send-email-pablo@netfilter.org>
+Received: from mx-out.wvnet.at ([62.212.170.134]:57401 "EHLO mx-out.wvnet.at"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751057AbbEZCSL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 May 2015 22:18:11 -0400
+Received: from smtp.wvnet.at (localhost [127.0.0.1])
+	by mx-out.wvnet.at (Postfix) with ESMTP id 965B2FBA13B
+	for <netfilter-devel@vger.kernel.org>; Tue, 26 May 2015 04:09:44 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Hi,
 
-On Mon, May 25, 2015 at 02:46:41PM +0200, Pablo Neira Ayuso wrote:
-> This patch adds the internal NFT_AF_NEEDS_DEV flag to indicate that you must
-> attach this table to a net_device.
-> 
-> This change is required by the follow up patch that introduces the new netdev
-> table.
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  include/net/netfilter/nf_tables.h        |    8 ++++++
->  include/uapi/linux/netfilter/nf_tables.h |    2 ++
->  net/netfilter/nf_tables_api.c            |   46 ++++++++++++++++++++++++++----
->  3 files changed, 51 insertions(+), 5 deletions(-)
+setting rules with ebtables does not work for me any more with
+1086bbe97a074844188c6c988fa0b1a98c3ccbb9 / "netfilter: ensure number of
+counters is >0 in do_replace()" in place.
 
-[snip]
+There is an error message and no rules set in the end.
 
-> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-> index 5fa1cd0..89a671e 100644
-> --- a/include/uapi/linux/netfilter/nf_tables.h
-> +++ b/include/uapi/linux/netfilter/nf_tables.h
+e.g.
 
-[snip]
+root@kali:~# ebtables -t nat -A POSTROUTING --src 12:34:56:78:9a:bc -j DROP
+Unable to update the kernel. Two possible causes:
+1. Multiple ebtables programs were executing simultaneously. The ebtables
+   userspace tool doesn't by default support multiple ebtables programs
+running
+   concurrently. The ebtables option --concurrent or a tool like flock
+can be
+   used to support concurrent scripts that update the ebtables kernel
+tables.
+2. The kernel doesn't support a certain ebtables extension, consider
+   recompiling your kernel or insmod the extension.
+.
 
-> @@ -423,6 +425,10 @@ static int nf_tables_fill_table_info(struct sk_buff *skb, struct net *net,
->  	    nla_put_be32(skb, NFTA_TABLE_USE, htonl(table->use)))
->  		goto nla_put_failure;
->  
-> +	if (table->dev &&
-> +	    nla_put_string(skb, NFTA_TABLE_DEV, table->dev->name))
-> +		goto nla_put_failure;
-> +
->  	nlmsg_end(skb, nlh);
->  	return 0;
->  
-> @@ -608,6 +614,11 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
->  	if (flags == ctx->table->flags)
->  		return 0;
->  
-> +	if ((ctx->afi->flags & NFT_AF_NEEDS_DEV) &&
-> +	    ctx->nla[NFTA_TABLE_DEV] &&
-> +	    nla_strcmp(ctx->nla[NFTA_TABLE_DEV], ctx->table->dev->name))
-> +		return -EOPNOTSUPP;
-> +
->  	trans = nft_trans_alloc(ctx, NFT_MSG_NEWTABLE,
->  				sizeof(struct nft_trans_table));
->  	if (trans == NULL)
+The rule is not set:
 
-I'm a little unsure of the above logic.
+root@kali:~# ebtables -t nat -Ln --Lc
+Bridge table: nat
 
-Is it ok for NFT_AF_NEEDS_DEV to be set but ctx->nla[NFTA_TABLE_DEV] to
-be absent?
+Bridge chain: PREROUTING, entries: 0, policy: ACCEPT
 
-> @@ -645,6 +656,7 @@ static int nf_tables_newtable(struct sock *nlsk, struct sk_buff *skb,
->  	struct nft_table *table;
->  	struct net *net = sock_net(skb->sk);
->  	int family = nfmsg->nfgen_family;
-> +	struct net_device *dev = NULL;
->  	u32 flags = 0;
->  	struct nft_ctx ctx;
->  	int err;
-> @@ -679,30 +691,50 @@ static int nf_tables_newtable(struct sock *nlsk, struct sk_buff *skb,
->  			return -EINVAL;
->  	}
->  
-> +	if (afi->flags & NFT_AF_NEEDS_DEV) {
-> +		char ifname[IFNAMSIZ];
-> +
-> +		if (!nla[NFTA_TABLE_DEV])
-> +			return -EOPNOTSUPP;
-> +
-> +		nla_strlcpy(ifname, nla[NFTA_TABLE_DEV], IFNAMSIZ);
-> +		dev = dev_get_by_name(net, ifname);
-> +		if (!dev)
-> +			return -ENOENT;
-> +	} else if (nla[NFTA_TABLE_DEV]) {
-> +		return -EOPNOTSUPP;
-> +	}
-> +
-> +	err = -EAFNOSUPPORT;
->  	if (!try_module_get(afi->owner))
-> -		return -EAFNOSUPPORT;
-> +		goto err1;
->  
+Bridge chain: OUTPUT, entries: 0, policy: ACCEPT
 
-[snip]
+Bridge chain: POSTROUTING, entries: 0, policy: ACCEPT
+
+With 1086bbe97a074844188c6c988fa0b1a98c3ccbb9 reverted everything works
+fine again.
+
+root@kali:~# ebtables -t nat -A POSTROUTING --src 12:34:56:78:9a:bc -j DROP
+root@kali:~# ebtables -t nat -Ln --Lc
+Bridge table: nat
+
+Bridge chain: PREROUTING, entries: 0, policy: ACCEPT
+
+Bridge chain: OUTPUT, entries: 0, policy: ACCEPT
+
+Bridge chain: POSTROUTING, entries: 1, policy: ACCEPT
+-s 12:34:56:78:9a:bc -j DROP , pcnt = 0 -- bcnt = 0
+
+It is not this particular example, almost every rule I want to add with
+ebtables leads to this error message.
+
+Any ideas why this is happening? I used Debian 7 packaged ebtables
+version and newly compiled ebtables from current git repository, same
+result for both.
+
+Regards,
+Bernhard
