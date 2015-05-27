@@ -1,50 +1,59 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: REOUTE target extenstion
-Date: Wed, 27 May 2015 14:40:37 +0200
-Message-ID: <20150527124037.GA19766@salvia>
-References: <CADgXnSPNQM2xq_pAs72ddDCX-8DCx=J6mr--J_jPdMUcQS-PZw@mail.gmail.com>
- <20150527113746.GA23992@breakpoint.cc>
- <CADgXnSPkPdWdWcNJHrcv_9=oomWsE4ZfzoJZ3CTur=zW5LY9cQ@mail.gmail.com>
- <20150527121130.GC23992@breakpoint.cc>
+Subject: Re: [PATCH v3] nfnetlink_queue: add security context information
+Date: Wed, 27 May 2015 14:49:57 +0200
+Message-ID: <20150527124957.GA19819@salvia>
+References: <5562F661.5000503@samsung.com>
+ <20150525131319.GA3529@salvia>
+ <55634935.4020100@samsung.com>
+ <20150525205210.GG3629@breakpoint.cc>
+ <55646731.9040803@samsung.com>
+ <20150526130623.GD7817@breakpoint.cc>
+ <5565A4D2.70701@samsung.com>
+ <5565A6AA.90908@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Eddi Linder <eddi@guardicore.com>, netfilter-devel@vger.kernel.org,
-	jengelh@inai.de
-To: Florian Westphal <fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	=?utf-8?B?UmFmYcWC?= Krypa <r.krypa@samsung.com>
+To: Roman Kubiak <r.kubiak@samsung.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42292 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44298 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751721AbbE0Mfq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 May 2015 08:35:46 -0400
+	id S1751795AbbE0Mo4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 27 May 2015 08:44:56 -0400
 Content-Disposition: inline
-In-Reply-To: <20150527121130.GC23992@breakpoint.cc>
+In-Reply-To: <5565A6AA.90908@samsung.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, May 27, 2015 at 02:11:30PM +0200, Florian Westphal wrote:
-> Eddi Linder <eddi@guardicore.com> wrote:
-> > TEE is for gateway redirections, which means the redirected device has
-> > to have a configured ip, and to be reachable from the original device.
-> 
-> That makes no sense to me.  The to-redirected device always needs to be
-> reachable.  And iptables is L3 and upwards, so I don't see how 1:1
-> copying would fit in here.
-> 
-> > Florian, I didn't find the mirror target in the mainline documentation or code.
-> 
-> I meant the tc action:
-> 
-> tc filter add dev eth0 parent $parent protocol ip [..] action mirred egress redirect dev eth1
-> 
-> > REROUTE redirection is more like the openvswitch output action, copy
-> > the packet from one device into another.
-> 
-> Sorry, but my feeling is that this is out of scope for iptables.
+On Wed, May 27, 2015 at 01:12:42PM +0200, Roman Kubiak wrote:
+> I think i forgot to mention one important thing the function:
+> security_sk_getsecid is not in the kernel yet, i posted a patch to
+> add it on the linux-security-module mailing list:
+> http://marc.info/?t=143254934900006&r=1&w=2
 
-Agreed.
+You shouldn't split the patches between several lists, they are
+interdependent and without that context it is normal that people don't
+understand your intentions.
 
-There is an incomplete patch to add TEE support to nf_tables bridge
-family. You only have to specify the destination device as Eddi needs.
+So please send the full patchset, Cc'ing the relevant lists so we can
+get feedback from both the netfilter and the linux-security
+communities.
 
-Another alternative is to add this TEE support to ebtables, which is
-where this belongs.
+BTW, another minor nitpick below:
+
+> > diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+> > index 0b98c74..ae4f520 100644
+> > --- a/net/netfilter/nfnetlink_queue_core.c
+> > +++ b/net/netfilter/nfnetlink_queue_core.c
+> > @@ -278,6 +278,24 @@ nla_put_failure:
+> >  	return -1;
+> >  }
+> >  
+> > +static u32 nfqnl_get_sk_secctx(struct sock *sk, char **secdata)
+> > +{
+> > +	u32 secid = 0;
+> > +	u32 seclen = 0;
+
+Merge these two variable declarations in one line.
+
+Thanks.
