@@ -1,43 +1,41 @@
-From: Eddi Linder <eddi@guardicore.com>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: REOUTE target extenstion
-Date: Wed, 27 May 2015 14:56:04 +0300
-Message-ID: <CADgXnSPkPdWdWcNJHrcv_9=oomWsE4ZfzoJZ3CTur=zW5LY9cQ@mail.gmail.com>
+Date: Wed, 27 May 2015 14:11:30 +0200
+Message-ID: <20150527121130.GC23992@breakpoint.cc>
 References: <CADgXnSPNQM2xq_pAs72ddDCX-8DCx=J6mr--J_jPdMUcQS-PZw@mail.gmail.com>
-	<20150527113746.GA23992@breakpoint.cc>
+ <20150527113746.GA23992@breakpoint.cc>
+ <CADgXnSPkPdWdWcNJHrcv_9=oomWsE4ZfzoJZ3CTur=zW5LY9cQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Florian Westphal <fw@strlen.de>, jengelh@inai.de
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+	jengelh@inai.de
+To: Eddi Linder <eddi@guardicore.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ie0-f169.google.com ([209.85.223.169]:35813 "EHLO
-	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751537AbbE0L4E (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45734 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751787AbbE0MLc (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 May 2015 07:56:04 -0400
-Received: by iesa3 with SMTP id a3so11321357ies.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 May 2015 04:56:04 -0700 (PDT)
-In-Reply-To: <20150527113746.GA23992@breakpoint.cc>
+	Wed, 27 May 2015 08:11:32 -0400
+Content-Disposition: inline
+In-Reply-To: <CADgXnSPkPdWdWcNJHrcv_9=oomWsE4ZfzoJZ3CTur=zW5LY9cQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-TEE is for gateway redirections, which means the redirected device has
-to have a configured ip, and to be reachable from the original device.
-Florian, I didn't find the mirror target in the mainline documentation or code.
-REROUTE redirection is more like the openvswitch output action, copy
-the packet from one device into another.
+Eddi Linder <eddi@guardicore.com> wrote:
+> TEE is for gateway redirections, which means the redirected device has
+> to have a configured ip, and to be reachable from the original device.
 
+That makes no sense to me.  The to-redirected device always needs to be
+reachable.  And iptables is L3 and upwards, so I don't see how 1:1
+copying would fit in here.
 
+> Florian, I didn't find the mirror target in the mainline documentation or code.
 
-On Wed, May 27, 2015 at 2:37 PM, Florian Westphal <fw@strlen.de> wrote:
-> Eddi Linder <eddi@guardicore.com> wrote:
->> Hey,
->>
->> I am planning to write a "redirection" extension that based on a match
->> will copy the matched packet to other interfaces.
->> The extension should work both on input chains and output chains
->> (ingress and egress traffic), and will be able to copy the packet as
->> egress or ingress of the selected interface.
->
-> Whats wrong with TEE target?
->
-> We also have mirred action in tc to do packet mirroring and redirects.
+I meant the tc action:
+
+tc filter add dev eth0 parent $parent protocol ip [..] action mirred egress redirect dev eth1
+
+> REROUTE redirection is more like the openvswitch output action, copy
+> the packet from one device into another.
+
+Sorry, but my feeling is that this is out of scope for iptables.
