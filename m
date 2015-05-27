@@ -1,99 +1,68 @@
 From: Roman Kubiak <r.kubiak@samsung.com>
-Subject: Re: [PATCH] libnetfitler_queue: receive security context info
-Date: Wed, 27 May 2015 13:02:56 +0200
-Message-ID: <5565A460.2090707@samsung.com>
-References: <5562F8D9.50608@samsung.com> <20150526131105.GE7817@breakpoint.cc>
+Subject: [PATCH v3] nfnetlink_queue: add security context information
+Date: Wed, 27 May 2015 13:04:50 +0200
+Message-ID: <5565A4D2.70701@samsung.com>
+References: <5562F661.5000503@samsung.com> <20150525131319.GA3529@salvia>
+ <55634935.4020100@samsung.com> <20150525205210.GG3629@breakpoint.cc>
+ <55646731.9040803@samsung.com> <20150526130623.GD7817@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org,
+	=?UTF-8?B?UmFmYcWCIEtyeXBh?= <r.krypa@samsung.com>
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:15882 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751365AbbE0LDA (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:18905 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750854AbbE0LEx (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 May 2015 07:03:00 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
+	Wed, 27 May 2015 07:04:53 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
  (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0NP0004J69CXULA0@mailout3.w1.samsung.com> for
- netfilter-devel@vger.kernel.org; Wed, 27 May 2015 12:02:57 +0100 (BST)
-In-reply-to: <20150526131105.GE7817@breakpoint.cc>
+ with ESMTP id <0NP000LJC9G39TA0@mailout4.w1.samsung.com> for
+ netfilter-devel@vger.kernel.org; Wed, 27 May 2015 12:04:51 +0100 (BST)
+In-reply-to: <20150526130623.GD7817@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Ok so I updated the libnetfilter_queue and the example, i'll try to get to the libmnl asap but it looks a bit more challenging.
+I removed the part where i was adding NULL, i also changed as per suggestions and slightly
+streamlined the code.
 
 
-This will allow userspace to find the security context of each
-packet (if it exists) and make decisions based on that.
-It should work for SELinux and SMACK.
+This patch adds an additional attribute when sending
+packet information via netlink in netfilter_queue module.
+It will send additional security context data, so that
+userspace applications can verify this context against
+their own security databases.
 
 Signed-off-by: Roman Kubiak <r.kubiak@samsung.com>
 ---
 v2:
-- returning the size of security context
-- updated the test program
----
- include/libnetfilter_queue/libnetfilter_queue.h    |  2 ++
- include/libnetfilter_queue/linux_nfnetlink_queue.h |  4 +++-
- include/linux/netfilter/nfnetlink_queue.h          |  4 +++-
- src/libnetfilter_queue.c                           | 21 +++++++++++++++++++++
- utils/nfqnl_test.c                                 | 12 +++++++++++-
- 5 files changed, 40 insertions(+), 3 deletions(-)
+- nfqnl_get_sk_secctx returns seclen now, this changes
+- updated size calculation
+- changed NFQA_SECCTX comment
+- removed duplicate testing of NFQA_CFG_F flags
 
-diff --git a/include/libnetfilter_queue/libnetfilter_queue.h b/include/libnetfilter_queue/libnetfilter_queue.h
-index 122cd10..489e76d 100644
---- a/include/libnetfilter_queue/libnetfilter_queue.h
-+++ b/include/libnetfilter_queue/libnetfilter_queue.h
-@@ -105,6 +105,7 @@ extern u_int32_t nfq_get_outdev(struct nfq_data *nfad);
- extern u_int32_t nfq_get_physoutdev(struct nfq_data *nfad);
- extern int nfq_get_uid(struct nfq_data *nfad, u_int32_t *uid);
- extern int nfq_get_gid(struct nfq_data *nfad, u_int32_t *gid);
-+extern int nfq_get_secctx(struct nfq_data *nfad, unsigned char **secdata);
- 
- extern int nfq_get_indev_name(struct nlif_handle *nlif_handle,
- 			      struct nfq_data *nfad, char *name);
-@@ -129,6 +130,7 @@ enum {
- 	NFQ_XML_TIME	= (1 << 5),
- 	NFQ_XML_UID	= (1 << 6),
- 	NFQ_XML_GID	= (1 << 7),
-+	NFQ_XML_SECCTX  = (1 << 8),
- 	NFQ_XML_ALL	= ~0U,
- };
- 
-diff --git a/include/libnetfilter_queue/linux_nfnetlink_queue.h b/include/libnetfilter_queue/linux_nfnetlink_queue.h
-index f732201..479faa3 100644
---- a/include/libnetfilter_queue/linux_nfnetlink_queue.h
-+++ b/include/libnetfilter_queue/linux_nfnetlink_queue.h
-@@ -52,6 +52,7 @@ enum nfqnl_attr_type {
- 	NFQA_EXP,			/* nf_conntrack_netlink.h */
- 	NFQA_UID,			/* __u32 sk uid */
- 	NFQA_GID,			/* __u32 sk gid */
-+	NFQA_SECCTX,
- 
- 	__NFQA_MAX
- };
-@@ -105,7 +106,8 @@ enum nfqnl_attr_config {
- #define NFQA_CFG_F_CONNTRACK		(1 << 1)
- #define NFQA_CFG_F_GSO			(1 << 2)
- #define NFQA_CFG_F_UID_GID		(1 << 3)
--#define NFQA_CFG_F_MAX			(1 << 4)
-+#define NFQA_CFG_F_SECCTX		(1 << 4)
-+#define NFQA_CFG_F_MAX			(1 << 5)
- 
- /* flags for NFQA_SKB_INFO */
- /* packet appears to have wrong checksums, but they are ok */
-diff --git a/include/linux/netfilter/nfnetlink_queue.h b/include/linux/netfilter/nfnetlink_queue.h
-index 22f5d45..030672d 100644
---- a/include/linux/netfilter/nfnetlink_queue.h
-+++ b/include/linux/netfilter/nfnetlink_queue.h
+v3:
+- NULL is not added to the security context anymore
+- return 0 when socket is invalid in nfqnl_get_sk_secctx
+- small intent change
+- removed ret variable in nfqnl_get_sk_secctx
+---
+ include/uapi/linux/netfilter/nfnetlink_queue.h |  4 +++-
+ net/netfilter/nfnetlink_queue_core.c           | 31 ++++++++++++++++++++++++++
+ 2 files changed, 34 insertions(+), 1 deletion(-)
+
+diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
+index 8dd819e..b67a853 100644
+--- a/include/uapi/linux/netfilter/nfnetlink_queue.h
++++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
 @@ -49,6 +49,7 @@ enum nfqnl_attr_type {
  	NFQA_EXP,			/* nf_conntrack_netlink.h */
  	NFQA_UID,			/* __u32 sk uid */
  	NFQA_GID,			/* __u32 sk gid */
-+	NFQA_SECCTX,
++	NFQA_SECCTX,			/* security context string */
  
  	__NFQA_MAX
  };
@@ -107,203 +76,68 @@ index 22f5d45..030672d 100644
  
  /* flags for NFQA_SKB_INFO */
  /* packet appears to have wrong checksums, but they are ok */
-diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
-index 740b340..530df06 100644
---- a/src/libnetfilter_queue.c
-+++ b/src/libnetfilter_queue.c
-@@ -1219,6 +1219,27 @@ int nfq_get_gid(struct nfq_data *nfad, u_int32_t *gid)
- EXPORT_SYMBOL(nfq_get_gid);
+diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+index 0b98c74..ae4f520 100644
+--- a/net/netfilter/nfnetlink_queue_core.c
++++ b/net/netfilter/nfnetlink_queue_core.c
+@@ -278,6 +278,24 @@ nla_put_failure:
+ 	return -1;
+ }
  
- /**
-+ * nfq_get_secctx - get the security context for this packet
-+ * \param nfad Netlink packet data handle passed to callback function
-+ * \param secdata data to write the security context to
-+ *
-+ * \return -1 on error, otherwise > 0
-+ */
-+int nfq_get_secctx(struct nfq_data *nfad, unsigned char **secdata)
++static u32 nfqnl_get_sk_secctx(struct sock *sk, char **secdata)
 +{
-+	if (!nfnl_attr_present(nfad->data, NFQA_SECCTX))
-+		return -1;
++	u32 secid = 0;
++	u32 seclen = 0;
 +
-+	*secdata = (unsigned char *)nfnl_get_pointer_to_data(nfad->data, NFQA_SECCTX, char);
++	if (!sk || !sk_fullsock(sk))
++		return 0;
 +
-+	if (*secdata)
-+		return NFA_PAYLOAD(nfad->data[NFQA_SECCTX-1]);
-+		
-+	return 0;
++	read_lock_bh(&sk->sk_callback_lock);
++	security_sk_getsecid(sk, &secid);
++
++	if (secid && security_secid_to_secctx(secid, secdata, &seclen))
++		seclen = 0;
++
++	read_unlock_bh(&sk->sk_callback_lock);
++	return seclen;
 +}
-+EXPORT_SYMBOL(nfq_get_secctx);
 +
-+/**
-  * nfq_get_payload - get payload 
-  * \param nfad Netlink packet data handle passed to callback function
-  * \param data Pointer of pointer that will be pointed to the payload
-diff --git a/utils/nfqnl_test.c b/utils/nfqnl_test.c
-index 2176a61..bee325b 100644
---- a/utils/nfqnl_test.c
-+++ b/utils/nfqnl_test.c
-@@ -17,7 +17,7 @@ static u_int32_t print_pkt (struct nfq_data *tb)
- 	struct nfqnl_msg_packet_hw *hwph;
- 	u_int32_t mark, ifi, uid, gid;
- 	int ret;
--	unsigned char *data;
-+	unsigned char *data, *secdata;
+ static struct sk_buff *
+ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 			   struct nf_queue_entry *entry,
+@@ -297,6 +315,8 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	struct nf_conn *ct = NULL;
+ 	enum ip_conntrack_info uninitialized_var(ctinfo);
+ 	bool csum_verify;
++	char *secdata = NULL;
++	u32 seclen = 0;
  
- 	ph = nfq_get_msg_packet_hdr(tb);
- 	if (ph) {
-@@ -61,6 +61,10 @@ static u_int32_t print_pkt (struct nfq_data *tb)
- 	if (nfq_get_gid(tb, &gid))
- 		printf("gid=%u ", gid);
- 
-+	ret = nfq_get_secctx(tb, &secdata);
-+	if (ret > 0)
-+		printf ("secctx=\"%.*s\" ", ret, secdata);
-+
- 	ret = nfq_get_payload(tb, &data);
- 	if (ret >= 0)
- 		printf("payload_len=%d ", ret);
-@@ -134,6 +138,12 @@ int main(int argc, char **argv)
- 				"retrieve process UID/GID.\n");
+ 	size =    nlmsg_total_size(sizeof(struct nfgenmsg))
+ 		+ nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
+@@ -352,6 +372,12 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 			+ nla_total_size(sizeof(u_int32_t)));	/* gid */
  	}
  
-+	printf("setting flags to request security context\n");
-+	if (nfq_set_queue_flags(qh, NFQA_CFG_F_SECCTX, NFQA_CFG_F_SECCTX)) {
-+		fprintf(stderr, "This kernel version does not allow to "
-+				"retrieve security context.\n");
++	if ((queue->flags & NFQA_CFG_F_SECCTX) && entskb->sk) {
++		seclen = nfqnl_get_sk_secctx(entskb->sk, &secdata);
++		if (seclen)
++			size += nla_total_size(seclen);
 +	}
 +
- 	printf("Waiting for packets...\n");
+ 	skb = nfnetlink_alloc_skb(net, size, queue->peer_portid,
+ 				  GFP_ATOMIC);
+ 	if (!skb) {
+@@ -479,6 +505,11 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	    nfqnl_put_sk_uidgid(skb, entskb->sk) < 0)
+ 		goto nla_put_failure;
  
- 	fd = nfq_fd(h);
++	if (seclen) {
++		if (nla_put(skb, NFQA_SECCTX, seclen, secdata))
++			goto nla_put_failure;
++	}
++
+ 	if (ct && nfqnl_ct_put(skb, ct, ctinfo) < 0)
+ 		goto nla_put_failure;
+ 
 -- 
 1.9.1
-
-
-On 05/26/2015 03:11 PM, Florian Westphal wrote:
-> Roman Kubiak <r.kubiak@samsung.com> wrote:
->> From: RomanKubiak <r.kubiak@samsung.com>
->> Date: Mon, 25 May 2015 12:24:34 +0200
->> Subject: [PATCH] libnetfitler_queue: receive security context info
->>
->> This will allow userspace to find the security context of each
->> packet (if it exists) and make decisions based on that.
->> It should work for SELinux and SMACK.
->>
->> ---
->>  include/libnetfilter_queue/libnetfilter_queue.h    |  2 ++
->>  include/libnetfilter_queue/linux_nfnetlink_queue.h |  4 +++-
->>  include/linux/netfilter/nfnetlink_queue.h          |  4 +++-
->>  src/libnetfilter_queue.c                           | 18 ++++++++++++++++++
->>  utils/nfqnl_test.c                                 | 11 ++++++++++-
->>  5 files changed, 36 insertions(+), 3 deletions(-)
->>
->> diff --git a/include/libnetfilter_queue/libnetfilter_queue.h b/include/libnetfilter_queue/libnetfilter_queue.h
->> index 122cd10..489e76d 100644
->> --- a/include/libnetfilter_queue/libnetfilter_queue.h
->> +++ b/include/libnetfilter_queue/libnetfilter_queue.h
->> @@ -105,6 +105,7 @@ extern u_int32_t nfq_get_outdev(struct nfq_data *nfad);
->>  extern u_int32_t nfq_get_physoutdev(struct nfq_data *nfad);
->>  extern int nfq_get_uid(struct nfq_data *nfad, u_int32_t *uid);
->>  extern int nfq_get_gid(struct nfq_data *nfad, u_int32_t *gid);
->> +extern int nfq_get_secctx(struct nfq_data *nfad, unsigned char **secdata);
->>  
->>  extern int nfq_get_indev_name(struct nlif_handle *nlif_handle,
->>  			      struct nfq_data *nfad, char *name);
->> @@ -129,6 +130,7 @@ enum {
->>  	NFQ_XML_TIME	= (1 << 5),
->>  	NFQ_XML_UID	= (1 << 6),
->>  	NFQ_XML_GID	= (1 << 7),
->> +	NFQ_XML_SECCTX  = (1 << 8),
->>  	NFQ_XML_ALL	= ~0U,
->>  };
->>  
->> diff --git a/include/libnetfilter_queue/linux_nfnetlink_queue.h b/include/libnetfilter_queue/linux_nfnetlink_queue.h
->> index f732201..479faa3 100644
->> --- a/include/libnetfilter_queue/linux_nfnetlink_queue.h
->> +++ b/include/libnetfilter_queue/linux_nfnetlink_queue.h
->> @@ -52,6 +52,7 @@ enum nfqnl_attr_type {
->>  	NFQA_EXP,			/* nf_conntrack_netlink.h */
->>  	NFQA_UID,			/* __u32 sk uid */
->>  	NFQA_GID,			/* __u32 sk gid */
->> +	NFQA_SECCTX,
->>  
->>  	__NFQA_MAX
->>  };
->> @@ -105,7 +106,8 @@ enum nfqnl_attr_config {
->>  #define NFQA_CFG_F_CONNTRACK		(1 << 1)
->>  #define NFQA_CFG_F_GSO			(1 << 2)
->>  #define NFQA_CFG_F_UID_GID		(1 << 3)
->> -#define NFQA_CFG_F_MAX			(1 << 4)
->> +#define NFQA_CFG_F_SECCTX		(1 << 4)
->> +#define NFQA_CFG_F_MAX			(1 << 5)
->>  
->>  /* flags for NFQA_SKB_INFO */
->>  /* packet appears to have wrong checksums, but they are ok */
->> diff --git a/include/linux/netfilter/nfnetlink_queue.h b/include/linux/netfilter/nfnetlink_queue.h
->> index 22f5d45..030672d 100644
->> --- a/include/linux/netfilter/nfnetlink_queue.h
->> +++ b/include/linux/netfilter/nfnetlink_queue.h
->> @@ -49,6 +49,7 @@ enum nfqnl_attr_type {
->>  	NFQA_EXP,			/* nf_conntrack_netlink.h */
->>  	NFQA_UID,			/* __u32 sk uid */
->>  	NFQA_GID,			/* __u32 sk gid */
->> +	NFQA_SECCTX,
->>  
->>  	__NFQA_MAX
->>  };
->> @@ -102,7 +103,8 @@ enum nfqnl_attr_config {
->>  #define NFQA_CFG_F_CONNTRACK			(1 << 1)
->>  #define NFQA_CFG_F_GSO				(1 << 2)
->>  #define NFQA_CFG_F_UID_GID			(1 << 3)
->> -#define NFQA_CFG_F_MAX				(1 << 4)
->> +#define NFQA_CFG_F_SECCTX			(1 << 4)
->> +#define NFQA_CFG_F_MAX				(1 << 5)
->>  
->>  /* flags for NFQA_SKB_INFO */
->>  /* packet appears to have wrong checksums, but they are ok */
->> diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
->> index 740b340..9356e3d 100644
->> --- a/src/libnetfilter_queue.c
->> +++ b/src/libnetfilter_queue.c
->> @@ -1219,6 +1219,24 @@ int nfq_get_gid(struct nfq_data *nfad, u_int32_t *gid)
->>  EXPORT_SYMBOL(nfq_get_gid);
->>  
->>  /**
->> + * nfq_get_secctx - get the security context for this packet
->> + * \param nfad Netlink packet data handle passed to callback function
->> + * \param secdata data to write the security context to
->> + *
->> + * \return 1 if there is a security context available, 0 otherwise
->> + */
->> +int nfq_get_secctx(struct nfq_data *nfad, unsigned char **secdata)
->> +{
->> +	if (!nfnl_attr_present(nfad->data, NFQA_SECCTX))
->> +		return 0;
->> +
->> +	*secdata = (unsigned char *)nfnl_get_pointer_to_data(nfad->data, NFQA_SECCTX, char);
->> +
->> +	return 1;
-> 
-> This should return the attr size, see nfq_get_payload() below on how to
-> do this.
-> 
-> It would be nice if you could add libmnl based version too
-> (src/nlmsg.c contains libmnl api of libnetfilter_queue).
-> 
-> The short version is that libnfnetlink has problems wrt.
-> extensibility/flexibility since it hides netlink details.
-> 
-> libmnl exposes all of the netlink data so its more flexible to add
-> functionality on top of libmnl than on top of libnfnetlink.
-> 
-> And on top of that, libnetfilter_queue libnfnetlink api exposes/leaks
-> implementation details of libnfnetlink so we can't replace libnfnetlink
-> with libmnl in the higer level libraries :-(
-> 
-> 
-
--- 
---------------
- Roman Kubiak
---------------
