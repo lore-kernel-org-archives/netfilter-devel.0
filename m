@@ -1,93 +1,162 @@
-From: Simon Horman <simon.horman@netronome.com>
-Subject: Re: [PATCH 2/3 nf-next] netfilter: nf_tables: allow to bind table to
- net_device
-Date: Wed, 27 May 2015 10:08:16 +0900
-Message-ID: <20150527010815.GB24249@vergenet.net>
-References: <1432558004-13481-1-git-send-email-pablo@netfilter.org>
- <1432558004-13481-3-git-send-email-pablo@netfilter.org>
- <20150526004840.GB23370@vergenet.net>
- <20150526095824.GB3535@salvia>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: [PATCH -next 1/2] netfilter: iptables: separate counters from
+ iptables rules
+Date: Wed, 27 May 2015 08:20:32 +0200
+Message-ID: <20150527082032.51cd621d@redhat.com>
+References: <1432686919-8827-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
-	netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150526095824.GB3535@salvia>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>,
+	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
+	brouer@redhat.com
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:47850 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750977AbbE0GUp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 27 May 2015 02:20:45 -0400
+In-Reply-To: <1432686919-8827-1-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 26, 2015 at 11:58:24AM +0200, Pablo Neira Ayuso wrote:
-> On Tue, May 26, 2015 at 09:48:41AM +0900, Simon Horman wrote:
-> > Hi Pablo,
-> > 
-> > On Mon, May 25, 2015 at 02:46:41PM +0200, Pablo Neira Ayuso wrote:
-> > > This patch adds the internal NFT_AF_NEEDS_DEV flag to indicate that you must
-> > > attach this table to a net_device.
-> > > 
-> > > This change is required by the follow up patch that introduces the new netdev
-> > > table.
-> > > 
-> > > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > > ---
-> > >  include/net/netfilter/nf_tables.h        |    8 ++++++
-> > >  include/uapi/linux/netfilter/nf_tables.h |    2 ++
-> > >  net/netfilter/nf_tables_api.c            |   46 ++++++++++++++++++++++++++----
-> > >  3 files changed, 51 insertions(+), 5 deletions(-)
-> > 
-> > [snip]
-> > 
-> > > diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-> > > index 5fa1cd0..89a671e 100644
-> > > --- a/include/uapi/linux/netfilter/nf_tables.h
-> > > +++ b/include/uapi/linux/netfilter/nf_tables.h
-> > 
-> > [snip]
-> > 
-> > > @@ -423,6 +425,10 @@ static int nf_tables_fill_table_info(struct sk_buff *skb, struct net *net,
-> > >  	    nla_put_be32(skb, NFTA_TABLE_USE, htonl(table->use)))
-> > >  		goto nla_put_failure;
-> > >  
-> > > +	if (table->dev &&
-> > > +	    nla_put_string(skb, NFTA_TABLE_DEV, table->dev->name))
-> > > +		goto nla_put_failure;
-> > > +
-> > >  	nlmsg_end(skb, nlh);
-> > >  	return 0;
-> > >  
-> > > @@ -608,6 +614,11 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
-> > >  	if (flags == ctx->table->flags)
-> > >  		return 0;
-> > >  
-> > > +	if ((ctx->afi->flags & NFT_AF_NEEDS_DEV) &&
-> > > +	    ctx->nla[NFTA_TABLE_DEV] &&
-> > > +	    nla_strcmp(ctx->nla[NFTA_TABLE_DEV], ctx->table->dev->name))
-> > > +		return -EOPNOTSUPP;
-> > > +
-> > >  	trans = nft_trans_alloc(ctx, NFT_MSG_NEWTABLE,
-> > >  				sizeof(struct nft_trans_table));
-> > >  	if (trans == NULL)
-> > 
-> > I'm a little unsure of the above logic.
-> > 
-> > Is it ok for NFT_AF_NEEDS_DEV to be set but ctx->nla[NFTA_TABLE_DEV] to
-> > be absent?
-> 
-> This path is only run if the table already exists.
-> 
-> So it basically checks if we're trying to update the binding, in that
-> case we hit -EOPNOTSUPP.
-> 
-> If we don't pass any NFTA_TABLE_DEV, then we assume we stick to the
-> existing binding.
-> 
-> This allows us to update the table flags without indicating the
-> binding, eg.
-> 
->         nft add table netdev filter { flags dormant\; }
-> 
-> which basically disables the entire table content.
+On Wed, 27 May 2015 02:35:18 +0200
+Florian Westphal <fw@strlen.de> wrote:
 
-Thanks Pablo, that is clear to me now.
-I have no objections.
+> The binary arp/ip/ip6tables ruleset is stored per cpu.
+> 
+> The only reason left as to why we need percpu duplication are the rule
+> counters embedded into ipt_entry et al -- since each cpu has its own copy
+> of the rules, all counters can be lockless.
+> 
+> The downside is that the more cpus are supported, the more memory is
+> required.  Rules are not just duplicated per online cpu but for each
+> possible cpu, i.e. if maxcpu is 144, then rule is duplicated 144 times,
+> not for the e.g. 64 cores present.
+> 
+> To save some memory and also allow cpus with shared caches to make
+> better use of available cache size, it would be preferable to only
+> store a copy of the rule blob for each numa node.
+> 
+> So we first need to separate counters and the rule blob.
+> 
+> We create array of struct xt_counters for each possible cpu and
+> index them from the main blob via the (unused after validation)
+> ->comefrom member.
+> 
+> Reported-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+> Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  include/linux/netfilter/x_tables.h |  6 ++++++
+>  net/ipv4/netfilter/arp_tables.c    | 31 ++++++++++++++--------------
+>  net/ipv4/netfilter/ip_tables.c     | 31 ++++++++++++++--------------
+>  net/ipv6/netfilter/ip6_tables.c    | 32 ++++++++++++++---------------
+>  net/netfilter/x_tables.c           | 42 ++++++++++++++++++++++++++++++++++++++
+>  5 files changed, 93 insertions(+), 49 deletions(-)
+> 
+> diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+> index 09f3820..e50ba76 100644
+> --- a/include/linux/netfilter/x_tables.h
+> +++ b/include/linux/netfilter/x_tables.h
+[...]
+> @@ -690,6 +693,7 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
+>  		ret = find_check_entry(iter, repl->name, repl->size);
+>  		if (ret != 0)
+>  			break;
+> +		iter->comefrom = i;
+
+Please add comment to this line. E.g.
+
+ iter->comefrom = i; /* store index to (percpu) counter */
+
+>  		++i;
+>  	}
+
+  
+> @@ -1416,6 +1414,7 @@ static int translate_compat_table(const char *name,
+>  		ret = check_target(iter1, name);
+>  		if (ret != 0)
+>  			break;
+> +		iter1->comefrom = i;
+
+And comment missing here...
+
+>  		++i;
+>  		if (strcmp(arpt_get_target(iter1)->u.user.name,
+>  		    XT_ERROR_TARGET) == 0)
+
+
+> diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+> index 583779f..a68c377 100644
+> --- a/net/ipv4/netfilter/ip_tables.c
+> +++ b/net/ipv4/netfilter/ip_tables.c
+[...]
+> @@ -854,6 +856,8 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
+>  		ret = find_check_entry(iter, net, repl->name, repl->size);
+>  		if (ret != 0)
+>  			break;
+> +		/* overload comefrom to index into percpu counters array */
+> +		iter->comefrom = i;
+
+Here you remembered it.  And your formulation is more clear :-)
+
+>  		++i;
+>  	}
+>  
+[...]
+> @@ -1736,6 +1733,8 @@ translate_compat_table(struct net *net,
+>  		ret = compat_check_entry(iter1, net, name);
+>  		if (ret != 0)
+>  			break;
+> +		/* overload comefrom to index into percpu counters array */
+> +		iter1->comefrom = i;
+
+Here you also remembered
+
+>  		++i;
+>  		if (strcmp(ipt_get_target(iter1)->u.user.name,
+>  		    XT_ERROR_TARGET) == 0)
+
+
+> diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+> index d54f049..69aec1d 100644
+> --- a/net/ipv6/netfilter/ip6_tables.c
+> +++ b/net/ipv6/netfilter/ip6_tables.c
+[...]
+> @@ -867,6 +869,8 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
+>  		ret = find_check_entry(iter, net, repl->name, repl->size);
+>  		if (ret != 0)
+>  			break;
+> +		/* overload comefrom to index into percpu counters array */
+> +		iter->comefrom = i;
+
+Ok
+
+>  		++i;
+>  	}
+>  
+[...]
+> @@ -1749,6 +1745,8 @@ translate_compat_table(struct net *net,
+>  		ret = compat_check_entry(iter1, net, name);
+>  		if (ret != 0)
+>  			break;
+> +		/* overload comefrom to index into percpu counters array */
+> +		iter1->comefrom = i;
+
+Ok
+
+>  		++i;
+>  		if (strcmp(ip6t_get_target(iter1)->u.user.name,
+>  		    XT_ERROR_TARGET) == 0)
+
+Okay, so you only missed the comments in:
+ include/linux/netfilter/x_tables.h
+
+Thanks for the good work! :-)
+-- 
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
