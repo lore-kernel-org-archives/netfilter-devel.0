@@ -1,459 +1,91 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 -next 2/2] netfilter: store rules per NUMA node instead of per cpu
-Date: Thu, 28 May 2015 22:51:36 +0200
-Message-ID: <1432846296-26396-2-git-send-email-fw@strlen.de>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH v2 -next 1/2] netfilter: iptables: separate counters
+ from iptables rules
+Date: Thu, 28 May 2015 14:33:37 -0700
+Message-ID: <1432848817.7456.30.camel@edumazet-glaptop2.roam.corp.google.com>
 References: <1432846296-26396-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49639 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753959AbbE1Uvt (ORCPT
+Received: from mail-ie0-f180.google.com ([209.85.223.180]:34412 "EHLO
+	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754459AbbE1Vdj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 May 2015 16:51:49 -0400
+	Thu, 28 May 2015 17:33:39 -0400
+Received: by ieczm2 with SMTP id zm2so48940898iec.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 May 2015 14:33:38 -0700 (PDT)
 In-Reply-To: <1432846296-26396-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We store rule blob per (possible) cpu.  Unfortunately this means we can
-waste lot of memory on big smp machines. ipt_entry structure ('rule head')
-is 112 byte, so e.g. with maxcpu=64 one single rule eats close to 8k RAM.
+On Thu, 2015-05-28 at 22:51 +0200, Florian Westphal wrote:
+> The binary arp/ip/ip6tables ruleset is stored per cpu.
+> 
+> The only reason left as to why we need percpu duplication are the rule
+> counters embedded into ipt_entry et al -- since each cpu has its own copy
+> of the rules, all counters can be lockless.
+> 
+> The downside is that the more cpus are supported, the more memory is
+> required.  Rules are not just duplicated per online cpu but for each
+> possible cpu, i.e. if maxcpu is 144, then rule is duplicated 144 times,
+> not for the e.g. 64 cores present.
+> 
+> To save some memory and also allow cpus with shared caches to make
+> better use of available cache size, it would be preferable to only
+> store a copy of the rule blob for each numa node.
+> 
+> So we first need to separate counters and the rule blob.
+> 
+> We create array of struct xt_counters for each possible cpu and
+> index them from the main blob via the (unused after validation)
+> ->comefrom member.
 
-Since previous patch moved counters to separate percpu blob, it appears
-there is nothing left in the rule blob that must be percpu.
+Yeah, I remember trying to work on this exact idea some years ago,
+but gave up (maybe because nftable was coming)
 
-Thus only duplicate the rule blob for each NUMA node.
+> 
+> Reported-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+> Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  Changes since v1:
+>   - add ->comefrom comment in arptables, too
+> 
+>  include/linux/netfilter/x_tables.h |  6 ++++++
+>  net/ipv4/netfilter/arp_tables.c    | 33 +++++++++++++++---------------
+>  net/ipv4/netfilter/ip_tables.c     | 31 ++++++++++++++--------------
+>  net/ipv6/netfilter/ip6_tables.c    | 32 ++++++++++++++---------------
+>  net/netfilter/x_tables.c           | 42 ++++++++++++++++++++++++++++++++++++++
+>  5 files changed, 95 insertions(+), 49 deletions(-)
+> 
+> diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+> index 09f3820..e50ba76 100644
+> --- a/include/linux/netfilter/x_tables.h
+> +++ b/include/linux/netfilter/x_tables.h
+> @@ -224,6 +224,12 @@ struct xt_table_info {
+>  	unsigned int stacksize;
+>  	unsigned int __percpu *stackptr;
+>  	void ***jumpstack;
+> +
+> +	/* pointer to array of counters, one per CPU
+> +	 * each rule maps 1:1 to an entry in the percpu counter array.
+> +	 */
+> +	struct xt_counters **counters;
+> +
 
-On my test system (144 possible cpus, one numa node, 400k dummy rules) this
-change saves close to 9 Gigabyte of RAM.
+You could avoid using this array, if you use alloc_percpu(struct
+xt_counter) per counter.
 
-Reported-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- No changes since v1.
+In the rules, instead of storing the index of each counter, store the
+percpu address.
 
- include/linux/netfilter/x_tables.h |  2 +-
- net/ipv4/netfilter/arp_tables.c    | 21 ++++++++++-----------
- net/ipv4/netfilter/ip_tables.c     | 30 +++++++++++++++---------------
- net/ipv6/netfilter/ip6_tables.c    | 30 +++++++++++++++---------------
- net/netfilter/x_tables.c           | 20 +++++++++-----------
- 5 files changed, 50 insertions(+), 53 deletions(-)
+This would avoid yet another indirection in iptables.
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index e50ba76..ff25664 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -230,7 +230,7 @@ struct xt_table_info {
- 	 */
- 	struct xt_counters **counters;
- 
--	/* ipt_entry tables: one per CPU */
-+	/* ipt_entry tables: one per NUMA node */
- 	/* Note : this field MUST be the last one, see XT_TABLE_INFO_SZ */
- 	void *entries[1];
- };
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index d92f8a6..301a147 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -277,7 +277,7 @@ unsigned int arpt_do_table(struct sk_buff *skb,
- 	 * pointer.
- 	 */
- 	smp_read_barrier_depends();
--	table_base = private->entries[smp_processor_id()];
-+	table_base = private->entries[cpu_to_node(cpu)];
- 	counters   = private->counters[cpu];
- 
- 	e = get_entry(table_base, private->hook_entry[hook]);
-@@ -777,7 +777,7 @@ static int copy_entries_to_user(unsigned int total_size,
- 	if (IS_ERR(counters))
- 		return PTR_ERR(counters);
- 
--	loc_cpu_entry = private->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = private->entries[numa_node_id()];
- 	/* ... then copy entire thing ... */
- 	if (copy_to_user(userptr, loc_cpu_entry, total_size) != 0) {
- 		ret = -EFAULT;
-@@ -875,7 +875,7 @@ static int compat_table_info(const struct xt_table_info *info,
- 	/* we dont care about newinfo->entries[] */
- 	memcpy(newinfo, info, offsetof(struct xt_table_info, entries));
- 	newinfo->initial_entries = 0;
--	loc_cpu_entry = info->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = info->entries[numa_node_id()];
- 	xt_compat_init_offsets(NFPROTO_ARP, info->number);
- 	xt_entry_foreach(iter, loc_cpu_entry, info->size) {
- 		ret = compat_calc_entry(iter, info, loc_cpu_entry, newinfo);
-@@ -1040,7 +1040,7 @@ static int __do_replace(struct net *net, const char *name,
- 	get_counters(oldinfo, counters);
- 
- 	/* Decrease module usage counts and free resource */
--	loc_cpu_old_entry = oldinfo->entries[raw_smp_processor_id()];
-+	loc_cpu_old_entry = oldinfo->entries[numa_node_id()];
- 	xt_entry_foreach(iter, loc_cpu_old_entry, oldinfo->size)
- 		cleanup_entry(iter);
- 
-@@ -1085,7 +1085,7 @@ static int do_replace(struct net *net, const void __user *user,
- 		return -ENOMEM;
- 
- 	/* choose the copy that is on our node/cpu */
--	loc_cpu_entry = newinfo->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = newinfo->entries[numa_node_id()];
- 	if (copy_from_user(loc_cpu_entry, user + sizeof(tmp),
- 			   tmp.size) != 0) {
- 		ret = -EFAULT;
-@@ -1178,7 +1178,6 @@ static int do_add_counters(struct net *net, const void __user *user,
- 		goto unlock_up_free;
- 	}
- 
--	i = 0;
- 	/* Choose the copy that is on our node */
- 	curcpu = smp_processor_id();
- 	pcpu_counters = private->counters[curcpu];
-@@ -1392,7 +1391,7 @@ static int translate_compat_table(const char *name,
- 		newinfo->hook_entry[i] = info->hook_entry[i];
- 		newinfo->underflow[i] = info->underflow[i];
- 	}
--	entry1 = newinfo->entries[raw_smp_processor_id()];
-+	entry1 = newinfo->entries[numa_node_id()];
- 	pos = entry1;
- 	size = total_size;
- 	xt_entry_foreach(iter0, entry0, total_size) {
-@@ -1507,7 +1506,7 @@ static int compat_do_replace(struct net *net, void __user *user,
- 		return -ENOMEM;
- 
- 	/* choose the copy that is on our node/cpu */
--	loc_cpu_entry = newinfo->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = newinfo->entries[numa_node_id()];
- 	if (copy_from_user(loc_cpu_entry, user + sizeof(tmp), tmp.size) != 0) {
- 		ret = -EFAULT;
- 		goto free_newinfo;
-@@ -1613,7 +1612,7 @@ static int compat_copy_entries_to_user(unsigned int total_size,
- 		return PTR_ERR(counters);
- 
- 	/* choose the copy on our node/cpu */
--	loc_cpu_entry = private->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = private->entries[numa_node_id()];
- 	pos = userptr;
- 	size = total_size;
- 	xt_entry_foreach(iter, loc_cpu_entry, total_size) {
-@@ -1786,7 +1785,7 @@ struct xt_table *arpt_register_table(struct net *net,
- 	}
- 
- 	/* choose the copy on our node/cpu */
--	loc_cpu_entry = newinfo->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = newinfo->entries[numa_node_id()];
- 	memcpy(loc_cpu_entry, repl->entries, repl->size);
- 
- 	ret = translate_table(newinfo, loc_cpu_entry, repl);
-@@ -1817,7 +1816,7 @@ void arpt_unregister_table(struct xt_table *table)
- 	private = xt_unregister_table(table);
- 
- 	/* Decrease module usage counts and free resources */
--	loc_cpu_entry = private->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = private->entries[numa_node_id()];
- 	xt_entry_foreach(iter, loc_cpu_entry, private->size)
- 		cleanup_entry(iter);
- 	if (private->number > private->initial_entries)
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index a68c377..6fa6213 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -261,7 +261,7 @@ static void trace_packet(const struct sk_buff *skb,
- 	unsigned int rulenum = 0;
- 	struct net *net = dev_net(in ? in : out);
- 
--	table_base = private->entries[smp_processor_id()];
-+	table_base = private->entries[numa_node_id()];
- 	root = get_entry(table_base, private->hook_entry[hook]);
- 
- 	hookname = chainname = hooknames[hook];
-@@ -332,7 +332,7 @@ ipt_do_table(struct sk_buff *skb,
- 	 * pointer.
- 	 */
- 	smp_read_barrier_depends();
--	table_base = private->entries[cpu];
-+	table_base = private->entries[cpu_to_node(cpu)];
- 	jumpstack  = (struct ipt_entry **)private->jumpstack[cpu];
- 	stackptr   = per_cpu_ptr(private->stackptr, cpu);
- 	origptr    = *stackptr;
-@@ -870,8 +870,8 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
- 		return ret;
- 	}
- 
--	/* And one copy for every other CPU */
--	for_each_possible_cpu(i) {
-+	/* And one copy for every other NUMA node */
-+	for_each_node(i) {
- 		if (newinfo->entries[i] && newinfo->entries[i] != entry0)
- 			memcpy(newinfo->entries[i], entry0, newinfo->size);
- 	}
-@@ -945,7 +945,7 @@ copy_entries_to_user(unsigned int total_size,
- 	 * This choice is lazy (because current thread is
- 	 * allowed to migrate to another cpu)
- 	 */
--	loc_cpu_entry = private->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = private->entries[numa_node_id()];
- 	if (copy_to_user(userptr, loc_cpu_entry, total_size) != 0) {
- 		ret = -EFAULT;
- 		goto free_counters;
-@@ -1062,7 +1062,7 @@ static int compat_table_info(const struct xt_table_info *info,
- 	/* we dont care about newinfo->entries[] */
- 	memcpy(newinfo, info, offsetof(struct xt_table_info, entries));
- 	newinfo->initial_entries = 0;
--	loc_cpu_entry = info->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = info->entries[numa_node_id()];
- 	xt_compat_init_offsets(AF_INET, info->number);
- 	xt_entry_foreach(iter, loc_cpu_entry, info->size) {
- 		ret = compat_calc_entry(iter, info, loc_cpu_entry, newinfo);
-@@ -1226,7 +1226,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	get_counters(oldinfo, counters);
- 
- 	/* Decrease module usage counts and free resource */
--	loc_cpu_old_entry = oldinfo->entries[raw_smp_processor_id()];
-+	loc_cpu_old_entry = oldinfo->entries[numa_node_id()];
- 	xt_entry_foreach(iter, loc_cpu_old_entry, oldinfo->size)
- 		cleanup_entry(iter, net);
- 
-@@ -1271,7 +1271,7 @@ do_replace(struct net *net, const void __user *user, unsigned int len)
- 		return -ENOMEM;
- 
- 	/* choose the copy that is on our node/cpu */
--	loc_cpu_entry = newinfo->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = newinfo->entries[numa_node_id()];
- 	if (copy_from_user(loc_cpu_entry, user + sizeof(tmp),
- 			   tmp.size) != 0) {
- 		ret = -EFAULT;
-@@ -1710,7 +1710,7 @@ translate_compat_table(struct net *net,
- 		newinfo->hook_entry[i] = info->hook_entry[i];
- 		newinfo->underflow[i] = info->underflow[i];
- 	}
--	entry1 = newinfo->entries[raw_smp_processor_id()];
-+	entry1 = newinfo->entries[numa_node_id()];
- 	pos = entry1;
- 	size = total_size;
- 	xt_entry_foreach(iter0, entry0, total_size) {
-@@ -1764,8 +1764,8 @@ translate_compat_table(struct net *net,
- 		return ret;
- 	}
- 
--	/* And one copy for every other CPU */
--	for_each_possible_cpu(i)
-+	/* And one copy for every other NUMA node */
-+	for_each_node(i)
- 		if (newinfo->entries[i] && newinfo->entries[i] != entry1)
- 			memcpy(newinfo->entries[i], entry1, newinfo->size);
- 
-@@ -1813,7 +1813,7 @@ compat_do_replace(struct net *net, void __user *user, unsigned int len)
- 		return -ENOMEM;
- 
- 	/* choose the copy that is on our node/cpu */
--	loc_cpu_entry = newinfo->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = newinfo->entries[numa_node_id()];
- 	if (copy_from_user(loc_cpu_entry, user + sizeof(tmp),
- 			   tmp.size) != 0) {
- 		ret = -EFAULT;
-@@ -1896,7 +1896,7 @@ compat_copy_entries_to_user(unsigned int total_size, struct xt_table *table,
- 	 * This choice is lazy (because current thread is
- 	 * allowed to migrate to another cpu)
- 	 */
--	loc_cpu_entry = private->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = private->entries[numa_node_id()];
- 	pos = userptr;
- 	size = total_size;
- 	xt_entry_foreach(iter, loc_cpu_entry, total_size) {
-@@ -2075,7 +2075,7 @@ struct xt_table *ipt_register_table(struct net *net,
- 	}
- 
- 	/* choose the copy on our node/cpu, but dont care about preemption */
--	loc_cpu_entry = newinfo->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = newinfo->entries[numa_node_id()];
- 	memcpy(loc_cpu_entry, repl->entries, repl->size);
- 
- 	ret = translate_table(net, newinfo, loc_cpu_entry, repl);
-@@ -2106,7 +2106,7 @@ void ipt_unregister_table(struct net *net, struct xt_table *table)
- 	private = xt_unregister_table(table);
- 
- 	/* Decrease module usage counts and free resources */
--	loc_cpu_entry = private->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = private->entries[numa_node_id()];
- 	xt_entry_foreach(iter, loc_cpu_entry, private->size)
- 		cleanup_entry(iter, net);
- 	if (private->number > private->initial_entries)
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 69aec1d..7491315 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -290,7 +290,7 @@ static void trace_packet(const struct sk_buff *skb,
- 	unsigned int rulenum = 0;
- 	struct net *net = dev_net(in ? in : out);
- 
--	table_base = private->entries[smp_processor_id()];
-+	table_base = private->entries[numa_node_id()];
- 	root = get_entry(table_base, private->hook_entry[hook]);
- 
- 	hookname = chainname = hooknames[hook];
-@@ -358,7 +358,7 @@ ip6t_do_table(struct sk_buff *skb,
- 	 */
- 	smp_read_barrier_depends();
- 	cpu        = smp_processor_id();
--	table_base = private->entries[cpu];
-+	table_base = private->entries[cpu_to_node(cpu)];
- 	jumpstack  = (struct ip6t_entry **)private->jumpstack[cpu];
- 	stackptr   = per_cpu_ptr(private->stackptr, cpu);
- 	origptr    = *stackptr;
-@@ -883,8 +883,8 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
- 		return ret;
- 	}
- 
--	/* And one copy for every other CPU */
--	for_each_possible_cpu(i) {
-+	/* And one copy for every other NUMA node */
-+	for_each_node(i) {
- 		if (newinfo->entries[i] && newinfo->entries[i] != entry0)
- 			memcpy(newinfo->entries[i], entry0, newinfo->size);
- 	}
-@@ -958,7 +958,7 @@ copy_entries_to_user(unsigned int total_size,
- 	 * This choice is lazy (because current thread is
- 	 * allowed to migrate to another cpu)
- 	 */
--	loc_cpu_entry = private->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = private->entries[numa_node_id()];
- 	if (copy_to_user(userptr, loc_cpu_entry, total_size) != 0) {
- 		ret = -EFAULT;
- 		goto free_counters;
-@@ -1075,7 +1075,7 @@ static int compat_table_info(const struct xt_table_info *info,
- 	/* we dont care about newinfo->entries[] */
- 	memcpy(newinfo, info, offsetof(struct xt_table_info, entries));
- 	newinfo->initial_entries = 0;
--	loc_cpu_entry = info->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = info->entries[numa_node_id()];
- 	xt_compat_init_offsets(AF_INET6, info->number);
- 	xt_entry_foreach(iter, loc_cpu_entry, info->size) {
- 		ret = compat_calc_entry(iter, info, loc_cpu_entry, newinfo);
-@@ -1239,7 +1239,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	get_counters(oldinfo, counters);
- 
- 	/* Decrease module usage counts and free resource */
--	loc_cpu_old_entry = oldinfo->entries[raw_smp_processor_id()];
-+	loc_cpu_old_entry = oldinfo->entries[numa_node_id()];
- 	xt_entry_foreach(iter, loc_cpu_old_entry, oldinfo->size)
- 		cleanup_entry(iter, net);
- 
-@@ -1284,7 +1284,7 @@ do_replace(struct net *net, const void __user *user, unsigned int len)
- 		return -ENOMEM;
- 
- 	/* choose the copy that is on our node/cpu */
--	loc_cpu_entry = newinfo->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = newinfo->entries[numa_node_id()];
- 	if (copy_from_user(loc_cpu_entry, user + sizeof(tmp),
- 			   tmp.size) != 0) {
- 		ret = -EFAULT;
-@@ -1722,7 +1722,7 @@ translate_compat_table(struct net *net,
- 		newinfo->hook_entry[i] = info->hook_entry[i];
- 		newinfo->underflow[i] = info->underflow[i];
- 	}
--	entry1 = newinfo->entries[raw_smp_processor_id()];
-+	entry1 = newinfo->entries[numa_node_id()];
- 	pos = entry1;
- 	size = total_size;
- 	xt_entry_foreach(iter0, entry0, total_size) {
-@@ -1776,8 +1776,8 @@ translate_compat_table(struct net *net,
- 		return ret;
- 	}
- 
--	/* And one copy for every other CPU */
--	for_each_possible_cpu(i)
-+	/* And one copy for every other NUMA node */
-+	for_each_node(i)
- 		if (newinfo->entries[i] && newinfo->entries[i] != entry1)
- 			memcpy(newinfo->entries[i], entry1, newinfo->size);
- 
-@@ -1825,7 +1825,7 @@ compat_do_replace(struct net *net, void __user *user, unsigned int len)
- 		return -ENOMEM;
- 
- 	/* choose the copy that is on our node/cpu */
--	loc_cpu_entry = newinfo->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = newinfo->entries[numa_node_id()];
- 	if (copy_from_user(loc_cpu_entry, user + sizeof(tmp),
- 			   tmp.size) != 0) {
- 		ret = -EFAULT;
-@@ -1908,7 +1908,7 @@ compat_copy_entries_to_user(unsigned int total_size, struct xt_table *table,
- 	 * This choice is lazy (because current thread is
- 	 * allowed to migrate to another cpu)
- 	 */
--	loc_cpu_entry = private->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = private->entries[numa_node_id()];
- 	pos = userptr;
- 	size = total_size;
- 	xt_entry_foreach(iter, loc_cpu_entry, total_size) {
-@@ -2087,7 +2087,7 @@ struct xt_table *ip6t_register_table(struct net *net,
- 	}
- 
- 	/* choose the copy on our node/cpu, but dont care about preemption */
--	loc_cpu_entry = newinfo->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = newinfo->entries[numa_node_id()];
- 	memcpy(loc_cpu_entry, repl->entries, repl->size);
- 
- 	ret = translate_table(net, newinfo, loc_cpu_entry, repl);
-@@ -2117,7 +2117,7 @@ void ip6t_unregister_table(struct net *net, struct xt_table *table)
- 	private = xt_unregister_table(table);
- 
- 	/* Decrease module usage counts and free resources */
--	loc_cpu_entry = private->entries[raw_smp_processor_id()];
-+	loc_cpu_entry = private->entries[numa_node_id()];
- 	xt_entry_foreach(iter, loc_cpu_entry, private->size)
- 		cleanup_entry(iter, net);
- 	if (private->number > private->initial_entries)
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 28e3396..01549c1 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -659,7 +659,7 @@ EXPORT_SYMBOL_GPL(xt_compat_target_to_user);
- struct xt_table_info *xt_alloc_table_info(unsigned int size)
- {
- 	struct xt_table_info *newinfo;
--	int cpu;
-+	int node;
- 
- 	/* Pedantry: prevent them from hitting BUG() in vmalloc.c --RR */
- 	if ((SMP_ALIGN(size) >> PAGE_SHIFT) + 2 > totalram_pages)
-@@ -671,16 +671,14 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
- 
- 	newinfo->size = size;
- 
--	for_each_possible_cpu(cpu) {
-+	for_each_node(node) {
- 		if (size <= PAGE_SIZE)
--			newinfo->entries[cpu] = kmalloc_node(size,
--							GFP_KERNEL,
--							cpu_to_node(cpu));
-+			newinfo->entries[node] = kmalloc_node(size,
-+							GFP_KERNEL, node);
- 		else
--			newinfo->entries[cpu] = vmalloc_node(size,
--							cpu_to_node(cpu));
-+			newinfo->entries[node] = vmalloc_node(size, node);
- 
--		if (newinfo->entries[cpu] == NULL) {
-+		if (newinfo->entries[node] == NULL) {
- 			xt_free_table_info(newinfo);
- 			return NULL;
- 		}
-@@ -692,10 +690,10 @@ EXPORT_SYMBOL(xt_alloc_table_info);
- 
- void xt_free_table_info(struct xt_table_info *info)
- {
--	int cpu;
-+	int cpu, node;
- 
--	for_each_possible_cpu(cpu)
--		kvfree(info->entries[cpu]);
-+	for_each_node(node)
-+		kvfree(info->entries[node]);
- 
- 	if (info->counters != NULL) {
- 		for_each_possible_cpu(cpu)
--- 
-2.0.5
+And it would be nice avoiding this stuff on non SMP kernels maybe ?
+
+Thanks !
+
 
