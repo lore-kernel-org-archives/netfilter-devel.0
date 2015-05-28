@@ -1,85 +1,78 @@
 From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH v2 -next 1/2] netfilter: iptables: separate counters
- from iptables rules
-Date: Thu, 28 May 2015 14:54:56 -0700
-Message-ID: <1432850096.7456.38.camel@edumazet-glaptop2.roam.corp.google.com>
+Subject: Re: [PATCH v2 -next 2/2] netfilter: store rules per NUMA node
+ instead of per cpu
+Date: Thu, 28 May 2015 15:04:15 -0700
+Message-ID: <1432850655.7456.45.camel@edumazet-glaptop2.roam.corp.google.com>
 References: <1432846296-26396-1-git-send-email-fw@strlen.de>
-	 <1432848817.7456.30.camel@edumazet-glaptop2.roam.corp.google.com>
-	 <20150528214540.GF23992@breakpoint.cc>
+	 <1432846296-26396-2-git-send-email-fw@strlen.de>
+	 <1432849093.7456.32.camel@edumazet-glaptop2.roam.corp.google.com>
+	 <20150528215223.GG23992@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:34914 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754622AbbE1Vy6 (ORCPT
+Received: from mail-ie0-f179.google.com ([209.85.223.179]:36283 "EHLO
+	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753291AbbE1WER (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 May 2015 17:54:58 -0400
-Received: by iesa3 with SMTP id a3so49279030ies.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 May 2015 14:54:57 -0700 (PDT)
-In-Reply-To: <20150528214540.GF23992@breakpoint.cc>
+	Thu, 28 May 2015 18:04:17 -0400
+Received: by iepj10 with SMTP id j10so49122146iep.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 May 2015 15:04:16 -0700 (PDT)
+In-Reply-To: <20150528215223.GG23992@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2015-05-28 at 23:45 +0200, Florian Westphal wrote:
+On Thu, 2015-05-28 at 23:52 +0200, Florian Westphal wrote:
 > Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> > > +
-> > > +	/* pointer to array of counters, one per CPU
-> > > +	 * each rule maps 1:1 to an entry in the percpu counter array.
-> > > +	 */
-> > > +	struct xt_counters **counters;
-> > > +
+> > On Thu, 2015-05-28 at 22:51 +0200, Florian Westphal wrote:
+> > > We store rule blob per (possible) cpu.  Unfortunately this means we can
+> > > waste lot of memory on big smp machines. ipt_entry structure ('rule head')
+> > > is 112 byte, so e.g. with maxcpu=64 one single rule eats close to 8k RAM.
+> > > 
+> > > Since previous patch moved counters to separate percpu blob, it appears
+> > > there is nothing left in the rule blob that must be percpu.
+> > > 
+> > > Thus only duplicate the rule blob for each NUMA node.
+> > > 
+> > > On my test system (144 possible cpus, one numa node, 400k dummy rules) this
+> > > change saves close to 9 Gigabyte of RAM.
+> > > 
+> > > Reported-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+> > > Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+> > > Signed-off-by: Florian Westphal <fw@strlen.de>
+> > > ---
 > > 
-> > You could avoid using this array, if you use alloc_percpu(struct
-> > xt_counter) per counter.
+> > Really if the program is now readonly, I would keep a single copy in
+> > memory.
 > 
-> I used this since it fits with the jumpstack allocation that we already
-> have.
-> 
-> Is there an inherent advantage to alloc_percpu?
-> 
-> [ I'm asking to see if it makes sense to convert jump stack too ].
-> 
-> > In the rules, instead of storing the index of each counter, store the
-> > percpu address.
-> 
-> -v
-> 
-> How?  What address?  You mean relative offset to counter start?
+> Some matches (limit for instance) store kernel data ptr in their
+> matchinfo data (from checkentry hook, not per packet match function),
+> so its not 100% readonly.
 
-No, the address itself. This is what I coded years ago.
+Lets change 'read only' by 'read mostly' then ;)
 
 > 
-> > This would avoid yet another indirection in iptables.
+> > Are we copying kernel text to each NUMA node ? ;)
 > 
-> I don't see how I can avoid it.
-> 
-> when rule x matches, I need to increment the corresponding counter
-> for that rule.
+> Beats me.  I was under impression that cpu accessing memory on other node
+> takes access penalty, thats why I changed it to per node allocation.
 
-Right. You have in the rule itself the storage for xt_counter. Thats 16
-bytes. You only need 8 bytes (on 64bit arch) to store the percpu
-address.
+Well, it depends. If one core is busy while others are idle, then
+fetching data from 2 NUMA nodes is actually faster. (Some workloads are
+actually faster with 'random' NUMA interleaving)
 
-Instead of leaving nothing in it, place the percpu address of the
-corresponding counter. access to it is in the cache line needed to
-analyze the entry anyway. Its free.
+If you constrain all memory access being done from local node, then you
+might loose total bandwidth. In practice, intensive workloads will
+populate L1/L2/L3 cache, and actual memory location does not really
+matter.
 
 > 
-> But there is no 1:1 mapping of addresses, and I found no way to infer
-> the correct counter address to use for the rule just by looking at
-> ipt_entry address.
-> 
-> Thats why the entry stores the 'counter' index: to find the counter to
-> increment based on current cpu counter array and the rule number.
-> 
-> > And it would be nice avoiding this stuff on non SMP kernels maybe ?
-> 
-> Hmm.  Will have to think about this to minimize ifdef kludgery.
-> But, yes, I agree.  Will fix it in v3.
-> 
-> Thanks Eric.
+> Is it insignificant in practice?
+
+Well, its a trade off I guess.
+
+You made clear that some people had 400k rules ;)
 
 
