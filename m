@@ -1,24 +1,48 @@
-From: Ryan Johnston <ryan@mediapixel.co.nz>
-Subject: libnetfilter_queue multi-threaded nfq_handle shared or unique?
-Date: Fri, 29 May 2015 21:41:51 +1200
-Message-ID: <CAJ0j+bpXpBO2ufrqd3o5FjRhruuMD+ed+VAPok1PESBGPphbMw@mail.gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v2 -next 1/2] netfilter: iptables: separate counters from
+ iptables rules
+Date: Fri, 29 May 2015 12:05:16 +0200
+Message-ID: <20150529100516.GI23992@breakpoint.cc>
+References: <1432846296-26396-1-git-send-email-fw@strlen.de>
+ <1432848817.7456.30.camel@edumazet-glaptop2.roam.corp.google.com>
+ <20150528214540.GF23992@breakpoint.cc>
+ <1432850096.7456.38.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yk0-f180.google.com ([209.85.160.180]:34654 "EHLO
-	mail-yk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752836AbbE2Jlw (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:51011 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753773AbbE2KFS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 May 2015 05:41:52 -0400
-Received: by ykfl8 with SMTP id l8so20861248ykf.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 May 2015 02:41:51 -0700 (PDT)
+	Fri, 29 May 2015 06:05:18 -0400
+Content-Disposition: inline
+In-Reply-To: <1432850096.7456.38.camel@edumazet-glaptop2.roam.corp.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When creating each thread for a multi-threaded NFQ application do I:
+Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> > How?  What address?  You mean relative offset to counter start?
+> 
+> No, the address itself. This is what I coded years ago.
+> > when rule x matches, I need to increment the corresponding counter
+> > for that rule.
+> 
+> Right. You have in the rule itself the storage for xt_counter. Thats 16
+> bytes. You only need 8 bytes (on 64bit arch) to store the percpu
+> address.
 
-a) Share the nfq_handle between each thread/queue
-b) Create a new nfq_handle for every thread/queue
+> Instead of leaving nothing in it, place the percpu address of the
+> corresponding counter. access to it is in the cache line needed to
+> analyze the entry anyway. Its free.
 
-Cheers :)!
+I'm dense.  So, what you're saying is that I should
+
+alloc_percpu(sizeof(struct xt_counters));
+
+for each rule and store the resulting address in ipt_entry?
+Then it would be possible to get the correct location for current cpu
+when counter has to be incremented.
+
+Thanks Eric.
