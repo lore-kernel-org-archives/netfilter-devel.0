@@ -1,39 +1,132 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH 2/4] netfilter: default CONFIG_NETFILTER_INGRESS to y
-Date: Fri, 29 May 2015 08:19:35 +0200 (CEST)
-Message-ID: <alpine.LSU.2.20.1505290813001.6979@nerf40.vanv.qr>
-References: <1432856695-23831-1-git-send-email-pablo@netfilter.org> <1432856695-23831-3-git-send-email-pablo@netfilter.org>
+From: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
+Subject: Re: [PATCH COLO-Frame v5 00/29] COarse-grain LOck-stepping(COLO)
+ Virtual Machines for Non-stop Service
+Date: Fri, 29 May 2015 09:01:05 +0100
+Message-ID: <20150529080104.GA2127@work-vm>
+References: <1432196001-10352-1-git-send-email-zhang.zhanghailiang@huawei.com>
+ <20150528162402.GE2127@work-vm>
+ <5567C104.3070805@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: zhanghailiang <zhang.zhanghailiang@huawei.com>,
+	qemu-devel@nongnu.org, quintela@redhat.com, amit.shah@redhat.com,
+	eblake@redhat.com, berrange@redhat.com, peter.huangpeng@huawei.com,
+	eddie.dong@intel.com, yunhong.jiang@intel.com,
+	lizhijian@cn.fujitsu.com, arei.gonglei@huawei.com,
+	david@gibson.dropbear.id.au, netfilter-devel@vger.kernel.org
+To: Wen Congyang <wency@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:46896 "EHLO ares41.inai.de"
+Received: from mx1.redhat.com ([209.132.183.28]:53767 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754162AbbE2GTh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 May 2015 02:19:37 -0400
-In-Reply-To: <1432856695-23831-3-git-send-email-pablo@netfilter.org>
+	id S1752712AbbE2IBM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 29 May 2015 04:01:12 -0400
+Content-Disposition: inline
+In-Reply-To: <5567C104.3070805@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 2015-05-29 01:44, Pablo Neira Ayuso wrote:
-
->Useful to compile-test all options.
->
->--- a/net/netfilter/Kconfig
->+++ b/net/netfilter/Kconfig
->@@ -3,6 +3,7 @@ menu "Core Netfilter Configuration"
+* Wen Congyang (wency@cn.fujitsu.com) wrote:
+> On 05/29/2015 12:24 AM, Dr. David Alan Gilbert wrote:
+> > * zhanghailiang (zhang.zhanghailiang@huawei.com) wrote:
+> >> This is the 5th version of COLO, here is only COLO frame part, include: VM checkpoint,
+> >> failover, proxy API, block replication API, not include block replication.
+> >> The block part has been sent by wencongyang:
+> >> "[Qemu-devel] [PATCH COLO-Block v5 00/15] Block replication for continuous checkpoints"
+> >>
+> >> we have finished some new features and optimization on COLO (As a development branch in github),
+> >> but for easy of review, it is better to keep it simple now, so we will not add too much new 
+> >> codes into this frame patch set before it been totally reviewed. 
+> >>
+> >> You can get the latest integrated qemu colo patches from github (Include Block part):
+> >> https://github.com/coloft/qemu/commits/colo-v1.2-basic
+> >> https://github.com/coloft/qemu/commits/colo-v1.2-developing (more features)
+> >>
+> >> Please NOTE the difference between these two branch.
+> >> colo-v1.2-basic is exactly same with this patch series, which has basic features of COLO.
+> >> Compared with colo-v1.2-basic, colo-v1.2-developing has some optimization in the 
+> >> process of checkpoint, including: 
+> >>    1) separate ram and device save/load process to reduce size of extra memory
+> >>       used during checkpoint
+> >>    2) live migrate part of dirty pages to slave during sleep time.
+> >> Besides, we add some statistic info in colo-v1.2-developing, which you can get these stat
+> >> info by using command 'info migrate'.
+> > 
+> > 
+> > Hi,
+> >   I have that running now.
+> > 
+> > Some notes:
+> >   1) The colo-proxy is working OK until qemu quits, and then it gets an RCU problem; see below
+> >   2) I've attached some minor tweaks that were needed to build with the 4.1rc kernel I'm using;
+> >      they're very minor changes and I don't think related to (1).
+> >   3) I've also included some minor fixups I needed to get the -developing world
+> >      to build;  my compiler is fussy about unused variables etc - but I think the code
+> >      in ram_save_complete in your -developing patch is wrong because there are two
+> >      'pages' variables and the one in the inner loop is the only one changed.
+> >   4) I've started trying simple benchmarks and tests now:
+> >     a) With a simple web server most requests have very little overhead, the comparison
+> >        matches most of the time;  I do get quite large spikes (0.04s->1.05s) which I guess
+> >        corresponds to when a checkpoint happens, but I'm not sure why the spike is so big,
+> >        since the downtime isn't that big.
+> >     b) I tried something with more dynamic pages - the front page of a simple bugzilla
+> >        install;  it failed the comparison every time; it took me a while to figure out
+> >        why, but it generates a unique token in it's javascript each time (for a password reset
+> >        link), and I guess the randomness used by that doesn't match on the two hosts.
+> >        It surprised me, because I didn't expect this page to have much randomness
+> >        in.
+> > 
+> >   4a is really nice - it shows the benefit of COLO over the simple checkpointing;
+> > checkpoints happen very rarely.
+> > 
+> > The colo-proxy rcu problem I hit shows as rcu-stalls in both primary and secondary
+> > after the qemu quits; the backtrace of the qemu stack is:
 > 
-> config NETFILTER_INGRESS
-> 	bool "Netfilter ingress support"
->+	default y
-> 	select NET_INGRESS
-> 	help
-> 	  This allows you to classify packets from ingress using the Netfilter
+> How to reproduce it? Use monitor command quit to quit qemu? Or kill the qemu?
 
-Careful with default y. I seem to remember that someone higher up
-(perhaps Linus himself) was against "default y" for features deemed
-not essential (especially hardware drivers), as no driver is any
-more important than another. If "compile-test" is your reason for the
-patch, it might fall into the same category.
+I've seen two ways:
+   1) Shutdown the guest - when the guest exits and qemu exits, then I see this problem
+   2) If there is a problem with the colo-proxy-script (I got the path wrong) so qemu
+      quit.
+
+> > [<ffffffff810d8c0c>] wait_rcu_gp+0x5c/0x80
+> > [<ffffffff810ddb05>] synchronize_rcu+0x45/0xd0
+> > [<ffffffffa0a251e5>] colo_node_release+0x35/0x50 [nfnetlink_colo]
+> > [<ffffffffa0a25795>] colonl_close_event+0xe5/0x160 [nfnetlink_colo]
+> > [<ffffffff81090c96>] notifier_call_chain+0x66/0x90
+> > [<ffffffff8109154c>] atomic_notifier_call_chain+0x6c/0x110
+> > [<ffffffff815eee07>] netlink_release+0x5b7/0x7f0
+> > [<ffffffff815878bf>] sock_release+0x1f/0x90
+> > [<ffffffff81587942>] sock_close+0x12/0x20
+> > [<ffffffff812193c3>] __fput+0xd3/0x210
+> > [<ffffffff8121954e>] ____fput+0xe/0x10
+> > [<ffffffff8108d9f7>] task_work_run+0xb7/0xf0
+> > [<ffffffff81002d4d>] do_notify_resume+0x8d/0xa0
+> > [<ffffffff81722b66>] int_signal+0x12/0x17
+> > [<ffffffffffffffff>] 0xffffffffffffffff
+> 
+> Thanks for your test. The backtrace is very useful, and we will fix it soon.
+
+Thank you,
+
+Dave
+
+> > 
+> > that's with both the 423a8e268acbe3e644a16c15bc79603cfe9eb084 from yesterday and 
+> > older e58e5152b74945871b00a88164901c0d46e6365e tags on colo-proxy.
+> > I'm not sure of the right fix; perhaps it might be possible to replace the 
+> > synchronize_rcu in colo_node_release by a call_rcu that does the kfree later?
+> 
+> I agree with it.
+> 
+> Thanks
+> Wen Congyang
+> 
+> > 
+> > Thanks,
+> > 
+> > Dave
+> > 
+> >>
+> 
+--
+Dr. David Alan Gilbert / dgilbert@redhat.com / Manchester, UK
