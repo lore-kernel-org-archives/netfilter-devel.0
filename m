@@ -1,73 +1,121 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv5 3/4] netfilter: bridge: rename br_parse_ip_options
-Date: Fri, 29 May 2015 02:19:24 +0200
-Message-ID: <20150529001924.GD705@salvia>
-References: <1432801510-11902-1-git-send-email-bernhard.thaler@wvnet.at>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [PATCH COLO-Frame v5 00/29] COarse-grain LOck-stepping(COLO)
+ Virtual Machines for Non-stop Service
+Date: Fri, 29 May 2015 09:29:40 +0800
+Message-ID: <5567C104.3070805@cn.fujitsu.com>
+References: <1432196001-10352-1-git-send-email-zhang.zhanghailiang@huawei.com> <20150528162402.GE2127@work-vm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org,
-	fw@strlen.de
-To: Bernhard Thaler <bernhard.thaler@wvnet.at>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Cc: <qemu-devel@nongnu.org>, <quintela@redhat.com>,
+	<amit.shah@redhat.com>, <eblake@redhat.com>, <berrange@redhat.com>,
+	<peter.huangpeng@huawei.com>, <eddie.dong@intel.com>,
+	<yunhong.jiang@intel.com>, <lizhijian@cn.fujitsu.com>,
+	<arei.gonglei@huawei.com>, <david@gibson.dropbear.id.au>,
+	<netfilter-devel@vger.kernel.org>
+To: "Dr. David Alan Gilbert" <dgilbert@redhat.com>,
+	zhanghailiang <zhang.zhanghailiang@huawei.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42574 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755208AbbE2AOW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 May 2015 20:14:22 -0400
-Content-Disposition: inline
-In-Reply-To: <1432801510-11902-1-git-send-email-bernhard.thaler@wvnet.at>
+Received: from cn.fujitsu.com ([59.151.112.132]:27204 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753168AbbE2BZZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 May 2015 21:25:25 -0400
+In-Reply-To: <20150528162402.GE2127@work-vm>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 28, 2015 at 10:25:10AM +0200, Bernhard Thaler wrote:
-> br_parse_ip_options() does not parse any IP options, it validates IP
-> packets as a whole and the function name is misleading.
+On 05/29/2015 12:24 AM, Dr. David Alan Gilbert wrote:
+> * zhanghailiang (zhang.zhanghailiang@huawei.com) wrote:
+>> This is the 5th version of COLO, here is only COLO frame part, include: VM checkpoint,
+>> failover, proxy API, block replication API, not include block replication.
+>> The block part has been sent by wencongyang:
+>> "[Qemu-devel] [PATCH COLO-Block v5 00/15] Block replication for continuous checkpoints"
+>>
+>> we have finished some new features and optimization on COLO (As a development branch in github),
+>> but for easy of review, it is better to keep it simple now, so we will not add too much new 
+>> codes into this frame patch set before it been totally reviewed. 
+>>
+>> You can get the latest integrated qemu colo patches from github (Include Block part):
+>> https://github.com/coloft/qemu/commits/colo-v1.2-basic
+>> https://github.com/coloft/qemu/commits/colo-v1.2-developing (more features)
+>>
+>> Please NOTE the difference between these two branch.
+>> colo-v1.2-basic is exactly same with this patch series, which has basic features of COLO.
+>> Compared with colo-v1.2-basic, colo-v1.2-developing has some optimization in the 
+>> process of checkpoint, including: 
+>>    1) separate ram and device save/load process to reduce size of extra memory
+>>       used during checkpoint
+>>    2) live migrate part of dirty pages to slave during sleep time.
+>> Besides, we add some statistic info in colo-v1.2-developing, which you can get these stat
+>> info by using command 'info migrate'.
 > 
-> Rename br_parse_ip_options() to br_validate_ipv4().
 > 
-> Signed-off-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
-> ---
-> Patch revision history:
+> Hi,
+>   I have that running now.
 > 
-> v5
-> * rebase to current davem/net-next
+> Some notes:
+>   1) The colo-proxy is working OK until qemu quits, and then it gets an RCU problem; see below
+>   2) I've attached some minor tweaks that were needed to build with the 4.1rc kernel I'm using;
+>      they're very minor changes and I don't think related to (1).
+>   3) I've also included some minor fixups I needed to get the -developing world
+>      to build;  my compiler is fussy about unused variables etc - but I think the code
+>      in ram_save_complete in your -developing patch is wrong because there are two
+>      'pages' variables and the one in the inner loop is the only one changed.
+>   4) I've started trying simple benchmarks and tests now:
+>     a) With a simple web server most requests have very little overhead, the comparison
+>        matches most of the time;  I do get quite large spikes (0.04s->1.05s) which I guess
+>        corresponds to when a checkpoint happens, but I'm not sure why the spike is so big,
+>        since the downtime isn't that big.
+>     b) I tried something with more dynamic pages - the front page of a simple bugzilla
+>        install;  it failed the comparison every time; it took me a while to figure out
+>        why, but it generates a unique token in it's javascript each time (for a password reset
+>        link), and I guess the randomness used by that doesn't match on the two hosts.
+>        It surprised me, because I didn't expect this page to have much randomness
+>        in.
 > 
-> v4
-> * re-post due to errors in v3 formatting introduced by my MUA
+>   4a is really nice - it shows the benefit of COLO over the simple checkpointing;
+> checkpoints happen very rarely.
 > 
-> v3
-> * re-assignment of iph variable needed because pskb_may_pull() can
-> invalidate the network header
-> * same patch as v1 again
-> 
-> v2
-> * first patch did not contain statement removing double iph variable
->   assignment
-> 
->  net/bridge/br_netfilter.c |   11 ++++++-----
->  1 file changed, 6 insertions(+), 5 deletions(-)
-> 
-> diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-> index a43e216..f34edb6 100644
-> --- a/net/bridge/br_netfilter.c
-> +++ b/net/bridge/br_netfilter.c
-> @@ -217,7 +217,7 @@ static inline void nf_bridge_pull_encap_header_rcsum(struct sk_buff *skb)
->   * expected format
->   */
->  
-> -static int br_parse_ip_options(struct sk_buff *skb)
-> +static int br_validate_ipv4(struct sk_buff *skb)
->  {
->  	const struct iphdr *iph;
->  	struct net_device *dev = skb->dev;
-> @@ -319,7 +319,7 @@ bad:
->  	return -1;
->  }
->  
-> -/* Equivalent to br_parse_ip_options for IPv6 */
-> +/* Equivalent to br_validate_ipv4 for IPv6 */
->  static int br_validate_ipv6(struct sk_buff *skb)
+> The colo-proxy rcu problem I hit shows as rcu-stalls in both primary and secondary
+> after the qemu quits; the backtrace of the qemu stack is:
 
-Could you send me this patch in first place so you don't need to
-modify the IPv6 part that you just added?
+How to reproduce it? Use monitor command quit to quit qemu? Or kill the qemu?
 
-Thanks.
+> 
+> [<ffffffff810d8c0c>] wait_rcu_gp+0x5c/0x80
+> [<ffffffff810ddb05>] synchronize_rcu+0x45/0xd0
+> [<ffffffffa0a251e5>] colo_node_release+0x35/0x50 [nfnetlink_colo]
+> [<ffffffffa0a25795>] colonl_close_event+0xe5/0x160 [nfnetlink_colo]
+> [<ffffffff81090c96>] notifier_call_chain+0x66/0x90
+> [<ffffffff8109154c>] atomic_notifier_call_chain+0x6c/0x110
+> [<ffffffff815eee07>] netlink_release+0x5b7/0x7f0
+> [<ffffffff815878bf>] sock_release+0x1f/0x90
+> [<ffffffff81587942>] sock_close+0x12/0x20
+> [<ffffffff812193c3>] __fput+0xd3/0x210
+> [<ffffffff8121954e>] ____fput+0xe/0x10
+> [<ffffffff8108d9f7>] task_work_run+0xb7/0xf0
+> [<ffffffff81002d4d>] do_notify_resume+0x8d/0xa0
+> [<ffffffff81722b66>] int_signal+0x12/0x17
+> [<ffffffffffffffff>] 0xffffffffffffffff
+
+Thanks for your test. The backtrace is very useful, and we will fix it soon.
+
+> 
+> that's with both the 423a8e268acbe3e644a16c15bc79603cfe9eb084 from yesterday and 
+> older e58e5152b74945871b00a88164901c0d46e6365e tags on colo-proxy.
+> I'm not sure of the right fix; perhaps it might be possible to replace the 
+> synchronize_rcu in colo_node_release by a call_rcu that does the kfree later?
+
+I agree with it.
+
+Thanks
+Wen Congyang
+
+> 
+> Thanks,
+> 
+> Dave
+> 
+>>
+
