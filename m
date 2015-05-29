@@ -1,50 +1,43 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/4] netfilter: default CONFIG_NETFILTER_INGRESS to y
-Date: Fri, 29 May 2015 11:44:23 +0200
-Message-ID: <20150529094423.GA3347@salvia>
-References: <1432856695-23831-1-git-send-email-pablo@netfilter.org>
- <1432856695-23831-3-git-send-email-pablo@netfilter.org>
- <alpine.LSU.2.20.1505290813001.6979@nerf40.vanv.qr>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v2 -next 2/2] netfilter: store rules per NUMA node
+ instead of per cpu
+Date: Fri, 29 May 2015 11:41:46 +0200
+Message-ID: <20150529094146.GH23992@breakpoint.cc>
+References: <1432846296-26396-1-git-send-email-fw@strlen.de>
+ <1432846296-26396-2-git-send-email-fw@strlen.de>
+ <1432849093.7456.32.camel@edumazet-glaptop2.roam.corp.google.com>
+ <20150528215223.GG23992@breakpoint.cc>
+ <1432850655.7456.45.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49371 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752030AbbE2JjS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 May 2015 05:39:18 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50922 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752836AbbE2Jls (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 29 May 2015 05:41:48 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.20.1505290813001.6979@nerf40.vanv.qr>
+In-Reply-To: <1432850655.7456.45.camel@edumazet-glaptop2.roam.corp.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, May 29, 2015 at 08:19:35AM +0200, Jan Engelhardt wrote:
-> On Friday 2015-05-29 01:44, Pablo Neira Ayuso wrote:
-> 
-> >Useful to compile-test all options.
-> >
-> >--- a/net/netfilter/Kconfig
-> >+++ b/net/netfilter/Kconfig
-> >@@ -3,6 +3,7 @@ menu "Core Netfilter Configuration"
+Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> On Thu, 2015-05-28 at 23:52 +0200, Florian Westphal wrote:
+> > Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> > > Are we copying kernel text to each NUMA node ? ;)
 > > 
-> > config NETFILTER_INGRESS
-> > 	bool "Netfilter ingress support"
-> >+	default y
-> > 	select NET_INGRESS
-> > 	help
-> > 	  This allows you to classify packets from ingress using the Netfilter
+> > Beats me.  I was under impression that cpu accessing memory on other node
+> > takes access penalty, thats why I changed it to per node allocation.
 > 
-> Careful with default y. I seem to remember that someone higher up
-> (perhaps Linus himself) was against "default y" for features deemed
-> not essential (especially hardware drivers), as no driver is any
-> more important than another. If "compile-test" is your reason for the
-> patch, it might fall into the same category.
+> Well, it depends. If one core is busy while others are idle, then
+> fetching data from 2 NUMA nodes is actually faster. (Some workloads are
+> actually faster with 'random' NUMA interleaving)
+> 
+> If you constrain all memory access being done from local node, then you
+> might loose total bandwidth. In practice, intensive workloads will
+> populate L1/L2/L3 cache, and actual memory location does not really
+> matter.
 
-This config option is hiding behind the global CONFIG_NETFILTER switch
-that, if enabled, gets the very basic hook infrastructure, and this
-ingress hook falls into that category.
-
-I agree this makes sense for hardware drivers, but this is not the
-case.
+OK; convinced.  I'll kill the per numa part of the change, thanks Eric.
