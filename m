@@ -1,66 +1,179 @@
-From: Eddi Linder <eddi@guardicore.com>
-Subject: Re: REOUTE target extenstion
-Date: Fri, 29 May 2015 15:02:41 +0300
-Message-ID: <CADgXnSMdWdbtBJ_0RxfUm0sFcXApBbEtUUSFdM+OKm8qrO7-sQ@mail.gmail.com>
-References: <CADgXnSPNQM2xq_pAs72ddDCX-8DCx=J6mr--J_jPdMUcQS-PZw@mail.gmail.com>
-	<20150527113746.GA23992@breakpoint.cc>
-	<CADgXnSPkPdWdWcNJHrcv_9=oomWsE4ZfzoJZ3CTur=zW5LY9cQ@mail.gmail.com>
-	<20150527121130.GC23992@breakpoint.cc>
-	<20150527124037.GA19766@salvia>
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: Re: [PATCH COLO-Frame v5 00/29] COarse-grain LOck-stepping(COLO)
+ Virtual Machines for Non-stop Service
+Date: Fri, 29 May 2015 20:34:18 +0800
+Message-ID: <55685CCA.2010604@cn.fujitsu.com>
+References: <1432196001-10352-1-git-send-email-zhang.zhanghailiang@huawei.com> <20150528162402.GE2127@work-vm> <5567C104.3070805@cn.fujitsu.com> <55681DF5.50206@huawei.com> <20150529084249.GC2127@work-vm>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	jengelh@inai.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Cc: <peter.huangpeng@huawei.com>, <qemu-devel@nongnu.org>,
+	<quintela@redhat.com>, <amit.shah@redhat.com>, <eblake@redhat.com>,
+	<berrange@redhat.com>, <eddie.dong@intel.com>,
+	<yunhong.jiang@intel.com>, <lizhijian@cn.fujitsu.com>,
+	<arei.gonglei@huawei.com>, <david@gibson.dropbear.id.au>,
+	<netfilter-devel@vger.kernel.org>
+To: "Dr. David Alan Gilbert" <dgilbert@redhat.com>,
+	zhanghailiang <zhang.zhanghailiang@huawei.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ig0-f178.google.com ([209.85.213.178]:33308 "EHLO
-	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755391AbbE2MCm (ORCPT
+Received: from cn.fujitsu.com ([59.151.112.132]:7566 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752097AbbE2MaD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 May 2015 08:02:42 -0400
-Received: by igbpi8 with SMTP id pi8so12735692igb.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 29 May 2015 05:02:41 -0700 (PDT)
-In-Reply-To: <20150527124037.GA19766@salvia>
+	Fri, 29 May 2015 08:30:03 -0400
+In-Reply-To: <20150529084249.GC2127@work-vm>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The matching will be L3 based, but the copy can be of all the packet,
-I'd like to simply change the dest device of it.
-I can match by source device, I don't see why it's not logical to
-target a device as an action.
-And turning to "tc" is a nice alternative, and many things that can be
-done in *tables can be done in "tc", but I'd like to stay focused on
-netfilters as it is more flexible with the stage I insert my rules in
-the packet's flow.
+On 05/29/2015 04:42 PM, Dr. David Alan Gilbert wrote:
+> * zhanghailiang (zhang.zhanghailiang@huawei.com) wrote:
+>> On 2015/5/29 9:29, Wen Congyang wrote:
+>>> On 05/29/2015 12:24 AM, Dr. David Alan Gilbert wrote:
+>>>> * zhanghailiang (zhang.zhanghailiang@huawei.com) wrote:
+>>>>> This is the 5th version of COLO, here is only COLO frame part, include: VM checkpoint,
+>>>>> failover, proxy API, block replication API, not include block replication.
+>>>>> The block part has been sent by wencongyang:
+>>>>> "[Qemu-devel] [PATCH COLO-Block v5 00/15] Block replication for continuous checkpoints"
+>>>>>
+>>>>> we have finished some new features and optimization on COLO (As a development branch in github),
+>>>>> but for easy of review, it is better to keep it simple now, so we will not add too much new
+>>>>> codes into this frame patch set before it been totally reviewed.
+>>>>>
+>>>>> You can get the latest integrated qemu colo patches from github (Include Block part):
+>>>>> https://github.com/coloft/qemu/commits/colo-v1.2-basic
+>>>>> https://github.com/coloft/qemu/commits/colo-v1.2-developing (more features)
+>>>>>
+>>>>> Please NOTE the difference between these two branch.
+>>>>> colo-v1.2-basic is exactly same with this patch series, which has basic features of COLO.
+>>>>> Compared with colo-v1.2-basic, colo-v1.2-developing has some optimization in the
+>>>>> process of checkpoint, including:
+>>>>>    1) separate ram and device save/load process to reduce size of extra memory
+>>>>>       used during checkpoint
+>>>>>    2) live migrate part of dirty pages to slave during sleep time.
+>>>>> Besides, we add some statistic info in colo-v1.2-developing, which you can get these stat
+>>>>> info by using command 'info migrate'.
+>>>>
+>>>>
+>>>> Hi,
+>>>>   I have that running now.
+>>>>
+>>>> Some notes:
+>>>>   1) The colo-proxy is working OK until qemu quits, and then it gets an RCU problem; see below
+>>>>   2) I've attached some minor tweaks that were needed to build with the 4.1rc kernel I'm using;
+>>>>      they're very minor changes and I don't think related to (1).
+>>>>   3) I've also included some minor fixups I needed to get the -developing world
+>>>>      to build;  my compiler is fussy about unused variables etc - but I think the code
+>>>>      in ram_save_complete in your -developing patch is wrong because there are two
+>>>>      'pages' variables and the one in the inner loop is the only one changed.
+>>
+>> Oops, i will fix them. thank you for pointing out this low grade mistake. :)
+> 
+> No problem; we all make them.
+> 
+>>>>   4) I've started trying simple benchmarks and tests now:
+>>>>     a) With a simple web server most requests have very little overhead, the comparison
+>>>>        matches most of the time;  I do get quite large spikes (0.04s->1.05s) which I guess
+>>>>        corresponds to when a checkpoint happens, but I'm not sure why the spike is so big,
+>>>>        since the downtime isn't that big.
+>>
+>> Have you disabled DEBUG for colo proxy? I turned it on in default, is this related?
+> 
+> Yes, I've turned that off, I still get the big spikes; not looked why yet.
+> 
+>>>>     b) I tried something with more dynamic pages - the front page of a simple bugzilla
+>>>>        install;  it failed the comparison every time; it took me a while to figure out
+>>
+>> Failed comprison ? Do you mean the net packets in these two sides are always inconsistent?
+> 
+> Yes.
+> 
+>>>>        why, but it generates a unique token in it's javascript each time (for a password reset
+>>>>        link), and I guess the randomness used by that doesn't match on the two hosts.
+>>>>        It surprised me, because I didn't expect this page to have much randomness
+>>>>        in.
+>>>>
+>>>>   4a is really nice - it shows the benefit of COLO over the simple checkpointing;
+>>>> checkpoints happen very rarely.
+>>>>
+>>>> The colo-proxy rcu problem I hit shows as rcu-stalls in both primary and secondary
+>>>> after the qemu quits; the backtrace of the qemu stack is:
+>>>
+>>> How to reproduce it? Use monitor command quit to quit qemu? Or kill the qemu?
+>>>
+>>>>
+>>>> [<ffffffff810d8c0c>] wait_rcu_gp+0x5c/0x80
+>>>> [<ffffffff810ddb05>] synchronize_rcu+0x45/0xd0
+>>>> [<ffffffffa0a251e5>] colo_node_release+0x35/0x50 [nfnetlink_colo]
+>>>> [<ffffffffa0a25795>] colonl_close_event+0xe5/0x160 [nfnetlink_colo]
+>>>> [<ffffffff81090c96>] notifier_call_chain+0x66/0x90
+>>>> [<ffffffff8109154c>] atomic_notifier_call_chain+0x6c/0x110
+>>>> [<ffffffff815eee07>] netlink_release+0x5b7/0x7f0
+>>>> [<ffffffff815878bf>] sock_release+0x1f/0x90
+>>>> [<ffffffff81587942>] sock_close+0x12/0x20
+>>>> [<ffffffff812193c3>] __fput+0xd3/0x210
+>>>> [<ffffffff8121954e>] ____fput+0xe/0x10
+>>>> [<ffffffff8108d9f7>] task_work_run+0xb7/0xf0
+>>>> [<ffffffff81002d4d>] do_notify_resume+0x8d/0xa0
+>>>> [<ffffffff81722b66>] int_signal+0x12/0x17
+>>>> [<ffffffffffffffff>] 0xffffffffffffffff
+>>>
+>>> Thanks for your test. The backtrace is very useful, and we will fix it soon.
+>>>
+>>
+>> Yes, it is a bug, the callback function colonl_close_event() is called when holding
+>> rcu lock:
+>> netlink_release
+>>     ->atomic_notifier_call_chain
+>>          ->rcu_read_lock();
+>>          ->notifier_call_chain
+>>             ->ret = nb->notifier_call(nb, val, v);
+>> And here it is wrong to call synchronize_rcu which will lead to sleep.
+>> Besides, there is another function might lead to sleep, kthread_stop which is called
+>> in destroy_notify_cb.
+>>
+>>>>
+>>>> that's with both the 423a8e268acbe3e644a16c15bc79603cfe9eb084 from yesterday and
+>>>> older e58e5152b74945871b00a88164901c0d46e6365e tags on colo-proxy.
+>>>> I'm not sure of the right fix; perhaps it might be possible to replace the
+>>>> synchronize_rcu in colo_node_release by a call_rcu that does the kfree later?
+>>>
+>>> I agree with it.
+>>
+>> That is a good solution, i will fix both of the above problems.
+> 
+> Thanks,
 
-Pablo, in this case I need it to work not only on bridged devices, so
-ebtables is not a solution for me.
+We have fix this problem, and test it. The patch is pushed to github, please try it.
 
-On Wed, May 27, 2015 at 3:40 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, May 27, 2015 at 02:11:30PM +0200, Florian Westphal wrote:
->> Eddi Linder <eddi@guardicore.com> wrote:
->> > TEE is for gateway redirections, which means the redirected device has
->> > to have a configured ip, and to be reachable from the original device.
+Thanks
+Wen Congyang
+
+> 
+> Dave
+> 
 >>
->> That makes no sense to me.  The to-redirected device always needs to be
->> reachable.  And iptables is L3 and upwards, so I don't see how 1:1
->> copying would fit in here.
+>> Thanks,
+>> zhanghailiang
 >>
->> > Florian, I didn't find the mirror target in the mainline documentation or code.
+>>>
+>>>>
+>>>> Thanks,
+>>>>
+>>>> Dave
+>>>>
+>>>>>
+>>>
+>>>
+>>> .
+>>>
 >>
->> I meant the tc action:
 >>
->> tc filter add dev eth0 parent $parent protocol ip [..] action mirred egress redirect dev eth1
->>
->> > REROUTE redirection is more like the openvswitch output action, copy
->> > the packet from one device into another.
->>
->> Sorry, but my feeling is that this is out of scope for iptables.
->
-> Agreed.
->
-> There is an incomplete patch to add TEE support to nf_tables bridge
-> family. You only have to specify the destination device as Eddi needs.
->
-> Another alternative is to add this TEE support to ebtables, which is
-> where this belongs.
+> --
+> Dr. David Alan Gilbert / dgilbert@redhat.com / Manchester, UK
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> .
+> 
+
