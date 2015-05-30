@@ -1,7 +1,7 @@
 From: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
-Subject: [PATCH 73/98] include/uapi/linux/netfilter/xt_ipvs.h: include linux/netfilter.h
-Date: Sat, 30 May 2015 17:39:05 +0200
-Message-ID: <1433000370-19509-74-git-send-email-mikko.rapeli@iki.fi>
+Subject: [PATCH 70/98] include/uapi/linux/netfilter/xt_HMARK.h: include linux/netfilter.h
+Date: Sat, 30 May 2015 17:39:02 +0200
+Message-ID: <1433000370-19509-71-git-send-email-mikko.rapeli@iki.fi>
 References: <1433000370-19509-1-git-send-email-mikko.rapeli@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -20,29 +20,28 @@ List-Id: netfilter-devel.vger.kernel.org
 
 =46ixes userspace compilation errors:
 
-error: field =E2=80=98vaddr=E2=80=99 has incomplete type
-  union nf_inet_addr vaddr, vmask;
-error: field =E2=80=98vmask=E2=80=99 has incomplete type
-  union nf_inet_addr vaddr, vmask;
+error: field =E2=80=98src_mask=E2=80=99 has incomplete type
+  union nf_inet_addr src_mask;
+error: field =E2=80=98dst_mask=E2=80=99 has incomplete type
+  union nf_inet_addr dst_mask;
 
 Signed-off-by: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
 ---
- include/uapi/linux/netfilter/xt_ipvs.h | 1 +
+ include/uapi/linux/netfilter/xt_HMARK.h | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/include/uapi/linux/netfilter/xt_ipvs.h b/include/uapi/linu=
-x/netfilter/xt_ipvs.h
-index eff34ac..e03b9c3 100644
---- a/include/uapi/linux/netfilter/xt_ipvs.h
-+++ b/include/uapi/linux/netfilter/xt_ipvs.h
+diff --git a/include/uapi/linux/netfilter/xt_HMARK.h b/include/uapi/lin=
+ux/netfilter/xt_HMARK.h
+index 826fc58..3fb48c8 100644
+--- a/include/uapi/linux/netfilter/xt_HMARK.h
++++ b/include/uapi/linux/netfilter/xt_HMARK.h
 @@ -2,6 +2,7 @@
- #define _XT_IPVS_H
+ #define XT_HMARK_H_
 =20
  #include <linux/types.h>
 +#include <linux/netfilter.h>
 =20
  enum {
- 	XT_IPVS_IPVS_PROPERTY =3D	1 << 0, /* all other options imply this one=
- */
+ 	XT_HMARK_SADDR_MASK,
 --=20
 2.1.4
