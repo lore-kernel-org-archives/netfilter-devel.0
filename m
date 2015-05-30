@@ -1,47 +1,58 @@
-From: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
-Subject: [PATCH 68/98] include/uapi/linux/netfilter/ipset/ip_set_hash.h: include linux/netfilter/ipset/ip_set.h
-Date: Sat, 30 May 2015 17:39:00 +0200
-Message-ID: <1433000370-19509-69-git-send-email-mikko.rapeli@iki.fi>
+From: Mikko Rapeli <mikko.rapeli@iki.fi>
+Subject: [PATCH 63/98] include/uapi/linux/netfilter/xt_policy.h: include linux/in.h and linux/in6.h
+Date: Sat, 30 May 2015 17:38:55 +0200
+Message-ID: <1433000370-19509-64-git-send-email-mikko.rapeli@iki.fi>
 References: <1433000370-19509-1-git-send-email-mikko.rapeli@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>,
-	Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>,
-	Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>,
-	Jozsef Kadlecsik <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
-	linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1433000370-19509-1-git-send-email-mikko.rapeli-X3B1VOXEql0@public.gmane.org>
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Mikko Rapeli <mikko.rapeli@iki.fi>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-api@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:38131 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757970AbbE3Q13 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 30 May 2015 12:27:29 -0400
+In-Reply-To: <1433000370-19509-1-git-send-email-mikko.rapeli@iki.fi>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-=46ixes userspace compilation error:
+=46ixes userspace compiler errors:
 
-error: =E2=80=98IPSET_ERR_TYPE_SPECIFIC=E2=80=99 undeclared here (not i=
-n a function)
-  IPSET_ERR_HASH_FULL =3D IPSET_ERR_TYPE_SPECIFIC,
+error: field =E2=80=98a4=E2=80=99 has incomplete type
+  struct in_addr a4;
+error: field =E2=80=98a6=E2=80=99 has incomplete type
+  struct in6_addr a6;
 
-Signed-off-by: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
+Signed-off-by: Mikko Rapeli <mikko.rapeli@iki.fi>
 ---
- include/uapi/linux/netfilter/ipset/ip_set_hash.h | 2 ++
+ include/uapi/linux/netfilter/xt_policy.h | 2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/include/uapi/linux/netfilter/ipset/ip_set_hash.h b/include=
-/uapi/linux/netfilter/ipset/ip_set_hash.h
-index 352eecc..82deeb8 100644
---- a/include/uapi/linux/netfilter/ipset/ip_set_hash.h
-+++ b/include/uapi/linux/netfilter/ipset/ip_set_hash.h
-@@ -1,6 +1,8 @@
- #ifndef _UAPI__IP_SET_HASH_H
- #define _UAPI__IP_SET_HASH_H
+diff --git a/include/uapi/linux/netfilter/xt_policy.h b/include/uapi/li=
+nux/netfilter/xt_policy.h
+index be8ead0..d8a9800 100644
+--- a/include/uapi/linux/netfilter/xt_policy.h
++++ b/include/uapi/linux/netfilter/xt_policy.h
+@@ -2,6 +2,8 @@
+ #define _XT_POLICY_H
 =20
-+#include <linux/netfilter/ipset/ip_set.h>
-+
- /* Hash type specific error codes */
- enum {
- 	/* Hash is full */
+ #include <linux/types.h>
++#include <linux/in.h>
++#include <linux/in6.h>
+=20
+ #define XT_POLICY_MAX_ELEM	4
+=20
 --=20
 2.1.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
