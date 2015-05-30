@@ -1,94 +1,163 @@
 From: Bernhard Thaler <bernhard.thaler@wvnet.at>
-Subject: [PATCHv6 2/4] netfilter: bridge: rename br_parse_ip_options
-Date: Sat, 30 May 2015 15:29:02 +0200
-Message-ID: <1432992542-4127-1-git-send-email-bernhard.thaler@wvnet.at>
+Subject: [PATCH 3/4] netfilter: bridge: re-order check_hbh_len()
+Date: Sat, 30 May 2015 15:29:38 +0200
+Message-ID: <1432992578-4161-1-git-send-email-bernhard.thaler@wvnet.at>
 Cc: netfilter-devel@vger.kernel.org, fw@strlen.de,
 	Bernhard Thaler <bernhard.thaler@wvnet.at>
 To: pablo@netfilter.org, kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx-out.wvnet.at ([62.212.170.135]:3164 "EHLO mx-out.wvnet.at"
+Received: from mx-out.wvnet.at ([62.212.170.133]:1491 "EHLO mx-out.wvnet.at"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932316AbbE3N3e (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 30 May 2015 09:29:34 -0400
+	id S932316AbbE3NaN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 30 May 2015 09:30:13 -0400
 Received: from smtp.wvnet.at (localhost [127.0.0.1])
-	by mx-out.wvnet.at (Postfix) with ESMTP id 34DE21107F39
-	for <netfilter-devel@vger.kernel.org>; Sat, 30 May 2015 15:29:33 +0200 (CEST)
+	by mx-out.wvnet.at (Postfix) with ESMTP id 24A6D1107F63
+	for <netfilter-devel@vger.kernel.org>; Sat, 30 May 2015 15:30:12 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-br_parse_ip_options() does not parse any IP options, it validates IP
-packets as a whole and the function name is misleading.
-
-Rename br_parse_ip_options() to br_validate_ipv4() and remove unneeded
-commments.
+Prepare check_hbh_len() to be called from newly introduced
+br_validate_ipv6() in next commit.
 
 Signed-off-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
 ---
 Patch revision history:
 
-v6
-* put this patch in front of "netfilter: bridge: forward IPv6 fragmented
-  packets"
+v1
+* was part of netfilter: bridge: forward IPv6 fragmented packets
 
-v5
-* rebase to current davem/net-next
-
-v4
-* re-post due to errors in v3 formatting introduced by my MUA
-
-v3
-* re-assignment of iph variable needed because pskb_may_pull() can
-invalidate the network header
-* same patch as v1 again
-
-v2
-* first patch did not contain statement removing double iph variable
-  assignment
-
- net/bridge/br_netfilter.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ net/bridge/br_netfilter.c |  111 +++++++++++++++++++++++----------------------
+ 1 file changed, 56 insertions(+), 55 deletions(-)
 
 diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index 1f30b28..962d5f8 100644
+index 962d5f8..d201ea4 100644
 --- a/net/bridge/br_netfilter.c
 +++ b/net/bridge/br_netfilter.c
-@@ -216,7 +216,7 @@ static inline void nf_bridge_pull_encap_header_rcsum(struct sk_buff *skb)
-  * expected format
-  */
+@@ -264,6 +264,62 @@ drop:
+ 	return -1;
+ }
  
--static int br_parse_ip_options(struct sk_buff *skb)
-+static int br_validate_ipv4(struct sk_buff *skb)
++/* We only check the length. A bridge shouldn't do any hop-by-hop stuff
++ * anyway
++ */
++static int check_hbh_len(struct sk_buff *skb)
++{
++	unsigned char *raw = (u8 *)(ipv6_hdr(skb) + 1);
++	u32 pkt_len;
++	const unsigned char *nh = skb_network_header(skb);
++	int off = raw - nh;
++	int len = (raw[1] + 1) << 3;
++
++	if ((raw + len) - skb->data > skb_headlen(skb))
++		goto bad;
++
++	off += 2;
++	len -= 2;
++
++	while (len > 0) {
++		int optlen = nh[off + 1] + 2;
++
++		switch (nh[off]) {
++		case IPV6_TLV_PAD1:
++			optlen = 1;
++			break;
++
++		case IPV6_TLV_PADN:
++			break;
++
++		case IPV6_TLV_JUMBO:
++			if (nh[off + 1] != 4 || (off & 3) != 2)
++				goto bad;
++			pkt_len = ntohl(*(__be32 *)(nh + off + 2));
++			if (pkt_len <= IPV6_MAXPLEN ||
++			    ipv6_hdr(skb)->payload_len)
++				goto bad;
++			if (pkt_len > skb->len - sizeof(struct ipv6hdr))
++				goto bad;
++			if (pskb_trim_rcsum(skb,
++					    pkt_len + sizeof(struct ipv6hdr)))
++				goto bad;
++			nh = skb_network_header(skb);
++			break;
++		default:
++			if (optlen > len)
++				goto bad;
++			break;
++		}
++		off += optlen;
++		len -= optlen;
++	}
++	if (len == 0)
++		return 0;
++bad:
++	return -1;
++}
++
+ static void nf_bridge_update_protocol(struct sk_buff *skb)
  {
- 	const struct iphdr *iph;
- 	struct net_device *dev = skb->dev;
-@@ -692,7 +692,7 @@ static unsigned int br_nf_pre_routing(const struct nf_hook_ops *ops,
+ 	switch (skb->nf_bridge->orig_proto) {
+@@ -549,61 +605,6 @@ static struct net_device *setup_pre_routing(struct sk_buff *skb)
+ 	return skb->dev;
+ }
  
- 	nf_bridge_pull_encap_header_rcsum(skb);
- 
--	if (br_parse_ip_options(skb))
-+	if (br_validate_ipv4(skb))
- 		return NF_DROP;
- 
- 	nf_bridge_put(skb->nf_bridge);
-@@ -802,7 +802,7 @@ static unsigned int br_nf_forward_ip(const struct nf_hook_ops *ops,
- 	}
- 
- 	if (pf == NFPROTO_IPV4) {
--		if (br_parse_ip_options(skb))
-+		if (br_validate_ipv4(skb))
- 			return NF_DROP;
- 		IPCB(skb)->frag_max_size = nf_bridge->frag_max_size;
- 	}
-@@ -913,8 +913,7 @@ static int br_nf_dev_queue_xmit(struct sock *sk, struct sk_buff *skb)
- 	if (skb->len + mtu_reserved > skb->dev->mtu) {
- 		struct brnf_frag_data *data;
- 
--		if (br_parse_ip_options(skb))
--			/* Drop invalid packet */
-+		if (br_validate_ipv4(skb))
- 			return NF_DROP;
- 
- 		IPCB(skb)->frag_max_size = nf_bridge->frag_max_size;
+-/* We only check the length. A bridge shouldn't do any hop-by-hop stuff anyway */
+-static int check_hbh_len(struct sk_buff *skb)
+-{
+-	unsigned char *raw = (u8 *)(ipv6_hdr(skb) + 1);
+-	u32 pkt_len;
+-	const unsigned char *nh = skb_network_header(skb);
+-	int off = raw - nh;
+-	int len = (raw[1] + 1) << 3;
+-
+-	if ((raw + len) - skb->data > skb_headlen(skb))
+-		goto bad;
+-
+-	off += 2;
+-	len -= 2;
+-
+-	while (len > 0) {
+-		int optlen = nh[off + 1] + 2;
+-
+-		switch (nh[off]) {
+-		case IPV6_TLV_PAD1:
+-			optlen = 1;
+-			break;
+-
+-		case IPV6_TLV_PADN:
+-			break;
+-
+-		case IPV6_TLV_JUMBO:
+-			if (nh[off + 1] != 4 || (off & 3) != 2)
+-				goto bad;
+-			pkt_len = ntohl(*(__be32 *) (nh + off + 2));
+-			if (pkt_len <= IPV6_MAXPLEN ||
+-			    ipv6_hdr(skb)->payload_len)
+-				goto bad;
+-			if (pkt_len > skb->len - sizeof(struct ipv6hdr))
+-				goto bad;
+-			if (pskb_trim_rcsum(skb,
+-					    pkt_len + sizeof(struct ipv6hdr)))
+-				goto bad;
+-			nh = skb_network_header(skb);
+-			break;
+-		default:
+-			if (optlen > len)
+-				goto bad;
+-			break;
+-		}
+-		off += optlen;
+-		len -= optlen;
+-	}
+-	if (len == 0)
+-		return 0;
+-bad:
+-	return -1;
+-
+-}
+-
+ /* Replicate the checks that IPv6 does on packet reception and pass the packet
+  * to ip6tables, which doesn't support NAT, so things are fairly simple. */
+ static unsigned int br_nf_pre_routing_ipv6(const struct nf_hook_ops *ops,
 -- 
 1.7.10.4
 
