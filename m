@@ -1,55 +1,115 @@
-From: Mikko Rapeli <mikko.rapeli@iki.fi>
-Subject: [PATCH 44/98] nf_conntrack_tuple_common.h: include linux/types.h and linux/netfilter.h
-Date: Sat, 30 May 2015 17:38:36 +0200
-Message-ID: <1433000370-19509-45-git-send-email-mikko.rapeli@iki.fi>
+From: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
+Subject: [PATCH 59/98] include/uapi/linux/netfilter: include linux/if.h in several headers
+Date: Sat, 30 May 2015 17:38:51 +0200
+Message-ID: <1433000370-19509-60-git-send-email-mikko.rapeli@iki.fi>
 References: <1433000370-19509-1-git-send-email-mikko.rapeli@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Mikko Rapeli <mikko.rapeli@iki.fi>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-api@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54932 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757958AbbE3PlY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 30 May 2015 11:41:24 -0400
-In-Reply-To: <1433000370-19509-1-git-send-email-mikko.rapeli@iki.fi>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>,
+	Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>,
+	Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>,
+	Jozsef Kadlecsik <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
+	linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1433000370-19509-1-git-send-email-mikko.rapeli-X3B1VOXEql0@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-=46ixes userspace compilation errors like:
-error: unknown type name =E2=80=98__be16=E2=80=99
+=46ixes userspace compile errors:
 
-Signed-off-by: Mikko Rapeli <mikko.rapeli@iki.fi>
+error: =E2=80=98IFNAMSIZ=E2=80=99 undeclared here (not in a function)
+
+Signed-off-by: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
 ---
- include/uapi/linux/netfilter/nf_conntrack_tuple_common.h | 3 +++
- 1 file changed, 3 insertions(+)
+ include/uapi/linux/netfilter/xt_RATEEST.h      | 1 +
+ include/uapi/linux/netfilter/xt_hashlimit.h    | 1 +
+ include/uapi/linux/netfilter/xt_physdev.h      | 2 +-
+ include/uapi/linux/netfilter/xt_rateest.h      | 1 +
+ include/uapi/linux/netfilter_arp/arp_tables.h  | 1 +
+ include/uapi/linux/netfilter_ipv6/ip6_tables.h | 1 +
+ 6 files changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h b=
-/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
-index 2f6bbc5..a9c3834 100644
---- a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
-+++ b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
-@@ -1,6 +1,9 @@
- #ifndef _NF_CONNTRACK_TUPLE_COMMON_H
- #define _NF_CONNTRACK_TUPLE_COMMON_H
+diff --git a/include/uapi/linux/netfilter/xt_RATEEST.h b/include/uapi/l=
+inux/netfilter/xt_RATEEST.h
+index 6605e20..ec1b570 100644
+--- a/include/uapi/linux/netfilter/xt_RATEEST.h
++++ b/include/uapi/linux/netfilter/xt_RATEEST.h
+@@ -2,6 +2,7 @@
+ #define _XT_RATEEST_TARGET_H
 =20
-+#include <linux/types.h>
-+#include <linux/netfilter.h>
-+
- enum ip_conntrack_dir {
- 	IP_CT_DIR_ORIGINAL,
- 	IP_CT_DIR_REPLY,
+ #include <linux/types.h>
++#include <linux/if.h>
+=20
+ struct xt_rateest_target_info {
+ 	char			name[IFNAMSIZ];
+diff --git a/include/uapi/linux/netfilter/xt_hashlimit.h b/include/uapi=
+/linux/netfilter/xt_hashlimit.h
+index cbfc43d..6db90372 100644
+--- a/include/uapi/linux/netfilter/xt_hashlimit.h
++++ b/include/uapi/linux/netfilter/xt_hashlimit.h
+@@ -2,6 +2,7 @@
+ #define _UAPI_XT_HASHLIMIT_H
+=20
+ #include <linux/types.h>
++#include <linux/if.h>
+=20
+ /* timings are in milliseconds. */
+ #define XT_HASHLIMIT_SCALE 10000
+diff --git a/include/uapi/linux/netfilter/xt_physdev.h b/include/uapi/l=
+inux/netfilter/xt_physdev.h
+index db7a298..ccdde87 100644
+--- a/include/uapi/linux/netfilter/xt_physdev.h
++++ b/include/uapi/linux/netfilter/xt_physdev.h
+@@ -2,7 +2,7 @@
+ #define _UAPI_XT_PHYSDEV_H
+=20
+ #include <linux/types.h>
+-
++#include <linux/if.h>
+=20
+ #define XT_PHYSDEV_OP_IN		0x01
+ #define XT_PHYSDEV_OP_OUT		0x02
+diff --git a/include/uapi/linux/netfilter/xt_rateest.h b/include/uapi/l=
+inux/netfilter/xt_rateest.h
+index d40a619..13fe50d 100644
+--- a/include/uapi/linux/netfilter/xt_rateest.h
++++ b/include/uapi/linux/netfilter/xt_rateest.h
+@@ -2,6 +2,7 @@
+ #define _XT_RATEEST_MATCH_H
+=20
+ #include <linux/types.h>
++#include <linux/if.h>
+=20
+ enum xt_rateest_match_flags {
+ 	XT_RATEEST_MATCH_INVERT	=3D 1<<0,
+diff --git a/include/uapi/linux/netfilter_arp/arp_tables.h b/include/ua=
+pi/linux/netfilter_arp/arp_tables.h
+index a5a86a4..ece3ad4 100644
+--- a/include/uapi/linux/netfilter_arp/arp_tables.h
++++ b/include/uapi/linux/netfilter_arp/arp_tables.h
+@@ -11,6 +11,7 @@
+=20
+ #include <linux/types.h>
+ #include <linux/compiler.h>
++#include <linux/if.h>
+ #include <linux/netfilter_arp.h>
+=20
+ #include <linux/netfilter/x_tables.h>
+diff --git a/include/uapi/linux/netfilter_ipv6/ip6_tables.h b/include/u=
+api/linux/netfilter_ipv6/ip6_tables.h
+index 649c680..d1b2265 100644
+--- a/include/uapi/linux/netfilter_ipv6/ip6_tables.h
++++ b/include/uapi/linux/netfilter_ipv6/ip6_tables.h
+@@ -17,6 +17,7 @@
+=20
+ #include <linux/types.h>
+ #include <linux/compiler.h>
++#include <linux/if.h>
+ #include <linux/netfilter_ipv6.h>
+=20
+ #include <linux/netfilter/x_tables.h>
 --=20
 2.1.4
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
