@@ -1,7 +1,7 @@
 From: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
-Subject: [PATCH 70/98] include/uapi/linux/netfilter/xt_HMARK.h: include linux/netfilter.h
-Date: Sat, 30 May 2015 17:39:02 +0200
-Message-ID: <1433000370-19509-71-git-send-email-mikko.rapeli@iki.fi>
+Subject: [PATCH 68/98] include/uapi/linux/netfilter/ipset/ip_set_hash.h: include linux/netfilter/ipset/ip_set.h
+Date: Sat, 30 May 2015 17:39:00 +0200
+Message-ID: <1433000370-19509-69-git-send-email-mikko.rapeli@iki.fi>
 References: <1433000370-19509-1-git-send-email-mikko.rapeli@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -18,30 +18,30 @@ In-Reply-To: <1433000370-19509-1-git-send-email-mikko.rapeli-X3B1VOXEql0@public.
 Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-=46ixes userspace compilation errors:
+=46ixes userspace compilation error:
 
-error: field =E2=80=98src_mask=E2=80=99 has incomplete type
-  union nf_inet_addr src_mask;
-error: field =E2=80=98dst_mask=E2=80=99 has incomplete type
-  union nf_inet_addr dst_mask;
+error: =E2=80=98IPSET_ERR_TYPE_SPECIFIC=E2=80=99 undeclared here (not i=
+n a function)
+  IPSET_ERR_HASH_FULL =3D IPSET_ERR_TYPE_SPECIFIC,
 
 Signed-off-by: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
 ---
- include/uapi/linux/netfilter/xt_HMARK.h | 1 +
- 1 file changed, 1 insertion(+)
+ include/uapi/linux/netfilter/ipset/ip_set_hash.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/include/uapi/linux/netfilter/xt_HMARK.h b/include/uapi/lin=
-ux/netfilter/xt_HMARK.h
-index 826fc58..3fb48c8 100644
---- a/include/uapi/linux/netfilter/xt_HMARK.h
-+++ b/include/uapi/linux/netfilter/xt_HMARK.h
-@@ -2,6 +2,7 @@
- #define XT_HMARK_H_
+diff --git a/include/uapi/linux/netfilter/ipset/ip_set_hash.h b/include=
+/uapi/linux/netfilter/ipset/ip_set_hash.h
+index 352eecc..82deeb8 100644
+--- a/include/uapi/linux/netfilter/ipset/ip_set_hash.h
++++ b/include/uapi/linux/netfilter/ipset/ip_set_hash.h
+@@ -1,6 +1,8 @@
+ #ifndef _UAPI__IP_SET_HASH_H
+ #define _UAPI__IP_SET_HASH_H
 =20
- #include <linux/types.h>
-+#include <linux/netfilter.h>
-=20
++#include <linux/netfilter/ipset/ip_set.h>
++
+ /* Hash type specific error codes */
  enum {
- 	XT_HMARK_SADDR_MASK,
+ 	/* Hash is full */
 --=20
 2.1.4
