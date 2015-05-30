@@ -1,7 +1,7 @@
 From: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
-Subject: [PATCH 76/98] include/uapi/linux/netfilter/xt_recent.h: include linux/netfilter.h
-Date: Sat, 30 May 2015 17:39:08 +0200
-Message-ID: <1433000370-19509-77-git-send-email-mikko.rapeli@iki.fi>
+Subject: [PATCH 56/98] include/uapi/linux/netfilter.h: include in.h and in6.h
+Date: Sat, 30 May 2015 17:38:48 +0200
+Message-ID: <1433000370-19509-57-git-send-email-mikko.rapeli@iki.fi>
 References: <1433000370-19509-1-git-send-email-mikko.rapeli@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -18,28 +18,29 @@ In-Reply-To: <1433000370-19509-1-git-send-email-mikko.rapeli-X3B1VOXEql0@public.
 Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-=46ixes userspace compilation error:
-
-error: field =E2=80=98mask=E2=80=99 has incomplete type
-  union nf_inet_addr mask;
+=46ixes userspace compile errors like:
+error: field =E2=80=98in=E2=80=99 has incomplete type
+error: field =E2=80=98in6=E2=80=99 has incomplete type
 
 Signed-off-by: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
 ---
- include/uapi/linux/netfilter/xt_recent.h | 1 +
- 1 file changed, 1 insertion(+)
+ include/uapi/linux/netfilter.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/netfilter/xt_recent.h b/include/uapi/li=
-nux/netfilter/xt_recent.h
-index 6ef36c1..955d562 100644
---- a/include/uapi/linux/netfilter/xt_recent.h
-+++ b/include/uapi/linux/netfilter/xt_recent.h
-@@ -2,6 +2,7 @@
- #define _LINUX_NETFILTER_XT_RECENT_H 1
-=20
+diff --git a/include/uapi/linux/netfilter.h b/include/uapi/linux/netfil=
+ter.h
+index ef1b1f8..750c04e 100644
+--- a/include/uapi/linux/netfilter.h
++++ b/include/uapi/linux/netfilter.h
+@@ -4,7 +4,8 @@
  #include <linux/types.h>
-+#include <linux/netfilter.h>
+ #include <linux/compiler.h>
+ #include <linux/sysctl.h>
+-
++#include <linux/in.h>
++#include <linux/in6.h>
 =20
- enum {
- 	XT_RECENT_CHECK    =3D 1 << 0,
+ /* Responses from hook functions. */
+ #define NF_DROP 0
 --=20
 2.1.4
