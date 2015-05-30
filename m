@@ -1,46 +1,48 @@
-From: Mikko Rapeli <mikko.rapeli@iki.fi>
-Subject: [PATCH 74/98] include/uapi/linux/netfilter/xt_mac.h: include linux/if_ether.h
-Date: Sat, 30 May 2015 17:39:06 +0200
-Message-ID: <1433000370-19509-75-git-send-email-mikko.rapeli@iki.fi>
+From: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
+Subject: [PATCH 73/98] include/uapi/linux/netfilter/xt_ipvs.h: include linux/netfilter.h
+Date: Sat, 30 May 2015 17:39:05 +0200
+Message-ID: <1433000370-19509-74-git-send-email-mikko.rapeli@iki.fi>
 References: <1433000370-19509-1-git-send-email-mikko.rapeli@iki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Mikko Rapeli <mikko.rapeli@iki.fi>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-api@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1433000370-19509-1-git-send-email-mikko.rapeli@iki.fi>
-Sender: linux-kernel-owner@vger.kernel.org
+Cc: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>,
+	Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>,
+	Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>,
+	Jozsef Kadlecsik <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
+	linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1433000370-19509-1-git-send-email-mikko.rapeli-X3B1VOXEql0@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-=46ixes userspace compilation error:
+=46ixes userspace compilation errors:
 
-error: =E2=80=98ETH_ALEN=E2=80=99 undeclared here (not in a function)
-     unsigned char srcaddr[ETH_ALEN];
+error: field =E2=80=98vaddr=E2=80=99 has incomplete type
+  union nf_inet_addr vaddr, vmask;
+error: field =E2=80=98vmask=E2=80=99 has incomplete type
+  union nf_inet_addr vaddr, vmask;
 
-Signed-off-by: Mikko Rapeli <mikko.rapeli@iki.fi>
+Signed-off-by: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
 ---
- include/uapi/linux/netfilter/xt_mac.h | 2 ++
- 1 file changed, 2 insertions(+)
+ include/uapi/linux/netfilter/xt_ipvs.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/include/uapi/linux/netfilter/xt_mac.h b/include/uapi/linux=
-/netfilter/xt_mac.h
-index b892cdc..9a19a08 100644
---- a/include/uapi/linux/netfilter/xt_mac.h
-+++ b/include/uapi/linux/netfilter/xt_mac.h
-@@ -1,6 +1,8 @@
- #ifndef _XT_MAC_H
- #define _XT_MAC_H
+diff --git a/include/uapi/linux/netfilter/xt_ipvs.h b/include/uapi/linu=
+x/netfilter/xt_ipvs.h
+index eff34ac..e03b9c3 100644
+--- a/include/uapi/linux/netfilter/xt_ipvs.h
++++ b/include/uapi/linux/netfilter/xt_ipvs.h
+@@ -2,6 +2,7 @@
+ #define _XT_IPVS_H
 =20
-+#include <linux/if_ether.h>
-+
- struct xt_mac_info {
-     unsigned char srcaddr[ETH_ALEN];
-     int invert;
+ #include <linux/types.h>
++#include <linux/netfilter.h>
+=20
+ enum {
+ 	XT_IPVS_IPVS_PROPERTY =3D	1 << 0, /* all other options imply this one=
+ */
 --=20
 2.1.4
