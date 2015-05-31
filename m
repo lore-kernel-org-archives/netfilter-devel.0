@@ -1,63 +1,64 @@
-From: Eddi Linder <eddi@guardicore.com>
-Subject: Re: REOUTE target extenstion
-Date: Sun, 31 May 2015 14:49:22 +0300
-Message-ID: <CADgXnSMDQ7HSvY9F68yevJKv9fZf=8EQk-p9UFa0HSB2DNg4HA@mail.gmail.com>
-References: <CADgXnSPNQM2xq_pAs72ddDCX-8DCx=J6mr--J_jPdMUcQS-PZw@mail.gmail.com>
-	<20150527113746.GA23992@breakpoint.cc>
-	<CADgXnSPkPdWdWcNJHrcv_9=oomWsE4ZfzoJZ3CTur=zW5LY9cQ@mail.gmail.com>
-	<20150527121130.GC23992@breakpoint.cc>
-	<20150527124037.GA19766@salvia>
-	<CADgXnSMdWdbtBJ_0RxfUm0sFcXApBbEtUUSFdM+OKm8qrO7-sQ@mail.gmail.com>
-	<alpine.LSU.2.20.1505291428200.16471@nerf40.vanv.qr>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 67/98] include/uapi/linux/netfilter/ipset/ip_set_bitmap.h:
+ include linux/netfilter/ipset/ip_set.h
+Date: Sun, 31 May 2015 20:15:48 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1505312014550.2712@blackhole.kfki.hu>
+References: <1433000370-19509-1-git-send-email-mikko.rapeli@iki.fi> <1433000370-19509-68-git-send-email-mikko.rapeli@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ig0-f178.google.com ([209.85.213.178]:35663 "EHLO
-	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751450AbbEaLtX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 31 May 2015 07:49:23 -0400
-Received: by igbyr2 with SMTP id yr2so43353029igb.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 31 May 2015 04:49:22 -0700 (PDT)
-In-Reply-To: <alpine.LSU.2.20.1505291428200.16471@nerf40.vanv.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: linux-kernel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-api@vger.kernel.org
+To: Mikko Rapeli <mikko.rapeli@iki.fi>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1433000370-19509-68-git-send-email-mikko.rapeli@iki.fi>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-I don't see how TEE will help me (in it's current state), I'd like to
-redirect ingress packets to a device without an IP address (for IDS).
-More specifically, I have a machine with a lot of interfaces
-(Openstack hypervisor), each connected to a bridge.
-I'd like to match the traffic on each interface using Iptables and to
-mirror some of it into my own interface that is connected to an ovs.
-There is no direct connection between the my interface and the others.
-The reason I'd like to use Iptables is to do all the matches and the
-redirects as fast as possible, instead of doing it in user space.
+On Sat, 30 May 2015, Mikko Rapeli wrote:
 
-On Fri, May 29, 2015 at 3:50 PM, Jan Engelhardt <jengelh@inai.de> wrote:
->
-> On Friday 2015-05-29 14:02, Eddi Linder wrote:
->
->>The matching will be L3 based, but the copy can be of all the packet,
->>I'd like to simply change the dest device of it.
->>I can match by source device, I don't see why it's not logical to
->>target a device as an action.
->
-> (Given "sending to a device" comes up again from time to time, let me provide
-> this linkable reasoning.)
->
-> An analogy to sending to a device is commanding a ship to harbor exit #34.
->
-> And then? Is it supposed to moor, or sink itself?
->
->
-> A destination is required. _Any_ will do, in whatever way it is derived, but
-> one is needed. One could for example (re)use the Ethernet address, in case of
-> copying from and to Ethernet. Or let one be neighbor-discovered by specifying
-> the L3 address with TEE's --gw. Or other magic, depending on what the link
-> type's needs are, and what your packet already provides in terms of fields
-> (which may be fewer or more in case of tunnels and such).
-> A destination is required, a device is only a waypoint.
+> Fixes userspace compilation error:
+> 
+> error: ?IPSET_ERR_TYPE_SPECIFIC? undeclared here (not in a function)
+>   IPSET_ERR_BITMAP_RANGE = IPSET_ERR_TYPE_SPECIFIC,
+
+What kind of userspace compilation generates the error message above? How 
+can one reproduce it?
+
+Best regards,
+Jozsef
+ 
+> Signed-off-by: Mikko Rapeli <mikko.rapeli@iki.fi>
+> ---
+>  include/uapi/linux/netfilter/ipset/ip_set_bitmap.h | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/include/uapi/linux/netfilter/ipset/ip_set_bitmap.h b/include/uapi/linux/netfilter/ipset/ip_set_bitmap.h
+> index 6a2c038..fd5024d 100644
+> --- a/include/uapi/linux/netfilter/ipset/ip_set_bitmap.h
+> +++ b/include/uapi/linux/netfilter/ipset/ip_set_bitmap.h
+> @@ -1,6 +1,8 @@
+>  #ifndef _UAPI__IP_SET_BITMAP_H
+>  #define _UAPI__IP_SET_BITMAP_H
+>  
+> +#include <linux/netfilter/ipset/ip_set.h>
+> +
+>  /* Bitmap type specific error codes */
+>  enum {
+>  	/* The element is out of the range of the set */
+> -- 
+> 2.1.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
