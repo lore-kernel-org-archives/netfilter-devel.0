@@ -1,41 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] Revert "netfilter: ensure number of counters is >0 in
- do_replace()"
-Date: Mon, 1 Jun 2015 19:47:33 +0200
-Message-ID: <20150601174733.GA3225@salvia>
-References: <1432801578-11970-1-git-send-email-bernhard.thaler@wvnet.at>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org,
-	fw@strlen.de
-To: Bernhard Thaler <bernhard.thaler@wvnet.at>
+Subject: [PATCH net] Netfilter fix for net
+Date: Mon,  1 Jun 2015 19:54:01 +0200
+Message-ID: <1433181242-22768-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54657 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55636 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751888AbbFARmZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Jun 2015 13:42:25 -0400
-Content-Disposition: inline
-In-Reply-To: <1432801578-11970-1-git-send-email-bernhard.thaler@wvnet.at>
+	id S1752719AbbFARs4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Jun 2015 13:48:56 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 28, 2015 at 10:26:18AM +0200, Bernhard Thaler wrote:
-> This partially reverts commit 1086bbe97a07 ("netfilter: ensure number of
-> counters is >0 in do_replace()") in net/bridge/netfilter/ebtables.c.
-> 
-> Setting rules with ebtables does not work any more with 1086bbe97a07 place.
-> 
-> There is an error message and no rules set in the end.
-> 
-> e.g.
-> 
-> ~# ebtables -t nat -A POSTROUTING --src 12:34:56:78:9a:bc -j DROP
-> Unable to update the kernel. Two possible causes:
-> 1. Multiple ebtables programs were executing simultaneously. The ebtables
->    userspace tool doesn't by default support multiple ebtables programs
-> running
-> 
-> Reverting the ebtables part of 1086bbe97a07 makes this work again.
+Hi David,
 
-Applied, thanks Bernhard!
+The following patch reverts the ebtables chunk that enforces counters that was
+introduced in the recently applied d26e2c9ffa38 ('Revert "netfilter: ensure
+number of counters is >0 in do_replace()"') since this breaks ebtables.
 
+You can pull this change from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 9302d7bb0c5cd46be5706859301f18c137b2439f:
+
+  sctp: Fix mangled IPv4 addresses on a IPv6 listening socket (2015-05-27 14:15:26 -0400)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
+
+for you to fetch changes up to d26e2c9ffa385dd1b646f43c1397ba12af9ed431:
+
+  Revert "netfilter: ensure number of counters is >0 in do_replace()" (2015-06-01 19:45:47 +0200)
+
+----------------------------------------------------------------
+Bernhard Thaler (1):
+      Revert "netfilter: ensure number of counters is >0 in do_replace()"
+
+ net/bridge/netfilter/ebtables.c |    4 ----
+ 1 file changed, 4 deletions(-)
