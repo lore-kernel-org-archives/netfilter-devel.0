@@ -1,65 +1,118 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5/6 nft] tests: regression: reduce code duplication a bit on error reporting
-Date: Tue,  2 Jun 2015 19:03:06 +0200
-Message-ID: <1433264587-29705-6-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 3/6 nft] netlink_delinearize: add payload_match_expand()
+Date: Tue,  2 Jun 2015 19:03:04 +0200
+Message-ID: <1433264587-29705-4-git-send-email-pablo@netfilter.org>
 References: <1433264587-29705-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49744 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49739 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759618AbbFBQ6C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Jun 2015 12:58:02 -0400
+	id S1759614AbbFBQ6B (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Jun 2015 12:58:01 -0400
 In-Reply-To: <1433264587-29705-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Consolidate print_err() and print_warning() into print_msg() to reduce code
-duplication.
+This function encapsulates the payload expansion logic. This change in required
+by the follow up patch to consolidate range printing.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tests/regression/nft-test.py |   19 +++++++------------
- 1 file changed, 7 insertions(+), 12 deletions(-)
+ src/netlink_delinearize.c |   69 ++++++++++++++++++++++++---------------------
+ 1 file changed, 37 insertions(+), 32 deletions(-)
 
-diff --git a/tests/regression/nft-test.py b/tests/regression/nft-test.py
-index 559ad41..7823f44 100755
---- a/tests/regression/nft-test.py
-+++ b/tests/regression/nft-test.py
-@@ -44,26 +44,21 @@ class Colors:
-         RED = ''
-         ENDC = ''
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 71c32c5..7b4d695 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -829,49 +829,54 @@ static void integer_type_postprocess(struct expr *expr)
+ 	}
+ }
  
--def print_error(reason, filename=None, lineno=None):
-+def print_msg(reason, filename=None, lineno=None, color=None, errstr=None):
-     '''
--    Prints an error with nice colors, indicating file and line number.
-+    Prints a message with nice colors, indicating file and line number.
-     '''
-     if filename and lineno:
--        print (filename + ": " + Colors.RED + "ERROR:" +
-+        print (filename + ": " + color + "ERROR:" +
-                Colors.ENDC + " line %d: %s" % (lineno + 1, reason))
-     else:
--        print (Colors.RED + "ERROR:" + Colors.ENDC + " %s" % (reason))
-+        print (color + "ERROR:" + Colors.ENDC + " %s" % (reason))
+-static void payload_match_postprocess(struct rule_pp_ctx *ctx,
+-				      struct expr *expr)
++static void payload_match_expand(struct rule_pp_ctx *ctx, struct expr *expr)
+ {
+ 	struct expr *left = expr->left, *right = expr->right, *tmp;
+ 	struct list_head list = LIST_HEAD_INIT(list);
+ 	struct stmt *nstmt;
+ 	struct expr *nexpr;
  
-+def print_error(reason, filename=None, lineno=None):
-+    print_msg(reason, filename, lineno, Colors.RED, "ERROR:")
- 
- def print_warning(reason, filename=None, lineno=None):
--    '''
--    Prints a warning with nice colors, indicating file and line number.
--    '''
--    if filename and lineno:
--        print (filename + ": " + Colors.YELLOW + "WARNING:" + \
--               Colors.ENDC + " line %d: %s" % (lineno + 1, reason))
--    else:
--        print (Colors.YELLOW + "WARNING:" + " %s" % (reason))
-+    print_msg(reason, filename, lineno, Colors.YELLOW, "WARNING:")
- 
- 
- def print_differences_warning(filename, lineno, rule1, rule2, cmd):
++	payload_expr_expand(&list, left, &ctx->pctx);
++	list_for_each_entry(left, &list, list) {
++		tmp = constant_expr_splice(right, left->len);
++		expr_set_type(tmp, left->dtype, left->byteorder);
++		if (tmp->byteorder == BYTEORDER_HOST_ENDIAN)
++			mpz_switch_byteorder(tmp->value, tmp->len / BITS_PER_BYTE);
++
++		nexpr = relational_expr_alloc(&expr->location, expr->op,
++					      left, tmp);
++		if (expr->op == OP_EQ)
++			left->ops->pctx_update(&ctx->pctx, nexpr);
++
++		nstmt = expr_stmt_alloc(&ctx->stmt->location, nexpr);
++		list_add_tail(&nstmt->list, &ctx->stmt->list);
++
++		/* Remember the first payload protocol expression to
++		 * kill it later on if made redundant by a higher layer
++		 * payload expression.
++		 */
++		if (ctx->pbase == PROTO_BASE_INVALID &&
++		    left->flags & EXPR_F_PROTOCOL)
++			payload_dependency_store(ctx, nstmt,
++						 left->payload.base);
++		else
++			payload_dependency_kill(ctx, nexpr->left);
++	}
++	list_del(&ctx->stmt->list);
++	stmt_free(ctx->stmt);
++	ctx->stmt = NULL;
++}
++
++static void payload_match_postprocess(struct rule_pp_ctx *ctx,
++				      struct expr *expr)
++{
+ 	switch (expr->op) {
+ 	case OP_EQ:
+ 	case OP_NEQ:
+-		payload_expr_expand(&list, left, &ctx->pctx);
+-		list_for_each_entry(left, &list, list) {
+-			tmp = constant_expr_splice(right, left->len);
+-			expr_set_type(tmp, left->dtype, left->byteorder);
+-			if (tmp->byteorder == BYTEORDER_HOST_ENDIAN)
+-				mpz_switch_byteorder(tmp->value, tmp->len / BITS_PER_BYTE);
+-
+-			nexpr = relational_expr_alloc(&expr->location, expr->op,
+-						      left, tmp);
+-			if (expr->op == OP_EQ)
+-				left->ops->pctx_update(&ctx->pctx, nexpr);
+-
+-			nstmt = expr_stmt_alloc(&ctx->stmt->location, nexpr);
+-			list_add_tail(&nstmt->list, &ctx->stmt->list);
+-
+-			/* Remember the first payload protocol expression to
+-			 * kill it later on if made redundant by a higher layer
+-			 * payload expression.
+-			 */
+-			if (ctx->pbase == PROTO_BASE_INVALID &&
+-			    left->flags & EXPR_F_PROTOCOL)
+-				payload_dependency_store(ctx, nstmt,
+-							 left->payload.base);
+-			else
+-				payload_dependency_kill(ctx, nexpr->left);
+-		}
+-		list_del(&ctx->stmt->list);
+-		stmt_free(ctx->stmt);
+-		ctx->stmt = NULL;
++		payload_match_expand(ctx, expr);
+ 		break;
+ 	default:
+-		payload_expr_complete(left, &ctx->pctx);
++		payload_expr_complete(expr->left, &ctx->pctx);
+ 		expr_set_type(expr->right, expr->left->dtype,
+ 			      expr->left->byteorder);
+ 		payload_dependency_kill(ctx, expr->left);
 -- 
 1.7.10.4
 
