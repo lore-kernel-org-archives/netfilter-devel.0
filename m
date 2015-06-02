@@ -1,44 +1,55 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 3/3] netlink_delinearize: remove obsolete fixme
-Date: Tue,  2 Jun 2015 12:57:41 +0200
-Message-ID: <1433242661-32125-3-git-send-email-kaber@trash.net>
+Subject: [PATCH 2/3] ct: add maximum helper length value
+Date: Tue,  2 Jun 2015 12:57:40 +0200
+Message-ID: <1433242661-32125-2-git-send-email-kaber@trash.net>
 References: <1433242661-32125-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58049 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:58050 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754780AbbFBK57 (ORCPT
+	with ESMTP id S1753594AbbFBK56 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Jun 2015 06:57:59 -0400
+	Tue, 2 Jun 2015 06:57:58 -0400
 In-Reply-To: <1433242661-32125-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The FIXME was related to exclusion of string types from cmp length checks.
-Since with fixed sized helper names the last case where this could happen
-is gone, remove the FIXME and perform length checks on strings as well.
+The current kernel restricts ct helper names to 16 bytes length. Specify
+this limit in the ct expression table to catch oversized strings in userspace.
+Since older versions of nft didn't support larger values, this does not
+negatively affect interaction with old kernel versions.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- src/netlink_delinearize.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ src/ct.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index ec1a964..b23d587 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -166,9 +166,7 @@ static void netlink_parse_cmp(struct netlink_parse_ctx *ctx,
- 	nld.value = nft_rule_expr_get(nle, NFT_EXPR_CMP_DATA, &nld.len);
- 	right = netlink_alloc_value(loc, &nld);
+diff --git a/src/ct.c b/src/ct.c
+index 2eb85ea..aa80138 100644
+--- a/src/ct.c
++++ b/src/ct.c
+@@ -161,6 +161,10 @@ static void __init ct_label_table_init(void)
+ 	ct_label_tbl = rt_symbol_table_init("/etc/xtables/connlabel.conf");
+ }
  
--	// FIXME
--	if (left->len && left->dtype && left->dtype->type != TYPE_STRING &&
--	    left->len != right->len)
-+	if (left->len != right->len)
- 		return netlink_error(ctx, loc,
- 				     "Relational expression size mismatch");
- 
++#ifndef NF_CT_HELPER_NAME_LEN
++#define NF_CT_HELPER_NAME_LEN	16
++#endif
++
+ static const struct ct_template ct_templates[] = {
+ 	[NFT_CT_STATE]		= CT_TEMPLATE("state",	    &ct_state_type,
+ 					      BYTEORDER_HOST_ENDIAN,
+@@ -178,7 +182,8 @@ static const struct ct_template ct_templates[] = {
+ 					      BYTEORDER_HOST_ENDIAN,
+ 					      4 * BITS_PER_BYTE),
+ 	[NFT_CT_HELPER]		= CT_TEMPLATE("helper",	    &string_type,
+-					      BYTEORDER_HOST_ENDIAN, 0),
++					      BYTEORDER_HOST_ENDIAN,
++					      NF_CT_HELPER_NAME_LEN * BITS_PER_BYTE),
+ 	[NFT_CT_L3PROTOCOL]	= CT_TEMPLATE("l3proto",    &invalid_type,
+ 					      BYTEORDER_INVALID,
+ 					      BITS_PER_BYTE),
 -- 
 2.1.0
 
