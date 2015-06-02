@@ -1,43 +1,26 @@
-From: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
-Subject: Re: [PATCH 67/98]
- include/uapi/linux/netfilter/ipset/ip_set_bitmap.h: include
- linux/netfilter/ipset/ip_set.h
-Date: Tue, 2 Jun 2015 22:42:16 +0300
-Message-ID: <20150602194216.GT12550@lakka.kapsi.fi>
-References: <1433000370-19509-1-git-send-email-mikko.rapeli@iki.fi>
- <1433000370-19509-68-git-send-email-mikko.rapeli@iki.fi>
- <alpine.DEB.2.10.1505312014550.2712@blackhole.kfki.hu>
+From: Ryan Johnston <ryan@mediapixel.co.nz>
+Subject: netlink multi-thread / libmnl / nfq
+Date: Wed, 3 Jun 2015 09:17:36 +1200
+Message-ID: <CAJ0j+bpNqDJZTcbU-4wHcmNT8=28U3jJ5ftu-OpbpfZJjAjBxg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>,
-	Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
-	linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jozsef Kadlecsik <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1505312014550.2712-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-yk0-f176.google.com ([209.85.160.176]:33490 "EHLO
+	mail-yk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605AbbFBVRg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Jun 2015 17:17:36 -0400
+Received: by ykfr66 with SMTP id r66so57797825ykf.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 02 Jun 2015 14:17:36 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, May 31, 2015 at 08:15:48PM +0200, Jozsef Kadlecsik wrote:
-> On Sat, 30 May 2015, Mikko Rapeli wrote:
-> 
-> > Fixes userspace compilation error:
-> > 
-> > error: ?IPSET_ERR_TYPE_SPECIFIC? undeclared here (not in a function)
-> >   IPSET_ERR_BITMAP_RANGE = IPSET_ERR_TYPE_SPECIFIC,
-> 
-> What kind of userspace compilation generates the error message above? How 
-> can one reproduce it?
+Hi,
 
-Here's the test which reproduces this https://lkml.org/lkml/2015/5/30/98
+When creating a multi-threaded NFQ/Netlink application, should I have
+multiple threads with fd sockets connected to the kernel, or do I have
+one socket with multiple thread loops to read the socket?
 
-Should run on at least Debian based distributions and some cross compilers.
-In the end the script generates a .c file which includes only this header file
-and tries to compile it with a call like:
-
-cc -Wall -c -nostdinc -I /usr/lib/gcc/i586-linux-gnu/4.9/include -I /usr/lib/gcc/i586-linux-gnu/4.9/include-fixed -I . -I ../headers_compile_test_include -I ../headers_compile_test_include/i586-linux-gnu ./linux/netfilter/ipset/ip_set_bitmap.c
-
--Mikko
+If I am to have many threaded fd sockets connected to kernel's
+netlink, is there any performance loss by having too many?
