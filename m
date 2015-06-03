@@ -1,36 +1,65 @@
-From: Ryan Johnston <ryan@mediapixel.co.nz>
-Subject: Re: netlink multi-thread / libmnl / nfq
-Date: Wed, 3 Jun 2015 10:25:43 +1200
-Message-ID: <CAJ0j+boE9=Qd3V5ZenHO12XAvkKH=v9ZEiH0G35hd2Syid5Nrw@mail.gmail.com>
-References: <CAJ0j+bpNqDJZTcbU-4wHcmNT8=28U3jJ5ftu-OpbpfZJjAjBxg@mail.gmail.com>
-	<20150602212241.GB11015@breakpoint.cc>
-	<CAJ0j+bpKjLYH7jQRL3QTkrhn36-5uOst9O-Ymh8eZ6BUY5uNWA@mail.gmail.com>
-	<20150602222309.GC11015@breakpoint.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 03/11] netfilter: don't use module_init/exit in core IPV4
+ code
+Date: Wed, 3 Jun 2015 18:04:29 +0200
+Message-ID: <20150603160429.GA3565@salvia>
+References: <1433120052-18281-1-git-send-email-paul.gortmaker@windriver.com>
+ <1433120052-18281-4-git-send-email-paul.gortmaker@windriver.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-kernel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Paul Gortmaker <paul.gortmaker@windriver.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yk0-f172.google.com ([209.85.160.172]:33317 "EHLO
-	mail-yk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751771AbbFBWZo (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Jun 2015 18:25:44 -0400
-Received: by ykfr66 with SMTP id r66so58250367ykf.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 02 Jun 2015 15:25:43 -0700 (PDT)
-In-Reply-To: <20150602222309.GC11015@breakpoint.cc>
+Received: from mail.us.es ([193.147.175.20]:53573 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753395AbbFCP7Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Jun 2015 11:59:25 -0400
+Content-Disposition: inline
+In-Reply-To: <1433120052-18281-4-git-send-email-paul.gortmaker@windriver.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Okay, is there any performance loss by havin more sockets connected to
-the kernel? Or does --queue-balance just rotate each packet to each
-socket/thread?
+On Sun, May 31, 2015 at 08:54:04PM -0400, Paul Gortmaker wrote:
+> The file net/ipv4/netfilter.o is created based on whether
+> CONFIG_NETFILTER is set.  However that is defined as a bool, and
+> hence this file with the core netfilter hooks will never be
+> modular.  So using module_init as an alias for __initcall can be
+> somewhat misleading.
+> 
+> Fix this up now, so that we can relocate module_init from
+> init.h into module.h in the future.  If we don't do this, we'd
+> have to add module.h to obviously non-modular code, and that
+> would be a worse thing.  Also add an inclusion of init.h, as
+> that was previously implicit here in the netfilter.c file.
+> 
+> Note that direct use of __initcall is discouraged, vs. one
+> of the priority categorized subgroups.  As __initcall gets
+> mapped onto device_initcall, our use of subsys_initcall (which
+> seems to make sense for netfilter code) will thus change this
+> registration from level 6-device to level 4-subsys (i.e. slightly
+> earlier).  However no observable impact of that small difference
+> has been observed during testing, or is expected. (i.e. the
+> location of the netfilter messages in dmesg remains unchanged
+> with respect to all the other surrounding messages.)
+> 
+> As for the module_exit, rather than replace it with __exitcall,
+> we simply remove it, since it appears only UML does anything
+> with those, and even for UML, there is no relevant cleanup
+> to be done here.
+> 
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> Cc: Patrick McHardy <kaber@trash.net>
+> Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: netfilter-devel@vger.kernel.org
+> Cc: netdev@vger.kernel.org
+> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
 
-On Wed, Jun 3, 2015 at 10:23 AM, Florian Westphal <fw@strlen.de> wrote:
-> Ryan Johnston <ryan@mediapixel.co.nz> wrote:
->> Yes with --queue-balance do I open a socket via nfq_open() per thread
->> or do I just have the one nfq_open() and have each thread call
->> nfq_create_queue only?
->
-> Apparently both is possible (I had to look it up :-/)
-> but i'd suggest to have one fd per queue, i.e. nfq_open() per thread.
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+Or I can integrate this into the nf-next tree if you prefer it.
+
+Thanks.
