@@ -1,70 +1,58 @@
-From: Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: Re: [PATCH 03/11] netfilter: don't use module_init/exit in core IPV4
- code
-Date: Wed, 3 Jun 2015 12:18:27 -0400
-Message-ID: <556F28D3.4060203@windriver.com>
-References: <1433120052-18281-1-git-send-email-paul.gortmaker@windriver.com> <1433120052-18281-4-git-send-email-paul.gortmaker@windriver.com> <20150603160429.GA3565@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Cc: <linux-kernel@vger.kernel.org>, Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	<netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20150603160429.GA3565@salvia>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] netlink_delinearize: restore listing of host byteorder set elements
+Date: Wed,  3 Jun 2015 20:16:41 +0200
+Message-ID: <1433355401-21332-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:51587 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756880AbbFCSLj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Jun 2015 14:11:39 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 15-06-03 12:04 PM, Pablo Neira Ayuso wrote:
-> On Sun, May 31, 2015 at 08:54:04PM -0400, Paul Gortmaker wrote:
->> The file net/ipv4/netfilter.o is created based on whether
->> CONFIG_NETFILTER is set.  However that is defined as a bool, and
->> hence this file with the core netfilter hooks will never be
->> modular.  So using module_init as an alias for __initcall can be
->> somewhat misleading.
->>
->> Fix this up now, so that we can relocate module_init from
->> init.h into module.h in the future.  If we don't do this, we'd
->> have to add module.h to obviously non-modular code, and that
->> would be a worse thing.  Also add an inclusion of init.h, as
->> that was previously implicit here in the netfilter.c file.
->>
->> Note that direct use of __initcall is discouraged, vs. one
->> of the priority categorized subgroups.  As __initcall gets
->> mapped onto device_initcall, our use of subsys_initcall (which
->> seems to make sense for netfilter code) will thus change this
->> registration from level 6-device to level 4-subsys (i.e. slightly
->> earlier).  However no observable impact of that small difference
->> has been observed during testing, or is expected. (i.e. the
->> location of the netfilter messages in dmesg remains unchanged
->> with respect to all the other surrounding messages.)
->>
->> As for the module_exit, rather than replace it with __exitcall,
->> we simply remove it, since it appears only UML does anything
->> with those, and even for UML, there is no relevant cleanup
->> to be done here.
->>
->> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
->> Cc: Patrick McHardy <kaber@trash.net>
->> Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
->> Cc: "David S. Miller" <davem@davemloft.net>
->> Cc: netfilter-devel@vger.kernel.org
->> Cc: netdev@vger.kernel.org
->> Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-> 
-> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> Or I can integrate this into the nf-next tree if you prefer it.
+before:
 
-I need to keep it in my series to avoid introducing compile
-fails into the bisect history, so I'll just add your Ack.
+table ip filter {
+        chain test {
+                cpu { 67108864, 50331648, 33554432}
+        }
+}
 
-Thanks,
-Paul.
---
+after:
 
-> 
-> Thanks.
-> 
+table ip filter {
+        chain test {
+                cpu { 4, 3, 2 }
+        }
+}
+
+Related to 525323352904 ("expr: add set_elem_expr as container for set element
+attributes").
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Note: This patch applies to the next-4.1 branch.
+
+ src/netlink_delinearize.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index b1ce911..ea60c86 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -824,6 +824,10 @@ static void integer_type_postprocess(struct expr *expr)
+ 			integer_type_postprocess(i);
+ 		}
+ 		break;
++	case EXPR_SET_ELEM:
++		expr_set_type(expr->key, expr->dtype, expr->byteorder);
++		integer_type_postprocess(expr->key);
++		break;
+ 	default:
+ 		break;
+ 	}
+-- 
+1.7.10.4
+
