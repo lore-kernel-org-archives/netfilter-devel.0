@@ -1,61 +1,53 @@
-From: Daniel Collins <daniel.collins@smoothwall.net>
-Subject: Possible bug when bridging traffic we just SNATed and sent to another router
-Date: Fri, 5 Jun 2015 15:14:47 +0100
-Message-ID: <CAOmdcgX+niENv18DKyn8BVZfwhYXmNcBCBoHVnrsEYWEJTtrhg@mail.gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: Possible bug when bridging traffic we just SNATed and sent to
+ another router
+Date: Fri, 5 Jun 2015 16:35:42 +0200
+Message-ID: <20150605143542.GH11015@breakpoint.cc>
+References: <CAOmdcgX+niENv18DKyn8BVZfwhYXmNcBCBoHVnrsEYWEJTtrhg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Daniel Collins <daniel.collins@smoothwall.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from exprod7og124.obsmtp.com ([64.18.2.26]:34692 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1423527AbbFEOV6 (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:38525 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S964774AbbFEOfn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jun 2015 10:21:58 -0400
-Received: by wgme6 with SMTP id e6so58080310wgm.2
-        for <netfilter-devel@vger.kernel.org>; Fri, 05 Jun 2015 07:21:56 -0700 (PDT)
+	Fri, 5 Jun 2015 10:35:43 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOmdcgX+niENv18DKyn8BVZfwhYXmNcBCBoHVnrsEYWEJTtrhg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi
+Daniel Collins <daniel.collins@smoothwall.net> wrote:
+> Hi
+> 
+> We have encountered problems when attempting to bridge packets that we
+> just sent, then saw a second time as the receiving router forwarded
+> them to another router attached to a different bridge port.
 
-We have encountered problems when attempting to bridge packets that we
-just sent, then saw a second time as the receiving router forwarded
-them to another router attached to a different bridge port.
+I have no idea what that means.
+-v please.
 
-This only occurs when SNAT was used on the original connection, this
-seems to prevent the original conntrack entry from being used for the
-bridged packet, instead creating a new one for them, our router's
-router then sends the replies directly to us (as you'd expect), but
-Linux only undoes the first layer of NAT and then discards the packet
-since a local socket for it doesn't exist.
+> This only occurs when SNAT was used on the original connection, this
+> seems to prevent the original conntrack entry from being used for the
+> bridged packet,
 
-This behaviour has been observed under 3.13 and 3.16, is it intended?
+Uhh.. what?
+Not following, sorry :-/
 
-We have considered either patching the kernel to undo multiple levels
-of NAT, or trying to resolve conntracks using a reversed tuple the
-raw/PREROUTING chain using a new iptables target, so that the original
-conntrack is used as it is when the SNAT target wasn't used.
+> instead creating a new one for them, our router's
 
-Would either of the proposed kernel changes be a
-horribly bad idea with unintended side effects? Is there a better way?
+If a new conntrack is created, then the skb did not (yet) have a conntrack
+entry or something has caused the conntrack to be destroyed/discarded.
 
-Thanks
+The latter typically happens with veth, or other
+virtualization/container use cases where skb_scrub_packet() is called.
 
--- 
-Daniel Collins
-Software Developer
+> router then sends the replies directly to us (as you'd expect), but
+> Linux only undoes the first layer of NAT and then discards the packet
+> since a local socket for it doesn't exist.
 
-smoothwall
-daniel.collins@smoothwall.com
-www.smoothwall.com
-
-Head Office : 1 John Charles Way, Leeds, LS12 6QA, United Kingdom
-Tech Office : Eagle Point, Little Park Farm Road, Fareham, PO15 5TD,
-United Kingdom
-US Office : 8008 Corporate Center Dr #410, Charlotte, NC 28226, United States
-
-Telephone: UK: +44 870-199-9500 US: +1 800-959-3760
-
-Smoothwall Limited is registered in England, Company Number: 4298247
-and whose registered address is 1 John Charles Way, Leeds, LS12 6QA
-United Kingdom.
+again, no idea what that means.  Please explain in more detail or
+provide some graph that describes what is connected where, how the
+routing happens and where bridge(s) are sitting.
