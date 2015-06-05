@@ -1,56 +1,73 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 1/2] datatype: default to display bitmask in hexadecimal
-Date: Fri,  5 Jun 2015 17:31:56 +0200
-Message-ID: <1433518317-9901-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: Daniel Collins <daniel.collins@smoothwall.net>
+Subject: Re: Possible bug when bridging traffic we just SNATed and sent to
+ another router
+Date: Fri, 5 Jun 2015 16:27:02 +0100
+Message-ID: <CAOmdcgVbFZ=DskdrYjx5-pb9KdmqnEtf-mXou7k2c8PUue6xPg@mail.gmail.com>
+References: <CAOmdcgX+niENv18DKyn8BVZfwhYXmNcBCBoHVnrsEYWEJTtrhg@mail.gmail.com>
+	<20150605143542.GH11015@breakpoint.cc>
+	<CAOmdcgVx6=3imz09QNW0eKU8Go=wZDHcWiKC8k2ki__af+rbAQ@mail.gmail.com>
+	<20150605150827.GJ11015@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58201 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754628AbbFEP1G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jun 2015 11:27:06 -0400
+Received: from exprod7og115.obsmtp.com ([64.18.2.217]:43888 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751692AbbFEP1F (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Jun 2015 11:27:05 -0400
+Received: by wgbgq6 with SMTP id gq6so59576047wgb.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 05 Jun 2015 08:27:03 -0700 (PDT)
+In-Reply-To: <20150605150827.GJ11015@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Instead of a plain integer.
+On 5 June 2015 at 16:08, Florian Westphal <fw@strlen.de> wrote:
 
-This updates integer_type_print() to look up some basefmt in the change of
-datatype, the first we find will be used to format the output.
+> So just to make sure:
+>
+> #1 Linux send skb from (local_addr,daddr)
+> #2 r1 forwards packet to r2
+> #3 Linux receives its own packet again, with (saddr local_addr, daddr)
+> #4 Linux creates a new conntrack entry since lookup for old one would
+> expect (local_addr is daddr) reply
+> #5 new conntrack is created, with PAT applied to resolve port clash
+> collision
+> #6 remote_addr sends reply, to local_addr
+> #7 we lookup conntrack, find the one without PAT translation applied
+> #8 we possibly toss the packet since PAT undo doesn't (yet) yield
+> skb with a socket.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/datatype.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+Yes
 
-diff --git a/src/datatype.c b/src/datatype.c
-index f93337b..82a7753 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -260,15 +260,22 @@ const struct datatype bitmask_type = {
- 	.type		= TYPE_BITMASK,
- 	.name		= "bitmask",
- 	.desc		= "bitmask",
-+	.basefmt	= "0x%Zx",
- 	.basetype	= &integer_type,
- };
- 
- static void integer_type_print(const struct expr *expr)
- {
-+	const struct datatype *dtype = expr->dtype;
- 	const char *fmt = "%Zu";
- 
--	if (expr->dtype->basefmt != NULL)
--		fmt = expr->dtype->basefmt;
-+	do {
-+		if (dtype->basefmt != NULL) {
-+			fmt = dtype->basefmt;
-+			break;
-+		}
-+	} while ((dtype = dtype->basetype));
-+
- 	gmp_printf(fmt, expr->value);
- }
- 
+> I'd recommend to fix this setup... If that can't be done, can you
+> suppress creation of 2nd conntrack entry?
+
+This configuration has been used by a small handful of our customers,
+we are probably going to get them to fix their routing tables.
+
+> It should be possible via "-t raw -s local_address -j CT --notrack".
+
+Considered this, but doesn't work for us in all cases (tproxy!).
+
+Thanks
+
 -- 
-1.7.10.4
+Daniel Collins
+Software Developer
 
+smoothwall
+daniel.collins@smoothwall.com
+www.smoothwall.com
+
+Head Office : 1 John Charles Way, Leeds, LS12 6QA, United Kingdom
+Tech Office : Eagle Point, Little Park Farm Road, Fareham, PO15 5TD,
+United Kingdom
+US Office : 8008 Corporate Center Dr #410, Charlotte, NC 28226, United States
+
+Telephone: UK: +44 870-199-9500 US: +1 800-959-3760
+
+Smoothwall Limited is registered in England, Company Number: 4298247
+and whose registered address is 1 John Charles Way, Leeds, LS12 6QA
+United Kingdom.
