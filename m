@@ -1,68 +1,103 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [patch] ipvs: prevent some underflows
-Date: Fri, 5 Jun 2015 12:33:15 +0300
-Message-ID: <20150605093315.GD24871@mwanda>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nft] netlink_delinearize: restore listing of host
+ byteorder set elements
+Date: Fri, 5 Jun 2015 12:08:30 +0200
+Message-ID: <20150605100830.GB1613@acer.localdomain>
+References: <1433355401-21332-1-git-send-email-pablo@netfilter.org>
+ <20150604022340.GA13221@acer.localdomain>
+ <20150604203031.GA25026@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	kernel-janitors@vger.kernel.org
-To: Wensong Zhang <wensong@linux-vs.org>
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:58152 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753796AbbFEKIe (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Jun 2015 06:08:34 -0400
 Content-Disposition: inline
-Sender: kernel-janitors-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20150604203031.GA25026@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Quite a few drivers allow very low settings for dev->mtu.  My static
-checker complains this could cause some underflow problems when we do
-the subtractions in set_sync_mesg_maxlen().
+On 04.06, Pablo Neira Ayuso wrote:
+> On Thu, Jun 04, 2015 at 04:23:40AM +0200, Patrick McHardy wrote:
+> > On 03.06, Pablo Neira Ayuso wrote:
+> > The fundamental problem is that this is that integers are a special case where
+> > we don't always have enough context to properly restore. Literal sets can work
+> > because we by definition have a LHS, but it is impossible to fix for named sets.
+> >
+> > IMO the correct solution is to use endian encoding for integers. Special case
+> > the special case, basically. By that I don't mean internally using be_integer
+> > and le_integer, but to only do it on the lowest possible level, set type
+> > declarations. Our default encoding is BE, so we add a LE integer type and *only*
+> > use it for set type declarations and immediately when delinearizing map it back
+> > to a regular integer, but adjust the byteorder appropriately.
+> > 
+> > This will fix both problems, and we can (need to) get rid of the
+> > integer_type_postprocess(), which can only work for literal sets.
+> 
+> I think I'm still in trouble to resolve another (follow up related)
+> problem:
+> 
+> If I want to create a named set that contains 'meta cpu' this selector
+> currently relies on the generic integer type:
+> 
+> # nft add set filter mycpuset { type integer\; }
+> <cmdline>:1:19-33: Error: unqualified key data type specified in set definition
+> add set test test { type integer; }
+>                   ^^^^^^^^^^^^^^^
+> 
+> this fails because integer_type lacks of byteorder and size.
 
-I don't know that it's harmful necessarily, but it seems like an easy
-thing to prevent the underflows.
+Right.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
-Please review this one carefully, because I'm not very sure of myself
-here.
+> I made a quick patch to add specific types for set declarations, eg.
+> 
+> # nft add set test test { type cpu32; }
+> 
+> We would have, let's say: u8, cpu16, cpu32, cpu64, be16, be32, be64,
+> whose base datatype is the generic integer_type.
+> 
+> This would also allow us to define named sets that contain elements to
+> be use with any kind of (integer_type) selector.
+> 
+> As you said, when declaring named sets we need to know the type since
+> we have no LHS as this is not yet referenced, this would provide the
+> specific datatype definition.
+> 
+> But if we end up having these specific integer types are in place, I
+> fail to see why we should not use them consistently everywhere, no
+> matter if this is a literal set, named set or any kind of simple
+> comparison.
+> 
+> Am I missing anything?
+> 
+> Please advice. Thanks!
 
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index b08ba95..b4e148b 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -1352,7 +1352,7 @@ static int set_sync_mesg_maxlen(struct net *net, int sync_state)
- {
- 	struct netns_ipvs *ipvs = net_ipvs(net);
- 	struct net_device *dev;
--	int num;
-+	unsigned int num;
- 
- 	if (sync_state == IP_VS_STATE_MASTER) {
- 		dev = __dev_get_by_name(net, ipvs->master_mcast_ifn);
-@@ -1363,7 +1363,8 @@ static int set_sync_mesg_maxlen(struct net *net, int sync_state)
- 		       sizeof(struct udphdr) -
- 		       SYNC_MESG_HEADER_LEN - 20) / SIMPLE_CONN_SIZE;
- 		ipvs->send_mesg_maxlen = SYNC_MESG_HEADER_LEN +
--			SIMPLE_CONN_SIZE * min(num, MAX_CONNS_PER_SYNCBUFF);
-+			SIMPLE_CONN_SIZE * min_t(uint, num,
-+						 MAX_CONNS_PER_SYNCBUFF);
- 		IP_VS_DBG(7, "setting the maximum length of sync sending "
- 			  "message %d.\n", ipvs->send_mesg_maxlen);
- 	} else if (sync_state == IP_VS_STATE_BACKUP) {
-@@ -1371,8 +1372,11 @@ static int set_sync_mesg_maxlen(struct net *net, int sync_state)
- 		if (!dev)
- 			return -ENODEV;
- 
--		ipvs->recv_mesg_maxlen = dev->mtu -
--			sizeof(struct iphdr) - sizeof(struct udphdr);
-+		if (dev->mtu < sizeof(struct iphdr) + sizeof(struct udphdr))
-+			ipvs->recv_mesg_maxlen = 0;
-+		else
-+			ipvs->recv_mesg_maxlen = dev->mtu -
-+				sizeof(struct iphdr) - sizeof(struct udphdr);
- 		IP_VS_DBG(7, "setting the maximum length of sync receiving "
- 			  "message %d.\n", ipvs->recv_mesg_maxlen);
- 	}
+The main reason is that we have integer type specific handling that would
+then need to check for all possible types. Internally we don't really need
+those types if we properly qualify an instantiated integer since our
+datatypes specify both byteorder and size. So my idea was to map those
+as soon as we have all the required information to keep the code simpler.
+
+Regarding the set declarations - I do not like the idea of having the
+user deal with byteorder and type widths directly. I'd rather add a
+cpu_id type for this specific case.
+
+I don't think we have more meta types that use plain integers. This
+leaves the question of how to deal with packet data. This uXX/beXX
+types unfortunately also don't solve this completely. The DCCP protocol
+for instance uses 48 bits for its sequence numbers. Its of course
+rather unlikely that it makes any sense to use sets for this, but
+it illustrates the problem.
+
+An alternative idea would be that instead of specifying a data type,
+we allow to specify an expression type that the set should hold.
+F.i.
+
+add set filter test { typeof meta cpu; }
+add set filter test { typeof dccp seqno; }
+
+What do you think about that?
