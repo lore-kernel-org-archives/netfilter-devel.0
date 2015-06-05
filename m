@@ -1,76 +1,114 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH] netfilter: bridge: restore vlan tag when refragmenting
-Date: Fri,  5 Jun 2015 13:27:13 +0200
-Message-ID: <1433503633-16312-1-git-send-email-fw@strlen.de>
-Cc: eric.dumazet@gmail.com, Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft] netlink_delinearize: restore listing of host
+ byteorder set elements
+Date: Fri, 5 Jun 2015 13:33:10 +0200
+Message-ID: <20150605113310.GA3317@salvia>
+References: <1433355401-21332-1-git-send-email-pablo@netfilter.org>
+ <20150604022340.GA13221@acer.localdomain>
+ <20150604203031.GA25026@salvia>
+ <20150605100830.GB1613@acer.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:38176 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752008AbbFEL1R (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jun 2015 07:27:17 -0400
+Received: from mail.us.es ([193.147.175.20]:39712 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752008AbbFEL2A (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Jun 2015 07:28:00 -0400
+Content-Disposition: inline
+In-Reply-To: <20150605100830.GB1613@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If bridge netfilter is used with both
-bridge-nf-call-iptables and bridge-nf-filter-vlan-tagged enabled
-then ip fragments in VLAN frames are sent without the vlan header.
+On Fri, Jun 05, 2015 at 12:08:30PM +0200, Patrick McHardy wrote:
+> On 04.06, Pablo Neira Ayuso wrote:
+[...]
+> > I made a quick patch to add specific types for set declarations, eg.
+> > 
+> > # nft add set test test { type cpu32; }
+> > 
+> > We would have, let's say: u8, cpu16, cpu32, cpu64, be16, be32, be64,
+> > whose base datatype is the generic integer_type.
+> > 
+> > This would also allow us to define named sets that contain elements to
+> > be use with any kind of (integer_type) selector.
+> > 
+> > As you said, when declaring named sets we need to know the type since
+> > we have no LHS as this is not yet referenced, this would provide the
+> > specific datatype definition.
+> > 
+> > But if we end up having these specific integer types are in place, I
+> > fail to see why we should not use them consistently everywhere, no
+> > matter if this is a literal set, named set or any kind of simple
+> > comparison.
+> > 
+> > Am I missing anything?
+> > 
+> > Please advice. Thanks!
+> 
+> The main reason is that we have integer type specific handling that would
+> then need to check for all possible types. Internally we don't really need
+> those types if we properly qualify an instantiated integer since our
+> datatypes specify both byteorder and size. So my idea was to map those
+> as soon as we have all the required information to keep the code simpler.
+> 
+> Regarding the set declarations - I do not like the idea of having the
+> user deal with byteorder and type widths directly. I'd rather add a
+> cpu_id type for this specific case.
+> 
+> I don't think we have more meta types that use plain integers. This
+> leaves the question of how to deal with packet data. This uXX/beXX
+> types unfortunately also don't solve this completely. The DCCP protocol
+> for instance uses 48 bits for its sequence numbers. Its of course
+> rather unlikely that it makes any sense to use sets for this, but
+> it illustrates the problem.
+> 
+> An alternative idea would be that instead of specifying a data type,
+> we allow to specify an expression type that the set should hold.
+> F.i.
+> 
+> add set filter test { typeof meta cpu; }
+> add set filter test { typeof dccp seqno; }
+> 
+> What do you think about that?
 
-This has never worked reliably.  Turns out this relied on pre-3.5
-behaviour where skb frag_list was used to store ip fragments;
-ip_fragment() then re-used these skbs.
+I like your typeof idea so the user doesn't need to know the specific
+datatype. However, when listing an unreferenced named set back to
+userspace I think we won't have enough context to reconstruct this
+from the keytype, right?
 
-But since commit 3cc4949269e01f39443d0fcfffb5bc6b47878d45
-("ipv4: use skb coalescing in defragmentation") this is no longer
-the case.  ip_do_fragment now needs to allocate new skbs, but these
-don't contain the vlan tag information anymore.
+Going back to the original endianess problem in literal sets using
+integer types, eg.
 
-Fix it by storing vlan information of the ressembled skb in the
-br netfilter percpu frag area, and restore them for each of the
-fragments.
+        cpu { 50331648}
+        meta length { 50331648}
+        cgroup { 50331648}
 
-Fixes: 3cc4949269e01f3 ("ipv4: use skb coalescing in defragmentation")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/bridge/br_netfilter.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+The choices I see here at this moment is:
 
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index 46660a2..0d9ad4a 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -115,6 +115,8 @@ struct brnf_frag_data {
- 	char mac[NF_BRIDGE_MAX_MAC_HEADER_LENGTH];
- 	u8 encap_size;
- 	u8 size;
-+	u16 vlan_tci;
-+	__be16 vlan_proto;
- };
+1) Keep integer_type_postprocess() in place and rely on the LHS.
+   Basically, something very similar to what I sent in this original
+   patch.
+
+2) Add something like host_integer_type so we can encode the
+   endianness into the set keytype, then use it from the evaluation
+   step. Thus, we can kill integer_type_postprocess().
+
+ --- a/src/evaluate.c
+ +++ b/src/evaluate.c
+ @@ -942,6 +942,10 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, str
  
- static DEFINE_PER_CPU(struct brnf_frag_data, brnf_frag_data_storage);
-@@ -837,6 +839,11 @@ static int br_nf_push_frag_xmit(struct sock *sk, struct sk_buff *skb)
- 		return 0;
- 	}
- 
-+	if (data->vlan_tci) {
-+		skb->vlan_tci = data->vlan_tci;
-+		skb->vlan_proto = data->vlan_proto;
-+	}
-+
- 	skb_copy_to_linear_data_offset(skb, -data->size, data->mac, data->size);
- 	__skb_push(skb, data->encap_size);
- 
-@@ -890,6 +897,9 @@ static int br_nf_dev_queue_xmit(struct sock *sk, struct sk_buff *skb)
- 		nf_bridge_update_protocol(skb);
- 
- 		data = this_cpu_ptr(&brnf_frag_data_storage);
-+
-+		data->vlan_tci = skb->vlan_tci;
-+		data->vlan_proto = skb->vlan_proto;
- 		data->encap_size = nf_bridge_encap_header_len(skb);
- 		data->size = ETH_HLEN + data->encap_size;
- 
--- 
-2.0.5
+        switch (rel->op) {
+        case OP_LOOKUP:
+ +               if (left->dtype == &integer_type &&
+ +                   left->byteorder == BYTEORDER_HOST_ENDIAN)
+ +                       left->dtype = &host_integer_type;
 
+I think we can use this type for set declarations too while keytypes
+in both literal and named sets will look the same. I'm still in doubt
+on how to address the integer size without specific types.
+
+Let me know if you can pull out any better solution from your hat :).
+
+Thanks!
