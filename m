@@ -1,55 +1,86 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH nft 0/9] concat support
-Date: Fri,  5 Jun 2015 15:42:42 +0200
-Message-ID: <1433511771-4620-1-git-send-email-kaber@trash.net>
+Subject: [PATCH nft 2/9] headers: sync headers for new register values
+Date: Fri,  5 Jun 2015 15:42:44 +0200
+Message-ID: <1433511771-4620-3-git-send-email-kaber@trash.net>
+References: <1433511771-4620-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59931 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:59936 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751376AbbFENmy (ORCPT
+	with ESMTP id S1750877AbbFENmz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jun 2015 09:42:54 -0400
+	Fri, 5 Jun 2015 09:42:55 -0400
+In-Reply-To: <1433511771-4620-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The following patches add support for concatenations to nft. 
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ include/linux/netfilter/nf_tables.h | 34 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
 
-The series begins by changing register allocation to take the real size
-of an expression into account and allocate an approriate number of 32
-bit registers. This is however only done when concatenations are actually
-used, so in all other cases we'll continue to use 128 bit registers
-for compatibility.
-
-The next part is delinearization, which maps the new registers numbers
-appropriately and changes individual expression reconstruction to build
-concat expression when indicated by the LHS and RHS sizes.
-
-The final patch changes set element delinearization to reconstruct the
-concat expression in set elements when indicated by the key type of the
-set.
-
-
-Patrick McHardy (9):
-  eval: prohibit variable sized types in concat expressions
-  headers: sync headers for new register values
-  netlink: pass expression to register allocation/release functions
-  netlink_linearize: use NFT_REG32 values internally
-  netlink_linearize: generate concat expressions
-  netlink: pad constant concat sub-expressions
-  netlink_delinearize: introduce register translation helper
-  netlink_delinearize: handle relational and lookup concat expressions
-  netlink: handle concat expressions in set data
-
- include/linux/netfilter/nf_tables.h |  34 +++++++++-
- include/netlink.h                   |  15 +++++
- src/datatype.c                      |   5 +-
- src/evaluate.c                      |   7 ++
- src/netlink.c                       |  46 ++++++++++---
- src/netlink_delinearize.c           | 130 ++++++++++++++++++++++++++++++++----
- src/netlink_linearize.c             | 105 ++++++++++++++++++++---------
- 7 files changed, 288 insertions(+), 54 deletions(-)
-
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 0e96443..33056dc 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -4,16 +4,45 @@
+ #define NFT_CHAIN_MAXNAMELEN	32
+ #define NFT_USERDATA_MAXLEN	256
+ 
++/**
++ * enum nft_registers - nf_tables registers
++ *
++ * nf_tables used to have five registers: a verdict register and four data
++ * registers of size 16. The data registers have been changed to 16 registers
++ * of size 4. For compatibility reasons, the NFT_REG_[1-4] registers still
++ * map to areas of size 16, the 4 byte registers are addressed using
++ * NFT_REG32_00 - NFT_REG32_15.
++ */
+ enum nft_registers {
+ 	NFT_REG_VERDICT,
+ 	NFT_REG_1,
+ 	NFT_REG_2,
+ 	NFT_REG_3,
+ 	NFT_REG_4,
+-	__NFT_REG_MAX
++	__NFT_REG_MAX,
++
++	NFT_REG32_00	= 8,
++	MFT_REG32_01,
++	NFT_REG32_02,
++	NFT_REG32_03,
++	NFT_REG32_04,
++	NFT_REG32_05,
++	NFT_REG32_06,
++	NFT_REG32_07,
++	NFT_REG32_08,
++	NFT_REG32_09,
++	NFT_REG32_10,
++	NFT_REG32_11,
++	NFT_REG32_12,
++	NFT_REG32_13,
++	NFT_REG32_14,
++	NFT_REG32_15,
+ };
+ #define NFT_REG_MAX	(__NFT_REG_MAX - 1)
+ 
++#define NFT_REG_SIZE	16
++#define NFT_REG32_SIZE	4
++
+ /**
+  * enum nft_verdicts - nf_tables internal verdicts
+  *
+@@ -358,6 +387,9 @@ enum nft_data_attributes {
+ };
+ #define NFTA_DATA_MAX		(__NFTA_DATA_MAX - 1)
+ 
++/* Maximum length of a value */
++#define NFT_DATA_VALUE_MAXLEN	64
++
+ /**
+  * enum nft_verdict_attributes - nf_tables verdict netlink attributes
+  *
 -- 
 2.1.0
 
