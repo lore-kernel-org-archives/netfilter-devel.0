@@ -1,81 +1,55 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nft netdev family bindings
-Date: Fri, 5 Jun 2015 17:59:22 +0200
-Message-ID: <20150605155922.GC4024@acer.localdomain>
-References: <20150605133533.GA4024@acer.localdomain>
- <20150605155827.GA3505@salvia>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: Possible bug when bridging traffic we just SNATed and sent to
+ another router
+Date: Fri, 5 Jun 2015 18:38:01 +0200
+Message-ID: <20150605163801.GK11015@breakpoint.cc>
+References: <CAOmdcgX+niENv18DKyn8BVZfwhYXmNcBCBoHVnrsEYWEJTtrhg@mail.gmail.com>
+ <20150605143542.GH11015@breakpoint.cc>
+ <CAOmdcgVx6=3imz09QNW0eKU8Go=wZDHcWiKC8k2ki__af+rbAQ@mail.gmail.com>
+ <20150605150827.GJ11015@breakpoint.cc>
+ <CAOmdcgVbFZ=DskdrYjx5-pb9KdmqnEtf-mXou7k2c8PUue6xPg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Daniel Collins <daniel.collins@smoothwall.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60989 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752025AbbFEP70 (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:38760 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1422908AbbFEQiE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jun 2015 11:59:26 -0400
+	Fri, 5 Jun 2015 12:38:04 -0400
 Content-Disposition: inline
-In-Reply-To: <20150605155827.GA3505@salvia>
+In-Reply-To: <CAOmdcgVbFZ=DskdrYjx5-pb9KdmqnEtf-mXou7k2c8PUue6xPg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 05.06, Pablo Neira Ayuso wrote:
-> On Fri, Jun 05, 2015 at 03:35:33PM +0200, Patrick McHardy wrote:
-> > Hi Pablo,
-> > 
-> > looking at the netdev syntax:
-> > 
-> > table netdev eth0 {
-> > 	device eth0;
-> > 	...
-> > 
-> > I think this "device" specification is inconsistent with out normal use
-> > of handles. Usually the table_spec contains the fully qualified handle,
-> > which in this case needs to include the device.
-> > 
-> > Consider:
-> > 
-> > table netdev somename {
-> > 	device eth0;
-> > 	...
-> > 
-> > table netdev somename {
-> > 	device eth1;
-> > 	...
+Daniel Collins <daniel.collins@smoothwall.net> wrote:
+> > So just to make sure:
+> >
+> > #1 Linux send skb from (local_addr,daddr)
+> > #2 r1 forwards packet to r2
+> > #3 Linux receives its own packet again, with (saddr local_addr, daddr)
+> > #4 Linux creates a new conntrack entry since lookup for old one would
+> > expect (local_addr is daddr) reply
+> > #5 new conntrack is created, with PAT applied to resolve port clash
+> > collision
+> > #6 remote_addr sends reply, to local_addr
+> > #7 we lookup conntrack, find the one without PAT translation applied
+> > #8 we possibly toss the packet since PAT undo doesn't (yet) yield
+> > skb with a socket.
 > 
-> I see, you mean the same name:
+> Yes
 > 
-> # nft add table netdev somename { device eth0 \; }
-> # nft add table netdev somename { device eth1 \; }
+> > I'd recommend to fix this setup... If that can't be done, can you
+> > suppress creation of 2nd conntrack entry?
 > 
-> I can see this is not working fine now, since the second invocation is
-> considered an update. But the kernel should bail out with EBUSY IMO.
+> This configuration has been used by a small handful of our customers,
+> we are probably going to get them to fix their routing tables.
 > 
-> > Without including the device in the table handle, the name alone is amiguitios.
+> > It should be possible via "-t raw -s local_address -j CT --notrack".
 > 
-> The table name should be unique as with other families. Then, probably
-> the device doesn't belong to the handle.
+> Considered this, but doesn't work for us in all cases (tproxy!).
 
-Yes, I considered every device a single namespace, but thinking about it
-again, it seems more consistent to treat netdev as any other family and
-treat devices similar to base chains. In that case though, it would be
-more consistent to have the device specification not on a table level,
-but on a chain level. So we could have multiple devices as base chains
-in a single table, just as we have multiple hooks in other families.
+TPROXY doesn't depend on conntrack.
 
-> > I'd propose to use
-> > 
-> > table netdev <dev> <name>
-> > 
-> > Just as we have the family in the handle.
-> 
-> I've considering to allow to bind a table to an input device from
-> other families as something optional. From the hardware offload
-> perspective we would need this too if we want to offload the
-> forwarding table.
-> 
-> Let me know, thanks!
-
-I think we need to hash out how specifically this will work before
-we make such decisions. I think the ideas are still to abstract to
-add something like this at this point.
+But other than the notrack suggestion i don't have any ideas.
