@@ -1,236 +1,92 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH nft 3/9] netlink: pass expression to register allocation/release functions
-Date: Fri,  5 Jun 2015 15:42:45 +0200
-Message-ID: <1433511771-4620-4-git-send-email-kaber@trash.net>
+Subject: [PATCH nft 9/9] netlink: handle concat expressions in set data
+Date: Fri,  5 Jun 2015 15:42:51 +0200
+Message-ID: <1433511771-4620-10-git-send-email-kaber@trash.net>
 References: <1433511771-4620-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59937 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:59950 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751474AbbFENmz (ORCPT
+	with ESMTP id S1751149AbbFENm4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jun 2015 09:42:55 -0400
+	Fri, 5 Jun 2015 09:42:56 -0400
 In-Reply-To: <1433511771-4620-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Prepare for taking the expression size into account.
+Reconstruct the concat expressions in set data by splicing off the
+subtype values based on the keytype of the set.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Patrick McHardy
 ---
- src/netlink_linearize.c | 54 +++++++++++++++++++++++++------------------------
- 1 file changed, 28 insertions(+), 26 deletions(-)
+ src/datatype.c |  2 +-
+ src/netlink.c  | 32 ++++++++++++++++++++++++++++++++
+ 2 files changed, 33 insertions(+), 1 deletion(-)
 
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index fbc6ae1..beeb0c2 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -30,14 +30,16 @@ static void netlink_put_register(struct nft_rule_expr *nle,
- 	nft_rule_expr_set_u32(nle, attr, reg);
+diff --git a/src/datatype.c b/src/datatype.c
+index a06a58e..ca83426 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -932,7 +932,7 @@ const struct datatype *concat_type_alloc(uint32_t type)
+ 	unsigned int size = 0, subtypes = 0, n;
+ 
+ 	n = div_round_up(fls(type), TYPE_BITS);
+-	while (concat_subtype_id(type, --n)) {
++	while (n > 0 && concat_subtype_id(type, --n)) {
+ 		i = concat_subtype_lookup(type, n);
+ 		if (i == NULL)
+ 			return NULL;
+diff --git a/src/netlink.c b/src/netlink.c
+index 3369d22..1167c95 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -1383,6 +1383,36 @@ static int netlink_del_setelems_compat(struct netlink_ctx *ctx,
+ 	return err;
  }
  
--static enum nft_registers get_register(struct netlink_linearize_ctx *ctx)
-+static enum nft_registers get_register(struct netlink_linearize_ctx *ctx,
-+				       const struct expr *expr)
++static struct expr *netlink_parse_concat_elem(const struct datatype *dtype,
++					      struct expr *data)
++{
++	const struct datatype *subtype;
++	struct expr *concat, *expr;
++	int off = dtype->subtypes;
++
++	concat = concat_expr_alloc(&data->location);
++	while (off > 0) {
++		subtype = concat_subtype_lookup(dtype->type, --off);
++
++		expr		= constant_expr_splice(data, subtype->size);
++		expr->dtype     = subtype;
++		expr->byteorder = subtype->byteorder;
++
++		if (expr->byteorder == BYTEORDER_HOST_ENDIAN)
++			mpz_switch_byteorder(expr->value, expr->len / BITS_PER_BYTE);
++
++		if (expr->dtype->basetype != NULL &&
++		    expr->dtype->basetype->type == TYPE_BITMASK)
++			expr = bitmask_expr_to_binops(expr);
++
++		compound_expr_add(concat, expr);
++		data->len -= netlink_padding_len(expr->len);
++	}
++	expr_free(data);
++
++	return concat;
++}
++
+ static int netlink_delinearize_setelem(struct nft_set_elem *nlse,
+ 				       struct set *set)
  {
- 	if (ctx->reg_low > NFT_REG_MAX)
- 		BUG("register reg_low %u invalid\n", ctx->reg_low);
- 	return ctx->reg_low++;
- }
+@@ -1398,6 +1428,8 @@ static int netlink_delinearize_setelem(struct nft_set_elem *nlse,
+ 	key = netlink_alloc_value(&netlink_location, &nld);
+ 	key->dtype	= set->keytype;
+ 	key->byteorder	= set->keytype->byteorder;
++	if (set->keytype->subtypes)
++		key = netlink_parse_concat_elem(set->keytype, key);
  
--static void release_register(struct netlink_linearize_ctx *ctx)
-+static void release_register(struct netlink_linearize_ctx *ctx,
-+			     const struct expr *expr)
- {
- 	ctx->reg_low--;
- }
-@@ -124,7 +126,7 @@ static void netlink_gen_map(struct netlink_linearize_ctx *ctx,
- 	assert(expr->mappings->ops->type == EXPR_SET_REF);
- 
- 	if (dreg == NFT_REG_VERDICT)
--		sreg = get_register(ctx);
-+		sreg = get_register(ctx, expr->map);
- 	else
- 		sreg = dreg;
- 
-@@ -139,7 +141,7 @@ static void netlink_gen_map(struct netlink_linearize_ctx *ctx,
- 			      expr->mappings->set->handle.set_id);
- 
- 	if (dreg == NFT_REG_VERDICT)
--		release_register(ctx);
-+		release_register(ctx, expr->map);
- 
- 	nft_rule_add_expr(ctx->nlr, nle);
- }
-@@ -154,7 +156,7 @@ static void netlink_gen_lookup(struct netlink_linearize_ctx *ctx,
- 	assert(expr->right->ops->type == EXPR_SET_REF);
- 	assert(dreg == NFT_REG_VERDICT);
- 
--	sreg = get_register(ctx);
-+	sreg = get_register(ctx, expr->left);
- 	netlink_gen_expr(ctx, expr->left, sreg);
- 
- 	nle = alloc_nft_expr("lookup");
-@@ -164,7 +166,7 @@ static void netlink_gen_lookup(struct netlink_linearize_ctx *ctx,
- 	nft_rule_expr_set_u32(nle, NFT_EXPR_LOOKUP_SET_ID,
- 			      expr->right->set->handle.set_id);
- 
--	release_register(ctx);
-+	release_register(ctx, expr->left);
- 	nft_rule_add_expr(ctx->nlr, nle);
- }
- 
-@@ -206,7 +208,7 @@ static void netlink_gen_cmp(struct netlink_linearize_ctx *ctx,
- 	if (expr->right->ops->type == EXPR_RANGE)
- 		return netlink_gen_range(ctx, expr, dreg);
- 
--	sreg = get_register(ctx);
-+	sreg = get_register(ctx, expr->left);
- 	netlink_gen_expr(ctx, expr->left, sreg);
- 
- 	switch (expr->right->ops->type) {
-@@ -242,7 +244,7 @@ static void netlink_gen_cmp(struct netlink_linearize_ctx *ctx,
- 			      netlink_gen_cmp_op(expr->op));
- 	netlink_gen_data(right, &nld);
- 	nft_rule_expr_set(nle, NFT_EXPR_CMP_DATA, nld.value, nld.len);
--	release_register(ctx);
-+	release_register(ctx, expr->left);
- 
- 	nft_rule_add_expr(ctx->nlr, nle);
- }
-@@ -258,7 +260,7 @@ static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
- 
- 	assert(dreg == NFT_REG_VERDICT);
- 
--	sreg = get_register(ctx);
-+	sreg = get_register(ctx, expr->left);
- 	netlink_gen_expr(ctx, expr->left, sreg);
- 
- 	nle = alloc_nft_expr("cmp");
-@@ -301,7 +303,7 @@ static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
- 	nft_rule_expr_set(nle, NFT_EXPR_CMP_DATA, nld.value, nld.len);
- 	nft_rule_add_expr(ctx->nlr, nle);
- 
--	release_register(ctx);
-+	release_register(ctx, expr->left);
- }
- 
- static void netlink_gen_flagcmp(struct netlink_linearize_ctx *ctx,
-@@ -316,7 +318,7 @@ static void netlink_gen_flagcmp(struct netlink_linearize_ctx *ctx,
- 
- 	assert(dreg == NFT_REG_VERDICT);
- 
--	sreg = get_register(ctx);
-+	sreg = get_register(ctx, expr->left);
- 	netlink_gen_expr(ctx, expr->left, sreg);
- 	len = div_round_up(expr->left->len, BITS_PER_BYTE);
- 
-@@ -340,7 +342,7 @@ static void netlink_gen_flagcmp(struct netlink_linearize_ctx *ctx,
- 	nft_rule_add_expr(ctx->nlr, nle);
- 
- 	mpz_clear(zero);
--	release_register(ctx);
-+	release_register(ctx, expr->left);
- }
- 
- static void netlink_gen_relational(struct netlink_linearize_ctx *ctx,
-@@ -565,9 +567,9 @@ static void netlink_gen_meta_stmt(struct netlink_linearize_ctx *ctx,
- 	struct nft_rule_expr *nle;
- 	enum nft_registers sreg;
- 
--	sreg = get_register(ctx);
-+	sreg = get_register(ctx, stmt->meta.expr);
- 	netlink_gen_expr(ctx, stmt->meta.expr, sreg);
--	release_register(ctx);
-+	release_register(ctx, stmt->meta.expr);
- 
- 	nle = alloc_nft_expr("meta");
- 	netlink_put_register(nle, NFT_EXPR_META_SREG, sreg);
-@@ -647,11 +649,11 @@ static void netlink_gen_nat_stmt(struct netlink_linearize_ctx *ctx,
- 		nft_rule_expr_set_u32(nle, NFT_EXPR_NAT_FLAGS, stmt->nat.flags);
- 
- 	if (stmt->nat.addr) {
--		amin_reg = get_register(ctx);
-+		amin_reg = get_register(ctx, NULL);
- 		registers++;
- 
- 		if (stmt->nat.addr->ops->type == EXPR_RANGE) {
--			amax_reg = get_register(ctx);
-+			amax_reg = get_register(ctx, NULL);
- 			registers++;
- 
- 			netlink_gen_expr(ctx, stmt->nat.addr->left, amin_reg);
-@@ -669,11 +671,11 @@ static void netlink_gen_nat_stmt(struct netlink_linearize_ctx *ctx,
- 	}
- 
- 	if (stmt->nat.proto) {
--		pmin_reg = get_register(ctx);
-+		pmin_reg = get_register(ctx, NULL);
- 		registers++;
- 
- 		if (stmt->nat.proto->ops->type == EXPR_RANGE) {
--			pmax_reg = get_register(ctx);
-+			pmax_reg = get_register(ctx, NULL);
- 			registers++;
- 
- 			netlink_gen_expr(ctx, stmt->nat.proto->left, pmin_reg);
-@@ -690,7 +692,7 @@ static void netlink_gen_nat_stmt(struct netlink_linearize_ctx *ctx,
- 	}
- 
- 	while (registers > 0) {
--		release_register(ctx);
-+		release_register(ctx, NULL);
- 		registers--;
- 	}
- 
-@@ -724,11 +726,11 @@ static void netlink_gen_redir_stmt(struct netlink_linearize_ctx *ctx,
- 				      stmt->redir.flags);
- 
- 	if (stmt->redir.proto) {
--		pmin_reg = get_register(ctx);
-+		pmin_reg = get_register(ctx, NULL);
- 		registers++;
- 
- 		if (stmt->redir.proto->ops->type == EXPR_RANGE) {
--			pmax_reg = get_register(ctx);
-+			pmax_reg = get_register(ctx, NULL);
- 			registers++;
- 
- 			netlink_gen_expr(ctx, stmt->redir.proto->left,
-@@ -750,7 +752,7 @@ static void netlink_gen_redir_stmt(struct netlink_linearize_ctx *ctx,
- 	}
- 
- 	while (registers > 0) {
--		release_register(ctx);
-+		release_register(ctx, NULL);
- 		registers--;
- 	}
- 
-@@ -791,9 +793,9 @@ static void netlink_gen_ct_stmt(struct netlink_linearize_ctx *ctx,
- 	struct nft_rule_expr *nle;
- 	enum nft_registers sreg;
- 
--	sreg = get_register(ctx);
-+	sreg = get_register(ctx, stmt->ct.expr);
- 	netlink_gen_expr(ctx, stmt->ct.expr, sreg);
--	release_register(ctx);
-+	release_register(ctx, stmt->ct.expr);
- 
- 	nle = alloc_nft_expr("ct");
- 	netlink_put_register(nle, NFT_EXPR_CT_SREG, sreg);
-@@ -807,9 +809,9 @@ static void netlink_gen_set_stmt(struct netlink_linearize_ctx *ctx,
- 	struct nft_rule_expr *nle;
- 	enum nft_registers sreg_key;
- 
--	sreg_key = get_register(ctx);
-+	sreg_key = get_register(ctx, stmt->set.key);
- 	netlink_gen_expr(ctx, stmt->set.key, sreg_key);
--	release_register(ctx);
-+	release_register(ctx, stmt->set.key);
- 
- 	nle = alloc_nft_expr("dynset");
- 	netlink_put_register(nle, NFT_EXPR_DYNSET_SREG_KEY, sreg_key);
+ 	if (!(set->flags & SET_F_INTERVAL) &&
+ 	    key->byteorder == BYTEORDER_HOST_ENDIAN)
 -- 
 2.1.0
 
