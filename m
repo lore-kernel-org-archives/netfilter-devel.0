@@ -1,129 +1,84 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH nft 4/9] netlink_linearize: use NFT_REG32 values internally
-Date: Fri,  5 Jun 2015 15:42:46 +0200
-Message-ID: <1433511771-4620-5-git-send-email-kaber@trash.net>
+Subject: [PATCH nft 7/9] netlink_delinearize: introduce register translation helper
+Date: Fri,  5 Jun 2015 15:42:49 +0200
+Message-ID: <1433511771-4620-8-git-send-email-kaber@trash.net>
 References: <1433511771-4620-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59940 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:59946 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751578AbbFENmz (ORCPT
+	with ESMTP id S1752050AbbFENm4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jun 2015 09:42:55 -0400
+	Fri, 5 Jun 2015 09:42:56 -0400
 In-Reply-To: <1433511771-4620-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Prepare netlink_linearize for 32 bit register usage:
+Introduce a helper function to translate register numbers from the kernel
+from the compat values to the NFT_REG32 values.
 
-Switch to use 16 data registers of 32 bit each. A helper function takes
-care of mapping the registers to the NFT_REG32 values and, if the
-register refers to the beginning of an 128 bit area, the old NFT_REG_1-4
-values for compatibility.
+Internally we use the register numbers 0-16:
 
-New register reservation and release helper function take the size into
-account and reserve the required amount of registers.
+* 0 is the verdict register in both old and new addressing modes.
+* 1-16 are the 32 bit data registers
 
-The reservation and release functions will so far still always allocate
-128 bit. If no other expression in a rule uses a 32 bit register directly,
-these will be mapped to the old register values, meaning everything
-continues to work with old kernel versions.
+The NFT_REG32_00 values are mapped to 1-16, the NFT_REG_1-NFT_REG_4
+values are each use up 4 registers starting at 1 (1, 5, 9, 13).
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- include/netlink.h       |  5 +++++
- src/netlink_linearize.c | 43 +++++++++++++++++++++++++++++++++++++++----
- 2 files changed, 44 insertions(+), 4 deletions(-)
+ src/netlink_delinearize.c | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff --git a/include/netlink.h b/include/netlink.h
-index 9f24ea5..9b42fdb 100644
---- a/include/netlink.h
-+++ b/include/netlink.h
-@@ -53,6 +53,11 @@ struct nft_data_delinearize {
- 	int		verdict;
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index e9ce76e..91da859 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -30,7 +30,7 @@ struct netlink_parse_ctx {
+ 	struct list_head	*msgs;
+ 	struct table		*table;
+ 	struct rule		*rule;
+-	struct expr		*registers[NFT_REG_MAX + 1];
++	struct expr		*registers[1 + NFT_REG32_15 - NFT_REG32_00 + 1];
  };
  
-+static inline unsigned int netlink_register_space(unsigned int size)
-+{
-+	return div_round_up(size, NFT_REG32_SIZE * BITS_PER_BYTE);
-+}
-+
- extern void netlink_gen_data(const struct expr *expr,
- 			     struct nft_data_linearize *data);
- extern void netlink_gen_raw_data(const mpz_t value, enum byteorder byteorder,
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index beeb0c2..6930b39 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -27,21 +27,54 @@ struct netlink_linearize_ctx {
- static void netlink_put_register(struct nft_rule_expr *nle,
- 				 uint32_t attr, uint32_t reg)
+ static void __fmtstring(3, 4) netlink_error(struct netlink_parse_ctx *ctx,
+@@ -49,14 +49,23 @@ static void __fmtstring(3, 4) netlink_error(struct netlink_parse_ctx *ctx,
+ static unsigned int netlink_parse_register(const struct nft_rule_expr *nle,
+ 					   unsigned int attr)
  {
-+	/* Convert to 128 bit register numbers if possible for compatibility */
-+	if (reg != NFT_REG_VERDICT) {
-+		reg -= NFT_REG_1;
-+		if (reg % (NFT_REG_SIZE / NFT_REG32_SIZE) == 0)
-+			reg = NFT_REG_1 + reg / (NFT_REG_SIZE / NFT_REG32_SIZE);
-+		else
-+			reg += NFT_REG32_00;
-+	}
+-	return nft_rule_expr_get_u32(nle, attr);
++	unsigned int reg;
 +
- 	nft_rule_expr_set_u32(nle, attr, reg);
- }
- 
-+static enum nft_registers __get_register(struct netlink_linearize_ctx *ctx,
-+					 unsigned int size)
-+{
-+	unsigned int reg, n;
++	reg = nft_rule_expr_get_u32(nle, attr);
++	/* Translate 128bit registers to corresponding 32bit registers */
++	if (reg >= NFT_REG_1 && reg <= NFT_REG_4)
++		reg = 1 + (reg - NFT_REG_1) * (NFT_REG_SIZE / NFT_REG32_SIZE);
++	else if (reg >= NFT_REG32_00)
++		reg = 1 + reg - NFT_REG32_00;
 +
-+	n = netlink_register_space(size);
-+	if (ctx->reg_low + n > NFT_REG_1 + NFT_REG32_15 - NFT_REG32_00 + 1)
-+		BUG("register reg_low %u invalid\n", ctx->reg_low);
-+
-+	reg = ctx->reg_low;
-+	ctx->reg_low += n;
 +	return reg;
-+}
-+
-+static void __release_register(struct netlink_linearize_ctx *ctx,
-+			       unsigned int size)
-+{
-+	unsigned int n;
-+
-+	n = netlink_register_space(size);
-+	if (ctx->reg_low < NFT_REG_1 + n)
-+		BUG("register reg_low %u invalid\n", ctx->reg_low);
-+
-+	ctx->reg_low -= n;
-+}
-+
- static enum nft_registers get_register(struct netlink_linearize_ctx *ctx,
- 				       const struct expr *expr)
- {
--	if (ctx->reg_low > NFT_REG_MAX)
--		BUG("register reg_low %u invalid\n", ctx->reg_low);
--	return ctx->reg_low++;
-+	return __get_register(ctx, NFT_REG_SIZE * BITS_PER_BYTE);
  }
  
- static void release_register(struct netlink_linearize_ctx *ctx,
- 			     const struct expr *expr)
+ static void netlink_set_register(struct netlink_parse_ctx *ctx,
+ 				 enum nft_registers reg,
+ 				 struct expr *expr)
  {
--	ctx->reg_low--;
-+	__release_register(ctx, NFT_REG_SIZE * BITS_PER_BYTE);
- }
+-	if (reg > NFT_REG_MAX) {
++	if (reg == NFT_REG_VERDICT || reg > 1 + NFT_REG32_15 - NFT_REG32_00) {
+ 		netlink_error(ctx, &expr->location,
+ 			      "Invalid destination register %u", reg);
+ 		expr_free(expr);
+@@ -75,7 +84,7 @@ static struct expr *netlink_get_register(struct netlink_parse_ctx *ctx,
+ {
+ 	struct expr *expr;
  
- static void netlink_gen_expr(struct netlink_linearize_ctx *ctx,
-@@ -509,6 +542,8 @@ static void netlink_gen_expr(struct netlink_linearize_ctx *ctx,
- 			     const struct expr *expr,
- 			     enum nft_registers dreg)
- {
-+	assert(dreg < ctx->reg_low);
-+
- 	switch (expr->ops->type) {
- 	case EXPR_VERDICT:
- 	case EXPR_VALUE:
+-	if (reg == NFT_REG_VERDICT || reg > NFT_REG_MAX) {
++	if (reg == NFT_REG_VERDICT || reg > 1 + NFT_REG32_15 - NFT_REG32_00) {
+ 		netlink_error(ctx, loc, "Invalid source register %u", reg);
+ 		return NULL;
+ 	}
 -- 
 2.1.0
 
