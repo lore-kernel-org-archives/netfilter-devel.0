@@ -1,73 +1,64 @@
-From: Daniel Collins <daniel.collins@smoothwall.net>
-Subject: Re: Possible bug when bridging traffic we just SNATed and sent to
- another router
-Date: Fri, 5 Jun 2015 16:27:02 +0100
-Message-ID: <CAOmdcgVbFZ=DskdrYjx5-pb9KdmqnEtf-mXou7k2c8PUue6xPg@mail.gmail.com>
-References: <CAOmdcgX+niENv18DKyn8BVZfwhYXmNcBCBoHVnrsEYWEJTtrhg@mail.gmail.com>
-	<20150605143542.GH11015@breakpoint.cc>
-	<CAOmdcgVx6=3imz09QNW0eKU8Go=wZDHcWiKC8k2ki__af+rbAQ@mail.gmail.com>
-	<20150605150827.GJ11015@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 2/2] proto: use bitmask_type for comp flags
+Date: Fri,  5 Jun 2015 17:31:57 +0200
+Message-ID: <1433518317-9901-2-git-send-email-pablo@netfilter.org>
+References: <1433518317-9901-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from exprod7og115.obsmtp.com ([64.18.2.217]:43888 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751692AbbFEP1F (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jun 2015 11:27:05 -0400
-Received: by wgbgq6 with SMTP id gq6so59576047wgb.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 05 Jun 2015 08:27:03 -0700 (PDT)
-In-Reply-To: <20150605150827.GJ11015@breakpoint.cc>
+Received: from mail.us.es ([193.147.175.20]:58205 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754904AbbFEP1I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Jun 2015 11:27:08 -0400
+In-Reply-To: <1433518317-9901-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 5 June 2015 at 16:08, Florian Westphal <fw@strlen.de> wrote:
+I think flags should be displayed in hexadecimal and should be handled as a
+bitmask.
 
-> So just to make sure:
->
-> #1 Linux send skb from (local_addr,daddr)
-> #2 r1 forwards packet to r2
-> #3 Linux receives its own packet again, with (saddr local_addr, daddr)
-> #4 Linux creates a new conntrack entry since lookup for old one would
-> expect (local_addr is daddr) reply
-> #5 new conntrack is created, with PAT applied to resolve port clash
-> collision
-> #6 remote_addr sends reply, to local_addr
-> #7 we lookup conntrack, find the one without PAT translation applied
-> #8 we possibly toss the packet since PAT undo doesn't (yet) yield
-> skb with a socket.
+inet/comp.t: WARNING: line: 15: 'nft add rule ip test-ip4 input comp flags 0x00': 'comp flags 0x00' mismatches 'comp flags 0'
+inet/comp.t: WARNING: line: 16: 'nft add rule ip test-ip4 input comp flags != 0x23': 'comp flags != 0x23' mismatches 'comp flags != 35'
+inet/comp.t: WARNING: line: 17: 'nft add rule ip test-ip4 input comp flags 0x33-0x45': 'comp flags 0x33-0x45' mismatches 'comp flags 51-69'
+inet/comp.t: WARNING: line: 18: 'nft add rule ip test-ip4 input comp flags != 0x33-0x45': 'comp flags != 0x33-0x45' mismatches 'comp flags != 51-69'
+inet/comp.t: WARNING: line: 19: 'nft add rule ip test-ip4 input comp flags {0x33, 0x55, 0x67, 0x88}': 'comp flags {0x33, 0x55, 0x67, 0x88}' mismatches 'comp flags { 103, 85, 51, 136}'
+inet/comp.t: WARNING: line: 21: 'nft add rule ip test-ip4 input comp flags { 0x33-0x55}': 'comp flags { 0x33-0x55}' mismatches 'comp flags { 51-85}'
 
-Yes
+rfc3173 says that this is unused for future use, but I think this should be
+printed as hexadecimal in any case.
 
-> I'd recommend to fix this setup... If that can't be done, can you
-> suppress creation of 2nd conntrack entry?
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/proto.c                  |    2 +-
+ tests/regression/inet/comp.t |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-This configuration has been used by a small handful of our customers,
-we are probably going to get them to fix their routing tables.
-
-> It should be possible via "-t raw -s local_address -j CT --notrack".
-
-Considered this, but doesn't work for us in all cases (tproxy!).
-
-Thanks
-
+diff --git a/src/proto.c b/src/proto.c
+index 7dc7b3e..6302016 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -272,7 +272,7 @@ const struct proto_desc proto_comp = {
+ 	},
+ 	.templates	= {
+ 		[COMPHDR_NEXTHDR]	= INET_PROTOCOL("nexthdr", struct ip_comp_hdr, nexthdr),
+-		[COMPHDR_FLAGS]		= COMPHDR_FIELD("flags", flags),
++		[COMPHDR_FLAGS]		= HDR_TEMPLATE("flags", &bitmask_type, struct ip_comp_hdr, flags),
+ 		[COMPHDR_CPI]		= COMPHDR_FIELD("cpi", cpi),
+ 	},
+ };
+diff --git a/tests/regression/inet/comp.t b/tests/regression/inet/comp.t
+index afdc63f..f4753bb 100644
+--- a/tests/regression/inet/comp.t
++++ b/tests/regression/inet/comp.t
+@@ -12,7 +12,7 @@ comp nexthdr != esp;ok;comp nexthdr != 50
+ # comp flags ## 8-bit field.  Reserved for future use.  MUST be set to zero.
+ 
+ # Bug comp flags: to list. List the decimal value.
+-comp flags 0x00;ok
++comp flags 0x0;ok
+ comp flags != 0x23;ok
+ comp flags 0x33-0x45;ok
+ comp flags != 0x33-0x45;ok
 -- 
-Daniel Collins
-Software Developer
+1.7.10.4
 
-smoothwall
-daniel.collins@smoothwall.com
-www.smoothwall.com
-
-Head Office : 1 John Charles Way, Leeds, LS12 6QA, United Kingdom
-Tech Office : Eagle Point, Little Park Farm Road, Fareham, PO15 5TD,
-United Kingdom
-US Office : 8008 Corporate Center Dr #410, Charlotte, NC 28226, United States
-
-Telephone: UK: +44 870-199-9500 US: +1 800-959-3760
-
-Smoothwall Limited is registered in England, Company Number: 4298247
-and whose registered address is 1 John Charles Way, Leeds, LS12 6QA
-United Kingdom.
