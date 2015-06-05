@@ -1,202 +1,68 @@
-From: "Neal P. Murphy" <neal.p.murphy@alum.wpi.edu>
-Subject: xtables-addons 64-bit counter patch
-Date: Thu, 4 Jun 2015 18:04:42 -0400
-Message-ID: <20150604180442.12410111@playground>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch] ipvs: prevent some underflows
+Date: Fri, 5 Jun 2015 12:33:15 +0300
+Message-ID: <20150605093315.GD24871@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from MAIL1.WPI.EDU ([130.215.36.91]:40630 "EHLO MAIL1.WPI.EDU"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932106AbbFDWVk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Jun 2015 18:21:40 -0400
-Received: from MAIL1.WPI.EDU (MAIL1.WPI.EDU [130.215.36.91])
-	by MAIL1.WPI.EDU (8.15.1/8.15.1) with ESMTP id t54M4j08018243
-	for <netfilter-devel@vger.kernel.org>; Thu, 4 Jun 2015 18:04:45 -0400
-Received: from MX3.WPI.EDU (mx3.wpi.edu [130.215.36.147])
-	by MAIL1.WPI.EDU (8.15.1/8.15.1) with ESMTP id t54M4jel018240
-	for <netfilter-devel@vger.kernel.org>; Thu, 4 Jun 2015 18:04:45 -0400
-Received: from ALUM.WPI.EDU (ALUM.WPI.EDU [130.215.36.126])
-	by MX3.WPI.EDU (8.14.4/8.14.4) with ESMTP id t54M4hRQ027433
-	for <netfilter-devel@vger.kernel.org>; Thu, 4 Jun 2015 18:04:44 -0400
-	(envelope-from neal.p.murphy@alum.wpi.edu)
-Received: from playground (c-71-57-197-109.hsd1.va.comcast.net [71.57.197.109])
-	(authenticated authen=neal.p.murphy)
-	by ALUM.WPI.EDU (8.15.1/8.15.1) with ESMTPSA id t54M4hQN020689
-	(version=TLSv1.2 cipher=AES128-GCM-SHA256 bits=128 verify=NO)
-	for <netfilter-devel@vger.kernel.org>; Thu, 4 Jun 2015 18:04:43 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Simon Horman <horms@verge.net.au>, Julian Anastasov <ja@ssi.bg>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	kernel-janitors@vger.kernel.org
+To: Wensong Zhang <wensong@linux-vs.org>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: kernel-janitors-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Howdy!
+Quite a few drivers allow very low settings for dev->mtu.  My static
+checker complains this could cause some underflow problems when we do
+the subtractions in set_sync_mesg_maxlen().
 
-The Smoothwall Express traffic stats collector (traffiClogger)
-doesn't handle counter rollovers well and doesn't perform read&flush.
-(Yes, the code is somewhat aged.) To change it to perform read&flush is
-non-trivial. Then it occurred to me that it might be easier to change
-ipt_ACCOUNT in xtables-addons (v1.45) to use 64-bit counters,
-considering it was designed around single kernel pages.
+I don't know that it's harmful necessarily, but it seems like an easy
+thing to prevent the underflows.
 
-I haven't seen anyone addressing 64-bit counters in ipt_ACCOUNT, so I
-figured I'd tackle it. Attached is my patch that seems to work; it
-builds for 3.4.104, loads, counts to at least 100GB, produces no
-obvious kernel gripes, and adjacent counters don't seem to interfere
-with each other. Yes, it uses more memory, but RAM costs much less than
-bugs that grown out of complex software.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+Please review this one carefully, because I'm not very sure of myself
+here.
 
-The theory:
-  - Use two kernel pages for the counters for each group of 256
-    addresses.
-  - Change counters to 64-bit.
-  - Change to __get_free_pages/free_pages, using order=2 (two
-    consecutive pages), and zero both pages.
-  - Change "%u" to "%llu" as needed.
-  - Everything else pretty much stays the same.
-
-I also changed tmpbuf to two pages (Justin Case's idea), but I
-don't know if that's really necessary.
-
-Did I miss anything?
-
-Thanks,
-Neal
-
------------
---- xtables-addons-1.45-ORIG/extensions/ACCOUNT/iptaccount.c	2012-07-15 23:39:32.000000000 -0400
-+++ xtables-addons-1.45/extensions/ACCOUNT/iptaccount.c	2015-05-29 22:22:37.000000000 -0400
-@@ -200,11 +200,11 @@
- 			while ((entry = ipt_ACCOUNT_get_next_entry(&ctx)) != NULL)
- 			{
- 				if (doCSV)
--					printf("%s;%u;%u;%u;%u\n",
-+					printf("%s;%llu;%llu;%llu;%llu\n",
- 					       addr_to_dotted(entry->ip), entry->src_packets, entry->src_bytes,
- 					       entry->dst_packets, entry->dst_bytes);
- 				else
--					printf("IP: %s SRC packets: %u bytes: %u DST packets: %u bytes: %u\n",
-+					printf("IP: %s SRC packets: %llu bytes: %llu DST packets: %llu bytes: %llu\n",
- 					       addr_to_dotted(entry->ip), entry->src_packets, entry->src_bytes,
- 					       entry->dst_packets, entry->dst_bytes);
- 			}
---- xtables-addons-1.45-ORIG/extensions/ACCOUNT/xt_ACCOUNT.c	2012-07-15 23:39:32.000000000 -0400
-+++ xtables-addons-1.45/extensions/ACCOUNT/xt_ACCOUNT.c	2015-05-29 22:15:33.000000000 -0400
-@@ -77,13 +77,13 @@
- };
- 
- /* Used for every IP entry
--   Size is 16 bytes so that 256 (class C network) * 16
--   fits in one kernel (zero) page */
-+   Size is 32 bytes so that 256 (class C network) * 16
-+   fits in a double kernel (zero) page (two consecutive kernel pages)*/
- struct ipt_acc_ip {
--	uint32_t src_packets;
--	uint32_t src_bytes;
--	uint32_t dst_packets;
--	uint32_t dst_bytes;
-+	uint64_t src_packets;
-+	uint64_t src_bytes;
-+	uint64_t dst_packets;
-+	uint64_t dst_bytes;
- };
- 
- /*
-@@ -113,14 +113,14 @@
- /* Mutex (semaphore) used for manipulating userspace handles/snapshot data */
- static struct semaphore ipt_acc_userspace_mutex;
- 
--/* Allocates a page and clears it */
-+/* Allocates a page pair and clears it */
- static void *ipt_acc_zalloc_page(void)
+diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
+index b08ba95..b4e148b 100644
+--- a/net/netfilter/ipvs/ip_vs_sync.c
++++ b/net/netfilter/ipvs/ip_vs_sync.c
+@@ -1352,7 +1352,7 @@ static int set_sync_mesg_maxlen(struct net *net, int sync_state)
  {
- 	// Don't use get_zeroed_page until it's fixed in the kernel.
- 	// get_zeroed_page(GFP_ATOMIC)
--	void *mem = (void *)__get_free_page(GFP_ATOMIC);
-+	void *mem = (void *)__get_free_pages(GFP_ATOMIC, 2);
- 	if (mem) {
--		memset (mem, 0, PAGE_SIZE);
-+		memset (mem, 0, 2*PAGE_SIZE);
+ 	struct netns_ipvs *ipvs = net_ipvs(net);
+ 	struct net_device *dev;
+-	int num;
++	unsigned int num;
+ 
+ 	if (sync_state == IP_VS_STATE_MASTER) {
+ 		dev = __dev_get_by_name(net, ipvs->master_mcast_ifn);
+@@ -1363,7 +1363,8 @@ static int set_sync_mesg_maxlen(struct net *net, int sync_state)
+ 		       sizeof(struct udphdr) -
+ 		       SYNC_MESG_HEADER_LEN - 20) / SIMPLE_CONN_SIZE;
+ 		ipvs->send_mesg_maxlen = SYNC_MESG_HEADER_LEN +
+-			SIMPLE_CONN_SIZE * min(num, MAX_CONNS_PER_SYNCBUFF);
++			SIMPLE_CONN_SIZE * min_t(uint, num,
++						 MAX_CONNS_PER_SYNCBUFF);
+ 		IP_VS_DBG(7, "setting the maximum length of sync sending "
+ 			  "message %d.\n", ipvs->send_mesg_maxlen);
+ 	} else if (sync_state == IP_VS_STATE_BACKUP) {
+@@ -1371,8 +1372,11 @@ static int set_sync_mesg_maxlen(struct net *net, int sync_state)
+ 		if (!dev)
+ 			return -ENODEV;
+ 
+-		ipvs->recv_mesg_maxlen = dev->mtu -
+-			sizeof(struct iphdr) - sizeof(struct udphdr);
++		if (dev->mtu < sizeof(struct iphdr) + sizeof(struct udphdr))
++			ipvs->recv_mesg_maxlen = 0;
++		else
++			ipvs->recv_mesg_maxlen = dev->mtu -
++				sizeof(struct iphdr) - sizeof(struct udphdr);
+ 		IP_VS_DBG(7, "setting the maximum length of sync receiving "
+ 			  "message %d.\n", ipvs->recv_mesg_maxlen);
  	}
- 
- 	return mem;
-@@ -135,7 +135,7 @@
- 
- 	/* Free for 8 bit network */
- 	if (depth == 0) {
--		free_page((unsigned long)data);
-+		free_pages((unsigned long)data, 2);
- 		return;
- 	}
- 
-@@ -148,7 +148,7 @@
- 				free_page((unsigned long)mask_16->mask_24[b]);
- 			}
- 		}
--		free_page((unsigned long)data);
-+		free_pages((unsigned long)data, 2);
- 		return;
- 	}
- 
-@@ -168,7 +168,7 @@
- 				free_page((unsigned long)mask_16);
- 			}
- 		}
--		free_page((unsigned long)data);
-+		free_pages((unsigned long)data, 2);
- 		return;
- 	}
- 
-@@ -541,7 +541,7 @@
- 
- /*
- 	Functions dealing with "handles":
--	Handles are snapshots of a accounting state.
-+	Handles are snapshots of an accounting state.
- 
- 	read snapshots are only for debugging the code
- 	and are very expensive concerning speed/memory
-@@ -1123,7 +1123,7 @@
- 		ACCOUNT_MAX_HANDLES * sizeof(struct ipt_acc_handle));
- 
- 	/* Allocate one page as temporary storage */
--	if ((ipt_acc_tmpbuf = (void*)__get_free_page(GFP_KERNEL)) == NULL) {
-+	if ((ipt_acc_tmpbuf = (void*)__get_free_pages(GFP_KERNEL, 2)) == NULL) {
- 		printk("ACCOUNT: Out of memory for temporary buffer page\n");
- 		goto error_cleanup;
- 	}
-@@ -1145,7 +1145,7 @@
- 	if (ipt_acc_handles)
- 		kfree(ipt_acc_handles);
- 	if (ipt_acc_tmpbuf)
--		free_page((unsigned long)ipt_acc_tmpbuf);
-+		free_pages((unsigned long)ipt_acc_tmpbuf, 2);
- 
- 	return -EINVAL;
- }
-@@ -1158,7 +1158,7 @@
- 
- 	kfree(ipt_acc_tables);
- 	kfree(ipt_acc_handles);
--	free_page((unsigned long)ipt_acc_tmpbuf);
-+	free_pages((unsigned long)ipt_acc_tmpbuf, 2);
- }
- 
- module_init(account_tg_init);
---- xtables-addons-1.45-ORIG/extensions/ACCOUNT/xt_ACCOUNT.h	2012-07-15 23:39:32.000000000 -0400
-+++ xtables-addons-1.45/extensions/ACCOUNT/xt_ACCOUNT.h	2015-05-29 22:24:18.000000000 -0400
-@@ -60,10 +60,10 @@
- */
- struct ipt_acc_handle_ip {
- 	__be32 ip;
--	uint32_t src_packets;
--	uint32_t src_bytes;
--	uint32_t dst_packets;
--	uint32_t dst_bytes;
-+	uint64_t src_packets;
-+	uint64_t src_bytes;
-+	uint64_t dst_packets;
-+	uint64_t dst_bytes;
- };
- 
- #endif /* _IPT_ACCOUNT_H */
------------
