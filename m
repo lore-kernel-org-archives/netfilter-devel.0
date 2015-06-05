@@ -1,64 +1,67 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 2/2] proto: use bitmask_type for comp flags
-Date: Fri,  5 Jun 2015 17:31:57 +0200
-Message-ID: <1433518317-9901-2-git-send-email-pablo@netfilter.org>
-References: <1433518317-9901-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Subject: Re: nft netdev family bindings
+Date: Fri, 5 Jun 2015 17:58:27 +0200
+Message-ID: <20150605155827.GA3505@salvia>
+References: <20150605133533.GA4024@acer.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58205 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35253 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754904AbbFEP1I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jun 2015 11:27:08 -0400
-In-Reply-To: <1433518317-9901-1-git-send-email-pablo@netfilter.org>
+	id S1750877AbbFEPxR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Jun 2015 11:53:17 -0400
+Content-Disposition: inline
+In-Reply-To: <20150605133533.GA4024@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I think flags should be displayed in hexadecimal and should be handled as a
-bitmask.
+On Fri, Jun 05, 2015 at 03:35:33PM +0200, Patrick McHardy wrote:
+> Hi Pablo,
+> 
+> looking at the netdev syntax:
+> 
+> table netdev eth0 {
+> 	device eth0;
+> 	...
+> 
+> I think this "device" specification is inconsistent with out normal use
+> of handles. Usually the table_spec contains the fully qualified handle,
+> which in this case needs to include the device.
+> 
+> Consider:
+> 
+> table netdev somename {
+> 	device eth0;
+> 	...
+> 
+> table netdev somename {
+> 	device eth1;
+> 	...
 
-inet/comp.t: WARNING: line: 15: 'nft add rule ip test-ip4 input comp flags 0x00': 'comp flags 0x00' mismatches 'comp flags 0'
-inet/comp.t: WARNING: line: 16: 'nft add rule ip test-ip4 input comp flags != 0x23': 'comp flags != 0x23' mismatches 'comp flags != 35'
-inet/comp.t: WARNING: line: 17: 'nft add rule ip test-ip4 input comp flags 0x33-0x45': 'comp flags 0x33-0x45' mismatches 'comp flags 51-69'
-inet/comp.t: WARNING: line: 18: 'nft add rule ip test-ip4 input comp flags != 0x33-0x45': 'comp flags != 0x33-0x45' mismatches 'comp flags != 51-69'
-inet/comp.t: WARNING: line: 19: 'nft add rule ip test-ip4 input comp flags {0x33, 0x55, 0x67, 0x88}': 'comp flags {0x33, 0x55, 0x67, 0x88}' mismatches 'comp flags { 103, 85, 51, 136}'
-inet/comp.t: WARNING: line: 21: 'nft add rule ip test-ip4 input comp flags { 0x33-0x55}': 'comp flags { 0x33-0x55}' mismatches 'comp flags { 51-85}'
+I see, you mean the same name:
 
-rfc3173 says that this is unused for future use, but I think this should be
-printed as hexadecimal in any case.
+# nft add table netdev somename { device eth0 \; }
+# nft add table netdev somename { device eth1 \; }
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/proto.c                  |    2 +-
- tests/regression/inet/comp.t |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+I can see this is not working fine now, since the second invocation is
+considered an update. But the kernel should bail out with EBUSY IMO.
 
-diff --git a/src/proto.c b/src/proto.c
-index 7dc7b3e..6302016 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -272,7 +272,7 @@ const struct proto_desc proto_comp = {
- 	},
- 	.templates	= {
- 		[COMPHDR_NEXTHDR]	= INET_PROTOCOL("nexthdr", struct ip_comp_hdr, nexthdr),
--		[COMPHDR_FLAGS]		= COMPHDR_FIELD("flags", flags),
-+		[COMPHDR_FLAGS]		= HDR_TEMPLATE("flags", &bitmask_type, struct ip_comp_hdr, flags),
- 		[COMPHDR_CPI]		= COMPHDR_FIELD("cpi", cpi),
- 	},
- };
-diff --git a/tests/regression/inet/comp.t b/tests/regression/inet/comp.t
-index afdc63f..f4753bb 100644
---- a/tests/regression/inet/comp.t
-+++ b/tests/regression/inet/comp.t
-@@ -12,7 +12,7 @@ comp nexthdr != esp;ok;comp nexthdr != 50
- # comp flags ## 8-bit field.  Reserved for future use.  MUST be set to zero.
- 
- # Bug comp flags: to list. List the decimal value.
--comp flags 0x00;ok
-+comp flags 0x0;ok
- comp flags != 0x23;ok
- comp flags 0x33-0x45;ok
- comp flags != 0x33-0x45;ok
--- 
-1.7.10.4
+> Without including the device in the table handle, the name alone is amiguitios.
 
+The table name should be unique as with other families. Then, probably
+the device doesn't belong to the handle.
+
+> I'd propose to use
+> 
+> table netdev <dev> <name>
+> 
+> Just as we have the family in the handle.
+
+I've considering to allow to bind a table to an input device from
+other families as something optional. From the hardware offload
+perspective we would need this too if we want to offload the
+forwarding table.
+
+Let me know, thanks!
