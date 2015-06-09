@@ -1,159 +1,146 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next 1/2] netfilter: xtables: use percpu rule counters
-Date: Mon, 8 Jun 2015 21:54:22 +0200
-Message-ID: <20150608195422.GE22198@breakpoint.cc>
-References: <1433784432-16451-1-git-send-email-fw@strlen.de>
- <1433789954.29864.65.camel@edumazet-glaptop2.roam.corp.google.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: nft netdev family bindings
+Date: Tue, 9 Jun 2015 11:23:19 +0200
+Message-ID: <20150609092318.GA25651@acer.localdomain>
+References: <20150605133533.GA4024@acer.localdomain>
+ <20150605155827.GA3505@salvia>
+ <20150605155922.GC4024@acer.localdomain>
+ <20150605164742.GA15198@acer.localdomain>
+ <20150608114058.GA4165@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:42633 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753513AbbFHTyX (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:37989 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752214AbbFIJXX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Jun 2015 15:54:23 -0400
+	Tue, 9 Jun 2015 05:23:23 -0400
 Content-Disposition: inline
-In-Reply-To: <1433789954.29864.65.camel@edumazet-glaptop2.roam.corp.google.com>
+In-Reply-To: <20150608114058.GA4165@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> > The only reason left as to why we need percpu duplication are the rule
-> > counters embedded into ipt_entry et al -- since each cpu has its own copy
-> > of the rules, all counters can be lockless.
-> > 
-> > The downside is that the more cpus are supported, the more memory is
-> > required.  Rules are not just duplicated per online cpu but for each
-> > possible cpu, i.e. if maxcpu is 144, then rule is duplicated 144 times,
-> > not for the e.g. 64 cores present.
-> > 
-> > To save some memory and also improve utilization of shared caches it
-> > would be preferable to only store the rule blob once.
-> > 
-> > So we first need to separate counters and the rule blob.
-> > 
-> > Instead of using entry->counters, allocate this percpu and store the
-> > percpu address in entry->counters.pcnt on CONFIG_SMP.
-> > 
-> > This change makes no sense as-is; it is merely an intermediate step to
-> > remove the percpu duplication of the rule set in a followup patch.
-> > 
-> > Suggested-by: Eric Dumazet <edumazet@google.com>
-> > Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
-> > Reported-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-> > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > ---
-[..]
-
-> > +++ b/include/linux/netfilter/x_tables.h
-> > +/* On SMP, ip(6)t_entry->counters.pcnt holds address of the
-> > + * real (percpu) counter.  On !SMP, its just the packet count,
-> > + * so nothing needs to be done there.
-> > + *
-> > + * xt_percpu_counter_alloc returns the address of the percpu
-> > + * counter, or 0 on !SMP.
-> > + *
-> > + * Hence caller must use IS_ERR_VALUE to check for error, this
-> > + * allows us to contain CONFIG_SMP kludgery.
-> > + */
-> > +static inline u64 xt_percpu_counter_alloc(void)
-> > +{
-> > +#ifdef CONFIG_SMP
-> > +	void *res = alloc_percpu(struct xt_counters);
-> > +
-> > +	if (res == NULL)
-> > +		return (u64) -ENOMEM;
-> > +
-> > +	return (__force u64) res;
-> > +#else
-> > +	return 0;
-> > +#endif
-> > +}
+On 08.06, Pablo Neira Ayuso wrote:
+> Hi Patrick,
 > 
+> On Fri, Jun 05, 2015 at 06:47:45PM +0200, Patrick McHardy wrote:
+> > On 05.06, Patrick McHardy wrote:
+> > > On 05.06, Pablo Neira Ayuso wrote:
+> > > > > I think this "device" specification is inconsistent with out normal use
+> > > > > of handles. Usually the table_spec contains the fully qualified handle,
+> > > > > which in this case needs to include the device.
+> > > > > 
+> > > > > Consider:
+> > > > > 
+> > > > > table netdev somename {
+> > > > > 	device eth0;
+> > > > > 	...
+> > > > > 
+> > > > > table netdev somename {
+> > > > > 	device eth1;
+> > > > > 	...
+> > > > 
+> > > > I see, you mean the same name:
+> > > > 
+> > > > # nft add table netdev somename { device eth0 \; }
+> > > > # nft add table netdev somename { device eth1 \; }
+> > > > 
+> > > > I can see this is not working fine now, since the second invocation is
+> > > > considered an update. But the kernel should bail out with EBUSY IMO.
+> > > > 
+> > > > > Without including the device in the table handle, the name alone is amiguitios.
+> > > > 
+> > > > The table name should be unique as with other families. Then, probably
+> > > > the device doesn't belong to the handle.
+> > > 
+> > > Yes, I considered every device a single namespace, but thinking about it
+> > > again, it seems more consistent to treat netdev as any other family and
+> > > treat devices similar to base chains. In that case though, it would be
+> > > more consistent to have the device specification not on a table level,
+> > > but on a chain level. So we could have multiple devices as base chains
+> > > in a single table, just as we have multiple hooks in other families.
+> > 
+> > Ok let's reconsider. For ingress, it definitely seems useful to have
+> > tables which can bind to multiple devices, f.i. for shared sets.
 > 
-> The u64 stuff looks strange on a 32bit kernel ;)
-
-Hmmm, not sure how to avoid that.
-The packet and byte counters are always u64, and I don't
-think it will help to provide different helpers for 32 vs. 64bit system.
-
-> > +static inline void xt_percpu_counter_free(u64 pcnt)
-> > +{
-> > +#ifdef CONFIG_SMP
-> > +	free_percpu((__force void *) pcnt);
-> > +#endif
-> > +}
-> > +
-> > +static inline struct xt_counters *
-> > +xt_get_this_cpu_counter(struct xt_counters *cnt)
-> > +{
-> > +#ifdef CONFIG_SMP
-> > +	return this_cpu_ptr((void *) cnt->pcnt);
-> > +#else
-> > +	return cnt;
-> > +#endif
-> > +}
-> > +
-> > +static inline struct xt_counters *
-> > +xt_get_per_cpu_counter(struct xt_counters *cnt, unsigned int cpu)
-> > +{
-> > +#ifdef CONFIG_SMP
-> > +	return per_cpu_ptr((void *) cnt->pcnt, cpu);
-> > +#else
-> > +	return cnt;
-> > +#endif
-> > +}
-> > +
+> IIRC people are also using ifb as a way for a common policing and
+> shaping on aggregated links. So this idea of allowing to bind a table
+> to multiples devices make sense to me.
 > 
-> So I understand struct xt_counters is exported to user space
-> (include/uapi/linux/netfilter/x_tables.h) 
->
-> But maybe you could use in the kernel 
+> Then, the idea would to iterate over the list of netdevs that the user
+> indicates, eg.
 > 
-> union xt_kcounters {
-> 	struct xt_counters __percpu *pcpu;
-> 	struct xt_counters counters;
-> };
+> table netdev ingress {
+>         device { eth0, eth1\; }
 > 
-> This way, you could avoid a lot of casts ?
+>         ...
+> }
+> 
+> and register the same chain hooks for each device in the list.
+> 
+> I can go after this and cook a patch for this. The merge window is
+> still open so we can modify the semantics of the existing netlink
+> NFTA_TABLE_DEV attribute in David's net-next tree.
 
-I tried that but I did not find out how to use this to improve
-readability :-|
+My idea was to have the base chains bind to a device, then we can
+create shared chains and jump to them from the base chain:
 
-static inline bool xt_percpu_counter_alloc(union xt_kcounters *cnt)
-{
-#ifdef CONFIG_SMP
-	cnt->pcpu = alloc_percpu(struct xt_counters);
-
-	return cnt->pcpu != NULL;
-#else
-	return true;
-#endif
+table netdev ingress {
+	chain eth0 {
+		hook eth0 ingress;
+		jump shared_chain;
+	}
+	chain eth1 {
+		hook eth1 ingress;
+		jump shared_chain;
+	}
+	chain shared_chain {
+		...
+	}
 }
 
-... looks ok BUT it means call site looks like
+I think if we treat the table namespace global, than the hook and base
+chain is the natural place to specify the device since this is where
+the packets actually enter.
 
-if (xt_percpu_counter_alloc((union xt_kcounters *) &e->counters))
-	/* err */
-
-which I find worse :-/
-
-I could add anon union in ipt_entry to avoid casts but I remember
-there were build failure problems with anon unions & older gcc releases.
-
-Is there any idea you have wrt. not leaking percpu yes|no details
-to ip(6)_tables.c while still avoiding the casts outside the static
-inline helpers above?
-
-> Please run sparse to make sure you did not miss an annotation.
+> > OTOH when using the netdev family for offloading in the future, it
+> > will most likely be impossible to really share data or chains except
+> > when re-expanding it for every device. So the per table binding to
+> > a device makes sense for that.
 > 
-> include/linux/netfilter/x_tables.h:370:21: warning: incorrect type in initializer (different address spaces)
-> include/linux/netfilter/x_tables.h:370:21:    expected void *res
-> include/linux/netfilter/x_tables.h:370:21:    got struct xt_counters [noderef] <asn:3>*<noident>
+> Yes, the example above will be more complicated to support as there
+> will be no shared data, and we'll have to repeat the same operation on
+> several devices. Even a bit more complicated if they are different
+> device since as soon as one doesn't support one thing, we'll have to
+> either bail out or fall back to software (AFAIK depending on what ).
+> 
+> Anyway, I don't think we should constrain software because of what we
+> expect to find in hardware. It should be the other way around,
+> hardware will have to adapt to the interface that we provide. We'll
+> have to extend those interfaces incrementally to support more features
+> if that becomes limited I would say.
 
-Ugh.  I sprinkled a few more __percpu annotations on x_tables.h and
-these are gone now.
+Well, hardware can not really adapt to us, but we can of course refuse
+operations if they are not supported by hardware if offloading was
+explicitly requested.
 
-Thanks Eric.
+> > The point that keeps confusing me is whether we should consider the
+> > device part of the handle, which would implies a seperate namespace
+> > per device, or part of the hook, which would imply a per chain
+> > property, or something completely new, such as a binding. In the
+> > kernel, we have seperate hooks for every device, and for offloading
+> > every device will also have its own namespace, probably even supporting
+> > different features, so I'm tending back to the idea that it should be
+> > part of the handle and every device should be treated as a seperate
+> > namespace, as we currently do for every family.
+> 
+> So the handle contains the tuple that uniquely identifies the table.
+> I'm thinking the device doesn't belong there if we support the
+> scenario above. I see the device statement as a way to bind the table
+> to a set of devices.
+
+I don't think we really need that. We can either use per-device namespaces
+and put it in the handle, or specify it for the hooking point as part
+of the base chain definition.
