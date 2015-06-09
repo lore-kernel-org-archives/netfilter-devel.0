@@ -1,99 +1,69 @@
 From: Marcelo Ricardo Leitner <mleitner@redhat.com>
-Subject: Re: [patch] ipvs: prevent some underflows
-Date: Tue, 9 Jun 2015 09:26:30 -0300
-Message-ID: <20150609122630.GA4060@localhost.localdomain>
-References: <20150605093315.GD24871@mwanda>
- <alpine.LFD.2.11.1506082137420.1552@ja.home.ssi.bg>
+Subject: Re: [PATCH nf] netfilter: conntrack: warn the user if there is a
+ better helper to use
+Date: Tue, 9 Jun 2015 14:01:51 -0300
+Message-ID: <20150609170151.GA25932@localhost.localdomain>
+References: <78dd7b4675383719e968db577fd89094729641e3.1432216169.git.mleitner@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	kernel-janitors@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
+Cc: daniel@iogearbox.net, fw@strlen.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40846 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:48710 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753541AbbFIM0g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Jun 2015 08:26:36 -0400
+	id S932532AbbFIRBx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Jun 2015 13:01:53 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.11.1506082137420.1552@ja.home.ssi.bg>
+In-Reply-To: <78dd7b4675383719e968db577fd89094729641e3.1432216169.git.mleitner@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Ahm, ping? :)
 
-On Mon, Jun 08, 2015 at 10:16:23PM +0300, Julian Anastasov wrote:
+On Thu, May 21, 2015 at 10:57:12AM -0300, Marcelo Ricardo Leitner wrote:
+> From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
 > 
-> 	Hello,
+> After db29a9508a92 ("netfilter: conntrack: disable generic tracking for
+> known protocols"), if the specific helper is built but not loaded
+> (a standard for most distributions) systems with a restrictive firewall
+> but weak configuration regarding netfilter modules to load, will
+> silently stop working.
 > 
-> On Fri, 5 Jun 2015, Dan Carpenter wrote:
+> This patch then puts a warning message so the sysadmin knows where to
+> start looking into. It's a pr_warn_once regardless of protocol itself
+> but it should be enough to give a hint on where to look.
 > 
-> > @@ -1363,7 +1363,8 @@ static int set_sync_mesg_maxlen(struct net *net, int sync_state)
+> Cc: Florian Westphal <fw@strlen.de>
+> Cc: Daniel Borkmann <daniel@iogearbox.net>
+> Signed-off-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+> ---
+>  net/netfilter/nf_conntrack_proto_generic.c | 8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
 > 
-> 	May be we should use min(dev->mtu, 1500) instead of
-> dev->mtu to avoid sending too large packets for the common
-> case.
-
-That will put an upper limit on it, no? If the load balancers share a
-big MTU, why not use it?
-
-Thanks,
-Marcelo
-
-> >  		       sizeof(struct udphdr) -
-> >  		       SYNC_MESG_HEADER_LEN - 20) / SIMPLE_CONN_SIZE;
-> >  		ipvs->send_mesg_maxlen = SYNC_MESG_HEADER_LEN +
-> > -			SIMPLE_CONN_SIZE * min(num, MAX_CONNS_PER_SYNCBUFF);
-> > +			SIMPLE_CONN_SIZE * min_t(uint, num,
-> > +						 MAX_CONNS_PER_SYNCBUFF);
-> 
-> 	ipvs->send_mesg_maxlen = max(min(dev->mtu, 1500) -
-> 		sizeof(struct iphdr) - sizeof(struct udphdr),
-> 		/* Some new const is needed here: */
-> 		2 * FULL_CONN_SIZE);
-> 
-> 	And may be we should add more correct checks in
-> ip_vs_sync_conn() in case dev->mtu was changed after thread
-> start. Currently, it is assumed that fresh new buffer from
-> ip_vs_sync_buff_create() will have space for at least one
-> message... We can even set inet->pmtudisc to IP_PMTUDISC_DONT
-> so that packets can be fragmented for too small MTU.
-> 
-> >  		IP_VS_DBG(7, "setting the maximum length of sync sending "
-> >  			  "message %d.\n", ipvs->send_mesg_maxlen);
-> >  	} else if (sync_state == IP_VS_STATE_BACKUP) {
-> > @@ -1371,8 +1372,11 @@ static int set_sync_mesg_maxlen(struct net *net, int sync_state)
-> >  		if (!dev)
-> >  			return -ENODEV;
-> >  
-> > -		ipvs->recv_mesg_maxlen = dev->mtu -
-> > -			sizeof(struct iphdr) - sizeof(struct udphdr);
-> > +		if (dev->mtu < sizeof(struct iphdr) + sizeof(struct udphdr))
-> > +			ipvs->recv_mesg_maxlen = 0;
-> > +		else
-> > +			ipvs->recv_mesg_maxlen = dev->mtu -
-> > +				sizeof(struct iphdr) - sizeof(struct udphdr);
-> 
-> 	May be ipvs->recv_mesg_maxlen = max(dev->mtu, 1500);
-> This is single buffer allocated when backup starts...
-> 
-> >  		IP_VS_DBG(7, "setting the maximum length of sync receiving "
-> >  			  "message %d.\n", ipvs->recv_mesg_maxlen);
-> >  	}
-> > 
-> 
-> Regards
+> diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
+> index 60865f1103099383c4263a1a56e691b3c86c3720..2281be419a74b6d8abe0fd7da8d7e8b35d304600 100644
+> --- a/net/netfilter/nf_conntrack_proto_generic.c
+> +++ b/net/netfilter/nf_conntrack_proto_generic.c
+> @@ -90,7 +90,13 @@ static int generic_packet(struct nf_conn *ct,
+>  static bool generic_new(struct nf_conn *ct, const struct sk_buff *skb,
+>  			unsigned int dataoff, unsigned int *timeouts)
+>  {
+> -	return nf_generic_should_process(nf_ct_protonum(ct));
+> +	bool ret;
+> +
+> +	ret = nf_generic_should_process(nf_ct_protonum(ct));
+> +	if (!ret)
+> +		pr_warn_once("conntrack: generic helper won't handle protocol %d. Please consider loading the specific helper module.\n",
+> +			     nf_ct_protonum(ct));
+> +	return ret;
+>  }
+>  
+>  #if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
+> -- 
+> 2.4.1
 > 
 > --
-> Julian Anastasov <ja@ssi.bg>
-> --
-> To unsubscribe from this list: send the line "unsubscribe lvs-devel" in
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
