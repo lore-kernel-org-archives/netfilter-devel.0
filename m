@@ -1,29 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nft rules processed in wrong network namespace
-Date: Wed, 10 Jun 2015 16:01:43 +0200
-Message-ID: <20150610140143.GA31977@salvia>
-References: <CAASN2uOcjOKkXamC=FkYJKCJDTcA9nQUa5=OSn6YyUJ8SGvRfg@mail.gmail.com>
+Subject: Re: nft netdev family bindings
+Date: Wed, 10 Jun 2015 16:02:33 +0200
+Message-ID: <20150610140233.GB31977@salvia>
+References: <20150605133533.GA4024@acer.localdomain>
+ <20150605155827.GA3505@salvia>
+ <20150605155922.GC4024@acer.localdomain>
+ <20150605164742.GA15198@acer.localdomain>
+ <20150608114058.GA4165@salvia>
+ <20150609092318.GA25651@acer.localdomain>
+ <20150609105245.GA2811@salvia>
+ <20150609105712.GA29356@acer.localdomain>
+ <20150609114630.GA2995@salvia>
+ <20150609121325.GA8111@acer.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
-To: Andreas Schultz <aschultz@warp10.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40672 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40833 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964841AbbFJN42 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Jun 2015 09:56:28 -0400
+	id S932820AbbFJN5Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Jun 2015 09:57:24 -0400
 Content-Disposition: inline
-In-Reply-To: <CAASN2uOcjOKkXamC=FkYJKCJDTcA9nQUa5=OSn6YyUJ8SGvRfg@mail.gmail.com>
+In-Reply-To: <20150609121325.GA8111@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 10, 2015 at 12:07:27PM +0200, Andreas Schultz wrote:
+On Tue, Jun 09, 2015 at 02:13:25PM +0200, Patrick McHardy wrote:
 [...]
-> I think I have found the root cause why this happends.
-> 
-> With iptables only the hooks defined by the ipt modules can ever exist and
-> they do apply to all namespaces. Thus hooks are registered in the global list
-> nf_hooks.
+> The question is if its the correct abstraction, and I don't think so.
 
-I have an incomplete patchset here to introduce pernet hooks. Will
-send this for review at some point.
+Your call Patrick, I'll send a patch to move this attribute to the
+base chain.
