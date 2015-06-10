@@ -1,76 +1,117 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v3] nfnetlink_queue: add security context information
-Date: Wed, 10 Jun 2015 18:05:41 +0200
-Message-ID: <20150610160541.GD7125@breakpoint.cc>
-References: <5562F661.5000503@samsung.com>
- <20150525131319.GA3529@salvia>
- <55634935.4020100@samsung.com>
- <20150525205210.GG3629@breakpoint.cc>
- <55646731.9040803@samsung.com>
- <20150526130623.GD7817@breakpoint.cc>
- <5565A4D2.70701@samsung.com>
- <5565A6AA.90908@samsung.com>
- <20150527124957.GA19819@salvia>
- <557855B2.8030803@samsung.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH v2 nf-next 1/2] netfilter: xtables: use percpu rule
+ counters
+Date: Wed, 10 Jun 2015 14:29:48 -0700
+Message-ID: <1433971788.27504.21.camel@edumazet-glaptop2.roam.corp.google.com>
+References: <1433935260-18156-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org,
-	=?utf-8?B?UmFmYcWC?= Krypa <r.krypa@samsung.com>
-To: Roman Kubiak <r.kubiak@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:48104 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754244AbbFJQFo (ORCPT
+Received: from mail-ie0-f193.google.com ([209.85.223.193]:36603 "EHLO
+	mail-ie0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751003AbbFJV3v (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Jun 2015 12:05:44 -0400
-Content-Disposition: inline
-In-Reply-To: <557855B2.8030803@samsung.com>
+	Wed, 10 Jun 2015 17:29:51 -0400
+Received: by ierx19 with SMTP id x19so7206979ier.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 10 Jun 2015 14:29:50 -0700 (PDT)
+In-Reply-To: <1433935260-18156-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Roman Kubiak <r.kubiak@samsung.com> wrote:
-> diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
-> index 8dd819e..b67a853 100644
-> --- a/include/uapi/linux/netfilter/nfnetlink_queue.h
-> +++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
-> @@ -49,6 +49,7 @@ enum nfqnl_attr_type {
->  	NFQA_EXP,			/* nf_conntrack_netlink.h */
->  	NFQA_UID,			/* __u32 sk uid */
->  	NFQA_GID,			/* __u32 sk gid */
-> +	NFQA_SECCTX,			/* security context string */
->  
->  	__NFQA_MAX
->  };
-> @@ -102,7 +103,8 @@ enum nfqnl_attr_config {
->  #define NFQA_CFG_F_CONNTRACK			(1 << 1)
->  #define NFQA_CFG_F_GSO				(1 << 2)
->  #define NFQA_CFG_F_UID_GID			(1 << 3)
-> -#define NFQA_CFG_F_MAX				(1 << 4)
-> +#define NFQA_CFG_F_SECCTX			(1 << 4)
-> +#define NFQA_CFG_F_MAX				(1 << 5)
->  
->  /* flags for NFQA_SKB_INFO */
->  /* packet appears to have wrong checksums, but they are ok */
-> diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
-> index 0b98c74..2c35112 100644
-> --- a/net/netfilter/nfnetlink_queue_core.c
-> +++ b/net/netfilter/nfnetlink_queue_core.c
-> @@ -278,6 +278,24 @@ nla_put_failure:
->  	return -1;
+On Wed, 2015-06-10 at 13:20 +0200, Florian Westphal wrote:
+> The binary arp/ip/ip6tables ruleset is stored per cpu.
+> 
+> The only reason left as to why we need percpu duplication are the rule
+> counters embedded into ipt_entry et al -- since each cpu has its own copy
+> of the rules, all counters can be lockless.
+> 
+> The downside is that the more cpus are supported, the more memory is
+> required.  Rules are not just duplicated per online cpu but for each
+> possible cpu, i.e. if maxcpu is 144, then rule is duplicated 144 times,
+> not for the e.g. 64 cores present.
+> 
+> To save some memory and also improve utilization of shared caches it
+> would be preferable to only store the rule blob once.
+> 
+> So we first need to separate counters and the rule blob.
+> 
+> Instead of using entry->counters, allocate this percpu and store the
+> percpu address in entry->counters.pcnt on CONFIG_SMP.
+> 
+> This change makes no sense as-is; it is merely an intermediate step to
+> remove the percpu duplication of the rule set in a followup patch.
+> 
+> Suggested-by: Eric Dumazet <edumazet@google.com>
+> Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+> Reported-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  Changes since v1:
+>   proper __percpu annotations to avoid sparse errors (Eric)
+> 
+>  include/linux/netfilter/x_tables.h | 51 ++++++++++++++++++++++++++++++++++++++
+>  net/ipv4/netfilter/arp_tables.c    | 32 ++++++++++++++++++++----
+>  net/ipv4/netfilter/ip_tables.c     | 31 ++++++++++++++++++++---
+>  net/ipv6/netfilter/ip6_tables.c    | 31 +++++++++++++++++++----
+>  4 files changed, 131 insertions(+), 14 deletions(-)
+> 
+> diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+> index 09f3820..c240d22 100644
+> --- a/include/linux/netfilter/x_tables.h
+> +++ b/include/linux/netfilter/x_tables.h
+> @@ -353,6 +353,57 @@ static inline unsigned long ifname_compare_aligned(const char *_a,
+>  	return ret;
 >  }
 >  
-> +static u32 nfqnl_get_sk_secctx(struct sk_buff *skb, char **secdata)
+> +
+> +/* On SMP, ip(6)t_entry->counters.pcnt holds address of the
+> + * real (percpu) counter.  On !SMP, its just the packet count,
+> + * so nothing needs to be done there.
+> + *
+> + * xt_percpu_counter_alloc returns the address of the percpu
+> + * counter, or 0 on !SMP.
+> + *
+> + * Hence caller must use IS_ERR_VALUE to check for error, this
+> + * allows us to contain CONFIG_SMP kludgery.
+> + */
+> +static inline u64 xt_percpu_counter_alloc(void)
 > +{
-> +	u32 seclen = 0;
+> +#ifdef CONFIG_SMP
+> +	void __percpu *res = alloc_percpu(struct xt_counters);
+> +
+> +	if (res == NULL)
+> +		return (u64) -ENOMEM;
+> +
+> +	return (__force u64) res;
+> +#else
+> +	return 0;
+> +#endif
 
-place
 
-#if IS_ENABLED(CONFIG_NETWORK_SECMARK)
+This is awesome.
 
-here?
+Note that we might still have SMP builds used on non SMP hosts.
 
-I also think it makes sense to reject NFQA_CFG_F_SECCTX config flag in
-nfqnl_recv_config() when IS_ENABLED(CONFIG_NETWORK_SECMARK) is not set;
-i'd suggest to return EOPNOTSUPP in that case.
+So maybe use something with less ifdefs like the following.
+
+static inline u64 xt_percpu_counter_alloc(void)
+{
+	if (nr_cpu_ids > 1) {
+		void __percpu *res = alloc_percpu(struct xt_counters);
+
+		if (!res)
+			return (u64) -ENOMEM;
+		return (__force u64) res;
+	}
+	return 0;
+}
+
+
+On CONFIG_SMP=n builds, compiler will automatically remove all this, as
+nr_cpu_ids is constant 1.
+
+
+
