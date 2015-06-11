@@ -1,45 +1,57 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [patch] ipvs: prevent some underflows
-Date: Thu, 11 Jun 2015 08:18:06 +0300 (EEST)
-Message-ID: <alpine.LFD.2.11.1506110811030.1827@ja.home.ssi.bg>
-References: <20150605093315.GD24871@mwanda> <alpine.LFD.2.11.1506082137420.1552@ja.home.ssi.bg> <20150609122630.GA4060@localhost.localdomain>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH v3 nf-next 1/2] netfilter: xtables: use percpu rule
+ counters
+Date: Wed, 10 Jun 2015 22:32:08 -0700
+Message-ID: <1434000728.27504.30.camel@edumazet-glaptop2.roam.corp.google.com>
+References: <1433979295-7747-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	kernel-janitors@vger.kernel.org
-To: Marcelo Ricardo Leitner <mleitner@redhat.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <20150609122630.GA4060@localhost.localdomain>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ig0-f193.google.com ([209.85.213.193]:33205 "EHLO
+	mail-ig0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750737AbbFKFcK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Jun 2015 01:32:10 -0400
+Received: by igdj8 with SMTP id j8so8928155igd.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 10 Jun 2015 22:32:10 -0700 (PDT)
+In-Reply-To: <1433979295-7747-1-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-
-	Hello,
-
-On Tue, 9 Jun 2015, Marcelo Ricardo Leitner wrote:
-
-> On Mon, Jun 08, 2015 at 10:16:23PM +0300, Julian Anastasov wrote:
-> > 
-> > 	May be we should use min(dev->mtu, 1500) instead of
-> > dev->mtu to avoid sending too large packets for the common
-> > case.
+On Thu, 2015-06-11 at 01:34 +0200, Florian Westphal wrote:
+> The binary arp/ip/ip6tables ruleset is stored per cpu.
 > 
-> That will put an upper limit on it, no? If the load balancers share a
-> big MTU, why not use it?
+> The only reason left as to why we need percpu duplication are the rule
+> counters embedded into ipt_entry et al -- since each cpu has its own copy
+> of the rules, all counters can be lockless.
+> 
+> The downside is that the more cpus are supported, the more memory is
+> required.  Rules are not just duplicated per online cpu but for each
+> possible cpu, i.e. if maxcpu is 144, then rule is duplicated 144 times,
+> not for the e.g. 64 cores present.
+> 
+> To save some memory and also improve utilization of shared caches it
+> would be preferable to only store the rule blob once.
+> 
+> So we first need to separate counters and the rule blob.
+> 
+> Instead of using entry->counters, allocate this percpu and store the
+> percpu address in entry->counters.pcnt on CONFIG_SMP.
+> 
+> This change makes no sense as-is; it is merely an intermediate step to
+> remove the percpu duplication of the rule set in a followup patch.
+> 
+> Suggested-by: Eric Dumazet <edumazet@google.com>
+> Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+> Reported-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
 
-	Yes, without any configuration (eg. sysctl value),
-such defaults should reduce the chance for incompatibilities.
-I.e. we should not send more than 1500 and should be able to
-receive at least 1500.
+Acked-by: Eric Dumazet <edumazet@google.com>
 
-Regards
+Thanks !
 
---
-Julian Anastasov <ja@ssi.bg>
+
