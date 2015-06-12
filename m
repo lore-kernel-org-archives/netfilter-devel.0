@@ -1,41 +1,45 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: bridge: restore vlan tag when refragmenting
-Date: Fri, 12 Jun 2015 14:31:48 +0200
-Message-ID: <20150612123148.GB13790@salvia>
-References: <1433503633-16312-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH v3 nf-next 2/2] netfilter: xtables: avoid percpu ruleset
+ duplication
+Date: Fri, 12 Jun 2015 14:32:52 +0200
+Message-ID: <20150612123252.GA13866@salvia>
+References: <1433979295-7747-1-git-send-email-fw@strlen.de>
+ <1433979295-7747-2-git-send-email-fw@strlen.de>
+ <1434000773.27504.31.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, eric.dumazet@gmail.com
-To: Florian Westphal <fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57168 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:57408 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752062AbbFLM0g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Jun 2015 08:26:36 -0400
+	id S1752799AbbFLM1j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Jun 2015 08:27:39 -0400
 Content-Disposition: inline
-In-Reply-To: <1433503633-16312-1-git-send-email-fw@strlen.de>
+In-Reply-To: <1434000773.27504.31.camel@edumazet-glaptop2.roam.corp.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 05, 2015 at 01:27:13PM +0200, Florian Westphal wrote:
-> If bridge netfilter is used with both
-> bridge-nf-call-iptables and bridge-nf-filter-vlan-tagged enabled
-> then ip fragments in VLAN frames are sent without the vlan header.
+On Wed, Jun 10, 2015 at 10:32:53PM -0700, Eric Dumazet wrote:
+> On Thu, 2015-06-11 at 01:34 +0200, Florian Westphal wrote:
+> > We store the rule blob per (possible) cpu.  Unfortunately this means we can
+> > waste lot of memory on big smp machines. ipt_entry structure ('rule head')
+> > is 112 byte, so e.g. with maxcpu=64 one single rule eats
+> > close to 8k RAM.
+> > 
+> > Since previous patch made counters percpu it appears there is nothing
+> > left in the rule blob that needs to be percpu.
+> > 
+> > On my test system (144 possible cpus, 400k dummy rules) this
+> > change saves close to 9 Gigabyte of RAM.
+> > 
+> > Reported-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+> > Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+> > Signed-off-by: Florian Westphal <fw@strlen.de>
+> > ---
 > 
-> This has never worked reliably.  Turns out this relied on pre-3.5
-> behaviour where skb frag_list was used to store ip fragments;
-> ip_fragment() then re-used these skbs.
+> Very happy to see this happening, thanks Florian.
 > 
-> But since commit 3cc4949269e01f39443d0fcfffb5bc6b47878d45
-> ("ipv4: use skb coalescing in defragmentation") this is no longer
-> the case.  ip_do_fragment now needs to allocate new skbs, but these
-> don't contain the vlan tag information anymore.
-> 
-> Fix it by storing vlan information of the ressembled skb in the
-> br netfilter percpu frag area, and restore them for each of the
-> fragments.
-> 
-> Fixes: 3cc4949269e01f3 ("ipv4: use skb coalescing in defragmentation")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+> Acked-by: Eric Dumazet <edumazet@google.com>
 
-Applied to nf-next. Thanks Florian.
+Applied this series, thanks !
