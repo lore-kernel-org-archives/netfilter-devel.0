@@ -1,88 +1,69 @@
-From: Marcelo Ricardo Leitner <mleitner@redhat.com>
-Subject: Re: [PATCH nf] netfilter: conntrack: warn the user if there is a
- better helper to use
-Date: Fri, 12 Jun 2015 10:50:19 -0300
-Message-ID: <20150612135019.GO4049@localhost.localdomain>
-References: <78dd7b4675383719e968db577fd89094729641e3.1432216169.git.mleitner@redhat.com>
- <20150612122414.GA13515@salvia>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH v3 nf-next 2/2] netfilter: xtables: avoid percpu ruleset
+ duplication
+Date: Fri, 12 Jun 2015 08:04:52 -0700
+Message-ID: <1434121492.27504.84.camel@edumazet-glaptop2.roam.corp.google.com>
+References: <1433979295-7747-1-git-send-email-fw@strlen.de>
+	 <1433979295-7747-2-git-send-email-fw@strlen.de>
+	 <1434000773.27504.31.camel@edumazet-glaptop2.roam.corp.google.com>
+	 <20150612123252.GA13866@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, daniel@iogearbox.net, fw@strlen.de
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46211 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752847AbbFLNuW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Jun 2015 09:50:22 -0400
-Content-Disposition: inline
-In-Reply-To: <20150612122414.GA13515@salvia>
+Received: from mail-ie0-f175.google.com ([209.85.223.175]:35477 "EHLO
+	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755278AbbFLPEy (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Jun 2015 11:04:54 -0400
+Received: by iesa3 with SMTP id a3so26309449ies.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 12 Jun 2015 08:04:53 -0700 (PDT)
+In-Reply-To: <20150612123252.GA13866@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 12, 2015 at 02:24:14PM +0200, Pablo Neira Ayuso wrote:
-> On Thu, May 21, 2015 at 10:57:12AM -0300, Marcelo Ricardo Leitner wrote:
-> > From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+On Fri, 2015-06-12 at 14:32 +0200, Pablo Neira Ayuso wrote:
+> On Wed, Jun 10, 2015 at 10:32:53PM -0700, Eric Dumazet wrote:
+> > On Thu, 2015-06-11 at 01:34 +0200, Florian Westphal wrote:
+> > > We store the rule blob per (possible) cpu.  Unfortunately this means we can
+> > > waste lot of memory on big smp machines. ipt_entry structure ('rule head')
+> > > is 112 byte, so e.g. with maxcpu=64 one single rule eats
+> > > close to 8k RAM.
+> > > 
+> > > Since previous patch made counters percpu it appears there is nothing
+> > > left in the rule blob that needs to be percpu.
+> > > 
+> > > On my test system (144 possible cpus, 400k dummy rules) this
+> > > change saves close to 9 Gigabyte of RAM.
+> > > 
+> > > Reported-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+> > > Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+> > > Signed-off-by: Florian Westphal <fw@strlen.de>
+> > > ---
 > > 
-> > After db29a9508a92 ("netfilter: conntrack: disable generic tracking for
-> > known protocols"), if the specific helper is built but not loaded
-> > (a standard for most distributions) systems with a restrictive firewall
-> > but weak configuration regarding netfilter modules to load, will
-> > silently stop working.
+> > Very happy to see this happening, thanks Florian.
 > > 
-> > This patch then puts a warning message so the sysadmin knows where to
-> > start looking into. It's a pr_warn_once regardless of protocol itself
-> > but it should be enough to give a hint on where to look.
+> > Acked-by: Eric Dumazet <edumazet@google.com>
 > 
-> Applied to nf-next.
-> 
-> I'd rather see some evaluation on getting these helpers into the
-> nf_conntrack module in terms of extra size, just as we do for tcp, udp
-> and icmp. Moreover, these trackers (specifically DCCP and SCTP) got
-> not much care so some extra review would be good if we decide to get
-> this into core.
+> Applied this series, thanks !
 
-That would be much better yes.
+Note that now we have a single copy of the rules, we might try to use
+kmalloc() instead of vmalloc() a bit harder for tables <= 64KB, reducing
+TLB pressure.
 
-> I'm telling this because assuming that people will look at this warn
-> once still seem weak assumption to me.
-> 
-> Thanks for your patience.
+newinfo->entries = NULL;
+if (size <= PAGE_SIZE << MAX_ORDER)
+	newinfo->entries = kmalloc(size, GFP_KERNEL | __GFP_NOWARN);
+if (!newinfo->entries)
+	newinfo->entries = vmalloc(size);
 
-Ok, thanks Pablo.
 
-  Marcelo
+I'll send a patch for this, but can you push your tree ?
+(Assuming this is
+http://git.kernel.org/cgit/linux/kernel/git/pablo/nf-next.git/ )
 
-> > Cc: Florian Westphal <fw@strlen.de>
-> > Cc: Daniel Borkmann <daniel@iogearbox.net>
-> > Signed-off-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-> > ---
-> >  net/netfilter/nf_conntrack_proto_generic.c | 8 +++++++-
-> >  1 file changed, 7 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
-> > index 60865f1103099383c4263a1a56e691b3c86c3720..2281be419a74b6d8abe0fd7da8d7e8b35d304600 100644
-> > --- a/net/netfilter/nf_conntrack_proto_generic.c
-> > +++ b/net/netfilter/nf_conntrack_proto_generic.c
-> > @@ -90,7 +90,13 @@ static int generic_packet(struct nf_conn *ct,
-> >  static bool generic_new(struct nf_conn *ct, const struct sk_buff *skb,
-> >  			unsigned int dataoff, unsigned int *timeouts)
-> >  {
-> > -	return nf_generic_should_process(nf_ct_protonum(ct));
-> > +	bool ret;
-> > +
-> > +	ret = nf_generic_should_process(nf_ct_protonum(ct));
-> > +	if (!ret)
-> > +		pr_warn_once("conntrack: generic helper won't handle protocol %d. Please consider loading the specific helper module.\n",
-> > +			     nf_ct_protonum(ct));
-> > +	return ret;
-> >  }
-> >  
-> >  #if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
-> > -- 
-> > 2.4.1
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Thanks
+
+
