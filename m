@@ -1,56 +1,136 @@
-From: "Roberto Santalla Fdez." <roobre@roobre.es>
-Subject: Does arptables support adding new extensions dinamically like
- iptables does?
-Date: Sat, 13 Jun 2015 02:55:36 +0200
-Message-ID: <8138a5d415b532939d43593e8382f92c@roobre.es>
-References: <6d5911260a4d58c9a66062858405a03a@roobre.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] tests: regression: ip6: reduce warning noise
+Date: Sat, 13 Jun 2015 20:51:09 +0200
+Message-ID: <1434221469-15380-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from tenshi.com.es ([62.210.204.61]:44429 "EHLO tenshi.com.es"
+Received: from mail.us.es ([193.147.175.20]:39865 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751330AbbFMAzh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Jun 2015 20:55:37 -0400
-Received: from mail.tenshi.com.es (tenshi.com.es [62.210.204.61])
-	by tenshi.com.es (Postfix) with ESMTPSA id C16E182392
-	for <netfilter-devel@vger.kernel.org>; Sat, 13 Jun 2015 02:55:36 +0200 (CEST)
-In-Reply-To: <6d5911260a4d58c9a66062858405a03a@roobre.es>
+	id S1751387AbbFMSqC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 13 Jun 2015 14:46:02 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+getnameinfo() displays this:
 
-I'm currently introducing myself into kernel development, and I decided 
-to give building an xtables module a try. I'm trying to write a very 
-simple arptable modules which checks whether an ARP requests comes from 
-a given IP.
+ ::1234:1234:1234:1234:1234:1234:1234
 
-I've built the kernel module and the userspace library, but arptables 
-seems to ignore it (module's name is arpway):
+as:
 
-     [root@Archpv3]# ~> arptables -F
-     [root@Archpv3]# ~> arptables -A INPUT -m arpway -j ACCEPT
-     [root@Archpv3]# ~> arptables-save
-     *filter
-     :INPUT ACCEPT
-     :OUTPUT ACCEPT
-     :FORWARD ACCEPT
-     -A INPUT -j ACCEPT
+ 0:1234:1234:1234:1234:1234:1234:1234
 
-also, `arptables -m arpway -h` does not print my module's help text.
+which is basically equivalent. nft accepts both inputs.
 
-Just to check, if I change the module's scope to ipv4 (setting 
-`xtables_match.family` to `NFPROTO_IPV4`), module's help is successfully 
-printed with `iptables -m arpway -h`, and adding the rule and then 
-printing it works.
+So add some exceptions to the tests to reduce the amount of noise in the tests,
+so we can focus on real problems.
 
-Needless to say, module is successfully complied and `insmod`'ed, and 
-userspace library is placed in `/usr/lib/iptables/libxt_arpway.so`.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ tests/regression/ip6/ip6.t  |   21 +++++++++++----------
+ tests/regression/ip6/vmap.t |   26 +++++++++++++-------------
+ 2 files changed, 24 insertions(+), 23 deletions(-)
 
-Am I doing something wrong, or does arptables not support dynamic 
-extensions/modules like iptables does?
+diff --git a/tests/regression/ip6/ip6.t b/tests/regression/ip6/ip6.t
+index 529a068..d4c5c7e 100644
+--- a/tests/regression/ip6/ip6.t
++++ b/tests/regression/ip6/ip6.t
+@@ -59,21 +59,22 @@ ip6 hoplimit {33-55};ok
+ # v680		(({hex4}:){7}{hex4})
+ ip6 saddr 1234:1234:1234:1234:1234:1234:1234:1234;ok
+ # v670		((:)(:{hex4}{7}))
+-ip6 saddr ::1234:1234:1234:1234:1234:1234:1234;ok
++ip6 saddr ::1234:1234:1234:1234:1234:1234:1234;ok;ip6 saddr 0:1234:1234:1234:1234:1234:1234:1234
+ # v671		((({hex4}:){1})(:{hex4}{6}))
+-ip6 saddr 1234::1234:1234:1234:1234:1234:1234;ok
++ip6 saddr 1234::1234:1234:1234:1234:1234:1234;ok;ip6 saddr 1234:0:1234:1234:1234:1234:1234:1234
+ # v672		((({hex4}:){2})(:{hex4}{5}))
+-ip6 saddr 1234:1234::1234:1234:1234:1234:1234;ok
++ip6 saddr 1234:1234::1234:1234:1234:1234:1234;ok;ip6 saddr 1234:1234:0:1234:1234:1234:1234:1234
++ip6 saddr 1234:1234:0:1234:1234:1234:1234:1234;ok
+ # v673		((({hex4}:){3})(:{hex4}{4}))
+-ip6 saddr 1234:1234:1234::1234:1234:1234:1234;ok
++ip6 saddr 1234:1234:1234::1234:1234:1234:1234;ok;ip6 saddr 1234:1234:1234:0:1234:1234:1234:1234
+ # v674		((({hex4}:){4})(:{hex4}{3}))
+-ip6 saddr 1234:1234:1234:1234::1234:1234:1234;ok
++ip6 saddr 1234:1234:1234:1234:0:1234:1234:1234;ok
+ # v675		((({hex4}:){5})(:{hex4}{2}))
+-ip6 saddr 1234:1234:1234:1234:1234::1234:1234;ok
++ip6 saddr 1234:1234:1234:1234:1234::1234:1234;ok;ip6 saddr 1234:1234:1234:1234:1234:0:1234:1234
+ # v676		((({hex4}:){6})(:{hex4}{1}))
+-ip6 saddr 1234:1234:1234:1234:1234:1234::1234;ok
++ip6 saddr 1234:1234:1234:1234:1234:1234:0:1234;ok
+ # v677		((({hex4}:){7})(:))
+-ip6 saddr 1234:1234:1234:1234:1234:1234:1234::;ok
++ip6 saddr 1234:1234:1234:1234:1234:1234:1234::;ok;ip6 saddr 1234:1234:1234:1234:1234:1234:1234:0
+ # v67		({v670}|{v671}|{v672}|{v673}|{v674}|{v675}|{v676}|{v677})
+ # v660		((:)(:{hex4}{6}))
+ ip6 saddr ::1234:1234:1234:1234:1234:1234;ok
+@@ -124,7 +125,7 @@ ip6 saddr 1234:1234::1234;ok
+ ip6 saddr 1234:1234:1234::;ok
+ # v63		({v630}|{v631}|{v632}|{v633})
+ # v620		((:)(:{hex4}{2}))
+-ip6 saddr ::1234:1234;ok
++ip6 saddr ::1234:1234;ok;ip6 saddr ::18.52.18.52
+ # v621		((({hex4}:){1})(:{hex4}{1}))
+ ip6 saddr 1234::1234;ok
+ # v622		((({hex4}:){2})(:))
+@@ -139,4 +140,4 @@ ip6 saddr 1234::;ok
+ ip6 saddr ::/64;ok
+ 
+ - ip6 daddr != {::1234:1234:1234:1234:1234:1234:1234, 1234:1234::1234:1234:1234:1234:1234 };ok
+-ip6 daddr != ::1234:1234:1234:1234:1234:1234:1234-1234:1234::1234:1234:1234:1234:1234;ok
++ip6 daddr != ::1234:1234:1234:1234:1234:1234:1234-1234:1234::1234:1234:1234:1234:1234;ok;ip6 daddr != 0:1234:1234:1234:1234:1234:1234:1234-1234:1234:0:1234:1234:1234:1234:1234
+diff --git a/tests/regression/ip6/vmap.t b/tests/regression/ip6/vmap.t
+index 705f369..301a28a 100644
+--- a/tests/regression/ip6/vmap.t
++++ b/tests/regression/ip6/vmap.t
+@@ -8,14 +8,14 @@ ip6 saddr 1234:1234:1234:1234:1234:1234:1234:1234:1234;fail
+ # Ipv6 address combinations
+ # from src/scanner.l
+ ip6 saddr vmap { 1234:1234:1234:1234:1234:1234:1234:1234 : accept};ok
+-ip6 saddr vmap { ::1234:1234:1234:1234:1234:1234:1234 : accept};ok
+-ip6 saddr vmap { 1234::1234:1234:1234:1234:1234:1234 : accept};ok
+-ip6 saddr vmap { 1234:1234::1234:1234:1234:1234:1234 : accept};ok
+-ip6 saddr vmap { 1234:1234:1234::1234:1234:1234:1234 : accept};ok
+-ip6 saddr vmap { 1234:1234:1234:1234::1234:1234:1234 : accept};ok
+-ip6 saddr vmap { 1234:1234:1234:1234:1234::1234:1234 : accept};ok
+-ip6 saddr vmap { 1234:1234:1234:1234:1234:1234::1234 : accept};ok
+-ip6 saddr vmap { 1234:1234:1234:1234:1234:1234:1234:: : accept};ok
++ip6 saddr vmap { ::1234:1234:1234:1234:1234:1234:1234 : accept};ok;ip6 saddr vmap { 0:1234:1234:1234:1234:1234:1234:1234 : accept}
++ip6 saddr vmap { 1234::1234:1234:1234:1234:1234:1234 : accept};ok;ip6 saddr vmap { 1234:0:1234:1234:1234:1234:1234:1234 : accept}
++ip6 saddr vmap { 1234:1234::1234:1234:1234:1234:1234 : accept};ok;ip6 saddr vmap { 1234:1234:0:1234:1234:1234:1234:1234 : accept}
++ip6 saddr vmap { 1234:1234:1234::1234:1234:1234:1234 : accept};ok;ip6 saddr vmap { 1234:1234:1234:0:1234:1234:1234:1234 : accept}
++ip6 saddr vmap { 1234:1234:1234:1234::1234:1234:1234 : accept};ok;ip6 saddr vmap { 1234:1234:1234:1234:0:1234:1234:1234 : accept}
++ip6 saddr vmap { 1234:1234:1234:1234:1234::1234:1234 : accept};ok;ip6 saddr vmap { 1234:1234:1234:1234:1234:0:1234:1234 : accept}
++ip6 saddr vmap { 1234:1234:1234:1234:1234:1234::1234 : accept};ok;ip6 saddr vmap { 1234:1234:1234:1234:1234:1234:0:1234 : accept}
++ip6 saddr vmap { 1234:1234:1234:1234:1234:1234:1234:: : accept};ok;ip6 saddr vmap { 1234:1234:1234:1234:1234:1234:1234:0 : accept}
+ ip6 saddr vmap { ::1234:1234:1234:1234:1234:1234 : accept};ok
+ ip6 saddr vmap { 1234::1234:1234:1234:1234:1234 : accept};ok
+ ip6 saddr vmap { 1234:1234::1234:1234:1234:1234 : accept};ok
+@@ -38,17 +38,17 @@ ip6 saddr vmap { ::1234:1234:1234 : accept};ok
+ ip6 saddr vmap { 1234::1234:1234 : accept};ok
+ ip6 saddr vmap { 1234:1234::1234 : accept};ok
+ ip6 saddr vmap { 1234:1234:1234:: : accept};ok
+-ip6 saddr vmap { ::1234:1234 : accept};ok
++ip6 saddr vmap { ::1234:1234 : accept};ok;ip6 saddr vmap { ::18.52.18.52 : accept}
+ ip6 saddr vmap { 1234::1234 : accept};ok
+ ip6 saddr vmap { 1234:1234:: : accept};ok
+ ip6 saddr vmap { ::1234 : accept};ok
+ ip6 saddr vmap { 1234:: : accept};ok
+ ip6 saddr vmap { ::/64 : accept};ok
+ 
+-ip6 saddr vmap {1234:1234:1234:1234:1234:1234:aaaa:: : accept, ::aaaa : drop};ok
+-ip6 saddr vmap {1234:1234:1234:1234:1234:1234:aaaa:::accept, ::bbbb : drop};ok
+-ip6 saddr vmap {1234:1234:1234:1234:1234:1234:aaaa:::accept,::cccc : drop};ok
+-ip6 saddr vmap {1234:1234:1234:1234:1234:1234:aaaa:::accept,::dddd: drop};ok
++ip6 saddr vmap {1234:1234:1234:1234:1234:1234:aaaa:: : accept, ::aaaa : drop};ok;ip6 saddr vmap {1234:1234:1234:1234:1234:1234:aaaa:0 : accept, ::aaaa : drop}
++ip6 saddr vmap {1234:1234:1234:1234:1234:1234:aaaa:::accept, ::bbbb : drop};ok;ip6 saddr vmap {1234:1234:1234:1234:1234:1234:aaaa:0 : accept, ::bbbb : drop}
++ip6 saddr vmap {1234:1234:1234:1234:1234:1234:aaaa:::accept,::cccc : drop};ok;ip6 saddr vmap {1234:1234:1234:1234:1234:1234:aaaa:0 : accept, ::cccc : drop}
++ip6 saddr vmap {1234:1234:1234:1234:1234:1234:aaaa:::accept,::dddd: drop};ok;ip6 saddr vmap {1234:1234:1234:1234:1234:1234:aaaa:0 : accept, ::dddd: drop}
+ 
+ # rule without comma:
+ filter-input ip6 saddr vmap { 1234:1234:1234:1234:1234:1234:bbbb:::accept::adda : drop};fail
+-- 
+1.7.10.4
 
-Regards and thanks in advance, Roberto.
