@@ -1,27 +1,62 @@
-From: Alexander Petrenas <zeracles@zeracles.net.ru>
-Subject: RE: Kernel 4.1.0 broke the TARPIT & DELUGE targets in
- xtables-addons-2.6
-Date: Tue, 23 Jun 2015 14:17:09 +0300
-Message-ID: <94a5fd8b-f435-4d6b-a810-ee59781ad58d@zeracles.net.ru>
-References: <6ba05a9b-e2ef-4c32-ab22-5e9e8440c91a@zeracles.net.ru>
+From: "Herr Martins D Weber" <test@fumeilaistone.cn>
+Subject: Lieber Freund!!!
+Date: Sat, 13 Jun 2015 05:35:41 -0700
+Message-ID: <7E31B091-B8D1-41FB-9151-195420E78138__9780.15700025043$1435064359$gmane$org@fumeilaistone.cn>
+Reply-To: <martinsdweber@aim.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Cc: netfilter-devel@vger.kernel.org
-To: 'Florian Westphal' <fw@strlen.de>
+Content-Type: text/plain; charset=Windows-1251
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from zeracles.net.ru ([178.252.70.14]:54326 "EHLO zeracles.net.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752632AbbFWLR1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Jun 2015 07:17:27 -0400
-In-Reply-To: <6ba05a9b-e2ef-4c32-ab22-5e9e8440c91a@zeracles.net.ru>
+Received: from [115.29.104.60] ([115.29.104.60]:53486 "HELO fumeilaistone.cn"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+	id S932890AbbFWM7C convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Jun 2015 08:59:02 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Well, unfortunately, you should disregard previous message in part of submitting it to xtables-addons ASAP. 
+Lieber Freund!!!
 
-While modules compiled without errors, actually applying iptables TARPIT rule results in a connection loss, the nature of which I unfortunately cannot describe at the moment (was trying to apply the update to a remote server without KVM). It kind of looks like a kernel panic though - no messages are written to any logs after adding the TARPIT rule - the server just goes dead.
+Ich vermute das diese E-Mail eine ?berraschung f?r Sie sein wird, aber =
+es ist wahr.Ich bin bei einer routinen ?berpr?fung in meiner Bank (Stan=
+dardBank PLC von S?d Afrika) wo ich arbeite, auf einem Konto gesto?en, =
+was nicht in anspruch genommen worden ist, wo derzeit USD$18.5M (Achtze=
+hn Million, F?nf Hundert Tausend, US Dollar)  gutgeschrieben sind.Diese=
+s Konto geh?rte Herrn Manfred Becker, der ein Kunde in unsere Bank war,=
+ der leider verstorben ist. Herrn Manfred Becker war ein geb?rtiger Deu=
+tscher.
 
-I guess more research is needed on the matter, I'll try to run some tests on a local machine & post the results.
+Damit es mir m?glich ist dieses Geld $18,500,000 inanspruch zunehmen,be=
+n?tige ich die zusammenarbeit eines Ausl?ndischen Partners wie Sie,den =
+ich als Verwandter und Erbe des verstorbenen Herrn Manfred Becker vorst=
+ellen kann,damit wir das Geld inanspruch nehmen k?nnen. F?r diese Unter=
+st?tzung erhalten Sie 30% der Erbschaftsumme und die restlichen 70% tei=
+le ich mirmit meinen zwei Arbeitskollegen, die mich bei dieser Transakt=
+ion ebenfalls unterst?tzen.
 
-Yours, Alexander Petrenas.
 
+Wenn Sie interessiert sind, k?nnen Sie mir bitte eine E-Mail schicken, =
+damit ich Ihnen mehr Details zukommen lassen kann. N.B.BITTE SENDEN SIE=
+ MIR Martins D Weber ANTWORT ZU durch mein E-mail: ( martinsdweber@aim.=
+com ) f?R VERTRAULICHEN GRUND. Schicken Sie keine POST ZU MEINEM B?RO-E=
+-MAIL.(martinsdweber@aim.com )
+
+
+If you understand english,please  kindly reply with english ( martinsdw=
+eber@aim.com )
+
+Mit freundlichen Gr=FC=DFen
+
+Herr Martins D Weber
+
+---
+This email has been checked for viruses by Avast antivirus software.
+https://www.avast.com/antivirus
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
