@@ -1,291 +1,318 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 06/15] netfilter: ipset: Check CIDR value only when attribute is given
-Date: Sun, 14 Jun 2015 10:56:23 +0200
-Message-ID: <1434272192-8620-7-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 11/15] netfilter: ipset: Prepare the ipset core to use RCU at set level
+Date: Sun, 14 Jun 2015 10:56:28 +0200
+Message-ID: <1434272192-8620-12-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1434272192-8620-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:57040 "EHLO smtp1.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:57051 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751476AbbFNI4d (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 14 Jun 2015 04:56:33 -0400
+	id S1751537AbbFNI4e (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 14 Jun 2015 04:56:34 -0400
 In-Reply-To: <1434272192-8620-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Sergey Popovich <popovich_sergei@mail.ua>
+Replace rwlock_t with spinlock_t in "struct ip_set" and change the locking
+accordingly. Convert the comment extension into an rcu-avare object. Also,
+simplify the timeout routines.
 
-There is no reason to check CIDR value regardless attribute
-specifying CIDR is given.
-
-Initialize cidr array in element structure on element structure
-declaration to let more freedom to the compiler to optimize
-initialization right before element structure is used.
-
-Remove local variables cidr and cidr2 for netnet and netportnet
-hashes as we do not use packed cidr value for such set types and
-can store value directly in e.cidr[].
-
-Signed-off-by: Sergey Popovich <popovich_sergei@mail.ua>
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_hash_net.c        |  8 +++---
- net/netfilter/ipset/ip_set_hash_netiface.c   |  8 +++---
- net/netfilter/ipset/ip_set_hash_netnet.c     | 37 ++++++++++++----------------
- net/netfilter/ipset/ip_set_hash_netportnet.c | 37 ++++++++++++----------------
- 4 files changed, 41 insertions(+), 49 deletions(-)
+ include/linux/netfilter/ipset/ip_set.h         |  9 ++++--
+ include/linux/netfilter/ipset/ip_set_comment.h | 38 +++++++++++++++-------
+ include/linux/netfilter/ipset/ip_set_timeout.h | 25 ++++++---------
+ net/netfilter/ipset/ip_set_core.c              | 44 +++++++++++++-------------
+ 4 files changed, 66 insertions(+), 50 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
-index 2988ec5..d19926a 100644
---- a/net/netfilter/ipset/ip_set_hash_net.c
-+++ b/net/netfilter/ipset/ip_set_hash_net.c
-@@ -329,11 +329,11 @@ hash_net6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (ret)
- 		return ret;
+diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+index 5674b6a..19b4969 100644
+--- a/include/linux/netfilter/ipset/ip_set.h
++++ b/include/linux/netfilter/ipset/ip_set.h
+@@ -108,8 +108,13 @@ struct ip_set_counter {
+ 	atomic64_t packets;
+ };
  
--	if (tb[IPSET_ATTR_CIDR])
-+	if (tb[IPSET_ATTR_CIDR]) {
- 		e.cidr = nla_get_u8(tb[IPSET_ATTR_CIDR]);
--
--	if (!e.cidr || e.cidr > HOST_MASK)
--		return -IPSET_ERR_INVALID_CIDR;
-+		if (!e.cidr || e.cidr > HOST_MASK)
-+			return -IPSET_ERR_INVALID_CIDR;
-+	}
- 
- 	ip6_netmask(&e.ip, e.cidr);
- 
-diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
-index c80588c..7b69fa2 100644
---- a/net/netfilter/ipset/ip_set_hash_netiface.c
-+++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -541,10 +541,12 @@ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (ret)
- 		return ret;
- 
--	if (tb[IPSET_ATTR_CIDR])
-+	if (tb[IPSET_ATTR_CIDR]) {
- 		e.cidr = nla_get_u8(tb[IPSET_ATTR_CIDR]);
--	if (e.cidr > HOST_MASK)
--		return -IPSET_ERR_INVALID_CIDR;
-+		if (e.cidr > HOST_MASK)
-+			return -IPSET_ERR_INVALID_CIDR;
-+	}
++struct ip_set_comment_rcu {
++	struct rcu_head rcu;
++	char str[0];
++};
 +
- 	ip6_netmask(&e.ip, e.cidr);
+ struct ip_set_comment {
+-	char *str;
++	struct ip_set_comment_rcu __rcu *c;
+ };
  
- 	strcpy(iface, nla_data(tb[IPSET_ATTR_IFACE]));
-diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ipset/ip_set_hash_netnet.c
-index 2e6a1ae..11eee00 100644
---- a/net/netfilter/ipset/ip_set_hash_netnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netnet.c
-@@ -160,17 +160,15 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ struct ip_set_skbinfo {
+@@ -226,7 +231,7 @@ struct ip_set {
+ 	/* The name of the set */
+ 	char name[IPSET_MAXNAMELEN];
+ 	/* Lock protecting the set data */
+-	rwlock_t lock;
++	spinlock_t lock;
+ 	/* References to the set */
+ 	u32 ref;
+ 	/* The core set type */
+diff --git a/include/linux/netfilter/ipset/ip_set_comment.h b/include/linux/netfilter/ipset/ip_set_comment.h
+index 21217ea..8d02485 100644
+--- a/include/linux/netfilter/ipset/ip_set_comment.h
++++ b/include/linux/netfilter/ipset/ip_set_comment.h
+@@ -16,41 +16,57 @@ ip_set_comment_uget(struct nlattr *tb)
+ 	return nla_data(tb);
+ }
+ 
++/* Called from uadd only, protected by the set spinlock.
++ * The kadt functions don't use the comment extensions in any way.
++ */
+ static inline void
+ ip_set_init_comment(struct ip_set_comment *comment,
+ 		    const struct ip_set_ext *ext)
  {
- 	const struct hash_netnet *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
--	struct hash_netnet4_elem e = { };
-+	struct hash_netnet4_elem e = { .cidr = { HOST_MASK, HOST_MASK, }, };
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
- 	u32 ip = 0, ip_to = 0, last;
- 	u32 ip2 = 0, ip2_from = 0, ip2_to = 0, last2;
--	u8 cidr, cidr2;
- 	int ret;
++	struct ip_set_comment_rcu *c = rcu_dereference_protected(comment->c, 1);
+ 	size_t len = ext->comment ? strlen(ext->comment) : 0;
  
- 	if (tb[IPSET_ATTR_LINENO])
- 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
- 
--	e.cidr[0] = e.cidr[1] = HOST_MASK;
- 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
- 		return -IPSET_ERR_PROTOCOL;
-@@ -188,17 +186,15 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- 		return ret;
- 
- 	if (tb[IPSET_ATTR_CIDR]) {
--		cidr = nla_get_u8(tb[IPSET_ATTR_CIDR]);
--		if (!cidr || cidr > HOST_MASK)
-+		e.cidr[0] = nla_get_u8(tb[IPSET_ATTR_CIDR]);
-+		if (!e.cidr[0] || e.cidr[0] > HOST_MASK)
- 			return -IPSET_ERR_INVALID_CIDR;
--		e.cidr[0] = cidr;
+-	if (unlikely(comment->str)) {
+-		kfree(comment->str);
+-		comment->str = NULL;
++	if (unlikely(c)) {
++		kfree_rcu(c, rcu);
++		rcu_assign_pointer(comment->c, NULL);
  	}
+ 	if (!len)
+ 		return;
+ 	if (unlikely(len > IPSET_MAX_COMMENT_SIZE))
+ 		len = IPSET_MAX_COMMENT_SIZE;
+-	comment->str = kzalloc(len + 1, GFP_ATOMIC);
+-	if (unlikely(!comment->str))
++	c = kzalloc(sizeof(*c) + len + 1, GFP_ATOMIC);
++	if (unlikely(!c))
+ 		return;
+-	strlcpy(comment->str, ext->comment, len + 1);
++	strlcpy(c->str, ext->comment, len + 1);
++	rcu_assign_pointer(comment->c, c);
+ }
  
- 	if (tb[IPSET_ATTR_CIDR2]) {
--		cidr2 = nla_get_u8(tb[IPSET_ATTR_CIDR2]);
--		if (!cidr2 || cidr2 > HOST_MASK)
-+		e.cidr[1] = nla_get_u8(tb[IPSET_ATTR_CIDR2]);
-+		if (!e.cidr[1] || e.cidr[1] > HOST_MASK)
- 			return -IPSET_ERR_INVALID_CIDR;
--		e.cidr[1] = cidr2;
- 	}
- 
- 	if (tb[IPSET_ATTR_CADT_FLAGS]) {
-@@ -245,15 +241,13 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- 
- 	while (!after(ip, ip_to)) {
- 		e.ip[0] = htonl(ip);
--		last = ip_set_range_to_cidr(ip, ip_to, &cidr);
--		e.cidr[0] = cidr;
-+		last = ip_set_range_to_cidr(ip, ip_to, &e.cidr[0]);
- 		ip2 = (retried &&
- 		       ip == ntohl(h->next.ip[0])) ? ntohl(h->next.ip[1])
- 						   : ip2_from;
- 		while (!after(ip2, ip2_to)) {
- 			e.ip[1] = htonl(ip2);
--			last2 = ip_set_range_to_cidr(ip2, ip2_to, &cidr2);
--			e.cidr[1] = cidr2;
-+			last2 = ip_set_range_to_cidr(ip2, ip2_to, &e.cidr[1]);
- 			ret = adtfn(set, &e, &ext, &ext, flags);
- 			if (ret && !ip_set_eexist(ret, flags))
- 				return ret;
-@@ -388,14 +382,13 @@ hash_netnet6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	       enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
++/* Used only when dumping a set, protected by rcu_read_lock_bh() */
+ static inline int
+ ip_set_put_comment(struct sk_buff *skb, struct ip_set_comment *comment)
  {
- 	ipset_adtfn adtfn = set->variant->adt[adt];
--	struct hash_netnet6_elem e = { };
-+	struct hash_netnet6_elem e = { .cidr = { HOST_MASK, HOST_MASK, }, };
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
- 	int ret;
+-	if (!comment->str)
++	struct ip_set_comment_rcu *c = rcu_dereference_bh(comment->c);
++
++	if (!c)
+ 		return 0;
+-	return nla_put_string(skb, IPSET_ATTR_COMMENT, comment->str);
++	return nla_put_string(skb, IPSET_ATTR_COMMENT, c->str);
+ }
  
- 	if (tb[IPSET_ATTR_LINENO])
- 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
++/* Called from uadd/udel, flush or the garbage collectors protected
++ * by the set spinlock.
++ * Called when the set is destroyed and when there can't be any user
++ * of the set data anymore.
++ */
+ static inline void
+ ip_set_comment_free(struct ip_set_comment *comment)
+ {
+-	if (unlikely(!comment->str))
++	struct ip_set_comment_rcu *c;
++
++	c = rcu_dereference_protected(comment->c, 1);
++	if (unlikely(!c))
+ 		return;
+-	kfree(comment->str);
+-	comment->str = NULL;
++	kfree_rcu(c, rcu);
++	rcu_assign_pointer(comment->c, NULL);
+ }
  
--	e.cidr[0] = e.cidr[1] = HOST_MASK;
- 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
- 		return -IPSET_ERR_PROTOCOL;
-@@ -414,15 +407,17 @@ hash_netnet6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (ret)
- 		return ret;
+ #endif
+diff --git a/include/linux/netfilter/ipset/ip_set_timeout.h b/include/linux/netfilter/ipset/ip_set_timeout.h
+index 3c8842b..1d6a935 100644
+--- a/include/linux/netfilter/ipset/ip_set_timeout.h
++++ b/include/linux/netfilter/ipset/ip_set_timeout.h
+@@ -40,31 +40,26 @@ ip_set_timeout_uget(struct nlattr *tb)
+ }
  
--	if (tb[IPSET_ATTR_CIDR])
-+	if (tb[IPSET_ATTR_CIDR]) {
- 		e.cidr[0] = nla_get_u8(tb[IPSET_ATTR_CIDR]);
-+		if (!e.cidr[0] || e.cidr[0] > HOST_MASK)
-+			return -IPSET_ERR_INVALID_CIDR;
-+	}
- 
--	if (tb[IPSET_ATTR_CIDR2])
-+	if (tb[IPSET_ATTR_CIDR2]) {
- 		e.cidr[1] = nla_get_u8(tb[IPSET_ATTR_CIDR2]);
+ static inline bool
+-ip_set_timeout_test(unsigned long timeout)
++ip_set_timeout_expired(unsigned long *t)
+ {
+-	return timeout == IPSET_ELEM_PERMANENT ||
+-	       time_is_after_jiffies(timeout);
+-}
 -
--	if (!e.cidr[0] || e.cidr[0] > HOST_MASK || !e.cidr[1] ||
--	    e.cidr[1] > HOST_MASK)
--		return -IPSET_ERR_INVALID_CIDR;
-+		if (!e.cidr[1] || e.cidr[1] > HOST_MASK)
-+			return -IPSET_ERR_INVALID_CIDR;
-+	}
+-static inline bool
+-ip_set_timeout_expired(unsigned long *timeout)
+-{
+-	return *timeout != IPSET_ELEM_PERMANENT &&
+-	       time_is_before_jiffies(*timeout);
++	return *t != IPSET_ELEM_PERMANENT && time_is_before_jiffies(*t);
+ }
  
- 	ip6_netmask(&e.ip[0], e.cidr[0]);
- 	ip6_netmask(&e.ip[1], e.cidr[1]);
-diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
-index 7ad9a77..6eb5f87 100644
---- a/net/netfilter/ipset/ip_set_hash_netportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
-@@ -175,18 +175,16 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ static inline void
+-ip_set_timeout_set(unsigned long *timeout, u32 t)
++ip_set_timeout_set(unsigned long *timeout, u32 value)
  {
- 	const struct hash_netportnet *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
--	struct hash_netportnet4_elem e = { };
-+	struct hash_netportnet4_elem e = { .cidr = { HOST_MASK, HOST_MASK, }, };
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
- 	u32 ip = 0, ip_to = 0, ip_last, p = 0, port, port_to;
- 	u32 ip2_from = 0, ip2_to = 0, ip2_last, ip2;
- 	bool with_ports = false;
--	u8 cidr, cidr2;
- 	int ret;
- 
- 	if (tb[IPSET_ATTR_LINENO])
- 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
- 
--	e.cidr[0] = e.cidr[1] = HOST_MASK;
- 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
- 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
-@@ -206,17 +204,15 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- 		return ret;
- 
- 	if (tb[IPSET_ATTR_CIDR]) {
--		cidr = nla_get_u8(tb[IPSET_ATTR_CIDR]);
--		if (!cidr || cidr > HOST_MASK)
-+		e.cidr[0] = nla_get_u8(tb[IPSET_ATTR_CIDR]);
-+		if (!e.cidr[0] || e.cidr[0] > HOST_MASK)
- 			return -IPSET_ERR_INVALID_CIDR;
--		e.cidr[0] = cidr;
+-	if (!t) {
++	unsigned long t;
++
++	if (!value) {
+ 		*timeout = IPSET_ELEM_PERMANENT;
+ 		return;
  	}
  
- 	if (tb[IPSET_ATTR_CIDR2]) {
--		cidr = nla_get_u8(tb[IPSET_ATTR_CIDR2]);
--		if (!cidr || cidr > HOST_MASK)
-+		e.cidr[1] = nla_get_u8(tb[IPSET_ATTR_CIDR2]);
-+		if (!e.cidr[1] || e.cidr[1] > HOST_MASK)
- 			return -IPSET_ERR_INVALID_CIDR;
--		e.cidr[1] = cidr;
+-	*timeout = msecs_to_jiffies(t * MSEC_PER_SEC) + jiffies;
+-	if (*timeout == IPSET_ELEM_PERMANENT)
++	t = msecs_to_jiffies(value * MSEC_PER_SEC) + jiffies;
++	if (t == IPSET_ELEM_PERMANENT)
+ 		/* Bingo! :-) */
+-		(*timeout)--;
++		t--;
++	*timeout = t;
+ }
+ 
+ static inline u32
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 87b4182..2b21a19 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -209,15 +209,15 @@ ip_set_type_register(struct ip_set_type *type)
+ 		pr_warn("ip_set type %s, family %s with revision min %u already registered!\n",
+ 			type->name, family_name(type->family),
+ 			type->revision_min);
+-		ret = -EINVAL;
+-		goto unlock;
++		ip_set_type_unlock();
++		return -EINVAL;
  	}
+ 	list_add_rcu(&type->list, &ip_set_type_list);
+ 	pr_debug("type %s, family %s, revision %u:%u registered.\n",
+ 		 type->name, family_name(type->family),
+ 		 type->revision_min, type->revision_max);
+-unlock:
+ 	ip_set_type_unlock();
++
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(ip_set_type_register);
+@@ -231,12 +231,12 @@ ip_set_type_unregister(struct ip_set_type *type)
+ 		pr_warn("ip_set type %s, family %s with revision min %u not registered\n",
+ 			type->name, family_name(type->family),
+ 			type->revision_min);
+-		goto unlock;
++		ip_set_type_unlock();
++		return;
+ 	}
+ 	list_del_rcu(&type->list);
+ 	pr_debug("type %s, family %s with revision min %u unregistered.\n",
+ 		 type->name, family_name(type->family), type->revision_min);
+-unlock:
+ 	ip_set_type_unlock();
  
- 	e.port = nla_get_be16(tb[IPSET_ATTR_PORT]);
-@@ -285,8 +281,7 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	synchronize_rcu();
+@@ -531,16 +531,16 @@ ip_set_test(ip_set_id_t index, const struct sk_buff *skb,
+ 	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
+ 		return 0;
  
- 	while (!after(ip, ip_to)) {
- 		e.ip[0] = htonl(ip);
--		ip_last = ip_set_range_to_cidr(ip, ip_to, &cidr);
--		e.cidr[0] = cidr;
-+		ip_last = ip_set_range_to_cidr(ip, ip_to, &e.cidr[0]);
- 		p = retried && ip == ntohl(h->next.ip[0]) ? ntohs(h->next.port)
- 							  : port;
- 		for (; p <= port_to; p++) {
-@@ -297,8 +292,7 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- 			while (!after(ip2, ip2_to)) {
- 				e.ip[1] = htonl(ip2);
- 				ip2_last = ip_set_range_to_cidr(ip2, ip2_to,
--								&cidr2);
--				e.cidr[1] = cidr2;
-+								&e.cidr[1]);
- 				ret = adtfn(set, &e, &ext, &ext, flags);
- 				if (ret && !ip_set_eexist(ret, flags))
- 					return ret;
-@@ -447,7 +441,7 @@ hash_netportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
+-	read_lock_bh(&set->lock);
++	rcu_read_lock_bh();
+ 	ret = set->variant->kadt(set, skb, par, IPSET_TEST, opt);
+-	read_unlock_bh(&set->lock);
++	rcu_read_unlock_bh();
+ 
+ 	if (ret == -EAGAIN) {
+ 		/* Type requests element to be completed */
+ 		pr_debug("element must be completed, ADD is triggered\n");
+-		write_lock_bh(&set->lock);
++		spin_lock_bh(&set->lock);
+ 		set->variant->kadt(set, skb, par, IPSET_ADD, opt);
+-		write_unlock_bh(&set->lock);
++		spin_unlock_bh(&set->lock);
+ 		ret = 1;
+ 	} else {
+ 		/* --return-nomatch: invert matched element */
+@@ -570,9 +570,9 @@ ip_set_add(ip_set_id_t index, const struct sk_buff *skb,
+ 	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
+ 		return -IPSET_ERR_TYPE_MISMATCH;
+ 
+-	write_lock_bh(&set->lock);
++	spin_lock_bh(&set->lock);
+ 	ret = set->variant->kadt(set, skb, par, IPSET_ADD, opt);
+-	write_unlock_bh(&set->lock);
++	spin_unlock_bh(&set->lock);
+ 
+ 	return ret;
+ }
+@@ -593,9 +593,9 @@ ip_set_del(ip_set_id_t index, const struct sk_buff *skb,
+ 	    !(opt->family == set->family || set->family == NFPROTO_UNSPEC))
+ 		return -IPSET_ERR_TYPE_MISMATCH;
+ 
+-	write_lock_bh(&set->lock);
++	spin_lock_bh(&set->lock);
+ 	ret = set->variant->kadt(set, skb, par, IPSET_DEL, opt);
+-	write_unlock_bh(&set->lock);
++	spin_unlock_bh(&set->lock);
+ 
+ 	return ret;
+ }
+@@ -880,7 +880,7 @@ ip_set_create(struct sock *ctnl, struct sk_buff *skb,
+ 	set = kzalloc(sizeof(struct ip_set), GFP_KERNEL);
+ 	if (!set)
+ 		return -ENOMEM;
+-	rwlock_init(&set->lock);
++	spin_lock_init(&set->lock);
+ 	strlcpy(set->name, name, IPSET_MAXNAMELEN);
+ 	set->family = family;
+ 	set->revision = revision;
+@@ -1062,9 +1062,9 @@ ip_set_flush_set(struct ip_set *set)
  {
- 	const struct hash_netportnet *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
--	struct hash_netportnet6_elem e = { };
-+	struct hash_netportnet6_elem e = { .cidr = { HOST_MASK, HOST_MASK, }, };
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
- 	u32 port, port_to;
- 	bool with_ports = false;
-@@ -456,7 +450,6 @@ hash_netportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (tb[IPSET_ATTR_LINENO])
- 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
+ 	pr_debug("set: %s\n",  set->name);
  
--	e.cidr[0] = e.cidr[1] = HOST_MASK;
- 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
- 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
-@@ -477,15 +470,17 @@ hash_netportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (ret)
- 		return ret;
+-	write_lock_bh(&set->lock);
++	spin_lock_bh(&set->lock);
+ 	set->variant->flush(set);
+-	write_unlock_bh(&set->lock);
++	spin_unlock_bh(&set->lock);
+ }
  
--	if (tb[IPSET_ATTR_CIDR])
-+	if (tb[IPSET_ATTR_CIDR]) {
- 		e.cidr[0] = nla_get_u8(tb[IPSET_ATTR_CIDR]);
-+		if (!e.cidr[0] || e.cidr[0] > HOST_MASK)
-+			return -IPSET_ERR_INVALID_CIDR;
-+	}
+ static int
+@@ -1377,9 +1377,9 @@ dump_last:
+ 				set->variant->uref(set, cb, true);
+ 			/* Fall through and add elements */
+ 		default:
+-			read_lock_bh(&set->lock);
++			rcu_read_lock_bh();
+ 			ret = set->variant->list(set, skb, cb);
+-			read_unlock_bh(&set->lock);
++			rcu_read_unlock_bh();
+ 			if (!cb->args[IPSET_CB_ARG0])
+ 				/* Set is done, proceed with next one */
+ 				goto next_set;
+@@ -1462,9 +1462,9 @@ call_ad(struct sock *ctnl, struct sk_buff *skb, struct ip_set *set,
+ 	bool eexist = flags & IPSET_FLAG_EXIST, retried = false;
  
--	if (tb[IPSET_ATTR_CIDR2])
-+	if (tb[IPSET_ATTR_CIDR2]) {
- 		e.cidr[1] = nla_get_u8(tb[IPSET_ATTR_CIDR2]);
--
--	if (unlikely(!e.cidr[0] || e.cidr[0] > HOST_MASK || !e.cidr[1] ||
--		     e.cidr[1] > HOST_MASK))
--		return -IPSET_ERR_INVALID_CIDR;
-+		if (!e.cidr[1] || e.cidr[1] > HOST_MASK)
-+			return -IPSET_ERR_INVALID_CIDR;
-+	}
+ 	do {
+-		write_lock_bh(&set->lock);
++		spin_lock_bh(&set->lock);
+ 		ret = set->variant->uadt(set, tb, adt, &lineno, flags, retried);
+-		write_unlock_bh(&set->lock);
++		spin_unlock_bh(&set->lock);
+ 		retried = true;
+ 	} while (ret == -EAGAIN &&
+ 		 set->variant->resize &&
+@@ -1644,9 +1644,9 @@ ip_set_utest(struct sock *ctnl, struct sk_buff *skb,
+ 			     set->type->adt_policy))
+ 		return -IPSET_ERR_PROTOCOL;
  
- 	ip6_netmask(&e.ip[0], e.cidr[0]);
- 	ip6_netmask(&e.ip[1], e.cidr[1]);
+-	read_lock_bh(&set->lock);
++	rcu_read_lock_bh();
+ 	ret = set->variant->uadt(set, tb, IPSET_TEST, NULL, 0, 0);
+-	read_unlock_bh(&set->lock);
++	rcu_read_unlock_bh();
+ 	/* Userspace can't trigger element to be re-added */
+ 	if (ret == -EAGAIN)
+ 		ret = 1;
 -- 
 1.8.5.1
 
