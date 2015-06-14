@@ -1,102 +1,491 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 00/15] ipset patches for nf-next
-Date: Sun, 14 Jun 2015 10:56:17 +0200
-Message-ID: <1434272192-8620-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 03/15] netfilter: ipset: Check extensions attributes before getting extensions.
+Date: Sun, 14 Jun 2015 10:56:20 +0200
+Message-ID: <1434272192-8620-4-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1434272192-8620-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:34891 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:55958 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750908AbbFNI4d (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1751462AbbFNI4d (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Sun, 14 Jun 2015 04:56:33 -0400
+In-Reply-To: <1434272192-8620-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+From: Sergey Popovich <popovich_sergei@mail.ua>
 
-Please consider to apply the next bunch of patches for ipset. First
-comes the small changes, then the bugfixes and at the end the RCU
-related patches.
+Make all extensions attributes checks within ip_set_get_extensions()
+and reduce number of duplicated code.
 
-* Use MSEC_PER_SEC consistently instead of the number.
-* Use SET_WITH_*() helpers to test set extensions from Sergey Popovich.
-* Check extensions attributes before getting extensions from Sergey Popovich.
-* Permit CIDR equal to the host address CIDR in IPv6 from Sergey Popovich.
-* Make sure we always return line number on batch in the case of error
-  from Sergey Popovich.
-* Check CIDR value only when attribute is given from Sergey Popovich.
-* Fix cidr handling for hash:*net* types, reported by Jonathan Johnson.
-* Fix parallel resizing and listing of the same set so that the original
-  set is kept for the whole dumping.
-* Make sure listing doesn't grab a set which is just being destroyed.
-* Remove rbtree from ip_set_hash_netiface.c in order to introduce RCU.
-* Replace rwlock_t with spinlock_t in "struct ip_set", change the locking
-  in the core and simplifications in the timeout routines.
-* Introduce RCU locking in bitmap:* types with a slight modification in the
-  logic on how an element is added.
-* Introduce RCU locking in hash:* types. This is the most complex part of
-  the changes.
-* Introduce RCU locking in list type where standard rculist is used.
-* Fix coding styles reported by checkpatch.pl.
+Signed-off-by: Sergey Popovich <popovich_sergei@mail.ua>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ net/netfilter/ipset/ip_set_bitmap_ip.c       |  8 +-------
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c    |  8 +-------
+ net/netfilter/ipset/ip_set_bitmap_port.c     |  8 +-------
+ net/netfilter/ipset/ip_set_core.c            |  9 +++++++++
+ net/netfilter/ipset/ip_set_hash_ip.c         | 14 +-------------
+ net/netfilter/ipset/ip_set_hash_ipmark.c     | 14 +-------------
+ net/netfilter/ipset/ip_set_hash_ipport.c     | 14 +-------------
+ net/netfilter/ipset/ip_set_hash_ipportip.c   | 14 +-------------
+ net/netfilter/ipset/ip_set_hash_ipportnet.c  | 14 +-------------
+ net/netfilter/ipset/ip_set_hash_mac.c        |  8 +-------
+ net/netfilter/ipset/ip_set_hash_net.c        | 16 ++--------------
+ net/netfilter/ipset/ip_set_hash_netiface.c   | 16 ++--------------
+ net/netfilter/ipset/ip_set_hash_netnet.c     | 16 ++--------------
+ net/netfilter/ipset/ip_set_hash_netport.c    | 16 ++--------------
+ net/netfilter/ipset/ip_set_hash_netportnet.c | 16 ++--------------
+ net/netfilter/ipset/ip_set_list_set.c        |  8 +-------
+ 16 files changed, 29 insertions(+), 170 deletions(-)
 
-Best regards,
-Jozsef
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
+index 2fe6de4..212005e 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -138,13 +138,7 @@ bitmap_ip_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	int ret = 0;
+ 
+-	if (unlikely(!tb[IPSET_ATTR_IP] ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)   ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++	if (unlikely(!tb[IPSET_ATTR_IP]))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index eb18856..0648e74 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -239,13 +239,7 @@ bitmap_ipmac_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	u32 ip = 0;
+ 	int ret = 0;
+ 
+-	if (unlikely(!tb[IPSET_ATTR_IP] ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)   ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++	if (unlikely(!tb[IPSET_ATTR_IP]))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
+index 898edb6..10ed264 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -137,13 +137,7 @@ bitmap_port_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	int ret = 0;
+ 
+ 	if (unlikely(!ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)   ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+index 347d97a..68ae551 100644
+--- a/net/netfilter/ipset/ip_set_core.c
++++ b/net/netfilter/ipset/ip_set_core.c
+@@ -389,6 +389,15 @@ ip_set_get_extensions(struct ip_set *set, struct nlattr *tb[],
+ 		      struct ip_set_ext *ext)
+ {
+ 	u64 fullmark;
++
++	if (unlikely(!ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		return -IPSET_ERR_PROTOCOL;
++
+ 	if (tb[IPSET_ATTR_TIMEOUT]) {
+ 		if (!SET_WITH_TIMEOUT(set))
+ 			return -IPSET_ERR_TIMEOUT;
+diff --git a/net/netfilter/ipset/ip_set_hash_ip.c b/net/netfilter/ipset/ip_set_hash_ip.c
+index 54df48b..0d955a4 100644
+--- a/net/netfilter/ipset/ip_set_hash_ip.c
++++ b/net/netfilter/ipset/ip_set_hash_ip.c
+@@ -108,13 +108,7 @@ hash_ip4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	u32 ip = 0, ip_to = 0, hosts;
+ 	int ret = 0;
+ 
+-	if (unlikely(!tb[IPSET_ATTR_IP] ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)   ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++	if (unlikely(!tb[IPSET_ATTR_IP]))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+@@ -247,12 +241,6 @@ hash_ip6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	int ret;
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE) ||
+ 		     tb[IPSET_ATTR_IP_TO] ||
+ 		     tb[IPSET_ATTR_CIDR]))
+ 		return -IPSET_ERR_PROTOCOL;
+diff --git a/net/netfilter/ipset/ip_set_hash_ipmark.c b/net/netfilter/ipset/ip_set_hash_ipmark.c
+index d231248..f4e14ec 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipmark.c
++++ b/net/netfilter/ipset/ip_set_hash_ipmark.c
+@@ -109,13 +109,7 @@ hash_ipmark4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	int ret;
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+-		     !ip_set_attr_netorder(tb, IPSET_ATTR_MARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		     !ip_set_attr_netorder(tb, IPSET_ATTR_MARK)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+@@ -242,12 +236,6 @@ hash_ipmark6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+ 		     !ip_set_attr_netorder(tb, IPSET_ATTR_MARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE) ||
+ 		     tb[IPSET_ATTR_IP_TO] ||
+ 		     tb[IPSET_ATTR_CIDR]))
+ 		return -IPSET_ERR_PROTOCOL;
+diff --git a/net/netfilter/ipset/ip_set_hash_ipport.c b/net/netfilter/ipset/ip_set_hash_ipport.c
+index a47c29f..02d9dba 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipport.c
++++ b/net/netfilter/ipset/ip_set_hash_ipport.c
+@@ -118,13 +118,7 @@ hash_ipport4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+ 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+@@ -282,12 +276,6 @@ hash_ipport6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+ 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE) ||
+ 		     tb[IPSET_ATTR_IP_TO] ||
+ 		     tb[IPSET_ATTR_CIDR]))
+ 		return -IPSET_ERR_PROTOCOL;
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportip.c b/net/netfilter/ipset/ip_set_hash_ipportip.c
+index 89615f1..4e3b1c3 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportip.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportip.c
+@@ -121,13 +121,7 @@ hash_ipportip4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+ 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+@@ -293,12 +287,6 @@ hash_ipportip6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+ 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE) ||
+ 		     tb[IPSET_ATTR_IP_TO] ||
+ 		     tb[IPSET_ATTR_CIDR]))
+ 		return -IPSET_ERR_PROTOCOL;
+diff --git a/net/netfilter/ipset/ip_set_hash_ipportnet.c b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+index 6ba7a7e..988567e 100644
+--- a/net/netfilter/ipset/ip_set_hash_ipportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_ipportnet.c
+@@ -176,13 +176,7 @@ hash_ipportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+ 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+@@ -429,13 +423,7 @@ hash_ipportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+ 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE) ||
+ 		     tb[IPSET_ATTR_IP_TO] ||
+ 		     tb[IPSET_ATTR_CIDR]))
+ 		return -IPSET_ERR_PROTOCOL;
+diff --git a/net/netfilter/ipset/ip_set_hash_mac.c b/net/netfilter/ipset/ip_set_hash_mac.c
+index 1f8668d..0d49519 100644
+--- a/net/netfilter/ipset/ip_set_hash_mac.c
++++ b/net/netfilter/ipset/ip_set_hash_mac.c
+@@ -107,13 +107,7 @@ hash_mac4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	int ret;
+ 
+-	if (unlikely(!tb[IPSET_ATTR_ETHER] ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES)   ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++	if (unlikely(!tb[IPSET_ATTR_ETHER]))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+diff --git a/net/netfilter/ipset/ip_set_hash_net.c b/net/netfilter/ipset/ip_set_hash_net.c
+index 2e63dad..5eb334d 100644
+--- a/net/netfilter/ipset/ip_set_hash_net.c
++++ b/net/netfilter/ipset/ip_set_hash_net.c
+@@ -147,13 +147,7 @@ hash_net4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	int ret;
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+@@ -319,13 +313,7 @@ hash_net6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	int ret;
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 	if (unlikely(tb[IPSET_ATTR_IP_TO]))
+ 		return -IPSET_ERR_HASH_RANGE_UNSUPPORTED;
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index fe481f6..5eef6f3 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -295,13 +295,7 @@ hash_netiface4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+ 		     !tb[IPSET_ATTR_IFACE] ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+@@ -531,13 +525,7 @@ hash_netiface6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+ 		     !tb[IPSET_ATTR_IFACE] ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 	if (unlikely(tb[IPSET_ATTR_IP_TO]))
+ 		return -IPSET_ERR_HASH_RANGE_UNSUPPORTED;
+diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ipset/ip_set_hash_netnet.c
+index 8470474..775b1b0 100644
+--- a/net/netfilter/ipset/ip_set_hash_netnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netnet.c
+@@ -169,13 +169,7 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	e.cidr[0] = e.cidr[1] = HOST_MASK;
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+@@ -400,13 +394,7 @@ hash_netnet6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	e.cidr[0] = e.cidr[1] = HOST_MASK;
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 	if (unlikely(tb[IPSET_ATTR_IP_TO] || tb[IPSET_ATTR_IP2_TO]))
+ 		return -IPSET_ERR_HASH_RANGE_UNSUPPORTED;
+diff --git a/net/netfilter/ipset/ip_set_hash_netport.c b/net/netfilter/ipset/ip_set_hash_netport.c
+index 8273819..0eb73da 100644
+--- a/net/netfilter/ipset/ip_set_hash_netport.c
++++ b/net/netfilter/ipset/ip_set_hash_netport.c
+@@ -169,13 +169,7 @@ hash_netport4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+ 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+@@ -387,13 +381,7 @@ hash_netport6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (unlikely(!tb[IPSET_ATTR_IP] ||
+ 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 	if (unlikely(tb[IPSET_ATTR_IP_TO]))
+ 		return -IPSET_ERR_HASH_RANGE_UNSUPPORTED;
+diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
+index 1451a8a..c3634ad 100644
+--- a/net/netfilter/ipset/ip_set_hash_netportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
+@@ -187,13 +187,7 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+ 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+@@ -463,13 +457,7 @@ hash_netportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+ 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 	if (unlikely(tb[IPSET_ATTR_IP_TO] || tb[IPSET_ATTR_IP2_TO]))
+ 		return -IPSET_ERR_HASH_RANGE_UNSUPPORTED;
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index 5bd3b1e..7d1377d 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -384,13 +384,7 @@ list_set_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	int ret = 0;
+ 
+ 	if (unlikely(!tb[IPSET_ATTR_NAME] ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_TIMEOUT) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PACKETS) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_BYTES) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBMARK) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBPRIO) ||
+-		     !ip_set_optattr_netorder(tb, IPSET_ATTR_SKBQUEUE)))
++		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+-- 
+1.8.5.1
 
-The following changes since commit 482cfc318559e2527dfd8513582d2fdb276e47c2:
-
-  netfilter: xtables: avoid percpu ruleset duplication (2015-06-12 14:27:10 +0200)
-
-are available in the git repository at:
-
-  git://blackhole.kfki.hu/nf-next master
-
-for you to fetch changes up to ca0f6a5cd99e0c6ba4bb78dc402817f636370f26:
-
-  netfilter: ipset: Fix coding styles reported by checkpatch.pl (2015-06-14 10:40:18 +0200)
-
-----------------------------------------------------------------
-Jozsef Kadlecsik (10):
-      netfilter: ipset: Use MSEC_PER_SEC consistently
-      netfilter: ipset: Fix cidr handling for hash:*net* types
-      netfilter: ipset: Fix parallel resizing and listing of the same set
-      netfilter: ipset: Make sure listing doesn't grab a set which is just being destroyed.
-      netfilter:ipset Remove rbtree from hash:net,iface
-      netfilter: ipset: Prepare the ipset core to use RCU at set level
-      netfilter: ipset: Introduce RCU locking in bitmap:* types
-      netfilter: ipset: Introduce RCU locking in hash:* types
-      netfilter: ipset: Introduce RCU locking in list type
-      netfilter: ipset: Fix coding styles reported by checkpatch.pl
-
-Sergey Popovich (5):
-      netfilter: ipset: Use SET_WITH_*() helpers to test set extensions
-      netfilter: ipset: Check extensions attributes before getting extensions.
-      netfilter: ipset: Permit CIDR equal to the host address CIDR in IPv6
-      netfilter: ipset: Make sure we always return line number on batch
-      netfilter: ipset: Check CIDR value only when attribute is given
-
- include/linux/netfilter/ipset/ip_set.h         |  29 +-
- include/linux/netfilter/ipset/ip_set_comment.h |  38 +-
- include/linux/netfilter/ipset/ip_set_timeout.h |  27 +-
- include/uapi/linux/netfilter/ipset/ip_set.h    |   6 +-
- net/netfilter/ipset/ip_set_bitmap_gen.h        |  44 +-
- net/netfilter/ipset/ip_set_bitmap_ip.c         |  27 +-
- net/netfilter/ipset/ip_set_bitmap_ipmac.c      |  46 +-
- net/netfilter/ipset/ip_set_bitmap_port.c       |  24 +-
- net/netfilter/ipset/ip_set_core.c              | 344 ++++++------
- net/netfilter/ipset/ip_set_getport.c           |  13 +-
- net/netfilter/ipset/ip_set_hash_gen.h          | 714 +++++++++++++++----------
- net/netfilter/ipset/ip_set_hash_ip.c           |  39 +-
- net/netfilter/ipset/ip_set_hash_ipmark.c       |  46 +-
- net/netfilter/ipset/ip_set_hash_ipport.c       |  51 +-
- net/netfilter/ipset/ip_set_hash_ipportip.c     |  53 +-
- net/netfilter/ipset/ip_set_hash_ipportnet.c    |  58 +-
- net/netfilter/ipset/ip_set_hash_mac.c          |  19 +-
- net/netfilter/ipset/ip_set_hash_net.c          |  49 +-
- net/netfilter/ipset/ip_set_hash_netiface.c     | 225 ++------
- net/netfilter/ipset/ip_set_hash_netnet.c       | 120 ++---
- net/netfilter/ipset/ip_set_hash_netport.c      |  52 +-
- net/netfilter/ipset/ip_set_hash_netportnet.c   | 128 ++---
- net/netfilter/ipset/ip_set_list_set.c          | 419 +++++++--------
- net/netfilter/ipset/pfxlen.c                   |  16 +-
- net/netfilter/xt_set.c                         |  44 +-
- 25 files changed, 1319 insertions(+), 1312 deletions(-)
