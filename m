@@ -1,165 +1,212 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 09/15] netfilter: ipset: Make sure listing doesn't grab a set which is just being destroyed.
-Date: Sun, 14 Jun 2015 10:56:26 +0200
-Message-ID: <1434272192-8620-10-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 12/15] netfilter: ipset: Introduce RCU locking in bitmap:* types
+Date: Sun, 14 Jun 2015 10:56:29 +0200
+Message-ID: <1434272192-8620-13-git-send-email-kadlec@blackhole.kfki.hu>
 References: <1434272192-8620-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:34918 "EHLO smtp0.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:34940 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751549AbbFNI4f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 14 Jun 2015 04:56:35 -0400
+	id S1750745AbbFNI4j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 14 Jun 2015 04:56:39 -0400
 In-Reply-To: <1434272192-8620-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-There was a small window when all sets are destroyed and a concurrent
-listing of all sets could grab a set which is just being destroyed.
+There's nothing much required because the bitmap types use atomic
+bit operations. However the logic of adding elements slightly changed:
+first the MAC address updated (which is not atomic), then the element
+activated (added). The extensions may call kfree_rcu() therefore we
+call rcu_barrier() at module removal.
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- net/netfilter/ipset/ip_set_core.c | 49 +++++++++++++++++++++++++++------------
- 1 file changed, 34 insertions(+), 15 deletions(-)
+ net/netfilter/ipset/ip_set_bitmap_gen.h   | 33 +++++++++++++++++++++----------
+ net/netfilter/ipset/ip_set_bitmap_ip.c    |  3 ++-
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c | 13 ++++++++++--
+ net/netfilter/ipset/ip_set_bitmap_port.c  |  3 ++-
+ 4 files changed, 38 insertions(+), 14 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 777cac6..87b4182 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -32,7 +32,8 @@ static DEFINE_RWLOCK(ip_set_ref_lock);		/* protects the set refs */
- struct ip_set_net {
- 	struct ip_set * __rcu *ip_set_list;	/* all individual sets */
- 	ip_set_id_t	ip_set_max;	/* max number of sets */
--	int		is_deleted;	/* deleted by ip_set_net_exit */
-+	bool		is_deleted;	/* deleted by ip_set_net_exit */
-+	bool		is_destroyed;	/* all sets are destroyed */
- };
- static int ip_set_net_id __read_mostly;
+diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
+index 6f024a8..86429f3 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_gen.h
++++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+@@ -144,10 +144,12 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
  
-@@ -980,12 +981,9 @@ ip_set_setname_policy[IPSET_ATTR_CMD_MAX + 1] = {
- };
- 
- static void
--ip_set_destroy_set(struct ip_set_net *inst, ip_set_id_t index)
-+ip_set_destroy_set(struct ip_set *set)
- {
--	struct ip_set *set = ip_set(inst, index);
--
- 	pr_debug("set: %s\n",  set->name);
--	ip_set(inst, index) = NULL;
- 
- 	/* Must call it without holding any lock */
- 	set->variant->destroy(set);
-@@ -1025,12 +1023,17 @@ ip_set_destroy(struct sock *ctnl, struct sk_buff *skb,
- 				goto out;
- 			}
- 		}
-+		inst->is_destroyed = true;
- 		read_unlock_bh(&ip_set_ref_lock);
- 		for (i = 0; i < inst->ip_set_max; i++) {
- 			s = ip_set(inst, i);
--			if (s != NULL)
--				ip_set_destroy_set(inst, i);
-+			if (s) {
-+				ip_set(inst, i) = NULL;
-+				ip_set_destroy_set(s);
-+			}
- 		}
-+		/* Modified by ip_set_destroy() only, which is serialized */
-+		inst->is_destroyed = false;
- 	} else {
- 		s = find_set_and_id(inst, nla_data(attr[IPSET_ATTR_SETNAME]),
- 				    &i);
-@@ -1041,9 +1044,10 @@ ip_set_destroy(struct sock *ctnl, struct sk_buff *skb,
- 			ret = -IPSET_ERR_BUSY;
- 			goto out;
- 		}
-+		ip_set(inst, i) = NULL;
- 		read_unlock_bh(&ip_set_ref_lock);
- 
--		ip_set_destroy_set(inst, i);
-+		ip_set_destroy_set(s);
+ 	if (ret == IPSET_ADD_FAILED) {
+ 		if (SET_WITH_TIMEOUT(set) &&
+-		    ip_set_timeout_expired(ext_timeout(x, set)))
++		    ip_set_timeout_expired(ext_timeout(x, set))) {
+ 			ret = 0;
+-		else if (!(flags & IPSET_FLAG_EXIST))
++		} else if (!(flags & IPSET_FLAG_EXIST)) {
++			set_bit(e->id, map->members);
+ 			return -IPSET_ERR_EXIST;
++		}
+ 		/* Element is re-added, cleanup extensions */
+ 		ip_set_ext_destroy(set, x);
  	}
+@@ -165,6 +167,10 @@ mtype_add(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 		ip_set_init_comment(ext_comment(x, set), ext);
+ 	if (SET_WITH_SKBINFO(set))
+ 		ip_set_init_skbinfo(ext_skbinfo(x, set), ext);
++
++	/* Activate element */
++	set_bit(e->id, map->members);
++
  	return 0;
- out:
-@@ -1283,6 +1287,7 @@ ip_set_dump_start(struct sk_buff *skb, struct netlink_callback *cb)
- 	unsigned int flags = NETLINK_CB(cb->skb).portid ? NLM_F_MULTI : 0;
- 	struct ip_set_net *inst = ip_set_pernet(sock_net(skb->sk));
- 	u32 dump_type, dump_flags;
-+	bool is_destroyed;
- 	int ret = 0;
+ }
  
- 	if (!cb->args[IPSET_CB_DUMP]) {
-@@ -1309,12 +1314,20 @@ dump_last:
- 		 dump_type, dump_flags, cb->args[IPSET_CB_INDEX]);
- 	for (; cb->args[IPSET_CB_INDEX] < max; cb->args[IPSET_CB_INDEX]++) {
- 		index = (ip_set_id_t) cb->args[IPSET_CB_INDEX];
-+		write_lock_bh(&ip_set_ref_lock);
- 		set = ip_set(inst, index);
--		if (set == NULL) {
-+		is_destroyed = inst->is_destroyed;
-+		if (!set || is_destroyed) {
-+			write_unlock_bh(&ip_set_ref_lock);
- 			if (dump_type == DUMP_ONE) {
- 				ret = -ENOENT;
- 				goto out;
- 			}
-+			if (is_destroyed) {
-+				/* All sets are just being destroyed */
-+				ret = 0;
+@@ -203,10 +209,13 @@ mtype_list(const struct ip_set *set,
+ 	struct nlattr *adt, *nested;
+ 	void *x;
+ 	u32 id, first = cb->args[IPSET_CB_ARG0];
++	int ret = 0;
+ 
+ 	adt = ipset_nest_start(skb, IPSET_ATTR_ADT);
+ 	if (!adt)
+ 		return -EMSGSIZE;
++	/* Extensions may be replaced */
++	rcu_read_lock();
+ 	for (; cb->args[IPSET_CB_ARG0] < map->elements;
+ 	     cb->args[IPSET_CB_ARG0]++) {
+ 		id = cb->args[IPSET_CB_ARG0];
+@@ -222,9 +231,11 @@ mtype_list(const struct ip_set *set,
+ 		if (!nested) {
+ 			if (id == first) {
+ 				nla_nest_cancel(skb, adt);
+-				return -EMSGSIZE;
+-			} else
+-				goto nla_put_failure;
++				ret = -EMSGSIZE;
 +				goto out;
 +			}
- 			continue;
++
++			goto nla_put_failure;
  		}
- 		/* When dumping all sets, we must dump "sorted"
-@@ -1322,14 +1335,17 @@ dump_last:
- 		 */
- 		if (dump_type != DUMP_ONE &&
- 		    ((dump_type == DUMP_ALL) ==
--		     !!(set->type->features & IPSET_DUMP_LAST)))
-+		     !!(set->type->features & IPSET_DUMP_LAST))) {
-+			write_unlock_bh(&ip_set_ref_lock);
- 			continue;
-+		}
- 		pr_debug("List set: %s\n", set->name);
- 		if (!cb->args[IPSET_CB_ARG0]) {
- 			/* Start listing: make sure set won't be destroyed */
- 			pr_debug("reference set\n");
--			__ip_set_get(set);
-+			set->ref++;
- 		}
-+		write_unlock_bh(&ip_set_ref_lock);
- 		nlh = start_msg(skb, NETLINK_CB(cb->skb).portid,
- 				cb->nlh->nlmsg_seq, flags,
- 				IPSET_CMD_LIST);
-@@ -2012,7 +2028,8 @@ ip_set_net_init(struct net *net)
- 	list = kzalloc(sizeof(struct ip_set *) * inst->ip_set_max, GFP_KERNEL);
- 	if (!list)
- 		return -ENOMEM;
--	inst->is_deleted = 0;
-+	inst->is_deleted = false;
-+	inst->is_destroyed = false;
- 	rcu_assign_pointer(inst->ip_set_list, list);
- 	return 0;
- }
-@@ -2025,12 +2042,14 @@ ip_set_net_exit(struct net *net)
- 	struct ip_set *set = NULL;
- 	ip_set_id_t i;
+ 		if (mtype_do_list(skb, map, id, set->dsize))
+ 			goto nla_put_failure;
+@@ -238,16 +249,18 @@ mtype_list(const struct ip_set *set,
+ 	/* Set listing finished */
+ 	cb->args[IPSET_CB_ARG0] = 0;
  
--	inst->is_deleted = 1; /* flag for ip_set_nfnl_put */
-+	inst->is_deleted = true; /* flag for ip_set_nfnl_put */
+-	return 0;
++	goto out;
  
- 	for (i = 0; i < inst->ip_set_max; i++) {
- 		set = ip_set(inst, i);
--		if (set != NULL)
--			ip_set_destroy_set(inst, i);
-+		if (set) {
-+			ip_set(inst, i) = NULL;
-+			ip_set_destroy_set(set);
-+		}
+ nla_put_failure:
+ 	nla_nest_cancel(skb, nested);
+ 	if (unlikely(id == first)) {
+ 		cb->args[IPSET_CB_ARG0] = 0;
+-		return -EMSGSIZE;
++		ret = -EMSGSIZE;
  	}
- 	kfree(rcu_dereference_protected(inst->ip_set_list, 1));
+ 	ipset_nest_end(skb, adt);
+-	return 0;
++out:
++	rcu_read_unlock();
++	return ret;
  }
+ 
+ static void
+@@ -260,7 +273,7 @@ mtype_gc(unsigned long ul_set)
+ 
+ 	/* We run parallel with other readers (test element)
+ 	 * but adding/deleting new entries is locked out */
+-	read_lock_bh(&set->lock);
++	spin_lock_bh(&set->lock);
+ 	for (id = 0; id < map->elements; id++)
+ 		if (mtype_gc_test(id, map, set->dsize)) {
+ 			x = get_ext(set, map, id);
+@@ -269,7 +282,7 @@ mtype_gc(unsigned long ul_set)
+ 				ip_set_ext_destroy(set, x);
+ 			}
+ 		}
+-	read_unlock_bh(&set->lock);
++	spin_unlock_bh(&set->lock);
+ 
+ 	map->gc.expires = jiffies + IPSET_GC_PERIOD(set->timeout) * HZ;
+ 	add_timer(&map->gc);
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ip.c b/net/netfilter/ipset/ip_set_bitmap_ip.c
+index 7af99c3..b8ce474 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ip.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ip.c
+@@ -81,7 +81,7 @@ static inline int
+ bitmap_ip_do_add(const struct bitmap_ip_adt_elem *e, struct bitmap_ip *map,
+ 		 u32 flags, size_t dsize)
+ {
+-	return !!test_and_set_bit(e->id, map->members);
++	return !!test_bit(e->id, map->members);
+ }
+ 
+ static inline int
+@@ -376,6 +376,7 @@ bitmap_ip_init(void)
+ static void __exit
+ bitmap_ip_fini(void)
+ {
++	rcu_barrier();
+ 	ip_set_type_unregister(&bitmap_ip_type);
+ }
+ 
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index 7733422..fe00e87 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -147,15 +147,23 @@ bitmap_ipmac_do_add(const struct bitmap_ipmac_adt_elem *e,
+ 	struct bitmap_ipmac_elem *elem;
+ 
+ 	elem = get_elem(map->extensions, e->id, dsize);
+-	if (test_and_set_bit(e->id, map->members)) {
++	if (test_bit(e->id, map->members)) {
+ 		if (elem->filled == MAC_FILLED) {
+-			if (e->ether && (flags & IPSET_FLAG_EXIST))
++			if (e->ether &&
++			    (flags & IPSET_FLAG_EXIST) &&
++			    !ether_addr_equal(e->ether, elem->ether)) {
++				/* memcpy isn't atomic */
++				clear_bit(e->id, map->members);
++				smp_mb__after_atomic();
+ 				memcpy(elem->ether, e->ether, ETH_ALEN);
++			}
+ 			return IPSET_ADD_FAILED;
+ 		} else if (!e->ether)
+ 			/* Already added without ethernet address */
+ 			return IPSET_ADD_FAILED;
+ 		/* Fill the MAC address and trigger the timer activation */
++		clear_bit(e->id, map->members);
++		smp_mb__after_atomic();
+ 		memcpy(elem->ether, e->ether, ETH_ALEN);
+ 		elem->filled = MAC_FILLED;
+ 		return IPSET_ADD_START_STORED_TIMEOUT;
+@@ -413,6 +421,7 @@ bitmap_ipmac_init(void)
+ static void __exit
+ bitmap_ipmac_fini(void)
+ {
++	rcu_barrier();
+ 	ip_set_type_unregister(&bitmap_ipmac_type);
+ }
+ 
+diff --git a/net/netfilter/ipset/ip_set_bitmap_port.c b/net/netfilter/ipset/ip_set_bitmap_port.c
+index ec3bda1..2d360f9 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_port.c
++++ b/net/netfilter/ipset/ip_set_bitmap_port.c
+@@ -73,7 +73,7 @@ static inline int
+ bitmap_port_do_add(const struct bitmap_port_adt_elem *e,
+ 		   struct bitmap_port *map, u32 flags, size_t dsize)
+ {
+-	return !!test_and_set_bit(e->id, map->members);
++	return !!test_bit(e->id, map->members);
+ }
+ 
+ static inline int
+@@ -306,6 +306,7 @@ bitmap_port_init(void)
+ static void __exit
+ bitmap_port_fini(void)
+ {
++	rcu_barrier();
+ 	ip_set_type_unregister(&bitmap_port_type);
+ }
+ 
 -- 
 1.8.5.1
 
