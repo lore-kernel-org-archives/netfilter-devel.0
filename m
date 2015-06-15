@@ -1,107 +1,180 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH RFC 05/15] netfilter: ipt_CLUSTERIP: adapt it to support pernet hooks
-Date: Mon, 15 Jun 2015 17:46:47 +0200
-Message-ID: <1434383217-13732-6-git-send-email-pablo@netfilter.org>
+Subject: [PATCH RFC 12/15] netfilter: ebtables: adapt the filter and nat table to pernet hooks
+Date: Mon, 15 Jun 2015 17:46:54 +0200
+Message-ID: <1434383217-13732-13-git-send-email-pablo@netfilter.org>
 References: <1434383217-13732-1-git-send-email-pablo@netfilter.org>
 Cc: ebiederm@xmission.com, aschultz@warp10.net, kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36841 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36894 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752083AbbFOPls (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jun 2015 11:41:48 -0400
+	id S1755517AbbFOPly (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Jun 2015 11:41:54 -0400
 In-Reply-To: <1434383217-13732-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This target is deprecated, but let's adapt this so it doesn't break existing
-users.
+This adapts the filter and nat tables to register the hooks for each
+netnamespace.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv4/netfilter/ipt_CLUSTERIP.c |   31 +++++++++++++++++++++++--------
- 1 file changed, 23 insertions(+), 8 deletions(-)
+ include/net/netns/x_tables.h          |    2 ++
+ net/bridge/netfilter/ebtable_filter.c |   42 +++++++++++++++++++++++----------
+ net/bridge/netfilter/ebtable_nat.c    |   42 +++++++++++++++++++++++----------
+ 3 files changed, 62 insertions(+), 24 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index cf23858..0baa7f9 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -69,6 +69,8 @@ struct clusterip_net {
- 	/* lock protects the configs list */
- 	spinlock_t lock;
- 
-+	struct nf_hook_ops *ops;
-+
- #ifdef CONFIG_PROC_FS
- 	struct proc_dir_entry *procdir;
+diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
+index c8a7681..831af42 100644
+--- a/include/net/netns/x_tables.h
++++ b/include/net/netns/x_tables.h
+@@ -14,7 +14,9 @@ struct netns_xt {
+     defined(CONFIG_BRIDGE_NF_EBTABLES_MODULE)
+ 	struct ebt_table *broute_table;
+ 	struct ebt_table *frame_filter;
++	struct nf_hook_ops *frame_filter_ops;
+ 	struct ebt_table *frame_nat;
++	struct nf_hook_ops *frame_nat_ops;
  #endif
-@@ -724,6 +726,7 @@ static const struct file_operations clusterip_proc_fops = {
- static int clusterip_net_init(struct net *net)
+ };
+ #endif
+diff --git a/net/bridge/netfilter/ebtable_filter.c b/net/bridge/netfilter/ebtable_filter.c
+index 9a5a798..2ee938c 100644
+--- a/net/bridge/netfilter/ebtable_filter.c
++++ b/net/bridge/netfilter/ebtable_filter.c
+@@ -98,12 +98,40 @@ static struct nf_hook_ops ebt_ops_filter[] __read_mostly = {
+ 
+ static int __net_init frame_filter_net_init(struct net *net)
  {
- 	struct clusterip_net *cn = net_generic(net, clusterip_net_id);
 +	int err;
- 
- 	INIT_LIST_HEAD(&cn->configs);
- 
-@@ -737,13 +740,32 @@ static int clusterip_net_init(struct net *net)
- 	}
- #endif /* CONFIG_PROC_FS */
- 
-+	err = -ENOMEM;
-+	cn->ops = kmemdup(&cip_arp_ops, sizeof(cip_arp_ops), GFP_KERNEL);
-+	if (cn->ops == NULL)
++
+ 	net->xt.frame_filter = ebt_register_table(net, &frame_filter);
+-	return PTR_ERR_OR_ZERO(net->xt.frame_filter);
++	if (IS_ERR(net->xt.frame_filter)) {
++		err = PTR_ERR(net->xt.frame_filter);
 +		goto err1;
++	}
 +
-+	err = nf_register_hook(net, cn->ops);
-+	if (err < 0)
++	net->xt.frame_filter_ops =
++		kmemdup(ebt_ops_filter, sizeof(ebt_ops_filter), GFP_KERNEL);
++	if (net->xt.frame_filter_ops == NULL) {
++		err = -ENOMEM;
 +		goto err2;
++	}
 +
- 	return 0;
++	err = nf_register_hooks(net, net->xt.frame_filter_ops,
++				ARRAY_SIZE(ebt_ops_filter));
++	if (err < 0)
++		goto err3;
++
++	return 0;
++err3:
++	kfree(net->xt.frame_filter_ops);
 +err2:
-+	kfree(cn->ops);
++	ebt_unregister_table(net, net->xt.frame_filter);
 +err1:
-+	proc_remove(cn->procdir);
-+
 +	return err;
  }
  
- static void clusterip_net_exit(struct net *net)
+ static void __net_exit frame_filter_net_exit(struct net *net)
  {
--#ifdef CONFIG_PROC_FS
- 	struct clusterip_net *cn = net_generic(net, clusterip_net_id);
-+
-+	nf_unregister_hook(cn->ops);
-+	kfree(cn->ops);
-+
-+#ifdef CONFIG_PROC_FS
- 	proc_remove(cn->procdir);
- #endif
++	nf_unregister_hooks(net->xt.frame_filter_ops,
++			    ARRAY_SIZE(ebt_ops_filter));
++	kfree(net->xt.frame_filter_ops);
+ 	ebt_unregister_table(net, net->xt.frame_filter);
  }
-@@ -767,17 +789,11 @@ static int __init clusterip_tg_init(void)
- 	if (ret < 0)
- 		goto cleanup_subsys;
  
--	ret = nf_register_hook(&init_net, &cip_arp_ops);
--	if (ret < 0)
--		goto cleanup_target;
--
- 	pr_info("ClusterIP Version %s loaded successfully\n",
- 		CLUSTERIP_VERSION);
+@@ -114,21 +142,11 @@ static struct pernet_operations frame_filter_net_ops = {
  
- 	return 0;
- 
--cleanup_target:
--	xt_unregister_target(&clusterip_tg_reg);
- cleanup_subsys:
- 	unregister_pernet_subsys(&clusterip_net_ops);
- 	return ret;
-@@ -787,7 +803,6 @@ static void __exit clusterip_tg_exit(void)
+ static int __init ebtable_filter_init(void)
  {
- 	pr_info("ClusterIP Version %s unloading\n", CLUSTERIP_VERSION);
+-	int ret;
+-
+-	ret = register_pernet_subsys(&frame_filter_net_ops);
+-	if (ret < 0)
+-		return ret;
+-	ret = nf_register_hooks(&init_net, ebt_ops_filter,
+-				ARRAY_SIZE(ebt_ops_filter));
+-	if (ret < 0)
+-		unregister_pernet_subsys(&frame_filter_net_ops);
+-	return ret;
++	return register_pernet_subsys(&frame_filter_net_ops);
+ }
  
--	nf_unregister_hook(&cip_arp_ops);
- 	xt_unregister_target(&clusterip_tg_reg);
- 	unregister_pernet_subsys(&clusterip_net_ops);
+ static void __exit ebtable_filter_fini(void)
+ {
+-	nf_unregister_hooks(ebt_ops_filter, ARRAY_SIZE(ebt_ops_filter));
+ 	unregister_pernet_subsys(&frame_filter_net_ops);
+ }
+ 
+diff --git a/net/bridge/netfilter/ebtable_nat.c b/net/bridge/netfilter/ebtable_nat.c
+index 3d2759d..a787126 100644
+--- a/net/bridge/netfilter/ebtable_nat.c
++++ b/net/bridge/netfilter/ebtable_nat.c
+@@ -98,12 +98,40 @@ static struct nf_hook_ops ebt_ops_nat[] __read_mostly = {
+ 
+ static int __net_init frame_nat_net_init(struct net *net)
+ {
++	int err;
++
+ 	net->xt.frame_nat = ebt_register_table(net, &frame_nat);
+-	return PTR_ERR_OR_ZERO(net->xt.frame_nat);
++	if (IS_ERR(net->xt.frame_nat)) {
++		err = PTR_ERR(net->xt.frame_nat);
++		goto err1;
++	}
++
++	net->xt.frame_nat_ops =
++		kmemdup(ebt_ops_nat, sizeof(ebt_ops_nat), GFP_KERNEL);
++	if (net->xt.frame_nat_ops == NULL) {
++		err = -ENOMEM;
++		goto err2;
++	}
++
++	err = nf_register_hooks(net, net->xt.frame_nat_ops,
++				ARRAY_SIZE(ebt_ops_nat));
++	if (err < 0)
++		goto err3;
++
++	return 0;
++err3:
++	kfree(net->xt.frame_nat_ops);
++err2:
++	ebt_unregister_table(net, net->xt.frame_nat);
++err1:
++	return err;
+ }
+ 
+ static void __net_exit frame_nat_net_exit(struct net *net)
+ {
++	nf_unregister_hooks(net->xt.frame_nat_ops,
++			    ARRAY_SIZE(ebt_ops_nat));
++	kfree(net->xt.frame_nat_ops);
+ 	ebt_unregister_table(net, net->xt.frame_nat);
+ }
+ 
+@@ -114,21 +142,11 @@ static struct pernet_operations frame_nat_net_ops = {
+ 
+ static int __init ebtable_nat_init(void)
+ {
+-	int ret;
+-
+-	ret = register_pernet_subsys(&frame_nat_net_ops);
+-	if (ret < 0)
+-		return ret;
+-	ret = nf_register_hooks(&init_net, ebt_ops_nat,
+-				ARRAY_SIZE(ebt_ops_nat));
+-	if (ret < 0)
+-		unregister_pernet_subsys(&frame_nat_net_ops);
+-	return ret;
++	return register_pernet_subsys(&frame_nat_net_ops);
+ }
+ 
+ static void __exit ebtable_nat_fini(void)
+ {
+-	nf_unregister_hooks(ebt_ops_nat, ARRAY_SIZE(ebt_ops_nat));
+ 	unregister_pernet_subsys(&frame_nat_net_ops);
+ }
  
 -- 
 1.7.10.4
