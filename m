@@ -1,125 +1,77 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH RFC 11/15] ipvs: adapt it to pernet hooks
-Date: Mon, 15 Jun 2015 17:46:53 +0200
-Message-ID: <1434383217-13732-12-git-send-email-pablo@netfilter.org>
+Subject: [PATCH RFC 13/15] netfilter: nf_tables: adapt it to pernet hooks
+Date: Mon, 15 Jun 2015 17:46:55 +0200
+Message-ID: <1434383217-13732-14-git-send-email-pablo@netfilter.org>
 References: <1434383217-13732-1-git-send-email-pablo@netfilter.org>
 Cc: ebiederm@xmission.com, aschultz@warp10.net, kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36887 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36920 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755122AbbFOPlx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jun 2015 11:41:53 -0400
+	id S1755122AbbFOPl5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Jun 2015 11:41:57 -0400
 In-Reply-To: <1434383217-13732-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Since pernet hooks, we need to register the hook for each netnamespace space.
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/ip_vs.h             |    3 +++
- net/netfilter/ipvs/ip_vs_core.c |   42 +++++++++++++++++++++++++++++----------
- 2 files changed, 35 insertions(+), 10 deletions(-)
+ net/netfilter/nf_tables_api.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 4e3731e..406dbe3 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -850,6 +850,9 @@ struct ipvs_master_sync_state {
- struct netns_ipvs {
- 	int			gen;		/* Generation */
- 	int			enable;		/* enable like nf_hooks do */
-+
-+	struct nf_hook_ops	*ip_vs_ops;
-+
- 	/* Hash table: for real service lookups */
- 	#define IP_VS_RTAB_BITS 4
- 	#define IP_VS_RTAB_SIZE (1 << IP_VS_RTAB_BITS)
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 2751d5a..65cd930 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -2039,9 +2039,39 @@ static void __net_exit __ip_vs_cleanup(struct net *net)
- 	net->ipvs = NULL;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index a8d4044..48c4844 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -556,7 +556,7 @@ err:
+ 	return err;
  }
  
-+static int ip_vs_dev_init(struct net *net)
-+{
-+	struct netns_ipvs *ipvs_net = net_ipvs(net);
-+	int err;
-+
-+	ipvs_net->ip_vs_ops =
-+		kmemdup(ip_vs_ops, sizeof(ip_vs_ops), GFP_KERNEL);
-+	if (ipvs_net->ip_vs_ops == NULL) {
-+		err = -ENOMEM;
-+		goto err1;
-+	}
-+
-+	err = nf_register_hooks(net, ipvs_net->ip_vs_ops,
-+				ARRAY_SIZE(ip_vs_ops));
-+	if (err < 0) {
-+		pr_err("can't register hooks.\n");
-+		goto err2;
-+	}
-+
-+	return 0;
-+err2:
-+	kfree(ipvs_net->ip_vs_ops);
-+err1:
-+	return err;
-+}
-+
- static void __net_exit __ip_vs_dev_cleanup(struct net *net)
+-static int nf_tables_table_enable(const struct nft_af_info *afi,
++static int nf_tables_table_enable(const struct nft_ctx *ctx,
+ 				  struct nft_table *table)
  {
-+	struct netns_ipvs *ipvs_net = net_ipvs(net);
-+
- 	EnterFunction(2);
-+	nf_unregister_hooks(ipvs_net->ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
-+	kfree(ipvs_net->ip_vs_ops);
- 	net_ipvs(net)->enable = 0;	/* Disable packet reception */
- 	smp_wmb();
- 	ip_vs_sync_net_cleanup(net);
-@@ -2056,6 +2086,7 @@ static struct pernet_operations ipvs_core_ops = {
- };
+ 	struct nft_chain *chain;
+@@ -566,8 +566,8 @@ static int nf_tables_table_enable(const struct nft_af_info *afi,
+ 		if (!(chain->flags & NFT_BASE_CHAIN))
+ 			continue;
  
- static struct pernet_operations ipvs_core_dev_ops = {
-+	.init = ip_vs_dev_init,
- 	.exit = __ip_vs_dev_cleanup,
- };
+-		err = nf_register_hooks(&init_net, nft_base_chain(chain)->ops,
+-					afi->nops);
++		err = nf_register_hooks(ctx->net, nft_base_chain(chain)->ops,
++					ctx->afi->nops);
+ 		if (err < 0)
+ 			goto err;
  
-@@ -2088,24 +2119,16 @@ static int __init ip_vs_init(void)
- 	if (ret < 0)
- 		goto cleanup_sub;
+@@ -582,7 +582,7 @@ err:
+ 		if (i-- <= 0)
+ 			break;
  
--	ret = nf_register_hooks(&init_net, ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
--	if (ret < 0) {
--		pr_err("can't register hooks.\n");
--		goto cleanup_dev;
--	}
--
- 	ret = ip_vs_register_nl_ioctl();
- 	if (ret < 0) {
- 		pr_err("can't register netlink/ioctl.\n");
--		goto cleanup_hooks;
-+		goto cleanup_dev;
+-		nf_unregister_hooks(nft_base_chain(chain)->ops, afi->nops);
++		nf_unregister_hooks(nft_base_chain(chain)->ops, ctx->afi->nops);
  	}
+ 	return err;
+ }
+@@ -630,7 +630,7 @@ static int nf_tables_updtable(struct nft_ctx *ctx)
+ 		nft_trans_table_enable(trans) = false;
+ 	} else if (!(flags & NFT_TABLE_F_DORMANT) &&
+ 		   ctx->table->flags & NFT_TABLE_F_DORMANT) {
+-		ret = nf_tables_table_enable(ctx->afi, ctx->table);
++		ret = nf_tables_table_enable(ctx, ctx->table);
+ 		if (ret >= 0) {
+ 			ctx->table->flags &= ~NFT_TABLE_F_DORMANT;
+ 			nft_trans_table_enable(trans) = true;
+@@ -1419,7 +1419,7 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
  
- 	pr_info("ipvs loaded.\n");
- 
- 	return ret;
- 
--cleanup_hooks:
--	nf_unregister_hooks(ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
- cleanup_dev:
- 	unregister_pernet_device(&ipvs_core_dev_ops);
- cleanup_sub:
-@@ -2122,7 +2145,6 @@ exit:
- static void __exit ip_vs_cleanup(void)
- {
- 	ip_vs_unregister_nl_ioctl();
--	nf_unregister_hooks(ip_vs_ops, ARRAY_SIZE(ip_vs_ops));
- 	unregister_pernet_device(&ipvs_core_dev_ops);
- 	unregister_pernet_subsys(&ipvs_core_ops);	/* free ip_vs struct */
- 	ip_vs_conn_cleanup();
+ 	if (!(table->flags & NFT_TABLE_F_DORMANT) &&
+ 	    chain->flags & NFT_BASE_CHAIN) {
+-		err = nf_register_hooks(&init_net, nft_base_chain(chain)->ops,
++		err = nf_register_hooks(net, nft_base_chain(chain)->ops,
+ 					afi->nops);
+ 		if (err < 0)
+ 			goto err1;
 -- 
 1.7.10.4
 
