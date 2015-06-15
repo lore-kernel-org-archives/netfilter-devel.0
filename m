@@ -1,77 +1,123 @@
-From: Roman I Khimov <khimov@altell.ru>
-Subject: [PATCH] net: fix search limit handling in skb_find_text()
-Date: Mon, 15 Jun 2015 12:11:58 +0300
-Message-ID: <1434359518-16897-1-git-send-email-khimov@altell.ru>
-Cc: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, roman@khimov.ru,
-	Roman I Khimov <khimov@altell.ru>,
-	Phil Oester <kernel@linuxace.com>
-To: davem@davemloft.net
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next 2/3] netfilter: nf_tables: add nft_register_basechain() and nft_unregister_basechain()
+Date: Mon, 15 Jun 2015 17:15:04 +0200
+Message-ID: <1434381305-10860-2-git-send-email-pablo@netfilter.org>
+References: <1434381305-10860-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx.altell.ru ([178.16.156.18]:49888 "EHLO mx.altell.ru"
+Received: from mail.us.es ([193.147.175.20]:58360 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751554AbbFOJS7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jun 2015 05:18:59 -0400
+	id S1754372AbbFOPJx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Jun 2015 11:09:53 -0400
+In-Reply-To: <1434381305-10860-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Suppose that we're trying to use an xt_string netfilter module to match a
-string in a specially crafted packet that has "a nice string" starting at
-offset 28.
+This wrapper functions take care of hook registration for basechains.
 
-It could be done in iptables like this:
-
--A some_chain -m string --string "a nice string" --algo bm --from 28 --to 38 -j DROP
-
-And it would work as expected. Now changing that to
-
--A some_chain -m string --string "a nice string" --algo bm --from 29 --to 38 -j DROP
-
-breaks the match, as expected. But, if we try to make
-
--A some_chain -m string --string "a nice string" --algo bm --from 20 --to 28 -j DROP
-
-then it suddenly works again! So the 'to' parameter seems to be inclusive, not
-working as an offset after which no search should be done. OK, now if we try:
-
--A some_chain -m string --string "a nice string" --algo bm --from 28 --to 28 -j DROP
-
-it doesn't work. So, for the case of equal 'from' and 'to' it's treated in a
-different way.
-
-The first behaviour (matching at 'to' offset) comes from skb_find_text()
-comparison. The second one (not matching if 'from' and 'to' are equal) comes
-from skb_seq_read() check for (abs_offset >= st->upper_offset).
-
-I think that the way skb_find_text() handles 'to' is wrong and should be fixed
-so that we always have predictable behaviour -- only match before 'to' offset.
-
-There are currently only five usages of skb_find_text() in the kernel and it
-looks to me that none of them expect to match something at the 'to' offset,
-so probably this change is safe.
-
-Reported-by: Edward Makarov <makarov@altell.ru>
-Tested-by: Edward Makarov <makarov@altell.ru>
-Signed-off-by: Roman I Khimov <khimov@altell.ru>
-Cc: Phil Oester <kernel@linuxace.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/core/skbuff.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c |   52 +++++++++++++++++++++++++++++------------
+ 1 file changed, 37 insertions(+), 15 deletions(-)
 
-diff --git a/net/core/skbuff.c b/net/core/skbuff.c
-index 3cfff2a..0d32be7 100644
---- a/net/core/skbuff.c
-+++ b/net/core/skbuff.c
-@@ -2901,7 +2901,7 @@ unsigned int skb_find_text(struct sk_buff *skb, unsigned int from,
- 	skb_prepare_seq_read(skb, from, to, TS_SKB_CB(&state));
- 
- 	ret = textsearch_find(config, &state);
--	return (ret <= to - from ? ret : UINT_MAX);
-+	return (ret < to - from ? ret : UINT_MAX);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 900c81a..c66dc62 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -127,13 +127,38 @@ static void nft_trans_destroy(struct nft_trans *trans)
+ 	kfree(trans);
  }
- EXPORT_SYMBOL(skb_find_text);
  
++static int nft_register_basechain(struct nft_base_chain *basechain,
++				  unsigned int hook_nops)
++{
++	return nf_register_hooks(basechain->ops, hook_nops);
++}
++
++static void nft_unregister_basechain(struct nft_base_chain *basechain,
++				     unsigned int hook_nops)
++{
++	nf_unregister_hooks(basechain->ops, hook_nops);
++}
++
++static int nf_tables_register_hooks(const struct nft_table *table,
++				    struct nft_chain *chain,
++				    unsigned int hook_nops)
++{
++	if (table->flags & NFT_TABLE_F_DORMANT ||
++	    !(chain->flags & NFT_BASE_CHAIN))
++		return 0;
++
++	return nft_register_basechain(nft_base_chain(chain), hook_nops);
++}
++
+ static void nf_tables_unregister_hooks(const struct nft_table *table,
+-				       const struct nft_chain *chain,
++				       struct nft_chain *chain,
+ 				       unsigned int hook_nops)
+ {
+-	if (!(table->flags & NFT_TABLE_F_DORMANT) &&
+-	    chain->flags & NFT_BASE_CHAIN)
+-		nf_unregister_hooks(nft_base_chain(chain)->ops, hook_nops);
++	if (table->flags & NFT_TABLE_F_DORMANT ||
++	    !(chain->flags & NFT_BASE_CHAIN))
++		return;
++
++	nft_unregister_basechain(nft_base_chain(chain), hook_nops);
+ }
+ 
+ /* Internal table flags */
+@@ -560,7 +585,7 @@ static int nf_tables_table_enable(const struct nft_af_info *afi,
+ 		if (!(chain->flags & NFT_BASE_CHAIN))
+ 			continue;
+ 
+-		err = nf_register_hooks(nft_base_chain(chain)->ops, afi->nops);
++		err = nft_register_basechain(nft_base_chain(chain), afi->nops);
+ 		if (err < 0)
+ 			goto err;
+ 
+@@ -575,20 +600,20 @@ err:
+ 		if (i-- <= 0)
+ 			break;
+ 
+-		nf_unregister_hooks(nft_base_chain(chain)->ops, afi->nops);
++		nft_unregister_basechain(nft_base_chain(chain), afi->nops);
+ 	}
+ 	return err;
+ }
+ 
+ static void nf_tables_table_disable(const struct nft_af_info *afi,
+-				   struct nft_table *table)
++				    struct nft_table *table)
+ {
+ 	struct nft_chain *chain;
+ 
+ 	list_for_each_entry(chain, &table->chains, list) {
+ 		if (chain->flags & NFT_BASE_CHAIN)
+-			nf_unregister_hooks(nft_base_chain(chain)->ops,
+-					    afi->nops);
++			nft_unregister_basechain(nft_base_chain(chain),
++						 afi->nops);
+ 	}
+ }
+ 
+@@ -1421,12 +1446,9 @@ static int nf_tables_newchain(struct sock *nlsk, struct sk_buff *skb,
+ 	chain->table = table;
+ 	nla_strlcpy(chain->name, name, NFT_CHAIN_MAXNAMELEN);
+ 
+-	if (!(table->flags & NFT_TABLE_F_DORMANT) &&
+-	    chain->flags & NFT_BASE_CHAIN) {
+-		err = nf_register_hooks(nft_base_chain(chain)->ops, afi->nops);
+-		if (err < 0)
+-			goto err1;
+-	}
++	err = nf_tables_register_hooks(table, chain, afi->nops);
++	if (err < 0)
++		goto err1;
+ 
+ 	nft_ctx_init(&ctx, skb, nlh, afi, table, chain, nla);
+ 	err = nft_trans_chain_add(&ctx, NFT_MSG_NEWCHAIN);
 -- 
-2.1.4
+1.7.10.4
 
