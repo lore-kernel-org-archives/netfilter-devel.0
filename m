@@ -1,46 +1,190 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: xt_socket: add
- XT_SOCKET_MATCHSOCKMARK flag and mark fields
-Date: Mon, 15 Jun 2015 18:22:46 +0200
-Message-ID: <20150615162246.GA14375@salvia>
-References: <1434148795-19937-1-git-send-email-harouth@codeaurora.org>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH nf-next] x_tables: remove XT_TABLE_INFO_SZ and a dereference.
+Date: Mon, 15 Jun 2015 09:57:30 -0700
+Message-ID: <1434387450.27504.139.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Lorenzo Colitti <lorenzo@google.com>
-To: Harout Hedeshian <harouth@codeaurora.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44433 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755459AbbFOQR1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jun 2015 12:17:27 -0400
-Content-Disposition: inline
-In-Reply-To: <1434148795-19937-1-git-send-email-harouth@codeaurora.org>
+Received: from mail-ig0-f175.google.com ([209.85.213.175]:36740 "EHLO
+	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755517AbbFOQ5e (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Jun 2015 12:57:34 -0400
+Received: by igbiq7 with SMTP id iq7so23072120igb.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Jun 2015 09:57:32 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 12, 2015 at 04:39:55PM -0600, Harout Hedeshian wrote:
-> xt_socket is useful for matching sockets with IP_TRANSPARENT and
-> taking some action on the matching packets. However, it lacks the
-> ability to match only a small subset of transparent sockets.
->
-> Suppose there are 2 applications, each with its own set of transparent
-> sockets. The first application wants all matching packets dropped,
-> while the second application wants them forwarded somewhere else.
->
-> Add the ability to match sockets based on the socket mark.
->
-> Now the 2 hypothetical applications can differentiate their sockets
-> based on a mark value set with SO_MARK.
->
-> iptables -t mangle -I PREROUTING -m socket --transparent --mark 10 -J act1
-> iptables -t mangle -I PREROUTING -m socket --transparent --mark 11 -J act2
+From: Eric Dumazet <edumazet@google.com>
 
-Wouldn't it be better to restore the sk_mark to skb->mark? I mean:
+After Florian patches, there is no need for XT_TABLE_INFO_SZ anymore :
+Only one copy of table is kept, instead of one copy per cpu.
 
-        iptables -t mangle -I PREROUTING \
-                -m socket --transparent --restore-skmark -j myskchain
+We also can avoid a dereference if we put table data right after
+xt_table_info. It reduces register pressure and helps compiler.
 
-Thus, you can use -m mark from the 'myskchain' without having to fetch
-and inspect the sk over and over again as it happens with this
-extension.
+Then, we attempt a kmalloc() if total size is under order-3 allocation,
+to reduce TLB pressure, as in many cases, rules fit in 32 KB.
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Florian Westphal <fw@strlen.de>
+---
+ include/linux/netfilter/x_tables.h |    5 ----
+ net/ipv4/netfilter/arp_tables.c    |    4 +--
+ net/ipv4/netfilter/ip_tables.c     |    4 +--
+ net/ipv6/netfilter/ip6_tables.c    |    4 +--
+ net/netfilter/x_tables.c           |   32 ++++++++++-----------------
+ 5 files changed, 19 insertions(+), 30 deletions(-)
+
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 9969d79dcde1..95693c4cebdd 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -225,12 +225,9 @@ struct xt_table_info {
+ 	unsigned int __percpu *stackptr;
+ 	void ***jumpstack;
+ 
+-	/* Note : this field MUST be the last one, see XT_TABLE_INFO_SZ */
+-	void *entries;
++	unsigned char entries[0] __aligned(8);
+ };
+ 
+-#define XT_TABLE_INFO_SZ (offsetof(struct xt_table_info, entries) \
+-			  + nr_cpu_ids * sizeof(char *))
+ int xt_register_target(struct xt_target *target);
+ void xt_unregister_target(struct xt_target *target);
+ int xt_register_targets(struct xt_target *target, unsigned int n);
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index d75c139393fc..95c9b6eece25 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -256,7 +256,7 @@ unsigned int arpt_do_table(struct sk_buff *skb,
+ 	const struct arphdr *arp;
+ 	struct arpt_entry *e, *back;
+ 	const char *indev, *outdev;
+-	void *table_base;
++	const void *table_base;
+ 	const struct xt_table_info *private;
+ 	struct xt_action_param acpar;
+ 	unsigned int addend;
+@@ -868,7 +868,7 @@ static int compat_table_info(const struct xt_table_info *info,
+ 			     struct xt_table_info *newinfo)
+ {
+ 	struct arpt_entry *iter;
+-	void *loc_cpu_entry;
++	const void *loc_cpu_entry;
+ 	int ret;
+ 
+ 	if (!newinfo || !info)
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 6151500c2df8..6c72fbb7b49e 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -938,7 +938,7 @@ copy_entries_to_user(unsigned int total_size,
+ 	struct xt_counters *counters;
+ 	const struct xt_table_info *private = table->private;
+ 	int ret = 0;
+-	void *loc_cpu_entry;
++	const void *loc_cpu_entry;
+ 
+ 	counters = alloc_counters(table);
+ 	if (IS_ERR(counters))
+@@ -1052,7 +1052,7 @@ static int compat_table_info(const struct xt_table_info *info,
+ 			     struct xt_table_info *newinfo)
+ {
+ 	struct ipt_entry *iter;
+-	void *loc_cpu_entry;
++	const void *loc_cpu_entry;
+ 	int ret;
+ 
+ 	if (!newinfo || !info)
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 80a7f0d38aa4..3c35ced39b42 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -951,7 +951,7 @@ copy_entries_to_user(unsigned int total_size,
+ 	struct xt_counters *counters;
+ 	const struct xt_table_info *private = table->private;
+ 	int ret = 0;
+-	void *loc_cpu_entry;
++	const void *loc_cpu_entry;
+ 
+ 	counters = alloc_counters(table);
+ 	if (IS_ERR(counters))
+@@ -1065,7 +1065,7 @@ static int compat_table_info(const struct xt_table_info *info,
+ 			     struct xt_table_info *newinfo)
+ {
+ 	struct ip6t_entry *iter;
+-	void *loc_cpu_entry;
++	const void *loc_cpu_entry;
+ 	int ret;
+ 
+ 	if (!newinfo || !info)
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 6062ce3e862c..d324fe71260c 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -658,29 +658,23 @@ EXPORT_SYMBOL_GPL(xt_compat_target_to_user);
+ 
+ struct xt_table_info *xt_alloc_table_info(unsigned int size)
+ {
+-	struct xt_table_info *newinfo;
++	struct xt_table_info *info = NULL;
++	size_t sz = sizeof(*info) + size;
+ 
+ 	/* Pedantry: prevent them from hitting BUG() in vmalloc.c --RR */
+ 	if ((SMP_ALIGN(size) >> PAGE_SHIFT) + 2 > totalram_pages)
+ 		return NULL;
+ 
+-	newinfo = kzalloc(XT_TABLE_INFO_SZ, GFP_KERNEL);
+-	if (!newinfo)
+-		return NULL;
+-
+-	newinfo->size = size;
+-
+-	if (size <= PAGE_SIZE)
+-		newinfo->entries = kmalloc(size, GFP_KERNEL);
+-	else
+-		newinfo->entries = vmalloc(size);
+-
+-	if (newinfo->entries == NULL) {
+-		xt_free_table_info(newinfo);
+-		return NULL;
++	if (sz <= (PAGE_SIZE << PAGE_ALLOC_COSTLY_ORDER))
++		info = kmalloc(sz, GFP_KERNEL | __GFP_NOWARN | __GFP_NORETRY);
++	if (!info) {
++		info = vmalloc(sz);
++		if (!info)
++			return NULL;
+ 	}
+-
+-	return newinfo;
++	memset(info, 0, sizeof(*info));
++	info->size = size;
++	return info;
+ }
+ EXPORT_SYMBOL(xt_alloc_table_info);
+ 
+@@ -688,8 +682,6 @@ void xt_free_table_info(struct xt_table_info *info)
+ {
+ 	int cpu;
+ 
+-	kvfree(info->entries);
+-
+ 	if (info->jumpstack != NULL) {
+ 		for_each_possible_cpu(cpu)
+ 			kvfree(info->jumpstack[cpu]);
+@@ -698,7 +690,7 @@ void xt_free_table_info(struct xt_table_info *info)
+ 
+ 	free_percpu(info->stackptr);
+ 
+-	kfree(info);
++	kvfree(info);
+ }
+ EXPORT_SYMBOL(xt_free_table_info);
+ 
+
+
