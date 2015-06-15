@@ -1,48 +1,32 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 13/32] netfilter: ipset: Use MSEC_PER_SEC consistently
-Date: Mon, 15 Jun 2015 23:26:10 +0200
-Message-ID: <1434403589-24796-14-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/32] Netfilter updates for net-next
+Date: Mon, 15 Jun 2015 14:41:24 -0700 (PDT)
+Message-ID: <20150615.144124.2163883185628837482.davem@davemloft.net>
 References: <1434403589-24796-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58763 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756131AbbFOVV2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jun 2015 17:21:28 -0400
+Received: from shards.monkeyblade.net ([149.20.54.216]:41819 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750960AbbFOVl1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Jun 2015 17:41:27 -0400
 In-Reply-To: <1434403589-24796-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 15 Jun 2015 23:25:57 +0200
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
- include/linux/netfilter/ipset/ip_set_timeout.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
 
-diff --git a/include/linux/netfilter/ipset/ip_set_timeout.h b/include/linux/netfilter/ipset/ip_set_timeout.h
-index 83c2f9e..3c8842b 100644
---- a/include/linux/netfilter/ipset/ip_set_timeout.h
-+++ b/include/linux/netfilter/ipset/ip_set_timeout.h
-@@ -61,7 +61,7 @@ ip_set_timeout_set(unsigned long *timeout, u32 t)
- 		return;
- 	}
- 
--	*timeout = msecs_to_jiffies(t * 1000) + jiffies;
-+	*timeout = msecs_to_jiffies(t * MSEC_PER_SEC) + jiffies;
- 	if (*timeout == IPSET_ELEM_PERMANENT)
- 		/* Bingo! :-) */
- 		(*timeout)--;
-@@ -71,7 +71,7 @@ static inline u32
- ip_set_timeout_get(unsigned long *timeout)
- {
- 	return *timeout == IPSET_ELEM_PERMANENT ? 0 :
--		jiffies_to_msecs(*timeout - jiffies)/1000;
-+		jiffies_to_msecs(*timeout - jiffies)/MSEC_PER_SEC;
- }
- 
- #endif	/* __KERNEL__ */
--- 
-1.7.10.4
+Pulled, thanks Pablo!
 
+> Have a nice and safe travel to NFWS in Budapest.
+
+Yep, thanks, see you soon!
