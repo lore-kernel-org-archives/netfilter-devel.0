@@ -1,7 +1,7 @@
 From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH net-next 09/15] x_tables: Pass struct net in xt_action_param
-Date: Sun, 14 Jun 2015 22:13:07 -0500
-Message-ID: <1434337993-6248-9-git-send-email-ebiederm@xmission.com>
+Subject: [PATCH net-next 15/15] ipv6: Pass struct net into nf_ct_frag6_gather
+Date: Sun, 14 Jun 2015 22:13:13 -0500
+Message-ID: <1434337993-6248-15-git-send-email-ebiederm@xmission.com>
 References: <87616ppt3h.fsf@x220.int.ebiederm.org>
 Cc: <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
 	Stephen Hemminger <stephen@networkplumber.org>,
@@ -17,137 +17,70 @@ Cc: <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
 	Herbert Xu <herbert@gondor.apana.org.au>
 To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:46355 "EHLO
-	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753922AbbFODS7 (ORCPT
+Received: from out03.mta.xmission.com ([166.70.13.233]:45479 "EHLO
+	out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751993AbbFODXY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 14 Jun 2015 23:18:59 -0400
+	Sun, 14 Jun 2015 23:23:24 -0400
 In-Reply-To: <87616ppt3h.fsf@x220.int.ebiederm.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-As xt_action_param lives on the stack this does not bloat any
-persistent data structures.
-
-This is a first step in making netfilter code that needs to know
-which network namespace it is executing in simpler.
+Make it explicit which network namespace the packets are being
+reassembled in, don't make nf_cf_frag6_gather guess.
 
 Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
 ---
- include/linux/netfilter/x_tables.h | 2 ++
- include/net/netfilter/nf_tables.h  | 1 +
- net/bridge/netfilter/ebtables.c    | 1 +
- net/ipv4/netfilter/arp_tables.c    | 1 +
- net/ipv4/netfilter/ip_tables.c     | 1 +
- net/ipv6/netfilter/ip6_tables.c    | 1 +
- net/sched/act_ipt.c                | 1 +
- net/sched/em_ipset.c               | 1 +
- 8 files changed, 9 insertions(+)
+ include/net/netfilter/ipv6/nf_defrag_ipv6.h | 2 +-
+ net/ipv6/netfilter/nf_conntrack_reasm.c     | 4 +---
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c   | 3 ++-
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 09f38206c18f..1499520f2ee0 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -12,6 +12,7 @@
-  * @target:	the target extension
-  * @matchinfo:	per-match data
-  * @targetinfo:	per-target data
-+ * @net		network namespace of through which the action was invoked
-  * @in:		input netdevice
-  * @out:	output netdevice
-  * @fragoff:	packet is a fragment, this is the data offset
-@@ -33,6 +34,7 @@ struct xt_action_param {
- 	union {
- 		const void *matchinfo, *targinfo;
- 	};
-+	struct net *net;
- 	const struct net_device *in, *out;
- 	int fragoff;
- 	unsigned int thoff;
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index dd20bbdcdf6f..7b3d7c79ecdc 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -30,6 +30,7 @@ static inline void nft_set_pktinfo(struct nft_pktinfo *pkt,
- 				   const struct nf_hook_state *state)
+diff --git a/include/net/netfilter/ipv6/nf_defrag_ipv6.h b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
+index 27666d8a0bd0..fb7da5bb76cc 100644
+--- a/include/net/netfilter/ipv6/nf_defrag_ipv6.h
++++ b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
+@@ -5,7 +5,7 @@ void nf_defrag_ipv6_enable(void);
+ 
+ int nf_ct_frag6_init(void);
+ void nf_ct_frag6_cleanup(void);
+-struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb, u32 user);
++struct sk_buff *nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user);
+ void nf_ct_frag6_consume_orig(struct sk_buff *skb);
+ 
+ struct inet_frags_ctl;
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 6f187c8d8a1b..05b07d25012c 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -563,12 +563,10 @@ find_prev_fhdr(struct sk_buff *skb, u8 *prevhdrp, int *prevhoff, int *fhoff)
+ 	return 0;
+ }
+ 
+-struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb, u32 user)
++struct sk_buff *nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
  {
- 	pkt->skb = skb;
-+	pkt->xt.net = state->net;
- 	pkt->in = pkt->xt.in = state->in;
- 	pkt->out = pkt->xt.out = state->out;
- 	pkt->hook = pkt->xt.hooknum = state->hook;
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 9c0230583e90..21e869b09c2b 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -200,6 +200,7 @@ unsigned int ebt_do_table(struct sk_buff *skb,
- 	struct xt_action_param acpar;
+ 	struct sk_buff *clone;
+ 	struct net_device *dev = skb->dev;
+-	struct net *net = skb_dst(skb) ? dev_net(skb_dst(skb)->dev)
+-				       : dev_net(skb->dev);
+ 	struct frag_hdr *fhdr;
+ 	struct frag_queue *fq;
+ 	struct ipv6hdr *hdr;
+diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+index 8f656cc141f5..5f443551a6d5 100644
+--- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
++++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+@@ -64,7 +64,8 @@ static unsigned int ipv6_defrag(const struct nf_hook_ops *ops,
+ 		return NF_ACCEPT;
+ #endif
  
- 	acpar.family  = NFPROTO_BRIDGE;
-+	acpar.net     = state->net;
- 	acpar.in      = state->in;
- 	acpar.out     = state->out;
- 	acpar.hotdrop = false;
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 97ab571e4325..401628da5168 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -280,6 +280,7 @@ unsigned int arpt_do_table(struct sk_buff *skb,
- 	e = get_entry(table_base, private->hook_entry[hook]);
- 	back = get_entry(table_base, private->underflow[hook]);
- 
-+	acpar.net     = state->net;
- 	acpar.in      = state->in;
- 	acpar.out     = state->out;
- 	acpar.hooknum = hook;
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index b2958fe20255..c3564b934f92 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -316,6 +316,7 @@ ipt_do_table(struct sk_buff *skb,
- 	acpar.fragoff = ntohs(ip->frag_off) & IP_OFFSET;
- 	acpar.thoff   = ip_hdrlen(skb);
- 	acpar.hotdrop = false;
-+	acpar.net     = state->net;
- 	acpar.in      = state->in;
- 	acpar.out     = state->out;
- 	acpar.family  = NFPROTO_IPV4;
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 37b6f0a48deb..bed8f68a6eac 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -341,6 +341,7 @@ ip6t_do_table(struct sk_buff *skb,
- 	 * rule is also a fragment-specific rule, non-fragments won't
- 	 * match it. */
- 	acpar.hotdrop = false;
-+	acpar.net     = state->net;
- 	acpar.in      = state->in;
- 	acpar.out     = state->out;
- 	acpar.family  = NFPROTO_IPV6;
-diff --git a/net/sched/act_ipt.c b/net/sched/act_ipt.c
-index cbc8dd7dd48a..b08faaa7161a 100644
---- a/net/sched/act_ipt.c
-+++ b/net/sched/act_ipt.c
-@@ -189,6 +189,7 @@ static int tcf_ipt(struct sk_buff *skb, const struct tc_action *a,
- 	 * worry later - danger - this API seems to have changed
- 	 * from earlier kernels
- 	 */
-+	par.net	     = dev_net(skb->dev);
- 	par.in       = skb->dev;
- 	par.out      = NULL;
- 	par.hooknum  = ipt->tcfi_hook;
-diff --git a/net/sched/em_ipset.c b/net/sched/em_ipset.c
-index df0328ba6a48..c66ca9400ab4 100644
---- a/net/sched/em_ipset.c
-+++ b/net/sched/em_ipset.c
-@@ -95,6 +95,7 @@ static int em_ipset_match(struct sk_buff *skb, struct tcf_ematch *em,
- 	if (skb->skb_iif)
- 		indev = dev_get_by_index_rcu(em->net, skb->skb_iif);
- 
-+	acpar.net     = em->net;
- 	acpar.in      = indev ? indev : dev;
- 	acpar.out     = dev;
- 
+-	reasm = nf_ct_frag6_gather(skb, nf_ct6_defrag_user(state->hook, skb));
++	reasm = nf_ct_frag6_gather(state->net, skb,
++				   nf_ct6_defrag_user(state->hook, skb));
+ 	/* queued */
+ 	if (reasm == NULL)
+ 		return NF_STOLEN;
 -- 
 2.2.1
 
