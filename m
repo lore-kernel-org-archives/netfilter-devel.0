@@ -1,57 +1,77 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next 00/15] Simplify netfilter and network namespaces
-Date: Mon, 15 Jun 2015 09:06:22 +0200
-Message-ID: <20150615070622.GA3315@salvia>
-References: <87616ppt3h.fsf@x220.int.ebiederm.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Jamal Hadi Salim <jhs@mojatatu.com>,
-	Steffen Klassert <steffen.klassert@secunet.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>
-To: "Eric W. Biederman" <ebiederm@xmission.com>
+From: Roman I Khimov <khimov@altell.ru>
+Subject: [PATCH] net: fix search limit handling in skb_find_text()
+Date: Mon, 15 Jun 2015 12:11:58 +0300
+Message-ID: <1434359518-16897-1-git-send-email-khimov@altell.ru>
+Cc: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, roman@khimov.ru,
+	Roman I Khimov <khimov@altell.ru>,
+	Phil Oester <kernel@linuxace.com>
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56375 "EHLO mail.us.es"
+Received: from mx.altell.ru ([178.16.156.18]:49888 "EHLO mx.altell.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752517AbbFOHBE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jun 2015 03:01:04 -0400
-Content-Disposition: inline
-In-Reply-To: <87616ppt3h.fsf@x220.int.ebiederm.org>
+	id S1751554AbbFOJS7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Jun 2015 05:18:59 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Eric,
+Suppose that we're trying to use an xt_string netfilter module to match a
+string in a specially crafted packet that has "a nice string" starting at
+offset 28.
 
-On Sun, Jun 14, 2015 at 10:07:30PM -0500, Eric W. Biederman wrote:
-> 
-> While looking into what it would take to route packets out to network
-> devices in other network namespaces I started looking at the netfilter
-> hooks, and there is a lot of nasty code to figure out which network
-> namespace to filter the packets in.
->
-> Just passing the network namespace into the netfilter hooks looks like a
-> significant simplication in the code, and worth it as the first thing
-> most netfilter hooks do is compute the network namespace.
-> 
-> We probably even want per network namespace netfilter hooks as nftables
-> tries (and fails to use).  nftables currently has a fairly serious bug
-> where the tables for one network namespace run for packets in all
-> network namespaces.  I do not have a fix yet but I think this patchset
-> making it easy to get at the network namespace is a good starting
-> place for a fix.
+It could be done in iptables like this:
 
-I have a patchset that is almost ready to convert netfilter to pernet
-hooks, it partially clashes with this. Will send it out today and will
-Cc you so you can review it.
+-A some_chain -m string --string "a nice string" --algo bm --from 28 --to 38 -j DROP
 
-I think it should take me little time to rebase it on top of yours.
-It's rather large changeset, which quite a lot of boiler plate code
-though.
+And it would work as expected. Now changing that to
+
+-A some_chain -m string --string "a nice string" --algo bm --from 29 --to 38 -j DROP
+
+breaks the match, as expected. But, if we try to make
+
+-A some_chain -m string --string "a nice string" --algo bm --from 20 --to 28 -j DROP
+
+then it suddenly works again! So the 'to' parameter seems to be inclusive, not
+working as an offset after which no search should be done. OK, now if we try:
+
+-A some_chain -m string --string "a nice string" --algo bm --from 28 --to 28 -j DROP
+
+it doesn't work. So, for the case of equal 'from' and 'to' it's treated in a
+different way.
+
+The first behaviour (matching at 'to' offset) comes from skb_find_text()
+comparison. The second one (not matching if 'from' and 'to' are equal) comes
+from skb_seq_read() check for (abs_offset >= st->upper_offset).
+
+I think that the way skb_find_text() handles 'to' is wrong and should be fixed
+so that we always have predictable behaviour -- only match before 'to' offset.
+
+There are currently only five usages of skb_find_text() in the kernel and it
+looks to me that none of them expect to match something at the 'to' offset,
+so probably this change is safe.
+
+Reported-by: Edward Makarov <makarov@altell.ru>
+Tested-by: Edward Makarov <makarov@altell.ru>
+Signed-off-by: Roman I Khimov <khimov@altell.ru>
+Cc: Phil Oester <kernel@linuxace.com>
+---
+ net/core/skbuff.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+index 3cfff2a..0d32be7 100644
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -2901,7 +2901,7 @@ unsigned int skb_find_text(struct sk_buff *skb, unsigned int from,
+ 	skb_prepare_seq_read(skb, from, to, TS_SKB_CB(&state));
+ 
+ 	ret = textsearch_find(config, &state);
+-	return (ret <= to - from ? ret : UINT_MAX);
++	return (ret < to - from ? ret : UINT_MAX);
+ }
+ EXPORT_SYMBOL(skb_find_text);
+ 
+-- 
+2.1.4
+
