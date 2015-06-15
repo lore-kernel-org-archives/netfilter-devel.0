@@ -1,132 +1,109 @@
-From: Roman Khimov <khimov@altell.ru>
-Subject: Re: [PATCH] net: fix search limit handling in skb_find_text()
-Date: Mon, 15 Jun 2015 22:37:31 +0300
-Message-ID: <1847765.0Hbie9lSro@mate.hex>
-References: <1434359518-16897-1-git-send-email-khimov@altell.ru> <20150615170639.GA21117@salvia>
-Reply-To: khimov@altell.ru
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next] netfilter: xt_socket: add
+ XT_SOCKET_MATCHSOCKMARK flag and mark fields
+Date: Mon, 15 Jun 2015 22:57:52 +0200
+Message-ID: <20150615205752.GA3184@salvia>
+References: <1434148795-19937-1-git-send-email-harouth@codeaurora.org>
+ <20150615162246.GA14375@salvia>
+ <005801d0a7a2$f0304460$d090cd20$@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: davem@davemloft.net, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Phil Oester <kernel@linuxace.com>,
-	Thomas Graf <tgraf@suug.ch>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+	'Lorenzo Colitti' <lorenzo@google.com>
+To: Harout Hedeshian <harouth@codeaurora.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from roman.khimov.ru ([82.146.54.17]:59668 "EHLO roman.khimov.ru"
+Received: from mail.us.es ([193.147.175.20]:56191 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751909AbbFOUQH convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jun 2015 16:16:07 -0400
-In-Reply-To: <20150615170639.GA21117@salvia>
+	id S1752517AbbFOUwf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Jun 2015 16:52:35 -0400
+Content-Disposition: inline
+In-Reply-To: <005801d0a7a2$f0304460$d090cd20$@codeaurora.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=D0=92 =D0=BF=D0=B8=D1=81=D1=8C=D0=BC=D0=B5 =D0=BE=D1=82 15 =D0=B8=D1=8E=
-=D0=BD=D1=8F 2015 19:06:39 =D0=BF=D0=BE=D0=BB=D1=8C=D0=B7=D0=BE=D0=B2=D0=
-=B0=D1=82=D0=B5=D0=BB=D1=8C Pablo Neira Ayuso =D0=BD=D0=B0=D0=BF=D0=B8=D1=
-=81=D0=B0=D0=BB:
-> On Mon, Jun 15, 2015 at 12:11:58PM +0300, Roman I Khimov wrote:
-> > Suppose that we're trying to use an xt_string netfilter module to m=
-atch a
-> > string in a specially crafted packet that has "a nice string" start=
-ing at
-> > offset 28.
-> >=20
-> > It could be done in iptables like this:
-> >=20
-> > -A some_chain -m string --string "a nice string" --algo bm --from 2=
-8 --to
-> > 38 -j DROP
-> >=20
-> > And it would work as expected. Now changing that to
-> >=20
-> > -A some_chain -m string --string "a nice string" --algo bm --from 2=
-9 --to
-> > 38 -j DROP
-> >=20
-> > breaks the match, as expected. But, if we try to make
-> >=20
-> > -A some_chain -m string --string "a nice string" --algo bm --from 2=
-0 --to
-> > 28 -j DROP
-> >=20
-> > then it suddenly works again! So the 'to' parameter seems to be inc=
-lusive,
-> > not working as an offset after which no search should be done. OK, =
-now if
-> > we try:
-> >=20
-> > -A some_chain -m string --string "a nice string" --algo bm --from 2=
-8 --to
-> > 28 -j DROP
-> Can you reproduce the same behaviour with the km algo?
+On Mon, Jun 15, 2015 at 01:39:03PM -0600, Harout Hedeshian wrote:
+> 
+> 
+> > -----Original Message-----
+> > From: Harout Hedeshian [mailto:harouth@codeaurora.org]
+> > Sent: Monday, June 15, 2015 11:42 AM
+> > To: 'Pablo Neira Ayuso'
+> > Cc: 'netfilter-devel@vger.kernel.org'; 'Lorenzo Colitti'
+> > Subject: RE: [PATCH nf-next] netfilter: xt_socket: add
+> > XT_SOCKET_MATCHSOCKMARK flag and mark fields
+> > 
+> > 
+> > 
+> > > -----Original Message-----
+> > > From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
+> > > Sent: Monday, June 15, 2015 10:23 AM
+> > > To: Harout Hedeshian
+> > > Cc: netfilter-devel@vger.kernel.org; Lorenzo Colitti
+> > > Subject: Re: [PATCH nf-next] netfilter: xt_socket: add
+> > > XT_SOCKET_MATCHSOCKMARK flag and mark fields
+> > >
+> > > On Fri, Jun 12, 2015 at 04:39:55PM -0600, Harout Hedeshian wrote:
+> > > > xt_socket is useful for matching sockets with IP_TRANSPARENT and
+> > > > taking some action on the matching packets. However, it lacks the
+> > > > ability to match only a small subset of transparent sockets.
+> > > >
+> > > > Suppose there are 2 applications, each with its own set of
+> > > > transparent sockets. The first application wants all matching
+> > > > packets dropped, while the second application wants them forwarded
+> > somewhere else.
+> > > >
+> > > > Add the ability to match sockets based on the socket mark.
+> > > >
+> > > > Now the 2 hypothetical applications can differentiate their sockets
+> > > > based on a mark value set with SO_MARK.
+> > > >
+> > > > iptables -t mangle -I PREROUTING -m socket --transparent --mark 10
+> > > > -J
+> > > > act1 iptables -t mangle -I PREROUTING -m socket --transparent --mark
+> > > > 11 -J act2
+> > >
+> > > Wouldn't it be better to restore the sk_mark to skb->mark? I mean:
+> > >
+> > >         iptables -t mangle -I PREROUTING \
+> > >                 -m socket --transparent --restore-skmark -j myskchain
+> > >	
+> > > Thus, you can use -m mark from the 'myskchain' without having to fetch
+> > > and inspect the sk over and over again as it happens with this
+> > > extension.
+> > 
+> > Yes, I think that can work. Let me try that out and I'll submit a new
+> > patch.
+> 
+> Actually, on second thought, I'm not so sure. This socket lookup is
+> happening as part of a match operation in xt_socket.c.
+> From x_tables.h, I can see that match functions are not supposed to modify
+> the skb:
+> 
+> struct xt_match{
+> ...
+> bool (*match)(const struct sk_buff *skb, struct xt_action_param *);
+>
+> In that case, would this even be valid?
+> -m socket --transparent --restore-skmark
+> 
+> Keeping in mind --restore-skmark is happening as part of -m socket
+> 
+> I would think we would need a whole new target to handle something like
+> this:
+> iptables -t mangle -I PREROUTING -m socket --transparent --no-wildcard -j
+> SOCKET --restore-skmark
+> 
+> Since the target invocation would be separate, we would need a second socket
+> lookup? Seems perhaps a little overkill...
 
-Will try tomorrow MSK time.
+Yes, it's simply overkill to add a new target to add this.
 
-> > The first behaviour (matching at 'to' offset) comes from skb_find_t=
-ext()
-> > comparison. The second one (not matching if 'from' and 'to' are equ=
-al)
-> > comes from skb_seq_read() check for (abs_offset >=3D st->upper_offs=
-et).
-> >=20
-> > I think that the way skb_find_text() handles 'to' is wrong and shou=
-ld be
-> > fixed so that we always have predictable behaviour -- only match be=
-fore
-> > 'to' offset.
-> >=20
-> > There are currently only five usages of skb_find_text() in the kern=
-el and
-> > it looks to me that none of them expect to match something at the '=
-to'
-> > offset, so probably this change is safe.
->=20
-> So both 'from' and 'to' are inclusive which seems consistent to me. I=
-f
-> you make 'to' non-inclusive, then that will change the third example
-> above, right?=20
+So just cast it:
 
-Yep.
+        struct sk_buff *pskb = (struct sk_buff *)skb;
 
-> That will break existing setups for people that are
-> relying on this behaviour. This has been exposed in this way for long
-> time, so we should avoid that breakage.
+iptables matches were originally design not to modify anything, but it
+can lead us to situations like this. That's one of the reasons why we
+have no distinction between matches and targets in nftables anymore.
 
-Yes, that could be an issue, but there are other skb_find_text() usages=
- and to=20
-me they suggest that the intended behaviour is to stop search at 'to' o=
-ffset.=20
-In nf_conntrack_amanda.c, for example:
-
-        start =3D skb_find_text(skb, dataoff, skb->len,
-                              search[SEARCH_CONNECT].ts);
-=2E..
-        stop =3D skb_find_text(skb, start, skb->len,
-                             search[SEARCH_NEWLINE].ts);
-=2E..
-        stop +=3D start;
-=2E..
-                off =3D skb_find_text(skb, start, stop, search[i].ts);
-
-=46irst of all, nothing can ever match at skb->len, and second, it look=
-s like=20
-the third usage is also expecting to search from offset 'start' to offs=
-et=20
-'stop', not to 'stop + 1'.
-
-em_text_match() in net/sched/em_text.c is also suspicious.
-
-> I would suggest you fix the --from X --to Y where X =3D=3D Y which is=
- not
-> doing what people would expect.
-
-That would certainly make things consistent, but I'm not sure we want i=
-t to be=20
-consistent this way.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks.
