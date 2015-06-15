@@ -1,180 +1,107 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH RFC 12/15] netfilter: ebtables: adapt the filter and nat table to pernet hooks
-Date: Mon, 15 Jun 2015 17:46:54 +0200
-Message-ID: <1434383217-13732-13-git-send-email-pablo@netfilter.org>
+Subject: [PATCH RFC 14/15] security: adapt it to pernet hooks
+Date: Mon, 15 Jun 2015 17:46:56 +0200
+Message-ID: <1434383217-13732-15-git-send-email-pablo@netfilter.org>
 References: <1434383217-13732-1-git-send-email-pablo@netfilter.org>
 Cc: ebiederm@xmission.com, aschultz@warp10.net, kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36894 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36926 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755517AbbFOPly (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jun 2015 11:41:54 -0400
+	id S1755796AbbFOPl7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Jun 2015 11:41:59 -0400
 In-Reply-To: <1434383217-13732-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This adapts the filter and nat tables to register the hooks for each
-netnamespace.
+Since pernet hooks, we need to register the hook for each netnamespace space.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netns/x_tables.h          |    2 ++
- net/bridge/netfilter/ebtable_filter.c |   42 +++++++++++++++++++++++----------
- net/bridge/netfilter/ebtable_nat.c    |   42 +++++++++++++++++++++++----------
- 3 files changed, 62 insertions(+), 24 deletions(-)
+ include/net/netns/netfilter.h |    3 +++
+ security/selinux/hooks.c      |   43 +++++++++++++++++++++++++++++++++++------
+ 2 files changed, 40 insertions(+), 6 deletions(-)
 
-diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
-index c8a7681..831af42 100644
---- a/include/net/netns/x_tables.h
-+++ b/include/net/netns/x_tables.h
-@@ -14,7 +14,9 @@ struct netns_xt {
-     defined(CONFIG_BRIDGE_NF_EBTABLES_MODULE)
- 	struct ebt_table *broute_table;
- 	struct ebt_table *frame_filter;
-+	struct nf_hook_ops *frame_filter_ops;
- 	struct ebt_table *frame_nat;
-+	struct nf_hook_ops *frame_nat_ops;
+diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
+index f2b513d..89925e3 100644
+--- a/include/net/netns/netfilter.h
++++ b/include/net/netns/netfilter.h
+@@ -21,5 +21,8 @@ struct netns_nf {
+ #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+ 	struct nf_hook_ops *ipv6_defrag_ops;
  #endif
++#ifdef CONFIG_SECURITY
++	struct nf_hook_ops *selinux_ops;
++#endif
  };
  #endif
-diff --git a/net/bridge/netfilter/ebtable_filter.c b/net/bridge/netfilter/ebtable_filter.c
-index 9a5a798..2ee938c 100644
---- a/net/bridge/netfilter/ebtable_filter.c
-+++ b/net/bridge/netfilter/ebtable_filter.c
-@@ -98,12 +98,40 @@ static struct nf_hook_ops ebt_ops_filter[] __read_mostly = {
+diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+index 7246654..c10a5b1 100644
+--- a/security/selinux/hooks.c
++++ b/security/selinux/hooks.c
+@@ -6147,6 +6147,40 @@ static struct nf_hook_ops selinux_nf_ops[] = {
+ #endif	/* IPV6 */
+ };
  
- static int __net_init frame_filter_net_init(struct net *net)
- {
++static int selinux_net_init(struct net *net)
++{
 +	int err;
 +
- 	net->xt.frame_filter = ebt_register_table(net, &frame_filter);
--	return PTR_ERR_OR_ZERO(net->xt.frame_filter);
-+	if (IS_ERR(net->xt.frame_filter)) {
-+		err = PTR_ERR(net->xt.frame_filter);
++	net->nf.selinux_ops =
++		kmemdup(selinux_nf_ops, sizeof(selinux_nf_ops), GFP_KERNEL);
++	if (net->nf.selinux_ops == NULL) {
++		err = -ENOMEM;
 +		goto err1;
 +	}
 +
-+	net->xt.frame_filter_ops =
-+		kmemdup(ebt_ops_filter, sizeof(ebt_ops_filter), GFP_KERNEL);
-+	if (net->xt.frame_filter_ops == NULL) {
-+		err = -ENOMEM;
-+		goto err2;
-+	}
-+
-+	err = nf_register_hooks(net, net->xt.frame_filter_ops,
-+				ARRAY_SIZE(ebt_ops_filter));
++	err = nf_register_hooks(net, net->nf.selinux_ops,
++				ARRAY_SIZE(selinux_nf_ops));
 +	if (err < 0)
-+		goto err3;
++		goto err2;
 +
 +	return 0;
-+err3:
-+	kfree(net->xt.frame_filter_ops);
 +err2:
-+	ebt_unregister_table(net, net->xt.frame_filter);
++	kfree(net->nf.selinux_ops);
 +err1:
 +	return err;
- }
- 
- static void __net_exit frame_filter_net_exit(struct net *net)
- {
-+	nf_unregister_hooks(net->xt.frame_filter_ops,
-+			    ARRAY_SIZE(ebt_ops_filter));
-+	kfree(net->xt.frame_filter_ops);
- 	ebt_unregister_table(net, net->xt.frame_filter);
- }
- 
-@@ -114,21 +142,11 @@ static struct pernet_operations frame_filter_net_ops = {
- 
- static int __init ebtable_filter_init(void)
- {
--	int ret;
--
--	ret = register_pernet_subsys(&frame_filter_net_ops);
--	if (ret < 0)
--		return ret;
--	ret = nf_register_hooks(&init_net, ebt_ops_filter,
--				ARRAY_SIZE(ebt_ops_filter));
--	if (ret < 0)
--		unregister_pernet_subsys(&frame_filter_net_ops);
--	return ret;
-+	return register_pernet_subsys(&frame_filter_net_ops);
- }
- 
- static void __exit ebtable_filter_fini(void)
- {
--	nf_unregister_hooks(ebt_ops_filter, ARRAY_SIZE(ebt_ops_filter));
- 	unregister_pernet_subsys(&frame_filter_net_ops);
- }
- 
-diff --git a/net/bridge/netfilter/ebtable_nat.c b/net/bridge/netfilter/ebtable_nat.c
-index 3d2759d..a787126 100644
---- a/net/bridge/netfilter/ebtable_nat.c
-+++ b/net/bridge/netfilter/ebtable_nat.c
-@@ -98,12 +98,40 @@ static struct nf_hook_ops ebt_ops_nat[] __read_mostly = {
- 
- static int __net_init frame_nat_net_init(struct net *net)
- {
-+	int err;
++}
 +
- 	net->xt.frame_nat = ebt_register_table(net, &frame_nat);
--	return PTR_ERR_OR_ZERO(net->xt.frame_nat);
-+	if (IS_ERR(net->xt.frame_nat)) {
-+		err = PTR_ERR(net->xt.frame_nat);
-+		goto err1;
-+	}
++static void selinux_net_exit(struct net *net)
++{
++	nf_unregister_hooks(net->nf.selinux_ops, ARRAY_SIZE(selinux_nf_ops));
++	kfree(net->nf.selinux_ops);
++}
 +
-+	net->xt.frame_nat_ops =
-+		kmemdup(ebt_ops_nat, sizeof(ebt_ops_nat), GFP_KERNEL);
-+	if (net->xt.frame_nat_ops == NULL) {
-+		err = -ENOMEM;
-+		goto err2;
-+	}
++static struct pernet_operations selinux_net_ops = {
++	.init = selinux_net_init,
++	.exit = selinux_net_exit,
++};
 +
-+	err = nf_register_hooks(net, net->xt.frame_nat_ops,
-+				ARRAY_SIZE(ebt_ops_nat));
+ static int __init selinux_nf_ip_init(void)
+ {
+ 	int err;
+@@ -6156,9 +6190,8 @@ static int __init selinux_nf_ip_init(void)
+ 
+ 	printk(KERN_DEBUG "SELinux:  Registering netfilter hooks\n");
+ 
+-	err = nf_register_hooks(&init_net, selinux_nf_ops,
+-				ARRAY_SIZE(selinux_nf_ops));
+-	if (err)
++	err = register_pernet_subsys(&selinux_net_ops);
 +	if (err < 0)
-+		goto err3;
-+
-+	return 0;
-+err3:
-+	kfree(net->xt.frame_nat_ops);
-+err2:
-+	ebt_unregister_table(net, net->xt.frame_nat);
-+err1:
-+	return err;
- }
+ 		panic("SELinux: nf_register_hooks: error %d\n", err);
  
- static void __net_exit frame_nat_net_exit(struct net *net)
+ 	return 0;
+@@ -6170,9 +6203,7 @@ __initcall(selinux_nf_ip_init);
+ static void selinux_nf_ip_exit(void)
  {
-+	nf_unregister_hooks(net->xt.frame_nat_ops,
-+			    ARRAY_SIZE(ebt_ops_nat));
-+	kfree(net->xt.frame_nat_ops);
- 	ebt_unregister_table(net, net->xt.frame_nat);
- }
- 
-@@ -114,21 +142,11 @@ static struct pernet_operations frame_nat_net_ops = {
- 
- static int __init ebtable_nat_init(void)
- {
--	int ret;
+ 	printk(KERN_DEBUG "SELinux:  Unregistering netfilter hooks\n");
 -
--	ret = register_pernet_subsys(&frame_nat_net_ops);
--	if (ret < 0)
--		return ret;
--	ret = nf_register_hooks(&init_net, ebt_ops_nat,
--				ARRAY_SIZE(ebt_ops_nat));
--	if (ret < 0)
--		unregister_pernet_subsys(&frame_nat_net_ops);
--	return ret;
-+	return register_pernet_subsys(&frame_nat_net_ops);
+-	nf_unregister_hooks(&init_net, selinux_nf_ops,
+-			    ARRAY_SIZE(selinux_nf_ops));
++	unregister_pernet_subsys(&selinux_net_ops);
  }
- 
- static void __exit ebtable_nat_fini(void)
- {
--	nf_unregister_hooks(ebt_ops_nat, ARRAY_SIZE(ebt_ops_nat));
- 	unregister_pernet_subsys(&frame_nat_net_ops);
- }
+ #endif
  
 -- 
 1.7.10.4
