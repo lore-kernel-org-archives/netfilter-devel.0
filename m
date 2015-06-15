@@ -1,72 +1,166 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next 00/15] Simplify netfilter and network namespaces
-Date: Mon, 15 Jun 2015 17:20:24 +0200
-Message-ID: <20150615152024.GA10973@salvia>
-References: <87616ppt3h.fsf@x220.int.ebiederm.org>
- <20150615070622.GA3315@salvia>
- <87twu9nh8s.fsf@x220.int.ebiederm.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Jamal Hadi Salim <jhs@mojatatu.com>,
-	Steffen Klassert <steffen.klassert@secunet.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <87twu9nh8s.fsf@x220.int.ebiederm.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: [PATCH RFC 10/15] netfilter: defrag: add pernet hook support
+Date: Mon, 15 Jun 2015 17:46:52 +0200
+Message-ID: <1434383217-13732-11-git-send-email-pablo@netfilter.org>
+References: <1434383217-13732-1-git-send-email-pablo@netfilter.org>
+Cc: ebiederm@xmission.com, aschultz@warp10.net, kaber@trash.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:36877 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755503AbbFOPlw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Jun 2015 11:41:52 -0400
+In-Reply-To: <1434383217-13732-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jun 15, 2015 at 10:06:27AM -0500, Eric W. Biederman wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> writes:
-> 
-> > Hi Eric,
-> >
-> > On Sun, Jun 14, 2015 at 10:07:30PM -0500, Eric W. Biederman wrote:
-> >> 
-> >> While looking into what it would take to route packets out to network
-> >> devices in other network namespaces I started looking at the netfilter
-> >> hooks, and there is a lot of nasty code to figure out which network
-> >> namespace to filter the packets in.
-> >>
-> >> Just passing the network namespace into the netfilter hooks looks like a
-> >> significant simplication in the code, and worth it as the first thing
-> >> most netfilter hooks do is compute the network namespace.
-> >> 
-> >> We probably even want per network namespace netfilter hooks as nftables
-> >> tries (and fails to use).  nftables currently has a fairly serious bug
-> >> where the tables for one network namespace run for packets in all
-> >> network namespaces.  I do not have a fix yet but I think this patchset
-> >> making it easy to get at the network namespace is a good starting
-> >> place for a fix.
-> >
-> > I have a patchset that is almost ready to convert netfilter to pernet
-> > hooks, it partially clashes with this. Will send it out today and will
-> > Cc you so you can review it.
-> >
-> > I think it should take me little time to rebase it on top of yours.
-> > It's rather large changeset, which quite a lot of boiler plate code
-> > though.
-> 
-> Hmm.
-> 
-> I will wait and take a look.  I think going from where I am to pernet
-> netfilter hooks is about one simple patch, so I don't know where the
-> large about of boiler plate comes from.
+Since pernet hooks, we need to register the hook for each netnamespace space.
 
-You have to register the struct nf_hook_ops for each
-nf_register_hooks() caller from the pernet .init.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netns/netfilter.h             |    6 +++++
+ net/ipv4/netfilter/nf_defrag_ipv4.c       |   38 +++++++++++++++++++++++---
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c |   41 ++++++++++++++++++++++++++---
+ 3 files changed, 78 insertions(+), 7 deletions(-)
 
-> I think I will code that up so I can verify that and we can compare
-> notes later today.
+diff --git a/include/net/netns/netfilter.h b/include/net/netns/netfilter.h
+index 38aa498..f2b513d 100644
+--- a/include/net/netns/netfilter.h
++++ b/include/net/netns/netfilter.h
+@@ -15,5 +15,11 @@ struct netns_nf {
+ 	struct ctl_table_header *nf_log_dir_header;
+ #endif
+ 	struct list_head hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
++#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
++	struct nf_hook_ops *ipv4_defrag_ops;
++#endif
++#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
++	struct nf_hook_ops *ipv6_defrag_ops;
++#endif
+ };
+ #endif
+diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
+index ad74929..084a995 100644
+--- a/net/ipv4/netfilter/nf_defrag_ipv4.c
++++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
+@@ -108,15 +108,47 @@ static struct nf_hook_ops ipv4_defrag_ops[] = {
+ 	},
+ };
+ 
++static int ipv4_defrag_net_init(struct net *net)
++{
++	int err;
++
++	net->nf.ipv4_defrag_ops =
++		kmemdup(ipv4_defrag_ops, sizeof(ipv4_defrag_ops), GFP_KERNEL);
++	if (net->nf.ipv4_defrag_ops == NULL)
++		return -ENOMEM;
++
++	err = nf_register_hooks(net, net->nf.ipv4_defrag_ops,
++				ARRAY_SIZE(ipv4_defrag_ops));
++	if (err < 0)
++		goto err1;
++
++	return 0;
++err1:
++	kfree(net->nf.ipv4_defrag_ops);
++
++	return err;
++}
++
++static void ipv4_defrag_net_exit(struct net *net)
++{
++	nf_unregister_hooks(net->nf.ipv4_defrag_ops,
++			    ARRAY_SIZE(ipv4_defrag_ops));
++	kfree(net->nf.ipv4_defrag_ops);
++}
++
++static struct pernet_operations ipv4_defrag_net_ops = {
++	.init = ipv4_defrag_net_init,
++	.exit = ipv4_defrag_net_exit,
++};
++
+ static int __init nf_defrag_init(void)
+ {
+-	return nf_register_hooks(&init_net, ipv4_defrag_ops,
+-				 ARRAY_SIZE(ipv4_defrag_ops));
++	return register_pernet_subsys(&ipv4_defrag_net_ops);
+ }
+ 
+ static void __exit nf_defrag_fini(void)
+ {
+-	nf_unregister_hooks(ipv4_defrag_ops, ARRAY_SIZE(ipv4_defrag_ops));
++	unregister_pernet_subsys(&ipv4_defrag_net_ops);
+ }
+ 
+ void nf_defrag_ipv4_enable(void)
+diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+index 7bc330f..2745f9c 100644
+--- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
++++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+@@ -99,6 +99,39 @@ static struct nf_hook_ops ipv6_defrag_ops[] = {
+ 	},
+ };
+ 
++static int ipv6_defrag_net_init(struct net *net)
++{
++	int err;
++
++	net->nf.ipv6_defrag_ops =
++		kmemdup(ipv6_defrag_ops, sizeof(ipv6_defrag_ops), GFP_KERNEL);
++	if (net->nf.ipv6_defrag_ops == NULL)
++		return -ENOMEM;
++
++	err = nf_register_hooks(net, net->nf.ipv6_defrag_ops,
++				ARRAY_SIZE(ipv6_defrag_ops));
++	if (err < 0)
++		goto err1;
++
++	return 0;
++err1:
++	kfree(net->nf.ipv6_defrag_ops);
++
++	return err;
++}
++
++static void ipv6_defrag_net_exit(struct net *net)
++{
++	nf_unregister_hooks(net->nf.ipv6_defrag_ops,
++			    ARRAY_SIZE(ipv6_defrag_ops));
++	kfree(net->nf.ipv6_defrag_ops);
++}
++
++static struct pernet_operations ipv6_defrag_net_ops = {
++	.init = ipv6_defrag_net_init,
++	.exit = ipv6_defrag_net_exit,
++};
++
+ static int __init nf_defrag_init(void)
+ {
+ 	int ret = 0;
+@@ -108,10 +141,10 @@ static int __init nf_defrag_init(void)
+ 		pr_err("nf_defrag_ipv6: can't initialize frag6.\n");
+ 		return ret;
+ 	}
+-	ret = nf_register_hooks(&init_net, ipv6_defrag_ops,
+-				ARRAY_SIZE(ipv6_defrag_ops));
++
++	ret = register_pernet_subsys(&ipv6_defrag_net_ops);
+ 	if (ret < 0) {
+-		pr_err("nf_defrag_ipv6: can't register hooks\n");
++		pr_err("nf_defrag_ipv6: can't register pernet\n");
+ 		goto cleanup_frag6;
+ 	}
+ 	return ret;
+@@ -124,7 +157,7 @@ cleanup_frag6:
+ 
+ static void __exit nf_defrag_fini(void)
+ {
+-	nf_unregister_hooks(ipv6_defrag_ops, ARRAY_SIZE(ipv6_defrag_ops));
++	unregister_pernet_subsys(&ipv6_defrag_net_ops);
+ 	nf_ct_frag6_cleanup();
+ }
+ 
+-- 
+1.7.10.4
 
-This is basically done here, I'll post this asap.
