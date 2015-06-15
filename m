@@ -1,62 +1,59 @@
-From: "Harout Hedeshian" <harouth@codeaurora.org>
-Subject: RE: [PATCH nf-next] netfilter: xt_socket: add XT_SOCKET_MATCHSOCKMARK flag and mark fields
-Date: Mon, 15 Jun 2015 11:41:51 -0600
-Message-ID: <004101d0a792$90acec60$b206c520$@codeaurora.org>
-References: <1434148795-19937-1-git-send-email-harouth@codeaurora.org> <20150615162246.GA14375@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 00/15] ipset patches for nf-next
+Date: Mon, 15 Jun 2015 20:21:29 +0200
+Message-ID: <20150615182129.GA26662@salvia>
+References: <1434272192-8620-1-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>,
-	"'Lorenzo Colitti'" <lorenzo@google.com>
-To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:57328 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754109AbbFORly (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jun 2015 13:41:54 -0400
-In-Reply-To: <20150615162246.GA14375@salvia>
-Content-Language: en-us
+Received: from mail.us.es ([193.147.175.20]:37527 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754315AbbFOSQM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Jun 2015 14:16:12 -0400
+Content-Disposition: inline
+In-Reply-To: <1434272192-8620-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-
-> -----Original Message-----
-> From: Pablo Neira Ayuso [mailto:pablo@netfilter.org]
-> Sent: Monday, June 15, 2015 10:23 AM
-> To: Harout Hedeshian
-> Cc: netfilter-devel@vger.kernel.org; Lorenzo Colitti
-> Subject: Re: [PATCH nf-next] netfilter: xt_socket: add
-> XT_SOCKET_MATCHSOCKMARK flag and mark fields
+On Sun, Jun 14, 2015 at 10:56:17AM +0200, Jozsef Kadlecsik wrote:
+> Hi Pablo,
 > 
-> On Fri, Jun 12, 2015 at 04:39:55PM -0600, Harout Hedeshian wrote:
-> > xt_socket is useful for matching sockets with IP_TRANSPARENT and
-> > taking some action on the matching packets. However, it lacks the
-> > ability to match only a small subset of transparent sockets.
-> >
-> > Suppose there are 2 applications, each with its own set of transparent
-> > sockets. The first application wants all matching packets dropped,
-> > while the second application wants them forwarded somewhere else.
-> >
-> > Add the ability to match sockets based on the socket mark.
-> >
-> > Now the 2 hypothetical applications can differentiate their sockets
-> > based on a mark value set with SO_MARK.
-> >
-> > iptables -t mangle -I PREROUTING -m socket --transparent --mark 10 -J
-> > act1 iptables -t mangle -I PREROUTING -m socket --transparent --mark
-> > 11 -J act2
+> Please consider to apply the next bunch of patches for ipset. First
+> comes the small changes, then the bugfixes and at the end the RCU
+> related patches.
 > 
-> Wouldn't it be better to restore the sk_mark to skb->mark? I mean:
+> * Use MSEC_PER_SEC consistently instead of the number.
+> * Use SET_WITH_*() helpers to test set extensions from Sergey Popovich.
+> * Check extensions attributes before getting extensions from Sergey Popovich.
+> * Permit CIDR equal to the host address CIDR in IPv6 from Sergey Popovich.
+> * Make sure we always return line number on batch in the case of error
+>   from Sergey Popovich.
+> * Check CIDR value only when attribute is given from Sergey Popovich.
+> * Fix cidr handling for hash:*net* types, reported by Jonathan Johnson.
+> * Fix parallel resizing and listing of the same set so that the original
+>   set is kept for the whole dumping.
+> * Make sure listing doesn't grab a set which is just being destroyed.
+> * Remove rbtree from ip_set_hash_netiface.c in order to introduce RCU.
+> * Replace rwlock_t with spinlock_t in "struct ip_set", change the locking
+>   in the core and simplifications in the timeout routines.
+> * Introduce RCU locking in bitmap:* types with a slight modification in the
+>   logic on how an element is added.
+> * Introduce RCU locking in hash:* types. This is the most complex part of
+>   the changes.
+> * Introduce RCU locking in list type where standard rculist is used.
+> * Fix coding styles reported by checkpatch.pl.
 > 
->         iptables -t mangle -I PREROUTING \
->                 -m socket --transparent --restore-skmark -j myskchain
+> Best regards,
+> Jozsef
 > 
-> Thus, you can use -m mark from the 'myskchain' without having to fetch
-> and inspect the sk over and over again as it happens with this
-> extension.
+> The following changes since commit 482cfc318559e2527dfd8513582d2fdb276e47c2:
+> 
+>   netfilter: xtables: avoid percpu ruleset duplication (2015-06-12 14:27:10 +0200)
+> 
+> are available in the git repository at:
+> 
+>   git://blackhole.kfki.hu/nf-next master
 
-Yes, I think that can work. Let me try that out and I'll submit a new patch.
-
+Pulled, thanks Jozsef.
