@@ -1,33 +1,58 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] x_tables: remove XT_TABLE_INFO_SZ and a
- dereference.
-Date: Mon, 15 Jun 2015 23:01:21 +0200
-Message-ID: <20150615210121.GA3458@salvia>
-References: <1434387450.27504.139.camel@edumazet-glaptop2.roam.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH 01/32] netfilter: conntrack: warn the user if there is a better helper to use
+Date: Mon, 15 Jun 2015 23:25:58 +0200
+Message-ID: <1434403589-24796-2-git-send-email-pablo@netfilter.org>
+References: <1434403589-24796-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56499 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58729 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754183AbbFOU4C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jun 2015 16:56:02 -0400
-Content-Disposition: inline
-In-Reply-To: <1434387450.27504.139.camel@edumazet-glaptop2.roam.corp.google.com>
+	id S1750707AbbFOVVR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Jun 2015 17:21:17 -0400
+In-Reply-To: <1434403589-24796-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jun 15, 2015 at 09:57:30AM -0700, Eric Dumazet wrote:
-> From: Eric Dumazet <edumazet@google.com>
-> 
-> After Florian patches, there is no need for XT_TABLE_INFO_SZ anymore :
-> Only one copy of table is kept, instead of one copy per cpu.
-> 
-> We also can avoid a dereference if we put table data right after
-> xt_table_info. It reduces register pressure and helps compiler.
-> 
-> Then, we attempt a kmalloc() if total size is under order-3 allocation,
-> to reduce TLB pressure, as in many cases, rules fit in 32 KB.
+From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
 
-Applied, thanks a lot Eric.
+After db29a9508a92 ("netfilter: conntrack: disable generic tracking for
+known protocols"), if the specific helper is built but not loaded
+(a standard for most distributions) systems with a restrictive firewall
+but weak configuration regarding netfilter modules to load, will
+silently stop working.
+
+This patch then puts a warning message so the sysadmin knows where to
+start looking into. It's a pr_warn_once regardless of protocol itself
+but it should be enough to give a hint on where to look.
+
+Cc: Florian Westphal <fw@strlen.de>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Signed-off-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_proto_generic.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
+index 60865f1..2281be4 100644
+--- a/net/netfilter/nf_conntrack_proto_generic.c
++++ b/net/netfilter/nf_conntrack_proto_generic.c
+@@ -90,7 +90,13 @@ static int generic_packet(struct nf_conn *ct,
+ static bool generic_new(struct nf_conn *ct, const struct sk_buff *skb,
+ 			unsigned int dataoff, unsigned int *timeouts)
+ {
+-	return nf_generic_should_process(nf_ct_protonum(ct));
++	bool ret;
++
++	ret = nf_generic_should_process(nf_ct_protonum(ct));
++	if (!ret)
++		pr_warn_once("conntrack: generic helper won't handle protocol %d. Please consider loading the specific helper module.\n",
++			     nf_ct_protonum(ct));
++	return ret;
+ }
+ 
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK_TIMEOUT)
+-- 
+1.7.10.4
+
