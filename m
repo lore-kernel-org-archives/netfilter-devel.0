@@ -1,45 +1,34 @@
-From: Miroslav Kratochvil <exa.exa@gmail.com>
-Subject: [PATCH nft] datatype: fix packet mark type name
-Date: Tue, 16 Jun 2015 17:05:58 +0200
-Message-ID: <CAO0uZ+_a-=vhw9QfUNZ0EdaDE6z+P-gBsfGLDGdTQJVeD3cpTQ@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] libmnl: security context retrieval in nf-queue example
+Date: Tue, 16 Jun 2015 17:25:22 +0200
+Message-ID: <20150616152522.GA3959@salvia>
+References: <20150527124957.GA19819@salvia>
+ <557855B2.8030803@samsung.com>
+ <20150610160541.GD7125@breakpoint.cc>
+ <55798582.1040903@samsung.com>
+ <20150611233757.GE7125@breakpoint.cc>
+ <557AB559.1000001@samsung.com>
+ <20150612130240.GA29551@salvia>
+ <558015A9.8060703@samsung.com>
+ <20150616123706.GA32486@salvia>
+ <55801D8A.9050701@samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org, kaber@trash.net
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	=?utf-8?B?UmFmYcWC?= Krypa <r.krypa@samsung.com>
+To: Roman Kubiak <r.kubiak@samsung.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:32998 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752054AbbFPPGA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Jun 2015 11:06:00 -0400
-Received: by lblr1 with SMTP id r1so12941823lbl.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jun 2015 08:05:58 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:51056 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756410AbbFPPUD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Jun 2015 11:20:03 -0400
+Content-Disposition: inline
+In-Reply-To: <55801D8A.9050701@samsung.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Original was conflicting with "mark" keyword from scanner.l, preventing
-creation of named sets with this type. Name "packetmark" corresponds
-with the documentation, and the renaming can't create any regressions
-as the "mark" name could not have been ever used in any setup.
+On Tue, Jun 16, 2015 at 02:58:50PM +0200, Roman Kubiak wrote:
+> It seems that there is nothing i can really add to there except maybe:
 
-Ref.: https://bugzilla.netfilter.org/show_bug.cgi?id=1012
-
----
- src/datatype.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/src/datatype.c b/src/datatype.c
-index c93f76a..d204ed1 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -686,7 +686,7 @@ static struct error_record *mark_type_parse(const
-struct expr *sym,
-
- const struct datatype mark_type = {
-     .type        = TYPE_MARK,
--    .name        = "mark",
-+    .name        = "packetmark",
-     .desc        = "packet mark",
-     .size        = 4 * BITS_PER_BYTE,
-     .byteorder    = BYTEORDER_HOST_ENDIAN,
---
-2.1.4
+Please, send me Signed-off-by patch with title and description that I
+can apply via git am. Thank you.
