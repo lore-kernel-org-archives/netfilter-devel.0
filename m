@@ -1,72 +1,214 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH net-next 00/15] Simplify netfilter and network namespaces
-Date: Mon, 15 Jun 2015 19:26:13 -0500
-Message-ID: <87twu8lcre.fsf@x220.int.ebiederm.org>
-References: <87616ppt3h.fsf@x220.int.ebiederm.org>
-	<20150615.171042.1771913051598016582.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	stephen@networkplumber.org, jjciarla@raiz.uncu.edu.ar,
-	wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
-	pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	jhs@mojatatu.com, steffen.klassert@secunet.com,
-	herbert@gondor.apana.org.au
-To: David Miller <davem@davemloft.net>
+From: Harout Hedeshian <harouth@codeaurora.org>
+Subject: [PATCH nf-next] netfilter: xt_socket: add XT_SOCKET_RESTORESKMARK flag
+Date: Mon, 15 Jun 2015 18:40:43 -0600
+Message-ID: <1434415243-15474-1-git-send-email-harouth@codeaurora.org>
+Cc: Lorenzo Colitti <lorenzo@google.com>,
+	Harout Hedeshian <harouth@codeaurora.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out03.mta.xmission.com ([166.70.13.233]:46591 "EHLO
-	out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750897AbbFPAbm (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:45093 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750730AbbFPAlK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jun 2015 20:31:42 -0400
-In-Reply-To: <20150615.171042.1771913051598016582.davem@davemloft.net> (David
-	Miller's message of "Mon, 15 Jun 2015 17:10:42 -0700 (PDT)")
+	Mon, 15 Jun 2015 20:41:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David Miller <davem@davemloft.net> writes:
+xt_socket is useful for matching sockets with IP_TRANSPARENT and
+taking some action on the matching packets. However, it lacks the
+ability to match only a small subset of transparent sockets.
 
-> From: ebiederm@xmission.com (Eric W. Biederman)
-> Date: Sun, 14 Jun 2015 22:07:30 -0500
->
->> While looking into what it would take to route packets out to network
->> devices in other network namespaces I started looking at the netfilter
->> hooks, and there is a lot of nasty code to figure out which network
->> namespace to filter the packets in.
->
-> I am assume that you and Pablo are going to look at eachother's
-> work and decide how to proceed and therefore I'm getting another
-> series to actually apply at some point in the future.
+Suppose there are 2 applications, each with its own set of transparent
+sockets. The first application wants all matching packets dropped,
+while the second application wants them forwarded somewhere else.
 
-I am busily looking, and being slightly challenged by the fact that the
-netfilter code is a moving target in net-next.  That is not really a
-bad thing as some of Pablo's patches were against the patches that
-were merged today.
+Add the ability to retore the skb->mark from the sk_mark. The mark
+is only restored if a matching socket is found and the transparent /
+nowildcard conditions are satisfied.
 
-It does look like Pablo's path to getting per network namespace
-netfilter hooks is the best path to a good long term result, for per
-network namespace hooks.  I am busily agumenting it with a Kconfig guard
-so bisection that disables network namespaces support while netfilter
-only works on the initial network namespace.  As otherwise bisection
-will be a lost cause.  AKA
+Now the 2 hypothetical applications can differentiate their sockets
+based on a mark value set with SO_MARK.
 
-	config NET_NS
-		depends on !NETFILTER
+iptables -t mangle -I PREROUTING -m socket --transparent \
+                                           --restore-skmark -j action
+iptables -t mangle -I PREROUTING -m socket --transparent \
+                                           --restore-skmark -j action
+iptables -t mangle -A action -m mark --mark 10 -j action2
+iptables -t mangle -A action -m mark --mark 11 -j action3
 
-At the same time it looks like Pablos patches come out cleaner when
-rebased on my patchset.
+Signed-off-by: Harout Hedeshian <harouth@codeaurora.org>
+---
+ include/uapi/linux/netfilter/xt_socket.h |  8 +++++
+ net/netfilter/xt_socket.c                | 59 ++++++++++++++++++++++++++++----
+ 2 files changed, 61 insertions(+), 6 deletions(-)
 
-The number of conflicts between the two patchsets is very small
-and easily resolved.
+diff --git a/include/uapi/linux/netfilter/xt_socket.h b/include/uapi/linux/netfilter/xt_socket.h
+index 6315e2a..87644f8 100644
+--- a/include/uapi/linux/netfilter/xt_socket.h
++++ b/include/uapi/linux/netfilter/xt_socket.h
+@@ -6,6 +6,7 @@
+ enum {
+ 	XT_SOCKET_TRANSPARENT = 1 << 0,
+ 	XT_SOCKET_NOWILDCARD = 1 << 1,
++	XT_SOCKET_RESTORESKMARK = 1 << 2,
+ };
+ 
+ struct xt_socket_mtinfo1 {
+@@ -18,4 +19,11 @@ struct xt_socket_mtinfo2 {
+ };
+ #define XT_SOCKET_FLAGS_V2 (XT_SOCKET_TRANSPARENT | XT_SOCKET_NOWILDCARD)
+ 
++struct xt_socket_mtinfo3 {
++	__u8 flags;
++};
++#define XT_SOCKET_FLAGS_V3 (XT_SOCKET_TRANSPARENT \
++			   | XT_SOCKET_NOWILDCARD \
++			   | XT_SOCKET_RESTORESKMARK)
++
+ #endif /* _XT_SOCKET_H */
+diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
+index e092cb0..43e26c8 100644
+--- a/net/netfilter/xt_socket.c
++++ b/net/netfilter/xt_socket.c
+@@ -205,6 +205,7 @@ static bool
+ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
+ 	     const struct xt_socket_mtinfo1 *info)
+ {
++	struct sk_buff *pskb = (struct sk_buff *)skb;
+ 	struct sock *sk = skb->sk;
+ 
+ 	if (!sk)
+@@ -226,6 +227,10 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
+ 		if (info->flags & XT_SOCKET_TRANSPARENT)
+ 			transparent = xt_socket_sk_is_transparent(sk);
+ 
++		if (info->flags & XT_SOCKET_RESTORESKMARK && !wildcard &&
++		    transparent)
++			pskb->mark = sk->sk_mark;
++
+ 		if (sk != skb->sk)
+ 			sock_gen_put(sk);
+ 
+@@ -247,7 +252,7 @@ socket_mt4_v0(const struct sk_buff *skb, struct xt_action_param *par)
+ }
+ 
+ static bool
+-socket_mt4_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
++socket_mt4_v1_v2_v3(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+ 	return socket_match(skb, par, par->matchinfo);
+ }
+@@ -371,9 +376,10 @@ static struct sock *xt_socket_lookup_slow_v6(const struct sk_buff *skb,
+ }
+ 
+ static bool
+-socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
++socket_mt6_v1_v2_v3(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+ 	const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
++	struct sk_buff *pskb = (struct sk_buff *)skb;
+ 	struct sock *sk = skb->sk;
+ 
+ 	if (!sk)
+@@ -395,6 +401,10 @@ socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
+ 		if (info->flags & XT_SOCKET_TRANSPARENT)
+ 			transparent = xt_socket_sk_is_transparent(sk);
+ 
++		if (info->flags & XT_SOCKET_RESTORESKMARK && !wildcard &&
++		    transparent)
++			pskb->mark = sk->sk_mark;
++
+ 		if (sk != skb->sk)
+ 			sock_gen_put(sk);
+ 
+@@ -428,6 +438,19 @@ static int socket_mt_v2_check(const struct xt_mtchk_param *par)
+ 	return 0;
+ }
+ 
++static int socket_mt_v3_check(const struct xt_mtchk_param *par)
++{
++	const struct xt_socket_mtinfo3 *info =
++				    (struct xt_socket_mtinfo3 *)par->matchinfo;
++
++	if (info->flags & ~XT_SOCKET_FLAGS_V3) {
++		pr_info("unknown flags 0x%x\n",
++			info->flags & ~XT_SOCKET_FLAGS_V3);
++		return -EINVAL;
++	}
++	return 0;
++}
++
+ static struct xt_match socket_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "socket",
+@@ -442,7 +465,7 @@ static struct xt_match socket_mt_reg[] __read_mostly = {
+ 		.name		= "socket",
+ 		.revision	= 1,
+ 		.family		= NFPROTO_IPV4,
+-		.match		= socket_mt4_v1_v2,
++		.match		= socket_mt4_v1_v2_v3,
+ 		.checkentry	= socket_mt_v1_check,
+ 		.matchsize	= sizeof(struct xt_socket_mtinfo1),
+ 		.hooks		= (1 << NF_INET_PRE_ROUTING) |
+@@ -454,7 +477,7 @@ static struct xt_match socket_mt_reg[] __read_mostly = {
+ 		.name		= "socket",
+ 		.revision	= 1,
+ 		.family		= NFPROTO_IPV6,
+-		.match		= socket_mt6_v1_v2,
++		.match		= socket_mt6_v1_v2_v3,
+ 		.checkentry	= socket_mt_v1_check,
+ 		.matchsize	= sizeof(struct xt_socket_mtinfo1),
+ 		.hooks		= (1 << NF_INET_PRE_ROUTING) |
+@@ -466,7 +489,7 @@ static struct xt_match socket_mt_reg[] __read_mostly = {
+ 		.name		= "socket",
+ 		.revision	= 2,
+ 		.family		= NFPROTO_IPV4,
+-		.match		= socket_mt4_v1_v2,
++		.match		= socket_mt4_v1_v2_v3,
+ 		.checkentry	= socket_mt_v2_check,
+ 		.matchsize	= sizeof(struct xt_socket_mtinfo1),
+ 		.hooks		= (1 << NF_INET_PRE_ROUTING) |
+@@ -478,7 +501,7 @@ static struct xt_match socket_mt_reg[] __read_mostly = {
+ 		.name		= "socket",
+ 		.revision	= 2,
+ 		.family		= NFPROTO_IPV6,
+-		.match		= socket_mt6_v1_v2,
++		.match		= socket_mt6_v1_v2_v3,
+ 		.checkentry	= socket_mt_v2_check,
+ 		.matchsize	= sizeof(struct xt_socket_mtinfo1),
+ 		.hooks		= (1 << NF_INET_PRE_ROUTING) |
+@@ -486,6 +509,30 @@ static struct xt_match socket_mt_reg[] __read_mostly = {
+ 		.me		= THIS_MODULE,
+ 	},
+ #endif
++	{
++		.name		= "socket",
++		.revision	= 3,
++		.family		= NFPROTO_IPV4,
++		.match		= socket_mt4_v1_v2_v3,
++		.checkentry	= socket_mt_v3_check,
++		.matchsize	= sizeof(struct xt_socket_mtinfo1),
++		.hooks		= (1 << NF_INET_PRE_ROUTING) |
++				  (1 << NF_INET_LOCAL_IN),
++		.me		= THIS_MODULE,
++	},
++#ifdef XT_SOCKET_HAVE_IPV6
++	{
++		.name		= "socket",
++		.revision	= 3,
++		.family		= NFPROTO_IPV6,
++		.match		= socket_mt6_v1_v2_v3,
++		.checkentry	= socket_mt_v3_check,
++		.matchsize	= sizeof(struct xt_socket_mtinfo1),
++		.hooks		= (1 << NF_INET_PRE_ROUTING) |
++				  (1 << NF_INET_LOCAL_IN),
++		.me		= THIS_MODULE,
++	},
++#endif
+ };
+ 
+ static int __init socket_mt_init(void)
+-- 
+Employee of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
 
-So what I am in the processes of doing is reviewing and testing
-the combined set of patches and hopefully I will have something
-for you soon (tomorrow?).  Unless Pablo has objections.
-
-Right now I am attempting to verify that I have found all of the places
-in Pablo's patchset where the patches do not compile on their own, as
-there were some silly left-overs.
-
-But overall I think Pablo's patches look good.
-
-Eric
