@@ -1,37 +1,50 @@
-From: Rich Felker <dalias@libc.org>
-Subject: Re: [PATCH iptables RFC 4/4] libxt_TCPOPTSTRIP: Use local
- copy of TCPOPTS constants
-Date: Tue, 16 Jun 2015 15:28:47 -0400
-Message-ID: <20150616192847.GI1173@brightrain.aerifal.cx>
-References: <20150616192504.GF3247@euler>
-Reply-To: musl@lists.openwall.com
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [patch] ipvs: prevent some underflows
+Date: Tue, 16 Jun 2015 22:28:29 +0300 (EEST)
+Message-ID: <alpine.LFD.2.11.1506162224510.1703@ja.home.ssi.bg>
+References: <20150605093315.GD24871@mwanda> <alpine.LFD.2.11.1506082137420.1552@ja.home.ssi.bg> <20150609122630.GA4060@localhost.localdomain> <alpine.LFD.2.11.1506110811030.1827@ja.home.ssi.bg> <20150611125734.GL4049@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org, musl@lists.openwall.com
-Return-path: <musl-return-7962-gllmg-musl=m.gmane.org@lists.openwall.com>
-List-Post: <mailto:musl@lists.openwall.com>
-List-Help: <mailto:musl-help@lists.openwall.com>
-List-Unsubscribe: <mailto:musl-unsubscribe@lists.openwall.com>
-List-Subscribe: <mailto:musl-subscribe@lists.openwall.com>
-Content-Disposition: inline
-In-Reply-To: <20150616192504.GF3247@euler>
-Sender: Rich Felker <dalias@aerifal.cx>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	kernel-janitors@vger.kernel.org
+To: Marcelo Ricardo Leitner <mleitner@redhat.com>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+In-Reply-To: <20150611125734.GL4049@localhost.localdomain>
+Sender: kernel-janitors-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jun 16, 2015 at 09:25:04PM +0200, Felix Janda wrote:
-> musl does not provide these constants in <netinet/tcp.h>
-> 
-> Signed-off-by: Felix Janda <felix.janda@posteo.de>
-> ---
-> It is not clear to me whether these constants belong to iptables or musl's
-> netinet/tcp.h. So this message is CC'd to the musl list.
-> 
-> In the code indexed by debian code search I have only found iptables and
-> traceroute using them without having a local copy of tcp.h.
-> 
-> Note that this patch is incomplete: utils/nfsynproxy.c uses them as well
 
-I'm not sure either. I'd like to hear from someone who has a good
-argument one way or the other.
+	Hello,
 
-Rich
+On Thu, 11 Jun 2015, Marcelo Ricardo Leitner wrote:
+
+> > > On Mon, Jun 08, 2015 at 10:16:23PM +0300, Julian Anastasov wrote:
+> > 
+> > 	Yes, without any configuration (eg. sysctl value),
+> > such defaults should reduce the chance for incompatibilities.
+> > I.e. we should not send more than 1500 and should be able to
+> > receive at least 1500.
+> 
+> I'm not sure we should anticipate bad networking setups like that.
+> Probably ipvs wouldn't be the only one to suffer from such bad config.
+> 
+> Anyway, then we should include that sysctl together with that min(),
+> because otherwise it will be impossible to send packets larger than
+> 1500 and this may be a regression to some users. Or maybe you don't
+> think that large packets are worth for the sync at all?
+
+	Sorry for the delay. I'll try that in the
+following days. There should be benefits from large
+packets, so better to allow it.
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
