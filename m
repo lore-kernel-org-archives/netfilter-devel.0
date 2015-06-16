@@ -1,16 +1,16 @@
 From: Harout Hedeshian <harouth@codeaurora.org>
-Subject: [PATCH nf-next] netfilter: xt_socket: add XT_SOCKET_RESTORESKMARK flag
-Date: Mon, 15 Jun 2015 18:40:43 -0600
-Message-ID: <1434415243-15474-1-git-send-email-harouth@codeaurora.org>
+Subject: [PATCH iptables] xt_socket: add --restore-skmark option
+Date: Mon, 15 Jun 2015 18:41:19 -0600
+Message-ID: <1434415279-15517-1-git-send-email-harouth@codeaurora.org>
 Cc: Lorenzo Colitti <lorenzo@google.com>,
 	Harout Hedeshian <harouth@codeaurora.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:45093 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:45140 "EHLO
 	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750730AbbFPAlK (ORCPT
+	with ESMTP id S1750730AbbFPAlc (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jun 2015 20:41:10 -0400
+	Mon, 15 Jun 2015 20:41:32 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -38,14 +38,131 @@ iptables -t mangle -A action -m mark --mark 11 -j action3
 
 Signed-off-by: Harout Hedeshian <harouth@codeaurora.org>
 ---
- include/uapi/linux/netfilter/xt_socket.h |  8 +++++
- net/netfilter/xt_socket.c                | 59 ++++++++++++++++++++++++++++----
- 2 files changed, 61 insertions(+), 6 deletions(-)
+ extensions/libxt_socket.c           | 71 +++++++++++++++++++++++++++++++++++++
+ include/linux/netfilter/xt_socket.h |  8 +++++
+ 2 files changed, 79 insertions(+)
 
-diff --git a/include/uapi/linux/netfilter/xt_socket.h b/include/uapi/linux/netfilter/xt_socket.h
+diff --git a/extensions/libxt_socket.c b/extensions/libxt_socket.c
+index f19c280..a99135c 100644
+--- a/extensions/libxt_socket.c
++++ b/extensions/libxt_socket.c
+@@ -10,6 +10,7 @@
+ enum {
+ 	O_TRANSPARENT = 0,
+ 	O_NOWILDCARD = 1,
++	O_RESTORESKMARK = 2,
+ };
+ 
+ static const struct xt_option_entry socket_mt_opts[] = {
+@@ -23,6 +24,13 @@ static const struct xt_option_entry socket_mt_opts_v2[] = {
+ 	XTOPT_TABLEEND,
+ };
+ 
++static const struct xt_option_entry socket_mt_opts_v3[] = {
++	{.name = "transparent", .id = O_TRANSPARENT, .type = XTTYPE_NONE},
++	{.name = "nowildcard", .id = O_NOWILDCARD, .type = XTTYPE_NONE},
++	{.name = "restore-skmark", .id = O_RESTORESKMARK, .type = XTTYPE_NONE},
++	XTOPT_TABLEEND,
++};
++
+ static void socket_mt_help(void)
+ {
+ 	printf(
+@@ -38,6 +46,17 @@ static void socket_mt_help_v2(void)
+ 		"  --transparent    Ignore non-transparent sockets\n\n");
+ }
+ 
++static void socket_mt_help_v3(void)
++{
++	printf(
++		"socket match options:\n"
++		"  --nowildcard     Do not ignore LISTEN sockets bound on INADDR_ANY\n"
++		"  --transparent    Ignore non-transparent sockets\n"
++		"  --restore-skmark Set the packet mark to the socket mark if\n"
++		"                   the socket matches and transparent / \n"
++		"                   nowildcard conditions are satisfied\n\n");
++}
++
+ static void socket_mt_parse(struct xt_option_call *cb)
+ {
+ 	struct xt_socket_mtinfo1 *info = cb->data;
+@@ -65,6 +84,24 @@ static void socket_mt_parse_v2(struct xt_option_call *cb)
+ 	}
+ }
+ 
++static void socket_mt_parse_v3(struct xt_option_call *cb)
++{
++	struct xt_socket_mtinfo2 *info = cb->data;
++
++	xtables_option_parse(cb);
++	switch (cb->entry->id) {
++	case O_TRANSPARENT:
++		info->flags |= XT_SOCKET_TRANSPARENT;
++		break;
++	case O_NOWILDCARD:
++		info->flags |= XT_SOCKET_NOWILDCARD;
++		break;
++	case O_RESTORESKMARK:
++		info->flags |= XT_SOCKET_RESTORESKMARK;
++		break;
++	}
++}
++
+ static void
+ socket_mt_save(const void *ip, const struct xt_entry_match *match)
+ {
+@@ -101,6 +138,27 @@ socket_mt_print_v2(const void *ip, const struct xt_entry_match *match,
+ 	socket_mt_save_v2(ip, match);
+ }
+ 
++static void
++socket_mt_save_v3(const void *ip, const struct xt_entry_match *match)
++{
++	const struct xt_socket_mtinfo3 *info = (const void *)match->data;
++
++	if (info->flags & XT_SOCKET_TRANSPARENT)
++		printf(" --transparent");
++	if (info->flags & XT_SOCKET_NOWILDCARD)
++		printf(" --nowildcard");
++	if (info->flags & XT_SOCKET_RESTORESKMARK)
++		printf(" --restore-skmark");
++}
++
++static void
++socket_mt_print_v3(const void *ip, const struct xt_entry_match *match,
++		   int numeric)
++{
++	printf(" socket");
++	socket_mt_save_v3(ip, match);
++}
++
+ static struct xtables_match socket_mt_reg[] = {
+ 	{
+ 		.name          = "socket",
+@@ -136,6 +194,19 @@ static struct xtables_match socket_mt_reg[] = {
+ 		.x6_parse      = socket_mt_parse_v2,
+ 		.x6_options    = socket_mt_opts_v2,
+ 	},
++	{
++		.name          = "socket",
++		.revision      = 3,
++		.family        = NFPROTO_UNSPEC,
++		.version       = XTABLES_VERSION,
++		.size          = XT_ALIGN(sizeof(struct xt_socket_mtinfo2)),
++		.userspacesize = XT_ALIGN(sizeof(struct xt_socket_mtinfo2)),
++		.help          = socket_mt_help_v3,
++		.print         = socket_mt_print_v3,
++		.save          = socket_mt_save_v3,
++		.x6_parse      = socket_mt_parse_v3,
++		.x6_options    = socket_mt_opts_v3,
++	},
+ };
+ 
+ void _init(void)
+diff --git a/include/linux/netfilter/xt_socket.h b/include/linux/netfilter/xt_socket.h
 index 6315e2a..87644f8 100644
---- a/include/uapi/linux/netfilter/xt_socket.h
-+++ b/include/uapi/linux/netfilter/xt_socket.h
+--- a/include/linux/netfilter/xt_socket.h
++++ b/include/linux/netfilter/xt_socket.h
 @@ -6,6 +6,7 @@
  enum {
  	XT_SOCKET_TRANSPARENT = 1 << 0,
@@ -66,148 +183,6 @@ index 6315e2a..87644f8 100644
 +			   | XT_SOCKET_RESTORESKMARK)
 +
  #endif /* _XT_SOCKET_H */
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index e092cb0..43e26c8 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -205,6 +205,7 @@ static bool
- socket_match(const struct sk_buff *skb, struct xt_action_param *par,
- 	     const struct xt_socket_mtinfo1 *info)
- {
-+	struct sk_buff *pskb = (struct sk_buff *)skb;
- 	struct sock *sk = skb->sk;
- 
- 	if (!sk)
-@@ -226,6 +227,10 @@ socket_match(const struct sk_buff *skb, struct xt_action_param *par,
- 		if (info->flags & XT_SOCKET_TRANSPARENT)
- 			transparent = xt_socket_sk_is_transparent(sk);
- 
-+		if (info->flags & XT_SOCKET_RESTORESKMARK && !wildcard &&
-+		    transparent)
-+			pskb->mark = sk->sk_mark;
-+
- 		if (sk != skb->sk)
- 			sock_gen_put(sk);
- 
-@@ -247,7 +252,7 @@ socket_mt4_v0(const struct sk_buff *skb, struct xt_action_param *par)
- }
- 
- static bool
--socket_mt4_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
-+socket_mt4_v1_v2_v3(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	return socket_match(skb, par, par->matchinfo);
- }
-@@ -371,9 +376,10 @@ static struct sock *xt_socket_lookup_slow_v6(const struct sk_buff *skb,
- }
- 
- static bool
--socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
-+socket_mt6_v1_v2_v3(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
-+	struct sk_buff *pskb = (struct sk_buff *)skb;
- 	struct sock *sk = skb->sk;
- 
- 	if (!sk)
-@@ -395,6 +401,10 @@ socket_mt6_v1_v2(const struct sk_buff *skb, struct xt_action_param *par)
- 		if (info->flags & XT_SOCKET_TRANSPARENT)
- 			transparent = xt_socket_sk_is_transparent(sk);
- 
-+		if (info->flags & XT_SOCKET_RESTORESKMARK && !wildcard &&
-+		    transparent)
-+			pskb->mark = sk->sk_mark;
-+
- 		if (sk != skb->sk)
- 			sock_gen_put(sk);
- 
-@@ -428,6 +438,19 @@ static int socket_mt_v2_check(const struct xt_mtchk_param *par)
- 	return 0;
- }
- 
-+static int socket_mt_v3_check(const struct xt_mtchk_param *par)
-+{
-+	const struct xt_socket_mtinfo3 *info =
-+				    (struct xt_socket_mtinfo3 *)par->matchinfo;
-+
-+	if (info->flags & ~XT_SOCKET_FLAGS_V3) {
-+		pr_info("unknown flags 0x%x\n",
-+			info->flags & ~XT_SOCKET_FLAGS_V3);
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
- static struct xt_match socket_mt_reg[] __read_mostly = {
- 	{
- 		.name		= "socket",
-@@ -442,7 +465,7 @@ static struct xt_match socket_mt_reg[] __read_mostly = {
- 		.name		= "socket",
- 		.revision	= 1,
- 		.family		= NFPROTO_IPV4,
--		.match		= socket_mt4_v1_v2,
-+		.match		= socket_mt4_v1_v2_v3,
- 		.checkentry	= socket_mt_v1_check,
- 		.matchsize	= sizeof(struct xt_socket_mtinfo1),
- 		.hooks		= (1 << NF_INET_PRE_ROUTING) |
-@@ -454,7 +477,7 @@ static struct xt_match socket_mt_reg[] __read_mostly = {
- 		.name		= "socket",
- 		.revision	= 1,
- 		.family		= NFPROTO_IPV6,
--		.match		= socket_mt6_v1_v2,
-+		.match		= socket_mt6_v1_v2_v3,
- 		.checkentry	= socket_mt_v1_check,
- 		.matchsize	= sizeof(struct xt_socket_mtinfo1),
- 		.hooks		= (1 << NF_INET_PRE_ROUTING) |
-@@ -466,7 +489,7 @@ static struct xt_match socket_mt_reg[] __read_mostly = {
- 		.name		= "socket",
- 		.revision	= 2,
- 		.family		= NFPROTO_IPV4,
--		.match		= socket_mt4_v1_v2,
-+		.match		= socket_mt4_v1_v2_v3,
- 		.checkentry	= socket_mt_v2_check,
- 		.matchsize	= sizeof(struct xt_socket_mtinfo1),
- 		.hooks		= (1 << NF_INET_PRE_ROUTING) |
-@@ -478,7 +501,7 @@ static struct xt_match socket_mt_reg[] __read_mostly = {
- 		.name		= "socket",
- 		.revision	= 2,
- 		.family		= NFPROTO_IPV6,
--		.match		= socket_mt6_v1_v2,
-+		.match		= socket_mt6_v1_v2_v3,
- 		.checkentry	= socket_mt_v2_check,
- 		.matchsize	= sizeof(struct xt_socket_mtinfo1),
- 		.hooks		= (1 << NF_INET_PRE_ROUTING) |
-@@ -486,6 +509,30 @@ static struct xt_match socket_mt_reg[] __read_mostly = {
- 		.me		= THIS_MODULE,
- 	},
- #endif
-+	{
-+		.name		= "socket",
-+		.revision	= 3,
-+		.family		= NFPROTO_IPV4,
-+		.match		= socket_mt4_v1_v2_v3,
-+		.checkentry	= socket_mt_v3_check,
-+		.matchsize	= sizeof(struct xt_socket_mtinfo1),
-+		.hooks		= (1 << NF_INET_PRE_ROUTING) |
-+				  (1 << NF_INET_LOCAL_IN),
-+		.me		= THIS_MODULE,
-+	},
-+#ifdef XT_SOCKET_HAVE_IPV6
-+	{
-+		.name		= "socket",
-+		.revision	= 3,
-+		.family		= NFPROTO_IPV6,
-+		.match		= socket_mt6_v1_v2_v3,
-+		.checkentry	= socket_mt_v3_check,
-+		.matchsize	= sizeof(struct xt_socket_mtinfo1),
-+		.hooks		= (1 << NF_INET_PRE_ROUTING) |
-+				  (1 << NF_INET_LOCAL_IN),
-+		.me		= THIS_MODULE,
-+	},
-+#endif
- };
- 
- static int __init socket_mt_init(void)
 -- 
 Employee of Qualcomm Innovation Center, Inc.
 Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
