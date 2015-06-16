@@ -1,75 +1,60 @@
-From: Roman Kubiak <r.kubiak@samsung.com>
-Subject: Re: [PATCH] libmnl: security context retrieval in nf-queue example
-Date: Tue, 16 Jun 2015 14:58:50 +0200
-Message-ID: <55801D8A.9050701@samsung.com>
-References: <5565A4D2.70701@samsung.com> <5565A6AA.90908@samsung.com>
- <20150527124957.GA19819@salvia> <557855B2.8030803@samsung.com>
- <20150610160541.GD7125@breakpoint.cc> <55798582.1040903@samsung.com>
- <20150611233757.GE7125@breakpoint.cc> <557AB559.1000001@samsung.com>
- <20150612130240.GA29551@salvia> <558015A9.8060703@samsung.com>
- <20150616123706.GA32486@salvia>
+From: "Harout Hedeshian" <harouth@codeaurora.org>
+Subject: RE: [PATCH nf-next] netfilter: xt_socket: add XT_SOCKET_RESTORESKMARK flag
+Date: Tue, 16 Jun 2015 07:38:44 -0600
+Message-ID: <008a01d0a839$c4bb0ee0$4e312ca0$@codeaurora.org>
+References: <1434415243-15474-1-git-send-email-harouth@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	=?UTF-8?B?UmFmYcWCIEtyeXBh?= <r.krypa@samsung.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: "'Lorenzo Colitti'" <lorenzo@google.com>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:14399 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754181AbbFPM6y (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:46245 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754718AbbFPNir (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Jun 2015 08:58:54 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0NQ100K58G236880@mailout3.w1.samsung.com> for
- netfilter-devel@vger.kernel.org; Tue, 16 Jun 2015 13:58:51 +0100 (BST)
-In-reply-to: <20150616123706.GA32486@salvia>
+	Tue, 16 Jun 2015 09:38:47 -0400
+In-Reply-To: <1434415243-15474-1-git-send-email-harouth@codeaurora.org>
+Content-Language: en-us
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It seems that there is nothing i can really add to there except maybe:
-diff --git a/src/nlmsg.c b/src/nlmsg.c
-index aebdd5e..cabd8be 100644
---- a/src/nlmsg.c
-+++ b/src/nlmsg.c
-@@ -137,6 +137,7 @@ static int nfq_pkt_parse_attr_cb(const struct nlattr *attr, void *data)
-        case NFQA_IFINDEX_PHYSOUTDEV:
-        case NFQA_CAP_LEN:
-        case NFQA_SKB_INFO:
-+       case NFQA_SECCTX:
-        case NFQA_UID:
-        case NFQA_GID:
-                if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
 
-but that's a one line, will this be sufficient ? if so i'll merge this with the previous libnetfilter_queue patch
-and send it as one.
 
-On 06/16/2015 02:37 PM, Pablo Neira Ayuso wrote:
-> On Tue, Jun 16, 2015 at 02:25:13PM +0200, Roman Kubiak wrote:
->> This patch is an addition to "[PATCH v3] nfnetlink_queue: add security context information"
->> It adds and example to libmnl that illustrates how to fetch security context.
->> A corresponding patch was sent for libnetfilter_queue already.
->>
->> -- cut here
->>
->> This patch modifies the example program for nf-queue
->> to demonstrate how to retriece security context information
->> for queued packages. This can also be easily extended to
->> retrieve other information supported by this subsystem.
+> -----Original Message-----
+> From: netfilter-devel-owner@vger.kernel.org [mailto:netfilter-devel-
+> owner@vger.kernel.org] On Behalf Of Harout Hedeshian
+> Sent: Monday, June 15, 2015 6:41 PM
+> To: netfilter-devel@vger.kernel.org
+> Cc: Lorenzo Colitti; Harout Hedeshian
+> Subject: [PATCH nf-next] netfilter: xt_socket: add
+> XT_SOCKET_RESTORESKMARK flag
 > 
-> This extension for the libmnl example is fine.
+> xt_socket is useful for matching sockets with IP_TRANSPARENT and
+> taking some action on the matching packets. However, it lacks the
+> ability to match only a small subset of transparent sockets.
 > 
-> However, when we asked for changes, we actually mean that you enhance:
+> Suppose there are 2 applications, each with its own set of transparent
+> sockets. The first application wants all matching packets dropped,
+> while the second application wants them forwarded somewhere else.
 > 
->         libnetfilter_queue/src/nlmsg.c
+> Add the ability to retore the skb->mark from the sk_mark. The mark
+> is only restored if a matching socket is found and the transparent /
+> nowildcard conditions are satisfied.
 > 
-> to support this. Thanks.
+> Now the 2 hypothetical applications can differentiate their sockets
+> based on a mark value set with SO_MARK.
 > 
+> iptables -t mangle -I PREROUTING -m socket --transparent \
+>                                            --restore-skmark -j action
+> iptables -t mangle -I PREROUTING -m socket --transparent \
+>                                            --restore-skmark -j action
+
+Oops, redundant command in the commit message. I'll submit a v2 if we are
+happy with the rest of the patch.
+
+> iptables -t mangle -A action -m mark --mark 10 -j action2
+> iptables -t mangle -A action -m mark --mark 11 -j action3
 > 
 
--- 
---------------
- Roman Kubiak
---------------
