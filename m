@@ -1,32 +1,37 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/32] Netfilter updates for net-next
-Date: Mon, 15 Jun 2015 14:41:24 -0700 (PDT)
-Message-ID: <20150615.144124.2163883185628837482.davem@davemloft.net>
-References: <1434403589-24796-1-git-send-email-pablo@netfilter.org>
+Subject: Re: [PATCH net-next 00/15] Simplify netfilter and network
+ namespaces
+Date: Mon, 15 Jun 2015 17:10:42 -0700 (PDT)
+Message-ID: <20150615.171042.1771913051598016582.davem@davemloft.net>
+References: <87616ppt3h.fsf@x220.int.ebiederm.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	stephen@networkplumber.org, jjciarla@raiz.uncu.edu.ar,
+	wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
+	pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	jhs@mojatatu.com, steffen.klassert@secunet.com,
+	herbert@gondor.apana.org.au
+To: ebiederm@xmission.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:41819 "EHLO
+Received: from shards.monkeyblade.net ([149.20.54.216]:42759 "EHLO
 	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750960AbbFOVl1 (ORCPT
+	with ESMTP id S1751018AbbFPAKn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jun 2015 17:41:27 -0400
-In-Reply-To: <1434403589-24796-1-git-send-email-pablo@netfilter.org>
+	Mon, 15 Jun 2015 20:10:43 -0400
+In-Reply-To: <87616ppt3h.fsf@x220.int.ebiederm.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon, 15 Jun 2015 23:25:57 +0200
+From: ebiederm@xmission.com (Eric W. Biederman)
+Date: Sun, 14 Jun 2015 22:07:30 -0500
 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+> While looking into what it would take to route packets out to network
+> devices in other network namespaces I started looking at the netfilter
+> hooks, and there is a lot of nasty code to figure out which network
+> namespace to filter the packets in.
 
-Pulled, thanks Pablo!
-
-> Have a nice and safe travel to NFWS in Budapest.
-
-Yep, thanks, see you soon!
+I am assume that you and Pablo are going to look at eachother's
+work and decide how to proceed and therefore I'm getting another
+series to actually apply at some point in the future.
