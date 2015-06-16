@@ -1,50 +1,44 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [patch] ipvs: prevent some underflows
-Date: Tue, 16 Jun 2015 22:28:29 +0300 (EEST)
-Message-ID: <alpine.LFD.2.11.1506162224510.1703@ja.home.ssi.bg>
-References: <20150605093315.GD24871@mwanda> <alpine.LFD.2.11.1506082137420.1552@ja.home.ssi.bg> <20150609122630.GA4060@localhost.localdomain> <alpine.LFD.2.11.1506110811030.1827@ja.home.ssi.bg> <20150611125734.GL4049@localhost.localdomain>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH net-next 00/15] Simplify netfilter and network namespaces
+Date: Tue, 16 Jun 2015 16:00:42 -0500
+Message-ID: <87twu7id1h.fsf@x220.int.ebiederm.org>
+References: <87616ppt3h.fsf@x220.int.ebiederm.org>
+	<20150615.171042.1771913051598016582.davem@davemloft.net>
+	<87twu8lcre.fsf@x220.int.ebiederm.org> <20150616103206.GA3882@salvia>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	kernel-janitors@vger.kernel.org
-To: Marcelo Ricardo Leitner <mleitner@redhat.com>
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <20150611125734.GL4049@localhost.localdomain>
-Sender: kernel-janitors-owner@vger.kernel.org
+Content-Type: text/plain
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, stephen@networkplumber.org,
+	jjciarla@raiz.uncu.edu.ar, wensong@linux-vs.org,
+	horms@verge.net.au, ja@ssi.bg, kaber@trash.net,
+	kadlec@blackhole.kfki.hu, jhs@mojatatu.com,
+	steffen.klassert@secunet.com, herbert@gondor.apana.org.au
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20150616103206.GA3882@salvia> (Pablo Neira Ayuso's message of
+	"Tue, 16 Jun 2015 12:32:06 +0200")
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Pablo Neira Ayuso <pablo@netfilter.org> writes:
 
-	Hello,
+> On Mon, Jun 15, 2015 at 07:26:13PM -0500, Eric W. Biederman wrote:
+> [...]
+>> So what I am in the processes of doing is reviewing and testing
+>> the combined set of patches and hopefully I will have something
+>> for you soon (tomorrow?).  Unless Pablo has objections.
+>
+> Please, feel free to take over my patchset and improve it. That has
+> consumed part of my weekend and I have several open branches in my
+> internal tree that I need to push forward.
+>
+> So I'd be really happy if you polish them and get this done.
+>
+> Let me know if I can help in any case.
 
-On Thu, 11 Jun 2015, Marcelo Ricardo Leitner wrote:
+Will do.  I have found more bugs lurking in your boilter plate changes
+that I am comfortable with so I am in the process of refactoring things
+a bit more than you did so the sweeping changes are more pedantic
+and much less likely to introduce bugs.
 
-> > > On Mon, Jun 08, 2015 at 10:16:23PM +0300, Julian Anastasov wrote:
-> > 
-> > 	Yes, without any configuration (eg. sysctl value),
-> > such defaults should reduce the chance for incompatibilities.
-> > I.e. we should not send more than 1500 and should be able to
-> > receive at least 1500.
-> 
-> I'm not sure we should anticipate bad networking setups like that.
-> Probably ipvs wouldn't be the only one to suffer from such bad config.
-> 
-> Anyway, then we should include that sysctl together with that min(),
-> because otherwise it will be impossible to send packets larger than
-> 1500 and this may be a regression to some users. Or maybe you don't
-> think that large packets are worth for the sync at all?
-
-	Sorry for the delay. I'll try that in the
-following days. There should be benefits from large
-packets, so better to allow it.
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+Eric
