@@ -1,42 +1,37 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: Matching MLD with ip6tables
-Date: Tue, 16 Jun 2015 09:17:26 +0200 (CEST)
-Message-ID: <alpine.LSU.2.20.1506160912570.21227@nerf40.vanv.qr>
-References: <20150501025612.GB2465@odroid> <alpine.LSU.2.20.1505010828090.30665@nerf40.vanv.qr> <20150616054551.GB14231@odroid>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net-next 00/15] Simplify netfilter and network namespaces
+Date: Tue, 16 Jun 2015 12:32:06 +0200
+Message-ID: <20150616103206.GA3882@salvia>
+References: <87616ppt3h.fsf@x220.int.ebiederm.org>
+ <20150615.171042.1771913051598016582.davem@davemloft.net>
+ <87twu8lcre.fsf@x220.int.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: =?UTF-8?Q?Linus_L=C3=BCssing?= <linus.luessing@c0d3.blue>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:52114 "EHLO ares41.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751928AbbFPHR1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Jun 2015 03:17:27 -0400
-In-Reply-To: <20150616054551.GB14231@odroid>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, stephen@networkplumber.org,
+	jjciarla@raiz.uncu.edu.ar, wensong@linux-vs.org,
+	horms@verge.net.au, ja@ssi.bg, kaber@trash.net,
+	kadlec@blackhole.kfki.hu, jhs@mojatatu.com,
+	steffen.klassert@secunet.com, herbert@gondor.apana.org.au
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <87twu8lcre.fsf@x220.int.ebiederm.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 2015-06-16 07:45, Linus L=C3=BCssing wrote:
+On Mon, Jun 15, 2015 at 07:26:13PM -0500, Eric W. Biederman wrote:
+[...]
+> So what I am in the processes of doing is reviewing and testing
+> the combined set of patches and hopefully I will have something
+> for you soon (tomorrow?).  Unless Pablo has objections.
 
->On Fri, May 01, 2015 at 08:33:03AM +0200, Jan Engelhardt wrote:
->> -p matches the first non-extension header. For the
->> exthdrs, there is e.g. -m hbh.
->
->Just to check, I guess ebtables is behaving similarly?
+Please, feel free to take over my patchset and improve it. That has
+consumed part of my weekend and I have several open branches in my
+internal tree that I need to push forward.
 
-Since Ethernet does not define any "Extension Headers",
--p matches the one and only Protocol field there is,
-and it will be IPv6 if you say -p ipv6.
+So I'd be really happy if you polish them and get this done.
 
+Let me know if I can help in any case.
 
->And "-p IPv6 --ip6-proto 0" will *not* match packets with a
->hop-by-hop header?
-
-That's a hard one, because the userspace tools were once written with=20
-the assumption that 0 means "ANY". And then IANA used that value. D'oh.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks a lot Eric.
