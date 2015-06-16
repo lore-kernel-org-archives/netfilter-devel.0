@@ -1,212 +1,387 @@
-From: Roman Kubiak <r.kubiak@samsung.com>
-Subject: Re: [PATCH] libmnl: security context retrieval in nf-queue example
-Date: Tue, 16 Jun 2015 18:14:47 +0200
-Message-ID: <55804B77.1030207@samsung.com>
-References: <20150527124957.GA19819@salvia> <557855B2.8030803@samsung.com>
- <20150610160541.GD7125@breakpoint.cc> <55798582.1040903@samsung.com>
- <20150611233757.GE7125@breakpoint.cc> <557AB559.1000001@samsung.com>
- <20150612130240.GA29551@salvia> <558015A9.8060703@samsung.com>
- <20150616123706.GA32486@salvia> <55801D8A.9050701@samsung.com>
- <20150616152522.GA3959@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	=?UTF-8?B?UmFmYcWCIEtyeXBh?= <r.krypa@samsung.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft,next-4.2,v2] src: add netdev family support
+Date: Tue, 16 Jun 2015 18:25:06 +0200
+Message-ID: <1434471906-8583-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:22920 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756424AbbFPQOu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Jun 2015 12:14:50 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0NQ100EFJP4N2FC0@mailout2.w1.samsung.com> for
- netfilter-devel@vger.kernel.org; Tue, 16 Jun 2015 17:14:47 +0100 (BST)
-In-reply-to: <20150616152522.GA3959@salvia>
+Received: from mail.us.es ([193.147.175.20]:34695 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750707AbbFPQTu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Jun 2015 12:19:50 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Below is a complete libnetfilter_queue patch:
+This patch adds support for the new 'netdev' table. So far, this table allows
+you to create filter chains from ingress.
 
+The following example shows a very simple base configuration with one table that
+contains a basechain that is attached to the 'eth0':
 
-[PATCH] libnetfilter_queue: add security context information
+ # nft list table netdev filter
+ table netdev filter {
+        chain eth0-ingress {
+                type filter hook ingress device eth0 priority 0; policy accept;
+        }
+ }
 
-This commit adds security context information structures
-and functions.
+You can test that this works by adding a simple rule with counters:
 
-This will allow userspace to find the security context of each
-packet (if it exists) and make decisions based on that.
-It should work for SELinux and SMACK.
+ # nft add rule netdev filter eth0-ingress counter
 
-Signed-off-by: Roman Kubiak <r.kubiak@samsung.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/libnetfilter_queue/libnetfilter_queue.h    |  2 ++
- include/libnetfilter_queue/linux_nfnetlink_queue.h |  4 +++-
- include/linux/netfilter/nfnetlink_queue.h          |  4 +++-
- src/libnetfilter_queue.c                           | 23 ++++++++++++++++++++++
- src/nlmsg.c                                        |  1 +
- utils/nfqnl_test.c                                 | 14 +++++++++++--
- 6 files changed, 44 insertions(+), 4 deletions(-)
+ doc/nft.xml               |   42 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/netfilter.h |    8 ++++++++
+ include/rule.h            |    2 ++
+ src/evaluate.c            |    4 ++++
+ src/netlink.c             |    7 +++++++
+ src/parser_bison.y        |   34 ++++++++++++++++++++++++++++++++++
+ src/payload.c             |    1 +
+ src/proto.c               |    1 +
+ src/rule.c                |   25 +++++++++++++++++++++----
+ src/scanner.l             |    2 ++
+ 10 files changed, 122 insertions(+), 4 deletions(-)
 
-diff --git a/include/libnetfilter_queue/libnetfilter_queue.h b/include/libnetfilter_queue/libnetfilter_queue.h
-index 8194a4f..d7734e6 100644
---- a/include/libnetfilter_queue/libnetfilter_queue.h
-+++ b/include/libnetfilter_queue/libnetfilter_queue.h
-@@ -105,6 +105,7 @@ extern uint32_t nfq_get_outdev(struct nfq_data *nfad);
- extern uint32_t nfq_get_physoutdev(struct nfq_data *nfad);
- extern int nfq_get_uid(struct nfq_data *nfad, uint32_t *uid);
- extern int nfq_get_gid(struct nfq_data *nfad, uint32_t *gid);
-+extern int nfq_get_secctx(struct nfq_data *nfad, unsigned char **secdata);
+diff --git a/doc/nft.xml b/doc/nft.xml
+index 8d79016..d51876c 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -267,6 +267,14 @@ filter input iif $int_ifs accept
+ 						</para>
+ 					</listitem>
+ 				</varlistentry>
++				<varlistentry>
++					<term><option>netdev</option></term>
++					<listitem>
++						<para>
++							Netdev address family, handling packets from ingress.
++						</para>
++					</listitem>
++				</varlistentry>
+ 			</variablelist>
+ 		</para>
+ 		<para>
+@@ -373,6 +381,38 @@ filter input iif $int_ifs accept
+ 				The bridge address family handles ethernet packets traversing bridge devices.
+ 			</para>
+ 		</refsect2>
++		<refsect2>
++			<title>Netdev address family</title>
++			<para>
++				The Netdev address family handles packets from ingress.
++			</para>
++			<para>
++				<table frame="all">
++					<title>Netdev address family hooks</title>
++					<tgroup cols='2' align='left' colsep='1' rowsep='1' pgwide="1">
++						<colspec colname='c1' colwidth="1*"/>
++						<colspec colname='c2' colwidth="5*"/>
++						<thead>
++							<row>
++								<entry>Hook</entry>
++								<entry>Description</entry>
++							</row>
++						</thead>
++						<tbody>
++							<row>
++								<entry>ingress</entry>
++								<entry>
++									All packets entering the system are processed by this hook. It is invoked
++									before layer 3 protocol handlers and it can be used for early filtering and
++									policing.
++								</entry>
++							</row>
++						</tbody>
++					</tgroup>
++				</table>
++			</para>
++		</refsect2>
++
+ 	</refsect1>
  
- extern int nfq_get_indev_name(struct nlif_handle *nlif_handle,
- 			      struct nfq_data *nfad, char *name);
-@@ -129,6 +130,7 @@ enum {
- 	NFQ_XML_TIME	= (1 << 5),
- 	NFQ_XML_UID	= (1 << 6),
- 	NFQ_XML_GID	= (1 << 7),
-+	NFQ_XML_SECCTX  = (1 << 8),
- 	NFQ_XML_ALL	= ~0U,
+ 	<refsect1>
+@@ -401,6 +441,7 @@ filter input iif $int_ifs accept
+ 				<member><literal>inet</literal></member>
+ 				<member><literal>arp</literal></member>
+ 				<member><literal>bridge</literal></member>
++				<member><literal>netdev</literal></member>
+ 			</simplelist>.
+ 
+ 			The <literal>inet</literal> address family is a dummy family which is used to create
+@@ -457,6 +498,7 @@ filter input iif $int_ifs accept
+ 				<arg choice="req"><replaceable>hook</replaceable></arg>
+ 				<arg choice="req"><replaceable>priority</replaceable></arg>
+ 				<arg choice="req"><replaceable>policy</replaceable></arg>
++				<arg choice="req"><replaceable>device</replaceable></arg>
+ 			</cmdsynopsis>
+ 			<cmdsynopsis>
+ 				<group choice="req">
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index be0bc18..18075f9 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -32,6 +32,7 @@
+ #define NF_DROP_ERR(x) (((-x) << 16) | NF_DROP)
+ 
+ /* only for userspace compatibility */
++#ifndef __KERNEL__
+ /* Generic cache responses from hook functions.
+    <= 0x2000 is used for protocol-flags. */
+ #define NFC_UNKNOWN 0x4000
+@@ -39,6 +40,7 @@
+ 
+ /* NF_VERDICT_BITS should be 8 now, but userspace might break if this changes */
+ #define NF_VERDICT_BITS 16
++#endif
+ 
+ enum nf_inet_hooks {
+ 	NF_INET_PRE_ROUTING,
+@@ -49,11 +51,17 @@ enum nf_inet_hooks {
+ 	NF_INET_NUMHOOKS
  };
  
-diff --git a/include/libnetfilter_queue/linux_nfnetlink_queue.h b/include/libnetfilter_queue/linux_nfnetlink_queue.h
-index 5b6ae95..1975dfa 100644
---- a/include/libnetfilter_queue/linux_nfnetlink_queue.h
-+++ b/include/libnetfilter_queue/linux_nfnetlink_queue.h
-@@ -53,6 +53,7 @@ enum nfqnl_attr_type {
- 	NFQA_EXP,			/* nf_conntrack_netlink.h */
- 	NFQA_UID,			/* __u32 sk uid */
- 	NFQA_GID,			/* __u32 sk gid */
-+	NFQA_SECCTX,			/* security context string */
- 
- 	__NFQA_MAX
++enum nf_dev_hooks {
++	NF_NETDEV_INGRESS,
++	NF_NETDEV_NUMHOOKS
++};
++
+ enum {
+ 	NFPROTO_UNSPEC =  0,
+ 	NFPROTO_INET   =  1,
+ 	NFPROTO_IPV4   =  2,
+ 	NFPROTO_ARP    =  3,
++	NFPROTO_NETDEV =  5,
+ 	NFPROTO_BRIDGE =  7,
+ 	NFPROTO_IPV6   = 10,
+ 	NFPROTO_DECNET = 12,
+diff --git a/include/rule.h b/include/rule.h
+index 5d44599..604de14 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -113,6 +113,7 @@ enum chain_flags {
+  * @priority:	hook priority (base chains)
+  * @policy:	default chain policy (base chains)
+  * @type:	chain type
++ * @dev:	device (if any)
+  * @rules:	rules contained in the chain
+  */
+ struct chain {
+@@ -125,6 +126,7 @@ struct chain {
+ 	int			priority;
+ 	int			policy;
+ 	const char		*type;
++	const char		*dev;
+ 	struct scope		scope;
+ 	struct list_head	rules;
  };
-@@ -106,7 +107,8 @@ enum nfqnl_attr_config {
- #define NFQA_CFG_F_CONNTRACK			(1 << 1)
- #define NFQA_CFG_F_GSO				(1 << 2)
- #define NFQA_CFG_F_UID_GID			(1 << 3)
--#define NFQA_CFG_F_MAX				(1 << 4)
-+#define NFQA_CFG_F_SECCTX			(1 << 4)
-+#define NFQA_CFG_F_MAX				(1 << 5)
- 
- /* flags for NFQA_SKB_INFO */
- /* packet appears to have wrong checksums, but they are ok */
-diff --git a/include/linux/netfilter/nfnetlink_queue.h b/include/linux/netfilter/nfnetlink_queue.h
-index 22f5d45..030672d 100644
---- a/include/linux/netfilter/nfnetlink_queue.h
-+++ b/include/linux/netfilter/nfnetlink_queue.h
-@@ -49,6 +49,7 @@ enum nfqnl_attr_type {
- 	NFQA_EXP,			/* nf_conntrack_netlink.h */
- 	NFQA_UID,			/* __u32 sk uid */
- 	NFQA_GID,			/* __u32 sk gid */
-+	NFQA_SECCTX,
- 
- 	__NFQA_MAX
- };
-@@ -102,7 +103,8 @@ enum nfqnl_attr_config {
- #define NFQA_CFG_F_CONNTRACK			(1 << 1)
- #define NFQA_CFG_F_GSO				(1 << 2)
- #define NFQA_CFG_F_UID_GID			(1 << 3)
--#define NFQA_CFG_F_MAX				(1 << 4)
-+#define NFQA_CFG_F_SECCTX			(1 << 4)
-+#define NFQA_CFG_F_MAX				(1 << 5)
- 
- /* flags for NFQA_SKB_INFO */
- /* packet appears to have wrong checksums, but they are ok */
-diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
-index c9ed865..84184ee 100644
---- a/src/libnetfilter_queue.c
-+++ b/src/libnetfilter_queue.c
-@@ -1218,6 +1218,29 @@ int nfq_get_gid(struct nfq_data *nfad, uint32_t *gid)
- }
- EXPORT_SYMBOL(nfq_get_gid);
- 
-+
-+/**
-+ * nfq_get_secctx - get the security context for this packet
-+ * \param nfad Netlink packet data handle passed to callback function
-+ * \param secdata data to write the security context to
-+ *
-+ * \return -1 on error, otherwise > 0
-+ */
-+int nfq_get_secctx(struct nfq_data *nfad, unsigned char **secdata)
-+{
-+	if (!nfnl_attr_present(nfad->data, NFQA_SECCTX))
-+		return -1;
-+
-+	*secdata = (unsigned char *)nfnl_get_pointer_to_data(nfad->data,
-+							NFQA_SECCTX, char);
-+
-+	if (*secdata)
-+		return NFA_PAYLOAD(nfad->data[NFQA_SECCTX-1]);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(nfq_get_secctx);
-+
- /**
-  * nfq_get_payload - get payload 
-  * \param nfad Netlink packet data handle passed to callback function
-diff --git a/src/nlmsg.c b/src/nlmsg.c
-index aebdd5e..cabd8be 100644
---- a/src/nlmsg.c
-+++ b/src/nlmsg.c
-@@ -137,6 +137,7 @@ static int nfq_pkt_parse_attr_cb(const struct nlattr *attr, void *data)
- 	case NFQA_IFINDEX_PHYSOUTDEV:
- 	case NFQA_CAP_LEN:
- 	case NFQA_SKB_INFO:
-+	case NFQA_SECCTX:
- 	case NFQA_UID:
- 	case NFQA_GID:
- 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
-diff --git a/utils/nfqnl_test.c b/utils/nfqnl_test.c
-index b760cf0..783bc6c 100644
---- a/utils/nfqnl_test.c
-+++ b/utils/nfqnl_test.c
-@@ -17,7 +17,7 @@ static uint32_t print_pkt (struct nfq_data *tb)
- 	struct nfqnl_msg_packet_hw *hwph;
- 	uint32_t mark, ifi, uid, gid;
- 	int ret;
--	unsigned char *data;
-+	unsigned char *data, *secdata;
- 
- 	ph = nfq_get_msg_packet_hdr(tb);
- 	if (ph) {
-@@ -61,6 +61,10 @@ static uint32_t print_pkt (struct nfq_data *tb)
- 	if (nfq_get_gid(tb, &gid))
- 		printf("gid=%u ", gid);
- 
-+	ret = nfq_get_secctx(tb, &secdata);
-+	if (ret > 0)
-+		printf("secctx=\"%.*s\" ", ret, secdata);
-+
- 	ret = nfq_get_payload(tb, &data);
- 	if (ret >= 0)
- 		printf("payload_len=%d ", ret);
-@@ -76,7 +80,7 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
- {
- 	uint32_t id = print_pkt(nfa);
- 	printf("entering callback\n");
--	return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
-+	return nfq_set_verdict2(qh, id, NF_ACCEPT, 0x3, 0, NULL);
- }
- 
- int main(int argc, char **argv)
-@@ -134,6 +138,12 @@ int main(int argc, char **argv)
- 				"retrieve process UID/GID.\n");
+diff --git a/src/evaluate.c b/src/evaluate.c
+index d99b38f..0bf4fec 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1847,6 +1847,10 @@ static uint32_t str2hooknum(uint32_t family, const char *hook)
+ 		else if (!strcmp(hook, "output"))
+ 			return NF_ARP_OUT;
+ 		break;
++	case NFPROTO_NETDEV:
++		if (!strcmp(hook, "ingress"))
++			return NF_NETDEV_INGRESS;
++		break;
+ 	default:
+ 		break;
+ 	}
+diff --git a/src/netlink.c b/src/netlink.c
+index 1167c95..bef33a1 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -555,6 +555,9 @@ static int netlink_add_chain_batch(struct netlink_ctx *ctx,
+ 		if (chain->policy != -1)
+ 			nft_chain_attr_set_u32(nlc, NFT_CHAIN_ATTR_POLICY,
+ 					       chain->policy);
++		if (chain->dev != NULL)
++			nft_chain_attr_set_str(nlc, NFT_CHAIN_ATTR_DEV,
++					       chain->dev);
  	}
  
-+	printf("setting flags to request security context\n");
-+	if (nfq_set_queue_flags(qh, NFQA_CFG_F_SECCTX, NFQA_CFG_F_SECCTX)) {
-+		fprintf(stderr, "This kernel version does not allow to "
-+				"retrieve security context.\n");
-+	}
-+
- 	printf("Waiting for packets...\n");
+ 	netlink_dump_chain(nlc);
+@@ -697,6 +700,10 @@ static struct chain *netlink_delinearize_chain(struct netlink_ctx *ctx,
+ 			xstrdup(nft_chain_attr_get_str(nlc, NFT_CHAIN_ATTR_TYPE));
+ 		chain->policy          =
+ 			nft_chain_attr_get_u32(nlc, NFT_CHAIN_ATTR_POLICY);
++		if (nft_chain_attr_is_set(nlc, NFT_CHAIN_ATTR_DEV)) {
++			chain->dev	=
++				xstrdup(nft_chain_attr_get_str(nlc, NFT_CHAIN_ATTR_DEV));
++		}
+ 		chain->flags        |= CHAIN_F_BASECHAIN;
+ 	}
  
- 	fd = nfq_fd(h);
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index eac3fcb..fab4c52 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -165,6 +165,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token DEFINE			"define"
+ 
+ %token HOOK			"hook"
++%token DEVICE			"device"
+ %token TABLE			"table"
+ %token TABLES			"tables"
+ %token CHAIN			"chain"
+@@ -179,6 +180,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token RULESET			"ruleset"
+ 
+ %token INET			"inet"
++%token NETDEV			"netdev"
+ 
+ %token ADD			"add"
+ %token UPDATE			"update"
+@@ -1090,6 +1092,37 @@ hook_spec		:	TYPE		STRING		HOOK		STRING		PRIORITY	NUM
+ 				$<chain>0->priority	= -$7;
+ 				$<chain>0->flags	|= CHAIN_F_BASECHAIN;
+ 			}
++			|	TYPE		STRING		HOOK		STRING		DEVICE	STRING	PRIORITY	NUM
++			{
++				$<chain>0->type		= chain_type_name_lookup($2);
++				if ($<chain>0->type == NULL) {
++					erec_queue(error(&@2, "unknown chain type %s", $2),
++						   state->msgs);
++					YYERROR;
++				}
++				$<chain>0->hookstr	= chain_hookname_lookup($4);
++				if ($<chain>0->hookstr == NULL) {
++					erec_queue(error(&@4, "unknown chain hook %s", $4),
++						   state->msgs);
++					YYERROR;
++				}
++				$<chain>0->dev		= $6;
++				$<chain>0->priority	= $8;
++				$<chain>0->flags	|= CHAIN_F_BASECHAIN;
++			}
++			|	TYPE		STRING		HOOK		STRING		DEVICE	STRING	PRIORITY	DASH	NUM
++			{
++				$<chain>0->type		= chain_type_name_lookup($2);
++				if ($<chain>0->type == NULL) {
++					erec_queue(error(&@2, "unknown type name %s", $2),
++						   state->msgs);
++					YYERROR;
++				}
++				$<chain>0->hookstr	= chain_hookname_lookup($4);
++				$<chain>0->dev		= $6;
++				$<chain>0->priority	= -$9;
++				$<chain>0->flags	|= CHAIN_F_BASECHAIN;
++			}
+ 			;
+ 
+ policy_spec		:	POLICY		chain_policy
+@@ -1137,6 +1170,7 @@ family_spec_explicit	:	IP		{ $$ = NFPROTO_IPV4; }
+ 			|	INET		{ $$ = NFPROTO_INET; }
+ 			|	ARP		{ $$ = NFPROTO_ARP; }
+ 			|	BRIDGE		{ $$ = NFPROTO_BRIDGE; }
++			|	NETDEV		{ $$ = NFPROTO_NETDEV; }
+ 			;
+ 
+ table_spec		:	family_spec	identifier
+diff --git a/src/payload.c b/src/payload.c
+index 08578fd..1a9d491 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -215,6 +215,7 @@ int payload_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
+ 			}
+ 			break;
+ 		case NFPROTO_BRIDGE:
++		case NFPROTO_NETDEV:
+ 			switch (expr->payload.base) {
+ 			case PROTO_BASE_LL_HDR:
+ 				desc = &proto_eth;
+diff --git a/src/proto.c b/src/proto.c
+index 6302016..d40caeb 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -123,6 +123,7 @@ const struct proto_desc *proto_dev_desc(uint16_t type)
+ 
+ const struct hook_proto_desc hook_proto_desc[] = {
+ 	[NFPROTO_BRIDGE]	= HOOK_PROTO_DESC(PROTO_BASE_LL_HDR,	  &proto_eth),
++	[NFPROTO_NETDEV]	= HOOK_PROTO_DESC(PROTO_BASE_LL_HDR,	  &proto_eth),
+ 	[NFPROTO_INET]		= HOOK_PROTO_DESC(PROTO_BASE_LL_HDR,	  &proto_inet),
+ 	[NFPROTO_IPV4]		= HOOK_PROTO_DESC(PROTO_BASE_NETWORK_HDR, &proto_ip),
+ 	[NFPROTO_IPV6]		= HOOK_PROTO_DESC(PROTO_BASE_NETWORK_HDR, &proto_ip6),
+diff --git a/src/rule.c b/src/rule.c
+index b2090dd..f930a37 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -333,6 +333,7 @@ static const char *chain_hookname_str_array[] = {
+ 	"forward",
+ 	"postrouting",
+ 	"output",
++	"ingress",
+ 	NULL,
+ };
+ 
+@@ -398,6 +399,8 @@ const char *family2str(unsigned int family)
+ 			return "ip6";
+ 		case NFPROTO_INET:
+ 			return "inet";
++		case NFPROTO_NETDEV:
++			return "netdev";
+ 		case NFPROTO_ARP:
+ 			return "arp";
+ 		case NFPROTO_BRIDGE:
+@@ -441,6 +444,13 @@ static const char *hooknum2str(unsigned int family, unsigned int hooknum)
+ 		default:
+ 			break;
+ 		}
++		break;
++	case NFPROTO_NETDEV:
++		switch (hooknum) {
++		case NF_NETDEV_INGRESS:
++			return "ingress";
++		}
++		break;
+ 	default:
+ 		break;
+ 	};
+@@ -465,10 +475,17 @@ static void chain_print(const struct chain *chain)
+ 
+ 	printf("\tchain %s {\n", chain->handle.chain);
+ 	if (chain->flags & CHAIN_F_BASECHAIN) {
+-		printf("\t\ttype %s hook %s priority %d; policy %s;\n",
+-		       chain->type,
+-		       hooknum2str(chain->handle.family, chain->hooknum),
+-		       chain->priority, chain_policy2str(chain->policy));
++		if (chain->dev != NULL) {
++			printf("\t\ttype %s hook %s device %s priority %d;\n",
++			       chain->type,
++			       hooknum2str(chain->handle.family, chain->hooknum),
++			       chain->dev, chain->priority);
++		} else {
++			printf("\t\ttype %s hook %s priority %d;\n",
++			       chain->type,
++			       hooknum2str(chain->handle.family, chain->hooknum),
++			       chain->priority);
++		}
+ 	}
+ 	list_for_each_entry(rule, &chain->rules, list) {
+ 		printf("\t\t");
+diff --git a/src/scanner.l b/src/scanner.l
+index 985ea2a..2d9871d 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -233,6 +233,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "describe"		{ return DESCRIBE; }
+ 
+ "hook"			{ return HOOK; }
++"device"		{ return DEVICE; }
+ "table"			{ return TABLE; }
+ "tables"		{ return TABLES; }
+ "chain"			{ return CHAIN; }
+@@ -255,6 +256,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "to"			{ return TO; }
+ 
+ "inet"			{ return INET; }
++"netdev"		{ return NETDEV; }
+ 
+ "add"			{ return ADD; }
+ "update"		{ return UPDATE; }
 -- 
-2.0.1
+1.7.10.4
 
