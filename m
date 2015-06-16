@@ -1,44 +1,53 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH RFC 04/15] netfilter: add pernet hook support
-Date: Mon, 15 Jun 2015 20:01:21 -0500
-Message-ID: <87fv5slb4u.fsf@x220.int.ebiederm.org>
-References: <1434383217-13732-1-git-send-email-pablo@netfilter.org>
-	<1434383217-13732-5-git-send-email-pablo@netfilter.org>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH net-next] x_table: align per cpu xt_counter
+Date: Mon, 15 Jun 2015 18:10:13 -0700
+Message-ID: <1434417013.27504.161.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: netfilter-devel@vger.kernel.org, aschultz@warp10.net,
-	kaber@trash.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:51723 "EHLO
-	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752036AbbFPBGg (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jun 2015 21:06:36 -0400
-In-Reply-To: <1434383217-13732-5-git-send-email-pablo@netfilter.org> (Pablo
-	Neira Ayuso's message of "Mon, 15 Jun 2015 17:46:46 +0200")
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
+	Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> writes:
+From: Eric Dumazet <edumazet@google.com>
 
-> This patch modifies the nf_register_hook() and nf_register_hooks() interfaces
-> to allow to register hooks at a pernet level.
->
-> This starts using init_net for all the existing callers though, so the full
-> conversion of existing netfilter hook clients to comes in follow up
-> patches.
+Let's force a 16 bytes alignment on xt_counter percpu allocations,
+so that bytes and packets sit in same cache line.
 
-There is one issue with the approach this takes to per net network
-namespace hooks.
+xt_counter being exported to user space, we cannot add __align(16) on
+the structure itself.
 
-nf_unregister_hook calls syncrhonize_net().
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Florian Westphal <fw@strlen.de>
+---
+ include/linux/netfilter/x_tables.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Which depending on which netfilter modules are loaded is going
-to result in a nasty reduction in connections per second of vsftp,
-because of the serialized nature of network namespace cleanup.
-
-That should be something we can solve on top of the patches,
-but I want to bring it up now so that other people are aware of it.
-
-Eric
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 95693c4cebdda473a2f3e427dcc2511e83bf7405..1c97a2204379e14676ee33f0b15c5174b7afe680 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -356,7 +356,8 @@ static inline unsigned long ifname_compare_aligned(const char *_a,
+  * so nothing needs to be done there.
+  *
+  * xt_percpu_counter_alloc returns the address of the percpu
+- * counter, or 0 on !SMP.
++ * counter, or 0 on !SMP. We force an alignment of 16 bytes
++ * so that bytes/packets share a common cache line.
+  *
+  * Hence caller must use IS_ERR_VALUE to check for error, this
+  * allows us to return 0 for single core systems without forcing
+@@ -365,7 +366,8 @@ static inline unsigned long ifname_compare_aligned(const char *_a,
+ static inline u64 xt_percpu_counter_alloc(void)
+ {
+ 	if (nr_cpu_ids > 1) {
+-		void __percpu *res = alloc_percpu(struct xt_counters);
++		void __percpu *res = __alloc_percpu(sizeof(struct xt_counters),
++						    sizeof(struct xt_counters));
+ 
+ 		if (res == NULL)
+ 			return (u64) -ENOMEM;
