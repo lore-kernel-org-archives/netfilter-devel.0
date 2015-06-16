@@ -1,40 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: xt_socket: add
- XT_SOCKET_RESTORESKMARK flag
-Date: Tue, 16 Jun 2015 17:02:03 +0200
-Message-ID: <20150616150203.GA3513@salvia>
-References: <1434415243-15474-1-git-send-email-harouth@codeaurora.org>
- <008a01d0a839$c4bb0ee0$4e312ca0$@codeaurora.org>
+From: Miroslav Kratochvil <exa.exa@gmail.com>
+Subject: [PATCH nft] datatype: fix packet mark type name
+Date: Tue, 16 Jun 2015 17:05:58 +0200
+Message-ID: <CAO0uZ+_a-=vhw9QfUNZ0EdaDE6z+P-gBsfGLDGdTQJVeD3cpTQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	'Lorenzo Colitti' <lorenzo@google.com>
-To: Harout Hedeshian <harouth@codeaurora.org>
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org, kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46421 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754814AbbFPO4t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Jun 2015 10:56:49 -0400
-Content-Disposition: inline
-In-Reply-To: <008a01d0a839$c4bb0ee0$4e312ca0$@codeaurora.org>
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:32998 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752054AbbFPPGA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Jun 2015 11:06:00 -0400
+Received: by lblr1 with SMTP id r1so12941823lbl.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Jun 2015 08:05:58 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jun 16, 2015 at 07:38:44AM -0600, Harout Hedeshian wrote:
-[...]
-> > Now the 2 hypothetical applications can differentiate their sockets
-> > based on a mark value set with SO_MARK.
-> > 
-> > iptables -t mangle -I PREROUTING -m socket --transparent \
-> >                                            --restore-skmark -j action
-> > iptables -t mangle -I PREROUTING -m socket --transparent \
-> >                                            --restore-skmark -j action
-> 
-> Oops, redundant command in the commit message. I'll submit a v2 if we are
-> happy with the rest of the patch.
+Original was conflicting with "mark" keyword from scanner.l, preventing
+creation of named sets with this type. Name "packetmark" corresponds
+with the documentation, and the renaming can't create any regressions
+as the "mark" name could not have been ever used in any setup.
 
-Never mind, I'll mangle this myself here before applying it.
+Ref.: https://bugzilla.netfilter.org/show_bug.cgi?id=1012
 
-> > iptables -t mangle -A action -m mark --mark 10 -j action2
-> > iptables -t mangle -A action -m mark --mark 11 -j action3
+---
+ src/datatype.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/src/datatype.c b/src/datatype.c
+index c93f76a..d204ed1 100644
+--- a/src/datatype.c
++++ b/src/datatype.c
+@@ -686,7 +686,7 @@ static struct error_record *mark_type_parse(const
+struct expr *sym,
+
+ const struct datatype mark_type = {
+     .type        = TYPE_MARK,
+-    .name        = "mark",
++    .name        = "packetmark",
+     .desc        = "packet mark",
+     .size        = 4 * BITS_PER_BYTE,
+     .byteorder    = BYTEORDER_HOST_ENDIAN,
+--
+2.1.4
