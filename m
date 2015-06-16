@@ -1,36 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next 00/15] Simplify netfilter and network
- namespaces
-Date: Mon, 15 Jun 2015 19:14:02 -0700 (PDT)
-Message-ID: <20150615.191402.2195212737911259876.davem@davemloft.net>
-References: <87616ppt3h.fsf@x220.int.ebiederm.org>
-	<20150615.171042.1771913051598016582.davem@davemloft.net>
-	<87twu8lcre.fsf@x220.int.ebiederm.org>
+From: Linus =?utf-8?Q?L=C3=BCssing?= <linus.luessing@c0d3.blue>
+Subject: Re: Matching MLD with ip6tables
+Date: Tue, 16 Jun 2015 07:45:52 +0200
+Message-ID: <20150616054551.GB14231@odroid>
+References: <20150501025612.GB2465@odroid>
+ <alpine.LSU.2.20.1505010828090.30665@nerf40.vanv.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	stephen@networkplumber.org, jjciarla@raiz.uncu.edu.ar,
-	wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
-	pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	jhs@mojatatu.com, steffen.klassert@secunet.com,
-	herbert@gondor.apana.org.au
-To: ebiederm@xmission.com
+Content-Type: text/plain; charset=utf-8
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:43370 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750858AbbFPCOF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Jun 2015 22:14:05 -0400
-In-Reply-To: <87twu8lcre.fsf@x220.int.ebiederm.org>
+Received: from mail.passe0815.de ([188.40.49.9]:52276 "EHLO mail.passe0815.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753134AbbFPFzT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Jun 2015 01:55:19 -0400
+Received: from mail.passe0815.de (localhost [127.0.0.1])
+	by mail.passe0815.de (Postfix) with ESMTP id 287AF58668A
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Jun 2015 07:45:54 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.20.1505010828090.30665@nerf40.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: ebiederm@xmission.com (Eric W. Biederman)
-Date: Mon, 15 Jun 2015 19:26:13 -0500
+On Fri, May 01, 2015 at 08:33:03AM +0200, Jan Engelhardt wrote:
+> -p matches the first non-extension header. For the
+> exthdrs, there is e.g. -m hbh.
 
-> So what I am in the processes of doing is reviewing and testing
-> the combined set of patches and hopefully I will have something
-> for you soon (tomorrow?).  Unless Pablo has objections.
+Just to check, I guess ebtables is behaving similarly?
+For instance
+"ebtables -I <CHAIN> -p IPv6 --ip6-proto ipv6-icmp --ip6-icmp-type 130"
+will match MLD queries?
 
-I will be travelling tomorrow so there is no rush.
+And "-p IPv6 --ip6-proto 0" will *not* match packets with a
+hop-by-hop header?
+
+To match extension headers on a bridge
+ip6tables/physdev/bridge-nf-call-ip6tables is the only way, right?
+
+Cheers, Linus
+
+
+PS: Thanks for the quick reply back then, helped me a lot!
