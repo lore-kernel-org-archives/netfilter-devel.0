@@ -1,53 +1,36 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH net-next] x_table: align per cpu xt_counter
-Date: Mon, 15 Jun 2015 18:10:13 -0700
-Message-ID: <1434417013.27504.161.camel@edumazet-glaptop2.roam.corp.google.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next 00/15] Simplify netfilter and network
+ namespaces
+Date: Mon, 15 Jun 2015 19:14:02 -0700 (PDT)
+Message-ID: <20150615.191402.2195212737911259876.davem@davemloft.net>
+References: <87616ppt3h.fsf@x220.int.ebiederm.org>
+	<20150615.171042.1771913051598016582.davem@davemloft.net>
+	<87twu8lcre.fsf@x220.int.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
-	Florian Westphal <fw@strlen.de>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	stephen@networkplumber.org, jjciarla@raiz.uncu.edu.ar,
+	wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
+	pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	jhs@mojatatu.com, steffen.klassert@secunet.com,
+	herbert@gondor.apana.org.au
+To: ebiederm@xmission.com
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:43370 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750858AbbFPCOF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Jun 2015 22:14:05 -0400
+In-Reply-To: <87twu8lcre.fsf@x220.int.ebiederm.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Dumazet <edumazet@google.com>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Date: Mon, 15 Jun 2015 19:26:13 -0500
 
-Let's force a 16 bytes alignment on xt_counter percpu allocations,
-so that bytes and packets sit in same cache line.
+> So what I am in the processes of doing is reviewing and testing
+> the combined set of patches and hopefully I will have something
+> for you soon (tomorrow?).  Unless Pablo has objections.
 
-xt_counter being exported to user space, we cannot add __align(16) on
-the structure itself.
-
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Cc: Florian Westphal <fw@strlen.de>
----
- include/linux/netfilter/x_tables.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 95693c4cebdda473a2f3e427dcc2511e83bf7405..1c97a2204379e14676ee33f0b15c5174b7afe680 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -356,7 +356,8 @@ static inline unsigned long ifname_compare_aligned(const char *_a,
-  * so nothing needs to be done there.
-  *
-  * xt_percpu_counter_alloc returns the address of the percpu
-- * counter, or 0 on !SMP.
-+ * counter, or 0 on !SMP. We force an alignment of 16 bytes
-+ * so that bytes/packets share a common cache line.
-  *
-  * Hence caller must use IS_ERR_VALUE to check for error, this
-  * allows us to return 0 for single core systems without forcing
-@@ -365,7 +366,8 @@ static inline unsigned long ifname_compare_aligned(const char *_a,
- static inline u64 xt_percpu_counter_alloc(void)
- {
- 	if (nr_cpu_ids > 1) {
--		void __percpu *res = alloc_percpu(struct xt_counters);
-+		void __percpu *res = __alloc_percpu(sizeof(struct xt_counters),
-+						    sizeof(struct xt_counters));
- 
- 		if (res == NULL)
- 			return (u64) -ENOMEM;
+I will be travelling tomorrow so there is no rush.
