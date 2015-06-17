@@ -1,46 +1,41 @@
-From: Andreas Schultz <aschultz@tpip.net>
-Subject: Re: iptables nftables compat weirdness
-Date: Wed, 17 Jun 2015 12:19:15 +0200 (CEST)
-Message-ID: <1383987357.13271.1434536355883.JavaMail.zimbra@tpip.net>
-References: <1424744661.225751.1433848590972.JavaMail.zimbra@tpip.net> <20150616160725.GA7165@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft] parser_bison: allow to use mark as datatype for maps
+ and sets
+Date: Wed, 17 Jun 2015 12:33:03 +0200
+Message-ID: <20150617103303.GA3365@salvia>
+References: <1434469933-6402-1-git-send-email-pablo@netfilter.org>
+ <20150616154924.GL20951@acer.localdomain>
+ <20150616155732.GA7067@salvia>
+ <CAO0uZ+-k7FVjpforphDBLEnLEpxMj8uSnQWOTeFvVzSRonWpUg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Miroslav Kratochvil <exa.exa@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.tpip.net ([92.43.49.48]:36118 "EHLO mail.tpip.net"
+Received: from mail.us.es ([193.147.175.20]:59007 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751480AbbFQKTX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Jun 2015 06:19:23 -0400
-In-Reply-To: <20150616160725.GA7165@salvia>
+	id S1752323AbbFQK1n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Jun 2015 06:27:43 -0400
+Content-Disposition: inline
+In-Reply-To: <CAO0uZ+-k7FVjpforphDBLEnLEpxMj8uSnQWOTeFvVzSRonWpUg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
------ Original Message -----
-> From: "Pablo Neira Ayuso" <pablo@netfilter.org>
-> To: "Andreas Schultz" <aschultz@tpip.net>
-> Cc: netfilter-devel@vger.kernel.org
-> Sent: Tuesday, June 16, 2015 6:07:25 PM
-> Subject: Re: iptables nftables compat weirdness
-
-[...]
- 
-> Could you help me diagnosing this problem? The nf_tables kernel side
-> is rejecting this with -EINVAL. Is this a new bug in the 4.1-rc
-> series?
-
-I've only worked with this on 4.1-rc5. I'm currently rebuilding the
-system for testing with 3.19 and 4.0, but this will take some time.
-
-I did inject some debug printk's and was able to track the -EINVAL
-to nft_target_validate. It seems that this validate is only
-executed when then target chain contains some rules. The validation
-is not executed when the target chain is empty.
-
+On Wed, Jun 17, 2015 at 10:29:30AM +0200, Miroslav Kratochvil wrote:
+> > > Yes, I think this is preferrable since the mark type can be used for
+> > > things besides packet marking, f.i. conntracks.
+> >
+> > Ok, then I'll push this patch, thanks!
 > 
-> Thank you.
+> 
+> Great, marking by named map is now perfectly usuable.
+> 
+> One last (cosmetic reminder) thing, could the last occurence of
+> "packetmark" type name in documentation also be replaced with "mark",
+> for consistency?
+> 
+> in doc/nft.xml, lines 988, 1887.
 
-Andreas
+Would you send us a Signed-off-by patch that I can apply via git am?
+
+Thanks.
