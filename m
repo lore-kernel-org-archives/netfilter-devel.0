@@ -1,44 +1,104 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH net-next 00/15] Simplify netfilter and network namespaces
-Date: Tue, 16 Jun 2015 16:00:42 -0500
-Message-ID: <87twu7id1h.fsf@x220.int.ebiederm.org>
-References: <87616ppt3h.fsf@x220.int.ebiederm.org>
-	<20150615.171042.1771913051598016582.davem@davemloft.net>
-	<87twu8lcre.fsf@x220.int.ebiederm.org> <20150616103206.GA3882@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, stephen@networkplumber.org,
-	jjciarla@raiz.uncu.edu.ar, wensong@linux-vs.org,
-	horms@verge.net.au, ja@ssi.bg, kaber@trash.net,
-	kadlec@blackhole.kfki.hu, jhs@mojatatu.com,
-	steffen.klassert@secunet.com, herbert@gondor.apana.org.au
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20150616103206.GA3882@salvia> (Pablo Neira Ayuso's message of
-	"Tue, 16 Jun 2015 12:32:06 +0200")
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Daniel Mack <daniel@zonque.org>
+Subject: [PATCH nf-next 3/3] netfilter: nft_meta: fix cgroup socket lookups
+Date: Wed, 17 Jun 2015 02:08:12 +0200
+Message-ID: <1434499692-9832-4-git-send-email-daniel@zonque.org>
+References: <1434499692-9832-1-git-send-email-daniel@zonque.org>
+Cc: fw@strlen.de, daniel@iogearbox.net, a.perevalov@samsung.com,
+	netfilter-devel@vger.kernel.org, Daniel Mack <daniel@zonque.org>
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from svenfoo.org ([82.94.215.22]:39582 "EHLO mail.zonque.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751819AbbFQARc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Jun 2015 20:17:32 -0400
+In-Reply-To: <1434499692-9832-1-git-send-email-daniel@zonque.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> writes:
+The cgroup matching logic in nft_meta currently bails out early
+if skb->sk == NULL, ie, when the check is run on a socket that has
+not yet been looked up by early demux.
 
-> On Mon, Jun 15, 2015 at 07:26:13PM -0500, Eric W. Biederman wrote:
-> [...]
->> So what I am in the processes of doing is reviewing and testing
->> the combined set of patches and hopefully I will have something
->> for you soon (tomorrow?).  Unless Pablo has objections.
->
-> Please, feel free to take over my patchset and improve it. That has
-> consumed part of my weekend and I have several open branches in my
-> internal tree that I need to push forward.
->
-> So I'd be really happy if you polish them and get this done.
->
-> Let me know if I can help in any case.
+To fix this, use the socket lookup helpers to determine the receiver
+socket in such cases.
 
-Will do.  I have found more bugs lurking in your boilter plate changes
-that I am comfortable with so I am in the process of refactoring things
-a bit more than you did so the sweeping changes are more pedantic
-and much less likely to introduce bugs.
+Signed-off-by: Daniel Mack <daniel@zonque.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Alexey Perevalov <a.perevalov@samsung.com>
+Cc: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/Kconfig    |  2 ++
+ net/netfilter/nft_meta.c | 35 ++++++++++++++++++++++++++++++++---
+ 2 files changed, 34 insertions(+), 3 deletions(-)
 
-Eric
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 11c7e37..2d3294c 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -475,6 +475,8 @@ config NFT_EXTHDR
+ 
+ config NFT_META
+ 	tristate "Netfilter nf_tables meta module"
++	select NF_SOCK_IPV4
++	select NF_SOCK_IPV6 if IP6_NF_IPTABLES
+ 	help
+ 	  This option adds the "meta" expression that you can use to match and
+ 	  to set packet metainformation such as the packet mark.
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 52561e1..ecc3de8 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -13,6 +13,8 @@
+ #include <linux/module.h>
+ #include <linux/netlink.h>
+ #include <linux/netfilter.h>
++#include <linux/netfilter_ipv4.h>
++#include <linux/netfilter_ipv6.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <linux/in.h>
+ #include <linux/ip.h>
+@@ -166,11 +168,38 @@ void nft_meta_get_eval(const struct nft_expr *expr,
+ 			goto err;
+ 		*dest = out->group;
+ 		break;
+-	case NFT_META_CGROUP:
+-		if (skb->sk == NULL || !sk_fullsock(skb->sk))
++	case NFT_META_CGROUP: {
++		struct sock *sk;
++
++		if (skb->sk && sk_fullsock(skb->sk)) {
++			*dest = skb->sk->sk_classid;
++			break;
++		}
++
++		if (!in)
+ 			goto err;
+-		*dest = skb->sk->sk_classid;
++
++		switch (pkt->ops->pf) {
++		case NFPROTO_IPV4:
++			sk = nf_socket_lookup_v4(skb, in);
++			break;
++		case NFPROTO_IPV6:
++			sk = nf_socket_lookup_v6(skb, in);
++			break;
++		default:
++			goto err;
++		}
++
++		if (!sk)
++			goto err;
++
++		*dest = sk->sk_classid;
++
++		if (!sk_fullsock(sk))
++			sock_gen_put(sk);
++
+ 		break;
++	}
+ 	default:
+ 		WARN_ON(1);
+ 		goto err;
+-- 
+2.4.0
+
