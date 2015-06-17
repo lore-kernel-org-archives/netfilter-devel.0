@@ -1,7 +1,7 @@
 From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH net-next 38/43] netfilter: synproxy: Register netfilter hooks in all network namespaces
-Date: Wed, 17 Jun 2015 10:28:47 -0500
-Message-ID: <1434554932-4552-38-git-send-email-ebiederm@xmission.com>
+Subject: [PATCH net-next 14/43] ipv4: Pass struct net into ip_defrag and ip_check_defrag
+Date: Wed, 17 Jun 2015 10:28:23 -0500
+Message-ID: <1434554932-4552-14-git-send-email-ebiederm@xmission.com>
 References: <87r3pae5hn.fsf@x220.int.ebiederm.org>
 Cc: <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
 	Stephen Hemminger <stephen@networkplumber.org>,
@@ -21,120 +21,188 @@ In-Reply-To: <87r3pae5hn.fsf@x220.int.ebiederm.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Eric W Biederman <ebiederm@xmission.com>
+Don't make ip_defrag guess which network namespace it needs
+to defragment packets in.
 
-Inspired-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Eric W Biederman <ebiederm@xmission.com>
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
 ---
- net/ipv4/netfilter/ipt_SYNPROXY.c  | 24 ++++++++++++++++++++----
- net/ipv6/netfilter/ip6t_SYNPROXY.c | 24 ++++++++++++++++++++----
- 2 files changed, 40 insertions(+), 8 deletions(-)
+ drivers/net/macvlan.c               | 2 +-
+ include/net/ip.h                    | 6 +++---
+ net/ipv4/ip_fragment.c              | 8 +++-----
+ net/ipv4/ip_input.c                 | 8 +++++---
+ net/ipv4/netfilter/nf_defrag_ipv4.c | 7 ++++---
+ net/netfilter/ipvs/ip_vs_core.c     | 2 +-
+ net/packet/af_packet.c              | 6 +++---
+ 7 files changed, 20 insertions(+), 19 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
-index 301bb886a289..cb84e4e24175 100644
---- a/net/ipv4/netfilter/ipt_SYNPROXY.c
-+++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
-@@ -446,12 +446,28 @@ static struct nf_hook_ops ipv4_synproxy_ops[] __read_mostly = {
- 	},
- };
+diff --git a/drivers/net/macvlan.c b/drivers/net/macvlan.c
+index 9f59f17dc317..2e2f116d2daf 100644
+--- a/drivers/net/macvlan.c
++++ b/drivers/net/macvlan.c
+@@ -412,7 +412,7 @@ static rx_handler_result_t macvlan_handle_frame(struct sk_buff **pskb)
  
-+static int synproxy_tg4_net_init(struct net *net)
-+{
-+	return nf_register_hooks(net, ipv4_synproxy_ops,
-+				 ARRAY_SIZE(ipv4_synproxy_ops));
-+}
-+
-+static void synproxy_tg4_net_exit(struct net *net)
-+{
-+	nf_unregister_hooks(net, ipv4_synproxy_ops,
-+			    ARRAY_SIZE(ipv4_synproxy_ops));
-+}
-+
-+static struct pernet_operations synproxy_tg4_net_ops = {
-+	.init = synproxy_tg4_net_init,
-+	.exit = synproxy_tg4_net_exit,
-+};
-+
- static int __init synproxy_tg4_init(void)
+ 	port = macvlan_port_get_rcu(skb->dev);
+ 	if (is_multicast_ether_addr(eth->h_dest)) {
+-		skb = ip_check_defrag(skb, IP_DEFRAG_MACVLAN);
++		skb = ip_check_defrag(dev_net(skb->dev), skb, IP_DEFRAG_MACVLAN);
+ 		if (!skb)
+ 			return RX_HANDLER_CONSUMED;
+ 		eth = eth_hdr(skb);
+diff --git a/include/net/ip.h b/include/net/ip.h
+index 0750a186ea63..d9fa29bd4a16 100644
+--- a/include/net/ip.h
++++ b/include/net/ip.h
+@@ -505,11 +505,11 @@ static inline bool ip_defrag_user_in_between(u32 user,
+ 	return user >= lower_bond && user <= upper_bond;
+ }
+ 
+-int ip_defrag(struct sk_buff *skb, u32 user);
++int ip_defrag(struct net *net, struct sk_buff *skb, u32 user);
+ #ifdef CONFIG_INET
+-struct sk_buff *ip_check_defrag(struct sk_buff *skb, u32 user);
++struct sk_buff *ip_check_defrag(struct net *net, struct sk_buff *skb, u32 user);
+ #else
+-static inline struct sk_buff *ip_check_defrag(struct sk_buff *skb, u32 user)
++static inline struct sk_buff *ip_check_defrag(struct net *net, struct sk_buff *skb, u32 user)
+ {
+ 	return skb;
+ }
+diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
+index a50dc6d408d1..92c802c448e5 100644
+--- a/net/ipv4/ip_fragment.c
++++ b/net/ipv4/ip_fragment.c
+@@ -658,12 +658,10 @@ out_fail:
+ }
+ 
+ /* Process an incoming IP datagram fragment. */
+-int ip_defrag(struct sk_buff *skb, u32 user)
++int ip_defrag(struct net *net, struct sk_buff *skb, u32 user)
+ {
+ 	struct ipq *qp;
+-	struct net *net;
+ 
+-	net = skb->dev ? dev_net(skb->dev) : dev_net(skb_dst(skb)->dev);
+ 	IP_INC_STATS_BH(net, IPSTATS_MIB_REASMREQDS);
+ 
+ 	/* Lookup (or create) queue header */
+@@ -686,7 +684,7 @@ int ip_defrag(struct sk_buff *skb, u32 user)
+ }
+ EXPORT_SYMBOL(ip_defrag);
+ 
+-struct sk_buff *ip_check_defrag(struct sk_buff *skb, u32 user)
++struct sk_buff *ip_check_defrag(struct net *net, struct sk_buff *skb, u32 user)
+ {
+ 	struct iphdr iph;
+ 	int netoff;
+@@ -715,7 +713,7 @@ struct sk_buff *ip_check_defrag(struct sk_buff *skb, u32 user)
+ 			if (pskb_trim_rcsum(skb, netoff + len))
+ 				return skb;
+ 			memset(IPCB(skb), 0, sizeof(struct inet_skb_parm));
+-			if (ip_defrag(skb, user))
++			if (ip_defrag(net, skb, user))
+ 				return NULL;
+ 			skb_clear_hash(skb);
+ 		}
+diff --git a/net/ipv4/ip_input.c b/net/ipv4/ip_input.c
+index ac40876c476c..4ef75d649b71 100644
+--- a/net/ipv4/ip_input.c
++++ b/net/ipv4/ip_input.c
+@@ -168,7 +168,8 @@ bool ip_call_ra_chain(struct sk_buff *skb)
+ 		     sk->sk_bound_dev_if == dev->ifindex) &&
+ 		    net_eq(sock_net(sk), dev_net(dev))) {
+ 			if (ip_is_fragment(ip_hdr(skb))) {
+-				if (ip_defrag(skb, IP_DEFRAG_CALL_RA_CHAIN))
++				if (ip_defrag(dev_net(skb->dev), skb,
++					      IP_DEFRAG_CALL_RA_CHAIN))
+ 					return true;
+ 			}
+ 			if (last) {
+@@ -247,14 +248,15 @@ int ip_local_deliver(struct sk_buff *skb)
+ 	/*
+ 	 *	Reassemble IP fragments.
+ 	 */
++	struct net *net = dev_net(skb->dev);
+ 
+ 	if (ip_is_fragment(ip_hdr(skb))) {
+-		if (ip_defrag(skb, IP_DEFRAG_LOCAL_DELIVER))
++		if (ip_defrag(net, skb, IP_DEFRAG_LOCAL_DELIVER))
+ 			return 0;
+ 	}
+ 
+ 	return NF_HOOK(NFPROTO_IPV4, NF_INET_LOCAL_IN,
+-		       dev_net(skb->dev), NULL, skb, skb->dev, NULL,
++		       net, NULL, skb, skb->dev, NULL,
+ 		       ip_local_deliver_finish);
+ }
+ 
+diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
+index dad108c913eb..015787e47a7d 100644
+--- a/net/ipv4/netfilter/nf_defrag_ipv4.c
++++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
+@@ -22,14 +22,15 @@
+ #endif
+ #include <net/netfilter/nf_conntrack_zones.h>
+ 
+-static int nf_ct_ipv4_gather_frags(struct sk_buff *skb, u_int32_t user)
++static int nf_ct_ipv4_gather_frags(struct net *net, struct sk_buff *skb,
++				   u_int32_t user)
  {
  	int err;
  
--	err = nf_register_hooks(&init_net, ipv4_synproxy_ops,
--				ARRAY_SIZE(ipv4_synproxy_ops));
-+	err = register_pernet_subsys(&synproxy_tg4_net_ops);
- 	if (err < 0)
- 		goto err1;
+ 	skb_orphan(skb);
  
-@@ -462,7 +478,7 @@ static int __init synproxy_tg4_init(void)
- 	return 0;
+ 	local_bh_disable();
+-	err = ip_defrag(skb, user);
++	err = ip_defrag(net, skb, user);
+ 	local_bh_enable();
  
- err2:
--	nf_unregister_hooks(&init_net, ipv4_synproxy_ops, ARRAY_SIZE(ipv4_synproxy_ops));
-+	unregister_pernet_subsys(&synproxy_tg4_net_ops);
- err1:
- 	return err;
- }
-@@ -470,7 +486,7 @@ err1:
- static void __exit synproxy_tg4_exit(void)
- {
- 	xt_unregister_target(&synproxy_tg4_reg);
--	nf_unregister_hooks(&init_net, ipv4_synproxy_ops, ARRAY_SIZE(ipv4_synproxy_ops));
-+	unregister_pernet_subsys(&synproxy_tg4_net_ops);
- }
+ 	if (!err) {
+@@ -85,7 +86,7 @@ static unsigned int ipv4_conntrack_defrag(const struct nf_hook_ops *ops,
+ 		enum ip_defrag_users user =
+ 			nf_ct_defrag_user(state->hook, skb);
  
- module_init(synproxy_tg4_init);
-diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-index 320521086b5c..0acc786fd3f0 100644
---- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
-+++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-@@ -469,12 +469,28 @@ static struct nf_hook_ops ipv6_synproxy_ops[] __read_mostly = {
- 	},
- };
- 
-+static int synproxy_tg6_net_init(struct net *net)
-+{
-+	return nf_register_hooks(net, ipv6_synproxy_ops,
-+				 ARRAY_SIZE(ipv6_synproxy_ops));
-+}
-+
-+static void synproxy_tg6_net_exit(struct net *net)
-+{
-+	nf_unregister_hooks(net, ipv6_synproxy_ops,
-+			    ARRAY_SIZE(ipv6_synproxy_ops));
-+}
-+
-+static struct pernet_operations synproxy_tg6_net_ops = {
-+	.init = synproxy_tg6_net_init,
-+	.exit = synproxy_tg6_net_exit,
-+};
-+
- static int __init synproxy_tg6_init(void)
- {
+-		if (nf_ct_ipv4_gather_frags(skb, user))
++		if (nf_ct_ipv4_gather_frags(state->net, skb, user))
+ 			return NF_STOLEN;
+ 	}
+ 	return NF_ACCEPT;
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 5d2b806a862e..f8a11129b371 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -657,7 +657,7 @@ static inline int ip_vs_gather_frags(struct sk_buff *skb, u_int32_t user)
  	int err;
  
--	err = nf_register_hooks(&init_net, ipv6_synproxy_ops,
--				ARRAY_SIZE(ipv6_synproxy_ops));
-+	err = register_pernet_subsys(&synproxy_tg6_net_ops);
- 	if (err < 0)
- 		goto err1;
- 
-@@ -485,7 +501,7 @@ static int __init synproxy_tg6_init(void)
- 	return 0;
- 
- err2:
--	nf_unregister_hooks(&init_net, ipv6_synproxy_ops, ARRAY_SIZE(ipv6_synproxy_ops));
-+	unregister_pernet_subsys(&synproxy_tg6_net_ops);
- err1:
- 	return err;
- }
-@@ -493,7 +509,7 @@ err1:
- static void __exit synproxy_tg6_exit(void)
+ 	local_bh_disable();
+-	err = ip_defrag(skb, user);
++	err = ip_defrag(skb_net(skb), skb, user);
+ 	local_bh_enable();
+ 	if (!err)
+ 		ip_send_check(ip_hdr(skb));
+diff --git a/net/packet/af_packet.c b/net/packet/af_packet.c
+index fd5164139bf0..4f1b75addcc8 100644
+--- a/net/packet/af_packet.c
++++ b/net/packet/af_packet.c
+@@ -1440,17 +1440,17 @@ static int packet_rcv_fanout(struct sk_buff *skb, struct net_device *dev,
  {
- 	xt_unregister_target(&synproxy_tg6_reg);
--	nf_unregister_hooks(&init_net, ipv6_synproxy_ops, ARRAY_SIZE(ipv6_synproxy_ops));
-+	unregister_pernet_subsys(&synproxy_tg6_net_ops);
- }
+ 	struct packet_fanout *f = pt->af_packet_priv;
+ 	unsigned int num = f->num_members;
++	struct net *net = read_pnet(&f->net);
+ 	struct packet_sock *po;
+ 	unsigned int idx;
  
- module_init(synproxy_tg6_init);
+-	if (!net_eq(dev_net(dev), read_pnet(&f->net)) ||
+-	    !num) {
++	if (!net_eq(dev_net(dev), net) || !num) {
+ 		kfree_skb(skb);
+ 		return 0;
+ 	}
+ 
+ 	if (fanout_has_flag(f, PACKET_FANOUT_FLAG_DEFRAG)) {
+-		skb = ip_check_defrag(skb, IP_DEFRAG_AF_PACKET);
++		skb = ip_check_defrag(net, skb, IP_DEFRAG_AF_PACKET);
+ 		if (!skb)
+ 			return 0;
+ 	}
 -- 
 2.2.1
