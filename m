@@ -1,100 +1,74 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH net-next 00/15] Simplify netfilter and network namespaces
-Date: Wed, 17 Jun 2015 15:55:25 -0500
-Message-ID: <87wpz25a2q.fsf@x220.int.ebiederm.org>
-References: <87616ppt3h.fsf@x220.int.ebiederm.org>
-	<alpine.LFD.2.11.1506172216440.2649@ja.home.ssi.bg>
-Mime-Version: 1.0
-Content-Type: text/plain
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Jamal Hadi Salim <jhs@mojatatu.com>,
-	Steffen Klassert <steffen.klassert@secunet.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>
-To: Julian Anastasov <ja@ssi.bg>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH -next] netfilter: xtables: fix warnings on 32bit platforms
+Date: Wed, 17 Jun 2015 23:58:28 +0200
+Message-ID: <1434578308-31818-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out03.mta.xmission.com ([166.70.13.233]:56240 "EHLO
-	out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753194AbbFQVAn (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:39367 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753297AbbFQV6l (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Jun 2015 17:00:43 -0400
-In-Reply-To: <alpine.LFD.2.11.1506172216440.2649@ja.home.ssi.bg> (Julian
-	Anastasov's message of "Wed, 17 Jun 2015 22:38:26 +0300 (EEST)")
+	Wed, 17 Jun 2015 17:58:41 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Julian Anastasov <ja@ssi.bg> writes:
+On 32bit archs gcc complains due to cast from void* to u64.
+Add intermediate casts to long to silence these warnings.
 
-> 	Hello,
->
-> On Sun, 14 Jun 2015, Eric W. Biederman wrote:
->
->> This patshset roots out all of the very weird network namespace
->> computation logic (except for the code in ipvs) and fixes it.  I really
->> don't like how the code has been essentially guessing  which network
->> namespace to use.
->> 
->> Probably the worst guessing is in ipvs in the function skb_net. I have
->> some preliminary changes to fix ipvs but they are not quite ready yet.
->> Cleaning up ipvs enough that I can kill skb_net is on my short list.
->
-> 	For IPVS skb_net is too complicated. One of
-> the first things we do in hook handler is to check
-> skb_dst, so even now dev_net(skb_dst(skb)->dev) should
-> work.
+include/linux/netfilter/x_tables.h:376:10: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+include/linux/netfilter/x_tables.h:384:15: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+include/linux/netfilter/x_tables.h:391:23: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+include/linux/netfilter/x_tables.h:400:22: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
 
-A couple of things:
-- You don't check skb_dst() first thing in all hooks.
+Fixes: 71ae0dff02d756e ("netfilter: xtables: use percpu rule counters")
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ checkpatch doesn't like this due to >80 line limit, but I found line wraps
+ worse than this.
 
-- All hooks have state->net after my changes so it gets
-  a lot easier.
+ Does anyone have better idea on how to avoid gcc warnings here?
 
-- I am trying to avoid dev_net(skb_dst(skb)->dev) if I can
-  because of my ulterior motive of allowing a destination
-  network device in another network namespace.
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 95693c4..a64200e 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -370,7 +370,7 @@ static inline u64 xt_percpu_counter_alloc(void)
+ 		if (res == NULL)
+ 			return (u64) -ENOMEM;
+ 
+-		return (__force u64) res;
++		return (u64) (__force unsigned long) res;
+ 	}
+ 
+ 	return 0;
+@@ -378,14 +378,14 @@ static inline u64 xt_percpu_counter_alloc(void)
+ static inline void xt_percpu_counter_free(u64 pcnt)
+ {
+ 	if (nr_cpu_ids > 1)
+-		free_percpu((void __percpu *) pcnt);
++		free_percpu((void __percpu *) (unsigned long) pcnt);
+ }
+ 
+ static inline struct xt_counters *
+ xt_get_this_cpu_counter(struct xt_counters *cnt)
+ {
+ 	if (nr_cpu_ids > 1)
+-		return this_cpu_ptr((void __percpu *) cnt->pcnt);
++		return this_cpu_ptr((void __percpu *) (unsigned long) cnt->pcnt);
+ 
+ 	return cnt;
+ }
+@@ -394,7 +394,7 @@ static inline struct xt_counters *
+ xt_get_per_cpu_counter(struct xt_counters *cnt, unsigned int cpu)
+ {
+ 	if (nr_cpu_ids > 1)
+-		return per_cpu_ptr((void __percpu *) cnt->pcnt, cpu);
++		return per_cpu_ptr((void __percpu *) (unsigned long) cnt->pcnt, cpu);
+ 
+ 	return cnt;
+ }
+-- 
+2.0.5
 
->  sock_net is used for administration via netlink,
-> skb_net is not used there (ip_vs_ctl.c).
-
-Agreed.  sock_net is the right thing for the netlink sockets,
-and while obscured by skb_sknet that works fine.
-
-> 	As for removing/replacing skb_net, ip_vs_conn_net()
-> is ok when cp is present,
-
-Yes I have seen that.
-
-> we have also svc->net,
-
-And I have seen this.
-
->  otherwise
-> we can store net into struct ip_vs_iphdr, it is filled by
-> ip_vs_fill_iph_skb from small number of places when hook
-> handler is entered.
-
-Interesting I had not thought of changing ip_vs_iphdr.
-
-I actually have a patch that passes state->net down to where it is
-needed or uses ip_vs_conn_net() and it it looks ok, but the patch
-is so busy with small tweaks that I need to break it up.
-
-Further I am staring at things and trying to see if there is a way to
-make the mass of parameters more readable/obvious.   Something like
-the passing of struct nf_hook_state into the netfilter hooks.
-
-Or in other words I want to make the change to ip_vs deadly boring,
-obviously correct, and trivial to maintain, and I am not quite there
-yet.
-
-Eric
-
-p.s.  I do have my patch that I can toss in your direction if you are
-interested.
