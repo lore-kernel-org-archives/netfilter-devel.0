@@ -1,41 +1,72 @@
-From: Miroslav Kratochvil <exa.exa@gmail.com>
-Subject: Re: [PATCH nft] parser_bison: allow to use mark as datatype for maps
- and sets
-Date: Wed, 17 Jun 2015 10:29:30 +0200
-Message-ID: <CAO0uZ+-k7FVjpforphDBLEnLEpxMj8uSnQWOTeFvVzSRonWpUg@mail.gmail.com>
-References: <1434469933-6402-1-git-send-email-pablo@netfilter.org>
-	<20150616154924.GL20951@acer.localdomain>
-	<20150616155732.GA7067@salvia>
+From: Daniel Mack <daniel@zonque.org>
+Subject: Re: [PATCH nf-next 0/3] netfilter: socket lookup function refactoring,
+ cgroup match fixes
+Date: Wed, 17 Jun 2015 11:06:02 +0200
+Message-ID: <5581387A.2060709@zonque.org>
+References: <1434499692-9832-1-git-send-email-daniel@zonque.org> <20150617010332.GA5083@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: fw@strlen.de, daniel@iogearbox.net, a.perevalov@samsung.com,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:36741 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751101AbbFQI3c (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Jun 2015 04:29:32 -0400
-Received: by lbbqq2 with SMTP id qq2so26376085lbb.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 17 Jun 2015 01:29:31 -0700 (PDT)
-In-Reply-To: <20150616155732.GA7067@salvia>
+Received: from svenfoo.org ([82.94.215.22]:43661 "EHLO mail.zonque.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755166AbbFQJGF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Jun 2015 05:06:05 -0400
+In-Reply-To: <20150617010332.GA5083@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> > Yes, I think this is preferrable since the mark type can be used for
-> > things besides packet marking, f.i. conntracks.
->
-> Ok, then I'll push this patch, thanks!
+Hi Pablo,
+
+Thanks a lot for the feedback!
+
+On 06/17/2015 03:03 AM, Pablo Neira Ayuso wrote:
+> On Wed, Jun 17, 2015 at 02:08:09AM +0200, Daniel Mack wrote:
+>> This series is based on work done by Daniel Borkmann a little while ago:
+>>
+>>   http://article.gmane.org/gmane.comp.security.firewalls.netfilter.devel/56877
+>>
+>> I addressed the feedback from that thread and factored out the socket
+>> lookup code into own modules, one for ipv4, one for ipv6. These modules
+>> are now selected in kbuild by code that uses it.
+>>
+>> Also, a patch was added to fix nft_meta cgroup match rules in a similar
+>> fashion as it's now done for xt_cgroup.
+> 
+> Then, you probably missed these:
+> 
+> http://permalink.gmane.org/gmane.comp.security.firewalls.netfilter.devel/56879
+> 
+> That means that we will not take any rework of the existing socket
+> infrastructure in netfilter/iptables. The socket match was designed
+> for TPROXY, not for firewalling as it will only work under very
+> specific assumptions.
+
+Yeah, right. The thing is that cgroup matching is an incredible useful
+feature. It's a pity it isn't currently usable for ingress packets.
+
+> The possible ideas that we (Patrick and me) have discussed boil down to:
+> 
+> 1) Placing the INPUT hook at later stage, from the layer 4 protocols.
+
+That would be great, but the consequences for other matching functions
+are beyond my current knowledge of the netfilter code.
+
+> or
+> 
+> 2) Add a new socket hook in the path from layer 4 protocols.
+> 
+> In both cases, the idea is that we're always 100% sure that we have a
+> valid sk in place, including UDP multicast.
+
+That sounds reasonable too. That option would at least work for nft
+then, right? Is anyone working on that yet?
 
 
-Great, marking by named map is now perfectly usuable.
+Thanks,
+Daniel
 
-One last (cosmetic reminder) thing, could the last occurence of
-"packetmark" type name in documentation also be replaced with "mark",
-for consistency?
 
-in doc/nft.xml, lines 988, 1887.
-
-Many thanks to you both.
--mk
