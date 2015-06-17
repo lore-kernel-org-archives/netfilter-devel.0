@@ -1,74 +1,40 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next] netfilter: xtables: fix warnings on 32bit platforms
-Date: Wed, 17 Jun 2015 23:58:28 +0200
-Message-ID: <1434578308-31818-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:39367 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753297AbbFQV6l (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Jun 2015 17:58:41 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH net-next 00/15] Simplify netfilter and network
+ namespaces
+Date: Thu, 18 Jun 2015 01:01:36 +0300 (EEST)
+Message-ID: <alpine.LFD.2.11.1506180055030.3621@ja.home.ssi.bg>
+References: <87616ppt3h.fsf@x220.int.ebiederm.org> <alpine.LFD.2.11.1506172216440.2649@ja.home.ssi.bg> <87wpz25a2q.fsf@x220.int.ebiederm.org>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Jamal Hadi Salim <jhs@mojatatu.com>,
+	Steffen Klassert <steffen.klassert@secunet.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <87wpz25a2q.fsf@x220.int.ebiederm.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 32bit archs gcc complains due to cast from void* to u64.
-Add intermediate casts to long to silence these warnings.
 
-include/linux/netfilter/x_tables.h:376:10: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
-include/linux/netfilter/x_tables.h:384:15: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-include/linux/netfilter/x_tables.h:391:23: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-include/linux/netfilter/x_tables.h:400:22: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+	Hello,
 
-Fixes: 71ae0dff02d756e ("netfilter: xtables: use percpu rule counters")
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- checkpatch doesn't like this due to >80 line limit, but I found line wraps
- worse than this.
+On Wed, 17 Jun 2015, Eric W. Biederman wrote:
 
- Does anyone have better idea on how to avoid gcc warnings here?
+> p.s.  I do have my patch that I can toss in your direction if you are
+> interested.
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 95693c4..a64200e 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -370,7 +370,7 @@ static inline u64 xt_percpu_counter_alloc(void)
- 		if (res == NULL)
- 			return (u64) -ENOMEM;
- 
--		return (__force u64) res;
-+		return (u64) (__force unsigned long) res;
- 	}
- 
- 	return 0;
-@@ -378,14 +378,14 @@ static inline u64 xt_percpu_counter_alloc(void)
- static inline void xt_percpu_counter_free(u64 pcnt)
- {
- 	if (nr_cpu_ids > 1)
--		free_percpu((void __percpu *) pcnt);
-+		free_percpu((void __percpu *) (unsigned long) pcnt);
- }
- 
- static inline struct xt_counters *
- xt_get_this_cpu_counter(struct xt_counters *cnt)
- {
- 	if (nr_cpu_ids > 1)
--		return this_cpu_ptr((void __percpu *) cnt->pcnt);
-+		return this_cpu_ptr((void __percpu *) (unsigned long) cnt->pcnt);
- 
- 	return cnt;
- }
-@@ -394,7 +394,7 @@ static inline struct xt_counters *
- xt_get_per_cpu_counter(struct xt_counters *cnt, unsigned int cpu)
- {
- 	if (nr_cpu_ids > 1)
--		return per_cpu_ptr((void __percpu *) cnt->pcnt, cpu);
-+		return per_cpu_ptr((void __percpu *) (unsigned long) cnt->pcnt, cpu);
- 
- 	return cnt;
- }
--- 
-2.0.5
+	Of course... I'll be able to check it after 8 hours...
 
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
