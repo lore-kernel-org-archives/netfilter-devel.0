@@ -1,40 +1,41 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nft,next-4.2,v2] src: add netdev family support
-Date: Wed, 17 Jun 2015 10:21:46 +0200
-Message-ID: <20150617082146.GA13215@acer.localdomain>
-References: <1434471906-8583-1-git-send-email-pablo@netfilter.org>
+From: Miroslav Kratochvil <exa.exa@gmail.com>
+Subject: Re: [PATCH nft] parser_bison: allow to use mark as datatype for maps
+ and sets
+Date: Wed, 17 Jun 2015 10:29:30 +0200
+Message-ID: <CAO0uZ+-k7FVjpforphDBLEnLEpxMj8uSnQWOTeFvVzSRonWpUg@mail.gmail.com>
+References: <1434469933-6402-1-git-send-email-pablo@netfilter.org>
+	<20150616154924.GL20951@acer.localdomain>
+	<20150616155732.GA7067@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64220 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754758AbbFQIVt (ORCPT
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:36741 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751101AbbFQI3c (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Jun 2015 04:21:49 -0400
-Content-Disposition: inline
-In-Reply-To: <1434471906-8583-1-git-send-email-pablo@netfilter.org>
+	Wed, 17 Jun 2015 04:29:32 -0400
+Received: by lbbqq2 with SMTP id qq2so26376085lbb.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 17 Jun 2015 01:29:31 -0700 (PDT)
+In-Reply-To: <20150616155732.GA7067@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 16.06, Pablo Neira Ayuso wrote:
-> This patch adds support for the new 'netdev' table. So far, this table allows
-> you to create filter chains from ingress.
-> 
-> The following example shows a very simple base configuration with one table that
-> contains a basechain that is attached to the 'eth0':
-> 
->  # nft list table netdev filter
->  table netdev filter {
->         chain eth0-ingress {
->                 type filter hook ingress device eth0 priority 0; policy accept;
->         }
->  }
-> 
-> You can test that this works by adding a simple rule with counters:
-> 
->  # nft add rule netdev filter eth0-ingress counter
+> > Yes, I think this is preferrable since the mark type can be used for
+> > things besides packet marking, f.i. conntracks.
+>
+> Ok, then I'll push this patch, thanks!
 
-Looks fine. I'm thinking we might be able to simplify to grammar, but I'll simply
-try once your patch is in the tree.
+
+Great, marking by named map is now perfectly usuable.
+
+One last (cosmetic reminder) thing, could the last occurence of
+"packetmark" type name in documentation also be replaced with "mark",
+for consistency?
+
+in doc/nft.xml, lines 988, 1887.
+
+Many thanks to you both.
+-mk
