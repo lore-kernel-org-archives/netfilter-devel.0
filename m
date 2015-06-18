@@ -1,67 +1,61 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next 00/43] Simplify netfilter and network namespaces
- (take 2)
-Date: Thu, 18 Jun 2015 21:40:23 +0200
-Message-ID: <20150618194023.GA3057@salvia>
-References: <87616ppt3h.fsf@x220.int.ebiederm.org>
- <87r3pae5hn.fsf@x220.int.ebiederm.org>
+Subject: Re: [PATCH] net: fix search limit handling in skb_find_text()
+Date: Thu, 18 Jun 2015 22:01:31 +0200
+Message-ID: <20150618200131.GA3506@salvia>
+References: <1434359518-16897-1-git-send-email-khimov@altell.ru>
+ <1847765.0Hbie9lSro@mate.hex>
+ <20150616104841.GA4163@salvia>
+ <6185418.JcpCEFvK8k@sencha>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Jamal Hadi Salim <jhs@mojatatu.com>,
-	Steffen Klassert <steffen.klassert@secunet.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56598 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751674AbbFRTfF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Jun 2015 15:35:05 -0400
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: davem@davemloft.net, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Phil Oester <kernel@linuxace.com>,
+	Thomas Graf <tgraf@suug.ch>
+To: Roman Khimov <khimov@altell.ru>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <87r3pae5hn.fsf@x220.int.ebiederm.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <6185418.JcpCEFvK8k@sencha>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jun 17, 2015 at 10:09:40AM -0500, Eric W. Biederman wrote:
+On Tue, Jun 16, 2015 at 03:13:41PM +0300, Roman Khimov wrote:
+> =D0=92 =D0=BF=D0=B8=D1=81=D1=8C=D0=BC=D0=B5 =D0=BE=D1=82 16 =D0=B8=D1=
+=8E=D0=BD=D1=8F 2015 12:48:41 =D0=BF=D0=BE=D0=BB=D1=8C=D0=B7=D0=BE=D0=B2=
+=D0=B0=D1=82=D0=B5=D0=BB=D1=8C Pablo Neira Ayuso =D0=BD=D0=B0=D0=BF=D0=B8=
+=D1=81=D0=B0=D0=BB:
 [...]
-> There are a few extra cleanups in the first group of changes sprinkled
-> in as I noticed a few other things as I was sorting out the network
-> namespace computation logic.
+> > But if we change the existing behaviour, users may be relying on it
+> > and we'll get things broken for them. Someone else will come later =
+one
+> > with another patch to say: "hey, --to used to be inclusive but this=
+ is
+> > not the case anymore and it's breaking my setup".
+>=20
+> I do understand your concerns, but fixing it this way would require c=
+hanging=20
+> skb_seq_read() and basicaly would propagate "'to' offset included" se=
+mantics=20
+> (which seems a bit strange for programmers, IMO) further. And initial=
+ly I=20
+> thought that changing skb_seq_read() would be more intrusive, althoug=
+h looking=20
+> at all this now it looks like the only real user of upper_offset fiel=
+d in=20
+> ts_config struct is skb_find_text(), because other invocations of=20
+> skb_seq_read() from drivers/scsi/libiscsi_tcp.c and net/batman-adv/ma=
+in.c use=20
+> skb->len as an upper limit.
+>=20
+> > > em_text_match() in net/sched/em_text.c is also suspicious.
+> >=20
+> > Please, elaborate.
+>=20
+> The way it constructs 'to' offset, I think it doesn't expect somethin=
+g to=20
+> match at 'to'. Although I might be wrong here.
 
-This is a rather large patchset that address many pernet issues in the
-netfilter codebase, I would classify them in:
-
-1) Patches to prepare the ground for easier pernet integration.
-
-2) Get rid of the dev_net(dev) ? ... : ...; pattern all around the
-   netfilter code.
-
-3) Missing pernet sysctl support is some spots, eg. br_netfilter.
-
-4) Pernet hooks, probably the largest changeset in this pile and the
-   most important one IMO.
-
-So given that it's quite evident that netfilter netns support is
-half-cooked and there's room for improvement in it, as we've been
-receiving patches to partially add support on things that people
-sporadically needed, could you please split this in several (smaller)
-batches in logical changes for easier review?
-
-On a different front, nfnetlink_log and nfnetlink_queue also still
-lack of netns support so patches for that would be also appreciated in
-another different round.
-
-I'm going to take as much of small preparation patches that I can to
-reduce your patchload:
-
-1/43, 8/43, 16/43, 17/43, 18/43, 26/43
-
-Thank you.
+Could you send a patch that resolves the inconsistency for programmers
+while leaving the userspace exposed behaviour through xt_string and
+em_string intact? Thanks.
