@@ -1,29 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH -next] netfilter: xtables: fix warnings on 32bit platforms
-Date: Thu, 18 Jun 2015 21:09:50 +0200
-Message-ID: <20150618190950.GA14008@salvia>
-References: <1434578308-31818-1-git-send-email-fw@strlen.de>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH net-next 00/15] Simplify netfilter and network
+ namespaces
+Date: Thu, 18 Jun 2015 22:21:15 +0300 (EEST)
+Message-ID: <alpine.LFD.2.11.1506182210240.1659@ja.home.ssi.bg>
+References: <87616ppt3h.fsf@x220.int.ebiederm.org> <alpine.LFD.2.11.1506172216440.2649@ja.home.ssi.bg> <87wpz25a2q.fsf@x220.int.ebiederm.org> <alpine.LFD.2.11.1506180055030.3621@ja.home.ssi.bg> <87fv5p2hzg.fsf@x220.int.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53212 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756009AbbFRTEc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Jun 2015 15:04:32 -0400
-Content-Disposition: inline
-In-Reply-To: <1434578308-31818-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <87fv5p2hzg.fsf@x220.int.ebiederm.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jun 17, 2015 at 11:58:28PM +0200, Florian Westphal wrote:
-> On 32bit archs gcc complains due to cast from void* to u64.
-> Add intermediate casts to long to silence these warnings.
+
+	Hello,
+
+On Thu, 18 Jun 2015, Eric W. Biederman wrote:
+
+> My incremental patch for ipvs on top of everything else I have pushed
+> out looks like this:
 > 
-> include/linux/netfilter/x_tables.h:376:10: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
-> include/linux/netfilter/x_tables.h:384:15: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-> include/linux/netfilter/x_tables.h:391:23: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
-> include/linux/netfilter/x_tables.h:400:22: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+> From: "Eric W. Biederman" <ebiederm@xmission.com>
+> Date: Fri, 12 Jun 2015 18:34:12 -0500
+> Subject: [PATCH] ipvs: Pass struct net down to where it is needed and used
+> 
+> Pass struct net down to where it is used and stop guessing
+> which network namespace should be used.
 
-Applied, thanks.
+	At first look patch is ok. But I'm not sure
+for the changes in ip_vs_xmit.c. Can you explain in
+2-3 lines, when can we see different netns? Is it when
+packet is forwarded to output device and it is part from
+another netns?
+
+	I'm asking because these __ip_vs_get_out_rt*
+calls in ip_vs_xmit.c can reroute packet to another
+device...
+
+	Also, skb_sknet is another candidate for removal.
+But I can take care about it after your changes are
+pushed...
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
