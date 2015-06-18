@@ -1,46 +1,37 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables] xt_socket: add --restore-skmark option
-Date: Thu, 18 Jun 2015 21:03:12 +0200
-Message-ID: <20150618190312.GA32336@salvia>
-References: <1434415279-15517-1-git-send-email-harouth@codeaurora.org>
+Subject: Re: [PATCH net-next] x_table: align per cpu xt_counter
+Date: Thu, 18 Jun 2015 21:04:34 +0200
+Message-ID: <20150618190434.GA3454@salvia>
+References: <1434417013.27504.161.camel@edumazet-glaptop2.roam.corp.google.com>
+ <20150617170815.GF31987@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Lorenzo Colitti <lorenzo@google.com>
-To: Harout Hedeshian <harouth@codeaurora.org>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52416 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52573 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751900AbbFRS5u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Jun 2015 14:57:50 -0400
+	id S1755062AbbFRS7M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Jun 2015 14:59:12 -0400
 Content-Disposition: inline
-In-Reply-To: <1434415279-15517-1-git-send-email-harouth@codeaurora.org>
+In-Reply-To: <20150617170815.GF31987@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jun 15, 2015 at 06:41:19PM -0600, Harout Hedeshian wrote:
-> xt_socket is useful for matching sockets with IP_TRANSPARENT and
-> taking some action on the matching packets. However, it lacks the
-> ability to match only a small subset of transparent sockets.
+On Wed, Jun 17, 2015 at 07:08:15PM +0200, Florian Westphal wrote:
+> Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> > From: Eric Dumazet <edumazet@google.com>
+> > 
+> > Let's force a 16 bytes alignment on xt_counter percpu allocations,
+> > so that bytes and packets sit in same cache line.
+> > 
+> > xt_counter being exported to user space, we cannot add __align(16) on
+> > the structure itself.
 > 
-> Suppose there are 2 applications, each with its own set of transparent
-> sockets. The first application wants all matching packets dropped,
-> while the second application wants them forwarded somewhere else.
+> Sorry, I was away.  Looks great.
 > 
-> Add the ability to retore the skb->mark from the sk_mark. The mark
-> is only restored if a matching socket is found and the transparent /
-> nowildcard conditions are satisfied.
-> 
-> Now the 2 hypothetical applications can differentiate their sockets
-> based on a mark value set with SO_MARK.
-> 
-> iptables -t mangle -I PREROUTING -m socket --transparent \
->                                            --restore-skmark -j action
-> iptables -t mangle -I PREROUTING -m socket --transparent \
->                                            --restore-skmark -j action
-> iptables -t mangle -A action -m mark --mark 10 -j action2
-> iptables -t mangle -A action -m mark --mark 11 -j action3
+> Acked-by: Florian Westphal <fw@strlen.de>
 
-Applied, thanks Harout.
-
-
+Applied, thanks Eric and Florian !
