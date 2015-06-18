@@ -1,104 +1,72 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 1/2] netfilter: nft_counter: split out counters from nft_counter
-Date: Thu, 18 Jun 2015 20:21:36 +0200
-Message-ID: <1434651697-9905-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, fw@strlen.de, eric.dumazet@gmail.com
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v3] nfnetlink_queue: add security context information
+Date: Thu, 18 Jun 2015 21:02:21 +0200
+Message-ID: <20150618190221.GA29618@salvia>
+References: <55646731.9040803@samsung.com>
+ <20150526130623.GD7817@breakpoint.cc>
+ <5565A4D2.70701@samsung.com>
+ <5565A6AA.90908@samsung.com>
+ <20150527124957.GA19819@salvia>
+ <557855B2.8030803@samsung.com>
+ <20150610160541.GD7125@breakpoint.cc>
+ <55798582.1040903@samsung.com>
+ <20150611233757.GE7125@breakpoint.cc>
+ <557AB559.1000001@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	=?utf-8?B?UmFmYcWC?= Krypa <r.krypa@samsung.com>
+To: Roman Kubiak <r.kubiak@samsung.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46191 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52295 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932091AbbFRSQX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Jun 2015 14:16:23 -0400
+	id S1751394AbbFRS5A (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Jun 2015 14:57:00 -0400
+Content-Disposition: inline
+In-Reply-To: <557AB559.1000001@samsung.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch comes in preparation to the percpu support, so struct nft_counter
-only contains the byte and packet counter fields that can be reused.
+On Fri, Jun 12, 2015 at 12:32:57PM +0200, Roman Kubiak wrote:
+> This way works and seems sensible (i tested it)
+> 
+> a fixed patch below
+> 
+> -- cut here
+> 
+> This patch adds an additional attribute when sending
+> packet information via netlink in netfilter_queue module.
+> It will send additional security context data, so that
+> userspace applications can verify this context against
+> their own security databases.
+> 
+> Signed-off-by: Roman Kubiak <r.kubiak@samsung.com>
+> ---
+> v2:
+> - nfqnl_get_sk_secctx returns seclen now, this changes
+> - updated size calculation
+> - changed NFQA_SECCTX comment
+> - removed duplicate testing of NFQA_CFG_F flags
+> 
+> v3:
+> - NULL is not added to the security context anymore
+> - return 0 when socket is invalid in nfqnl_get_sk_secctx
+> - small intent change
+> - removed ret variable in nfqnl_get_sk_secctx
+> 
+> v4:
+> - removed security dependency, this patch does not
+>   require any changes in other subsystems
+> - nfqnl_get_sk_secctx returns seclen
+> - added IFDEF when using secmark from the sk_buff
+>   structure
+> 
+> v5:
+> - added a check to disable security context sending
+>   if CONFIG_NETWORK_SECMARK is not set
+> 
+> v6:
+> - changed the way flags and mask are checked in
+>   nfqnl_recv_config
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_counter.c |   32 +++++++++++++++++++-------------
- 1 file changed, 19 insertions(+), 13 deletions(-)
-
-diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index 1759123..ad78fda 100644
---- a/net/netfilter/nft_counter.c
-+++ b/net/netfilter/nft_counter.c
-@@ -18,34 +18,38 @@
- #include <net/netfilter/nf_tables.h>
- 
- struct nft_counter {
--	seqlock_t	lock;
--	u64		bytes;
--	u64		packets;
-+	u64			bytes;
-+	u64			packets;
-+};
-+
-+struct nft_counter_priv {
-+	seqlock_t		lock;
-+	struct nft_counter	counter;
- };
- 
- static void nft_counter_eval(const struct nft_expr *expr,
- 			     struct nft_regs *regs,
- 			     const struct nft_pktinfo *pkt)
- {
--	struct nft_counter *priv = nft_expr_priv(expr);
-+	struct nft_counter_priv *priv = nft_expr_priv(expr);
- 
- 	write_seqlock_bh(&priv->lock);
--	priv->bytes += pkt->skb->len;
--	priv->packets++;
-+	priv->counter.bytes += pkt->skb->len;
-+	priv->counter.packets++;
- 	write_sequnlock_bh(&priv->lock);
- }
- 
- static int nft_counter_dump(struct sk_buff *skb, const struct nft_expr *expr)
- {
--	struct nft_counter *priv = nft_expr_priv(expr);
-+	struct nft_counter_priv *priv = nft_expr_priv(expr);
- 	unsigned int seq;
- 	u64 bytes;
- 	u64 packets;
- 
- 	do {
- 		seq = read_seqbegin(&priv->lock);
--		bytes	= priv->bytes;
--		packets	= priv->packets;
-+		bytes	= priv->counter.bytes;
-+		packets	= priv->counter.packets;
- 	} while (read_seqretry(&priv->lock, seq));
- 
- 	if (nla_put_be64(skb, NFTA_COUNTER_BYTES, cpu_to_be64(bytes)))
-@@ -67,12 +71,14 @@ static int nft_counter_init(const struct nft_ctx *ctx,
- 			    const struct nft_expr *expr,
- 			    const struct nlattr * const tb[])
- {
--	struct nft_counter *priv = nft_expr_priv(expr);
-+	struct nft_counter_priv *priv = nft_expr_priv(expr);
- 
- 	if (tb[NFTA_COUNTER_PACKETS])
--	        priv->packets = be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_PACKETS]));
-+	        priv->counter.packets =
-+			be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_PACKETS]));
- 	if (tb[NFTA_COUNTER_BYTES])
--		priv->bytes = be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_BYTES]));
-+		priv->counter.bytes =
-+			be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_BYTES]));
- 
- 	seqlock_init(&priv->lock);
- 	return 0;
-@@ -81,7 +87,7 @@ static int nft_counter_init(const struct nft_ctx *ctx,
- static struct nft_expr_type nft_counter_type;
- static const struct nft_expr_ops nft_counter_ops = {
- 	.type		= &nft_counter_type,
--	.size		= NFT_EXPR_SIZE(sizeof(struct nft_counter)),
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_counter_priv)),
- 	.eval		= nft_counter_eval,
- 	.init		= nft_counter_init,
- 	.dump		= nft_counter_dump,
--- 
-1.7.10.4
-
+Applied this v6. Thank you.
