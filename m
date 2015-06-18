@@ -1,37 +1,29 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next] x_table: align per cpu xt_counter
-Date: Thu, 18 Jun 2015 21:04:34 +0200
-Message-ID: <20150618190434.GA3454@salvia>
-References: <1434417013.27504.161.camel@edumazet-glaptop2.roam.corp.google.com>
- <20150617170815.GF31987@breakpoint.cc>
+Subject: Re: [PATCH -next] netfilter: xtables: fix warnings on 32bit platforms
+Date: Thu, 18 Jun 2015 21:09:50 +0200
+Message-ID: <20150618190950.GA14008@salvia>
+References: <1434578308-31818-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52573 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53212 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755062AbbFRS7M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Jun 2015 14:59:12 -0400
+	id S1756009AbbFRTEc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Jun 2015 15:04:32 -0400
 Content-Disposition: inline
-In-Reply-To: <20150617170815.GF31987@breakpoint.cc>
+In-Reply-To: <1434578308-31818-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 17, 2015 at 07:08:15PM +0200, Florian Westphal wrote:
-> Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> > From: Eric Dumazet <edumazet@google.com>
-> > 
-> > Let's force a 16 bytes alignment on xt_counter percpu allocations,
-> > so that bytes and packets sit in same cache line.
-> > 
-> > xt_counter being exported to user space, we cannot add __align(16) on
-> > the structure itself.
+On Wed, Jun 17, 2015 at 11:58:28PM +0200, Florian Westphal wrote:
+> On 32bit archs gcc complains due to cast from void* to u64.
+> Add intermediate casts to long to silence these warnings.
 > 
-> Sorry, I was away.  Looks great.
-> 
-> Acked-by: Florian Westphal <fw@strlen.de>
+> include/linux/netfilter/x_tables.h:376:10: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+> include/linux/netfilter/x_tables.h:384:15: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+> include/linux/netfilter/x_tables.h:391:23: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+> include/linux/netfilter/x_tables.h:400:22: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
 
-Applied, thanks Eric and Florian !
+Applied, thanks.
