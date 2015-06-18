@@ -1,36 +1,35 @@
-From: David Miller <davem@davemloft.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCH net-next] x_table: align per cpu xt_counter
-Date: Thu, 18 Jun 2015 03:43:26 -0700 (PDT)
-Message-ID: <20150618.034326.1579688535859905135.davem@davemloft.net>
+Date: Thu, 18 Jun 2015 12:50:31 +0200
+Message-ID: <20150618105031.GB3751@salvia>
 References: <1434417013.27504.161.camel@edumazet-glaptop2.roam.corp.google.com>
+ <20150618.034326.1579688535859905135.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+Content-Type: text/plain; charset=us-ascii
+Cc: eric.dumazet@gmail.com, netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org, fw@strlen.de
-To: eric.dumazet@gmail.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:41301 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752825AbbFRKbr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Jun 2015 06:31:47 -0400
-In-Reply-To: <1434417013.27504.161.camel@edumazet-glaptop2.roam.corp.google.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150618.034326.1579688535859905135.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Date: Mon, 15 Jun 2015 18:10:13 -0700
+On Thu, Jun 18, 2015 at 03:43:26AM -0700, David Miller wrote:
+> From: Eric Dumazet <eric.dumazet@gmail.com>
+> Date: Mon, 15 Jun 2015 18:10:13 -0700
+> 
+> > From: Eric Dumazet <edumazet@google.com>
+> > 
+> > Let's force a 16 bytes alignment on xt_counter percpu allocations,
+> > so that bytes and packets sit in same cache line.
+> > 
+> > xt_counter being exported to user space, we cannot add __align(16) on
+> > the structure itself.
+> > 
+> > Signed-off-by: Eric Dumazet <edumazet@google.com>
+> > Cc: Florian Westphal <fw@strlen.de>
+> 
+> Pablo, I assume you will take this.
 
-> From: Eric Dumazet <edumazet@google.com>
-> 
-> Let's force a 16 bytes alignment on xt_counter percpu allocations,
-> so that bytes and packets sit in same cache line.
-> 
-> xt_counter being exported to user space, we cannot add __align(16) on
-> the structure itself.
-> 
-> Signed-off-by: Eric Dumazet <edumazet@google.com>
-> Cc: Florian Westphal <fw@strlen.de>
-
-Pablo, I assume you will take this.
+Yes, I'll prepare another pull request for you along today.
