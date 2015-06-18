@@ -1,72 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v3] nfnetlink_queue: add security context information
-Date: Thu, 18 Jun 2015 21:02:21 +0200
-Message-ID: <20150618190221.GA29618@salvia>
-References: <55646731.9040803@samsung.com>
- <20150526130623.GD7817@breakpoint.cc>
- <5565A4D2.70701@samsung.com>
- <5565A6AA.90908@samsung.com>
- <20150527124957.GA19819@salvia>
- <557855B2.8030803@samsung.com>
- <20150610160541.GD7125@breakpoint.cc>
- <55798582.1040903@samsung.com>
- <20150611233757.GE7125@breakpoint.cc>
- <557AB559.1000001@samsung.com>
+Subject: Re: [PATCH iptables] xt_socket: add --restore-skmark option
+Date: Thu, 18 Jun 2015 21:03:12 +0200
+Message-ID: <20150618190312.GA32336@salvia>
+References: <1434415279-15517-1-git-send-email-harouth@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	=?utf-8?B?UmFmYcWC?= Krypa <r.krypa@samsung.com>
-To: Roman Kubiak <r.kubiak@samsung.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Lorenzo Colitti <lorenzo@google.com>
+To: Harout Hedeshian <harouth@codeaurora.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52295 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52416 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751394AbbFRS5A (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Jun 2015 14:57:00 -0400
+	id S1751900AbbFRS5u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Jun 2015 14:57:50 -0400
 Content-Disposition: inline
-In-Reply-To: <557AB559.1000001@samsung.com>
+In-Reply-To: <1434415279-15517-1-git-send-email-harouth@codeaurora.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 12, 2015 at 12:32:57PM +0200, Roman Kubiak wrote:
-> This way works and seems sensible (i tested it)
+On Mon, Jun 15, 2015 at 06:41:19PM -0600, Harout Hedeshian wrote:
+> xt_socket is useful for matching sockets with IP_TRANSPARENT and
+> taking some action on the matching packets. However, it lacks the
+> ability to match only a small subset of transparent sockets.
 > 
-> a fixed patch below
+> Suppose there are 2 applications, each with its own set of transparent
+> sockets. The first application wants all matching packets dropped,
+> while the second application wants them forwarded somewhere else.
 > 
-> -- cut here
+> Add the ability to retore the skb->mark from the sk_mark. The mark
+> is only restored if a matching socket is found and the transparent /
+> nowildcard conditions are satisfied.
 > 
-> This patch adds an additional attribute when sending
-> packet information via netlink in netfilter_queue module.
-> It will send additional security context data, so that
-> userspace applications can verify this context against
-> their own security databases.
+> Now the 2 hypothetical applications can differentiate their sockets
+> based on a mark value set with SO_MARK.
 > 
-> Signed-off-by: Roman Kubiak <r.kubiak@samsung.com>
-> ---
-> v2:
-> - nfqnl_get_sk_secctx returns seclen now, this changes
-> - updated size calculation
-> - changed NFQA_SECCTX comment
-> - removed duplicate testing of NFQA_CFG_F flags
-> 
-> v3:
-> - NULL is not added to the security context anymore
-> - return 0 when socket is invalid in nfqnl_get_sk_secctx
-> - small intent change
-> - removed ret variable in nfqnl_get_sk_secctx
-> 
-> v4:
-> - removed security dependency, this patch does not
->   require any changes in other subsystems
-> - nfqnl_get_sk_secctx returns seclen
-> - added IFDEF when using secmark from the sk_buff
->   structure
-> 
-> v5:
-> - added a check to disable security context sending
->   if CONFIG_NETWORK_SECMARK is not set
-> 
-> v6:
-> - changed the way flags and mask are checked in
->   nfqnl_recv_config
+> iptables -t mangle -I PREROUTING -m socket --transparent \
+>                                            --restore-skmark -j action
+> iptables -t mangle -I PREROUTING -m socket --transparent \
+>                                            --restore-skmark -j action
+> iptables -t mangle -A action -m mark --mark 10 -j action2
+> iptables -t mangle -A action -m mark --mark 11 -j action3
 
-Applied this v6. Thank you.
+Applied, thanks Harout.
+
+
