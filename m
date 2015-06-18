@@ -1,404 +1,155 @@
-From: Li Zhijian <lizhijian@cn.fujitsu.com>
-Subject: [RFC] COLO Proxy Module
-Date: Thu, 18 Jun 2015 14:37:47 +0800
-Message-ID: <5582673B.3010804@cn.fujitsu.com>
+From: zhanghailiang <zhang.zhanghailiang@huawei.com>
+Subject: [PATCH COLO-Frame v6 00/31] COarse-grain LOck-stepping(COLO) Virtual Machines for Non-stop Service
+Date: Thu, 18 Jun 2015 16:58:24 +0800
+Message-ID: <1434617935-6924-1-git-send-email-zhang.zhanghailiang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: <linux-kernel@vger.kernel.org>, <pablo@netfilter.org>,
-	<kaber@trash.net>, <kadlec@blackhole.kfki.hu>,
-	<davem@davemloft.net>, <coreteam@netfilter.org>,
-	Yang Hongyang <yanghy@cn.fujitsu.com>,
-	=?UTF-8?B?5ripIOS7jua0iw==?= <wency@cn.fujitsu.com>,
+Content-Type: text/plain
+Cc: <quintela@redhat.com>, <dgilbert@redhat.com>,
+	<amit.shah@redhat.com>, <berrange@redhat.com>,
+	<peter.huangpeng@huawei.com>, <eddie.dong@intel.com>,
+	<yunhong.jiang@intel.com>, <wency@cn.fujitsu.com>,
+	<lizhijian@cn.fujitsu.com>, <laijs@cn.fujitsu.com>,
+	<arei.gonglei@huawei.com>,
 	zhanghailiang <zhang.zhanghailiang@huawei.com>,
-	Lai Jiangshan <laijs@cn.fujitsu.com>,
-	"peter.huangpeng" <peter.huangpeng@huawei.com>,
-	"Gonglei (Arei)" <arei.gonglei@huawei.com>
-To: <netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>
+	<netfilter-devel@vger.kernel.org>
+To: <qemu-devel@nongnu.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:4974 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751887AbbFRGiB (ORCPT
+Received: from szxga01-in.huawei.com ([58.251.152.64]:48349 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752667AbbFRI7q (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Jun 2015 02:38:01 -0400
+	Thu, 18 Jun 2015 04:59:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi, all
+This is the 6th version of COLO, here is only COLO frame part, include: VM checkpoint,
+failover, proxy API, block replication API, not include block replication.
+The block part is sent as a separate series.
 
-We are planning to implement a kernel module called COLO Proxy to buffer and
-compare packets. This module is one of the important component of COLO project
-and now it is still in early stage, so any comments and feedback are warmly
-welcomed, thanks in advance.
+As usuall, we provide two branch which one is 'colo-v1.3-basic', 
+and the other is 'colo-v1.3-developing', The 'basic' branch is exactly the same
+with this patch series, which has basic features of COLO.
+We will keep this series simple as possible, just for easy review.
 
-=====
-# RFC: COLO-Proxy Module
+You can get the newest integrated qemu colo patches from github (Include Block part):
+https://github.com/coloft/qemu/commits/colo-v1.3-basic
+https://github.com/coloft/qemu/commits/colo-v1.3-developing (more features)
+Please NOTE the difference between these two branch.
+Colo-v1.3-developing has some optimization in the process of checkpoint, including: 
+   1) separate ram and device save/load process to reduce size of extra memory
+      used during checkpoint
+   2) live migrate part of dirty pages to slave during sleep time.
+Besides, we add some statistic info in 'developing' branch, which you can get these stat
+info by using command 'info migrate'.
 
-## Rationale
+About how to test COLO, Please reference to the follow link.
+http://wiki.qemu.org/Features/COLO.
 
-COLO FT/HA (COarse-grain LOck-stepping Virtual Machines for Non-stop Service)
-project is a high availability solution. Both Primary VM (PVM) and Secondary VM
-(SVM) run in parallel. They receive the same request from client, and generate
-responses in parallel too. If the response packets from PVM and SVM are
-identical, they are released immediately. Otherwise, a VM checkpoint (on demand)
-is conducted.
-Paper:
-http://www.socc2013.org/home/program/a3-dong.pdf?attredirects=0
-COLO on Xen:
-http://wiki.xen.org/wiki/COLO_-_Coarse_Grain_Lock_Stepping
-COLO on Qemu/KVM:
-http://wiki.qemu.org/Features/COLO
+For the kernel part (colo proxy) of COLO, we have sent a RFC patch to kernel community:
+https://lkml.org/lkml/2015/6/18/32
 
-By the needs of capturing response packets from PVM and SVM and finding out
-whether they are identical, we introduce a new kernel module which called
-colo-proxy.
+COLO is a totally new feature which is still in early stage, 
+your comments and feedback are warmly welcomed.
 
-This document describes the design of the colo-proxy module
+Cc: netfilter-devel@vger.kernel.org
 
-## Glossary
+TODO:
+1. COLO function switch on/off
+2. Optimize proxy part, include proxy script.
+  1) Remove the limitation of forward network link.
+  2) Reuse the nfqueue_entry and NF_STOLEN to enqueue skb
+3. The capability of continuous FT
 
-   * PVM - Primary VM, which provides services to clients.
-   * SVM - Secondary VM, a hot standby and replication of PVM.
-   * PN - Primary Node, the host which PVM runs on
-   * SN - Secondary Node, the host which SVM runs on
+v6:
+- Add a new qmp event 'COLO_EXIT' for COLO error, which is useful
+  for users to get involved in failover verdict. 
+- Support '-net nic' configure
+- Fix segmentfault bug that triggered by running 'colo_lost_heartbeat' directly
+  when VM is not in COLO state.
+- Fix qemu abort bug that triggered by Startup another migration when in COLO state.
+- Optimize some codes, especailly colo net part.
 
-## Network topology
+zhanghailiang (31):
+  configure: Add parameter for configure to enable/disable COLO support
+  migration: Introduce capability 'colo' to migration
+  COLO: migrate colo related info to slave
+  migration: Integrate COLO checkpoint process into migration
+  migration: Integrate COLO checkpoint process into loadvm
+  COLO: Implement colo checkpoint protocol
+  COLO: Add a new RunState RUN_STATE_COLO
+  QEMUSizedBuffer: Introduce two help functions for qsb
+  COLO: Save VM state to slave when do checkpoint
+  COLO RAM: Load PVM's dirty page into SVM's RAM cache temporarily
+  COLO VMstate: Load VM state into qsb before restore it
+  arch_init: Start to trace dirty pages of SVM
+  COLO RAM: Flush cached RAM into SVM's memory
+  COLO failover: Introduce a new command to trigger a failover
+  COLO failover: Implement COLO primary/secondary vm failover work
+  qmp event: Add event notification for COLO error
+  COLO failover: Don't do failover during loading VM's state
+  COLO: Add new command parameter 'colo_nicname' 'colo_script' for net
+  COLO NIC: Init/remove colo nic devices when add/cleanup tap devices
+  tap: Make launch_script() public
+  COLO NIC: Implement colo nic device interface configure()
+  COLO NIC : Implement colo nic init/destroy function
+  COLO NIC: Some init work related with proxy module
+  COLO: Handle nfnetlink message from proxy module
+  COLO: Do checkpoint according to the result of packets comparation
+  COLO: Improve checkpoint efficiency by do additional periodic
+    checkpoint
+  COLO: Add colo-set-checkpoint-period command
+  COLO NIC: Implement NIC checkpoint and failover
+  COLO: Disable qdev hotplug when VM is in COLO mode
+  COLO: Implement shutdown checkpoint
+  COLO: Add block replication into colo process
 
-================================= Normal =====================================
-                                  +--------+
-                                  | client |
-                                  +----+---+
--------------------------+           |            + -------------------------+
-PN                       |           +            |                        SN|
-+-------+         +----[eth0]-----[switch]-----[eth0]---------+              |
-|PVM    |     +---+-+    |                        |       +---+-+            |
-|     [tap0]--+ br0 |    |                        |       | br0 |            |
-|       |     +-----+  [eth1]-----[forward]----[eth1]--+  +-----+            |
-+-------+                |                        |    |            +-------+|
-                          |                        |    |  +-----+   |    SVM||
-                        [eth2]---[checkpoint]---[eth2]  +--+ br1 |-[tap0]    ||
-                          |                        |       +-----+   |       ||
-                          |                        |                 +-------+|
--------------------------+                        +--------------------------+
-e.g.
-PN:
-br0: 192.168.0.33
-eth1: 192.168.1.33
-eth2: 192.168.2.33
+ configure                              |  36 +-
+ docs/qmp/qmp-events.txt                |  16 +
+ hmp-commands.hx                        |  30 ++
+ hmp.c                                  |  15 +
+ hmp.h                                  |   2 +
+ include/exec/cpu-all.h                 |   1 +
+ include/migration/migration-colo.h     |  50 ++
+ include/migration/migration-failover.h |  22 +
+ include/migration/migration.h          |   3 +
+ include/migration/qemu-file.h          |   3 +-
+ include/net/colo-nic.h                 |  34 ++
+ include/net/net.h                      |   2 +
+ include/net/tap.h                      |  19 +
+ include/sysemu/sysemu.h                |   3 +
+ migration/Makefile.objs                |   2 +
+ migration/colo-comm.c                  |  68 +++
+ migration/colo-failover.c              |  53 ++
+ migration/colo.c                       | 854 +++++++++++++++++++++++++++++++++
+ migration/migration.c                  |  68 ++-
+ migration/qemu-file-buf.c              |  58 +++
+ migration/ram.c                        | 249 +++++++++-
+ migration/savevm.c                     |   2 +-
+ net/Makefile.objs                      |   1 +
+ net/colo-nic.c                         | 402 ++++++++++++++++
+ net/net.c                              |   2 +
+ net/tap.c                              |  87 ++--
+ qapi-schema.json                       |  58 ++-
+ qapi/event.json                        |  15 +
+ qemu-options.hx                        |   7 +
+ qmp-commands.hx                        |  41 ++
+ scripts/colo-proxy-script.sh           |  90 ++++
+ stubs/Makefile.objs                    |   1 +
+ stubs/migration-colo.c                 |  58 +++
+ trace-events                           |  11 +
+ vl.c                                   |  39 +-
+ 35 files changed, 2333 insertions(+), 69 deletions(-)
+ create mode 100644 include/migration/migration-colo.h
+ create mode 100644 include/migration/migration-failover.h
+ create mode 100644 include/net/colo-nic.h
+ create mode 100644 migration/colo-comm.c
+ create mode 100644 migration/colo-failover.c
+ create mode 100644 migration/colo.c
+ create mode 100644 net/colo-nic.c
+ create mode 100755 scripts/colo-proxy-script.sh
+ create mode 100644 stubs/migration-colo.c
 
-SN:
-br0: 192.168.0.88
-br1: no ip address
-eth1: 192.168.1.88
-eth2: 192.168.2.88
+-- 
+1.7.12.4
 
-
-============================== After failover ================================
-                                  +--------+
-                                  | client |
-                                  +----+---+
--------------------------+           |            ---------------------------+
-PN (dead)                |           +            |                SN (alive)|
-+-------+         +----[eth0]--X--[switch]-----[eth0]-------+                |
-|PVM    |     +---+-+    |                        |     +---+-+              |
-|     [tap0]--+ br0 |    |                        |     | br0 +--+           |
-|       |     +-----+  [eth1]--X--[forward]----[eth1]   +-----+  |           |
-+-------+                |                        |              |  +-------+|
-                          |                        |     +-----+  |  |    SVM||
-                        [eth2]-X-[checkpoint]---[eth2]   | br1 |  +[tap0]    ||
-                          |                        |     +-----+     |       ||
-                          |                        |                 +-------+|
--------------------------+                        +--------------------------+
-
-## Network flow
-
-### Receive packets from client (Input)
-
-                                 +------+
-                                 |Client|
-                                 +---+--+
-+-----------------------+          |         +------------------------+
-|PN                     |          v         |                      SN|
-|                 +---[eth0]<---[switch]     |         +--------+     |
-| +-------+       v     |                    |         |    SVM |     |
-| | PVM   |     +-+-+   |                    |      [tap0]      |     |
-| |     [tap0]<-+br0|   |                    |       ^ |        |     |
-| |       | |   +---+   |                    |       | +--------+     |
-| +-------+ |           |                    |     +-+-------------+  |
-|           +-------->[eth1]------------->[eth1]--->colo-proxy     |  |
-|           copy&forward|                    |     |*Adjust        |  |
-|                       |                    |     | Client's ack  |  |
-+-----------------------+                    +-----+---------------+--+
-
-   * colo-proxy on SN:
-     ** Capture the first ack from client, find out the initial seq number of the
-        tcp connection on PVM. (for seq number adjustment)
-     ** Adjust ack/sack from client until next checkpoint, make sure tcp
-        connection on SVM won't break.
-
-### Response packets (Output)
-
-                                      +------+
-                                      |Client|
-                                      +---^--+
-+----------------------------+          |         +------------------------+
-|PN                          +          +         |                      SN|
-| +----+  checkpoint   +-->[eth0]+-->[switch]     |         +---------+    |
-| |PVM |     ^  |      |     +                    |         +    SVM  |    |
-| +-+--+     |  v    +-+-+   |                    |      [tap0]       |    |
-|   |        |[tap0]->br0|   |                    |       + +         |    |
-+---v--+     |  ^    +---+   +                    +       | +---------+    |
-||Vhost|     |  |        ++[eth1]<------------+[eth1]<---+v-------------+  |
-+---+--+     |  |        |   +                    +      |colo-proxy    |  |
-|   |     No |  |Yes     |   |                    |      |*Adjust SVM's |  |
-+---|--------|--|--------|---+                    |      | Seq number   |  |
-|   |     identical?     |   |                    +------+--------------+--+
-| +-v-----+   ^    +-----v-+ |
-| |enqueue+---+    |enqueue| |
-| +-------+compare +-------+ |
-|                            |
-| colo-proxy                 |
-+----------------------------+
-
-
-
-   * colo-proxy on SN:
-     ** track the initial seq number of the tcp connection on SVM.
-        (for seq number adjustment)
-     ** Adjust seq number from SVM until next checkpoint.
-   * colo-proxy on PN:
-     ** enqueue the packets from SVM
-     ** enqueue the packets from PVM
-     ** compare the tcp payload data of these two queue
-     ** if the data is identical, release PVM queue, drop SVM queue
-     ** if the data is not identical, notice the upper layer(userspace tools:
-        QEMU or libxl on Xen) a checkpoint is needed
-     ** release PVM queue and drop SVM queue at checkpoint
-
-### After failover
-
-At this point, PN is dead, SVM is serving the clients.
-
-#### Receive packets from client (Input)
-
-               +------+
-               |Client|
-               +---+--+
-                   |
-               +---v--+
-               |Switch|
-               +---+--+
-                   v
-+-------------[eth0]--------------+
-|        |-------+             SN |
-| +------v---------+              |
-| |colo-proxy      |              |
-| |*Adjust client's|              |
-| | ack number     |              |
-| +------+---------+              |
-|        |                        |
-|        |       +-----------+    |
-|        |       |    SVM    |    |
-|        +--->[tap0]         |    |
-|                |           |    |
-|                +-----------+    |
-+---------------------------------+
-
-   * colo-proxy on SN:
-     ** Adjust the ack/sack number from client, this only applies to the existing
-        tcp connection.
-
-#### Response packets (Output)
-
-               +------+
-               |Client|
-               +---^--+
-                   |
-               +---+--+
-               |Switch|
-               +---^--+
-                   +
-+-------------[eth0]--------------+
-|        |-------^             SN |
-| +----------------+              |
-| |colo-proxy      |              |
-| |*Adjust SVM's   |              |
-| | seq number     |              |
-| +------^---------+              |
-|        |                        |
-|        |       +-----------+    |
-|        |       |    SVM    |    |
-|        +---+[tap0]         |    |
-|                |           |    |
-|                +-----------+    |
-+---------------------------------+
-
-   * colo-proxy on SN:
-     ** Adjust the seq number of the packets returned by SVM, this only applies
-        to the existing tcp connection.
-
-NOTE:
-We track the initial seq number of the tcp connection on both PVM/SVM so that
-we can calculate the offset when we do the seq adjustment after failover.
-
-## Implementation
-
-We archive our goal by extending nf_conntrack mechanism.
-
-There're 4 kernel modules in colo-proxy:
-
-### nf_conntrack_colo
-
-In this module We add an nf_conntrack extension named 'colo':
-<pre>
-static struct nf_ct_ext_type nf_ct_colo_extend __read_mostly = {
-      .len        = sizeof(struct nf_conn_colo),
-      .move       = nf_ct_colo_extend_move,
-      .destroy    = nf_ct_colo_extend_destroy,
-      .align      = __alignof__(struct nf_conn_colo),
-      .id		= NF_CT_EXT_COLO,
-};
-</pre>
-This extension hold essential states needed by colo-proxy. e.g. manage the
-node status, the tcp connection status.
-
-### xt_PMYCOLO
-
-This module is for PN. It do the following operations:
-
-* Register a xt_target(cooperate with iptables) to initiate the PN node
-    status, run a kernel thread to compare packets.
-<pre>
-static struct xt_target colo_primary_tg_regs[] __read_mostly = {
-	{
-		.name		= "PMYCOLO",
-		.family		= NFPROTO_UNSPEC,
-		.target		= colo_primary_tg,
-		.checkentry	= colo_primary_tg_check,
-		.destroy	= colo_primary_tg_destroy,
-		.targetsize	= sizeof(struct xt_colo_primary_info),
-		.table		= "mangle",
-		.hooks		= (1 << NF_INET_PRE_ROUTING),
-		.me		= THIS_MODULE,
-	},
-};
-
-static int colo_primary_tg_check(const struct xt_tgchk_param *par)
-{
-      /*
-       * Setup forward device, init primary node status, create kthread for
-       * packets comparison.
-       */
-}
-</pre>
-
-* Register a nf_queue_handler to enqueue packets sent by PVM.
-<pre>
-static const struct nf_queue_handler coloqh = {
-	.outfn	= &colo_enqueue_packet,
-};
-</pre>
-
-* Register some nf hooks to enqueue packets sent by SVM.
-<pre>
-static struct nf_hook_ops colo_primary_ops[] __read_mostly = {
-	{
-		.hook		= colo_slaver_queue_hook,
-		.owner		= THIS_MODULE,
-		.pf		= NFPROTO_IPV4,
-		.hooknum	= NF_INET_PRE_ROUTING,
-		.priority	= NF_IP_PRI_RAW + 1,
-	},
-	{
-		.hook		= colo_slaver_queue_hook,
-		.owner		= THIS_MODULE,
-		.pf		= NFPROTO_IPV6,
-		.hooknum	= NF_INET_PRE_ROUTING,
-		.priority	= NF_IP_PRI_RAW + 1,
-	},
-	{
-		.hook		= colo_slaver_arp_hook,
-		.owner		= THIS_MODULE,
-		.pf		= NFPROTO_ARP,
-		.hooknum	= NF_ARP_IN,
-		.priority	= NF_IP_PRI_FILTER + 1,
-	},
-};
-</pre>
-
-### xt_SECCOLO
-
-This module is for SN. It do the following operations:
-
-* Register a xt_target(cooperate with iptables) to initiate the SN node
-    status.
-<pre>
-static struct xt_target colo_secondary_tg_regs[] __read_mostly = {
-	{
-		.name		= "SECCOLO",
-		.family		= NFPROTO_UNSPEC,
-		.target		= colo_secondary_tg,
-		.checkentry	= colo_secondary_tg_check,
-		.destroy	= colo_secondary_tg_destroy,
-		.targetsize	= sizeof(struct xt_colo_secondary_info),
-		.table		= "mangle",
-		.hooks		= (1 << NF_INET_PRE_ROUTING),
-		.me		= THIS_MODULE,
-	},
-};
-</pre>
-
-* Register some nf hooks to track the initial seq number of the tcp
-    connections on both PVM/SVM, and do the seq adjustment for SVM(by
-    using the existing nf_conntrack_seqadj module).
-<pre>
-static struct nf_hook_ops colo_secondary_ops[] __read_mostly = {
-	{
-		.hook		= colo_secondary_hook,
-		.owner		= THIS_MODULE,
-		.pf		= NFPROTO_IPV4,
-		.hooknum	= NF_INET_PRE_ROUTING,
-		.priority	= NF_IP_PRI_MANGLE + 1,
-	},
-	{
-		.hook		= colo_secondary_hook,
-		.owner		= THIS_MODULE,
-		.pf		= NFPROTO_IPV6,
-		.hooknum	= NF_INET_PRE_ROUTING,
-		.priority	= NF_IP_PRI_MANGLE + 1,
-	},
-};
-</pre>
-
-### nfnetlink_colo
-
-This module is for communication with the userspace tools like QEMU or libxl.
-
-In this module, add a colo protocol to the existing nfnetlink mechanism.
-<pre>
-static const struct nfnetlink_subsystem nfulnl_subsys = {
-	.name		= "colo",
-	.subsys_id	= NFNL_SUBSYS_COLO,
-	.cb_count	= NFCOLO_MSG_MAX,
-	.cb		= nfnl_colo_cb,
-};
-
-static const struct nfnl_callback nfnl_colo_cb[NFCOLO_MSG_MAX] = {
-	[NFCOLO_KERNEL_NOTIFY] = { .call   = NULL,
-		.policy = NULL,
-		.attr_count = 0, },
-	[NFCOLO_DO_CHECKPOINT] = { .call   = colo_do_checkpoint,
-		.policy = nfnl_colo_policy,
-		.attr_count = NFNL_COLO_MAX, },
-	[NFCOLO_DO_FAILOVER] = { .call   = colo_do_failover,
-		.policy = nfnl_colo_policy,
-		.attr_count = NFNL_COLO_MAX, },
-	[NFCOLO_PROXY_INIT] = { .call   = colo_init_proxy,
-		.policy = nfnl_colo_policy,
-		.attr_count = NFNL_COLO_MAX, },
-	[NFCOLO_PROXY_RESET] = { .call   = colo_reset_proxy,
-		.policy = nfnl_colo_policy,
-		.attr_count = NFNL_COLO_MAX,},
-};
-</pre>
 
