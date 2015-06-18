@@ -1,48 +1,67 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH net-next 00/15] Simplify netfilter and network
- namespaces
-Date: Thu, 18 Jun 2015 22:21:15 +0300 (EEST)
-Message-ID: <alpine.LFD.2.11.1506182210240.1659@ja.home.ssi.bg>
-References: <87616ppt3h.fsf@x220.int.ebiederm.org> <alpine.LFD.2.11.1506172216440.2649@ja.home.ssi.bg> <87wpz25a2q.fsf@x220.int.ebiederm.org> <alpine.LFD.2.11.1506180055030.3621@ja.home.ssi.bg> <87fv5p2hzg.fsf@x220.int.ebiederm.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net-next 00/43] Simplify netfilter and network namespaces
+ (take 2)
+Date: Thu, 18 Jun 2015 21:40:23 +0200
+Message-ID: <20150618194023.GA3057@salvia>
+References: <87616ppt3h.fsf@x220.int.ebiederm.org>
+ <87r3pae5hn.fsf@x220.int.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Jamal Hadi Salim <jhs@mojatatu.com>,
+	Steffen Klassert <steffen.klassert@secunet.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>
 To: "Eric W. Biederman" <ebiederm@xmission.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <87fv5p2hzg.fsf@x220.int.ebiederm.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:56598 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751674AbbFRTfF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Jun 2015 15:35:05 -0400
+Content-Disposition: inline
+In-Reply-To: <87r3pae5hn.fsf@x220.int.ebiederm.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+On Wed, Jun 17, 2015 at 10:09:40AM -0500, Eric W. Biederman wrote:
+[...]
+> There are a few extra cleanups in the first group of changes sprinkled
+> in as I noticed a few other things as I was sorting out the network
+> namespace computation logic.
 
-	Hello,
+This is a rather large patchset that address many pernet issues in the
+netfilter codebase, I would classify them in:
 
-On Thu, 18 Jun 2015, Eric W. Biederman wrote:
+1) Patches to prepare the ground for easier pernet integration.
 
-> My incremental patch for ipvs on top of everything else I have pushed
-> out looks like this:
-> 
-> From: "Eric W. Biederman" <ebiederm@xmission.com>
-> Date: Fri, 12 Jun 2015 18:34:12 -0500
-> Subject: [PATCH] ipvs: Pass struct net down to where it is needed and used
-> 
-> Pass struct net down to where it is used and stop guessing
-> which network namespace should be used.
+2) Get rid of the dev_net(dev) ? ... : ...; pattern all around the
+   netfilter code.
 
-	At first look patch is ok. But I'm not sure
-for the changes in ip_vs_xmit.c. Can you explain in
-2-3 lines, when can we see different netns? Is it when
-packet is forwarded to output device and it is part from
-another netns?
+3) Missing pernet sysctl support is some spots, eg. br_netfilter.
 
-	I'm asking because these __ip_vs_get_out_rt*
-calls in ip_vs_xmit.c can reroute packet to another
-device...
+4) Pernet hooks, probably the largest changeset in this pile and the
+   most important one IMO.
 
-	Also, skb_sknet is another candidate for removal.
-But I can take care about it after your changes are
-pushed...
+So given that it's quite evident that netfilter netns support is
+half-cooked and there's room for improvement in it, as we've been
+receiving patches to partially add support on things that people
+sporadically needed, could you please split this in several (smaller)
+batches in logical changes for easier review?
 
-Regards
+On a different front, nfnetlink_log and nfnetlink_queue also still
+lack of netns support so patches for that would be also appreciated in
+another different round.
 
---
-Julian Anastasov <ja@ssi.bg>
+I'm going to take as much of small preparation patches that I can to
+reduce your patchload:
+
+1/43, 8/43, 16/43, 17/43, 18/43, 26/43
+
+Thank you.
