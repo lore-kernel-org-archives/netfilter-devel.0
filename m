@@ -1,399 +1,219 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next, v2 3/3] netfilter: nf_tables: add nft_tee expression
-Date: Thu, 18 Jun 2015 20:13:59 +0200
-Message-ID: <1434651239-6953-3-git-send-email-pablo@netfilter.org>
-References: <1434651239-6953-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, arturo.borrero.glez@gmail.com
+Subject: [PATCH nf-next 2/2] netfilter: nft_counter: add per-cpu support
+Date: Thu, 18 Jun 2015 20:21:37 +0200
+Message-ID: <1434651697-9905-2-git-send-email-pablo@netfilter.org>
+References: <1434651697-9905-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, fw@strlen.de, eric.dumazet@gmail.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45075 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:46186 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756900AbbFRSIp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Jun 2015 14:08:45 -0400
-In-Reply-To: <1434651239-6953-1-git-send-email-pablo@netfilter.org>
+	id S1754705AbbFRSQV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Jun 2015 14:16:21 -0400
+In-Reply-To: <1434651697-9905-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This new expression uses the nf_tee engine to clone packets to a given gateway.
-
-It should be possible to reduce memory consumption a bit through select_ops(),
-but this would make it more complicated to share code with x_tables though.  I
-expect little rules using this expression, so I think it's fine to start with
-this approach.
-
-Based on original work from Arturo Borrero Gonzalez, although this patch has
-diverted quite a bit from this initial effort due to the change to support maps.
+This patch adds rule per-cpu counters. This introduces a new NFTA_COUNTER_TYPE
+netlink attribute to indicate the type of counters to be used. The default is
+the compact seqlock representation for compatibility.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v2: This includes support for maps.
-
- include/net/netfilter/nft_tee.h          |   11 +++
  include/uapi/linux/netfilter/nf_tables.h |   14 ++++
- net/ipv4/netfilter/Kconfig               |    7 ++
- net/ipv4/netfilter/Makefile              |    1 +
- net/ipv4/netfilter/nft_tee_ipv4.c        |  120 ++++++++++++++++++++++++++++++
- net/ipv6/netfilter/Kconfig               |    7 ++
- net/ipv6/netfilter/Makefile              |    1 +
- net/ipv6/netfilter/nft_tee_ipv6.c        |  119 +++++++++++++++++++++++++++++
- 8 files changed, 280 insertions(+)
- create mode 100644 include/net/netfilter/nft_tee.h
- create mode 100644 net/ipv4/netfilter/nft_tee_ipv4.c
- create mode 100644 net/ipv6/netfilter/nft_tee_ipv6.c
+ net/netfilter/nft_counter.c              |  129 +++++++++++++++++++++++++++++-
+ 2 files changed, 139 insertions(+), 4 deletions(-)
 
-diff --git a/include/net/netfilter/nft_tee.h b/include/net/netfilter/nft_tee.h
-new file mode 100644
-index 0000000..8b39b9a
---- /dev/null
-+++ b/include/net/netfilter/nft_tee.h
-@@ -0,0 +1,11 @@
-+#ifndef _NFT_TEE_H_
-+#define _NFT_TEE_H_
-+
-+#include <net/netfilter/nf_tee.h>
-+
-+struct nft_tee {
-+	enum nft_registers	sreg_gw:8;
-+	struct nf_tee		tee;
-+};
-+
-+#endif /* _NFT_TEE_H_ */
 diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index da3b505..28f0e93 100644
+index a99e6a9..da3b505 100644
 --- a/include/uapi/linux/netfilter/nf_tables.h
 +++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -950,6 +950,20 @@ enum nft_redir_attributes {
- #define NFTA_REDIR_MAX		(__NFTA_REDIR_MAX - 1)
+@@ -771,15 +771,29 @@ enum nft_limit_attributes {
+ #define NFTA_LIMIT_MAX		(__NFTA_LIMIT_MAX - 1)
  
  /**
-+ * enum nft_tee_attributes - nf_tables tee expression netlink attributes
++ * enum nft_counter_types - nf_tables counter types
 + *
-+ * @NFTA_TEE_SREG_GW: source register of gateway address (NLA_NESTED: nft_data_attributes)
-+ * @NFTA_TEE_OIFNAME: output interface name (NLA_STRING)
++ * @NFT_COUNTER_DEFAULT: default seqlock counter
++ * @NFT_COUNTER_PERCPU: percpu counter
 + */
-+enum nft_tee_attributes {
-+	NFTA_TEE_UNSPEC,
-+	NFTA_TEE_SREG_GW,
-+	NFTA_TEE_OIFNAME,
-+	__NFTA_TEE_MAX
++enum nft_counter_types {
++	NFT_COUNTER_DEFAULT	= 0,
++	NFT_COUNTER_PERCPU,
++	NFT_COUNTER_MAX
 +};
-+#define NFTA_TEE_MAX		(__NFTA_TEE_MAX - 1)
 +
 +/**
-  * enum nft_gen_attributes - nf_tables ruleset generation attributes
+  * enum nft_counter_attributes - nf_tables counter expression netlink attributes
   *
-  * @NFTA_GEN_ID: Ruleset generation ID (NLA_U32)
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 2153bb2..73c3842 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -58,6 +58,13 @@ config NFT_REJECT_IPV4
- 	default NFT_REJECT
- 	tristate
+  * @NFTA_COUNTER_BYTES: number of bytes (NLA_U64)
+  * @NFTA_COUNTER_PACKETS: number of packets (NLA_U64)
++ * @NFTA_COUNTER_TYPE: counter type (NLA_U32: nft_counter_types)
+  */
+ enum nft_counter_attributes {
+ 	NFTA_COUNTER_UNSPEC,
+ 	NFTA_COUNTER_BYTES,
+ 	NFTA_COUNTER_PACKETS,
++	NFTA_COUNTER_TYPE,
+ 	__NFTA_COUNTER_MAX
+ };
+ #define NFTA_COUNTER_MAX	(__NFTA_COUNTER_MAX - 1)
+diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
+index ad78fda..6fcb0e9d 100644
+--- a/net/netfilter/nft_counter.c
++++ b/net/netfilter/nft_counter.c
+@@ -52,9 +52,9 @@ static int nft_counter_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 		packets	= priv->counter.packets;
+ 	} while (read_seqretry(&priv->lock, seq));
  
-+config NFT_TEE_IPV4
-+	tristate "IPv4 tee suport for nf_tables"
-+	select NF_TEE
-+	select NF_TEE_IPV4
-+	help
-+	  This is the module that provides IPv4 tee support for nf_tables.
-+
- endif # NF_TABLES_IPV4
+-	if (nla_put_be64(skb, NFTA_COUNTER_BYTES, cpu_to_be64(bytes)))
+-		goto nla_put_failure;
+-	if (nla_put_be64(skb, NFTA_COUNTER_PACKETS, cpu_to_be64(packets)))
++	if (nla_put_be64(skb, NFTA_COUNTER_BYTES, cpu_to_be64(bytes)) ||
++	    nla_put_be64(skb, NFTA_COUNTER_PACKETS, cpu_to_be64(packets)) ||
++	    nla_put_be32(skb, NFTA_COUNTER_TYPE, htonl(NFT_COUNTER_DEFAULT)))
+ 		goto nla_put_failure;
+ 	return 0;
  
- config NF_TABLES_ARP
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index 6b492de..08a008c 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -41,6 +41,7 @@ obj-$(CONFIG_NFT_CHAIN_NAT_IPV4) += nft_chain_nat_ipv4.o
- obj-$(CONFIG_NFT_REJECT_IPV4) += nft_reject_ipv4.o
- obj-$(CONFIG_NFT_MASQ_IPV4) += nft_masq_ipv4.o
- obj-$(CONFIG_NFT_REDIR_IPV4) += nft_redir_ipv4.o
-+obj-$(CONFIG_NFT_TEE_IPV4) += nft_tee_ipv4.o
- obj-$(CONFIG_NF_TABLES_ARP) += nf_tables_arp.o
+@@ -65,6 +65,7 @@ nla_put_failure:
+ static const struct nla_policy nft_counter_policy[NFTA_COUNTER_MAX + 1] = {
+ 	[NFTA_COUNTER_PACKETS]	= { .type = NLA_U64 },
+ 	[NFTA_COUNTER_BYTES]	= { .type = NLA_U64 },
++	[NFTA_COUNTER_TYPE]	= { .type = NLA_U32 },
+ };
  
- # generic IP tables 
-diff --git a/net/ipv4/netfilter/nft_tee_ipv4.c b/net/ipv4/netfilter/nft_tee_ipv4.c
-new file mode 100644
-index 0000000..a29dceb
---- /dev/null
-+++ b/net/ipv4/netfilter/nft_tee_ipv4.c
-@@ -0,0 +1,120 @@
-+/*
-+ * Copyright (c) 2015 Pablo Neira Ayuso <pablo@netfilter.org>
-+ * Copyright (c) 2015 Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ */
+ static int nft_counter_init(const struct nft_ctx *ctx,
+@@ -93,9 +94,129 @@ static const struct nft_expr_ops nft_counter_ops = {
+ 	.dump		= nft_counter_dump,
+ };
+ 
++struct nft_counter_percpu_priv {
++	struct nft_counter_percpu __percpu *counter;
++};
 +
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/netlink.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nft_tee.h>
-+#include <net/netfilter/ipv4/nf_tee_ipv4.h>
++struct nft_counter_percpu {
++	struct nft_counter	counter;
++	struct u64_stats_sync	syncp;
++};
 +
-+static void nft_tee_ipv4_eval(const struct nft_expr *expr,
-+			      struct nft_regs *regs,
-+			      const struct nft_pktinfo *pkt)
++static int nft_counter_percpu_init(const struct nft_ctx *ctx,
++				   const struct nft_expr *expr,
++				   const struct nlattr * const tb[])
 +{
-+	struct nft_tee *priv = nft_expr_priv(expr);
-+	struct in_addr gw = {
-+		.s_addr = regs->data[priv->sreg_gw],
-+	};
++	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
++	struct nft_counter_percpu __percpu *cpu_stats;
++	struct nft_counter_percpu *this_cpu;
 +
-+	nf_tee_ipv4(pkt->skb, &priv->tee, pkt->ops->hooknum, &gw);
++	cpu_stats = netdev_alloc_pcpu_stats(struct nft_counter_percpu);
++	if (cpu_stats == NULL)
++		return ENOMEM;
++
++	preempt_disable();
++	this_cpu = this_cpu_ptr(cpu_stats);
++	if (tb[NFTA_COUNTER_PACKETS]) {
++	        this_cpu->counter.packets =
++			be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_PACKETS]));
++	}
++	if (tb[NFTA_COUNTER_BYTES]) {
++		this_cpu->counter.bytes =
++			be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_BYTES]));
++	}
++	preempt_enable();
++
++	priv->counter = cpu_stats;
++
++	return 0;
 +}
 +
-+static int nft_tee_ipv4_init(const struct nft_ctx *ctx,
-+			     const struct nft_expr *expr,
-+			     const struct nlattr * const tb[])
++static void nft_counter_percpu_destroy(const struct nft_ctx *ctx,
++				       const struct nft_expr *expr)
 +{
-+	struct nft_tee *priv = nft_expr_priv(expr);
-+	char oifname[IFNAMSIZ];
-+	int err;
++	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
 +
-+	if (tb[NFTA_TEE_SREG_GW] == NULL)
-+		return -EINVAL;
-+
-+	priv->sreg_gw = nft_parse_register(tb[NFTA_TEE_SREG_GW]);
-+	err = nft_validate_register_load(priv->sreg_gw, sizeof(struct in_addr));
-+	if (err < 0)
-+		return err;
-+
-+	memset(oifname, 0, sizeof(oifname));
-+	if (tb[NFTA_TEE_OIFNAME] != NULL)
-+		nla_strlcpy(oifname, tb[NFTA_TEE_OIFNAME], sizeof(oifname));
-+
-+	return nf_tee_init(&priv->tee, oifname);
++	free_percpu(priv->counter);
 +}
 +
-+static void nft_tee_ipv4_destroy(const struct nft_ctx *ctx,
-+				 const struct nft_expr *expr)
++static void nft_counter_percpu_eval(const struct nft_expr *expr,
++				    struct nft_regs *regs,
++				    const struct nft_pktinfo *pkt)
 +{
-+	struct nft_tee *priv = nft_expr_priv(expr);
++	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
++	struct nft_counter_percpu *this_cpu;
 +
-+	nf_tee_fini(&priv->tee);
++	this_cpu = this_cpu_ptr(priv->counter);
++	this_cpu->counter.bytes += pkt->skb->len;
++	this_cpu->counter.packets++;
 +}
 +
-+static int nft_tee_ipv4_dump(struct sk_buff *skb, const struct nft_expr *expr)
++static int nft_counter_percpu_dump(struct sk_buff *skb,
++				   const struct nft_expr *expr)
 +{
-+	struct nft_tee *priv = nft_expr_priv(expr);
++	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
++	struct nft_counter_percpu *cpu_stats;
++	struct nft_counter total;
++	u64 bytes, packets;
++	unsigned int seq;
++	int cpu;
 +
-+	if (nft_dump_register(skb, NFTA_TEE_SREG_GW, priv->sreg_gw))
++	memset(&total, 0, sizeof(total));
++	for_each_possible_cpu(cpu) {
++		cpu_stats = per_cpu_ptr(priv->counter, cpu);
++		do {
++			bytes	= cpu_stats->counter.bytes;
++			packets	= cpu_stats->counter.packets;
++		} while (u64_stats_fetch_retry_irq(&cpu_stats->syncp, seq));
++
++		total.packets += packets;
++		total.bytes += bytes;
++	}
++
++	if (nla_put_be64(skb, NFTA_COUNTER_BYTES, cpu_to_be64(total.bytes)) ||
++	    nla_put_be64(skb, NFTA_COUNTER_PACKETS, cpu_to_be64(total.packets)) ||
++	    nla_put_be32(skb, NFTA_COUNTER_TYPE, htonl(NFT_COUNTER_PERCPU)))
 +		goto nla_put_failure;
 +
-+	if (priv->tee.oifname[0]) {
-+		if (nla_put_string(skb, NFTA_TEE_OIFNAME, priv->tee.oifname))
-+			goto nla_put_failure;
-+	}
 +	return 0;
 +
 +nla_put_failure:
 +	return -1;
 +}
 +
-+static struct nft_expr_type nft_tee_ipv4_type;
-+static const struct nft_expr_ops nft_tee_ipv4_ops = {
-+	.type		= &nft_tee_ipv4_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nf_tee)),
-+	.eval		= nft_tee_ipv4_eval,
-+	.init		= nft_tee_ipv4_init,
-+	.destroy	= nft_tee_ipv4_destroy,
-+	.dump		= nft_tee_ipv4_dump,
++static const struct nft_expr_ops nft_counter_percpu_ops = {
++	.type		= &nft_counter_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_counter_percpu_priv)),
++	.eval		= nft_counter_percpu_eval,
++	.init		= nft_counter_percpu_init,
++	.destroy	= nft_counter_percpu_destroy,
++	.dump		= nft_counter_percpu_dump,
 +};
 +
-+static const struct nla_policy nft_tee_ipv4_policy[NFTA_TEE_MAX + 1] = {
-+	[NFTA_TEE_SREG_GW]	= { .type = NLA_U32 },
-+	[NFTA_TEE_OIFNAME]	= { .type = NLA_STRING,
-+				    .len  = IFNAMSIZ - 1 },
-+};
-+
-+static struct nft_expr_type nft_tee_ipv4_type __read_mostly = {
-+	.family		= NFPROTO_IPV4,
-+	.name		= "tee",
-+	.ops		= &nft_tee_ipv4_ops,
-+	.policy		= nft_tee_ipv4_policy,
-+	.maxattr	= NFTA_TEE_MAX,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int __init nft_tee_ipv4_module_init(void)
++static const struct nft_expr_ops *
++nft_counter_select_ops(const struct nft_ctx *ctx,
++		       const struct nlattr * const tb[])
 +{
-+	return nft_register_expr(&nft_tee_ipv4_type);
-+}
++	u32 type;
 +
-+static void __exit nft_tee_ipv4_module_exit(void)
-+{
-+	nft_unregister_expr(&nft_tee_ipv4_type);
-+}
-+
-+module_init(nft_tee_ipv4_module_init);
-+module_exit(nft_tee_ipv4_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
-+MODULE_ALIAS_NFT_AF_EXPR(AF_INET, "tee");
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 92c37bb..ec8ece5 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -47,6 +47,13 @@ config NFT_REJECT_IPV6
- 	default NFT_REJECT
- 	tristate
- 
-+config NFT_TEE_IPV6
-+	tristate "IPv6 tee support for nf_tables"
-+	select NF_TEE
-+	select NF_TEE_IPV6
-+	help
-+	  This is the module that provides IPv6 tee support for nf_tables.
-+
- endif # NF_TABLES_IPV6
- endif # NF_TABLES
- 
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index b3a2946..da871e8 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -39,6 +39,7 @@ obj-$(CONFIG_NFT_CHAIN_NAT_IPV6) += nft_chain_nat_ipv6.o
- obj-$(CONFIG_NFT_REJECT_IPV6) += nft_reject_ipv6.o
- obj-$(CONFIG_NFT_MASQ_IPV6) += nft_masq_ipv6.o
- obj-$(CONFIG_NFT_REDIR_IPV6) += nft_redir_ipv6.o
-+obj-$(CONFIG_NFT_TEE_IPV6) += nft_tee_ipv6.o
- 
- # matches
- obj-$(CONFIG_IP6_NF_MATCH_AH) += ip6t_ah.o
-diff --git a/net/ipv6/netfilter/nft_tee_ipv6.c b/net/ipv6/netfilter/nft_tee_ipv6.c
-new file mode 100644
-index 0000000..e222487
---- /dev/null
-+++ b/net/ipv6/netfilter/nft_tee_ipv6.c
-@@ -0,0 +1,119 @@
-+/*
-+ * Copyright (c) 2015 Pablo Neira Ayuso <pablo@netfilter.org>
-+ * Copyright (c) 2015 Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/netlink.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nft_tee.h>
-+#include <net/netfilter/ipv6/nf_tee_ipv6.h>
-+
-+static void nft_tee_ipv6_eval(const struct nft_expr *expr,
-+			      struct nft_regs *regs,
-+			      const struct nft_pktinfo *pkt)
-+{
-+	struct nft_tee *priv = nft_expr_priv(expr);
-+	struct in6_addr gw;
-+
-+	memcpy(&gw, &regs->data[priv->sreg_gw], sizeof(struct in6_addr));
-+	nf_tee_ipv6(pkt->skb, &priv->tee, pkt->ops->hooknum, &gw);
-+}
-+
-+static int nft_tee_ipv6_init(const struct nft_ctx *ctx,
-+			     const struct nft_expr *expr,
-+			     const struct nlattr * const tb[])
-+{
-+	struct nft_tee *priv = nft_expr_priv(expr);
-+	char oifname[IFNAMSIZ];
-+	int err;
-+
-+	if (tb[NFTA_TEE_SREG_GW] == NULL)
-+		return -EINVAL;
-+
-+	priv->sreg_gw = nft_parse_register(tb[NFTA_TEE_SREG_GW]);
-+	err = nft_validate_register_load(priv->sreg_gw, sizeof(struct in6_addr));
-+	if (err < 0)
-+		return err;
-+
-+	memset(oifname, 0, sizeof(oifname));
-+	if (tb[NFTA_TEE_OIFNAME] != NULL)
-+		nla_strlcpy(oifname, tb[NFTA_TEE_OIFNAME], sizeof(oifname));
-+
-+	return nf_tee_init(&priv->tee, oifname);
-+}
-+
-+static void nft_tee_ipv6_destroy(const struct nft_ctx *ctx,
-+				 const struct nft_expr *expr)
-+{
-+	struct nft_tee *priv = nft_expr_priv(expr);
-+
-+	nf_tee_fini(&priv->tee);
-+}
-+
-+static int nft_tee_ipv6_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+{
-+	struct nft_tee *priv = nft_expr_priv(expr);
-+
-+	if (nft_dump_register(skb, NFTA_TEE_SREG_GW, priv->sreg_gw))
-+		goto nla_put_failure;
-+
-+	if (priv->tee.oifname[0]) {
-+		if (nla_put_string(skb, NFTA_TEE_OIFNAME, priv->tee.oifname))
-+			goto nla_put_failure;
++	if (tb[NFTA_COUNTER_TYPE]) {
++		type = ntohl(nla_get_be32(tb[NFTA_COUNTER_TYPE]));
++		switch (type) {
++		case NFT_COUNTER_DEFAULT:
++			return &nft_counter_ops;
++		case NFT_COUNTER_PERCPU:
++			return &nft_counter_percpu_ops;
++		default:
++			return ERR_PTR(-EINVAL);
++		}
 +	}
-+
-+
-+nla_put_failure:
-+	return -1;
++	return &nft_counter_ops;
 +}
 +
-+static struct nft_expr_type nft_tee_ipv6_type;
-+static const struct nft_expr_ops nft_tee_ipv6_ops = {
-+	.type		= &nft_tee_ipv6_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nf_tee)),
-+	.eval		= nft_tee_ipv6_eval,
-+	.init		= nft_tee_ipv6_init,
-+	.destroy	= nft_tee_ipv6_destroy,
-+	.dump		= nft_tee_ipv6_dump,
-+};
-+
-+static const struct nla_policy nft_tee_ipv6_policy[NFTA_TEE_MAX + 1] = {
-+	[NFTA_TEE_SREG_GW]	= { .type = NLA_U32 },
-+	[NFTA_TEE_OIFNAME]	= { .type = NLA_STRING,
-+				    .len  = IFNAMSIZ - 1 },
-+};
-+
-+static struct nft_expr_type nft_tee_ipv6_type __read_mostly = {
-+	.family		= NFPROTO_IPV6,
-+	.name		= "tee",
-+	.ops		= &nft_tee_ipv6_ops,
-+	.policy		= nft_tee_ipv6_policy,
-+	.maxattr	= NFTA_TEE_MAX,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int __init nft_tee_ipv6_module_init(void)
-+{
-+	return nft_register_expr(&nft_tee_ipv6_type);
-+}
-+
-+static void __exit nft_tee_ipv6_module_exit(void)
-+{
-+	nft_unregister_expr(&nft_tee_ipv6_type);
-+}
-+
-+module_init(nft_tee_ipv6_module_init);
-+module_exit(nft_tee_ipv6_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
-+MODULE_ALIAS_NFT_AF_EXPR(AF_INET6, "tee");
+ static struct nft_expr_type nft_counter_type __read_mostly = {
+ 	.name		= "counter",
+-	.ops		= &nft_counter_ops,
++	.select_ops	= &nft_counter_select_ops,
+ 	.policy		= nft_counter_policy,
+ 	.maxattr	= NFTA_COUNTER_MAX,
+ 	.flags		= NFT_EXPR_STATEFUL,
 -- 
 1.7.10.4
 
