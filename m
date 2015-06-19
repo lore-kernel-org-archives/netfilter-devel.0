@@ -1,342 +1,330 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH libnftnl] expr: add new nft_tee expression
-Date: Fri, 19 Jun 2015 12:22:38 +0200
-Message-ID: <1434709358-29261-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, arturo.borrero.glez@gmail.com
+Subject: [PATCH nft] src: add tee statement
+Date: Fri, 19 Jun 2015 12:26:34 +0200
+Message-ID: <1434709594-6460-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36052 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37675 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750868AbbFSKR0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Jun 2015 06:17:26 -0400
+	id S1753942AbbFSKVQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 19 Jun 2015 06:21:16 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Arturo Borrero <arturo.borrero.glez@gmail.com>
+This allows you to clone packets to some destination, eg.
 
-This patch gives support in libnftnl to the new nft_tee expression.
+... tee gateway 172.20.0.2
+... tee oifname tap0 gateway ip saddr map { 192.168.0.2 : 172.20.0.2, ... }
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/libnftnl/expr.h             |    5 +
- include/linux/netfilter/nf_tables.h |   14 +++
- src/Makefile.am                     |    1 +
- src/expr/tee.c                      |  234 +++++++++++++++++++++++++++++++++++
- src/expr_ops.c                      |    2 +
- 5 files changed, 256 insertions(+)
- create mode 100644 src/expr/tee.c
+ include/statement.h       |    9 +++++++++
+ src/evaluate.c            |   21 +++++++++++++++++++--
+ src/netlink_delinearize.c |   39 +++++++++++++++++++++++++++++++++++++++
+ src/netlink_linearize.c   |   21 +++++++++++++++++++++
+ src/parser_bison.y        |   18 ++++++++++++++++++
+ src/scanner.l             |    2 ++
+ src/statement.c           |   29 +++++++++++++++++++++++++++++
+ 7 files changed, 137 insertions(+), 2 deletions(-)
 
-diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
-index 94ff125..39c2f0e 100644
---- a/include/libnftnl/expr.h
-+++ b/include/libnftnl/expr.h
-@@ -174,6 +174,11 @@ enum {
- 	NFT_EXPR_REDIR_FLAGS,
- };
- 
-+enum {
-+	NFT_EXPR_TEE_SREG_GW		= NFT_RULE_EXPR_ATTR_BASE,
-+	NFT_EXPR_TEE_OIFNAME,
+diff --git a/include/statement.h b/include/statement.h
+index 48e6130..5c8e08d 100644
+--- a/include/statement.h
++++ b/include/statement.h
+@@ -103,6 +103,12 @@ struct ct_stmt {
+ extern struct stmt *ct_stmt_alloc(const struct location *loc,
+ 				  enum nft_ct_keys key,
+ 				  struct expr *expr);
++struct tee_stmt {
++	struct expr		*gw;
++	const char		*oifname;
 +};
 +
- #ifdef __cplusplus
- } /* extern "C" */
- #endif
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index fa05fbe..22af138 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -950,6 +950,20 @@ enum nft_redir_attributes {
- #define NFTA_REDIR_MAX		(__NFTA_REDIR_MAX - 1)
++struct stmt *tee_stmt_alloc(const struct location *loc);
+ 
+ struct set_stmt {
+ 	struct expr		*set;
+@@ -129,6 +135,7 @@ extern struct stmt *set_stmt_alloc(const struct location *loc);
+  * @STMT_QUEUE:		QUEUE statement
+  * @STMT_CT:		conntrack statement
+  * @STMT_SET:		set statement
++ * @STMT_TEE:		tee statement
+  */
+ enum stmt_types {
+ 	STMT_INVALID,
+@@ -145,6 +152,7 @@ enum stmt_types {
+ 	STMT_QUEUE,
+ 	STMT_CT,
+ 	STMT_SET,
++	STMT_TEE,
+ };
  
  /**
-+ * enum nft_tee_attributes - nf_tables tee expression netlink attributes
-+ *
-+ * @NFTA_TEE_SREG_GW: source register of gateway address (NLA_NESTED: nft_data_attributes)
-+ * @NFTA_TEE_OIFNAME: output interface name (NLA_STRING)
-+ */
-+enum nft_tee_attributes {
-+	NFTA_TEE_UNSPEC,
-+	NFTA_TEE_SREG_GW,
-+	NFTA_TEE_OIFNAME,
-+	__NFTA_TEE_MAX
-+};
-+#define NFTA_TEE_MAX		(__NFTA_TEE_MAX - 1)
-+
-+/**
-  * enum nft_gen_attributes - nf_tables ruleset generation attributes
-  *
-  * @NFTA_GEN_ID: Ruleset generation ID (NLA_U32)
-diff --git a/src/Makefile.am b/src/Makefile.am
-index dd87240..7c3a25e 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -41,4 +41,5 @@ libnftnl_la_SOURCES = utils.c		\
- 		      expr/target.c	\
- 		      expr/masq.c	\
- 		      expr/redir.c	\
-+		      expr/tee.c	\
- 		      libnftnl.map
-diff --git a/src/expr/tee.c b/src/expr/tee.c
-new file mode 100644
-index 0000000..16d7d92
---- /dev/null
-+++ b/src/expr/tee.c
-@@ -0,0 +1,234 @@
-+/*
-+ * (C) 2015 Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ * (C) 2015 Pablo Neira Ayuso <pablo@netfilter.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published
-+ * by the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <stdio.h>
-+#include <stdint.h>
-+#include <string.h>
-+#include <arpa/inet.h>
-+#include <errno.h>
-+#include "internal.h"
-+#include <libmnl/libmnl.h>
-+#include <linux/netfilter/nf_tables.h>
-+#include <libnftnl/expr.h>
-+#include <libnftnl/rule.h>
-+#include "expr_ops.h"
-+#include "data_reg.h"
-+#include <buffer.h>
-+
-+#ifndef IFNAMSIZ
-+#define IFNAMSIZ	16
-+#endif
-+
-+struct nft_expr_tee {
-+	enum nft_registers	sreg_gw;
-+	char			oifname[IFNAMSIZ];
-+};
-+
-+static int nft_rule_expr_tee_set(struct nft_rule_expr *e, uint16_t type,
-+				 const void *data, uint32_t data_len)
-+{
-+	struct nft_expr_tee *tee = nft_expr_data(e);
-+
-+	switch (type) {
-+	case NFT_EXPR_TEE_SREG_GW:
-+		tee->sreg_gw = *((uint32_t *)data);
-+		break;
-+	case NFT_EXPR_TEE_OIFNAME:
-+		strncpy(tee->oifname, data, IFNAMSIZ);
-+		tee->oifname[IFNAMSIZ - 1] = '\0';
-+		break;
-+	default:
-+		return -1;
-+	}
-+	return 0;
-+}
-+
-+static const void *nft_rule_expr_tee_get(const struct nft_rule_expr *e,
-+					 uint16_t type, uint32_t *data_len)
-+{
-+	struct nft_expr_tee *tee = nft_expr_data(e);
-+
-+	switch (type) {
-+	case NFT_EXPR_TEE_SREG_GW:
-+		*data_len = sizeof(tee->sreg_gw);
-+		return &tee->sreg_gw;
-+	case NFT_EXPR_TEE_OIFNAME:
-+		*data_len = strlen(tee->oifname) + 1;
-+		return tee->oifname;
-+	}
-+	return NULL;
-+}
-+
-+static int nft_rule_expr_tee_cb(const struct nlattr *attr, void *data)
-+{
-+	const struct nlattr **tb = data;
-+	int type = mnl_attr_get_type(attr);
-+
-+	if (mnl_attr_type_valid(attr, NFTA_TEE_MAX) < 0)
-+		return MNL_CB_OK;
-+
-+	switch (type) {
-+	case NFTA_TEE_SREG_GW:
-+		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
-+			abi_breakage();
-+		break;
-+	case NFTA_TEE_OIFNAME:
-+		if (mnl_attr_validate(attr, MNL_TYPE_STRING) < 0)
-+			abi_breakage();
-+		break;
-+	}
-+
-+	tb[type] = attr;
-+	return MNL_CB_OK;
-+}
-+
-+static void nft_rule_expr_tee_build(struct nlmsghdr *nlh,
-+				    struct nft_rule_expr *e)
-+{
-+	struct nft_expr_tee *tee = nft_expr_data(e);
-+
-+	if (e->flags & (1 << NFT_EXPR_TEE_SREG_GW))
-+		mnl_attr_put_u32(nlh, NFTA_TEE_SREG_GW, htonl(tee->sreg_gw));
-+	if (e->flags & (1 << NFT_EXPR_TEE_OIFNAME))
-+		mnl_attr_put_strz(nlh, NFTA_TEE_OIFNAME, tee->oifname);
-+}
-+
-+static int nft_rule_expr_tee_parse(struct nft_rule_expr *e, struct nlattr *attr)
-+{
-+	struct nft_expr_tee *tee = nft_expr_data(e);
-+	struct nlattr *tb[NFTA_TEE_MAX + 1] = {};
-+	int ret = 0;
-+
-+	if (mnl_attr_parse_nested(attr, nft_rule_expr_tee_cb, tb) < 0)
-+		return -1;
-+
-+	if (tb[NFTA_TEE_OIFNAME]) {
-+		strncpy(tee->oifname, mnl_attr_get_str(tb[NFTA_TEE_OIFNAME]),
-+			sizeof(tee->oifname));
-+		tee->oifname[IFNAMSIZ - 1] = '\0';
-+		e->flags |= (1 << NFT_EXPR_TEE_OIFNAME);
-+	}
-+	if (tb[NFTA_TEE_SREG_GW]) {
-+		tee->sreg_gw = ntohl(mnl_attr_get_u32(tb[NFTA_TEE_SREG_GW]));
-+		e->flags |= (1 << NFT_EXPR_TEE_SREG_GW);
-+	}
-+
-+	return ret;
-+}
-+
-+static int nft_rule_expr_tee_json_parse(struct nft_rule_expr *e, json_t *root,
-+					struct nft_parse_err *err)
-+{
-+#ifdef JSON_PARSING
-+	struct nft_expr_tee *tee = nft_expr_data(e);
-+	int datareg_type;
-+	const char *oifname;
-+
-+	oifname = nft_jansson_parse_str(root, "oifname", err);
-+	if (oifname != NULL)
-+		nft_rule_expr_set_str(e, NFT_EXPR_TEE_OIFNAME, oifname);
-+
-+	ret = nft_jansson_parse_val(root, "sreg_gw", NFT_TYPE_U32, &sreg_gw, err);
-+	if (ret >= 0)
-+		nft_rule_expr_set_u32(e, NFT_EXPR_TEE_SREG_GW, sreg_gw);
-+
-+	return 0;
-+#else
-+	errno = EOPNOTSUPP;
-+	return -1;
-+#endif
-+}
-+
-+static int nft_rule_expr_tee_xml_parse(struct nft_rule_expr *e,
-+				       mxml_node_t *tree,
-+				       struct nft_parse_err *err)
-+{
-+#ifdef XML_PARSING
-+	struct nft_expr_tee *tee = nft_expr_data(e);
-+	const char *oifname;
-+	uint32_t sreg_gw;
-+
-+	oifname = nft_mxml_str_parse(tree, "oifname", MXML_DESCEND_FIRST,
-+				     NFT_XML_OPT, err);
-+	if (oifname != NULL)
-+		nft_rule_expr_set_str(e, NFT_EXPR_TEE_OIFNAME, oifname);
-+
-+	if (nft_mxml_reg_parse(tree, "sreg_gw", &sreg_gw, MXML_DESCEND_FIRST,
-+			       NFT_XML_OPT, err) == 0)
-+		nft_rule_expr_set_u32(e, NFT_EXPR_TEE_SREG_GW, sreg_gw);
-+
-+	return 0;
-+#else
-+	errno = EOPNOTSUPP;
-+	return -1;
-+#endif
-+}
-+
-+static int nft_rule_expr_tee_export(char *buf, size_t size,
-+				    struct nft_rule_expr *e, int type)
-+{
-+	struct nft_expr_tee *tee = nft_expr_data(e);
-+	NFT_BUF_INIT(b, buf, size);
-+
-+	if (e->flags & (1 << NFT_EXPR_TEE_SREG_GW))
-+		nft_buf_u32(&b, type, tee->sreg_gw, "sreg_gw");
-+	if (e->flags & (1 << NFT_EXPR_TEE_OIFNAME))
-+		nft_buf_str(&b, type, tee->oifname, "oifname");
-+
-+	return nft_buf_done(&b);
-+}
-+
-+static int nft_rule_expr_tee_snprintf_default(char *buf, size_t len,
-+					      struct nft_rule_expr *e,
-+					      uint32_t flags)
-+{
-+	int size = len, offset = 0, ret;
-+	struct nft_expr_tee *tee = nft_expr_data(e);
-+
-+	if (e->flags & (1 << NFT_EXPR_TEE_SREG_GW)) {
-+		ret = snprintf(buf + offset, len, "sreg_gw %u", tee->sreg_gw);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+
-+	if (e->flags & (1 << NFT_EXPR_TEE_OIFNAME)) {
-+		ret = snprintf(buf + offset, len, "oifname %s", tee->oifname);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
-+
-+	return offset;
-+}
-+
-+static int nft_rule_expr_tee_snprintf(char *buf, size_t len, uint32_t type,
-+				      uint32_t flags, struct nft_rule_expr *e)
-+{
-+	switch (type) {
-+	case NFT_OUTPUT_DEFAULT:
-+		return nft_rule_expr_tee_snprintf_default(buf, len, e, flags);
-+	case NFT_OUTPUT_XML:
-+	case NFT_OUTPUT_JSON:
-+		return nft_rule_expr_tee_export(buf, len, e, type);
-+	default:
-+		break;
-+	}
-+	return -1;
-+}
-+
-+struct expr_ops expr_ops_tee = {
-+	.name		= "tee",
-+	.alloc_len	= sizeof(struct nft_expr_tee),
-+	.max_attr	= NFTA_TEE_MAX,
-+	.set		= nft_rule_expr_tee_set,
-+	.get		= nft_rule_expr_tee_get,
-+	.parse		= nft_rule_expr_tee_parse,
-+	.build		= nft_rule_expr_tee_build,
-+	.snprintf	= nft_rule_expr_tee_snprintf,
-+	.xml_parse	= nft_rule_expr_tee_xml_parse,
-+	.json_parse	= nft_rule_expr_tee_json_parse,
-+};
-diff --git a/src/expr_ops.c b/src/expr_ops.c
-index 2de5805..3fea180 100644
---- a/src/expr_ops.c
-+++ b/src/expr_ops.c
-@@ -23,6 +23,7 @@ extern struct expr_ops expr_ops_redir;
- extern struct expr_ops expr_ops_reject;
- extern struct expr_ops expr_ops_queue;
- extern struct expr_ops expr_ops_target;
-+extern struct expr_ops expr_ops_tee;
- extern struct expr_ops expr_ops_dynset;
- 
- static struct expr_ops *expr_ops[] = {
-@@ -45,6 +46,7 @@ static struct expr_ops *expr_ops[] = {
- 	&expr_ops_reject,
- 	&expr_ops_queue,
- 	&expr_ops_target,
-+	&expr_ops_tee,
- 	&expr_ops_dynset,
- 	NULL,
+@@ -195,6 +203,7 @@ struct stmt {
+ 		struct queue_stmt	queue;
+ 		struct ct_stmt		ct;
+ 		struct set_stmt		set;
++		struct tee_stmt		tee;
+ 	};
  };
+ 
+diff --git a/src/evaluate.c b/src/evaluate.c
+index d99b38f..f29c716 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1557,7 +1557,7 @@ static int nat_evaluate_family(struct eval_ctx *ctx, struct stmt *stmt)
+ 	}
+ }
+ 
+-static int nat_evaluate_addr(struct eval_ctx *ctx, struct stmt *stmt,
++static int evaluate_addr(struct eval_ctx *ctx, struct stmt *stmt,
+ 			     struct expr **expr)
+ {
+ 	struct proto_ctx *pctx = &ctx->pctx;
+@@ -1599,7 +1599,7 @@ static int stmt_evaluate_nat(struct eval_ctx *ctx, struct stmt *stmt)
+ 		return err;
+ 
+ 	if (stmt->nat.addr != NULL) {
+-		err = nat_evaluate_addr(ctx, stmt, &stmt->nat.addr);
++		err = evaluate_addr(ctx, stmt, &stmt->nat.addr);
+ 		if (err < 0)
+ 			return err;
+ 	}
+@@ -1643,6 +1643,21 @@ static int stmt_evaluate_redir(struct eval_ctx *ctx, struct stmt *stmt)
+ 	return 0;
+ }
+ 
++static int stmt_evaluate_tee(struct eval_ctx *ctx, struct stmt *stmt)
++{
++	int err;
++
++	err = nat_evaluate_family(ctx, stmt);
++	if (err < 0)
++		return err;
++
++	err = evaluate_addr(ctx, stmt, &stmt->tee.gw);
++	if (err < 0)
++		return err;
++
++	return 0;
++}
++
+ static int stmt_evaluate_queue(struct eval_ctx *ctx, struct stmt *stmt)
+ {
+ 	if (stmt->queue.queue != NULL) {
+@@ -1726,6 +1741,8 @@ int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
+ 		return stmt_evaluate_redir(ctx, stmt);
+ 	case STMT_QUEUE:
+ 		return stmt_evaluate_queue(ctx, stmt);
++	case STMT_TEE:
++		return stmt_evaluate_tee(ctx, stmt);
+ 	case STMT_SET:
+ 		return stmt_evaluate_set(ctx, stmt);
+ 	default:
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 6d60be3..d0f9154 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -747,6 +747,40 @@ static void netlink_parse_redir(struct netlink_parse_ctx *ctx,
+ 	list_add_tail(&stmt->list, &ctx->rule->stmts);
+ }
+ 
++static void netlink_parse_tee(struct netlink_parse_ctx *ctx,
++			      const struct location *loc,
++			      const struct nft_rule_expr *nle)
++{
++	struct stmt *stmt;
++	struct expr *addr;
++	enum nft_registers reg1;
++
++	stmt = tee_stmt_alloc(loc);
++
++	reg1 = netlink_parse_register(nle, NFT_EXPR_TEE_SREG_GW);
++	if (reg1) {
++		addr = netlink_get_register(ctx, loc, reg1);
++		if (addr == NULL)
++			return netlink_error(ctx, loc,
++					     "TEE statement has no address "
++					     "expression");
++
++		if (ctx->table->handle.family == NFPROTO_IPV4)
++			expr_set_type(addr, &ipaddr_type, BYTEORDER_BIG_ENDIAN);
++		else
++			expr_set_type(addr, &ip6addr_type,
++				      BYTEORDER_BIG_ENDIAN);
++		stmt->tee.gw = addr;
++	}
++
++	if (nft_rule_expr_is_set(nle, NFT_EXPR_TEE_OIFNAME)) {
++		stmt->tee.oifname =
++			strdup(nft_rule_expr_get_str(nle, NFT_EXPR_TEE_OIFNAME));
++	}
++
++	list_add_tail(&stmt->list, &ctx->rule->stmts);
++}
++
+ static void netlink_parse_queue(struct netlink_parse_ctx *ctx,
+ 			      const struct location *loc,
+ 			      const struct nft_rule_expr *nle)
+@@ -835,6 +869,7 @@ static const struct {
+ 	{ .name = "nat",	.parse = netlink_parse_nat },
+ 	{ .name = "masq",	.parse = netlink_parse_masq },
+ 	{ .name = "redir",	.parse = netlink_parse_redir },
++	{ .name = "tee",	.parse = netlink_parse_tee },
+ 	{ .name = "queue",	.parse = netlink_parse_queue },
+ 	{ .name = "dynset",	.parse = netlink_parse_dynset },
+ };
+@@ -1365,6 +1400,10 @@ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *r
+ 		case STMT_SET:
+ 			expr_postprocess(&rctx, &stmt->set.key);
+ 			break;
++		case STMT_TEE:
++			if (stmt->tee.gw!= NULL)
++				expr_postprocess(&rctx, &stmt->tee.gw);
++			break;
+ 		default:
+ 			break;
+ 		}
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index bf1e56b..2a4f567 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -802,6 +802,25 @@ static void netlink_gen_redir_stmt(struct netlink_linearize_ctx *ctx,
+ 	nft_rule_add_expr(ctx->nlr, nle);
+ }
+ 
++static void netlink_gen_tee_stmt(struct netlink_linearize_ctx *ctx,
++				 const struct stmt *stmt)
++{
++	struct nft_rule_expr *nle;
++	const char *oifname = stmt->tee.oifname;
++	enum nft_registers sreg_gw;
++
++	nle = alloc_nft_expr("tee");
++
++	sreg_gw = get_register(ctx, stmt->tee.gw);
++	netlink_gen_expr(ctx, stmt->tee.gw, sreg_gw);
++	netlink_put_register(nle, NFT_EXPR_TEE_SREG_GW, sreg_gw);
++	release_register(ctx, stmt->tee.gw);
++
++	if (oifname != NULL)
++		nft_rule_expr_set_str(nle, NFT_EXPR_TEE_OIFNAME, oifname);
++	nft_rule_add_expr(ctx->nlr, nle);
++}
++
+ static void netlink_gen_queue_stmt(struct netlink_linearize_ctx *ctx,
+ 				 const struct stmt *stmt)
+ {
+@@ -892,6 +911,8 @@ static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
+ 		return netlink_gen_masq_stmt(ctx, stmt);
+ 	case STMT_REDIR:
+ 		return netlink_gen_redir_stmt(ctx, stmt);
++	case STMT_TEE:
++		return netlink_gen_tee_stmt(ctx, stmt);
+ 	case STMT_QUEUE:
+ 		return netlink_gen_queue_stmt(ctx, stmt);
+ 	case STMT_CT:
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 5c4e272..16c17e6 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -390,6 +390,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token BYPASS			"bypass"
+ %token FANOUT			"fanout"
+ 
++%token TEE			"tee"
++
+ %token POSITION			"position"
+ %token COMMENT			"comment"
+ 
+@@ -457,6 +459,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <stmt>			queue_stmt queue_stmt_alloc
+ %destructor { stmt_free($$); }	queue_stmt queue_stmt_alloc
+ %type <val>			queue_stmt_flags queue_stmt_flag
++%type <stmt>			tee_stmt
++%destructor { stmt_free($$); }	tee_stmt
+ %type <stmt>			set_stmt
+ %destructor { stmt_free($$); }	set_stmt
+ %type <val>			set_stmt_op
+@@ -1275,6 +1279,7 @@ stmt			:	verdict_stmt
+ 			|	ct_stmt
+ 			|	masq_stmt
+ 			|	redir_stmt
++			|	tee_stmt
+ 			|	set_stmt
+ 			;
+ 
+@@ -1538,6 +1543,19 @@ redir_stmt_arg		:	TO	expr
+ 			}
+ 			;
+ 
++tee_stmt		:	TEE	GATEWAY	expr
++			{
++				$$ = tee_stmt_alloc(&@$);
++				$$->tee.gw = $3;
++			}
++			|	TEE	OIFNAME	string	GATEWAY expr
++			{
++				$$ = tee_stmt_alloc(&@$);
++				$$->tee.oifname = strdup($3);
++				$$->tee.gw = $5;
++			}
++			;
++
+ nf_nat_flags		:	nf_nat_flag
+ 			|	nf_nat_flags	COMMA	nf_nat_flag
+ 			{
+diff --git a/src/scanner.l b/src/scanner.l
+index 985ea2a..d4f706f 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -454,6 +454,8 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "proto-dst"		{ return PROTO_DST; }
+ "label"			{ return LABEL; }
+ 
++"tee"			{ return TEE; }
++
+ "xml"			{ return XML; }
+ "json"			{ return JSON; }
+ 
+diff --git a/src/statement.c b/src/statement.c
+index 9ebc593..267be5e 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -408,3 +408,32 @@ struct stmt *set_stmt_alloc(const struct location *loc)
+ {
+ 	return stmt_alloc(loc, &set_stmt_ops);
+ }
++
++static void tee_stmt_print(const struct stmt *stmt)
++{
++	printf("tee");
++	if (stmt->tee.oifname != NULL)
++		printf(" oifname %s", stmt->tee.oifname);
++
++	printf(" gateway ");
++	expr_print(stmt->tee.gw);
++}
++
++static void tee_stmt_destroy(struct stmt *stmt)
++{
++	expr_free(stmt->tee.gw);
++	if (stmt->tee.oifname != NULL)
++		xfree(stmt->tee.oifname);
++}
++
++static const struct stmt_ops tee_stmt_ops = {
++	.type		= STMT_TEE,
++	.name		= "tee",
++	.print		= tee_stmt_print,
++	.destroy	= tee_stmt_destroy,
++};
++
++struct stmt *tee_stmt_alloc(const struct location *loc)
++{
++	return stmt_alloc(loc, &tee_stmt_ops);
++}
 -- 
 1.7.10.4
 
