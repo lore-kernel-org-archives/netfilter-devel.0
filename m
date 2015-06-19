@@ -1,14 +1,14 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next, v3] netfilter: nft_counter: convert it to use per-cpu counters
-Date: Fri, 19 Jun 2015 12:33:44 +0200
-Message-ID: <1434710024-23163-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next, v4] netfilter: nft_counter: convert it to use per-cpu counters
+Date: Fri, 19 Jun 2015 12:40:57 +0200
+Message-ID: <1434710457-2823-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net, fw@strlen.de, eric.dumazet@gmail.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40757 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43965 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751311AbbFSK2d (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Jun 2015 06:28:33 -0400
+	id S1750857AbbFSKfp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 19 Jun 2015 06:35:45 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -21,7 +21,7 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
  1 file changed, 69 insertions(+), 28 deletions(-)
 
 diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index 1759123..3e946de 100644
+index 1759123..84b22d8 100644
 --- a/net/netfilter/nft_counter.c
 +++ b/net/netfilter/nft_counter.c
 @@ -18,40 +18,58 @@
@@ -55,11 +55,11 @@ index 1759123..3e946de 100644
 +	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
 +	struct nft_counter_percpu *this_cpu;
 +
-+	u64_stats_update_begin(&priv->counter->syncp);
 +	this_cpu = this_cpu_ptr(priv->counter);
++	u64_stats_update_begin(&this_cpu->syncp);
 +	this_cpu->counter.bytes += pkt->skb->len;
 +	this_cpu->counter.packets++;
-+	u64_stats_update_end(&priv->counter->syncp);
++	u64_stats_update_end(&this_cpu->syncp);
  }
  
  static int nft_counter_dump(struct sk_buff *skb, const struct nft_expr *expr)
