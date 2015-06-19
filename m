@@ -1,63 +1,35 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nft 3/3] rule: fix use of intervals in set declarations
-Date: Fri, 19 Jun 2015 15:13:36 +0200
-Message-ID: <20150619131336.GH22946@acer.localdomain>
-References: <1434719718-10371-1-git-send-email-pablo@netfilter.org>
- <1434719718-10371-3-git-send-email-pablo@netfilter.org>
+From: Patrick Schaaf <netdev@bof.de>
+Subject: Re: [PATCH nft] src: add tee statement
+Date: Fri, 19 Jun 2015 15:17:59 +0200
+Message-ID: <2024102.ynN6JVsV1M@rofl>
+References: <1434709594-6460-1-git-send-email-pablo@netfilter.org> <20150619125724.GG22946@acer.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, admin@rollinix.net,
-	niels@kristensen.io, tom@compton.nu
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:56368 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751914AbbFSNNk (ORCPT
+Received: from mars.intermailgate.com ([80.242.145.70]:37676 "EHLO
+	mars.intermailgate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397AbbFSNSD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Jun 2015 09:13:40 -0400
-Content-Disposition: inline
-In-Reply-To: <1434719718-10371-3-git-send-email-pablo@netfilter.org>
+	Fri, 19 Jun 2015 09:18:03 -0400
+In-Reply-To: <20150619125724.GG22946@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->  static int do_add_setelems(struct netlink_ctx *ctx, const struct handle *h,
-> -			   const struct expr *expr)
-> +			   const struct location *loc, struct expr *expr)
->  {
-> -	if (netlink_add_setelems(ctx, h, expr) < 0)
-> +	struct set *set;
-> +
-> +	if (netlink_get_set(ctx, h, loc) < 0)
+On Friday 19 June 2015 14:57:24 Patrick McHardy wrote:
+>
+> Is tee a name we want to use for userspace syntax? It's not particulary
+> descriptive for people who don't know what "tee" is, which I guess are
+> quite a few.
 
-I think we should get it from the internal list and not from the
-kernel. We can't add intervals to existing sets so far anyways,
-and this would allow it, but it wouldn't work.
+Naming the thing "tee" was a conscious decision when I invented the it as an 
+option to the ROUTE target back in 2004  - because it is a huge foot gun, and 
+obscurity seemed appropriate.
 
->  		return -1;
-> +
-> +	list_for_each_entry(set, &ctx->list, list) {
-> +		if (set->flags & SET_F_INTERVAL &&
-> +		    set_to_intervals(ctx->msgs, set, expr) < 0)
-> +			return -1;
-> +
-> +		if (netlink_add_setelems(ctx, h, expr) < 0)
-> +			return -1;
-> +	}
->  	return 0;
->  }
->  
-> @@ -756,7 +767,8 @@ static int do_command_add(struct netlink_ctx *ctx, struct cmd *cmd, bool excl)
->  	case CMD_OBJ_SET:
->  		return do_add_set(ctx, &cmd->handle, cmd->set);
->  	case CMD_OBJ_SETELEM:
-> -		return do_add_setelems(ctx, &cmd->handle, cmd->expr);
-> +		return do_add_setelems(ctx, &cmd->handle, &cmd->location,
-> +				       cmd->expr);
->  	default:
->  		BUG("invalid command object type %u\n", cmd->obj);
->  	}
-> -- 
-> 1.7.10.4
-> 
+best regards
+  Patrick
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
