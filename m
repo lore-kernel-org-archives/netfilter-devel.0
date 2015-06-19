@@ -1,7 +1,7 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH nft 3/3] rule: fix use of intervals in set declarations
-Date: Fri, 19 Jun 2015 20:01:20 +0200
-Message-ID: <7D8E0E24-6ABD-4844-8C69-E433ADA2B969@trash.net>
+Date: Fri, 19 Jun 2015 20:15:01 +0200
+Message-ID: <28C126EF-7F7A-438A-9882-BA84FB960517@trash.net>
 References: <1434719718-10371-1-git-send-email-pablo@netfilter.org> <1434719718-10371-3-git-send-email-pablo@netfilter.org> <20150619131336.GH22946@acer.localdomain> <20150619134816.GA19433@salvia> <20150619134444.GL22946@acer.localdomain> <20150619135958.GA19487@salvia> <20150619135948.GM22946@acer.localdomain> <20150619174046.GA4741@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -11,11 +11,11 @@ Cc: netfilter-devel@vger.kernel.org, admin@rollinix.net,
 	niels@kristensen.io, tom@compton.nu
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58692 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:58811 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755289AbbFSSBa (ORCPT
+	with ESMTP id S1753856AbbFSSPK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Jun 2015 14:01:30 -0400
+	Fri, 19 Jun 2015 14:15:10 -0400
 In-Reply-To: <20150619174046.GA4741@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -90,17 +90,16 @@ Am 19. Juni 2015 19:40:46 MESZ, schrieb Pablo Neira Ayuso <pablo@netfilter.org>:
 >   transaction.
 >
 >Is this your idea? So it looks like we need a bit more userspace code.
-
-Yep, almost. The segtree will take care of overlaps, but it priotizes based on interval size, in case of incremental updates I think the newer intervals should always take precedence.
-
-Regarding updating the kernel, we need a Set generation id to make sure we're transforming the correct contents.
-
 >
 >With the existing approach, the kernel rejects overlapping segments
 >with -EEXIST, so if the user is careful to avoid them there should be
 >no problem. It's more restrictive than what the logic above, but set
 >declarations with intervals will work until that code lands in the
 >tree.
+
+Sorry, missed this part. Are you sure about that? I'm pretty sure we only reject exact duplicates. Otherwise I'd agree, that would be fine for now.
+
+
 >
 >Thanks.
 
