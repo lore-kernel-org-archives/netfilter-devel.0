@@ -1,77 +1,63 @@
 From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH net-next 00/15] Simplify netfilter and network namespaces
-Date: Fri, 19 Jun 2015 09:24:45 -0500
-Message-ID: <87lhff22tu.fsf@x220.int.ebiederm.org>
-References: <87616ppt3h.fsf@x220.int.ebiederm.org>
-	<alpine.LFD.2.11.1506172216440.2649@ja.home.ssi.bg>
-	<87wpz25a2q.fsf@x220.int.ebiederm.org>
-	<alpine.LFD.2.11.1506180055030.3621@ja.home.ssi.bg>
-	<87fv5p2hzg.fsf@x220.int.ebiederm.org>
-	<alpine.LFD.2.11.1506182210240.1659@ja.home.ssi.bg>
+Subject: [PATCH net] netfilter: nftables: Do not run chains in the wrong network namespace
+Date: Fri, 19 Jun 2015 10:41:21 -0500
+Message-ID: <87oakbg0ym.fsf@x220.int.ebiederm.org>
 Mime-Version: 1.0
 Content-Type: text/plain
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
+Cc: <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out02.mta.xmission.com ([166.70.13.232]:60259 "EHLO
-	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751101AbbFSOaH (ORCPT
+Received: from out01.mta.xmission.com ([166.70.13.231]:37886 "EHLO
+	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750732AbbFSPqm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Jun 2015 10:30:07 -0400
-In-Reply-To: <alpine.LFD.2.11.1506182210240.1659@ja.home.ssi.bg> (Julian
-	Anastasov's message of "Thu, 18 Jun 2015 22:21:15 +0300 (EEST)")
+	Fri, 19 Jun 2015 11:46:42 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Julian Anastasov <ja@ssi.bg> writes:
 
-> 	Hello,
->
-> On Thu, 18 Jun 2015, Eric W. Biederman wrote:
->
->> My incremental patch for ipvs on top of everything else I have pushed
->> out looks like this:
->> 
->> From: "Eric W. Biederman" <ebiederm@xmission.com>
->> Date: Fri, 12 Jun 2015 18:34:12 -0500
->> Subject: [PATCH] ipvs: Pass struct net down to where it is needed and used
->> 
->> Pass struct net down to where it is used and stop guessing
->> which network namespace should be used.
->
-> 	At first look patch is ok. But I'm not sure
-> for the changes in ip_vs_xmit.c. Can you explain in
-> 2-3 lines, when can we see different netns? Is it when
-> packet is forwarded to output device and it is part from
-> another netns?
->
-> 	I'm asking because these __ip_vs_get_out_rt*
-> calls in ip_vs_xmit.c can reroute packet to another
-> device...
+Currenlty nf_tables chains added in one network namespace are being
+run in all network namespace.  The issues are myriad with the simplest
+being an unprivileged user can cause any network packets to be dropped.
 
-The driver was ensure_mtu_is_adequate where in one half
-of the function we have skb_net another half we have 
-dev_net(dst_skb(skb)->dev).    That is goofy.
+Address this by simply not running nf_tables chains in the wrong
+network namespace.
 
-That gets replaced by ip_vs_conn_net(cp).
+Cc: stable@vger.kernel.org
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+---
+ net/netfilter/nf_tables_core.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-In practice today I don't see that there are differences in
-network namespaces today.
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index f153b07073af..f77bad46ac68 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -114,7 +114,8 @@ unsigned int
+ nft_do_chain(struct nft_pktinfo *pkt, const struct nf_hook_ops *ops)
+ {
+ 	const struct nft_chain *chain = ops->priv, *basechain = chain;
+-	const struct net *net = read_pnet(&nft_base_chain(basechain)->pnet);
++	const struct net *chain_net = read_pnet(&nft_base_chain(basechain)->pnet);
++	const struct net *net = dev_net(pkt->in ? pkt->in : pkt->out);
+ 	const struct nft_rule *rule;
+ 	const struct nft_expr *expr, *last;
+ 	struct nft_regs regs;
+@@ -124,6 +125,10 @@ nft_do_chain(struct nft_pktinfo *pkt, const struct nf_hook_ops *ops)
+ 	int rulenum;
+ 	unsigned int gencursor = nft_genmask_cur(net);
+ 
++	/* Ignore chains that are not for the current network namespace */
++	if (!net_eq(net, chain_net))
++		return NF_ACCEPT;
++
+ do_chain:
+ 	rulenum = 0;
+ 	rule = list_entry(&chain->rules, struct nft_rule, list);
+-- 
+2.2.1
 
-Moving forward I hope to be able to route packets out to network devices
-in different network namespaces. It is a massive optimization that
-doesn't need much code to support.  Once that optimization is in place
-deriving the network namespace from the output device will not work.
-
-I believe using ip_vs_conn_net(cp) is a simple rule that is easy to
-understand and easy to implement correctly on the output path.
-
-> 	Also, skb_sknet is another candidate for removal.
-> But I can take care about it after your changes are
-> pushed...
-
-*nod*
-
-Eric
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
