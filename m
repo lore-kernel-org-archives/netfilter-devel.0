@@ -1,163 +1,63 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next, v4] netfilter: nft_counter: convert it to use per-cpu counters
-Date: Fri, 19 Jun 2015 12:40:57 +0200
-Message-ID: <1434710457-2823-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, fw@strlen.de, eric.dumazet@gmail.com
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nft] src: add tee statement
+Date: Fri, 19 Jun 2015 14:57:24 +0200
+Message-ID: <20150619125724.GG22946@acer.localdomain>
+References: <1434709594-6460-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43965 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750857AbbFSKfp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Jun 2015 06:35:45 -0400
+Received: from stinky.trash.net ([213.144.137.162]:56228 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751494AbbFSM52 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 19 Jun 2015 08:57:28 -0400
+Content-Disposition: inline
+In-Reply-To: <1434709594-6460-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch converts the existing seqlock to per-cpu counters.
+On 19.06, Pablo Neira Ayuso wrote:
+> This allows you to clone packets to some destination, eg.
+> 
+> ... tee gateway 172.20.0.2
+> ... tee oifname tap0 gateway ip saddr map { 192.168.0.2 : 172.20.0.2, ... }
 
-Suggested-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_counter.c |   97 ++++++++++++++++++++++++++++++-------------
- 1 file changed, 69 insertions(+), 28 deletions(-)
+Is tee a name we want to use for userspace syntax? It's not particulary
+descriptive for people who don't know what "tee" is, which I guess are
+quite a few. Alternative suggestion of the top of my head would be "dup"
+or "duplicate".
 
-diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index 1759123..84b22d8 100644
---- a/net/netfilter/nft_counter.c
-+++ b/net/netfilter/nft_counter.c
-@@ -18,40 +18,58 @@
- #include <net/netfilter/nf_tables.h>
- 
- struct nft_counter {
--	seqlock_t	lock;
- 	u64		bytes;
- 	u64		packets;
- };
- 
-+struct nft_counter_percpu {
-+	struct nft_counter	counter;
-+	struct u64_stats_sync	syncp;
-+};
-+
-+struct nft_counter_percpu_priv {
-+	struct nft_counter_percpu __percpu *counter;
-+};
-+
- static void nft_counter_eval(const struct nft_expr *expr,
- 			     struct nft_regs *regs,
- 			     const struct nft_pktinfo *pkt)
- {
--	struct nft_counter *priv = nft_expr_priv(expr);
--
--	write_seqlock_bh(&priv->lock);
--	priv->bytes += pkt->skb->len;
--	priv->packets++;
--	write_sequnlock_bh(&priv->lock);
-+	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
-+	struct nft_counter_percpu *this_cpu;
-+
-+	this_cpu = this_cpu_ptr(priv->counter);
-+	u64_stats_update_begin(&this_cpu->syncp);
-+	this_cpu->counter.bytes += pkt->skb->len;
-+	this_cpu->counter.packets++;
-+	u64_stats_update_end(&this_cpu->syncp);
- }
- 
- static int nft_counter_dump(struct sk_buff *skb, const struct nft_expr *expr)
- {
--	struct nft_counter *priv = nft_expr_priv(expr);
-+	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
-+	struct nft_counter_percpu *cpu_stats;
-+	struct nft_counter total;
-+	u64 bytes, packets;
- 	unsigned int seq;
--	u64 bytes;
--	u64 packets;
--
--	do {
--		seq = read_seqbegin(&priv->lock);
--		bytes	= priv->bytes;
--		packets	= priv->packets;
--	} while (read_seqretry(&priv->lock, seq));
--
--	if (nla_put_be64(skb, NFTA_COUNTER_BYTES, cpu_to_be64(bytes)))
--		goto nla_put_failure;
--	if (nla_put_be64(skb, NFTA_COUNTER_PACKETS, cpu_to_be64(packets)))
-+	int cpu;
-+
-+	memset(&total, 0, sizeof(total));
-+	for_each_possible_cpu(cpu) {
-+		cpu_stats = per_cpu_ptr(priv->counter, cpu);
-+		do {
-+			bytes	= cpu_stats->counter.bytes;
-+			packets	= cpu_stats->counter.packets;
-+		} while (u64_stats_fetch_retry_irq(&cpu_stats->syncp, seq));
-+
-+		total.packets += packets;
-+		total.bytes += bytes;
-+	}
-+
-+	if (nla_put_be64(skb, NFTA_COUNTER_BYTES, cpu_to_be64(total.bytes)) ||
-+	    nla_put_be64(skb, NFTA_COUNTER_PACKETS, cpu_to_be64(total.packets)))
- 		goto nla_put_failure;
-+
- 	return 0;
- 
- nla_put_failure:
-@@ -67,23 +85,46 @@ static int nft_counter_init(const struct nft_ctx *ctx,
- 			    const struct nft_expr *expr,
- 			    const struct nlattr * const tb[])
- {
--	struct nft_counter *priv = nft_expr_priv(expr);
-+	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
-+	struct nft_counter_percpu __percpu *cpu_stats;
-+	struct nft_counter_percpu *this_cpu;
-+
-+	cpu_stats = netdev_alloc_pcpu_stats(struct nft_counter_percpu);
-+	if (cpu_stats == NULL)
-+		return ENOMEM;
-+
-+	preempt_disable();
-+	this_cpu = this_cpu_ptr(cpu_stats);
-+	if (tb[NFTA_COUNTER_PACKETS]) {
-+	        this_cpu->counter.packets =
-+			be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_PACKETS]));
-+	}
-+	if (tb[NFTA_COUNTER_BYTES]) {
-+		this_cpu->counter.bytes =
-+			be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_BYTES]));
-+	}
-+	preempt_enable();
-+
-+	priv->counter = cpu_stats;
- 
--	if (tb[NFTA_COUNTER_PACKETS])
--	        priv->packets = be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_PACKETS]));
--	if (tb[NFTA_COUNTER_BYTES])
--		priv->bytes = be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_BYTES]));
--
--	seqlock_init(&priv->lock);
- 	return 0;
- }
- 
-+static void nft_counter_destroy(const struct nft_ctx *ctx,
-+				const struct nft_expr *expr)
-+{
-+	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
-+
-+	free_percpu(priv->counter);
-+}
-+
- static struct nft_expr_type nft_counter_type;
- static const struct nft_expr_ops nft_counter_ops = {
- 	.type		= &nft_counter_type,
--	.size		= NFT_EXPR_SIZE(sizeof(struct nft_counter)),
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_counter_percpu_priv)),
- 	.eval		= nft_counter_eval,
- 	.init		= nft_counter_init,
-+	.destroy	= nft_counter_destroy,
- 	.dump		= nft_counter_dump,
- };
- 
--- 
-1.7.10.4
+> +struct tee_stmt {
+> +	struct expr		*gw;
+> +	const char		*oifname;
 
+I'd suggest to use an expr as well to allow use of symbolic variables.
+BTW, have you considered using an ifindex? I mean, we do it for matches
+as well, and in case of tee its rather unlikely to be used with a
+dynamic network device.
+
+> +	reg1 = netlink_parse_register(nle, NFT_EXPR_TEE_SREG_GW);
+> +	if (reg1) {
+> +		addr = netlink_get_register(ctx, loc, reg1);
+> +		if (addr == NULL)
+> +			return netlink_error(ctx, loc,
+> +					     "TEE statement has no address "
+> +					     "expression");
+> +
+> +		if (ctx->table->handle.family == NFPROTO_IPV4)
+> +			expr_set_type(addr, &ipaddr_type, BYTEORDER_BIG_ENDIAN);
+> +		else
+> +			expr_set_type(addr, &ip6addr_type,
+> +				      BYTEORDER_BIG_ENDIAN);
+> +		stmt->tee.gw = addr;
+> +	}
+> +
+> +	if (nft_rule_expr_is_set(nle, NFT_EXPR_TEE_OIFNAME)) {
+> +		stmt->tee.oifname =
+> +			strdup(nft_rule_expr_get_str(nle, NFT_EXPR_TEE_OIFNAME));
+
+Please use consistent braces, IOW none for single statements.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
