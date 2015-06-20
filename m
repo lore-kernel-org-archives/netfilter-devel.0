@@ -1,60 +1,94 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 00/32] Netfilter updates for net-next
-Date: Sat, 20 Jun 2015 20:30:06 +0200
-Message-ID: <20150620183006.GA3362@salvia>
-References: <1434403589-24796-1-git-send-email-pablo@netfilter.org>
- <20150620151130.74b68b6c@north>
+Subject: Re: [PATCH nft 3/3] rule: fix use of intervals in set declarations
+Date: Sat, 20 Jun 2015 20:37:28 +0200
+Message-ID: <20150620183728.GC3362@salvia>
+References: <1434719718-10371-3-git-send-email-pablo@netfilter.org>
+ <20150619131336.GH22946@acer.localdomain>
+ <20150619134816.GA19433@salvia>
+ <20150619134444.GL22946@acer.localdomain>
+ <20150619135958.GA19487@salvia>
+ <20150619135948.GM22946@acer.localdomain>
+ <20150619174046.GA4741@salvia>
+ <28C126EF-7F7A-438A-9882-BA84FB960517@trash.net>
+ <20150620110643.GA4159@salvia>
+ <20150620114133.GB6915@acer.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Bernhard Thaler <bernhard.thaler@wvnet.at>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, kbuild test robot <fengguang.wu@intel.com>
-To: Jakub =?utf-8?B?S2ljacWEc2tp?= <moorray3@wp.pl>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, admin@rollinix.net,
+	niels@kristensen.io, tom@compton.nu
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34383 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34721 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753701AbbFTSYr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Jun 2015 14:24:47 -0400
+	id S1754873AbbFTScG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 20 Jun 2015 14:32:06 -0400
 Content-Disposition: inline
-In-Reply-To: <20150620151130.74b68b6c@north>
+In-Reply-To: <20150620114133.GB6915@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jun 20, 2015 at 03:11:30PM +0200, Jakub Kici=C5=84ski wrote:
-> On Mon, 15 Jun 2015 23:25:57 +0200, Pablo Neira Ayuso wrote:
-> > Hi David,
-> >=20
-> > This a bit large (and late) patchset that contains Netfilter update=
-s for
-> > net-next. Most relevantly br_netfilter fixes, ipset RCU support, re=
-moval of
-> > x_tables percpu ruleset copy and rework of the nf_tables netdev sup=
-port. More
-> > specifically, they are:
-> [...]
-> > ----------------------------------------------------------------
-> > Bernhard Thaler (7):
-> >       netfilter: bridge: refactor clearing BRNF_NF_BRIDGE_PREROUTIN=
-G
-> >       netfilter: bridge: re-order br_nf_pre_routing_finish_ipv6()
-> >       netfilter: bridge: detect NAT66 correctly and change MAC addr=
-ess
-> >       netfilter: bridge: refactor frag_max_size
-> >       netfilter: bridge: rename br_parse_ip_options
-> >       netfilter: bridge: re-order check_hbh_len()
-> >       netfilter: bridge: forward IPv6 fragmented packets
->=20
-> Pablo, Bernhard,
->=20
-> this batch breaks builds with CONFIG_IPV6=3Dn.  No idea why build bot
-> didn't catch that.
+On Sat, Jun 20, 2015 at 01:41:34PM +0200, Patrick McHardy wrote:
+> On 20.06, Pablo Neira Ayuso wrote:
+> > On Fri, Jun 19, 2015 at 08:15:01PM +0200, Patrick McHardy wrote:
+> > [...]
+> > > >OK, so that transformation would look like:
+> > > >
+> > > >1) Fetch the existing elements in the set via netlink.
+> > > >2) Handle merges with the elements that the user has passed through
+> > > >   command line.
+> > > >3) Build the segtree.
+> > > >4) Push it into the kernel. We need to mark all existing elements for
+> > > >   the deletion plus add the new elements, all that in one single
+> > > >   transaction.
+> > > >
+> > > >Is this your idea? So it looks like we need a bit more userspace code.
+> > > >
+> > > >With the existing approach, the kernel rejects overlapping segments
+> > > >with -EEXIST, so if the user is careful to avoid them there should be
+> > > >no problem. It's more restrictive than what the logic above, but set
+> > > >declarations with intervals will work until that code lands in the
+> > > >tree.
+> > > 
+> > > Sorry, missed this part. Are you sure about that? I'm pretty sure we
+> > > only reject exact duplicates. Otherwise I'd agree, that would be
+> > > fine for now.
+> > 
+> > Yes, overlapping segments are rejected:
+> > 
+> > # nft add element test myset { 1.2.3.0/24 }
+> > # nft add element test myset { 1.2.3.1 }
+> > <cmdline>:1:1-34: Error: Could not process rule: File exists
+> > add element test myset { 1.2.3.1 }
+> > ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> > # nft add element test myset { 1.2.3.0 }
+> > <cmdline>:1:1-34: Error: Could not process rule: File exists
+> > add element test myset { 1.2.3.0 }
+> > ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> > # nft add element test myset { 1.2.3.255 }
+> > <cmdline>:1:1-36: Error: Could not process rule: File exists
+> > add element test myset { 1.2.3.255 }
+> > ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> > # nft add element test myset { 1.2.3.30-1.2.4.30 }
+> > <cmdline>:1:1-44: Error: Could not process rule: File exists
+> > add element test myset { 1.2.3.30-1.2.4.30 }
+> > ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 
+> I think this is basically by accident. Does it also reject if the
+> second segment starts *before* the first one? IOW, 192.168.1.0/24
+> and 192.168.0.0/16?
 
-There is a pending pull request to address this fallout:
+At quick test it does:
 
-http://patchwork.ozlabs.org/patch/486819/
+# nft add element test myset2 { 192.168.1.0/24 }
+# nft add element test myset2 { 192.168.1.0/16 }
+<cmdline>:1:1-42: Error: Could not process rule: File exists
+add element test myset2 { 192.168.1.0/16 }
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Thanks.
+# nft add element test myset3 { 192.168.1.0/16 }
+# nft add element test myset3 { 192.168.1.0/24 }
+<cmdline>:1:1-42: Error: Could not process rule: File exists
+add element test myset4 { 192.168.1.0/24 }
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
+To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
