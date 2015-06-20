@@ -1,78 +1,68 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 3/3] rule: fix use of intervals in set declarations
-Date: Sat, 20 Jun 2015 13:06:43 +0200
-Message-ID: <20150620110643.GA4159@salvia>
-References: <1434719718-10371-1-git-send-email-pablo@netfilter.org>
- <1434719718-10371-3-git-send-email-pablo@netfilter.org>
- <20150619131336.GH22946@acer.localdomain>
- <20150619134816.GA19433@salvia>
- <20150619134444.GL22946@acer.localdomain>
- <20150619135958.GA19487@salvia>
- <20150619135948.GM22946@acer.localdomain>
- <20150619174046.GA4741@salvia>
- <28C126EF-7F7A-438A-9882-BA84FB960517@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH net] netfilter: nf_qeueue: Drop queue entries on
+ nf_unregister_hook
+Date: Sat, 20 Jun 2015 13:32:48 +0200
+Message-ID: <20150620113248.GA6915@acer.localdomain>
+References: <878ubffron.fsf@x220.int.ebiederm.org>
+ <871th7frlg.fsf@x220.int.ebiederm.org>
+ <20150620105738.GA3439@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, admin@rollinix.net,
-	niels@kristensen.io, tom@compton.nu
-To: Patrick McHardy <kaber@trash.net>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>,
+	David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36273 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751891AbbFTLB3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Jun 2015 07:01:29 -0400
+Received: from stinky.trash.net ([213.144.137.162]:35227 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753811AbbFTLcw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 20 Jun 2015 07:32:52 -0400
 Content-Disposition: inline
-In-Reply-To: <28C126EF-7F7A-438A-9882-BA84FB960517@trash.net>
+In-Reply-To: <20150620105738.GA3439@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 19, 2015 at 08:15:01PM +0200, Patrick McHardy wrote:
-[...]
-> >OK, so that transformation would look like:
-> >
-> >1) Fetch the existing elements in the set via netlink.
-> >2) Handle merges with the elements that the user has passed through
-> >   command line.
-> >3) Build the segtree.
-> >4) Push it into the kernel. We need to mark all existing elements for
-> >   the deletion plus add the new elements, all that in one single
-> >   transaction.
-> >
-> >Is this your idea? So it looks like we need a bit more userspace code.
-> >
-> >With the existing approach, the kernel rejects overlapping segments
-> >with -EEXIST, so if the user is careful to avoid them there should be
-> >no problem. It's more restrictive than what the logic above, but set
-> >declarations with intervals will work until that code lands in the
-> >tree.
+On 20.06, Pablo Neira Ayuso wrote:
+> On Fri, Jun 19, 2015 at 02:03:39PM -0500, Eric W. Biederman wrote:
+> > 
+> > Add code to nf_unregister_hook to flush the nf_queue when a hook is
+> > unregistered.  This guarantees that the pointer that the nf_queue code
+> > retains into the nf_hook list will remain valid while a packet is
+> > queued.
 > 
-> Sorry, missed this part. Are you sure about that? I'm pretty sure we
-> only reject exact duplicates. Otherwise I'd agree, that would be
-> fine for now.
+> I think the real problem is that struct nf_queue_entry holds a pointer
+> to struct nf_hook_ops, which will be gone after removal. So you
+> uncovered a long standing problem that will amplify by when pernet
+> hooks are in place.
+> 
+> Regarding the pointer to nf_hook_list, now that new netdevice variant
+> doesn't support nf_queue yet, so that nf_hook_list will be always
+> valid since it will point to the global nf_hooks in the core.
 
-Yes, overlapping segments are rejected:
+I think Eric's patch is the right thing to do. I'm not sure I get
+your netdev comment, but we certainly do want to drop packets once
+a hook is gone.
 
-# nft add element test myset { 1.2.3.0/24 }
-# nft add element test myset { 1.2.3.1 }
-<cmdline>:1:1-34: Error: Could not process rule: File exists
-add element test myset { 1.2.3.1 }
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# nft add element test myset { 1.2.3.0 }
-<cmdline>:1:1-34: Error: Could not process rule: File exists
-add element test myset { 1.2.3.0 }
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# nft add element test myset { 1.2.3.255 }
-<cmdline>:1:1-36: Error: Could not process rule: File exists
-add element test myset { 1.2.3.255 }
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-# nft add element test myset { 1.2.3.30-1.2.4.30 }
-<cmdline>:1:1-44: Error: Could not process rule: File exists
-add element test myset { 1.2.3.30-1.2.4.30 }
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> > +{
+> > +	const struct nf_queue_handler *qh;
+> > +	struct net *net;
+> > +
+> > +	rtnl_lock();
+> 
+> Why rtnl_lock() here?
 
-I'll send a v2 of this patch to replace the netlink_get_set() call so
-this also works for set declarations in one single transaction.
+for_each_net(). Would actually be nice to have a variant that doesn't
+need the rtnl since it makes locking order analysis a lot harder.
 
-Thanks.
+> > +	rcu_read_lock();
+> > +	qh = rcu_dereference(queue_handler);
+> > +	if (qh) {
+> > +		for_each_net(net) {
+> > +			qh->nf_hook_drop(net, ops);
+> > +		}
+> > +	}
+> > +	rcu_read_unlock();
+> > +	rtnl_unlock();
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
