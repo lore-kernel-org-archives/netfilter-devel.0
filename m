@@ -1,94 +1,56 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 3/3] rule: fix use of intervals in set declarations
-Date: Sat, 20 Jun 2015 20:37:28 +0200
-Message-ID: <20150620183728.GC3362@salvia>
-References: <1434719718-10371-3-git-send-email-pablo@netfilter.org>
- <20150619131336.GH22946@acer.localdomain>
- <20150619134816.GA19433@salvia>
- <20150619134444.GL22946@acer.localdomain>
- <20150619135958.GA19487@salvia>
- <20150619135948.GM22946@acer.localdomain>
- <20150619174046.GA4741@salvia>
- <28C126EF-7F7A-438A-9882-BA84FB960517@trash.net>
- <20150620110643.GA4159@salvia>
- <20150620114133.GB6915@acer.localdomain>
+Subject: Re: [PATCH net] netfilter: nf_queue: Don't recompute the hook_list
+ head
+Date: Sat, 20 Jun 2015 20:53:53 +0200
+Message-ID: <20150620185353.GA3567@salvia>
+References: <87381ne3rq.fsf@x220.int.ebiederm.org>
+ <20150620105839.GB3439@salvia>
+ <877fqya2wb.fsf@x220.int.ebiederm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, admin@rollinix.net,
-	niels@kristensen.io, tom@compton.nu
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34721 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754873AbbFTScG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Jun 2015 14:32:06 -0400
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150620114133.GB6915@acer.localdomain>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <877fqya2wb.fsf@x220.int.ebiederm.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Jun 20, 2015 at 01:41:34PM +0200, Patrick McHardy wrote:
-> On 20.06, Pablo Neira Ayuso wrote:
-> > On Fri, Jun 19, 2015 at 08:15:01PM +0200, Patrick McHardy wrote:
-> > [...]
-> > > >OK, so that transformation would look like:
-> > > >
-> > > >1) Fetch the existing elements in the set via netlink.
-> > > >2) Handle merges with the elements that the user has passed through
-> > > >   command line.
-> > > >3) Build the segtree.
-> > > >4) Push it into the kernel. We need to mark all existing elements for
-> > > >   the deletion plus add the new elements, all that in one single
-> > > >   transaction.
-> > > >
-> > > >Is this your idea? So it looks like we need a bit more userspace code.
-> > > >
-> > > >With the existing approach, the kernel rejects overlapping segments
-> > > >with -EEXIST, so if the user is careful to avoid them there should be
-> > > >no problem. It's more restrictive than what the logic above, but set
-> > > >declarations with intervals will work until that code lands in the
-> > > >tree.
-> > > 
-> > > Sorry, missed this part. Are you sure about that? I'm pretty sure we
-> > > only reject exact duplicates. Otherwise I'd agree, that would be
-> > > fine for now.
-> > 
-> > Yes, overlapping segments are rejected:
-> > 
-> > # nft add element test myset { 1.2.3.0/24 }
-> > # nft add element test myset { 1.2.3.1 }
-> > <cmdline>:1:1-34: Error: Could not process rule: File exists
-> > add element test myset { 1.2.3.1 }
-> > ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> > # nft add element test myset { 1.2.3.0 }
-> > <cmdline>:1:1-34: Error: Could not process rule: File exists
-> > add element test myset { 1.2.3.0 }
-> > ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> > # nft add element test myset { 1.2.3.255 }
-> > <cmdline>:1:1-36: Error: Could not process rule: File exists
-> > add element test myset { 1.2.3.255 }
-> > ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> > # nft add element test myset { 1.2.3.30-1.2.4.30 }
-> > <cmdline>:1:1-44: Error: Could not process rule: File exists
-> > add element test myset { 1.2.3.30-1.2.4.30 }
-> > ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+On Sat, Jun 20, 2015 at 09:08:20AM -0500, Eric W. Biederman wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> writes:
 > 
-> I think this is basically by accident. Does it also reject if the
-> second segment starts *before* the first one? IOW, 192.168.1.0/24
-> and 192.168.0.0/16?
+> > On Fri, Jun 19, 2015 at 05:23:37PM -0500, Eric W. Biederman wrote:
+> >> 
+> >> If someone sends packets from one of the netdevice ingress hooks to
+> >> the a userspace queue, and then userspace later accepts the packet,
+> >> the netfilter code can enter an infinite loop as the list head will
+> >> never be found.
+> >> 
+> >> Pass in the saved list_head to avoid this.
+> >
+> > There is no userspace queueing for netdevice yet, so this can be route
+> > through nf-next. Thanks.
+> 
+> *scratches head* the netdevice queueing is in the netfilter core.
+> 
+> netfilter_ingress calls nf_hook_slow.  The queuing happens in
+> nf_hook_slow if anything returns the verdict queue it.
+> 
+> This patch applies to Linus's tree.
+> 
+> So how in the world does this not need to be ported to 4.1?
 
-At quick test it does:
+There is no nfnetlink_queue support for the netdev family at this
+moment, so this can't be triggered unless you use an out of tree
+module.
 
-# nft add element test myset2 { 192.168.1.0/24 }
-# nft add element test myset2 { 192.168.1.0/16 }
-<cmdline>:1:1-42: Error: Could not process rule: File exists
-add element test myset2 { 192.168.1.0/16 }
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+I have a patch here to add a static key to disable userspace queueing
+per family using a static key so that part would be basically
+inactive.
 
-# nft add element test myset3 { 192.168.1.0/16 }
-# nft add element test myset3 { 192.168.1.0/24 }
-<cmdline>:1:1-42: Error: Could not process rule: File exists
-add element test myset4 { 192.168.1.0/24 }
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+But if you really want to see this in 4.1, no problem, please just let
+me know and I'll pass it to David, as I said it's basically not
+resolving any urgent problem so this is not harming.
+
+Thank you.
