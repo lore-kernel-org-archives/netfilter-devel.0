@@ -1,50 +1,78 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net] netfilter: nf_queue: Don't recompute the hook_list
- head
-Date: Sat, 20 Jun 2015 12:58:39 +0200
-Message-ID: <20150620105839.GB3439@salvia>
-References: <87381ne3rq.fsf@x220.int.ebiederm.org>
+Subject: Re: [PATCH nft 3/3] rule: fix use of intervals in set declarations
+Date: Sat, 20 Jun 2015 13:06:43 +0200
+Message-ID: <20150620110643.GA4159@salvia>
+References: <1434719718-10371-1-git-send-email-pablo@netfilter.org>
+ <1434719718-10371-3-git-send-email-pablo@netfilter.org>
+ <20150619131336.GH22946@acer.localdomain>
+ <20150619134816.GA19433@salvia>
+ <20150619134444.GL22946@acer.localdomain>
+ <20150619135958.GA19487@salvia>
+ <20150619135948.GM22946@acer.localdomain>
+ <20150619174046.GA4741@salvia>
+ <28C126EF-7F7A-438A-9882-BA84FB960517@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, admin@rollinix.net,
+	niels@kristensen.io, tom@compton.nu
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:36273 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751891AbbFTLB3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 20 Jun 2015 07:01:29 -0400
 Content-Disposition: inline
-In-Reply-To: <87381ne3rq.fsf@x220.int.ebiederm.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <28C126EF-7F7A-438A-9882-BA84FB960517@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 19, 2015 at 05:23:37PM -0500, Eric W. Biederman wrote:
+On Fri, Jun 19, 2015 at 08:15:01PM +0200, Patrick McHardy wrote:
+[...]
+> >OK, so that transformation would look like:
+> >
+> >1) Fetch the existing elements in the set via netlink.
+> >2) Handle merges with the elements that the user has passed through
+> >   command line.
+> >3) Build the segtree.
+> >4) Push it into the kernel. We need to mark all existing elements for
+> >   the deletion plus add the new elements, all that in one single
+> >   transaction.
+> >
+> >Is this your idea? So it looks like we need a bit more userspace code.
+> >
+> >With the existing approach, the kernel rejects overlapping segments
+> >with -EEXIST, so if the user is careful to avoid them there should be
+> >no problem. It's more restrictive than what the logic above, but set
+> >declarations with intervals will work until that code lands in the
+> >tree.
 > 
-> If someone sends packets from one of the netdevice ingress hooks to
-> the a userspace queue, and then userspace later accepts the packet,
-> the netfilter code can enter an infinite loop as the list head will
-> never be found.
-> 
-> Pass in the saved list_head to avoid this.
+> Sorry, missed this part. Are you sure about that? I'm pretty sure we
+> only reject exact duplicates. Otherwise I'd agree, that would be
+> fine for now.
 
-There is no userspace queueing for netdevice yet, so this can be route
-through nf-next. Thanks.
+Yes, overlapping segments are rejected:
 
-> Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
-> ---
->  net/netfilter/nf_queue.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-> index cd60d397fe05..8a8b2abc35ff 100644
-> --- a/net/netfilter/nf_queue.c
-> +++ b/net/netfilter/nf_queue.c
-> @@ -213,7 +213,7 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
->  
->  	if (verdict == NF_ACCEPT) {
->  	next_hook:
-> -		verdict = nf_iterate(&nf_hooks[entry->state.pf][entry->state.hook],
-> +		verdict = nf_iterate(entry->state.hook_list,
->  				     skb, &entry->state, &elem);
->  	}
->  
-> -- 
-> 2.2.1
-> 
+# nft add element test myset { 1.2.3.0/24 }
+# nft add element test myset { 1.2.3.1 }
+<cmdline>:1:1-34: Error: Could not process rule: File exists
+add element test myset { 1.2.3.1 }
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# nft add element test myset { 1.2.3.0 }
+<cmdline>:1:1-34: Error: Could not process rule: File exists
+add element test myset { 1.2.3.0 }
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# nft add element test myset { 1.2.3.255 }
+<cmdline>:1:1-36: Error: Could not process rule: File exists
+add element test myset { 1.2.3.255 }
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+# nft add element test myset { 1.2.3.30-1.2.4.30 }
+<cmdline>:1:1-44: Error: Could not process rule: File exists
+add element test myset { 1.2.3.30-1.2.4.30 }
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+I'll send a v2 of this patch to replace the netlink_get_set() call so
+this also works for set declarations in one single transaction.
+
+Thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
