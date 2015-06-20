@@ -1,83 +1,60 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH net] netfilter: nf_qeueue: Drop queue entries on
- nf_unregister_hook
-Date: Sat, 20 Jun 2015 18:35:21 +0200
-Message-ID: <20150620163521.GC6915@acer.localdomain>
-References: <878ubffron.fsf@x220.int.ebiederm.org>
- <871th7frlg.fsf@x220.int.ebiederm.org>
- <20150620105738.GA3439@salvia>
- <20150620113248.GA6915@acer.localdomain>
- <87616i8nyv.fsf@x220.int.ebiederm.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 00/32] Netfilter updates for net-next
+Date: Sat, 20 Jun 2015 20:30:06 +0200
+Message-ID: <20150620183006.GA3362@salvia>
+References: <1434403589-24796-1-git-send-email-pablo@netfilter.org>
+ <20150620151130.74b68b6c@north>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Bernhard Thaler <bernhard.thaler@wvnet.at>,
+	netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org, kbuild test robot <fengguang.wu@intel.com>
+To: Jakub =?utf-8?B?S2ljacWEc2tp?= <moorray3@wp.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37488 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932135AbbFTQfZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Jun 2015 12:35:25 -0400
+Received: from mail.us.es ([193.147.175.20]:34383 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753701AbbFTSYr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 20 Jun 2015 14:24:47 -0400
 Content-Disposition: inline
-In-Reply-To: <87616i8nyv.fsf@x220.int.ebiederm.org>
+In-Reply-To: <20150620151130.74b68b6c@north>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 20.06, Eric W. Biederman wrote:
-> Patrick McHardy <kaber@trash.net> writes:
-> 
-> > On 20.06, Pablo Neira Ayuso wrote:
-> >> On Fri, Jun 19, 2015 at 02:03:39PM -0500, Eric W. Biederman wrote:
-> >> > 
-> >> > Add code to nf_unregister_hook to flush the nf_queue when a hook is
-> >> > unregistered.  This guarantees that the pointer that the nf_queue code
-> >> > retains into the nf_hook list will remain valid while a packet is
-> >> > queued.
-> >> 
-> >> I think the real problem is that struct nf_queue_entry holds a pointer
-> >> to struct nf_hook_ops, which will be gone after removal. So you
-> >> uncovered a long standing problem that will amplify by when pernet
-> >> hooks are in place.
-> >> 
-> >> Regarding the pointer to nf_hook_list, now that new netdevice variant
-> >> doesn't support nf_queue yet, so that nf_hook_list will be always
-> >> valid since it will point to the global nf_hooks in the core.
-> >
-> > I think Eric's patch is the right thing to do. I'm not sure I get
-> > your netdev comment, but we certainly do want to drop packets once
-> > a hook is gone.
-> >
-> >> > +{
-> >> > +	const struct nf_queue_handler *qh;
-> >> > +	struct net *net;
-> >> > +
-> >> > +	rtnl_lock();
-> >> 
-> >> Why rtnl_lock() here?
-> >
-> > for_each_net(). Would actually be nice to have a variant that doesn't
-> > need the rtnl since it makes locking order analysis a lot harder.
-> 
-> Someone added a for_each_net_rcu.  But right now I am not at all certain
-> I trust an rcu variant not to miss something, in a weird corner case.
-> When missing something translates to an unprivileged user triggerable
-> kernel oops I am not ready to play games.
-> 
-> As for the lock analysis.  Except for nf_tables nf_unregister_hook is
-> called by module removal routines where rtnl_lock() is safe.
-> 
-> With nftables we seem to do everything under some version of the
-> nfnl_lock.  Does the nfnl_lock have any problems with taking the
-> rtnl_lock to nest underneath it?
+On Sat, Jun 20, 2015 at 03:11:30PM +0200, Jakub Kici=C5=84ski wrote:
+> On Mon, 15 Jun 2015 23:25:57 +0200, Pablo Neira Ayuso wrote:
+> > Hi David,
+> >=20
+> > This a bit large (and late) patchset that contains Netfilter update=
+s for
+> > net-next. Most relevantly br_netfilter fixes, ipset RCU support, re=
+moval of
+> > x_tables percpu ruleset copy and rework of the nf_tables netdev sup=
+port. More
+> > specifically, they are:
+> [...]
+> > ----------------------------------------------------------------
+> > Bernhard Thaler (7):
+> >       netfilter: bridge: refactor clearing BRNF_NF_BRIDGE_PREROUTIN=
+G
+> >       netfilter: bridge: re-order br_nf_pre_routing_finish_ipv6()
+> >       netfilter: bridge: detect NAT66 correctly and change MAC addr=
+ess
+> >       netfilter: bridge: refactor frag_max_size
+> >       netfilter: bridge: rename br_parse_ip_options
+> >       netfilter: bridge: re-order check_hbh_len()
+> >       netfilter: bridge: forward IPv6 fragmented packets
+>=20
+> Pablo, Bernhard,
+>=20
+> this batch breaks builds with CONFIG_IPV6=3Dn.  No idea why build bot
+> didn't catch that.
 
-No, its fine, we have almost none interactions except for network
-namespaces and device lookups.
+There is a pending pull request to address this fallout:
 
-Main reason why I'd prefer a non-RTNL version is because your
-callbacks introduce bigger chunks of code under the RTNL, so
-it might complicate things in the future. But your reasoning is
-sound and for now this is perfectly fine.
+http://patchwork.ozlabs.org/patch/486819/
+
+Thanks.
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
