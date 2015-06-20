@@ -1,138 +1,166 @@
-From: Jakub =?UTF-8?B?S2ljacWEc2tp?= <moorray3@wp.pl>
-Subject: Re: [PATCH 00/32] Netfilter updates for net-next
-Date: Sat, 20 Jun 2015 15:11:30 +0200
-Message-ID: <20150620151130.74b68b6c@north>
-References: <1434403589-24796-1-git-send-email-pablo@netfilter.org>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH net] netfilter: nf_qeueue: Drop queue entries on nf_unregister_hook
+Date: Sat, 20 Jun 2015 09:03:12 -0500
+Message-ID: <871th6bhpb.fsf@x220.int.ebiederm.org>
+References: <878ubffron.fsf@x220.int.ebiederm.org>
+	<871th7frlg.fsf@x220.int.ebiederm.org> <20150620105738.GA3439@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, kbuild test robot <fengguang.wu@intel.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Bernhard Thaler <bernhard.thaler@wvnet.at>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx3.wp.pl ([212.77.101.9]:19742 "EHLO mx3.wp.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754117AbbFTNLd convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Jun 2015 09:11:33 -0400
-In-Reply-To: <1434403589-24796-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain
+Cc: David Miller <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20150620105738.GA3439@salvia> (Pablo Neira Ayuso's message of
+	"Sat, 20 Jun 2015 12:57:38 +0200")
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 15 Jun 2015 23:25:57 +0200, Pablo Neira Ayuso wrote:
-> Hi David,
->=20
-> This a bit large (and late) patchset that contains Netfilter updates =
-for
-> net-next. Most relevantly br_netfilter fixes, ipset RCU support, remo=
-val of
-> x_tables percpu ruleset copy and rework of the nf_tables netdev suppo=
-rt. More
-> specifically, they are:
-[...]
-> ----------------------------------------------------------------
-> Bernhard Thaler (7):
->       netfilter: bridge: refactor clearing BRNF_NF_BRIDGE_PREROUTING
->       netfilter: bridge: re-order br_nf_pre_routing_finish_ipv6()
->       netfilter: bridge: detect NAT66 correctly and change MAC addres=
-s
->       netfilter: bridge: refactor frag_max_size
->       netfilter: bridge: rename br_parse_ip_options
->       netfilter: bridge: re-order check_hbh_len()
->       netfilter: bridge: forward IPv6 fragmented packets
+Pablo Neira Ayuso <pablo@netfilter.org> writes:
 
-Pablo, Bernhard,
+> On Fri, Jun 19, 2015 at 02:03:39PM -0500, Eric W. Biederman wrote:
+>> 
+>> Add code to nf_unregister_hook to flush the nf_queue when a hook is
+>> unregistered.  This guarantees that the pointer that the nf_queue code
+>> retains into the nf_hook list will remain valid while a packet is
+>> queued.
+>
+> I think the real problem is that struct nf_queue_entry holds a pointer
+> to struct nf_hook_ops, which will be gone after removal.
 
-this batch breaks builds with CONFIG_IPV6=3Dn.  No idea why build bot
-didn't catch that.
+Yes that is what I meant, when I was talking about the pointer that
+the nf_queue code holds into the nf_hook list.  That list is threaded
+through nf_hook_ops, and is used to retain the place in the nf_hook list
+for when the packet returns through nf_reinject.
 
-linux/net/bridge/br_netfilter.c: In function =E2=80=98br_validate_ipv6=E2=
-=80=99:
-/home/kuba/Development/Linux/linux/net/bridge/br_netfilter.c:350:618: e=
-rror: =E2=80=98struct netns_mib=E2=80=99 has no member named =E2=80=98i=
-pv6_statistics=E2=80=99
-    IP6_INC_STATS_BH(dev_net(dev), idev,
+> So you
+> uncovered a long standing problem that will amplify by when pernet
+> hooks are in place.
 
-linux/net/bridge/br_netfilter.c:350:706: error: =E2=80=98struct netns_m=
-ib=E2=80=99 has no member named =E2=80=98ipv6_statistics=E2=80=99
-    IP6_INC_STATS_BH(dev_net(dev), idev,
+Yes.  This will apply to more than just nftables when the pernet hooks
+are in place.  The try_module_get prevents this for everything except
+for nftables today.  So in practice this problem has existed since the
+merge of nftables.  The try_module_get shows this problem has existed
+in some form longer than git.
 
-linux/net/bridge/br_netfilter.c:350:915: error: =E2=80=98struct netns_m=
-ib=E2=80=99 has no member named =E2=80=98ipv6_statistics=E2=80=99
-    IP6_INC_STATS_BH(dev_net(dev), idev,
+> Regarding the pointer to nf_hook_list, now that new netdevice variant
+> doesn't support nf_queue yet, so that nf_hook_list will be always
+> valid since it will point to the global nf_hooks in the core.
 
-linux/net/bridge/br_netfilter.c:350:964: error: =E2=80=98struct netns_m=
-ib=E2=80=99 has no member named =E2=80=98ipv6_statistics=E2=80=99
-    IP6_INC_STATS_BH(dev_net(dev), idev,
+>
+>> I tested what would happen if we do not flush queued packets and was
+>> trivially able to obtain the oops below.  All that was required was
+>> to stop the nf_queue listening process, to delete all of the nf_tables,
+>> and to awaken the nf_queue listening process.
+> [...]
+>
+> Please, route netfilter patches through the netfilter trees, ie. nf
+> and nf-next.
 
-linux/net/bridge/br_netfilter.c:350:1031: error: request for member =E2=
-=80=98syncp=E2=80=99 in something not a structure or union
-    IP6_INC_STATS_BH(dev_net(dev), idev,
+Whatever works. I just see this as a bug in the networking stack that
+needs to be fixed.  I don't care who I send it to as long as Linus gets
+it.
 
-linux/net/bridge/br_netfilter.c:350:1044: error: request for member =E2=
-=80=98mibs=E2=80=99 in something not a structure or union
-    IP6_INC_STATS_BH(dev_net(dev), idev,
+>> Cc: stable@vger.kernel.org
+>
+> I guess this is a leftover since there is no Cc to stable. Anyway,
+> we have to wait until this hits master before we ask for -stable
+> inclusion.
 
-linux/net/bridge/br_netfilter.c:350:1113: error: request for member =E2=
-=80=98syncp=E2=80=99 in something not a structure or union
-    IP6_INC_STATS_BH(dev_net(dev), idev,
+This is a marker that this should be backported to stable, and the
+typicall way this is remembered outside of the network trees.  The stable
+folks grep the git log for Cc: stable...  
 
-linux/net/bridge/br_netfilter.c:355:613: error: =E2=80=98struct netns_m=
-ib=E2=80=99 has no member named =E2=80=98ipv6_statistics=E2=80=99
-    IP6_INC_STATS_BH(dev_net(dev), idev,
+> More comments below. Thanks for this fix BTW.
+>
+>> Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+>> ---
+>> 
+>> Apologies for the duplicate send but I forgot to include the appropriate
+>> mailing lists.
+>> 
+>>  include/net/netfilter/nf_queue.h     |  2 ++
+>>  net/netfilter/core.c                 |  1 +
+>>  net/netfilter/nf_internals.h         |  1 +
+>>  net/netfilter/nf_queue.c             | 17 +++++++++++++++++
+>>  net/netfilter/nfnetlink_queue_core.c | 24 +++++++++++++++++++++++-
+>>  5 files changed, 44 insertions(+), 1 deletion(-)
+>> 
+>> diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+>> index d81d584157e1..e8635854a55b 100644
+>> --- a/include/net/netfilter/nf_queue.h
+>> +++ b/include/net/netfilter/nf_queue.h
+>> @@ -24,6 +24,8 @@ struct nf_queue_entry {
+>>  struct nf_queue_handler {
+>>  	int			(*outfn)(struct nf_queue_entry *entry,
+>>  					 unsigned int queuenum);
+>> +	void			(*nf_hook_drop)(struct net *net,
+>> +						struct nf_hook_ops *ops);
+>>  };
+>>  
+>>  void nf_register_queue_handler(const struct nf_queue_handler *qh);
+>> diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+>> index 653e32eac08c..a0e54974e2c9 100644
+>> --- a/net/netfilter/core.c
+>> +++ b/net/netfilter/core.c
+>> @@ -118,6 +118,7 @@ void nf_unregister_hook(struct nf_hook_ops *reg)
+>>  	static_key_slow_dec(&nf_hooks_needed[reg->pf][reg->hooknum]);
+>>  #endif
+>>  	synchronize_net();
+>> +	nf_queue_nf_hook_drop(reg);
+>>  }
+>>  EXPORT_SYMBOL(nf_unregister_hook);
+>>  
+>> diff --git a/net/netfilter/nf_internals.h b/net/netfilter/nf_internals.h
+>> index ea7f36784b3d..399210693c2a 100644
+>> --- a/net/netfilter/nf_internals.h
+>> +++ b/net/netfilter/nf_internals.h
+>> @@ -19,6 +19,7 @@ unsigned int nf_iterate(struct list_head *head, struct sk_buff *skb,
+>>  /* nf_queue.c */
+>>  int nf_queue(struct sk_buff *skb, struct nf_hook_ops *elem,
+>>  	     struct nf_hook_state *state, unsigned int queuenum);
+>> +void nf_queue_nf_hook_drop(struct nf_hook_ops *ops);
+>>  int __init netfilter_queue_init(void);
+>>  
+>>  /* nf_log.c */
+>> diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+>> index 2e88032cd5ad..cd60d397fe05 100644
+>> --- a/net/netfilter/nf_queue.c
+>> +++ b/net/netfilter/nf_queue.c
+>> @@ -105,6 +105,23 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
+>>  }
+>>  EXPORT_SYMBOL_GPL(nf_queue_entry_get_refs);
+>>  
+>> +void nf_queue_nf_hook_drop(struct nf_hook_ops *ops)
+>
+> I'd suggest you rename all these 'nf_hook_drop' to 'flush'.
 
-linux/net/bridge/br_netfilter.c:355:701: error: =E2=80=98struct netns_m=
-ib=E2=80=99 has no member named =E2=80=98ipv6_statistics=E2=80=99
-    IP6_INC_STATS_BH(dev_net(dev), idev,
+The functions in nfnetfilter_queue_core.c are also named drop,
+and I am not in a mood to change the convention.
 
-linux/net/bridge/br_netfilter.c:355:910: error: =E2=80=98struct netns_m=
-ib=E2=80=99 has no member named =E2=80=98ipv6_statistics=E2=80=99
-    IP6_INC_STATS_BH(dev_net(dev), idev,
+>> +{
+>> +	const struct nf_queue_handler *qh;
+>> +	struct net *net;
+>> +
+>> +	rtnl_lock();
+>
+> Why rtnl_lock() here?
 
-linux/net/bridge/br_netfilter.c:355:959: error: =E2=80=98struct netns_m=
-ib=E2=80=99 has no member named =E2=80=98ipv6_statistics=E2=80=99
-    IP6_INC_STATS_BH(dev_net(dev), idev,
+Because we need a race free way to visit all of the network namespaces.
+I would perform the for_each_net on the other side of nf_hook_drop but
+the rcu locking would not allow that.
 
-linux/net/bridge/br_netfilter.c:355:1026: error: request for member =E2=
-=80=98syncp=E2=80=99 in something not a structure or union
-    IP6_INC_STATS_BH(dev_net(dev), idev,
-
-linux/net/bridge/br_netfilter.c:355:1039: error: request for member =E2=
-=80=98mibs=E2=80=99 in something not a structure or union
-    IP6_INC_STATS_BH(dev_net(dev), idev,
-
-linux/net/bridge/br_netfilter.c:355:1103: error: request for member =E2=
-=80=98syncp=E2=80=99 in something not a structure or union
-    IP6_INC_STATS_BH(dev_net(dev), idev,
-
-linux/net/bridge/br_netfilter.c:370:612: error: =E2=80=98struct netns_m=
-ib=E2=80=99 has no member named =E2=80=98ipv6_statistics=E2=80=99
-  IP6_INC_STATS_BH(dev_net(dev), idev, IPSTATS_MIB_INHDRERRORS);
-
-linux/net/bridge/br_netfilter.c:370:700: error: =E2=80=98struct netns_m=
-ib=E2=80=99 has no member named =E2=80=98ipv6_statistics=E2=80=99
-  IP6_INC_STATS_BH(dev_net(dev), idev, IPSTATS_MIB_INHDRERRORS);
-
-linux/net/bridge/br_netfilter.c:370:909: error: =E2=80=98struct netns_m=
-ib=E2=80=99 has no member named =E2=80=98ipv6_statistics=E2=80=99
-  IP6_INC_STATS_BH(dev_net(dev), idev, IPSTATS_MIB_INHDRERRORS);
-
-linux/net/bridge/br_netfilter.c:370:958: error: =E2=80=98struct netns_m=
-ib=E2=80=99 has no member named =E2=80=98ipv6_statistics=E2=80=99
-  IP6_INC_STATS_BH(dev_net(dev), idev, IPSTATS_MIB_INHDRERRORS);
-
-linux/net/bridge/br_netfilter.c:370:1025: error: request for member =E2=
-=80=98syncp=E2=80=99 in something not a structure or union
-  IP6_INC_STATS_BH(dev_net(dev), idev, IPSTATS_MIB_INHDRERRORS);
-
-linux/net/bridge/br_netfilter.c:370:1038: error: request for member =E2=
-=80=98mibs=E2=80=99 in something not a structure or union
-  IP6_INC_STATS_BH(dev_net(dev), idev, IPSTATS_MIB_INHDRERRORS);
-
-linux/net/bridge/br_netfilter.c:370:1103: error: request for member =E2=
-=80=98syncp=E2=80=99 in something not a structure or union
-  IP6_INC_STATS_BH(dev_net(dev), idev, IPSTATS_MIB_INHDRERRORS);
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
+>> +	rcu_read_lock();
+>> +	qh = rcu_dereference(queue_handler);
+>> +	if (qh) {
+>> +		for_each_net(net) {
+>> +			qh->nf_hook_drop(net, ops);
+>> +		}
+>> +	}
+>> +	rcu_read_unlock();
+>> +	rtnl_unlock();
+>> +}
+>> +
+>>  /*
+>>   * Any packet that leaves via this function must come back
+>>   * through nf_reinject().
