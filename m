@@ -1,75 +1,72 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH net] netfilter: nf_queue: Don't recompute the hook_list head
-Date: Mon, 22 Jun 2015 09:56:37 -0500
-Message-ID: <87fv5j7pwa.fsf@x220.int.ebiederm.org>
-References: <87381ne3rq.fsf@x220.int.ebiederm.org>
-	<20150620105839.GB3439@salvia> <877fqya2wb.fsf@x220.int.ebiederm.org>
-	<20150620185353.GA3567@salvia>
+From: Alexander Petrenas <zeracles@zeracles.net.ru>
+Subject: Kernel 4.1.0 broke the TARPIT & DELUGE targets in
+ xtables-addons-2.6
+Date: Tue, 23 Jun 2015 00:40:47 +0300
+Message-ID: <52756b9a-0699-405b-918c-73bcfafe97bb@zeracles.net.ru>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out02.mta.xmission.com ([166.70.13.232]:54594 "EHLO
-	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751648AbbFVPCA (ORCPT
+Received: from zeracles.net.ru ([178.252.70.14]:50670 "EHLO zeracles.net.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751107AbbFVWAd convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Jun 2015 11:02:00 -0400
-In-Reply-To: <20150620185353.GA3567@salvia> (Pablo Neira Ayuso's message of
-	"Sat, 20 Jun 2015 20:53:53 +0200")
+	Mon, 22 Jun 2015 18:00:33 -0400
+Received: from localhost ([127.0.0.1])
+	by zeracles.net.ru
+	for netfilter-devel@vger.kernel.org;
+	Tue, 23 Jun 2015 00:41:04 +0300
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> writes:
+Hi!
 
-> On Sat, Jun 20, 2015 at 09:08:20AM -0500, Eric W. Biederman wrote:
->> Pablo Neira Ayuso <pablo@netfilter.org> writes:
->> 
->> > On Fri, Jun 19, 2015 at 05:23:37PM -0500, Eric W. Biederman wrote:
->> >> 
->> >> If someone sends packets from one of the netdevice ingress hooks to
->> >> the a userspace queue, and then userspace later accepts the packet,
->> >> the netfilter code can enter an infinite loop as the list head will
->> >> never be found.
->> >> 
->> >> Pass in the saved list_head to avoid this.
->> >
->> > There is no userspace queueing for netdevice yet, so this can be route
->> > through nf-next. Thanks.
->> 
->> *scratches head* the netdevice queueing is in the netfilter core.
->> 
->> netfilter_ingress calls nf_hook_slow.  The queuing happens in
->> nf_hook_slow if anything returns the verdict queue it.
->> 
->> This patch applies to Linus's tree.
->> 
->> So how in the world does this not need to be ported to 4.1?
->
-> There is no nfnetlink_queue support for the netdev family at this
-> moment, so this can't be triggered unless you use an out of tree
-> module.
->
-> I have a patch here to add a static key to disable userspace queueing
-> per family using a static key so that part would be basically
-> inactive.
->
-> But if you really want to see this in 4.1, no problem, please just let
-> me know and I'll pass it to David, as I said it's basically not
-> resolving any urgent problem so this is not harming.
+Netfilter changes in the recent 4.1.0 kernel update included removal of=
+ the BRNF_BRIDGED flag:
+http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?=
+id=3D40451fd013878b005ccae767dfebc07dfecf85d9
 
-So I have read through the code and I simply do not see anywhere
-that would prevent code in nft_queue to be called on a per netdevice
-chain, or where in nfqnl_enqueue_packet we would decided not to queue
-the packet.
+Unfortunately, getting rid of BRNF_BRIDGED flag broke the xtables-addon=
+s-2.6 package, which now fails to build TARPIT & DELUGE targets with th=
+e following errors:
 
-Could you please point me to what in the code makes this code path
-impossible to use?
+xtables-addons-2.6/extensions/xt_TARPIT.c:253:30: error: =E2=80=98BRNF_=
+BRIDGED=E2=80=99 undeclared (first use in this function)
+      nskb->nf_bridge->mask & BRNF_BRIDGED))
+                              ^
 
-Right now it looks like something that is triggerable in 4.1.
+xtables-addons-2.6/extensions/xt_TARPIT.c:282:2: error: too few argumen=
+ts to function =E2=80=98NF_HOOK=E2=80=99
+  NF_HOOK(NFPROTO_IPV4, NF_INET_LOCAL_OUT, nskb, NULL,
+  ^
 
-Eric
+xtables-addons-2.6/extensions/xt_TARPIT.c:397:2: error: too few argumen=
+ts to function =E2=80=98NF_HOOK=E2=80=99
+  NF_HOOK(NFPROTO_IPV6, NF_INET_LOCAL_OUT, nskb, NULL,
+  ^
+
+scripts/Makefile.build:264: recipe for target 'xtables-addons-2.6/work/=
+xtables-addons-2.6/extensions/xt_TARPIT.o' failed
+
+My kernel hacking skills are non-existant (as well as my C skills), so =
+I expectedly failed to come up with any patch that would replace BRNF_B=
+RIDGED flag with nf_bridge->physoutdev in the following xt_TARPIT.c cod=
+e:
+
+#ifdef CONFIG_BRIDGE_NETFILTER
+	if (hook !=3D NF_INET_FORWARD || (nskb->nf_bridge !=3D NULL &&
+	    nskb->nf_bridge->mask & BRNF_BRIDGED))
+#else
+
+http://sourceforge.net/p/xtables-addons/xtables-addons/ci/master/tree/e=
+xtensions/xt_TARPIT.c#l253
+
+Can someone please show me how it can be fixed? (and hopefully update x=
+tables package with the fix?)
+
+Yours, Alexander Petrenas.
 
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
