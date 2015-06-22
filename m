@@ -1,44 +1,75 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 03/12] netfilter: x_tables: align per cpu xt_counter
-Date: Mon, 22 Jun 2015 15:27:31 +0200
-Message-ID: <1434979651.4110.2.camel@edumazet-glaptop2.roam.corp.google.com>
-References: <1434734269-4545-1-git-send-email-pablo@netfilter.org>
-	 <1434734269-4545-4-git-send-email-pablo@netfilter.org>
-	 <063D6719AE5E284EB5DD2968C1650D6D1CB54634@AcuExch.aculab.com>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH net] netfilter: nf_queue: Don't recompute the hook_list head
+Date: Mon, 22 Jun 2015 09:56:37 -0500
+Message-ID: <87fv5j7pwa.fsf@x220.int.ebiederm.org>
+References: <87381ne3rq.fsf@x220.int.ebiederm.org>
+	<20150620105839.GB3439@salvia> <877fqya2wb.fsf@x220.int.ebiederm.org>
+	<20150620185353.GA3567@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: 'Pablo Neira Ayuso' <pablo@netfilter.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"davem@davemloft.net" <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: David Laight <David.Laight@ACULAB.COM>
+Content-Type: text/plain
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:32802 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933342AbbFVN1g (ORCPT
+Received: from out02.mta.xmission.com ([166.70.13.232]:54594 "EHLO
+	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751648AbbFVPCA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Jun 2015 09:27:36 -0400
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D1CB54634@AcuExch.aculab.com>
+	Mon, 22 Jun 2015 11:02:00 -0400
+In-Reply-To: <20150620185353.GA3567@salvia> (Pablo Neira Ayuso's message of
+	"Sat, 20 Jun 2015 20:53:53 +0200")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 2015-06-22 at 11:49 +0000, David Laight wrote:
-> From: Pablo Neira Ayuso
-> > Sent: 19 June 2015 18:18
-> > From: Eric Dumazet <edumazet@google.com>
-> > 
-> > Let's force a 16 bytes alignment on xt_counter percpu allocations,
-> > so that bytes and packets sit in same cache line.
-> > 
-> > xt_counter being exported to user space, we cannot add __align(16) on
-> > the structure itself.
-> 
-> You could allocate a wrapper structure that contains xt_counter
-> and is itself marked __align(16).
+Pablo Neira Ayuso <pablo@netfilter.org> writes:
 
-Sure. I took one solution, out of multiple ones.
+> On Sat, Jun 20, 2015 at 09:08:20AM -0500, Eric W. Biederman wrote:
+>> Pablo Neira Ayuso <pablo@netfilter.org> writes:
+>> 
+>> > On Fri, Jun 19, 2015 at 05:23:37PM -0500, Eric W. Biederman wrote:
+>> >> 
+>> >> If someone sends packets from one of the netdevice ingress hooks to
+>> >> the a userspace queue, and then userspace later accepts the packet,
+>> >> the netfilter code can enter an infinite loop as the list head will
+>> >> never be found.
+>> >> 
+>> >> Pass in the saved list_head to avoid this.
+>> >
+>> > There is no userspace queueing for netdevice yet, so this can be route
+>> > through nf-next. Thanks.
+>> 
+>> *scratches head* the netdevice queueing is in the netfilter core.
+>> 
+>> netfilter_ingress calls nf_hook_slow.  The queuing happens in
+>> nf_hook_slow if anything returns the verdict queue it.
+>> 
+>> This patch applies to Linus's tree.
+>> 
+>> So how in the world does this not need to be ported to 4.1?
+>
+> There is no nfnetlink_queue support for the netdev family at this
+> moment, so this can't be triggered unless you use an out of tree
+> module.
+>
+> I have a patch here to add a static key to disable userspace queueing
+> per family using a static key so that part would be basically
+> inactive.
+>
+> But if you really want to see this in 4.1, no problem, please just let
+> me know and I'll pass it to David, as I said it's basically not
+> resolving any urgent problem so this is not harming.
 
+So I have read through the code and I simply do not see anywhere
+that would prevent code in nft_queue to be called on a per netdevice
+chain, or where in nfqnl_enqueue_packet we would decided not to queue
+the packet.
+
+Could you please point me to what in the code makes this code path
+impossible to use?
+
+Right now it looks like something that is triggerable in 4.1.
+
+Eric
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
