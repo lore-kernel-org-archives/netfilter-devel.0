@@ -1,37 +1,71 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net] netfilter: nftables: Do not run chains in the
- wrong network namespace
-Date: Tue, 23 Jun 2015 06:23:45 -0700 (PDT)
-Message-ID: <20150623.062345.2201329993068259127.davem@davemloft.net>
-References: <87oakbg0ym.fsf@x220.int.ebiederm.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net] netfilter: nf_queue: Don't recompute the hook_list
+ head
+Date: Tue, 23 Jun 2015 18:17:10 +0200
+Message-ID: <20150623161709.GA3752@salvia>
+References: <87381ne3rq.fsf@x220.int.ebiederm.org>
+ <20150620105839.GB3439@salvia>
+ <877fqya2wb.fsf@x220.int.ebiederm.org>
+ <20150620185353.GA3567@salvia>
+ <87fv5j7pwa.fsf@x220.int.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	pablo@netfilter.org, kaber@trash.net
-To: ebiederm@xmission.com
+Content-Type: text/plain; charset=us-ascii
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+To: "Eric W. Biederman" <ebiederm@xmission.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:33371 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752870AbbFWNL4 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Jun 2015 09:11:56 -0400
-In-Reply-To: <87oakbg0ym.fsf@x220.int.ebiederm.org>
+Received: from mail.us.es ([193.147.175.20]:43945 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932811AbbFWQLu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Jun 2015 12:11:50 -0400
+Content-Disposition: inline
+In-Reply-To: <87fv5j7pwa.fsf@x220.int.ebiederm.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: ebiederm@xmission.com (Eric W. Biederman)
-Date: Fri, 19 Jun 2015 10:41:21 -0500
+On Mon, Jun 22, 2015 at 09:56:37AM -0500, Eric W. Biederman wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> writes:
+[...]
+> > There is no nfnetlink_queue support for the netdev family at this
+> > moment, so this can't be triggered unless you use an out of tree
+> > module.
+> >
+> > I have a patch here to add a static key to disable userspace queueing
+> > per family using a static key so that part would be basically
+> > inactive.
+> >
+> > But if you really want to see this in 4.1, no problem, please just let
+> > me know and I'll pass it to David, as I said it's basically not
+> > resolving any urgent problem so this is not harming.
+>
+> So I have read through the code and I simply do not see anywhere
+> that would prevent code in nft_queue to be called on a per netdevice
+> chain, or where in nfqnl_enqueue_packet we would decided not to queue
+> the packet.
+>
+> Could you please point me to what in the code makes this code path
+> impossible to use?
 
-> 
-> Currenlty nf_tables chains added in one network namespace are being
-> run in all network namespace.  The issues are myriad with the simplest
-> being an unprivileged user can cause any network packets to be dropped.
-> 
-> Address this by simply not running nf_tables chains in the wrong
-> network namespace.
-> 
-> Cc: stable@vger.kernel.org
-> Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+int nf_queue(struct sk_buff *skb,
+             struct nf_hook_ops *elem,
+             struct nf_hook_state *state,
+             unsigned int queuenum)
+{
+        const struct nf_afinfo *afinfo;
+        ...
 
-Applied.
+        afinfo = nf_get_afinfo(state->pf);
+        if (!afinfo)
+                goto err_unlock;
+
+        ...
+}
+
+There is no afinfo for NFPROTO_NETDEV, so the packet the packet will
+be dropped.
+
+Therefore, there is no way nf_reinject() can be called neither for
+bridge, arp, inet and netdev at this moment.
+
+I have a patch here to restrict this easily in nft_queue so the user
+knows this can't be used at configuration time.
