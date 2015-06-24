@@ -1,81 +1,57 @@
 From: Eric Leblond <eric@regit.org>
-Subject: [nftables 1/3] erec: fix buffer overflow
-Date: Wed, 24 Jun 2015 09:51:49 +0200
-Message-ID: <1435132311-31452-2-git-send-email-eric@regit.org>
+Subject: [nftables 2/3] erec: fix logic when reading from file
+Date: Wed, 24 Jun 2015 09:51:50 +0200
+Message-ID: <1435132311-31452-3-git-send-email-eric@regit.org>
 References: <1435132311-31452-1-git-send-email-eric@regit.org>
 Cc: eric@regit.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks28632.kimsufi.com ([91.121.96.152]:47460 "EHLO
+Received: from ks28632.kimsufi.com ([91.121.96.152]:47463 "EHLO
 	ks28632.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751161AbbFXHwO (ORCPT
+	with ESMTP id S1751161AbbFXHwT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Jun 2015 03:52:14 -0400
+	Wed, 24 Jun 2015 03:52:19 -0400
 In-Reply-To: <1435132311-31452-1-git-send-email-eric@regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-A static array was used to read data and to write information in
-it without checking the limit of the array. The result was a buffer
-overflow when the line was longer than 1024.
+In case we are reading the rules from a file we need to reset the
+file descriptor to the original position when calling erec_print.
 
-This patch now uses a allocated buffer to avoid the problem.
+This was not the case in previous code and was leading to valid
+file to be seen as invalid when treated in debug mode.
 
 Signed-off-by: Eric Leblond <eric@regit.org>
 ---
- src/erec.c | 19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ src/erec.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
 diff --git a/src/erec.c b/src/erec.c
-index 810e9bf..75a3f74 100644
+index 75a3f74..b1456ee 100644
 --- a/src/erec.c
 +++ b/src/erec.c
-@@ -12,6 +12,7 @@
- #include <stdio.h>
- #include <string.h>
- #include <stdarg.h>
-+#include <stdlib.h>
- 
- #include <netlink.h>
- #include <gmputil.h>
-@@ -82,6 +83,7 @@ void erec_print(FILE *f, const struct error_record *erec)
- 	const struct input_descriptor *indesc = loc->indesc, *tmp;
- 	const char *line = NULL; /* silence gcc */
- 	char buf[1024];
-+	char *pbuf = NULL;
+@@ -86,6 +86,7 @@ void erec_print(FILE *f, const struct error_record *erec)
+ 	char *pbuf = NULL;
  	unsigned int i, end;
  	int l, ret;
++	int orig_offset = 0;
  
-@@ -141,17 +143,24 @@ void erec_print(FILE *f, const struct error_record *erec)
- 		if (indesc->type != INDESC_INTERNAL)
- 			fprintf(f, "%s\n", line);
- 
--		memset(buf, ' ', sizeof(buf));
- 		end = 0;
- 		for (l = erec->num_locations - 1; l >= 0; l--) {
- 			loc = &erec->locations[l];
-+			end = max(end, loc->last_column);
-+		}
-+		pbuf = malloc(end + 1);
-+		if (pbuf == NULL)
-+			return;
-+		memset(pbuf, ' ', end + 1);
-+		for (l = erec->num_locations - 1; l >= 0; l--) {
-+			loc = &erec->locations[l];
- 			for (i = loc->first_column ? loc->first_column - 1 : 0;
- 			     i < loc->last_column; i++)
--				buf[i] = l ? '~' : '^';
--			end = max(end, loc->last_column);
-+				pbuf[i] = l ? '~' : '^';
- 		}
--		buf[end] = '\0';
--		fprintf(f, "%s", buf);
-+		pbuf[end] = '\0';
-+		fprintf(f, "%s", pbuf);
-+		free(pbuf);
- 	}
- 	fprintf(f, "\n");
- }
+ 	switch (indesc->type) {
+ 	case INDESC_BUFFER:
+@@ -94,11 +95,13 @@ void erec_print(FILE *f, const struct error_record *erec)
+ 		break;
+ 	case INDESC_FILE:
+ 		memset(buf, 0, sizeof(buf));
++		orig_offset = lseek(indesc->fd, 0, SEEK_CUR);
+ 		lseek(indesc->fd, loc->line_offset, SEEK_SET);
+ 		ret = read(indesc->fd, buf, sizeof(buf) - 1);
+ 		if (ret > 0)
+ 			*strchrnul(buf, '\n') = '\0';
+ 		line = buf;
++		lseek(indesc->fd, orig_offset, SEEK_SET);
+ 		break;
+ 	case INDESC_INTERNAL:
+ 	case INDESC_NETLINK:
 -- 
 2.1.4
 
