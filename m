@@ -1,17 +1,17 @@
 From: pfeiffer.szilard@balabit.hu
 Subject: [PATCH] conntrack: made the manual page and help consistent in case of proto option
-Date: Thu, 25 Jun 2015 12:02:21 +0200
-Message-ID: <1435226541-15244-1-git-send-email-pfeiffer.szilard@balabit.hu>
+Date: Thu, 25 Jun 2015 12:11:52 +0200
+Message-ID: <1435227112-15500-1-git-send-email-pfeiffer.szilard@balabit.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: pfeiffer.szilard@balabit.hu
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from hq.balabit.com ([195.56.155.161]:34520 "EHLO mail.balabit.hu"
+Received: from hq.balabit.com ([195.56.155.161]:35250 "EHLO mail.balabit.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751623AbbFYKJ5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Jun 2015 06:09:57 -0400
+	id S1753245AbbFYKMA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Jun 2015 06:12:00 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
