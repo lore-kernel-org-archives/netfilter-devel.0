@@ -1,848 +1,1227 @@
-From: Felix Janda <felix.janda@posteo.de>
-Subject: [ulogd2 PATCHv3] Use stdint types everywhere
-Date: Wed, 24 Jun 2015 19:53:34 +0200
-Message-ID: <20150624175334.GA1423@euler>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [RESEND PATCH V2] Add element count to hash headers
+Date: Thu, 25 Jun 2015 10:04:26 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1506251002530.6678@blackhole.kfki.hu>
+References: <1432913785-22187-1-git-send-email-emunson@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Josh Hunt <johunt@akamai.com>, netfilter-devel@vger.kernel.org
+To: Eric B Munson <emunson@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx02.posteo.de ([89.146.194.165]:51314 "EHLO mx02.posteo.de"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:39326 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752810AbbFXRyB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Jun 2015 13:54:01 -0400
-Received: from dovecot04.posteo.de (unknown [185.67.36.27])
-	by mx02.posteo.de (Postfix) with ESMTPS id A192725ACC5D
-	for <netfilter-devel@vger.kernel.org>; Wed, 24 Jun 2015 19:53:59 +0200 (CEST)
-Received: from mail.posteo.de (localhost [127.0.0.1])
-	by dovecot04.posteo.de (Postfix) with ESMTPSA id 3mGsY31p88zFpW6
-	for <netfilter-devel@vger.kernel.org>; Wed, 24 Jun 2015 19:53:59 +0200 (CEST)
-Content-Disposition: inline
+	id S1751502AbbFYIEW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Jun 2015 04:04:22 -0400
+In-Reply-To: <1432913785-22187-1-git-send-email-emunson@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Felix Janda <felix.janda@posteo.de>
----
-v3: Leave __be* alone but ensure that <linux/types.h> is included
----
- filter/raw2packet/ulogd_raw2packet_BASE.c | 35 +++++++++++++-------------
- filter/ulogd_filter_HWHDR.c               |  6 ++---
- filter/ulogd_filter_IP2HBIN.c             |  4 +--
- filter/ulogd_filter_IP2STR.c              |  2 +-
- filter/ulogd_filter_MARK.c                |  4 +--
- filter/ulogd_filter_PWSNIFF.c             |  4 +--
- include/libipulog/libipulog.h             |  7 +++---
- include/ulogd/addr.h                      |  4 ++-
- include/ulogd/conffile.h                  | 10 ++++----
- include/ulogd/ipfix_protocol.h            | 38 +++++++++++++++-------------
- include/ulogd/ulogd.h                     | 42 +++++++++++++++----------------
- input/packet/ulogd_inppkt_NFLOG.c         | 16 ++++++------
- input/packet/ulogd_inppkt_UNIXSOCK.c      | 34 ++++++++++++-------------
- libipulog/libipulog.c                     |  8 +++---
- output/mysql/ulogd_output_MYSQL.c         |  2 +-
- output/ulogd_output_IPFIX.c               | 20 +++++++--------
- src/addr.c                                |  4 +--
- util/db.c                                 |  2 +-
- util/printpkt.c                           |  6 ++---
- 19 files changed, 126 insertions(+), 122 deletions(-)
+Hi,
 
-diff --git a/filter/raw2packet/ulogd_raw2packet_BASE.c b/filter/raw2packet/ulogd_raw2packet_BASE.c
-index ad894fc..8a6180c 100644
---- a/filter/raw2packet/ulogd_raw2packet_BASE.c
-+++ b/filter/raw2packet/ulogd_raw2packet_BASE.c
-@@ -44,6 +44,7 @@
- #include <ulogd/ipfix_protocol.h>
- #include <netinet/if_ether.h>
- #include <string.h>
-+#include <linux/types.h>
- 
- enum input_keys {
- 	INKEY_RAW_PCKT,
-@@ -538,7 +539,7 @@ static struct ulogd_key iphdr_rets[] = {
-  ***********************************************************************/
- 
- static int _interp_tcp(struct ulogd_pluginstance *pi, struct tcphdr *tcph,
--		       u_int32_t len)
-+		       uint32_t len)
- {
- 	struct ulogd_key *ret = pi->output.keys;
- 
-@@ -573,7 +574,7 @@ static int _interp_tcp(struct ulogd_pluginstance *pi, struct tcphdr *tcph,
-  ***********************************************************************/
- 
- static int _interp_udp(struct ulogd_pluginstance *pi, struct udphdr *udph,
--		       u_int32_t len)
-+		       uint32_t len)
- 		
- {
- 	struct ulogd_key *ret = pi->output.keys;
-@@ -602,7 +603,7 @@ typedef struct sctphdr {
- } __attribute__((packed)) sctp_sctphdr_t;
- 
- static int _interp_sctp(struct ulogd_pluginstance *pi, struct sctphdr *sctph,
--		       u_int32_t len)
-+		       uint32_t len)
- 		
- {
- 	struct ulogd_key *ret = pi->output.keys;
-@@ -625,7 +626,7 @@ static int _interp_sctp(struct ulogd_pluginstance *pi, struct sctphdr *sctph,
-  ***********************************************************************/
- 
- static int _interp_icmp(struct ulogd_pluginstance *pi, struct icmphdr *icmph,
--			u_int32_t len)
-+			uint32_t len)
- {
- 	struct ulogd_key *ret = pi->output.keys;
- 
-@@ -663,7 +664,7 @@ static int _interp_icmp(struct ulogd_pluginstance *pi, struct icmphdr *icmph,
-  ***********************************************************************/
- 
- static int _interp_icmpv6(struct ulogd_pluginstance *pi, struct icmp6_hdr *icmph,
--			  u_int32_t len)
-+			  uint32_t len)
- {
- 	struct ulogd_key *ret = pi->output.keys;
- 
-@@ -691,7 +692,7 @@ static int _interp_icmpv6(struct ulogd_pluginstance *pi, struct icmp6_hdr *icmph
-  * 			IPSEC HEADER 
-  ***********************************************************************/
- static int _interp_ahesp(struct ulogd_pluginstance *pi, void *protoh,
--			 u_int32_t len)
-+			 uint32_t len)
- {
- #if 0
- 	struct ulogd_key *ret = pi->output.keys;
-@@ -711,14 +712,14 @@ static int _interp_ahesp(struct ulogd_pluginstance *pi, void *protoh,
-  * 			IP HEADER
-  ***********************************************************************/
- 
--static int _interp_iphdr(struct ulogd_pluginstance *pi, u_int32_t len)
-+static int _interp_iphdr(struct ulogd_pluginstance *pi, uint32_t len)
- {
- 	struct ulogd_key *ret = pi->output.keys;
- 	struct iphdr *iph =
- 		ikey_get_ptr(&pi->input.keys[INKEY_RAW_PCKT]);
--	void *nexthdr = (u_int32_t *)iph + iph->ihl;
-+	void *nexthdr = (uint32_t *)iph + iph->ihl;
- 
--	if (len < sizeof(struct iphdr) || len <= (u_int32_t)(iph->ihl * 4))
-+	if (len < sizeof(struct iphdr) || len <= (uint32_t)(iph->ihl * 4))
- 		return ULOGD_IRET_OK;
- 	len -= iph->ihl * 4;
- 
-@@ -759,7 +760,7 @@ static int _interp_iphdr(struct ulogd_pluginstance *pi, u_int32_t len)
-  * 			IPv6 HEADER
-  ***********************************************************************/
- 
--static int ip6_ext_hdr(u_int8_t nexthdr)
-+static int ip6_ext_hdr(uint8_t nexthdr)
- {
- 	switch (nexthdr) {
- 	case IPPROTO_HOPOPTS:
-@@ -774,12 +775,12 @@ static int ip6_ext_hdr(u_int8_t nexthdr)
- 	}
- }
- 
--static int _interp_ipv6hdr(struct ulogd_pluginstance *pi, u_int32_t len)
-+static int _interp_ipv6hdr(struct ulogd_pluginstance *pi, uint32_t len)
- {
- 	struct ulogd_key *ret = pi->output.keys;
- 	struct ip6_hdr *ipv6h = ikey_get_ptr(&pi->input.keys[INKEY_RAW_PCKT]);
- 	unsigned int ptr, hdrlen = 0;
--	u_int8_t curhdr;
-+	uint8_t curhdr;
- 	int fragment = 0;
- 
- 	if (len < sizeof(struct ip6_hdr))
-@@ -889,7 +890,7 @@ out:
- /***********************************************************************
-  * 			ARP HEADER
-  ***********************************************************************/
--static int _interp_arp(struct ulogd_pluginstance *pi, u_int32_t len)
-+static int _interp_arp(struct ulogd_pluginstance *pi, uint32_t len)
- {
- 	struct ulogd_key *ret = pi->output.keys;
- 	const struct ether_arp *arph =
-@@ -914,9 +915,9 @@ static int _interp_arp(struct ulogd_pluginstance *pi, u_int32_t len)
-  * 			ETHER HEADER
-  ***********************************************************************/
- 
--static int _interp_bridge(struct ulogd_pluginstance *pi, u_int32_t len)
-+static int _interp_bridge(struct ulogd_pluginstance *pi, uint32_t len)
- {
--	const u_int16_t proto =
-+	const uint16_t proto =
- 		ikey_get_u16(&pi->input.keys[INKEY_OOB_PROTOCOL]);
- 
- 	switch (proto) {
-@@ -938,8 +939,8 @@ static int _interp_bridge(struct ulogd_pluginstance *pi, u_int32_t len)
- 
- static int _interp_pkt(struct ulogd_pluginstance *pi)
- {
--	u_int32_t len = ikey_get_u32(&pi->input.keys[INKEY_RAW_PCKTLEN]);
--	u_int8_t family = ikey_get_u8(&pi->input.keys[INKEY_OOB_FAMILY]);
-+	uint32_t len = ikey_get_u32(&pi->input.keys[INKEY_RAW_PCKTLEN]);
-+	uint8_t family = ikey_get_u8(&pi->input.keys[INKEY_OOB_FAMILY]);
- 	struct ulogd_key *ret = pi->output.keys;
- 
- 	okey_set_u16(&ret[KEY_OOB_PROTOCOL],
-diff --git a/filter/ulogd_filter_HWHDR.c b/filter/ulogd_filter_HWHDR.c
-index 3b095c9..10c95c4 100644
---- a/filter/ulogd_filter_HWHDR.c
-+++ b/filter/ulogd_filter_HWHDR.c
-@@ -143,10 +143,10 @@ static void *hwhdr_get_daddr(struct ulogd_key *inp)
- 	return ikey_get_ptr(&inp[KEY_RAW_MAC]);
- }
- 
--static u_int16_t hwhdr_get_len(struct ulogd_key *inp)
-+static uint16_t hwhdr_get_len(struct ulogd_key *inp)
- {
- 	void *len = ikey_get_ptr(&inp[KEY_RAW_MAC]) + 2 * ETH_ALEN;
--	return ntohs(*(u_int16_t *) len);
-+	return ntohs(*(uint16_t *) len);
- }
- static int parse_ethernet(struct ulogd_key *ret, struct ulogd_key *inp)
- {
-@@ -171,7 +171,7 @@ static int interp_mac2str(struct ulogd_pluginstance *pi)
- {
- 	struct ulogd_key *ret = pi->output.keys;
- 	struct ulogd_key *inp = pi->input.keys;
--	u_int16_t type = 0;
-+	uint16_t type = 0;
- 
- 	if (pp_is_valid(inp, KEY_OOB_PROTOCOL))
- 		okey_set_u16(&ret[KEY_MAC_PROTOCOL],
-diff --git a/filter/ulogd_filter_IP2HBIN.c b/filter/ulogd_filter_IP2HBIN.c
-index 4fd3ff1..087e824 100644
---- a/filter/ulogd_filter_IP2HBIN.c
-+++ b/filter/ulogd_filter_IP2HBIN.c
-@@ -116,8 +116,8 @@ static int interp_ip2hbin(struct ulogd_pluginstance *pi)
- {
- 	struct ulogd_key *ret = pi->output.keys;
- 	struct ulogd_key *inp = pi->input.keys;
--	u_int8_t family = ikey_get_u8(&inp[KEY_OOB_FAMILY]);
--	u_int8_t convfamily = family;
-+	uint8_t family = ikey_get_u8(&inp[KEY_OOB_FAMILY]);
-+	uint8_t convfamily = family;
- 	int i;
- 
- 	switch (family) {
-diff --git a/filter/ulogd_filter_IP2STR.c b/filter/ulogd_filter_IP2STR.c
-index 732e1ef..66324b0 100644
---- a/filter/ulogd_filter_IP2STR.c
-+++ b/filter/ulogd_filter_IP2STR.c
-@@ -168,7 +168,7 @@ static int ip2str(struct ulogd_key *inp, int index, int oindex)
- 	}
- 
- 	switch (convfamily) {
--		u_int32_t ip;
-+		uint32_t ip;
- 	case AF_INET6:
- 		inet_ntop(AF_INET6,
- 			  ikey_get_u128(&inp[index]),
-diff --git a/filter/ulogd_filter_MARK.c b/filter/ulogd_filter_MARK.c
-index 7807f63..149725d 100644
---- a/filter/ulogd_filter_MARK.c
-+++ b/filter/ulogd_filter_MARK.c
-@@ -73,14 +73,14 @@ static int interp_mark(struct ulogd_pluginstance *pi)
- 	if (pp_is_valid(inp, KEY_CT_MARK)) {
- 		if ((ikey_get_u32(&inp[KEY_CT_MARK]) &
- 			pi->config_kset->ces[MARK_MASK].u.value) !=
--			(u_int32_t) pi->config_kset->ces[MARK_MARK].u.value
-+			(uint32_t) pi->config_kset->ces[MARK_MARK].u.value
- 		   ) {
- 			return ULOGD_IRET_STOP;
- 		}
- 	} else if (pp_is_valid(inp, KEY_OOB_MARK)) {
- 		if ((ikey_get_u32(&inp[KEY_OOB_MARK]) &
- 			pi->config_kset->ces[MARK_MASK].u.value) !=
--			(u_int32_t) pi->config_kset->ces[MARK_MARK].u.value
-+			(uint32_t) pi->config_kset->ces[MARK_MARK].u.value
- 		   ) {
- 			return ULOGD_IRET_STOP;
- 		}
-diff --git a/filter/ulogd_filter_PWSNIFF.c b/filter/ulogd_filter_PWSNIFF.c
-index a3e2b42..934ff0e 100644
---- a/filter/ulogd_filter_PWSNIFF.c
-+++ b/filter/ulogd_filter_PWSNIFF.c
-@@ -39,7 +39,7 @@
- #define PORT_POP3	110
- #define PORT_FTP	21
- 
--static u_int16_t pwsniff_ports[] = {
-+static uint16_t pwsniff_ports[] = {
- 	PORT_POP3,
- 	PORT_FTP,
- 	/* feel free to include any other ports here, provided that their
-@@ -72,7 +72,7 @@ static int interp_pwsniff(struct ulogd_pluginstance *pi)
- 		return ULOGD_IRET_STOP;
- 	
- 	iph = (struct iphdr *) pi->input.keys[0].u.value.ptr;
--	protoh = (u_int32_t *)iph + iph->ihl;
-+	protoh = (uint32_t *)iph + iph->ihl;
- 	tcph = protoh;
- 	tcplen = ntohs(iph->tot_len) - iph->ihl * 4;
- 
-diff --git a/include/libipulog/libipulog.h b/include/libipulog/libipulog.h
-index b3c9616..21b4315 100644
---- a/include/libipulog/libipulog.h
-+++ b/include/libipulog/libipulog.h
-@@ -4,10 +4,9 @@
- #include <errno.h>
- #include <unistd.h>
- #include <fcntl.h>
--#include <sys/types.h>
- #include <sys/socket.h>
- #include <sys/uio.h>
--#include <asm/types.h>
-+#include <stdint.h>
- #include <linux/netlink.h>
- #include <net/if.h>
- #include <linux/netfilter_ipv4/ipt_ULOG.h>
-@@ -20,9 +19,9 @@
- struct ipulog_handle;
- extern int ipulog_errno;
- 
--u_int32_t ipulog_group2gmask(u_int32_t group);
-+uint32_t ipulog_group2gmask(uint32_t group);
- 
--struct ipulog_handle *ipulog_create_handle(u_int32_t gmask, u_int32_t rmem);
-+struct ipulog_handle *ipulog_create_handle(uint32_t gmask, uint32_t rmem);
- 
- void ipulog_destroy_handle(struct ipulog_handle *h);
- 
-diff --git a/include/ulogd/addr.h b/include/ulogd/addr.h
-index b4432e3..2259b6c 100644
---- a/include/ulogd/addr.h
-+++ b/include/ulogd/addr.h
-@@ -8,7 +8,9 @@
- #ifndef _ADDR_H
- #define _ADDR_H
- 
--u_int32_t ulogd_bits2netmask(int bits);
-+#include <stdint.h>
-+
-+uint32_t ulogd_bits2netmask(int bits);
- void ulogd_ipv6_cidr2mask_host(uint8_t cidr, uint32_t *res);
- void ulogd_ipv6_addr2addr_host(uint32_t *addr, uint32_t *res);
- 
-diff --git a/include/ulogd/conffile.h b/include/ulogd/conffile.h
-index 69a6f70..1f3d563 100644
---- a/include/ulogd/conffile.h
-+++ b/include/ulogd/conffile.h
-@@ -7,7 +7,7 @@
- #ifndef _CONFFILE_H
- #define _CONFFILE_H
- 
--#include <sys/types.h>
-+#include <stdint.h>
- 
- /* errors returned by config functions */
- enum {
-@@ -45,10 +45,10 @@ enum {
- 
- struct config_entry {
- 	char key[CONFIG_KEY_LEN];	/* name of config directive */
--	u_int8_t type;			/* type; see above */
--	u_int8_t options;		/* options; see above  */
--	u_int8_t hit;			/* found? */
--	u_int8_t flag;			/* tune setup of option */
-+	uint8_t type;			/* type; see above */
-+	uint8_t options;		/* options; see above  */
-+	uint8_t hit;			/* found? */
-+	uint8_t flag;			/* tune setup of option */
- 	union {
- 		char string[CONFIG_VAL_STRING_LEN];
- 		int value;
-diff --git a/include/ulogd/ipfix_protocol.h b/include/ulogd/ipfix_protocol.h
-index 5d7e46a..aef47f0 100644
---- a/include/ulogd/ipfix_protocol.h
-+++ b/include/ulogd/ipfix_protocol.h
-@@ -1,6 +1,8 @@
- #ifndef _IPFIX_PROTOCOL_H
- #define _IPFIX_PROTOCOL_H
- 
-+#include <stdint.h>
-+
- /* This header file defines structures for the IPFIX protocol in accordance with
-  * draft-ietf-ipfix-protocol-19.txt */
- 
-@@ -11,29 +13,29 @@
- 
- /* Section 3.1 */
- struct ipfix_msg_hdr {
--	u_int16_t	version;
--	u_int16_t	length;
--	u_int32_t	export_time;
--	u_int32_t	seq;
--	u_int32_t	source_id;
-+	uint16_t	version;
-+	uint16_t	length;
-+	uint32_t	export_time;
-+	uint32_t	seq;
-+	uint32_t	source_id;
- };
- 
- /* Section 3.4.1 */
- struct ipfix_templ_rec_hdr {
--	u_int16_t	templ_id;
--	u_int16_t	field_count;
-+	uint16_t	templ_id;
-+	uint16_t	field_count;
- };
- 
- /* Section 3.2 */
- struct ipfix_ietf_field {
--	u_int16_t	type;
--	u_int16_t	length;
-+	uint16_t	type;
-+	uint16_t	length;
- };
- 
- struct ipfix_vendor_field {
--	u_int16_t	type;
--	u_int16_t	length;
--	u_int32_t	enterprise_num;
-+	uint16_t	type;
-+	uint16_t	length;
-+	uint32_t	enterprise_num;
- };
- 
- /* Information Element Identifiers as of draft-ietf-ipfix-info-11.txt */
-@@ -219,13 +221,13 @@ enum {
- /* Information elements of the netfilter vendor id */
- enum {
- 	IPFIX_NF_rawpacket		= 1,	/* pointer */
--	IPFIX_NF_rawpacket_length	= 2,	/* u_int32_t */
-+	IPFIX_NF_rawpacket_length	= 2,	/* uint32_t */
- 	IPFIX_NF_prefix			= 3,	/* string */
--	IPFIX_NF_mark			= 4,	/* u_int32_t */
--	IPFIX_NF_hook			= 5,	/* u_int8_t */
--	IPFIX_NF_conntrack_id		= 6,	/* u_int32_t */
--	IPFIX_NF_seq_local		= 7,	/* u_int32_t */
--	IPFIX_NF_seq_global		= 8,	/* u_int32_t */
-+	IPFIX_NF_mark			= 4,	/* uint32_t */
-+	IPFIX_NF_hook			= 5,	/* uint8_t */
-+	IPFIX_NF_conntrack_id		= 6,	/* uint32_t */
-+	IPFIX_NF_seq_local		= 7,	/* uint32_t */
-+	IPFIX_NF_seq_global		= 8,	/* uint32_t */
- };
- 
- #endif
-diff --git a/include/ulogd/ulogd.h b/include/ulogd/ulogd.h
-index cf26a15..2e38195 100644
---- a/include/ulogd/ulogd.h
-+++ b/include/ulogd/ulogd.h
-@@ -85,17 +85,17 @@ enum ulogd_dtype {
- /* structure describing an input  / output parameter of a plugin */
- struct ulogd_key {
- 	/* length of the returned value (only for lengthed types */
--	u_int32_t len;
-+	uint32_t len;
- 	/* type of the returned value (ULOGD_DTYPE_...) */
--	u_int16_t type;
-+	uint16_t type;
- 	/* flags (i.e. free, ...) */
--	u_int16_t flags;
-+	uint16_t flags;
- 	/* name of this key */
- 	char name[ULOGD_MAX_KEYLEN+1];
- 	/* IETF IPFIX attribute ID */
- 	struct {
--		u_int32_t	vendor;
--		u_int16_t	field_id;
-+		uint32_t	vendor;
-+		uint16_t	field_id;
- 	} ipfix;
- 
- 	/* Store field name for Common Information Model */
-@@ -104,12 +104,12 @@ struct ulogd_key {
- 	union {
- 		/* and finally the returned value */
- 		union {
--			u_int8_t	b;
--			u_int8_t	ui8;
--			u_int16_t	ui16;
--			u_int32_t	ui32;
--			u_int64_t	ui64;
--			u_int32_t	ui128[4];
-+			uint8_t	b;
-+			uint8_t	ui8;
-+			uint16_t	ui16;
-+			uint32_t	ui32;
-+			uint64_t	ui64;
-+			uint32_t	ui128[4];
- 			int8_t		i8;
- 			int16_t		i16;
- 			int32_t		i32;
-@@ -130,31 +130,31 @@ struct ulogd_keyset {
- 	unsigned int type;
- };
- 
--static inline void okey_set_b(struct ulogd_key *key, u_int8_t value)
-+static inline void okey_set_b(struct ulogd_key *key, uint8_t value)
- {
- 	key->u.value.b = value;
- 	key->flags |= ULOGD_RETF_VALID;
- }
- 
--static inline void okey_set_u8(struct ulogd_key *key, u_int8_t value)
-+static inline void okey_set_u8(struct ulogd_key *key, uint8_t value)
- {
- 	key->u.value.ui8 = value;
- 	key->flags |= ULOGD_RETF_VALID;
- }
- 
--static inline void okey_set_u16(struct ulogd_key *key, u_int16_t value)
-+static inline void okey_set_u16(struct ulogd_key *key, uint16_t value)
- {
- 	key->u.value.ui16 = value;
- 	key->flags |= ULOGD_RETF_VALID;
- }
- 
--static inline void okey_set_u32(struct ulogd_key *key, u_int32_t value)
-+static inline void okey_set_u32(struct ulogd_key *key, uint32_t value)
- {
- 	key->u.value.ui32 = value;
- 	key->flags |= ULOGD_RETF_VALID;
- }
- 
--static inline void okey_set_u64(struct ulogd_key *key, u_int64_t value)
-+static inline void okey_set_u64(struct ulogd_key *key, uint64_t value)
- {
- 	key->u.value.ui64 = value;
- 	key->flags |= ULOGD_RETF_VALID;
-@@ -172,22 +172,22 @@ static inline void okey_set_ptr(struct ulogd_key *key, void *value)
- 	key->flags |= ULOGD_RETF_VALID;
- }
- 
--static inline u_int8_t ikey_get_u8(struct ulogd_key *key)
-+static inline uint8_t ikey_get_u8(struct ulogd_key *key)
- {
- 	return key->u.source->u.value.ui8;
- }
- 
--static inline u_int16_t ikey_get_u16(struct ulogd_key *key)
-+static inline uint16_t ikey_get_u16(struct ulogd_key *key)
- {
- 	return key->u.source->u.value.ui16;
- }
- 
--static inline u_int32_t ikey_get_u32(struct ulogd_key *key)
-+static inline uint32_t ikey_get_u32(struct ulogd_key *key)
- {
- 	return key->u.source->u.value.ui32;
- }
- 
--static inline u_int64_t ikey_get_u64(struct ulogd_key *key)
-+static inline uint64_t ikey_get_u64(struct ulogd_key *key)
- {
- 	return key->u.source->u.value.ui64;
- }
-@@ -292,7 +292,7 @@ void ulogd_propagate_results(struct ulogd_pluginstance *pi);
- void ulogd_register_plugin(struct ulogd_plugin *me);
- 
- /* allocate a new ulogd_key */
--struct ulogd_key *alloc_ret(const u_int16_t type, const char*);
-+struct ulogd_key *alloc_ret(const uint16_t type, const char*);
- 
- /* write a message to the daemons' logfile */
- void __ulogd_log(int level, char *file, int line, const char *message, ...);
-diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt_NFLOG.c
-index 6196626..a367959 100644
---- a/input/packet/ulogd_inppkt_NFLOG.c
-+++ b/input/packet/ulogd_inppkt_NFLOG.c
-@@ -315,7 +315,7 @@ static struct ulogd_key output_keys[] = {
- };
- 
- static inline int
--interp_packet(struct ulogd_pluginstance *upi, u_int8_t pf_family,
-+interp_packet(struct ulogd_pluginstance *upi, uint8_t pf_family,
- 	      struct nflog_data *ldata)
- {
- 	struct ulogd_key *ret = upi->output.keys;
-@@ -326,12 +326,12 @@ interp_packet(struct ulogd_pluginstance *upi, u_int8_t pf_family,
- 	int payload_len = nflog_get_payload(ldata, &payload);
- 	char *prefix = nflog_get_prefix(ldata);
- 	struct timeval ts;
--	u_int32_t mark = nflog_get_nfmark(ldata);
--	u_int32_t indev = nflog_get_indev(ldata);
--	u_int32_t outdev = nflog_get_outdev(ldata);
--	u_int32_t seq;
--	u_int32_t uid;
--	u_int32_t gid;
-+	uint32_t mark = nflog_get_nfmark(ldata);
-+	uint32_t indev = nflog_get_indev(ldata);
-+	uint32_t outdev = nflog_get_outdev(ldata);
-+	uint32_t seq;
-+	uint32_t uid;
-+	uint32_t gid;
- 
- 	okey_set_u8(&ret[NFLOG_KEY_OOB_FAMILY], 
- 		    pf_family);
-@@ -493,7 +493,7 @@ static int configure(struct ulogd_pluginstance *upi,
- 	return 0;
- }
- 
--static int become_system_logging(struct ulogd_pluginstance *upi, u_int8_t pf)
-+static int become_system_logging(struct ulogd_pluginstance *upi, uint8_t pf)
- {
- 	struct nflog_input *ui = (struct nflog_input *) upi->private;
- 
-diff --git a/input/packet/ulogd_inppkt_UNIXSOCK.c b/input/packet/ulogd_inppkt_UNIXSOCK.c
-index e4009f3..39944bf 100644
---- a/input/packet/ulogd_inppkt_UNIXSOCK.c
-+++ b/input/packet/ulogd_inppkt_UNIXSOCK.c
-@@ -336,10 +336,10 @@ enum ulogd2_option_type {
- 	ULOGD2_OPT_PREFIX,	/* log prefix (string) */
- 	ULOGD2_OPT_OOB_IN,	/* input device (string) */
- 	ULOGD2_OPT_OOB_OUT,	/* output device (string) */
--	ULOGD2_OPT_OOB_TIME_SEC,	/* packet arrival time (u_int32_t) */
-+	ULOGD2_OPT_OOB_TIME_SEC,	/* packet arrival time (uint32_t) */
- 
- 	ULOGD2_OPT_USER=200,	/* user name (string) */
--	ULOGD2_OPT_USERID,	/* user id (u_int32_t) */
-+	ULOGD2_OPT_USERID,	/* user id (uint32_t) */
- 	ULOGD2_OPT_OSNAME,	/* OS name (string) */
- 	ULOGD2_OPT_OSREL,	/* OS release (string) */
- 	ULOGD2_OPT_OSVERS,	/* OS version (string) */
-@@ -367,15 +367,15 @@ struct ulogd_unixsock_option_t  {
- #define USOCK_ALIGNTO 8
- #define USOCK_ALIGN(len) ( ((len)+USOCK_ALIGNTO-1) & ~(USOCK_ALIGNTO-1) )
- 
--static int handle_packet(struct ulogd_pluginstance *upi, struct ulogd_unixsock_packet_t *pkt, u_int16_t total_len)
-+static int handle_packet(struct ulogd_pluginstance *upi, struct ulogd_unixsock_packet_t *pkt, uint16_t total_len)
- {
- 	char *data = NULL;
- 	struct iphdr *ip;
- 	struct ulogd_key *ret = upi->output.keys;
--	u_int8_t oob_family;
--	u_int16_t payload_len;
--	u_int32_t option_number;
--	u_int32_t option_length;
-+	uint8_t oob_family;
-+	uint16_t payload_len;
-+	uint32_t option_number;
-+	uint32_t option_length;
- 	char *buf;
- 	struct ulogd_unixsock_option_t *option;
- 	int new_offset;
-@@ -398,7 +398,7 @@ static int handle_packet(struct ulogd_pluginstance *upi, struct ulogd_unixsock_p
- 	okey_set_u32(&ret[UNIXSOCK_KEY_RAW_PCKTLEN], payload_len);
- 
- 	/* options */
--	if (total_len > payload_len + sizeof(u_int16_t)) {
-+	if (total_len > payload_len + sizeof(uint16_t)) {
- 		/* option starts at the next aligned address after the payload */
- 		new_offset = USOCK_ALIGN(payload_len);
- 		options_start = (void*)ip + new_offset;
-@@ -431,13 +431,13 @@ static int handle_packet(struct ulogd_pluginstance *upi, struct ulogd_unixsock_p
- 				okey_set_ptr(&ret[UNIXSOCK_KEY_OOB_OUT], buf);
- 				break;
- 			case ULOGD2_OPT_OOB_TIME_SEC:
--				okey_set_u32(&ret[UNIXSOCK_KEY_OOB_TIME_SEC], *(u_int32_t*)buf);
-+				okey_set_u32(&ret[UNIXSOCK_KEY_OOB_TIME_SEC], *(uint32_t*)buf);
- 				break;
- 			case ULOGD2_OPT_USER:
- 				okey_set_ptr(&ret[UNIXSOCK_KEY_NUFW_USER_NAME], buf);
- 				break;
- 			case ULOGD2_OPT_USERID:
--				okey_set_u32(&ret[UNIXSOCK_KEY_NUFW_USER_ID], *(u_int32_t*)buf);
-+				okey_set_u32(&ret[UNIXSOCK_KEY_NUFW_USER_ID], *(uint32_t*)buf);
- 				break;
- 			case ULOGD2_OPT_OSNAME:
- 				okey_set_ptr(&ret[UNIXSOCK_KEY_NUFW_OS_NAME], buf);
-@@ -452,7 +452,7 @@ static int handle_packet(struct ulogd_pluginstance *upi, struct ulogd_unixsock_p
- 				okey_set_ptr(&ret[UNIXSOCK_KEY_NUFW_APP_NAME], buf);
- 				break;
- 			case ULOGD2_OPT_STATE:
--				okey_set_u8(&ret[UNIXSOCK_KEY_RAW_LABEL], *(u_int8_t*)buf);
-+				okey_set_u8(&ret[UNIXSOCK_KEY_RAW_LABEL], *(uint8_t*)buf);
- 				break;
- 			default:
- 				ulogd_log(ULOGD_NOTICE,
-@@ -595,8 +595,8 @@ static int unixsock_instance_read_cb(int fd, unsigned int what, void *param)
- 	struct ulogd_pluginstance *upi = param;
- 	struct unixsock_input *ui = (struct unixsock_input*)upi->private;
- 	int len;
--	u_int16_t needed_len;
--	u_int32_t packet_sig;
-+	uint16_t needed_len;
-+	uint32_t packet_sig;
- 	struct ulogd_unixsock_packet_t *unixsock_packet;
- 
- 	char buf[4096];
-@@ -642,7 +642,7 @@ static int unixsock_instance_read_cb(int fd, unsigned int what, void *param)
- 
- 		needed_len = ntohs(unixsock_packet->total_size);
- 
--		if (ui->unixsock_buf_avail >= needed_len + sizeof(u_int32_t)) {
-+		if (ui->unixsock_buf_avail >= needed_len + sizeof(uint32_t)) {
- 			ulogd_log(ULOGD_DEBUG,
- 			"  We have enough data (%d bytes required), handling packet\n",
- 					needed_len);
-@@ -651,11 +651,11 @@ static int unixsock_instance_read_cb(int fd, unsigned int what, void *param)
- 				return -1;
- 			}
- 			/* consume data */
--			ui->unixsock_buf_avail -= (sizeof(u_int32_t) + needed_len);
-+			ui->unixsock_buf_avail -= (sizeof(uint32_t) + needed_len);
- 			if (ui->unixsock_buf_avail > 0) {
- 				/* we need to shift data .. */
- 				memmove(ui->unixsock_buf,
--						ui->unixsock_buf + (sizeof(u_int32_t) + needed_len) ,
-+						ui->unixsock_buf + (sizeof(uint32_t) + needed_len) ,
- 						ui->unixsock_buf_avail);
- 			} else {
- 				/* input buffer is empty, do not loop */
-@@ -664,7 +664,7 @@ static int unixsock_instance_read_cb(int fd, unsigned int what, void *param)
- 
- 		} else {
- 			ulogd_log(ULOGD_DEBUG, "  We have %d bytes, but need %d. Requesting more\n",
--					ui->unixsock_buf_avail, needed_len + sizeof(u_int32_t));
-+					ui->unixsock_buf_avail, needed_len + sizeof(uint32_t));
- 			return 0;
- 		}
- 
-diff --git a/libipulog/libipulog.c b/libipulog/libipulog.c
-index ab28bb4..b49f7f2 100644
---- a/libipulog/libipulog.c
-+++ b/libipulog/libipulog.c
-@@ -33,7 +33,7 @@
- struct ipulog_handle
- {
- 	int fd;
--	u_int8_t blocking;
-+	uint8_t blocking;
- 	struct sockaddr_nl local;
- 	struct sockaddr_nl peer;
- 	struct nlmsghdr* last_nlhdr;
-@@ -112,7 +112,7 @@ char *ipulog_strerror(int errcode)
- }
- 
- /* convert a netlink group (1-32) to a group_mask suitable for create_handle */
--u_int32_t ipulog_group2gmask(u_int32_t group)
-+uint32_t ipulog_group2gmask(uint32_t group)
- {
- 	if (group < 1 || group > 32)
- 	{
-@@ -123,8 +123,8 @@ u_int32_t ipulog_group2gmask(u_int32_t group)
- }
- 
- /* create a ipulog handle for the reception of packets sent to gmask */
--struct ipulog_handle *ipulog_create_handle(u_int32_t gmask, 
--					   u_int32_t rcvbufsize)
-+struct ipulog_handle *ipulog_create_handle(uint32_t gmask,
-+					   uint32_t rcvbufsize)
- {
- 	struct ipulog_handle *h;
- 	int status;
-diff --git a/output/mysql/ulogd_output_MYSQL.c b/output/mysql/ulogd_output_MYSQL.c
-index 0a1ebfc..643320c 100644
---- a/output/mysql/ulogd_output_MYSQL.c
-+++ b/output/mysql/ulogd_output_MYSQL.c
-@@ -174,7 +174,7 @@ static int open_db_mysql(struct ulogd_pluginstance *upi)
- 	struct mysql_instance *mi = (struct mysql_instance *) upi->private;
- 	unsigned int connect_timeout = timeout_ce(upi->config_kset).u.value;
- 	char *server = host_ce(upi->config_kset).u.string;
--	u_int16_t port = port_ce(upi->config_kset).u.value;
-+	uint16_t port = port_ce(upi->config_kset).u.value;
- 	char *user = user_ce(upi->config_kset).u.string;
- 	char *pass = pass_ce(upi->config_kset).u.string;
- 	char *db = db_ce(upi->config_kset).u.string;
-diff --git a/output/ulogd_output_IPFIX.c b/output/ulogd_output_IPFIX.c
-index 761d272..62f1d60 100644
---- a/output/ulogd_output_IPFIX.c
-+++ b/output/ulogd_output_IPFIX.c
-@@ -44,19 +44,19 @@
- #endif
- 
- #ifdef IPPROTO_SCTP
--typedef u_int32_t sctp_assoc_t;
-+typedef uint32_t sctp_assoc_t;
- 
- /* glibc doesn't yet have this, as defined by
-  * draft-ietf-tsvwg-sctpsocket-11.txt */
- struct sctp_sndrcvinfo {
--	u_int16_t	sinfo_stream;
--	u_int16_t	sinfo_ssn;
--	u_int16_t	sinfo_flags;
--	u_int32_t	sinfo_ppid;
--	u_int32_t	sinfo_context;
--	u_int32_t	sinfo_timetolive;
--	u_int32_t	sinfo_tsn;
--	u_int32_t	sinfo_cumtsn;
-+	uint16_t	sinfo_stream;
-+	uint16_t	sinfo_ssn;
-+	uint16_t	sinfo_flags;
-+	uint32_t	sinfo_ppid;
-+	uint32_t	sinfo_context;
-+	uint32_t	sinfo_timetolive;
-+	uint32_t	sinfo_tsn;
-+	uint32_t	sinfo_cumtsn;
- 	sctp_assoc_t	sinfo_assoc_id;
- };
- #endif
-@@ -207,7 +207,7 @@ struct ipfix_instance {
- };
- 
- #define ULOGD_IPFIX_TEMPL_BASE 1024
--static u_int16_t next_template_id = ULOGD_IPFIX_TEMPL_BASE;
-+static uint16_t next_template_id = ULOGD_IPFIX_TEMPL_BASE;
- 
- /* Build the IPFIX template from the input keys */
- struct ulogd_ipfix_template *
-diff --git a/src/addr.c b/src/addr.c
-index 2672fab..41435dc 100644
---- a/src/addr.c
-+++ b/src/addr.c
-@@ -22,9 +22,9 @@
- #include <ulogd/ulogd.h>
- #include <ulogd/addr.h>
- 
--u_int32_t ulogd_bits2netmask(int bits)
-+uint32_t ulogd_bits2netmask(int bits)
- {
--	u_int32_t netmask, bm;
-+	uint32_t netmask, bm;
- 
- 	if (bits >= 32 || bits < 0)
- 		return(~0);
-diff --git a/util/db.c b/util/db.c
-index 24966a5..c9aec41 100644
---- a/util/db.c
-+++ b/util/db.c
-@@ -362,7 +362,7 @@ static void __format_query_db(struct ulogd_pluginstance *upi, char *start)
- 			sprintf(stmt_ins, "%u,", res->u.value.ui16);
- 			break;
- 		case ULOGD_RET_IPADDR:
--			/* fallthrough when logging IP as u_int32_t */
-+			/* fallthrough when logging IP as uint32_t */
- 		case ULOGD_RET_UINT32:
- 			sprintf(stmt_ins, "%u,", res->u.value.ui32);
- 			break;
-diff --git a/util/printpkt.c b/util/printpkt.c
-index eb6cfbf..69a47ca 100644
---- a/util/printpkt.c
-+++ b/util/printpkt.c
-@@ -199,7 +199,7 @@ static int printpkt_ipv4(struct ulogd_key *res, char *buf)
- {
- 	char *buf_cur = buf;
- 	char tmp[INET_ADDRSTRLEN];
--	u_int32_t paddr;
-+	uint32_t paddr;
- 
- 	if (pp_is_valid(res, KEY_IP_SADDR))
- 		buf_cur += sprintf(buf_cur, "SRC=%s ",
-@@ -363,8 +363,8 @@ static int printpkt_ipv6(struct ulogd_key *res, char *buf)
- int printpkt_arp(struct ulogd_key *res, char *buf)
- {
- 	char *buf_cur = buf;
--	u_int16_t code = 0;
--	u_int8_t *mac;
-+	uint16_t code = 0;
-+	uint8_t *mac;
- 
- 	if (pp_is_valid(res, KEY_ARP_SPA))
- 		buf_cur += sprintf(buf_cur, "SRC=%s ",
--- 
-2.3.6
+On Fri, 29 May 2015, Eric B Munson wrote:
+
+> It would be useful for userspace to query the size of an ipset hash,
+> however, this data is not exposed to userspace outside of counting the
+> number of member entries.  This patch uses the attribute
+> IPSET_ATTR_ELEMENTS to indicate the size in the the header that is
+> exported to userspace.  This field is then printed by the userspace
+> tool for hashes.
+> 
+> Because it is only meaningful for hashes to report their size, the
+> output is conditional on the set type.  To do this checking the
+> MATCH_TYPENAME macro was moved to utils.h.
+
+The patch is applied with a slight modification: "Number of 
+entries" is printed instead of "Number of Entries". Thank you!
+
+Best regards,
+Jozsef
+
+> The bulk of this patch changes the expected test suite to account for
+> the change in output.
+> 
+> Signed-off-by: Eric B Munson <emunson@akamai.com>
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> Cc: Josh Hunt <johunt@akamai.com>
+> Cc: netfilter-devel@vger.kernel.org
+> ---
+> This is the same as the V2 I posted in Decemeber with a rebase to the
+> latest upstream
+> 
+>  include/libipset/utils.h                     |  3 +++
+>  kernel/net/netfilter/ipset/ip_set_hash_gen.h |  3 ++-
+>  lib/errcode.c                                |  2 --
+>  lib/session.c                                | 14 ++++++++++++--
+>  tests/check_cidrs.sh                         |  4 ++--
+>  tests/comment.t.list2                        |  3 ++-
+>  tests/comment.t.list21                       |  3 ++-
+>  tests/comment.t.list22                       |  3 ++-
+>  tests/comment.t.list3                        |  9 ++++++---
+>  tests/hash:ip,mark.t.list0                   |  3 ++-
+>  tests/hash:ip,mark.t.list1                   |  3 ++-
+>  tests/hash:ip,port,ip.t.list0                |  3 ++-
+>  tests/hash:ip,port,ip.t.list1                |  3 ++-
+>  tests/hash:ip,port,net.t.list0               |  3 ++-
+>  tests/hash:ip,port.t.list0                   |  3 ++-
+>  tests/hash:ip,port.t.list1                   |  3 ++-
+>  tests/hash:ip,port.t.list2                   |  3 ++-
+>  tests/hash:ip.t.list0                        |  3 ++-
+>  tests/hash:ip.t.list1                        |  3 ++-
+>  tests/hash:ip.t.list2                        |  3 ++-
+>  tests/hash:ip.t.list3                        |  3 ++-
+>  tests/hash:ip6,mark.t.list0                  |  3 ++-
+>  tests/hash:ip6,mark.t.list1                  |  3 ++-
+>  tests/hash:ip6,port,ip6.t.list0              |  4 +++-
+>  tests/hash:ip6,port,ip6.t.list1              |  3 ++-
+>  tests/hash:ip6,port,net6.t.list0             |  3 ++-
+>  tests/hash:ip6,port.t.list0                  |  3 ++-
+>  tests/hash:ip6,port.t.list1                  |  3 ++-
+>  tests/hash:ip6.t.list0                       |  3 ++-
+>  tests/hash:ip6.t.list1                       |  3 ++-
+>  tests/hash:ip6.t.list2                       |  3 ++-
+>  tests/hash:ip6.t.list3                       |  3 ++-
+>  tests/hash:mac.t.list0                       |  3 ++-
+>  tests/hash:mac.t.list1                       |  3 ++-
+>  tests/hash:mac.t.list2                       |  3 ++-
+>  tests/hash:mac.t.list3                       |  3 ++-
+>  tests/hash:net,iface.t                       |  2 +-
+>  tests/hash:net,iface.t.list0                 |  3 ++-
+>  tests/hash:net,iface.t.list1                 |  3 ++-
+>  tests/hash:net,iface.t.list2                 |  3 ++-
+>  tests/hash:net,net.t.list0                   |  3 ++-
+>  tests/hash:net,net.t.list1                   |  3 ++-
+>  tests/hash:net,net.t.list2                   |  3 ++-
+>  tests/hash:net,port,net.t.list0              |  3 ++-
+>  tests/hash:net,port.t.list0                  |  3 ++-
+>  tests/hash:net,port.t.list1                  |  3 ++-
+>  tests/hash:net.t.list0                       |  3 ++-
+>  tests/hash:net.t.list1                       |  3 ++-
+>  tests/hash:net.t.list2                       |  3 ++-
+>  tests/hash:net6,net6.t.list0                 |  3 ++-
+>  tests/hash:net6,net6.t.list1                 |  3 ++-
+>  tests/hash:net6,port,net6.t.list0            |  3 ++-
+>  tests/hash:net6,port.t.list0                 |  3 ++-
+>  tests/hash:net6,port.t.list1                 |  3 ++-
+>  tests/hash:net6.t.list0                      |  3 ++-
+>  tests/hash:net6.t.list1                      |  3 ++-
+>  tests/iphash.t.list0                         |  3 ++-
+>  tests/iphash.t.list1                         |  3 ++-
+>  tests/ipmarkhash.t.list0                     |  3 ++-
+>  tests/ipmarkhash.t.list1                     |  3 ++-
+>  tests/ipporthash.t.list0                     |  3 ++-
+>  tests/ipporthash.t.list1                     |  3 ++-
+>  tests/ipportiphash.t.list0                   |  3 ++-
+>  tests/ipportiphash.t.list1                   |  3 ++-
+>  tests/iptables.sh                            |  2 +-
+>  tests/nethash.t.list0                        |  3 ++-
+>  tests/resizet.sh                             |  2 +-
+>  tests/restore.t.list0                        |  3 ++-
+>  tests/restore.t.list1                        |  3 ++-
+>  tests/setlist.t.list4                        | 12 ++++++++----
+>  tests/sort.sh                                |  4 ++--
+>  71 files changed, 159 insertions(+), 79 deletions(-)
+> 
+> diff --git a/include/libipset/utils.h b/include/libipset/utils.h
+> index 3cd29da..ceedd45 100644
+> --- a/include/libipset/utils.h
+> +++ b/include/libipset/utils.h
+> @@ -19,6 +19,9 @@
+>  #define STRCASEQ(a, b)		(strcasecmp(a, b) == 0)
+>  #define STRNCASEQ(a, b, n)	(strncasecmp(a, b, n) == 0)
+>  
+> +/* Match set type names */
+> +#define MATCH_TYPENAME(a, b)    STRNEQ(a, b, strlen(b))
+> +
+>  /* Stringify tokens */
+>  #define _STR(c)			#c
+>  #define STR(c)			_STR(c)
+> diff --git a/kernel/net/netfilter/ipset/ip_set_hash_gen.h b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+> index 878d35f..bfa1fc7 100644
+> --- a/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+> +++ b/kernel/net/netfilter/ipset/ip_set_hash_gen.h
+> @@ -1068,7 +1068,8 @@ mtype_head(struct ip_set *set, struct sk_buff *skb)
+>  		goto nla_put_failure;
+>  #endif
+>  	if (nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref - 1)) ||
+> -	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE, htonl(memsize)))
+> +	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE, htonl(memsize)) ||
+> +	    nla_put_net32(skb, IPSET_ATTR_ELEMENTS, htonl(h->elements)))
+>  		goto nla_put_failure;
+>  	if (unlikely(ip_set_put_flags(skb, set)))
+>  		goto nla_put_failure;
+> diff --git a/lib/errcode.c b/lib/errcode.c
+> index 8eb275b..3881121 100644
+> --- a/lib/errcode.c
+> +++ b/lib/errcode.c
+> @@ -148,8 +148,6 @@ static const struct ipset_errcode_table list_errcode_table[] = {
+>  	{ },
+>  };
+>  
+> -#define MATCH_TYPENAME(a, b)	STRNEQ(a, b, strlen(b))
+> -
+>  /**
+>   * ipset_errcode - interpret a kernel error code
+>   * @session: session structure
+> diff --git a/lib/session.c b/lib/session.c
+> index 013d9d8..be45a87 100644
+> --- a/lib/session.c
+> +++ b/lib/session.c
+> @@ -931,6 +931,10 @@ list_create(struct ipset_session *session, struct nlattr *nla[])
+>  		safe_dprintf(session, ipset_print_number, IPSET_OPT_MEMSIZE);
+>  		safe_snprintf(session, "\nReferences: ");
+>  		safe_dprintf(session, ipset_print_number, IPSET_OPT_REFERENCES);
+> +		if (MATCH_TYPENAME(type->name , "hash:")) {
+> +			safe_snprintf(session, "\nNumber of Entries: ");
+> +			safe_dprintf(session, ipset_print_number, IPSET_OPT_ELEMENTS);
+> +		}
+>  		safe_snprintf(session,
+>  			session->envopts & IPSET_ENV_LIST_HEADER ?
+>  			"\n" : "\nMembers:\n");
+> @@ -940,10 +944,16 @@ list_create(struct ipset_session *session, struct nlattr *nla[])
+>  		safe_dprintf(session, ipset_print_number, IPSET_OPT_MEMSIZE);
+>  		safe_snprintf(session, "</memsize>\n<references>");
+>  		safe_dprintf(session, ipset_print_number, IPSET_OPT_REFERENCES);
+> +		safe_snprintf(session, "</references>\n");
+> +		if (MATCH_TYPENAME(type->name , "hash:")) {
+> +			safe_snprintf(session, "<numentries>");
+> +			safe_dprintf(session, ipset_print_number, IPSET_OPT_ELEMENTS);
+> +			safe_snprintf(session, "</numentries>\n");
+> +		}
+>  		safe_snprintf(session,
+>  			session->envopts & IPSET_ENV_LIST_HEADER ?
+> -			"</references>\n</header>\n" :
+> -			"</references>\n</header>\n<members>\n");
+> +			"</header>\n" :
+> +			"</header>\n<members>\n");
+>  		break;
+>  	default:
+>  		break;
+> diff --git a/tests/check_cidrs.sh b/tests/check_cidrs.sh
+> index 38f735f..2206b18 100755
+> --- a/tests/check_cidrs.sh
+> +++ b/tests/check_cidrs.sh
+> @@ -10,14 +10,14 @@ $ipset n test hash:net
+>  for x in `seq 1 32`; do
+>      $ipset a test 10.0.0.0/$x
+>      n=`$ipset l test | wc -l`
+> -    n=$((n - 7))
+> +    n=$((n - 8))
+>      test $n -eq $x || exit 1
+>  done
+>  for x in `seq 32 -1 1`; do
+>      $ipset d test 10.0.0.0/$x
+>      n=`$ipset l test | wc -l`
+>      # We deleted one element
+> -    n=$((n - 7 + 1))
+> +    n=$((n - 8 + 1))
+>      test $n -eq $x || exit 1
+>  done
+>  $ipset x test
+> diff --git a/tests/comment.t.list2 b/tests/comment.t.list2
+> index 76d0cea..d751822 100644
+> --- a/tests/comment.t.list2
+> +++ b/tests/comment.t.list2
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:net,net
+>  Header: family inet hashsize 128 maxelem 65536 comment
+> -Size in memory: 3392
+> +Size in memory: 1288
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  1.1.1.1,1.1.1.2 comment "text 1.1.1.1/32,1.1.1.2/32"
+>  192.168.68.64/27,192.168.129.64/27 comment "text 192.168.68.69/27,192.168.129.69/27"
+> diff --git a/tests/comment.t.list21 b/tests/comment.t.list21
+> index a40889e..739639f 100644
+> --- a/tests/comment.t.list21
+> +++ b/tests/comment.t.list21
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip
+>  Header: family inet hashsize 1024 maxelem 65536 timeout x comment
+> -Size in memory: 101400
+> +Size in memory: 95168
+>  References: 0
+> +Number of Entries: 512
+>  Members:
+>  2.0.0.0 timeout x comment "text message 0"
+>  2.0.0.1 timeout x comment "text message 1"
+> diff --git a/tests/comment.t.list22 b/tests/comment.t.list22
+> index 1ae1bf1..458ab57 100644
+> --- a/tests/comment.t.list22
+> +++ b/tests/comment.t.list22
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip
+>  Header: family inet hashsize 1024 maxelem 65536 timeout x comment
+> -Size in memory: 100152
+> +Size in memory: 98256
+>  References: 0
+> +Number of Entries: 512
+>  Members:
+>  2.0.1.0 timeout x comment "text message 0"
+>  2.0.1.1 timeout x comment "text message 1"
+> diff --git a/tests/comment.t.list3 b/tests/comment.t.list3
+> index d460bf5..1bd0ba7 100644
+> --- a/tests/comment.t.list3
+> +++ b/tests/comment.t.list3
+> @@ -1,22 +1,25 @@
+>  Name: a
+>  Type: hash:ip
+>  Header: family inet hashsize 1024 maxelem 65536
+> -Size in memory: 16536
+> +Size in memory: 128
+>  References: 1
+> +Number of Entries: 0
+>  Members:
+>  
+>  Name: b
+>  Type: hash:ip
+>  Header: family inet hashsize 1024 maxelem 65536
+> -Size in memory: 16536
+> +Size in memory: 128
+>  References: 1
+> +Number of Entries: 0
+>  Members:
+>  
+>  Name: c
+>  Type: hash:ip
+>  Header: family inet hashsize 1024 maxelem 65536
+> -Size in memory: 16536
+> +Size in memory: 128
+>  References: 1
+> +Number of Entries: 0
+>  Members:
+>  
+>  Name: test
+> diff --git a/tests/hash:ip,mark.t.list0 b/tests/hash:ip,mark.t.list0
+> index 715654c..fbdb56b 100644
+> --- a/tests/hash:ip,mark.t.list0
+> +++ b/tests/hash:ip,mark.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip,mark
+>  Header: family inet markmask 0xffffffff hashsize 1024 maxelem 65536 timeout x
+> -Size in memory: 8836
+> +Size in memory: 640
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  2.0.0.0,0x00000005 timeout x
+>  2.0.0.1,0x00000005 timeout x
+> diff --git a/tests/hash:ip,mark.t.list1 b/tests/hash:ip,mark.t.list1
+> index 093c94f..784bc7a 100644
+> --- a/tests/hash:ip,mark.t.list1
+> +++ b/tests/hash:ip,mark.t.list1
+> @@ -1,6 +1,7 @@
+>  Name: test
+>  Type: hash:ip,mark
+>  Header: family inet markmask 0xffffffff hashsize 1024 maxelem 65536 timeout 5
+> -Size in memory: 8836
+> +Size in memory: 640
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+> diff --git a/tests/hash:ip,port,ip.t.list0 b/tests/hash:ip,port,ip.t.list0
+> index 7218937..df811ce 100644
+> --- a/tests/hash:ip,port,ip.t.list0
+> +++ b/tests/hash:ip,port,ip.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip,port,ip
+>  Header: family inet hashsize 1024 maxelem 65536 timeout x
+> -Size in memory: 8720
+> +Size in memory: 840
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  2.0.0.0,tcp:5,1.1.1.1 timeout x
+>  2.0.0.1,tcp:5,1.1.1.1 timeout x
+> diff --git a/tests/hash:ip,port,ip.t.list1 b/tests/hash:ip,port,ip.t.list1
+> index 78ad1fd..d00c9d7 100644
+> --- a/tests/hash:ip,port,ip.t.list1
+> +++ b/tests/hash:ip,port,ip.t.list1
+> @@ -1,6 +1,7 @@
+>  Name: test
+>  Type: hash:ip,port,ip
+>  Header: family inet hashsize 1024 maxelem 65536 timeout 5
+> -Size in memory: 8304
+> +Size in memory: 840
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+> diff --git a/tests/hash:ip,port,net.t.list0 b/tests/hash:ip,port,net.t.list0
+> index c214ead..ea0e963 100644
+> --- a/tests/hash:ip,port,net.t.list0
+> +++ b/tests/hash:ip,port,net.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip,port,net
+>  Header: family inet hashsize 1024 maxelem 65536 timeout x
+> -Size in memory: 8720
+> +Size in memory: 1096
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  2.0.0.0,tcp:5,192.168.0.0/25 timeout x
+>  2.0.0.1,tcp:5,192.168.0.0/24 timeout x
+> diff --git a/tests/hash:ip,port.t.list0 b/tests/hash:ip,port.t.list0
+> index fb9c57b..24b8b99 100644
+> --- a/tests/hash:ip,port.t.list0
+> +++ b/tests/hash:ip,port.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip,port
+>  Header: family inet hashsize 1024 maxelem 65536 timeout x
+> -Size in memory: 8592
+> +Size in memory: 640
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  2.0.0.0,tcp:5 timeout x
+>  2.0.0.1,tcp:5 timeout x
+> diff --git a/tests/hash:ip,port.t.list1 b/tests/hash:ip,port.t.list1
+> index eab115c..7a82514 100644
+> --- a/tests/hash:ip,port.t.list1
+> +++ b/tests/hash:ip,port.t.list1
+> @@ -1,6 +1,7 @@
+>  Name: test
+>  Type: hash:ip,port
+>  Header: family inet hashsize 1024 maxelem 65536 timeout 5
+> -Size in memory: 8304
+> +Size in memory: 640
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+> diff --git a/tests/hash:ip,port.t.list2 b/tests/hash:ip,port.t.list2
+> index 7e7f3ad..2e7cf42 100644
+> --- a/tests/hash:ip,port.t.list2
+> +++ b/tests/hash:ip,port.t.list2
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip,port
+>  Header: family inet hashsize 1024 maxelem 65536
+> -Size in memory: 8432
+> +Size in memory: 320
+>  References: 0
+> +Number of Entries: 3
+>  Members:
+>  2.0.0.1,tcp:80
+>  2.0.0.1,udp:80
+> diff --git a/tests/hash:ip.t.list0 b/tests/hash:ip.t.list0
+> index 3d13afc..4f6f241 100644
+> --- a/tests/hash:ip.t.list0
+> +++ b/tests/hash:ip.t.list0
+> @@ -1,7 +1,8 @@
+>  Name: test
+>  Type: hash:ip
+>  Header: family inet hashsize 128 maxelem 65536 timeout 5
+> -Size in memory: 1208
+> +Size in memory: 352
+>  References: 0
+> +Number of Entries: 2
+>  Members:
+>  192.168.68.69 timeout 0
+> diff --git a/tests/hash:ip.t.list1 b/tests/hash:ip.t.list1
+> index ffd4f72..45b5e04 100644
+> --- a/tests/hash:ip.t.list1
+> +++ b/tests/hash:ip.t.list1
+> @@ -1,7 +1,8 @@
+>  Name: test
+>  Type: hash:ip
+>  Header: family inet hashsize 128 maxelem 65536 netmask 24 timeout 5
+> -Size in memory: 1352
+> +Size in memory: 464
+>  References: 0
+> +Number of Entries: 3
+>  Members:
+>  200.100.10.0 timeout 0
+> diff --git a/tests/hash:ip.t.list2 b/tests/hash:ip.t.list2
+> index 274cf47..dc74248 100644
+> --- a/tests/hash:ip.t.list2
+> +++ b/tests/hash:ip.t.list2
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip
+>  Header: family inet hashsize 128 maxelem 65536 timeout x
+> -Size in memory: 1280
+> +Size in memory: 352
+>  References: 0
+> +Number of Entries: 2
+>  Members:
+>  192.168.68.69 timeout x
+>  2.0.0.1 timeout x
+> diff --git a/tests/hash:ip.t.list3 b/tests/hash:ip.t.list3
+> index 5077710..95eb07b 100644
+> --- a/tests/hash:ip.t.list3
+> +++ b/tests/hash:ip.t.list3
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip
+>  Header: family inet hashsize 128 maxelem 65536 netmask 24 timeout x
+> -Size in memory: 1352
+> +Size in memory: 464
+>  References: 0
+> +Number of Entries: 3
+>  Members:
+>  192.168.68.0 timeout x
+>  2.0.0.0 timeout x
+> diff --git a/tests/hash:ip6,mark.t.list0 b/tests/hash:ip6,mark.t.list0
+> index f905b2a..625497d 100644
+> --- a/tests/hash:ip6,mark.t.list0
+> +++ b/tests/hash:ip6,mark.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip,mark
+>  Header: family inet6 markmask 0xffffffff hashsize 1024 maxelem 65536 timeout x
+> -Size in memory: 9316
+> +Size in memory: 1088
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  2:1::,0x00000080 timeout x
+>  2:1::1,0x00000080 timeout x
+> diff --git a/tests/hash:ip6,mark.t.list1 b/tests/hash:ip6,mark.t.list1
+> index d40faed..c562b8d 100644
+> --- a/tests/hash:ip6,mark.t.list1
+> +++ b/tests/hash:ip6,mark.t.list1
+> @@ -1,6 +1,7 @@
+>  Name: test
+>  Type: hash:ip,mark
+>  Header: family inet6 markmask 0xffffffff hashsize 1024 maxelem 65536 timeout 5
+> -Size in memory: 9316
+> +Size in memory: 1088
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+> diff --git a/tests/hash:ip6,port,ip6.t.list0 b/tests/hash:ip6,port,ip6.t.list0
+> index 41ac1c0..c60599b 100644
+> --- a/tests/hash:ip6,port,ip6.t.list0
+> +++ b/tests/hash:ip6,port,ip6.t.list0
+> @@ -1,8 +1,10 @@
+>  Name: test
+>  Type: hash:ip,port,ip
+>  Header: family inet6 hashsize 1024 maxelem 65536 timeout x
+> -Size in memory: 9104
+> +Size in memory: 1608
+>  References: 0
+> +Size in memory: 9104
+> +Number of Entries: 4
+>  Members:
+>  2:1::,tcp:128,2:2:2::2 timeout x
+>  2:1::1,tcp:128,2:2:2::2 timeout x
+> diff --git a/tests/hash:ip6,port,ip6.t.list1 b/tests/hash:ip6,port,ip6.t.list1
+> index 7a3a4ad..01d83ae 100644
+> --- a/tests/hash:ip6,port,ip6.t.list1
+> +++ b/tests/hash:ip6,port,ip6.t.list1
+> @@ -1,6 +1,7 @@
+>  Name: test
+>  Type: hash:ip,port,ip
+>  Header: family inet6 hashsize 1024 maxelem 65536 timeout 5
+> -Size in memory: 8304
+> +Size in memory: 1608
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+> diff --git a/tests/hash:ip6,port,net6.t.list0 b/tests/hash:ip6,port,net6.t.list0
+> index 78472ff..a1e71a2 100644
+> --- a/tests/hash:ip6,port,net6.t.list0
+> +++ b/tests/hash:ip6,port,net6.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip,port,net
+>  Header: family inet6 hashsize 1024 maxelem 65536
+> -Size in memory: 9928
+> +Size in memory: 1864
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  2:1::,tcp:128,::/12
+>  2:1::1,tcp:128,::/12
+> diff --git a/tests/hash:ip6,port.t.list0 b/tests/hash:ip6,port.t.list0
+> index 5edbaac..cfed8c4 100644
+> --- a/tests/hash:ip6,port.t.list0
+> +++ b/tests/hash:ip6,port.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip,port
+>  Header: family inet6 hashsize 1024 maxelem 65536 timeout x
+> -Size in memory: 8848
+> +Size in memory: 1088
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  2:1::,tcp:128 timeout x
+>  2:1::1,tcp:128 timeout x
+> diff --git a/tests/hash:ip6,port.t.list1 b/tests/hash:ip6,port.t.list1
+> index bf31179..638f685 100644
+> --- a/tests/hash:ip6,port.t.list1
+> +++ b/tests/hash:ip6,port.t.list1
+> @@ -1,6 +1,7 @@
+>  Name: test
+>  Type: hash:ip,port
+>  Header: family inet6 hashsize 1024 maxelem 65536 timeout 5
+> -Size in memory: 8304
+> +Size in memory: 1088
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+> diff --git a/tests/hash:ip6.t.list0 b/tests/hash:ip6.t.list0
+> index df81e38..a64a38f 100644
+> --- a/tests/hash:ip6.t.list0
+> +++ b/tests/hash:ip6.t.list0
+> @@ -1,7 +1,8 @@
+>  Name: test
+>  Type: hash:ip
+>  Header: family inet6 hashsize 128 maxelem 65536 timeout 5
+> -Size in memory: 1240
+> +Size in memory: 512
+>  References: 0
+> +Number of Entries: 2
+>  Members:
+>  192:168:68::69 timeout 0
+> diff --git a/tests/hash:ip6.t.list1 b/tests/hash:ip6.t.list1
+> index c3b1c30..50227dd 100644
+> --- a/tests/hash:ip6.t.list1
+> +++ b/tests/hash:ip6.t.list1
+> @@ -1,7 +1,8 @@
+>  Name: test
+>  Type: hash:ip
+>  Header: family inet6 hashsize 128 maxelem 65536 netmask 64 timeout 5
+> -Size in memory: 1448
+> +Size in memory: 704
+>  References: 0
+> +Number of Entries: 3
+>  Members:
+>  200:100:10:: timeout 0
+> diff --git a/tests/hash:ip6.t.list2 b/tests/hash:ip6.t.list2
+> index 1989efd..d7fd068 100644
+> --- a/tests/hash:ip6.t.list2
+> +++ b/tests/hash:ip6.t.list2
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip
+>  Header: family inet6 hashsize 128 maxelem 65536 timeout x
+> -Size in memory: 1344
+> +Size in memory: 512
+>  References: 0
+> +Number of Entries: 2
+>  Members:
+>  192:168:68::69 timeout x
+>  2::1 timeout x
+> diff --git a/tests/hash:ip6.t.list3 b/tests/hash:ip6.t.list3
+> index ece96d6..9a03f31 100644
+> --- a/tests/hash:ip6.t.list3
+> +++ b/tests/hash:ip6.t.list3
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip
+>  Header: family inet6 hashsize 128 maxelem 65536 netmask 64 timeout x
+> -Size in memory: 1448
+> +Size in memory: 704
+>  References: 0
+> +Number of Entries: 3
+>  Members:
+>  192:168:68:: timeout x
+>  200:100:10:: timeout x
+> diff --git a/tests/hash:mac.t.list0 b/tests/hash:mac.t.list0
+> index c2bbfd6..885f558 100644
+> --- a/tests/hash:mac.t.list0
+> +++ b/tests/hash:mac.t.list0
+> @@ -1,7 +1,8 @@
+>  Name: test
+>  Type: hash:mac
+>  Header: hashsize 128 maxelem 65536 timeout 5
+> -Size in memory: 2488
+> +Size in memory: 384
+>  References: 0
+> +Number of Entries: 2
+>  Members:
+>  00:0A:00:00:00:00 timeout 0
+> diff --git a/tests/hash:mac.t.list1 b/tests/hash:mac.t.list1
+> index 185f35f..cd48b8e 100644
+> --- a/tests/hash:mac.t.list1
+> +++ b/tests/hash:mac.t.list1
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:mac
+>  Header: hashsize 1024 maxelem 65536 skbinfo
+> -Size in memory: 17304
+> +Size in memory: 1088
+>  References: 0
+> +Number of Entries: 6
+>  Members:
+>  01:02:03:04:05:06 skbmark 0x123456
+>  01:02:03:04:05:07 skbmark 0x1234ab/0xffff
+> diff --git a/tests/hash:mac.t.list2 b/tests/hash:mac.t.list2
+> index 2bec98d..aef2669 100644
+> --- a/tests/hash:mac.t.list2
+> +++ b/tests/hash:mac.t.list2
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:mac
+>  Header: hashsize 128 maxelem 65536 timeout x
+> -Size in memory: 2488
+> +Size in memory: 384
+>  References: 0
+> +Number of Entries: 2
+>  Members:
+>  00:00:00:00:02:00 timeout x
+>  00:0A:00:00:00:00 timeout x
+> diff --git a/tests/hash:mac.t.list3 b/tests/hash:mac.t.list3
+> index ab0bf9e..e35f058 100644
+> --- a/tests/hash:mac.t.list3
+> +++ b/tests/hash:mac.t.list3
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:mac
+>  Header: hashsize 1024 maxelem 2 skbinfo
+> -Size in memory: 632
+> +Size in memory: 448
+>  References: 0
+> +Number of Entries: 2
+>  Members:
+>  01:02:03:04:05:06 skbprio 1:10
+>  01:02:03:04:05:07 skbprio 1:12 skbqueue 8
+> diff --git a/tests/hash:net,iface.t b/tests/hash:net,iface.t
+> index 21ba1c7..c19de2b 100644
+> --- a/tests/hash:net,iface.t
+> +++ b/tests/hash:net,iface.t
+> @@ -131,7 +131,7 @@
+>  # Add clashing elements
+>  0 (set -e; for x in `seq 0 63`; do ipset add test 10.0.0.0/16,eth$x; done)
+>  # Check listing
+> -0 n=`ipset list test | grep -v Revision: | wc -l` && test $n -eq 70
+> +0 n=`ipset list test | grep -v Revision: | wc -l` && test $n -eq 71
+>  # Delete test set
+>  0 ipset destroy test
+>  # Create test set with timeout support
+> diff --git a/tests/hash:net,iface.t.list0 b/tests/hash:net,iface.t.list0
+> index 4bf10fe..4bd53cc 100644
+> --- a/tests/hash:net,iface.t.list0
+> +++ b/tests/hash:net,iface.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:net,iface
+>  Header: family inet hashsize 128 maxelem 65536
+> -Size in memory: 2928
+> +Size in memory: 928
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  1.1.1.1,eth0
+>  192.168.68.64/27,eth1
+> diff --git a/tests/hash:net,iface.t.list1 b/tests/hash:net,iface.t.list1
+> index de56129..f46e6ad 100644
+> --- a/tests/hash:net,iface.t.list1
+> +++ b/tests/hash:net,iface.t.list1
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:net,iface
+>  Header: family inet hashsize 1024 maxelem 65536
+> -Size in memory: 18512
+> +Size in memory: 3872
+>  References: 0
+> +Number of Entries: 27
+>  Members:
+>  192.0.0.0/10,eth10
+>  192.0.0.0/11,eth11
+> diff --git a/tests/hash:net,iface.t.list2 b/tests/hash:net,iface.t.list2
+> index fbd502c..f19bc7a 100644
+> --- a/tests/hash:net,iface.t.list2
+> +++ b/tests/hash:net,iface.t.list2
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:net,iface
+>  Header: family inet hashsize 1024 maxelem 65536
+> -Size in memory: 17168
+> +Size in memory: 928
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  10.2.0.0/24,eth0
+>  10.2.1.0/29,eth0
+> diff --git a/tests/hash:net,net.t.list0 b/tests/hash:net,net.t.list0
+> index b759316..cc2784e 100644
+> --- a/tests/hash:net,net.t.list0
+> +++ b/tests/hash:net,net.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:net,net
+>  Header: family inet hashsize 128 maxelem 65536 timeout x
+> -Size in memory: 3040
+> +Size in memory: 1288
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  1.1.1.1,1.1.1.2 timeout x
+>  192.168.68.64/27,192.168.129.64/27 timeout x
+> diff --git a/tests/hash:net,net.t.list1 b/tests/hash:net,net.t.list1
+> index d27b4a4..5a154d3 100644
+> --- a/tests/hash:net,net.t.list1
+> +++ b/tests/hash:net,net.t.list1
+> @@ -1,6 +1,7 @@
+>  Name: test
+>  Type: hash:net,net
+>  Header: family inet hashsize 128 maxelem 65536 timeout 5
+> -Size in memory: 3040
+> +Size in memory: 1288
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+> diff --git a/tests/hash:net,net.t.list2 b/tests/hash:net,net.t.list2
+> index adf26ff..07a288a 100644
+> --- a/tests/hash:net,net.t.list2
+> +++ b/tests/hash:net,net.t.list2
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:net,net
+>  Header: family inet hashsize 1024 maxelem 65536
+> -Size in memory: 17664
+> +Size in memory: 2056
+>  References: 0
+> +Number of Entries: 16
+>  Members:
+>  10.2.0.0/24,10.3.0.0/24
+>  10.2.0.0/24,10.3.1.0/29
+> diff --git a/tests/hash:net,port,net.t.list0 b/tests/hash:net,port,net.t.list0
+> index 0d90e62..19c91ad 100644
+> --- a/tests/hash:net,port,net.t.list0
+> +++ b/tests/hash:net,port,net.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:net,port,net
+>  Header: family inet hashsize 1024 maxelem 65536 timeout x
+> -Size in memory: 17672
+> +Size in memory: 1288
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  2.0.0.0/24,tcp:5,192.168.0.0/24 timeout x
+>  2.0.0.0/24,tcp:5,192.168.0.0/25 timeout x
+> diff --git a/tests/hash:net,port.t.list0 b/tests/hash:net,port.t.list0
+> index e28b4a3..6cf4326 100644
+> --- a/tests/hash:net,port.t.list0
+> +++ b/tests/hash:net,port.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:net,port
+>  Header: family inet hashsize 128 maxelem 65536 timeout x
+> -Size in memory: 2072
+> +Size in memory: 1024
+>  References: 0
+> +Number of Entries: 5
+>  Members:
+>  1.1.1.1,tcp:5 timeout x
+>  192.168.68.64/27,tcp:8 timeout x
+> diff --git a/tests/hash:net,port.t.list1 b/tests/hash:net,port.t.list1
+> index 10031e4..d777e4f 100644
+> --- a/tests/hash:net,port.t.list1
+> +++ b/tests/hash:net,port.t.list1
+> @@ -1,6 +1,7 @@
+>  Name: test
+>  Type: hash:net,port
+>  Header: family inet hashsize 128 maxelem 65536 timeout 5
+> -Size in memory: 2000
+> +Size in memory: 1024
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+> diff --git a/tests/hash:net.t.list0 b/tests/hash:net.t.list0
+> index a71fa74..5060479 100644
+> --- a/tests/hash:net.t.list0
+> +++ b/tests/hash:net.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:net
+>  Header: family inet hashsize 128 maxelem 65536 timeout x
+> -Size in memory: 1672
+> +Size in memory: 896
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  1.1.1.1 timeout x
+>  192.168.68.64/27 timeout x
+> diff --git a/tests/hash:net.t.list1 b/tests/hash:net.t.list1
+> index 7ea6afc..9d4ed0f 100644
+> --- a/tests/hash:net.t.list1
+> +++ b/tests/hash:net.t.list1
+> @@ -1,6 +1,7 @@
+>  Name: test
+>  Type: hash:net
+>  Header: family inet hashsize 128 maxelem 65536 timeout 5
+> -Size in memory: 1672
+> +Size in memory: 895
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+> diff --git a/tests/hash:net.t.list2 b/tests/hash:net.t.list2
+> index bc81b5e..f064c43 100644
+> --- a/tests/hash:net.t.list2
+> +++ b/tests/hash:net.t.list2
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:net
+>  Header: family inet hashsize 1024 maxelem 65536
+> -Size in memory: 17016
+> +Size in memory: 640
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  10.2.0.0/24
+>  10.2.1.0/29
+> diff --git a/tests/hash:net6,net6.t.list0 b/tests/hash:net6,net6.t.list0
+> index ea78bbb..6f04003 100644
+> --- a/tests/hash:net6,net6.t.list0
+> +++ b/tests/hash:net6,net6.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:net,net
+>  Header: family inet6 hashsize 128 maxelem 65536 timeout x
+> -Size in memory: 4672
+> +Size in memory: 3144
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  192:160::/27,172:16:68::/48 timeout x
+>  1:1:1::1,2:2:2::2 timeout x
+> diff --git a/tests/hash:net6,net6.t.list1 b/tests/hash:net6,net6.t.list1
+> index 0e1b7d2..9107e33 100644
+> --- a/tests/hash:net6,net6.t.list1
+> +++ b/tests/hash:net6,net6.t.list1
+> @@ -1,6 +1,7 @@
+>  Name: test
+>  Type: hash:net,net
+>  Header: family inet6 hashsize 128 maxelem 65536 timeout 5
+> -Size in memory: 4672
+> +Size in memory: 3144
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+> diff --git a/tests/hash:net6,port,net6.t.list0 b/tests/hash:net6,port,net6.t.list0
+> index 8a927ec..589c0b7 100644
+> --- a/tests/hash:net6,port,net6.t.list0
+> +++ b/tests/hash:net6,port,net6.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:net,port,net
+>  Header: family inet6 hashsize 1024 maxelem 65536
+> -Size in memory: 18824
+> +Size in memory: 2440
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  2:1::,tcp:128,::/12
+>  2:1::1,tcp:128,::/12
+> diff --git a/tests/hash:net6,port.t.list0 b/tests/hash:net6,port.t.list0
+> index f0a27b4..b66ad2c 100644
+> --- a/tests/hash:net6,port.t.list0
+> +++ b/tests/hash:net6,port.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:net,port
+>  Header: family inet6 hashsize 128 maxelem 65536 timeout x
+> -Size in memory: 2328
+> +Size in memory: 2352
+>  References: 0
+> +Number of Entries: 5
+>  Members:
+>  192:160::/27,ipv6-icmp:echo-request timeout x
+>  192:168:68::95,ipv6-icmp:port-unreachable timeout x
+> diff --git a/tests/hash:net6,port.t.list1 b/tests/hash:net6,port.t.list1
+> index e5e90a4..5043e0a 100644
+> --- a/tests/hash:net6,port.t.list1
+> +++ b/tests/hash:net6,port.t.list1
+> @@ -1,7 +1,8 @@
+>  Name: test
+>  Type: hash:net,port
+>  Header: family inet6 hashsize 128 maxelem 65536 timeout 5
+> -Size in memory: 2328
+> +Size in memory: 2352
+>  References: 0
+> +Number of Entries: 5
+>  Members:
+>  1:1:1::1,tcp:8 timeout 0
+> diff --git a/tests/hash:net6.t.list0 b/tests/hash:net6.t.list0
+> index 52b0ce5..beae54b 100644
+> --- a/tests/hash:net6.t.list0
+> +++ b/tests/hash:net6.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:net
+>  Header: family inet6 hashsize 128 maxelem 65536 timeout x
+> -Size in memory: 2696
+> +Size in memory: 2112
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  192:160::/27 timeout x
+>  1:1:1::1 timeout x
+> diff --git a/tests/hash:net6.t.list1 b/tests/hash:net6.t.list1
+> index e92da52..cd3b3b3 100644
+> --- a/tests/hash:net6.t.list1
+> +++ b/tests/hash:net6.t.list1
+> @@ -1,6 +1,7 @@
+>  Name: test
+>  Type: hash:net
+>  Header: family inet6 hashsize 128 maxelem 65536 timeout 5
+> -Size in memory: 2696
+> +Size in memory: 2112
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+> diff --git a/tests/iphash.t.list0 b/tests/iphash.t.list0
+> index 2302485..a74d1e3 100644
+> --- a/tests/iphash.t.list0
+> +++ b/tests/iphash.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip
+>  Header: family inet hashsize 128 maxelem 65536
+> -Size in memory: 1184
+> +Size in memory: 224
+>  References: 0
+> +Number of Entries: 2
+>  Members:
+>  192.168.68.69
+>  2.0.0.1
+> diff --git a/tests/iphash.t.list1 b/tests/iphash.t.list1
+> index ea5d2a1..fc470a5 100644
+> --- a/tests/iphash.t.list1
+> +++ b/tests/iphash.t.list1
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip
+>  Header: family inet hashsize 128 maxelem 65536 netmask 24
+> -Size in memory: 1184
+> +Size in memory: 224
+>  References: 0
+> +Number of Entries: 2
+>  Members:
+>  192.168.68.0
+>  2.0.0.0
+> diff --git a/tests/ipmarkhash.t.list0 b/tests/ipmarkhash.t.list0
+> index 1157c69..35caa4d 100644
+> --- a/tests/ipmarkhash.t.list0
+> +++ b/tests/ipmarkhash.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip,mark
+>  Header: family inet markmask 0xffffffff hashsize 1024 maxelem 65536
+> -Size in memory: 8516
+> +Size in memory: 384
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  2.0.0.0,0x00000005
+>  2.0.0.1,0x00000005
+> diff --git a/tests/ipmarkhash.t.list1 b/tests/ipmarkhash.t.list1
+> index 5455be9..5cc4935 100644
+> --- a/tests/ipmarkhash.t.list1
+> +++ b/tests/ipmarkhash.t.list1
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip,mark
+>  Header: family inet markmask 0xffffffff hashsize 1024 maxelem 65536
+> -Size in memory: 8468
+> +Size in memory: 384
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  1.255.255.255,0x00000005
+>  2.0.0.0,0x00000005
+> diff --git a/tests/ipporthash.t.list0 b/tests/ipporthash.t.list0
+> index 20c805d..9d33a41 100644
+> --- a/tests/ipporthash.t.list0
+> +++ b/tests/ipporthash.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip,port
+>  Header: family inet hashsize 1024 maxelem 65536
+> -Size in memory: 8464
+> +Size in memory: 384
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  2.0.0.0,tcp:5
+>  2.0.0.1,tcp:5
+> diff --git a/tests/ipporthash.t.list1 b/tests/ipporthash.t.list1
+> index 0834a00..709dcf7 100644
+> --- a/tests/ipporthash.t.list1
+> +++ b/tests/ipporthash.t.list1
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip,port
+>  Header: family inet hashsize 1024 maxelem 65536
+> -Size in memory: 8464
+> +Size in memory: 384
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  1.255.255.255,tcp:5
+>  2.0.0.0,tcp:5
+> diff --git a/tests/ipportiphash.t.list0 b/tests/ipportiphash.t.list0
+> index fc881ad..3e4dc05 100644
+> --- a/tests/ipportiphash.t.list0
+> +++ b/tests/ipportiphash.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip,port,ip
+>  Header: family inet hashsize 1024 maxelem 65536
+> -Size in memory: 8528
+> +Size in memory: 456
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  2.0.0.0,tcp:5,1.1.1.1
+>  2.0.0.1,tcp:5,1.1.1.1
+> diff --git a/tests/ipportiphash.t.list1 b/tests/ipportiphash.t.list1
+> index 9a7d1f0..343d397 100644
+> --- a/tests/ipportiphash.t.list1
+> +++ b/tests/ipportiphash.t.list1
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:ip,port,ip
+>  Header: family inet hashsize 1024 maxelem 65536
+> -Size in memory: 8416
+> +Size in memory: 296
+>  References: 0
+> +Number of Entries: 2
+>  Members:
+>  2.0.0.0,tcp:5,1.1.1.1
+>  2.0.255.255,tcp:128,2.2.2.2
+> diff --git a/tests/iptables.sh b/tests/iptables.sh
+> index 7ea90e0..7273066 100755
+> --- a/tests/iptables.sh
+> +++ b/tests/iptables.sh
+> @@ -1,6 +1,6 @@
+>  #!/bin/sh
+>  
+> -# set -x
+> +set -x
+>  set -e
+>  
+>  ipset=${IPSET_BIN:-../src/ipset}
+> diff --git a/tests/nethash.t.list0 b/tests/nethash.t.list0
+> index 1a157e9..2e7695d 100644
+> --- a/tests/nethash.t.list0
+> +++ b/tests/nethash.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: test
+>  Type: hash:net
+>  Header: family inet hashsize 128 maxelem 65536
+> -Size in memory: 1544
+> +Size in memory: 640
+>  References: 0
+> +Number of Entries: 4
+>  Members:
+>  1.1.1.1
+>  192.168.68.64/27
+> diff --git a/tests/resizet.sh b/tests/resizet.sh
+> index 7dc309f..eed4abf 100755
+> --- a/tests/resizet.sh
+> +++ b/tests/resizet.sh
+> @@ -1,6 +1,6 @@
+>  #!/bin/sh
+>  
+> -# set -x
+> +#set -x
+>  set -e
+>  
+>  ipset=${IPSET_BIN:-../src/ipset}
+> diff --git a/tests/restore.t.list0 b/tests/restore.t.list0
+> index 65aa8b8..21387ba 100644
+> --- a/tests/restore.t.list0
+> +++ b/tests/restore.t.list0
+> @@ -1,8 +1,9 @@
+>  Name: a
+>  Type: hash:ip
+>  Header: family inet6 hashsize 1024 maxelem 65536
+> -Size in memory: 16704
+> +Size in memory: 416
+>  References: 0
+> +Number of Entries: 3
+>  Members:
+>  3::3
+>  4::4
+> diff --git a/tests/restore.t.list1 b/tests/restore.t.list1
+> index 0602ab6..cdf9a02 100644
+> --- a/tests/restore.t.list1
+> +++ b/tests/restore.t.list1
+> @@ -1,8 +1,9 @@
+>  Name: b
+>  Type: hash:ip
+>  Header: family inet6 hashsize 1024 maxelem 65536
+> -Size in memory: 16704
+> +Size in memory: 416
+>  References: 0
+> +Number of Entries: 3
+>  Members:
+>  1::1
+>  2::2
+> diff --git a/tests/setlist.t.list4 b/tests/setlist.t.list4
+> index bce5824..ef17470 100644
+> --- a/tests/setlist.t.list4
+> +++ b/tests/setlist.t.list4
+> @@ -1,29 +1,33 @@
+>  Name: a
+>  Type: hash:ip
+>  Header: family inet hashsize 1024 maxelem 65536
+> -Size in memory: 16504
+> +Size in memory: 128
+>  References: 1
+> +Number of Entries: 0
+>  Members:
+>  
+>  Name: b
+>  Type: hash:ip
+>  Header: family inet hashsize 1024 maxelem 65536
+> -Size in memory: 16504
+> +Size in memory: 128
+>  References: 0
+> +Number of Entries: 0
+>  Members:
+>  
+>  Name: c
+>  Type: hash:ip
+>  Header: family inet hashsize 1024 maxelem 65536
+> -Size in memory: 16504
+> +Size in memory: 128
+>  References: 0
+> +Number of Entries: 0
+>  Members:
+>  
+>  Name: d
+>  Type: hash:ip
+>  Header: family inet hashsize 1024 maxelem 65536
+> -Size in memory: 16504
+> +Size in memory: 128
+>  References: 0
+> +Number of Entries: 0
+>  Members:
+>  
+>  Name: test
+> diff --git a/tests/sort.sh b/tests/sort.sh
+> index 69aebd5..c5edad1 100755
+> --- a/tests/sort.sh
+> +++ b/tests/sort.sh
+> @@ -1,5 +1,5 @@
+>  #!/bin/sh
+>  
+> -head -n 6 $1 > .foo
+> -tail -n +7 $1 | grep  '[[:alnum:]]' | sort >> .foo
+> +head -n 7 $1 > .foo
+> +tail -n +8 $1 | grep  '[[:alnum:]]' | sort >> .foo
+>  rm $1
+> -- 
+> 1.9.1
+> 
+
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
+
