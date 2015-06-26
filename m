@@ -1,50 +1,54 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2 nf] netfilter: nft_queue: restrict queueing to
- supported families
-Date: Fri, 26 Jun 2015 10:02:01 +0200
-Message-ID: <20150626080201.GA10981@acer.localdomain>
-References: <1435305700-8768-1-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2/5] netlink: delinarize chain policy
+Date: Fri, 26 Jun 2015 10:09:03 +0200
+Message-ID: <20150626080903.GA9817@salvia>
+References: <1434571657-20047-1-git-send-email-koetter@rrzn.uni-hannover.de>
+ <1434571657-20047-3-git-send-email-koetter@rrzn.uni-hannover.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Markus Koetter <koetter@rrzn.uni-hannover.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33369 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751698AbbFZICF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Jun 2015 04:02:05 -0400
+Received: from mail.us.es ([193.147.175.20]:46739 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751952AbbFZIDh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Jun 2015 04:03:37 -0400
 Content-Disposition: inline
-In-Reply-To: <1435305700-8768-1-git-send-email-pablo@netfilter.org>
+In-Reply-To: <1434571657-20047-3-git-send-email-koetter@rrzn.uni-hannover.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 26.06, Pablo Neira Ayuso wrote:
-> We only support IPv4 and IPv6 at this moment.
-
-That's not a restriction but just a module alias. If the module is
-already loaded it will still be usable for any family.
-
-Packets will of course simply get dropped by nf_queue(). If we
-really want to restrict this, we'd also have to restrict queueing
-verdict codes for other families.
-
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+On Wed, Jun 17, 2015 at 10:07:34PM +0200, Markus Koetter wrote:
 > ---
->  net/netfilter/nft_queue.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+>  include/rule.h | 1 +
+>  src/netlink.c  | 4 ++++
+>  2 files changed, 5 insertions(+)
 > 
-> diff --git a/net/netfilter/nft_queue.c b/net/netfilter/nft_queue.c
-> index 96805d2..45b9f7f 100644
-> --- a/net/netfilter/nft_queue.c
-> +++ b/net/netfilter/nft_queue.c
-> @@ -129,4 +129,5 @@ module_exit(nft_queue_module_exit);
+> diff --git a/include/rule.h b/include/rule.h
+> index fbd327b..40cb98a 100644
+> --- a/include/rule.h
+> +++ b/include/rule.h
+> @@ -119,6 +119,7 @@ struct chain {
+>  	const char		*type;
+>  	struct scope		scope;
+>  	struct list_head	rules;
+> +	uint32_t		policy;
+>  };
 >  
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Eric Leblond <eric@regit.org>");
-> -MODULE_ALIAS_NFT_EXPR("queue");
-> +MODULE_ALIAS_NFT_AF_EXPR(AF_INET, "queue");
-> +MODULE_ALIAS_NFT_AF_EXPR(AF_INET6, "queue");
-> -- 
-> 1.7.10.4
-> 
+>  extern const char *chain_type_name_lookup(const char *name);
+> diff --git a/src/netlink.c b/src/netlink.c
+> index 84d9d27..17aabd4 100644
+> --- a/src/netlink.c
+> +++ b/src/netlink.c
+> @@ -675,6 +675,10 @@ static struct chain *netlink_delinearize_chain(struct netlink_ctx *ctx,
+>  		chain->flags        |= CHAIN_F_BASECHAIN;
+>  	}
+>  
+> +	if (nft_chain_attr_is_set(nlc, NFT_CHAIN_ATTR_TYPE))
+> +		chain->policy =
+> +		nft_chain_attr_get_u32(nlc, NFT_CHAIN_ATTR_POLICY);
+> +
+
+Are you using a working copy from git?
+
+This patch seems to apply to an old version of nftables.
