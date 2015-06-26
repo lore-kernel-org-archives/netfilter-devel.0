@@ -1,51 +1,62 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] conntrack: made the protocol option value case
- insensitive
-Date: Fri, 26 Jun 2015 09:19:21 +0200
-Message-ID: <20150626071921.GA30656@breakpoint.cc>
-References: <1435227145-15554-1-git-send-email-pfeiffer.szilard@balabit.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: pfeiffer.szilard@balabit.hu
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: bridge: fix CONFIG_NF_DEFRAG_IPV4/6 related warnings/errors
+Date: Fri, 26 Jun 2015 09:42:45 +0200
+Message-ID: <1435304565-4522-1-git-send-email-pablo@netfilter.org>
+Cc: bernhard.thaler@wvnet.at
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:43203 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751379AbbFZHTX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Jun 2015 03:19:23 -0400
-Content-Disposition: inline
-In-Reply-To: <1435227145-15554-1-git-send-email-pfeiffer.szilard@balabit.hu>
+Received: from mail.us.es ([193.147.175.20]:39929 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751685AbbFZHhY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Jun 2015 03:37:24 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-pfeiffer.szilard@balabit.hu <pfeiffer.szilard@balabit.hu> wrote:
-> From: Szil=E1rd Pfeiffer <pfeiffer.szilard@balabit.hu>
->=20
-> Extensions register protocols by lowercase protocol name, but value o=
-f
-> proto command line option may be uppercase. Extension related options
-> cannot be used when protocol name comparision fails.
->=20
-> Signed-off-by: Szil=E1rd Pfeiffer <pfeiffer.szilard@balabit.hu>
-> ---
->  src/conntrack.c | 6 ++++++
->  1 file changed, 6 insertions(+)
->=20
-> diff --git a/src/conntrack.c b/src/conntrack.c
-> index f7d37fb..b1a2589 100644
-> --- a/src/conntrack.c
-> +++ b/src/conntrack.c
-> @@ -555,6 +555,12 @@ static struct ctproto_handler *findproto(char *n=
-ame, int *pnum)
->  	/* using the protocol name for an unsupported protocol? */
->  	if ((pent =3D getprotobyname(name))) {
->  		*pnum =3D pent->p_proto;
+From: Bernhard Thaler <bernhard.thaler@wvnet.at>
 
-Why not use strcasecmp to check the proto_list?
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+br_nf_ip_fragment() is not needed when neither CONFIG_NF_DEFRAG_IPV4 nor
+CONFIG_NF_DEFRAG_IPV6 is set.
+
+struct brnf_frag_data must be available if either CONFIG_NF_DEFRAG_IPV4
+or CONFIG_NF_DEFRAG_IPV6 is set.
+
+Fixes: efb6de9b4ba0 ("netfilter: bridge: forward IPv6 fragmented packets")
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/bridge/br_netfilter_hooks.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index d89f4fa..8a394bd 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -111,7 +111,7 @@ static inline __be16 pppoe_proto(const struct sk_buff *skb)
+ /* largest possible L2 header, see br_nf_dev_queue_xmit() */
+ #define NF_BRIDGE_MAX_MAC_HEADER_LENGTH (PPPOE_SES_HLEN + ETH_HLEN)
+ 
+-#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
++#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4) || IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
+ struct brnf_frag_data {
+ 	char mac[NF_BRIDGE_MAX_MAC_HEADER_LENGTH];
+ 	u8 encap_size;
+@@ -694,6 +694,7 @@ static int br_nf_push_frag_xmit(struct sock *sk, struct sk_buff *skb)
+ }
+ #endif
+ 
++#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
+ static int br_nf_ip_fragment(struct sock *sk, struct sk_buff *skb,
+ 			     int (*output)(struct sock *, struct sk_buff *))
+ {
+@@ -712,6 +713,7 @@ static int br_nf_ip_fragment(struct sock *sk, struct sk_buff *skb,
+ 
+ 	return ip_do_fragment(sk, skb, output);
+ }
++#endif
+ 
+ static unsigned int nf_bridge_mtu_reduction(const struct sk_buff *skb)
+ {
+-- 
+1.7.10.4
+
