@@ -1,54 +1,39 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/5] netlink: delinarize chain policy
-Date: Fri, 26 Jun 2015 10:09:03 +0200
-Message-ID: <20150626080903.GA9817@salvia>
-References: <1434571657-20047-1-git-send-email-koetter@rrzn.uni-hannover.de>
- <1434571657-20047-3-git-send-email-koetter@rrzn.uni-hannover.de>
+Subject: Re: expectation entry creation with conntrack
+Date: Fri, 26 Jun 2015 10:11:26 +0200
+Message-ID: <20150626081126.GA10342@salvia>
+References: <1435227731-15872-1-git-send-email-pfeiffer.szilard@balabit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: Markus Koetter <koetter@rrzn.uni-hannover.de>
+To: pfeiffer.szilard@balabit.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46739 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47658 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751952AbbFZIDh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Jun 2015 04:03:37 -0400
+	id S1751637AbbFZIGE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Jun 2015 04:06:04 -0400
 Content-Disposition: inline
-In-Reply-To: <1434571657-20047-3-git-send-email-koetter@rrzn.uni-hannover.de>
+In-Reply-To: <1435227731-15872-1-git-send-email-pfeiffer.szilard@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 17, 2015 at 10:07:34PM +0200, Markus Koetter wrote:
-> ---
->  include/rule.h | 1 +
->  src/netlink.c  | 4 ++++
->  2 files changed, 5 insertions(+)
-> 
-> diff --git a/include/rule.h b/include/rule.h
-> index fbd327b..40cb98a 100644
-> --- a/include/rule.h
-> +++ b/include/rule.h
-> @@ -119,6 +119,7 @@ struct chain {
->  	const char		*type;
->  	struct scope		scope;
->  	struct list_head	rules;
-> +	uint32_t		policy;
->  };
->  
->  extern const char *chain_type_name_lookup(const char *name);
-> diff --git a/src/netlink.c b/src/netlink.c
-> index 84d9d27..17aabd4 100644
-> --- a/src/netlink.c
-> +++ b/src/netlink.c
-> @@ -675,6 +675,10 @@ static struct chain *netlink_delinearize_chain(struct netlink_ctx *ctx,
->  		chain->flags        |= CHAIN_F_BASECHAIN;
->  	}
->  
-> +	if (nft_chain_attr_is_set(nlc, NFT_CHAIN_ATTR_TYPE))
-> +		chain->policy =
-> +		nft_chain_attr_get_u32(nlc, NFT_CHAIN_ATTR_POLICY);
-> +
+On Thu, Jun 25, 2015 at 12:22:09PM +0200, pfeiffer.szilard@balabit.hu w=
+rote:
+>=20
+> Hello,
+>=20
+> Here are two patches that fix the expectation entry creation with con=
+ntrack
+> tool. First patch is only a refactor with the purpose to make the sec=
+ond
+> patch smaller and easier to understand. The second one fixes the entr=
+y
+> creation by using the necessary conntrack stucture.
 
-Are you using a working copy from git?
-
-This patch seems to apply to an old version of nftables.
+Series applied, thanks Szil=E1rd.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
