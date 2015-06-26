@@ -1,39 +1,22 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: expectation entry creation with conntrack
-Date: Fri, 26 Jun 2015 10:11:26 +0200
-Message-ID: <20150626081126.GA10342@salvia>
-References: <1435227731-15872-1-git-send-email-pfeiffer.szilard@balabit.hu>
+Subject: Re: [PATCH iptables 1/4] Sync with ethernetdb.h from ebtables
+Date: Fri, 26 Jun 2015 10:26:06 +0200
+Message-ID: <20150626082606.GA14848@salvia>
+References: <20150616192338.GC3247@euler>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: pfeiffer.szilard@balabit.hu
+To: Felix Janda <felix.janda@posteo.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47658 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52245 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751637AbbFZIGE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Jun 2015 04:06:04 -0400
+	id S1751677AbbFZIUk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Jun 2015 04:20:40 -0400
 Content-Disposition: inline
-In-Reply-To: <1435227731-15872-1-git-send-email-pfeiffer.szilard@balabit.hu>
+In-Reply-To: <20150616192338.GC3247@euler>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 25, 2015 at 12:22:09PM +0200, pfeiffer.szilard@balabit.hu w=
-rote:
->=20
-> Hello,
->=20
-> Here are two patches that fix the expectation entry creation with con=
-ntrack
-> tool. First patch is only a refactor with the purpose to make the sec=
-ond
-> patch smaller and easier to understand. The second one fixes the entr=
-y
-> creation by using the necessary conntrack stucture.
+Applied, from 1 to 3 in this series. Thanks.
 
-Series applied, thanks Szil=E1rd.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
