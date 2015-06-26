@@ -1,62 +1,35 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf] netfilter: bridge: fix CONFIG_NF_DEFRAG_IPV4/6 related warnings/errors
-Date: Fri, 26 Jun 2015 09:42:45 +0200
-Message-ID: <1435304565-4522-1-git-send-email-pablo@netfilter.org>
-Cc: bernhard.thaler@wvnet.at
+Subject: [PATCH 1/2 nf] netfilter: nft_queue: restrict queueing to supported families
+Date: Fri, 26 Jun 2015 10:01:39 +0200
+Message-ID: <1435305700-8768-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39929 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44473 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751685AbbFZHhY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Jun 2015 03:37:24 -0400
+	id S1751579AbbFZH4V (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Jun 2015 03:56:21 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Bernhard Thaler <bernhard.thaler@wvnet.at>
+We only support IPv4 and IPv6 at this moment.
 
-br_nf_ip_fragment() is not needed when neither CONFIG_NF_DEFRAG_IPV4 nor
-CONFIG_NF_DEFRAG_IPV6 is set.
-
-struct brnf_frag_data must be available if either CONFIG_NF_DEFRAG_IPV4
-or CONFIG_NF_DEFRAG_IPV6 is set.
-
-Fixes: efb6de9b4ba0 ("netfilter: bridge: forward IPv6 fragmented packets")
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Signed-off-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/br_netfilter_hooks.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ net/netfilter/nft_queue.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index d89f4fa..8a394bd 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -111,7 +111,7 @@ static inline __be16 pppoe_proto(const struct sk_buff *skb)
- /* largest possible L2 header, see br_nf_dev_queue_xmit() */
- #define NF_BRIDGE_MAX_MAC_HEADER_LENGTH (PPPOE_SES_HLEN + ETH_HLEN)
+diff --git a/net/netfilter/nft_queue.c b/net/netfilter/nft_queue.c
+index 96805d2..45b9f7f 100644
+--- a/net/netfilter/nft_queue.c
++++ b/net/netfilter/nft_queue.c
+@@ -129,4 +129,5 @@ module_exit(nft_queue_module_exit);
  
--#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
-+#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4) || IS_ENABLED(CONFIG_NF_DEFRAG_IPV6)
- struct brnf_frag_data {
- 	char mac[NF_BRIDGE_MAX_MAC_HEADER_LENGTH];
- 	u8 encap_size;
-@@ -694,6 +694,7 @@ static int br_nf_push_frag_xmit(struct sock *sk, struct sk_buff *skb)
- }
- #endif
- 
-+#if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
- static int br_nf_ip_fragment(struct sock *sk, struct sk_buff *skb,
- 			     int (*output)(struct sock *, struct sk_buff *))
- {
-@@ -712,6 +713,7 @@ static int br_nf_ip_fragment(struct sock *sk, struct sk_buff *skb,
- 
- 	return ip_do_fragment(sk, skb, output);
- }
-+#endif
- 
- static unsigned int nf_bridge_mtu_reduction(const struct sk_buff *skb)
- {
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Eric Leblond <eric@regit.org>");
+-MODULE_ALIAS_NFT_EXPR("queue");
++MODULE_ALIAS_NFT_AF_EXPR(AF_INET, "queue");
++MODULE_ALIAS_NFT_AF_EXPR(AF_INET6, "queue");
 -- 
 1.7.10.4
 
