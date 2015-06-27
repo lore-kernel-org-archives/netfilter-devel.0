@@ -1,43 +1,30 @@
-From: Balazs Scheidler <balazs.scheidler@balabit.com>
-Subject: nftables: parser conflict between tokens & symbols
-Date: Fri, 26 Jun 2015 14:44:23 +0200
-Message-ID: <20150626124423.GB5835@bzorp>
+From: WaaX <waax@oonux.com>
+Subject: IPSet target SET subnet options
+Date: Sat, 27 Jun 2015 16:43:59 +0200
+Message-ID: <558EB6AF.5090402@oonux.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 5E1BE96B.mobile.pool.telekom.hu ([94.27.233.107]:50142 "EHLO
-	bzorp" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752751AbbF0M1c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 27 Jun 2015 08:27:32 -0400
-Content-Disposition: inline
+Received: from mx.oonux.net ([88.186.162.21]:4998 "HELO mx.oonux.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751712AbbF0Otb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 27 Jun 2015 10:49:31 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi,
+I hve explored the manual of SETtarget:
 
-I've noticed that our set of keywords in nftables is pretty rich and
-this can cause conflicts in the grammar when a keyword is also used
-as a symbol.
+      SET target options:
+--add-set name flags [--exist] [--timeout n]
+--del-set name flags
+          add/del src/dst IP/port from/to named sets,
+where flags are the comma separated list of
+'src' and 'dst' specifications.
 
-For instance, we do have a "redirect" expression and "redirect" as
-a word is also used as an ICMP message type.
+I can not find solution for add a subnet mask to a hash:net with the target.
 
-# here is the redirect expression in action, which works:
-$ nft add rule tcp dport 80 redirect to 8080
+Thanks for reading.
 
-# here's an ICMP rule that works
-$ nft add rule filter input icmp type echo-request accept
-
-# here's an ICMP rule that should work, but it doesn't
-$ nft add rule filter input icmp type redirect accept
-
-The root cause is that "redirect" is now recognized as a token, whereas the
-icmp type is expecting a STRING token.
-
-I have tried to solve this but the idea I had didn't work out, and I don't
-really have more time now to fix it, but still thought this information
-would be useful.
-
-Cheers,
-Bazsi
