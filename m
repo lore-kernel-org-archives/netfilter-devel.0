@@ -1,44 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nftables: parser conflict between tokens & symbols
-Date: Mon, 29 Jun 2015 20:15:35 +0200
-Message-ID: <32994930-FC4F-4B59-BD84-EDB91851E6CD@trash.net>
-References: <20150626124423.GB5835@bzorp> <20150629145725.GD2324@breakpoint.cc> <20150629180929.GA22616@salvia>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH -stable] netfilter: nft_rbtree: fix locking
+Date: Mon, 29 Jun 2015 16:00:53 -0700
+Message-ID: <20150629230053.GC19806@kroah.com>
+References: <1431802251-4781-1-git-send-email-pablo@netfilter.org>
+ <1431802251-4781-7-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: Balazs Scheidler <balazs.scheidler@balabit.com>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38457 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752003AbbF2SPj (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Jun 2015 14:15:39 -0400
-In-Reply-To: <20150629180929.GA22616@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: stable@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1431802251-4781-7-git-send-email-pablo@netfilter.org>
+Sender: stable-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, May 16, 2015 at 08:50:51PM +0200, Pablo Neira Ayuso wrote:
+> From: Patrick McHardy <kaber@trash.net>
+> 
+> [ upstream commit 16c45eda96038aae848b6cfd42e2bf4b5e80f365 ]
+> 
+> Fix a race condition and unnecessary locking:
+> 
+> * the root rb_node must only be accessed under the lock in nft_rbtree_lookup()
+> * the lock is not needed in lookup functions in netlink context
+> 
+> Cc: <stable@vger.kernel.org> # 3.18.x
+> Cc: <stable@vger.kernel.org> # 3.19.x
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  net/netfilter/nft_rbtree.c |    6 ++----
+>  1 file changed, 2 insertions(+), 4 deletions(-)
 
+Also 4.0, right?  This showed up in Linus's tree in 4.1-rc1.
 
-Am 29. Juni 2015 20:09:29 MESZ, schrieb Pablo Neira Ayuso <pablo@netfilter.org>:
->On Mon, Jun 29, 2015 at 04:57:25PM +0200, Florian Westphal wrote:
->> While we're at it, there are other issues, f.e.:
->> 
->> ct label saddr
->> ct label == saddr
->> 
->> won't work since saddr is considered to be the SADDR token.
->
->I don't think we're searching for such a flexibility in the grammar at
->this stage.
+thanks,
 
-I know how to fix this once and for all by splitting the expression rules into non-const LHS and const RHS parts. This will unfortunately require to duplicate a lot of the productions.
-
-I'll try to put something together during the next days.
-
-
--- 
-Diese Nachricht wurde von meinem Android-Mobiltelefon mit K-9 Mail gesendet.
+greg k-h
