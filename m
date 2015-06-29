@@ -1,48 +1,60 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: IPSet target SET subnet options
-Date: Sat, 27 Jun 2015 23:46:49 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1506272345390.12398@blackhole.kfki.hu>
-References: <558EB6AF.5090402@oonux.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: nftables: parser conflict between tokens & symbols
+Date: Mon, 29 Jun 2015 16:57:25 +0200
+Message-ID: <20150629145725.GD2324@breakpoint.cc>
+References: <20150626124423.GB5835@bzorp>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: WaaX <waax@oonux.com>
+To: Balazs Scheidler <balazs.scheidler@balabit.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:50929 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751792AbbF0Vql (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 27 Jun 2015 17:46:41 -0400
-In-Reply-To: <558EB6AF.5090402@oonux.com>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:47724 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753014AbbF2O51 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 29 Jun 2015 10:57:27 -0400
+Content-Disposition: inline
+In-Reply-To: <20150626124423.GB5835@bzorp>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 27 Jun 2015, WaaX wrote:
-
-> I hve explored the manual of SETtarget:
+Balazs Scheidler <balazs.scheidler@balabit.com> wrote:
+> I've noticed that our set of keywords in nftables is pretty rich and
+> this can cause conflicts in the grammar when a keyword is also used
+> as a symbol.
+> For instance, we do have a "redirect" expression and "redirect" as
+> a word is also used as an ICMP message type.
 > 
->      SET target options:
-> --add-set name flags [--exist] [--timeout n]
-> --del-set name flags
->          add/del src/dst IP/port from/to named sets,
-> where flags are the comma separated list of
-> 'src' and 'dst' specifications.
+> # here is the redirect expression in action, which works:
+> $ nft add rule tcp dport 80 redirect to 8080
 > 
-> I can not find solution for add a subnet mask to a hash:net with the target.
+> # here's an ICMP rule that works
+> $ nft add rule filter input icmp type echo-request accept
+> 
+> # here's an ICMP rule that should work, but it doesn't
+> $ nft add rule filter input icmp type redirect accept
+> 
+> The root cause is that "redirect" is now recognized as a token, whereas the
+> icmp type is expecting a STRING token.
 
-It is documented in the ipset manpage:
+While we're at it, there are other issues, f.e.:
 
-   hash:net
-       ....
+ct label saddr
+ct label == saddr
 
-       When  adding/deleting IP addresses  to the set  by  the  SET  netfilter
-       target,  it   will   be added/deleted by the most specific prefix which
-       can be found in  the set, or by the host prefix value  if  the  set  is
-       empty.
+won't work since saddr is considered to be the SADDR token.
+Similar issues for other places where we accept arbitrary symbol names.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+I think the above might be fixable via
+
+|       CT      ct_key  error
+{
+	yychar = STRING;
+...
+
+But of course that won't fix up all cases, e.g.
+ct label == saddr would still not work since we encounter
+the error (unexpected token) after a relational expression.
+
+Does anyone have better ideas other than plastering parser with error
+handlers...?
