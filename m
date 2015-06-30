@@ -1,171 +1,100 @@
-From: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Subject: Re: [PATCH COLO-Frame v6 00/31] COarse-grain LOck-stepping(COLO)
- Virtual Machines for Non-stop Service
-Date: Tue, 30 Jun 2015 17:38:05 +0100
-Message-ID: <20150630163804.GD2142@work-vm>
-References: <1434617935-6924-1-git-send-email-zhang.zhanghailiang@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: qemu-devel@nongnu.org, quintela@redhat.com, dgilbert@redhat.com,
-	amit.shah@redhat.com, berrange@redhat.com,
-	peter.huangpeng@huawei.com, eddie.dong@intel.com,
-	yunhong.jiang@intel.com, wency@cn.fujitsu.com,
-	lizhijian@cn.fujitsu.com, laijs@cn.fujitsu.com,
-	arei.gonglei@huawei.com, netfilter-devel@vger.kernel.org
-To: zhanghailiang <zhang.zhanghailiang@huawei.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: arptables: use percpu jumpstack
+Date: Tue, 30 Jun 2015 22:21:00 +0200
+Message-ID: <1435695660-26048-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34140 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751548AbbF3QiL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Jun 2015 12:38:11 -0400
-Content-Disposition: inline
-In-Reply-To: <1434617935-6924-1-git-send-email-zhang.zhanghailiang@huawei.com>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50185 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752213AbbF3UVH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Jun 2015 16:21:07 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+commit 482cfc318559 ("netfilter: xtables: avoid percpu ruleset duplication")
 
-Hi,
-  An observation I've got, and this is from the previous version; if there
-is a problem with the network that carries the comparison traffic, the failure is
-difficult to dtect - you start COLO both VMs seem to be running and COLO
-starts up fine, but it's only later that you realise that you are getting
-no comparison failures.
+Unlike ip and ip6tables, arp tables were never converted to use the percpu
+jump stack.
 
-  It would be good to find a way to detect this failure reliably.
+It still uses the rule blob to store return address, which isn't safe
+anymore since we now share this blob among all processors.
 
-Dave
+Because there is no TEE support for arptables, we don't need to cope
+with reentrancy, so we can use loocal variable to hold stack offset.
 
-* zhanghailiang (zhang.zhanghailiang@huawei.com) wrote:
-> This is the 6th version of COLO, here is only COLO frame part, include: VM checkpoint,
-> failover, proxy API, block replication API, not include block replication.
-> The block part is sent as a separate series.
-> 
-> As usuall, we provide two branch which one is 'colo-v1.3-basic', 
-> and the other is 'colo-v1.3-developing', The 'basic' branch is exactly the same
-> with this patch series, which has basic features of COLO.
-> We will keep this series simple as possible, just for easy review.
-> 
-> You can get the newest integrated qemu colo patches from github (Include Block part):
-> https://github.com/coloft/qemu/commits/colo-v1.3-basic
-> https://github.com/coloft/qemu/commits/colo-v1.3-developing (more features)
-> Please NOTE the difference between these two branch.
-> Colo-v1.3-developing has some optimization in the process of checkpoint, including: 
->    1) separate ram and device save/load process to reduce size of extra memory
->       used during checkpoint
->    2) live migrate part of dirty pages to slave during sleep time.
-> Besides, we add some statistic info in 'developing' branch, which you can get these stat
-> info by using command 'info migrate'.
-> 
-> About how to test COLO, Please reference to the follow link.
-> http://wiki.qemu.org/Features/COLO.
-> 
-> For the kernel part (colo proxy) of COLO, we have sent a RFC patch to kernel community:
-> https://lkml.org/lkml/2015/6/18/32
-> 
-> COLO is a totally new feature which is still in early stage, 
-> your comments and feedback are warmly welcomed.
-> 
-> Cc: netfilter-devel@vger.kernel.org
-> 
-> TODO:
-> 1. COLO function switch on/off
-> 2. Optimize proxy part, include proxy script.
->   1) Remove the limitation of forward network link.
->   2) Reuse the nfqueue_entry and NF_STOLEN to enqueue skb
-> 3. The capability of continuous FT
-> 
-> v6:
-> - Add a new qmp event 'COLO_EXIT' for COLO error, which is useful
->   for users to get involved in failover verdict. 
-> - Support '-net nic' configure
-> - Fix segmentfault bug that triggered by running 'colo_lost_heartbeat' directly
->   when VM is not in COLO state.
-> - Fix qemu abort bug that triggered by Startup another migration when in COLO state.
-> - Optimize some codes, especailly colo net part.
-> 
-> zhanghailiang (31):
->   configure: Add parameter for configure to enable/disable COLO support
->   migration: Introduce capability 'colo' to migration
->   COLO: migrate colo related info to slave
->   migration: Integrate COLO checkpoint process into migration
->   migration: Integrate COLO checkpoint process into loadvm
->   COLO: Implement colo checkpoint protocol
->   COLO: Add a new RunState RUN_STATE_COLO
->   QEMUSizedBuffer: Introduce two help functions for qsb
->   COLO: Save VM state to slave when do checkpoint
->   COLO RAM: Load PVM's dirty page into SVM's RAM cache temporarily
->   COLO VMstate: Load VM state into qsb before restore it
->   arch_init: Start to trace dirty pages of SVM
->   COLO RAM: Flush cached RAM into SVM's memory
->   COLO failover: Introduce a new command to trigger a failover
->   COLO failover: Implement COLO primary/secondary vm failover work
->   qmp event: Add event notification for COLO error
->   COLO failover: Don't do failover during loading VM's state
->   COLO: Add new command parameter 'colo_nicname' 'colo_script' for net
->   COLO NIC: Init/remove colo nic devices when add/cleanup tap devices
->   tap: Make launch_script() public
->   COLO NIC: Implement colo nic device interface configure()
->   COLO NIC : Implement colo nic init/destroy function
->   COLO NIC: Some init work related with proxy module
->   COLO: Handle nfnetlink message from proxy module
->   COLO: Do checkpoint according to the result of packets comparation
->   COLO: Improve checkpoint efficiency by do additional periodic
->     checkpoint
->   COLO: Add colo-set-checkpoint-period command
->   COLO NIC: Implement NIC checkpoint and failover
->   COLO: Disable qdev hotplug when VM is in COLO mode
->   COLO: Implement shutdown checkpoint
->   COLO: Add block replication into colo process
-> 
->  configure                              |  36 +-
->  docs/qmp/qmp-events.txt                |  16 +
->  hmp-commands.hx                        |  30 ++
->  hmp.c                                  |  15 +
->  hmp.h                                  |   2 +
->  include/exec/cpu-all.h                 |   1 +
->  include/migration/migration-colo.h     |  50 ++
->  include/migration/migration-failover.h |  22 +
->  include/migration/migration.h          |   3 +
->  include/migration/qemu-file.h          |   3 +-
->  include/net/colo-nic.h                 |  34 ++
->  include/net/net.h                      |   2 +
->  include/net/tap.h                      |  19 +
->  include/sysemu/sysemu.h                |   3 +
->  migration/Makefile.objs                |   2 +
->  migration/colo-comm.c                  |  68 +++
->  migration/colo-failover.c              |  53 ++
->  migration/colo.c                       | 854 +++++++++++++++++++++++++++++++++
->  migration/migration.c                  |  68 ++-
->  migration/qemu-file-buf.c              |  58 +++
->  migration/ram.c                        | 249 +++++++++-
->  migration/savevm.c                     |   2 +-
->  net/Makefile.objs                      |   1 +
->  net/colo-nic.c                         | 402 ++++++++++++++++
->  net/net.c                              |   2 +
->  net/tap.c                              |  87 ++--
->  qapi-schema.json                       |  58 ++-
->  qapi/event.json                        |  15 +
->  qemu-options.hx                        |   7 +
->  qmp-commands.hx                        |  41 ++
->  scripts/colo-proxy-script.sh           |  90 ++++
->  stubs/Makefile.objs                    |   1 +
->  stubs/migration-colo.c                 |  58 +++
->  trace-events                           |  11 +
->  vl.c                                   |  39 +-
->  35 files changed, 2333 insertions(+), 69 deletions(-)
->  create mode 100644 include/migration/migration-colo.h
->  create mode 100644 include/migration/migration-failover.h
->  create mode 100644 include/net/colo-nic.h
->  create mode 100644 migration/colo-comm.c
->  create mode 100644 migration/colo-failover.c
->  create mode 100644 migration/colo.c
->  create mode 100644 net/colo-nic.c
->  create mode 100755 scripts/colo-proxy-script.sh
->  create mode 100644 stubs/migration-colo.c
-> 
-> -- 
-> 1.7.12.4
-> 
-> 
---
-Dr. David Alan Gilbert / dgilbert@redhat.com / Manchester, UK
+Fixes: 482cfc318559 ("netfilter: xtables: avoid percpu ruleset duplication")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/ipv4/netfilter/arp_tables.c | 25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
+
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 95c9b6e..0fbe1a6 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -254,9 +254,10 @@ unsigned int arpt_do_table(struct sk_buff *skb,
+ 	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long))));
+ 	unsigned int verdict = NF_DROP;
+ 	const struct arphdr *arp;
+-	struct arpt_entry *e, *back;
++	struct arpt_entry *e, **jumpstack;
+ 	const char *indev, *outdev;
+ 	const void *table_base;
++	unsigned int cpu, stackidx = 0;
+ 	const struct xt_table_info *private;
+ 	struct xt_action_param acpar;
+ 	unsigned int addend;
+@@ -270,15 +271,16 @@ unsigned int arpt_do_table(struct sk_buff *skb,
+ 	local_bh_disable();
+ 	addend = xt_write_recseq_begin();
+ 	private = table->private;
++	cpu     = smp_processor_id();
+ 	/*
+ 	 * Ensure we load private-> members after we've fetched the base
+ 	 * pointer.
+ 	 */
+ 	smp_read_barrier_depends();
+ 	table_base = private->entries;
++	jumpstack  = (struct arpt_entry **)private->jumpstack[cpu];
+ 
+ 	e = get_entry(table_base, private->hook_entry[hook]);
+-	back = get_entry(table_base, private->underflow[hook]);
+ 
+ 	acpar.in      = state->in;
+ 	acpar.out     = state->out;
+@@ -312,18 +314,23 @@ unsigned int arpt_do_table(struct sk_buff *skb,
+ 					verdict = (unsigned int)(-v) - 1;
+ 					break;
+ 				}
+-				e = back;
+-				back = get_entry(table_base, back->comefrom);
++				if (stackidx == 0) {
++					e = get_entry(table_base,
++						      private->underflow[hook]);
++				} else {
++					e = jumpstack[--stackidx];
++					e = arpt_next_entry(e);
++				}
+ 				continue;
+ 			}
+ 			if (table_base + v
+ 			    != arpt_next_entry(e)) {
+-				/* Save old back ptr in next entry */
+-				struct arpt_entry *next = arpt_next_entry(e);
+-				next->comefrom = (void *)back - table_base;
+ 
+-				/* set back pointer to next entry */
+-				back = next;
++				if (WARN_ON_ONCE(stackidx >= private->stacksize)) {
++					verdict = NF_DROP;
++					break;
++				}
++				jumpstack[stackidx++] = e;
+ 			}
+ 
+ 			e = get_entry(table_base, v);
+-- 
+2.0.5
+
