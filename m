@@ -1,228 +1,234 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/7] src: consolidate table cache
-Date: Tue, 30 Jun 2015 17:10:12 +0200
-Message-ID: <20150630151012.GA4559@salvia>
+Subject: Re: [PATCH 3/7] src: consolidate set cache
+Date: Tue, 30 Jun 2015 17:10:54 +0200
+Message-ID: <20150630151054.GB4559@salvia>
 References: <1435600444-21529-1-git-send-email-pablo@netfilter.org>
- <1435600444-21529-2-git-send-email-pablo@netfilter.org>
+ <1435600444-21529-4-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="C7zPtVaVf+AK4Oqc"
+Content-Type: multipart/mixed; boundary="4bRzO86E/ozDv8r1"
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55847 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56069 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753571AbbF3PEr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Jun 2015 11:04:47 -0400
+	id S1753871AbbF3PFp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Jun 2015 11:05:45 -0400
 Content-Disposition: inline
-In-Reply-To: <1435600444-21529-2-git-send-email-pablo@netfilter.org>
+In-Reply-To: <1435600444-21529-4-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---C7zPtVaVf+AK4Oqc
+--4bRzO86E/ozDv8r1
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-I have a new round to revisit the generation ID checks, that were not
-correct in the previous patch.
+Attaching a v2 to rework generation id checks.
 
---C7zPtVaVf+AK4Oqc
+--4bRzO86E/ozDv8r1
 Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-src-consolidate-table-cache.patch"
+Content-Disposition: attachment; filename="0003-src-consolidate-set-cache.patch"
 
->From d55709f87108645269ea478746cf98a63bb2e637 Mon Sep 17 00:00:00 2001
+>From 403a192bb967d6dde3dbfe34ee3fa88f7aca4197 Mon Sep 17 00:00:00 2001
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Date: Fri, 26 Jun 2015 11:33:22 +0200
-Subject: [PATCH nft 1/7,v2] src: consolidate table cache
+Subject: [PATCH nft 3/7, v2] src: consolidate set cache
 
-This patch populates the table cache only once through netlink_list_tables()
-from the initialization step. As a result, there is a single call to
-netlink_list_tables().
+This patch populates the table cache only once through netlink_list_sets() from
+the initialization step. As a result, there is a single call to
+netlink_list_sets().
 
-Then, new table declarations are also added to this cache, thus follow up calls
-to table_lookup() for tables that don't exist yet in the kernel will be found
-in the cache.
+The set cache initialization happens once the table cache is ready. On the
+other hand, declared sets are added to the cache so they can be referenced from
+this batch.
 
-Note that table_alloc() inserts the object in the cache and table_free()
-removes the object from the cache and it releases it.
-
-Table objects may be released from cmd_free() or after all commands in the file
-have been processed.
+After this changes, we can rid of get_set(). This function was fine by the time
+we had no transaction support, but this doesn't work for set objects that are
+declared in this batch, so consulting the kernel doesn't help since they are
+not yet available.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 v2: Rework v1 to fix generation ID checks.
 
  include/rule.h |    3 +++
- src/main.c     |   29 ++++++++++++++++++++--
- src/netlink.c  |   12 +++------
- src/rule.c     |   75 +++++++++++++++++++++++++++++++++++---------------------
- 4 files changed, 80 insertions(+), 39 deletions(-)
+ src/evaluate.c |   57 ++++++++++++++++------------------------
+ src/main.c     |   10 ++++++-
+ src/rule.c     |   80 ++++++++++++++++++++++++++++++--------------------------
+ 4 files changed, 78 insertions(+), 72 deletions(-)
 
 diff --git a/include/rule.h b/include/rule.h
-index 5d44599..ae69a8d 100644
+index ae69a8d..46dace5 100644
 --- a/include/rule.h
 +++ b/include/rule.h
-@@ -89,6 +89,9 @@ struct table {
- 
- extern struct table *table_alloc(void);
- extern void table_free(struct table *table);
+@@ -219,6 +219,9 @@ struct set {
+ extern struct set *set_alloc(const struct location *loc);
+ extern struct set *set_get(struct set *set);
+ extern void set_free(struct set *set);
 +
-+extern int table_init_hash(void);
-+extern void table_fini_hash(void);
- extern void table_add_hash(struct table *table);
- extern struct table *table_lookup(const struct handle *h);
- 
-diff --git a/src/main.c b/src/main.c
-index bfe589a..a84f2f6 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -182,7 +182,6 @@ static int nft_netlink(struct parser_state *state, struct list_head *msgs)
- 	bool batch_supported = netlink_batch_supported();
- 	int ret = 0;
- 
--	netlink_genid_get();
- 	mnl_batch_init();
- 
- 	batch_seqnum = mnl_batch_begin();
-@@ -224,18 +223,43 @@ out:
- 	return ret;
++int set_init_hash(void);
++void set_fini_hash(void);
+ extern void set_add_hash(struct set *set, struct table *table);
+ extern struct set *set_lookup(const struct table *table, const char *name);
+ extern struct set *set_lookup_global(uint32_t family, const char *table,
+diff --git a/src/evaluate.c b/src/evaluate.c
+index ac90162..fb466ba 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -107,37 +107,6 @@ static struct expr *implicit_set_declaration(struct eval_ctx *ctx,
+ 	return set_ref_expr_alloc(&expr->location, set);
  }
  
-+static int nft_cache_init(void)
-+{
-+	netlink_genid_get();
-+
-+	return table_init_hash();
-+}
-+
-+static void nft_cache_fini(void)
-+{
-+	table_fini_hash();
-+}
-+
-+static int nft_cache_restart(void)
-+{
-+	nft_cache_fini();
-+	return nft_cache_init();
-+}
-+
- int nft_run(void *scanner, struct parser_state *state, struct list_head *msgs)
+-// FIXME
+-#include <netlink.h>
+-static struct set *get_set(struct eval_ctx *ctx, const struct handle *h,
+-			   const char *identifier)
+-{
+-	struct netlink_ctx nctx = {
+-		.msgs = ctx->msgs,
+-	};
+-	struct handle handle;
+-	struct set *set;
+-	int err;
+-
+-	if (ctx->table != NULL) {
+-		set = set_lookup(ctx->table, identifier);
+-		if (set != NULL)
+-			return set;
+-	}
+-
+-	init_list_head(&nctx.list);
+-
+-	memset(&handle, 0, sizeof(handle));
+-	handle_merge(&handle, h);
+-	handle.set = xstrdup(identifier);
+-	err = netlink_get_set(&nctx, &handle, &internal_location);
+-	handle_free(&handle);
+-
+-	if (err < 0)
+-		return NULL;
+-	return list_first_entry(&nctx.list, struct set, list);
+-}
+-
+ static enum ops byteorder_conversion_op(struct expr *expr,
+ 					enum byteorder byteorder)
  {
- 	struct cmd *cmd, *next;
- 	int ret;
+@@ -190,6 +159,7 @@ static int expr_evaluate_symbol(struct eval_ctx *ctx, struct expr **expr)
+ {
+ 	struct error_record *erec;
+ 	struct symbol *sym;
++	struct table *table;
+ 	struct set *set;
+ 	struct expr *new;
  
-+	if (nft_cache_init() < 0)
+@@ -211,7 +181,13 @@ static int expr_evaluate_symbol(struct eval_ctx *ctx, struct expr **expr)
+ 		new = expr_clone(sym->expr);
+ 		break;
+ 	case SYMBOL_SET:
+-		set = get_set(ctx, &ctx->cmd->handle, (*expr)->identifier);
++		table = table_lookup(&ctx->cmd->handle);
++		if (table == NULL)
++			return expr_error(ctx->msgs, *expr,
++					  "missing table '%s'",
++					  (*expr)->identifier);
++
++		set = set_lookup(table, (*expr)->identifier);
+ 		if (set == NULL)
+ 			return -1;
+ 		new = set_ref_expr_alloc(&(*expr)->location, set);
+@@ -1735,9 +1711,14 @@ int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
+ 
+ static int setelem_evaluate(struct eval_ctx *ctx, struct expr **expr)
+ {
++	struct table *table;
+ 	struct set *set;
+ 
+-	set = get_set(ctx, &ctx->cmd->handle, ctx->cmd->handle.set);
++	table = table_lookup(&ctx->cmd->handle);
++	if (table == NULL)
 +		return -1;
 +
- 	ret = nft_parse(scanner, state);
--	if (ret != 0 || state->nerrs > 0)
-+	if (ret != 0 || state->nerrs > 0) {
-+		nft_cache_fini();
++	set = set_lookup(table, ctx->cmd->handle.set);
+ 	if (set == NULL)
  		return -1;
-+	}
- retry:
- 	ret = nft_netlink(state, msgs);
- 	if (ret < 0 && errno == EINTR) {
- 		netlink_restart();
-+		if (nft_cache_restart() < 0)
-+			return -1;
- 		goto retry;
- 	}
  
-@@ -243,6 +267,7 @@ retry:
- 		list_del(&cmd->list);
- 		cmd_free(cmd);
- 	}
-+	nft_cache_fini();
+@@ -1751,6 +1732,7 @@ static int setelem_evaluate(struct eval_ctx *ctx, struct expr **expr)
  
- 	return ret;
- }
-diff --git a/src/netlink.c b/src/netlink.c
-index 429eed4..4b57aab 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -926,10 +926,8 @@ static struct table *netlink_delinearize_table(struct netlink_ctx *ctx,
- static int list_table_cb(struct nft_table *nlt, void *arg)
+ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
  {
- 	struct netlink_ctx *ctx = arg;
--	struct table *table;
++	struct table *table;
+ 	const char *type;
  
--	table = netlink_delinearize_table(ctx, nlt);
--	list_add_tail(&table->list, &ctx->list);
-+	netlink_delinearize_table(ctx, nlt);
+ 	type = set->flags & SET_F_MAP ? "map" : "set";
+@@ -1775,7 +1757,7 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
+ 		set->flags |= SET_F_TIMEOUT;
  
+ 	if (!(set->flags & SET_F_MAP))
+-		return 0;
++		goto out;
+ 
+ 	if (set->datatype == NULL)
+ 		return set_error(ctx, set, "map definition does not specify "
+@@ -1786,6 +1768,13 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
+ 		return set_error(ctx, set, "unqualified mapping data type "
+ 				 "specified in map definition");
+ 
++out:
++	table = table_lookup(&set->handle);
++	if (table == NULL)
++		return set_error(ctx, set, "cannot find table");
++
++	set_add_hash(set, table);
++	set_get(set);
  	return 0;
  }
-@@ -972,7 +970,7 @@ int netlink_get_table(struct netlink_ctx *ctx, const struct handle *h,
  
- 	ntable = netlink_delinearize_table(ctx, nlt);
- 	table->flags = ntable->flags;
--	xfree(ntable);
-+	table_free(ntable);
- out:
- 	nft_table_free(nlt);
- 	return err;
-@@ -1963,13 +1961,10 @@ static void netlink_events_cache_addtable(struct netlink_mon_handler *monh,
- 					  const struct nlmsghdr *nlh)
+diff --git a/src/main.c b/src/main.c
+index a84f2f6..1013497 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -227,11 +227,19 @@ static int nft_cache_init(void)
  {
- 	struct nft_table *nlt;
--	struct table *t;
+ 	netlink_genid_get();
  
- 	nlt = netlink_table_alloc(nlh);
--	t = netlink_delinearize_table(monh->ctx, nlt);
-+	netlink_delinearize_table(monh->ctx, nlt);
- 	nft_table_free(nlt);
--
--	table_add_hash(t);
+-	return table_init_hash();
++	if (table_init_hash() < 0)
++		return -1;
++
++	if (set_init_hash() < 0) {
++		table_fini_hash();
++		return -1;
++	}
++	return 0;
  }
  
- static void netlink_events_cache_deltable(struct netlink_mon_handler *monh,
-@@ -1987,7 +1982,6 @@ static void netlink_events_cache_deltable(struct netlink_mon_handler *monh,
- 	if (t == NULL)
- 		goto out;
+ static void nft_cache_fini(void)
+ {
++	set_fini_hash();
+ 	table_fini_hash();
+ }
  
--	list_del(&t->list);
- 	table_free(t);
- out:
- 	nft_table_free(nlt);
 diff --git a/src/rule.c b/src/rule.c
-index b2090dd..36b8a5e 100644
+index 1ae374e..2344270 100644
 --- a/src/rule.c
 +++ b/src/rule.c
-@@ -20,6 +20,7 @@
- #include <rule.h>
- #include <utils.h>
- #include <netlink.h>
-+#include <erec.h>
+@@ -28,6 +28,8 @@
+ #include <linux/netfilter.h>
+ #include <linux/netfilter_arp.h>
  
- #include <libnftnl/common.h>
- #include <libnftnl/ruleset.h>
-@@ -504,6 +505,8 @@ struct table *table_alloc(void)
- 	init_list_head(&table->chains);
- 	init_list_head(&table->sets);
- 	init_list_head(&table->scope.symbols);
-+	table_add_hash(table);
++static LIST_HEAD(table_list);
 +
- 	return table;
+ void handle_free(struct handle *h)
+ {
+ 	xfree(h->table);
+@@ -81,6 +83,42 @@ void set_free(struct set *set)
+ 	xfree(set);
  }
  
-@@ -515,11 +518,46 @@ void table_free(struct table *table)
- 		chain_free(chain);
- 	handle_free(&table->handle);
- 	scope_release(&table->scope);
-+	list_del(&table->list);
- 	xfree(table);
- }
- 
- static LIST_HEAD(table_list);
- 
-+int table_init_hash(void)
++int set_init_hash(void)
 +{
-+	struct handle handle = {
-+		.family = NFPROTO_UNSPEC,
-+	};
 +	struct netlink_ctx ctx;
++	struct table *table;
 +	LIST_HEAD(msgs);
 +	int ret;
 +
@@ -230,122 +236,114 @@ index b2090dd..36b8a5e 100644
 +	init_list_head(&ctx.list);
 +	ctx.msgs = &msgs;
 +
-+	ret = netlink_list_tables(&ctx, &handle, &internal_location);
-+	if (ret < 0) {
-+		if (errno != EINTR)
-+			erec_print_list(stdout, &msgs);
++	list_for_each_entry(table, &table_list, list) {
++		ret = netlink_list_sets(&ctx, &table->handle,
++					&internal_location);
++		if (ret < 0) {
++			if (errno != EINTR)
++				erec_print_list(stdout, &msgs);
 +
-+		return ret;
++			return ret;
++		}
++		list_splice_tail_init(&ctx.list, &table->sets);
 +	}
-+
-+	list_splice_tail_init(&ctx.list, &table_list);
 +
 +	return 0;
 +}
 +
-+void table_fini_hash(void)
++void set_fini_hash(void)
 +{
-+	struct table *table, *next;
++	struct set *set, *next;
++	struct table *table;
 +
-+	list_for_each_entry_safe(table, next, &table_list, list)
-+		table_free(table);
++	list_for_each_entry(table, &table_list, list)
++		list_for_each_entry_safe(set, next, &table->sets, list)
++			set_free(set);
 +}
 +
- void table_add_hash(struct table *table)
+ void set_add_hash(struct set *set, struct table *table)
  {
- 	list_add_tail(&table->list, &table_list);
-@@ -878,25 +916,18 @@ err:
+ 	list_add_tail(&set->list, &table->sets);
+@@ -522,8 +560,6 @@ void table_free(struct table *table)
+ 	xfree(table);
+ }
  
- static int do_list_ruleset(struct netlink_ctx *ctx, struct cmd *cmd)
- {
--	struct table *table, *next;
--	LIST_HEAD(tables);
+-static LIST_HEAD(table_list);
 -
--	if (netlink_list_tables(ctx, &cmd->handle, &cmd->location) < 0)
+ int table_init_hash(void)
+ {
+ 	struct handle handle = {
+@@ -847,15 +883,11 @@ static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
+ static int do_list_sets(struct netlink_ctx *ctx, const struct location *loc,
+ 			struct table *table)
+ {
+-	struct set *set, *nset;
+-
+-	if (netlink_list_sets(ctx, &table->handle, loc) < 0)
 -		return -1;
--
--	list_splice_tail_init(&ctx->list, &tables);
-+	struct table *table;
++	struct set *set;
  
--	list_for_each_entry_safe(table, next, &tables, list) {
--		table_add_hash(table);
-+	list_for_each_entry(table, &table_list, list) {
-+		if (cmd->handle.family != NFPROTO_UNSPEC &&
-+		    table->handle.family != cmd->handle.family)
-+			continue;
- 
- 		cmd->handle.family = table->handle.family;
- 		cmd->handle.table = xstrdup(table->handle.table);
- 
- 		if (do_list_table(ctx, cmd, table) < 0)
+-	list_for_each_entry_safe(set, nset, &ctx->list, list) {
++	list_for_each_entry(set, &table->sets, list) {
+ 		if (netlink_get_setelems(ctx, &set->handle, loc, set) < 0)
  			return -1;
--
--		list_del(&table->list);
--		table_free(table);
+-		list_move_tail(&set->list, &table->sets);
  	}
- 
  	return 0;
-@@ -913,23 +944,17 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
- 		if (table == NULL) {
- 			table = table_alloc();
- 			handle_merge(&table->handle, &cmd->handle);
--			table_add_hash(table);
- 		}
- 	}
- 
- 	switch (cmd->obj) {
- 	case CMD_OBJ_TABLE:
- 		if (!cmd->handle.table) {
--			/* List all existing tables */
- 			struct table *table;
- 
--			if (netlink_list_tables(ctx, &cmd->handle,
--						&cmd->location) < 0)
--				return -1;
--
--			list_for_each_entry(table, &ctx->list, list) {
-+			list_for_each_entry(table, &table_list, list)
- 				printf("table %s\n", table->handle.table);
--			}
-+
- 			return 0;
- 		}
- 		return do_list_table(ctx, cmd, table);
-@@ -993,7 +1018,6 @@ static int do_command_rename(struct netlink_ctx *ctx, struct cmd *cmd)
- 
- 	table = table_alloc();
- 	handle_merge(&table->handle, &cmd->handle);
--	table_add_hash(table);
- 
- 	switch (cmd->obj) {
+ }
+@@ -973,16 +1005,8 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
  	case CMD_OBJ_CHAIN:
-@@ -1013,7 +1037,7 @@ static int do_command_rename(struct netlink_ctx *ctx, struct cmd *cmd)
- 
- static int do_command_monitor(struct netlink_ctx *ctx, struct cmd *cmd)
- {
--	struct table *t, *nt;
-+	struct table *t;
- 	struct set *s, *ns;
- 	struct netlink_ctx set_ctx;
- 	LIST_HEAD(msgs);
-@@ -1036,10 +1060,7 @@ static int do_command_monitor(struct netlink_ctx *ctx, struct cmd *cmd)
- 		init_list_head(&msgs);
- 		set_ctx.msgs = &msgs;
- 
--		if (netlink_list_tables(ctx, &cmd->handle, &cmd->location) < 0)
+ 		return do_list_table(ctx, cmd, table);
+ 	case CMD_OBJ_SETS:
+-		if (netlink_list_sets(ctx, &cmd->handle, &cmd->location) < 0)
 -			return -1;
 -
--		list_for_each_entry_safe(t, nt, &ctx->list, list) {
-+		list_for_each_entry(t, &table_list, list) {
- 			set_handle.family = t->handle.family;
- 			set_handle.table = t->handle.table;
+-		list_for_each_entry(set, &ctx->list, list){
+-			if (netlink_get_setelems(ctx, &set->handle,
+-						 &cmd->location, set) < 0) {
+-				return -1;
+-			}
++		list_for_each_entry(set, &table->sets, list)
+ 			set_print(set);
+-		}
+ 		return 0;
+ 	case CMD_OBJ_SET:
+ 		if (netlink_get_set(ctx, &cmd->handle, &cmd->location) < 0)
+@@ -1050,10 +1074,7 @@ static int do_command_rename(struct netlink_ctx *ctx, struct cmd *cmd)
+ static int do_command_monitor(struct netlink_ctx *ctx, struct cmd *cmd)
+ {
+ 	struct table *t;
+-	struct set *s, *ns;
+-	struct netlink_ctx set_ctx;
+-	LIST_HEAD(msgs);
+-	struct handle set_handle;
++	struct set *s;
+ 	struct netlink_mon_handler monhandler;
  
-@@ -1053,8 +1074,6 @@ static int do_command_monitor(struct netlink_ctx *ctx, struct cmd *cmd)
- 				s->init = set_expr_alloc(&cmd->location);
- 				set_add_hash(s, t);
- 			}
+ 	/* cache only needed if monitoring:
+@@ -1068,24 +1089,9 @@ static int do_command_monitor(struct netlink_ctx *ctx, struct cmd *cmd)
+ 		monhandler.cache_needed = false;
+ 
+ 	if (monhandler.cache_needed) {
+-		memset(&set_ctx, 0, sizeof(set_ctx));
+-		init_list_head(&msgs);
+-		set_ctx.msgs = &msgs;
 -
--			table_add_hash(t);
+ 		list_for_each_entry(t, &table_list, list) {
+-			set_handle.family = t->handle.family;
+-			set_handle.table = t->handle.table;
+-
+-			init_list_head(&set_ctx.list);
+-
+-			if (netlink_list_sets(&set_ctx, &set_handle,
+-					      &cmd->location) < 0)
+-				return -1;
+-
+-			list_for_each_entry_safe(s, ns, &set_ctx.list, list) {
++			list_for_each_entry(s, &t->sets, list)
+ 				s->init = set_expr_alloc(&cmd->location);
+-				set_add_hash(s, t);
+-			}
  		}
  	}
  
@@ -353,4 +351,4 @@ index b2090dd..36b8a5e 100644
 1.7.10.4
 
 
---C7zPtVaVf+AK4Oqc--
+--4bRzO86E/ozDv8r1--
