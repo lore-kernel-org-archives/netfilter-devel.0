@@ -1,47 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables] xt_socket: add --restore-skmark option
-Date: Tue, 30 Jun 2015 17:27:40 +0200
-Message-ID: <20150630152740.GA5218@salvia>
-References: <1434415279-15517-1-git-send-email-harouth@codeaurora.org>
+Subject: Re: [PATCH] libmnl: security context retrieval in nf-queue example
+Date: Tue, 30 Jun 2015 17:33:03 +0200
+Message-ID: <20150630153303.GA5925@salvia>
+References: <20150610160541.GD7125@breakpoint.cc>
+ <55798582.1040903@samsung.com>
+ <20150611233757.GE7125@breakpoint.cc>
+ <557AB559.1000001@samsung.com>
+ <20150612130240.GA29551@salvia>
+ <558015A9.8060703@samsung.com>
+ <20150616123706.GA32486@salvia>
+ <55801D8A.9050701@samsung.com>
+ <20150616152522.GA3959@salvia>
+ <55804B77.1030207@samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Lorenzo Colitti <lorenzo@google.com>
-To: Harout Hedeshian <harouth@codeaurora.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	=?utf-8?B?UmFmYcWC?= Krypa <r.krypa@samsung.com>
+To: Roman Kubiak <r.kubiak@samsung.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59724 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:32774 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754875AbbF3PWQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Jun 2015 11:22:16 -0400
+	id S1751805AbbF3P1l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Jun 2015 11:27:41 -0400
 Content-Disposition: inline
-In-Reply-To: <1434415279-15517-1-git-send-email-harouth@codeaurora.org>
+In-Reply-To: <55804B77.1030207@samsung.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jun 15, 2015 at 06:41:19PM -0600, Harout Hedeshian wrote:
-> xt_socket is useful for matching sockets with IP_TRANSPARENT and
-> taking some action on the matching packets. However, it lacks the
-> ability to match only a small subset of transparent sockets.
+On Tue, Jun 16, 2015 at 06:14:47PM +0200, Roman Kubiak wrote:
+> Below is a complete libnetfilter_queue patch:
 > 
-> Suppose there are 2 applications, each with its own set of transparent
-> sockets. The first application wants all matching packets dropped,
-> while the second application wants them forwarded somewhere else.
 > 
-> Add the ability to retore the skb->mark from the sk_mark. The mark
-> is only restored if a matching socket is found and the transparent /
-> nowildcard conditions are satisfied.
+> [PATCH] libnetfilter_queue: add security context information
 > 
-> Now the 2 hypothetical applications can differentiate their sockets
-> based on a mark value set with SO_MARK.
+> This commit adds security context information structures
+> and functions.
 > 
-> iptables -t mangle -I PREROUTING -m socket --transparent \
->                                            --restore-skmark -j action
-> iptables -t mangle -I PREROUTING -m socket --transparent \
->                                            --restore-skmark -j action
-> iptables -t mangle -A action -m mark --mark 10 -j action2
-> iptables -t mangle -A action -m mark --mark 11 -j action3
+> This will allow userspace to find the security context of each
+> packet (if it exists) and make decisions based on that.
+> It should work for SELinux and SMACK.
 
-Applied, thanks.
+Applied with minor glitch. Thanks.
 
-It would be great if you can send me another patch to update the
-manpage and the libxt_socket.t test file.
+> @@ -76,7 +80,7 @@ static int cb(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
+>  {
+>  	uint32_t id = print_pkt(nfa);
+>  	printf("entering callback\n");
+> -	return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
+> +	return nfq_set_verdict2(qh, id, NF_ACCEPT, 0x3, 0, NULL);
+
+I have kept back this chunk to set the packet mark to 3. It doesn't
+belong here.
