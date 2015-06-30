@@ -1,100 +1,69 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: arptables: use percpu jumpstack
-Date: Tue, 30 Jun 2015 22:21:00 +0200
-Message-ID: <1435695660-26048-1-git-send-email-fw@strlen.de>
+Subject: [PATCH nf] netfilter: bridge: don't leak skb in error paths
+Date: Tue, 30 Jun 2015 22:27:51 +0200
+Message-ID: <1435696071-26841-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50185 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50217 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752213AbbF3UVH (ORCPT
+	by vger.kernel.org with ESMTP id S1752560AbbF3U1y (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Jun 2015 16:21:07 -0400
+	Tue, 30 Jun 2015 16:27:54 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 482cfc318559 ("netfilter: xtables: avoid percpu ruleset duplication")
+br_nf_dev_queue_xmit must free skb in its error path.
+NF_DROP is misleading -- its an okfn, not a netfilter hook.
 
-Unlike ip and ip6tables, arp tables were never converted to use the percpu
-jump stack.
-
-It still uses the rule blob to store return address, which isn't safe
-anymore since we now share this blob among all processors.
-
-Because there is no TEE support for arptables, we don't need to cope
-with reentrancy, so we can use loocal variable to hold stack offset.
-
-Fixes: 482cfc318559 ("netfilter: xtables: avoid percpu ruleset duplication")
+Fixes: 462fb2af9788a ("bridge : Sanitize skb before it enters the IP stack")
+Fixes: efb6de9b4ba00 ("netfilter: bridge: forward IPv6 fragmented packets")
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/ipv4/netfilter/arp_tables.c | 25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
+ Not sure the br_validate* calls are needed. When we reach br_nf_dev_queue_xmit
+ skbs have already been through all brnf hooks where we also have these checks.
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 95c9b6e..0fbe1a6 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -254,9 +254,10 @@ unsigned int arpt_do_table(struct sk_buff *skb,
- 	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long))));
- 	unsigned int verdict = NF_DROP;
- 	const struct arphdr *arp;
--	struct arpt_entry *e, *back;
-+	struct arpt_entry *e, **jumpstack;
- 	const char *indev, *outdev;
- 	const void *table_base;
-+	unsigned int cpu, stackidx = 0;
- 	const struct xt_table_info *private;
- 	struct xt_action_param acpar;
- 	unsigned int addend;
-@@ -270,15 +271,16 @@ unsigned int arpt_do_table(struct sk_buff *skb,
- 	local_bh_disable();
- 	addend = xt_write_recseq_begin();
- 	private = table->private;
-+	cpu     = smp_processor_id();
- 	/*
- 	 * Ensure we load private-> members after we've fetched the base
- 	 * pointer.
- 	 */
- 	smp_read_barrier_depends();
- 	table_base = private->entries;
-+	jumpstack  = (struct arpt_entry **)private->jumpstack[cpu];
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index d89f4fa..1a6fa67 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -742,7 +742,7 @@ static int br_nf_dev_queue_xmit(struct sock *sk, struct sk_buff *skb)
+ 		struct brnf_frag_data *data;
  
- 	e = get_entry(table_base, private->hook_entry[hook]);
--	back = get_entry(table_base, private->underflow[hook]);
+ 		if (br_validate_ipv4(skb))
+-			return NF_DROP;
++			goto drop;
  
- 	acpar.in      = state->in;
- 	acpar.out     = state->out;
-@@ -312,18 +314,23 @@ unsigned int arpt_do_table(struct sk_buff *skb,
- 					verdict = (unsigned int)(-v) - 1;
- 					break;
- 				}
--				e = back;
--				back = get_entry(table_base, back->comefrom);
-+				if (stackidx == 0) {
-+					e = get_entry(table_base,
-+						      private->underflow[hook]);
-+				} else {
-+					e = jumpstack[--stackidx];
-+					e = arpt_next_entry(e);
-+				}
- 				continue;
- 			}
- 			if (table_base + v
- 			    != arpt_next_entry(e)) {
--				/* Save old back ptr in next entry */
--				struct arpt_entry *next = arpt_next_entry(e);
--				next->comefrom = (void *)back - table_base;
+ 		IPCB(skb)->frag_max_size = nf_bridge->frag_max_size;
  
--				/* set back pointer to next entry */
--				back = next;
-+				if (WARN_ON_ONCE(stackidx >= private->stacksize)) {
-+					verdict = NF_DROP;
-+					break;
-+				}
-+				jumpstack[stackidx++] = e;
- 			}
+@@ -767,7 +767,7 @@ static int br_nf_dev_queue_xmit(struct sock *sk, struct sk_buff *skb)
+ 		struct brnf_frag_data *data;
  
- 			e = get_entry(table_base, v);
+ 		if (br_validate_ipv6(skb))
+-			return NF_DROP;
++			goto drop;
+ 
+ 		IP6CB(skb)->frag_max_size = nf_bridge->frag_max_size;
+ 
+@@ -782,12 +782,16 @@ static int br_nf_dev_queue_xmit(struct sock *sk, struct sk_buff *skb)
+ 
+ 		if (v6ops)
+ 			return v6ops->fragment(sk, skb, br_nf_push_frag_xmit);
+-		else
+-			return -EMSGSIZE;
++
++		kfree_skb(skb);
++		return -EMSGSIZE;
+ 	}
+ #endif
+ 	nf_bridge_info_free(skb);
+ 	return br_dev_queue_push_xmit(sk, skb);
++ drop:
++	kfree_skb(skb);
++	return 0;
+ }
+ 
+ /* PF_BRIDGE/POST_ROUTING ********************************************/
 -- 
 2.0.5
 
