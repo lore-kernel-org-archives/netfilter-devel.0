@@ -1,31 +1,49 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] datatype: avoid crash in debug mode when printing
- integers
-Date: Tue, 30 Jun 2015 02:07:57 +0200
-Message-ID: <20150630000757.GA6876@salvia>
-References: <1435308644-15892-1-git-send-email-fw@strlen.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC] COLO Proxy Module
+Date: Tue, 30 Jun 2015 11:19:05 +0200
+Message-ID: <20150630091905.GF17501@acer.localdomain>
+References: <5582673B.3010804@cn.fujitsu.com>
+ <55924787.3060203@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, pablo@netfilter.org,
+	kadlec@blackhole.kfki.hu, davem@davemloft.net,
+	coreteam@netfilter.org, Yang Hongyang <yanghy@cn.fujitsu.com>,
+	=?utf-8?B?5ripIOS7jua0iw==?= <wency@cn.fujitsu.com>,
+	zhanghailiang <zhang.zhanghailiang@huawei.com>,
+	Lai Jiangshan <laijs@cn.fujitsu.com>,
+	"peter.huangpeng" <peter.huangpeng@huawei.com>,
+	"Gonglei (Arei)" <arei.gonglei@huawei.com>
+To: Li Zhijian <lizhijian@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38536 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752611AbbF3AC2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Jun 2015 20:02:28 -0400
+Received: from stinky.trash.net ([213.144.137.162]:45136 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752590AbbF3JTK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Jun 2015 05:19:10 -0400
 Content-Disposition: inline
-In-Reply-To: <1435308644-15892-1-git-send-email-fw@strlen.de>
+In-Reply-To: <55924787.3060203@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 26, 2015 at 10:50:44AM +0200, Florian Westphal wrote:
-> nft -i --debug=all
-> nft> add rule ip filter foo mark 42
+On 30.06, Li Zhijian wrote:
+> |ping...
 > 
-> dies with sigfpe; seems mpz doesn't like len 0:
-> #1  0x0805f2ee in mpz_export_data (data=0xbfeda588, op=0x9d9fb08, byteorder=BYTEORDER_HOST_ENDIAN, len=0) at gmputil.c:115
+> and i have another question:
+> can i add a new |||nf_ct_ext_id simply without touching the exiting kernel
+> code?|
+
+No, the kernel needs to know the highest extension ID in order to
+allocate space for the offsets.
+
+> in order to support COLO-Proxy, i need a extra nf_ct_ext_id called
+> "NF_CT_EXT_COLO"
+> to store some message of COLO related. This message can help COLO-Proxy to
+> buffer packet and compare packet for each connection.
 > 
-> After patch this prints 0x0000002a.
+> Thanks
+> Li Zhijian
 
-I have pushed this to nft. Thanks.
-
+Cheers,
+Patrick
