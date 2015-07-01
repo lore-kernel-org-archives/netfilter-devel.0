@@ -1,135 +1,102 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf,v2] netfilter: nfnetlink: keep going batch handling on missing modules
-Date: Wed,  1 Jul 2015 16:14:25 +0200
-Message-ID: <1435760065-3814-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, eric@regit.org
-To: netfilter-devel@vger.kernel.org
+From: Daniel Borkmann <daniel@iogearbox.net>
+Subject: [PATCH nf] netfilter: nf_conntrack: fix endless loop on netns deletion
+Date: Wed,  1 Jul 2015 18:24:41 +0200
+Message-ID: <b41741db7ecfaabe74fbcacac9a628375217ee35.1435765328.git.daniel@iogearbox.net>
+Cc: fw@strlen.de, netfilter-devel@vger.kernel.org,
+	Daniel Borkmann <daniel@iogearbox.net>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50091 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754232AbbGAOI7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Jul 2015 10:08:59 -0400
+Received: from www62.your-server.de ([213.133.104.62]:51159 "EHLO
+	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754642AbbGAQYp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Jul 2015 12:24:45 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-After a fresh boot with no modules in place at all and a large rulesets, the
-existing nfnetlink_rcv_batch() funcion can take long time to commit the ruleset
-due to the many abort path. This is specifically a problem for the existing
-client of this code, ie. nf_tables, since it results in several
-synchronize_rcu() call in a row.
+When adding connection tracking template rules to a netns, f.e. to
+configure netfilter zones, the kernel will endlessly busy-loop as soon
+as we try to delete the given netns in case there's at least one
+template present. Minimal example:
 
-This patch changes the policy to keep full batch processing on missing modules
-errors so we abort only once.
+  ip netns add foo
+  ip netns exec foo iptables -t raw -A PREROUTING -d 1.2.3.4 -j CT --zone 1
+  ip netns del foo
 
-Reported-by: Eric Leblond <eric@regit.org>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+What happens is that when nf_ct_iterate_cleanup() is being called from
+nf_conntrack_cleanup_net_list() for a provided netns, we always end up
+with a net->ct.count > 0 and thus jump back to i_see_dead_people. We
+don't get a soft-lockup as we still have a schedule() point, but the
+serving CPU spins on 100% from that point onwards.
+
+Since templates are normally allocated with nf_conntrack_alloc(), we
+also bump net->ct.count, but they are never freed via nf_ct_put(). Thus,
+when we delete a netns, we also need to check and free them from the
+pcpu template list, so that the refcount can actually drop to 0 and
+eventually move on with destroying the netns.
+
+Therefore, we add a nf_ct_tmpls_cleanup() function, that is similar to
+nf_ct_iterate_cleanup(), but which handles templates that got onto the
+list via nf_conntrack_tmpl_insert(). Note that nf_ct_put() needs to be
+done outside of the lock protecting the pcpu lists.
+
+Fixes: 252b3e8c1bc0 ("netfilter: xt_CT: fix crash while destroy ct templates")
+Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
 ---
-v2: cleanup that introduces status flags instead.
+ (I believe this should be the case since 252b3e8c1bc0.)
 
- net/netfilter/nfnetlink.c |   38 +++++++++++++++++++++++++-------------
- 1 file changed, 25 insertions(+), 13 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 8b117c9..0c0e8ec 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -269,6 +269,12 @@ static void nfnl_err_deliver(struct list_head *err_list, struct sk_buff *skb)
- 	}
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 13fad86..dec0b3a 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1409,6 +1409,35 @@ void nf_ct_iterate_cleanup(struct net *net,
  }
+ EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup);
  
-+enum {
-+	NFNL_BATCH_FAILURE	= (1 << 0),
-+	NFNL_BATCH_DONE		= (1 << 1),
-+	NFNL_BATCH_REPLAY	= (1 << 2),
-+};
++static struct nf_conn *get_next_tmpl(struct ct_pcpu *pcpu)
++{
++	struct nf_conntrack_tuple_hash *h;
++	struct hlist_nulls_node *n;
++	struct nf_conn *ct = NULL;
 +
- static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
- 				u_int16_t subsys_id)
- {
-@@ -276,13 +282,15 @@ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
- 	struct net *net = sock_net(skb->sk);
- 	const struct nfnetlink_subsystem *ss;
- 	const struct nfnl_callback *nc;
--	bool success = true, done = false;
- 	static LIST_HEAD(err_list);
-+	u32 status;
- 	int err;
- 
- 	if (subsys_id >= NFNL_SUBSYS_COUNT)
- 		return netlink_ack(skb, nlh, -EINVAL);
- replay:
-+	status = 0;
-+
- 	skb = netlink_skb_clone(oskb, GFP_KERNEL);
- 	if (!skb)
- 		return netlink_ack(oskb, nlh, -ENOMEM);
-@@ -336,10 +344,10 @@ replay:
- 		if (type == NFNL_MSG_BATCH_BEGIN) {
- 			/* Malformed: Batch begin twice */
- 			nfnl_err_reset(&err_list);
--			success = false;
-+			status |= NFNL_BATCH_FAILURE;
- 			goto done;
- 		} else if (type == NFNL_MSG_BATCH_END) {
--			done = true;
-+			status |= NFNL_BATCH_DONE;
- 			goto done;
- 		} else if (type < NLMSG_MIN_TYPE) {
- 			err = -EINVAL;
-@@ -382,11 +390,8 @@ replay:
- 			 * original skb.
- 			 */
- 			if (err == -EAGAIN) {
--				nfnl_err_reset(&err_list);
--				ss->abort(oskb);
--				nfnl_unlock(subsys_id);
--				kfree_skb(skb);
--				goto replay;
-+				status |= NFNL_BATCH_REPLAY;
-+				goto next;
- 			}
- 		}
- ack:
-@@ -402,7 +407,7 @@ ack:
- 				 */
- 				nfnl_err_reset(&err_list);
- 				netlink_ack(skb, nlmsg_hdr(oskb), -ENOMEM);
--				success = false;
-+				status |= NFNL_BATCH_FAILURE;
- 				goto done;
- 			}
- 			/* We don't stop processing the batch on errors, thus,
-@@ -410,19 +415,26 @@ ack:
- 			 * triggers.
- 			 */
- 			if (err)
--				success = false;
-+				status |= NFNL_BATCH_FAILURE;
- 		}
--
-+next:
- 		msglen = NLMSG_ALIGN(nlh->nlmsg_len);
- 		if (msglen > skb->len)
- 			msglen = skb->len;
- 		skb_pull(skb, msglen);
- 	}
- done:
--	if (success && done)
-+	if (status & NFNL_BATCH_REPLAY) {
-+		ss->abort(oskb);
-+		nfnl_err_reset(&err_list);
-+		nfnl_unlock(subsys_id);
-+		kfree_skb(skb);
-+		goto replay;
-+	} else if (status == NFNL_BATCH_DONE) {
- 		ss->commit(oskb);
--	else
-+	} else {
- 		ss->abort(oskb);
++	spin_lock_bh(&pcpu->lock);
++	hlist_nulls_for_each_entry(h, n, &pcpu->tmpl, hnnode) {
++		ct = nf_ct_tuplehash_to_ctrack(h);
++		break;
 +	}
- 
- 	nfnl_err_deliver(&err_list, oskb);
- 	nfnl_unlock(subsys_id);
++	spin_unlock_bh(&pcpu->lock);
++
++	return ct;
++}
++
++static void nf_ct_tmpls_cleanup(struct net *net)
++{
++	int cpu;
++
++	for_each_possible_cpu(cpu) {
++		struct ct_pcpu *pcpu = per_cpu_ptr(net->ct.pcpu_lists, cpu);
++		struct nf_conn *ct;
++
++		while ((ct = get_next_tmpl(pcpu)) != NULL)
++			nf_ct_put(ct);
++	}
++}
++
+ static int kill_all(struct nf_conn *i, void *data)
+ {
+ 	return 1;
+@@ -1488,6 +1517,8 @@ i_see_dead_people:
+ 	busy = 0;
+ 	list_for_each_entry(net, net_exit_list, exit_list) {
+ 		nf_ct_iterate_cleanup(net, kill_all, NULL, 0, 0);
++		nf_ct_tmpls_cleanup(net);
++
+ 		if (atomic_read(&net->ct.count) != 0)
+ 			busy = 1;
+ 	}
 -- 
-1.7.10.4
+1.9.3
 
