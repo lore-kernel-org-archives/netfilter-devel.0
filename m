@@ -1,63 +1,43 @@
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: Re: [RFC] COLO Proxy Module
-Date: Wed, 1 Jul 2015 18:57:11 +0800
-Message-ID: <5593C787.3070005@cn.fujitsu.com>
-References: <5582673B.3010804@cn.fujitsu.com> <55924787.3060203@cn.fujitsu.com> <20150630091905.GF17501@acer.localdomain>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH -stable] netfilter: nft_rbtree: fix locking
+Date: Wed, 1 Jul 2015 13:38:46 +0200
+Message-ID: <20150701113846.GA18976@salvia>
+References: <1431802251-4781-1-git-send-email-pablo@netfilter.org>
+ <1431802251-4781-7-git-send-email-pablo@netfilter.org>
+ <20150629230053.GC19806@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <pablo@netfilter.org>,
-	<kadlec@blackhole.kfki.hu>, <davem@davemloft.net>,
-	<coreteam@netfilter.org>, Yang Hongyang <yanghy@cn.fujitsu.com>,
-	zhanghailiang <zhang.zhanghailiang@huawei.com>,
-	Lai Jiangshan <laijs@cn.fujitsu.com>,
-	"peter.huangpeng" <peter.huangpeng@huawei.com>,
-	"Gonglei (Arei)" <arei.gonglei@huawei.com>
-To: Patrick McHardy <kaber@trash.net>,
-	Li Zhijian <lizhijian@cn.fujitsu.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: stable@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Greg KH <gregkh@linuxfoundation.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:28815 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753932AbbGAKx1 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Jul 2015 06:53:27 -0400
-In-Reply-To: <20150630091905.GF17501@acer.localdomain>
+Received: from mail.us.es ([193.147.175.20]:42316 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752859AbbGALdR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Jul 2015 07:33:17 -0400
+Content-Disposition: inline
+In-Reply-To: <20150629230053.GC19806@kroah.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 06/30/2015 05:19 PM, Patrick McHardy wrote:
-> On 30.06, Li Zhijian wrote:
->> |ping...
->>
->> and i have another question:
->> can i add a new |||nf_ct_ext_id simply without touching the exiting kernel
->> code?|
+On Mon, Jun 29, 2015 at 04:00:53PM -0700, Greg KH wrote:
+> On Sat, May 16, 2015 at 08:50:51PM +0200, Pablo Neira Ayuso wrote:
+> > From: Patrick McHardy <kaber@trash.net>
+> > 
+> > [ upstream commit 16c45eda96038aae848b6cfd42e2bf4b5e80f365 ]
+> > 
+> > Fix a race condition and unnecessary locking:
+> > 
+> > * the root rb_node must only be accessed under the lock in nft_rbtree_lookup()
+> > * the lock is not needed in lookup functions in netlink context
+> > 
+> > Cc: <stable@vger.kernel.org> # 3.18.x
+> > Cc: <stable@vger.kernel.org> # 3.19.x
+> > Signed-off-by: Patrick McHardy <kaber@trash.net>
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > ---
+> >  net/netfilter/nft_rbtree.c |    6 ++----
+> >  1 file changed, 2 insertions(+), 4 deletions(-)
 > 
-> No, the kernel needs to know the highest extension ID in order to
-> allocate space for the offsets.
+> Also 4.0, right?  This showed up in Linus's tree in 4.1-rc1.
 
-So if we want to add a new extension, we should post the module too. Is
-it right?
-
-Thanks
-Wen Congyang
-
-> 
->> in order to support COLO-Proxy, i need a extra nf_ct_ext_id called
->> "NF_CT_EXT_COLO"
->> to store some message of COLO related. This message can help COLO-Proxy to
->> buffer packet and compare packet for each connection.
->>
->> Thanks
->> Li Zhijian
-> 
-> Cheers,
-> Patrick
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> .
-> 
-
+Yes please. thanks!
