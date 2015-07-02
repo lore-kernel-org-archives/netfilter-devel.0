@@ -1,83 +1,55 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: bridge: don't leak skb in error paths
-Date: Thu, 2 Jul 2015 14:59:44 +0200
-Message-ID: <20150702125944.GA22321@salvia>
-References: <1435696071-26841-1-git-send-email-fw@strlen.de>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH] net-ipvs: Delete an unnecessary check before the function
+ call "module_put"
+Date: Thu, 02 Jul 2015 17:10:41 +0200
+Message-ID: <55955471.9000501@users.sourceforge.net>
+References: <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.sourceforge.net> <546BA253.6030100@users.sourceforge.net> <20141119134040.GA12270@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50531 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751087AbbGBMyW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Jul 2015 08:54:22 -0400
-Content-Disposition: inline
-In-Reply-To: <1435696071-26841-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>,
+	Julia Lawall <julia.lawall@lip6.fr>
+To: "David S. Miller" <davem@davemloft.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Julian Anastasov <ja@ssi.bg>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Simon Horman <horms@verge.net.au>,
+	Wensong Zhang <wensong@linux-vs.org>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20141119134040.GA12270@salvia>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jun 30, 2015 at 10:27:51PM +0200, Florian Westphal wrote:
-> br_nf_dev_queue_xmit must free skb in its error path.
-> NF_DROP is misleading -- its an okfn, not a netfilter hook.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 2 Jul 2015 17:00:14 +0200
 
-Good catch.
+The module_put() function tests whether its argument is NULL and then
+returns immediately. Thus the test around the call is not needed.
 
-> Fixes: 462fb2af9788a ("bridge : Sanitize skb before it enters the IP stack")
-> Fixes: efb6de9b4ba00 ("netfilter: bridge: forward IPv6 fragmented packets")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  Not sure the br_validate* calls are needed. When we reach br_nf_dev_queue_xmit
->  skbs have already been through all brnf hooks where we also have these checks.
+This issue was detected by using the Coccinelle software.
 
-Locally originated traffic should be sane at this point, and forwarded
-traffic was already validated.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ net/netfilter/ipvs/ip_vs_sched.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-> index d89f4fa..1a6fa67 100644
-> --- a/net/bridge/br_netfilter_hooks.c
-> +++ b/net/bridge/br_netfilter_hooks.c
-> @@ -742,7 +742,7 @@ static int br_nf_dev_queue_xmit(struct sock *sk, struct sk_buff *skb)
->  		struct brnf_frag_data *data;
->  
->  		if (br_validate_ipv4(skb))
-> -			return NF_DROP;
-> +			goto drop;
->  
->  		IPCB(skb)->frag_max_size = nf_bridge->frag_max_size;
->  
-> @@ -767,7 +767,7 @@ static int br_nf_dev_queue_xmit(struct sock *sk, struct sk_buff *skb)
->  		struct brnf_frag_data *data;
->  
->  		if (br_validate_ipv6(skb))
-> -			return NF_DROP;
-> +			goto drop;
->  
->  		IP6CB(skb)->frag_max_size = nf_bridge->frag_max_size;
->  
-> @@ -782,12 +782,16 @@ static int br_nf_dev_queue_xmit(struct sock *sk, struct sk_buff *skb)
->  
->  		if (v6ops)
->  			return v6ops->fragment(sk, skb, br_nf_push_frag_xmit);
-> -		else
-> -			return -EMSGSIZE;
-> +
-> +		kfree_skb(skb);
-> +		return -EMSGSIZE;
->  	}
->  #endif
->  	nf_bridge_info_free(skb);
->  	return br_dev_queue_push_xmit(sk, skb);
-> + drop:
-> +	kfree_skb(skb);
-> +	return 0;
->  }
->  
->  /* PF_BRIDGE/POST_ROUTING ********************************************/
-> -- 
-> 2.0.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/net/netfilter/ipvs/ip_vs_sched.c b/net/netfilter/ipvs/ip_vs_sched.c
+index 199760c..e50221b 100644
+--- a/net/netfilter/ipvs/ip_vs_sched.c
++++ b/net/netfilter/ipvs/ip_vs_sched.c
+@@ -137,7 +137,7 @@ struct ip_vs_scheduler *ip_vs_scheduler_get(const char *sched_name)
+ 
+ void ip_vs_scheduler_put(struct ip_vs_scheduler *scheduler)
+ {
+-	if (scheduler && scheduler->module)
++	if (scheduler)
+ 		module_put(scheduler->module);
+ }
+ 
+-- 
+2.4.5
+
