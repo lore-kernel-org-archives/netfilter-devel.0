@@ -1,46 +1,107 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft,v3 0/7] cache consolidation
-Date: Thu,  2 Jul 2015 20:25:05 +0200
-Message-ID: <1435861512-23572-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft,v3 5/7] segtree: pass element expression as parameter to set_to_intervals()
+Date: Thu,  2 Jul 2015 20:25:10 +0200
+Message-ID: <1435861512-23572-6-git-send-email-pablo@netfilter.org>
+References: <1435861512-23572-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53394 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53407 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753586AbbGBSTo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Jul 2015 14:19:44 -0400
+	id S1752262AbbGBSTs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 Jul 2015 14:19:48 -0400
+In-Reply-To: <1435861512-23572-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is v3 of the cache consolidation patchset.
+So we can reuse this code from set declarations.
 
-In this round, I have patch 2/7 to use the scope so nft knows if this is a
-table declaration that contains a full block of further declarations or not.
-I have also fixed several problems I found while testing from the previous
-round.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/expression.h |    3 ++-
+ src/rule.c           |    2 +-
+ src/segtree.c        |   15 ++++++++-------
+ 3 files changed, 11 insertions(+), 9 deletions(-)
 
-More info at:
-http://marc.info/?l=netfilter-devel&m=143560012416115&w=2
-
-Pablo Neira Ayuso (7):
-  src: consolidate table cache
-  src: add table declaration to cache
-  src: consolidate set cache
-  src: early allocation of the set ID
-  segtree: pass element expression as parameter to set_to_intervals()
-  rule: use netlink_add_setelems() when creating literal sets
-  rule: fix use of intervals in set declarations
-
- include/expression.h |    3 +-
- include/rule.h       |    6 ++
- src/evaluate.c       |   49 ++++---------
- src/main.c           |   37 +++++++++-
- src/netlink.c        |   16 +----
- src/parser_bison.y   |   10 ++-
- src/rule.c           |  191 ++++++++++++++++++++++++++++++++------------------
- src/segtree.c        |   15 ++--
- 8 files changed, 198 insertions(+), 129 deletions(-)
-
+diff --git a/include/expression.h b/include/expression.h
+index 010cb95..bc17762 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -362,7 +362,8 @@ extern struct expr *concat_expr_alloc(const struct location *loc);
+ extern struct expr *list_expr_alloc(const struct location *loc);
+ 
+ extern struct expr *set_expr_alloc(const struct location *loc);
+-extern int set_to_intervals(struct list_head *msgs, struct set *set);
++extern int set_to_intervals(struct list_head *msgs, struct set *set,
++			    struct expr *init);
+ 
+ extern struct expr *mapping_expr_alloc(const struct location *loc,
+ 				       struct expr *from, struct expr *to);
+diff --git a/src/rule.c b/src/rule.c
+index 7491ee7..623e464 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -783,7 +783,7 @@ static int do_add_set(struct netlink_ctx *ctx, const struct handle *h,
+ 		return -1;
+ 	if (set->init != NULL) {
+ 		if (set->flags & SET_F_INTERVAL &&
+-		    set_to_intervals(ctx->msgs, set) < 0)
++		    set_to_intervals(ctx->msgs, set, set->init) < 0)
+ 			return -1;
+ 		if (do_add_setelems(ctx, &set->handle, set->init) < 0)
+ 			return -1;
+diff --git a/src/segtree.c b/src/segtree.c
+index 060951c..429d35e 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -64,11 +64,12 @@ struct elementary_interval {
+ 	struct expr			*expr;
+ };
+ 
+-static void seg_tree_init(struct seg_tree *tree, const struct set *set)
++static void seg_tree_init(struct seg_tree *tree, const struct set *set,
++			  struct expr *init)
+ {
+ 	struct expr *first;
+ 
+-	first = list_entry(set->init->expressions.next, struct expr, list);
++	first = list_entry(init->expressions.next, struct expr, list);
+ 	tree->root	= RB_ROOT;
+ 	tree->keytype	= set->keytype;
+ 	tree->keylen	= set->keylen;
+@@ -431,14 +432,14 @@ static void set_insert_interval(struct expr *set, struct seg_tree *tree,
+ 	compound_expr_add(set, expr);
+ }
+ 
+-int set_to_intervals(struct list_head *errs, struct set *set)
++int set_to_intervals(struct list_head *errs, struct set *set, struct expr *init)
+ {
+ 	struct elementary_interval *ei, *next;
+ 	struct seg_tree tree;
+ 	LIST_HEAD(list);
+ 
+-	seg_tree_init(&tree, set);
+-	if (set_to_segtree(errs, set->init, &tree) < 0)
++	seg_tree_init(&tree, set, init);
++	if (set_to_segtree(errs, init, &tree) < 0)
+ 		return -1;
+ 	segtree_linearize(&list, &tree);
+ 
+@@ -448,12 +449,12 @@ int set_to_intervals(struct list_head *errs, struct set *set)
+ 				     2 * tree.keylen / BITS_PER_BYTE, ei->left,
+ 				     2 * tree.keylen / BITS_PER_BYTE, ei->right);
+ 		}
+-		set_insert_interval(set->init, &tree, ei);
++		set_insert_interval(init, &tree, ei);
+ 		ei_destroy(ei);
+ 	}
+ 
+ 	if (segtree_debug()) {
+-		expr_print(set->init);
++		expr_print(init);
+ 		pr_gmp_debug("\n");
+ 	}
+ 	return 0;
 -- 
 1.7.10.4
 
