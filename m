@@ -1,49 +1,71 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft,v4 06/16] src: add set declaration to cache
-Date: Mon,  6 Jul 2015 20:16:58 +0200
-Message-ID: <1436206628-23894-7-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft,v4 07/16] src: early allocation of the set ID
+Date: Mon,  6 Jul 2015 20:16:59 +0200
+Message-ID: <1436206628-23894-8-git-send-email-pablo@netfilter.org>
 References: <1436206628-23894-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40456 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40443 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753767AbbGFSLn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jul 2015 14:11:43 -0400
+	id S1754064AbbGFSLk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Jul 2015 14:11:40 -0400
 In-Reply-To: <1436206628-23894-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds set objects to the cache if they don't exist in the kernel, so
-they can be referenced from this batch. This occurs from the evaluation step.
+By when the set is created, so element in the batch use this set ID as
+reference.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/evaluate.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ src/netlink.c |    4 ----
+ src/rule.c    |    4 ++++
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 963622f..91c4989 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1736,8 +1736,17 @@ static int setelem_evaluate(struct eval_ctx *ctx, struct expr **expr)
+diff --git a/src/netlink.c b/src/netlink.c
+index 8ede8e6..0fb7b63 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -1121,9 +1121,6 @@ static int netlink_add_set_compat(struct netlink_ctx *ctx,
+ 	return err;
+ }
  
- static int set_evaluate(struct eval_ctx *ctx, struct set *set)
+-/* internal ID to uniquely identify a set in the batch */
+-static uint32_t set_id;
+-
+ static int netlink_add_set_batch(struct netlink_ctx *ctx,
+ 				 const struct handle *h, struct set *set)
  {
-+	struct table *table;
- 	const char *type;
+@@ -1147,7 +1144,6 @@ static int netlink_add_set_batch(struct netlink_ctx *ctx,
+ 	if (set->gc_int)
+ 		nft_set_attr_set_u32(nls, NFT_SET_ATTR_GC_INTERVAL, set->gc_int);
  
-+	table = table_lookup(&ctx->cmd->handle);
-+	if (table == NULL)
-+		return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
-+				 ctx->cmd->handle.table);
-+
-+	if (set_lookup(table, set->handle.set) == NULL)
-+		set_add_hash(set_get(set), table);
-+
- 	type = set->flags & SET_F_MAP ? "map" : "set";
+-	set->handle.set_id = ++set_id;
+ 	nft_set_attr_set_u32(nls, NFT_SET_ATTR_ID, set->handle.set_id);
  
- 	if (set->keytype == NULL)
+ 	if (!(set->flags & (SET_F_CONSTANT))) {
+diff --git a/src/rule.c b/src/rule.c
+index 8f0bc7e..eefa5f1 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -96,12 +96,16 @@ void cache_fini(void)
+ 	}
+ }
+ 
++/* internal ID to uniquely identify a set in the batch */
++static uint32_t set_id;
++
+ struct set *set_alloc(const struct location *loc)
+ {
+ 	struct set *set;
+ 
+ 	set = xzalloc(sizeof(*set));
+ 	set->refcnt = 1;
++	set->handle.set_id = ++set_id;
+ 	if (loc != NULL)
+ 		set->location = *loc;
+ 	return set;
 -- 
 1.7.10.4
 
