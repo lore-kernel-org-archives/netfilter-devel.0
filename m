@@ -1,92 +1,41 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft,v4 00/16] cache consolidation
-Date: Mon,  6 Jul 2015 20:16:52 +0200
-Message-ID: <1436206628-23894-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft,v4 09/16] rule: use netlink_add_setelems() when creating literal sets
+Date: Mon,  6 Jul 2015 20:17:01 +0200
+Message-ID: <1436206628-23894-10-git-send-email-pablo@netfilter.org>
+References: <1436206628-23894-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40425 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40448 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753248AbbGFSLi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jul 2015 14:11:38 -0400
+	id S1753621AbbGFSLm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Jul 2015 14:11:42 -0400
+In-Reply-To: <1436206628-23894-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Thus, do_add_setelems() is only used for set declarations. This comes in
+preparation to the follow up patch, to avoid resending back to userspace the
+list of existing elements.
 
-This is another round of the patchset to consolidate the nft cache. The idea
-consists of creating a cache of tables that is populated with chains, rules,
-sets and elements before parsing/evaluation.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/rule.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-This comes with several advantages:
-
-1) We can now keep the ruleset file in a linear list fashion. We can also apply
-   incremental set declaration updates in a file in an atomic fashion, eg.
-
-	-o-FILE:nft-ruleset-o-
-	add table filter
-	add chain filter input { type filter hook input priority 0; }
-	add set filter blacklist { type ipv4_addr; }
-	add element filter blacklist { 4.4.4.10 }
-	-o-EOF-o-
-
-2) We have a single point to create a consistent cache, thus, we can handle
-   EINTR and validate generation counter to make sure we operate with a ruleset
-   that is up-to-date.
-
-3) We can provide better error reporting from the evaluation step, eg.
-
-   # nft add element filter blacklist { 1.1.1.1 }
-   <cmdline>:1:1-36: Error: Could not process rule: Table 'filter' does not exist
-   add element filter blacklist { 1.1.1.1 }
-   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-   instead of:
-
-   # nft add element filter blacklist { 1.1.1.1 }
-   <cmdline>:1:1-36: Error: Could not process rule: No such file or directory
-   add element filter blacklist { 1.1.1.1 }
-   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-   In follow up patches, it should be possible to reduce the number of object
-   lookups by attaching the corresponding object to struct cmd, so we don't need
-   to look it up again from the final command execution step.
-
-4) We can later on use the cache to perform ruleset transformations as Patrick
-   already suggested.
-
-I will keep testing this here a bit more, then if no objections, I'll push this
-to master.
-
-Thanks.
-
-Pablo Neira Ayuso (16):
-  src: consolidate table cache
-  src: add cmd_evaluate_list()
-  rule: add reference counter to the table object
-  src: add table declaration to cache
-  src: consolidate set cache
-  src: add set declaration to cache
-  src: early allocation of the set ID
-  segtree: pass element expression as parameter to set_to_intervals()
-  rule: use netlink_add_setelems() when creating literal sets
-  rule: fix use of intervals in set declarations
-  rule: add chain reference counter
-  src: consolidate chain cache
-  evaluate: add cmd_evaluate_rename()
-  src: add chain declarations to cache
-  rule: consolidate rule cache
-  src: consolidate set element cache
-
- include/expression.h |    3 +-
- include/rule.h       |    9 ++
- src/evaluate.c       |  142 +++++++++++++++++-------
- src/main.c           |   30 +++++-
- src/netlink.c        |    4 -
- src/rule.c           |  294 ++++++++++++++++++++++++++------------------------
- src/segtree.c        |   15 +--
- 7 files changed, 300 insertions(+), 197 deletions(-)
-
+diff --git a/src/rule.c b/src/rule.c
+index 2b624c2..2b663f5 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -762,7 +762,7 @@ static int do_add_set(struct netlink_ctx *ctx, const struct handle *h,
+ 		if (set->flags & SET_F_INTERVAL &&
+ 		    set_to_intervals(ctx->msgs, set, set->init) < 0)
+ 			return -1;
+-		if (do_add_setelems(ctx, &set->handle, set->init) < 0)
++		if (netlink_add_setelems(ctx, &set->handle, set->init) < 0)
+ 			return -1;
+ 	}
+ 	return 0;
 -- 
 1.7.10.4
 
