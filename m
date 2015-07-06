@@ -1,107 +1,61 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft,v4 08/16] segtree: pass element expression as parameter to set_to_intervals()
-Date: Mon,  6 Jul 2015 20:17:00 +0200
-Message-ID: <1436206628-23894-9-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft,v4 04/16] src: add table declaration to cache
+Date: Mon,  6 Jul 2015 20:16:56 +0200
+Message-ID: <1436206628-23894-5-git-send-email-pablo@netfilter.org>
 References: <1436206628-23894-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40445 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40430 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753996AbbGFSLl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jul 2015 14:11:41 -0400
+	id S1751737AbbGFSLi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Jul 2015 14:11:38 -0400
 In-Reply-To: <1436206628-23894-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-So we can reuse this code from set declarations.
+Declared table objects are added to the cache, thus we can reference objects
+that come in this batch, but that are not yet available in the kernel. This
+happens from the evaluation step.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/expression.h |    3 ++-
- src/rule.c           |    2 +-
- src/segtree.c        |   15 ++++++++-------
- 3 files changed, 11 insertions(+), 9 deletions(-)
+ src/evaluate.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/include/expression.h b/include/expression.h
-index 010cb95..bc17762 100644
---- a/include/expression.h
-+++ b/include/expression.h
-@@ -362,7 +362,8 @@ extern struct expr *concat_expr_alloc(const struct location *loc);
- extern struct expr *list_expr_alloc(const struct location *loc);
+diff --git a/src/evaluate.c b/src/evaluate.c
+index c6c6038..475eb16 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1881,6 +1881,19 @@ static int table_evaluate(struct eval_ctx *ctx, struct table *table)
+ 	struct chain *chain;
+ 	struct set *set;
  
- extern struct expr *set_expr_alloc(const struct location *loc);
--extern int set_to_intervals(struct list_head *msgs, struct set *set);
-+extern int set_to_intervals(struct list_head *msgs, struct set *set,
-+			    struct expr *init);
- 
- extern struct expr *mapping_expr_alloc(const struct location *loc,
- 				       struct expr *from, struct expr *to);
-diff --git a/src/rule.c b/src/rule.c
-index eefa5f1..2b624c2 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -760,7 +760,7 @@ static int do_add_set(struct netlink_ctx *ctx, const struct handle *h,
- 		return -1;
- 	if (set->init != NULL) {
- 		if (set->flags & SET_F_INTERVAL &&
--		    set_to_intervals(ctx->msgs, set) < 0)
-+		    set_to_intervals(ctx->msgs, set, set->init) < 0)
- 			return -1;
- 		if (do_add_setelems(ctx, &set->handle, set->init) < 0)
- 			return -1;
-diff --git a/src/segtree.c b/src/segtree.c
-index 060951c..429d35e 100644
---- a/src/segtree.c
-+++ b/src/segtree.c
-@@ -64,11 +64,12 @@ struct elementary_interval {
- 	struct expr			*expr;
- };
- 
--static void seg_tree_init(struct seg_tree *tree, const struct set *set)
-+static void seg_tree_init(struct seg_tree *tree, const struct set *set,
-+			  struct expr *init)
- {
- 	struct expr *first;
- 
--	first = list_entry(set->init->expressions.next, struct expr, list);
-+	first = list_entry(init->expressions.next, struct expr, list);
- 	tree->root	= RB_ROOT;
- 	tree->keytype	= set->keytype;
- 	tree->keylen	= set->keylen;
-@@ -431,14 +432,14 @@ static void set_insert_interval(struct expr *set, struct seg_tree *tree,
- 	compound_expr_add(set, expr);
- }
- 
--int set_to_intervals(struct list_head *errs, struct set *set)
-+int set_to_intervals(struct list_head *errs, struct set *set, struct expr *init)
- {
- 	struct elementary_interval *ei, *next;
- 	struct seg_tree tree;
- 	LIST_HEAD(list);
- 
--	seg_tree_init(&tree, set);
--	if (set_to_segtree(errs, set->init, &tree) < 0)
-+	seg_tree_init(&tree, set, init);
-+	if (set_to_segtree(errs, init, &tree) < 0)
- 		return -1;
- 	segtree_linearize(&list, &tree);
- 
-@@ -448,12 +449,12 @@ int set_to_intervals(struct list_head *errs, struct set *set)
- 				     2 * tree.keylen / BITS_PER_BYTE, ei->left,
- 				     2 * tree.keylen / BITS_PER_BYTE, ei->right);
- 		}
--		set_insert_interval(set->init, &tree, ei);
-+		set_insert_interval(init, &tree, ei);
- 		ei_destroy(ei);
- 	}
- 
- 	if (segtree_debug()) {
--		expr_print(set->init);
-+		expr_print(init);
- 		pr_gmp_debug("\n");
- 	}
- 	return 0;
++	if (table_lookup(&ctx->cmd->handle) == NULL) {
++		if (table == NULL) {
++			table = table_alloc();
++			handle_merge(&table->handle, &ctx->cmd->handle);
++			table_add_hash(table);
++		} else {
++			table_add_hash(table_get(table));
++		}
++	}
++
++	if (ctx->cmd->table == NULL)
++		return 0;
++
+ 	ctx->table = table;
+ 	list_for_each_entry(set, &table->sets, list) {
+ 		handle_merge(&set->handle, &table->handle);
+@@ -1912,8 +1925,6 @@ static int cmd_evaluate_add(struct eval_ctx *ctx, struct cmd *cmd)
+ 			return 0;
+ 		return chain_evaluate(ctx, cmd->chain);
+ 	case CMD_OBJ_TABLE:
+-		if (cmd->data == NULL)
+-			return 0;
+ 		return table_evaluate(ctx, cmd->table);
+ 	default:
+ 		BUG("invalid command object type %u\n", cmd->obj);
 -- 
 1.7.10.4
 
