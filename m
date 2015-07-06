@@ -1,71 +1,64 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft,v4 10/16] rule: fix use of intervals in set declarations
-Date: Mon,  6 Jul 2015 20:17:02 +0200
-Message-ID: <1436206628-23894-11-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft,v4 14/16] src: add chain declarations to cache
+Date: Mon,  6 Jul 2015 20:17:06 +0200
+Message-ID: <1436206628-23894-15-git-send-email-pablo@netfilter.org>
 References: <1436206628-23894-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40452 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40466 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754105AbbGFSLn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jul 2015 14:11:43 -0400
+	id S1754144AbbGFSLp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Jul 2015 14:11:45 -0400
 In-Reply-To: <1436206628-23894-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
- # nft add table test
- # nft add set test myset { type ipv4_addr\; flags interval\; }
- # nft add element test myset { 1.2.3.0/24 }
-
-Then the listing shows:
-
- set myset2 {
-         type ipv4_addr
-         flags interval
-         elements = { 1.2.3.0/24}
- }
-
-This patch relies on the table and set caches.
-
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=994
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/rule.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ src/evaluate.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
-diff --git a/src/rule.c b/src/rule.c
-index 2b663f5..0077f8e 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -746,10 +746,26 @@ static int do_add_chain(struct netlink_ctx *ctx, const struct handle *h,
- }
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 022e1ff..d101f8a 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1850,8 +1850,26 @@ static uint32_t str2hooknum(uint32_t family, const char *hook)
  
- static int do_add_setelems(struct netlink_ctx *ctx, const struct handle *h,
--			   const struct expr *expr)
-+			   struct expr *expr)
+ static int chain_evaluate(struct eval_ctx *ctx, struct chain *chain)
  {
 +	struct table *table;
-+	struct set *set;
-+
-+	table = table_lookup(h);
-+	if (table == NULL)
-+		return -1;
-+
-+	set = set_lookup(table, h->set);
-+	if (set == NULL)
-+		return -1;
-+
-+	if (set->flags & SET_F_INTERVAL &&
-+	    set_to_intervals(ctx->msgs, set, expr) < 0)
-+		return -1;
-+
- 	if (netlink_add_setelems(ctx, h, expr) < 0)
- 		return -1;
-+
- 	return 0;
- }
+ 	struct rule *rule;
  
++	table = table_lookup(&ctx->cmd->handle);
++	if (table == NULL)
++		return cmd_error(ctx, "Table '%s' does not exist",
++				 ctx->cmd->handle.table);
++
++	if (chain == NULL) {
++		if (chain_lookup(table, &ctx->cmd->handle) == NULL) {
++			chain = chain_alloc(NULL);
++			handle_merge(&chain->handle, &ctx->cmd->handle);
++			chain_add_hash(chain, table);
++		}
++		return 0;
++	} else {
++		if (chain_lookup(table, &chain->handle) == NULL)
++			chain_add_hash(chain_get(chain), table);
++	}
++
+ 	if (chain->flags & CHAIN_F_BASECHAIN) {
+ 		chain->hooknum = str2hooknum(chain->handle.family,
+ 					     chain->hookstr);
+@@ -1913,8 +1931,6 @@ static int cmd_evaluate_add(struct eval_ctx *ctx, struct cmd *cmd)
+ 		handle_merge(&cmd->rule->handle, &cmd->handle);
+ 		return rule_evaluate(ctx, cmd->rule);
+ 	case CMD_OBJ_CHAIN:
+-		if (cmd->data == NULL)
+-			return 0;
+ 		return chain_evaluate(ctx, cmd->chain);
+ 	case CMD_OBJ_TABLE:
+ 		return table_evaluate(ctx, cmd->table);
 -- 
 1.7.10.4
 
