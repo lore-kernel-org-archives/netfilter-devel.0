@@ -1,75 +1,37 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft,v4 15/16] rule: consolidate rule cache
-Date: Mon,  6 Jul 2015 20:17:07 +0200
-Message-ID: <1436206628-23894-16-git-send-email-pablo@netfilter.org>
-References: <1436206628-23894-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
+Subject: [PATCH nf] MAINTAINER: add bridge netfilter
+Date: Mon,  6 Jul 2015 20:55:35 +0200
+Message-ID: <1436208935-27098-1-git-send-email-pablo@netfilter.org>
+Cc: julien.grall@citrix.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40468 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44854 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754064AbbGFSLp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jul 2015 14:11:45 -0400
-In-Reply-To: <1436206628-23894-1-git-send-email-pablo@netfilter.org>
+	id S1754652AbbGFSuE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Jul 2015 14:50:04 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+So scripts/get_maintainer.pl shows the Netfilter mailing lists.
+
+Reported-by: Julien Grall <julien.grall@citrix.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/rule.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/src/rule.c b/src/rule.c
-index e005ce7..4a207e2 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -60,8 +60,10 @@ int cache_init(struct list_head *msgs)
- 	struct handle handle = {
- 		.family = NFPROTO_UNSPEC,
- 	};
-+	struct rule *rule, *nrule;
- 	struct netlink_ctx ctx;
- 	struct table *table;
-+	struct chain *chain;
- 	int ret;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 246d9d8..8d0f459 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6845,6 +6845,7 @@ F:	include/uapi/linux/netfilter/
+ F:	net/*/netfilter.c
+ F:	net/*/netfilter/
+ F:	net/netfilter/
++F:	net/bridge/br_netfilter*.c
  
- 	memset(&ctx, 0, sizeof(ctx));
-@@ -88,6 +90,16 @@ int cache_init(struct list_head *msgs)
- 
- 		if (ret < 0)
- 			return -1;
-+
-+		ret = netlink_list_table(&ctx, &table->handle,
-+					 &internal_location);
-+		list_for_each_entry_safe(rule, nrule, &ctx.list, list) {
-+			chain = chain_lookup(table, &rule->handle);
-+			list_move_tail(&rule->list, &chain->rules);
-+		}
-+
-+		if (ret < 0)
-+			return -1;
- 	}
- 
- 	return 0;
-@@ -912,18 +924,8 @@ static int do_command_export(struct netlink_ctx *ctx, struct cmd *cmd)
- static int do_list_table(struct netlink_ctx *ctx, struct cmd *cmd,
- 			 struct table *table)
- {
--	struct rule *rule, *nrule;
--	struct chain *chain;
--
- 	if (do_list_sets(ctx, &cmd->location, table) < 0)
- 		return -1;
--	if (netlink_list_table(ctx, &cmd->handle, &cmd->location) < 0)
--		return -1;
--
--	list_for_each_entry_safe(rule, nrule, &ctx->list, list) {
--		chain = chain_lookup(table, &rule->handle);
--		list_move_tail(&rule->list, &chain->rules);
--	}
- 	table_print(table);
- 	return 0;
- }
+ NETLABEL
+ M:	Paul Moore <paul@paul-moore.com>
 -- 
 1.7.10.4
 
