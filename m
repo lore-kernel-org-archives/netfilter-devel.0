@@ -1,99 +1,32 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [Q RFC nft] how to add bridge vlan header match support?
-Date: Mon, 6 Jul 2015 00:03:22 +0200
-Message-ID: <20150705220322.GB16864@breakpoint.cc>
-References: <20150702152433.GC16529@breakpoint.cc>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: RE: Kernel 4.1.0 broke the TARPIT & DELUGE targets in
+ xtables-addons-2.6
+Date: Mon, 6 Jul 2015 05:45:16 +0200 (CEST)
+Message-ID: <alpine.LSU.2.20.1507060544560.14794@nerf40.vanv.qr>
+References: <6ba05a9b-e2ef-4c32-ab22-5e9e8440c91a@zeracles.net.ru> <94a5fd8b-f435-4d6b-a810-ee59781ad58d@zeracles.net.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=US-ASCII
+Cc: 'Florian Westphal' <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Alexander Petrenas <zeracles@zeracles.net.ru>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:57642 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752918AbbGEWDY (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jul 2015 18:03:24 -0400
-Content-Disposition: inline
-In-Reply-To: <20150702152433.GC16529@breakpoint.cc>
+Received: from ares41.inai.de ([46.4.122.207]:38234 "EHLO ares41.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753010AbbGFDpS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Jul 2015 23:45:18 -0400
+In-Reply-To: <94a5fd8b-f435-4d6b-a810-ee59781ad58d@zeracles.net.ru>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Florian Westphal <fw@strlen.de> wrote:
-> Hi.
-> 
-> Matching VLAN id from bridge netfilter doesn't seem to work:
-> 
-> nft add rule bridge filter input vlan type ip
-> <cmdline>:1:30-38: Error: conflicting protocols specified: ether vs. vlan
-> 
-> This happens in expr_evaluate_payload(),
-> ctx->pctx.protocol[base].desc != payload->payload.desc is true.
-> 
-> So, how to fix this?
-> This seems to work, but I'm not sure this approach is sane
-> (also lacks reverse translation):
-> 
-> +static bool resolve_protocol_conflict(struct eval_ctx *ctx,
-> +                                     struct expr *payload)
-> +{
-> +       const struct hook_proto_desc *h = &hook_proto_desc[ctx->pctx.family];
-> +       enum proto_bases base = payload->payload.base;
-> +       const struct proto_desc *desc;
-> +       struct stmt *nstmt;
-> +       int link;
-> +
-> +       desc = ctx->pctx.protocol[base].desc;
-> +       if (desc == payload->payload.desc)
-> +               return true;
-> +
-> +       if (payload->payload.base != h->base)
-> +               return false;
-> +
-> +       link = proto_find_num(desc, payload->payload.desc);
-> +       if (link < 0 || payload_gen_dependency(ctx, payload, &nstmt) < 0)
-> +               return false;
-> +
-> +       payload->payload.offset += 8*14; /* XXX: add size to proto_desc? */
-> +       list_add_tail(&nstmt->list, &ctx->stmt->list);
-> +
-> +       return true;
-> +}
-> @@ -286,7 +312,7 @@ static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **expr)
->                 if (payload_gen_dependency(ctx, payload, &nstmt) < 0)
->                         return -1;
->                 list_add_tail(&nstmt->list, &ctx->stmt->list);
-> -       } else if (ctx->pctx.protocol[base].desc != payload->payload.desc)
-> +       } else if (!resolve_protocol_conflict(ctx, payload))
-> 
-> It creates following code with above rule:
->   [ payload load 2b @ link header + 12 => reg 1 ]
->   [ cmp eq reg 1 0x00000081 ] -> implict dependency, eth->type == vlan?
->   [ payload load 2b @ link header + 16 => reg 1 ], vlan id
->   [ cmp eq reg 1 0x00000008 ]
-> 
-> Is this a sane approach?
 
-"No".  Its not sufficient.
+On Tuesday 2015-06-23 13:17, Alexander Petrenas wrote:
 
-This makes
+>Well, unfortunately, you should disregard previous message in part of submitting it to xtables-addons ASAP. 
+>
+>While modules compiled without errors, actually applying iptables TARPIT rule results in a connection loss, the nature of which I unfortunately cannot describe at the moment (was trying to apply the update to a remote server without KVM). It kind of looks like a kernel panic though - no messages are written to any logs after adding the TARPIT rule - the server just goes dead.
+>
+>I guess more research is needed on the matter, I'll try to run some tests on a local machine & post the results.
 
-nft add rule bridge filter input vlan type ip
+Yeah you need to also change dst_output to dst_output_sk.
 
-work, but thats not enough.  F.e.
+Don't just ignore compiler warnings!
 
-nft add rule bridge filter input vlan id 42 ip saddr 10.2.3.4
-
-Must inject *two* dependency tests.
-
-'vlan' should add 'ether type vlan'.
-'ip' should add 'vlan type ip'.
-
-And both must be done respecting the correct nexthdr protocol offsets.
-
-Which for the intermediate (vlan) header must be done respecting the
-ether hdr size.
-
-Any idea how to allow such stacking on nft side?
-
-Thanks,
-Florian
