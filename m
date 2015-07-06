@@ -1,87 +1,107 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft,v4 03/16] rule: add reference counter to the table object
-Date: Mon,  6 Jul 2015 20:16:55 +0200
-Message-ID: <1436206628-23894-4-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft,v4 08/16] segtree: pass element expression as parameter to set_to_intervals()
+Date: Mon,  6 Jul 2015 20:17:00 +0200
+Message-ID: <1436206628-23894-9-git-send-email-pablo@netfilter.org>
 References: <1436206628-23894-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40424 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40445 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753621AbbGFSLi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jul 2015 14:11:38 -0400
+	id S1753996AbbGFSLl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Jul 2015 14:11:41 -0400
 In-Reply-To: <1436206628-23894-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We may hold multiple references to table objects in follow up patches when
-adding object declarations to the cache.
+So we can reuse this code from set declarations.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/rule.h |    3 +++
- src/rule.c     |   10 ++++++++++
- 2 files changed, 13 insertions(+)
+ include/expression.h |    3 ++-
+ src/rule.c           |    2 +-
+ src/segtree.c        |   15 ++++++++-------
+ 3 files changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/include/rule.h b/include/rule.h
-index b6aabda..03d7d45 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -79,6 +79,7 @@ enum table_flags {
-  * @chains:	chains contained in the table
-  * @sets:	sets contained in the table
-  * @flags:	table flags
-+ * @refcnt:	table reference counter
-  */
- struct table {
- 	struct list_head	list;
-@@ -88,9 +89,11 @@ struct table {
- 	struct list_head	chains;
- 	struct list_head	sets;
- 	enum table_flags 	flags;
-+	unsigned int		refcnt;
- };
+diff --git a/include/expression.h b/include/expression.h
+index 010cb95..bc17762 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -362,7 +362,8 @@ extern struct expr *concat_expr_alloc(const struct location *loc);
+ extern struct expr *list_expr_alloc(const struct location *loc);
  
- extern struct table *table_alloc(void);
-+extern struct table *table_get(struct table *table);
- extern void table_free(struct table *table);
- extern void table_add_hash(struct table *table);
- extern struct table *table_lookup(const struct handle *h);
+ extern struct expr *set_expr_alloc(const struct location *loc);
+-extern int set_to_intervals(struct list_head *msgs, struct set *set);
++extern int set_to_intervals(struct list_head *msgs, struct set *set,
++			    struct expr *init);
+ 
+ extern struct expr *mapping_expr_alloc(const struct location *loc,
+ 				       struct expr *from, struct expr *to);
 diff --git a/src/rule.c b/src/rule.c
-index 4ae32b8..67bce43 100644
+index eefa5f1..2b624c2 100644
 --- a/src/rule.c
 +++ b/src/rule.c
-@@ -535,6 +535,8 @@ struct table *table_alloc(void)
- 	init_list_head(&table->chains);
- 	init_list_head(&table->sets);
- 	init_list_head(&table->scope.symbols);
-+	table->refcnt = 1;
-+
- 	return table;
+@@ -760,7 +760,7 @@ static int do_add_set(struct netlink_ctx *ctx, const struct handle *h,
+ 		return -1;
+ 	if (set->init != NULL) {
+ 		if (set->flags & SET_F_INTERVAL &&
+-		    set_to_intervals(ctx->msgs, set) < 0)
++		    set_to_intervals(ctx->msgs, set, set->init) < 0)
+ 			return -1;
+ 		if (do_add_setelems(ctx, &set->handle, set->init) < 0)
+ 			return -1;
+diff --git a/src/segtree.c b/src/segtree.c
+index 060951c..429d35e 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -64,11 +64,12 @@ struct elementary_interval {
+ 	struct expr			*expr;
+ };
+ 
+-static void seg_tree_init(struct seg_tree *tree, const struct set *set)
++static void seg_tree_init(struct seg_tree *tree, const struct set *set,
++			  struct expr *init)
+ {
+ 	struct expr *first;
+ 
+-	first = list_entry(set->init->expressions.next, struct expr, list);
++	first = list_entry(init->expressions.next, struct expr, list);
+ 	tree->root	= RB_ROOT;
+ 	tree->keytype	= set->keytype;
+ 	tree->keylen	= set->keylen;
+@@ -431,14 +432,14 @@ static void set_insert_interval(struct expr *set, struct seg_tree *tree,
+ 	compound_expr_add(set, expr);
  }
  
-@@ -542,6 +544,8 @@ void table_free(struct table *table)
+-int set_to_intervals(struct list_head *errs, struct set *set)
++int set_to_intervals(struct list_head *errs, struct set *set, struct expr *init)
  {
- 	struct chain *chain, *next;
+ 	struct elementary_interval *ei, *next;
+ 	struct seg_tree tree;
+ 	LIST_HEAD(list);
  
-+	if (--table->refcnt > 0)
-+		return;
- 	list_for_each_entry_safe(chain, next, &table->chains, list)
- 		chain_free(chain);
- 	handle_free(&table->handle);
-@@ -549,6 +553,12 @@ void table_free(struct table *table)
- 	xfree(table);
- }
+-	seg_tree_init(&tree, set);
+-	if (set_to_segtree(errs, set->init, &tree) < 0)
++	seg_tree_init(&tree, set, init);
++	if (set_to_segtree(errs, init, &tree) < 0)
+ 		return -1;
+ 	segtree_linearize(&list, &tree);
  
-+struct table *table_get(struct table *table)
-+{
-+	table->refcnt++;
-+	return table;
-+}
-+
- void table_add_hash(struct table *table)
- {
- 	list_add_tail(&table->list, &table_list);
+@@ -448,12 +449,12 @@ int set_to_intervals(struct list_head *errs, struct set *set)
+ 				     2 * tree.keylen / BITS_PER_BYTE, ei->left,
+ 				     2 * tree.keylen / BITS_PER_BYTE, ei->right);
+ 		}
+-		set_insert_interval(set->init, &tree, ei);
++		set_insert_interval(init, &tree, ei);
+ 		ei_destroy(ei);
+ 	}
+ 
+ 	if (segtree_debug()) {
+-		expr_print(set->init);
++		expr_print(init);
+ 		pr_gmp_debug("\n");
+ 	}
+ 	return 0;
 -- 
 1.7.10.4
 
