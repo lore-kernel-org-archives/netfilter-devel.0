@@ -1,43 +1,44 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH -next 3/4] netfilter: xtables: don't save/restore
- jumpstack offset
-Date: Thu, 9 Jul 2015 11:14:15 +0200
-Message-ID: <20150709091415.GA17984@breakpoint.cc>
-References: <1436390139-4405-1-git-send-email-fw@strlen.de>
- <1436390139-4405-4-git-send-email-fw@strlen.de>
- <1436428454.24939.13.camel@edumazet-glaptop2.roam.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: ctnetlink: put back references to master ct and expect objects
+Date: Fri, 10 Jul 2015 00:05:42 +0200
+Message-ID: <1436479542-3571-1-git-send-email-pablo@netfilter.org>
+Cc: Tim.Wiess@watchguard.com, Xinbao.Zheng@watchguard.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:38597 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750805AbbGIJOR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jul 2015 05:14:17 -0400
-Content-Disposition: inline
-In-Reply-To: <1436428454.24939.13.camel@edumazet-glaptop2.roam.corp.google.com>
+Received: from mail.us.es ([193.147.175.20]:40394 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753892AbbGIWAT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jul 2015 18:00:19 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> > +	/* Switch to alternate jumpstack if we're being invoked via TEE.
-> > +	 * The problem is that TEE issues XT_CONTINUE verdict on original
-> > +	 * skb so we must not clobber the jumpstack.
-> > +	 *
-> > +	 * For recursion via REJECT or SYNPROXY the stack will be clobbered
-> > +	 * but its no problem since absolute verdict is issued by these.
-> > +	 */
-> > +	jumpstack += private->stacksize * __this_cpu_read(nf_skb_duplicated);
-> 
-> This could eventually be garded by
-> 
-> #if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TEE)
-> 
-> Or even better, a jump label that would be enabled when TEE module is
-> loaded.
+We have to put back the references to the master conntrack and the expectation
+that we just created, otherwise we'll leak them.
 
-I can add a static key, sure.
+Fixes: 0ef71ee1a5b9 ("netfilter: ctnetlink: refactor ctnetlink_create_expect")
+Reported-by: Tim Wiess <Tim.Wiess@watchguard.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Will pass this to -stable from 3.12 upwards.
 
-Thanks for the suggestion Eric.
+ net/netfilter/nf_conntrack_netlink.c |    4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index d1c2394..de5e510 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -2995,10 +2995,6 @@ ctnetlink_create_expect(struct net *net, u16 zone,
+ 	}
+ 
+ 	err = nf_ct_expect_related_report(exp, portid, report);
+-	if (err < 0)
+-		goto err_exp;
+-
+-	return 0;
+ err_exp:
+ 	nf_ct_expect_put(exp);
+ err_ct:
+-- 
+1.7.10.4
+
