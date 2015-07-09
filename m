@@ -1,35 +1,27 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH -next 3/4] netfilter: xtables: don't save/restore jumpstack
- offset
-Date: Thu, 9 Jul 2015 10:16:29 +0200 (CEST)
-Message-ID: <alpine.LSU.2.20.1507091014200.28956@nerf40.vanv.qr>
-References: <1436390139-4405-1-git-send-email-fw@strlen.de> <1436390139-4405-4-git-send-email-fw@strlen.de> <alpine.LSU.2.20.1507082344210.16936@nerf40.vanv.qr> <20150709002955.GJ16864@breakpoint.cc>
+From: "Jay Wang" <ag@a.cnmanggo.com>
+Subject: [FW] premiums item
+Date: Thu, 9 Jul 2015 16:31:06 +0800
+Message-ID: <201507091631064315678@a.cnmanggo.com>
+Reply-To: info@sonier-pins.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, eric.dumazet@gmail.com
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain;
+	charset="GB2312"
+Content-Transfer-Encoding: base64
+To: "netfilter-devel" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:46110 "EHLO ares41.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752283AbbGIIQb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jul 2015 04:16:31 -0400
-In-Reply-To: <20150709002955.GJ16864@breakpoint.cc>
+Received: from [113.230.153.236] ([113.230.153.236]:3045 "HELO a.cnmanggo.com"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with SMTP
+	id S1751864AbbGIIgK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jul 2015 04:36:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2015-07-09 02:29, Florian Westphal wrote:
-
->Jan Engelhardt <jengelh@inai.de> wrote:
->> On Wednesday 2015-07-08 23:15, Florian Westphal wrote:
->> 
->> >The jump stack overflow tests are no longer needed as well -- since 
->> >->stacksize is the largest call depth we cannot exceed it.
->> 
->> The tests were once added for the rare case that a cloned packet hits 
->> another TEE. Can we be sure they are no longer needed?
->
->If a TEE'd skb hits another TEE target there is no reentry since the
->tee_active percpu indicator is true.
-
-Ah. I don't remember having written the "tee_active" code, but 
-apparently I did some years ago.
+RGVhciBTaXIvTWFkYW0sDQoNCldpdGggbW9yZSB0aGFuIDEwIHllYXJzIGV4cGVyaWVuY2VzLCB3
+ZSBvZmZlciBhIGFjY3VyYXRlIGRlbGl2ZXJ5IHRpbWUgYW5kIHJlc29uYWJsZSBwcmljZSBmb3Ig
+cHJvbW90aW9uYWwgaXRlbXMgc2luY2UgMjAwMy4NCldlbGNvbWUgdG8gY29udGFjdCB3aXRoIHlv
+dSBpbnF1aXJ5LCBteSBuYW1lIGlzIEpheS4gDQoNCg0KU2luY2VyZWx5IA0KSmF5IFdhbmcNClNh
+bGVzIERlcGFydG1lbnQsIFNreXBlIElEOiBzb25pZXItcGlucw0KDQpTb25pZXIgUGlucyBDby4s
+THRkDQpBZGQgOiBOby4yLCBKaVhpIFNodW5DaGVuZyBDZW50ZXIsDQpYaWFvbGFuIFRvd24sWmhv
+bmdzaGFuIENpdHkgNTI4NDAwLEd1YW5nZG9uZyAsQ2hpbmEuIA0KVGVso7qjqDg2IC03NjCjqTIy
+MTIzNjgwICAgICBGYXijuqOoODYgLTc2MKOpMjIxMjI5MTYNCk1haWyjumluZm9Ac29uaWVyLXBp
+bnMuY29tICAgV2Vio7p3d3cuc29uaWVyLXBpbnMuY29t
