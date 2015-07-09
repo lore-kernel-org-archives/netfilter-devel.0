@@ -1,62 +1,51 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH -next 3/4] netfilter: xtables: don't save/restore
- jumpstack offset
-Date: Thu, 9 Jul 2015 02:29:55 +0200
-Message-ID: <20150709002955.GJ16864@breakpoint.cc>
-References: <1436390139-4405-1-git-send-email-fw@strlen.de>
- <1436390139-4405-4-git-send-email-fw@strlen.de>
- <alpine.LSU.2.20.1507082344210.16936@nerf40.vanv.qr>
+From: subashab@codeaurora.org
+Subject: [PATCH] netfilter: nf_nat: Fix possible null dereference
+Date: Thu, 9 Jul 2015 01:23:58 -0000
+Message-ID: <fea9df65d6768053838fb1eca1846ef7.squirrel@www.codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	eric.dumazet@gmail.com
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37950 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751424AbbGIA35 (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:36936 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752655AbbGIBX7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jul 2015 20:29:57 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.20.1507082344210.16936@nerf40.vanv.qr>
+	Wed, 8 Jul 2015 21:23:59 -0400
+Received: from www.codeaurora.org (unknown [198.145.29.65])
+	by smtp.codeaurora.org (Postfix) with ESMTP id 22A2A140402
+	for <netfilter-devel@vger.kernel.org>; Thu,  9 Jul 2015 01:23:58 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt <jengelh@inai.de> wrote:
-> On Wednesday 2015-07-08 23:15, Florian Westphal wrote:
-> 
-> >The jump stack overflow tests are no longer needed as well -- since 
-> >->stacksize is the largest call depth we cannot exceed it.
-> 
-> The tests were once added for the rare case that a cloned packet hits 
-> another TEE. Can we be sure they are no longer needed?
+Fix an issue where __nf_ct_ext_find() could return null to nat in
+nf_nat_masquerade_ipv4() and could be dereferenced.
 
-Hmm, not sure I understand.
+This was detected by static analysis software.
 
-If a TEE'd skb hits another TEE target there is no reentry since the
-tee_active percpu indicator is true.
+Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+---
+ net/ipv4/netfilter/nf_nat_masquerade_ipv4.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-So where can we enter ip(6)tables *twice* via TEE?
-Sure, a TEE'd packet can e.g. hit REJECT which then causes another
-reentry into ip(6)tables. But it should be ok since we 'only' clobber
-the "alternate" jumpstack and a DROP will be issued by REJECT.
+diff --git a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
+b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
+index c6eb421..4be5d70 100644
+--- a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
++++ b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
+@@ -38,6 +38,8 @@ nf_nat_masquerade_ipv4(struct sk_buff *skb, unsigned int
+hooknum,
 
-Could you please outline a problematic scenario?  Thanks!
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 	nat = nfct_nat(ct);
++	if (!nat)
++		return NF_DROP;
 
-> >+	/* No TEE support for arptables, so no need to switch to alternate
-> >+	 * stack.  All targets that reenter must return absolte verdicts.
-> 
-> absolute
+ 	NF_CT_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED ||
+ 			    ctinfo == IP_CT_RELATED_REPLY));
+--
+Employee of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux
+Foundation Collaborative Project
 
-Thanks, will fix
 
-> >+	/* Switch to alternate jumpstack if we're being invoked via TEE.
-> >+	 * The problem is that TEE issues XT_CONTINUE verdict on original
-> >+	 * skb so we must not clobber the jumpstack.
-> 
-> Well that is not really a problem but a feature :)
-
-Sorry, I did not mean to imply TEE was misbehaving.  I'll shorten this
-to: "TEE will issue XT_CONTINUE verdict" ...
-
-Thanks for reviewing.
