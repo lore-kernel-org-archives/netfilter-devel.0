@@ -1,45 +1,35 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH -next 3/4] netfilter: xtables: don't save/restore
- jumpstack offset
-Date: Thu, 09 Jul 2015 09:54:14 +0200
-Message-ID: <1436428454.24939.13.camel@edumazet-glaptop2.roam.corp.google.com>
-References: <1436390139-4405-1-git-send-email-fw@strlen.de>
-	 <1436390139-4405-4-git-send-email-fw@strlen.de>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH -next 3/4] netfilter: xtables: don't save/restore jumpstack
+ offset
+Date: Thu, 9 Jul 2015 10:16:29 +0200 (CEST)
+Message-ID: <alpine.LSU.2.20.1507091014200.28956@nerf40.vanv.qr>
+References: <1436390139-4405-1-git-send-email-fw@strlen.de> <1436390139-4405-4-git-send-email-fw@strlen.de> <alpine.LSU.2.20.1507082344210.16936@nerf40.vanv.qr> <20150709002955.GJ16864@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, eric.dumazet@gmail.com
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:35410 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750765AbbGIHyT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jul 2015 03:54:19 -0400
-Received: by wiga1 with SMTP id a1so305178764wig.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 09 Jul 2015 00:54:18 -0700 (PDT)
-In-Reply-To: <1436390139-4405-4-git-send-email-fw@strlen.de>
+Received: from ares41.inai.de ([46.4.122.207]:46110 "EHLO ares41.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752283AbbGIIQb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Jul 2015 04:16:31 -0400
+In-Reply-To: <20150709002955.GJ16864@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 2015-07-08 at 23:15 +0200, Florian Westphal wrote:
+On Thursday 2015-07-09 02:29, Florian Westphal wrote:
 
-> +
-> +	/* Switch to alternate jumpstack if we're being invoked via TEE.
-> +	 * The problem is that TEE issues XT_CONTINUE verdict on original
-> +	 * skb so we must not clobber the jumpstack.
-> +	 *
-> +	 * For recursion via REJECT or SYNPROXY the stack will be clobbered
-> +	 * but its no problem since absolute verdict is issued by these.
-> +	 */
-> +	jumpstack += private->stacksize * __this_cpu_read(nf_skb_duplicated);
+>Jan Engelhardt <jengelh@inai.de> wrote:
+>> On Wednesday 2015-07-08 23:15, Florian Westphal wrote:
+>> 
+>> >The jump stack overflow tests are no longer needed as well -- since 
+>> >->stacksize is the largest call depth we cannot exceed it.
+>> 
+>> The tests were once added for the rare case that a cloned packet hits 
+>> another TEE. Can we be sure they are no longer needed?
+>
+>If a TEE'd skb hits another TEE target there is no reentry since the
+>tee_active percpu indicator is true.
 
-This could eventually be garded by
-
-#if IS_ENABLED(CONFIG_NETFILTER_XT_TARGET_TEE)
-
-Or even better, a jump label that would be enabled when TEE module is
-loaded.
-
-
-
+Ah. I don't remember having written the "tee_active" code, but 
+apparently I did some years ago.
