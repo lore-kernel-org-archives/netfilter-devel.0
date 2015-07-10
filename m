@@ -1,48 +1,72 @@
-From: subashab@codeaurora.org
-Subject: Re: [PATCH] netfilter: nf_nat: Fix possible null dereference
-Date: Thu, 9 Jul 2015 23:16:05 -0000
-Message-ID: <4acf7f20a629dd133bf5924886c0c4d0.squirrel@www.codeaurora.org>
-References: <fea9df65d6768053838fb1eca1846ef7.squirrel@www.codeaurora.org>
-    <20150709222456.GA4111@salvia>
+From: Dmitry Torokhov <dtor@google.com>
+Subject: [PATCH] nf: IDLETIMER: fix lockdep warning
+Date: Thu, 9 Jul 2015 17:15:01 -0700
+Message-ID: <20150710001501.GA32570@dtor-ws>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Cc: netfilter-devel@vger.kernel.org
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:34255 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750744AbbGIXQG (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Jul 2015 19:16:06 -0400
-In-Reply-To: <20150709222456.GA4111@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-> This function is called from nf_nat_ipv4_fn(), see do_chain().
->
-> And we're accepting the packet with no NAT mangling if we fail to add
-> the extension:
->
->         nat = nf_ct_nat_ext_add(ct);
->         if (nat == NULL)
->                 return NF_ACCEPT;
->
-> Can you provide more information on what your static analysis software
-> reports? Thanks.
->
+Dynamically allocated sysfs attributes should be initialized with
+sysfs_attr_init() otherwise lockdep will be angry with us:
 
-Sure, here is the report
+[   45.468653] BUG: key ffffffc030fad4e0 not in .data!
+[   45.468655] ------------[ cut here ]------------
+[   45.468666] WARNING: CPU: 0 PID: 1176 at /mnt/host/source/src/third_party/kernel/v3.18/kernel/locking/lockdep.c:2991 lockdep_init_map+0x12c/0x490()
+[   45.468672] DEBUG_LOCKS_WARN_ON(1)
+[   45.468672] CPU: 0 PID: 1176 Comm: iptables Tainted: G     U  W 3.18.0 #43
+[   45.468674] Hardware name: XXX
+[   45.468675] Call trace:
+[   45.468680] [<ffffffc0002072b4>] dump_backtrace+0x0/0x10c
+[   45.468683] [<ffffffc0002073d0>] show_stack+0x10/0x1c
+[   45.468688] [<ffffffc000a86cd4>] dump_stack+0x74/0x94
+[   45.468692] [<ffffffc000217ae0>] warn_slowpath_common+0x84/0xb0
+[   45.468694] [<ffffffc000217b84>] warn_slowpath_fmt+0x4c/0x58
+[   45.468697] [<ffffffc0002530a4>] lockdep_init_map+0x128/0x490
+[   45.468701] [<ffffffc000367ef0>] __kernfs_create_file+0x80/0xe4
+[   45.468704] [<ffffffc00036862c>] sysfs_add_file_mode_ns+0x104/0x170
+[   45.468706] [<ffffffc00036870c>] sysfs_create_file_ns+0x58/0x64
+[   45.468711] [<ffffffc000930430>] idletimer_tg_checkentry+0x14c/0x324
+[   45.468714] [<ffffffc00092a728>] xt_check_target+0x170/0x198
+[   45.468717] [<ffffffc000993efc>] check_target+0x58/0x6c
+[   45.468720] [<ffffffc000994c64>] translate_table+0x30c/0x424
+[   45.468723] [<ffffffc00099529c>] do_ipt_set_ctl+0x144/0x1d0
+[   45.468728] [<ffffffc0009079f0>] nf_setsockopt+0x50/0x60
+[   45.468732] [<ffffffc000946870>] ip_setsockopt+0x8c/0xb4
+[   45.468735] [<ffffffc0009661c0>] raw_setsockopt+0x10/0x50
+[   45.468739] [<ffffffc0008c1550>] sock_common_setsockopt+0x14/0x20
+[   45.468742] [<ffffffc0008bd190>] SyS_setsockopt+0x88/0xb8
+[   45.468744] ---[ end trace 41d156354d18c039 ]---
 
-- In nf_nat_masquerade_ipv4.c line 40, 'nat' is assigned the value from
-function 'nfct_nat'
-- In nf_nat.h line 58, '__nf_ct_ext_find( (ct),  (NF_CT_EXT_NAT) )' is
-assigned the return value from function '__nf_ct_ext_find'.
-- In nf_conntrack_extend.h line 68, '__nf_ct_ext_find' explicitly returns
-a NULL value.
+Change-Id: I1da5cd96fc8e1e1e4209e81eba1165a42d4d45e9
+Signed-off-by: Dmitry Torokhov <dtor@google.com>
+---
+ net/netfilter/xt_IDLETIMER.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-- As a result, pointer 'nat' returned from call to function 'nfct_nat' at
-line 40 may be NULL and may be dereferenced at line 59 'nat->masq_index =
-out->ifindex;'
+diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
+index 31f76cd..0975c993 100644
+--- a/net/netfilter/xt_IDLETIMER.c
++++ b/net/netfilter/xt_IDLETIMER.c
+@@ -286,6 +286,7 @@ static int idletimer_tg_create(struct idletimer_tg_info *info)
+ 		goto out;
+ 	}
+ 
++	sysfs_attr_init(&info->timer->attr.attr);
+ 	info->timer->attr.attr.name = kstrdup(info->label, GFP_KERNEL);
+ 	if (!info->timer->attr.attr.name) {
+ 		ret = -ENOMEM;
+-- 
+2.4.3.573.g4eafbef
 
 
+-- 
+Dmitry
