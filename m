@@ -1,46 +1,59 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH nf-next] net-ipvs: Delete an unnecessary check before the function call "module_put"
-Date: Fri, 10 Jul 2015 15:42:49 +0900
-Message-ID: <1436510569-10752-2-git-send-email-horms@verge.net.au>
-References: <1436510569-10752-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: [PATCH -next 0/6] Per network namespace netfilter chains
+Date: Fri, 10 Jul 2015 18:11:46 -0500
+Message-ID: <878uansj4d.fsf_-_@x220.int.ebiederm.org>
+References: <87616ppt3h.fsf@x220.int.ebiederm.org>
+	<87r3pae5hn.fsf@x220.int.ebiederm.org>
+Mime-Version: 1.0
+Content-Type: text/plain
+Cc: <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>,
 	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
 	Julian Anastasov <ja@ssi.bg>,
-	Markus Elfring <elfring@users.sourceforge.net>,
-	Simon Horman <horms@verge.net.au>
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Jamal Hadi Salim <jhs@mojatatu.com>,
+	Steffen Klassert <steffen.klassert@secunet.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	David Miller <davem@davemloft.net>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <1436510569-10752-1-git-send-email-horms@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from out02.mta.xmission.com ([166.70.13.232]:53187 "EHLO
+	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751286AbbGJXRb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Jul 2015 19:17:31 -0400
+In-Reply-To: <87r3pae5hn.fsf@x220.int.ebiederm.org> (Eric W. Biederman's
+	message of "Wed, 17 Jun 2015 10:09:40 -0500")
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
 
-The module_put() function tests whether its argument is NULL and then
-returns immediately. Thus the test around the call is not needed.
+By maintining a set of functions to register and unregister netfilter
+hooks both globally and per network namespace I have managed to write a
+compact patchset that maintain per network netfilter chains, and
+registers the nftables netfilter hooks per network namespace.
 
-This issue was detected by using the Coccinelle software.
+There are lots of other possible and desirable cleanups but this one is
+a core change needed to make the other changes independent small
+changes.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-Signed-off-by: Simon Horman <horms@verge.net.au>
----
- net/netfilter/ipvs/ip_vs_sched.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Eric W. Biederman (6):
+      netfilter: nf_queue: Don't recompute the hook_list head
+      netfilter: kill nf_hooks_active
+      netfilter: Simply the tests for enabling and disabling the ingress queue hook
+      netfilter: Factor out the hook list selection from nf_register_hook
+      netfilter: Per network namespace netfilter hooks.
+      netfilter: nftables: Only run the nftables chains in the proper netns
 
-diff --git a/net/netfilter/ipvs/ip_vs_sched.c b/net/netfilter/ipvs/ip_vs_sched.c
-index 199760c71f39..e50221b9d95f 100644
---- a/net/netfilter/ipvs/ip_vs_sched.c
-+++ b/net/netfilter/ipvs/ip_vs_sched.c
-@@ -137,7 +137,7 @@ struct ip_vs_scheduler *ip_vs_scheduler_get(const char *sched_name)
- 
- void ip_vs_scheduler_put(struct ip_vs_scheduler *scheduler)
- {
--	if (scheduler && scheduler->module)
-+	if (scheduler)
- 		module_put(scheduler->module);
- }
- 
--- 
-2.1.4
+ include/linux/netfilter.h      |  23 +++--
+ include/net/netns/netfilter.h  |   1 +
+ net/netfilter/core.c           | 221 +++++++++++++++++++++++++++++++++--------
+ net/netfilter/nf_queue.c       |   2 +-
+ net/netfilter/nf_tables_api.c  |   6 +-
+ net/netfilter/nf_tables_core.c |   5 -
+ 6 files changed, 200 insertions(+), 58 deletions(-)
 
+Eric
