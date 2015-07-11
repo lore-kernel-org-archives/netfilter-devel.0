@@ -1,257 +1,184 @@
 From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: [PATCH iptables] libxt_CT: add support for recently introduced zone options
-Date: Sat, 11 Jul 2015 03:18:28 +0200
-Message-ID: <a404309b0cc722e4b98abf23a48abb05cd8c9860.1436577274.git.daniel@iogearbox.net>
+Subject: [PATCH nf-next v2 3/3] netfilter: nf_conntrack: add efficient mark to zone mapping
+Date: Sat, 11 Jul 2015 03:14:07 +0200
+Message-ID: <8b1e8907e8dd9a51f2e40b39cd5f5c2b0eae94fd.1436574843.git.daniel@iogearbox.net>
+References: <cover.1436574843.git.daniel@iogearbox.net>
 Cc: tgraf@suug.ch, challa@noironetworks.com,
 	netfilter-devel@vger.kernel.org,
 	Daniel Borkmann <daniel@iogearbox.net>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:41722 "EHLO
+Received: from www62.your-server.de ([213.133.104.62]:41800 "EHLO
 	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751223AbbGKGMh (ORCPT
+	with ESMTP id S1751208AbbGKGNp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Jul 2015 02:12:37 -0400
+	Sat, 11 Jul 2015 02:13:45 -0400
+In-Reply-To: <cover.1436574843.git.daniel@iogearbox.net>
+In-Reply-To: <cover.1436574843.git.daniel@iogearbox.net>
+References: <cover.1436574843.git.daniel@iogearbox.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This adds the user space front-end and man-page bits for the
-additional zone options (direction, mark) of the CT target.
+This work adds the possibility of deriving the zone id from the skb->mark
+field in a scalable manner. This allows for having only a single template
+serving 100s .. 1000s of different zones, for example, instead of needing
+to have one match for each zone as an extra CT jump target. Note that we'd
+need to have this information attached to the template as at the time when
+we're trying to lookup a possible ct object, we already need to know zone
+information for a possible match when going into __nf_conntrack_find_get().
+This work provides a minimal implementation for a possible mapping.
 
 Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
 ---
- extensions/libxt_CT.c           | 102 +++++++++++++++++++++++++++++++++++-----
- extensions/libxt_CT.man         |   9 +++-
- include/linux/netfilter/xt_CT.h |   3 ++
- 3 files changed, 100 insertions(+), 14 deletions(-)
+ include/net/netfilter/nf_conntrack_zones.h         | 14 ++++++++++++--
+ include/uapi/linux/netfilter/nf_conntrack_common.h |  4 ++++
+ include/uapi/linux/netfilter/xt_CT.h               |  4 +++-
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c       |  2 +-
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c     |  3 ++-
+ net/netfilter/nf_conntrack_core.c                  |  4 ++--
+ net/netfilter/xt_CT.c                              |  8 ++++++--
+ 7 files changed, 30 insertions(+), 9 deletions(-)
 
-diff --git a/extensions/libxt_CT.c b/extensions/libxt_CT.c
-index 6b28fe1..86b1221 100644
---- a/extensions/libxt_CT.c
-+++ b/extensions/libxt_CT.c
-@@ -16,7 +16,8 @@ static void ct_help(void)
- " --helper name			Use conntrack helper 'name' for connection\n"
- " --ctevents event[,event...]	Generate specified conntrack events for connection\n"
- " --expevents event[,event...]	Generate specified expectation events for connection\n"
--" --zone ID			Assign/Lookup connection in zone ID\n"
-+" --zone {ID|mark}		Assign/Lookup connection in zone ID/packet nfmark\n"
-+" --zone-dir {ORIGINAL|REPLY}	Only apply zone in a particular direction\n"
- 	);
+diff --git a/include/net/netfilter/nf_conntrack_zones.h b/include/net/netfilter/nf_conntrack_zones.h
+index 9e1351b..52242fb 100644
+--- a/include/net/netfilter/nf_conntrack_zones.h
++++ b/include/net/netfilter/nf_conntrack_zones.h
+@@ -48,9 +48,19 @@ nf_ct_zone(const struct nf_conn *ct, struct nf_conntrack_zone *ptr)
  }
  
-@@ -29,7 +30,8 @@ static void ct_help_v1(void)
- " --timeout name 		Use timeout policy 'name' for connection\n"
- " --ctevents event[,event...]	Generate specified conntrack events for connection\n"
- " --expevents event[,event...]	Generate specified expectation events for connection\n"
--" --zone ID			Assign/Lookup connection in zone ID\n"
-+" --zone {ID|mark}		Assign/Lookup connection in zone ID/packet nfmark\n"
-+" --zone-dir {ORIGINAL|REPLY}	Only apply zone in a particular direction\n"
- 	);
- }
- 
-@@ -40,6 +42,7 @@ enum {
- 	O_CTEVENTS,
- 	O_EXPEVENTS,
- 	O_ZONE,
-+	O_DIR,
- };
- 
- #define s struct xt_ct_target_info
-@@ -49,8 +52,8 @@ static const struct xt_option_entry ct_opts[] = {
- 	 .flags = XTOPT_PUT, XTOPT_POINTER(s, helper)},
- 	{.name = "ctevents", .id = O_CTEVENTS, .type = XTTYPE_STRING},
- 	{.name = "expevents", .id = O_EXPEVENTS, .type = XTTYPE_STRING},
--	{.name = "zone", .id = O_ZONE, .type = XTTYPE_UINT16,
--	 .flags = XTOPT_PUT, XTOPT_POINTER(s, zone)},
-+	{.name = "zone", .id = O_ZONE, .type = XTTYPE_STRING},
-+	{.name = "zone-dir", .id = O_DIR, .type = XTTYPE_STRING},
- 	XTOPT_TABLEEND,
- };
- #undef s
-@@ -64,8 +67,8 @@ static const struct xt_option_entry ct_opts_v1[] = {
- 	 .flags = XTOPT_PUT, XTOPT_POINTER(s, timeout)},
- 	{.name = "ctevents", .id = O_CTEVENTS, .type = XTTYPE_STRING},
- 	{.name = "expevents", .id = O_EXPEVENTS, .type = XTTYPE_STRING},
--	{.name = "zone", .id = O_ZONE, .type = XTTYPE_UINT16,
--	 .flags = XTOPT_PUT, XTOPT_POINTER(s, zone)},
-+	{.name = "zone", .id = O_ZONE, .type = XTTYPE_STRING},
-+	{.name = "zone-dir", .id = O_DIR, .type = XTTYPE_STRING},
- 	XTOPT_TABLEEND,
- };
- #undef s
-@@ -92,6 +95,17 @@ static const struct event_tbl exp_event_tbl[] = {
- 	{ "new",		IPEXP_NEW },
- };
- 
-+static uint16_t ct_parse_zone(const char *opt)
-+{
-+	uintmax_t value;
-+
-+	if (!xtables_strtoul(opt, NULL, &value, 0, UINT16_MAX))
-+		xtables_error(PARAMETER_PROBLEM,
-+			      "Cannot parse %s as a zone ID\n", opt);
-+
-+	return (uint16_t)value;
-+}
-+
- static uint32_t ct_parse_events(const struct event_tbl *tbl, unsigned int size,
- 				const char *events)
+ static inline struct nf_conntrack_zone *
+-nf_ct_zone_tmpl(const struct nf_conn *tmpl, struct nf_conntrack_zone *ptr)
++nf_ct_zone_tmpl(const struct nf_conn *tmpl, const struct sk_buff *skb,
++		struct nf_conntrack_zone *ptr)
  {
-@@ -138,6 +152,22 @@ static void ct_parse(struct xt_option_call *cb)
- 	case O_NOTRACK:
- 		info->flags |= XT_CT_NOTRACK;
- 		break;
-+	case O_DIR:
-+		if (strcasecmp(cb->arg, "ORIGINAL") == 0)
-+			info->flags |= XT_CT_ZONE_DIR_ORIG;
-+		else if (strcasecmp(cb->arg, "REPLY") == 0)
-+			info->flags |= XT_CT_ZONE_DIR_REPL;
-+		else
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "Unsupported direction type \"%s\"", cb->arg);
-+		break;
-+	case O_ZONE:
-+		info->zone = 0;
-+		if (strcasecmp(cb->arg, "mark") == 0)
-+			info->flags |= XT_CT_ZONE_MARK;
-+		else
-+			info->zone = ct_parse_zone(cb->arg);
-+		break;
- 	case O_CTEVENTS:
- 		info->ct_events = ct_parse_events(ct_event_tbl, ARRAY_SIZE(ct_event_tbl), cb->arg);
- 		break;
-@@ -156,6 +186,22 @@ static void ct_parse_v1(struct xt_option_call *cb)
- 	case O_NOTRACK:
- 		info->flags |= XT_CT_NOTRACK;
- 		break;
-+	case O_DIR:
-+		if (strcasecmp(cb->arg, "ORIGINAL") == 0)
-+			info->flags |= XT_CT_ZONE_DIR_ORIG;
-+		else if (strcasecmp(cb->arg, "REPLY") == 0)
-+			info->flags |= XT_CT_ZONE_DIR_REPL;
-+		else
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "Unsupported direction type \"%s\"", cb->arg);
-+		break;
-+	case O_ZONE:
-+		info->zone = 0;
-+		if (strcasecmp(cb->arg, "mark") == 0)
-+			info->flags |= XT_CT_ZONE_MARK;
-+		else
-+			info->zone = ct_parse_zone(cb->arg);
-+		break;
- 	case O_CTEVENTS:
- 		info->ct_events = ct_parse_events(ct_event_tbl,
- 						  ARRAY_SIZE(ct_event_tbl),
-@@ -185,8 +231,16 @@ static void ct_print(const void *ip, const struct xt_entry_target *target, int n
- 	if (info->exp_events)
- 		ct_print_events("expevents", exp_event_tbl,
- 				ARRAY_SIZE(exp_event_tbl), info->exp_events);
--	if (info->zone)
--		printf("zone %u ", info->zone);
-+	if (info->flags & XT_CT_ZONE_MARK)
-+		printf(" zone mark");
-+	else if (info->zone)
-+		printf(" zone %u", info->zone);
-+	if ((info->flags & (XT_CT_ZONE_DIR_ORIG |
-+			    XT_CT_ZONE_DIR_REPL)) == XT_CT_ZONE_DIR_ORIG)
-+		printf(" zone-dir ORIGINAL");
-+	if ((info->flags & (XT_CT_ZONE_DIR_ORIG |
-+			    XT_CT_ZONE_DIR_REPL)) == XT_CT_ZONE_DIR_REPL)
-+		printf(" zone-dir REPLY");
+-	return tmpl ? nf_ct_zone(tmpl, ptr) : nf_ct_zone_dflt(ptr);
++	struct nf_conntrack_zone *zone;
++
++	if (!tmpl)
++		return nf_ct_zone_dflt(ptr);
++
++	zone = nf_ct_zone(tmpl, ptr);
++	if (tmpl->status & IPS_TEMPLATE_MARK)
++		zone->id = skb->mark;
++
++	return zone;
  }
  
- static void
-@@ -212,8 +266,16 @@ ct_print_v1(const void *ip, const struct xt_entry_target *target, int numeric)
- 	if (info->exp_events)
- 		ct_print_events("expevents", exp_event_tbl,
- 				ARRAY_SIZE(exp_event_tbl), info->exp_events);
--	if (info->zone)
--		printf("zone %u ", info->zone);
-+	if (info->flags & XT_CT_ZONE_MARK)
-+		printf(" zone mark");
-+	else if (info->zone)
-+		printf(" zone %u", info->zone);
-+	if ((info->flags & (XT_CT_ZONE_DIR_ORIG |
-+			    XT_CT_ZONE_DIR_REPL)) == XT_CT_ZONE_DIR_ORIG)
-+		printf(" zone-dir ORIGINAL");
-+	if ((info->flags & (XT_CT_ZONE_DIR_ORIG |
-+			    XT_CT_ZONE_DIR_REPL)) == XT_CT_ZONE_DIR_REPL)
-+		printf(" zone-dir REPLY");
- }
+ static inline bool nf_ct_zone_matches_dir(const struct nf_conntrack_zone *zone,
+diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
+index 319f471..918c6bd 100644
+--- a/include/uapi/linux/netfilter/nf_conntrack_common.h
++++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
+@@ -91,6 +91,10 @@ enum ip_conntrack_status {
+ 	/* Conntrack got a helper explicitly attached via CT target. */
+ 	IPS_HELPER_BIT = 13,
+ 	IPS_HELPER = (1 << IPS_HELPER_BIT),
++
++	/* Template is marked dynamically. */
++	IPS_TEMPLATE_MARK_BIT = 14,
++	IPS_TEMPLATE_MARK = (1 << IPS_TEMPLATE_MARK_BIT),
+ };
  
- static void ct_save(const void *ip, const struct xt_entry_target *target)
-@@ -233,8 +295,16 @@ static void ct_save(const void *ip, const struct xt_entry_target *target)
- 	if (info->exp_events)
- 		ct_print_events("--expevents", exp_event_tbl,
- 				ARRAY_SIZE(exp_event_tbl), info->exp_events);
--	if (info->zone)
-+	if (info->flags & XT_CT_ZONE_MARK)
-+		printf(" --zone mark");
-+	else if (info->zone)
- 		printf(" --zone %u", info->zone);
-+	if ((info->flags & (XT_CT_ZONE_DIR_ORIG |
-+			    XT_CT_ZONE_DIR_REPL)) == XT_CT_ZONE_DIR_ORIG)
-+		printf(" --zone-dir ORIGINAL");
-+	if ((info->flags & (XT_CT_ZONE_DIR_ORIG |
-+			    XT_CT_ZONE_DIR_REPL)) == XT_CT_ZONE_DIR_REPL)
-+		printf(" --zone-dir REPLY");
- }
- 
- static void ct_save_v1(const void *ip, const struct xt_entry_target *target)
-@@ -256,8 +326,16 @@ static void ct_save_v1(const void *ip, const struct xt_entry_target *target)
- 	if (info->exp_events)
- 		ct_print_events("--expevents", exp_event_tbl,
- 				ARRAY_SIZE(exp_event_tbl), info->exp_events);
--	if (info->zone)
-+	if (info->flags & XT_CT_ZONE_MARK)
-+		printf(" --zone mark");
-+	else if (info->zone)
- 		printf(" --zone %u", info->zone);
-+	if ((info->flags & (XT_CT_ZONE_DIR_ORIG |
-+			    XT_CT_ZONE_DIR_REPL)) == XT_CT_ZONE_DIR_ORIG)
-+		printf(" --zone-dir ORIGINAL");
-+	if ((info->flags & (XT_CT_ZONE_DIR_ORIG |
-+			    XT_CT_ZONE_DIR_REPL)) == XT_CT_ZONE_DIR_REPL)
-+		printf(" --zone-dir REPLY");
- }
- 
- static const char *
-diff --git a/extensions/libxt_CT.man b/extensions/libxt_CT.man
-index a93eb14..34389a2 100644
---- a/extensions/libxt_CT.man
-+++ b/extensions/libxt_CT.man
-@@ -20,9 +20,14 @@ the ctmark, not nfmark), \fBnatseqinfo\fP, \fBsecmark\fP (ctsecmark).
- Only generate the specified expectation events for this connection.
- Possible event types are: \fBnew\fP.
- .TP
--\fB\-\-zone\fP \fIid\fP
-+\fB\-\-zone\fP {\fIid\fP|\fBmark\fP}
- Assign this packet to zone \fIid\fP and only have lookups done in that zone.
--By default, packets have zone 0.
-+If \fBmark\fP is used instead of \fIid\fP, the zone is derived from the
-+packet nfmark. By default, packets have zone 0.
-+.TP
-+\fB\-\-zone-dir\fP {\fBORIGINAL\fP|\fBREPLY\fP}
-+Only apply a provided zone in a particular direction. By default, a zone
-+is applied in both directions.
- .TP
- \fB\-\-timeout\fP \fIname\fP
- Use the timeout policy identified by \fIname\fP for the connection. This is
-diff --git a/include/linux/netfilter/xt_CT.h b/include/linux/netfilter/xt_CT.h
-index 54528fd..c3907db 100644
---- a/include/linux/netfilter/xt_CT.h
-+++ b/include/linux/netfilter/xt_CT.h
-@@ -6,6 +6,9 @@
- enum {
- 	XT_CT_NOTRACK		= 1 << 0,
+ /* Connection tracking event types */
+diff --git a/include/uapi/linux/netfilter/xt_CT.h b/include/uapi/linux/netfilter/xt_CT.h
+index 452005f..9e52041 100644
+--- a/include/uapi/linux/netfilter/xt_CT.h
++++ b/include/uapi/linux/netfilter/xt_CT.h
+@@ -8,9 +8,11 @@ enum {
  	XT_CT_NOTRACK_ALIAS	= 1 << 1,
-+	XT_CT_ZONE_DIR_ORIG	= 1 << 2,
-+	XT_CT_ZONE_DIR_REPL	= 1 << 3,
+ 	XT_CT_ZONE_DIR_ORIG	= 1 << 2,
+ 	XT_CT_ZONE_DIR_REPL	= 1 << 3,
 +	XT_CT_ZONE_MARK		= 1 << 4,
+ 
+ 	XT_CT_MASK		= XT_CT_NOTRACK | XT_CT_NOTRACK_ALIAS |
+-				  XT_CT_ZONE_DIR_ORIG | XT_CT_ZONE_DIR_REPL,
++				  XT_CT_ZONE_DIR_ORIG | XT_CT_ZONE_DIR_REPL |
++				  XT_CT_ZONE_MARK,
  };
  
  struct xt_ct_target_info {
+diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+index 75f7860..0ddd915 100644
+--- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+@@ -137,7 +137,7 @@ icmp_error_message(struct net *net, struct nf_conn *tmpl, struct sk_buff *skb,
+ 	struct nf_conntrack_zone *zone, __zone;
+ 
+ 	NF_CT_ASSERT(skb->nfct == NULL);
+-	zone = nf_ct_zone_tmpl(tmpl, &__zone);
++	zone = nf_ct_zone_tmpl(tmpl, skb, &__zone);
+ 
+ 	/* Are they talking about one of our connections? */
+ 	if (!nf_ct_get_tuplepr(skb,
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index d5ad71f..1c9a4c7 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -177,7 +177,8 @@ icmpv6_error_message(struct net *net, struct nf_conn *tmpl,
+ 
+ 	*ctinfo = IP_CT_RELATED;
+ 
+-	h = nf_conntrack_find_get(net, nf_ct_zone_tmpl(tmpl, &zone), &intuple);
++	h = nf_conntrack_find_get(net, nf_ct_zone_tmpl(tmpl, skb, &zone),
++				  &intuple);
+ 	if (!h) {
+ 		pr_debug("icmpv6_error: no match\n");
+ 		return -NF_ACCEPT;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index cf7c15a..7d89529 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -919,7 +919,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 		return NULL;
+ 	}
+ 
+-	zone = nf_ct_zone_tmpl(tmpl, &__zone);
++	zone = nf_ct_zone_tmpl(tmpl, skb, &__zone);
+ 	ct = __nf_conntrack_alloc(net, zone, tuple, &repl_tuple, GFP_ATOMIC,
+ 				  hash);
+ 	if (IS_ERR(ct))
+@@ -1028,7 +1028,7 @@ resolve_normal_ct(struct net *net, struct nf_conn *tmpl,
+ 	}
+ 
+ 	/* look for tuple match */
+-	zone = nf_ct_zone_tmpl(tmpl, &__zone);
++	zone = nf_ct_zone_tmpl(tmpl, skb, &__zone);
+ 	hash = hash_conntrack_raw(&tuple);
+ 	h = __nf_conntrack_find_get(net, zone, &tuple, hash);
+ 	if (!h) {
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index 8646075..f92cbe9 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -20,6 +20,8 @@
+ #include <net/netfilter/nf_conntrack_timeout.h>
+ #include <net/netfilter/nf_conntrack_zones.h>
+ 
++#define XT_CT_ZONE_FLAGS (XT_CT_ZONE_DIR_ORIG | XT_CT_ZONE_DIR_REPL | XT_CT_ZONE_MARK)
++
+ static inline int xt_ct_target(struct sk_buff *skb, struct nf_conn *ct)
+ {
+ 	/* Previously seen (loopback)? Ignore. */
+@@ -207,8 +209,7 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
+ 	}
+ 
+ #ifndef CONFIG_NF_CONNTRACK_ZONES
+-	if (info->zone || info->flags & (XT_CT_ZONE_DIR_ORIG |
+-					 XT_CT_ZONE_DIR_REPL))
++	if (info->zone || info->flags & XT_CT_ZONE_FLAGS)
+ 		goto err1;
+ #endif
+ 
+@@ -225,6 +226,9 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
+ 	if (IS_ERR(ct))
+ 		goto err2;
+ 
++	if (info->flags & XT_CT_ZONE_MARK)
++		ct->status |= IPS_TEMPLATE_MARK;
++
+ 	ret = 0;
+ 	if ((info->ct_events || info->exp_events) &&
+ 	    !nf_ct_ecache_ext_add(ct, info->ct_events, info->exp_events,
 -- 
 1.9.3
 
