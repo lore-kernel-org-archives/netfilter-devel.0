@@ -1,69 +1,65 @@
-From: Alan Bartlett <ajb@elrepo.org>
-Subject: Re: Linux 4.2 build error in net/netfilter/ipset/ip_set_hash_netnet.c
-Date: Mon, 13 Jul 2015 19:29:09 +0100
-Message-ID: <CA+_WhHwOzJN2mDZTuc44mFooJyYXGQNtGvRuLAo3PaSDi-8DpQ@mail.gmail.com>
-References: <CAHTgTXUmreHAqPfgGEd+GJNb_OEzaCuytqBTjZsE2GDqiy3TCw@mail.gmail.com>
-	<20150705153520.GA23589@roeck-us.net>
-	<mo0o3b$g5d$1@ger.gmane.org>
-	<20150713164122.GA26283@salvia>
-	<CABA31DorMPXf2tbzfF5XksMD7hbL77r5WVEDRWYbAmWDQfCE7w@mail.gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf RFC] netfilter: fix netns dependencies with conntrack
+ templates
+Date: Mon, 13 Jul 2015 21:26:55 +0200
+Message-ID: <20150713192655.GA25674@breakpoint.cc>
+References: <1436793108-3807-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org, Akemi Yagi <toracat@elrepo.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
+	daniel@iogearbox.net
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ie0-f172.google.com ([209.85.223.172]:36356 "EHLO
-	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751748AbbGMS3K (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:47079 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751936AbbGMT06 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Jul 2015 14:29:10 -0400
-Received: by ieik3 with SMTP id k3so28299992iei.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 13 Jul 2015 11:29:09 -0700 (PDT)
-In-Reply-To: <CABA31DorMPXf2tbzfF5XksMD7hbL77r5WVEDRWYbAmWDQfCE7w@mail.gmail.com>
+	Mon, 13 Jul 2015 15:26:58 -0400
+Content-Disposition: inline
+In-Reply-To: <1436793108-3807-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 13 July 2015 at 17:46, Akemi Yagi <amyagi@gmail.com> wrote:
-> On Mon, Jul 13, 2015 at 9:41 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
->> Could you please test this patch? Thank you.
->
-> Thanks for the patch. We will test this and report back to you.
->
-> Akemi
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> +static struct nf_conn *get_next_tmpl(struct net *net)
+> +{
+> +	struct nf_conntrack_tuple_hash *h;
+> +	struct hlist_nulls_node *n;
+> +	struct nf_conn *ct = NULL;
+> +	int cpu;
+> +
+> +	for_each_possible_cpu(cpu) {
+> +		struct ct_pcpu *pcpu = per_cpu_ptr(net->ct.pcpu_lists, cpu);
+> +
+> +		spin_lock_bh(&pcpu->lock);
+> +		hlist_nulls_for_each_entry(h, n, &pcpu->tmpl, hnnode) {
+> +			ct = nf_ct_tuplehash_to_ctrack(h);
+> +			break;
+> +		}
+> +		spin_unlock_bh(&pcpu->lock);
+> +	}
+> +	return ct;
+> +}
+> +
+> +void nf_ct_tmpl_cleanup(struct net *net)
+> +{
+> +	struct nf_conn *tmpl;
+> +
+> +i_see_dead_people:
+> +	while ((tmpl = get_next_tmpl(net)) != NULL)
+> +		nf_ct_put(tmpl);
+> +
 
-Hello Pablo,
+This seems bogus, this _puts() conntracks we don't own, leading
+to refcnt underflow/use-after-free?
 
-My colleague Akemi Yagi has forwarded the patch to me for testing. I
-now have both some good and bad news to report.
+I'd just get rid of all of the above.  After your change we
+don't depend on the kmem_cache anymore so its ok to leave freeing to
+the CT target ->destroy() hook, provided we also fix up the tmpl list
+handling (i'd suggest to just remove it and make each template sit
+on their 'own' list -- so the hlist_nulls_unhashed() BUG_ONs don't
+fire).
 
-The patch (0001-netfilter-ipset-fix-build-error-with-old-gcc-version.patch)
-does indeed fix the reported bug and allows the build to continue.
+Other than that, this patch seems like the least ugly approach.
 
-Unfortunately another problem is then disclosed. It is fundamentally
-the same type of bug as above.
-
-net/netfilter/ipset/ip_set_hash_netportnet.c: In function
-'hash_netportnet4_uadt':
-net/netfilter/ipset/ip_set_hash_netportnet.c:178: error: unknown field
-'cidr' specified in initializer
-net/netfilter/ipset/ip_set_hash_netportnet.c:178: warning: missing
-braces around initializer
-net/netfilter/ipset/ip_set_hash_netportnet.c:178: warning: (near
-initialization for 'e.<anonymous>.ip')
-net/netfilter/ipset/ip_set_hash_netportnet.c: In function
-'hash_netportnet6_uadt':
-net/netfilter/ipset/ip_set_hash_netportnet.c:448: error: unknown field
-'cidr' specified in initializer
-net/netfilter/ipset/ip_set_hash_netportnet.c:448: warning: missing
-braces around initializer
-net/netfilter/ipset/ip_set_hash_netportnet.c:448: warning: (near
-initialization for 'e.ip[0]')
-make[3]: *** [net/netfilter/ipset/ip_set_hash_netportnet.o] Error 1
-make[2]: *** [net/netfilter/ipset] Error 2
-make[1]: *** [net/netfilter] Error 2
-make: *** [net] Error 2
-
-If you could create another patch, please, I will be willing to test it.
-
-Alan.
+Thanks Pablo!
