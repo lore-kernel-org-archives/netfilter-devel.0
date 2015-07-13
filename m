@@ -1,62 +1,69 @@
-From: Cong Wang <cwang@twopensource.com>
+From: Alan Bartlett <ajb@elrepo.org>
 Subject: Re: Linux 4.2 build error in net/netfilter/ipset/ip_set_hash_netnet.c
-Date: Mon, 13 Jul 2015 11:17:57 -0700
-Message-ID: <CAHA+R7PkkgSrzj2Kf5Y3hWe=UmvcUodx=UnyL_gJM6uT7DMqJA@mail.gmail.com>
+Date: Mon, 13 Jul 2015 19:29:09 +0100
+Message-ID: <CA+_WhHwOzJN2mDZTuc44mFooJyYXGQNtGvRuLAo3PaSDi-8DpQ@mail.gmail.com>
 References: <CAHTgTXUmreHAqPfgGEd+GJNb_OEzaCuytqBTjZsE2GDqiy3TCw@mail.gmail.com>
 	<20150705153520.GA23589@roeck-us.net>
 	<mo0o3b$g5d$1@ger.gmane.org>
+	<20150713164122.GA26283@salvia>
+	<CABA31DorMPXf2tbzfF5XksMD7hbL77r5WVEDRWYbAmWDQfCE7w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Sergey Popovich <popovich_sergei@mail.ua>
-To: Akemi Yagi <amyagi@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <mo0o3b$g5d$1@ger.gmane.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, Akemi Yagi <toracat@elrepo.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:36356 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751748AbbGMS3K (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Jul 2015 14:29:10 -0400
+Received: by ieik3 with SMTP id k3so28299992iei.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Jul 2015 11:29:09 -0700 (PDT)
+In-Reply-To: <CABA31DorMPXf2tbzfF5XksMD7hbL77r5WVEDRWYbAmWDQfCE7w@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jul 13, 2015 at 9:13 AM, Akemi Yagi <amyagi@gmail.com> wrote:
-> On Sun, 05 Jul 2015 08:35:20 -0700, Guenter Roeck wrote:
+On 13 July 2015 at 17:46, Akemi Yagi <amyagi@gmail.com> wrote:
+> On Mon, Jul 13, 2015 at 9:41 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 >
->> On Sat, Jul 04, 2015 at 12:44:36AM -0700, Vinson Lee wrote:
->>> Hi.
->>>
->>> With the latest Linux 4.2-rc1, I am hitting this build error with G=
-CC
->>> 4.4.7 on CentOS 6.
->>>
->>>   CC      net/netfilter/ipset/ip_set_hash_netnet.o
->>> net/netfilter/ipset/ip_set_hash_netnet.c: In function
->>> =E2=80=98hash_netnet4_uadt=E2=80=99:
->>> net/netfilter/ipset/ip_set_hash_netnet.c:163: error: unknown field
->>> =E2=80=98cidr=E2=80=99 specified in initializer
->>> net/netfilter/ipset/ip_set_hash_netnet.c:163: warning: missing brac=
-es
->>> around initializer net/netfilter/ipset/ip_set_hash_netnet.c:163:
->>> warning: (near initialization for =E2=80=98e.<anonymous>.ip=E2=80=99=
-)
->>> net/netfilter/ipset/ip_set_hash_netnet.c: In function
->>> =E2=80=98hash_netnet6_uadt=E2=80=99:
->>> net/netfilter/ipset/ip_set_hash_netnet.c:388: error: unknown field
->>> =E2=80=98cidr=E2=80=99 specified in initializer
->>> net/netfilter/ipset/ip_set_hash_netnet.c:388: warning: missing brac=
-es
->>> around initializer net/netfilter/ipset/ip_set_hash_netnet.c:388:
->>> warning: (near initialization for =E2=80=98e.ip[0]=E2=80=99)
->>>
->> Previously fixed with commit 1a869205c75cb ("netfilter: ipset: The
->> unnamed union initialization may lead to compilation error"),
->> reintroduced with commit aff227581ed1a ("netfilter: ipset: Check CID=
-R
->> value only when attribute is given").
->>
->> Guenter
+>> Could you please test this patch? Thank you.
 >
-> I wonder what can be done to get this issue fixed. This problem was s=
-een
-> in 4.2-rc1 and now in 4.2-rc2 on RHEL-6.6.
+> Thanks for the patch. We will test this and report back to you.
 >
+> Akemi
 
-Just revert the initializer piece.
+Hello Pablo,
+
+My colleague Akemi Yagi has forwarded the patch to me for testing. I
+now have both some good and bad news to report.
+
+The patch (0001-netfilter-ipset-fix-build-error-with-old-gcc-version.patch)
+does indeed fix the reported bug and allows the build to continue.
+
+Unfortunately another problem is then disclosed. It is fundamentally
+the same type of bug as above.
+
+net/netfilter/ipset/ip_set_hash_netportnet.c: In function
+'hash_netportnet4_uadt':
+net/netfilter/ipset/ip_set_hash_netportnet.c:178: error: unknown field
+'cidr' specified in initializer
+net/netfilter/ipset/ip_set_hash_netportnet.c:178: warning: missing
+braces around initializer
+net/netfilter/ipset/ip_set_hash_netportnet.c:178: warning: (near
+initialization for 'e.<anonymous>.ip')
+net/netfilter/ipset/ip_set_hash_netportnet.c: In function
+'hash_netportnet6_uadt':
+net/netfilter/ipset/ip_set_hash_netportnet.c:448: error: unknown field
+'cidr' specified in initializer
+net/netfilter/ipset/ip_set_hash_netportnet.c:448: warning: missing
+braces around initializer
+net/netfilter/ipset/ip_set_hash_netportnet.c:448: warning: (near
+initialization for 'e.ip[0]')
+make[3]: *** [net/netfilter/ipset/ip_set_hash_netportnet.o] Error 1
+make[2]: *** [net/netfilter/ipset] Error 2
+make[1]: *** [net/netfilter] Error 2
+make: *** [net] Error 2
+
+If you could create another patch, please, I will be willing to test it.
+
+Alan.
