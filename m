@@ -1,58 +1,75 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Dmitry Torokhov <dtor@google.com>
 Subject: Re: [PATCH] nf: IDLETIMER: fix lockdep warning
-Date: Mon, 13 Jul 2015 15:20:25 +0200
-Message-ID: <20150713132025.GA4071@salvia>
+Date: Mon, 13 Jul 2015 08:02:36 -0700
+Message-ID: <CAE_wzQ-_bca+xowzFj0QZ11eXELftBVB+Lizeh=j-6pzWBdT_w@mail.gmail.com>
 References: <20150710001501.GA32570@dtor-ws>
+	<20150713132025.GA4071@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Cc: "David S. Miller" <davem@davemloft.net>,
 	Patrick McHardy <kaber@trash.net>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Dmitry Torokhov <dtor@google.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150710001501.GA32570@dtor-ws>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	netdev@vger.kernel.org,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ig0-f179.google.com ([209.85.213.179]:33224 "EHLO
+	mail-ig0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751646AbbGMPCh (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Jul 2015 11:02:37 -0400
+Received: by iggp10 with SMTP id p10so77602407igg.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Jul 2015 08:02:37 -0700 (PDT)
+In-Reply-To: <20150713132025.GA4071@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 09, 2015 at 05:15:01PM -0700, Dmitry Torokhov wrote:
-> Dynamically allocated sysfs attributes should be initialized with
-> sysfs_attr_init() otherwise lockdep will be angry with us:
-> 
-> [   45.468653] BUG: key ffffffc030fad4e0 not in .data!
-> [   45.468655] ------------[ cut here ]------------
-> [   45.468666] WARNING: CPU: 0 PID: 1176 at /mnt/host/source/src/third_party/kernel/v3.18/kernel/locking/lockdep.c:2991 lockdep_init_map+0x12c/0x490()
-> [   45.468672] DEBUG_LOCKS_WARN_ON(1)
-> [   45.468672] CPU: 0 PID: 1176 Comm: iptables Tainted: G     U  W 3.18.0 #43
-> [   45.468674] Hardware name: XXX
-> [   45.468675] Call trace:
-> [   45.468680] [<ffffffc0002072b4>] dump_backtrace+0x0/0x10c
-> [   45.468683] [<ffffffc0002073d0>] show_stack+0x10/0x1c
-> [   45.468688] [<ffffffc000a86cd4>] dump_stack+0x74/0x94
-> [   45.468692] [<ffffffc000217ae0>] warn_slowpath_common+0x84/0xb0
-> [   45.468694] [<ffffffc000217b84>] warn_slowpath_fmt+0x4c/0x58
-> [   45.468697] [<ffffffc0002530a4>] lockdep_init_map+0x128/0x490
-> [   45.468701] [<ffffffc000367ef0>] __kernfs_create_file+0x80/0xe4
-> [   45.468704] [<ffffffc00036862c>] sysfs_add_file_mode_ns+0x104/0x170
-> [   45.468706] [<ffffffc00036870c>] sysfs_create_file_ns+0x58/0x64
-> [   45.468711] [<ffffffc000930430>] idletimer_tg_checkentry+0x14c/0x324
-> [   45.468714] [<ffffffc00092a728>] xt_check_target+0x170/0x198
-> [   45.468717] [<ffffffc000993efc>] check_target+0x58/0x6c
-> [   45.468720] [<ffffffc000994c64>] translate_table+0x30c/0x424
-> [   45.468723] [<ffffffc00099529c>] do_ipt_set_ctl+0x144/0x1d0
-> [   45.468728] [<ffffffc0009079f0>] nf_setsockopt+0x50/0x60
-> [   45.468732] [<ffffffc000946870>] ip_setsockopt+0x8c/0xb4
-> [   45.468735] [<ffffffc0009661c0>] raw_setsockopt+0x10/0x50
-> [   45.468739] [<ffffffc0008c1550>] sock_common_setsockopt+0x14/0x20
-> [   45.468742] [<ffffffc0008bd190>] SyS_setsockopt+0x88/0xb8
-> [   45.468744] ---[ end trace 41d156354d18c039 ]---
+On Mon, Jul 13, 2015 at 6:20 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Thu, Jul 09, 2015 at 05:15:01PM -0700, Dmitry Torokhov wrote:
+>> Dynamically allocated sysfs attributes should be initialized with
+>> sysfs_attr_init() otherwise lockdep will be angry with us:
+>>
+>> [   45.468653] BUG: key ffffffc030fad4e0 not in .data!
+>> [   45.468655] ------------[ cut here ]------------
+>> [   45.468666] WARNING: CPU: 0 PID: 1176 at /mnt/host/source/src/third_party/kernel/v3.18/kernel/locking/lockdep.c:2991 lockdep_init_map+0x12c/0x490()
+>> [   45.468672] DEBUG_LOCKS_WARN_ON(1)
+>> [   45.468672] CPU: 0 PID: 1176 Comm: iptables Tainted: G     U  W 3.18.0 #43
+>> [   45.468674] Hardware name: XXX
+>> [   45.468675] Call trace:
+>> [   45.468680] [<ffffffc0002072b4>] dump_backtrace+0x0/0x10c
+>> [   45.468683] [<ffffffc0002073d0>] show_stack+0x10/0x1c
+>> [   45.468688] [<ffffffc000a86cd4>] dump_stack+0x74/0x94
+>> [   45.468692] [<ffffffc000217ae0>] warn_slowpath_common+0x84/0xb0
+>> [   45.468694] [<ffffffc000217b84>] warn_slowpath_fmt+0x4c/0x58
+>> [   45.468697] [<ffffffc0002530a4>] lockdep_init_map+0x128/0x490
+>> [   45.468701] [<ffffffc000367ef0>] __kernfs_create_file+0x80/0xe4
+>> [   45.468704] [<ffffffc00036862c>] sysfs_add_file_mode_ns+0x104/0x170
+>> [   45.468706] [<ffffffc00036870c>] sysfs_create_file_ns+0x58/0x64
+>> [   45.468711] [<ffffffc000930430>] idletimer_tg_checkentry+0x14c/0x324
+>> [   45.468714] [<ffffffc00092a728>] xt_check_target+0x170/0x198
+>> [   45.468717] [<ffffffc000993efc>] check_target+0x58/0x6c
+>> [   45.468720] [<ffffffc000994c64>] translate_table+0x30c/0x424
+>> [   45.468723] [<ffffffc00099529c>] do_ipt_set_ctl+0x144/0x1d0
+>> [   45.468728] [<ffffffc0009079f0>] nf_setsockopt+0x50/0x60
+>> [   45.468732] [<ffffffc000946870>] ip_setsockopt+0x8c/0xb4
+>> [   45.468735] [<ffffffc0009661c0>] raw_setsockopt+0x10/0x50
+>> [   45.468739] [<ffffffc0008c1550>] sock_common_setsockopt+0x14/0x20
+>> [   45.468742] [<ffffffc0008bd190>] SyS_setsockopt+0x88/0xb8
+>> [   45.468744] ---[ end trace 41d156354d18c039 ]---
+>
+> Applied, thanks.
+>
+> One question:
+>
+>> Change-Id: I1da5cd96fc8e1e1e4209e81eba1165a42d4d45e9
+>
+> BTW, does this gerrit change ID provide any public information? Thanks.
 
-Applied, thanks.
+Argh, I am sorry, I forgot to clean this out when mailing the patch.
+In this particular case you can find the change in AOSP gerrit at
+https://android-review.googlesource.com but without such context this
+change-id is of course useless.
 
-One question:
-
-> Change-Id: I1da5cd96fc8e1e1e4209e81eba1165a42d4d45e9
-
-BTW, does this gerrit change ID provide any public information? Thanks.
+Thanks,
+Dmitry
