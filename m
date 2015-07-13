@@ -1,65 +1,62 @@
-From: Harout Hedeshian <harouth@codeaurora.org>
-Subject: [PATCH iptables] extensions: libxt_socket: update man pages and tests for --restore-skmark
-Date: Mon, 13 Jul 2015 10:01:30 -0600
-Message-ID: <1436803290-31561-1-git-send-email-harouth@codeaurora.org>
-Cc: Harout Hedeshian <harouth@codeaurora.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:44695 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751168AbbGMQBm (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Jul 2015 12:01:42 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Akemi Yagi <amyagi@gmail.com>
+Subject: Re: Linux 4.2 build error in
+ net/netfilter/ipset/ip_set_hash_netnet.c
+Date: Mon, 13 Jul 2015 16:13:31 +0000 (UTC)
+Message-ID: <mo0o3b$g5d$1@ger.gmane.org>
+References: <CAHTgTXUmreHAqPfgGEd+GJNb_OEzaCuytqBTjZsE2GDqiy3TCw@mail.gmail.com>
+	<20150705153520.GA23589@roeck-us.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Update the man pages for libxt_socket with a description and example
-usage of the --restore-skmark option.
+On Sun, 05 Jul 2015 08:35:20 -0700, Guenter Roeck wrote:
 
-Also added tests for libxt_socket with various combinations of
---restore-skmark and the existing options.
+> On Sat, Jul 04, 2015 at 12:44:36AM -0700, Vinson Lee wrote:
+>> Hi.
+>>=20
+>> With the latest Linux 4.2-rc1, I am hitting this build error with GC=
+C
+>> 4.4.7 on CentOS 6.
+>>=20
+>>   CC      net/netfilter/ipset/ip_set_hash_netnet.o
+>> net/netfilter/ipset/ip_set_hash_netnet.c: In function
+>> =E2=80=98hash_netnet4_uadt=E2=80=99:
+>> net/netfilter/ipset/ip_set_hash_netnet.c:163: error: unknown field
+>> =E2=80=98cidr=E2=80=99 specified in initializer
+>> net/netfilter/ipset/ip_set_hash_netnet.c:163: warning: missing brace=
+s
+>> around initializer net/netfilter/ipset/ip_set_hash_netnet.c:163:
+>> warning: (near initialization for =E2=80=98e.<anonymous>.ip=E2=80=99=
+)
+>> net/netfilter/ipset/ip_set_hash_netnet.c: In function
+>> =E2=80=98hash_netnet6_uadt=E2=80=99:
+>> net/netfilter/ipset/ip_set_hash_netnet.c:388: error: unknown field
+>> =E2=80=98cidr=E2=80=99 specified in initializer
+>> net/netfilter/ipset/ip_set_hash_netnet.c:388: warning: missing brace=
+s
+>> around initializer net/netfilter/ipset/ip_set_hash_netnet.c:388:
+>> warning: (near initialization for =E2=80=98e.ip[0]=E2=80=99)
+>>=20
+> Previously fixed with commit 1a869205c75cb ("netfilter: ipset: The
+> unnamed union initialization may lead to compilation error"),
+> reintroduced with commit aff227581ed1a ("netfilter: ipset: Check CIDR
+> value only when attribute is given").
+>=20
+> Guenter
 
-Signed-off-by: Harout Hedeshian <harouth@codeaurora.org>
----
- extensions/libxt_socket.man | 14 ++++++++++++++
- extensions/libxt_socket.t   |  4 ++++
- 2 files changed, 18 insertions(+)
+I wonder what can be done to get this issue fixed. This problem was see=
+n=20
+in 4.2-rc1 and now in 4.2-rc2 on RHEL-6.6.
 
-diff --git a/extensions/libxt_socket.man b/extensions/libxt_socket.man
-index 2ef32ce..f809df6 100644
---- a/extensions/libxt_socket.man
-+++ b/extensions/libxt_socket.man
-@@ -20,3 +20,17 @@ option instead.
- Example (assuming packets with mark 1 are delivered locally):
- .IP
- \-t mangle \-A PREROUTING \-m socket \-\-transparent \-j MARK \-\-set\-mark 1
-+.TP
-+\fB\-\-restore\-skmark\fP
-+Set the packet mark to the matching socket's mark. Can be combined with the
-+\fB\-\-transparent\fP and \fB\-\-nowildcard\fP options to restrict the sockets
-+to be matched when restoring the packet mark.
-+.PP
-+Example: An application opens 2 transparent (\fBIP_TRANSPARENT\fP) sockets and
-+sets a mark on them with \fBSO_MARK\fP socket option. We can filter matching packets:
-+.IP
-+\-t mangle \-I PREROUTING \-m socket \-\-transparent \-\-restore-skmark \-j action
-+.IP
-+\-t mangle \-A action \-m mark \-\-mark 10 \-j action2
-+.IP
-+\-t mangle \-A action \-m mark \-\-mark 11 \-j action3
-diff --git a/extensions/libxt_socket.t b/extensions/libxt_socket.t
-index 8c0036e..fe4eb3e 100644
---- a/extensions/libxt_socket.t
-+++ b/extensions/libxt_socket.t
-@@ -2,3 +2,7 @@
- *mangle
- -m socket;=;OK
- -m socket --transparent --nowildcard;=;OK
-+-m socket --transparent --nowildcard --restore-skmark;=;OK
-+-m socket --transparent --restore-skmark;=;OK
-+-m socket --nowildcard --restore-skmark;=;OK
-+-m socket --restore-skmark;=;OK
--- 
-Employee of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+$ gcc --version
+gcc (GCC) 4.4.7 20120313 (Red Hat 4.4.7-11)
 
+Please advise.
+
+Akemi
