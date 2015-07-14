@@ -1,56 +1,68 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next v2 6/6] netfilter: xtables: add upper limit on call chain depth
-Date: Tue, 14 Jul 2015 17:51:11 +0200
-Message-ID: <1436889071-3637-7-git-send-email-fw@strlen.de>
-References: <1436889071-3637-1-git-send-email-fw@strlen.de>
-Cc: eric.dumazet@gmail.com, Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49925 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752744AbbGNPvV (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Jul 2015 11:51:21 -0400
-In-Reply-To: <1436889071-3637-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Michal Kubecek <mkubecek@suse.cz>
+Subject: Re: [PATCH nf-next] netfilter: nf_ct_sctp: minimal multihoming
+ support
+Date: Tue, 14 Jul 2015 18:28:50 +0200
+Message-ID: <20150714162850.GA8478@unicorn.suse.cz>
+References: <20150714122311.8DA8EA0C9A@unicorn.suse.cz>
+ <20150714153847.GA3507@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-api@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150714153847.GA3507@salvia>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-1024 is a very aggressive limit -- it will most likely not break any
-real-world ruleset, but it might break certain iptables test scripts out
-there.
+On Tue, Jul 14, 2015 at 05:38:47PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Jul 14, 2015 at 02:23:11PM +0200, Michal Kubecek wrote:
+> > @@ -658,6 +696,18 @@ static struct ctl_table sctp_sysctl_table[] = {
+> >  		.mode		= 0644,
+> >  		.proc_handler	= proc_dointvec_jiffies,
+> >  	},
+> > +	{
+> > +		.procname	= "nf_conntrack_sctp_timeout_heartbeat_sent",
+> > +		.maxlen		= sizeof(unsigned int),
+> > +		.mode		= 0644,
+> > +		.proc_handler	= proc_dointvec_jiffies,
+> > +	},
+> > +	{
+> > +		.procname	= "nf_conntrack_sctp_timeout_heartbeat_acked",
+> > +		.maxlen		= sizeof(unsigned int),
+> > +		.mode		= 0644,
+> > +		.proc_handler	= proc_dointvec_jiffies,
+> > +	},
+> >  	{ }
+> >  };
+> >  
+> > @@ -705,6 +755,18 @@ static struct ctl_table sctp_compat_sysctl_table[] = {
+> >  		.mode		= 0644,
+> >  		.proc_handler	= proc_dointvec_jiffies,
+> >  	},
+> > +	{
+> > +		.procname	= "ip_conntrack_sctp_timeout_heartbeat_sent",
+> > +		.maxlen		= sizeof(unsigned int),
+> > +		.mode		= 0644,
+> > +		.proc_handler	= proc_dointvec_jiffies,
+> > +	},
+> > +	{
+> > +		.procname	= "ip_conntrack_sctp_timeout_heartbeat_acked",
+> > +		.maxlen		= sizeof(unsigned int),
+> > +		.mode		= 0644,
+> > +		.proc_handler	= proc_dointvec_jiffies,
+> > +	},
+> >  	{ }
+> 
+> I don't see the nla_policy updates for the netlink cttimeout
+> interface.
 
-If we were to use this limit it becomes feasible to allocate jump stack
-directly via a percpu allocation (16kbytes needed per cpu in that case).
+I didn't realize those were needed. It means adding two entries to
+sctp_timeout_nla_policy and two values to enum ctattr_timeout_sctp?
+Or something else is also needed?
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- no changes since v1.
-
- net/netfilter/x_tables.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 9b42b5e..2be4f8e 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -39,6 +39,7 @@ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
- MODULE_DESCRIPTION("{ip,ip6,arp,eb}_tables backend module");
- 
- #define SMP_ALIGN(x) (((x) + SMP_CACHE_BYTES-1) & ~(SMP_CACHE_BYTES-1))
-+#define XT_MAX_STACKSIZE 1024
- 
- struct compat_delta {
- 	unsigned int offset; /* offset in kernel */
-@@ -735,6 +736,9 @@ static int xt_jumpstack_alloc(struct xt_table_info *i)
- 	unsigned int size;
- 	int cpu;
- 
-+	if (i->stacksize > XT_MAX_STACKSIZE)
-+		return -ELOOP;
-+
- 	size = sizeof(void **) * nr_cpu_ids;
- 	if (size > PAGE_SIZE)
- 		i->jumpstack = vzalloc(size);
--- 
-2.0.5
-
+                                                        Michal Kubecek
