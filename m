@@ -1,122 +1,125 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next 4/6] netfilter: add and use jump label for xt_tee
-Date: Tue, 14 Jul 2015 17:51:09 +0200
-Message-ID: <1436889071-3637-5-git-send-email-fw@strlen.de>
+Subject: [PATCH -next v2 2/6] netfilter: move tee_active to core
+Date: Tue, 14 Jul 2015 17:51:07 +0200
+Message-ID: <1436889071-3637-3-git-send-email-fw@strlen.de>
 References: <1436889071-3637-1-git-send-email-fw@strlen.de>
 Cc: eric.dumazet@gmail.com, Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49921 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49917 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752742AbbGNPvU (ORCPT
+	by vger.kernel.org with ESMTP id S1752734AbbGNPvT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Jul 2015 11:51:20 -0400
+	Tue, 14 Jul 2015 11:51:19 -0400
 In-Reply-To: <1436889071-3637-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Don't bother testing if we need to switch to alternate stack
-unless TEE target is used.
+This prepares for a TEE like expression in nftables.
+We want to ensure only one duplicate is sent, so both will
+use the same percpu variable to detect duplication.
 
-Suggested-by: Eric Dumazet <eric.dumazet@gmail.com>
+The other use case is detection of recursive call to xtables, but since
+we don't want dependency from nft to xtables core its put into core.c
+instead of the x_tables core.
+
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- v1 of this patch.
+ No changes since v1.
 
- include/linux/netfilter/x_tables.h | 7 +++++++
- net/ipv4/netfilter/ip_tables.c     | 3 ++-
- net/ipv6/netfilter/ip6_tables.c    | 3 ++-
- net/netfilter/x_tables.c           | 3 +++
- net/netfilter/xt_TEE.c             | 2 ++
- 5 files changed, 16 insertions(+), 2 deletions(-)
+ include/linux/netfilter.h | 11 +++++++++++
+ net/netfilter/core.c      |  3 +++
+ net/netfilter/xt_TEE.c    | 13 ++++++-------
+ 3 files changed, 20 insertions(+), 7 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 1492845..b006b71 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -3,6 +3,7 @@
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 00050df..4881d48 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -385,4 +385,15 @@ extern struct nfq_ct_hook __rcu *nfq_ct_hook;
+ static inline void nf_ct_attach(struct sk_buff *new, struct sk_buff *skb) {}
+ #endif
  
- 
- #include <linux/netdevice.h>
-+#include <linux/static_key.h>
- #include <uapi/linux/netfilter/x_tables.h>
- 
- /**
-@@ -280,6 +281,12 @@ void xt_free_table_info(struct xt_table_info *info);
-  */
- DECLARE_PER_CPU(seqcount_t, xt_recseq);
- 
-+/* xt_tee_enabled - true if x_tables needs to handle reentrancy
++/**
++ * nf_skb_duplicated - TEE target has sent a packet
 + *
-+ * Enabled if current ip(6)tables ruleset has at least one -j TEE rule.
++ * When a xtables target sends a packet, the OUTPUT and POSTROUTING
++ * hooks are traversed again, i.e. nft and xtables are invoked recursively.
++ *
++ * This is used by xtables TEE target to prevent the duplicated skb from
++ * being duplicated again.
 + */
-+extern struct static_key xt_tee_enabled;
++DECLARE_PER_CPU(bool, nf_skb_duplicated);
 +
- /**
-  * xt_write_recseq_begin - start of a write section
-  *
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index a2e4b01..ff585bd 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -340,7 +340,8 @@ ipt_do_table(struct sk_buff *skb,
- 	 * For recursion via REJECT or SYNPROXY the stack will be clobbered
- 	 * but it is no problem since absolute verdict is issued by these.
- 	 */
--	jumpstack += private->stacksize * __this_cpu_read(nf_skb_duplicated);
-+	if (static_key_false(&xt_tee_enabled))
-+		jumpstack += private->stacksize * __this_cpu_read(nf_skb_duplicated);
+ #endif /*__LINUX_NETFILTER_H*/
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index a0e5497..254032d 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -34,6 +34,9 @@ EXPORT_SYMBOL(nf_afinfo);
+ const struct nf_ipv6_ops __rcu *nf_ipv6_ops __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_ipv6_ops);
  
- 	e = get_entry(table_base, private->hook_entry[hook]);
- 
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 531281f..ea6d105 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -366,7 +366,8 @@ ip6t_do_table(struct sk_buff *skb,
- 	 * For recursion via REJECT or SYNPROXY the stack will be clobbered
- 	 * but it is no problem since absolute verdict is issued by these.
- 	 */
--	jumpstack += private->stacksize * __this_cpu_read(nf_skb_duplicated);
-+	if (static_key_false(&xt_tee_enabled))
-+		jumpstack += private->stacksize * __this_cpu_read(nf_skb_duplicated);
- 
- 	e = get_entry(table_base, private->hook_entry[hook]);
- 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 154447e..9b42b5e 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -727,6 +727,9 @@ EXPORT_SYMBOL_GPL(xt_compat_unlock);
- DEFINE_PER_CPU(seqcount_t, xt_recseq);
- EXPORT_PER_CPU_SYMBOL_GPL(xt_recseq);
- 
-+struct static_key xt_tee_enabled __read_mostly;
-+EXPORT_SYMBOL_GPL(xt_tee_enabled);
++DEFINE_PER_CPU(bool, nf_skb_duplicated);
++EXPORT_SYMBOL_GPL(nf_skb_duplicated);
 +
- static int xt_jumpstack_alloc(struct xt_table_info *i)
+ int nf_register_afinfo(const struct nf_afinfo *afinfo)
  {
- 	unsigned int size;
+ 	mutex_lock(&afinfo_mutex);
 diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
-index 8950e79..c5d6556 100644
+index a747eb4..8950e79 100644
 --- a/net/netfilter/xt_TEE.c
 +++ b/net/netfilter/xt_TEE.c
-@@ -251,6 +251,7 @@ static int tee_tg_check(const struct xt_tgchk_param *par)
- 	} else
- 		info->priv = NULL;
+@@ -37,7 +37,6 @@ struct xt_tee_priv {
+ };
  
-+	static_key_slow_inc(&xt_tee_enabled);
- 	return 0;
- }
+ static const union nf_inet_addr tee_zero_address;
+-static DEFINE_PER_CPU(bool, tee_active);
  
-@@ -262,6 +263,7 @@ static void tee_tg_destroy(const struct xt_tgdtor_param *par)
- 		unregister_netdevice_notifier(&info->priv->notifier);
- 		kfree(info->priv);
+ static struct net *pick_net(struct sk_buff *skb)
+ {
+@@ -88,7 +87,7 @@ tee_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ 	const struct xt_tee_tginfo *info = par->targinfo;
+ 	struct iphdr *iph;
+ 
+-	if (__this_cpu_read(tee_active))
++	if (__this_cpu_read(nf_skb_duplicated))
+ 		return XT_CONTINUE;
+ 	/*
+ 	 * Copy the skb, and route the copy. Will later return %XT_CONTINUE for
+@@ -125,9 +124,9 @@ tee_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ 	ip_send_check(iph);
+ 
+ 	if (tee_tg_route4(skb, info)) {
+-		__this_cpu_write(tee_active, true);
++		__this_cpu_write(nf_skb_duplicated, true);
+ 		ip_local_out(skb);
+-		__this_cpu_write(tee_active, false);
++		__this_cpu_write(nf_skb_duplicated, false);
+ 	} else {
+ 		kfree_skb(skb);
  	}
-+	static_key_slow_dec(&xt_tee_enabled);
- }
+@@ -170,7 +169,7 @@ tee_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+ 	const struct xt_tee_tginfo *info = par->targinfo;
  
- static struct xt_target tee_tg_reg[] __read_mostly = {
+-	if (__this_cpu_read(tee_active))
++	if (__this_cpu_read(nf_skb_duplicated))
+ 		return XT_CONTINUE;
+ 	skb = pskb_copy(skb, GFP_ATOMIC);
+ 	if (skb == NULL)
+@@ -188,9 +187,9 @@ tee_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 		--iph->hop_limit;
+ 	}
+ 	if (tee_tg_route6(skb, info)) {
+-		__this_cpu_write(tee_active, true);
++		__this_cpu_write(nf_skb_duplicated, true);
+ 		ip6_local_out(skb);
+-		__this_cpu_write(tee_active, false);
++		__this_cpu_write(nf_skb_duplicated, false);
+ 	} else {
+ 		kfree_skb(skb);
+ 	}
 -- 
 2.0.5
 
