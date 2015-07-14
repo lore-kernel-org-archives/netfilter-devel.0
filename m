@@ -1,60 +1,74 @@
-From: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
-Subject: Re: [PATCH nf-next] netfilter: nf_ct_sctp: minimal multihoming
- support
-Date: Tue, 14 Jul 2015 17:38:47 +0200
-Message-ID: <20150714153847.GA3507@salvia>
-References: <20150714122311.8DA8EA0C9A@unicorn.suse.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
-	linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>,
-	Jozsef Kadlecsik <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>,
-	"David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-To: Michal Kubecek <mkubecek-AlSwsSmVLrQ@public.gmane.org>
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150714122311.8DA8EA0C9A-OEaqT8BN2ewCVLCxKZUutA@public.gmane.org>
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH -next 5/6] netfilter: xtables: remove __pure annotation
+Date: Tue, 14 Jul 2015 17:51:10 +0200
+Message-ID: <1436889071-3637-6-git-send-email-fw@strlen.de>
+References: <1436889071-3637-1-git-send-email-fw@strlen.de>
+Cc: eric.dumazet@gmail.com, Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49923 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752743AbbGNPvV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Jul 2015 11:51:21 -0400
+In-Reply-To: <1436889071-3637-1-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jul 14, 2015 at 02:23:11PM +0200, Michal Kubecek wrote:
-> @@ -658,6 +696,18 @@ static struct ctl_table sctp_sysctl_table[] = {
->  		.mode		= 0644,
->  		.proc_handler	= proc_dointvec_jiffies,
->  	},
-> +	{
-> +		.procname	= "nf_conntrack_sctp_timeout_heartbeat_sent",
-> +		.maxlen		= sizeof(unsigned int),
-> +		.mode		= 0644,
-> +		.proc_handler	= proc_dointvec_jiffies,
-> +	},
-> +	{
-> +		.procname	= "nf_conntrack_sctp_timeout_heartbeat_acked",
-> +		.maxlen		= sizeof(unsigned int),
-> +		.mode		= 0644,
-> +		.proc_handler	= proc_dointvec_jiffies,
-> +	},
->  	{ }
->  };
->  
-> @@ -705,6 +755,18 @@ static struct ctl_table sctp_compat_sysctl_table[] = {
->  		.mode		= 0644,
->  		.proc_handler	= proc_dointvec_jiffies,
->  	},
-> +	{
-> +		.procname	= "ip_conntrack_sctp_timeout_heartbeat_sent",
-> +		.maxlen		= sizeof(unsigned int),
-> +		.mode		= 0644,
-> +		.proc_handler	= proc_dointvec_jiffies,
-> +	},
-> +	{
-> +		.procname	= "ip_conntrack_sctp_timeout_heartbeat_acked",
-> +		.maxlen		= sizeof(unsigned int),
-> +		.mode		= 0644,
-> +		.proc_handler	= proc_dointvec_jiffies,
-> +	},
->  	{ }
+sparse complains:
+ip_tables.c:361:27: warning: incorrect type in assignment (different modifiers)
+ip_tables.c:361:27:    expected struct ipt_entry *[assigned] e
+ip_tables.c:361:27:    got struct ipt_entry [pure] *
 
-I don't see the nla_policy updates for the netlink cttimeout
-interface.
+doesn't change generated code.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ v1 of this patch.
+ net/ipv4/netfilter/arp_tables.c | 2 +-
+ net/ipv4/netfilter/ip_tables.c  | 2 +-
+ net/ipv6/netfilter/ip6_tables.c | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 969fdbe..c416cb3 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -240,7 +240,7 @@ get_entry(const void *base, unsigned int offset)
+ 	return (struct arpt_entry *)(base + offset);
+ }
+ 
+-static inline __pure
++static inline
+ struct arpt_entry *arpt_next_entry(const struct arpt_entry *entry)
+ {
+ 	return (void *)entry + entry->next_offset;
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index ff585bd..787f99e 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -276,7 +276,7 @@ static void trace_packet(const struct sk_buff *skb,
+ }
+ #endif
+ 
+-static inline __pure
++static inline
+ struct ipt_entry *ipt_next_entry(const struct ipt_entry *entry)
+ {
+ 	return (void *)entry + entry->next_offset;
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index ea6d105..4e21f80 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -305,7 +305,7 @@ static void trace_packet(const struct sk_buff *skb,
+ }
+ #endif
+ 
+-static inline __pure struct ip6t_entry *
++static inline struct ip6t_entry *
+ ip6t_next_entry(const struct ip6t_entry *entry)
+ {
+ 	return (void *)entry + entry->next_offset;
+-- 
+2.0.5
+
