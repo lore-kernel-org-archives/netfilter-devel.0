@@ -1,61 +1,36 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC PATCH nf] netfilter: bridge: fix IPv6 packets not being
- bridged with CONFIG_IPV6=n
-Date: Wed, 15 Jul 2015 19:47:02 +0200
-Message-ID: <20150715174702.GA7407@salvia>
-References: <1436130933-17639-1-git-send-email-bernhard.thaler@wvnet.at>
- <20150705215334.GA16864@breakpoint.cc>
- <559AEC67.6020601@wvnet.at>
- <20150706214113.GG16864@breakpoint.cc>
+Subject: Re: [PATCH nf-next v2 3/3] netfilter: nf_conntrack: add efficient
+ mark to zone mapping
+Date: Wed, 15 Jul 2015 19:50:56 +0200
+Message-ID: <20150715175056.GA7436@salvia>
+References: <cover.1436574843.git.daniel@iogearbox.net>
+ <8b1e8907e8dd9a51f2e40b39cd5f5c2b0eae94fd.1436574843.git.daniel@iogearbox.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Bernhard Thaler <bernhard.thaler@wvnet.at>,
-	kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: tgraf@suug.ch, challa@noironetworks.com,
+	netfilter-devel@vger.kernel.org
+To: Daniel Borkmann <daniel@iogearbox.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58586 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59108 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751592AbbGORlV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jul 2015 13:41:21 -0400
+	id S1752943AbbGORpO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jul 2015 13:45:14 -0400
 Content-Disposition: inline
-In-Reply-To: <20150706214113.GG16864@breakpoint.cc>
+In-Reply-To: <8b1e8907e8dd9a51f2e40b39cd5f5c2b0eae94fd.1436574843.git.daniel@iogearbox.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jul 06, 2015 at 11:41:13PM +0200, Florian Westphal wrote:
-> Bernhard Thaler <bernhard.thaler@wvnet.at> wrote:
-[...]
-> > > Might also make sense to not create the sysctl and sysfs entry in the
-> > > first place if no ip6tables is available.
-> > 
-> > Totally agree, it would be the best solution.
-> > 
-> > My idea was that I do not know how admins and their existing scripts
-> > react if sysctl and sysfs entry are gone entirely...and if everybody
-> > assumes the default is 0 if these entry do not exist.
-> > 
-> > But scripts that do not check the return code of their write operations
-> > on the sysctl and sysfs may not check for the existance of these entries
-> > either...
-> 
-> Yes, thats the problem, a script checking the errors would break as
-> well.
-> 
-> Fortunately its not really important since this only affects custom
-> kernel builds.
+On Sat, Jul 11, 2015 at 03:14:07AM +0200, Daniel Borkmann wrote:
+> This work adds the possibility of deriving the zone id from the skb->mark
+> field in a scalable manner. This allows for having only a single template
+> serving 100s .. 1000s of different zones, for example, instead of needing
+> to have one match for each zone as an extra CT jump target. Note that we'd
+> need to have this information attached to the template as at the time when
+> we're trying to lookup a possible ct object, we already need to know zone
+> information for a possible match when going into __nf_conntrack_find_get().
+> This work provides a minimal implementation for a possible mapping.
 
-Right. I think it would be good to have that patch to disable the
-/proc interface when CONFIG_IPV6 is not built.
-
-Would you please send us that patch Bernhard?
-
-> > A message in dmesg log explaining that ip6tables sysctl and sysfs
-> > entries are not exposed due to CONFIG_IPV6=n (and/or IP6_NF_IPTABLES)
-> > may be more helpful to understand what is going on.
-> 
-> Hmm, not sure if there is any point in doing that.
-> We don't do that in other cases either, the assumotion is that if you
-> build your own kernels you better know what you're doing (also, in this
-> case ip6tables doesn't work either which is hopefully the right clue...)
-
-Agreed.
+I think connmark is a better place for this feature, given that the
+zone is a ct extension. Moreover, I guess it will not take long until
+someone sends us a patch to perform some bitwise operation to only
+fetch some of the skb->mark bits into the zone.
