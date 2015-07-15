@@ -1,42 +1,86 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH -next v2 0/6] netfilter: xtables: improve jumpstack
- handling
-Date: Wed, 15 Jul 2015 20:52:24 +0200
-Message-ID: <20150715185224.GJ25674@breakpoint.cc>
-References: <1436889071-3637-1-git-send-email-fw@strlen.de>
- <20150715171749.GA4707@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH -next 5/6] netfilter: Per network namespace netfilter
+ hooks.
+Date: Wed, 15 Jul 2015 21:00:11 +0200
+Message-ID: <20150715190011.GA1203@salvia>
+References: <87616ppt3h.fsf@x220.int.ebiederm.org>
+ <87r3pae5hn.fsf@x220.int.ebiederm.org>
+ <878uansj4d.fsf_-_@x220.int.ebiederm.org>
+ <87fv4vr4ed.fsf_-_@x220.int.ebiederm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	eric.dumazet@gmail.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Jamal Hadi Salim <jhs@mojatatu.com>,
+	Steffen Klassert <steffen.klassert@secunet.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	David Miller <davem@davemloft.net>
+To: "Eric W. Biederman" <ebiederm@xmission.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53331 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752747AbbGOSw0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jul 2015 14:52:26 -0400
+Received: from mail.us.es ([193.147.175.20]:39598 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752581AbbGOSyd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jul 2015 14:54:33 -0400
 Content-Disposition: inline
-In-Reply-To: <20150715171749.GA4707@salvia>
+In-Reply-To: <87fv4vr4ed.fsf_-_@x220.int.ebiederm.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> If we take this patch into the tree, I'd wait for quite some time to
-> make sure nobody barfs to us with problems, so we can revert it.
-> 
-> Otherwise, the (unlikely) scenario would require several reverts in a
-> row, starting from this to further suggested enhancements, right?
+On Fri, Jul 10, 2015 at 06:15:06PM -0500, Eric W. Biederman wrote:
+> @@ -102,13 +112,35 @@ int nf_register_hook(struct nf_hook_ops *reg)
+>  #endif
+>  	return 0;
+>  }
+> -EXPORT_SYMBOL(nf_register_hook);
+> +EXPORT_SYMBOL(nf_register_net_hook);
+>  
+> -void nf_unregister_hook(struct nf_hook_ops *reg)
+> +void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
+>  {
+> +	struct list_head *nf_hook_list;
+> +	struct nf_hook_ops *elem;
+> +
+> +	nf_hook_list = find_nf_hook_list(net, reg);
+> +	if (!nf_hook_list)
+> +		return;
+> +
+>  	mutex_lock(&nf_hook_mutex);
+> -	list_del_rcu(&reg->list);
+> +	list_for_each_entry(elem, nf_hook_list, list) {
+> +		if ((reg->hook     == elem->hook) &&
+> +		    (reg->dev      == elem->dev) &&
+> +		    (reg->owner    == elem->owner) &&
+> +		    (reg->priv     == elem->priv) &&
+> +		    (reg->pf       == elem->pf) &&
+> +		    (reg->hooknum  == elem->hooknum) &&
+> +		    (reg->priority == elem->priority)) {
+> +			list_del_rcu(&elem->list);
+> +			break;
+> +		}
+> +	}
 
-Yes, thats exactly the problem.
-So for example if we'd switch to allocating the jumpstack in the percpu
-area (rather than just a pointer as we do now) we would need to revert
-that since percpu allocations have sie limitations (64k max iirc).
+I think I found a problem with this code above.
 
-HOWEVER, the real problem is -- if you apply this, how long would
-you propose to wait before we would leverage the limitation in further
-patches?
+If we register two hooks from the same module using exactly the same
+tuple that identifies this, we delete the hook that we don't want, eg.
 
-I'd say 3 years minimum, and I'd rather see nft ready by then :)
+        nft add table filter
+        nft add chain filter test { type filter hook input priority 0\; }
+        nft add chain filter test2 { type filter hook input priority 0\; }
 
-So I'd say drop patch 6.
+then, you delete 'test':
+
+        nft delete chain filter test
+
+This will delete 'test2' hook instead of 'test' as it will find this
+in first place on the list.
+
+I think we should add a cookie field that stores the address of the
+original hook object that is passed as parameter, so we are sure we
+kill the right hook.
