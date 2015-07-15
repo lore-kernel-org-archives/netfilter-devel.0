@@ -1,51 +1,181 @@
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: [Q] iptables AH module api mismatch between -master and 1.4.7
-Date: Wed, 15 Jul 2015 15:15:22 +0300
-Message-ID: <20150715121521.GK2034@uranus>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: vzdevel <devel@openvz.org>, Pavel Emelyanov <xemul@virtuozzo.com>,
-	Konstantin Khorenko <khorenko@virtuozzo.com>,
-	Jan Engelhardt <jengelh@medozas.de>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: [PATCH 2/2] extensions: restore matching any SPI id by default
+Date: Wed, 15 Jul 2015 14:53:39 +0200
+Message-ID: <1436964819-28109-3-git-send-email-jengelh@inai.de>
+References: <1436964819-28109-1-git-send-email-jengelh@inai.de>
+Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:33450 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752239AbbGOMP0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jul 2015 08:15:26 -0400
-Received: by lbbyj8 with SMTP id yj8so23624424lbb.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Jul 2015 05:15:25 -0700 (PDT)
-Content-Disposition: inline
+Received: from ares41.inai.de ([46.4.122.207]:33671 "EHLO ares41.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752049AbbGOMxm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jul 2015 08:53:42 -0400
+In-Reply-To: <1436964819-28109-1-git-send-email-jengelh@inai.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello! Could you clarify please the following aspect: before the commit
+This is the same as commit v1.4.15-12-g8a988f6.
 
- | commit 6944f2c8190f1c4319aeac748470c71b0ba45025
- | Author: Jan Engelhardt <jengelh@medozas.de>
- | Date:   Tue May 24 23:50:29 2011 +0200
- |
- |    libxtables: have xtopt_parse_mint interpret partially-spec'd ranges
- |
- |    When ":n" or "n:" is specified, it will now be interpreted as "0:n"
- |    and "n:<max>", respecitvely. nvals will always reflect the number of
- |    (expanded) components. This restores the functionality of options that
- |    take such partially-unspecified ranges.
- |
- |    This makes it possible to nuke the per-matchdata init functions of
- |    some extensions and simply the extensions postparsing to the point
- |    where it only needs to check for nvals==1 or ==2.
- |
- |    Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+If no id option is given, the extensions only match packets with a
+zero-valued identification field. This behavior deviates from what it
+used to do back in v1.4.10-273-g6944f2c^.
 
-if the AH module has no --ahspi argument passed to iptables then it
-became [0;0xffffffff] by default, but in -master branch it becomes
-[0;0] instead, which implies that if iptables-save is called with
-latest -master branch it should not be used with old (1.4.7)
-iptables-restore otherwise the kernel would see different --ahspi
-ranges. Thus (if only I'm not missing something obvious) this is
-abi breakage and old behaviour should be fixed (I'm gonna prepare
-a patch for that but would love to know first if it's needed)?
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+---
+ extensions/libip6t_ah.c | 9 +++++++++
+ extensions/libip6t_ah.t | 1 +
+ extensions/libip6t_rt.c | 8 ++++++++
+ extensions/libip6t_rt.t | 1 +
+ extensions/libipt_ah.c  | 8 ++++++++
+ extensions/libipt_ah.t  | 1 +
+ extensions/libxt_esp.c  | 8 ++++++++
+ extensions/libxt_esp.t  | 1 +
+ 8 files changed, 37 insertions(+)
 
-	Cyrill
+diff --git a/extensions/libip6t_ah.c b/extensions/libip6t_ah.c
+index 26f8140..174d6d1 100644
+--- a/extensions/libip6t_ah.c
++++ b/extensions/libip6t_ah.c
+@@ -28,6 +28,14 @@ static const struct xt_option_entry ah_opts[] = {
+ };
+ #undef s
+ 
++static void ah_init(struct xt_entry_match *m)
++{
++	struct ip6t_ah *ahinfo = (void *)m->data;
++
++	/* Defaults for when no --ahspi is used at all */
++	ahinfo->spis[1] = ~0U;
++}
++
+ static void ah_parse(struct xt_option_call *cb)
+ {
+ 	struct ip6t_ah *ahinfo = cb->data;
+@@ -127,6 +135,7 @@ static struct xtables_match ah_mt6_reg = {
+ 	.size          = XT_ALIGN(sizeof(struct ip6t_ah)),
+ 	.userspacesize = XT_ALIGN(sizeof(struct ip6t_ah)),
+ 	.help          = ah_help,
++	.init          = ah_init,
+ 	.print         = ah_print,
+ 	.save          = ah_save,
+ 	.x6_parse      = ah_parse,
+diff --git a/extensions/libip6t_ah.t b/extensions/libip6t_ah.t
+index 459e9ec..36ca7df 100644
+--- a/extensions/libip6t_ah.t
++++ b/extensions/libip6t_ah.t
+@@ -12,3 +12,4 @@
+ -m ah --ahspi invalid;;FAIL
+ -m ah --ahspi 0:invalid;;FAIL
+ -m ah --ahspi;;FAIL
++-m ah;-m ah --ahspi 0;FAIL
+diff --git a/extensions/libip6t_rt.c b/extensions/libip6t_rt.c
+index d470488..cada779 100644
+--- a/extensions/libip6t_rt.c
++++ b/extensions/libip6t_rt.c
+@@ -99,6 +99,13 @@ parse_addresses(const char *addrstr, struct in6_addr *addrp)
+ 	return i;
+ }
+ 
++static void rt_init(struct xt_entry_match *m)
++{
++	struct ip6t_rt *rtinfo = (void *)m->data;
++
++	rtinfo->segsleft[1] = ~0U;
++}
++
+ static void rt_parse(struct xt_option_call *cb)
+ {
+ 	struct ip6t_rt *rtinfo = cb->data;
+@@ -245,6 +252,7 @@ static struct xtables_match rt_mt6_reg = {
+ 	.size		= XT_ALIGN(sizeof(struct ip6t_rt)),
+ 	.userspacesize	= XT_ALIGN(sizeof(struct ip6t_rt)),
+ 	.help		= rt_help,
++	.init		= rt_init,
+ 	.x6_parse	= rt_parse,
+ 	.print		= rt_print,
+ 	.save		= rt_save,
+diff --git a/extensions/libip6t_rt.t b/extensions/libip6t_rt.t
+index 7170138..553123e 100644
+--- a/extensions/libip6t_rt.t
++++ b/extensions/libip6t_rt.t
+@@ -2,3 +2,4 @@
+ -m rt --rt-type 0 --rt-segsleft 1:23 --rt-len 42 --rt-0-res;=;OK
+ -m rt --rt-type 0 ! --rt-segsleft 1:23 ! --rt-len 42 --rt-0-res;=;OK
+ -m rt ! --rt-type 1 ! --rt-segsleft 12:23 ! --rt-len 42;=;OK
++-m rt;-m rt --rtsegsleft 0;FAIL
+diff --git a/extensions/libipt_ah.c b/extensions/libipt_ah.c
+index 8cf167c..a490729 100644
+--- a/extensions/libipt_ah.c
++++ b/extensions/libipt_ah.c
+@@ -21,6 +21,13 @@ static const struct xt_option_entry ah_opts[] = {
+ 	XTOPT_TABLEEND,
+ };
+ 
++static void ah_init(struct xt_entry_match *m)
++{
++	struct ipt_ah *ahinfo = (void *)m->data;
++
++	ahinfo->spis[1] = ~0U;
++}
++
+ static void ah_parse(struct xt_option_call *cb)
+ {
+ 	struct ipt_ah *ahinfo = cb->data;
+@@ -92,6 +99,7 @@ static struct xtables_match ah_mt_reg = {
+ 	.size		= XT_ALIGN(sizeof(struct ipt_ah)),
+ 	.userspacesize 	= XT_ALIGN(sizeof(struct ipt_ah)),
+ 	.help 		= ah_help,
++	.init		= ah_init,
+ 	.print 		= ah_print,
+ 	.save 		= ah_save,
+ 	.x6_parse	= ah_parse,
+diff --git a/extensions/libipt_ah.t b/extensions/libipt_ah.t
+index a0ce3b0..2993906 100644
+--- a/extensions/libipt_ah.t
++++ b/extensions/libipt_ah.t
+@@ -10,3 +10,4 @@
+ -m ah --ahspi 0;;FAIL
+ -m ah --ahspi;;FAIL
+ -m ah;;FAIL
++-p ah -m ah;-p ah -m ah --ahspi 0;FAIL
+diff --git a/extensions/libxt_esp.c b/extensions/libxt_esp.c
+index 294338b..773d6af 100644
+--- a/extensions/libxt_esp.c
++++ b/extensions/libxt_esp.c
+@@ -21,6 +21,13 @@ static const struct xt_option_entry esp_opts[] = {
+ 	XTOPT_TABLEEND,
+ };
+ 
++static void esp_init(struct xt_entry_match *m)
++{
++	struct xt_esp *espinfo = (void *)m->data;
++
++	espinfo->spis[1] = ~0U;
++}
++
+ static void esp_parse(struct xt_option_call *cb)
+ {
+ 	struct xt_esp *espinfo = cb->data;
+@@ -86,6 +93,7 @@ static struct xtables_match esp_match = {
+ 	.size		= XT_ALIGN(sizeof(struct xt_esp)),
+ 	.userspacesize	= XT_ALIGN(sizeof(struct xt_esp)),
+ 	.help		= esp_help,
++	.init		= esp_init,
+ 	.print		= esp_print,
+ 	.save		= esp_save,
+ 	.x6_parse	= esp_parse,
+diff --git a/extensions/libxt_esp.t b/extensions/libxt_esp.t
+index 008013b..f207def 100644
+--- a/extensions/libxt_esp.t
++++ b/extensions/libxt_esp.t
+@@ -4,6 +4,7 @@
+ -p esp -m esp --espspi 0:4294967295;-p esp -m esp;OK
+ -p esp -m esp ! --espspi 0:4294967294;=;OK
+ -p esp -m esp --espspi -1;;FAIL
++-p esp -m esp;-p esp -m esp --espspi 0;FAIL
+ # should fail?
+ -p esp -m esp;=;OK
+ -m esp;;FAIL
+-- 
+2.4.3
+
