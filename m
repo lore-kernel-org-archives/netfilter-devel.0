@@ -1,67 +1,58 @@
-From: Akemi Yagi <amyagi@gmail.com>
-Subject: Re: Linux 4.2 build error in net/netfilter/ipset/ip_set_hash_netnet.c
-Date: Tue, 14 Jul 2015 10:40:08 -0700
-Message-ID: <CABA31DpCYf4bKVtJsCDvuu+WuS-uWVrpdZqUuPEiqpKQ5UP+FQ@mail.gmail.com>
-References: <CAHTgTXUmreHAqPfgGEd+GJNb_OEzaCuytqBTjZsE2GDqiy3TCw@mail.gmail.com>
- <20150705153520.GA23589@roeck-us.net> <mo0o3b$g5d$1@ger.gmane.org>
- <20150713164122.GA26283@salvia> <alpine.DEB.2.10.1507141910280.28425@blackhole.kfki.hu>
+From: subashab@codeaurora.org
+Subject: Re: [PATCH] netfilter: nf_nat: Fix possible null dereference
+Date: Wed, 15 Jul 2015 01:10:09 -0000
+Message-ID: <f29890b70a328a20b8be169f2a357790.squirrel@www.codeaurora.org>
+References: <fea9df65d6768053838fb1eca1846ef7.squirrel@www.codeaurora.org>
+    <20150709222456.GA4111@salvia>
+    <4acf7f20a629dd133bf5924886c0c4d0.squirrel@www.codeaurora.org>
+    <20150713155003.GA7062@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, Alan Bartlett <ajb@elrepo.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Cc: netfilter-devel@vger.kernel.org
+To: "Pablo Neira Ayuso" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yk0-f177.google.com ([209.85.160.177]:35723 "EHLO
-	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751901AbbGNRk2 (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:55188 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751426AbbGOBKK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Jul 2015 13:40:28 -0400
-Received: by ykdu72 with SMTP id u72so14491246ykd.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Jul 2015 10:40:27 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.10.1507141910280.28425@blackhole.kfki.hu>
+	Tue, 14 Jul 2015 21:10:10 -0400
+In-Reply-To: <20150713155003.GA7062@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jul 14, 2015 at 10:12 AM, Jozsef Kadlecsik
-<kadlec@blackhole.kfki.hu> wrote:
-> Hi,
+> I see, but if you look nf_nat_ipv4_fn() then you can confirm that we
+> always have a nat extension in place by when the iptables NAT
+> targets / nft NAT expressions:
 >
-> On Mon, 13 Jul 2015, Pablo Neira Ayuso wrote:
+> nf_nat_ipv4_fn(...)
+> {
+>         [...]
 >
->> On Mon, Jul 13, 2015 at 04:13:31PM +0000, Akemi Yagi wrote:
->> > On Sun, 05 Jul 2015 08:35:20 -0700, Guenter Roeck wrote:
-(snip)
->> > > Previously fixed with commit 1a869205c75cb ("netfilter: ipset: The
->> > > unnamed union initialization may lead to compilation error"),
->> > > reintroduced with commit aff227581ed1a ("netfilter: ipset: Check CIDR
->> > > value only when attribute is given").
->> > >
->> > > Guenter
->> >
->> > I wonder what can be done to get this issue fixed. This problem was seen
->> > in 4.2-rc1 and now in 4.2-rc2 on RHEL-6.6.
->> >
->> > $ gcc --version
->> > gcc (GCC) 4.4.7 20120313 (Red Hat 4.4.7-11)
->>
->> Could you please test this patch? Thank you.
+>         ct = nf_ct_get(skb, &ctinfo);
+>         /* Can't track?  It's not due to stress, or conntrack would
+>          * have dropped it.  Hence it's the user's responsibilty to
+>          * packet filter it out, or implement conntrack/NAT for that
+>          * protocol. 8) --RR
+>          */
+>         if (!ct)
+>                 return NF_ACCEPT;
 >
-> As I mentioned at the workshop, the patch
-> net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch has been
-> added to the -mm tree at Jun 17. My impression was that that way the bug
-> was fixed and everything was all right.
+>         /* Don't try to NAT if this packet is not conntracked */
+>         if (nf_ct_is_untracked(ct))
+>                 return NF_ACCEPT;
 >
-> Best regards,
-> Jozsef
-> -
-> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-> Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
->           H-1525 Budapest 114, POB. 49, Hungary
+>         nat = nf_ct_nat_ext_add(ct);
+>         if (nat == NULL)
+>                 return NF_ACCEPT;
+>
+>         ...
+>
+> If we fail to create the nat extension, then this accepts the packet,
+> so no chances we can reach this NULL dereference.
+>
+> I wonder if this is a false positive. Would you please have a closer
+> look and confirm this? Thanks.
+>
+This report is indeed a false positive. Thanks for reviewing.
 
-Thanks, Jozsef, for posting this info. It does seem to be a complete
-patch for the current issue. It is listed here:
-
-https://lkml.org/lkml/2015/7/6/881
-
-Akemi
