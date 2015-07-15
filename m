@@ -1,110 +1,143 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH -next 5/6] netfilter: Per network namespace netfilter hooks.
-Date: Wed, 15 Jul 2015 15:22:09 -0500
-Message-ID: <87twt5i32m.fsf@x220.int.ebiederm.org>
-References: <87616ppt3h.fsf@x220.int.ebiederm.org>
-	<87r3pae5hn.fsf@x220.int.ebiederm.org>
-	<878uansj4d.fsf_-_@x220.int.ebiederm.org>
-	<87fv4vr4ed.fsf_-_@x220.int.ebiederm.org>
-	<20150715190011.GA1203@salvia>
+From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Subject: Re: [PATCH nf-next] netfilter: nf_ct_sctp: minimal multihoming
+ support
+Date: Wed, 15 Jul 2015 17:35:08 -0300
+Message-ID: <20150715203508.GA14704@localhost.localdomain>
+References: <20150714122311.8DA8EA0C9A@unicorn.suse.cz>
+ <20150714134203.GG25674@breakpoint.cc>
+ <20150714164225.GB8478@unicorn.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-api@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Jamal Hadi Salim <jhs@mojatatu.com>,
-	Steffen Klassert <steffen.klassert@secunet.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	David Miller <davem@davemloft.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+	"David S. Miller" <davem@davemloft.net>
+To: Michal Kubecek <mkubecek@suse.cz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out02.mta.xmission.com ([166.70.13.232]:46696 "EHLO
-	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752995AbbGOU2e (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jul 2015 16:28:34 -0400
-In-Reply-To: <20150715190011.GA1203@salvia> (Pablo Neira Ayuso's message of
-	"Wed, 15 Jul 2015 21:00:11 +0200")
+Received: from mx1.redhat.com ([209.132.183.28]:52891 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753239AbbGOUfM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jul 2015 16:35:12 -0400
+Content-Disposition: inline
+In-Reply-To: <20150714164225.GB8478@unicorn.suse.cz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> writes:
+Hi,
 
-> On Fri, Jul 10, 2015 at 06:15:06PM -0500, Eric W. Biederman wrote:
->> @@ -102,13 +112,35 @@ int nf_register_hook(struct nf_hook_ops *reg)
->>  #endif
->>  	return 0;
->>  }
->> -EXPORT_SYMBOL(nf_register_hook);
->> +EXPORT_SYMBOL(nf_register_net_hook);
->>  
->> -void nf_unregister_hook(struct nf_hook_ops *reg)
->> +void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
->>  {
->> +	struct list_head *nf_hook_list;
->> +	struct nf_hook_ops *elem;
->> +
->> +	nf_hook_list = find_nf_hook_list(net, reg);
->> +	if (!nf_hook_list)
->> +		return;
->> +
->>  	mutex_lock(&nf_hook_mutex);
->> -	list_del_rcu(&reg->list);
->> +	list_for_each_entry(elem, nf_hook_list, list) {
->> +		if ((reg->hook     == elem->hook) &&
->> +		    (reg->dev      == elem->dev) &&
->> +		    (reg->owner    == elem->owner) &&
->> +		    (reg->priv     == elem->priv) &&
->> +		    (reg->pf       == elem->pf) &&
->> +		    (reg->hooknum  == elem->hooknum) &&
->> +		    (reg->priority == elem->priority)) {
->> +			list_del_rcu(&elem->list);
->> +			break;
->> +		}
->> +	}
->
-> I think I found a problem with this code above.
->
-> If we register two hooks from the same module using exactly the same
-> tuple that identifies this, we delete the hook that we don't want, eg.
->
->         nft add table filter
->         nft add chain filter test { type filter hook input priority 0\; }
->         nft add chain filter test2 { type filter hook input priority 0\; }
->
-> then, you delete 'test':
->
->         nft delete chain filter test
->
-> This will delete 'test2' hook instead of 'test' as it will find this
-> in first place on the list.
+On Tue, Jul 14, 2015 at 06:42:25PM +0200, Michal Kubecek wrote:
+> On Tue, Jul 14, 2015 at 03:42:03PM +0200, Florian Westphal wrote:
+> > Michal Kubecek <mkubecek@suse.cz> wrote:
+> > > +	case SCTP_CID_HEARTBEAT:
+> > > +		pr_debug("SCTP_CID_HEARTBEAT");
+> > > +		i = 9;
+> > > +		break;
+> > > +	case SCTP_CID_HEARTBEAT_ACK:
+> > > +		pr_debug("SCTP_CID_HEARTBEAT_ACK");
+> > > +		i = 10;
+> > > +		break;
+> > >  	default:
+> > >  		/* Other chunks like DATA, SACK, HEARTBEAT and
+> > >  		its ACK do not cause a change in state */
+> > > @@ -329,6 +351,8 @@ static int sctp_packet(struct nf_conn *ct,
+> > >  	    !test_bit(SCTP_CID_COOKIE_ECHO, map) &&
+> > >  	    !test_bit(SCTP_CID_ABORT, map) &&
+> > >  	    !test_bit(SCTP_CID_SHUTDOWN_ACK, map) &&
+> > > +	    !test_bit(SCTP_CID_HEARTBEAT, map) &&
+> > > +	    !test_bit(SCTP_CID_HEARTBEAT_ACK, map) &&
+> > >  	    sh->vtag != ct->proto.sctp.vtag[dir]) {
+> > >  		pr_debug("Verification tag check failed\n");
+> > >  		goto out;
+> > > @@ -357,6 +381,16 @@ static int sctp_packet(struct nf_conn *ct,
+> > >  			/* Sec 8.5.1 (D) */
+> > >  			if (sh->vtag != ct->proto.sctp.vtag[dir])
+> > >  				goto out_unlock;
+> > > +		} else if (sch->type == SCTP_CID_HEARTBEAT ||
+> > > +			   sch->type == SCTP_CID_HEARTBEAT_ACK) {
+> > > +			if (ct->proto.sctp.vtag[dir] == 0) {
+> > > +				pr_debug("Setting vtag %x for dir %d\n",
+> > > +					 sh->vtag, dir);
+> > > +				ct->proto.sctp.vtag[dir] = sh->vtag;
+> > 
+> > Could you please elaborate on the [dir] == 0 test?
+> > 
+> > I see this might happen for SCTP_CID_HEARTBEAT_ACK, but why is this
+> > needed for SCTP_CID_HEARTBEAT ?
+> > 
+> > We found a conntrack entry so shouldn't the vtag[dir] already be > 0?
+> 
+> Yes, you are right. This was originally intended to handle the case when
+> a HEARTBEAT in the reply direction is seen before the HEARTBEAT-ACK but
+> such HEARTBEAT would be dropped anyway in current version.
 
-So we have two adjacent entries on the same chain that perform the exact
-same action.  We delete one of them.
+And we have to keep the first vtag attempted because otherwise an
+attacker could just probe for the right one until she gets a reply.
 
-I do not see how that is noticable.  Registration order plays a small
-role but especially with the priority bit we don't strongly honor
-registration order.
+IOW, if a different vtag is attempted, we should drop it as the packet
+doesn't belong to that association/conntrack entry.
 
-In your example above we will distinguish between the two chains
-as nf_hook_ops->priv will point the nf tables chain.   So that specific
-case is at least safe.
+As vtags are always != 0 in such case, that's a way to know if we
+already have that information or not.
 
-> I think we should add a cookie field that stores the address of the
-> original hook object that is passed as parameter, so we are sure we
-> kill the right hook.
+> On the other hand, an alternative would be
+> 
+> 		} else if (sch->type == SCTP_CID_HEARTBEAT_ACK &&
+> 			   ct->proto.sctp.vtag[dir] == 0) {
+> 			pr_debug("Setting vtag %x for dir %d\n",
+> 				 sh->vtag, dir);
+> 			ct->proto.sctp.vtag[dir] = sh->vtag;
+> 		} else if ((sch->type == SCTP_CID_HEARTBEAT ||
+> 			    sch->type == SCTP_CID_HEARTBEAT_ACK) &&
+> 			   sh->vtag != ct->proto.sctp.vtag[dir]) {
+> 			pr_debug("Verification tag check failed\n");
+> 			goto out_unlock;
+> 		}
+> 
+> I'm not sure it looks better.
 
-I don't believe that is necessary.  To the best of my knowledge for a
-registration to be meaningful we must always change at least one of
-those fields I am comparing.  Typically either priv or hook.
+Now it seems swapped, we should save the tag on HB and check on
+HB_ACK only and would have to check against !dir entry. Like:
 
-It is a real change from what we have been doing but there is a lot
-of freedom in not needing to keep the original structure around.
+comments with // here are just informative on this email and may not
+necessary in the code
 
-Eric
+ 		} else if (sch->type == SCTP_CID_HEARTBEAT)
+			if (!sh->vtag || sh->vtag != ct->proto.sctp.vtag[!dir]) {
+				/* Invalid */
+				goto out_unlock;
+			}
+ 			else if (!ct->proto.sctp.vtag[!dir]) {
+ 				pr_debug("Setting vtag %x for dir %d\n",
+ 					 sh->vtag, dir);
+				// by saving it on !dir direction, we
+				// don't have to enable HB_ACK on that
+				// if() above of exceptions, just HB
+				// itself
+ 				ct->proto.sctp.vtag[!dir] = sh->vtag;
+			}
+			// fallthrough: no action because it's a vtag we
+			// have already seen
+ 		} else if (sch->type == SCTP_CID_HEARTBEAT_ACK) {
+			// it's guaranteed tht sh->vtag == ct->proto.sctp.vtag[dir]
+			// by the if() of the exceptions above, so we
+			// just have to check for vtag == 0
+ 			if (!sh->vtag) {
+	 			pr_debug("Verification tag check failed\n");
+ 				goto out_unlock;
+			}
+			// ok, it's hand-shaked, now save it on the
+			// other direction too so that further packets
+			// can pass that check
+			// if there was a vtag crossed some when, we
+			// don't care as this one is now established.
+ 			ct->proto.sctp.vtag[dir] = sh->vtag;
+ 		}
+
+I was also working on such implementation. Please give me some time to
+map one thing to another. 
+
+  Marcelo
 
