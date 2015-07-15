@@ -1,61 +1,58 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] extensions: restore matching any SPI id by default
-Date: Wed, 15 Jul 2015 19:30:35 +0200
-Message-ID: <20150715173035.GA5675@salvia>
-References: <1436964819-28109-1-git-send-email-jengelh@inai.de>
- <1436964819-28109-3-git-send-email-jengelh@inai.de>
- <20150715162442.GA22476@salvia>
- <alpine.LSU.2.20.1507151837110.15534@nerf40.vanv.qr>
- <20150715165515.GA4177@salvia>
- <alpine.LSU.2.20.1507151907560.1320@nerf40.vanv.qr>
+Subject: Re: [PATCH nf-next v2 1/3] netfilter: nf_conntrack: push zone object
+ into functions
+Date: Wed, 15 Jul 2015 19:35:58 +0200
+Message-ID: <20150715173558.GA7161@salvia>
+References: <cover.1436574843.git.daniel@iogearbox.net>
+ <3a45e81237cd8248a025dc772a9dd9ef17c73b1b.1436574843.git.daniel@iogearbox.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Cc: tgraf@suug.ch, challa@noironetworks.com,
+	netfilter-devel@vger.kernel.org
+To: Daniel Borkmann <daniel@iogearbox.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56333 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:57124 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751764AbbGORYx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jul 2015 13:24:53 -0400
+	id S1752605AbbGORaW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jul 2015 13:30:22 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.20.1507151907560.1320@nerf40.vanv.qr>
+In-Reply-To: <3a45e81237cd8248a025dc772a9dd9ef17c73b1b.1436574843.git.daniel@iogearbox.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jul 15, 2015 at 07:10:29PM +0200, Jan Engelhardt wrote:
+On Sat, Jul 11, 2015 at 03:14:05AM +0200, Daniel Borkmann wrote:
+> This patch replaces the zone id which is pushed down into functions
+> with the actual zone object. It's a bigger one-time change, but
+> needed for later on extending zones with a direction parameter, and
+> thus decoupling this additional information from all call-sites.
 > 
-> On Wednesday 2015-07-15 18:55, Pablo Neira Ayuso wrote:
-> >> >> +-p esp -m esp;-p esp -m esp --espspi 0;FAIL
-> >> >>  -p esp -m esp;=;OK
-> >> >
-> >
-> >Given that this is changing the behaviour again, I would suggest that
-> >-p esp -m esp displays -p -m esp --espspi 0:4294967295 via
-> >iptables-save.
+> It was suggested during NFWS to let the nf_ct_zone() helper store
+> the meta data on the stack as we currently do, but in a similar
+> fashion as skb_header_pointer() does, so we can avoid keeping track
+> of the object lifetime. In general, dealing directly with the object
+> also facilitates for adding other possible meta data in future.
 > 
-> The printing via iptables -S was not the problem.
-> The patch is about that no AH/ESP packets were matched when using
-> just "-m esp" because of the implied --espspi 0:0.
+> No functional changes in this patch.
+[...]
+> diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+> index 80d5554..75f7860 100644
+> --- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+> +++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+> @@ -134,9 +134,10 @@ icmp_error_message(struct net *net, struct nf_conn *tmpl, struct sk_buff *skb,
+>  	struct nf_conntrack_tuple innertuple, origtuple;
+>  	const struct nf_conntrack_l4proto *innerproto;
+>  	const struct nf_conntrack_tuple_hash *h;
+> -	u16 zone = tmpl ? nf_ct_zone(tmpl) : NF_CT_DEFAULT_ZONE;
+> +	struct nf_conntrack_zone *zone, __zone;
+>  
+>  	NF_CT_ASSERT(skb->nfct == NULL);
+> +	zone = nf_ct_zone_tmpl(tmpl, &__zone);
 
-Without your patch:
+This was one possible idea, but I also suggested to have a dummy:
 
-iptables -A INPUT -p ah
+static const struct nf_ct_zone nf_ct_zone_dflt = {
+        .zone_id        = NF_CT_DEFAULT_ZONE,
+};
 
-# iptables-save
-...
--A INPUT -p ah -m ah --ahspi 0
-
-With your patch:
-
-iptables -A INPUT -p ah
-iptables -A INPUT -p ah --ahspi 0:4294967295
-# iptables-save
-...
--A INPUT -p ah -m ah
--A INPUT -p ah -m ah
-
-what I'm suggesting is that this prints what it indeed does:
-
-# iptables-save
-...
--A INPUT -p ah --ahspi 0:4294967295
+that we return in case no zone extension is set, and use it instead of
+your nf_ct_zone_dflt() function.
