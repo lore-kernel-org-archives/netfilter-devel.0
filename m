@@ -1,100 +1,61 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH -next 0/6] Per network namespace netfilter chains
-Date: Wed, 15 Jul 2015 19:20:38 +0200
-Message-ID: <20150715172038.GA4319@salvia>
-References: <87616ppt3h.fsf@x220.int.ebiederm.org>
- <87r3pae5hn.fsf@x220.int.ebiederm.org>
- <878uansj4d.fsf_-_@x220.int.ebiederm.org>
+Subject: Re: [PATCH 2/2] extensions: restore matching any SPI id by default
+Date: Wed, 15 Jul 2015 19:30:35 +0200
+Message-ID: <20150715173035.GA5675@salvia>
+References: <1436964819-28109-1-git-send-email-jengelh@inai.de>
+ <1436964819-28109-3-git-send-email-jengelh@inai.de>
+ <20150715162442.GA22476@salvia>
+ <alpine.LSU.2.20.1507151837110.15534@nerf40.vanv.qr>
+ <20150715165515.GA4177@salvia>
+ <alpine.LSU.2.20.1507151907560.1320@nerf40.vanv.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Jamal Hadi Salim <jhs@mojatatu.com>,
-	Steffen Klassert <steffen.klassert@secunet.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	David Miller <davem@davemloft.net>
-To: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54919 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56333 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751976AbbGORO4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jul 2015 13:14:56 -0400
+	id S1751764AbbGORYx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jul 2015 13:24:53 -0400
 Content-Disposition: inline
-In-Reply-To: <878uansj4d.fsf_-_@x220.int.ebiederm.org>
+In-Reply-To: <alpine.LSU.2.20.1507151907560.1320@nerf40.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jul 10, 2015 at 06:11:46PM -0500, Eric W. Biederman wrote:
+On Wed, Jul 15, 2015 at 07:10:29PM +0200, Jan Engelhardt wrote:
 > 
-> By maintining a set of functions to register and unregister netfilter
-> hooks both globally and per network namespace I have managed to write a
-> compact patchset that maintain per network netfilter chains, and
-> registers the nftables netfilter hooks per network namespace.
+> On Wednesday 2015-07-15 18:55, Pablo Neira Ayuso wrote:
+> >> >> +-p esp -m esp;-p esp -m esp --espspi 0;FAIL
+> >> >>  -p esp -m esp;=;OK
+> >> >
+> >
+> >Given that this is changing the behaviour again, I would suggest that
+> >-p esp -m esp displays -p -m esp --espspi 0:4294967295 via
+> >iptables-save.
+> 
+> The printing via iptables -S was not the problem.
+> The patch is about that no AH/ESP packets were matched when using
+> just "-m esp" because of the implied --espspi 0:0.
 
-Nice, thank you.
+Without your patch:
 
-It would be great to convert this to the for_each_net_rcu variant once
-we're sure this is safe.
+iptables -A INPUT -p ah
 
-> There are lots of other possible and desirable cleanups but this one is
-> a core change needed to make the other changes independent small
-> changes.
+# iptables-save
+...
+-A INPUT -p ah -m ah --ahspi 0
 
-The state->net field will kill that dev_net(...) ? x : y; all over the
-code, that would be nice.
+With your patch:
 
-Some comments on your patchset:
+iptables -A INPUT -p ah
+iptables -A INPUT -p ah --ahspi 0:4294967295
+# iptables-save
+...
+-A INPUT -p ah -m ah
+-A INPUT -p ah -m ah
 
-* 1/6 netfilter: nf_queue: Don't recompute the hook_list head
+what I'm suggesting is that this prints what it indeed does:
 
-I already passed this to current nf as you insisted on getting this,
-and for the sake of correctness, so it's basically already in David's
-net tree.
-
-* From 2 to 6, I have applied these series with small coding style
-  cleanups.
-
-- Add line break between variable declaration and body:
-
- +      struct list_head *nf_hook_list = &nf_hooks[pf][hook];
--+
- +      if (nf_hook_list_active(nf_hook_list, pf, hook)) {
-
-and here:
-
- int nft_register_basechain(struct nft_base_chain *basechain,
-                           unsigned int hook_nops)
-  {
- +      struct net *net = read_pnet(&basechain->pnet);
-++
-
-- Get rid of unnecessary parens:
-
--+      if ((reg->pf == NFPROTO_NETDEV) && (reg->hooknum == NF_NETDEV_INGRESS))
-++      if (reg->pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_INGRESS)
-
-- Get rid of unnecesary brackets:
-
--+      for_each_net(net) {
-++      for_each_net(net)
- +              nf_unregister_net_hook(net, reg);
--+      }
-
-and here:
-
--+      list_for_each_entry_continue_reverse(elem, &nf_hook_list, list) {
-++      list_for_each_entry_continue_reverse(elem, &nf_hook_list, list)
- +              nf_unregister_net_hook(net, elem);
--+      }
-
-I have pushed this to:
-
-http://git.kernel.org/cgit/linux/kernel/git/pablo/nf-next.git/log/?h=pending
-
-in case you want to have a closer look. Thank you.
+# iptables-save
+...
+-A INPUT -p ah --ahspi 0:4294967295
