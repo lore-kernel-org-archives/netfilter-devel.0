@@ -1,69 +1,38 @@
-From: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
-Subject: Re: [PATCH nf-next] netfilter: nf_ct_sctp: minimal multihoming
- support
-Date: Wed, 15 Jul 2015 18:45:40 +0200
-Message-ID: <20150715164540.GA4047@salvia>
-References: <20150714122311.8DA8EA0C9A@unicorn.suse.cz>
- <20150714153847.GA3507@salvia>
- <20150714162850.GA8478@unicorn.suse.cz>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 2/2] extensions: restore matching any SPI id by default
+Date: Wed, 15 Jul 2015 18:41:54 +0200 (CEST)
+Message-ID: <alpine.LSU.2.20.1507151837110.15534@nerf40.vanv.qr>
+References: <1436964819-28109-1-git-send-email-jengelh@inai.de> <1436964819-28109-3-git-send-email-jengelh@inai.de> <20150715162442.GA22476@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
-	linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>,
-	Jozsef Kadlecsik <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>,
-	"David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-To: Michal Kubecek <mkubecek-AlSwsSmVLrQ@public.gmane.org>
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150714162850.GA8478-OEaqT8BN2ewCVLCxKZUutA@public.gmane.org>
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ares41.inai.de ([46.4.122.207]:37401 "EHLO ares41.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751738AbbGOQl4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jul 2015 12:41:56 -0400
+In-Reply-To: <20150715162442.GA22476@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jul 14, 2015 at 06:28:50PM +0200, Michal Kubecek wrote:
-> On Tue, Jul 14, 2015 at 05:38:47PM +0200, Pablo Neira Ayuso wrote:
-> > On Tue, Jul 14, 2015 at 02:23:11PM +0200, Michal Kubecek wrote:
-> > > @@ -658,6 +696,18 @@ static struct ctl_table sctp_sysctl_table[] = {
-> > >  		.mode		= 0644,
-> > >  		.proc_handler	= proc_dointvec_jiffies,
-> > >  	},
-> > > +	{
-> > > +		.procname	= "nf_conntrack_sctp_timeout_heartbeat_sent",
-> > > +		.maxlen		= sizeof(unsigned int),
-> > > +		.mode		= 0644,
-> > > +		.proc_handler	= proc_dointvec_jiffies,
-> > > +	},
-> > > +	{
-> > > +		.procname	= "nf_conntrack_sctp_timeout_heartbeat_acked",
-> > > +		.maxlen		= sizeof(unsigned int),
-> > > +		.mode		= 0644,
-> > > +		.proc_handler	= proc_dointvec_jiffies,
-> > > +	},
-> > >  	{ }
-> > >  };
-> > >  
-> > > @@ -705,6 +755,18 @@ static struct ctl_table sctp_compat_sysctl_table[] = {
-> > >  		.mode		= 0644,
-> > >  		.proc_handler	= proc_dointvec_jiffies,
-> > >  	},
-> > > +	{
-> > > +		.procname	= "ip_conntrack_sctp_timeout_heartbeat_sent",
-> > > +		.maxlen		= sizeof(unsigned int),
-> > > +		.mode		= 0644,
-> > > +		.proc_handler	= proc_dointvec_jiffies,
-> > > +	},
-> > > +	{
-> > > +		.procname	= "ip_conntrack_sctp_timeout_heartbeat_acked",
-> > > +		.maxlen		= sizeof(unsigned int),
-> > > +		.mode		= 0644,
-> > > +		.proc_handler	= proc_dointvec_jiffies,
-> > > +	},
-> > >  	{ }
-> > 
-> > I don't see the nla_policy updates for the netlink cttimeout
-> > interface.
-> 
-> I didn't realize those were needed. It means adding two entries to
-> sctp_timeout_nla_policy and two values to enum ctattr_timeout_sctp?
 
-Exactly.
+On Wednesday 2015-07-15 18:24, Pablo Neira Ayuso wrote:
+>On Wed, Jul 15, 2015 at 02:53:39PM +0200, Jan Engelhardt wrote:
+>[...]
+>> diff --git a/extensions/libxt_esp.t b/extensions/libxt_esp.t
+>> index 008013b..f207def 100644
+>> --- a/extensions/libxt_esp.t
+>> +++ b/extensions/libxt_esp.t
+>> @@ -4,6 +4,7 @@
+>>  -p esp -m esp --espspi 0:4294967295;-p esp -m esp;OK
+>>  -p esp -m esp ! --espspi 0:4294967294;=;OK
+>>  -p esp -m esp --espspi -1;;FAIL
+>> +-p esp -m esp;-p esp -m esp --espspi 0;FAIL
+>>  # should fail?
+>>  -p esp -m esp;=;OK
+>
+>This line looks very similar to the one above the comment, but it says OK.
+
+Indeed the FAIL line is indeed mirroring the OK line, the latter of 
+which should have failed the testsuite previously.
