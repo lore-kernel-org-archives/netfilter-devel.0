@@ -1,36 +1,54 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next v2 3/3] netfilter: nf_conntrack: add efficient
- mark to zone mapping
-Date: Wed, 15 Jul 2015 19:50:56 +0200
-Message-ID: <20150715175056.GA7436@salvia>
-References: <cover.1436574843.git.daniel@iogearbox.net>
- <8b1e8907e8dd9a51f2e40b39cd5f5c2b0eae94fd.1436574843.git.daniel@iogearbox.net>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 2/2] extensions: restore matching any SPI id by default
+Date: Wed, 15 Jul 2015 19:46:05 +0200 (CEST)
+Message-ID: <alpine.LSU.2.20.1507151937160.528@nerf40.vanv.qr>
+References: <1436964819-28109-1-git-send-email-jengelh@inai.de> <1436964819-28109-3-git-send-email-jengelh@inai.de> <20150715162442.GA22476@salvia> <alpine.LSU.2.20.1507151837110.15534@nerf40.vanv.qr> <20150715165515.GA4177@salvia>
+ <alpine.LSU.2.20.1507151907560.1320@nerf40.vanv.qr> <20150715173035.GA5675@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: tgraf@suug.ch, challa@noironetworks.com,
-	netfilter-devel@vger.kernel.org
-To: Daniel Borkmann <daniel@iogearbox.net>
+Content-Type: text/plain; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59108 "EHLO mail.us.es"
+Received: from ares41.inai.de ([46.4.122.207]:37758 "EHLO ares41.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752943AbbGORpO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jul 2015 13:45:14 -0400
-Content-Disposition: inline
-In-Reply-To: <8b1e8907e8dd9a51f2e40b39cd5f5c2b0eae94fd.1436574843.git.daniel@iogearbox.net>
+	id S1752047AbbGORqH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jul 2015 13:46:07 -0400
+In-Reply-To: <20150715173035.GA5675@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jul 11, 2015 at 03:14:07AM +0200, Daniel Borkmann wrote:
-> This work adds the possibility of deriving the zone id from the skb->mark
-> field in a scalable manner. This allows for having only a single template
-> serving 100s .. 1000s of different zones, for example, instead of needing
-> to have one match for each zone as an extra CT jump target. Note that we'd
-> need to have this information attached to the template as at the time when
-> we're trying to lookup a possible ct object, we already need to know zone
-> information for a possible match when going into __nf_conntrack_find_get().
-> This work provides a minimal implementation for a possible mapping.
 
-I think connmark is a better place for this feature, given that the
-zone is a ct extension. Moreover, I guess it will not take long until
-someone sends us a patch to perform some bitwise operation to only
-fetch some of the skb->mark bits into the zone.
+On Wednesday 2015-07-15 19:30, Pablo Neira Ayuso wrote:
+>> The printing via iptables -S was not the problem.
+>> The patch is about that no AH/ESP packets were matched when using
+>> just "-m esp" because of the implied --espspi 0:0.
+>
+>Without your patch:
+>
+>iptables -A INPUT -p ah
+>
+># iptables-save
+>...
+>-A INPUT -p ah -m ah --ahspi 0
+
+That should not happen. -p implies -m only magically if one of the
+options is used, i.e. "-p ah" alone should never imply "-m ah".
+
+# XTABLES_LIBDIR=$PWD/extensions iptables/xtables-multi main4 -A z -p ah
+# XTABLES_LIBDIR=$PWD/extensions iptables/xtables-multi main4 -S z
+-N z
+-A z -p ah
+
+
+Second, without my patch:
+
+# XTABLES_LIBDIR=$PWD/extensions iptables/xtables-multi main4 -A z -p ah -m ah
+# XTABLES_LIBDIR=$PWD/extensions iptables/xtables-multi main4 -S z
+-A z -p ah -m ah --ahspi 0
+
+And that was the bug: --ahspi 0 is undesired behavior for when --ahspi
+is never specified.
+
+
+Printing it differently is a separate concern one can think about,
+but with a separate patch. :-)
