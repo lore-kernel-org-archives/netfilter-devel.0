@@ -1,79 +1,110 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: Re: [PATCH nf,v2] netfilter: fix netns dependencies with conntrack
- templates
-Date: Wed, 15 Jul 2015 22:15:08 +0200
-Message-ID: <55A6BF4C.7050202@iogearbox.net>
-References: <1436978355-3367-1-git-send-email-pablo@netfilter.org>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH -next 5/6] netfilter: Per network namespace netfilter hooks.
+Date: Wed, 15 Jul 2015 15:22:09 -0500
+Message-ID: <87twt5i32m.fsf@x220.int.ebiederm.org>
+References: <87616ppt3h.fsf@x220.int.ebiederm.org>
+	<87r3pae5hn.fsf@x220.int.ebiederm.org>
+	<878uansj4d.fsf_-_@x220.int.ebiederm.org>
+	<87fv4vr4ed.fsf_-_@x220.int.ebiederm.org>
+	<20150715190011.GA1203@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: fw@strlen.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
+Content-Type: text/plain
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Jamal Hadi Salim <jhs@mojatatu.com>,
+	Steffen Klassert <steffen.klassert@secunet.com>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	David Miller <davem@davemloft.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:54721 "EHLO
-	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753343AbbGOUPK (ORCPT
+Received: from out02.mta.xmission.com ([166.70.13.232]:46696 "EHLO
+	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752995AbbGOU2e (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jul 2015 16:15:10 -0400
-In-Reply-To: <1436978355-3367-1-git-send-email-pablo@netfilter.org>
+	Wed, 15 Jul 2015 16:28:34 -0400
+In-Reply-To: <20150715190011.GA1203@salvia> (Pablo Neira Ayuso's message of
+	"Wed, 15 Jul 2015 21:00:11 +0200")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 07/15/2015 06:39 PM, Pablo Neira Ayuso wrote:
-> From: Pablo Neira <pablo@netfilter.org>
->
-> Quoting Daniel Borkmann:
->
-> "When adding connection tracking template rules to a netns, f.e. to
-> configure netfilter zones, the kernel will endlessly busy-loop as soon
-> as we try to delete the given netns in case there's at least one
-> template present, which is problematic i.e. if there is such bravery that
-> the priviledged user inside the netns is assumed untrusted.
->
-> Minimal example:
->
->    ip netns add foo
->    ip netns exec foo iptables -t raw -A PREROUTING -d 1.2.3.4 -j CT --zone 1
->    ip netns del foo
->
-> What happens is that when nf_ct_iterate_cleanup() is being called from
-> nf_conntrack_cleanup_net_list() for a provided netns, we always end up
-> with a net->ct.count > 0 and thus jump back to i_see_dead_people. We
-> don't get a soft-lockup as we still have a schedule() point, but the
-> serving CPU spins on 100% from that point onwards.
->
-> Since templates are normally allocated with nf_conntrack_alloc(), we
-> also bump net->ct.count. The issue why they are not yet nf_ct_put() is
-> because the per netns .exit() handler from x_tables (which would eventually
-> invoke xt_CT's xt_ct_tg_destroy() that drops reference on info->ct) is
-> called in the dependency chain at a *later* point in time than the per
-> netns .exit() handler for the connection tracker.
->
-> This is clearly a chicken'n'egg problem: after the connection tracker
-> .exit() handler, we've teared down all the connection tracking
-> infrastructure already, so rightfully, xt_ct_tg_destroy() cannot be
-> invoked at a later point in time during the netns cleanup, as that would
-> lead to a use-after-free. At the same time, we cannot make x_tables depend
-> on the connection tracker module, so that the xt_ct_tg_destroy() would
-> be invoked earlier in the cleanup chain."
->
-> Daniel confirms this has to do with the order in which modules are loaded or
-> having compiled nf_conntrack as modules while x_tables built-in. So we have no
-> guarantees regarding the order in which netns callbacks are executed.
->
-> Fix this by allocating the templates through kmalloc() from the respective
-> SYNPROXY and CT targets, so they don't depend on the conntrack kmem cache.
-> Then, release then via kfree() from destroy_conntrack(). This branch is marked
-> as unlikely since conntrack templates are rarely allocated and only from the
-> configuration plane path.
->
-> Note that templates are not kept in any list to avoid further dependencies with
-> nf_conntrack anymore, thus, the tmpl larval list is removed.
+Pablo Neira Ayuso <pablo@netfilter.org> writes:
 
-Looks good to me, and fixes the issue I'm seeing, thanks Pablo!
+> On Fri, Jul 10, 2015 at 06:15:06PM -0500, Eric W. Biederman wrote:
+>> @@ -102,13 +112,35 @@ int nf_register_hook(struct nf_hook_ops *reg)
+>>  #endif
+>>  	return 0;
+>>  }
+>> -EXPORT_SYMBOL(nf_register_hook);
+>> +EXPORT_SYMBOL(nf_register_net_hook);
+>>  
+>> -void nf_unregister_hook(struct nf_hook_ops *reg)
+>> +void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
+>>  {
+>> +	struct list_head *nf_hook_list;
+>> +	struct nf_hook_ops *elem;
+>> +
+>> +	nf_hook_list = find_nf_hook_list(net, reg);
+>> +	if (!nf_hook_list)
+>> +		return;
+>> +
+>>  	mutex_lock(&nf_hook_mutex);
+>> -	list_del_rcu(&reg->list);
+>> +	list_for_each_entry(elem, nf_hook_list, list) {
+>> +		if ((reg->hook     == elem->hook) &&
+>> +		    (reg->dev      == elem->dev) &&
+>> +		    (reg->owner    == elem->owner) &&
+>> +		    (reg->priv     == elem->priv) &&
+>> +		    (reg->pf       == elem->pf) &&
+>> +		    (reg->hooknum  == elem->hooknum) &&
+>> +		    (reg->priority == elem->priority)) {
+>> +			list_del_rcu(&elem->list);
+>> +			break;
+>> +		}
+>> +	}
+>
+> I think I found a problem with this code above.
+>
+> If we register two hooks from the same module using exactly the same
+> tuple that identifies this, we delete the hook that we don't want, eg.
+>
+>         nft add table filter
+>         nft add chain filter test { type filter hook input priority 0\; }
+>         nft add chain filter test2 { type filter hook input priority 0\; }
+>
+> then, you delete 'test':
+>
+>         nft delete chain filter test
+>
+> This will delete 'test2' hook instead of 'test' as it will find this
+> in first place on the list.
 
-> Reported-by: Daniel Borkmann <daniel@iogearbox.net>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+So we have two adjacent entries on the same chain that perform the exact
+same action.  We delete one of them.
 
-Tested-by: Daniel Borkmann <daniel@iogearbox.net>
+I do not see how that is noticable.  Registration order plays a small
+role but especially with the priority bit we don't strongly honor
+registration order.
+
+In your example above we will distinguish between the two chains
+as nf_hook_ops->priv will point the nf tables chain.   So that specific
+case is at least safe.
+
+> I think we should add a cookie field that stores the address of the
+> original hook object that is passed as parameter, so we are sure we
+> kill the right hook.
+
+I don't believe that is necessary.  To the best of my knowledge for a
+registration to be meaningful we must always change at least one of
+those fields I am comparing.  Typically either priv or hook.
+
+It is a real change from what we have been doing but there is a lot
+of freedom in not needing to keep the original structure around.
+
+Eric
+
