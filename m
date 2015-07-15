@@ -1,54 +1,42 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH 2/2] extensions: restore matching any SPI id by default
-Date: Wed, 15 Jul 2015 19:46:05 +0200 (CEST)
-Message-ID: <alpine.LSU.2.20.1507151937160.528@nerf40.vanv.qr>
-References: <1436964819-28109-1-git-send-email-jengelh@inai.de> <1436964819-28109-3-git-send-email-jengelh@inai.de> <20150715162442.GA22476@salvia> <alpine.LSU.2.20.1507151837110.15534@nerf40.vanv.qr> <20150715165515.GA4177@salvia>
- <alpine.LSU.2.20.1507151907560.1320@nerf40.vanv.qr> <20150715173035.GA5675@salvia>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH -next v2 0/6] netfilter: xtables: improve jumpstack
+ handling
+Date: Wed, 15 Jul 2015 20:52:24 +0200
+Message-ID: <20150715185224.GJ25674@breakpoint.cc>
+References: <1436889071-3637-1-git-send-email-fw@strlen.de>
+ <20150715171749.GA4707@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	eric.dumazet@gmail.com
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:37758 "EHLO ares41.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752047AbbGORqH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jul 2015 13:46:07 -0400
-In-Reply-To: <20150715173035.GA5675@salvia>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53331 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752747AbbGOSw0 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jul 2015 14:52:26 -0400
+Content-Disposition: inline
+In-Reply-To: <20150715171749.GA4707@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> If we take this patch into the tree, I'd wait for quite some time to
+> make sure nobody barfs to us with problems, so we can revert it.
+> 
+> Otherwise, the (unlikely) scenario would require several reverts in a
+> row, starting from this to further suggested enhancements, right?
 
-On Wednesday 2015-07-15 19:30, Pablo Neira Ayuso wrote:
->> The printing via iptables -S was not the problem.
->> The patch is about that no AH/ESP packets were matched when using
->> just "-m esp" because of the implied --espspi 0:0.
->
->Without your patch:
->
->iptables -A INPUT -p ah
->
-># iptables-save
->...
->-A INPUT -p ah -m ah --ahspi 0
+Yes, thats exactly the problem.
+So for example if we'd switch to allocating the jumpstack in the percpu
+area (rather than just a pointer as we do now) we would need to revert
+that since percpu allocations have sie limitations (64k max iirc).
 
-That should not happen. -p implies -m only magically if one of the
-options is used, i.e. "-p ah" alone should never imply "-m ah".
+HOWEVER, the real problem is -- if you apply this, how long would
+you propose to wait before we would leverage the limitation in further
+patches?
 
-# XTABLES_LIBDIR=$PWD/extensions iptables/xtables-multi main4 -A z -p ah
-# XTABLES_LIBDIR=$PWD/extensions iptables/xtables-multi main4 -S z
--N z
--A z -p ah
+I'd say 3 years minimum, and I'd rather see nft ready by then :)
 
-
-Second, without my patch:
-
-# XTABLES_LIBDIR=$PWD/extensions iptables/xtables-multi main4 -A z -p ah -m ah
-# XTABLES_LIBDIR=$PWD/extensions iptables/xtables-multi main4 -S z
--A z -p ah -m ah --ahspi 0
-
-And that was the bug: --ahspi 0 is undesired behavior for when --ahspi
-is never specified.
-
-
-Printing it differently is a separate concern one can think about,
-but with a separate patch. :-)
+So I'd say drop patch 6.
