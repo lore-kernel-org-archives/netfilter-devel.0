@@ -1,54 +1,119 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv2 nf] netfilter: bridge: fix IPv6 packets not being
- bridged with CONFIG_IPV6=n
-Date: Thu, 16 Jul 2015 13:17:32 +0200
-Message-ID: <20150716111732.GB3920@salvia>
-References: <20150715174702.GA7407@salvia>
- <1437006884-11116-1-git-send-email-bernhard.thaler@wvnet.at>
+From: Michal Kubecek <mkubecek@suse.cz>
+Subject: Re: [PATCH nf-next] netfilter: nf_ct_sctp: minimal multihoming
+ support
+Date: Thu, 16 Jul 2015 14:05:12 +0200
+Message-ID: <20150716120512.GA7200@unicorn.suse.cz>
+References: <20150714122311.8DA8EA0C9A@unicorn.suse.cz>
+ <20150714134203.GG25674@breakpoint.cc>
+ <20150714164225.GB8478@unicorn.suse.cz>
+ <20150715203508.GA14704@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org
-To: Bernhard Thaler <bernhard.thaler@wvnet.at>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34018 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750769AbbGPLMI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jul 2015 07:12:08 -0400
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-api@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>
+To: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1437006884-11116-1-git-send-email-bernhard.thaler@wvnet.at>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20150715203508.GA14704@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jul 16, 2015 at 02:34:44AM +0200, Bernhard Thaler wrote:
-[...]
-> * checkpatch.pl throws error "ERROR: do not initialise statics to 0 or NULL"
-> but left for consistency with similar declarations
+On Wed, Jul 15, 2015 at 05:35:08PM -0300, Marcelo Ricardo Leitner wrote:
+> Hi,
+> 
+> On Tue, Jul 14, 2015 at 06:42:25PM +0200, Michal Kubecek wrote:
+> > On Tue, Jul 14, 2015 at 03:42:03PM +0200, Florian Westphal wrote:
+> > > Michal Kubecek <mkubecek@suse.cz> wrote:
+> > > > +	case SCTP_CID_HEARTBEAT:
+> > > > +		pr_debug("SCTP_CID_HEARTBEAT");
+> > > > +		i = 9;
+> > > > +		break;
+> > > > +	case SCTP_CID_HEARTBEAT_ACK:
+> > > > +		pr_debug("SCTP_CID_HEARTBEAT_ACK");
+> > > > +		i = 10;
+> > > > +		break;
+> > > >  	default:
+> > > >  		/* Other chunks like DATA, SACK, HEARTBEAT and
+> > > >  		its ACK do not cause a change in state */
+> > > > @@ -329,6 +351,8 @@ static int sctp_packet(struct nf_conn *ct,
+> > > >  	    !test_bit(SCTP_CID_COOKIE_ECHO, map) &&
+> > > >  	    !test_bit(SCTP_CID_ABORT, map) &&
+> > > >  	    !test_bit(SCTP_CID_SHUTDOWN_ACK, map) &&
+> > > > +	    !test_bit(SCTP_CID_HEARTBEAT, map) &&
+> > > > +	    !test_bit(SCTP_CID_HEARTBEAT_ACK, map) &&
+> > > >  	    sh->vtag != ct->proto.sctp.vtag[dir]) {
+> > > >  		pr_debug("Verification tag check failed\n");
+> > > >  		goto out;
+> > > > @@ -357,6 +381,16 @@ static int sctp_packet(struct nf_conn *ct,
+> > > >  			/* Sec 8.5.1 (D) */
+> > > >  			if (sh->vtag != ct->proto.sctp.vtag[dir])
+> > > >  				goto out_unlock;
+> > > > +		} else if (sch->type == SCTP_CID_HEARTBEAT ||
+> > > > +			   sch->type == SCTP_CID_HEARTBEAT_ACK) {
+> > > > +			if (ct->proto.sctp.vtag[dir] == 0) {
+> > > > +				pr_debug("Setting vtag %x for dir %d\n",
+> > > > +					 sh->vtag, dir);
+> > > > +				ct->proto.sctp.vtag[dir] = sh->vtag;
+> > > 
+> > > Could you please elaborate on the [dir] == 0 test?
+> > > 
+> > > I see this might happen for SCTP_CID_HEARTBEAT_ACK, but why is this
+> > > needed for SCTP_CID_HEARTBEAT ?
+> > > 
+> > > We found a conntrack entry so shouldn't the vtag[dir] already be > 0?
+> > 
+> > Yes, you are right. This was originally intended to handle the case when
+> > a HEARTBEAT in the reply direction is seen before the HEARTBEAT-ACK but
+> > such HEARTBEAT would be dropped anyway in current version.
+> 
+> And we have to keep the first vtag attempted because otherwise an
+> attacker could just probe for the right one until she gets a reply.
+> 
+> IOW, if a different vtag is attempted, we should drop it as the packet
+> doesn't belong to that association/conntrack entry.
+> 
+> As vtags are always != 0 in such case, that's a way to know if we
+> already have that information or not.
+> 
+> > On the other hand, an alternative would be
+> > 
+> > 		} else if (sch->type == SCTP_CID_HEARTBEAT_ACK &&
+> > 			   ct->proto.sctp.vtag[dir] == 0) {
+> > 			pr_debug("Setting vtag %x for dir %d\n",
+> > 				 sh->vtag, dir);
+> > 			ct->proto.sctp.vtag[dir] = sh->vtag;
+> > 		} else if ((sch->type == SCTP_CID_HEARTBEAT ||
+> > 			    sch->type == SCTP_CID_HEARTBEAT_ACK) &&
+> > 			   sh->vtag != ct->proto.sctp.vtag[dir]) {
+> > 			pr_debug("Verification tag check failed\n");
+> > 			goto out_unlock;
+> > 		}
+> > 
+> > I'm not sure it looks better.
+> 
+> Now it seems swapped, we should save the tag on HB and check on
+> HB_ACK only and would have to check against !dir entry. Like:
 
-I'd appreciate if you can address this in first place, so we don't have
-to undo what we've just done for the ip6tables LOCs.
+I forgot to include the explanation of vtag setting/checking logic into
+the commit message. It is supposed to work like this:
 
-> * dependency to CONFIG_IPV6 instead of CONFIG_IP6_NF_IPTABLES would be more
->   "conservative" approach as br_netfilter_ipv6.o was introduced due to
->   dependencies in br_validate_ipv6() to CONFIG_IPV6; but CONFIG_IP6_NF_IPTABLES
->   will be needed for ip6tables so this dependency may be more "holistic"
+Normally, vtag is set from the INIT chunk for the reply direction and
+from the INIT-ACK chunk for the originating direction (i.e. each of
+these defines vtag value for the opposite direction). For secondary
+conntracks, we can't rely on seeing INIT/INIT-ACK and even if we have
+seen them, we would need to connect two different conntracks. Therefore
+simplified logic is applied: vtag of first packet in each direction
+(HEARTBEAT in the originating and HEARTBEAT-ACK in reply direction) is
+saved and all following packets in that direction are compared with this
+saved value. While INIT and INIT-ACK define vtag for the opposite
+direction (that's where "!dir" comes from), vtags extracted from
+HEARTBEAT and HEARTBEAT-ACK are always for their direction. And we have
+to check vtags on packets with HEARTBEAT chunks as well because their
+vtags should match vtag of the first (set in sctp_new()).
 
-I'm fine if you want to restrict this to ip6tables. This may break
-out-of-tree modules since they may be relying on these hooks, but we
-don't care about those.
-
-I think this s/CONFIG_IPV6/CONFIG_IP6_NF_IPTABLES should come in a
-separated patch, just after the one that removes the checkpatch
-errors I'd suggest.
-
-> * CONFIG_IP6_NF_IPTABLES=n makes br_validate_ipv6() being imported from
->   br_netfilter.h; it is used in br_netfilter_hooks.c within br_nf_forward_ip()
->   and br_nf_dev_queue_xmit() and returns -1 which will lead to NF_DROP;
->   After defaulting /proc/sys/net/bridge/bridge-nf-call-ip6tables to 0 with
->   CONFIG_IP6_NF_IPTABLES=n these two functions me never see IPV6 packets and 
->   therefore this may not be a problem; I was not able to fully confirm this
-
-It would be great if you can reduce #ifdef pollution. Now that we have
-a br_netfilter_ipv6.c file, I think it should be possible to move the
-IPv6 specific code there, at least the /proc code chunk.
-
-Could you have a look into this? Thanks!
+                                                          Michal Kubecek
