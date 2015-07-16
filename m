@@ -1,48 +1,43 @@
-From: Michal Kubecek <mkubecek-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [PATCH nf-next] netfilter: nf_ct_sctp: minimal multihoming
- support
-Date: Thu, 16 Jul 2015 18:13:42 +0200
-Message-ID: <20150716161342.GA17960@unicorn.suse.cz>
-References: <20150714122311.8DA8EA0C9A@unicorn.suse.cz>
- <20150716135059.GB14704@localhost.localdomain>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: nft: meta l4proto range printing broken on 32bit
+Date: Thu, 16 Jul 2015 18:54:05 +0200
+Message-ID: <20150716165405.GA4140@salvia>
+References: <20150716133929.GK25674@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
-	linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>,
-	Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>,
-	Jozsef Kadlecsik <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>,
-	"David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-To: Marcelo Ricardo Leitner <marcelo.leitner-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:48872 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755711AbbGPQsZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Jul 2015 12:48:25 -0400
 Content-Disposition: inline
-In-Reply-To: <20150716135059.GB14704-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20150716133929.GK25674@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 16, 2015 at 10:50:59AM -0300, Marcelo Ricardo Leitner wrote:
-> On Tue, Jul 14, 2015 at 02:23:11PM +0200, Michal Kubecek wrote:
-> > @@ -278,6 +292,14 @@ static int sctp_new_state(enum ip_conntrack_dir dir,
-> >  		pr_debug("SCTP_CID_SHUTDOWN_COMPLETE\n");
-> >  		i = 8;
-> >  		break;
-> > +	case SCTP_CID_HEARTBEAT:
-> > +		pr_debug("SCTP_CID_HEARTBEAT");
-> > +		i = 9;
-> > +		break;
-> > +	case SCTP_CID_HEARTBEAT_ACK:
-> > +		pr_debug("SCTP_CID_HEARTBEAT_ACK");
-> > +		i = 10;
-> > +		break;
-> >  	default:
-> >  		/* Other chunks like DATA, SACK, HEARTBEAT and
-> >  		its ACK do not cause a change in state */
+On Thu, Jul 16, 2015 at 03:39:29PM +0200, Florian Westphal wrote:
+> Hi Pablo
 > 
-> Would you update this comment on default case please? As with this
-> patch, HB and its ACK may cause a change in state.
+> 09565a4b1ed4863d44c4509a93c50f44efd12771
+> (netlink_delinearize: consolidate range printing) causes nft
+> to segfault on 32bit machine when printing l4proto ranges.
+> 
+> The problem is that meta_expr_pctx_update() assumes that
+> right is a value, but after this change it can also be a value.
+> 
+> Thus, expr->value contents are undefined (its union).
+> On x86_64 this is also broken but by virtue of struct layout
+> and pointer sizes, value->_mp_size will almost always be 0
+> so mpz_get_uint8() returns 0.
+> 
+> But on x86-32 _mp_size will be huge value (contains expr->right pointer
+> of range), so we crash in libgmp.
 
-Thank you for catching this. I'll update the comment in v2 I'm going to
-send tomorrow after some testing.
+Good catch. Could you give a try to this patch instead?
 
-                                                         Michal Kubecek
+We shouldn't call pctx_update(), before the transformation we had
+there a expr->op == { OP_GT, OP_GTE, OP_LT, OP_LTE }. So we never
+entered that path as the assert in payload_expr_pctx_update()
+indicates.
