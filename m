@@ -1,143 +1,176 @@
-From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Subject: Re: [PATCH nf-next] netfilter: nf_ct_sctp: minimal multihoming
- support
-Date: Wed, 15 Jul 2015 17:35:08 -0300
-Message-ID: <20150715203508.GA14704@localhost.localdomain>
-References: <20150714122311.8DA8EA0C9A@unicorn.suse.cz>
- <20150714134203.GG25674@breakpoint.cc>
- <20150714164225.GB8478@unicorn.suse.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-api@vger.kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>
-To: Michal Kubecek <mkubecek@suse.cz>
+From: Bernhard Thaler <bernhard.thaler@wvnet.at>
+Subject: [PATCHv2 nf] netfilter: bridge: fix IPv6 packets not being bridged with CONFIG_IPV6=n
+Date: Thu, 16 Jul 2015 02:34:44 +0200
+Message-ID: <1437006884-11116-1-git-send-email-bernhard.thaler@wvnet.at>
+References: <20150715174702.GA7407@salvia>
+Cc: netfilter-devel@vger.kernel.org,
+	Bernhard Thaler <bernhard.thaler@wvnet.at>
+To: pablo@netfilter.org, kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52891 "EHLO mx1.redhat.com"
+Received: from mx-out.wvnet.at ([62.212.170.133]:8439 "EHLO mx-out.wvnet.at"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753239AbbGOUfM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jul 2015 16:35:12 -0400
-Content-Disposition: inline
-In-Reply-To: <20150714164225.GB8478@unicorn.suse.cz>
+	id S1754437AbbGPAfb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jul 2015 20:35:31 -0400
+Received: from smtp.wvnet.at (localhost [127.0.0.1])
+	by mx-out.wvnet.at (Postfix) with ESMTP id 65C9C1BCCD4E
+	for <netfilter-devel@vger.kernel.org>; Thu, 16 Jul 2015 02:35:27 +0200 (CEST)
+In-Reply-To: <20150715174702.GA7407@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+230ac490f7fba introduced a dependency to CONFIG_IPV6 which breaks bridging
+of IPv6 packets on a bridge with CONFIG_IPV6=n. This is due to the default
+value 1 for sysctl entry /proc/sys/net/bridge/bridge-nf-call-ip6tables,
+manually setting it to 0 makes IPv6 packets traverse bridge again.
 
-On Tue, Jul 14, 2015 at 06:42:25PM +0200, Michal Kubecek wrote:
-> On Tue, Jul 14, 2015 at 03:42:03PM +0200, Florian Westphal wrote:
-> > Michal Kubecek <mkubecek@suse.cz> wrote:
-> > > +	case SCTP_CID_HEARTBEAT:
-> > > +		pr_debug("SCTP_CID_HEARTBEAT");
-> > > +		i = 9;
-> > > +		break;
-> > > +	case SCTP_CID_HEARTBEAT_ACK:
-> > > +		pr_debug("SCTP_CID_HEARTBEAT_ACK");
-> > > +		i = 10;
-> > > +		break;
-> > >  	default:
-> > >  		/* Other chunks like DATA, SACK, HEARTBEAT and
-> > >  		its ACK do not cause a change in state */
-> > > @@ -329,6 +351,8 @@ static int sctp_packet(struct nf_conn *ct,
-> > >  	    !test_bit(SCTP_CID_COOKIE_ECHO, map) &&
-> > >  	    !test_bit(SCTP_CID_ABORT, map) &&
-> > >  	    !test_bit(SCTP_CID_SHUTDOWN_ACK, map) &&
-> > > +	    !test_bit(SCTP_CID_HEARTBEAT, map) &&
-> > > +	    !test_bit(SCTP_CID_HEARTBEAT_ACK, map) &&
-> > >  	    sh->vtag != ct->proto.sctp.vtag[dir]) {
-> > >  		pr_debug("Verification tag check failed\n");
-> > >  		goto out;
-> > > @@ -357,6 +381,16 @@ static int sctp_packet(struct nf_conn *ct,
-> > >  			/* Sec 8.5.1 (D) */
-> > >  			if (sh->vtag != ct->proto.sctp.vtag[dir])
-> > >  				goto out_unlock;
-> > > +		} else if (sch->type == SCTP_CID_HEARTBEAT ||
-> > > +			   sch->type == SCTP_CID_HEARTBEAT_ACK) {
-> > > +			if (ct->proto.sctp.vtag[dir] == 0) {
-> > > +				pr_debug("Setting vtag %x for dir %d\n",
-> > > +					 sh->vtag, dir);
-> > > +				ct->proto.sctp.vtag[dir] = sh->vtag;
-> > 
-> > Could you please elaborate on the [dir] == 0 test?
-> > 
-> > I see this might happen for SCTP_CID_HEARTBEAT_ACK, but why is this
-> > needed for SCTP_CID_HEARTBEAT ?
-> > 
-> > We found a conntrack entry so shouldn't the vtag[dir] already be > 0?
-> 
-> Yes, you are right. This was originally intended to handle the case when
-> a HEARTBEAT in the reply direction is seen before the HEARTBEAT-ACK but
-> such HEARTBEAT would be dropped anyway in current version.
+Default /proc/sys/net/bridge/bridge-nf-call-ip6tables to 0 if
+CONFIG_IP6_NF_IPTABLES is enabled as CONFIG_IP6_NF_IPTABLES is dependent on
+CONFIG_IPV6 as well and is needed for ip6tales to work correclty anyway.
 
-And we have to keep the first vtag attempted because otherwise an
-attacker could just probe for the right one until she gets a reply.
+Do not expose sysctl entry /proc/sys/net/bridge/bridge-nf-call-ip6tables
+and sysfs entry /sys/class/net/brXXX/bridge/nf_call_ip6tables if
+CONFIG_IP6_NF_IPTABLES is not enabled.
 
-IOW, if a different vtag is attempted, we should drop it as the packet
-doesn't belong to that association/conntrack entry.
+Make br_netfilter_ipv6.o dependent on CONFIG_IP6_NF_IPTABLES instead of
+CONFIG_IPV6.
 
-As vtags are always != 0 in such case, that's a way to know if we
-already have that information or not.
+Tested with a simple bridge with two interfaces and IPv6 packets trying
+to pass from host of left side to host on right side of the bridge.
 
-> On the other hand, an alternative would be
-> 
-> 		} else if (sch->type == SCTP_CID_HEARTBEAT_ACK &&
-> 			   ct->proto.sctp.vtag[dir] == 0) {
-> 			pr_debug("Setting vtag %x for dir %d\n",
-> 				 sh->vtag, dir);
-> 			ct->proto.sctp.vtag[dir] = sh->vtag;
-> 		} else if ((sch->type == SCTP_CID_HEARTBEAT ||
-> 			    sch->type == SCTP_CID_HEARTBEAT_ACK) &&
-> 			   sh->vtag != ct->proto.sctp.vtag[dir]) {
-> 			pr_debug("Verification tag check failed\n");
-> 			goto out_unlock;
-> 		}
-> 
-> I'm not sure it looks better.
+Fixes: 230ac490f7fba ("netfilter: bridge: split ipv6 code into separated file")
 
-Now it seems swapped, we should save the tag on HB and check on
-HB_ACK only and would have to check against !dir entry. Like:
+Signed-off-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
+---
+NOTE:
+* checkpatch.pl throws error "ERROR: do not initialise statics to 0 or NULL"
+but left for consistency with similar declarations
+* dependency to CONFIG_IPV6 instead of CONFIG_IP6_NF_IPTABLES would be more
+  "conservative" approach as br_netfilter_ipv6.o was introduced due to
+  dependencies in br_validate_ipv6() to CONFIG_IPV6; but CONFIG_IP6_NF_IPTABLES
+  will be needed for ip6tables so this dependency may be more "holistic"
+* CONFIG_IP6_NF_IPTABLES=n makes br_validate_ipv6() being imported from
+  br_netfilter.h; it is used in br_netfilter_hooks.c within br_nf_forward_ip()
+  and br_nf_dev_queue_xmit() and returns -1 which will lead to NF_DROP;
+  After defaulting /proc/sys/net/bridge/bridge-nf-call-ip6tables to 0 with
+  CONFIG_IP6_NF_IPTABLES=n these two functions me never see IPV6 packets and 
+  therefore this may not be a problem; I was not able to fully confirm this
 
-comments with // here are just informative on this email and may not
-necessary in the code
+Patch history
 
- 		} else if (sch->type == SCTP_CID_HEARTBEAT)
-			if (!sh->vtag || sh->vtag != ct->proto.sctp.vtag[!dir]) {
-				/* Invalid */
-				goto out_unlock;
-			}
- 			else if (!ct->proto.sctp.vtag[!dir]) {
- 				pr_debug("Setting vtag %x for dir %d\n",
- 					 sh->vtag, dir);
-				// by saving it on !dir direction, we
-				// don't have to enable HB_ACK on that
-				// if() above of exceptions, just HB
-				// itself
- 				ct->proto.sctp.vtag[!dir] = sh->vtag;
-			}
-			// fallthrough: no action because it's a vtag we
-			// have already seen
- 		} else if (sch->type == SCTP_CID_HEARTBEAT_ACK) {
-			// it's guaranteed tht sh->vtag == ct->proto.sctp.vtag[dir]
-			// by the if() of the exceptions above, so we
-			// just have to check for vtag == 0
- 			if (!sh->vtag) {
-	 			pr_debug("Verification tag check failed\n");
- 				goto out_unlock;
-			}
-			// ok, it's hand-shaked, now save it on the
-			// other direction too so that further packets
-			// can pass that check
-			// if there was a vtag crossed some when, we
-			// don't care as this one is now established.
- 			ct->proto.sctp.vtag[dir] = sh->vtag;
- 		}
+v2
+* do not expose sysfs and sysctl if CONFIG_IP6_NF_IPTABLES=n 
+* change dependency to CONFIG_IP6_NF_IPTABLES as suggested by Florian Westphal
+* removed changes to br_validate_ipv6() in br_netfilter.h as test show it may
+  not be needed
 
-I was also working on such implementation. Please give me some time to
-map one thing to another. 
+v1
+* sysfs and sysctl entry were exposed but not writeable if CONFIG_IPV6=n
 
-  Marcelo
+ include/net/netfilter/br_netfilter.h |    2 +-
+ net/bridge/Makefile                  |    2 +-
+ net/bridge/br_netfilter_hooks.c      |   10 ++++++++++
+ net/bridge/br_sysfs_br.c             |    4 ++++
+ 4 files changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/include/net/netfilter/br_netfilter.h b/include/net/netfilter/br_netfilter.h
+index bab824b..0efbb26 100644
+--- a/include/net/netfilter/br_netfilter.h
++++ b/include/net/netfilter/br_netfilter.h
+@@ -44,7 +44,7 @@ static inline struct rtable *bridge_parent_rtable(const struct net_device *dev)
+ struct net_device *setup_pre_routing(struct sk_buff *skb);
+ void br_netfilter_enable(void);
+ 
+-#if IS_ENABLED(CONFIG_IPV6)
++#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ int br_validate_ipv6(struct sk_buff *skb);
+ unsigned int br_nf_pre_routing_ipv6(const struct nf_hook_ops *ops,
+ 				    struct sk_buff *skb,
+diff --git a/net/bridge/Makefile b/net/bridge/Makefile
+index a1cda5d..3fd8beb 100644
+--- a/net/bridge/Makefile
++++ b/net/bridge/Makefile
+@@ -13,7 +13,7 @@ bridge-$(CONFIG_SYSFS) += br_sysfs_if.o br_sysfs_br.o
+ bridge-$(subst m,y,$(CONFIG_BRIDGE_NETFILTER)) += br_nf_core.o
+ 
+ br_netfilter-y := br_netfilter_hooks.o
+-br_netfilter-$(subst m,y,$(CONFIG_IPV6)) += br_netfilter_ipv6.o
++br_netfilter-$(subst m,y,$(CONFIG_IP6_NF_IPTABLES)) += br_netfilter_ipv6.o
+ obj-$(CONFIG_BRIDGE_NETFILTER) += br_netfilter.o
+ 
+ bridge-$(CONFIG_BRIDGE_IGMP_SNOOPING) += br_multicast.o br_mdb.o
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index c8b9bcf..29993e8 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -47,14 +47,22 @@
+ #ifdef CONFIG_SYSCTL
+ static struct ctl_table_header *brnf_sysctl_header;
+ static int brnf_call_iptables __read_mostly = 1;
++#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ static int brnf_call_ip6tables __read_mostly = 1;
++#else
++static int brnf_call_ip6tables __read_mostly = 0;
++#endif
+ static int brnf_call_arptables __read_mostly = 1;
+ static int brnf_filter_vlan_tagged __read_mostly = 0;
+ static int brnf_filter_pppoe_tagged __read_mostly = 0;
+ static int brnf_pass_vlan_indev __read_mostly = 0;
+ #else
+ #define brnf_call_iptables 1
++#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ #define brnf_call_ip6tables 1
++#else
++#define brnf_call_ip6tables 0
++#endif
+ #define brnf_call_arptables 1
+ #define brnf_filter_vlan_tagged 0
+ #define brnf_filter_pppoe_tagged 0
+@@ -986,6 +994,7 @@ static struct ctl_table brnf_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= brnf_sysctl_call_tables,
+ 	},
++#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ 	{
+ 		.procname	= "bridge-nf-call-ip6tables",
+ 		.data		= &brnf_call_ip6tables,
+@@ -993,6 +1002,7 @@ static struct ctl_table brnf_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= brnf_sysctl_call_tables,
+ 	},
++#endif
+ 	{
+ 		.procname	= "bridge-nf-filter-vlan-tagged",
+ 		.data		= &brnf_filter_vlan_tagged,
+diff --git a/net/bridge/br_sysfs_br.c b/net/bridge/br_sysfs_br.c
+index 4c97fc5..6113928 100644
+--- a/net/bridge/br_sysfs_br.c
++++ b/net/bridge/br_sysfs_br.c
+@@ -651,6 +651,7 @@ static ssize_t nf_call_iptables_store(
+ }
+ static DEVICE_ATTR_RW(nf_call_iptables);
+ 
++#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ static ssize_t nf_call_ip6tables_show(
+ 	struct device *d, struct device_attribute *attr, char *buf)
+ {
+@@ -671,6 +672,7 @@ static ssize_t nf_call_ip6tables_store(
+ 	return store_bridge_parm(d, buf, len, set_nf_call_ip6tables);
+ }
+ static DEVICE_ATTR_RW(nf_call_ip6tables);
++#endif
+ 
+ static ssize_t nf_call_arptables_show(
+ 	struct device *d, struct device_attribute *attr, char *buf)
+@@ -781,7 +783,9 @@ static struct attribute *bridge_attrs[] = {
+ #endif
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ 	&dev_attr_nf_call_iptables.attr,
++#if IS_ENABLED(CONFIG_IP6_NF_IPTABLES)
+ 	&dev_attr_nf_call_ip6tables.attr,
++#endif
+ 	&dev_attr_nf_call_arptables.attr,
+ #endif
+ #ifdef CONFIG_BRIDGE_VLAN_FILTERING
+-- 
+1.7.10.4
 
