@@ -1,74 +1,54 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH -next 0/6] Per network namespace netfilter chains
-Date: Thu, 16 Jul 2015 13:01:46 +0200
-Message-ID: <20150716110146.GA3920@salvia>
-References: <87616ppt3h.fsf@x220.int.ebiederm.org>
- <87r3pae5hn.fsf@x220.int.ebiederm.org>
- <878uansj4d.fsf_-_@x220.int.ebiederm.org>
- <20150715172038.GA4319@salvia>
- <87vbdljifn.fsf@x220.int.ebiederm.org>
+Subject: Re: [PATCHv2 nf] netfilter: bridge: fix IPv6 packets not being
+ bridged with CONFIG_IPV6=n
+Date: Thu, 16 Jul 2015 13:17:32 +0200
+Message-ID: <20150716111732.GB3920@salvia>
+References: <20150715174702.GA7407@salvia>
+ <1437006884-11116-1-git-send-email-bernhard.thaler@wvnet.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	Juanjo Ciarlante <jjciarla@raiz.uncu.edu.ar>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Jamal Hadi Salim <jhs@mojatatu.com>,
-	Steffen Klassert <steffen.klassert@secunet.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	David Miller <davem@davemloft.net>
-To: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org
+To: Bernhard Thaler <bernhard.thaler@wvnet.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56673 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34018 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752804AbbGPK4E (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jul 2015 06:56:04 -0400
+	id S1750769AbbGPLMI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Jul 2015 07:12:08 -0400
 Content-Disposition: inline
-In-Reply-To: <87vbdljifn.fsf@x220.int.ebiederm.org>
+In-Reply-To: <1437006884-11116-1-git-send-email-bernhard.thaler@wvnet.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jul 15, 2015 at 03:05:00PM -0500, Eric W. Biederman wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> writes:
+On Thu, Jul 16, 2015 at 02:34:44AM +0200, Bernhard Thaler wrote:
 [...]
-> >> There are lots of other possible and desirable cleanups but this one is
-> >> a core change needed to make the other changes independent small
-> >> changes.
-> >
-> > The state->net field will kill that dev_net(...) ? x : y; all over the
-> > code, that would be nice.
-> 
-> Yes it will.  I intend to do that after this patchset settles so I am
-> not dealing with more than one issue at a time.  Otherwise there
-> is too much work at once.
+> * checkpatch.pl throws error "ERROR: do not initialise statics to 0 or NULL"
+> but left for consistency with similar declarations
 
-Sure, thanks.
+I'd appreciate if you can address this in first place, so we don't have
+to undo what we've just done for the ip6tables LOCs.
 
-> > Some comments on your patchset:
-> >
-> > * 1/6 netfilter: nf_queue: Don't recompute the hook_list head
-> >
-> > I already passed this to current nf as you insisted on getting this,
-> > and for the sake of correctness, so it's basically already in David's
-> > net tree.
-> 
-> I would have expected this patch to be somewhere.  I did not see
-> this change in net-next when I wrote the patchset (which seemed
-> like a good approximation of the latest thing available).  If I
-> overlooked and the patch has already made it to Dave then my apologies
-> for being redundant.
-> 
-> I still don't see this patch in your pending branch.
-> 
-> Am I missing something?
+> * dependency to CONFIG_IPV6 instead of CONFIG_IP6_NF_IPTABLES would be more
+>   "conservative" approach as br_netfilter_ipv6.o was introduced due to
+>   dependencies in br_validate_ipv6() to CONFIG_IPV6; but CONFIG_IP6_NF_IPTABLES
+>   will be needed for ip6tables so this dependency may be more "holistic"
 
-It doesn't show yet in net-next, but it's already in net:
+I'm fine if you want to restrict this to ip6tables. This may break
+out-of-tree modules since they may be relying on these hooks, but we
+don't care about those.
 
-http://git.kernel.org/cgit/linux/kernel/git/davem/net.git/commit/?id=f307170d6e591a48529425b1ed6ca835790995a9
+I think this s/CONFIG_IPV6/CONFIG_IP6_NF_IPTABLES should come in a
+separated patch, just after the one that removes the checkpatch
+errors I'd suggest.
 
-David periodically pulls net into net-next, so it will show there too
-at some point.
+> * CONFIG_IP6_NF_IPTABLES=n makes br_validate_ipv6() being imported from
+>   br_netfilter.h; it is used in br_netfilter_hooks.c within br_nf_forward_ip()
+>   and br_nf_dev_queue_xmit() and returns -1 which will lead to NF_DROP;
+>   After defaulting /proc/sys/net/bridge/bridge-nf-call-ip6tables to 0 with
+>   CONFIG_IP6_NF_IPTABLES=n these two functions me never see IPV6 packets and 
+>   therefore this may not be a problem; I was not able to fully confirm this
+
+It would be great if you can reduce #ifdef pollution. Now that we have
+a br_netfilter_ipv6.c file, I think it should be possible to move the
+IPv6 specific code there, at least the /proc code chunk.
+
+Could you have a look into this? Thanks!
