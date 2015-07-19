@@ -1,64 +1,35 @@
-From: Mathias Krause <minipli@googlemail.com>
-Subject: [PATCH net-next] net: #ifdefify sk_classid member of struct sock
-Date: Sun, 19 Jul 2015 20:17:41 +0200
-Message-ID: <1437329861-11758-1-git-send-email-minipli@googlemail.com>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Mathias Krause <minipli@googlemail.com>
-To: "David S. Miller" <davem@davemloft.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next] net: #ifdefify sk_classid member of struct
+ sock
+Date: Sun, 19 Jul 2015 11:42:28 -0700 (PDT)
+Message-ID: <20150719.114228.179586744105997642.davem@davemloft.net>
+References: <1437329861-11758-1-git-send-email-minipli@googlemail.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: minipli@googlemail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:37819 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932185AbbGSSSD (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:37745 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753967AbbGSSm3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 19 Jul 2015 14:18:03 -0400
+	Sun, 19 Jul 2015 14:42:29 -0400
+In-Reply-To: <1437329861-11758-1-git-send-email-minipli@googlemail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The sk_classid member is only required when CONFIG_CGROUP_NET_CLASSID is
-enabled. #ifdefify it to reduce the size of struct sock on 32 bit
-systems, at least.
+From: Mathias Krause <minipli@googlemail.com>
+Date: Sun, 19 Jul 2015 20:17:41 +0200
 
-Signed-off-by: Mathias Krause <minipli@googlemail.com>
----
- include/net/sock.h       |    2 ++
- net/netfilter/nft_meta.c |    2 ++
- 2 files changed, 4 insertions(+)
+> The sk_classid member is only required when CONFIG_CGROUP_NET_CLASSID is
+> enabled. #ifdefify it to reduce the size of struct sock on 32 bit
+> systems, at least.
+> 
+> Signed-off-by: Mathias Krause <minipli@googlemail.com>
 
-diff --git a/include/net/sock.h b/include/net/sock.h
-index 05a8c1aea251..4353ef70bf48 100644
---- a/include/net/sock.h
-+++ b/include/net/sock.h
-@@ -429,7 +429,9 @@ struct sock {
- 	void			*sk_security;
- #endif
- 	__u32			sk_mark;
-+#ifdef CONFIG_CGROUP_NET_CLASSID
- 	u32			sk_classid;
-+#endif
- 	struct cg_proto		*sk_cgrp;
- 	void			(*sk_state_change)(struct sock *sk);
- 	void			(*sk_data_ready)(struct sock *sk);
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 52561e1c31e2..005b374d1967 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -166,11 +166,13 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 			goto err;
- 		*dest = out->group;
- 		break;
-+#ifdef CONFIG_CGROUP_NET_CLASSID
- 	case NFT_META_CGROUP:
- 		if (skb->sk == NULL || !sk_fullsock(skb->sk))
- 			goto err;
- 		*dest = skb->sk->sk_classid;
- 		break;
-+#endif
- 	default:
- 		WARN_ON(1);
- 		goto err;
--- 
-1.7.10.4
+Are you sure NFT_META_CGROUP cannot enter nft_meta_get_eval()?  If so it'll
+WARN_ON().
 
+I really don't like changes like this.
