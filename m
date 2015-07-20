@@ -1,39 +1,45 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next v2 3/3] netfilter: nf_conntrack: add efficient
- mark to zone mapping
-Date: Mon, 20 Jul 2015 19:03:27 +0200
-Message-ID: <20150720170327.GA22681@salvia>
-References: <cover.1436574843.git.daniel@iogearbox.net>
- <8b1e8907e8dd9a51f2e40b39cd5f5c2b0eae94fd.1436574843.git.daniel@iogearbox.net>
- <20150715175056.GA7436@salvia>
- <55A6BCD8.2010905@iogearbox.net>
- <55AD1F6F.1090607@iogearbox.net>
+Subject: Re: [PATCH nft] tests: validate generated netlink instructions
+Date: Mon, 20 Jul 2015 19:05:38 +0200
+Message-ID: <20150720170538.GA22735@salvia>
+References: <1437096699-8832-1-git-send-email-fw@strlen.de>
+ <20150720125004.GA7402@salvia>
+ <20150720151046.GD11985@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: tgraf@suug.ch, challa@noironetworks.com,
-	netfilter-devel@vger.kernel.org
-To: Daniel Borkmann <daniel@iogearbox.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59562 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59755 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753931AbbGTQ5n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Jul 2015 12:57:43 -0400
+	id S1752063AbbGTQ7x (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Jul 2015 12:59:53 -0400
 Content-Disposition: inline
-In-Reply-To: <55AD1F6F.1090607@iogearbox.net>
+In-Reply-To: <20150720151046.GD11985@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jul 20, 2015 at 06:18:55PM +0200, Daniel Borkmann wrote:
-[...]
-> The current approach implemented here that I found so far most appealing
-> and having the least complexity, was to just have a /single/ template and to
-> overwrite the zone->id with skb->mark on the ptr we have sitting on the stack.
-> It avoids all the issues mentioned. But perhaps you mean something entirely
-> different and I just seem to misinterpret your answer, hmm.
+On Mon, Jul 20, 2015 at 05:10:46PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Fri, Jul 17, 2015 at 03:31:39AM +0200, Florian Westphal wrote:
+> > > Don't apply -- this patch is intentionally incomplete;
+> > > I don't want to spam this list with 350k patch.
+> > > 
+> > > If you think this is worthwile to have in nft I'll push the full
+> > > changeset (this patch + 64 test files with recorded netlink debug output).
+> > 
+> > I like the idea of having more regression tests.
+> > 
+> > We can probably kill the old .t files and move the 'regression' to
+> > 'tests'.
+> 
+> Do you mean:
+> rm tests/*; mv tests/regression/* tests/ ?
+> 
+> Otherwise I'm inclined to just push what I have and let you wrangle
+> things further if needed :-)
 
-You mean something that from command line would look like:
+BTW, I just remembered another bug we've got in the output.
 
-        iptables -A PREROUTING -t raw -j CT --zone mark
-
-So we set the zone ID in the CT target based on the existing mark,
-right?
+I think we have to convert to BE the content that is printed from the
+registers, otherwise we'll have different outputs in LE and BE.
