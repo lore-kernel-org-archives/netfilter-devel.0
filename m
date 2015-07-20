@@ -1,67 +1,82 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf] netfilter: nf_conntrack: silent warning when adding extensions to templates
-Date: Mon, 20 Jul 2015 10:49:57 +0200
-Message-ID: <1437382197-3515-1-git-send-email-pablo@netfilter.org>
+From: Neutron Soutmun <neo.neutron@gmail.com>
+Subject: [PATCH] Fix grammar error in manpage
+Date: Mon, 20 Jul 2015 17:21:56 +0700
+Message-ID: <20150720102156.GA4932@oxygen>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="AhhlLboLdkugWU4S"
+Cc: kadlec@blackhole.kfki.hu
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36568 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754500AbbGTIoP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Jul 2015 04:44:15 -0400
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:35576 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752058AbbGTKWC (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Jul 2015 06:22:02 -0400
+Received: by pabkd10 with SMTP id kd10so27456550pab.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 20 Jul 2015 03:22:01 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[   12.602995] ------------[ cut here ]------------
-[   12.604390] WARNING: CPU: 0 PID: 1 at net/netfilter/nf_conntrack_extend.c:80 __nf_ct_ext_add_length+0x2a/0x230()
 
-Templates need to be unconfirmed when adding extensions to avoid this warning.
+--AhhlLboLdkugWU4S
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Fixes: 579502f10880 ("netfilter: fix netns dependencies with conntrack templates")
-Reported-by: kernel test robot <ying.huang@intel.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Refer to: https://bugs.launchpad.net/ubuntu/+source/lintian/+bug/608231
+
+The "allows to" is a common grammar error which it will probably be
+replaced by "allows one to" as a suggestion in above bug report page.
+
+Signed-off-by: Neutron Soutmun <neo.neutron@gmail.com>
 ---
- net/netfilter/nf_conntrack_core.c |    2 +-
- net/netfilter/nf_synproxy_core.c  |    1 +
- net/netfilter/xt_CT.c             |    1 +
- 3 files changed, 3 insertions(+), 1 deletion(-)
+ src/ipset.8 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 3d12eb7..651039a 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -296,7 +296,7 @@ struct nf_conn *nf_ct_tmpl_alloc(struct net *net, u16 zone, gfp_t flags)
- 	if (tmpl == NULL)
- 		return NULL;
- 
--	tmpl->status = IPS_TEMPLATE | IPS_CONFIRMED;
-+	tmpl->status = IPS_TEMPLATE;
- 	write_pnet(&tmpl->ct_net, net);
- 
- #ifdef CONFIG_NF_CONNTRACK_ZONES
-diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
-index 5fb14b9..71f1e9f 100644
---- a/net/netfilter/nf_synproxy_core.c
-+++ b/net/netfilter/nf_synproxy_core.c
-@@ -363,6 +363,7 @@ static int __net_init synproxy_net_init(struct net *net)
- 	if (!nfct_synproxy_ext_add(ct))
- 		goto err2;
- 
-+	__set_bit(IPS_CONFIRMED_BIT, &ct->status);
- 	nf_conntrack_get(&ct->ct_general);
- 	snet->tmpl = ct;
- 
-diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-index 20b9cb0..c663003 100644
---- a/net/netfilter/xt_CT.c
-+++ b/net/netfilter/xt_CT.c
-@@ -225,6 +225,7 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
- 		if (ret < 0)
- 			goto err3;
- 	}
-+	__set_bit(IPS_CONFIRMED_BIT, &ct->status);
- 	nf_conntrack_get(&ct->ct_general);
- out:
- 	info->ct = ct;
--- 
-1.7.10.4
+diff --git a/src/ipset.8 b/src/ipset.8
+index a718f98..d0d7ac0 100644
+--- a/src/ipset.8
++++ b/src/ipset.8
+@@ -321,7 +321,7 @@ ipset add foo 192.168.1.1/24 comment "allow access to S=
+MB share on \\\\\\\\files
+ the above would appear as: "allow access to SMB share on \\\\fileserv\\"
+ .PP
+ .SS "skbinfo, skbmark, skbprio, skbqueue"
+-All set types support the optional \fBskbinfo\fR extension. This extension=
+ allow to
++All set types support the optional \fBskbinfo\fR extension. This extension=
+ allows you to
+ store the metainfo (firewall mark, tc class and hardware queue) with every=
+ entry and map it to
+ packets by usage of SET netfilter target with \-\-map\-set option.
+ \fBskbmark\fR option format: \fBMARK\fR or \fBMARK/MASK\fR, where \fBMARK\=
+fR and \fBMASK\fR are 32bit hex
+--=20
+2.1.4
 
+
+--AhhlLboLdkugWU4S
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCAAGBQJVrMvEAAoJEJ0EcL2mzcRXX80P/j8DQjoUKFpkrqknwhuV0j9w
+reYM15PwFkazfmnxZmZgmhTQTRknlTcHV9S548H7qr12EfY+ic+2h52uJSzUDn9n
+CwI8hjZz3CwlPiZAwKGpOe3D7bxLGyzVocWTtxbEXh8GWvRz7/8xmxBIw/4A/ThK
+ttluA1GdgHORGCVV9+pFNDY+h37T2eXfr7ZDJCYEw5ZR8zlbVa84NFa+uxJyM88I
+ztDhhjQcZoqutW5IMWD9dJZM7OaRJKBpR1GozdyRyY1hzMXrDOpjGY0HxJHxPsEz
+rKOXu8CvG5X1Ivpkr9Zzl+PtwN8CsXR6FUrATBgOptJcY3Ibie0efLVu8v62vpf+
+JCGSsfYSG6ZiXXcvjlXGq5hHCAUSPZg+khP0dbQWdRWcPtUWwLTQJXkyvR8qNTgC
+/47/CDss7PQX9ra5KCQ+wskdDTERh5k6rD3rYmUfAdY3rNhg3+VPx8lZRLx5CJme
+/a50yN0MzGqnG2r/+JkO+Fe7d6eiAhkLByTiVXz3Ou1Ak9nHFxARRU2ua9W7amai
+gFcwfderHsjskYSRmct3AAvuOdbMGKB8smxWHdd5N5KE19n8ULBR0qb3CNR5ZkRh
+iEW8XN3Lou9txe8SSA+DBJ8Oy3Yg2Lllkbo+5B/7nO2LNCjvbKEqnYJ4OxByZatd
+I1TS3ueUTlW62ANiQk2Z
+=LxbD
+-----END PGP SIGNATURE-----
+
+--AhhlLboLdkugWU4S--
