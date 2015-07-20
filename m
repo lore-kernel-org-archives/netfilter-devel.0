@@ -1,31 +1,52 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: Fix memory leak in nf_register_net_hook
-Date: Mon, 20 Jul 2015 09:14:38 +0200
-Message-ID: <20150720071438.GA3826@salvia>
-References: <20150718075610.GD5422@mwanda>
- <87si8lh4ph.fsf@x220.int.ebiederm.org>
+Subject: Re: [PATCH iptables] fix wrong headername in ipv6header for protocols
+Date: Mon, 20 Jul 2015 09:21:26 +0200
+Message-ID: <20150720072126.GA4136@salvia>
+References: <1437054859-15824-1-git-send-email-andi@geekosphere.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Dan Carpenter <dan.carpenter@oracle.com>, kbuild@01.org,
-	netfilter-devel@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Andreas Herz <andi@geekosphere.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39590 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40984 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753669AbbGTHIw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Jul 2015 03:08:52 -0400
+	id S1754070AbbGTHPn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Jul 2015 03:15:43 -0400
 Content-Disposition: inline
-In-Reply-To: <87si8lh4ph.fsf@x220.int.ebiederm.org>
+In-Reply-To: <1437054859-15824-1-git-send-email-andi@geekosphere.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jul 18, 2015 at 10:21:14AM -0500, Eric W. Biederman wrote:
+On Thu, Jul 16, 2015 at 03:54:19PM +0200, Andreas Herz wrote:
+> In the --help output and manpage for ipv6header the name for upper layer
+> protocol headers was "proto", while in the code itself it's "prot" for
+> the short form. Fixed by changing manpage and help output.
 > 
-> In the rare case that when it is a attempted to use a per network device
-> netfilter hook and the network device does not exist the newly allocated
-> structure can leak.
+> Signed-off-by: Andreas Herz <andi@geekosphere.org>
+> ---
+>  extensions/libip6t_ipv6header.c   | 2 +-
+>  extensions/libip6t_ipv6header.man | 4 ++--
+>  2 files changed, 3 insertions(+), 3 deletions(-)
 > 
-> Be a good citizen and free the newly allocated structure in the error
-> handling code.
+> diff --git a/extensions/libip6t_ipv6header.c b/extensions/libip6t_ipv6header.c
+> index 00d5d5b..6f03087 100644
+> --- a/extensions/libip6t_ipv6header.c
+> +++ b/extensions/libip6t_ipv6header.c
+> @@ -127,7 +127,7 @@ static void ipv6header_help(void)
+>  	printf(
+>  "ipv6header match options:\n"
+>  "[!] --header headers     Type of header to match, by name\n"
+> -"                         names: hop,dst,route,frag,auth,esp,none,proto\n"
+> +"                         names: hop,dst,route,frag,auth,esp,none,prot\n"
+>  "                    long names: hop-by-hop,ipv6-opts,ipv6-route,\n"
+>  "                                ipv6-frag,ah,esp,ipv6-nonxt,protocol\n"
+>  "                       numbers: 0,60,43,44,51,50,59\n"
 
-Applied.
+I can read this from the code:
+
+static const struct pprot chain_protos[] = {
+        { "protocol", IPPROTO_RAW },
+...
+        { "prot", IPPROTO_RAW },
+
+Could you clarify what you're seeing there? Thanks.
