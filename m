@@ -1,127 +1,167 @@
 From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH nf-next 1/2] netfilter: fix possible removal of wrong hook
-Date: Wed, 22 Jul 2015 15:20:25 -0500
-Message-ID: <87vbdcdjw6.fsf@x220.int.ebiederm.org>
+Subject: Re: [PATCH nf-next 2/2] netfilter: rename local nf_hook_list to hook_list
+Date: Wed, 22 Jul 2015 15:21:43 -0500
+Message-ID: <87pp3kdju0.fsf@x220.int.ebiederm.org>
 References: <1437393302-18899-1-git-send-email-pablo@netfilter.org>
+	<1437393302-18899-2-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out02.mta.xmission.com ([166.70.13.232]:45859 "EHLO
-	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752554AbbGVU0y (ORCPT
+Received: from out03.mta.xmission.com ([166.70.13.233]:52570 "EHLO
+	out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751756AbbGVU2N (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Jul 2015 16:26:54 -0400
-In-Reply-To: <1437393302-18899-1-git-send-email-pablo@netfilter.org> (Pablo
-	Neira Ayuso's message of "Mon, 20 Jul 2015 13:55:01 +0200")
+	Wed, 22 Jul 2015 16:28:13 -0400
+In-Reply-To: <1437393302-18899-2-git-send-email-pablo@netfilter.org> (Pablo
+	Neira Ayuso's message of "Mon, 20 Jul 2015 13:55:02 +0200")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Pablo Neira Ayuso <pablo@netfilter.org> writes:
 
-> nf_unregister_net_hook() uses the nf_hook_ops fields as tuple to look up for
-> the corresponding hook in the list. However, we may have two hooks with exactly
-> the same configuration.
->
-> This shouldn't be a problem for nftables since every new chain has an unique
-> priv field set, but this may still cause us problems in the future, so better
-> address this problem now by keeping a reference to the original nf_hook_ops
-> structure to make sure we delete the right hook from
-> nf_unregister_net_hook().
+> 085db2c04557 ("netfilter: Per network namespace netfilter hooks.") introduced a
+> new nf_hook_list that is global, so let's avoid this overlap.
 
 Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 
-> Fixes: 085db2c04557 ("netfilter: Per network namespace netfilter hooks.")
+>
 > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 > ---
->  net/netfilter/core.c |   39 ++++++++++++++++++---------------------
->  1 file changed, 18 insertions(+), 21 deletions(-)
+>  include/linux/netfilter.h |   14 +++++++-------
+>  net/netfilter/core.c      |   28 ++++++++++++++--------------
+>  2 files changed, 21 insertions(+), 21 deletions(-)
 >
+> diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+> index e01da73..d788ce6 100644
+> --- a/include/linux/netfilter.h
+> +++ b/include/linux/netfilter.h
+> @@ -140,20 +140,20 @@ void nf_unregister_sockopt(struct nf_sockopt_ops *reg);
+>  #ifdef HAVE_JUMP_LABEL
+>  extern struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
+>  
+> -static inline bool nf_hook_list_active(struct list_head *nf_hook_list,
+> +static inline bool nf_hook_list_active(struct list_head *hook_list,
+>  				       u_int8_t pf, unsigned int hook)
+>  {
+>  	if (__builtin_constant_p(pf) &&
+>  	    __builtin_constant_p(hook))
+>  		return static_key_false(&nf_hooks_needed[pf][hook]);
+>  
+> -	return !list_empty(nf_hook_list);
+> +	return !list_empty(hook_list);
+>  }
+>  #else
+> -static inline bool nf_hook_list_active(struct list_head *nf_hook_list,
+> +static inline bool nf_hook_list_active(struct list_head *hook_list,
+>  				       u_int8_t pf, unsigned int hook)
+>  {
+> -	return !list_empty(nf_hook_list);
+> +	return !list_empty(hook_list);
+>  }
+>  #endif
+>  
+> @@ -175,12 +175,12 @@ static inline int nf_hook_thresh(u_int8_t pf, unsigned int hook,
+>  				 int thresh)
+>  {
+>  	struct net *net = dev_net(indev ? indev : outdev);
+> -	struct list_head *nf_hook_list = &net->nf.hooks[pf][hook];
+> +	struct list_head *hook_list = &net->nf.hooks[pf][hook];
+>  
+> -	if (nf_hook_list_active(nf_hook_list, pf, hook)) {
+> +	if (nf_hook_list_active(hook_list, pf, hook)) {
+>  		struct nf_hook_state state;
+>  
+> -		nf_hook_state_init(&state, nf_hook_list, hook, thresh,
+> +		nf_hook_state_init(&state, hook_list, hook, thresh,
+>  				   pf, indev, outdev, sk, okfn);
+>  		return nf_hook_slow(skb, &state);
+>  	}
 > diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-> index 87d237d..a834181 100644
+> index a834181..041f3a8 100644
 > --- a/net/netfilter/core.c
 > +++ b/net/netfilter/core.c
-> @@ -78,26 +78,27 @@ static struct list_head *find_nf_hook_list(struct net *net,
->  	return nf_hook_list;
+> @@ -62,20 +62,20 @@ EXPORT_SYMBOL(nf_hooks_needed);
+>  
+>  static DEFINE_MUTEX(nf_hook_mutex);
+>  
+> -static struct list_head *find_nf_hook_list(struct net *net,
+> +static struct list_head *nf_find_hook_list(struct net *net,
+>  					   const struct nf_hook_ops *reg)
+>  {
+> -	struct list_head *nf_hook_list = NULL;
+> +	struct list_head *hook_list = NULL;
+>  
+>  	if (reg->pf != NFPROTO_NETDEV)
+> -		nf_hook_list = &net->nf.hooks[reg->pf][reg->hooknum];
+> +		hook_list = &net->nf.hooks[reg->pf][reg->hooknum];
+>  	else if (reg->hooknum == NF_NETDEV_INGRESS) {
+>  #ifdef CONFIG_NETFILTER_INGRESS
+>  		if (reg->dev && dev_net(reg->dev) == net)
+> -			nf_hook_list = &reg->dev->nf_hooks_ingress;
+> +			hook_list = &reg->dev->nf_hooks_ingress;
+>  #endif
+>  	}
+> -	return nf_hook_list;
+> +	return hook_list;
 >  }
 >  
-> +struct nf_hook_entry {
-> +	const struct nf_hook_ops	*orig_ops;
-> +	struct nf_hook_ops		ops;
-> +};
-> +
+>  struct nf_hook_entry {
+> @@ -85,7 +85,7 @@ struct nf_hook_entry {
+>  
 >  int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
 >  {
->  	struct list_head *nf_hook_list;
-> -	struct nf_hook_ops *elem, *new;
-> +	struct nf_hook_entry *entry;
-> +	struct nf_hook_ops *elem;
+> -	struct list_head *nf_hook_list;
+> +	struct list_head *hook_list;
+>  	struct nf_hook_entry *entry;
+>  	struct nf_hook_ops *elem;
 >  
-> -	new = kzalloc(sizeof(*new), GFP_KERNEL);
-> -	if (!new)
-> +	entry = kmalloc(sizeof(*entry), GFP_KERNEL);
-> +	if (!entry)
->  		return -ENOMEM;
+> @@ -96,14 +96,14 @@ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
+>  	entry->orig_ops	= reg;
+>  	entry->ops	= *reg;
 >  
-> -	new->hook     = reg->hook;
-> -	new->dev      = reg->dev;
-> -	new->owner    = reg->owner;
-> -	new->priv     = reg->priv;
-> -	new->pf       = reg->pf;
-> -	new->hooknum  = reg->hooknum;
-> -	new->priority = reg->priority;
-> +	entry->orig_ops	= reg;
-> +	entry->ops	= *reg;
->  
->  	nf_hook_list = find_nf_hook_list(net, reg);
->  	if (!nf_hook_list) {
-> -		kfree(new);
-> +		kfree(entry);
+> -	nf_hook_list = find_nf_hook_list(net, reg);
+> -	if (!nf_hook_list) {
+> +	hook_list = nf_find_hook_list(net, reg);
+> +	if (!hook_list) {
+>  		kfree(entry);
 >  		return -ENOENT;
 >  	}
 >  
-> @@ -106,7 +107,7 @@ int nf_register_net_hook(struct net *net, const struct nf_hook_ops *reg)
+>  	mutex_lock(&nf_hook_mutex);
+> -	list_for_each_entry(elem, nf_hook_list, list) {
+> +	list_for_each_entry(elem, hook_list, list) {
 >  		if (reg->priority < elem->priority)
 >  			break;
 >  	}
-> -	list_add_rcu(&new->list, elem->list.prev);
-> +	list_add_rcu(&entry->ops.list, elem->list.prev);
->  	mutex_unlock(&nf_hook_mutex);
->  #ifdef CONFIG_NETFILTER_INGRESS
->  	if (reg->pf == NFPROTO_NETDEV && reg->hooknum == NF_NETDEV_INGRESS)
-> @@ -122,6 +123,7 @@ EXPORT_SYMBOL(nf_register_net_hook);
+> @@ -122,16 +122,16 @@ EXPORT_SYMBOL(nf_register_net_hook);
+>  
 >  void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
 >  {
->  	struct list_head *nf_hook_list;
-> +	struct nf_hook_entry *entry;
+> -	struct list_head *nf_hook_list;
+> +	struct list_head *hook_list;
+>  	struct nf_hook_entry *entry;
 >  	struct nf_hook_ops *elem;
 >  
->  	nf_hook_list = find_nf_hook_list(net, reg);
-> @@ -130,14 +132,9 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
+> -	nf_hook_list = find_nf_hook_list(net, reg);
+> -	if (!nf_hook_list)
+> +	hook_list = nf_find_hook_list(net, reg);
+> +	if (!hook_list)
+>  		return;
 >  
 >  	mutex_lock(&nf_hook_mutex);
->  	list_for_each_entry(elem, nf_hook_list, list) {
-> -		if ((reg->hook     == elem->hook) &&
-> -		    (reg->dev      == elem->dev) &&
-> -		    (reg->owner    == elem->owner) &&
-> -		    (reg->priv     == elem->priv) &&
-> -		    (reg->pf       == elem->pf) &&
-> -		    (reg->hooknum  == elem->hooknum) &&
-> -		    (reg->priority == elem->priority)) {
-> -			list_del_rcu(&elem->list);
-> +		entry = container_of(elem, struct nf_hook_entry, ops);
-> +		if (entry->orig_ops == reg) {
-> +			list_del_rcu(&entry->ops.list);
->  			break;
+> -	list_for_each_entry(elem, nf_hook_list, list) {
+> +	list_for_each_entry(elem, hook_list, list) {
+>  		entry = container_of(elem, struct nf_hook_entry, ops);
+>  		if (entry->orig_ops == reg) {
+>  			list_del_rcu(&entry->ops.list);
+> @@ -139,7 +139,7 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
 >  		}
 >  	}
-> @@ -154,7 +151,7 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
->  	static_key_slow_dec(&nf_hooks_needed[reg->pf][reg->hooknum]);
->  #endif
->  	synchronize_net();
-> -	nf_queue_nf_hook_drop(elem);
-> +	nf_queue_nf_hook_drop(&entry->ops);
->  	kfree(elem);
->  }
->  EXPORT_SYMBOL(nf_unregister_net_hook);
+>  	mutex_unlock(&nf_hook_mutex);
+> -	if (&elem->list == nf_hook_list) {
+> +	if (&elem->list == hook_list) {
+>  		WARN(1, "nf_unregister_net_hook: hook not found!\n");
+>  		return;
+>  	}
