@@ -1,47 +1,163 @@
-From: Joe Stringer <joestringer@nicira.com>
-Subject: [PATCH nf] netfilter: Support expectations in different zones
-Date: Tue, 21 Jul 2015 21:37:31 -0700
-Message-ID: <1437539851-65437-1-git-send-email-joestringer@nicira.com>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+From: Felix Bolte <bolte.felix@gmail.com>
+Subject: ip(6)tables-restore segfault + patch
+Date: Wed, 22 Jul 2015 11:21:41 +0200
+Message-ID: <CAMNgthVfcqfaDNzo9NzJGzDNazUss7KkyYvvE_ykaD1gEMBd+w@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary=001a11c3da1075b9a1051b734cfb
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:34558 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754512AbbGVEiH (ORCPT
+Received: from mail-lb0-f175.google.com ([209.85.217.175]:34046 "EHLO
+	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933673AbbGVJVn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Jul 2015 00:38:07 -0400
-Received: by pacan13 with SMTP id an13so133044314pac.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jul 2015 21:38:06 -0700 (PDT)
+	Wed, 22 Jul 2015 05:21:43 -0400
+Received: by lbbzr7 with SMTP id zr7so132639832lbb.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jul 2015 02:21:41 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When zones were originally introduced, the expectation functions were
-all extended to perform lookup using the zone. However, insertion was
-not modified to check the zone. This means that two expectations which
-are intended to apply for different connections that have the same tuple
-but exist in different zones cannot both be tracked.
+--001a11c3da1075b9a1051b734cfb
+Content-Type: text/plain; charset=UTF-8
 
-Fixes: 5d0aa2ccd4 (netfilter: nf_conntrack: add support for "conntrack zones")
+hi,
 
-Signed-off-by: Joe Stringer <joestringer@nicira.com>
----
- net/netfilter/nf_conntrack_expect.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+while fuzzing iptables-restore input with afl [0],
+i found a very old and known crash to be still existent,
+there was even a mailing list discussion [1][2] about it
 
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 7a17070..b45a422 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -219,7 +219,8 @@ static inline int expect_clash(const struct nf_conntrack_expect *a,
- 			a->mask.src.u3.all[count] & b->mask.src.u3.all[count];
- 	}
- 
--	return nf_ct_tuple_mask_cmp(&a->tuple, &b->tuple, &intersect_mask);
-+	return nf_ct_tuple_mask_cmp(&a->tuple, &b->tuple, &intersect_mask) &&
-+	       nf_ct_zone(a->master) == nf_ct_zone(b->master);
- }
- 
- static inline int expect_matches(const struct nf_conntrack_expect *a,
--- 
-2.1.4
+instead of fixing the real cause,
+the restore input was parsed for "-t" and "--table",
+however this was not enough and the error could
+still be triggered by e.g. "-vtnew"
 
+please consider/review my two attached patches
+the first patch is fixing the segfault less intrusively
+and the second one removes the insufficient "-t" check
+
+
+[0] http://lcamtuf.coredump.cx/afl/
+[1] http://lists.netfilter.org/pipermail/netfilter-devel/2001-September/005638.html
+[2] http://lists.netfilter.org/pipermail/netfilter-devel/2001-October/005840.html
+
+
+
+best regards
+
+felix
+
+--001a11c3da1075b9a1051b734cfb
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0001-ip-6-tables-restore-fix-segfault.patch"
+Content-Disposition: attachment;
+	filename="0001-ip-6-tables-restore-fix-segfault.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_icdgh8180
+
+RnJvbTogRmVsaXggQm9sdGUgPGJvbHRlLmZlbGl4QGdtYWlsLmNvbT4KRGF0ZTogVHVlLCAyMSBK
+dWwgMjAxNSAwMTozOToyOCArMDIwMApTdWJqZWN0OiBbUEFUQ0ggMS8yXSBpcCg2KXRhYmxlcy1y
+ZXN0b3JlOiBmaXggc2VnZmF1bHQKClRoZSBhcmd1bWVudCAidGFibGUiIGluIGRvX2NvbW1hbmQo
+NHw2KSBtaWdodCBiZSBhc3NpZ25lZCB0byBhIHN0YXRpYyBhbGxvY2F0ZWQgc3RyaW5nLAp0aHVz
+IGZyZWVfYXJndiB3aWxsIGNyYXNoIHdoZW4gZnJlZWluZyB0aGUgcG9pbnRlciAibmV3YXJndlsy
+XSIuCgpGaXhlZCBsZXNzIGludHJ1c2l2ZWx5IGJ5IGNvcHlpbmcgdGhlIGNvbnRlbnQgb2YgInRh
+YmxlIiBpbnRvIGEgbG9jYWwgdmFyaWFibGUuCgpTaWduZWQtb2ZmLWJ5OiBGZWxpeCBCb2x0ZSA8
+Ym9sdGUuZmVsaXhAZ21haWwuY29tPgotLS0KIGlwdGFibGVzL2lwNnRhYmxlcy5jIHwgICAxMSAr
+KysrKysrLS0tLQogaXB0YWJsZXMvaXB0YWJsZXMuYyAgfCAgIDEzICsrKysrKysrLS0tLS0KIDIg
+ZmlsZXMgY2hhbmdlZCwgMTUgaW5zZXJ0aW9ucygrKSwgOSBkZWxldGlvbnMoLSkKCmRpZmYgLS1n
+aXQgYS9pcHRhYmxlcy9pcDZ0YWJsZXMuYyBiL2lwdGFibGVzL2lwNnRhYmxlcy5jCmluZGV4IDhk
+YjEzYjQuLjU4N2Y3ZDkgMTAwNjQ0Ci0tLSBhL2lwdGFibGVzL2lwNnRhYmxlcy5jCisrKyBiL2lw
+dGFibGVzL2lwNnRhYmxlcy5jCkBAIC0xMzM5LDYgKzEzMzksOSBAQCBpbnQgZG9fY29tbWFuZDYo
+aW50IGFyZ2MsIGNoYXIgKmFyZ3ZbXSwgY2hhciAqKnRhYmxlLAogCWNzLmp1bXB0byA9ICIiOwog
+CWNzLmFyZ3YgPSBhcmd2OwogCisgICAgICAgIGNoYXIgKnRtcF90YWJsZSA9IHN0cmR1cCgqdGFi
+bGUpOworCWNoYXIgKip0YXJnZXRfdGFibGUgPSAmdG1wX3RhYmxlOworCiAJLyogcmUtc2V0IG9w
+dGluZCB0byAwIGluIGNhc2UgZG9fY29tbWFuZDYgZ2V0cyBjYWxsZWQKIAkgKiBhIHNlY29uZCB0
+aW1lICovCiAJb3B0aW5kID0gMDsKQEAgLTE2MjgsNyArMTYzMSw3IEBAIGludCBkb19jb21tYW5k
+NihpbnQgYXJnYywgY2hhciAqYXJndltdLCBjaGFyICoqdGFibGUsCiAJCQlpZiAoY3MuaW52ZXJ0
+KQogCQkJCXh0YWJsZXNfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0sCiAJCQkJCSAgICJ1bmV4cGVj
+dGVkICEgZmxhZyBiZWZvcmUgLS10YWJsZSIpOwotCQkJKnRhYmxlID0gb3B0YXJnOworCQkJKnRh
+cmdldF90YWJsZSA9IG9wdGFyZzsKIAkJCWJyZWFrOwogCiAJCWNhc2UgJ3gnOgpAQCAtMTc3NCwx
+NiArMTc3NywxNiBAQCBpbnQgZG9fY29tbWFuZDYoaW50IGFyZ2MsIGNoYXIgKmFyZ3ZbXSwgY2hh
+ciAqKnRhYmxlLAogCiAJLyogb25seSBhbGxvY2F0ZSBoYW5kbGUgaWYgd2Ugd2VyZW4ndCBjYWxs
+ZWQgd2l0aCBhIGhhbmRsZSAqLwogCWlmICghKmhhbmRsZSkKLQkJKmhhbmRsZSA9IGlwNnRjX2lu
+aXQoKnRhYmxlKTsKKwkJKmhhbmRsZSA9IGlwNnRjX2luaXQoKnRhcmdldF90YWJsZSk7CiAKIAkv
+KiB0cnkgdG8gaW5zbW9kIHRoZSBtb2R1bGUgaWYgaXB0Y19pbml0IGZhaWxlZCAqLwogCWlmICgh
+KmhhbmRsZSAmJiB4dGFibGVzX2xvYWRfa28oeHRhYmxlc19tb2Rwcm9iZV9wcm9ncmFtLCBmYWxz
+ZSkgIT0gLTEpCi0JCSpoYW5kbGUgPSBpcDZ0Y19pbml0KCp0YWJsZSk7CisJCSpoYW5kbGUgPSBp
+cDZ0Y19pbml0KCp0YXJnZXRfdGFibGUpOwogCiAJaWYgKCEqaGFuZGxlKQogCQl4dGFibGVzX2Vy
+cm9yKFZFUlNJT05fUFJPQkxFTSwKIAkJCSJjYW4ndCBpbml0aWFsaXplIGlwNnRhYmxlcyB0YWJs
+ZSBgJXMnOiAlcyIsCi0JCQkqdGFibGUsIGlwNnRjX3N0cmVycm9yKGVycm5vKSk7CisJCQkqdGFy
+Z2V0X3RhYmxlLCBpcDZ0Y19zdHJlcnJvcihlcnJubykpOwogCiAJaWYgKGNvbW1hbmQgPT0gQ01E
+X0FQUEVORAogCSAgICB8fCBjb21tYW5kID09IENNRF9ERUxFVEUKZGlmZiAtLWdpdCBhL2lwdGFi
+bGVzL2lwdGFibGVzLmMgYi9pcHRhYmxlcy9pcHRhYmxlcy5jCmluZGV4IDg4OTUzYzQuLjk4ZTdk
+MzQgMTAwNjQ0Ci0tLSBhL2lwdGFibGVzL2lwdGFibGVzLmMKKysrIGIvaXB0YWJsZXMvaXB0YWJs
+ZXMuYwpAQCAtMTMzNSw2ICsxMzM1LDkgQEAgaW50IGRvX2NvbW1hbmQ0KGludCBhcmdjLCBjaGFy
+ICphcmd2W10sIGNoYXIgKip0YWJsZSwKIAljcy5qdW1wdG8gPSAiIjsKIAljcy5hcmd2ID0gYXJn
+djsKIAorICAgICAgICBjaGFyICp0bXBfdGFibGUgPSBzdHJkdXAoKnRhYmxlKTsKKwljaGFyICoq
+dGFyZ2V0X3RhYmxlID0gJnRtcF90YWJsZTsKKwogCS8qIHJlLXNldCBvcHRpbmQgdG8gMCBpbiBj
+YXNlIGRvX2NvbW1hbmQ0IGdldHMgY2FsbGVkCiAJICogYSBzZWNvbmQgdGltZSAqLwogCW9wdGlu
+ZCA9IDA7CkBAIC0xNjIxLDcgKzE2MjQsNyBAQCBpbnQgZG9fY29tbWFuZDQoaW50IGFyZ2MsIGNo
+YXIgKmFyZ3ZbXSwgY2hhciAqKnRhYmxlLAogCQkJaWYgKGNzLmludmVydCkKIAkJCQl4dGFibGVz
+X2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVNLAogCQkJCQkgICAidW5leHBlY3RlZCAhIGZsYWcgYmVm
+b3JlIC0tdGFibGUiKTsKLQkJCSp0YWJsZSA9IG9wdGFyZzsKKwkJCSp0YXJnZXRfdGFibGUgPSBv
+cHRhcmc7CiAJCQlicmVhazsKIAogCQljYXNlICd4JzoKQEAgLTE3MDgsNyArMTcxMSw3IEBAIGlu
+dCBkb19jb21tYW5kNChpbnQgYXJnYywgY2hhciAqYXJndltdLCBjaGFyICoqdGFibGUsCiAJCWNz
+LmludmVydCA9IEZBTFNFOwogCX0KIAotCWlmIChzdHJjbXAoKnRhYmxlLCAibmF0IikgPT0gMCAm
+JgorCWlmIChzdHJjbXAoKnRhcmdldF90YWJsZSwgIm5hdCIpID09IDAgJiYKIAkgICAgKChwb2xp
+Y3kgIT0gTlVMTCAmJiBzdHJjbXAocG9saWN5LCAiRFJPUCIpID09IDApIHx8CiAJICAgIChjcy5q
+dW1wdG8gIT0gTlVMTCAmJiBzdHJjbXAoY3MuanVtcHRvLCAiRFJPUCIpID09IDApKSkKIAkJeHRh
+Ymxlc19lcnJvcihQQVJBTUVURVJfUFJPQkxFTSwKQEAgLTE3NzAsMTYgKzE3NzMsMTYgQEAgaW50
+IGRvX2NvbW1hbmQ0KGludCBhcmdjLCBjaGFyICphcmd2W10sIGNoYXIgKip0YWJsZSwKIAogCS8q
+IG9ubHkgYWxsb2NhdGUgaGFuZGxlIGlmIHdlIHdlcmVuJ3QgY2FsbGVkIHdpdGggYSBoYW5kbGUg
+Ki8KIAlpZiAoISpoYW5kbGUpCi0JCSpoYW5kbGUgPSBpcHRjX2luaXQoKnRhYmxlKTsKKwkJKmhh
+bmRsZSA9IGlwdGNfaW5pdCgqdGFyZ2V0X3RhYmxlKTsKIAogCS8qIHRyeSB0byBpbnNtb2QgdGhl
+IG1vZHVsZSBpZiBpcHRjX2luaXQgZmFpbGVkICovCiAJaWYgKCEqaGFuZGxlICYmIHh0YWJsZXNf
+bG9hZF9rbyh4dGFibGVzX21vZHByb2JlX3Byb2dyYW0sIGZhbHNlKSAhPSAtMSkKLQkJKmhhbmRs
+ZSA9IGlwdGNfaW5pdCgqdGFibGUpOworCQkqaGFuZGxlID0gaXB0Y19pbml0KCp0YXJnZXRfdGFi
+bGUpOwogCiAJaWYgKCEqaGFuZGxlKQogCQl4dGFibGVzX2Vycm9yKFZFUlNJT05fUFJPQkxFTSwK
+IAkJCSAgICJjYW4ndCBpbml0aWFsaXplIGlwdGFibGVzIHRhYmxlIGAlcyc6ICVzIiwKLQkJCSAg
+ICp0YWJsZSwgaXB0Y19zdHJlcnJvcihlcnJubykpOworCQkJICAgKnRhcmdldF90YWJsZSwgaXB0
+Y19zdHJlcnJvcihlcnJubykpOwogCiAJaWYgKGNvbW1hbmQgPT0gQ01EX0FQUEVORAogCSAgICB8
+fCBjb21tYW5kID09IENNRF9ERUxFVEUKLS0gCjEuNy45LjUKCg==
+--001a11c3da1075b9a1051b734cfb
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0002-ip-6-tables-restore-remove-old-t-check.patch"
+Content-Disposition: attachment;
+	filename="0002-ip-6-tables-restore-remove-old-t-check.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_icdgh82v1
+
+RnJvbTogRmVsaXggQm9sdGUgPGJvbHRlLmZlbGl4QGdtYWlsLmNvbT4KRGF0ZTogVHVlLCAyMSBK
+dWwgMjAxNSAxNTozNjoxOCArMDIwMApTdWJqZWN0OiBbUEFUQ0ggMi8yXSBpcCg2KXRhYmxlcy1y
+ZXN0b3JlOiByZW1vdmUgb2xkICItdCIgY2hlY2sKClRoaXMgY2hlY2sgYmVjYW1lIG9ic29sZXRl
+IGFzIHRoZSBmb2xsb3cgdXAgc2VnZmF1bHQgaGFzIGJlZW4gZml4ZWQuCkZ1cnRoZXJtb3JlIHRo
+ZSBjaGVjayB3YXMgaW5zdWZmaWNpZW50IGFzICItdnQiIHdhcyBzdGlsbCB0cmlnZ2VyaW5nIGFu
+IGVycm9yLgpXZSBzaG91bGQgbGV0IGlwdGFibGVzIGRlY2lkZSB3aGV0aGVyIHRoZSBwYXNzZWQg
+YXJndW1lbnRzIGFyZSB2YWxpZCBvciBub3QuCkhvd2V2ZXIsIG11bHRpcGxlICItdCIgYXJndW1l
+bnRzIHNob3VsZCBub3QgaGFybSB0aGUgb3V0Y29tZSBhcyB0aGUgaGFuZGxlIGRpY3RhdGVzIHRo
+ZSBjdXJyZW50IHRhYmxlLgoKU2lnbmVkLW9mZi1ieTogRmVsaXggQm9sdGUgPGJvbHRlLmZlbGl4
+QGdtYWlsLmNvbT4KLS0tCiBpcHRhYmxlcy9pcDZ0YWJsZXMtcmVzdG9yZS5jIHwgICAgOSAtLS0t
+LS0tLS0KIGlwdGFibGVzL2lwdGFibGVzLXJlc3RvcmUuYyAgfCAgICA5IC0tLS0tLS0tLQogMiBm
+aWxlcyBjaGFuZ2VkLCAxOCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9pcHRhYmxlcy9pcDZ0
+YWJsZXMtcmVzdG9yZS5jIGIvaXB0YWJsZXMvaXA2dGFibGVzLXJlc3RvcmUuYwppbmRleCA5Mzkz
+OTI0Li5jYzA3YjdjIDEwMDY0NAotLS0gYS9pcHRhYmxlcy9pcDZ0YWJsZXMtcmVzdG9yZS5jCisr
+KyBiL2lwdGFibGVzL2lwNnRhYmxlcy1yZXN0b3JlLmMKQEAgLTE1NCwxNSArMTU0LDYgQEAgc3Rh
+dGljIHZvaWQgYWRkX3BhcmFtX3RvX2FyZ3YoY2hhciAqcGFyc2VzdGFydCkKIAogCQkJcGFyYW1f
+YnVmZmVyW3BhcmFtX2xlbl0gPSAnXDAnOwogCi0JCQkvKiBjaGVjayBpZiB0YWJsZSBuYW1lIHNw
+ZWNpZmllZCAqLwotCQkJaWYgKCFzdHJuY21wKHBhcmFtX2J1ZmZlciwgIi10IiwgMikKLSAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICB8fCAhc3RybmNtcChwYXJhbV9idWZmZXIsICItLXRhYmxl
+IiwgOCkpIHsKLQkJCQl4dGFibGVzX2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVNLAotCQkJCSJUaGUg
+LXQgb3B0aW9uIChzZWVuIGluIGxpbmUgJXUpIGNhbm5vdCBiZSAiCi0JCQkJInVzZWQgaW4gaXA2
+dGFibGVzLXJlc3RvcmUuXG4iLCBsaW5lKTsKLQkJCQlleGl0KDEpOwotCQkJfQotCiAJCQlhZGRf
+YXJndihwYXJhbV9idWZmZXIpOwogCQkJcGFyYW1fbGVuID0gMDsKIAkJfSBlbHNlIHsKZGlmZiAt
+LWdpdCBhL2lwdGFibGVzL2lwdGFibGVzLXJlc3RvcmUuYyBiL2lwdGFibGVzL2lwdGFibGVzLXJl
+c3RvcmUuYwppbmRleCA2MzhiMTcxLi40ODhlZGI5IDEwMDY0NAotLS0gYS9pcHRhYmxlcy9pcHRh
+Ymxlcy1yZXN0b3JlLmMKKysrIGIvaXB0YWJsZXMvaXB0YWJsZXMtcmVzdG9yZS5jCkBAIC0xNTMs
+MTUgKzE1Myw2IEBAIHN0YXRpYyB2b2lkIGFkZF9wYXJhbV90b19hcmd2KGNoYXIgKnBhcnNlc3Rh
+cnQpCiAKIAkJCXBhcmFtX2J1ZmZlcltwYXJhbV9sZW5dID0gJ1wwJzsKIAotCQkJLyogY2hlY2sg
+aWYgdGFibGUgbmFtZSBzcGVjaWZpZWQgKi8KLQkJCWlmICghc3RybmNtcChwYXJhbV9idWZmZXIs
+ICItdCIsIDIpCi0JCQkgICAgfHwgIXN0cm5jbXAocGFyYW1fYnVmZmVyLCAiLS10YWJsZSIsIDgp
+KSB7Ci0JCQkJeHRhYmxlc19lcnJvcihQQVJBTUVURVJfUFJPQkxFTSwKLQkJCQkiVGhlIC10IG9w
+dGlvbiAoc2VlbiBpbiBsaW5lICV1KSBjYW5ub3QgYmUgIgotCQkJCSJ1c2VkIGluIGlwdGFibGVz
+LXJlc3RvcmUuXG4iLCBsaW5lKTsKLQkJCQlleGl0KDEpOwotCQkJfQotCiAJCQlhZGRfYXJndihw
+YXJhbV9idWZmZXIpOwogCQkJcGFyYW1fbGVuID0gMDsKIAkJfSBlbHNlIHsKLS0gCjEuNy45LjUK
+Cg==
+--001a11c3da1075b9a1051b734cfb--
