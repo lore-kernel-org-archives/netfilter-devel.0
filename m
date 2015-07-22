@@ -1,90 +1,47 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [RFC PATCH 5/5] netlink: rx mmap: notify only when
- NL_MMAP_STATUS_VALID frame exists
-Date: Wed, 22 Jul 2015 10:15:40 +0900
-Message-ID: <20150722011540.GF30012@gmail.com>
-References: <20150722010938.GA30012@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>
+From: Joe Stringer <joestringer@nicira.com>
+Subject: [PATCH nf] netfilter: Support expectations in different zones
+Date: Tue, 21 Jul 2015 21:37:31 -0700
+Message-ID: <1437539851-65437-1-git-send-email-joestringer@nicira.com>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:33874 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753106AbbGVBPq (ORCPT
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:34558 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754512AbbGVEiH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Jul 2015 21:15:46 -0400
-Received: by pacan13 with SMTP id an13so130369358pac.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jul 2015 18:15:45 -0700 (PDT)
-Received: from gmail.com (softbank220009032004.bbtec.net. [220.9.32.4])
-        by smtp.gmail.com with ESMTPSA id hl6sm29711161pdb.28.2015.07.21.18.15.44
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 21 Jul 2015 18:15:45 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20150722010938.GA30012@gmail.com>
+	Wed, 22 Jul 2015 00:38:07 -0400
+Received: by pacan13 with SMTP id an13so133044314pac.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jul 2015 21:38:06 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+When zones were originally introduced, the expectation functions were
+all extended to perform lookup using the zone. However, insertion was
+not modified to check the zone. This means that two expectations which
+are intended to apply for different connections that have the same tuple
+but exist in different zones cannot both be tracked.
 
-Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
+Fixes: 5d0aa2ccd4 (netfilter: nf_conntrack: add support for "conntrack zones")
+
+Signed-off-by: Joe Stringer <joestringer@nicira.com>
 ---
- net/netlink/af_netlink.c |   28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ net/netfilter/nf_conntrack_expect.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
-index 7e1610e..8901acd 100644
---- a/net/netlink/af_netlink.c
-+++ b/net/netlink/af_netlink.c
-@@ -576,16 +576,6 @@ netlink_current_frame(const struct netlink_ring *ring,
- 	return netlink_lookup_frame(ring, ring->head, status);
- }
- 
--static struct nl_mmap_hdr *
--netlink_previous_frame(const struct netlink_ring *ring,
--		       enum nl_mmap_status status)
--{
--	unsigned int prev;
--
--	prev = ring->head ? ring->head - 1 : ring->frame_max;
--	return netlink_lookup_frame(ring, prev, status);
--}
--
- static void netlink_increment_head(struct netlink_ring *ring)
- {
- 	ring->head = ring->head != ring->frame_max ? ring->head + 1 : 0;
-@@ -606,6 +596,21 @@ static void netlink_forward_ring(struct netlink_ring *ring)
- 	} while (ring->head != head);
- }
- 
-+static bool netlink_has_valid_frame(struct netlink_ring *ring)
-+{
-+	unsigned int head = ring->head, pos = head;
-+	const struct nl_mmap_hdr *hdr;
-+
-+	do {
-+		hdr = __netlink_lookup_frame(ring, pos);
-+		if (hdr->nm_status == NL_MMAP_STATUS_VALID)
-+			return true;
-+		pos = pos != ring->frame_max ? pos + 1 : 0;
-+	} while (pos != head);
-+
-+	return false;
-+}
-+
- static bool netlink_dump_space(struct netlink_sock *nlk)
- {
- 	struct netlink_ring *ring = &nlk->rx_ring;
-@@ -653,8 +658,7 @@ static unsigned int netlink_poll(struct file *file, struct socket *sock,
- 
- 	spin_lock_bh(&sk->sk_receive_queue.lock);
- 	if (nlk->rx_ring.pg_vec) {
--		netlink_forward_ring(&nlk->rx_ring);
--		if (!netlink_previous_frame(&nlk->rx_ring, NL_MMAP_STATUS_UNUSED))
-+		if (netlink_has_valid_frame(&nlk->rx_ring))
- 			mask |= POLLIN | POLLRDNORM;
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 7a17070..b45a422 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -219,7 +219,8 @@ static inline int expect_clash(const struct nf_conntrack_expect *a,
+ 			a->mask.src.u3.all[count] & b->mask.src.u3.all[count];
  	}
- 	spin_unlock_bh(&sk->sk_receive_queue.lock);
+ 
+-	return nf_ct_tuple_mask_cmp(&a->tuple, &b->tuple, &intersect_mask);
++	return nf_ct_tuple_mask_cmp(&a->tuple, &b->tuple, &intersect_mask) &&
++	       nf_ct_zone(a->master) == nf_ct_zone(b->master);
+ }
+ 
+ static inline int expect_matches(const struct nf_conntrack_expect *a,
 -- 
-1.7.10.4
+2.1.4
 
