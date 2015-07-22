@@ -1,103 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf 0/6] IPVS Fixes for v4.2
-Date: Wed, 22 Jul 2015 21:52:43 +0200
-Message-ID: <20150722195243.GA3989@salvia>
-References: <1437012853-7318-1-git-send-email-horms@verge.net.au>
+Subject: heads up, rebasing nf (was Re: [PATCH nf] netfilter: nf_conntrack:
+ silent warning when adding) extensions to templates
+Date: Wed, 22 Jul 2015 21:55:25 +0200
+Message-ID: <20150722195525.GA4217@salvia>
+References: <1437382197-3515-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42193 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42390 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751236AbbGVTrC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Jul 2015 15:47:02 -0400
+	id S1752798AbbGVTtk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Jul 2015 15:49:40 -0400
 Content-Disposition: inline
-In-Reply-To: <1437012853-7318-1-git-send-email-horms@verge.net.au>
+In-Reply-To: <1437382197-3515-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Simon,
-
-On Thu, Jul 16, 2015 at 11:14:07AM +0900, Simon Horman wrote:
-> Hi Pablo,
+On Mon, Jul 20, 2015 at 10:49:57AM +0200, Pablo Neira Ayuso wrote:
+> [   12.602995] ------------[ cut here ]------------
+> [   12.604390] WARNING: CPU: 0 PID: 1 at net/netfilter/nf_conntrack_extend.c:80 __nf_ct_ext_add_length+0x2a/0x230()
 > 
-> please consider this fix for v4.2.
-> For reasons that are not clear to me it is a bumper crop.
+> Templates need to be unconfirmed when adding extensions to avoid this warning.
 > 
-> It seems to me that they are all relevant to stable.
-> Please let me know if you need my help to get the fixes into stable.
+> Fixes: 579502f10880 ("netfilter: fix netns dependencies with conntrack templates")
+> Reported-by: kernel test robot <ying.huang@intel.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Several comments below regarding -stable.
+JFYI: I'm going to collapse this patch to 579502f10880 so it becomes
+easier to pass this one to -stable without major dependencies.
 
-> * ipvs: fix ipv6 route unreach panic
-> 
->   This problem appears to be present since IPv6 support was added to
->   IPVS in v2.6.28.
-> 
-> * ipvs: skb_orphan in case of forwarding
-> 
->   This appears to resolve a problem resulting from a side effect of
->   41063e9dd119 ("ipv4: Early TCP socket demux.") which was included in v3.6.
-> 
-> * ipvs: do not use random local source address for tunnels
-> 
->   This appears to resolve a problem introduced by
->   026ace060dfe ("ipvs: optimize dst usage for real server") in v3.10.
-> 
-> * ipvs: fix crash if scheduler is changed
-> 
->   This appears to resolve a problem introduced by
->   ceec4c381681 ("ipvs: convert services to rcu") in v3.10.
-> 
->   Julian has provided backports of the fix:
->   * [PATCHv2 3.10.81] ipvs: fix crash if scheduler is changed
->     http://www.spinics.net/lists/lvs-devel/msg04008.html
->   * [PATCHv2 3.12.44,3.14.45,3.18.16,4.0.6] ipvs: fix crash if scheduler is changed
->     http://www.spinics.net/lists/lvs-devel/msg04007.html
-
-OK, I have enqueued these from Julian.
-
-Next time, it would be easier for me if I can fetch these from
-patchwork. So either you request a patchwork space for IPVS to Jeremy
-Kerr or you Cc netfilter-devel including -stable in the prefix.
-
->   Please let me know how you would like to handle guiding these
->   backports into stable.
-> 
-> * ipvs: fix crash with sync protocol v0 and FTP
-> 
->   This appears to resolve a problem introduced by
->   749c42b620a9 ("ipvs: reduce sync rate with time thresholds") in v3.5
-
-These three patches:
-
-* ipvs: fix ipv6 route unreach panic
-* ipvs: do not use random local source address for tunnels
-* ipvs: fix crash with sync protocol v0 and FTP
-
-apply cleanly via git-am to:
-
-v3.10.x, 3.12.x, 3.14.x, 3.18.x, 4.0.x, 4.1.x
-
-but I didn't compile test, so if you want to have this in -stable, it
-would be good to validate that all dependencies are in place.
-
-Regarding this one:
-
-* ipvs: skb_orphan in case of forwarding
-
-This only applies cleanly to 4.1.x here.
-
-> The following changes since commit 484836ec2de24d9a7c6471f022b746d947698725:
-> 
->   netfilter: IDLETIMER: fix lockdep warning (2015-07-13 17:23:25 +0200)
-> 
-> are available in the git repository at:
-> 
->   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes-for-v4.2
-
-Pulled, thanks Simon.
+So I'm rebasing the nf tree here, sorry for the inconvenience.
