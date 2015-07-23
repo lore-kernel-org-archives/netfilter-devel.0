@@ -1,70 +1,109 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 02/10] netfilter: IDLETIMER: fix lockdep warning
-Date: Thu, 23 Jul 2015 01:00:44 +0200
-Message-ID: <1437606052-5179-3-git-send-email-pablo@netfilter.org>
-References: <1437606052-5179-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
+Subject: [PATCH nf-next] netfilter: nf_queue: fix nf_queue_nf_hook_drop()
+Date: Thu, 23 Jul 2015 12:31:23 +0200
+Message-ID: <1437647483-10840-1-git-send-email-pablo@netfilter.org>
+Cc: ebiederm@xmission.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54421 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35872 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753345AbbGVWzT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Jul 2015 18:55:19 -0400
-In-Reply-To: <1437606052-5179-1-git-send-email-pablo@netfilter.org>
+	id S1753137AbbGWKZn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Jul 2015 06:25:43 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Dmitry Torokhov <dtor@google.com>
+This function reacquires the rtnl_lock() which is already held by
+nf_unregister_hook().
 
-Dynamically allocated sysfs attributes should be initialized with
-sysfs_attr_init() otherwise lockdep will be angry with us:
+This can be triggered via: modprobe nf_conntrack_ipv4 && rmmod nf_conntrack_ipv4
 
-[   45.468653] BUG: key ffffffc030fad4e0 not in .data!
-[   45.468655] ------------[ cut here ]------------
-[   45.468666] WARNING: CPU: 0 PID: 1176 at /mnt/host/source/src/third_party/kernel/v3.18/kernel/locking/lockdep.c:2991 lockdep_init_map+0x12c/0x490()
-[   45.468672] DEBUG_LOCKS_WARN_ON(1)
-[   45.468672] CPU: 0 PID: 1176 Comm: iptables Tainted: G     U  W 3.18.0 #43
-[   45.468674] Hardware name: XXX
-[   45.468675] Call trace:
-[   45.468680] [<ffffffc0002072b4>] dump_backtrace+0x0/0x10c
-[   45.468683] [<ffffffc0002073d0>] show_stack+0x10/0x1c
-[   45.468688] [<ffffffc000a86cd4>] dump_stack+0x74/0x94
-[   45.468692] [<ffffffc000217ae0>] warn_slowpath_common+0x84/0xb0
-[   45.468694] [<ffffffc000217b84>] warn_slowpath_fmt+0x4c/0x58
-[   45.468697] [<ffffffc0002530a4>] lockdep_init_map+0x128/0x490
-[   45.468701] [<ffffffc000367ef0>] __kernfs_create_file+0x80/0xe4
-[   45.468704] [<ffffffc00036862c>] sysfs_add_file_mode_ns+0x104/0x170
-[   45.468706] [<ffffffc00036870c>] sysfs_create_file_ns+0x58/0x64
-[   45.468711] [<ffffffc000930430>] idletimer_tg_checkentry+0x14c/0x324
-[   45.468714] [<ffffffc00092a728>] xt_check_target+0x170/0x198
-[   45.468717] [<ffffffc000993efc>] check_target+0x58/0x6c
-[   45.468720] [<ffffffc000994c64>] translate_table+0x30c/0x424
-[   45.468723] [<ffffffc00099529c>] do_ipt_set_ctl+0x144/0x1d0
-[   45.468728] [<ffffffc0009079f0>] nf_setsockopt+0x50/0x60
-[   45.468732] [<ffffffc000946870>] ip_setsockopt+0x8c/0xb4
-[   45.468735] [<ffffffc0009661c0>] raw_setsockopt+0x10/0x50
-[   45.468739] [<ffffffc0008c1550>] sock_common_setsockopt+0x14/0x20
-[   45.468742] [<ffffffc0008bd190>] SyS_setsockopt+0x88/0xb8
-[   45.468744] ---[ end trace 41d156354d18c039 ]---
+[  720.628746] INFO: task rmmod:3578 blocked for more than 120 seconds.
+[  720.628749]       Not tainted 4.2.0-rc2+ #113
+[  720.628752] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+[  720.628754] rmmod           D ffff8800ca46fd58     0  3578   3571 0x00000080
+[...]
+[  720.628783] Call Trace:
+[  720.628790]  [<ffffffff8152ea0b>] schedule+0x6b/0x90
+[  720.628795]  [<ffffffff8152ecb3>] schedule_preempt_disabled+0x13/0x20
+[  720.628799]  [<ffffffff8152ff55>] mutex_lock_nested+0x1f5/0x380
+[  720.628803]  [<ffffffff81462622>] ? rtnl_lock+0x12/0x20
+[  720.628807]  [<ffffffff81462622>] ? rtnl_lock+0x12/0x20
+[  720.628812]  [<ffffffff81462622>] rtnl_lock+0x12/0x20
+[  720.628817]  [<ffffffff8148ab25>] nf_queue_nf_hook_drop+0x15/0x160
+[  720.628825]  [<ffffffff81488d48>] nf_unregister_net_hook+0x168/0x190
+[  720.628831]  [<ffffffff81488e24>] nf_unregister_hook+0x64/0x80
+[  720.628837]  [<ffffffff81488e60>] nf_unregister_hooks+0x20/0x30
+[...]
 
-Signed-off-by: Dmitry Torokhov <dtor@google.com>
+Moreover, nf_unregister_net_hook() should only destroy the queue for this
+netns, not for every netns.
+
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Fixes: 085db2c04557 ("netfilter: Per network namespace netfilter hooks.")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_IDLETIMER.c |    1 +
- 1 file changed, 1 insertion(+)
+This is basically a v2 from http://patchwork.ozlabs.org/patch/497635/.
 
-diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-index f407ebc1..29d2c31 100644
---- a/net/netfilter/xt_IDLETIMER.c
-+++ b/net/netfilter/xt_IDLETIMER.c
-@@ -126,6 +126,7 @@ static int idletimer_tg_create(struct idletimer_tg_info *info)
- 		goto out;
- 	}
+ net/netfilter/core.c         |    2 +-
+ net/netfilter/nf_internals.h |    2 +-
+ net/netfilter/nf_queue.c     |   12 +++---------
+ 3 files changed, 5 insertions(+), 11 deletions(-)
+
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 87d237d..12504fbb 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -154,7 +154,7 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
+ 	static_key_slow_dec(&nf_hooks_needed[reg->pf][reg->hooknum]);
+ #endif
+ 	synchronize_net();
+-	nf_queue_nf_hook_drop(elem);
++	nf_queue_nf_hook_drop(net, elem);
+ 	kfree(elem);
+ }
+ EXPORT_SYMBOL(nf_unregister_net_hook);
+diff --git a/net/netfilter/nf_internals.h b/net/netfilter/nf_internals.h
+index 3992106..0655225 100644
+--- a/net/netfilter/nf_internals.h
++++ b/net/netfilter/nf_internals.h
+@@ -19,7 +19,7 @@ unsigned int nf_iterate(struct list_head *head, struct sk_buff *skb,
+ /* nf_queue.c */
+ int nf_queue(struct sk_buff *skb, struct nf_hook_ops *elem,
+ 	     struct nf_hook_state *state, unsigned int queuenum);
+-void nf_queue_nf_hook_drop(struct nf_hook_ops *ops);
++void nf_queue_nf_hook_drop(struct net *net, struct nf_hook_ops *ops);
+ int __init netfilter_queue_init(void);
  
-+	sysfs_attr_init(&info->timer->attr.attr);
- 	info->timer->attr.attr.name = kstrdup(info->label, GFP_KERNEL);
- 	if (!info->timer->attr.attr.name) {
- 		ret = -ENOMEM;
+ /* nf_log.c */
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 8a8b2ab..96777f9 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -105,21 +105,15 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
+ }
+ EXPORT_SYMBOL_GPL(nf_queue_entry_get_refs);
+ 
+-void nf_queue_nf_hook_drop(struct nf_hook_ops *ops)
++void nf_queue_nf_hook_drop(struct net *net, struct nf_hook_ops *ops)
+ {
+ 	const struct nf_queue_handler *qh;
+-	struct net *net;
+ 
+-	rtnl_lock();
+ 	rcu_read_lock();
+ 	qh = rcu_dereference(queue_handler);
+-	if (qh) {
+-		for_each_net(net) {
+-			qh->nf_hook_drop(net, ops);
+-		}
+-	}
++	if (qh)
++		qh->nf_hook_drop(net, ops);
+ 	rcu_read_unlock();
+-	rtnl_unlock();
+ }
+ 
+ /*
 -- 
 1.7.10.4
 
