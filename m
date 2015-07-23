@@ -1,81 +1,215 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH nf-next] netfilter: nf_queue: fix deadlock in nf_queue_nf_hook_drop()
-Date: Thu, 23 Jul 2015 07:11:31 -0500
-Message-ID: <87io9baxak.fsf@x220.int.ebiederm.org>
-References: <1437391024-3141-1-git-send-email-pablo@netfilter.org>
-	<871tg0ez4b.fsf@x220.int.ebiederm.org> <20150723103452.GA3740@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: bridge: reduce nf_bridge_info to 32 bytes again
+Date: Thu, 23 Jul 2015 16:21:30 +0200
+Message-ID: <1437661290-28802-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:56060 "EHLO
-	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752127AbbGWMSC (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:42422 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753341AbbGWOVm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jul 2015 08:18:02 -0400
-In-Reply-To: <20150723103452.GA3740@salvia> (Pablo Neira Ayuso's message of
-	"Thu, 23 Jul 2015 12:34:52 +0200")
+	Thu, 23 Jul 2015 10:21:42 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> writes:
+We can use union for most of the temporary cruft (original ipv4/ipv6
+address, source mac, physoutdev) since they're used during different
+stages of br netfilter traversal.
 
-> On Wed, Jul 22, 2015 at 03:06:12PM -0500, Eric W. Biederman wrote:
-> [...]
->> This  code can be simplifed to:
->> 
->> diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
->> index 4ab256824f5f..d002284e443b 100644
->> --- a/net/netfilter/nf_queue.c
->> +++ b/net/netfilter/nf_queue.c
->> @@ -113,8 +113,7 @@ void nf_queue_nf_hook_drop(struct nf_hook_ops *ops)
->>  	rcu_read_lock();
->>  	qh = rcu_dereference(queue_handler);
->>  	if (qh) {
->> 		for_each_net_rcu(net)
->>  			qh->nf_hook_drop(net, ops);
->>  	}
->>  	rcu_read_unlock();
->> 
->> In this particular case for_each_net_rcu is safe because:
->> 
->> - We don't care about new network namespaces that are added to the list
->>   as it is walked as the nf_hook_ops are no longer registered, so 
->>   they will not accumulate.
->> 
->> - We don't care about about network namespaces leaving the list as it
->>   is walked as they ultimately call instance_destroy_rcu and clean
->>   up their queues even if the drop hook is not called.
->> 
->> This matters as nf_unregister_net_hook can call nf_queue_nf_hook_drop
->> without the rtnl_lock held when it is called from say nftables directly
->> instead of from nf_unregister_hook.
->
-> Just noticed, nf_unregister_net_hook() should only destroy the queue
-> for this netns, not for every netns. I'm going to send a v2 to fix
-> nf_queue_nf_hook_drop().
+Also get rid of the last two ->mask users.
 
-Good point, and that really cleans things up.
+Shrinks struct from 48 to 32 on 64bit arch.
 
-> BTW, on a different front, I don't see at this moment an easy way to
-> get rid of the rtnl_lock dependency through for_each_net_rcu() from
-> nf_register_hook(). We may skip new netns instances that are just
-> being added as the list is walked. Unless you have any better idea, we
-> will have to go back to the patches that propagate the complexity to
-> hook clients at some point if we need to skip the rtnl_lock
-> dependency.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/linux/netfilter_bridge.h          | 12 +++++++++---
+ include/linux/skbuff.h                    | 19 +++++++++++++------
+ net/bridge/br_netfilter_hooks.c           | 14 ++++++--------
+ net/bridge/br_netfilter_ipv6.c            |  2 +-
+ net/ipv4/netfilter/nf_defrag_ipv4.c       |  7 ++-----
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c |  7 ++-----
+ 6 files changed, 33 insertions(+), 28 deletions(-)
 
-At this point I don't see anything that suggests we need to get rid of
-the rtnl_lock.  We just don't want to take it twice!
+diff --git a/include/linux/netfilter_bridge.h b/include/linux/netfilter_bridge.h
+index 6d80fc6..92dc1ac 100644
+--- a/include/linux/netfilter_bridge.h
++++ b/include/linux/netfilter_bridge.h
+@@ -17,9 +17,6 @@ enum nf_br_hook_priorities {
+ 
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+ 
+-#define BRNF_BRIDGED_DNAT		0x02
+-#define BRNF_NF_BRIDGE_PREROUTING	0x08
+-
+ int br_handle_frame_finish(struct sock *sk, struct sk_buff *skb);
+ 
+ static inline void br_drop_fake_rtable(struct sk_buff *skb)
+@@ -63,8 +60,17 @@ nf_bridge_get_physoutdev(const struct sk_buff *skb)
+ {
+ 	return skb->nf_bridge ? skb->nf_bridge->physoutdev : NULL;
+ }
++
++static inline bool nf_bridge_in_prerouting(const struct sk_buff *skb)
++{
++	return skb->nf_bridge && skb->nf_bridge->in_prerouting;
++}
+ #else
+ #define br_drop_fake_rtable(skb)	        do { } while (0)
++static inline bool nf_bridge_in_prerouting(const struct sk_buff *skb)
++{
++	return false;
++}
+ #endif /* CONFIG_BRIDGE_NETFILTER */
+ 
+ #endif
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index d6cdd6e..ac732e6 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -173,17 +173,24 @@ struct nf_bridge_info {
+ 		BRNF_PROTO_8021Q,
+ 		BRNF_PROTO_PPPOE
+ 	} orig_proto:8;
+-	bool			pkt_otherhost;
++	u8			pkt_otherhost:1;
++	u8			in_prerouting:1;
++	u8			bridged_dnat:1;
+ 	__u16			frag_max_size;
+-	unsigned int		mask;
+ 	struct net_device	*physindev;
+ 	union {
+-		struct net_device *physoutdev;
+-		char neigh_header[8];
+-	};
+-	union {
++		/* prerouting: detect dnat in orig/reply direction */
+ 		__be32          ipv4_daddr;
+ 		struct in6_addr ipv6_daddr;
++
++		/* after prerouting + nat detected: store original source
++		 * mac since neigh resolution overwrites it, only used while
++		 * skb is out in neigh layer.
++		 */
++		char neigh_header[8];
++
++		/* always valid & non-NULL from FORWARD on, for physdev match */
++		struct net_device *physoutdev;
+ 	};
+ };
+ #endif
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index c8b9bcf..ec51c2b 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -284,7 +284,7 @@ int br_nf_pre_routing_finish_bridge(struct sock *sk, struct sk_buff *skb)
+ 							 nf_bridge->neigh_header,
+ 							 ETH_HLEN-ETH_ALEN);
+ 			/* tell br_dev_xmit to continue with forwarding */
+-			nf_bridge->mask |= BRNF_BRIDGED_DNAT;
++			nf_bridge->bridged_dnat = 1;
+ 			/* FIXME Need to refragment */
+ 			ret = neigh->output(neigh, skb);
+ 		}
+@@ -356,7 +356,7 @@ static int br_nf_pre_routing_finish(struct sock *sk, struct sk_buff *skb)
+ 		skb->pkt_type = PACKET_OTHERHOST;
+ 		nf_bridge->pkt_otherhost = false;
+ 	}
+-	nf_bridge->mask &= ~BRNF_NF_BRIDGE_PREROUTING;
++	nf_bridge->in_prerouting = 0;
+ 	if (br_nf_ipv4_daddr_was_changed(skb, nf_bridge)) {
+ 		if ((err = ip_route_input(skb, iph->daddr, iph->saddr, iph->tos, dev))) {
+ 			struct in_device *in_dev = __in_dev_get_rcu(dev);
+@@ -444,7 +444,7 @@ struct net_device *setup_pre_routing(struct sk_buff *skb)
+ 		nf_bridge->pkt_otherhost = true;
+ 	}
+ 
+-	nf_bridge->mask |= BRNF_NF_BRIDGE_PREROUTING;
++	nf_bridge->in_prerouting = 1;
+ 	nf_bridge->physindev = skb->dev;
+ 	skb->dev = brnf_get_logical_dev(skb, skb->dev);
+ 
+@@ -850,10 +850,8 @@ static unsigned int ip_sabotage_in(const struct nf_hook_ops *ops,
+ 				   struct sk_buff *skb,
+ 				   const struct nf_hook_state *state)
+ {
+-	if (skb->nf_bridge &&
+-	    !(skb->nf_bridge->mask & BRNF_NF_BRIDGE_PREROUTING)) {
++	if (skb->nf_bridge && !skb->nf_bridge->in_prerouting)
+ 		return NF_STOP;
+-	}
+ 
+ 	return NF_ACCEPT;
+ }
+@@ -872,7 +870,7 @@ static void br_nf_pre_routing_finish_bridge_slow(struct sk_buff *skb)
+ 	struct nf_bridge_info *nf_bridge = nf_bridge_info_get(skb);
+ 
+ 	skb_pull(skb, ETH_HLEN);
+-	nf_bridge->mask &= ~BRNF_BRIDGED_DNAT;
++	nf_bridge->bridged_dnat = 0;
+ 
+ 	BUILD_BUG_ON(sizeof(nf_bridge->neigh_header) != (ETH_HLEN - ETH_ALEN));
+ 
+@@ -887,7 +885,7 @@ static void br_nf_pre_routing_finish_bridge_slow(struct sk_buff *skb)
+ 
+ static int br_nf_dev_xmit(struct sk_buff *skb)
+ {
+-	if (skb->nf_bridge && (skb->nf_bridge->mask & BRNF_BRIDGED_DNAT)) {
++	if (skb->nf_bridge && skb->nf_bridge->bridged_dnat) {
+ 		br_nf_pre_routing_finish_bridge_slow(skb);
+ 		return 1;
+ 	}
+diff --git a/net/bridge/br_netfilter_ipv6.c b/net/bridge/br_netfilter_ipv6.c
+index 13b7d1e..77383bf 100644
+--- a/net/bridge/br_netfilter_ipv6.c
++++ b/net/bridge/br_netfilter_ipv6.c
+@@ -174,7 +174,7 @@ static int br_nf_pre_routing_finish_ipv6(struct sock *sk, struct sk_buff *skb)
+ 		skb->pkt_type = PACKET_OTHERHOST;
+ 		nf_bridge->pkt_otherhost = false;
+ 	}
+-	nf_bridge->mask &= ~BRNF_NF_BRIDGE_PREROUTING;
++	nf_bridge->in_prerouting = 0;
+ 	if (br_nf_ipv6_daddr_was_changed(skb, nf_bridge)) {
+ 		skb_dst_drop(skb);
+ 		v6ops->route_input(skb);
+diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
+index c88b7d4..b69e82b 100644
+--- a/net/ipv4/netfilter/nf_defrag_ipv4.c
++++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
+@@ -49,12 +49,9 @@ static enum ip_defrag_users nf_ct_defrag_user(unsigned int hooknum,
+ 	if (skb->nfct)
+ 		zone = nf_ct_zone((struct nf_conn *)skb->nfct);
+ #endif
+-
+-#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+-	if (skb->nf_bridge &&
+-	    skb->nf_bridge->mask & BRNF_NF_BRIDGE_PREROUTING)
++	if (nf_bridge_in_prerouting(skb))
+ 		return IP_DEFRAG_CONNTRACK_BRIDGE_IN + zone;
+-#endif
++
+ 	if (hooknum == NF_INET_PRE_ROUTING)
+ 		return IP_DEFRAG_CONNTRACK_IN + zone;
+ 	else
+diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+index a45db0b..267fb8d 100644
+--- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
++++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+@@ -39,12 +39,9 @@ static enum ip6_defrag_users nf_ct6_defrag_user(unsigned int hooknum,
+ 	if (skb->nfct)
+ 		zone = nf_ct_zone((struct nf_conn *)skb->nfct);
+ #endif
+-
+-#if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+-	if (skb->nf_bridge &&
+-	    skb->nf_bridge->mask & BRNF_NF_BRIDGE_PREROUTING)
++	if (nf_bridge_in_prerouting(skb))
+ 		return IP6_DEFRAG_CONNTRACK_BRIDGE_IN + zone;
+-#endif
++
+ 	if (hooknum == NF_INET_PRE_ROUTING)
+ 		return IP6_DEFRAG_CONNTRACK_IN + zone;
+ 	else
+-- 
+2.0.5
 
-With the nf_hook_drop change all of the logic except for the
-compatibility code is rtnl_lock free, and ought to stay that way.  So I
-think we are good.
-
-If it comes up later that taking the rtnl_lock is a problem we can
-convert everything to use nf_register_net_hook and
-nf_unregister_net_hook.  With the structure allocation performed in
-those two functions the change is mostly code motion.
-
-Eric
