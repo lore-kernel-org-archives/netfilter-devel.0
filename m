@@ -1,118 +1,81 @@
 From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH nf-next] netfilter: nf_queue: fix nf_queue_nf_hook_drop()
-Date: Thu, 23 Jul 2015 06:59:23 -0500
-Message-ID: <87a8unccf8.fsf@x220.int.ebiederm.org>
-References: <1437647483-10840-1-git-send-email-pablo@netfilter.org>
+Subject: Re: [PATCH nf-next] netfilter: nf_queue: fix deadlock in nf_queue_nf_hook_drop()
+Date: Thu, 23 Jul 2015 07:11:31 -0500
+Message-ID: <87io9baxak.fsf@x220.int.ebiederm.org>
+References: <1437391024-3141-1-git-send-email-pablo@netfilter.org>
+	<871tg0ez4b.fsf@x220.int.ebiederm.org> <20150723103452.GA3740@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out02.mta.xmission.com ([166.70.13.232]:34850 "EHLO
-	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751325AbbGWMFy (ORCPT
+Received: from out01.mta.xmission.com ([166.70.13.231]:56060 "EHLO
+	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752127AbbGWMSC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jul 2015 08:05:54 -0400
-In-Reply-To: <1437647483-10840-1-git-send-email-pablo@netfilter.org> (Pablo
-	Neira Ayuso's message of "Thu, 23 Jul 2015 12:31:23 +0200")
+	Thu, 23 Jul 2015 08:18:02 -0400
+In-Reply-To: <20150723103452.GA3740@salvia> (Pablo Neira Ayuso's message of
+	"Thu, 23 Jul 2015 12:34:52 +0200")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Pablo Neira Ayuso <pablo@netfilter.org> writes:
 
-> This function reacquires the rtnl_lock() which is already held by
-> nf_unregister_hook().
->
-> This can be triggered via: modprobe nf_conntrack_ipv4 && rmmod nf_conntrack_ipv4
->
-> [  720.628746] INFO: task rmmod:3578 blocked for more than 120 seconds.
-> [  720.628749]       Not tainted 4.2.0-rc2+ #113
-> [  720.628752] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-> [  720.628754] rmmod           D ffff8800ca46fd58     0  3578   3571 0x00000080
+> On Wed, Jul 22, 2015 at 03:06:12PM -0500, Eric W. Biederman wrote:
 > [...]
-> [  720.628783] Call Trace:
-> [  720.628790]  [<ffffffff8152ea0b>] schedule+0x6b/0x90
-> [  720.628795]  [<ffffffff8152ecb3>] schedule_preempt_disabled+0x13/0x20
-> [  720.628799]  [<ffffffff8152ff55>] mutex_lock_nested+0x1f5/0x380
-> [  720.628803]  [<ffffffff81462622>] ? rtnl_lock+0x12/0x20
-> [  720.628807]  [<ffffffff81462622>] ? rtnl_lock+0x12/0x20
-> [  720.628812]  [<ffffffff81462622>] rtnl_lock+0x12/0x20
-> [  720.628817]  [<ffffffff8148ab25>] nf_queue_nf_hook_drop+0x15/0x160
-> [  720.628825]  [<ffffffff81488d48>] nf_unregister_net_hook+0x168/0x190
-> [  720.628831]  [<ffffffff81488e24>] nf_unregister_hook+0x64/0x80
-> [  720.628837]  [<ffffffff81488e60>] nf_unregister_hooks+0x20/0x30
-> [...]
+>> This  code can be simplifed to:
+>> 
+>> diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+>> index 4ab256824f5f..d002284e443b 100644
+>> --- a/net/netfilter/nf_queue.c
+>> +++ b/net/netfilter/nf_queue.c
+>> @@ -113,8 +113,7 @@ void nf_queue_nf_hook_drop(struct nf_hook_ops *ops)
+>>  	rcu_read_lock();
+>>  	qh = rcu_dereference(queue_handler);
+>>  	if (qh) {
+>> 		for_each_net_rcu(net)
+>>  			qh->nf_hook_drop(net, ops);
+>>  	}
+>>  	rcu_read_unlock();
+>> 
+>> In this particular case for_each_net_rcu is safe because:
+>> 
+>> - We don't care about new network namespaces that are added to the list
+>>   as it is walked as the nf_hook_ops are no longer registered, so 
+>>   they will not accumulate.
+>> 
+>> - We don't care about about network namespaces leaving the list as it
+>>   is walked as they ultimately call instance_destroy_rcu and clean
+>>   up their queues even if the drop hook is not called.
+>> 
+>> This matters as nf_unregister_net_hook can call nf_queue_nf_hook_drop
+>> without the rtnl_lock held when it is called from say nftables directly
+>> instead of from nf_unregister_hook.
 >
-> Moreover, nf_unregister_net_hook() should only destroy the queue for this
-> netns, not for every netns.
+> Just noticed, nf_unregister_net_hook() should only destroy the queue
+> for this netns, not for every netns. I'm going to send a v2 to fix
+> nf_queue_nf_hook_drop().
 
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Good point, and that really cleans things up.
 
-This is a good catch.
+> BTW, on a different front, I don't see at this moment an easy way to
+> get rid of the rtnl_lock dependency through for_each_net_rcu() from
+> nf_register_hook(). We may skip new netns instances that are just
+> being added as the list is walked. Unless you have any better idea, we
+> will have to go back to the patches that propagate the complexity to
+> hook clients at some point if we need to skip the rtnl_lock
+> dependency.
 
-> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-> Fixes: 085db2c04557 ("netfilter: Per network namespace netfilter hooks.")
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> This is basically a v2 from http://patchwork.ozlabs.org/patch/497635/.
->
->  net/netfilter/core.c         |    2 +-
->  net/netfilter/nf_internals.h |    2 +-
->  net/netfilter/nf_queue.c     |   12 +++---------
->  3 files changed, 5 insertions(+), 11 deletions(-)
->
-> diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-> index 87d237d..12504fbb 100644
-> --- a/net/netfilter/core.c
-> +++ b/net/netfilter/core.c
-> @@ -154,7 +154,7 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
->  	static_key_slow_dec(&nf_hooks_needed[reg->pf][reg->hooknum]);
->  #endif
->  	synchronize_net();
-> -	nf_queue_nf_hook_drop(elem);
-> +	nf_queue_nf_hook_drop(net, elem);
->  	kfree(elem);
->  }
->  EXPORT_SYMBOL(nf_unregister_net_hook);
-> diff --git a/net/netfilter/nf_internals.h b/net/netfilter/nf_internals.h
-> index 3992106..0655225 100644
-> --- a/net/netfilter/nf_internals.h
-> +++ b/net/netfilter/nf_internals.h
-> @@ -19,7 +19,7 @@ unsigned int nf_iterate(struct list_head *head, struct sk_buff *skb,
->  /* nf_queue.c */
->  int nf_queue(struct sk_buff *skb, struct nf_hook_ops *elem,
->  	     struct nf_hook_state *state, unsigned int queuenum);
-> -void nf_queue_nf_hook_drop(struct nf_hook_ops *ops);
-> +void nf_queue_nf_hook_drop(struct net *net, struct nf_hook_ops *ops);
->  int __init netfilter_queue_init(void);
->  
->  /* nf_log.c */
-> diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-> index 8a8b2ab..96777f9 100644
-> --- a/net/netfilter/nf_queue.c
-> +++ b/net/netfilter/nf_queue.c
-> @@ -105,21 +105,15 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
->  }
->  EXPORT_SYMBOL_GPL(nf_queue_entry_get_refs);
->  
-> -void nf_queue_nf_hook_drop(struct nf_hook_ops *ops)
-> +void nf_queue_nf_hook_drop(struct net *net, struct nf_hook_ops *ops)
->  {
->  	const struct nf_queue_handler *qh;
-> -	struct net *net;
->  
-> -	rtnl_lock();
->  	rcu_read_lock();
->  	qh = rcu_dereference(queue_handler);
-> -	if (qh) {
-> -		for_each_net(net) {
-> -			qh->nf_hook_drop(net, ops);
-> -		}
-> -	}
-> +	if (qh)
-> +		qh->nf_hook_drop(net, ops);
->  	rcu_read_unlock();
-> -	rtnl_unlock();
->  }
->  
->  /*
+At this point I don't see anything that suggests we need to get rid of
+the rtnl_lock.  We just don't want to take it twice!
+
+With the nf_hook_drop change all of the logic except for the
+compatibility code is rtnl_lock free, and ought to stay that way.  So I
+think we are good.
+
+If it comes up later that taking the rtnl_lock is a problem we can
+convert everything to use nf_register_net_hook and
+nf_unregister_net_hook.  With the structure allocation performed in
+those two functions the change is mostly code motion.
+
+Eric
