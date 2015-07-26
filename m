@@ -1,26 +1,50 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/10] Netfilter/IPVS fixes for net
-Date: Sat, 25 Jul 2015 00:18:28 -0700 (PDT)
-Message-ID: <20150725.001828.1879376561183015664.davem@davemloft.net>
-References: <1437606052-5179-1-git-send-email-pablo@netfilter.org>
+From: Vaishali Thakkar <vthakkar1994@gmail.com>
+Subject: [PATCH] netfilter: xtables: Add helper macro for xt_match boilerplate
+Date: Sun, 26 Jul 2015 17:27:37 +0530
+Message-ID: <20150726115737.GA14070@vaishali-Ideapad-Z570>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:49982 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754666AbbGYHF2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 25 Jul 2015 03:05:28 -0400
-In-Reply-To: <1437606052-5179-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Thu, 23 Jul 2015 01:00:42 +0200
+For simple modules that contain a single xt_match without any
+additional setup code then ends up being a block of duplicated
+boilerplate. This patch adds a new macro, module_xt_match(),
+which replaces the module_init()/module_exit() registrations with
+template functions.
 
-> The following patchset contains ten Netfilter/IPVS fixes, they are:
+Signed-off-by: Vaishali Thakkar <vthakkar1994@gmail.com>
+---
+ include/linux/netfilter/x_tables.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-Pulled, thanks a lot Pablo.
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 286098a..4ebf66b 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -142,6 +142,16 @@ struct xt_match {
+ 	unsigned short family;
+ };
+ 
++/**
++ * module_xt_match() - Helper macro for registering a netfilter driver
++ * @__xt_match: xt_match struct
++ * Helper macro for netfilter drivers which do not do anything special in module
++ * init/exit. This eliminates a lot of boilerplate. Each module may only
++ * use this macro once, and calling it replaces module_init() and module_exit()
++ */
++#define module_xt_match(__xt_match) \
++	module_driver(__xt_match, xt_register_match, xt_unregister_match)
++
+ /* Registration hooks for targets. */
+ struct xt_target {
+ 	struct list_head list;
+-- 
+1.9.1
