@@ -1,50 +1,42 @@
-From: Vaishali Thakkar <vthakkar1994@gmail.com>
-Subject: [PATCH] netfilter: xtables: Add helper macro for xt_match boilerplate
-Date: Sun, 26 Jul 2015 17:27:37 +0530
-Message-ID: <20150726115737.GA14070@vaishali-Ideapad-Z570>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch -master] netfilter: xt_CT: checking for IS_ERR() instead of
+ NULL
+Date: Tue, 28 Jul 2015 01:42:28 +0300
+Message-ID: <20150727224228.GA10367@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Patrick McHardy <kaber@trash.net>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
 	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org
+	netdev@vger.kernel.org, kernel-janitors@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-For simple modules that contain a single xt_match without any
-additional setup code then ends up being a block of duplicated
-boilerplate. This patch adds a new macro, module_xt_match(),
-which replaces the module_init()/module_exit() registrations with
-template functions.
+We recently changed this from nf_conntrack_alloc() to nf_ct_tmpl_alloc()
+so the error handling needs to changed to check for NULL instead of
+IS_ERR().
 
-Signed-off-by: Vaishali Thakkar <vthakkar1994@gmail.com>
----
- include/linux/netfilter/x_tables.h | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+Fixes: 0838aa7fcfcd ('netfilter: fix netns dependencies with conntrack templates')
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 286098a..4ebf66b 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -142,6 +142,16 @@ struct xt_match {
- 	unsigned short family;
- };
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index c663003..43ddeee 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -202,9 +202,10 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
+ 		goto err1;
  
-+/**
-+ * module_xt_match() - Helper macro for registering a netfilter driver
-+ * @__xt_match: xt_match struct
-+ * Helper macro for netfilter drivers which do not do anything special in module
-+ * init/exit. This eliminates a lot of boilerplate. Each module may only
-+ * use this macro once, and calling it replaces module_init() and module_exit()
-+ */
-+#define module_xt_match(__xt_match) \
-+	module_driver(__xt_match, xt_register_match, xt_unregister_match)
-+
- /* Registration hooks for targets. */
- struct xt_target {
- 	struct list_head list;
--- 
-1.9.1
+ 	ct = nf_ct_tmpl_alloc(par->net, info->zone, GFP_KERNEL);
+-	ret = PTR_ERR(ct);
+-	if (IS_ERR(ct))
++	if (!ct) {
++		ret = -ENOMEM;
+ 		goto err2;
++	}
+ 
+ 	ret = 0;
+ 	if ((info->ct_events || info->exp_events) &&
