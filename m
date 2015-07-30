@@ -1,64 +1,57 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: Re: [PATCH nf-next v3 1/3] netfilter: nf_conntrack: push zone object
- into functions
-Date: Thu, 30 Jul 2015 18:34:48 +0200
-Message-ID: <55BA5228.6050908@iogearbox.net>
-References: <cover.1437561897.git.daniel@iogearbox.net> <2f95183cf2520b93d8443be935372fbef3499b96.1437561897.git.daniel@iogearbox.net> <20150730160744.GA15008@salvia>
+From: subashab@codeaurora.org
+Subject: [PATCH nf-next] netfilter: ip6t_REJECT: Remove debug messages from
+ reject_tg6()
+Date: Thu, 30 Jul 2015 16:53:45 -0000
+Message-ID: <cb3d7201ff88e22c845965487ad9a870.squirrel@www.codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: tgraf@suug.ch, challa@noironetworks.com,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:54518 "EHLO
-	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753310AbbG3Qey (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:54476 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750901AbbG3Qxq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Jul 2015 12:34:54 -0400
-In-Reply-To: <20150730160744.GA15008@salvia>
+	Thu, 30 Jul 2015 12:53:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 07/30/2015 06:07 PM, Pablo Neira Ayuso wrote:
-> On Wed, Jul 22, 2015 at 12:54:46PM +0200, Daniel Borkmann wrote:
->> This patch replaces the zone id which is pushed down into functions
->> with the actual zone object. It's a bigger one-time change, but
->> needed for later on extending zones with a direction parameter, and
->> thus decoupling this additional information from all call-sites.
->>
->> No functional changes in this patch.
->>
->> The default zones becomes a global const object, namely nf_ct_zone_dflt
->> and will be returned directly in various cases, one being, when there's
->> f.e. no zoning support.
->
-> Looks fine. This patchset depends on the recent fixes though, so let
-> me send a pull request to David with pending nf-next updates, then you
-> can rebase upon a fresh HEAD.
+Make it similar to reject_tg() in ipt_REJECT.
 
-Okay, I guess there would be quite some ugly merge conflicts otherwise
-due to the recent -nf fixes that accumulated over time. I will send out
-a rebased version against -nf-next as soon as this dependency is resolved.
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+---
+ net/ipv6/netfilter/ip6t_REJECT.c | 4 ----
+ 1 file changed, 4 deletions(-)
 
-> Regarding follow up patches, it would be good if you rename CTA_DIR to
-> CTA_ZONE_DIR. If you plan to place more information into the zone
-> extension, then it's probably a good idea to add a new nested
-> CTA_ZONE_INFO attribute where we can start adding new more information
-> on the zone configuration there that applies to the tuple.
+diff --git a/net/ipv6/netfilter/ip6t_REJECT.c
+b/net/ipv6/netfilter/ip6t_REJECT.c
+index 544b0a9..9501e14 100644
+--- a/net/ipv6/netfilter/ip6t_REJECT.c
++++ b/net/ipv6/netfilter/ip6t_REJECT.c
+@@ -42,7 +42,6 @@ reject_tg6(struct sk_buff *skb, const struct
+xt_action_param *par)
+ 	const struct ip6t_reject_info *reject = par->targinfo;
+ 	struct net *net = dev_net((par->in != NULL) ? par->in : par->out);
 
-CTA_ZONE_DIR seems better, sure. I don't have any other extensions at
-the moment, but it seems it makes sense to make this nested at this
-point in time, so we have CTA_ZONE and CTA_ZONE_INFO as a container
-for CTA_ZONE_DIR and whatever future might bring. I will look into it.
+-	pr_debug("%s: medium point\n", __func__);
+ 	switch (reject->with) {
+ 	case IP6T_ICMP6_NO_ROUTE:
+ 		nf_send_unreach6(net, skb, ICMPV6_NOROUTE, par->hooknum);
+@@ -65,9 +64,6 @@ reject_tg6(struct sk_buff *skb, const struct
+xt_action_param *par)
+ 	case IP6T_TCP_RESET:
+ 		nf_send_reset6(net, skb, par->hooknum);
+ 		break;
+-	default:
+-		net_info_ratelimited("case %u not handled yet\n", reject->with);
+-		break;
+ 	}
 
-> I have seen also that you placed zone-dir= after use= in the sysctl
-> output, but you can place this after the zone instead. We have a
-> netlink interface so people should not be doing string parsing.
+ 	return NF_DROP;
+--
+Employee of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux
+Foundation Collaborative Project
 
-Okay, good to know, thanks!
-
-> I'll make a closer look later to see if I have more comments. Thanks
-> for your patience, Daniel.
-
-No problem. Thanks, Pablo!
