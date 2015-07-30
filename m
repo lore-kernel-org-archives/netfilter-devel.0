@@ -1,50 +1,73 @@
-From: subashab@codeaurora.org
-Subject: [PATCH nf-next] netfilter: ip6t_REJECT: Log reject reason in
- reject_tg6()
-Date: Thu, 30 Jul 2015 02:34:13 -0000
-Message-ID: <283e896df54b88cc7446fc2cde7a5df3.squirrel@www.codeaurora.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next v2] netfilter: nf_ct_sctp: minimal multihoming
+ support
+Date: Thu, 30 Jul 2015 13:54:34 +0200
+Message-ID: <20150730115434.GA6960@salvia>
+References: <20150717141757.01EBFA0A84@unicorn.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:56735 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753145AbbG3CeO (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 Jul 2015 22:34:14 -0400
-Received: from www.codeaurora.org (unknown [198.145.29.65])
-	by smtp.codeaurora.org (Postfix) with ESMTP id 4CAC714121E
-	for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2015 02:34:13 +0000 (UTC)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-api@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Florian Westphal <fw@strlen.de>,
+	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+To: Michal Kubecek <mkubecek@suse.cz>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150717141757.01EBFA0A84@unicorn.suse.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The existing message is not very useful, so add the reject reason
-to help in debug.
+On Fri, Jul 17, 2015 at 04:17:56PM +0200, Michal Kubecek wrote:
+> Currently nf_conntrack_proto_sctp module handles only packets between
+> primary addresses used to establish the connection. Any packets between
+> secondary addresses are classified as invalid so that usual firewall
+> configurations drop them. Allowing HEARTBEAT and HEARTBEAT-ACK chunks to
+> establish a new conntrack would allow traffic between secondary
+> addresses to pass through. A more sophisticated solution based on the
+> addresses advertised in the initial handshake (and possibly also later
+> dynamic address addition and removal) would be much harder to implement.
+> Moreover, in general we cannot assume to always see the initial
+> handshake as it can be routed through a different path.
 
-Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
----
- net/ipv6/netfilter/ip6t_REJECT.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Applied, thanks.
 
-diff --git a/net/ipv6/netfilter/ip6t_REJECT.c
-b/net/ipv6/netfilter/ip6t_REJECT.c
-index 544b0a9..f956513 100644
---- a/net/ipv6/netfilter/ip6t_REJECT.c
-+++ b/net/ipv6/netfilter/ip6t_REJECT.c
-@@ -42,7 +42,7 @@ reject_tg6(struct sk_buff *skb, const struct
-xt_action_param *par)
- 	const struct ip6t_reject_info *reject = par->targinfo;
- 	struct net *net = dev_net((par->in != NULL) ? par->in : par->out);
+I have remove the chunks below though, see explanation below.
 
--	pr_debug("%s: medium point\n", __func__);
-+	pr_debug("%s: case %u\n", __func__, reject->with);
- 	switch (reject->with) {
- 	case IP6T_ICMP6_NO_ROUTE:
- 		nf_send_unreach6(net, skb, ICMPV6_NOROUTE, par->hooknum);
---
-Employee of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux
-Foundation Collaborative Project
+> @@ -705,6 +756,18 @@ static struct ctl_table sctp_compat_sysctl_table[] = {
+>  		.mode		= 0644,
+>  		.proc_handler	= proc_dointvec_jiffies,
+>  	},
+> +	{
+> +		.procname	= "ip_conntrack_sctp_timeout_heartbeat_sent",
+> +		.maxlen		= sizeof(unsigned int),
+> +		.mode		= 0644,
+> +		.proc_handler	= proc_dointvec_jiffies,
+> +	},
+> +	{
+> +		.procname	= "ip_conntrack_sctp_timeout_heartbeat_acked",
+> +		.maxlen		= sizeof(unsigned int),
+> +		.mode		= 0644,
+> +		.proc_handler	= proc_dointvec_jiffies,
+> +	},
+>  	{ }
+>  };
+>  #endif /* CONFIG_NF_CONNTRACK_PROC_COMPAT */
+[...]
+> @@ -752,6 +817,8 @@ static int sctp_kmemdup_compat_sysctl_table(struct nf_proto_net *pn,
+>  	pn->ctl_compat_table[4].data = &sn->timeouts[SCTP_CONNTRACK_SHUTDOWN_SENT];
+>  	pn->ctl_compat_table[5].data = &sn->timeouts[SCTP_CONNTRACK_SHUTDOWN_RECD];
+>  	pn->ctl_compat_table[6].data = &sn->timeouts[SCTP_CONNTRACK_SHUTDOWN_ACK_SENT];
+> +	pn->ctl_compat_table[7].data = &sn->timeouts[SCTP_CONNTRACK_HEARTBEAT_SENT];
+> +	pn->ctl_compat_table[8].data = &sn->timeouts[SCTP_CONNTRACK_HEARTBEAT_ACKED];
+>  #endif
+>  #endif
+>  	return 0;
 
-
+These are part of the compat sysctl interface (those entries that are
+prefixed by "ip_conntrack_*) that we should remove at some point (the
+new entries that are prefixed by "nf_conntrack_*" has been already
+there for a bit less than ~10 years and we got a netlink interface to
+configure this for several years already), so better skip those spots.
