@@ -1,61 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [patch -master] netfilter: xt_CT: checking for IS_ERR() instead
- of NULL
-Date: Thu, 30 Jul 2015 13:57:43 +0200
-Message-ID: <20150730115743.GA7077@salvia>
-References: <20150727224228.GA10367@mwanda>
+Subject: Re: [PATCH nf-next] netfilter: ip6t_REJECT: Log reject reason in
+ reject_tg6()
+Date: Thu, 30 Jul 2015 13:59:07 +0200
+Message-ID: <20150730115907.GA7104@salvia>
+References: <283e896df54b88cc7446fc2cde7a5df3.squirrel@www.codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, kernel-janitors@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: subashab@codeaurora.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:54976 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750989AbbG3LxT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 30 Jul 2015 07:53:19 -0400
 Content-Disposition: inline
-In-Reply-To: <20150727224228.GA10367@mwanda>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <283e896df54b88cc7446fc2cde7a5df3.squirrel@www.codeaurora.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jul 28, 2015 at 01:42:28AM +0300, Dan Carpenter wrote:
-> We recently changed this from nf_conntrack_alloc() to nf_ct_tmpl_alloc()
-> so the error handling needs to changed to check for NULL instead of
-> IS_ERR().
+On Thu, Jul 30, 2015 at 02:34:13AM -0000, subashab@codeaurora.org wrote:
+> The existing message is not very useful, so add the reject reason
+> to help in debug.
 > 
-> Fixes: 0838aa7fcfcd ('netfilter: fix netns dependencies with conntrack templates')
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+> ---
+>  net/ipv6/netfilter/ip6t_REJECT.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/ipv6/netfilter/ip6t_REJECT.c
+> b/net/ipv6/netfilter/ip6t_REJECT.c
+> index 544b0a9..f956513 100644
+> --- a/net/ipv6/netfilter/ip6t_REJECT.c
+> +++ b/net/ipv6/netfilter/ip6t_REJECT.c
+> @@ -42,7 +42,7 @@ reject_tg6(struct sk_buff *skb, const struct
+> xt_action_param *par)
+>  	const struct ip6t_reject_info *reject = par->targinfo;
+>  	struct net *net = dev_net((par->in != NULL) ? par->in : par->out);
+> 
+> -	pr_debug("%s: medium point\n", __func__);
+> +	pr_debug("%s: case %u\n", __func__, reject->with);
 
-Applied, thanks.
+I'd suggest you send a patch to remove this debug message to get this
+in sync with the IPv4 version of the REJECT target.
 
-I have also appended this chunk, since synproxy is also affected:
-
---- a/net/netfilter/nf_synproxy_core.c
-+++ b/net/netfilter/nf_synproxy_core.c
-@@ -353,7 +353,7 @@ static int __net_init synproxy_net_init(struct net *net)
-        int err = -ENOMEM;
- 
-        ct = nf_ct_tmpl_alloc(net, 0, GFP_KERNEL);
--       if (IS_ERR(ct)) {
-+       if (!ct) {
-                err = PTR_ERR(ct);
-                goto err1;
-        }
-
-> diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-> index c663003..43ddeee 100644
-> --- a/net/netfilter/xt_CT.c
-> +++ b/net/netfilter/xt_CT.c
-> @@ -202,9 +202,10 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
->  		goto err1;
->  
->  	ct = nf_ct_tmpl_alloc(par->net, info->zone, GFP_KERNEL);
-> -	ret = PTR_ERR(ct);
-> -	if (IS_ERR(ct))
-> +	if (!ct) {
-> +		ret = -ENOMEM;
->  		goto err2;
-> +	}
->  
->  	ret = 0;
->  	if ((info->ct_events || info->exp_events) &&
+Thanks.
