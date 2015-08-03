@@ -1,55 +1,55 @@
 From: Kyeong Yoo <Kyeong.Yoo@alliedtelesis.co.nz>
-Subject: New multiple DSCP match by "-m dscp --dscp-multi value,value,..."
-Date: Mon, 3 Aug 2015 04:04:46 +0000
-Message-ID: <55BEE85E.2070001@alliedtelesis.co.nz>
+Subject: Multiple DSCP match by "-m dscp --dscp-multi value,value,..."
+Date: Mon, 3 Aug 2015 04:08:55 +0000
+Message-ID: <1438574935.9415.5.camel@kyeongy-dl>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="_003_55BEE85E2070001alliedtelesisconz_"
+	boundary="_003_143857493594155camelkyeongydl_"
 To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gate2.alliedtelesis.co.nz ([202.36.163.20]:60662 "EHLO
+Received: from gate2.alliedtelesis.co.nz ([202.36.163.20]:60668 "EHLO
 	gate2.alliedtelesis.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750801AbbHCEEy (ORCPT
+	with ESMTP id S1751397AbbHCEJD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Aug 2015 00:04:54 -0400
+	Mon, 3 Aug 2015 00:09:03 -0400
 Received: from mmarshal3.atlnz.lc (mmarshal3.atlnz.lc [10.32.18.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(Client did not present a certificate)
-	by gate2.alliedtelesis.co.nz (Postfix) with ESMTPS id 2E30080666
-	for <netfilter-devel@vger.kernel.org>; Mon,  3 Aug 2015 16:04:51 +1200 (NZST)
+	by gate2.alliedtelesis.co.nz (Postfix) with ESMTPS id 2144D80666
+	for <netfilter-devel@vger.kernel.org>; Mon,  3 Aug 2015 16:09:01 +1200 (NZST)
 Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---_003_55BEE85E2070001alliedtelesisconz_
+--_003_143857493594155camelkyeongydl_
 Content-Type: text/plain; charset="utf-8"
-Content-ID: <3DA970AC96118F4080CC5116B41426DE@atlnz.lc>
+Content-ID: <244907FE33C2314881E9384DBE4B5DF5@atlnz.lc>
 Content-Transfer-Encoding: base64
 
 SSBmb3VuZCB0aGlzIGlzIHVzZWZ1bCBmb3IgbWUgdG8gbWF0Y2ggbXVsdGlwbGUgRFNDUCB2YWx1
 ZXMgaW4gYSBydWxlLg0KDQpGb3IgZXhhbXBsZSwgaWYgeW91IHdhbnQgdG8gaGFuZGxlIHRyYWZm
 aWMgd2l0aCBhIGxpc3Qgb2YgRFNDUCBzYW1lIHdheSwgDQppbnN0ZWFkIG9mIHVzaW5nIHRoaXM6
-DQoNCiAgLUEgRk9SV0FSRCAuLi5jb25kMS4uLiAtbSBkc2NwIC0tZHNjcC1jbGFzcyBBRjExIC1q
-IFRBUkdFVA0KICAtQSBGT1JXQVJEIC4uLmNvbmQxLi4uIC1tIGRzY3AgLS1kc2NwLWNsYXNzIEFG
-MjEgLWogVEFSR0VUDQogIC1BIEZPUldBUkQgLi4uY29uZDEuLi4gLW0gZHNjcCAtLWRzY3AtY2xh
-c3MgQUYzMSAtaiBUQVJHRVQNCiAgLUEgRk9SV0FSRCAuLi5jb25kMi4uLiAtbSBkc2NwIC0tZHNj
-cCAxMCAtaiBUQVJHRVQNCiAgLUEgRk9SV0FSRCAuLi5jb25kMi4uLiAtbSBkc2NwIC0tZHNjcCAy
-MCAtaiBUQVJHRVQNCg0KeW91IGNhbiB1c2U6DQoNCiAgLUEgRk9SV0FSRCAuLi5jb25kMS4uLiAt
-bSBkc2NwIC0tZHNjcC1tdWx0aSBBRjExLEFGMjEsQUYzMSAtaiBUQVJHRVQNCiAgLUEgRk9SV0FS
-RCAuLi5jb25kMi4uLiAtbSBkc2NwIC0tZHNjcC1tdWx0aSAxMCwyMCAtaiBUQVJHRVQNCg0KVGhp
-cyBpcyBtYWlubHkgY29udmVuaWVudCBpZiB5b3Ugd2FudCB0byBoYXZlIDEtdG8tMSBtYXBwaW5n
-IGZyb20geW91ciANCmFwcCB0byBpcHRhYmxlcyBydWxlLg0KQWxzbyB5b3UgZG9uJ3QgbmVlZCB0
-byBhZGQgdXAgcGFja2V0IGNvdW50cyAoZm9yIGV4YW1wbGUpIGZyb20gbXVsdGlwbGUgDQpydWxl
-cy4NCg0KDQpEb2VzIGFueW9uZSBoYXZlIGFuIGlkZWEgd2hldGhlciB0aGlzIHdpbGwgYmUgdXNl
-ZnVsIGZvciBvdGhlcnMgYW5kIA0Kd29ydGggdG8gcHVzaD8NCg0KVGhhbmtzLg0K
+DQoNCiAgLUEgRk9SV0FSRCAuLi5jb25kaXRpb24gMS4uLiAtbSBkc2NwIC0tZHNjcC1jbGFzcyBB
+RjExIC1qIFRBUkdFVA0KICAtQSBGT1JXQVJEIC4uLmNvbmRpdGlvbiAxLi4uIC1tIGRzY3AgLS1k
+c2NwLWNsYXNzIEFGMjEgLWogVEFSR0VUDQogIC1BIEZPUldBUkQgLi4uY29uZGl0aW9uIDEuLi4g
+LW0gZHNjcCAtLWRzY3AtY2xhc3MgQUYzMSAtaiBUQVJHRVQNCiAgLUEgRk9SV0FSRCAuLi5jb25k
+aXRpb24gMi4uLiAtbSBkc2NwIC0tZHNjcCAxMCAtaiBUQVJHRVQNCiAgLUEgRk9SV0FSRCAuLi5j
+b25kaXRpb24gMi4uLiAtbSBkc2NwIC0tZHNjcCAxMCAtaiBUQVJHRVQNCg0KeW91IGNhbiB1c2U6
+DQoNCiAgLUEgRk9SV0FSRCAuLi4gLW0gZHNjcCAtLWRzY3AtY2xhc3MgQUYxMSxBRjIxLEFGMzEg
+LWogVEFSR0VUDQoNClRoaXMgaXMgbWFpbmx5IGNvbnZlbmllbnQgaWYgeW91IHdhbnQgdG8gMS10
+by0xIG1hcHBpbmcgZnJvbSB5b3VyIGFwcCB0byANCmlwdGFibGVzIHJ1bGUuDQpBbHNvIHlvdSBk
+b24ndCBuZWVkIHRvIGFkZCB1cCBwYWNrZXQgY291bnRzIChmb3IgZXhhbXBsZSkgZnJvbSBtdWx0
+aXBsZSANCnJ1bGVzLg0KDQoNCkRvZXMgYW55b25lIGhhdmUgYW4gaWRlYSB3aGV0aGVyIHRoaXMg
+d2lsbCBiZSB1c2VmdWwgZm9yIG90aGVycyBhbmQgDQp3b3J0aCB0byBwdXNoPw0KDQpUaGFua3Mu
+DQoNCg==
 
---_003_55BEE85E2070001alliedtelesisconz_
+--_003_143857493594155camelkyeongydl_
 Content-Type: text/x-patch; name="linux-dscp-multi.patch"
 Content-Description: linux-dscp-multi.patch
 Content-Disposition: attachment; filename="linux-dscp-multi.patch"; size=2191;
-	creation-date="Mon, 03 Aug 2015 04:04:46 GMT";
-	modification-date="Mon, 03 Aug 2015 04:04:46 GMT"
-Content-ID: <279FC1DF05C7EC4F9F8DFD1598C57397@atlnz.lc>
+	creation-date="Mon, 03 Aug 2015 04:08:55 GMT";
+	modification-date="Mon, 03 Aug 2015 04:08:55 GMT"
+Content-ID: <FB8541BC5F48E34192E7B2F68ED2F105@atlnz.lc>
 Content-Transfer-Encoding: base64
 
 Y29tbWl0IDk3OTU4Y2RiMjA5YTZiYWJjODhmZGViMTA4OTM1OTdkY2I4ODU2ZDUNCkF1dGhvcjog
@@ -92,13 +92,13 @@ bXVsdGkpDQorCQlyZXR1cm4gKGRzY3BfdGVzdF9iaXQoaW5mby0+ZHNjcF9iaXRtYXAsIGRzY3Ap
 ICE9IDApIF4gISFpbmZvLT5pbnZlcnQ7DQogCXJldHVybiAoZHNjcCA9PSBpbmZvLT5kc2NwKSBe
 ICEhaW5mby0+aW52ZXJ0Ow0KIH0NCiANCg==
 
---_003_55BEE85E2070001alliedtelesisconz_
+--_003_143857493594155camelkyeongydl_
 Content-Type: text/x-patch; name="iptables-dscp-multi.patch"
 Content-Description: iptables-dscp-multi.patch
 Content-Disposition: attachment; filename="iptables-dscp-multi.patch";
-	size=5893; creation-date="Mon, 03 Aug 2015 04:04:46 GMT";
-	modification-date="Mon, 03 Aug 2015 04:04:46 GMT"
-Content-ID: <130A14CC6CEE5145917384576475BCF5@atlnz.lc>
+	size=5893; creation-date="Mon, 03 Aug 2015 04:08:55 GMT";
+	modification-date="Mon, 03 Aug 2015 04:08:55 GMT"
+Content-ID: <05231CBF5025374CAFC76BAE916F7AA3@atlnz.lc>
 Content-Transfer-Encoding: base64
 
 Y29tbWl0IGE2MzcwOTk2ZmQ2MTJhNTM4NDc0MjA5MTk1YzNmYmRkN2RmZWVmNzYNCkF1dGhvcjog
@@ -206,4 +206,4 @@ aW5mbyB7DQogCV9fdTggZHNjcDsNCiAJX191OCBpbnZlcnQ7DQorCV9fdTggbXVsdGk7DQorCV9f
 dTMyIGRzY3BfYml0bWFwWyhYVF9EU0NQX01BWCA+PiA1KSArIDFdOw0KIH07DQogDQogc3RydWN0
 IHh0X3Rvc19tYXRjaF9pbmZvIHsNCg==
 
---_003_55BEE85E2070001alliedtelesisconz_--
+--_003_143857493594155camelkyeongydl_--
