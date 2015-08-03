@@ -1,162 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next] netfilter: nft_counter: convert it to use per-cpu counters
-Date: Mon,  3 Aug 2015 17:51:54 +0200
-Message-ID: <1438617114-3393-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, eric.dumazet@gmail.com
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next v3 1/3] netfilter: nf_conntrack: push zone object
+ into functions
+Date: Mon, 3 Aug 2015 17:59:09 +0200
+Message-ID: <20150803155909.GA17212@salvia>
+References: <cover.1437561897.git.daniel@iogearbox.net>
+ <2f95183cf2520b93d8443be935372fbef3499b96.1437561897.git.daniel@iogearbox.net>
+ <20150730160744.GA15008@salvia>
+ <55BA5228.6050908@iogearbox.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: tgraf@suug.ch, challa@noironetworks.com,
+	netfilter-devel@vger.kernel.org
+To: Daniel Borkmann <daniel@iogearbox.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43689 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44309 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753324AbbHCPqI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Aug 2015 11:46:08 -0400
+	id S1754238AbbHCPxO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 Aug 2015 11:53:14 -0400
+Content-Disposition: inline
+In-Reply-To: <55BA5228.6050908@iogearbox.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch converts the existing seqlock to per-cpu counters.
+On Thu, Jul 30, 2015 at 06:34:48PM +0200, Daniel Borkmann wrote:
+> CTA_ZONE_DIR seems better, sure. I don't have any other extensions at
+> the moment, but it seems it makes sense to make this nested at this
+> point in time, so we have CTA_ZONE and CTA_ZONE_INFO as a container
+> for CTA_ZONE_DIR and whatever future might bring. I will look into it.
 
-Suggested-by: Eric Dumazet <eric.dumazet@gmail.com>
-Suggested-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_counter.c |   96 ++++++++++++++++++++++++++++++-------------
- 1 file changed, 68 insertions(+), 28 deletions(-)
-
-diff --git a/net/netfilter/nft_counter.c b/net/netfilter/nft_counter.c
-index 1759123..cd89ae6 100644
---- a/net/netfilter/nft_counter.c
-+++ b/net/netfilter/nft_counter.c
-@@ -18,39 +18,58 @@
- #include <net/netfilter/nf_tables.h>
- 
- struct nft_counter {
--	seqlock_t	lock;
- 	u64		bytes;
- 	u64		packets;
- };
- 
-+struct nft_counter_percpu {
-+	struct nft_counter	counter;
-+	struct u64_stats_sync	syncp;
-+};
-+
-+struct nft_counter_percpu_priv {
-+	struct nft_counter_percpu __percpu *counter;
-+};
-+
- static void nft_counter_eval(const struct nft_expr *expr,
- 			     struct nft_regs *regs,
- 			     const struct nft_pktinfo *pkt)
- {
--	struct nft_counter *priv = nft_expr_priv(expr);
--
--	write_seqlock_bh(&priv->lock);
--	priv->bytes += pkt->skb->len;
--	priv->packets++;
--	write_sequnlock_bh(&priv->lock);
-+	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
-+	struct nft_counter_percpu *this_cpu = this_cpu_ptr(priv->counter);
-+
-+	local_bh_disable();
-+	u64_stats_update_begin(&this_cpu->syncp);
-+	this_cpu->counter.bytes += pkt->skb->len;
-+	this_cpu->counter.packets++;
-+	u64_stats_update_end(&this_cpu->syncp);
-+	local_bh_enable();
- }
- 
- static int nft_counter_dump(struct sk_buff *skb, const struct nft_expr *expr)
- {
--	struct nft_counter *priv = nft_expr_priv(expr);
-+	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
-+	struct nft_counter_percpu *cpu_stats;
-+	struct nft_counter total;
-+	u64 bytes, packets;
- 	unsigned int seq;
--	u64 bytes;
--	u64 packets;
--
--	do {
--		seq = read_seqbegin(&priv->lock);
--		bytes	= priv->bytes;
--		packets	= priv->packets;
--	} while (read_seqretry(&priv->lock, seq));
--
--	if (nla_put_be64(skb, NFTA_COUNTER_BYTES, cpu_to_be64(bytes)))
--		goto nla_put_failure;
--	if (nla_put_be64(skb, NFTA_COUNTER_PACKETS, cpu_to_be64(packets)))
-+	int cpu;
-+
-+	memset(&total, 0, sizeof(total));
-+	for_each_possible_cpu(cpu) {
-+		cpu_stats = per_cpu_ptr(priv->counter, cpu);
-+		do {
-+			seq	= u64_stats_fetch_begin_irq(&cpu_stats->syncp);
-+			bytes	= cpu_stats->counter.bytes;
-+			packets	= cpu_stats->counter.packets;
-+		} while (u64_stats_fetch_retry_irq(&cpu_stats->syncp, seq));
-+
-+		total.packets += packets;
-+		total.bytes += bytes;
-+	}
-+
-+	if (nla_put_be64(skb, NFTA_COUNTER_BYTES, cpu_to_be64(total.bytes)) ||
-+	    nla_put_be64(skb, NFTA_COUNTER_PACKETS, cpu_to_be64(total.packets)))
- 		goto nla_put_failure;
- 	return 0;
- 
-@@ -67,23 +86,44 @@ static int nft_counter_init(const struct nft_ctx *ctx,
- 			    const struct nft_expr *expr,
- 			    const struct nlattr * const tb[])
- {
--	struct nft_counter *priv = nft_expr_priv(expr);
-+	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
-+	struct nft_counter_percpu __percpu *cpu_stats;
-+	struct nft_counter_percpu *this_cpu;
-+
-+	cpu_stats = netdev_alloc_pcpu_stats(struct nft_counter_percpu);
-+	if (cpu_stats == NULL)
-+		return ENOMEM;
-+
-+	preempt_disable();
-+	this_cpu = this_cpu_ptr(cpu_stats);
-+	if (tb[NFTA_COUNTER_PACKETS]) {
-+	        this_cpu->counter.packets =
-+			be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_PACKETS]));
-+	}
-+	if (tb[NFTA_COUNTER_BYTES]) {
-+		this_cpu->counter.bytes =
-+			be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_BYTES]));
-+	}
-+	preempt_enable();
-+	priv->counter = cpu_stats;
-+	return 0;
-+}
- 
--	if (tb[NFTA_COUNTER_PACKETS])
--	        priv->packets = be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_PACKETS]));
--	if (tb[NFTA_COUNTER_BYTES])
--		priv->bytes = be64_to_cpu(nla_get_be64(tb[NFTA_COUNTER_BYTES]));
-+static void nft_counter_destroy(const struct nft_ctx *ctx,
-+				const struct nft_expr *expr)
-+{
-+	struct nft_counter_percpu_priv *priv = nft_expr_priv(expr);
- 
--	seqlock_init(&priv->lock);
--	return 0;
-+	free_percpu(priv->counter);
- }
- 
- static struct nft_expr_type nft_counter_type;
- static const struct nft_expr_ops nft_counter_ops = {
- 	.type		= &nft_counter_type,
--	.size		= NFT_EXPR_SIZE(sizeof(struct nft_counter)),
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_counter_percpu_priv)),
- 	.eval		= nft_counter_eval,
- 	.init		= nft_counter_init,
-+	.destroy	= nft_counter_destroy,
- 	.dump		= nft_counter_dump,
- };
- 
--- 
-1.7.10.4
-
+thinking it well, this is part of the tuple, so I'd suggest you add
+CTA_TUPLE_ZONE to enum ctattr_tuple. We will probably need later to
+place each tuple in different zones.
