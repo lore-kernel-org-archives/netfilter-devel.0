@@ -1,36 +1,47 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 3/3] netfilter: nf_tables: add generation mask to
- set objects
-Date: Tue, 4 Aug 2015 11:29:57 +0200
-Message-ID: <20150804092957.GB7944@salvia>
-References: <1438679128-4146-1-git-send-email-pablo@netfilter.org>
- <1438679128-4146-3-git-send-email-pablo@netfilter.org>
- <20150804091205.GB6033@acer.localdomain>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: New multiple DSCP match by "-m dscp --dscp-multi value,value,..."
+Date: Tue, 4 Aug 2015 11:25:11 +0200
+Message-ID: <20150804092511.GD20471@breakpoint.cc>
+References: <55BEE85E.2070001@alliedtelesis.co.nz>
+ <20150804091935.GA7852@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: Kyeong Yoo <Kyeong.Yoo@alliedtelesis.co.nz>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49273 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932425AbbHDJYB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2015 05:24:01 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:38352 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932421AbbHDJZO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Aug 2015 05:25:14 -0400
 Content-Disposition: inline
-In-Reply-To: <20150804091205.GB6033@acer.localdomain>
+In-Reply-To: <20150804091935.GA7852@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 04, 2015 at 11:12:05AM +0200, Patrick McHardy wrote:
-> On 04.08, Pablo Neira Ayuso wrote:
-> > -#define NFT_SET_INACTIVE	(1 << 15)
-> > +static inline bool
-> > +nft_set_is_active(struct net *net, const struct nft_set *set)
-> > +{
-> > +	return (set->genmask & nft_genmask_cur(net)) == 0;
-> > +}
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Mon, Aug 03, 2015 at 04:04:46AM +0000, Kyeong Yoo wrote:
+> > I found this is useful for me to match multiple DSCP values in a rule.
+> > 
+> > For example, if you want to handle traffic with a list of DSCP same way, 
+> > instead of using this:
+> > 
+> >   -A FORWARD ...cond1... -m dscp --dscp-class AF11 -j TARGET
+> >   -A FORWARD ...cond1... -m dscp --dscp-class AF21 -j TARGET
+> >   -A FORWARD ...cond1... -m dscp --dscp-class AF31 -j TARGET
+> >   -A FORWARD ...cond2... -m dscp --dscp 10 -j TARGET
+> >   -A FORWARD ...cond2... -m dscp --dscp 20 -j TARGET
+> > 
+> > you can use:
+> > 
+> >   -A FORWARD ...cond1... -m dscp --dscp-multi AF11,AF21,AF31 -j TARGET
+> >   -A FORWARD ...cond2... -m dscp --dscp-multi 10,20 -j TARGET
 > 
-> Do we really want this set of basic functions for every object type? There will
-> still be cases where we need to open code the checks anyway, f.i. iterators
-> and callbacks.
+> We support multiple matches in a rule for long time already:
+> 
+>         -A FORWARD ...cond1...  -m dscp --dscp-class AF11 \
+>                                 -m dscp --dscp-class AF21 \
+>                                 -m dscp --dscp-class AF31 \
 
-We can have a macro thing instead at some point.
+Yes, but that won't work since this is foo && bar, not foo || bar.
