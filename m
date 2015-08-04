@@ -1,33 +1,31 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nfacct is not namespace aware
-Date: Tue, 4 Aug 2015 19:17:33 +0200
-Message-ID: <20150804171733.GA3770@salvia>
-References: <1612781863.2309722.1438703792113.JavaMail.zimbra@tpip.net>
+From: Aju L Francis <aju@iraw.net>
+Subject: IPv6 support for GRE helper(nf_conntrack_proto_gre)
+Date: Tue, 04 Aug 2015 13:14:40 -0400
+Message-ID: <1438708480.1197054.347597513.3BF1F74D@webmail.messagingengine.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Andreas Schultz <aschultz@tpip.net>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56613 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752375AbbHDRLj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2015 13:11:39 -0400
-Content-Disposition: inline
-In-Reply-To: <1612781863.2309722.1438703792113.JavaMail.zimbra@tpip.net>
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:50350 "EHLO
+	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753397AbbHDROn (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Aug 2015 13:14:43 -0400
+Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
+	by mailout.nyi.internal (Postfix) with ESMTP id 6BF5B20478
+	for <netfilter-devel@vger.kernel.org>; Tue,  4 Aug 2015 13:14:40 -0400 (EDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 04, 2015 at 05:56:32PM +0200, Andreas Schultz wrote:
-> Hi,
-> 
-> Can someone confirm that the nfacct subsystem is not network namespace
-> aware/safe?
-> 
-> From checking the code, it would appear that all nfacct targets are kept
-> in a global list. This would mean that unrelated namespaces can interfere
-> with each other.
+Hello,
 
-There is no netns support for nfacct yet, but it should be easy to
-add.
+    We are trying to implement GRE over IPv6 on Linux running kernel
+    3.13.0-53. But found that IPv6 traffic is being marked as INVALID by
+    netfilter. Wanted to know if there is any effort on having IPv6
+    support for the GRE helper nf_conntrack_proto_gre. 
 
-Patches are welcome :)
+Thanks in advance.
+
+-- 
+Aju  Francis
