@@ -1,33 +1,42 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nf-next 3/3] netfilter: nf_tables: add generation mask to
- set objects
-Date: Tue, 4 Aug 2015 11:12:05 +0200
-Message-ID: <20150804091205.GB6033@acer.localdomain>
-References: <1438679128-4146-1-git-send-email-pablo@netfilter.org>
- <1438679128-4146-3-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: New multiple DSCP match by "-m dscp --dscp-multi value,value,..."
+Date: Tue, 4 Aug 2015 11:19:35 +0200
+Message-ID: <20150804091935.GA7852@salvia>
+References: <55BEE85E.2070001@alliedtelesis.co.nz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Kyeong Yoo <Kyeong.Yoo@alliedtelesis.co.nz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42603 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755863AbbHDJMH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2015 05:12:07 -0400
+Received: from mail.us.es ([193.147.175.20]:47048 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754510AbbHDJNh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Aug 2015 05:13:37 -0400
 Content-Disposition: inline
-In-Reply-To: <1438679128-4146-3-git-send-email-pablo@netfilter.org>
+In-Reply-To: <55BEE85E.2070001@alliedtelesis.co.nz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 04.08, Pablo Neira Ayuso wrote:
-> -#define NFT_SET_INACTIVE	(1 << 15)
-> +static inline bool
-> +nft_set_is_active(struct net *net, const struct nft_set *set)
-> +{
-> +	return (set->genmask & nft_genmask_cur(net)) == 0;
-> +}
+On Mon, Aug 03, 2015 at 04:04:46AM +0000, Kyeong Yoo wrote:
+> I found this is useful for me to match multiple DSCP values in a rule.
+> 
+> For example, if you want to handle traffic with a list of DSCP same way, 
+> instead of using this:
+> 
+>   -A FORWARD ...cond1... -m dscp --dscp-class AF11 -j TARGET
+>   -A FORWARD ...cond1... -m dscp --dscp-class AF21 -j TARGET
+>   -A FORWARD ...cond1... -m dscp --dscp-class AF31 -j TARGET
+>   -A FORWARD ...cond2... -m dscp --dscp 10 -j TARGET
+>   -A FORWARD ...cond2... -m dscp --dscp 20 -j TARGET
+> 
+> you can use:
+> 
+>   -A FORWARD ...cond1... -m dscp --dscp-multi AF11,AF21,AF31 -j TARGET
+>   -A FORWARD ...cond2... -m dscp --dscp-multi 10,20 -j TARGET
 
-Do we really want this set of basic functions for every object type? There will
-still be cases where we need to open code the checks anyway, f.i. iterators
-and callbacks.
+We support multiple matches in a rule for long time already:
+
+        -A FORWARD ...cond1...  -m dscp --dscp-class AF11 \
+                                -m dscp --dscp-class AF21 \
+                                -m dscp --dscp-class AF31 \
+                                -j TARGET
