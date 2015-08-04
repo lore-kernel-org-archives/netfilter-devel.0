@@ -1,46 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 2/3] netfilter: factor out packet duplication for
- IPv4/IPv6
-Date: Tue, 4 Aug 2015 19:27:07 +0200
-Message-ID: <20150804172707.GA4079@salvia>
-References: <1438684042-13709-1-git-send-email-pablo@netfilter.org>
- <1438684042-13709-2-git-send-email-pablo@netfilter.org>
- <20150804114810.GE20471@breakpoint.cc>
+Subject: Re: [PATCH] netfilter: ipt_SYNPROXY: fix sending window update to
+ client
+Date: Tue, 4 Aug 2015 19:53:02 +0200
+Message-ID: <20150804175302.GA19650@salvia>
+References: <1438037606-5462-1-git-send-email-phil@nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Florian Westphal <fw@strlen.de>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57416 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59503 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752584AbbHDRVL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2015 13:21:11 -0400
+	id S932494AbbHDRrJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Aug 2015 13:47:09 -0400
 Content-Disposition: inline
-In-Reply-To: <20150804114810.GE20471@breakpoint.cc>
+In-Reply-To: <1438037606-5462-1-git-send-email-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 04, 2015 at 01:48:10PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Extracted from the xtables TEE target. This creates two new modules for IPv4
-> > and IPv6 that are shared between the TEE target and the new nf_tables dup
-> > expressions.
+On Tue, Jul 28, 2015 at 12:53:26AM +0200, Phil Sutter wrote:
+> Upon receipt of SYNACK from the server, ipt_SYNPROXY first sends back an ACK to
+> finish the server handshake, then calls nf_ct_seqadj_init() to initiate
+> sequence number adjustment of forwarded packets to the client and finally sends
+> a window update to the client to unblock it's TX queue.
 > 
-> > diff --git a/net/ipv4/netfilter/nf_dup_ipv4.c b/net/ipv4/netfilter/nf_dup_ipv4.c
-> > new file mode 100644
-> > index 0000000..feba24a
-> > --- /dev/null
-> > +++ b/net/ipv4/netfilter/nf_dup_ipv4.c
-> > +unsigned int nf_dup_ipv4(struct sk_buff *skb, unsigned int hooknum,
-> > +			 const struct in_addr *gw, int oif)
-> > +{
-> > +	struct iphdr *iph;
-> > +
-> > +	if (__this_cpu_read(nf_skb_duplicated))
-> > +		return XT_CONTINUE;
-> 
-> Nit: seems function doesn't need to return anything.
-> So the use of XT_* outisde xt core can be avoided.
+> Since synproxy_send_client_ack() does not set synproxy_send_tcp()'s nfct
+> parameter, no sequence number adjustment happens and the client receives the
+> window update with incorrect sequence number. Depending on client TCP
+> implementation, this leads to a significant delay (until a window probe is
+> being sent).
 
-Unless someone else finds any other problem, I'll fix this nit here
-and apply. Thanks for spotting this Florian.
+Could you also fix the IPv6 side to get both codes in sync? Thanks.
+
