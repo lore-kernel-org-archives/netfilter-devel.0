@@ -1,31 +1,41 @@
-From: Aju L Francis <aju@iraw.net>
-Subject: IPv6 support for GRE helper(nf_conntrack_proto_gre)
-Date: Tue, 04 Aug 2015 13:14:40 -0400
-Message-ID: <1438708480.1197054.347597513.3BF1F74D@webmail.messagingengine.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next 3/3] netfilter: nf_tables: add generation mask to
+ set objects
+Date: Tue, 4 Aug 2015 19:23:52 +0200
+Message-ID: <20150804172352.GA3936@salvia>
+References: <1438679128-4146-1-git-send-email-pablo@netfilter.org>
+ <1438679128-4146-3-git-send-email-pablo@netfilter.org>
+ <20150804103813.GA12016@acer.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:50350 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753397AbbHDROn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2015 13:14:43 -0400
-Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
-	by mailout.nyi.internal (Postfix) with ESMTP id 6BF5B20478
-	for <netfilter-devel@vger.kernel.org>; Tue,  4 Aug 2015 13:14:40 -0400 (EDT)
+Received: from mail.us.es ([193.147.175.20]:57113 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752469AbbHDRRz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 Aug 2015 13:17:55 -0400
+Content-Disposition: inline
+In-Reply-To: <20150804103813.GA12016@acer.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+On Tue, Aug 04, 2015 at 12:38:13PM +0200, Patrick McHardy wrote:
+> On 04.08, Pablo Neira Ayuso wrote:
+> > Use the generation mask approach to obtain a consistent list of set objects
+> > from netlink dump commands.
+> > 
+> > Get rid of the internal NFT_SET_INACTIVE flag.
+> 
+> In this case I don't see how deletion and creation in the same
+> batch will work at all since we don't check any active bits in
+> nf_tables_newset().
 
-    We are trying to implement GRE over IPv6 on Linux running kernel
-    3.13.0-53. But found that IPv6 traffic is being marked as INVALID by
-    netfilter. Wanted to know if there is any effort on having IPv6
-    support for the GRE helper nf_conntrack_proto_gre. 
+Right, the update of nf_tables_set_lookup() is missing.
 
-Thanks in advance.
+> We also have the problem that f.i. delset checks for activeness
+> in the current instead of the next generation.
 
--- 
-Aju  Francis
+I guess you refer to the same problem I'm discussing in the other
+thread, right? As I said, this checking for add+delete in the same
+batch.
