@@ -1,115 +1,163 @@
-From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
-Subject: [PATCH libnftnl] src: fix memory leaks at nft_[object]_nlmsg_parse
-Date: Wed,  5 Aug 2015 12:23:34 +0200
-Message-ID: <1438770214-3064-1-git-send-email-carlosfg@riseup.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next 3/6] netfilter: nft_limit: factor out shared code with per-byte limiting
+Date: Wed,  5 Aug 2015 12:38:41 +0200
+Message-ID: <1438771124-3650-3-git-send-email-pablo@netfilter.org>
+References: <1438771124-3650-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:57370 "EHLO mx1.riseup.net"
+Received: from mail.us.es ([193.147.175.20]:37863 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750821AbbHEKX5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Aug 2015 06:23:57 -0400
-Received: from piha.riseup.net (unknown [10.0.1.162])
-	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-	(Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
-	by mx1.riseup.net (Postfix) with ESMTPS id 7DB1940CC3
-	for <netfilter-devel@vger.kernel.org>; Wed,  5 Aug 2015 10:23:57 +0000 (UTC)
+	id S1751971AbbHEKcu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Aug 2015 06:32:50 -0400
+In-Reply-To: <1438771124-3650-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Free object attributes before overwrite it. Fix 'nlmsg_parse' methods of
-following objects: 'table', 'chain', 'rule', 'set' and 'set_element'.
----
- src/chain.c    | 2 ++
- src/rule.c     | 2 ++
- src/set.c      | 2 ++
- src/set_elem.c | 2 ++
- src/table.c    | 1 +
- 5 files changed, 9 insertions(+)
+This patch prepares the introduction of per-byte limiting.
 
-diff --git a/src/chain.c b/src/chain.c
-index ed9d9e4..4f9c6b7 100644
---- a/src/chain.c
-+++ b/src/chain.c
-@@ -534,6 +534,7 @@ int nft_chain_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_chain *c)
- 		c->flags |= (1 << NFT_CHAIN_ATTR_NAME);
- 	}
- 	if (tb[NFTA_CHAIN_TABLE]) {
-+		xfree(c->table);
- 		c->table = strdup(mnl_attr_get_str(tb[NFTA_CHAIN_TABLE]));
- 		c->flags |= (1 << NFT_CHAIN_ATTR_TABLE);
- 	}
-@@ -560,6 +561,7 @@ int nft_chain_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_chain *c)
- 		c->flags |= (1 << NFT_CHAIN_ATTR_HANDLE);
- 	}
- 	if (tb[NFTA_CHAIN_TYPE]) {
-+		xfree(c->type);
- 		c->type = strdup(mnl_attr_get_str(tb[NFTA_CHAIN_TYPE]));
- 		c->flags |= (1 << NFT_CHAIN_ATTR_TYPE);
- 	}
-diff --git a/src/rule.c b/src/rule.c
-index 04088ed..ebaa3ed 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -425,10 +425,12 @@ int nft_rule_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_rule *r)
- 		return -1;
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_limit.c |   86 ++++++++++++++++++++++++++++-----------------
+ 1 file changed, 53 insertions(+), 33 deletions(-)
+
+diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
+index c79703e..c4d1b1b 100644
+--- a/net/netfilter/nft_limit.c
++++ b/net/netfilter/nft_limit.c
+@@ -27,65 +27,54 @@ struct nft_limit {
+ 	u64		nsecs;
+ };
  
- 	if (tb[NFTA_RULE_TABLE]) {
-+		xfree(r->table);
- 		r->table = strdup(mnl_attr_get_str(tb[NFTA_RULE_TABLE]));
- 		r->flags |= (1 << NFT_RULE_ATTR_TABLE);
- 	}
- 	if (tb[NFTA_RULE_CHAIN]) {
-+		xfree(r->chain);
- 		r->chain = strdup(mnl_attr_get_str(tb[NFTA_RULE_CHAIN]));
- 		r->flags |= (1 << NFT_RULE_ATTR_CHAIN);
- 	}
-diff --git a/src/set.c b/src/set.c
-index b07c4d9..1782f72 100644
---- a/src/set.c
-+++ b/src/set.c
-@@ -435,10 +435,12 @@ int nft_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set *s)
- 		return -1;
+-static void nft_limit_pkts_eval(const struct nft_expr *expr,
+-				struct nft_regs *regs,
+-				const struct nft_pktinfo *pkt)
++static inline bool nft_limit_eval(struct nft_limit *limit, u64 cost)
+ {
+-	struct nft_limit *priv = nft_expr_priv(expr);
+-	u64 now, tokens, cost = div_u64(priv->nsecs, priv->rate);
++	u64 now, tokens;
+ 	s64 delta;
  
- 	if (tb[NFTA_SET_TABLE]) {
-+		xfree(s->table);
- 		s->table = strdup(mnl_attr_get_str(tb[NFTA_SET_TABLE]));
- 		s->flags |= (1 << NFT_SET_ATTR_TABLE);
- 	}
- 	if (tb[NFTA_SET_NAME]) {
-+		xfree(s->name);
- 		s->name = strdup(mnl_attr_get_str(tb[NFTA_SET_NAME]));
- 		s->flags |= (1 << NFT_SET_ATTR_NAME);
- 	}
-diff --git a/src/set_elem.c b/src/set_elem.c
-index 3a799dc..643dd76 100644
---- a/src/set_elem.c
-+++ b/src/set_elem.c
-@@ -462,11 +462,13 @@ int nft_set_elems_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_set *s)
- 		return -1;
+ 	spin_lock_bh(&limit_lock);
+ 	now = ktime_get_ns();
+-	tokens = priv->tokens + now - priv->last;
+-	if (tokens > priv->tokens_max)
+-		tokens = priv->tokens_max;
++	tokens = limit->tokens + now - limit->last;
++	if (tokens > limit->tokens_max)
++		tokens = limit->tokens_max;
  
- 	if (tb[NFTA_SET_ELEM_LIST_TABLE]) {
-+		xfree(s->table);
- 		s->table =
- 			strdup(mnl_attr_get_str(tb[NFTA_SET_ELEM_LIST_TABLE]));
- 		s->flags |= (1 << NFT_SET_ATTR_TABLE);
+-	priv->last = now;
++	limit->last = now;
+ 	delta = tokens - cost;
+ 	if (delta >= 0) {
+-		priv->tokens = delta;
++		limit->tokens = delta;
+ 		spin_unlock_bh(&limit_lock);
+-		return;
++		return false;
  	}
- 	if (tb[NFTA_SET_ELEM_LIST_SET]) {
-+		xfree(s->name);
- 		s->name =
- 			strdup(mnl_attr_get_str(tb[NFTA_SET_ELEM_LIST_SET]));
- 		s->flags |= (1 << NFT_SET_ATTR_NAME);
-diff --git a/src/table.c b/src/table.c
-index ab0a8ea..09470e0 100644
---- a/src/table.c
-+++ b/src/table.c
-@@ -229,6 +229,7 @@ int nft_table_nlmsg_parse(const struct nlmsghdr *nlh, struct nft_table *t)
- 		return -1;
+-	priv->tokens = tokens;
++	limit->tokens = tokens;
+ 	spin_unlock_bh(&limit_lock);
+-
+-	regs->verdict.code = NFT_BREAK;
++	return true;
+ }
  
- 	if (tb[NFTA_TABLE_NAME]) {
-+		xfree(t->name);
- 		t->name = strdup(mnl_attr_get_str(tb[NFTA_TABLE_NAME]));
- 		t->flags |= (1 << NFT_TABLE_ATTR_NAME);
- 	}
+-static const struct nla_policy nft_limit_policy[NFTA_LIMIT_MAX + 1] = {
+-	[NFTA_LIMIT_RATE]	= { .type = NLA_U64 },
+-	[NFTA_LIMIT_UNIT]	= { .type = NLA_U64 },
+-};
+-
+-static int nft_limit_init(const struct nft_ctx *ctx,
+-			  const struct nft_expr *expr,
++static int nft_limit_init(struct nft_limit *limit,
+ 			  const struct nlattr * const tb[])
+ {
+-	struct nft_limit *priv = nft_expr_priv(expr);
+ 	u64 unit;
+ 
+ 	if (tb[NFTA_LIMIT_RATE] == NULL ||
+ 	    tb[NFTA_LIMIT_UNIT] == NULL)
+ 		return -EINVAL;
+ 
+-	priv->rate = be64_to_cpu(nla_get_be64(tb[NFTA_LIMIT_RATE]));
++	limit->rate = be64_to_cpu(nla_get_be64(tb[NFTA_LIMIT_RATE]));
+ 	unit = be64_to_cpu(nla_get_be64(tb[NFTA_LIMIT_UNIT]));
+-	priv->nsecs = unit * NSEC_PER_SEC;
+-	if (priv->rate == 0 || priv->nsecs < unit)
++	limit->nsecs = unit * NSEC_PER_SEC;
++	if (limit->rate == 0 || limit->nsecs < unit)
+ 		return -EOVERFLOW;
+-	priv->tokens = priv->tokens_max = priv->nsecs;
+-	priv->last = ktime_get_ns();
++	limit->tokens = limit->tokens_max = limit->nsecs;
++	limit->last = ktime_get_ns();
++
+ 	return 0;
+ }
+ 
+-static int nft_limit_dump(struct sk_buff *skb, const struct nft_expr *expr)
++static int nft_limit_dump(struct sk_buff *skb, const struct nft_limit *limit)
+ {
+-	const struct nft_limit *priv = nft_expr_priv(expr);
+-	u64 secs = div_u64(priv->nsecs, NSEC_PER_SEC);
++	u64 secs = div_u64(limit->nsecs, NSEC_PER_SEC);
+ 
+-	if (nla_put_be64(skb, NFTA_LIMIT_RATE, cpu_to_be64(priv->rate)) ||
++	if (nla_put_be64(skb, NFTA_LIMIT_RATE, cpu_to_be64(limit->rate)) ||
+ 	    nla_put_be64(skb, NFTA_LIMIT_UNIT, cpu_to_be64(secs)))
+ 		goto nla_put_failure;
+ 	return 0;
+@@ -94,13 +83,44 @@ nla_put_failure:
+ 	return -1;
+ }
+ 
++static void nft_limit_pkts_eval(const struct nft_expr *expr,
++				struct nft_regs *regs,
++				const struct nft_pktinfo *pkt)
++{
++	struct nft_limit *priv = nft_expr_priv(expr);
++
++	if (nft_limit_eval(priv, div_u64(priv->nsecs, priv->rate)))
++		regs->verdict.code = NFT_BREAK;
++}
++
++static const struct nla_policy nft_limit_policy[NFTA_LIMIT_MAX + 1] = {
++	[NFTA_LIMIT_RATE]	= { .type = NLA_U64 },
++	[NFTA_LIMIT_UNIT]	= { .type = NLA_U64 },
++};
++
++static int nft_limit_pkts_init(const struct nft_ctx *ctx,
++			       const struct nft_expr *expr,
++			       const struct nlattr * const tb[])
++{
++	struct nft_limit *priv = nft_expr_priv(expr);
++
++	return nft_limit_init(priv, tb);
++}
++
++static int nft_limit_pkts_dump(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	const struct nft_limit *priv = nft_expr_priv(expr);
++
++	return nft_limit_dump(skb, priv);
++}
++
+ static struct nft_expr_type nft_limit_type;
+ static const struct nft_expr_ops nft_limit_pkts_ops = {
+ 	.type		= &nft_limit_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_limit)),
+ 	.eval		= nft_limit_pkts_eval,
+-	.init		= nft_limit_init,
+-	.dump		= nft_limit_dump,
++	.init		= nft_limit_pkts_init,
++	.dump		= nft_limit_pkts_dump,
+ };
+ 
+ static struct nft_expr_type nft_limit_type __read_mostly = {
 -- 
-2.4.6
+1.7.10.4
 
