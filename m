@@ -1,121 +1,271 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: Re: [PATCH nf-next v3 1/3] netfilter: nf_conntrack: push zone object
- into functions
-Date: Wed, 05 Aug 2015 16:00:29 +0200
-Message-ID: <55C216FD.7080900@iogearbox.net>
-References: <cover.1437561897.git.daniel@iogearbox.net> <2f95183cf2520b93d8443be935372fbef3499b96.1437561897.git.daniel@iogearbox.net> <20150730160744.GA15008@salvia> <55BA5228.6050908@iogearbox.net> <20150803155909.GA17212@salvia> <55BF9023.3050505@iogearbox.net> <20150805105126.GA3996@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: tgraf@suug.ch, challa@noironetworks.com,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Andreas Schultz <aschultz@tpip.net>
+Subject: [PATCH] netfilter: per network namespace nfacct
+Date: Wed,  5 Aug 2015 17:51:45 +0200
+Message-ID: <1438789905-5716-1-git-send-email-aschultz@tpip.net>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:51938 "EHLO
-	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751139AbbHEOAf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 5 Aug 2015 10:00:35 -0400
-In-Reply-To: <20150805105126.GA3996@salvia>
+Received: from mail.tpip.net ([92.43.49.48]:60027 "EHLO mail.tpip.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753465AbbHEPvy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 5 Aug 2015 11:51:54 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 08/05/2015 12:51 PM, Pablo Neira Ayuso wrote:
-> On Mon, Aug 03, 2015 at 06:00:35PM +0200, Daniel Borkmann wrote:
->> On 08/03/2015 05:59 PM, Pablo Neira Ayuso wrote:
->>> On Thu, Jul 30, 2015 at 06:34:48PM +0200, Daniel Borkmann wrote:
->>>> CTA_ZONE_DIR seems better, sure. I don't have any other extensions at
->>>> the moment, but it seems it makes sense to make this nested at this
->>>> point in time, so we have CTA_ZONE and CTA_ZONE_INFO as a container
->>>> for CTA_ZONE_DIR and whatever future might bring. I will look into it.
->>>
->>> thinking it well, this is part of the tuple, so I'd suggest you add
->>> CTA_TUPLE_ZONE to enum ctattr_tuple. We will probably need later to
->>> place each tuple in different zones.
->>
->> That's fine with me, will do after your tree rebase.
->
-> Just pushed out a fresh copy with net-next into nf-next.
+- Move the nfnl_acct_list into the network namespace, initialize
+  and destroy it per namespace
+- Keep track of refcnt on nfacct objects, the old logic does not
+  longer work with a per namespace list
+- Adjust xt_nfacct to pass the namespace when registring objects
 
-Cool, thanks, will move on with my rework/base of the set then!
+Signed-off-by: Andreas Schultz <aschultz@tpip.net>
+---
+ include/linux/netfilter/nfnetlink_acct.h |  3 +-
+ include/net/net_namespace.h              |  3 ++
+ net/netfilter/nfnetlink_acct.c           | 71 ++++++++++++++++++++++----------
+ net/netfilter/xt_nfacct.c                |  2 +-
+ 4 files changed, 56 insertions(+), 23 deletions(-)
 
-> Daniel, a minor change that I came up with. With your patchset, the
-> configurations that we accept look like:
->
->          zone original=Value     reply=0
->          zone original=0         reply=Value
+diff --git a/include/linux/netfilter/nfnetlink_acct.h b/include/linux/netfilter/nfnetlink_acct.h
+index 6ec9757..80ca889 100644
+--- a/include/linux/netfilter/nfnetlink_acct.h
++++ b/include/linux/netfilter/nfnetlink_acct.h
+@@ -2,6 +2,7 @@
+ #define _NFNL_ACCT_H_
+ 
+ #include <uapi/linux/netfilter/nfnetlink_acct.h>
++#include <net/net_namespace.h>
+ 
+ enum {
+ 	NFACCT_NO_QUOTA		= -1,
+@@ -11,7 +12,7 @@ enum {
+ 
+ struct nf_acct;
+ 
+-struct nf_acct *nfnl_acct_find_get(const char *filter_name);
++struct nf_acct *nfnl_acct_find_get(struct net *net, const char *filter_name);
+ void nfnl_acct_put(struct nf_acct *acct);
+ void nfnl_acct_update(const struct sk_buff *skb, struct nf_acct *nfacct);
+ extern int nfnl_acct_overquota(const struct sk_buff *skb,
+diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
+index e951453..2dcea63 100644
+--- a/include/net/net_namespace.h
++++ b/include/net/net_namespace.h
+@@ -118,6 +118,9 @@ struct net {
+ #endif
+ 	struct sock		*nfnl;
+ 	struct sock		*nfnl_stash;
++#if IS_ENABLED(CONFIG_NETFILTER_NETLINK_ACCT)
++	struct list_head        nfnl_acct_list;
++#endif
+ #endif
+ #ifdef CONFIG_WEXT_CORE
+ 	struct sk_buff_head	wext_nlevents;
+diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
+index c18af2f..307ca17 100644
+--- a/net/netfilter/nfnetlink_acct.c
++++ b/net/netfilter/nfnetlink_acct.c
+@@ -27,8 +27,6 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+ MODULE_DESCRIPTION("nfacct: Extended Netfilter accounting infrastructure");
+ 
+-static LIST_HEAD(nfnl_acct_list);
+-
+ struct nf_acct {
+ 	atomic64_t		pkts;
+ 	atomic64_t		bytes;
+@@ -53,6 +51,7 @@ nfnl_acct_new(struct sock *nfnl, struct sk_buff *skb,
+ 	     const struct nlmsghdr *nlh, const struct nlattr * const tb[])
+ {
+ 	struct nf_acct *nfacct, *matching = NULL;
++	struct net *net = sock_net(nfnl);
+ 	char *acct_name;
+ 	unsigned int size = 0;
+ 	u32 flags = 0;
+@@ -64,7 +63,7 @@ nfnl_acct_new(struct sock *nfnl, struct sk_buff *skb,
+ 	if (strlen(acct_name) == 0)
+ 		return -EINVAL;
+ 
+-	list_for_each_entry(nfacct, &nfnl_acct_list, head) {
++	list_for_each_entry(nfacct, &net->nfnl_acct_list, head) {
+ 		if (strncmp(nfacct->name, acct_name, NFACCT_NAME_MAX) != 0)
+ 			continue;
+ 
+@@ -124,7 +123,7 @@ nfnl_acct_new(struct sock *nfnl, struct sk_buff *skb,
+ 			     be64_to_cpu(nla_get_be64(tb[NFACCT_PKTS])));
+ 	}
+ 	atomic_set(&nfacct->refcnt, 1);
+-	list_add_tail_rcu(&nfacct->head, &nfnl_acct_list);
++	list_add_tail_rcu(&nfacct->head, &net->nfnl_acct_list);
+ 	return 0;
+ }
+ 
+@@ -185,6 +184,7 @@ nla_put_failure:
+ static int
+ nfnl_acct_dump(struct sk_buff *skb, struct netlink_callback *cb)
+ {
++	struct net *net = sock_net(skb->sk);
+ 	struct nf_acct *cur, *last;
+ 	const struct nfacct_filter *filter = cb->data;
+ 
+@@ -196,7 +196,7 @@ nfnl_acct_dump(struct sk_buff *skb, struct netlink_callback *cb)
+ 		cb->args[1] = 0;
+ 
+ 	rcu_read_lock();
+-	list_for_each_entry_rcu(cur, &nfnl_acct_list, head) {
++	list_for_each_entry_rcu(cur, &net->nfnl_acct_list, head) {
+ 		if (last) {
+ 			if (cur != last)
+ 				continue;
+@@ -257,6 +257,7 @@ static int
+ nfnl_acct_get(struct sock *nfnl, struct sk_buff *skb,
+ 	     const struct nlmsghdr *nlh, const struct nlattr * const tb[])
+ {
++	struct net *net = sock_net(nfnl);
+ 	int ret = -ENOENT;
+ 	struct nf_acct *cur;
+ 	char *acct_name;
+@@ -283,7 +284,7 @@ nfnl_acct_get(struct sock *nfnl, struct sk_buff *skb,
+ 		return -EINVAL;
+ 	acct_name = nla_data(tb[NFACCT_NAME]);
+ 
+-	list_for_each_entry(cur, &nfnl_acct_list, head) {
++	list_for_each_entry(cur, &net->nfnl_acct_list, head) {
+ 		struct sk_buff *skb2;
+ 
+ 		if (strncmp(cur->name, acct_name, NFACCT_NAME_MAX)!= 0)
+@@ -336,19 +337,20 @@ static int
+ nfnl_acct_del(struct sock *nfnl, struct sk_buff *skb,
+ 	     const struct nlmsghdr *nlh, const struct nlattr * const tb[])
+ {
++	struct net *net = sock_net(nfnl);
+ 	char *acct_name;
+ 	struct nf_acct *cur;
+ 	int ret = -ENOENT;
+ 
+ 	if (!tb[NFACCT_NAME]) {
+-		list_for_each_entry(cur, &nfnl_acct_list, head)
++		list_for_each_entry(cur, &net->nfnl_acct_list, head)
+ 			nfnl_acct_try_del(cur);
+ 
+ 		return 0;
+ 	}
+ 	acct_name = nla_data(tb[NFACCT_NAME]);
+ 
+-	list_for_each_entry(cur, &nfnl_acct_list, head) {
++	list_for_each_entry(cur, &net->nfnl_acct_list, head) {
+ 		if (strncmp(cur->name, acct_name, NFACCT_NAME_MAX) != 0)
+ 			continue;
+ 
+@@ -394,12 +396,12 @@ static const struct nfnetlink_subsystem nfnl_acct_subsys = {
+ 
+ MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_ACCT);
+ 
+-struct nf_acct *nfnl_acct_find_get(const char *acct_name)
++struct nf_acct *nfnl_acct_find_get(struct net *net, const char *acct_name)
+ {
+ 	struct nf_acct *cur, *acct = NULL;
+ 
+ 	rcu_read_lock();
+-	list_for_each_entry_rcu(cur, &nfnl_acct_list, head) {
++	list_for_each_entry_rcu(cur, &net->nfnl_acct_list, head) {
+ 		if (strncmp(cur->name, acct_name, NFACCT_NAME_MAX)!= 0)
+ 			continue;
+ 
+@@ -422,7 +424,9 @@ EXPORT_SYMBOL_GPL(nfnl_acct_find_get);
+ 
+ void nfnl_acct_put(struct nf_acct *acct)
+ {
+-	atomic_dec(&acct->refcnt);
++	if (atomic_dec_and_test(&acct->refcnt))
++		kfree_rcu(acct, rcu_head);
++
+ 	module_put(THIS_MODULE);
+ }
+ EXPORT_SYMBOL_GPL(nfnl_acct_put);
+@@ -478,34 +482,59 @@ int nfnl_acct_overquota(const struct sk_buff *skb, struct nf_acct *nfacct)
+ }
+ EXPORT_SYMBOL_GPL(nfnl_acct_overquota);
+ 
++static int __net_init nfnl_acct_net_init(struct net *net)
++{
++	INIT_LIST_HEAD(&net->nfnl_acct_list);
++
++        return 0;
++}
++
++static void __net_exit nfnl_acct_net_exit(struct net *net)
++{
++	struct nf_acct *cur, *tmp;
++
++	list_for_each_entry_safe(cur, tmp, &net->nfnl_acct_list, head) {
++		list_del_rcu(&cur->head);
++
++		if (atomic_dec_and_test(&cur->refcnt))
++			kfree_rcu(cur, rcu_head);
++	}
++}
++
++static struct pernet_operations nfnl_acct_ops = {
++        .init   = nfnl_acct_net_init,
++        .exit   = nfnl_acct_net_exit,
++};
++
+ static int __init nfnl_acct_init(void)
+ {
+ 	int ret;
+ 
++	ret = register_pernet_subsys(&nfnl_acct_ops);
++	if (ret < 0) {
++		pr_err("nfnl_acct_init: failed to register pernet ops\n");
++		goto err_out;
++	}
++
+ 	pr_info("nfnl_acct: registering with nfnetlink.\n");
+ 	ret = nfnetlink_subsys_register(&nfnl_acct_subsys);
+ 	if (ret < 0) {
+ 		pr_err("nfnl_acct_init: cannot register with nfnetlink.\n");
+-		goto err_out;
++		goto cleanup_pernet;
+ 	}
+ 	return 0;
++
++cleanup_pernet:
++	unregister_pernet_subsys(&nfnl_acct_ops);
+ err_out:
+ 	return ret;
+ }
+ 
+ static void __exit nfnl_acct_exit(void)
+ {
+-	struct nf_acct *cur, *tmp;
+-
+ 	pr_info("nfnl_acct: unregistering from nfnetlink.\n");
+ 	nfnetlink_subsys_unregister(&nfnl_acct_subsys);
+-
+-	list_for_each_entry_safe(cur, tmp, &nfnl_acct_list, head) {
+-		list_del_rcu(&cur->head);
+-		/* We are sure that our objects have no clients at this point,
+-		 * it's safe to release them all without checking refcnt. */
+-		kfree_rcu(cur, rcu_head);
+-	}
++	unregister_pernet_subsys(&nfnl_acct_ops);
+ }
+ 
+ module_init(nfnl_acct_init);
+diff --git a/net/netfilter/xt_nfacct.c b/net/netfilter/xt_nfacct.c
+index 8c646ed..3048a7e 100644
+--- a/net/netfilter/xt_nfacct.c
++++ b/net/netfilter/xt_nfacct.c
+@@ -37,7 +37,7 @@ nfacct_mt_checkentry(const struct xt_mtchk_param *par)
+ 	struct xt_nfacct_match_info *info = par->matchinfo;
+ 	struct nf_acct *nfacct;
+ 
+-	nfacct = nfnl_acct_find_get(info->name);
++	nfacct = nfnl_acct_find_get(par->net, info->name);
+ 	if (nfacct == NULL) {
+ 		pr_info("xt_nfacct: accounting object with name `%s' "
+ 			"does not exists\n", info->name);
+-- 
+2.1.4
 
-Yes, the full picture is ...
-
-   zone   original=Value     reply=Default
-   zone   original=Default   reply=Value
-   zone   original=Value     reply=Value
-   zone   original=Default   reply=Default
-
-... where Default (== 0) is to be understood "zone unspecified".
-
-> But thinking on Thomas' requirements to limit the number of conntracks
-> per zone, I think another valid configuration (and more generic) can
-> be:
->
->          zone original=ValueX    reply=ValueY
->
-> So we don't assume that the original or reply zone is always zero.
->
-> The zone extension are that look like this:
->
-> struct nf_conntrack_zone {
->          u16     id[IP_CT_DIR_MAX];
-> };
->
-> And we don't need to store the direction. To keep backward
-> compatibility we can set the id in both directions to the same value.
->
-> Can you see any problem with this approach? I think it should require
-> just a little adjustment to you patchset. Thanks.
-
-Don't yet see the bigger picture how this would relate to limiting the
-number of conntrack entries per zone, but I also haven't thought deeply
-on an implementation of that issue. A zone ValueX and ValueY where
-ValueX != ValueY in different directions would imply fully overlapping
-tuples in both directions, or only partially shared/common pools for
-tuple allocations in the opposite directions.
-
-Anyway, this would mean that instead of a simple direction flag as we
-currently have, we'd need new revisions to add either two more zone ids
-to uapi structs or a flag and a 2nd zone id field, if we want to reuse
-the first zone field, and similarly also for the netlink interfaces.
-
-On the mark to zone mapping, we would then need to fill the whole
-id[IP_CT_DIR_MAX] on the template, which seems a little more problematic
-to me.
-
-This would probably mean we have to split the mark's bit space into
-two 16 bit parts  (f.e. mark := (ValueX << 16) | ValueY)) to fill both
-directions depending from which side we arrive.
-
-The entity setting the mark would need to shift its own id encoding
-into the correct direction in the mark and would leave the other one as
-default zone (== 0) if unaware of it? Then, the problem is that the
-/first/ one creating the conntrack entry does need to know ValueX /and/
-ValueY, if later on we want to retrieve the entry again via zone ValueY.
-
-This mark bit shifting seems rather inconvenient to use, imho. If ValueY
-can be dymanic, perhaps then the one triggering the initial packet might
-not even know which one to arrive in yet?
-
-One could still add a direction parameter in the zone struct to know
-where to apply the mark, if we don't want to encode both ids, and to
-have the other one 0 to not expose this burden to the user. But that
-means ValueY is static to 0 in this case, which seems undesired here.
-
-So it looks actually a bit of a more complex change (/configuration),
-doesn't seem to integrate as 'straight-forward' as the current approach,
-but also targets a bit of a different use case (?) than this current set
-does. Note that the current set doesn't ban us either from modifications
-later on. Please let me know if I'm wrong somewhere, but given the above
-issues, I would be happy to stick with the current approach instead,
-with your feedback integrated from your other mails, of course.
-
-Thanks,
-Daniel
