@@ -1,62 +1,114 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 1/6] netfilter: nft_limit: rename to nft_limit_pkts
-Date: Wed,  5 Aug 2015 12:38:39 +0200
-Message-ID: <1438771124-3650-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next 2/6] netfilter: nft_limit: convert to token-based limiting at nanosecond granularity
+Date: Wed,  5 Aug 2015 12:38:40 +0200
+Message-ID: <1438771124-3650-2-git-send-email-pablo@netfilter.org>
+References: <1438771124-3650-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37853 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37856 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751226AbbHEKcs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1751973AbbHEKcs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 5 Aug 2015 06:32:48 -0400
+In-Reply-To: <1438771124-3650-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-To prepare introduction of bytes ratelimit support.
+Rework the limit expression to use a token-based limiting approach that refills
+the bucket gradually. The tokens are calculated at nanosecond granularity
+instead jiffies to improve precision.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_limit.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ net/netfilter/nft_limit.c |   42 ++++++++++++++++++++++++++----------------
+ 1 file changed, 26 insertions(+), 16 deletions(-)
 
 diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
-index 435c1cc..d0788e1 100644
+index d0788e1..c79703e 100644
 --- a/net/netfilter/nft_limit.c
 +++ b/net/netfilter/nft_limit.c
-@@ -26,9 +26,9 @@ struct nft_limit {
- 	unsigned long	stamp;
+@@ -20,10 +20,11 @@
+ static DEFINE_SPINLOCK(limit_lock);
+ 
+ struct nft_limit {
++	u64		last;
+ 	u64		tokens;
++	u64		tokens_max;
+ 	u64		rate;
+-	u64		unit;
+-	unsigned long	stamp;
++	u64		nsecs;
  };
  
--static void nft_limit_eval(const struct nft_expr *expr,
--			   struct nft_regs *regs,
--			   const struct nft_pktinfo *pkt)
-+static void nft_limit_pkts_eval(const struct nft_expr *expr,
-+				struct nft_regs *regs,
-+				const struct nft_pktinfo *pkt)
+ static void nft_limit_pkts_eval(const struct nft_expr *expr,
+@@ -31,18 +32,23 @@ static void nft_limit_pkts_eval(const struct nft_expr *expr,
+ 				const struct nft_pktinfo *pkt)
  {
  	struct nft_limit *priv = nft_expr_priv(expr);
++	u64 now, tokens, cost = div_u64(priv->nsecs, priv->rate);
++	s64 delta;
  
-@@ -85,17 +85,17 @@ nla_put_failure:
+ 	spin_lock_bh(&limit_lock);
+-	if (time_after_eq(jiffies, priv->stamp)) {
+-		priv->tokens = priv->rate;
+-		priv->stamp = jiffies + priv->unit * HZ;
+-	}
+-
+-	if (priv->tokens >= 1) {
+-		priv->tokens--;
++	now = ktime_get_ns();
++	tokens = priv->tokens + now - priv->last;
++	if (tokens > priv->tokens_max)
++		tokens = priv->tokens_max;
++
++	priv->last = now;
++	delta = tokens - cost;
++	if (delta >= 0) {
++		priv->tokens = delta;
+ 		spin_unlock_bh(&limit_lock);
+ 		return;
+ 	}
++	priv->tokens = tokens;
+ 	spin_unlock_bh(&limit_lock);
+ 
+ 	regs->verdict.code = NFT_BREAK;
+@@ -58,25 +64,29 @@ static int nft_limit_init(const struct nft_ctx *ctx,
+ 			  const struct nlattr * const tb[])
+ {
+ 	struct nft_limit *priv = nft_expr_priv(expr);
++	u64 unit;
+ 
+ 	if (tb[NFTA_LIMIT_RATE] == NULL ||
+ 	    tb[NFTA_LIMIT_UNIT] == NULL)
+ 		return -EINVAL;
+ 
+-	priv->rate   = be64_to_cpu(nla_get_be64(tb[NFTA_LIMIT_RATE]));
+-	priv->unit   = be64_to_cpu(nla_get_be64(tb[NFTA_LIMIT_UNIT]));
+-	priv->stamp  = jiffies + priv->unit * HZ;
+-	priv->tokens = priv->rate;
++	priv->rate = be64_to_cpu(nla_get_be64(tb[NFTA_LIMIT_RATE]));
++	unit = be64_to_cpu(nla_get_be64(tb[NFTA_LIMIT_UNIT]));
++	priv->nsecs = unit * NSEC_PER_SEC;
++	if (priv->rate == 0 || priv->nsecs < unit)
++		return -EOVERFLOW;
++	priv->tokens = priv->tokens_max = priv->nsecs;
++	priv->last = ktime_get_ns();
+ 	return 0;
  }
  
- static struct nft_expr_type nft_limit_type;
--static const struct nft_expr_ops nft_limit_ops = {
-+static const struct nft_expr_ops nft_limit_pkts_ops = {
- 	.type		= &nft_limit_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_limit)),
--	.eval		= nft_limit_eval,
-+	.eval		= nft_limit_pkts_eval,
- 	.init		= nft_limit_init,
- 	.dump		= nft_limit_dump,
- };
+ static int nft_limit_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ {
+ 	const struct nft_limit *priv = nft_expr_priv(expr);
++	u64 secs = div_u64(priv->nsecs, NSEC_PER_SEC);
  
- static struct nft_expr_type nft_limit_type __read_mostly = {
- 	.name		= "limit",
--	.ops		= &nft_limit_ops,
-+	.ops		= &nft_limit_pkts_ops,
- 	.policy		= nft_limit_policy,
- 	.maxattr	= NFTA_LIMIT_MAX,
- 	.flags		= NFT_EXPR_STATEFUL,
+-	if (nla_put_be64(skb, NFTA_LIMIT_RATE, cpu_to_be64(priv->rate)))
+-		goto nla_put_failure;
+-	if (nla_put_be64(skb, NFTA_LIMIT_UNIT, cpu_to_be64(priv->unit)))
++	if (nla_put_be64(skb, NFTA_LIMIT_RATE, cpu_to_be64(priv->rate)) ||
++	    nla_put_be64(skb, NFTA_LIMIT_UNIT, cpu_to_be64(secs)))
+ 		goto nla_put_failure;
+ 	return 0;
+ 
 -- 
 1.7.10.4
 
