@@ -1,44 +1,52 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [PATCH 2/2] netfilter: ip6t_SYNPROXY: fix sending window update to client
-Date: Thu,  6 Aug 2015 14:34:57 +0200
-Message-ID: <1438864497-3767-2-git-send-email-phil@nwl.cc>
-References: <20150804175302.GA19650@salvia>
- <1438864497-3767-1-git-send-email-phil@nwl.cc>
-Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: per network namespace nfacct
+Date: Thu, 6 Aug 2015 15:42:10 +0200
+Message-ID: <20150806134210.GA3379@salvia>
+References: <1438789905-5716-1-git-send-email-aschultz@tpip.net>
+ <20150806100713.GA18520@salvia>
+ <55C33D46.4080902@tpip.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Andreas Schultz <aschultz@tpip.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbit.nwl.cc ([176.31.251.142]:45477 "EHLO mail.nwl.cc"
+Received: from mail.us.es ([193.147.175.20]:58680 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755445AbbHFMe7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Aug 2015 08:34:59 -0400
-In-Reply-To: <1438864497-3767-1-git-send-email-phil@nwl.cc>
+	id S1752673AbbHFNgK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 6 Aug 2015 09:36:10 -0400
+Content-Disposition: inline
+In-Reply-To: <55C33D46.4080902@tpip.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is the identical fix as "netfilter: ipt_SYNPROXY: fix sending
-window update to client" but for the IPv6 variant which obviously
-suffers from the same issue.
+On Thu, Aug 06, 2015 at 12:56:06PM +0200, Andreas Schultz wrote:
+> On 08/06/2015 12:07 PM, Pablo Neira Ayuso wrote:
+> >On Wed, Aug 05, 2015 at 05:51:45PM +0200, Andreas Schultz wrote:
+> 
+> [..]
+> 
+> >>+static void __net_exit nfnl_acct_net_exit(struct net *net)
+> >>+{
+> >>+	struct nf_acct *cur, *tmp;
+> >>+
+> >>+	list_for_each_entry_safe(cur, tmp, &net->nfnl_acct_list, head) {
+> >>+		list_del_rcu(&cur->head);
+> >>+
+> >>+		if (atomic_dec_and_test(&cur->refcnt))
+> >>+			kfree_rcu(cur, rcu_head);
+> >>+	}
+> >>+}
+> >
+> >You better use nfnl_acct_put() here, otherwise we leak a module
+> >refcount.
+> 
+> The module refcount is only taken in nfnl_acct_find_get. The initial
+> insert into the list in nfnl_acct_new is not taking the module
+> refcount.
+> 
+> Releasing the module refcount here would IMHO release one recount to
+> many. Or do I miss something?
 
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
- net/ipv6/netfilter/ip6t_SYNPROXY.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-index f5af323..ca30a04 100644
---- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
-+++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-@@ -242,7 +242,8 @@ synproxy_send_client_ack(const struct synproxy_net *snet,
- 
- 	synproxy_build_options(nth, opts);
- 
--	synproxy_send_tcp(skb, nskb, NULL, 0, niph, nth, tcp_hdr_size, snet);
-+	synproxy_send_tcp(skb, nskb, skb->nfct, IP_CT_ESTABLISHED_REPLY,
-+	                  niph, nth, tcp_hdr_size, snet);
- }
- 
- static bool
--- 
-2.1.2
-
+With netns in place, we don't know in what order the __net_exit
+functions are called, ie. We may still have references to objects from
+xt_nfacct.
