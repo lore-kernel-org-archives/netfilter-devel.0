@@ -1,51 +1,99 @@
-From: Andreas Schultz <aschultz@tpip.net>
-Subject: Re: [PATCH] netfilter: per network namespace nfacct
-Date: Thu, 06 Aug 2015 12:56:06 +0200
-Message-ID: <55C33D46.4080902@tpip.net>
-References: <1438789905-5716-1-git-send-email-aschultz@tpip.net> <20150806100713.GA18520@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Phil Sutter <phil@nwl.cc>
+Subject: [PATCH 1/2] netfilter: ip6t_SYNPROXY: fix NULL pointer dereference
+Date: Thu,  6 Aug 2015 14:34:56 +0200
+Message-ID: <1438864497-3767-1-git-send-email-phil@nwl.cc>
+References: <20150804175302.GA19650@salvia>
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.tpip.net ([92.43.49.48]:34168 "EHLO mail.tpip.net"
+Received: from orbit.nwl.cc ([176.31.251.142]:59477 "EHLO mail.nwl.cc"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753059AbbHFK5v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Aug 2015 06:57:51 -0400
-In-Reply-To: <20150806100713.GA18520@salvia>
+	id S1755546AbbHFMe7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 6 Aug 2015 08:34:59 -0400
+In-Reply-To: <20150804175302.GA19650@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 08/06/2015 12:07 PM, Pablo Neira Ayuso wrote:
-> On Wed, Aug 05, 2015 at 05:51:45PM +0200, Andreas Schultz wrote:
+This happens when networking namespaces are enabled.
 
-[..]
+Suggested-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ net/ipv6/netfilter/ip6t_SYNPROXY.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
->> +static void __net_exit nfnl_acct_net_exit(struct net *net)
->> +{
->> +	struct nf_acct *cur, *tmp;
->> +
->> +	list_for_each_entry_safe(cur, tmp, &net->nfnl_acct_list, head) {
->> +		list_del_rcu(&cur->head);
->> +
->> +		if (atomic_dec_and_test(&cur->refcnt))
->> +			kfree_rcu(cur, rcu_head);
->> +	}
->> +}
->
-> You better use nfnl_acct_put() here, otherwise we leak a module
-> refcount.
+diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+index 6edb7b1..f5af323 100644
+--- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
++++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+@@ -40,9 +40,9 @@ static void
+ synproxy_send_tcp(const struct sk_buff *skb, struct sk_buff *nskb,
+ 		  struct nf_conntrack *nfct, enum ip_conntrack_info ctinfo,
+ 		  struct ipv6hdr *niph, struct tcphdr *nth,
+-		  unsigned int tcp_hdr_size)
++		  unsigned int tcp_hdr_size, struct synproxy_net *snet)
+ {
+-	struct net *net = nf_ct_net((struct nf_conn *)nfct);
++	struct net *net = nf_ct_net(snet->tmpl);
+ 	struct dst_entry *dst;
+ 	struct flowi6 fl6;
+ 
+@@ -84,7 +84,8 @@ free_nskb:
+ 
+ static void
+ synproxy_send_client_synack(const struct sk_buff *skb, const struct tcphdr *th,
+-			    const struct synproxy_options *opts)
++			    const struct synproxy_options *opts,
++			    struct synproxy_net *snet)
+ {
+ 	struct sk_buff *nskb;
+ 	struct ipv6hdr *iph, *niph;
+@@ -120,7 +121,7 @@ synproxy_send_client_synack(const struct sk_buff *skb, const struct tcphdr *th,
+ 	synproxy_build_options(nth, opts);
+ 
+ 	synproxy_send_tcp(skb, nskb, skb->nfct, IP_CT_ESTABLISHED_REPLY,
+-			  niph, nth, tcp_hdr_size);
++			  niph, nth, tcp_hdr_size, snet);
+ }
+ 
+ static void
+@@ -164,7 +165,7 @@ synproxy_send_server_syn(const struct synproxy_net *snet,
+ 	synproxy_build_options(nth, opts);
+ 
+ 	synproxy_send_tcp(skb, nskb, &snet->tmpl->ct_general, IP_CT_NEW,
+-			  niph, nth, tcp_hdr_size);
++			  niph, nth, tcp_hdr_size, snet);
+ }
+ 
+ static void
+@@ -203,7 +204,7 @@ synproxy_send_server_ack(const struct synproxy_net *snet,
+ 
+ 	synproxy_build_options(nth, opts);
+ 
+-	synproxy_send_tcp(skb, nskb, NULL, 0, niph, nth, tcp_hdr_size);
++	synproxy_send_tcp(skb, nskb, NULL, 0, niph, nth, tcp_hdr_size, snet);
+ }
+ 
+ static void
+@@ -241,7 +242,7 @@ synproxy_send_client_ack(const struct synproxy_net *snet,
+ 
+ 	synproxy_build_options(nth, opts);
+ 
+-	synproxy_send_tcp(skb, nskb, NULL, 0, niph, nth, tcp_hdr_size);
++	synproxy_send_tcp(skb, nskb, NULL, 0, niph, nth, tcp_hdr_size, snet);
+ }
+ 
+ static bool
+@@ -301,7 +302,7 @@ synproxy_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ 					  XT_SYNPROXY_OPT_SACK_PERM |
+ 					  XT_SYNPROXY_OPT_ECN);
+ 
+-		synproxy_send_client_synack(skb, th, &opts);
++		synproxy_send_client_synack(skb, th, &opts, snet);
+ 		return NF_DROP;
+ 
+ 	} else if (th->ack && !(th->fin || th->rst || th->syn)) {
+-- 
+2.1.2
 
-The module refcount is only taken in nfnl_acct_find_get. The initial 
-insert into the list in nfnl_acct_new is not taking the module refcount.
-
-Releasing the module refcount here would IMHO release one recount to
-many. Or do I miss something?
-
->
-> Other than that, this looks fine with me. Please send a v2.
->
-> Thanks.
-
-Andreas
