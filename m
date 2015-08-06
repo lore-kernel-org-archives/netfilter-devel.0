@@ -1,37 +1,35 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 6/6] netfilter: nft_limit: add per-byte limiting
-Date: Thu, 6 Aug 2015 11:01:09 +0200
-Message-ID: <20150806090109.GA3843@salvia>
-References: <1438771124-3650-1-git-send-email-pablo@netfilter.org>
- <1438771124-3650-6-git-send-email-pablo@netfilter.org>
- <20150805104353.GA23224@acer.localdomain>
+Subject: Re: [PATCH nf-next v3 1/3] netfilter: nf_conntrack: push zone object
+ into functions
+Date: Thu, 6 Aug 2015 12:02:23 +0200
+Message-ID: <20150806100223.GA18527@salvia>
+References: <cover.1437561897.git.daniel@iogearbox.net>
+ <2f95183cf2520b93d8443be935372fbef3499b96.1437561897.git.daniel@iogearbox.net>
+ <20150730160744.GA15008@salvia>
+ <55BA5228.6050908@iogearbox.net>
+ <20150803155909.GA17212@salvia>
+ <55BF9023.3050505@iogearbox.net>
+ <20150805105126.GA3996@salvia>
+ <55C216FD.7080900@iogearbox.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: tgraf@suug.ch, challa@noironetworks.com,
+	netfilter-devel@vger.kernel.org
+To: Daniel Borkmann <daniel@iogearbox.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44345 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55397 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752956AbbHFIzH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Aug 2015 04:55:07 -0400
+	id S1753652AbbHFJ41 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 6 Aug 2015 05:56:27 -0400
 Content-Disposition: inline
-In-Reply-To: <20150805104353.GA23224@acer.localdomain>
+In-Reply-To: <55C216FD.7080900@iogearbox.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 05, 2015 at 12:43:54PM +0200, Patrick McHardy wrote:
-> On 05.08, Pablo Neira Ayuso wrote:
-> > This patch adds a new NFTA_LIMIT_TYPE netlink attribute to indicate the type of
-> > limiting.
-> > 
-> > Contrary to per-packet limiting, the cost is calculated from the packet path
-> > since this depends on the packet length.
-> > 
-> > The burst attribute indicates the number of bytes in which the rate can be
-> > exceeded.
-> 
-> Thanks Pablo, I appreciate this rework. Just a suggestion, I'd propose to
-> use NFT_LIMIT_PKT_LENGTH instead of LIMIT_BYTES. I expect we might want to
-> add other limit types like connection rates etc in the future.
+On Wed, Aug 05, 2015 at 04:00:29PM +0200, Daniel Borkmann wrote:
+[...]
+> [...] I would be happy to stick with the current approach instead,
+> with your feedback integrated from your other mails, of course.
 
-Thanks Patrick. I'll rename this to a mixture of both: PKT_BYTES :)
+Please send a new round, as you said we have room to revisit this
+later on. Thanks.
