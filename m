@@ -1,47 +1,35 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: per network namespace nfacct
-Date: Fri, 7 Aug 2015 11:45:31 +0200
-Message-ID: <20150807094531.GA5423@salvia>
-References: <1438789905-5716-1-git-send-email-aschultz@tpip.net>
- <20150806100713.GA18520@salvia>
- <55C33D46.4080902@tpip.net>
- <20150806134210.GA3379@salvia>
- <55C364CF.6060609@tpip.net>
+Subject: Re: [PATCH 2/2] extensions: restore matching any SPI id by default
+Date: Fri, 7 Aug 2015 13:07:54 +0200
+Message-ID: <20150807110754.GA13279@salvia>
+References: <1436964819-28109-1-git-send-email-jengelh@inai.de>
+ <1436964819-28109-3-git-send-email-jengelh@inai.de>
+ <20150715162442.GA22476@salvia>
+ <alpine.LSU.2.20.1507151837110.15534@nerf40.vanv.qr>
+ <20150715165515.GA4177@salvia>
+ <alpine.LSU.2.20.1507151907560.1320@nerf40.vanv.qr>
+ <20150715173035.GA5675@salvia>
+ <alpine.LSU.2.20.1507151937160.528@nerf40.vanv.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Andreas Schultz <aschultz@tpip.net>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44706 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55848 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750699AbbHGJj1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Aug 2015 05:39:27 -0400
+	id S1751797AbbHGLBz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 7 Aug 2015 07:01:55 -0400
 Content-Disposition: inline
-In-Reply-To: <55C364CF.6060609@tpip.net>
+In-Reply-To: <alpine.LSU.2.20.1507151937160.528@nerf40.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Aug 06, 2015 at 03:44:47PM +0200, Andreas Schultz wrote:
-> On 08/06/2015 03:42 PM, Pablo Neira Ayuso wrote:
+On Wed, Jul 15, 2015 at 07:46:05PM +0200, Jan Engelhardt wrote:
 [...]
-> >With netns in place, we don't know in what order the __net_exit
-> >functions are called, ie. We may still have references to objects from
-> >xt_nfacct.
-> 
-> Exactly my point, only the xt_nfacct object references also takes a
-> module reference. We can not release this reference for them. So
-> we remove the nfacct object from the list and only free the object
-> if xt_nfacct is *NOT* holding a reference.
-> 
-> If xt_nfacct is holding a reference, it will put that reference together
-> with the module reference later.
+> Printing it differently is a separate concern one can think about,
+> but with a separate patch. :-)
 
-You're right. This patch is applied, thanks Andreas:
+Either way...
 
-BTW, I have mangled the original subject to:
-
-netfilter: nfacct: per network namespace support
-
-Just for the next time, we prefer this format:
-
-SUBSYS: COMPONENT: description
+Will you send me that follow up patch so I can get this applied?
+Thanks.
