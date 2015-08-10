@@ -1,78 +1,66 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft v5 02/14] src: add cmd_evaluate_list()
-Date: Mon, 10 Aug 2015 13:50:36 +0200
-Message-ID: <1439207448-22485-3-git-send-email-pablo@netfilter.org>
-References: <1439207448-22485-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft v5 00/14] cache consolidation
+Date: Mon, 10 Aug 2015 13:50:34 +0200
+Message-ID: <1439207448-22485-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55981 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55945 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750965AbbHJLo6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Aug 2015 07:44:58 -0400
-In-Reply-To: <1439207448-22485-1-git-send-email-pablo@netfilter.org>
+	id S1750958AbbHJLov (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 Aug 2015 07:44:51 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This function validates that the table that we want to list already exists by
-looking it up from the cache.
+Hi,
 
-This also adds cmd_error() to display an error from the evaluation step, when
-the objects that the rule indicates do not exist.
+This is another round of the patchset to consolidate the nft cache:
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/evaluate.c |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+http://marc.info/?l=netfilter-devel&m=143620630223923&w=2
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index f8c7372..8598eef 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -62,6 +62,8 @@ static int __fmtstring(4, 5) __stmt_binary_error(struct eval_ctx *ctx,
- 	__stmt_binary_error(ctx, &(s1)->location, NULL, fmt, ## args)
- #define monitor_error(ctx, s1, fmt, args...) \
- 	__stmt_binary_error(ctx, &(s1)->location, NULL, fmt, ## args)
-+#define cmd_error(ctx, fmt, args...) \
-+	__stmt_binary_error(ctx, &(ctx->cmd)->location, NULL, fmt, ## args)
- 
- static int __fmtstring(3, 4) set_error(struct eval_ctx *ctx,
- 				       const struct set *set,
-@@ -1933,6 +1935,26 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
- 	}
- }
- 
-+static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
-+{
-+	switch (cmd->obj) {
-+	case CMD_OBJ_TABLE:
-+		if (cmd->handle.table == NULL)
-+			return 0;
-+	case CMD_OBJ_CHAIN:
-+	case CMD_OBJ_SETS:
-+	case CMD_OBJ_SET:
-+		if (table_lookup(&cmd->handle) == NULL)
-+			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
-+					 cmd->handle.table);
-+		return 0;
-+	case CMD_OBJ_RULESET:
-+		return 0;
-+	default:
-+		BUG("invalid command object type %u\n", cmd->obj);
-+	}
-+}
-+
- enum {
- 	CMD_MONITOR_EVENT_ANY,
- 	CMD_MONITOR_EVENT_NEW,
-@@ -2024,6 +2046,7 @@ int cmd_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
- 	case CMD_DELETE:
- 		return cmd_evaluate_delete(ctx, cmd);
- 	case CMD_LIST:
-+		return cmd_evaluate_list(ctx, cmd);
- 	case CMD_FLUSH:
- 	case CMD_RENAME:
- 	case CMD_EXPORT:
+The idea consists of creating a cache of tables that is populated with chains,
+rules, sets and elements.
+
+The major change in this round is the fact that the cache is built later on
+from the evaluation step where we have more context on what is going on. At
+that stage, we know if this is a listing, in that case nft populates a full
+blown cache. Otherwise, it only retrieves the table and set objects which is
+the bare minimum that we require at this stage (at least by now). With the
+previous patchset, with inconditional full blown cache retrieval, I noticed a
+slowdown when working with large rulesets, so this new round patchset round
+addresses this.
+
+In the interactive mode, this cache is refreshed for every command to make sure
+that we work with a ruleset that is current. We can avoid this by checking for
+the generation counter, but will be looking into how to speed up this with
+follow up patches when this is in master.
+
+Comments welcome. Thanks.
+
+Pablo Neira Ayuso (14):
+  src: add cache infrastructure and use it for table objects
+  src: add cmd_evaluate_list()
+  rule: add reference counter to the table object
+  src: add table declaration to cache
+  src: use cache infrastructure for set objects
+  src: add set declaration to cache
+  src: early allocation of the set ID
+  rule: add chain reference counter
+  src: use cache infrastructure for chain objects
+  evaluate: add cmd_evaluate_rename()
+  src: add chain declarations to cache
+  src: use cache infrastructure for rule objects
+  src: use cache infrastructure for set element objects
+  src: get rid of EINTR handling for nft_netlink()
+
+ include/rule.h |    9 ++
+ src/cli.c      |    1 +
+ src/evaluate.c |  146 +++++++++++++++++-------
+ src/main.c     |    7 +-
+ src/netlink.c  |    4 -
+ src/rule.c     |  337 ++++++++++++++++++++++++++++++++------------------------
+ 6 files changed, 310 insertions(+), 194 deletions(-)
+
 -- 
 1.7.10.4
 
