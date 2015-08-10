@@ -1,29 +1,48 @@
-From: Jan Engelhardt <jengelh@inai.de>
+From: Alex william <alex.william21@outlook.com>
 Subject: Re: [IPTABLES] Module ipt_same
-Date: Mon, 10 Aug 2015 11:55:25 +0200 (CEST)
-Message-ID: <alpine.LSU.2.20.1508101151430.27258@nerf40.vanv.qr>
-References: <BLU436-SMTP2146D2AF1763E1C081B991E9A8A0@phx.gbl>
+Date: Mon, 10 Aug 2015 14:34:02 +0400
+Message-ID: <BLU436-SMTP65F9DDD71DE92EA3BADDEE9A700@phx.gbl>
+References: <alpine.LSU.2.20.1508101151430.27258@nerf40.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Alex william <alex.william21@outlook.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:35061 "EHLO ares41.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933496AbbHJJz0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Aug 2015 05:55:26 -0400
-In-Reply-To: <BLU436-SMTP2146D2AF1763E1C081B991E9A8A0@phx.gbl>
+Received: from blu004-omc3s37.hotmail.com ([65.55.116.112]:49548 "EHLO
+	BLU004-OMC3S37.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932620AbbHJKeS convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 Aug 2015 06:34:18 -0400
+In-Reply-To: <alpine.LSU.2.20.1508101151430.27258@nerf40.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 2015-07-31 07:24, Alex william wrote:
+Thanks for your reply.
 
->Hello,
+Regards,
+Alex
+
+Le 8/10/15, 13:55, =AB Jan Engelhardt =BB <jengelh@inai.de> a =E9crit :
+
+>On Friday 2015-07-31 07:24, Alex william wrote:
 >
->My objective is if ip A.A.A.A goes to B.B.B.B it is natted with IP X.X.X.X
->then if A.A.A.A re-establishes a session with B.B.B.B it is natted with
->the same IP X.X.X.X. According to my reseach the module ipt_same does
->that: 
+>>Hello,
+>>
+>>My objective is if ip A.A.A.A goes to B.B.B.B it is natted with IP
+>>X.X.X.X
+>>then if A.A.A.A re-establishes a session with B.B.B.B it is natted wi=
+th
+>>the same IP X.X.X.X. According to my reseach the module ipt_same does
+>>that:=20
+>
+>Word on the street is that regular SNAT already does that, which is wh=
+y
+>SAME is gone.
 
-Word on the street is that regular SNAT already does that, which is why 
-SAME is gone.
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
