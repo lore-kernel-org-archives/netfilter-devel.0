@@ -1,79 +1,61 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/5] Netfilter fixes for net
-Date: Mon, 10 Aug 2015 19:58:34 +0200
-Message-ID: <1439229519-7640-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 2/5] netfilter: nf_conntrack: checking for IS_ERR() instead of NULL
+Date: Mon, 10 Aug 2015 19:58:36 +0200
+Message-ID: <1439229519-7640-3-git-send-email-pablo@netfilter.org>
+References: <1439229519-7640-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35655 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932271AbbHJRxc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Aug 2015 13:53:32 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1439229519-7640-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi David,
+From: Dan Carpenter <dan.carpenter@oracle.com>
 
-The following patchset contains five Netfilter fixes for your net tree,
-they are:
+We recently changed this from nf_conntrack_alloc() to nf_ct_tmpl_alloc()
+so the error handling needs to changed to check for NULL instead of
+IS_ERR().
 
-1) Silence a warning on falling back to vmalloc(). Since 88eab472ec21, we can
-   easily hit this warning message, that gets users confused. So let's get rid
-   of it.
+Fixes: 0838aa7fcfcd ('netfilter: fix netns dependencies with conntrack templates')
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_synproxy_core.c |    4 +---
+ net/netfilter/xt_CT.c            |    5 +++--
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-2) Recently when porting the template object allocation on top of kmalloc to
-   fix the netns dependencies between x_tables and conntrack, the error
-   checks where left unchanged. Remove IS_ERR() and check for NULL instead.
-   Patch from Dan Carpenter.
-
-3) Don't ignore gfp_flags in the new nf_ct_tmpl_alloc() function, from
-   Joe Stringer.
-
-4) Fix a crash due to NULL pointer dereference in ip6t_SYNPROXY, patch from
-   Phil Sutter.
-
-5) The sequence number of the Syn+ack that is sent from SYNPROXY to clients is
-   not adjusted through our NAT infrastructure, as a result the client may
-   ignore this TCP packet and TCP flow hangs until the client probes us.  Also
-   from Phil Sutter.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit 15f1bb1f1e067be7088ed43ef23d59629bd24348:
-
-  qlcnic: Fix corruption while copying (2015-07-29 23:57:26 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git master
-
-for you to fetch changes up to 3c16241c445303a90529565e7437e1f240acfef2:
-
-  netfilter: SYNPROXY: fix sending window update to client (2015-08-10 13:55:07 +0200)
-
-----------------------------------------------------------------
-Dan Carpenter (1):
-      netfilter: nf_conntrack: checking for IS_ERR() instead of NULL
-
-Joe Stringer (1):
-      netfilter: conntrack: Use flags in nf_ct_tmpl_alloc()
-
-Pablo Neira Ayuso (1):
-      netfilter: nf_conntrack: silence warning on falling back to vmalloc()
-
-Phil Sutter (2):
-      netfilter: ip6t_SYNPROXY: fix NULL pointer dereference
-      netfilter: SYNPROXY: fix sending window update to client
-
- net/ipv4/netfilter/ipt_SYNPROXY.c  |    3 ++-
- net/ipv6/netfilter/ip6t_SYNPROXY.c |   19 +++++++++++--------
- net/netfilter/nf_conntrack_core.c  |    8 +++-----
- net/netfilter/nf_synproxy_core.c   |    4 +---
- net/netfilter/xt_CT.c              |    5 +++--
- 5 files changed, 20 insertions(+), 19 deletions(-)
+diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+index 71f1e9f..d7f1685 100644
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -353,10 +353,8 @@ static int __net_init synproxy_net_init(struct net *net)
+ 	int err = -ENOMEM;
+ 
+ 	ct = nf_ct_tmpl_alloc(net, 0, GFP_KERNEL);
+-	if (IS_ERR(ct)) {
+-		err = PTR_ERR(ct);
++	if (!ct)
+ 		goto err1;
+-	}
+ 
+ 	if (!nfct_seqadj_ext_add(ct))
+ 		goto err2;
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index c663003..43ddeee 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -202,9 +202,10 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
+ 		goto err1;
+ 
+ 	ct = nf_ct_tmpl_alloc(par->net, info->zone, GFP_KERNEL);
+-	ret = PTR_ERR(ct);
+-	if (IS_ERR(ct))
++	if (!ct) {
++		ret = -ENOMEM;
+ 		goto err2;
++	}
+ 
+ 	ret = 0;
+ 	if ((info->ct_events || info->exp_events) &&
+-- 
+1.7.10.4
