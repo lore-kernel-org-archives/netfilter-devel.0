@@ -1,71 +1,87 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft v5 07/14] src: early allocation of the set ID
-Date: Mon, 10 Aug 2015 13:50:41 +0200
-Message-ID: <1439207448-22485-8-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft v5 03/14] rule: add reference counter to the table object
+Date: Mon, 10 Aug 2015 13:50:37 +0200
+Message-ID: <1439207448-22485-4-git-send-email-pablo@netfilter.org>
 References: <1439207448-22485-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55995 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55969 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750958AbbHJLpB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Aug 2015 07:45:01 -0400
+	id S1750958AbbHJLo4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 Aug 2015 07:44:56 -0400
 In-Reply-To: <1439207448-22485-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-By when the set is created, so element in the batch use this set ID as
-reference.
+We may hold multiple references to table objects in follow up patches when
+adding object declarations to the cache.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/netlink.c |    4 ----
- src/rule.c    |    4 ++++
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/rule.h |    3 +++
+ src/rule.c     |   10 ++++++++++
+ 2 files changed, 13 insertions(+)
 
-diff --git a/src/netlink.c b/src/netlink.c
-index 8ede8e6..0fb7b63 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -1121,9 +1121,6 @@ static int netlink_add_set_compat(struct netlink_ctx *ctx,
- 	return err;
- }
+diff --git a/include/rule.h b/include/rule.h
+index 1520222..cc4e5c2 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -76,6 +76,7 @@ enum table_flags {
+  * @chains:	chains contained in the table
+  * @sets:	sets contained in the table
+  * @flags:	table flags
++ * @refcnt:	table reference counter
+  */
+ struct table {
+ 	struct list_head	list;
+@@ -85,9 +86,11 @@ struct table {
+ 	struct list_head	chains;
+ 	struct list_head	sets;
+ 	enum table_flags 	flags;
++	unsigned int		refcnt;
+ };
  
--/* internal ID to uniquely identify a set in the batch */
--static uint32_t set_id;
--
- static int netlink_add_set_batch(struct netlink_ctx *ctx,
- 				 const struct handle *h, struct set *set)
- {
-@@ -1147,7 +1144,6 @@ static int netlink_add_set_batch(struct netlink_ctx *ctx,
- 	if (set->gc_int)
- 		nft_set_attr_set_u32(nls, NFT_SET_ATTR_GC_INTERVAL, set->gc_int);
- 
--	set->handle.set_id = ++set_id;
- 	nft_set_attr_set_u32(nls, NFT_SET_ATTR_ID, set->handle.set_id);
- 
- 	if (!(set->flags & (SET_F_CONSTANT))) {
+ extern struct table *table_alloc(void);
++extern struct table *table_get(struct table *table);
+ extern void table_free(struct table *table);
+ extern void table_add_hash(struct table *table);
+ extern struct table *table_lookup(const struct handle *h);
 diff --git a/src/rule.c b/src/rule.c
-index 32c4a15..7f2a27f 100644
+index 60c5d72..cb69369 100644
 --- a/src/rule.c
 +++ b/src/rule.c
-@@ -139,12 +139,16 @@ void cache_release(void)
- 	cache_initialized = false;
+@@ -569,6 +569,8 @@ struct table *table_alloc(void)
+ 	init_list_head(&table->chains);
+ 	init_list_head(&table->sets);
+ 	init_list_head(&table->scope.symbols);
++	table->refcnt = 1;
++
+ 	return table;
  }
  
-+/* internal ID to uniquely identify a set in the batch */
-+static uint32_t set_id;
-+
- struct set *set_alloc(const struct location *loc)
+@@ -576,6 +578,8 @@ void table_free(struct table *table)
  {
- 	struct set *set;
+ 	struct chain *chain, *next;
  
- 	set = xzalloc(sizeof(*set));
- 	set->refcnt = 1;
-+	set->handle.set_id = ++set_id;
- 	if (loc != NULL)
- 		set->location = *loc;
- 	return set;
++	if (--table->refcnt > 0)
++		return;
+ 	list_for_each_entry_safe(chain, next, &table->chains, list)
+ 		chain_free(chain);
+ 	handle_free(&table->handle);
+@@ -583,6 +587,12 @@ void table_free(struct table *table)
+ 	xfree(table);
+ }
+ 
++struct table *table_get(struct table *table)
++{
++	table->refcnt++;
++	return table;
++}
++
+ void table_add_hash(struct table *table)
+ {
+ 	list_add_tail(&table->list, &table_list);
 -- 
 1.7.10.4
 
