@@ -1,87 +1,101 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft v5 03/14] rule: add reference counter to the table object
-Date: Mon, 10 Aug 2015 13:50:37 +0200
-Message-ID: <1439207448-22485-4-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft v5 04/14] src: add table declaration to cache
+Date: Mon, 10 Aug 2015 13:50:38 +0200
+Message-ID: <1439207448-22485-5-git-send-email-pablo@netfilter.org>
 References: <1439207448-22485-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55969 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55976 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750958AbbHJLo4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Aug 2015 07:44:56 -0400
+	id S1750958AbbHJLo5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 Aug 2015 07:44:57 -0400
 In-Reply-To: <1439207448-22485-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We may hold multiple references to table objects in follow up patches when
-adding object declarations to the cache.
+Add declared table objects to the cache, thus we can refer to objects that
+come in this batch but that are not yet available in the kernel. This happens
+from the evaluation step.
+
+Get rid of code that is doing this from the later do_command_*() stage.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/rule.h |    3 +++
- src/rule.c     |   10 ++++++++++
- 2 files changed, 13 insertions(+)
+ src/evaluate.c |   15 +++++++++++++--
+ src/rule.c     |   15 ++-------------
+ 2 files changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/include/rule.h b/include/rule.h
-index 1520222..cc4e5c2 100644
---- a/include/rule.h
-+++ b/include/rule.h
-@@ -76,6 +76,7 @@ enum table_flags {
-  * @chains:	chains contained in the table
-  * @sets:	sets contained in the table
-  * @flags:	table flags
-+ * @refcnt:	table reference counter
-  */
- struct table {
- 	struct list_head	list;
-@@ -85,9 +86,11 @@ struct table {
- 	struct list_head	chains;
- 	struct list_head	sets;
- 	enum table_flags 	flags;
-+	unsigned int		refcnt;
- };
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 8598eef..865b707 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1881,6 +1881,19 @@ static int table_evaluate(struct eval_ctx *ctx, struct table *table)
+ 	struct chain *chain;
+ 	struct set *set;
  
- extern struct table *table_alloc(void);
-+extern struct table *table_get(struct table *table);
- extern void table_free(struct table *table);
- extern void table_add_hash(struct table *table);
- extern struct table *table_lookup(const struct handle *h);
++	if (table_lookup(&ctx->cmd->handle) == NULL) {
++		if (table == NULL) {
++			table = table_alloc();
++			handle_merge(&table->handle, &ctx->cmd->handle);
++			table_add_hash(table);
++		} else {
++			table_add_hash(table_get(table));
++		}
++	}
++
++	if (ctx->cmd->table == NULL)
++		return 0;
++
+ 	ctx->table = table;
+ 	list_for_each_entry(set, &table->sets, list) {
+ 		handle_merge(&set->handle, &table->handle);
+@@ -1912,8 +1925,6 @@ static int cmd_evaluate_add(struct eval_ctx *ctx, struct cmd *cmd)
+ 			return 0;
+ 		return chain_evaluate(ctx, cmd->chain);
+ 	case CMD_OBJ_TABLE:
+-		if (cmd->data == NULL)
+-			return 0;
+ 		return table_evaluate(ctx, cmd->table);
+ 	default:
+ 		BUG("invalid command object type %u\n", cmd->obj);
 diff --git a/src/rule.c b/src/rule.c
-index 60c5d72..cb69369 100644
+index cb69369..1e5b1a8 100644
 --- a/src/rule.c
 +++ b/src/rule.c
-@@ -569,6 +569,8 @@ struct table *table_alloc(void)
- 	init_list_head(&table->chains);
- 	init_list_head(&table->sets);
- 	init_list_head(&table->scope.symbols);
-+	table->refcnt = 1;
-+
- 	return table;
- }
+@@ -987,15 +987,8 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ 	struct table *table = NULL;
+ 	struct set *set;
  
-@@ -576,6 +578,8 @@ void table_free(struct table *table)
+-	/* No need to allocate the table object when listing all tables */
+-	if (cmd->handle.table != NULL) {
++	if (cmd->handle.table != NULL)
+ 		table = table_lookup(&cmd->handle);
+-		if (table == NULL) {
+-			table = table_alloc();
+-			handle_merge(&table->handle, &cmd->handle);
+-			table_add_hash(table);
+-		}
+-	}
+ 
+ 	switch (cmd->obj) {
+ 	case CMD_OBJ_TABLE:
+@@ -1056,14 +1049,10 @@ static int do_command_flush(struct netlink_ctx *ctx, struct cmd *cmd)
+ 
+ static int do_command_rename(struct netlink_ctx *ctx, struct cmd *cmd)
  {
- 	struct chain *chain, *next;
+-	struct table *table;
++	struct table *table = table_lookup(&cmd->handle);
+ 	struct chain *chain;
+ 	int err;
  
-+	if (--table->refcnt > 0)
-+		return;
- 	list_for_each_entry_safe(chain, next, &table->chains, list)
- 		chain_free(chain);
- 	handle_free(&table->handle);
-@@ -583,6 +587,12 @@ void table_free(struct table *table)
- 	xfree(table);
- }
- 
-+struct table *table_get(struct table *table)
-+{
-+	table->refcnt++;
-+	return table;
-+}
-+
- void table_add_hash(struct table *table)
- {
- 	list_add_tail(&table->list, &table_list);
+-	table = table_alloc();
+-	handle_merge(&table->handle, &cmd->handle);
+-	table_add_hash(table);
+-
+ 	switch (cmd->obj) {
+ 	case CMD_OBJ_CHAIN:
+ 		err = netlink_get_chain(ctx, &cmd->handle, &cmd->location);
 -- 
 1.7.10.4
 
