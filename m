@@ -1,61 +1,45 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH v2 2/2] netfilter: ip6t_SYNPROXY: fix sending window
- update to client
-Date: Mon, 10 Aug 2015 10:06:07 +0200
-Message-ID: <20150810080607.GC20899@acer.localdomain>
-References: <20150808155746.GC29362@acer.localdomain>
- <1439118856-26484-1-git-send-email-phil@nwl.cc>
- <1439118856-26484-2-git-send-email-phil@nwl.cc>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: [lnf-log PATCH] build: fix typo
+Date: Mon, 10 Aug 2015 17:11:17 +0900
+Message-ID: <20150810081116.GA25169@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Phil Sutter <phil@nwl.cc>
+To: The netfilter developer mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44728 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753872AbbHJIGK (ORCPT
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:34881 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753093AbbHJILW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Aug 2015 04:06:10 -0400
+	Mon, 10 Aug 2015 04:11:22 -0400
+Received: by pacgr6 with SMTP id gr6so21798154pac.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 10 Aug 2015 01:11:21 -0700 (PDT)
+Received: from gmail.com (softbank220009032004.bbtec.net. [220.9.32.4])
+        by smtp.gmail.com with ESMTPSA id vg4sm18831973pbc.90.2015.08.10.01.11.20
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 10 Aug 2015 01:11:21 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1439118856-26484-2-git-send-email-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 09.08, Phil Sutter wrote:
-> This is the identical fix as "netfilter: ipt_SYNPROXY: fix sending
-> window update to client" but for the IPv6 variant which obviously
-> suffers from the same issue.
+Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
+---
+ autogen.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Looks fine to me.
+diff --git a/autogen.sh b/autogen.sh
+index ce22b64..2b29953 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -34,6 +34,6 @@ include ()
+     fi
+ }
+ 
+-[ "x$1" == "xdistrib" ] && include
++[ "x$1" = "xdistrib" ] && include
+ autoreconf -fi
+ rm -Rf autom4te.cache
+-- 
+2.1.4
 
-Acked-by: Patrick McHardy <kaber@trash.net>
-
-(Also for the IPv4 version, which for some reason I didn't receive)
-
-> 
-> Signed-off-by: Phil Sutter <phil@nwl.cc>
-> ---
-> Changes since v1:
-> - Adjust for v2 changes of first patch.
-> ---
->  net/ipv6/netfilter/ip6t_SYNPROXY.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-> index bcebc24..ebbb754 100644
-> --- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
-> +++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-> @@ -243,7 +243,8 @@ synproxy_send_client_ack(const struct synproxy_net *snet,
->  
->  	synproxy_build_options(nth, opts);
->  
-> -	synproxy_send_tcp(snet, skb, nskb, NULL, 0, niph, nth, tcp_hdr_size);
-> +	synproxy_send_tcp(snet, skb, nskb, skb->nfct, IP_CT_ESTABLISHED_REPLY,
-> +	                  niph, nth, tcp_hdr_size);
->  }
->  
->  static bool
-> -- 
-> 2.1.2
-> 
