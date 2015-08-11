@@ -1,58 +1,46 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 1/3] netfilter: nf_tables: add generation mask to
- table objects
-Date: Mon, 10 Aug 2015 20:37:15 +0200
-Message-ID: <20150810183715.GA12171@salvia>
-References: <1438679128-4146-1-git-send-email-pablo@netfilter.org>
- <20150804090917.GA6033@acer.localdomain>
- <20150804092905.GA7944@salvia>
- <20150804102635.GC6033@acer.localdomain>
- <20150804170447.GA3355@salvia>
- <20150805090915.GD13187@acer.localdomain>
- <20150806102043.GA18683@salvia>
- <20150810075646.GA20899@acer.localdomain>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/5] Netfilter fixes for net
+Date: Mon, 10 Aug 2015 21:08:46 -0700 (PDT)
+Message-ID: <20150810.210846.995750842725656061.davem@davemloft.net>
+References: <1439229519-7640-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38340 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932106AbbHJSbR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Aug 2015 14:31:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20150810075646.GA20899@acer.localdomain>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1439229519-7640-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Aug 10, 2015 at 09:56:46AM +0200, Patrick McHardy wrote:
-> On 06.08, Pablo Neira Ayuso wrote:
-> > On Wed, Aug 05, 2015 at 11:09:16AM +0200, Patrick McHardy wrote:
-[...]
-> > > > - preparation phase -
-> > > > delete table y
-> > > > create table y
-> > > > create set x
-> > > > - commit phase -
-> > > > send NEWGEN, attribute type: begin
-> > > > delete table y
-> > > > create table y
-> > > > create set x
-> > > > send NEWGEN, attribute type: end
-> > > > 
-> > > > Thanks for your feedback!
-> > > 
-> > > That might work if the message ordering is then guaranteed. However I think
-> > > we can fix this case without changing NEWGEN. Let me think about that a bit,
-> > > for now just taking care of the genid checks correctly seems like a good
-> > > step forward.
-> > 
-> > But we can catch this problem through ->res_id, OK?
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 10 Aug 2015 19:58:34 +0200
+
+> The following patchset contains five Netfilter fixes for your net tree,
+> they are:
 > 
-> I guess we could with a unique res_id per object, but how would this work
-> with multiple object types? Any change bumps res_id, so we'd invalidate
-> the full dump for any change.
+> 1) Silence a warning on falling back to vmalloc(). Since 88eab472ec21, we can
+>    easily hit this warning message, that gets users confused. So let's get rid
+>    of it.
+> 
+> 2) Recently when porting the template object allocation on top of kmalloc to
+>    fix the netns dependencies between x_tables and conntrack, the error
+>    checks where left unchanged. Remove IS_ERR() and check for NULL instead.
+>    Patch from Dan Carpenter.
+> 
+> 3) Don't ignore gfp_flags in the new nf_ct_tmpl_alloc() function, from
+>    Joe Stringer.
+> 
+> 4) Fix a crash due to NULL pointer dereference in ip6t_SYNPROXY, patch from
+>    Phil Sutter.
+> 
+> 5) The sequence number of the Syn+ack that is sent from SYNPROXY to clients is
+>    not adjusted through our NAT infrastructure, as a result the client may
+>    ignore this TCP packet and TCP flow hangs until the client probes us.  Also
+>    from Phil Sutter.
+> 
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-I see, if we want to be able to invalidate caches at per-object level,
-then I think we have to recover the idea of having a netlink attribute
-for the per-object generation counter.
+Pulled, thanks Pablo.
