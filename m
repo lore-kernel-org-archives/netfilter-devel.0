@@ -1,143 +1,75 @@
-From: Andreas Schultz <aschultz@tpip.net>
-Subject: Re: nft: parser problem, can use mark as datatype in sets and maps
-Date: Tue, 11 Aug 2015 14:28:06 +0200
-Message-ID: <55C9EA56.1020302@tpip.net>
-References: <1027218717.2766569.1439214492178.JavaMail.zimbra@tpip.net> <20150810170920.GA3487@salvia> <55C9BDFE.9080207@tpip.net> <20150811102635.GA3622@salvia> <55C9DBA1.3070806@tpip.net> <20150811121212.GA3272@salvia> <20150811122339.GA4304@salvia>
+From: Akemi Yagi <amyagi@gmail.com>
+Subject: Re: Linux 4.2 build error in net/netfilter/ipset/ip_set_hash_netnet.c
+Date: Tue, 11 Aug 2015 08:50:28 -0700
+Message-ID: <CABA31DpRS5NXQm0_tP3eMxE4E9TdtGmrZbr+ZE8JUiNs3qHbMg@mail.gmail.com>
+References: <CAHTgTXUmreHAqPfgGEd+GJNb_OEzaCuytqBTjZsE2GDqiy3TCw@mail.gmail.com>
+ <20150705153520.GA23589@roeck-us.net> <mo0o3b$g5d$1@ger.gmane.org>
+ <20150713164122.GA26283@salvia> <alpine.DEB.2.10.1507141910280.28425@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Alan Bartlett <ajb@elrepo.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.tpip.net ([92.43.49.48]:38809 "EHLO mail.tpip.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934075AbbHKM2K (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Aug 2015 08:28:10 -0400
-In-Reply-To: <20150811122339.GA4304@salvia>
+Received: from mail-yk0-f176.google.com ([209.85.160.176]:33342 "EHLO
+	mail-yk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965175AbbHKPut (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 Aug 2015 11:50:49 -0400
+Received: by ykaz130 with SMTP id z130so62947034yka.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Aug 2015 08:50:48 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.10.1507141910280.28425@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-
-On 08/11/2015 02:23 PM, Pablo Neira Ayuso wrote:
-> On Tue, Aug 11, 2015 at 02:12:12PM +0200, Pablo Neira Ayuso wrote:
->> On Tue, Aug 11, 2015 at 01:25:21PM +0200, Andreas Schultz wrote:
->>> On 08/11/2015 12:41 PM, Pablo Neira Ayuso wrote:
->>>> On Tue, Aug 11, 2015 at 11:18:54AM +0200, Andreas Schultz wrote:
->>>>> On 08/10/2015 07:09 PM, Pablo Neira Ayuso wrote:
->>>>>> On Mon, Aug 10, 2015 at 03:48:12PM +0200, Andreas Schultz wrote:
->>>>>>> Hi,
->>>>>>>
->>>>>>> The data type definition for mark and the general idea of the parser
->>>>>>> indicate that the following nft statements should work:
->>>>>>>
->>>>>>>    # nft add map filter MAP1 { type ipv4_addr : mark\; }
->>>>>>>    # nft add set filter SET1 { type mark\; }
->>>>>>>
->>>>>>> However, both fail with a similar error message:
->>>>>>>
->>>>>>>    <cmdline>:1:40-43: Error: syntax error, unexpected mark, expecting string
->>>>>>>    add map filter MAP1 { type ipv4_addr : mark; }
->>>>>>>    <cmdline>:1:28-31: Error: syntax error, unexpected mark, expecting string
->>>>>>>    add set filter SET1 { type mark; }
->>>>>>>
->>>>>>> The problem is parser, it expects a string as data type spec, but
->>>>>>> mark is already declared as a token.
->>>>>>>
->>>>>>> I don't have much experience with bison, so does anyone have a quick
->>>>>>> work-around for this?
->>>>>>
->>>>>> This is fixed by 2baf59c ("parser_bison: allow to use mark as datatype
->>>>>> for maps and sets").
->>>>>
->>>>> Ah, I was using the next-4.2 branch and missed this fix in master,
->>>>> sorry for the noise.
->>>>>
->>>>> However, the parser problem is solved, but named mark maps are still
->>>>> not working:
->>>>>
->>>>> anonymous maps work as expected:
->>>>>
->>>>>    # nft add rule ip mangle OUTPUT mark set ip saddr map {
->>>>> 192.168.0.10 : 0x1 }
->>>>>
->>>>> named maps do not:
->>>>>
->>>>>    # nft add map mangle CLASS05 "{ type ipv4_addr : mark; }"
->>>>>    # nft add element mangle CLASS05 { 192.168.0.10 : 0x1 }
->>>>>    # nft add rule ip mangle OUTPUT mark set ip saddr map @CLASS05
->>>>>    <cmdline>:1:1-56: Error: Could not process rule: Invalid argument
->>>>>
->>>>> Any idea?
->>>>
->>>> This is working fine here with a nf.git tree snapshot.
->>>>
->>>> table ip mangle {
->>>>          map CLASS05 {
->>>>                  type ipv4_addr : mark
->>>>                  elements = { 192.168.0.10 : 0x00000001}
->>>>          }
->>>>
->>>>          chain OUTPUT {
->>>>                  type route hook output priority 0; policy accept;
->>>>                  mark set ip saddr map @CLASS05
->>>>          }
->>>> }
->>>
->>> When I put that into a file and try to restore it, I get this:
->>>
->>> # nft -f /tmp/map.nft
->>> /tmp/map.nft:4:28-54: Error: mapping outside of map context
->>>                  elements = { 192.168.0.10 : 0x00000001}
->>>                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
->>>
->>>> What Linux kernel version are you using? Remember that concatenation
->>>> support is there since 4.1.
->>>
->>> Userland:
->>>
->>> git://git.netfilter.org/libnftnl  branch master @ HEAD (0edeb66)
->>> git://git.netfilter.org/nftables  branch master @ HEAD (ecf855b)
+On Tue, Jul 14, 2015 at 10:12 AM, Jozsef Kadlecsik
+<kadlec@blackhole.kfki.hu> wrote:
+> Hi,
+>
+> On Mon, 13 Jul 2015, Pablo Neira Ayuso wrote:
+>
+>> On Mon, Jul 13, 2015 at 04:13:31PM +0000, Akemi Yagi wrote:
+>> > On Sun, 05 Jul 2015 08:35:20 -0700, Guenter Roeck wrote:
+>> >
+>> > > On Sat, Jul 04, 2015 at 12:44:36AM -0700, Vinson Lee wrote:
+>> > >> Hi.
+>> > >>
+>> > >> With the latest Linux 4.2-rc1, I am hitting this build error with GCC
+>> > >> 4.4.7 on CentOS 6.
+>> > >>
+>> > >>   CC      net/netfilter/ipset/ip_set_hash_netnet.o
+>> > >> net/netfilter/ipset/ip_set_hash_netnet.c: In function
+>> > >> ?hash_netnet4_uadt?:
+(snip)
+>> > >>
+>> > > Previously fixed with commit 1a869205c75cb ("netfilter: ipset: The
+>> > > unnamed union initialization may lead to compilation error"),
+>> > > reintroduced with commit aff227581ed1a ("netfilter: ipset: Check CIDR
+>> > > value only when attribute is given").
+>> > >
+>> > > Guenter
+>> >
+>> > I wonder what can be done to get this issue fixed. This problem was seen
+>> > in 4.2-rc1 and now in 4.2-rc2 on RHEL-6.6.
+>> >
+>> > $ gcc --version
+>> > gcc (GCC) 4.4.7 20120313 (Red Hat 4.4.7-11)
 >>
->> Please, give a try to this branch:
->>
->> http://git.netfilter.org/nftables/log/?h=cache-consolidation
+>> Could you please test this patch? Thank you.
 >
-> Wait, I was testing by loading via nft -f with a linear representation:
+> As I mentioned at the workshop, the patch
+> net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch has been
+> added to the -mm tree at Jun 17. My impression was that that way the bug
+> was fixed and everything was all right.
 >
-> add table mangle
-> add chain mangle OUTPUT { type route hook output priority 0; }
-> add map mangle CLASS05 { type ipv4_addr : mark; }
-> add element mangle CLASS05 { 192.168.0.10 : 0x1 }
-> add rule ip mangle OUTPUT mark set ip saddr map @CLASS05
->
-> So I confirm I'm hitting the problem that you're reporting above. Let
-> me have a look into this.
+> Best regards,
+> Jozsef
 
-I have now rebuild the kernel from David's net-next tree and nftables 
-userspace with the cache-consolidation branch applied. The test
-give somewhat mixed results:
+The referenced patch does indeed fix the issue but it is still not in
+Linus' tree as of kernel 4.2.0-0.rc6. Does anyone know how to push
+forward this so the official 4.2 kernel would have the fix?
 
-* nft -f with the linear representation works
-* nft -f with the structured representation fails with:
+Thanks,
 
-/tmp/map2.nft:4:28-54: Error: mapping outside of map context
-		elements = { 192.168.0.10 : 0x00000001}
-                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-* running each command separately, like so:
-
-   # nft add table mangle
-   # nft add chain mangle OUTPUT { type route hook output priority 0\; }
-   # nft add map mangle CLASS05 "{ type ipv4_addr : mark; }"
-   # nft add element mangle CLASS05 { 192.168.0.10 : 0x1 }
-   # nft add rule ip mangle OUTPUT mark set ip saddr map @CLASS05
-
-fails on the last command with:
-
-<cmdline>:1:1-56: Error: Could not process rule: Invalid argument
-add rule ip mangle OUTPUT mark set ip saddr map @CLASS05
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-Andreas
+Akemi
