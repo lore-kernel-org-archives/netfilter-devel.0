@@ -1,75 +1,40 @@
-From: Akemi Yagi <amyagi@gmail.com>
-Subject: Re: Linux 4.2 build error in net/netfilter/ipset/ip_set_hash_netnet.c
-Date: Tue, 11 Aug 2015 08:50:28 -0700
-Message-ID: <CABA31DpRS5NXQm0_tP3eMxE4E9TdtGmrZbr+ZE8JUiNs3qHbMg@mail.gmail.com>
-References: <CAHTgTXUmreHAqPfgGEd+GJNb_OEzaCuytqBTjZsE2GDqiy3TCw@mail.gmail.com>
- <20150705153520.GA23589@roeck-us.net> <mo0o3b$g5d$1@ger.gmane.org>
- <20150713164122.GA26283@salvia> <alpine.DEB.2.10.1507141910280.28425@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Alan Bartlett <ajb@elrepo.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] netfilter: nf_tables: Use 32 bit addressing register from nft_type_to_reg()
+Date: Wed, 12 Aug 2015 19:24:38 +0200
+Message-ID: <1439400278-30754-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, aschultz@tpip.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yk0-f176.google.com ([209.85.160.176]:33342 "EHLO
-	mail-yk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965175AbbHKPut (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Aug 2015 11:50:49 -0400
-Received: by ykaz130 with SMTP id z130so62947034yka.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Aug 2015 08:50:48 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.10.1507141910280.28425@blackhole.kfki.hu>
+Received: from mail.us.es ([193.147.175.20]:56090 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932153AbbHLRSh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Aug 2015 13:18:37 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jul 14, 2015 at 10:12 AM, Jozsef Kadlecsik
-<kadlec@blackhole.kfki.hu> wrote:
-> Hi,
->
-> On Mon, 13 Jul 2015, Pablo Neira Ayuso wrote:
->
->> On Mon, Jul 13, 2015 at 04:13:31PM +0000, Akemi Yagi wrote:
->> > On Sun, 05 Jul 2015 08:35:20 -0700, Guenter Roeck wrote:
->> >
->> > > On Sat, Jul 04, 2015 at 12:44:36AM -0700, Vinson Lee wrote:
->> > >> Hi.
->> > >>
->> > >> With the latest Linux 4.2-rc1, I am hitting this build error with GCC
->> > >> 4.4.7 on CentOS 6.
->> > >>
->> > >>   CC      net/netfilter/ipset/ip_set_hash_netnet.o
->> > >> net/netfilter/ipset/ip_set_hash_netnet.c: In function
->> > >> ?hash_netnet4_uadt?:
-(snip)
->> > >>
->> > > Previously fixed with commit 1a869205c75cb ("netfilter: ipset: The
->> > > unnamed union initialization may lead to compilation error"),
->> > > reintroduced with commit aff227581ed1a ("netfilter: ipset: Check CIDR
->> > > value only when attribute is given").
->> > >
->> > > Guenter
->> >
->> > I wonder what can be done to get this issue fixed. This problem was seen
->> > in 4.2-rc1 and now in 4.2-rc2 on RHEL-6.6.
->> >
->> > $ gcc --version
->> > gcc (GCC) 4.4.7 20120313 (Red Hat 4.4.7-11)
->>
->> Could you please test this patch? Thank you.
->
-> As I mentioned at the workshop, the patch
-> net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch has been
-> added to the -mm tree at Jun 17. My impression was that that way the bug
-> was fixed and everything was all right.
->
-> Best regards,
-> Jozsef
+nft_type_to_reg() needs to return the register in the new 32 bit addressing,
+otherwise we hit EINVAL when using mappings.
 
-The referenced patch does indeed fix the issue but it is still not in
-Linus' tree as of kernel 4.2.0-0.rc6. Does anyone know how to push
-forward this so the official 4.2 kernel would have the fix?
+Fixes: 49499c3 ("netfilter: nf_tables: switch registers to 32 bit addressing")
+Reported-by: Andreas Schultz <aschultz@tpip.net>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index 2a24668..aa8bee7 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -125,7 +125,7 @@ static inline enum nft_data_types nft_dreg_to_type(enum nft_registers reg)
+ 
+ static inline enum nft_registers nft_type_to_reg(enum nft_data_types type)
+ {
+-	return type == NFT_DATA_VERDICT ? NFT_REG_VERDICT : NFT_REG_1;
++	return type == NFT_DATA_VERDICT ? NFT_REG_VERDICT : NFT_REG_1 * NFT_REG_SIZE / NFT_REG32_SIZE;
+ }
+ 
+ unsigned int nft_parse_register(const struct nlattr *attr);
+-- 
+1.7.10.4
 
-Akemi
