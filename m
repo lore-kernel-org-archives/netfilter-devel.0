@@ -1,40 +1,61 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: nf_tables: Use 32 bit addressing register from nft_type_to_reg()
-Date: Wed, 12 Aug 2015 19:24:38 +0200
-Message-ID: <1439400278-30754-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, aschultz@tpip.net
+Subject: [PATCH nft 1/2] evaluate: display error on unexisting chain when listing
+Date: Wed, 12 Aug 2015 19:26:31 +0200
+Message-ID: <1439400392-30875-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56090 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56334 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932153AbbHLRSh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Aug 2015 13:18:37 -0400
+	id S932153AbbHLRUZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Aug 2015 13:20:25 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nft_type_to_reg() needs to return the register in the new 32 bit addressing,
-otherwise we hit EINVAL when using mappings.
+nft list chain ip test output
+<cmdline>:1:1-25: Error: Could not process rule: Chain 'output' does not exist
+list chain ip test output
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Fixes: 49499c3 ("netfilter: nf_tables: switch registers to 32 bit addressing")
-Reported-by: Andreas Schultz <aschultz@tpip.net>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Applies on top of the cache-consolidation branch.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 2a24668..aa8bee7 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -125,7 +125,7 @@ static inline enum nft_data_types nft_dreg_to_type(enum nft_registers reg)
+ src/evaluate.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index d432826..937097a 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1956,16 +1956,26 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
  
- static inline enum nft_registers nft_type_to_reg(enum nft_data_types type)
+ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
  {
--	return type == NFT_DATA_VERDICT ? NFT_REG_VERDICT : NFT_REG_1;
-+	return type == NFT_DATA_VERDICT ? NFT_REG_VERDICT : NFT_REG_1 * NFT_REG_SIZE / NFT_REG32_SIZE;
- }
- 
- unsigned int nft_parse_register(const struct nlattr *attr);
++	struct table *table;
++
+ 	switch (cmd->obj) {
+ 	case CMD_OBJ_TABLE:
+ 		if (cmd->handle.table == NULL)
+ 			return 0;
+-	case CMD_OBJ_CHAIN:
+ 	case CMD_OBJ_SET:
+ 		if (table_lookup(&cmd->handle) == NULL)
+ 			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
+ 					 cmd->handle.table);
+ 		return 0;
++	case CMD_OBJ_CHAIN:
++		table = table_lookup(&cmd->handle);
++		if (table == NULL)
++			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
++					 cmd->handle.table);
++		if (chain_lookup(table, &cmd->handle) == NULL)
++			return cmd_error(ctx, "Could not process rule: Chain '%s' does not exist",
++					 cmd->handle.chain);
++		return 0;
+ 	case CMD_OBJ_SETS:
+ 	case CMD_OBJ_RULESET:
+ 		return 0;
 -- 
 1.7.10.4
 
