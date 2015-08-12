@@ -1,108 +1,69 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v4 2/3] netfilter: nf_conntrack: add direction support
- for zones
-Date: Wed, 12 Aug 2015 19:48:05 +0200
-Message-ID: <20150812174805.GA31037@salvia>
-References: <cover.1439059434.git.daniel@iogearbox.net>
- <b251daed7eaaaf751e0bf0104389e57876d5a1ba.1439059435.git.daniel@iogearbox.net>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nft] tests: validate generated netlink instructions
+Date: Wed, 12 Aug 2015 19:46:24 +0200
+Message-ID: <20150812174624.GA31166@breakpoint.cc>
+References: <1437096699-8832-1-git-send-email-fw@strlen.de>
+ <20150720125004.GA7402@salvia>
+ <20150720151046.GD11985@breakpoint.cc>
+ <20150720170538.GA22735@salvia>
+ <20150720183536.GE11985@breakpoint.cc>
+ <20150812173453.GA30926@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: tgraf@suug.ch, challa@noironetworks.com,
-	netfilter-devel@vger.kernel.org
-To: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	kaber@trash.net
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58591 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750829AbbHLRlz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Aug 2015 13:41:55 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:56347 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750769AbbHLRq0 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 12 Aug 2015 13:46:26 -0400
 Content-Disposition: inline
-In-Reply-To: <b251daed7eaaaf751e0bf0104389e57876d5a1ba.1439059435.git.daniel@iogearbox.net>
+In-Reply-To: <20150812173453.GA30926@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Daniel,
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> I found a problem in your change to validate the netlink instructions
+> from the python infrastructure that we have for nft.
+> 
+> The set elements are not always displayed in the same order depending
+> on the hash seed, so we get bogus warnings in that case.
 
-I have applied 1/3 so you don't need to resend, but I still need one
-more change in this patch, see below.
+Did that change recently?
+I run the tests quite extensively at the moment and I did not see
+failures in the set parts yet.
 
-On Sat, Aug 08, 2015 at 09:40:02PM +0200, Daniel Borkmann wrote:
-> diff --git a/include/uapi/linux/netfilter/nfnetlink_conntrack.h b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-> index acad6c5..3bf4cb0 100644
-> --- a/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-> +++ b/include/uapi/linux/netfilter/nfnetlink_conntrack.h
-> @@ -53,6 +53,7 @@ enum ctattr_type {
->  	CTA_MARK_MASK,
->  	CTA_LABELS,
->  	CTA_LABELS_MASK,
-> +	CTA_TUPLE_ZONE,
+> I think the fix for the test infrastructure will require something a
+> bit more complicated that a simple string comparison as we'll need to
+> interpret the set element part.
+> 
+> Probably it would be good to wrap the netlink instruction generation
+> code under some option until this is resolved, instead of having it
+> enabled by default.
+> 
+> Let me know if you come up with any better idea. Thanks!
 
-I remember to have suggested to place this in ctattr_tuple:
+I'm currently in the process of finalizing a first draft of vlan
+matching, i think i have patches ready next week.
 
-http://www.spinics.net/lists/netfilter-devel/msg37593.html
+This will also make "nft add rule bridge filter input ip version 4"
+work since it adds support for sub-byte sized header elements.
 
-The zone is part of the tuple in an optional fashion, so it should
-appear there. The direction is already implicit based on
-CTA_TUPLE_ORIG or CTA_TUPLE_REPLY.
+I plan to work on the test suite again after I get v1 out (add BE support
+so we can also check nft on s390 etc).
 
->  	__CTA_MAX
->  };
->  #define CTA_MAX (__CTA_MAX - 1)
-> @@ -260,4 +261,19 @@ enum ctattr_expect_stats {
->  };
->  #define CTA_STATS_EXP_MAX (__CTA_STATS_EXP_MAX - 1)
->  
-> +enum ctattr_zone {
-> +	CTA_ZONE_UNSPEC,
-> +	CTA_ZONE_DIR,
-> +	__CTA_ZONE_MAX,
-> +};
-> +#define CTA_ZONE_MAX (__CTA_ZONE_MAX - 1)
-> +
-> +enum ctattr_zone_dir {
-> +	CTA_ZONE_DIR_UNSPEC,
-> +	CTA_ZONE_DIR_ORIG,
-> +	CTA_ZONE_DIR_REPL,
-> +	__CTA_ZONE_DIR_MAX
-> +};
-> +#define CTA_ZONE_DIR_MAX (__CTA_ZONE_DIR_MAX - 1)
+I haven't thought about it yet, first plan was to record separate traces
+for LE and BE architectures, think thats better than trying to normalize
+the endianess in the output (might also mask errors...).
 
-With the change above we can skip this CTA_ZONE_DIR.
+I'll try to figure out a way to cure the set part.
 
-> +
->  #endif /* _IPCONNTRACK_NETLINK_H */
-[...]
-> diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-> index 28c8b2b..5d81b99 100644
-> --- a/net/netfilter/nf_conntrack_standalone.c
-> +++ b/net/netfilter/nf_conntrack_standalone.c
-> @@ -143,7 +143,20 @@ static inline void ct_show_secctx(struct seq_file *s, const struct nf_conn *ct)
->  #ifdef CONFIG_NF_CONNTRACK_ZONES
->  static void ct_show_zone(struct seq_file *s, const struct nf_conn *ct)
->  {
-> -	seq_printf(s, "zone=%u ", nf_ct_zone(ct)->id);
-> +	const struct nf_conntrack_zone *zone = nf_ct_zone(ct);
-> +
-> +	seq_printf(s, "zone=%u ", zone->id);
-> +
-> +	switch (zone->dir) {
-> +	case NF_CT_ZONE_DIR_ORIG:
-> +		seq_puts(s, "zone-dir=ORIGINAL ");
-> +		break;
-> +	case NF_CT_ZONE_DIR_REPL:
-> +		seq_puts(s, "zone-dir=REPLY ");
-> +		break;
+One way would be accomondate the test parser to recognize the set data
+and sort those into some common order (doesn't matter as long as both ondisk
+and observed output are in the same sort order).
 
-I'd suggest the output shows the zone on the corresponding tuple, eg.
-in case it only applies to the original tuple:
-
-udp      17 29 src=192.168.2.195 dst=192.168.2.1 sport=40446 dport=53 zone=1 \
-               src=192.168.2.1 dst=192.168.2.195 sport=53 dport=40446 [ASSURED] mark=0 use=1
-
-We have a more compact output IMO.
-
-Please, don't forget that you also have to update
-libnetfilter_conntrack and conntrack to get this feature available
-from there. I'll take this patchset to the kernel so you have the time
-to update the userspace side later on without blocking this further.
-
-Thanks.
+I don't mind if you add a quick patch that disables the payload
+comparision for now, we can reenable it later by default once BE + set
+works correctly.
