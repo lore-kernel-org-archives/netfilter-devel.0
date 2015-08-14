@@ -1,17 +1,17 @@
 From: "WEBMAIL TEAM" <claudiu.neagoe@upit.ro>
 Subject: WEB MAIL TEAM
-Date: Fri, 14 Aug 2015 11:48:13 +0300 (EEST)
-Message-ID: <d97973ebac88fd47676ea885231b5fcd.squirrel@mail.upit.ro>
+Date: Fri, 14 Aug 2015 11:48:17 +0300 (EEST)
+Message-ID: <ecb675230a4441fd62edb28c32708beb.squirrel__6640.77197802744$1439544326$gmane$org@mail.upit.ro>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: undisclosed-recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.upit.ro.70.102.194.in-addr.arpa ([194.102.70.93]:53789
+Received: from mail.upit.ro.70.102.194.in-addr.arpa ([194.102.70.93]:37391
 	"EHLO mail.upit.ro" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1752193AbbHNJWF (ORCPT
+	with ESMTP id S1752133AbbHNJZH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 14 Aug 2015 05:22:05 -0400
+	Fri, 14 Aug 2015 05:25:07 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
