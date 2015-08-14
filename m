@@ -1,42 +1,47 @@
-From: webmail update <marta@czinegemanufaktura.hu>
-Subject: webmail =?UTF-8?Q?=C3=A9rtes=C3=ADt=C3=A9s?=
-Date: Fri, 14 Aug 2015 01:34:51 -0700
-Message-ID: <87d2a20572b9e97e3008cd1d8e795139@czinegemanufaktura.hu>
+From: "WEBMAIL TEAM" <claudiu.neagoe@upit.ro>
+Subject: WEB MAIL TEAM
+Date: Fri, 14 Aug 2015 11:50:34 +0300 (EEST)
+Message-ID: <d7670192509c1ca9571effb6ead66b7f.squirrel@mail.upit.ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: undisclosed-recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from webmailsmtp.ens.hu ([91.82.226.151]:35691 "EHLO
-	webmailsmtp.ens.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751970AbbHNItl (ORCPT
+Received: from mail.upit.ro.70.102.194.in-addr.arpa ([194.102.70.93]:52818
+	"EHLO mail.upit.ro" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1754001AbbHNJC3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 14 Aug 2015 04:49:41 -0400
+	Fri, 14 Aug 2015 05:02:29 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
 
---=20
+
 WEB MAIL TEAM
 =46igyelem:
 
-Ez a web-mail rendszergazda. K=C3=A9rj=C3=BCk, t=C3=A1j=C3=A9koztatni k=
-ell, hogy az e-mail=20
-szerver nemr=C3=A9g korszer=C5=B1s=C3=ADtett =C3=A9s az e-mail friss=C3=
-=ADteni kell=20
-immediately.This folyamat az, hogy a c=C3=A9g e-mail szerver friss=C3=AD=
-tett =C3=A9s=20
-v=C3=A9deni, mint mindig. Kedves kattintson az al=C3=A1bbi linkre =C3=A9=
-s k=C3=B6vesse az=20
-utas=C3=ADt=C3=A1sokat, hogy friss=C3=ADtse a sz=C3=A1mla
+Ez a web-mail rendszergazda. K=E9rj=FCk, t=E1j=E9koztatni kell, hogy az=
+ e-mail
+szerver nemr=E9g korszer&#369;s=EDtett =E9s az e-mail friss=EDteni kell
+immediately.This folyamat az, hogy a c=E9g e-mail szerver friss=EDtett =
+=E9s
+v=E9deni, mint mindig. Kedves kattintson az al=E1bbi linkre =E9s k=F6ve=
+sse az
+utas=EDt=E1sokat, hogy friss=EDtse a sz=E1mla
 
 https://formcrafts.com/a/13756
 
-=C3=9Cdv=C3=B6zlettel,
+=DCdv=F6zlettel,
 Admin.
 webmail
+
+
+--
+This mail was scanned by BitDefender
+=46or more information please visit http://www.bitdefender.com/
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
