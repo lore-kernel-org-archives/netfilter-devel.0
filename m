@@ -1,18 +1,18 @@
 From: webmail update <marta@czinegemanufaktura.hu>
-Subject: WEB MAIL TEAM
-Date: Fri, 14 Aug 2015 01:40:07 -0700
-Message-ID: <999d707d0f1216a81a85d30023dd5a74__37795.528319157$1439541711$gmane$org@czinegemanufaktura.hu>
+Subject: webmail =?UTF-8?Q?=C3=A9rtes=C3=ADt=C3=A9s?=
+Date: Fri, 14 Aug 2015 01:34:51 -0700
+Message-ID: <87d2a20572b9e97e3008cd1d8e795139@czinegemanufaktura.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: undisclosed-recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from webmailsmtp.ens.hu ([91.82.226.151]:59802 "EHLO
+Received: from webmailsmtp.ens.hu ([91.82.226.151]:35691 "EHLO
 	webmailsmtp.ens.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932366AbbHNIkJ (ORCPT
+	with ESMTP id S1751970AbbHNItl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 14 Aug 2015 04:40:09 -0400
+	Fri, 14 Aug 2015 04:49:41 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
