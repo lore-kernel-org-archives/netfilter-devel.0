@@ -1,61 +1,44 @@
-From: "www.facebook.com" <claudiu.neagoe@upit.ro>
-Subject: =?iso-8859-1?Q?Gratul=E1lunk_!!!?=
-Date: Fri, 14 Aug 2015 19:17:58 +0300 (EEST)
-Message-ID: <3fd359ed8e08697fedbe6a48a49a173e.squirrel@mail.upit.ro>
-Reply-To: fb_deliveryservice@yeah.net
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: undisclosed-recipients:;
+From: Mike Frysinger <vapier@gentoo.org>
+Subject: [PATCH] configure: fix 3rd arg w/AC_ARG_ENABLE
+Date: Sat, 15 Aug 2015 14:13:35 -0400
+Message-ID: <1439662415-4374-1-git-send-email-vapier@gentoo.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.upit.ro.70.102.194.in-addr.arpa ([194.102.70.93]:59332
-	"EHLO mail.upit.ro" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751894AbbHNUEr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 14 Aug 2015 16:04:47 -0400
+Received: from smtp.gentoo.org ([140.211.166.183]:53886 "EHLO smtp.gentoo.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752683AbbHOSNi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 15 Aug 2015 14:13:38 -0400
+Received: from localhost.localdomain (localhost [127.0.0.1])
+	by smtp.gentoo.org (Postfix) with ESMTP id D6EDC340BD0
+	for <netfilter-devel@vger.kernel.org>; Sat, 15 Aug 2015 18:13:37 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The 3rd arg is used when --{enable,disable}-foo are passed in, not when
+the feature is enabled.  Use the existing $enableval instead.
 
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+---
+ configure.ac | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/configure.ac b/configure.ac
+index 2521ccc..7ff572a 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -53,10 +53,10 @@ AC_ARG_ENABLE([libipq],
+ 	[enable_libipq="$enableval"], [enable_libipq="no"])
+ AC_ARG_ENABLE([bpf-compiler],
+ 	AS_HELP_STRING([--enable-bpf-compiler], [Build bpf compiler]),
+-	[enable_bpfc="yes"], [enable_bpfc="no"])
++	[enable_bpfc="$enableval"], [enable_bpfc="no"])
+ AC_ARG_ENABLE([nfsynproxy],
+ 	AS_HELP_STRING([--enable-nfsynproxy], [Build SYNPROXY configuration tool]),
+-	[enable_nfsynproxy="yes"], [enable_nfsynproxy="no"])
++	[enable_nfsynproxy="$enableval"], [enable_nfsynproxy="no"])
+ AC_ARG_WITH([pkgconfigdir], AS_HELP_STRING([--with-pkgconfigdir=PATH],
+ 	[Path to the pkgconfig directory [[LIBDIR/pkgconfig]]]),
+ 	[pkgconfigdir="$withval"], [pkgconfigdir='${libdir}/pkgconfig'])
+-- 
+2.4.4
 
-www.facebook.com
-
-Gratul=E1lunk !!!
-
-=D6r=FCl=FCnk, hogy be, hogy a Facebook sz=E1mla ker=FClt v=E9letlensze=
-r&#369;en
-kiv=E1lasztott, a kedvezm=E9nyezett $ 1,000,000.00usd a 2014/2015 Faceb=
-ook =C9v
-{Grand Jutalmak gy&#337;ztes}.
-
-K=FCldj=F6n e-mailt az al=E1bbi adatokat: fb_deliveryservice@yeah.net
-
-MEGH=CDV=D3 AZONOS=CDT=D3: NW90W0W0-XANSIEW-1014
-1) =F6sszeget nyert: $ 1,000,000.00 USD
-2) facebook felhaszn=E1l=F3n=E9v:
-3) A jelenlegi lak=F3helye szerinti orsz=E1g:
-4) =DAtlev=E9l / sz=E1ma:
-
-K=FCldd el ezt a r=E9szleteket, hogy az e-mail fent: fb_deliveryservice=
-@yeah.net
-
-
-George Jones.
-Program koordin=E1tora,
-=46acebook jutalmaz=E1si program,
-+ 1-209-300-9000
-www.facebook.com
-Minden jog fenntartva 2015.
-
-
---
-This mail was scanned by BitDefender
-=46or more information please visit http://www.bitdefender.com/
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
