@@ -1,182 +1,339 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 01/12] tests: use the src/nft binary instead of $PATH one
-Date: Sun, 16 Aug 2015 21:05:44 +0200
-Message-ID: <1439751955-31190-2-git-send-email-fw@strlen.de>
+Subject: [PATCH 10/12] nft: support listing expressions that use non-byte header fields
+Date: Sun, 16 Aug 2015 21:05:53 +0200
+Message-ID: <1439751955-31190-11-git-send-email-fw@strlen.de>
 References: <1439751955-31190-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34741 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34751 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751004AbbHPTGH (ORCPT
+	by vger.kernel.org with ESMTP id S1751695AbbHPTGP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Aug 2015 15:06:07 -0400
+	Sun, 16 Aug 2015 15:06:15 -0400
 In-Reply-To: <1439751955-31190-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-... so one doesn't need to install new binary into $PATH (or
-change PATH... ) during development.
+This allows to list rules that check fields that are not aligned on byte
+boundary, and allows decoding vlan headers, which reside on top of eth header
+and need the expr->payload.offset adjusted accordingly.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tests/regression/nft-test.py | 35 ++++++++++++++++++-----------------
- 1 file changed, 18 insertions(+), 17 deletions(-)
+ include/payload.h         |  3 ++
+ src/evaluate.c            |  6 ++++
+ src/netlink_delinearize.c | 80 ++++++++++++++++++++++++++++++++++++++------
+ src/payload.c             | 84 +++++++++++++++++++++++++++++++++++++++++++++--
+ 4 files changed, 160 insertions(+), 13 deletions(-)
 
-diff --git a/tests/regression/nft-test.py b/tests/regression/nft-test.py
-index 26fc2ec..c3d2aae 100755
---- a/tests/regression/nft-test.py
-+++ b/tests/regression/nft-test.py
-@@ -20,6 +20,7 @@ import argparse
- import signal
+diff --git a/include/payload.h b/include/payload.h
+index 95364af..ca9b013 100644
+--- a/include/payload.h
++++ b/include/payload.h
+@@ -19,7 +19,10 @@ extern bool payload_is_adjacent(const struct expr *e1, const struct expr *e2);
+ extern struct expr *payload_expr_join(const struct expr *e1,
+ 				      const struct expr *e2);
  
- TERMINAL_PATH = os.getcwd()
-+NFT_BIN = TERMINAL_PATH + "/src/nft"
- TESTS_PATH = os.path.dirname(os.path.abspath(__file__))
- TESTS_DIRECTORY = ["any", "arp", "bridge", "inet", "ip", "ip6"]
- LOGFILE = "/tmp/nftables-test.log"
-@@ -77,7 +78,7 @@ def table_exist(table, filename, lineno):
-     '''
-     Exists a table.
-     '''
--    cmd = "nft list -nnn table " + table[0] + " " + table[1]
-+    cmd = NFT_BIN + " list -nnn table " + table[0] + " " + table[1]
-     ret = execute_cmd(cmd, filename, lineno)
++bool payload_expr_trim(struct expr *expr, struct expr *mask,
++		       const struct proto_ctx *ctx);
+ extern void payload_expr_expand(struct list_head *list, struct expr *expr,
++				struct expr *mask,
+ 				const struct proto_ctx *ctx);
+ extern void payload_expr_complete(struct expr *expr,
+ 				  const struct proto_ctx *ctx);
+diff --git a/src/evaluate.c b/src/evaluate.c
+index c95d154..7ff94c0 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -332,8 +332,13 @@ static bool resolve_protocol_conflict(struct eval_ctx *ctx,
+ 		const struct proto_desc *next = ctx->pctx.protocol[base + 1].desc;
  
-     return True if (ret == 0) else False
-@@ -87,7 +88,7 @@ def table_flush(table, filename, lineno):
-     '''
-     Flush a table.
-     '''
--    cmd = "nft flush table " + str(table[0]) + " " + str(table[1])
-+    cmd = NFT_BIN + " flush table " + str(table[0]) + " " + str(table[1])
-     ret = execute_cmd(cmd, filename, lineno)
+ 		if (payload->payload.desc == next) {
++			ctx->pctx.protocol[base + 1].desc = NULL;
++			ctx->pctx.protocol[base].desc = next;
++			ctx->pctx.protocol[base].offset += desc->length;
+ 			payload->payload.offset += desc->length;
+ 			return true;
++		} else if (next) {
++			return false;
+ 		}
+ 	}
  
-     return cmd
-@@ -106,7 +107,7 @@ def table_create(table, filename, lineno):
-     table_list.append(table)
+@@ -343,6 +348,7 @@ static bool resolve_protocol_conflict(struct eval_ctx *ctx,
  
-     ## We add a new table
--    cmd = "nft add table " + table[0] + " " + table[1]
-+    cmd = NFT_BIN + " add table " + table[0] + " " + table[1]
-     ret = execute_cmd(cmd, filename, lineno)
+ 	payload->payload.offset += ctx->pctx.protocol[base].offset;
+ 	list_add_tail(&nstmt->list, &ctx->stmt->list);
++	ctx->pctx.protocol[base + 1].desc = NULL;
  
-     if ret != 0:
-@@ -138,7 +139,7 @@ def table_delete(table, filename=None, lineno=None):
-         print_error(reason, filename, lineno)
-         return -1
+ 	return true;
+ }
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 76c07c5..537e34c 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -918,16 +918,20 @@ static void integer_type_postprocess(struct expr *expr)
+ 	}
+ }
  
--    cmd = "nft delete table" + table_info
-+    cmd = NFT_BIN + " delete table" + table_info
-     ret = execute_cmd(cmd, filename, lineno)
-     if ret != 0:
-         reason = cmd + ": " \
-@@ -161,7 +162,7 @@ def chain_exist(chain, table, filename, lineno):
-     '''
+-static void payload_match_expand(struct rule_pp_ctx *ctx, struct expr *expr)
++static void payload_match_expand(struct rule_pp_ctx *ctx,
++				 struct expr *expr,
++				 struct expr *payload,
++				 struct expr *mask)
+ {
+-	struct expr *left = expr->left, *right = expr->right, *tmp;
++	struct expr *left = payload, *right = expr->right, *tmp;
+ 	struct list_head list = LIST_HEAD_INIT(list);
+ 	struct stmt *nstmt;
+ 	struct expr *nexpr = NULL;
+ 	enum proto_bases base = left->payload.base;
+ 	const struct expr_ops *payload_ops = left->ops;
  
-     table_info = " " + table[0] + " " + table[1] + " "
--    cmd = "nft list -nnn chain" + table_info + chain
-+    cmd = NFT_BIN + " list -nnn chain" + table_info + chain
-     ret = execute_cmd(cmd, filename, lineno)
+-	payload_expr_expand(&list, left, &ctx->pctx);
++	payload_expr_expand(&list, left, mask, &ctx->pctx);
++
+ 	list_for_each_entry(left, &list, list) {
+ 		tmp = constant_expr_splice(right, left->len);
+ 		expr_set_type(tmp, left->dtype, left->byteorder);
+@@ -981,10 +985,11 @@ static void payload_match_expand(struct rule_pp_ctx *ctx, struct expr *expr)
+ }
  
-     return True if (ret == 0) else False
-@@ -181,9 +182,9 @@ def chain_create(chain, chain_type, chain_list, table, filename, lineno):
-         return -1
+ static void payload_match_postprocess(struct rule_pp_ctx *ctx,
+-				      struct expr *expr)
++				      struct expr *expr,
++				      struct expr *payload,
++				      struct expr *mask)
+ {
+-	enum proto_bases base = expr->left->payload.base;
+-	struct expr *payload = expr->left;
++	enum proto_bases base = payload->payload.base;
  
-     if chain_type:
--        cmd = "nft add chain" + table_info + chain + "\{ " + chain_type + "\; \}"
-+        cmd = NFT_BIN + " add chain" + table_info + chain + "\{ " + chain_type + "\; \}"
-     else:
--        cmd = "nft add chain" + table_info + chain
-+        cmd = NFT_BIN + " add chain" + table_info + chain
+ 	assert(payload->payload.offset >= ctx->pctx.protocol[base].offset);
+ 	payload->payload.offset -= ctx->pctx.protocol[base].offset;
+@@ -993,7 +998,7 @@ static void payload_match_postprocess(struct rule_pp_ctx *ctx,
+ 	case OP_EQ:
+ 	case OP_NEQ:
+ 		if (expr->right->ops->type == EXPR_VALUE) {
+-			payload_match_expand(ctx, expr);
++			payload_match_expand(ctx, expr, payload, mask);
+ 			break;
+ 		}
+ 		/* Fall through */
+@@ -1074,7 +1079,7 @@ static struct expr *binop_tree_to_list(struct expr *list, struct expr *expr)
+ 	return list;
+ }
  
-     ret = execute_cmd(cmd, filename, lineno)
-     if ret != 0:
-@@ -216,14 +217,14 @@ def chain_delete(chain, table,  filename=None, lineno=None):
-         print_error(reason, filename, lineno)
-         return -1
+-static void relational_binop_postprocess(struct expr *expr)
++static void relational_binop_postprocess(struct rule_pp_ctx *ctx, struct expr *expr)
+ {
+ 	struct expr *binop = expr->left, *value = expr->right;
  
--    cmd = "nft flush chain" + table_info + chain
-+    cmd = NFT_BIN + " flush chain" + table_info + chain
-     ret = execute_cmd(cmd, filename, lineno)
-     if ret != 0:
-         reason = "I cannot flush this chain " + chain
-         print_error(reason, filename, lineno)
-         return -1
+@@ -1102,6 +1107,61 @@ static void relational_binop_postprocess(struct expr *expr)
+ 						expr_mask_to_prefix(binop->right));
+ 		expr_free(value);
+ 		expr_free(binop);
++	} else if (binop->op == OP_AND &&
++		   binop->left->ops->type == EXPR_PAYLOAD &&
++		   binop->right->ops->type == EXPR_VALUE) {
++		struct expr *payload = expr->left->left;
++		struct expr *mask = expr->left->right;
++
++		/*
++		 * This *might* be a payload match testing header fields that
++		 * have non byte divisible offsets and/or bit lengths.
++		 *
++		 * Thus we need to deal with two different cases.
++		 *
++		 * 1 the simple version:
++		 *        relation
++		 * payload        value|setlookup
++		 *
++		 * expr: relation, left: payload, right: value, e.g.  tcp dport == 22.
++		 *
++		 * 2. The '&' version (this is what we're looking at now).
++		 *            relation
++		 *     binop          value1|setlookup
++		 * payload  value2
++		 *
++		 * expr: relation, left: binop, right: value, e.g.
++		 * ip saddr 10.0.0.0/8
++		 *
++		 * payload_expr_trim will figure out if the mask is needed to match
++		 * templates.
++		 */
++		if (payload_expr_trim(payload, mask, &ctx->pctx)) {
++			/* mask is implicit, binop needs to be removed.
++			 *
++			 * Fix all values of the expression according to the mask
++			 * and then process the payload instruction using the real
++			 * sizes and offsets we're interested in.
++			 *
++			 * Finally, convert the expression to 1) by replacing
++			 * the binop with the binop payload expr.
++			 */
++			if (value->ops->type == EXPR_VALUE) {
++				assert(value->len >= expr->left->right->len);
++				value->len = mask->len;
++			}
++
++			payload->len = mask->len;
++			payload->payload.offset += mpz_scan1(mask->value, 0);
++
++			payload_match_postprocess(ctx, expr, payload, mask);
++
++			assert(expr->left->ops->type == EXPR_BINOP);
++
++			assert(binop->left == payload);
++			expr->left = payload;
++			expr_free(binop);
++		}
+ 	}
+ }
  
--    cmd = "nft delete chain" + table_info + chain
-+    cmd = NFT_BIN + " delete chain" + table_info + chain
-     ret = execute_cmd(cmd, filename, lineno)
-     if ret != 0:
-         reason = cmd + "I cannot delete this chain. DD"
-@@ -258,7 +259,7 @@ def set_add(set_info, table_list, filename, lineno):
+@@ -1160,7 +1220,7 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
+ 	case EXPR_RELATIONAL:
+ 		switch (expr->left->ops->type) {
+ 		case EXPR_PAYLOAD:
+-			payload_match_postprocess(ctx, expr);
++			payload_match_postprocess(ctx, expr, expr->left, NULL);
+ 			return;
+ 		default:
+ 			expr_postprocess(ctx, &expr->left);
+@@ -1175,7 +1235,7 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
+ 			meta_match_postprocess(ctx, expr);
+ 			break;
+ 		case EXPR_BINOP:
+-			relational_binop_postprocess(expr);
++			relational_binop_postprocess(ctx, expr);
+ 			break;
+ 		default:
+ 			break;
+diff --git a/src/payload.c b/src/payload.c
+index 372dcec..2ede199 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -296,12 +296,87 @@ void payload_expr_complete(struct expr *expr, const struct proto_ctx *ctx)
+ 	}
+ }
  
-         table_info = " " + table[0] + " " + table[1] + " "
-         set_text = " " + set_info[0] + " { type " + set_info[1] + " \;}"
--        cmd = "nft add set" + table_info + set_text
-+        cmd = NFT_BIN + " add set" + table_info + set_text
-         ret = execute_cmd(cmd, filename, lineno)
++static unsigned int mask_to_offset(const struct expr *mask)
++{
++	return mask ? mpz_scan1(mask->value, 0) : 0;
++}
++
++static unsigned int mask_length(const struct expr *mask)
++{
++	unsigned long off;
++
++        off = mask_to_offset(mask);
++
++	return mpz_scan0(mask->value, off + 1);
++}
++
++/**
++ * payload_expr_trim - trim payload expression according to mask
++ *
++ * @expr:	the payload expression
++ * @mask:	mask to use when searching templates
++ * @ctx:	protocol context
++ *
++ * Walk the template list and determine if a match can be found without
++ * using the provided mask.
++ *
++ * If the mask has to be used, trim the mask length accordingly
++ * and return true to let the caller know that the mask is a dependency.
++ */
++bool payload_expr_trim(struct expr *expr, struct expr *mask,
++		       const struct proto_ctx *ctx)
++{
++	unsigned int payload_offset = expr->payload.offset + mask_to_offset(mask);
++	unsigned int mask_len = mask_length(mask);
++	const struct proto_hdr_template *tmpl;
++	unsigned int payload_len = expr->len;
++	const struct proto_desc *desc;
++	unsigned int i, matched_len = mask_to_offset(mask);
++
++	assert(expr->ops->type == EXPR_PAYLOAD);
++
++	desc = ctx->protocol[expr->payload.base].desc;
++	if (desc == NULL)
++		return false;
++
++	assert(desc->base == expr->payload.base);
++
++	if (ctx->protocol[expr->payload.base].offset) {
++		assert(payload_offset >= ctx->protocol[expr->payload.base].offset);
++		payload_offset -= ctx->protocol[expr->payload.base].offset;
++	}
++
++	for (i = 1; i < array_size(desc->templates); i++) {
++		tmpl = &desc->templates[i];
++		if (tmpl->offset != payload_offset)
++			continue;
++
++		if (tmpl->len > payload_len)
++			return false;
++
++		payload_len -= tmpl->len;
++		matched_len += tmpl->len;
++		payload_offset += tmpl->len;
++		if (payload_len == 0)
++			return false;
++
++		if (matched_len == mask_len) {
++			assert(mask->len >= mask_len);
++			mask->len = mask_len;
++			return true;
++		}
++	}
++
++	return false;
++}
++
+ /**
+  * payload_expr_expand - expand raw merged adjacent payload expressions into its
+  * 			 original components
+  *
+  * @list:	list to append expanded payload expressions to
+  * @expr:	the payload expression to expand
++ * @mask:	optional/implicit mask to use when searching templates
+  * @ctx:	protocol context
+  *
+  * Expand a merged adjacent payload expression into its original components
+@@ -311,18 +386,21 @@ void payload_expr_complete(struct expr *expr, const struct proto_ctx *ctx)
+  * 	 offset order.
+  */
+ void payload_expr_expand(struct list_head *list, struct expr *expr,
+-			 const struct proto_ctx *ctx)
++			 struct expr *mask, const struct proto_ctx *ctx)
+ {
+-	const struct proto_desc *desc;
++	unsigned int off = mask_to_offset(mask);
+ 	const struct proto_hdr_template *tmpl;
++	const struct proto_desc *desc;
+ 	struct expr *new;
+ 	unsigned int i;
  
-         if (ret == 0 and set_info[2].rstrip() == "fail") or \
-@@ -306,7 +307,7 @@ def set_add_elements(set_element, set_name, set_all, state, table_list,
-                 element = element + ", " + e
+ 	assert(expr->ops->type == EXPR_PAYLOAD);
++	assert(!mask || mask->len != 0);
  
-         set_text = set_name + " { " + element + " }"
--        cmd = "nft add element" + table_info + set_text
-+        cmd = NFT_BIN + " add element" + table_info + set_text
-         ret = execute_cmd(cmd, filename, lineno)
+ 	desc = ctx->protocol[expr->payload.base].desc;
+ 	if (desc == NULL)
+ 		goto raw;
++
+ 	assert(desc->base == expr->payload.base);
  
-         if (state == "fail" and ret == 0) or (state == "ok" and ret != 0):
-@@ -332,7 +333,7 @@ def set_delete_elements(set_element, set_name, table, filename=None,
- 
-     for element in set_element:
-         set_text = set_name + " {" + element + "}"
--        cmd = "nft delete element" + table_info + set_text
-+        cmd = NFT_BIN + " delete element" + table_info + set_text
-         ret = execute_cmd(cmd, filename, lineno)
-         if ret != 0:
-             reason = "I cannot delete an element" + element + \
-@@ -362,7 +363,7 @@ def set_delete(all_set, table, filename=None, lineno=None):
- 
-         # We delete the set.
-         table_info = " " + table[0] + " " + table[1] + " "
--        cmd = "nft delete set " + table_info + " " + set_name
-+        cmd = NFT_BIN + " delete set " + table_info + " " + set_name
-         ret = execute_cmd(cmd, filename, lineno)
- 
-         # Check if the set still exists after I deleted it.
-@@ -379,7 +380,7 @@ def set_exist(set_name, table, filename, lineno):
-     Check if the set exists.
-     '''
-     table_info = " " + table[0] + " " + table[1] + " "
--    cmd = "nft list -nnn set" + table_info + set_name
-+    cmd = NFT_BIN + " list -nnn set" + table_info + set_name
-     ret = execute_cmd(cmd, filename, lineno)
- 
-     return True if (ret == 0) else False
-@@ -487,11 +488,11 @@ def rule_add(rule, table_list, chain_list, filename, lineno,
-             unit_tests += 1
-             table_flush(table, filename, lineno)
-             table_info = " " + table[0] + " " + table[1] + " "
--            cmd = "nft add rule" + table_info + chain + " " + rule[0]
-+            cmd = NFT_BIN + " add rule" + table_info + chain + " " + rule[0]
- 
-             payload_log = os.tmpfile();
- 
--            cmd = "nft add rule --debug=netlink" + table_info + chain + " " + rule[0]
-+            cmd = NFT_BIN + " add rule --debug=netlink" + table_info + chain + " " + rule[0]
-             ret = execute_cmd(cmd, filename, lineno, payload_log)
- 
-             state = rule[1].rstrip()
-@@ -527,7 +528,7 @@ def rule_add(rule, table_list, chain_list, filename, lineno,
-                     print_warning("Wrote payload for rule %s" % rule[0], gotf.name, 1)
- 
-             # Check output of nft
--                process = subprocess.Popen(['nft', '-nnn', 'list', 'table'] + table,
-+                process = subprocess.Popen([NFT_BIN, '-nnn', 'list', 'table'] + table,
-                                            shell=False, stdout=subprocess.PIPE,
-                                            preexec_fn=preexec)
-                 pre_output = process.communicate()
+ 	for (i = 1; i < array_size(desc->templates); i++) {
+@@ -335,7 +413,7 @@ void payload_expr_expand(struct list_head *list, struct expr *expr,
+ 			list_add_tail(&new->list, list);
+ 			expr->len	     -= tmpl->len;
+ 			expr->payload.offset += tmpl->len;
+-			if (expr->len == 0)
++			if (expr->len == off)
+ 				return;
+ 		} else
+ 			break;
 -- 
 2.0.5
 
