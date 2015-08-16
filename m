@@ -1,57 +1,70 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 0/12] add support for VLAN header filtering in bridge family
-Date: Sun, 16 Aug 2015 21:05:43 +0200
-Message-ID: <1439751955-31190-1-git-send-email-fw@strlen.de>
+Subject: [PATCH 02/12] tests: add 'awkward' prefix match expression
+Date: Sun, 16 Aug 2015 21:05:45 +0200
+Message-ID: <1439751955-31190-3-git-send-email-fw@strlen.de>
+References: <1439751955-31190-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34742 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34743 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750963AbbHPTGH (ORCPT
+	by vger.kernel.org with ESMTP id S1751021AbbHPTGH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Sun, 16 Aug 2015 15:06:07 -0400
+In-Reply-To: <1439751955-31190-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This adds the following features:
-- stacked headers: vlan sits on top of ethernet, so when vlan id 42 is requested,
-  add a dependency on eth and also adjust payload offsets by the size of ethernet
-  header.
+Its just a more complicated way of saying 'ip saddr 255.255.0.0/16'.
 
-- allow matching header fields of lengths and/or offsets that are not byte divisible,
-  e.g. vlan id, vlan pcp, ip hdrlength, etc.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ tests/regression/ip/ip.t              | 3 +++
+ tests/regression/ip/ip.t.payload      | 6 ++++++
+ tests/regression/ip/ip.t.payload.inet | 8 ++++++++
+ 3 files changed, 17 insertions(+)
 
-Missing/not working:
-
-- concat support for vlan ids, e.f. this will not work:
-vlan id . ip saddr { 1 . 1.2.3.4 }
-
-- payload merging of fields that have lengths/sizes not divisible by 8.
-
-IOW when asking for vlan id 42 vlan pcp 0 then we generate 2 payload instructions,
-2 binops, 2 cmps.
-
-Oddities:
-
-bridge filter input ip saddr 1.2.3.4
-
-... will never match in some cases.
-
-'Problem' (or feature...?) is that nft adds dependency on 'ether type ip'
-so if all traffic is VLAN encapsulated this will not match.
-
-[ can use 'vlan type ip ip saddr 1.2.3.4' to match eth-vlan-ip packets ].
-
-There might be a lot of pitfalls that i've missed.
-
-Unless there are objections I will push the first two patches soon.
-
-The vlan patch set has seen minimal testing inside kvm on x86_64,
-using a (pending) kernel patch to nft_payload to transparently insert
-the missing/stripped vlan header into the register set.
-
-I'd be happy to receive feedback on these patches, I'm sure that some
-things can be implemented in a more straightforward fashion.
-
-Cheers,
-Florian
+diff --git a/tests/regression/ip/ip.t b/tests/regression/ip/ip.t
+index 11a9598..6e29ffb 100644
+--- a/tests/regression/ip/ip.t
++++ b/tests/regression/ip/ip.t
+@@ -108,3 +108,6 @@ ip daddr 192.168.0.2 log;ok
+ 
+ ip saddr \& 0xff == 1;ok;ip saddr & 0.0.0.255 == 0.0.0.1
+ ip saddr \& 0.0.0.255 \< 0.0.0.127;ok;ip saddr & 0.0.0.255 < 0.0.0.127
++
++ip saddr \& 0xffff0000 == 0xffff0000;ok;ip saddr 255.255.0.0/16
++
+diff --git a/tests/regression/ip/ip.t.payload b/tests/regression/ip/ip.t.payload
+index ec4897e..7a77dc4 100644
+--- a/tests/regression/ip/ip.t.payload
++++ b/tests/regression/ip/ip.t.payload
+@@ -347,3 +347,9 @@ ip test-ip4 input
+   [ bitwise reg 1 = (reg=1 & 0xff000000 ) ^ 0x00000000 ]
+   [ cmp lt reg 1 0x7f000000 ]
+ 
++# ip saddr \& 0xffff0000 == 0xffff0000
++ip test-ip4 input
++  [ payload load 4b @ network header + 12 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x0000ffff ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x0000ffff ]
++
+diff --git a/tests/regression/ip/ip.t.payload.inet b/tests/regression/ip/ip.t.payload.inet
+index 1a2b1b5..dbc7852 100644
+--- a/tests/regression/ip/ip.t.payload.inet
++++ b/tests/regression/ip/ip.t.payload.inet
+@@ -457,3 +457,11 @@ inet test-inet input
+   [ bitwise reg 1 = (reg=1 & 0xff000000 ) ^ 0x00000000 ]
+   [ cmp lt reg 1 0x7f000000 ]
+ 
++# ip saddr \& 0xffff0000 == 0xffff0000
++inet test-inet input
++  [ meta load nfproto => reg 1 ]
++  [ cmp eq reg 1 0x00000002 ]
++  [ payload load 4b @ network header + 12 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x0000ffff ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x0000ffff ]
++
+-- 
+2.0.5
 
