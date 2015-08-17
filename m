@@ -1,123 +1,28 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next] nftables: nft_payload: work around vlan header stripping
-Date: Mon, 17 Aug 2015 18:09:55 +0200
-Message-ID: <1439827795-7195-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [nft] merged next-4.2 and lastest cache consolidation patches
+Date: Tue, 18 Aug 2015 01:47:44 +0200
+Message-ID: <20150817234742.GA1518@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net, fw@strlen.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:36184 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750799AbbHQRAQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Aug 2015 13:00:16 -0400
+Received: from mail.us.es ([193.147.175.20]:37987 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751102AbbHQXli (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Aug 2015 19:41:38 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-make payload expression aware of the fact that VLAN offload may have
-removed a vlan header.
+Hi!
 
-When we encounter tagged skb, transparently insert the tag into the
-register so that vlan header matching can work without userspace being
-aware of offload features.
+I have merged the 'next-4.2' branch that contains the 'netdev' family
+support into master. Then, I have rebased my latest cache
+consolidation patches on top of it.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nft_payload.c | 57 ++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 56 insertions(+), 1 deletion(-)
+These changes are available in the master branch.
 
-diff --git a/net/netfilter/nft_payload.c b/net/netfilter/nft_payload.c
-index 94fb3b2..09b4b07 100644
---- a/net/netfilter/nft_payload.c
-+++ b/net/netfilter/nft_payload.c
-@@ -9,6 +9,7 @@
-  */
- 
- #include <linux/kernel.h>
-+#include <linux/if_vlan.h>
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/netlink.h>
-@@ -17,6 +18,53 @@
- #include <net/netfilter/nf_tables_core.h>
- #include <net/netfilter/nf_tables.h>
- 
-+/* add vlan header into the user buffer for if tag was removed by offloads */
-+static bool
-+nft_payload_copy_vlan(u32 *d, const struct sk_buff *skb, u8 offset, u8 len)
-+{
-+	int mac_off = skb_mac_header(skb) - skb->data;
-+	u8 vlan_len, *vlanh, *dst_u8 = (u8 *) d;
-+	struct vlan_ethhdr veth;
-+
-+	vlanh = (u8 *) &veth;
-+	if (offset < ETH_HLEN) {
-+		u8 ethlen = min_t(u8, len, ETH_HLEN - offset);
-+
-+		if (skb_copy_bits(skb, mac_off, &veth, ETH_HLEN))
-+			return false;
-+
-+		veth.h_vlan_proto = skb->vlan_proto;
-+
-+		memcpy(dst_u8, vlanh + offset, ethlen);
-+
-+		len -= ethlen;
-+		if (len == 0)
-+			return true;
-+
-+		dst_u8 += ethlen;
-+		offset = ETH_HLEN;
-+	} else if (offset >= VLAN_ETH_HLEN) {
-+		offset -= VLAN_HLEN;
-+		goto skip;
-+	}
-+
-+	veth.h_vlan_TCI = htons(skb_vlan_tag_get(skb));
-+	veth.h_vlan_encapsulated_proto = skb->protocol;
-+
-+	vlanh += offset;
-+
-+	vlan_len = min_t(u8, len, VLAN_ETH_HLEN - offset);
-+	memcpy(dst_u8, vlanh, vlan_len);
-+
-+	len -= vlan_len;
-+	if (!len)
-+		return true;
-+
-+	dst_u8 += vlan_len;
-+ skip:
-+	return skb_copy_bits(skb, offset + mac_off, dst_u8, len) == 0;
-+}
-+
- static void nft_payload_eval(const struct nft_expr *expr,
- 			     struct nft_regs *regs,
- 			     const struct nft_pktinfo *pkt)
-@@ -26,10 +74,18 @@ static void nft_payload_eval(const struct nft_expr *expr,
- 	u32 *dest = &regs->data[priv->dreg];
- 	int offset;
- 
-+	dest[priv->len / NFT_REG32_SIZE] = 0;
- 	switch (priv->base) {
- 	case NFT_PAYLOAD_LL_HEADER:
- 		if (!skb_mac_header_was_set(skb))
- 			goto err;
-+
-+		if (skb_vlan_tag_present(skb)) {
-+			if (!nft_payload_copy_vlan(dest, skb,
-+						   priv->offset, priv->len))
-+				goto err;
-+			return;
-+		}
- 		offset = skb_mac_header(skb) - skb->data;
- 		break;
- 	case NFT_PAYLOAD_NETWORK_HEADER:
-@@ -43,7 +99,6 @@ static void nft_payload_eval(const struct nft_expr *expr,
- 	}
- 	offset += priv->offset;
- 
--	dest[priv->len / NFT_REG32_SIZE] = 0;
- 	if (skb_copy_bits(skb, offset, dest, priv->len) < 0)
- 		goto err;
- 	return;
--- 
-2.0.5
+Please let me know if you notice any fallout.
 
+Thanks!
