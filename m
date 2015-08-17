@@ -1,296 +1,451 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 03/12] nft: allow stacking vlan header on top of ethernet
-Date: Sun, 16 Aug 2015 21:05:46 +0200
-Message-ID: <1439751955-31190-4-git-send-email-fw@strlen.de>
-References: <1439751955-31190-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH libnftnl 1/3] expr: add dup expression support
+Date: Mon, 17 Aug 2015 04:24:16 +0200
+Message-ID: <1439778258-7546-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, fw@strlen.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34744 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751081AbbHPTGJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Aug 2015 15:06:09 -0400
-In-Reply-To: <1439751955-31190-1-git-send-email-fw@strlen.de>
+Received: from mail.us.es ([193.147.175.20]:55859 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753823AbbHQCSY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 16 Aug 2015 22:18:24 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-currently 'vlan id 42' or even 'vlan type ip' doesn't work since
-we expect ethernet header but get vlan.
-
-So if we want to add another protocol header to the same base, we
-attempt to figure out if the new header can fit on top of the existing
-one (i.e. proto_find_num gives a protocol number when asking to find
-link between the two).
-
-We also annotate protocol description for eth and vlan with the full
-header size and track the offset from the current base.
-
-Otherwise, 'vlan type ip' fetches the protocol field from mac header
-offset 0, which is some mac address.
-
-Instead, we must consider full size of ethernet header.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/proto.h           |  4 +++
- src/evaluate.c            | 78 ++++++++++++++++++++++++++++++++++++++++++++++-
- src/netlink_delinearize.c | 48 +++++++++++++++++++++++------
- src/payload.c             |  1 +
- src/proto.c               |  2 ++
- 5 files changed, 123 insertions(+), 10 deletions(-)
+ include/libnftnl/expr.h             |    5 +
+ include/linux/netfilter/nf_tables.h |   14 +++
+ src/Makefile.am                     |    1 +
+ src/expr/dup.c                      |  220 +++++++++++++++++++++++++++++++++++
+ src/expr_ops.c                      |    2 +
+ tests/Makefile.am                   |    4 +
+ tests/nft-expr_dup-test.c           |   94 +++++++++++++++
+ 7 files changed, 340 insertions(+)
+ create mode 100644 src/expr/dup.c
+ create mode 100644 tests/nft-expr_dup-test.c
 
-diff --git a/include/proto.h b/include/proto.h
-index 0e531b2..a43bf98 100644
---- a/include/proto.h
-+++ b/include/proto.h
-@@ -69,6 +69,7 @@ struct proto_hdr_template {
-  * @name:	protocol name
-  * @base:	header base
-  * @protocol_key: key of template containing upper layer protocol description
-+ * @length:	total size of the header, in bits
-  * @protocols:	link to upper layer protocol descriptions indexed by protocol value
-  * @templates:	header templates
-  */
-@@ -76,6 +77,7 @@ struct proto_desc {
- 	const char			*name;
- 	enum proto_bases		base;
- 	unsigned int			protocol_key;
-+	unsigned int			length;
- 	struct {
- 		unsigned int			num;
- 		const struct proto_desc		*desc;
-@@ -122,6 +124,7 @@ extern const struct proto_desc *proto_dev_desc(uint16_t type);
-  * @family:	hook family
-  * @location:	location of the relational expression defining the context
-  * @desc:	protocol description for this layer
-+ * @offset:	offset from the base, for stacked headers (eg 8*14 for vlan on top of ether)
-  *
-  * The location of the context is the location of the relational expression
-  * defining it, either directly through a protocol match or indirectly
-@@ -132,6 +135,7 @@ struct proto_ctx {
- 	struct {
- 		struct location			location;
- 		const struct proto_desc		*desc;
-+		unsigned int			offset;
- 	} protocol[PROTO_BASE_MAX + 1];
+diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
+index 59ae2d7..91875ff 100644
+--- a/include/libnftnl/expr.h
++++ b/include/libnftnl/expr.h
+@@ -173,6 +173,11 @@ enum {
+ 	NFT_EXPR_REDIR_FLAGS,
  };
  
-diff --git a/src/evaluate.c b/src/evaluate.c
-index d99b38f..c95d154 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -271,6 +271,82 @@ static int expr_evaluate_primary(struct eval_ctx *ctx, struct expr **expr)
- 	return 0;
- }
++enum {
++	NFT_EXPR_DUP_SREG_ADDR		= NFT_RULE_EXPR_ATTR_BASE,
++	NFT_EXPR_DUP_SREG_DEV,
++};
++
+ #ifdef __cplusplus
+ } /* extern "C" */
+ #endif
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index a99e6a9..cf4a1ce 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -936,6 +936,20 @@ enum nft_redir_attributes {
+ #define NFTA_REDIR_MAX		(__NFTA_REDIR_MAX - 1)
  
-+static int
-+conflict_resolution_gen_dependency(struct eval_ctx *ctx, int protocol,
-+				   const struct expr *expr,
-+				   struct stmt **res)
+ /**
++ * enum nft_tee_attributes - nf_tables tee expression netlink attributes
++ *
++ * @NFTA_DUP_SREG_ADDR: source register of destination (NLA_U32: nft_registers)
++ * @NFTA_DUP_SREG_DEV: output interface name (NLA_U32: nft_register)
++ */
++enum nft_tee_attributes {
++	NFTA_DUP_UNSPEC,
++	NFTA_DUP_SREG_ADDR,
++	NFTA_DUP_SREG_DEV,
++	__NFTA_DUP_MAX
++};
++#define NFTA_DUP_MAX		(__NFTA_DUP_MAX - 1)
++
++/**
+  * enum nft_gen_attributes - nf_tables ruleset generation attributes
+  *
+  * @NFTA_GEN_ID: Ruleset generation ID (NLA_U32)
+diff --git a/src/Makefile.am b/src/Makefile.am
+index dd87240..107cae5 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -26,6 +26,7 @@ libnftnl_la_SOURCES = utils.c		\
+ 		      expr/counter.c	\
+ 		      expr/ct.c		\
+ 		      expr/data_reg.c	\
++		      expr/dup.c	\
+ 		      expr/exthdr.c	\
+ 		      expr/limit.c	\
+ 		      expr/log.c	\
+diff --git a/src/expr/dup.c b/src/expr/dup.c
+new file mode 100644
+index 0000000..3617fe3
+--- /dev/null
++++ b/src/expr/dup.c
+@@ -0,0 +1,220 @@
++/*
++ * (C) 2015 Pablo Neira Ayuso <pablo@netfilter.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published
++ * by the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <stdio.h>
++#include <stdint.h>
++#include <string.h>
++#include <arpa/inet.h>
++#include <errno.h>
++#include "internal.h"
++#include <libmnl/libmnl.h>
++#include <linux/netfilter/nf_tables.h>
++#include <libnftnl/expr.h>
++#include <libnftnl/rule.h>
++#include "expr_ops.h"
++#include "data_reg.h"
++#include <buffer.h>
++
++struct nft_expr_dup {
++	enum nft_registers	sreg_addr;
++	enum nft_registers	sreg_dev;
++};
++
++static int nft_rule_expr_dup_set(struct nft_rule_expr *e, uint16_t type,
++				 const void *data, uint32_t data_len)
 +{
-+	enum proto_bases base = expr->payload.base;
-+	const struct proto_hdr_template *tmpl;
-+	const struct proto_desc *desc = NULL;
-+	struct expr *dep, *left, *right;
-+	struct stmt *stmt;
++	struct nft_expr_dup *dup = nft_expr_data(e);
 +
-+	assert(expr->payload.base == PROTO_BASE_LL_HDR);
-+
-+	desc = ctx->pctx.protocol[base].desc;
-+	tmpl = &desc->templates[desc->protocol_key];
-+	left = payload_expr_alloc(&expr->location, desc, desc->protocol_key);
-+
-+	right = constant_expr_alloc(&expr->location, tmpl->dtype,
-+				    tmpl->dtype->byteorder, tmpl->len,
-+				    constant_data_ptr(protocol, tmpl->len));
-+
-+	dep = relational_expr_alloc(&expr->location, OP_EQ, left, right);
-+	stmt = expr_stmt_alloc(&dep->location, dep);
-+	if (stmt_evaluate(ctx, stmt) < 0)
-+		return expr_error(ctx->msgs, expr,
-+					  "dependency statement is invalid");
-+
-+	ctx->pctx.protocol[base].desc = expr->payload.desc;
-+	assert(ctx->pctx.protocol[base].offset == 0);
-+
-+	assert(desc->length);
-+	ctx->pctx.protocol[base].offset += desc->length;
-+
-+	*res = stmt;
++	switch (type) {
++	case NFT_EXPR_DUP_SREG_ADDR:
++		dup->sreg_addr = *((uint32_t *)data);
++		break;
++	case NFT_EXPR_DUP_SREG_DEV:
++		dup->sreg_dev= *((uint32_t *)data);
++		break;
++	default:
++		return -1;
++	}
 +	return 0;
 +}
 +
-+static bool resolve_protocol_conflict(struct eval_ctx *ctx,
-+				      struct expr *payload)
++static const void *nft_rule_expr_dup_get(const struct nft_rule_expr *e,
++					 uint16_t type, uint32_t *data_len)
 +{
-+	const struct hook_proto_desc *h = &hook_proto_desc[ctx->pctx.family];
-+	enum proto_bases base = payload->payload.base;
-+	const struct proto_desc *desc;
-+	struct stmt *nstmt = NULL;
-+	int link;
++	struct nft_expr_dup *dup = nft_expr_data(e);
 +
-+	desc = ctx->pctx.protocol[base].desc;
-+
-+	if (desc == payload->payload.desc) {
-+		payload->payload.offset += ctx->pctx.protocol[base].offset;
-+		return true;
++	switch (type) {
++	case NFT_EXPR_DUP_SREG_ADDR:
++		*data_len = sizeof(dup->sreg_addr);
++		return &dup->sreg_addr;
++	case NFT_EXPR_DUP_SREG_DEV:
++		*data_len = sizeof(dup->sreg_dev);
++		return &dup->sreg_dev;
 +	}
-+
-+	if (payload->payload.base != h->base)
-+		return false;
-+
-+	assert(desc->length);
-+	if (base < PROTO_BASE_MAX) {
-+		const struct proto_desc *next = ctx->pctx.protocol[base + 1].desc;
-+
-+		if (payload->payload.desc == next) {
-+			payload->payload.offset += desc->length;
-+			return true;
-+		}
-+	}
-+
-+	link = proto_find_num(desc, payload->payload.desc);
-+	if (link < 0 || conflict_resolution_gen_dependency(ctx, link, payload, &nstmt) < 0)
-+		return false;
-+
-+	payload->payload.offset += ctx->pctx.protocol[base].offset;
-+	list_add_tail(&nstmt->list, &ctx->stmt->list);
-+
-+	return true;
++	return NULL;
 +}
 +
- /*
-  * Payload expression: check whether dependencies are fulfilled, otherwise
-  * generate the necessary relational expression and prepend it to the current
-@@ -286,7 +362,7 @@ static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **expr)
- 		if (payload_gen_dependency(ctx, payload, &nstmt) < 0)
- 			return -1;
- 		list_add_tail(&nstmt->list, &ctx->stmt->list);
--	} else if (ctx->pctx.protocol[base].desc != payload->payload.desc)
-+	} else if (!resolve_protocol_conflict(ctx, payload))
- 		return expr_error(ctx->msgs, payload,
- 				  "conflicting protocols specified: %s vs. %s",
- 				  ctx->pctx.protocol[base].desc->name,
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 4226b82..76c07c5 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -923,7 +923,9 @@ static void payload_match_expand(struct rule_pp_ctx *ctx, struct expr *expr)
- 	struct expr *left = expr->left, *right = expr->right, *tmp;
- 	struct list_head list = LIST_HEAD_INIT(list);
- 	struct stmt *nstmt;
--	struct expr *nexpr;
-+	struct expr *nexpr = NULL;
-+	enum proto_bases base = left->payload.base;
-+	const struct expr_ops *payload_ops = left->ops;
++static int nft_rule_expr_dup_cb(const struct nlattr *attr, void *data)
++{
++	const struct nlattr **tb = data;
++	int type = mnl_attr_get_type(attr);
++
++	if (mnl_attr_type_valid(attr, NFTA_DUP_MAX) < 0)
++		return MNL_CB_OK;
++
++	switch (type) {
++	case NFTA_DUP_SREG_ADDR:
++	case NFTA_DUP_SREG_DEV:
++		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
++			abi_breakage();
++		break;
++	}
++
++	tb[type] = attr;
++	return MNL_CB_OK;
++}
++
++static void nft_rule_expr_dup_build(struct nlmsghdr *nlh,
++				    struct nft_rule_expr *e)
++{
++	struct nft_expr_dup *dup = nft_expr_data(e);
++
++	if (e->flags & (1 << NFT_EXPR_DUP_SREG_ADDR))
++		mnl_attr_put_u32(nlh, NFTA_DUP_SREG_ADDR, htonl(dup->sreg_addr));
++	if (e->flags & (1 << NFT_EXPR_DUP_SREG_DEV))
++		mnl_attr_put_u32(nlh, NFTA_DUP_SREG_DEV, htonl(dup->sreg_dev));
++}
++
++static int nft_rule_expr_dup_parse(struct nft_rule_expr *e, struct nlattr *attr)
++{
++	struct nft_expr_dup *dup = nft_expr_data(e);
++	struct nlattr *tb[NFTA_DUP_MAX + 1] = {};
++	int ret = 0;
++
++	if (mnl_attr_parse_nested(attr, nft_rule_expr_dup_cb, tb) < 0)
++		return -1;
++
++	if (tb[NFTA_DUP_SREG_ADDR]) {
++		dup->sreg_addr = ntohl(mnl_attr_get_u32(tb[NFTA_DUP_SREG_ADDR]));
++		e->flags |= (1 << NFT_EXPR_DUP_SREG_ADDR);
++	}
++	if (tb[NFTA_DUP_SREG_DEV]) {
++		dup->sreg_dev = ntohl(mnl_attr_get_u32(tb[NFTA_DUP_SREG_DEV]));
++		e->flags |= (1 << NFT_EXPR_DUP_SREG_DEV);
++	}
++
++	return ret;
++}
++
++static int nft_rule_expr_dup_json_parse(struct nft_rule_expr *e, json_t *root,
++					struct nft_parse_err *err)
++{
++#ifdef JSON_PARSING
++	struct nft_expr_dup *dup = nft_expr_data(e);
++	uint32_t sreg_addr, sreg_dev;
++	int datareg_type;
++
++	ret = nft_jansson_parse_val(root, "sreg_addr", NFT_TYPE_U32, &sreg_addr, err);
++	if (ret >= 0)
++		nft_rule_expr_set_u32(e, NFT_EXPR_DUP_SREG_DEV, sreg_addr);
++	ret = nft_jansson_parse_val(root, "sreg_dev", NFT_TYPE_U32, &sreg_dev, err);
++	if (ret >= 0)
++		nft_rule_expr_set_u32(e, NFT_EXPR_DUP_SREG_DEV, sreg_dev);
++
++
++	return 0;
++#else
++	errno = EOPNOTSUPP;
++	return -1;
++#endif
++}
++
++static int nft_rule_expr_dup_xml_parse(struct nft_rule_expr *e,
++				       mxml_node_t *tree,
++				       struct nft_parse_err *err)
++{
++#ifdef XML_PARSING
++	struct nft_expr_dup *dup = nft_expr_data(e);
++	uint32_t sreg_addr, sreg_dev;
++
++	if (nft_mxml_reg_parse(tree, "sreg_addr", &sreg_addr, MXML_DESCEND_FIRST,
++			       NFT_XML_OPT, err) == 0)
++		nft_rule_expr_set_u32(e, NFT_EXPR_DUP_SREG_ADDR, sreg_addr);
++	if (nft_mxml_reg_parse(tree, "sreg_dev", &sreg_dev, MXML_DESCEND_FIRST,
++			       NFT_XML_OPT, err) == 0)
++		nft_rule_expr_set_u32(e, NFT_EXPR_DUP_SREG_DEV, sreg_dev);
++
++	return 0;
++#else
++	errno = EOPNOTSUPP;
++	return -1;
++#endif
++}
++
++static int nft_rule_expr_dup_export(char *buf, size_t size,
++				    struct nft_rule_expr *e, int type)
++{
++	struct nft_expr_dup *dup = nft_expr_data(e);
++	NFT_BUF_INIT(b, buf, size);
++
++	if (e->flags & (1 << NFT_EXPR_DUP_SREG_ADDR))
++		nft_buf_u32(&b, type, dup->sreg_addr, "sreg_addr");
++	if (e->flags & (1 << NFT_EXPR_DUP_SREG_DEV))
++		nft_buf_u32(&b, type, dup->sreg_addr, "sreg_dev");
++
++	return nft_buf_done(&b);
++}
++
++static int nft_rule_expr_dup_snprintf_default(char *buf, size_t len,
++					      struct nft_rule_expr *e,
++					      uint32_t flags)
++{
++	int size = len, offset = 0, ret;
++	struct nft_expr_dup *dup = nft_expr_data(e);
++
++	if (e->flags & (1 << NFT_EXPR_DUP_SREG_ADDR)) {
++		ret = snprintf(buf + offset, len, "sreg_addr %u", dup->sreg_addr);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	if (e->flags & (1 << NFT_EXPR_DUP_SREG_DEV)) {
++		ret = snprintf(buf + offset, len, "sreg_dev %u", dup->sreg_dev);
++		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++	}
++
++	return offset;
++}
++
++static int nft_rule_expr_dup_snprintf(char *buf, size_t len, uint32_t type,
++				      uint32_t flags, struct nft_rule_expr *e)
++{
++	switch (type) {
++	case NFT_OUTPUT_DEFAULT:
++		return nft_rule_expr_dup_snprintf_default(buf, len, e, flags);
++	case NFT_OUTPUT_XML:
++	case NFT_OUTPUT_JSON:
++		return nft_rule_expr_dup_export(buf, len, e, type);
++	default:
++		break;
++	}
++	return -1;
++}
++
++struct expr_ops expr_ops_dup = {
++	.name		= "dup",
++	.alloc_len	= sizeof(struct nft_expr_dup),
++	.max_attr	= NFTA_DUP_MAX,
++	.set		= nft_rule_expr_dup_set,
++	.get		= nft_rule_expr_dup_get,
++	.parse		= nft_rule_expr_dup_parse,
++	.build		= nft_rule_expr_dup_build,
++	.snprintf	= nft_rule_expr_dup_snprintf,
++	.xml_parse	= nft_rule_expr_dup_xml_parse,
++	.json_parse	= nft_rule_expr_dup_json_parse,
++};
+diff --git a/src/expr_ops.c b/src/expr_ops.c
+index 2de5805..c93d7de 100644
+--- a/src/expr_ops.c
++++ b/src/expr_ops.c
+@@ -9,6 +9,7 @@ extern struct expr_ops expr_ops_byteorder;
+ extern struct expr_ops expr_ops_cmp;
+ extern struct expr_ops expr_ops_counter;
+ extern struct expr_ops expr_ops_ct;
++extern struct expr_ops expr_ops_dup;
+ extern struct expr_ops expr_ops_exthdr;
+ extern struct expr_ops expr_ops_immediate;
+ extern struct expr_ops expr_ops_limit;
+@@ -31,6 +32,7 @@ static struct expr_ops *expr_ops[] = {
+ 	&expr_ops_cmp,
+ 	&expr_ops_counter,
+ 	&expr_ops_ct,
++	&expr_ops_dup,
+ 	&expr_ops_exthdr,
+ 	&expr_ops_immediate,
+ 	&expr_ops_limit,
+diff --git a/tests/Makefile.am b/tests/Makefile.am
+index c0356f1..51403e5 100644
+--- a/tests/Makefile.am
++++ b/tests/Makefile.am
+@@ -14,6 +14,7 @@ check_PROGRAMS = 	nft-parsing-test		\
+ 			nft-expr_counter-test		\
+ 			nft-expr_cmp-test		\
+ 			nft-expr_ct-test		\
++			nft-expr_dup-test		\
+ 			nft-expr_exthdr-test		\
+ 			nft-expr_immediate-test		\
+ 			nft-expr_limit-test		\
+@@ -62,6 +63,9 @@ nft_expr_exthdr_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
+ nft_expr_ct_test_SOURCES = nft-expr_ct-test.c
+ nft_expr_ct_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
  
- 	payload_expr_expand(&list, left, &ctx->pctx);
- 	list_for_each_entry(left, &list, list) {
-@@ -940,17 +942,39 @@ static void payload_match_expand(struct rule_pp_ctx *ctx, struct expr *expr)
- 		nstmt = expr_stmt_alloc(&ctx->stmt->location, nexpr);
- 		list_add_tail(&nstmt->list, &ctx->stmt->list);
++nft_expr_dup_test_SOURCES = nft-expr_dup-test.c
++nft_expr_dup_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
++
+ nft_expr_immediate_test_SOURCES = nft-expr_counter-test.c
+ nft_expr_immediate_test_LDADD = ../src/libnftnl.la ${LIBMNL_LIBS}
  
-+		assert(left->ops == payload_ops);
-+		assert(left->payload.base);
-+		assert(base == left->payload.base);
+diff --git a/tests/nft-expr_dup-test.c b/tests/nft-expr_dup-test.c
+new file mode 100644
+index 0000000..ed060af
+--- /dev/null
++++ b/tests/nft-expr_dup-test.c
+@@ -0,0 +1,94 @@
++/*
++ * (C) 2013 by Ana Rey Botello <anarey@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ */
 +
- 		/* Remember the first payload protocol expression to
- 		 * kill it later on if made redundant by a higher layer
- 		 * payload expression.
- 		 */
- 		if (ctx->pbase == PROTO_BASE_INVALID &&
--		    left->flags & EXPR_F_PROTOCOL)
--			payload_dependency_store(ctx, nstmt,
--						 left->payload.base);
--		else
-+		    left->flags & EXPR_F_PROTOCOL) {
-+			unsigned int proto = mpz_get_be16(tmp->value);
-+			const struct proto_desc *desc, *next;
-+			bool stacked_header = false;
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <netinet/in.h>
++#include <netinet/ip.h>
 +
-+			desc = ctx->pctx.protocol[base].desc;
-+			assert(desc);
-+			if (desc) {
-+				next = proto_find_upper(desc, proto);
-+				stacked_header = next && next->base == base;
-+			}
++#include <linux/netfilter/nf_tables.h>
++#include <libmnl/libmnl.h>
++#include <libnftnl/rule.h>
++#include <libnftnl/expr.h>
 +
-+			if (stacked_header) {
-+				ctx->pctx.protocol[base].desc = next;
-+				ctx->pctx.protocol[base].offset += desc->length;
-+				payload_dependency_store(ctx, nstmt, base - 1);
-+			} else {
-+				payload_dependency_store(ctx, nstmt, base);
-+			}
-+		} else {
- 			payload_dependency_kill(ctx, nexpr->left);
-+		}
- 	}
++static int test_ok = 1;
++static void print_err(const char *msg)
++{
++	test_ok = 0;
++	printf("\033[31mERROR:\e[0m %s\n", msg);
++}
 +
- 	list_del(&ctx->stmt->list);
- 	stmt_free(ctx->stmt);
- 	ctx->stmt = NULL;
-@@ -959,6 +983,12 @@ static void payload_match_expand(struct rule_pp_ctx *ctx, struct expr *expr)
- static void payload_match_postprocess(struct rule_pp_ctx *ctx,
- 				      struct expr *expr)
- {
-+	enum proto_bases base = expr->left->payload.base;
-+	struct expr *payload = expr->left;
++static void cmp_nft_rule_expr(struct nft_rule_expr *rule_a,
++			      struct nft_rule_expr *rule_b)
++{
++	if (nft_rule_expr_get_u32(rule_a, NFT_EXPR_DUP_SREG_ADDR) !=
++	    nft_rule_expr_get_u32(rule_b, NFT_EXPR_DUP_SREG_ADDR))
++		print_err("Expr SREG_TO mismatches");
++	if (nft_rule_expr_get_u32(rule_a, NFT_EXPR_DUP_SREG_DEV) !=
++	    nft_rule_expr_get_u32(rule_b, NFT_EXPR_DUP_SREG_DEV))
++		print_err("Expr SREG_OIF mismatches");
++}
 +
-+	assert(payload->payload.offset >= ctx->pctx.protocol[base].offset);
-+	payload->payload.offset -= ctx->pctx.protocol[base].offset;
++int main(int argc, char *argv[])
++{
++	struct nft_rule *a, *b;
++	struct nft_rule_expr *ex;
++	struct nlmsghdr *nlh;
++	char buf[4096];
++	struct nft_rule_expr_iter *iter_a, *iter_b;
++	struct nft_rule_expr *rule_a, *rule_b;
 +
- 	switch (expr->op) {
- 	case OP_EQ:
- 	case OP_NEQ:
-@@ -968,10 +998,10 @@ static void payload_match_postprocess(struct rule_pp_ctx *ctx,
- 		}
- 		/* Fall through */
- 	default:
--		payload_expr_complete(expr->left, &ctx->pctx);
--		expr_set_type(expr->right, expr->left->dtype,
--			      expr->left->byteorder);
--		payload_dependency_kill(ctx, expr->left);
-+		payload_expr_complete(payload, &ctx->pctx);
-+		expr_set_type(expr->right, payload->dtype,
-+			      payload->byteorder);
-+		payload_dependency_kill(ctx, payload);
- 		break;
- 	}
- }
-diff --git a/src/payload.c b/src/payload.c
-index 5f8c4fe..bd574ee 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -340,6 +340,7 @@ void payload_expr_expand(struct list_head *list, struct expr *expr,
- 		} else
- 			break;
- 	}
++	a = nft_rule_alloc();
++	b = nft_rule_alloc();
++	if (a == NULL || b == NULL)
++		print_err("OOM");
++	ex = nft_rule_expr_alloc("dup");
++	if (ex == NULL)
++		print_err("OOM");
 +
- raw:
- 	new = payload_expr_alloc(&expr->location, NULL, 0);
- 	payload_init_raw(new, expr->payload.base, expr->payload.offset,
-diff --git a/src/proto.c b/src/proto.c
-index 6302016..27ab4a2 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -713,6 +713,7 @@ const struct proto_desc proto_vlan = {
- 	.name		= "vlan",
- 	.base		= PROTO_BASE_LL_HDR,
- 	.protocol_key	= VLANHDR_TYPE,
-+	.length		= sizeof(struct vlan_hdr) * BITS_PER_BYTE,
- 	.protocols	= {
- 		PROTO_LINK(__constant_htons(ETH_P_IP),		&proto_ip),
- 		PROTO_LINK(__constant_htons(ETH_P_ARP),		&proto_arp),
-@@ -782,6 +783,7 @@ const struct proto_desc proto_eth = {
- 	.name		= "ether",
- 	.base		= PROTO_BASE_LL_HDR,
- 	.protocol_key	= ETHHDR_TYPE,
-+	.length		= sizeof(struct ether_header) * BITS_PER_BYTE,
- 	.protocols	= {
- 		PROTO_LINK(__constant_htons(ETH_P_IP),		&proto_ip),
- 		PROTO_LINK(__constant_htons(ETH_P_ARP),		&proto_arp),
++	nft_rule_expr_set_u32(ex, NFT_EXPR_DUP_SREG_ADDR, 0x12345678);
++	nft_rule_expr_set_u32(ex, NFT_EXPR_DUP_SREG_DEV,  0x78123456);
++
++	nft_rule_add_expr(a, ex);
++
++	nlh = nft_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE, AF_INET, 0, 1234);
++	nft_rule_nlmsg_build_payload(nlh, a);
++
++	if (nft_rule_nlmsg_parse(nlh, b) < 0)
++		print_err("parsing problems");
++
++	iter_a = nft_rule_expr_iter_create(a);
++	iter_b = nft_rule_expr_iter_create(b);
++	if (iter_a == NULL || iter_b == NULL)
++		print_err("OOM");
++
++	rule_a = nft_rule_expr_iter_next(iter_a);
++	rule_b = nft_rule_expr_iter_next(iter_b);
++	if (rule_a == NULL || rule_b == NULL)
++		print_err("OOM");
++
++	cmp_nft_rule_expr(rule_a, rule_b);
++
++	if (nft_rule_expr_iter_next(iter_a) != NULL ||
++	    nft_rule_expr_iter_next(iter_b) != NULL)
++		print_err("More 1 expr.");
++
++	nft_rule_expr_iter_destroy(iter_a);
++	nft_rule_expr_iter_destroy(iter_b);
++	nft_rule_free(a);
++	nft_rule_free(b);
++
++	if (!test_ok)
++		exit(EXIT_FAILURE);
++
++	printf("%s: \033[32mOK\e[0m\n", argv[0]);
++	return EXIT_SUCCESS;
++}
 -- 
-2.0.5
+1.7.10.4
 
