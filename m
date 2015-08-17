@@ -1,43 +1,47 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH libnftnl 1/3] expr: add dup expression support
-Date: Mon, 17 Aug 2015 14:24:20 +0100
-Message-ID: <20150817132417.GA7964@macbook.localdomain>
-References: <1439778258-7546-1-git-send-email-pablo@netfilter.org>
+Subject: Re: nftables: precondition validation fails on map construct
+Date: Mon, 17 Aug 2015 15:24:47 +0100
+Message-ID: <20150817142447.GA19864@macbook.localdomain>
+References: <55CCA98D.2030908@tpip.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Andreas Schultz <aschultz@tpip.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60982 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:61506 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751673AbbHQNYb (ORCPT
+	with ESMTP id S1754608AbbHQOYw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Aug 2015 09:24:31 -0400
+	Mon, 17 Aug 2015 10:24:52 -0400
 Content-Disposition: inline
-In-Reply-To: <1439778258-7546-1-git-send-email-pablo@netfilter.org>
+In-Reply-To: <55CCA98D.2030908@tpip.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 17.08, Pablo Neira Ayuso wrote:
-> index a99e6a9..cf4a1ce 100644
-> --- a/include/linux/netfilter/nf_tables.h
-> +++ b/include/linux/netfilter/nf_tables.h
-> @@ -936,6 +936,20 @@ enum nft_redir_attributes {
->  #define NFTA_REDIR_MAX		(__NFTA_REDIR_MAX - 1)
->  
->  /**
-> + * enum nft_tee_attributes - nf_tables tee expression netlink attributes
-> + *
-> + * @NFTA_DUP_SREG_ADDR: source register of destination (NLA_U32: nft_registers)
-> + * @NFTA_DUP_SREG_DEV: output interface name (NLA_U32: nft_register)
-> + */
-> +enum nft_tee_attributes {
+On 13.08, Andreas Schultz wrote:
+> Hi,
+> 
+> As far as I can tell the following construct should be valid:
+> 
+> # nft add nat prerouting ip protocol {tcp, udp} snat 10.200.4.1-10.200.4.254:10240-20480
+> 
+> However it fails with:
+> 
+> <cmdline>:1:72-82: Error: transport protocol mapping is only valid after transport protocol match
+> add nat prerouting ip protocol {tcp, udp} snat 10.200.4.1-10.200.4.254:10240-20480
+>                                           ~~~~                         ^^^^^^^^^^^
+> 
+> Is this intended behaviour?
 
-Shouldn't these be called nft_dup_attributes?
+Yes, sets don't create a protocol context since we can currently only handle
+a single protocol. It could be made to work, but right now it is expected
+behaviour.
 
-> +	NFTA_DUP_UNSPEC,
-> +	NFTA_DUP_SREG_ADDR,
-> +	NFTA_DUP_SREG_DEV,
-> +	__NFTA_DUP_MAX
-> +};
-> +#define NFTA_DUP_MAX		(__NFTA_DUP_MAX - 1)
+> 
+> Andreas
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
