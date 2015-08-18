@@ -1,24 +1,30 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] configure: fix 3rd arg w/AC_ARG_ENABLE
-Date: Tue, 18 Aug 2015 08:09:58 +0200
-Message-ID: <20150818060958.GA15306@salvia>
-References: <1439662415-4374-1-git-send-email-vapier@gentoo.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nft 2/2] tests: redirect: fix payload display
+Date: Tue, 18 Aug 2015 10:43:38 +0200
+Message-ID: <20150818084338.GE31357@breakpoint.cc>
+References: <1439874496-4852-1-git-send-email-pablo@netfilter.org>
+ <1439874496-4852-2-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Mike Frysinger <vapier@gentoo.org>
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33817 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752102AbbHRGDy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Aug 2015 02:03:54 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37529 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750950AbbHRInk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Aug 2015 04:43:40 -0400
 Content-Disposition: inline
-In-Reply-To: <1439662415-4374-1-git-send-email-vapier@gentoo.org>
+In-Reply-To: <1439874496-4852-2-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Aug 15, 2015 at 02:13:35PM -0400, Mike Frysinger wrote:
-> The 3rd arg is used when --{enable,disable}-foo are passed in, not when
-> the feature is enabled.  Use the existing $enableval instead.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> This has to be related to libnftnl's 0edeb667a2cf ("expr: redir: fix snprintf
+> to return the number of bytes printed").
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> @Florian: After this patch, I pass all payload tests here that we have :).
 
-Applied, thanks.
+Great.  Please push this :-)
