@@ -1,76 +1,99 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [lnf-log RFC PATCH 1/2] introduce new functions to use without
- nflog_handle
-Date: Tue, 18 Aug 2015 07:48:25 +0200
-Message-ID: <20150818054825.GA16745@salvia>
+Subject: Re: [lnf-log RFC PATCH 2/2] utils: take a example from libmnl and
+ use nflog_nlmsg_parse
+Date: Tue, 18 Aug 2015 08:04:22 +0200
+Message-ID: <20150818060409.GA3062@salvia>
 References: <20150810081342.GB25169@gmail.com>
- <20150810081553.GC25169@gmail.com>
+ <20150810081752.GD25169@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: The netfilter developer mailinglist
 	<netfilter-devel@vger.kernel.org>
 To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59877 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:32904 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752042AbbHRFmR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Aug 2015 01:42:17 -0400
+	id S1751202AbbHRF6T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Aug 2015 01:58:19 -0400
 Content-Disposition: inline
-In-Reply-To: <20150810081553.GC25169@gmail.com>
+In-Reply-To: <20150810081752.GD25169@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 10, 2015 at 05:15:54PM +0900, Ken-ichirou MATSUZAWA wrote:
+This code can be generalized a bit so you can place it in
+src/nlmsg.c, see below.
+
+On Mon, Aug 10, 2015 at 05:17:53PM +0900, Ken-ichirou MATSUZAWA wrote:
 [...]
-> diff --git a/src/libnetfilter_log.c b/src/libnetfilter_log.c
-> index e92576b..422c550 100644
-> --- a/src/libnetfilter_log.c
-> +++ b/src/libnetfilter_log.c
-> @@ -26,6 +26,7 @@
->  #include <errno.h>
->  #include <netinet/in.h>
->  #include <sys/socket.h>
-> +#include <linux/netlink.h>
->  
->  #include <libnetfilter_log/linux_nfnetlink_log.h>
->  
-> @@ -1067,5 +1068,47 @@ int nflog_snprintf_xml(char *buf, size_t rem, struct nflog_data *tb, int flags)
->  }
->  
->  /**
-> + * nflog_data_alloc - allocate a new nflog data
-> + *
-> + * In case of success, this function returns a valid pointer to a memory blob,
-> + * otherwise NULL is returned and errno is set appropiately.
-> + */
-> +struct nflog_data *nflog_data_alloc(void)
+> +static struct nlmsghdr *
+> +nflog_build_cfg_pf_request(char *buf, uint8_t command)
 > +{
-> +	struct nflog_data *nfad = calloc(1, sizeof(struct nflog_data));
-> +	if (nfad == NULL)
-> +		return NULL;
-> +	nfad->nfa = (struct nfattr **)calloc(NFULA_MAX + 1,
-> +					     sizeof(struct nlattr *));
-> +	if (nfad->nfa == NULL) {
-> +		free(nfad);
-> +		return NULL;
-> +	}
-> +	return nfad;
+> +	struct nlmsghdr *nlh = mnl_nlmsg_put_header(buf);
+> +	nlh->nlmsg_type	= (NFNL_SUBSYS_ULOG << 8) | NFULNL_MSG_CONFIG;
+> +	nlh->nlmsg_flags = NLM_F_REQUEST;
+> +
+> +	struct nfgenmsg *nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
+> +	nfg->nfgen_family = AF_INET;
+> +	nfg->version = NFNETLINK_V0;
+> +
+> +	struct nfulnl_msg_config_cmd cmd = {
+> +		.command = command,
+> +	};
+> +	mnl_attr_put(nlh, NFULA_CFG_CMD, sizeof(cmd), &cmd);
+> +
+> +	return nlh;
 > +}
+
+I suggest you use and implement the following new helper functions for
+libnetfilter_log:
+
+struct nlmsghdr *
+nfnl_nlmsg_put_header(char *buf, uint8_t type, uint8_t cmd, uint16_t qnum);
+
+int nfnl_attr_put_cfg_mode(struct nlmsghdr *nlh, struct nfulnl_msg_config_mode *mode);
+int nfnl_attr_put_cfg_cmd(struct nlmsghdr *nlh, struct nfulnl_msg_config_cmd *cmd);
+
+You can reuse code in the functions here below to make it. Thanks.
+
+> +static struct nlmsghdr *
+> +nflog_build_cfg_request(char *buf, uint8_t command, int qnum)
+> +{
+> +	struct nlmsghdr *nlh = mnl_nlmsg_put_header(buf);
+> +	nlh->nlmsg_type	= (NFNL_SUBSYS_ULOG << 8) | NFULNL_MSG_CONFIG;
+> +	nlh->nlmsg_flags = NLM_F_REQUEST;
+> +
+> +	struct nfgenmsg *nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
+> +	nfg->nfgen_family = AF_INET;
+> +	nfg->version = NFNETLINK_V0;
+> +	nfg->res_id = htons(qnum);
+> +
+> +	struct nfulnl_msg_config_cmd cmd = {
+> +		.command = command,
+> +	};
+> +	mnl_attr_put(nlh, NFULA_CFG_CMD, sizeof(cmd), &cmd);
+> +
+> +	return nlh;
+> +}
+> +
+> +static struct nlmsghdr *
+> +nflog_build_cfg_params(char *buf, uint8_t mode, int range, int qnum)
+> +{
+> +	struct nlmsghdr *nlh = mnl_nlmsg_put_header(buf);
+> +	nlh->nlmsg_type	= (NFNL_SUBSYS_ULOG << 8) | NFULNL_MSG_CONFIG;
+> +	nlh->nlmsg_flags = NLM_F_REQUEST;
+> +
+> +	struct nfgenmsg *nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
+> +	nfg->nfgen_family = AF_UNSPEC;
+> +	nfg->version = NFNETLINK_V0;
+> +	nfg->res_id = htons(qnum);
+> +
+> +	struct nfulnl_msg_config_mode params = {
+> +		.copy_range = htonl(range),
+> +		.copy_mode = mode,
+> +	};
+> +	mnl_attr_put(nlh, NFULA_CFG_MODE, sizeof(params), &params);
+> +
+> +	return nlh;
+> +}
+> +
 [...]
-
-The libnetfilter_log.c file contains the old API, its use is
-discouraged since it depends on libnfnetlink.
-
-> diff --git a/src/nlmsg.c b/src/nlmsg.c
-> new file mode 100644
-> index 0000000..8611b9d
-> --- /dev/null
-> +++ b/src/nlmsg.c
-
-I like that you started the libmnl support for libnetfilter_log.
-
-The idea is to provide a set of helper functions that we can use in
-conjunction with libmnl, similar to what we have in
-libnetfilter_queue/nlmsg.c
-
-Thanks.
