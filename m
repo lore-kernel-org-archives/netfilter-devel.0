@@ -1,69 +1,36 @@
-From: Mike Frysinger <vapier@gentoo.org>
-Subject: [PATCH] build: use _DEFAULT_SOURCE for newer glibc
-Date: Tue, 18 Aug 2015 18:07:38 -0400
-Message-ID: <1439935658-17834-1-git-send-email-vapier@gentoo.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next v5 1/2] netfilter: nf_conntrack: add direction
+ support for zones
+Date: Wed, 19 Aug 2015 00:29:18 +0200
+Message-ID: <20150818222918.GA17497@salvia>
+References: <cover.1439559328.git.daniel@iogearbox.net>
+ <d0f84a97f9c86bec4d537536a26d0150873e640d.1439559328.git.daniel@iogearbox.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: tgraf@suug.ch, challa@noironetworks.com,
+	netfilter-devel@vger.kernel.org
+To: Daniel Borkmann <daniel@iogearbox.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:58275 "EHLO smtp.gentoo.org"
+Received: from mail.us.es ([193.147.175.20]:57850 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752175AbbHRWHo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Aug 2015 18:07:44 -0400
-Received: from localhost.localdomain (localhost [127.0.0.1])
-	by smtp.gentoo.org (Postfix) with ESMTP id 7E7FC340914
-	for <netfilter-devel@vger.kernel.org>; Tue, 18 Aug 2015 22:07:43 +0000 (UTC)
+	id S1751526AbbHRWXJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Aug 2015 18:23:09 -0400
+Content-Disposition: inline
+In-Reply-To: <d0f84a97f9c86bec4d537536a26d0150873e640d.1439559328.git.daniel@iogearbox.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Since _BSD_SOURCE is deprecated with newer glibc versions, we get build
-warnings when using only that define.  Add the newer _DEFAULT_SOURCE to
-quiet things down.
+On Fri, Aug 14, 2015 at 04:03:39PM +0200, Daniel Borkmann wrote:
+> This work adds a direction parameter to netfilter zones, so identity
+> separation can be performed only in original/reply or both directions
+> (default). This basically opens up the possibility of doing NAT with
+> conflicting IP address/port tuples from multiple, isolated tenants
+> on a host (e.g. from a netns) without requiring each tenant to NAT
+> twice resp. to use its own dedicated IP address to SNAT to, meaning
+> overlapping tuples can be made unique with the zone identifier in
+> original direction, where the NAT engine will then allocate a unique
+> tuple in the commonly shared default zone for the reply direction.
+> In some restricted, local DNAT cases, also port redirection could be
+> used for making the reply traffic unique w/o requiring SNAT.
 
-=46or example, we currently see:
-In file included from /usr/include/math.h:26:0,
-                 from libxt_hashlimit.c:15:
-/usr/include/features.h:148:3: warning:
- # warning "_BSD_SOURCE and _SVID_SOURCE are deprecated, use _DEFAULT_S=
-OURCE"
-
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
----
- extensions/libxt_hashlimit.c | 1 +
- extensions/libxt_limit.c     | 1 +
- 2 files changed, 2 insertions(+)
-
-diff --git a/extensions/libxt_hashlimit.c b/extensions/libxt_hashlimit.=
-c
-index c5b8d77..cbe06bb 100644
---- a/extensions/libxt_hashlimit.c
-+++ b/extensions/libxt_hashlimit.c
-@@ -10,6 +10,7 @@
-  *=20
-  * Error corections by nmalykh@bilim.com (22.01.2005)
-  */
-+#define _DEFAULT_SOURCE 1
- #define _BSD_SOURCE 1
- #define _ISOC99_SOURCE 1
- #include <math.h>
-diff --git a/extensions/libxt_limit.c b/extensions/libxt_limit.c
-index f75ef2f..dd8885a 100644
---- a/extensions/libxt_limit.c
-+++ b/extensions/libxt_limit.c
-@@ -3,6 +3,7 @@
-  * J=C3=A9r=C3=B4me de Vivie   <devivie@info.enserb.u-bordeaux.fr>
-  * Herv=C3=A9 Eychenne    <rv@wallfire.org>
-  */
-+#define _DEFAULT_SOURCE 1
- #define _BSD_SOURCE 1
- #define _ISOC99_SOURCE 1
- #include <math.h>
---=20
-2.4.4
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks Daniel.
