@@ -1,30 +1,40 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nft 2/2] tests: redirect: fix payload display
-Date: Tue, 18 Aug 2015 10:43:38 +0200
-Message-ID: <20150818084338.GE31357@breakpoint.cc>
-References: <1439874496-4852-1-git-send-email-pablo@netfilter.org>
- <1439874496-4852-2-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH conntrackd 0/8] unsorted fixes
+Date: Tue, 18 Aug 2015 19:28:31 +0200
+Message-ID: <1439918919-6937-1-git-send-email-pablo@netfilter.org>
+Cc: pwouters@redhat.com, fweimer@redhat.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37529 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750950AbbHRInk (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Aug 2015 04:43:40 -0400
-Content-Disposition: inline
-In-Reply-To: <1439874496-4852-2-git-send-email-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:37582 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751813AbbHRRW3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Aug 2015 13:22:29 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> This has to be related to libnftnl's 0edeb667a2cf ("expr: redir: fix snprintf
-> to return the number of bytes printed").
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> @Florian: After this patch, I pass all payload tests here that we have :).
+The following patchset contains a set of fixes for conntrackd as reported by
+Paul Wouters.
 
-Great.  Please push this :-)
+Let me know if you have any concern with it, thank you.
+
+Pablo Neira Ayuso (8):
+  conntrackd: fix sanitization of expection attribute in the wire format
+  conntrackd: NTA_MAX is also an invalid attribute
+  conntrackd: fix leak in fork_process_new()
+  conntrackd: fix descriptor leak in do_local_request()
+  conntrackd: fix error handling in nfq_queue_cb()
+  conntrackd: simplify branch in tcp_accept()
+  conntrackd: use strncpy to set up the cache name
+  conntrackd: missing break in expectation message parser function
+
+ src/cache.c    |    5 +++--
+ src/cthelper.c |   29 +++++++++++++++--------------
+ src/local.c    |    9 ++++++---
+ src/parse.c    |    8 +++++---
+ src/process.c  |    2 ++
+ src/tcp.c      |   12 +++++-------
+ 6 files changed, 36 insertions(+), 29 deletions(-)
+
+-- 
+1.7.10.4
+
