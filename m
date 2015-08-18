@@ -1,82 +1,84 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH libnftnl] expr: immediate: fix leak in expression destroy path
-Date: Tue, 18 Aug 2015 02:04:04 +0200
-Message-ID: <1439856244-10337-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
+Subject: [PATCH nft 1/2] tests: sets: don't include listing in payload tests
+Date: Tue, 18 Aug 2015 07:08:15 +0200
+Message-ID: <1439874496-4852-1-git-send-email-pablo@netfilter.org>
+Cc: fw@strlen.de
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38900 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56944 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752043AbbHQX6B (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Aug 2015 19:58:01 -0400
+	id S1750817AbbHRFCK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Aug 2015 01:02:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The verdict can be a chain string, make sure we release it when the expression
-is destroyed. This patch adds a new nft_free_data() for this purpose and use it
-from the immediate expression.
+Since e715f6d1241c ("netlink: don't call netlink_dump_*() from listing
+functions with --debug=netlink"), there is no debugging from the listing path.
+Thus, we can remove the set line from the test files.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/data_reg.h   |    1 +
- src/expr/data_reg.c  |   11 +++++++++++
- src/expr/immediate.c |    9 +++++++++
- 3 files changed, 21 insertions(+)
+ tests/regression/ip/sets.t.payload.inet  |    2 --
+ tests/regression/ip/sets.t.payload.ip    |    2 --
+ tests/regression/ip6/sets.t.payload.inet |    1 -
+ tests/regression/ip6/sets.t.payload.ip6  |    1 -
+ 4 files changed, 6 deletions(-)
 
-diff --git a/include/data_reg.h b/include/data_reg.h
-index cf14988..e0fdd10 100644
---- a/include/data_reg.h
-+++ b/include/data_reg.h
-@@ -28,5 +28,6 @@ int nft_data_reg_snprintf(char *buf, size_t size, union nft_data_reg *reg,
- struct nlattr;
+diff --git a/tests/regression/ip/sets.t.payload.inet b/tests/regression/ip/sets.t.payload.inet
+index 9041781..f8e97cc 100644
+--- a/tests/regression/ip/sets.t.payload.inet
++++ b/tests/regression/ip/sets.t.payload.inet
+@@ -1,5 +1,4 @@
+ # ip saddr @set1 drop
+-set1 test-inet 0
+ inet test-inet input
+   [ meta load nfproto => reg 1 ]
+   [ cmp eq reg 1 0x00000002 ]
+@@ -8,7 +7,6 @@ inet test-inet input
+   [ immediate reg 0 drop ]
  
- int nft_parse_data(union nft_data_reg *data, struct nlattr *attr, int *type);
-+void nft_free_verdict(union nft_data_reg *data);
+ # ip saddr @set2 drop
+-set2 test-inet 0
+ inet test-inet input
+   [ meta load nfproto => reg 1 ]
+   [ cmp eq reg 1 0x00000002 ]
+diff --git a/tests/regression/ip/sets.t.payload.ip b/tests/regression/ip/sets.t.payload.ip
+index eb3770e..ece63d0 100644
+--- a/tests/regression/ip/sets.t.payload.ip
++++ b/tests/regression/ip/sets.t.payload.ip
+@@ -1,12 +1,10 @@
+ # ip saddr @set1 drop
+-set1 test-ip4 0
+ ip test-ip4 input
+   [ payload load 4b @ network header + 12 => reg 1 ]
+   [ lookup reg 1 set set1 ]
+   [ immediate reg 0 drop ]
  
- #endif
-diff --git a/src/expr/data_reg.c b/src/expr/data_reg.c
-index b5fbdf2..b375db4 100644
---- a/src/expr/data_reg.c
-+++ b/src/expr/data_reg.c
-@@ -499,3 +499,14 @@ int nft_parse_data(union nft_data_reg *data, struct nlattr *attr, int *type)
- 	return ret;
- }
- 
-+void nft_free_verdict(union nft_data_reg *data)
-+{
-+	switch(data->verdict) {
-+	case NFT_JUMP:
-+	case NFT_GOTO:
-+		xfree(data->chain);
-+		break;
-+	default:
-+		break;
-+	}
-+}
-diff --git a/src/expr/immediate.c b/src/expr/immediate.c
-index 692d9e9..cf06190 100644
---- a/src/expr/immediate.c
-+++ b/src/expr/immediate.c
-@@ -309,10 +309,19 @@ nft_rule_expr_immediate_snprintf(char *buf, size_t len, uint32_t type,
- 	return -1;
- }
- 
-+static void nft_rule_expr_immediate_free(struct nft_rule_expr *e)
-+{
-+	struct nft_expr_immediate *imm = nft_expr_data(e);
-+
-+	if (e->flags & (1 << NFT_EXPR_IMM_VERDICT))
-+		nft_free_verdict(&imm->data);
-+}
-+
- struct expr_ops expr_ops_immediate = {
- 	.name		= "immediate",
- 	.alloc_len	= sizeof(struct nft_expr_immediate),
- 	.max_attr	= NFTA_IMMEDIATE_MAX,
-+	.free		= nft_rule_expr_immediate_free,
- 	.set		= nft_rule_expr_immediate_set,
- 	.get		= nft_rule_expr_immediate_get,
- 	.parse		= nft_rule_expr_immediate_parse,
+ # ip saddr @set2 drop
+-set2 test-ip4 0
+ ip test-ip4 input
+   [ payload load 4b @ network header + 12 => reg 1 ]
+   [ lookup reg 1 set set2 ]
+diff --git a/tests/regression/ip6/sets.t.payload.inet b/tests/regression/ip6/sets.t.payload.inet
+index 11dae48..27be86b 100644
+--- a/tests/regression/ip6/sets.t.payload.inet
++++ b/tests/regression/ip6/sets.t.payload.inet
+@@ -1,5 +1,4 @@
+ # ip6 saddr @set2 drop
+-set2 test-inet 0
+ inet test-inet input 
+   [ meta load nfproto => reg 1 ]
+   [ cmp eq reg 1 0x0000000a ]
+diff --git a/tests/regression/ip6/sets.t.payload.ip6 b/tests/regression/ip6/sets.t.payload.ip6
+index 96b57f7..0e51fd3 100644
+--- a/tests/regression/ip6/sets.t.payload.ip6
++++ b/tests/regression/ip6/sets.t.payload.ip6
+@@ -1,5 +1,4 @@
+ # ip6 saddr @set2 drop
+-set2 test-ip6 0
+ ip6 test-ip6 input
+   [ payload load 16b @ network header + 8 => reg 1 ]
+   [ lookup reg 1 set set2 ]
 -- 
 1.7.10.4
 
