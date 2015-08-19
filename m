@@ -1,37 +1,70 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv4 nf-next] netfilter: bridge: fix IPv6 packets not being
- bridged with CONFIG_IPV6=n
-Date: Wed, 19 Aug 2015 21:22:40 +0200
-Message-ID: <20150819192240.GA4625@salvia>
-References: <1439449095-21947-1-git-send-email-bernhard.thaler@wvnet.at>
+Subject: Re: [PATCH] netfilter: Remove the duplicated word "see" in the
+ comment when set the IPS_ASSURED_BIT in tcp_packet
+Date: Wed, 19 Aug 2015 21:25:37 +0200
+Message-ID: <20150819192537.GA4636@salvia>
+References: <CA+6hz4o4TbcAhgnC8sbN6utxAR=wWOMkd_=k+hGVqW+tZZxuZw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org
-To: Bernhard Thaler <bernhard.thaler@wvnet.at>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Feng Gao <gfree.wind@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45323 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45495 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750933AbbHSTQa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Aug 2015 15:16:30 -0400
+	id S1751548AbbHSTTX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Aug 2015 15:19:23 -0400
 Content-Disposition: inline
-In-Reply-To: <1439449095-21947-1-git-send-email-bernhard.thaler@wvnet.at>
+In-Reply-To: <CA+6hz4o4TbcAhgnC8sbN6utxAR=wWOMkd_=k+hGVqW+tZZxuZw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Aug 13, 2015 at 08:58:15AM +0200, Bernhard Thaler wrote:
-> 230ac490f7fba introduced a dependency to CONFIG_IPV6 which breaks bridging
-> of IPv6 packets on a bridge with CONFIG_IPV6=n.
+On Thu, Aug 13, 2015 at 04:22:28PM +0800, Feng Gao wrote:
+> Hi Pablo,
 > 
-> Sysctl entry /proc/sys/net/bridge/bridge-nf-call-ip6tables defaults to 1,
-> for this reason packets are handled by br_nf_pre_routing_ipv6(). When compiled
-> with CONFIG_IPV6=n this function returns NF_DROP but should return NF_ACCEPT
-> to let packets through.
+> There is one duplicated word "see" in the comment when set the
+> IPS_ASSURED_BIT in tcp_packet.
 > 
-> Change CONFIG_IPV6=n br_nf_pre_routing_ipv6() return value to NF_ACCEPT.
+> The attachment is the patch file.
 > 
-> Tested with a simple bridge with two interfaces and IPv6 packets trying
-> to pass from host on left side to host on right side of the bridge.
+> The following is the change.
 > 
-> Fixes: 230ac490f7fba ("netfilter: bridge: split ipv6 code into separated file")
+> From d092aaa3dc847ed08b27081a467e39727d6627cb Mon Sep 17 00:00:00 2001
+> From: Feng Gao <gfree.wind@gmail.com>
+> Date: Thu, 13 Aug 2015 16:14:36 +0800
+> Subject: [PATCH 1/1] netfilter: Remove the duplicated word "see" in the
+>  comment when set the IPS_ASSURED_BIT in tcp_packet
+> 
+> Signed-off-by: Feng Gao <gfree.wind@gmail.com>
+> ---
+>  net/netfilter/nf_conntrack_proto_tcp.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c
+> b/net/netfilter/nf_conntrack_proto_tcp.c
+> index 70383de..697210f 100644
+> --- a/net/netfilter/nf_conntrack_proto_tcp.c
+> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
+> @@ -1088,7 +1088,7 @@ static int tcp_packet(struct nf_conn *ct,
+>            && (old_state == TCP_CONNTRACK_SYN_RECV
+>                || old_state == TCP_CONNTRACK_ESTABLISHED)
+>            && new_state == TCP_CONNTRACK_ESTABLISHED) {
+> -       /* Set ASSURED if we see see valid ack in ESTABLISHED
+> +       /* Set ASSURED if we see valid ack in ESTABLISHED
+>            after SYN_RECV or a valid answer for a picked up
+>            connection. */
 
-Applied this oneliner to the nf tree, thanks.
+I think this is a good chance to fix the comment style, this should
+be:
+
+        /* Set ASSURED if we see valid ack in ESTABLISHED after
+         * SYN_RECV or a valid answer for a picked up connection.
+         */
+
+Would you update the comment style in the same patch and resubmit,
+please?
+
+I'd also suggest a smaller patch title, eg.
+
+netfilter: nf_ct_tcp: Remove the duplicated word in comment
+
+Thanks!
