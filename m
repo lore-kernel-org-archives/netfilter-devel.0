@@ -1,44 +1,58 @@
-From: Andreas Herz <andi@geekosphere.org>
-Subject: ICMPv6 Type 1 Code 5 and 6 missing in iptables REJECT target and
- icmpv6 match
-Date: Wed, 19 Aug 2015 16:51:36 +0200
-Message-ID: <20150819145136.GN21654@kvmbude>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Subject: Re: [PATCH nf-next v5 2/2] netfilter: nf_conntrack: add efficient
+ mark to zone mapping
+Date: Wed, 19 Aug 2015 17:10:57 +0200
+Message-ID: <55D49C81.5080906@iogearbox.net>
+References: <cover.1439559328.git.daniel@iogearbox.net> <bd41c7f8120e86cde496acc43feea600ad3537cb.1439559328.git.daniel@iogearbox.net> <20150818230556.GB17497@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: tgraf@suug.ch, challa@noironetworks.com,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.geekosphere.org ([78.47.150.211]:56137 "EHLO
-	mail.geekosphere.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932178AbbHSOvj (ORCPT
+Received: from www62.your-server.de ([213.133.104.62]:41930 "EHLO
+	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751042AbbHSPLE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Aug 2015 10:51:39 -0400
-Content-Disposition: inline
+	Wed, 19 Aug 2015 11:11:04 -0400
+In-Reply-To: <20150818230556.GB17497@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On 08/19/2015 01:05 AM, Pablo Neira Ayuso wrote:
+...
+> This change to nf_ct_zone_tmpl() is OK by now. I can see you're doing
+> this because we cannot use the template object to perform tmpl->mark =
+> skb->mark since the template is shared between all packets.
+>
+> However, this is showing the limitations that we have in iptables
+> since we can't do mappings there, with nft we could do things in the
+> near future that look like:
+>
+>          meta mark { 0x123 : ct template zone 1, ... }
+>
+> I think this can be refined by having a scratchpad template object
+> per-cpu that we can modify from the CT target. This will also resolve
+> the existing limitations that we have: Only the first rule that uses
+> the CT target to attach a template actually applies, follow up rules
+> trying to attach a template are simply ignored.
+>
+> This per-cpu template object should have a zone and timeout extension
+> area preallocated, so we skip that memory allocation overhead from the
+> packet path. Another alternative can be to add a struct nf_conn_tmpl
+> object whose layout until the status flag is the same, so we can place
+> the configuration there without the need of the extension areas, a
+> trick similar to what we have with reqsock and twsock objects.
+>
+> Would you have a look into this so we can get this in better shape and
+> resolve the existing limitations by the next merge window? Thanks!
 
-as i read the RFC 7084 i found the following suggestion:
+Yes, I'll look into this and will get back to you. Btw, the remaining
+two user space patches (conntrack, libnetfilter_conntrack) I'll post
+next week when I'm back from Plumbers.
 
-> L-14:   The IPv6 CE router MUST send an ICMPv6 Destination Unreachable
->         message, code 5 (Source address failed ingress/egress policy)
->         for packets forwarded to it that use an address from a prefix
->         that has been invalidated.
+Thanks Pablo!
 
-And in RFC 4443 they are defined as:
-
-> 5 - Source address failed ingress/egress policy
-> 6 - Reject route to destination
-
-Is there a reason for that?
-
-If i look into the "extensions/libip6t_icmp6.c" i just see the codes 0,1,2,3,4
-for type 1. And in "include/linux/netfilter_ipv6/ip6t_REJECT.h" it's
-"IP6T_ICMP6_ECHOREPLY" which doesnt' sound like the one in the RFC.
-
-Or is it just missing, so i might add it?
-
-Thanks
-
--- 
-Andreas Herz
+Best,
+Daniel
