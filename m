@@ -1,77 +1,42 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [lnf-log RFC PATCH 2/2] utils: take a example from libmnl and
- use nflog_nlmsg_parse
-Date: Thu, 20 Aug 2015 00:04:03 +0200
-Message-ID: <20150819220403.GA5220@salvia>
-References: <20150810081342.GB25169@gmail.com>
- <20150810081752.GD25169@gmail.com>
- <20150818060409.GA3062@salvia>
- <20150819071103.GA15064@gmail.com>
+Subject: Re: [PATCH iptables] libxt_CT: add support for recently introduced
+ zone options
+Date: Thu, 20 Aug 2015 00:05:50 +0200
+Message-ID: <20150819220550.GA5313@salvia>
+References: <55be6cc4f6e6d0f7c590b6fefc678c36711ac05d.1439062590.git.daniel@iogearbox.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Cc: tgraf@suug.ch, challa@noironetworks.com,
+	netfilter-devel@vger.kernel.org
+To: Daniel Borkmann <daniel@iogearbox.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55185 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55271 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751440AbbHSV5u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Aug 2015 17:57:50 -0400
+	id S1752068AbbHSV7g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Aug 2015 17:59:36 -0400
 Content-Disposition: inline
-In-Reply-To: <20150819071103.GA15064@gmail.com>
+In-Reply-To: <55be6cc4f6e6d0f7c590b6fefc678c36711ac05d.1439062590.git.daniel@iogearbox.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 19, 2015 at 04:11:03PM +0900, Ken-ichirou MATSUZAWA wrote:
+On Sat, Aug 08, 2015 at 09:45:04PM +0200, Daniel Borkmann wrote:
 [...]
-> Would you confirm the functions for nlmsg building which you suggested
-> to add because it's a little different from you suggested. I am worried
-> about it's in accodance with your intention.
+> diff --git a/extensions/libxt_CT.c b/extensions/libxt_CT.c
+> index 6b28fe1..86b1221 100644
+> --- a/extensions/libxt_CT.c
+> +++ b/extensions/libxt_CT.c
+> @@ -16,7 +16,8 @@ static void ct_help(void)
+>  " --helper name			Use conntrack helper 'name' for connection\n"
+>  " --ctevents event[,event...]	Generate specified conntrack events for connection\n"
+>  " --expevents event[,event...]	Generate specified expectation events for connection\n"
+> -" --zone ID			Assign/Lookup connection in zone ID\n"
+> +" --zone {ID|mark}		Assign/Lookup connection in zone ID/packet nfmark\n"
+> +" --zone-dir {ORIGINAL|REPLY}	Only apply zone in a particular direction\n"
 
-I suggest you remove the nflog_data_init(), nflog_data_alloc(),
-nflog_data_free() and nflog_nlmsg_parse().
+I suggest you add these options:
 
-Those are part of the old API, we should focus on API that we can
-combine with libmnl.
+        --zone-orig ...
+        --zone-reply ...
+        --zone ...
 
-More comments below:
-
-> In addition, I added NFLOG_DATA_SIZE as is, the size of struct
-> nflog_data. This enables to preallocate buffer, and I added
-> functions which initialize a buffer based on this.
-> 
-> Would you see it again?
-> 
-> Changes from previous:
->   * introduce nlmsg three build functions:
->     struct nlmsghdr *
->       nfnl_nlmsg_put_header(char *buf, uint8_t type, uint8_t family, uint16_t qnum);
->     int nfnl_attr_put_cfg_mode(struct nlmsghdr *nlh, struct nfulnl_msg_config_mode *mode);
->     int nfnl_attr_put_cfg_cmd(struct nlmsghdr *nlh, struct nfulnl_msg_config_cmd *cmd);
-
-One small change more, please change this interface from:
-
-+       nfcmd.command = NFULNL_CFG_CMD_PF_UNBIND;
-+       if (nfnl_attr_put_cfg_cmd(nlh, &nfcmd) < 0) {
-
-to:
-
-        if (nfnl_attr_put_cfg_cmd(nlh, NFULNL_CFG_CMD_PF_UNBIND) < 0) {
-
-Same thing with nfnl_attr_put_cfg_mode(), replace this:
-
-+       nfmode.copy_mode = NFULNL_COPY_PACKET;
-+       nfmode.copy_range = 0xFFFF;
-+       if (nfnl_attr_put_cfg_mode(nlh, &nfmode) < 0) {
-
-to:
-        if (nfnl_attr_put_cfg_mode(nlh, NFULNL_COPY_PACKET, 0xffff)
-
->   * introduce NFLOG_DATA_SIZE macro and use it at allocate functions.
-
-You can remove NFLOG_DATA_SIZE, this is only needed by the old API,
-not for libmnl.
-
->   * update utils/nf-log to fit with the above.
-
-Thanks a lot!
+so they match to what we have in the ctnetlink interface. Thanks!
