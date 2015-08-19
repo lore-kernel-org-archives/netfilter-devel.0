@@ -1,40 +1,26 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] tests: validate generated netlink instructions
-Date: Wed, 19 Aug 2015 02:49:06 +0200
-Message-ID: <20150819004906.GA19954@salvia>
-References: <1437096699-8832-1-git-send-email-fw@strlen.de>
- <20150720125004.GA7402@salvia>
- <20150720151046.GD11985@breakpoint.cc>
- <20150720170538.GA22735@salvia>
- <20150720183536.GE11985@breakpoint.cc>
- <20150812173453.GA30926@salvia>
- <20150812174624.GA31166@breakpoint.cc>
- <20150816181439.GD17659@macbook.localdomain>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH] build: use _DEFAULT_SOURCE for newer glibc
+Date: Wed, 19 Aug 2015 09:09:31 +0200 (CEST)
+Message-ID: <alpine.LSU.2.20.1508190908430.11093@nerf40.vanv.qr>
+References: <1439935658-17834-1-git-send-email-vapier@gentoo.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Mike Frysinger <vapier@gentoo.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37792 "EHLO mail.us.es"
+Received: from ares41.inai.de ([46.4.122.207]:51681 "EHLO ares41.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750871AbbHSAmz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Aug 2015 20:42:55 -0400
-Content-Disposition: inline
-In-Reply-To: <20150816181439.GD17659@macbook.localdomain>
+	id S1751524AbbHSHJd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Aug 2015 03:09:33 -0400
+In-Reply-To: <1439935658-17834-1-git-send-email-vapier@gentoo.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Aug 16, 2015 at 07:14:40PM +0100, Patrick McHardy wrote:
-[...]
-> I actually think we should sort it in nft since we might also see duplicate
-> netlink messages and should eleminate them from the output since they will
-> cause errors on reload.
+On Wednesday 2015-08-19 00:07, Mike Frysinger wrote:
 
-Right, we need that --sort option so the user always get the same
-output when saving the ruleset. The removal of duplicates is also an
-issue given the way netlink dumps things.
+>Since _BSD_SOURCE is deprecated with newer glibc versions, we get build
+>warnings when using only that define.  Add the newer _DEFAULT_SOURCE to
+>quiet things down.
 
-But the issue with tests is related to --debug=netlink output, so you
-suggest we address both sorting and duplication removal from libnftnl, right?
-
-Thanks!
+Why do we even need _BSD_SOURCE/_ISOC99_SOURCE/_DEFAULT_SOURCE? The 
+thing apparently builds without it (glibc-2.19), too.
