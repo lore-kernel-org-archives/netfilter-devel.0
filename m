@@ -1,84 +1,85 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [PATCH] iptables: update gitignore list
-Date: Thu, 20 Aug 2015 13:46:39 +0200
-Message-ID: <CAOkSjBgdJbigrwanoFOSfUzCt8gGLvyWHp0RoAqv9=YkWSq7Gg@mail.gmail.com>
-References: <1440069182-21380-1-git-send-email-vapier@gentoo.org>
+From: Arturo Borrero Gonzalez <aborrero@cica.es>
+Subject: [conntrack-tools PATCH] doc/debian.conntrackd.init.d: drop file
+Date: Thu, 20 Aug 2015 13:56:42 +0200
+Message-ID: <20150820115642.13152.48168.stgit@r2d2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Mike Frysinger <vapier@gentoo.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:35239 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751284AbbHTLrA convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Aug 2015 07:47:00 -0400
-Received: by lahi9 with SMTP id i9so20728898lah.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Aug 2015 04:46:59 -0700 (PDT)
-In-Reply-To: <1440069182-21380-1-git-send-email-vapier@gentoo.org>
+Received: from smtp3.cica.es ([150.214.5.190]:53168 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751400AbbHTL4u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Aug 2015 07:56:50 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 20 August 2015 at 13:13, Mike Frysinger <vapier@gentoo.org> wrote:
-> Signed-off-by: Mike Frysinger <vapier@gentoo.org>
-> ---
->  include/linux/netfilter_ipv4/ip_tables.h | 2 +-
->  iptables/.gitignore                      | 3 +++
->  libiptc/libiptc.c                        | 4 +++-
->  3 files changed, 7 insertions(+), 2 deletions(-)
->
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 
-Perhaps this change doesn't belong to this patch:
+This file is likely dead code. It's outdated.
 
-> diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux=
-/netfilter_ipv4/ip_tables.h
-> index 38542b4..6c73f34 100644
-> --- a/include/linux/netfilter_ipv4/ip_tables.h
-> +++ b/include/linux/netfilter_ipv4/ip_tables.h
-> @@ -212,7 +212,7 @@ struct ipt_get_entries {
->
->         /* The entries. */
->         struct ipt_entry entrytable[0];
-> -};
-> +} __attribute__((packed));
->
->  /* Helper functions */
->  static __inline__ struct xt_entry_target *
+Also I think distributors should manage themselves to integrate daemons in
+their operating systems. Following this idea, this file doesn't belong here.
 
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ doc/debian.conntrackd.init.d |   48 ------------------------------------------
+ 1 file changed, 48 deletions(-)
+ delete mode 100644 doc/debian.conntrackd.init.d
 
-same here:
+diff --git a/doc/debian.conntrackd.init.d b/doc/debian.conntrackd.init.d
+deleted file mode 100644
+index ba847dd..0000000
+--- a/doc/debian.conntrackd.init.d
++++ /dev/null
+@@ -1,48 +0,0 @@
+-#!/bin/sh
+-#
+-# /etc/init.d/conntrackd
+-#
+-# Maximilian Wilhelm <max@rfc2324.org>
+-#  -- Mon, 06 Nov 2006 18:39:07 +0100
+-#
+-
+-export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+-
+-NAME="conntrackd"
+-DAEMON=`command -v conntrackd`
+-CONFIG="/etc/conntrack/conntrackd.conf"
+-PIDFILE="/var/run/${NAME}.pid"
+-
+-
+-# Gracefully exit if there is no daemon (debian way of life)
+-if [ ! -x "${DAEMON}" ]; then
+-	exit 0
+-fi
+-
+-# Check for config file
+-if [ ! -f /etc/conntrackd/conntrackd.conf ]; then
+-	echo "Error: There is no config file for $NAME" >&2
+-	exit 1;
+-fi
+-
+-case "$1" in
+-  start)
+-        echo -n "Starting $NAME: "
+-	start-stop-daemon --start --quiet --make-pidfile --pidfile "/var/run/${NAME}.pid" --background --exec "${DAEMON}"  && echo "done." || echo "FAILED!"
+-	;;
+-  stop)
+-        echo -n "Stopping $NAME:"
+-	start-stop-daemon --stop --quiet --oknodo --pidfile "/var/run/${NAME}.pid" && echo "done." || echo "FAILED!"
+-	;;
+-
+-  restart)
+-	$0 start
+-	$0 stop
+-	;;
+-
+-  *)
+-	echo "Usage: /etc/init.d/conntrackd {start|stop|restart}"
+-	exit 1
+-esac
+-
+-exit 0
 
-> diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
-> index 9c07bb4..e8091eb 100644
-> --- a/libiptc/libiptc.c
-> +++ b/libiptc/libiptc.c
-> @@ -1302,7 +1302,8 @@ struct xtc_handle *
->  TC_INIT(const char *tablename)
->  {
->         struct xtc_handle *h;
-> -       STRUCT_GETINFO info;
-> +       __attribute__((packed))
-> +STRUCT_GETINFO info;
->         unsigned int tmp;
->         socklen_t s;
->         int sockfd;
-> @@ -1350,6 +1351,7 @@ retry:
->
->         tmp =3D sizeof(STRUCT_GET_ENTRIES) + h->info.size;
->
-> +printf("getsockopt(, %i)\n", tmp);
->         if (getsockopt(h->sockfd, TC_IPPROTO, SO_GET_ENTRIES, h->entr=
-ies,
->                        &tmp) < 0)
->                 goto error;
-
-
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
