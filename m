@@ -1,56 +1,27 @@
-From: Arturo Borrero Gonzalez <aborrero@cica.es>
-Subject: [conntrack-tools PATCH] list: fix prefetch dummy
-Date: Thu, 20 Aug 2015 12:45:20 +0200
-Message-ID: <20150820104520.23066.45825.stgit@r2d2.cica.es>
+From: Alfred Cheuk Chow <gloria.davilapulido@cinvestav.edu.mx>
+Subject: (unknown)
+Date: Thu, 20 Aug 2015 06:14:36 -0500 (CDT)
+Message-ID: <1162598683.17279.1440069276418.JavaMail.root@mail>
+Reply-To: Alfred Cheuk Chow <alfred.chow101@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: kaber@trash.net, pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: undisclosed-recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:57212 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751016AbbHTL2S (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Aug 2015 07:28:18 -0400
+Received: from mail.saltillo.cinvestav.mx ([148.247.22.17]:34405 "EHLO
+	mail.cinvestav.edu.mx" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751435AbbHTLaQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Aug 2015 07:30:16 -0400
+Subject: 
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 
-[...]
-  CC       conntrack.o
-In file included from ../include/conntrack.h:4:0,
-                 from conntrack.c:41:
-conntrack.c: In function =E2=80=98findproto=E2=80=99:
-=2E./include/linux_list.h:385:59: warning: right-hand operand of comma =
-expression has no effect [-Wunused-value]
-  for (pos =3D list_entry((head)->next, typeof(*pos), member), \
-                                                          ^
-[...]
 
-The original patch is from Patrick McHardy <kaber@trash.net>.
+-- 
+I am Mr. Alfred Cheuk Yu Chow, the Director for Credit & Marketing Chong Hing Bank, Hong Kong, Chong Hing Bank Centre, 24 Des Voeux Road Central, Hong Kong. I have a business proposal of $38,980,369.00All conformable documents to back up the claims will be made available to you prior to your acceptance and as soon as I receive your return mail and I will let you know what is required of you.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- include/linux_list.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/include/linux_list.h b/include/linux_list.h
-index de182a4..efffb91 100644
---- a/include/linux_list.h
-+++ b/include/linux_list.h
-@@ -29,7 +29,7 @@
- 	1; \
- })
-=20
--#define prefetch(x)		1
-+#define prefetch(x)		((void)0)
-=20
- /* empty define to make this work in userspace -HW */
- #ifndef smp_wmb
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best Regards,
+Alfred Chow
+Tel: +85258032828
