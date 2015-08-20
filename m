@@ -1,206 +1,39 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [lnf-log PATCH 2/2] utils: take a example from libmnl and use new
- functions
-Date: Thu, 20 Aug 2015 16:31:23 +0900
-Message-ID: <20150820073123.GC3916@gmail.com>
-References: <20150810081342.GB25169@gmail.com>
- <20150810081752.GD25169@gmail.com>
- <20150818060409.GA3062@salvia>
- <20150819071103.GA15064@gmail.com>
- <20150819220403.GA5220@salvia>
- <20150820072645.GA3916@gmail.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH] build: use _DEFAULT_SOURCE for newer glibc
+Date: Thu, 20 Aug 2015 10:12:25 +0200 (CEST)
+Message-ID: <alpine.LSU.2.20.1508201011460.28043@nerf40.vanv.qr>
+References: <1439935658-17834-1-git-send-email-vapier@gentoo.org> <alpine.LSU.2.20.1508190908430.11093@nerf40.vanv.qr> <20150819130829.GY1584@vapier>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Mike Frysinger <vapier@gentoo.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:34924 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752023AbbHTHb3 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Aug 2015 03:31:29 -0400
-Received: by pacdd16 with SMTP id dd16so13746692pac.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Aug 2015 00:31:28 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20150820072645.GA3916@gmail.com>
+Received: from ares41.inai.de ([46.4.122.207]:54499 "EHLO ares41.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751291AbbHTIM1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Aug 2015 04:12:27 -0400
+In-Reply-To: <20150819130829.GY1584@vapier>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
----
- utils/.gitignore  |   1 +
- utils/Makefile.am |   6 ++-
- utils/nf-log.c    | 131 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 137 insertions(+), 1 deletion(-)
- create mode 100644 utils/nf-log.c
 
-diff --git a/utils/.gitignore b/utils/.gitignore
-index 64e4588..01fa66d 100644
---- a/utils/.gitignore
-+++ b/utils/.gitignore
-@@ -1,2 +1,3 @@
- /nfulnl_test
- /ulog_test
-+/nf-log
-diff --git a/utils/Makefile.am b/utils/Makefile.am
-index f961b6c..dfe5f34 100644
---- a/utils/Makefile.am
-+++ b/utils/Makefile.am
-@@ -1,11 +1,15 @@
- include ${top_srcdir}/Make_global.am
- 
--check_PROGRAMS = nfulnl_test
-+check_PROGRAMS = nfulnl_test nf-log
- 
- nfulnl_test_SOURCES = nfulnl_test.c
- nfulnl_test_LDADD = ../src/libnetfilter_log.la
- nfulnl_test_LDFLAGS = -dynamic
- 
-+nf_log_SOURCES = nf-log.c
-+nf_log_LDADD = ../src/libnetfilter_log.la
-+nf_log_LDFLAGS = -dynamic -lmnl
-+
- if BUILD_IPULOG
- check_PROGRAMS += ulog_test
- 
-diff --git a/utils/nf-log.c b/utils/nf-log.c
-new file mode 100644
-index 0000000..0ff1392
---- /dev/null
-+++ b/utils/nf-log.c
-@@ -0,0 +1,131 @@
-+/* This example is placed in the public domain. */
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <arpa/inet.h>
-+
-+#include <linux/netfilter/nfnetlink_log.h>
-+
-+#include <libmnl/libmnl.h>
-+#include <libnetfilter_log/libnetfilter_log.h>
-+
-+static int log_cb(const struct nlmsghdr *nlh, void *data)
-+{
-+	struct nlattr *attrs[NFULA_MAX + 1] = { NULL };
-+	struct nfulnl_msg_packet_hdr *ph = NULL;
-+	const char *prefix = NULL;
-+	uint32_t mark = 0;
-+	int ret;
-+
-+	ret = nfnl_nlmsg_parse(nlh, attrs);
-+	if (ret != MNL_CB_OK)
-+		return ret;
-+
-+	if (attrs[NFULA_PACKET_HDR])
-+		ph = mnl_attr_get_payload(attrs[NFULA_PACKET_HDR]);
-+	if (attrs[NFULA_PREFIX])
-+		prefix = mnl_attr_get_str(attrs[NFULA_PREFIX]);
-+	if (attrs[NFULA_MARK])
-+		mark = ntohl(mnl_attr_get_u32(attrs[NFULA_MARK]));
-+
-+	printf("log received (prefix=\"%s\" hw=0x%04x hook=%u mark=%u)\n",
-+		prefix ? prefix : "", ntohs(ph->hw_protocol), ph->hook,
-+		mark);
-+
-+	return MNL_CB_OK;
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	struct mnl_socket *nl;
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	struct nlmsghdr *nlh;
-+	int ret;
-+	unsigned int portid, qnum;
-+
-+	if (argc != 2) {
-+		printf("Usage: %s [queue_num]\n", argv[0]);
-+		exit(EXIT_FAILURE);
-+	}
-+	qnum = atoi(argv[1]);
-+
-+	nl = mnl_socket_open(NETLINK_NETFILTER);
-+	if (nl == NULL) {
-+		perror("mnl_socket_open");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
-+		perror("mnl_socket_bind");
-+		exit(EXIT_FAILURE);
-+	}
-+	portid = mnl_socket_get_portid(nl);
-+
-+	/* kernels 3.8 and later is required to omit PF_(UN)BIND */
-+
-+	nlh = nfnl_nlmsg_put_header(buf, NFULNL_MSG_CONFIG, AF_INET, 0);
-+	if (nfnl_attr_put_cfg_cmd(nlh, NFULNL_CFG_CMD_PF_UNBIND) < 0) {
-+		perror("nfnl_attr_put_cfg_cmd");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-+		perror("mnl_socket_sendto");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	nlh = nfnl_nlmsg_put_header(buf, NFULNL_MSG_CONFIG, AF_INET, 0);
-+	if (nfnl_attr_put_cfg_cmd(nlh, NFULNL_CFG_CMD_PF_BIND) < 0) {
-+		perror("nfnl_attr_put_cfg_cmd");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-+		perror("mnl_socket_sendto");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	nlh = nfnl_nlmsg_put_header(buf, NFULNL_MSG_CONFIG, AF_INET, qnum);
-+	if (nfnl_attr_put_cfg_cmd(nlh, NFULNL_CFG_CMD_BIND) < 0) {
-+		perror("nfnl_attr_put_cfg_cmd");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-+		perror("mnl_socket_sendto");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	nlh = nfnl_nlmsg_put_header(buf, NFULNL_MSG_CONFIG, AF_UNSPEC, qnum);
-+	if (nfnl_attr_put_cfg_mode(nlh, NFULNL_COPY_PACKET, 0xffff) < 0) {
-+		perror("nfnl_attr_put_cfg_mode");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-+		perror("mnl_socket_sendto");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+	if (ret == -1) {
-+		perror("mnl_socket_recvfrom");
-+		exit(EXIT_FAILURE);
-+	}
-+	while (ret > 0) {
-+		ret = mnl_cb_run(buf, ret, 0, portid, log_cb, NULL);
-+		if (ret < 0){
-+			perror("mnl_cb_run");
-+			exit(EXIT_FAILURE);
-+		}
-+
-+		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+		if (ret == -1) {
-+			perror("mnl_socket_recvfrom");
-+			exit(EXIT_FAILURE);
-+		}
-+	}
-+
-+	mnl_socket_close(nl);
-+
-+	return 0;
-+}
--- 
-2.1.4
+On Wednesday 2015-08-19 15:08, Mike Frysinger wrote:
+>On 19 Aug 2015 09:09, Jan Engelhardt wrote:
+>> On Wednesday 2015-08-19 00:07, Mike Frysinger wrote:
+>> >Since _BSD_SOURCE is deprecated with newer glibc versions, we get build
+>> >warnings when using only that define.  Add the newer _DEFAULT_SOURCE to
+>> >quiet things down.
+>> 
+>> Why do we even need _BSD_SOURCE/_ISOC99_SOURCE/_DEFAULT_SOURCE? The 
+>> thing apparently builds without it (glibc-2.19), too.
+>
+>i would check with the guy who committed this ;)
+>
+>    build: resolve compile abort in libxt_limit on RHEL5
+>    
+>    libxt_limit.c: In function 'print_rate':
+>        libxt_limit.c:124: error: 'INFINITY' undeclared (first use in
+>        this function)
 
+Well if that is the case, have you checked that using _DEFAULT_SOURCE
+over _ISOC99_SOURCE+_BSD_SOURCE still works on RHEL5?
