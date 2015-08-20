@@ -1,43 +1,43 @@
-From: Mike Frysinger <vapier@gentoo.org>
-Subject: [PATCH v2] iptables: update gitignore list
-Date: Thu, 20 Aug 2015 08:21:53 -0400
-Message-ID: <1440073313-23936-1-git-send-email-vapier@gentoo.org>
-References: <1440069182-21380-1-git-send-email-vapier@gentoo.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [conntrack-tools PATCH] nfct: don't link against
+ libnetfilter_conntrack
+Date: Thu, 20 Aug 2015 13:38:42 +0200
+Message-ID: <20150820113841.3543.68437.stgit@nfdev2.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:43262 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751114AbbHTMVz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Aug 2015 08:21:55 -0400
-Received: from localhost.localdomain (localhost [127.0.0.1])
-	by smtp.gentoo.org (Postfix) with ESMTP id C52B13409D7
-	for <netfilter-devel@vger.kernel.org>; Thu, 20 Aug 2015 12:21:54 +0000 (UTC)
-In-Reply-To: <1440069182-21380-1-git-send-email-vapier@gentoo.org>
+Received: from smtp3.cica.es ([150.214.5.190]:60133 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751584AbbHTMsE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Aug 2015 08:48:04 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Mike Frysinger <vapier@gentoo.org>
----
- iptables/.gitignore | 3 +++
- 1 file changed, 3 insertions(+)
+The nfct program uses none of the symbols of libnetfilter_conntrack.
 
-diff --git a/iptables/.gitignore b/iptables/.gitignore
-index 6c0ade1..7438ad1 100644
---- a/iptables/.gitignore
-+++ b/iptables/.gitignore
-@@ -7,9 +7,12 @@
- /iptables-extensions.8
- /iptables-extensions.8.tmpl
- /iptables-save
-+/iptables-save.8
- /iptables-restore
-+/iptables-restore.8
- /iptables-static
- /iptables-xml
-+/iptables-xml.1
- /xtables-multi
- /xtables-config-parser.c
- /xtables-config-parser.h
--- 
-2.4.4
+Linking against it means that distributors have to maintain an useless
+depedency.
+
+This was spotted by the dpkg-shlibdeps tool.
+
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/Makefile.am |    1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 1bc3622..a1d00f8 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -25,7 +25,6 @@ nfct_SOURCES += nfct-extensions/timeout.c
+ endif
+ 
+ nfct_LDADD = ${LIBMNL_LIBS} 			\
+-	     ${LIBNETFILTER_CONNTRACK_LIBS}	\
+ 	     ${libdl_LIBS}
+ 
+ if HAVE_CTTIMEOUT
 
