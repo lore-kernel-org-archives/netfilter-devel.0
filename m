@@ -1,39 +1,35 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH] build: use _DEFAULT_SOURCE for newer glibc
-Date: Thu, 20 Aug 2015 10:12:25 +0200 (CEST)
-Message-ID: <alpine.LSU.2.20.1508201011460.28043@nerf40.vanv.qr>
-References: <1439935658-17834-1-git-send-email-vapier@gentoo.org> <alpine.LSU.2.20.1508190908430.11093@nerf40.vanv.qr> <20150819130829.GY1584@vapier>
+Subject: Re: ICMPv6 Type 1 Code 5 and 6 missing in iptables REJECT target
+ and icmpv6 match
+Date: Thu, 20 Aug 2015 10:13:34 +0200 (CEST)
+Message-ID: <alpine.LSU.2.20.1508201012310.28043@nerf40.vanv.qr>
+References: <20150819145136.GN21654@kvmbude>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Mike Frysinger <vapier@gentoo.org>
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Andreas Herz <andi@geekosphere.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:54499 "EHLO ares41.inai.de"
+Received: from ares41.inai.de ([46.4.122.207]:54503 "EHLO ares41.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751291AbbHTIM1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Aug 2015 04:12:27 -0400
-In-Reply-To: <20150819130829.GY1584@vapier>
+	id S1752424AbbHTINf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Aug 2015 04:13:35 -0400
+In-Reply-To: <20150819145136.GN21654@kvmbude>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Wednesday 2015-08-19 15:08, Mike Frysinger wrote:
->On 19 Aug 2015 09:09, Jan Engelhardt wrote:
->> On Wednesday 2015-08-19 00:07, Mike Frysinger wrote:
->> >Since _BSD_SOURCE is deprecated with newer glibc versions, we get build
->> >warnings when using only that define.  Add the newer _DEFAULT_SOURCE to
->> >quiet things down.
->> 
->> Why do we even need _BSD_SOURCE/_ISOC99_SOURCE/_DEFAULT_SOURCE? The 
->> thing apparently builds without it (glibc-2.19), too.
+On Wednesday 2015-08-19 16:51, Andreas Herz wrote:
+>And in RFC 4443 they are defined as:
 >
->i would check with the guy who committed this ;)
+>> 5 - Source address failed ingress/egress policy
+>> 6 - Reject route to destination
 >
->    build: resolve compile abort in libxt_limit on RHEL5
->    
->    libxt_limit.c: In function 'print_rate':
->        libxt_limit.c:124: error: 'INFINITY' undeclared (first use in
->        this function)
+>Is there a reason for that?
+>
+>If i look into the "extensions/libip6t_icmp6.c" i just see the codes 0,1,2,3,4
+>for type 1. And in "include/linux/netfilter_ipv6/ip6t_REJECT.h" it's
+>"IP6T_ICMP6_ECHOREPLY" which doesnt' sound like the one in the RFC.
+>
+>Or is it just missing, so i might add it?
 
-Well if that is the case, have you checked that using _DEFAULT_SOURCE
-over _ISOC99_SOURCE+_BSD_SOURCE still works on RHEL5?
+It would appear fine to just add it.
