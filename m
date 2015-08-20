@@ -1,125 +1,59 @@
-From: Feng Gao <gfree.wind@gmail.com>
-Subject: Re: [PATCH] netfilter: Remove the duplicated word "see" in the
- comment when set the IPS_ASSURED_BIT in tcp_packet
-Date: Thu, 20 Aug 2015 08:49:58 +0800
-Message-ID: <CA+6hz4rKrDePk=CcjOFfpkwe0+qS73Y2WgyoEKmUBft0agVaQA@mail.gmail.com>
-References: <CA+6hz4o4TbcAhgnC8sbN6utxAR=wWOMkd_=k+hGVqW+tZZxuZw@mail.gmail.com>
-	<20150819192537.GA4636@salvia>
-	<CA+6hz4rB=QDD8Ei39ieothtf+kyuv9h6VJXeFJD2R78RM94G0Q@mail.gmail.com>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: Re: [lnf-log RFC PATCH 2/2] utils: take a example from libmnl and
+ use nflog_nlmsg_parse
+Date: Thu, 20 Aug 2015 16:26:45 +0900
+Message-ID: <20150820072645.GA3916@gmail.com>
+References: <20150810081342.GB25169@gmail.com>
+ <20150810081752.GD25169@gmail.com>
+ <20150818060409.GA3062@salvia>
+ <20150819071103.GA15064@gmail.com>
+ <20150819220403.GA5220@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: The netfilter developer mailinglist
+	<netfilter-devel@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ob0-f180.google.com ([209.85.214.180]:33971 "EHLO
-	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751940AbbHTAt7 (ORCPT
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:34711 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751156AbbHTH0u (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Aug 2015 20:49:59 -0400
-Received: by obbfr1 with SMTP id fr1so19411812obb.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Aug 2015 17:49:58 -0700 (PDT)
-In-Reply-To: <CA+6hz4rB=QDD8Ei39ieothtf+kyuv9h6VJXeFJD2R78RM94G0Q@mail.gmail.com>
+	Thu, 20 Aug 2015 03:26:50 -0400
+Received: by pdbfa8 with SMTP id fa8so11126692pdb.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Aug 2015 00:26:50 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20150819220403.GA5220@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+ Thank you for the reply.
 
-I don't know how to send the patch, "add the patch in the email text"
-or "commit the patch as the attachment".
-So I did both of them in the last email.
+On Thu, Aug 20, 2015 at 12:04:03AM +0200, Pablo Neira Ayuso wrote:
+> I suggest you remove the nflog_data_init(), nflog_data_alloc(),
+> nflog_data_free() and nflog_nlmsg_parse().
+> 
+> Those are part of the old API, we should focus on API that we can
+> combine with libmnl.
 
-Actually I prefer to use the attachment, because it could keep the
-original format.
+I think I can follow your suggestion, is it correct?
 
-Best Regards
-Feng
+Please let me ask two more things.
+With these functions, nflog attrs can be acquired by
+mnl_attr_get_payload, but can not show as XML in one shot. To do it,
+may I post another patch:
 
+    struct nflog_data *nfnl_attrs2data(struct nlattr **attr)
+    {
+        struct nflog_data *nfad = calloc(1, sizeof(struct nflog_data));
+        if (nfad == NULL)
+            return NULL;
+        nfad->nfa = (struct nfattr **)&attr[1];
+        return nfad;
+    }
 
-On Thu, Aug 20, 2015 at 8:47 AM, Feng Gao <gfree.wind@gmail.com> wrote:
-> Hi Pablo,
->
-> Thanks your reply and advice.
-> Now I have updated the patch according to your advice.
->
-> From 8844279c5e8966b57251c20c003e896f49f768ee Mon Sep 17 00:00:00 2001
-> From: Feng Gao <gfree.wind@gmail.com>
-> Date: Thu, 20 Aug 2015 08:43:26 +0800
-> Subject: [PATCH] netfilter: nf_ct_tcp: Remove the duplicated word in comment
->
-> Signed-off-by: Feng Gao <gfree.wind@gmail.com>
-> ---
->  net/netfilter/nf_conntrack_proto_tcp.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c
-> b/net/netfilter/nf_conntrack_proto_tcp.c
-> index 70383de..cf7b18a 100644
-> --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> @@ -1088,9 +1088,9 @@ static int tcp_packet(struct nf_conn *ct,
->            && (old_state == TCP_CONNTRACK_SYN_RECV
->                || old_state == TCP_CONNTRACK_ESTABLISHED)
->            && new_state == TCP_CONNTRACK_ESTABLISHED) {
-> -       /* Set ASSURED if we see see valid ack in ESTABLISHED
-> -          after SYN_RECV or a valid answer for a picked up
-> -          connection. */
-> +       /* Set ASSURED if we see valid ack in ESTABLISHED after
-> +        * SYN_RECV or a valid answer for a picked up connection.
-> +        */
->         set_bit(IPS_ASSURED_BIT, &ct->status);
->         nf_conntrack_event_cache(IPCT_ASSURED, ct);
->     }
-> --
->
->
-> On Thu, Aug 20, 2015 at 3:25 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> On Thu, Aug 13, 2015 at 04:22:28PM +0800, Feng Gao wrote:
->>> Hi Pablo,
->>>
->>> There is one duplicated word "see" in the comment when set the
->>> IPS_ASSURED_BIT in tcp_packet.
->>>
->>> The attachment is the patch file.
->>>
->>> The following is the change.
->>>
->>> From d092aaa3dc847ed08b27081a467e39727d6627cb Mon Sep 17 00:00:00 2001
->>> From: Feng Gao <gfree.wind@gmail.com>
->>> Date: Thu, 13 Aug 2015 16:14:36 +0800
->>> Subject: [PATCH 1/1] netfilter: Remove the duplicated word "see" in the
->>>  comment when set the IPS_ASSURED_BIT in tcp_packet
->>>
->>> Signed-off-by: Feng Gao <gfree.wind@gmail.com>
->>> ---
->>>  net/netfilter/nf_conntrack_proto_tcp.c | 2 +-
->>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>
->>> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c
->>> b/net/netfilter/nf_conntrack_proto_tcp.c
->>> index 70383de..697210f 100644
->>> --- a/net/netfilter/nf_conntrack_proto_tcp.c
->>> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
->>> @@ -1088,7 +1088,7 @@ static int tcp_packet(struct nf_conn *ct,
->>>            && (old_state == TCP_CONNTRACK_SYN_RECV
->>>                || old_state == TCP_CONNTRACK_ESTABLISHED)
->>>            && new_state == TCP_CONNTRACK_ESTABLISHED) {
->>> -       /* Set ASSURED if we see see valid ack in ESTABLISHED
->>> +       /* Set ASSURED if we see valid ack in ESTABLISHED
->>>            after SYN_RECV or a valid answer for a picked up
->>>            connection. */
->>
->> I think this is a good chance to fix the comment style, this should
->> be:
->>
->>         /* Set ASSURED if we see valid ack in ESTABLISHED after
->>          * SYN_RECV or a valid answer for a picked up connection.
->>          */
->>
->> Would you update the comment style in the same patch and resubmit,
->> please?
->>
->> I'd also suggest a smaller patch title, eg.
->>
->> netfilter: nf_ct_tcp: Remove the duplicated word in comment
->>
->> Thanks!
+Is it acceptable?
+
+It's just my curiosity, would you tell me what does nfnl_ prefix
+stand for?
+
+Thanks,
