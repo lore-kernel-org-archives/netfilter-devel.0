@@ -1,47 +1,74 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [conntrack-tools PATCH] nfct: don't link against libnetfilter_conntrack
-Date: Fri, 21 Aug 2015 08:54:00 +0200
-Message-ID: <CAOkSjBjWKU_T6+nmXRnOS9EqQmpu49wtxrXFQFYgV4LUG4XbxQ@mail.gmail.com>
-References: <20150820113841.3543.68437.stgit@nfdev2.cica.es> <alpine.LSU.2.20.1508202029210.27052@nerf40.vanv.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@inai.de>
+From: Andreas Herz <andi@geekosphere.org>
+Subject: [PATCH iptables] add missing icmpv6 codes (rfc4443) in REJECT
+Date: Fri, 21 Aug 2015 10:55:03 +0200
+Message-ID: <1440147303-27198-1-git-send-email-andi@geekosphere.org>
+Cc: Andreas Herz <andi@geekosphere.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-la0-f41.google.com ([209.85.215.41]:33878 "EHLO
-	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751736AbbHUGyW convert rfc822-to-8bit (ORCPT
+Received: from mail.geekosphere.org ([78.47.150.211]:57788 "EHLO
+	mail.geekosphere.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752661AbbHUIzR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Aug 2015 02:54:22 -0400
-Received: by laba3 with SMTP id a3so35938416lab.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Aug 2015 23:54:20 -0700 (PDT)
-In-Reply-To: <alpine.LSU.2.20.1508202029210.27052@nerf40.vanv.qr>
+	Fri, 21 Aug 2015 04:55:17 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 20 August 2015 at 20:30, Jan Engelhardt <jengelh@inai.de> wrote:
-> On Thursday 2015-08-20 13:38, Arturo Borrero Gonzalez wrote:
->
->>The nfct program uses none of the symbols of libnetfilter_conntrack.
->>
->>Linking against it means that distributors have to maintain an useles=
-s
->>depedency.
->
-> Not to say the patch is bad, but:
-> Distributions do not really have to maintain a dependency anyway,
-> as it can be autodiscovered from the DT_NEEDED entries. In addition,
-> conntrackd still uses the library, so a dependency in the package
-> will stay around.
+RFC 4443 added two new codes values for ICMPv6 type 1:
 
-In case of debian, there are 3 different binary packages for
-conntrack, conntrackd and nfct. Each package may have different
-dependencies.
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 5 - Source address failed ingress/egress policy
+ 6 - Reject route to destination
+
+And RFC 7084 states in L-14 that IPv6 Router MUST send ICMPv6 Destination
+Unreachable with code 5 for packets forwarded to it that use an address 
+from a prefix that has been invalidated.
+
+Signed-off-by: Andreas Herz <andi@geekosphere.org>
+---
+ extensions/libip6t_REJECT.c                | 4 ++++
+ extensions/libip6t_REJECT.t                | 2 ++
+ include/linux/netfilter_ipv6/ip6t_REJECT.h | 2 ++
+ 3 files changed, 8 insertions(+)
+
+diff --git a/extensions/libip6t_REJECT.c b/extensions/libip6t_REJECT.c
+index 8085321..033f65c 100644
+--- a/extensions/libip6t_REJECT.c
++++ b/extensions/libip6t_REJECT.c
+@@ -34,6 +34,10 @@ static const struct reject_names reject_table[] = {
+ 		IP6T_ICMP6_ADDR_UNREACH, "ICMPv6 address unreachable"},
+ 	{"icmp6-port-unreachable", "port-unreach",
+ 		IP6T_ICMP6_PORT_UNREACH, "ICMPv6 port unreachable"},
++	{"icmp6-policy-fail", "policy-fail",
++		IP6T_ICMP6_POLICY_FAIL, "ICMPv6 policy fail"},
++	{"icmp6-reject-route", "reject-route",
++		IP6T_ICMP6_REJECT_ROUTE, "ICMPv6 reject route"},
+ 	{"tcp-reset", "tcp-reset",
+ 		IP6T_TCP_RESET, "TCP RST packet"}
+ };
+diff --git a/extensions/libip6t_REJECT.t b/extensions/libip6t_REJECT.t
+index 5a38942..d2b337d 100644
+--- a/extensions/libip6t_REJECT.t
++++ b/extensions/libip6t_REJECT.t
+@@ -5,5 +5,7 @@
+ -j REJECT --reject-with icmp6-adm-prohibited;=;OK
+ -j REJECT --reject-with icmp6-addr-unreachable;=;OK
+ -j REJECT --reject-with icmp6-port-unreachable;=;OK
++-j REJECT --reject-with icmp6-policy-fail;=;OK
++-j REJECT --reject-with icmp6-reject-route;=;OK
+ -p tcp -j REJECT --reject-with tcp-reset;=;OK
+ -j REJECT --reject-with tcp-reset;;FAIL
+diff --git a/include/linux/netfilter_ipv6/ip6t_REJECT.h b/include/linux/netfilter_ipv6/ip6t_REJECT.h
+index 205ed62..8bd5f4b 100644
+--- a/include/linux/netfilter_ipv6/ip6t_REJECT.h
++++ b/include/linux/netfilter_ipv6/ip6t_REJECT.h
+@@ -9,6 +9,8 @@ enum ip6t_reject_with {
+ 	IP6T_ICMP6_NOT_NEIGHBOUR,
+ 	IP6T_ICMP6_ADDR_UNREACH,
+ 	IP6T_ICMP6_PORT_UNREACH,
++	IP6T_ICMP6_POLICY_FAIL,
++	IP6T_ICMP6_REJECT_ROUTE,
+ 	IP6T_ICMP6_ECHOREPLY,
+ 	IP6T_TCP_RESET
+ };
+-- 
+2.4.6
+
