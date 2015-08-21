@@ -1,202 +1,151 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [lnf-log PATCHv2 3/3] nlmsg: add printf function in conjunction with
- libmnl
-Date: Fri, 21 Aug 2015 09:30:33 +0900
-Message-ID: <20150821003033.GD11754@gmail.com>
-References: <20150810081342.GB25169@gmail.com>
- <20150810081752.GD25169@gmail.com>
- <20150818060409.GA3062@salvia>
- <20150819071103.GA15064@gmail.com>
- <20150819220403.GA5220@salvia>
- <20150820072645.GA3916@gmail.com>
- <20150820181613.GA4227@salvia>
- <20150821002306.GA11754@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 00/15] Netfilter updates for net-next
+Date: Fri, 21 Aug 2015 06:32:29 +0200
+Message-ID: <1440131564-8807-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:36382 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751942AbbHUAaj (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Aug 2015 20:30:39 -0400
-Received: by pawq9 with SMTP id q9so39128705paw.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Aug 2015 17:30:38 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20150821002306.GA11754@gmail.com>
+Received: from mail.us.es ([193.147.175.20]:48082 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750772AbbHUE0s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Aug 2015 00:26:48 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-To printf nflog netlink message in XML, nflog_snprintf_xml can be
-used after converting nflog nlattrs to nflog_data, but we should not
-have any code that mixes both new and old, which handles nflog_data,
-APIs. The idea is to deprecate libnfnetlink and any client of that
-library at some point, that will take quite time though since we'll
-have to mark those old interfaces as deprecated.
+Hi David,
 
-Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
----
- include/internal.h                          |  9 +++++
- include/libnetfilter_log/libnetfilter_log.h |  8 +++++
- src/libnetfilter_log.c                      |  6 +---
- src/nlmsg.c                                 | 53 +++++++++++++++++++++++++++++
- utils/nf-log.c                              |  7 ++++
- 5 files changed, 78 insertions(+), 5 deletions(-)
- create mode 100644 include/internal.h
+This is second pull request includes the conflict resolution patch that
+resulted from the updates that we got for the conntrack template through
+kmalloc. No changes with regards to the previously sent 15 patches.
 
-diff --git a/include/internal.h b/include/internal.h
-new file mode 100644
-index 0000000..7839fd8
---- /dev/null
-+++ b/include/internal.h
-@@ -0,0 +1,9 @@
-+#ifndef _LIBNETFILTER_LOG_INTERNAL_H
-+#define _LIBNETFILTER_LOG_INTERNAL_H
-+
-+struct nflog_data
-+{
-+	struct nfattr **nfa;
-+};
-+
-+#endif
-diff --git a/include/libnetfilter_log/libnetfilter_log.h b/include/libnetfilter_log/libnetfilter_log.h
-index 5087f6f..46767eb 100644
---- a/include/libnetfilter_log/libnetfilter_log.h
-+++ b/include/libnetfilter_log/libnetfilter_log.h
-@@ -89,4 +89,12 @@ extern int nflog_attr_put_cfg_mode(struct nlmsghdr *nlh, uint8_t mode, uint32_t
- extern int nflog_attr_put_cfg_cmd(struct nlmsghdr *nlh, uint8_t cmd);
- extern int nflog_nlmsg_parse(const struct nlmsghdr *nlh, struct nlattr **attr);
- 
-+enum nflog_output_type {
-+	NFLOG_OUTPUT_XML	= 0,
-+};
-+
-+int nflog_nlmsg_snprintf(char *buf, size_t bufsiz, const struct nlmsghdr *nlh,
-+			 struct nlattr **attr, enum nflog_output_type type,
-+			 uint32_t flags);
-+
- #endif	/* __LIBNETFILTER_LOG_H */
-diff --git a/src/libnetfilter_log.c b/src/libnetfilter_log.c
-index e92576b..567049c 100644
---- a/src/libnetfilter_log.c
-+++ b/src/libnetfilter_log.c
-@@ -26,6 +26,7 @@
- #include <errno.h>
- #include <netinet/in.h>
- #include <sys/socket.h>
-+#include "internal.h"
- 
- #include <libnetfilter_log/linux_nfnetlink_log.h>
- 
-@@ -78,11 +79,6 @@ struct nflog_g_handle
- 	void *data;
- };
- 
--struct nflog_data
--{
--	struct nfattr **nfa;
--};
--
- int nflog_errno;
- 
- /***********************************************************************
-diff --git a/src/nlmsg.c b/src/nlmsg.c
-index a917a70..708e32d 100644
---- a/src/nlmsg.c
-+++ b/src/nlmsg.c
-@@ -9,6 +9,9 @@
- #include <arpa/inet.h>
- #include <linux/netfilter/nfnetlink_log.h>
- #include <libmnl/libmnl.h>
-+#include <libnetfilter_log/libnetfilter_log.h>
-+#include <errno.h>
-+#include "internal.h"
- 
- /**
-  * \defgroup nlmsg Netlink message helper functions
-@@ -157,5 +160,55 @@ int nflog_nlmsg_parse(const struct nlmsghdr *nlh, struct nlattr **attr)
- }
- 
- /**
-+ * nflog_nlmsg_snprintf - print a nflog nlattrs to a buffer
-+ * \param buf buffer used to build the printable nflog
-+ * \param bufsiz size of the buffer
-+ * \param nlh netlink message (to get queue num in the futuer)
-+ * \param attr pointer to a nflog attrs
-+ * \param type print message type in enum nflog_output_type
-+ * \param flags The flag that tell what to print into the buffer
-+ *
-+ * This function supports the following type - flags:
-+ *
-+ *   type: NFLOG_OUTPUT_XML
-+ *	- NFLOG_XML_PREFIX: include the string prefix
-+ *	- NFLOG_XML_HW: include the hardware link layer address
-+ *	- NFLOG_XML_MARK: include the packet mark
-+ *	- NFLOG_XML_DEV: include the device information
-+ *	- NFLOG_XML_PHYSDEV: include the physical device information
-+ *	- NFLOG_XML_PAYLOAD: include the payload (in hexadecimal)
-+ *	- NFLOG_XML_TIME: include the timestamp
-+ *	- NFLOG_XML_ALL: include all the logging information (all flags set)
-+ *
-+ * You can combine this flags with an binary OR.
-+ *
-+ * this function returns -1 and errno is explicitly set in case of
-+ * failure, otherwise the length of the string that would have been
-+ * printed into the buffer (in case that there is enough room in
-+ * it). See snprintf() return value for more information.
-+ */
-+int nflog_nlmsg_snprintf(char *buf, size_t bufsiz, const struct nlmsghdr *nlh,
-+			 struct nlattr **attr, enum nflog_output_type type,
-+			 uint32_t flags)
-+{
-+	/* This is a hack to re-use the existing old API code. */
-+	struct nflog_data nfad = {
-+		.nfa	= (struct nfattr **)&attr[1],
-+	};
-+	int ret;
-+
-+	switch (type) {
-+	case NFLOG_OUTPUT_XML:
-+		ret = nflog_snprintf_xml(buf, bufsiz, &nfad, flags);
-+		break;
-+	default:
-+		ret = -1;
-+		errno = EOPNOTSUPP;
-+		break;
-+	}
-+	return ret;
-+}
-+
-+/**
-  * @}
-  */
-diff --git a/utils/nf-log.c b/utils/nf-log.c
-index d575b77..5f2a192 100644
---- a/utils/nf-log.c
-+++ b/utils/nf-log.c
-@@ -14,6 +14,7 @@ static int log_cb(const struct nlmsghdr *nlh, void *data)
- 	struct nfulnl_msg_packet_hdr *ph = NULL;
- 	const char *prefix = NULL;
- 	uint32_t mark = 0;
-+	char buf[4096];
- 	int ret;
- 
- 	ret = nflog_nlmsg_parse(nlh, attrs);
-@@ -31,6 +32,12 @@ static int log_cb(const struct nlmsghdr *nlh, void *data)
- 		prefix ? prefix : "", ntohs(ph->hw_protocol), ph->hook,
- 		mark);
- 
-+	ret = nflog_nlmsg_snprintf(buf, sizeof(buf), nlh, attrs,
-+				   NFLOG_OUTPUT_XML, NFLOG_XML_ALL);
-+	if (ret < 0)
-+		return MNL_CB_ERROR;
-+	printf("%s (ret=%d)\n", buf, ret);
-+
- 	return MNL_CB_OK;
- }
- 
--- 
-2.1.4
+The following patchset contains Netfilter updates for your net-next tree, they
+are:
 
+1) Rework the existing nf_tables counter expression to make it per-cpu.
+
+2) Prepare and factor out common packet duplication code from the TEE target so
+   it can be reused from the new dup expression.
+
+3) Add the new dup expression for the nf_tables IPv4 and IPv6 families.
+
+4) Convert the nf_tables limit expression to use a token-based approach with
+   64-bits precision.
+
+5) Enhance the nf_tables limit expression to support limiting at packet byte.
+   This comes after several preparation patches.
+
+6) Add a burst parameter to indicate the amount of packets or bytes that can
+   exceed the limiting.
+
+7) Add netns support to nfacct, from Andreas Schultz.
+
+8) Pass the nf_conn_zone structure instead of the zone ID in nf_tables to allow
+   accessing more zone specific information, from Daniel Borkmann.
+
+9) Allow to define zone per-direction to support netns containers with
+   overlapping network addressing, also from Daniel.
+
+10) Extend the CT target to allow setting the zone based on the skb->mark as a
+   way to support simple mappings from iptables, also from Daniel.
+
+11) Make the nf_tables payload expression aware of the fact that VLAN offload
+    may have removed a vlan header, from Florian Westphal.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 938049e18dca57bcd2f93986fc1cbb5a83cdf027:
+
+  net: xgene Remove xgene specific phy and MAC lookup functions (2015-08-20 14:43:49 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
+
+for you to fetch changes up to 81bf1c64e7fe08f956c74fe2b0f1fa6eb163bd91:
+
+  Merge branch 'master' of git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-next (2015-08-21 06:09:05 +0200)
+
+----------------------------------------------------------------
+
+Andreas Schultz (1):
+      netfilter: nfacct: per network namespace support
+
+Daniel Borkmann (3):
+      netfilter: nf_conntrack: push zone object into functions
+      netfilter: nf_conntrack: add direction support for zones
+      netfilter: nf_conntrack: add efficient mark to zone mapping
+
+Florian Westphal (1):
+      netfilter: nft_payload: work around vlan header stripping
+
+Pablo Neira Ayuso (11):
+      netfilter: nft_counter: convert it to use per-cpu counters
+      netfilter: xt_TEE: get rid of WITH_CONNTRACK definition
+      netfilter: factor out packet duplication for IPv4/IPv6
+      netfilter: nf_tables: add nft_dup expression
+      netfilter: nft_limit: rename to nft_limit_pkts
+      netfilter: nft_limit: convert to token-based limiting at nanosecond granularity
+      netfilter: nft_limit: factor out shared code with per-byte limiting
+      netfilter: nft_limit: add burst parameter
+      netfilter: nft_limit: constant token cost per packet
+      netfilter: nft_limit: add per-byte limiting
+      Merge branch 'master' of git://git.kernel.org/.../davem/net-next
+
+ include/linux/netfilter/nfnetlink_acct.h	    |	 3 +-
+ include/net/net_namespace.h			    |	 3 +
+ include/net/netfilter/ipv4/nf_dup_ipv4.h	    |	 7 +
+ include/net/netfilter/ipv6/nf_dup_ipv6.h	    |	 7 +
+ include/net/netfilter/nf_conntrack.h		    |	10 +-
+ include/net/netfilter/nf_conntrack_core.h	    |	 3 +-
+ include/net/netfilter/nf_conntrack_expect.h	    |	11 +-
+ include/net/netfilter/nf_conntrack_zones.h	    |	99 ++++++++-
+ include/net/netfilter/nft_dup.h		    |	 9 +
+ include/uapi/linux/netfilter/nf_tables.h	    |	23 ++
+ include/uapi/linux/netfilter/nfnetlink_conntrack.h |	 1 +
+ include/uapi/linux/netfilter/xt_CT.h		    |	 8 +-
+ net/ipv4/netfilter/Kconfig			    |	12 ++
+ net/ipv4/netfilter/Makefile			    |	 3 +
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c     |	 2 +-
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c	    |	 4 +-
+ net/ipv4/netfilter/nf_defrag_ipv4.c		    |	17 +-
+ net/ipv4/netfilter/nf_dup_ipv4.c		    |  120 +++++++++++
+ net/ipv4/netfilter/nft_dup_ipv4.c		    |  110 ++++++++++
+ net/ipv6/netfilter/Kconfig			    |	12 ++
+ net/ipv6/netfilter/Makefile			    |	 3 +
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c     |	 2 +-
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c     |	 5 +-
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c	    |	18 +-
+ net/ipv6/netfilter/nf_dup_ipv6.c		    |	96 +++++++++
+ net/ipv6/netfilter/nft_dup_ipv6.c		    |  108 ++++++++++
+ net/netfilter/Kconfig				    |	 2 +
+ net/netfilter/ipvs/ip_vs_nfct.c		    |	 2 +-
+ net/netfilter/nf_conntrack_core.c		    |  134 ++++++------
+ net/netfilter/nf_conntrack_expect.c		    |	21 +-
+ net/netfilter/nf_conntrack_netlink.c		    |  228 ++++++++++++++------
+ net/netfilter/nf_conntrack_pptp.c		    |	 3 +-
+ net/netfilter/nf_conntrack_standalone.c	    |	39 +++-
+ net/netfilter/nf_nat_core.c			    |	24 ++-
+ net/netfilter/nf_synproxy_core.c		    |	 4 +-
+ net/netfilter/nfnetlink_acct.c			    |	71 ++++--
+ net/netfilter/nft_counter.c			    |	97 ++++++---
+ net/netfilter/nft_limit.c			    |  188 ++++++++++++----
+ net/netfilter/nft_payload.c			    |	57 ++++-
+ net/netfilter/xt_CT.c				    |	26 ++-
+ net/netfilter/xt_TEE.c				    |  160 +-------------
+ net/netfilter/xt_connlimit.c			    |	 9 +-
+ net/netfilter/xt_nfacct.c			    |	 2 +-
+ net/sched/act_connmark.c			    |	 6 +-
+ 44 files changed, 1319 insertions(+), 450 deletions(-)
+ create mode 100644 include/net/netfilter/ipv4/nf_dup_ipv4.h
+ create mode 100644 include/net/netfilter/ipv6/nf_dup_ipv6.h
+ create mode 100644 include/net/netfilter/nft_dup.h
+ create mode 100644 net/ipv4/netfilter/nf_dup_ipv4.c
+ create mode 100644 net/ipv4/netfilter/nft_dup_ipv4.c
+ create mode 100644 net/ipv6/netfilter/nf_dup_ipv6.c
+ create mode 100644 net/ipv6/netfilter/nft_dup_ipv6.c
