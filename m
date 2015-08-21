@@ -1,15 +1,15 @@
 From: Andreas Herz <andi@geekosphere.org>
-Subject: [PATCH v2 nf-next] added missing icmpv6 codes in REJECT
-Date: Fri, 21 Aug 2015 11:31:32 +0200
-Message-ID: <1440149492-27796-1-git-send-email-andi@geekosphere.org>
+Subject: [PATCH v2 iptables] added missing icmpv6 codes in REJECT
+Date: Fri, 21 Aug 2015 11:33:05 +0200
+Message-ID: <1440149585-27908-1-git-send-email-andi@geekosphere.org>
 Cc: Andreas Herz <andi@geekosphere.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.geekosphere.org ([78.47.150.211]:59275 "EHLO
+Received: from mail.geekosphere.org ([78.47.150.211]:59350 "EHLO
 	mail.geekosphere.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752729AbbHUJbi (ORCPT
+	with ESMTP id S1753440AbbHUJdQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Aug 2015 05:31:38 -0400
+	Fri, 21 Aug 2015 05:33:16 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -24,14 +24,44 @@ from a prefix that has been invalidated.
 
 Signed-off-by: Andreas Herz <andi@geekosphere.org>
 ---
- include/uapi/linux/netfilter_ipv6/ip6t_REJECT.h | 4 +++-
- net/ipv6/netfilter/ip6t_REJECT.c                | 6 ++++++
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ extensions/libip6t_REJECT.c                | 6 +++++-
+ extensions/libip6t_REJECT.t                | 2 ++
+ include/linux/netfilter_ipv6/ip6t_REJECT.h | 4 +++-
+ 3 files changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_REJECT.h b/include/uapi/linux/netfilter_ipv6/ip6t_REJECT.h
+diff --git a/extensions/libip6t_REJECT.c b/extensions/libip6t_REJECT.c
+index 8085321..d62f431 100644
+--- a/extensions/libip6t_REJECT.c
++++ b/extensions/libip6t_REJECT.c
+@@ -35,7 +35,11 @@ static const struct reject_names reject_table[] = {
+ 	{"icmp6-port-unreachable", "port-unreach",
+ 		IP6T_ICMP6_PORT_UNREACH, "ICMPv6 port unreachable"},
+ 	{"tcp-reset", "tcp-reset",
+-		IP6T_TCP_RESET, "TCP RST packet"}
++		IP6T_TCP_RESET, "TCP RST packet"},
++	{"icmp6-policy-fail", "policy-fail",
++		IP6T_ICMP6_POLICY_FAIL, "ICMPv6 policy fail"},
++	{"icmp6-reject-route", "reject-route",
++		IP6T_ICMP6_REJECT_ROUTE, "ICMPv6 reject route"}
+ };
+ 
+ static void
+diff --git a/extensions/libip6t_REJECT.t b/extensions/libip6t_REJECT.t
+index 5a38942..d2b337d 100644
+--- a/extensions/libip6t_REJECT.t
++++ b/extensions/libip6t_REJECT.t
+@@ -5,5 +5,7 @@
+ -j REJECT --reject-with icmp6-adm-prohibited;=;OK
+ -j REJECT --reject-with icmp6-addr-unreachable;=;OK
+ -j REJECT --reject-with icmp6-port-unreachable;=;OK
++-j REJECT --reject-with icmp6-policy-fail;=;OK
++-j REJECT --reject-with icmp6-reject-route;=;OK
+ -p tcp -j REJECT --reject-with tcp-reset;=;OK
+ -j REJECT --reject-with tcp-reset;;FAIL
+diff --git a/include/linux/netfilter_ipv6/ip6t_REJECT.h b/include/linux/netfilter_ipv6/ip6t_REJECT.h
 index 205ed62..cd2e940 100644
---- a/include/uapi/linux/netfilter_ipv6/ip6t_REJECT.h
-+++ b/include/uapi/linux/netfilter_ipv6/ip6t_REJECT.h
+--- a/include/linux/netfilter_ipv6/ip6t_REJECT.h
++++ b/include/linux/netfilter_ipv6/ip6t_REJECT.h
 @@ -10,7 +10,9 @@ enum ip6t_reject_with {
  	IP6T_ICMP6_ADDR_UNREACH,
  	IP6T_ICMP6_PORT_UNREACH,
@@ -43,23 +73,6 @@ index 205ed62..cd2e940 100644
  };
  
  struct ip6t_reject_info {
-diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
-index 567367a..0ed841a 100644
---- a/net/ipv6/netfilter/ip6t_REJECT.c
-+++ b/net/ipv6/netfilter/ip6t_REJECT.c
-@@ -63,6 +63,12 @@ reject_tg6(struct sk_buff *skb, const struct xt_action_param *par)
- 	case IP6T_TCP_RESET:
- 		nf_send_reset6(net, skb, par->hooknum);
- 		break;
-+	case IP6T_ICMP6_POLICY_FAIL:
-+		nf_send_unreach6(net, skb, ICMPV6_POLICY_FAIL, par->hooknum);
-+		break;
-+	case IP6T_ICMP6_REJECT_ROUTE:
-+		nf_send_unreach6(net, skb, ICMPV6_REJECT_ROUTE, par->hooknum);
-+		break;
- 	}
- 
- 	return NF_DROP;
 -- 
 2.4.6
 
