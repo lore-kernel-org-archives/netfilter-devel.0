@@ -1,45 +1,44 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/15] Netfilter updates for net-next
-Date: Thu, 20 Aug 2015 14:48:44 -0700 (PDT)
-Message-ID: <20150820.144844.1054207553671640533.davem@davemloft.net>
-References: <1440011911-4359-1-git-send-email-pablo@netfilter.org>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: Re: [lnf-log RFC PATCH 2/2] utils: take a example from libmnl and
+ use nflog_nlmsg_parse
+Date: Fri, 21 Aug 2015 09:23:06 +0900
+Message-ID: <20150821002306.GA11754@gmail.com>
+References: <20150810081342.GB25169@gmail.com>
+ <20150810081752.GD25169@gmail.com>
+ <20150818060409.GA3062@salvia>
+ <20150819071103.GA15064@gmail.com>
+ <20150819220403.GA5220@salvia>
+ <20150820072645.GA3916@gmail.com>
+ <20150820181613.GA4227@salvia>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: The netfilter developer mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:57402 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751823AbbHTVsp (ORCPT
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:36103 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751136AbbHUAXL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Aug 2015 17:48:45 -0400
-In-Reply-To: <1440011911-4359-1-git-send-email-pablo@netfilter.org>
+	Thu, 20 Aug 2015 20:23:11 -0400
+Received: by pawq9 with SMTP id q9so39008301paw.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Aug 2015 17:23:11 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20150820181613.GA4227@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed, 19 Aug 2015 21:18:16 +0200
+ Thank you for the reply and patch.
+ 
+On Thu, Aug 20, 2015 at 08:16:13PM +0200, Pablo Neira Ayuso wrote:
+> Please, see my rough proposal patch attached so you also have access
+> to the XML output, it applies on top of your patchset. I made some
 
-> The following patchset contains Netfilter updates for your net-next tree, they
-> are:
+Thank you, I can printf a nflog in XML by nlattrs.
 
-This doesn't pull cleanly, I get a couple of conflicts:
+> Will you send me a new round of patches? Thanks!
 
-[davem@localhost net-next]$ git pull --no-ff git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
-remote: Counting objects: 195, done.        
-remote: Compressing objects: 100% (195/195), done.        
-remote: Total 195 (delta 121), reused 0 (delta 0)        
-Receiving objects: 100% (195/195), 211.81 KiB | 0 bytes/s, done.
-Resolving deltas: 100% (121/121), done.
->From git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next
- * branch            HEAD       -> FETCH_HEAD
-Auto-merging net/netfilter/xt_CT.c
-CONFLICT (content): Merge conflict in net/netfilter/xt_CT.c
-Auto-merging net/netfilter/nf_synproxy_core.c
-CONFLICT (content): Merge conflict in net/netfilter/nf_synproxy_core.c
-Auto-merging net/netfilter/nf_conntrack_core.c
-CONFLICT (content): Merge conflict in net/netfilter/nf_conntrack_core.c
-Automatic merge failed; fix conflicts and then commit the result.
+Is the following patches right to start a new round?
+# I quote your message in log many times, thanks.
 
-Please fix this up and resubmit your pull request, thanks!
+Thanks,
