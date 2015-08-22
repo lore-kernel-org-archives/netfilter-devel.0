@@ -1,59 +1,58 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2 net-next] netfilter: ipset: Fixing unnamed union init
-Date: Sat, 22 Aug 2015 20:44:48 +0200
-Message-ID: <20150822184448.GA3610@salvia>
-References: <1440222251-21132-1-git-send-email-eladr@mellanox.com>
- <alpine.DEB.2.10.1508222006570.13403@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Elad Raz <eladr@mellanox.com>, netdev@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	netfilter-devel@vger.kernel.org,
-	Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>,
-	Vinson Lee <vlee@twopensource.com>,
-	Jiri Pirko <jiri@resnulli.us>,
-	"David S. Miller" <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>,
-	Sergey Popovich <popovich_sergei@mail.ua>,
-	Anton Danilov <littlesmilingcloud@gmail.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Akemi Yagi <amyagi@gmail.com>,
-	Cong Wang <cwang@twopensource.com>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 2/2 nf-next] netfilter: xt_TEE: use IS_ENABLED(CONFIG_NF_DUP_IPV6)
+Date: Sat, 22 Aug 2015 20:46:59 +0200
+Message-ID: <1440269219-3965-2-git-send-email-pablo@netfilter.org>
+References: <1440269219-3965-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45746 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45851 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752795AbbHVSid (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 22 Aug 2015 14:38:33 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1508222006570.13403@blackhole.kfki.hu>
+	id S1753362AbbHVSkt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 22 Aug 2015 14:40:49 -0400
+In-Reply-To: <1440269219-3965-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Cc'ing Andrew, since he's got a similar patch in mmotm [1].
+Instead of IS_ENABLED(CONFIG_IPV6), otherwise we hit:
 
-On Sat, Aug 22, 2015 at 08:11:18PM +0200, Jozsef Kadlecsik wrote:
-> On Sat, 22 Aug 2015, Elad Raz wrote:
-> 
-> > In continue to proposed Vinson Lee's post [1], this patch fixes compilation
-> > issues founded at gcc 4.4.7. The initialization of .cidr field of unnamed
-> > unions causes compilation error in gcc 4.4.x.
-> 
-> There's already a (couple of weeks old) patch in the -mm tree to fix the 
-> gcc compatilibity issue, see the last comment in the thread you refer to:
-> 
-> > Visible links
-> > [1] https://lkml.org/lkml/2015/7/5/74
-> 
-> So I'm unsure whether a new patch should be submitted for this.
+et/built-in.o: In function `tee_tg6':
+>> xt_TEE.c:(.text+0x6cd8c): undefined reference to `nf_dup_ipv6'
 
-I'll take this patch so this follows the usual path through David's
-net tree. IIRC, duplicates get automatically dropped from the mmotm
-tree.
+when:
 
-[1] http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/commit/?id=18b386426ff0a90e405c962ec8f51ea70e7df637
+ CONFIG_IPV6=y
+ CONFIG_NF_DUP_IPV4=y
+ # CONFIG_NF_DUP_IPV6 is not set
+ CONFIG_NETFILTER_XT_TARGET_TEE=y
 
-I'll wait for some little time just in case someone raises any
-concern.
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/xt_TEE.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Thanks!
+diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
+index 49fee6a..fd980aa 100644
+--- a/net/netfilter/xt_TEE.c
++++ b/net/netfilter/xt_TEE.c
+@@ -37,7 +37,7 @@ tee_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ 	return XT_CONTINUE;
+ }
+ 
+-#if IS_ENABLED(CONFIG_IPV6)
++#if IS_ENABLED(CONFIG_NF_DUP_IPV6)
+ static unsigned int
+ tee_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+@@ -129,7 +129,7 @@ static struct xt_target tee_tg_reg[] __read_mostly = {
+ 		.destroy    = tee_tg_destroy,
+ 		.me         = THIS_MODULE,
+ 	},
+-#if IS_ENABLED(CONFIG_IPV6)
++#if IS_ENABLED(CONFIG_NF_DUP_IPV6)
+ 	{
+ 		.name       = "TEE",
+ 		.revision   = 1,
+-- 
+1.7.10.4
+
