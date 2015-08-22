@@ -1,58 +1,59 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2 nf-next] netfilter: xt_TEE: use IS_ENABLED(CONFIG_NF_DUP_IPV6)
-Date: Sat, 22 Aug 2015 20:46:59 +0200
-Message-ID: <1440269219-3965-2-git-send-email-pablo@netfilter.org>
-References: <1440269219-3965-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 1/2 nf-next] netfilter: nf_dup: fix sparse warnings
+Date: Sat, 22 Aug 2015 20:46:58 +0200
+Message-ID: <1440269219-3965-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45851 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45849 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753362AbbHVSkt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 22 Aug 2015 14:40:49 -0400
-In-Reply-To: <1440269219-3965-1-git-send-email-pablo@netfilter.org>
+	id S1753362AbbHVSkr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 22 Aug 2015 14:40:47 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Instead of IS_ENABLED(CONFIG_IPV6), otherwise we hit:
+>> net/ipv4/netfilter/nft_dup_ipv4.c:29:37: sparse: incorrect type in initializer (different base types)
+   net/ipv4/netfilter/nft_dup_ipv4.c:29:37:    expected restricted __be32 [user type] s_addr
+   net/ipv4/netfilter/nft_dup_ipv4.c:29:37:    got unsigned int [unsigned] <noident>
 
-et/built-in.o: In function `tee_tg6':
->> xt_TEE.c:(.text+0x6cd8c): undefined reference to `nf_dup_ipv6'
-
-when:
-
- CONFIG_IPV6=y
- CONFIG_NF_DUP_IPV4=y
- # CONFIG_NF_DUP_IPV6 is not set
- CONFIG_NETFILTER_XT_TARGET_TEE=y
+>> net/ipv6/netfilter/nf_dup_ipv6.c:48:23: sparse: incorrect type in assignment (different base types)
+   net/ipv6/netfilter/nf_dup_ipv6.c:48:23:    expected restricted __be32 [addressable] [assigned] [usertype] flowlabel
+   net/ipv6/netfilter/nf_dup_ipv6.c:48:23:    got int
 
 Reported-by: kbuild test robot <fengguang.wu@intel.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_TEE.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/nft_dup_ipv4.c |    2 +-
+ net/ipv6/netfilter/nf_dup_ipv6.c  |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
-index 49fee6a..fd980aa 100644
---- a/net/netfilter/xt_TEE.c
-+++ b/net/netfilter/xt_TEE.c
-@@ -37,7 +37,7 @@ tee_tg4(struct sk_buff *skb, const struct xt_action_param *par)
- 	return XT_CONTINUE;
- }
- 
--#if IS_ENABLED(CONFIG_IPV6)
-+#if IS_ENABLED(CONFIG_NF_DUP_IPV6)
- static unsigned int
- tee_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+diff --git a/net/ipv4/netfilter/nft_dup_ipv4.c b/net/ipv4/netfilter/nft_dup_ipv4.c
+index 25419fb..b45932d 100644
+--- a/net/ipv4/netfilter/nft_dup_ipv4.c
++++ b/net/ipv4/netfilter/nft_dup_ipv4.c
+@@ -26,7 +26,7 @@ static void nft_dup_ipv4_eval(const struct nft_expr *expr,
  {
-@@ -129,7 +129,7 @@ static struct xt_target tee_tg_reg[] __read_mostly = {
- 		.destroy    = tee_tg_destroy,
- 		.me         = THIS_MODULE,
- 	},
--#if IS_ENABLED(CONFIG_IPV6)
-+#if IS_ENABLED(CONFIG_NF_DUP_IPV6)
- 	{
- 		.name       = "TEE",
- 		.revision   = 1,
+ 	struct nft_dup_ipv4 *priv = nft_expr_priv(expr);
+ 	struct in_addr gw = {
+-		.s_addr = regs->data[priv->sreg_addr],
++		.s_addr = (__force __be32)regs->data[priv->sreg_addr],
+ 	};
+ 	int oif = regs->data[priv->sreg_dev];
+ 
+diff --git a/net/ipv6/netfilter/nf_dup_ipv6.c b/net/ipv6/netfilter/nf_dup_ipv6.c
+index d8ab654..c5c87e9 100644
+--- a/net/ipv6/netfilter/nf_dup_ipv6.c
++++ b/net/ipv6/netfilter/nf_dup_ipv6.c
+@@ -45,8 +45,8 @@ static bool nf_dup_ipv6_route(struct sk_buff *skb, const struct in6_addr *gw,
+ 		fl6.flowi6_oif = oif;
+ 
+ 	fl6.daddr = *gw;
+-	fl6.flowlabel = ((iph->flow_lbl[0] & 0xF) << 16) |
+-			 (iph->flow_lbl[1] << 8) | iph->flow_lbl[2];
++	fl6.flowlabel = (__force __be32)(((iph->flow_lbl[0] & 0xF) << 16) |
++			(iph->flow_lbl[1] << 8) | iph->flow_lbl[2]);
+ 	dst = ip6_route_output(net, NULL, &fl6);
+ 	if (dst->error) {
+ 		dst_release(dst);
 -- 
 1.7.10.4
 
