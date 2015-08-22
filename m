@@ -1,91 +1,174 @@
-From: Feng Gao <gfree.wind@gmail.com>
-Subject: [PATCH] netfilter: nf_ct_tcp: Remove the duplicated word in comment
-Date: Sat, 22 Aug 2015 11:27:56 +0800
-Message-ID: <CA+6hz4o+XCrHt_f31kK1d2=jsHY3mDvU4rEM=8DbmhiVbxDSNw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=001a1134bf0c755002051dddf868
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Elad Raz <eladr@mellanox.com>
+Subject: [PATCH v2 net-next] netfilter: ipset: Fixing unnamed union init
+Date: Sat, 22 Aug 2015 08:44:11 +0300
+Message-ID: <1440222251-21132-1-git-send-email-eladr@mellanox.com>
+Cc: Elad Raz <eladr@mellanox.com>, Jiri Pirko <jiri@resnulli.us>,
+	"David S. Miller" <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>,
+	Sergey Popovich <popovich_sergei@mail.ua>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Anton Danilov <littlesmilingcloud@gmail.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Akemi Yagi <amyagi@gmail.com>,
+	Cong Wang <cwang@twopensource.com>
+To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Vinson Lee <vlee@twopensource.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:33680 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752549AbbHVD15 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Aug 2015 23:27:57 -0400
-Received: by obbhe7 with SMTP id he7so73597173obb.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 21 Aug 2015 20:27:57 -0700 (PDT)
+Received: from [193.47.165.129] ([193.47.165.129]:47274 "EHLO mellanox.co.il"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751166AbbHVFoj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 22 Aug 2015 01:44:39 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---001a1134bf0c755002051dddf868
-Content-Type: text/plain; charset=UTF-8
+In continue to proposed Vinson Lee's post [1], this patch fixes compilation
+issues founded at gcc 4.4.7. The initialization of .cidr field of unnamed
+unions causes compilation error in gcc 4.4.x.
 
-Hi Pablo,
+References
 
-To try to resolve the "git am" issue, so I start the new email
-conversation. The attachment is the latest patch file.
+Visible links
+[1] https://lkml.org/lkml/2015/7/5/74
 
-The following is the patch content too.
-
->From 8844279c5e8966b57251c20c003e896f49f768ee Mon Sep 17 00:00:00 2001
-From: Feng Gao <gfree.wind@gmail.com>
-Date: Thu, 20 Aug 2015 08:43:26 +0800
-Subject: [PATCH] netfilter: nf_ct_tcp: Remove the duplicated word in comment
-
-Signed-off-by: Feng Gao <gfree.wind@gmail.com>
+Signed-off-by: Elad Raz <eladr@mellanox.com>
 ---
- net/netfilter/nf_conntrack_proto_tcp.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/ipset/ip_set_hash_netnet.c     | 20 ++++++++++++++++++--
+ net/netfilter/ipset/ip_set_hash_netportnet.c | 20 ++++++++++++++++++--
+ 2 files changed, 36 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c
-b/net/netfilter/nf_conntrack_proto_tcp.c
-index 70383de..cf7b18a 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -1088,9 +1088,9 @@ static int tcp_packet(struct nf_conn *ct,
-           && (old_state == TCP_CONNTRACK_SYN_RECV
-               || old_state == TCP_CONNTRACK_ESTABLISHED)
-           && new_state == TCP_CONNTRACK_ESTABLISHED) {
--       /* Set ASSURED if we see see valid ack in ESTABLISHED
--          after SYN_RECV or a valid answer for a picked up
--          connection. */
-+       /* Set ASSURED if we see valid ack in ESTABLISHED after
-+        * SYN_RECV or a valid answer for a picked up connection.
-+        */
-        set_bit(IPS_ASSURED_BIT, &ct->status);
-        nf_conntrack_event_cache(IPCT_ASSURED, ct);
-    }
+diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ipset/ip_set_hash_netnet.c
+index 3c862c0..a93dfeb 100644
+--- a/net/netfilter/ipset/ip_set_hash_netnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netnet.c
+@@ -131,6 +131,13 @@ hash_netnet4_data_next(struct hash_netnet4_elem *next,
+ #define HOST_MASK	32
+ #include "ip_set_hash_gen.h"
+ 
++static void
++hash_netnet4_init(struct hash_netnet4_elem *e)
++{
++	e->cidr[0] = HOST_MASK;
++	e->cidr[1] = HOST_MASK;
++}
++
+ static int
+ hash_netnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		  const struct xt_action_param *par,
+@@ -160,7 +167,7 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ {
+ 	const struct hash_netnet *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_netnet4_elem e = { .cidr = { HOST_MASK, HOST_MASK, }, };
++	struct hash_netnet4_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 ip = 0, ip_to = 0, last;
+ 	u32 ip2 = 0, ip2_from = 0, ip2_to = 0, last2;
+@@ -169,6 +176,7 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (tb[IPSET_ATTR_LINENO])
+ 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
+ 
++	hash_netnet4_init(&e);
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+@@ -357,6 +365,13 @@ hash_netnet6_data_next(struct hash_netnet4_elem *next,
+ #define IP_SET_EMIT_CREATE
+ #include "ip_set_hash_gen.h"
+ 
++static void
++hash_netnet6_init(struct hash_netnet6_elem *e)
++{
++	e->cidr[0] = HOST_MASK;
++	e->cidr[1] = HOST_MASK;
++}
++
+ static int
+ hash_netnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		  const struct xt_action_param *par,
+@@ -385,13 +400,14 @@ hash_netnet6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		  enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
+ {
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_netnet6_elem e = { .cidr = { HOST_MASK, HOST_MASK, }, };
++	struct hash_netnet6_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	int ret;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+ 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
+ 
++	hash_netnet6_init(&e);
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
+index 0c68734..9a14c23 100644
+--- a/net/netfilter/ipset/ip_set_hash_netportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
+@@ -142,6 +142,13 @@ hash_netportnet4_data_next(struct hash_netportnet4_elem *next,
+ #define HOST_MASK	32
+ #include "ip_set_hash_gen.h"
+ 
++static void
++hash_netportnet4_init(struct hash_netportnet4_elem *e)
++{
++	e->cidr[0] = HOST_MASK;
++	e->cidr[1] = HOST_MASK;
++}
++
+ static int
+ hash_netportnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		      const struct xt_action_param *par,
+@@ -175,7 +182,7 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ {
+ 	const struct hash_netportnet *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_netportnet4_elem e = { .cidr = { HOST_MASK, HOST_MASK, }, };
++	struct hash_netportnet4_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 ip = 0, ip_to = 0, ip_last, p = 0, port, port_to;
+ 	u32 ip2_from = 0, ip2_to = 0, ip2_last, ip2;
+@@ -185,6 +192,7 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (tb[IPSET_ATTR_LINENO])
+ 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
+ 
++	hash_netportnet4_init(&e);
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+ 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
+@@ -412,6 +420,13 @@ hash_netportnet6_data_next(struct hash_netportnet4_elem *next,
+ #define IP_SET_EMIT_CREATE
+ #include "ip_set_hash_gen.h"
+ 
++static void
++hash_netportnet6_init(struct hash_netportnet6_elem *e)
++{
++	e->cidr[0] = HOST_MASK;
++	e->cidr[1] = HOST_MASK;
++}
++
+ static int
+ hash_netportnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		      const struct xt_action_param *par,
+@@ -445,7 +460,7 @@ hash_netportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
+ {
+ 	const struct hash_netportnet *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_netportnet6_elem e = { .cidr = { HOST_MASK, HOST_MASK, }, };
++	struct hash_netportnet6_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 port, port_to;
+ 	bool with_ports = false;
+@@ -454,6 +469,7 @@ hash_netportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (tb[IPSET_ATTR_LINENO])
+ 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
+ 
++	hash_netportnet6_init(&e);
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+ 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
+-- 
+2.3.5
 
-Best Regards
-Feng
-
---001a1134bf0c755002051dddf868
-Content-Type: application/octet-stream;
-	name="0001-netfilter-nf_ct_tcp-Remove-the-duplicated-word-in-co.patch"
-Content-Disposition: attachment;
-	filename="0001-netfilter-nf_ct_tcp-Remove-the-duplicated-word-in-co.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_idmi722w0
-
-RnJvbSA4ODQ0Mjc5YzVlODk2NmI1NzI1MWMyMGMwMDNlODk2ZjQ5Zjc2OGVlIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBGZW5nIEdhbyA8Z2ZyZWUud2luZEBnbWFpbC5jb20+CkRhdGU6
-IFRodSwgMjAgQXVnIDIwMTUgMDg6NDM6MjYgKzA4MDAKU3ViamVjdDogW1BBVENIXSBuZXRmaWx0
-ZXI6IG5mX2N0X3RjcDogUmVtb3ZlIHRoZSBkdXBsaWNhdGVkIHdvcmQgaW4gY29tbWVudAoKU2ln
-bmVkLW9mZi1ieTogRmVuZyBHYW8gPGdmcmVlLndpbmRAZ21haWwuY29tPgotLS0KIG5ldC9uZXRm
-aWx0ZXIvbmZfY29ubnRyYWNrX3Byb3RvX3RjcC5jIHwgNiArKystLS0KIDEgZmlsZSBjaGFuZ2Vk
-LCAzIGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvbmV0L25ldGZp
-bHRlci9uZl9jb25udHJhY2tfcHJvdG9fdGNwLmMgYi9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFj
-a19wcm90b190Y3AuYwppbmRleCA3MDM4M2RlLi5jZjdiMThhIDEwMDY0NAotLS0gYS9uZXQvbmV0
-ZmlsdGVyL25mX2Nvbm50cmFja19wcm90b190Y3AuYworKysgYi9uZXQvbmV0ZmlsdGVyL25mX2Nv
-bm50cmFja19wcm90b190Y3AuYwpAQCAtMTA4OCw5ICsxMDg4LDkgQEAgc3RhdGljIGludCB0Y3Bf
-cGFja2V0KHN0cnVjdCBuZl9jb25uICpjdCwKIAkJICAgJiYgKG9sZF9zdGF0ZSA9PSBUQ1BfQ09O
-TlRSQUNLX1NZTl9SRUNWCiAJCSAgICAgICB8fCBvbGRfc3RhdGUgPT0gVENQX0NPTk5UUkFDS19F
-U1RBQkxJU0hFRCkKIAkJICAgJiYgbmV3X3N0YXRlID09IFRDUF9DT05OVFJBQ0tfRVNUQUJMSVNI
-RUQpIHsKLQkJLyogU2V0IEFTU1VSRUQgaWYgd2Ugc2VlIHNlZSB2YWxpZCBhY2sgaW4gRVNUQUJM
-SVNIRUQKLQkJICAgYWZ0ZXIgU1lOX1JFQ1Ygb3IgYSB2YWxpZCBhbnN3ZXIgZm9yIGEgcGlja2Vk
-IHVwCi0JCSAgIGNvbm5lY3Rpb24uICovCisJCS8qIFNldCBBU1NVUkVEIGlmIHdlIHNlZSB2YWxp
-ZCBhY2sgaW4gRVNUQUJMSVNIRUQgYWZ0ZXIKKwkJICogU1lOX1JFQ1Ygb3IgYSB2YWxpZCBhbnN3
-ZXIgZm9yIGEgcGlja2VkIHVwIGNvbm5lY3Rpb24uCisJCSAqLwogCQlzZXRfYml0KElQU19BU1NV
-UkVEX0JJVCwgJmN0LT5zdGF0dXMpOwogCQluZl9jb25udHJhY2tfZXZlbnRfY2FjaGUoSVBDVF9B
-U1NVUkVELCBjdCk7CiAJfQotLSAKMS44LjMuMQoK
---001a1134bf0c755002051dddf868--
