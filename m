@@ -1,31 +1,50 @@
-From: David Hinkle <hinkle@cipafilter.com>
-Subject: How to set connmark on a socket descriptor from userspace?
-Date: Tue, 25 Aug 2015 14:14:36 -0500
-Message-ID: <CACw4T0oawcgHdVkORUm9ONP2S8N+8_95ZCpDTMzHWmfKPZ5bQQ@mail.gmail.com>
+From: Pravin Shelar <pshelar@nicira.com>
+Subject: Re: [PATCHv5 net-next 03/10] ipv6: Export nf_ct_frag6_gather()
+Date: Tue, 25 Aug 2015 12:15:40 -0700
+Message-ID: <CALnjE+raAnSwWsvkVwYkt4qj1f1twN-fZnBGeh1WAuq5hrsGLg@mail.gmail.com>
+References: <1440462740-23358-1-git-send-email-joestringer@nicira.com>
+	<1440462740-23358-4-git-send-email-joestringer@nicira.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yk0-f178.google.com ([209.85.160.178]:34798 "EHLO
-	mail-yk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755416AbbHYTOg (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Aug 2015 15:14:36 -0400
-Received: by ykdt205 with SMTP id t205so166346297ykd.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2015 12:14:36 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netdev <netdev@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>, pablo <pablo@netfilter.org>,
+	Florian Westphal <fwestpha@redhat.com>,
+	Hannes Sowa <hannes@redhat.com>, Thomas Graf <tgraf@suug.ch>,
+	Justin Pettit <jpettit@nicira.com>,
+	Jesse Gross <jesse@nicira.com>, netfilter-devel@vger.kernel.org
+To: Joe Stringer <joestringer@nicira.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1440462740-23358-4-git-send-email-joestringer@nicira.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-I want to be able to set the connmark on a socket controlled by my
-application from user space.  Is there an API to do that already?
+On Mon, Aug 24, 2015 at 5:32 PM, Joe Stringer <joestringer@nicira.com> wrote:
+> Signed-off-by: Joe Stringer <joestringer@nicira.com>
+> Acked-by: Thomas Graf <tgraf@suug.ch>
+> Acked-by: Pravin B Shelar <pshelar@nicira.com>
 
-I have been reviewing the kernel code and I can't seem to find one.
-If there isn't, what would be your recommendation on the path to take
-to implement such an option?  It looks like setsockopt shouldn't be
-too hard to extend.  I guess extending ioctl or fcntl would be my
-other options?  But I see at least one place where getsockopt already
-interacts with conntrack data, handling SO_ORIGINAL_DST.
+When I apply this patch I see empty commit msg. I think you need to
+add atleast a blank line after the subject.
 
-Advice, docs, and suggestions greatly appreciated.  Thank you for your time.
-
-- David
+> ---
+> v4: Add ack.
+> v5: No change.
+> ---
+>  net/ipv6/netfilter/nf_conntrack_reasm.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+> index 6d02498..701cd2b 100644
+> --- a/net/ipv6/netfilter/nf_conntrack_reasm.c
+> +++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+> @@ -633,6 +633,7 @@ ret_orig:
+>         kfree_skb(clone);
+>         return skb;
+>  }
+> +EXPORT_SYMBOL_GPL(nf_ct_frag6_gather);
+>
+>  void nf_ct_frag6_consume_orig(struct sk_buff *skb)
+>  {
+> --
+> 2.1.4
+>
