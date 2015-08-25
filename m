@@ -1,81 +1,63 @@
-From: Pravin Shelar <pshelar@nicira.com>
-Subject: Re: [PATCHv5 net-next 05/10] openvswitch: Add conntrack action
-Date: Tue, 25 Aug 2015 12:22:58 -0700
-Message-ID: <CALnjE+rA2k+VgYiA5ErYx_zW0NHaTTYXyBmg5mcRwo2NYy=ugQ@mail.gmail.com>
+From: Joe Stringer <joestringer@nicira.com>
+Subject: Re: [PATCHv5 net-next 10/10] openvswitch: Allow attaching helpers to
+ ct action
+Date: Tue, 25 Aug 2015 13:10:00 -0700
+Message-ID: <CANr6G5xTdckxEqMpfGedm=tmBiRDO0kGNu7wuRDG_2hXZnPx1Q@mail.gmail.com>
 References: <1440462740-23358-1-git-send-email-joestringer@nicira.com>
-	<1440462740-23358-6-git-send-email-joestringer@nicira.com>
+ <1440462740-23358-11-git-send-email-joestringer@nicira.com> <20150825183302.GN3707@pox.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: netdev <netdev@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>, pablo <pablo@netfilter.org>,
+Cc: Linux Netdev List <netdev@vger.kernel.org>,
+	Pravin Shelar <pshelar@nicira.com>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Florian Westphal <fwestpha@redhat.com>,
-	Hannes Sowa <hannes@redhat.com>, Thomas Graf <tgraf@suug.ch>,
+	Hannes Sowa <hannes@redhat.com>,
 	Justin Pettit <jpettit@nicira.com>,
-	Jesse Gross <jesse@nicira.com>,
-	netfilter-devel@vger.kernel.org, Andy Zhou <azhou@nicira.com>
-To: Joe Stringer <joestringer@nicira.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1440462740-23358-6-git-send-email-joestringer@nicira.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	Jesse Gross <jesse@nicira.com>, netfilter-devel@vger.kernel.org
+To: Thomas Graf <tgraf@suug.ch>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-yk0-f172.google.com ([209.85.160.172]:33629 "EHLO
+	mail-yk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751315AbbHYUKU (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 Aug 2015 16:10:20 -0400
+Received: by ykll84 with SMTP id l84so166174187ykl.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2015 13:10:20 -0700 (PDT)
+In-Reply-To: <20150825183302.GN3707@pox.localdomain>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 24, 2015 at 5:32 PM, Joe Stringer <joestringer@nicira.com> wrote:
-> Expose the kernel connection tracker via OVS. Userspace components can
-> make use of the CT action to populate the connection state (ct_state)
-> field for a flow. This state can be subsequently matched.
+On 25 August 2015 at 11:33, Thomas Graf <tgraf@suug.ch> wrote:
+> On 08/24/15 at 05:32pm, Joe Stringer wrote:
+>> Add support for using conntrack helpers to assist protocol detection.
+>> The new OVS_CT_ATTR_HELPER attribute of the CT action specifies a helper
+>> to be used for this connection. If no helper is specified, then helpers
+>> will be automatically applied as per the sysctl configuration of
+>> net.netfilter.nf_conntrack_helper.
+>>
+>> The helper may be specified as part of the conntrack action, eg:
+>> ct(helper=ftp). Initial packets for related connections should be
+>> committed to allow later packets for the flow to be considered
+>> established.
+>>
+>> Example ovs-ofctl flows allowing FTP connections from ports 1->2:
+>> in_port=1,tcp,action=ct(helper=ftp,commit),2
+>> in_port=2,tcp,ct_state=-trk,action=ct(recirc)
+>> in_port=2,tcp,ct_state=+trk-new+est,action=1
+>> in_port=2,tcp,ct_state=+trk+rel,action=1
 >
-> Exposed connection states are OVS_CS_F_*:
-> - NEW (0x01) - Beginning of a new connection.
-> - ESTABLISHED (0x02) - Part of an existing connection.
-> - RELATED (0x04) - Related to an established connection.
-> - INVALID (0x20) - Could not track the connection for this packet.
-> - REPLY_DIR (0x40) - This packet is in the reply direction for the flow.
-> - TRACKED (0x80) - This packet has been sent through conntrack.
->
-> When the CT action is executed by itself, it will send the packet
-> through the connection tracker and populate the ct_state field with one
-> or more of the connection state flags above. The CT action will always
-> set the TRACKED bit.
->
-> When the COMMIT flag is passed to the conntrack action, this specifies
-> that information about the connection should be stored. This allows
-> subsequent packets for the same (or related) connections to be
-> correlated with this connection. Sending subsequent packets for the
-> connection through conntrack allows the connection tracker to consider
-> the packets as ESTABLISHED, RELATED, and/or REPLY_DIR.
->
-> The CT action may optionally take a zone to track the flow within. This
-> allows connections with the same 5-tuple to be kept logically separate
-> from connections in other zones. If the zone is specified, then the
-> "ct_zone" match field will be subsequently populated with the zone id.
->
-> IP fragments are handled by transparently assembling them as part of the
-> CT action. The maximum received unit (MRU) size is tracked so that
-> refragmentation can occur during output.
->
-> IP frag handling contributed by Andy Zhou.
->
-> Signed-off-by: Joe Stringer <joestringer@nicira.com>
-> Signed-off-by: Justin Pettit <jpettit@nicira.com>
-> Signed-off-by: Andy Zhou <azhou@nicira.com>
+> Not subject to this patch but we may want to revisit the syntax of the
+> state flags. It's neatly compressed like this but ct_state=untracked
+> ct_state=related might be more readable. The +trk should be implicit
+> for anything !untracked
 
-Patch looks good except one issue.
-
-When I turn off conntrack support (
-CONFIG_OPENVSWITCH_CONNTRACK) I got compilation error:
-
-net/openvswitch/datapath.o: In function `ovs_ct_fill_key':
-
-/home/pravin/linux/net-next/net/openvswitch/conntrack.h:69: multiple
-definition of `ovs_ct_fill_key'
-
-net/openvswitch/actions.o:/home/pravin/linux/net-next/net/openvswitch/conntrack.h:69:
-first defined here
-
-net/openvswitch/dp_notify.o: In function `ovs_ct_fill_key':
-
-/home/pravin/linux/net-next/net/openvswitch/conntrack.h:69: multiple
-definition of `ovs_ct_fill_key'
-
-net/openvswitch/actions.o:/home/pravin/linux/net-next/net/openvswitch/conntrack.h:69:
-first defined here
+Fair criticism. My thoughts were that this was a reasonable
+middleground between representing masked flags like
+"ct_state=0xc2/0xc3" vs. having overly verbose state descriptions like
+the corresponding "ct_state=tracked,!new,established,reply_direction".
+Either way, we need to represent the three possible states for each
+flag: set and we care about the value, unset and we care about the
+value, or we don't care about the value. Arguably the example above is
+a bit imprecise, because the +trk flows intersect. Omitting the "+trk"
+would make all of the return flows intersect.
