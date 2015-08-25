@@ -1,33 +1,61 @@
 From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [PATCHv5 net-next 04/10] dst: Add __skb_dst_copy() variation
-Date: Tue, 25 Aug 2015 20:23:46 +0200
-Message-ID: <20150825182346.GI3707@pox.localdomain>
+Subject: Re: [PATCHv5 net-next 05/10] openvswitch: Add conntrack action
+Date: Tue, 25 Aug 2015 20:25:27 +0200
+Message-ID: <20150825182527.GJ3707@pox.localdomain>
 References: <1440462740-23358-1-git-send-email-joestringer@nicira.com>
- <1440462740-23358-5-git-send-email-joestringer@nicira.com>
+ <1440462740-23358-6-git-send-email-joestringer@nicira.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netdev@vger.kernel.org, pshelar@nicira.com,
 	linux-kernel@vger.kernel.org, pablo@netfilter.org,
 	fwestpha@redhat.com, hannes@redhat.com, jpettit@nicira.com,
-	jesse@nicira.com, netfilter-devel@vger.kernel.org
+	jesse@nicira.com, netfilter-devel@vger.kernel.org,
+	Andy Zhou <azhou@nicira.com>
 To: Joe Stringer <joestringer@nicira.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:33259 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756034AbbHYSXs (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Aug 2015 14:23:48 -0400
-Received: by wijn1 with SMTP id n1so1540226wij.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2015 11:23:47 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1440462740-23358-5-git-send-email-joestringer@nicira.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1440462740-23358-6-git-send-email-joestringer@nicira.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 On 08/24/15 at 05:32pm, Joe Stringer wrote:
-> This variation on skb_dst_copy() doesn't require two skbs.
+> Expose the kernel connection tracker via OVS. Userspace components can
+> make use of the CT action to populate the connection state (ct_state)
+> field for a flow. This state can be subsequently matched.
+> 
+> Exposed connection states are OVS_CS_F_*:
+> - NEW (0x01) - Beginning of a new connection.
+> - ESTABLISHED (0x02) - Part of an existing connection.
+> - RELATED (0x04) - Related to an established connection.
+> - INVALID (0x20) - Could not track the connection for this packet.
+> - REPLY_DIR (0x40) - This packet is in the reply direction for the flow.
+> - TRACKED (0x80) - This packet has been sent through conntrack.
+> 
+> When the CT action is executed by itself, it will send the packet
+> through the connection tracker and populate the ct_state field with one
+> or more of the connection state flags above. The CT action will always
+> set the TRACKED bit.
+> 
+> When the COMMIT flag is passed to the conntrack action, this specifies
+> that information about the connection should be stored. This allows
+> subsequent packets for the same (or related) connections to be
+> correlated with this connection. Sending subsequent packets for the
+> connection through conntrack allows the connection tracker to consider
+> the packets as ESTABLISHED, RELATED, and/or REPLY_DIR.
+> 
+> The CT action may optionally take a zone to track the flow within. This
+> allows connections with the same 5-tuple to be kept logically separate
+> from connections in other zones. If the zone is specified, then the
+> "ct_zone" match field will be subsequently populated with the zone id.
+> 
+> IP fragments are handled by transparently assembling them as part of the
+> CT action. The maximum received unit (MRU) size is tracked so that
+> refragmentation can occur during output.
+> 
+> IP frag handling contributed by Andy Zhou.
 > 
 > Signed-off-by: Joe Stringer <joestringer@nicira.com>
-> Acked-by: Pravin B Shelar <pshelar@nicira.com>
+> Signed-off-by: Justin Pettit <jpettit@nicira.com>
+> Signed-off-by: Andy Zhou <azhou@nicira.com>
 
 Acked-by: Thomas Graf <tgraf@suug.ch>
