@@ -1,61 +1,33 @@
 From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [PATCHv5 net-next 05/10] openvswitch: Add conntrack action
-Date: Tue, 25 Aug 2015 20:25:27 +0200
-Message-ID: <20150825182527.GJ3707@pox.localdomain>
+Subject: Re: [PATCHv5 net-next 06/10] openvswitch: Allow matching on
+ conntrack mark
+Date: Tue, 25 Aug 2015 20:27:04 +0200
+Message-ID: <20150825182704.GK3707@pox.localdomain>
 References: <1440462740-23358-1-git-send-email-joestringer@nicira.com>
- <1440462740-23358-6-git-send-email-joestringer@nicira.com>
+ <1440462740-23358-7-git-send-email-joestringer@nicira.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netdev@vger.kernel.org, pshelar@nicira.com,
 	linux-kernel@vger.kernel.org, pablo@netfilter.org,
 	fwestpha@redhat.com, hannes@redhat.com, jpettit@nicira.com,
-	jesse@nicira.com, netfilter-devel@vger.kernel.org,
-	Andy Zhou <azhou@nicira.com>
+	jesse@nicira.com, netfilter-devel@vger.kernel.org
 To: Joe Stringer <joestringer@nicira.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1440462740-23358-6-git-send-email-joestringer@nicira.com>
+In-Reply-To: <1440462740-23358-7-git-send-email-joestringer@nicira.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 On 08/24/15 at 05:32pm, Joe Stringer wrote:
-> Expose the kernel connection tracker via OVS. Userspace components can
-> make use of the CT action to populate the connection state (ct_state)
-> field for a flow. This state can be subsequently matched.
+> Allow matching and setting the ct_mark field. As with ct_state and
+> ct_zone, these fields are populated when the CT action is executed. To
+> write to this field, a value and mask can be specified as a nested
+> attribute under the CT action. This data is stored with the conntrack
+> entry, and is executed after the lookup occurs for the CT action. The
+> conntrack entry itself must be committed using the COMMIT flag in the CT
+> action flags for this change to persist.
 > 
-> Exposed connection states are OVS_CS_F_*:
-> - NEW (0x01) - Beginning of a new connection.
-> - ESTABLISHED (0x02) - Part of an existing connection.
-> - RELATED (0x04) - Related to an established connection.
-> - INVALID (0x20) - Could not track the connection for this packet.
-> - REPLY_DIR (0x40) - This packet is in the reply direction for the flow.
-> - TRACKED (0x80) - This packet has been sent through conntrack.
-> 
-> When the CT action is executed by itself, it will send the packet
-> through the connection tracker and populate the ct_state field with one
-> or more of the connection state flags above. The CT action will always
-> set the TRACKED bit.
-> 
-> When the COMMIT flag is passed to the conntrack action, this specifies
-> that information about the connection should be stored. This allows
-> subsequent packets for the same (or related) connections to be
-> correlated with this connection. Sending subsequent packets for the
-> connection through conntrack allows the connection tracker to consider
-> the packets as ESTABLISHED, RELATED, and/or REPLY_DIR.
-> 
-> The CT action may optionally take a zone to track the flow within. This
-> allows connections with the same 5-tuple to be kept logically separate
-> from connections in other zones. If the zone is specified, then the
-> "ct_zone" match field will be subsequently populated with the zone id.
-> 
-> IP fragments are handled by transparently assembling them as part of the
-> CT action. The maximum received unit (MRU) size is tracked so that
-> refragmentation can occur during output.
-> 
-> IP frag handling contributed by Andy Zhou.
-> 
-> Signed-off-by: Joe Stringer <joestringer@nicira.com>
 > Signed-off-by: Justin Pettit <jpettit@nicira.com>
-> Signed-off-by: Andy Zhou <azhou@nicira.com>
+> Signed-off-by: Joe Stringer <joestringer@nicira.com>
 
 Acked-by: Thomas Graf <tgraf@suug.ch>
