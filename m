@@ -1,42 +1,48 @@
-From: Pravin Shelar <pshelar@nicira.com>
-Subject: Re: [PATCHv5 net-next 10/10] openvswitch: Allow attaching helpers to
- ct action
-Date: Tue, 25 Aug 2015 13:46:08 -0700
-Message-ID: <CALnjE+qAEMRTFZ2PPam46YcrigKbi=ZRq5eE1r273-gZmAMOwg@mail.gmail.com>
-References: <1440462740-23358-1-git-send-email-joestringer@nicira.com>
-	<1440462740-23358-11-git-send-email-joestringer@nicira.com>
+From: Anton Danilov <littlesmilingcloud@gmail.com>
+Subject: Re: How to set connmark on a socket descriptor from userspace?
+Date: Wed, 26 Aug 2015 13:16:07 +0300
+Message-ID: <CAEzD07+oRuQ=d6ASEU6faFvYoUpMmgS1CG480HcGKhYO+pKASQ@mail.gmail.com>
+References: <CACw4T0oawcgHdVkORUm9ONP2S8N+8_95ZCpDTMzHWmfKPZ5bQQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: netdev <netdev@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>, pablo <pablo@netfilter.org>,
-	Florian Westphal <fwestpha@redhat.com>,
-	Hannes Sowa <hannes@redhat.com>, Thomas Graf <tgraf@suug.ch>,
-	Justin Pettit <jpettit@nicira.com>,
-	Jesse Gross <jesse@nicira.com>, netfilter-devel@vger.kernel.org
-To: Joe Stringer <joestringer@nicira.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1440462740-23358-11-git-send-email-joestringer@nicira.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: David Hinkle <hinkle@cipafilter.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-yk0-f169.google.com ([209.85.160.169]:33637 "EHLO
+	mail-yk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751816AbbHZKQH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Aug 2015 06:16:07 -0400
+Received: by ykll84 with SMTP id l84so181018617ykl.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 26 Aug 2015 03:16:07 -0700 (PDT)
+In-Reply-To: <CACw4T0oawcgHdVkORUm9ONP2S8N+8_95ZCpDTMzHWmfKPZ5bQQ@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 24, 2015 at 5:32 PM, Joe Stringer <joestringer@nicira.com> wrote:
-> Add support for using conntrack helpers to assist protocol detection.
-> The new OVS_CT_ATTR_HELPER attribute of the CT action specifies a helper
-> to be used for this connection. If no helper is specified, then helpers
-> will be automatically applied as per the sysctl configuration of
-> net.netfilter.nf_conntrack_helper.
->
-> The helper may be specified as part of the conntrack action, eg:
-> ct(helper=ftp). Initial packets for related connections should be
-> committed to allow later packets for the flow to be considered
-> established.
->
-> Example ovs-ofctl flows allowing FTP connections from ports 1->2:
-> in_port=1,tcp,action=ct(helper=ftp,commit),2
-> in_port=2,tcp,ct_state=-trk,action=ct(recirc)
-> in_port=2,tcp,ct_state=+trk-new+est,action=1
-> in_port=2,tcp,ct_state=+trk+rel,action=1
->
-> Signed-off-by: Joe Stringer <joestringer@nicira.com>
+Hi.
+Use the SO_MARK option in the your application and -j CONNMARK
+--save-mark at mangle/OUTPUT.
 
-Acked-by: Pravin B Shelar <pshelar@nicira.com>
+2015-08-25 22:14 GMT+03:00 David Hinkle <hinkle@cipafilter.com>:
+> I want to be able to set the connmark on a socket controlled by my
+> application from user space.  Is there an API to do that already?
+>
+> I have been reviewing the kernel code and I can't seem to find one.
+> If there isn't, what would be your recommendation on the path to take
+> to implement such an option?  It looks like setsockopt shouldn't be
+> too hard to extend.  I guess extending ioctl or fcntl would be my
+> other options?  But I see at least one place where getsockopt already
+> interacts with conntrack data, handling SO_ORIGINAL_DST.
+>
+> Advice, docs, and suggestions greatly appreciated.  Thank you for your time.
+>
+> - David
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+-- 
+Anton.
