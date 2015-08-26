@@ -1,83 +1,41 @@
-From: Joe Stringer <joestringer@nicira.com>
-Subject: [PATCHv6 net-next 01/10] openvswitch: Serialize acts with original netlink len
-Date: Wed, 26 Aug 2015 11:31:44 -0700
-Message-ID: <1440613913-10141-2-git-send-email-joestringer@nicira.com>
-References: <1440613913-10141-1-git-send-email-joestringer@nicira.com>
-Cc: linux-kernel@vger.kernel.org, pablo@netfilter.org,
-	fwestpha@redhat.com, hannes@redhat.com, tgraf@suug.ch,
-	jpettit@nicira.com, jesse@nicira.com,
-	netfilter-devel@vger.kernel.org
-To: netdev@vger.kernel.org, pshelar@nicira.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1440613913-10141-1-git-send-email-joestringer@nicira.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [conntrack-tools PATCH] list: fix prefetch dummy
+Date: Wed, 26 Aug 2015 20:45:19 +0200
+Message-ID: <20150826184519.GA14982@salvia>
+References: <20150820104520.23066.45825.stgit@r2d2.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Arturo Borrero Gonzalez <aborrero@cica.es>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:49571 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752121AbbHZSi5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Aug 2015 14:38:57 -0400
+Content-Disposition: inline
+In-Reply-To: <20150820104520.23066.45825.stgit@r2d2.cica.es>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Previously, we used the kernel-internal netlink actions length to
-calculate the size of messages to serialize back to userspace.
-However,the sw_flow_actions may not be formatted exactly the same as the
-actions on the wire, so store the original actions length when
-de-serializing and re-use the original length when serializing.
+On Thu, Aug 20, 2015 at 12:45:20PM +0200, Arturo Borrero Gonzalez wrote=
+:
+> From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+>=20
+> [...]
+>   CC       conntrack.o
+> In file included from ../include/conntrack.h:4:0,
+>                  from conntrack.c:41:
+> conntrack.c: In function =E2=80=98findproto=E2=80=99:
+> ../include/linux_list.h:385:59: warning: right-hand operand of comma =
+expression has no effect [-Wunused-value]
+>   for (pos =3D list_entry((head)->next, typeof(*pos), member), \
+>                                                           ^
+> [...]
 
-Signed-off-by: Joe Stringer <joestringer@nicira.com>
-Acked-by: Pravin B Shelar <pshelar@nicira.com>
-Acked-by: Thomas Graf <tgraf@suug.ch>
----
-v2: No change.
-v3: Preserve original length across buffer resize.
-v4: Add ack.
-v5: No change.
-v6: Add ack.
----
- net/openvswitch/datapath.c     | 2 +-
- net/openvswitch/flow.h         | 1 +
- net/openvswitch/flow_netlink.c | 2 ++
- 3 files changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/net/openvswitch/datapath.c b/net/openvswitch/datapath.c
-index ffe984f..d5b5473 100644
---- a/net/openvswitch/datapath.c
-+++ b/net/openvswitch/datapath.c
-@@ -713,7 +713,7 @@ static size_t ovs_flow_cmd_msg_size(const struct sw_flow_actions *acts,
- 
- 	/* OVS_FLOW_ATTR_ACTIONS */
- 	if (should_fill_actions(ufid_flags))
--		len += nla_total_size(acts->actions_len);
-+		len += nla_total_size(acts->orig_len);
- 
- 	return len
- 		+ nla_total_size(sizeof(struct ovs_flow_stats)) /* OVS_FLOW_ATTR_STATS */
-diff --git a/net/openvswitch/flow.h b/net/openvswitch/flow.h
-index b62cdb3..082a87b 100644
---- a/net/openvswitch/flow.h
-+++ b/net/openvswitch/flow.h
-@@ -144,6 +144,7 @@ struct sw_flow_id {
- 
- struct sw_flow_actions {
- 	struct rcu_head rcu;
-+	size_t orig_len;	/* From flow_cmd_new netlink actions size */
- 	u32 actions_len;
- 	struct nlattr actions[];
- };
-diff --git a/net/openvswitch/flow_netlink.c b/net/openvswitch/flow_netlink.c
-index 4e7a3f7..c182b28 100644
---- a/net/openvswitch/flow_netlink.c
-+++ b/net/openvswitch/flow_netlink.c
-@@ -1619,6 +1619,7 @@ static struct nlattr *reserve_sfa_size(struct sw_flow_actions **sfa,
- 
- 	memcpy(acts->actions, (*sfa)->actions, (*sfa)->actions_len);
- 	acts->actions_len = (*sfa)->actions_len;
-+	acts->orig_len = (*sfa)->orig_len;
- 	kfree(*sfa);
- 	*sfa = acts;
- 
-@@ -2223,6 +2224,7 @@ int ovs_nla_copy_actions(const struct nlattr *attr,
- 	if (IS_ERR(*sfa))
- 		return PTR_ERR(*sfa);
- 
-+	(*sfa)->orig_len = nla_len(attr);
- 	err = __ovs_nla_copy_actions(attr, key, 0, sfa, key->eth.type,
- 				     key->eth.tci, log);
- 	if (err)
--- 
-2.1.4
+Thanks for taking care of this, Arturo.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
