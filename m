@@ -1,40 +1,39 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2 nf-next] added missing icmpv6 codes in REJECT
-Date: Wed, 26 Aug 2015 20:36:51 +0200
-Message-ID: <20150826183651.GA4407@salvia>
-References: <1440149492-27796-1-git-send-email-andi@geekosphere.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Andreas Herz <andi@geekosphere.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48977 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750836AbbHZSac (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Aug 2015 14:30:32 -0400
-Content-Disposition: inline
-In-Reply-To: <1440149492-27796-1-git-send-email-andi@geekosphere.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Joe Stringer <joestringer@nicira.com>
+Subject: [PATCHv6 net-next 03/10] ipv6: Export nf_ct_frag6_gather()
+Date: Wed, 26 Aug 2015 11:31:46 -0700
+Message-ID: <1440613913-10141-4-git-send-email-joestringer@nicira.com>
+References: <1440613913-10141-1-git-send-email-joestringer@nicira.com>
+Cc: linux-kernel@vger.kernel.org, pablo@netfilter.org,
+	fwestpha@redhat.com, hannes@redhat.com, tgraf@suug.ch,
+	jpettit@nicira.com, jesse@nicira.com,
+	netfilter-devel@vger.kernel.org
+To: netdev@vger.kernel.org, pshelar@nicira.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1440613913-10141-1-git-send-email-joestringer@nicira.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Aug 21, 2015 at 11:31:32AM +0200, Andreas Herz wrote:
-> RFC 4443 added two new codes values for ICMPv6 type 1:
-> 
->  5 - Source address failed ingress/egress policy
->  6 - Reject route to destination
-> 
-> And RFC 7084 states in L-14 that IPv6 Router MUST send ICMPv6 Destination
-> Unreachable with code 5 for packets forwarded to it that use an address 
-> from a prefix that has been invalidated.
+Signed-off-by: Joe Stringer <joestringer@nicira.com>
+Acked-by: Thomas Graf <tgraf@suug.ch>
+Acked-by: Pravin B Shelar <pshelar@nicira.com>
+---
+v4: Add ack.
+v5-v6: No change.
+---
+ net/ipv6/netfilter/nf_conntrack_reasm.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Applied, thanks. This is using the following patch subject in
-mainstream:
-
-        netfilter: ip6t_REJECT: added missing icmpv6 codes
-
-please, use
-
-        SYBSYS: COMPONENT: short description
-
-next time when submitting, that helps me to reduce janotoring stuff,
-but no problem this time.
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 6d02498..701cd2b 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -633,6 +633,7 @@ ret_orig:
+ 	kfree_skb(clone);
+ 	return skb;
+ }
++EXPORT_SYMBOL_GPL(nf_ct_frag6_gather);
+ 
+ void nf_ct_frag6_consume_orig(struct sk_buff *skb)
+ {
+-- 
+2.1.4
