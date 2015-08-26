@@ -1,22 +1,63 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] iptables: update gitignore list
-Date: Wed, 26 Aug 2015 21:09:54 +0200
-Message-ID: <20150826190954.GC23435@salvia>
-References: <1440069182-21380-1-git-send-email-vapier@gentoo.org>
- <1440073313-23936-1-git-send-email-vapier@gentoo.org>
+From: Pravin Shelar <pshelar@nicira.com>
+Subject: Re: [PATCHv6 net-next 05/10] openvswitch: Add conntrack action
+Date: Wed, 26 Aug 2015 13:40:16 -0700
+Message-ID: <CALnjE+oSsOT+WZpfypkfEv0+w9QaC_bW-LnKsjaE6PUsv73P3A@mail.gmail.com>
+References: <1440613913-10141-1-git-send-email-joestringer@nicira.com>
+	<1440613913-10141-6-git-send-email-joestringer@nicira.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Mike Frysinger <vapier@gentoo.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51250 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753034AbbHZTDg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Aug 2015 15:03:36 -0400
-Content-Disposition: inline
-In-Reply-To: <1440073313-23936-1-git-send-email-vapier@gentoo.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: netdev <netdev@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>, pablo <pablo@netfilter.org>,
+	Florian Westphal <fwestpha@redhat.com>,
+	Hannes Sowa <hannes@redhat.com>, Thomas Graf <tgraf@suug.ch>,
+	Justin Pettit <jpettit@nicira.com>,
+	Jesse Gross <jesse@nicira.com>,
+	netfilter-devel@vger.kernel.org, Andy Zhou <azhou@nicira.com>
+To: Joe Stringer <joestringer@nicira.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1440613913-10141-6-git-send-email-joestringer@nicira.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Applied, thanks.
+On Wed, Aug 26, 2015 at 11:31 AM, Joe Stringer <joestringer@nicira.com> wrote:
+> Expose the kernel connection tracker via OVS. Userspace components can
+> make use of the CT action to populate the connection state (ct_state)
+> field for a flow. This state can be subsequently matched.
+>
+> Exposed connection states are OVS_CS_F_*:
+> - NEW (0x01) - Beginning of a new connection.
+> - ESTABLISHED (0x02) - Part of an existing connection.
+> - RELATED (0x04) - Related to an established connection.
+> - INVALID (0x20) - Could not track the connection for this packet.
+> - REPLY_DIR (0x40) - This packet is in the reply direction for the flow.
+> - TRACKED (0x80) - This packet has been sent through conntrack.
+>
+> When the CT action is executed by itself, it will send the packet
+> through the connection tracker and populate the ct_state field with one
+> or more of the connection state flags above. The CT action will always
+> set the TRACKED bit.
+>
+> When the COMMIT flag is passed to the conntrack action, this specifies
+> that information about the connection should be stored. This allows
+> subsequent packets for the same (or related) connections to be
+> correlated with this connection. Sending subsequent packets for the
+> connection through conntrack allows the connection tracker to consider
+> the packets as ESTABLISHED, RELATED, and/or REPLY_DIR.
+>
+> The CT action may optionally take a zone to track the flow within. This
+> allows connections with the same 5-tuple to be kept logically separate
+> from connections in other zones. If the zone is specified, then the
+> "ct_zone" match field will be subsequently populated with the zone id.
+>
+> IP fragments are handled by transparently assembling them as part of the
+> CT action. The maximum received unit (MRU) size is tracked so that
+> refragmentation can occur during output.
+>
+> IP frag handling contributed by Andy Zhou.
+>
+> Signed-off-by: Joe Stringer <joestringer@nicira.com>
+> Signed-off-by: Justin Pettit <jpettit@nicira.com>
+> Signed-off-by: Andy Zhou <azhou@nicira.com>
+> Acked-by: Thomas Graf <tgraf@suug.ch>
 
+Acked-by: Pravin B Shelar <pshelar@nicira.com>
