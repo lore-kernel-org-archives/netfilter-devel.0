@@ -1,108 +1,61 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next] netfilter: reduce sparse warnings
-Date: Fri, 28 Aug 2015 00:16:21 +0200
-Message-ID: <1440713781-18260-1-git-send-email-fw@strlen.de>
+Subject: [PATCH -next] netfilter: nfnetlink: work around wrong endianess with old nft userspace
+Date: Fri, 28 Aug 2015 00:17:43 +0200
+Message-ID: <1440713863-18469-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:56493 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:56699 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756646AbbH0WQa (ORCPT
+	by vger.kernel.org with ESMTP id S1753892AbbH0XHs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Aug 2015 18:16:30 -0400
+	Thu, 27 Aug 2015 19:07:48 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-bridge/netfilter/ebtables.c:290:26: warning: incorrect type in assignment (different modifiers)
--> remove __pure annotation.
+The nfgenmsg res_id is __be16.  Unfortunately nftables batch support uses
+host byte order.
 
-ipv6/netfilter/ip6t_SYNPROXY.c:240:27: warning: cast from restricted __be16
--> switch ntohs to htons and vice versa.
+This adds a compat workaround for old nft userspace.
 
-netfilter/core.c:391:30: warning: symbol 'nfq_ct_nat_hook' was not declared. Should it be static?
--> delete it, got removed
-
-net/netfilter/nf_synproxy_core.c:221:48: warning: cast to restricted __be32
--> Use __be32 instead of u32.
-
-Tested with objdiff that these changes do not affect generated code.
-
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/bridge/netfilter/ebtables.c    | 2 +-
- net/ipv6/netfilter/ip6t_SYNPROXY.c | 2 +-
- net/netfilter/core.c               | 3 ---
- net/netfilter/nf_synproxy_core.c   | 6 +++---
- 4 files changed, 5 insertions(+), 8 deletions(-)
+ net/netfilter/nfnetlink.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 18ca4b2..48b6b01 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -176,7 +176,7 @@ ebt_basic_match(const struct ebt_entry *e, const struct sk_buff *skb,
- 	return 0;
- }
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 0c0e8ec..2e255ad 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -276,18 +276,24 @@ enum {
+ };
  
--static inline __pure
-+static inline
- struct ebt_entry *ebt_next_entry(const struct ebt_entry *entry)
+ static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
+-				u_int16_t subsys_id)
++				__be16 __subsys_id)
  {
- 	return (void *)entry + entry->next_offset;
-diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-index ebbb754..1e4bf99 100644
---- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
-+++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-@@ -237,7 +237,7 @@ synproxy_send_client_ack(const struct synproxy_net *snet,
- 	nth->ack_seq	= th->ack_seq;
- 	tcp_flag_word(nth) = TCP_FLAG_ACK;
- 	nth->doff	= tcp_hdr_size / 4;
--	nth->window	= ntohs(htons(th->window) >> opts->wscale);
-+	nth->window	= htons(ntohs(th->window) >> opts->wscale);
- 	nth->check	= 0;
- 	nth->urg_ptr	= 0;
+ 	struct sk_buff *oskb = skb;
+ 	struct net *net = sock_net(skb->sk);
+ 	const struct nfnetlink_subsystem *ss;
+ 	const struct nfnl_callback *nc;
+ 	static LIST_HEAD(err_list);
++	u16 subsys_id = ntohs(__subsys_id);
+ 	u32 status;
+ 	int err;
  
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 2a5a070..0b939b7 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -388,9 +388,6 @@ EXPORT_SYMBOL(nf_conntrack_destroy);
- struct nfq_ct_hook __rcu *nfq_ct_hook __read_mostly;
- EXPORT_SYMBOL_GPL(nfq_ct_hook);
+-	if (subsys_id >= NFNL_SUBSYS_COUNT)
+-		return netlink_ack(skb, nlh, -EINVAL);
++	if (subsys_id >= NFNL_SUBSYS_COUNT) {
++		/* Work around old nft using host byte order */
++		if (NFNL_SUBSYS_NFTABLES != (__force __u16) __subsys_id)
++			return netlink_ack(skb, nlh, -EINVAL);
++
++		subsys_id = (__force __u16) __subsys_id;
++	}
+ replay:
+ 	status = 0;
  
--struct nfq_ct_nat_hook __rcu *nfq_ct_nat_hook __read_mostly;
--EXPORT_SYMBOL_GPL(nfq_ct_nat_hook);
--
- #endif /* CONFIG_NF_CONNTRACK */
- 
- #ifdef CONFIG_NF_NAT_NEEDED
-diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
-index 8fbbdb0..888b955 100644
---- a/net/netfilter/nf_synproxy_core.c
-+++ b/net/netfilter/nf_synproxy_core.c
-@@ -188,7 +188,7 @@ unsigned int synproxy_tstamp_adjust(struct sk_buff *skb,
- 				    const struct nf_conn_synproxy *synproxy)
- {
- 	unsigned int optoff, optend;
--	u32 *ptr, old;
-+	__be32 *ptr, old;
- 
- 	if (synproxy->tsoff == 0)
- 		return 1;
-@@ -216,12 +216,12 @@ unsigned int synproxy_tstamp_adjust(struct sk_buff *skb,
- 			if (op[0] == TCPOPT_TIMESTAMP &&
- 			    op[1] == TCPOLEN_TIMESTAMP) {
- 				if (CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY) {
--					ptr = (u32 *)&op[2];
-+					ptr = (__be32 *)&op[2];
- 					old = *ptr;
- 					*ptr = htonl(ntohl(*ptr) -
- 						     synproxy->tsoff);
- 				} else {
--					ptr = (u32 *)&op[6];
-+					ptr = (__be32 *)&op[6];
- 					old = *ptr;
- 					*ptr = htonl(ntohl(*ptr) +
- 						     synproxy->tsoff);
 -- 
 2.0.5
 
