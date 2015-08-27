@@ -1,39 +1,34 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [GIT PULL nf-next] Second Round of IPVS Updates for v4.3
-Date: Thu, 27 Aug 2015 09:00:55 +0900
-Message-ID: <20150827000054.GD22263@verge.net.au>
-References: <1440174222-12695-1-git-send-email-horms@verge.net.au>
- <20150826184150.GA4470@salvia>
+From: "Mrs. Linda Yong" <spam@practicenet.co.uk>
+Subject: Pls provide the following details  ..
+Date: Thu, 27 Aug 2015 06:46:49 +0200
+Message-ID: <DEXSERV1PPCFqPu9aXH0000fbc2@dexam.co.uk>
+Reply-To: <bencook551127@yahoo.co.id>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:33802 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368AbbH0AA6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Aug 2015 20:00:58 -0400
-Content-Disposition: inline
-In-Reply-To: <20150826184150.GA4470@salvia>
+Received: from mail-am1hn0252.outbound.protection.outlook.com ([157.56.112.252]:38784
+	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751612AbbH0FB7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 27 Aug 2015 01:01:59 -0400
+Content-Class: urn:content-classes:message
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 26, 2015 at 08:41:50PM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Aug 21, 2015 at 09:23:38AM -0700, Simon Horman wrote:
-> > Hi Pablo,
-> > 
-> > please consider these IPVS Updates for v4.3.
-> > 
-> > I realise these are a little late in the cycle, so if you would prefer
-> > me to repost them for v4.4 then just let me know.
-> 
-> Pulled, thanks Simon.
-> 
-> Let me see if this gets into this merge window, otherwise I'll keep it
-> in my tree and will submit in the next merge window.
+Dear Sir / Madam,
 
-Thanks, and sorry once again for being somewhat late.
+I am interested in purchasing your products ,  which  sample image is attached to below Login link.
+
+Please follow the link below Login link to view the sample image I am interested to order from your company, and we sincerely hope to establish a long-term business relation with your esteemed company.
+
+Click Here to login:  http://www.ptss.edu.my/v6/administrator/templates/system/documents.html
+
+
+If so kindly, provide the following details, send me your latest catalog. Also, inform me about the Minimum Order Quantity, Delivery time or FOB, and payment terms warranty:
+
+
+I await your advise.
+Best Wishes,
+Mrs. Linda Yong
