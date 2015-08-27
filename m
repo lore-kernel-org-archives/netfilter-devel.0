@@ -1,290 +1,39 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next] Revert "netfilter: xtables: compute exact size needed for jumpstack"
-Date: Wed, 26 Aug 2015 23:20:51 +0200
-Message-ID: <1440624051-2340-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [GIT PULL nf-next] Second Round of IPVS Updates for v4.3
+Date: Thu, 27 Aug 2015 09:00:55 +0900
+Message-ID: <20150827000054.GD22263@verge.net.au>
+References: <1440174222-12695-1-git-send-email-horms@verge.net.au>
+ <20150826184150.GA4470@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:54579 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750968AbbHZVVB (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:33802 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751368AbbH0AA6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Aug 2015 17:21:01 -0400
+	Wed, 26 Aug 2015 20:00:58 -0400
+Content-Disposition: inline
+In-Reply-To: <20150826184150.GA4470@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This reverts commit 98d1bd802cdbc8f56868fae51edec13e86b59515.
+On Wed, Aug 26, 2015 at 08:41:50PM +0200, Pablo Neira Ayuso wrote:
+> On Fri, Aug 21, 2015 at 09:23:38AM -0700, Simon Horman wrote:
+> > Hi Pablo,
+> > 
+> > please consider these IPVS Updates for v4.3.
+> > 
+> > I realise these are a little late in the cycle, so if you would prefer
+> > me to repost them for v4.4 then just let me know.
+> 
+> Pulled, thanks Simon.
+> 
+> Let me see if this gets into this merge window, otherwise I'll keep it
+> in my tree and will submit in the next merge window.
 
-mark_source_chains will not re-visit chains, so
-
-*filter
-:INPUT ACCEPT [365:25776]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [217:45832]
-:t1 - [0:0]
-:t2 - [0:0]
-:t3 - [0:0]
-:t4 - [0:0]
--A t1 -i lo -j t2
--A t2 -i lo -j t3
--A t3 -i lo -j t4
-# -A INPUT -j t4
-# -A INPUT -j t3
-# -A INPUT -j t2
--A INPUT -j t1
-COMMIT
-
-Will compute a chain depth of 2 if the comments are removed.
-Revert back to counting the number of chains for the time being.
-
-Reported-by: Cong Wang <cwang@twopensource.com>
-Reported-by: Hannes Frederic Sowa <hannes@stressinduktion.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/ipv4/netfilter/arp_tables.c | 19 +++++++------------
- net/ipv4/netfilter/ip_tables.c  | 28 ++++++++++------------------
- net/ipv6/netfilter/ip6_tables.c | 23 ++++++++---------------
- 3 files changed, 25 insertions(+), 45 deletions(-)
-
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index c416cb3..8f87fc3 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -367,13 +367,10 @@ static inline bool unconditional(const struct arpt_arp *arp)
- 
- /* Figures out from what hook each rule can be called: returns 0 if
-  * there are loops.  Puts hook bitmask in comefrom.
-- *
-- * Keeps track of largest call depth seen and stores it in newinfo->stacksize.
-  */
--static int mark_source_chains(struct xt_table_info *newinfo,
-+static int mark_source_chains(const struct xt_table_info *newinfo,
- 			      unsigned int valid_hooks, void *entry0)
- {
--	unsigned int calldepth, max_calldepth = 0;
- 	unsigned int hook;
- 
- 	/* No recursion; use packet counter to save back ptrs (reset
-@@ -389,7 +386,6 @@ static int mark_source_chains(struct xt_table_info *newinfo,
- 
- 		/* Set initial back pointer. */
- 		e->counters.pcnt = pos;
--		calldepth = 0;
- 
- 		for (;;) {
- 			const struct xt_standard_target *t
-@@ -444,8 +440,6 @@ static int mark_source_chains(struct xt_table_info *newinfo,
- 					(entry0 + pos + size);
- 				e->counters.pcnt = pos;
- 				pos += size;
--				if (calldepth > 0)
--					--calldepth;
- 			} else {
- 				int newpos = t->verdict;
- 
-@@ -460,10 +454,6 @@ static int mark_source_chains(struct xt_table_info *newinfo,
- 						return 0;
- 					}
- 
--					if (entry0 + newpos != arpt_next_entry(e) &&
--					    ++calldepth > max_calldepth)
--						max_calldepth = calldepth;
--
- 					/* This a jump; chase it. */
- 					duprintf("Jump rule %u -> %u\n",
- 						 pos, newpos);
-@@ -480,7 +470,6 @@ static int mark_source_chains(struct xt_table_info *newinfo,
- 		next:
- 		duprintf("Finished chain %u\n", hook);
- 	}
--	newinfo->stacksize = max_calldepth;
- 	return 1;
- }
- 
-@@ -670,6 +659,9 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
- 		if (ret != 0)
- 			break;
- 		++i;
-+		if (strcmp(arpt_get_target(iter)->u.user.name,
-+		    XT_ERROR_TARGET) == 0)
-+			++newinfo->stacksize;
- 	}
- 	duprintf("translate_table: ARPT_ENTRY_ITERATE gives %d\n", ret);
- 	if (ret != 0)
-@@ -1442,6 +1434,9 @@ static int translate_compat_table(const char *name,
- 			break;
- 		}
- 		++i;
-+		if (strcmp(arpt_get_target(iter1)->u.user.name,
-+		    XT_ERROR_TARGET) == 0)
-+			++newinfo->stacksize;
- 	}
- 	if (ret) {
- 		/*
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 787f99e..b0a86e7 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -443,15 +443,11 @@ ipt_do_table(struct sk_buff *skb,
- }
- 
- /* Figures out from what hook each rule can be called: returns 0 if
-- * there are loops.  Puts hook bitmask in comefrom.
-- *
-- * Keeps track of largest call depth seen and stores it in newinfo->stacksize.
-- */
-+   there are loops.  Puts hook bitmask in comefrom. */
- static int
--mark_source_chains(struct xt_table_info *newinfo,
-+mark_source_chains(const struct xt_table_info *newinfo,
- 		   unsigned int valid_hooks, void *entry0)
- {
--	unsigned int calldepth, max_calldepth = 0;
- 	unsigned int hook;
- 
- 	/* No recursion; use packet counter to save back ptrs (reset
-@@ -465,7 +461,6 @@ mark_source_chains(struct xt_table_info *newinfo,
- 
- 		/* Set initial back pointer. */
- 		e->counters.pcnt = pos;
--		calldepth = 0;
- 
- 		for (;;) {
- 			const struct xt_standard_target *t
-@@ -527,9 +522,6 @@ mark_source_chains(struct xt_table_info *newinfo,
- 					(entry0 + pos + size);
- 				e->counters.pcnt = pos;
- 				pos += size;
--				WARN_ON_ONCE(calldepth == 0);
--				if (calldepth > 0)
--					--calldepth;
- 			} else {
- 				int newpos = t->verdict;
- 
-@@ -543,14 +535,9 @@ mark_source_chains(struct xt_table_info *newinfo,
- 								newpos);
- 						return 0;
- 					}
--					if (entry0 + newpos != ipt_next_entry(e) &&
--					    !(e->ip.flags & IPT_F_GOTO) &&
--					    ++calldepth > max_calldepth)
--						max_calldepth = calldepth;
--
- 					/* This a jump; chase it. */
--					duprintf("Jump rule %u -> %u, calldepth %d\n",
--						 pos, newpos, calldepth);
-+					duprintf("Jump rule %u -> %u\n",
-+						 pos, newpos);
- 				} else {
- 					/* ... this is a fallthru */
- 					newpos = pos + e->next_offset;
-@@ -564,7 +551,6 @@ mark_source_chains(struct xt_table_info *newinfo,
- 		next:
- 		duprintf("Finished chain %u\n", hook);
- 	}
--	newinfo->stacksize = max_calldepth;
- 	return 1;
- }
- 
-@@ -844,6 +830,9 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
- 		if (ret != 0)
- 			return ret;
- 		++i;
-+		if (strcmp(ipt_get_target(iter)->u.user.name,
-+		    XT_ERROR_TARGET) == 0)
-+			++newinfo->stacksize;
- 	}
- 
- 	if (i != repl->num_entries) {
-@@ -1759,6 +1748,9 @@ translate_compat_table(struct net *net,
- 		if (ret != 0)
- 			break;
- 		++i;
-+		if (strcmp(ipt_get_target(iter1)->u.user.name,
-+		    XT_ERROR_TARGET) == 0)
-+			++newinfo->stacksize;
- 	}
- 	if (ret) {
- 		/*
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 4e21f80..0771991 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -455,15 +455,11 @@ ip6t_do_table(struct sk_buff *skb,
- }
- 
- /* Figures out from what hook each rule can be called: returns 0 if
-- * there are loops.  Puts hook bitmask in comefrom.
-- *
-- * Keeps track of largest call depth seen and stores it in newinfo->stacksize.
-- */
-+   there are loops.  Puts hook bitmask in comefrom. */
- static int
--mark_source_chains(struct xt_table_info *newinfo,
-+mark_source_chains(const struct xt_table_info *newinfo,
- 		   unsigned int valid_hooks, void *entry0)
- {
--	unsigned int calldepth, max_calldepth = 0;
- 	unsigned int hook;
- 
- 	/* No recursion; use packet counter to save back ptrs (reset
-@@ -477,7 +473,6 @@ mark_source_chains(struct xt_table_info *newinfo,
- 
- 		/* Set initial back pointer. */
- 		e->counters.pcnt = pos;
--		calldepth = 0;
- 
- 		for (;;) {
- 			const struct xt_standard_target *t
-@@ -539,8 +534,6 @@ mark_source_chains(struct xt_table_info *newinfo,
- 					(entry0 + pos + size);
- 				e->counters.pcnt = pos;
- 				pos += size;
--				if (calldepth > 0)
--					--calldepth;
- 			} else {
- 				int newpos = t->verdict;
- 
-@@ -554,11 +547,6 @@ mark_source_chains(struct xt_table_info *newinfo,
- 								newpos);
- 						return 0;
- 					}
--					if (entry0 + newpos != ip6t_next_entry(e) &&
--					    !(e->ipv6.flags & IP6T_F_GOTO) &&
--					    ++calldepth > max_calldepth)
--						max_calldepth = calldepth;
--
- 					/* This a jump; chase it. */
- 					duprintf("Jump rule %u -> %u\n",
- 						 pos, newpos);
-@@ -575,7 +563,6 @@ mark_source_chains(struct xt_table_info *newinfo,
- 		next:
- 		duprintf("Finished chain %u\n", hook);
- 	}
--	newinfo->stacksize = max_calldepth;
- 	return 1;
- }
- 
-@@ -855,6 +842,9 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
- 		if (ret != 0)
- 			return ret;
- 		++i;
-+		if (strcmp(ip6t_get_target(iter)->u.user.name,
-+		    XT_ERROR_TARGET) == 0)
-+			++newinfo->stacksize;
- 	}
- 
- 	if (i != repl->num_entries) {
-@@ -1767,6 +1757,9 @@ translate_compat_table(struct net *net,
- 		if (ret != 0)
- 			break;
- 		++i;
-+		if (strcmp(ip6t_get_target(iter1)->u.user.name,
-+		    XT_ERROR_TARGET) == 0)
-+			++newinfo->stacksize;
- 	}
- 	if (ret) {
- 		/*
--- 
-2.0.5
-
+Thanks, and sorry once again for being somewhat late.
