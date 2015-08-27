@@ -1,84 +1,52 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [conntrackd] allowing DisableExternalCache in alarm mode
-Date: Thu, 27 Aug 2015 12:57:42 +0200
-Message-ID: <CAOkSjBh2KtYcSEQ7=h_h+R9CE53pwGtBAiQ_OZF0aTX0fhY0fw@mail.gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: nftables batch abi broken ...
+Date: Thu, 27 Aug 2015 17:31:51 +0200
+Message-ID: <20150827153151.GA17804@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:33530 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752738AbbH0K6D convert rfc822-to-8bit (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:55915 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751559AbbH0Pbx (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Aug 2015 06:58:03 -0400
-Received: by lbbsx3 with SMTP id sx3so8910915lbb.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Aug 2015 03:58:02 -0700 (PDT)
+	Thu, 27 Aug 2015 11:31:53 -0400
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.80)
+	(envelope-from <fw@strlen.de>)
+	id 1ZUz9b-0005KL-JZ
+	for netfilter-devel@vger.kernel.org; Thu, 27 Aug 2015 17:31:51 +0200
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hi.
 
-The documentation about DisableExternalCache reads:
+batch handling in libnftnl uses this:
+libnftnl/src/common.c:  nfg->res_id = NFNL_SUBSYS_NFTABLES;
 
- <<<
- [...]
- You can also use this option with the NOTRACK and ALARM modes.
- This increases CPU consumption in the backup firewall but now you do n=
-ot
- need to commit the flow-states during the master failures since they a=
-re
- already in the in-kernel Connection Tracking table. Moreover, you save
- memory in the backup firewall since you do not need to store the
- foreign flow-states anymore.
- >>>
+It SHOULD be:
+libnftnl/src/common.c:  nfg->res_id = htons(NFNL_SUBSYS_NFTABLES)
 
-However, the config parser doesn't allows it. Patch seems rather trivia=
-l:
+since res_id is a __be16.
 
-diff --git a/src/read_config_yy.y b/src/read_config_yy.y
-index 73fabbf..d53aa70 100644
---- a/src/read_config_yy.y
-+++ b/src/read_config_yy.y
-@@ -908,6 +908,7 @@ sync_mode_alarm_line: refreshtime
-                         | purge
-                         | relax_transitions
-                         | delay_destroy_msgs
-+                        | disable_external_cache
-                         ;
+The kernel contains the same error when decoding batch messages
+which is why this works :-/
 
- sync_mode_ftfw_list:
+I found this problem when looking at sparse error reports on the kernel
+where sparse complains about the following line in nfnetlink_rcv():
 
+    nfnetlink_rcv_batch(skb, nlh, nfgenmsg->res_id);
 
-However, there seems to be some missing bits somewhere, the backup
-node prints this in the logs:
+and sparse complaint is correct, __be16 is treated as u16 without
+conversion.
 
-[...]
-[Thu Aug 27 12:49:46 2015] (pid=3D15176) [ERROR] inject-add2: No such
-file or directory
-Thu Aug 27 12:49:46 2015 tcp      6 17949 ESTABLISHED
-src=3D192.162.26.14 dst=3D192.168.5.134 sport=3D39089 dport=3D2015 [ASS=
-URED]
-mark=3D0
-[Thu Aug 27 12:49:56 2015] (pid=3D15176) [ERROR] inject-add2: No such
-file or directory
-Thu Aug 27 12:49:56 2015 tcp      6 17949 ESTABLISHED
-src=3D192.162.26.14 dst=3D192.168.5.134 sport=3D39089 dport=3D2015 [ASS=
-URED]
-mark=3D0
-[...]
+How to fix this?
+If we want to maintain ABI on Little Endian only solution is to "fix"
+it in kernel by annotating this with explicit cast to u16.
 
-Note, always the same connection. In my busy test environment, this
-ENOENT happens every few seconds Perhaps a race condition somewhere?
+But it sucks since ->res_id is used via htons/ntohs in all other places
+:-/
 
-I would appreciate any hint/advice/pointer.
+Any ideas?
 
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Fix userspace and play 'guess todays endianess' in the kernel...?
