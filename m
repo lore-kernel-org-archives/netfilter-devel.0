@@ -1,40 +1,108 @@
-From: Ben cook <spam@practicenet.co.uk>
-Subject: Best regards, TO NEXT OF KIN.........
-Date: Thu, 27 Aug 2015 21:03:42 +0200
-Message-ID: <DEXSERV1YXUkzni5rWq00001965__37452.7581422173$1440702253$gmane$org@dexam.co.uk>
-Reply-To: <ben.cook5511@yahoo.co.nz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH -next] netfilter: reduce sparse warnings
+Date: Fri, 28 Aug 2015 00:16:21 +0200
+Message-ID: <1440713781-18260-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-am1hn0245.outbound.protection.outlook.com ([157.56.112.245]:6892
-	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751754AbbH0TDr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Aug 2015 15:03:47 -0400
-Content-Class: urn:content-classes:message
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:56493 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756646AbbH0WQa (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 27 Aug 2015 18:16:30 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Barrister Ben Cook
-La Sagrada Familia Calle Mallorca,
-601 08713 Seville Spain.
-Mobil: +34 631 093 714
+bridge/netfilter/ebtables.c:290:26: warning: incorrect type in assignment (different modifiers)
+-> remove __pure annotation.
 
-> Attn: Dear Friend,
->
-I am Barrister Ben Cook a solicitor at law. I am the personal attorney to late Mr. Robert a national of your country, who was an official contractor (category D) with REPSOL YPF, SPAIN (RY) an oil firm in Spain. Here in after shall be referred to as my client. On the 11th of March 2010, my client, his wife and their two only sons were involved in a car accident on holiday trip along Las Palmas express way. All occupants of the vehicle unfortunately lost their lives. Since then I have made several enquiries and presentations to locate any of my client's extended relatives, this has also proved abortive. It is after these several unsuccessful attempts to locate any member of his family failed that I decided to contact you since coincidentally you have your last name believing that you can in
- variably be of help in this situation to stands as the next of kin to this my client. I am contacting you to assist in repatriating the money and property left behind by my client before th!
-!ey get confiscated or declared uns
->
-Already, the finance company where the deceased had an account valued at about 1 Million Euros has issued me a notice/ultimatum to provide the next of kin or have the account confiscated within the next one Month. Since It has been unsuccessful in locating the relatives for over 2 years now, I seek your consent to present you as the next of kin of the deceased, so that the proceeds of this account valued at 1 Million Euros can be paid to your account and there after we can share the fund (money) in the ratio of 7:3. That is, I will have 70% of the proceed while you have 30% for your assistance. I have all necessary legal documents that can be used to back up any claim we may make. All I require is your honest co-operation to enable us see this transaction through .I guarantee that this wil
- l be executed under a legitimate arrangement that will protect you from any breach of the law.
+ipv6/netfilter/ip6t_SYNPROXY.c:240:27: warning: cast from restricted __be16
+-> switch ntohs to htons and vice versa.
 
-Please get in touch with me by my email and send to me your telephone and fax numbers to enable us discuss further about this transaction.
->
-Best regards,
-Barrister Ben Cook
+netfilter/core.c:391:30: warning: symbol 'nfq_ct_nat_hook' was not declared. Should it be static?
+-> delete it, got removed
 
+net/netfilter/nf_synproxy_core.c:221:48: warning: cast to restricted __be32
+-> Use __be32 instead of u32.
 
-=============MAX============= 
+Tested with objdiff that these changes do not affect generated code.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/bridge/netfilter/ebtables.c    | 2 +-
+ net/ipv6/netfilter/ip6t_SYNPROXY.c | 2 +-
+ net/netfilter/core.c               | 3 ---
+ net/netfilter/nf_synproxy_core.c   | 6 +++---
+ 4 files changed, 5 insertions(+), 8 deletions(-)
+
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 18ca4b2..48b6b01 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -176,7 +176,7 @@ ebt_basic_match(const struct ebt_entry *e, const struct sk_buff *skb,
+ 	return 0;
+ }
+ 
+-static inline __pure
++static inline
+ struct ebt_entry *ebt_next_entry(const struct ebt_entry *entry)
+ {
+ 	return (void *)entry + entry->next_offset;
+diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+index ebbb754..1e4bf99 100644
+--- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
++++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+@@ -237,7 +237,7 @@ synproxy_send_client_ack(const struct synproxy_net *snet,
+ 	nth->ack_seq	= th->ack_seq;
+ 	tcp_flag_word(nth) = TCP_FLAG_ACK;
+ 	nth->doff	= tcp_hdr_size / 4;
+-	nth->window	= ntohs(htons(th->window) >> opts->wscale);
++	nth->window	= htons(ntohs(th->window) >> opts->wscale);
+ 	nth->check	= 0;
+ 	nth->urg_ptr	= 0;
+ 
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 2a5a070..0b939b7 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -388,9 +388,6 @@ EXPORT_SYMBOL(nf_conntrack_destroy);
+ struct nfq_ct_hook __rcu *nfq_ct_hook __read_mostly;
+ EXPORT_SYMBOL_GPL(nfq_ct_hook);
+ 
+-struct nfq_ct_nat_hook __rcu *nfq_ct_nat_hook __read_mostly;
+-EXPORT_SYMBOL_GPL(nfq_ct_nat_hook);
+-
+ #endif /* CONFIG_NF_CONNTRACK */
+ 
+ #ifdef CONFIG_NF_NAT_NEEDED
+diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+index 8fbbdb0..888b955 100644
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -188,7 +188,7 @@ unsigned int synproxy_tstamp_adjust(struct sk_buff *skb,
+ 				    const struct nf_conn_synproxy *synproxy)
+ {
+ 	unsigned int optoff, optend;
+-	u32 *ptr, old;
++	__be32 *ptr, old;
+ 
+ 	if (synproxy->tsoff == 0)
+ 		return 1;
+@@ -216,12 +216,12 @@ unsigned int synproxy_tstamp_adjust(struct sk_buff *skb,
+ 			if (op[0] == TCPOPT_TIMESTAMP &&
+ 			    op[1] == TCPOLEN_TIMESTAMP) {
+ 				if (CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY) {
+-					ptr = (u32 *)&op[2];
++					ptr = (__be32 *)&op[2];
+ 					old = *ptr;
+ 					*ptr = htonl(ntohl(*ptr) -
+ 						     synproxy->tsoff);
+ 				} else {
+-					ptr = (u32 *)&op[6];
++					ptr = (__be32 *)&op[6];
+ 					old = *ptr;
+ 					*ptr = htonl(ntohl(*ptr) +
+ 						     synproxy->tsoff);
+-- 
+2.0.5
+
