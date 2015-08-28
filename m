@@ -1,71 +1,59 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 7/9] netfilter: ip6t_REJECT: added missing icmpv6 codes
-Date: Sat, 29 Aug 2015 00:50:15 +0200
-Message-ID: <1440802217-13080-8-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 6/9] netfilter: xt_TEE: use IS_ENABLED(CONFIG_NF_DUP_IPV6)
+Date: Sat, 29 Aug 2015 00:50:14 +0200
+Message-ID: <1440802217-13080-7-git-send-email-pablo@netfilter.org>
 References: <1440802217-13080-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42131 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42124 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753193AbbH1WoN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Aug 2015 18:44:13 -0400
+	id S1753157AbbH1WoK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 28 Aug 2015 18:44:10 -0400
 In-Reply-To: <1440802217-13080-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Andreas Herz <andi@geekosphere.org>
+Instead of IS_ENABLED(CONFIG_IPV6), otherwise we hit:
 
-RFC 4443 added two new codes values for ICMPv6 type 1:
+et/built-in.o: In function `tee_tg6':
+>> xt_TEE.c:(.text+0x6cd8c): undefined reference to `nf_dup_ipv6'
 
- 5 - Source address failed ingress/egress policy
- 6 - Reject route to destination
+when:
 
-And RFC 7084 states in L-14 that IPv6 Router MUST send ICMPv6 Destination
-Unreachable with code 5 for packets forwarded to it that use an address
-from a prefix that has been invalidated.
+ CONFIG_IPV6=y
+ CONFIG_NF_DUP_IPV4=y
+ # CONFIG_NF_DUP_IPV6 is not set
+ CONFIG_NETFILTER_XT_TARGET_TEE=y
 
-Codes 5 and 6 are more informative subsets of code 1.
-
-Signed-off-by: Andreas Herz <andi@geekosphere.org>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter_ipv6/ip6t_REJECT.h |    4 +++-
- net/ipv6/netfilter/ip6t_REJECT.c                |    6 ++++++
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ net/netfilter/xt_TEE.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_REJECT.h b/include/uapi/linux/netfilter_ipv6/ip6t_REJECT.h
-index 205ed62..cd2e940 100644
---- a/include/uapi/linux/netfilter_ipv6/ip6t_REJECT.h
-+++ b/include/uapi/linux/netfilter_ipv6/ip6t_REJECT.h
-@@ -10,7 +10,9 @@ enum ip6t_reject_with {
- 	IP6T_ICMP6_ADDR_UNREACH,
- 	IP6T_ICMP6_PORT_UNREACH,
- 	IP6T_ICMP6_ECHOREPLY,
--	IP6T_TCP_RESET
-+	IP6T_TCP_RESET,
-+	IP6T_ICMP6_POLICY_FAIL,
-+	IP6T_ICMP6_REJECT_ROUTE
- };
+diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
+index 49fee6a..fd980aa 100644
+--- a/net/netfilter/xt_TEE.c
++++ b/net/netfilter/xt_TEE.c
+@@ -37,7 +37,7 @@ tee_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ 	return XT_CONTINUE;
+ }
  
- struct ip6t_reject_info {
-diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
-index 567367a..0ed841a 100644
---- a/net/ipv6/netfilter/ip6t_REJECT.c
-+++ b/net/ipv6/netfilter/ip6t_REJECT.c
-@@ -63,6 +63,12 @@ reject_tg6(struct sk_buff *skb, const struct xt_action_param *par)
- 	case IP6T_TCP_RESET:
- 		nf_send_reset6(net, skb, par->hooknum);
- 		break;
-+	case IP6T_ICMP6_POLICY_FAIL:
-+		nf_send_unreach6(net, skb, ICMPV6_POLICY_FAIL, par->hooknum);
-+		break;
-+	case IP6T_ICMP6_REJECT_ROUTE:
-+		nf_send_unreach6(net, skb, ICMPV6_REJECT_ROUTE, par->hooknum);
-+		break;
- 	}
- 
- 	return NF_DROP;
+-#if IS_ENABLED(CONFIG_IPV6)
++#if IS_ENABLED(CONFIG_NF_DUP_IPV6)
+ static unsigned int
+ tee_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+@@ -129,7 +129,7 @@ static struct xt_target tee_tg_reg[] __read_mostly = {
+ 		.destroy    = tee_tg_destroy,
+ 		.me         = THIS_MODULE,
+ 	},
+-#if IS_ENABLED(CONFIG_IPV6)
++#if IS_ENABLED(CONFIG_NF_DUP_IPV6)
+ 	{
+ 		.name       = "TEE",
+ 		.revision   = 1,
 -- 
 1.7.10.4
 
