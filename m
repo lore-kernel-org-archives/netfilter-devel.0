@@ -1,75 +1,156 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [conntrackd] allowing DisableExternalCache in alarm mode
-Date: Fri, 28 Aug 2015 18:49:12 +0200
-Message-ID: <20150828164912.GD3436@salvia>
-References: <CAOkSjBh2KtYcSEQ7=h_h+R9CE53pwGtBAiQ_OZF0aTX0fhY0fw@mail.gmail.com>
+From: Jeff Haran <Jeff.Haran@citrix.com>
+Subject: RE: Identify Beacon Frame
+Date: Fri, 28 Aug 2015 17:10:08 +0000
+Message-ID: <4E5779AD88B2F040B8A7E83ECF544D1A622B53@SJCPEX01CL03.citrite.net>
+References: <CANBLUyKDCCZ1dFDQz4rVU94mW9RTxFNjWeB9w8Zxp9jx+jLRrQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
+Content-Type: multipart/mixed; boundary="===============3617868189051953546=="
+To: Gunjan Mehta <gunjanmehta08@gmail.com>, kernelnewbies
+	<kernelnewbies@kernelnewbies.org>, "netfilter-devel@vger.kernel.org"
 	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47725 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751991AbbH1Qmw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Aug 2015 12:42:52 -0400
+Return-path: <kernelnewbies-bounces@kernelnewbies.org>
+In-Reply-To: <CANBLUyKDCCZ1dFDQz4rVU94mW9RTxFNjWeB9w8Zxp9jx+jLRrQ@mail.gmail.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.kernelnewbies.org/mailman/listinfo/kernelnewbies>,
+	<mailto:kernelnewbies-request@kernelnewbies.org?subject=unsubscribe>
+List-Archive: <http://lists.kernelnewbies.org/pipermail/kernelnewbies>
+List-Post: <mailto:kernelnewbies@kernelnewbies.org>
+List-Help: <mailto:kernelnewbies-request@kernelnewbies.org?subject=help>
+List-Subscribe: <http://lists.kernelnewbies.org/mailman/listinfo/kernelnewbies>,
+	<mailto:kernelnewbies-request@kernelnewbies.org?subject=subscribe>
+Sender: kernelnewbies-bounces@kernelnewbies.org
+Errors-To: kernelnewbies-bounces@kernelnewbies.org
+List-Id: netfilter-devel.vger.kernel.org
+
+--===============3617868189051953546==
+Content-Language: en-US
+Content-Type: multipart/alternative;
+	boundary="_000_4E5779AD88B2F040B8A7E83ECF544D1A622B53SJCPEX01CL03citri_"
+
+--_000_4E5779AD88B2F040B8A7E83ECF544D1A622B53SJCPEX01CL03citri_
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+
+DQoNCkZyb206IGtlcm5lbG5ld2JpZXMtYm91bmNlc0BrZXJuZWxuZXdiaWVzLm9yZyBbbWFpbHRv
+Omtlcm5lbG5ld2JpZXMtYm91bmNlc0BrZXJuZWxuZXdiaWVzLm9yZ10gT24gQmVoYWxmIE9mIEd1
+bmphbiBNZWh0YQ0KU2VudDogRnJpZGF5LCBBdWd1c3QgMjgsIDIwMTUgOToyMSBBTQ0KVG86IGtl
+cm5lbG5ld2JpZXM7IG5ldGZpbHRlci1kZXZlbEB2Z2VyLmtlcm5lbC5vcmcNClN1YmplY3Q6IElk
+ZW50aWZ5IEJlYWNvbiBGcmFtZQ0KDQpIaSBBbGwsDQoNCkkgYW0gbmV3IHRvIGtlcm5lbCBkZXZl
+bG9wbWVudC4gSSBhbSB3cml0aW5nIGEga2VybmVsIG1vZHVsZSB0aGF0IGNhcHR1cmVzIHBhY2tl
+dCBhdCB0aGUgbmV0ZmlsdGVyIHByZSAtIHJvdXRpbmcgaG9vay4NCg0KSSBvbmx5IHdhbnQgdG8g
+Y2FwdHVyZSB0aGUgQkVBQ09OIEZSQU1FLg0KDQpJIGhhdmUgZmV3IHF1ZXJpZXM6DQoNCjE+V2hl
+biB0aGUgYmVhY29uIGZyYW1lIGNvbWVzIHRvIHJlY2VpdmluZyBtYWNoaW5lIGRvIHRoZSBza19i
+dWZmIGdldHMgYWxsb2NhdGVkPw0KMj4gSG93IGNhbiBpIGlkZW50aWZ5IHRoZSBiZWFjb24gZnJh
+bWUgYXQgdGhlIHByZSByb3V0aW5nIGhvb2s/DQozPiBCZWFjb24gZnJhbWUgY29uc2lzdCBvZiBh
+IHN0cmluZyBmb3IgYXV0aGVudGljYXRpb24gb2YgY2xpZW50IHdpdGggdGhlIHNlcnZlciwgY2Fu
+IGkgdXNlIHNrX2J1ZmYgcG9pbnRlcnMgdG8gZ2V0IGFjY2VzcyB0byB0aGF0IHN0cmluZywgaWYg
+c2tfYnVmZiBpcyBhbGxvY2F0ZWQ/DQoNClJlZ2FyZHMNCkd1bmphbg0KDQpUaGVzZSBiZWFjb24g
+ZnJhbWVzIGRvIG5vdCBhcHBlYXIgdG8gYmUgSVAgcGFja2V0cy4gSWYgdGhhdCBpcyB0cnVlLCBJ
+IGRvbuKAmXQgdGhpbmsgeW91IGFyZSBnb2luZyB0byBzZWUgdGhlbSBpbiBhbnkgbmV0ZmlsdGVy
+IGhvb2tzLg0KDQpKZWZmIEhhcmFuDQoNCg==
+
+--_000_4E5779AD88B2F040B8A7E83ECF544D1A622B53SJCPEX01CL03citri_
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: base64
+
+PGh0bWwgeG1sbnM6dj0idXJuOnNjaGVtYXMtbWljcm9zb2Z0LWNvbTp2bWwiIHhtbG5zOm89InVy
+bjpzY2hlbWFzLW1pY3Jvc29mdC1jb206b2ZmaWNlOm9mZmljZSIgeG1sbnM6dz0idXJuOnNjaGVt
+YXMtbWljcm9zb2Z0LWNvbTpvZmZpY2U6d29yZCIgeG1sbnM6bT0iaHR0cDovL3NjaGVtYXMubWlj
+cm9zb2Z0LmNvbS9vZmZpY2UvMjAwNC8xMi9vbW1sIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcv
+VFIvUkVDLWh0bWw0MCI+DQo8aGVhZD4NCjxtZXRhIGh0dHAtZXF1aXY9IkNvbnRlbnQtVHlwZSIg
+Y29udGVudD0idGV4dC9odG1sOyBjaGFyc2V0PXV0Zi04Ij4NCjxtZXRhIG5hbWU9IkdlbmVyYXRv
+ciIgY29udGVudD0iTWljcm9zb2Z0IFdvcmQgMTQgKGZpbHRlcmVkIG1lZGl1bSkiPg0KPHN0eWxl
+PjwhLS0NCi8qIEZvbnQgRGVmaW5pdGlvbnMgKi8NCkBmb250LWZhY2UNCgl7Zm9udC1mYW1pbHk6
+Q2FsaWJyaTsNCglwYW5vc2UtMToyIDE1IDUgMiAyIDIgNCAzIDIgNDt9DQpAZm9udC1mYWNlDQoJ
+e2ZvbnQtZmFtaWx5OlRhaG9tYTsNCglwYW5vc2UtMToyIDExIDYgNCAzIDUgNCA0IDIgNDt9DQov
+KiBTdHlsZSBEZWZpbml0aW9ucyAqLw0KcC5Nc29Ob3JtYWwsIGxpLk1zb05vcm1hbCwgZGl2Lk1z
+b05vcm1hbA0KCXttYXJnaW46MGluOw0KCW1hcmdpbi1ib3R0b206LjAwMDFwdDsNCglmb250LXNp
+emU6MTIuMHB0Ow0KCWZvbnQtZmFtaWx5OiJUaW1lcyBOZXcgUm9tYW4iLCJzZXJpZiI7fQ0KYTps
+aW5rLCBzcGFuLk1zb0h5cGVybGluaw0KCXttc28tc3R5bGUtcHJpb3JpdHk6OTk7DQoJY29sb3I6
+Ymx1ZTsNCgl0ZXh0LWRlY29yYXRpb246dW5kZXJsaW5lO30NCmE6dmlzaXRlZCwgc3Bhbi5Nc29I
+eXBlcmxpbmtGb2xsb3dlZA0KCXttc28tc3R5bGUtcHJpb3JpdHk6OTk7DQoJY29sb3I6cHVycGxl
+Ow0KCXRleHQtZGVjb3JhdGlvbjp1bmRlcmxpbmU7fQ0Kc3Bhbi5FbWFpbFN0eWxlMTcNCgl7bXNv
+LXN0eWxlLXR5cGU6cGVyc29uYWwtcmVwbHk7DQoJZm9udC1mYW1pbHk6IkNhbGlicmkiLCJzYW5z
+LXNlcmlmIjsNCgljb2xvcjojMUY0OTdEO30NCi5Nc29DaHBEZWZhdWx0DQoJe21zby1zdHlsZS10
+eXBlOmV4cG9ydC1vbmx5Ow0KCWZvbnQtZmFtaWx5OiJDYWxpYnJpIiwic2Fucy1zZXJpZiI7fQ0K
+QHBhZ2UgV29yZFNlY3Rpb24xDQoJe3NpemU6OC41aW4gMTEuMGluOw0KCW1hcmdpbjoxLjBpbiAx
+LjBpbiAxLjBpbiAxLjBpbjt9DQpkaXYuV29yZFNlY3Rpb24xDQoJe3BhZ2U6V29yZFNlY3Rpb24x
+O30NCi0tPjwvc3R5bGU+PCEtLVtpZiBndGUgbXNvIDldPjx4bWw+DQo8bzpzaGFwZWRlZmF1bHRz
+IHY6ZXh0PSJlZGl0IiBzcGlkbWF4PSIxMDI2IiAvPg0KPC94bWw+PCFbZW5kaWZdLS0+PCEtLVtp
+ZiBndGUgbXNvIDldPjx4bWw+DQo8bzpzaGFwZWxheW91dCB2OmV4dD0iZWRpdCI+DQo8bzppZG1h
+cCB2OmV4dD0iZWRpdCIgZGF0YT0iMSIgLz4NCjwvbzpzaGFwZWxheW91dD48L3htbD48IVtlbmRp
+Zl0tLT4NCjwvaGVhZD4NCjxib2R5IGxhbmc9IkVOLVVTIiBsaW5rPSJibHVlIiB2bGluaz0icHVy
+cGxlIj4NCjxkaXYgY2xhc3M9IldvcmRTZWN0aW9uMSI+DQo8cCBjbGFzcz0iTXNvTm9ybWFsIj48
+c3BhbiBzdHlsZT0iZm9udC1zaXplOjExLjBwdDtmb250LWZhbWlseTomcXVvdDtDYWxpYnJpJnF1
+b3Q7LCZxdW90O3NhbnMtc2VyaWYmcXVvdDs7Y29sb3I6IzFGNDk3RCI+PG86cD4mbmJzcDs8L286
+cD48L3NwYW4+PC9wPg0KPHAgY2xhc3M9Ik1zb05vcm1hbCI+PHNwYW4gc3R5bGU9ImZvbnQtc2l6
+ZToxMS4wcHQ7Zm9udC1mYW1pbHk6JnF1b3Q7Q2FsaWJyaSZxdW90OywmcXVvdDtzYW5zLXNlcmlm
+JnF1b3Q7O2NvbG9yOiMxRjQ5N0QiPjxvOnA+Jm5ic3A7PC9vOnA+PC9zcGFuPjwvcD4NCjxkaXYg
+c3R5bGU9ImJvcmRlcjpub25lO2JvcmRlci1sZWZ0OnNvbGlkIGJsdWUgMS41cHQ7cGFkZGluZzow
+aW4gMGluIDBpbiA0LjBwdCI+DQo8ZGl2Pg0KPGRpdiBzdHlsZT0iYm9yZGVyOm5vbmU7Ym9yZGVy
+LXRvcDpzb2xpZCAjQjVDNERGIDEuMHB0O3BhZGRpbmc6My4wcHQgMGluIDBpbiAwaW4iPg0KPHAg
+Y2xhc3M9Ik1zb05vcm1hbCI+PGI+PHNwYW4gc3R5bGU9ImZvbnQtc2l6ZToxMC4wcHQ7Zm9udC1m
+YW1pbHk6JnF1b3Q7VGFob21hJnF1b3Q7LCZxdW90O3NhbnMtc2VyaWYmcXVvdDsiPkZyb206PC9z
+cGFuPjwvYj48c3BhbiBzdHlsZT0iZm9udC1zaXplOjEwLjBwdDtmb250LWZhbWlseTomcXVvdDtU
+YWhvbWEmcXVvdDssJnF1b3Q7c2Fucy1zZXJpZiZxdW90OyI+IGtlcm5lbG5ld2JpZXMtYm91bmNl
+c0BrZXJuZWxuZXdiaWVzLm9yZyBbbWFpbHRvOmtlcm5lbG5ld2JpZXMtYm91bmNlc0BrZXJuZWxu
+ZXdiaWVzLm9yZ10NCjxiPk9uIEJlaGFsZiBPZiA8L2I+R3VuamFuIE1laHRhPGJyPg0KPGI+U2Vu
+dDo8L2I+IEZyaWRheSwgQXVndXN0IDI4LCAyMDE1IDk6MjEgQU08YnI+DQo8Yj5Ubzo8L2I+IGtl
+cm5lbG5ld2JpZXM7IG5ldGZpbHRlci1kZXZlbEB2Z2VyLmtlcm5lbC5vcmc8YnI+DQo8Yj5TdWJq
+ZWN0OjwvYj4gSWRlbnRpZnkgQmVhY29uIEZyYW1lPG86cD48L286cD48L3NwYW4+PC9wPg0KPC9k
+aXY+DQo8L2Rpdj4NCjxwIGNsYXNzPSJNc29Ob3JtYWwiPjxvOnA+Jm5ic3A7PC9vOnA+PC9wPg0K
+PGRpdj4NCjxwIGNsYXNzPSJNc29Ob3JtYWwiPkhpIEFsbCw8bzpwPjwvbzpwPjwvcD4NCjxkaXY+
+DQo8cCBjbGFzcz0iTXNvTm9ybWFsIj48bzpwPiZuYnNwOzwvbzpwPjwvcD4NCjwvZGl2Pg0KPGRp
+dj4NCjxwIGNsYXNzPSJNc29Ob3JtYWwiPkkgYW0gbmV3IHRvIGtlcm5lbCBkZXZlbG9wbWVudC4g
+SSBhbSB3cml0aW5nIGEga2VybmVsIG1vZHVsZSB0aGF0IGNhcHR1cmVzIHBhY2tldCBhdCB0aGUg
+bmV0ZmlsdGVyIHByZSAtIHJvdXRpbmcgaG9vay48bzpwPjwvbzpwPjwvcD4NCjwvZGl2Pg0KPGRp
+dj4NCjxwIGNsYXNzPSJNc29Ob3JtYWwiPjxvOnA+Jm5ic3A7PC9vOnA+PC9wPg0KPC9kaXY+DQo8
+ZGl2Pg0KPHAgY2xhc3M9Ik1zb05vcm1hbCI+SSBvbmx5IHdhbnQgdG8gY2FwdHVyZSB0aGUgQkVB
+Q09OIEZSQU1FLjxvOnA+PC9vOnA+PC9wPg0KPC9kaXY+DQo8ZGl2Pg0KPHAgY2xhc3M9Ik1zb05v
+cm1hbCI+PG86cD4mbmJzcDs8L286cD48L3A+DQo8L2Rpdj4NCjxkaXY+DQo8cCBjbGFzcz0iTXNv
+Tm9ybWFsIj5JIGhhdmUgZmV3IHF1ZXJpZXM6PG86cD48L286cD48L3A+DQo8L2Rpdj4NCjxkaXY+
+DQo8cCBjbGFzcz0iTXNvTm9ybWFsIj48bzpwPiZuYnNwOzwvbzpwPjwvcD4NCjwvZGl2Pg0KPGRp
+dj4NCjxwIGNsYXNzPSJNc29Ob3JtYWwiPjEmZ3Q7V2hlbiB0aGUgYmVhY29uIGZyYW1lIGNvbWVz
+IHRvIHJlY2VpdmluZyBtYWNoaW5lIGRvIHRoZSBza19idWZmIGdldHMgYWxsb2NhdGVkPzxvOnA+
+PC9vOnA+PC9wPg0KPC9kaXY+DQo8ZGl2Pg0KPHAgY2xhc3M9Ik1zb05vcm1hbCI+MiZndDsgSG93
+IGNhbiBpIGlkZW50aWZ5IHRoZSBiZWFjb24gZnJhbWUgYXQgdGhlIHByZSByb3V0aW5nIGhvb2s/
+PG86cD48L286cD48L3A+DQo8L2Rpdj4NCjxkaXY+DQo8cCBjbGFzcz0iTXNvTm9ybWFsIj4zJmd0
+OyBCZWFjb24gZnJhbWUgY29uc2lzdCBvZiBhIHN0cmluZyBmb3IgYXV0aGVudGljYXRpb24gb2Yg
+Y2xpZW50IHdpdGggdGhlIHNlcnZlciwgY2FuIGkgdXNlIHNrX2J1ZmYgcG9pbnRlcnMgdG8gZ2V0
+IGFjY2VzcyB0byB0aGF0IHN0cmluZywgaWYgc2tfYnVmZiBpcyBhbGxvY2F0ZWQ/PG86cD48L286
+cD48L3A+DQo8L2Rpdj4NCjxkaXY+DQo8cCBjbGFzcz0iTXNvTm9ybWFsIj48bzpwPiZuYnNwOzwv
+bzpwPjwvcD4NCjwvZGl2Pg0KPGRpdj4NCjxwIGNsYXNzPSJNc29Ob3JtYWwiPlJlZ2FyZHM8bzpw
+PjwvbzpwPjwvcD4NCjwvZGl2Pg0KPGRpdj4NCjxwIGNsYXNzPSJNc29Ob3JtYWwiPkd1bmphbjxv
+OnA+PC9vOnA+PC9wPg0KPHAgY2xhc3M9Ik1zb05vcm1hbCI+PHNwYW4gc3R5bGU9ImZvbnQtc2l6
+ZToxMS4wcHQ7Zm9udC1mYW1pbHk6JnF1b3Q7Q2FsaWJyaSZxdW90OywmcXVvdDtzYW5zLXNlcmlm
+JnF1b3Q7O2NvbG9yOiMxRjQ5N0QiPjxvOnA+Jm5ic3A7PC9vOnA+PC9zcGFuPjwvcD4NCjxwIGNs
+YXNzPSJNc29Ob3JtYWwiPjxzcGFuIHN0eWxlPSJmb250LXNpemU6MTEuMHB0O2ZvbnQtZmFtaWx5
+OiZxdW90O0NhbGlicmkmcXVvdDssJnF1b3Q7c2Fucy1zZXJpZiZxdW90Oztjb2xvcjojMUY0OTdE
+Ij5UaGVzZSBiZWFjb24gZnJhbWVzIGRvIG5vdCBhcHBlYXIgdG8gYmUgSVAgcGFja2V0cy4gSWYg
+dGhhdCBpcyB0cnVlLCBJIGRvbuKAmXQgdGhpbmsgeW91IGFyZSBnb2luZyB0byBzZWUgdGhlbSBp
+biBhbnkgbmV0ZmlsdGVyIGhvb2tzLjxvOnA+PC9vOnA+PC9zcGFuPjwvcD4NCjxwIGNsYXNzPSJN
+c29Ob3JtYWwiPjxzcGFuIHN0eWxlPSJmb250LXNpemU6MTEuMHB0O2ZvbnQtZmFtaWx5OiZxdW90
+O0NhbGlicmkmcXVvdDssJnF1b3Q7c2Fucy1zZXJpZiZxdW90Oztjb2xvcjojMUY0OTdEIj48bzpw
+PiZuYnNwOzwvbzpwPjwvc3Bhbj48L3A+DQo8cCBjbGFzcz0iTXNvTm9ybWFsIj48c3BhbiBzdHls
+ZT0iZm9udC1zaXplOjExLjBwdDtmb250LWZhbWlseTomcXVvdDtDYWxpYnJpJnF1b3Q7LCZxdW90
+O3NhbnMtc2VyaWYmcXVvdDs7Y29sb3I6IzFGNDk3RCI+SmVmZiBIYXJhbjxvOnA+PC9vOnA+PC9z
+cGFuPjwvcD4NCjxwIGNsYXNzPSJNc29Ob3JtYWwiPjxzcGFuIHN0eWxlPSJmb250LXNpemU6MTEu
+MHB0O2ZvbnQtZmFtaWx5OiZxdW90O0NhbGlicmkmcXVvdDssJnF1b3Q7c2Fucy1zZXJpZiZxdW90
+Oztjb2xvcjojMUY0OTdEIj48bzpwPiZuYnNwOzwvbzpwPjwvc3Bhbj48L3A+DQo8L2Rpdj4NCjwv
+ZGl2Pg0KPC9kaXY+DQo8L2Rpdj4NCjwvYm9keT4NCjwvaHRtbD4NCg==
+
+--_000_4E5779AD88B2F040B8A7E83ECF544D1A622B53SJCPEX01CL03citri_--
+
+
+--===============3617868189051953546==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBh2KtYcSEQ7=h_h+R9CE53pwGtBAiQ_OZF0aTX0fhY0fw@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Aug 27, 2015 at 12:57:42PM +0200, Arturo Borrero Gonzalez wrote:
-> Hi,
-> 
-> The documentation about DisableExternalCache reads:
-> 
->  <<<
->  [...]
->  You can also use this option with the NOTRACK and ALARM modes.
->  This increases CPU consumption in the backup firewall but now you do not
->  need to commit the flow-states during the master failures since they are
->  already in the in-kernel Connection Tracking table. Moreover, you save
->  memory in the backup firewall since you do not need to store the
->  foreign flow-states anymore.
->  >>>
-> 
-> However, the config parser doesn't allows it. Patch seems rather trivial:
-> 
-> diff --git a/src/read_config_yy.y b/src/read_config_yy.y
-> index 73fabbf..d53aa70 100644
-> --- a/src/read_config_yy.y
-> +++ b/src/read_config_yy.y
-> @@ -908,6 +908,7 @@ sync_mode_alarm_line: refreshtime
->                          | purge
->                          | relax_transitions
->                          | delay_destroy_msgs
-> +                        | disable_external_cache
->                          ;
-> 
->  sync_mode_ftfw_list:
-> 
-> 
-> However, there seems to be some missing bits somewhere, the backup
-> node prints this in the logs:
-> 
-> [...]
-> [Thu Aug 27 12:49:46 2015] (pid=15176) [ERROR] inject-add2: No such
-> file or directory
-> Thu Aug 27 12:49:46 2015 tcp      6 17949 ESTABLISHED
-> src=192.162.26.14 dst=192.168.5.134 sport=39089 dport=2015 [ASSURED]
-> mark=0
-> [Thu Aug 27 12:49:56 2015] (pid=15176) [ERROR] inject-add2: No such
-> file or directory
-> Thu Aug 27 12:49:56 2015 tcp      6 17949 ESTABLISHED
-> src=192.162.26.14 dst=192.168.5.134 sport=39089 dport=2015 [ASSURED]
-> mark=0
-> [...]
-> 
-> Note, always the same connection. In my busy test environment, this
-> ENOENT happens every few seconds Perhaps a race condition somewhere?
-> 
-> I would appreciate any hint/advice/pointer.
+_______________________________________________
+Kernelnewbies mailing list
+Kernelnewbies@kernelnewbies.org
+http://lists.kernelnewbies.org/mailman/listinfo/kernelnewbies
 
-Are these FTP data flows? I'm asking this because the master
-connection (control flow) may be missing in the conntrack table, thus
-the ENOENT error.
+--===============3617868189051953546==--
