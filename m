@@ -1,61 +1,58 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next] netfilter: nfnetlink: work around wrong endianess with old nft userspace
-Date: Fri, 28 Aug 2015 00:17:43 +0200
-Message-ID: <1440713863-18469-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: Re: [PATCH nf-next 2/2] netfilter: nfnetlink_log: allow to attach
+ conntrack
+Date: Fri, 28 Aug 2015 15:43:00 +0900
+Message-ID: <20150828064300.GA32065@gmail.com>
+References: <20150824231038.GA20038@gmail.com>
+ <20150824231520.GC20038@gmail.com>
+ <20150826190553.GA18429@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: The netfilter developer mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:56699 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753892AbbH0XHs (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:35164 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751614AbbH1GnG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Aug 2015 19:07:48 -0400
+	Fri, 28 Aug 2015 02:43:06 -0400
+Received: by pacdd16 with SMTP id dd16so52410562pac.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 Aug 2015 23:43:05 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20150826190553.GA18429@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The nfgenmsg res_id is __be16.  Unfortunately nftables batch support uses
-host byte order.
+On Wed, Aug 26, 2015 at 09:05:53PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Aug 25, 2015 at 08:15:20AM +0900, Ken-ichirou MATSUZAWA wrote:
+> > This patch enables to include the conntrack information together
+> > with the packet that is sent to user-space via NFLOG, then a
+> > user-space program can acquire NATed information by this NFULA_CT
+> > attribute.
+> > 
+> No objections to this series, just several comments below on them.
 
-This adds a compat workaround for old nft userspace.
+Thank you for your taking time. But I realize these can not be
+statically built into kernel, sorry.
 
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nfnetlink.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+> >  config NETFILTER_NETLINK_QUEUE_CT
+> > -        bool "NFQUEUE integration with Connection Tracking"
+> > +        bool "NFQUEUE/NFLOG integration with Connection Tracking"
+> >          default n
+> > -        depends on NETFILTER_NETLINK_QUEUE
+> > +        depends on NETFILTER_NETLINK_QUEUE || NETFILTER_NETLINK_LOG
+> >  	help
+> > -	  If this option is enabled, NFQUEUE can include Connection Tracking
+> > -	  information together with the packet is the enqueued via NFNETLINK.
+> > +	  If this option is enabled, NFQUEUE and/or NFLOG can include
+> > +	  Connection Tracking information together with the packet is
+> > +	  enqueued, logged via NFNETLINK.
+> 
+> You better add another Kconfig for _LOG.
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 0c0e8ec..2e255ad 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -276,18 +276,24 @@ enum {
- };
- 
- static void nfnetlink_rcv_batch(struct sk_buff *skb, struct nlmsghdr *nlh,
--				u_int16_t subsys_id)
-+				__be16 __subsys_id)
- {
- 	struct sk_buff *oskb = skb;
- 	struct net *net = sock_net(skb->sk);
- 	const struct nfnetlink_subsystem *ss;
- 	const struct nfnl_callback *nc;
- 	static LIST_HEAD(err_list);
-+	u16 subsys_id = ntohs(__subsys_id);
- 	u32 status;
- 	int err;
- 
--	if (subsys_id >= NFNL_SUBSYS_COUNT)
--		return netlink_ack(skb, nlh, -EINVAL);
-+	if (subsys_id >= NFNL_SUBSYS_COUNT) {
-+		/* Work around old nft using host byte order */
-+		if (NFNL_SUBSYS_NFTABLES != (__force __u16) __subsys_id)
-+			return netlink_ack(skb, nlh, -EINVAL);
-+
-+		subsys_id = (__force __u16) __subsys_id;
-+	}
- replay:
- 	status = 0;
- 
--- 
-2.0.5
+I'll follow your instruction, thanks.
+I have to reconsider to enable it statically linked and will be glad
+if you review again at the next time.
 
+Thanks,
