@@ -1,43 +1,51 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 0/1] ipset patch for nf
-Date: Fri, 28 Aug 2015 19:15:51 +0200
-Message-ID: <1440782152-21890-1-git-send-email-kadlec@blackhole.kfki.hu>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:60202 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752777AbbH1RPE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Aug 2015 13:15:04 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: [ANNOUNCE] ipset 6.26 released
+Date: Fri, 28 Aug 2015 19:20:09 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1508281917380.22014@blackhole.kfki.hu>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Pablo,
+Hi,
 
-Please apply the next bugfix patch against the nf tree.
+I'm happy to announce ipset 6.26 which contains a bugfix and a few
+cleanups and optimizations.
 
-- Dave Jones reported that KASan detected out of bounds access in hash:net*
-  types, which is fixed in the next patch
+Userspace changes:
+  - Out of bound access in hash:net* types fixed (reported by Dave Jones):
+    new tests added to the testsuite to verify the fix
+  - Warn about loaded in ip_set modules at module installation
+  - Use IPSET_BIN in resize-and-list.sh and suppress echoing of loop
+    variable
+  - Manpage typo corrections (David Wittman)
+  - Fix grammar error in manpage (Neutron Soutmun)
 
-Thanks,
+Kernel part changes:
+  - Out of bound access in hash:net* types fixed (reported by Dave Jones)
+  - Make struct htype per ipset family (originally from Sergey Popovich)
+  - Optimize hash creation routine (originally from Sergey Popovich)
+  - Make sure element data size is a multiple of u32 (originally from 
+    Sergey Popovich)
+  - Make NLEN compile time constant for hash types (originally from Sergey
+    Popovich)
+  - Simplify mtype_expire() for hash types (originally from Sergey 
+    Popovich)
+  - Count non-static extension memory into the set memory size for 
+    userspace
+  - net: sched: Simplify em_ipset_match (Eric W. Biederman)
+
+You can download the source code of ipset from:
+        http://ipset.netfilter.org
+        ftp://ftp.netfilter.org/pub/ipset/
+        git://git.netfilter.org/ipset.git
+
+Best regards,
 Jozsef
-
-The following changes since commit 18e1db67e93ed75d9dc0d34c8d783ccf10547c2b:
-
-  netfilter: bridge: fix IPv6 packets not being bridged with CONFIG_IPV6=n (2015-08-19 21:21:41 +0200)
-
-are available in the git repository at:
-
-  git://blackhole.kfki.hu/nf master
-
-for you to fetch changes up to 6fe7ccfd77415a6ba250c10c580eb3f9acf79753:
-
-  netfilter: ipset: Out of bound access in hash:net* types fixed (2015-08-28 18:51:30 +0200)
-
-----------------------------------------------------------------
-Jozsef Kadlecsik (1):
-      netfilter: ipset: Out of bound access in hash:net* types fixed
-
- net/netfilter/ipset/ip_set_hash_gen.h | 12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
-kadlec@blackhole ~/git/nf $ 
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
