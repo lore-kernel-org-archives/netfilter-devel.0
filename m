@@ -1,97 +1,43 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 1/1] netfilter: ipset: Out of bound access in hash:net* types fixed
-Date: Fri, 28 Aug 2015 19:15:52 +0200
-Message-ID: <1440782152-21890-2-git-send-email-kadlec@blackhole.kfki.hu>
-References: <1440782152-21890-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 0/1] ipset patch for nf
+Date: Fri, 28 Aug 2015 19:15:51 +0200
+Message-ID: <1440782152-21890-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:60201 "EHLO smtp1.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.26]:60202 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752389AbbH1RPE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1752777AbbH1RPE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Fri, 28 Aug 2015 13:15:04 -0400
-In-Reply-To: <1440782152-21890-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Dave Jones reported that KASan detected out of bounds access in hash:net*
-types:
+Hi Pablo,
 
-[   23.139532] ==================================================================
-[   23.146130] BUG: KASan: out of bounds access in hash_net4_add_cidr+0x1db/0x220 at addr ffff8800d4844b58
-[   23.152937] Write of size 4 by task ipset/457
-[   23.159742] =============================================================================
-[   23.166672] BUG kmalloc-512 (Not tainted): kasan: bad access detected
-[   23.173641] -----------------------------------------------------------------------------
-[   23.194668] INFO: Allocated in hash_net_create+0x16a/0x470 age=7 cpu=1 pid=456
-[   23.201836]  __slab_alloc.constprop.66+0x554/0x620
-[   23.208994]  __kmalloc+0x2f2/0x360
-[   23.216105]  hash_net_create+0x16a/0x470
-[   23.223238]  ip_set_create+0x3e6/0x740
-[   23.230343]  nfnetlink_rcv_msg+0x599/0x640
-[   23.237454]  netlink_rcv_skb+0x14f/0x190
-[   23.244533]  nfnetlink_rcv+0x3f6/0x790
-[   23.251579]  netlink_unicast+0x272/0x390
-[   23.258573]  netlink_sendmsg+0x5a1/0xa50
-[   23.265485]  SYSC_sendto+0x1da/0x2c0
-[   23.272364]  SyS_sendto+0xe/0x10
-[   23.279168]  entry_SYSCALL_64_fastpath+0x12/0x6f
+Please apply the next bugfix patch against the nf tree.
 
-The bug is fixed in the patch and the testsuite is extended in ipset
-to check cidr handling more thoroughly.
+- Dave Jones reported that KASan detected out of bounds access in hash:net*
+  types, which is fixed in the next patch
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
+Thanks,
+Jozsef
+
+The following changes since commit 18e1db67e93ed75d9dc0d34c8d783ccf10547c2b:
+
+  netfilter: bridge: fix IPv6 packets not being bridged with CONFIG_IPV6=n (2015-08-19 21:21:41 +0200)
+
+are available in the git repository at:
+
+  git://blackhole.kfki.hu/nf master
+
+for you to fetch changes up to 6fe7ccfd77415a6ba250c10c580eb3f9acf79753:
+
+  netfilter: ipset: Out of bound access in hash:net* types fixed (2015-08-28 18:51:30 +0200)
+
+----------------------------------------------------------------
+Jozsef Kadlecsik (1):
+      netfilter: ipset: Out of bound access in hash:net* types fixed
+
  net/netfilter/ipset/ip_set_hash_gen.h | 12 ++++++++----
  1 file changed, 8 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index afe905c..691b54f 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -152,9 +152,13 @@ htable_bits(u32 hashsize)
- #define SET_HOST_MASK(family)	(family == AF_INET ? 32 : 128)
- 
- #ifdef IP_SET_HASH_WITH_NET0
-+/* cidr from 0 to SET_HOST_MASK() value and c = cidr + 1 */
- #define NLEN(family)		(SET_HOST_MASK(family) + 1)
-+#define CIDR_POS(c)		((c) - 1)
- #else
-+/* cidr from 1 to SET_HOST_MASK() value and c = cidr + 1 */
- #define NLEN(family)		SET_HOST_MASK(family)
-+#define CIDR_POS(c)		((c) - 2)
- #endif
- 
- #else
-@@ -305,7 +309,7 @@ mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
- 		} else if (h->nets[i].cidr[n] < cidr) {
- 			j = i;
- 		} else if (h->nets[i].cidr[n] == cidr) {
--			h->nets[cidr - 1].nets[n]++;
-+			h->nets[CIDR_POS(cidr)].nets[n]++;
- 			return;
- 		}
- 	}
-@@ -314,7 +318,7 @@ mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
- 			h->nets[i].cidr[n] = h->nets[i - 1].cidr[n];
- 	}
- 	h->nets[i].cidr[n] = cidr;
--	h->nets[cidr - 1].nets[n] = 1;
-+	h->nets[CIDR_POS(cidr)].nets[n] = 1;
- }
- 
- static void
-@@ -325,8 +329,8 @@ mtype_del_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
- 	for (i = 0; i < nets_length; i++) {
- 		if (h->nets[i].cidr[n] != cidr)
- 			continue;
--		h->nets[cidr - 1].nets[n]--;
--		if (h->nets[cidr - 1].nets[n] > 0)
-+		h->nets[CIDR_POS(cidr)].nets[n]--;
-+		if (h->nets[CIDR_POS(cidr)].nets[n] > 0)
- 			return;
- 		for (j = i; j < net_end && h->nets[j].cidr[n]; j++)
- 			h->nets[j].cidr[n] = h->nets[j + 1].cidr[n];
--- 
-1.8.5.1
-
+kadlec@blackhole ~/git/nf $ 
