@@ -1,58 +1,75 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: Re: [PATCH nf-next 2/2] netfilter: nfnetlink_log: allow to attach
- conntrack
-Date: Fri, 28 Aug 2015 15:43:00 +0900
-Message-ID: <20150828064300.GA32065@gmail.com>
-References: <20150824231038.GA20038@gmail.com>
- <20150824231520.GC20038@gmail.com>
- <20150826190553.GA18429@salvia>
+From: Gunjan Mehta <gunjanmehta08@gmail.com>
+Subject: Identify Beacon Frame
+Date: Fri, 28 Aug 2015 21:51:04 +0530
+Message-ID: <CANBLUyKDCCZ1dFDQz4rVU94mW9RTxFNjWeB9w8Zxp9jx+jLRrQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:35164 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751614AbbH1GnG (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Aug 2015 02:43:06 -0400
-Received: by pacdd16 with SMTP id dd16so52410562pac.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 Aug 2015 23:43:05 -0700 (PDT)
+Content-Type: multipart/mixed; boundary="===============7317965053772702396=="
+To: kernelnewbies <kernelnewbies@kernelnewbies.org>,
+	netfilter-devel@vger.kernel.org
+Return-path: <kernelnewbies-bounces@kernelnewbies.org>
+List-Unsubscribe: <http://lists.kernelnewbies.org/mailman/listinfo/kernelnewbies>,
+	<mailto:kernelnewbies-request@kernelnewbies.org?subject=unsubscribe>
+List-Archive: <http://lists.kernelnewbies.org/pipermail/kernelnewbies>
+List-Post: <mailto:kernelnewbies@kernelnewbies.org>
+List-Help: <mailto:kernelnewbies-request@kernelnewbies.org?subject=help>
+List-Subscribe: <http://lists.kernelnewbies.org/mailman/listinfo/kernelnewbies>,
+	<mailto:kernelnewbies-request@kernelnewbies.org?subject=subscribe>
+Sender: kernelnewbies-bounces@kernelnewbies.org
+Errors-To: kernelnewbies-bounces@kernelnewbies.org
+List-Id: netfilter-devel.vger.kernel.org
+
+--===============7317965053772702396==
+Content-Type: multipart/alternative; boundary=bcaec51ddc6b64cc8a051e61784b
+
+--bcaec51ddc6b64cc8a051e61784b
+Content-Type: text/plain; charset=UTF-8
+
+Hi All,
+
+I am new to kernel development. I am writing a kernel module that captures
+packet at the netfilter pre - routing hook.
+
+I only want to capture the BEACON FRAME.
+
+I have few queries:
+
+1>When the beacon frame comes to receiving machine do the sk_buff gets
+allocated?
+2> How can i identify the beacon frame at the pre routing hook?
+3> Beacon frame consist of a string for authentication of client with the
+server, can i use sk_buff pointers to get access to that string, if sk_buff
+is allocated?
+
+Regards
+Gunjan
+
+--bcaec51ddc6b64cc8a051e61784b
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr">Hi All,<div><br></div><div>I am new to kernel development.=
+ I am writing a kernel module that captures packet at the netfilter pre - r=
+outing hook.</div><div><br></div><div>I only want to capture the BEACON FRA=
+ME.</div><div><br></div><div>I have few queries:</div><div><br></div><div>1=
+&gt;When the beacon frame comes to receiving machine do the sk_buff gets al=
+located?</div><div>2&gt; How can i identify the beacon frame at the pre rou=
+ting hook?</div><div>3&gt; Beacon frame consist of a string for authenticat=
+ion of client with the server, can i use sk_buff pointers to get access to =
+that string, if sk_buff is allocated?</div><div><br></div><div>Regards</div=
+><div>Gunjan</div></div>
+
+--bcaec51ddc6b64cc8a051e61784b--
+
+
+--===============7317965053772702396==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <20150826190553.GA18429@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 26, 2015 at 09:05:53PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Aug 25, 2015 at 08:15:20AM +0900, Ken-ichirou MATSUZAWA wrote:
-> > This patch enables to include the conntrack information together
-> > with the packet that is sent to user-space via NFLOG, then a
-> > user-space program can acquire NATed information by this NFULA_CT
-> > attribute.
-> > 
-> No objections to this series, just several comments below on them.
+_______________________________________________
+Kernelnewbies mailing list
+Kernelnewbies@kernelnewbies.org
+http://lists.kernelnewbies.org/mailman/listinfo/kernelnewbies
 
-Thank you for your taking time. But I realize these can not be
-statically built into kernel, sorry.
-
-> >  config NETFILTER_NETLINK_QUEUE_CT
-> > -        bool "NFQUEUE integration with Connection Tracking"
-> > +        bool "NFQUEUE/NFLOG integration with Connection Tracking"
-> >          default n
-> > -        depends on NETFILTER_NETLINK_QUEUE
-> > +        depends on NETFILTER_NETLINK_QUEUE || NETFILTER_NETLINK_LOG
-> >  	help
-> > -	  If this option is enabled, NFQUEUE can include Connection Tracking
-> > -	  information together with the packet is the enqueued via NFNETLINK.
-> > +	  If this option is enabled, NFQUEUE and/or NFLOG can include
-> > +	  Connection Tracking information together with the packet is
-> > +	  enqueued, logged via NFNETLINK.
-> 
-> You better add another Kconfig for _LOG.
-
-I'll follow your instruction, thanks.
-I have to reconsider to enable it statically linked and will be glad
-if you review again at the next time.
-
-Thanks,
+--===============7317965053772702396==--
