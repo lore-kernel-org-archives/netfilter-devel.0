@@ -1,63 +1,113 @@
-From: Feng Gao <gfree.wind@gmail.com>
-Subject: Re: [PATCH] netfilter: nf_ct_tcp: Remove the duplicated word in comment
-Date: Mon, 31 Aug 2015 16:44:25 +0800
-Message-ID: <CA+6hz4rj8E7PJTa6-4uEeYhD2-B7soCcpkSMyjh5M5yyg+G9tg@mail.gmail.com>
-References: <CA+6hz4o+XCrHt_f31kK1d2=jsHY3mDvU4rEM=8DbmhiVbxDSNw@mail.gmail.com>
-	<20150828231436.GA24569@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Subject: [PATCH nf] netfilter: conntrack: use nf_ct_tmpl_free in CT/synproxy error paths
+Date: Mon, 31 Aug 2015 19:11:02 +0200
+Message-ID: <9caca1293214eeacb76490fa79aa4c4364920139.1441039959.git.daniel@iogearbox.net>
+Cc: bjackson0971@gmail.com, fw@strlen.de,
+	netfilter-devel@vger.kernel.org,
+	Daniel Borkmann <daniel@iogearbox.net>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f47.google.com ([209.85.218.47]:34867 "EHLO
-	mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750812AbbHaIo0 (ORCPT
+Received: from www62.your-server.de ([213.133.104.62]:51790 "EHLO
+	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753585AbbHaRnK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 31 Aug 2015 04:44:26 -0400
-Received: by oigk185 with SMTP id k185so54788826oig.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 31 Aug 2015 01:44:25 -0700 (PDT)
-In-Reply-To: <20150828231436.GA24569@salvia>
+	Mon, 31 Aug 2015 13:43:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Commit 0838aa7fcfcd ("netfilter: fix netns dependencies with conntrack
+templates") migrated templates to the new allocator api, but forgot to
+update error paths for them in CT and synproxy to use nf_ct_tmpl_free()
+instead of nf_conntrack_free().
 
-Could you use the attachment instead of the codes in email ?
-I think the attachment should not be mangled.
+Due to that, memory is being freed into the wrong kmemcache, but also
+we drop the per net reference count of ct objects causing an imbalance.
 
-On Sat, Aug 29, 2015 at 7:14 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sat, Aug 22, 2015 at 11:27:56AM +0800, Feng Gao wrote:
->> Hi Pablo,
->>
->> To try to resolve the "git am" issue, so I start the new email
->> conversation. The attachment is the latest patch file.
->>
->> The following is the patch content too.
->
-> Still not working, I think your MUA is mangling the patch. I can see
-> that tabs are converted to spaces.
->
-> $ git am /temporary/netfilter-nf_ct_tcp-Remove-the-duplicated-word-in-comment.patch -s
-> Applying: netfilter: nf_ct_tcp: Remove the duplicated word in comment
-> error: patch failed: net/netfilter/nf_conntrack_proto_tcp.c:1088
-> error: net/netfilter/nf_conntrack_proto_tcp.c: patch does not apply
-> Patch failed at 0001 netfilter: nf_ct_tcp: Remove the duplicated word in comment
-> When you have resolved this problem run "git am --resolved".
-> If you would prefer to skip this patch, instead run "git am --skip".
-> To restore the original branch and stop patching run "git am --abort".
-> $ git am --abort
-> $ patch -p1 < /temporary/netfilter_ct_tcp-Remove-the-duplicated-word-in-comment.patch
-> patching file net/netfilter/nf_conntrack_proto_tcp.c
-> Hunk #1 FAILED at 1088.
-> 1 out of 1 hunk FAILED -- saving rejects to file
-> net/netfilter/nf_conntrack_proto_tcp.c.rej
->
->> -       /* Set ASSURED if we see see valid ack in ESTABLISHED
->> -          after SYN_RECV or a valid answer for a picked up
->> -          connection. */
->> +       /* Set ASSURED if we see valid ack in ESTABLISHED after
->> +        * SYN_RECV or a valid answer for a picked up connection.
->> +        */
->    ^^^^^^^^
-> I can see space here instead of tab.
->
+In Brad's case, this leads to a wrap-around of net->ct.count and thus
+lets __nf_conntrack_alloc() refuse to create a new ct object:
+
+  [   10.340913] xt_addrtype: ipv6 does not support BROADCAST matching
+  [   10.810168] nf_conntrack: table full, dropping packet
+  [   11.917416] r8169 0000:07:00.0 eth0: link up
+  [   11.917438] IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
+  [   12.815902] nf_conntrack: table full, dropping packet
+  [   15.688561] nf_conntrack: table full, dropping packet
+  [   15.689365] nf_conntrack: table full, dropping packet
+  [   15.690169] nf_conntrack: table full, dropping packet
+  [   15.690967] nf_conntrack: table full, dropping packet
+  [...]
+
+With slab debugging, it also reports the wrong kmemcache (kmalloc-512 vs.
+nf_conntrack_ffffffff81ce75c0) and reports poison overwrites, etc. Thus,
+to fix the problem, export and use nf_ct_tmpl_free() instead.
+
+Fixes: 0838aa7fcfcd ("netfilter: fix netns dependencies with conntrack templates")
+Reported-by: Brad Jackson <bjackson0971@gmail.com>
+Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
+---
+ include/net/netfilter/nf_conntrack.h | 1 +
+ net/netfilter/nf_conntrack_core.c    | 3 ++-
+ net/netfilter/nf_synproxy_core.c     | 2 +-
+ net/netfilter/xt_CT.c                | 2 +-
+ 4 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 37cd391..4023c4c 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -292,6 +292,7 @@ extern unsigned int nf_conntrack_hash_rnd;
+ void init_nf_conntrack_hash_rnd(void);
+ 
+ struct nf_conn *nf_ct_tmpl_alloc(struct net *net, u16 zone, gfp_t flags);
++void nf_ct_tmpl_free(struct nf_conn *tmpl);
+ 
+ #define NF_CT_STAT_INC(net, count)	  __this_cpu_inc((net)->ct.stat->count)
+ #define NF_CT_STAT_INC_ATOMIC(net, count) this_cpu_inc((net)->ct.stat->count)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 3c20d02..0625a42 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -320,12 +320,13 @@ out_free:
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_tmpl_alloc);
+ 
+-static void nf_ct_tmpl_free(struct nf_conn *tmpl)
++void nf_ct_tmpl_free(struct nf_conn *tmpl)
+ {
+ 	nf_ct_ext_destroy(tmpl);
+ 	nf_ct_ext_free(tmpl);
+ 	kfree(tmpl);
+ }
++EXPORT_SYMBOL_GPL(nf_ct_tmpl_free);
+ 
+ static void
+ destroy_conntrack(struct nf_conntrack *nfct)
+diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+index d7f1685..d6ee8f8 100644
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -378,7 +378,7 @@ static int __net_init synproxy_net_init(struct net *net)
+ err3:
+ 	free_percpu(snet->stats);
+ err2:
+-	nf_conntrack_free(ct);
++	nf_ct_tmpl_free(ct);
+ err1:
+ 	return err;
+ }
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index 43ddeee..f3377ce 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -233,7 +233,7 @@ out:
+ 	return 0;
+ 
+ err3:
+-	nf_conntrack_free(ct);
++	nf_ct_tmpl_free(ct);
+ err2:
+ 	nf_ct_l3proto_module_put(par->family);
+ err1:
+-- 
+1.9.3
+
