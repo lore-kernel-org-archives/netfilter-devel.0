@@ -1,113 +1,57 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: [PATCH nf] netfilter: conntrack: use nf_ct_tmpl_free in CT/synproxy error paths
-Date: Mon, 31 Aug 2015 19:11:02 +0200
-Message-ID: <9caca1293214eeacb76490fa79aa4c4364920139.1441039959.git.daniel@iogearbox.net>
-Cc: bjackson0971@gmail.com, fw@strlen.de,
-	netfilter-devel@vger.kernel.org,
-	Daniel Borkmann <daniel@iogearbox.net>
-To: pablo@netfilter.org
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: Re: [PATCH nf-next 2/2] netfilter: nfnetlink_log: allow to attach
+ conntrack
+Date: Tue, 1 Sep 2015 09:34:36 +0900
+Message-ID: <20150901003436.GA2642@gmail.com>
+References: <20150824231038.GA20038@gmail.com>
+ <20150824231520.GC20038@gmail.com>
+ <20150826190553.GA18429@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: The netfilter developer mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:51790 "EHLO
-	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753585AbbHaRnK (ORCPT
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:36784 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752216AbbIAAel (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 31 Aug 2015 13:43:10 -0400
+	Mon, 31 Aug 2015 20:34:41 -0400
+Received: by pacgr6 with SMTP id gr6so4950373pac.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 31 Aug 2015 17:34:41 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20150826190553.GA18429@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Commit 0838aa7fcfcd ("netfilter: fix netns dependencies with conntrack
-templates") migrated templates to the new allocator api, but forgot to
-update error paths for them in CT and synproxy to use nf_ct_tmpl_free()
-instead of nf_conntrack_free().
+The compile fails if both nflog and nfqueue are built-in at the
+previous patch.
 
-Due to that, memory is being freed into the wrong kmemcache, but also
-we drop the per net reference count of ct objects causing an imbalance.
+I am trying to link nf_netlink_queue_ct to nf_conntrack_netlink, not
+to nf_netlink_queue_core, to avoid the compilation fail in the
+following patch series. The idea is that nfqueue and nflog uses the
+functions in nf_conntrack_netlink.o, put the conntrack attachment
+basis into nf_conntrack_netlink.
 
-In Brad's case, this leads to a wrap-around of net->ct.count and thus
-lets __nf_conntrack_alloc() refuse to create a new ct object:
+On Wed, Aug 26, 2015 at 09:05:53PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Aug 25, 2015 at 08:15:20AM +0900, Ken-ichirou MATSUZAWA wrote:
+> >  config NETFILTER_NETLINK_QUEUE_CT
+> > -        bool "NFQUEUE integration with Connection Tracking"
+> > +        bool "NFQUEUE/NFLOG integration with Connection Tracking"
+> >          default n
+> > -        depends on NETFILTER_NETLINK_QUEUE
+> > +        depends on NETFILTER_NETLINK_QUEUE || NETFILTER_NETLINK_LOG
+> >  	help
+> > -	  If this option is enabled, NFQUEUE can include Connection Tracking
+> > -	  information together with the packet is the enqueued via NFNETLINK.
+> > +	  If this option is enabled, NFQUEUE and/or NFLOG can include
+> > +	  Connection Tracking information together with the packet is
+> > +	  enqueued, logged via NFNETLINK.
+> 
+> You better add another Kconfig for _LOG.
 
-  [   10.340913] xt_addrtype: ipv6 does not support BROADCAST matching
-  [   10.810168] nf_conntrack: table full, dropping packet
-  [   11.917416] r8169 0000:07:00.0 eth0: link up
-  [   11.917438] IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
-  [   12.815902] nf_conntrack: table full, dropping packet
-  [   15.688561] nf_conntrack: table full, dropping packet
-  [   15.689365] nf_conntrack: table full, dropping packet
-  [   15.690169] nf_conntrack: table full, dropping packet
-  [   15.690967] nf_conntrack: table full, dropping packet
-  [...]
+That idea causes to expose functions in nf_netlink_queue_ct and to
+disable to separate config in Kconfig too. Should I separate those
+config? and would you please tell me how if I should?
 
-With slab debugging, it also reports the wrong kmemcache (kmalloc-512 vs.
-nf_conntrack_ffffffff81ce75c0) and reports poison overwrites, etc. Thus,
-to fix the problem, export and use nf_ct_tmpl_free() instead.
-
-Fixes: 0838aa7fcfcd ("netfilter: fix netns dependencies with conntrack templates")
-Reported-by: Brad Jackson <bjackson0971@gmail.com>
-Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
----
- include/net/netfilter/nf_conntrack.h | 1 +
- net/netfilter/nf_conntrack_core.c    | 3 ++-
- net/netfilter/nf_synproxy_core.c     | 2 +-
- net/netfilter/xt_CT.c                | 2 +-
- 4 files changed, 5 insertions(+), 3 deletions(-)
-
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 37cd391..4023c4c 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -292,6 +292,7 @@ extern unsigned int nf_conntrack_hash_rnd;
- void init_nf_conntrack_hash_rnd(void);
- 
- struct nf_conn *nf_ct_tmpl_alloc(struct net *net, u16 zone, gfp_t flags);
-+void nf_ct_tmpl_free(struct nf_conn *tmpl);
- 
- #define NF_CT_STAT_INC(net, count)	  __this_cpu_inc((net)->ct.stat->count)
- #define NF_CT_STAT_INC_ATOMIC(net, count) this_cpu_inc((net)->ct.stat->count)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 3c20d02..0625a42 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -320,12 +320,13 @@ out_free:
- }
- EXPORT_SYMBOL_GPL(nf_ct_tmpl_alloc);
- 
--static void nf_ct_tmpl_free(struct nf_conn *tmpl)
-+void nf_ct_tmpl_free(struct nf_conn *tmpl)
- {
- 	nf_ct_ext_destroy(tmpl);
- 	nf_ct_ext_free(tmpl);
- 	kfree(tmpl);
- }
-+EXPORT_SYMBOL_GPL(nf_ct_tmpl_free);
- 
- static void
- destroy_conntrack(struct nf_conntrack *nfct)
-diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
-index d7f1685..d6ee8f8 100644
---- a/net/netfilter/nf_synproxy_core.c
-+++ b/net/netfilter/nf_synproxy_core.c
-@@ -378,7 +378,7 @@ static int __net_init synproxy_net_init(struct net *net)
- err3:
- 	free_percpu(snet->stats);
- err2:
--	nf_conntrack_free(ct);
-+	nf_ct_tmpl_free(ct);
- err1:
- 	return err;
- }
-diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-index 43ddeee..f3377ce 100644
---- a/net/netfilter/xt_CT.c
-+++ b/net/netfilter/xt_CT.c
-@@ -233,7 +233,7 @@ out:
- 	return 0;
- 
- err3:
--	nf_conntrack_free(ct);
-+	nf_ct_tmpl_free(ct);
- err2:
- 	nf_ct_l3proto_module_put(par->family);
- err1:
--- 
-1.9.3
-
+Thanks,
