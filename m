@@ -1,46 +1,30 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [conntrackd] allowing DisableExternalCache in alarm mode
-Date: Tue, 1 Sep 2015 18:44:21 +0200
-Message-ID: <20150901164421.GA3320@salvia>
-References: <CAOkSjBh2KtYcSEQ7=h_h+R9CE53pwGtBAiQ_OZF0aTX0fhY0fw@mail.gmail.com>
- <20150828164912.GD3436@salvia>
- <CAOkSjBhxLk2beq70jZCTKtO8K09UcSj5jNh2H-9wvCzSL0XxeA@mail.gmail.com>
+Subject: Re: [PATCH nf 1/1] nft: Fix nlmsg_type in GET operation callbacks
+Date: Tue, 1 Sep 2015 18:46:10 +0200
+Message-ID: <20150901164610.GA3434@salvia>
+References: <1440887695-15068-1-git-send-email-subramanian.vijay@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Vijay Subramanian <subramanian.vijay@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54603 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:54854 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753126AbbIAQhw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Sep 2015 12:37:52 -0400
+	id S1752858AbbIAQjn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Sep 2015 12:39:43 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBhxLk2beq70jZCTKtO8K09UcSj5jNh2H-9wvCzSL0XxeA@mail.gmail.com>
+In-Reply-To: <1440887695-15068-1-git-send-email-subramanian.vijay@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 31, 2015 at 09:55:23AM +0200, Arturo Borrero Gonzalez wrote:
-> On 28 August 2015 at 18:49, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >
-> > Are these FTP data flows? I'm asking this because the master
-> > connection (control flow) may be missing in the conntrack table, thus
-> > the ENOENT error.
-> 
-> Makes sense.
-> 
-> Would you consider accepting the patch?
+Hi Vijay,
 
-I think you can fix the problem that you're noticing by extending
-timer_add().
+On Sat, Aug 29, 2015 at 03:34:55PM -0700, Vijay Subramanian wrote:
+> nf_tables_gettable(), nf_tables_getchain() and nf_tables_getrule()
+> send replies with nlmsg_type that correspond to ADD operation
+> instead of GET. Set the type correctly.
 
-Note that the general idea behind the alarm approach is to insert a
-timer with a random time wait in unit from 0..M seconds.
+We always NFT_MSG_NEWTABLE as message type other major netlink
+subsystems that I can remember, so that is there for consistency.
 
-A quick workaround to address this is that master conntracks are
-placed in the time range from 0..N/2, then you place non-master
-conntrack entries in the range from N/2+1 to M. Then, unless there is
-packet loss, most likely the expected conntrack will find the master
-one.
-
-It should be just a few more extra lines away from this oneliner.
+Is there any why reason you need this change?
