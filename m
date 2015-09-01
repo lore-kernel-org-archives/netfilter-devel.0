@@ -1,49 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: conntrack: use nf_ct_tmpl_free in
- CT/synproxy error paths
-Date: Tue, 1 Sep 2015 12:40:03 +0200
-Message-ID: <20150901104003.GA8107@salvia>
-References: <9caca1293214eeacb76490fa79aa4c4364920139.1441039959.git.daniel@iogearbox.net>
+Subject: Re: [conntrackd] allowing DisableExternalCache in alarm mode
+Date: Tue, 1 Sep 2015 18:44:21 +0200
+Message-ID: <20150901164421.GA3320@salvia>
+References: <CAOkSjBh2KtYcSEQ7=h_h+R9CE53pwGtBAiQ_OZF0aTX0fhY0fw@mail.gmail.com>
+ <20150828164912.GD3436@salvia>
+ <CAOkSjBhxLk2beq70jZCTKtO8K09UcSj5jNh2H-9wvCzSL0XxeA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: bjackson0971@gmail.com, fw@strlen.de,
-	netfilter-devel@vger.kernel.org
-To: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57135 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:54603 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753957AbbIAKdf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Sep 2015 06:33:35 -0400
+	id S1753126AbbIAQhw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Sep 2015 12:37:52 -0400
 Content-Disposition: inline
-In-Reply-To: <9caca1293214eeacb76490fa79aa4c4364920139.1441039959.git.daniel@iogearbox.net>
+In-Reply-To: <CAOkSjBhxLk2beq70jZCTKtO8K09UcSj5jNh2H-9wvCzSL0XxeA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 31, 2015 at 07:11:02PM +0200, Daniel Borkmann wrote:
-> Commit 0838aa7fcfcd ("netfilter: fix netns dependencies with conntrack
-> templates") migrated templates to the new allocator api, but forgot to
-> update error paths for them in CT and synproxy to use nf_ct_tmpl_free()
-> instead of nf_conntrack_free().
+On Mon, Aug 31, 2015 at 09:55:23AM +0200, Arturo Borrero Gonzalez wrote:
+> On 28 August 2015 at 18:49, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> >
+> > Are these FTP data flows? I'm asking this because the master
+> > connection (control flow) may be missing in the conntrack table, thus
+> > the ENOENT error.
 > 
-> Due to that, memory is being freed into the wrong kmemcache, but also
-> we drop the per net reference count of ct objects causing an imbalance.
+> Makes sense.
 > 
-> In Brad's case, this leads to a wrap-around of net->ct.count and thus
-> lets __nf_conntrack_alloc() refuse to create a new ct object:
-> 
->   [   10.340913] xt_addrtype: ipv6 does not support BROADCAST matching
->   [   10.810168] nf_conntrack: table full, dropping packet
->   [   11.917416] r8169 0000:07:00.0 eth0: link up
->   [   11.917438] IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
->   [   12.815902] nf_conntrack: table full, dropping packet
->   [   15.688561] nf_conntrack: table full, dropping packet
->   [   15.689365] nf_conntrack: table full, dropping packet
->   [   15.690169] nf_conntrack: table full, dropping packet
->   [   15.690967] nf_conntrack: table full, dropping packet
->   [...]
-> 
-> With slab debugging, it also reports the wrong kmemcache (kmalloc-512 vs.
-> nf_conntrack_ffffffff81ce75c0) and reports poison overwrites, etc. Thus,
-> to fix the problem, export and use nf_ct_tmpl_free() instead.
+> Would you consider accepting the patch?
 
-Applied, thanks Daniel.
+I think you can fix the problem that you're noticing by extending
+timer_add().
+
+Note that the general idea behind the alarm approach is to insert a
+timer with a random time wait in unit from 0..M seconds.
+
+A quick workaround to address this is that master conntracks are
+placed in the time range from 0..N/2, then you place non-master
+conntrack entries in the range from N/2+1 to M. Then, unless there is
+packet loss, most likely the expected conntrack will find the master
+one.
+
+It should be just a few more extra lines away from this oneliner.
