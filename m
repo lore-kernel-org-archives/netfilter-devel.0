@@ -1,34 +1,44 @@
-From: Brendan Heading <brendanheading@gmail.com>
-Subject: Re: [PATCH 1/1] solve musl build problem
-Date: Thu, 3 Sep 2015 17:49:56 +0100
-Message-ID: <CA+BsyQ4S2ndnqAbAyM8jrAzNdKDWQg1wP6677tJ1yP6PoFuJKQ@mail.gmail.com>
-References: <1441298310-3951-1-git-send-email-brendanheading@gmail.com>
-	<20150903164739.GA21105@salvia>
-	<CA+BsyQ79wP-ut+kXxmWZvW3qnTs0MFxj7NdLs7yi-2nK_4iExw@mail.gmail.com>
-	<CA+BsyQ7oC6Uyycp0VeyRxdckrwW+7vmtKpz=8LTFbNKb9VEztg@mail.gmail.com>
-	<20150903165402.GA23890@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] tests: display error when trying to run tests out of the root directory
+Date: Thu,  3 Sep 2015 19:48:54 +0200
+Message-ID: <1441302534-2724-1-git-send-email-pablo@netfilter.org>
+Cc: fw@strlen.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f47.google.com ([209.85.213.47]:35252 "EHLO
-	mail-vk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750749AbbICQt5 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Sep 2015 12:49:57 -0400
-Received: by vkaw128 with SMTP id w128so27840841vka.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 03 Sep 2015 09:49:56 -0700 (PDT)
-In-Reply-To: <20150903165402.GA23890@salvia>
+Received: from mail.us.es ([193.147.175.20]:51405 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753243AbbICRm0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Sep 2015 13:42:26 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> Hm, I see no 'src' directory under ebtables.
+Since 357d8cfcceb2 ("tests: use the src/nft binary instead of $PATH one"), the
+tests fail if you try to run them if you are not under the root directory of
+the nftables repository.
 
-Apologies Pablo, wires seriously crossed here. I sent the wrong patch.
+Display an error so I don't forget I have to do it like this.
 
-Please ignore, I'll sort this out after I've had more coffee :)
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ tests/regression/nft-test.py |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-regards
+diff --git a/tests/regression/nft-test.py b/tests/regression/nft-test.py
+index c3d2aae..8168203 100755
+--- a/tests/regression/nft-test.py
++++ b/tests/regression/nft-test.py
+@@ -879,6 +879,11 @@ def main():
+         print "You need to be root to run this, sorry"
+         return
+ 
++    if not os.path.isdir("tests/regression/"):
++        print "You have to run nft-test.py from the repository root directory, eg.\n\n" + \
++            "	nftables# python tests/regression/nft-test.py\n"
++        return
++
+     test_files = files_ok = run_total = 0
+     tests = passed = warnings = errors = 0
+     global log_file
+-- 
+1.7.10.4
 
-Brendan
