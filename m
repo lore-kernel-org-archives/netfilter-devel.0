@@ -1,94 +1,56 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/6] netfilter: ipset: Out of bound access in hash:net* types fixed
-Date: Thu,  3 Sep 2015 11:50:58 +0200
-Message-ID: <1441273861-31092-4-git-send-email-pablo@netfilter.org>
-References: <1441273861-31092-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1441273861-31092-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: Re: [PATCHv2 nf-next 3/5] netfilter: nfnetlink_queue_ct: export
+ functions
+Date: Thu, 3 Sep 2015 12:10:34 +0200
+Message-ID: <20150903101034.GA19011@salvia>
+References: <20150824231038.GA20038@gmail.com>
+ <20150824231520.GC20038@gmail.com>
+ <20150826190553.GA18429@salvia>
+ <20150901003436.GA2642@gmail.com>
+ <20150901004146.GD2642@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: The netfilter developer mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:54338 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752416AbbICKEE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Sep 2015 06:04:04 -0400
+Content-Disposition: inline
+In-Reply-To: <20150901004146.GD2642@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+On Tue, Sep 01, 2015 at 09:41:46AM +0900, Ken-ichirou MATSUZAWA wrote:
+[...]
+> diff --git a/net/netfilter/nfnetlink_queue_ct.c b/net/netfilter/nfnetlink_queue_ct.c
+> index 2a30618..299b5a8 100644
+> --- a/net/netfilter/nfnetlink_queue_ct.c
+> +++ b/net/netfilter/nfnetlink_queue_ct.c
+> @@ -14,6 +14,8 @@
+>  #include <net/netfilter/nf_conntrack.h>
+>  #include <net/netfilter/nfnetlink_queue.h>
+>  
+> +struct nfq_ct_hook __rcu *nfq_ct_hook __read_mostly;
+> +
+>  struct nf_conn *nfqnl_ct_get(struct sk_buff *entskb, size_t *size,
+>  			     enum ip_conntrack_info *ctinfo)
+>  {
+> @@ -34,6 +36,7 @@ struct nf_conn *nfqnl_ct_get(struct sk_buff *entskb, size_t *size,
+>  	}
+>  	return ct;
+>  }
+> +EXPORT_SYMBOL_GPL(nfqnl_ct_get);
 
-Dave Jones reported that KASan detected out of bounds access in hash:net*
-types:
+After this patchset these functions are not nfqueue specific anymore,
+so we have to place this in a single module, eg. nfnetlink_ct_glue.c
+(unless someone comes up with a better name...).
 
-[   23.139532] ==================================================================
-[   23.146130] BUG: KASan: out of bounds access in hash_net4_add_cidr+0x1db/0x220 at addr ffff8800d4844b58
-[   23.152937] Write of size 4 by task ipset/457
-[   23.159742] =============================================================================
-[   23.166672] BUG kmalloc-512 (Not tainted): kasan: bad access detected
-[   23.173641] -----------------------------------------------------------------------------
-[   23.194668] INFO: Allocated in hash_net_create+0x16a/0x470 age=7 cpu=1 pid=456
-[   23.201836]  __slab_alloc.constprop.66+0x554/0x620
-[   23.208994]  __kmalloc+0x2f2/0x360
-[   23.216105]  hash_net_create+0x16a/0x470
-[   23.223238]  ip_set_create+0x3e6/0x740
-[   23.230343]  nfnetlink_rcv_msg+0x599/0x640
-[   23.237454]  netlink_rcv_skb+0x14f/0x190
-[   23.244533]  nfnetlink_rcv+0x3f6/0x790
-[   23.251579]  netlink_unicast+0x272/0x390
-[   23.258573]  netlink_sendmsg+0x5a1/0xa50
-[   23.265485]  SYSC_sendto+0x1da/0x2c0
-[   23.272364]  SyS_sendto+0xe/0x10
-[   23.279168]  entry_SYSCALL_64_fastpath+0x12/0x6f
+The idea is that nfnetlink_queue and nfnetlink_log request this module
+to be loaded when the CONNTRACK flag is passed.
 
-The bug is fixed in the patch and the testsuite is extended in ipset
-to check cidr handling more thoroughly.
+The nfqnl_ prefix should be also modified, I'd suggest you use nfnl_ct_
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
- net/netfilter/ipset/ip_set_hash_gen.h |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index afe905c..691b54f 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -152,9 +152,13 @@ htable_bits(u32 hashsize)
- #define SET_HOST_MASK(family)	(family == AF_INET ? 32 : 128)
- 
- #ifdef IP_SET_HASH_WITH_NET0
-+/* cidr from 0 to SET_HOST_MASK() value and c = cidr + 1 */
- #define NLEN(family)		(SET_HOST_MASK(family) + 1)
-+#define CIDR_POS(c)		((c) - 1)
- #else
-+/* cidr from 1 to SET_HOST_MASK() value and c = cidr + 1 */
- #define NLEN(family)		SET_HOST_MASK(family)
-+#define CIDR_POS(c)		((c) - 2)
- #endif
- 
- #else
-@@ -305,7 +309,7 @@ mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
- 		} else if (h->nets[i].cidr[n] < cidr) {
- 			j = i;
- 		} else if (h->nets[i].cidr[n] == cidr) {
--			h->nets[cidr - 1].nets[n]++;
-+			h->nets[CIDR_POS(cidr)].nets[n]++;
- 			return;
- 		}
- 	}
-@@ -314,7 +318,7 @@ mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
- 			h->nets[i].cidr[n] = h->nets[i - 1].cidr[n];
- 	}
- 	h->nets[i].cidr[n] = cidr;
--	h->nets[cidr - 1].nets[n] = 1;
-+	h->nets[CIDR_POS(cidr)].nets[n] = 1;
- }
- 
- static void
-@@ -325,8 +329,8 @@ mtype_del_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
- 	for (i = 0; i < nets_length; i++) {
- 		if (h->nets[i].cidr[n] != cidr)
- 			continue;
--		h->nets[cidr - 1].nets[n]--;
--		if (h->nets[cidr - 1].nets[n] > 0)
-+		h->nets[CIDR_POS(cidr)].nets[n]--;
-+		if (h->nets[CIDR_POS(cidr)].nets[n] > 0)
- 			return;
- 		for (j = i; j < net_end && h->nets[j].cidr[n]; j++)
- 			h->nets[j].cidr[n] = h->nets[j + 1].cidr[n];
--- 
-1.7.10.4
+Does this sound good to you?
