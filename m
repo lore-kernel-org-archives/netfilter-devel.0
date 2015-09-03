@@ -1,56 +1,67 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv2 nf-next 3/5] netfilter: nfnetlink_queue_ct: export
- functions
-Date: Thu, 3 Sep 2015 12:10:34 +0200
-Message-ID: <20150903101034.GA19011@salvia>
-References: <20150824231038.GA20038@gmail.com>
- <20150824231520.GC20038@gmail.com>
- <20150826190553.GA18429@salvia>
- <20150901003436.GA2642@gmail.com>
- <20150901004146.GD2642@gmail.com>
+From: Andreas Herz <andi@geekosphere.org>
+Subject: broken packet passed into raw table by nf_defrag_ipv6
+Date: Thu, 3 Sep 2015 15:57:55 +0200
+Message-ID: <20150903135755.GX29140@kvmbude>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Content-Type: text/plain; charset=utf-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54338 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752416AbbICKEE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Sep 2015 06:04:04 -0400
+Received: from mail.geekosphere.org ([78.47.150.211]:38471 "EHLO
+	mail.geekosphere.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755796AbbICN55 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Sep 2015 09:57:57 -0400
+Received: from geekosphere.org (unknown [IPv6:2a00:f48:1026:0:f1f7:0:1545:173f])
+	by mail.geekosphere.org (Postfix) with ESMTPSA id C0F02FA233
+	for <netfilter-devel@vger.kernel.org>; Thu,  3 Sep 2015 13:57:55 +0000 (UTC)
 Content-Disposition: inline
-In-Reply-To: <20150901004146.GD2642@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Sep 01, 2015 at 09:41:46AM +0900, Ken-ichirou MATSUZAWA wrote:
-[...]
-> diff --git a/net/netfilter/nfnetlink_queue_ct.c b/net/netfilter/nfnetlink_queue_ct.c
-> index 2a30618..299b5a8 100644
-> --- a/net/netfilter/nfnetlink_queue_ct.c
-> +++ b/net/netfilter/nfnetlink_queue_ct.c
-> @@ -14,6 +14,8 @@
->  #include <net/netfilter/nf_conntrack.h>
->  #include <net/netfilter/nfnetlink_queue.h>
->  
-> +struct nfq_ct_hook __rcu *nfq_ct_hook __read_mostly;
-> +
->  struct nf_conn *nfqnl_ct_get(struct sk_buff *entskb, size_t *size,
->  			     enum ip_conntrack_info *ctinfo)
->  {
-> @@ -34,6 +36,7 @@ struct nf_conn *nfqnl_ct_get(struct sk_buff *entskb, size_t *size,
->  	}
->  	return ct;
->  }
-> +EXPORT_SYMBOL_GPL(nfqnl_ct_get);
+There seems to be a bug or wrong behaviour in nf_defrag_ipv6.
+I'm sending a fragmented ipv6 icmpv6 packet with thc-tools:
 
-After this patchset these functions are not nfqueue specific anymore,
-so we have to place this in a single module, eg. nfnetlink_ct_glue.c
-(unless someone comes up with a better name...).
+> atk6-implementation6 eth1 2001:db8:f00d:1::defe:d2 -p 15
+> (overlap-first-dst fragmentation)
 
-The idea is that nfnetlink_queue and nfnetlink_log request this module
-to be loaded when the CONNTRACK flag is passed.
+a) If nf_defrag_ipv6 is off i get the following dump with 2 fragments:
 
-The nfqnl_ prefix should be also modified, I'd suggest you use nfnl_ct_
+http://62.113.242.158/frag.pcap
 
-Does this sound good to you?
+b) If nf_defrag_ipv6 is on i get the following dump with 1 fragment:
+
+http://62.113.242.158/defrag.pcap
+
+I'm using a debian system with kernel 4.1 and just this rules in the raw
+table PREROUTING:
+
+NFLOG all * * ::/0 ::/0 nflog-group 10 (for dumping the packet)
+LOG all * * ::/0 ::/0 LOG flags 0 level 4
+LOG tcp * * ::/0 ::/0 LOG flags 0 level 4
+LOG all * * ::/0 ::/0 LOG flags 0 level 4
+
+In a) i see the first fragment passing all rules and the second fragment
+is dropped when it reaches the LOG rule with the -p tcp match. fw
+pointed out that this is the hotdrop that triggers since the second
+fragment is invalid it seems (maybe some can explain why the second
+fragment won't pass this match). So this seems to be correct behaviour
+although i'm not 100% sure why the first fragment passes the tcp match
+and the second does not.
+
+Some explanation is found in commit from 2006
+6d381634d213580d40d431e7664dfb45f641b884 and in net/ipv6/exthdrs_core.c
+
+The IMHO bug is in b) because the packet that enters the raw table which
+was "modified" by nf_defrag_ipv6 is obviously invalid since it's missing
+the destination header that's declared in the nh part from the fragment
+header and the protocol header is completely missing.
+
+There would be two solutions, if you agree that this is a bug:
+
+1) drop this packet already in nf_defrag_ipv6 since it's messed up
+2) try to defrag it correct
+
+Thanks!
+
+-- 
+Andreas Herz
