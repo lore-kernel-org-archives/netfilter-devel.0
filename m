@@ -1,62 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH nf-next] netfilter: nf_conntrack: make nf_ct_zone_dflt
- built-in
-Date: Wed, 02 Sep 2015 16:33:28 -0700 (PDT)
-Message-ID: <20150902.163328.2105819031511147300.davem@davemloft.net>
-References: <e3e68a263cbf95761bd3f759f458f43973741584.1441235714.git.daniel@iogearbox.net>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, fengguang.wu@intel.com, fw@strlen.de,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: daniel@iogearbox.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:40084 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754441AbbIBXd3 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Sep 2015 19:33:29 -0400
-In-Reply-To: <e3e68a263cbf95761bd3f759f458f43973741584.1441235714.git.daniel@iogearbox.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 2/6] netfilter: bridge: fix IPv6 packets not being bridged with CONFIG_IPV6=n
+Date: Thu,  3 Sep 2015 11:50:57 +0200
+Message-ID: <1441273861-31092-3-git-send-email-pablo@netfilter.org>
+References: <1441273861-31092-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1441273861-31092-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Daniel Borkmann <daniel@iogearbox.net>
-Date: Thu,  3 Sep 2015 01:26:07 +0200
+From: Bernhard Thaler <bernhard.thaler@wvnet.at>
 
-> Fengguang reported, that some randconfig generated the following linker
-> issue with nf_ct_zone_dflt object involved:
-> 
->   [...]
->   CC      init/version.o
->   LD      init/built-in.o
->   net/built-in.o: In function `ipv4_conntrack_defrag':
->   nf_defrag_ipv4.c:(.text+0x93e95): undefined reference to `nf_ct_zone_dflt'
->   net/built-in.o: In function `ipv6_defrag':
->   nf_defrag_ipv6_hooks.c:(.text+0xe3ffe): undefined reference to `nf_ct_zone_dflt'
->   make: *** [vmlinux] Error 1
-> 
-> Given that configurations exist where we have a built-in part, which is
-> accessing nf_ct_zone_dflt such as the two handlers nf_ct_defrag_user()
-> and nf_ct6_defrag_user(), and a part that configures nf_conntrack as a
-> module, we must move nf_ct_zone_dflt into a fixed, guaranteed built-in
-> area when netfilter is configured in general.
-> 
-> Therefore, split the more generic parts into a common header under
-> include/linux/netfilter/ and move nf_ct_zone_dflt into the built-in
-> section that already holds parts related to CONFIG_NF_CONNTRACK in the
-> netfilter core. This fixes the issue on my side.
-> 
-> Fixes: 308ac9143ee2 ("netfilter: nf_conntrack: push zone object into functions")
-> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-> Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
-> ---
->  [ Here's the 2nd one for either nf-next or net-next. I've tried various
->    Kconfig combinations including the one Fengguang reported, seems to be
->    okay from my side. ]
+230ac490f7fba introduced a dependency to CONFIG_IPV6 which breaks bridging
+of IPv6 packets on a bridge with CONFIG_IPV6=n.
 
-Ok I'll apply this directly too, thanks Daniel.
+Sysctl entry /proc/sys/net/bridge/bridge-nf-call-ip6tables defaults to 1,
+for this reason packets are handled by br_nf_pre_routing_ipv6(). When compiled
+with CONFIG_IPV6=n this function returns NF_DROP but should return NF_ACCEPT
+to let packets through.
 
-If Pablo and others want to fix this another way, they can send me
-a relative patch.
+Change CONFIG_IPV6=n br_nf_pre_routing_ipv6() return value to NF_ACCEPT.
 
-Thanks.
+Tested with a simple bridge with two interfaces and IPv6 packets trying
+to pass from host on left side to host on right side of the bridge.
+
+Fixes: 230ac490f7fba ("netfilter: bridge: split ipv6 code into separated file")
+Signed-off-by: Bernhard Thaler <bernhard.thaler@wvnet.at>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/br_netfilter.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/net/netfilter/br_netfilter.h b/include/net/netfilter/br_netfilter.h
+index bab824b..d4c6b5f 100644
+--- a/include/net/netfilter/br_netfilter.h
++++ b/include/net/netfilter/br_netfilter.h
+@@ -59,7 +59,7 @@ static inline unsigned int
+ br_nf_pre_routing_ipv6(const struct nf_hook_ops *ops, struct sk_buff *skb,
+ 		       const struct nf_hook_state *state)
+ {
+-	return NF_DROP;
++	return NF_ACCEPT;
+ }
+ #endif
+ 
+-- 
+1.7.10.4
