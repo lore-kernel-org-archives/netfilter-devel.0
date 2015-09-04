@@ -1,91 +1,34 @@
-From: Joe Stringer <joestringer@nicira.com>
-Subject: [PATCH net] openvswitch: Remove conntrack Kconfig option.
-Date: Fri,  4 Sep 2015 13:07:40 -0700
-Message-ID: <1441397260-61272-1-git-send-email-joestringer@nicira.com>
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: netdev@vger.kernel.org, pshelar@nicira.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pravin Shelar <pshelar@nicira.com>
+Subject: Re: [PATCH net] openvswitch: Remove conntrack Kconfig option.
+Date: Fri, 4 Sep 2015 16:23:12 -0700
+Message-ID: <CALnjE+p+UB5o-TShVbGVHMm2pO5PNwLCdZEQhiXGa_f8h5Pbeg@mail.gmail.com>
+References: <1441397260-61272-1-git-send-email-joestringer@nicira.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: netdev <netdev@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Joe Stringer <joestringer@nicira.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ig0-f171.google.com ([209.85.213.171]:34992 "EHLO
+	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934001AbbIDXXN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Sep 2015 19:23:13 -0400
+Received: by igbkq10 with SMTP id kq10so22824378igb.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 04 Sep 2015 16:23:13 -0700 (PDT)
+In-Reply-To: <1441397260-61272-1-git-send-email-joestringer@nicira.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-There's no particular desire to have conntrack action support in Open
-vSwitch as an independently configurable bit, rather just to ensure
-there is not a hard dependency. This exposed option doesn't accurately
-reflect the conntrack dependency when enabled, so simplify this by
-removing the option. Compile the support if NF_CONNTRACK is enabled.
+On Fri, Sep 4, 2015 at 1:07 PM, Joe Stringer <joestringer@nicira.com> wrote:
+> There's no particular desire to have conntrack action support in Open
+> vSwitch as an independently configurable bit, rather just to ensure
+> there is not a hard dependency. This exposed option doesn't accurately
+> reflect the conntrack dependency when enabled, so simplify this by
+> removing the option. Compile the support if NF_CONNTRACK is enabled.
+>
+> Fixes: 7f8a436eaa2c ("openvswitch: Add conntrack action")
+> Signed-off-by: Joe Stringer <joestringer@nicira.com>
 
-Fixes: 7f8a436eaa2c ("openvswitch: Add conntrack action")
-Signed-off-by: Joe Stringer <joestringer@nicira.com>
----
- net/openvswitch/Kconfig     | 12 +-----------
- net/openvswitch/Makefile    |  4 +++-
- net/openvswitch/conntrack.h |  4 ++--
- 3 files changed, 6 insertions(+), 14 deletions(-)
-
-diff --git a/net/openvswitch/Kconfig b/net/openvswitch/Kconfig
-index af7cdef..2a071f4 100644
---- a/net/openvswitch/Kconfig
-+++ b/net/openvswitch/Kconfig
-@@ -5,6 +5,7 @@
- config OPENVSWITCH
- 	tristate "Open vSwitch"
- 	depends on INET
-+	depends on (!NF_CONNTRACK || NF_CONNTRACK)
- 	select LIBCRC32C
- 	select MPLS
- 	select NET_MPLS_GSO
-@@ -31,17 +32,6 @@ config OPENVSWITCH
- 
- 	  If unsure, say N.
- 
--config OPENVSWITCH_CONNTRACK
--	bool "Open vSwitch conntrack action support"
--	depends on OPENVSWITCH
--	depends on NF_CONNTRACK
--	default OPENVSWITCH
--	---help---
--	  If you say Y here, then Open vSwitch module will be able to pass
--	  packets through conntrack.
--
--	  Say N to exclude this support and reduce the binary size.
--
- config OPENVSWITCH_GRE
- 	tristate "Open vSwitch GRE tunneling support"
- 	depends on OPENVSWITCH
-diff --git a/net/openvswitch/Makefile b/net/openvswitch/Makefile
-index 5b5913b..60f8090 100644
---- a/net/openvswitch/Makefile
-+++ b/net/openvswitch/Makefile
-@@ -15,7 +15,9 @@ openvswitch-y := \
- 	vport-internal_dev.o \
- 	vport-netdev.o
- 
--openvswitch-$(CONFIG_OPENVSWITCH_CONNTRACK) += conntrack.o
-+ifneq ($(CONFIG_NF_CONNTRACK),)
-+openvswitch-y += conntrack.o
-+endif
- 
- obj-$(CONFIG_OPENVSWITCH_VXLAN)+= vport-vxlan.o
- obj-$(CONFIG_OPENVSWITCH_GENEVE)+= vport-geneve.o
-diff --git a/net/openvswitch/conntrack.h b/net/openvswitch/conntrack.h
-index 3cb3066..43f5dd7 100644
---- a/net/openvswitch/conntrack.h
-+++ b/net/openvswitch/conntrack.h
-@@ -19,7 +19,7 @@
- struct ovs_conntrack_info;
- enum ovs_key_attr;
- 
--#if defined(CONFIG_OPENVSWITCH_CONNTRACK)
-+#if IS_ENABLED(CONFIG_NF_CONNTRACK)
- void ovs_ct_init(struct net *);
- void ovs_ct_exit(struct net *);
- bool ovs_ct_verify(struct net *, enum ovs_key_attr attr);
-@@ -82,5 +82,5 @@ static inline int ovs_ct_put_key(const struct sw_flow_key *key,
- }
- 
- static inline void ovs_ct_free_action(const struct nlattr *a) { }
--#endif
-+#endif /* CONFIG_NF_CONNTRACK */
- #endif /* ovs_conntrack.h */
--- 
-2.1.4
+Acked-by: Pravin B Shelar <pshelar@nicira.com>
