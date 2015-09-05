@@ -1,66 +1,38 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables: Spelling fixes
-Date: Sat, 5 Sep 2015 23:07:46 +0200
-Message-ID: <20150905210746.GA13600@salvia>
-References: <1441436676-10778-1-git-send-email-ville.skytta@iki.fi>
+From: iSayor <iSayor@iSayor.com>
+Subject: usually 3000 customers/Where 100,000+ customers worldwide?
+Date: Sun, 06 Sep 2015 05:51:39 +0800
+Message-ID: <01d0e825$Blat.v3.2.4$0b81a5d3$45e47ffc@localhost>
+Reply-To: iSayor <iSayor@163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Ville =?iso-8859-1?Q?Skytt=E4?= <ville.skytta@iki.fi>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35947 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751525AbbIEVBQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Sep 2015 17:01:16 -0400
-Content-Disposition: inline
-In-Reply-To: <1441436676-10778-1-git-send-email-ville.skytta@iki.fi>
+Received: from 246.117.212.118.adsl-pool.jx.chinaunicom.com ([118.212.117.246]:35938
+	"EHLO iSayor.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752591AbbIEVvs (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 5 Sep 2015 17:51:48 -0400
+Received: from andy.iSayor.com (127.0.0.1) by iSayor.com for <netfilter-devel@vger.kernel.org>; Sun, 6 Sep 2015 05:51:39 +0800 (envelope-from <iSayor@iSayor.com>)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Sep 05, 2015 at 10:04:36AM +0300, Ville Skytt=E4 wrote:
-> Signed-off-by: Ville Skytt=E4 <ville.skytta@iki.fi>
-> ---
->  iptables/ip6tables.c    | 6 +++---
->  iptables/iptables-xml.c | 2 +-
->  iptables/iptables.c     | 6 +++---
->  iptables/iptables.xslt  | 2 +-
->  libiptc/libiptc.c       | 2 +-
->  libxtables/xtables.c    | 2 +-
->  6 files changed, 10 insertions(+), 10 deletions(-)
->=20
-> diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
-> index 8db13b4..4a597b7 100644
-> --- a/iptables/ip6tables.c
-> +++ b/iptables/ip6tables.c
-> @@ -1046,7 +1046,7 @@ static int print_match_save(const struct xt_ent=
-ry_match *e,
->  	return 0;
->  }
-> =20
-> -/* print a given ip including mask if neccessary */
-> +/* print a given ip including mask if necessary */
->  static void print_ip(const char *prefix, const struct in6_addr *ip,
->  		     const struct in6_addr *mask, int invert)
->  {
-> @@ -1067,7 +1067,7 @@ static void print_ip(const char *prefix, const =
-struct in6_addr *ip,
->  		printf("/%d", l);
->  }
-> =20
-> -/* We want this to be readable, so only print out neccessary fields.
-> +/* We want this to be readable, so only print out necessary fields.
->   * Because that's the kind of world I want to live in.  */
-
-While you're at it, would you also update the comment format for
-these? I mean:
-
-/* We want this to be readable, so only print out neccessary fields.
- * Because that's the kind of world I want to live in.
- */
-
-The idea is to update only the comments that you have corrected.
-Thanks.
+Hi
+=C2=A0=C2=A0Are you still develop foreign customers with alibaba, exhib=
+ition?
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0You out of!!!
+=C2=A0 Are you looking other channel beside exhibition/B2B when you fee=
+l difficult to find foreign customers?
+=C2=A0 Industry hundreds of thousands of customers worldwide, usually w=
+e can only contact three thousand, do you want to rest also developed?
+=C2=A0 Guangdong General Chamber of Commerce recommended the initiative=
+ customer develop first brand, nearly ten thousand companies are benefi=
+ting.
+  the first benefit with first use, nearly twenty thousand companies le=
+ad you!
+  You can not use, but not without understanding.
+=C2=A0 Add QQ767650805/Skype:iSayor let's show you the initiative custo=
+mer develop means.
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
