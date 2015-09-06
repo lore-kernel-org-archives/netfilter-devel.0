@@ -1,46 +1,61 @@
-From: =?UTF-8?Q?Ville_Skytt=C3=A4?= <ville.skytta@iki.fi>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: [PATCH] iptables: Spelling fixes
-Date: Sun, 6 Sep 2015 10:30:28 +0300
-Message-ID: <CABr9L5BtsG-mzA4LrN0TANPFG-9L8bOeLL6O=M9D4P9d52putw@mail.gmail.com>
-References: <20150905210746.GA13600@salvia> <1441520550-526-1-git-send-email-ville.skytta@iki.fi>
- <alpine.LSU.2.20.1509060915240.28331@nerf40.vanv.qr>
+Date: Sun, 6 Sep 2015 20:21:22 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1509062017380.12868@blackhole.kfki.hu>
+References: <20150905210746.GA13600@salvia> <1441520550-526-1-git-send-email-ville.skytta@iki.fi> <alpine.LSU.2.20.1509060915240.28331@nerf40.vanv.qr> <CABr9L5BtsG-mzA4LrN0TANPFG-9L8bOeLL6O=M9D4P9d52putw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: MULTIPART/MIXED; BOUNDARY="110391812-1875017634-1441563682=:12868"
+Cc: Jan Engelhardt <jengelh@inai.de>, netfilter-devel@vger.kernel.org
+To: =?ISO-8859-15?Q?Ville_Skytt=E4?= <ville.skytta@iki.fi>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:35062 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750883AbbIFHat convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 6 Sep 2015 03:30:49 -0400
-Received: by lbpo4 with SMTP id o4so27054803lbp.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 06 Sep 2015 00:30:48 -0700 (PDT)
-In-Reply-To: <alpine.LSU.2.20.1509060915240.28331@nerf40.vanv.qr>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:58896 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751345AbbIFSUa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 6 Sep 2015 14:20:30 -0400
+In-Reply-To: <CABr9L5BtsG-mzA4LrN0TANPFG-9L8bOeLL6O=M9D4P9d52putw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Sep 6, 2015 at 10:15 AM, Jan Engelhardt <jengelh@inai.de> wrote=
-:
->
-> On Sunday 2015-09-06 08:22, Ville Skytt=C3=A4 wrote:
->>
->>-/* print a given ip including mask if neccessary */
->>+/* Print a given ip including mask if necessary.
->>+ */
->> static void print_ip(const char *prefix, const struct in6_addr *ip,
->>                    const struct in6_addr *mask, int invert)
->> {
->
-> Hm that really looks worse than it did before.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Well, I believe it matches the instructions for block formatting I was
-given by Pablo. If it doesn't, I suggest applying my original patch
-which didn't do anything but the spelling fixes -- I'm not going to
-spend any more time on this.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--110391812-1875017634-1441563682=:12868
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+On Sun, 6 Sep 2015, Ville Skytt=C3=A4 wrote:
+
+> On Sun, Sep 6, 2015 at 10:15 AM, Jan Engelhardt <jengelh@inai.de> wrote:
+> >
+> > On Sunday 2015-09-06 08:22, Ville Skytt=C3=A4 wrote:
+> >>
+> >>-/* print a given ip including mask if neccessary */
+> >>+/* Print a given ip including mask if necessary.
+> >>+ */
+> >> static void print_ip(const char *prefix, const struct in6_addr *ip,
+> >>                    const struct in6_addr *mask, int invert)
+> >> {
+> >
+> > Hm that really looks worse than it did before.
+>=20
+> Well, I believe it matches the instructions for block formatting I was
+> given by Pablo.=20
+
+No, it does not.
+
+> If it doesn't, I suggest applying my original patch which didn't do=20
+> anything but the spelling fixes -- I'm not going to spend any more time=
+=20
+> on this.
+
+Your original patch does not follow either the comment styles for files=20
+under net/, therefore was you asked to fix it.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
+--110391812-1875017634-1441563682=:12868--
