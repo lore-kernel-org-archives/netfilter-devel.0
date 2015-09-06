@@ -1,40 +1,54 @@
-From: iSayor <iSayor@iSayor.com>
-Subject: usually 3000 customers/Where 100,000+ customers worldwide?
-Date: Sun, 06 Sep 2015 05:51:39 +0800
-Message-ID: <01d0e825$Blat.v3.2.4$0b81a5d3$45e47ffc@localhost>
-Reply-To: iSayor <iSayor@163.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/6] Netfilter fixes for net
+Date: Sat, 05 Sep 2015 21:59:05 -0700 (PDT)
+Message-ID: <20150905.215905.1856210304694191648.davem@davemloft.net>
+References: <1441273861-31092-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 246.117.212.118.adsl-pool.jx.chinaunicom.com ([118.212.117.246]:35938
-	"EHLO iSayor.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752591AbbIEVvs (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:34980 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750767AbbIFE7I (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Sep 2015 17:51:48 -0400
-Received: from andy.iSayor.com (127.0.0.1) by iSayor.com for <netfilter-devel@vger.kernel.org>; Sun, 6 Sep 2015 05:51:39 +0800 (envelope-from <iSayor@iSayor.com>)
+	Sun, 6 Sep 2015 00:59:08 -0400
+In-Reply-To: <1441273861-31092-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi
-=C2=A0=C2=A0Are you still develop foreign customers with alibaba, exhib=
-ition?
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0You out of!!!
-=C2=A0 Are you looking other channel beside exhibition/B2B when you fee=
-l difficult to find foreign customers?
-=C2=A0 Industry hundreds of thousands of customers worldwide, usually w=
-e can only contact three thousand, do you want to rest also developed?
-=C2=A0 Guangdong General Chamber of Commerce recommended the initiative=
- customer develop first brand, nearly ten thousand companies are benefi=
-ting.
-  the first benefit with first use, nearly twenty thousand companies le=
-ad you!
-  You can not use, but not without understanding.
-=C2=A0 Add QQ767650805/Skype:iSayor let's show you the initiative custo=
-mer develop means.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Thu,  3 Sep 2015 11:50:55 +0200
+
+> The following patchset contains Netfilter fixes for net, they are:
+> 
+> 1) Oneliner to restore maps in nf_tables since we support addressing registers
+>    at 32 bits level.
+> 
+> 2) Restore previous default behaviour in bridge netfilter when CONFIG_IPV6=n,
+>    oneliner from Bernhard Thaler.
+> 
+> 3) Out of bound access in ipset hash:net* set types, reported by Dave Jones'
+>    KASan utility, patch from Jozsef Kadlecsik.
+> 
+> 4) Fix ipset compilation with gcc 4.4.7 related to C99 initialization of
+>    unnamed unions, patch from Elad Raz.
+> 
+> 5) Add a workaround to address inconsistent endianess in the res_id field of
+>    nfnetlink batch messages, reported by Florian Westphal.
+> 
+> 6) Fix error paths of CT/synproxy since the conntrack template was moved to use
+>    kmalloc, patch from Daniel Borkmann.
+> 
+> All of them look good to me to reach 4.2, I can route this to -stable myself
+> too, just let me know what you prefer.
+> 
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Pulled, there was a merge conflict, please verify that I resolved it
+correctly.
+
+Thanks.
