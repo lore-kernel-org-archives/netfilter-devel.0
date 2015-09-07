@@ -1,32 +1,75 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: RE: [PATCH v1 1/1] fix: resource leakage when loading library using
- dlopen
-Date: Mon, 7 Sep 2015 15:08:26 +0200 (CEST)
-Message-ID: <alpine.LSU.2.20.1509071506190.2437@nerf40.vanv.qr>
-References: <1441622536-15123-1-git-send-email-imran.zaman@intel.com>,<alpine.LSU.2.20.1509071238500.579@nerf40.vanv.qr> <0851720D2FAA48479DE89E28AEACE10E3B69D763@IRSMSX102.ger.corp.intel.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH libnftnl 0/3] use nftnl_ prefix
+Date: Mon, 7 Sep 2015 20:14:28 +0200
+Message-ID: <20150907181428.GA16080@salvia>
+References: <1441205064-9240-1-git-send-email-pablo@netfilter.org>
+ <20150902150255.GA10168@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "Zaman, Imran" <imran.zaman@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net, fw@strlen.de, arturo.borrero.glez@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:42811 "EHLO ares41.inai.de"
+Received: from mail.us.es ([193.147.175.20]:55257 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750975AbbIGNIa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Sep 2015 09:08:30 -0400
-In-Reply-To: <0851720D2FAA48479DE89E28AEACE10E3B69D763@IRSMSX102.ger.corp.intel.com>
+	id S1750953AbbIGSIK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Sep 2015 14:08:10 -0400
+Content-Disposition: inline
+In-Reply-To: <20150902150255.GA10168@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2015-09-07 12:52, Zaman, Imran wrote:
+Hi,
 
->Aah. ookey.. so it needs to be moved two lines below.. 
+On Wed, Sep 02, 2015 at 05:02:55PM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Sep 02, 2015 at 04:44:23PM +0200, Pablo Neira Ayuso wrote:
+> > This patchset renames the existing functions and definitions to use the nftnl_
+> > prefix to prepare the introduction of the higher level library, which will use
+> > the nft_ prefix.
+> > 
+> > The patchset does not break backward compatibility: Neither compilation not
+> > existing binaries.
+> > 
+> > The patchset keeps the nft_ symbols around as aliases for the nftnl_ symbols.
+> > Moreover, the header files contain the old nft_ definitions so clients of this
+> > library don't break all of a sudden.
+> > 
+> > Please, let me know if you observe any problem with this. I would like that
+> > this changes are pushed to master before the next release.
+> 
+> Just pushed out this branch:
+> 
+> http://git.netfilter.org/libnftnl/log/?h=nftnl
 
-At which point it's almost useless, because the program will end if the 
-requested extension cannot be loaded.
+I'm pushing four more patches into this branch before we make the next
+release on top of the brand new patches to use the nftnl_ prefix
+instead as Patrick suggested.
 
->What about the caller of the function? is it getting closed at any stage?
+Not sending them to the mailing list, they are large as the previous
+and they are renaming things:
 
-Implicitly at program exit.
+1) src: rename nftnl_rule_expr to nftnl_expr
 
-It's not pretty valgrind-wise, but implicit resource freeing 
-seems a not-uncommon practice for some programs.
+The nftnl_rule_expr is not restricted anymore to the scope of rules
+since it can be used from sets, so let's get rid of the _rule_ infix
+to get it shorter.
+
+2) src: rename NFTNL_RULE_EXPR_ATTR to NFTNL_EXPR_
+
+Same as 1, but for constants.
+
+3) src: get rid of _ATTR_ infix in new nfntl_ definitions
+
+Remove the infix _ATTR_, the constant definitions have a large name,
+so let's reduce it a bit.
+
+4) src: get rid of _attr_ infix in new nftnl_ definitions
+
+Similar to 3. Note that after this we've got things like:
+
+        nft_set_set_u32(...)
+
+Please, let me know if you have more renaming suggestions since
+libnftnl will be out soon and it would be great if we can avoid this
+stuff in the future.
+
+Thanks.
