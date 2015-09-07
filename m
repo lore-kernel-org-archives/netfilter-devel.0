@@ -1,79 +1,54 @@
-From: Andreas Schultz <aschultz@tpip.net>
-Subject: [nft] deleting chains and verdict map entries in the same
- transaction
-Date: Mon, 7 Sep 2015 11:45:42 +0200 (CEST)
-Message-ID: <1697265942.3578653.1441619142130.JavaMail.zimbra@tpip.net>
+From: =?UTF-8?Q?Ville_Skytt=C3=A4?= <ville.skytta@iki.fi>
+Subject: Re: [PATCH] iptables: Spelling fixes
+Date: Mon, 7 Sep 2015 12:49:58 +0300
+Message-ID: <CABr9L5CuX=1Z3bGWjqXaY=QuUeoCQZ683-8QKe+vkdDi2GWksQ@mail.gmail.com>
+References: <20150905210746.GA13600@salvia> <1441520550-526-1-git-send-email-ville.skytta@iki.fi>
+ <alpine.LSU.2.20.1509060915240.28331@nerf40.vanv.qr> <CABr9L5BtsG-mzA4LrN0TANPFG-9L8bOeLL6O=M9D4P9d52putw@mail.gmail.com>
+ <alpine.DEB.2.10.1509062017380.12868@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: The netfilter developer mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.tpip.net ([92.43.49.48]:56333 "EHLO mail.tpip.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754114AbbIGJpx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Sep 2015 05:45:53 -0400
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:36400 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751772AbbIGJuT convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Sep 2015 05:50:19 -0400
+Received: by lbcao8 with SMTP id ao8so36459048lbc.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 07 Sep 2015 02:50:17 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.10.1509062017380.12868@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Sun, Sep 6, 2015 at 9:21 PM, Jozsef Kadlecsik
+<kadlec@blackhole.kfki.hu> wrote:
+> On Sun, 6 Sep 2015, Ville Skytt=C3=A4 wrote:
+>
+>> If it doesn't, I suggest applying my original patch which didn't do
+>> anything but the spelling fixes -- I'm not going to spend any more t=
+ime
+>> on this.
+>
+> Your original patch does not follow either the comment styles for fil=
+es
+> under net/, therefore was you asked to fix it.
 
-I'm trying to delete a verdict map entry and the chain it points to
-in the same nft transaction. This currently fails with:
-
-   Error: Could not process rule: Device or resource busy
-
-existing rules:
-
- nft list table mangle
-table ip mangle {
-	map client_to_any { 
-		type mark : verdict
-		elements = { 0x00000080 : jump BIn_1, 0x00000100 : jump BIn_2}
-	}
-
-	map any_to_client { 
-		type mark : verdict
-		elements = { 0x00000100 : jump BOut_2, 0x00000080 : jump BOut_1}
-	}
-
-...
-
-	chain BIn_1 {
-		counter packets 133 bytes 63243 
-	}
-
-	chain BOut_1 {
-		counter packets 136 bytes 34430 
-	}
-}
-
-delete script:
-
-# cat /tmp/nft-18536-delete-1.tmp  
-delete element mangle client_to_any { 0x00000080 : jump BIn_1 }
-delete element mangle any_to_client { 0x00000080 : jump BOut_1 }
-delete chain ip mangle BIn_1
-delete chain ip mangle BOut_1
-
-Result:
-
-# nft -f  /tmp/nft-18536-delete-1.tmp 
-/tmp/nft-18536-delete-1.tmp:3:1-29: Error: Could not process rule: Device or resource busy
-delete chain ip mangle BIn_1
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-/tmp/nft-18536-delete-1.tmp:4:1-30: Error: Could not process rule: Device or resource busy
-delete chain ip mangle BOut_1
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-nft is from git://git.netfilter.org/nftables @ cba42084057b6de61d95d87177f0f8c01db539ab (HEAD)
-kernel is 4.2.0-rc6 with net-next applied from Aug 18th)
-
-Does it make sense to update to a newer kernel (4.2-final or current net-next) or is this
-expected behavior?
-
-Regards
-Andreas
-
+This is getting more and more confusing to me. My patch does not touch
+any files under net/, nor is there a net/ directory in the iptables
+repository in the first place as far as I can tell. My original patch
+follows whatever the comment style was in the files/blocks touched, it
+just fixes spelling errors. If people want the style changed, I think
+the most productive use of everyone's time would be if someone who
+actually knows what the desired comment style is would either apply my
+original patch as-is and then do the desired style changes on top of
+that. Or just reject my patch and make or don't make the style
+changes, but I don't think this discussion is on a very productive
+track. I'm going to do my part and shut up now, sorry about the noise
+:)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
