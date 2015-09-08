@@ -1,49 +1,63 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [PATCH libnftnl 0/3] use nftnl_ prefix
-Date: Tue, 8 Sep 2015 08:58:27 +0200
-Message-ID: <CAOkSjBit=Ci3B8sb=FL2SHOAHtXtJKPGd57rMyS6-4ZxUdY1yw@mail.gmail.com>
-References: <1441205064-9240-1-git-send-email-pablo@netfilter.org>
- <20150902150255.GA10168@salvia> <20150907181428.GA16080@salvia>
+From: "Zaman, Imran" <imran.zaman@intel.com>
+Subject: RE: [PATCH v1 1/1] fix: resource leakage when loading library using
+ dlopen
+Date: Tue, 8 Sep 2015 07:02:09 +0000
+Message-ID: <0851720D2FAA48479DE89E28AEACE10E3B69DAA6@IRSMSX102.ger.corp.intel.com>
+References: <1441622536-15123-1-git-send-email-imran.zaman@intel.com>,<alpine.LSU.2.20.1509071238500.579@nerf40.vanv.qr>
+ <0851720D2FAA48479DE89E28AEACE10E3B69D763@IRSMSX102.ger.corp.intel.com>,<alpine.LSU.2.20.1509071506190.2437@nerf40.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>, fw@strlen.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:35036 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753626AbbIHG6s convert rfc822-to-8bit (ORCPT
+Received: from mga09.intel.com ([134.134.136.24]:12537 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751344AbbIHHCM convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Sep 2015 02:58:48 -0400
-Received: by lbpo4 with SMTP id o4so48164989lbp.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 07 Sep 2015 23:58:46 -0700 (PDT)
-In-Reply-To: <20150907181428.GA16080@salvia>
+	Tue, 8 Sep 2015 03:02:12 -0400
+In-Reply-To: <alpine.LSU.2.20.1509071506190.2437@nerf40.vanv.qr>
+Content-Language: en-GB
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 7 September 2015 at 20:14, Pablo Neira Ayuso <pablo@netfilter.org> w=
-rote:
->
-> Please, let me know if you have more renaming suggestions since
-> libnftnl will be out soon and it would be great if we can avoid this
-> stuff in the future.
->
+Well! I tend to disagree here..
 
-Perhaps:
+Any resource should be freed immediately if it is not in use.. function does not know how all the variables on heap be handled outside of the function, if those are not dealt internally unless returned in all cases to the function caller.. Besides, static analysis of the code is reporting resource leak at this code block and it should be fixed for the same reason and will be more clearer for callers of this function.
+Freeing resource immediately once it is not in use is normal practice and must be followed in all cases as how I see it :) 
 
- nftnl_rule_u64_set(...)
- nftnl_rule_u64_get(...)
- nftnl_set_u32_set(...)
- nftnl_set_u32_get(...)
- ...
+Do you know when is 'ptr' get free'd and at which point in code? sorry i m not very familiar with all iptables codebase, so if you can guide me I can sure come up with proper fix for it..
 
+thanks
 
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+________________________________________
+From: Jan Engelhardt [jengelh@inai.de]
+Sent: 07 September 2015 16:08
+To: Zaman, Imran
+Cc: netfilter-devel@vger.kernel.org
+Subject: RE: [PATCH v1 1/1] fix: resource leakage when loading library using dlopen
+
+On Monday 2015-09-07 12:52, Zaman, Imran wrote:
+
+>Aah. ookey.. so it needs to be moved two lines below..
+
+At which point it's almost useless, because the program will end if the
+requested extension cannot be loaded.
+
+>What about the caller of the function? is it getting closed at any stage?
+
+Implicitly at program exit.
+
+It's not pretty valgrind-wise, but implicit resource freeing
+seems a not-uncommon practice for some programs.
+---------------------------------------------------------------------
+Intel Finland Oy
+Registered Address: PL 281, 00181 Helsinki 
+Business Identity Code: 0357606 - 4 
+Domiciled in Helsinki 
+
+This e-mail and any attachments may contain confidential material for
+the sole use of the intended recipient(s). Any review or distribution
+by others is strictly prohibited. If you are not the intended
+recipient, please contact the sender and delete all copies.
+
