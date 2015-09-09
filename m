@@ -1,43 +1,55 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH RFC 0/3] Rework nfnetlink_queue conntrack support
-Date: Tue,  8 Sep 2015 18:54:48 +0200
-Message-ID: <1441731291-21342-1-git-send-email-pablo@netfilter.org>
-Cc: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: nf_log: don't zap all loggers on unregister
+Date: Wed,  9 Sep 2015 02:57:21 +0200
+Message-ID: <1441760241-3220-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37661 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755316AbbIHQsZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Sep 2015 12:48:25 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:51353 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752699AbbIIA6p (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Sep 2015 20:58:45 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Ken-ichirou,
+like nf_log_unset, nf_log_unregister must not reset the list of loggers.
+Otherwise, a call to nf_log_unregister() will render loggers of other nf
+protocols unusable:
 
-Would you have a look at this patchset?
+iptables -A INPUT -j LOG
+modprobe nf_log_arp ; rmmod nf_log_arp
+iptables -A INPUT -j LOG
+iptables: No chain/target/match by that name
 
-I think it should prepare the ground for what you need.
+Fixes: 30e0c6a6be ("netfilter: nf_log: prepare net namespace support for loggers")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nf_log.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-They are totally untested, so please carefully review them.
-
-Pablo Neira Ayuso (3):
-  netfilter: ctnetlink: remove ctnetlink_nfqueue_build_size()
-  netfilter: nfnetlink_queue: get rid of nfnetlink_queue_ct.c
-  netfilter: rename nfnetlink_queue_core.c to nfnetlink_queue.c
-
- include/linux/netfilter.h               |   12 +-
- include/net/netfilter/nfnetlink_queue.h |   51 --
- net/netfilter/Makefile                  |    1 -
- net/netfilter/nf_conntrack_netlink.c    |   87 +-
- net/netfilter/nfnetlink_queue.c         | 1443 +++++++++++++++++++++++++++++++
- net/netfilter/nfnetlink_queue_core.c    | 1415 ------------------------------
- net/netfilter/nfnetlink_queue_ct.c      |  113 ---
- 7 files changed, 1506 insertions(+), 1616 deletions(-)
- delete mode 100644 include/net/netfilter/nfnetlink_queue.h
- create mode 100644 net/netfilter/nfnetlink_queue.c
- delete mode 100644 net/netfilter/nfnetlink_queue_core.c
- delete mode 100644 net/netfilter/nfnetlink_queue_ct.c
-
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index 675d12c..a5ebd7d 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -107,11 +107,15 @@ EXPORT_SYMBOL(nf_log_register);
+ 
+ void nf_log_unregister(struct nf_logger *logger)
+ {
++	const struct nf_logger *log;
+ 	int i;
+ 
+ 	mutex_lock(&nf_log_mutex);
+-	for (i = 0; i < NFPROTO_NUMPROTO; i++)
+-		RCU_INIT_POINTER(loggers[i][logger->type], NULL);
++	for (i = 0; i < NFPROTO_NUMPROTO; i++) {
++		log = nft_log_dereference(loggers[i][logger->type]);
++		if (log == logger)
++			RCU_INIT_POINTER(loggers[i][logger->type], NULL);
++	}
+ 	mutex_unlock(&nf_log_mutex);
+ }
+ EXPORT_SYMBOL(nf_log_unregister);
 -- 
-1.7.10.4
+2.0.5
 
