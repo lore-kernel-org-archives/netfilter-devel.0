@@ -1,82 +1,76 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [nft] segfault bug in simple ruleset, regression?
-Date: Wed, 9 Sep 2015 17:29:24 +0200
-Message-ID: <20150909152924.GB24810@breakpoint.cc>
-References: <CAOkSjBhk00k9H98Nx0hdxvrf5b8vAP5ad=iiKrdB2v4rHimoMw@mail.gmail.com>
- <20150909142903.GA3447@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] libnetfilter_conntrack 1.0.5
+Date: Wed, 9 Sep 2015 17:56:04 +0200
+Message-ID: <20150909155604.GA5912@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>, fw@strlen.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52757 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752988AbbIIP31 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Sep 2015 11:29:27 -0400
+Content-Type: multipart/mixed; boundary="8t9RHnE3ZwKMSgU+"
+Cc: netfilter@vger.kernel.org, netfilter-announce@lists.netfilter.org,
+	lwn@lwn.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150909142903.GA3447@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > flush ruleset
-> > table inet filter {
-> >         chain test0 {
-> >         }
-> > 
-> >         chain test1 {
-> >         }
-> > 
-> >         chain test2 {
-> >         }
-> > 
-> >         chain test {
-> >                 oif vmap {
-> >                         eth0 : jump test0,
-> >                         eth1 : jump test1,
-> >                         eth2 : jump test2
-> >                 }
-> >         }
-> > }
-> > ========== 8< ==========
-> > 
-> > loaded with:
-> >  % nft -f file
-> 
-> I cannot reproduce this here using this:
 
-I can reproduce it, but with slight tweak.
+--8t9RHnE3ZwKMSgU+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-flush ruleset
-table inet filter {
-        chain test0 {
-        }
-        chain test {
-                oif vmap {
-                        eth0 : jump test0,
-                }
-        }
-}
+Hi!
 
-(load it with nft -f )
+The Netfilter project proudly presents:
 
-Then edit file to add 2nd chain:
-flush ruleset
-table inet filter {
-        chain test0 {
-        }
-        chain test1 {
-        }
-        chain test {
-                oif vmap {
-                        eth0 : jump test0,
-                        lo: jump test1,
-                }
-        }
-}
+        libnetfilter_conntrack 1.0.5
 
-load it. poof..
+libnetfilter_conntrack is a userspace library providing a programming
+interface (API) to the in-kernel connection tracking state table. The
+library libnetfilter_conntrack has been previously known as
+libnfnetlink_conntrack and libctnetlink. This library is currently
+used by conntrack-tools among many other applications.
+
+See ChangeLog that comes attached to this email for more details.
+
+You can download it from:
+
+http://www.netfilter.org/projects/libnetfilter_conntrack/downloads.html
+ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
+
+Have fun!
+
+--8t9RHnE3ZwKMSgU+
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="changes-libnetfilter_conntrack-1.0.5.txt"
+
+Felix Janda (2):
+      include: Sync with kernel headers
+      src: Use stdint types everywhere
+
+Florian Westphal (3):
+      conntrack: labels: remove dead code
+      qa: add cmp ATTR_ZONE regression test cases
+      conntrack: compare: relax MARK/ZONE attribute comparision
+
+Gustavo Zacarias (2):
+      configure: uclinux is also linux
+      src/Makefile.am: drop hardcoded -ldl
+
+Ken-ichirou MATSUZAWA (10):
+      conntrack: mnl: fix parsing payload len
+      conntrack: remove duplicate code
+      qa: update cmp ATTR_ZONE size mark and zone
+      conntrack: api: add two new bitmask functions
+      qa: add tests for new bitmask functions
+      doc: fix symbol name typo in comment
+      qa: build unshared nfct environment
+      conntrack: add mark event filter
+      qa: add test for mark event filter
+      conntrack: fix stop timestamp assignment
+
+Pablo Neira Ayuso (3):
+      src: fix documentation regarding nfct_catch() and nfexp_catch()
+      build: bump version to 1.0.5
+      qa: Keep ct_echo_event and ct_mark_filter out from Makefile.am
+
+
+--8t9RHnE3ZwKMSgU+--
