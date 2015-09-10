@@ -1,55 +1,102 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [PATCH nf-next 1/1] netfilter: nfnetlink_queue: return -EOPNOTSUPP
- if QUEUE_CT is disabled
-Date: Thu, 10 Sep 2015 18:24:57 +0900
-Message-ID: <20150910092457.GB28436@gmail.com>
-References: <1441731291-21342-1-git-send-email-pablo@netfilter.org>
- <1441731291-21342-4-git-send-email-pablo@netfilter.org>
- <20150909095516.GC11843@gmail.com>
- <20150910000958.GC5734@salvia>
- <20150910092058.GA28436@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] Netdev 1.1 conference
+Date: Thu, 10 Sep 2015 16:03:24 +0200
+Message-ID: <20150910140324.GA4280@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:33017 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751227AbbIJJZC (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Sep 2015 05:25:02 -0400
-Received: by pacex6 with SMTP id ex6so38232426pac.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Sep 2015 02:25:02 -0700 (PDT)
+Cc: lwn@lwn.net
+To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-wireless@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150910092058.GA28436@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Current kernel ignores NFQA_CFG_F_CONNTRACK config flag request even
-if NETFILTER_NETLINK_QUEUE_CT is disabled. This patch enables to tell
-it user by returning error nlmsg.
+Following the lastest successful Netdev 0.1 in Ottawa, Canada. We are
+happy to announce a new round of the Netdev conference series: Netdev 1.1
+(year 1, conference 1) from 10th to 12th February 2016 in Seville,
+Spain (http://www.netdevconf.org/1.1/).
 
-Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
----
- net/netfilter/nfnetlink_queue.c |    5 +++++
- 1 file changed, 5 insertions(+)
+Netdev 1.1 is a community-driven conference geared towards Linux
+netheads. Linux kernel networking and user space utilization of the
+interfaces to the Linux kernel networking subsystem are the focus.  If
+you are using Linux as a boot system for proprietary networking, then
+this conference _may not be for you_.
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 801af4e..40982c7 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1224,6 +1224,11 @@ nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
- 			goto err_out_unlock;
- 		}
- #endif
-+		if (flags & mask & NFQA_CFG_F_CONNTRACK &&
-+		    rcu_dereference(nfq_ct_hook) == NULL) {
-+			ret = -EOPNOTSUPP;
-+			goto err_out_unlock;
-+		}
- 		spin_lock_bh(&queue->lock);
- 		queue->flags &= ~mask;
- 		queue->flags |= flags & mask;
--- 
-1.7.10.4
+Current topics include
+- wireless
+- performance analysis and improvement
+- networking hardware and offload
+- netfilter
+- traffic control
+- different networking layers (L2/3, etc)
+- internet of things
+- security
+- additional topics can be suggested
 
+We expect about 2-3 parallel tracks both during tutorials and main
+talks.
+
+Session submissions
+-------------------
+We encourage submission of paper and tutorial proposals, though we
+*highly discourage* submission of recycled talks. Your proposals will
+be evaluated by the technical committee in first place, that will
+provide prompt feedback to you. If your proposal is approved, you will
+be requested to submit your Camera-ready paper. Unlike other
+conferences, accepted proposals will be regularly announced on our
+website.
+
+Please stay within the relevant topic focus and tie to FOSS Linux
+networking to make it easier for the technical committee to provide
+quick feedback. In order to give a talk you must be registered. If
+your proposal is accepted you will not be charged a conference fee or
+your conference fee will be refunded to you when your talk gets
+accepted.  We will be posting more updates on how to submit in the
+near future.
+
+Why you should register
+-----------------------
+If you yearn for the old community tech driven conferences where you
+mingle with fellow geeks (only these would be Linux networking geeks)
+then this would be it. There will be no marketing flashy openings.
+There will just be a pure feed of Linux networking.
+
+Netdev 1.1 will be held back to back with netconf 2016, the by-invite
+Linux kernel networking workshop (http://vger.kernel.org/netconf2016.html).
+So gurus of all sorts will be there mingling and giving talks.  While
+there will be heavy Linux kernel influence we expect a lot of user
+space presence as well.
+
+Location:
+---------
+Sevilla, Spain. Exact location to be announced.
+
+Important Dates:
+----------------
+October 13, 2015                Call for proposals opens
+November 10, 2015               Registration opens
+December 1, 2015                Call for proposals deadline
+January 12, 2016                Conference schedule announced
+February 10-12, 2016            Conference days
+
+Please register as soon as registration opens up on November 10.
+Registering helps us plan properly for numbers of attendees, ensuring
+venue sizes and supplies are appropriate without wasting resources.
+
+We are looking for sponsors
+---------------------------
+If you feel like you can help us organize this event by sponsoring,
+please drop us a line to: sponsor@netdevconf.org and we'll send you
+our sponsorship policy.
+
+Contact
+-------
+For any other general information, please contact: info@netdevconf.org.
+
+If you're missing relevant information on our website, we kindly ask
+you to be patient, we're working hard to get everything fully
+organized. Stay tuned to our website and twitter, we'll be announcing
+important information updates progressively.
+
+-EOF-
