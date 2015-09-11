@@ -1,218 +1,158 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [PATCH lnf-log 3/3] utils: nf-log: attaching a conntrack information
-Date: Fri, 11 Sep 2015 12:15:35 +0900
-Message-ID: <20150911031535.GG7380@gmail.com>
-References: <1441731291-21342-1-git-send-email-pablo@netfilter.org>
- <20150909095042.GA11843@gmail.com>
- <20150910000615.GB5734@salvia>
- <20150911030530.GA7380@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:36151 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751013AbbIKDPk (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Sep 2015 23:15:40 -0400
-Received: by padhk3 with SMTP id hk3so61171858pad.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Sep 2015 20:15:39 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20150911030530.GA7380@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 1/2 -stable-3.12] netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
+Date: Fri, 11 Sep 2015 14:26:07 +0200
+Message-ID: <1441974368-5399-1-git-send-email-pablo@netfilter.org>
+Cc: stable@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This patch enables nf-log in utils directory to show conntrack
-information if libnetfilter_conntrack exists.
+From: Andrey Vagin <avagin@openvz.org>
 
-Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
+[ Upstream commit cb585e1b1d072d1d7caebc649364b9c46c27ea8f ]
+
+Lets look at destroy_conntrack:
+
+hlist_nulls_del_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode);
+...
+nf_conntrack_free(ct)
+	kmem_cache_free(net->ct.nf_conntrack_cachep, ct);
+
+net->ct.nf_conntrack_cachep is created with SLAB_DESTROY_BY_RCU.
+
+The hash is protected by rcu, so readers look up conntracks without
+locks.
+A conntrack is removed from the hash, but in this moment a few readers
+still can use the conntrack. Then this conntrack is released and another
+thread creates conntrack with the same address and the equal tuple.
+After this a reader starts to validate the conntrack:
+* It's not dying, because a new conntrack was created
+* nf_ct_tuple_equal() returns true.
+
+But this conntrack is not initialized yet, so it can not be used by two
+threads concurrently. In this case BUG_ON may be triggered from
+nf_nat_setup_info().
+
+Florian Westphal suggested to check the confirm bit too. I think it's
+right.
+
+task 1			task 2			task 3
+			nf_conntrack_find_get
+			 ____nf_conntrack_find
+destroy_conntrack
+ hlist_nulls_del_rcu
+ nf_conntrack_free
+ kmem_cache_free
+						__nf_conntrack_alloc
+						 kmem_cache_alloc
+						 memset(&ct->tuplehash[IP_CT_DIR_MAX],
+			 if (nf_ct_is_dying(ct))
+			 if (!nf_ct_tuple_equal()
+
+I'm not sure, that I have ever seen this race condition in a real life.
+Currently we are investigating a bug, which is reproduced on a few nodes.
+In our case one conntrack is initialized from a few tasks concurrently,
+we don't have any other explanation for this.
+
+<2>[46267.083061] kernel BUG at net/ipv4/netfilter/nf_nat_core.c:322!
+...
+<4>[46267.083951] RIP: 0010:[<ffffffffa01e00a4>]  [<ffffffffa01e00a4>] nf_nat_setup_info+0x564/0x590 [nf_nat]
+...
+<4>[46267.085549] Call Trace:
+<4>[46267.085622]  [<ffffffffa023421b>] alloc_null_binding+0x5b/0xa0 [iptable_nat]
+<4>[46267.085697]  [<ffffffffa02342bc>] nf_nat_rule_find+0x5c/0x80 [iptable_nat]
+<4>[46267.085770]  [<ffffffffa0234521>] nf_nat_fn+0x111/0x260 [iptable_nat]
+<4>[46267.085843]  [<ffffffffa0234798>] nf_nat_out+0x48/0xd0 [iptable_nat]
+<4>[46267.085919]  [<ffffffff814841b9>] nf_iterate+0x69/0xb0
+<4>[46267.085991]  [<ffffffff81494e70>] ? ip_finish_output+0x0/0x2f0
+<4>[46267.086063]  [<ffffffff81484374>] nf_hook_slow+0x74/0x110
+<4>[46267.086133]  [<ffffffff81494e70>] ? ip_finish_output+0x0/0x2f0
+<4>[46267.086207]  [<ffffffff814b5890>] ? dst_output+0x0/0x20
+<4>[46267.086277]  [<ffffffff81495204>] ip_output+0xa4/0xc0
+<4>[46267.086346]  [<ffffffff814b65a4>] raw_sendmsg+0x8b4/0x910
+<4>[46267.086419]  [<ffffffff814c10fa>] inet_sendmsg+0x4a/0xb0
+<4>[46267.086491]  [<ffffffff814459aa>] ? sock_update_classid+0x3a/0x50
+<4>[46267.086562]  [<ffffffff81444d67>] sock_sendmsg+0x117/0x140
+<4>[46267.086638]  [<ffffffff8151997b>] ? _spin_unlock_bh+0x1b/0x20
+<4>[46267.086712]  [<ffffffff8109d370>] ? autoremove_wake_function+0x0/0x40
+<4>[46267.086785]  [<ffffffff81495e80>] ? do_ip_setsockopt+0x90/0xd80
+<4>[46267.086858]  [<ffffffff8100be0e>] ? call_function_interrupt+0xe/0x20
+<4>[46267.086936]  [<ffffffff8118cb10>] ? ub_slab_ptr+0x20/0x90
+<4>[46267.087006]  [<ffffffff8118cb10>] ? ub_slab_ptr+0x20/0x90
+<4>[46267.087081]  [<ffffffff8118f2e8>] ? kmem_cache_alloc+0xd8/0x1e0
+<4>[46267.087151]  [<ffffffff81445599>] sys_sendto+0x139/0x190
+<4>[46267.087229]  [<ffffffff81448c0d>] ? sock_setsockopt+0x16d/0x6f0
+<4>[46267.087303]  [<ffffffff810efa47>] ? audit_syscall_entry+0x1d7/0x200
+<4>[46267.087378]  [<ffffffff810ef795>] ? __audit_syscall_exit+0x265/0x290
+<4>[46267.087454]  [<ffffffff81474885>] ? compat_sys_setsockopt+0x75/0x210
+<4>[46267.087531]  [<ffffffff81474b5f>] compat_sys_socketcall+0x13f/0x210
+<4>[46267.087607]  [<ffffffff8104dea3>] ia32_sysret+0x0/0x5
+<4>[46267.087676] Code: 91 20 e2 01 75 29 48 89 de 4c 89 f7 e8 56 fa ff ff 85 c0 0f 84 68 fc ff ff 0f b6 4d c6 41 8b 45 00 e9 4d fb ff ff e8 7c 19 e9 e0 <0f> 0b eb fe f6 05 17 91 20 e2 80 74 ce 80 3d 5f 2e 00 00 00 74
+<1>[46267.088023] RIP  [<ffffffffa01e00a4>] nf_nat_setup_info+0x564/0x590
+
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Signed-off-by: Andrey Vagin <avagin@openvz.org>
+Acked-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- configure.ac      |   5 +++
- utils/Makefile.am |   3 ++
- utils/nf-log.c    | 103 +++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 110 insertions(+), 1 deletion(-)
+This patch has been in -stable >= 3.14 for a while and I've got some people
+reporting this problem in 3.12.
 
-diff --git a/configure.ac b/configure.ac
-index ead9399..7d58f09 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -4,6 +4,7 @@ AC_INIT([libnetfilter_log], [1.0.1])
- AC_CONFIG_AUX_DIR([build-aux])
- AC_CANONICAL_HOST
- AC_CONFIG_MACRO_DIR([m4])
-+AC_CONFIG_HEADERS([config.h])
- 
- AM_INIT_AUTOMAKE([-Wall foreign subdir-objects
- 	tar-pax no-dist-gzip dist-bzip2 1.6])
-@@ -31,6 +32,10 @@ AM_CONDITIONAL([BUILD_IPULOG], [test "x$with_ipulog" != xno])
- dnl Dependencies
- PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 0.0.41])
- PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
-+PKG_CHECK_MODULES([LIBNETFILTER_CONNTRACK], [libnetfilter_conntrack >= 1.0.2],
-+		  [AC_DEFINE([BUILD_NFCT], [1], [building nfct integration example]) HAVE_LNFCT=1],
-+		  [HAVE_LNFCT=0])
-+AM_CONDITIONAL([BUILD_NFCT], [test "$HAVE_LNFCT" -eq 1])
- 
- dnl Output the makefile
- AC_CONFIG_FILES([Makefile src/Makefile include/Makefile
-diff --git a/utils/Makefile.am b/utils/Makefile.am
-index dfe5f34..baef81a 100644
---- a/utils/Makefile.am
-+++ b/utils/Makefile.am
-@@ -9,6 +9,9 @@ nfulnl_test_LDFLAGS = -dynamic
- nf_log_SOURCES = nf-log.c
- nf_log_LDADD = ../src/libnetfilter_log.la
- nf_log_LDFLAGS = -dynamic -lmnl
-+if BUILD_NFCT
-+nf_log_LDFLAGS += $(LIBNETFILTER_CONNTRACK_LIBS)
-+endif
- 
- if BUILD_IPULOG
- check_PROGRAMS += ulog_test
-diff --git a/utils/nf-log.c b/utils/nf-log.c
-index 5f2a192..1418af4 100644
---- a/utils/nf-log.c
-+++ b/utils/nf-log.c
-@@ -3,15 +3,108 @@
- #include <stdlib.h>
- #include <arpa/inet.h>
- 
--#include <linux/netfilter/nfnetlink_log.h>
-+/* #include <linux/netfilter/nfnetlink_log.h> */
-+#include <libnetfilter_log/linux_nfnetlink_log.h>
- 
- #include <libmnl/libmnl.h>
- #include <libnetfilter_log/libnetfilter_log.h>
- 
-+#include "../config.h"
-+#ifdef BUILD_NFCT
-+#include <linux/netfilter/nf_conntrack_common.h>
-+#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
-+#endif
-+
-+#ifdef BUILD_NFCT
-+static int print_ctinfo(const struct nlattr *const attr)
-+{
-+	char *s = NULL;
-+
-+	if (attr == NULL)
-+		return MNL_CB_OK;
-+
-+	switch (ntohl(mnl_attr_get_u32(attr))) {
-+	case IP_CT_ESTABLISHED:
-+		s = "IP_CT_ESTABLISHED";
-+		break;
-+	case IP_CT_RELATED:
-+		s = "IP_CT_RELATED";
-+		break;
-+	case IP_CT_NEW:
-+		s = "IP_CT_NEW";
-+		break;
-+	case IP_CT_IS_REPLY:
-+		s = "IP_CT_IS_REPLY";
-+		break;
-+	/* case IP_CT_ESTABLISHED_REPLY: == IP_CT_IS_REPLY
-+	 *	s = "IP_CT_ESTABLISHED_REPLY";
-+	 *	break;
-+	 */
-+	case IP_CT_RELATED_REPLY:
-+		s = "IP_CT_RELATED_REPLY";
-+		break;
-+	case IP_CT_NEW_REPLY:
-+		s = "IP_CT_NEW_REPLY";
-+		break;
-+	/* case IP_CT_NUMBER: == IP_CT_NEW_REPLY
-+	 *	s ="IP_CT_NUMBER";
-+	 *	break;
-+	 */
-+	default:
-+		return MNL_CB_ERROR;
-+	}
-+
-+	printf("  ip_conntrack_info: %s\n", s);
-+	return MNL_CB_OK;
-+}
-+
-+static int print_nfct(uint8_t family,
-+		      const struct nlattr *const info_attr,
-+		      const struct nlattr *const ct_attr)
-+{
-+	char buf[4096];
-+	struct nf_conntrack *ct = NULL;
-+
-+	if (info_attr != NULL)
-+		print_ctinfo(info_attr);
-+
-+	if (ct_attr == NULL)
-+		return MNL_CB_OK;
-+
-+	ct = nfct_new();
-+	if (ct == NULL) {
-+		perror("nfct_new");
-+		return MNL_CB_ERROR;
-+	}
-+
-+	if (nfct_payload_parse(mnl_attr_get_payload(ct_attr),
-+			       mnl_attr_get_payload_len(ct_attr),
-+			       family, ct) < 0) {
-+		perror("nfct_payload_parse");
-+		nfct_destroy(ct);
-+		return MNL_CB_ERROR;
-+	}
-+
-+	nfct_snprintf(buf, sizeof(buf), ct, 0, NFCT_O_DEFAULT, 0);
-+	printf("  %s\n", buf);
-+	nfct_destroy(ct);
-+
-+	return MNL_CB_OK;
-+}
-+#else
-+static int print_nfct(uint8_t family,
-+		      const struct nlattr *const info_attr,
-+		      const struct nlattr *const ct_attr)
-+{
-+	return MNL_CB_OK;
-+}
-+#endif
-+
- static int log_cb(const struct nlmsghdr *nlh, void *data)
- {
- 	struct nlattr *attrs[NFULA_MAX + 1] = { NULL };
- 	struct nfulnl_msg_packet_hdr *ph = NULL;
-+	struct nfgenmsg *nfg;
- 	const char *prefix = NULL;
- 	uint32_t mark = 0;
- 	char buf[4096];
-@@ -21,6 +114,8 @@ static int log_cb(const struct nlmsghdr *nlh, void *data)
- 	if (ret != MNL_CB_OK)
- 		return ret;
- 
-+	nfg = mnl_nlmsg_get_payload(nlh);
-+
- 	if (attrs[NFULA_PACKET_HDR])
- 		ph = mnl_attr_get_payload(attrs[NFULA_PACKET_HDR]);
- 	if (attrs[NFULA_PREFIX])
-@@ -38,6 +133,8 @@ static int log_cb(const struct nlmsghdr *nlh, void *data)
- 		return MNL_CB_ERROR;
- 	printf("%s (ret=%d)\n", buf, ret);
- 
-+	print_nfct(nfg->nfgen_family, attrs[NFULA_CT_INFO], attrs[NFULA_CT]);
-+
- 	return MNL_CB_OK;
+ net/netfilter/nf_conntrack_core.c |   21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 5d892fe..da541b7 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -318,6 +318,21 @@ static void death_by_timeout(unsigned long ul_conntrack)
+ 	nf_ct_delete((struct nf_conn *)ul_conntrack, 0, 0);
  }
  
-@@ -108,6 +205,10 @@ int main(int argc, char *argv[])
- 		exit(EXIT_FAILURE);
- 	}
- 
-+#ifdef BUILD_NFCT
-+	mnl_attr_put_u16(nlh, NFULA_CFG_FLAGS, htons(NFULNL_CFG_F_CONNTRACK));
-+#endif
++static inline bool
++nf_ct_key_equal(struct nf_conntrack_tuple_hash *h,
++			const struct nf_conntrack_tuple *tuple,
++			u16 zone)
++{
++	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
 +
- 	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
- 		perror("mnl_socket_sendto");
- 		exit(EXIT_FAILURE);
++	/* A conntrack can be recreated with the equal tuple,
++	 * so we need to check that the conntrack is confirmed
++	 */
++	return nf_ct_tuple_equal(tuple, &h->tuple) &&
++		nf_ct_zone(ct) == zone &&
++		nf_ct_is_confirmed(ct);
++}
++
+ /*
+  * Warning :
+  * - Caller must take a reference on returned object
+@@ -339,8 +354,7 @@ ____nf_conntrack_find(struct net *net, u16 zone,
+ 	local_bh_disable();
+ begin:
+ 	hlist_nulls_for_each_entry_rcu(h, n, &net->ct.hash[bucket], hnnode) {
+-		if (nf_ct_tuple_equal(tuple, &h->tuple) &&
+-		    nf_ct_zone(nf_ct_tuplehash_to_ctrack(h)) == zone) {
++		if (nf_ct_key_equal(h, tuple, zone)) {
+ 			NF_CT_STAT_INC(net, found);
+ 			local_bh_enable();
+ 			return h;
+@@ -387,8 +401,7 @@ begin:
+ 			     !atomic_inc_not_zero(&ct->ct_general.use)))
+ 			h = NULL;
+ 		else {
+-			if (unlikely(!nf_ct_tuple_equal(tuple, &h->tuple) ||
+-				     nf_ct_zone(ct) != zone)) {
++			if (unlikely(!nf_ct_key_equal(h, tuple, zone))) {
+ 				nf_ct_put(ct);
+ 				goto begin;
+ 			}
 -- 
-2.1.4
-
+1.7.10.4
