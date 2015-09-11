@@ -1,39 +1,171 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable-4.2] netfilter: nf_tables: Use 32 bit addressing register from nft_type_to_reg()
-Date: Fri, 11 Sep 2015 15:00:42 +0200
-Message-ID: <1441976447-8338-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH -stable-4.2] netfilter: ipset: Fixing unnamed union init
+Date: Fri, 11 Sep 2015 15:00:45 +0200
+Message-ID: <1441976447-8338-4-git-send-email-pablo@netfilter.org>
+References: <1441976447-8338-1-git-send-email-pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
 To: stable@vger.kernel.org
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:41559 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752450AbbIKMyT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 Sep 2015 08:54:19 -0400
+In-Reply-To: <1441976447-8338-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-[ upstream commit bf798657eb5ba57552096843c315f096fdf9b715 ]
+From: Elad Raz <eladr@mellanox.com>
 
-nft_type_to_reg() needs to return the register in the new 32 bit addressing,
-otherwise we hit EINVAL when using mappings.
+[ upstream commit 96be5f2806cd65a2ebced3bfcdf7df0116e6c4a6 ]
 
-Fixes: 49499c3 ("netfilter: nf_tables: switch registers to 32 bit addressing")
-Cc: <stable@vger.kernel.org> # 4.1.x
+In continue to proposed Vinson Lee's post [1], this patch fixes compilation
+issues founded at gcc 4.4.7. The initialization of .cidr field of unnamed
+unions causes compilation error in gcc 4.4.x.
+
+References
+
+Visible links
+[1] https://lkml.org/lkml/2015/7/5/74
+
 Cc: <stable@vger.kernel.org> # 4.2.x
-Reported-by: Andreas Schultz <aschultz@tpip.net>
+Signed-off-by: Elad Raz <eladr@mellanox.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_tables.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/ipset/ip_set_hash_netnet.c     |   20 ++++++++++++++++++--
+ net/netfilter/ipset/ip_set_hash_netportnet.c |   20 ++++++++++++++++++--
+ 2 files changed, 36 insertions(+), 4 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 2a24668..aa8bee7 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -125,7 +125,7 @@ static inline enum nft_data_types nft_dreg_to_type(enum nft_registers reg)
+diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ipset/ip_set_hash_netnet.c
+index 3c862c0..a93dfeb 100644
+--- a/net/netfilter/ipset/ip_set_hash_netnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netnet.c
+@@ -131,6 +131,13 @@ hash_netnet4_data_next(struct hash_netnet4_elem *next,
+ #define HOST_MASK	32
+ #include "ip_set_hash_gen.h"
  
- static inline enum nft_registers nft_type_to_reg(enum nft_data_types type)
++static void
++hash_netnet4_init(struct hash_netnet4_elem *e)
++{
++	e->cidr[0] = HOST_MASK;
++	e->cidr[1] = HOST_MASK;
++}
++
+ static int
+ hash_netnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		  const struct xt_action_param *par,
+@@ -160,7 +167,7 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr *tb[],
  {
--	return type == NFT_DATA_VERDICT ? NFT_REG_VERDICT : NFT_REG_1;
-+	return type == NFT_DATA_VERDICT ? NFT_REG_VERDICT : NFT_REG_1 * NFT_REG_SIZE / NFT_REG32_SIZE;
- }
+ 	const struct hash_netnet *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_netnet4_elem e = { .cidr = { HOST_MASK, HOST_MASK, }, };
++	struct hash_netnet4_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 ip = 0, ip_to = 0, last;
+ 	u32 ip2 = 0, ip2_from = 0, ip2_to = 0, last2;
+@@ -169,6 +176,7 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (tb[IPSET_ATTR_LINENO])
+ 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
  
- unsigned int nft_parse_register(const struct nlattr *attr);
++	hash_netnet4_init(&e);
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+@@ -357,6 +365,13 @@ hash_netnet6_data_next(struct hash_netnet4_elem *next,
+ #define IP_SET_EMIT_CREATE
+ #include "ip_set_hash_gen.h"
+ 
++static void
++hash_netnet6_init(struct hash_netnet6_elem *e)
++{
++	e->cidr[0] = HOST_MASK;
++	e->cidr[1] = HOST_MASK;
++}
++
+ static int
+ hash_netnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		  const struct xt_action_param *par,
+@@ -385,13 +400,14 @@ hash_netnet6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 		  enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
+ {
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_netnet6_elem e = { .cidr = { HOST_MASK, HOST_MASK, }, };
++	struct hash_netnet6_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	int ret;
+ 
+ 	if (tb[IPSET_ATTR_LINENO])
+ 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
+ 
++	hash_netnet6_init(&e);
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
+ 		return -IPSET_ERR_PROTOCOL;
+diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
+index 0c68734..9a14c23 100644
+--- a/net/netfilter/ipset/ip_set_hash_netportnet.c
++++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
+@@ -142,6 +142,13 @@ hash_netportnet4_data_next(struct hash_netportnet4_elem *next,
+ #define HOST_MASK	32
+ #include "ip_set_hash_gen.h"
+ 
++static void
++hash_netportnet4_init(struct hash_netportnet4_elem *e)
++{
++	e->cidr[0] = HOST_MASK;
++	e->cidr[1] = HOST_MASK;
++}
++
+ static int
+ hash_netportnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		      const struct xt_action_param *par,
+@@ -175,7 +182,7 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ {
+ 	const struct hash_netportnet *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_netportnet4_elem e = { .cidr = { HOST_MASK, HOST_MASK, }, };
++	struct hash_netportnet4_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 ip = 0, ip_to = 0, ip_last, p = 0, port, port_to;
+ 	u32 ip2_from = 0, ip2_to = 0, ip2_last, ip2;
+@@ -185,6 +192,7 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (tb[IPSET_ATTR_LINENO])
+ 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
+ 
++	hash_netportnet4_init(&e);
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+ 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
+@@ -412,6 +420,13 @@ hash_netportnet6_data_next(struct hash_netportnet4_elem *next,
+ #define IP_SET_EMIT_CREATE
+ #include "ip_set_hash_gen.h"
+ 
++static void
++hash_netportnet6_init(struct hash_netportnet6_elem *e)
++{
++	e->cidr[0] = HOST_MASK;
++	e->cidr[1] = HOST_MASK;
++}
++
+ static int
+ hash_netportnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 		      const struct xt_action_param *par,
+@@ -445,7 +460,7 @@ hash_netportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
+ {
+ 	const struct hash_netportnet *h = set->data;
+ 	ipset_adtfn adtfn = set->variant->adt[adt];
+-	struct hash_netportnet6_elem e = { .cidr = { HOST_MASK, HOST_MASK, }, };
++	struct hash_netportnet6_elem e = { };
+ 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
+ 	u32 port, port_to;
+ 	bool with_ports = false;
+@@ -454,6 +469,7 @@ hash_netportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (tb[IPSET_ATTR_LINENO])
+ 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
+ 
++	hash_netportnet6_init(&e);
+ 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
+ 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
+ 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
 -- 
 1.7.10.4
+
