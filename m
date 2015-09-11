@@ -1,113 +1,68 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable-4.2] netfilter: conntrack: use nf_ct_tmpl_free in CT/synproxy error paths
-Date: Fri, 11 Sep 2015 15:00:47 +0200
-Message-ID: <1441976447-8338-6-git-send-email-pablo@netfilter.org>
+Subject: [PATCH -stable-4.1,-stable-4.2] netfilter: nfnetlink: work around wrong endianess in res_id field
+Date: Fri, 11 Sep 2015 15:00:46 +0200
+Message-ID: <1441976447-8338-5-git-send-email-pablo@netfilter.org>
 References: <1441976447-8338-1-git-send-email-pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
 To: stable@vger.kernel.org
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:41560 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752572AbbIKMyT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 Sep 2015 08:54:19 -0400
 In-Reply-To: <1441976447-8338-1-git-send-email-pablo@netfilter.org>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Daniel Borkmann <daniel@iogearbox.net>
+[ upstream commit a9de9777d613500b089a7416f936bf3ae5f070d2 ]
 
-[ upstream commit 9cf94eab8b309e8bcc78b41dd1561c75b537dd0b ]
+The convention in nfnetlink is to use network byte order in every header field
+as well as in the attribute payload. The initial version of the batching
+infrastructure assumes that res_id comes in host byte order though.
 
-Commit 0838aa7fcfcd ("netfilter: fix netns dependencies with conntrack
-templates") migrated templates to the new allocator api, but forgot to
-update error paths for them in CT and synproxy to use nf_ct_tmpl_free()
-instead of nf_conntrack_free().
+The only client of the batching infrastructure is nf_tables, so let's add a
+workaround to address this inconsistency. We currently have 11 nfnetlink
+subsystems according to NFNL_SUBSYS_COUNT, so we can assume that the subsystem
+2560, ie. htons(10), will not be allocated anytime soon, so it can be an alias
+of nf_tables from the nfnetlink batching path when interpreting the res_id
+field.
 
-Due to that, memory is being freed into the wrong kmemcache, but also
-we drop the per net reference count of ct objects causing an imbalance.
+Based on original patch from Florian Westphal.
 
-In Brad's case, this leads to a wrap-around of net->ct.count and thus
-lets __nf_conntrack_alloc() refuse to create a new ct object:
-
-  [   10.340913] xt_addrtype: ipv6 does not support BROADCAST matching
-  [   10.810168] nf_conntrack: table full, dropping packet
-  [   11.917416] r8169 0000:07:00.0 eth0: link up
-  [   11.917438] IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
-  [   12.815902] nf_conntrack: table full, dropping packet
-  [   15.688561] nf_conntrack: table full, dropping packet
-  [   15.689365] nf_conntrack: table full, dropping packet
-  [   15.690169] nf_conntrack: table full, dropping packet
-  [   15.690967] nf_conntrack: table full, dropping packet
-  [...]
-
-With slab debugging, it also reports the wrong kmemcache (kmalloc-512 vs.
-nf_conntrack_ffffffff81ce75c0) and reports poison overwrites, etc. Thus,
-to fix the problem, export and use nf_ct_tmpl_free() instead.
-
-Fixes: 0838aa7fcfcd ("netfilter: fix netns dependencies with conntrack templates")
+Cc: <stable@vger.kernel.org> # 4.1.x
 Cc: <stable@vger.kernel.org> # 4.2.x
-Reported-by: Brad Jackson <bjackson0971@gmail.com>
-Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
+Reported-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack.h |    1 +
- net/netfilter/nf_conntrack_core.c    |    3 ++-
- net/netfilter/nf_synproxy_core.c     |    2 +-
- net/netfilter/xt_CT.c                |    2 +-
- 4 files changed, 5 insertions(+), 3 deletions(-)
+ net/netfilter/nfnetlink.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 37cd391..4023c4c 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -292,6 +292,7 @@ extern unsigned int nf_conntrack_hash_rnd;
- void init_nf_conntrack_hash_rnd(void);
- 
- struct nf_conn *nf_ct_tmpl_alloc(struct net *net, u16 zone, gfp_t flags);
-+void nf_ct_tmpl_free(struct nf_conn *tmpl);
- 
- #define NF_CT_STAT_INC(net, count)	  __this_cpu_inc((net)->ct.stat->count)
- #define NF_CT_STAT_INC_ATOMIC(net, count) this_cpu_inc((net)->ct.stat->count)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 3c20d02..0625a42 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -320,12 +320,13 @@ out_free:
- }
- EXPORT_SYMBOL_GPL(nf_ct_tmpl_alloc);
- 
--static void nf_ct_tmpl_free(struct nf_conn *tmpl)
-+void nf_ct_tmpl_free(struct nf_conn *tmpl)
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 0c0e8ec..70277b1 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -444,6 +444,7 @@ done:
+ static void nfnetlink_rcv(struct sk_buff *skb)
  {
- 	nf_ct_ext_destroy(tmpl);
- 	nf_ct_ext_free(tmpl);
- 	kfree(tmpl);
- }
-+EXPORT_SYMBOL_GPL(nf_ct_tmpl_free);
+ 	struct nlmsghdr *nlh = nlmsg_hdr(skb);
++	u_int16_t res_id;
+ 	int msglen;
  
- static void
- destroy_conntrack(struct nf_conntrack *nfct)
-diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
-index d7f1685..d6ee8f8 100644
---- a/net/netfilter/nf_synproxy_core.c
-+++ b/net/netfilter/nf_synproxy_core.c
-@@ -378,7 +378,7 @@ static int __net_init synproxy_net_init(struct net *net)
- err3:
- 	free_percpu(snet->stats);
- err2:
--	nf_conntrack_free(ct);
-+	nf_ct_tmpl_free(ct);
- err1:
- 	return err;
- }
-diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-index 43ddeee..f3377ce 100644
---- a/net/netfilter/xt_CT.c
-+++ b/net/netfilter/xt_CT.c
-@@ -233,7 +233,7 @@ out:
- 	return 0;
+ 	if (nlh->nlmsg_len < NLMSG_HDRLEN ||
+@@ -468,7 +469,12 @@ static void nfnetlink_rcv(struct sk_buff *skb)
  
- err3:
--	nf_conntrack_free(ct);
-+	nf_ct_tmpl_free(ct);
- err2:
- 	nf_ct_l3proto_module_put(par->family);
- err1:
+ 		nfgenmsg = nlmsg_data(nlh);
+ 		skb_pull(skb, msglen);
+-		nfnetlink_rcv_batch(skb, nlh, nfgenmsg->res_id);
++		/* Work around old nft using host byte order */
++		if (nfgenmsg->res_id == NFNL_SUBSYS_NFTABLES)
++			res_id = NFNL_SUBSYS_NFTABLES;
++		else
++			res_id = ntohs(nfgenmsg->res_id);
++		nfnetlink_rcv_batch(skb, nlh, res_id);
+ 	} else {
+ 		netlink_rcv_skb(skb, &nfnetlink_rcv_msg);
+ 	}
 -- 
 1.7.10.4
+
