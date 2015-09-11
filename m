@@ -1,237 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2 -stable-3.12 ] netfilter: nf_conntrack: don't release a conntrack with non-zero refcnt
-Date: Fri, 11 Sep 2015 14:26:08 +0200
-Message-ID: <1441974368-5399-2-git-send-email-pablo@netfilter.org>
-References: <1441974368-5399-1-git-send-email-pablo@netfilter.org>
-Cc: stable@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] evaluate: use existing table object from evaluation
+ context
+Date: Fri, 11 Sep 2015 14:32:49 +0200
+Message-ID: <20150911123249.GA5700@salvia>
+References: <1441843168-5632-1-git-send-email-pablo@netfilter.org>
+ <CAOkSjBiXNzmiM5hWfEpn1_y0OiAV-6E-WpYwzRDWe-mMnpqAug@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>, fw@strlen.de
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34014 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35492 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751795AbbIKMTi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Sep 2015 08:19:38 -0400
-In-Reply-To: <1441974368-5399-1-git-send-email-pablo@netfilter.org>
+	id S1751556AbbIKM0L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 Sep 2015 08:26:11 -0400
+Content-Disposition: inline
+In-Reply-To: <CAOkSjBiXNzmiM5hWfEpn1_y0OiAV-6E-WpYwzRDWe-mMnpqAug@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[ Upstream commit cb585e1b1d072d1d7caebc649364b9c46c27ea8f ]
+On Thu, Sep 10, 2015 at 08:31:25AM +0200, Arturo Borrero Gonzalez wrote:
+> On 10 September 2015 at 01:59, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Skip table object lookup if we are in the context of table declaration already,
+> > ctx->table already points to the right table we have to use during the
+> > evalution. Otherwise, a list corruption occurs when using the wrong table
+> > object when it already exists in the kernel.
+> >
+> > http://marc.info/?l=netfilter-devel&m=144179814209295&w=2
+> >
+> > Reported-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > ---
+> >  src/evaluate.c |   22 ++++++++++++++++++----
+> >  1 file changed, 18 insertions(+), 4 deletions(-)
+> >
+> 
+> I can't reproduce the issue with this patch, thanks.
+> 
+> Tested-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 
-With this patch, the conntrack refcount is initially set to zero and
-it is bumped once it is added to any of the list, so we fulfill
-Eric's golden rule which is that all released objects always have a
-refcount that equals zero.
-
-Andrey Vagin reports that nf_conntrack_free can't be called for a
-conntrack with non-zero ref-counter, because it can race with
-nf_conntrack_find_get().
-
-A conntrack slab is created with SLAB_DESTROY_BY_RCU. Non-zero
-ref-counter says that this conntrack is used. So when we release
-a conntrack with non-zero counter, we break this assumption.
-
-CPU1                                    CPU2
-____nf_conntrack_find()
-                                        nf_ct_put()
-                                         destroy_conntrack()
-                                        ...
-                                        init_conntrack
-                                         __nf_conntrack_alloc (set use = 1)
-atomic_inc_not_zero(&ct->use) (use = 2)
-                                         if (!l4proto->new(ct, skb, dataoff, timeouts))
-                                          nf_conntrack_free(ct); (use = 2 !!!)
-                                        ...
-                                        __nf_conntrack_alloc (set use = 1)
- if (!nf_ct_key_equal(h, tuple, zone))
-  nf_ct_put(ct); (use = 0)
-   destroy_conntrack()
-                                        /* continue to work with CT */
-
-After applying the path "[PATCH] netfilter: nf_conntrack: fix RCU
-race in nf_conntrack_find_get" another bug was triggered in
-destroy_conntrack():
-
-<4>[67096.759334] ------------[ cut here ]------------
-<2>[67096.759353] kernel BUG at net/netfilter/nf_conntrack_core.c:211!
-...
-<4>[67096.759837] Pid: 498649, comm: atdd veid: 666 Tainted: G         C ---------------    2.6.32-042stab084.18 #1 042stab084_18 /DQ45CB
-<4>[67096.759932] RIP: 0010:[<ffffffffa03d99ac>]  [<ffffffffa03d99ac>] destroy_conntrack+0x15c/0x190 [nf_conntrack]
-<4>[67096.760255] Call Trace:
-<4>[67096.760255]  [<ffffffff814844a7>] nf_conntrack_destroy+0x17/0x30
-<4>[67096.760255]  [<ffffffffa03d9bb5>] nf_conntrack_find_get+0x85/0x130 [nf_conntrack]
-<4>[67096.760255]  [<ffffffffa03d9fb2>] nf_conntrack_in+0x352/0xb60 [nf_conntrack]
-<4>[67096.760255]  [<ffffffffa048c771>] ipv4_conntrack_local+0x51/0x60 [nf_conntrack_ipv4]
-<4>[67096.760255]  [<ffffffff81484419>] nf_iterate+0x69/0xb0
-<4>[67096.760255]  [<ffffffff814b5b00>] ? dst_output+0x0/0x20
-<4>[67096.760255]  [<ffffffff814845d4>] nf_hook_slow+0x74/0x110
-<4>[67096.760255]  [<ffffffff814b5b00>] ? dst_output+0x0/0x20
-<4>[67096.760255]  [<ffffffff814b66d5>] raw_sendmsg+0x775/0x910
-<4>[67096.760255]  [<ffffffff8104c5a8>] ? flush_tlb_others_ipi+0x128/0x130
-<4>[67096.760255]  [<ffffffff8100bc4e>] ? apic_timer_interrupt+0xe/0x20
-<4>[67096.760255]  [<ffffffff8100bc4e>] ? apic_timer_interrupt+0xe/0x20
-<4>[67096.760255]  [<ffffffff814c136a>] inet_sendmsg+0x4a/0xb0
-<4>[67096.760255]  [<ffffffff81444e93>] ? sock_sendmsg+0x13/0x140
-<4>[67096.760255]  [<ffffffff81444f97>] sock_sendmsg+0x117/0x140
-<4>[67096.760255]  [<ffffffff8102e299>] ? native_smp_send_reschedule+0x49/0x60
-<4>[67096.760255]  [<ffffffff81519beb>] ? _spin_unlock_bh+0x1b/0x20
-<4>[67096.760255]  [<ffffffff8109d930>] ? autoremove_wake_function+0x0/0x40
-<4>[67096.760255]  [<ffffffff814960f0>] ? do_ip_setsockopt+0x90/0xd80
-<4>[67096.760255]  [<ffffffff8100bc4e>] ? apic_timer_interrupt+0xe/0x20
-<4>[67096.760255]  [<ffffffff8100bc4e>] ? apic_timer_interrupt+0xe/0x20
-<4>[67096.760255]  [<ffffffff814457c9>] sys_sendto+0x139/0x190
-<4>[67096.760255]  [<ffffffff810efa77>] ? audit_syscall_entry+0x1d7/0x200
-<4>[67096.760255]  [<ffffffff810ef7c5>] ? __audit_syscall_exit+0x265/0x290
-<4>[67096.760255]  [<ffffffff81474daf>] compat_sys_socketcall+0x13f/0x210
-<4>[67096.760255]  [<ffffffff8104dea3>] ia32_sysret+0x0/0x5
-
-I have reused the original title for the RFC patch that Andrey posted and
-most of the original patch description.
-
-Cc: Eric Dumazet <edumazet@google.com>
-Cc: Andrew Vagin <avagin@parallels.com>
-Cc: Florian Westphal <fw@strlen.de>
-Reported-by: Andrew Vagin <avagin@parallels.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Reviewed-by: Eric Dumazet <edumazet@google.com>
-Acked-by: Andrew Vagin <avagin@parallels.com>
----
-This patch has been in -stable >= 3.14 for a while and I've got some people
-reporting this problem in 3.12.
-
- include/net/netfilter/nf_conntrack.h |    2 ++
- net/netfilter/nf_conntrack_core.c    |   34 +++++++++++++++++++++++++++++-----
- net/netfilter/nf_synproxy_core.c     |    5 ++---
- net/netfilter/xt_CT.c                |    7 +------
- 4 files changed, 34 insertions(+), 14 deletions(-)
-
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 0c1288a..a68a061 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -293,6 +293,8 @@ extern unsigned int nf_conntrack_max;
- extern unsigned int nf_conntrack_hash_rnd;
- void init_nf_conntrack_hash_rnd(void);
- 
-+void nf_conntrack_tmpl_insert(struct net *net, struct nf_conn *tmpl);
-+
- #define NF_CT_STAT_INC(net, count)	  __this_cpu_inc((net)->ct.stat->count)
- #define NF_CT_STAT_INC_ATOMIC(net, count) this_cpu_inc((net)->ct.stat->count)
- 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index da541b7..cf9bfc5 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -463,7 +463,9 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 			goto out;
- 
- 	add_timer(&ct->timeout);
--	nf_conntrack_get(&ct->ct_general);
-+	smp_wmb();
-+	/* The caller holds a reference to this object */
-+	atomic_set(&ct->ct_general.use, 2);
- 	__nf_conntrack_hash_insert(ct, hash, repl_hash);
- 	NF_CT_STAT_INC(net, insert);
- 	spin_unlock_bh(&nf_conntrack_lock);
-@@ -477,6 +479,21 @@ out:
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_hash_check_insert);
- 
-+/* deletion from this larval template list happens via nf_ct_put() */
-+void nf_conntrack_tmpl_insert(struct net *net, struct nf_conn *tmpl)
-+{
-+	__set_bit(IPS_TEMPLATE_BIT, &tmpl->status);
-+	__set_bit(IPS_CONFIRMED_BIT, &tmpl->status);
-+	nf_conntrack_get(&tmpl->ct_general);
-+
-+	spin_lock_bh(&nf_conntrack_lock);
-+	/* Overload tuple linked list to put us in template list. */
-+	hlist_nulls_add_head_rcu(&tmpl->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
-+				 &net->ct.tmpl);
-+	spin_unlock_bh(&nf_conntrack_lock);
-+}
-+EXPORT_SYMBOL_GPL(nf_conntrack_tmpl_insert);
-+
- /* Confirm a connection given skb; places it in hash table */
- int
- __nf_conntrack_confirm(struct sk_buff *skb)
-@@ -748,11 +765,10 @@ __nf_conntrack_alloc(struct net *net, u16 zone,
- 		nf_ct_zone->id = zone;
- 	}
- #endif
--	/*
--	 * changes to lookup keys must be done before setting refcnt to 1
-+	/* Because we use RCU lookups, we set ct_general.use to zero before
-+	 * this is inserted in any list.
- 	 */
--	smp_wmb();
--	atomic_set(&ct->ct_general.use, 1);
-+	atomic_set(&ct->ct_general.use, 0);
- 	return ct;
- 
- #ifdef CONFIG_NF_CONNTRACK_ZONES
-@@ -776,6 +792,11 @@ void nf_conntrack_free(struct nf_conn *ct)
- {
- 	struct net *net = nf_ct_net(ct);
- 
-+	/* A freed object has refcnt == 0, that's
-+	 * the golden rule for SLAB_DESTROY_BY_RCU
-+	 */
-+	NF_CT_ASSERT(atomic_read(&ct->ct_general.use) == 0);
-+
- 	nf_ct_ext_destroy(ct);
- 	atomic_dec(&net->ct.count);
- 	nf_ct_ext_free(ct);
-@@ -870,6 +891,9 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 		NF_CT_STAT_INC(net, new);
- 	}
- 
-+	/* Now it is inserted into the unconfirmed list, bump refcount */
-+	nf_conntrack_get(&ct->ct_general);
-+
- 	/* Overload tuple linked list to put us in unconfirmed list. */
- 	hlist_nulls_add_head_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
- 		       &net->ct.unconfirmed);
-diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
-index cdf4567..bf6e9a1 100644
---- a/net/netfilter/nf_synproxy_core.c
-+++ b/net/netfilter/nf_synproxy_core.c
-@@ -362,9 +362,8 @@ static int __net_init synproxy_net_init(struct net *net)
- 		goto err2;
- 	if (!nfct_synproxy_ext_add(ct))
- 		goto err2;
--	__set_bit(IPS_TEMPLATE_BIT, &ct->status);
--	__set_bit(IPS_CONFIRMED_BIT, &ct->status);
- 
-+	nf_conntrack_tmpl_insert(net, ct);
- 	snet->tmpl = ct;
- 
- 	snet->stats = alloc_percpu(struct synproxy_stats);
-@@ -389,7 +388,7 @@ static void __net_exit synproxy_net_exit(struct net *net)
- {
- 	struct synproxy_net *snet = synproxy_pernet(net);
- 
--	nf_conntrack_free(snet->tmpl);
-+	nf_ct_put(snet->tmpl);
- 	synproxy_proc_exit(net);
- 	free_percpu(snet->stats);
- }
-diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-index da35ac0..8899601 100644
---- a/net/netfilter/xt_CT.c
-+++ b/net/netfilter/xt_CT.c
-@@ -226,12 +226,7 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
- 			goto err3;
- 	}
- 
--	__set_bit(IPS_TEMPLATE_BIT, &ct->status);
--	__set_bit(IPS_CONFIRMED_BIT, &ct->status);
--
--	/* Overload tuple linked list to put us in template list. */
--	hlist_nulls_add_head_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
--				 &par->net->ct.tmpl);
-+	nf_conntrack_tmpl_insert(par->net, ct);
- out:
- 	info->ct = ct;
- 	return 0;
--- 
-1.7.10.4
-
+Thanks for testing Arturo.
