@@ -1,102 +1,113 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable-4.2] netfilter: ipset: Out of bound access in hash:net* types fixed
-Date: Fri, 11 Sep 2015 15:00:44 +0200
-Message-ID: <1441976447-8338-3-git-send-email-pablo@netfilter.org>
+Subject: [PATCH -stable-4.2] netfilter: conntrack: use nf_ct_tmpl_free in CT/synproxy error paths
+Date: Fri, 11 Sep 2015 15:00:47 +0200
+Message-ID: <1441976447-8338-6-git-send-email-pablo@netfilter.org>
 References: <1441976447-8338-1-git-send-email-pablo@netfilter.org>
 Cc: netfilter-devel@vger.kernel.org
 To: stable@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41553 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752587AbbIKMyR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Sep 2015 08:54:17 -0400
+Return-path: <stable-owner@vger.kernel.org>
 In-Reply-To: <1441976447-8338-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Daniel Borkmann <daniel@iogearbox.net>
 
-[ upstream commit 6fe7ccfd77415a6ba250c10c580eb3f9acf79753 ]
+[ upstream commit 9cf94eab8b309e8bcc78b41dd1561c75b537dd0b ]
 
-Dave Jones reported that KASan detected out of bounds access in hash:net*
-types:
+Commit 0838aa7fcfcd ("netfilter: fix netns dependencies with conntrack
+templates") migrated templates to the new allocator api, but forgot to
+update error paths for them in CT and synproxy to use nf_ct_tmpl_free()
+instead of nf_conntrack_free().
 
-[   23.139532] ==================================================================
-[   23.146130] BUG: KASan: out of bounds access in hash_net4_add_cidr+0x1db/0x220 at addr ffff8800d4844b58
-[   23.152937] Write of size 4 by task ipset/457
-[   23.159742] =============================================================================
-[   23.166672] BUG kmalloc-512 (Not tainted): kasan: bad access detected
-[   23.173641] -----------------------------------------------------------------------------
-[   23.194668] INFO: Allocated in hash_net_create+0x16a/0x470 age=7 cpu=1 pid=456
-[   23.201836]  __slab_alloc.constprop.66+0x554/0x620
-[   23.208994]  __kmalloc+0x2f2/0x360
-[   23.216105]  hash_net_create+0x16a/0x470
-[   23.223238]  ip_set_create+0x3e6/0x740
-[   23.230343]  nfnetlink_rcv_msg+0x599/0x640
-[   23.237454]  netlink_rcv_skb+0x14f/0x190
-[   23.244533]  nfnetlink_rcv+0x3f6/0x790
-[   23.251579]  netlink_unicast+0x272/0x390
-[   23.258573]  netlink_sendmsg+0x5a1/0xa50
-[   23.265485]  SYSC_sendto+0x1da/0x2c0
-[   23.272364]  SyS_sendto+0xe/0x10
-[   23.279168]  entry_SYSCALL_64_fastpath+0x12/0x6f
+Due to that, memory is being freed into the wrong kmemcache, but also
+we drop the per net reference count of ct objects causing an imbalance.
 
-The bug is fixed in the patch and the testsuite is extended in ipset
-to check cidr handling more thoroughly.
+In Brad's case, this leads to a wrap-around of net->ct.count and thus
+lets __nf_conntrack_alloc() refuse to create a new ct object:
 
+  [   10.340913] xt_addrtype: ipv6 does not support BROADCAST matching
+  [   10.810168] nf_conntrack: table full, dropping packet
+  [   11.917416] r8169 0000:07:00.0 eth0: link up
+  [   11.917438] IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
+  [   12.815902] nf_conntrack: table full, dropping packet
+  [   15.688561] nf_conntrack: table full, dropping packet
+  [   15.689365] nf_conntrack: table full, dropping packet
+  [   15.690169] nf_conntrack: table full, dropping packet
+  [   15.690967] nf_conntrack: table full, dropping packet
+  [...]
+
+With slab debugging, it also reports the wrong kmemcache (kmalloc-512 vs.
+nf_conntrack_ffffffff81ce75c0) and reports poison overwrites, etc. Thus,
+to fix the problem, export and use nf_ct_tmpl_free() instead.
+
+Fixes: 0838aa7fcfcd ("netfilter: fix netns dependencies with conntrack templates")
 Cc: <stable@vger.kernel.org> # 4.2.x
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Reported-by: Brad Jackson <bjackson0971@gmail.com>
+Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipset/ip_set_hash_gen.h |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ include/net/netfilter/nf_conntrack.h |    1 +
+ net/netfilter/nf_conntrack_core.c    |    3 ++-
+ net/netfilter/nf_synproxy_core.c     |    2 +-
+ net/netfilter/xt_CT.c                |    2 +-
+ 4 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
-index afe905c..691b54f 100644
---- a/net/netfilter/ipset/ip_set_hash_gen.h
-+++ b/net/netfilter/ipset/ip_set_hash_gen.h
-@@ -152,9 +152,13 @@ htable_bits(u32 hashsize)
- #define SET_HOST_MASK(family)	(family == AF_INET ? 32 : 128)
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 37cd391..4023c4c 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -292,6 +292,7 @@ extern unsigned int nf_conntrack_hash_rnd;
+ void init_nf_conntrack_hash_rnd(void);
  
- #ifdef IP_SET_HASH_WITH_NET0
-+/* cidr from 0 to SET_HOST_MASK() value and c = cidr + 1 */
- #define NLEN(family)		(SET_HOST_MASK(family) + 1)
-+#define CIDR_POS(c)		((c) - 1)
- #else
-+/* cidr from 1 to SET_HOST_MASK() value and c = cidr + 1 */
- #define NLEN(family)		SET_HOST_MASK(family)
-+#define CIDR_POS(c)		((c) - 2)
- #endif
+ struct nf_conn *nf_ct_tmpl_alloc(struct net *net, u16 zone, gfp_t flags);
++void nf_ct_tmpl_free(struct nf_conn *tmpl);
  
- #else
-@@ -305,7 +309,7 @@ mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
- 		} else if (h->nets[i].cidr[n] < cidr) {
- 			j = i;
- 		} else if (h->nets[i].cidr[n] == cidr) {
--			h->nets[cidr - 1].nets[n]++;
-+			h->nets[CIDR_POS(cidr)].nets[n]++;
- 			return;
- 		}
- 	}
-@@ -314,7 +318,7 @@ mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
- 			h->nets[i].cidr[n] = h->nets[i - 1].cidr[n];
- 	}
- 	h->nets[i].cidr[n] = cidr;
--	h->nets[cidr - 1].nets[n] = 1;
-+	h->nets[CIDR_POS(cidr)].nets[n] = 1;
+ #define NF_CT_STAT_INC(net, count)	  __this_cpu_inc((net)->ct.stat->count)
+ #define NF_CT_STAT_INC_ATOMIC(net, count) this_cpu_inc((net)->ct.stat->count)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 3c20d02..0625a42 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -320,12 +320,13 @@ out_free:
  }
+ EXPORT_SYMBOL_GPL(nf_ct_tmpl_alloc);
+ 
+-static void nf_ct_tmpl_free(struct nf_conn *tmpl)
++void nf_ct_tmpl_free(struct nf_conn *tmpl)
+ {
+ 	nf_ct_ext_destroy(tmpl);
+ 	nf_ct_ext_free(tmpl);
+ 	kfree(tmpl);
+ }
++EXPORT_SYMBOL_GPL(nf_ct_tmpl_free);
  
  static void
-@@ -325,8 +329,8 @@ mtype_del_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
- 	for (i = 0; i < nets_length; i++) {
- 		if (h->nets[i].cidr[n] != cidr)
- 			continue;
--		h->nets[cidr - 1].nets[n]--;
--		if (h->nets[cidr - 1].nets[n] > 0)
-+		h->nets[CIDR_POS(cidr)].nets[n]--;
-+		if (h->nets[CIDR_POS(cidr)].nets[n] > 0)
- 			return;
- 		for (j = i; j < net_end && h->nets[j].cidr[n]; j++)
- 			h->nets[j].cidr[n] = h->nets[j + 1].cidr[n];
+ destroy_conntrack(struct nf_conntrack *nfct)
+diff --git a/net/netfilter/nf_synproxy_core.c b/net/netfilter/nf_synproxy_core.c
+index d7f1685..d6ee8f8 100644
+--- a/net/netfilter/nf_synproxy_core.c
++++ b/net/netfilter/nf_synproxy_core.c
+@@ -378,7 +378,7 @@ static int __net_init synproxy_net_init(struct net *net)
+ err3:
+ 	free_percpu(snet->stats);
+ err2:
+-	nf_conntrack_free(ct);
++	nf_ct_tmpl_free(ct);
+ err1:
+ 	return err;
+ }
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index 43ddeee..f3377ce 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -233,7 +233,7 @@ out:
+ 	return 0;
+ 
+ err3:
+-	nf_conntrack_free(ct);
++	nf_ct_tmpl_free(ct);
+ err2:
+ 	nf_ct_l3proto_module_put(par->family);
+ err1:
 -- 
 1.7.10.4
-
