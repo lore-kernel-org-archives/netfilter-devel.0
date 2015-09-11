@@ -1,214 +1,102 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] tests: add concatenations and maps; combine them too
-Date: Fri, 11 Sep 2015 14:42:25 +0200
-Message-ID: <1441975345-5962-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, fw@strlen.de, arturo.borrero.glez@gmail.com
-To: netfilter-devel@vger.kernel.org
+Subject: [PATCH -stable-4.2] netfilter: ipset: Out of bound access in hash:net* types fixed
+Date: Fri, 11 Sep 2015 15:00:44 +0200
+Message-ID: <1441976447-8338-3-git-send-email-pablo@netfilter.org>
+References: <1441976447-8338-1-git-send-email-pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+To: stable@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37983 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41553 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753120AbbIKMfw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Sep 2015 08:35:52 -0400
+	id S1752587AbbIKMyR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 11 Sep 2015 08:54:17 -0400
+In-Reply-To: <1441976447-8338-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds simple tests for concatenation and maps, including more
-advanced tests that combine them.
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+[ upstream commit 6fe7ccfd77415a6ba250c10c580eb3f9acf79753 ]
+
+Dave Jones reported that KASan detected out of bounds access in hash:net*
+types:
+
+[   23.139532] ==================================================================
+[   23.146130] BUG: KASan: out of bounds access in hash_net4_add_cidr+0x1db/0x220 at addr ffff8800d4844b58
+[   23.152937] Write of size 4 by task ipset/457
+[   23.159742] =============================================================================
+[   23.166672] BUG kmalloc-512 (Not tainted): kasan: bad access detected
+[   23.173641] -----------------------------------------------------------------------------
+[   23.194668] INFO: Allocated in hash_net_create+0x16a/0x470 age=7 cpu=1 pid=456
+[   23.201836]  __slab_alloc.constprop.66+0x554/0x620
+[   23.208994]  __kmalloc+0x2f2/0x360
+[   23.216105]  hash_net_create+0x16a/0x470
+[   23.223238]  ip_set_create+0x3e6/0x740
+[   23.230343]  nfnetlink_rcv_msg+0x599/0x640
+[   23.237454]  netlink_rcv_skb+0x14f/0x190
+[   23.244533]  nfnetlink_rcv+0x3f6/0x790
+[   23.251579]  netlink_unicast+0x272/0x390
+[   23.258573]  netlink_sendmsg+0x5a1/0xa50
+[   23.265485]  SYSC_sendto+0x1da/0x2c0
+[   23.272364]  SyS_sendto+0xe/0x10
+[   23.279168]  entry_SYSCALL_64_fastpath+0x12/0x6f
+
+The bug is fixed in the patch and the testsuite is extended in ipset
+to check cidr handling more thoroughly.
+
+Cc: <stable@vger.kernel.org> # 4.2.x
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
- tests/regression/any/ct.t             |    5 +++++
- tests/regression/any/ct.t.payload     |   36 +++++++++++++++++++++++++++++++++
- tests/regression/any/meta.t           |    4 ++++
- tests/regression/any/meta.t.payload   |   29 ++++++++++++++++++++++++++
- tests/regression/ip/dnat.t            |    3 +++
- tests/regression/ip/dnat.t.payload.ip |   19 +++++++++++++++++
- tests/regression/ip/ip.t.payload      |   10 +++++++++
- tests/regression/ip/ip.t.payload.inet |   12 +++++++++++
- 8 files changed, 118 insertions(+)
+ net/netfilter/ipset/ip_set_hash_gen.h |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/tests/regression/any/ct.t b/tests/regression/any/ct.t
-index 6ec0526..ab4b167 100644
---- a/tests/regression/any/ct.t
-+++ b/tests/regression/any/ct.t
-@@ -105,3 +105,8 @@ ct helper "12345678901234567";fail
- # <cmdline>:1:37-39: Error: datatype mismatch, expected invalid, expression has type Internet protocol
- # add rule ip test input ct proto-dst udp
- #                        ~~~~~~~~~~~~ ^^^
-+
-+ct state . ct mark { new . 0x12345678};ok
-+ct state . ct mark { new . 0x12345678, new . 0x34127856, established . 0x12785634};ok
-+ct direction . ct mark { original . 0x12345678};ok
-+ct state . ct mark vmap { new . 0x12345678 : drop};ok
-diff --git a/tests/regression/any/ct.t.payload b/tests/regression/any/ct.t.payload
-index f77c284..2e7c1ff 100644
---- a/tests/regression/any/ct.t.payload
-+++ b/tests/regression/any/ct.t.payload
-@@ -237,3 +237,39 @@ ip test-ip4 output
-   [ ct load helper => reg 1 ]
-   [ cmp eq reg 1 0x00707466 0x00000000 0x00000000 0x00000000 ]
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index afe905c..691b54f 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -152,9 +152,13 @@ htable_bits(u32 hashsize)
+ #define SET_HOST_MASK(family)	(family == AF_INET ? 32 : 128)
  
-+# ct state . ct mark { new . 0x12345678}
-+set%d test 3
-+set%d test 0
-+	element 00000008 12345678  : 0 [end]
-+ip test-ip4 output
-+  [ ct load state => reg 1 ]
-+  [ ct load mark => reg 9 ]
-+  [ lookup reg 1 set set%d ]
-+
-+# ct state . ct mark { new . 0x12345678, new . 0x34127856, established . 0x12785634}
-+set%d test-ip4 3
-+set%d test-ip4 0
-+	element 00000008 12345678  : 0 [end]	element 00000008 34127856  : 0 [end]	element 00000002 12785634  : 0 [end]
-+ip test-ip4 output
-+  [ ct load state => reg 1 ]
-+  [ ct load mark => reg 9 ]
-+  [ lookup reg 1 set set%d ]
-+
-+# ct direction . ct mark { original . 0x12345678}
-+set%d test 3
-+set%d test 0
-+	element 00000000 12345678  : 0 [end]
-+ip test-ip4 output
-+  [ ct load direction => reg 1 ]
-+  [ ct load mark => reg 9 ]
-+  [ lookup reg 1 set set%d ]
-+
-+# ct state . ct mark vmap { new . 0x12345678 : drop}
-+map%d test-ip4 b
-+map%d test-ip4 0
-+        element 00000008 12345678  : 0 [end]
-+ip test-ip4 output
-+  [ ct load state => reg 1 ]
-+  [ ct load mark => reg 9 ]
-+  [ lookup reg 1 set map%d dreg 0 ]
-+
-diff --git a/tests/regression/any/meta.t b/tests/regression/any/meta.t
-index 24bcafa..ddb360d 100644
---- a/tests/regression/any/meta.t
-+++ b/tests/regression/any/meta.t
-@@ -187,3 +187,7 @@ meta cgroup 1048577-1048578;ok;cgroup 1048577-1048578
- meta cgroup != 1048577-1048578;ok;cgroup != 1048577-1048578
- meta cgroup {1048577-1048578};ok;cgroup { 1048577-1048578}
- # meta cgroup != { 1048577-1048578};ok;cgroup != { 1048577-1048578}
-+
-+meta iif . meta oif { lo . eth0 };ok
-+meta iif . meta oif . meta mark { lo . eth0 . 0x0000000a };ok
-+meta iif . meta oif vmap { lo . eth0 : drop };ok
-diff --git a/tests/regression/any/meta.t.payload b/tests/regression/any/meta.t.payload
-index 921e42e..481903e 100644
---- a/tests/regression/any/meta.t.payload
-+++ b/tests/regression/any/meta.t.payload
-@@ -705,3 +705,32 @@ ip test-ip4 input
-   [ byteorder reg 1 = hton(reg 1, 4, 4) ]
-   [ lookup reg 1 set set%d ]
+ #ifdef IP_SET_HASH_WITH_NET0
++/* cidr from 0 to SET_HOST_MASK() value and c = cidr + 1 */
+ #define NLEN(family)		(SET_HOST_MASK(family) + 1)
++#define CIDR_POS(c)		((c) - 1)
+ #else
++/* cidr from 1 to SET_HOST_MASK() value and c = cidr + 1 */
+ #define NLEN(family)		SET_HOST_MASK(family)
++#define CIDR_POS(c)		((c) - 2)
+ #endif
  
-+
-+# meta iif . meta oif { lo . eth0 }
-+set%d test-ip4 3
-+set%d test-ip4 0
-+	element 00000001 00000002  : 0 [end]
-+ip test-ip4 output 
-+  [ meta load iif => reg 1 ]
-+  [ meta load oif => reg 9 ]
-+  [ lookup reg 1 set set%d ]
-+
-+# meta iif . meta oif . meta mark { lo . eth0 . 0x0000000a }
-+set%d test-ip4 3
-+set%d test-ip4 0
-+	element 00000001 00000002 0000000a  : 0 [end]
-+ip test-ip4 output 
-+  [ meta load iif => reg 1 ]
-+  [ meta load oif => reg 9 ]
-+  [ meta load mark => reg 10 ]
-+  [ lookup reg 1 set set%d ]
-+
-+# meta iif . meta oif vmap { lo . eth0 : drop }
-+map%d test-ip4 b
-+map%d test-ip4 0
-+	element 00000001 00000002  : 0 [end]
-+ip test-ip4 output 
-+  [ meta load iif => reg 1 ]
-+  [ meta load oif => reg 9 ]
-+  [ lookup reg 1 set map%d dreg 0 ]
-+
-diff --git a/tests/regression/ip/dnat.t b/tests/regression/ip/dnat.t
-index 78fc454..cdb7811 100644
---- a/tests/regression/ip/dnat.t
-+++ b/tests/regression/ip/dnat.t
-@@ -10,3 +10,6 @@ iifname "eth0" tcp dport {80, 90, 23} dnat 192.168.3.2;ok
- # nft: src/evaluate.c:975: expr_evaluate_relational: Assertion '0' failed.
+ #else
+@@ -305,7 +309,7 @@ mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
+ 		} else if (h->nets[i].cidr[n] < cidr) {
+ 			j = i;
+ 		} else if (h->nets[i].cidr[n] == cidr) {
+-			h->nets[cidr - 1].nets[n]++;
++			h->nets[CIDR_POS(cidr)].nets[n]++;
+ 			return;
+ 		}
+ 	}
+@@ -314,7 +318,7 @@ mtype_add_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
+ 			h->nets[i].cidr[n] = h->nets[i - 1].cidr[n];
+ 	}
+ 	h->nets[i].cidr[n] = cidr;
+-	h->nets[cidr - 1].nets[n] = 1;
++	h->nets[CIDR_POS(cidr)].nets[n] = 1;
+ }
  
- iifname "eth0" tcp dport != 23-34 dnat 192.168.3.2;ok
-+
-+dnat ct mark map { 0x00000014 : 1.2.3.4};ok
-+dnat ct mark . ip daddr map { 0x00000014 . 1.1.1.1 : 1.2.3.4};ok
-diff --git a/tests/regression/ip/dnat.t.payload.ip b/tests/regression/ip/dnat.t.payload.ip
-index 93c4d68..026e871 100644
---- a/tests/regression/ip/dnat.t.payload.ip
-+++ b/tests/regression/ip/dnat.t.payload.ip
-@@ -48,3 +48,22 @@ ip test-ip4 prerouting
-   [ immediate reg 1 0x0203a8c0 ]
-   [ nat dnat ip addr_min reg 1 addr_max reg 0 ]
- 
-+# dnat ct mark map { 0x00000014 : 1.2.3.4}
-+map%d test-ip4 b
-+map%d test-ip4 0
-+	element 00000014  : 04030201 0 [end]
-+ip test-ip4 prerouting
-+  [ ct load mark => reg 1 ]
-+  [ lookup reg 1 set map%d dreg 1 ]
-+  [ nat dnat ip addr_min reg 1 addr_max reg 0 ]
-+
-+# dnat ct mark . ip daddr map { 0x00000014 . 1.1.1.1 : 1.2.3.4}
-+map%d test-ip4 b
-+map%d test-ip4 0
-+	element 00000014 01010101  : 04030201 0 [end]
-+ip test-ip4 output
-+  [ ct load mark => reg 1 ]
-+  [ payload load 4b @ network header + 16 => reg 9 ]
-+  [ lookup reg 1 set map%d dreg 1 ]
-+  [ nat dnat ip addr_min reg 1 addr_max reg 0 ]
-+
-diff --git a/tests/regression/ip/ip.t.payload b/tests/regression/ip/ip.t.payload
-index 7a77dc4..147923c 100644
---- a/tests/regression/ip/ip.t.payload
-+++ b/tests/regression/ip/ip.t.payload
-@@ -353,3 +353,13 @@ ip test-ip4 input
-   [ bitwise reg 1 = (reg=1 & 0x0000ffff ) ^ 0x00000000 ]
-   [ cmp eq reg 1 0x0000ffff ]
- 
-+# ip saddr . ip daddr . ip protocol { 1.1.1.1 . 2.2.2.2 . tcp, 1.1.1.1 . 3.3.3.3 . udp}
-+set%d test-ip 3
-+set%d test-ip 0
-+	element 01010101 02020202 00000006  : 0 [end]   element 01010101 03030303 00000011  : 0 [end]
-+ip test-ip input
-+  [ payload load 4b @ network header + 12 => reg 1 ]
-+  [ payload load 4b @ network header + 16 => reg 9 ]
-+  [ payload load 1b @ network header + 9 => reg 10 ]
-+  [ lookup reg 1 set set%d ]
-+
-diff --git a/tests/regression/ip/ip.t.payload.inet b/tests/regression/ip/ip.t.payload.inet
-index dbc7852..4caea1e 100644
---- a/tests/regression/ip/ip.t.payload.inet
-+++ b/tests/regression/ip/ip.t.payload.inet
-@@ -465,3 +465,15 @@ inet test-inet input
-   [ bitwise reg 1 = (reg=1 & 0x0000ffff ) ^ 0x00000000 ]
-   [ cmp eq reg 1 0x0000ffff ]
- 
-+# ip saddr . ip daddr . ip protocol { 1.1.1.1 . 2.2.2.2 . tcp, 1.1.1.1 . 3.3.3.3 . udp}
-+set%d test-ip 3
-+set%d test-ip 0
-+        element 01010101 02020202 00000006  : 0 [end]   element 01010101 03030303 00000011  : 0 [end]
-+inet test-ip input
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x00000002 ]
-+  [ payload load 4b @ network header + 12 => reg 1 ]
-+  [ payload load 4b @ network header + 16 => reg 9 ]
-+  [ payload load 1b @ network header + 9 => reg 10 ]
-+  [ lookup reg 1 set set%d ]
-+
+ static void
+@@ -325,8 +329,8 @@ mtype_del_cidr(struct htype *h, u8 cidr, u8 nets_length, u8 n)
+ 	for (i = 0; i < nets_length; i++) {
+ 		if (h->nets[i].cidr[n] != cidr)
+ 			continue;
+-		h->nets[cidr - 1].nets[n]--;
+-		if (h->nets[cidr - 1].nets[n] > 0)
++		h->nets[CIDR_POS(cidr)].nets[n]--;
++		if (h->nets[CIDR_POS(cidr)].nets[n] > 0)
+ 			return;
+ 		for (j = i; j < net_end && h->nets[j].cidr[n]; j++)
+ 			h->nets[j].cidr[n] = h->nets[j + 1].cidr[n];
 -- 
 1.7.10.4
 
