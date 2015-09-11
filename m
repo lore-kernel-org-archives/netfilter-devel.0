@@ -1,102 +1,64 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] Netdev 1.1 conference
-Date: Thu, 10 Sep 2015 16:03:24 +0200
-Message-ID: <20150910140324.GA4280@salvia>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: [lnf-queue PATCH] nlmsg: add lacking attributes validation
+Date: Fri, 11 Sep 2015 10:54:53 +0900
+Message-ID: <20150911015452.GA6310@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: lwn@lwn.net
-To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-wireless@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+To: The netfilter developer mailinglist
+	<netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:33264 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750827AbbIKBy6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Sep 2015 21:54:58 -0400
+Received: by pacex6 with SMTP id ex6so59571848pac.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Sep 2015 18:54:57 -0700 (PDT)
+Received: from gmail.com (softbank220009032004.bbtec.net. [220.9.32.4])
+        by smtp.gmail.com with ESMTPSA id xm9sm14417852pbc.32.2015.09.10.18.54.56
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 10 Sep 2015 18:54:57 -0700 (PDT)
 Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Following the lastest successful Netdev 0.1 in Ottawa, Canada. We are
-happy to announce a new round of the Netdev conference series: Netdev 1.1
-(year 1, conference 1) from 10th to 12th February 2016 in Seville,
-Spain (http://www.netdevconf.org/1.1/).
+This patch adds four (actually two) attributes validation with
+comparing to current kernel header.
 
-Netdev 1.1 is a community-driven conference geared towards Linux
-netheads. Linux kernel networking and user space utilization of the
-interfaces to the Linux kernel networking subsystem are the focus.  If
-you are using Linux as a boot system for proprietary networking, then
-this conference _may not be for you_.
+Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
+---
+ src/nlmsg.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Current topics include
-- wireless
-- performance analysis and improvement
-- networking hardware and offload
-- netfilter
-- traffic control
-- different networking layers (L2/3, etc)
-- internet of things
-- security
-- additional topics can be suggested
+diff --git a/src/nlmsg.c b/src/nlmsg.c
+index cabd8be..ba28c77 100644
+--- a/src/nlmsg.c
++++ b/src/nlmsg.c
+@@ -140,6 +140,7 @@ static int nfq_pkt_parse_attr_cb(const struct nlattr *attr, void *data)
+ 	case NFQA_SECCTX:
+ 	case NFQA_UID:
+ 	case NFQA_GID:
++	case NFQA_CT_INFO:
+ 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
+ 			return MNL_CB_ERROR;
+ 		break;
+@@ -155,7 +156,15 @@ static int nfq_pkt_parse_attr_cb(const struct nlattr *attr, void *data)
+ 			return MNL_CB_ERROR;
+ 		}
+ 		break;
++	case NFQA_PACKET_HDR:
++		if (mnl_attr_validate2(attr, MNL_TYPE_UNSPEC,
++		    sizeof(struct nfqnl_msg_packet_hdr)) < 0) {
++			return MNL_CB_ERROR;
++		}
++		break;
+ 	case NFQA_PAYLOAD:
++	case NFQA_CT:
++	case NFQA_EXP:
+ 		break;
+ 	}
+ 	tb[type] = attr;
+-- 
+2.1.4
 
-We expect about 2-3 parallel tracks both during tutorials and main
-talks.
-
-Session submissions
--------------------
-We encourage submission of paper and tutorial proposals, though we
-*highly discourage* submission of recycled talks. Your proposals will
-be evaluated by the technical committee in first place, that will
-provide prompt feedback to you. If your proposal is approved, you will
-be requested to submit your Camera-ready paper. Unlike other
-conferences, accepted proposals will be regularly announced on our
-website.
-
-Please stay within the relevant topic focus and tie to FOSS Linux
-networking to make it easier for the technical committee to provide
-quick feedback. In order to give a talk you must be registered. If
-your proposal is accepted you will not be charged a conference fee or
-your conference fee will be refunded to you when your talk gets
-accepted.  We will be posting more updates on how to submit in the
-near future.
-
-Why you should register
------------------------
-If you yearn for the old community tech driven conferences where you
-mingle with fellow geeks (only these would be Linux networking geeks)
-then this would be it. There will be no marketing flashy openings.
-There will just be a pure feed of Linux networking.
-
-Netdev 1.1 will be held back to back with netconf 2016, the by-invite
-Linux kernel networking workshop (http://vger.kernel.org/netconf2016.html).
-So gurus of all sorts will be there mingling and giving talks.  While
-there will be heavy Linux kernel influence we expect a lot of user
-space presence as well.
-
-Location:
----------
-Sevilla, Spain. Exact location to be announced.
-
-Important Dates:
-----------------
-October 13, 2015                Call for proposals opens
-November 10, 2015               Registration opens
-December 1, 2015                Call for proposals deadline
-January 12, 2016                Conference schedule announced
-February 10-12, 2016            Conference days
-
-Please register as soon as registration opens up on November 10.
-Registering helps us plan properly for numbers of attendees, ensuring
-venue sizes and supplies are appropriate without wasting resources.
-
-We are looking for sponsors
----------------------------
-If you feel like you can help us organize this event by sponsoring,
-please drop us a line to: sponsor@netdevconf.org and we'll send you
-our sponsorship policy.
-
-Contact
--------
-For any other general information, please contact: info@netdevconf.org.
-
-If you're missing relevant information on our website, we kindly ask
-you to be patient, we're working hard to get everything fully
-organized. Stay tuned to our website and twitter, we'll be announcing
-important information updates progressively.
-
--EOF-
