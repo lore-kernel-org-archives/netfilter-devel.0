@@ -1,44 +1,24 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] evaluate: use existing table object from evaluation
- context
-Date: Fri, 11 Sep 2015 14:32:49 +0200
-Message-ID: <20150911123249.GA5700@salvia>
-References: <1441843168-5632-1-git-send-email-pablo@netfilter.org>
- <CAOkSjBiXNzmiM5hWfEpn1_y0OiAV-6E-WpYwzRDWe-mMnpqAug@mail.gmail.com>
+Subject: Re: [PATCH 1/2 -stable-3.12] netfilter: nf_conntrack: fix RCU race
+ in nf_conntrack_find_get
+Date: Fri, 11 Sep 2015 14:37:31 +0200
+Message-ID: <20150911123731.GA5728@salvia>
+References: <1441974368-5399-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>, fw@strlen.de
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35492 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751556AbbIKM0L (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Sep 2015 08:26:11 -0400
+Cc: stable@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBiXNzmiM5hWfEpn1_y0OiAV-6E-WpYwzRDWe-mMnpqAug@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1441974368-5399-1-git-send-email-pablo@netfilter.org>
+Sender: stable-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Sep 10, 2015 at 08:31:25AM +0200, Arturo Borrero Gonzalez wrote:
-> On 10 September 2015 at 01:59, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Skip table object lookup if we are in the context of table declaration already,
-> > ctx->table already points to the right table we have to use during the
-> > evalution. Otherwise, a list corruption occurs when using the wrong table
-> > object when it already exists in the kernel.
-> >
-> > http://marc.info/?l=netfilter-devel&m=144179814209295&w=2
-> >
-> > Reported-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > ---
-> >  src/evaluate.c |   22 ++++++++++++++++++----
-> >  1 file changed, 18 insertions(+), 4 deletions(-)
-> >
+On Fri, Sep 11, 2015 at 02:26:07PM +0200, Pablo Neira Ayuso wrote:
+> From: Andrey Vagin <avagin@openvz.org>
 > 
-> I can't reproduce the issue with this patch, thanks.
-> 
-> Tested-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> [ Upstream commit cb585e1b1d072d1d7caebc649364b9c46c27ea8f ]
 
-Thanks for testing Arturo.
+For kernel 3.12 stable maintainer:
+
+Wrong upstream, this should be c6825c0976fa7893692e0e43b09740b419b23c09.
