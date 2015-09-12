@@ -1,9 +1,9 @@
 From: Julian Anastasov <ja@ssi.bg>
 Subject: Re: [PATCH] ipvs:Fix locking requirements in the function
  ip_vs_unlink_service
-Date: Sat, 12 Sep 2015 09:20:21 +0300 (EEST)
-Message-ID: <alpine.LFD.2.11.1509120910090.1626@ja.home.ssi.bg>
-References: <1442032025-18642-1-git-send-email-xerofoify@gmail.com>
+Date: Sat, 12 Sep 2015 21:28:36 +0300 (EEST)
+Message-ID: <alpine.LFD.2.11.1509122111110.1491@ja.home.ssi.bg>
+References: <1442032025-18642-1-git-send-email-xerofoify@gmail.com> <alpine.LFD.2.11.1509120910090.1626@ja.home.ssi.bg> <55F43D34.3020805@gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: wensong@linux-vs.org, horms@verge.net.au, pablo@netfilter.org,
@@ -11,32 +11,39 @@ Cc: wensong@linux-vs.org, horms@verge.net.au, pablo@netfilter.org,
 	netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
 	linux-kernel@vger.kernel.org
-To: Nicholas Krause <xerofoify@gmail.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <1442032025-18642-1-git-send-email-xerofoify@gmail.com>
-Sender: lvs-devel-owner@vger.kernel.org
+To: nick <xerofoify@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55F43D34.3020805@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
 	Hello,
 
-On Sat, 12 Sep 2015, Nicholas Krause wrote:
+On Sat, 12 Sep 2015, nick wrote:
 
-> This fixes locking requirements in the function ip_vs_unlink_service
-> to properly use bottom half spinlocking around the call to the function
-> __ip_vs_del_service  in order to meet the locking that this paricular
-> function requires as stated in it's comments related to locking.
+> > 	BH locking is not needed anymore. Also, sched_lock is
+> > used by schedulers to protect only access to svc->sched_data
+> > fields.
+> > 
+> > 	It seems the comment is outdated after
+> > commit ceec4c381681 ("ipvs: convert services to rcu").
+> > 
+> Julian,
+> You are correct after reading the commit id for rcu locking conversion that this comment
+> is outdated. However the locking may still be required but in terms of rcu_read_lock/
+> unlock around this function call as it's still a critical region.
 
-> +	spin_lock_bh(&svc->sched_lock);
->  	__ip_vs_del_service(svc, cleanup);
-> +	spin_unlock_bh(&svc->sched_lock);
-
-	BH locking is not needed anymore. Also, sched_lock is
-used by schedulers to protect only access to svc->sched_data
-fields.
-
-	It seems the comment is outdated after
-commit ceec4c381681 ("ipvs: convert services to rcu").
+	This function is called under __ip_vs_mutex, so
+there is single writer that modifies the configuration.
+As "readers" the schedulers access the configuration under
+rcu_read_lock (eg. called in tcp_conn_schedule) but they
+are free to use other locking too. ip_vs_wlc.c scheduler
+is example where sched_lock is not used because only
+svc->destinations is accessed which is protected with RCU
+by definition. You can check __ip_vs_unlink_dest() how
+dest is unlinked with list_del_rcu() before sched->del_dest
+method is called.
 
 Regards
 
