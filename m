@@ -1,171 +1,44 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable-4.2] netfilter: ipset: Fixing unnamed union init
-Date: Fri, 11 Sep 2015 15:00:45 +0200
-Message-ID: <1441976447-8338-4-git-send-email-pablo@netfilter.org>
-References: <1441976447-8338-1-git-send-email-pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-To: stable@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41559 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752450AbbIKMyT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Sep 2015 08:54:19 -0400
-In-Reply-To: <1441976447-8338-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH] ipvs:Fix locking requirements in the function
+ ip_vs_unlink_service
+Date: Sat, 12 Sep 2015 09:20:21 +0300 (EEST)
+Message-ID: <alpine.LFD.2.11.1509120910090.1626@ja.home.ssi.bg>
+References: <1442032025-18642-1-git-send-email-xerofoify@gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: wensong@linux-vs.org, horms@verge.net.au, pablo@netfilter.org,
+	kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
+	netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org
+To: Nicholas Krause <xerofoify@gmail.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1442032025-18642-1-git-send-email-xerofoify@gmail.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Elad Raz <eladr@mellanox.com>
 
-[ upstream commit 96be5f2806cd65a2ebced3bfcdf7df0116e6c4a6 ]
+	Hello,
 
-In continue to proposed Vinson Lee's post [1], this patch fixes compilation
-issues founded at gcc 4.4.7. The initialization of .cidr field of unnamed
-unions causes compilation error in gcc 4.4.x.
+On Sat, 12 Sep 2015, Nicholas Krause wrote:
 
-References
+> This fixes locking requirements in the function ip_vs_unlink_service
+> to properly use bottom half spinlocking around the call to the function
+> __ip_vs_del_service  in order to meet the locking that this paricular
+> function requires as stated in it's comments related to locking.
 
-Visible links
-[1] https://lkml.org/lkml/2015/7/5/74
+> +	spin_lock_bh(&svc->sched_lock);
+>  	__ip_vs_del_service(svc, cleanup);
+> +	spin_unlock_bh(&svc->sched_lock);
 
-Cc: <stable@vger.kernel.org> # 4.2.x
-Signed-off-by: Elad Raz <eladr@mellanox.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/ipset/ip_set_hash_netnet.c     |   20 ++++++++++++++++++--
- net/netfilter/ipset/ip_set_hash_netportnet.c |   20 ++++++++++++++++++--
- 2 files changed, 36 insertions(+), 4 deletions(-)
+	BH locking is not needed anymore. Also, sched_lock is
+used by schedulers to protect only access to svc->sched_data
+fields.
 
-diff --git a/net/netfilter/ipset/ip_set_hash_netnet.c b/net/netfilter/ipset/ip_set_hash_netnet.c
-index 3c862c0..a93dfeb 100644
---- a/net/netfilter/ipset/ip_set_hash_netnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netnet.c
-@@ -131,6 +131,13 @@ hash_netnet4_data_next(struct hash_netnet4_elem *next,
- #define HOST_MASK	32
- #include "ip_set_hash_gen.h"
- 
-+static void
-+hash_netnet4_init(struct hash_netnet4_elem *e)
-+{
-+	e->cidr[0] = HOST_MASK;
-+	e->cidr[1] = HOST_MASK;
-+}
-+
- static int
- hash_netnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 		  const struct xt_action_param *par,
-@@ -160,7 +167,7 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- {
- 	const struct hash_netnet *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
--	struct hash_netnet4_elem e = { .cidr = { HOST_MASK, HOST_MASK, }, };
-+	struct hash_netnet4_elem e = { };
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
- 	u32 ip = 0, ip_to = 0, last;
- 	u32 ip2 = 0, ip2_from = 0, ip2_to = 0, last2;
-@@ -169,6 +176,7 @@ hash_netnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (tb[IPSET_ATTR_LINENO])
- 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
- 
-+	hash_netnet4_init(&e);
- 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
- 		return -IPSET_ERR_PROTOCOL;
-@@ -357,6 +365,13 @@ hash_netnet6_data_next(struct hash_netnet4_elem *next,
- #define IP_SET_EMIT_CREATE
- #include "ip_set_hash_gen.h"
- 
-+static void
-+hash_netnet6_init(struct hash_netnet6_elem *e)
-+{
-+	e->cidr[0] = HOST_MASK;
-+	e->cidr[1] = HOST_MASK;
-+}
-+
- static int
- hash_netnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 		  const struct xt_action_param *par,
-@@ -385,13 +400,14 @@ hash_netnet6_uadt(struct ip_set *set, struct nlattr *tb[],
- 		  enum ipset_adt adt, u32 *lineno, u32 flags, bool retried)
- {
- 	ipset_adtfn adtfn = set->variant->adt[adt];
--	struct hash_netnet6_elem e = { .cidr = { HOST_MASK, HOST_MASK, }, };
-+	struct hash_netnet6_elem e = { };
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
- 	int ret;
- 
- 	if (tb[IPSET_ATTR_LINENO])
- 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
- 
-+	hash_netnet6_init(&e);
- 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_CADT_FLAGS)))
- 		return -IPSET_ERR_PROTOCOL;
-diff --git a/net/netfilter/ipset/ip_set_hash_netportnet.c b/net/netfilter/ipset/ip_set_hash_netportnet.c
-index 0c68734..9a14c23 100644
---- a/net/netfilter/ipset/ip_set_hash_netportnet.c
-+++ b/net/netfilter/ipset/ip_set_hash_netportnet.c
-@@ -142,6 +142,13 @@ hash_netportnet4_data_next(struct hash_netportnet4_elem *next,
- #define HOST_MASK	32
- #include "ip_set_hash_gen.h"
- 
-+static void
-+hash_netportnet4_init(struct hash_netportnet4_elem *e)
-+{
-+	e->cidr[0] = HOST_MASK;
-+	e->cidr[1] = HOST_MASK;
-+}
-+
- static int
- hash_netportnet4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 		      const struct xt_action_param *par,
-@@ -175,7 +182,7 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- {
- 	const struct hash_netportnet *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
--	struct hash_netportnet4_elem e = { .cidr = { HOST_MASK, HOST_MASK, }, };
-+	struct hash_netportnet4_elem e = { };
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
- 	u32 ip = 0, ip_to = 0, ip_last, p = 0, port, port_to;
- 	u32 ip2_from = 0, ip2_to = 0, ip2_last, ip2;
-@@ -185,6 +192,7 @@ hash_netportnet4_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (tb[IPSET_ATTR_LINENO])
- 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
- 
-+	hash_netportnet4_init(&e);
- 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
- 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
-@@ -412,6 +420,13 @@ hash_netportnet6_data_next(struct hash_netportnet4_elem *next,
- #define IP_SET_EMIT_CREATE
- #include "ip_set_hash_gen.h"
- 
-+static void
-+hash_netportnet6_init(struct hash_netportnet6_elem *e)
-+{
-+	e->cidr[0] = HOST_MASK;
-+	e->cidr[1] = HOST_MASK;
-+}
-+
- static int
- hash_netportnet6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 		      const struct xt_action_param *par,
-@@ -445,7 +460,7 @@ hash_netportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
- {
- 	const struct hash_netportnet *h = set->data;
- 	ipset_adtfn adtfn = set->variant->adt[adt];
--	struct hash_netportnet6_elem e = { .cidr = { HOST_MASK, HOST_MASK, }, };
-+	struct hash_netportnet6_elem e = { };
- 	struct ip_set_ext ext = IP_SET_INIT_UEXT(set);
- 	u32 port, port_to;
- 	bool with_ports = false;
-@@ -454,6 +469,7 @@ hash_netportnet6_uadt(struct ip_set *set, struct nlattr *tb[],
- 	if (tb[IPSET_ATTR_LINENO])
- 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
- 
-+	hash_netportnet6_init(&e);
- 	if (unlikely(!tb[IPSET_ATTR_IP] || !tb[IPSET_ATTR_IP2] ||
- 		     !ip_set_attr_netorder(tb, IPSET_ATTR_PORT) ||
- 		     !ip_set_optattr_netorder(tb, IPSET_ATTR_PORT_TO) ||
--- 
-1.7.10.4
+	It seems the comment is outdated after
+commit ceec4c381681 ("ipvs: convert services to rcu").
 
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
