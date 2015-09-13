@@ -1,51 +1,54 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH] ipvs:Fix locking requirements in the function
- ip_vs_unlink_service
-Date: Sat, 12 Sep 2015 21:28:36 +0300 (EEST)
-Message-ID: <alpine.LFD.2.11.1509122111110.1491@ja.home.ssi.bg>
-References: <1442032025-18642-1-git-send-email-xerofoify@gmail.com> <alpine.LFD.2.11.1509120910090.1626@ja.home.ssi.bg> <55F43D34.3020805@gmail.com>
+From: Akemi Yagi <amyagi@gmail.com>
+Subject: Re: [PATCH v2 net-next] netfilter: ipset: Fixing unnamed union initg
+Date: Sat, 12 Sep 2015 18:01:27 -0700
+Message-ID: <CABA31DqmtsrK-O7j=X4mJYSBz2rMV28u0mZ=z2RWEJ4w8pTGBQ@mail.gmail.com>
+References: <1440222251-21132-1-git-send-email-eladr@mellanox.com>
+ <alpine.DEB.2.10.1508222006570.13403@blackhole.kfki.hu> <20150822184448.GA3610@salvia>
+ <20150828225943.GA22393@salvia> <CABA31DoF20veE1c_TxY_xZ=Zk0ThmwGCAthbLb8SJLu608rxHg@mail.gmail.com>
+ <CAHTgTXU+A6Rg8oT0iUDCyTCRtTbBWEe9oDxCY6fEFNj-1v1-xA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: wensong@linux-vs.org, horms@verge.net.au, pablo@netfilter.org,
-	kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
-	netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org
-To: nick <xerofoify@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55F43D34.3020805@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Elad Raz <eladr@mellanox.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	netfilter-devel@vger.kernel.org,
+	Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>,
+	Jiri Pirko <jiri@resnulli.us>,
+	Patrick McHardy <kaber@trash.net>,
+	Sergey Popovich <popovich_sergei@mail.ua>,
+	Anton Danilov <littlesmilingcloud@gmail.com>,
+	Guenter Roeck <linux@roeck-us.net>,
+	Cong Wang <cwang@twopensource.com>,
+	Alan Bartlett <ajb@elrepo.org>,
+	Vinson Lee <vlee@twopensource.com>
+To: Netdev <netdev@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <CAHTgTXU+A6Rg8oT0iUDCyTCRtTbBWEe9oDxCY6fEFNj-1v1-xA@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, Aug 31, 2015 at 12:16 AM, Vinson Lee <vlee@twopensource.com> wrote:
+> On Fri, Aug 28, 2015 at 4:21 PM, Akemi Yagi <amyagi@gmail.com> wrote:
+>> On Fri, Aug 28, 2015 at 3:59 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>>> On Sat, Aug 22, 2015 at 08:44:48PM +0200, Pablo Neira Ayuso wrote:
+>>> [...]
+>>>> I'll wait for some little time just in case someone raises any
+>>>> concern.
+>>>
+>>> JFYI, I'll be passing up this patch to David via the nf tree soon.
+>>> Thanks.
+>>
+>> Thank you for pushing this forward.
+>>
+>> Akemi
+>
+> Linux 4.2 was released without this patch. Please also backport it to
+> the 4.2 stable branch.
 
-	Hello,
+Thanks to all for this effort. The patch is finally in the mainline
+kernel 4.3-rc1 released today. Now I wish backporting to the 4.2
+branch goes smoothly.
 
-On Sat, 12 Sep 2015, nick wrote:
-
-> > 	BH locking is not needed anymore. Also, sched_lock is
-> > used by schedulers to protect only access to svc->sched_data
-> > fields.
-> > 
-> > 	It seems the comment is outdated after
-> > commit ceec4c381681 ("ipvs: convert services to rcu").
-> > 
-> Julian,
-> You are correct after reading the commit id for rcu locking conversion that this comment
-> is outdated. However the locking may still be required but in terms of rcu_read_lock/
-> unlock around this function call as it's still a critical region.
-
-	This function is called under __ip_vs_mutex, so
-there is single writer that modifies the configuration.
-As "readers" the schedulers access the configuration under
-rcu_read_lock (eg. called in tcp_conn_schedule) but they
-are free to use other locking too. ip_vs_wlc.c scheduler
-is example where sched_lock is not used because only
-svc->destinations is accessed which is protected with RCU
-by definition. You can check __ip_vs_unlink_dest() how
-dest is unlinked with list_del_rcu() before sched->del_dest
-method is called.
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+Akemi
