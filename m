@@ -1,102 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: nft_compat: skip family comparison in case of NFPROTO_UNSPEC
-Date: Mon, 14 Sep 2015 18:04:09 +0200
-Message-ID: <1442246649-5992-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH 1/1] added missing icmpv6 dest-unreach codes
+Date: Mon, 14 Sep 2015 18:26:33 +0200
+Message-ID: <20150914162633.GA11905@salvia>
+References: <1440066991-10979-1-git-send-email-andi@geekosphere.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Andreas Herz <andi@geekosphere.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42154 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48291 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752529AbbINP5g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Sep 2015 11:57:36 -0400
+	id S1751751AbbINQTy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Sep 2015 12:19:54 -0400
+Content-Disposition: inline
+In-Reply-To: <1440066991-10979-1-git-send-email-andi@geekosphere.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix lookup of existing match/target structures in the corresponding list
-by skipping the family check if NFPROTO_UNSPEC is used.
+I'm going to apply this. Thanks.
 
-This is resulting in the allocation and insertion of one match/target
-structure for each use of them. So this not only bloats memory
-consumption but also severely affects the time to reload the ruleset
-from the iptables-compat utility.
+Unlike other pending changes that are targeted to 4.3-rc, this doesn't
+require any kernel update.
 
-After this patch, iptables-compat-restore and iptables-compat take
-almost the same time to reload large rulesets.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_compat.c |   24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
-
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 66def31..9c8fab0 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -619,6 +619,13 @@ struct nft_xt {
- 
- static struct nft_expr_type nft_match_type;
- 
-+static bool nft_match_cmp(const struct xt_match *match,
-+			  const char *name, u32 rev, u32 family)
-+{
-+	return strcmp(match->name, name) == 0 && match->revision == rev &&
-+	       (match->family == NFPROTO_UNSPEC || match->family == family);
-+}
-+
- static const struct nft_expr_ops *
- nft_match_select_ops(const struct nft_ctx *ctx,
- 		     const struct nlattr * const tb[])
-@@ -626,7 +633,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 	struct nft_xt *nft_match;
- 	struct xt_match *match;
- 	char *mt_name;
--	__u32 rev, family;
-+	u32 rev, family;
- 
- 	if (tb[NFTA_MATCH_NAME] == NULL ||
- 	    tb[NFTA_MATCH_REV] == NULL ||
-@@ -641,8 +648,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 	list_for_each_entry(nft_match, &nft_match_list, head) {
- 		struct xt_match *match = nft_match->ops.data;
- 
--		if (strcmp(match->name, mt_name) == 0 &&
--		    match->revision == rev && match->family == family) {
-+		if (nft_match_cmp(match, mt_name, rev, family)) {
- 			if (!try_module_get(match->me))
- 				return ERR_PTR(-ENOENT);
- 
-@@ -693,6 +699,13 @@ static LIST_HEAD(nft_target_list);
- 
- static struct nft_expr_type nft_target_type;
- 
-+static bool nft_target_cmp(const struct xt_target *tg,
-+			   const char *name, u32 rev, u32 family)
-+{
-+	return strcmp(tg->name, name) == 0 && tg->revision == rev &&
-+	       (tg->family == NFPROTO_UNSPEC || tg->family == family);
-+}
-+
- static const struct nft_expr_ops *
- nft_target_select_ops(const struct nft_ctx *ctx,
- 		      const struct nlattr * const tb[])
-@@ -700,7 +713,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 	struct nft_xt *nft_target;
- 	struct xt_target *target;
- 	char *tg_name;
--	__u32 rev, family;
-+	u32 rev, family;
- 
- 	if (tb[NFTA_TARGET_NAME] == NULL ||
- 	    tb[NFTA_TARGET_REV] == NULL ||
-@@ -715,8 +728,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 	list_for_each_entry(nft_target, &nft_target_list, head) {
- 		struct xt_target *target = nft_target->ops.data;
- 
--		if (strcmp(target->name, tg_name) == 0 &&
--		    target->revision == rev && target->family == family) {
-+		if (nft_target_cmp(target, tg_name, rev, family)) {
- 			if (!try_module_get(target->me))
- 				return ERR_PTR(-ENOENT);
- 
--- 
-1.7.10.4
-
+On Thu, Aug 20, 2015 at 12:36:31PM +0200, Andreas Herz wrote:
+> Signed-off-by: Andreas Herz <andi@geekosphere.org>
+> ---
+>  extensions/libip6t_icmp6.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/extensions/libip6t_icmp6.c b/extensions/libip6t_icmp6.c
+> index 68b940b..e183ce6 100644
+> --- a/extensions/libip6t_icmp6.c
+> +++ b/extensions/libip6t_icmp6.c
+> @@ -19,8 +19,11 @@ static const struct icmpv6_names icmpv6_codes[] = {
+>  	{ "destination-unreachable", 1, 0, 0xFF },
+>  	{   "no-route", 1, 0, 0 },
+>  	{   "communication-prohibited", 1, 1, 1 },
+> +	{   "beyond-scope", 1, 2, 2 },
+>  	{   "address-unreachable", 1, 3, 3 },
+>  	{   "port-unreachable", 1, 4, 4 },
+> +	{   "failed-policy", 1, 5, 5 },
+> +	{   "reject-route", 1, 6, 6 },
+>  
+>  	{ "packet-too-big", 2, 0, 0xFF },
+>  
+> -- 
+> 2.4.6
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
