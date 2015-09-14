@@ -1,61 +1,102 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf v2] netfilter: bridge: fix routing of bridge frames with call-iptables=1
-Date: Mon, 14 Sep 2015 17:06:27 +0200
-Message-ID: <1442243187-19855-1-git-send-email-fw@strlen.de>
-Cc: linux@eikelenboom.it, Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] netfilter: nft_compat: skip family comparison in case of NFPROTO_UNSPEC
+Date: Mon, 14 Sep 2015 18:04:09 +0200
+Message-ID: <1442246649-5992-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33514 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753642AbbINPGf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Sep 2015 11:06:35 -0400
+Received: from mail.us.es ([193.147.175.20]:42154 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752529AbbINP5g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Sep 2015 11:57:36 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We can't re-use the physoutdev storage area.
+Fix lookup of existing match/target structures in the corresponding list
+by skipping the family check if NFPROTO_UNSPEC is used.
 
-1.  When using NFQUEUE in PREROUTING, we attempt to bump a bogus
-refcnt since nf_bridge->physoutdev is garbage (ipv4/ipv6 address)
+This is resulting in the allocation and insertion of one match/target
+structure for each use of them. So this not only bloats memory
+consumption but also severely affects the time to reload the ruleset
+from the iptables-compat utility.
 
-2. for same reason, we crash in physdev match in FORWARD or later if
-skb is routed instead of bridged.
+After this patch, iptables-compat-restore and iptables-compat take
+almost the same time to reload large rulesets.
 
-This increases nf_bridge_info to 40 bytes, but we have no other choice.
-
-Fixes: 72b1e5e4cac7 ("netfilter: bridge: reduce nf_bridge_info to 32 bytes again")
-Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Either
-- hard-reset nf.git to obliterate the v1 of the patch, then
-apply this one instead, OR,
-- revert v1 and apply this on top.
+ net/netfilter/nft_compat.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index 2738d35..9987af0 100644
---- a/include/linux/skbuff.h
-+++ b/include/linux/skbuff.h
-@@ -179,6 +179,9 @@ struct nf_bridge_info {
- 	u8			bridged_dnat:1;
- 	__u16			frag_max_size;
- 	struct net_device	*physindev;
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 66def31..9c8fab0 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -619,6 +619,13 @@ struct nft_xt {
+ 
+ static struct nft_expr_type nft_match_type;
+ 
++static bool nft_match_cmp(const struct xt_match *match,
++			  const char *name, u32 rev, u32 family)
++{
++	return strcmp(match->name, name) == 0 && match->revision == rev &&
++	       (match->family == NFPROTO_UNSPEC || match->family == family);
++}
 +
-+	/* always valid & non-NULL from FORWARD on, for physdev match */
-+	struct net_device	*physoutdev;
- 	union {
- 		/* prerouting: detect dnat in orig/reply direction */
- 		__be32          ipv4_daddr;
-@@ -189,9 +192,6 @@ struct nf_bridge_info {
- 		 * skb is out in neigh layer.
- 		 */
- 		char neigh_header[8];
--
--		/* always valid & non-NULL from FORWARD on, for physdev match */
--		struct net_device *physoutdev;
- 	};
- };
- #endif
+ static const struct nft_expr_ops *
+ nft_match_select_ops(const struct nft_ctx *ctx,
+ 		     const struct nlattr * const tb[])
+@@ -626,7 +633,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 	struct nft_xt *nft_match;
+ 	struct xt_match *match;
+ 	char *mt_name;
+-	__u32 rev, family;
++	u32 rev, family;
+ 
+ 	if (tb[NFTA_MATCH_NAME] == NULL ||
+ 	    tb[NFTA_MATCH_REV] == NULL ||
+@@ -641,8 +648,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 	list_for_each_entry(nft_match, &nft_match_list, head) {
+ 		struct xt_match *match = nft_match->ops.data;
+ 
+-		if (strcmp(match->name, mt_name) == 0 &&
+-		    match->revision == rev && match->family == family) {
++		if (nft_match_cmp(match, mt_name, rev, family)) {
+ 			if (!try_module_get(match->me))
+ 				return ERR_PTR(-ENOENT);
+ 
+@@ -693,6 +699,13 @@ static LIST_HEAD(nft_target_list);
+ 
+ static struct nft_expr_type nft_target_type;
+ 
++static bool nft_target_cmp(const struct xt_target *tg,
++			   const char *name, u32 rev, u32 family)
++{
++	return strcmp(tg->name, name) == 0 && tg->revision == rev &&
++	       (tg->family == NFPROTO_UNSPEC || tg->family == family);
++}
++
+ static const struct nft_expr_ops *
+ nft_target_select_ops(const struct nft_ctx *ctx,
+ 		      const struct nlattr * const tb[])
+@@ -700,7 +713,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 	struct nft_xt *nft_target;
+ 	struct xt_target *target;
+ 	char *tg_name;
+-	__u32 rev, family;
++	u32 rev, family;
+ 
+ 	if (tb[NFTA_TARGET_NAME] == NULL ||
+ 	    tb[NFTA_TARGET_REV] == NULL ||
+@@ -715,8 +728,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 	list_for_each_entry(nft_target, &nft_target_list, head) {
+ 		struct xt_target *target = nft_target->ops.data;
+ 
+-		if (strcmp(target->name, tg_name) == 0 &&
+-		    target->revision == rev && target->family == family) {
++		if (nft_target_cmp(target, tg_name, rev, family)) {
+ 			if (!try_module_get(target->me))
+ 				return ERR_PTR(-ENOENT);
+ 
 -- 
-2.0.5
+1.7.10.4
 
