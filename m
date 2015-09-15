@@ -1,55 +1,109 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH libnftnl 0/3] use nftnl_ prefix
-Date: Tue, 15 Sep 2015 17:35:59 +0200
-Message-ID: <20150915153559.GA13955@salvia>
-References: <1441205064-9240-1-git-send-email-pablo@netfilter.org>
- <20150902150255.GA10168@salvia>
- <20150907181428.GA16080@salvia>
+From: johan <johan.peeters111@gmail.com>
+Subject: SNAT and contrack helpers
+Date: Tue, 15 Sep 2015 22:33:19 +0200
+Message-ID: <55F8808F.5050900@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, fw@strlen.de, arturo.borrero.glez@gmail.com
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42712 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753697AbbIOP3X (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Sep 2015 11:29:23 -0400
-Content-Disposition: inline
-In-Reply-To: <20150907181428.GA16080@salvia>
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:33630 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751549AbbIOUdX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Sep 2015 16:33:23 -0400
+Received: by wiclk2 with SMTP id lk2so45325278wic.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Sep 2015 13:33:22 -0700 (PDT)
+Received: from [192.168.1.34] (200.49-242-81.adsl-dyn.isp.belgacom.be. [81.242.49.200])
+        by smtp.googlemail.com with ESMTPSA id kb5sm22864435wjc.17.2015.09.15.13.33.21
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Tue, 15 Sep 2015 13:33:21 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 07, 2015 at 08:14:28PM +0200, Pablo Neira Ayuso wrote:
-> Hi,
-> 
-> On Wed, Sep 02, 2015 at 05:02:55PM +0200, Pablo Neira Ayuso wrote:
-> > On Wed, Sep 02, 2015 at 04:44:23PM +0200, Pablo Neira Ayuso wrote:
-> > > This patchset renames the existing functions and definitions to use the nftnl_
-> > > prefix to prepare the introduction of the higher level library, which will use
-> > > the nft_ prefix.
-> > > 
-> > > The patchset does not break backward compatibility: Neither compilation not
-> > > existing binaries.
-> > > 
-> > > The patchset keeps the nft_ symbols around as aliases for the nftnl_ symbols.
-> > > Moreover, the header files contain the old nft_ definitions so clients of this
-> > > library don't break all of a sudden.
-> > > 
-> > > Please, let me know if you observe any problem with this. I would like that
-> > > this changes are pushed to master before the next release.
-> > 
-> > Just pushed out this branch:
-> > 
-> > http://git.netfilter.org/libnftnl/log/?h=nftnl
-> 
-> I'm pushing four more patches into this branch before we make the next
-> release on top of the brand new patches to use the nftnl_ prefix
-> instead as Patrick suggested.
+Hello,
 
-I have pushed these two patches to the 'nftnl' branch in both cases:
+I just figured out that conntrack helpers don't obey the configured NAT 
+rules when predicting the related streams. This starts to be an issue in 
+MAP network deployments where each home user only gets a part of the 
+available port range [1024-65534].
 
-http://git.netfilter.org/nftables/commit/?h=nftnl&id=830693fe7b02aae554178dfd7220b6e779434eef
-http://git.netfilter.org/iptables/commit/?h=nftnl&id=7babe09c9cfaa288c8502613340c9b35b29617bc
+The MAP-T architecture is included for convenience (extract from 
+draft-mdt-softwire-map-translation-01)
 
-They are adapting the code to use the new symbols in libnftnl. They
-are slightly large, so I preferred to send it in this way.
+        User N
+
+        Private IPv4
+
+       |  Network
+
+       |
+
+    O--+---------------O
+
+    |  | MAP-T CE      |
+
+    | +-----+--------+ |
+
+    | NAPT44|  MAP-T | `-.
+
+    | +-----+      | |  -._   ,-------.                     .------.
+
+    |       +--------+ |   ,-'         `-.                ,-'       `-.
+
+    O------------------O  /              \   O---------O /   Public   \
+
+                          /   IPv6 only   \  |  MAP-T  |/     IPv4     \
+
+                         (    Network      --+  Border +-   Network     )
+
+                          \ (MAP-T Domain)/  |  Relay  |\              /
+
+    O------------------O  \              /   O---------O \             /
+
+    |    MAP-T CE      |   ;".         ,-'                `-.       ,-'
+
+    | +-----+--------+ | ,"   `----+--'                      ------'
+
+    | NAPT44|  MAP-T | | ,"        |
+
+    | +-----+        | |        IPv6 Server(s)
+
+    |   |   +--------+ |         (v4 mapped
+
+    O---.--------------O          address)
+
+        |
+
+          User M
+
+        Private IPv4
+
+          Network
+
+In above architecture the (NAT44) NAPT [RFC2663] function on a MAP CE is 
+extended with support for restricting the allowable TCP/UDP ports for a 
+given IPv4 address. Restricting those TCP/UDP ports by using SNAT fails 
+for related streams.
+
+Lets take as an example a FTP client in ACTIVE mode which downloads a 
+file form the WAN. On the NAT box placed between LAN and WAN next 
+MASQUERADE rule is in place:
+
+iptables -t nat -A zone_wan_postrouting -p tcp -j MASQUERADE --to-ports 
+4000-4500
+
+We will see that the NAT box uses ports in the range 4000-4500 for its 
+control connection, however the data connection (predicted by the NAT 
+box) will use the ports used by the FTP client instead of using a port 
+out of the port range imposed by the MASQUERADE rule. The same problem 
+is present for other helpers too as we have RTSP/SIP/IRC/...
+
+I'm wondering how this issue can be fixed, all suggestions/ideas are 
+welcome. Is there any specific reason why the NAT rules aren't checked 
+for the predictions?
+
+Kind regards
+
+Johan Peeters
