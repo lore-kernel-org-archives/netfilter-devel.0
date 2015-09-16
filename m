@@ -1,50 +1,60 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH libnftnl] src: fix LIBVERSION, should be 3:0:0 instead of 3:0:3
-Date: Wed, 16 Sep 2015 19:46:31 +0200
-Message-ID: <1442425591-1776-1-git-send-email-pablo@netfilter.org>
-Cc: jengelh@inai.de
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] build: bump library versioning
+Date: Wed, 16 Sep 2015 20:00:48 +0200
+Message-ID: <20150916180048.GA4886@salvia>
+References: <1442423567-12120-1-git-send-email-jengelh@inai.de>
+ <20150916172836.GA29575@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39968 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42288 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753083AbbIPRjx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Sep 2015 13:39:53 -0400
+	id S1752633AbbIPRyK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Sep 2015 13:54:10 -0400
+Content-Disposition: inline
+In-Reply-To: <20150916172836.GA29575@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nft_rule_expr_build_payload() is gone, so age should have been reset at that
-time.
+On Wed, Sep 16, 2015 at 07:28:36PM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Sep 16, 2015 at 07:12:47PM +0200, Jan Engelhardt wrote:
+> > Commit libnftnl-1.0.3-31-g5ea54b2 removed a symbol. Such requires a
+> > bumped to n+1:0:0.
+> 
+> Right, nft_rule_expr_build_payload() was gone. But noone was using it
+> in our tree. But we have to update LIBTOOL version according, yes.
+> 
+> > The symbol groups can be merged again to save time
+> > processing them as the groups are relative to a particular SONAME
+> > (of which we have a new one).
+> > 
+> > Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+> > ---
+> > This essentially supersedes "[PATCH libnftnl 0/2] map fixes".
+> > The use of LIBNFTNL_4 as a symbol name is modeled upon the LIBVERSION
+> > number. Doing this instead of _x.y is a (more) sensible choice,
+> > because the next modification to the symbol map (LIBNFTNL_5) needs to
+> > be accompanied by LIBVERSION=5:0:something in any case.
+> > 
+> > 
+> >  src/libnftnl.map | 14 ++------------
+> >  1 file changed, 2 insertions(+), 12 deletions(-)
+> > 
+> > diff --git a/src/libnftnl.map b/src/libnftnl.map
+> > index 14ec88c..991fe9d 100644
+> > --- a/src/libnftnl.map
+> > +++ b/src/libnftnl.map
+> > @@ -1,4 +1,4 @@
+> > -LIBNFTNL_1.0 {
+> > +LIBNFTNL_4 {
+> 
+> This is breaking hard existing nft binaries, which is what I was
+> trying to avoid.
 
-Fixes: 5ea54b224a11 ("expr: seperate expression parsing and building")
-Reported-by: Jan Engelhardt <jengelh@inai.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-This applies on top on the previous patches to address map file problems for
-libnftnl.
+Sorry, what you propose is fine actually. But this should be
+LIBNFTNL_3 instead, I already bumped LIBVERSION from 2:0:2 to 3:0:3,
+see 9e1e8052025fde.
 
-Thinking it well, I would like to stick have the release versions used from the
-map file, as it is easier to track when symbols were added.
-
-The LIBVERSION should help binaries to catch if they are working with the right
-interface version (now libnftnl.so.3), this handles the "interfaces are gone"
-case for us.
-
- Make_global.am |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/Make_global.am b/Make_global.am
-index 14ddeef..8f0673c 100644
---- a/Make_global.am
-+++ b/Make_global.am
-@@ -18,7 +18,7 @@
- # set age to 0.
- # </snippet>
- #
--LIBVERSION=3:0:3
-+LIBVERSION=3:0:0
-
- AM_CPPFLAGS = ${regular_CPPFLAGS} -I${top_srcdir}/include ${LIBMNL_CFLAGS} ${LIBMXML_CFLAGS}
- AM_CFLAGS = ${regular_CFLAGS} ${GCC_FVISIBILITY_HIDDEN}
---
-1.7.10.4
-
+If no concerns, I'll mangle your patch to make use LIBNFTNL_3 instead.
