@@ -1,77 +1,43 @@
 From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH next 02/30] netfilter: Store net in nf_hook_state
-Date: Tue, 15 Sep 2015 20:03:50 -0500
-Message-ID: <1442365458-16349-2-git-send-email-ebiederm@xmission.com>
+Subject: [PATCH next 12/30] ipv4: Explicitly compute net in ip_fragment
+Date: Tue, 15 Sep 2015 20:04:00 -0500
+Message-ID: <1442365458-16349-12-git-send-email-ebiederm@xmission.com>
 References: <87mvwn18my.fsf@x220.int.ebiederm.org>
 Cc: netfilter-devel@vger.kernel.org, <netdev@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out02.mta.xmission.com ([166.70.13.232]:35042 "EHLO
+Received: from out02.mta.xmission.com ([166.70.13.232]:35198 "EHLO
 	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751272AbbIPBLc (ORCPT
+	with ESMTP id S1751818AbbIPBNi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Sep 2015 21:11:32 -0400
+	Tue, 15 Sep 2015 21:13:38 -0400
 In-Reply-To: <87mvwn18my.fsf@x220.int.ebiederm.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
 ---
- include/linux/netfilter.h         | 5 ++++-
- include/linux/netfilter_ingress.h | 2 +-
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ net/ipv4/ip_output.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 1abac85ec907..889ac0e11f01 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -54,6 +54,7 @@ struct nf_hook_state {
- 	struct net_device *in;
- 	struct net_device *out;
- 	struct sock *sk;
-+	struct net *net;
- 	struct list_head *hook_list;
- 	int (*okfn)(struct sock *, struct sk_buff *);
- };
-@@ -65,6 +66,7 @@ static inline void nf_hook_state_init(struct nf_hook_state *p,
- 				      struct net_device *indev,
- 				      struct net_device *outdev,
- 				      struct sock *sk,
-+				      struct net *net,
- 				      int (*okfn)(struct sock *, struct sk_buff *))
- {
- 	p->hook = hook;
-@@ -73,6 +75,7 @@ static inline void nf_hook_state_init(struct nf_hook_state *p,
- 	p->in = indev;
- 	p->out = outdev;
- 	p->sk = sk;
-+	p->net = net;
- 	p->hook_list = hook_list;
- 	p->okfn = okfn;
- }
-@@ -181,7 +184,7 @@ static inline int nf_hook_thresh(u_int8_t pf, unsigned int hook,
- 		struct nf_hook_state state;
+diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
+index 85b72d450184..095754c99061 100644
+--- a/net/ipv4/ip_output.c
++++ b/net/ipv4/ip_output.c
+@@ -500,10 +500,9 @@ static int ip_fragment(struct sock *sk, struct sk_buff *skb,
+ 	if (unlikely(!skb->ignore_df ||
+ 		     (IPCB(skb)->frag_max_size &&
+ 		      IPCB(skb)->frag_max_size > mtu))) {
+-		struct rtable *rt = skb_rtable(skb);
+-		struct net_device *dev = rt->dst.dev;
++		struct net *net = dev_net(skb_rtable(skb)->dst.dev);
  
- 		nf_hook_state_init(&state, hook_list, hook, thresh,
--				   pf, indev, outdev, sk, okfn);
-+				   pf, indev, outdev, sk, net, okfn);
- 		return nf_hook_slow(skb, &state);
- 	}
- 	return 1;
-diff --git a/include/linux/netfilter_ingress.h b/include/linux/netfilter_ingress.h
-index cb0727fe2b3d..187feabe557c 100644
---- a/include/linux/netfilter_ingress.h
-+++ b/include/linux/netfilter_ingress.h
-@@ -17,7 +17,7 @@ static inline int nf_hook_ingress(struct sk_buff *skb)
- 
- 	nf_hook_state_init(&state, &skb->dev->nf_hooks_ingress,
- 			   NF_NETDEV_INGRESS, INT_MIN, NFPROTO_NETDEV, NULL,
--			   skb->dev, NULL, NULL);
-+			   skb->dev, NULL, dev_net(skb->dev), NULL);
- 	return nf_hook_slow(skb, &state);
- }
- 
+-		IP_INC_STATS(dev_net(dev), IPSTATS_MIB_FRAGFAILS);
++		IP_INC_STATS(net, IPSTATS_MIB_FRAGFAILS);
+ 		icmp_send(skb, ICMP_DEST_UNREACH, ICMP_FRAG_NEEDED,
+ 			  htonl(mtu));
+ 		kfree_skb(skb);
 -- 
 2.2.1
 
