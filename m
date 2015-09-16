@@ -1,75 +1,120 @@
-From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH next 21/30] ipv6: Only compute net once in ip6_finish_output2
-Date: Tue, 15 Sep 2015 20:04:09 -0500
-Message-ID: <1442365458-16349-21-git-send-email-ebiederm@xmission.com>
-References: <87mvwn18my.fsf@x220.int.ebiederm.org>
-Cc: netfilter-devel@vger.kernel.org, <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	David Miller <davem@davemloft.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] libnftnl 1.0.4 release
+Date: Wed, 16 Sep 2015 13:50:04 +0200
+Message-ID: <20150916115004.GA1102@salvia>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="CE+1k2dSO48ffgeK"
+Content-Transfer-Encoding: 8bit
+Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-announce@lists.netfilter.org, lwn@lwn.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out03.mta.xmission.com ([166.70.13.233]:39397 "EHLO
-	out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752549AbbIPBNm (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Sep 2015 21:13:42 -0400
-In-Reply-To: <87mvwn18my.fsf@x220.int.ebiederm.org>
+Received: from mail.us.es ([193.147.175.20]:40505 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752198AbbIPLnZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Sep 2015 07:43:25 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
----
- net/ipv6/ip6_output.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index a80502c64523..12d0166a64cd 100644
---- a/net/ipv6/ip6_output.c
-+++ b/net/ipv6/ip6_output.c
-@@ -60,6 +60,7 @@ static int ip6_finish_output2(struct sock *sk, struct sk_buff *skb)
- {
- 	struct dst_entry *dst = skb_dst(skb);
- 	struct net_device *dev = dst->dev;
-+	struct net *net = dev_net(dev);
- 	struct neighbour *neigh;
- 	struct in6_addr *nexthop;
- 	int ret;
-@@ -71,7 +72,7 @@ static int ip6_finish_output2(struct sock *sk, struct sk_buff *skb)
- 		struct inet6_dev *idev = ip6_dst_idev(skb_dst(skb));
- 
- 		if (!(dev->flags & IFF_LOOPBACK) && sk_mc_loop(sk) &&
--		    ((mroute6_socket(dev_net(dev), skb) &&
-+		    ((mroute6_socket(net, skb) &&
- 		     !(IP6CB(skb)->flags & IP6SKB_FORWARDED)) ||
- 		     ipv6_chk_mcast_addr(dev, &ipv6_hdr(skb)->daddr,
- 					 &ipv6_hdr(skb)->saddr))) {
-@@ -86,15 +87,14 @@ static int ip6_finish_output2(struct sock *sk, struct sk_buff *skb)
- 					dev_loopback_xmit);
- 
- 			if (ipv6_hdr(skb)->hop_limit == 0) {
--				IP6_INC_STATS(dev_net(dev), idev,
-+				IP6_INC_STATS(net, idev,
- 					      IPSTATS_MIB_OUTDISCARDS);
- 				kfree_skb(skb);
- 				return 0;
- 			}
- 		}
- 
--		IP6_UPD_PO_STATS(dev_net(dev), idev, IPSTATS_MIB_OUTMCAST,
--				skb->len);
-+		IP6_UPD_PO_STATS(net, idev, IPSTATS_MIB_OUTMCAST, skb->len);
- 
- 		if (IPV6_ADDR_MC_SCOPE(&ipv6_hdr(skb)->daddr) <=
- 		    IPV6_ADDR_SCOPE_NODELOCAL &&
-@@ -116,8 +116,7 @@ static int ip6_finish_output2(struct sock *sk, struct sk_buff *skb)
- 	}
- 	rcu_read_unlock_bh();
- 
--	IP6_INC_STATS(dev_net(dst->dev),
--		      ip6_dst_idev(dst), IPSTATS_MIB_OUTNOROUTES);
-+	IP6_INC_STATS(net, ip6_dst_idev(dst), IPSTATS_MIB_OUTNOROUTES);
- 	kfree_skb(skb);
- 	return -EINVAL;
- }
--- 
-2.2.1
+--CE+1k2dSO48ffgeK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+Hi!
+
+The Netfilter project proudly presents:
+
+        libnftnl 1.0.4
+
+libnftnl is a userspace library providing a low-level netlink
+programming interface (API) to the in-kernel nf_tables subsystem. The
+library libnftnl has been previously known as libnftables. This
+library is currently used by the nft command line tool.
+
+This release comes with new features available up to 4.2, see
+ChangeLog for more details.
+
+In this release, we have renamed most of the library symbols to use
+the nftnl_ prefix while keeping aliases to the old ones. We would like
+to reserve the nft_ prefix for our higher level library which should
+land anytime soon. We have kept aliases around to reduce the impact of
+this changes, but they will be deprecated soon. Sorry for the
+inconvenience in any case.
+
+You can download this library from:
+
+http://www.netfilter.org/projects/libnftnl/downloads.html
+ftp://ftp.netfilter.org/pub/libnftnl/
+
+Thanks!
+
+--CE+1k2dSO48ffgeK
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: attachment; filename="changes-libnftnl-1.0.4.txt"
+Content-Transfer-Encoding: 8bit
+
+Alvaro Neira (12):
+      ruleset: clean up the variable names in the xml/json parsing functions
+      src: don't create iterator with empty list
+      ruleset: refactor nft_ruleset_*_parse_ruleset()
+      set: refactor code in json parse function
+      rule: don't release the tree parameter from nft_jansson_parse_rule()
+      ruleset: fix leak in json/xml in set lists
+      ruleset: fix crash if we free sets included in the set_list
+      ruleset: crash from error path when we build the xml/json tree
+      xml: test if the root node name is initialized
+      examples: add nft-ruleset-parse-file
+      ruleset: add nft_ruleset_ctx_free
+      parser: Add operation not supported error message
+
+Alvaro Neira Ayuso (4):
+      buffer: fix missing XML string tag in nft_buf_close
+      src: add command tag in JSON/XML export support
+      src: add support to import JSON/XML with the new command tag
+      tests: update JSON/XML tests with the new syntax
+
+Arturo Borrero Gonzalez (1):
+      expr: dynset: fix json/xml parsing
+
+Balazs Scheidler (1):
+      expr: redir: fix snprintf to return the number of bytes printed
+
+Carlos Falgueras García (1):
+      src: fix memory leaks at nft_[object]_nlmsg_parse
+
+Pablo Neira Ayuso (17):
+      src: add missing include in utils.c
+      ruleset: fix more leaks in error path
+      src: split internal.h is smaller files
+      Makefile: internal.h now resides in include
+      src: restore static array with expression operations
+      src: add batch abstraction
+      table: add netdev family support
+      chain: add netdev family support
+      expr: immediate: fix leak in expression destroy path
+      src: introduce nftnl_* aliases for all existing functions
+      src: rename existing functions to use the nftnl_ prefix
+      src: add compat header file definitions
+      src: rename nftnl_rule_expr to nftnl_expr
+      src: rename NFTNL_RULE_EXPR_ATTR to NFTNL_EXPR_
+      src: get rid of _ATTR_ infix in new nfntl_ definitions
+      src: get rid of _attr_ infix in new nftnl_ definitions
+      bump version to 1.0.4
+
+Patrick McHardy (11):
+      list: fix prefetch dummy
+      set: add support for set timeouts
+      set_elem: add timeout support
+      set: print set elem timeout information
+      set_elem: add support for userdata
+      expr: add support for the dynset expr
+      headers: resync headers for new register definitions
+      data: increase maximum possible data size
+      expr: seperate expression parsing and building functions
+      set_elem: support expressions attached to set elements
+      dynset: support expression templates
+
+
+--CE+1k2dSO48ffgeK--
