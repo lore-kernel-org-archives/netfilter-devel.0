@@ -1,52 +1,81 @@
-From: Daniel Mack <daniel@zonque.org>
-Subject: [PATCH RFC 1/3] netfilter: add socket to struct nft_pktinfo
-Date: Wed, 16 Sep 2015 17:42:58 +0200
-Message-ID: <1442418180-14322-2-git-send-email-daniel@zonque.org>
-References: <1442418180-14322-1-git-send-email-daniel@zonque.org>
-Cc: daniel@iogearbox.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, fw@strlen.de, balazs.scheidler@balabit.com,
-	Daniel Mack <daniel@zonque.org>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: [PATCH] build: bump library versioning
+Date: Wed, 16 Sep 2015 19:12:47 +0200
+Message-ID: <1442423567-12120-1-git-send-email-jengelh@inai.de>
+Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1442418180-14322-1-git-send-email-daniel@zonque.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ares41.inai.de ([46.4.122.207]:58383 "EHLO ares41.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752596AbbIPRMt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Sep 2015 13:12:49 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The high-level netfilter hook API already enables users to pass a socket,
-but that information is lost when the chains are walked.
+Commit libnftnl-1.0.3-31-g5ea54b2 removed a symbol. Such requires a
+bumped to n+1:0:0. The symbol groups can be merged again to save time
+processing them as the groups are relative to a particular SONAME
+(of which we have a new one).
 
-In order to let internal eval callbacks use the passed filter rather than
-skb->sk, add a pointer of type 'struct sock' to 'struct nft_pktinfo' and
-set that field via nft_set_pktinfo().
-
-This allows us to run filter chains from situations where skb->sk is unset.
-Fall back to skb->sk in case state->sk is NULL, so filter callbacks can be
-written in a generic way.
-
-Signed-off-by: Daniel Mack <daniel@zonque.org>
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
 ---
- include/net/netfilter/nf_tables.h | 2 ++
- 1 file changed, 2 insertions(+)
+This essentially supersedes "[PATCH libnftnl 0/2] map fixes".
+The use of LIBNFTNL_4 as a symbol name is modeled upon the LIBVERSION
+number. Doing this instead of _x.y is a (more) sensible choice,
+because the next modification to the symbol map (LIBNFTNL_5) needs to
+be accompanied by LIBVERSION=5:0:something in any case.
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index aa8bee7..05e97ed 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -13,6 +13,7 @@
- #define NFT_JUMP_STACK_SIZE	16
+
+ src/libnftnl.map | 14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
+
+diff --git a/src/libnftnl.map b/src/libnftnl.map
+index 14ec88c..991fe9d 100644
+--- a/src/libnftnl.map
++++ b/src/libnftnl.map
+@@ -1,4 +1,4 @@
+-LIBNFTNL_1.0 {
++LIBNFTNL_4 {
+ global:
+   nft_table_alloc;
+   nft_table_free;
+@@ -397,10 +397,6 @@ global:
+   nftnl_parse_perror;
  
- struct nft_pktinfo {
-+	struct sock			*sk;
- 	struct sk_buff			*skb;
- 	const struct net_device		*in;
- 	const struct net_device		*out;
-@@ -29,6 +30,7 @@ static inline void nft_set_pktinfo(struct nft_pktinfo *pkt,
- 				   struct sk_buff *skb,
- 				   const struct nf_hook_state *state)
- {
-+	pkt->sk = state->sk ?: skb->sk;
- 	pkt->skb = skb;
- 	pkt->in = pkt->xt.in = state->in;
- 	pkt->out = pkt->xt.out = state->out;
+ 
+-local: *;
+-};
+-
+-LIBNFTNL_1.1 {
+   nft_table_attr_set_data;
+   nft_table_attr_get_data;
+   nft_chain_attr_set_data;
+@@ -423,9 +419,6 @@ LIBNFTNL_1.1 {
+   nftnl_set_set_data;
+   nftnl_set_get_data;
+ 
+-} LIBNFTNL_1.0;
+-
+-LIBNFTNL_1.2 {
+   nft_set_elems_nlmsg_build_payload_iter;
+   nft_batch_is_supported;
+   nft_batch_begin;
+@@ -469,9 +462,6 @@ LIBNFTNL_1.2 {
+   nftnl_gen_fprintf;
+ 
+ 
+-} LIBNFTNL_1.1;
+-
+-LIBNFTNL_1.2.0 {
+   nft_ruleset_ctx_is_set;
+   nft_ruleset_ctx_get;
+   nft_ruleset_ctx_get_u32;
+@@ -506,4 +496,4 @@ LIBNFTNL_1.2.0 {
+   nftnl_batch_iovec_len;
+   nftnl_batch_iovec;
+ 
+-} LIBNFTNL_1.2;
++};
 -- 
-2.5.0
+2.4.3
+
