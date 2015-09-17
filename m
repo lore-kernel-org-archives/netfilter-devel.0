@@ -1,35 +1,41 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] build: bump library versioning
-Date: Thu, 17 Sep 2015 13:03:10 +0200
-Message-ID: <20150917110310.GA5181@salvia>
-References: <1442423567-12120-1-git-send-email-jengelh@inai.de>
- <20150916172836.GA29575@salvia>
- <20150916180048.GA4886@salvia>
- <20150916182251.GA3346@salvia>
- <alpine.LSU.2.20.1509162031310.13589@nerf40.vanv.qr>
- <20150916184939.GA14450@salvia>
- <alpine.LSU.2.20.1509162239440.7375@nerf40.vanv.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Subject: [PATCH nf] netfilter: nf_log: wait for rcu grace after logger unregistration
+Date: Thu, 17 Sep 2015 13:51:18 +0200
+Message-ID: <1442490678-3535-1-git-send-email-pablo@netfilter.org>
+Cc: fw@strlen.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59911 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48085 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750951AbbIQK4c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Sep 2015 06:56:32 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.20.1509162239440.7375@nerf40.vanv.qr>
+	id S1751710AbbIQLon (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Sep 2015 07:44:43 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 16, 2015 at 10:40:05PM +0200, Jan Engelhardt wrote:
-> On Wednesday 2015-09-16 20:49, Pablo Neira Ayuso wrote:
-> >
-> >I'm attaching your original patch, but I also included the LIBVERSION
-> >update into it.
-> 
-> A "local: *" needs to be readded in the .map file. Looks good 
-> otherwise.
+The nf_log_unregister() function needs to call synchronize_rcu() to make sure
+that the objects are not dereferenced anymore on module removal.
 
-Just pushed it out with this change. Thanks.
+Fixes: 5962815a6a56 ("netfilter: nf_log: use an array of loggers instead of list")
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+@Florian: I noticed this while reviewing your patch to fix the "zap all
+loggers" bug.
+
+ net/netfilter/nf_log.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index a5ebd7d..a5d41df 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -117,6 +117,7 @@ void nf_log_unregister(struct nf_logger *logger)
+ 			RCU_INIT_POINTER(loggers[i][logger->type], NULL);
+ 	}
+ 	mutex_unlock(&nf_log_mutex);
++	synchronize_rcu();
+ }
+ EXPORT_SYMBOL(nf_log_unregister);
+ 
+-- 
+1.7.10.4
+
