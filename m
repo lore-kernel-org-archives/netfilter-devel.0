@@ -1,103 +1,106 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH RFC 0/3] Allow postponed netfilter handling for socket
- matches
-Date: Wed, 16 Sep 2015 23:21:00 +0200
-Message-ID: <20150916212100.GT24810@breakpoint.cc>
-References: <1442418180-14322-1-git-send-email-daniel@zonque.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, daniel@iogearbox.net,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	fw@strlen.de, balazs.scheidler@balabit.com
-To: Daniel Mack <daniel@zonque.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:39765 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752468AbbIPVVF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Sep 2015 17:21:05 -0400
-Content-Disposition: inline
-In-Reply-To: <1442418180-14322-1-git-send-email-daniel@zonque.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [PATCH nf-next 04/15] ipvs: pull out ip_vs_try_to_schedule function
+Date: Thu, 17 Sep 2015 14:40:40 +0900
+Message-ID: <1442468451-24012-5-git-send-email-horms@verge.net.au>
+References: <1442468451-24012-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Alex Gartrell <agartrell@fb.com>,
+	Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1442468451-24012-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Daniel Mack <daniel@zonque.org> wrote:
-> I'm re-addressing the issue of matching socket meta information for
-> non-established sockets that has been discussed a while ago:
-> 
->   http://article.gmane.org/gmane.comp.security.firewalls.netfilter.devel/56877
-> 
-> Being able to reliably match on net_cls cgroup ids is crucial in
-> order to build a per-application or per-container firewall rules
-> which don't leak ingress packets. Such a feature would be very
-> useful to have.
+From: Alex Gartrell <agartrell@fb.com>
 
-Could you clarify what 'which don't leak ingress packets' means?
+This is necessary as we'll be trying to schedule icmp later and we'll want
+to share this code.
 
-> A previous attempt to fix the currently existing issues was to call
-> out to the early demuxing helper functions from the meta matching
-> callbacks, but that doesn't suffice because it doesn't address the
-> case of multicast UDP and other, more complex lookup methods
-> implemented in various protocol handlers.
+Signed-off-by: Alex Gartrell <agartrell@fb.com>
+Acked-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+---
+ net/netfilter/ipvs/ip_vs_core.c | 60 ++++++++++++++++++++++++++---------------
+ 1 file changed, 39 insertions(+), 21 deletions(-)
 
-Yes, but see below.
-
-> This patch set outlines a different approach by adding a flag to
-> 'struct sk_buff' called 'nf_postponed'. This flag is set by
-> nft_meta_get_eval() in case a decision cannot be made due to a missing
-> skb->sk. skbs flagged that way will then be ran through the netfilter
-> chain processor again after the protocol handlers did the real socket
-> lookup. A small addition to 'struct nft_pktinfo' is needed so that the
-> matching callbacks can access the socket that was passed into
-> nf_hook().
-> 
-> Note that the new flag does not actually bloat 'struct skb_buff',
-> because it still fits into the 'flags1' bitfield. Also, the extra
-> netfilter chain iteration will not be done by any subsequent packet in
-> the same stream, as for those, the early demux code will set skb->sk.
-> 
-> The patch set is obviously not yet finished, because a lot more
-> protocol handlers need to be patched. Right now, I only addressed
-> tcp_ipv4. Before I do that, I want to get some feedback on the
-> approach, so please let me know what you think.
-
-I think there are several issues.
-
-implementation problems:
-- i'm not sure its legal to call the hook input with skb->sk locked,
-  some matches might want to aquire it.
-- what makes NFT_META_CGROUP special? (or was that just an example?)
-
-design issues:
-The assumption seems to be that a given skb can always be mapped to a
-particular socket, and hence a cgroup.
-
-Thats not necessarily the case, e.g. with broad-/multicasting or when
-the socket is e.g. in timewait state.
-
-Some skbs will now travel INPUT hooks twice.
-
-And once you'd extend this so that we re-invoke nf hooks for mcast
-packets, for each socket they've been received on, you change netfilter
-behaviour again (one skb, one traversal -> n traversals of ruleset, one
-for each sk).
-
-I think that this makes it a non-starter, sorry.
-
-I would much rather see nft_demux_{udp,tcp,sctp,dccp,...}.c which moves
-early-demux-esque code into the nft ruleset.
-
-Then you could do something like
-
-nft add rule ip filter input meta l4proto tcp demux meta cgroup 42
-
-The caveat being that even in this case we cannot guarantee
-that skb->sk is set afterwards, or that a cgroup can be derived from it.
-
-Iff you absolutely need this, I'd seriously entertain the idea of adding
-NFPROTO_L4_TCP, etc, ... or, maybe better, allow to attach nft ruleset
-as a socket filter.
-
-But really, at that point, a much better question would be wheter net
-cgroups are the answer to whatever the question was, or what problem we
-are attempting to address here...
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index bb998d432ce7..2c44e34314c2 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -1327,6 +1327,42 @@ ip_vs_local_reply6(const struct nf_hook_ops *ops, struct sk_buff *skb,
+ 
+ #endif
+ 
++static unsigned int
++ip_vs_try_to_schedule(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
++		      int *verdict, struct ip_vs_conn **cpp,
++		      struct ip_vs_iphdr *iph)
++{
++	struct ip_vs_protocol *pp = pd->pp;
++
++	if (!iph->fragoffs) {
++		/* No (second) fragments need to enter here, as nf_defrag_ipv6
++		 * replayed fragment zero will already have created the cp
++		 */
++
++		/* Schedule and create new connection entry into cpp */
++		if (!pp->conn_schedule(af, skb, pd, verdict, cpp, iph))
++			return 0;
++	}
++
++	if (unlikely(!*cpp)) {
++		/* sorry, all this trouble for a no-hit :) */
++		IP_VS_DBG_PKT(12, af, pp, skb, iph->off,
++			      "ip_vs_in: packet continues traversal as normal");
++		if (iph->fragoffs) {
++			/* Fragment that couldn't be mapped to a conn entry
++			 * is missing module nf_defrag_ipv6
++			 */
++			IP_VS_DBG_RL("Unhandled frag, load nf_defrag_ipv6\n");
++			IP_VS_DBG_PKT(7, af, pp, skb, iph->off,
++				      "unhandled fragment");
++		}
++		*verdict = NF_ACCEPT;
++		return 0;
++	}
++
++	return 1;
++}
++
+ /*
+  *	Handle ICMP messages in the outside-to-inside direction (incoming).
+  *	Find any that might be relevant, check against existing connections,
+@@ -1690,33 +1726,15 @@ ip_vs_in(unsigned int hooknum, struct sk_buff *skb, int af)
+ 		cp = NULL;
+ 	}
+ 
+-	if (unlikely(!cp) && !iph.fragoffs) {
+-		/* No (second) fragments need to enter here, as nf_defrag_ipv6
+-		 * replayed fragment zero will already have created the cp
+-		 */
++	if (unlikely(!cp)) {
+ 		int v;
+ 
+-		/* Schedule and create new connection entry into &cp */
+-		if (!pp->conn_schedule(af, skb, pd, &v, &cp, &iph))
++		if (!ip_vs_try_to_schedule(af, skb, pd, &v, &cp, &iph))
+ 			return v;
+ 	}
+ 
+-	if (unlikely(!cp)) {
+-		/* sorry, all this trouble for a no-hit :) */
+-		IP_VS_DBG_PKT(12, af, pp, skb, 0,
+-			      "ip_vs_in: packet continues traversal as normal");
+-		if (iph.fragoffs) {
+-			/* Fragment that couldn't be mapped to a conn entry
+-			 * is missing module nf_defrag_ipv6
+-			 */
+-			IP_VS_DBG_RL("Unhandled frag, load nf_defrag_ipv6\n");
+-			IP_VS_DBG_PKT(7, af, pp, skb, iph.off,
+-				      "unhandled fragment");
+-		}
+-		return NF_ACCEPT;
+-	}
