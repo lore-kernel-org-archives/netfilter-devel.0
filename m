@@ -1,76 +1,29 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH next 0/30] Passing net through the netfilter hooks
-Date: Thu, 17 Sep 2015 18:30:36 +0200
-Message-ID: <55FAEAAC.1070302@6wind.com>
-References: <87mvwn18my.fsf@x220.int.ebiederm.org>
-Reply-To: nicolas.dichtel@6wind.com
+From: Alfred Cheuk Chow <sec249_alejandra@santafe.edu.ar>
+Subject: (unknown)
+Date: Thu, 17 Sep 2015 14:45:15 -0300 (GMT-03:00)
+Message-ID: <290893096.147960.1442511915473.JavaMail.zimbra__21679.1413644843$1442511971$gmane$org@santafe.edu.ar>
+Reply-To: "Alfred Cheuk  Chow" <alfred.chow101@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:38043 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752257AbbIQQaj (ORCPT
+Received: from correo.santafe.edu.ar ([200.12.192.40]:56616 "EHLO
+	correo.santafe.edu.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751371AbbIQRp6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Sep 2015 12:30:39 -0400
-Received: by wiclk2 with SMTP id lk2so34767530wic.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2015 09:30:38 -0700 (PDT)
-In-Reply-To: <87mvwn18my.fsf@x220.int.ebiederm.org>
+	Thu, 17 Sep 2015 13:45:58 -0400
+Subject: 
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 16/09/2015 02:59, Eric W. Biederman a =C3=A9crit :
->
-> My primary goal with this patchset and it's follow ups is to cleanup =
-the
-> network routing paths so that we do not look at the output device to
-> derive the network namespace.  My plan is to pass the network namespa=
-ce
-> of the transmitting socket through the output path, to replace code t=
-hat
-> looks at the output network device today.  Once that is done we can h=
-ave
-> routes with output devices outside of the current network namespace.
-> Which should allow reception and transmission of packets in network
-> namespaces to be as fast as normal packet reception and transmission
-> with early demux disabled, because it will same code path.
->
-> Once skb_dst(skb)->dev is a little better under control I think it wi=
-ll
-> also be possible to use rcu to cleanup the ancient hack that sets
-> dst->dev to loopback_dev when a network device is removed.
->
-> The work to get there is a series of code cleanups.  I am starting wi=
-th
-> passing net into the netfilter hooks and into the functions that are
-> called after the netfilter hooks.  This removes from netfilter the
-> need to guess which network namespace it is working on.
->
-> To get there I perform a series of minor prep patches so the big chan=
-ges
-> at the end are possible to audit without getting lost in the noise.  =
-In
-> particular I have a lot of patches computing net into a local variabl=
-e
-> and then using it through out the function.
->
-> So this patchset encompases removing dead code, sorting out the _sk
-> functions that were added last time someone pushed a prototype change
-> through the post netfilter functions.  Cleaning up individual functio=
-ns
-> use of the network namespace.  Passing net into the netfilter hooks.
-> Passing net into the post netfilter functions.  Using state->net in
-> the netfilter code where it is available and trivially usable.
-LGTM (except some minor comments).
+Good Day,
 
-Acked-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I am Mr. Alfred Cheuk Yu Chow, the Director for Credit & Marketing Chong Hing Bank, Hong Kong, Chong Hing Bank Centre, 24 Des Voeux Road Central, Hong Kong. I have a business proposal of $38,980,369.00 (Thirty Eight Million, Nine Hundred and Eighty Thousand, Three Hundred and Sixty Nine USD) only for you to transact with me from my bank to your country.
+
+All confirmable documents to back up the claims will be made available to you prior to your acceptance and as soon as I receive your return mail Via my email address: alfred.chow101@gmail.com and I will let you know what is required of you.
+
+Your earliest response to this letter will be appreciated.
+ 
+Best Regards,
+Alfred Chow
