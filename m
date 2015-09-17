@@ -1,10 +1,8 @@
 From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH next 28/30] netfilter: Pass struct net into the netfilter
- hooks
-Date: Thu, 17 Sep 2015 18:25:54 +0200
-Message-ID: <55FAE992.9060103@6wind.com>
+Subject: Re: [PATCH next 0/30] Passing net through the netfilter hooks
+Date: Thu, 17 Sep 2015 18:30:36 +0200
+Message-ID: <55FAEAAC.1070302@6wind.com>
 References: <87mvwn18my.fsf@x220.int.ebiederm.org>
- <1442365458-16349-28-git-send-email-ebiederm@xmission.com>
 Reply-To: nicolas.dichtel@6wind.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8;
@@ -14,89 +12,65 @@ Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: "Eric W. Biederman" <ebiederm@xmission.com>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1442365458-16349-28-git-send-email-ebiederm@xmission.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:38043 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752257AbbIQQaj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Sep 2015 12:30:39 -0400
+Received: by wiclk2 with SMTP id lk2so34767530wic.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2015 09:30:38 -0700 (PDT)
+In-Reply-To: <87mvwn18my.fsf@x220.int.ebiederm.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 16/09/2015 03:04, Eric W. Biederman a =C3=A9crit :
-> Pass a network namespace parameter into the netfilter hooks.  At the
-> call site of the netfilter hooks the path a packet is taking through
-> the network stack is well known which allows the network namespace to
-> be easily and reliabily.
+Le 16/09/2015 02:59, Eric W. Biederman a =C3=A9crit :
 >
-> This allows the replacement of magic code like
-> "dev_net(state->in?:state->out)" that appears at the start of most
-> netfilter hooks with "state->net".
+> My primary goal with this patchset and it's follow ups is to cleanup =
+the
+> network routing paths so that we do not look at the output device to
+> derive the network namespace.  My plan is to pass the network namespa=
+ce
+> of the transmitting socket through the output path, to replace code t=
+hat
+> looks at the output network device today.  Once that is done we can h=
+ave
+> routes with output devices outside of the current network namespace.
+> Which should allow reception and transmission of packets in network
+> namespaces to be as fast as normal packet reception and transmission
+> with early demux disabled, because it will same code path.
 >
-> In almost all cases the network namespace passed in is derived
-> from the first network device passed in, guaranteeing those
-> paths will not see any changes in practice.
+> Once skb_dst(skb)->dev is a little better under control I think it wi=
+ll
+> also be possible to use rcu to cleanup the ancient hack that sets
+> dst->dev to loopback_dev when a network device is removed.
 >
-> The exceptions are:
-> xfrm/xfrm_output.c:xfrm_output_resume()         xs_net(skb_dst(skb)->=
-xfrm)
-> ipvs/ip_vs_xmit.c:ip_vs_nat_send_or_cont()      ip_vs_conn_net(cp)
-> ipvs/ip_vs_xmit.c:ip_vs_send_or_cont()          ip_vs_conn_net(cp)
-> ipv4/raw.c:raw_send_hdrinc()                    sock_net(sk)
-> ipv6/ip6_output.c:ip6_xmit()			sock_net(sk)
-> ipv6/ndisc.c:ndisc_send_skb()                   dev_net(skb->dev) not=
- dev_net(dst->dev)
-> ipv6/raw.c:raw6_send_hdrinc()                   sock_net(sk)
-> br_netfilter_hooks.c:br_nf_pre_routing_finish() dev_net(skb->dev) bef=
-ore skb->dev is set to nf_bridge->physindev
+> The work to get there is a series of code cleanups.  I am starting wi=
+th
+> passing net into the netfilter hooks and into the functions that are
+> called after the netfilter hooks.  This removes from netfilter the
+> need to guess which network namespace it is working on.
 >
-> In all cases these exceptions seem to be a better expression for the
-> network namespace the packet is being processed in then the historic
-> "dev_net(in?in:out)".  I am documenting them in case something odd
-> pops up and someone starts trying to track down what happened.
+> To get there I perform a series of minor prep patches so the big chan=
+ges
+> at the end are possible to audit without getting lost in the noise.  =
+In
+> particular I have a lot of patches computing net into a local variabl=
+e
+> and then using it through out the function.
 >
-> Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
-> ---
-[snip]
->   int br_forward_finish(struct sock *sk, struct sk_buff *skb)
->   {
-> -	return NF_HOOK(NFPROTO_BRIDGE, NF_BR_POST_ROUTING, sk, skb,
-> -		       NULL, skb->dev,
-> +	struct net *net =3D dev_net(skb->dev);
-nit: blank line after the declaration
+> So this patchset encompases removing dead code, sorting out the _sk
+> functions that were added last time someone pushed a prototype change
+> through the post netfilter functions.  Cleaning up individual functio=
+ns
+> use of the network namespace.  Passing net into the netfilter hooks.
+> Passing net into the post netfilter functions.  Using state->net in
+> the netfilter code where it is available and trivially usable.
+LGTM (except some minor comments).
 
-> +	return NF_HOOK(NFPROTO_BRIDGE, NF_BR_POST_ROUTING,
-> +		       net, sk, skb, NULL, skb->dev,
->   		       br_dev_queue_push_xmit);
->
->   }
-[snip]
->   int xfrm4_output(struct sock *sk, struct sk_buff *skb)
->   {
-> -	return NF_HOOK_COND(NFPROTO_IPV4, NF_INET_POST_ROUTING, sk, skb,
-> -			    NULL, skb_dst(skb)->dev, __xfrm4_output,
-> +	struct net *net =3D dev_net(skb_dst(skb)->dev);
-nit: same here
-
-> +	return NF_HOOK_COND(NFPROTO_IPV4, NF_INET_POST_ROUTING,
-> +			    net, sk, skb, NULL, skb_dst(skb)->dev,
-> +			    __xfrm4_output,
->   			    !(IPCB(skb)->flags & IPSKB_REROUTED));
->   }
-[snip]
->   int xfrm6_output(struct sock *sk, struct sk_buff *skb)
->   {
-> -	return NF_HOOK_COND(NFPROTO_IPV6, NF_INET_POST_ROUTING, sk, skb,
-> -			    NULL, skb_dst(skb)->dev, __xfrm6_output,
-> +	struct net *net =3D dev_net(skb_dst(skb)->dev);
-nit: same here
-
-> +	return NF_HOOK_COND(NFPROTO_IPV6, NF_INET_POST_ROUTING,
-> +			    net, sk, skb,  NULL, skb_dst(skb)->dev,
-> +			    __xfrm6_output,
->   			    !(IP6CB(skb)->flags & IP6SKB_REROUTED));
->   }
-[snip]
->   int xfrm_output_resume(struct sk_buff *skb, int err)
->   {
-> +	struct net *net =3D xs_net(skb_dst(skb)->xfrm);
-nit: same here
-
->   	while (likely((err =3D xfrm_output_one(skb, err)) =3D=3D 0)) {
->   		nf_reset(skb);
+Acked-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
