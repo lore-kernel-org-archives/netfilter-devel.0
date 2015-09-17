@@ -1,41 +1,54 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf] netfilter: nf_log: wait for rcu grace after logger unregistration
-Date: Thu, 17 Sep 2015 13:51:18 +0200
-Message-ID: <1442490678-3535-1-git-send-email-pablo@netfilter.org>
-Cc: fw@strlen.de
+Subject: [ANNOUNCE] libnftnl 1.0.5 release
+Date: Thu, 17 Sep 2015 15:08:06 +0200
+Message-ID: <20150917130806.GA21428@salvia>
+References: <20150916115004.GA1102@salvia>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="u3/rZRmxL6MmkK24"
+Cc: netdev@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-announce@lists.netfilter.org, lwn@lwn.net
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48085 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751710AbbIQLon (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Sep 2015 07:44:43 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150916115004.GA1102@salvia>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The nf_log_unregister() function needs to call synchronize_rcu() to make sure
-that the objects are not dereferenced anymore on module removal.
 
-Fixes: 5962815a6a56 ("netfilter: nf_log: use an array of loggers instead of list")
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-@Florian: I noticed this while reviewing your patch to fix the "zap all
-loggers" bug.
+--u3/rZRmxL6MmkK24
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
- net/netfilter/nf_log.c |    1 +
- 1 file changed, 1 insertion(+)
+Hi!
 
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index a5ebd7d..a5d41df 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -117,6 +117,7 @@ void nf_log_unregister(struct nf_logger *logger)
- 			RCU_INIT_POINTER(loggers[i][logger->type], NULL);
- 	}
- 	mutex_unlock(&nf_log_mutex);
-+	synchronize_rcu();
- }
- EXPORT_SYMBOL(nf_log_unregister);
- 
--- 
-1.7.10.4
+The Netfilter project proudly presents:
 
+        libnftnl 1.0.5
+
+libnftnl is a userspace library providing a low-level netlink
+programming interface (API) to the in-kernel nf_tables subsystem. The
+library libnftnl has been previously known as libnftables. This
+library is currently used by the nft command line tool.
+
+This release resolves problems with LIBVERSION and symbol versioning
+with regards to 1.0.4.
+
+You can download this library from:
+
+http://www.netfilter.org/projects/libnftnl/downloads.html
+ftp://ftp.netfilter.org/pub/libnftnl/
+
+Thanks!
+
+--u3/rZRmxL6MmkK24
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="changes-libnftnl-1.0.5.txt"
+
+Jan Engelhardt (1):
+      build: bump library versioning
+
+Pablo Neira Ayuso (1):
+      bump version to 1.0.5
+
+
+--u3/rZRmxL6MmkK24--
