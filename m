@@ -1,65 +1,127 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [GIT-PULL nf-next 00/15] IPVS Updates for v4.4
-Date: Thu, 17 Sep 2015 14:40:36 +0900
-Message-ID: <1442468451-24012-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Daniel Mack <daniel@zonque.org>
+Subject: Re: [PATCH RFC 0/3] Allow postponed netfilter handling for socket
+ matches
+Date: Thu, 17 Sep 2015 12:04:31 +0200
+Message-ID: <55FA902F.50006@zonque.org>
+References: <1442418180-14322-1-git-send-email-daniel@zonque.org>
+ <20150916212100.GT24810@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: pablo@netfilter.org, daniel@iogearbox.net,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	balazs.scheidler@balabit.com
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from svenfoo.org ([82.94.215.22]:53333 "EHLO mail.zonque.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753768AbbIQKEe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Sep 2015 06:04:34 -0400
+In-Reply-To: <20150916212100.GT24810@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Hi Florian,
 
-please consider these IPVS Updates for v4.4.
+On 09/16/2015 11:21 PM, Florian Westphal wrote:
+> Daniel Mack <daniel@zonque.org> wrote:
+>> I'm re-addressing the issue of matching socket meta information for
+>> non-established sockets that has been discussed a while ago:
+>>
+>>   http://article.gmane.org/gmane.comp.security.firewalls.netfilter.devel/56877
+>>
+>> Being able to reliably match on net_cls cgroup ids is crucial in
+>> order to build a per-application or per-container firewall rules
+>> which don't leak ingress packets. Such a feature would be very
+>> useful to have.
+> 
+> Could you clarify what 'which don't leak ingress packets' means?
 
-The updates include the following from Alex Gartrell:
-* Scheduling of ICMP
-* Sysctl to ignore tunneled packets; and hence some packet-looping scenarios
+Well, currently, the existing cgroups matches only filter packets that
+are sent to an established socket. All other packets are ignored. So
+when users install such matches as advertised by the documented
+examples, and the chain policy is permissive, the firewall 'leaks'
+packets, which is unexpected.
 
-The following changes since commit 851345c5bbb4644911f7c351c042559a71f57d19:
+>> The patch set is obviously not yet finished, because a lot more
+>> protocol handlers need to be patched. Right now, I only addressed
+>> tcp_ipv4. Before I do that, I want to get some feedback on the
+>> approach, so please let me know what you think.
+> 
+> I think there are several issues.
+> 
+> implementation problems:
+> - i'm not sure its legal to call the hook input with skb->sk locked,
+>   some matches might want to aquire it.
 
-  netfilter: reduce sparse warnings (2015-08-28 21:04:12 +0200)
+In the code as it stands after my patch set, I don't see where skb->sk
+is locked? After all, skb->sk is NULL, even on the 2nd iteration, which
+is why I patched the newly looked up socket to be available in the nf hook.
 
-are available in the git repository at:
+> - what makes NFT_META_CGROUP special? (or was that just an example?)
 
-  https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs-for-v4.4
+It's what I want to get working, but other 'meta' hooks can be made
+working in a similar fashion.
 
-for you to fetch changes up to 4e478098ac0ac1b6ef9a70fcdc2ec8b93f1b59a1:
+> design issues:
+> The assumption seems to be that a given skb can always be mapped to a
+> particular socket, and hence a cgroup.
+>
+> Thats not necessarily the case, e.g. with broad-/multicasting or when
+> the socket is e.g. in timewait state.
 
-  ipvs: add sysctl to ignore tunneled packets (2015-09-17 11:50:02 +0900)
+Yes, that's true. The idea for multicast would be to just drop the
+cloned skb instead of delivering it to the final socket.
 
-----------------------------------------------------------------
-Alex Gartrell (15):
-      ipvs: replace ip_vs_fill_ip4hdr with ip_vs_fill_iph_skb_off
-      ipvs: Add hdr_flags to iphdr
-      ipvs: Handle inverse and icmp headers in ip_vs_leave
-      ipvs: pull out ip_vs_try_to_schedule function
-      ipvs: drop inverse argument to conn_{in,out}_get
-      ipvs: Make ip_vs_schedule aware of inverse iph'es
-      ipvs: add schedule_icmp sysctl
-      ipvs: Use outer header in ip_vs_bypass_xmit_v6
-      ipvs: sh: support scheduling icmp/inverse packets consistently
-      ipvs: attempt to schedule icmp packets
-      ipvs: ensure that ICMP cannot be sent in reply to ICMP
-      ipvs: support scheduling inverse and icmp TCP packets
-      ipvs: support scheduling inverse and icmp UDP packets
-      ipvs: support scheduling inverse and icmp SCTP packets
-      ipvs: add sysctl to ignore tunneled packets
+> Some skbs will now travel INPUT hooks twice.
+>
+> And once you'd extend this so that we re-invoke nf hooks for mcast
+> packets, for each socket they've been received on, you change netfilter
+> behaviour again (one skb, one traversal -> n traversals of ruleset, one
+> for each sk).
+> 
+> I think that this makes it a non-starter, sorry.
 
- Documentation/networking/ipvs-sysctl.txt |  10 ++
- include/net/ip_vs.h                      | 120 ++++++++++---
- net/netfilter/ipvs/ip_vs_conn.c          |  12 +-
- net/netfilter/ipvs/ip_vs_core.c          | 299 +++++++++++++++++++------------
- net/netfilter/ipvs/ip_vs_ctl.c           |  15 +-
- net/netfilter/ipvs/ip_vs_pe_sip.c        |   2 +-
- net/netfilter/ipvs/ip_vs_proto_ah_esp.c  |  17 +-
- net/netfilter/ipvs/ip_vs_proto_sctp.c    |  34 ++--
- net/netfilter/ipvs/ip_vs_proto_tcp.c     |  38 +++-
- net/netfilter/ipvs/ip_vs_proto_udp.c     |  25 ++-
- net/netfilter/ipvs/ip_vs_sh.c            |  45 +++--
- net/netfilter/ipvs/ip_vs_xmit.c          |  24 +--
- net/netfilter/xt_ipvs.c                  |   4 +-
- 13 files changed, 427 insertions(+), 218 deletions(-)
+Hmm, I see your point.
+
+> I would much rather see nft_demux_{udp,tcp,sctp,dccp,...}.c which moves
+> early-demux-esque code into the nft ruleset.
+> 
+> Then you could do something like
+> 
+> nft add rule ip filter input meta l4proto tcp demux meta cgroup 42
+
+Ok, but how would that be different from the unconditional demuxing
+patches we've kicked around earlier, especially when it comes to
+multicast sockets? Could you explain what you have in mind here?
+
+> The caveat being that even in this case we cannot guarantee
+> that skb->sk is set afterwards, or that a cgroup can be derived from it.
+> 
+> Iff you absolutely need this, I'd seriously entertain the idea of adding
+> NFPROTO_L4_TCP, etc, ... or, maybe better, allow to attach nft ruleset
+> as a socket filter.
+
+That would be a new netfilter hook then, something that is called after
+LOCAL_IN, for ingress only? In a sense, it would be called from the
+protocol handlers, just as my patches do right now, but instead of
+conditionally re-iterating the same rules again, we would walk a
+different chain?
+
+> But really, at that point, a much better question would be wheter net
+> cgroups are the answer to whatever the question was, or what problem we
+> are attempting to address here...
+
+The idea is simply to have a packet filter which is based on information
+derived from the task that sends or will eventually handle the packet.
+IOW: We want to be able to install netfilter rules that apply to all
+packets received or sent by tasks that match a certain criteria, without
+modifying the sources of those tasks.
+
+As we already have net_cls hooked up in netfilter rules, it seems
+easiest to just get this working. But with the multiple approaches we
+already had, it appears the real fix needs more thinking.
+
+
+Thanks,
+Daniel
