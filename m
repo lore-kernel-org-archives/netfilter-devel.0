@@ -1,59 +1,68 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+From: ebiederm@xmission.com (Eric W. Biederman)
 Subject: Re: [PATCH next 0/14] netfilter: Stop guessing net
-Date: Fri, 18 Sep 2015 18:32:53 +0200
-Message-ID: <55FC3CB5.7040003@6wind.com>
+Date: Fri, 18 Sep 2015 13:15:14 -0500
+Message-ID: <8737ybppal.fsf@x220.int.ebiederm.org>
 References: <87mvwn18my.fsf@x220.int.ebiederm.org>
- <87pp1fpy1b.fsf@x220.int.ebiederm.org>
-Reply-To: nicolas.dichtel@6wind.com
+	<87pp1fpy1b.fsf@x220.int.ebiederm.org> <55FC3CB5.7040003@6wind.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+Cc: David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	Pablo Neira Ayuso <pablo@netfilter.org>
-To: "Eric W. Biederman" <ebiederm@xmission.com>,
-	David Miller <davem@davemloft.net>
+To: nicolas.dichtel@6wind.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:33866 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752702AbbIRQc4 (ORCPT
+Received: from out03.mta.xmission.com ([166.70.13.233]:50341 "EHLO
+	out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752639AbbIRSW3 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Sep 2015 12:32:56 -0400
-Received: by wicfx3 with SMTP id fx3so71368798wic.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Sep 2015 09:32:55 -0700 (PDT)
-In-Reply-To: <87pp1fpy1b.fsf@x220.int.ebiederm.org>
+	Fri, 18 Sep 2015 14:22:29 -0400
+In-Reply-To: <55FC3CB5.7040003@6wind.com> (Nicolas Dichtel's message of "Fri,
+	18 Sep 2015 18:32:53 +0200")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 18/09/2015 17:06, Eric W. Biederman a =C3=A9crit :
->
-> This is the next installment of my work to pass struct net through th=
-e
-> output path so the code does not need to guess how to figure out whic=
-h
-> network namespace it is in, and ultimately routes can have output
-> devices in another network namespace.
->
-> This round the changes focus on using nf_hook_state->net in the
-> netfilter functions, and not passing nf_hook_ops to the functions on =
-the
-> netfilter chains.
->
-> Given the way per network namespace operations are implemented caller=
-s
-> can not rely on addresses or games with container_of.  None of the
-> netfilter hooks do but we should remove the temptation.  Plus removin=
-g
-> the extra parameter and the extra jump to get at values should reduce
-> the number of cache line misses.
->
-> At a practical matter this is the bulk of the work that other pieces =
-of
-> code in the netfilter stack will depend on.
-Great!
+Nicolas Dichtel <nicolas.dichtel@6wind.com> writes:
 
-LGTM.
-Acked-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+> Le 18/09/2015 17:06, Eric W. Biederman a =C3=A9crit :
+>>
+>> This is the next installment of my work to pass struct net through t=
+he
+>> output path so the code does not need to guess how to figure out whi=
+ch
+>> network namespace it is in, and ultimately routes can have output
+>> devices in another network namespace.
+>>
+>> This round the changes focus on using nf_hook_state->net in the
+>> netfilter functions, and not passing nf_hook_ops to the functions on=
+ the
+>> netfilter chains.
+>>
+>> Given the way per network namespace operations are implemented calle=
+rs
+>> can not rely on addresses or games with container_of.  None of the
+>> netfilter hooks do but we should remove the temptation.  Plus removi=
+ng
+>> the extra parameter and the extra jump to get at values should reduc=
+e
+>> the number of cache line misses.
+>>
+>> At a practical matter this is the bulk of the work that other pieces=
+ of
+>> code in the netfilter stack will depend on.
+> Great!
+>
+> LGTM.
+> Acked-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+
+Grr.  A build bot failed to build this patchset and let me know.
+Apparently a gremlin got in and disabled CONFIG_NET_ACT_CONNMARK in my
+test config.
+
+I will respin in a minute.
+
+Eric
+
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
