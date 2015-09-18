@@ -1,52 +1,62 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT-PULL nf-next 00/15] IPVS Updates for v4.4
-Date: Fri, 18 Sep 2015 22:17:48 +0200
-Message-ID: <20150918201748.GA10052@salvia>
-References: <1442468451-24012-1-git-send-email-horms@verge.net.au>
+Subject: Re: [PATCH next 0/15] netfilter: Stop guessing net (take 2)
+Date: Fri, 18 Sep 2015 22:21:19 +0200
+Message-ID: <20150918202119.GA31424@salvia>
+References: <87mvwn18my.fsf@x220.int.ebiederm.org>
+ <87pp1fpy1b.fsf@x220.int.ebiederm.org>
+ <87fv2bo7br.fsf_-_@x220.int.ebiederm.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>, Alex Gartrell <agartrell@fb.com>
-To: Simon Horman <horms@verge.net.au>
+Cc: David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Nicolas Dichtel <nicolas.dichtel@6wind.com>
+To: "Eric W. Biederman" <ebiederm@xmission.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33546 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33737 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753526AbbIRULI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Sep 2015 16:11:08 -0400
+	id S1754632AbbIRUOf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 18 Sep 2015 16:14:35 -0400
 Content-Disposition: inline
-In-Reply-To: <1442468451-24012-1-git-send-email-horms@verge.net.au>
+In-Reply-To: <87fv2bo7br.fsf_-_@x220.int.ebiederm.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 17, 2015 at 02:40:36PM +0900, Simon Horman wrote:
-> Hi Pablo,
+On Fri, Sep 18, 2015 at 02:28:40PM -0500, Eric W. Biederman wrote:
 > 
-> please consider these IPVS Updates for v4.4.
+> This is the next installment of my work to pass struct net through the
+> output path so the code does not need to guess how to figure out which
+> network namespace it is in, and ultimately routes can have output
+> devices in another network namespace.
 > 
-> The updates include the following from Alex Gartrell:
-> * Scheduling of ICMP
-> * Sysctl to ignore tunneled packets; and hence some packet-looping scenarios
+> This round the changes focus on using nf_hook_state->net in the
+> netfilter functions, and not passing nf_hook_ops to the functions on the
+> netfilter chains.
 > 
-> The following changes since commit 851345c5bbb4644911f7c351c042559a71f57d19:
+> Given the way per network namespace operations are implemented callers
+> can not rely on addresses or games with container_of.  None of the
+> netfilter hooks do but we should remove the temptation.  Plus removing
+> the extra parameter and the extra jump to get at values should reduce
+> the number of cache line misses.
 > 
->   netfilter: reduce sparse warnings (2015-08-28 21:04:12 +0200)
+> At a practical matter this is the bulk of the work that other pieces of
+> code in the netfilter stack will depend on.
 > 
-> are available in the git repository at:
-> 
->   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs-for-v4.4
+> Since the last round I have fixed my test config to build act_connmark
+> and added the patch that modifies act_connmark to track which network
+> namespace it was it.
 
-Pulled, thanks Simon.
+I'm going to place this series in the nf-next tree, thanks! If there's
+some fallout, please send me an incremental fix.
 
-One request and one question:
+> The changes are also available against net-next at:
+> git://git.kernel.org/pub/scm/linux/kernel/git/ebiederm/net-next.git master
+> 
+> My entire pending set of changes for those who want to look ahead is at:
+> git://git.kernel.org/pub/scm/linux/kernel/git/ebiederm/net-next.git for-testing
 
-Please, extend the info in the pull request a bit more, I think it's
-good for the record. Alex included a short description on the ICMP
-schedule use case on the original submission, will take it and include
-it in the pull request for David.
+I can see quite a lot of changes for IPVS. I'd suggest you route IPVS
+changes through ipvs-devel mailing list so Simon picks them from
+there.
 
-And the question is, under what circunstances you may not want to
-schedule ICMP? I'm telling this because of the new schedule_icmp sysctl.
-
-Thanks.
+Will be preparing a batch with Netfilter updates for net-next to pass
+up to David asap.
