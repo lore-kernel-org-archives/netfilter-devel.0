@@ -1,38 +1,54 @@
-From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH next 14/14] netfilter: Use nf_ct_net instead of dev_net(out) in nf_nat_masquerade_ipv6
-Date: Fri, 18 Sep 2015 11:06:00 -0500
-Message-ID: <1442592360-2575-14-git-send-email-ebiederm@xmission.com>
-References: <87pp1fpy1b.fsf@x220.int.ebiederm.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, <netdev@vger.kernel.org>,
-	Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: David Miller <davem@davemloft.net>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH next 0/14] netfilter: Stop guessing net
+Date: Fri, 18 Sep 2015 11:13:25 -0500
+Message-ID: <87eghvpuxm.fsf@x220.int.ebiederm.org>
+References: <87mvwn18my.fsf@x220.int.ebiederm.org>
+	<87pp1fpy1b.fsf@x220.int.ebiederm.org> <55FC3558.5080601@6wind.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: nicolas.dichtel@6wind.com
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <87pp1fpy1b.fsf@x220.int.ebiederm.org>
+In-Reply-To: <55FC3558.5080601@6wind.com> (Nicolas Dichtel's message of "Fri,
+	18 Sep 2015 18:01:28 +0200")
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Use nf_ct_net(ct) instead of guessing that the netdevice out can
-reliably report the network namespace the conntrack operation is
-happening in.
+Nicolas Dichtel <nicolas.dichtel@6wind.com> writes:
 
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
----
- net/ipv6/netfilter/nf_nat_masquerade_ipv6.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> Le 18/09/2015 17:06, Eric W. Biederman a =C3=A9crit :
+>>
+>> This is the next installment of my work to pass struct net through t=
+he
+>> output path so the code does not need to guess how to figure out whi=
+ch
+>> network namespace it is in, and ultimately routes can have output
+>> devices in another network namespace.
+>>
+>> This round the changes focus on using nf_hook_state->net in the
+>> netfilter functions, and not passing nf_hook_ops to the functions on=
+ the
+>> netfilter chains.
+>>
+>> Given the way per network namespace operations are implemented calle=
+rs
+>> can not rely on addresses or games with container_of.  None of the
+>> netfilter hooks do but we should remove the temptation.  Plus removi=
+ng
+>> the extra parameter and the extra jump to get at values should reduc=
+e
+>> the number of cache line misses.
+>>
+>> At a practical matter this is the bulk of the work that other pieces=
+ of
+>> code in the netfilter stack will depend on.
+> I only see the cover letter. Patches are also not visible on the
+> patchwork.
 
-diff --git a/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c b/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-index 7745609665cd..31ba7ca19757 100644
---- a/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-+++ b/net/ipv6/netfilter/nf_nat_masquerade_ipv6.c
-@@ -34,7 +34,7 @@ nf_nat_masquerade_ipv6(struct sk_buff *skb, const struct nf_nat_range *range,
- 	NF_CT_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED ||
- 			    ctinfo == IP_CT_RELATED_REPLY));
- 
--	if (ipv6_dev_get_saddr(dev_net(out), out,
-+	if (ipv6_dev_get_saddr(nf_ct_net(ct), out,
- 			       &ipv6_hdr(skb)->daddr, 0, &src) < 0)
- 		return NF_DROP;
- 
--- 
-2.2.1
+It appears I forgot to hit send.  The patches should show up any time n=
+ow.
+
+Eric
