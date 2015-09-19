@@ -1,62 +1,129 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH next 0/15] netfilter: Stop guessing net (take 2)
-Date: Fri, 18 Sep 2015 22:21:19 +0200
-Message-ID: <20150918202119.GA31424@salvia>
-References: <87mvwn18my.fsf@x220.int.ebiederm.org>
- <87pp1fpy1b.fsf@x220.int.ebiederm.org>
- <87fv2bo7br.fsf_-_@x220.int.ebiederm.org>
+Subject: Re: [PATCH] netfilter: icmp: Enhance the return value check of
+ nf_nat_icmp(v6)_reply_translation
+Date: Sat, 19 Sep 2015 19:36:08 +0200
+Message-ID: <20150919173608.GA3472@salvia>
+References: <BAY403-EAS201184FFD171DD8A4B68C5E95580@phx.gbl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Feng Gao <gfree.wind@outlook.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33737 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39378 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754632AbbIRUOf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Sep 2015 16:14:35 -0400
+	id S1755200AbbISR33 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 19 Sep 2015 13:29:29 -0400
 Content-Disposition: inline
-In-Reply-To: <87fv2bo7br.fsf_-_@x220.int.ebiederm.org>
+In-Reply-To: <BAY403-EAS201184FFD171DD8A4B68C5E95580@phx.gbl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Sep 18, 2015 at 02:28:40PM -0500, Eric W. Biederman wrote:
-> 
-> This is the next installment of my work to pass struct net through the
-> output path so the code does not need to guess how to figure out which
-> network namespace it is in, and ultimately routes can have output
-> devices in another network namespace.
-> 
-> This round the changes focus on using nf_hook_state->net in the
-> netfilter functions, and not passing nf_hook_ops to the functions on the
-> netfilter chains.
-> 
-> Given the way per network namespace operations are implemented callers
-> can not rely on addresses or games with container_of.  None of the
-> netfilter hooks do but we should remove the temptation.  Plus removing
-> the extra parameter and the extra jump to get at values should reduce
-> the number of cache line misses.
-> 
-> At a practical matter this is the bulk of the work that other pieces of
-> code in the netfilter stack will depend on.
-> 
-> Since the last round I have fixed my test config to build act_connmark
-> and added the patch that modifies act_connmark to track which network
-> namespace it was it.
+On Sat, Sep 19, 2015 at 10:59:19PM +0800, Feng Gao wrote:
+> It could enhance the codes readability and save one extra instruction than
+> before
 
-I'm going to place this series in the nf-next tree, thanks! If there's
-some fallout, please send me an incremental fix.
+Gao, I'm still having patch mangling problems, most likely your MUA.
+See below.
 
-> The changes are also available against net-next at:
-> git://git.kernel.org/pub/scm/linux/kernel/git/ebiederm/net-next.git master
+Note that patchwork doesn't catch up this either:
+
+http://patchwork.ozlabs.org/project/netfilter-devel/list/
+
+> Signed-off-by: Feng Gao <gfree.wind@gmail.com>
 > 
-> My entire pending set of changes for those who want to look ahead is at:
-> git://git.kernel.org/pub/scm/linux/kernel/git/ebiederm/net-next.git for-testing
-
-I can see quite a lot of changes for IPVS. I'd suggest you route IPVS
-changes through ipvs-devel mailing list so Simon picks them from
-there.
-
-Will be preparing a batch with Netfilter updates for net-next to pass
-up to David asap.
+> ---
+> 
+> net/ipv4/netfilter/nf_nat_l3proto_ipv4.c |    6 +++---
+> 
+> net/ipv6/netfilter/nf_nat_l3proto_ipv6.c |    6 +++---
+> 
+> 2 files changed, 6 insertions(+), 6 deletions(-)
+> 
+>  
+> 
+> diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+> b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+> 
+> index 22f4579..f5c0754 100644
+> 
+> --- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+> 
+> +++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+> 
+> @@ -294,11 +294,11 @@ nf_nat_ipv4_fn(const struct nf_hook_ops *ops, struct
+> sk_buff *skb,
+> 
+>        case IP_CT_RELATED:
+> 
+>        case IP_CT_RELATED_REPLY:
+> 
+>                 if (ip_hdr(skb)->protocol == IPPROTO_ICMP) {
+> 
+> -                           if (!nf_nat_icmp_reply_translation(skb, ct,
+> ctinfo,
+> 
+> +                          if (nf_nat_icmp_reply_translation(skb, ct,
+> ctinfo,
+> 
+>  
+> ops->hooknum))
+> 
+> -                                    return NF_DROP;
+> 
+> -                           else
+> 
+>                                    return NF_ACCEPT;
+> 
+> +                          else
+> 
+> +                                   return NF_DROP;
+> 
+>                 }
+> 
+>                 /* Fall thru... (Only ICMPs can be IP_CT_IS_REPLY) */
+> 
+>        case IP_CT_NEW:
+> 
+> diff --git a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
+> b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
+> 
+> index 70fbaed..40c0a49 100644
+> 
+> --- a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
+> 
+> +++ b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
+> 
+> @@ -302,12 +302,12 @@ nf_nat_ipv6_fn(const struct nf_hook_ops *ops, struct
+> sk_buff *skb,
+> 
+>                                               &nexthdr, &frag_off);
+> 
+>                  if (hdrlen >= 0 && nexthdr == IPPROTO_ICMPV6) {
+> 
+> -                           if (!nf_nat_icmpv6_reply_translation(skb, ct,
+> ctinfo,
+> 
+> +                          if (nf_nat_icmpv6_reply_translation(skb, ct,
+> ctinfo,
+> 
+>  
+> ops->hooknum,
+> 
+>                                                                     hdrlen))
+> 
+> -                                    return NF_DROP;
+> 
+> -                           else
+> 
+>                                    return NF_ACCEPT;
+> 
+> +                          else
+> 
+> +                                   return NF_DROP;
+> 
+>                 }
+> 
+>                 /* Fall thru... (Only ICMPs can be IP_CT_IS_REPLY) */
+> 
+>        case IP_CT_NEW:
+> 
