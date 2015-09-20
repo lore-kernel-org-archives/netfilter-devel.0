@@ -1,72 +1,181 @@
-From: Feng Gao <gfree.wind@outlook.com>
-Subject: [PATCH Resolved UMA issue] netfilter: icmp: Enhance the return value check of nf_nat_icmp(v6)_reply_translation
-Date: Sun, 20 Sep 2015 08:39:53 +0800
-Message-ID: <BAY403-EAS1715250DCF2909E7CF2126B95470@phx.gbl>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: [PATCH next 00/84] ipvs: Stop guessing the network namespace
+Date: Sun, 20 Sep 2015 01:21:25 -0500
+Message-ID: <87h9mplifu.fsf_-_@x220.int.ebiederm.org>
+References: <87mvwn18my.fsf@x220.int.ebiederm.org>
+	<87pp1fpy1b.fsf@x220.int.ebiederm.org>
+	<87fv2bo7br.fsf_-_@x220.int.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>, <gfree.wind@outlook.com>
-To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+Content-Type: text/plain
+Cc: netfilter-devel@vger.kernel.org, <netdev@vger.kernel.org>,
+	Nicolas Dichtel <nicolas.dichtel@6wind.com>,
+	lvs-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	David Miller <davem@davemloft.net>,
+	Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bay004-omc1s17.hotmail.com ([65.54.190.28]:65394 "EHLO
-	BAY004-OMC1S17.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752426AbbITAlJ (ORCPT
+Received: from out03.mta.xmission.com ([166.70.13.233]:58841 "EHLO
+	out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751589AbbITG2q (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 19 Sep 2015 20:41:09 -0400
-Content-Language: zh-cn
+	Sun, 20 Sep 2015 02:28:46 -0400
+In-Reply-To: <87fv2bo7br.fsf_-_@x220.int.ebiederm.org> (Eric W. Biederman's
+	message of "Fri, 18 Sep 2015 14:28:40 -0500")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It could enhance the codes readability and save one extra instruction than
-before
 
-Signed-off-by: Feng Gao <gfree.wind@gmail.com>
----
- net/ipv4/netfilter/nf_nat_l3proto_ipv4.c |    6 +++---
- net/ipv6/netfilter/nf_nat_l3proto_ipv6.c |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+I am gradually working my way through the netfilter stack passing struct
+down into the netfilter hooks and from the netfilter hooks and from
+there down into the functions that actually care.  This removes the need
+for netfilter functions to guess how to figure out how to compute which
+network namespace they are in and instead provides a simple and reliable
+method to do so.
 
-diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-index 22f4579..f5c0754 100644
---- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-@@ -294,11 +294,11 @@ nf_nat_ipv4_fn(const struct nf_hook_ops *ops, struct
-sk_buff *skb,
- 	case IP_CT_RELATED:
- 	case IP_CT_RELATED_REPLY:
- 		if (ip_hdr(skb)->protocol == IPPROTO_ICMP) {
--			if (!nf_nat_icmp_reply_translation(skb, ct, ctinfo,
-+			if (nf_nat_icmp_reply_translation(skb, ct, ctinfo,
- 							   ops->hooknum))
--				return NF_DROP;
--			else
- 				return NF_ACCEPT;
-+			else
-+				return NF_DROP;
- 		}
- 		/* Fall thru... (Only ICMPs can be IP_CT_IS_REPLY) */
- 	case IP_CT_NEW:
-diff --git a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-index 70fbaed..40c0a49 100644
---- a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-@@ -302,12 +302,12 @@ nf_nat_ipv6_fn(const struct nf_hook_ops *ops, struct
-sk_buff *skb,
- 					  &nexthdr, &frag_off);
- 
- 		if (hdrlen >= 0 && nexthdr == IPPROTO_ICMPV6) {
--			if (!nf_nat_icmpv6_reply_translation(skb, ct,
-ctinfo,
-+			if (nf_nat_icmpv6_reply_translation(skb, ct, ctinfo,
- 							     ops->hooknum,
- 							     hdrlen))
--				return NF_DROP;
--			else
- 				return NF_ACCEPT;
-+			else
-+				return NF_DROP;
- 		}
- 		/* Fall thru... (Only ICMPs can be IP_CT_IS_REPLY) */
- 	case IP_CT_NEW:
+The cleanups stand on their own but this is part of a larger effort
+to have routes with an output device that is not in the current network
+namespace.
+
+The IPVS code has been a bit more of a challenge than most.  Just
+passing struct net through to where it is needed did not feel clean
+to me.  The practical issue is that the ipvs code in most places
+actually wants struct netns_ipvs and not struct net.
+
+So as part of this process I have turned the relationship between struct
+net and the structs netns_ipvs, ip_vs_conn_param, ip_vs_conn, and
+ip_vs_service inside out.  I have modified the ipvs functions to take a
+struct netns_ipvs not a struct net.  The net is code with fewer
+conversions from one type of structure to another.  I did wind up adding
+a struct netns_ipvs parameter to quite a few functions that did not have
+it before so I could pass the structure down from the netfilter hooks to
+where it is actually needed to avoid guessing.
+
+I have broken up the work in a bunch of small patches so there is at
+least a chance and reviewing that each step I took is correct.  The
+series compiles at each step so bisecting it should not be a problem
+if something weird comes up.
+
+The first two changes in this series are actually bug fixes.  The first
+is a compile fix for a bug in sctp that came in, in the last round of
+ipvs changes merged into nf-next.  The second fixes an older bug where
+in pathological circumstances the wrong network namespace could be used
+when a proc file is written to.
+
+The rest of the patchset is a bunch of boring changes getting pushing
+struct netns_ipvs (and by extension ipvs->net) where it needs to be.
+Either by replacing struct net pointers or adding new struct netns_ipvs
+pointers.  With a handful of other minor cleanups (like removing skb_net).
+
+The changes are also available against nf-next at:
+git://git.kernel.org/pub/scm/linux/kernel/git/ebiederm/net-next.git master
+
+My entire pending set of changes for those who want to look ahead is at:
+git://git.kernel.org/pub/scm/linux/kernel/git/ebiederm/net-next.git for-testing
+
+Eric
+
+Eric W. Biederman (84):
+      ipvs: Hoist computation of ipvs earlier in sctp_conn_schedule
+      ipvs: Don't use current in proc_do_defense_mode
+      ipvs: Use state->net in the ipvs forward functions
+      ipvs: Store ipvs not net in struct ip_vs_conn
+      ipvs: Store ipvs not net in struct ip_vs_conn_param
+      ipvs: Pass ipvs not net to ip_vs_fill_conn
+      ipvs: Store ipvs not net in struct ip_vs_service
+      ipvs: Pass ipvs not net to ip_vs_svc_fwm_hashkey
+      ipvs: Pass ipvs not net to __ip_vs_svc_fwm_find
+      ipvs: Pass ipvs not net to ip_vs_svc_hashkey
+      ipvs: Pass ipvs not net to __ip_vs_service_find
+      ipvs: Pass ipvs not net to ipvs_service_find
+      ipvs: Pass ipvs not net to ip_vs_has_real_service
+      ipvs: Pass ipvs not net to ip_vs_find_dest
+      ipvs: Pass ipvs not net to ip_vs_trash_cleanup
+      ipvs: Pass ipvs not net to __ip_vs_del_dest
+      ipvs: Pass ipvs not net to ip_vs_dest_trash_expire
+      ipvs: Cache ipvs in ip_vs_genl_set_cmd
+      ipvs: Pass ipvs not net to ip_vs_add_service
+      ipvs: Pass ipvs not net to ip_vs_flush
+      ipvs: Pass ipvs not net to ip_vs_service_net_cleanup
+      ipvs: Pass ipvs not net to ip_vs_zero_all
+      ipvs: Cache ipvs in ip_vs_in_icmp and ip_vs_in_icmp_v6
+      ipvs: Pass ipvs not net to ip_vs_proto_data_get
+      ipvs: Pass ipvs not net to ip_vs_set_timeout
+      ipvs: Pass ipvs not net to __ip_vs_get_servie_entries
+      ipvs: Pass ipvs not net to __ip_vs_get_dest_entries
+      ipvs: Pass ipvs not net to __ip_vs_get_timeouts
+      ipvs: Pass ipvs not net to ip_vs_genl_parse_service
+      ipvs: Pass ipvs not net to ip_vs_genl_find_service
+      ipvs: Pass ipvs not net to ip_vs_genl_new_daemon
+      ipvs: Pass ipvs not net to ip_vs_genl_del_daemon
+      ipvs: Pass ipvs not net to start_sync_thread
+      ipvs: Pass ipvs not net to stop_sync_thread
+      ipvs: Pass ipvs not net to make_send_sock
+      ipvs: Pass ipvs not net to make_receive_sock
+      ipvs: Store ipvs not net in struct ip_vs_sync_thread_data
+      ipvs: Pass ipvs not net to ip_vs_process_message
+      ipvs: Pass ipvs not net to ip_vs_sync_conn_v0
+      ipvs: Pass ipvs not net to ip_vs_sync_conn
+      ipvs: Pass ipvs not net to ip_vs_proc_conn
+      ipvs: Pass ipvs not net to ip_vs_proc_sync_conn
+      ipvs: Pass ipvs not net to ip_vs_sync_net_init
+      ipvs: Pass ipvs not net to ip_vs_sync_net_cleanup
+      ipvs: Pass ipvs not net to ip_vs_genl_set_config
+      ipvs: Pass ipvs not net to ip_vs_start_estimator aned ip_vs_stop_estimator
+      ipvs: Pass ipvs not net to ip_vs_random_drop_entry
+      ipvs: Pass ipvs not net to ip_vs_control_net_(init|cleanup)_sysctl
+      ipvs: Pass ipvs not net into ip_vs_control_net_(init|cleanup)
+      ipvs: Pass ipvs not net to estimation_timer
+      ipvs: Pass ipvs not net to ip_vs_estimator_net_init and ip_vs_estimator_cleanup
+      ipvs: Pass ipvs not net into register_app and unregister_app
+      ipvs: Pass ipvs not net into ip_vs_app_inc_new
+      ipvs: Pass ipvs not net to register_ip_vs_app_inc
+      ipvs: Pass ipvs not net to register_ip_vs_app and unregister_ip_vs_app
+      ipvs: Pass ipvs not net into ip_vs_app_inc_release
+      ipvs: Pass ipvs not net into ip_vs_app_net_init and ip_vs_app_net_cleanup
+      ipvs: Pass ipvs not net into [un]register_ip_vs_proto_netns
+      ipvs: Pass ipvs not net into init_netns and exit_netns
+      ipvs: Pass ipvs into ip_vs_conn_fill_param_proto
+      ipvs: Pass ipvs into .conn_in_get and ip_vs_conn_in_get_proto
+      ipvs: Pass ipvs into conn_out_get
+      ipvs: Pass ipvs not net to ip_vs_conn_hashkey
+      ipvs: Pass ipvs not net into ip_vs_conn_net_flush
+      ipvs: Pass ipvs not net into ip_vs_conn_net_init and ip_vs_conn_net_cleanup
+      ipvs: Pass ipvs into .conn_schedule and ip_vs_try_to_schedule
+      ipvs: Better derivation of ipvs in ip_vs_tunnel_xmit
+      ipvs: Pass ipvs into __ip_vs_get_out_rt
+      ipvs: Pass ipvs into __ip_vs_get_out_rt_v6
+      ipvs: Pass ipvs into ensure_mtu_is adequate
+      ipvs: Better derivation of ipvs in ip_vs_in_stats and ip_vs_out_stats
+      ipvs: Wrap sysctl_cache_bypass and remove ifdefs in ip_vs_leave
+      ipvs: Simplify ipvs and net access in ip_vs_leave
+      ipvs: Pass ipvs not net into sysctl_nat_icmp_send
+      ipvs: Pass ipvs into ip_vs_out
+      ipvs: Pass ipvs into ip_vs_in
+      ipvs: Pass ipvs into ip_vs_in_icmp and ip_vs_in_icmp_v6
+      ipvs: Pass ipvs into ip_vs_out_icmp and ip_vs_out_icmp_v6
+      ipvs: Pass ipvs through ip_vs_route_me_harder into sysctl_snat_reroute
+      ipvs: Remove net argument from ip_vs_tcp_conn_listen
+      ipvs: Pass ipvs not net to ip_vs_protocol_net_(init|cleanup)
+      ipvs: Remove skb_net
+      ipvs: Remove skb_sknet
+      ipvs: Pass ipvs into ip_vs_gather_frags
+
+ include/net/ip_vs.h                     | 179 +++++++--------------
+ net/netfilter/ipvs/ip_vs_app.c          |  36 ++---
+ net/netfilter/ipvs/ip_vs_conn.c         |  76 ++++-----
+ net/netfilter/ipvs/ip_vs_core.c         | 228 ++++++++++++--------------
+ net/netfilter/ipvs/ip_vs_ctl.c          | 276 ++++++++++++++++----------------
+ net/netfilter/ipvs/ip_vs_est.c          |  20 +--
+ net/netfilter/ipvs/ip_vs_ftp.c          |  25 ++-
+ net/netfilter/ipvs/ip_vs_lblc.c         |   3 +-
+ net/netfilter/ipvs/ip_vs_lblcr.c        |   3 +-
+ net/netfilter/ipvs/ip_vs_nfct.c         |   5 +-
+ net/netfilter/ipvs/ip_vs_proto.c        |  33 ++--
+ net/netfilter/ipvs/ip_vs_proto_ah_esp.c |  19 ++-
+ net/netfilter/ipvs/ip_vs_proto_sctp.c   |  28 ++--
+ net/netfilter/ipvs/ip_vs_proto_tcp.c    |  33 ++--
+ net/netfilter/ipvs/ip_vs_proto_udp.c    |  28 ++--
+ net/netfilter/ipvs/ip_vs_sync.c         |  87 +++++-----
+ net/netfilter/ipvs/ip_vs_xmit.c         |  55 ++++---
+ net/netfilter/xt_ipvs.c                 |   3 +-
+ 18 files changed, 499 insertions(+), 638 deletions(-)
