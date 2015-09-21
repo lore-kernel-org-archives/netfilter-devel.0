@@ -1,7 +1,7 @@
 From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH next 26/84] ipvs: Pass ipvs not net to __ip_vs_get_service_entries
-Date: Mon, 21 Sep 2015 13:02:03 -0500
-Message-ID: <1442858581-15869-26-git-send-email-ebiederm@xmission.com>
+Subject: [PATCH next 64/84] ipvs: Pass ipvs not net into ip_vs_conn_net_flush
+Date: Mon, 21 Sep 2015 13:02:41 -0500
+Message-ID: <1442858581-15869-64-git-send-email-ebiederm@xmission.com>
 References: <8737y7irc8.fsf_-_@x220.int.ebiederm.org>
 Cc: netfilter-devel@vger.kernel.org, <netdev@vger.kernel.org>,
 	Nicolas Dichtel <nicolas.dichtel@6wind.com>,
@@ -10,46 +10,49 @@ To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	David Miller <davem@davemloft.net>,
 	Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out02.mta.xmission.com ([166.70.13.232]:35439 "EHLO
-	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756987AbbIUSOT (ORCPT
+Received: from out01.mta.xmission.com ([166.70.13.231]:47181 "EHLO
+	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932313AbbIUSOU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Sep 2015 14:14:19 -0400
+	Mon, 21 Sep 2015 14:14:20 -0400
 In-Reply-To: <8737y7irc8.fsf_-_@x220.int.ebiederm.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
 ---
- net/netfilter/ipvs/ip_vs_ctl.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ net/netfilter/ipvs/ip_vs_conn.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index 7aba55c875cb..05f7e1d14738 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -2477,11 +2477,10 @@ ip_vs_copy_service(struct ip_vs_service_entry *dst, struct ip_vs_service *src)
- }
- 
- static inline int
--__ip_vs_get_service_entries(struct net *net,
-+__ip_vs_get_service_entries(struct netns_ipvs *ipvs,
- 			    const struct ip_vs_get_services *get,
- 			    struct ip_vs_get_services __user *uptr)
+diff --git a/net/netfilter/ipvs/ip_vs_conn.c b/net/netfilter/ipvs/ip_vs_conn.c
+index a99bbf6c8202..4bb1b7d1286d 100644
+--- a/net/netfilter/ipvs/ip_vs_conn.c
++++ b/net/netfilter/ipvs/ip_vs_conn.c
+@@ -1309,11 +1309,10 @@ void ip_vs_random_dropentry(struct netns_ipvs *ipvs)
+ /*
+  *      Flush all the connection entries in the ip_vs_conn_tab
+  */
+-static void ip_vs_conn_flush(struct net *net)
++static void ip_vs_conn_flush(struct netns_ipvs *ipvs)
  {
+ 	int idx;
+ 	struct ip_vs_conn *cp, *cp_c;
 -	struct netns_ipvs *ipvs = net_ipvs(net);
- 	int idx, count=0;
- 	struct ip_vs_service *svc;
- 	struct ip_vs_service_entry entry;
-@@ -2720,7 +2719,7 @@ do_ip_vs_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
- 			ret = -EINVAL;
- 			goto out;
- 		}
--		ret = __ip_vs_get_service_entries(net, get, user);
-+		ret = __ip_vs_get_service_entries(ipvs, get, user);
- 	}
- 	break;
  
+ flush_again:
+ 	rcu_read_lock();
+@@ -1359,8 +1358,10 @@ int __net_init ip_vs_conn_net_init(struct net *net)
+ 
+ void __net_exit ip_vs_conn_net_cleanup(struct net *net)
+ {
++	struct netns_ipvs *ipvs = net_ipvs(net);
++
+ 	/* flush all the connection entries first */
+-	ip_vs_conn_flush(net);
++	ip_vs_conn_flush(ipvs);
+ 	remove_proc_entry("ip_vs_conn", net->proc_net);
+ 	remove_proc_entry("ip_vs_conn_sync", net->proc_net);
+ }
 -- 
 2.2.1
 
