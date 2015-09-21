@@ -1,129 +1,78 @@
-From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH next 12/84] ipvs: Pass ipvs not net to ip_vs_service_find
-Date: Mon, 21 Sep 2015 13:01:49 -0500
-Message-ID: <1442858581-15869-12-git-send-email-ebiederm@xmission.com>
-References: <8737y7irc8.fsf_-_@x220.int.ebiederm.org>
-Cc: netfilter-devel@vger.kernel.org, <netdev@vger.kernel.org>,
-	Nicolas Dichtel <nicolas.dichtel@6wind.com>,
-	lvs-devel@vger.kernel.org, Julian Anastasov <ja@ssi.bg>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	David Miller <davem@davemloft.net>,
-	Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <8737y7irc8.fsf_-_@x220.int.ebiederm.org>
-Sender: lvs-devel-owner@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH RFC 0/3] Allow postponed netfilter handling for socket
+ matches
+Date: Mon, 21 Sep 2015 21:05:55 +0200
+Message-ID: <20150921190555.GD931@breakpoint.cc>
+References: <1442418180-14322-1-git-send-email-daniel@zonque.org>
+ <20150916212100.GT24810@breakpoint.cc>
+ <55FA902F.50006@zonque.org>
+ <20150917160008.GA32700@breakpoint.cc>
+ <560035B4.9010504@zonque.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, pablo@netfilter.org,
+	daniel@iogearbox.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, balazs.scheidler@balabit.com
+To: Daniel Mack <daniel@zonque.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <560035B4.9010504@zonque.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
----
- include/net/ip_vs.h                   | 2 +-
- net/netfilter/ipvs/ip_vs_ctl.c        | 5 ++---
- net/netfilter/ipvs/ip_vs_proto_sctp.c | 4 ++--
- net/netfilter/ipvs/ip_vs_proto_tcp.c  | 4 ++--
- net/netfilter/ipvs/ip_vs_proto_udp.c  | 6 ++++--
- 5 files changed, 11 insertions(+), 10 deletions(-)
+Daniel Mack <daniel@zonque.org> wrote:
+> >> LOCAL_IN, for ingress only? In a sense, it would be called from the
+> >> protocol handlers, just as my patches do right now, but instead of
+> >> conditionally re-iterating the same rules again, we would walk a
+> >> different chain?
+> > 
+> > Yes, something like that.  Obviously, you'll need to dru^W brib^W
+> > convince a LOT of people before that could ever fly.
+> > 
+> > I think we should not do this and that this 'match on ingress sk
+> > properties' is just bad[tm].
+> > 
+> > f.e. you'd also have to move all of the stuff you want into
+> > sock_common ... 8-(
+> 
+> Hmm, I'm not sure whether I understand which problems you see, or which
+> corner cases I am missing in my assessment. I did a quick test with the
+> attached 4 patches that
+> 
+> 1) Allow hook callbacks to look at the socket passed to nf_hook(), so
+>    skb->sk does not have to be set
+> 
+> 2) Make nft_meta look at pkt->sk rather that skb->sk (only for cgroups
+>    as proof of concept)
+> 
+> 3) Introduce a new POST_DEMUX netfilter chain (the name is not
+>    perfect, admittedly)
+> 
+> 4) Iterate POST_DEMUX chains for v4 TCP and UDP unicast+multicast
+>    sockets.
+> 
+> With some really trivial modifications to libnftnl/nftables (which just
+> map strings to the new enum value), this works fine in my tests.
+> Multicast receivers that match a netclass ID in the ruleset won't see
+> any packets, while others do.
+> 
+> Some more considerations: if we cannot determine a socket for a packet
+> and hence don't deliver it, it's IMO perfectly fine not to run the
+> netfilter rules for them. All we need to achieve with this chain is that
+> for packets that _are_ delivered to a socket, all the necessary rules
+> have been processed, at a time when we know who the final receiver of
+> the skb is.
 
-diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
-index 2c22380b9ad7..828b19b23e02 100644
---- a/include/net/ip_vs.h
-+++ b/include/net/ip_vs.h
-@@ -1410,7 +1410,7 @@ extern struct ip_vs_stats ip_vs_stats;
- extern int sysctl_ip_vs_sync_ver;
- 
- struct ip_vs_service *
--ip_vs_service_find(struct net *net, int af, __u32 fwmark, __u16 protocol,
-+ip_vs_service_find(struct netns_ipvs *ipvs, int af, __u32 fwmark, __u16 protocol,
- 		  const union nf_inet_addr *vaddr, __be16 vport);
- 
- bool ip_vs_has_real_service(struct net *net, int af, __u16 protocol,
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index fd8de5ceffca..67fe0c92e3f7 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -406,11 +406,10 @@ __ip_vs_svc_fwm_find(struct netns_ipvs *ipvs, int af, __u32 fwmark)
- 
- /* Find service, called under RCU lock */
- struct ip_vs_service *
--ip_vs_service_find(struct net *net, int af, __u32 fwmark, __u16 protocol,
-+ip_vs_service_find(struct netns_ipvs *ipvs, int af, __u32 fwmark, __u16 protocol,
- 		   const union nf_inet_addr *vaddr, __be16 vport)
- {
- 	struct ip_vs_service *svc;
--	struct netns_ipvs *ipvs = net_ipvs(net);
- 
- 	/*
- 	 *	Check the table hashed by fwmark first
-@@ -612,7 +611,7 @@ struct ip_vs_dest *ip_vs_find_dest(struct net  *net, int svc_af, int dest_af,
- 	struct ip_vs_service *svc;
- 	__be16 port = dport;
- 
--	svc = ip_vs_service_find(net, svc_af, fwmark, protocol, vaddr, vport);
-+	svc = ip_vs_service_find(net_ipvs(net), svc_af, fwmark, protocol, vaddr, vport);
- 	if (!svc)
- 		return NULL;
- 	if (fwmark && (flags & IP_VS_CONN_F_FWD_MASK) != IP_VS_CONN_F_MASQ)
-diff --git a/net/netfilter/ipvs/ip_vs_proto_sctp.c b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-index ce615866bd63..373a4751c328 100644
---- a/net/netfilter/ipvs/ip_vs_proto_sctp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_sctp.c
-@@ -45,10 +45,10 @@ sctp_conn_schedule(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
- 
- 	rcu_read_lock();
- 	if (likely(!ip_vs_iph_inverse(iph)))
--		svc = ip_vs_service_find(net, af, skb->mark, iph->protocol,
-+		svc = ip_vs_service_find(ipvs, af, skb->mark, iph->protocol,
- 					 &iph->daddr, ports[1]);
- 	else
--		svc = ip_vs_service_find(net, af, skb->mark, iph->protocol,
-+		svc = ip_vs_service_find(ipvs, af, skb->mark, iph->protocol,
- 					 &iph->saddr, ports[0]);
- 	if (svc) {
- 		int ignored;
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-index e00623a88518..48af3ca6be03 100644
---- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -70,10 +70,10 @@ tcp_conn_schedule(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
- 	rcu_read_lock();
- 
- 	if (likely(!ip_vs_iph_inverse(iph)))
--		svc = ip_vs_service_find(net, af, skb->mark, iph->protocol,
-+		svc = ip_vs_service_find(ipvs, af, skb->mark, iph->protocol,
- 					 &iph->daddr, ports[1]);
- 	else
--		svc = ip_vs_service_find(net, af, skb->mark, iph->protocol,
-+		svc = ip_vs_service_find(ipvs, af, skb->mark, iph->protocol,
- 					 &iph->saddr, ports[0]);
- 
- 	if (svc) {
-diff --git a/net/netfilter/ipvs/ip_vs_proto_udp.c b/net/netfilter/ipvs/ip_vs_proto_udp.c
-index 3b0a2dc1826b..e9f5f7e30bef 100644
---- a/net/netfilter/ipvs/ip_vs_proto_udp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_udp.c
-@@ -34,6 +34,7 @@ udp_conn_schedule(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
- 		  struct ip_vs_iphdr *iph)
- {
- 	struct net *net;
-+	struct netns_ipvs *ipvs;
- 	struct ip_vs_service *svc;
- 	struct udphdr _udph, *uh;
- 	__be16 _ports[2], *ports = NULL;
-@@ -54,12 +55,13 @@ udp_conn_schedule(int af, struct sk_buff *skb, struct ip_vs_proto_data *pd,
- 	}
- 
- 	net = skb_net(skb);
-+	ipvs = net_ipvs(net);
- 	rcu_read_lock();
- 	if (likely(!ip_vs_iph_inverse(iph)))
--		svc = ip_vs_service_find(net, af, skb->mark, iph->protocol,
-+		svc = ip_vs_service_find(ipvs, af, skb->mark, iph->protocol,
- 					 &iph->daddr, ports[1]);
- 	else
--		svc = ip_vs_service_find(net, af, skb->mark, iph->protocol,
-+		svc = ip_vs_service_find(ipvs, af, skb->mark, iph->protocol,
- 					 &iph->saddr, ports[0]);
- 
- 	if (svc) {
--- 
-2.2.1
+Not sure if thats true.  What about Timewait sockets?
 
+Its easy to imagine someone using this feature and then complaining
+that it doesn't match some packets, at which point we'd have to grow
+sock_common to accomondate all sk member we support matching for :-/
+
+If we'd have kernel releases where we drop features this wouldn't be
+much of an issue since we could back out in case it causes issues later.
+
+But once we add your proposed feature we cannot go back...
+
+I'm not sure; I dislike this feature proposal but I can't think of
+any alternative [other than "don't do this"] :-(
