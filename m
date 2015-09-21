@@ -1,42 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/4] Netfilter fixes for net
-Date: Sun, 20 Sep 2015 22:32:42 -0700 (PDT)
-Message-ID: <20150920.223242.1042651674478554215.davem@davemloft.net>
-References: <1442567876-4046-1-git-send-email-pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nft 0/12] add support for VLAN header filtering in bridge
+ family
+Date: Mon, 21 Sep 2015 16:18:24 +0200
+Message-ID: <20150921141824.GB931@breakpoint.cc>
+References: <1439751955-31190-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:48787 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751894AbbIUFcn (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49615 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756431AbbIUOS0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Sep 2015 01:32:43 -0400
-In-Reply-To: <1442567876-4046-1-git-send-email-pablo@netfilter.org>
+	Mon, 21 Sep 2015 10:18:26 -0400
+Content-Disposition: inline
+In-Reply-To: <1439751955-31190-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Fri, 18 Sep 2015 11:17:52 +0200
+Florian Westphal <fw@strlen.de> wrote:
+> This adds the following features:
+> - stacked headers: vlan sits on top of ethernet, so when vlan id 42 is requested,
+>   add a dependency on eth and also adjust payload offsets by the size of ethernet
+>   header.
+> 
+> - allow matching header fields of lengths and/or offsets that are not byte divisible,
+>   e.g. vlan id, vlan pcp, ip hdrlength, etc.
 
-> The following patch contains Netfilter fixes for your net tree, they are:
-> 
-> 1) nf_log_unregister() should only set to NULL the logger that is being
->    unregistered, instead of everything else. Patch from Florian Westphal.
-> 
-> 2) Fix a crash when accessing physoutdev from PREROUTING in br_netfilter.
->    This is partially reverting the patch to shrink nf_bridge_info to 32 bytes.
->    Also from Florian.
-> 
-> 3) Use existing match/target extensions in the internal nft_compat extension
->    lists when the extension is family unspecific (ie. NFPROTO_UNSPEC).
-> 
-> 4) Wait for rcu grace period before leaving nf_log_unregister().
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
-
-Pulled, thanks Pablo.
+pushed it to master.
