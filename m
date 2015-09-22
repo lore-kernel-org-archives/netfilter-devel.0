@@ -1,78 +1,90 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH RFC 0/3] Allow postponed netfilter handling for socket
- matches
-Date: Mon, 21 Sep 2015 21:05:55 +0200
-Message-ID: <20150921190555.GD931@breakpoint.cc>
-References: <1442418180-14322-1-git-send-email-daniel@zonque.org>
- <20150916212100.GT24810@breakpoint.cc>
- <55FA902F.50006@zonque.org>
- <20150917160008.GA32700@breakpoint.cc>
- <560035B4.9010504@zonque.org>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH next 00/84] ipvs: Stop guessing the network namespace
+ (take 2)
+Date: Tue, 22 Sep 2015 10:22:13 +0300 (EEST)
+Message-ID: <alpine.LFD.2.11.1509221019170.3008@ja.home.ssi.bg>
+References: <87mvwn18my.fsf@x220.int.ebiederm.org> <87pp1fpy1b.fsf@x220.int.ebiederm.org> <87fv2bo7br.fsf_-_@x220.int.ebiederm.org> <87h9mplifu.fsf_-_@x220.int.ebiederm.org> <8737y7irc8.fsf_-_@x220.int.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, pablo@netfilter.org,
-	daniel@iogearbox.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, balazs.scheidler@balabit.com
-To: Daniel Mack <daniel@zonque.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <560035B4.9010504@zonque.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	David Miller <davem@davemloft.net>,
+	Simon Horman <horms@verge.net.au>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Nicolas Dichtel <nicolas.dichtel@6wind.com>,
+	lvs-devel@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ja.ssi.bg ([178.16.129.10]:41131 "EHLO ja.ssi.bg"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757350AbbIVHWe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Sep 2015 03:22:34 -0400
+In-Reply-To: <8737y7irc8.fsf_-_@x220.int.ebiederm.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Daniel Mack <daniel@zonque.org> wrote:
-> >> LOCAL_IN, for ingress only? In a sense, it would be called from the
-> >> protocol handlers, just as my patches do right now, but instead of
-> >> conditionally re-iterating the same rules again, we would walk a
-> >> different chain?
-> > 
-> > Yes, something like that.  Obviously, you'll need to dru^W brib^W
-> > convince a LOT of people before that could ever fly.
-> > 
-> > I think we should not do this and that this 'match on ingress sk
-> > properties' is just bad[tm].
-> > 
-> > f.e. you'd also have to move all of the stuff you want into
-> > sock_common ... 8-(
-> 
-> Hmm, I'm not sure whether I understand which problems you see, or which
-> corner cases I am missing in my assessment. I did a quick test with the
-> attached 4 patches that
-> 
-> 1) Allow hook callbacks to look at the socket passed to nf_hook(), so
->    skb->sk does not have to be set
-> 
-> 2) Make nft_meta look at pkt->sk rather that skb->sk (only for cgroups
->    as proof of concept)
-> 
-> 3) Introduce a new POST_DEMUX netfilter chain (the name is not
->    perfect, admittedly)
-> 
-> 4) Iterate POST_DEMUX chains for v4 TCP and UDP unicast+multicast
->    sockets.
-> 
-> With some really trivial modifications to libnftnl/nftables (which just
-> map strings to the new enum value), this works fine in my tests.
-> Multicast receivers that match a netclass ID in the ruleset won't see
-> any packets, while others do.
-> 
-> Some more considerations: if we cannot determine a socket for a packet
-> and hence don't deliver it, it's IMO perfectly fine not to run the
-> netfilter rules for them. All we need to achieve with this chain is that
-> for packets that _are_ delivered to a socket, all the necessary rules
-> have been processed, at a time when we know who the final receiver of
-> the skb is.
 
-Not sure if thats true.  What about Timewait sockets?
+	Hello,
 
-Its easy to imagine someone using this feature and then complaining
-that it doesn't match some packets, at which point we'd have to grow
-sock_common to accomondate all sk member we support matching for :-/
+On Mon, 21 Sep 2015, Eric W. Biederman wrote:
 
-If we'd have kernel releases where we drop features this wouldn't be
-much of an issue since we could back out in case it causes issues later.
+> I am gradually working my way through the netfilter stack passing struct
+> down into the netfilter hooks and from the netfilter hooks and from
+> there down into the functions that actually care.  This removes the need
+> for netfilter functions to guess how to figure out how to compute which
+> network namespace they are in and instead provides a simple and reliable
+> method to do so.
+> 
+> The cleanups stand on their own but this is part of a larger effort to
+> have routes with an output device that is not in the current network
+> namespace.
+> 
+> The IPVS code has been a bit more of a challenge than most.  Just
+> passing struct net through to where it is needed did not feel clean to
+> me.  The practical issue is that the ipvs code in most places actually
+> wants struct netns_ipvs and not struct net.
+> 
+> So as part of this process I have turned the relationship between struct
+> net and the structs netns_ipvs, ip_vs_conn_param, ip_vs_conn, and
+> ip_vs_service inside out.  I have modified the ipvs functions to take a
+> struct netns_ipvs not a struct net.  The net is code with fewer
+> conversions from one type of structure to another.  I did wind up adding
+> a struct netns_ipvs parameter to quite a few functions that did not have
+> it before so I could pass the structure down from the netfilter hooks to
+> where it is actually needed to avoid guessing.
+> 
+> I have broken up the work in a bunch of small patches so there is at
+> least a chance and reviewing that each step I took is correct.  The
+> series compiles at each step so bisecting it should not be a problem
+> if something weird comes up.
+> 
+> The first two changes in this series are actually bug fixes.  The first
+> is a compile fix for a bug in sctp that came in, in the last round of
+> ipvs changes merged into nf-next.  The second fixes an older bug where
+> in pathological circumstances the wrong network namespace could be used
+> when a proc file is written to.
+> 
+> The rest of the patchset is a bunch of boring changes getting pushing
+> struct netns_ipvs (and by extension ipvs->net) where it needs to be.
+> Either by replacing struct net pointers or adding new struct netns_ipvs
+> pointers.  With a handful of other minor cleanups (like removing
+> skb_net).
+> 
+> I have incorporated Julian Anastasov's feedback, which critically
+> involves fixing a wrong piece of code.
+> 
+> The changes are also available against nf-next at:
+> git://git.kernel.org/pub/scm/linux/kernel/git/ebiederm/net-next.git master
+> 
+> My entire pending set of changes for those who want to look ahead is at:
+> git://git.kernel.org/pub/scm/linux/kernel/git/ebiederm/net-next.git for-testing
+> 
+> Eric
 
-But once we add your proposed feature we cannot go back...
+	v2 looks good to me,
 
-I'm not sure; I dislike this feature proposal but I can't think of
-any alternative [other than "don't do this"] :-(
+Acked-by: Julian Anastasov <ja@ssi.bg>
+
+Regards
+
+--
+Julian Anastasov <ja@ssi.bg>
