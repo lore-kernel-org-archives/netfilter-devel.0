@@ -1,45 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft] strange behaviour
-Date: Wed, 23 Sep 2015 00:24:54 +0200
-Message-ID: <20150922222454.GA4740@salvia>
-References: <5601a0c8.vTjiOdyXOkEgHeZy%littlesmilingcloud@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, dau@sunlink.ru
-To: littlesmilingcloud@gmail.com
+Subject: [PATCH nft 2/2] parser: show all tables via list tables with no family
+Date: Wed, 23 Sep 2015 00:20:51 +0200
+Message-ID: <1442960451-4704-2-git-send-email-pablo@netfilter.org>
+References: <1442960451-4704-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, nvinson234@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35030 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35041 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759458AbbIVWSG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Sep 2015 18:18:06 -0400
-Content-Disposition: inline
-In-Reply-To: <5601a0c8.vTjiOdyXOkEgHeZy%littlesmilingcloud@gmail.com>
+	id S1759679AbbIVWSO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Sep 2015 18:18:14 -0400
+In-Reply-To: <1442960451-4704-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Sep 22, 2015 at 09:41:12PM +0300, littlesmilingcloud@gmail.com wrote:
-> Hello.
-> 
-> I have try to add the subnet element to the named set, and nft has closed unexpectly.
-> I use the 4.2 stable kernel and latest stable release of libnftnl and nftables from git.
-> 
-> Reproduce of the strange behaviour.
-> --------------------------------------------------------------------------------------
-> nft> list ruleset;
-> nft> add table ip filter;
-> nft> add set ip filter addr_list { type ipv4_addr; }
+Default to the same behaviour that we get through `list ruleset', ie.
 
-This should be instead:
+ # nft list tables
+ table ip filter
+ table ip6 filter
 
-nft> add set ip filter addr_list { type ipv4_addr; flags interval; }
+ # nft list tables ip
+ table ip filter
 
-> nft> add element ip filter addr_list { 192.168.1.1 }
-> nft> add element ip filter addr_list { 192.168.10.0/24 }
-> BUG: invalid data expression type prefix
-> nft: netlink.c:326: netlink_gen_data: Assertion `0' failed.
+ # nft list tables ip6
+ table ip6 filter
 
-We should be showing a better error on this, so the user knows the set
-was not defined to have intervals.
+Closes: http://bugzilla.netfilter.org/show_bug.cgi?id=1033
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/parser_bison.y |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Anyway, even after the missing flags there on top, you'll hit another
-EEXIST bug that we currently have in the kernel.
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 385e214..36910a7 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -767,7 +767,7 @@ list_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_TABLE, &$2, &@$, NULL);
+ 			}
+-			|	TABLES		tables_spec
++			|	TABLES		ruleset_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_TABLE, &$2, &@$, NULL);
+ 			}
+-- 
+1.7.10.4
+
