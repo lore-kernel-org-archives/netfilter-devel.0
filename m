@@ -1,28 +1,50 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/30] Netfilter/IPVS updates for net-next
-Date: Tue, 22 Sep 2015 13:12:02 -0700 (PDT)
-Message-ID: <20150922.131202.782822320612989126.davem@davemloft.net>
-References: <1442913260-3925-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 1/2] rule: filter out tables depending on family
+Date: Wed, 23 Sep 2015 00:20:50 +0200
+Message-ID: <1442960451-4704-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, nvinson234@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:35813 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933812AbbIVUMG (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Sep 2015 16:12:06 -0400
-In-Reply-To: <1442913260-3925-1-git-send-email-pablo@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:34697 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759658AbbIVWOM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Sep 2015 18:14:12 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue, 22 Sep 2015 11:13:50 +0200
+ # nft list tables ip
+ table ip filter
 
-> The following patchset contains Netfilter/IPVS updates for your net-next tree
-> in this 4.4 development cycle, they are:
- ...
+ # nft list tables ip6
+ table ip6 filter
 
-Pulled, thanks Pablo.
+Closes: http://bugzilla.netfilter.org/show_bug.cgi?id=1033
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/rule.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/rule.c b/src/rule.c
+index 43cc4a8..92b83f0 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1013,10 +1013,15 @@ static int do_list_tables(struct netlink_ctx *ctx, struct cmd *cmd)
+ {
+ 	struct table *table;
+ 
+-	list_for_each_entry(table, &table_list, list)
++	list_for_each_entry(table, &table_list, list) {
++		if (cmd->handle.family != NFPROTO_UNSPEC &&
++		    cmd->handle.family != table->handle.family)
++			continue;
++
+ 		printf("table %s %s\n",
+ 		       family2str(table->handle.family),
+ 		       table->handle.table);
++	}
+ 
+ 	return 0;
+ }
+-- 
+1.7.10.4
+
