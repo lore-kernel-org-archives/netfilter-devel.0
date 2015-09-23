@@ -1,50 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 2/2] parser: show all tables via list tables with no family
-Date: Wed, 23 Sep 2015 00:20:51 +0200
-Message-ID: <1442960451-4704-2-git-send-email-pablo@netfilter.org>
-References: <1442960451-4704-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, nvinson234@gmail.com
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35041 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759679AbbIVWSO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Sep 2015 18:18:14 -0400
-In-Reply-To: <1442960451-4704-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH next 00/84] ipvs: Stop guessing the network namespace
+ (take 2)
+Date: Wed, 23 Sep 2015 09:17:27 +0900
+Message-ID: <20150923001727.GD4685@verge.net.au>
+References: <87mvwn18my.fsf@x220.int.ebiederm.org>
+ <87pp1fpy1b.fsf@x220.int.ebiederm.org>
+ <87fv2bo7br.fsf_-_@x220.int.ebiederm.org>
+ <87h9mplifu.fsf_-_@x220.int.ebiederm.org>
+ <8737y7irc8.fsf_-_@x220.int.ebiederm.org>
+ <alpine.LFD.2.11.1509221019170.3008@ja.home.ssi.bg>
+ <20150922085041.GD3422@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Julian Anastasov <ja@ssi.bg>,
+	"Eric W. Biederman" <ebiederm@xmission.com>,
+	David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Nicolas Dichtel <nicolas.dichtel@6wind.com>,
+	lvs-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150922085041.GD3422@salvia>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Default to the same behaviour that we get through `list ruleset', ie.
+On Tue, Sep 22, 2015 at 10:50:41AM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Sep 22, 2015 at 10:22:13AM +0300, Julian Anastasov wrote:
+> [...]
+> > 
+> > 	v2 looks good to me,
+> > 
+> > Acked-by: Julian Anastasov <ja@ssi.bg>
+> 
+> Thanks a lot for reviewing Julian.
+> 
+> Simon, please let me know how you want to handle this. Thanks.
 
- # nft list tables
- table ip filter
- table ip6 filter
-
- # nft list tables ip
- table ip filter
-
- # nft list tables ip6
- table ip6 filter
-
-Closes: http://bugzilla.netfilter.org/show_bug.cgi?id=1033
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/parser_bison.y |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 385e214..36910a7 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -767,7 +767,7 @@ list_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_TABLE, &$2, &@$, NULL);
- 			}
--			|	TABLES		tables_spec
-+			|	TABLES		ruleset_spec
- 			{
- 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_TABLE, &$2, &@$, NULL);
- 			}
--- 
-1.7.10.4
-
+I will see about taking it through my tree (as usual).
