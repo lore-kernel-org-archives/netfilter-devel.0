@@ -1,44 +1,32 @@
-From: Christophe Leroy <christophe.leroy@c-s.fr>
-Subject: SIP messages with no/invalid CSeq are dropped by nf_ct_sip, 400 Bad
- Request is expected instead
-Date: Thu, 24 Sep 2015 10:54:12 +0200
-Message-ID: <5603BA34.60700@c-s.fr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: =?utf-8?B?562U5aSNOiBbUEFUQ0ggUmVzb2x2?=
+ =?utf-8?Q?ed_UMA_issue=5D_netfilter=3A_icmp=3A_Enhanc?= =?utf-8?Q?e?= the
+ return value check of nf_nat_icmp(v6)_reply_translation
+Date: Thu, 24 Sep 2015 12:13:37 +0200
+Message-ID: <20150924101337.GB4709@salvia>
+References: <BAY403-EAS1715250DCF2909E7CF2126B95470@phx.gbl>
+ <BAY403-EAS177047F29CEA067EAD9964C95430@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org,
-	TIXADOU Jean-Yves <jean-yves.tixadou@c-s.fr>,
-	PERRONNY Olivier <olivier.perronny@c-s.fr>
-To: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Feng Gao <gfree.wind@outlook.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 2.236.17.93.rev.sfr.net ([93.17.236.2]:2304 "EHLO
-	mailhub1.si.c-s.fr" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750900AbbIXJcV (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Sep 2015 05:32:21 -0400
+Received: from mail.us.es ([193.147.175.20]:36211 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754908AbbIXKGz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Sep 2015 06:06:55 -0400
+Content-Disposition: inline
+In-Reply-To: <BAY403-EAS177047F29CEA067EAD9964C95430@phx.gbl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Thu, Sep 24, 2015 at 12:24:41PM +0800, Feng Gao wrote:
+> Hi Pablo,
+> 
+> How about this patch?
+> If it is ok, I have more confidence to try to commit more patches.
 
-I have an issue with the SIP conntrack:
+The patch format looks good, patchwork is catching it.
 
-In commit 30f33e6dee [NETFILTER]: nf_conntrack_sip: support method 
-specific request/response handling
-Modified by b20ab9cc63 netfilter: nf_ct_helper: better logging for 
-dropped packets
-
-SIP requests with no CSeq header are dropped by kernel before reaching 
-the user app.
-
-According to RFC4475 "Session Initiation Protocol (SIP) Torture Test 
-Messages", requests with invalid CSeq should be responded with 400 Bad 
-Request, and that's what my app does, but it can only do it if it 
-receives the request.
-
-How can we solve that ?
-
-Christophe
+I'll go back to the pending list of patches as soon as the netns bunch
+gets merged mainstream.
