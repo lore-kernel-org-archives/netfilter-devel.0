@@ -1,36 +1,30 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: NFQUEUE parallelization
-Date: Fri, 25 Sep 2015 00:18:45 +0200
-Message-ID: <20150924221845.GB24240@breakpoint.cc>
-References: <CAKEqNm=2vnqe_fmSTM4G7xWsHkrXP29f_QxLUf7v7_-f5ESyKQ@mail.gmail.com>
- <20150924204840.GC29479@breakpoint.cc>
- <CAKEqNmmvrHwZGiwMA8AutnW_K+E9Wno3oq8duCFWkUNyBE_=Yw@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [GIT PULL nf-next 00/84] Second Round of IPVS Updates for v4.4
+Date: Fri, 25 Sep 2015 02:01:02 +0200
+Message-ID: <20150925000102.GA5634@salvia>
+References: <1443055989-1306-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Eugene Strulyov <eugene.strulyov@gmail.com>, g@breakpoint.cc
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	"Eric W. Biederman" <ebiederm@xmission.com>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:59722 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753544AbbIXWSs (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Sep 2015 18:18:48 -0400
+Received: from mail.us.es ([193.147.175.20]:44281 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751123AbbIXXyN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Sep 2015 19:54:13 -0400
 Content-Disposition: inline
-In-Reply-To: <CAKEqNmmvrHwZGiwMA8AutnW_K+E9Wno3oq8duCFWkUNyBE_=Yw@mail.gmail.com>
+In-Reply-To: <1443055989-1306-1-git-send-email-horms@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eugene Strulyov <eugene.strulyov@gmail.com> wrote:
-
-Please don't top post.
-
-> Thanks for your reply.
+On Thu, Sep 24, 2015 at 09:51:45AM +0900, Simon Horman wrote:
+> Hi Pablo,
 > 
-> So with regards to parallelization, I need to use multiple queues, correct?
+> please consider these bug fixes and extensive clean-ups of IPVS
+> from Eric Biederman for v4.4.
 
-Not necessarily, but it avoids contention for a (single) queue.
-
-> Also, with --queue-balance, will the same (src_ip, dst_ip) pair always
-> map to the same queue?
-
-Yes, all saddr,daddr [and replies] get into same queue.
+Pulled, thanks Simon.
