@@ -1,30 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL nf-next 00/84] Second Round of IPVS Updates for v4.4
-Date: Fri, 25 Sep 2015 02:01:02 +0200
-Message-ID: <20150925000102.GA5634@salvia>
-References: <1443055989-1306-1-git-send-email-horms@verge.net.au>
+From: Eugene Strulyov <eugene.strulyov@gmail.com>
+Subject: NFQUEUE filtering strategy
+Date: Thu, 24 Sep 2015 17:33:33 -0700
+Message-ID: <CAKEqNmnNGC2COOox+dN1uY8q27VBSZnjBjo_R1tK62QsYg+uLQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	"Eric W. Biederman" <ebiederm@xmission.com>
-To: Simon Horman <horms@verge.net.au>
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44281 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751123AbbIXXyN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Sep 2015 19:54:13 -0400
-Content-Disposition: inline
-In-Reply-To: <1443055989-1306-1-git-send-email-horms@verge.net.au>
+Received: from mail-oi0-f43.google.com ([209.85.218.43]:35595 "EHLO
+	mail-oi0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752813AbbIYAde (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Sep 2015 20:33:34 -0400
+Received: by oiww128 with SMTP id w128so50693728oiw.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 24 Sep 2015 17:33:33 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 24, 2015 at 09:51:45AM +0900, Simon Horman wrote:
-> Hi Pablo,
-> 
-> please consider these bug fixes and extensive clean-ups of IPVS
-> from Eric Biederman for v4.4.
+Hi,
 
-Pulled, thanks Simon.
+I am writing a custom filter using libnetfilter_queue. This library
+supports NF_ACCEPT and NF_DROP verdicts, but I also need to be able to
+REJECT and REDIRECT. So what I'm planning to do instead is to use
+NFQUEUE to mark packets in the mangle table, then post-process them
+with iptables in the nat and filter tables. Something like this:
+
+iptables -t mangle -A PREROUTING -p tcp --dport 1234 -j NFQUEUE
+--queue-balance 1:10
+# all packets NF_ACCEPT'ed but marked appropriately
+
+iptables -t nat -A PREROUTING -p tcp -m mark --mark 4 -j REDIRECT
+iptables -t filter -A FORWARD -p tcp -m mark --mark 1 -j ACCEPT
+iptables -t filter -A FORWARD -p tcp -m mark --mark 2 -j REJECT
+iptables -t filter -A FORWARD -p tcp -m mark --mark 3 -j DROP
+
+Does this sound like a reasonable approach?
+
+thanks,
+
+Eugene
