@@ -1,155 +1,194 @@
-From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH next 4/5] ipv4: Pass struct net into ip_route_me_harder
-Date: Fri, 25 Sep 2015 15:07:30 -0500
-Message-ID: <1443211651-22154-4-git-send-email-ebiederm@xmission.com>
-References: <87si62gteh.fsf_-_@x220.int.ebiederm.org>
-Cc: David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, <netdev@vger.kernel.org>,
-	Nicolas Dichtel <nicolas.dichtel@6wind.com>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: [PATCH nf-next] bridge: Pass net into br_validate_ipv4 and br_validate_ipv6
+Date: Fri, 25 Sep 2015 16:52:51 -0500
+Message-ID: <87si62f9os.fsf@x220.int.ebiederm.org>
+Mime-Version: 1.0
+Content-Type: text/plain
+Cc: netfilter-devel@vger.kernel.org, <netdev@vger.kernel.org>,
+	David Miller <davem@davemloft.net>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <87si62gteh.fsf_-_@x220.int.ebiederm.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from out02.mta.xmission.com ([166.70.13.232]:60955 "EHLO
+	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751050AbbIYWAN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Sep 2015 18:00:13 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Don't make ip_route_me_harder guess which network namespace
-it is routing in, pass the network namespace in.
+
+The network namespace is easiliy available in state->net so use it.
 
 Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
 ---
- include/linux/netfilter_ipv4.h            | 2 +-
- net/ipv4/netfilter.c                      | 5 ++---
- net/ipv4/netfilter/ipt_SYNPROXY.c         | 4 +++-
- net/ipv4/netfilter/iptable_mangle.c       | 2 +-
- net/ipv4/netfilter/nf_nat_l3proto_ipv4.c  | 2 +-
- net/ipv4/netfilter/nf_reject_ipv4.c       | 2 +-
- net/ipv4/netfilter/nft_chain_route_ipv4.c | 2 +-
- net/netfilter/ipvs/ip_vs_core.c           | 2 +-
- 8 files changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4.h b/include/linux/netfilter_ipv4.h
-index 6e4591bb54d4..98c03b2462b5 100644
---- a/include/linux/netfilter_ipv4.h
-+++ b/include/linux/netfilter_ipv4.h
-@@ -6,7 +6,7 @@
+This patch plus the 5 ip_route_me_harder patches I sent out today are
+the last of my pure netfilter patches in my queue for pushing down
+struct net where it is needed.  Everything else seems to involve
+elements of the routinting stack (such as fragmentation and
+defragmentation) and anything netfilter related about them is secondary.
+
+So after these patches are merged into nf-next I expect the wise thing
+to do is wait for nf-next to merge into net-next and send the rest of
+the patches through net-next.
+
+ include/net/netfilter/br_netfilter.h |  4 ++--
+ net/bridge/br_netfilter_hooks.c      | 19 +++++++++----------
+ net/bridge/br_netfilter_ipv6.c       | 11 +++++------
+ 3 files changed, 16 insertions(+), 18 deletions(-)
+
+diff --git a/include/net/netfilter/br_netfilter.h b/include/net/netfilter/br_netfilter.h
+index c93c75fa41ad..e8d1448425a7 100644
+--- a/include/net/netfilter/br_netfilter.h
++++ b/include/net/netfilter/br_netfilter.h
+@@ -45,12 +45,12 @@ struct net_device *setup_pre_routing(struct sk_buff *skb);
+ void br_netfilter_enable(void);
  
- #include <uapi/linux/netfilter_ipv4.h>
- 
--int ip_route_me_harder(struct sk_buff *skb, unsigned addr_type);
-+int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned addr_type);
- __sum16 nf_ip_checksum(struct sk_buff *skb, unsigned int hook,
- 		       unsigned int dataoff, u_int8_t protocol);
- #endif /*__LINUX_IP_NETFILTER_H*/
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index 9e07e6f23398..c3776ff6749f 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -17,9 +17,8 @@
- #include <net/netfilter/nf_queue.h>
- 
- /* route_me_harder function, used by iptable_nat, iptable_mangle + ip_queue */
--int ip_route_me_harder(struct sk_buff *skb, unsigned int addr_type)
-+int ip_route_me_harder(struct net *net, struct sk_buff *skb, unsigned int addr_type)
+ #if IS_ENABLED(CONFIG_IPV6)
+-int br_validate_ipv6(struct sk_buff *skb);
++int br_validate_ipv6(struct net *net, struct sk_buff *skb);
+ unsigned int br_nf_pre_routing_ipv6(void *priv,
+ 				    struct sk_buff *skb,
+ 				    const struct nf_hook_state *state);
+ #else
+-static inline int br_validate_ipv6(struct sk_buff *skb)
++static inline int br_validate_ipv6(struct net *net, struct sk_buff *skb)
  {
--	struct net *net = dev_net(skb_dst(skb)->dev);
- 	const struct iphdr *iph = ip_hdr(skb);
- 	struct rtable *rt;
- 	struct flowi4 fl4 = {};
-@@ -116,7 +115,7 @@ static int nf_ip_reroute(struct net *net, struct sk_buff *skb,
- 		      skb->mark == rt_info->mark &&
- 		      iph->daddr == rt_info->daddr &&
- 		      iph->saddr == rt_info->saddr))
--			return ip_route_me_harder(skb, RTN_UNSPEC);
-+			return ip_route_me_harder(net, skb, RTN_UNSPEC);
- 	}
- 	return 0;
+ 	return -1;
  }
-diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
-index 0060d9abd514..6a6e762ab27f 100644
---- a/net/ipv4/netfilter/ipt_SYNPROXY.c
-+++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
-@@ -45,6 +45,8 @@ synproxy_send_tcp(const struct synproxy_net *snet,
- 		  struct iphdr *niph, struct tcphdr *nth,
- 		  unsigned int tcp_hdr_size)
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index e21e44c13e07..13f03671c88d 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -189,10 +189,9 @@ static inline void nf_bridge_pull_encap_header_rcsum(struct sk_buff *skb)
+  * expected format
+  */
+ 
+-static int br_validate_ipv4(struct sk_buff *skb)
++static int br_validate_ipv4(struct net *net, struct sk_buff *skb)
  {
-+	struct net *net = nf_ct_net(snet->tmpl);
-+
- 	nth->check = ~tcp_v4_check(tcp_hdr_size, niph->saddr, niph->daddr, 0);
- 	nskb->ip_summed   = CHECKSUM_PARTIAL;
- 	nskb->csum_start  = (unsigned char *)nth - nskb->head;
-@@ -52,7 +54,7 @@ synproxy_send_tcp(const struct synproxy_net *snet,
+ 	const struct iphdr *iph;
+-	struct net_device *dev = skb->dev;
+ 	u32 len;
  
- 	skb_dst_set_noref(nskb, skb_dst(skb));
- 	nskb->protocol = htons(ETH_P_IP);
--	if (ip_route_me_harder(nskb, RTN_UNSPEC))
-+	if (ip_route_me_harder(net, nskb, RTN_UNSPEC))
- 		goto free_nskb;
+ 	if (!pskb_may_pull(skb, sizeof(struct iphdr)))
+@@ -213,13 +212,13 @@ static int br_validate_ipv4(struct sk_buff *skb)
  
- 	if (nfct) {
-diff --git a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptable_mangle.c
-index 2d6fc911866f..ba5d392a13c4 100644
---- a/net/ipv4/netfilter/iptable_mangle.c
-+++ b/net/ipv4/netfilter/iptable_mangle.c
-@@ -67,7 +67,7 @@ ipt_mangle_out(struct sk_buff *skb, const struct nf_hook_state *state)
- 		    iph->daddr != daddr ||
- 		    skb->mark != mark ||
- 		    iph->tos != tos) {
--			err = ip_route_me_harder(skb, RTN_UNSPEC);
-+			err = ip_route_me_harder(state->net, skb, RTN_UNSPEC);
- 			if (err < 0)
- 				ret = NF_DROP_ERR(err);
- 		}
-diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-index bc3b9dcbf080..5075b7ecd26d 100644
---- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-@@ -431,7 +431,7 @@ nf_nat_ipv4_local_fn(void *priv, struct sk_buff *skb,
+ 	len = ntohs(iph->tot_len);
+ 	if (skb->len < len) {
+-		IP_INC_STATS_BH(dev_net(dev), IPSTATS_MIB_INTRUNCATEDPKTS);
++		IP_INC_STATS_BH(net, IPSTATS_MIB_INTRUNCATEDPKTS);
+ 		goto drop;
+ 	} else if (len < (iph->ihl*4))
+ 		goto inhdr_error;
  
- 		if (ct->tuplehash[dir].tuple.dst.u3.ip !=
- 		    ct->tuplehash[!dir].tuple.src.u3.ip) {
--			err = ip_route_me_harder(skb, RTN_UNSPEC);
-+			err = ip_route_me_harder(state->net, skb, RTN_UNSPEC);
- 			if (err < 0)
- 				ret = NF_DROP_ERR(err);
- 		}
-diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
-index fb337406b1d2..2f5e925d3264 100644
---- a/net/ipv4/netfilter/nf_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nf_reject_ipv4.c
-@@ -129,7 +129,7 @@ void nf_send_reset(struct net *net, struct sk_buff *oldskb, int hook)
- 				   ip4_dst_hoplimit(skb_dst(nskb)));
- 	nf_reject_ip_tcphdr_put(nskb, oldskb, oth);
- 
--	if (ip_route_me_harder(nskb, RTN_UNSPEC))
-+	if (ip_route_me_harder(net, nskb, RTN_UNSPEC))
- 		goto free_nskb;
- 
- 	/* "Never happens" */
-diff --git a/net/ipv4/netfilter/nft_chain_route_ipv4.c b/net/ipv4/netfilter/nft_chain_route_ipv4.c
-index 9f486b302108..2375b0a8be46 100644
---- a/net/ipv4/netfilter/nft_chain_route_ipv4.c
-+++ b/net/ipv4/netfilter/nft_chain_route_ipv4.c
-@@ -53,7 +53,7 @@ static unsigned int nf_route_table_hook(void *priv,
- 		    iph->daddr != daddr ||
- 		    skb->mark != mark ||
- 		    iph->tos != tos)
--			if (ip_route_me_harder(skb, RTN_UNSPEC))
-+			if (ip_route_me_harder(state->net, skb, RTN_UNSPEC))
- 				ret = NF_DROP;
+ 	if (pskb_trim_rcsum(skb, len)) {
+-		IP_INC_STATS_BH(dev_net(dev), IPSTATS_MIB_INDISCARDS);
++		IP_INC_STATS_BH(net, IPSTATS_MIB_INDISCARDS);
+ 		goto drop;
  	}
- 	return ret;
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index fb6b6c87d841..800b085242a8 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -720,7 +720,7 @@ static int ip_vs_route_me_harder(struct netns_ipvs *ipvs, int af,
- 	} else
- #endif
- 		if (!(skb_rtable(skb)->rt_flags & RTCF_LOCAL) &&
--		    ip_route_me_harder(skb, RTN_LOCAL) != 0)
-+		    ip_route_me_harder(ipvs->net, skb, RTN_LOCAL) != 0)
- 			return 1;
  
+@@ -232,7 +231,7 @@ static int br_validate_ipv4(struct sk_buff *skb)
  	return 0;
+ 
+ inhdr_error:
+-	IP_INC_STATS_BH(dev_net(dev), IPSTATS_MIB_INHDRERRORS);
++	IP_INC_STATS_BH(net, IPSTATS_MIB_INHDRERRORS);
+ drop:
+ 	return -1;
+ }
+@@ -497,7 +496,7 @@ static unsigned int br_nf_pre_routing(void *priv,
+ 
+ 	nf_bridge_pull_encap_header_rcsum(skb);
+ 
+-	if (br_validate_ipv4(skb))
++	if (br_validate_ipv4(state->net, skb))
+ 		return NF_DROP;
+ 
+ 	nf_bridge_put(skb->nf_bridge);
+@@ -609,13 +608,13 @@ static unsigned int br_nf_forward_ip(void *priv,
+ 	}
+ 
+ 	if (pf == NFPROTO_IPV4) {
+-		if (br_validate_ipv4(skb))
++		if (br_validate_ipv4(state->net, skb))
+ 			return NF_DROP;
+ 		IPCB(skb)->frag_max_size = nf_bridge->frag_max_size;
+ 	}
+ 
+ 	if (pf == NFPROTO_IPV6) {
+-		if (br_validate_ipv6(skb))
++		if (br_validate_ipv6(state->net, skb))
+ 			return NF_DROP;
+ 		IP6CB(skb)->frag_max_size = nf_bridge->frag_max_size;
+ 	}
+@@ -747,7 +746,7 @@ static int br_nf_dev_queue_xmit(struct net *net, struct sock *sk, struct sk_buff
+ 	if (skb->protocol == htons(ETH_P_IP)) {
+ 		struct brnf_frag_data *data;
+ 
+-		if (br_validate_ipv4(skb))
++		if (br_validate_ipv4(net, skb))
+ 			goto drop;
+ 
+ 		IPCB(skb)->frag_max_size = nf_bridge->frag_max_size;
+@@ -772,7 +771,7 @@ static int br_nf_dev_queue_xmit(struct net *net, struct sock *sk, struct sk_buff
+ 		const struct nf_ipv6_ops *v6ops = nf_get_ipv6_ops();
+ 		struct brnf_frag_data *data;
+ 
+-		if (br_validate_ipv6(skb))
++		if (br_validate_ipv6(net, skb))
+ 			goto drop;
+ 
+ 		IP6CB(skb)->frag_max_size = nf_bridge->frag_max_size;
+diff --git a/net/bridge/br_netfilter_ipv6.c b/net/bridge/br_netfilter_ipv6.c
+index c51cc3fd50d9..d61f56efc8dc 100644
+--- a/net/bridge/br_netfilter_ipv6.c
++++ b/net/bridge/br_netfilter_ipv6.c
+@@ -100,10 +100,9 @@ bad:
+ 	return -1;
+ }
+ 
+-int br_validate_ipv6(struct sk_buff *skb)
++int br_validate_ipv6(struct net *net, struct sk_buff *skb)
+ {
+ 	const struct ipv6hdr *hdr;
+-	struct net_device *dev = skb->dev;
+ 	struct inet6_dev *idev = __in6_dev_get(skb->dev);
+ 	u32 pkt_len;
+ 	u8 ip6h_len = sizeof(struct ipv6hdr);
+@@ -123,12 +122,12 @@ int br_validate_ipv6(struct sk_buff *skb)
+ 
+ 	if (pkt_len || hdr->nexthdr != NEXTHDR_HOP) {
+ 		if (pkt_len + ip6h_len > skb->len) {
+-			IP6_INC_STATS_BH(dev_net(dev), idev,
++			IP6_INC_STATS_BH(net, idev,
+ 					 IPSTATS_MIB_INTRUNCATEDPKTS);
+ 			goto drop;
+ 		}
+ 		if (pskb_trim_rcsum(skb, pkt_len + ip6h_len)) {
+-			IP6_INC_STATS_BH(dev_net(dev), idev,
++			IP6_INC_STATS_BH(net, idev,
+ 					 IPSTATS_MIB_INDISCARDS);
+ 			goto drop;
+ 		}
+@@ -143,7 +142,7 @@ int br_validate_ipv6(struct sk_buff *skb)
+ 	return 0;
+ 
+ inhdr_error:
+-	IP6_INC_STATS_BH(dev_net(dev), idev, IPSTATS_MIB_INHDRERRORS);
++	IP6_INC_STATS_BH(net, idev, IPSTATS_MIB_INHDRERRORS);
+ drop:
+ 	return -1;
+ }
+@@ -224,7 +223,7 @@ unsigned int br_nf_pre_routing_ipv6(void *priv,
+ {
+ 	struct nf_bridge_info *nf_bridge;
+ 
+-	if (br_validate_ipv6(skb))
++	if (br_validate_ipv6(state->net, skb))
+ 		return NF_DROP;
+ 
+ 	nf_bridge_put(skb->nf_bridge);
 -- 
 2.2.1
+
