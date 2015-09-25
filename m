@@ -1,142 +1,66 @@
-From: Feng Gao <gfree.wind@outlook.com>
-Subject: [PATCH]: netfilter: ftp/irc/sane/sip/tftp: Fix the kernel panic when load these modules with duplicated ports
-Date: Fri, 25 Sep 2015 18:02:55 +0800
-Message-ID: <BAY403-EAS55DEFB461D662C9DA7662795420@phx.gbl>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Fetching interface name
+Date: Fri, 25 Sep 2015 12:22:52 +0200
+Message-ID: <20150925102252.GA3768@salvia>
+References: <5604D75E.8000809@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>, <gfree.wind@outlook.com>
-To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: coreteam@netfilter.org, eric@netfilter.org,
+	netfilter-devel@vger.kernel.org
+To: Vikas <vikas.c.kumar@oracle.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bay004-omc1s8.hotmail.com ([65.54.190.19]:62983 "EHLO
-	BAY004-OMC1S8.hotmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752507AbbIYKDB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Sep 2015 06:03:01 -0400
-Content-Language: zh-cn
+Received: from mail.us.es ([193.147.175.20]:55549 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752178AbbIYKQE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Sep 2015 06:16:04 -0400
+Content-Disposition: inline
+In-Reply-To: <5604D75E.8000809@oracle.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Reset the helper->me to NULL when it fail to register helper.
-Then the fini function of these modules could avoid unregister
-wrong helper.
+Cc'ing netfilter-devel for development questions.
 
-Signed-off-by: Feng Gao <gfree.wind@gmail.com>
----
- net/netfilter/nf_conntrack_ftp.c  |    1 +
- net/netfilter/nf_conntrack_irc.c  |    7 +++++--
- net/netfilter/nf_conntrack_sane.c |    4 ++++
- net/netfilter/nf_conntrack_sip.c  |    1 +
- net/netfilter/nf_conntrack_tftp.c |    7 +++++--
- 5 files changed, 16 insertions(+), 4 deletions(-)
+On Fri, Sep 25, 2015 at 10:40:54AM +0530, Vikas wrote:
+> Hi,
+> 
+> In the netlink infra I could see these attributes:
+> 
+>  enum nfqnl_attr_type {
+> 0034     NFQA_UNSPEC,0035     NFQA_PACKET_HDR,
+> 0036     NFQA_VERDICT_HDR,       /* nfqnl_msg_verdict_hrd */
+> 0037     NFQA_MARK,          /* __u32 nfmark */
+> 0038     NFQA_TIMESTAMP,         /* nfqnl_msg_packet_timestamp */
+> 0039*NFQA_IFINDEX_INDEV*,     /* __u32 ifindex */
+> 0040*NFQA_IFINDEX_OUTDEV*,        /* __u32 ifindex */
+> 0041     NFQA_IFINDEX_PHYSINDEV,     /* __u32 ifindex */
+> 0042     NFQA_IFINDEX_PHYSOUTDEV,    /* __u32 ifindex */
+> 0043     NFQA_HWADDR,            /* nfqnl_msg_packet_hw */
+> 0044     NFQA_PAYLOAD,           /* opaque data payload */
+> 0045     NFQA_CT,            /* nf_conntrack_netlink.h */
+> 0046     NFQA_CT_INFO,           /* enum ip_conntrack_info */
+> 0047     NFQA_CAP_LEN,           /* __u32 length of captured packet */
+> 0048     NFQA_SKB_INFO,          /* __u32 skb meta information */
+> 0049     NFQA_EXP,           /* nf_conntrack_netlink.h */
+> 0050
+> 0051     __NFQA_MAX
+> 0052 };
+> 
+> Currently we are doing this to get the input/putput interface index:
+>    input_interface_index = mnl_attr_get_u32(tb[NFQA_IFINDEX_INDEV]);    // where tb being a nlattr structure: struct nlattr *tb[NFQA_MAX]
+>    output_interface_index = mnl_attr_get_u32(tb[NFQA_IFINDEX_OUTDEV]);
+> 
+> Is there a way(or any attribute like NFQA_IFINDEX_INDEV/OUTDEV) by
+> which we can get the input/output interface*name*?  I don't want to
+> use kernel call: if_indextoname() to map index to name, because it
+> may be time consuming.
 
-diff --git a/net/netfilter/nf_conntrack_ftp.c
-b/net/netfilter/nf_conntrack_ftp.c
-index b666959..fbc4b82 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -630,6 +630,7 @@ static int __init nf_conntrack_ftp_init(void)
- 				 ftp[i][j].tuple.src.l3num, ports[i]);
- 			ret = nf_conntrack_helper_register(&ftp[i][j]);
- 			if (ret) {
-+				ftp[i][j].me = NULL;
- 				printk(KERN_ERR "nf_ct_ftp: failed to
-register"
- 				       " helper for pf: %d port: %d\n",
- 					ftp[i][j].tuple.src.l3num,
-ports[i]);
-diff --git a/net/netfilter/nf_conntrack_irc.c
-b/net/netfilter/nf_conntrack_irc.c
-index 0fd2976..7c99378 100644
---- a/net/netfilter/nf_conntrack_irc.c
-+++ b/net/netfilter/nf_conntrack_irc.c
-@@ -267,6 +267,7 @@ static int __init nf_conntrack_irc_init(void)
- 
- 		ret = nf_conntrack_helper_register(&irc[i]);
- 		if (ret) {
-+			irc[i].me = NULL;
- 			printk(KERN_ERR "nf_ct_irc: failed to register
-helper "
- 			       "for pf: %u port: %u\n",
- 			       irc[i].tuple.src.l3num, ports[i]);
-@@ -283,8 +284,10 @@ static void nf_conntrack_irc_fini(void)
- {
- 	int i;
- 
--	for (i = 0; i < ports_c; i++)
--		nf_conntrack_helper_unregister(&irc[i]);
-+	for (i = 0; i < ports_c; i++) {
-+		if (irc[i].me)
-+			nf_conntrack_helper_unregister(&irc[i]);
-+	}
- 	kfree(irc_buffer);
- }
- 
-diff --git a/net/netfilter/nf_conntrack_sane.c
-b/net/netfilter/nf_conntrack_sane.c
-index 4a2134f..f4986df 100644
---- a/net/netfilter/nf_conntrack_sane.c
-+++ b/net/netfilter/nf_conntrack_sane.c
-@@ -178,6 +178,9 @@ static void nf_conntrack_sane_fini(void)
- 
- 	for (i = 0; i < ports_c; i++) {
- 		for (j = 0; j < 2; j++) {
-+			if (!sane[i][j].me)
-+				continue;
-+
- 			pr_debug("nf_ct_sane: unregistering helper for pf:
-%d "
- 				 "port: %d\n",
- 				 sane[i][j].tuple.src.l3num, ports[i]);
-@@ -221,6 +224,7 @@ static int __init nf_conntrack_sane_init(void)
- 				 sane[i][j].tuple.src.l3num, ports[i]);
- 			ret = nf_conntrack_helper_register(&sane[i][j]);
- 			if (ret) {
-+				sane[i][j].me = NULL;
- 				printk(KERN_ERR "nf_ct_sane: failed to "
- 				       "register helper for pf: %d port:
-%d\n",
- 					sane[i][j].tuple.src.l3num,
-ports[i]);
-diff --git a/net/netfilter/nf_conntrack_sip.c
-b/net/netfilter/nf_conntrack_sip.c
-index 885b4ab..53cd48a 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -1665,6 +1665,7 @@ static int __init nf_conntrack_sip_init(void)
- 
- 			ret = nf_conntrack_helper_register(&sip[i][j]);
- 			if (ret) {
-+				sip[i][j].me = NULL;
- 				printk(KERN_ERR "nf_ct_sip: failed to
-register"
- 				       " helper for pf: %u port: %u\n",
- 				       sip[i][j].tuple.src.l3num, ports[i]);
-diff --git a/net/netfilter/nf_conntrack_tftp.c
-b/net/netfilter/nf_conntrack_tftp.c
-index e68ab4f..8255b21 100644
---- a/net/netfilter/nf_conntrack_tftp.c
-+++ b/net/netfilter/nf_conntrack_tftp.c
-@@ -107,8 +107,10 @@ static void nf_conntrack_tftp_fini(void)
- 	int i, j;
- 
- 	for (i = 0; i < ports_c; i++) {
--		for (j = 0; j < 2; j++)
--			nf_conntrack_helper_unregister(&tftp[i][j]);
-+		for (j = 0; j < 2; j++) {
-+			if (tftp[i][j].me)
-+				nf_conntrack_helper_unregister(&tftp[i][j]);
-+		}
- 	}
- }
- 
-@@ -138,6 +140,7 @@ static int __init nf_conntrack_tftp_init(void)
- 
- 			ret = nf_conntrack_helper_register(&tftp[i][j]);
- 			if (ret) {
-+				tftp[i][j].me = NULL;
- 				printk(KERN_ERR "nf_ct_tftp: failed to
-register"
- 				       " helper for pf: %u port: %u\n",
- 					tftp[i][j].tuple.src.l3num,
-ports[i]);
+It should be easy to build a cache of ifindex in userspace and
+maintain it up to date. So you don't need to use if_indextoname()
+since it generates quite a lot of netlink traffic between kernel and
+userspace.
+
+You can probably contribute some example to libmnl that we can apply
+to the tree. You can use this change I made quite recently as
+reference for that code:
+
+http://git.netfilter.org/nftables/commit/?id=3ed296118a065caff5600e60d4f7ef18e137f9a0
