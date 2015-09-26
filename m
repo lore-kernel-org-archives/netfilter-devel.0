@@ -1,194 +1,120 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: [PATCH nf-next] bridge: Pass net into br_validate_ipv4 and br_validate_ipv6
-Date: Fri, 25 Sep 2015 16:52:51 -0500
-Message-ID: <87si62f9os.fsf@x220.int.ebiederm.org>
-Mime-Version: 1.0
-Content-Type: text/plain
-Cc: netfilter-devel@vger.kernel.org, <netdev@vger.kernel.org>,
-	David Miller <davem@davemloft.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft 2/2] rule: don't reorder protocol payload expressions when merging
+Date: Sat, 26 Sep 2015 05:14:03 +0200
+Message-ID: <1443237243-4571-2-git-send-email-fw@strlen.de>
+References: <1443237243-4571-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out02.mta.xmission.com ([166.70.13.232]:60955 "EHLO
-	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751050AbbIYWAN (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34196 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932310AbbIZDOU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Sep 2015 18:00:13 -0400
+	Fri, 25 Sep 2015 23:14:20 -0400
+In-Reply-To: <1443237243-4571-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+An instruction like
 
-The network namespace is easiliy available in state->net so use it.
+ bridge filter input ip saddr 1.2.3.4 ether saddr a:b:c:d:e:f
 
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+is displayed as
+
+unknown unknown 0x1020304 [invalid type] ether saddr 00:0f:54:0c:11:04 ether type ip
+
+.. because the (implicit) 'ether type ip' that is injected before the
+network header match gets merged into the ether saddr instruction.
+
+This inverts the merge in case the merge candidate contains
+a next header protocol field.
+
+After this change, the rule will be displayed as
+
+bridge filter input ether saddr a:b:c:d:e:f ip saddr 1.2.3.4
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
+ src/rule.c | 49 ++++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 42 insertions(+), 7 deletions(-)
 
-This patch plus the 5 ip_route_me_harder patches I sent out today are
-the last of my pure netfilter patches in my queue for pushing down
-struct net where it is needed.  Everything else seems to involve
-elements of the routinting stack (such as fragmentation and
-defragmentation) and anything netfilter related about them is secondary.
-
-So after these patches are merged into nf-next I expect the wise thing
-to do is wait for nf-next to merge into net-next and send the rest of
-the patches through net-next.
-
- include/net/netfilter/br_netfilter.h |  4 ++--
- net/bridge/br_netfilter_hooks.c      | 19 +++++++++----------
- net/bridge/br_netfilter_ipv6.c       | 11 +++++------
- 3 files changed, 16 insertions(+), 18 deletions(-)
-
-diff --git a/include/net/netfilter/br_netfilter.h b/include/net/netfilter/br_netfilter.h
-index c93c75fa41ad..e8d1448425a7 100644
---- a/include/net/netfilter/br_netfilter.h
-+++ b/include/net/netfilter/br_netfilter.h
-@@ -45,12 +45,12 @@ struct net_device *setup_pre_routing(struct sk_buff *skb);
- void br_netfilter_enable(void);
+diff --git a/src/rule.c b/src/rule.c
+index 92b83f0..3c526cc 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1179,30 +1179,65 @@ static int payload_match_stmt_cmp(const void *p1, const void *p2)
  
- #if IS_ENABLED(CONFIG_IPV6)
--int br_validate_ipv6(struct sk_buff *skb);
-+int br_validate_ipv6(struct net *net, struct sk_buff *skb);
- unsigned int br_nf_pre_routing_ipv6(void *priv,
- 				    struct sk_buff *skb,
- 				    const struct nf_hook_state *state);
- #else
--static inline int br_validate_ipv6(struct sk_buff *skb)
-+static inline int br_validate_ipv6(struct net *net, struct sk_buff *skb)
+ static void payload_do_merge(struct stmt *sa[], unsigned int n)
  {
- 	return -1;
- }
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index e21e44c13e07..13f03671c88d 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -189,10 +189,9 @@ static inline void nf_bridge_pull_encap_header_rcsum(struct sk_buff *skb)
-  * expected format
-  */
+-	struct expr *last, *this, *expr;
++	struct expr *last, *this, *expr1, *expr2;
+ 	struct stmt *stmt;
+-	unsigned int i;
++	unsigned int i, j;
  
--static int br_validate_ipv4(struct sk_buff *skb)
-+static int br_validate_ipv4(struct net *net, struct sk_buff *skb)
- {
- 	const struct iphdr *iph;
--	struct net_device *dev = skb->dev;
- 	u32 len;
+ 	qsort(sa, n, sizeof(sa[0]), payload_match_stmt_cmp);
  
- 	if (!pskb_may_pull(skb, sizeof(struct iphdr)))
-@@ -213,13 +212,13 @@ static int br_validate_ipv4(struct sk_buff *skb)
+ 	last = sa[0]->expr;
+-	for (i = 1; i < n; i++) {
++	for (j = 0, i = 1; i < n; i++) {
+ 		stmt = sa[i];
+ 		this = stmt->expr;
  
- 	len = ntohs(iph->tot_len);
- 	if (skb->len < len) {
--		IP_INC_STATS_BH(dev_net(dev), IPSTATS_MIB_INTRUNCATEDPKTS);
-+		IP_INC_STATS_BH(net, IPSTATS_MIB_INTRUNCATEDPKTS);
- 		goto drop;
- 	} else if (len < (iph->ihl*4))
- 		goto inhdr_error;
- 
- 	if (pskb_trim_rcsum(skb, len)) {
--		IP_INC_STATS_BH(dev_net(dev), IPSTATS_MIB_INDISCARDS);
-+		IP_INC_STATS_BH(net, IPSTATS_MIB_INDISCARDS);
- 		goto drop;
- 	}
- 
-@@ -232,7 +231,7 @@ static int br_validate_ipv4(struct sk_buff *skb)
- 	return 0;
- 
- inhdr_error:
--	IP_INC_STATS_BH(dev_net(dev), IPSTATS_MIB_INHDRERRORS);
-+	IP_INC_STATS_BH(net, IPSTATS_MIB_INHDRERRORS);
- drop:
- 	return -1;
- }
-@@ -497,7 +496,7 @@ static unsigned int br_nf_pre_routing(void *priv,
- 
- 	nf_bridge_pull_encap_header_rcsum(skb);
- 
--	if (br_validate_ipv4(skb))
-+	if (br_validate_ipv4(state->net, skb))
- 		return NF_DROP;
- 
- 	nf_bridge_put(skb->nf_bridge);
-@@ -609,13 +608,13 @@ static unsigned int br_nf_forward_ip(void *priv,
- 	}
- 
- 	if (pf == NFPROTO_IPV4) {
--		if (br_validate_ipv4(skb))
-+		if (br_validate_ipv4(state->net, skb))
- 			return NF_DROP;
- 		IPCB(skb)->frag_max_size = nf_bridge->frag_max_size;
- 	}
- 
- 	if (pf == NFPROTO_IPV6) {
--		if (br_validate_ipv6(skb))
-+		if (br_validate_ipv6(state->net, skb))
- 			return NF_DROP;
- 		IP6CB(skb)->frag_max_size = nf_bridge->frag_max_size;
- 	}
-@@ -747,7 +746,7 @@ static int br_nf_dev_queue_xmit(struct net *net, struct sock *sk, struct sk_buff
- 	if (skb->protocol == htons(ETH_P_IP)) {
- 		struct brnf_frag_data *data;
- 
--		if (br_validate_ipv4(skb))
-+		if (br_validate_ipv4(net, skb))
- 			goto drop;
- 
- 		IPCB(skb)->frag_max_size = nf_bridge->frag_max_size;
-@@ -772,7 +771,7 @@ static int br_nf_dev_queue_xmit(struct net *net, struct sock *sk, struct sk_buff
- 		const struct nf_ipv6_ops *v6ops = nf_get_ipv6_ops();
- 		struct brnf_frag_data *data;
- 
--		if (br_validate_ipv6(skb))
-+		if (br_validate_ipv6(net, skb))
- 			goto drop;
- 
- 		IP6CB(skb)->frag_max_size = nf_bridge->frag_max_size;
-diff --git a/net/bridge/br_netfilter_ipv6.c b/net/bridge/br_netfilter_ipv6.c
-index c51cc3fd50d9..d61f56efc8dc 100644
---- a/net/bridge/br_netfilter_ipv6.c
-+++ b/net/bridge/br_netfilter_ipv6.c
-@@ -100,10 +100,9 @@ bad:
- 	return -1;
- }
- 
--int br_validate_ipv6(struct sk_buff *skb)
-+int br_validate_ipv6(struct net *net, struct sk_buff *skb)
- {
- 	const struct ipv6hdr *hdr;
--	struct net_device *dev = skb->dev;
- 	struct inet6_dev *idev = __in6_dev_get(skb->dev);
- 	u32 pkt_len;
- 	u8 ip6h_len = sizeof(struct ipv6hdr);
-@@ -123,12 +122,12 @@ int br_validate_ipv6(struct sk_buff *skb)
- 
- 	if (pkt_len || hdr->nexthdr != NEXTHDR_HOP) {
- 		if (pkt_len + ip6h_len > skb->len) {
--			IP6_INC_STATS_BH(dev_net(dev), idev,
-+			IP6_INC_STATS_BH(net, idev,
- 					 IPSTATS_MIB_INTRUNCATEDPKTS);
- 			goto drop;
+ 		if (!payload_is_adjacent(last->left, this->left) ||
+ 		    last->op != this->op) {
+ 			last = this;
++			j = i;
+ 			continue;
  		}
- 		if (pskb_trim_rcsum(skb, pkt_len + ip6h_len)) {
--			IP6_INC_STATS_BH(dev_net(dev), idev,
-+			IP6_INC_STATS_BH(net, idev,
- 					 IPSTATS_MIB_INDISCARDS);
- 			goto drop;
- 		}
-@@ -143,7 +142,7 @@ int br_validate_ipv6(struct sk_buff *skb)
- 	return 0;
  
- inhdr_error:
--	IP6_INC_STATS_BH(dev_net(dev), idev, IPSTATS_MIB_INHDRERRORS);
-+	IP6_INC_STATS_BH(net, idev, IPSTATS_MIB_INHDRERRORS);
- drop:
- 	return -1;
- }
-@@ -224,7 +223,7 @@ unsigned int br_nf_pre_routing_ipv6(void *priv,
- {
- 	struct nf_bridge_info *nf_bridge;
+-		expr = payload_expr_join(last->left, this->left);
++		expr1 = payload_expr_join(last->left, this->left);
++		expr2 = constant_expr_join(last->right, this->right);
++
++		/* We can merge last into this, but we can't replace
++		 * the statement associated with this if it does contain
++		 * a higher level protocol.
++		 *
++		 * ether type ip ip saddr X ether saddr Y
++		 * ... can be changed to
++		 * ether type ip ether saddr Y ip saddr X
++		 * ... but not
++		 * ip saddr X ether type ip ether saddr Y
++		 *
++		 * The latter form means we perform ip saddr test before
++		 * ensuring ip dependency, plus it makes decoding harder
++		 * since we don't know the type of the network header
++		 * right away.
++		 *
++		 * So, if we're about to replace a statement
++		 * containing a protocol identifier, just swap this and last
++		 * and replace the other one (i.e., replace 'load ether type ip'
++		 * with the combined 'load both ether type and saddr') and not
++		 * the other way around.
++		 */
++		if (this->left->flags & EXPR_F_PROTOCOL) {
++			struct expr *tmp = last;
++
++			last = this;
++			this = tmp;
++
++			expr1->flags |= EXPR_F_PROTOCOL;
++			stmt = sa[j];
++			assert(stmt->expr == this);
++			j = i;
++		}
++
+ 		expr_free(last->left);
+-		last->left = expr;
++		last->left = expr1;
  
--	if (br_validate_ipv6(skb))
-+	if (br_validate_ipv6(state->net, skb))
- 		return NF_DROP;
+-		expr = constant_expr_join(last->right, this->right);
+ 		expr_free(last->right);
+-		last->right = expr;
++		last->right = expr2;
  
- 	nf_bridge_put(skb->nf_bridge);
+ 		list_del(&stmt->list);
+ 		stmt_free(stmt);
 -- 
-2.2.1
+2.0.5
 
