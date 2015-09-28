@@ -1,51 +1,66 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH next 0/5] netfilter: Pass net into ip_route_me_harder
-Date: Mon, 28 Sep 2015 09:29:04 +0200
-Message-ID: <5608EC40.4060207@6wind.com>
-References: <87mvwn18my.fsf@x220.int.ebiederm.org>
- <87pp1fpy1b.fsf@x220.int.ebiederm.org>
- <87fv2bo7br.fsf_-_@x220.int.ebiederm.org>
- <87si62gteh.fsf_-_@x220.int.ebiederm.org>
-Reply-To: nicolas.dichtel@6wind.com
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: [PATCH] ipvs: Don't protect ip_vs_addr_is_unicast with CONFIG_SYSCTL
+Date: Mon, 28 Sep 2015 10:23:27 -0500
+Message-ID: <87612ueff4.fsf_-_@x220.int.ebiederm.org>
+References: <1443055989-1306-1-git-send-email-horms@verge.net.au>
+	<20150925000102.GA5634@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	David Miller <davem@davemloft.net>
-To: "Eric W. Biederman" <ebiederm@xmission.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:35727 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754247AbbI1H3I (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Sep 2015 03:29:08 -0400
-Received: by wicge5 with SMTP id ge5so91622775wic.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Sep 2015 00:29:06 -0700 (PDT)
-In-Reply-To: <87si62gteh.fsf_-_@x220.int.ebiederm.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain
+Cc: Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20150925000102.GA5634@salvia> (Pablo Neira Ayuso's message of
+	"Fri, 25 Sep 2015 02:01:02 +0200")
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Le 25/09/2015 22:01, Eric W. Biederman a =C3=A9crit :
->
-> This is the next installment of my work to pass struct net through th=
-e
-> output path so the code does not need to guess how to figure out whic=
-h
-> network namespace it is in, and ultimately routes can have output
-> devices in another network namespace.
->
-> This round the focus is our getting struct net passed in, instead of
-> guess in the netfilter functions that reroute packets
-> (ip_route_me_harder, and ip6_route_me_harder).  There is a bit more w=
-ork
-> on the ipv4 side as the ipv6 code on several of these code paths alre=
-ady
-> passes in the struct net.
-Acked-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+I arranged the code so that the compiler can remove the unecessary bits
+in ip_vs_leave when CONFIG_SYSCTL is unset, and removed an explicit
+CONFIG_SYSCTL.
+
+Unfortunately when rebasing my work on top of that of Alex Gartrell I
+missed the fact that the newly added function ip_vs_addr_is_unicast was
+surrounded by CONFIG_SYSCTL.
+
+So remove the now unnecessary CONFIG_SYSCTL guards around
+ip_vs_addr_is_unicast.  It is causing build failures today when
+CONFIG_SYSCTL is not selected and any self respecting compiler will
+notice that sysctl_cache_bypass is always false without CONFIG_SYSCTL
+and not include the logic from the function ip_vs_addr_is_unicast in
+the compiled code.
+
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+---
+
+This is a build fix for ipvs-next and nf-next.
+
+ net/netfilter/ipvs/ip_vs_core.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index 07a791ecdfba..fba73db81d2f 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -547,7 +547,6 @@ ip_vs_schedule(struct ip_vs_service *svc, struct sk_buff *skb,
+ 	return cp;
+ }
+ 
+-#ifdef CONFIG_SYSCTL
+ static inline int ip_vs_addr_is_unicast(struct net *net, int af,
+ 					union nf_inet_addr *addr)
+ {
+@@ -557,7 +556,6 @@ static inline int ip_vs_addr_is_unicast(struct net *net, int af,
+ #endif
+ 	return (inet_addr_type(net, addr->ip) == RTN_UNICAST);
+ }
+-#endif
+ 
+ /*
+  *  Pass or drop the packet.
+-- 
+2.2.1
+
