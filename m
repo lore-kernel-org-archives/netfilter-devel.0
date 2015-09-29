@@ -1,67 +1,93 @@
-From: Feng Gao <gfree.wind@outlook.com>
-Subject: [PATCH 1/1] netfilter: ftp: Check data size before copy them into FTP buffer
-Date: Tue, 29 Sep 2015 16:49:32 +0800
-Message-ID: <BAY403-EAS3244BB5B8769FABE83B01EF954E0@phx.gbl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>
-To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+From: Daniel Mack <daniel@zonque.org>
+Subject: [PATCH RFC 0/7] netfilter: introduce new chain type for local socket input
+Date: Tue, 29 Sep 2015 13:12:13 +0200
+Message-ID: <1443525140-13493-1-git-send-email-daniel@zonque.org>
+Cc: daniel@iogearbox.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, fw@strlen.de, balazs.scheidler@balabit.com,
+	Daniel Mack <daniel@zonque.org>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bay004-omc1s28.hotmail.com ([65.54.190.39]:50009 "EHLO
-	BAY004-OMC1S28.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933706AbbI2Itf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Sep 2015 04:49:35 -0400
-Content-Language: zh-cn
+Received: from svenfoo.org ([82.94.215.22]:60152 "EHLO mail.zonque.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934546AbbI2LMh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Sep 2015 07:12:37 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When TCP endpoint supports the windows scale option, the data size could
-be more than 65536 easily. And there are some network interface features
-which could aggregate multiple packets. So we need to check the datalen
-before copy data into the FTP buffer.
+Here is a patch set that enables for full support for match rules
+that take into account information about the local receiver socket.
 
-Signed-off-by: Feng Gao <fgao@ikuai8.com>
----
- net/netfilter/nf_conntrack_ftp.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+Such rules allow administrators to implement per-application or
+per-container firewalls which filter any type of network traffic
+directed to or originated from a set of processes on a system,
+independent of, for instance, local or remote port numbers.
 
-diff --git a/net/netfilter/nf_conntrack_ftp.c
-b/net/netfilter/nf_conntrack_ftp.c
-index b666959..79ae8a9 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -35,6 +35,7 @@ MODULE_ALIAS_NFCT_HELPER("ftp");
- 
- /* This is slow, but it's simple. --RR */
- static char *ftp_buffer;
-+#define NF_FTP_BUF_SIZE		(65536)
- 
- static DEFINE_SPINLOCK(nf_ftp_lock);
- 
-@@ -422,6 +423,11 @@ static int help(struct sk_buff *skb,
- 		return NF_ACCEPT;
- 	}
- 	datalen = skb->len - dataoff;
-+	if (unlikely(datalen > NF_FTP_BUF_SIZE)) {
-+		pr_warn("ftp: Data len(%u) is more than ftp buffer(%u)\n",
-+			datalen, NF_FTP_BUF_SIZE);
-+		return NF_ACCEPT;
-+	}
- 
- 	spin_lock_bh(&nf_ftp_lock);
- 	fb_ptr = skb_header_pointer(skb, dataoff, datalen, ftp_buffer);
-@@ -600,7 +606,7 @@ static int __init nf_conntrack_ftp_init(void)
- {
- 	int i, j = -1, ret = 0;
- 
--	ftp_buffer = kmalloc(65536, GFP_KERNEL);
-+	ftp_buffer = kmalloc(NF_FTP_BUF_SIZE, GFP_KERNEL);
- 	if (!ftp_buffer)
- 		return -ENOMEM;
- 
+In theory, such rules are already supported through the 'meta' and
+'socket' rule types, but they currently do not work for ingress packets
+delivered to unestablished listener sockets. NF_INET_LOCAL_IN chains
+are iterated once the IP stack decides a packet is directed to the
+local system, but before the local listener socket is determined.
+Consequently, filter rules that are based on information derived from
+the listener socket cannot be used reliably.
+
+This patch set introduces a new chain type (NF_INET_LOCAL_SOCKET_IN)
+that is iterated at a later point in time than NF_INET_LOCAL_IN, after
+the listener socket demux has succeeded. Chains of this type are hence
+only looked at _if_ there is a local listener.
+
+The input paths for TCP and UDP for IPv4 and IPv6 are patched for
+the new hook-up, as well as SCTP and DCCP.
+
+Possible performance penalties for setups in which this new type is
+not used need to be considered, but I lack a good test case for that.
+I'm sure some people reading this do have proper test scenarios they
+can run with these patches applied. I'd be very interested in these
+numbers.
+
+For SCTP and DCCP, I admittedly lack a proper test case as well, and
+for UDP, I'm aware of a possible deadlock due to nf_hook() being called
+under hslot->lock when the stack is flushed preliminarily from
+__udp[46]_lib_mcast_deliver(). That's fixable, but I've kept it simple
+for this RFC.
+
+Only nftables is supported so far, but enabling iptables as well would
+be straight forward.
+
+I also have trivial patches for libnftnl and nftables to enable
+the userspace part.
+
+I'd appreciate some feedback about this approach.
+
+
+Thanks,
+Daniel
+
+
+Daniel Mack (7):
+  netfilter: add socket to struct nft_pktinfo
+  netfilter: nft_meta: look at pkt->sk rather than skb->sk
+  netfilter: add NF_INET_LOCAL_SOCKET_IN chain type
+  net: tcp_ipv4, udp_ipv4: hook up LOCAL_SOCKET_IN netfilter chains
+  net: tcp_ipv6, udp_ipv6: hook up LOCAL_SOCKET_IN netfilter chains
+  net: sctp: hook up LOCAL_SOCKET_IN netfilter chains
+  net: dccp: hook up LOCAL_SOCKET_IN netfilter chains
+
+ include/net/netfilter/nf_tables.h   |  2 ++
+ include/uapi/linux/netfilter.h      |  1 +
+ net/dccp/ipv4.c                     | 14 +++++++++++++-
+ net/dccp/ipv6.c                     | 14 +++++++++++++-
+ net/ipv4/netfilter/iptable_filter.c |  1 +
+ net/ipv4/netfilter/nf_tables_ipv4.c | 14 ++++++++------
+ net/ipv4/tcp_ipv4.c                 |  8 ++++++++
+ net/ipv4/udp.c                      | 15 +++++++++++++++
+ net/ipv6/netfilter/nf_tables_ipv6.c | 14 ++++++++------
+ net/ipv6/tcp_ipv6.c                 |  8 ++++++++
+ net/ipv6/udp.c                      |  9 +++++++++
+ net/netfilter/nf_tables_inet.c      |  3 ++-
+ net/netfilter/nft_meta.c            |  7 ++++---
+ net/sctp/input.c                    | 11 ++++++++++-
+ 14 files changed, 102 insertions(+), 19 deletions(-)
+
 -- 
+2.5.0
 
-Best Regards
-Feng
