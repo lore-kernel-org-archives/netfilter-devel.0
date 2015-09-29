@@ -1,33 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH conntrack-tools] conntrack: add zone direction support
-Date: Tue, 29 Sep 2015 20:40:10 +0200
-Message-ID: <20150929184010.GA10092@salvia>
-References: <9d0d25c2351442d8564063a51a7dc13fd1439e23.1440509200.git.daniel@iogearbox.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: fw@strlen.de, netfilter-devel@vger.kernel.org
-To: Daniel Borkmann <daniel@iogearbox.net>
+Subject: [PATCH nf] netfilter: fix Kconfig dependencies for nf_dup_ipv{4,6}
+Date: Tue, 29 Sep 2015 21:13:07 +0200
+Message-ID: <1443553987-11049-1-git-send-email-pablo@netfilter.org>
+Cc: rdunlap@infradead.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40051 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44835 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965377AbbI2SdV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Sep 2015 14:33:21 -0400
-Content-Disposition: inline
-In-Reply-To: <9d0d25c2351442d8564063a51a7dc13fd1439e23.1440509200.git.daniel@iogearbox.net>
+	id S964820AbbI2TGY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Sep 2015 15:06:24 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 25, 2015 at 03:33:51PM +0200, Daniel Borkmann wrote:
-> This patch adds support for zone directions.
-> 
-> Since all options have the orig/reply as a prefix, I named it --orig-zone
-> and --reply-zone to stay consistent with the rest of the cmdline options.
-> 
-> As for the option chars, there was no unallocated reasonable combination,
-> thus only long options are officially exposed in the help, similarly as in
-> other cases.
-> 
-> Test suite results, after patch: OK: 79 BAD: 0
+net/built-in.o: In function `nf_dup_ipv4': (.text+0xed24d): undefined reference to `nf_conntrack_untracked'
+net/built-in.o: In function `nf_dup_ipv4': (.text+0xed267): undefined reference to `nf_conntrack_untracked'
+net/built-in.o: In function `nf_dup_ipv6': (.text+0x158aef): undefined reference to `nf_conntrack_untracked'
+net/built-in.o: In function `nf_dup_ipv6': (.text+0x158b09): undefined reference to `nf_conntrack_untracked'
 
-Applied, thanks.
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/ipv4/netfilter/Kconfig | 1 +
+ net/ipv6/netfilter/Kconfig | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 690d27d..a355841 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -75,6 +75,7 @@ endif # NF_TABLES
+ 
+ config NF_DUP_IPV4
+ 	tristate "Netfilter IPv4 packet duplication to alternate destination"
++	depends on !NF_CONNTRACK || NF_CONNTRACK
+ 	help
+ 	  This option enables the nf_dup_ipv4 core, which duplicates an IPv4
+ 	  packet to be rerouted to another destination.
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index 96833e4..f6a024e 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -58,6 +58,7 @@ endif # NF_TABLES
+ 
+ config NF_DUP_IPV6
+ 	tristate "Netfilter IPv6 packet duplication to alternate destination"
++	depends on !NF_CONNTRACK || NF_CONNTRACK
+ 	help
+ 	  This option enables the nf_dup_ipv6 core, which duplicates an IPv6
+ 	  packet to be rerouted to another destination.
+-- 
+2.1.4
 
