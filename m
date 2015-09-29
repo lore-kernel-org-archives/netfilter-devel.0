@@ -1,51 +1,67 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH] ipvs: Don't protect ip_vs_addr_is_unicast with
- CONFIG_SYSCTL
-Date: Tue, 29 Sep 2015 09:55:46 +0900
-Message-ID: <20150929005545.GA22155@verge.net.au>
-References: <1443055989-1306-1-git-send-email-horms@verge.net.au>
- <20150925000102.GA5634@salvia>
- <87612ueff4.fsf_-_@x220.int.ebiederm.org>
- <alpine.LFD.2.11.1509282144410.6497@ja.home.ssi.bg>
+From: Feng Gao <gfree.wind@outlook.com>
+Subject: [PATCH 1/1] netfilter: ftp: Check data size before copy them into FTP buffer
+Date: Tue, 29 Sep 2015 16:49:32 +0800
+Message-ID: <BAY403-EAS3244BB5B8769FABE83B01EF954E0@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.11.1509282144410.6497@ja.home.ssi.bg>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>
+To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from bay004-omc1s28.hotmail.com ([65.54.190.39]:50009 "EHLO
+	BAY004-OMC1S28.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933706AbbI2Itf (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Sep 2015 04:49:35 -0400
+Content-Language: zh-cn
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 28, 2015 at 09:45:28PM +0300, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Mon, 28 Sep 2015, Eric W. Biederman wrote:
-> 
-> > I arranged the code so that the compiler can remove the unecessary bits
-> > in ip_vs_leave when CONFIG_SYSCTL is unset, and removed an explicit
-> > CONFIG_SYSCTL.
-> > 
-> > Unfortunately when rebasing my work on top of that of Alex Gartrell I
-> > missed the fact that the newly added function ip_vs_addr_is_unicast was
-> > surrounded by CONFIG_SYSCTL.
-> > 
-> > So remove the now unnecessary CONFIG_SYSCTL guards around
-> > ip_vs_addr_is_unicast.  It is causing build failures today when
-> > CONFIG_SYSCTL is not selected and any self respecting compiler will
-> > notice that sysctl_cache_bypass is always false without CONFIG_SYSCTL
-> > and not include the logic from the function ip_vs_addr_is_unicast in
-> > the compiled code.
-> > 
-> > Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
-> 
-> 	Simon, please apply to ipvs-next
+When TCP endpoint supports the windows scale option, the data size could
+be more than 65536 easily. And there are some network interface features
+which could aggregate multiple packets. So we need to check the datalen
+before copy data into the FTP buffer.
 
-Thanks, applied.
+Signed-off-by: Feng Gao <fgao@ikuai8.com>
+---
+ net/netfilter/nf_conntrack_ftp.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_ftp.c
+b/net/netfilter/nf_conntrack_ftp.c
+index b666959..79ae8a9 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -35,6 +35,7 @@ MODULE_ALIAS_NFCT_HELPER("ftp");
+ 
+ /* This is slow, but it's simple. --RR */
+ static char *ftp_buffer;
++#define NF_FTP_BUF_SIZE		(65536)
+ 
+ static DEFINE_SPINLOCK(nf_ftp_lock);
+ 
+@@ -422,6 +423,11 @@ static int help(struct sk_buff *skb,
+ 		return NF_ACCEPT;
+ 	}
+ 	datalen = skb->len - dataoff;
++	if (unlikely(datalen > NF_FTP_BUF_SIZE)) {
++		pr_warn("ftp: Data len(%u) is more than ftp buffer(%u)\n",
++			datalen, NF_FTP_BUF_SIZE);
++		return NF_ACCEPT;
++	}
+ 
+ 	spin_lock_bh(&nf_ftp_lock);
+ 	fb_ptr = skb_header_pointer(skb, dataoff, datalen, ftp_buffer);
+@@ -600,7 +606,7 @@ static int __init nf_conntrack_ftp_init(void)
+ {
+ 	int i, j = -1, ret = 0;
+ 
+-	ftp_buffer = kmalloc(65536, GFP_KERNEL);
++	ftp_buffer = kmalloc(NF_FTP_BUF_SIZE, GFP_KERNEL);
+ 	if (!ftp_buffer)
+ 		return -ENOMEM;
+ 
+-- 
+
+Best Regards
+Feng
