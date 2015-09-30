@@ -1,43 +1,54 @@
-From: Daniel Mack <daniel@zonque.org>
-Subject: Re: [PATCH RFC 3/7] netfilter: add NF_INET_LOCAL_SOCKET_IN chain type
-Date: Wed, 30 Sep 2015 10:54:29 +0200
-Message-ID: <560BA345.40504@zonque.org>
-References: <1443525140-13493-1-git-send-email-daniel@zonque.org>
- <1443525140-13493-4-git-send-email-daniel@zonque.org>
- <20150929211959.GF19923@breakpoint.cc> <560B8E25.7050801@zonque.org>
- <alpine.LSU.2.20.1509300938060.9960@nerf40.vanv.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: Florian Westphal <fw@strlen.de>, pablo@netfilter.org,
-	daniel@iogearbox.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, balazs.scheidler@balabit.com
-To: Jan Engelhardt <jengelh@inai.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LSU.2.20.1509300938060.9960@nerf40.vanv.qr>
-Sender: netdev-owner@vger.kernel.org
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 08/12] nfnetlink: use y2038 safe timestamp
+Date: Wed, 30 Sep 2015 13:26:38 +0200
+Message-ID: <1443612402-3000775-9-git-send-email-arnd@arndb.de>
+References: <1443612402-3000775-1-git-send-email-arnd@arndb.de>
+Cc: y2038@lists.linaro.org, linux-kernel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: netdev@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1443612402-3000775-1-git-send-email-arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 09/30/2015 09:40 AM, Jan Engelhardt wrote:
-> 
-> On Wednesday 2015-09-30 09:24, Daniel Mack wrote:
->>
->>> Drop?  Makes no sense, else application would not be running in the first
->>> place.
->>
->> Of course you can drop certain packets at this point, depending on other
->> details. Say, for instance, you want to match all packets that are
->> received by a certain task [...]
->> Another use case is accounting. If you want to know how much traffic a
->> certain service or application in your system has caused
-> 
-> But the sk info would be available in INPUT already, would it not?
+The __build_packet_message function fills a nfulnl_msg_packet_timestamp
+structure that uses 64-bit seconds and is therefore y2038 safe, but
+it uses an intermediate 'struct timespec' which is not.
 
-No, only for established connections, as those are subject to early
-demux which sets skb->sk. For all other packets, netfilter callbacks are
-called with skb->sk == NULL.
+This trivially changes the code to use 'struct timespec64' instead,
+to correct the result on 32-bit architectures.
 
-That's the whole point of this patch set ;)
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: netfilter-devel@vger.kernel.org
+Cc: coreteam@netfilter.org
+---
+ net/netfilter/nfnetlink_log.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-
-Daniel
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 4670821b569d..cc2300f4e177 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -538,9 +538,9 @@ __build_packet_message(struct nfnl_log_net *log,
+ 
+ 	if (skb->tstamp.tv64) {
+ 		struct nfulnl_msg_packet_timestamp ts;
+-		struct timeval tv = ktime_to_timeval(skb->tstamp);
+-		ts.sec = cpu_to_be64(tv.tv_sec);
+-		ts.usec = cpu_to_be64(tv.tv_usec);
++		struct timespec64 kts = ktime_to_timespec64(skb->tstamp);
++		ts.sec = cpu_to_be64(kts.tv_sec);
++		ts.usec = cpu_to_be64(kts.tv_nsec / NSEC_PER_USEC);
+ 
+ 		if (nla_put(inst->skb, NFULA_TIMESTAMP, sizeof(ts), &ts))
+ 			goto nla_put_failure;
+-- 
+2.1.0.rc2
