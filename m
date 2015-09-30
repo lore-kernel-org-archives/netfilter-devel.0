@@ -1,7 +1,7 @@
 From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH net-next 6/6] openvswitch: Remove ovs_vport_output_sk
-Date: Wed, 30 Sep 2015 16:25:36 -0500
-Message-ID: <1443648336-31741-6-git-send-email-ebiederm@xmission.com>
+Subject: [PATCH net-next 5/6] bridge: Remove br_nf_push_frag_xmit_sk
+Date: Wed, 30 Sep 2015 16:25:35 -0500
+Message-ID: <1443648336-31741-5-git-send-email-ebiederm@xmission.com>
 References: <877fn7eh2f.fsf_-_@x220.int.ebiederm.org>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org, <netdev@vger.kernel.org>,
@@ -12,31 +12,28 @@ In-Reply-To: <877fn7eh2f.fsf_-_@x220.int.ebiederm.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This was a compatibility function needed while the ipv4 and ipv6
-fragmentation code was being modified to pass a struct net through
-them.  Now that is complete this function has no more users so remove
-it.
+Now that this compatability function no longer has any callers remove it.
 
 Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
 ---
- net/openvswitch/actions.c | 5 -----
+ net/bridge/br_netfilter_hooks.c | 5 -----
  1 file changed, 5 deletions(-)
 
-diff --git a/net/openvswitch/actions.c b/net/openvswitch/actions.c
-index f33c627f97b3..1d21ab9d2b5c 100644
---- a/net/openvswitch/actions.c
-+++ b/net/openvswitch/actions.c
-@@ -645,11 +645,6 @@ static int ovs_vport_output(struct net *net, struct sock *sk, struct sk_buff *sk
- 	ovs_vport_send(vport, skb);
- 	return 0;
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 815994d5b02d..370aa4d4cf4d 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -691,11 +691,6 @@ static int br_nf_push_frag_xmit(struct net *net, struct sock *sk, struct sk_buff
+ 	nf_bridge_info_free(skb);
+ 	return br_dev_queue_push_xmit(net, sk, skb);
  }
--static int ovs_vport_output_sk(struct sock *sk, struct sk_buff *skb)
+-static int br_nf_push_frag_xmit_sk(struct sock *sk, struct sk_buff *skb)
 -{
 -	struct net *net = dev_net(skb_dst(skb)->dev);
--	return ovs_vport_output(net, sk, skb);
+-	return br_nf_push_frag_xmit(net, sk, skb);
 -}
+ #endif
  
- static unsigned int
- ovs_dst_get_mtu(const struct dst_entry *dst)
+ #if IS_ENABLED(CONFIG_NF_DEFRAG_IPV4)
 -- 
 2.2.1
