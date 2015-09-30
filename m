@@ -1,76 +1,93 @@
-From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH net-next 1/6] openvswitch: Pass net into ovs_vport_output
-Date: Wed, 30 Sep 2015 16:25:31 -0500
-Message-ID: <1443648336-31741-1-git-send-email-ebiederm@xmission.com>
-References: <877fn7eh2f.fsf_-_@x220.int.ebiederm.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, <netdev@vger.kernel.org>,
-	Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: David Miller <davem@davemloft.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out02.mta.xmission.com ([166.70.13.232]:41564 "EHLO
-	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754550AbbI3VeP (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Sep 2015 17:34:15 -0400
-In-Reply-To: <877fn7eh2f.fsf_-_@x220.int.ebiederm.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH RFC 3/7] netfilter: add NF_INET_LOCAL_SOCKET_IN chain type
+Date: Wed, 30 Sep 2015 23:48:52 +0200
+Message-ID: <20150930214852.GA8443@breakpoint.cc>
+References: <1443525140-13493-1-git-send-email-daniel@zonque.org>
+ <1443525140-13493-4-git-send-email-daniel@zonque.org>
+ <20150929211959.GF19923@breakpoint.cc>
+ <560B8E25.7050801@zonque.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, pablo@netfilter.org,
+	daniel@iogearbox.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, balazs.scheidler@balabit.com
+To: Daniel Mack <daniel@zonque.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <560B8E25.7050801@zonque.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-When struct net starts being passed through the ipv4 and ipv6 fragment
-routines ovs_vport_output will need to take a net parameter.
-Prepare ovs_vport_output before that is needed and introduce
-ovs_vport_output_skk for the call sites that still need the old
-calling conventions.
+Daniel Mack <daniel@zonque.org> wrote:
+> Of course you can drop certain packets at this point, depending on other
+> details. Say, for instance, you want to match all packets that are
+> received by a certain task and that are originated from IP addresses of
+> a specific subnet, and drop the rest. Rather than adding matches to your
+> global firewall configuration for all the ports that tasks may or may
+> not listen on, you can just do it on a higher level, from the
+> perspective of an administrator. If you decide to let your web server
+> listen on another port as well, no firewall rule configuration change is
+> needed at all.
 
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
----
- net/openvswitch/actions.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+We don't have per application configurations, not even with these
+patches...?
+The configuration is still global/per netns?
 
-diff --git a/net/openvswitch/actions.c b/net/openvswitch/actions.c
-index 315f5330b6e5..f00c641ecd93 100644
---- a/net/openvswitch/actions.c
-+++ b/net/openvswitch/actions.c
-@@ -620,7 +620,7 @@ static int set_sctp(struct sk_buff *skb, struct sw_flow_key *flow_key,
- 	return 0;
- }
- 
--static int ovs_vport_output(struct sock *sock, struct sk_buff *skb)
-+static int ovs_vport_output(struct net *net, struct sock *sk, struct sk_buff *skb)
- {
- 	struct ovs_frag_data *data = this_cpu_ptr(&ovs_frag_data_storage);
- 	struct vport *vport = data->vport;
-@@ -645,6 +645,11 @@ static int ovs_vport_output(struct sock *sock, struct sk_buff *skb)
- 	ovs_vport_send(vport, skb);
- 	return 0;
- }
-+static int ovs_vport_output_sk(struct sock *sk, struct sk_buff *skb)
-+{
-+	struct net *net = dev_net(skb_dst(skb)->dev);
-+	return ovs_vport_output(net, sk, skb);
-+}
- 
- static unsigned int
- ovs_dst_get_mtu(const struct dst_entry *dst)
-@@ -700,7 +705,7 @@ static void ovs_fragment(struct vport *vport, struct sk_buff *skb, u16 mru,
- 		skb_dst_set_noref(skb, &ovs_dst);
- 		IPCB(skb)->frag_max_size = mru;
- 
--		ip_do_fragment(skb->sk, skb, ovs_vport_output);
-+		ip_do_fragment(skb->sk, skb, ovs_vport_output_sk);
- 		refdst_drop(orig_dst);
- 	} else if (ethertype == htons(ETH_P_IPV6)) {
- 		const struct nf_ipv6_ops *v6ops = nf_get_ipv6_ops();
-@@ -722,7 +727,7 @@ static void ovs_fragment(struct vport *vport, struct sk_buff *skb, u16 mru,
- 		skb_dst_set_noref(skb, &ovs_rt.dst);
- 		IP6CB(skb)->frag_max_size = mru;
- 
--		v6ops->fragment(skb->sk, skb, ovs_vport_output);
-+		v6ops->fragment(skb->sk, skb, ovs_vport_output_sk);
- 		refdst_drop(orig_dst);
- 	} else {
- 		WARN_ONCE(1, "Failed fragment ->%s: eth=%04x, MRU=%d, MTU=%d.",
--- 
-2.2.1
+> Another use case is accounting. If you want to know how much traffic a
+> certain service or application in your system has caused, you don't want
+> to match all its ports to firewall rules just in order to get that
+> information. Instead, you can now derive that information on a
+> per-application base. With this patch set, this even works just fine for
+> multicast listeners, which is something that is currently impossible to
+> achieve otherwise.
 
+> > So the only 'benefit' is that netcls id is available; but
+> > a) why is that even needed and
+> 
+> It's currently the only way of realizing application-level firewalls,
+> and it'd be an awesome feature if it actually worked.
+
+Application level firewall makes me think of proxies.
+What exactly are we talking about?
+Can you provide examples?
+
+> > b) is such a huge sledgehammer just for net cgroup accounting
+> > worth it?
+> 
+> I really don't know if this approach is intrusive enough to make it
+> qualify as sledgehammer. I'd like to see some real-world benchmarks and
+> have proof there is a performance decrease for setups that don't use
+> such chains.
+
+We have static keys for nf hooks so there is no performance decrease if
+no netfilter hooks are active.
+
+HOWEVER, this discussion seems to hint at the opposite, namely that this
+will turn into a mandatory or at least auto-enabled feature.
+
+But regardless, I called it a sledgehammer not because of performance
+concerns but because just to get this proposed socket matching facility we
+now have to put hooks into all protocol handlers and commit to keeping them
+there forever.
+
+Also, some time ago Eric suggested to allow binding to tcp ports
+from packet sockets to implement userspace-driven TCP stacks (i.e.
+kernel would just queue raw frames for the given quadruple withput
+caring about ordering etc).
+
+If we allow this proposed change, we'd also have to extend that
+with these hooks.
+
+Next time someone mentions that we don't have application matching
+but only sk/cgroup tests. Are we then going to consider doing task lookups?
+
+> > For deterministic ingress filtering you can only rely on what
+> > is contained in the packet.
+> 
+> Why so? For deterministic ingress filtering of traffic directed to a
+> local socket, you can as well rely on information associated with that
+> socket. And this is what application-level firewall rule sets are all about.
+
+Application not running -> different behaviour.  I'm sure thats obvious
+to you, but I'm not sure if its obvious to users that their
+'match on net clsid 42' won't work anymore when that service isn't running.
