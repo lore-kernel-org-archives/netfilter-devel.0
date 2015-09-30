@@ -1,93 +1,467 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH RFC 3/7] netfilter: add NF_INET_LOCAL_SOCKET_IN chain type
-Date: Wed, 30 Sep 2015 23:48:52 +0200
-Message-ID: <20150930214852.GA8443@breakpoint.cc>
-References: <1443525140-13493-1-git-send-email-daniel@zonque.org>
- <1443525140-13493-4-git-send-email-daniel@zonque.org>
- <20150929211959.GF19923@breakpoint.cc>
- <560B8E25.7050801@zonque.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, pablo@netfilter.org,
-	daniel@iogearbox.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, balazs.scheidler@balabit.com
-To: Daniel Mack <daniel@zonque.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <560B8E25.7050801@zonque.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 1/2 nf-next] netfilter: nfnetlink_queue: get rid of nfnetlink_queue_ct.c
+Date: Wed, 30 Sep 2015 23:59:34 +0200
+Message-ID: <1443650375-14739-1-git-send-email-pablo@netfilter.org>
+Cc: chamaken@gmail.com, chamas@h4.dion.ne.jp
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:41561 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932769AbbI3Vwq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Sep 2015 17:52:46 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Daniel Mack <daniel@zonque.org> wrote:
-> Of course you can drop certain packets at this point, depending on other
-> details. Say, for instance, you want to match all packets that are
-> received by a certain task and that are originated from IP addresses of
-> a specific subnet, and drop the rest. Rather than adding matches to your
-> global firewall configuration for all the ports that tasks may or may
-> not listen on, you can just do it on a higher level, from the
-> perspective of an administrator. If you decide to let your web server
-> listen on another port as well, no firewall rule configuration change is
-> needed at all.
+The original intention was to avoid dependencies between nfnetlink_queue and
+conntrack without ifdef pollution. However, we can achieve this by moving the
+conntrack dependent code into ctnetlink and keep some glue code to access the
+nfq_ct indirection from nfqueue.
 
-We don't have per application configurations, not even with these
-patches...?
-The configuration is still global/per netns?
+After this patch, the nfq_ct indirection is always compiled in the netfilter
+core to avoid polluting nfqueue with ifdefs. Thus, if nf_conntrack is not
+compiled this results in only 8-bytes of memory waste in x86_64.
 
-> Another use case is accounting. If you want to know how much traffic a
-> certain service or application in your system has caused, you don't want
-> to match all its ports to firewall rules just in order to get that
-> information. Instead, you can now derive that information on a
-> per-application base. With this patch set, this even works just fine for
-> multicast listeners, which is something that is currently impossible to
-> achieve otherwise.
+This patch also adds ctnetlink_nfqueue_seqadj() to avoid that the nf_conn
+structure layout if exposed to nf_queue, which creates another dependency with
+nf_conntrack at compilation time.
 
-> > So the only 'benefit' is that netcls id is available; but
-> > a) why is that even needed and
-> 
-> It's currently the only way of realizing application-level firewalls,
-> and it'd be an awesome feature if it actually worked.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+@Ken-ichirou: Sorry, it took me a while to follow up on this.
+Could you rebase your patchset on top of these two new patches, please?
+The original patches that you sent don't apply anymore. Thanks.
 
-Application level firewall makes me think of proxies.
-What exactly are we talking about?
-Can you provide examples?
+ include/linux/netfilter.h               |  12 ++--
+ include/net/netfilter/nfnetlink_queue.h |  51 --------------
+ net/netfilter/Makefile                  |   1 -
+ net/netfilter/nf_conntrack_netlink.c    |  49 +++++++++++++-
+ net/netfilter/nfnetlink_queue_core.c    |  52 +++++++++++----
+ net/netfilter/nfnetlink_queue_ct.c      | 113 --------------------------------
+ 6 files changed, 96 insertions(+), 182 deletions(-)
+ delete mode 100644 include/net/netfilter/nfnetlink_queue.h
+ delete mode 100644 net/netfilter/nfnetlink_queue_ct.c
 
-> > b) is such a huge sledgehammer just for net cgroup accounting
-> > worth it?
-> 
-> I really don't know if this approach is intrusive enough to make it
-> qualify as sledgehammer. I'd like to see some real-world benchmarks and
-> have proof there is a performance decrease for setups that don't use
-> such chains.
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 165ab2d..3e5e8f2 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -369,14 +369,21 @@ nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
+ extern void (*ip_ct_attach)(struct sk_buff *, const struct sk_buff *) __rcu;
+ void nf_ct_attach(struct sk_buff *, const struct sk_buff *);
+ extern void (*nf_ct_destroy)(struct nf_conntrack *) __rcu;
++#else
++static inline void nf_ct_attach(struct sk_buff *new, struct sk_buff *skb) {}
++#endif
+ 
+ struct nf_conn;
+ enum ip_conntrack_info;
+ struct nlattr;
+ 
+ struct nfq_ct_hook {
++	struct nf_conn *(*get_ct)(struct sk_buff *skb,
++				  enum ip_conntrack_info *ctinfo);
+ 	size_t (*build_size)(const struct nf_conn *ct);
+-	int (*build)(struct sk_buff *skb, struct nf_conn *ct);
++	int (*build)(struct sk_buff *skb, struct nf_conn *ct,
++		     enum ip_conntrack_info ctinfo,
++		     u_int16_t ct_attr, u_int16_t ct_info_attr);
+ 	int (*parse)(const struct nlattr *attr, struct nf_conn *ct);
+ 	int (*attach_expect)(const struct nlattr *attr, struct nf_conn *ct,
+ 			     u32 portid, u32 report);
+@@ -384,9 +391,6 @@ struct nfq_ct_hook {
+ 			   enum ip_conntrack_info ctinfo, s32 off);
+ };
+ extern struct nfq_ct_hook __rcu *nfq_ct_hook;
+-#else
+-static inline void nf_ct_attach(struct sk_buff *new, struct sk_buff *skb) {}
+-#endif
+ 
+ /**
+  * nf_skb_duplicated - TEE target has sent a packet
+diff --git a/include/net/netfilter/nfnetlink_queue.h b/include/net/netfilter/nfnetlink_queue.h
+deleted file mode 100644
+index aff88ba..0000000
+--- a/include/net/netfilter/nfnetlink_queue.h
++++ /dev/null
+@@ -1,51 +0,0 @@
+-#ifndef _NET_NFNL_QUEUE_H_
+-#define _NET_NFNL_QUEUE_H_
+-
+-#include <linux/netfilter/nf_conntrack_common.h>
+-
+-struct nf_conn;
+-
+-#ifdef CONFIG_NETFILTER_NETLINK_QUEUE_CT
+-struct nf_conn *nfqnl_ct_get(struct sk_buff *entskb, size_t *size,
+-			     enum ip_conntrack_info *ctinfo);
+-struct nf_conn *nfqnl_ct_parse(const struct sk_buff *skb,
+-			       const struct nlattr *attr,
+-			       enum ip_conntrack_info *ctinfo);
+-int nfqnl_ct_put(struct sk_buff *skb, struct nf_conn *ct,
+-		 enum ip_conntrack_info ctinfo);
+-void nfqnl_ct_seq_adjust(struct sk_buff *skb, struct nf_conn *ct,
+-			 enum ip_conntrack_info ctinfo, int diff);
+-int nfqnl_attach_expect(struct nf_conn *ct, const struct nlattr *attr,
+-			u32 portid, u32 report);
+-#else
+-inline struct nf_conn *
+-nfqnl_ct_get(struct sk_buff *entskb, size_t *size, enum ip_conntrack_info *ctinfo)
+-{
+-	return NULL;
+-}
+-
+-inline struct nf_conn *nfqnl_ct_parse(const struct sk_buff *skb,
+-				      const struct nlattr *attr,
+-				      enum ip_conntrack_info *ctinfo)
+-{
+-	return NULL;
+-}
+-
+-inline int
+-nfqnl_ct_put(struct sk_buff *skb, struct nf_conn *ct, enum ip_conntrack_info ctinfo)
+-{
+-	return 0;
+-}
+-
+-inline void nfqnl_ct_seq_adjust(struct sk_buff *skb, struct nf_conn *ct,
+-				enum ip_conntrack_info ctinfo, int diff)
+-{
+-}
+-
+-inline int nfqnl_attach_expect(struct nf_conn *ct, const struct nlattr *attr,
+-			       u32 portid, u32 report)
+-{
+-	return 0;
+-}
+-#endif /* NF_CONNTRACK */
+-#endif
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 70d026d..4d68e72 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -11,7 +11,6 @@ obj-$(CONFIG_NETFILTER) = netfilter.o
+ obj-$(CONFIG_NETFILTER_NETLINK) += nfnetlink.o
+ obj-$(CONFIG_NETFILTER_NETLINK_ACCT) += nfnetlink_acct.o
+ nfnetlink_queue-y := nfnetlink_queue_core.o
+-nfnetlink_queue-$(CONFIG_NETFILTER_NETLINK_QUEUE_CT) += nfnetlink_queue_ct.o
+ obj-$(CONFIG_NETFILTER_NETLINK_QUEUE) += nfnetlink_queue.o
+ obj-$(CONFIG_NETFILTER_NETLINK_LOG) += nfnetlink_log.o
+ 
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 94a6654..82d0a4e 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -2162,6 +2162,18 @@ ctnetlink_nfqueue_build_size(const struct nf_conn *ct)
+ 	       ;
+ }
+ 
++static struct nf_conn *ctnetlink_nfqueue_get_ct(struct sk_buff *skb,
++						enum ip_conntrack_info *ctinfo)
++{
++	struct nf_conn *ct;
++
++	ct = nf_ct_get(skb, ctinfo);
++	if (ct && nf_ct_is_untracked(ct))
++		ct = NULL;
++
++	return ct;
++}
++
+ static int
+ ctnetlink_nfqueue_build(struct sk_buff *skb, struct nf_conn *ct)
+ {
+@@ -2236,6 +2248,31 @@ nla_put_failure:
+ }
+ 
+ static int
++ctnetlink_nfqueue_build(struct sk_buff *skb, struct nf_conn *ct,
++			enum ip_conntrack_info ctinfo,
++			u_int16_t ct_attr, u_int16_t ct_info_attr)
++{
++	struct nlattr *nest_parms;
++
++	nest_parms = nla_nest_start(skb, ct_attr | NLA_F_NESTED);
++	if (!nest_parms)
++		goto nla_put_failure;
++
++	if (__ctnetlink_nfqueue_build(skb, ct) < 0)
++		goto nla_put_failure;
++
++	nla_nest_end(skb, nest_parms);
++
++	if (nla_put_be32(skb, ct_info_attr, htonl(ctinfo)))
++		goto nla_put_failure;
++
++	return 0;
++
++nla_put_failure:
++	return -ENOSPC;
++}
++
++static int
+ ctnetlink_nfqueue_parse_ct(const struct nlattr *cda[], struct nf_conn *ct)
+ {
+ 	int err;
+@@ -2350,12 +2387,22 @@ ctnetlink_nfqueue_attach_expect(const struct nlattr *attr, struct nf_conn *ct,
+ 	return 0;
+ }
+ 
++static void ctnetlink_nfqueue_seqadj(struct sk_buff *skb, struct nf_conn *ct,
++				     enum ip_conntrack_info ctinfo, int diff)
++{
++	if (!(ct->status & IPS_NAT_MASK))
++		return;
++
++	nf_ct_tcp_seqadj_set(skb, ct, ctinfo, diff);
++}
++
+ static struct nfq_ct_hook ctnetlink_nfqueue_hook = {
++	.get_ct		= ctnetlink_nfqueue_get_ct,
+ 	.build_size	= ctnetlink_nfqueue_build_size,
+ 	.build		= ctnetlink_nfqueue_build,
+ 	.parse		= ctnetlink_nfqueue_parse,
+ 	.attach_expect	= ctnetlink_nfqueue_attach_expect,
+-	.seq_adjust	= nf_ct_tcp_seqadj_set,
++	.seq_adjust	= ctnetlink_nfqueue_seqadj,
+ };
+ #endif /* CONFIG_NETFILTER_NETLINK_QUEUE_CT */
+ 
+diff --git a/net/netfilter/nfnetlink_queue_core.c b/net/netfilter/nfnetlink_queue_core.c
+index 41583e3..b1f1c74 100644
+--- a/net/netfilter/nfnetlink_queue_core.c
++++ b/net/netfilter/nfnetlink_queue_core.c
+@@ -28,12 +28,12 @@
+ #include <linux/netfilter_bridge.h>
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/nfnetlink_queue.h>
++#include <linux/netfilter/nf_conntrack_common.h>
+ #include <linux/list.h>
+ #include <net/sock.h>
+ #include <net/tcp_states.h>
+ #include <net/netfilter/nf_queue.h>
+ #include <net/netns/generic.h>
+-#include <net/netfilter/nfnetlink_queue.h>
+ 
+ #include <linux/atomic.h>
+ 
+@@ -313,6 +313,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	struct net_device *outdev;
+ 	struct nf_conn *ct = NULL;
+ 	enum ip_conntrack_info uninitialized_var(ctinfo);
++	struct nfq_ct_hook *nfq_ct;
+ 	bool csum_verify;
+ 	char *secdata = NULL;
+ 	u32 seclen = 0;
+@@ -364,8 +365,14 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 		break;
+ 	}
+ 
+-	if (queue->flags & NFQA_CFG_F_CONNTRACK)
+-		ct = nfqnl_ct_get(entskb, &size, &ctinfo);
++	if (queue->flags & NFQA_CFG_F_CONNTRACK) {
++		nfq_ct = rcu_dereference(nfq_ct_hook);
++		if (nfq_ct != NULL) {
++			ct = nfq_ct->get_ct(entskb, &ctinfo);
++			if (ct != NULL)
++				size += nfq_ct->build_size(ct);
++		}
++	}
+ 
+ 	if (queue->flags & NFQA_CFG_F_UID_GID) {
+ 		size +=  (nla_total_size(sizeof(u_int32_t))	/* uid */
+@@ -508,7 +515,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	if (seclen && nla_put(skb, NFQA_SECCTX, seclen, secdata))
+ 		goto nla_put_failure;
+ 
+-	if (ct && nfqnl_ct_put(skb, ct, ctinfo) < 0)
++	if (ct && nfq_ct->build(skb, ct, ctinfo, NFQA_CT, NFQA_CT_INFO) < 0)
+ 		goto nla_put_failure;
+ 
+ 	if (cap_len > data_len &&
+@@ -1001,6 +1008,28 @@ nfqnl_recv_verdict_batch(struct sock *ctnl, struct sk_buff *skb,
+ 	return 0;
+ }
+ 
++static struct nf_conn *nfqnl_ct_parse(struct nfq_ct_hook *nfq_ct,
++				      const struct nlmsghdr *nlh,
++				      const struct nlattr * const nfqa[],
++				      struct nf_queue_entry *entry,
++				      enum ip_conntrack_info *ctinfo)
++{
++	struct nf_conn *ct;
++
++	ct = nfq_ct->get_ct(entry->skb, ctinfo);
++	if (ct == NULL)
++		return NULL;
++
++	if (nfq_ct->parse(nfqa[NFQA_CT], ct) < 0)
++		return NULL;
++
++	if (nfqa[NFQA_EXP])
++		nfq_ct->attach_expect(nfqa[NFQA_EXP], ct,
++				      NETLINK_CB(entry->skb).portid,
++				      nlmsg_report(nlh));
++	return ct;
++}
++
+ static int
+ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
+ 		   const struct nlmsghdr *nlh,
+@@ -1014,6 +1043,7 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
+ 	unsigned int verdict;
+ 	struct nf_queue_entry *entry;
+ 	enum ip_conntrack_info uninitialized_var(ctinfo);
++	struct nfq_ct_hook *nfq_ct;
+ 	struct nf_conn *ct = NULL;
+ 
+ 	struct net *net = sock_net(ctnl);
+@@ -1037,12 +1067,10 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
+ 		return -ENOENT;
+ 
+ 	if (nfqa[NFQA_CT]) {
+-		ct = nfqnl_ct_parse(entry->skb, nfqa[NFQA_CT], &ctinfo);
+-		if (ct && nfqa[NFQA_EXP]) {
+-			nfqnl_attach_expect(ct, nfqa[NFQA_EXP],
+-					    NETLINK_CB(skb).portid,
+-					    nlmsg_report(nlh));
+-		}
++		/* rcu lock already held from nfnl->call_rcu. */
++		nfq_ct = rcu_dereference(nfq_ct_hook);
++		if (nfq_ct != NULL)
++			ct = nfqnl_ct_parse(nfq_ct, nlh, nfqa, entry, &ctinfo);
+ 	}
+ 
+ 	if (nfqa[NFQA_PAYLOAD]) {
+@@ -1053,8 +1081,8 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
+ 				 payload_len, entry, diff) < 0)
+ 			verdict = NF_DROP;
+ 
+-		if (ct)
+-			nfqnl_ct_seq_adjust(entry->skb, ct, ctinfo, diff);
++		if (ct && diff)
++			nfq_ct->seq_adjust(entry->skb, ct, ctinfo, diff);
+ 	}
+ 
+ 	if (nfqa[NFQA_MARK])
+diff --git a/net/netfilter/nfnetlink_queue_ct.c b/net/netfilter/nfnetlink_queue_ct.c
+deleted file mode 100644
+index 96cac50..0000000
+--- a/net/netfilter/nfnetlink_queue_ct.c
++++ /dev/null
+@@ -1,113 +0,0 @@
+-/*
+- * (C) 2012 by Pablo Neira Ayuso <pablo@netfilter.org>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- */
+-
+-#include <linux/skbuff.h>
+-#include <linux/netfilter.h>
+-#include <linux/netfilter/nfnetlink.h>
+-#include <linux/netfilter/nfnetlink_queue.h>
+-#include <net/netfilter/nf_conntrack.h>
+-#include <net/netfilter/nfnetlink_queue.h>
+-
+-struct nf_conn *nfqnl_ct_get(struct sk_buff *entskb, size_t *size,
+-			     enum ip_conntrack_info *ctinfo)
+-{
+-	struct nfq_ct_hook *nfq_ct;
+-	struct nf_conn *ct;
+-
+-	/* rcu_read_lock()ed by __nf_queue already. */
+-	nfq_ct = rcu_dereference(nfq_ct_hook);
+-	if (nfq_ct == NULL)
+-		return NULL;
+-
+-	ct = nf_ct_get(entskb, ctinfo);
+-	if (ct) {
+-		if (!nf_ct_is_untracked(ct))
+-			*size += nfq_ct->build_size(ct);
+-		else
+-			ct = NULL;
+-	}
+-	return ct;
+-}
+-
+-struct nf_conn *
+-nfqnl_ct_parse(const struct sk_buff *skb, const struct nlattr *attr,
+-	       enum ip_conntrack_info *ctinfo)
+-{
+-	struct nfq_ct_hook *nfq_ct;
+-	struct nf_conn *ct;
+-
+-	/* rcu_read_lock()ed by __nf_queue already. */
+-	nfq_ct = rcu_dereference(nfq_ct_hook);
+-	if (nfq_ct == NULL)
+-		return NULL;
+-
+-	ct = nf_ct_get(skb, ctinfo);
+-	if (ct && !nf_ct_is_untracked(ct))
+-		nfq_ct->parse(attr, ct);
+-
+-	return ct;
+-}
+-
+-int nfqnl_ct_put(struct sk_buff *skb, struct nf_conn *ct,
+-		 enum ip_conntrack_info ctinfo)
+-{
+-	struct nfq_ct_hook *nfq_ct;
+-	struct nlattr *nest_parms;
+-	u_int32_t tmp;
+-
+-	nfq_ct = rcu_dereference(nfq_ct_hook);
+-	if (nfq_ct == NULL)
+-		return 0;
+-
+-	nest_parms = nla_nest_start(skb, NFQA_CT | NLA_F_NESTED);
+-	if (!nest_parms)
+-		goto nla_put_failure;
+-
+-	if (nfq_ct->build(skb, ct) < 0)
+-		goto nla_put_failure;
+-
+-	nla_nest_end(skb, nest_parms);
+-
+-	tmp = ctinfo;
+-	if (nla_put_be32(skb, NFQA_CT_INFO, htonl(tmp)))
+-		goto nla_put_failure;
+-
+-	return 0;
+-
+-nla_put_failure:
+-	return -1;
+-}
+-
+-void nfqnl_ct_seq_adjust(struct sk_buff *skb, struct nf_conn *ct,
+-			 enum ip_conntrack_info ctinfo, int diff)
+-{
+-	struct nfq_ct_hook *nfq_ct;
+-
+-	nfq_ct = rcu_dereference(nfq_ct_hook);
+-	if (nfq_ct == NULL)
+-		return;
+-
+-	if ((ct->status & IPS_NAT_MASK) && diff)
+-		nfq_ct->seq_adjust(skb, ct, ctinfo, diff);
+-}
+-
+-int nfqnl_attach_expect(struct nf_conn *ct, const struct nlattr *attr,
+-			u32 portid, u32 report)
+-{
+-	struct nfq_ct_hook *nfq_ct;
+-
+-	if (nf_ct_is_untracked(ct))
+-		return 0;
+-
+-	nfq_ct = rcu_dereference(nfq_ct_hook);
+-	if (nfq_ct == NULL)
+-		return -EOPNOTSUPP;
+-
+-	return nfq_ct->attach_expect(attr, ct, portid, report);
+-}
+-- 
+2.1.4
 
-We have static keys for nf hooks so there is no performance decrease if
-no netfilter hooks are active.
-
-HOWEVER, this discussion seems to hint at the opposite, namely that this
-will turn into a mandatory or at least auto-enabled feature.
-
-But regardless, I called it a sledgehammer not because of performance
-concerns but because just to get this proposed socket matching facility we
-now have to put hooks into all protocol handlers and commit to keeping them
-there forever.
-
-Also, some time ago Eric suggested to allow binding to tcp ports
-from packet sockets to implement userspace-driven TCP stacks (i.e.
-kernel would just queue raw frames for the given quadruple withput
-caring about ordering etc).
-
-If we allow this proposed change, we'd also have to extend that
-with these hooks.
-
-Next time someone mentions that we don't have application matching
-but only sk/cgroup tests. Are we then going to consider doing task lookups?
-
-> > For deterministic ingress filtering you can only rely on what
-> > is contained in the packet.
-> 
-> Why so? For deterministic ingress filtering of traffic directed to a
-> local socket, you can as well rely on information associated with that
-> socket. And this is what application-level firewall rule sets are all about.
-
-Application not running -> different behaviour.  I'm sure thats obvious
-to you, but I'm not sure if its obvious to users that their
-'match on net clsid 42' won't work anymore when that service isn't running.
