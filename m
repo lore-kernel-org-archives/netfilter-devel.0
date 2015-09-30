@@ -1,41 +1,61 @@
-From: Flavio Leitner <fbl@sysclose.org>
-Subject: [PATCH] netfilter: remove dead code
-Date: Wed, 30 Sep 2015 10:23:50 -0300
-Message-ID: <1443619430-5302-1-git-send-email-fbl@sysclose.org>
-To: netfilter-devel@vger.kernel.org
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: [PATCH net-next 0/6] net: Pass net through ip fragmention
+Date: Wed, 30 Sep 2015 16:24:40 -0500
+Message-ID: <877fn7eh2f.fsf_-_@x220.int.ebiederm.org>
+References: <87mvwn18my.fsf@x220.int.ebiederm.org>
+	<87pp1fpy1b.fsf@x220.int.ebiederm.org>
+	<87fv2bo7br.fsf_-_@x220.int.ebiederm.org>
+	<87si62gteh.fsf_-_@x220.int.ebiederm.org>
+Mime-Version: 1.0
+Content-Type: text/plain
+Cc: <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+	Nicolas Dichtel <nicolas.dichtel@6wind.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sender163-mail.zoho.com ([74.201.84.163]:25195 "EHLO
-	sender163-mail.zoho.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932774AbbI3NYK (ORCPT
+Received: from out02.mta.xmission.com ([166.70.13.232]:41164 "EHLO
+	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932769AbbI3VcH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Sep 2015 09:24:10 -0400
+	Wed, 30 Sep 2015 17:32:07 -0400
+In-Reply-To: <87si62gteh.fsf_-_@x220.int.ebiederm.org> (Eric W. Biederman's
+	message of "Fri, 25 Sep 2015 15:01:42 -0500")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Remove __nf_conntrack_find() from headers.
-Fixes: dcd93ed4cd1 ("netfilter: nf_conntrack: remove dead code"
 
-Signed-off-by: Flavio Leitner <fbl@sysclose.org>
----
- include/net/netfilter/nf_conntrack.h | 4 ----
- 1 file changed, 4 deletions(-)
+This is the next installment of my work to pass struct net through the
+output path so the code does not need to guess how to figure out which
+network namespace it is in, and ultimately routes can have output
+devices in another network namespace.
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index d642f68..fde4068 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -183,10 +183,6 @@ void *nf_ct_alloc_hashtable(unsigned int *sizep, int nulls);
- 
- void nf_ct_free_hashtable(void *hash, unsigned int size);
- 
--struct nf_conntrack_tuple_hash *
--__nf_conntrack_find(struct net *net, u16 zone,
--		    const struct nf_conntrack_tuple *tuple);
--
- int nf_conntrack_hash_check_insert(struct nf_conn *ct);
- bool nf_ct_delete(struct nf_conn *ct, u32 pid, int report);
- 
--- 
-2.4.3
+This round focuses on passing net through ip fragmentation which we seem
+to call from about everywhere.  That is the main ip output paths, the
+bridge netfilter code, and openvswitch.  This has to happend at once
+accross the tree as function pointers are involved.
 
+First some prep work is done, then ipv4 and ipv6 are converted and then
+temporary helper functions are removed.
 
+The changes are also available against nf-next at:
+git://git.kernel.org/pub/scm/linux/kernel/git/ebiederm/net-next.git master
+
+Eric
+
+Eric W. Biederman (6):
+      openvswitch: Pass net into ovs_vport_output
+      openvswitch: Pass net into ovs_fragment
+      ipv4: Pass struct net through ip_fragment
+      ipv6: Pass struct net through ip6_fragment
+      bridge: Remove br_nf_push_frag_xmit_sk
+      openvswitch: Remove ovs_vport_output_sk
+
+ include/linux/netfilter_ipv6.h  |  4 ++--
+ include/net/ip.h                |  4 ++--
+ include/net/ip6_route.h         |  4 ++--
+ net/bridge/br_netfilter_hooks.c | 13 ++++--------
+ net/ipv4/ip_output.c            | 44 +++++++++++++++++++----------------------
+ net/ipv6/ip6_output.c           | 16 +++++++--------
+ net/ipv6/xfrm6_output.c         | 10 ++++++++--
+ net/openvswitch/actions.c       | 13 ++++++------
+ 8 files changed, 52 insertions(+), 56 deletions(-)
