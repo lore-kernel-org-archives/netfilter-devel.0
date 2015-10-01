@@ -1,77 +1,48 @@
-From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Subject: Re: [PATCH RFC 3/7] netfilter: add NF_INET_LOCAL_SOCKET_IN chain type
-Date: Thu, 1 Oct 2015 18:34:36 -0300
-Message-ID: <20151001213436.GB4890@localhost.localdomain>
-References: <1443525140-13493-1-git-send-email-daniel@zonque.org>
- <1443525140-13493-4-git-send-email-daniel@zonque.org>
- <20150929211959.GF19923@breakpoint.cc>
- <560B8E25.7050801@zonque.org>
- <20151001171323.GA4890@localhost.localdomain>
- <560DA092.60100@zonque.org>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: Re: [PATCH net-next 2/6] openvswitch: Pass net into ovs_fragment
+Date: Fri, 2 Oct 2015 00:14:57 +0200
+Message-ID: <560DB061.5070909@6wind.com>
+References: <877fn7eh2f.fsf_-_@x220.int.ebiederm.org>
+ <1443648336-31741-2-git-send-email-ebiederm@xmission.com>
+ <560CEF75.9050703@6wind.com> <87lhbma840.fsf@x220.int.ebiederm.org>
+Reply-To: nicolas.dichtel@6wind.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, pablo@netfilter.org,
-	daniel@iogearbox.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, balazs.scheidler@balabit.com
-To: Daniel Mack <daniel@zonque.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <560DA092.60100@zonque.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:35347 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751291AbbJAWPB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 1 Oct 2015 18:15:01 -0400
+Received: by wicge5 with SMTP id ge5so8947329wic.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 01 Oct 2015 15:15:00 -0700 (PDT)
+In-Reply-To: <87lhbma840.fsf@x220.int.ebiederm.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 01, 2015 at 11:07:30PM +0200, Daniel Mack wrote:
-> On 10/01/2015 07:13 PM, Marcelo Ricardo Leitner wrote:
-> > On Wed, Sep 30, 2015 at 09:24:21AM +0200, Daniel Mack wrote:
-> >> On 09/29/2015 11:19 PM, Florian Westphal wrote:
-> >>> Daniel Mack <daniel@zonque.org> wrote:
-> >>>> Add a new chain type NF_INET_LOCAL_SOCKET_IN which is ran after the
-> >>>> input demux is complete and the final destination socket (if any)
-> >>>> has been determined.
-> >>>>
-> >>>> This helps filtering packets based on information stored in the
-> >>>> destination socket, such as cgroup controller supplied net class IDs.
-> >>>
-> >>> This still seems like the 'x y' problem ("want to do X, think Y is
-> >>> correct solution; ask about Y, but thats a strange thing to do").
-> >>>
-> >>> There is nothing that this offers over INPUT *except* that sk is
-> >>> available.  But there is zero benefit as far as I am concerned --
-> >>> why would you want to do any meaningful filtering based on the sk at
-> >>> that point...?
-> >>
-> >> Well, INPUT and SOCKET_INPUT are just two different tools that help
-> >> solve different classes of problems. INPUT is for filtering all local
-> >> traffic while SOCKET_INPUT is just for such that actually has a
-> >> listener, and they both make sense in different scenarios.
-> > 
-> > How is it better than -m socket ? It's used with tproxy, but not only,
-> > and works quite well, thought it only supports TCP and UDP.
-> 
-> Yes, but not multicast.
+Le 01/10/2015 18:03, Eric W. Biederman a =C3=A9crit :
+> Nicolas Dichtel <nicolas.dichtel@6wind.com> writes:
+>
+>> Le 30/09/2015 23:25, Eric W. Biederman a =C3=A9crit :
+[snip]
+>>> +			struct net *net =3D read_pnet(&dp->net);
+>> nit: add an empty line after variables declaration.
+>>
+>>>    			__be16 ethertype =3D key->eth.type;
+>>>
+> ^^^^^^^^^^^  The empty line is right here, after the second variable
+>               declaration.
+Rooh ... I need glasses ;-)
 
-Right
-
-> > Something like
-> >   iptables -N INPUT_SOCKET
-> >   iptables -I INPUT -m socket -j INPUT_SOCKET
-> > would achieve similar results, if I got you right.
-> > 
-> > -m socket implies in a double-lookup for the socket, yes, but that
-> > sounds a reasonable price to pay for this while not inserting another
-> > hook. I know of deployments using -m socket for tproxy and handling very
-> > high rates, performance has not been a problem..
-> 
-> I know, and my primary attempt to get this fixed was to factor out the
-> early demux code from the socket matching code and make it available to
-> the cgroup matcher as well:
-> 
-> 
-> http://thread.gmane.org/gmane.comp.security.firewalls.netfilter.devel/58054
-> 
-> That, however, got rejected because it doesn't work for multicast. This
-> patch set implements one of the things Pablo suggested in his reply.
-
-Ok, thanks for the info. Makes sense, hmm.
-
-  Marcelo
+Sorry for the noise.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
