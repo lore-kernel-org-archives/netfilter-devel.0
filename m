@@ -1,48 +1,35 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH net-next 2/6] openvswitch: Pass net into ovs_fragment
-Date: Fri, 2 Oct 2015 00:14:57 +0200
-Message-ID: <560DB061.5070909@6wind.com>
-References: <877fn7eh2f.fsf_-_@x220.int.ebiederm.org>
- <1443648336-31741-2-git-send-email-ebiederm@xmission.com>
- <560CEF75.9050703@6wind.com> <87lhbma840.fsf@x220.int.ebiederm.org>
-Reply-To: nicolas.dichtel@6wind.com
+From: Ian Morris <ipm@chirality.org.uk>
+Subject: Re: [PATCH nf-next] netfilter: Line layout whitespace fixes
+Date: Fri, 2 Oct 2015 00:44:03 +0100
+Message-ID: <560DC543.3060809@chirality.org.uk>
+References: <1443089406-8996-1-git-send-email-ipm@chirality.org.uk>
+ <20150930221707.GA14994@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:35347 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751291AbbJAWPB (ORCPT
+Received: from inet-gw.chirality.org.uk ([88.97.209.22]:48916 "EHLO
+	cedar.ipmorris.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751131AbbJAXoH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Oct 2015 18:15:01 -0400
-Received: by wicge5 with SMTP id ge5so8947329wic.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 01 Oct 2015 15:15:00 -0700 (PDT)
-In-Reply-To: <87lhbma840.fsf@x220.int.ebiederm.org>
+	Thu, 1 Oct 2015 19:44:07 -0400
+In-Reply-To: <20150930221707.GA14994@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 01/10/2015 18:03, Eric W. Biederman a =C3=A9crit :
-> Nicolas Dichtel <nicolas.dichtel@6wind.com> writes:
->
->> Le 30/09/2015 23:25, Eric W. Biederman a =C3=A9crit :
-[snip]
->>> +			struct net *net =3D read_pnet(&dp->net);
->> nit: add an empty line after variables declaration.
->>
->>>    			__be16 ethertype =3D key->eth.type;
->>>
-> ^^^^^^^^^^^  The empty line is right here, after the second variable
->               declaration.
-Rooh ... I need glasses ;-)
 
-Sorry for the noise.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 30/09/15 23:17, Pablo Neira Ayuso wrote:
+> On Thu, Sep 24, 2015 at 11:10:06AM +0100, Ian Morris wrote:
+>> Fixes various whitespace issues detected by checkpatch (e.g. adding spaces between operations, replacing spaces with tabs, etc)
+>>
+>> No changes detected by objdiff.
+> These large cleanup patch causes problems for -stable maintainers,
+> since they have more conflicts when backporting stuff.
+>
+> I'd rather keep this back.
+>
+Please help me understand: until when do you propose such changes be 
+deferred? Or are you suggesting we should apply changes more 
+incrementally somehow?
