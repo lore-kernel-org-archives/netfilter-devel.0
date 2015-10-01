@@ -1,81 +1,101 @@
-From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Subject: Re: [PATCH RFC 3/7] netfilter: add NF_INET_LOCAL_SOCKET_IN chain type
-Date: Thu, 1 Oct 2015 14:13:23 -0300
-Message-ID: <20151001171323.GA4890@localhost.localdomain>
-References: <1443525140-13493-1-git-send-email-daniel@zonque.org>
- <1443525140-13493-4-git-send-email-daniel@zonque.org>
- <20150929211959.GF19923@breakpoint.cc>
- <560B8E25.7050801@zonque.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [conntrackd] allowing DisableExternalCache in alarm mode
+Date: Thu, 1 Oct 2015 20:26:32 +0200
+Message-ID: <20151001182632.GA4525@salvia>
+References: <CAOkSjBh2KtYcSEQ7=h_h+R9CE53pwGtBAiQ_OZF0aTX0fhY0fw@mail.gmail.com>
+ <20150828164912.GD3436@salvia>
+ <CAOkSjBhxLk2beq70jZCTKtO8K09UcSj5jNh2H-9wvCzSL0XxeA@mail.gmail.com>
+ <20150901164421.GA3320@salvia>
+ <CAOkSjBhUEJESS=_Z2oui9FFNG7RM+ZRfJpFY2WWYWbVjN3LfOw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, pablo@netfilter.org,
-	daniel@iogearbox.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, balazs.scheidler@balabit.com
-To: Daniel Mack <daniel@zonque.org>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:56248 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751705AbbJASTk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 1 Oct 2015 14:19:40 -0400
 Content-Disposition: inline
-In-Reply-To: <560B8E25.7050801@zonque.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <CAOkSjBhUEJESS=_Z2oui9FFNG7RM+ZRfJpFY2WWYWbVjN3LfOw@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 30, 2015 at 09:24:21AM +0200, Daniel Mack wrote:
-> On 09/29/2015 11:19 PM, Florian Westphal wrote:
-> > Daniel Mack <daniel@zonque.org> wrote:
-> >> Add a new chain type NF_INET_LOCAL_SOCKET_IN which is ran after the
-> >> input demux is complete and the final destination socket (if any)
-> >> has been determined.
+On Fri, Sep 25, 2015 at 01:38:38PM +0200, Arturo Borrero Gonzalez wrote:
+> On 1 September 2015 at 18:44, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Mon, Aug 31, 2015 at 09:55:23AM +0200, Arturo Borrero Gonzalez wrote:
+> >> On 28 August 2015 at 18:49, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> >> >
+> >> > Are these FTP data flows? I'm asking this because the master
+> >> > connection (control flow) may be missing in the conntrack table, thus
+> >> > the ENOENT error.
 > >>
-> >> This helps filtering packets based on information stored in the
-> >> destination socket, such as cgroup controller supplied net class IDs.
-> > 
-> > This still seems like the 'x y' problem ("want to do X, think Y is
-> > correct solution; ask about Y, but thats a strange thing to do").
-> > 
-> > There is nothing that this offers over INPUT *except* that sk is
-> > available.  But there is zero benefit as far as I am concerned --
-> > why would you want to do any meaningful filtering based on the sk at
-> > that point...?
+> >> Makes sense.
+> >>
+> >> Would you consider accepting the patch?
+> >
+> > I think you can fix the problem that you're noticing by extending
+> > timer_add().
+> >
+> > Note that the general idea behind the alarm approach is to insert a
+> > timer with a random time wait in unit from 0..M seconds.
+> >
+> > A quick workaround to address this is that master conntracks are
+> > placed in the time range from 0..N/2, then you place non-master
+> > conntrack entries in the range from N/2+1 to M. Then, unless there is
+> > packet loss, most likely the expected conntrack will find the master
+> > one.
+> >
+> > It should be just a few more extra lines away from this oneliner.
 > 
-> Well, INPUT and SOCKET_INPUT are just two different tools that help
-> solve different classes of problems. INPUT is for filtering all local
-> traffic while SOCKET_INPUT is just for such that actually has a
-> listener, and they both make sense in different scenarios.
-
-How is it better than -m socket ? It's used with tproxy, but not only,
-and works quite well, thought it only supports TCP and UDP.
-
-Something like
-  iptables -N INPUT_SOCKET
-  iptables -I INPUT -m socket -j INPUT_SOCKET
-would achieve similar results, if I got you right.
-
--m socket implies in a double-lookup for the socket, yes, but that
-sounds a reasonable price to pay for this while not inserting another
-hook. I know of deployments using -m socket for tproxy and handling very
-high rates, performance has not been a problem..
-
-> > Drop?  Makes no sense, else application would not be running in the first
-> > place.
+> I keep thinking about this, and I have a few questions:
 > 
-> Of course you can drop certain packets at this point, depending on other
-> details. Say, for instance, you want to match all packets that are
-> received by a certain task and that are originated from IP addresses of
-> a specific subnet, and drop the rest. Rather than adding matches to your
-> global firewall configuration for all the ports that tasks may or may
-> not listen on, you can just do it on a higher level, from the
-> perspective of an administrator. If you decide to let your web server
-> listen on another port as well, no firewall rule configuration change is
-> needed at all.
-> 
-> Another use case is accounting. If you want to know how much traffic a
-> certain service or application in your system has caused, you don't want
-> to match all its ports to firewall rules just in order to get that
-> information. Instead, you can now derive that information on a
-> per-application base. With this patch set, this even works just fine for
-> multicast listeners, which is something that is currently impossible to
-> achieve otherwise.
+> timer_add() seems to manage timers for both internal and external caches.
 
-Sounds like you want a boosted socket match, perhaps borrowing some of
-the features from owner match.
+Only for external:
 
-  Marcelo
+struct sync_mode sync_alarm = {
+        .internal_cache_flags   = NO_FEATURES,
+        .external_cache_flags   = TIMER,
+        ...
+
+> Is it okay to include the workaround you mentioned for *both* internal
+> and external caches?
+
+You only have to make it from the internal cache, the relevant timer
+bits are in the cache_alarm_extra code, more specifically the
+cache_alarm_add(), cache_alarm_update() and refresher() functions.
+These functions tell when to send the sync message to the backup
+firewall.
+
+> This is what I've understood: the master conntrack in the internal
+> cache of the sending node is vanishing before the non-master
+> conntrack, and then the non-master conntrack is being synced again to
+> the receiving node without the associated master conntrack. Is this
+> assumption true?
+
+The problem is that the non-master conntrack gets to the back before
+the master conntrack. With the workaround above, you can make sure the
+master always comes in first place (unless there is sync message loss,
+in that case the assumption above is no longer true).
+
+Another a bit more complex solution, but nicer, would be to look up in
+the internal cache for the master in case the IPS_EXPECTED status bit
+is set, then queue from alarm_enqueue() the master conntrack object
+before the expected conntrack. With this procedure, the master and the
+expected conntrack will be transmited in the same sync message, coming
+the master in first place as the backup firewall needs (the order
+matters).
+
+> Other possibility is that both master and non-master conntracks are
+> sycned, but then the receiving node fails to somehow inject to the
+> kernel in the required order.
+
+Not sure what you mean, both master and non-master (expected)
+conntracks are sync'ed, the problem is that the timer value is random,
+so one may get scheduled to be sent via the refresher() before
+another.
+
+Cheers,
+Pablo
