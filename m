@@ -1,40 +1,47 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] libmnl: Drop the EXPORT_SYMBOL() tags
-Date: Thu, 1 Oct 2015 18:50:35 +0200
-Message-ID: <20151001165035.GB2107@salvia>
-References: <20151001110521.GA11642@oxygen>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: [PATCH net-next 7/6] ipv6: Add missing newline to __xfrm6_output_finish
+Date: Thu, 01 Oct 2015 11:44:08 -0500
+Message-ID: <87y4fm8ron.fsf_-_@x220.int.ebiederm.org>
+References: <877fn7eh2f.fsf_-_@x220.int.ebiederm.org>
+	<1443648336-31741-4-git-send-email-ebiederm@xmission.com>
+	<560CEF6F.4030403@6wind.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Cc: netfilter-devel@vger.kernel.org
-To: Neutron Soutmun <neo.neutron@gmail.com>
+Content-Type: text/plain
+Cc: David Miller <davem@davemloft.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Nicolas Dichtel <nicolas.dichtel@6wind.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39939 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753658AbbJAQnn convert rfc822-to-8bit (ORCPT
+Received: from out02.mta.xmission.com ([166.70.13.232]:45397 "EHLO
+	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750844AbbJAQwQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Oct 2015 12:43:43 -0400
-Content-Disposition: inline
-In-Reply-To: <20151001110521.GA11642@oxygen>
+	Thu, 1 Oct 2015 12:52:16 -0400
+In-Reply-To: <560CEF6F.4030403@6wind.com> (Nicolas Dichtel's message of "Thu,
+	1 Oct 2015 10:31:43 +0200")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 01, 2015 at 06:05:21PM +0700, Neutron Soutmun wrote:
-> diff --git a/src/internal.h b/src/internal.h
-> index 3a88d1a..1012df2 100644
-> --- a/src/internal.h
-> +++ b/src/internal.h
-> @@ -2,11 +2,5 @@
->  #define INTERNAL_H 1
->  
->  #include "config.h"
-> -#ifdef HAVE_VISIBILITY_HIDDEN
-> -#	define __visible	__attribute__((visibility("default")))
-> -#	define EXPORT_SYMBOL(x)	typeof(x) (x) __visible
-> -#else
-> -#	define EXPORT_SYMBOL
-> -#endif
->  
->  #endif
 
-Do we need the internal.h file anymore?
+Add a newline between variable declarations and the code.
+
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+---
+ net/ipv6/xfrm6_output.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/ipv6/xfrm6_output.c b/net/ipv6/xfrm6_output.c
+index 335066a64b45..4cefda009f53 100644
+--- a/net/ipv6/xfrm6_output.c
++++ b/net/ipv6/xfrm6_output.c
+@@ -134,6 +134,7 @@ int xfrm6_output_finish(struct sock *sk, struct sk_buff *skb)
+ static int __xfrm6_output_finish(struct net *net, struct sock *sk, struct sk_buff *skb)
+ {
+ 	struct xfrm_state *x = skb_dst(skb)->xfrm;
++
+ 	return x->outer_mode->afinfo->output_finish(sk, skb);
+ }
+ 
+-- 
+2.2.1
+
