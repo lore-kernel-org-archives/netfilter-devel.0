@@ -1,49 +1,40 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libmnl] Creating netlink socket with SOCK_CLOEXEC flag
-Date: Thu, 1 Oct 2015 18:50:05 +0200
-Message-ID: <20151001165005.GA2107@salvia>
-References: <20151001161604.GC2911@alphalink.fr>
+Subject: Re: [PATCH] libmnl: Drop the EXPORT_SYMBOL() tags
+Date: Thu, 1 Oct 2015 18:50:35 +0200
+Message-ID: <20151001165035.GB2107@salvia>
+References: <20151001110521.GA11642@oxygen>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Cc: netfilter-devel@vger.kernel.org
-To: Guillaume Nault <g.nault@alphalink.fr>
+To: Neutron Soutmun <neo.neutron@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39832 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39939 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753274AbbJAQnL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Oct 2015 12:43:11 -0400
+	id S1753658AbbJAQnn convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 1 Oct 2015 12:43:43 -0400
 Content-Disposition: inline
-In-Reply-To: <20151001161604.GC2911@alphalink.fr>
+In-Reply-To: <20151001110521.GA11642@oxygen>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 01, 2015 at 06:16:04PM +0200, Guillaume Nault wrote:
-> Hi,
-> 
-> I'm looking at how libmnl could be used with CLOEXEC netlink sockets.
-> Of course, one can use the
->    nl = mnl_socket_open();
->    fd = mnl_socket_get_fd(nl);
->    fcntl(fd, F_SETFD, O_CLOEXEC);
-> sequence, but this is racy in multi-threaded programs, where another
-> thread could fork()/execve() between the mnl_socket_open() and the
-> fcntl() calls. Applying the CLOEXEC flag at socket creation closes this
-> issue.
-> 
-> There are three different approaches I can think of:
->   1- Make mnl_socket_open() unconditionally add the SOCK_CLOEXEC flag in
->      its socket() call.
->   2- Define mnl_socket_open2(), similar to mnl_socket_open() but with an
->      additional flags parameter that would be passed to socket().
->   3- Tell user to create its netlink socket with the required flags and
->      use it with mnl_socket_fdopen().
-> 
-> Solution #1 would provide safe default for all users, but that'd be an
-> ABI change. Also decision would need to be made wrt. platforms not
-> handling SOCK_CLOEXEC.
-> 
-> Solution #2 is more generic and allows all SOCK_* flags defined by the
-> plateform. But it's a bit more inelegant and exports yet another function
-> to allocate an mnl socket.
+On Thu, Oct 01, 2015 at 06:05:21PM +0700, Neutron Soutmun wrote:
+> diff --git a/src/internal.h b/src/internal.h
+> index 3a88d1a..1012df2 100644
+> --- a/src/internal.h
+> +++ b/src/internal.h
+> @@ -2,11 +2,5 @@
+>  #define INTERNAL_H 1
+>  
+>  #include "config.h"
+> -#ifdef HAVE_VISIBILITY_HIDDEN
+> -#	define __visible	__attribute__((visibility("default")))
+> -#	define EXPORT_SYMBOL(x)	typeof(x) (x) __visible
+> -#else
+> -#	define EXPORT_SYMBOL
+> -#endif
+>  
+>  #endif
 
-I'd suggest you add mnl_socket_open2().
+Do we need the internal.h file anymore?
