@@ -1,65 +1,59 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] expression: provide clone operation for set element ops
-Date: Thu,  1 Oct 2015 00:46:46 +0200
-Message-ID: <1443653206-25841-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Neutron Soutmun <neo.neutron@gmail.com>
+Subject: Re: [PATCH] libmnl: Failed to build with clang, incompatible
+ EXPORT_SYMBOL(x) macro
+Date: Thu, 1 Oct 2015 10:15:59 +0700
+Message-ID: <CAMQP0snZZifu3bJAsXU6H_GOUXNKpeoT1_rcgyMOj5YT9c+6DQ@mail.gmail.com>
+References: <20150925040745.GA433@oxygen>
+	<20150930221241.GA14943@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:46513 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753280AbbI3Wqw (ORCPT
+Received: from mail-ig0-f170.google.com ([209.85.213.170]:37395 "EHLO
+	mail-ig0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754976AbbJADQA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Sep 2015 18:46:52 -0400
+	Wed, 30 Sep 2015 23:16:00 -0400
+Received: by igbni9 with SMTP id ni9so5704284igb.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 Sep 2015 20:16:00 -0700 (PDT)
+In-Reply-To: <20150930221241.GA14943@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-define addrs={ 1.2.3.4 }
-table ip filter {
-	chain input {
-		type filter hook input priority 0;
-		ip saddr $addrs accept
-	}
-}
+On Thu, Oct 1, 2015 at 5:12 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> We have more libraries using this approach, which resembles kernel
+> coding. So we would need to update them all, which is a bit annoying.
 
-segfaults. Using saddr { 1.2.3.4 } instead of $addrs works.
+Ah, I see. I try to find many approaches to easy fix this but not success.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/expression.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+Refer to [1] which the reporter proposes the patch
 
-diff --git a/src/expression.c b/src/expression.c
-index 3edc550..70f18e2 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -48,6 +48,7 @@ struct expr *expr_clone(const struct expr *expr)
- 			 expr->byteorder, expr->len);
- 	new->flags = expr->flags;
- 	new->op    = expr->op;
-+	assert(expr->ops->clone);
- 	expr->ops->clone(new, expr);
- 	return new;
- }
-@@ -907,9 +908,19 @@ static void set_elem_expr_destroy(struct expr *expr)
- 	expr_free(expr->key);
- }
- 
-+static void set_elem_expr_clone(struct expr *new, const struct expr *expr)
-+{
-+	new->key = expr_clone(expr->key);
-+	new->expiration = expr->expiration;
-+	new->timeout = expr->timeout;
-+	if (expr->comment)
-+		new->comment = xstrdup(expr->comment);
-+}
-+
- static const struct expr_ops set_elem_expr_ops = {
- 	.type		= EXPR_SET_ELEM,
- 	.name		= "set element",
-+	.clone		= set_elem_expr_clone,
- 	.print		= set_elem_expr_print,
- 	.destroy	= set_elem_expr_destroy,
- };
--- 
-2.0.5
+== 8< ==
 
+ifeq ($(shell $(CC) --version | grep -c "clang version"),1)
+CFLAGS += -fvisibility=default
+endif
+
+== 8< ==
+
+I have tested, the symbols exported but I think It will override the
+visibility attributes, therefore, I have prepared my proposed patch.
+
+> Though this warning results in a real problem since symbols will not
+> be exported.
+> Why is clang rejecting this?
+
+I'm not sure. It seems that clang expands the EXPORT_SYMBOL() as
+a redefined of it's exported symbol function which is far different from gcc
+implementation.
+
+I try to seek more info [2] and see the export.h source [3] but
+I have no idea for what's next -_-''
+
+Best regards,
+Neutron Soutmun
+
+[1] https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=789480
+[2] http://llvm.linuxfoundation.org/index.php/Main_Page
+[3] http://lxr.free-electrons.com/source/include/linux/export.h
