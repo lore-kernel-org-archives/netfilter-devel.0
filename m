@@ -1,40 +1,55 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 08/12] nfnetlink: use y2038 safe timestamp
-Date: Fri, 2 Oct 2015 14:53:55 +0200
-Message-ID: <20151002125355.GA31638@salvia>
-References: <1443612402-3000775-1-git-send-email-arnd@arndb.de>
- <1443612402-3000775-9-git-send-email-arnd@arndb.de>
+From: Daniel Mack <daniel@zonque.org>
+Subject: Re: [PATCH RFC 3/7] netfilter: add NF_INET_LOCAL_SOCKET_IN chain type
+Date: Fri, 2 Oct 2015 15:52:06 +0200
+Message-ID: <560E8C06.6040502@zonque.org>
+References: <1443525140-13493-1-git-send-email-daniel@zonque.org>
+ <1443525140-13493-4-git-send-email-daniel@zonque.org>
+ <20150929211959.GF19923@breakpoint.cc> <560B8E25.7050801@zonque.org>
+ <20151001171323.GA4890@localhost.localdomain> <560DA092.60100@zonque.org>
+ <20151002110756.GA29822@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, y2038@lists.linaro.org,
-	linux-kernel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Arnd Bergmann <arnd@arndb.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
+	Florian Westphal <fw@strlen.de>, daniel@iogearbox.net,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	balazs.scheidler@balabit.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1443612402-3000775-9-git-send-email-arnd@arndb.de>
+In-Reply-To: <20151002110756.GA29822@salvia>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Sep 30, 2015 at 01:26:38PM +0200, Arnd Bergmann wrote:
-> The __build_packet_message function fills a nfulnl_msg_packet_timestamp
-> structure that uses 64-bit seconds and is therefore y2038 safe, but
-> it uses an intermediate 'struct timespec' which is not.
+On 10/02/2015 01:07 PM, Pablo Neira Ayuso wrote:
+> On Thu, Oct 01, 2015 at 11:07:30PM +0200, Daniel Mack wrote:
+> [...]
+>> That, however, got rejected because it doesn't work for multicast. This
+>> patch set implements one of the things Pablo suggested in his reply.
 > 
-> This trivially changes the code to use 'struct timespec64' instead,
-> to correct the result on 32-bit architectures.
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-> Cc: Patrick McHardy <kaber@trash.net>
-> Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> Cc: netfilter-devel@vger.kernel.org
-> Cc: coreteam@netfilter.org
+> People are rising valid concerns here, so far we got a RFC where you
+> say that you don't have a proper setup to validate performance impact.
+> 
+> From the locking front, you indicated that there are possible problems
+> in this RFC, although you claim those can be fixed.
+> 
+> No examples on how you will use this are shown, which has triggered
+> questions on how you plan to use this. Only one use-case that has been
+> described in natural language.
+> 
+> Rergading inconsistent behaviour when no process are listening, your
+> argument is that "that can be documented".
+> 
+> Frankly, I would expect you do the work from your side to justify the
+> inclusion of this, and that requires that your cover open fronts from
+> the technical side, not just arguing.
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Sure, I'm willing to do this of course. The purpose of this RFC was only
+to outline where this approach would go, and to allow discussions about
+possible show stoppers.
 
-BTW, I don't see the patch for nfnetlink_queue and I think I have seen
-it in the diffstat from your cover letter.
+I'll respin this in a new series then.
+
+
+
+Thanks,
+Daniel
