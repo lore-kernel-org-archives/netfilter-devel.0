@@ -1,400 +1,82 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next 5/8] netfilter: defrag: only register defrag functionality if needed
-Date: Fri,  2 Oct 2015 13:49:14 +0200
-Message-ID: <1443786557-21315-6-git-send-email-fw@strlen.de>
+Subject: [PATCH -next 8/8] netfilter: don't call nf_hook_state_init/_hook_slow unless needed
+Date: Fri,  2 Oct 2015 13:49:17 +0200
+Message-ID: <1443786557-21315-9-git-send-email-fw@strlen.de>
 References: <1443786557-21315-1-git-send-email-fw@strlen.de>
 Cc: ebiederm@xmission.com, Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50309 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50315 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752464AbbJBLta (ORCPT
+	by vger.kernel.org with ESMTP id S1752567AbbJBLtb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Oct 2015 07:49:30 -0400
+	Fri, 2 Oct 2015 07:49:31 -0400
 In-Reply-To: <1443786557-21315-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nf_defrag modules for ipv4 and ipv6 export an empty stub function.
-Any module that needs the defragmentation hooks registered simply
-'calls' this empty function to create a 'phony' module dependency --
-modprobe magic will make sure the appropriate defrag module is loaded.
+With the previous patches in place, a netns nf_hook_list might be empty,
+even if e.g. init_net performs filtering/conntrack.
 
-This extends defragmentation to delay the defragmentation hook
-registration until the functionality is requested within a network
-namespace instead of module load time for all namespaces.
+Thus, change nf_hook_thresh to check the hook_list as well before
+initializing hook_state and calling nf_hook_slow().
 
-Hooks are only un-registered on module unload or when a namespace
-that used such defrag functionality exits.
+We still make use of static keys, if no netfilter hooks are loaded
+we can elide further testing since list is guaranteed to be empty.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/ipv4/nf_defrag_ipv4.h    |  3 +-
- include/net/netfilter/ipv6/nf_defrag_ipv6.h    |  3 +-
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |  7 +++-
- net/ipv4/netfilter/nf_defrag_ipv4.c            | 49 +++++++++++++++++++++++--
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |  7 +++-
- net/ipv6/netfilter/nf_defrag_ipv6_hooks.c      | 50 +++++++++++++++++++++++---
- net/netfilter/xt_TPROXY.c                      | 15 +++++---
- net/netfilter/xt_socket.c                      | 33 ++++++++++++++---
- 8 files changed, 146 insertions(+), 21 deletions(-)
+ include/linux/netfilter.h | 29 +++++++++++------------------
+ 1 file changed, 11 insertions(+), 18 deletions(-)
 
-diff --git a/include/net/netfilter/ipv4/nf_defrag_ipv4.h b/include/net/netfilter/ipv4/nf_defrag_ipv4.h
-index f01ef20..db405f7 100644
---- a/include/net/netfilter/ipv4/nf_defrag_ipv4.h
-+++ b/include/net/netfilter/ipv4/nf_defrag_ipv4.h
-@@ -1,6 +1,7 @@
- #ifndef _NF_DEFRAG_IPV4_H
- #define _NF_DEFRAG_IPV4_H
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 165ab2d..3f2d9b8 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -142,22 +142,6 @@ void nf_unregister_sockopt(struct nf_sockopt_ops *reg);
  
--void nf_defrag_ipv4_enable(void);
-+struct net;
-+int nf_defrag_ipv4_enable(struct net *);
- 
- #endif /* _NF_DEFRAG_IPV4_H */
-diff --git a/include/net/netfilter/ipv6/nf_defrag_ipv6.h b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-index 27666d8..9b86e81 100644
---- a/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-+++ b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-@@ -1,7 +1,8 @@
- #ifndef _NF_DEFRAG_IPV6_H
- #define _NF_DEFRAG_IPV6_H
- 
--void nf_defrag_ipv6_enable(void);
-+struct net;
-+int nf_defrag_ipv6_enable(struct net *);
- 
- int nf_ct_frag6_init(void);
- void nf_ct_frag6_cleanup(void);
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 470fd78..d2c053d 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -391,6 +391,12 @@ static int nf_conntrack_l3proto_ipv4_hooks_register(struct net *net)
- 	if (cnet->users > 1)
- 		goto out_unlock;
- 
-+	err = nf_defrag_ipv4_enable(net);
-+	if (err) {
-+		cnet->users = 0;
-+		goto out_unlock;
-+	}
-+
- 	err = nf_register_net_hooks(net, ipv4_conntrack_ops,
- 				    ARRAY_SIZE(ipv4_conntrack_ops));
- 
-@@ -496,7 +502,6 @@ static int __init nf_conntrack_l3proto_ipv4_init(void)
- 	int ret = 0;
- 
- 	need_conntrack();
--	nf_defrag_ipv4_enable();
- 
- 	ret = nf_register_sockopt(&so_getorigdst);
- 	if (ret < 0) {
-diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
-index b246346..38b9734 100644
---- a/net/ipv4/netfilter/nf_defrag_ipv4.c
-+++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
-@@ -11,6 +11,7 @@
- #include <linux/netfilter.h>
- #include <linux/module.h>
- #include <linux/skbuff.h>
-+#include <net/netns/generic.h>
- #include <net/route.h>
- #include <net/ip.h>
- 
-@@ -22,6 +23,13 @@
- #endif
- #include <net/netfilter/nf_conntrack_zones.h>
- 
-+static int defrag4_net_id __read_mostly;
-+static DEFINE_MUTEX(defrag4_mutex);
-+
-+struct defrag4_net {
-+	bool enabled;
-+};
-+
- static int nf_ct_ipv4_gather_frags(struct sk_buff *skb, u_int32_t user)
- {
- 	int err;
-@@ -108,18 +116,53 @@ static struct nf_hook_ops ipv4_defrag_ops[] = {
- 	},
- };
- 
-+static void __net_exit defrag4_net_exit(struct net *net)
-+{
-+	struct defrag4_net *n = net_generic(net, defrag4_net_id);
-+
-+	if (n->enabled)
-+		nf_unregister_net_hooks(net, ipv4_defrag_ops,
-+					ARRAY_SIZE(ipv4_defrag_ops));
-+}
-+
-+static struct pernet_operations defrag4_net_ops = {
-+	.exit = defrag4_net_exit,
-+	.id = &defrag4_net_id,
-+	.size = sizeof(struct defrag4_net),
-+};
-+
- static int __init nf_defrag_init(void)
- {
--	return nf_register_hooks(ipv4_defrag_ops, ARRAY_SIZE(ipv4_defrag_ops));
-+	return register_pernet_subsys(&defrag4_net_ops);
- }
- 
- static void __exit nf_defrag_fini(void)
- {
--	nf_unregister_hooks(ipv4_defrag_ops, ARRAY_SIZE(ipv4_defrag_ops));
-+	unregister_pernet_subsys(&defrag4_net_ops);
- }
- 
--void nf_defrag_ipv4_enable(void)
-+int nf_defrag_ipv4_enable(struct net *net)
- {
-+	struct defrag4_net *n = net_generic(net, defrag4_net_id);
-+	int err = 0;
-+
-+	might_sleep();
-+
-+	if (n->enabled)
-+		return 0;
-+
-+	mutex_lock(&defrag4_mutex);
-+	if (n->enabled)
-+		goto out_unlock;
-+
-+	err = nf_register_net_hooks(net, ipv4_defrag_ops,
-+				    ARRAY_SIZE(ipv4_defrag_ops));
-+	if (err == 0)
-+		n->enabled = true;
-+
-+ out_unlock:
-+	mutex_unlock(&defrag4_mutex);
-+	return err;
- }
- EXPORT_SYMBOL_GPL(nf_defrag_ipv4_enable);
- 
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index 67b2be8..a0b547b 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -331,6 +331,12 @@ static int nf_conntrack_l3proto_ipv6_hooks_register(struct net *net)
- 	if (cnet->users > 1)
- 		goto out_unlock;
- 
-+	err = nf_defrag_ipv6_enable(net);
-+	if (err < 0) {
-+		cnet->users = 0;
-+		goto out_unlock;
-+	}
-+
- 	err = nf_register_net_hooks(net, ipv6_conntrack_ops,
- 				    ARRAY_SIZE(ipv6_conntrack_ops));
- 	if (err)
-@@ -436,7 +442,6 @@ static int __init nf_conntrack_l3proto_ipv6_init(void)
- 	int ret = 0;
- 
- 	need_conntrack();
--	nf_defrag_ipv6_enable();
- 
- 	ret = nf_register_sockopt(&so_getorigdst6);
- 	if (ret < 0) {
-diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-index a99baf6..c2112cf 100644
---- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-+++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-@@ -30,6 +30,13 @@
- #include <net/netfilter/nf_conntrack_zones.h>
- #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
- 
-+static int defrag6_net_id __read_mostly;
-+static DEFINE_MUTEX(defrag6_mutex);
-+
-+struct defrag6_net {
-+	bool enabled;
-+};
-+
- static enum ip6_defrag_users nf_ct6_defrag_user(unsigned int hooknum,
- 						struct sk_buff *skb)
- {
-@@ -98,6 +105,21 @@ static struct nf_hook_ops ipv6_defrag_ops[] = {
- 	},
- };
- 
-+static void __net_exit defrag6_net_exit(struct net *net)
-+{
-+	struct defrag6_net *n = net_generic(net, defrag6_net_id);
-+
-+	if (n->enabled)
-+		nf_unregister_net_hooks(net, ipv6_defrag_ops,
-+					ARRAY_SIZE(ipv6_defrag_ops));
-+}
-+
-+static struct pernet_operations defrag6_net_ops = {
-+	.exit = defrag6_net_exit,
-+	.id = &defrag6_net_id,
-+	.size = sizeof(struct defrag6_net),
-+};
-+
- static int __init nf_defrag_init(void)
- {
- 	int ret = 0;
-@@ -107,9 +129,9 @@ static int __init nf_defrag_init(void)
- 		pr_err("nf_defrag_ipv6: can't initialize frag6.\n");
- 		return ret;
- 	}
--	ret = nf_register_hooks(ipv6_defrag_ops, ARRAY_SIZE(ipv6_defrag_ops));
-+	ret = register_pernet_subsys(&defrag6_net_ops);
- 	if (ret < 0) {
--		pr_err("nf_defrag_ipv6: can't register hooks\n");
-+		pr_err("nf_defrag_ipv6: can't register pernet ops\n");
- 		goto cleanup_frag6;
- 	}
- 	return ret;
-@@ -122,12 +144,32 @@ cleanup_frag6:
- 
- static void __exit nf_defrag_fini(void)
- {
--	nf_unregister_hooks(ipv6_defrag_ops, ARRAY_SIZE(ipv6_defrag_ops));
-+	unregister_pernet_subsys(&defrag6_net_ops);
- 	nf_ct_frag6_cleanup();
- }
- 
--void nf_defrag_ipv6_enable(void)
-+int nf_defrag_ipv6_enable(struct net *net)
- {
-+	struct defrag6_net *n = net_generic(net, defrag6_net_id);
-+	int err = 0;
-+
-+	might_sleep();
-+
-+	if (n->enabled)
-+		return 0;
-+
-+	mutex_lock(&defrag6_mutex);
-+	if (n->enabled)
-+		goto out_unlock;
-+
-+	err = nf_register_net_hooks(net, ipv6_defrag_ops,
-+				    ARRAY_SIZE(ipv6_defrag_ops));
-+	if (err == 0)
-+		n->enabled = true;
-+
-+ out_unlock:
-+	mutex_unlock(&defrag6_mutex);
-+	return err;
- }
- EXPORT_SYMBOL_GPL(nf_defrag_ipv6_enable);
- 
-diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
-index 3ab591e..f091244 100644
---- a/net/netfilter/xt_TPROXY.c
-+++ b/net/netfilter/xt_TPROXY.c
-@@ -516,6 +516,11 @@ tproxy_tg6_v1(struct sk_buff *skb, const struct xt_action_param *par)
- static int tproxy_tg6_check(const struct xt_tgchk_param *par)
- {
- 	const struct ip6t_ip6 *i = par->entryinfo;
-+	int err;
-+
-+	err = nf_defrag_ipv6_enable(par->net);
-+	if (err)
-+		return err;
- 
- 	if ((i->proto == IPPROTO_TCP || i->proto == IPPROTO_UDP) &&
- 	    !(i->invflags & IP6T_INV_PROTO))
-@@ -530,6 +535,11 @@ static int tproxy_tg6_check(const struct xt_tgchk_param *par)
- static int tproxy_tg4_check(const struct xt_tgchk_param *par)
- {
- 	const struct ipt_ip *i = par->entryinfo;
-+	int err;
-+
-+	err = nf_defrag_ipv4_enable(par->net);
-+	if (err)
-+		return err;
- 
- 	if ((i->proto == IPPROTO_TCP || i->proto == IPPROTO_UDP)
- 	    && !(i->invflags & IPT_INV_PROTO))
-@@ -581,11 +591,6 @@ static struct xt_target tproxy_tg_reg[] __read_mostly = {
- 
- static int __init tproxy_tg_init(void)
- {
--	nf_defrag_ipv4_enable();
--#ifdef XT_TPROXY_HAVE_IPV6
--	nf_defrag_ipv6_enable();
--#endif
+ #ifdef HAVE_JUMP_LABEL
+ extern struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
 -
- 	return xt_register_targets(tproxy_tg_reg, ARRAY_SIZE(tproxy_tg_reg));
- }
- 
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index 2ec08f0..d0f0064 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -418,9 +418,28 @@ socket_mt6_v1_v2_v3(const struct sk_buff *skb, struct xt_action_param *par)
- }
+-static inline bool nf_hook_list_active(struct list_head *hook_list,
+-				       u_int8_t pf, unsigned int hook)
+-{
+-	if (__builtin_constant_p(pf) &&
+-	    __builtin_constant_p(hook))
+-		return static_key_false(&nf_hooks_needed[pf][hook]);
+-
+-	return !list_empty(hook_list);
+-}
+-#else
+-static inline bool nf_hook_list_active(struct list_head *hook_list,
+-				       u_int8_t pf, unsigned int hook)
+-{
+-	return !list_empty(hook_list);
+-}
  #endif
  
-+static int socket_mt_enable_defrag(struct net *net, int family)
-+{
-+	switch (family) {
-+	case NFPROTO_IPV4:
-+		return nf_defrag_ipv4_enable(net);
-+#ifdef XT_SOCKET_HAVE_IPV6
-+	case NFPROTO_IPV6:
-+		return nf_defrag_ipv6_enable(net);
+ int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state);
+@@ -178,9 +162,18 @@ static inline int nf_hook_thresh(u_int8_t pf, unsigned int hook,
+ 				 int (*okfn)(struct net *, struct sock *, struct sk_buff *),
+ 				 int thresh)
+ {
+-	struct list_head *hook_list = &net->nf.hooks[pf][hook];
++	struct list_head *hook_list;
++
++#ifdef HAVE_JUMP_LABEL
++	if (__builtin_constant_p(pf) &&
++	    __builtin_constant_p(hook) &&
++	    !static_key_false(&nf_hooks_needed[pf][hook]))
++		return 1;
 +#endif
-+	}
-+	WARN_ONCE(1, "Unknown family %d\n", family);
-+	return 0;
-+}
 +
- static int socket_mt_v1_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
-+	int err;
-+
-+	err = socket_mt_enable_defrag(par->net, par->family);
-+	if (err)
-+		return err;
++	hook_list = &net->nf.hooks[pf][hook];
  
- 	if (info->flags & ~XT_SOCKET_FLAGS_V1) {
- 		pr_info("unknown flags 0x%x\n", info->flags & ~XT_SOCKET_FLAGS_V1);
-@@ -432,6 +451,11 @@ static int socket_mt_v1_check(const struct xt_mtchk_param *par)
- static int socket_mt_v2_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_socket_mtinfo2 *info = (struct xt_socket_mtinfo2 *) par->matchinfo;
-+	int err;
-+
-+	err = socket_mt_enable_defrag(par->net, par->family);
-+	if (err)
-+		return err;
+-	if (nf_hook_list_active(hook_list, pf, hook)) {
++	if (!list_empty(hook_list)) {
+ 		struct nf_hook_state state;
  
- 	if (info->flags & ~XT_SOCKET_FLAGS_V2) {
- 		pr_info("unknown flags 0x%x\n", info->flags & ~XT_SOCKET_FLAGS_V2);
-@@ -444,7 +468,11 @@ static int socket_mt_v3_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_socket_mtinfo3 *info =
- 				    (struct xt_socket_mtinfo3 *)par->matchinfo;
-+	int err;
- 
-+	err = socket_mt_enable_defrag(par->net, par->family);
-+	if (err)
-+		return err;
- 	if (info->flags & ~XT_SOCKET_FLAGS_V3) {
- 		pr_info("unknown flags 0x%x\n",
- 			info->flags & ~XT_SOCKET_FLAGS_V3);
-@@ -539,11 +567,6 @@ static struct xt_match socket_mt_reg[] __read_mostly = {
- 
- static int __init socket_mt_init(void)
- {
--	nf_defrag_ipv4_enable();
--#ifdef XT_SOCKET_HAVE_IPV6
--	nf_defrag_ipv6_enable();
--#endif
--
- 	return xt_register_matches(socket_mt_reg, ARRAY_SIZE(socket_mt_reg));
- }
- 
+ 		nf_hook_state_init(&state, hook_list, hook, thresh,
 -- 
 2.0.5
 
