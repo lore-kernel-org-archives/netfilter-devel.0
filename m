@@ -1,35 +1,42 @@
-From: Ian Morris <ipm@chirality.org.uk>
-Subject: Re: [PATCH nf-next] netfilter: Line layout whitespace fixes
-Date: Fri, 2 Oct 2015 00:44:03 +0100
-Message-ID: <560DC543.3060809@chirality.org.uk>
-References: <1443089406-8996-1-git-send-email-ipm@chirality.org.uk>
- <20150930221707.GA14994@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [PATCH] ipvs: Remove unused net variable from ip_vs_out
+Date: Fri,  2 Oct 2015 09:43:39 +0900
+Message-ID: <1443746619-3503-1-git-send-email-horms@verge.net.au>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	"Eric W. Biederman" <ebiederm@xmission.com>,
+	Simon Horman <horms@verge.net.au>
+To: lvs-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from inet-gw.chirality.org.uk ([88.97.209.22]:48916 "EHLO
-	cedar.ipmorris.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751131AbbJAXoH (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:46167 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751238AbbJBAoA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Oct 2015 19:44:07 -0400
-In-Reply-To: <20150930221707.GA14994@salvia>
+	Thu, 1 Oct 2015 20:44:00 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Since 6f2bcea9917d ("ipvs: Pass ipvs into ip_vs_in_icmp and ip_vs_in_icmp_v6")
+the net net variable in ip_vs_out() appears to be unused so remove it.
 
-On 30/09/15 23:17, Pablo Neira Ayuso wrote:
-> On Thu, Sep 24, 2015 at 11:10:06AM +0100, Ian Morris wrote:
->> Fixes various whitespace issues detected by checkpatch (e.g. adding spaces between operations, replacing spaces with tabs, etc)
->>
->> No changes detected by objdiff.
-> These large cleanup patch causes problems for -stable maintainers,
-> since they have more conflicts when backporting stuff.
->
-> I'd rather keep this back.
->
-Please help me understand: until when do you propose such changes be 
-deferred? Or are you suggesting we should apply changes more 
-incrementally somehow?
+Signed-off-by: Simon Horman <horms@verge.net.au>
+---
+ net/netfilter/ipvs/ip_vs_core.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+index d08df435c2aa..72b6a44ea9de 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -1172,7 +1172,6 @@ drop:
+ static unsigned int
+ ip_vs_out(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int af)
+ {
+-	struct net *net = ipvs->net;
+ 	struct ip_vs_iphdr iph;
+ 	struct ip_vs_protocol *pp;
+ 	struct ip_vs_proto_data *pd;
+-- 
+2.1.4
+
