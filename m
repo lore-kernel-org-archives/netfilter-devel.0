@@ -1,82 +1,40 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next 8/8] netfilter: don't call nf_hook_state_init/_hook_slow unless needed
-Date: Fri,  2 Oct 2015 13:49:17 +0200
-Message-ID: <1443786557-21315-9-git-send-email-fw@strlen.de>
-References: <1443786557-21315-1-git-send-email-fw@strlen.de>
-Cc: ebiederm@xmission.com, Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50315 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752567AbbJBLtb (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Oct 2015 07:49:31 -0400
-In-Reply-To: <1443786557-21315-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 08/12] nfnetlink: use y2038 safe timestamp
+Date: Fri, 2 Oct 2015 14:53:55 +0200
+Message-ID: <20151002125355.GA31638@salvia>
+References: <1443612402-3000775-1-git-send-email-arnd@arndb.de>
+ <1443612402-3000775-9-git-send-email-arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, y2038@lists.linaro.org,
+	linux-kernel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: Arnd Bergmann <arnd@arndb.de>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1443612402-3000775-9-git-send-email-arnd@arndb.de>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-With the previous patches in place, a netns nf_hook_list might be empty,
-even if e.g. init_net performs filtering/conntrack.
+On Wed, Sep 30, 2015 at 01:26:38PM +0200, Arnd Bergmann wrote:
+> The __build_packet_message function fills a nfulnl_msg_packet_timestamp
+> structure that uses 64-bit seconds and is therefore y2038 safe, but
+> it uses an intermediate 'struct timespec' which is not.
+> 
+> This trivially changes the code to use 'struct timespec64' instead,
+> to correct the result on 32-bit architectures.
+>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> Cc: Patrick McHardy <kaber@trash.net>
+> Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> Cc: netfilter-devel@vger.kernel.org
+> Cc: coreteam@netfilter.org
 
-Thus, change nf_hook_thresh to check the hook_list as well before
-initializing hook_state and calling nf_hook_slow().
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-We still make use of static keys, if no netfilter hooks are loaded
-we can elide further testing since list is guaranteed to be empty.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/linux/netfilter.h | 29 +++++++++++------------------
- 1 file changed, 11 insertions(+), 18 deletions(-)
-
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 165ab2d..3f2d9b8 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -142,22 +142,6 @@ void nf_unregister_sockopt(struct nf_sockopt_ops *reg);
- 
- #ifdef HAVE_JUMP_LABEL
- extern struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
--
--static inline bool nf_hook_list_active(struct list_head *hook_list,
--				       u_int8_t pf, unsigned int hook)
--{
--	if (__builtin_constant_p(pf) &&
--	    __builtin_constant_p(hook))
--		return static_key_false(&nf_hooks_needed[pf][hook]);
--
--	return !list_empty(hook_list);
--}
--#else
--static inline bool nf_hook_list_active(struct list_head *hook_list,
--				       u_int8_t pf, unsigned int hook)
--{
--	return !list_empty(hook_list);
--}
- #endif
- 
- int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state);
-@@ -178,9 +162,18 @@ static inline int nf_hook_thresh(u_int8_t pf, unsigned int hook,
- 				 int (*okfn)(struct net *, struct sock *, struct sk_buff *),
- 				 int thresh)
- {
--	struct list_head *hook_list = &net->nf.hooks[pf][hook];
-+	struct list_head *hook_list;
-+
-+#ifdef HAVE_JUMP_LABEL
-+	if (__builtin_constant_p(pf) &&
-+	    __builtin_constant_p(hook) &&
-+	    !static_key_false(&nf_hooks_needed[pf][hook]))
-+		return 1;
-+#endif
-+
-+	hook_list = &net->nf.hooks[pf][hook];
- 
--	if (nf_hook_list_active(hook_list, pf, hook)) {
-+	if (!list_empty(hook_list)) {
- 		struct nf_hook_state state;
- 
- 		nf_hook_state_init(&state, hook_list, hook, thresh,
--- 
-2.0.5
-
+BTW, I don't see the patch for nfnetlink_queue and I think I have seen
+it in the diffstat from your cover letter.
