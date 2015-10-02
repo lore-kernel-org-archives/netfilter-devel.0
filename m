@@ -1,322 +1,162 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next 3/8] netfilter: conntrack: register hooks in netns when needed by ruleset
-Date: Fri,  2 Oct 2015 13:49:12 +0200
-Message-ID: <1443786557-21315-4-git-send-email-fw@strlen.de>
+Subject: [PATCH -next 7/8] netfilter: bridge: register hooks only when bridge interface is added
+Date: Fri,  2 Oct 2015 13:49:16 +0200
+Message-ID: <1443786557-21315-8-git-send-email-fw@strlen.de>
 References: <1443786557-21315-1-git-send-email-fw@strlen.de>
 Cc: ebiederm@xmission.com, Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50305 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50313 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751342AbbJBLt3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751577AbbJBLtb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Oct 2015 07:49:29 -0400
+	Fri, 2 Oct 2015 07:49:31 -0400
 In-Reply-To: <1443786557-21315-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This makes use of nf_ct_netns_get/put added in previous patch.
-We add get/put functions to nf_conntrack_l3proto structure, ipv4 and
-ipv6 then implement use-count to track how many users (nftables or
-xtables modules) have a dependency on ipv4 and/or ipv6 connection
-tracking functionality.
+This moves the last 'common' hooks to a 'register only when needed'
+scheme.
 
-When count reaches zero, the hooks are unregistered.
+We use a device notifier to register all the 'call-iptables'
+netfilter hooks only when a bridge gets added.
 
-The main goal of this patch is to delay activation of connection
-tracking inside a namespace until a point in time where such
-functionality is needed (which might be "never").
+This means that if the initial namespace uses a bridge, newly created
+network namespaces no longer 'inherit' the PRE_ROUTING ipt_sabotage hook,
+instead it will only be registered in that network namespace if a bridge
+is added within that namespace.
+
+After this patch, only a handful of netfilter modules still use
+global hooks:
+- PF_BRIDGE hooks
+- CLUSTER match (deprecated)
+- ipvs hooks
+- SYNPROXY
+
+As long as these modules are not loaded/used, a new network namespace
+has empty hook list and NF_HOOK() will boil down to single list_empty
+test even if initial namespace does packet filtering, conntrack, etc.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack_l3proto.h   |  4 ++
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c | 55 ++++++++++++++++++++------
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c | 53 +++++++++++++++++++------
- net/netfilter/nf_conntrack_proto.c             | 38 +++++++++++++++++-
- 4 files changed, 127 insertions(+), 23 deletions(-)
+ net/bridge/br_netfilter_hooks.c | 68 +++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 65 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
-index cdc920b..e0238db 100644
---- a/include/net/netfilter/nf_conntrack_l3proto.h
-+++ b/include/net/netfilter/nf_conntrack_l3proto.h
-@@ -52,6 +52,10 @@ struct nf_conntrack_l3proto {
- 	int (*tuple_to_nlattr)(struct sk_buff *skb,
- 			       const struct nf_conntrack_tuple *t);
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 13f0367..d299014 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -37,6 +37,7 @@
+ #include <net/addrconf.h>
+ #include <net/route.h>
+ #include <net/netfilter/br_netfilter.h>
++#include <net/netns/generic.h>
  
-+	/* Called when netns wants to use connection tracking */
-+	int (*net_ns_get)(struct net *);
-+	void (*net_ns_put)(struct net *);
-+
- 	/*
- 	 * Calculate size of tuple nlattr
- 	 */
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 752fb40..470fd78 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -31,6 +31,13 @@
- #include <net/netfilter/ipv4/nf_defrag_ipv4.h>
- #include <net/netfilter/nf_log.h>
+ #include <asm/uaccess.h>
+ #include "br_private.h"
+@@ -44,6 +45,12 @@
+ #include <linux/sysctl.h>
+ #endif
  
-+static int conntrack4_net_id __read_mostly;
-+static DEFINE_MUTEX(register_ipv4_hooks);
++static int brnf_net_id __read_mostly;
 +
-+struct conntrack4_net {
-+	unsigned int users;
++struct brnf_net {
++	bool enabled;
 +};
 +
- static bool ipv4_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
- 			      struct nf_conntrack_tuple *tuple)
- {
-@@ -373,6 +380,38 @@ static int ipv4_init_net(struct net *net)
- 	return 0;
- }
- 
-+static int nf_conntrack_l3proto_ipv4_hooks_register(struct net *net)
-+{
-+	struct conntrack4_net *cnet = net_generic(net, conntrack4_net_id);
-+	int err = 0;
-+
-+	mutex_lock(&register_ipv4_hooks);
-+
-+	cnet->users++;
-+	if (cnet->users > 1)
-+		goto out_unlock;
-+
-+	err = nf_register_net_hooks(net, ipv4_conntrack_ops,
-+				    ARRAY_SIZE(ipv4_conntrack_ops));
-+
-+	if (err)
-+		cnet->users = 0;
-+ out_unlock:
-+	mutex_unlock(&register_ipv4_hooks);
-+	return err;
-+}
-+
-+static void nf_conntrack_l3proto_ipv4_hooks_unregister(struct net *net)
-+{
-+	struct conntrack4_net *cnet = net_generic(net, conntrack4_net_id);
-+
-+	mutex_lock(&register_ipv4_hooks);
-+	if (--cnet->users == 0)
-+		nf_unregister_net_hooks(net, ipv4_conntrack_ops,
-+					ARRAY_SIZE(ipv4_conntrack_ops));
-+	mutex_unlock(&register_ipv4_hooks);
-+}
-+
- struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 __read_mostly = {
- 	.l3proto	 = PF_INET,
- 	.name		 = "ipv4",
-@@ -389,6 +428,8 @@ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 __read_mostly = {
- #if defined(CONFIG_SYSCTL) && defined(CONFIG_NF_CONNTRACK_PROC_COMPAT)
- 	.ctl_table_path  = "net/ipv4/netfilter",
- #endif
-+	.net_ns_get	 = nf_conntrack_l3proto_ipv4_hooks_register,
-+	.net_ns_put	 = nf_conntrack_l3proto_ipv4_hooks_unregister,
- 	.init_net	 = ipv4_init_net,
- 	.me		 = THIS_MODULE,
- };
-@@ -446,6 +487,8 @@ static void ipv4_net_exit(struct net *net)
- static struct pernet_operations ipv4_net_ops = {
- 	.init = ipv4_net_init,
- 	.exit = ipv4_net_exit,
-+	.id = &conntrack4_net_id,
-+	.size = sizeof(struct conntrack4_net),
+ #ifdef CONFIG_SYSCTL
+ static struct ctl_table_header *brnf_sysctl_header;
+ static int brnf_call_iptables __read_mostly = 1;
+@@ -958,6 +965,53 @@ static struct nf_hook_ops br_nf_ops[] __read_mostly = {
+ 	},
  };
  
- static int __init nf_conntrack_l3proto_ipv4_init(void)
-@@ -467,17 +510,10 @@ static int __init nf_conntrack_l3proto_ipv4_init(void)
- 		goto cleanup_sockopt;
- 	}
- 
--	ret = nf_register_hooks(ipv4_conntrack_ops,
--				ARRAY_SIZE(ipv4_conntrack_ops));
--	if (ret < 0) {
--		pr_err("nf_conntrack_ipv4: can't register hooks.\n");
--		goto cleanup_pernet;
--	}
--
- 	ret = nf_ct_l4proto_register(&nf_conntrack_l4proto_tcp4);
- 	if (ret < 0) {
- 		pr_err("nf_conntrack_ipv4: can't register tcp4 proto.\n");
--		goto cleanup_hooks;
-+		goto cleanup_pernet;
- 	}
- 
- 	ret = nf_ct_l4proto_register(&nf_conntrack_l4proto_udp4);
-@@ -514,8 +550,6 @@ static int __init nf_conntrack_l3proto_ipv4_init(void)
- 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_udp4);
-  cleanup_tcp4:
- 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_tcp4);
-- cleanup_hooks:
--	nf_unregister_hooks(ipv4_conntrack_ops, ARRAY_SIZE(ipv4_conntrack_ops));
-  cleanup_pernet:
- 	unregister_pernet_subsys(&ipv4_net_ops);
-  cleanup_sockopt:
-@@ -533,7 +567,6 @@ static void __exit nf_conntrack_l3proto_ipv4_fini(void)
- 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_icmp);
- 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_udp4);
- 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_tcp4);
--	nf_unregister_hooks(ipv4_conntrack_ops, ARRAY_SIZE(ipv4_conntrack_ops));
- 	unregister_pernet_subsys(&ipv4_net_ops);
- 	nf_unregister_sockopt(&so_getorigdst);
- }
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index dd83ad4..67b2be8 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -34,6 +34,13 @@
- #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
- #include <net/netfilter/nf_log.h>
- 
-+static int conntrack6_net_id;
-+static DEFINE_MUTEX(register_ipv6_hooks);
-+
-+struct conntrack6_net {
-+	unsigned int users;
-+};
-+
- static bool ipv6_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
- 			      struct nf_conntrack_tuple *tuple)
- {
-@@ -314,6 +321,36 @@ static int ipv6_nlattr_tuple_size(void)
- }
- #endif
- 
-+static int nf_conntrack_l3proto_ipv6_hooks_register(struct net *net)
++static int brnf_device_event(struct notifier_block *unused, unsigned long event,
++			     void *ptr)
 +{
-+	struct conntrack6_net *cnet = net_generic(net, conntrack6_net_id);
-+	int err = 0;
-+
-+	mutex_lock(&register_ipv6_hooks);
-+	cnet->users++;
-+	if (cnet->users > 1)
-+		goto out_unlock;
-+
-+	err = nf_register_net_hooks(net, ipv6_conntrack_ops,
-+				    ARRAY_SIZE(ipv6_conntrack_ops));
-+	if (err)
-+		cnet->users = 0;
-+ out_unlock:
-+	mutex_unlock(&register_ipv6_hooks);
-+	return err;
-+}
-+
-+static void nf_conntrack_l3proto_ipv6_hooks_unregister(struct net *net)
-+{
-+	struct conntrack6_net *cnet = net_generic(net, conntrack6_net_id);
-+
-+	mutex_lock(&register_ipv6_hooks);
-+	if (--cnet->users == 0)
-+		nf_unregister_net_hooks(net, ipv6_conntrack_ops,
-+					ARRAY_SIZE(ipv6_conntrack_ops));
-+	mutex_unlock(&register_ipv6_hooks);
-+}
-+
- struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 __read_mostly = {
- 	.l3proto		= PF_INET6,
- 	.name			= "ipv6",
-@@ -327,6 +364,8 @@ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 __read_mostly = {
- 	.nlattr_to_tuple	= ipv6_nlattr_to_tuple,
- 	.nla_policy		= ipv6_nla_policy,
- #endif
-+	.net_ns_get	 = nf_conntrack_l3proto_ipv6_hooks_register,
-+	.net_ns_put	 = nf_conntrack_l3proto_ipv6_hooks_unregister,
- 	.me			= THIS_MODULE,
- };
- 
-@@ -388,6 +427,8 @@ static void ipv6_net_exit(struct net *net)
- static struct pernet_operations ipv6_net_ops = {
- 	.init = ipv6_net_init,
- 	.exit = ipv6_net_exit,
-+	.id = &conntrack6_net_id,
-+	.size = sizeof(struct conntrack6_net),
- };
- 
- static int __init nf_conntrack_l3proto_ipv6_init(void)
-@@ -407,18 +448,10 @@ static int __init nf_conntrack_l3proto_ipv6_init(void)
- 	if (ret < 0)
- 		goto cleanup_sockopt;
- 
--	ret = nf_register_hooks(ipv6_conntrack_ops,
--				ARRAY_SIZE(ipv6_conntrack_ops));
--	if (ret < 0) {
--		pr_err("nf_conntrack_ipv6: can't register pre-routing defrag "
--		       "hook.\n");
--		goto cleanup_pernet;
--	}
--
- 	ret = nf_ct_l4proto_register(&nf_conntrack_l4proto_tcp6);
- 	if (ret < 0) {
- 		pr_err("nf_conntrack_ipv6: can't register tcp6 proto.\n");
--		goto cleanup_hooks;
-+		goto cleanup_pernet;
- 	}
- 
- 	ret = nf_ct_l4proto_register(&nf_conntrack_l4proto_udp6);
-@@ -446,8 +479,6 @@ static int __init nf_conntrack_l3proto_ipv6_init(void)
- 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_udp6);
-  cleanup_tcp6:
- 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_tcp6);
-- cleanup_hooks:
--	nf_unregister_hooks(ipv6_conntrack_ops, ARRAY_SIZE(ipv6_conntrack_ops));
-  cleanup_pernet:
- 	unregister_pernet_subsys(&ipv6_net_ops);
-  cleanup_sockopt:
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index 609c789..1fb11b6 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -127,12 +127,48 @@ EXPORT_SYMBOL_GPL(nf_ct_l3proto_module_put);
- 
- int nf_ct_netns_get(struct net *net, u8 nfproto)
- {
--	return nf_ct_l3proto_try_module_get(nfproto);
-+	const struct nf_conntrack_l3proto *l3proto;
++	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
++	struct brnf_net *brnet;
++	struct net *net;
 +	int ret;
 +
-+	might_sleep();
++	if (event != NETDEV_REGISTER || !(dev->priv_flags & IFF_EBRIDGE))
++		return NOTIFY_DONE;
 +
-+	ret = nf_ct_l3proto_try_module_get(nfproto);
-+	if (ret < 0)
-+		return ret;
++	ASSERT_RTNL();
 +
-+	/* we already have a reference, can't fail */
-+	rcu_read_lock();
-+	l3proto = __nf_ct_l3proto_find(nfproto);
-+	rcu_read_unlock();
++	net = dev_net(dev);
++	brnet = net_generic(net, brnf_net_id);
++	if (brnet->enabled)
++		return NOTIFY_OK;
 +
-+	if (!l3proto->net_ns_get)
-+		return 0;
++	ret = nf_register_net_hooks(net, br_nf_ops, ARRAY_SIZE(br_nf_ops));
++	if (ret)
++		return NOTIFY_BAD;
 +
-+	ret = l3proto->net_ns_get(net);
-+	if (ret < 0)
-+		nf_ct_l3proto_module_put(nfproto);
++	brnet->enabled = true;
++	return NOTIFY_OK;
++}
 +
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(nf_ct_netns_get);
- 
- void nf_ct_netns_put(struct net *net, u8 nfproto)
- {
-+	const struct nf_conntrack_l3proto *l3proto;
++static void __net_exit brnf_exit_net(struct net *net)
++{
++	struct brnf_net *brnet = net_generic(net, brnf_net_id);
 +
-+	might_sleep();
-+
-+	/* same as nf_conntrack_netns_get(), reference assumed */
-+	rcu_read_lock();
-+	l3proto = __nf_ct_l3proto_find(nfproto);
-+	rcu_read_unlock();
-+
-+	if (WARN_ON(!l3proto))
++	if (!brnet->enabled)
 +		return;
 +
-+	if (l3proto->net_ns_put)
-+		l3proto->net_ns_put(net);
++	nf_unregister_net_hooks(net, br_nf_ops, ARRAY_SIZE(br_nf_ops));
++	brnet->enabled = false;
++}
 +
- 	nf_ct_l3proto_module_put(nfproto);
- }
- EXPORT_SYMBOL_GPL(nf_ct_netns_put);
++static struct pernet_operations brnf_net_ops __read_mostly = {
++	.exit = brnf_exit_net,
++	.id   = &brnf_net_id,
++	.size = sizeof(struct brnf_net),
++};
++
++static struct notifier_block brnf_notifier __read_mostly = {
++	.notifier_call = brnf_device_event,
++};
++
+ #ifdef CONFIG_SYSCTL
+ static
+ int brnf_sysctl_call_tables(struct ctl_table *ctl, int write,
+@@ -1023,16 +1077,23 @@ static int __init br_netfilter_init(void)
+ {
+ 	int ret;
+ 
+-	ret = nf_register_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
++	ret = register_pernet_subsys(&brnf_net_ops);
+ 	if (ret < 0)
+ 		return ret;
+ 
++	ret = register_netdevice_notifier(&brnf_notifier);
++	if (ret < 0) {
++		unregister_pernet_subsys(&brnf_net_ops);
++		return ret;
++	}
++
+ #ifdef CONFIG_SYSCTL
+ 	brnf_sysctl_header = register_net_sysctl(&init_net, "net/bridge", brnf_table);
+ 	if (brnf_sysctl_header == NULL) {
+ 		printk(KERN_WARNING
+ 		       "br_netfilter: can't register to sysctl.\n");
+-		nf_unregister_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
++		unregister_netdevice_notifier(&brnf_notifier);
++		unregister_pernet_subsys(&brnf_net_ops);
+ 		return -ENOMEM;
+ 	}
+ #endif
+@@ -1044,7 +1105,8 @@ static int __init br_netfilter_init(void)
+ static void __exit br_netfilter_fini(void)
+ {
+ 	RCU_INIT_POINTER(nf_br_ops, NULL);
+-	nf_unregister_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
++	unregister_netdevice_notifier(&brnf_notifier);
++	unregister_pernet_subsys(&brnf_net_ops);
+ #ifdef CONFIG_SYSCTL
+ 	unregister_net_sysctl_table(brnf_sysctl_header);
+ #endif
 -- 
 2.0.5
 
