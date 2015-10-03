@@ -1,59 +1,42 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 08/12] nfnetlink: use y2038 safe timestamp
-Date: Fri, 02 Oct 2015 23:23:30 +0200
-Message-ID: <5073868.Fiy2YhEjWN@wuerfel>
-References: <1443612402-3000775-1-git-send-email-arnd@arndb.de>
- <1443612402-3000775-9-git-send-email-arnd@arndb.de>
- <20151002125355.GA31638@salvia>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH -next 2/8] netfilter: add and use nf_ct_netns_get/put
+Date: Sat, 3 Oct 2015 12:46:26 +0200 (CEST)
+Message-ID: <alpine.LSU.2.20.1510031244440.16988@nerf40.vanv.qr>
+References: <1443786557-21315-1-git-send-email-fw@strlen.de> <1443786557-21315-3-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: y2038@lists.linaro.org, netdev@vger.kernel.org,
- linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
- coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
- Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, Patrick McHardy <kaber@trash.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <y2038-bounces@lists.linaro.org>
-In-Reply-To: <20151002125355.GA31638@salvia>
-List-Unsubscribe: <https://lists.linaro.org/mailman/options/y2038>,
- <mailto:y2038-request@lists.linaro.org?subject=unsubscribe>
-List-Archive: <http://lists.linaro.org/pipermail/y2038/>
-List-Post: <mailto:y2038@lists.linaro.org>
-List-Help: <mailto:y2038-request@lists.linaro.org?subject=help>
-List-Subscribe: <https://lists.linaro.org/mailman/listinfo/y2038>,
- <mailto:y2038-request@lists.linaro.org?subject=subscribe>
-Errors-To: y2038-bounces@lists.linaro.org
-Sender: "Y2038" <y2038-bounces@lists.linaro.org>
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, ebiederm@xmission.com
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ares41.inai.de ([46.4.122.207]:44479 "EHLO ares41.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751810AbbJCKq1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 3 Oct 2015 06:46:27 -0400
+In-Reply-To: <1443786557-21315-3-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-T24gRnJpZGF5IDAyIE9jdG9iZXIgMjAxNSAxNDo1Mzo1NSBQYWJsbyBOZWlyYSBBeXVzbyB3cm90
-ZToKPiBPbiBXZWQsIFNlcCAzMCwgMjAxNSBhdCAwMToyNjozOFBNICswMjAwLCBBcm5kIEJlcmdt
-YW5uIHdyb3RlOgo+ID4gVGhlIF9fYnVpbGRfcGFja2V0X21lc3NhZ2UgZnVuY3Rpb24gZmlsbHMg
-YSBuZnVsbmxfbXNnX3BhY2tldF90aW1lc3RhbXAKPiA+IHN0cnVjdHVyZSB0aGF0IHVzZXMgNjQt
-Yml0IHNlY29uZHMgYW5kIGlzIHRoZXJlZm9yZSB5MjAzOCBzYWZlLCBidXQKPiA+IGl0IHVzZXMg
-YW4gaW50ZXJtZWRpYXRlICdzdHJ1Y3QgdGltZXNwZWMnIHdoaWNoIGlzIG5vdC4KPiA+IAo+ID4g
-VGhpcyB0cml2aWFsbHkgY2hhbmdlcyB0aGUgY29kZSB0byB1c2UgJ3N0cnVjdCB0aW1lc3BlYzY0
-JyBpbnN0ZWFkLAo+ID4gdG8gY29ycmVjdCB0aGUgcmVzdWx0IG9uIDMyLWJpdCBhcmNoaXRlY3R1
-cmVzLgo+ID4KPiA+IFNpZ25lZC1vZmYtYnk6IEFybmQgQmVyZ21hbm4gPGFybmRAYXJuZGIuZGU+
-Cj4gPiBDYzogUGFibG8gTmVpcmEgQXl1c28gPHBhYmxvQG5ldGZpbHRlci5vcmc+Cj4gPiBDYzog
-UGF0cmljayBNY0hhcmR5IDxrYWJlckB0cmFzaC5uZXQ+Cj4gPiBDYzogSm96c2VmIEthZGxlY3Np
-ayA8a2FkbGVjQGJsYWNraG9sZS5rZmtpLmh1Pgo+ID4gQ2M6IG5ldGZpbHRlci1kZXZlbEB2Z2Vy
-Lmtlcm5lbC5vcmcKPiA+IENjOiBjb3JldGVhbUBuZXRmaWx0ZXIub3JnCj4gCj4gQWNrZWQtYnk6
-IFBhYmxvIE5laXJhIEF5dXNvIDxwYWJsb0BuZXRmaWx0ZXIub3JnPgoKVGhhbmtzCgo+IEJUVywg
-SSBkb24ndCBzZWUgdGhlIHBhdGNoIGZvciBuZm5ldGxpbmtfcXVldWUgYW5kIEkgdGhpbmsgSSBo
-YXZlIHNlZW4KPiBpdCBpbiB0aGUgZGlmZnN0YXQgZnJvbSB5b3VyIGNvdmVyIGxldHRlci4KCk15
-IHRleHQgbXVzdCBoYXZlIGJlZW4gdW5jbGVhci4gV2hhdCBJIG1lYW50IGlzIHRoYXQgSSBoYXZl
-IGlkZW50aWZpZWQKdGhhdCBmaWxlIGFzIG5lZWRpbmcgYSBwYXRjaCAoYW1vbmcgMTIwIG90aGVy
-IGZpbGVzKSBidXQgaGF2ZSBub3QKd3JpdHRlbiBvbmUuCgpUaGlzIG9uZSBpcyB0cml2aWFsLCBp
-dCBqdXN0IG5lZWRzIHJlcGxhY2luZyB0aGlzIGNvZGUKCiAgICAgICAgaWYgKGVudHNrYi0+dHN0
-YW1wLnR2NjQpIHsKICAgICAgICAgICAgICAgIHN0cnVjdCBuZnFubF9tc2dfcGFja2V0X3RpbWVz
-dGFtcCB0czsKICAgICAgICAgICAgICAgIHN0cnVjdCB0aW1ldmFsIHR2ID0ga3RpbWVfdG9fdGlt
-ZXZhbChlbnRza2ItPnRzdGFtcCk7CiAgICAgICAgICAgICAgICB0cy5zZWMgPSBjcHVfdG9fYmU2
-NCh0di50dl9zZWMpOwogICAgICAgICAgICAgICAgdHMudXNlYyA9IGNwdV90b19iZTY0KHR2LnR2
-X3VzZWMpOwoKICAgICAgICAgICAgICAgIGlmIChubGFfcHV0KHNrYiwgTkZRQV9USU1FU1RBTVAs
-IHNpemVvZih0cyksICZ0cykpCiAgICAgICAgICAgICAgICAgICAgICAgIGdvdG8gbmxhX3B1dF9m
-YWlsdXJlOwogICAgICAgIH0KCndpdGggYSB2ZXJzaW9uIHVzaW5nIGt0aW1lX3RvX3RpbWVzcGVj
-NjQuIElmIHlvdSBvciBzb21lb25lIGVsc2UgZG9lcwp0aGlzLCB0aGF0IG1ha2VzIG9uZSBsZXNz
-IGZpbGUgZm9yIG1lIHRvIHRyYWNrLgoKCUFybmQKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KWTIwMzggbWFpbGluZyBsaXN0ClkyMDM4QGxpc3RzLmxpbmFy
-by5vcmcKaHR0cHM6Ly9saXN0cy5saW5hcm8ub3JnL21haWxtYW4vbGlzdGluZm8veTIwMzgK
+
+On Friday 2015-10-02 13:49, Florian Westphal wrote:
+>diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
+>index 6a6e762..01a2322 100644
+>--- a/net/ipv4/netfilter/ipt_SYNPROXY.c
+>+++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
+>@@ -415,12 +415,12 @@ static int synproxy_tg4_check(const struct xt_tgchk_param *par)
+> 	    e->ip.invflags & XT_INV_PROTO)
+> 		return -EINVAL;
+> 
+>-	return nf_ct_l3proto_try_module_get(par->family);
+>+	return nf_ct_netns_get(par->net, NFPROTO_IPV4);
+> }
+> 
+> static void synproxy_tg4_destroy(const struct xt_tgdtor_param *par)
+> {
+>-	nf_ct_l3proto_module_put(par->family);
+>+	nf_ct_netns_put(par->net, NFPROTO_IPV4);
+> }
+> 
+> static struct xt_target synproxy_tg4_reg __read_mostly = {
+
+In the other places (like ip6t_SYNPROXY, xt_CONNSECMARK, ..), you chose
+par->family, why hardcode NFPROTO_IPV4 in just this place?
