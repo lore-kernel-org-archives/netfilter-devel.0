@@ -1,42 +1,50 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH -next 2/8] netfilter: add and use nf_ct_netns_get/put
-Date: Sat, 3 Oct 2015 12:46:26 +0200 (CEST)
-Message-ID: <alpine.LSU.2.20.1510031244440.16988@nerf40.vanv.qr>
-References: <1443786557-21315-1-git-send-email-fw@strlen.de> <1443786557-21315-3-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, ebiederm@xmission.com
-To: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: nfnetlink_queue: use y2038 safe timestamp
+Date: Sun,  4 Oct 2015 20:27:58 +0200
+Message-ID: <1443983278-22794-1-git-send-email-pablo@netfilter.org>
+Cc: arnd@arndb.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:44479 "EHLO ares41.inai.de"
+Received: from mail.us.es ([193.147.175.20]:39917 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751810AbbJCKq1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 3 Oct 2015 06:46:27 -0400
-In-Reply-To: <1443786557-21315-3-git-send-email-fw@strlen.de>
+	id S1751579AbbJDSVL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 4 Oct 2015 14:21:11 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The __build_packet_message function fills a nfulnl_msg_packet_timestamp
+structure that uses 64-bit seconds and is therefore y2038 safe, but
+it uses an intermediate 'struct timespec' which is not.
 
-On Friday 2015-10-02 13:49, Florian Westphal wrote:
->diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
->index 6a6e762..01a2322 100644
->--- a/net/ipv4/netfilter/ipt_SYNPROXY.c
->+++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
->@@ -415,12 +415,12 @@ static int synproxy_tg4_check(const struct xt_tgchk_param *par)
-> 	    e->ip.invflags & XT_INV_PROTO)
-> 		return -EINVAL;
-> 
->-	return nf_ct_l3proto_try_module_get(par->family);
->+	return nf_ct_netns_get(par->net, NFPROTO_IPV4);
-> }
-> 
-> static void synproxy_tg4_destroy(const struct xt_tgdtor_param *par)
-> {
->-	nf_ct_l3proto_module_put(par->family);
->+	nf_ct_netns_put(par->net, NFPROTO_IPV4);
-> }
-> 
-> static struct xt_target synproxy_tg4_reg __read_mostly = {
+This trivially changes the code to use 'struct timespec64' instead,
+to correct the result on 32-bit architectures.
 
-In the other places (like ip6t_SYNPROXY, xt_CONNSECMARK, ..), you chose
-par->family, why hardcode NFPROTO_IPV4 in just this place?
+This is a copy and paste of Arnd's original patch for nfnetlink_log.
+
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nfnetlink_queue.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index b1f1c74..0d2e856 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -500,9 +500,10 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 
+ 	if (entskb->tstamp.tv64) {
+ 		struct nfqnl_msg_packet_timestamp ts;
+-		struct timeval tv = ktime_to_timeval(entskb->tstamp);
+-		ts.sec = cpu_to_be64(tv.tv_sec);
+-		ts.usec = cpu_to_be64(tv.tv_usec);
++		struct timespec64 kts = ktime_to_timespec64(skb->tstamp);
++
++		ts.sec = cpu_to_be64(kts.tv_sec);
++		ts.usec = cpu_to_be64(kts.tv_nsec / NSEC_PER_USEC);
+ 
+ 		if (nla_put(skb, NFQA_TIMESTAMP, sizeof(ts), &ts))
+ 			goto nla_put_failure;
+-- 
+2.1.4
+
