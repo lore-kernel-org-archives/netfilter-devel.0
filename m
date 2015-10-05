@@ -1,25 +1,34 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: remove dead code
-Date: Mon, 5 Oct 2015 17:32:36 +0200
-Message-ID: <20151005153236.GA22738@salvia>
-References: <1443619430-5302-1-git-send-email-fbl@sysclose.org>
+Subject: Re: [PATCHv2 nf-next 0/4] netfilter: nfnetlink_log attach conntrack
+ information
+Date: Mon, 5 Oct 2015 17:33:55 +0200
+Message-ID: <20151005153355.GA22755@salvia>
+References: <1443724990-4014-1-git-send-email-pablo@netfilter.org>
+ <1443724990-4014-2-git-send-email-pablo@netfilter.org>
+ <20151005024454.GA14637@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Flavio Leitner <fbl@sysclose.org>
+To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55954 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56253 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751779AbbJEPZh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Oct 2015 11:25:37 -0400
+	id S1752513AbbJEP05 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Oct 2015 11:26:57 -0400
 Content-Disposition: inline
-In-Reply-To: <1443619430-5302-1-git-send-email-fbl@sysclose.org>
+In-Reply-To: <20151005024454.GA14637@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Sep 30, 2015 at 10:23:50AM -0300, Flavio Leitner wrote:
-> Remove __nf_conntrack_find() from headers.
-> Fixes: dcd93ed4cd1 ("netfilter: nf_conntrack: remove dead code"
+On Mon, Oct 05, 2015 at 11:44:54AM +0900, Ken-ichirou MATSUZAWA wrote:
+> Hi Pablo,
+> 
+> I rebased on top of your patches, would you review these?
+> 
+> You suggested it might be better to divide ct attaching Kconfig to
+> each of nfqueue and nflog, but I think it makes less sense now
+> because of your rework. is it right?
 
-Applied, thanks.
+Series applied, thanks for your patience.
 
+Please, follow up with fixes in case of problems.
