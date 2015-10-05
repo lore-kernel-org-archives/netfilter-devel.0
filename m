@@ -1,20 +1,20 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Guillaume Nault <g.nault@alphalink.fr>
 Subject: Re: [PATCH libmnl 1/2] socket: introduce mnl_socket_open2()
-Date: Mon, 5 Oct 2015 20:11:47 +0200
-Message-ID: <20151005181147.GA23848@salvia>
+Date: Mon, 5 Oct 2015 20:14:29 +0200
+Message-ID: <20151005181429.GB2882@alphalink.fr>
 References: <cover.1443815157.git.g.nault@alphalink.fr>
  <8ecf77e50d2acd0b20bdd18038b8e25fd6c86ec0.1443815157.git.g.nault@alphalink.fr>
  <alpine.DEB.2.10.1510051925090.13013@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Guillaume Nault <g.nault@alphalink.fr>,
-	netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59801 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751531AbbJESEx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Oct 2015 14:04:53 -0400
+Received: from zimbra.alphalink.fr ([217.15.80.77]:37569 "EHLO
+	mail-2-cbv2.admin.alphalink.fr" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752084AbbJESOc (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Oct 2015 14:14:32 -0400
 Content-Disposition: inline
 In-Reply-To: <alpine.DEB.2.10.1510051925090.13013@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -63,20 +63,8 @@ On Mon, Oct 05, 2015 at 07:27:46PM +0200, Jozsef Kadlecsik wrote:
 > 
 > I think this breaks library ABI: you should introduce a new revision 
 > instead.
-
-This would be part of the new interfaces for the next release:
-
-diff --git a/src/libmnl.map b/src/libmnl.map
-index dbc332e..e5920e5 100644
---- a/src/libmnl.map
-+++ b/src/libmnl.map
-@@ -72,3 +72,8 @@ local: *;
- LIBMNL_1.1 {
-   mnl_attr_parse_payload;
- } LIBMNL_1.0;
-+
-+LIBMNL_1.2 {
-+  mnl_socket_open2;
-+  mnl_socket_fdopen;
-+} LIBMNL_1.1;
-
+> 
+AFAIK, this revision hasn't been part of any official release yet.
+That's why I've exported mnl_socket_open2() there. I don't mind
+incrementing the ABI version, but should we really do that for every
+commit exporting a new function between two releases?
