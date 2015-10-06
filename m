@@ -1,71 +1,71 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nft 2/2] rule: don't reorder protocol payload expressions
- when merging
-Date: Tue, 6 Oct 2015 12:33:28 +0200
-Message-ID: <20151006103328.GC12921@breakpoint.cc>
-References: <1443237243-4571-1-git-send-email-fw@strlen.de>
- <1443237243-4571-2-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Xin Long <lucien.xin@gmail.com>
+Subject: [PATCH net] netfilter: ipt_rpfilter: remove the nh_scope test in rpfilter_lookup_reverse
+Date: Tue,  6 Oct 2015 21:03:07 +0800
+Message-ID: <e4382c194620c20c80991d4a32618266da4c71df.1444136587.git.lucien.xin@gmail.com>
+Cc: fw@strlen.de
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:57599 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751611AbbJFKda (ORCPT
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:35153 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751073AbbJFNDM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Oct 2015 06:33:30 -0400
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.80)
-	(envelope-from <fw@strlen.de>)
-	id 1ZjPYm-0006Uf-DT
-	for netfilter-devel@vger.kernel.org; Tue, 06 Oct 2015 12:33:28 +0200
-Content-Disposition: inline
-In-Reply-To: <1443237243-4571-2-git-send-email-fw@strlen.de>
+	Tue, 6 Oct 2015 09:03:12 -0400
+Received: by pacfv12 with SMTP id fv12so214485559pac.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 06 Oct 2015 06:03:11 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Florian Westphal <fw@strlen.de> wrote:
-> An instruction like
-> 
->  bridge filter input ip saddr 1.2.3.4 ether saddr a:b:c:d:e:f
-> 
-> is displayed as
-> 
-> unknown unknown 0x1020304 [invalid type] ether saddr 00:0f:54:0c:11:04 ether type ip
-> 
-> .. because the (implicit) 'ether type ip' that is injected before the
-> network header match gets merged into the ether saddr instruction.
-> 
-> This inverts the merge in case the merge candidate contains
-> a next header protocol field.
-> 
-> After this change, the rule will be displayed as
-> 
-> bridge filter input ether saddr a:b:c:d:e:f ip saddr 1.2.3.4
+--accept-local  option works for res.type == RTN_LOCAL, which should be from
+the local table, but there, the fib_info's nh->nh_scope = RT_SCOPE_NOWHERE
+( > RT_SCOPE_HOST). in fib_create_info().
 
-One side-effect with this approach is that it will reorder the
-instructions depending on the family dependencies.
+	if (cfg->fc_scope == RT_SCOPE_HOST) {
+		struct fib_nh *nh = fi->fib_nh;
 
-So, f.e.
-tcp dport 22 ip daddr 1.2.3.4 ether saddr 00:0f:54:0c:11:4
+		/* Local address is added. */
+		if (nhs != 1 || nh->nh_gw)
+			goto err_inval;
+		nh->nh_scope = RT_SCOPE_NOWHERE;   <===
+		nh->nh_dev = dev_get_by_index(net, fi->fib_nh->nh_oif);
+		err = -ENODEV;
+		if (!nh->nh_dev)
+			goto failure;
 
-will be added/displayed as
-tcp dport 22 ether saddr 00:0f:54:0c:11:04 ip daddr 1.2.3.4
+but in our rpfilter_lookup_reverse():
 
-for bridge family, but as
+	if (dev_match || flags & XT_RPFILTER_LOOSE)
+		return FIB_RES_NH(res).nh_scope <= RT_SCOPE_HOST;
 
-tcp dport 22 ip daddr 1.2.3.4 ether saddr 00:0f:54:0c:11:04
+if nh->nh_scope > RT_SCOPE_HOST, it will fail. --accept-local option will never
+be passed.
 
-for ip and inet.
+it seems the test is bogus and can be removed to fix this issue.
 
-In the bridge case we do need a 'is this ip' dependency test, so we
-now merge the ether saddr x into the (implicitly inserted)
-'ether protocol ip' expression.
+	if (dev_match || flags & XT_RPFILTER_LOOSE)
+		return FIB_RES_NH(res).nh_scope <= RT_SCOPE_HOST;
 
-ip family doesn't have such a dependency, since network header is
-always ipv4.
+ipv6 does not have this issue.
 
-For INET the dependency is expressed via 'meta load nfproto', so
-no payload merge takes place either.
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
+---
+ net/ipv4/netfilter/ipt_rpfilter.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-I pushed a rebased version including tests to
-https://git.breakpoint.cc/cgit/fw/nftables.git/log/?h=ether_tests_02
+diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
+index 8618fd1..c4ffc9d 100644
+--- a/net/ipv4/netfilter/ipt_rpfilter.c
++++ b/net/ipv4/netfilter/ipt_rpfilter.c
+@@ -61,9 +61,7 @@ static bool rpfilter_lookup_reverse(struct flowi4 *fl4,
+ 	if (FIB_RES_DEV(res) == dev)
+ 		dev_match = true;
+ #endif
+-	if (dev_match || flags & XT_RPFILTER_LOOSE)
+-		return FIB_RES_NH(res).nh_scope <= RT_SCOPE_HOST;
+-	return dev_match;
++	return dev_match || flags & XT_RPFILTER_LOOSE;
+ }
+ 
+ static bool rpfilter_is_local(const struct sk_buff *skb)
+-- 
+2.1.0
+
