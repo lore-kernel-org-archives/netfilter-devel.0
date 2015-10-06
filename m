@@ -1,105 +1,66 @@
-From: Maxime Bizon <mbizon@freebox.fr>
-Subject: [PATCH] netfilter: fix bad checksum on IPv6 when NAT is performed
-Date: Tue, 06 Oct 2015 16:23:45 +0200
-Message-ID: <1444141425.14655.341.camel@sakura.staff.proxad.net>
-Reply-To: mbizon@freebox.fr
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH] ipvs: Remove possibly unused net variable from
+ ip_vs_out
+Date: Tue, 6 Oct 2015 21:24:09 +0300 (EEST)
+Message-ID: <alpine.LFD.2.11.1510062122310.1745@ja.home.ssi.bg>
+References: <1444119324-5653-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: davem <davem@davemloft.net>, kaber <kaber@trash.net>,
-	pablo@netfilter.org,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: netdev <netdev@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ns.iliad.fr ([212.27.33.1]:47094 "EHLO ns.iliad.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752831AbbJFOXq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Oct 2015 10:23:46 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	"Eric W. Biederman" <ebiederm@xmission.com>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1444119324-5653-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 
-With this setup:
+	Hello,
 
-* non IPv6 checksumming capable network hardware
-* GRO off
-* IPv6 SNAT
+On Tue, 6 Oct 2015, Simon Horman wrote:
 
-I get this when I receive an UDPv6 reply: "<unknown>: hw csum failure"
+> Since 6f2bcea9917d ("ipvs: Pass ipvs into ip_vs_in_icmp and
+> ip_vs_in_icmp_v6") the net variable in ip_vs_out() appears to be unused
+> unless CONFIG_IP_VS_IPV6 is set. To resolve this remove the net variable
+> and dereference net asneeded.
+> 
+> Signed-off-by: Simon Horman <horms@verge.net.au>
 
-Call trace:
+	Both patches look good to me
 
-* nf_ip6_checksum() calls __skb_checksum_complete()
-* nf_nat_ipv6_csum_update() & nf_nat_ipv6_manip_pkt()
-* __udp6_lib_rcv() => udp6_csum_init()
-* __skb_checksum_validate_complete() "fastpath" fails because
-  skb->csum is incorrect.
-* udpv6_recvmsg() => skb_copy_and_csum_datagram_msg()
+Acked-by: Julian Anastasov <ja@ssi.bg>
 
-The last call computes a valid checksum despite CHECKSUM_COMPLETE and
-triggers the warning.
+> ---
+>  net/netfilter/ipvs/ip_vs_core.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index d08df435c2aa..3773154d9b71 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -1172,7 +1172,6 @@ drop:
+>  static unsigned int
+>  ip_vs_out(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int af)
+>  {
+> -	struct net *net = ipvs->net;
+>  	struct ip_vs_iphdr iph;
+>  	struct ip_vs_protocol *pp;
+>  	struct ip_vs_proto_data *pd;
+> @@ -1272,7 +1271,7 @@ ip_vs_out(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, in
+>  #ifdef CONFIG_IP_VS_IPV6
+>  				if (af == AF_INET6) {
+>  					if (!skb->dev)
+> -						skb->dev = net->loopback_dev;
+> +						skb->dev = ipvs->net->loopback_dev;
+>  					icmpv6_send(skb,
+>  						    ICMPV6_DEST_UNREACH,
+>  						    ICMPV6_PORT_UNREACH,
+> -- 
+> 2.1.4
 
-When we perform NAT on IPv4, we also update the IPv4 checksum, so
-there is no side effect on skb->csum (since the csum over a valid IPv4
-header area is zero).
+Regards
 
-But IPv6 doesn't have such header checksum, so when performing NAT we need to
-update skb->csum.
-
-Signed-off-by: Maxime Bizon <mbizon@freebox.fr>
----
- net/ipv6/netfilter/nf_nat_l3proto_ipv6.c | 23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
-
-diff --git a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-index 70fbaed..e9917d74 100644
---- a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-@@ -81,6 +81,8 @@ static bool nf_nat_ipv6_manip_pkt(struct sk_buff *skb,
- 				  enum nf_nat_manip_type maniptype)
- {
- 	struct ipv6hdr *ipv6h;
-+	const __be32 *to;
-+	__be32 *from;
- 	__be16 frag_off;
- 	int hdroff;
- 	u8 nexthdr;
-@@ -100,11 +102,24 @@ static bool nf_nat_ipv6_manip_pkt(struct sk_buff *skb,
- 				target, maniptype))
- 		return false;
- manip_addr:
--	if (maniptype == NF_NAT_MANIP_SRC)
--		ipv6h->saddr = target->src.u3.in6;
--	else
--		ipv6h->daddr = target->dst.u3.in6;
-+	if (maniptype == NF_NAT_MANIP_SRC) {
-+		from = ipv6h->saddr.s6_addr32;
-+		to = target->src.u3.in6.s6_addr32;
-+	} else {
-+		from = ipv6h->daddr.s6_addr32;
-+		to = target->src.u3.in6.s6_addr32;
-+	}
-+
-+	if (skb->ip_summed == CHECKSUM_COMPLETE) {
-+		__be32 diff[] = {
-+			~from[0], ~from[1], ~from[2], ~from[3],
-+			to[0], to[1], to[2], to[3],
-+		};
-+
-+		skb->csum = ~csum_partial(diff, sizeof(diff), ~skb->csum);
-+	}
- 
-+	memcpy(from, to, sizeof (struct in6_addr));
- 	return true;
- }
- 
--- 
-1.9.1
-
-
-
-
--- 
-Maxime
-
-
+--
+Julian Anastasov <ja@ssi.bg>
