@@ -1,37 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft] segfault in expr_clone()
-Date: Tue, 6 Oct 2015 11:23:15 +0200
-Message-ID: <20151006092315.GB1568@salvia>
-References: <CAOkSjBgyW232aqidQ-EPPinpAqkd21pjqV3W0VE_0N3RVL89pg@mail.gmail.com>
- <CAOkSjBgHradNUToxoUdQ_6H3yyUaGSJ=4RroZTxBLtAcGdz7bw@mail.gmail.com>
+Subject: Re: [PATCH nft] expression: provide clone operation for set element
+ ops
+Date: Tue, 6 Oct 2015 11:53:45 +0200
+Message-ID: <20151006095345.GA2215@salvia>
+References: <1443653206-25841-1-git-send-email-fw@strlen.de>
+ <CAOkSjBgNSz4+k=bDVsfsabYAH26LDOYY65A_PQYmFz+HcYWzVA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>, fw@strlen.de
+Cc: Florian Westphal <fw@strlen.de>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53013 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34509 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750818AbbJFJQT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Oct 2015 05:16:19 -0400
+	id S1751859AbbJFJqv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 6 Oct 2015 05:46:51 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBgHradNUToxoUdQ_6H3yyUaGSJ=4RroZTxBLtAcGdz7bw@mail.gmail.com>
+In-Reply-To: <CAOkSjBgNSz4+k=bDVsfsabYAH26LDOYY65A_PQYmFz+HcYWzVA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 06, 2015 at 10:58:08AM +0200, Arturo Borrero Gonzalez wrote:
-> On 6 October 2015 at 10:48, Arturo Borrero Gonzalez
-> <arturo.borrero.glez@gmail.com> wrote:
-> > Hi,
+On Tue, Oct 06, 2015 at 10:58:59AM +0200, Arturo Borrero Gonzalez wrote:
+> On 1 October 2015 at 00:46, Florian Westphal <fw@strlen.de> wrote:
+> > define addrs={ 1.2.3.4 }
+> > table ip filter {
+> >         chain input {
+> >                 type filter hook input priority 0;
+> >                 ip saddr $addrs accept
+> >         }
+> > }
 > >
-> > debian users are reporting [0] a segfault related to expr_clone().
+> > segfaults. Using saddr { 1.2.3.4 } instead of $addrs works.
 > >
-> > Is this the issue fixed by Florian's patch [1] ?
+> > Signed-off-by: Florian Westphal <fw@strlen.de>
+> > ---
+> >  src/expression.c | 11 +++++++++++
+> >  1 file changed, 11 insertions(+)
+> >
 > 
-> Ok, I've checked myself. Florian's patch address the issue.
+> Tested-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 
-Florian, please push out this fix.
-
-I would like to have a closer look to the inet/ether conflicts.
-
-Thanks!
+Testing helps us a lot to speed up submission process. Thanks.
