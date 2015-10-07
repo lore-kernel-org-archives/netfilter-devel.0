@@ -1,62 +1,51 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH net-next 10/15] ipv4: Cache net in ip_build_and_send_pkt
- and ip_queue_xmit
-Date: Tue, 06 Oct 2015 20:48:19 -0700
-Message-ID: <1444189699.9555.25.camel@edumazet-glaptop2.roam.corp.google.com>
-References: <878u7fesrg.fsf_-_@x220.int.ebiederm.org>
-	 <1444157595-28816-10-git-send-email-ebiederm@xmission.com>
-	 <1444167637.9555.13.camel@edumazet-glaptop2.roam.corp.google.com>
-	 <87lhbf8ike.fsf@x220.int.ebiederm.org>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: Re: [PATCHv2 nf-next 1/1] netfilter: nfnetlink_queue: check
+ NFQA_CFG_F_CONNTRACK config flag
+Date: Wed, 7 Oct 2015 13:20:17 +0900
+Message-ID: <20151007042016.GA23203@gmail.com>
+References: <1443724990-4014-1-git-send-email-pablo@netfilter.org>
+ <1443724990-4014-2-git-send-email-pablo@netfilter.org>
+ <20151005024454.GA14637@gmail.com>
+ <20151005025046.GE14637@gmail.com>
+ <20151005152315.GA11562@salvia>
+ <20151006021001.GA30037@gmail.com>
+ <20151006021246.GB30037@gmail.com>
+ <20151006100728.GA2429@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Nicolas Dichtel <nicolas.dichtel@6wind.com>,
-	lvs-devel@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <87lhbf8ike.fsf@x220.int.ebiederm.org>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:33018 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750808AbbJGEUW (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Oct 2015 00:20:22 -0400
+Received: by pacex6 with SMTP id ex6so8195857pac.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 06 Oct 2015 21:20:22 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20151006100728.GA2429@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2015-10-06 at 22:26 -0500, Eric W. Biederman wrote:
-
-> So what I am really reading it for is ip_local_out which I change to
-> take a struct net a few patches later in the series.  The patches that
-> changes everything is noticably cleaner and easier to review with these
-> couple of patches pulling struct net into it's own variable ahead of
-> time, and ip_build_and_send_pkt does call ip_local_out unconditionally.
+On Tue, Oct 06, 2015 at 12:07:28PM +0200, Pablo Neira Ayuso wrote:
+> On Tue, Oct 06, 2015 at 11:12:46AM +0900, Ken-ichirou MATSUZAWA wrote:
+> > +		if (flags & mask & NFQA_CFG_F_CONNTRACK) {
+> > +			if (!rcu_access_pointer(nfnl_ct_hook))
+> > +#ifdef CONFIG_MODULES
+> > +				if (request_module("ip_conntrack_netlink") ||
 > 
-> I am in the process of figuring out how to compute net once in the
-> output path and just passing it through so I don't need to compute net
-> from dst->dev.  As when the dust settles I hope to allow for a dst->dev
-> in another network namespace.  So that routes with a destination device
-> in another network namespace will allow for something simpler and faster
-> than ipvlan that achieves a very similar effect.
-> 
-> In this case to achieve what you are looking for, for cache line
-> friendliness I believe we would need to pass net in from
-> tcp_v4_send_synack, and it's cousins in dccp.
+> nfnl_lock is held while requesting a module, which is something that
+> we should avoid. Please, abort the operation and return -EAGAIN to
+> retry, this is the usual procedure when requesting other modules.
 
-Yes, something that can be done later.
+Thank you as always.
 
-> 
-> skc_net does seem firmly in the first cache line of sockets so it does
-> look like any of the the reads to inet_sock that we do perform would
-> hit the same cache line.
-> 
-> To recap.  I store net in a variable because I start using it
-> unconditionally a few patches later. The only way I can see to avoid
-> hitting the cold cache line is to pass net into ip_build_and_send_pkt.
-> 
-> Do you think passing net into ip_build_and_send_pkt is the sensible way
-> to address your performance concern?  Or do you have issues with my
-> passing of net through the output path?
+I read another request_module() part and I think I can understand,
+would you review it again? I changed rcu_access_pointer() since
+rcu_read_lock() is called in nfqnl_recv_config().
 
-I have no issues, but was pointing out this particular path, that might
-be optimized later, no worries.
+I think a few fix seems to be needed at that time, and try to fix
+it in the following patches. Would you confirm these too?
 
-Thanks.
-
-
+Thanks,
