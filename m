@@ -1,34 +1,34 @@
-From: "John D Allen, Leveridge Systems INC"
-	<john.allen@leveridgesystems.com>
-Subject: Re: [Help needed]  Kernel level, OSI layers 2-3 Network driver developments, anyone in Northwest US region ?
-Date: Wed, 7 Oct 2015 09:33:36 -0500
-Message-ID: <D765CC8E-AA40-43EA-ABF8-60CFA5EEB6A7@leveridgesystems.com>
-References: <1444195403-4288-1-git-send-email-horms@verge.net.au> <1444195403-4288-2-git-send-email-horms@verge.net.au> <56152517.6020807@cogentembedded.com>
-Mime-Version: 1.0 (Mac OS X Mail 6.3 \(1503\))
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-To: lvs-devel@vger.kernel.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:33815 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754613AbbJGOdm convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Oct 2015 10:33:42 -0400
-Received: by padhy16 with SMTP id hy16so23277452pad.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 07 Oct 2015 07:33:40 -0700 (PDT)
-In-Reply-To: <56152517.6020807@cogentembedded.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: Re: [PATCH net-next 01/15] ipv4: Fix ip_local_out_sk by passing the
+ sk into __ip_local_out_sk
+Date: Wed, 7 Oct 2015 16:48:38 +0200
+Message-ID: <561530C6.1030306@6wind.com>
+References: <878u7fesrg.fsf_-_@x220.int.ebiederm.org>
+ <1444157595-28816-1-git-send-email-ebiederm@xmission.com>
+Reply-To: nicolas.dichtel@6wind.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm@xmission.com>,
+	David Miller <davem@davemloft.net>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1444157595-28816-1-git-send-email-ebiederm@xmission.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Kernel level, OSI layers 2-3 Network driver developments, anyone in Northwest US ?
+Le 06/10/2015 20:53, Eric W. Biederman a =C3=A9crit :
+> In the rare case where sk !=3D skb->sk ip_local_out_sk arranges
+> to call dst->output differently if the skb is queued or not.
+> This is a bug.
+>
+> Fix this bug by passing the sk parameter of ip_local_out_sk through
+> from ip_local_out_sk to __ip_local_out_sk (skipping __ip_local_out).
+>
+> Fixes: 7026b1ddb6b8d4e6ee33dc2bd06c0ca8746fa7ab
+=46ixes: 7026b1ddb6b8 ("netfilter: Pass socket pointer down through okf=
+n().")
 
-thanks, John.
-
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+It's in 4.1, so I assume this patch is for net also?
