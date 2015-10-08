@@ -1,57 +1,60 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: sync with packet rx also after removing queue entries
-Date: Thu,  8 Oct 2015 23:38:07 +0200
-Message-ID: <1444340287-8779-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>,
-	"Eric W. Biederman" <ebiederm@xmission.com>
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37858 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755976AbbJHViR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Oct 2015 17:38:17 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Tom Herbert <tom@herbertland.com>
+Subject: Re: [PATCH v2] netfilter: fix bad checksum on IPv6 when NAT is performed
+Date: Thu, 8 Oct 2015 15:11:50 -0700
+Message-ID: <CALx6S34mEeFT_4kBWnEJ2H8P7+FCG_ZpN-CUEgSj4FBH1YeeeQ@mail.gmail.com>
+References: <1444141425.14655.341.camel@sakura.staff.proxad.net>
+	<1444335587.14655.387.camel@sakura.staff.proxad.net>
+	<1444335972.14655.388.camel@sakura.staff.proxad.net>
+	<CALx6S37AdH=icFEqXjH5hDJ2O0dkwLEx6_KqpFkoPYF2sr1N_Q@mail.gmail.com>
+	<1444339594.14655.392.camel@sakura.staff.proxad.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: netdev <netdev@vger.kernel.org>, davem <davem@davemloft.net>,
+	kaber <kaber@trash.net>, pablo@netfilter.org,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+To: mbizon@freebox.fr
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1444339594.14655.392.camel@sakura.staff.proxad.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-We need to sync packet rx again after flushing the queue entries.
-Otherwise, the following race could happen:
+On Thu, Oct 8, 2015 at 2:26 PM, Maxime Bizon <mbizon@freebox.fr> wrote:
+>
+> On Thu, 2015-10-08 at 14:09 -0700, Tom Herbert wrote:
+>
+>> I think inet_proto_csum_replace16 should be called here.
+>
+> inet_proto_csum_replace16() wants a non NULL checksum pointer to update,
+> and there is no such thing here.
+>
+> I could pass a dummy value, but inet_proto_csum_replace16() will do
+> twice more work for nothing
+>
+> or I could modify inet_proto_csum_replace16() to allow a NULL sum
+> argument.
+>
+If I am reading the code correctly, it looks like
+inet_proto_csum_replace16 is called from
+{tcp,dccp,tcp.udp,udplite}_manip_pkt via l3proto->csum_update which is
+a call to nf_nat_ipv6_csum_update for IPv6. So for these protocols
+when the transport checksum is updated skb->csum is also correctly
+updated. For other protocols or when UDP checksum is zero or for
+fragments-- I don't see where skb->csum is being properly updated.
+This potentially seems to be a major bug.
 
-cpu1: nf_unregister_hook(H) called, H unliked from lists, calls
-synchronize_net() to wait for packet rx completion.
+I would suggest:
+1) Modify the inet_proto_csum_replace* routines to check for NULL
+check pointer and and only write it when non-NULL
+2) Call l3proto->csum_update from unknown_manip_pkt with check == NULL
+3) In udp_manip_pkt call l3proto->csum_update with check = NULL when
+UDP checksum is zero
+4) For IPv6 fragments call l3proto->csum_update with check = NULL
 
-Problem is that while no new nf_queue_entry structs that use H can be
-allocated, another CPU might receive a verdict from userspace just before
-cpu1 calls nf_queue_nf_hook_drop to remove this entry:
+Tom
 
-cpu2: receive verdict from userspace, lock queue
-cpu2: unlink nf_queue_entry struct E, which references H, from queue list
-cpu1: calls nf_queue_nf_hook_drop, blocks on queue spinlock
-cpu2: unlock queue
-cpu1: nf_queue_nf_hook_drop drops affected queue entries
-cpu2: call nf_reinject for E
-cpu1: kfree(H)
-cpu2: potential use-after-free for H
 
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Fixes: 085db2c04557 ("netfilter: Per network namespace netfilter hooks.")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
-Found during code review, no actual panic was observed.
 
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 8e47f81..21a0856 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -152,6 +152,8 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
- #endif
- 	synchronize_net();
- 	nf_queue_nf_hook_drop(net, &entry->ops);
-+	/* other cpu might still process nfqueue verdict that used reg */
-+	synchronize_net();
- 	kfree(entry);
- }
- EXPORT_SYMBOL(nf_unregister_net_hook);
--- 
-2.0.5
-
+> --
+> Maxime
+>
+>
