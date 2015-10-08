@@ -1,52 +1,92 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH net-next 00/16] net: Pass net through the output path v2
-Date: Thu, 8 Oct 2015 11:40:30 +0200
-Message-ID: <56163A0E.4050701@6wind.com>
-References: <87mvwn18my.fsf@x220.int.ebiederm.org>
- <87pp1fpy1b.fsf@x220.int.ebiederm.org>
- <87fv2bo7br.fsf_-_@x220.int.ebiederm.org>
- <87si62gteh.fsf_-_@x220.int.ebiederm.org>
- <877fn7eh2f.fsf_-_@x220.int.ebiederm.org>
- <878u7fesrg.fsf_-_@x220.int.ebiederm.org>
- <87bnca4aie.fsf_-_@x220.int.ebiederm.org>
-Reply-To: nicolas.dichtel@6wind.com
+From: Arturo Borrero Gonzalez <aborrero@cica.es>
+Subject: [nft PATCH] rule: fix printing of rule comments
+Date: Thu, 08 Oct 2015 11:27:24 +0200
+Message-ID: <20151008092724.23737.63936.stgit@r2d2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	lvs-devel@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>,
-	David Miller <davem@davemloft.net>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <87bnca4aie.fsf_-_@x220.int.ebiederm.org>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3.cica.es ([150.214.5.190]:42143 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755572AbbJHJsF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Oct 2015 05:48:05 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 07/10/2015 23:46, Eric W. Biederman a =C3=A9crit :
->
-> This is the next installment of my work to pass struct net through th=
-e
-> output path so the code does not need to guess how to figure out whic=
-h
-> network namespace it is in, and ultimately routes can have output
-> devices in another network namespace.
->
-> The first patch in this series is a fix for a bug that came in when s=
-k
-> was passed through the functions in the output path, and as such is
-> probably a candidate for net.  At the same time my later patches depe=
-nd
-> on it so sending the fix separately would be confusing.
->
-> The second patch in this series is another fix that for an issue that
-> came in when sk was passed through the output path.  I don't think it
-> needs a backport as I don't think anyone uses the path where the code
-> was incorrect.
->
-> The rest of the patchset focuses on the path from xxx_local_out to
-> dst_output and in the end succeeds in passing sock_net(sk) from the
-> socket a packet locally originates on to the dst->output function.
-LGTM.
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 
-Acked-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Several fixes:
+ * handles are printed last
+ * simplify space games (an extra space was being printed)
+ * comments are shown with `nft monitor' as well (missing before this patch)
+
+
+Before this patch:
+
+% nft list ruleset -a
+[...]
+chain test {
+	iifname eth0 # handle 1 comment "test"
+
+}
+[...]
+
+% nft list ruleset
+[...]
+chain test {
+	iifname eth0  comment "test"
+		    ^^
+}
+[...]
+
+% nft monitor &
+% nft add rule test test iifname eth0 comment "test"
+add rule test test iifname eth0
+
+After this patch:
+
+% nft list ruleset -a
+chain test {
+	iifname eth0 comment "test" # handle 1
+		    ^
+}
+
+% nft monitor -a &
+% nft add rule test test iifname eth0 comment "test"
+add rule test test iifname eth0 comment "test" # handle 1
+
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/rule.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/src/rule.c b/src/rule.c
+index 92b83f0..1bf0e03 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -383,6 +383,10 @@ void rule_print(const struct rule *rule)
+ 		stmt->ops->print(stmt);
+ 		printf(" ");
+ 	}
++
++	if (rule->handle.comment)
++		printf("comment \"%s\" ", rule->handle.comment);
++
+ 	if (handle_output > 0)
+ 		printf("# handle %" PRIu64, rule->handle.handle);
+ }
+@@ -622,10 +626,7 @@ static void chain_print(const struct chain *chain)
+ 	list_for_each_entry(rule, &chain->rules, list) {
+ 		printf("\t\t");
+ 		rule_print(rule);
+-		if (rule->handle.comment)
+-			printf(" comment \"%s\"\n", rule->handle.comment);
+-		else
+-			printf("\n");
++		printf("\n");
+ 	}
+ 	printf("\t}\n");
+ }
+
