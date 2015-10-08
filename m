@@ -1,28 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] rule: fix printing of rule comments
-Date: Thu, 8 Oct 2015 18:18:05 +0200
-Message-ID: <20151008161805.GA4330@salvia>
-References: <20151008092724.23737.63936.stgit@r2d2.cica.es>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [nft] regarding sets names length
+Date: Thu, 8 Oct 2015 20:35:06 +0100
+Message-ID: <20151008193506.GB26121@macbook.localdomain>
+References: <CAOkSjBiv1M9QE2bjTBTh9Yr1n_5w2c69Rg1ZpoxUroga7oncgA@mail.gmail.com>
+ <20151008115524.GA20598@macbook.localdomain>
+ <alpine.DEB.2.10.1510081455410.369@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <aborrero@cica.es>
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41084 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756805AbbJHQLJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Oct 2015 12:11:09 -0400
+Received: from stinky.trash.net ([213.144.137.162]:41753 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755889AbbJHTfM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Oct 2015 15:35:12 -0400
 Content-Disposition: inline
-In-Reply-To: <20151008092724.23737.63936.stgit@r2d2.cica.es>
+In-Reply-To: <alpine.DEB.2.10.1510081455410.369@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 08, 2015 at 11:27:24AM +0200, Arturo Borrero Gonzalez wrote:
-> From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+On 08.10, Jozsef Kadlecsik wrote:
+> Hi,
 > 
-> Several fixes:
->  * handles are printed last
->  * simplify space games (an extra space was being printed)
->  * comments are shown with `nft monitor' as well (missing before this patch)
+> On Thu, 8 Oct 2015, Patrick McHardy wrote:
+> 
+> > On 08.10, Arturo Borrero Gonzalez wrote:
+> > >  * enlarge set names sizes
+> > 
+> > Agreed, I think its a good idea to use 32 as for the other object types.
+> 
+> I'd suggest 128 or even 256 chars. In ipset the set name is limited to 32 
+> too but I had received a few complains and plan to increase it.
 
-Applied, thanks Arturo!
+I guess we will follow suit then since we should be compatible to ipset
+anyways. Did you already decide for a value?
