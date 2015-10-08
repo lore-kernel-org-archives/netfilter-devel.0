@@ -1,40 +1,40 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [nft] regarding sets names length
-Date: Thu, 8 Oct 2015 20:35:06 +0100
-Message-ID: <20151008193506.GB26121@macbook.localdomain>
-References: <CAOkSjBiv1M9QE2bjTBTh9Yr1n_5w2c69Rg1ZpoxUroga7oncgA@mail.gmail.com>
- <20151008115524.GA20598@macbook.localdomain>
- <alpine.DEB.2.10.1510081455410.369@blackhole.kfki.hu>
+From: Maxime Bizon <mbizon@freebox.fr>
+Subject: Re: [PATCH] netfilter: fix bad checksum on IPv6 when NAT is
+ performed
+Date: Thu, 08 Oct 2015 22:19:47 +0200
+Message-ID: <1444335587.14655.387.camel@sakura.staff.proxad.net>
+References: <1444141425.14655.341.camel@sakura.staff.proxad.net>
+Reply-To: mbizon@freebox.fr
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: davem <davem@davemloft.net>, kaber <kaber@trash.net>,
+	pablo@netfilter.org,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+To: netdev <netdev@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41753 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755889AbbJHTfM (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Oct 2015 15:35:12 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1510081455410.369@blackhole.kfki.hu>
+Received: from ns.iliad.fr ([212.27.33.1]:44713 "EHLO ns.iliad.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751640AbbJHUTt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Oct 2015 16:19:49 -0400
+In-Reply-To: <1444141425.14655.341.camel@sakura.staff.proxad.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 08.10, Jozsef Kadlecsik wrote:
-> Hi,
-> 
-> On Thu, 8 Oct 2015, Patrick McHardy wrote:
-> 
-> > On 08.10, Arturo Borrero Gonzalez wrote:
-> > >  * enlarge set names sizes
-> > 
-> > Agreed, I think its a good idea to use 32 as for the other object types.
-> 
-> I'd suggest 128 or even 256 chars. In ipset the set name is limited to 32 
-> too but I had received a few complains and plan to increase it.
 
-I guess we will follow suit then since we should be compatible to ipset
-anyways. Did you already decide for a value?
+On Tue, 2015-10-06 at 16:23 +0200, Maxime Bizon wrote:
+
+> +	if (maniptype == NF_NAT_MANIP_SRC) {
+> +		from = ipv6h->saddr.s6_addr32;
+> +		to = target->src.u3.in6.s6_addr32;
+> +	} else {
+> +		from = ipv6h->daddr.s6_addr32;
+> +		to = target->src.u3.in6.s6_addr32;
+> +	}
+
+stupid copy & paste error here, will send v2
+
+-- 
+Maxime
+
+
