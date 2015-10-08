@@ -1,53 +1,40 @@
-From: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
-Subject: Re: [PATCH v2] bridge/netfilter: avoid unused label warning
-Date: Thu, 8 Oct 2015 14:51:05 +0200
-Message-ID: <561666B9.8070802@cumulusnetworks.com>
-References: <5180534.sSnu9AX8xS@wuerfel>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [nft] regarding sets names length
+Date: Thu, 8 Oct 2015 15:05:24 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1510081455410.369@blackhole.kfki.hu>
+References: <CAOkSjBiv1M9QE2bjTBTh9Yr1n_5w2c69Rg1ZpoxUroga7oncgA@mail.gmail.com> <20151008115524.GA20598@macbook.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>,
-	Florian Westphal <fw@strlen.de>, netdev@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:37171 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756793AbbJHMvI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Oct 2015 08:51:08 -0400
-Received: by wicfx3 with SMTP id fx3so23605327wic.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 08 Oct 2015 05:51:07 -0700 (PDT)
-In-Reply-To: <5180534.sSnu9AX8xS@wuerfel>
+Received: from smtp-in.kfki.hu ([148.6.0.25]:35813 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753536AbbJHNEM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Oct 2015 09:04:12 -0400
+In-Reply-To: <20151008115524.GA20598@macbook.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 10/08/2015 02:30 PM, Arnd Bergmann wrote:
-> With the ARM mini2440_defconfig, the bridge netfilter code gets
-> built with both CONFIG_NF_DEFRAG_IPV4 and CONFIG_NF_DEFRAG_IPV6
-> disabled, which leads to a harmless gcc warning:
-> 
-> net/bridge/br_netfilter_hooks.c: In function 'br_nf_dev_queue_xmit':
-> net/bridge/br_netfilter_hooks.c:792:2: warning: label 'drop' defined but not used [-Wunused-label]
-> 
-> This gets rid of the warning by cleaning up the code to avoid
-> the respective #ifdefs causing this problem, and replacing them
-> with if(IS_ENABLED()) checks. I have verified that the resulting
-> object code is unchanged, and an additional advantage is that
-> we now get compile coverage of the unused functions in more
-> configurations.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Fixes: dd302b59bde0 ("netfilter: bridge: don't leak skb in error paths")
-> ---
-> Version 2:
-> 
-> Rebased to git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next
-> 
+Hi,
 
-Looks good to me,
+On Thu, 8 Oct 2015, Patrick McHardy wrote:
 
-Reviewed-by: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
+> On 08.10, Arturo Borrero Gonzalez wrote:
+> >  * enlarge set names sizes
+> 
+> Agreed, I think its a good idea to use 32 as for the other object types.
 
+I'd suggest 128 or even 256 chars. In ipset the set name is limited to 32 
+too but I had received a few complains and plan to increase it.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
