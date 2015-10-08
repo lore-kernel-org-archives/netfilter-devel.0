@@ -1,27 +1,60 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next 00/16] net: Pass net through the output path v2
-Date: Thu, 08 Oct 2015 04:27:43 -0700 (PDT)
-Message-ID: <20151008.042743.1639317207403403583.davem@davemloft.net>
-References: <877fn7eh2f.fsf_-_@x220.int.ebiederm.org>
-	<878u7fesrg.fsf_-_@x220.int.ebiederm.org>
-	<87bnca4aie.fsf_-_@x220.int.ebiederm.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft] regarding sets names length
+Date: Thu, 8 Oct 2015 13:23:34 +0200
+Message-ID: <CAOkSjBiv1M9QE2bjTBTh9Yr1n_5w2c69Rg1ZpoxUroga7oncgA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	nicolas.dichtel@6wind.com, lvs-devel@vger.kernel.org
-To: ebiederm@xmission.com
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <87bnca4aie.fsf_-_@x220.int.ebiederm.org>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:36859 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756492AbbJHLXy convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Oct 2015 07:23:54 -0400
+Received: by wicgb1 with SMTP id gb1so20843720wic.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 08 Oct 2015 04:23:53 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: ebiederm@xmission.com (Eric W. Biederman)
-Date: Wed, 07 Oct 2015 16:46:49 -0500
+Hi,
 
-> This is the next installment of my work to pass struct net through the
-> output path so the code does not need to guess how to figure out which
-> network namespace it is in, and ultimately routes can have output
-> devices in another network namespace.
+I'm trying to migrate a iptables/ip6tables ruleset to nftables.
 
-Seires applied, thanks Eric.
+I've found that the current IFNAMSIZ limitation for set names is
+annoying because there are lots of ipset sets which needs to move to
+nftables which cannot do it straight forward.
+Also, the error reporting for this is very poor (reported by the
+kernel in a generic way).
+
+This example illustrates both issues:
+
+ % nft add set inet filter external_services { type ipv4_addr\; }
+<cmdline>:1:1-57: Error: Could not process rule: Numerical result out o=
+f range
+add set inet filter external_services { type ipv4_addr; }
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Also, I don't find any documentation apart of the source code itself :-=
+)
+
+I would suggest:
+ * check names length also in userspace to show a better error message
+ * enlarge set names sizes
+
+best regards
+
+
+PD: Just updated
+http://wiki.nftables.org/wiki-nftables/index.php/Sets#Named_sets with
+info about the name length.
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
