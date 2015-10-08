@@ -1,42 +1,39 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [nft] regarding sets names length
-Date: Fri, 9 Oct 2015 13:12:05 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1510091308500.4639@blackhole.kfki.hu>
-References: <CAOkSjBiv1M9QE2bjTBTh9Yr1n_5w2c69Rg1ZpoxUroga7oncgA@mail.gmail.com> <20151008115524.GA20598@macbook.localdomain> <alpine.DEB.2.10.1510081455410.369@blackhole.kfki.hu> <20151008193506.GB26121@macbook.localdomain>
+From: "Mr,Zaara Heyet." <geldkantor@aim.com>
+Subject: PLS I NEED YOUR HELP!
+Date: Thu, 8 Oct 2015 23:18:45 +0300 (EEST)
+Message-ID: <aaa18ab4035a6ccec60c8185db6a83b8.squirrel@82.79.55.74>
+Reply-To: geldkantor@aim.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: undisclosed-recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:47060 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756754AbbJILKt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Oct 2015 07:10:49 -0400
-In-Reply-To: <20151008193506.GB26121@macbook.localdomain>
+Received: from [82.79.55.74] ([82.79.55.74]:54528 "EHLO
+	server-servicii.uvvgsm.ro" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1758060AbbJILYj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 9 Oct 2015 07:24:39 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 8 Oct 2015, Patrick McHardy wrote:
 
-> > > Agreed, I think its a good idea to use 32 as for the other object types.
-> > 
-> > I'd suggest 128 or even 256 chars. In ipset the set name is limited to 32 
-> > too but I had received a few complains and plan to increase it.
-> 
-> I guess we will follow suit then since we should be compatible to ipset
-> anyways. Did you already decide for a value?
 
-I thought 32 chars should be enough for everybody ;-) so I'm unsure about 
-the good enough value. 128 seems just pretty long, but the name length is 
-actually not critical, it could be 256. What do you think?
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+I am Mrs Zaara Heyet an oil-servicing equipment merchant, am writing this
+mail to you with tears and love from my heart of charity work i could not
+fulfill before the end of my days due to my present healness ,Please do
+not think of this letter as one of those being sent around to ask for
+money,I got your email id from our chambers of commerce while searching
+for a reliable person to help me carry out this project.
+
+I have an urgent and confidential business proposition involving transfer
+of Nine Million $9,000.000.00 USD ,it will be of great benefit for both of
+us especially you as my days are number on earth. I will give you more
+details as regards this transaction as soon as you, reply me of your
+interest via my personal E-mail: hayettzaara@yahoo.com  , Thanks for your
+interested .
+
+WARNING!!WARNING!!
+This winning notification is expected to be read and/or used only by
+theindividual(s) for whom it is intended.:*********
+
