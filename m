@@ -1,106 +1,63 @@
-From: Maxime Bizon <mbizon@freebox.fr>
-Subject: [PATCH v2] netfilter: fix bad checksum on IPv6 when NAT is performed
-Date: Thu, 08 Oct 2015 22:26:12 +0200
-Message-ID: <1444335972.14655.388.camel@sakura.staff.proxad.net>
-References: <1444141425.14655.341.camel@sakura.staff.proxad.net>
-	 <1444335587.14655.387.camel@sakura.staff.proxad.net>
-Reply-To: mbizon@freebox.fr
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: davem <davem@davemloft.net>, kaber <kaber@trash.net>,
-	pablo@netfilter.org,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: netdev <netdev@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 1/7] rule: display table when listing sets
+Date: Thu,  8 Oct 2015 22:49:24 +0200
+Message-ID: <1444337370-8269-2-git-send-email-pablo@netfilter.org>
+References: <1444337370-8269-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, fw@strlen.de, arturo.borrero.glez@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ns.iliad.fr ([212.27.33.1]:44735 "EHLO ns.iliad.fr"
+Received: from mail.us.es ([193.147.175.20]:47747 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758375AbbJHU0O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Oct 2015 16:26:14 -0400
-In-Reply-To: <1444335587.14655.387.camel@sakura.staff.proxad.net>
+	id S1752837AbbJHUmh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Oct 2015 16:42:37 -0400
+In-Reply-To: <1444337370-8269-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+After this patch:
 
-With this setup:
-
-* non IPv6 checksumming capable network hardware
-* GRO off
-* IPv6 SNAT
-
-I get this when I receive an UDPv6 reply: "<unknown>: hw csum failure"
-
-Call trace:
-
-* nf_ip6_checksum() calls __skb_checksum_complete()
-* nf_nat_ipv6_csum_update() & nf_nat_ipv6_manip_pkt()
-* __udp6_lib_rcv() => udp6_csum_init()
-* __skb_checksum_validate_complete() "fastpath" fails because
-  skb->csum is incorrect.
-* udpv6_recvmsg() => skb_copy_and_csum_datagram_msg()
-
-The last call computes a valid checksum despite CHECKSUM_COMPLETE and
-triggers the warning.
-
-When we perform NAT on IPv4, we also update the IPv4 checksum, so
-there is no side effect on skb->csum (since the csum over a valid IPv4
-header area was already zero).
-
-But IPv6 doesn't have such checksum, so when performing NAT we need to
-update skb->csum.
-
-Signed-off-by: Maxime Bizon <mbizon@freebox.fr>
----
- net/ipv6/netfilter/nf_nat_l3proto_ipv6.c | 23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
-
-diff --git a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-index 70fbaed..e44af9c 100644
---- a/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_nat_l3proto_ipv6.c
-@@ -81,6 +81,8 @@ static bool nf_nat_ipv6_manip_pkt(struct sk_buff *skb,
- 				  enum nf_nat_manip_type maniptype)
- {
- 	struct ipv6hdr *ipv6h;
-+	const __be32 *to;
-+	__be32 *from;
- 	__be16 frag_off;
- 	int hdroff;
- 	u8 nexthdr;
-@@ -100,11 +102,24 @@ static bool nf_nat_ipv6_manip_pkt(struct sk_buff *skb,
- 				target, maniptype))
- 		return false;
- manip_addr:
--	if (maniptype == NF_NAT_MANIP_SRC)
--		ipv6h->saddr = target->src.u3.in6;
--	else
--		ipv6h->daddr = target->dst.u3.in6;
-+	if (maniptype == NF_NAT_MANIP_SRC) {
-+		from = ipv6h->saddr.s6_addr32;
-+		to = target->src.u3.in6.s6_addr32;
-+	} else {
-+		from = ipv6h->daddr.s6_addr32;
-+		to = target->dst.u3.in6.s6_addr32;
-+	}
-+
-+	if (skb->ip_summed == CHECKSUM_COMPLETE) {
-+		__be32 diff[] = {
-+			~from[0], ~from[1], ~from[2], ~from[3],
-+			to[0], to[1], to[2], to[3],
-+		};
-+
-+		skb->csum = ~csum_partial(diff, sizeof(diff), ~skb->csum);
-+	}
- 
-+	memcpy(from, to, sizeof (struct in6_addr));
- 	return true;
+ # nft list sets ip
+ table ip test {
+        set pepe {
+                type ipv4_addr
+        }
  }
+
+Before:
+
+ # nft list sets ip
+        set pepe {
+                type ipv4_addr
+        }
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/rule.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/src/rule.c b/src/rule.c
+index 92b83f0..71b26e3 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -983,8 +983,18 @@ static int do_list_sets(struct netlink_ctx *ctx, struct cmd *cmd)
+ 	struct set *set;
  
+ 	list_for_each_entry(table, &table_list, list) {
++		if (cmd->handle.family != NFPROTO_UNSPEC &&
++		    cmd->handle.family != table->handle.family)
++			continue;
++
++		printf("table %s %s {\n",
++		       family2str(table->handle.family),
++		       table->handle.table);
++
+ 		list_for_each_entry(set, &table->sets, list)
+ 			set_print(set);
++
++		printf("}\n");
+ 	}
+ 	return 0;
+ }
 -- 
-1.9.1
-
-
--- 
-Maxime
-
+2.1.4
 
