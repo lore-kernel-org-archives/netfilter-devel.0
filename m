@@ -1,90 +1,86 @@
-From: "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [PATCH net-next 3/3] ipv6: Pass struct net into nf_ct_frag6_gather
-Date: Fri,  9 Oct 2015 13:44:55 -0500
-Message-ID: <1444416295-31683-3-git-send-email-ebiederm@xmission.com>
-References: <87bnca4aie.fsf_-_@x220.int.ebiederm.org>
-Cc: netfilter-devel@vger.kernel.org, <netdev@vger.kernel.org>,
-	Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <87bnca4aie.fsf_-_@x220.int.ebiederm.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Vijay Subramanian <subramanian.vijay@gmail.com>
+Subject: [PATCH libnftnl] Fix compilation with JSON and XML parsing enabled
+Date: Fri,  9 Oct 2015 12:21:07 -0700
+Message-ID: <1444418467-18610-1-git-send-email-subramanian.vijay@gmail.com>
+Cc: pablo@netfilter.org, kaber@trash.net,
+	Vijay Subramanian <subramanian.vijay@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-qg0-f42.google.com ([209.85.192.42]:34527 "EHLO
+	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752565AbbJITVS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 9 Oct 2015 15:21:18 -0400
+Received: by qgez77 with SMTP id z77so77491144qge.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 09 Oct 2015 12:21:17 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The function nf_ct_frag6_gather is called on both the input and the
-output paths of the networking stack.  In particular ipv6_defrag which
-calls nf_ct_frag6_gather is called from both the the PRE_ROUTING chain
-on input and the LOCAL_OUT chain on output.
+Fix missing/incorrect variables.
+Also remove unsed variables to avoid warnings.
 
-The addition of a net parameter makes it explicit which network
-namespace the packets are being reassembled in, and removes the need
-for nf_ct_frag6_gather to guess.
-
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Vijay Subramanian <subramanian.vijay@gmail.com>
 ---
- include/net/netfilter/ipv6/nf_defrag_ipv6.h | 2 +-
- net/ipv6/netfilter/nf_conntrack_reasm.c     | 4 +---
- net/ipv6/netfilter/nf_defrag_ipv6_hooks.c   | 3 ++-
- net/openvswitch/conntrack.c                 | 2 +-
- 4 files changed, 5 insertions(+), 6 deletions(-)
+ src/expr/dup.c   |   13 +++++--------
+ src/expr/limit.c |    2 +-
+ 2 files changed, 6 insertions(+), 9 deletions(-)
 
-diff --git a/include/net/netfilter/ipv6/nf_defrag_ipv6.h b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-index 27666d8a0bd0..fb7da5bb76cc 100644
---- a/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-+++ b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-@@ -5,7 +5,7 @@ void nf_defrag_ipv6_enable(void);
- 
- int nf_ct_frag6_init(void);
- void nf_ct_frag6_cleanup(void);
--struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb, u32 user);
-+struct sk_buff *nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user);
- void nf_ct_frag6_consume_orig(struct sk_buff *skb);
- 
- struct inet_frags_ctl;
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 701cd2bae0a9..2fb86a99bf5f 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -563,12 +563,10 @@ find_prev_fhdr(struct sk_buff *skb, u8 *prevhdrp, int *prevhoff, int *fhoff)
- 	return 0;
- }
- 
--struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb, u32 user)
-+struct sk_buff *nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
+diff --git a/src/expr/dup.c b/src/expr/dup.c
+index d0fa35f..217450a 100644
+--- a/src/expr/dup.c
++++ b/src/expr/dup.c
+@@ -115,18 +115,16 @@ static int nftnl_expr_dup_json_parse(struct nftnl_expr *e, json_t *root,
+ 				     struct nftnl_parse_err *err)
  {
- 	struct sk_buff *clone;
- 	struct net_device *dev = skb->dev;
--	struct net *net = skb_dst(skb) ? dev_net(skb_dst(skb)->dev)
--				       : dev_net(skb->dev);
- 	struct frag_hdr *fhdr;
- 	struct frag_queue *fq;
- 	struct ipv6hdr *hdr;
-diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-index a99baf63eccf..5173a89a238e 100644
---- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-+++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-@@ -63,7 +63,8 @@ static unsigned int ipv6_defrag(void *priv,
- 		return NF_ACCEPT;
- #endif
+ #ifdef JSON_PARSING
+-	struct nftnl_expr_dup *dup = nftnl_expr_data(e);
+ 	uint32_t sreg_addr, sreg_dev;
+-	int datareg_type;
++	int ret = 0;
  
--	reasm = nf_ct_frag6_gather(skb, nf_ct6_defrag_user(state->hook, skb));
-+	reasm = nf_ct_frag6_gather(state->net, skb,
-+				   nf_ct6_defrag_user(state->hook, skb));
- 	/* queued */
- 	if (reasm == NULL)
- 		return NF_STOLEN;
-diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
-index cb76076a7a42..ad614267cc2a 100644
---- a/net/openvswitch/conntrack.c
-+++ b/net/openvswitch/conntrack.c
-@@ -315,7 +315,7 @@ static int handle_fragments(struct net *net, struct sw_flow_key *key,
- 		struct sk_buff *reasm;
+-	ret = nftnl_jansson_parse_val(root, "sreg_addr", NFT_TYPE_U32, &sreg_addr, err);
++	ret = nftnl_jansson_parse_val(root, "sreg_addr", NFTNL_TYPE_U32, &sreg_addr, err);
+ 	if (ret >= 0)
+ 		nftnl_expr_set_u32(e, NFTNL_EXPR_DUP_SREG_DEV, sreg_addr);
+-	ret = nftnl_jansson_parse_val(root, "sreg_dev", NFT_TYPE_U32, &sreg_dev, err);
++	ret = nftnl_jansson_parse_val(root, "sreg_dev", NFTNL_TYPE_U32, &sreg_dev, err);
+ 	if (ret >= 0)
+ 		nftnl_expr_set_u32(e, NFTNL_EXPR_DUP_SREG_DEV, sreg_dev);
  
- 		memset(IP6CB(skb), 0, sizeof(struct inet6_skb_parm));
--		reasm = nf_ct_frag6_gather(skb, user);
-+		reasm = nf_ct_frag6_gather(net, skb, user);
- 		if (!reasm)
- 			return -EINPROGRESS;
+-
+ 	return 0;
+ #else
+ 	errno = EOPNOTSUPP;
+@@ -138,14 +136,13 @@ static int nftnl_expr_dup_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
+ 				    struct nftnl_parse_err *err)
+ {
+ #ifdef XML_PARSING
+-	struct nftnl_expr_dup *dup = nftnl_expr_data(e);
+ 	uint32_t sreg_addr, sreg_dev;
  
+ 	if (nftnl_mxml_reg_parse(tree, "sreg_addr", &sreg_addr, MXML_DESCEND_FIRST,
+-			       NFT_XML_OPT, err) == 0)
++			       NFTNL_XML_OPT, err) == 0)
+ 		nftnl_expr_set_u32(e, NFTNL_EXPR_DUP_SREG_ADDR, sreg_addr);
+ 	if (nftnl_mxml_reg_parse(tree, "sreg_dev", &sreg_dev, MXML_DESCEND_FIRST,
+-			       NFT_XML_OPT, err) == 0)
++			       NFTNL_XML_OPT, err) == 0)
+ 		nftnl_expr_set_u32(e, NFTNL_EXPR_DUP_SREG_DEV, sreg_dev);
+ 
+ 	return 0;
+diff --git a/src/expr/limit.c b/src/expr/limit.c
+index ef7c17f..ab9ceff 100644
+--- a/src/expr/limit.c
++++ b/src/expr/limit.c
+@@ -189,7 +189,7 @@ static int nftnl_expr_limit_xml_parse(struct nftnl_expr *e,
+ 			       &burst, NFTNL_TYPE_U32, NFTNL_XML_MAND, err) == 0)
+ 		nftnl_expr_set_u32(e, NFTNL_EXPR_LIMIT_BURST, burst);
+ 	if (nftnl_mxml_num_parse(tree, "type", MXML_DESCEND_FIRST, BASE_DEC,
+-			       &burst, NFT_TYPE_U32, NFTNL_XML_MAND, err) == 0)
++			       &type, NFTNL_TYPE_U32, NFTNL_XML_MAND, err) == 0)
+ 		nftnl_expr_set_u32(e, NFTNL_EXPR_LIMIT_TYPE, type);
+ 
+ 	return 0;
 -- 
-2.2.1
+1.7.9.5
+
