@@ -1,74 +1,50 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [nft] possible several bugs in maps
-Date: Fri, 9 Oct 2015 12:40:42 +0200
-Message-ID: <20151009104042.GA2331@salvia>
+Date: Fri, 9 Oct 2015 11:42:19 +0100
+Message-ID: <20151009104218.GG26121@macbook.localdomain>
 References: <CAOkSjBh6Pt79--f8nOmS_kQgbHhQaWBsXdj88tnV3hUTEuYOGw@mail.gmail.com>
+ <20151009104042.GA2331@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Florian Westphal <fw@strlen.de>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33502 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752261AbbJIKdo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Oct 2015 06:33:44 -0400
+Received: from stinky.trash.net ([213.144.137.162]:48815 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755964AbbJIKmX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 9 Oct 2015 06:42:23 -0400
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBh6Pt79--f8nOmS_kQgbHhQaWBsXdj88tnV3hUTEuYOGw@mail.gmail.com>
+In-Reply-To: <20151009104042.GA2331@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Oct 09, 2015 at 11:35:32AM +0200, Arturo Borrero Gonzalez wrote:
-> Hi,
+On 09.10, Pablo Neira Ayuso wrote:
+> On Fri, Oct 09, 2015 at 11:35:32AM +0200, Arturo Borrero Gonzalez wrote:
+> > Hi,
+> > 
+> > i'm playing with nftables maps and found some issues.
+> > 
+> > First:
+> > 
+> > I can add this named map in the CLI but I can't load it from a file.
+> > This can be reproduced with these commands:
+> > 
+> > % nft flush ruleset
+> > % nft add table t
+> > % nft add map t m { type ipv4_addr : ipv4_addr ; }
+> > % nft add element t m {1.1.1.1: 2.2.2.2 }
+> > % echo "flush ruleset" > test.nft
+> > % nft list ruleset >> test.nft
+> > % nft -f test.nft
+> > test.nft:5:28-46: Error: mapping outside of map context
+> >             elements = { 1.1.1.1 : 2.2.2.2}
+> >                         ^^^^^^^^^^^^^^^^^^^
 > 
-> i'm playing with nftables maps and found some issues.
-> 
-> First:
-> 
-> I can add this named map in the CLI but I can't load it from a file.
-> This can be reproduced with these commands:
-> 
-> % nft flush ruleset
-> % nft add table t
-> % nft add map t m { type ipv4_addr : ipv4_addr ; }
-> % nft add element t m {1.1.1.1: 2.2.2.2 }
-> % echo "flush ruleset" > test.nft
-> % nft list ruleset >> test.nft
-> % nft -f test.nft
-> test.nft:5:28-46: Error: mapping outside of map context
->             elements = { 1.1.1.1 : 2.2.2.2}
->                         ^^^^^^^^^^^^^^^^^^^
+> Known issue, our grammar is invoking the evaluating the elements
+> before it has actually evaluated the declaration.
 
-Known issue, our grammar is invoking the evaluating the elements
-before it has actually evaluated the declaration.
-
-> Second:
-> 
-> I can use ANONYMOUS maps for SNAT:
-> 
-> % nft flush ruleset
-> % nft add table nat
-> % nft add chain nat postrouting
-> % nft add rule nat postrouting snat ip saddr map {1.1.1.1 : 2.2.2.2}
-> [OK]
-> 
-> But I can't use NAMED maps for SNAT:
-> 
-> % nft flush ruleset
-> % nft add table nat
-> % nft add map nat m { type ipv4_addr : ipv4_addr\; }
-> % nft add element nat m { 1.1.1.1 : 2.2.2.2 }
-> % nft add chain nat postrouting
-> % nft add rule nat postrouting snat ip saddr map @m
-> <cmdline>:1:1-45: Error: Could not process rule: Invalid argument
-> add rule nat postrouting snat ip saddr map @m
-> ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
->
-> This seems to be triggered by the kernel (I'm running 4.1, please let
-> me know if newer versions has this fixed)
-
-Sigh, I already sent a patch for this to -stable on Sep 11th.
-
-http://marc.info/?l=netfilter-devel&m=144197606028112&w=4
+It is? Just had a quick look so I might be wrong, but it seems we're simply
+not adding the set to the context before we're evaluating the elements.
