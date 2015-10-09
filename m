@@ -1,60 +1,59 @@
-From: Tom Herbert <tom@herbertland.com>
-Subject: Re: [PATCH v2] netfilter: fix bad checksum on IPv6 when NAT is performed
-Date: Thu, 8 Oct 2015 15:11:50 -0700
-Message-ID: <CALx6S34mEeFT_4kBWnEJ2H8P7+FCG_ZpN-CUEgSj4FBH1YeeeQ@mail.gmail.com>
-References: <1444141425.14655.341.camel@sakura.staff.proxad.net>
-	<1444335587.14655.387.camel@sakura.staff.proxad.net>
-	<1444335972.14655.388.camel@sakura.staff.proxad.net>
-	<CALx6S37AdH=icFEqXjH5hDJ2O0dkwLEx6_KqpFkoPYF2sr1N_Q@mail.gmail.com>
-	<1444339594.14655.392.camel@sakura.staff.proxad.net>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [PATCH nft 0/7] listing command updates
+Date: Fri, 9 Oct 2015 09:09:10 +0200
+Message-ID: <CAOkSjBi-3aQyS3oBSLBbYNbC-Cqtgd=dy9EBvdZsX=2uFCdoUw@mail.gmail.com>
+References: <1444337370-8269-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: netdev <netdev@vger.kernel.org>, davem <davem@davemloft.net>,
-	kaber <kaber@trash.net>, pablo@netfilter.org,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: mbizon@freebox.fr
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1444339594.14655.392.camel@sakura.staff.proxad.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:37722 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753935AbbJIHJb convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 9 Oct 2015 03:09:31 -0400
+Received: by wicfx3 with SMTP id fx3so53973300wic.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 09 Oct 2015 00:09:30 -0700 (PDT)
+In-Reply-To: <1444337370-8269-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 8, 2015 at 2:26 PM, Maxime Bizon <mbizon@freebox.fr> wrote:
+On 8 October 2015 at 22:49, Pablo Neira Ayuso <pablo@netfilter.org> wro=
+te:
+> Hi,
 >
-> On Thu, 2015-10-08 at 14:09 -0700, Tom Herbert wrote:
+> This patchset is following up after:
 >
->> I think inet_proto_csum_replace16 should be called here.
+> http://www.spinics.net/lists/netfilter-devel/msg38491.html
 >
-> inet_proto_csum_replace16() wants a non NULL checksum pointer to update,
-> and there is no such thing here.
+> In a nutshell, what I'm proposing is that:
 >
-> I could pass a dummy value, but inet_proto_csum_replace16() will do
-> twice more work for nothing
+> * `list {tables,chains,sets}' only display the object declaration, no=
+t its
+>   definition (ie. content). Moreover, if no family is specified, then=
+ they
+>   show all families to get this aligned with `list ruleset'.
 >
-> or I could modify inet_proto_csum_replace16() to allow a NULL sum
-> argument.
+> * If you want to obtain the objects definition, then you use the
+>   `list {table,chain,set}' variant.
 >
-If I am reading the code correctly, it looks like
-inet_proto_csum_replace16 is called from
-{tcp,dccp,tcp.udp,udplite}_manip_pkt via l3proto->csum_update which is
-a call to nf_nat_ipv6_csum_update for IPv6. So for these protocols
-when the transport checksum is updated skb->csum is also correctly
-updated. For other protocols or when UDP checksum is zero or for
-fragments-- I don't see where skb->csum is being properly updated.
-This potentially seems to be a major bug.
+> * We always provide an output that doesn't break `nft -f'.
+>
+> Let me know if you have any comment,
 
-I would suggest:
-1) Modify the inet_proto_csum_replace* routines to check for NULL
-check pointer and and only write it when non-NULL
-2) Call l3proto->csum_update from unknown_manip_pkt with check == NULL
-3) In udp_manip_pkt call l3proto->csum_update with check = NULL when
-UDP checksum is zero
-4) For IPv6 fragments call l3proto->csum_update with check = NULL
+I agree with the changes :-)
 
-Tom
+Acked-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 
-
-
-> --
-> Maxime
->
->
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
