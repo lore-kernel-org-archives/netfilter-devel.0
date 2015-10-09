@@ -1,64 +1,53 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] netfilter: turn NF_HOOK into an inline function
-Date: Fri, 09 Oct 2015 14:45:20 +0200
-Message-ID: <7665226.mEs2QJDTOT@wuerfel>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC nft PATCH 0/3] new test suite
+Date: Fri, 9 Oct 2015 14:52:32 +0200
+Message-ID: <20151009125232.GA4457@salvia>
+References: <20151009123529.32207.81925.stgit@r2d2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org,
-	"Eric W. Biederman" <ebiederm@xmission.com>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de, kaber@trash.net
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:45138 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755965AbbJIMpj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 9 Oct 2015 08:45:39 -0400
+Content-Disposition: inline
+In-Reply-To: <20151009123529.32207.81925.stgit@r2d2.cica.es>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-A recent change to the dst_output handling caused a new warning
-when the call to NF_HOOK() is the only used of a local variable
-passed as 'dev', and CONFIG_NETFILTER is disabled:
+On Fri, Oct 09, 2015 at 02:38:06PM +0200, Arturo Borrero Gonzalez wrote:
+> Hi,
+> 
+> I suggest a testsuite like this, which can test higher level operations,
+> so more tests can be performed to the code apart of the regression tests:
+>  * listings/filterings
+>  * deletions/flushes
+>  * monitor operations
+>  * ruleset loadings with -f
+>  * interactive interface with -i (perhaps)
 
-net/ipv6/ip6_output.c: In function 'ip6_output':
-net/ipv6/ip6_output.c:135:21: warning: unused variable 'dev' [-Wunused-variable]
+I started something similar here locally.
 
-The reason for this is that the NF_HOOK macro in this case does
-not reference the variable at all. To avoid that warning now
-and in the future, this changes the macro into an equivalent
-inline function, which tells the compiler that the variable is
-passed correctly but still unused.
+We can probably rearrange the directory to something like:
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: ede2059dbaf9 ("dst: Pass net into dst->output")
+tests
+  |
+  .--- py
+  .--- shell
+  .--- files
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index edb3dc32f1da..1ff5c3f82820 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -347,8 +347,23 @@ nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
- }
- 
- #else /* !CONFIG_NETFILTER */
--#define NF_HOOK(pf, hook, net, sk, skb, indev, outdev, okfn) (okfn)(net, sk, skb)
--#define NF_HOOK_COND(pf, hook, net, sk, skb, indev, outdev, okfn, cond) (okfn)(net, sk, skb)
-+static inline int
-+NF_HOOK_COND(uint8_t pf, unsigned int hook, struct net *net, struct sock *sk,
-+	     struct sk_buff *skb, struct net_device *in, struct net_device *out,
-+	     int (*okfn)(struct net *, struct sock *, struct sk_buff *),
-+	     bool cond)
-+{
-+	return okfn(net, sk, skb);
-+}
-+
-+static inline int
-+NF_HOOK(uint8_t pf, unsigned int hook, struct net *net, struct sock *sk, struct sk_buff *skb,
-+	struct net_device *in, struct net_device *out,
-+	int (*okfn)(struct net *, struct sock *, struct sk_buff *))
-+{
-+	return okfn(net, sk, skb);
-+}
-+
- static inline int nf_hook(u_int8_t pf, unsigned int hook, struct net *net,
- 			  struct sock *sk, struct sk_buff *skb,
- 			  struct net_device *indev, struct net_device *outdev,
+So under tests/py/ we get the python-based infrastructure, then shell
+includes shell scripts for your test cases. The files directory should
+contain files that we can load via 'nft -f'.
+
+That should be pretty much covering all paths of the command line
+interface.
+
+> In patch 1/3 there is a description of this simple testbed.
+> 
+> If you like the idea I would be happy to add more tests cases.
+
+I think it's good idea to enhance the test infrastructure to catch
+regressions on as many fronts as possible.
