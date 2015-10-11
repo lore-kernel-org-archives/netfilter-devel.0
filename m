@@ -1,33 +1,52 @@
-From: Vijay Subramanian <subramanian.vijay@gmail.com>
-Subject: Re: [PATCH libnftnl] Fix compilation with JSON and XML parsing enabled
-Date: Fri, 9 Oct 2015 18:08:25 -0400
-Message-ID: <CAGK4HS_7rB4bigg=Sw2SoJhEPavxqADLFTFVih-5k1+55rWjgA@mail.gmail.com>
-References: <1444418467-18610-1-git-send-email-subramanian.vijay@gmail.com>
-	<f7ta8rrztww.fsf@aconole.bos.csb>
-	<f7t4mhzztsn.fsf@aconole.bos.csb>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: Aaron Conole <aconole@redhat.com>, netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>
+From: Ian Morris <ipm@chirality.org.uk>
+Subject: [PATCH nf-next 5/7] netfilter-ipv6: ternary operator layout
+Date: Sun, 11 Oct 2015 17:32:18 +0100
+Message-ID: <1444581140-6255-6-git-send-email-ipm@chirality.org.uk>
+References: <1444581140-6255-1-git-send-email-ipm@chirality.org.uk>
+Cc: Ian Morris <ipm@chirality.org.uk>
+To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yk0-f178.google.com ([209.85.160.178]:34070 "EHLO
-	mail-yk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753524AbbJIWI0 (ORCPT
+Received: from inet-gw.chirality.org.uk ([88.97.209.22]:39507 "EHLO
+	cedar.ipmorris.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751261AbbJKQc2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Oct 2015 18:08:26 -0400
-Received: by ykdg206 with SMTP id g206so91281693ykd.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 09 Oct 2015 15:08:25 -0700 (PDT)
-In-Reply-To: <f7t4mhzztsn.fsf@aconole.bos.csb>
+	Sun, 11 Oct 2015 12:32:28 -0400
+In-Reply-To: <1444581140-6255-1-git-send-email-ipm@chirality.org.uk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> http://www.spinics.net/lists/netfilter-devel/msg38849.html
->
-> -Aaron
+Correct whitespace layout of ternary operators in the netfilter-ipv6
+code.
 
-Aaron,
-Somehow, your patch never made it to my inbox. Sorry I missed it.
-Once your patch is applied, I will resend mine with the other changes.
+No changes detected by objdiff.
 
-Vijay
+Signed-off-by: Ian Morris <ipm@chirality.org.uk>
+---
+ net/ipv6/netfilter/ip6_tables.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 62190c3..80f014a 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -117,7 +117,7 @@ ip6_packet_match(const struct sk_buff *skb,
+ 	if (FWINV(ret != 0, IP6T_INV_VIA_IN)) {
+ 		dprintf("VIA in mismatch (%s vs %s).%s\n",
+ 			indev, ip6info->iniface,
+-			ip6info->invflags&IP6T_INV_VIA_IN ?" (INV)":"");
++			ip6info->invflags&IP6T_INV_VIA_IN ? " (INV)" : "");
+ 		return false;
+ 	}
+ 
+@@ -126,7 +126,7 @@ ip6_packet_match(const struct sk_buff *skb,
+ 	if (FWINV(ret != 0, IP6T_INV_VIA_OUT)) {
+ 		dprintf("VIA out mismatch (%s vs %s).%s\n",
+ 			outdev, ip6info->outiface,
+-			ip6info->invflags&IP6T_INV_VIA_OUT ?" (INV)":"");
++			ip6info->invflags&IP6T_INV_VIA_OUT ? " (INV)" : "");
+ 		return false;
+ 	}
+ 
+-- 
+1.9.1
+
