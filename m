@@ -1,61 +1,24 @@
-From: Ian Morris <ipm@chirality.org.uk>
-Subject: [PATCH nf-next 2/7] netfilter-ipv6: function definition layout
-Date: Sun, 11 Oct 2015 17:32:15 +0100
-Message-ID: <1444581140-6255-3-git-send-email-ipm@chirality.org.uk>
-References: <1444581140-6255-1-git-send-email-ipm@chirality.org.uk>
-Cc: Ian Morris <ipm@chirality.org.uk>
-To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+From: Vera@vger.kernel.org, Hollin@vger.kernel.org, Kvan@vger.kernel.org
+Subject: I Have An Urgent Matter To Discuss With You
+Date: Mon, 12 Oct 2015 03:44:56 +0530
+Message-ID: <HK2PR0201MB0962BDFC4CD53D5A05B0870BB8320__49852.7361116887$1444601739$gmane$org@HK2PR0201MB0962.apcprd02.prod.outlook.com>
+Reply-To: <verahollinkvan1@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: Recipients@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from inet-gw.chirality.org.uk ([88.97.209.22]:39509 "EHLO
-	cedar.ipmorris.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751493AbbJKQc2 (ORCPT
+Received: from mail-sg2apc01hn0212.outbound.protection.outlook.com ([104.47.125.212]:46880
+	"EHLO APC01-SG2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751793AbbJKWPH convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 11 Oct 2015 12:32:28 -0400
-In-Reply-To: <1444581140-6255-1-git-send-email-ipm@chirality.org.uk>
+	Sun, 11 Oct 2015 18:15:07 -0400
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Use tabs instead of spaces to indent second line of parameters in
-function definitions.
+My name is Vera Hollin Kvan,i have an urgent matter to discuss with you please do not ignore this message make sure you reply me urgently with this email: verahollinkvan1@gmail.com
 
-No changes detected by objdiff.
 
-Signed-off-by: Ian Morris <ipm@chirality.org.uk>
----
- net/ipv6/netfilter/ip6_tables.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 67a2821..0654312 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -816,7 +816,7 @@ static void cleanup_entry(struct ip6t_entry *e, struct net *net)
-    newinfo) */
- static int
- translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
--                const struct ip6t_replace *repl)
-+		const struct ip6t_replace *repl)
- {
- 	struct ip6t_entry *iter;
- 	unsigned int i;
-@@ -1090,7 +1090,7 @@ static int compat_table_info(const struct xt_table_info *info,
- #endif
- 
- static int get_info(struct net *net, void __user *user,
--                    const int *len, int compat)
-+		    const int *len, int compat)
- {
- 	char name[XT_TABLE_MAXNAMELEN];
- 	struct xt_table *t;
-@@ -1152,7 +1152,7 @@ static int get_info(struct net *net, void __user *user,
- 
- static int
- get_entries(struct net *net, struct ip6t_get_entries __user *uptr,
--            const int *len)
-+	    const int *len)
- {
- 	int ret;
- 	struct ip6t_get_entries get;
--- 
-1.9.1
-
+Mein Name ist Vera Hollin Kvan, ich habe eine dringende Angelegenheit mit Ihnen besprechen Sie bitte nicht, diese Nachricht ignorieren sicherzustellen, dass Sie mir antworten dringend mit dieser E-Mail: verahollinkvan1@gmail.com
