@@ -1,50 +1,45 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf 1/3] netfilter: conntrack: fix crash on timeout object
- removal
-Date: Mon, 12 Oct 2015 17:08:04 +0200
-Message-ID: <20151012150804.GA10474@salvia>
-References: <1444056663-5913-1-git-send-email-pablo@netfilter.org>
- <201510052348.MdM5Kc4Y%fengguang.wu@intel.com>
+Subject: Re: [PATCH net] netfilter: ipt_rpfilter: remove the nh_scope test in
+ rpfilter_lookup_reverse
+Date: Mon, 12 Oct 2015 17:15:03 +0200
+Message-ID: <20151012151503.GA11015@salvia>
+References: <e4382c194620c20c80991d4a32618266da4c71df.1444136587.git.lucien.xin@gmail.com>
+ <20151006131022.GA25207@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kbuild-all@01.org, netfilter-devel@vger.kernel.org,
-	stephen@networkplumber.org
-To: kbuild test robot <lkp@intel.com>
+Cc: Xin Long <lucien.xin@gmail.com>, netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51250 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51744 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751041AbbJLPOv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Oct 2015 11:14:51 -0400
+	id S1751994AbbJLPPn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Oct 2015 11:15:43 -0400
 Content-Disposition: inline
-In-Reply-To: <201510052348.MdM5Kc4Y%fengguang.wu@intel.com>
+In-Reply-To: <20151006131022.GA25207@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Oct 05, 2015 at 11:08:57PM +0800, kbuild test robot wrote:
-> Hi Pablo,
+On Tue, Oct 06, 2015 at 03:10:22PM +0200, Florian Westphal wrote:
+> Xin Long <lucien.xin@gmail.com> wrote:
+> > --accept-local  option works for res.type == RTN_LOCAL, which should be from
+> > the local table, but there, the fib_info's nh->nh_scope = RT_SCOPE_NOWHERE
+> > ( > RT_SCOPE_HOST). in fib_create_info().
+> > 
+> > 	if (cfg->fc_scope == RT_SCOPE_HOST) {
+>  
+> > but in our rpfilter_lookup_reverse():
+> > 
+> > 	if (dev_match || flags & XT_RPFILTER_LOOSE)
+> > 		return FIB_RES_NH(res).nh_scope <= RT_SCOPE_HOST;
+> > 
+> > if nh->nh_scope > RT_SCOPE_HOST, it will fail. --accept-local option will never
+> > be passed.
+> > 
+> > it seems the test is bogus and can be removed to fix this issue.
 > 
-[...]
+> Yes, you might want to consider submitting a followup patch that cleans
+> up the ipv4 route handling against net-next tree.
 > 
-> sparse warnings: (new ones prefixed by >>)
-> 
-> >> net/netfilter/nf_conntrack_core.c:956:54: sparse: incorrect type in argument 2 (different address spaces)
->    net/netfilter/nf_conntrack_core.c:956:54:    expected struct ctnl_timeout *timeout
->    net/netfilter/nf_conntrack_core.c:956:54:    got struct ctnl_timeout [noderef] <asn:4>*timeout
->    net/netfilter/nf_conntrack_core.c:1463:9: sparse: incompatible types in comparison expression (different address spaces)
->    net/netfilter/nf_conntrack_core.c:1468:9: sparse: incompatible types in comparison expression (different address spaces)
->    net/netfilter/nf_conntrack_core.c:1744:9: sparse: incompatible types in comparison expression (different address spaces)
->    net/netfilter/nf_conntrack_core.c:1745:9: sparse: incompatible types in comparison expression (different address spaces)
-> 
-> vim +956 net/netfilter/nf_conntrack_core.c
-[...]
->
-> 60b5f8f7 Pablo Neira Ayuso       2012-03-23  955  	if (timeout_ext)
-> 60b5f8f7 Pablo Neira Ayuso       2012-03-23 @956  		nf_ct_timeout_ext_add(ct, timeout_ext->timeout, GFP_ATOMIC);
+> Acked-by: Florian Westphal <fw@strlen.de>
 
-Fixed here through before pushing out this patch:
-
-        nf_ct_timeout_ext_add(ct, rcu_deference(timeout_ext->timeout), GFP_ATOMIC);
-
-I can't see any sparse warning anymore with the change above.
-
-Thanks!
+Applied to nf, thanks.
