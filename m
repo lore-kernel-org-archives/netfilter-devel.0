@@ -1,24 +1,41 @@
-From: Vera@vger.kernel.org, Hollin@vger.kernel.org, Kvan@vger.kernel.org
-Subject: I Have An Urgent Matter To Discuss With You
-Date: Mon, 12 Oct 2015 03:44:56 +0530
-Message-ID: <HK2PR0201MB0962BDFC4CD53D5A05B0870BB8320__49852.7361116887$1444601739$gmane$org@HK2PR0201MB0962.apcprd02.prod.outlook.com>
-Reply-To: <verahollinkvan1@gmail.com>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: Re: [PATCH net-next 0/3] net: Pass net into defragmentation
+Date: Mon, 12 Oct 2015 09:26:38 +0200
+Message-ID: <561B60AE.7010809@6wind.com>
+References: <87mvwn18my.fsf@x220.int.ebiederm.org>
+ <87pp1fpy1b.fsf@x220.int.ebiederm.org>
+ <87fv2bo7br.fsf_-_@x220.int.ebiederm.org>
+ <87si62gteh.fsf_-_@x220.int.ebiederm.org>
+ <877fn7eh2f.fsf_-_@x220.int.ebiederm.org>
+ <878u7fesrg.fsf_-_@x220.int.ebiederm.org>
+ <87bnca4aie.fsf_-_@x220.int.ebiederm.org>
+ <87fv1jyjcj.fsf_-_@x220.int.ebiederm.org>
+Reply-To: nicolas.dichtel@6wind.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: Recipients@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-sg2apc01hn0212.outbound.protection.outlook.com ([104.47.125.212]:46880
-	"EHLO APC01-SG2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751793AbbJKWPH convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 11 Oct 2015 18:15:07 -0400
-Content-Description: Mail message body
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm@xmission.com>,
+	David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <87fv1jyjcj.fsf_-_@x220.int.ebiederm.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-My name is Vera Hollin Kvan,i have an urgent matter to discuss with you please do not ignore this message make sure you reply me urgently with this email: verahollinkvan1@gmail.com
+Le 09/10/2015 20:42, Eric W. Biederman a =C3=A9crit :
+>
+> This is the next installment of my work to pass struct net through th=
+e
+> output path so the code does not need to guess how to figure out whic=
+h
+> network namespace it is in, and ultimately routes can have output
+> devices in another network namespace.
+>
+> In netfilter and af_packet we defragment packets in the output path,
+> and there is the usual amount of confusion about how to compute which
+> net we are processing the packets in.  This patchset clears that
+> confusion up by explicitly passing in struct net in ip_defrag,
+> ip_check_defrag, and nf_ct_frag6_gather.
 
-
-Mein Name ist Vera Hollin Kvan, ich habe eine dringende Angelegenheit mit Ihnen besprechen Sie bitte nicht, diese Nachricht ignorieren sicherzustellen, dass Sie mir antworten dringend mit dieser E-Mail: verahollinkvan1@gmail.com
+Acked-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
