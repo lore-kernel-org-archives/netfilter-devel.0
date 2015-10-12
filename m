@@ -1,41 +1,27 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH net-next 0/3] net: Pass net into defragmentation
-Date: Mon, 12 Oct 2015 09:26:38 +0200
-Message-ID: <561B60AE.7010809@6wind.com>
-References: <87mvwn18my.fsf@x220.int.ebiederm.org>
- <87pp1fpy1b.fsf@x220.int.ebiederm.org>
- <87fv2bo7br.fsf_-_@x220.int.ebiederm.org>
- <87si62gteh.fsf_-_@x220.int.ebiederm.org>
- <877fn7eh2f.fsf_-_@x220.int.ebiederm.org>
- <878u7fesrg.fsf_-_@x220.int.ebiederm.org>
- <87bnca4aie.fsf_-_@x220.int.ebiederm.org>
- <87fv1jyjcj.fsf_-_@x220.int.ebiederm.org>
-Reply-To: nicolas.dichtel@6wind.com
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH libmnl 1/2] socket: introduce mnl_socket_open2()
+Date: Mon, 12 Oct 2015 16:48:26 +0200
+Message-ID: <20151012144826.GA2375@salvia>
+References: <cover.1443815157.git.g.nault@alphalink.fr>
+ <8ecf77e50d2acd0b20bdd18038b8e25fd6c86ec0.1443815157.git.g.nault@alphalink.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>,
-	David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <87fv1jyjcj.fsf_-_@x220.int.ebiederm.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Guillaume Nault <g.nault@alphalink.fr>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:36009 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751912AbbJLOtn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Oct 2015 10:49:43 -0400
+Content-Disposition: inline
+In-Reply-To: <8ecf77e50d2acd0b20bdd18038b8e25fd6c86ec0.1443815157.git.g.nault@alphalink.fr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 09/10/2015 20:42, Eric W. Biederman a =C3=A9crit :
->
-> This is the next installment of my work to pass struct net through th=
-e
-> output path so the code does not need to guess how to figure out whic=
-h
-> network namespace it is in, and ultimately routes can have output
-> devices in another network namespace.
->
-> In netfilter and af_packet we defragment packets in the output path,
-> and there is the usual amount of confusion about how to compute which
-> net we are processing the packets in.  This patchset clears that
-> confusion up by explicitly passing in struct net in ip_defrag,
-> ip_check_defrag, and nf_ct_frag6_gather.
+On Fri, Oct 02, 2015 at 10:12:33PM +0200, Guillaume Nault wrote:
+> Define mnl_socket_open2() so that user can pass a set of SOCK_* flags
+> at socket creation time.
 
-Acked-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Applied, thanks for your patience.
+
+Skipping patch 2/2 though.
