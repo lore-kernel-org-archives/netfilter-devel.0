@@ -1,45 +1,69 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next 0/3] net: Pass net into defragmentation
-Date: Mon, 12 Oct 2015 19:44:50 -0700 (PDT)
-Message-ID: <20151012.194450.1824856588557366597.davem@davemloft.net>
-References: <878u7fesrg.fsf_-_@x220.int.ebiederm.org>
-	<87bnca4aie.fsf_-_@x220.int.ebiederm.org>
-	<87fv1jyjcj.fsf_-_@x220.int.ebiederm.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnftnl PATCH] chain: fix segfault in 'device' XML parsing
+Date: Tue, 13 Oct 2015 09:39:10 +0200
+Message-ID: <20151013073910.19469.65757.stgit@r2d2.cica.es>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	nicolas.dichtel@6wind.com
-To: ebiederm@xmission.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:43189 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932290AbbJMC2v (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Oct 2015 22:28:51 -0400
-In-Reply-To: <87fv1jyjcj.fsf_-_@x220.int.ebiederm.org>
+Received: from smtp3.cica.es ([150.214.5.190]:38555 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751880AbbJMHjS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Oct 2015 03:39:18 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id 600F351F21E
+	for <netfilter-devel@vger.kernel.org>; Tue, 13 Oct 2015 07:39:16 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id EunawVCdo3aa for <netfilter-devel@vger.kernel.org>;
+	Tue, 13 Oct 2015 09:39:11 +0200 (CEST)
+Received: from r2d2.cica.es (r2d2.cica.es [IPv6:2a00:9ac0:c1ca:27::150])
+	by smtp.cica.es (Postfix) with ESMTP id 0C54051F215
+	for <netfilter-devel@vger.kernel.org>; Tue, 13 Oct 2015 09:39:10 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: ebiederm@xmission.com (Eric W. Biederman)
-Date: Fri, 09 Oct 2015 13:42:20 -0500
+Reported by valgrind:
+[...]
+==14065== Process terminating with default action of signal 11 (SIGSEGV)
+==14065==  Access not within mapped region at address 0x0
+==14065==    at 0x4C2C022: strlen (vg_replace_strmem.c:454)
+==14065==    by 0x4E41A93: nftnl_chain_set_str (chain.c:259)
+==14065==    by 0x4E427F7: nftnl_mxml_chain_parse (chain.c:770)
+==14065==    by 0x4E48F96: nftnl_ruleset_parse_chains (ruleset.c:314)
+==14065==    by 0x4E4959A: nftnl_ruleset_xml_parse_ruleset (ruleset.c:625)
+==14065==    by 0x4E4959A: nftnl_ruleset_xml_parse_cmd (ruleset.c:668)
+==14065==    by 0x4E4959A: nftnl_ruleset_xml_parse (ruleset.c:706)
+==14065==    by 0x4E4959A: nftnl_ruleset_do_parse (ruleset.c:734)
+==14065==    by 0x4013C9: test_xml (nft-parsing-test.c:166)
+==14065==    by 0x4016F4: execute_test (nft-parsing-test.c:214)
+==14065==    by 0x400EBA: main (nft-parsing-test.c:330)
+[...]
 
-> 
-> This is the next installment of my work to pass struct net through the
-> output path so the code does not need to guess how to figure out which
-> network namespace it is in, and ultimately routes can have output
-> devices in another network namespace.
-> 
-> In netfilter and af_packet we defragment packets in the output path,
-> and there is the usual amount of confusion about how to compute which
-> net we are processing the packets in.  This patchset clears that
-> confusion up by explicitly passing in struct net in ip_defrag,
-> ip_check_defrag, and nf_ct_frag6_gather.
-> 
-> The changes are also available against net-next at:
-> git://git.kernel.org/pub/scm/linux/kernel/git/ebiederm/net-next.git master
+While at it, fix a bit the coding style.
 
-I applied this as a patch series instead of pulling, in order to
-get Pablo's ACKs.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ src/chain.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Thanks.
+diff --git a/src/chain.c b/src/chain.c
+index 8a8e8b8..2b44a31 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -763,10 +763,10 @@ int nftnl_mxml_chain_parse(mxml_node_t *tree, struct nftnl_chain *c,
+ 			nftnl_chain_set_u32(c, NFTNL_CHAIN_POLICY,
+ 					       policy);
+ 		}
+-		dev = nftnl_mxml_str_parse(tree, "device", MXML_DESCEND_FIRST,
+-					 NFTNL_XML_MAND, err);
+ 
+-		if (table != NULL)
++		dev = nftnl_mxml_str_parse(tree, "device", MXML_DESCEND_FIRST,
++					   NFTNL_XML_MAND, err);
++		if (dev != NULL)
+ 			nftnl_chain_set_str(c, NFTNL_CHAIN_DEV, dev);
+ 	}
+ 
+
