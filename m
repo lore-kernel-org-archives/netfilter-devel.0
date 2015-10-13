@@ -1,39 +1,64 @@
-From: "Mrs Hayet Zara" <hayetzaara@gmail.com>
-Subject: PLS I NEED YOUR HELP
-Date: Tue, 13 Oct 2015 00:23:43 +0300 (EEST)
-Message-ID: <5ef47837c409c149ec1e9f55c0e8bdba.squirrel__26090.0077214048$1444733027$gmane$org@82.79.55.74>
-Reply-To: geldkantornl@aim.com
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf] netfilter: sync with packet rx also after removing
+ queue entries
+Date: Tue, 13 Oct 2015 13:59:34 +0200
+Message-ID: <20151013115934.GA9059@salvia>
+References: <1444340287-8779-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: undisclosed-recipients:;
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+	"Eric W. Biederman" <ebiederm@xmission.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [82.79.55.74] ([82.79.55.74]:38942 "EHLO
-	server-servicii.uvvgsm.ro" rhost-flags-FAIL-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752302AbbJMKnS (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Oct 2015 06:43:18 -0400
+Received: from mail.us.es ([193.147.175.20]:56867 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932171AbbJMLwl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Oct 2015 07:52:41 -0400
+Content-Disposition: inline
+In-Reply-To: <1444340287-8779-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Thu, Oct 08, 2015 at 11:38:07PM +0200, Florian Westphal wrote:
+> We need to sync packet rx again after flushing the queue entries.
+> Otherwise, the following race could happen:
+> 
+> cpu1: nf_unregister_hook(H) called, H unliked from lists, calls
+> synchronize_net() to wait for packet rx completion.
+> 
+> Problem is that while no new nf_queue_entry structs that use H can be
+> allocated, another CPU might receive a verdict from userspace just before
+> cpu1 calls nf_queue_nf_hook_drop to remove this entry:
+> 
+> cpu2: receive verdict from userspace, lock queue
+> cpu2: unlink nf_queue_entry struct E, which references H, from queue list
+> cpu1: calls nf_queue_nf_hook_drop, blocks on queue spinlock
+> cpu2: unlock queue
+> cpu1: nf_queue_nf_hook_drop drops affected queue entries
+> cpu2: call nf_reinject for E
+> cpu1: kfree(H)
+> cpu2: potential use-after-free for H
+> 
+> Cc: Eric W. Biederman <ebiederm@xmission.com>
+> Fixes: 085db2c04557 ("netfilter: Per network namespace netfilter hooks.")
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+> Found during code review, no actual panic was observed.
+> 
+> diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+> index 8e47f81..21a0856 100644
+> --- a/net/netfilter/core.c
+> +++ b/net/netfilter/core.c
+> @@ -152,6 +152,8 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
+>  #endif
+>  	synchronize_net();
+>  	nf_queue_nf_hook_drop(net, &entry->ops);
+> +	/* other cpu might still process nfqueue verdict that used reg */
+> +	synchronize_net();
+>  	kfree(entry);
+>  }
+>  EXPORT_SYMBOL(nf_unregister_net_hook);
 
+I cannot find any better way to resolve this.
 
-
-I am Mrs Zaara Heyet an oil-servicing equipment merchant, am writing this
-mail to you with tears and love from my heart of charity work i could not
-fulfill before the end of my days due to my present healness ,Please do
-not think of this letter as one of those being sent around to ask for
-money,I got your email id from our chambers of commerce while searching
-for a reliable person to help me carry out this project.
-
-I have an urgent and confidential business proposition involving transfer
-of Nine Million $9,000.000.00 USD ,it will be of great benefit for both of
-us especially you as my days are number on earth. I will give you more
-details as regards this transaction as soon as you, reply me of your
-interest via my personal E-mail: geldkantornl@aim.com , Thanks for your
-interested .
-
-WARNING!!WARNING!!
-This winning notification is expected to be read and/or used only by the
-individual(s) for whom it is intended.:**************
-
+Applied, thanks Florian!
