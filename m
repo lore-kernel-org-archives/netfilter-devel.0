@@ -1,64 +1,129 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: sync with packet rx also after removing
- queue entries
-Date: Tue, 13 Oct 2015 13:59:34 +0200
-Message-ID: <20151013115934.GA9059@salvia>
-References: <1444340287-8779-1-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	"Eric W. Biederman" <ebiederm@xmission.com>
-To: Florian Westphal <fw@strlen.de>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 2/3] netfilter: make nf_queue_entry_get_refs return void
+Date: Tue, 13 Oct 2015 14:33:27 +0200
+Message-ID: <1444739608-9327-3-git-send-email-fw@strlen.de>
+References: <1444739608-9327-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56867 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932171AbbJMLwl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Oct 2015 07:52:41 -0400
-Content-Disposition: inline
-In-Reply-To: <1444340287-8779-1-git-send-email-fw@strlen.de>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:47409 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752095AbbJMMdk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Oct 2015 08:33:40 -0400
+In-Reply-To: <1444739608-9327-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 08, 2015 at 11:38:07PM +0200, Florian Westphal wrote:
-> We need to sync packet rx again after flushing the queue entries.
-> Otherwise, the following race could happen:
-> 
-> cpu1: nf_unregister_hook(H) called, H unliked from lists, calls
-> synchronize_net() to wait for packet rx completion.
-> 
-> Problem is that while no new nf_queue_entry structs that use H can be
-> allocated, another CPU might receive a verdict from userspace just before
-> cpu1 calls nf_queue_nf_hook_drop to remove this entry:
-> 
-> cpu2: receive verdict from userspace, lock queue
-> cpu2: unlink nf_queue_entry struct E, which references H, from queue list
-> cpu1: calls nf_queue_nf_hook_drop, blocks on queue spinlock
-> cpu2: unlock queue
-> cpu1: nf_queue_nf_hook_drop drops affected queue entries
-> cpu2: call nf_reinject for E
-> cpu1: kfree(H)
-> cpu2: potential use-after-free for H
-> 
-> Cc: Eric W. Biederman <ebiederm@xmission.com>
-> Fixes: 085db2c04557 ("netfilter: Per network namespace netfilter hooks.")
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
-> Found during code review, no actual panic was observed.
-> 
-> diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-> index 8e47f81..21a0856 100644
-> --- a/net/netfilter/core.c
-> +++ b/net/netfilter/core.c
-> @@ -152,6 +152,8 @@ void nf_unregister_net_hook(struct net *net, const struct nf_hook_ops *reg)
->  #endif
->  	synchronize_net();
->  	nf_queue_nf_hook_drop(net, &entry->ops);
-> +	/* other cpu might still process nfqueue verdict that used reg */
-> +	synchronize_net();
->  	kfree(entry);
->  }
->  EXPORT_SYMBOL(nf_unregister_net_hook);
+We don't care if module is being unloaded anymore since hook unregister
+handling will destroy queue entries using that hook.
 
-I cannot find any better way to resolve this.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/net/netfilter/nf_queue.h |  2 +-
+ net/netfilter/core.c             |  2 --
+ net/netfilter/nf_queue.c         | 11 ++---------
+ net/netfilter/nfnetlink_queue.c  | 11 ++++-------
+ 4 files changed, 7 insertions(+), 19 deletions(-)
 
-Applied, thanks Florian!
+diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+index e863585..9c5638a 100644
+--- a/include/net/netfilter/nf_queue.h
++++ b/include/net/netfilter/nf_queue.h
+@@ -32,7 +32,7 @@ void nf_register_queue_handler(const struct nf_queue_handler *qh);
+ void nf_unregister_queue_handler(void);
+ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict);
+ 
+-bool nf_queue_entry_get_refs(struct nf_queue_entry *entry);
++void nf_queue_entry_get_refs(struct nf_queue_entry *entry);
+ void nf_queue_entry_release_refs(struct nf_queue_entry *entry);
+ 
+ static inline void init_hashrandom(u32 *jhash_initval)
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 32a2894..09e661c 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -313,8 +313,6 @@ next_hook:
+ 		int err = nf_queue(skb, elem, state,
+ 				   verdict >> NF_VERDICT_QBITS);
+ 		if (err < 0) {
+-			if (err == -ECANCELED)
+-				goto next_hook;
+ 			if (err == -ESRCH &&
+ 			   (verdict & NF_VERDICT_FLAG_QUEUE_BYPASS))
+ 				goto next_hook;
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index eef1c50..efc9688 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -73,7 +73,7 @@ void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
+ EXPORT_SYMBOL_GPL(nf_queue_entry_release_refs);
+ 
+ /* Bump dev refs so they don't vanish while packet is out */
+-bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
++void nf_queue_entry_get_refs(struct nf_queue_entry *entry)
+ {
+ 	struct nf_hook_state *state = &entry->state;
+ 
+@@ -95,8 +95,6 @@ bool nf_queue_entry_get_refs(struct nf_queue_entry *entry)
+ 			dev_hold(physdev);
+ 	}
+ #endif
+-
+-	return true;
+ }
+ EXPORT_SYMBOL_GPL(nf_queue_entry_get_refs);
+ 
+@@ -151,10 +149,7 @@ int nf_queue(struct sk_buff *skb,
+ 		.size	= sizeof(*entry) + afinfo->route_key_size,
+ 	};
+ 
+-	if (!nf_queue_entry_get_refs(entry)) {
+-		status = -ECANCELED;
+-		goto err_unlock;
+-	}
++	nf_queue_entry_get_refs(entry);
+ 	skb_dst_force(skb);
+ 	afinfo->saveroute(skb, entry);
+ 	status = qh->outfn(entry, queuenum);
+@@ -215,8 +210,6 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 		err = nf_queue(skb, elem, &entry->state,
+ 			       verdict >> NF_VERDICT_QBITS);
+ 		if (err < 0) {
+-			if (err == -ECANCELED)
+-				goto next_hook;
+ 			if (err == -ESRCH &&
+ 			   (verdict & NF_VERDICT_FLAG_QUEUE_BYPASS))
+ 				goto next_hook;
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index a659e57..7d81d28 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -606,12 +606,9 @@ static struct nf_queue_entry *
+ nf_queue_entry_dup(struct nf_queue_entry *e)
+ {
+ 	struct nf_queue_entry *entry = kmemdup(e, e->size, GFP_ATOMIC);
+-	if (entry) {
+-		if (nf_queue_entry_get_refs(entry))
+-			return entry;
+-		kfree(entry);
+-	}
+-	return NULL;
++	if (entry)
++		nf_queue_entry_get_refs(entry);
++	return entry;
+ }
+ 
+ #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+@@ -706,7 +703,7 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
+ 	nf_bridge_adjust_skb_data(skb);
+ 	segs = skb_gso_segment(skb, 0);
+ 	/* Does not use PTR_ERR to limit the number of error codes that can be
+-	 * returned by nf_queue.  For instance, callers rely on -ECANCELED to
++	 * returned by nf_queue.  For instance, callers rely on -ESRCH to
+ 	 * mean 'ignore this hook'.
+ 	 */
+ 	if (IS_ERR_OR_NULL(segs))
+-- 
+2.0.5
+
