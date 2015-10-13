@@ -1,40 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH] chain: fix segfault in 'device' XML parsing
-Date: Tue, 13 Oct 2015 12:07:04 +0200
-Message-ID: <20151013100704.GA2261@salvia>
-References: <20151013073910.19469.65757.stgit@r2d2.cica.es>
+Subject: Re: [PATCH -next] netfilter: nfqueue: don't use prev pointer
+Date: Tue, 13 Oct 2015 12:04:24 +0200
+Message-ID: <20151013100424.GA1986@salvia>
+References: <1444389037-17285-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39842 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38766 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751956AbbJMKAB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Oct 2015 06:00:01 -0400
+	id S1752809AbbJMJ5W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Oct 2015 05:57:22 -0400
 Content-Disposition: inline
-In-Reply-To: <20151013073910.19469.65757.stgit@r2d2.cica.es>
+In-Reply-To: <1444389037-17285-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 13, 2015 at 09:39:10AM +0200, Arturo Borrero Gonzalez wrote:
-> Reported by valgrind:
-> [...]
-> ==14065== Process terminating with default action of signal 11 (SIGSEGV)
-> ==14065==  Access not within mapped region at address 0x0
-> ==14065==    at 0x4C2C022: strlen (vg_replace_strmem.c:454)
-> ==14065==    by 0x4E41A93: nftnl_chain_set_str (chain.c:259)
-> ==14065==    by 0x4E427F7: nftnl_mxml_chain_parse (chain.c:770)
-> ==14065==    by 0x4E48F96: nftnl_ruleset_parse_chains (ruleset.c:314)
-> ==14065==    by 0x4E4959A: nftnl_ruleset_xml_parse_ruleset (ruleset.c:625)
-> ==14065==    by 0x4E4959A: nftnl_ruleset_xml_parse_cmd (ruleset.c:668)
-> ==14065==    by 0x4E4959A: nftnl_ruleset_xml_parse (ruleset.c:706)
-> ==14065==    by 0x4E4959A: nftnl_ruleset_do_parse (ruleset.c:734)
-> ==14065==    by 0x4013C9: test_xml (nft-parsing-test.c:166)
-> ==14065==    by 0x4016F4: execute_test (nft-parsing-test.c:214)
-> ==14065==    by 0x400EBA: main (nft-parsing-test.c:330)
-> [...]
+On Fri, Oct 09, 2015 at 01:10:37PM +0200, Florian Westphal wrote:
+> Usage of -prev seems buggy.  While packet was out our hook cannot be
+> removed but we have no way to know if the previous one is still valid.
 > 
-> While at it, fix a bit the coding style.
+> So better not use ->prev at all.  Since NF_REPEAT just asks to invoke
+> same hook function again, just do so, and continue with nf_interate
+> if we get an ACCEPT verdict.
+> 
+> A side effect of this change is that if nf_reinject(NF_REPEAT) causes
+> another REPEAT we will now drop the skb instead of a kernel loop.
+> 
+> However, NF_REPEAT loops would be a bug so this should not happen anyway.
 
-Applied, thanks Arturo.
+Good catch. Applied, thanks Florian.
