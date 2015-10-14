@@ -1,59 +1,62 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH nf-next 1/2] ipvs: Remove possibly unused variable from
- ip_vs_out
-Date: Wed, 14 Oct 2015 11:10:09 +0900
-Message-ID: <20151014021007.GA2932@verge.net.au>
-References: <1444195403-4288-1-git-send-email-horms@verge.net.au>
- <1444195403-4288-2-git-send-email-horms@verge.net.au>
- <56152517.6020807@cogentembedded.com>
- <20151012154349.GA22589@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next 0/7] coding style improvements for netfilter
+Date: Wed, 14 Oct 2015 12:40:28 +0200
+Message-ID: <20151014104028.GA13671@salvia>
+References: <1444581140-6255-1-git-send-email-ipm@chirality.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	David Ahern <dsa@cumulusnetworks.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Ian Morris <ipm@chirality.org.uk>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:60312 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751126AbbJNKd0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 Oct 2015 06:33:26 -0400
 Content-Disposition: inline
-In-Reply-To: <20151012154349.GA22589@salvia>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1444581140-6255-1-git-send-email-ipm@chirality.org.uk>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Oct 12, 2015 at 05:43:49PM +0200, Pablo Neira Ayuso wrote:
-> On Wed, Oct 07, 2015 at 04:58:47PM +0300, Sergei Shtylyov wrote:
-> > Hello.
-> >=20
-> > On 10/7/2015 8:23 AM, Simon Horman wrote:
-> >=20
-> > >From: David Ahern <dsa@cumulusnetworks.com>
-> > >
-> > >Eric's net namespace changes in 1b75097dd7a26 leaves net unreferen=
-ced if
-> > >CONFIG_IP_VS_IPV6 is not enabled:
-> > >
-> > >../net/netfilter/ipvs/ip_vs_core.c: In function =E2=80=98ip_vs_out=
-=E2=80=99:
-> > >../net/netfilter/ipvs/ip_vs_core.c:1177:14: warning: unused variab=
-le =E2=80=98net=E2=80=99 [-Wunused-variable]
-> > >
-> > >After the net refactoring there is only 1 user; push the reference=
- to the
-> > >1 user. While the line length slightly exceeds 80 it seems to be t=
-he
-> > >best change.
-> > >
-> > >Fixes: 1b75097dd7a26("ipvs: Pass ipvs into ip_vs_out")
-> >=20
-> >    Minor nit: missing space before (. Could be probbably fixed whil=
-e applying...
->=20
-> I have pulled this anyway, I don't want to keep this back for this
-> minor style problem.
->=20
-> But please Simon, run checkpatch.pl before submitting next time.
+On Sun, Oct 11, 2015 at 05:32:13PM +0100, Ian Morris wrote:
+> This series of patches improves the coding style of the netfilter-ipv6 
+> code by addressing some issues detected by checkpatch.
+> 
+> The changes were previously submitted as part of a larger monolithic 
+> patch but on advice from Pablo, these are being re-sent in smaller, 
+> more structured batches.
 
-Sorry about that, I will try to be more careful.
+Applied with minor changes. Thanks.
+
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -117,7 +117,7 @@ ip6_packet_match(const struct sk_buff *skb,
+        if (FWINV(ret != 0, IP6T_INV_VIA_IN)) {
+                dprintf("VIA in mismatch (%s vs %s).%s\n",
+                        indev, ip6info->iniface,
+-                       ip6info->invflags&IP6T_INV_VIA_IN ?" (INV)":"");
++                       ip6info->invflags&IP6T_INV_VIA_IN ? " (INV)" :
+"");
+                return false;
+        }
+
+
+I have updated this to:
+
++                       ip6info->invflags & IP6T_INV_VIA_IN ? " (INV)" :
+                                         ^ ^
+
+checkpatch was complaining, and given that we were already updating
+this line...
+
+@@ -151,7 +151,7 @@ ip6_packet_match(const struct sk_buff *skb,
+                                ip6info->proto);
+
+                if (ip6info->proto == protohdr) {
+-                       if(ip6info->invflags & IP6T_INV_PROTO) {
++                       if (ip6info->invflags & IP6T_INV_PROTO) {
+                                return false;
+                        }
+                        return true;
+
+Removed the unnecessary brackets for single statement in the if
+branch above. It just added one extra line removal to the patch.
