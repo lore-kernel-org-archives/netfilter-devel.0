@@ -1,62 +1,56 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 0/7] coding style improvements for netfilter
-Date: Wed, 14 Oct 2015 12:40:28 +0200
-Message-ID: <20151014104028.GA13671@salvia>
-References: <1444581140-6255-1-git-send-email-ipm@chirality.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Ian Morris <ipm@chirality.org.uk>
+From: Ian Morris <ipm@chirality.org.uk>
+Subject: [PATCH nf-next 2/6] netfilter-ipv4: label placement
+Date: Wed, 14 Oct 2015 23:17:04 +0100
+Message-ID: <1444861028-21556-3-git-send-email-ipm@chirality.org.uk>
+References: <1444861028-21556-1-git-send-email-ipm@chirality.org.uk>
+Cc: Ian Morris <ipm@chirality.org.uk>
+To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60312 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751126AbbJNKd0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Oct 2015 06:33:26 -0400
-Content-Disposition: inline
-In-Reply-To: <1444581140-6255-1-git-send-email-ipm@chirality.org.uk>
+Received: from inet-gw.chirality.org.uk ([88.97.209.22]:46076 "EHLO
+	cedar.ipmorris.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754077AbbJNWRR (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 Oct 2015 18:17:17 -0400
+In-Reply-To: <1444861028-21556-1-git-send-email-ipm@chirality.org.uk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Oct 11, 2015 at 05:32:13PM +0100, Ian Morris wrote:
-> This series of patches improves the coding style of the netfilter-ipv6 
-> code by addressing some issues detected by checkpatch.
-> 
-> The changes were previously submitted as part of a larger monolithic 
-> patch but on advice from Pablo, these are being re-sent in smaller, 
-> more structured batches.
+Whitespace cleansing: Labels should not be indented.
 
-Applied with minor changes. Thanks.
+No changes detected by objdiff.
 
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -117,7 +117,7 @@ ip6_packet_match(const struct sk_buff *skb,
-        if (FWINV(ret != 0, IP6T_INV_VIA_IN)) {
-                dprintf("VIA in mismatch (%s vs %s).%s\n",
-                        indev, ip6info->iniface,
--                       ip6info->invflags&IP6T_INV_VIA_IN ?" (INV)":"");
-+                       ip6info->invflags&IP6T_INV_VIA_IN ? " (INV)" :
-"");
-                return false;
-        }
+Signed-off-by: Ian Morris <ipm@chirality.org.uk>
+---
+ net/ipv4/netfilter/arp_tables.c | 2 +-
+ net/ipv4/netfilter/ip_tables.c  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 2dad3e1..7300616 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -468,7 +468,7 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
+ 				pos = newpos;
+ 			}
+ 		}
+-		next:
++next:
+ 		duprintf("Finished chain %u\n", hook);
+ 	}
+ 	return 1;
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 42d0946..3be2a4d 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -549,7 +549,7 @@ mark_source_chains(const struct xt_table_info *newinfo,
+ 				pos = newpos;
+ 			}
+ 		}
+-		next:
++next:
+ 		duprintf("Finished chain %u\n", hook);
+ 	}
+ 	return 1;
+-- 
+1.9.1
 
-I have updated this to:
-
-+                       ip6info->invflags & IP6T_INV_VIA_IN ? " (INV)" :
-                                         ^ ^
-
-checkpatch was complaining, and given that we were already updating
-this line...
-
-@@ -151,7 +151,7 @@ ip6_packet_match(const struct sk_buff *skb,
-                                ip6info->proto);
-
-                if (ip6info->proto == protohdr) {
--                       if(ip6info->invflags & IP6T_INV_PROTO) {
-+                       if (ip6info->invflags & IP6T_INV_PROTO) {
-                                return false;
-                        }
-                        return true;
-
-Removed the unnecessary brackets for single statement in the if
-branch above. It just added one extra line removal to the patch.
