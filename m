@@ -1,125 +1,55 @@
 From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: Re: [PATCH nf-next 2/2] netfilter: nfnetlink_log: validate
- dependencies to avoid breaking atomicity
-Date: Thu, 15 Oct 2015 11:37:06 +0900
-Message-ID: <20151015023706.GA16497@gmail.com>
-References: <1444733268-8564-1-git-send-email-pablo@netfilter.org>
- <1444733268-8564-2-git-send-email-pablo@netfilter.org>
+Subject: Re: [PATCH lnf-log 3/3] utils: nf-log: attaching a conntrack
+ information
+Date: Thu, 15 Oct 2015 13:35:44 +0900
+Message-ID: <20151015043544.GA18814@gmail.com>
+References: <1441731291-21342-1-git-send-email-pablo@netfilter.org>
+ <20150909095042.GA11843@gmail.com>
+ <20150910000615.GB5734@salvia>
+ <20150911030530.GA7380@gmail.com>
+ <20150911031535.GG7380@gmail.com>
+ <20151012152630.GC21781@salvia>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="YiEDa0DAkWCtVeE4"
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:36782 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752698AbbJOChN (ORCPT
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:35001 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103AbbJOEft (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Oct 2015 22:37:13 -0400
-Received: by pabws5 with SMTP id ws5so8090819pab.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2015 19:37:12 -0700 (PDT)
+	Thu, 15 Oct 2015 00:35:49 -0400
+Received: by pacao1 with SMTP id ao1so10248437pac.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2015 21:35:49 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1444733268-8564-2-git-send-email-pablo@netfilter.org>
+In-Reply-To: <20151012152630.GC21781@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Mon, Oct 12, 2015 at 05:26:30PM +0200, Pablo Neira Ayuso wrote:
+> On Fri, Sep 11, 2015 at 12:15:35PM +0900, Ken-ichirou MATSUZAWA wrote:
+> > -#include <linux/netfilter/nfnetlink_log.h>
+> > +/* #include <linux/netfilter/nfnetlink_log.h> */
+> 
+> Do you remember why you had to comment out this line?
 
---YiEDa0DAkWCtVeE4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I think I intended to use linux_nfnetlink_log.h synched previous
+and made this mistake.
 
- Thank you for your usual support.
- 
-On Tue, Oct 13, 2015 at 12:47:47PM +0200, Pablo Neira Ayuso wrote:
-> @Ken-ichirou: Could you give a test to this patches? Thanks.
+> > +	switch (ntohl(mnl_attr_get_u32(attr))) {
+> > +	case IP_CT_ESTABLISHED:
+> > +		s = "IP_CT_ESTABLISHED";
+> 
+> For this example, you can probably simplify this with.
+> 
+>         case IP_CT_ESTABLISHED:
+>         case IP_CT_ESTABLISHED_REPLY:
+>                 s = "ESTABLISHED";
+[...]
+> IP_CT_IS_REPLY is never used alone, it's is always combined with NEW,
+> ESTABLISHED, RELATED states.
+[...]
+> IP_CT_NUMBER should never happen. Please remove this code.
 
-I've tested these with appended and is fine, of course.
-Before applying patches:
-
-    # ./a.out 123
-    a.out: empty_cfg.c:56: main: Assertion `mnl_cb_run(buf, ret, 0, portid, ((void *)0), ((void *)0)) == -1' failed.
-    Aborted
-
-On Tue, Oct 13, 2015 at 12:47:48PM +0200, Pablo Neira Ayuso wrote:
-> +#ifdef CONFIG_MODULES
-> +			nfnl_unlock(NFNL_SUBSYS_ULOG);
-> +			request_module("ip_conntrack_netlink");
-> +			nfnl_lock(NFNL_SUBSYS_ULOG);
-> +			if (rcu_access_pointer(nfnl_ct_hook)) {
-> +				ret = -EAGAIN;
-> +				goto out_put;
-> +			}
-> +#endif
-> +			ret = -EOPNOTSUPP;
-> +			goto out_put;
-
-It's off the subject, but this fixes module unload. It was not
-put instance at my first patch, Thanks!
-
---YiEDa0DAkWCtVeE4
-Content-Type: text/x-csrc; charset=us-ascii
-Content-Disposition: attachment; filename="empty_cfg.c"
-
-/*
- * This example is placed in the public domain.
- * cc empty_cfg.c -lmnl -lnetfilter_log
- */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <arpa/inet.h>
-#include <errno.h>
-#include <assert.h>
-
-#include <linux/netfilter/nfnetlink_log.h>
-
-#include <libmnl/libmnl.h>
-#include <libnetfilter_log/libnetfilter_log.h>
-
-int main(int argc, char *argv[])
-{
-	struct mnl_socket *nl;
-	char buf[MNL_SOCKET_BUFFER_SIZE];
-	struct nlmsghdr *nlh;
-	int ret;
-	unsigned int portid, qnum;
-
-	if (argc != 2) {
-		printf("Usage: %s [queue_num]\n", argv[0]);
-		exit(EXIT_FAILURE);
-	}
-	qnum = atoi(argv[1]);
-
-	nl = mnl_socket_open(NETLINK_NETFILTER);
-	if (nl == NULL) {
-		perror("mnl_socket_open");
-		exit(EXIT_FAILURE);
-	}
-
-	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
-		perror("mnl_socket_bind");
-		exit(EXIT_FAILURE);
-	}
-	portid = mnl_socket_get_portid(nl);
-
-	nlh = nflog_nlmsg_put_header(buf, NFULNL_MSG_CONFIG, AF_UNSPEC, qnum);
-	nlh->nlmsg_flags |= NLM_F_ACK;
-	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
-		perror("mnl_socket_sendto");
-		exit(EXIT_FAILURE);
-	}
-
-	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-	if (ret == -1) {
-		perror("mnl_socket_recvfrom");
-		exit(EXIT_FAILURE);
-	}
-
-	assert(mnl_cb_run(buf, ret, 0, portid, NULL, NULL) == MNL_CB_ERROR);
-	assert(errno == ENODEV);
-
-	mnl_socket_close(nl);
-
-	return 0;
-}
-
---YiEDa0DAkWCtVeE4--
+I try to fix aboves and would you review the following again?
+Thanks,
