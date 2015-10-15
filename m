@@ -1,222 +1,406 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [PATCHv2 lnf-log] utils: nf-log: attaching a conntrack information
-Date: Thu, 15 Oct 2015 13:39:25 +0900
-Message-ID: <20151015043925.GB18814@gmail.com>
-References: <1441731291-21342-1-git-send-email-pablo@netfilter.org>
- <20150909095042.GA11843@gmail.com>
- <20150910000615.GB5734@salvia>
- <20150911030530.GA7380@gmail.com>
- <20150911031535.GG7380@gmail.com>
- <20151012152630.GC21781@salvia>
- <20151015043544.GA18814@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Mikko Rapeli <mikko.rapeli@iki.fi>
+Subject: [PATCH v4 52/79] include/uapi/netfilter/*.h: fix include files for compilation
+Date: Thu, 15 Oct 2015 07:56:30 +0200
+Message-ID: <1444888618-4506-53-git-send-email-mikko.rapeli@iki.fi>
+References: <1444888618-4506-1-git-send-email-mikko.rapeli@iki.fi>
+Cc: mikko.rapeli@iki.fi, Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-api@vger.kernel.org
+To: linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:34922 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750849AbbJOEja (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Oct 2015 00:39:30 -0400
-Received: by pacao1 with SMTP id ao1so10342619pac.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2015 21:39:29 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20151015043544.GA18814@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:36169 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754600AbbJOGhf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Oct 2015 02:37:35 -0400
+In-Reply-To: <1444888618-4506-1-git-send-email-mikko.rapeli@iki.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch enables nf-log in utils directory to show conntrack
-information if libnetfilter_conntrack exists.
+Add missing header dependencies and other small changes so that each file
+compiles alone in userspace.
 
-Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
+Signed-off-by: Mikko Rapeli <mikko.rapeli@iki.fi>
 ---
- configure.ac      |   5 +++
- utils/Makefile.am |   3 ++
- utils/nf-log.c    | 104 +++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 111 insertions(+), 1 deletion(-)
+ include/uapi/linux/netfilter/ipset/ip_set_bitmap.h       |  2 ++
+ include/uapi/linux/netfilter/ipset/ip_set_hash.h         |  2 ++
+ include/uapi/linux/netfilter/ipset/ip_set_list.h         |  2 ++
+ include/uapi/linux/netfilter/nf_conntrack_tuple_common.h |  3 +++
+ include/uapi/linux/netfilter/xt_HMARK.h                  |  1 +
+ include/uapi/linux/netfilter/xt_RATEEST.h                |  1 +
+ include/uapi/linux/netfilter/xt_TEE.h                    |  2 ++
+ include/uapi/linux/netfilter/xt_TPROXY.h                 |  1 +
+ include/uapi/linux/netfilter/xt_hashlimit.h              |  1 +
+ include/uapi/linux/netfilter/xt_ipvs.h                   |  1 +
+ include/uapi/linux/netfilter/xt_mac.h                    |  2 ++
+ include/uapi/linux/netfilter/xt_osf.h                    |  2 ++
+ include/uapi/linux/netfilter/xt_physdev.h                |  2 +-
+ include/uapi/linux/netfilter/xt_policy.h                 |  2 ++
+ include/uapi/linux/netfilter/xt_rateest.h                |  1 +
+ include/uapi/linux/netfilter/xt_recent.h                 |  1 +
+ include/uapi/linux/netfilter/xt_sctp.h                   | 12 ++++++------
+ include/uapi/linux/netfilter_arp/arp_tables.h            |  1 +
+ include/uapi/linux/netfilter_bridge.h                    |  1 +
+ include/uapi/linux/netfilter_bridge/ebt_arp.h            |  1 +
+ include/uapi/linux/netfilter_bridge/ebt_arpreply.h       |  2 ++
+ include/uapi/linux/netfilter_bridge/ebt_ip6.h            |  1 +
+ include/uapi/linux/netfilter_bridge/ebt_nat.h            |  2 ++
+ include/uapi/linux/netfilter_ipv4/ip_tables.h            |  1 +
+ include/uapi/linux/netfilter_ipv6/ip6_tables.h           |  1 +
+ include/uapi/linux/netfilter_ipv6/ip6t_rt.h              |  2 +-
+ 26 files changed, 42 insertions(+), 8 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index ead9399..7d58f09 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -4,6 +4,7 @@ AC_INIT([libnetfilter_log], [1.0.1])
- AC_CONFIG_AUX_DIR([build-aux])
- AC_CANONICAL_HOST
- AC_CONFIG_MACRO_DIR([m4])
-+AC_CONFIG_HEADERS([config.h])
+diff --git a/include/uapi/linux/netfilter/ipset/ip_set_bitmap.h b/include/uapi/linux/netfilter/ipset/ip_set_bitmap.h
+index 6a2c038..fd5024d 100644
+--- a/include/uapi/linux/netfilter/ipset/ip_set_bitmap.h
++++ b/include/uapi/linux/netfilter/ipset/ip_set_bitmap.h
+@@ -1,6 +1,8 @@
+ #ifndef _UAPI__IP_SET_BITMAP_H
+ #define _UAPI__IP_SET_BITMAP_H
  
- AM_INIT_AUTOMAKE([-Wall foreign subdir-objects
- 	tar-pax no-dist-gzip dist-bzip2 1.6])
-@@ -31,6 +32,10 @@ AM_CONDITIONAL([BUILD_IPULOG], [test "x$with_ipulog" != xno])
- dnl Dependencies
- PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 0.0.41])
- PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
-+PKG_CHECK_MODULES([LIBNETFILTER_CONNTRACK], [libnetfilter_conntrack >= 1.0.2],
-+		  [AC_DEFINE([BUILD_NFCT], [1], [building nfct integration example]) HAVE_LNFCT=1],
-+		  [HAVE_LNFCT=0])
-+AM_CONDITIONAL([BUILD_NFCT], [test "$HAVE_LNFCT" -eq 1])
++#include <linux/netfilter/ipset/ip_set.h>
++
+ /* Bitmap type specific error codes */
+ enum {
+ 	/* The element is out of the range of the set */
+diff --git a/include/uapi/linux/netfilter/ipset/ip_set_hash.h b/include/uapi/linux/netfilter/ipset/ip_set_hash.h
+index 352eecc..82deeb8 100644
+--- a/include/uapi/linux/netfilter/ipset/ip_set_hash.h
++++ b/include/uapi/linux/netfilter/ipset/ip_set_hash.h
+@@ -1,6 +1,8 @@
+ #ifndef _UAPI__IP_SET_HASH_H
+ #define _UAPI__IP_SET_HASH_H
  
- dnl Output the makefile
- AC_CONFIG_FILES([Makefile src/Makefile include/Makefile
-diff --git a/utils/Makefile.am b/utils/Makefile.am
-index dfe5f34..baef81a 100644
---- a/utils/Makefile.am
-+++ b/utils/Makefile.am
-@@ -9,6 +9,9 @@ nfulnl_test_LDFLAGS = -dynamic
- nf_log_SOURCES = nf-log.c
- nf_log_LDADD = ../src/libnetfilter_log.la
- nf_log_LDFLAGS = -dynamic -lmnl
-+if BUILD_NFCT
-+nf_log_LDFLAGS += $(LIBNETFILTER_CONNTRACK_LIBS)
-+endif
++#include <linux/netfilter/ipset/ip_set.h>
++
+ /* Hash type specific error codes */
+ enum {
+ 	/* Hash is full */
+diff --git a/include/uapi/linux/netfilter/ipset/ip_set_list.h b/include/uapi/linux/netfilter/ipset/ip_set_list.h
+index a44efaa..84d4303 100644
+--- a/include/uapi/linux/netfilter/ipset/ip_set_list.h
++++ b/include/uapi/linux/netfilter/ipset/ip_set_list.h
+@@ -1,6 +1,8 @@
+ #ifndef _UAPI__IP_SET_LIST_H
+ #define _UAPI__IP_SET_LIST_H
  
- if BUILD_IPULOG
- check_PROGRAMS += ulog_test
-diff --git a/utils/nf-log.c b/utils/nf-log.c
-index 5f2a192..006d4b0 100644
---- a/utils/nf-log.c
-+++ b/utils/nf-log.c
-@@ -3,15 +3,109 @@
- #include <stdlib.h>
- #include <arpa/inet.h>
++#include <linux/netfilter/ipset/ip_set.h>
++
+ /* List type specific error codes */
+ enum {
+ 	/* Set name to be added/deleted/tested does not exist. */
+diff --git a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
+index 2f6bbc5..a9c3834 100644
+--- a/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
++++ b/include/uapi/linux/netfilter/nf_conntrack_tuple_common.h
+@@ -1,6 +1,9 @@
+ #ifndef _NF_CONNTRACK_TUPLE_COMMON_H
+ #define _NF_CONNTRACK_TUPLE_COMMON_H
  
--#include <linux/netfilter/nfnetlink_log.h>
-+#include <libnetfilter_log/linux_nfnetlink_log.h>
++#include <linux/types.h>
++#include <linux/netfilter.h>
++
+ enum ip_conntrack_dir {
+ 	IP_CT_DIR_ORIGINAL,
+ 	IP_CT_DIR_REPLY,
+diff --git a/include/uapi/linux/netfilter/xt_HMARK.h b/include/uapi/linux/netfilter/xt_HMARK.h
+index 826fc58..3fb48c8 100644
+--- a/include/uapi/linux/netfilter/xt_HMARK.h
++++ b/include/uapi/linux/netfilter/xt_HMARK.h
+@@ -2,6 +2,7 @@
+ #define XT_HMARK_H_
  
- #include <libmnl/libmnl.h>
- #include <libnetfilter_log/libnetfilter_log.h>
+ #include <linux/types.h>
++#include <linux/netfilter.h>
  
-+#include "../config.h"
-+#ifdef BUILD_NFCT
-+#include <linux/netfilter/nf_conntrack_common.h>
-+#include <linux/netfilter/nf_conntrack_tuple_common.h>
-+#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
-+#endif
+ enum {
+ 	XT_HMARK_SADDR_MASK,
+diff --git a/include/uapi/linux/netfilter/xt_RATEEST.h b/include/uapi/linux/netfilter/xt_RATEEST.h
+index 6605e20..ec1b570 100644
+--- a/include/uapi/linux/netfilter/xt_RATEEST.h
++++ b/include/uapi/linux/netfilter/xt_RATEEST.h
+@@ -2,6 +2,7 @@
+ #define _XT_RATEEST_TARGET_H
+ 
+ #include <linux/types.h>
++#include <linux/if.h>
+ 
+ struct xt_rateest_target_info {
+ 	char			name[IFNAMSIZ];
+diff --git a/include/uapi/linux/netfilter/xt_TEE.h b/include/uapi/linux/netfilter/xt_TEE.h
+index 5c21d5c..0109202 100644
+--- a/include/uapi/linux/netfilter/xt_TEE.h
++++ b/include/uapi/linux/netfilter/xt_TEE.h
+@@ -1,6 +1,8 @@
+ #ifndef _XT_TEE_TARGET_H
+ #define _XT_TEE_TARGET_H
+ 
++#include <linux/netfilter.h>
 +
-+#ifdef BUILD_NFCT
-+static int print_ctinfo(const struct nlattr *const attr)
-+{
-+	uint32_t ctinfo;
+ struct xt_tee_tginfo {
+ 	union nf_inet_addr gw;
+ 	char oif[16];
+diff --git a/include/uapi/linux/netfilter/xt_TPROXY.h b/include/uapi/linux/netfilter/xt_TPROXY.h
+index 902043c..8d693ee 100644
+--- a/include/uapi/linux/netfilter/xt_TPROXY.h
++++ b/include/uapi/linux/netfilter/xt_TPROXY.h
+@@ -2,6 +2,7 @@
+ #define _XT_TPROXY_H
+ 
+ #include <linux/types.h>
++#include <linux/netfilter.h>
+ 
+ /* TPROXY target is capable of marking the packet to perform
+  * redirection. We can get rid of that whenever we get support for
+diff --git a/include/uapi/linux/netfilter/xt_hashlimit.h b/include/uapi/linux/netfilter/xt_hashlimit.h
+index cbfc43d..6db90372 100644
+--- a/include/uapi/linux/netfilter/xt_hashlimit.h
++++ b/include/uapi/linux/netfilter/xt_hashlimit.h
+@@ -2,6 +2,7 @@
+ #define _UAPI_XT_HASHLIMIT_H
+ 
+ #include <linux/types.h>
++#include <linux/if.h>
+ 
+ /* timings are in milliseconds. */
+ #define XT_HASHLIMIT_SCALE 10000
+diff --git a/include/uapi/linux/netfilter/xt_ipvs.h b/include/uapi/linux/netfilter/xt_ipvs.h
+index eff34ac..e03b9c3 100644
+--- a/include/uapi/linux/netfilter/xt_ipvs.h
++++ b/include/uapi/linux/netfilter/xt_ipvs.h
+@@ -2,6 +2,7 @@
+ #define _XT_IPVS_H
+ 
+ #include <linux/types.h>
++#include <linux/netfilter.h>
+ 
+ enum {
+ 	XT_IPVS_IPVS_PROPERTY =	1 << 0, /* all other options imply this one */
+diff --git a/include/uapi/linux/netfilter/xt_mac.h b/include/uapi/linux/netfilter/xt_mac.h
+index b892cdc..9a19a08 100644
+--- a/include/uapi/linux/netfilter/xt_mac.h
++++ b/include/uapi/linux/netfilter/xt_mac.h
+@@ -1,6 +1,8 @@
+ #ifndef _XT_MAC_H
+ #define _XT_MAC_H
+ 
++#include <linux/if_ether.h>
 +
-+	if (attr == NULL)
-+		return MNL_CB_OK;
-+
-+	ctinfo = ntohl(mnl_attr_get_u32(attr));
-+	printf("  ip_conntrack_info:");
-+
-+	switch (CTINFO2DIR(ctinfo)) {
-+	case IP_CT_DIR_ORIGINAL:
-+		printf(" ORIGINAL /");
-+		break;
-+	case IP_CT_DIR_REPLY:
-+		printf(" REPLY /");
-+		break;
-+	default:
-+		printf(" unknown dir: %d\n", CTINFO2DIR(ctinfo));
-+		return MNL_CB_ERROR;
-+	}
-+
-+	switch (ctinfo) {
-+	case IP_CT_ESTABLISHED:
-+	case IP_CT_ESTABLISHED_REPLY:
-+		printf(" ESTABLISHED\n");
-+		break;
-+	case IP_CT_RELATED:
-+	case IP_CT_RELATED_REPLY:
-+		printf(" RELATED\n");
-+		break;
-+	case IP_CT_NEW:
-+	case IP_CT_NEW_REPLY:
-+		printf(" NEW\n");
-+		break;
-+	default:
-+		printf(" unknown ctinfo: %d\n", ctinfo);
-+		return MNL_CB_ERROR;
-+	}
-+
-+	return MNL_CB_OK;
-+}
-+
-+static int print_nfct(uint8_t family,
-+		      const struct nlattr *const info_attr,
-+		      const struct nlattr *const ct_attr)
-+{
-+	char buf[4096];
-+	struct nf_conntrack *ct = NULL;
-+
-+	if (info_attr != NULL)
-+		print_ctinfo(info_attr);
-+
-+	if (ct_attr == NULL)
-+		return MNL_CB_OK;
-+
-+	ct = nfct_new();
-+	if (ct == NULL) {
-+		perror("nfct_new");
-+		return MNL_CB_ERROR;
-+	}
-+
-+	if (nfct_payload_parse(mnl_attr_get_payload(ct_attr),
-+			       mnl_attr_get_payload_len(ct_attr),
-+			       family, ct) < 0) {
-+		perror("nfct_payload_parse");
-+		nfct_destroy(ct);
-+		return MNL_CB_ERROR;
-+	}
-+
-+	nfct_snprintf(buf, sizeof(buf), ct, 0, NFCT_O_DEFAULT, 0);
-+	printf("  %s\n", buf);
-+	nfct_destroy(ct);
-+
-+	return MNL_CB_OK;
-+}
-+#else
-+static int print_nfct(uint8_t family,
-+		      const struct nlattr *const info_attr,
-+		      const struct nlattr *const ct_attr)
-+{
-+	return MNL_CB_OK;
-+}
-+#endif
-+
- static int log_cb(const struct nlmsghdr *nlh, void *data)
+ struct xt_mac_info {
+     unsigned char srcaddr[ETH_ALEN];
+     int invert;
+diff --git a/include/uapi/linux/netfilter/xt_osf.h b/include/uapi/linux/netfilter/xt_osf.h
+index 5d66cae..e615995 100644
+--- a/include/uapi/linux/netfilter/xt_osf.h
++++ b/include/uapi/linux/netfilter/xt_osf.h
+@@ -20,6 +20,8 @@
+ #define _XT_OSF_H
+ 
+ #include <linux/types.h>
++#include <linux/ip.h>
++#include <linux/tcp.h>
+ 
+ #define MAXGENRELEN		32
+ 
+diff --git a/include/uapi/linux/netfilter/xt_physdev.h b/include/uapi/linux/netfilter/xt_physdev.h
+index db7a298..ccdde87 100644
+--- a/include/uapi/linux/netfilter/xt_physdev.h
++++ b/include/uapi/linux/netfilter/xt_physdev.h
+@@ -2,7 +2,7 @@
+ #define _UAPI_XT_PHYSDEV_H
+ 
+ #include <linux/types.h>
+-
++#include <linux/if.h>
+ 
+ #define XT_PHYSDEV_OP_IN		0x01
+ #define XT_PHYSDEV_OP_OUT		0x02
+diff --git a/include/uapi/linux/netfilter/xt_policy.h b/include/uapi/linux/netfilter/xt_policy.h
+index be8ead0..d8a9800 100644
+--- a/include/uapi/linux/netfilter/xt_policy.h
++++ b/include/uapi/linux/netfilter/xt_policy.h
+@@ -2,6 +2,8 @@
+ #define _XT_POLICY_H
+ 
+ #include <linux/types.h>
++#include <linux/in.h>
++#include <linux/in6.h>
+ 
+ #define XT_POLICY_MAX_ELEM	4
+ 
+diff --git a/include/uapi/linux/netfilter/xt_rateest.h b/include/uapi/linux/netfilter/xt_rateest.h
+index d40a619..13fe50d 100644
+--- a/include/uapi/linux/netfilter/xt_rateest.h
++++ b/include/uapi/linux/netfilter/xt_rateest.h
+@@ -2,6 +2,7 @@
+ #define _XT_RATEEST_MATCH_H
+ 
+ #include <linux/types.h>
++#include <linux/if.h>
+ 
+ enum xt_rateest_match_flags {
+ 	XT_RATEEST_MATCH_INVERT	= 1<<0,
+diff --git a/include/uapi/linux/netfilter/xt_recent.h b/include/uapi/linux/netfilter/xt_recent.h
+index 6ef36c1..955d562 100644
+--- a/include/uapi/linux/netfilter/xt_recent.h
++++ b/include/uapi/linux/netfilter/xt_recent.h
+@@ -2,6 +2,7 @@
+ #define _LINUX_NETFILTER_XT_RECENT_H 1
+ 
+ #include <linux/types.h>
++#include <linux/netfilter.h>
+ 
+ enum {
+ 	XT_RECENT_CHECK    = 1 << 0,
+diff --git a/include/uapi/linux/netfilter/xt_sctp.h b/include/uapi/linux/netfilter/xt_sctp.h
+index 29287be..58ffcfb 100644
+--- a/include/uapi/linux/netfilter/xt_sctp.h
++++ b/include/uapi/linux/netfilter/xt_sctp.h
+@@ -66,26 +66,26 @@ struct xt_sctp_info {
+ 
+ #define SCTP_CHUNKMAP_IS_CLEAR(chunkmap) \
+ 	__sctp_chunkmap_is_clear((chunkmap), ARRAY_SIZE(chunkmap))
+-static inline bool
++static inline _Bool
+ __sctp_chunkmap_is_clear(const __u32 *chunkmap, unsigned int n)
  {
- 	struct nlattr *attrs[NFULA_MAX + 1] = { NULL };
- 	struct nfulnl_msg_packet_hdr *ph = NULL;
-+	struct nfgenmsg *nfg;
- 	const char *prefix = NULL;
- 	uint32_t mark = 0;
- 	char buf[4096];
-@@ -21,6 +115,8 @@ static int log_cb(const struct nlmsghdr *nlh, void *data)
- 	if (ret != MNL_CB_OK)
- 		return ret;
- 
-+	nfg = mnl_nlmsg_get_payload(nlh);
-+
- 	if (attrs[NFULA_PACKET_HDR])
- 		ph = mnl_attr_get_payload(attrs[NFULA_PACKET_HDR]);
- 	if (attrs[NFULA_PREFIX])
-@@ -38,6 +134,8 @@ static int log_cb(const struct nlmsghdr *nlh, void *data)
- 		return MNL_CB_ERROR;
- 	printf("%s (ret=%d)\n", buf, ret);
- 
-+	print_nfct(nfg->nfgen_family, attrs[NFULA_CT_INFO], attrs[NFULA_CT]);
-+
- 	return MNL_CB_OK;
+ 	unsigned int i;
+ 	for (i = 0; i < n; ++i)
+ 		if (chunkmap[i])
+-			return false;
+-	return true;
++			return 0;
++	return 1;
  }
  
-@@ -108,6 +206,10 @@ int main(int argc, char *argv[])
- 		exit(EXIT_FAILURE);
- 	}
+ #define SCTP_CHUNKMAP_IS_ALL_SET(chunkmap) \
+ 	__sctp_chunkmap_is_all_set((chunkmap), ARRAY_SIZE(chunkmap))
+-static inline bool
++static inline _Bool
+ __sctp_chunkmap_is_all_set(const __u32 *chunkmap, unsigned int n)
+ {
+ 	unsigned int i;
+ 	for (i = 0; i < n; ++i)
+ 		if (chunkmap[i] != ~0U)
+-			return false;
+-	return true;
++			return 0;
++	return 1;
+ }
  
-+#ifdef BUILD_NFCT
-+	mnl_attr_put_u16(nlh, NFULA_CFG_FLAGS, htons(NFULNL_CFG_F_CONNTRACK));
-+#endif
+ #endif /* _XT_SCTP_H_ */
+diff --git a/include/uapi/linux/netfilter_arp/arp_tables.h b/include/uapi/linux/netfilter_arp/arp_tables.h
+index a5a86a4..ece3ad4 100644
+--- a/include/uapi/linux/netfilter_arp/arp_tables.h
++++ b/include/uapi/linux/netfilter_arp/arp_tables.h
+@@ -11,6 +11,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/compiler.h>
++#include <linux/if.h>
+ #include <linux/netfilter_arp.h>
+ 
+ #include <linux/netfilter/x_tables.h>
+diff --git a/include/uapi/linux/netfilter_bridge.h b/include/uapi/linux/netfilter_bridge.h
+index a5eda6d..514519b 100644
+--- a/include/uapi/linux/netfilter_bridge.h
++++ b/include/uapi/linux/netfilter_bridge.h
+@@ -4,6 +4,7 @@
+ /* bridge-specific defines for netfilter. 
+  */
+ 
++#include <linux/in.h>
+ #include <linux/netfilter.h>
+ #include <linux/if_ether.h>
+ #include <linux/if_vlan.h>
+diff --git a/include/uapi/linux/netfilter_bridge/ebt_arp.h b/include/uapi/linux/netfilter_bridge/ebt_arp.h
+index 522f3e4..dd4df25 100644
+--- a/include/uapi/linux/netfilter_bridge/ebt_arp.h
++++ b/include/uapi/linux/netfilter_bridge/ebt_arp.h
+@@ -2,6 +2,7 @@
+ #define __LINUX_BRIDGE_EBT_ARP_H
+ 
+ #include <linux/types.h>
++#include <linux/if_ether.h>
+ 
+ #define EBT_ARP_OPCODE 0x01
+ #define EBT_ARP_HTYPE 0x02
+diff --git a/include/uapi/linux/netfilter_bridge/ebt_arpreply.h b/include/uapi/linux/netfilter_bridge/ebt_arpreply.h
+index 7e77896..6fee340 100644
+--- a/include/uapi/linux/netfilter_bridge/ebt_arpreply.h
++++ b/include/uapi/linux/netfilter_bridge/ebt_arpreply.h
+@@ -1,6 +1,8 @@
+ #ifndef __LINUX_BRIDGE_EBT_ARPREPLY_H
+ #define __LINUX_BRIDGE_EBT_ARPREPLY_H
+ 
++#include <linux/if_ether.h>
 +
- 	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
- 		perror("mnl_socket_sendto");
- 		exit(EXIT_FAILURE);
+ struct ebt_arpreply_info {
+ 	unsigned char mac[ETH_ALEN];
+ 	int target;
+diff --git a/include/uapi/linux/netfilter_bridge/ebt_ip6.h b/include/uapi/linux/netfilter_bridge/ebt_ip6.h
+index 42b8896..a062f0c 100644
+--- a/include/uapi/linux/netfilter_bridge/ebt_ip6.h
++++ b/include/uapi/linux/netfilter_bridge/ebt_ip6.h
+@@ -13,6 +13,7 @@
+ #define __LINUX_BRIDGE_EBT_IP6_H
+ 
+ #include <linux/types.h>
++#include <linux/in6.h>
+ 
+ #define EBT_IP6_SOURCE 0x01
+ #define EBT_IP6_DEST 0x02
+diff --git a/include/uapi/linux/netfilter_bridge/ebt_nat.h b/include/uapi/linux/netfilter_bridge/ebt_nat.h
+index 5e74e3b..c990d74 100644
+--- a/include/uapi/linux/netfilter_bridge/ebt_nat.h
++++ b/include/uapi/linux/netfilter_bridge/ebt_nat.h
+@@ -1,6 +1,8 @@
+ #ifndef __LINUX_BRIDGE_EBT_NAT_H
+ #define __LINUX_BRIDGE_EBT_NAT_H
+ 
++#include <linux/if_ether.h>
++
+ #define NAT_ARP_BIT  (0x00000010)
+ struct ebt_nat_info {
+ 	unsigned char mac[ETH_ALEN];
+diff --git a/include/uapi/linux/netfilter_ipv4/ip_tables.h b/include/uapi/linux/netfilter_ipv4/ip_tables.h
+index f1e6ef2..d0da53d 100644
+--- a/include/uapi/linux/netfilter_ipv4/ip_tables.h
++++ b/include/uapi/linux/netfilter_ipv4/ip_tables.h
+@@ -17,6 +17,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/compiler.h>
++#include <linux/if.h>
+ #include <linux/netfilter_ipv4.h>
+ 
+ #include <linux/netfilter/x_tables.h>
+diff --git a/include/uapi/linux/netfilter_ipv6/ip6_tables.h b/include/uapi/linux/netfilter_ipv6/ip6_tables.h
+index 649c680..d1b2265 100644
+--- a/include/uapi/linux/netfilter_ipv6/ip6_tables.h
++++ b/include/uapi/linux/netfilter_ipv6/ip6_tables.h
+@@ -17,6 +17,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/compiler.h>
++#include <linux/if.h>
+ #include <linux/netfilter_ipv6.h>
+ 
+ #include <linux/netfilter/x_tables.h>
+diff --git a/include/uapi/linux/netfilter_ipv6/ip6t_rt.h b/include/uapi/linux/netfilter_ipv6/ip6t_rt.h
+index 7605a5f..558f81e 100644
+--- a/include/uapi/linux/netfilter_ipv6/ip6t_rt.h
++++ b/include/uapi/linux/netfilter_ipv6/ip6t_rt.h
+@@ -2,7 +2,7 @@
+ #define _IP6T_RT_H
+ 
+ #include <linux/types.h>
+-/*#include <linux/in6.h>*/
++#include <linux/in6.h>
+ 
+ #define IP6T_RT_HOPS 16
+ 
 -- 
-2.1.4
+2.5.0
 
