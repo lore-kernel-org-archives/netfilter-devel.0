@@ -1,80 +1,125 @@
-From: Ian Morris <ipm@chirality.org.uk>
-Subject: [PATCH nf-next 6/6] netfilter-ipv4: whitespace around operators
-Date: Wed, 14 Oct 2015 23:17:08 +0100
-Message-ID: <1444861028-21556-7-git-send-email-ipm@chirality.org.uk>
-References: <1444861028-21556-1-git-send-email-ipm@chirality.org.uk>
-Cc: Ian Morris <ipm@chirality.org.uk>
-To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: Re: [PATCH nf-next 2/2] netfilter: nfnetlink_log: validate
+ dependencies to avoid breaking atomicity
+Date: Thu, 15 Oct 2015 11:37:06 +0900
+Message-ID: <20151015023706.GA16497@gmail.com>
+References: <1444733268-8564-1-git-send-email-pablo@netfilter.org>
+ <1444733268-8564-2-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="YiEDa0DAkWCtVeE4"
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from inet-gw.chirality.org.uk ([88.97.209.22]:46079 "EHLO
-	cedar.ipmorris.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754201AbbJNWRR (ORCPT
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:36782 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752698AbbJOChN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Oct 2015 18:17:17 -0400
-In-Reply-To: <1444861028-21556-1-git-send-email-ipm@chirality.org.uk>
+	Wed, 14 Oct 2015 22:37:13 -0400
+Received: by pabws5 with SMTP id ws5so8090819pab.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2015 19:37:12 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1444733268-8564-2-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch cleanses whitespace around arithmetical operators.
 
-No changes detected by objdiff.
+--YiEDa0DAkWCtVeE4
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Ian Morris <ipm@chirality.org.uk>
----
- net/ipv4/netfilter/ipt_CLUSTERIP.c     | 8 ++++----
- net/ipv4/netfilter/ipt_ah.c            | 2 +-
- net/ipv4/netfilter/nf_nat_snmp_basic.c | 2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ Thank you for your usual support.
+ 
+On Tue, Oct 13, 2015 at 12:47:47PM +0200, Pablo Neira Ayuso wrote:
+> @Ken-ichirou: Could you give a test to this patches? Thanks.
 
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 3f32c03..4a9e6db 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -492,14 +492,14 @@ static void arp_print(struct arp_payload *payload)
- {
- #define HBUFFERLEN 30
- 	char hbuffer[HBUFFERLEN];
--	int j,k;
-+	int j, k;
- 
--	for (k=0, j=0; k < HBUFFERLEN-3 && j < ETH_ALEN; j++) {
-+	for (k = 0, j = 0; k < HBUFFERLEN - 3 && j < ETH_ALEN; j++) {
- 		hbuffer[k++] = hex_asc_hi(payload->src_hw[j]);
- 		hbuffer[k++] = hex_asc_lo(payload->src_hw[j]);
--		hbuffer[k++]=':';
-+		hbuffer[k++] = ':';
- 	}
--	hbuffer[--k]='\0';
-+	hbuffer[--k] = '\0';
- 
- 	pr_debug("src %pI4@%s, dst %pI4\n",
- 		 &payload->src_ip, hbuffer, &payload->dst_ip);
-diff --git a/net/ipv4/netfilter/ipt_ah.c b/net/ipv4/netfilter/ipt_ah.c
-index 14a2aa8..a787d07 100644
---- a/net/ipv4/netfilter/ipt_ah.c
-+++ b/net/ipv4/netfilter/ipt_ah.c
-@@ -25,7 +25,7 @@ spi_match(u_int32_t min, u_int32_t max, u_int32_t spi, bool invert)
- 	bool r;
- 	pr_debug("spi_match:%c 0x%x <= 0x%x <= 0x%x\n",
- 		 invert ? '!' : ' ', min, spi, max);
--	r=(spi >= min && spi <= max) ^ invert;
-+	r = (spi >= min && spi <= max) ^ invert;
- 	pr_debug(" result %s\n", r ? "PASS" : "FAILED");
- 	return r;
- }
-diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-index 8e3dffa..89be5c5 100644
---- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
-+++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-@@ -1156,7 +1156,7 @@ static int snmp_parse_mangle(unsigned char *msg,
- 		}
- 
- 		if (obj->type == SNMP_IPADDR)
--			mangle_address(ctx.begin, ctx.pointer - 4 , map, check);
-+			mangle_address(ctx.begin, ctx.pointer - 4, map, check);
- 
- 		kfree(obj->id);
- 		kfree(obj);
--- 
-1.9.1
+I've tested these with appended and is fine, of course.
+Before applying patches:
 
+    # ./a.out 123
+    a.out: empty_cfg.c:56: main: Assertion `mnl_cb_run(buf, ret, 0, portid, ((void *)0), ((void *)0)) == -1' failed.
+    Aborted
+
+On Tue, Oct 13, 2015 at 12:47:48PM +0200, Pablo Neira Ayuso wrote:
+> +#ifdef CONFIG_MODULES
+> +			nfnl_unlock(NFNL_SUBSYS_ULOG);
+> +			request_module("ip_conntrack_netlink");
+> +			nfnl_lock(NFNL_SUBSYS_ULOG);
+> +			if (rcu_access_pointer(nfnl_ct_hook)) {
+> +				ret = -EAGAIN;
+> +				goto out_put;
+> +			}
+> +#endif
+> +			ret = -EOPNOTSUPP;
+> +			goto out_put;
+
+It's off the subject, but this fixes module unload. It was not
+put instance at my first patch, Thanks!
+
+--YiEDa0DAkWCtVeE4
+Content-Type: text/x-csrc; charset=us-ascii
+Content-Disposition: attachment; filename="empty_cfg.c"
+
+/*
+ * This example is placed in the public domain.
+ * cc empty_cfg.c -lmnl -lnetfilter_log
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <assert.h>
+
+#include <linux/netfilter/nfnetlink_log.h>
+
+#include <libmnl/libmnl.h>
+#include <libnetfilter_log/libnetfilter_log.h>
+
+int main(int argc, char *argv[])
+{
+	struct mnl_socket *nl;
+	char buf[MNL_SOCKET_BUFFER_SIZE];
+	struct nlmsghdr *nlh;
+	int ret;
+	unsigned int portid, qnum;
+
+	if (argc != 2) {
+		printf("Usage: %s [queue_num]\n", argv[0]);
+		exit(EXIT_FAILURE);
+	}
+	qnum = atoi(argv[1]);
+
+	nl = mnl_socket_open(NETLINK_NETFILTER);
+	if (nl == NULL) {
+		perror("mnl_socket_open");
+		exit(EXIT_FAILURE);
+	}
+
+	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0) {
+		perror("mnl_socket_bind");
+		exit(EXIT_FAILURE);
+	}
+	portid = mnl_socket_get_portid(nl);
+
+	nlh = nflog_nlmsg_put_header(buf, NFULNL_MSG_CONFIG, AF_UNSPEC, qnum);
+	nlh->nlmsg_flags |= NLM_F_ACK;
+	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0) {
+		perror("mnl_socket_sendto");
+		exit(EXIT_FAILURE);
+	}
+
+	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+	if (ret == -1) {
+		perror("mnl_socket_recvfrom");
+		exit(EXIT_FAILURE);
+	}
+
+	assert(mnl_cb_run(buf, ret, 0, portid, NULL, NULL) == MNL_CB_ERROR);
+	assert(errno == ENODEV);
+
+	mnl_socket_close(nl);
+
+	return 0;
+}
+
+--YiEDa0DAkWCtVeE4--
