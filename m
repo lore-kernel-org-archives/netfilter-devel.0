@@ -1,49 +1,67 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH v2] netfilter: ipset: Fix sleeping memory allocation in
+Subject: Re: [PATCH v3] netfilter: ipset: Fix sleeping memory allocation in
  atomic context
-Date: Fri, 16 Oct 2015 11:27:21 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1510161124390.15639@blackhole.kfki.hu>
-References: <1444906569-9131-1-git-send-email-kernel@kyup.com>  <1444915978.4200.4.camel@edumazet-glaptop2.roam.corp.google.com>  <561FAD24.4050708@kyup.com>  <1444919523.4200.16.camel@edumazet-glaptop2.roam.corp.google.com>  <alpine.DEB.2.10.1510152015370.12052@blackhole.kfki.hu>
-  <1444934818.25595.9.camel@edumazet-glaptop2.roam.corp.google.com>  <CAJFSNy6TaL1padva6euP1-8XFFwPFnBYgsMaEmeWrHpf8AJM-A@mail.gmail.com> <1444942391.25595.11.camel@edumazet-glaptop2.roam.corp.google.com>
+Date: Fri, 16 Oct 2015 13:58:55 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1510161357380.15639@blackhole.kfki.hu>
+References: <1444977628-19323-1-git-send-email-kernel@kyup.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Nikolay Borisov <n.borisov@siteground.com>,
-	Nikolay Borisov <kernel@kyup.com>,
+Cc: eric.dumazet@gmail.com, netfilter-devel@vger.kernel.org,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
-	David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	SiteGround Operations <operations@siteground.com>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+	David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	operations@siteground.com
+To: Nikolay Borisov <kernel@kyup.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:43730 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:39918 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752390AbbJPJ0B (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Oct 2015 05:26:01 -0400
-In-Reply-To: <1444942391.25595.11.camel@edumazet-glaptop2.roam.corp.google.com>
+	id S1752034AbbJPL5f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Oct 2015 07:57:35 -0400
+In-Reply-To: <1444977628-19323-1-git-send-email-kernel@kyup.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 15 Oct 2015, Eric Dumazet wrote:
+On Fri, 16 Oct 2015, Nikolay Borisov wrote:
 
-> On Thu, 2015-10-15 at 23:20 +0300, Nikolay Borisov wrote:
+> Commit 00590fdd5be0 introduced RCU locking in list type and in
+> doing so introduced a memory allocation in list_set_add, which 
+> is done in an atomic context, due to the fact that ipset rcu 
+> list modifications are serialised with a spin lock. The reason 
+> why we can't use a mutex is that in addition to modifying the 
+> list with ipset commands, it's also being modified when a
+> particular ipset rule timeout expires aka garbage collection. 
+> This gc is triggered from set_cleanup_entries, which in turn 
+> is invoked from a timer thus requiring the lock to be bh-safe. 
 > 
-> > While GFP_ATOMIC does indeed look the correct solution for this particular
-> > case I was wondering whether something like (GFP_KERNEL & ~__GFP_WAIT)
-> > wouldn't also make the cut without causing sleeping? I guess this is exactly
-> > the sort of situation that Mel Gorman's patch can address
-> > (marc.info/?l=linux-kernel&m=144283282101953) ?
+> Concretely the following call chain can lead to "sleeping function
+> called in atomic context" splat: 
+> call_ad -> list_set_uadt -> list_set_uadd -> kzalloc(, GFP_KERNEL).
+> And since GFP_KERNEL allows initiating direct reclaim thus
+> potentially sleeping in the allocation path.
 > 
-> This is not applicable here, because the caller would have to find a way
-> to keep trying.
+> To fix the issue change the allocation type to GFP_ATOMIC, to
+> correctly reflect that it is occuring in an atomic context.
 > 
-> I believe one way to handle this problem (in a followup patch) would be
-> to use a work queue for the gc, not a timer.
+> Fixes: 00590fdd5be0 ("netfilter: ipset: Introduce RCU locking in list type")
 > 
-> Using a timer for gc is almost always subject to big problems anyway.
+> Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> Signed-off-by: Nikolay Borisov <kernel@kyup.com>
+> ---
+> 
+> Changes since v2:
+>  * Massaged the changelog to reflect discussion 
+>  on the mailing list
+> 
+> Changes since v1: 
+>  * Added acked-by 
+>  * Fixed patch header
+> 
+>  
+> 
+>  net/netfilter/ipset/ip_set_list_set.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks, really! I'll work on to replace the timer based gc with a work 
-queue based one in the next version.
-
+The patch is applied in the ipset package tree. Thanks!
+ 
 Best regards,
 Jozsef
 -
