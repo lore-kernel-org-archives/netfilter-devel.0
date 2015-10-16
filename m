@@ -1,30 +1,65 @@
-From: Feng Gao <gfree.wind@outlook.com>
-Subject: Fail to receive the emails of netfilter maillist from Oct 7th
-Date: Fri, 16 Oct 2015 12:19:40 +0800
-Message-ID: <BAY403-EAS2554417BB8CAD2D9657996B953D0@phx.gbl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bay004-omc1s10.hotmail.com ([65.54.190.21]:61424 "EHLO
-	BAY004-OMC1S10.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753128AbbJPETq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Oct 2015 00:19:46 -0400
-Content-Language: zh-cn
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Nikolay Borisov <kernel@kyup.com>
+Subject: [PATCH v3] netfilter: ipset: Fix sleeping memory allocation in atomic context
+Date: Fri, 16 Oct 2015 09:40:28 +0300
+Message-ID: <1444977628-19323-1-git-send-email-kernel@kyup.com>
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+	davem@davemloft.net, netdev@vger.kernel.org,
+	operations@siteground.com
+To: kadlec@blackhole.kfki.hu, eric.dumazet@gmail.com
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+Commit 00590fdd5be0 introduced RCU locking in list type and in
+doing so introduced a memory allocation in list_set_add, which 
+is done in an atomic context, due to the fact that ipset rcu 
+list modifications are serialised with a spin lock. The reason 
+why we can't use a mutex is that in addition to modifying the 
+list with ipset commands, it's also being modified when a
+particular ipset rule timeout expires aka garbage collection. 
+This gc is triggered from set_cleanup_entries, which in turn 
+is invoked from a timer thus requiring the lock to be bh-safe. 
 
-I fail to receive the emails of netfilter maillist from Oct 7th.
-Is it one issue of the netfilter maillist server? 
-I have changed two mail servers, and subscribe it again. But it still does
-not work.
+Concretely the following call chain can lead to "sleeping function
+called in atomic context" splat: 
+call_ad -> list_set_uadt -> list_set_uadd -> kzalloc(, GFP_KERNEL).
+And since GFP_KERNEL allows initiating direct reclaim thus
+potentially sleeping in the allocation path.
 
-Best Regards
-Feng
+To fix the issue change the allocation type to GFP_ATOMIC, to
+correctly reflect that it is occuring in an atomic context.
 
+Fixes: 00590fdd5be0 ("netfilter: ipset: Introduce RCU locking in list type")
 
+Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Signed-off-by: Nikolay Borisov <kernel@kyup.com>
+---
 
+Changes since v2:
+ * Massaged the changelog to reflect discussion 
+ on the mailing list
+
+Changes since v1: 
+ * Added acked-by 
+ * Fixed patch header
+
+ 
+
+ net/netfilter/ipset/ip_set_list_set.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+index a1fe537..5a30ce6 100644
+--- a/net/netfilter/ipset/ip_set_list_set.c
++++ b/net/netfilter/ipset/ip_set_list_set.c
+@@ -297,7 +297,7 @@ list_set_uadd(struct ip_set *set, void *value, const struct ip_set_ext *ext,
+ 	      ip_set_timeout_expired(ext_timeout(n, set))))
+ 		n =  NULL;
+ 
+-	e = kzalloc(set->dsize, GFP_KERNEL);
++	e = kzalloc(set->dsize, GFP_ATOMIC);
+ 	if (!e)
+ 		return -ENOMEM;
+ 	e->id = d->id;
+-- 
+2.5.0
