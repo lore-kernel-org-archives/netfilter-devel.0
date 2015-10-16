@@ -1,65 +1,50 @@
-From: Nikolay Borisov <kernel@kyup.com>
-Subject: [PATCH v3] netfilter: ipset: Fix sleeping memory allocation in atomic context
-Date: Fri, 16 Oct 2015 09:40:28 +0300
-Message-ID: <1444977628-19323-1-git-send-email-kernel@kyup.com>
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-	davem@davemloft.net, netdev@vger.kernel.org,
-	operations@siteground.com
-To: kadlec@blackhole.kfki.hu, eric.dumazet@gmail.com
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v2] netfilter: ipset: Fix sleeping memory allocation in
+ atomic context
+Date: Fri, 16 Oct 2015 11:22:12 +0200
+Message-ID: <20151016092212.GA1092@salvia>
+References: <1444906569-9131-1-git-send-email-kernel@kyup.com>
+ <1444915978.4200.4.camel@edumazet-glaptop2.roam.corp.google.com>
+ <561FAD24.4050708@kyup.com>
+ <1444919523.4200.16.camel@edumazet-glaptop2.roam.corp.google.com>
+ <alpine.DEB.2.10.1510152015370.12052@blackhole.kfki.hu>
+ <1444934818.25595.9.camel@edumazet-glaptop2.roam.corp.google.com>
+ <CAJFSNy6TaL1padva6euP1-8XFFwPFnBYgsMaEmeWrHpf8AJM-A@mail.gmail.com>
+ <1444942391.25595.11.camel@edumazet-glaptop2.roam.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Nikolay Borisov <n.borisov@siteground.com>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Nikolay Borisov <kernel@kyup.com>,
+	David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	SiteGround Operations <operations@siteground.com>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:60007 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753504AbbJPJPP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Oct 2015 05:15:15 -0400
+Content-Disposition: inline
+In-Reply-To: <1444942391.25595.11.camel@edumazet-glaptop2.roam.corp.google.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Commit 00590fdd5be0 introduced RCU locking in list type and in
-doing so introduced a memory allocation in list_set_add, which 
-is done in an atomic context, due to the fact that ipset rcu 
-list modifications are serialised with a spin lock. The reason 
-why we can't use a mutex is that in addition to modifying the 
-list with ipset commands, it's also being modified when a
-particular ipset rule timeout expires aka garbage collection. 
-This gc is triggered from set_cleanup_entries, which in turn 
-is invoked from a timer thus requiring the lock to be bh-safe. 
+On Thu, Oct 15, 2015 at 01:53:11PM -0700, Eric Dumazet wrote:
+> On Thu, 2015-10-15 at 23:20 +0300, Nikolay Borisov wrote:
+> 
+> > While GFP_ATOMIC does indeed look the correct solution for this particular
+> > case I was wondering whether something like (GFP_KERNEL & ~__GFP_WAIT)
+> > wouldn't also make the cut without causing sleeping? I guess this is exactly
+> > the sort of situation that Mel Gorman's patch can address
+> > (marc.info/?l=linux-kernel&m=144283282101953) ?
+> 
+> This is not applicable here, because the caller would have to find a way
+> to keep trying.
+> 
+> I believe one way to handle this problem (in a followup patch) would be
+> to use a work queue for the gc, not a timer.
+> 
+> Using a timer for gc is almost always subject to big problems anyway.
 
-Concretely the following call chain can lead to "sleeping function
-called in atomic context" splat: 
-call_ad -> list_set_uadt -> list_set_uadd -> kzalloc(, GFP_KERNEL).
-And since GFP_KERNEL allows initiating direct reclaim thus
-potentially sleeping in the allocation path.
-
-To fix the issue change the allocation type to GFP_ATOMIC, to
-correctly reflect that it is occuring in an atomic context.
-
-Fixes: 00590fdd5be0 ("netfilter: ipset: Introduce RCU locking in list type")
-
-Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Signed-off-by: Nikolay Borisov <kernel@kyup.com>
----
-
-Changes since v2:
- * Massaged the changelog to reflect discussion 
- on the mailing list
-
-Changes since v1: 
- * Added acked-by 
- * Fixed patch header
-
- 
-
- net/netfilter/ipset/ip_set_list_set.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
-index a1fe537..5a30ce6 100644
---- a/net/netfilter/ipset/ip_set_list_set.c
-+++ b/net/netfilter/ipset/ip_set_list_set.c
-@@ -297,7 +297,7 @@ list_set_uadd(struct ip_set *set, void *value, const struct ip_set_ext *ext,
- 	      ip_set_timeout_expired(ext_timeout(n, set))))
- 		n =  NULL;
- 
--	e = kzalloc(set->dsize, GFP_KERNEL);
-+	e = kzalloc(set->dsize, GFP_ATOMIC);
- 	if (!e)
- 		return -ENOMEM;
- 	e->id = d->id;
--- 
-2.5.0
+Agreed, this is what we're doing in nft_hash. Thanks for feedback Eric!
