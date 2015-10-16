@@ -1,33 +1,43 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 0/3] netfilter: remove hook owner refcounting
-Date: Fri, 16 Oct 2015 18:25:59 +0200
-Message-ID: <20151016162559.GA1868@salvia>
-References: <1444739608-9327-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH v2] netfilter: turn NF_HOOK into an inline function
+Date: Fri, 16 Oct 2015 18:45:27 +0200
+Message-ID: <20151016164527.GA3601@salvia>
+References: <7665226.mEs2QJDTOT@wuerfel>
+ <87zizryjzs.fsf@x220.int.ebiederm.org>
+ <5713169.GvahoqQ9XY@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60464 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751968AbbJPQS5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Oct 2015 12:18:57 -0400
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	linux-kernel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1444739608-9327-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <5713169.GvahoqQ9XY@wuerfel>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Oct 13, 2015 at 02:33:25PM +0200, Florian Westphal wrote:
-> Get rid of .owner = THIS_MODULE in all nf_hook_ops, its not needed
-> anymore.
+On Fri, Oct 09, 2015 at 08:45:42PM +0200, Arnd Bergmann wrote:
+> A recent change to the dst_output handling caused a new warning
+> when the call to NF_HOOK() is the only used of a local variable
+> passed as 'dev', and CONFIG_NETFILTER is disabled:
 > 
-> The only facility that used this was nfqueue but nowadays we zap all
-> queued entries that make use of a to-be-removed nf hook.
+> net/ipv6/ip6_output.c: In function 'ip6_output':
+> net/ipv6/ip6_output.c:135:21: warning: unused variable 'dev' [-Wunused-variable]
 > 
-> Followup commit simplifies nfqeue a bit (nf_queue_entry_get_refs can't
-> fail anymore) and gets rid of a bunch of unneeded rcu readlocks.
+> The reason for this is that the NF_HOOK macro in this case does
+> not reference the variable at all, and the call to dev_net(dev)
+> got removed from the ip6_output function. To avoid that warning now
+> and in the future, this changes the macro into an equivalent
+> inline function, which tells the compiler that the variable is
+> passed correctly but still unused.
 > 
-> diffstat:
-> 21 files changed, 11 insertions(+), 99 deletions(-)
+> The dn_forward function apparently had the same problem in
+> the past and added a local workaround that no longer works
+> with the inline function. In order to avoid a regression, we
+> have to also remove the #ifdef from decnet in the same patch.
 
-Series applied, thanks Florian!
+Applied, thanks.
