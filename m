@@ -1,36 +1,30 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: [PATCH v2] netfilter: ipset: Fix sleeping memory allocation in
  atomic context
-Date: Fri, 16 Oct 2015 11:22:12 +0200
-Message-ID: <20151016092212.GA1092@salvia>
-References: <1444906569-9131-1-git-send-email-kernel@kyup.com>
- <1444915978.4200.4.camel@edumazet-glaptop2.roam.corp.google.com>
- <561FAD24.4050708@kyup.com>
- <1444919523.4200.16.camel@edumazet-glaptop2.roam.corp.google.com>
- <alpine.DEB.2.10.1510152015370.12052@blackhole.kfki.hu>
- <1444934818.25595.9.camel@edumazet-glaptop2.roam.corp.google.com>
- <CAJFSNy6TaL1padva6euP1-8XFFwPFnBYgsMaEmeWrHpf8AJM-A@mail.gmail.com>
- <1444942391.25595.11.camel@edumazet-glaptop2.roam.corp.google.com>
+Date: Fri, 16 Oct 2015 11:27:21 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1510161124390.15639@blackhole.kfki.hu>
+References: <1444906569-9131-1-git-send-email-kernel@kyup.com>  <1444915978.4200.4.camel@edumazet-glaptop2.roam.corp.google.com>  <561FAD24.4050708@kyup.com>  <1444919523.4200.16.camel@edumazet-glaptop2.roam.corp.google.com>  <alpine.DEB.2.10.1510152015370.12052@blackhole.kfki.hu>
+  <1444934818.25595.9.camel@edumazet-glaptop2.roam.corp.google.com>  <CAJFSNy6TaL1padva6euP1-8XFFwPFnBYgsMaEmeWrHpf8AJM-A@mail.gmail.com> <1444942391.25595.11.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Nikolay Borisov <n.borisov@siteground.com>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	Nikolay Borisov <kernel@kyup.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
 	David Miller <davem@davemloft.net>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	SiteGround Operations <operations@siteground.com>
 To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60007 "EHLO mail.us.es"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:43730 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753504AbbJPJPP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Oct 2015 05:15:15 -0400
-Content-Disposition: inline
+	id S1752390AbbJPJ0B (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Oct 2015 05:26:01 -0400
 In-Reply-To: <1444942391.25595.11.camel@edumazet-glaptop2.roam.corp.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 15, 2015 at 01:53:11PM -0700, Eric Dumazet wrote:
+On Thu, 15 Oct 2015, Eric Dumazet wrote:
+
 > On Thu, 2015-10-15 at 23:20 +0300, Nikolay Borisov wrote:
 > 
 > > While GFP_ATOMIC does indeed look the correct solution for this particular
@@ -47,4 +41,13 @@ On Thu, Oct 15, 2015 at 01:53:11PM -0700, Eric Dumazet wrote:
 > 
 > Using a timer for gc is almost always subject to big problems anyway.
 
-Agreed, this is what we're doing in nft_hash. Thanks for feedback Eric!
+Thanks, really! I'll work on to replace the timer based gc with a work 
+queue based one in the next version.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
