@@ -1,31 +1,42 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Need net-next in nf-next for netfilter ipv6 frag patchset
-Date: Sat, 17 Oct 2015 14:17:15 +0200
-Message-ID: <20151017121715.GA6011@salvia>
-References: <20151017090047.GB30789@breakpoint.cc>
- <20151017110516.GA1841@salvia>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/35] Netfilter/IPVS updates for net-next
+Date: Sat, 17 Oct 2015 06:07:43 -0700 (PDT)
+Message-ID: <20151017.060743.10017622911100028.davem@davemloft.net>
+References: <1445081590-2924-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51814 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752699AbbJQMKS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 17 Oct 2015 08:10:18 -0400
-Content-Disposition: inline
-In-Reply-To: <20151017110516.GA1841@salvia>
+Received: from shards.monkeyblade.net ([149.20.54.216]:35968 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751308AbbJQMva (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 17 Oct 2015 08:51:30 -0400
+In-Reply-To: <1445081590-2924-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Oct 17, 2015 at 01:05:16PM +0200, Pablo Neira Ayuso wrote:
-> Please, let me follow up now with a pull request for David with the
-> batch that I have accumulated up to this point. Then, I'll be
-> refreshing the nf-next tree.
-> 
-> It will require some little wait though, let me know if this is fine
-> to you, thanks.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Sat, 17 Oct 2015 13:32:35 +0200
 
-Actually, you will not have to wait. I noticed there is a small
-conflict that I need to resolve here, will push out the patch to
-resolve it in ~10 minutes so you'll get what you need :)
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
+
+Pablo, this gives merge conflicts.
+
+This is the second or third time in the past few pulls from you that
+there have been merge conflicts, even when I haven't made a single
+change between when you sent the pull request and when I try to
+integrate it into my tree.
+
+If you can't be certain there won't be merge conflicts, do a test
+pull into a clone of my tree to see what happens.
+
+Or, if you think the merge conflict is simple enough for me to deal
+with, mention and explain it in the header posting for the patch
+series.
+
+Please fix this up and resend your pull request.
+
+Thanks.
