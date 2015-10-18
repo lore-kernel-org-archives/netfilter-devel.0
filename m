@@ -1,214 +1,185 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 1/4] netfilter: ipv6: remove extra clone/free operations
-Date: Sat, 17 Oct 2015 22:14:22 +0200
-Message-ID: <1445112865-31523-2-git-send-email-fw@strlen.de>
-References: <1445112865-31523-1-git-send-email-fw@strlen.de>
-Cc: netdev@vger.kernel.org, azhou@nicira.com, joestringer@nicira.com,
-	Florian Westphal <fw@strlen.de>, Jiri Pirko <jiri@resnulli.us>
-To: netfilter-devel@vger.kernel.org
+From: Ani Sinha <ani@arista.com>
+Subject: Re: linux 3.4.43 : kernel crash at __nf_conntrack_confirm
+Date: Sat, 17 Oct 2015 19:34:47 -0700
+Message-ID: <CAOxq_8Pt7VMwkV8+wdjS9vj=-L0L8Xxkd3Beit0zZN_oR6ixhw@mail.gmail.com>
+References: <CAOxq_8PF91fpX9jYTgBbXnOVeVfSu3tytu-3P_Zr5OodGRoz+g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+To: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:59652 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751178AbbJQUOm (ORCPT
+Received: from mail-io0-f182.google.com ([209.85.223.182]:35280 "EHLO
+	mail-io0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753866AbbJRCfI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 17 Oct 2015 16:14:42 -0400
-In-Reply-To: <1445112865-31523-1-git-send-email-fw@strlen.de>
+	Sat, 17 Oct 2015 22:35:08 -0400
+Received: by iofz202 with SMTP id z202so15923424iof.2
+        for <netfilter-devel@vger.kernel.org>; Sat, 17 Oct 2015 19:35:07 -0700 (PDT)
+In-Reply-To: <CAOxq_8PF91fpX9jYTgBbXnOVeVfSu3tytu-3P_Zr5OodGRoz+g@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 6aafeef03b9d9ecf
-("netfilter: push reasm skb through instead of original frag skbs")
-changed ipv6 defrag to not use the original skbs anymore.
+Hi guys,
 
-So rather than keeping the original skbs around just to discard them
-afterwards just use the original skbs directly for the fraglist of
-the newly assemled skb.
+Coming back to this crash, I see something interesting in the
+conntrack code in linux 3.4.109 (a supported kernel version). I see
+that the hash table manipulations are protected by a spinlock. Also
+lookups/reads are protected by RCU. However allocation and
+deallocation of conntrack objects happen outside of both the locks.
+It seems to me that a conntrack object can be deallocated and a new
+object can be allocated and initialized within the same RCU grace
+period, while the hash table is being read. It looks like a bug to me.
+Do you guys have any thoughts on this? Situations like the one I
+described can result in the crash I sent below.
 
-Cc: Jiri Pirko <jiri@resnulli.us>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/ipv6/nf_defrag_ipv6.h |  1 -
- net/ipv6/netfilter/nf_conntrack_reasm.c     | 71 ++++-------------------------
- net/ipv6/netfilter/nf_defrag_ipv6_hooks.c   |  2 -
- 3 files changed, 9 insertions(+), 65 deletions(-)
+thanks
+ani
 
-diff --git a/include/net/netfilter/ipv6/nf_defrag_ipv6.h b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-index fb7da5b..fcd20cf 100644
---- a/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-+++ b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-@@ -6,7 +6,6 @@ void nf_defrag_ipv6_enable(void);
- int nf_ct_frag6_init(void);
- void nf_ct_frag6_cleanup(void);
- struct sk_buff *nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user);
--void nf_ct_frag6_consume_orig(struct sk_buff *skb);
- 
- struct inet_frags_ctl;
- 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 056f5d4..1b1a851 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -56,7 +56,6 @@ struct nf_ct_frag6_skb_cb
- {
- 	struct inet6_skb_parm	h;
- 	int			offset;
--	struct sk_buff		*orig;
- };
- 
- #define NFCT_FRAG6_CB(skb)	((struct nf_ct_frag6_skb_cb *)((skb)->cb))
-@@ -170,12 +169,6 @@ static unsigned int nf_hashfn(const struct inet_frag_queue *q)
- 	return nf_hash_frag(nq->id, &nq->saddr, &nq->daddr);
- }
- 
--static void nf_skb_free(struct sk_buff *skb)
--{
--	if (NFCT_FRAG6_CB(skb)->orig)
--		kfree_skb(NFCT_FRAG6_CB(skb)->orig);
--}
--
- static void nf_ct_frag6_expire(unsigned long data)
- {
- 	struct frag_queue *fq;
-@@ -378,7 +371,7 @@ err:
- static struct sk_buff *
- nf_ct_frag6_reasm(struct frag_queue *fq, struct net_device *dev)
- {
--	struct sk_buff *fp, *op, *head = fq->q.fragments;
-+	struct sk_buff *fp, *head = fq->q.fragments;
- 	int    payload_len;
- 	u8 ecn;
- 
-@@ -429,7 +422,6 @@ nf_ct_frag6_reasm(struct frag_queue *fq, struct net_device *dev)
- 		clone->csum = 0;
- 		clone->ip_summed = head->ip_summed;
- 
--		NFCT_FRAG6_CB(clone)->orig = NULL;
- 		add_frag_mem_limit(fq->q.net, clone->truesize);
- 	}
- 
-@@ -473,21 +465,6 @@ nf_ct_frag6_reasm(struct frag_queue *fq, struct net_device *dev)
- 	fq->q.fragments = NULL;
- 	fq->q.fragments_tail = NULL;
- 
--	/* all original skbs are linked into the NFCT_FRAG6_CB(head).orig */
--	fp = skb_shinfo(head)->frag_list;
--	if (fp && NFCT_FRAG6_CB(fp)->orig == NULL)
--		/* at above code, head skb is divided into two skbs. */
--		fp = fp->next;
--
--	op = NFCT_FRAG6_CB(head)->orig;
--	for (; fp; fp = fp->next) {
--		struct sk_buff *orig = NFCT_FRAG6_CB(fp)->orig;
--
--		op->next = orig;
--		op = orig;
--		NFCT_FRAG6_CB(fp)->orig = NULL;
--	}
--
- 	return head;
- 
- out_oversize:
-@@ -565,7 +542,6 @@ find_prev_fhdr(struct sk_buff *skb, u8 *prevhdrp, int *prevhoff, int *fhoff)
- 
- struct sk_buff *nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 user)
- {
--	struct sk_buff *clone;
- 	struct net_device *dev = skb->dev;
- 	struct frag_hdr *fhdr;
- 	struct frag_queue *fq;
-@@ -583,37 +559,25 @@ struct sk_buff *nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 use
- 	if (find_prev_fhdr(skb, &prevhdr, &nhoff, &fhoff) < 0)
- 		return skb;
- 
--	clone = skb_clone(skb, GFP_ATOMIC);
--	if (clone == NULL) {
--		pr_debug("Can't clone skb\n");
-+	if (!pskb_may_pull(skb, fhoff + sizeof(*fhdr)))
- 		return skb;
--	}
--
--	NFCT_FRAG6_CB(clone)->orig = skb;
--
--	if (!pskb_may_pull(clone, fhoff + sizeof(*fhdr))) {
--		pr_debug("message is too short.\n");
--		goto ret_orig;
--	}
- 
--	skb_set_transport_header(clone, fhoff);
--	hdr = ipv6_hdr(clone);
--	fhdr = (struct frag_hdr *)skb_transport_header(clone);
-+	skb_set_transport_header(skb, fhoff);
-+	hdr = ipv6_hdr(skb);
-+	fhdr = (struct frag_hdr *)skb_transport_header(skb);
- 
- 	fq = fq_find(net, fhdr->identification, user, &hdr->saddr, &hdr->daddr,
- 		     ip6_frag_ecn(hdr));
--	if (fq == NULL) {
--		pr_debug("Can't find and can't create new queue\n");
--		goto ret_orig;
--	}
-+	if (fq == NULL)
-+		return skb;
- 
- 	spin_lock_bh(&fq->q.lock);
- 
--	if (nf_ct_frag6_queue(fq, clone, fhdr, nhoff) < 0) {
-+	if (nf_ct_frag6_queue(fq, skb, fhdr, nhoff) < 0) {
- 		spin_unlock_bh(&fq->q.lock);
- 		pr_debug("Can't insert skb to queue\n");
- 		inet_frag_put(&fq->q, &nf_frags);
--		goto ret_orig;
-+		return skb;
- 	}
- 
- 	if (fq->q.flags == (INET_FRAG_FIRST_IN | INET_FRAG_LAST_IN) &&
-@@ -626,25 +590,9 @@ struct sk_buff *nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 use
- 
- 	inet_frag_put(&fq->q, &nf_frags);
- 	return ret_skb;
--
--ret_orig:
--	kfree_skb(clone);
--	return skb;
- }
- EXPORT_SYMBOL_GPL(nf_ct_frag6_gather);
- 
--void nf_ct_frag6_consume_orig(struct sk_buff *skb)
--{
--	struct sk_buff *s, *s2;
--
--	for (s = NFCT_FRAG6_CB(skb)->orig; s;) {
--		s2 = s->next;
--		s->next = NULL;
--		consume_skb(s);
--		s = s2;
--	}
--}
--
- static int nf_ct_net_init(struct net *net)
- {
- 	net->nf_frag.frags.high_thresh = IPV6_FRAG_HIGH_THRESH;
-@@ -673,7 +621,6 @@ int nf_ct_frag6_init(void)
- 	nf_frags.hashfn = nf_hashfn;
- 	nf_frags.constructor = ip6_frag_init;
- 	nf_frags.destructor = NULL;
--	nf_frags.skb_free = nf_skb_free;
- 	nf_frags.qsize = sizeof(struct frag_queue);
- 	nf_frags.match = ip6_frag_match;
- 	nf_frags.frag_expire = nf_ct_frag6_expire;
-diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-index 4fdbed5e..313c1d0 100644
---- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-+++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-@@ -73,8 +73,6 @@ static unsigned int ipv6_defrag(void *priv,
- 	if (reasm == skb)
- 		return NF_ACCEPT;
- 
--	nf_ct_frag6_consume_orig(reasm);
--
- 	NF_HOOK_THRESH(NFPROTO_IPV6, state->hook, state->net, state->sk, reasm,
- 		       state->in, state->out,
- 		       state->okfn, NF_IP6_PRI_CONNTRACK_DEFRAG + 1);
--- 
-2.0.5
-
+On Wed, Oct 7, 2015 at 12:57 PM, Ani Sinha <ani@arista.com> wrote:
+> Hi guys :
+>
+> We encountered a kernel crash on one of our boxes running 3.4.43
+> kernel in the conntrack code. We are using dnsmasq as a proxy to relay
+> our dns requests to the real dns server. We verified that the
+> conntrack tables were not full. running conntrack -L around the time
+> of the crash showed that it had more than 2100 entries for dnsmasq.
+>
+> Looking upstream, I see a couple of patches which fixes race condition
+> around the use of the conntrack hash table with RCU (lock free read)
+> primitives :
+>
+> commit c6825c0976fa7893692e0e43b09740b419b23c09
+> Author: Andrey Vagin <avagin@openvz.org>
+> Date:   Wed Jan 29 19:34:14 2014 +0100
+>      netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
+>
+> and a followup patch :
+>
+> commit e53376bef2cd97d3e3f61fdc677fb8da7d03d0da
+> Author: Pablo Neira Ayuso <pablo@netfilter.org>
+> Date:   Mon Feb 3 20:01:53 2014 +0100
+>         netfilter: nf_conntrack: don't release a conntrack with non-zero refcnt
+>
+>
+> We are trying to reproduce the crash again but it is very rare.
+> Meanwhile, I have two questions:
+>
+> - Do you guys think the race condition described in the above two
+> patches have anything to do with the crash I mention below?
+> - If answer to the above is a NO, then have you guys have any other
+> reports of a similar crash or any idea what could be going on?
+>
+> We are still investigating and I will update this thread if I can get
+> additional info.
+>
+> Thanks
+> Ani
+>
+> <1>[10618591.817967] BUG: unable to handle kernel NULL pointer
+> dereference at           (null)
+> <1>[10618591.914483] IP: [<ffffffffa007b3f7>]
+> __nf_conntrack_confirm+0x1fb/0x36c [nf_conntrack]
+> <4>[10618592.012027] PGD 5aa67067 PUD 5b4f4067 PMD 0
+> <4>[10618592.012035] Oops: 0002 [#1] PREEMPT SMP
+> <4>[10618592.012041] CPU 1
+> <4>[10618592.012043] Modules linked in: xt_comment sch_prio fpdma(PO)
+> msr nf_conntrack_ipv6 nf_defrag_ipv6 ip6t_REJECT ip6table_mangle
+> nf_conntrack_ipv4
+> nf_defr
+> ag_ipv4 xt_LOG xt_limit xt_hl xt_state ipt_REJECT xt_multiport
+> xt_tcpudp iptable_mangle kbfd(O) 8021q garp stp llc tun
+> nf_conntrack_tftp iptable_raw
+> iptable_fil
+> ter ip_tables xt_NOTRACK nf_conntrack xt_mark ip6table_raw
+> ip6table_filter ip6_tables x_tables k10temp hwmon amd64_edac_mod
+> scd(O) microcode kvm_amd kvm
+> <4>[10618592.012092]
+> <4>[10618592.012096] Pid: 5586, comm: dnsmasq Tainted: P           O 3.4.43 #1
+> <4>[10618592.012102] RIP: 0010:[<ffffffffa007b3f7>]
+> [<ffffffffa007b3f7>] __nf_conntrack_confirm+0x1fb/0x36c [nf_conntrack]
+> <4>[10618592.012112] RSP: 0018:ffff88005aa1fb98  EFLAGS: 00010202
+> <4>[10618592.012116] RAX: 0000000000002769 RBX: ffff880063d58658 RCX:
+> 000000001cc74948
+> <4>[10618592.012120] RDX: 0000000000000000 RSI: ffff88010cd80000 RDI:
+> 0000000000004000
+> <4>[10618592.012123] RBP: ffff88005aa1fbc8 R08: 00000000872541be R09:
+> 000000007aa31682
+> <4>[10618592.012127] R10: ffff880063d586d8 R11: ffff88005aa1fb68 R12:
+> ffffffff81648180
+> <4>[10618592.012130] R13: 00000000000017ef R14: 000000000000bf78 R15:
+> 0000000000009da0
+> <4>[10618592.012135] FS:  0000000000000000(0000)
+> GS:ffff88013fb00000(0063) knlGS:00000000f74126d0
+> <4>[10618592.012139] CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
+> <4>[10618592.012142] CR2: 0000000000000000 CR3: 000000005b412000 CR4:
+> 00000000000007e0
+> <4>[10618592.012146] DR0: 0000000000000000 DR1: 0000000000000000 DR2:
+> 0000000000000000
+> <4>[10618592.012149] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7:
+> 0000000000000400
+> <4>[10618592.012154] Process dnsmasq (pid: 5586, threadinfo
+> ffff88005aa1e000, task ffff8800727d6050)
+> <4>[10618592.012156] Stack:
+> <4>[10618592.012159]  0000000000000000 ffff8800889050c0
+> ffff8800889050c0 ffff880063d58658
+> <4>[10618592.012166]  0000000000000004 0000000000000002
+> ffff88005aa1fc38 ffffffffa00e3c54
+> <4>[10618592.012172]  0000000000000004 0000000000000000
+> ffff88005aa1fc38 ffffffffa0078168
+> <4>[10618592.012179] Call Trace:
+> <4>[10618592.012186] [<ffffffffa00e3c54>] ipv4_confirm+0x17e/0x1a5
+> [nf_conntrack_ipv4]
+> <4>[10618592.012192] [<ffffffffa0078168>] ?
+> iptable_mangle_hook+0xfa/0x116 [iptable_mangle]
+> <4>[10618592.012199] [<ffffffff81324afe>] ? ip_finish_output+0x0/0x36f
+> <4>[10618592.012205] [<ffffffff8131900f>] nf_iterate+0x43/0x78
+> <4>[10618592.012210] [<ffffffff81324afe>] ? ip_finish_output+0x0/0x36f
+> <4>[10618592.012214] [<ffffffff813191a1>] nf_hook_slow+0x6e/0x106
+> <4>[10618592.012219] [<ffffffff81324afe>] ? ip_finish_output+0x0/0x36f
+> <4>[10618592.012224] [<ffffffff813222e8>] ? dst_output+0x0/0x11
+> <4>[10618592.012229] [<ffffffff81324ef0>] ip_output+0x83/0x97
+> <4>[10618592.012234] [<ffffffff813240a3>] ? __ip_local_out+0x9c/0x9e
+> <4>[10618592.012239] [<ffffffff813240c9>] ip_local_out+0x24/0x28
+> <4>[10618592.012244] [<ffffffff8132462f>] ip_queue_xmit+0x2e4/0x322
+> <4>[10618592.012249] [<ffffffff81336f97>] tcp_transmit_skb+0x766/0x7a7
+> <4>[10618592.012254] [<ffffffff81337345>] tcp_send_active_reset+0xd8/0x104
+> <4>[10618592.012258] [<ffffffff8132b8c6>] tcp_close+0x101/0x335
+> <4>[10618592.012264] [<ffffffff8134b8f2>] inet_release+0x7b/0x82
+> <4>[10618592.012269] [<ffffffff812ea36e>] sock_release+0x1a/0x72
+> <4>[10618592.012273] [<ffffffff812ea3e8>] sock_close+0x22/0x26
+> <4>[10618592.012278] [<ffffffff810aad2d>] fput+0x117/0x1f8
+> <4>[10618592.012283] [<ffffffff810a7ce2>] filp_close+0x6d/0x78
+> <4>[10618592.012288] [<ffffffff810a7d7b>] sys_close+0x8e/0xc8
+> <4>[10618592.012293] [<ffffffff813dcacb>] cstar_dispatch+0x7/0x1e
+> <4>[10618592.012296] Code: 31 d2 0f b6 d2 85 d2 0f 85 61 01 00 00 48
+> 8b 00 a8 01 75 0d 8b 53 68 3b 50 10 75 94 e9 6a ff ff ff 48 8b 43 20
+> 48 8b 53 28 a8 01
+> <48>
+>  89 02 75 04 48 89 50 08 49 bd 00 02 20 00 00 00 ad de 48 8d
+> <1>[10618592.012355] RIP  [<ffffffffa007b3f7>]
+> __nf_conntrack_confirm+0x1fb/0x36c [nf_conntrack]
+> <4>[10618592.110942]  RSP <ffff88005aa1fb98>
+> <4>[10618592.110944] CR2: 0000000000000000
+>
+>
+> The crash happened here in this code :
+>
+> static inline void __hlist_nulls_del(struct hlist_nulls_node *n)
+> {
+>        struct hlist_nulls_node *next = n->next;
+>         struct hlist_nulls_node **pprev = n->pprev;
+>                                                    *pprev = next;
+>          1ac1:       48 89 02                mov    %rax,(%rdx)  <==== CRASH
+>         if (!is_a_nulls(next))
+>     1ac4:       75 04                   jne    1aca
+> <nf_ct_delete_from_lists+0x62>
+> next->pprev = pprev;
+>
+> 1ac6:       48 89 50 08             mov    %rdx,0x8(%rax)
+> * hlist_nulls_for_each_entry().
+> */
+>
+> The instruction is *prev = next and pprev pointer is NULL (RDX)
