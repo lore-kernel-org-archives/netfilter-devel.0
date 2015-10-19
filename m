@@ -1,69 +1,76 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/4] netfilter: ipt_rpfilter: remove the nh_scope test in rpfilter_lookup_reverse
-Date: Mon, 19 Oct 2015 20:22:53 +0200
-Message-ID: <1445278975-2412-3-git-send-email-pablo@netfilter.org>
-References: <1445278975-2412-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1445278975-2412-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
+From: Ani Sinha <ani@arista.com>
+Subject: Re: linux 3.4.43 : kernel crash at __nf_conntrack_confirm
+Date: Mon, 19 Oct 2015 13:22:51 -0700
+Message-ID: <CAOxq_8N1Cx8duPy47THVMnDqN58=a_=gbmzksvVarVr9qkS5Uw@mail.gmail.com>
+References: <CAOxq_8PF91fpX9jYTgBbXnOVeVfSu3tytu-3P_Zr5OodGRoz+g@mail.gmail.com>
+ <CAOxq_8Pt7VMwkV8+wdjS9vj=-L0L8Xxkd3Beit0zZN_oR6ixhw@mail.gmail.com>
+ <20151018080702.GA14564@breakpoint.cc> <CAOxq_8NLLFyNCSDJ68+VjxFGpNSex8ShdhGFNBHK29g_+UBW6g@mail.gmail.com>
+ <alpine.OSX.2.20.1510181409060.87917@athabasca.local> <20151018214050.GD4386@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <20151018214050.GD4386@breakpoint.cc>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: lucien <lucien.xin@gmail.com>
+On Sun, Oct 18, 2015 at 2:40 PM, Florian Westphal <fw@strlen.de> wrote:
+> Ani Sinha <ani@arista.com> wrote:
+>> Indeed. So it seems to me that we have run into one another such case.
+>> In patch c6825c0976fa7893692, I see we have added an additional check (along with comparing tuple and zone) to verify that if the conntrack is confirmed.
+>>
+>> +       return nf_ct_tuple_equal(tuple, &h->tuple) &&
+>> +               nf_ct_zone(ct) == zone &&
+>> +               nf_ct_is_confirmed(ct);
+>>
+>> This is necessary since it's possible that a conntrack can be recreated with the same zone.
+>> Unfortunately, we leave a hole open in __nf_conntrack_confirm() because this routine _is_ responsible
+>> for confirming the conntrack. We cannot use the same logic here.
+>
+> Hmm, why?
+>
+> I don't understand why we need to change __nf_conntrack_confirm(), can
+> you elaborate?
 
---accept-local  option works for res.type == RTN_LOCAL, which should be
-from the local table, but there, the fib_info's nh->nh_scope =
-RT_SCOPE_NOWHERE ( > RT_SCOPE_HOST). in fib_create_info().
+ok, let's take a step back. The fundamental question I am trying to
+find answer to is that whether it is possible for another thread to
+deallocate and then reallocate and initialize the conntrack object
+while running concurrently during __nf_conntrack_confirm() . The crash
+below seems to indicate that this can happen.
 
-	if (cfg->fc_scope == RT_SCOPE_HOST) {
-		struct fib_nh *nh = fi->fib_nh;
+However, in the current 3.4 release (and the image which generated the
+crash), we do not have the patch
 
-		/* Local address is added. */
-		if (nhs != 1 || nh->nh_gw)
-			goto err_inval;
-		nh->nh_scope = RT_SCOPE_NOWHERE;   <===
-		nh->nh_dev = dev_get_by_index(net, fi->fib_nh->nh_oif);
-		err = -ENODEV;
-		if (!nh->nh_dev)
-			goto failure;
+e53376bef2cd97d3e3f61fdc6
 
-but in our rpfilter_lookup_reverse():
+applied. This patch bumps the refcount before adding the connrack
+entry into the unconfirmed list.
 
-	if (dev_match || flags & XT_RPFILTER_LOOSE)
-		return FIB_RES_NH(res).nh_scope <= RT_SCOPE_HOST;
++ /* Now it is inserted into the unconfirmed list, bump refcount */
++ nf_conntrack_get(&ct->ct_general);
 
-if nh->nh_scope > RT_SCOPE_HOST, it will fail. --accept-local option
-will never be passed.
+and if we assume the invariant that nf_conntrack_free() is never
+called when refcount is !=0, then this would seem to indicate that the
+above patch should fix the crash I mentioned in the thread.
 
-it seems the test is bogus and can be removed to fix this issue.
+One curious piece of hunk is :
 
-	if (dev_match || flags & XT_RPFILTER_LOOSE)
-		return FIB_RES_NH(res).nh_scope <= RT_SCOPE_HOST;
++ /* A freed object has refcnt == 0, that's
++ * the golden rule for SLAB_DESTROY_BY_RCU
++ */
++ NF_CT_ASSERT(atomic_read(&ct->ct_general.use) == 0);
++
 
-ipv6 does not have this issue.
+First, this assertion only puts a warning log at best when it fails.
+Second, if this assertion is false, at some point we will get into a
+kernel crash as the one I mentioned. So this assertion effectively
+does nothing other than perhaps help in debugging. Third, the very
+fact that this assertion was placed seems to indicate that there might
+be cases where we can free a conntrack object with non-zero ref-count.
 
-Signed-off-by: Xin Long <lucien.xin@gmail.com>
-Acked-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter/ipt_rpfilter.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/ipt_rpfilter.c
-index 8618fd1..c4ffc9d 100644
---- a/net/ipv4/netfilter/ipt_rpfilter.c
-+++ b/net/ipv4/netfilter/ipt_rpfilter.c
-@@ -61,9 +61,7 @@ static bool rpfilter_lookup_reverse(struct flowi4 *fl4,
- 	if (FIB_RES_DEV(res) == dev)
- 		dev_match = true;
- #endif
--	if (dev_match || flags & XT_RPFILTER_LOOSE)
--		return FIB_RES_NH(res).nh_scope <= RT_SCOPE_HOST;
--	return dev_match;
-+	return dev_match || flags & XT_RPFILTER_LOOSE;
- }
- 
- static bool rpfilter_is_local(const struct sk_buff *skb)
--- 
-2.1.4
+Does all this makes sense?
