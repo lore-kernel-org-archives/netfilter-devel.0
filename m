@@ -1,49 +1,90 @@
-From: Akemi Yagi <amyagi@gmail.com>
-Subject: Re: [PATCH v2 net-next] netfilter: ipset: Fixing unnamed union initg
-Date: Mon, 19 Oct 2015 13:51:19 -0700
-Message-ID: <CABA31DrViktaYpz3nO1G4TPGpovhZ+O1YfwhfQNm7d7XPsAcAA@mail.gmail.com>
-References: <1440222251-21132-1-git-send-email-eladr@mellanox.com>
- <alpine.DEB.2.10.1508222006570.13403@blackhole.kfki.hu> <20150822184448.GA3610@salvia>
- <20150828225943.GA22393@salvia> <CABA31DoF20veE1c_TxY_xZ=Zk0ThmwGCAthbLb8SJLu608rxHg@mail.gmail.com>
- <CAHTgTXU+A6Rg8oT0iUDCyTCRtTbBWEe9oDxCY6fEFNj-1v1-xA@mail.gmail.com>
- <CABA31DqmtsrK-O7j=X4mJYSBz2rMV28u0mZ=z2RWEJ4w8pTGBQ@mail.gmail.com> <20150913115201.GE3691@salvia>
+From: Ani Sinha <ani@arista.com>
+Subject: Re: linux 3.4.43 : kernel crash at __nf_conntrack_confirm
+Date: Mon, 19 Oct 2015 15:13:57 -0700
+Message-ID: <CAOxq_8PeZjAArp5HbVa_TaaguQg-pG5GUCjCJjnmNZw_Ge7RGQ@mail.gmail.com>
+References: <CAOxq_8PF91fpX9jYTgBbXnOVeVfSu3tytu-3P_Zr5OodGRoz+g@mail.gmail.com>
+ <CAOxq_8Pt7VMwkV8+wdjS9vj=-L0L8Xxkd3Beit0zZN_oR6ixhw@mail.gmail.com>
+ <20151018080702.GA14564@breakpoint.cc> <CAOxq_8NLLFyNCSDJ68+VjxFGpNSex8ShdhGFNBHK29g_+UBW6g@mail.gmail.com>
+ <alpine.OSX.2.20.1510181409060.87917@athabasca.local> <20151018214050.GD4386@breakpoint.cc>
+ <CAOxq_8N1Cx8duPy47THVMnDqN58=a_=gbmzksvVarVr9qkS5Uw@mail.gmail.com> <20151019203314.GG4386@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: Netdev <netdev@vger.kernel.org>,
+Cc: Patrick McHardy <kaber@trash.net>,
 	"David S. Miller" <davem@davemloft.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Elad Raz <eladr@mellanox.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	netfilter-devel@vger.kernel.org,
-	Oliver Smith <oliver@8.c.9.b.0.7.4.0.1.0.0.2.ip6.arpa>,
-	Jiri Pirko <jiri@resnulli.us>,
-	Patrick McHardy <kaber@trash.net>,
-	Sergey Popovich <popovich_sergei@mail.ua>,
-	Anton Danilov <littlesmilingcloud@gmail.com>,
-	Guenter Roeck <linux@roeck-us.net>,
-	Cong Wang <cwang@twopensource.com>,
-	Alan Bartlett <ajb@elrepo.org>,
-	Vinson Lee <vlee@twopensource.com>, stable@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20150913115201.GE3691@salvia>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-io0-f174.google.com ([209.85.223.174]:33928 "EHLO
+	mail-io0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752035AbbJSWOR (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 19 Oct 2015 18:14:17 -0400
+Received: by iow1 with SMTP id 1so2468712iow.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 19 Oct 2015 15:14:16 -0700 (PDT)
+In-Reply-To: <20151019203314.GG4386@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Sep 13, 2015 at 4:52 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sat, Sep 12, 2015 at 06:01:27PM -0700, Akemi Yagi wrote:
->> Thanks to all for this effort. The patch is finally in the mainline
->> kernel 4.3-rc1 released today. Now I wish backporting to the 4.2
->> branch goes smoothly.
+On Mon, Oct 19, 2015 at 1:33 PM, Florian Westphal <fw@strlen.de> wrote:
+> Ani Sinha <ani@arista.com> wrote:
+>> On Sun, Oct 18, 2015 at 2:40 PM, Florian Westphal <fw@strlen.de> wrote:
+>> > Ani Sinha <ani@arista.com> wrote:
+>> >> Indeed. So it seems to me that we have run into one another such case.
+>> >> In patch c6825c0976fa7893692, I see we have added an additional check (along with comparing tuple and zone) to verify that if the conntrack is confirmed.
+>> >>
+>> >> +       return nf_ct_tuple_equal(tuple, &h->tuple) &&
+>> >> +               nf_ct_zone(ct) == zone &&
+>> >> +               nf_ct_is_confirmed(ct);
+>> >>
+>> >> This is necessary since it's possible that a conntrack can be recreated with the same zone.
+>> >> Unfortunately, we leave a hole open in __nf_conntrack_confirm() because this routine _is_ responsible
+>> >> for confirming the conntrack. We cannot use the same logic here.
+>> >
+>> > Hmm, why?
+>> >
+>> > I don't understand why we need to change __nf_conntrack_confirm(), can
+>> > you elaborate?
+>>
+>> ok, let's take a step back. The fundamental question I am trying to
+>> find answer to is that whether it is possible for another thread to
+>> deallocate and then reallocate and initialize the conntrack object
+>> while running concurrently during __nf_conntrack_confirm() .
 >
-> It's on its path to 4.2:
+> Not unless something is broken.
+
+With or without e53376bef2cd97d3e3f61fdc6 ?
+
 >
-> http://patchwork.ozlabs.org/patch/516795/
+>> crash), we do not have the patch
+>>
+>> e53376bef2cd97d3e3f61fdc6
+>>
+>> applied. This patch bumps the refcount before adding the connrack
+>> entry into the unconfirmed list.
 >
-> so I think this will hit 4.2 soon. Thanks!
-
-Yes, I finally see it in 4.2.4 to be released in the next few days.
-
-Thank you,
-
-Akemi
+> Yes, that patch fixes such bug.
+>
+>> + /* Now it is inserted into the unconfirmed list, bump refcount */
+>> + nf_conntrack_get(&ct->ct_general);
+>>
+>> and if we assume the invariant that nf_conntrack_free() is never
+>> called when refcount is !=0, then this would seem to indicate that the
+>> above patch should fix the crash I mentioned in the thread.
+>
+> nf_conntrack_free must only be invoked after refcount becomes zero, right.
+>
+>> One curious piece of hunk is :
+>>
+>> + /* A freed object has refcnt == 0, that's
+>> + * the golden rule for SLAB_DESTROY_BY_RCU
+>> + */
+>> + NF_CT_ASSERT(atomic_read(&ct->ct_general.use) == 0);
+>> +
+>> First, this assertion only puts a warning log at best when it fails.
+>> Second, if this assertion is false, at some point we will get into a
+>> kernel crash as the one I mentioned. So this assertion effectively
+>> does nothing other than perhaps help in debugging.
+>
+> Right.
