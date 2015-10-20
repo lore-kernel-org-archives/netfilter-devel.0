@@ -1,8 +1,9 @@
 From: Joe Stringer <joestringer@nicira.com>
-Subject: Re: [PATCH nf-next 3/4] netfilter: ipv6: in-place replacement of last skb
-Date: Tue, 20 Oct 2015 11:39:24 -0700
-Message-ID: <CANr6G5zgPbVeagJUePm9+e_fxSBu5Kr9iYM_k+Eh672h0Pa9kQ@mail.gmail.com>
-References: <1445112865-31523-1-git-send-email-fw@strlen.de> <1445112865-31523-4-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH nf-next 0/4] netfilter: rework netfilter ipv6 defrag
+Date: Tue, 20 Oct 2015 11:43:18 -0700
+Message-ID: <CANr6G5xW7m2SXFiU22pFVD6uvDj5ymX=jZkRJk2vMYQoJykvLw@mail.gmail.com>
+References: <1445112865-31523-1-git-send-email-fw@strlen.de>
+ <CANr6G5zvmj_tL5Pt6-70GQ4dTJXLewX9A4uMGC_0OFzXYQVdew@mail.gmail.com> <20151020081716.GH4386@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Cc: netfilter-devel@vger.kernel.org,
@@ -10,54 +11,79 @@ Cc: netfilter-devel@vger.kernel.org,
 	Andy Zhou <azhou@nicira.com>
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yk0-f173.google.com ([209.85.160.173]:34242 "EHLO
-	mail-yk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751140AbbJTSjo (ORCPT
+Received: from mail-yk0-f174.google.com ([209.85.160.174]:36783 "EHLO
+	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751140AbbJTSnh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Oct 2015 14:39:44 -0400
-Received: by ykdr3 with SMTP id r3so25860058ykd.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2015 11:39:44 -0700 (PDT)
-In-Reply-To: <1445112865-31523-4-git-send-email-fw@strlen.de>
+	Tue, 20 Oct 2015 14:43:37 -0400
+Received: by ykba4 with SMTP id a4so19909012ykb.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2015 11:43:37 -0700 (PDT)
+In-Reply-To: <20151020081716.GH4386@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 17 October 2015 at 13:14, Florian Westphal <fw@strlen.de> wrote:
-> @@ -425,6 +425,35 @@ nf_ct_frag6_reasm(struct frag_queue *fq, struct net_device *dev)
->                 add_frag_mem_limit(fq->q.net, clone->truesize);
->         }
+On 20 October 2015 at 01:17, Florian Westphal <fw@strlen.de> wrote:
+> Joe Stringer <joestringer@nicira.com> wrote:
+>> On 17 October 2015 at 13:14, Florian Westphal <fw@strlen.de> wrote:
+>> > [ CC netdev since patch #2 isn't nf-specific.  Dave, if you want
+>> >   I can resubmit that one after the next nf-pull request; let me know if
+>> >   you would prefer that ].
+>> >
+>> > Openvswitch seems broken wrt. to defragmentation, it doesn't call
+>> > nf_ct_frag6_consume_orig to free the original fragments.
+>>
+>> This will need to be fixed for 'net' as well, do you have a path in
+>> mind for that?
 >
-> +       /* morph head into last received skb: prev.
-> +        *
-> +        * This allows callers of ipv6 conntrack defrag to continue
-> +        * to use the last skb(frag) passed into the reasm engine.
-> +        * The last skb frag 'silently' turns into the full reassembled skb.
-> +        *
-> +        * Since prev is also part of q->fragments we have to clone it first.
-> +        */
-> +       if (head != prev) {
-> +               struct sk_buff *iter;
-> +
-> +               fp = skb_clone(prev, GFP_ATOMIC);
-> +               if (!fp)
-> +                       goto out_oom;
-> +
-> +               fp->next = prev->next;
-> +               skb_queue_walk(head, iter) {
-> +                       if (iter->next != prev)
-> +                               continue;
-> +                       iter->next = fp;
-> +                       break;
-> +               }
-> +
-> +               skb_morph(prev, head);
-> +               prev->next = head->next;
-> +               consume_skb(head);
-> +               head = prev;
-> +       }
-> +
->         /* We have to remove fragment header from datagram and to relocate
->          * header in order to calculate ICV correctly. */
->         skb_network_header(head)[fq->nhoffset] = skb_transport_header(head)[0];
+> Good point.  No, I don't.  Any suggestions?
+> I can try to just re-target -nf tree (sans patch #2).  Pablo?
 
-This hunk looks very similar to the logic in ip_frag_reasm(). Did you
-consider refactoring to share it?
+The smallest change seems to be adding the nf_ct_frag6_consume_orig()
+call to OVS, plus the morph logic from patch 3. Alternatively if Pablo
+is fine with having the series re-targeted, then that sounds
+reasonable to me too.
+
+> ipv4 side seems broken as well (ip_defrag frees skb on errors other than
+> -EINPROGRESS, so it looks like we will double-free in
+> do_execute_actions)
+
+Oh dear. Thanks for the report. I propose wrapping the ip_defrag()
+with an skb_get()/skb_consume() as this seems to require the least
+invasive changes:
+
+diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+index a5ec34f8502f..0d2d24c99fd5 100644
+--- a/net/openvswitch/conntrack.c
++++ b/net/openvswitch/conntrack.c
+@@ -303,7 +303,11 @@ static int handle_fragments(struct net *net,
+struct sw_flow_key *key,
+                int err;
+
+                memset(IPCB(skb), 0, sizeof(struct inet_skb_parm));
++
++               skb_get(skb);
+                err = ip_defrag(skb, user);
++               if (!err || err == -EINPROGRESS)
++                       consume_skb(skb);
+                if (err)
+                        return err;
+
+I don't have a test environment to verify this at the moment though.
+Let me know if you'll take this with your patch series or if you'd
+like me to send it out.
+
+>> Patch 3 when taken independently from patch 4 hides user-visible error
+>> codes on the OVS side. The OVS conntrack action hides -EINPROGRESS
+>> from userspace, treating it as a successful execution. All other
+>> errors are returned up. With that patch, all errors will be hidden. I
+>> see that it's fixed in Patch 4, so maybe it's not a biggie but those
+>> two patches should be tightly coupled.
+>
+> You're right, we can't signal "skb unchanged".  I guess one could
+> just test wheter skb is a fragment and -EINVAL if it is, not sure
+> if its worth doing given that such test would be removed again
+> by the very next patch?
+
+On second thought, this would only affect 'net', and if we're
+considering the solution for that tree too then it really doesn't
+matter.
