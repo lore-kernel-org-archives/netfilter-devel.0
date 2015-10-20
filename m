@@ -1,53 +1,57 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH net] netfilter: xt_TEE: fix NULL dereference
-Date: Mon, 19 Oct 2015 18:02:01 -0700
-Message-ID: <1445302921.30896.34.camel@edumazet-glaptop2.roam.corp.google.com>
+From: Joe Stringer <joestringer@nicira.com>
+Subject: Re: [PATCH nf-next 0/4] netfilter: rework netfilter ipv6 defrag
+Date: Mon, 19 Oct 2015 23:16:33 -0700
+Message-ID: <CANr6G5zvmj_tL5Pt6-70GQ4dTJXLewX9A4uMGC_0OFzXYQVdew@mail.gmail.com>
+References: <1445112865-31523-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	Andy Zhou <azhou@nicira.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1445112865-31523-1-git-send-email-fw@strlen.de>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Eric Dumazet <edumazet@google.com>
+On 17 October 2015 at 13:14, Florian Westphal <fw@strlen.de> wrote:
+> [ CC netdev since patch #2 isn't nf-specific.  Dave, if you want
+>   I can resubmit that one after the next nf-pull request; let me know if
+>   you would prefer that ].
+>
+> Openvswitch seems broken wrt. to defragmentation, it doesn't call
+> nf_ct_frag6_consume_orig to free the original fragments.
 
-iptables -I INPUT ... -j TEE --gateway 10.1.2.3
+This will need to be fixed for 'net' as well, do you have a path in
+mind for that?
 
-<crash> because --oif was not specified
+> Moreover, openvswitch design seems to require that it can reuse current
+> skb rather than work with a new skb pointer (it uses skb_morph for this).
+>
+> Instead of OVS-side fix this series tries to alter netfilter ipv6 defrag
+> accordingly.
+>
+> 1. nf_ct_frag6_consume_orig is removed, since
+> commit 6aafeef03b9d9ecf ("netfilter: push reasm skb through instead of
+> original frag skbs") nothing needs the original fragments so there is no
+> reason why we need to clone+store original skb -- just stash original
+> skbs in the frag_list.
+>
+> 2. Use skb_morph to make the last skb processed (not necessarily last
+> fragment) the reassembled one.
+>
+> 3. remove the no-longer needed recursion into nf_iterate, we can now just
+> return ACCEPT/STOLEN as needed instead of NF_HOOK_THRESH()+NF_STOLEN.
+>
+> Tested with flood-ping6+ fault-injection framework 'failslab' type.
 
-tee_tg_check() sets ->priv pointer to NULL in this case.
+Overall, I like it in that it seems to make the IPv6 code more
+consistent with IPv4, and it's a net negative LoC, simplifying the
+code.
 
-Fixes: bbde9fc1824a ("netfilter: factor out packet duplication for IPv4/IPv6")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
----
- net/netfilter/xt_TEE.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
-index fd980aa7715d..c5fdea18a9af 100644
---- a/net/netfilter/xt_TEE.c
-+++ b/net/netfilter/xt_TEE.c
-@@ -31,8 +31,9 @@ static unsigned int
- tee_tg4(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct xt_tee_tginfo *info = par->targinfo;
-+	int oif = info->priv ? info->priv->oif : 0;
- 
--	nf_dup_ipv4(skb, par->hooknum, &info->gw.in, info->priv->oif);
-+	nf_dup_ipv4(skb, par->hooknum, &info->gw.in, oif);
- 
- 	return XT_CONTINUE;
- }
-@@ -42,8 +43,9 @@ static unsigned int
- tee_tg6(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct xt_tee_tginfo *info = par->targinfo;
-+	int oif = info->priv ? info->priv->oif : 0;
- 
--	nf_dup_ipv6(skb, par->hooknum, &info->gw.in6, info->priv->oif);
-+	nf_dup_ipv6(skb, par->hooknum, &info->gw.in6, oif);
- 
- 	return XT_CONTINUE;
- }
+Patch 3 when taken independently from patch 4 hides user-visible error
+codes on the OVS side. The OVS conntrack action hides -EINPROGRESS
+from userspace, treating it as a successful execution. All other
+errors are returned up. With that patch, all errors will be hidden. I
+see that it's fixed in Patch 4, so maybe it's not a biggie but those
+two patches should be tightly coupled.
