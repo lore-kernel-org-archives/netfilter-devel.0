@@ -1,77 +1,40 @@
-From: Thomas Graf <tgraf-G/eBtMaohhA@public.gmane.org>
-Subject: Re: [RFC PATCH 2/5] netfilter: Factor out
-	nf_ct_get_info().
-Date: Wed, 21 Oct 2015 10:50:23 +0200
-Message-ID: <20151021085023.GA15766@pox.localdomain>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC PATCH 4/5] openvswitch: conntrack netlink API updates.
+Date: Wed, 21 Oct 2015 12:41:33 +0200
+Message-ID: <20151021104133.GA2135@salvia>
 References: <1445379629-112880-1-git-send-email-jrajahalme@nicira.com>
- <1445379629-112880-2-git-send-email-jrajahalme@nicira.com>
+ <1445379629-112880-4-git-send-email-jrajahalme@nicira.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarno Rajahalme <jrajahalme-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org>
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, dev@openvswitch.org,
+	netfilter-devel@vger.kernel.org
+To: Jarno Rajahalme <jrajahalme@nicira.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:50119 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752118AbbJUKea (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 Oct 2015 06:34:30 -0400
 Content-Disposition: inline
-In-Reply-To: <1445379629-112880-2-git-send-email-jrajahalme-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1445379629-112880-4-git-send-email-jrajahalme@nicira.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-T24gMTAvMjAvMTUgYXQgMDM6MjBwbSwgSmFybm8gUmFqYWhhbG1lIHdyb3RlOgo+IERlZmluZSBh
-IG5ldyBpbmxpbmUgZnVuY3Rpb24gdG8gbWFwIGNvbm50cmFjayBzdGF0dXMgdG8gZW51bQo+IGlw
-X2Nvbm50cmFja19pbmZvLiAgVGhpcyByZW1vdmVzIHRoZSBuZWVkIHRvIG90aGVyd2lzZSBkdXBs
-aWNhdGUgdGhpcwo+IGNvZGUgaW4gYSBsYXRlciBwYXRjaC4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBK
-YXJubyBSYWphaGFsbWUgPGpyYWphaGFsbWVAbmljaXJhLmNvbT4KCkxHVE0KCj4gLS0tCj4gIGlu
-Y2x1ZGUvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2suaCB8IDE1ICsrKysrKysrKysrKysrKwo+
-ICBuZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19jb3JlLmMgICAgfCAyMiArKystLS0tLS0tLS0t
-LS0tLS0tLS0tCj4gIDIgZmlsZXMgY2hhbmdlZCwgMTggaW5zZXJ0aW9ucygrKSwgMTkgZGVsZXRp
-b25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbmV0L25ldGZpbHRlci9uZl9jb25udHJh
-Y2suaCBiL2luY2x1ZGUvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2suaAo+IGluZGV4IGZkZTQw
-NjguLmIzZGUxMGUgMTAwNjQ0Cj4gLS0tIGEvaW5jbHVkZS9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50
-cmFjay5oCj4gKysrIGIvaW5jbHVkZS9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFjay5oCj4gQEAg
-LTEyNSw2ICsxMjUsMjEgQEAgbmZfY3RfdHVwbGVoYXNoX3RvX2N0cmFjayhjb25zdCBzdHJ1Y3Qg
-bmZfY29ubnRyYWNrX3R1cGxlX2hhc2ggKmhhc2gpCj4gIAkJCSAgICB0dXBsZWhhc2hbaGFzaC0+
-dHVwbGUuZHN0LmRpcl0pOwo+ICB9Cj4gIAo+ICtzdGF0aWMgaW5saW5lIGVudW0gaXBfY29ubnRy
-YWNrX2luZm8KPiArbmZfY3RfZ2V0X2luZm8oY29uc3Qgc3RydWN0IG5mX2Nvbm50cmFja190dXBs
-ZV9oYXNoICpoKQo+ICt7Cj4gKwljb25zdCBzdHJ1Y3QgbmZfY29ubiAqY3QgPSBuZl9jdF90dXBs
-ZWhhc2hfdG9fY3RyYWNrKGgpOwo+ICsKPiArCWlmIChORl9DVF9ESVJFQ1RJT04oaCkgPT0gSVBf
-Q1RfRElSX1JFUExZKQo+ICsJCXJldHVybiBJUF9DVF9FU1RBQkxJU0hFRF9SRVBMWTsKPiArCS8q
-IE9uY2Ugd2UndmUgaGFkIHR3byB3YXkgY29tbXMsIGFsd2F5cyBFU1RBQkxJU0hFRC4gKi8KPiAr
-CWlmICh0ZXN0X2JpdChJUFNfU0VFTl9SRVBMWV9CSVQsICZjdC0+c3RhdHVzKSkKPiArCQlyZXR1
-cm4gSVBfQ1RfRVNUQUJMSVNIRUQ7Cj4gKwlpZiAodGVzdF9iaXQoSVBTX0VYUEVDVEVEX0JJVCwg
-JmN0LT5zdGF0dXMpKQo+ICsJCXJldHVybiBJUF9DVF9SRUxBVEVEOwo+ICsJcmV0dXJuIElQX0NU
-X05FVzsKPiArfQo+ICsKPiAgc3RhdGljIGlubGluZSB1X2ludDE2X3QgbmZfY3RfbDNudW0oY29u
-c3Qgc3RydWN0IG5mX2Nvbm4gKmN0KQo+ICB7Cj4gIAlyZXR1cm4gY3QtPnR1cGxlaGFzaFtJUF9D
-VF9ESVJfT1JJR0lOQUxdLnR1cGxlLnNyYy5sM251bTsKPiBkaWZmIC0tZ2l0IGEvbmV0L25ldGZp
-bHRlci9uZl9jb25udHJhY2tfY29yZS5jIGIvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfY29y
-ZS5jCj4gaW5kZXggM2NiM2NiOC4uNzBkZGJkOCAxMDA2NDQKPiAtLS0gYS9uZXQvbmV0ZmlsdGVy
-L25mX2Nvbm50cmFja19jb3JlLmMKPiArKysgYi9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19j
-b3JlLmMKPiBAQCAtMTA1NiwyNSArMTA1Niw5IEBAIHJlc29sdmVfbm9ybWFsX2N0KHN0cnVjdCBu
-ZXQgKm5ldCwgc3RydWN0IG5mX2Nvbm4gKnRtcGwsCj4gIAljdCA9IG5mX2N0X3R1cGxlaGFzaF90
-b19jdHJhY2soaCk7Cj4gIAo+ICAJLyogSXQgZXhpc3RzOyB3ZSBoYXZlIChub24tZXhjbHVzaXZl
-KSByZWZlcmVuY2UuICovCj4gLQlpZiAoTkZfQ1RfRElSRUNUSU9OKGgpID09IElQX0NUX0RJUl9S
-RVBMWSkgewo+IC0JCSpjdGluZm8gPSBJUF9DVF9FU1RBQkxJU0hFRF9SRVBMWTsKPiAtCQkvKiBQ
-bGVhc2Ugc2V0IHJlcGx5IGJpdCBpZiB0aGlzIHBhY2tldCBPSyAqLwo+IC0JCSpzZXRfcmVwbHkg
-PSAxOwo+IC0JfSBlbHNlIHsKPiAtCQkvKiBPbmNlIHdlJ3ZlIGhhZCB0d28gd2F5IGNvbW1zLCBh
-bHdheXMgRVNUQUJMSVNIRUQuICovCj4gLQkJaWYgKHRlc3RfYml0KElQU19TRUVOX1JFUExZX0JJ
-VCwgJmN0LT5zdGF0dXMpKSB7Cj4gLQkJCXByX2RlYnVnKCJuZl9jb25udHJhY2tfaW46IG5vcm1h
-bCBwYWNrZXQgZm9yICVwXG4iLCBjdCk7Cj4gLQkJCSpjdGluZm8gPSBJUF9DVF9FU1RBQkxJU0hF
-RDsKPiAtCQl9IGVsc2UgaWYgKHRlc3RfYml0KElQU19FWFBFQ1RFRF9CSVQsICZjdC0+c3RhdHVz
-KSkgewo+IC0JCQlwcl9kZWJ1ZygibmZfY29ubnRyYWNrX2luOiByZWxhdGVkIHBhY2tldCBmb3Ig
-JXBcbiIsCj4gLQkJCQkgY3QpOwo+IC0JCQkqY3RpbmZvID0gSVBfQ1RfUkVMQVRFRDsKPiAtCQl9
-IGVsc2Ugewo+IC0JCQlwcl9kZWJ1ZygibmZfY29ubnRyYWNrX2luOiBuZXcgcGFja2V0IGZvciAl
-cFxuIiwgY3QpOwo+IC0JCQkqY3RpbmZvID0gSVBfQ1RfTkVXOwo+IC0JCX0KPiAtCQkqc2V0X3Jl
-cGx5ID0gMDsKPiAtCX0KPiArCSpjdGluZm8gPSBuZl9jdF9nZXRfaW5mbyhoKTsKPiArCSpzZXRf
-cmVwbHkgPSBORl9DVF9ESVJFQ1RJT04oaCkgPT0gSVBfQ1RfRElSX1JFUExZOwo+ICsKPiAgCXNr
-Yi0+bmZjdCA9ICZjdC0+Y3RfZ2VuZXJhbDsKPiAgCXNrYi0+bmZjdGluZm8gPSAqY3RpbmZvOwo+
-ICAJcmV0dXJuIGN0OwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpkZXYgbWFpbGluZyBsaXN0CmRldkBvcGVudnN3aXRjaC5vcmcKaHR0cDovL29wZW52c3dp
-dGNoLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Rldgo=
+On Tue, Oct 20, 2015 at 03:20:28PM -0700, Jarno Rajahalme wrote:
+> diff --git a/net/openvswitch/flow_netlink.c b/net/openvswitch/flow_netlink.c
+> index 77850f1..1e6c2ac 100644
+> --- a/net/openvswitch/flow_netlink.c
+> +++ b/net/openvswitch/flow_netlink.c
+> @@ -291,7 +291,7 @@ size_t ovs_key_attr_size(void)
+>  		+ nla_total_size(4)   /* OVS_KEY_ATTR_SKB_MARK */
+>  		+ nla_total_size(4)   /* OVS_KEY_ATTR_DP_HASH */
+>  		+ nla_total_size(4)   /* OVS_KEY_ATTR_RECIRC_ID */
+> -		+ nla_total_size(1)   /* OVS_KEY_ATTR_CT_STATE */
+> +		+ nla_total_size(4)   /* OVS_KEY_ATTR_CT_STATE */
+>  		+ nla_total_size(2)   /* OVS_KEY_ATTR_CT_ZONE */
+>  		+ nla_total_size(4)   /* OVS_KEY_ATTR_CT_MARK */
+>  		+ nla_total_size(16)  /* OVS_KEY_ATTR_CT_LABEL */
+
+This is very strange.
+
+You're changing the size of the netlink attribute, this will break
+existing userspace applications.
