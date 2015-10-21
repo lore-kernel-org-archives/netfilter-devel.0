@@ -1,66 +1,71 @@
-From: Jarno Rajahalme <jrajahalme@nicira.com>
-Subject: Re: [RFC PATCH 2/5] netfilter: Factor out nf_ct_get_info().
-Date: Wed, 21 Oct 2015 14:38:35 -0700
-Message-ID: <720547DD-AEFE-4FE0-B718-B9A9D425998E@nicira.com>
-References: <1445379629-112880-1-git-send-email-jrajahalme@nicira.com> <1445379629-112880-2-git-send-email-jrajahalme@nicira.com> <20151021104556.GC2135@salvia>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+From: Thomas Graf <tgraf@suug.ch>
+Subject: Re: [RFC PATCH 5/5] openvswitch: Interface with NAT.
+Date: Thu, 22 Oct 2015 01:30:59 +0200
+Message-ID: <20151021233059.GE23554@pox.localdomain>
+References: <1445379629-112880-1-git-send-email-jrajahalme@nicira.com>
+ <1445379629-112880-5-git-send-email-jrajahalme@nicira.com>
+ <20151021105916.GB15766@pox.localdomain>
+ <FB21AAF8-5C91-41C8-96DC-E5EE0C02CFE4@nicira.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Cc: netdev@vger.kernel.org, dev@openvswitch.org,
 	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jarno Rajahalme <jrajahalme@nicira.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20151021104556.GC2135@salvia>
+Content-Disposition: inline
+In-Reply-To: <FB21AAF8-5C91-41C8-96DC-E5EE0C02CFE4@nicira.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-> On Oct 21, 2015, at 3:45 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+On 10/21/15 at 02:04pm, Jarno Rajahalme wrote:
 > 
-> On Tue, Oct 20, 2015 at 03:20:26PM -0700, Jarno Rajahalme wrote:
->> Define a new inline function to map conntrack status to enum
->> ip_conntrack_info.  This removes the need to otherwise duplicate this
->> code in a later patch.
+> > On Oct 21, 2015, at 3:59 AM, Thomas Graf <tgraf@suug.ch> wrote:
+> > Simplify this with an OVS_NAT_ATTR_FLAGS?
 > 
-> Where is that later patch that justifies this update?
+> The use of separate flag attributes was actually intentional, as it makes the interface easier to understand, and code also easier to read.
+
+OK, either is fine with me.
+
+> >> +					  &ctinfo);
+> >> +	if (!ct || nf_ct_is_untracked(ct))
+> >> +		/* A NAT action may only be performed on tracked packets. */
+> >> +		return NF_ACCEPT;
+> > 
+> > Braces
+> > 
 > 
+> Needed due to the comment?
 
-It is in patch 5/5, ovs_ct_find_existing(). The intent it to locate an existing conntrack entry without modifying it, if such an entry exists. This is needed in a case where we first go through the conntrack (calling nf_conntrack_in), then recirculate (to match on the state bits), but do not find a matching flow entry in the flow table. In this case we issue an upcall and let the OVS userspace compute a new flow entry. When the packet gets back to kernel we have lost the skb (as we do not buffer it in the kernel after issuing the upcall). ovs_ct_find_existing() can then be used to populate the nfct and nfctinfo fields of the new skb, as if this skb had gone through the nf_conntrack_in() call. This allows us to pass the packet through NAT after such an upcall without passing the packet thro
- ugh nf_conntrack_in() twice.
+The compiler would be fine but most other places like this seem to
+put braces on for this single comment + single statement case.
 
-ovs_ct_find_existing() is intended to be used only when we have evidence in the OVS flow key that the packet actually went through nf_conntrack_in() prior to the upcall. In the current version of the patches I do not have a test case for this, and I intend to separate out this change into a separate patch before the NAT patch for the next (non-RFC) version.
-
-I could implement ovs_ct_find_existing() using exported conntrack APIs apart from this mapping from conntrack status to enum ip_conntrack_info. ovs_ct_find_existing() is in no way OVS specific, though, so it could be added to the conntrack proper as well, if so desired.
-
-  Jarno
-
->> Signed-off-by: Jarno Rajahalme <jrajahalme@nicira.com>
->> ---
->> include/net/netfilter/nf_conntrack.h | 15 +++++++++++++++
->> net/netfilter/nf_conntrack_core.c    | 22 +++-------------------
->> 2 files changed, 18 insertions(+), 19 deletions(-)
->> 
->> diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
->> index fde4068..b3de10e 100644
->> --- a/include/net/netfilter/nf_conntrack.h
->> +++ b/include/net/netfilter/nf_conntrack.h
->> @@ -125,6 +125,21 @@ nf_ct_tuplehash_to_ctrack(const struct nf_conntrack_tuple_hash *hash)
->> 			    tuplehash[hash->tuple.dst.dir]);
->> }
->> 
->> +static inline enum ip_conntrack_info
->> +nf_ct_get_info(const struct nf_conntrack_tuple_hash *h)
->> +{
->> +	const struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
->> +
->> +	if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
->> +		return IP_CT_ESTABLISHED_REPLY;
->> +	/* Once we've had two way comms, always ESTABLISHED. */
->> +	if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status))
->> +		return IP_CT_ESTABLISHED;
->> +	if (test_bit(IPS_EXPECTED_BIT, &ct->status))
->> +		return IP_CT_RELATED;
->> +	return IP_CT_NEW;
->> +}
+> >> +		if (type > OVS_NAT_ATTR_MAX) {
+> >> +			OVS_NLERR(log, "Unknown nat attribute (type=%d, max=%d).\n",
+> >> +			type, OVS_NAT_ATTR_MAX);
+> > 
+> > Formatting
 > 
-> I would really like to see how you want to use this.
+> Not readily apparent what you mean here, care to elaborate?
+
+The argument list should be indented up to the (.
+
+> >> +#ifdef CONFIG_NF_NAT_NEEDED
+> >> +	[OVS_CT_ATTR_NAT]	= { .minlen = 0,
+> >> +				    .maxlen = 96 }
+> >> +#endif
+> > 
+> > Is the 96 a temporary hack here?
+> > 
+> 
+> It is not an exact value. It is much better than my temporary hack of 512 was. As trailing garbage is checked for, I???m not sure if this should be very accurately calculated? Maybe it would be better to disable the length checks for this altogether?
+
+I would just drop the maxlen then. The nested content should be
+verified separately anyway later on.
+
+> > We should probably bark if user space provides a OVS_CT_ATTR_NAT but the
+> > kernel is compiled without support for it.
+> > 
+> 
+> We do issue -EINVAL and log ???Unknown conntrack attr??? in that case.
+
+Misread then, sorry.
