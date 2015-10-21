@@ -1,51 +1,32 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
 Subject: Re: [PATCH nf-next 0/4] netfilter: rework netfilter ipv6 defrag
-Date: Wed, 21 Oct 2015 14:42:45 +0200
-Message-ID: <20151021124245.GA10299@salvia>
+Date: Wed, 21 Oct 2015 07:34:01 -0700 (PDT)
+Message-ID: <20151021.073401.1293048161230730307.davem@davemloft.net>
 References: <1445112865-31523-1-git-send-email-fw@strlen.de>
- <CANr6G5zvmj_tL5Pt6-70GQ4dTJXLewX9A4uMGC_0OFzXYQVdew@mail.gmail.com>
- <20151020081716.GH4386@breakpoint.cc>
- <CANr6G5xW7m2SXFiU22pFVD6uvDj5ymX=jZkRJk2vMYQoJykvLw@mail.gmail.com>
- <20151020205306.GK4386@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Joe Stringer <joestringer@nicira.com>,
-	netfilter-devel@vger.kernel.org,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	Andy Zhou <azhou@nicira.com>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20151020205306.GK4386@breakpoint.cc>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	azhou@nicira.com, joestringer@nicira.com
+To: fw@strlen.de
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:44360 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751069AbbJUOT1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 Oct 2015 10:19:27 -0400
+In-Reply-To: <1445112865-31523-1-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 20, 2015 at 10:53:07PM +0200, Florian Westphal wrote:
-> Joe Stringer <joestringer@nicira.com> wrote:
-> > > Good point.  No, I don't.  Any suggestions?
-> > > I can try to just re-target -nf tree (sans patch #2).  Pablo?
-> > 
-> > The smallest change seems to be adding the nf_ct_frag6_consume_orig()
-> > call to OVS, plus the morph logic from patch 3. Alternatively if Pablo
-> > is fine with having the series re-targeted, then that sounds
-> > reasonable to me too.
-> 
-> Pablo, your call.
-> 
-> I would suggest to re-target patches #1 and #3 to nf tree, I can do
-> this, just let me know.
+From: Florian Westphal <fw@strlen.de>
+Date: Sat, 17 Oct 2015 22:14:21 +0200
 
-It's fairly late, we're on -rc6 so I don't think it's a good idea to
-submit a large rework to -nf at this stage.
+> [ CC netdev since patch #2 isn't nf-specific.  Dave, if you want
+>   I can resubmit that one after the next nf-pull request; let me know if
+>   you would prefer that ].
 
-> Alternative is to just add the nf_ct_frag6_consume_orig call to
-> openvswitch and handle that via net tree.
-> 
-> I can then wait for that change to pop up in nf-next and just resend
-> this series (which will then undo that change).
+No objections to you merging patch #2 however you wish, it's
+perfectly fine.
 
-I'd rather get things fixes for the existing code. This would also
-allow simple passing back to -stable, then we can move forward discuss
-and review your rework with sufficient time.
-
-Let me know, thanks!
+Thanks.
