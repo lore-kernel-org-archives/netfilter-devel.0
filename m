@@ -1,31 +1,50 @@
-From: Joe Stringer <joestringer@nicira.com>
-Subject: Re: [PATCH nf-next 0/4] netfilter: rework netfilter ipv6 defrag
-Date: Tue, 20 Oct 2015 16:59:03 -0700
-Message-ID: <CANr6G5zFxSkzcn5W9pM+bHQr0si675QmJPtR7Qz3Yvn8AG+dew@mail.gmail.com>
-References: <1445112865-31523-1-git-send-email-fw@strlen.de>
- <CANr6G5zvmj_tL5Pt6-70GQ4dTJXLewX9A4uMGC_0OFzXYQVdew@mail.gmail.com>
- <20151020081716.GH4386@breakpoint.cc> <CANr6G5xW7m2SXFiU22pFVD6uvDj5ymX=jZkRJk2vMYQoJykvLw@mail.gmail.com>
- <20151020205306.GK4386@breakpoint.cc>
+From: Thomas Graf <tgraf@suug.ch>
+Subject: Re: [ovs-dev] [RFC PATCH 1/5] netfilter: Remove IP_CT_NEW_REPLY
+ definition.
+Date: Wed, 21 Oct 2015 10:33:23 +0200
+Message-ID: <20151021083323.GB15539@pox.localdomain>
+References: <1445379629-112880-1-git-send-email-jrajahalme@nicira.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	Andy Zhou <azhou@nicira.com>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yk0-f182.google.com ([209.85.160.182]:35152 "EHLO
-	mail-yk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832AbbJTX7X (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Oct 2015 19:59:23 -0400
-Received: by ykaz22 with SMTP id z22so33495518yka.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2015 16:59:23 -0700 (PDT)
-In-Reply-To: <20151020205306.GK4386@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, dev@openvswitch.org,
+	netfilter-devel@vger.kernel.org
+To: Jarno Rajahalme <jrajahalme@nicira.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1445379629-112880-1-git-send-email-jrajahalme@nicira.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 20 October 2015 at 13:53, Florian Westphal <fw@strlen.de> wrote:
-> Feel free to submit this to -net, there is no dependency on any of the
-> other changes.
+[Copying netfilter-devel]
 
-OK, I'll follow up on that patch.
+On 10/20/15 at 03:20pm, Jarno Rajahalme wrote:
+> Remove the definition of IP_CT_NEW_REPLY as it does not make sense.
+> This allows the definition of IP_CT_NUMBER to be simplified as well.
+> 
+> Signed-off-by: Jarno Rajahalme <jrajahalme@nicira.com>
+> ---
+>  include/uapi/linux/netfilter/nf_conntrack_common.h | 7 ++++---
+>  net/openvswitch/conntrack.c                        | 2 --
+>  2 files changed, 4 insertions(+), 5 deletions(-)
+> 
+> diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
+> index 319f471..e0aebc8 100644
+> --- a/include/uapi/linux/netfilter/nf_conntrack_common.h
+> +++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
+> @@ -20,9 +20,10 @@ enum ip_conntrack_info {
+>  
+>  	IP_CT_ESTABLISHED_REPLY = IP_CT_ESTABLISHED + IP_CT_IS_REPLY,
+>  	IP_CT_RELATED_REPLY = IP_CT_RELATED + IP_CT_IS_REPLY,
+> -	IP_CT_NEW_REPLY = IP_CT_NEW + IP_CT_IS_REPLY,	
+> -	/* Number of distinct IP_CT types (no NEW in reply dirn). */
+> -	IP_CT_NUMBER = IP_CT_IS_REPLY * 2 - 1
+> +	/* No IP_CT_NEW_REPLY */
+> +
+> +	/* Number of distinct IP_CT types. */
+> +	IP_CT_NUMBER
+>  };
+
+I understand what you are doing here but this is part of the published
+UAPI and removing this might break compilation of a user application
+even if the definition is not used right now. It's probably safer to
+leave the definition and obsolete it with a comment.
