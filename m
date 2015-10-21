@@ -1,60 +1,57 @@
-From: Ani Sinha <ani@arista.com>
-Subject: Re: linux 3.4.43 : kernel crash at __nf_conntrack_confirm
-Date: Wed, 21 Oct 2015 12:35:10 -0700
-Message-ID: <CAOxq_8P9Qgy5+qWNCHtbG8qJwfdKSO3ZiDWoQW_6BVS-+hcTRA@mail.gmail.com>
-References: <CAOxq_8PF91fpX9jYTgBbXnOVeVfSu3tytu-3P_Zr5OodGRoz+g@mail.gmail.com>
- <CAOxq_8Pt7VMwkV8+wdjS9vj=-L0L8Xxkd3Beit0zZN_oR6ixhw@mail.gmail.com> <20151018080702.GA14564@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20151018080702.GA14564@breakpoint.cc>
-Sender: netfilter-owner@vger.kernel.org
+From: Jarno Rajahalme <jrajahalme-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC PATCH 1/5] netfilter: Remove IP_CT_NEW_REPLY
+	definition.
+Date: Wed, 21 Oct 2015 13:15:37 -0700
+Message-ID: <B6033DCD-F46E-4416-9844-CF663215559A@nicira.com>
+References: <1445379629-112880-1-git-send-email-jrajahalme@nicira.com>
+ <20151021083323.GB15539@pox.localdomain>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+ netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Thomas Graf <tgraf-G/eBtMaohhA@public.gmane.org>
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <20151021083323.GB15539-4EA/1caXOu0mYvmMESoHnA@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Oct 18, 2015 at 1:07 AM, Florian Westphal <fw@strlen.de> wrote:
-> Ani Sinha <ani@arista.com> wrote:
->> Coming back to this crash, I see something interesting in the
->> conntrack code in linux 3.4.109 (a supported kernel version). I see
->> that the hash table manipulations are protected by a spinlock. Also
->> lookups/reads are protected by RCU. However allocation and
->> deallocation of conntrack objects happen outside of both the locks.
->> It seems to me that a conntrack object can be deallocated and a new
->> object can be allocated and initialized within the same RCU grace
->> period, while the hash table is being read.
->
-> Yes.  We need to use SLAB_DESTROY_BY_RCU instead of kfree_rcu because
-> there could be hundreds of thousands of alloc/free pairs within a short
-> time period.
->
->> It looks like a bug to me.
->
-> No, as long as readers detect object reuse.
->
->> > Looking upstream, I see a couple of patches which fixes race condition
->> > around the use of the conntrack hash table with RCU (lock free read)
->> > primitives :
->> >
->> > commit c6825c0976fa7893692e0e43b09740b419b23c09
->> > Author: Andrey Vagin <avagin@openvz.org>
->> > Date:   Wed Jan 29 19:34:14 2014 +0100
->> >      netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
->> >
->> > and a followup patch :
->> >
->> > commit e53376bef2cd97d3e3f61fdc677fb8da7d03d0da
->> > Author: Pablo Neira Ayuso <pablo@netfilter.org>
->> > Date:   Mon Feb 3 20:01:53 2014 +0100
->> >         netfilter: nf_conntrack: don't release a conntrack with non-zero refcnt
->> >
->
-> These for instance fix such bugs.
-
-So since both these patches were not backported to 3.4 series and
-since now we have evidence of a crash that points to issues which the
-patches fix, should we consider backporting the above patches to 3.4?
+Cj4gT24gT2N0IDIxLCAyMDE1LCBhdCAxOjMzIEFNLCBUaG9tYXMgR3JhZiA8dGdyYWZAc3V1Zy5j
+aD4gd3JvdGU6Cj4gCj4gW0NvcHlpbmcgbmV0ZmlsdGVyLWRldmVsXQo+IAo+IE9uIDEwLzIwLzE1
+IGF0IDAzOjIwcG0sIEphcm5vIFJhamFoYWxtZSB3cm90ZToKPj4gUmVtb3ZlIHRoZSBkZWZpbml0
+aW9uIG9mIElQX0NUX05FV19SRVBMWSBhcyBpdCBkb2VzIG5vdCBtYWtlIHNlbnNlLgo+PiBUaGlz
+IGFsbG93cyB0aGUgZGVmaW5pdGlvbiBvZiBJUF9DVF9OVU1CRVIgdG8gYmUgc2ltcGxpZmllZCBh
+cyB3ZWxsLgo+PiAKPj4gU2lnbmVkLW9mZi1ieTogSmFybm8gUmFqYWhhbG1lIDxqcmFqYWhhbG1l
+QG5pY2lyYS5jb20+Cj4+IC0tLQo+PiBpbmNsdWRlL3VhcGkvbGludXgvbmV0ZmlsdGVyL25mX2Nv
+bm50cmFja19jb21tb24uaCB8IDcgKysrKy0tLQo+PiBuZXQvb3BlbnZzd2l0Y2gvY29ubnRyYWNr
+LmMgICAgICAgICAgICAgICAgICAgICAgICB8IDIgLS0KPj4gMiBmaWxlcyBjaGFuZ2VkLCA0IGlu
+c2VydGlvbnMoKyksIDUgZGVsZXRpb25zKC0pCj4+IAo+PiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS91
+YXBpL2xpbnV4L25ldGZpbHRlci9uZl9jb25udHJhY2tfY29tbW9uLmggYi9pbmNsdWRlL3VhcGkv
+bGludXgvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19jb21tb24uaAo+PiBpbmRleCAzMTlmNDcxLi5l
+MGFlYmM4IDEwMDY0NAo+PiAtLS0gYS9pbmNsdWRlL3VhcGkvbGludXgvbmV0ZmlsdGVyL25mX2Nv
+bm50cmFja19jb21tb24uaAo+PiArKysgYi9pbmNsdWRlL3VhcGkvbGludXgvbmV0ZmlsdGVyL25m
+X2Nvbm50cmFja19jb21tb24uaAo+PiBAQCAtMjAsOSArMjAsMTAgQEAgZW51bSBpcF9jb25udHJh
+Y2tfaW5mbyB7Cj4+IAo+PiAJSVBfQ1RfRVNUQUJMSVNIRURfUkVQTFkgPSBJUF9DVF9FU1RBQkxJ
+U0hFRCArIElQX0NUX0lTX1JFUExZLAo+PiAJSVBfQ1RfUkVMQVRFRF9SRVBMWSA9IElQX0NUX1JF
+TEFURUQgKyBJUF9DVF9JU19SRVBMWSwKPj4gLQlJUF9DVF9ORVdfUkVQTFkgPSBJUF9DVF9ORVcg
+KyBJUF9DVF9JU19SRVBMWSwJCj4+IC0JLyogTnVtYmVyIG9mIGRpc3RpbmN0IElQX0NUIHR5cGVz
+IChubyBORVcgaW4gcmVwbHkgZGlybikuICovCj4+IC0JSVBfQ1RfTlVNQkVSID0gSVBfQ1RfSVNf
+UkVQTFkgKiAyIC0gMQo+PiArCS8qIE5vIElQX0NUX05FV19SRVBMWSAqLwo+PiArCj4+ICsJLyog
+TnVtYmVyIG9mIGRpc3RpbmN0IElQX0NUIHR5cGVzLiAqLwo+PiArCUlQX0NUX05VTUJFUgo+PiB9
+Owo+IAo+IEkgdW5kZXJzdGFuZCB3aGF0IHlvdSBhcmUgZG9pbmcgaGVyZSBidXQgdGhpcyBpcyBw
+YXJ0IG9mIHRoZSBwdWJsaXNoZWQKPiBVQVBJIGFuZCByZW1vdmluZyB0aGlzIG1pZ2h0IGJyZWFr
+IGNvbXBpbGF0aW9uIG9mIGEgdXNlciBhcHBsaWNhdGlvbgo+IGV2ZW4gaWYgdGhlIGRlZmluaXRp
+b24gaXMgbm90IHVzZWQgcmlnaHQgbm93LiBJdCdzIHByb2JhYmx5IHNhZmVyIHRvCj4gbGVhdmUg
+dGhlIGRlZmluaXRpb24gYW5kIG9ic29sZXRlIGl0IHdpdGggYSBjb21tZW50LgoKT0suIEkgc2hv
+dWxkIHByb2JhYmx5IHNlcGFyYXRlIHRoZSBuZXRsaW5rIGFuZCBvcGVudnN3aXRjaCBjaGFuZ2Vz
+IHRvIHNlcGFyYXRlIHBhdGNoZXMgYXMgd2VsbD8KCiAgSmFybm8KCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRldiBtYWlsaW5nIGxpc3QKZGV2QG9wZW52
+c3dpdGNoLm9yZwpodHRwOi8vb3BlbnZzd2l0Y2gub3JnL21haWxtYW4vbGlzdGluZm8vZGV2Cg==
