@@ -1,46 +1,66 @@
-From: Ani Sinha <ani@arista.com>
-Subject: Re: linux 3.4.43 : kernel crash at __nf_conntrack_confirm
-Date: Wed, 21 Oct 2015 14:26:35 -0700
-Message-ID: <CAOxq_8PLX_+w-7mfx1Agh+utogEiFWHSmEFd0Bax1LY6qbEN-w@mail.gmail.com>
-References: <CAOxq_8PF91fpX9jYTgBbXnOVeVfSu3tytu-3P_Zr5OodGRoz+g@mail.gmail.com>
- <CAOxq_8Pt7VMwkV8+wdjS9vj=-L0L8Xxkd3Beit0zZN_oR6ixhw@mail.gmail.com>
- <20151018080702.GA14564@breakpoint.cc> <CAOxq_8P9Qgy5+qWNCHtbG8qJwfdKSO3ZiDWoQW_6BVS-+hcTRA@mail.gmail.com>
- <20151021211911.GD31323@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20151021211911.GD31323@breakpoint.cc>
-Sender: netfilter-owner@vger.kernel.org
+From: Jarno Rajahalme <jrajahalme@nicira.com>
+Subject: Re: [RFC PATCH 2/5] netfilter: Factor out nf_ct_get_info().
+Date: Wed, 21 Oct 2015 14:38:35 -0700
+Message-ID: <720547DD-AEFE-4FE0-B718-B9A9D425998E@nicira.com>
+References: <1445379629-112880-1-git-send-email-jrajahalme@nicira.com> <1445379629-112880-2-git-send-email-jrajahalme@nicira.com> <20151021104556.GC2135@salvia>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Cc: netdev@vger.kernel.org, dev@openvswitch.org,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20151021104556.GC2135@salvia>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Oct 21, 2015 at 2:19 PM, Florian Westphal <fw@strlen.de> wrote:
-> Ani Sinha <ani@arista.com> wrote:
->> >> > commit c6825c0976fa7893692e0e43b09740b419b23c09
->> >> > Author: Andrey Vagin <avagin@openvz.org>
->> >> > Date:   Wed Jan 29 19:34:14 2014 +0100
->> >> >      netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
->> >> >
->> >> > and a followup patch :
->> >> >
->> >> > commit e53376bef2cd97d3e3f61fdc677fb8da7d03d0da
->> >> > Author: Pablo Neira Ayuso <pablo@netfilter.org>
->> >> > Date:   Mon Feb 3 20:01:53 2014 +0100
->> >> >         netfilter: nf_conntrack: don't release a conntrack with non-zero refcnt
->> >> >
->> >
->> > These for instance fix such bugs.
->>
->> So since both these patches were not backported to 3.4 series and
->> since now we have evidence of a crash that points to issues which the
->> patches fix, should we consider backporting the above patches to 3.4?
->
-> Yes.
 
-Ok cool. I will send out backport patches for 3.4 corresponding to
-both the above patches.
+> On Oct 21, 2015, at 3:45 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> 
+> On Tue, Oct 20, 2015 at 03:20:26PM -0700, Jarno Rajahalme wrote:
+>> Define a new inline function to map conntrack status to enum
+>> ip_conntrack_info.  This removes the need to otherwise duplicate this
+>> code in a later patch.
+> 
+> Where is that later patch that justifies this update?
+> 
+
+It is in patch 5/5, ovs_ct_find_existing(). The intent it to locate an existing conntrack entry without modifying it, if such an entry exists. This is needed in a case where we first go through the conntrack (calling nf_conntrack_in), then recirculate (to match on the state bits), but do not find a matching flow entry in the flow table. In this case we issue an upcall and let the OVS userspace compute a new flow entry. When the packet gets back to kernel we have lost the skb (as we do not buffer it in the kernel after issuing the upcall). ovs_ct_find_existing() can then be used to populate the nfct and nfctinfo fields of the new skb, as if this skb had gone through the nf_conntrack_in() call. This allows us to pass the packet through NAT after such an upcall without passing the packet thro
+ ugh nf_conntrack_in() twice.
+
+ovs_ct_find_existing() is intended to be used only when we have evidence in the OVS flow key that the packet actually went through nf_conntrack_in() prior to the upcall. In the current version of the patches I do not have a test case for this, and I intend to separate out this change into a separate patch before the NAT patch for the next (non-RFC) version.
+
+I could implement ovs_ct_find_existing() using exported conntrack APIs apart from this mapping from conntrack status to enum ip_conntrack_info. ovs_ct_find_existing() is in no way OVS specific, though, so it could be added to the conntrack proper as well, if so desired.
+
+  Jarno
+
+>> Signed-off-by: Jarno Rajahalme <jrajahalme@nicira.com>
+>> ---
+>> include/net/netfilter/nf_conntrack.h | 15 +++++++++++++++
+>> net/netfilter/nf_conntrack_core.c    | 22 +++-------------------
+>> 2 files changed, 18 insertions(+), 19 deletions(-)
+>> 
+>> diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+>> index fde4068..b3de10e 100644
+>> --- a/include/net/netfilter/nf_conntrack.h
+>> +++ b/include/net/netfilter/nf_conntrack.h
+>> @@ -125,6 +125,21 @@ nf_ct_tuplehash_to_ctrack(const struct nf_conntrack_tuple_hash *hash)
+>> 			    tuplehash[hash->tuple.dst.dir]);
+>> }
+>> 
+>> +static inline enum ip_conntrack_info
+>> +nf_ct_get_info(const struct nf_conntrack_tuple_hash *h)
+>> +{
+>> +	const struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
+>> +
+>> +	if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
+>> +		return IP_CT_ESTABLISHED_REPLY;
+>> +	/* Once we've had two way comms, always ESTABLISHED. */
+>> +	if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status))
+>> +		return IP_CT_ESTABLISHED;
+>> +	if (test_bit(IPS_EXPECTED_BIT, &ct->status))
+>> +		return IP_CT_RELATED;
+>> +	return IP_CT_NEW;
+>> +}
+> 
+> I would really like to see how you want to use this.
