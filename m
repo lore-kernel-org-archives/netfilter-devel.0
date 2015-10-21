@@ -1,39 +1,60 @@
-From: Joe Stringer <joestringer@nicira.com>
-Subject: Re: [PATCH nf-next 0/4] netfilter: rework netfilter ipv6 defrag
-Date: Wed, 21 Oct 2015 09:52:22 -0700
-Message-ID: <CANr6G5x4ZTvNBYtEPyPopk7RhgYwf_nYxQXkCkoO6PD+h_BDRg@mail.gmail.com>
-References: <1445112865-31523-1-git-send-email-fw@strlen.de>
- <CANr6G5zvmj_tL5Pt6-70GQ4dTJXLewX9A4uMGC_0OFzXYQVdew@mail.gmail.com>
- <20151020081716.GH4386@breakpoint.cc> <CANr6G5xW7m2SXFiU22pFVD6uvDj5ymX=jZkRJk2vMYQoJykvLw@mail.gmail.com>
- <20151020205306.GK4386@breakpoint.cc> <20151021124245.GA10299@salvia> <20151021145048.GC31323@breakpoint.cc>
+From: Ani Sinha <ani@arista.com>
+Subject: Re: linux 3.4.43 : kernel crash at __nf_conntrack_confirm
+Date: Wed, 21 Oct 2015 12:35:10 -0700
+Message-ID: <CAOxq_8P9Qgy5+qWNCHtbG8qJwfdKSO3ZiDWoQW_6BVS-+hcTRA@mail.gmail.com>
+References: <CAOxq_8PF91fpX9jYTgBbXnOVeVfSu3tytu-3P_Zr5OodGRoz+g@mail.gmail.com>
+ <CAOxq_8Pt7VMwkV8+wdjS9vj=-L0L8Xxkd3Beit0zZN_oR6ixhw@mail.gmail.com> <20151018080702.GA14564@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	Andy Zhou <azhou@nicira.com>
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
 To: Florian Westphal <fw@strlen.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20151021145048.GC31323@breakpoint.cc>
-Sender: netdev-owner@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <20151018080702.GA14564@breakpoint.cc>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 21 October 2015 at 07:50, Florian Westphal <fw@strlen.de> wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> > I can then wait for that change to pop up in nf-next and just resend
->> > this series (which will then undo that change).
->>
->> I'd rather get things fixes for the existing code. This would also
->> allow simple passing back to -stable, then we can move forward discuss
->> and review your rework with sufficient time.
+On Sun, Oct 18, 2015 at 1:07 AM, Florian Westphal <fw@strlen.de> wrote:
+> Ani Sinha <ani@arista.com> wrote:
+>> Coming back to this crash, I see something interesting in the
+>> conntrack code in linux 3.4.109 (a supported kernel version). I see
+>> that the hash table manipulations are protected by a spinlock. Also
+>> lookups/reads are protected by RCU. However allocation and
+>> deallocation of conntrack objects happen outside of both the locks.
+>> It seems to me that a conntrack object can be deallocated and a new
+>> object can be allocated and initialized within the same RCU grace
+>> period, while the hash table is being read.
 >
-> Joe, could you take care of this and submit a OVS fix to net tree?
+> Yes.  We need to use SLAB_DESTROY_BY_RCU instead of kfree_rcu because
+> there could be hundreds of thousands of alloc/free pairs within a short
+> time period.
 >
-> (just add that call to nf_ct_frag6_consume_orig and take
->  the morph change directly into the OVS callpath)
+>> It looks like a bug to me.
 >
-> I will then resubmit all of this at some later point.
+> No, as long as readers detect object reuse.
 >
-> Thanks.
+>> > Looking upstream, I see a couple of patches which fixes race condition
+>> > around the use of the conntrack hash table with RCU (lock free read)
+>> > primitives :
+>> >
+>> > commit c6825c0976fa7893692e0e43b09740b419b23c09
+>> > Author: Andrey Vagin <avagin@openvz.org>
+>> > Date:   Wed Jan 29 19:34:14 2014 +0100
+>> >      netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
+>> >
+>> > and a followup patch :
+>> >
+>> > commit e53376bef2cd97d3e3f61fdc677fb8da7d03d0da
+>> > Author: Pablo Neira Ayuso <pablo@netfilter.org>
+>> > Date:   Mon Feb 3 20:01:53 2014 +0100
+>> >         netfilter: nf_conntrack: don't release a conntrack with non-zero refcnt
+>> >
+>
+> These for instance fix such bugs.
 
-Sure thing.
+So since both these patches were not backported to 3.4 series and
+since now we have evidence of a crash that points to issues which the
+patches fix, should we consider backporting the above patches to 3.4?
