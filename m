@@ -1,38 +1,40 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: [ovs-dev] [RFC PATCH 1/5] netfilter: Remove IP_CT_NEW_REPLY
- definition.
-Date: Thu, 22 Oct 2015 01:32:11 +0200
-Message-ID: <20151021233211.GF23554@pox.localdomain>
-References: <1445379629-112880-1-git-send-email-jrajahalme@nicira.com>
- <20151021083323.GB15539@pox.localdomain>
- <B6033DCD-F46E-4416-9844-CF663215559A@nicira.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/4] Netfilter fixes for net
+Date: Wed, 21 Oct 2015 19:27:18 -0700 (PDT)
+Message-ID: <20151021.192718.591664957813117408.davem@davemloft.net>
+References: <1445278975-2412-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev <netdev@vger.kernel.org>, dev@openvswitch.org,
-	netfilter-devel@vger.kernel.org
-To: Jarno Rajahalme <jrajahalme@nicira.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:37868 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753880AbbJUXcN (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:49935 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752456AbbJVCKy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 21 Oct 2015 19:32:13 -0400
-Received: by wicfv8 with SMTP id fv8so96849360wic.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Oct 2015 16:32:12 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <B6033DCD-F46E-4416-9844-CF663215559A@nicira.com>
+	Wed, 21 Oct 2015 22:10:54 -0400
+In-Reply-To: <1445278975-2412-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 10/21/15 at 01:15pm, Jarno Rajahalme wrote:
-> 
-> > On Oct 21, 2015, at 1:33 AM, Thomas Graf <tgraf@suug.ch> wrote:
-> > I understand what you are doing here but this is part of the published
-> > UAPI and removing this might break compilation of a user application
-> > even if the definition is not used right now. It's probably safer to
-> > leave the definition and obsolete it with a comment.
-> 
-> OK. I should probably separate the netlink and openvswitch changes to separate patches as well?
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 19 Oct 2015 20:22:51 +0200
 
-Given that at that point the changes become unrelated, I'd split
-it into separate patches, yes.
+> The following patchset contains four Netfilter fixes for net, they are:
+> 
+> 1) Fix Kconfig dependencies of new nf_dup_ipv4 and nf_dup_ipv6.
+> 
+> 2) Remove bogus test nh_scope in IPv4 rpfilter match that is breaking
+>    --accept-local, from Xin Long.
+> 
+> 3) Wait for RCU grace period after dropping the pending packets in the
+>    nfqueue, from Florian Westphal.
+> 
+> 4) Fix sleeping allocation while holding spin_lock_bh, from Nikolay Borisov.
+> 
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Pulled, thanks a lot Pablo.
