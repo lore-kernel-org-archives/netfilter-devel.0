@@ -1,200 +1,133 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf-next 9/9] nftables: add conntrack dependencies for nat/masq/redir expressions
-Date: Fri, 23 Oct 2015 12:43:26 +0200
-Message-ID: <1445597006-11264-10-git-send-email-fw@strlen.de>
-References: <1445597006-11264-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 nf-next 0/9] netfilter: don't copy initns hooks to new namespaces
+Date: Fri, 23 Oct 2015 12:43:17 +0200
+Message-ID: <1445597006-11264-1-git-send-email-fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45008 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44998 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751027AbbJWKnh (ORCPT
+	by vger.kernel.org with ESMTP id S1750953AbbJWKnb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Oct 2015 06:43:37 -0400
-In-Reply-To: <1445597006-11264-1-git-send-email-fw@strlen.de>
+	Fri, 23 Oct 2015 06:43:31 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-so that conntrack core will add the needed hooks in this namespace.
+Historically, a particular table or netfilter feature (defrag, iptables
+filter table ...) was registered with the netfilter core hook mechanism
+on module load.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- not part of v1 patchset.
+When netns support was added to iptables only the ip/ip6tables ruleset
+was made namespace aware, not the actual hook points.
 
- net/ipv4/netfilter/nft_masq_ipv4.c  |  7 +++++++
- net/ipv4/netfilter/nft_redir_ipv4.c |  7 +++++++
- net/ipv6/netfilter/nft_masq_ipv6.c  |  7 +++++++
- net/ipv6/netfilter/nft_redir_ipv6.c |  7 +++++++
- net/netfilter/nft_masq.c            |  5 +++--
- net/netfilter/nft_nat.c             | 11 ++++++++++-
- net/netfilter/nft_redir.c           |  2 +-
- 7 files changed, 42 insertions(+), 4 deletions(-)
+This has changed -- after Eric Biedermans recent work we now have
+per net namespace hooks.
 
-diff --git a/net/ipv4/netfilter/nft_masq_ipv4.c b/net/ipv4/netfilter/nft_masq_ipv4.c
-index b72ffc5..ee5bb98 100644
---- a/net/ipv4/netfilter/nft_masq_ipv4.c
-+++ b/net/ipv4/netfilter/nft_masq_ipv4.c
-@@ -30,12 +30,19 @@ static void nft_masq_ipv4_eval(const struct nft_expr *expr,
- 						    &range, pkt->out);
- }
- 
-+static void
-+nft_masq_ipv4_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
-+{
-+	nf_ct_netns_put(ctx->net, NFPROTO_IPV4);
-+}
-+
- static struct nft_expr_type nft_masq_ipv4_type;
- static const struct nft_expr_ops nft_masq_ipv4_ops = {
- 	.type		= &nft_masq_ipv4_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_masq)),
- 	.eval		= nft_masq_ipv4_eval,
- 	.init		= nft_masq_init,
-+	.destroy	= nft_masq_ipv4_destroy,
- 	.dump		= nft_masq_dump,
- 	.validate	= nft_masq_validate,
- };
-diff --git a/net/ipv4/netfilter/nft_redir_ipv4.c b/net/ipv4/netfilter/nft_redir_ipv4.c
-index c09d438..862eb5a 100644
---- a/net/ipv4/netfilter/nft_redir_ipv4.c
-+++ b/net/ipv4/netfilter/nft_redir_ipv4.c
-@@ -39,12 +39,19 @@ static void nft_redir_ipv4_eval(const struct nft_expr *expr,
- 						  pkt->hook);
- }
- 
-+static void
-+nft_redir_ipv4_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
-+{
-+	nf_ct_netns_put(ctx->net, NFPROTO_IPV4);
-+}
-+
- static struct nft_expr_type nft_redir_ipv4_type;
- static const struct nft_expr_ops nft_redir_ipv4_ops = {
- 	.type		= &nft_redir_ipv4_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_redir)),
- 	.eval		= nft_redir_ipv4_eval,
- 	.init		= nft_redir_init,
-+	.destroy	= nft_redir_ipv4_destroy,
- 	.dump		= nft_redir_dump,
- 	.validate	= nft_redir_validate,
- };
-diff --git a/net/ipv6/netfilter/nft_masq_ipv6.c b/net/ipv6/netfilter/nft_masq_ipv6.c
-index cd1ac16..a8b3626 100644
---- a/net/ipv6/netfilter/nft_masq_ipv6.c
-+++ b/net/ipv6/netfilter/nft_masq_ipv6.c
-@@ -30,12 +30,19 @@ static void nft_masq_ipv6_eval(const struct nft_expr *expr,
- 	regs->verdict.code = nf_nat_masquerade_ipv6(pkt->skb, &range, pkt->out);
- }
- 
-+static void
-+nft_masq_ipv6_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
-+{
-+	nf_ct_netns_put(ctx->net, NFPROTO_IPV6);
-+}
-+
- static struct nft_expr_type nft_masq_ipv6_type;
- static const struct nft_expr_ops nft_masq_ipv6_ops = {
- 	.type		= &nft_masq_ipv6_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_masq)),
- 	.eval		= nft_masq_ipv6_eval,
- 	.init		= nft_masq_init,
-+	.destroy	= nft_masq_ipv6_destroy,
- 	.dump		= nft_masq_dump,
- 	.validate	= nft_masq_validate,
- };
-diff --git a/net/ipv6/netfilter/nft_redir_ipv6.c b/net/ipv6/netfilter/nft_redir_ipv6.c
-index aca44e8..ef673cd 100644
---- a/net/ipv6/netfilter/nft_redir_ipv6.c
-+++ b/net/ipv6/netfilter/nft_redir_ipv6.c
-@@ -38,12 +38,19 @@ static void nft_redir_ipv6_eval(const struct nft_expr *expr,
- 	regs->verdict.code = nf_nat_redirect_ipv6(pkt->skb, &range, pkt->hook);
- }
- 
-+static void
-+nft_redir_ipv6_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
-+{
-+	nf_ct_netns_put(ctx->net, NFPROTO_IPV6);
-+}
-+
- static struct nft_expr_type nft_redir_ipv6_type;
- static const struct nft_expr_ops nft_redir_ipv6_ops = {
- 	.type		= &nft_redir_ipv6_type,
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_redir)),
- 	.eval		= nft_redir_ipv6_eval,
- 	.init		= nft_redir_init,
-+	.destroy	= nft_redir_ipv6_destroy,
- 	.dump		= nft_redir_dump,
- 	.validate	= nft_redir_validate,
- };
-diff --git a/net/netfilter/nft_masq.c b/net/netfilter/nft_masq.c
-index 9aea747..c7269c3 100644
---- a/net/netfilter/nft_masq.c
-+++ b/net/netfilter/nft_masq.c
-@@ -48,13 +48,14 @@ int nft_masq_init(const struct nft_ctx *ctx,
- 		return err;
- 
- 	if (tb[NFTA_MASQ_FLAGS] == NULL)
--		return 0;
-+		goto out;
- 
- 	priv->flags = ntohl(nla_get_be32(tb[NFTA_MASQ_FLAGS]));
- 	if (priv->flags & ~NF_NAT_RANGE_MASK)
- 		return -EINVAL;
-+ out:
-+	return nf_ct_netns_get(ctx->net, ctx->afi->family);
- 
--	return 0;
- }
- EXPORT_SYMBOL_GPL(nft_masq_init);
- 
-diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-index ee2d717..19a7bf3 100644
---- a/net/netfilter/nft_nat.c
-+++ b/net/netfilter/nft_nat.c
-@@ -209,7 +209,7 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 			return -EINVAL;
- 	}
- 
--	return 0;
-+	return nf_ct_netns_get(ctx->net, family);
- }
- 
- static int nft_nat_dump(struct sk_buff *skb, const struct nft_expr *expr)
-@@ -257,12 +257,21 @@ nla_put_failure:
- 	return -1;
- }
- 
-+static void
-+nft_nat_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
-+{
-+	const struct nft_nat *priv = nft_expr_priv(expr);
-+
-+	nf_ct_netns_put(ctx->net, priv->family);
-+}
-+
- static struct nft_expr_type nft_nat_type;
- static const struct nft_expr_ops nft_nat_ops = {
- 	.type           = &nft_nat_type,
- 	.size           = NFT_EXPR_SIZE(sizeof(struct nft_nat)),
- 	.eval           = nft_nat_eval,
- 	.init           = nft_nat_init,
-+	.destroy        = nft_nat_destroy,
- 	.dump           = nft_nat_dump,
- 	.validate	= nft_nat_validate,
- };
-diff --git a/net/netfilter/nft_redir.c b/net/netfilter/nft_redir.c
-index 03f7bf4..f8227ec 100644
---- a/net/netfilter/nft_redir.c
-+++ b/net/netfilter/nft_redir.c
-@@ -79,7 +79,7 @@ int nft_redir_init(const struct nft_ctx *ctx,
- 			return -EINVAL;
- 	}
- 
--	return 0;
-+	return nf_ct_netns_get(ctx->net, ctx->afi->family);
- }
- EXPORT_SYMBOL_GPL(nft_redir_init);
- 
--- 
-2.0.5
+When a new namespace is created, all the hooks registered 'globally'
+(i.e. via nf_register_hook() instead of a particular namespace via
+ nf_register_net_hook api) get copied to the new netns.
+
+This means f.e. that when ipt_filter table/module is loaded on a system,
+then each namespace on that system has an (empty) iptables filter ruleset.
+
+This work aims to change all major hook users to nf_register_net_hook
+so that when a new netns is created it has no hooks at all, even when the
+initial namespace uses conntrack, iptables and bridge netfilter.
+
+To keep behaviour somewhat compatible, xtable hooks are registered once a
+iptables set/getsockopt call is made within a net namespace.
+This also means that e.g. conntrack behaviour is not yet optimal, we
+still create all the data structures and only skip hook registration
+at this time.
+
+Caveats:
+- conntrack is no longer active just by loading nf_conntrack module -- at
+least one (x)tables rule that requires conntrack has to be added, e.g.
+conntrack match or S/DNAT target.
+Loading the nat table is *not* sufficient.
+
+Changes since v1:
+- Don't add a dependency on conntrack in the nat table.
+It causes hard to resolve dependency problems on initcall ordering, f.e.
+ip6tables nat will fail if link order caues nat table initcall before
+conntrack_ipv6 initcall, and so on (also makes the patch set pretty much
+useless with MODULES=n builds).
+- change all targets and matches that need conntrack, including MASQUERADE,
+  REDIRECT, SNAT/DNAT to register w. conntrack.
+- get rid of a couple of refcount bugs.
+- reduce amount of copy&pastry in iptable_foo modules.  For this to work
+all the XXX_register_table() functions had to be extended with the location of
+the table pointer storage, problem is that this must be setup by the time the
+hook is registered since we can see packets right away.
+
+Ads section:
+conntrack+filter + nat table used in init namespace, single TCP_STREAM lo netperf:
+87380  16384  16384    30.00    14348.66
+with patch set, netperf running in net namespace without rules:
+87380  16384  16384    30.00    15683.97
+
+routing from ns3 -> ns2, filter + nat table & conntrack in all namespaces:
+87380  16384  16384    30.00    5664.46
+without conntrack+any tables in those namespaces:
+87380  16384  16384    30.00    7336.54
+
+Comments welcome.
+
+ include/linux/netfilter.h                      |   29 ++++------
+ include/linux/netfilter/x_tables.h             |    6 +-
+ include/linux/netfilter_arp/arp_tables.h       |    9 +--
+ include/linux/netfilter_ingress.h              |    9 ++-
+ include/linux/netfilter_ipv4/ip_tables.h       |    9 +--
+ include/linux/netfilter_ipv6/ip6_tables.h      |    9 +--
+ include/net/netfilter/ipv4/nf_defrag_ipv4.h    |    3 -
+ include/net/netfilter/ipv6/nf_defrag_ipv6.h    |    3 -
+ include/net/netfilter/nf_conntrack.h           |    4 +
+ include/net/netfilter/nf_conntrack_l3proto.h   |    4 +
+ net/bridge/br_netfilter_hooks.c                |   68 +++++++++++++++++++++++--
+ net/ipv4/netfilter/arp_tables.c                |   66 +++++++++++++++---------
+ net/ipv4/netfilter/arptable_filter.c           |   39 ++++++++------
+ net/ipv4/netfilter/ip_tables.c                 |   63 +++++++++++++----------
+ net/ipv4/netfilter/ipt_CLUSTERIP.c             |    4 -
+ net/ipv4/netfilter/ipt_MASQUERADE.c            |    8 ++
+ net/ipv4/netfilter/ipt_SYNPROXY.c              |    4 -
+ net/ipv4/netfilter/iptable_filter.c            |   55 ++++++++++++--------
+ net/ipv4/netfilter/iptable_mangle.c            |   41 ++++++++++-----
+ net/ipv4/netfilter/iptable_nat.c               |   41 ++++++++-------
+ net/ipv4/netfilter/iptable_raw.c               |   42 ++++++++++-----
+ net/ipv4/netfilter/iptable_security.c          |   44 ++++++++++------
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |   62 ++++++++++++++++++----
+ net/ipv4/netfilter/nf_defrag_ipv4.c            |   49 ++++++++++++++++--
+ net/ipv4/netfilter/nft_masq_ipv4.c             |    7 ++
+ net/ipv4/netfilter/nft_redir_ipv4.c            |    7 ++
+ net/ipv6/netfilter/ip6_tables.c                |   65 ++++++++++++++---------
+ net/ipv6/netfilter/ip6t_SYNPROXY.c             |    4 -
+ net/ipv6/netfilter/ip6table_filter.c           |   47 ++++++++++-------
+ net/ipv6/netfilter/ip6table_mangle.c           |   45 +++++++++-------
+ net/ipv6/netfilter/ip6table_nat.c              |   41 ++++++++-------
+ net/ipv6/netfilter/ip6table_raw.c              |   46 ++++++++++------
+ net/ipv6/netfilter/ip6table_security.c         |   44 +++++++++-------
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |   61 +++++++++++++++++-----
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c      |   50 ++++++++++++++++--
+ net/ipv6/netfilter/nft_masq_ipv6.c             |    7 ++
+ net/ipv6/netfilter/nft_redir_ipv6.c            |    7 ++
+ net/netfilter/nf_conntrack_proto.c             |   48 +++++++++++++++++
+ net/netfilter/nft_ct.c                         |   24 ++++----
+ net/netfilter/nft_masq.c                       |    5 +
+ net/netfilter/nft_nat.c                        |   11 +++-
+ net/netfilter/nft_redir.c                      |    2 
+ net/netfilter/x_tables.c                       |   65 ++++++++++++++---------
+ net/netfilter/xt_CONNSECMARK.c                 |    4 -
+ net/netfilter/xt_CT.c                          |    6 +-
+ net/netfilter/xt_NETMAP.c                      |   11 +++-
+ net/netfilter/xt_REDIRECT.c                    |   12 +++-
+ net/netfilter/xt_TPROXY.c                      |   15 +++--
+ net/netfilter/xt_connbytes.c                   |    4 -
+ net/netfilter/xt_connlabel.c                   |    6 +-
+ net/netfilter/xt_connlimit.c                   |    6 +-
+ net/netfilter/xt_connmark.c                    |    8 +-
+ net/netfilter/xt_conntrack.c                   |    4 -
+ net/netfilter/xt_helper.c                      |    4 -
+ net/netfilter/xt_nat.c                         |   18 ++++++
+ net/netfilter/xt_socket.c                      |   33 ++++++++++--
+ net/netfilter/xt_state.c                       |    4 -
+ 57 files changed, 970 insertions(+), 422 deletions(-)
 
