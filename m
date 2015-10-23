@@ -1,467 +1,332 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf-next 2/9] netfilter: add and use nf_ct_netns_get/put
-Date: Fri, 23 Oct 2015 12:43:19 +0200
-Message-ID: <1445597006-11264-3-git-send-email-fw@strlen.de>
+Subject: [PATCH v2 nf-next 3/9] netfilter: conntrack: register hooks in netns when needed by ruleset
+Date: Fri, 23 Oct 2015 12:43:20 +0200
+Message-ID: <1445597006-11264-4-git-send-email-fw@strlen.de>
 References: <1445597006-11264-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45000 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45001 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751124AbbJWKnc (ORCPT
+	by vger.kernel.org with ESMTP id S1751036AbbJWKnd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Oct 2015 06:43:32 -0400
+	Fri, 23 Oct 2015 06:43:33 -0400
 In-Reply-To: <1445597006-11264-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-currently aliased to try_module_get/_put.
-Will be changed in next patch when we add functions to make use of ->net
-argument to store usercount per l3proto tracker.
+This makes use of nf_ct_netns_get/put added in previous patch.
+We add get/put functions to nf_conntrack_l3proto structure, ipv4 and
+ipv6 then implement use-count to track how many users (nftables or
+xtables modules) have a dependency on ipv4 and/or ipv6 connection
+tracking functionality.
 
-This is needed to avoid registering the conntrack hooks in all netns and
-later only enable connection tracking in those that need conntrack.
+When count reaches zero, the hooks are unregistered.
+
+The main goal of this patch is to delay activation of connection
+tracking inside a namespace until a point in time where such
+functionality is needed (which might be "never").
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- Changes since v1:
-  - prefer par->family over hardcoded NFPROTO_FOO (Jan Engelhardt)
+ no changes since v1
 
- include/net/netfilter/nf_conntrack.h |  4 ++++
- net/ipv4/netfilter/ipt_CLUSTERIP.c   |  4 ++--
- net/ipv4/netfilter/ipt_SYNPROXY.c    |  4 ++--
- net/ipv6/netfilter/ip6t_SYNPROXY.c   |  4 ++--
- net/netfilter/nf_conntrack_proto.c   | 12 ++++++++++++
- net/netfilter/nft_ct.c               | 24 ++++++++++++------------
- net/netfilter/xt_CONNSECMARK.c       |  4 ++--
- net/netfilter/xt_CT.c                |  6 +++---
- net/netfilter/xt_connbytes.c         |  4 ++--
- net/netfilter/xt_connlabel.c         |  6 +++---
- net/netfilter/xt_connlimit.c         |  6 +++---
- net/netfilter/xt_connmark.c          |  8 ++++----
- net/netfilter/xt_conntrack.c         |  4 ++--
- net/netfilter/xt_helper.c            |  4 ++--
- net/netfilter/xt_state.c             |  4 ++--
- 15 files changed, 57 insertions(+), 41 deletions(-)
+ include/net/netfilter/nf_conntrack_l3proto.h   |  4 ++
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c | 55 ++++++++++++++++++++------
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c | 54 +++++++++++++++++++------
+ net/netfilter/nf_conntrack_proto.c             | 38 +++++++++++++++++-
+ 4 files changed, 127 insertions(+), 24 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index fde4068..9dd4a6b 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -175,6 +175,10 @@ static inline void nf_ct_put(struct nf_conn *ct)
- int nf_ct_l3proto_try_module_get(unsigned short l3proto);
- void nf_ct_l3proto_module_put(unsigned short l3proto);
+diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
+index cdc920b..e0238db 100644
+--- a/include/net/netfilter/nf_conntrack_l3proto.h
++++ b/include/net/netfilter/nf_conntrack_l3proto.h
+@@ -52,6 +52,10 @@ struct nf_conntrack_l3proto {
+ 	int (*tuple_to_nlattr)(struct sk_buff *skb,
+ 			       const struct nf_conntrack_tuple *t);
  
-+/* load module; enable/disable conntrack in this namespace */
-+int nf_ct_netns_get(struct net *net, u8 nfproto);
-+void nf_ct_netns_put(struct net *net, u8 nfproto);
++	/* Called when netns wants to use connection tracking */
++	int (*net_ns_get)(struct net *);
++	void (*net_ns_put)(struct net *);
 +
- /*
-  * Allocate a hashtable of hlist_head (if nulls == 0),
-  * or hlist_nulls_head (if nulls == 1)
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 4a9e6db..2c3fe06 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -419,7 +419,7 @@ static int clusterip_tg_check(const struct xt_tgchk_param *par)
- 	}
- 	cipinfo->config = config;
+ 	/*
+ 	 * Calculate size of tuple nlattr
+ 	 */
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 461ca92..2b51a04 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -31,6 +31,13 @@
+ #include <net/netfilter/ipv4/nf_defrag_ipv4.h>
+ #include <net/netfilter/nf_log.h>
  
--	ret = nf_ct_l3proto_try_module_get(par->family);
-+	ret = nf_ct_netns_get(par->net, par->family);
- 	if (ret < 0)
- 		pr_info("cannot load conntrack support for proto=%u\n",
- 			par->family);
-@@ -444,7 +444,7 @@ static void clusterip_tg_destroy(const struct xt_tgdtor_param *par)
- 
- 	clusterip_config_put(cipinfo->config);
- 
--	nf_ct_l3proto_module_put(par->family);
-+	nf_ct_netns_get(par->net, par->family);
- }
- 
- #ifdef CONFIG_COMPAT
-diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
-index 5fdc556..c2cc22e 100644
---- a/net/ipv4/netfilter/ipt_SYNPROXY.c
-+++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
-@@ -415,12 +415,12 @@ static int synproxy_tg4_check(const struct xt_tgchk_param *par)
- 	    e->ip.invflags & XT_INV_PROTO)
- 		return -EINVAL;
- 
--	return nf_ct_l3proto_try_module_get(par->family);
-+	return nf_ct_netns_get(par->net, par->family);
- }
- 
- static void synproxy_tg4_destroy(const struct xt_tgdtor_param *par)
++static int conntrack4_net_id __read_mostly;
++static DEFINE_MUTEX(register_ipv4_hooks);
++
++struct conntrack4_net {
++	unsigned int users;
++};
++
+ static bool ipv4_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
+ 			      struct nf_conntrack_tuple *tuple)
  {
--	nf_ct_l3proto_module_put(par->family);
-+	nf_ct_netns_put(par->net, par->family);
+@@ -367,6 +374,38 @@ static int ipv4_init_net(struct net *net)
+ 	return 0;
  }
  
- static struct xt_target synproxy_tg4_reg __read_mostly = {
-diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-index 3deed58..484f4b6 100644
---- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
-+++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-@@ -436,12 +436,12 @@ static int synproxy_tg6_check(const struct xt_tgchk_param *par)
- 	    e->ipv6.invflags & XT_INV_PROTO)
- 		return -EINVAL;
- 
--	return nf_ct_l3proto_try_module_get(par->family);
-+	return nf_ct_netns_get(par->net, par->family);
- }
- 
- static void synproxy_tg6_destroy(const struct xt_tgdtor_param *par)
- {
--	nf_ct_l3proto_module_put(par->family);
-+	nf_ct_netns_put(par->net, par->family);
- }
- 
- static struct xt_target synproxy_tg6_reg __read_mostly = {
-diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
-index b65d586..609c789 100644
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -125,6 +125,18 @@ void nf_ct_l3proto_module_put(unsigned short l3proto)
- }
- EXPORT_SYMBOL_GPL(nf_ct_l3proto_module_put);
- 
-+int nf_ct_netns_get(struct net *net, u8 nfproto)
++static int nf_conntrack_l3proto_ipv4_hooks_register(struct net *net)
 +{
-+	return nf_ct_l3proto_try_module_get(nfproto);
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_netns_get);
++	struct conntrack4_net *cnet = net_generic(net, conntrack4_net_id);
++	int err = 0;
 +
-+void nf_ct_netns_put(struct net *net, u8 nfproto)
++	mutex_lock(&register_ipv4_hooks);
++
++	cnet->users++;
++	if (cnet->users > 1)
++		goto out_unlock;
++
++	err = nf_register_net_hooks(net, ipv4_conntrack_ops,
++				    ARRAY_SIZE(ipv4_conntrack_ops));
++
++	if (err)
++		cnet->users = 0;
++ out_unlock:
++	mutex_unlock(&register_ipv4_hooks);
++	return err;
++}
++
++static void nf_conntrack_l3proto_ipv4_hooks_unregister(struct net *net)
 +{
-+	nf_ct_l3proto_module_put(nfproto);
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_netns_put);
++	struct conntrack4_net *cnet = net_generic(net, conntrack4_net_id);
 +
- struct nf_conntrack_l4proto *
- nf_ct_l4proto_find_get(u_int16_t l3num, u_int8_t l4num)
- {
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 8cbca34..8c775b1 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -186,37 +186,37 @@ static const struct nla_policy nft_ct_policy[NFTA_CT_MAX + 1] = {
- 	[NFTA_CT_SREG]		= { .type = NLA_U32 },
++	mutex_lock(&register_ipv4_hooks);
++	if (--cnet->users == 0)
++		nf_unregister_net_hooks(net, ipv4_conntrack_ops,
++					ARRAY_SIZE(ipv4_conntrack_ops));
++	mutex_unlock(&register_ipv4_hooks);
++}
++
+ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 __read_mostly = {
+ 	.l3proto	 = PF_INET,
+ 	.name		 = "ipv4",
+@@ -383,6 +422,8 @@ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 __read_mostly = {
+ #if defined(CONFIG_SYSCTL) && defined(CONFIG_NF_CONNTRACK_PROC_COMPAT)
+ 	.ctl_table_path  = "net/ipv4/netfilter",
+ #endif
++	.net_ns_get	 = nf_conntrack_l3proto_ipv4_hooks_register,
++	.net_ns_put	 = nf_conntrack_l3proto_ipv4_hooks_unregister,
+ 	.init_net	 = ipv4_init_net,
+ 	.me		 = THIS_MODULE,
+ };
+@@ -440,6 +481,8 @@ static void ipv4_net_exit(struct net *net)
+ static struct pernet_operations ipv4_net_ops = {
+ 	.init = ipv4_net_init,
+ 	.exit = ipv4_net_exit,
++	.id = &conntrack4_net_id,
++	.size = sizeof(struct conntrack4_net),
  };
  
--static int nft_ct_l3proto_try_module_get(uint8_t family)
-+static int nft_ct_netns_get(struct net *net, uint8_t family)
- {
- 	int err;
- 
- 	if (family == NFPROTO_INET) {
--		err = nf_ct_l3proto_try_module_get(NFPROTO_IPV4);
-+		err = nf_ct_netns_get(net, NFPROTO_IPV4);
- 		if (err < 0)
- 			goto err1;
--		err = nf_ct_l3proto_try_module_get(NFPROTO_IPV6);
-+		err = nf_ct_netns_get(net, NFPROTO_IPV6);
- 		if (err < 0)
- 			goto err2;
- 	} else {
--		err = nf_ct_l3proto_try_module_get(family);
-+		err = nf_ct_netns_get(net, family);
- 		if (err < 0)
- 			goto err1;
- 	}
- 	return 0;
- 
- err2:
--	nf_ct_l3proto_module_put(NFPROTO_IPV4);
-+	nf_ct_netns_put(net, NFPROTO_IPV4);
- err1:
- 	return err;
- }
- 
--static void nft_ct_l3proto_module_put(uint8_t family)
-+static void nft_ct_netns_put(struct net *net, uint8_t family)
- {
- 	if (family == NFPROTO_INET) {
--		nf_ct_l3proto_module_put(NFPROTO_IPV4);
--		nf_ct_l3proto_module_put(NFPROTO_IPV6);
-+		nf_ct_netns_put(net, NFPROTO_IPV4);
-+		nf_ct_netns_put(net, NFPROTO_IPV6);
- 	} else
--		nf_ct_l3proto_module_put(family);
-+		nf_ct_netns_put(net, family);
- }
- 
- static int nft_ct_get_init(const struct nft_ctx *ctx,
-@@ -312,7 +312,7 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		return err;
- 
--	err = nft_ct_l3proto_try_module_get(ctx->afi->family);
-+	err = nft_ct_netns_get(ctx->net, ctx->afi->family);
- 	if (err < 0)
- 		return err;
- 
-@@ -343,7 +343,7 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		return err;
- 
--	err = nft_ct_l3proto_try_module_get(ctx->afi->family);
-+	err = nft_ct_netns_get(ctx->net, ctx->afi->family);
- 	if (err < 0)
- 		return err;
- 
-@@ -353,7 +353,7 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
- static void nft_ct_destroy(const struct nft_ctx *ctx,
- 			   const struct nft_expr *expr)
- {
--	nft_ct_l3proto_module_put(ctx->afi->family);
-+	nft_ct_netns_put(ctx->net, ctx->afi->family);
- }
- 
- static int nft_ct_get_dump(struct sk_buff *skb, const struct nft_expr *expr)
-diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
-index e04dc28..da56c06 100644
---- a/net/netfilter/xt_CONNSECMARK.c
-+++ b/net/netfilter/xt_CONNSECMARK.c
-@@ -106,7 +106,7 @@ static int connsecmark_tg_check(const struct xt_tgchk_param *par)
- 		return -EINVAL;
+ static int __init nf_conntrack_l3proto_ipv4_init(void)
+@@ -461,17 +504,10 @@ static int __init nf_conntrack_l3proto_ipv4_init(void)
+ 		goto cleanup_sockopt;
  	}
  
--	ret = nf_ct_l3proto_try_module_get(par->family);
-+	ret = nf_ct_netns_get(par->net, par->family);
- 	if (ret < 0)
- 		pr_info("cannot load conntrack support for proto=%u\n",
- 			par->family);
-@@ -115,7 +115,7 @@ static int connsecmark_tg_check(const struct xt_tgchk_param *par)
+-	ret = nf_register_hooks(ipv4_conntrack_ops,
+-				ARRAY_SIZE(ipv4_conntrack_ops));
+-	if (ret < 0) {
+-		pr_err("nf_conntrack_ipv4: can't register hooks.\n");
+-		goto cleanup_pernet;
+-	}
+-
+ 	ret = nf_ct_l4proto_register(&nf_conntrack_l4proto_tcp4);
+ 	if (ret < 0) {
+ 		pr_err("nf_conntrack_ipv4: can't register tcp4 proto.\n");
+-		goto cleanup_hooks;
++		goto cleanup_pernet;
+ 	}
  
- static void connsecmark_tg_destroy(const struct xt_tgdtor_param *par)
- {
--	nf_ct_l3proto_module_put(par->family);
-+	nf_ct_netns_put(par->net, par->family);
+ 	ret = nf_ct_l4proto_register(&nf_conntrack_l4proto_udp4);
+@@ -508,8 +544,6 @@ static int __init nf_conntrack_l3proto_ipv4_init(void)
+ 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_udp4);
+  cleanup_tcp4:
+ 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_tcp4);
+- cleanup_hooks:
+-	nf_unregister_hooks(ipv4_conntrack_ops, ARRAY_SIZE(ipv4_conntrack_ops));
+  cleanup_pernet:
+ 	unregister_pernet_subsys(&ipv4_net_ops);
+  cleanup_sockopt:
+@@ -527,7 +561,6 @@ static void __exit nf_conntrack_l3proto_ipv4_fini(void)
+ 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_icmp);
+ 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_udp4);
+ 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_tcp4);
+-	nf_unregister_hooks(ipv4_conntrack_ops, ARRAY_SIZE(ipv4_conntrack_ops));
+ 	unregister_pernet_subsys(&ipv4_net_ops);
+ 	nf_unregister_sockopt(&so_getorigdst);
  }
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index 1aa5848..8916846 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -34,6 +34,13 @@
+ #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
+ #include <net/netfilter/nf_log.h>
  
- static struct xt_target connsecmark_tg_reg __read_mostly = {
-diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-index e7ac07e..48f1ddb 100644
---- a/net/netfilter/xt_CT.c
-+++ b/net/netfilter/xt_CT.c
-@@ -216,7 +216,7 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par,
- 		goto err1;
++static int conntrack6_net_id;
++static DEFINE_MUTEX(register_ipv6_hooks);
++
++struct conntrack6_net {
++	unsigned int users;
++};
++
+ static bool ipv6_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
+ 			      struct nf_conntrack_tuple *tuple)
+ {
+@@ -308,6 +315,36 @@ static int ipv6_nlattr_tuple_size(void)
+ }
  #endif
  
--	ret = nf_ct_l3proto_try_module_get(par->family);
-+	ret = nf_ct_netns_get(par->net, par->family);
++static int nf_conntrack_l3proto_ipv6_hooks_register(struct net *net)
++{
++	struct conntrack6_net *cnet = net_generic(net, conntrack6_net_id);
++	int err = 0;
++
++	mutex_lock(&register_ipv6_hooks);
++	cnet->users++;
++	if (cnet->users > 1)
++		goto out_unlock;
++
++	err = nf_register_net_hooks(net, ipv6_conntrack_ops,
++				    ARRAY_SIZE(ipv6_conntrack_ops));
++	if (err)
++		cnet->users = 0;
++ out_unlock:
++	mutex_unlock(&register_ipv6_hooks);
++	return err;
++}
++
++static void nf_conntrack_l3proto_ipv6_hooks_unregister(struct net *net)
++{
++	struct conntrack6_net *cnet = net_generic(net, conntrack6_net_id);
++
++	mutex_lock(&register_ipv6_hooks);
++	if (--cnet->users == 0)
++		nf_unregister_net_hooks(net, ipv6_conntrack_ops,
++					ARRAY_SIZE(ipv6_conntrack_ops));
++	mutex_unlock(&register_ipv6_hooks);
++}
++
+ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 __read_mostly = {
+ 	.l3proto		= PF_INET6,
+ 	.name			= "ipv6",
+@@ -321,6 +358,8 @@ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 __read_mostly = {
+ 	.nlattr_to_tuple	= ipv6_nlattr_to_tuple,
+ 	.nla_policy		= ipv6_nla_policy,
+ #endif
++	.net_ns_get	 = nf_conntrack_l3proto_ipv6_hooks_register,
++	.net_ns_put	 = nf_conntrack_l3proto_ipv6_hooks_unregister,
+ 	.me			= THIS_MODULE,
+ };
+ 
+@@ -382,6 +421,8 @@ static void ipv6_net_exit(struct net *net)
+ static struct pernet_operations ipv6_net_ops = {
+ 	.init = ipv6_net_init,
+ 	.exit = ipv6_net_exit,
++	.id = &conntrack6_net_id,
++	.size = sizeof(struct conntrack6_net),
+ };
+ 
+ static int __init nf_conntrack_l3proto_ipv6_init(void)
+@@ -401,18 +442,10 @@ static int __init nf_conntrack_l3proto_ipv6_init(void)
  	if (ret < 0)
- 		goto err1;
+ 		goto cleanup_sockopt;
  
-@@ -260,7 +260,7 @@ out:
- err3:
- 	nf_ct_tmpl_free(ct);
- err2:
--	nf_ct_l3proto_module_put(par->family);
-+	nf_ct_netns_put(par->net, par->family);
- err1:
- 	return ret;
- }
-@@ -341,7 +341,7 @@ static void xt_ct_tg_destroy(const struct xt_tgdtor_param *par,
- 		if (help)
- 			module_put(help->helper->me);
- 
--		nf_ct_l3proto_module_put(par->family);
-+		nf_ct_netns_put(par->net, par->family);
- 
- 		xt_ct_destroy_timeout(ct);
- 		nf_ct_put(info->ct);
-diff --git a/net/netfilter/xt_connbytes.c b/net/netfilter/xt_connbytes.c
-index d4bec26..cad0b7b 100644
---- a/net/netfilter/xt_connbytes.c
-+++ b/net/netfilter/xt_connbytes.c
-@@ -110,7 +110,7 @@ static int connbytes_mt_check(const struct xt_mtchk_param *par)
- 	    sinfo->direction != XT_CONNBYTES_DIR_BOTH)
- 		return -EINVAL;
- 
--	ret = nf_ct_l3proto_try_module_get(par->family);
-+	ret = nf_ct_netns_get(par->net, par->family);
- 	if (ret < 0)
- 		pr_info("cannot load conntrack support for proto=%u\n",
- 			par->family);
-@@ -129,7 +129,7 @@ static int connbytes_mt_check(const struct xt_mtchk_param *par)
- 
- static void connbytes_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	nf_ct_l3proto_module_put(par->family);
-+	nf_ct_netns_put(par->net, par->family);
- }
- 
- static struct xt_match connbytes_mt_reg __read_mostly = {
-diff --git a/net/netfilter/xt_connlabel.c b/net/netfilter/xt_connlabel.c
-index bb9cbeb..b7e57f2 100644
---- a/net/netfilter/xt_connlabel.c
-+++ b/net/netfilter/xt_connlabel.c
-@@ -48,7 +48,7 @@ static int connlabel_mt_check(const struct xt_mtchk_param *par)
- 		return -EINVAL;
+-	ret = nf_register_hooks(ipv6_conntrack_ops,
+-				ARRAY_SIZE(ipv6_conntrack_ops));
+-	if (ret < 0) {
+-		pr_err("nf_conntrack_ipv6: can't register pre-routing defrag "
+-		       "hook.\n");
+-		goto cleanup_pernet;
+-	}
+-
+ 	ret = nf_ct_l4proto_register(&nf_conntrack_l4proto_tcp6);
+ 	if (ret < 0) {
+ 		pr_err("nf_conntrack_ipv6: can't register tcp6 proto.\n");
+-		goto cleanup_hooks;
++		goto cleanup_pernet;
  	}
  
--	ret = nf_ct_l3proto_try_module_get(par->family);
-+	ret = nf_ct_netns_get(par->net, par->family);
- 	if (ret < 0) {
- 		pr_info("cannot load conntrack support for proto=%u\n",
- 							par->family);
-@@ -57,14 +57,14 @@ static int connlabel_mt_check(const struct xt_mtchk_param *par)
- 
- 	ret = nf_connlabels_get(par->net, info->bit + 1);
- 	if (ret < 0)
--		nf_ct_l3proto_module_put(par->family);
-+		nf_ct_netns_put(par->net, par->family);
- 	return ret;
+ 	ret = nf_ct_l4proto_register(&nf_conntrack_l4proto_udp6);
+@@ -440,8 +473,6 @@ static int __init nf_conntrack_l3proto_ipv6_init(void)
+ 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_udp6);
+  cleanup_tcp6:
+ 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_tcp6);
+- cleanup_hooks:
+-	nf_unregister_hooks(ipv6_conntrack_ops, ARRAY_SIZE(ipv6_conntrack_ops));
+  cleanup_pernet:
+ 	unregister_pernet_subsys(&ipv6_net_ops);
+  cleanup_sockopt:
+@@ -456,7 +487,6 @@ static void __exit nf_conntrack_l3proto_ipv6_fini(void)
+ 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_tcp6);
+ 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_udp6);
+ 	nf_ct_l4proto_unregister(&nf_conntrack_l4proto_icmpv6);
+-	nf_unregister_hooks(ipv6_conntrack_ops, ARRAY_SIZE(ipv6_conntrack_ops));
+ 	unregister_pernet_subsys(&ipv6_net_ops);
+ 	nf_unregister_sockopt(&so_getorigdst6);
  }
+diff --git a/net/netfilter/nf_conntrack_proto.c b/net/netfilter/nf_conntrack_proto.c
+index 609c789..1fb11b6 100644
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -127,12 +127,48 @@ EXPORT_SYMBOL_GPL(nf_ct_l3proto_module_put);
  
- static void connlabel_mt_destroy(const struct xt_mtdtor_param *par)
+ int nf_ct_netns_get(struct net *net, u8 nfproto)
  {
- 	nf_connlabels_put(par->net);
--	nf_ct_l3proto_module_put(par->family);
-+	nf_ct_netns_put(par->net, par->family);
+-	return nf_ct_l3proto_try_module_get(nfproto);
++	const struct nf_conntrack_l3proto *l3proto;
++	int ret;
++
++	might_sleep();
++
++	ret = nf_ct_l3proto_try_module_get(nfproto);
++	if (ret < 0)
++		return ret;
++
++	/* we already have a reference, can't fail */
++	rcu_read_lock();
++	l3proto = __nf_ct_l3proto_find(nfproto);
++	rcu_read_unlock();
++
++	if (!l3proto->net_ns_get)
++		return 0;
++
++	ret = l3proto->net_ns_get(net);
++	if (ret < 0)
++		nf_ct_l3proto_module_put(nfproto);
++
++	return ret;
  }
+ EXPORT_SYMBOL_GPL(nf_ct_netns_get);
  
- static struct xt_match connlabels_mt_reg __read_mostly = {
-diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index 99bbc82..66f5480 100644
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -374,7 +374,7 @@ static int connlimit_mt_check(const struct xt_mtchk_param *par)
- 		} while (!rand);
- 		cmpxchg(&connlimit_rnd, 0, rand);
- 	}
--	ret = nf_ct_l3proto_try_module_get(par->family);
-+	ret = nf_ct_netns_get(par->net, par->family);
- 	if (ret < 0) {
- 		pr_info("cannot load conntrack support for "
- 			"address family %u\n", par->family);
-@@ -384,7 +384,7 @@ static int connlimit_mt_check(const struct xt_mtchk_param *par)
- 	/* init private data */
- 	info->data = kmalloc(sizeof(struct xt_connlimit_data), GFP_KERNEL);
- 	if (info->data == NULL) {
--		nf_ct_l3proto_module_put(par->family);
-+		nf_ct_netns_put(par->net, par->family);
- 		return -ENOMEM;
- 	}
- 
-@@ -420,7 +420,7 @@ static void connlimit_mt_destroy(const struct xt_mtdtor_param *par)
- 	const struct xt_connlimit_info *info = par->matchinfo;
- 	unsigned int i;
- 
--	nf_ct_l3proto_module_put(par->family);
-+	nf_ct_netns_put(par->net, par->family);
- 
- 	for (i = 0; i < ARRAY_SIZE(info->data->climit_root4); ++i)
- 		destroy_tree(&info->data->climit_root4[i]);
-diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
-index 69f78e9..ec377cc 100644
---- a/net/netfilter/xt_connmark.c
-+++ b/net/netfilter/xt_connmark.c
-@@ -77,7 +77,7 @@ static int connmark_tg_check(const struct xt_tgchk_param *par)
+ void nf_ct_netns_put(struct net *net, u8 nfproto)
  {
- 	int ret;
- 
--	ret = nf_ct_l3proto_try_module_get(par->family);
-+	ret = nf_ct_netns_get(par->net, par->family);
- 	if (ret < 0)
- 		pr_info("cannot load conntrack support for proto=%u\n",
- 			par->family);
-@@ -86,7 +86,7 @@ static int connmark_tg_check(const struct xt_tgchk_param *par)
- 
- static void connmark_tg_destroy(const struct xt_tgdtor_param *par)
- {
--	nf_ct_l3proto_module_put(par->family);
-+	nf_ct_netns_put(par->net, par->family);
++	const struct nf_conntrack_l3proto *l3proto;
++
++	might_sleep();
++
++	/* same as nf_conntrack_netns_get(), reference assumed */
++	rcu_read_lock();
++	l3proto = __nf_ct_l3proto_find(nfproto);
++	rcu_read_unlock();
++
++	if (WARN_ON(!l3proto))
++		return;
++
++	if (l3proto->net_ns_put)
++		l3proto->net_ns_put(net);
++
+ 	nf_ct_l3proto_module_put(nfproto);
  }
- 
- static bool
-@@ -107,7 +107,7 @@ static int connmark_mt_check(const struct xt_mtchk_param *par)
- {
- 	int ret;
- 
--	ret = nf_ct_l3proto_try_module_get(par->family);
-+	ret = nf_ct_netns_get(par->net, par->family);
- 	if (ret < 0)
- 		pr_info("cannot load conntrack support for proto=%u\n",
- 			par->family);
-@@ -116,7 +116,7 @@ static int connmark_mt_check(const struct xt_mtchk_param *par)
- 
- static void connmark_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	nf_ct_l3proto_module_put(par->family);
-+	nf_ct_netns_put(par->net, par->family);
- }
- 
- static struct xt_target connmark_tg_reg __read_mostly = {
-diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
-index 188404b9..9480b52 100644
---- a/net/netfilter/xt_conntrack.c
-+++ b/net/netfilter/xt_conntrack.c
-@@ -273,7 +273,7 @@ static int conntrack_mt_check(const struct xt_mtchk_param *par)
- {
- 	int ret;
- 
--	ret = nf_ct_l3proto_try_module_get(par->family);
-+	ret = nf_ct_netns_get(par->net, par->family);
- 	if (ret < 0)
- 		pr_info("cannot load conntrack support for proto=%u\n",
- 			par->family);
-@@ -282,7 +282,7 @@ static int conntrack_mt_check(const struct xt_mtchk_param *par)
- 
- static void conntrack_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	nf_ct_l3proto_module_put(par->family);
-+	nf_ct_netns_put(par->net, par->family);
- }
- 
- static struct xt_match conntrack_mt_reg[] __read_mostly = {
-diff --git a/net/netfilter/xt_helper.c b/net/netfilter/xt_helper.c
-index 9f4ab00..8e451ec 100644
---- a/net/netfilter/xt_helper.c
-+++ b/net/netfilter/xt_helper.c
-@@ -59,7 +59,7 @@ static int helper_mt_check(const struct xt_mtchk_param *par)
- 	struct xt_helper_info *info = par->matchinfo;
- 	int ret;
- 
--	ret = nf_ct_l3proto_try_module_get(par->family);
-+	ret = nf_ct_netns_get(par->net, par->family);
- 	if (ret < 0) {
- 		pr_info("cannot load conntrack support for proto=%u\n",
- 			par->family);
-@@ -71,7 +71,7 @@ static int helper_mt_check(const struct xt_mtchk_param *par)
- 
- static void helper_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	nf_ct_l3proto_module_put(par->family);
-+	nf_ct_netns_put(par->net, par->family);
- }
- 
- static struct xt_match helper_mt_reg __read_mostly = {
-diff --git a/net/netfilter/xt_state.c b/net/netfilter/xt_state.c
-index a507922..5746a33 100644
---- a/net/netfilter/xt_state.c
-+++ b/net/netfilter/xt_state.c
-@@ -43,7 +43,7 @@ static int state_mt_check(const struct xt_mtchk_param *par)
- {
- 	int ret;
- 
--	ret = nf_ct_l3proto_try_module_get(par->family);
-+	ret = nf_ct_netns_get(par->net, par->family);
- 	if (ret < 0)
- 		pr_info("cannot load conntrack support for proto=%u\n",
- 			par->family);
-@@ -52,7 +52,7 @@ static int state_mt_check(const struct xt_mtchk_param *par)
- 
- static void state_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	nf_ct_l3proto_module_put(par->family);
-+	nf_ct_netns_put(par->net, par->family);
- }
- 
- static struct xt_match state_mt_reg __read_mostly = {
+ EXPORT_SYMBOL_GPL(nf_ct_netns_put);
 -- 
 2.0.5
 
