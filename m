@@ -1,133 +1,163 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf-next 0/9] netfilter: don't copy initns hooks to new namespaces
-Date: Fri, 23 Oct 2015 12:43:17 +0200
-Message-ID: <1445597006-11264-1-git-send-email-fw@strlen.de>
+Subject: [PATCH v2 nf-next 7/9] netfilter: bridge: register hooks only when bridge is added
+Date: Fri, 23 Oct 2015 12:43:24 +0200
+Message-ID: <1445597006-11264-8-git-send-email-fw@strlen.de>
+References: <1445597006-11264-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44998 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45005 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750953AbbJWKnb (ORCPT
+	by vger.kernel.org with ESMTP id S1751124AbbJWKnf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Oct 2015 06:43:31 -0400
+	Fri, 23 Oct 2015 06:43:35 -0400
+In-Reply-To: <1445597006-11264-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Historically, a particular table or netfilter feature (defrag, iptables
-filter table ...) was registered with the netfilter core hook mechanism
-on module load.
+This moves the last 'common' hooks to a 'register only when needed' scheme.
 
-When netns support was added to iptables only the ip/ip6tables ruleset
-was made namespace aware, not the actual hook points.
+We use a device notifier to register all the 'call-iptables' netfilter
+hooks once a bridge gets added.
 
-This has changed -- after Eric Biedermans recent work we now have
-per net namespace hooks.
+This means that if the initial namespace uses a bridge, newly created
+network namespaces no longer 'inherit' the PRE_ROUTING ipt_sabotage hook,
+instead it will only be registered in that network namespace if a bridge
+is added within that namespace.
 
-When a new namespace is created, all the hooks registered 'globally'
-(i.e. via nf_register_hook() instead of a particular namespace via
- nf_register_net_hook api) get copied to the new netns.
+After this patch, only a handful of netfilter modules still use
+global hooks:
+- PF_BRIDGE hooks
+- CLUSTER match (deprecated)
+- ipvs hooks
+- SYNPROXY
 
-This means f.e. that when ipt_filter table/module is loaded on a system,
-then each namespace on that system has an (empty) iptables filter ruleset.
+As long as these modules are not loaded/used, a new network namespace
+has empty hook list and NF_HOOK() will boil down to single list_empty
+test even if initial namespace does packet filtering, conntrack, etc.
 
-This work aims to change all major hook users to nf_register_net_hook
-so that when a new netns is created it has no hooks at all, even when the
-initial namespace uses conntrack, iptables and bridge netfilter.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ no changes since v1
 
-To keep behaviour somewhat compatible, xtable hooks are registered once a
-iptables set/getsockopt call is made within a net namespace.
-This also means that e.g. conntrack behaviour is not yet optimal, we
-still create all the data structures and only skip hook registration
-at this time.
+ net/bridge/br_netfilter_hooks.c | 68 +++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 65 insertions(+), 3 deletions(-)
 
-Caveats:
-- conntrack is no longer active just by loading nf_conntrack module -- at
-least one (x)tables rule that requires conntrack has to be added, e.g.
-conntrack match or S/DNAT target.
-Loading the nat table is *not* sufficient.
-
-Changes since v1:
-- Don't add a dependency on conntrack in the nat table.
-It causes hard to resolve dependency problems on initcall ordering, f.e.
-ip6tables nat will fail if link order caues nat table initcall before
-conntrack_ipv6 initcall, and so on (also makes the patch set pretty much
-useless with MODULES=n builds).
-- change all targets and matches that need conntrack, including MASQUERADE,
-  REDIRECT, SNAT/DNAT to register w. conntrack.
-- get rid of a couple of refcount bugs.
-- reduce amount of copy&pastry in iptable_foo modules.  For this to work
-all the XXX_register_table() functions had to be extended with the location of
-the table pointer storage, problem is that this must be setup by the time the
-hook is registered since we can see packets right away.
-
-Ads section:
-conntrack+filter + nat table used in init namespace, single TCP_STREAM lo netperf:
-87380  16384  16384    30.00    14348.66
-with patch set, netperf running in net namespace without rules:
-87380  16384  16384    30.00    15683.97
-
-routing from ns3 -> ns2, filter + nat table & conntrack in all namespaces:
-87380  16384  16384    30.00    5664.46
-without conntrack+any tables in those namespaces:
-87380  16384  16384    30.00    7336.54
-
-Comments welcome.
-
- include/linux/netfilter.h                      |   29 ++++------
- include/linux/netfilter/x_tables.h             |    6 +-
- include/linux/netfilter_arp/arp_tables.h       |    9 +--
- include/linux/netfilter_ingress.h              |    9 ++-
- include/linux/netfilter_ipv4/ip_tables.h       |    9 +--
- include/linux/netfilter_ipv6/ip6_tables.h      |    9 +--
- include/net/netfilter/ipv4/nf_defrag_ipv4.h    |    3 -
- include/net/netfilter/ipv6/nf_defrag_ipv6.h    |    3 -
- include/net/netfilter/nf_conntrack.h           |    4 +
- include/net/netfilter/nf_conntrack_l3proto.h   |    4 +
- net/bridge/br_netfilter_hooks.c                |   68 +++++++++++++++++++++++--
- net/ipv4/netfilter/arp_tables.c                |   66 +++++++++++++++---------
- net/ipv4/netfilter/arptable_filter.c           |   39 ++++++++------
- net/ipv4/netfilter/ip_tables.c                 |   63 +++++++++++++----------
- net/ipv4/netfilter/ipt_CLUSTERIP.c             |    4 -
- net/ipv4/netfilter/ipt_MASQUERADE.c            |    8 ++
- net/ipv4/netfilter/ipt_SYNPROXY.c              |    4 -
- net/ipv4/netfilter/iptable_filter.c            |   55 ++++++++++++--------
- net/ipv4/netfilter/iptable_mangle.c            |   41 ++++++++++-----
- net/ipv4/netfilter/iptable_nat.c               |   41 ++++++++-------
- net/ipv4/netfilter/iptable_raw.c               |   42 ++++++++++-----
- net/ipv4/netfilter/iptable_security.c          |   44 ++++++++++------
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |   62 ++++++++++++++++++----
- net/ipv4/netfilter/nf_defrag_ipv4.c            |   49 ++++++++++++++++--
- net/ipv4/netfilter/nft_masq_ipv4.c             |    7 ++
- net/ipv4/netfilter/nft_redir_ipv4.c            |    7 ++
- net/ipv6/netfilter/ip6_tables.c                |   65 ++++++++++++++---------
- net/ipv6/netfilter/ip6t_SYNPROXY.c             |    4 -
- net/ipv6/netfilter/ip6table_filter.c           |   47 ++++++++++-------
- net/ipv6/netfilter/ip6table_mangle.c           |   45 +++++++++-------
- net/ipv6/netfilter/ip6table_nat.c              |   41 ++++++++-------
- net/ipv6/netfilter/ip6table_raw.c              |   46 ++++++++++------
- net/ipv6/netfilter/ip6table_security.c         |   44 +++++++++-------
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |   61 +++++++++++++++++-----
- net/ipv6/netfilter/nf_defrag_ipv6_hooks.c      |   50 ++++++++++++++++--
- net/ipv6/netfilter/nft_masq_ipv6.c             |    7 ++
- net/ipv6/netfilter/nft_redir_ipv6.c            |    7 ++
- net/netfilter/nf_conntrack_proto.c             |   48 +++++++++++++++++
- net/netfilter/nft_ct.c                         |   24 ++++----
- net/netfilter/nft_masq.c                       |    5 +
- net/netfilter/nft_nat.c                        |   11 +++-
- net/netfilter/nft_redir.c                      |    2 
- net/netfilter/x_tables.c                       |   65 ++++++++++++++---------
- net/netfilter/xt_CONNSECMARK.c                 |    4 -
- net/netfilter/xt_CT.c                          |    6 +-
- net/netfilter/xt_NETMAP.c                      |   11 +++-
- net/netfilter/xt_REDIRECT.c                    |   12 +++-
- net/netfilter/xt_TPROXY.c                      |   15 +++--
- net/netfilter/xt_connbytes.c                   |    4 -
- net/netfilter/xt_connlabel.c                   |    6 +-
- net/netfilter/xt_connlimit.c                   |    6 +-
- net/netfilter/xt_connmark.c                    |    8 +-
- net/netfilter/xt_conntrack.c                   |    4 -
- net/netfilter/xt_helper.c                      |    4 -
- net/netfilter/xt_nat.c                         |   18 ++++++
- net/netfilter/xt_socket.c                      |   33 ++++++++++--
- net/netfilter/xt_state.c                       |    4 -
- 57 files changed, 970 insertions(+), 422 deletions(-)
+diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
+index 7ddbe7e..44114a9 100644
+--- a/net/bridge/br_netfilter_hooks.c
++++ b/net/bridge/br_netfilter_hooks.c
+@@ -37,6 +37,7 @@
+ #include <net/addrconf.h>
+ #include <net/route.h>
+ #include <net/netfilter/br_netfilter.h>
++#include <net/netns/generic.h>
+ 
+ #include <asm/uaccess.h>
+ #include "br_private.h"
+@@ -44,6 +45,12 @@
+ #include <linux/sysctl.h>
+ #endif
+ 
++static int brnf_net_id __read_mostly;
++
++struct brnf_net {
++	bool enabled;
++};
++
+ #ifdef CONFIG_SYSCTL
+ static struct ctl_table_header *brnf_sysctl_header;
+ static int brnf_call_iptables __read_mostly = 1;
+@@ -938,6 +945,53 @@ static struct nf_hook_ops br_nf_ops[] __read_mostly = {
+ 	},
+ };
+ 
++static int brnf_device_event(struct notifier_block *unused, unsigned long event,
++			     void *ptr)
++{
++	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
++	struct brnf_net *brnet;
++	struct net *net;
++	int ret;
++
++	if (event != NETDEV_REGISTER || !(dev->priv_flags & IFF_EBRIDGE))
++		return NOTIFY_DONE;
++
++	ASSERT_RTNL();
++
++	net = dev_net(dev);
++	brnet = net_generic(net, brnf_net_id);
++	if (brnet->enabled)
++		return NOTIFY_OK;
++
++	ret = nf_register_net_hooks(net, br_nf_ops, ARRAY_SIZE(br_nf_ops));
++	if (ret)
++		return NOTIFY_BAD;
++
++	brnet->enabled = true;
++	return NOTIFY_OK;
++}
++
++static void __net_exit brnf_exit_net(struct net *net)
++{
++	struct brnf_net *brnet = net_generic(net, brnf_net_id);
++
++	if (!brnet->enabled)
++		return;
++
++	nf_unregister_net_hooks(net, br_nf_ops, ARRAY_SIZE(br_nf_ops));
++	brnet->enabled = false;
++}
++
++static struct pernet_operations brnf_net_ops __read_mostly = {
++	.exit = brnf_exit_net,
++	.id   = &brnf_net_id,
++	.size = sizeof(struct brnf_net),
++};
++
++static struct notifier_block brnf_notifier __read_mostly = {
++	.notifier_call = brnf_device_event,
++};
++
+ #ifdef CONFIG_SYSCTL
+ static
+ int brnf_sysctl_call_tables(struct ctl_table *ctl, int write,
+@@ -1003,16 +1057,23 @@ static int __init br_netfilter_init(void)
+ {
+ 	int ret;
+ 
+-	ret = nf_register_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
++	ret = register_pernet_subsys(&brnf_net_ops);
+ 	if (ret < 0)
+ 		return ret;
+ 
++	ret = register_netdevice_notifier(&brnf_notifier);
++	if (ret < 0) {
++		unregister_pernet_subsys(&brnf_net_ops);
++		return ret;
++	}
++
+ #ifdef CONFIG_SYSCTL
+ 	brnf_sysctl_header = register_net_sysctl(&init_net, "net/bridge", brnf_table);
+ 	if (brnf_sysctl_header == NULL) {
+ 		printk(KERN_WARNING
+ 		       "br_netfilter: can't register to sysctl.\n");
+-		nf_unregister_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
++		unregister_netdevice_notifier(&brnf_notifier);
++		unregister_pernet_subsys(&brnf_net_ops);
+ 		return -ENOMEM;
+ 	}
+ #endif
+@@ -1024,7 +1085,8 @@ static int __init br_netfilter_init(void)
+ static void __exit br_netfilter_fini(void)
+ {
+ 	RCU_INIT_POINTER(nf_br_ops, NULL);
+-	nf_unregister_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
++	unregister_netdevice_notifier(&brnf_notifier);
++	unregister_pernet_subsys(&brnf_net_ops);
+ #ifdef CONFIG_SYSCTL
+ 	unregister_net_sysctl_table(brnf_sysctl_header);
+ #endif
+-- 
+2.0.5
 
