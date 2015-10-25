@@ -1,167 +1,41 @@
-From: Ani Sinha <ani@arista.com>
-Subject: Re: [PATCH 1/1] commit e53376bef2cd97d3e3f61fdc677fb8da7d03d0da upstream.
-Date: Sat, 24 Oct 2015 11:31:40 -0700
-Message-ID: <CAOxq_8PGCFBZYProJsmgekw7ADYHhFwYDukJk5jk8g4c68fBMA@mail.gmail.com>
-References: <alpine.OSX.2.20.1510241023160.95745@athabasca.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Eric Dumazet <edumazet@google.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org,
-	Andrew Vagin <avagin@parallels.com>, coreteam@netfilter.org,
-	Florian Westphal <fw@strlen.de>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	Zefan Li <lizefan@huawei.com>, Ani Sinha <ani@anirban.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.OSX.2.20.1510241023160.95745@athabasca.local>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Vijay Subramanian <subramanian.vijay@gmail.com>
+Subject: [PATCH libnftnl] Add support to print netdev family
+Date: Sat, 24 Oct 2015 19:50:33 -0700
+Message-ID: <1445741433-20203-1-git-send-email-subramanian.vijay@gmail.com>
+Cc: pablo@netfilter.org,
+	Vijay Subramanian <subramanian.vijay@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-qk0-f178.google.com ([209.85.220.178]:36833 "EHLO
+	mail-qk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752558AbbJYCuu (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 24 Oct 2015 22:50:50 -0400
+Received: by qkfq3 with SMTP id q3so1493057qkf.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 24 Oct 2015 19:50:49 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Please refer to the thread "linux 3.4.43 : kernel crash at
-__nf_conntrack_confirm" on netdev for context.
+When we lookup the family, return "netdev" for NFPROTO_NETDEV instead of
+"unknown".
 
-thanks
+Signed-off-by: Vijay Subramanian <subramanian.vijay@gmail.com>
+---
+ src/utils.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-On Sat, Oct 24, 2015 at 10:27 AM, Ani Sinha <ani@arista.com> wrote:
-> netfilter: nf_conntrack: don't release a conntrack with non-zero
-> refcnt
->
-> With this patch, the conntrack refcount is initially set to zero and
-> it is bumped once it is added to any of the list, so we fulfill
-> Eric's golden rule which is that all released objects always have a
-> refcount that equals zero.
->
-> Andrey Vagin reports that nf_conntrack_free can't be called for a
-> conntrack with non-zero ref-counter, because it can race with
-> nf_conntrack_find_get().
->
-> A conntrack slab is created with SLAB_DESTROY_BY_RCU. Non-zero
-> ref-counter says that this conntrack is used. So when we release
-> a conntrack with non-zero counter, we break this assumption.
->
-> CPU1                                    CPU2
-> ____nf_conntrack_find()
->                                         nf_ct_put()
->                                          destroy_conntrack()
->                                         ...
->                                         init_conntrack
->                                          __nf_conntrack_alloc (set use = 1)
-> atomic_inc_not_zero(&ct->use) (use = 2)
->                                          if (!l4proto->new(ct, skb, dataoff, timeouts))
->                                           nf_conntrack_free(ct); (use = 2 !!!)
->                                         ...
->                                         __nf_conntrack_alloc (set use = 1)
->  if (!nf_ct_key_equal(h, tuple, zone))
->   nf_ct_put(ct); (use = 0)
->    destroy_conntrack()
->                                         /* continue to work with CT */
->
-> After applying the path "[PATCH] netfilter: nf_conntrack: fix RCU
-> race in nf_conntrack_find_get" another bug was triggered in
-> destroy_conntrack():
->
-> <4>[67096.759334] ------------[ cut here ]------------
-> <2>[67096.759353] kernel BUG at net/netfilter/nf_conntrack_core.c:211!
-> ...
-> <4>[67096.759837] Pid: 498649, comm: atdd veid: 666 Tainted: G         C ---------------    2.6.32-042stab084.18 #1 042stab084_18 /DQ45CB
-> <4>[67096.759932] RIP: 0010:[<ffffffffa03d99ac>]  [<ffffffffa03d99ac>] destroy_conntrack+0x15c/0x190 [nf_conntrack]
-> <4>[67096.760255] Call Trace:
-> <4>[67096.760255]  [<ffffffff814844a7>] nf_conntrack_destroy+0x17/0x30
-> <4>[67096.760255]  [<ffffffffa03d9bb5>] nf_conntrack_find_get+0x85/0x130 [nf_conntrack]
-> <4>[67096.760255]  [<ffffffffa03d9fb2>] nf_conntrack_in+0x352/0xb60 [nf_conntrack]
-> <4>[67096.760255]  [<ffffffffa048c771>] ipv4_conntrack_local+0x51/0x60 [nf_conntrack_ipv4]
-> <4>[67096.760255]  [<ffffffff81484419>] nf_iterate+0x69/0xb0
-> <4>[67096.760255]  [<ffffffff814b5b00>] ? dst_output+0x0/0x20
-> <4>[67096.760255]  [<ffffffff814845d4>] nf_hook_slow+0x74/0x110
-> <4>[67096.760255]  [<ffffffff814b5b00>] ? dst_output+0x0/0x20
-> <4>[67096.760255]  [<ffffffff814b66d5>] raw_sendmsg+0x775/0x910
-> <4>[67096.760255]  [<ffffffff8104c5a8>] ? flush_tlb_others_ipi+0x128/0x130
-> <4>[67096.760255]  [<ffffffff8100bc4e>] ? apic_timer_interrupt+0xe/0x20
-> <4>[67096.760255]  [<ffffffff8100bc4e>] ? apic_timer_interrupt+0xe/0x20
-> <4>[67096.760255]  [<ffffffff814c136a>] inet_sendmsg+0x4a/0xb0
-> <4>[67096.760255]  [<ffffffff81444e93>] ? sock_sendmsg+0x13/0x140
-> <4>[67096.760255]  [<ffffffff81444f97>] sock_sendmsg+0x117/0x140
-> <4>[67096.760255]  [<ffffffff8102e299>] ? native_smp_send_reschedule+0x49/0x60
-> <4>[67096.760255]  [<ffffffff81519beb>] ? _spin_unlock_bh+0x1b/0x20
-> <4>[67096.760255]  [<ffffffff8109d930>] ? autoremove_wake_function+0x0/0x40
-> <4>[67096.760255]  [<ffffffff814960f0>] ? do_ip_setsockopt+0x90/0xd80
-> <4>[67096.760255]  [<ffffffff8100bc4e>] ? apic_timer_interrupt+0xe/0x20
-> <4>[67096.760255]  [<ffffffff8100bc4e>] ? apic_timer_interrupt+0xe/0x20
-> <4>[67096.760255]  [<ffffffff814457c9>] sys_sendto+0x139/0x190
-> <4>[67096.760255]  [<ffffffff810efa77>] ? audit_syscall_entry+0x1d7/0x200
-> <4>[67096.760255]  [<ffffffff810ef7c5>] ? __audit_syscall_exit+0x265/0x290
-> <4>[67096.760255]  [<ffffffff81474daf>] compat_sys_socketcall+0x13f/0x210
-> <4>[67096.760255]  [<ffffffff8104dea3>] ia32_sysret+0x0/0x5
->
-> I have reused the original title for the RFC patch that Andrey posted and
-> most of the original patch description.
->
-> Cc: Eric Dumazet <edumazet@google.com>
-> Cc: Andrew Vagin <avagin@parallels.com>
-> Cc: Florian Westphal <fw@strlen.de>
-> Cc: Zefan Li <lizefan@huawei.com>
-> Signed-off-by: Ani Sinha <ani@arista.com>
-> Reported-by: Andrew Vagin <avagin@parallels.com>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> Reviewed-by: Eric Dumazet <edumazet@google.com>
-> Acked-by: Andrew Vagin <avagin@parallels.com>
-> ---
->  net/netfilter/nf_conntrack_core.c | 18 +++++++++++++-----
->  1 file changed, 13 insertions(+), 5 deletions(-)
->
-> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> index 9a171b2..9a46908 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -441,7 +441,9 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
->                         goto out;
->
->         add_timer(&ct->timeout);
-> -       nf_conntrack_get(&ct->ct_general);
-> +       smp_wmb();
-> +       /* The caller holds a reference to this object */
-> +       atomic_set(&ct->ct_general.use, 2);
->         __nf_conntrack_hash_insert(ct, hash, repl_hash);
->         NF_CT_STAT_INC(net, insert);
->         spin_unlock_bh(&nf_conntrack_lock);
-> @@ -732,11 +734,10 @@ __nf_conntrack_alloc(struct net *net, u16 zone,
->                 nf_ct_zone->id = zone;
->         }
->  #endif
-> -       /*
-> -        * changes to lookup keys must be done before setting refcnt to 1
-> +       /* Because we use RCU lookups, we set ct_general.use to zero before
-> +        * this is inserted in any list.
->          */
-> -       smp_wmb();
-> -       atomic_set(&ct->ct_general.use, 1);
-> +       atomic_set(&ct->ct_general.use, 0);
->         return ct;
->
->  #ifdef CONFIG_NF_CONNTRACK_ZONES
-> @@ -759,6 +760,10 @@ EXPORT_SYMBOL_GPL(nf_conntrack_alloc);
->  void nf_conntrack_free(struct nf_conn *ct)
->  {
->         struct net *net = nf_ct_net(ct);
-> +       /* A freed object has refcnt == 0, that's
-> +        * the golden rule for SLAB_DESTROY_BY_RCU
-> +        */
-> +       NF_CT_ASSERT(atomic_read(&ct->ct_general.use) == 0);
->
->         nf_ct_ext_destroy(ct);
->         atomic_dec(&net->ct.count);
-> @@ -846,6 +851,9 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
->                 NF_CT_STAT_INC(net, new);
->         }
->
-> +       /* Now it is inserted into the unconfirmed list, bump refcount */
-> +       nf_conntrack_get(&ct->ct_general);
-> +
->         /* Overload tuple linked list to put us in unconfirmed list. */
->         hlist_nulls_add_head_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
->                        &net->ct.unconfirmed);
-> --
-> 1.8.1.4
->
+diff --git a/src/utils.c b/src/utils.c
+index c241e5f..84fbe94 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -26,6 +26,7 @@ static const char *const nftnl_family_str[NFPROTO_NUMPROTO] = {
+ 	[NFPROTO_INET]		= "inet",
+ 	[NFPROTO_IPV4]		= "ip",
+ 	[NFPROTO_ARP]		= "arp",
++	[NFPROTO_NETDEV]	= "netdev",
+ 	[NFPROTO_BRIDGE]	= "bridge",
+ 	[NFPROTO_IPV6]		= "ip6",
+ };
+-- 
+1.7.9.5
+
