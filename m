@@ -1,60 +1,52 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [conntrackd PATCH v2] conntrackd: add basic systemd notification
- support
-Date: Mon, 26 Oct 2015 21:12:36 +0100
-Message-ID: <20151026201236.GA13580@salvia>
-References: <144524350598.16550.11699956757376724904.stgit@r2d2.cica.es>
+Subject: Re: [PATCH v2 nf-next 0/9] netfilter: don't copy initns hooks to new
+ namespaces
+Date: Mon, 26 Oct 2015 23:55:22 +0100
+Message-ID: <20151026225522.GA15583@salvia>
+References: <1445597006-11264-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, jengelh@inai.de
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54965 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43531 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751281AbbJZUFb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Oct 2015 16:05:31 -0400
+	id S1751358AbbJZWsd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 26 Oct 2015 18:48:33 -0400
 Content-Disposition: inline
-In-Reply-To: <144524350598.16550.11699956757376724904.stgit@r2d2.cica.es>
+In-Reply-To: <1445597006-11264-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Arturo,
+Hi Florian,
 
-On Mon, Oct 19, 2015 at 10:33:15AM +0200, Arturo Borrero Gonzalez wrote:
-> This patch adds a basic systemd notification support.
+On Fri, Oct 23, 2015 at 12:43:17PM +0200, Florian Westphal wrote:
+[...]
+> This work aims to change all major hook users to nf_register_net_hook
+> so that when a new netns is created it has no hooks at all, even when the
+> initial namespace uses conntrack, iptables and bridge netfilter.
+>
+> To keep behaviour somewhat compatible, xtable hooks are registered once a
+> iptables set/getsockopt call is made within a net namespace.
+> This also means that e.g. conntrack behaviour is not yet optimal, we
+> still create all the data structures and only skip hook registration
+> at this time.
 > 
-> Most of distros (Debian, RHEL, Ubuntu, ArchLinux...) use systemd as
-> init system.
-> Notifiying systemd that conntrackd is now running has many
-> benefits, the main being users concatenating systemd services depending on
-> the main conntrackd daemon being started.
-> 
-> The systemd support means conntrackd will require libsystemd, so a
-> configure swith is added:
-> 
->  % ./configure --disable-systemd
-> 
-> We can further integrate conntrackd with systemd:
->  * add watchdog support
->  * report daemon errors (f.e, errno codes)
->  * tell systemd conntrackd PID
->  * report about conntrackd Unix socket
+> Caveats:
+> - conntrack is no longer active just by loading nf_conntrack module -- at
+> least one (x)tables rule that requires conntrack has to be added, e.g.
+> conntrack match or S/DNAT target.
 
-Interesting. I would really like to see a patchset that adds one of
-these features above at least. So I basically need more meat here...
+So far it was possible to run conntrack without iptables, eg. to
+collect statistics at per-flow level via ctnetlink. Could you find a
+way to enable the hooks also from that path?
 
-Another comment below.
+If the program polls /proc, too bad for it, it shouldn't be using such
+interface for that purpose.
 
-> diff --git a/configure.ac b/configure.ac
-> index 70d3729..8bb9581 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-> @@ -61,6 +61,9 @@ AC_ARG_ENABLE([cthelper],
->  AC_ARG_ENABLE([cttimeout],
->          AS_HELP_STRING([--disable-cttimeout], [Do not build timeout support]),
->          [enable_cttimeout="no"], [enable_cttimeout="yes"])
+We probably should go back to the idea of having an explicit way of
+enabling conntrack from the ruleset, but that will need the /proc
+switch to keep there the existing semantics that people expect.
 
-I'd appreciate if you send me patches to fix these AC_ARG_ENABLE above
-in first place.
-
-Thanks!
+Let me know,
+Thanks.
