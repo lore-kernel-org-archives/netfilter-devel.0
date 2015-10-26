@@ -1,51 +1,60 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] commit c6825c0976fa7893692e0e43b09740b419b23c09
- upstream.
-Date: Mon, 26 Oct 2015 21:06:33 +0100
-Message-ID: <20151026200633.GA13476@salvia>
-References: <alpine.OSX.2.20.1510261144390.3919@athabasca.local>
+Subject: Re: [conntrackd PATCH v2] conntrackd: add basic systemd notification
+ support
+Date: Mon, 26 Oct 2015 21:12:36 +0100
+Message-ID: <20151026201236.GA13580@salvia>
+References: <144524350598.16550.11699956757376724904.stgit@r2d2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	netdev@vger.kernel.org, coreteam@netfilter.org,
-	Florian Westphal <fw@strlen.de>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Cyrill Gorcunov <gorcunov@openvz.org>,
-	Zefan Li <lizefan@huawei.com>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	"Neal P. Murphy" <neal.p.murphy@alum.wpi.edu>
-To: Ani Sinha <ani@arista.com>
+Cc: netfilter-devel@vger.kernel.org, jengelh@inai.de
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54128 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:54965 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751603AbbJZT73 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Oct 2015 15:59:29 -0400
+	id S1751281AbbJZUFb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 26 Oct 2015 16:05:31 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.OSX.2.20.1510261144390.3919@athabasca.local>
+In-Reply-To: <144524350598.16550.11699956757376724904.stgit@r2d2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hi Arturo,
 
-On Mon, Oct 26, 2015 at 11:55:39AM -0700, Ani Sinha wrote:
-> netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
+On Mon, Oct 19, 2015 at 10:33:15AM +0200, Arturo Borrero Gonzalez wrote:
+> This patch adds a basic systemd notification support.
+> 
+> Most of distros (Debian, RHEL, Ubuntu, ArchLinux...) use systemd as
+> init system.
+> Notifiying systemd that conntrackd is now running has many
+> benefits, the main being users concatenating systemd services depending on
+> the main conntrackd daemon being started.
+> 
+> The systemd support means conntrackd will require libsystemd, so a
+> configure swith is added:
+> 
+>  % ./configure --disable-systemd
+> 
+> We can further integrate conntrackd with systemd:
+>  * add watchdog support
+>  * report daemon errors (f.e, errno codes)
+>  * tell systemd conntrackd PID
+>  * report about conntrackd Unix socket
 
-Please, no need to Cc everyone here. Please, submit your Netfilter
-patches to netfilter-devel@vger.kernel.org.
+Interesting. I would really like to see a patchset that adds one of
+these features above at least. So I basically need more meat here...
 
-Moreover, it would be great if the subject includes something
-descriptive on what you need, for this I'd suggest:
+Another comment below.
 
-[PATCH -stable 3.4,backport] netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
+> diff --git a/configure.ac b/configure.ac
+> index 70d3729..8bb9581 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -61,6 +61,9 @@ AC_ARG_ENABLE([cthelper],
+>  AC_ARG_ENABLE([cttimeout],
+>          AS_HELP_STRING([--disable-cttimeout], [Do not build timeout support]),
+>          [enable_cttimeout="no"], [enable_cttimeout="yes"])
 
-I'm including Neal P. Murphy, he said he would help testing these
-backports, getting a Tested-by: tag usually speeds up things too.
+I'd appreciate if you send me patches to fix these AC_ARG_ENABLE above
+in first place.
 
-Burden is usually huge here, the easier you get it for us, the best.
-Then we can review and, if no major concerns, I can submit this to
--stable.
-
-Let me know if you have any other questions,
-Thanks.
+Thanks!
