@@ -1,118 +1,51 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] netfilter: Add nf_conntrack_helpers_register to fix
- one kernel panic
-Date: Mon, 26 Oct 2015 20:53:40 +0100
-Message-ID: <20151026195340.GA13049@salvia>
-References: <BAY403-EAS1574128879F6523343D6F5895380@phx.gbl>
+Subject: Re: [PATCH 1/1] commit c6825c0976fa7893692e0e43b09740b419b23c09
+ upstream.
+Date: Mon, 26 Oct 2015 21:06:33 +0100
+Message-ID: <20151026200633.GA13476@salvia>
+References: <alpine.OSX.2.20.1510261144390.3919@athabasca.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Feng Gao <gfree.wind@outlook.com>
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	netdev@vger.kernel.org, coreteam@netfilter.org,
+	Florian Westphal <fw@strlen.de>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Cyrill Gorcunov <gorcunov@openvz.org>,
+	Zefan Li <lizefan@huawei.com>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	"Neal P. Murphy" <neal.p.murphy@alum.wpi.edu>
+To: Ani Sinha <ani@arista.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51999 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:54128 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751281AbbJZTqi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Oct 2015 15:46:38 -0400
+	id S1751603AbbJZT73 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 26 Oct 2015 15:59:29 -0400
 Content-Disposition: inline
-In-Reply-To: <BAY403-EAS1574128879F6523343D6F5895380@phx.gbl>
+In-Reply-To: <alpine.OSX.2.20.1510261144390.3919@athabasca.local>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi,
 
-On Wed, Oct 21, 2015 at 11:22:41PM +0800, Feng Gao wrote:
-> When execute "insmod nf_conntrack_ftp.ko ports=76,76", the kernel crashes
-> immediately.Because the old codes try to unregister the helper which is
-> not registered successfully.
-> Now add new function nf_conntrack_helpers_register to fix this bug.
-> It would unregister the right helpers automatically if someone fails.
->
-> Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> ---
->  include/net/netfilter/nf_conntrack_helper.h |    5 ++++
->  net/netfilter/nf_conntrack_ftp.c            |   33
-> ++++++--------------------
->  net/netfilter/nf_conntrack_helper.c         |   29 +++++++++++++++++++++++
->  net/netfilter/nf_conntrack_irc.c            |   20 ++++++---------
->  net/netfilter/nf_conntrack_sane.c           |   27 ++++++---------------
->  net/netfilter/nf_conntrack_sip.c            |   25 +++++--------------
->  net/netfilter/nf_conntrack_tftp.c           |   22 +++++------------
->  7 files changed, 72 insertions(+), 89 deletions(-)
->
-> diff --git a/include/net/netfilter/nf_conntrack_helper.h
-> b/include/net/netfilter/nf_conntrack_helper.h
-> index 6cf614b..a6be9da 100644
-> --- a/include/net/netfilter/nf_conntrack_helper.h
-> +++ b/include/net/netfilter/nf_conntrack_helper.h
-> @@ -62,6 +62,11 @@ struct nf_conntrack_helper
-> *nf_conntrack_helper_try_module_get(const char *name,
->  int nf_conntrack_helper_register(struct nf_conntrack_helper *);
->  void nf_conntrack_helper_unregister(struct nf_conntrack_helper *);
->
-> +int nf_conntrack_helpers_register(struct nf_conntrack_helper *,
-> +								unsigned
-> int);
+On Mon, Oct 26, 2015 at 11:55:39AM -0700, Ani Sinha wrote:
+> netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
 
-Thanks for following up on this. Please, get familiarized with the
-Linux kernel coding style:
+Please, no need to Cc everyone here. Please, submit your Netfilter
+patches to netfilter-devel@vger.kernel.org.
 
-http://lxr.free-electrons.com/source/Documentation/CodingStyle
+Moreover, it would be great if the subject includes something
+descriptive on what you need, for this I'd suggest:
 
-On top of that, it would be great if you can add a nf_ct_helper_init()
-generic function that we can reuse to configure the helper in first
-place. This initialization happens over and over again, it would help
-to consolidate the existing infrastructure.
+[PATCH -stable 3.4,backport] netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
 
-Then, we can untangle the existing code by using a unidimensional
-array instead.
+I'm including Neal P. Murphy, he said he would help testing these
+backports, getting a Tested-by: tag usually speeds up things too.
 
-Upon that initial patch to add nf_ct_helper_init() you can cook a
-second patch to add the new nf_conntrack_helpers_register() functions.
+Burden is usually huge here, the easier you get it for us, the best.
+Then we can review and, if no major concerns, I can submit this to
+-stable.
 
-I didn't compile tested this, but I would expect that the result looks
-similar to the code snippet below.
-
--o-
-
-static struct nf_conntrack_helper sip[MAX_PORTS * 4] __read_mostly;
-
-static int __init nf_conntrack_sip_init(void)
-{
-        struct nf_conntrack_helper tmpl[4];
-        int i, j, ret;
-
-        if (ports_c == 0)
-                ports[ports_c++] = SIP_PORT;
-
-        memset(tmpl, 0, sizeof(tmpl));
-        nf_ct_helper_init(&tmpl[0], AF_INET, IPPROTO_UDP, sip_help_udp,
-                          sizeof(struct nf_ct_sip_master),
-                          sip_exp_policy, SIP_EXPECT_MAX, THIS_MODULE);
-        nf_ct_helper_init(&tmpl[1], AF_INET, IPPROTO_TCP, sip_help_tcp,
-                          sizeof(struct nf_ct_sip_master),
-                          sip_exp_policy, SIP_EXPECT_MAX, THIS_MODULE);
-        nf_ct_helper_init(&tmpl[2], AF_INET6, IPPROTO_UDP, sip_help_udp,
-                          sizeof(struct nf_ct_sip_master),
-                          sip_exp_policy, SIP_EXPECT_MAX, THIS_MODULE);
-        nf_ct_helper_init(&tmpl[3], AF_INET6, IPPROTO_TCP, sip_help_tcp,
-                          sizeof(struct nf_ct_sip_master),
-                          sip_exp_policy, SIP_EXPECT_MAX, THIS_MODULE);
-
-        for (i = 0; i < ARRAY_SIZE(sip); i += ARRAY_SIZE(tmpl)) {
-                memcpy(&sip[i], tmpl, sizeof(tmpl));
-                for (j = 0; j < ARRAY_SIZE(tmpl); j++) {
-                        if (sip[i + j] == SIP_PORT)
-                                sprintf(sip[i][j].name, "sip");
-                        else
-                                sprintf(sip[i][j].name, "sip-%u", i);
-        }
-
-        return nf_conntrack_helpers_register(sip, ARRAY_SIZE(sip));
-}
-
--o-
-
-The only variable part is the name, the remaining (most of it) can be
-arranged in the template form above.
-
+Let me know if you have any other questions,
 Thanks.
