@@ -1,52 +1,47 @@
-From: "Neal P. Murphy" <neal.p.murphy@alum.wpi.edu>
-Subject: Re: linux 3.4.43 : kernel crash at __nf_conntrack_confirm
-Date: Mon, 26 Oct 2015 02:13:34 -0400
-Message-ID: <20151026021334.7cc89262@playground>
-References: <CAOxq_8PF91fpX9jYTgBbXnOVeVfSu3tytu-3P_Zr5OodGRoz+g@mail.gmail.com>
-	<CAOxq_8Pt7VMwkV8+wdjS9vj=-L0L8Xxkd3Beit0zZN_oR6ixhw@mail.gmail.com>
-	<20151018080702.GA14564@breakpoint.cc>
-	<CAOxq_8P9Qgy5+qWNCHtbG8qJwfdKSO3ZiDWoQW_6BVS-+hcTRA@mail.gmail.com>
-	<20151021211911.GD31323@breakpoint.cc>
-	<CAOxq_8PLX_+w-7mfx1Agh+utogEiFWHSmEFd0Bax1LY6qbEN-w@mail.gmail.com>
-	<20151022034232.58e5af7a@playground>
-	<CAOxq_8PTLQGZ7WwMX8W0dmWW3+cMbv5BkocR3rsW=rNTfxXRjw@mail.gmail.com>
-	<20151022223945.660a1838@playground>
-	<CAOxq_8Nvo=0xs=TgdnHQFMJ8Qu_Q3rnqKAQaNyLCkzD5n_Kj=g@mail.gmail.com>
+From: Gerhard Wiesinger <lists@wiesinger.com>
+Subject: Re: Linux 4.2.4
+Date: Mon, 26 Oct 2015 08:27:14 +0100
+Message-ID: <562DD5D2.1090909@wiesinger.com>
+References: <20151023003306.GA25388@kroah.com>
+ <562C83FD.6010402@wiesinger.com> <20151025082547.GA22300@kroah.com>
+ <20151025090308.GA17656@1wt.eu> <562CA13C.90500@wiesinger.com>
+ <20151025094634.GA6832@1wt.eu> <562CB396.2080509@wiesinger.com>
+ <alpine.DEB.2.10.1510252032420.14141@blackhole.kfki.hu>
+ <562D36D9.9060504@wiesinger.com> <562D48FD.9030901@wiesinger.com>
+ <alpine.DEB.2.10.1510252252460.14807@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from MAIL1.WPI.EDU ([130.215.36.91]:44742 "EHLO MAIL1.WPI.EDU"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752179AbbJZGNi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Oct 2015 02:13:38 -0400
-Received: from MAIL1.WPI.EDU (MAIL1.WPI.EDU [130.215.36.91])
-	by MAIL1.WPI.EDU (8.15.1/8.15.1) with ESMTP id t9Q6DboX013710
-	for <netfilter-devel@vger.kernel.org>; Mon, 26 Oct 2015 02:13:37 -0400
-Received: from MX3.WPI.EDU (mx3.wpi.edu [130.215.36.147])
-	by MAIL1.WPI.EDU (8.15.1/8.15.1) with ESMTP id t9Q6DbTQ013707
-	for <netfilter-devel@vger.kernel.org>; Mon, 26 Oct 2015 02:13:37 -0400
-Received: from ALUM.WPI.EDU (ALUM.WPI.EDU [130.215.36.126])
-	by MX3.WPI.EDU (8.14.4/8.14.4) with ESMTP id t9Q6DZQj028689
-	for <netfilter-devel@vger.kernel.org>; Mon, 26 Oct 2015 02:13:36 -0400
-	(envelope-from neal.p.murphy@alum.wpi.edu)
-Received: from playground (c-71-57-197-109.hsd1.va.comcast.net [71.57.197.109])
-	(authenticated authen=neal.p.murphy)
-	by ALUM.WPI.EDU (8.15.1/8.15.1) with ESMTPSA id t9Q6DZcb014534
-	(version=TLSv1.2 cipher=AES128-GCM-SHA256 bits=128 verify=NO)
-	for <netfilter-devel@vger.kernel.org>; Mon, 26 Oct 2015 02:13:35 -0400
-In-Reply-To: <CAOxq_8Nvo=0xs=TgdnHQFMJ8Qu_Q3rnqKAQaNyLCkzD5n_Kj=g@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Willy Tarreau <w@1wt.eu>,
+	Linux Kernel Network Developers <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	Greg KH <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	torvalds@linux-foundation.org, stable@vger.kernel.org, lwn@lwn.net,
+	Jiri Slaby <jslaby@suse.cz>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.10.1510252252460.14807@blackhole.kfki.hu>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 24 Oct 2015 11:28:55 -0700
-Ani Sinha <ani@arista.com> wrote:
+On 25.10.2015 22:53, Jozsef Kadlecsik wrote:
+> On Sun, 25 Oct 2015, Gerhard Wiesinger wrote:
+>
+>> Any further ideas?
+> Does it crash without counters? That could narrow down where to look for.
+>
+>
 
-> I just sent out the patches for approval. Please have a look.
+Hello Jozsef,
 
-The patch seems to have applied cleanly to 3.4.110, and Smoothwall--with 3.4.110--built without trouble.
+it doesn't crash i I don't use the counters so far. So there must be a 
+bug with the counters.
 
-We'll run tests soon enough. Any ideas as to how to test this problem on an SMP system? I can set up a 2- to 6-core VM and have several thousand processes hammer the firewall. Just need a clue as to what triggers the problem.
+Any idea for the root cause?
 
-N
+Thnx.
+
+Ciao,
+Gerhard
