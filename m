@@ -1,117 +1,85 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Linux 4.2.4
-Date: Mon, 26 Oct 2015 09:58:32 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1510260945510.17014@blackhole.kfki.hu>
-References: <20151023003306.GA25388@kroah.com> <562C83FD.6010402@wiesinger.com> <20151025082547.GA22300@kroah.com> <20151025090308.GA17656@1wt.eu> <562CA13C.90500@wiesinger.com> <20151025094634.GA6832@1wt.eu> <562CB396.2080509@wiesinger.com>
- <alpine.DEB.2.10.1510252032420.14141@blackhole.kfki.hu> <562D36D9.9060504@wiesinger.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Willy Tarreau <w@1wt.eu>,
-	Linux Kernel Network Developers <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	Greg KH <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	torvalds@linux-foundation.org, stable@vger.kernel.org, lwn@lwn.net,
-	Jiri Slaby <jslaby@suse.cz>
-To: Gerhard Wiesinger <lists@wiesinger.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <562D36D9.9060504@wiesinger.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Ian Morris <ipm@chirality.org.uk>
+Subject: [PATCH nf-next 4/4] netfilter-bridge: layout of if statements
+Date: Mon, 26 Oct 2015 09:10:43 +0000
+Message-ID: <1445850643-9186-5-git-send-email-ipm@chirality.org.uk>
+References: <1445850643-9186-1-git-send-email-ipm@chirality.org.uk>
+Cc: Ian Morris <ipm@chirality.org.uk>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from inet-gw.chirality.org.uk ([88.97.209.22]:56044 "EHLO
+	cedar.ipmorris.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750971AbbJZJKs (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 26 Oct 2015 05:10:48 -0400
+In-Reply-To: <1445850643-9186-1-git-send-email-ipm@chirality.org.uk>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 25 Oct 2015, Gerhard Wiesinger wrote:
+Eliminate some checkpatch issues by improved layout of if statements.
 
-> On 25.10.2015 20:46, Jozsef Kadlecsik wrote:
-> > Hi,
-> > 
-> > On Sun, 25 Oct 2015, Gerhard Wiesinger wrote:
-> > 
-> > > On 25.10.2015 10:46, Willy Tarreau wrote:
-> > > > ipset *triggered* the problem. The whole stack dump would tell more.
-> > > OK, find the stack traces in the bug report:
-> > > https://bugzilla.redhat.com/show_bug.cgi?id=1272645
-> > > 
-> > > Kernel 4.1.10 triggered also a kernel dump when playing with ipset
-> > > commands
-> > > and IPv6, details in the bug report  ....
-> > It seems to me it is an architecture-specific alignment issue. I don't
-> > have a Cortex-A7 ARM hardware and qemu doesn't seem to support it either,
-> > so I'm unable to reproduce it (ipset passes all my tests on my hardware,
-> > including more complex ones than what breaks here). My first wild guess is
-> > that the dynamic array of the element structure is not aligned properly.
-> > Could you give a try to the next patch?
-> > 
-> > diff --git a/net/netfilter/ipset/ip_set_hash_gen.h
-> > b/net/netfilter/ipset/ip_set_hash_gen.h
-> > index afe905c..1cf357d 100644
-> > --- a/net/netfilter/ipset/ip_set_hash_gen.h
-> > +++ b/net/netfilter/ipset/ip_set_hash_gen.h
-> > @@ -1211,6 +1211,9 @@ static const struct ip_set_type_variant mtype_variant
-> > = {
-> >   	.same_set = mtype_same_set,
-> >   };
-> >   +#define IP_SET_BASE_ALIGN(dtype)	\
-> > +	ALIGN(sizeof(struct dtype), __alignof__(struct dtype))
-> > +
-> >   #ifdef IP_SET_EMIT_CREATE
-> >   static int
-> >   IPSET_TOKEN(HTYPE, _create)(struct net *net, struct ip_set *set,
-> > @@ -1319,12 +1322,12 @@ IPSET_TOKEN(HTYPE, _create)(struct net *net, struct
-> > ip_set *set,
-> >   #endif
-> >   		set->variant = &IPSET_TOKEN(HTYPE, 4_variant);
-> >   		set->dsize = ip_set_elem_len(set, tb,
-> > -				sizeof(struct IPSET_TOKEN(HTYPE, 4_elem)));
-> > +				IP_SET_BASE_ALIGN(IPSET_TOKEN(HTYPE,
-> > 4_elem)));
-> >   #ifndef IP_SET_PROTO_UNDEF
-> >   	} else {
-> >   		set->variant = &IPSET_TOKEN(HTYPE, 6_variant);
-> >   		set->dsize = ip_set_elem_len(set, tb,
-> > -				sizeof(struct IPSET_TOKEN(HTYPE, 6_elem)));
-> > +				IP_SET_BASE_ALIGN(IPSET_TOKEN(HTYPE,
-> > 6_elem)));
-> >   	}
-> >   #endif
-> >   	if (tb[IPSET_ATTR_TIMEOUT]) {
-> > 
-> > If that does not solve it, then could you help to narrow down the issue?
-> > Does the bug still appear if your remove the counter extension of the set?
-> > 
-> 
-> Patch applied well, compiling ...
-> 
-> Interesting, that it didn't happen before. Device is in production for 
-> more than 2 month without any issue.
+No changes detected by objdiff.
 
-You mean the device was stable with the earlier kernels, but starting with 
-4.2.3 (and back to 4.1.10) you have got problems, don't you?
+Signed-off-by: Ian Morris <ipm@chirality.org.uk>
+---
+ net/bridge/netfilter/ebt_ip6.c  | 4 ++--
+ net/bridge/netfilter/ebtables.c | 8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/net/bridge/netfilter/ebt_ip6.c b/net/bridge/netfilter/ebt_ip6.c
+index 17fd5f2..98de6e7 100644
+--- a/net/bridge/netfilter/ebt_ip6.c
++++ b/net/bridge/netfilter/ebt_ip6.c
+@@ -65,8 +65,8 @@ ebt_ip6_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 			return false;
+ 		if (FWINV(info->protocol != nexthdr, EBT_IP6_PROTO))
+ 			return false;
+-		if (!(info->bitmask & ( EBT_IP6_DPORT |
+-					EBT_IP6_SPORT | EBT_IP6_ICMP6)))
++		if (!(info->bitmask & (EBT_IP6_DPORT |
++				       EBT_IP6_SPORT | EBT_IP6_ICMP6)))
+ 			return true;
  
-> Also any idea regarding the second isssue? Or do you think it has the 
-> same root cause?
+ 		/* min icmpv6 headersize is 4, so sizeof(_pkthdr) is ok. */
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index b13ea69..67b2e27 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -161,7 +161,7 @@ ebt_basic_match(const struct ebt_entry *e, const struct sk_buff *skb,
+ 		for (i = 0; i < 6; i++)
+ 			verdict |= (h->h_source[i] ^ e->sourcemac[i]) &
+ 			   e->sourcemsk[i];
+-		if (FWINV2(verdict != 0, EBT_ISOURCE) )
++		if (FWINV2(verdict != 0, EBT_ISOURCE))
+ 			return 1;
+ 	}
+ 	if (e->bitmask & EBT_DESTMAC) {
+@@ -169,7 +169,7 @@ ebt_basic_match(const struct ebt_entry *e, const struct sk_buff *skb,
+ 		for (i = 0; i < 6; i++)
+ 			verdict |= (h->h_dest[i] ^ e->destmac[i]) &
+ 			   e->destmsk[i];
+-		if (FWINV2(verdict != 0, EBT_IDEST) )
++		if (FWINV2(verdict != 0, EBT_IDEST))
+ 			return 1;
+ 	}
+ 	return 0;
+@@ -673,7 +673,7 @@ ebt_check_entry(struct ebt_entry *e, struct net *net,
+ 		BUGPRINT("Unknown flag for inv bitmask\n");
+ 		return -EINVAL;
+ 	}
+-	if ( (e->bitmask & EBT_NOPROTO) && (e->bitmask & EBT_802_3) ) {
++	if ((e->bitmask & EBT_NOPROTO) && (e->bitmask & EBT_802_3)) {
+ 		BUGPRINT("NOPROTO & 802_3 not allowed\n");
+ 		return -EINVAL;
+ 	}
+@@ -1370,7 +1370,7 @@ static inline int ebt_make_watchername(const struct ebt_entry_watcher *w,
+ 	char name[EBT_FUNCTION_MAXNAMELEN] = {};
+ 
+ 	strlcpy(name, w->u.watcher->name, sizeof(name));
+-	if (copy_to_user(hlp , name, EBT_FUNCTION_MAXNAMELEN))
++	if (copy_to_user(hlp, name, EBT_FUNCTION_MAXNAMELEN))
+ 		return -EFAULT;
+ 	return 0;
+ }
+-- 
+1.9.1
 
-Looking at your RedHat bugzilla report, the "nf_conntrack: table full, 
-dropping packet" and "Alignment trap: not handling instruction" are two 
-unrelated issues and the second one is triggered by the unaligned counter 
-extension acccess in ipset, I'm investigating. I can't think of any reason 
-how those issues could be related to each other.
-
-> Greetings from Vienna, Austria :-)
-
-Quite near to my place :-) 
-
-> BTW: You can get the Banana Pi R1 for example at:
-> http://www.aliexpress.com/item/BPI-R1-Set-1-R1-Board-Clear-Case-5dB-Antenna-Power-Adapter-Banana-PI-R1-Smart/32362127917.html
-> I can really recommend it as a router. Power consumption is as less as 3W.
-> Price is also IMHO very good.
-
-Cool mini gear, indeed!
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
