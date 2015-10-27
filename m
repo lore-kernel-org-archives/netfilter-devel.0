@@ -1,145 +1,288 @@
-From: Munehisa Kamata <kamatam@amazon.com>
-Subject: [PATCH] netfilter: add missing NULL pointer check
-Date: Mon, 26 Oct 2015 19:10:52 -0700
-Message-ID: <1445911852-4838-1-git-send-email-kamatam@amazon.com>
-Cc: msw@amazon.com, aliguori@amazon.com, pablo@netfilter.org,
-	kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
-	Munehisa Kamata <kamatam@amazon.com>
+From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
+Subject: [PATCH] src: Add command "replace" for rules
+Date: Tue, 27 Oct 2015 12:58:07 +0100
+Message-ID: <1445947087-25861-1-git-send-email-carlosfg@riseup.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-fw-2101.amazon.com ([72.21.196.25]:27376 "EHLO
-	smtp-fw-2101.amazon.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752292AbbJ0CM3 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Oct 2015 22:12:29 -0400
+Received: from mx1.riseup.net ([198.252.153.129]:52015 "EHLO mx1.riseup.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752322AbbJ0L60 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Oct 2015 07:58:26 -0400
+Received: from piha.riseup.net (unknown [10.0.1.163])
+	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+	(Client CN "*.riseup.net", Issuer "COMODO RSA Domain Validation Secure Server CA" (verified OK))
+	by mx1.riseup.net (Postfix) with ESMTPS id A970D1A2D78
+	for <netfilter-devel@vger.kernel.org>; Tue, 27 Oct 2015 04:58:25 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Commit 8b13eddfdf04cbfa561725cfc42d6868fe896f56 ("netfilter: refactor NAT
-redirect IPv4 to use it from nf_tables") has introduced a trivial logic
-change which can result in the following crash.
+Modify the parser and add necessary functions to provide the command "n=
+ft
+replace rule <ruleid_spec> <new_rule>"
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000030
-IP: [<ffffffffa033002d>] nf_nat_redirect_ipv4+0x2d/0xa0 [nf_nat_redirect]
-PGD 3ba662067 PUD 3ba661067 PMD 0
-Oops: 0000 [#1] SMP
-Modules linked in: ipv6(E) xt_REDIRECT(E) nf_nat_redirect(E) xt_tcpudp(E) iptable_nat(E) nf_conntrack_ipv4(E) nf_defrag_ipv4(E) nf_nat_ipv4(E) nf_nat(E) nf_conntrack(E) ip_tables(E) x_tables(E) binfmt_misc(E) xfs(E) libcrc32c(E) evbug(E) evdev(E) psmouse(E) i2c_piix4(E) i2c_core(E) acpi_cpufreq(E) button(E) ext4(E) crc16(E) jbd2(E) mbcache(E) dm_mirror(E) dm_region_hash(E) dm_log(E) dm_mod(E)
-CPU: 0 PID: 2536 Comm: ip Tainted: G            E   4.1.7-15.23.amzn1.x86_64 #1
-Hardware name: Xen HVM domU, BIOS 4.2.amazon 05/06/2015
-task: ffff8800eb438000 ti: ffff8803ba664000 task.ti: ffff8803ba664000
-RIP: 0010:[<ffffffffa033002d>]  [<ffffffffa033002d>] nf_nat_redirect_ipv4+0x2d/0xa0 [nf_nat_redirect]
-RSP: 0018:ffff8803cfc039c8  EFLAGS: 00010286
-RAX: 0000000000000000 RBX: ffff8803ba4c9400 RCX: 0000000000000000
-RDX: 0000000000000000 RSI: ffff8803ba4c94c0 RDI: ffff8803bb204000
-RBP: ffff8803cfc039f8 R08: ffff8803be069000 R09: ffff8803ba4c9400
-R10: ffff8803ba4c94a0 R11: ffffffffa02e3ad8 R12: ffff8803bdb2f3ce
-R13: ffff8803be069000 R14: ffff8803ba4c94a0 R15: ffff8803be076600
-FS:  00007f94bf8ee740(0000) GS:ffff8803cfc00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000000030 CR3: 00000003bdcaf000 CR4: 00000000001406f0
-Stack:
- ffffffff00000000 0000000000000246 0000002000000002 ffff8803ba4c9400
- ffff8803bdb2f3ce ffff8803be069000 ffff8803cfc03a08 ffffffffa0334065
- ffff8803cfc03b48 ffffffffa02e2e99 00008803cfc03a48 0000000000000000
-Call Trace:
- <IRQ>
- [<ffffffffa0334065>] redirect_tg4+0x15/0x20 [xt_REDIRECT]
- [<ffffffffa02e2e99>] ipt_do_table+0x2b9/0x5e1 [ip_tables]
- [<ffffffffa0328045>] iptable_nat_do_chain+0x25/0x30 [iptable_nat]
- [<ffffffffa031777d>] nf_nat_ipv4_fn+0x13d/0x1f0 [nf_nat_ipv4]
- [<ffffffffa0328020>] ? iptable_nat_ipv4_fn+0x20/0x20 [iptable_nat]
- [<ffffffffa031785e>] nf_nat_ipv4_in+0x2e/0x90 [nf_nat_ipv4]
- [<ffffffffa03280a5>] iptable_nat_ipv4_in+0x15/0x20 [iptable_nat]
- [<ffffffff81449137>] nf_iterate+0x57/0x80
- [<ffffffff814491f7>] nf_hook_slow+0x97/0x100
- [<ffffffff814504d4>] ip_rcv+0x314/0x400
- [<ffffffff81402302>] ? reqsk_fastopen_remove+0x102/0x160
- [<ffffffff8144fa50>] ? inet_del_offload+0x40/0x40
- [<ffffffff81416243>] __netif_receive_skb_core+0x6c3/0x9a0
- [<ffffffff81416538>] __netif_receive_skb+0x18/0x60
- [<ffffffff814165a3>] netif_receive_skb_internal+0x23/0x90
- [<ffffffff814171e8>] napi_gro_receive+0xc8/0x100
- [<ffffffff813b2d94>] xennet_poll+0x934/0xbb0
- [<ffffffff813862c6>] ? add_interrupt_randomness+0x176/0x1e0
- [<ffffffff814169f9>] net_rx_action+0x159/0x340
- [<ffffffff8106db94>] __do_softirq+0xe4/0x270
- [<ffffffff814e267c>] do_softirq_own_stack+0x1c/0x30
- <EOI>
- [<ffffffff8106ddc5>] do_softirq+0x55/0x60
- [<ffffffff8106de5b>] __local_bh_enable_ip+0x8b/0xa0
- [<ffffffff814e0830>] _raw_spin_unlock_bh+0x20/0x50
- [<ffffffff813b43ce>] xennet_open+0x11e/0x180
- [<ffffffff8141934f>] __dev_open+0xbf/0x140
- [<ffffffff81419661>] __dev_change_flags+0xa1/0x160
- [<ffffffff81419749>] dev_change_flags+0x29/0x60
- [<ffffffff81426a42>] do_setlink+0x2d2/0x7c0
- [<ffffffff81177500>] ? zone_statistics+0x80/0xa0
- [<ffffffff81177500>] ? zone_statistics+0x80/0xa0
- [<ffffffff8142812f>] rtnl_newlink+0x51f/0x8d0
- [<ffffffff81427cf9>] ? rtnl_newlink+0xe9/0x8d0
- [<ffffffff81425855>] rtnetlink_rcv_msg+0x95/0x250
- [<ffffffff81161d72>] ? get_page_from_freelist+0x4f2/0x950
- [<ffffffff8140472e>] ? __alloc_skb+0x7e/0x1d0
- [<ffffffff814257c0>] ? rtnetlink_rcv+0x40/0x40
- [<ffffffff81446a91>] netlink_rcv_skb+0xc1/0xe0
- [<ffffffff814257ac>] rtnetlink_rcv+0x2c/0x40
- [<ffffffff81446136>] netlink_unicast+0xf6/0x200
- [<ffffffff8144665c>] netlink_sendmsg+0x41c/0x670
- [<ffffffff813fb49d>] sock_sendmsg+0x3d/0x50
- [<ffffffff813fbdbf>] ___sys_sendmsg+0x28f/0x2a0
- [<ffffffff811a7935>] ? alloc_pages_vma+0xb5/0x200
- [<ffffffff81167d9b>] ? lru_cache_add_active_or_unevictable+0x2b/0xa0
- [<ffffffff8118789a>] ? handle_mm_fault+0xbba/0x1770
- [<ffffffff811df42f>] ? dentry_free+0x5f/0xa0
- [<ffffffff813fc6a2>] __sys_sendmsg+0x42/0x80
- [<ffffffff813fc6f2>] SyS_sendmsg+0x12/0x20
- [<ffffffff814e0b6e>] system_call_fastpath+0x12/0x71
-
-unsigned int
-nf_nat_redirect_ipv4(struct sk_buff *skb,
-...
-{
-...
-		rcu_read_lock();
-		indev = __in_dev_get_rcu(skb->dev);
-		if (indev != NULL) {
-			ifa = indev->ifa_list;
-			newdst = ifa->ifa_local; <---
+Example of use:
+	# nft list ruleset -a
+	table ip filter {
+		chain output {
+			ip daddr 8.8.8.7 counter packets 0 bytes 0 # handle 3
 		}
-		rcu_read_unlock();
-...
-}
+	}
+	# nft replace rule filter output handle 3 ip daddr 8.8.8.8 counter
+	# nft list ruleset -a
+	table ip filter {
+		chain output {
+			ip daddr 8.8.8.8 counter packets 0 bytes 0 # handle 3
+		}
+	}
 
-Before the commit, 'ifa' had been always checked before access. After the
-commit, however, it could be accessed even if it's NULL. Interestingly,
-this was once fixed in 2003.
-
-http://marc.info/?l=netfilter-devel&m=106668497403047&w=2
-
-In addition to the original one, we have seen the crash when packets that
-need to be redirected somehow arrive on an interface which hasn't been
-yet fully configured.
-
-This change just reverts the logic to the old behavior to avoid the crash.
-
-Signed-off-by: Munehisa Kamata <kamatam@amazon.com>
+Signed-off-by: Carlos Falgueras Garc=C3=ADa <carlosfg@riseup.net>
 ---
- net/netfilter/nf_nat_redirect.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/mnl.h      |  2 ++
+ include/netlink.h  |  4 ++++
+ include/rule.h     |  2 ++
+ src/evaluate.c     |  1 +
+ src/mnl.c          | 16 ++++++++++++++++
+ src/netlink.c      | 18 ++++++++++++++++++
+ src/parser_bison.y | 12 ++++++++++--
+ src/rule.c         | 14 ++++++++++++++
+ src/scanner.l      |  1 +
+ 9 files changed, 68 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_nat_redirect.c b/net/netfilter/nf_nat_redirect.c
-index 97b75f9..d438698 100644
---- a/net/netfilter/nf_nat_redirect.c
-+++ b/net/netfilter/nf_nat_redirect.c
-@@ -55,7 +55,7 @@ nf_nat_redirect_ipv4(struct sk_buff *skb,
- 
- 		rcu_read_lock();
- 		indev = __in_dev_get_rcu(skb->dev);
--		if (indev != NULL) {
-+		if (indev && indev->ifa_list) {
- 			ifa = indev->ifa_list;
- 			newdst = ifa->ifa_local;
- 		}
--- 
+diff --git a/include/mnl.h b/include/mnl.h
+index 9c14e1a..f74dfee 100644
+--- a/include/mnl.h
++++ b/include/mnl.h
+@@ -26,6 +26,8 @@ int mnl_nft_rule_batch_add(struct nftnl_rule *nlr, un=
+signed int flags,
+ 			   uint32_t seqnum);
+ int mnl_nft_rule_batch_del(struct nftnl_rule *nlr, unsigned int flags,
+ 			   uint32_t seqnum);
++int mnl_nft_rule_batch_replace(struct nftnl_rule *nlr, unsigned int fl=
+ags,
++			       uint32_t seqnum);
+=20
+ int mnl_nft_rule_add(struct mnl_socket *nf_sock, struct nftnl_rule *r,
+ 		     unsigned int flags);
+diff --git a/include/netlink.h b/include/netlink.h
+index 7bf7ea0..8444742 100644
+--- a/include/netlink.h
++++ b/include/netlink.h
+@@ -98,6 +98,10 @@ extern int netlink_add_rule_batch(struct netlink_ctx=
+ *ctx,
+ extern int netlink_del_rule_batch(struct netlink_ctx *ctx,
+ 				  const struct handle *h,
+ 				  const struct location *loc);
++extern int netlink_replace_rule_batch(struct netlink_ctx *ctx,
++				      const struct handle *h,
++				      const struct rule *rule,
++				      const struct location *loc);
+=20
+ extern int netlink_add_chain(struct netlink_ctx *ctx, const struct han=
+dle *h,
+ 			     const struct location *loc,
+diff --git a/include/rule.h b/include/rule.h
+index 30b4597..a86f600 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -237,6 +237,7 @@ extern void set_print_plain(const struct set *s);
+  *
+  * @CMD_INVALID:	invalid
+  * @CMD_ADD:		add object (non-exclusive)
++ * @CMD_REPLACE,	replace object
+  * @CMD_CREATE:		create object (exclusive)
+  * @CMD_INSERT:		insert object
+  * @CMD_DELETE:		delete object
+@@ -250,6 +251,7 @@ extern void set_print_plain(const struct set *s);
+ enum cmd_ops {
+ 	CMD_INVALID,
+ 	CMD_ADD,
++	CMD_REPLACE,
+ 	CMD_CREATE,
+ 	CMD_INSERT,
+ 	CMD_DELETE,
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 4f9299e..4c34d1b 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2229,6 +2229,7 @@ int cmd_evaluate(struct eval_ctx *ctx, struct cmd=
+ *cmd)
+ 	ctx->cmd =3D cmd;
+ 	switch (cmd->op) {
+ 	case CMD_ADD:
++	case CMD_REPLACE:
+ 	case CMD_CREATE:
+ 	case CMD_INSERT:
+ 		return cmd_evaluate_add(ctx, cmd);
+diff --git a/src/mnl.c b/src/mnl.c
+index e4253e5..52875f4 100644
+--- a/src/mnl.c
++++ b/src/mnl.c
+@@ -301,6 +301,22 @@ int mnl_nft_rule_batch_add(struct nftnl_rule *nlr,=
+ unsigned int flags,
+ 	return 0;
+ }
+=20
++int mnl_nft_rule_batch_replace(struct nftnl_rule *nlr, unsigned int fl=
+ags,
++			       uint32_t seqnum)
++{
++	struct nlmsghdr *nlh;
++
++	nlh =3D nftnl_rule_nlmsg_build_hdr(nftnl_batch_buffer(batch),
++			NFT_MSG_NEWRULE,
++			nftnl_rule_get_u32(nlr, NFTNL_RULE_FAMILY),
++			NLM_F_REPLACE | flags, seqnum);
++
++	nftnl_rule_nlmsg_build_payload(nlh, nlr);
++	mnl_nft_batch_continue();
++
++	return 0;
++}
++
+ int mnl_nft_rule_batch_del(struct nftnl_rule *nlr, unsigned int flags,
+ 			   uint32_t seqnum)
+ {
+diff --git a/src/netlink.c b/src/netlink.c
+index 4d1e977..ad86084 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -382,6 +382,24 @@ int netlink_add_rule_batch(struct netlink_ctx *ctx=
+,
+ 	return err;
+ }
+=20
++int netlink_replace_rule_batch(struct netlink_ctx *ctx, const struct h=
+andle *h,
++			       const struct rule *rule,
++			       const struct location *loc)
++{
++	struct nftnl_rule *nlr;
++	int err;
++
++	nlr =3D alloc_nftnl_rule(&rule->handle);
++	netlink_linearize_rule(ctx, nlr, rule);
++	err =3D mnl_nft_rule_batch_replace(nlr, 0, ctx->seqnum);
++	nftnl_rule_free(nlr);
++
++	if (err < 0)
++		netlink_io_error(ctx, loc, "Could not replace rule to batch: %s",
++				 strerror(errno));
++	return err;
++}
++
+ int netlink_add_rule_list(struct netlink_ctx *ctx, const struct handle=
+ *h,
+ 			  struct list_head *rule_list)
+ {
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 98480b6..49988f6 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -184,6 +184,7 @@ static void location_update(struct location *loc, s=
+truct location *rhs, int n)
+=20
+ %token ADD			"add"
+ %token UPDATE			"update"
++%token REPLACE			"replace"
+ %token CREATE			"create"
+ %token INSERT			"insert"
+ %token DELETE			"delete"
+@@ -413,8 +414,8 @@ static void location_update(struct location *loc, s=
+truct location *rhs, int n)
+ %type <cmd>			line
+ %destructor { cmd_free($$); }	line
+=20
+-%type <cmd>			base_cmd add_cmd create_cmd insert_cmd delete_cmd list_c=
+md flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
+-%destructor { cmd_free($$); }	base_cmd add_cmd create_cmd insert_cmd d=
+elete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe=
+_cmd
++%type <cmd>			base_cmd add_cmd replace_cmd create_cmd insert_cmd delet=
+e_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
++%destructor { cmd_free($$); }	base_cmd add_cmd replace_cmd create_cmd =
+insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_=
+cmd describe_cmd
+=20
+ %type <handle>			table_spec chain_spec chain_identifier ruleid_spec ru=
+leset_spec
+ %destructor { handle_free(&$$); } table_spec chain_spec chain_identifi=
+er ruleid_spec ruleset_spec
+@@ -649,6 +650,7 @@ line			:	common_block			{ $$ =3D NULL; }
+=20
+ base_cmd		:	/* empty */	add_cmd		{ $$ =3D $1; }
+ 	  		|	ADD		add_cmd		{ $$ =3D $2; }
++	  		|	REPLACE		replace_cmd	{ $$ =3D $2; }
+ 			|	CREATE		create_cmd	{ $$ =3D $2; }
+ 			|	INSERT		insert_cmd	{ $$ =3D $2; }
+ 			|	DELETE		delete_cmd	{ $$ =3D $2; }
+@@ -711,6 +713,12 @@ add_cmd			:	TABLE		table_spec
+ 			}
+ 			;
+=20
++replace_cmd		:	RULE		ruleid_spec	rule
++			{
++				$$ =3D cmd_alloc(CMD_REPLACE, CMD_OBJ_RULE, &$2, &@$, $3);
++			}
++			;
++
+ create_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ =3D cmd_alloc(CMD_CREATE, CMD_OBJ_TABLE, &$2, &@$, NULL);
+diff --git a/src/rule.c b/src/rule.c
+index 0a81469..c154062 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -935,6 +935,18 @@ static int do_command_add(struct netlink_ctx *ctx,=
+ struct cmd *cmd, bool excl)
+ 	return 0;
+ }
+=20
++static int do_command_replace(struct netlink_ctx *ctx, struct cmd *cmd=
+)
++{
++	switch (cmd->obj) {
++	case CMD_OBJ_RULE:
++		return netlink_replace_rule_batch(ctx, &cmd->handle, cmd->rule,
++						  &cmd->location);
++	default:
++		BUG("invalid command object type %u\n", cmd->obj);
++	}
++	return 0;
++}
++
+ static int do_command_insert(struct netlink_ctx *ctx, struct cmd *cmd)
+ {
+ 	switch (cmd->obj) {
+@@ -1229,6 +1241,8 @@ int do_command(struct netlink_ctx *ctx, struct cm=
+d *cmd)
+ 		return do_command_add(ctx, cmd, true);
+ 	case CMD_INSERT:
+ 		return do_command_insert(ctx, cmd);
++	case CMD_REPLACE:
++		return do_command_replace(ctx, cmd);
+ 	case CMD_DELETE:
+ 		return do_command_delete(ctx, cmd);
+ 	case CMD_LIST:
+diff --git a/src/scanner.l b/src/scanner.l
+index b827489..1a9f43f 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -259,6 +259,7 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "netdev"		{ return NETDEV; }
+=20
+ "add"			{ return ADD; }
++"replace"		{ return REPLACE; }
+ "update"		{ return UPDATE; }
+ "create"		{ return CREATE; }
+ "insert"		{ return INSERT; }
+--=20
 2.6.2
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
