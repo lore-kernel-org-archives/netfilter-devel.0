@@ -1,43 +1,47 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] ebtables: Allow RETURN target rules in user defined
- chains
-Date: Wed, 28 Oct 2015 03:46:25 +0100
-Message-ID: <20151028024625.GA3301@salvia>
-References: <5628F57F.1010504@gmail.com>
- <20151028010155.GD9420@breakpoint.cc>
- <20151028024600.GB3254@salvia>
+From: "Neal P. Murphy" <neal.p.murphy@alum.wpi.edu>
+Subject: Re: [PATCH 1/1] commit c6825c0976fa7893692e0e43b09740b419b23c09
+ upstream.
+Date: Wed, 28 Oct 2015 02:36:50 -0400
+Message-ID: <20151028023650.7b76098f@playground>
+References: <alpine.OSX.2.20.1510261144390.3919@athabasca.local>
+	<20151026200633.GA13476@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Alin Nastac <alin.nastac@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Ani Sinha <ani@arista.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49170 "EHLO mail.us.es"
+Received: from MAIL1.WPI.EDU ([130.215.36.91]:46989 "EHLO MAIL1.WPI.EDU"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754729AbbJ1CjS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Oct 2015 22:39:18 -0400
-Content-Disposition: inline
-In-Reply-To: <20151028024600.GB3254@salvia>
+	id S1755393AbbJ1Gg6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 28 Oct 2015 02:36:58 -0400
+In-Reply-To: <20151026200633.GA13476@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Oct 28, 2015 at 03:46:00AM +0100, Pablo Neira Ayuso wrote:
-> On Wed, Oct 28, 2015 at 02:01:55AM +0100, Florian Westphal wrote:
-> > Alin Nastac <alin.nastac@gmail.com> wrote:
-> > > ebtables has a bug that prevents creation of rules with RETURN target, any attempt will result in an
-> > >    RETURN not allowed on base chain
-> > > error even if the chain where you want to create the rule is a user defined chain.
-> > > 
-> > > Reproduction scenario:
-> > >    root@OpenWrt:~# ebtables -N foo
-> > >    root@OpenWrt:~# ebtables -A OUTPUT -j foo
-> > >    root@OpenWrt:~# ebtables -A foo -j mark --mark-or 3 --mark-target RETURN
-> > >    --mark-target RETURN not allowed on base chain.
-> > > 
-> > > My email client will probably replace tabs in the patch below, but
-> > 
-> > Yes, I applied this manually (with minor edits to commit message).
-> 
-> Thanks, I wonder since then this has been broken BTW.
+On Mon, 26 Oct 2015 21:06:33 +0100
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-s/then/when/
+> Hi,
+> 
+> On Mon, Oct 26, 2015 at 11:55:39AM -0700, Ani Sinha wrote:
+> > netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
+> 
+> Please, no need to Cc everyone here. Please, submit your Netfilter
+> patches to netfilter-devel@vger.kernel.org.
+> 
+> Moreover, it would be great if the subject includes something
+> descriptive on what you need, for this I'd suggest:
+> 
+> [PATCH -stable 3.4,backport] netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
+> 
+> I'm including Neal P. Murphy, he said he would help testing these
+> backports, getting a Tested-by: tag usually speeds up things too.
+
+I hammered it a couple nights ago. First test was 5000 processes on 6 SMP CPUs opening and closing a port on a 'remote' host using the usual random source ports. Only got up to 32000 conntracks. The generator was a 64-bit Smoothwall KVM without the patch. The traffic passed through a 32-bit Smoothwall KVM with the patch. The target was on the VM host. No problems encountered. I suspect I didn't come close to triggering the original problem. Second test was a couple thousand processes all using the same source IP and port and dest IP and port. Still no problems. But these were perl scripts (and they used lots of RAM); perhaps a short C program would let me run more.
+
+Any ideas on how I might test it more brutally?
+
+N
