@@ -1,47 +1,69 @@
-From: "Neal P. Murphy" <neal.p.murphy@alum.wpi.edu>
-Subject: Re: [PATCH 1/1] commit c6825c0976fa7893692e0e43b09740b419b23c09
- upstream.
-Date: Wed, 28 Oct 2015 02:36:50 -0400
-Message-ID: <20151028023650.7b76098f@playground>
-References: <alpine.OSX.2.20.1510261144390.3919@athabasca.local>
-	<20151026200633.GA13476@salvia>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH v2 nf-next 0/9] netfilter: don't copy initns hooks to
+ new namespaces
+Date: Wed, 28 Oct 2015 13:39:36 +0100 (CET)
+Message-ID: <alpine.LSU.2.20.1510281329001.595@nerf40.vanv.qr>
+References: <1445597006-11264-1-git-send-email-fw@strlen.de> <20151026225522.GA15583@salvia> <20151026230938.GA9420@breakpoint.cc> <20151027163552.GC9420@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Ani Sinha <ani@arista.com>
+	netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from MAIL1.WPI.EDU ([130.215.36.91]:46989 "EHLO MAIL1.WPI.EDU"
+Received: from ares41.inai.de ([46.4.122.207]:35687 "EHLO ares41.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755393AbbJ1Gg6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Oct 2015 02:36:58 -0400
-In-Reply-To: <20151026200633.GA13476@salvia>
+	id S1751023AbbJ1Mji (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 28 Oct 2015 08:39:38 -0400
+In-Reply-To: <20151027163552.GC9420@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 26 Oct 2015 21:06:33 +0100
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-> Hi,
-> 
-> On Mon, Oct 26, 2015 at 11:55:39AM -0700, Ani Sinha wrote:
-> > netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
-> 
-> Please, no need to Cc everyone here. Please, submit your Netfilter
-> patches to netfilter-devel@vger.kernel.org.
-> 
-> Moreover, it would be great if the subject includes something
-> descriptive on what you need, for this I'd suggest:
-> 
-> [PATCH -stable 3.4,backport] netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
-> 
-> I'm including Neal P. Murphy, he said he would help testing these
-> backports, getting a Tested-by: tag usually speeds up things too.
+On Tuesday 2015-10-27 17:35, Florian Westphal wrote:
+>> 
+>> Good point, I'll look at this tomorrow.  It should not be too hard to
+>> add this.
+>
+>Ahem.  There are strings attached... :-/
+>
+>So conntrack -L or conntrack -E do not enable connection tracking
+>if its not enabled (on current kernels).
+>
+>So one has to load ipv4/ipv6 etc tracker explicitly.
+>
+>Problem *after* patches is that this doesn't suffice.
+>
+>So old behaviour:
+>conntrack -E
+>
+>(nothing happens)
+>(modprobe nf_conntrack_ipv4)
+>(conntrack -E starts to display events)
+>
+>new behaviour:
+>(modprobe nf_conntrack_ipv4)
+>(conntrack -E doesn't display events since conntrack module doesn't
+> see packets due to lack of nf hooks).
+>
+>My first attempt to fix this was to hook into nfnetlink bind,
+>but that doesn't really work in a backwards-compatible fashion since
+>it only makes 'modprobe nf_conntrack_ipv4; conntrack -E' work, but
+>not nf_conntrack_ipv4 module load *after* a event listener is already
+>running.
+>
+>Other alternative is to request all the protocol trackers during
+>ctnetlink bind request but that sucks.
+>
+>Any suggestion?  I don't really see a way out of this.
 
-I hammered it a couple nights ago. First test was 5000 processes on 6 SMP CPUs opening and closing a port on a 'remote' host using the usual random source ports. Only got up to 32000 conntracks. The generator was a 64-bit Smoothwall KVM without the patch. The traffic passed through a 32-bit Smoothwall KVM with the patch. The target was on the VM host. No problems encountered. I suspect I didn't come close to triggering the original problem. Second test was a couple thousand processes all using the same source IP and port and dest IP and port. Still no problems. But these were perl scripts (and they used lots of RAM); perhaps a short C program would let me run more.
+I am thinking of something like
 
-Any ideas on how I might test it more brutally?
+  echo +PROTO >/proc/net/.../nf_conntrack/bind
+  echo -PROTO >/proc/net/.../nf_conntrack/bind
 
-N
+That way, userspace can request enablement per netns. And nf_conntrack can
+do
+1. call request_module to load it if not already in the system,
+2. pin the particular nf_conntrack_PROTO module, with refcounting
+   (try_module_get() and module_put(), one ref per netns).
+
