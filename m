@@ -1,37 +1,31 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] ebtables: Allow RETURN target rules in user defined
- chains
-Date: Wed, 28 Oct 2015 02:01:55 +0100
-Message-ID: <20151028010155.GD9420@breakpoint.cc>
-References: <5628F57F.1010504@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: add missing NULL pointer check
+Date: Wed, 28 Oct 2015 03:44:39 +0100
+Message-ID: <20151028024439.GA3222@salvia>
+References: <1445911852-4838-1-git-send-email-kamatam@amazon.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Alin Nastac <alin.nastac@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, msw@amazon.com,
+	aliguori@amazon.com, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	davem@davemloft.net,
+	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: Munehisa Kamata <kamatam@amazon.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:56253 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754008AbbJ1BB6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Oct 2015 21:01:58 -0400
+Received: from mail.us.es ([193.147.175.20]:49019 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754450AbbJ1Che (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Oct 2015 22:37:34 -0400
 Content-Disposition: inline
-In-Reply-To: <5628F57F.1010504@gmail.com>
+In-Reply-To: <1445911852-4838-1-git-send-email-kamatam@amazon.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Alin Nastac <alin.nastac@gmail.com> wrote:
-> ebtables has a bug that prevents creation of rules with RETURN target, any attempt will result in an
->    RETURN not allowed on base chain
-> error even if the chain where you want to create the rule is a user defined chain.
-> 
-> Reproduction scenario:
->    root@OpenWrt:~# ebtables -N foo
->    root@OpenWrt:~# ebtables -A OUTPUT -j foo
->    root@OpenWrt:~# ebtables -A foo -j mark --mark-or 3 --mark-target RETURN
->    --mark-target RETURN not allowed on base chain.
-> 
-> My email client will probably replace tabs in the patch below, but
+On Mon, Oct 26, 2015 at 07:10:52PM -0700, Munehisa Kamata wrote:
+> Commit 8b13eddfdf04cbfa561725cfc42d6868fe896f56 ("netfilter: refactor NAT
+> redirect IPv4 to use it from nf_tables") has introduced a trivial logic
+> change which can result in the following crash.
 
-Yes, I applied this manually (with minor edits to commit message).
+This seems to have accidentally slipped through while adding redirect
+support for nf_tables.
 
-Thanks.
+Applied, thanks.
