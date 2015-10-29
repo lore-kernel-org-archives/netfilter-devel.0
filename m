@@ -1,33 +1,95 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] netfilter: Fix one compile error and some warnings
-Date: Thu, 29 Oct 2015 20:46:24 +0100
-Message-ID: <20151029194624.GA1741@salvia>
-References: <BAY403-EAS15678F56E2C8951B1197C5095200@phx.gbl>
+Subject: Re: [PATCH v2 nf-next 0/9] netfilter: don't copy initns hooks to new
+ namespaces
+Date: Thu, 29 Oct 2015 21:35:51 +0100
+Message-ID: <20151029203551.GA1883@salvia>
+References: <1445597006-11264-1-git-send-email-fw@strlen.de>
+ <20151026225522.GA15583@salvia>
+ <20151026230938.GA9420@breakpoint.cc>
+ <20151027163552.GC9420@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Feng Gao <gfree.wind@outlook.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58299 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36137 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752355AbbJ2TjN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Oct 2015 15:39:13 -0400
+	id S1753199AbbJ2U2r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Oct 2015 16:28:47 -0400
 Content-Disposition: inline
-In-Reply-To: <BAY403-EAS15678F56E2C8951B1197C5095200@phx.gbl>
+In-Reply-To: <20151027163552.GC9420@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Oct 29, 2015 at 11:59:09PM +0800, Feng Gao wrote:
-> The nf_conntrack_sip.c was not compiled with last patch.
-> So I fail to find there was one compile error.
-> Now I fix it and some compile warnings.
+Hi Florian,
 
-I didn't apply this, so the prefered way when changes are requested
-is to send a new patch indicating the version number in the subject,
-eg.
+On Tue, Oct 27, 2015 at 05:35:52PM +0100, Florian Westphal wrote:
+> Ahem.  There are strings attached... :-/
+> 
+> So conntrack -L or conntrack -E do not enable connection tracking
+> if its not enabled (on current kernels).
+> 
+> So one has to load ipv4/ipv6 etc tracker explicitly.
+> 
+> Problem *after* patches is that this doesn't suffice.
+> 
+> So old behaviour:
+> conntrack -E
+> 
+> (nothing happens)
+> (modprobe nf_conntrack_ipv4)
+> (conntrack -E starts to display events)
+> 
+> new behaviour:
+> (modprobe nf_conntrack_ipv4)
+> (conntrack -E doesn't display events since conntrack module doesn't
+>  see packets due to lack of nf hooks).
+> 
+> My first attempt to fix this was to hook into nfnetlink bind,
+> but that doesn't really work in a backwards-compatible fashion since
+> it only makes 'modprobe nf_conntrack_ipv4; conntrack -E' work, but
+> not nf_conntrack_ipv4 module load *after* a event listener is already
+> running.
 
-        [PATCH v2] netfilter: Add nf_conntrack_helpers_register()
+So conntrack -L currently uses NFPROTO_UNSPEC by default and from
+conntrack -E we subscribe to the generic groups.
 
-But I would like to have the nf_ct_helper_init() patch in first place.
+> Other alternative is to request all the protocol trackers during
+> ctnetlink bind request but that sucks.
 
-Thanks.
+Agreed, that sucks :).
+
+> Any suggestion?  I don't really see a way out of this.
+
+We can probably register the hooks from ctnetlink based on what we
+already have, ie. if nf_conntrack_ipv4 is loaded and someone runs
+conntrack -E (or whatever custom application to listen to events),
+then we get the hooks registered.
+
+On top of that, assuming someone modprobes nf_conntrack_ipv6 later on,
+we'll have to iterate over the list of netns available and register
+the hooks if anyone is already listening to events as well.
+
+Remember we also now also have nfnetlink_log and _queue integration
+with conntrack, there we should register the hooks too in case the
+userspace application.
+
+Another possible solution: We add a sysctl switch to the core that
+indicates if conntrack/defrag hooks are enabled by default (should be
+1 to maintain backward compatility).
+
+When unset, the user needs to explicitly indicate:
+
+        iptables -I ... -j CT --track
+
+that we want connection tracking, so we stop playing guess games,
+which (although transparent) seems a bit fragile to me.
+
+The second path is something that we need to explore anyway for nft as
+you indicated in your previous email, so this can probably solve the
+problem both for iptables and nft in a more generic way.
+
+Will be giving another spin to this tomorrow, just arrived from a long
+trip.
+
+Thanks!
