@@ -1,82 +1,283 @@
-From: "Neal P. Murphy" <neal.p.murphy@alum.wpi.edu>
-Subject: Re: [PATCH 1/1] commit c6825c0976fa7893692e0e43b09740b419b23c09
- upstream.
-Date: Thu, 29 Oct 2015 21:21:29 -0400
-Message-ID: <20151029212129.0900b84d@playground>
-References: <alpine.OSX.2.20.1510261144390.3919@athabasca.local>
-	<20151026200633.GA13476@salvia>
-	<17709_1446014232_t9S6b5a3017652_20151028023650.7b76098f@playground>
-	<20151029024052.28e11c83@playground>
-	<CAOxq_8M5J0RO8X4Rd70rCWcrbBOrX3_jn4-dmrT+Y3yPYGThTA@mail.gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [conntrackd PATCH 2/2 v2] conntrackd: add systemd support
+Date: Fri, 30 Oct 2015 10:04:34 +0100
+Message-ID: <144619584355.30622.12279676149815885959.stgit@r2d2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Ani Sinha <ani@arista.com>, netfilter@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAOxq_8M5J0RO8X4Rd70rCWcrbBOrX3_jn4-dmrT+Y3yPYGThTA@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3.cica.es ([150.214.5.190]:36433 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751473AbbJ3JEn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 Oct 2015 05:04:43 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 29 Oct 2015 17:01:24 -0700
-Ani Sinha <ani@arista.com> wrote:
+This patch adds basic systemd support.
 
-> On Wed, Oct 28, 2015 at 11:40 PM, Neal P. Murphy
-> <neal.p.murphy@alum.wpi.edu> wrote:
-> > On Wed, 28 Oct 2015 02:36:50 -0400
-> > "Neal P. Murphy" <neal.p.murphy@alum.wpi.edu> wrote:
-> >
-> >> On Mon, 26 Oct 2015 21:06:33 +0100
-> >> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >>
-> >> > Hi,
-> >> >
-> >> > On Mon, Oct 26, 2015 at 11:55:39AM -0700, Ani Sinha wrote:
-> >> > > netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
-> >> >
-> >> > Please, no need to Cc everyone here. Please, submit your Netfilter
-> >> > patches to netfilter-devel@vger.kernel.org.
-> >> >
-> >> > Moreover, it would be great if the subject includes something
-> >> > descriptive on what you need, for this I'd suggest:
-> >> >
-> >> > [PATCH -stable 3.4,backport] netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
-> >> >
-> >> > I'm including Neal P. Murphy, he said he would help testing these
-> >> > backports, getting a Tested-by: tag usually speeds up things too.
-> >>
-> >
-> > I've probably done about as much seat-of-the-pants testing as I can. All opening/closing the same destination IP/port.
-> >
-> > Host: Debian Jessie, 8-core Vishera 8350 at 4.4 GHz, 16GiB RAM at (I think) 2100MHz.
-> >
-> > Traffic generator 1: 6-CPU KVM running 64-bit Smoothwall Express 3.1 (linux 3.4.109 without these patches), with 8GiB RAM and 9GiB swap. Packets sent across PURPLE (to bypass NAT and firewall).
-> >
-> > Traffic generator 2: 32-bit KVM running Smoothwall Express 3.1 (linux 3.4.110 with these patches), 3GiB RAM and minimal swap.
-> >
-> > In the first set of tests, generator 1's traffic passed through Generator 2 as a NATting firewall, to the host's web server. In the second set of tests, generator 2's traffic went through NAT to the host's web server.
-> >
-> > The load tests:
-> >   - 2500 processes using 2500 addresses and random src ports
-> >   - 2500 processes using 2500 addresses and the same src port
-> >   - 2500 processes using the same src address and port
-> >
-> > I also tested using stock NF timeouts and using 1 second timeouts.
-> >
-> > Bandwidth used got as high as 16Mb/s for some tests.
-> >
-> > Conntracks got up to 200 000 or so or bounced between 1 and 2, depending on the test and the timeouts.
-> >
-> > I did not reproduce the problem these patches solve. But more importantly, I saw no problems at all. Each time I terminated a test, RAM usage returned to about that of post-boot; so there were no apparent memory leaks. No kernel messages and no netfilter messages appeared during the tests.
-> >
-> > If I have time, I suppose I could run another set of tests: 2500 source processes using 2500 addresses times 200 ports to connect to 2500 addresses times 200 ports on a destination system. Each process opens 200 sockets, then closes them. And repeats ad infinitum. But I might have to be clever since I can't run 500 000 processes; but I could run 20 VMs; that would get it down to about 12 000 processes per VM. And I might have to figure out how to allow allow processes on the destination system to open hundreds or thousands of sockets.
-> 
-> Should I resend the patch with a Tested-by: tag?
+The feature can be enabled/disabled at configure time:
+ ./configure --disable-systemd
 
-... Oh, wait. Not yet. The dawn just broke over ol' Marblehead here. I only tested TCP; I need to hammer UDP, too.
+(by default it's enabled)
 
-Can I set the timeouts to zero? Or is one as low as I can go?
+* tell systemd about conntrackd readiness:
 
-N
+When conntrackd starts, it will send systemd the data "READY=1".
+At the point the data is sent, conntrackd is fully ready to work
+(configuration was OK, sockets OK, et all), so other actions depending
+on conntrackd can be safely chained in the machine boot process.
+
+* tell systemd about conntrackd shutting down:
+
+If the admin kills conntrackd with `conntrackd -k', the data "STOPPING=1"
+will be send to systemd so it learns about the daemon shutting down. Same
+for manual signals.
+
+* watchdog support:
+
+The admin can configure systemd to watch the conntrackd daemon and perform
+some actions if conntrackd dies: restart it, reboot the machine, etc...
+
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+v2: change functions definitions to static inline if no BUILD_SYSTEMD,
+    and set watchdog variables as static.
+
+ configure.ac        |   12 +++++++++-
+ include/Makefile.am |    2 +-
+ include/systemd.h   |   18 +++++++++++++++
+ src/Makefile.am     |    8 +++++++
+ src/main.c          |    9 +++++++-
+ src/run.c           |    2 ++
+ src/systemd.c       |   61 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 7 files changed, 109 insertions(+), 3 deletions(-)
+ create mode 100644 include/systemd.h
+ create mode 100644 src/systemd.c
+
+diff --git a/configure.ac b/configure.ac
+index f326f96..14beb53 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -61,6 +61,9 @@ AC_ARG_ENABLE([cthelper],
+ AC_ARG_ENABLE([cttimeout],
+         AS_HELP_STRING([--disable-cttimeout], [Do not build timeout support]),
+         [enable_cttimeout="$enableval"], [enable_cttimeout="yes"])
++AC_ARG_ENABLE([systemd],
++        AS_HELP_STRING([--disable-systemd], [Do not build systemd support]),
++        [enable_systemd="$enableval"], [enable_systemd="yes"])
+ 
+ PKG_CHECK_MODULES([LIBNFNETLINK], [libnfnetlink >= 1.0.1])
+ PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
+@@ -77,6 +80,12 @@ AS_IF([test "x$enable_cthelper" = "xyes"], [
+ ])
+ AM_CONDITIONAL([HAVE_CTHELPER], [test "x$enable_cthelper" = "xyes"])
+ 
++AS_IF([test "x$enable_systemd" = "xyes"], [
++	PKG_CHECK_MODULES([LIBSYSTEMD], [libsystemd >= 227])
++	AC_DEFINE([BUILD_SYSTEMD], [1], [Building systemd support])
++])
++AM_CONDITIONAL([HAVE_SYSTEMD], [test "x$enable_systemd" = "xyes"])
++
+ AC_CHECK_HEADERS([linux/capability.h],, [AC_MSG_ERROR([Cannot find linux/capabibility.h])])
+ 
+ # Checks for libraries.
+@@ -146,4 +155,5 @@ AC_OUTPUT
+ echo "
+ conntrack-tools configuration:
+   userspace conntrack helper support:	${enable_cthelper}
+-  conntrack timeout support:		${enable_cttimeout}"
++  conntrack timeout support:		${enable_cttimeout}
++  systemd support:			${enable_systemd}"
+diff --git a/include/Makefile.am b/include/Makefile.am
+index 6bd0f7f..e81463a 100644
+--- a/include/Makefile.am
++++ b/include/Makefile.am
+@@ -6,5 +6,5 @@ noinst_HEADERS = alarm.h jhash.h cache.h linux_list.h linux_rbtree.h \
+ 		 network.h filter.h queue.h vector.h cidr.h \
+ 		 traffic_stats.h netlink.h fds.h event.h bitops.h channel.h \
+ 		 process.h origin.h internal.h external.h date.h nfct.h \
+-		 helper.h myct.h stack.h
++		 helper.h myct.h stack.h systemd.h
+ 
+diff --git a/include/systemd.h b/include/systemd.h
+new file mode 100644
+index 0000000..fc34f21
+--- /dev/null
++++ b/include/systemd.h
+@@ -0,0 +1,18 @@
++#ifndef _INCLUDE_SYSTEMD_H_
++#define _INCLUDE_SYSTEMD_H_
++
++#include <sys/types.h>
++
++#ifdef BUILD_SYSTEMD
++void sd_ct_watchdog_init(void);
++void sd_ct_init(int type);
++void sd_ct_mainpid(pid_t pid);
++void sd_ct_stop(void);
++#else /* BUILD_SYSTEMD */
++static inline void sd_ct_watchdog_init(void) {};
++static inline void sd_ct_init(int type) {};
++static inline void sd_ct_mainpid(pid_t pid) {};
++static inline void sd_ct_stop(void) {};
++#endif /* BUILD_SYSTEMD */
++
++#endif /* _INCLUDE_SYSTEMD_H_ */
+diff --git a/src/Makefile.am b/src/Makefile.am
+index a1d00f8..607f191 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -58,6 +58,10 @@ if HAVE_CTHELPER
+ conntrackd_SOURCES += cthelper.c helpers.c utils.c expect.c
+ endif
+ 
++if HAVE_SYSTEMD
++conntrackd_SOURCES += systemd.c
++endif
++
+ # yacc and lex generate dirty code
+ read_config_yy.o read_config_lex.o: AM_CFLAGS += -Wno-missing-prototypes -Wno-missing-declarations -Wno-implicit-function-declaration -Wno-nested-externs -Wno-undef -Wno-redundant-decls
+ 
+@@ -68,6 +72,10 @@ if HAVE_CTHELPER
+ conntrackd_LDADD += ${LIBNETFILTER_CTHELPER_LIBS} ${LIBNETFILTER_QUEUE_LIBS}
+ endif
+ 
++if HAVE_SYSTEMD
++conntrackd_LDADD += ${LIBSYSTEMD_LIBS}
++endif
++
+ conntrackd_LDFLAGS = -export-dynamic
+ 
+ EXTRA_DIST = read_config_yy.h
+diff --git a/src/main.c b/src/main.c
+index dafeaee..c85dd6d 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -20,6 +20,7 @@
+ #include "conntrackd.h"
+ #include "log.h"
+ #include "helper.h"
++#include "systemd.h"
+ 
+ #include <sys/types.h>
+ #include <sys/stat.h>
+@@ -403,6 +404,8 @@ int main(int argc, char *argv[])
+ 	do_chdir("/");
+ 	close(STDIN_FILENO);
+ 
++	sd_ct_watchdog_init();
++
+ 	/* Daemonize conntrackd */
+ 	if (type == DAEMON) {
+ 		pid_t pid;
+@@ -410,8 +413,10 @@ int main(int argc, char *argv[])
+ 		if ((pid = fork()) == -1) {
+ 			perror("fork has failed: ");
+ 			exit(EXIT_FAILURE);
+-		} else if (pid)
++		} else if (pid) {
++			sd_ct_mainpid(pid);
+ 			exit(EXIT_SUCCESS);
++		}
+ 
+ 		setsid();
+ 
+@@ -422,6 +427,8 @@ int main(int argc, char *argv[])
+ 	} else
+ 		dlog(LOG_NOTICE, "-- starting in console mode --");
+ 
++	sd_ct_init(type);
++
+ 	/*
+ 	 * run main process
+ 	 */
+diff --git a/src/run.c b/src/run.c
+index a9d4862..b71369b 100644
+--- a/src/run.c
++++ b/src/run.c
+@@ -30,6 +30,7 @@
+ #include "origin.h"
+ #include "date.h"
+ #include "internal.h"
++#include "systemd.h"
+ 
+ #include <errno.h>
+ #include <signal.h>
+@@ -64,6 +65,7 @@ void killer(int signo)
+ 	dlog(LOG_NOTICE, "---- shutdown received ----");
+ 	close_log();
+ 
++	sd_ct_stop();
+ 	exit(0);
+ }
+ 
+diff --git a/src/systemd.c b/src/systemd.c
+new file mode 100644
+index 0000000..82f1dd5
+--- /dev/null
++++ b/src/systemd.c
+@@ -0,0 +1,61 @@
++/*
++ * (C) 2015 by Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include "systemd.h"
++#include "conntrackd.h"
++#include "alarm.h"
++#include <systemd/sd-daemon.h>
++#include <sys/types.h>
++#include <unistd.h>
++
++static struct alarm_block	sd_watchdog;
++static uint64_t			sd_watchdog_interval;
++
++static void sd_ct_watchdog_alarm(struct alarm_block *a, void *data)
++{
++	sd_notify(0, "WATCHDOG=1");
++	add_alarm(&sd_watchdog, 0, sd_watchdog_interval);
++}
++
++void sd_ct_watchdog_init(void)
++{
++	/* ignoring systemd API erros: only care if admin expects watchdog */
++	if (sd_watchdog_enabled(0, &sd_watchdog_interval) < 1)
++		return;
++
++	/* from man page, recommended interval is half of set by admin */
++	sd_watchdog_interval = sd_watchdog_interval / 2;
++
++	init_alarm(&sd_watchdog, &sd_watchdog_interval, sd_ct_watchdog_alarm);
++	add_alarm(&sd_watchdog, 0, sd_watchdog_interval);
++}
++
++void sd_ct_init(int type)
++{
++	sd_notify(0, "READY=1");
++}
++
++void sd_ct_mainpid(pid_t pid)
++{
++	sd_notifyf(0, "MAINPID=%d", pid);
++}
++
++void sd_ct_stop(void)
++{
++	sd_notify(0, "STOPPING=1");
++}
+
