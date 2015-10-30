@@ -1,56 +1,97 @@
-From: Loganaden Velvindron <logan@elandsys.com>
-Subject: [PATCH 1/1 net-next] net: bridge: netfilter: use vzalloc() instead
- of vmalloc() for counterstmp
-Date: Fri, 30 Oct 2015 05:33:03 -0700
-Message-ID: <20151030123303.GA19481@mx.elandsys.com>
+From: sat <satendrasahu1990@gmail.com>
+Subject: how to receive arp packet from queue to application
+Date: Fri, 30 Oct 2015 13:36:19 +0000 (UTC)
+Message-ID: <loom.20151030T143425-274@post.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ns1.qubic.net ([208.69.177.116]:52365 "EHLO mx.elandsys.com"
+Received: from plane.gmane.org ([80.91.229.3]:39402 "EHLO plane.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758415AbbJ3NAB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Oct 2015 09:00:01 -0400
-Received: from mx.elandsys.com (IDENT:logan@localhost [127.0.0.1])
-	by mx.elandsys.com (8.14.5/8.14.5) with ESMTP id t9UCX3b9002056
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <netfilter-devel@vger.kernel.org>; Fri, 30 Oct 2015 05:33:03 -0700 (PDT)
-Received: (from logan@localhost)
-	by mx.elandsys.com (8.14.5/8.14.5/Submit) id t9UCX3Zj025017
-	for netfilter-devel@vger.kernel.org; Fri, 30 Oct 2015 05:33:03 -0700 (PDT)
-Content-Disposition: inline
+	id S1030658AbbJ3NkG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 Oct 2015 09:40:06 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
+	id 1Zs9uV-0006LJ-6X
+	for netfilter-devel@vger.kernel.org; Fri, 30 Oct 2015 14:40:03 +0100
+Received: from 14.141.44.158.Static-Bangalore.tcl.net.in ([14.141.44.158.Static-Bangalore.tcl.net.in])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Oct 2015 14:40:03 +0100
+Received: from satendrasahu1990 by 14.141.44.158.Static-Bangalore.tcl.net.in with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Fri, 30 Oct 2015 14:40:03 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-counterstmp is not cleared before it is used in get_counters(). it might be 
-leaked partially when it is sent to userland later on.
+I have added rule in nftables which will filter ARP packets. I am 
+sending packet in queue but I am not able receive these packets in our 
+application but using same application I can receive IP packet. 
+Application which I am using.
 
-Signed-off-by: Loganaden Velvindron <logan@elandsys.com>
----
- net/bridge/netfilter/ebtables.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+main()
+{
+   int fd;
+   char buf[65535];
+   int len=0;
+   handle =nfq_open();
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index f46ca41..26922e9 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -989,7 +989,7 @@ static int do_replace_finish(struct net *net, struct ebt_replace *repl,
- 	   the check on the size is done later, when we have the lock */
- 	if (repl->num_counters) {
- 		unsigned long size = repl->num_counters * sizeof(*counterstmp);
--		counterstmp = vmalloc(size);
-+		counterstmp = vzalloc(size);
- 		if (!counterstmp)
- 			return -ENOMEM;
- 	}
-@@ -1410,7 +1410,7 @@ static int copy_counters_to_user(struct ebt_table *t,
- 		return -EINVAL;
- 	}
- 
--	counterstmp = vmalloc(nentries * sizeof(*counterstmp));
-+	counterstmp = vzalloc(nentries * sizeof(*counterstmp));
- 	if (!counterstmp)
- 		return -ENOMEM;
- 
--- 
-2.6.1
+   if(handle ==NULL)
+    {
+     printf("error in nfq_open\n");
+     return 1;
+    }
+
+  if(nfq_unbind_pf(handle,AF_INET)<0)
+    {
+       printf("error during nfq_unbind_pf\n");
+       exit(1);
+    }
+
+  if(nfq_bind_pf(handle,AF_INET)<0)
+   {
+      printf("error in binding\n");
+      exit(1);
+   }
+
+  qh=nfq_create_queue(handle,0,&callback,NULL);
+
+  if(qh==NULL)
+  {
+     printf("error to create new queue\n");
+     exit(1);
+  }
+
+
+  if(nfq_set_mode(qh,NFQNL_COPY_PACKET,0xffff)<0)
+  {
+     printf("error to set mode \n");
+     exit(1);
+  }
+
+  if(nfq_set_queue_maxlen(qh,NFQ_MAX_LEN)<0)
+  {
+     printf("error setting queue size\n");
+  }
+
+  fd =nfq_fd(handle);
+
+  if(fd== (-1))
+  {
+   printf("error in opening nft queue\n");
+   exit(1);
+  }
+
+  while(1)
+  {
+    len = recv(fd, buf, sizeof(buf), 0);
+    printf("pkt received in main thread buf: %s length :%d\n",buf,len);
+
+  nfq_destroy_queue(qh);
+
+  printf("closing library handle\n");
+  nfq_close(handle); /* closing the handler */
+
+}
+
