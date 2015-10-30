@@ -1,130 +1,77 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v2 nf-next 0/9] netfilter: don't copy initns hooks to new
- namespaces
-Date: Thu, 29 Oct 2015 23:13:03 +0100
-Message-ID: <20151029221303.GE18062@breakpoint.cc>
-References: <1445597006-11264-1-git-send-email-fw@strlen.de>
- <20151026225522.GA15583@salvia>
- <20151026230938.GA9420@breakpoint.cc>
- <20151027163552.GC9420@breakpoint.cc>
- <20151029203551.GA1883@salvia>
+From: Ani Sinha <ani@arista.com>
+Subject: Re: [PATCH 1/1] commit c6825c0976fa7893692e0e43b09740b419b23c09 upstream.
+Date: Thu, 29 Oct 2015 17:01:24 -0700
+Message-ID: <CAOxq_8M5J0RO8X4Rd70rCWcrbBOrX3_jn4-dmrT+Y3yPYGThTA@mail.gmail.com>
+References: <alpine.OSX.2.20.1510261144390.3919@athabasca.local>
+ <20151026200633.GA13476@salvia> <17709_1446014232_t9S6b5a3017652_20151028023650.7b76098f@playground>
+ <20151029024052.28e11c83@playground>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: "Neal P. Murphy" <neal.p.murphy@alum.wpi.edu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:60755 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964969AbbJ2WNG (ORCPT
+Received: from mail-ig0-f180.google.com ([209.85.213.180]:32934 "EHLO
+	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752545AbbJ3ABo convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Oct 2015 18:13:06 -0400
-Content-Disposition: inline
-In-Reply-To: <20151029203551.GA1883@salvia>
+	Thu, 29 Oct 2015 20:01:44 -0400
+Received: by igvi2 with SMTP id i2so529032igv.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Oct 2015 17:01:43 -0700 (PDT)
+In-Reply-To: <20151029024052.28e11c83@playground>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > (nothing happens)
-> > (modprobe nf_conntrack_ipv4)
-> > (conntrack -E starts to display events)
-> > 
-> > new behaviour:
-> > (modprobe nf_conntrack_ipv4)
-> > (conntrack -E doesn't display events since conntrack module doesn't
-> >  see packets due to lack of nf hooks).
-> > 
-> > My first attempt to fix this was to hook into nfnetlink bind,
-> > but that doesn't really work in a backwards-compatible fashion since
-> > it only makes 'modprobe nf_conntrack_ipv4; conntrack -E' work, but
-> > not nf_conntrack_ipv4 module load *after* a event listener is already
-> > running.
-> 
-> So conntrack -L currently uses NFPROTO_UNSPEC by default and from
-> conntrack -E we subscribe to the generic groups.
+On Wed, Oct 28, 2015 at 11:40 PM, Neal P. Murphy
+<neal.p.murphy@alum.wpi.edu> wrote:
+> On Wed, 28 Oct 2015 02:36:50 -0400
+> "Neal P. Murphy" <neal.p.murphy@alum.wpi.edu> wrote:
+>
+>> On Mon, 26 Oct 2015 21:06:33 +0100
+>> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>>
+>> > Hi,
+>> >
+>> > On Mon, Oct 26, 2015 at 11:55:39AM -0700, Ani Sinha wrote:
+>> > > netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
+>> >
+>> > Please, no need to Cc everyone here. Please, submit your Netfilter
+>> > patches to netfilter-devel@vger.kernel.org.
+>> >
+>> > Moreover, it would be great if the subject includes something
+>> > descriptive on what you need, for this I'd suggest:
+>> >
+>> > [PATCH -stable 3.4,backport] netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
+>> >
+>> > I'm including Neal P. Murphy, he said he would help testing these
+>> > backports, getting a Tested-by: tag usually speeds up things too.
+>>
+>
+> I've probably done about as much seat-of-the-pants testing as I can. All opening/closing the same destination IP/port.
+>
+> Host: Debian Jessie, 8-core Vishera 8350 at 4.4 GHz, 16GiB RAM at (I think) 2100MHz.
+>
+> Traffic generator 1: 6-CPU KVM running 64-bit Smoothwall Express 3.1 (linux 3.4.109 without these patches), with 8GiB RAM and 9GiB swap. Packets sent across PURPLE (to bypass NAT and firewall).
+>
+> Traffic generator 2: 32-bit KVM running Smoothwall Express 3.1 (linux 3.4.110 with these patches), 3GiB RAM and minimal swap.
+>
+> In the first set of tests, generator 1's traffic passed through Generator 2 as a NATting firewall, to the host's web server. In the second set of tests, generator 2's traffic went through NAT to the host's web server.
+>
+> The load tests:
+>   - 2500 processes using 2500 addresses and random src ports
+>   - 2500 processes using 2500 addresses and the same src port
+>   - 2500 processes using the same src address and port
+>
+> I also tested using stock NF timeouts and using 1 second timeouts.
+>
+> Bandwidth used got as high as 16Mb/s for some tests.
+>
+> Conntracks got up to 200 000 or so or bounced between 1 and 2, depending on the test and the timeouts.
+>
+> I did not reproduce the problem these patches solve. But more importantly, I saw no problems at all. Each time I terminated a test, RAM usage returned to about that of post-boot; so there were no apparent memory leaks. No kernel messages and no netfilter messages appeared during the tests.
+>
+> If I have time, I suppose I could run another set of tests: 2500 source processes using 2500 addresses times 200 ports to connect to 2500 addresses times 200 ports on a destination system. Each process opens 200 sockets, then closes them. And repeats ad infinitum. But I might have to be clever since I can't run 500 000 processes; but I could run 20 VMs; that would get it down to about 12 000 processes per VM. And I might have to figure out how to allow allow processes on the destination system to open hundreds or thousands of sockets.
 
-Yes.
-
-> > Other alternative is to request all the protocol trackers during
-> > ctnetlink bind request but that sucks.
-> 
-> Agreed, that sucks :).
-
-Good, I would have hated implementing it ;)
-
-> > Any suggestion?  I don't really see a way out of this.
-> 
-> We can probably register the hooks from ctnetlink based on what we
-> already have, ie. if nf_conntrack_ipv4 is loaded and someone runs
-> conntrack -E (or whatever custom application to listen to events),
-> then we get the hooks registered.
-
-Right, thats what the RFC patch I sent does, it asks all the loaded
-ones to register the hooks on ctnetlink bind (i.e. conntrack -L doesn't
-register anything either, but I'm not sure thats what we would want here
-since -L is just 'show me all conntrack entries' and there are none,
-it seems wrong to take a display request as a hint that conntrack should
-be enabled.
-
-> On top of that, assuming someone modprobes nf_conntrack_ipv6 later on,
-> we'll have to iterate over the list of netns available and register
-> the hooks if anyone is already listening to events as well.
-
-Hmm, I wonder if this is doable without adding any additional module
-dependencies... I'll check if its feasible.
-
-> Remember we also now also have nfnetlink_log and _queue integration
-> with conntrack, there we should register the hooks too in case the
-> userspace application.
-
-Ugh, I forgot.  I don't see how this is fixable at the moment
-Userspace has to set _CFG_F_CONNTRACK flag but I am not (yet) convinced
-that a mere presence of this flag should force register of the conntrack
-hooks.
-
-We'd also need yet another exported pointer-hook to prevent direct
-module dependencies from nfqueue/nflog to conntrack.  Seems best way
-would be to add a "passive" register request function to
-
-struct nfnl_ct_hook {
-	...
-}
-
-in nf_conntrack_netlink.c
-
-[ passive in the sense of 'register hooks of all nf_conntrack_nfproto
-  modules loaded, but don't grab refcount on those modules and don't
-  modprobe anything ]
-
-> Another possible solution: We add a sysctl switch to the core that
-> indicates if conntrack/defrag hooks are enabled by default (should be
-> 1 to maintain backward compatility).
-> 
-> When unset, the user needs to explicitly indicate:
-> 
->         iptables -I ... -j CT --track
-> 
-> that we want connection tracking, so we stop playing guess games,
-> which (although transparent) seems a bit fragile to me.
-
-Not really, I mean if someone has a -m conntrack or DNAT or whatever
-rule its crystal clear that we need conntrack enabled.
-So I don't really think there are any 'guess games' to be played.
-
-The only corner-cases that I see is loaded conntrack, no rule
-dependencies at all (no nat, no stateful filtering of any kind)
-but e.g. traffic accouting via ctnetlink.
-
-[ The -j CT --track thing has other advantages such as allowing
-  fine grained control over what needs tracking rather than the 'notrack'
-  stuff have right now, I'd definitely would like to see this as well ]
-
-> The second path is something that we need to explore anyway for nft as
-> you indicated in your previous email, so this can probably solve the
-> problem both for iptables and nft in a more generic way.
-
-Right.
-
-> Will be giving another spin to this tomorrow, just arrived from a long
-> trip.
-
-Take your time, this beast won't be ready for next -next (he he) anyway.
+Should I resend the patch with a Tested-by: tag?
