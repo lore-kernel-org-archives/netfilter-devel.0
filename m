@@ -1,160 +1,102 @@
 From: Ani Sinha <ani@arista.com>
-Subject: [PATCH -stable 3.4,backport] commit c6825c0976fa7893692e0e43b09740b419b23c09
- upstream.
-Date: Mon, 2 Nov 2015 11:47:25 -0800 (PST)
-Message-ID: <alpine.OSX.2.00.1511021139090.91589@animac.local>
-References: <alpine.OSX.2.20.1510261144390.3919@athabasca.local> <20151026200633.GA13476@salvia>
+Subject: Re: [PATCH 1/1] commit c6825c0976fa7893692e0e43b09740b419b23c09 upstream.
+Date: Mon, 2 Nov 2015 12:48:15 -0800
+Message-ID: <CAOxq_8N+HMgPyyzoWu9fGgRFjjcG5mzON6G8APGC0FU1HpnxsQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Ani Sinha <ani@arista.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Florian Westphal <fw@strlen.de>, Zefan Li <lizefan@huawei.com>,
-	"Neal P. Murphy" <neal.p.murphy@alum.wpi.edu>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:36579 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751944AbbKBTr1 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Nov 2015 14:47:27 -0500
-Received: by pacfv9 with SMTP id fv9so164051541pac.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 02 Nov 2015 11:47:27 -0800 (PST)
-In-Reply-To: <20151026200633.GA13476@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	Ani Sinha <ani@anirban.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-netfilter: nf_conntrack: don't release a conntrack with non-zero
-refcnt
+> On Thu, Oct 29, 2015 at 6:21 PM, Neal P. Murphy
+> <neal.p.murphy@alum.wpi.edu> wrote:
+> > On Thu, 29 Oct 2015 17:01:24 -0700
+> > Ani Sinha <ani@arista.com> wrote:
+> >
+> >> On Wed, Oct 28, 2015 at 11:40 PM, Neal P. Murphy
+> >> <neal.p.murphy@alum.wpi.edu> wrote:
+> >> > On Wed, 28 Oct 2015 02:36:50 -0400
+> >> > "Neal P. Murphy" <neal.p.murphy@alum.wpi.edu> wrote:
+> >> >
+> >> >> On Mon, 26 Oct 2015 21:06:33 +0100
+> >> >> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> >> >>
+> >> >> > Hi,
+> >> >> >
+> >> >> > On Mon, Oct 26, 2015 at 11:55:39AM -0700, Ani Sinha wrote:
+> >> >> > > netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
+> >> >> >
+> >> >> > Please, no need to Cc everyone here. Please, submit your Netfilter
+> >> >> > patches to netfilter-devel@vger.kernel.org.
+> >> >> >
+> >> >> > Moreover, it would be great if the subject includes something
+> >> >> > descriptive on what you need, for this I'd suggest:
+> >> >> >
+> >> >> > [PATCH -stable 3.4,backport] netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
+> >> >> >
+> >> >> > I'm including Neal P. Murphy, he said he would help testing these
+> >> >> > backports, getting a Tested-by: tag usually speeds up things too.
+> >> >>
+> >> >
+> >> > I've probably done about as much seat-of-the-pants testing as I can. All opening/closing the same destination IP/port.
+> >> >
+> >> > Host: Debian Jessie, 8-core Vishera 8350 at 4.4 GHz, 16GiB RAM at (I think) 2100MHz.
+> >> >
+> >> > Traffic generator 1: 6-CPU KVM running 64-bit Smoothwall Express 3.1 (linux 3.4.109 without these patches), with 8GiB RAM and 9GiB swap. Packets sent across PURPLE (to bypass NAT and firewall).
+> >> >
+> >> > Traffic generator 2: 32-bit KVM running Smoothwall Express 3.1 (linux 3.4.110 with these patches), 3GiB RAM and minimal swap.
+> >> >
+> >> > In the first set of tests, generator 1's traffic passed through Generator 2 as a NATting firewall, to the host's web server. In the second set of tests, generator 2's traffic went through NAT to the host's web server.
+> >> >
+> >> > The load tests:
+> >> >   - 2500 processes using 2500 addresses and random src ports
+> >> >   - 2500 processes using 2500 addresses and the same src port
+> >> >   - 2500 processes using the same src address and port
+> >> >
+> >> > I also tested using stock NF timeouts and using 1 second timeouts.
+> >> >
+> >> > Bandwidth used got as high as 16Mb/s for some tests.
+> >> >
+> >> > Conntracks got up to 200 000 or so or bounced between 1 and 2, depending on the test and the timeouts.
+> >> >
+> >> > I did not reproduce the problem these patches solve. But more importantly, I saw no problems at all. Each time I terminated a test, RAM usage returned to about that of post-boot; so there were no apparent memory leaks. No kernel messages and no netfilter messages appeared during the tests.
+> >> >
+> >> > If I have time, I suppose I could run another set of tests: 2500 source processes using 2500 addresses times 200 ports to connect to 2500 addresses times 200 ports on a destination system. Each process opens 200 sockets, then closes them. And repeats ad infinitum. But I might have to be clever since I can't run 500 000 processes; but I could run 20 VMs; that would get it down to about 12 000 processes per VM. And I might have to figure out how to allow allow processes on the destination system to open hundreds or thousands of sockets.
+> >>
+> >> Should I resend the patch with a Tested-by: tag?
+> >
+> > ... Oh, wait. Not yet. The dawn just broke over ol' Marblehead here. I only tested TCP; I need to hammer UDP, too.
+> >
+> > Can I set the timeouts to zero? Or is one as low as I can go?
+>
+> Any progress with testing ?
 
-With this patch, the conntrack refcount is initially set to zero and
-it is bumped once it is added to any of the list, so we fulfill
-Eric's golden rule which is that all released objects always have a
-refcount that equals zero.
+I applied the 'hammer' through a firewall with the patch. I used TCP,
+UDP and ICMP.
 
-Andrey Vagin reports that nf_conntrack_free can't be called for a
-conntrack with non-zero ref-counter, because it can race with
-nf_conntrack_find_get().
+I don't know if the patch fixes the problem. But I'm reasonably sure
+that it did not break normal operations.
 
-A conntrack slab is created with SLAB_DESTROY_BY_RCU. Non-zero
-ref-counter says that this conntrack is used. So when we release
-a conntrack with non-zero counter, we break this assumption.
+To test a different problem I fixed (a memory leak in my 64-bit
+counter patch for xt_ACCOUNT), I tested 60,000 addresses (most of a
+/16) through the firewall. Again, no troubles.
 
-CPU1                                    CPU2
-____nf_conntrack_find()
-                                        nf_ct_put()
-                                         destroy_conntrack()
-                                        ...
-                                        init_conntrack
-                                         __nf_conntrack_alloc (set use = 1)
-atomic_inc_not_zero(&ct->use) (use = 2)
-                                         if (!l4proto->new(ct, skb, dataoff, timeouts))
-                                          nf_conntrack_free(ct); (use = 2 !!!)
-                                        ...
-                                        __nf_conntrack_alloc (set use = 1)
- if (!nf_ct_key_equal(h, tuple, zone))
-  nf_ct_put(ct); (use = 0)
-   destroy_conntrack()
-                                        /* continue to work with CT */
-
-After applying the path "[PATCH] netfilter: nf_conntrack: fix RCU
-race in nf_conntrack_find_get" another bug was triggered in
-destroy_conntrack():
-
-<4>[67096.759334] ------------[ cut here ]------------
-<2>[67096.759353] kernel BUG at net/netfilter/nf_conntrack_core.c:211!
-...
-<4>[67096.759837] Pid: 498649, comm: atdd veid: 666 Tainted: G         C ---------------    2.6.32-042stab084.18 #1 042stab084_18 /DQ45CB
-<4>[67096.759932] RIP: 0010:[<ffffffffa03d99ac>]  [<ffffffffa03d99ac>] destroy_conntrack+0x15c/0x190 [nf_conntrack]
-<4>[67096.760255] Call Trace:
-<4>[67096.760255]  [<ffffffff814844a7>] nf_conntrack_destroy+0x17/0x30
-<4>[67096.760255]  [<ffffffffa03d9bb5>] nf_conntrack_find_get+0x85/0x130 [nf_conntrack]
-<4>[67096.760255]  [<ffffffffa03d9fb2>] nf_conntrack_in+0x352/0xb60 [nf_conntrack]
-<4>[67096.760255]  [<ffffffffa048c771>] ipv4_conntrack_local+0x51/0x60 [nf_conntrack_ipv4]
-<4>[67096.760255]  [<ffffffff81484419>] nf_iterate+0x69/0xb0
-<4>[67096.760255]  [<ffffffff814b5b00>] ? dst_output+0x0/0x20
-<4>[67096.760255]  [<ffffffff814845d4>] nf_hook_slow+0x74/0x110
-<4>[67096.760255]  [<ffffffff814b5b00>] ? dst_output+0x0/0x20
-<4>[67096.760255]  [<ffffffff814b66d5>] raw_sendmsg+0x775/0x910
-<4>[67096.760255]  [<ffffffff8104c5a8>] ? flush_tlb_others_ipi+0x128/0x130
-<4>[67096.760255]  [<ffffffff8100bc4e>] ? apic_timer_interrupt+0xe/0x20
-<4>[67096.760255]  [<ffffffff8100bc4e>] ? apic_timer_interrupt+0xe/0x20
-<4>[67096.760255]  [<ffffffff814c136a>] inet_sendmsg+0x4a/0xb0
-<4>[67096.760255]  [<ffffffff81444e93>] ? sock_sendmsg+0x13/0x140
-<4>[67096.760255]  [<ffffffff81444f97>] sock_sendmsg+0x117/0x140
-<4>[67096.760255]  [<ffffffff8102e299>] ? native_smp_send_reschedule+0x49/0x60
-<4>[67096.760255]  [<ffffffff81519beb>] ? _spin_unlock_bh+0x1b/0x20
-<4>[67096.760255]  [<ffffffff8109d930>] ? autoremove_wake_function+0x0/0x40
-<4>[67096.760255]  [<ffffffff814960f0>] ? do_ip_setsockopt+0x90/0xd80
-<4>[67096.760255]  [<ffffffff8100bc4e>] ? apic_timer_interrupt+0xe/0x20
-<4>[67096.760255]  [<ffffffff8100bc4e>] ? apic_timer_interrupt+0xe/0x20
-<4>[67096.760255]  [<ffffffff814457c9>] sys_sendto+0x139/0x190
-<4>[67096.760255]  [<ffffffff810efa77>] ? audit_syscall_entry+0x1d7/0x200
-<4>[67096.760255]  [<ffffffff810ef7c5>] ? __audit_syscall_exit+0x265/0x290
-<4>[67096.760255]  [<ffffffff81474daf>] compat_sys_socketcall+0x13f/0x210
-<4>[67096.760255]  [<ffffffff8104dea3>] ia32_sysret+0x0/0x5
-
-I have reused the original title for the RFC patch that Andrey posted and
-most of the original patch description.
-
-Signed-off-by: Ani Sinha <ani@arista.com>
-Tested-by: "Neal P. Murphy" <neal.p.murphy@alum.wpi.edu> 
----
- net/netfilter/nf_conntrack_core.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 9a171b2..9a46908 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -441,7 +441,9 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 			goto out;
- 
- 	add_timer(&ct->timeout);
--	nf_conntrack_get(&ct->ct_general);
-+	smp_wmb();
-+	/* The caller holds a reference to this object */
-+	atomic_set(&ct->ct_general.use, 2);
- 	__nf_conntrack_hash_insert(ct, hash, repl_hash);
- 	NF_CT_STAT_INC(net, insert);
- 	spin_unlock_bh(&nf_conntrack_lock);
-@@ -732,11 +734,10 @@ __nf_conntrack_alloc(struct net *net, u16 zone,
- 		nf_ct_zone->id = zone;
- 	}
- #endif
--	/*
--	 * changes to lookup keys must be done before setting refcnt to 1
-+	/* Because we use RCU lookups, we set ct_general.use to zero before
-+	 * this is inserted in any list.
- 	 */
--	smp_wmb();
--	atomic_set(&ct->ct_general.use, 1);
-+	atomic_set(&ct->ct_general.use, 0);
- 	return ct;
- 
- #ifdef CONFIG_NF_CONNTRACK_ZONES
-@@ -759,6 +760,10 @@ EXPORT_SYMBOL_GPL(nf_conntrack_alloc);
- void nf_conntrack_free(struct nf_conn *ct)
- {
- 	struct net *net = nf_ct_net(ct);
-+	/* A freed object has refcnt == 0, that's
-+	 * the golden rule for SLAB_DESTROY_BY_RCU
-+	 */
-+	NF_CT_ASSERT(atomic_read(&ct->ct_general.use) == 0);
- 
- 	nf_ct_ext_destroy(ct);
- 	atomic_dec(&net->ct.count);
-@@ -846,6 +851,9 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 		NF_CT_STAT_INC(net, new);
- 	}
- 
-+	/* Now it is inserted into the unconfirmed list, bump refcount */
-+	nf_conntrack_get(&ct->ct_general);
-+
- 	/* Overload tuple linked list to put us in unconfirmed list. */
- 	hlist_nulls_add_head_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode,
- 		       &net->ct.unconfirmed);
--- 
-1.8.1.4
+I only observed two odd things which are likely completely unrelated
+to your patch. When I started the TCP test, then added the UDP test,
+only TCP would come through. If I stopped and restarted the TCP test,
+only UDP would come through. I suspect this is due to buffering. It's
+just a behaviour I haven't encountered since I started using Linux
+many years ago (around '98). The second, when I started the test, the
+firewall would lose contact with the upstream F/W's apcupsd daemon;
+again, this is likely due to the nature of the test: it likely floods
+input and output queues.
 
 
+I'd say you can probably resend with Tested-by.
+
+Neal
