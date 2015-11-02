@@ -1,101 +1,154 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v2 nf-next 0/9] netfilter: don't copy initns hooks to new
- namespaces
-Date: Mon, 2 Nov 2015 14:00:58 +0100
-Message-ID: <20151102130058.GA7484@breakpoint.cc>
-References: <1445597006-11264-1-git-send-email-fw@strlen.de>
- <20151026225522.GA15583@salvia>
- <20151026230938.GA9420@breakpoint.cc>
- <20151027163552.GC9420@breakpoint.cc>
- <20151029203551.GA1883@salvia>
- <20151029221303.GE18062@breakpoint.cc>
+From: Ani Sinha <ani@arista.com>
+Subject: [PATCH  -stable 3.4,backport] commit c6825c0976fa7893692e0e43b09740b419b23c09
+ upstream.
+Date: Mon, 2 Nov 2015 11:11:10 -0800 (PST)
+Message-ID: <alpine.OSX.2.00.1511021107020.91589@animac.local>
+References: <alpine.OSX.2.20.1510261144390.3919@athabasca.local> <20151026200633.GA13476@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:38063 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754064AbbKBNBA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Nov 2015 08:01:00 -0500
-Content-Disposition: inline
-In-Reply-To: <20151029221303.GE18062@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Ani Sinha <ani@arista.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Florian Westphal <fw@strlen.de>, Zefan Li <lizefan@huawei.com>,
+	"Neal P. Murphy" <neal.p.murphy@alum.wpi.edu>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20151026200633.GA13476@salvia>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Florian Westphal <fw@strlen.de> wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > We can probably register the hooks from ctnetlink based on what we
-> > already have, ie. if nf_conntrack_ipv4 is loaded and someone runs
-> > conntrack -E (or whatever custom application to listen to events),
-> > then we get the hooks registered.
-> 
-> Right, thats what the RFC patch I sent does, it asks all the loaded
-> ones to register the hooks on ctnetlink bind (i.e. conntrack -L doesn't
-> register anything either, but I'm not sure thats what we would want here
-> since -L is just 'show me all conntrack entries' and there are none,
-> it seems wrong to take a display request as a hint that conntrack should
-> be enabled.
-> 
-> > On top of that, assuming someone modprobes nf_conntrack_ipv6 later on,
-> > we'll have to iterate over the list of netns available and register
-> > the hooks if anyone is already listening to events as well.
-> 
-> Hmm, I wonder if this is doable without adding any additional module
-> dependencies... I'll check if its feasible.
+netfilter: nf_conntrack: fix RCU race in nf_conntrack_find_get
 
-So the current plan is to add a 'notification' call to
-ctnetlink_glue_hook, i.e.
+Lets look at destroy_conntrack:
 
- .newproto       = ctnl_newproto,
+hlist_nulls_del_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode);
+...
+nf_conntrack_free(ct)
+	kmem_cache_free(net->ct.nf_conntrack_cachep, ct);
 
-and then, from nf_ct_l3proto_register(), do:
-nfnl_ct = rcu_dereference(nfnl_ct_hook);
-if (nfnl_ct)
-	nfnl_ct->newproto(nfproto);
+net->ct.nf_conntrack_cachep is created with SLAB_DESTROY_BY_RCU.
 
-This would kick ctnetlink without adding a module dependency.
+The hash is protected by rcu, so readers look up conntracks without
+locks.
+A conntrack is removed from the hash, but in this moment a few readers
+still can use the conntrack. Then this conntrack is released and another
+thread creates conntrack with the same address and the equal tuple.
+After this a reader starts to validate the conntrack:
+* It's not dying, because a new conntrack was created
+* nf_ct_tuple_equal() returns true.
 
-Downside is that ctnetlink would need some additional logic to
-make newproto() do nothing unless we saw at least on bind attempt
-before (otherwise we'd always register the hooks for a new conntracker
-in all the network namespaces).
+But this conntrack is not initialized yet, so it can not be used by two
+threads concurrently. In this case BUG_ON may be triggered from
+nf_nat_setup_info().
 
-For that we'd have to iterate over all the network namespaces we have
-and check a per-netns knob if ctnetlink was requested at some point in the
-past.
+Florian Westphal suggested to check the confirm bit too. I think it's
+right.
 
-It might be acceptable though since nf_ct_l3proto_register is only
-called from module init hooks.
+task 1			task 2			task 3
+			nf_conntrack_find_get
+			 ____nf_conntrack_find
+destroy_conntrack
+ hlist_nulls_del_rcu
+ nf_conntrack_free
+ kmem_cache_free
+						__nf_conntrack_alloc
+						 kmem_cache_alloc
+						 memset(&ct->tuplehash[IP_CT_DIR_MAX],
+			 if (nf_ct_is_dying(ct))
+			 if (!nf_ct_tuple_equal()
 
-What do you think?
+I'm not sure, that I have ever seen this race condition in a real life.
+Currently we are investigating a bug, which is reproduced on a few nodes.
+In our case one conntrack is initialized from a few tasks concurrently,
+we don't have any other explanation for this.
 
-> > Remember we also now also have nfnetlink_log and _queue integration
-> > with conntrack, there we should register the hooks too in case the
-> > userspace application.
-> 
-> Ugh, I forgot.  I don't see how this is fixable at the moment
-> Userspace has to set _CFG_F_CONNTRACK flag but I am not (yet) convinced
-> that a mere presence of this flag should force register of the conntrack
-> hooks.
-> 
-> We'd also need yet another exported pointer-hook to prevent direct
-> module dependencies from nfqueue/nflog to conntrack.  Seems best way
-> would be to add a "passive" register request function to
-> 
-> struct nfnl_ct_hook {
-> 	...
-> }
-> 
-> in nf_conntrack_netlink.c
-> 
-> [ passive in the sense of 'register hooks of all nf_conntrack_nfproto
->   modules loaded, but don't grab refcount on those modules and don't
->   modprobe anything ]
+<2>[46267.083061] kernel BUG at net/ipv4/netfilter/nf_nat_core.c:322!
+...
+<4>[46267.083951] RIP: 0010:[<ffffffffa01e00a4>]  [<ffffffffa01e00a4>] nf_nat_setup_info+0x564/0x590 [nf_nat]
+...
+<4>[46267.085549] Call Trace:
+<4>[46267.085622]  [<ffffffffa023421b>] alloc_null_binding+0x5b/0xa0 [iptable_nat]
+<4>[46267.085697]  [<ffffffffa02342bc>] nf_nat_rule_find+0x5c/0x80 [iptable_nat]
+<4>[46267.085770]  [<ffffffffa0234521>] nf_nat_fn+0x111/0x260 [iptable_nat]
+<4>[46267.085843]  [<ffffffffa0234798>] nf_nat_out+0x48/0xd0 [iptable_nat]
+<4>[46267.085919]  [<ffffffff814841b9>] nf_iterate+0x69/0xb0
+<4>[46267.085991]  [<ffffffff81494e70>] ? ip_finish_output+0x0/0x2f0
+<4>[46267.086063]  [<ffffffff81484374>] nf_hook_slow+0x74/0x110
+<4>[46267.086133]  [<ffffffff81494e70>] ? ip_finish_output+0x0/0x2f0
+<4>[46267.086207]  [<ffffffff814b5890>] ? dst_output+0x0/0x20
+<4>[46267.086277]  [<ffffffff81495204>] ip_output+0xa4/0xc0
+<4>[46267.086346]  [<ffffffff814b65a4>] raw_sendmsg+0x8b4/0x910
+<4>[46267.086419]  [<ffffffff814c10fa>] inet_sendmsg+0x4a/0xb0
+<4>[46267.086491]  [<ffffffff814459aa>] ? sock_update_classid+0x3a/0x50
+<4>[46267.086562]  [<ffffffff81444d67>] sock_sendmsg+0x117/0x140
+<4>[46267.086638]  [<ffffffff8151997b>] ? _spin_unlock_bh+0x1b/0x20
+<4>[46267.086712]  [<ffffffff8109d370>] ? autoremove_wake_function+0x0/0x40
+<4>[46267.086785]  [<ffffffff81495e80>] ? do_ip_setsockopt+0x90/0xd80
+<4>[46267.086858]  [<ffffffff8100be0e>] ? call_function_interrupt+0xe/0x20
+<4>[46267.086936]  [<ffffffff8118cb10>] ? ub_slab_ptr+0x20/0x90
+<4>[46267.087006]  [<ffffffff8118cb10>] ? ub_slab_ptr+0x20/0x90
+<4>[46267.087081]  [<ffffffff8118f2e8>] ? kmem_cache_alloc+0xd8/0x1e0
+<4>[46267.087151]  [<ffffffff81445599>] sys_sendto+0x139/0x190
+<4>[46267.087229]  [<ffffffff81448c0d>] ? sock_setsockopt+0x16d/0x6f0
+<4>[46267.087303]  [<ffffffff810efa47>] ? audit_syscall_entry+0x1d7/0x200
+<4>[46267.087378]  [<ffffffff810ef795>] ? __audit_syscall_exit+0x265/0x290
+<4>[46267.087454]  [<ffffffff81474885>] ? compat_sys_setsockopt+0x75/0x210
+<4>[46267.087531]  [<ffffffff81474b5f>] compat_sys_socketcall+0x13f/0x210
+<4>[46267.087607]  [<ffffffff8104dea3>] ia32_sysret+0x0/0x5
+<4>[46267.087676] Code: 91 20 e2 01 75 29 48 89 de 4c 89 f7 e8 56 fa ff ff 85 c0 0f 84 68 fc ff ff 0f b6 4d c6 41 8b 45 00 e9 4d fb ff ff e8 7c 19 e9 e0 <0f> 0b eb fe f6 05 17 91 20 e2 80 74 ce 80 3d 5f 2e 00 00 00 74
+<1>[46267.088023] RIP  [<ffffffffa01e00a4>] nf_nat_setup_info+0x564/0x590
 
-This is less intrusive than I thought and should not affect any hotpath,
-we can check at config time wheter this feature is wanted and then
+Signed-off-by: Ani Sinha <ani@arista.com>
+Tested-by: Neal P. Murphy <neal.p.murphy@alum.wpi.edu>
+---
+ net/netfilter/nf_conntrack_core.c | 21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-nfnl_ct_hook->register_hooks(net)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 9a46908..fd0f7a3 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -309,6 +309,21 @@ static void death_by_timeout(unsigned long ul_conntrack)
+ 	nf_ct_put(ct);
+ }
+ 
++static inline bool
++nf_ct_key_equal(struct nf_conntrack_tuple_hash *h,
++			const struct nf_conntrack_tuple *tuple,
++			u16 zone)
++{
++	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
++
++	/* A conntrack can be recreated with the equal tuple,
++	 * so we need to check that the conntrack is confirmed
++	 */
++	return nf_ct_tuple_equal(tuple, &h->tuple) &&
++		nf_ct_zone(ct) == zone &&
++		nf_ct_is_confirmed(ct);
++}
++
+ /*
+  * Warning :
+  * - Caller must take a reference on returned object
+@@ -330,8 +345,7 @@ ____nf_conntrack_find(struct net *net, u16 zone,
+ 	local_bh_disable();
+ begin:
+ 	hlist_nulls_for_each_entry_rcu(h, n, &net->ct.hash[bucket], hnnode) {
+-		if (nf_ct_tuple_equal(tuple, &h->tuple) &&
+-		    nf_ct_zone(nf_ct_tuplehash_to_ctrack(h)) == zone) {
++		if (nf_ct_key_equal(h, tuple, zone)) {
+ 			NF_CT_STAT_INC(net, found);
+ 			local_bh_enable();
+ 			return h;
+@@ -378,8 +392,7 @@ begin:
+ 			     !atomic_inc_not_zero(&ct->ct_general.use)))
+ 			h = NULL;
+ 		else {
+-			if (unlikely(!nf_ct_tuple_equal(tuple, &h->tuple) ||
+-				     nf_ct_zone(ct) != zone)) {
++			if (unlikely(!nf_ct_key_equal(h, tuple, zone))) {
+ 				nf_ct_put(ct);
+ 				goto begin;
+ 			}
+-- 
+1.8.1.4
