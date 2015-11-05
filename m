@@ -1,45 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/3] Netfilter fixes for net
-Date: Wed, 04 Nov 2015 20:55:26 -0500 (EST)
-Message-ID: <20151104.205526.21913366211196665.davem@davemloft.net>
-References: <1446645638-3625-1-git-send-email-pablo@netfilter.org>
+From: David Hinkle <hinkle@cipafilter.com>
+Subject: Determine the interface being used by a socket
+Date: Thu, 5 Nov 2015 11:43:11 -0600
+Message-ID: <CACw4T0onF+QmM0m42CavFVr+4v4ww5Q-u49So-4LdkGKjmNbiQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:59324 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752959AbbKEBza (ORCPT
+Received: from mail-yk0-f181.google.com ([209.85.160.181]:33430 "EHLO
+	mail-yk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1162069AbbKERnQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Nov 2015 20:55:30 -0500
-In-Reply-To: <1446645638-3625-1-git-send-email-pablo@netfilter.org>
+	Thu, 5 Nov 2015 12:43:16 -0500
+Received: by ykdv3 with SMTP id v3so54342837ykd.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Nov 2015 09:43:11 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed,  4 Nov 2015 15:00:35 +0100
+We develop a proxy server product.  To improve our flow based
+reporting, we want our proxy server to be able to determine which
+interface each socket is using, both from incoming and outgoing.  This
+is pretty hard to infer for our product, because we support features
+like load balancing across ISPs, vlan's, etc.
 
-> The following patchset contains Netfilter fixes for your net tree,
-> they are:
-> 
-> 1) Fix crash when TEE target is used with no --oif, from Eric Dumazet.
-> 
-> 2) Oneliner to fix a crash on the redirect traffic to localhost
->    infrastructure when interface has not yet an address, from
->    Munehisa Kamata.
-> 
-> 3) Oneliner not to request module all the time from nfnetlink due to
->    wrong type value, from Florian Westphal.
-> 
-> I'll make sure these patches 1 and 2 hit -stable.
+Right now the best idea I have is to reserve some bits of the connmark
+and stamp an interface number on each connmark during PREROUTING and
+POSTROUTING, but I'd need about 10 bits of the mark field for that and
+I'd prefer not to throw so many of them away.
 
-Pulled.
+Is there an API I could call from userspace to figure out what
+interface is being used by a specific connection? I can get to the
+conntrack data, but I doesn't look like conntrack is recording which
+interfaces each flow is using.  Iptables rules seem to be able to
+filter based on interface, but I guess maybe that's being implemented
+on a per packet basis?
 
-Since net-next got merged, and I fast-forwarded net to Linus's
-tree, there were some minor conflicts.
+Advice would be appreciated,
 
-Please double check my work.
+-- 
+David Hinkle
 
-Thanks.
+Senior Software Developer
+
+Phone:  800.243.3729x3000
+
+Email:  hinkle@cipafilter.com
+
+Hours:  Mon-Fri   8:00AM-5:00PM (CT)
