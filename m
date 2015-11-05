@@ -1,34 +1,45 @@
-From: Ani Sinha <ani@arista.com>
-Subject: Re: [PATCH 1/1] commit c6825c0976fa7893692e0e43b09740b419b23c09 upstream.
-Date: Wed, 4 Nov 2015 15:46:54 -0800
-Message-ID: <CAOxq_8M5wB=nfQ3O=rvmGL83yef3UkszMveQrMAbEWcDeVZ0Ww@mail.gmail.com>
-References: <alpine.OSX.2.20.1510261144390.3919@athabasca.local> <20151026200633.GA13476@salvia>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/3] Netfilter fixes for net
+Date: Wed, 04 Nov 2015 20:55:26 -0500 (EST)
+Message-ID: <20151104.205526.21913366211196665.davem@davemloft.net>
+References: <1446645638-3625-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	Florian Westphal <fw@strlen.de>, Zefan Li <lizefan@huawei.com>,
-	"Neal P. Murphy" <neal.p.murphy@alum.wpi.edu>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ig0-f181.google.com ([209.85.213.181]:37365 "EHLO
-	mail-ig0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756453AbbKDXrO (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:59324 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752959AbbKEBza (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Nov 2015 18:47:14 -0500
-Received: by igbhv6 with SMTP id hv6so47744626igb.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 04 Nov 2015 15:47:14 -0800 (PST)
-In-Reply-To: <20151026200633.GA13476@salvia>
+	Wed, 4 Nov 2015 20:55:30 -0500
+In-Reply-To: <1446645638-3625-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-(removed a bunch of people from CC list)
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Wed,  4 Nov 2015 15:00:35 +0100
 
-On Mon, Oct 26, 2015 at 1:06 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> The following patchset contains Netfilter fixes for your net tree,
+> they are:
+> 
+> 1) Fix crash when TEE target is used with no --oif, from Eric Dumazet.
+> 
+> 2) Oneliner to fix a crash on the redirect traffic to localhost
+>    infrastructure when interface has not yet an address, from
+>    Munehisa Kamata.
+> 
+> 3) Oneliner not to request module all the time from nfnetlink due to
+>    wrong type value, from Florian Westphal.
+> 
+> I'll make sure these patches 1 and 2 hit -stable.
 
-> Then we can review and, if no major concerns, I can submit this to
-> -stable.
+Pulled.
 
-Now that Neal has sufficiently tested the patches, is it OK to apply
-to -stable or do you guys want me to do anything more?
+Since net-next got merged, and I fast-forwarded net to Linus's
+tree, there were some minor conflicts.
+
+Please double check my work.
+
+Thanks.
