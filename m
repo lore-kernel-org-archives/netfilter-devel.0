@@ -1,51 +1,86 @@
-From: "Murat Sezgin" <msezgin@codeaurora.org>
-Subject: route table change events
-Date: Thu, 5 Nov 2015 16:48:30 -0800
-Message-ID: <002701d1182c$db558e60$9200ab20$@codeaurora.org>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: [PATCH nf-next 1/3] netfilter: nfnetlink_queue: remove duplicated
+ obsolete commands handling
+Date: Fri, 6 Nov 2015 09:49:47 +0900
+Message-ID: <20151106004947.GB11266@gmail.com>
+References: <20151005024454.GA14637@gmail.com>
+ <20151005025046.GE14637@gmail.com>
+ <20151005152315.GA11562@salvia>
+ <20151006021001.GA30037@gmail.com>
+ <20151006021246.GB30037@gmail.com>
+ <20151006100728.GA2429@salvia>
+ <20151007042016.GA23203@gmail.com>
+ <20151007042550.GC23203@gmail.com>
+ <20151016170532.GA18148@salvia>
+ <20151106004640.GA11266@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:50826 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030611AbbKFAsb (ORCPT
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:35071 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030611AbbKFAtw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Nov 2015 19:48:31 -0500
-Received: from MSEZGIN (qf-scl1nat.qualcomm.com [207.114.132.30])
-	(using TLSv1 with cipher AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: msezgin@smtp.codeaurora.org)
-	by smtp.codeaurora.org (Postfix) with ESMTPSA id 63C32140286
-	for <netfilter-devel@vger.kernel.org>; Fri,  6 Nov 2015 00:48:30 +0000 (UTC)
-Content-Language: en-us
+	Thu, 5 Nov 2015 19:49:52 -0500
+Received: by pasz6 with SMTP id z6so107403358pas.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 05 Nov 2015 16:49:52 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20151106004640.GA11266@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi all,
+Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
+---
+ net/netfilter/nfnetlink_queue.c |   18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
 
-In the netfilter conntrack framework, is there a route table change event
-handler like netdevice event handler? 
-
-I am reading 3.4 and 3.14 kernels, but I couldn't find any, and I
-implemented my own notification registration in routing code and a handler
-in my own kernel module. With this handler, if there is any change in route
-table, (add or remove), an event notify my module and I clean all the
-conntrack entires which are created on each netdevice in the system.
-
-I use a code in my block notifier handler something like below:
-
-for_each_netdevice(&init_net, dev) {
-	nf_ct_iterate_cleanup(&init_net, device_cmp, (void
-*)(long)dev->ifindex);
-}
-
-I clean up all the conntrack entries, because it is possible that the newly
-added route wants to send the traffic through another interface in the
-system. If we don't delete the conntrack entry, the old source NAT address
-would be remain in the conntrack table for that flow.
-
-Regards,
-Murat
-
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 7d81d28..f85a3d3 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1116,21 +1116,10 @@ nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 	struct nfgenmsg *nfmsg = nlmsg_data(nlh);
+ 	u_int16_t queue_num = ntohs(nfmsg->res_id);
+ 	struct nfqnl_instance *queue;
+-	struct nfqnl_msg_config_cmd *cmd = NULL;
+ 	struct net *net = sock_net(ctnl);
+ 	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
+ 	int ret = 0;
+ 
+-	if (nfqa[NFQA_CFG_CMD]) {
+-		cmd = nla_data(nfqa[NFQA_CFG_CMD]);
+-
+-		/* Obsolete commands without queue context */
+-		switch (cmd->command) {
+-		case NFQNL_CFG_CMD_PF_BIND: return 0;
+-		case NFQNL_CFG_CMD_PF_UNBIND: return 0;
+-		}
+-	}
+-
+ 	rcu_read_lock();
+ 	queue = instance_lookup(q, queue_num);
+ 	if (queue && queue->peer_portid != NETLINK_CB(skb).portid) {
+@@ -1138,7 +1127,9 @@ nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 		goto err_out_unlock;
+ 	}
+ 
+-	if (cmd != NULL) {
++	if (nfqa[NFQA_CFG_CMD]) {
++		struct nfqnl_msg_config_cmd *cmd = nla_data(nfqa[NFQA_CFG_CMD]);
++
+ 		switch (cmd->command) {
+ 		case NFQNL_CFG_CMD_BIND:
+ 			if (queue) {
+@@ -1161,7 +1152,8 @@ nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
+ 			break;
+ 		case NFQNL_CFG_CMD_PF_BIND:
+ 		case NFQNL_CFG_CMD_PF_UNBIND:
+-			break;
++			/* Obsolete commands without queue context */
++			goto err_out_unlock;
+ 		default:
+ 			ret = -ENOTSUPP;
+ 			break;
+-- 
+1.7.10.4
