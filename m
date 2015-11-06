@@ -1,45 +1,23 @@
-From: Willy Tarreau <w@1wt.eu>
-Subject: Please backport commit to 3.12+
-Date: Fri, 6 Nov 2015 17:21:19 +0100
-Message-ID: <20151106162119.GA23564@1wt.eu>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH -stable,4.x.y] netfilter: nf_nat_redirect: add missing
+ NULL pointer check
+Date: Fri, 6 Nov 2015 09:08:58 -0800
+Message-ID: <20151106170858.GB24185@kroah.com>
+References: <1446813886-5632-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>
-To: stable@kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, stable@vger.kernel.org,
+	Munehisa Kamata <kamatam@amazon.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <1446813886-5632-1-git-send-email-pablo@netfilter.org>
+Sender: stable-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Fri, Nov 06, 2015 at 01:44:43PM +0100, Pablo Neira Ayuso wrote:
+> From: Munehisa Kamata <kamatam@amazon.com>
+> 
+> [ upstream commit 94f9cd81436c85d8c3a318ba92e236ede73752fc ]
 
-We recently faced the issue described in the patch below on 3.14.56. This fix
-was merged in 4.2-rc7. I checked Davem's queue and stable queue and it's not
-there yet. Could we please have it in 3.12 and above ? (feature was introduced
-in 3.11). I can confirm that it properly fixes the problem for us.
-
-Mainline commit is :
-
-  commit 3c16241c445303a90529565e7437e1f240acfef2
-  Author: Phil Sutter <phil@nwl.cc>
-  Date:   Tue Jul 28 00:53:26 2015 +0200
-
-    netfilter: SYNPROXY: fix sending window update to client
-    
-    Upon receipt of SYNACK from the server, ipt_SYNPROXY first sends back an ACK to
-    finish the server handshake, then calls nf_ct_seqadj_init() to initiate
-    sequence number adjustment of forwarded packets to the client and finally sends
-    a window update to the client to unblock it's TX queue.
-    
-    Since synproxy_send_client_ack() does not set synproxy_send_tcp()'s nfct
-    parameter, no sequence number adjustment happens and the client receives the
-    window update with incorrect sequence number. Depending on client TCP
-    implementation, this leads to a significant delay (until a window probe is
-    being sent).
-    
-    Signed-off-by: Phil Sutter <phil@nwl.cc>
-    Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-Thanks,
-Willy
+This isn't a valid git commit id in Linus's tree :(
