@@ -1,31 +1,35 @@
-From: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH -stable,3.4.y] netfilter: nf_conntrack: fix RCU race in
- nf_conntrack_find_get
-Date: Fri, 6 Nov 2015 09:09:46 -0800
-Message-ID: <20151106170946.GD24185@kroah.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH -stable,4.x.y] netfilter: nf_nat_redirect: add missing
+ NULL pointer check
+Date: Fri, 6 Nov 2015 18:26:10 +0100
+Message-ID: <20151106172610.GA1357@salvia>
 References: <1446813886-5632-1-git-send-email-pablo@netfilter.org>
- <1446813886-5632-3-git-send-email-pablo@netfilter.org>
+ <20151106170858.GB24185@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, stable@vger.kernel.org,
-	Andrey Vagin <avagin@openvz.org>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	Florian Westphal <fw@strlen.de>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Cyrill Gorcunov <gorcunov@openvz.org>,
-	Ani Sinha <ani@arista.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <stable-owner@vger.kernel.org>
+	Munehisa Kamata <kamatam@amazon.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:37188 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161768AbbKFRSr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 6 Nov 2015 12:18:47 -0500
 Content-Disposition: inline
-In-Reply-To: <1446813886-5632-3-git-send-email-pablo@netfilter.org>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20151106170858.GB24185@kroah.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Nov 06, 2015 at 01:44:45PM +0100, Pablo Neira Ayuso wrote:
-> From: Andrey Vagin <avagin@openvz.org>
+On Fri, Nov 06, 2015 at 09:08:58AM -0800, Greg KH wrote:
+> On Fri, Nov 06, 2015 at 01:44:43PM +0100, Pablo Neira Ayuso wrote:
+> > From: Munehisa Kamata <kamatam@amazon.com>
+> > 
+> > [ upstream commit 94f9cd81436c85d8c3a318ba92e236ede73752fc ]
 > 
-> [ upstream commit 6aec24dfd7548dba0134f60f28f58580f07c540b ]
+> This isn't a valid git commit id in Linus's tree :(
 
-Also not valid :(
+This is David's tree already:
+
+http://git.kernel.org/cgit/linux/kernel/git/davem/net.git/commit/?id=94f9cd81436c85d8c3a318ba92e236ede73752fc
+
+So this should hit Linus tree soon.
