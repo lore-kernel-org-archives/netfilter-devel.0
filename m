@@ -1,140 +1,90 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [RFC PATCH nft 4/6] set_elem: parse expressions attached to set elements
-Date: Fri,  6 Nov 2015 18:34:21 +0000
-Message-ID: <1446834863-18610-5-git-send-email-kaber@trash.net>
-References: <1446834863-18610-1-git-send-email-kaber@trash.net>
+Subject: [RFC PATCH nft 0/6] flow statement
+Date: Fri,  6 Nov 2015 18:34:17 +0000
+Message-ID: <1446834863-18610-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 161-169.trash.net ([213.144.137.169]:47974 "EHLO
+Received: from 161-169.trash.net ([213.144.137.169]:47966 "EHLO
 	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754095AbbKFSe3 (ORCPT
+	with ESMTP id S1754095AbbKFSeb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Nov 2015 13:34:29 -0500
-In-Reply-To: <1446834863-18610-1-git-send-email-kaber@trash.net>
+	Fri, 6 Nov 2015 13:34:31 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add support to parse and print expressions attached to set elements. This
-is required for the flow statement, where expressions are dynamically
-instantiated and attached to set elements.
+The following patches add support for the flow statement, which allows to
+dynamically instantiate stateful statements fow an arbitrary defined flow
+key.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- include/expression.h                |  1 +
- include/linux/netfilter/nf_tables.h |  2 ++
- include/netlink.h                   |  3 +++
- src/expression.c                    |  6 ++++++
- src/netlink.c                       |  2 ++
- src/netlink_delinearize.c           | 12 ++++++++++++
- 6 files changed, 26 insertions(+)
+Currently we have to stateful statements, counter and limit. This example
+shows some accounting possibilities using the counter statement. Please note
+that the output format is still WIP and not included in this patchset:
 
-diff --git a/include/expression.h b/include/expression.h
-index 010cb95..e7f11eb 100644
---- a/include/expression.h
-+++ b/include/expression.h
-@@ -237,6 +237,7 @@ struct expr {
- 			uint64_t		timeout;
- 			uint64_t		expiration;
- 			const char		*comment;
-+			struct stmt		*stmt;
- 		};
- 		struct {
- 			/* EXPR_UNARY */
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 5ebe3d8..38ad174 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -321,6 +321,7 @@ enum nft_set_elem_flags {
-  * @NFTA_SET_ELEM_TIMEOUT: timeout value (NLA_U64)
-  * @NFTA_SET_ELEM_EXPIRATION: expiration time (NLA_U64)
-  * @NFTA_SET_ELEM_USERDATA: user data (NLA_BINARY)
-+ * @NFTA_SET_ELEM_EXPR: expression (NLA_NESTED: nft_expr_attributes)
-  */
- enum nft_set_elem_attributes {
- 	NFTA_SET_ELEM_UNSPEC,
-@@ -330,6 +331,7 @@ enum nft_set_elem_attributes {
- 	NFTA_SET_ELEM_TIMEOUT,
- 	NFTA_SET_ELEM_EXPIRATION,
- 	NFTA_SET_ELEM_USERDATA,
-+	NFTA_SET_ELEM_EXPR,
- 	__NFTA_SET_ELEM_MAX
- };
- #define NFTA_SET_ELEM_MAX	(__NFTA_SET_ELEM_MAX - 1)
-diff --git a/include/netlink.h b/include/netlink.h
-index c1def09..018a573 100644
---- a/include/netlink.h
-+++ b/include/netlink.h
-@@ -149,6 +149,9 @@ extern int netlink_delete_setelems(struct netlink_ctx *ctx, const struct handle
- extern int netlink_get_setelems(struct netlink_ctx *ctx, const struct handle *h,
- 				const struct location *loc, struct set *set);
- 
-+extern struct stmt *netlink_parse_set_expr(struct set *set,
-+					   struct nftnl_expr *nle);
-+
- extern void netlink_dump_table(struct nftnl_table *nlt);
- extern void netlink_dump_chain(struct nftnl_chain *nlc);
- extern void netlink_dump_rule(struct nftnl_rule *nlr);
-diff --git a/src/expression.c b/src/expression.c
-index ab195e5..2c1ea6a 100644
---- a/src/expression.c
-+++ b/src/expression.c
-@@ -16,6 +16,7 @@
- #include <limits.h>
- 
- #include <expression.h>
-+#include <statement.h>
- #include <datatype.h>
- #include <rule.h>
- #include <gmputil.h>
-@@ -899,6 +900,11 @@ static void set_elem_expr_print(const struct expr *expr)
- 	}
- 	if (expr->comment)
- 		printf(" comment \"%s\"", expr->comment);
-+
-+	if (expr->stmt) {
-+		printf(" : ");
-+		stmt_print(expr->stmt);
-+	}
- }
- 
- static void set_elem_expr_destroy(struct expr *expr)
-diff --git a/src/netlink.c b/src/netlink.c
-index ad86084..3bef5f4 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -1472,6 +1472,8 @@ static int netlink_delinearize_setelem(struct nftnl_set_elem *nlse,
- 		expr->comment = xmalloc(len);
- 		memcpy((char *)expr->comment, data, len);
- 	}
-+	if (nftnl_set_elem_is_set(nlse, NFT_SET_ELEM_ATTR_EXPR))
-+		expr->stmt = netlink_parse_set_expr(set, (void *)nftnl_set_elem_get(nlse, NFT_SET_ELEM_ATTR_EXPR, NULL));
- 
- 	if (flags & NFT_SET_ELEM_INTERVAL_END) {
- 		expr->flags |= EXPR_F_INTERVAL_END;
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 97ac3ec..adeaccb 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -924,6 +924,18 @@ static int netlink_parse_rule_expr(struct nftnl_expr *nle, void *arg)
- 	return 0;
- }
- 
-+struct stmt *netlink_parse_set_expr(struct set *set, struct nftnl_expr *nle)
-+{
-+	struct netlink_parse_ctx ctx, *pctx = &ctx;
-+
-+	pctx->table = table_lookup(&set->handle);
-+	assert(pctx->table != NULL);
-+
-+	if (netlink_parse_expr(nle, pctx) < 0)
-+		return NULL;
-+	return pctx->stmt;
-+}
-+
- struct rule_pp_ctx {
- 	struct proto_ctx	pctx;
- 	enum proto_bases	pbase;
+# nft filter input flow table test iif . tcp flags counter
+# nft list flow table filter test
+iface_index	tcp_flag	statement
+lo		fin | psh | urg	counter packets 1002 bytes 40080
+wlp2s0		fin | ack	counter packets 3 bytes 156
+wlp2s0		ack		counter packets 32 bytes 18440
+wlp2s0		syn | ack 	counter packets 5 bytes 300
+wlp2s0		psh | ack	counter packets 57 bytes 13804
+lo		rst | ack	counter packets 998 bytes 39920
+
+# nft filter output flow table uidacct skuid . oif . ip protocol counter
+# nft list flow table filter uidacct
+uid	iface_index	inet_proto	statement
+root	wlp2s0		udp		counter packets 9 bytes 1892
+root	wlp2s0		tcp		counter packets 5 bytes 348
+chrony	wlp2s0		udp		counter packets 1 bytes 76
+kaber	wlp2s0		tcp		counter packets 103 bytes 27038
+kaber	wlp2s0		icmp		counter packets 2 bytes 168
+kaber	wlp2s0		udp		counter packets 5 bytes 4267
+kaber	lo		icmp		counter packets 4 bytes 336
+
+For hashlimit, you'd use (in this example "srcip"-mode") to limit new ssh
+connections to 10/second for each source IP:
+
+# nft filter input tcp dport ssh ct state new \
+	flow table ssh ip saddr limit 10/second
+
+Timeouts, size limitations and all other set options are supported.
+
+Regarding the missing parts, for proper formatting of the output and making
+it sortable, we need to move direct output to printing to buffers. I have
+patches which do that and also add generic indentation support, but they are
+not suitable for upstream yet.
+
+Comments welcome.
+
+Cheers,
+Patrick
+
+
+Patrick McHardy (6):
+  set: allow non-constant implicit set declarations
+  set: explicitly supply name to implicit set declarations
+  netlink_delinearize: support parsing individual expressions not
+    embedded in rules
+  set_elem: parse expressions attached to set elements
+  stmt: allow to generate stateful statements outside of rule context
+  nft: add flow statement
+
+ include/expression.h                |   1 +
+ include/linux/netfilter/nf_tables.h |   5 ++
+ include/netlink.h                   |   5 +-
+ include/rule.h                      |   1 +
+ include/statement.h                 |  13 ++++
+ src/evaluate.c                      |  48 ++++++++++++--
+ src/expression.c                    |   6 ++
+ src/netlink.c                       |   2 +
+ src/netlink_delinearize.c           | 110 ++++++++++++++++++++++---------
+ src/netlink_linearize.c             | 125 +++++++++++++++++++++++++-----------
+ src/parser_bison.y                  |  38 +++++++++++
+ src/scanner.l                       |   2 +
+ src/statement.c                     |  43 ++++++++++++-
+ 13 files changed, 326 insertions(+), 73 deletions(-)
+
 -- 
 2.4.3
 
