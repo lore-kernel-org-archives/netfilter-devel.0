@@ -1,51 +1,51 @@
-From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: Re: [PATCH nf-next] netfilter: nfnetlink_log: autoload
- nf_conntrack_netlink module NFQA_CFG_F_CONNTRACK config flag
-Date: Fri, 6 Nov 2015 09:46:41 +0900
-Message-ID: <20151106004640.GA11266@gmail.com>
-References: <1443724990-4014-2-git-send-email-pablo@netfilter.org>
- <20151005024454.GA14637@gmail.com>
- <20151005025046.GE14637@gmail.com>
- <20151005152315.GA11562@salvia>
- <20151006021001.GA30037@gmail.com>
- <20151006021246.GB30037@gmail.com>
- <20151006100728.GA2429@salvia>
- <20151007042016.GA23203@gmail.com>
- <20151007042550.GC23203@gmail.com>
- <20151016170532.GA18148@salvia>
+From: "Murat Sezgin" <msezgin@codeaurora.org>
+Subject: route table change events
+Date: Thu, 5 Nov 2015 16:48:30 -0800
+Message-ID: <002701d1182c$db558e60$9200ab20$@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:34537 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031055AbbKFAqr (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:50826 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030611AbbKFAsb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Nov 2015 19:46:47 -0500
-Received: by padhx2 with SMTP id hx2so95179077pad.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 05 Nov 2015 16:46:46 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20151016170532.GA18148@salvia>
+	Thu, 5 Nov 2015 19:48:31 -0500
+Received: from MSEZGIN (qf-scl1nat.qualcomm.com [207.114.132.30])
+	(using TLSv1 with cipher AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: msezgin@smtp.codeaurora.org)
+	by smtp.codeaurora.org (Postfix) with ESMTPSA id 63C32140286
+	for <netfilter-devel@vger.kernel.org>; Fri,  6 Nov 2015 00:48:30 +0000 (UTC)
+Content-Language: en-us
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
- Sorry for being late.
- 
-On Fri, Oct 16, 2015 at 07:05:32PM +0200, Pablo Neira Ayuso wrote:
-> can get resolved the broken atomicity problems in first place when
-> applying configuration updates to nfnetlink_queue in a similar way to
-> what I did for nfnetlink_log?
+Hi all,
 
-I tried it, would you review the following patches?
+In the netfilter conntrack framework, is there a route table change event
+handler like netdevice event handler? 
 
-> can destroy a queue in NFQNL_CFG_CMD_UNBIND, then we can keep going on
-> configuring it when it is actually destroyed. This is working only by
+I am reading 3.4 and 3.14 kernels, but I couldn't find any, and I
+implemented my own notification registration in routing code and a handler
+in my own kernel module. With this handler, if there is any change in route
+table, (add or remove), an event notify my module and I clean all the
+conntrack entires which are created on each netdevice in the system.
 
-I'm wondering how we handle obsolete commands
-NFQNL_CFG_CMD_PF_BIND / UNBIND, especially with a valid queue_num
-and configurations. These patches follows current behavior, do
-nothing, ignores another nlas and just returns success. Should I
-update patches to handle configuraion nlas with obsolute commands?
+I use a code in my block notifier handler something like below:
 
-Thanks,
+for_each_netdevice(&init_net, dev) {
+	nf_ct_iterate_cleanup(&init_net, device_cmp, (void
+*)(long)dev->ifindex);
+}
+
+I clean up all the conntrack entries, because it is possible that the newly
+added route wants to send the traffic through another interface in the
+system. If we don't delete the conntrack entry, the old source NAT address
+would be remain in the conntrack table for that flow.
+
+Regards,
+Murat
+
