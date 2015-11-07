@@ -1,56 +1,77 @@
-From: Zefan Li <lizefan@huawei.com>
-Subject: Re: [PATCH -stable,3.4.y] netfilter: nf_conntrack: fix RCU race in
- nf_conntrack_find_get
-Date: Sat, 7 Nov 2015 14:28:14 +0800
-Message-ID: <563D99FE.2090303@huawei.com>
-References: <1446813886-5632-1-git-send-email-pablo@netfilter.org>
- <1446813886-5632-3-git-send-email-pablo@netfilter.org>
- <20151106170946.GD24185@kroah.com> <20151106172743.GC1357@salvia>
- <CAOxq_8Ptkm2EPm2Y8Nfd7sQdsh1Yq5KFdgcyq1REmr9WsCx+4w@mail.gmail.com>
- <20151106221126.GA19582@kroah.com>
- <CAOxq_8PtAuK+sRd_PSoxZajCT2mncFkS1B-OisAUMaLz4aS8DA@mail.gmail.com>
+From: Philip Whineray <phil@firehol.org>
+Subject: [PATCH] Expose x_tables /proc entries as 0444 not 0440
+Date: Sat, 7 Nov 2015 07:49:39 +0000
+Message-ID: <20151107074939.GA4003@compaq.slightly-cracked.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	<netfilter-devel@vger.kernel.org>, stable <stable@vger.kernel.org>,
-	"Andrey Vagin" <avagin@openvz.org>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	"Florian Westphal" <fw@strlen.de>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	"Cyrill Gorcunov" <gorcunov@openvz.org>
-To: Ani Sinha <ani@arista.com>, Greg KH <greg@kroah.com>
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <CAOxq_8PtAuK+sRd_PSoxZajCT2mncFkS1B-OisAUMaLz4aS8DA@mail.gmail.com>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:36520 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751629AbbKGHtr (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 7 Nov 2015 02:49:47 -0500
+Received: by wimw2 with SMTP id w2so42753295wim.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 06 Nov 2015 23:49:46 -0800 (PST)
+Received: from compaq.slightly-cracked.com (b.e.d.5.a.3.e.f.f.f.6.7.0.6.e.0.0.0.0.0.b.f.a.c.0.b.8.0.1.0.0.2.ip6.arpa. [2001:8b0:cafb:0:e60:76ff:fe3a:5deb])
+        by smtp.gmail.com with ESMTPSA id e9sm3836691wjw.8.2015.11.06.23.49.45
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 06 Nov 2015 23:49:45 -0800 (PST)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Ani,
+Reading these files is impossible in an unprivileged user namespace,
+interfering with various firewall tools. For instance, iptables-save
+relies on reading /proc/net/ip_tables_names to dump only loaded tables.
 
-On 2015/11/7 6:27, Ani Sinha wrote:
-> On Fri, Nov 6, 2015 at 2:11 PM, Greg KH <greg@kroah.com> wrote:
->> On Fri, Nov 06, 2015 at 12:30:55PM -0800, Ani Sinha wrote:
->>> I am not sure how you guys work but I think this two patches needs to
->>> be applied here :
->>>
->>> https://git.kernel.org/cgit/linux/kernel/git/lizf/linux-3.4.y-queue.git/
->>
->> I have no idea what you are referring to here :(
->
-> The patches which we are referring to here is only for linux 3.4
-> series. The testing was only done on 3.4 not on other -stable
-> releases. I don't even know if the patch would cleanly apply on other
-> stable trains. Since I see Zefan maintains 3.4 and he has a linux git
-> queue, I thought may be these patches should be applied there. That is
-> what I was wondering. I don't have clear understanding how Zefan pulls
-> his 3.4 backport patches from.
->
-> Does that make sense?
-> .
+Hiding the contents from non-root users does not achieve anything
+practical. Possible values are well-known and the specifics can
+be inferred from a list of loaded modules on most systems.
 
-I saw Pablo has already sent those fixes to -stable. I'll queue them up
-for next 3.4.y release.
+Signed-off-by: Philip Whineray <phil@firehol.org>
+---
+An alternate might be to change the ownership of the files within the
+namespace when it is created:
 
-Thanks for working on this!
+https://lists.linuxcontainers.org/pipermail/lxc-users/2014-November/008110.html
+
+I do not see that there is much advantage to this, it just ties the
+ability to read the files to the ability to create an unprivileged
+namespace.
+
+ net/netfilter/x_tables.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 9b42b5e..c05adde 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1236,21 +1236,21 @@ int xt_proto_init(struct net *net, u_int8_t af)
+ #ifdef CONFIG_PROC_FS
+ 	strlcpy(buf, xt_prefix[af], sizeof(buf));
+ 	strlcat(buf, FORMAT_TABLES, sizeof(buf));
+-	proc = proc_create_data(buf, 0440, net->proc_net, &xt_table_ops,
++	proc = proc_create_data(buf, 0444, net->proc_net, &xt_table_ops,
+ 				(void *)(unsigned long)af);
+ 	if (!proc)
+ 		goto out;
+ 
+ 	strlcpy(buf, xt_prefix[af], sizeof(buf));
+ 	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
+-	proc = proc_create_data(buf, 0440, net->proc_net, &xt_match_ops,
++	proc = proc_create_data(buf, 0444, net->proc_net, &xt_match_ops,
+ 				(void *)(unsigned long)af);
+ 	if (!proc)
+ 		goto out_remove_tables;
+ 
+ 	strlcpy(buf, xt_prefix[af], sizeof(buf));
+ 	strlcat(buf, FORMAT_TARGETS, sizeof(buf));
+-	proc = proc_create_data(buf, 0440, net->proc_net, &xt_target_ops,
++	proc = proc_create_data(buf, 0444, net->proc_net, &xt_target_ops,
+ 				(void *)(unsigned long)af);
+ 	if (!proc)
+ 		goto out_remove_matches;
+-- 
+2.1.4
