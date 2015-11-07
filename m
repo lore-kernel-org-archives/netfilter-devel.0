@@ -1,70 +1,47 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: How to send nf trace notifications to userspace?
-Date: Sat, 7 Nov 2015 00:29:00 +0100
-Message-ID: <20151106232900.GA24154@breakpoint.cc>
+From: Jarno Rajahalme <jrajahalme-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org>
+Subject: [RFC PATCH net-next v2 0/8] openvswitch: NAT support.
+Date: Fri,  6 Nov 2015 16:06:00 -0800
+Message-ID: <1446854768-38299-1-git-send-email-jrajahalme@nicira.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50854 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752346AbbKFX3C (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Nov 2015 18:29:02 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.80)
-	(envelope-from <fw@strlen.de>)
-	id 1ZuqRI-0006dz-PG
-	for netfilter-devel@vger.kernel.org; Sat, 07 Nov 2015 00:29:00 +0100
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-$subject says most of it.
-
-I started to resurrect the 'nft trace' patch set from
-
-https://patchwork.ozlabs.org/patch/444772/
-
-It works ok with couple of changes to nf_tables_core and nfnetlink
-to propagate trace type (return, policy, ...) and the handle of the
-rule currently processed.  Also saves us from the 'rule counting'
-that we're currently doing in kernel.
-
-$ src/nft trace
-SRC=192.168.7.1 DST=192.168.7.10 LEN=88 TTL=64 ID=39366 PROTO=6 SPT=47028 DPT=22 raw prerouting (# handle 6)
-        ip protocol tcp limit rate 1/second nftrace set 1
-RETURN raw prerouting
-ACCEPT raw prerouting
-filter input (# handle 7)
-        tcp dport ssh jump foo
-filter foo (# handle 5)
-        ip daddr 192.168.7.10
-filter foo (# handle 6)
-        counter packets 912 bytes 63619
-RETURN filter foo
-filter input (# handle 8)
-        ip protocol tcp ip daddr 192.168.7.10
-filter input (# handle 9)
-        tcp dport ssh accept
-
-So basic functionality works on current nftables head.
-
-However, the code uses nfnetlink_log.  It appears that its
-unicast only, i.e. its not possible to run another 'nft trace' in parallel
-and also clashes with ulogd or other running logger.
-
-Thats a non-starter.
-
-So I'm inclined to toss the nfnetlink_log based changes and
-instead (re-)use the infrastructure that we have for chain, rule, ... notifications.
-
-That would mean i'd also just plug the tracing notifications decoding into nft monitor.
-
-Is that ok?
-Any better ideas?
-
-Do you think its useful to also dump skb data (i.e. in/outdev,
-packet payload, etc?)
-
-Thanks,
-Florian
+VGhpcyBzZXJpZXMgYWRkcyBOQVQgc3VwcG9ydCB0byBvcGVudnN3aXRjaCBrZXJuZWwgbW9kdWxl
+LiAgQSBmZXcKY2hhbmdlcyBhcmUgbmVlZGVkIHRvIHRoZSBuZXRmaWx0ZXIgY29kZSB0byBmYWNp
+bGl0YXRlIHRoaXMgKHBhdGNoZXMKMS0zLzgpLiAgUGF0Y2hlcyA0LTcgbWFrZSB0aGUgb3BlbnZz
+d2l0Y2gga2VybmVsIG1vZHVsZSByZWFkeSBmb3IgdGhlCnBhdGNoIDggdGhhdCBhZGRzIHRoZSBO
+QVQgc3VwcG9ydCBmb3IgY2FsbGluZyBpbnRvIG5ldGZpbHRlciBOQVQgY29kZQpmcm9tIHRoZSBv
+cGVudnN3aXRjaCBjb25udHJhY2sgYWN0aW9uLgoKSmFybm8gUmFqYWhhbG1lICg4KToKICBuZXRm
+aWx0ZXI6IFJlbW92ZSBJUF9DVF9ORVdfUkVQTFkgZGVmaW5pdGlvbi4KICBuZXRmaWx0ZXI6IEZh
+Y3RvciBvdXQgbmZfY3RfZ2V0X2luZm8oKS4KICBuZXRmaWx0ZXI6IEFsbG93IGNhbGxpbmcgaW50
+byBuYXQgaGVscGVyIHdpdGhvdXQgc2tiX2RzdC4KICBvcGVudnN3aXRjaDogVXBkYXRlIHRoZSBD
+VCBzdGF0ZSBrZXkgb25seSBhZnRlciBuZl9jb25udHJhY2tfaW4oKS4KICBvcGVudnN3aXRjaDog
+RmluZCBleGlzdGluZyBjb25udHJhY2sgZW50cnkgYWZ0ZXIgdXBjYWxsLgogIG9wZW52c3dpdGNo
+OiBIYW5kbGUgTkZfUkVQRUFUIGluIGNvbm50cmFjayBhY3Rpb24uCiAgb3BlbnZzd2l0Y2g6IERl
+bGF5IGNvbm50cmFjayBoZWxwZXIgY2FsbCBmb3IgbmV3IGNvbm5lY3Rpb25zLgogIG9wZW52c3dp
+dGNoOiBJbnRlcmZhY2Ugd2l0aCBOQVQuCgogaW5jbHVkZS9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50
+cmFjay5oICAgICAgICAgICAgICAgfCAgMTUgKwogaW5jbHVkZS91YXBpL2xpbnV4L25ldGZpbHRl
+ci9uZl9jb25udHJhY2tfY29tbW9uLmggfCAgMTIgKy0KIGluY2x1ZGUvdWFwaS9saW51eC9vcGVu
+dnN3aXRjaC5oICAgICAgICAgICAgICAgICAgIHwgIDQ3ICsrCiBuZXQvaXB2NC9uZXRmaWx0ZXIv
+bmZfbmF0X2wzcHJvdG9faXB2NC5jICAgICAgICAgICB8ICAyOSArLQogbmV0L2lwdjYvbmV0Zmls
+dGVyL25mX25hdF9sM3Byb3RvX2lwdjYuYyAgICAgICAgICAgfCAgMjkgKy0KIG5ldC9uZXRmaWx0
+ZXIvbmZfY29ubnRyYWNrX2NvcmUuYyAgICAgICAgICAgICAgICAgIHwgIDIyICstCiBuZXQvb3Bl
+bnZzd2l0Y2gvY29ubnRyYWNrLmMgICAgICAgICAgICAgICAgICAgICAgICB8IDYzMiArKysrKysr
+KysrKysrKysrKysrLS0KIG5ldC9vcGVudnN3aXRjaC9jb25udHJhY2suaCAgICAgICAgICAgICAg
+ICAgICAgICAgIHwgICAzICstCiA4IGZpbGVzIGNoYW5nZWQsIDY4NiBpbnNlcnRpb25zKCspLCAx
+MDMgZGVsZXRpb25zKC0pCgotLSAKMi4xLjQKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmRldiBtYWlsaW5nIGxpc3QKZGV2QG9wZW52c3dpdGNoLm9yZwpo
+dHRwOi8vb3BlbnZzd2l0Y2gub3JnL21haWxtYW4vbGlzdGluZm8vZGV2Cg==
