@@ -1,77 +1,57 @@
-From: Philip Whineray <phil@firehol.org>
-Subject: [PATCH] Expose x_tables /proc entries as 0444 not 0440
-Date: Sat, 7 Nov 2015 07:49:39 +0000
-Message-ID: <20151107074939.GA4003@compaq.slightly-cracked.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 3/3] netfilter: ipset: Fix hash type expire: release empty hash bucket block
+Date: Sat,  7 Nov 2015 13:42:25 +0100
+Message-ID: <1446900145-14190-4-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1446900145-14190-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:36520 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751629AbbKGHtr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 7 Nov 2015 02:49:47 -0500
-Received: by wimw2 with SMTP id w2so42753295wim.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 06 Nov 2015 23:49:46 -0800 (PST)
-Received: from compaq.slightly-cracked.com (b.e.d.5.a.3.e.f.f.f.6.7.0.6.e.0.0.0.0.0.b.f.a.c.0.b.8.0.1.0.0.2.ip6.arpa. [2001:8b0:cafb:0:e60:76ff:fe3a:5deb])
-        by smtp.gmail.com with ESMTPSA id e9sm3836691wjw.8.2015.11.06.23.49.45
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 06 Nov 2015 23:49:45 -0800 (PST)
-Content-Disposition: inline
+Received: from smtp-in.kfki.hu ([148.6.0.26]:44483 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753385AbbKGMkt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 7 Nov 2015 07:40:49 -0500
+In-Reply-To: <1446900145-14190-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Reading these files is impossible in an unprivileged user namespace,
-interfering with various firewall tools. For instance, iptables-save
-relies on reading /proc/net/ip_tables_names to dump only loaded tables.
+When all entries are expired/all slots are empty, release the bucket.
 
-Hiding the contents from non-root users does not achieve anything
-practical. Possible values are well-known and the specifics can
-be inferred from a list of loaded modules on most systems.
-
-Signed-off-by: Philip Whineray <phil@firehol.org>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
-An alternate might be to change the ownership of the files within the
-namespace when it is created:
+ net/netfilter/ipset/ip_set_hash_gen.h | 13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-https://lists.linuxcontainers.org/pipermail/lxc-users/2014-November/008110.html
-
-I do not see that there is much advantage to this, it just ties the
-ability to read the files to the ability to create an unprivileged
-namespace.
-
- net/netfilter/x_tables.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 9b42b5e..c05adde 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1236,21 +1236,21 @@ int xt_proto_init(struct net *net, u_int8_t af)
- #ifdef CONFIG_PROC_FS
- 	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TABLES, sizeof(buf));
--	proc = proc_create_data(buf, 0440, net->proc_net, &xt_table_ops,
-+	proc = proc_create_data(buf, 0444, net->proc_net, &xt_table_ops,
- 				(void *)(unsigned long)af);
- 	if (!proc)
- 		goto out;
- 
- 	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
--	proc = proc_create_data(buf, 0440, net->proc_net, &xt_match_ops,
-+	proc = proc_create_data(buf, 0444, net->proc_net, &xt_match_ops,
- 				(void *)(unsigned long)af);
- 	if (!proc)
- 		goto out_remove_tables;
- 
- 	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TARGETS, sizeof(buf));
--	proc = proc_create_data(buf, 0440, net->proc_net, &xt_target_ops,
-+	proc = proc_create_data(buf, 0444, net->proc_net, &xt_target_ops,
- 				(void *)(unsigned long)af);
- 	if (!proc)
- 		goto out_remove_matches;
+diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+index fa4f637..e5336ab 100644
+--- a/net/netfilter/ipset/ip_set_hash_gen.h
++++ b/net/netfilter/ipset/ip_set_hash_gen.h
+@@ -476,7 +476,7 @@ static void
+ mtype_expire(struct ip_set *set, struct htype *h, u8 nets_length, size_t dsize)
+ {
+ 	struct htable *t;
+-	struct hbucket *n;
++	struct hbucket *n, *tmp;
+ 	struct mtype_elem *data;
+ 	u32 i, j, d;
+ #ifdef IP_SET_HASH_WITH_NETS
+@@ -511,9 +511,14 @@ mtype_expire(struct ip_set *set, struct htype *h, u8 nets_length, size_t dsize)
+ 			}
+ 		}
+ 		if (d >= AHASH_INIT_SIZE) {
+-			struct hbucket *tmp = kzalloc(sizeof(*tmp) +
+-					(n->size - AHASH_INIT_SIZE) * dsize,
+-					GFP_ATOMIC);
++			if (d >= n->size) {
++				rcu_assign_pointer(hbucket(t, i), NULL);
++				kfree_rcu(n, rcu);
++				continue;
++			}
++			tmp = kzalloc(sizeof(*tmp) +
++				      (n->size - AHASH_INIT_SIZE) * dsize,
++				      GFP_ATOMIC);
+ 			if (!tmp)
+ 				/* Still try to delete expired elements */
+ 				continue;
 -- 
-2.1.4
+1.8.5.1
+
