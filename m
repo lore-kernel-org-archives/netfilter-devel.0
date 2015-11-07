@@ -1,78 +1,56 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: How to send nf trace notifications to userspace?
-Date: Sat, 7 Nov 2015 17:38:35 +0100
-Message-ID: <20151107163835.GA962@salvia>
-References: <20151106232900.GA24154@breakpoint.cc>
+Subject: Re: [PATCH -stable,4.3.y] netfilter: xt_TEE: fix NULL dereference
+Date: Sat, 7 Nov 2015 17:39:37 +0100
+Message-ID: <20151107163937.GA1356@salvia>
+References: <1446813886-5632-1-git-send-email-pablo@netfilter.org>
+ <1446813886-5632-2-git-send-email-pablo@netfilter.org>
+ <20151106170934.GC24185@kroah.com>
+ <20151106172626.GB1357@salvia>
+ <1446912242.6006.93.camel@decadent.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Greg KH <greg@kroah.com>, netfilter-devel@vger.kernel.org,
+	stable@vger.kernel.org, Eric Dumazet <edumazet@google.com>
+To: Ben Hutchings <ben@decadent.org.uk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45512 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45591 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753913AbbKGQbM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 7 Nov 2015 11:31:12 -0500
+	id S1753677AbbKGQcN convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 7 Nov 2015 11:32:13 -0500
 Content-Disposition: inline
-In-Reply-To: <20151106232900.GA24154@breakpoint.cc>
+In-Reply-To: <1446912242.6006.93.camel@decadent.org.uk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Nov 07, 2015 at 12:29:00AM +0100, Florian Westphal wrote:
-[...]
-> However, the code uses nfnetlink_log.  It appears that its
-> unicast only, i.e. its not possible to run another 'nft trace' in parallel
-> and also clashes with ulogd or other running logger.
-> 
-> Thats a non-starter.
-> 
-> So I'm inclined to toss the nfnetlink_log based changes and
-> instead (re-)use the infrastructure that we have for chain, rule, ... notifications.
+On Sat, Nov 07, 2015 at 04:04:02PM +0000, Ben Hutchings wrote:
+> On Fri, 2015-11-06 at 18:26 +0100, Pablo Neira Ayuso wrote:
+> > On Fri, Nov 06, 2015 at 09:09:34AM -0800, Greg KH wrote:
+> > > On Fri, Nov 06, 2015 at 01:44:44PM +0100, Pablo Neira Ayuso wrote=
+:
+> > > > From: Eric Dumazet <edumazet@google.com>
+> > > >=20
+> > > > [ upstream commit 45efccdbec3cd465c4776ed9ca1d7b1bba1b7e34 ]
+> > > >=20
+> > >=20
+> > > Not a valid commit id :(
+> >=20
+> > Same thing:
+> >=20
+> > http://git.kernel.org/cgit/linux/kernel/git/davem/net.git/commit/?i=
+d=3D
+> > 45efccdbec3cd465c4776ed9ca1d7b1bba1b7e34
+>=20
+> But it's not in mainline yet. =A0You should re-submit to stable once =
+it
+> is.
 
-Something that integrates tightly with the infrastructure is the way
-to go. I'd suggest you add a new NFNLGRP_NFTABLES_TRACE nfnetlink
-group.
+Will do and will update my scripts to avoid this race again.
 
-> [...] Also saves us from the 'rule counting' that we're currently
-> doing in kernel.
-
-I think we'll have to keep that counting around to provide the legacy
-output from the compat layer.
-
-> $ src/nft trace
-> SRC=192.168.7.1 DST=192.168.7.10 LEN=88 TTL=64 ID=39366 PROTO=6 SPT=47028 DPT=22 raw prerouting (# handle 6)
-> ACCEPT raw prerouting
-> filter input (# handle 7)
->         tcp dport ssh jump foo
-> filter foo (# handle 5)
->         ip daddr 192.168.7.10
-> filter foo (# handle 6)
->         counter packets 912 bytes 63619
-> RETURN filter foo
-> filter input (# handle 8)
->         ip protocol tcp ip daddr 192.168.7.10
-> filter input (# handle 9)
->         tcp dport ssh accept
-
-I guess this is a draft proposal, but I think it would be good to have
-a more compact output that can be easily read, eg.
-
-matches: filter input tcp dport ssh accept # handle 9
-
-> Do you think its useful to also dump skb data (i.e. in/outdev,
-> packet payload, etc?)
-
-Such information is useful to know what packet is matching what rules.
-
-If we have a way to uniquely identify the packet (probably part of the
-skbuff address as we do with conntrack ID from ctnetlink?), we can
-just dump this packet data and metadata only once when setting
-skb->nf_trace to 1, then from the trace event we only include the
-packet ID that results from matching a rule, so userspace can
-correlate.
-
-On a different front but related, I think this infrastructure may
-allow us to implement the packet path test infrastructure that we
-discussed many times before during netfilter workshops at some point.
-Kind of similar thing that Rusty made time ago with nfsim.
-
-Thanks for taking over this.
+Thanks Ben.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
