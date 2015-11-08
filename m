@@ -1,54 +1,35 @@
-From: Loganaden Velvindron <loganaden@gmail.com>
-Subject: Re: [PATCH 1/1 net-next] net: bridge: netfilter: use vzalloc()
- instead of vmalloc() for counterstmp
-Date: Sun, 8 Nov 2015 21:26:36 +0000
-Message-ID: <CAOp4FwRj=HVjpLFe2DNUeiy16WLe_XcE6bdTbExDZZu8beRkHA@mail.gmail.com>
-References: <20151030123303.GA19481@mx.elandsys.com>
-	<20151108204115.GA2629@salvia>
-	<CAOp4FwTa91=dHkWmSz7QzojwbTEo97P1HRXqt7EN=FAKgC1Eaw@mail.gmail.com>
-	<20151108213045.GA4259@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/3] ipset patches for nf
+Date: Sun, 8 Nov 2015 22:42:50 +0100
+Message-ID: <20151108214250.GA12481@salvia>
+References: <1446900145-14190-1-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Loganaden Velvindron <logan@elandsys.com>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:34940 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751732AbbKHV0h (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 8 Nov 2015 16:26:37 -0500
-Received: by pasz6 with SMTP id z6so181650105pas.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 08 Nov 2015 13:26:36 -0800 (PST)
-In-Reply-To: <20151108213045.GA4259@salvia>
+Received: from mail.us.es ([193.147.175.20]:60984 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750788AbbKHVmz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 8 Nov 2015 16:42:55 -0500
+Content-Disposition: inline
+In-Reply-To: <1446900145-14190-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Nov 8, 2015 at 9:30 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sun, Nov 08, 2015 at 08:52:50PM +0000, Loganaden Velvindron wrote:
->> On Sun, Nov 8, 2015 at 8:41 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> > On Fri, Oct 30, 2015 at 05:33:03AM -0700, Loganaden Velvindron wrote:
->> >> counterstmp is not cleared before it is used in get_counters(). it might be
->> >> leaked partially when it is sent to userland later on.
->> >
->> > get_counters() is memcpy'ing the old counter to the counterstmp area
->> > and updating it.
->> >
->> > Where is there leak?
->> >
->>
->> In this case, none, due to correct memcpy parameters in get_counters().
->>
->> However, as this is exposed later on to userland through:
->>
->>         if (copy_to_user(user, counterstmp,
->>            nentries * sizeof(struct ebt_counter)))
->>
->> zero'ing counterstmp malloc'ed memory, looks like a good idea.
->
-> We allocate room for nentries, then we get_counters() those nentries
-> that memcpy that area, and we copy back to user nentries.
->
-> Where is the problem?
+On Sat, Nov 07, 2015 at 01:42:22PM +0100, Jozsef Kadlecsik wrote:
+> Hi Pablo,
+> 
+> Please apply the next bugfixes against the nf tree.
+> 
+> - Fix extensions alignment in ipset: Gerhard Wiesinger reported
+>   that the missing data aligments lead to crash on non-intel
+>   architecture. The patch was tested on armv7h by Gerhard Wiesinger
+>   and on x86_64 and sparc64 by me.
+> - An incorrect index at the hash:* types could lead to
+>   falsely early expired entries and memory leak when the comment
+>   extension was used too.
+> - Release empty hash bucket block when all entries are expired or
+>   all slots are empty instead of shrinkig the data part to zero.
 
-None in this case.
+Pulled, thanks Jozsef.
