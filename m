@@ -1,43 +1,82 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: Fix removal of GRE expectation entries created by PPTP
-Date: Mon,  9 Nov 2015 00:08:16 +0100
-Message-ID: <1447024096-1672-1-git-send-email-pablo@netfilter.org>
-Cc: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
-To: netfilter-devel@vger.kernel.org
+From: "Neal P. Murphy" <neal.p.murphy@alum.wpi.edu>
+Subject: Re: xtables-addons 64-bit counter patch
+Date: Sun, 8 Nov 2015 18:49:11 -0500
+Message-ID: <20151108184911.58e53fe5@playground>
+References: <20150604180442.12410111@playground>
+	<alpine.LSU.2.20.1506061315120.29092@nerf40.vanv.qr>
+	<20151019013454.6f81f4f5@playground>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Jaroslav Drzik <jaro@ttx.sk>, ipt_ACCOUNT@developer.intra2net.com
+To: netfilter-devel@vger.kernel.org, Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38078 "EHLO mail.us.es"
+Received: from MAIL1.WPI.EDU ([130.215.36.91]:43749 "EHLO MAIL1.WPI.EDU"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750791AbbKHXI2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 8 Nov 2015 18:08:28 -0500
+	id S1751348AbbKHXtU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 8 Nov 2015 18:49:20 -0500
+In-Reply-To: <20151019013454.6f81f4f5@playground>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
+Re-sent, as the original may have been overlooked.
 
-The uninitialized tuple structure caused incorrect hash calculation
-and the lookup failed.
+Neal
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=106441
-Signed-off-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
----
-Original patch posted on kernel bugzilla.
+On Mon, 19 Oct 2015 01:34:54 -0400
+"Neal P. Murphy" <neal.p.murphy@alum.wpi.edu> wrote:
 
- net/ipv4/netfilter/nf_nat_pptp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/ipv4/netfilter/nf_nat_pptp.c b/net/ipv4/netfilter/nf_nat_pptp.c
-index 657d230..b3ca21b 100644
---- a/net/ipv4/netfilter/nf_nat_pptp.c
-+++ b/net/ipv4/netfilter/nf_nat_pptp.c
-@@ -45,7 +45,7 @@ static void pptp_nat_expected(struct nf_conn *ct,
- 	struct net *net = nf_ct_net(ct);
- 	const struct nf_conn *master = ct->master;
- 	struct nf_conntrack_expect *other_exp;
--	struct nf_conntrack_tuple t;
-+	struct nf_conntrack_tuple t = {};
- 	const struct nf_ct_pptp_master *ct_pptp_info;
- 	const struct nf_nat_pptp *nat_pptp_info;
- 	struct nf_nat_range range;
--- 
-2.1.4
+> On Sat, 6 Jun 2015 13:15:38 +0200 (CEST)
+> Jan Engelhardt <jengelh@inai.de> wrote:
+> 
+> > x
+> > On Friday 2015-06-05 00:04, Neal P. Murphy wrote:
+> > >The theory:
+> > >  - Use two kernel pages for the counters for each group of 256
+> > >    addresses.
+> > >  - Change counters to 64-bit.
+> > >  - Change to __get_free_pages/free_pages, using order=2 (two
+> > >    consecutive pages), and zero both pages.
+> > >  - Change "%u" to "%llu" as needed.
+> > >  - Everything else pretty much stays the same.
+> > >
+> > >I also changed tmpbuf to two pages (Justin Case's idea), but I
+> > >don't know if that's really necessary.
+> > >
+> > >Did I miss anything?
+> > 
+> > I applied it.
+> 
+> Disembowel me with a wooden spoon. My first patch makes xt_ACCOUNT hiss. Well, I think that's what a memory leak sounds like.
+> 
+> Below is the patch with the *rest* of the free_page(X) calls changed to free_pages(X, 2). xt_ACCOUNT should always allocate memory in page pairs. And always *free* memory in page pairs.
+> 
+> Neal
+> 
+> --------
+diff -Nubr xtables-addons-1.45-P1/extensions/ACCOUNT/xt_ACCOUNT.c xtables-addons-1.45/extensions/ACCOUNT/xt_ACCOUNT.c
+--- xtables-addons-1.45-P1/extensions/ACCOUNT/xt_ACCOUNT.c	2015-10-19 01:23:03.000000000 -0400
++++ xtables-addons-1.45/extensions/ACCOUNT/xt_ACCOUNT.c	2015-10-19 01:23:39.000000000 -0400
+@@ -145,7 +145,7 @@
+ 		unsigned int b;
+ 		for (b = 0; b <= 255; b++) {
+ 			if (mask_16->mask_24[b]) {
+-				free_page((unsigned long)mask_16->mask_24[b]);
++				free_pages((unsigned long)mask_16->mask_24[b], 2);
+ 			}
+ 		}
+ 		free_pages((unsigned long)data, 2);
+@@ -162,10 +162,10 @@
+ 
+ 				for (b = 0; b <= 255; b++) {
+ 					if (mask_16->mask_24[b]) {
+-						free_page((unsigned long)mask_16->mask_24[b]);
++						free_pages((unsigned long)mask_16->mask_24[b], 2);
+ 					}
+ 				}
+-				free_page((unsigned long)mask_16);
++				free_pages((unsigned long)mask_16, 2);
+ 			}
+ 		}
+ 		free_pages((unsigned long)data, 2);
 
