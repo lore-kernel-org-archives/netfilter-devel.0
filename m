@@ -1,136 +1,64 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: How to send nf trace notifications to userspace?
-Date: Sat, 7 Nov 2015 21:49:44 +0100
-Message-ID: <20151107204944.GB24154@breakpoint.cc>
-References: <20151106232900.GA24154@breakpoint.cc>
- <20151107163835.GA962@salvia>
+From: Gerhard Wiesinger <lists@wiesinger.com>
+Subject: Re: Linux 4.2.4
+Date: Sun, 8 Nov 2015 14:51:01 +0100
+Message-ID: <563F5345.7060001@wiesinger.com>
+References: <20151023003306.GA25388@kroah.com>
+ <562C83FD.6010402@wiesinger.com> <20151025082547.GA22300@kroah.com>
+ <20151025090308.GA17656@1wt.eu> <562CA13C.90500@wiesinger.com>
+ <20151025094634.GA6832@1wt.eu> <562CB396.2080509@wiesinger.com>
+ <20151025162955.GA8375@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:51636 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752672AbbKGUtq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 7 Nov 2015 15:49:46 -0500
-Content-Disposition: inline
-In-Reply-To: <20151107163835.GA962@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Willy Tarreau <w@1wt.eu>,
+	Linux Kernel Network Developers <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	torvalds@linux-foundation.org, stable@vger.kernel.org, lwn@lwn.net,
+	Jiri Slaby <jslaby@suse.cz>
+To: Greg KH <gregkh@linuxfoundation.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151025162955.GA8375@kroah.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > However, the code uses nfnetlink_log.  It appears that its
-> > unicast only, i.e. its not possible to run another 'nft trace' in parallel
-> > and also clashes with ulogd or other running logger.
-> > 
-> > Thats a non-starter.
-> > 
-> > So I'm inclined to toss the nfnetlink_log based changes and
-> > instead (re-)use the infrastructure that we have for chain, rule, ... notifications.
-> 
-> Something that integrates tightly with the infrastructure is the way
-> to go. I'd suggest you add a new NFNLGRP_NFTABLES_TRACE nfnetlink
-> group.
+On 25.10.2015 17:29, Greg KH wrote:
+> On Sun, Oct 25, 2015 at 11:48:54AM +0100, Gerhard Wiesinger wrote:
+>> On 25.10.2015 10:46, Willy Tarreau wrote:
+>>> ipset *triggered* the problem. The whole stack dump would tell more.
+>> OK, find the stack traces in the bug report:
+>> https://bugzilla.redhat.com/show_bug.cgi?id=1272645
+>>
+>> Kernel 4.1.10 triggered also a kernel dump when playing with ipset commands
+>> and IPv6, details in the bug report  ....
+>>
+>>>> Kernel 4.2 seems to me not well tested in the netfilter parts at all
+>>>> (Bug with already known bugfix
+>>>> https://lists.debian.org/debian-kernel/2015/10/msg00034.html was
+>>>> triggered on 2 of 3 of my machines, the new bug on 1 of 1 tested machine).
+>>> There's a reason why Greg maintains stable and LTS kernels :-)
+>> Stable kernels don't crash but definiton. :-)
+>>
+>> At least triggered 2 kernel panics in 5min, even with 4.1.10 and ipset
+>> commands ...
+> Does this happen also with Linus's tree?  I suggest you ask the
+> networking developers about this on netdev@vger.kernel.org, there's
+> nothing that I can do on my own about this, sorry.
 
-Okay, can do.
+Patch is now available, see:
+[PATCH 0/3] ipset patches for nf
+https://marc.info/?l=netfilter-devel&m=144690007708041&w=2
+https://marc.info/?l=netfilter-devel&m=144690007808042&w=2
+https://marc.info/?l=netfilter-devel&m=144690008608043&w=2
+https://marc.info/?l=netfilter-devel&m=144690007708039&w=2
+[ANNOUNCE] ipset 6.27 released
+https://marc.info/?l=netfilter-devel&m=144690048308099&w=2
 
-> > [...] Also saves us from the 'rule counting' that we're currently
-> > doing in kernel.
-> 
-> I think we'll have to keep that counting around to provide the legacy
-> output from the compat layer.
+Requires also new userland ipset version.
 
-Can you elaborate?  I find scavenging dmesg output rather painful so I
-see no reason to keep the current code once the new facility is available.
+Please integrate it upstream.
 
-In any case, i can keep it since I planned to see if we can add static
-key to avoid all the 'if (skb->nf_trace)' stuff for the normal case.
+Thanx to Jozsef Kadlecsik for fixing it.
 
-But I'd want to see a convincing argument to keep the existing trace
-stuff first :-)
-
-> > $ src/nft trace
-> > SRC=192.168.7.1 DST=192.168.7.10 LEN=88 TTL=64 ID=39366 PROTO=6 SPT=47028 DPT=22 raw prerouting (# handle 6)
-> > ACCEPT raw prerouting
-> > filter input (# handle 7)
-> >         tcp dport ssh jump foo
-> > filter foo (# handle 5)
-> >         ip daddr 192.168.7.10
-> > filter foo (# handle 6)
-> >         counter packets 912 bytes 63619
-> > RETURN filter foo
-> > filter input (# handle 8)
-> >         ip protocol tcp ip daddr 192.168.7.10
-> > filter input (# handle 9)
-> >         tcp dport ssh accept
-> 
-> I guess this is a draft proposal, but I think it would be good to have
-> a more compact output that can be easily read, eg.
-
-Yes, I have not thought about representation in userspace so far.
-
-On a related note, should that be part of 'nft monitor' or a distinct
-command?
-
-My gut feeling was to re-use monitor mode, re-use NFNLGRP_NFTABLES and
-just add a new message type (NFT_MSG_TRACE) for it, on the grounds that
-tracing is usually off on a production system so I don't see why we would
-have to prevent normal event listeners from seeing trace messages.
-
-But, your call.
-
-> matches: filter input tcp dport ssh accept # handle 9
-
-looks more similar to standard '--handle' format, so its definitely
-better.  I'll deal with this after all the interface details are hashed
-out.
-
-> > Do you think its useful to also dump skb data (i.e. in/outdev,
-> > packet payload, etc?)
-> 
-> Such information is useful to know what packet is matching what rules.
-> 
-> If we have a way to uniquely identify the packet (probably part of the
-> skbuff address as we do with conntrack ID from ctnetlink?), we can
-> just dump this packet data and metadata only once when setting
-> skb->nf_trace to 1, then from the trace event we only include the
-> packet ID that results from matching a rule, so userspace can
-> correlate.
-
-Ok, that seems sensible.
-What would you suggest?
-
-I'm inclined to go with nested attributes for this, i.e.:
-
-nest = nla_nest_start(skb, NFTA_TRACE_RULE);
-..
-nla_put_be64(skb, NFTA_RULE_HANDLE, cpu_to_be64(rule->handle)))
-nla_put_string( NFTA_RULE_CHAIN, TABLE, etc...
-nla_nest_end()
-
-For the first trace message (when skb->nf_trace changes to 1),
-this would mean we'd have something like:
-
-nest = nla_nest_start(skb, NFTA_TRACE_PACKET)
- -> NFULA_PACKET_HDR,
- -> NFULA_PREFIX
-
-etc.
-
-I'd see if we can do this by refactoring nfnetlink_log.c to provide
-a helper to fill in this nested attibute data to avoid copy&paste of
-__build_packet_message().
-
-It could then be called by nft_meta.c when nf_trace is set on an skb.
-Downside is that this would create module dependency on nfnetlink_log.
-
-What do you think?
-Alternative is to copy&paste, but trim it down to not include all
-the info nfnetlink_log offers, f.e. i'm not sure iif, oif, etc are
-needed given this can be filtered by setting the nftables meta nftrace
-rules appropriately.
-
-This also has implications on nft dependencies -- should it use
-libnfnetlink_log?  With reduced attributes-we-log that could be avoided.
-
+Ciao,
+Gerhard
