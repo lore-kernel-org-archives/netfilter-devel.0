@@ -1,67 +1,43 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1 V2] netfilter: Add nf_conntrack_helpers_register to
- fix one panic
-Date: Sun, 8 Nov 2015 23:19:01 +0100
-Message-ID: <20151108221901.GA21268@salvia>
-References: <BAY403-EAS27321B698171BF5F88C2EB0952E0@phx.gbl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Feng Gao <gfree.wind@outlook.com>
+Subject: [PATCH] netfilter: Fix removal of GRE expectation entries created by PPTP
+Date: Mon,  9 Nov 2015 00:08:16 +0100
+Message-ID: <1447024096-1672-1-git-send-email-pablo@netfilter.org>
+Cc: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35036 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38078 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750791AbbKHWTI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 8 Nov 2015 17:19:08 -0500
-Content-Disposition: inline
-In-Reply-To: <BAY403-EAS27321B698171BF5F88C2EB0952E0@phx.gbl>
+	id S1750791AbbKHXI2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 8 Nov 2015 18:08:28 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Oct 31, 2015 at 11:40:53PM +0800, Feng Gao wrote:
-> When execute "insmod nf_conntrack_ftp.ko ports=76,76", the kernel crashes
-> immediately.Because the old codes try to unregister the helper which is
-> not registered successfully.
-> Now add new function nf_conntrack_helpers_register to fix this bug.
-> It would unregister the right helpers automatically if someone fails.
-> And add another function nf_ct_helper_init to init the helper.
-> 
-> Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> ---
->  include/net/netfilter/nf_conntrack_helper.h | 38 +++++++++++++++
->  net/netfilter/nf_conntrack_ftp.c            | 58 +++++++----------------
->  net/netfilter/nf_conntrack_helper.c         | 29 ++++++++++++
->  net/netfilter/nf_conntrack_irc.c            | 37 +++++----------
->  net/netfilter/nf_conntrack_sane.c           | 55 +++++++---------------
->  net/netfilter/nf_conntrack_sip.c            | 73
-> +++++++++++------------------
->  net/netfilter/nf_conntrack_tftp.c           | 46 +++++++-----------
->  7 files changed, 158 insertions(+), 180 deletions(-)
-> diff --git a/include/net/netfilter/nf_conntrack_helper.h
-> b/include/net/netfilter/nf_conntrack_helper.h
-> index 6cf614bc..49841bb
-> --- a/include/net/netfilter/nf_conntrack_helper.h
-> +++ b/include/net/netfilter/nf_conntrack_helper.h
-> @@ -59,9 +59,47 @@ struct nf_conntrack_helper
-> *nf_conntrack_helper_try_module_get(const char *name,
->  							       u16 l3num,
->  							       u8 protonum);
->  
-> +static inline void nf_ct_helper_init(struct nf_conntrack_helper *helper,
+From: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
 
-No need for inline. This runs from the configuration path, which is
-considered slow path. Better place this in the nf_conntrack_helper.c
-file and export this symbol.
+The uninitialized tuple structure caused incorrect hash calculation
+and the lookup failed.
 
-Another change, please split this patch in two patches:
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=106441
+Signed-off-by: Anthony Lineham <anthony.lineham@alliedtelesis.co.nz>
+---
+Original patch posted on kernel bugzilla.
 
-1) One that adds nc_ct_helper_init() in first place.
+ net/ipv4/netfilter/nf_nat_pptp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-2) Another patch that adds your nf_conntrack_helpers_register() and
-   nf_conntrack_helpers_unregister()
+diff --git a/net/ipv4/netfilter/nf_nat_pptp.c b/net/ipv4/netfilter/nf_nat_pptp.c
+index 657d230..b3ca21b 100644
+--- a/net/ipv4/netfilter/nf_nat_pptp.c
++++ b/net/ipv4/netfilter/nf_nat_pptp.c
+@@ -45,7 +45,7 @@ static void pptp_nat_expected(struct nf_conn *ct,
+ 	struct net *net = nf_ct_net(ct);
+ 	const struct nf_conn *master = ct->master;
+ 	struct nf_conntrack_expect *other_exp;
+-	struct nf_conntrack_tuple t;
++	struct nf_conntrack_tuple t = {};
+ 	const struct nf_ct_pptp_master *ct_pptp_info;
+ 	const struct nf_nat_pptp *nat_pptp_info;
+ 	struct nf_nat_range range;
+-- 
+2.1.4
 
-In general, it is a good practise to split patches into logical
-changes, it makes it easier for reviewing them and we reduce their
-size.
-
-We're almost there. Please follow up on this. Thanks.
