@@ -1,53 +1,57 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: nft synproxy integration
-Date: Mon, 9 Nov 2015 16:30:15 +0000
-Message-ID: <20151109163015.GM8098@macbook.localdomain>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: nft cache updates
+Date: Mon, 9 Nov 2015 17:48:47 +0100
+Message-ID: <20151109164847.GA1723@salvia>
+References: <20151109153055.GI8098@macbook.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, bjornar.ness@gmail.com
-To: pablo@netfilter.org
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 161-169.trash.net ([213.144.137.169]:49519 "EHLO
-	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752239AbbKIQaU (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Nov 2015 11:30:20 -0500
+Received: from mail.us.es ([193.147.175.20]:44958 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752083AbbKIQsy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Nov 2015 11:48:54 -0500
 Content-Disposition: inline
+In-Reply-To: <20151109153055.GI8098@macbook.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We've talked about how to integrate synproxy in nft and agreed that it would
-be preferrable to have a nicer way to use it.
+On Mon, Nov 09, 2015 at 03:30:56PM +0000, Patrick McHardy wrote:
+> Hi Pablo,
+> 
+> I'm wondering what the rational for the current cache update behaviour is.
+> The changelog states it is somehow related to the requested command, but
+> that doesn't seem to be true.
+> 
+> Even "nft describe" fails with EPERM as user since the cache appears to be
+> initialized unconditionally, which is a bit unfortunate. Also I used to
+> test things parsing, evaluation and even netlink generation without actually
+> adding those rules as user, which does not work anymore.  This might
+> be harder to get working again, but I'm not sure why we do a full
+> initialization anyways.  The only thing that appears to be needed
+> are sets, and those only in some specific circumstances.
 
-The reason why the use is quite complicated right now is actually not because
-of synproxy, but because of the desire to avoid creating conntracks for
-spoofed connection requests. I don't see any way to avoid this, but we might
-be able to make use a bit easier at some slightly higher cost. This applies
-to both iptables and nft.
+To look up for the existing sets we need the existing tables and
+chains, they are essential part of the object hierarchy. So this is
+what we're currently dumping.
 
-Basically the idea is:
+In general, we need this for incremental updates, in scenarios where
+we have objects that are defined in kernelspace but userspace refers
+to them.
 
-* don't mark the first SYN untracked and have it create a conntrack as normal
-* direct that SYN to synproxy
-* mark the connection as proxied, which will avoid setting the ASSURED bit when
-  receiving our spoofed reply
-* only set assured once we have the connection fully established
+As you said we can disable the cache in many cases, depending on the
+command or if the ruleset file starts by:
 
-This would create a conntrack, but keep it evictable under pressure. So the
-cost would be ct set up, but we could tear it down at any point when we're
-under pressure. The synproxy target can handle both connections with and
-without a conntrack.
+flush ruleset
 
-Usage would basically be:
+but I have left this out as follow up work, I just wanted to make sure
+incremental updates where working, as well as the existing changes.
 
-nft filter input tcp dport 80 ct state INVALID,SYNPROXY synproxy ...
+nft describe should be easy to restore.
 
-The ct state rule could actually be created automatically since it is a
-dependency.
+Regarding inconditional check for table and chain, we have to make it
+from the evaluation step in sets, so leaving other objects without
+checking this seems inconsistent to me.
 
-Iff we evict a connection before it is fully established, the final ACK will
-be INVALID as it is now with untracked. This makes use less complex since a
-single rule with suffice, but at the cost of potentially unnecessarily creating
-conntracks. The method of using notrack would of course still be possible.
-
-Any thoughts about this?
+Another side effect of this is better error reporting to the user.
