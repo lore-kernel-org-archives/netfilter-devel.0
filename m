@@ -1,303 +1,472 @@
-From: Jarno Rajahalme <jarno@ovn.org>
-Subject: Re: [RFC PATCH net-next v2 0/8] openvswitch: NAT support.
-Date: Mon, 9 Nov 2015 15:48:19 -0800
-Message-ID: <A8FC05BD-6124-482F-A817-62814771B66B@ovn.org>
-References: <1446854768-38299-1-git-send-email-jrajahalme@nicira.com> <20151109133122.GC8098@macbook.localdomain>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org, dev@openvswitch.org
-To: Patrick McHardy <kaber@trash.net>
+From: =?gb2312?B?uN+35Q==?= <fgao@ikuai8.com>
+Subject: [PATCH 1/1] netfilter: Add new function nf_ct_helper_init to init ct helper easily
+Date: Tue, 10 Nov 2015 07:49:32 +0800
+Message-ID: <030901d11b49$48982c70$d9c88550$@ikuai8.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>
+To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:53952 "EHLO
-	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751588AbbKIXsX convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Nov 2015 18:48:23 -0500
-In-Reply-To: <20151109133122.GC8098@macbook.localdomain>
+Received: from smtpbg202.qq.com ([184.105.206.29]:54873 "EHLO smtpbg202.qq.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751672AbbKIXtr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Nov 2015 18:49:47 -0500
+Content-Language: zh-cn
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[Resending as plain text]
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ include/net/netfilter/nf_conntrack_helper.h | 17 +++++-
+ net/netfilter/nf_conntrack_ftp.c            | 51 ++++++++---------
+ net/netfilter/nf_conntrack_helper.c         | 35 ++++++++++++
+ net/netfilter/nf_conntrack_irc.c            | 16 ++----
+ net/netfilter/nf_conntrack_sane.c           | 50 ++++++++--------
+ net/netfilter/nf_conntrack_sip.c            | 89
++++++++++++++++++------------
+ net/netfilter/nf_conntrack_tftp.c           | 47 +++++++--------
+ 7 files changed, 179 insertions(+), 126 deletions(-)
 
-> On Nov 9, 2015, at 5:31 AM, Patrick McHardy <kaber@trash.net> wrote:
->=20
-> On 06.11, Jarno Rajahalme wrote:
->> This series adds NAT support to openvswitch kernel module.  A few
->> changes are needed to the netfilter code to facilitate this (patches
->> 1-3/8).  Patches 4-7 make the openvswitch kernel module ready for th=
-e
->> patch 8 that adds the NAT support for calling into netfilter NAT cod=
-e
->> from the openvswitch conntrack action.
->=20
-> I'm missing some high level description, especially how it is invoked=
-, how
-> it makes sure expectations of the NAT code about its invocation are m=
-et
-> (it is my understanding that OVS simply invokes this based on actions
-> specified by the user) and how it interacts with the remaining netfil=
-ter
-> features.
->=20
+diff --git a/include/net/netfilter/nf_conntrack_helper.h
+b/include/net/netfilter/nf_conntrack_helper.h
+index 6cf614bc..0c49c78 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -58,7 +58,22 @@ struct nf_conntrack_helper
+*__nf_conntrack_helper_find(const char *name,
+ struct nf_conntrack_helper *nf_conntrack_helper_try_module_get(const char
+*name,
+ 							       u16 l3num,
+ 							       u8 protonum);
+-
++void nf_ct_helper_init(struct nf_conntrack_helper *helper,
++			u16 l3num,
++			u16 protonum,
++			const char *name,
++			u16 default_port,
++			u16 spec_port,
++			const struct nf_conntrack_expect_policy *exp_pol,
++			u32 expect_class_max,
++			u32 data_len,
++			int (*help)(struct sk_buff *skb,
++				unsigned int protoff,
++				struct nf_conn *ct,
++				enum ip_conntrack_info conntrackinfo),
++			int (*from_nlattr)(struct nlattr *attr,
++					struct nf_conn *ct),
++			struct module *module);
+ int nf_conntrack_helper_register(struct nf_conntrack_helper *);
+ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *);
+ 
+diff --git a/net/netfilter/nf_conntrack_ftp.c
+b/net/netfilter/nf_conntrack_ftp.c
+index b666959..fc01c24 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -598,7 +598,7 @@ static void nf_conntrack_ftp_fini(void)
+ 
+ static int __init nf_conntrack_ftp_init(void)
+ {
+-	int i, j = -1, ret = 0;
++	int i, ret = 0;
+ 
+ 	ftp_buffer = kmalloc(65536, GFP_KERNEL);
+ 	if (!ftp_buffer)
+@@ -610,32 +610,29 @@ static int __init nf_conntrack_ftp_init(void)
+ 	/* FIXME should be configurable whether IPv4 and IPv6 FTP
+connections
+ 		 are tracked or not - YK */
+ 	for (i = 0; i < ports_c; i++) {
+-		ftp[i][0].tuple.src.l3num = PF_INET;
+-		ftp[i][1].tuple.src.l3num = PF_INET6;
+-		for (j = 0; j < 2; j++) {
+-			ftp[i][j].data_len = sizeof(struct
+nf_ct_ftp_master);
+-			ftp[i][j].tuple.src.u.tcp.port = htons(ports[i]);
+-			ftp[i][j].tuple.dst.protonum = IPPROTO_TCP;
+-			ftp[i][j].expect_policy = &ftp_exp_policy;
+-			ftp[i][j].me = THIS_MODULE;
+-			ftp[i][j].help = help;
+-			ftp[i][j].from_nlattr = nf_ct_ftp_from_nlattr;
+-			if (ports[i] == FTP_PORT)
+-				sprintf(ftp[i][j].name, "ftp");
+-			else
+-				sprintf(ftp[i][j].name, "ftp-%d", ports[i]);
+-
+-			pr_debug("nf_ct_ftp: registering helper for pf: %d "
+-				 "port: %d\n",
+-				 ftp[i][j].tuple.src.l3num, ports[i]);
+-			ret = nf_conntrack_helper_register(&ftp[i][j]);
+-			if (ret) {
+-				printk(KERN_ERR "nf_ct_ftp: failed to
+register"
+-				       " helper for pf: %d port: %d\n",
+-					ftp[i][j].tuple.src.l3num,
+ports[i]);
+-				nf_conntrack_ftp_fini();
+-				return ret;
+-			}
++		nf_ct_helper_init(&ftp[i][0], AF_INET, IPPROTO_TCP,
++			"ftp", FTP_PORT, ports[i],
++			&ftp_exp_policy, 0, sizeof(struct nf_ct_ftp_master),
++			help, nf_ct_ftp_from_nlattr, THIS_MODULE);
++		ret = nf_conntrack_helper_register(&ftp[i][0]);
++		if (ret) {
++			pr_err("nf_ct_ftp: failed to register"
++				" helper for pf: %d port: %d\n",
++				ftp[i][0].tuple.src.l3num, ports[i]);
++			nf_conntrack_ftp_fini();
++			return ret;
++		}
++		nf_ct_helper_init(&ftp[i][1], AF_INET6, IPPROTO_TCP,
++			"ftp", FTP_PORT, ports[i],
++			&ftp_exp_policy, 0, sizeof(struct nf_ct_ftp_master),
++			help, nf_ct_ftp_from_nlattr, THIS_MODULE);
++		ret = nf_conntrack_helper_register(&ftp[i][1]);
++		if (ret) {
++			pr_err("nf_ct_ftp: failed to register"
++				" helper for pf: %d port: %d\n",
++				ftp[i][1].tuple.src.l3num, ports[i]);
++			nf_conntrack_ftp_fini();
++			return ret;
+ 		}
+ 	}
+ 
+diff --git a/net/netfilter/nf_conntrack_helper.c
+b/net/netfilter/nf_conntrack_helper.c
+index bd9d315..46f5d55 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -456,6 +456,41 @@ void nf_conntrack_helper_unregister(struct
+nf_conntrack_helper *me)
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
+ 
++void nf_ct_helper_init(struct nf_conntrack_helper *helper,
++			u16 l3num,
++			u16 protonum,
++			const char *name,
++			u16 default_port,
++			u16 spec_port,
++			const struct nf_conntrack_expect_policy *exp_pol,
++			u32 expect_class_max,
++			u32 data_len,
++			int (*help)(struct sk_buff *skb,
++				unsigned int protoff,
++				struct nf_conn *ct,
++				enum ip_conntrack_info conntrackinfo),
++			int (*from_nlattr)(struct nlattr *attr,
++					struct nf_conn *ct),
++			struct module *module)
++{
++	helper->tuple.src.l3num = l3num;
++	helper->tuple.dst.protonum = protonum;
++	helper->tuple.src.u.all = htons(spec_port);
++	helper->expect_policy = exp_pol;
++	helper->expect_class_max = expect_class_max;
++	helper->data_len = data_len;
++	helper->help = help;
++	helper->from_nlattr = from_nlattr;
++	helper->me = module;
++
++	if (spec_port == default_port)
++		snprintf(helper->name, sizeof(helper->name), "%s", name);
++	else
++		snprintf(helper->name, sizeof(helper->name), "%s-%u",
++			name, spec_port);
++}
++EXPORT_SYMBOL_GPL(nf_ct_helper_init);
++
+ static struct nf_ct_ext_type helper_extend __read_mostly = {
+ 	.len	= sizeof(struct nf_conn_help),
+ 	.align	= __alignof__(struct nf_conn_help),
+diff --git a/net/netfilter/nf_conntrack_irc.c
+b/net/netfilter/nf_conntrack_irc.c
+index 0fd2976..5135d9b 100644
+--- a/net/netfilter/nf_conntrack_irc.c
++++ b/net/netfilter/nf_conntrack_irc.c
+@@ -253,18 +253,10 @@ static int __init nf_conntrack_irc_init(void)
+ 		ports[ports_c++] = IRC_PORT;
+ 
+ 	for (i = 0; i < ports_c; i++) {
+-		irc[i].tuple.src.l3num = AF_INET;
+-		irc[i].tuple.src.u.tcp.port = htons(ports[i]);
+-		irc[i].tuple.dst.protonum = IPPROTO_TCP;
+-		irc[i].expect_policy = &irc_exp_policy;
+-		irc[i].me = THIS_MODULE;
+-		irc[i].help = help;
+-
+-		if (ports[i] == IRC_PORT)
+-			sprintf(irc[i].name, "irc");
+-		else
+-			sprintf(irc[i].name, "irc-%u", i);
+-
++		nf_ct_helper_init(&irc[i], AF_INET, IPPROTO_TCP,
++			"irc", IRC_PORT, ports[i],
++			&irc_exp_policy, 0, 0,
++			help, NULL, THIS_MODULE);
+ 		ret = nf_conntrack_helper_register(&irc[i]);
+ 		if (ret) {
+ 			printk(KERN_ERR "nf_ct_irc: failed to register
+helper "
+diff --git a/net/netfilter/nf_conntrack_sane.c
+b/net/netfilter/nf_conntrack_sane.c
+index 4a2134f..1ffaae2 100644
+--- a/net/netfilter/nf_conntrack_sane.c
++++ b/net/netfilter/nf_conntrack_sane.c
+@@ -190,7 +190,7 @@ static void nf_conntrack_sane_fini(void)
+ 
+ static int __init nf_conntrack_sane_init(void)
+ {
+-	int i, j = -1, ret = 0;
++	int i, ret = 0;
+ 
+ 	sane_buffer = kmalloc(65536, GFP_KERNEL);
+ 	if (!sane_buffer)
+@@ -202,31 +202,29 @@ static int __init nf_conntrack_sane_init(void)
+ 	/* FIXME should be configurable whether IPv4 and IPv6 connections
+ 		 are tracked or not - YK */
+ 	for (i = 0; i < ports_c; i++) {
+-		sane[i][0].tuple.src.l3num = PF_INET;
+-		sane[i][1].tuple.src.l3num = PF_INET6;
+-		for (j = 0; j < 2; j++) {
+-			sane[i][j].data_len = sizeof(struct
+nf_ct_sane_master);
+-			sane[i][j].tuple.src.u.tcp.port = htons(ports[i]);
+-			sane[i][j].tuple.dst.protonum = IPPROTO_TCP;
+-			sane[i][j].expect_policy = &sane_exp_policy;
+-			sane[i][j].me = THIS_MODULE;
+-			sane[i][j].help = help;
+-			if (ports[i] == SANE_PORT)
+-				sprintf(sane[i][j].name, "sane");
+-			else
+-				sprintf(sane[i][j].name, "sane-%d",
+ports[i]);
+-
+-			pr_debug("nf_ct_sane: registering helper for pf: %d
+"
+-				 "port: %d\n",
+-				 sane[i][j].tuple.src.l3num, ports[i]);
+-			ret = nf_conntrack_helper_register(&sane[i][j]);
+-			if (ret) {
+-				printk(KERN_ERR "nf_ct_sane: failed to "
+-				       "register helper for pf: %d port:
+%d\n",
+-					sane[i][j].tuple.src.l3num,
+ports[i]);
+-				nf_conntrack_sane_fini();
+-				return ret;
+-			}
++		nf_ct_helper_init(&sane[i][0], AF_INET, IPPROTO_TCP,
++			"sane", SANE_PORT, ports[i],
++			&sane_exp_policy, 0, sizeof(struct
+nf_ct_sane_master),
++			help, NULL, THIS_MODULE);
++		ret = nf_conntrack_helper_register(&sane[i][0]);
++		if (ret) {
++			pr_err("nf_ct_sane: failed to "
++				"register helper for pf: %d port: %d\n",
++				sane[i][0].tuple.src.l3num, ports[i]);
++			nf_conntrack_sane_fini();
++			return ret;
++		}
++		nf_ct_helper_init(&sane[i][1], AF_INET6, IPPROTO_TCP,
++			"sane", SANE_PORT, ports[i],
++			&sane_exp_policy, 0, sizeof(struct
+nf_ct_sane_master),
++			help, NULL, THIS_MODULE);
++		ret = nf_conntrack_helper_register(&sane[i][1]);
++		if (ret) {
++			pr_err("nf_ct_sane: failed to "
++				"register helper for pf: %d port: %d\n",
++				sane[i][1].tuple.src.l3num, ports[i]);
++			nf_conntrack_sane_fini();
++			return ret;
+ 		}
+ 	}
+ 
+diff --git a/net/netfilter/nf_conntrack_sip.c
+b/net/netfilter/nf_conntrack_sip.c
+index 885b4ab..3ba9835 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -1627,7 +1627,7 @@ static void nf_conntrack_sip_fini(void)
+ 
+ static int __init nf_conntrack_sip_init(void)
+ {
+-	int i, j, ret;
++	int i, ret;
+ 
+ 	if (ports_c == 0)
+ 		ports[ports_c++] = SIP_PORT;
+@@ -1635,42 +1635,57 @@ static int __init nf_conntrack_sip_init(void)
+ 	for (i = 0; i < ports_c; i++) {
+ 		memset(&sip[i], 0, sizeof(sip[i]));
+ 
+-		sip[i][0].tuple.src.l3num = AF_INET;
+-		sip[i][0].tuple.dst.protonum = IPPROTO_UDP;
+-		sip[i][0].help = sip_help_udp;
+-		sip[i][1].tuple.src.l3num = AF_INET;
+-		sip[i][1].tuple.dst.protonum = IPPROTO_TCP;
+-		sip[i][1].help = sip_help_tcp;
+-
+-		sip[i][2].tuple.src.l3num = AF_INET6;
+-		sip[i][2].tuple.dst.protonum = IPPROTO_UDP;
+-		sip[i][2].help = sip_help_udp;
+-		sip[i][3].tuple.src.l3num = AF_INET6;
+-		sip[i][3].tuple.dst.protonum = IPPROTO_TCP;
+-		sip[i][3].help = sip_help_tcp;
+-
+-		for (j = 0; j < ARRAY_SIZE(sip[i]); j++) {
+-			sip[i][j].data_len = sizeof(struct
+nf_ct_sip_master);
+-			sip[i][j].tuple.src.u.udp.port = htons(ports[i]);
+-			sip[i][j].expect_policy = sip_exp_policy;
+-			sip[i][j].expect_class_max = SIP_EXPECT_MAX;
+-			sip[i][j].me = THIS_MODULE;
+-
+-			if (ports[i] == SIP_PORT)
+-				sprintf(sip[i][j].name, "sip");
+-			else
+-				sprintf(sip[i][j].name, "sip-%u", i);
+-
+-			pr_debug("port #%u: %u\n", i, ports[i]);
+-
+-			ret = nf_conntrack_helper_register(&sip[i][j]);
+-			if (ret) {
+-				printk(KERN_ERR "nf_ct_sip: failed to
+register"
+-				       " helper for pf: %u port: %u\n",
+-				       sip[i][j].tuple.src.l3num, ports[i]);
+-				nf_conntrack_sip_fini();
+-				return ret;
+-			}
++		nf_ct_helper_init(&sip[i][0], AF_INET, IPPROTO_UDP,
++			"sip", SIP_PORT, ports[i],
++			&sip_exp_policy[0], SIP_EXPECT_MAX,
++			sizeof(struct nf_ct_sip_master),
++			sip_help_udp, NULL, THIS_MODULE);
++		ret = nf_conntrack_helper_register(&sip[i][0]);
++		if (ret) {
++			pr_err("nf_ct_sip: failed to register"
++				" helper for pf: %u port: %u\n",
++				sip[i][0].tuple.src.l3num, ports[i]);
++			nf_conntrack_sip_fini();
++			return ret;
++		}
++		nf_ct_helper_init(&sip[i][1], AF_INET, IPPROTO_TCP,
++			"sip", SIP_PORT, ports[i],
++			&sip_exp_policy[0], SIP_EXPECT_MAX,
++			sizeof(struct nf_ct_sip_master),
++			sip_help_tcp, NULL, THIS_MODULE);
++		ret = nf_conntrack_helper_register(&sip[i][1]);
++		if (ret) {
++			pr_err("nf_ct_sip: failed to register"
++				" helper for pf: %u port: %u\n",
++				sip[i][1].tuple.src.l3num, ports[i]);
++			nf_conntrack_sip_fini();
++			return ret;
++		}
++		nf_ct_helper_init(&sip[i][2], AF_INET6, IPPROTO_UDP,
++			"sip", SIP_PORT, ports[i],
++			&sip_exp_policy[0], SIP_EXPECT_MAX,
++			sizeof(struct nf_ct_sip_master),
++			sip_help_udp, NULL, THIS_MODULE);
++		ret = nf_conntrack_helper_register(&sip[i][2]);
++		if (ret) {
++			pr_err("nf_ct_sip: failed to register"
++				" helper for pf: %u port: %u\n",
++				sip[i][2].tuple.src.l3num, ports[i]);
++			nf_conntrack_sip_fini();
++			return ret;
++		}
++		nf_ct_helper_init(&sip[i][3], AF_INET6, IPPROTO_TCP,
++			"sip", SIP_PORT, ports[i],
++			&sip_exp_policy[0], SIP_EXPECT_MAX,
++			sizeof(struct nf_ct_sip_master),
++			sip_help_tcp, NULL, THIS_MODULE);
++		ret = nf_conntrack_helper_register(&sip[i][3]);
++		if (ret) {
++			pr_err("nf_ct_sip: failed to register"
++				" helper for pf: %u port: %u\n",
++				sip[i][3].tuple.src.l3num, ports[i]);
++			nf_conntrack_sip_fini();
++			return ret;
+ 		}
+ 	}
+ 	return 0;
+diff --git a/net/netfilter/nf_conntrack_tftp.c
+b/net/netfilter/nf_conntrack_tftp.c
+index e68ab4f..b6d7903 100644
+--- a/net/netfilter/nf_conntrack_tftp.c
++++ b/net/netfilter/nf_conntrack_tftp.c
+@@ -114,7 +114,7 @@ static void nf_conntrack_tftp_fini(void)
+ 
+ static int __init nf_conntrack_tftp_init(void)
+ {
+-	int i, j, ret;
++	int i, ret;
+ 
+ 	if (ports_c == 0)
+ 		ports[ports_c++] = TFTP_PORT;
+@@ -122,28 +122,29 @@ static int __init nf_conntrack_tftp_init(void)
+ 	for (i = 0; i < ports_c; i++) {
+ 		memset(&tftp[i], 0, sizeof(tftp[i]));
+ 
+-		tftp[i][0].tuple.src.l3num = AF_INET;
+-		tftp[i][1].tuple.src.l3num = AF_INET6;
+-		for (j = 0; j < 2; j++) {
+-			tftp[i][j].tuple.dst.protonum = IPPROTO_UDP;
+-			tftp[i][j].tuple.src.u.udp.port = htons(ports[i]);
+-			tftp[i][j].expect_policy = &tftp_exp_policy;
+-			tftp[i][j].me = THIS_MODULE;
+-			tftp[i][j].help = tftp_help;
+-
+-			if (ports[i] == TFTP_PORT)
+-				sprintf(tftp[i][j].name, "tftp");
+-			else
+-				sprintf(tftp[i][j].name, "tftp-%u", i);
+-
+-			ret = nf_conntrack_helper_register(&tftp[i][j]);
+-			if (ret) {
+-				printk(KERN_ERR "nf_ct_tftp: failed to
+register"
+-				       " helper for pf: %u port: %u\n",
+-					tftp[i][j].tuple.src.l3num,
+ports[i]);
+-				nf_conntrack_tftp_fini();
+-				return ret;
+-			}
++		nf_ct_helper_init(&tftp[i][0], AF_INET, IPPROTO_UDP,
++			"tftp", TFTP_PORT, ports[i],
++			&tftp_exp_policy, 0, 0,
++			tftp_help, NULL, THIS_MODULE);
++		ret = nf_conntrack_helper_register(&tftp[i][0]);
++		if (ret) {
++			pr_err("nf_ct_tftp: failed to register"
++				" helper for pf: %u port: %u\n",
++				tftp[i][0].tuple.src.l3num, ports[i]);
++			nf_conntrack_tftp_fini();
++			return ret;
++		}
++		nf_ct_helper_init(&tftp[i][1], AF_INET6, IPPROTO_UDP,
++			"tftp", TFTP_PORT, ports[i],
++			&tftp_exp_policy, 0, 0,
++			tftp_help, NULL, THIS_MODULE);
++		ret = nf_conntrack_helper_register(&tftp[i][1]);
++		if (ret) {
++			pr_err("nf_ct_tftp: failed to register"
++				" helper for pf: %u port: %u\n",
++				tftp[i][1].tuple.src.l3num, ports[i]);
++			nf_conntrack_tftp_fini();
++			return ret;
+ 		}
+ 	}
+ 	return 0;
 
-The corresponding OVS userspace patches contain the new test cases for =
-the NAT features (http://openvswitch.org/pipermail/dev/2015-November/06=
-1920.html) in tests/system-traffic.at. I=E2=80=99ll walk through two of=
- them below.
-
-Test case: conntrack - simple SNAT
-
-In these tests ports 1 and 2 are in different namespaces. The flow tabl=
-e below allows all IPv4 traffic between port 1 to port 2, but IP connec=
-tions from port 1 to port 2 are source NATted:
-
-    in_port=3D1,ip,action=3Dct(commit,zone=3D1,nat(src=3D10.1.1.240-10.=
-1.1.255)),2
-    in_port=3D2,ct_state=3D-trk,ip,action=3Dct(table=3D0,zone=3D1,nat)
-    in_port=3D2,ct_state=3D+trk,ct_zone=3D1,ip,action=3D1
-
-This flow table matches all IPv4 traffic from port 1, runs them through=
- conntrack in zone 1 and NATs them. The NAT is initialized to do source=
- IP mapping to the given range for the first packet of each connection,=
- after which the new connection is committed. For further packets of al=
-ready tracked connections NAT is done according to the connection state=
- and the commit is a no-op. Each packet that is not flagged as a drop b=
-y the CT action is forwarded to port 2. The CT action does an implicit =
-fragmentation reassembly, so that only complete packets are run through=
- conntrack. Reassembled packets are re-fragmented on output.
-
-The IPv4 traffic coming from port 2 is first matched for the non-tracke=
-d state (-trk), which means that the packet has not been through a CT a=
-ction yet. Such traffic is run trough the conntrack in zone 1 and all p=
-ackets associated with a NATted connection are NATted also in the retur=
-n direction. After the packet has been through conntrack it is recircul=
-ated back to table 0 (which is the default table, so all the rules abov=
-e are in table 0). The CT action changes the =E2=80=98trk=E2=80=99 flag=
- to being set, so the packets after recirculation match the third rule =
-(+trk), and the packet is output on port 1. Since also the ct_zone is m=
-atched, only packets that were actually tracked by conntrack can match =
-the 3rd rule and output to 1.
-
-I=E2=80=99m skipped the rules for ARP handling in this walkthrough, but=
- the test case has rules to match on the ARP request on the NATted addr=
-ess and reply to it.
-
-The above is verified with a HTTP request and a subsequent conntrack en=
-try listing in the test case:
-
-    dnl HTTP requests from p0->p1 should work fine.
-    NETNS_DAEMONIZE([at_ns1], [[$PYTHON $srcdir/test-l7.py]], [http0.pi=
-d])
-    NS_CHECK_EXEC([at_ns0], [wget 10.1.1.2 -t 5 -T 1 --retry-connrefuse=
-d -v -o wget0.log])
-
-    AT_CHECK([conntrack -L 2>&1 | FORMAT_CT(10.1.1.2) | sed -e 's/dst=3D=
-10.1.1.2[[45]][[0-9]]/dst=3D10.1.1.2XX/'], [0], [dnl
-    TIME_WAIT src=3D10.1.1.1 dst=3D10.1.1.2 sport=3D<cleared> dport=3D<=
-cleared> src=3D10.1.1.2 dst=3D10.1.1.2XX sport=3D<cleared> dport=3D<cle=
-ared> [[ASSURED]] mark=3D0 zone=3D1 use=3D1
-    ])
 
 
-As a second example, I=E2=80=99ll walk through a test case of NAT with =
-=46TP on IPv6:
-
-As before, ports 1 (p0) and 2 (p1) reside in different namespaces (=E2=80=
-=98at_ns0=E2=80=99 and =E2=80=98at_ns1=E2=80=99, respectively). A stati=
-c neighbor cache entry for the NATted address is created in at_ns1. In =
-a more realistic scenario a controller would need to implement a ND pro=
-xy instead:
-
-    ADD_VETH(p0, at_ns0, br0, "fc00::1/96")
-    NS_CHECK_EXEC([at_ns0], [ip link set dev p0 address 80:88:88:88:88:=
-88])
-    ADD_VETH(p1, at_ns1, br0, "fc00::2/96")
-    dnl Would be nice if NAT could translate neighbor discovery message=
-s, too.
-    NS_CHECK_EXEC([at_ns1], [ip -6 neigh add fc00::240 lladdr 80:88:88:=
-88:88:88 dev p1])
 
 
-The OpenFlow rules are split into two tables (table 0 and table 1).
-
-Table 0 tracks all IPv6 traffic and drops all other traffic. Packets ar=
-e recirculated to table 1 after conntrack. Existing connections are NAT=
-ted before recirculation:
-
-    table=3D0 priority=3D10 ip6, action=3Dct(nat,table=3D1)
-    table=3D0 priority=3D0 action=3Ddrop
-
-Table 1:
-
-=46TP control connections from the =E2=80=9Cprivate=E2=80=9D address to=
- port 21 are output to port 1 after being tracked, NATted, and committe=
-d (=3D=3D confirmed).
-
-    table=3D1 in_port=3D1 ct_state=3D+new tcp6 ipv6_src=3Dfc00::1 tp_ds=
-t=3D21  action=3Dct(alg=3Dftp,commit,nat(src=3Dfc00::240)),2
-
-The matches on the source/dest IP address below are not really needed, =
-but in the test case they are to make sure the NATting actually happens=
-=2E
-
-Related TCP connections to the reverse direction are NATted, committed =
-and output to port 1:
-
-    table=3D1 in_port=3D2 ct_state=3D+new+rel tcp6 ipv6_dst=3Dfc00::240=
- action=3Dct(commit,nat),1
-
-Packets on established TCP connections are allowed both ways (the CT ac=
-tion in table 0 NATted these before recirculation, so we see the mapped=
- address going from port 1 to port 2, and the reverse-mapped (=3D=3D or=
-iginal) address on return traffic):
-
-    table=3D1 in_port=3D1 ct_state=3D+est tcp6 ipv6_src=3Dfc00::240   a=
-ction=3D2
-    table=3D1 in_port=3D2 ct_state=3D+est tcp6 ipv6_dst=3Dfc00::1     a=
-ction=3D1=20
-
-We pass icmp6 packets both ways:
-
-    table=3D1 priority=3D100 in_port=3D1 icmp6, action=3D2
-    table=3D1 priority=3D100 in_port=3D2 icmp6, action=3D1
-
-Everything else is dropped:
-
-    table=3D1 priority=3D0, action=3Ddrop
-
-=46unctionality is verified with a Python FTP server in at_ns1 and wget=
- to it from at_ns0:
-
-    NETNS_DAEMONIZE([at_ns1], [[$PYTHON $srcdir/test-l7.py ftp]], [ftp0=
-=2Epid])
-
-    dnl FTP requests from p0->p1 should work fine.
-    NS_CHECK_EXEC([at_ns0], [wget=20
-ftp://[[fc00::2
-]] -6 --no-passive-ftp -t 3 -T 1 --retry-connrefused -v --server-respon=
-se --no-proxy --no-remove-listing -o wget0.log -d])
-
-Both the control connection and the data connection were NATted:
-
-    AT_CHECK([conntrack -L -f ipv6 2>&1 | FORMAT_CT(fc00::2) | grep -v =
-"FIN" | grep -v "CLOSE"], [0], [dnl
-    TIME_WAIT src=3Dfc00::1 dst=3Dfc00::2 sport=3D<cleared> dport=3D<cl=
-eared> src=3Dfc00::2 dst=3Dfc00::240 sport=3D<cleared> dport=3D<cleared=
-> [[ASSURED]] mark=3D0 helper=3Dftp use=3D2
-    TIME_WAIT src=3Dfc00::2 dst=3Dfc00::240 sport=3D<cleared> dport=3D<=
-cleared> src=3Dfc00::1 dst=3Dfc00::2 sport=3D<cleared> dport=3D<cleared=
-> [[ASSURED]] mark=3D0 use=3D1
-    ])
-
-The flow tables in the test cases are OpenFlow tables, which are transl=
-ated to kernel flows by ovs-vswitchd. I have included the relevant kern=
-el datapath flows generated in the IPv6 NAT test case above below for y=
-our reference. Please note that the kernel port numbers are different f=
-rom the OpenFlow port numbers, as each bridge has it=E2=80=99s own rang=
-e of OpenFlow port numbers, but they all share the same kernel datapath=
-=2E In this case OpenFlow port 1 is kernel port 2, and OpenFlow port 2 =
-is kernel port 3. Kernel flows are all in the same table and they have =
-no priorities (so they should have mutually exclusive matches). Recircu=
-lation IDs are allocated on-demand, here the recirculation ID 1 deals w=
-ith traffic to the original direction and 2 to the return direction (re=
-circ_id(0) designates no recirculation). ovs_vswitchd always exact matc=
-hes IP frag, so since the test traffic had no fragments, you=E2=80=99ll=
- see (frag=3Dno) in each flow below. Also, the packet that causes the f=
-low to be created is executed independently (but with the same actions)=
- of the newly created flow, so the kernel datapath flow counts do not r=
-eflect the first packet (OpenFlow counters do), this explains 0 counts =
-on some flows below:
-
-    recirc_id(0),in_port(2),eth_type(0x86dd),ipv6(frag=3Dno), packets:2=
-8, bytes:2541, used:0.048s, flags:SFPR., actions:ct(nat),recirc(0x1)
-    recirc_id(0x1),in_port(2),ct_state(+new),eth_type(0x86dd),ipv6(src=3D=
-fc00::1,proto=3D6,frag=3Dno),tcp(dst=3D21), packets:1, bytes:94, used:0=
-=2E072s, flags:S, actions:ct(commit,helper=3Dftp,nat(src=3Dfc00::240)),=
-3
-    recirc_id(0x1),in_port(2),ct_state(-new+est+rel),eth_type(0x86dd),i=
-pv6(src=3Dfc00::240,proto=3D6,frag=3Dno), packets:4, bytes:344, used:0.=
-048s, flags:F., actions:3
-    recirc_id(0x1),in_port(2),ct_state(-new+est-rel),eth_type(0x86dd),i=
-pv6(src=3Dfc00::240,proto=3D6,frag=3Dno), packets:12, bytes:1145, used:=
-0.048s, flags:FP., actions:3
-
-    recirc_id(0),in_port(3),eth_type(0x86dd),ipv6(frag=3Dno), packets:2=
-6, bytes:4939, used:0.048s, flags:SFP., actions:ct(nat),recirc(0x2)
-    recirc_id(0x2),in_port(3),ct_state(+new+rel),eth_type(0x86dd),ipv6(=
-dst=3Dfc00::240,proto=3D6,frag=3Dno), packets:0, bytes:0, used:never, a=
-ctions:ct(commit,nat),2
-    recirc_id(0x2),in_port(3),ct_state(-new+est-rel),eth_type(0x86dd),i=
-pv6(dst=3Dfc00::1,proto=3D6,frag=3Dno), packets:12, bytes:1323, used:0.=
-048s, flags:SFP., actions:2
-    recirc_id(0x2),in_port(3),ct_state(-new+est+rel),eth_type(0x86dd),i=
-pv6(dst=3Dfc00::1,proto=3D6,frag=3Dno), packets:3, bytes:1113, used:0.0=
-48s, flags:FP., actions:2
-
-
-The generated matches depend on the order of processing of rules in the=
- OpenFlow tables, which can be influenced by specifying rule priorities=
- to OpenFlow rules. For example, with a different set of priorities the=
- datapath rules become (In this test run the first IP (ICMPv6) packet w=
-as received from at_ns1, so the recirc_ids are reversed from above, ICM=
-Pv6 flows not included here.):
-
-    recirc_id(0),in_port(2),eth_type(0x86dd),ipv6(frag=3Dno), packets:2=
-7, bytes:2455, used:0.040s, flags:SFPR., actions:ct(nat),recirc(0x2)
-    recirc_id(0x2),in_port(2),ct_state(+est),eth_type(0x86dd),ipv6(src=3D=
-fc00::240,proto=3D6,frag=3Dno), packets:16, bytes:1497, used:0.040s, fl=
-ags:SFP., actions:3
-    recirc_id(0x2),in_port(2),ct_state(+new-est),eth_type(0x86dd),ipv6(=
-src=3Dfc00::1,proto=3D6,frag=3Dno),tcp(dst=3D21), packets:1, bytes:94, =
-used:0.108s, flags:S, actions:ct(commit,helper=3Dftp,nat(src=3Dfc00::24=
-0)),3
-
-    recirc_id(0),in_port(3),eth_type(0x86dd),ipv6(frag=3Dno), packets:2=
-8, bytes:5111, used:0.040s, flags:SFP., actions:ct(nat),recirc(0x1)
-    recirc_id(0x1),in_port(3),ct_state(+est),eth_type(0x86dd),ipv6(dst=3D=
-fc00::1,proto=3D6,frag=3Dno), packets:19, bytes:4281, used:0.040s, flag=
-s:SFP., actions:2
-    recirc_id(0x1),in_port(3),ct_state(+new-est+rel),eth_type(0x86dd),i=
-pv6(dst=3Dfc00::240,proto=3D6,frag=3Dno), packets:0, bytes:0, used:neve=
-r, actions:ct(commit,nat),2
-
-Hope this helps,
-
-  Jarno
-
->> Jarno Rajahalme (8):
->>  netfilter: Remove IP_CT_NEW_REPLY definition.
->>  netfilter: Factor out nf_ct_get_info().
->>  netfilter: Allow calling into nat helper without skb_dst.
->>  openvswitch: Update the CT state key only after nf_conntrack_in().
->>  openvswitch: Find existing conntrack entry after upcall.
->>  openvswitch: Handle NF_REPEAT in conntrack action.
->>  openvswitch: Delay conntrack helper call for new connections.
->>  openvswitch: Interface with NAT.
->>=20
->> include/net/netfilter/nf_conntrack.h               |  15 +
->> include/uapi/linux/netfilter/nf_conntrack_common.h |  12 +-
->> include/uapi/linux/openvswitch.h                   |  47 ++
->> net/ipv4/netfilter/nf_nat_l3proto_ipv4.c           |  29 +-
->> net/ipv6/netfilter/nf_nat_l3proto_ipv6.c           |  29 +-
->> net/netfilter/nf_conntrack_core.c                  |  22 +-
->> net/openvswitch/conntrack.c                        | 632 +++++++++++=
-++++++++--
->> net/openvswitch/conntrack.h                        |   3 +-
->> 8 files changed, 686 insertions(+), 103 deletions(-)
->>=20
->> --=20
->> 2.1.4
->>=20
->> --
->> To unsubscribe from this list: send the line "unsubscribe netfilter-=
-devel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
