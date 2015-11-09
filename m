@@ -1,45 +1,53 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC PATCH nf-next 0/1] payload mangling support
-Date: Mon, 9 Nov 2015 16:00:07 +0000
-Message-ID: <20151109160007.GL8098@macbook.localdomain>
-References: <1447078234-21628-1-git-send-email-kaber@trash.net>
- <20151109153029.GA7759@breakpoint.cc>
- <20151109154127.GK8098@macbook.localdomain>
- <20151109155014.GB7759@breakpoint.cc>
+Subject: nft synproxy integration
+Date: Mon, 9 Nov 2015 16:30:15 +0000
+Message-ID: <20151109163015.GM8098@macbook.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org, bjornar.ness@gmail.com
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 161-169.trash.net ([213.144.137.169]:49253 "EHLO
+Received: from 161-169.trash.net ([213.144.137.169]:49519 "EHLO
 	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751825AbbKIQAL (ORCPT
+	with ESMTP id S1752239AbbKIQaU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Nov 2015 11:00:11 -0500
+	Mon, 9 Nov 2015 11:30:20 -0500
 Content-Disposition: inline
-In-Reply-To: <20151109155014.GB7759@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 09.11, Florian Westphal wrote:
-> Patrick McHardy <kaber@trash.net> wrote:
-> > On 09.11, Florian Westphal wrote:
-> > > Patrick McHardy <kaber@trash.net> wrote:
-> > > > So the main questions is basically, do we want to support stateless NAT?
-> > > > The downside is that we have to add protocol specific checksumming functions.
-> > > 
-> > > For now i'm only be interested in mangling MAC addresses for nft bridge
-> > > to provide ebtables snat/dnat/redirect equivalents.
-> > 
-> > I have not tested that, it probably needs some minor adjustments to skip
-> > checksum updates for NFT_PAYLOAD_LL_HEADER, but other than that, this will
-> > obviously work.
-> 
-> For redirect we also need to alter skb->pkttype to PACKET_HOST.
-> 
-> I can take care of this later if needed, I'd just need advice on
-> how to add this (meta statement?).
+We've talked about how to integrate synproxy in nft and agreed that it would
+be preferrable to have a nicer way to use it.
 
-Good point. I guess that would be the proper solution, I don't think we want to
-try to figure out whether an address is local in the payload module.
+The reason why the use is quite complicated right now is actually not because
+of synproxy, but because of the desire to avoid creating conntracks for
+spoofed connection requests. I don't see any way to avoid this, but we might
+be able to make use a bit easier at some slightly higher cost. This applies
+to both iptables and nft.
 
+Basically the idea is:
+
+* don't mark the first SYN untracked and have it create a conntrack as normal
+* direct that SYN to synproxy
+* mark the connection as proxied, which will avoid setting the ASSURED bit when
+  receiving our spoofed reply
+* only set assured once we have the connection fully established
+
+This would create a conntrack, but keep it evictable under pressure. So the
+cost would be ct set up, but we could tear it down at any point when we're
+under pressure. The synproxy target can handle both connections with and
+without a conntrack.
+
+Usage would basically be:
+
+nft filter input tcp dport 80 ct state INVALID,SYNPROXY synproxy ...
+
+The ct state rule could actually be created automatically since it is a
+dependency.
+
+Iff we evict a connection before it is fully established, the final ACK will
+be INVALID as it is now with untracked. This makes use less complex since a
+single rule with suffice, but at the cost of potentially unnecessarily creating
+conntracks. The method of using notrack would of course still be possible.
+
+Any thoughts about this?
