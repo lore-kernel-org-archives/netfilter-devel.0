@@ -1,69 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nft synproxy integration
-Date: Mon, 09 Nov 2015 20:13:51 +0000
-Message-ID: <8670E62A-489B-41B4-A89B-AAF740264ACA@trash.net>
-References: <20151109163015.GM8098@macbook.localdomain> <alpine.DEB.2.10.1511092030480.30088@blackhole.kfki.hu>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: xtables-addons 64-bit counter patch
+Date: Mon, 9 Nov 2015 22:34:47 +0100 (CET)
+Message-ID: <alpine.LSU.2.20.1511092234210.16150@nerf40.vanv.qr>
+References: <20150604180442.12410111@playground> <alpine.LSU.2.20.1506061315120.29092@nerf40.vanv.qr> <20151019013454.6f81f4f5@playground> <20151108184911.58e53fe5@playground> <alpine.LSU.2.20.1511091013590.26401@nerf40.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	bjornar.ness@gmail.com
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, Jaroslav Drzik <jaro@ttx.sk>,
+	ipt_ACCOUNT@developer.intra2net.com
+To: "Neal P. Murphy" <neal.p.murphy@alum.wpi.edu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 161-169.trash.net ([213.144.137.169]:51306 "EHLO
-	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752388AbbKIUN7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Nov 2015 15:13:59 -0500
-In-Reply-To: <alpine.DEB.2.10.1511092030480.30088@blackhole.kfki.hu>
+Received: from ares41.inai.de ([46.4.122.207]:42397 "EHLO ares41.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750861AbbKIVeu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Nov 2015 16:34:50 -0500
+In-Reply-To: <alpine.LSU.2.20.1511091013590.26401@nerf40.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 9. November 2015 19:36:06 GMT+00:00, schrieb Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>:
->On Mon, 9 Nov 2015, Patrick McHardy wrote:
+On Monday 2015-11-09 10:14, Jan Engelhardt wrote:
+>On Monday 2015-11-09 00:49, Neal P. Murphy wrote:
 >
->> Basically the idea is:
->> 
->> * don't mark the first SYN untracked and have it create a conntrack
->as normal
->> * direct that SYN to synproxy
->> * mark the connection as proxied, which will avoid setting the
->ASSURED bit when
->>   receiving our spoofed reply
->> * only set assured once we have the connection fully established
->> 
->> This would create a conntrack, but keep it evictable under pressure.
->So the
->> cost would be ct set up, but we could tear it down at any point when
->we're
->> under pressure. The synproxy target can handle both connections with
->and
->> without a conntrack.
->[...] 
->> The ct state rule could actually be created automatically since it is
->a
->> dependency.
->[...]
->> The method of using notrack would of course still be possible.
+>>Re-sent, as the original may have been overlooked.
 >
->I like the idea: the notrack method would still be supported and the
->"do 
->conntrack but with safety-net" way would be possible too. Looks cool!
+>This was included in 2.6 already.
 
-Thanks Jozsef. I'm thinking it's the best of both worlds myself. Implementation should be quite easy, I'll give it a try.
-
-
->
->Best regards,
->Jozsef
->-
->E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
->PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
->Address : Wigner Research Centre for Physics, Hungarian Academy of
->Sciences
->          H-1525 Budapest 114, POB. 49, Hungary
+>>diff -Nubr xtables-addons-1.45-P1/extensions/ACCOUNT/xt_ACCOUNT.c xtables-addons-1.45/extensions/ACCOUNT/xt_ACCOUNT.c
+>>--- xtables-addons-1.45-P1/extensions/ACCOUNT/xt_ACCOUNT.c	2015-10-19 01:23:03.000000000 -0400
+>>+++ xtables-addons-1.45/extensions/ACCOUNT/xt_ACCOUNT.c	2015-10-19 01:23:39.000000000 -0400
+>>@@ -145,7 +145,7 @@
+>> 		unsigned int b;
+>> 		for (b = 0; b <= 255; b++) {
+>> 			if (mask_16->mask_24[b]) {
+>>-				free_page((unsigned long)mask_16->mask_24[b]);
+>>+				free_pages((unsigned long)mask_16->mask_24[b], 2);
 
 
--- 
-Diese Nachricht wurde von meinem Android-Mobiltelefon mit K-9 Mail gesendet.
+Now placed into git master after seeing that there were still 
+free_page() calls left.
