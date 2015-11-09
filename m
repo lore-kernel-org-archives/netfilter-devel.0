@@ -1,39 +1,37 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: xtables-addons 64-bit counter patch
-Date: Mon, 9 Nov 2015 22:34:47 +0100 (CET)
-Message-ID: <alpine.LSU.2.20.1511092234210.16150@nerf40.vanv.qr>
-References: <20150604180442.12410111@playground> <alpine.LSU.2.20.1506061315120.29092@nerf40.vanv.qr> <20151019013454.6f81f4f5@playground> <20151108184911.58e53fe5@playground> <alpine.LSU.2.20.1511091013590.26401@nerf40.vanv.qr>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: nft synproxy integration
+Date: Mon, 9 Nov 2015 23:29:53 +0100
+Message-ID: <20151109222953.GC7759@breakpoint.cc>
+References: <20151109163015.GM8098@macbook.localdomain>
+ <alpine.DEB.2.10.1511092030480.30088@blackhole.kfki.hu>
+ <8670E62A-489B-41B4-A89B-AAF740264ACA@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, Jaroslav Drzik <jaro@ttx.sk>,
-	ipt_ACCOUNT@developer.intra2net.com
-To: "Neal P. Murphy" <neal.p.murphy@alum.wpi.edu>
+Content-Type: text/plain; charset=us-ascii
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, pablo@netfilter.org,
+	netfilter-devel@vger.kernel.org, bjornar.ness@gmail.com
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:42397 "EHLO ares41.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750861AbbKIVeu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Nov 2015 16:34:50 -0500
-In-Reply-To: <alpine.LSU.2.20.1511091013590.26401@nerf40.vanv.qr>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:55214 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751033AbbKIW37 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Nov 2015 17:29:59 -0500
+Content-Disposition: inline
+In-Reply-To: <8670E62A-489B-41B4-A89B-AAF740264ACA@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2015-11-09 10:14, Jan Engelhardt wrote:
->On Monday 2015-11-09 00:49, Neal P. Murphy wrote:
->
->>Re-sent, as the original may have been overlooked.
->
->This was included in 2.6 already.
+Patrick McHardy <kaber@trash.net> wrote:
+> Am 9. November 2015 19:36:06 GMT+00:00, schrieb Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>:
+> >On Mon, 9 Nov 2015, Patrick McHardy wrote:
+> >> The method of using notrack would of course still be possible.
+> >
+> >I like the idea: the notrack method would still be supported and the
+> >"do 
+> >conntrack but with safety-net" way would be possible too. Looks cool!
+> 
+> Thanks Jozsef. I'm thinking it's the best of both worlds myself. Implementation should be quite easy, I'll give it a try.
 
->>diff -Nubr xtables-addons-1.45-P1/extensions/ACCOUNT/xt_ACCOUNT.c xtables-addons-1.45/extensions/ACCOUNT/xt_ACCOUNT.c
->>--- xtables-addons-1.45-P1/extensions/ACCOUNT/xt_ACCOUNT.c	2015-10-19 01:23:03.000000000 -0400
->>+++ xtables-addons-1.45/extensions/ACCOUNT/xt_ACCOUNT.c	2015-10-19 01:23:39.000000000 -0400
->>@@ -145,7 +145,7 @@
->> 		unsigned int b;
->> 		for (b = 0; b <= 255; b++) {
->> 			if (mask_16->mask_24[b]) {
->>-				free_page((unsigned long)mask_16->mask_24[b]);
->>+				free_pages((unsigned long)mask_16->mask_24[b], 2);
+I'm fine with the suggestion, but, pardon the heretic question:
 
-
-Now placed into git master after seeing that there were still 
-free_page() calls left.
+Why do we need synproxy after the recent listen lock removal from Eric?
