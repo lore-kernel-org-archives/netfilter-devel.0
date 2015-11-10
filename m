@@ -1,75 +1,90 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCH nf 2/2] netfilter: nf_tables: add clone interface to
  expression operations
-Date: Tue, 10 Nov 2015 18:30:34 +0000
-Message-ID: <20151110183034.GE25929@macbook.localdomain>
+Date: Tue, 10 Nov 2015 19:39:05 +0100
+Message-ID: <20151110183905.GA1656@salvia>
 References: <1447173390-2993-1-git-send-email-pablo@netfilter.org>
  <1447173390-2993-3-git-send-email-pablo@netfilter.org>
+ <20151110183034.GE25929@macbook.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 161-169.trash.net ([213.144.137.169]:62044 "EHLO
-	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750765AbbKJSai (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Nov 2015 13:30:38 -0500
+Received: from mail.us.es ([193.147.175.20]:49424 "EHLO salida-rhel7.int"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751618AbbKJSjN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Nov 2015 13:39:13 -0500
+Received: from antivirus1-rhel7.int (antivirus1.int [192.168.2.11])
+	by salida-rhel7.int (Postfix) with ESMTP id DB7191373B3
+	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2015 19:39:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id BEA839DCB5
+	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2015 19:39:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id C84429DCB5
+	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2015 19:39:07 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1447173390-2993-3-git-send-email-pablo@netfilter.org>
+In-Reply-To: <20151110183034.GE25929@macbook.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 10.11, Pablo Neira Ayuso wrote:
-> With the conversion of the counter expressions to make it percpu, we
-> need to clone the percpu memory area, otherwise we crash when using
-> counters from flow tables.
+On Tue, Nov 10, 2015 at 06:30:34PM +0000, Patrick McHardy wrote:
+> On 10.11, Pablo Neira Ayuso wrote:
+> > With the conversion of the counter expressions to make it percpu, we
+> > need to clone the percpu memory area, otherwise we crash when using
+> > counters from flow tables.
+> > 
+> > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > ---
+> >  include/net/netfilter/nf_tables.h | 16 +++++++++++--
+> >  net/netfilter/nft_counter.c       | 49 ++++++++++++++++++++++++++++++++-------
+> >  net/netfilter/nft_dynset.c        |  5 ++--
+> >  3 files changed, 58 insertions(+), 12 deletions(-)
+> > 
+> > diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+> > index c9149cc..c186457 100644
+> > --- a/include/net/netfilter/nf_tables.h
+> > +++ b/include/net/netfilter/nf_tables.h
+> > @@ -630,6 +630,8 @@ struct nft_expr_ops {
+> >  	int				(*validate)(const struct nft_ctx *ctx,
+> >  						    const struct nft_expr *expr,
+> >  						    const struct nft_data **data);
+> > +	int				(*clone)(struct nft_expr *dst,
+> > +						 const struct nft_expr *src);
 > 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  include/net/netfilter/nf_tables.h | 16 +++++++++++--
->  net/netfilter/nft_counter.c       | 49 ++++++++++++++++++++++++++++++++-------
->  net/netfilter/nft_dynset.c        |  5 ++--
->  3 files changed, 58 insertions(+), 12 deletions(-)
+> The functions and data needed during runtime are deliberately kept together
+> at the beginning of the structure to avoid having to read the entire thing.
+> So I'd say this shoud go after ->eval().
+
+OK, I'll place this after ->eval.
+
+> > @@ -660,10 +662,20 @@ void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
+> >  int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
+> >  		  const struct nft_expr *expr);
+> >  
+> > -static inline void nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
+> > +static inline int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
+> >  {
+> > +	int err;
+> > +
+> >  	__module_get(src->ops->type->owner);
+> > -	memcpy(dst, src, src->ops->size);
+> > +	if (src->ops->clone) {
+> > +		memcpy(dst, src, sizeof(*src));
 > 
-> diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-> index c9149cc..c186457 100644
-> --- a/include/net/netfilter/nf_tables.h
-> +++ b/include/net/netfilter/nf_tables.h
-> @@ -630,6 +630,8 @@ struct nft_expr_ops {
->  	int				(*validate)(const struct nft_ctx *ctx,
->  						    const struct nft_expr *expr,
->  						    const struct nft_data **data);
-> +	int				(*clone)(struct nft_expr *dst,
-> +						 const struct nft_expr *src);
+> Why copy if we clone? The function should do a full initialization if it is
+> present I would say.
 
-The functions and data needed during runtime are deliberately kept together
-at the beginning of the structure to avoid having to read the entire thing.
-So I'd say this shoud go after ->eval().
+This is not copying the variable length data area of the expression,
+just the expression head.
 
-> @@ -660,10 +662,20 @@ void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
->  int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
->  		  const struct nft_expr *expr);
->  
-> -static inline void nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
-> +static inline int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
->  {
-> +	int err;
-> +
->  	__module_get(src->ops->type->owner);
-> -	memcpy(dst, src, src->ops->size);
-> +	if (src->ops->clone) {
-> +		memcpy(dst, src, sizeof(*src));
-
-Why copy if we clone? The function should do a full initialization if it is
-present I would say.
-
-> +		err = src->ops->clone(dst, src);
-> +		if (err < 0)
-> +			return err;
-> +	} else {
-> +		memcpy(dst, src, src->ops->size);
-> +	}
-> +	return 0;
->  }
->  
+> > +		err = src->ops->clone(dst, src);
+> > +		if (err < 0)
+> > +			return err;
+> > +	} else {
+> > +		memcpy(dst, src, src->ops->size);
+> > +	}
+> > +	return 0;
+> >  }
+> >  
