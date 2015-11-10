@@ -1,59 +1,75 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC PATCH nft 0/6] flow statement
-Date: Tue, 10 Nov 2015 19:26:03 +0100
-Message-ID: <20151110182603.GA1492@salvia>
-References: <1446834863-18610-1-git-send-email-kaber@trash.net>
- <20151110165156.GA3227@salvia>
- <CAJO99TnH43njpQ-5wO7Ar6jytmqzF4Y2wCr+DNhTWr7_MgtR8g@mail.gmail.com>
- <20151110182344.GD25929@macbook.localdomain>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nf 2/2] netfilter: nf_tables: add clone interface to
+ expression operations
+Date: Tue, 10 Nov 2015 18:30:34 +0000
+Message-ID: <20151110183034.GE25929@macbook.localdomain>
+References: <1447173390-2993-1-git-send-email-pablo@netfilter.org>
+ <1447173390-2993-3-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
-To: =?iso-8859-1?Q?Bj=F8rnar?= Ness <bjornar.ness@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47292 "EHLO salida-rhel7.int"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752851AbbKJS0K (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Nov 2015 13:26:10 -0500
-Received: from antivirus1-rhel7.int (antivirus1.int [192.168.2.11])
-	by salida-rhel7.int (Postfix) with ESMTP id 342331373C1
-	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2015 19:26:09 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 241FD9DCA3
-	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2015 19:26:09 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 3A1829DCA3
-	for <netfilter-devel@vger.kernel.org>; Tue, 10 Nov 2015 19:26:07 +0100 (CET)
+Received: from 161-169.trash.net ([213.144.137.169]:62044 "EHLO
+	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750765AbbKJSai (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Nov 2015 13:30:38 -0500
 Content-Disposition: inline
-In-Reply-To: <20151110182344.GD25929@macbook.localdomain>
+In-Reply-To: <1447173390-2993-3-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 10, 2015 at 06:23:45PM +0000, Patrick McHardy wrote:
-> On 10.11, Bj=F8rnar Ness wrote:
-> > System hangs here if I do the following:
-> >=20
-> > add a flow table
-> >=20
-> > list flowtable, cant make nft list flow table work, so do nft list =
-set
-> > filter test
-> >=20
-> > flush rules and change flowtable concat, for example adding . ip sa=
-ddr
-> >=20
-> > everything seemingly fine this far, but if I now list set filter te=
-st,
-> > system becomes
-> > unresponsive, and a boot seems needed.
->=20
-> Please provide the exact commands you used.
+On 10.11, Pablo Neira Ayuso wrote:
+> With the conversion of the counter expressions to make it percpu, we
+> need to clone the percpu memory area, otherwise we crash when using
+> counters from flow tables.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  include/net/netfilter/nf_tables.h | 16 +++++++++++--
+>  net/netfilter/nft_counter.c       | 49 ++++++++++++++++++++++++++++++++-------
+>  net/netfilter/nft_dynset.c        |  5 ++--
+>  3 files changed, 58 insertions(+), 12 deletions(-)
+> 
+> diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+> index c9149cc..c186457 100644
+> --- a/include/net/netfilter/nf_tables.h
+> +++ b/include/net/netfilter/nf_tables.h
+> @@ -630,6 +630,8 @@ struct nft_expr_ops {
+>  	int				(*validate)(const struct nft_ctx *ctx,
+>  						    const struct nft_expr *expr,
+>  						    const struct nft_data **data);
+> +	int				(*clone)(struct nft_expr *dst,
+> +						 const struct nft_expr *src);
 
-If you using counters, the patches I just posted should resolve the
-problem.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The functions and data needed during runtime are deliberately kept together
+at the beginning of the structure to avoid having to read the entire thing.
+So I'd say this shoud go after ->eval().
+
+> @@ -660,10 +662,20 @@ void nft_expr_destroy(const struct nft_ctx *ctx, struct nft_expr *expr);
+>  int nft_expr_dump(struct sk_buff *skb, unsigned int attr,
+>  		  const struct nft_expr *expr);
+>  
+> -static inline void nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
+> +static inline int nft_expr_clone(struct nft_expr *dst, struct nft_expr *src)
+>  {
+> +	int err;
+> +
+>  	__module_get(src->ops->type->owner);
+> -	memcpy(dst, src, src->ops->size);
+> +	if (src->ops->clone) {
+> +		memcpy(dst, src, sizeof(*src));
+
+Why copy if we clone? The function should do a full initialization if it is
+present I would say.
+
+> +		err = src->ops->clone(dst, src);
+> +		if (err < 0)
+> +			return err;
+> +	} else {
+> +		memcpy(dst, src, src->ops->size);
+> +	}
+> +	return 0;
+>  }
+>  
