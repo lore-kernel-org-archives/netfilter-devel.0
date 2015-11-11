@@ -1,77 +1,79 @@
-From: Phil Whineray <phil@firehol.org>
-Subject: Re: [PATCH] Expose x_tables /proc entries as 0444 not 0440
-Date: Wed, 11 Nov 2015 21:20:50 +0000
-Message-ID: <20151111212050.GA3579@compaq.slightly-cracked.com>
-References: <20151107074939.GA4003@compaq.slightly-cracked.com>
- <20151111165026.GA20549@salvia>
- <20151111184052.GA26909@breakpoint.cc>
- <alpine.LSU.2.20.1511111945170.32360@nerf40.vanv.qr>
- <20151111193539.GA2751@compaq.slightly-cracked.com>
- <alpine.DEB.2.10.1511112105280.16131@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Subject: [PATCH] netfilter: nf_ct_sctp: move ip_ct_sctp away from UAPI
+Date: Wed, 11 Nov 2015 20:17:37 -0200
+Message-ID: <48dd716ff97dba6dbecfc095c174936888f673cd.1447274676.git.marcelo.leitner@gmail.com>
+Cc: Vlad Yasevich <vyasevich@gmail.com>,
+	Neil Horman <nhorman@tuxdriver.com>, linux-sctp@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:37653 "EHLO
-	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752046AbbKKVU7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Nov 2015 16:20:59 -0500
-Received: by wmww144 with SMTP id w144so62052874wmw.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2015 13:20:58 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1511112105280.16131@blackhole.kfki.hu>
+Received: from mx1.redhat.com ([209.132.183.28]:52389 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751522AbbKKWR5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Nov 2015 17:17:57 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 11, 2015 at 09:10:13PM +0100, Jozsef Kadlecsik wrote:
-> On Wed, 11 Nov 2015, Phil Whineray wrote:
-> 
-> > On Wed, Nov 11, 2015 at 07:48:11PM +0100, Jan Engelhardt wrote:
-> > > On Wednesday 2015-11-11 19:40, Florian Westphal wrote:
-> > > >Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > >> > Hiding the contents from non-root users does not achieve anything
-> > > >> > practical. Possible values are well-known and the specifics can
-> > > >> > be inferred from a list of loaded modules on most systems.
-> > > 
-> > > Conversely, an administrator could just load all modules to give a false 
-> > > impression. Since the adversary can in turn expect it, he knows as 
-> > > little as before. In particular, containerized environments will have it 
-> > > such that many modules are loaded, but each container still has their 
-> > > own ruleset.
-> > > So yeah, hiding the contents is not going to achieve anything - nor is 
-> > > showing. (I am concurring here with the other respondents.)
-> > 
-> > Sorry - I've gotten confused about who thinks what exactly. I hope
-> > the below isn't wasting everyone's time.
-> 
-> My opinion is that the files should not be exposed. Whenever it does not 
-> clash something vital and cannot be resolved I run kernels with grsec, 
-> where normal user cannot list the loaded in kernel modules. By exposing 
-> these files, some part of that data would then be leaked out.
-> 
-> > Unhiding /proc/ip_tables_names content achieves something specific: it
-> > is used by iptables-save to determine what it should write out (in
-> > the absence of a specific table being asked for, which I believe is
-> > the norm).
-> > 
-> > I currently have a workaround using a horrific series of bind mounts
-> > which substitutes in a normal file with the values iptables-save expects.
-> > 
-> > Two alternates on the table are:
-> > 
-> > - change ownership of the file in the namespace (wherein a user runs
-> >   "unshare -U -r -n cat /proc/net/ip_tables_names" to do the same as
-> >   "cat /proc/net/ip_tables_names" with 0444 perms, so not adding much
-> >   unless unprivileged namespaces are disabled.
-> 
-> I don't quite understand this: if the ownership of the files are changed, 
-> then why do you need to change the access right to 0444?
+ip_ct_sctp is an internal structure, embedded by the union
+nf_conntrack_proto to store sctp-specific information at conntrack
+entries. It has no business with UAPI.
 
-You're right, I don't. I was just noting point that if unprivileged
-namespaces are available, either suffices for a regular user to see the
-contents.
+This patch moves it from UAPI to a saner place, together with similar
+structs for other protocols.
 
-Cheers
-Phil
+Signed-off-by: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+---
+
+No need to update MAINTAINERS.
+New header is pulled in automatically due to path preference.
+
+ include/linux/netfilter/nf_conntrack_sctp.h      | 13 +++++++++++++
+ include/uapi/linux/netfilter/nf_conntrack_sctp.h | 12 +++---------
+ 2 files changed, 16 insertions(+), 9 deletions(-)
+ create mode 100644 include/linux/netfilter/nf_conntrack_sctp.h
+
+diff --git a/include/linux/netfilter/nf_conntrack_sctp.h b/include/linux/netfilter/nf_conntrack_sctp.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..22a16a23cd8a7e3d6d000ee7249477a3fef11604
+--- /dev/null
++++ b/include/linux/netfilter/nf_conntrack_sctp.h
+@@ -0,0 +1,13 @@
++#ifndef _NF_CONNTRACK_SCTP_H
++#define _NF_CONNTRACK_SCTP_H
++/* SCTP tracking. */
++
++#include <uapi/linux/netfilter/nf_conntrack_sctp.h>
++
++struct ip_ct_sctp {
++	enum sctp_conntrack state;
++
++	__be32 vtag[IP_CT_DIR_MAX];
++};
++
++#endif /* _NF_CONNTRACK_SCTP_H */
+diff --git a/include/uapi/linux/netfilter/nf_conntrack_sctp.h b/include/uapi/linux/netfilter/nf_conntrack_sctp.h
+index ed4e776e1242f586cf1062646903e9afc7bb1af6..2cbc366c3fb4725d06a2def46ac0d54d0dc184f6 100644
+--- a/include/uapi/linux/netfilter/nf_conntrack_sctp.h
++++ b/include/uapi/linux/netfilter/nf_conntrack_sctp.h
+@@ -1,5 +1,5 @@
+-#ifndef _NF_CONNTRACK_SCTP_H
+-#define _NF_CONNTRACK_SCTP_H
++#ifndef _UAPI_NF_CONNTRACK_SCTP_H
++#define _UAPI_NF_CONNTRACK_SCTP_H
+ /* SCTP tracking. */
+ 
+ #include <linux/netfilter/nf_conntrack_tuple_common.h>
+@@ -18,10 +18,4 @@ enum sctp_conntrack {
+ 	SCTP_CONNTRACK_MAX
+ };
+ 
+-struct ip_ct_sctp {
+-	enum sctp_conntrack state;
+-
+-	__be32 vtag[IP_CT_DIR_MAX];
+-};
+-
+-#endif /* _NF_CONNTRACK_SCTP_H */
++#endif /* _UAPI_NF_CONNTRACK_SCTP_H */
+-- 
+2.4.3
+
