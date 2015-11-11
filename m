@@ -1,114 +1,64 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [conntrackd PATCH 2/2 v2] conntrackd: add systemd support
-Date: Wed, 11 Nov 2015 19:18:20 +0100
-Message-ID: <CAOkSjBi=MMnYNPPzTee5P3eOFCRBymEOoUDAZFQohr+Tk_LLgw@mail.gmail.com>
-References: <144619584355.30622.12279676149815885959.stgit@r2d2.cica.es>
- <20151106135318.GA7657@salvia> <CAOkSjBh92vvnW2UV=6E3V8ha1+wRi0+eLuPcoyPQku1K0SCakw@mail.gmail.com>
- <20151111155933.GA20284@salvia>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] Expose x_tables /proc entries as 0444 not 0440
+Date: Wed, 11 Nov 2015 19:25:01 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1511111913560.15537@blackhole.kfki.hu>
+References: <20151107074939.GA4003@compaq.slightly-cracked.com> <20151111165026.GA20549@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Philip Whineray <phil@firehol.org>, netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:33000 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751838AbbKKSSl convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Nov 2015 13:18:41 -0500
-Received: by wmec201 with SMTP id c201so194166962wme.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2015 10:18:40 -0800 (PST)
-In-Reply-To: <20151111155933.GA20284@salvia>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:49174 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750765AbbKKSXY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Nov 2015 13:23:24 -0500
+In-Reply-To: <20151111165026.GA20549@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 11 November 2015 at 16:59, Pablo Neira Ayuso <pablo@netfilter.org> w=
-rote:
-> On Fri, Nov 06, 2015 at 04:59:22PM +0100, Arturo Borrero Gonzalez wro=
-te:
->> On 6 November 2015 at 14:53, Pablo Neira Ayuso <pablo@netfilter.org>=
- wrote:
->> >> +void sd_ct_watchdog_init(void)
->> >> +{
->> >> +     /* ignoring systemd API erros: only care if admin expects w=
-atchdog */
->> >
->> > Not sure what you mean with this comment.
->>
->> The API call may returns:
->>  * negative errno-style error code
->>  * 0 if watchdog is not expected by systemd for this daemon
->>  * >0 if watchdog is expected by systemd for this daemon
->>
->> My patch ignores the 2 first options, we only continue executing thi=
-s
->> function if watchdog is expected by systemd (i.e, the admin configur=
-ed
->> it).
->
-> I think it is a good idea to report that no systemd watchdog is going
-> on through log messages.
+On Wed, 11 Nov 2015, Pablo Neira Ayuso wrote:
 
-Ok.
+> On Sat, Nov 07, 2015 at 07:49:39AM +0000, Philip Whineray wrote:
+> > Reading these files is impossible in an unprivileged user namespace,
+> > interfering with various firewall tools. For instance, iptables-save
+> > relies on reading /proc/net/ip_tables_names to dump only loaded tables.
+> > 
+> > Hiding the contents from non-root users does not achieve anything
+> > practical. Possible values are well-known and the specifics can
+> > be inferred from a list of loaded modules on most systems.
+> > 
+> > Signed-off-by: Philip Whineray <phil@firehol.org>
+> > ---
+> > An alternate might be to change the ownership of the files within the
+> > namespace when it is created:
+> > 
+> > https://lists.linuxcontainers.org/pipermail/lxc-users/2014-November/008110.html
+> > 
+> > I do not see that there is much advantage to this, it just ties the
+> > ability to read the files to the ability to create an unprivileged
+> > namespace.
+> 
+> So I understood this correctly, this approach would set the ownership
+> of the /proc entry to the corresponding root uid mapping from the
+> unpriviledged namespace, right? If so, I would prefer that approach.
+> 
+> This is partially leaking the filtering policy to non-root users as it
+> contains what modules are being used, so you can at least infer how
+> complex your ruleset is.
+> 
+> And I guess it will not be long time until someone else will follow up
+> with a similar patch later on to expose the content of
+> /proc/net/nf_conntrack to get this working on unpriviledged namespaces
+> too.
 
->
->> I ignored errors because I would not like to exit conntrackd if ther=
-e
->> is some issue in the systemd side, just ignore it.
->>
->> >
->> >> +     if (sd_watchdog_enabled(0, &sd_watchdog_interval) < 1)
->> >
->> > So sd_watchdog_enabled is setting sd_watchdog_interval?
->> >
->> > What is the value that sd_watchdog_interval is being set?
->> >
->>
->> Yes, only if sd_watchdog_enabled returned >0.
->>
->> From the man page:
->>
->> ""
->> int sd_watchdog_enabled(int unset_environment, uint64_t *usec);
->> [...]
->> If the usec parameter is non-NULL, sd_watchdog_enabled() will write
->> the timeout in =E7=9B=9C for the watchdog logic to it.
->> ""
->
-> I guess this is configured from systemd, what is the default?
+Can't it be worked out by using CAP_NET_ADMIN? I don't really like the 
+idea to expose the files to non root users or users with not sufficient 
+capabilities.
 
-No defaults, an explicit timeout is required by systemd if whatdog is
-configured.
-Well, the default timeout time is 0 seconds, which disables the systemd=
- feature.
-So the admin has to select one (in seconds).
-
->
-> On top of this, I wonder if we should have a configuration option fro=
-m
-> our configuration file, something that allows us to do "Systemd Off".
-> I would suggest default in "Systemd On" if not specified, given that
-> main distros decided to follow this path.
->
-> After this patch, we can only enable/disable systemd integration at
-> configuration/compilation stage, however I expect most users will be
-> using packages from distros. I think it would be good to provide them
-> a runtime way to disable this if they don't want any interference wit=
-h
-> their existing infrastructure.
->
-> Does this sound reasonable to you? Other than that above, this patch
-> looks good to me.
-
-Yeah, I agree. Will do that ASAP.
-
-thanks.
-
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
