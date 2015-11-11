@@ -1,50 +1,52 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC PATCH nft 4/6] set_elem: parse expressions attached to set
- elements
-Date: Wed, 11 Nov 2015 13:37:53 +0100
-Message-ID: <20151111123753.GA2920@salvia>
-References: <1446834863-18610-1-git-send-email-kaber@trash.net>
- <1446834863-18610-5-git-send-email-kaber@trash.net>
+Subject: Re: [PATCH] netfilter: nfnetlink_log: work around uninitialized
+ variable warning
+Date: Wed, 11 Nov 2015 14:17:42 +0100
+Message-ID: <20151111131742.GA6079@salvia>
+References: <17817903.Md6b3ydRpX@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, Ken-ichirou MATSUZAWA <chamaken@gmail.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Arnd Bergmann <arnd@arndb.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41573 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53689 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752173AbbKKMh6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Nov 2015 07:37:58 -0500
+	id S1752122AbbKKNRq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Nov 2015 08:17:46 -0500
 Received: from antivirus1-rhel7.int (antivirus1.int [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id BAFC11714E0
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2015 13:37:56 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id 987681392C2
+	for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2015 14:17:45 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id AA6E3C882C
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2015 13:37:56 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 838114EE81
+	for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2015 14:17:45 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id C6BAB1FE3C2
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2015 13:37:54 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 675F04EE8C
+	for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2015 14:17:43 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1446834863-18610-5-git-send-email-kaber@trash.net>
+In-Reply-To: <17817903.Md6b3ydRpX@wuerfel>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Nov 06, 2015 at 06:34:21PM +0000, Patrick McHardy wrote:
->  static void set_elem_expr_destroy(struct expr *expr)
-> diff --git a/src/netlink.c b/src/netlink.c
-> index ad86084..3bef5f4 100644
-> --- a/src/netlink.c
-> +++ b/src/netlink.c
-> @@ -1472,6 +1472,8 @@ static int netlink_delinearize_setelem(struct nftnl_set_elem *nlse,
->  		expr->comment = xmalloc(len);
->  		memcpy((char *)expr->comment, data, len);
->  	}
-> +	if (nftnl_set_elem_is_set(nlse, NFT_SET_ELEM_ATTR_EXPR))
-> +		expr->stmt = netlink_parse_set_expr(set, (void *)nftnl_set_elem_get(nlse, NFT_SET_ELEM_ATTR_EXPR, NULL));
+On Tue, Nov 10, 2015 at 01:08:15PM +0100, Arnd Bergmann wrote:
+> After a recent (correct) change, gcc started warning about the use
+> of the 'flags' variable in nfulnl_recv_config()
+> 
+> net/netfilter/nfnetlink_log.c: In function 'nfulnl_recv_config':
+> net/netfilter/nfnetlink_log.c:320:14: warning: 'flags' may be used uninitialized in this function [-Wmaybe-uninitialized]
+> net/netfilter/nfnetlink_log.c:828:6: note: 'flags' was declared here
+> 
+> The warning first shows up in ARM s3c2410_defconfig with gcc-4.3 or
+> higher (including 5.2.1, which is the latest version I checked) I
+> tried working around it by rearranging the code but had no success
+> with that.
+> 
+> As a last resort, this initializes the variable to zero, which shuts
+> up the warning, but means that we don't get a warning if the code
+> is ever changed in a way that actually causes the variable to be
+> used without first being written.
 
-
-Minor nit I just noticed: please use NFTNL_SET_ELEM_EXPR here instead,
-the old constant definitions will go after a couple of libnftnl
-releases, they have been left there just to make the transition a bit
-less traumatic.
-
-Thanks.
+Applied, thanks!
