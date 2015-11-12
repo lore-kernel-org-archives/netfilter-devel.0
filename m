@@ -1,40 +1,57 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: Sander Eikelenboom <linux@eikelenboom.it>
 Subject: Re: [linux-4.4-mw] BUG: unable to handle kernel paging request
- ip_vs_out.constprop
-Date: Thu, 12 Nov 2015 08:52:26 -0800
-Message-ID: <1447347146.22599.22.camel@edumazet-glaptop2.roam.corp.google.com>
+ =?UTF-8?Q?ip=5Fvs=5Fout=2Econstprop?=
+Date: Thu, 12 Nov 2015 18:12:03 +0100
+Message-ID: <fef480295a9499b1990ca881316516d6@eikelenboom.it>
 References: <06dc952f98f54da2c4d85b31e5fa9826@eikelenboom.it>
-	 <1447337353.22599.14.camel@edumazet-glaptop2.roam.corp.google.com>
-	 <b95f4a06d7d9b13849ad277128690436@eikelenboom.it>
+ <1447337353.22599.14.camel@edumazet-glaptop2.roam.corp.google.com>
+ <b95f4a06d7d9b13849ad277128690436@eikelenboom.it>
+ <1447347146.22599.22.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Sander Eikelenboom <linux@eikelenboom.it>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:36813 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932381AbbKLQw2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Nov 2015 11:52:28 -0500
-In-Reply-To: <b95f4a06d7d9b13849ad277128690436@eikelenboom.it>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1447347146.22599.22.camel@edumazet-glaptop2.roam.corp.google.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2015-11-12 at 16:16 +0100, Sander Eikelenboom wrote:
-
-> > Thanks for the report, please try following patch :
+On 2015-11-12 17:52, Eric Dumazet wrote:
+> On Thu, 2015-11-12 at 16:16 +0100, Sander Eikelenboom wrote:
 > 
-> Hi Eric,
+>> > Thanks for the report, please try following patch :
+>> 
+>> Hi Eric,
+>> 
+>> Thanks for the patch!
+>> Got it up and running at the moment, but since i don't have a clear
+>> trigger it
+>> will take 1 or 2 days before i can report something back.
 > 
-> Thanks for the patch!
-> Got it up and running at the moment, but since i don't have a clear 
-> trigger it
-> will take 1 or 2 days before i can report something back.
+> Don't worry, I have a pretty good picture of the bug and patch must fix
+> it.
+> 
+> I'll submit it formally asap.
 
-Don't worry, I have a pretty good picture of the bug and patch must fix
-it.
+Ok.
 
-I'll submit it formally asap.
+Do you know were these new warnings are for ?
+(apparently all networking including bridging works fine, so is this 
+just too verbose logging ?)
 
+[  207.033768] vif vif-1-0 vif1.0: set_features() failed (-1); wanted
+0x0000000400004803, left 0x0000000400114813
+[  207.033780] vif vif-1-0 vif1.0: set_features() failed (-1); wanted
+0x0000000400004803, left 0x0000000400114813
+[  207.245435] xen_bridge: error setting offload STP state on port
+1(vif1.0)
+[  207.245442] vif vif-1-0 vif1.0: failed to set HW ageing time
+[  207.245443] xen_bridge: error setting offload STP state on port
+1(vif1.0)
+[  207.245491] vif vif-1-0 vif1.0: set_features() failed (-1); wanted
+0x0000000400004803, left 0x0000000400114813
 
+--
+Sander
