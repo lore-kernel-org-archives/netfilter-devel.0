@@ -1,38 +1,56 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 00/10] Netfilter fixes for net
-Date: Fri, 13 Nov 2015 19:52:58 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1511131951410.29408@blackhole.kfki.hu>
-References: <1447263223-22662-1-git-send-email-pablo@netfilter.org> <CA+5PVA7bbnn+29+pc-JwXDUtNn36Eab0K7U1hOY09hf3T-7q1Q@mail.gmail.com>
+From: Neutron Soutmun <neo.neutron@gmail.com>
+Subject: Re: [PATCH v4] libmnl: Drop the EXPORT_SYMBOL() tags
+Date: Sat, 14 Nov 2015 07:45:44 +0700
+Message-ID: <CAMQP0snn7nt=iK6Um4doYFPSn1ffTDtUOKi8NBjp=ZCE58EXQw@mail.gmail.com>
+References: <20151029190717.GE5154@vapier.lan>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: text/plain; charset=UTF-8
+To: 20151006012711.GA5372@oxygen.gentoo.org,
 	netfilter-devel@vger.kernel.org,
-	David Miller <davem@davemloft.net>,
-	netdev <netdev@vger.kernel.org>
-To: Josh Boyer <jwboyer@fedoraproject.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CA+5PVA7bbnn+29+pc-JwXDUtNn36Eab0K7U1hOY09hf3T-7q1Q@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	Neutron Soutmun <neo.neutron@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-io0-f169.google.com ([209.85.223.169]:34092 "EHLO
+	mail-io0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751085AbbKNApp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 13 Nov 2015 19:45:45 -0500
+Received: by ioir85 with SMTP id r85so73146312ioi.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Nov 2015 16:45:44 -0800 (PST)
+In-Reply-To: <20151029190717.GE5154@vapier.lan>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 13 Nov 2015, Josh Boyer wrote:
+On Fri, Oct 30, 2015 at 2:07 AM, Mike Frysinger <vapier@gentoo.org> wrote:
+> Neutron Soutmun wrote:
+>> * libmnl using an export map (-Wl,--version-script=),
+>>  hence, no need to explicitly use the EXPORT_SYMBOL() tags.
+>
+> this isn't entirely accurate.  the use of hidden visibility allows for
+> optimizations (e.g. bypassing the PLT).  export maps merely control the
+> final visibility of the symbols at link time ... gcc is forced to assume
+> every function call otherwise is still globally visible (exported).
+>
+> it doesn't make a big difference in the libmnl case as there aren't any
+> real internal-only symbols, but in larger libraries, this sort of change
+> increases code size and runtime overhead.
+>
+> this is why libraries take a different approach: set default visibility
+> to hidden and then update the header with a macro like EXPORT.  there is
+> only one file to declare the prototypes and the visibility markings are
+> right there.  no need for EXPORT_SYMBOL() lines.  the export map is only
+> really for toolchains that lack visibility support.
 
-> On Wed, Nov 11, 2015 at 12:33 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Jozsef Kadlecsik (3):
-> >       netfilter: ipset: Fix extension alignment
-> >       netfilter: ipset: Fix hash:* type expiration
-> >       netfilter: ipset: Fix hash type expire: release empty hash bucket block
-> 
-> Should these three go to stable?  We've had reports in Fedora about
-> ipset crashing on e.g. ARM architectures with 4.2.y kernels.  If not
-> all three, then perhaps just the alignment fix?
+Thanks to point to this, it really make sense.
 
-Yes, those should definitely go to stable, at least the first two ones.
+> something as simple as the patch below
+> -mike
+
+The initial problem for my proposed patch is the incompatible of
+symbols visibility in gcc and clang
+which libmnl is failed to build from source in clang and it's the one
+of another approaches that pass the build in both gcc and clang.
+
+I'll test your patch with clang and back to you ASAP.
 
 Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Neutron Soutmun
