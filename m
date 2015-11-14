@@ -1,83 +1,100 @@
-From: Philip Whineray <phil@firehol.org>
-Subject: [PATCH v2] Root in namespace owns x_tables /proc entries
-Date: Sat, 14 Nov 2015 09:12:14 +0000
-Message-ID: <20151114091214.GA486@compaq.slightly-cracked.com>
-References: <20151111165026.GA20549@salvia>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH net] ipvs: use skb_to_full_sk() helper
+Date: Sat, 14 Nov 2015 13:37:46 +0200 (EET)
+Message-ID: <alpine.LFD.2.11.1511141333380.1496@ja.home.ssi.bg>
+References: <06dc952f98f54da2c4d85b31e5fa9826@eikelenboom.it>  <1447337353.22599.14.camel@edumazet-glaptop2.roam.corp.google.com>  <b95f4a06d7d9b13849ad277128690436@eikelenboom.it> <1447348452.22599.28.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jan Engelhardt <jengelh@inai.de>,
-	netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:37595 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974AbbKNJMU (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 14 Nov 2015 04:12:20 -0500
-Received: by wmww144 with SMTP id w144so59752685wmw.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 14 Nov 2015 01:12:18 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20151111165026.GA20549@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Sander Eikelenboom <linux@eikelenboom.it>,
+	David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1447348452.22599.28.camel@edumazet-glaptop2.roam.corp.google.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Reading these files is impossible in an unprivileged user namespace,
-interfering with various firewall tools. For instance, iptables-save
-relies on reading /proc/net/ip_tables_names to dump only loaded tables.
----
 
-Please don't apply in current form - it doesn't work. The namespace is
-only set up after the /proc entry is created so it keeps the original
-owner (an unshare within an unshare can work... mapping root to root).
+	Hello,
 
-Since it's in danger of getting quite complicate, would one or more of
-the following be acceptable?
+On Thu, 12 Nov 2015, Eric Dumazet wrote:
 
-- Choose permission in a module parameter
+> From: Eric Dumazet <edumazet@google.com>
+> 
+> SYNACK packets might be attached to request sockets.
+> 
+> Use skb_to_full_sk() helper to avoid illegal accesses to
+> inet_sk(skb->sk)
+> 
+> Fixes: ca6fb0651883 ("tcp: attach SYNACK messages to request sockets instead of listener")
+> Signed-off-by: Eric Dumazet <edumazet@google.com>
+> Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
 
-- Allow setting with sysctl e.g. net.netfilter.conf.xtable_proc_perms
+	Looks good, I guess Simon will take the patch for
+the ipvs tree.
 
-- Match permissions of /proc/modules (grsec restricts these so we will
-  gain the same policy).
+Acked-by: Julian Anastasov <ja@ssi.bg>
 
-I also worked on a capabilities patch but that made userspace much more
-complicated in a namespace than outside one. It would be simpler
-to patch programs to read /proc/modules or assume the contents if they
-can't read /proc/net/ip_tables_names.
+> ---
+>  net/netfilter/ipvs/ip_vs_core.c |   16 ++++++++--------
+>  1 file changed, 8 insertions(+), 8 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index 1e24fff53e4b..f57b4dcdb233 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -1176,6 +1176,7 @@ ip_vs_out(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, in
+>  	struct ip_vs_protocol *pp;
+>  	struct ip_vs_proto_data *pd;
+>  	struct ip_vs_conn *cp;
+> +	struct sock *sk;
+>  
+>  	EnterFunction(11);
+>  
+> @@ -1183,13 +1184,12 @@ ip_vs_out(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, in
+>  	if (skb->ipvs_property)
+>  		return NF_ACCEPT;
+>  
+> +	sk = skb_to_full_sk(skb);
+>  	/* Bad... Do not break raw sockets */
+> -	if (unlikely(skb->sk != NULL && hooknum == NF_INET_LOCAL_OUT &&
+> +	if (unlikely(sk && hooknum == NF_INET_LOCAL_OUT &&
+>  		     af == AF_INET)) {
+> -		struct sock *sk = skb->sk;
+> -		struct inet_sock *inet = inet_sk(skb->sk);
+>  
+> -		if (inet && sk->sk_family == PF_INET && inet->nodefrag)
+> +		if (sk->sk_family == PF_INET && inet_sk(sk)->nodefrag)
+>  			return NF_ACCEPT;
+>  	}
+>  
+> @@ -1681,6 +1681,7 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
+>  	struct ip_vs_conn *cp;
+>  	int ret, pkts;
+>  	int conn_reuse_mode;
+> +	struct sock *sk;
+>  
+>  	/* Already marked as IPVS request or reply? */
+>  	if (skb->ipvs_property)
+> @@ -1708,12 +1709,11 @@ ip_vs_in(struct netns_ipvs *ipvs, unsigned int hooknum, struct sk_buff *skb, int
+>  	ip_vs_fill_iph_skb(af, skb, false, &iph);
+>  
+>  	/* Bad... Do not break raw sockets */
+> -	if (unlikely(skb->sk != NULL && hooknum == NF_INET_LOCAL_OUT &&
+> +	sk = skb_to_full_sk(skb);
+> +	if (unlikely(sk && hooknum == NF_INET_LOCAL_OUT &&
+>  		     af == AF_INET)) {
+> -		struct sock *sk = skb->sk;
+> -		struct inet_sock *inet = inet_sk(skb->sk);
+>  
+> -		if (inet && sk->sk_family == PF_INET && inet->nodefrag)
+> +		if (sk->sk_family == PF_INET && inet_sk(sk)->nodefrag)
+>  			return NF_ACCEPT;
+>  	}
 
- net/netfilter/x_tables.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+Regards
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 9b42b5e..671654d 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1227,6 +1227,8 @@ int xt_proto_init(struct net *net, u_int8_t af)
- #ifdef CONFIG_PROC_FS
- 	char buf[XT_FUNCTION_MAXNAMELEN];
- 	struct proc_dir_entry *proc;
-+	kuid_t root_uid;
-+	kgid_t root_gid;
- #endif
- 
- 	if (af >= ARRAY_SIZE(xt_prefix))
-@@ -1234,12 +1236,16 @@ int xt_proto_init(struct net *net, u_int8_t af)
- 
- 
- #ifdef CONFIG_PROC_FS
-+	root_uid = make_kuid(current_user_ns(), 1000);
-+	root_gid = make_kgid(current_user_ns(), 1000);
-+
- 	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_TABLES, sizeof(buf));
- 	proc = proc_create_data(buf, 0440, net->proc_net, &xt_table_ops,
- 				(void *)(unsigned long)af);
- 	if (!proc)
- 		goto out;
-+	proc_set_user(proc, root_uid, root_gid);
- 
- 	strlcpy(buf, xt_prefix[af], sizeof(buf));
- 	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
--- 
-2.1.4
-
+--
+Julian Anastasov <ja@ssi.bg>
