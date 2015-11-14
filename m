@@ -1,56 +1,83 @@
-From: Neutron Soutmun <neo.neutron@gmail.com>
-Subject: Re: [PATCH v4] libmnl: Drop the EXPORT_SYMBOL() tags
-Date: Sat, 14 Nov 2015 07:45:44 +0700
-Message-ID: <CAMQP0snn7nt=iK6Um4doYFPSn1ffTDtUOKi8NBjp=ZCE58EXQw@mail.gmail.com>
-References: <20151029190717.GE5154@vapier.lan>
+From: Philip Whineray <phil@firehol.org>
+Subject: [PATCH v2] Root in namespace owns x_tables /proc entries
+Date: Sat, 14 Nov 2015 09:12:14 +0000
+Message-ID: <20151114091214.GA486@compaq.slightly-cracked.com>
+References: <20151111165026.GA20549@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: 20151006012711.GA5372@oxygen.gentoo.org,
-	netfilter-devel@vger.kernel.org,
-	Neutron Soutmun <neo.neutron@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jan Engelhardt <jengelh@inai.de>,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-io0-f169.google.com ([209.85.223.169]:34092 "EHLO
-	mail-io0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751085AbbKNApp (ORCPT
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:37595 "EHLO
+	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750974AbbKNJMU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Nov 2015 19:45:45 -0500
-Received: by ioir85 with SMTP id r85so73146312ioi.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Nov 2015 16:45:44 -0800 (PST)
-In-Reply-To: <20151029190717.GE5154@vapier.lan>
+	Sat, 14 Nov 2015 04:12:20 -0500
+Received: by wmww144 with SMTP id w144so59752685wmw.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 14 Nov 2015 01:12:18 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20151111165026.GA20549@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Oct 30, 2015 at 2:07 AM, Mike Frysinger <vapier@gentoo.org> wrote:
-> Neutron Soutmun wrote:
->> * libmnl using an export map (-Wl,--version-script=),
->>  hence, no need to explicitly use the EXPORT_SYMBOL() tags.
->
-> this isn't entirely accurate.  the use of hidden visibility allows for
-> optimizations (e.g. bypassing the PLT).  export maps merely control the
-> final visibility of the symbols at link time ... gcc is forced to assume
-> every function call otherwise is still globally visible (exported).
->
-> it doesn't make a big difference in the libmnl case as there aren't any
-> real internal-only symbols, but in larger libraries, this sort of change
-> increases code size and runtime overhead.
->
-> this is why libraries take a different approach: set default visibility
-> to hidden and then update the header with a macro like EXPORT.  there is
-> only one file to declare the prototypes and the visibility markings are
-> right there.  no need for EXPORT_SYMBOL() lines.  the export map is only
-> really for toolchains that lack visibility support.
+Reading these files is impossible in an unprivileged user namespace,
+interfering with various firewall tools. For instance, iptables-save
+relies on reading /proc/net/ip_tables_names to dump only loaded tables.
+---
 
-Thanks to point to this, it really make sense.
+Please don't apply in current form - it doesn't work. The namespace is
+only set up after the /proc entry is created so it keeps the original
+owner (an unshare within an unshare can work... mapping root to root).
 
-> something as simple as the patch below
-> -mike
+Since it's in danger of getting quite complicate, would one or more of
+the following be acceptable?
 
-The initial problem for my proposed patch is the incompatible of
-symbols visibility in gcc and clang
-which libmnl is failed to build from source in clang and it's the one
-of another approaches that pass the build in both gcc and clang.
+- Choose permission in a module parameter
 
-I'll test your patch with clang and back to you ASAP.
+- Allow setting with sysctl e.g. net.netfilter.conf.xtable_proc_perms
 
-Best regards,
-Neutron Soutmun
+- Match permissions of /proc/modules (grsec restricts these so we will
+  gain the same policy).
+
+I also worked on a capabilities patch but that made userspace much more
+complicated in a namespace than outside one. It would be simpler
+to patch programs to read /proc/modules or assume the contents if they
+can't read /proc/net/ip_tables_names.
+
+ net/netfilter/x_tables.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 9b42b5e..671654d 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1227,6 +1227,8 @@ int xt_proto_init(struct net *net, u_int8_t af)
+ #ifdef CONFIG_PROC_FS
+ 	char buf[XT_FUNCTION_MAXNAMELEN];
+ 	struct proc_dir_entry *proc;
++	kuid_t root_uid;
++	kgid_t root_gid;
+ #endif
+ 
+ 	if (af >= ARRAY_SIZE(xt_prefix))
+@@ -1234,12 +1236,16 @@ int xt_proto_init(struct net *net, u_int8_t af)
+ 
+ 
+ #ifdef CONFIG_PROC_FS
++	root_uid = make_kuid(current_user_ns(), 1000);
++	root_gid = make_kgid(current_user_ns(), 1000);
++
+ 	strlcpy(buf, xt_prefix[af], sizeof(buf));
+ 	strlcat(buf, FORMAT_TABLES, sizeof(buf));
+ 	proc = proc_create_data(buf, 0440, net->proc_net, &xt_table_ops,
+ 				(void *)(unsigned long)af);
+ 	if (!proc)
+ 		goto out;
++	proc_set_user(proc, root_uid, root_gid);
+ 
+ 	strlcpy(buf, xt_prefix[af], sizeof(buf));
+ 	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
+-- 
+2.1.4
+
