@@ -1,45 +1,39 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH v2] Root in namespace owns x_tables /proc entries
-Date: Sun, 15 Nov 2015 19:53:53 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1511151951050.9313@blackhole.kfki.hu>
-References: <20151114091214.GA486@compaq.slightly-cracked.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net] ipvs: use skb_to_full_sk() helper
+Date: Sun, 15 Nov 2015 18:40:22 -0500 (EST)
+Message-ID: <20151115.184022.199593714221031833.davem@davemloft.net>
+References: <1447337353.22599.14.camel@edumazet-glaptop2.roam.corp.google.com>
+	<b95f4a06d7d9b13849ad277128690436@eikelenboom.it>
+	<1447348452.22599.28.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jan Engelhardt <jengelh@inai.de>,
-	netfilter-devel@vger.kernel.org
-To: Philip Whineray <phil@firehol.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: linux@eikelenboom.it, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, wensong@linux-vs.org,
+	horms@verge.net.au, ja@ssi.bg, lvs-devel@vger.kernel.org
+To: eric.dumazet@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:45407 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751629AbbKOSwN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 15 Nov 2015 13:52:13 -0500
-In-Reply-To: <20151114091214.GA486@compaq.slightly-cracked.com>
+Received: from shards.monkeyblade.net ([149.20.54.216]:55920 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751740AbbKOXkZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 15 Nov 2015 18:40:25 -0500
+In-Reply-To: <1447348452.22599.28.camel@edumazet-glaptop2.roam.corp.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Philip,
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Date: Thu, 12 Nov 2015 09:14:12 -0800
 
-On Sat, 14 Nov 2015, Philip Whineray wrote:
-
-> Since it's in danger of getting quite complicate, would one or more of
-> the following be acceptable?
+> From: Eric Dumazet <edumazet@google.com>
 > 
-> - Choose permission in a module parameter
+> SYNACK packets might be attached to request sockets.
 > 
-> - Allow setting with sysctl e.g. net.netfilter.conf.xtable_proc_perms
+> Use skb_to_full_sk() helper to avoid illegal accesses to
+> inet_sk(skb->sk)
 > 
-> - Match permissions of /proc/modules (grsec restricts these so we will
->   gain the same policy).
+> Fixes: ca6fb0651883 ("tcp: attach SYNACK messages to request sockets instead of listener")
+> Signed-off-by: Eric Dumazet <edumazet@google.com>
+> Reported-by: Sander Eikelenboom <linux@eikelenboom.it>
 
-In my opinion either one is good and I'd pick the sysctl setting. That way 
-the permissions could be changed without reloading the module and 
-independently of the permissions of /proc/modules.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+I'll apply this directly, thanks.
