@@ -1,27 +1,28 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] net-ipv6: Delete unnecessary checks before the function
- call "kfree_skb"
-Date: Sat, 14 Nov 2015 19:32:25 -0800
-Message-ID: <1447558345.22599.64.camel@edumazet-glaptop2.roam.corp.google.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: Re: net-ipv6: Delete unnecessary checks before the function call
+ "kfree_skb"
+Date: Sun, 15 Nov 2015 07:17:46 +0100
+Message-ID: <5648238A.20109@users.sourceforge.net>
 References: <5307CAA2.8060406@users.sourceforge.net>
-	 <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
-	 <530A086E.8010901@users.sourceforge.net>
-	 <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
-	 <530A72AA.3000601@users.sourceforge.net>
-	 <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
-	 <530B5FB6.6010207@users.sourceforge.net>
-	 <alpine.DEB.2.10.1402241710370.2074@hadrien>
-	 <530C5E18.1020800@users.sourceforge.net>
-	 <alpine.DEB.2.10.1402251014170.2080@hadrien>
-	 <530CD2C4.4050903@users.sourceforge.net>
-	 <alpine.DEB.2.10.1402251840450.7035@hadrien>
-	 <530CF8FF.8080600@users.sourceforge.net>
-	 <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
-	 <530DD06F.4090703@users.sourceforge.net>
-	 <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
-	 <5317A59D.4@users.sourceforge.net> <564785ED.1040906@users.sourceforge.net>
+ <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
+ <530A086E.8010901@users.sourceforge.net>
+ <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
+ <530A72AA.3000601@users.sourceforge.net>
+ <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
+ <530B5FB6.6010207@users.sourceforge.net>
+ <alpine.DEB.2.10.1402241710370.2074@hadrien>
+ <530C5E18.1020800@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251014170.2080@hadrien>
+ <530CD2C4.4050903@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251840450.7035@hadrien>
+ <530CF8FF.8080600@users.sourceforge.net>
+ <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
+ <530DD06F.4090703@users.sourceforge.net>
+ <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
+ <5317A59D.4@users.sourceforge.net> <564785ED.1040906@users.sourceforge.net>
+ <1447558345.22599.64.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
 	"David S. Miller" <davem@davemloft.net>,
@@ -34,59 +35,19 @@ Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
 	LKML <linux-kernel@vger.kernel.org>,
 	kernel-janitors@vger.kernel.org,
 	Julia Lawall <julia.lawall@lip6.fr>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Return-path: <kernel-janitors-owner@vger.kernel.org>
-In-Reply-To: <564785ED.1040906@users.sourceforge.net>
-Sender: kernel-janitors-owner@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1447558345.22599.64.camel@edumazet-glaptop2.roam.corp.google.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, 2015-11-14 at 20:05 +0100, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Sat, 14 Nov 2015 19:55:00 +0100
+> While if the test is done in kfree_skb(), the branch predictor of the
+> cpu wont be able to predict things.
 > 
-> The kfree_skb() function tests whether its argument is NULL and then
-> returns immediately. Thus the test around the calls is not needed.
-> 
-> This issue was detected by using the Coccinelle software.
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  net/ipv6/af_inet6.c                     | 7 ++-----
->  net/ipv6/netfilter/nf_conntrack_reasm.c | 3 +--
->  2 files changed, 3 insertions(+), 7 deletions(-)
-> 
-> diff --git a/net/ipv6/af_inet6.c b/net/ipv6/af_inet6.c
-> index 44bb66b..4cd9259 100644
-> --- a/net/ipv6/af_inet6.c
-> +++ b/net/ipv6/af_inet6.c
-> @@ -416,12 +416,9 @@ void inet6_destroy_sock(struct sock *sk)
->  	/* Release rx options */
->  
->  	skb = xchg(&np->pktoptions, NULL);
-> -	if (skb)
-> -		kfree_skb(skb);
-> -
-> +	kfree_skb(skb);
->  	skb = xchg(&np->rxpmtu, NULL);
-> -	if (skb)
-> -		kfree_skb(skb);
-> +	kfree_skb(skb);
->  
+> By feeding too many NULL pointers to kfree_skb(), we slow down it.
 
-There is no 'issue' here, or not this one.
+Would it make sense to annotate checks before such function calls
+as "UNLIKELY"?
 
-In most cases, these pointers are NULL, so the test can be predicted by
-the processor.
-
-While if the test is done in kfree_skb(), the branch predictor of the
-cpu wont be able to predict things.
-
-By feeding too many NULL pointers to kfree_skb(), we slow down it.
-
-Branch misses and hits were considered important years ago...
-
-But seeing this inet6_destroy_sock() is (ab)using xchg() three times, I
-am not sure author cared that much about performance.
-
-
-
+Regards,
+Markus
