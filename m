@@ -1,42 +1,106 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [conntrackd PATCH v3] conntrackd: add systemd support
-Date: Mon, 16 Nov 2015 11:54:57 +0100
-Message-ID: <CAOkSjBjPGx+bsuiEshN8SCnKqhs3fSAEnPOQFz08MmhMDNrQfw@mail.gmail.com>
-References: <144741224967.19762.12430502552848102506.stgit@r2d2.cica.es>
- <CAOkSjBim_sssQko+JedaZaa1w=SPVhYKBPvFKW7hGmCFFKXw5A@mail.gmail.com> <20151113155431.GA1353@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH -stable,4.x.y] netfilter: nf_nat_redirect: add missing NULL pointer check
+Date: Mon, 16 Nov 2015 12:00:30 +0100
+Message-ID: <1447671631-2117-1-git-send-email-pablo@netfilter.org>
+Cc: stable@vger.kernel.org, Munehisa Kamata <kamatam@amazon.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:35680 "EHLO
-	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751665AbbKPKzS convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Nov 2015 05:55:18 -0500
-Received: by wmdw130 with SMTP id w130so105325005wmd.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 02:55:16 -0800 (PST)
-In-Reply-To: <20151113155431.GA1353@salvia>
+Received: from mail.us.es ([193.147.175.20]:56916 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751812AbbKPLAq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Nov 2015 06:00:46 -0500
+Received: from antivirus1-rhel7.int (antivirus1.int [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id C2BD8153AA8
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 12:00:44 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 0FB3617891C
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 12:00:44 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 2DD36520E9
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 12:00:35 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 13 November 2015 at 16:54, Pablo Neira Ayuso <pablo@netfilter.org> w=
-rote:
->>
->> Perhaps it makes sense to factorize all of the conntrackd
->> configuration examples in a single man page, let's say
->> 'conntrackd.conf(5)'.
->
-> Absolutely, a manpage is good to have.
+From: Munehisa Kamata <kamatam@amazon.com>
 
-It's ok if I wait until this patch is merged?
+[ upstream commit 94f9cd81436c85d8c3a318ba92e236ede73752fc ]
 
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Commit 8b13eddfdf04cbfa561725cfc42d6868fe896f56 ("netfilter: refactor NAT
+redirect IPv4 to use it from nf_tables") has introduced a trivial logic
+change which can result in the following crash.
+
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000030
+IP: [<ffffffffa033002d>] nf_nat_redirect_ipv4+0x2d/0xa0 [nf_nat_redirect]
+PGD 3ba662067 PUD 3ba661067 PMD 0
+Oops: 0000 [#1] SMP
+Modules linked in: ipv6(E) xt_REDIRECT(E) nf_nat_redirect(E) xt_tcpudp(E) iptable_nat(E) nf_conntrack_ipv4(E) nf_defrag_ipv4(E) nf_nat_ipv4(E) nf_nat(E) nf_conntrack(E) ip_tables(E) x_tables(E) binfmt_misc(E) xfs(E) libcrc32c(E) evbug(E) evdev(E) psmouse(E) i2c_piix4(E) i2c_core(E) acpi_cpufreq(E) button(E) ext4(E) crc16(E) jbd2(E) mbcache(E) dm_mirror(E) dm_region_hash(E) dm_log(E) dm_mod(E)
+CPU: 0 PID: 2536 Comm: ip Tainted: G            E   4.1.7-15.23.amzn1.x86_64 #1
+Hardware name: Xen HVM domU, BIOS 4.2.amazon 05/06/2015
+task: ffff8800eb438000 ti: ffff8803ba664000 task.ti: ffff8803ba664000
+[...]
+Call Trace:
+ <IRQ>
+ [<ffffffffa0334065>] redirect_tg4+0x15/0x20 [xt_REDIRECT]
+ [<ffffffffa02e2e99>] ipt_do_table+0x2b9/0x5e1 [ip_tables]
+ [<ffffffffa0328045>] iptable_nat_do_chain+0x25/0x30 [iptable_nat]
+ [<ffffffffa031777d>] nf_nat_ipv4_fn+0x13d/0x1f0 [nf_nat_ipv4]
+ [<ffffffffa0328020>] ? iptable_nat_ipv4_fn+0x20/0x20 [iptable_nat]
+ [<ffffffffa031785e>] nf_nat_ipv4_in+0x2e/0x90 [nf_nat_ipv4]
+ [<ffffffffa03280a5>] iptable_nat_ipv4_in+0x15/0x20 [iptable_nat]
+ [<ffffffff81449137>] nf_iterate+0x57/0x80
+ [<ffffffff814491f7>] nf_hook_slow+0x97/0x100
+ [<ffffffff814504d4>] ip_rcv+0x314/0x400
+
+unsigned int
+nf_nat_redirect_ipv4(struct sk_buff *skb,
+...
+{
+...
+		rcu_read_lock();
+		indev = __in_dev_get_rcu(skb->dev);
+		if (indev != NULL) {
+			ifa = indev->ifa_list;
+			newdst = ifa->ifa_local; <---
+		}
+		rcu_read_unlock();
+...
+}
+
+Before the commit, 'ifa' had been always checked before access. After the
+commit, however, it could be accessed even if it's NULL. Interestingly,
+this was once fixed in 2003.
+
+http://marc.info/?l=netfilter-devel&m=106668497403047&w=2
+
+In addition to the original one, we have seen the crash when packets that
+need to be redirected somehow arrive on an interface which hasn't been
+yet fully configured.
+
+This change just reverts the logic to the old behavior to avoid the crash.
+
+Fixes: 8b13eddfdf04 ("netfilter: refactor NAT redirect IPv4 to use it from nf_tables")
+Cc: <stable@vger.kernel.org> # 4.1.x
+Cc: <stable@vger.kernel.org> # 4.2.x
+Cc: <stable@vger.kernel.org> # 4.3.x
+Signed-off-by: Munehisa Kamata <kamatam@amazon.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_nat_redirect.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_nat_redirect.c b/net/netfilter/nf_nat_redirect.c
+index 97b75f9..d438698 100644
+--- a/net/netfilter/nf_nat_redirect.c
++++ b/net/netfilter/nf_nat_redirect.c
+@@ -55,7 +55,7 @@ nf_nat_redirect_ipv4(struct sk_buff *skb,
+ 
+ 		rcu_read_lock();
+ 		indev = __in_dev_get_rcu(skb->dev);
+-		if (indev != NULL) {
++		if (indev && indev->ifa_list) {
+ 			ifa = indev->ifa_list;
+ 			newdst = ifa->ifa_local;
+ 		}
+-- 
+2.1.4
+
