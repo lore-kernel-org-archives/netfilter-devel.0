@@ -1,97 +1,88 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH RFC] netfilter: nf_tables: extend tracing infrastructure
-Date: Mon, 16 Nov 2015 22:56:35 +0100
-Message-ID: <20151116215635.GA6601@salvia>
-References: <20151109133608.GD8098@macbook.localdomain>
- <1447343209-28029-1-git-send-email-fw@strlen.de>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH v2] Root in namespace owns x_tables /proc entries
+Date: Mon, 16 Nov 2015 15:56:13 -0600
+Message-ID: <87mvudk3r6.fsf@x220.int.ebiederm.org>
+References: <20151114091214.GA486@compaq.slightly-cracked.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jan Engelhardt <jengelh@inai.de>,
+	netfilter-devel@vger.kernel.org
+To: Philip Whineray <phil@firehol.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51988 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751204AbbKPV4o (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Nov 2015 16:56:44 -0500
-Received: from antivirus1-rhel7.int (antivirus1.int [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 0EACE1714E9
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 22:56:43 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id F0A731788E9
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 22:56:42 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 04BD4D192A
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 22:56:41 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1447343209-28029-1-git-send-email-fw@strlen.de>
+Received: from out03.mta.xmission.com ([166.70.13.233]:59949 "EHLO
+	out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751223AbbKPWEY (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Nov 2015 17:04:24 -0500
+In-Reply-To: <20151114091214.GA486@compaq.slightly-cracked.com> (Philip
+	Whineray's message of "Sat, 14 Nov 2015 09:12:14 +0000")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Florian,
+Philip Whineray <phil@firehol.org> writes:
 
-Cc'ing Patrick to shake him for ideas :)
-
-On Thu, Nov 12, 2015 at 04:46:49PM +0100, Florian Westphal wrote:
-> RFC for the kernel-side of the tracing changes.
-> 
-> Caveats+Questions are:
->  - should kernel dump entire rule instead of just the handle?
->  PRO of dumping entire rule matched:
->   * Userspace doesn't need to dump rules first to display
->   the rule that matched
->   * nft trace doesn't need to also monitor ruleset for changes
->   * would make it possible to use a new nfnetlink group as Pablo
->   suggested
-> 
->  CON:
->   * needs more memory in kernel space (can't use NLMSG_GOODSIZE -
->     allocation uses GFP_ATOMIC)
-> 
->  This patch only dumps the rule handle.
-
-Agreed, only rule handle should be fine. We have limited bandwidth
-delivering netlink event notifications from the packet path, so
-keeping the message small there looks like a good idea to me.
-
->  As you can see, I reimplemented parts of nfqueue/nfnetlink_log attributes.
->  Problem is that I don't want to add dependencies on nfetlink_log for this,
->  but things like iif and oif are rather imporant, esp. when debugging
->  packets being forwarded.
-> 
->  The first 128 bytes of the packet data is also dumped to userspace, currently
->  limited to when we do the initial 'skb->nf_trace=1' assignment in nft_meta.c
+> Reading these files is impossible in an unprivileged user namespace,
+> interfering with various firewall tools. For instance, iptables-save
+> relies on reading /proc/net/ip_tables_names to dump only loaded tables.
+> ---
 >
->  Patrick, I saw your idea wrt. dumping register contents instead, but it
->  seems both complex and 'backwards' to me -- isn't the 'meta set nftrace'
->  rule already a selector, i.e. user would say something like
-> 
->  'tcp port 22 limit rate 1/second meta nftrace set 1'
-> 
->  So I'm not sure its right to extend nftrace with additional selectors (its
->  also possible that I failed to understand what you were suggesting  8-} )
+> Please don't apply in current form - it doesn't work. The namespace is
+> only set up after the /proc entry is created so it keeps the original
+> owner (an unshare within an unshare can work... mapping root to root).
+>
+> Since it's in danger of getting quite complicate, would one or more of
+> the following be acceptable?
+>
+> - Choose permission in a module parameter
+>
+> - Allow setting with sysctl e.g. net.netfilter.conf.xtable_proc_perms
+>
+> - Match permissions of /proc/modules (grsec restricts these so we will
+>   gain the same policy).
+>
+> I also worked on a capabilities patch but that made userspace much more
+> complicated in a namespace than outside one. It would be simpler
+> to patch programs to read /proc/modules or assume the contents if they
+> can't read /proc/net/ip_tables_names.
+>
+>  net/netfilter/x_tables.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
+>
+> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+> index 9b42b5e..671654d 100644
+> --- a/net/netfilter/x_tables.c
+> +++ b/net/netfilter/x_tables.c
+> @@ -1227,6 +1227,8 @@ int xt_proto_init(struct net *net, u_int8_t af)
+>  #ifdef CONFIG_PROC_FS
+>  	char buf[XT_FUNCTION_MAXNAMELEN];
+>  	struct proc_dir_entry *proc;
+> +	kuid_t root_uid;
+> +	kgid_t root_gid;
+>  #endif
+>  
+>  	if (af >= ARRAY_SIZE(xt_prefix))
+> @@ -1234,12 +1236,16 @@ int xt_proto_init(struct net *net, u_int8_t af)
+>  
+>  
+>  #ifdef CONFIG_PROC_FS
+> +	root_uid = make_kuid(current_user_ns(), 1000);
+> +	root_gid = make_kgid(current_user_ns(), 1000);
 
-I can see room to extend this infrastructure later on if we need to
-make it more flexible (eg. allow the user to specify what part of the
-packets need to be dumped to userspace). We can probably even add a
-specific 'trace' expression from the kernel to allow more specific
-selection on what packet fields you want to dump to userspace.
+These lines are wrong.  They should be:
 
-BTW, any reason to remove the existing infrastructure? It's been there
-since almost the beginning (this would break users that are expecting
-the existing behaviour). Moreover, we'll have people using the
-iptables-compat infrastructure also expecting a similar output to
-native iptables.
+	root_uid = make_kuid(net->user_ns, 0);
+        root_gid = make_kgid(net->user_ns, 0);
+        if (!uid_valid(root_uid) || !gid_valid(root_gid))
+        	goto out;
 
-You can probably generalize the trace infrastructure through static
-key plus indirections to keep both tracing approaches around (allowing
-only one at the same time should be enough).
-
->From userspace, we would need to have a way to indicate that we want
-to use the new infrastructure, not the classic tracing. That syntax
-would need some thinking. Probably we can introduce a 'trace'
-statement, so the syntax looks compact like this:
-
-'tcp port 22 limit rate 1/second trace'
-
-Meaning in this case that the userspace is specifically requesting for
-the new kind of tracing.
+>  	strlcpy(buf, xt_prefix[af], sizeof(buf));
+>  	strlcat(buf, FORMAT_TABLES, sizeof(buf));
+>  	proc = proc_create_data(buf, 0440, net->proc_net, &xt_table_ops,
+>  				(void *)(unsigned long)af);
+>  	if (!proc)
+>  		goto out;
+> +	proc_set_user(proc, root_uid, root_gid);
+>  
+>  	strlcpy(buf, xt_prefix[af], sizeof(buf));
+>  	strlcat(buf, FORMAT_MATCHES, sizeof(buf));
