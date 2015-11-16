@@ -1,44 +1,57 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [conntrackd PATCH v3] conntrackd: add systemd support
-Date: Mon, 16 Nov 2015 12:31:44 +0100
-Message-ID: <20151116113144.GA16631@salvia>
-References: <144741224967.19762.12430502552848102506.stgit@r2d2.cica.es>
- <CAOkSjBim_sssQko+JedaZaa1w=SPVhYKBPvFKW7hGmCFFKXw5A@mail.gmail.com>
- <20151113155431.GA1353@salvia>
- <CAOkSjBjPGx+bsuiEshN8SCnKqhs3fSAEnPOQFz08MmhMDNrQfw@mail.gmail.com>
+Subject: Re: [PATCH v2] Root in namespace owns x_tables /proc entries
+Date: Mon, 16 Nov 2015 12:56:59 +0100
+Message-ID: <20151116115659.GA16976@salvia>
+References: <20151114091214.GA486@compaq.slightly-cracked.com>
+ <alpine.DEB.2.10.1511151951050.9313@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: Philip Whineray <phil@firehol.org>,
+	Jan Engelhardt <jengelh@inai.de>,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40033 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48103 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750911AbbKPLbp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Nov 2015 06:31:45 -0500
+	id S1750932AbbKPL5F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Nov 2015 06:57:05 -0500
 Received: from antivirus1-rhel7.int (antivirus1.int [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 2AC78613B8
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 12:31:44 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id 12ABC1373D0
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 12:57:03 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 1C8471788EC
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 12:31:44 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 04D0A1788F9
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 12:57:03 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 2EB9517891F
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 12:31:42 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 237501788ED
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 12:57:01 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBjPGx+bsuiEshN8SCnKqhs3fSAEnPOQFz08MmhMDNrQfw@mail.gmail.com>
+In-Reply-To: <alpine.DEB.2.10.1511151951050.9313@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 16, 2015 at 11:54:57AM +0100, Arturo Borrero Gonzalez wrote:
-> On 13 November 2015 at 16:54, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >>
-> >> Perhaps it makes sense to factorize all of the conntrackd
-> >> configuration examples in a single man page, let's say
-> >> 'conntrackd.conf(5)'.
-> >
-> > Absolutely, a manpage is good to have.
+On Sun, Nov 15, 2015 at 07:53:53PM +0100, Jozsef Kadlecsik wrote:
+> Hi Philip,
 > 
-> It's ok if I wait until this patch is merged?
+> On Sat, 14 Nov 2015, Philip Whineray wrote:
+> 
+> > Since it's in danger of getting quite complicate, would one or more of
+> > the following be acceptable?
+> > 
+> > - Choose permission in a module parameter
+> > 
+> > - Allow setting with sysctl e.g. net.netfilter.conf.xtable_proc_perms
+> > 
+> > - Match permissions of /proc/modules (grsec restricts these so we will
+> >   gain the same policy).
+> 
+> In my opinion either one is good and I'd pick the sysctl setting. That way 
+> the permissions could be changed without reloading the module and 
+> independently of the permissions of /proc/modules.
 
-Yes, you can send a follow up patch for this thing. Thanks.
+I'd rather not to have a sysctl for this thing.
+
+I suspect it will not take long until someone else will follow up with
+a similar patch /proc/net/nf_conntrack.
+
+What is the plan of namespace people for unprivileged namespaces with
+non-world readable /proc entries?
