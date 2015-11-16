@@ -1,72 +1,42 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable,4.3.y] netfilter: xt_TEE: fix NULL dereference
-Date: Mon, 16 Nov 2015 12:00:31 +0100
-Message-ID: <1447671631-2117-2-git-send-email-pablo@netfilter.org>
-References: <1447671631-2117-1-git-send-email-pablo@netfilter.org>
-Cc: stable@vger.kernel.org, Eric Dumazet <edumazet@google.com>
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [conntrackd PATCH v3] conntrackd: add systemd support
+Date: Mon, 16 Nov 2015 12:17:20 +0100
+Message-ID: <20151116111720.GA14988@salvia>
+References: <144741224967.19762.12430502552848102506.stgit@r2d2.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56961 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35145 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752163AbbKPLAr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Nov 2015 06:00:47 -0500
+	id S1751607AbbKPLR0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Nov 2015 06:17:26 -0500
 Received: from antivirus1-rhel7.int (antivirus1.int [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id A9FFD153AD1
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 12:00:46 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id 986AC1714FB
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 12:17:23 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 869B74EDBD
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 12:00:46 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 87EDE1788E8
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 12:17:23 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E242F52116
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 12:00:38 +0100 (CET)
-In-Reply-To: <1447671631-2117-1-git-send-email-pablo@netfilter.org>
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A233A1788E6
+	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 12:17:21 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <144741224967.19762.12430502552848102506.stgit@r2d2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Dumazet <edumazet@google.com>
+On Fri, Nov 13, 2015 at 11:59:35AM +0100, Arturo Borrero Gonzalez wrote:
+> v2: change functions definitions to static inline if no BUILD_SYSTEMD,
+>     and set watchdog variables as static.
+> 
+> v3: add runtime systemd configuration. Report warnings.
 
-[ upstream commit 45efccdbec3cd465c4776ed9ca1d7b1bba1b7e34 ]
+One more question:
 
-iptables -I INPUT ... -j TEE --gateway 10.1.2.3
+This is checking for 'libsystemd >= 227'
 
-<crash> because --oif was not specified
+Is this library version really required? Or it is simply that you have
+set to the most recent version for some reason?
 
-tee_tg_check() sets ->priv pointer to NULL in this case.
-
-Fixes: bbde9fc1824a ("netfilter: factor out packet duplication for IPv4/IPv6")
-Cc: <stable@vger.kernel.org> # 4.3.x
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/xt_TEE.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
-index fd980aa..c5fdea1 100644
---- a/net/netfilter/xt_TEE.c
-+++ b/net/netfilter/xt_TEE.c
-@@ -31,8 +31,9 @@ static unsigned int
- tee_tg4(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct xt_tee_tginfo *info = par->targinfo;
-+	int oif = info->priv ? info->priv->oif : 0;
- 
--	nf_dup_ipv4(skb, par->hooknum, &info->gw.in, info->priv->oif);
-+	nf_dup_ipv4(skb, par->hooknum, &info->gw.in, oif);
- 
- 	return XT_CONTINUE;
- }
-@@ -42,8 +43,9 @@ static unsigned int
- tee_tg6(struct sk_buff *skb, const struct xt_action_param *par)
- {
- 	const struct xt_tee_tginfo *info = par->targinfo;
-+	int oif = info->priv ? info->priv->oif : 0;
- 
--	nf_dup_ipv6(skb, par->hooknum, &info->gw.in6, info->priv->oif);
-+	nf_dup_ipv6(skb, par->hooknum, &info->gw.in6, oif);
- 
- 	return XT_CONTINUE;
- }
--- 
-2.1.4
-
+Thanks.
