@@ -1,32 +1,59 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] rule: move comment out of handle
-Date: Mon, 16 Nov 2015 14:01:15 +0100
-Message-ID: <20151116130115.GA1066@salvia>
-References: <1447603985-25854-1-git-send-email-kaber@trash.net>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [conntrackd PATCH v3] conntrackd: add systemd support
+Date: Mon, 16 Nov 2015 15:22:21 +0100
+Message-ID: <CAOkSjBgG7pVyP1LT0p+cbjrHkTGXRB=KPnrAVNQHSVSXys0xfw@mail.gmail.com>
+References: <144741224967.19762.12430502552848102506.stgit@r2d2.cica.es> <20151116111720.GA14988@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41624 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751829AbbKPNBX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Nov 2015 08:01:23 -0500
-Received: from antivirus1-rhel7.int (antivirus1.int [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 1DB0011D8E5
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 14:01:22 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 0CBF94C8FA
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 14:01:22 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B19B71788E6
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 14:01:16 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1447603985-25854-1-git-send-email-kaber@trash.net>
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:32917 "EHLO
+	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752457AbbKPOWm convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Nov 2015 09:22:42 -0500
+Received: by wmec201 with SMTP id c201so178966839wme.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Nov 2015 06:22:41 -0800 (PST)
+In-Reply-To: <20151116111720.GA14988@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Nov 15, 2015 at 04:13:05PM +0000, Patrick McHardy wrote:
-> The comment does not belong to the handle, it belongs to the rule.
+On 16 November 2015 at 12:17, Pablo Neira Ayuso <pablo@netfilter.org> w=
+rote:
+> On Fri, Nov 13, 2015 at 11:59:35AM +0100, Arturo Borrero Gonzalez wro=
+te:
+>> v2: change functions definitions to static inline if no BUILD_SYSTEM=
+D,
+>>     and set watchdog variables as static.
+>>
+>> v3: add runtime systemd configuration. Report warnings.
+>
+> One more question:
+>
+> This is checking for 'libsystemd >=3D 227'
+>
+> Is this library version really required? Or it is simply that you hav=
+e
+> set to the most recent version for some reason?
 
-Thanks Patrick.
+227 is the version I've tested. Previous versions may not work.
+
+=46or example, I remember the library being split in several small
+libraries and then mixed into this libsystemd, thus changing some
+headers and include paths.
+
+Also, I simply ignore what is the behaviour of the watchdog stuff
+previous to 227, it seems a recent thing.
+
+What are your concerns?
+
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
