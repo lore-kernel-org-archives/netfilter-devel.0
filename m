@@ -1,68 +1,34 @@
-From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH iptables] libxt_cgroup2: add support for cgroup2 path
- matching
-Date: Tue, 17 Nov 2015 18:09:24 -0500
-Message-ID: <20151117230924.GL22864@mtj.duckdns.org>
-References: <1447789240-29394-1-git-send-email-tj@kernel.org>
- <20151117194221.GB22864@mtj.duckdns.org>
- <alpine.LSU.2.20.1511172356570.13966@nerf40.vanv.qr>
+From: Matt Bennett <Matt.Bennett@alliedtelesis.co.nz>
+Subject: Extending connmark to 64 bits
+Date: Tue, 17 Nov 2015 23:14:22 +0000
+Message-ID: <1447802062.16644.12.camel@mattb-dl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org,
-	kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org,
-	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-team-b10kYP2dOMg@public.gmane.org,
-	daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org, daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org,
-	nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org
-To: Jan Engelhardt <jengelh-9+2X+4sQBs8@public.gmane.org>
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.20.1511172356570.13966-Og55a6x16tXH9RFtKMg/Ng@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from gate2.alliedtelesis.co.nz ([202.36.163.20]:56418 "EHLO
+	gate2.alliedtelesis.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754957AbbKQXO3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Nov 2015 18:14:29 -0500
+Received: from mmarshal3.atlnz.lc (mmarshal3.atlnz.lc [10.32.18.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(Client did not present a certificate)
+	by gate2.alliedtelesis.co.nz (Postfix) with ESMTPS id 2AF69805F1
+	for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2015 12:14:27 +1300 (NZDT)
+Content-Language: en-US
+Content-ID: <11ADA85BEFE0B04D90CC99A8CA240916@atlnz.lc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
-
-On Wed, Nov 18, 2015 at 12:02:01AM +0100, Jan Engelhardt wrote:
-> On Tuesday 2015-11-17 20:42, Tejun Heo wrote:
-> >+static void cgroup2_save(const void *ip, const struct xt_entry_match *match)
-> >+{
-> >+	const struct xt_cgroup2_info *info = (void *)match->data;
-> >+
-> >+	printf("%s --path %s", info->invert ? " !" : "", info->path);
-> >+}
-> 
-> Can cgroup path names contain anything fancy, like spaces, backslashes, etc.?
-> If so, xtables_save_string() will be needed here.
-
-Will update.
-
-> >+static struct xtables_match cgroup2_match = {
-> >+	.family		= NFPROTO_UNSPEC,
-> >+	.name		= "cgroup2",
-> >+	.version	= XTABLES_VERSION,
-> >+	.size		= XT_ALIGN(sizeof(struct xt_cgroup2_info)),
-> >+	.userspacesize	= XT_ALIGN(sizeof(struct xt_cgroup2_info)),
-> 
-> userspacesize must not include xt_cgroup2_info.priv.
-> Change to offsetof(...), cf. other .c modules which do this.
-
-Ah, okay.
-
-...
-> >+\fBIMPORTANT\fP: when being used in the INPUT chain, the cgroup2
-> >+matcher is currently only of limited functionality, meaning it
-> >+will only match on packets that are processed for local sockets
-> >+through early socket demuxing. Therefore, general usage on the
-> >+INPUT chain is disadviced unless the implications are well
-> 
-> is disadviced (sic)  -> is not advised
-
-Will update.  That's copied verbatim from xt_cgroup tho.  Will create
-a patch to update that too.
-
-Thanks.
-
--- 
-tejun
+SGVsbG8sDQoNCkN1cnJlbnRseSB3ZSBoYXZlIGEgbnVtYmVyIG9mIHJvdXRlciBmZWF0dXJlcyBt
+YWtpbmcgdXNlIG9mIGNvbm5lY3Rpb24NCnRyYWNraW5nLiBBcyBzdWNoIHdlIG5vdyByZXF1aXJl
+IG1vcmUgdGhhbiB0aGUgMzIgYml0cyBjb25ubWFyaw0KY3VycmVudGx5IGhhcy4gT3VyIGZpcnN0
+IGluY2xpbmF0aW9uIGlzIHRvIGV4dGVuZCB0aGlzIGZpZWxkIHRvIDY0IGJpdHMNCmFuZCB1cGRh
+dGUgcmVsYXRlZCBhcmVhcyBvZiBjb2RlIGFwcHJvcHJpYXRlbHkuDQoNClRoZSBtYWpvciBxdWVz
+dGlvbiB3ZSBoYXZlIGlzIHdoZXRoZXIgdGhlcmUgaXMgYSByZWFzb24gdGhpcyBmaWVsZCBpcyAz
+Mg0KYml0cyAocGVyZm9ybWFuY2UgcmVhc29ucyBvciBvdGhlcik/DQoNCklmIGl0IGlzIG5vdCBw
+b3NzaWJsZSB0byBleHRlbmQgdGhpcyBmaWVsZCB0aGVuIHBlcmhhcHMgdGhlcmUgYXJlIG90aGVy
+DQpvcHRpb25zIChiZXlvbmQgZGlzYWJsaW5nIHNvbWUgZmVhdHVyZXMgbWFraW5nIHVzZSBvZiBj
+b25uZWN0aW9uDQp0cmFja2luZyk/DQoNClRoYW5rcywNCk1hdHQNCg0KDQo=
