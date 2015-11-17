@@ -1,53 +1,73 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: "notification events for routing changes" patch
-Date: Tue, 17 Nov 2015 09:28:25 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1511170925540.19459@blackhole.kfki.hu>
-References: <D26FEC66.2884B%msezgin@codeaurora.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [conntrackd PATCH v3] conntrackd: add systemd support
+Date: Tue, 17 Nov 2015 11:25:20 +0100
+Message-ID: <20151117102520.GA16690@salvia>
+References: <144741224967.19762.12430502552848102506.stgit@r2d2.cica.es>
+ <20151116111720.GA14988@salvia>
+ <CAOkSjBgG7pVyP1LT0p+cbjrHkTGXRB=KPnrAVNQHSVSXys0xfw@mail.gmail.com>
+ <20151116170325.GA1694@salvia>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Murat Sezgin <msezgin@codeaurora.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:58914 "EHLO smtp0.kfki.hu"
+Received: from mail.us.es ([193.147.175.20]:47588 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751847AbbKQI0n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Nov 2015 03:26:43 -0500
-In-Reply-To: <D26FEC66.2884B%msezgin@codeaurora.org>
+	id S1752690AbbKQKZZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Nov 2015 05:25:25 -0500
+Received: from antivirus1-rhel7.int (antivirus1.int [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 4FA2E6E40C
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2015 11:25:24 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 400031BC636
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2015 11:25:24 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id F1E411BC636
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2015 11:25:21 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20151116170325.GA1694@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 16 Nov 2015, Murat Sezgin wrote:
-
-> While I was looking for a solution in the kernel for general routing
-> change notification implementation, I came across your following patch.
+On Mon, Nov 16, 2015 at 06:03:25PM +0100, Pablo Neira Ayuso wrote:
+> On Mon, Nov 16, 2015 at 03:22:21PM +0100, Arturo Borrero Gonzalez wrote:
+> > On 16 November 2015 at 12:17, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > On Fri, Nov 13, 2015 at 11:59:35AM +0100, Arturo Borrero Gonzalez wrote:
+> > >> v2: change functions definitions to static inline if no BUILD_SYSTEMD,
+> > >>     and set watchdog variables as static.
+> > >>
+> > >> v3: add runtime systemd configuration. Report warnings.
+> > >
+> > > One more question:
+> > >
+> > > This is checking for 'libsystemd >= 227'
+> > >
+> > > Is this library version really required? Or it is simply that you have
+> > > set to the most recent version for some reason?
+> > 
+> > 227 is the version I've tested. Previous versions may not work.
+> > 
+> > For example, I remember the library being split in several small
+> > libraries and then mixed into this libsystemd, thus changing some
+> > headers and include paths.
+> > 
+> > Also, I simply ignore what is the behaviour of the watchdog stuff
+> > previous to 227, it seems a recent thing.
+> > 
+> > What are your concerns?
 > 
-> http://www.spinics.net/lists/netfilter-devel/msg24239.html
-> 
-> In this email chain, you said that you found another simple solution and
-> implemented it in the masquerade module. I saw that commit in the upstream
-> kernel.
-> 
-> But I think the patch you proposed before also very useful for the fast
-> path implementations. Because when a connection starts to flow through the
-> fast path, linux networking stack no longer sees those packets. Then, if
-> the route table is changed in some way, let?s say user add/delete a route
-> with the ?route? or ?ip route? command, the fast path traffic will not
-> aware of this change. So, if we have a notification mechanism like you
-> have implemented, the fast path manager module can register itself to
-> these events and manage its connections accordingly.
-> 
-> Do you have any plan to push and merge this path to the upstream kernel?
+> I would like not to see many ifdefs in the conntrack-tools tree just
+> because they update interfaces too frequently. Could you check at
+> their history record to see how they have been performing on that
+> front so far?
 
-No, the patch was inefficient from conntrack point of view and finally the 
-patch "Handle routing changes in MASQUERADE target, v4" went into the 
-kernel:
+Arturo, I'm going to push this into master.
 
-http://www.spinics.net/lists/netfilter-devel/msg24276.html
+I have just mangled the configure.ac part of your patch here so the
+default behaviour is that you have to explicitly indicate
+--enable-systemd support if you want this.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+We can revisit this later on to change the default.
+
+OK?
