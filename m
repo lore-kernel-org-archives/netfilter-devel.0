@@ -1,111 +1,90 @@
-From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH 3/5] cgroup: implement cgroup_get_from_path() and expose cgroup_put()
-Date: Tue, 17 Nov 2015 14:40:38 -0500
-Message-ID: <1447789240-29394-4-git-send-email-tj@kernel.org>
-References: <1447789240-29394-1-git-send-email-tj@kernel.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-team-b10kYP2dOMg@public.gmane.org,
-	daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org, daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org,
-	nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org,
-	kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1447789240-29394-1-git-send-email-tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: "notification events for routing changes" patch
+Date: Tue, 17 Nov 2015 21:25:42 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1511172123450.23910@blackhole.kfki.hu>
+References: <D26FEC66.2884B%msezgin@codeaurora.org> <alpine.DEB.2.10.1511170925540.19459@blackhole.kfki.hu> <D270A927.28DEF%msezgin@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Murat Sezgin <msezgin@codeaurora.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:37479 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753654AbbKQUYD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Nov 2015 15:24:03 -0500
+In-Reply-To: <D270A927.28DEF%msezgin@codeaurora.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Implement cgroup_get_path() using kernfs_walk_and_get() which obtains
-a default hierarchy cgroup from its path.  This will be used to allow
-cgroup path based matching from outside cgroup proper -
-e.g. networking and perf.
+Please, do not top post. Thank you.
 
-Signed-off-by: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
- include/linux/cgroup.h |  7 +++++++
- kernel/cgroup.c        | 38 +++++++++++++++++++++++++++++++++-----
- 2 files changed, 40 insertions(+), 5 deletions(-)
+On Tue, 17 Nov 2015, Murat Sezgin wrote:
 
-diff --git a/include/linux/cgroup.h b/include/linux/cgroup.h
-index b5ee2c4..4c3ffab 100644
---- a/include/linux/cgroup.h
-+++ b/include/linux/cgroup.h
-@@ -81,6 +81,8 @@ struct cgroup_subsys_state *cgroup_get_e_css(struct cgroup *cgroup,
- struct cgroup_subsys_state *css_tryget_online_from_dir(struct dentry *dentry,
- 						       struct cgroup_subsys *ss);
- 
-+struct cgroup *cgroup_get_from_path(const char *path);
-+
- int cgroup_attach_task_all(struct task_struct *from, struct task_struct *);
- int cgroup_transfer_tasks(struct cgroup *to, struct cgroup *from);
- 
-@@ -351,6 +353,11 @@ static inline void css_put_many(struct cgroup_subsys_state *css, unsigned int n)
- 		percpu_ref_put_many(&css->refcnt, n);
- }
- 
-+static inline void cgroup_put(struct cgroup *cgrp)
-+{
-+	css_put(&cgrp->self);
-+}
-+
- /**
-  * task_css_set_check - obtain a task's css_set with extra access conditions
-  * @task: the task to obtain css_set for
-diff --git a/kernel/cgroup.c b/kernel/cgroup.c
-index 3190040..49947c1 100644
---- a/kernel/cgroup.c
-+++ b/kernel/cgroup.c
-@@ -434,11 +434,6 @@ static bool cgroup_tryget(struct cgroup *cgrp)
- 	return css_tryget(&cgrp->self);
- }
- 
--static void cgroup_put(struct cgroup *cgrp)
--{
--	css_put(&cgrp->self);
--}
+> Yes I know about the merged code. It works well for the regular linux 
+> network traffic, but as I said in my email, if the traffic is offloaded 
+> from the linux networking stack, the subsequent flows, after the route 
+> change, will never seen by the iptables_nat modules, so the conntarck 
+> entry cannot be killed.
+
+If the traffic is offloaded from the networking stack, then how conntrack 
+and nat are supposed to work?
+
+Best regards,
+Jozsef
+
+> 
+> On 11/17/15, 12:28 AM, "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu> wrote:
+> 
+> >On Mon, 16 Nov 2015, Murat Sezgin wrote:
+> >
+> >> While I was looking for a solution in the kernel for general routing
+> >> change notification implementation, I came across your following patch.
+> >> 
+> >> http://www.spinics.net/lists/netfilter-devel/msg24239.html
+> >> 
+> >> In this email chain, you said that you found another simple solution and
+> >> implemented it in the masquerade module. I saw that commit in the
+> >>upstream
+> >> kernel.
+> >> 
+> >> But I think the patch you proposed before also very useful for the fast
+> >> path implementations. Because when a connection starts to flow through
+> >>the
+> >> fast path, linux networking stack no longer sees those packets. Then, if
+> >> the route table is changed in some way, let?s say user add/delete a
+> >>route
+> >> with the ?route? or ?ip route? command, the fast path traffic will not
+> >> aware of this change. So, if we have a notification mechanism like you
+> >> have implemented, the fast path manager module can register itself to
+> >> these events and manage its connections accordingly.
+> >> 
+> >> Do you have any plan to push and merge this path to the upstream kernel?
+> >
+> >No, the patch was inefficient from conntrack point of view and finally
+> >the 
+> >patch "Handle routing changes in MASQUERADE target, v4" went into the
+> >kernel:
+> >
+> >http://www.spinics.net/lists/netfilter-devel/msg24276.html
+> >
+> >Best regards,
+> >Jozsef
+> >-
+> >E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+> >PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+> >Address : Wigner Research Centre for Physics, Hungarian Academy of
+> >Sciences
+> >          H-1525 Budapest 114, POB. 49, Hungary
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 -
- struct cgroup_subsys_state *of_css(struct kernfs_open_file *of)
- {
- 	struct cgroup *cgrp = of->kn->parent->priv;
-@@ -5753,6 +5748,39 @@ struct cgroup_subsys_state *css_from_id(int id, struct cgroup_subsys *ss)
- 	return id > 0 ? idr_find(&ss->css_idr, id) : NULL;
- }
- 
-+/**
-+ * cgroup_get_from_path - lookup and get a cgroup from its default hierarchy path
-+ * @path: path on the default hierarchy
-+ *
-+ * Find the cgroup at @path on the default hierarchy, increment its
-+ * reference count and return it.  Returns pointer to the found cgroup on
-+ * success, ERR_PTR(-ENOENT) if @path doens't exist and ERR_PTR(-ENOTDIR)
-+ * if @path points to a non-directory.
-+ */
-+struct cgroup *cgroup_get_from_path(const char *path)
-+{
-+	struct kernfs_node *kn;
-+	struct cgroup *cgrp;
-+
-+	mutex_lock(&cgroup_mutex);
-+
-+	kn = kernfs_walk_and_get(cgrp_dfl_root.cgrp.kn, path);
-+	if (kn) {
-+		if (kernfs_type(kn) == KERNFS_DIR) {
-+			cgrp = kn->priv;
-+			cgroup_get(cgrp);
-+		} else {
-+			cgrp = ERR_PTR(-ENOTDIR);
-+		}
-+		kernfs_put(kn);
-+	} else {
-+		cgrp = ERR_PTR(-ENOENT);
-+	}
-+
-+	mutex_unlock(&cgroup_mutex);
-+	return cgrp;
-+}
-+
- #ifdef CONFIG_CGROUP_DEBUG
- static struct cgroup_subsys_state *
- debug_css_alloc(struct cgroup_subsys_state *parent_css)
--- 
-2.5.0
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
