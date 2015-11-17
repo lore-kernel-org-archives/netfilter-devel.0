@@ -1,65 +1,109 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH v2] Root in namespace owns x_tables /proc entries
-Date: Mon, 16 Nov 2015 16:03:21 -0600
-Message-ID: <87vb91iouu.fsf@x220.int.ebiederm.org>
-References: <20151114091214.GA486@compaq.slightly-cracked.com>
-	<alpine.DEB.2.10.1511151951050.9313@blackhole.kfki.hu>
-	<20151116115659.GA16976@salvia>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH RFC] netfilter: nf_tables: extend tracing infrastructure
+Date: Tue, 17 Nov 2015 01:03:52 +0100
+Message-ID: <20151117000352.GC14892@breakpoint.cc>
+References: <20151109133608.GD8098@macbook.localdomain>
+ <1447343209-28029-1-git-send-email-fw@strlen.de>
+ <20151116215635.GA6601@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Philip Whineray <phil@firehol.org>,
-	Jan Engelhardt <jengelh@inai.de>,
-	netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	kaber@trash.net
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out03.mta.xmission.com ([166.70.13.233]:33021 "EHLO
-	out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750878AbbKPWLc (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41303 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751946AbbKQADx (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Nov 2015 17:11:32 -0500
-In-Reply-To: <20151116115659.GA16976@salvia> (Pablo Neira Ayuso's message of
-	"Mon, 16 Nov 2015 12:56:59 +0100")
+	Mon, 16 Nov 2015 19:03:53 -0500
+Content-Disposition: inline
+In-Reply-To: <20151116215635.GA6601@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> writes:
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > 
+> >  So I'm not sure its right to extend nftrace with additional selectors (its
+> >  also possible that I failed to understand what you were suggesting  8-} )
+> 
+> I can see room to extend this infrastructure later on if we need to
+> make it more flexible (eg. allow the user to specify what part of the
+> packets need to be dumped to userspace). We can probably even add a
+> specific 'trace' expression from the kernel to allow more specific
+> selection on what packet fields you want to dump to userspace.
+> 
+> BTW, any reason to remove the existing infrastructure? It's been there
+> since almost the beginning (this would break users that are expecting
+> the existing behaviour).
 
-> On Sun, Nov 15, 2015 at 07:53:53PM +0100, Jozsef Kadlecsik wrote:
->> Hi Philip,
->> 
->> On Sat, 14 Nov 2015, Philip Whineray wrote:
->> 
->> > Since it's in danger of getting quite complicate, would one or more of
->> > the following be acceptable?
->> > 
->> > - Choose permission in a module parameter
->> > 
->> > - Allow setting with sysctl e.g. net.netfilter.conf.xtable_proc_perms
->> > 
->> > - Match permissions of /proc/modules (grsec restricts these so we will
->> >   gain the same policy).
->> 
->> In my opinion either one is good and I'd pick the sysctl setting. That way 
->> the permissions could be changed without reloading the module and 
->> independently of the permissions of /proc/modules.
->
-> I'd rather not to have a sysctl for this thing.
->
-> I suspect it will not take long until someone else will follow up with
-> a similar patch /proc/net/nf_conntrack.
->
-> What is the plan of namespace people for unprivileged namespaces with
-> non-world readable /proc entries?
+No specific reason, but I question the need to keep it around.
+Once we have native tooling there should be no reason whatsover
+to wade through dmesg output + manual matching of rules...  its just a
+PITA and thats why I removed it -- 'nft monitor trace' (or whatever,
+I've not decided on what nft side should look like) would be much
+simpler/easier to use.
 
-If it makes sense to have them per namespace and allow manipulation by
-the user namespace root, the plan is to make the files owned by the
-root user in the user namespace that created the network namespace.
+> Moreover, we'll have people using the
+> iptables-compat infrastructure also expecting a similar output to
+> native iptables.
 
-That preserves all of the existing logic.
+Hmm, is iptables-compat a worthy focus?
 
-If we don't trust the user namespace root to read/write the file we
-probably want to just avoid creating the file altogether if
-(net->user_ns != init_user_ns).
+AFAIU even iptables-compat users would be able to use nft trace
+infrastructure, right?
 
-Eric
+Wouldn't it make more sense to convince people to go with real nft
+rather than the compat layer?
+
+> You can probably generalize the trace infrastructure through static
+> key plus indirections to keep both tracing approaches around (allowing
+> only one at the same time should be enough).
+
+I'd like to see a stronger argument than this.
+
+Bottom line is that i want to keep kernel side as simple as possible,
+so I'd much rather just get rid of the printk-based tracing
+(I'm *NOT* talking about the ip(6)tables stuff, that remains as-is)
+rather than add more conditionals or indirect calls to some
+trace-backends...
+
+> From userspace, we would need to have a way to indicate that we want
+> to use the new infrastructure, not the classic tracing. That syntax
+> would need some thinking. Probably we can introduce a 'trace'
+> statement, so the syntax looks compact like this:
+> 
+> 'tcp port 22 limit rate 1/second trace'
+> 
+> Meaning in this case that the userspace is specifically requesting for
+> the new kind of tracing.
+
+Hmm.  I'm not convinced there is any gain in doing this.
+Who in their right mind would want to manually decode rules...?
+
+That being said, I am not overly zealous about this, and I can keep the
+printk stuff around.
+I just think its not needed anymore.
+
+If you have new nft with old kernel:
+- you need to look and dmesg output (or syslog output if ypu use
+nfnetlink_log logging backend).
+
+if you have new nft with new kernel:
+- nft monitor trace (subject to change, I'm open to suggestions)
+
+If you have old nft with new kernel:
+- possibly a problem, but then again, if you can update kernel,
+why not use a newer nft as well...?
+
+If you don't mind, i would prefer to work on this patch + nft +
+libnftables integration and then submit that formally.
+
+If you're then still convinced that its too problematic to remove the printk
+based trace i'd consider to rework the kernel patch.
+
+[ I'm not in a hurry, we can discuss this at netdev/netconf if you like ]
+
+Let me know.
+
+Thanks && regards,
+Florian
