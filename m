@@ -1,162 +1,71 @@
-From: =?UTF-8?Q?Martin_Kratochv=c3=adl?= <martin.kratochvil@altnet.cz>
-Subject: libxt_set.man - iptables build 20151116 - some suggestions
-Date: Wed, 18 Nov 2015 00:10:43 +0100
-Message-ID: <564BB3F3.8030906@altnet.cz>
+From: Phil Whineray <phil@firehol.org>
+Subject: Re: [PATCH v2] Root in namespace owns x_tables /proc entries
+Date: Wed, 18 Nov 2015 07:37:24 +0000
+Message-ID: <20151118073724.GA4855@compaq.slightly-cracked.com>
+References: <20151114091214.GA486@compaq.slightly-cracked.com>
+ <87mvudk3r6.fsf@x220.int.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha-256; boundary="------------ms060402070903010601020400"
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jan Engelhardt <jengelh@inai.de>,
+	netfilter-devel@vger.kernel.org
+To: "Eric W. Biederman" <ebiederm@xmission.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from saturn.slany-doliky.skvely.net ([109.71.208.46]:44961 "EHLO
-	saturn.slany-doliky.skvely.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752143AbbKQXTj (ORCPT
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:34212 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752703AbbKRHh2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Nov 2015 18:19:39 -0500
+	Wed, 18 Nov 2015 02:37:28 -0500
+Received: by wmvv187 with SMTP id v187so264002705wmv.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 17 Nov 2015 23:37:27 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <87mvudk3r6.fsf@x220.int.ebiederm.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a cryptographically signed message in MIME format.
+On Mon, Nov 16, 2015 at 03:56:13PM -0600, Eric W. Biederman wrote:
+> Philip Whineray <phil@firehol.org> writes:
+> 
+> > Reading these files is impossible in an unprivileged user namespace,
+> > interfering with various firewall tools. For instance, iptables-save
+> > relies on reading /proc/net/ip_tables_names to dump only loaded tables.
+> 
+> These lines are wrong.  They should be:
+> 
+>         root_uid = make_kuid(net->user_ns, 0);
+>         root_gid = make_kgid(net->user_ns, 0);
+>         if (!uid_valid(root_uid) || !gid_valid(root_gid))
+>         	goto out;
+> 
+> >  	strlcpy(buf, xt_prefix[af], sizeof(buf));
+> >  	strlcat(buf, FORMAT_TABLES, sizeof(buf));
+> >  	proc = proc_create_data(buf, 0440, net->proc_net, &xt_table_ops,
+> >  				(void *)(unsigned long)af);
+> >  	if (!proc)
+> >  		goto out;
+> > +	proc_set_user(proc, root_uid, root_gid);
 
---------------ms060402070903010601020400
-Content-Type: text/plain; charset=iso-8859-2; format=flowed
-Content-Transfer-Encoding: quoted-printable
+Thanks for the pointer Eric. As written it doesn't quite work because
+out is an error path. unshare(CLONE_NEWUSER|CLONE_NEWNET) always fails
+due to there not being a mapping for the user yet. Instead:
 
-Hello,
-i try to use iptables ... -m set --match-set against ipset infrastructure=
+       root_uid = make_kuid(net->user_ns, 0);
+       root_gid = make_kgid(net->user_ns, 0);
 
-(using night build 20151116, kernel 4.2.3)
+followed by:
 
-I have some suggestions after i successfully make it works. And thanks=20
-you - my router is more powerful.
+       if (!proc)
+              goto out;
+       if (uid_valid(root_uid) && gid_valid(root_gid))
+              proc_set_user(proc, root_uid, root_gid);
 
-1) In manpage file in libxt_set.man:
-Until i experience and look into code I do not understood what is mean=20
-by  "test src,dst"
+would preserve the current behaviour but allow the files to be
+correctly mapped by first unsharing the user namespace, then setting
+the gid map and finally unsharing the namespace.
 
-Please add some more example to this man page to make it better:
+Or, is it sane to bypass all the above and jump straight to:
 
-If you have ipset table MYIPS hash:ip type and want matching by source=20
-ip use
-iptables -I FORWARD -m set --match-set MYIPS src -j LOG
-if you have ipset table MYIPS bitmap:ip,mac type and want match by=20
-source ip and source mac use
-iptables -I FORWARD -m set --match-set MYIPS src,src -j LOG
-or add any other
+        proc_set_user(proc, net->user_ns->owner, net->user_ns->group);
 
-2) name of option "--match-set"  is not in logic used by iptables,
-i suggest to change to "--set-match"
-
-Look for other options in iptables-extensions
--m hashlimit --hashlimit-above
--m limit --limit-burst
-
-Also name in -j SET could be reversed (--set-map)
-
-3) Could have target -j SET  have some options to jump to some iptables=20
-chain by some value stored in ipset.
-For example if you stored  skbmark with ip address you can change in one =
-
-rule mark of packet matched in list
-
-iptables -j SET --map-set MYIPS src --map-mark
-
-but if you have chain for example customer_0000 customer_0001 ...=20
-customer_ffff
-you have no way how to jump in one rule, and you have to need some=20
-hiearchicaly chains mainly generated by script.
-
-Something like "JUMP" using mark or using some value stored with ip with =
-
-skbmark
-
-iptables -j SET --map-set MYIPS --map-jump-mark-prefix "customer_"
-so when you match in ip in ipset table, find mark and then make jump to=20
-specific chain.
-
-4) Do you have any plan when you release stable iptables 1.6.0 :-) ?
-
-Best Regards
-Martin Kratochvil
-
-
-
---------------ms060402070903010601020400
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: Elektronicky podpis S/MIME
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExDzANBglghkgBZQMEAgEFADCABgkqhkiG9w0BBwEAAKCC
-C/owggWWMIIEfqADAgECAgMLqLcwDQYJKoZIhvcNAQELBQAwXDELMAkGA1UEBhMCQ1oxLDAq
-BgNVBAoMI8SMZXNrw6EgcG/FoXRhLCBzLnAuIFtJxIwgNDcxMTQ5ODNdMR8wHQYDVQQDExZQ
-b3N0U2lnbnVtIFB1YmxpYyBDQSAyMB4XDTE1MDQyMjA1MDIxM1oXDTE2MDUxMTA1MDIxM1ow
-gYYxCzAJBgNVBAYTAkNaMSUwIwYDVQQKDBxBbHRuZXQgcy5yLm8uIFtJxIwgMjcyNjAyMDhd
-MQowCAYDVQQLEwExMSAwHgYDVQQDDBdCYy4gIE1hcnRpbiBLcmF0b2NodsOtbDEPMA0GA1UE
-BRMGUDkxMjM2MREwDwYDVQQMEwhqZWRuYXRlbDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCC
-AQoCggEBALmNO4ZExnrSqcRNpSmSkk3eNcyTiB2sTTskBhLXXRGE072+KhFFUBfHJsqV6LsB
-EDa9JZlDwE+8bh4L3ebVafkvetYrnhvsGwOTj3GuEPN/100xYtGbnQgfOixpkbmEckihAoy/
-1Bh2WXOQmaQCi1EB2BtEC2KFxeg2kvduZ0ha4sL6CIzQVqSXFUspqIWrIGNGxydiAFEkCAXy
-0SWSnV48N/fkoLW/9Fq76SyJ5YCjb7RQNzWJpQmmNJVVkoSvesdtXJTisrHtzp8K6oGYCu4A
-OpdhokAtxV4HWXaPNVFD6fRn5sLi7pjPbfUFlJ0zMoP4yuY4uWbLgCB67wAHFpECAwEAAaOC
-AjQwggIwMDEGA1UdEQQqMCiBG21hcnRpbi5rcmF0b2NodmlsQGFsdG5ldC5jeqAJBgNVBA2g
-AhMAMD4GA1UdIAQ3MDUwMwYJZ4EGAQIBB4IsMCYwJAYIKwYBBQUHAgEWGGh0dHA6Ly93d3cu
-cG9zdHNpZ251bS5jejCBvwYIKwYBBQUHAQEEgbIwga8wOAYIKwYBBQUHMAKGLGh0dHA6Ly93
-d3cucG9zdHNpZ251bS5jei9jcnQvcHNwdWJsaWNjYTIuY3J0MDkGCCsGAQUFBzAChi1odHRw
-Oi8vd3d3Mi5wb3N0c2lnbnVtLmN6L2NydC9wc3B1YmxpY2NhMi5jcnQwOAYIKwYBBQUHMAKG
-LGh0dHA6Ly9wb3N0c2lnbnVtLnR0Yy5jei9jcnQvcHNwdWJsaWNjYTIuY3J0MA4GA1UdDwEB
-/wQEAwIF4DAfBgNVHSMEGDAWgBRI7z7U6omJo+niP9vvjEKxCvjI0TCBqAYDVR0fBIGgMIGd
-MDKgMKAuhixodHRwOi8vd3d3LnBvc3RzaWdudW0uY3ovY3JsL3BzcHVibGljY2EyLmNybDAz
-oDGgL4YtaHR0cDovL3d3dzIucG9zdHNpZ251bS5jei9jcmwvcHNwdWJsaWNjYTIuY3JsMDKg
-MKAuhixodHRwOi8vcG9zdHNpZ251bS50dGMuY3ovY3JsL3BzcHVibGljY2EyLmNybDAdBgNV
-HQ4EFgQUGs9sOuhhfkccpOLKZXxJ9IUAC4gwDQYJKoZIhvcNAQELBQADggEBABobTJbOUOVp
-fKoZdmx8Oj2F0awRcbYWB3yJwe23nUL8uvgwzpyuAZJ6DNXAuM4s47OlGc+624lxddy9eLYp
-1P7YVKMR+DQqgttpdL2sf43Fw7iSzOpSUG8Gs1H10OZ5c+E03VjqBQSSPCNSmlozmn2PtkWR
-eCB4jILcwtiF0QFlijbkT7ZJnX6GfubEAEZpoZ6fAmXb6Bd7Cys7yiCcnjaJSsvO59nT9pQu
-yP2r4Tw8xa+knCJYauNBtnZEJXhq+1SjfQR+DD6jJkEBhjJZLBLrU+uQMCJcBRpqL1FCf5r9
-7lb37RWJRnZ325r3/w+sSiKTwWHHQmZePpSJG72FaRUwggZcMIIFRKADAgECAgFyMA0GCSqG
-SIb3DQEBCwUAMFsxCzAJBgNVBAYTAkNaMSwwKgYDVQQKDCPEjGVza8OhIHBvxaF0YSwgcy5w
-LiBbScSMIDQ3MTE0OTgzXTEeMBwGA1UEAxMVUG9zdFNpZ251bSBSb290IFFDQSAyMB4XDTEw
-MDExOTEzMzYxMVoXDTIwMDExOTEzMzU0MlowXDELMAkGA1UEBhMCQ1oxLDAqBgNVBAoMI8SM
-ZXNrw6EgcG/FoXRhLCBzLnAuIFtJxIwgNDcxMTQ5ODNdMR8wHQYDVQQDExZQb3N0U2lnbnVt
-IFB1YmxpYyBDQSAyMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsWo9vT0XexfF
-i2byTrh4+Eh5ApjXsxWbqwVvxtx1wSqczlheyRn2e+iFEDB8wE30yyB3vQG1MkH5ty214yde
-5X8A18aXZpgbb/uv8Z2dHBk78S7rvPMgGABVBYrvA1Ngeg0ehcoK4w+zhChe77+jJR39/hxO
-bkM8ZPP+fUnIwSZB5egWHGF4NS3iUc8UQED1CN2qWTa7eOGgmmA1tRflK+Asp4Le52lk2klq
-Nz8xhx/3tHiXYr6IiX99u8H5ENxA+pBk1bPqcGzX558WXEiDnjkLPdjVYv8OQ/vyCvnlL8mH
-4W+Tl8/wUNAiGdtWmd13q0CN+adH5W93c41B3RDi9wIDAQABo4IDKDCCAyQwgfEGA1UdIASB
-6TCB5jCB4wYEVR0gADCB2jCB1wYIKwYBBQUHAgIwgcoagcdUZW50byBrdmFsaWZpa292YW55
-IHN5c3RlbW92eSBjZXJ0aWZpa2F0IGJ5bCB2eWRhbiBwb2RsZSB6YWtvbmEgMjI3LzIwMDBT
-Yi4gYSBuYXZhem55Y2ggcHJlZHBpc3UvVGhpcyBxdWFsaWZpZWQgc3lzdGVtIGNlcnRpZmlj
-YXRlIHdhcyBpc3N1ZWQgYWNjb3JkaW5nIHRvIExhdyBObyAyMjcvMjAwMENvbGwuIGFuZCBy
-ZWxhdGVkIHJlZ3VsYXRpb25zMBIGA1UdEwEB/wQIMAYBAf8CAQAwgbwGCCsGAQUFBwEBBIGv
-MIGsMDcGCCsGAQUFBzAChitodHRwOi8vd3d3LnBvc3RzaWdudW0uY3ovY3J0L3Bzcm9vdHFj
-YTIuY3J0MDgGCCsGAQUFBzAChixodHRwOi8vd3d3Mi5wb3N0c2lnbnVtLmN6L2NydC9wc3Jv
-b3RxY2EyLmNydDA3BggrBgEFBQcwAoYraHR0cDovL3Bvc3RzaWdudW0udHRjLmN6L2NydC9w
-c3Jvb3RxY2EyLmNydDAOBgNVHQ8BAf8EBAMCAQYwgYMGA1UdIwR8MHqAFBUpjMVFaau4s8Pq
-/ku4Mdjc8Od2oV+kXTBbMQswCQYDVQQGEwJDWjEsMCoGA1UECgwjxIxlc2vDoSBwb8WhdGEs
-IHMucC4gW0nEjCA0NzExNDk4M10xHjAcBgNVBAMTFVBvc3RTaWdudW0gUm9vdCBRQ0EgMoIB
-ZDCBpQYDVR0fBIGdMIGaMDGgL6AthitodHRwOi8vd3d3LnBvc3RzaWdudW0uY3ovY3JsL3Bz
-cm9vdHFjYTIuY3JsMDKgMKAuhixodHRwOi8vd3d3Mi5wb3N0c2lnbnVtLmN6L2NybC9wc3Jv
-b3RxY2EyLmNybDAxoC+gLYYraHR0cDovL3Bvc3RzaWdudW0udHRjLmN6L2NybC9wc3Jvb3Rx
-Y2EyLmNybDAdBgNVHQ4EFgQUSO8+1OqJiaPp4j/b74xCsQr4yNEwDQYJKoZIhvcNAQELBQAD
-ggEBAEBZERieUTZOXTG3Wr8xKOH1wI13jWRKicI/7EPeZ5PuHBbvl2BLalhZB3zXhjscButD
-QJPfilziNfvpjE/Jc5CkKXsD8LCmC7rB0U89X0THIdaq/OM/TN/IiCT1bNMlOKTp92XaF5og
-2BRflSH7FeQ2x11gyLy9cSHXXb29zBKaRB6nxE8XTY8Zfg5D8uPh6bsZ2HH+xYNAPJO4ngtE
-+RcSTpg7vpmbi+J2I1eWgrQ2L+embqm39Y3hIMJrYRE2fBw+cai7vjMotYPxhJ29lgUpKvTn
-QKOODafdNKX0aWUUK1M7YEtaePb54N0xa9oBVYvn59EfswfvBzV7le1Z2bMxggNTMIIDTwIB
-ATBjMFwxCzAJBgNVBAYTAkNaMSwwKgYDVQQKDCPEjGVza8OhIHBvxaF0YSwgcy5wLiBbScSM
-IDQ3MTE0OTgzXTEfMB0GA1UEAxMWUG9zdFNpZ251bSBQdWJsaWMgQ0EgMgIDC6i3MA0GCWCG
-SAFlAwQCAQUAoIIBwTAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEP
-Fw0xNTExMTcyMzEwNDNaMC8GCSqGSIb3DQEJBDEiBCA60ytIFMWC0RxB0vf1VxQ2WQBCUXcx
-AOgaBVVQYpvmnDBsBgkqhkiG9w0BCQ8xXzBdMAsGCWCGSAFlAwQBKjALBglghkgBZQMEAQIw
-CgYIKoZIhvcNAwcwDgYIKoZIhvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0G
-CCqGSIb3DQMCAgEoMHIGCSsGAQQBgjcQBDFlMGMwXDELMAkGA1UEBhMCQ1oxLDAqBgNVBAoM
-I8SMZXNrw6EgcG/FoXRhLCBzLnAuIFtJxIwgNDcxMTQ5ODNdMR8wHQYDVQQDExZQb3N0U2ln
-bnVtIFB1YmxpYyBDQSAyAgMLqLcwdAYLKoZIhvcNAQkQAgsxZaBjMFwxCzAJBgNVBAYTAkNa
-MSwwKgYDVQQKDCPEjGVza8OhIHBvxaF0YSwgcy5wLiBbScSMIDQ3MTE0OTgzXTEfMB0GA1UE
-AxMWUG9zdFNpZ251bSBQdWJsaWMgQ0EgMgIDC6i3MA0GCSqGSIb3DQEBAQUABIIBAHFFsp+X
-N/up6eR7IJ2o1n8TqAOK5PntlSJGvrrEkUJDn66DYvcKkZr3rM1xdiSAggE2P6k8eg5mufUB
-osMsrvacP9f0YZTvOylouqoDvLsKJMKIXw2iDP0eWvQ/cqezlRS+B9kIpe6VwSRI97YAz6oy
-ihtEg+3K1bb9FnB10zLP9dd+7Mmw6OBTypUgGIab3SBuA++e1K515q/+az8g4W+E0cXJBFiE
-ZDL82orugMIWBBzOga4zW0HPCdF74cV1OVlysaU2+dNQX3fmrhAOK8l6lSJV+BJ3nlyPOjiu
-HC6C9/laPV21hALk9CvM+t390C5Lf32aU3yZ4Xz+lHcu/ZYAAAAAAAA=
---------------ms060402070903010601020400--
+Cheers
+Phil
