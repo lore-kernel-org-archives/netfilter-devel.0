@@ -1,94 +1,89 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH v2] Root in namespace owns x_tables /proc entries
-Date: Wed, 18 Nov 2015 03:13:51 -0600
-Message-ID: <87a8qbhdps.fsf@x220.int.ebiederm.org>
-References: <20151114091214.GA486@compaq.slightly-cracked.com>
-	<87mvudk3r6.fsf@x220.int.ebiederm.org>
-	<20151118073724.GA4855@compaq.slightly-cracked.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [conntrackd PATCH v3] conntrackd: add systemd support
+Date: Wed, 18 Nov 2015 17:50:35 +0100
+Message-ID: <CAOkSjBiJexWsW30SQz48D3JEYxzyYSF_VeJ+9hPwMnJDh6zkog@mail.gmail.com>
+References: <144741224967.19762.12430502552848102506.stgit@r2d2.cica.es>
+ <20151116111720.GA14988@salvia> <CAOkSjBgG7pVyP1LT0p+cbjrHkTGXRB=KPnrAVNQHSVSXys0xfw@mail.gmail.com>
+ <20151116170325.GA1694@salvia> <20151117102520.GA16690@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jan Engelhardt <jengelh@inai.de>,
-	netfilter-devel@vger.kernel.org
-To: Phil Whineray <phil@firehol.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out03.mta.xmission.com ([166.70.13.233]:55720 "EHLO
-	out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755462AbbKRJWx (ORCPT
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:38057 "EHLO
+	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751496AbbKRQu4 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Nov 2015 04:22:53 -0500
-In-Reply-To: <20151118073724.GA4855@compaq.slightly-cracked.com> (Phil
-	Whineray's message of "Wed, 18 Nov 2015 07:37:24 +0000")
+	Wed, 18 Nov 2015 11:50:56 -0500
+Received: by wmec201 with SMTP id c201so81929945wme.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Nov 2015 08:50:55 -0800 (PST)
+In-Reply-To: <20151117102520.GA16690@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Phil Whineray <phil@firehol.org> writes:
-
-> On Mon, Nov 16, 2015 at 03:56:13PM -0600, Eric W. Biederman wrote:
->> Philip Whineray <phil@firehol.org> writes:
->> 
->> > Reading these files is impossible in an unprivileged user namespace,
->> > interfering with various firewall tools. For instance, iptables-save
->> > relies on reading /proc/net/ip_tables_names to dump only loaded tables.
->> 
->> These lines are wrong.  They should be:
->> 
->>         root_uid = make_kuid(net->user_ns, 0);
->>         root_gid = make_kgid(net->user_ns, 0);
->>         if (!uid_valid(root_uid) || !gid_valid(root_gid))
->>         	goto out;
->> 
->> >  	strlcpy(buf, xt_prefix[af], sizeof(buf));
->> >  	strlcat(buf, FORMAT_TABLES, sizeof(buf));
->> >  	proc = proc_create_data(buf, 0440, net->proc_net, &xt_table_ops,
->> >  				(void *)(unsigned long)af);
->> >  	if (!proc)
->> >  		goto out;
->> > +	proc_set_user(proc, root_uid, root_gid);
+On 17 November 2015 at 11:25, Pablo Neira Ayuso <pablo@netfilter.org> w=
+rote:
+> On Mon, Nov 16, 2015 at 06:03:25PM +0100, Pablo Neira Ayuso wrote:
+>> On Mon, Nov 16, 2015 at 03:22:21PM +0100, Arturo Borrero Gonzalez wr=
+ote:
+>> > On 16 November 2015 at 12:17, Pablo Neira Ayuso <pablo@netfilter.o=
+rg> wrote:
+>> > > On Fri, Nov 13, 2015 at 11:59:35AM +0100, Arturo Borrero Gonzale=
+z wrote:
+>> > >> v2: change functions definitions to static inline if no BUILD_S=
+YSTEMD,
+>> > >>     and set watchdog variables as static.
+>> > >>
+>> > >> v3: add runtime systemd configuration. Report warnings.
+>> > >
+>> > > One more question:
+>> > >
+>> > > This is checking for 'libsystemd >=3D 227'
+>> > >
+>> > > Is this library version really required? Or it is simply that yo=
+u have
+>> > > set to the most recent version for some reason?
+>> >
+>> > 227 is the version I've tested. Previous versions may not work.
+>> >
+>> > For example, I remember the library being split in several small
+>> > libraries and then mixed into this libsystemd, thus changing some
+>> > headers and include paths.
+>> >
+>> > Also, I simply ignore what is the behaviour of the watchdog stuff
+>> > previous to 227, it seems a recent thing.
+>> >
+>> > What are your concerns?
+>>
+>> I would like not to see many ifdefs in the conntrack-tools tree just
+>> because they update interfaces too frequently. Could you check at
+>> their history record to see how they have been performing on that
+>> front so far?
 >
-> Thanks for the pointer Eric. As written it doesn't quite work because
-> out is an error path. unshare(CLONE_NEWUSER|CLONE_NEWNET) always fails
-> due to there not being a mapping for the user yet. Instead:
-
-Point.
-
-Although CLONE_NEWUSER|CLONE_NEWNET are not required to happen
-simultaneously.
-
-So you can make what I was suggesting work with:
-unshare(CLONE_NEWUSER);
-/* Setup the mapping */
-unshare(CLONE_NEWNET);
-
-The simplest version of this I can think of is to just not change the
-user if the mapping is not setup at the time the proc files are created.
-
-Certainly that would not be worse than what we have today.
-
->        root_uid = make_kuid(net->user_ns, 0);
->        root_gid = make_kgid(net->user_ns, 0);
+> Arturo, I'm going to push this into master.
 >
-> followed by:
+> I have just mangled the configure.ac part of your patch here so the
+> default behaviour is that you have to explicitly indicate
+> --enable-systemd support if you want this.
 >
->        if (!proc)
->               goto out;
->        if (uid_valid(root_uid) && gid_valid(root_gid))
->               proc_set_user(proc, root_uid, root_gid);
+> We can revisit this later on to change the default.
 >
-> would preserve the current behaviour but allow the files to be
-> correctly mapped by first unsharing the user namespace, then setting
-> the gid map and finally unsharing the namespace.
+> OK?
 
-I am not quite certain what you are suggesting above.  It looks and
-sounds like my suggest to only call proc_set_user if a mapping exists.
-Which is fine. 
+Ok thanks,
 
-> Or, is it sane to bypass all the above and jump straight to:
->
->         proc_set_user(proc, net->user_ns->owner, net->user_ns->group);
+I've been scanning the debian changelog for systemd [0]. The only big
+change to libsystemd seems to be when libsystemd-login,
+libsytemd-daemon, libsystemd-* were merged into a general libsystemd.
+The API prototypes seem to be stable across releases.
 
-It is not.   There are many reasons why typically user_ns->owner and
-user_ns->group are rarely mapped in a user namespace.
-
-Eric
-
+[0] https://tracker.debian.org/media/packages/s/systemd/changelog-227-3
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
