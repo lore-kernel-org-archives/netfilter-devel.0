@@ -1,34 +1,51 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nft 2/2] tests: regression: allow to run tests from
- anywhere
-Date: Thu, 19 Nov 2015 23:00:50 +0100
-Message-ID: <20151119220050.GB25336@breakpoint.cc>
-References: <1447959109-17295-1-git-send-email-pablombg@gmail.com>
- <1447959109-17295-2-git-send-email-pablombg@gmail.com>
+From: subashab@codeaurora.org
+Subject: Re: WARN due to local_bh_disable called with interrupts disabled
+Date: Thu, 19 Nov 2015 22:19:21 -0000
+Message-ID: <3ffdb703b1c0b9011665e0d81e3e62c2.squirrel@www.codeaurora.org>
+References: <94ad7f112d565984ffdc4aaafe002803.squirrel@www.codeaurora.org>
+    <20151119114208.3b8e67c3@redhat.com>
+    <1447936112.22599.197.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50034 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758006AbbKSWAw (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Nov 2015 17:00:52 -0500
-Content-Disposition: inline
-In-Reply-To: <1447959109-17295-2-git-send-email-pablombg@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Cc: "Jesper Dangaard Brouer" <brouer@redhat.com>,
+	netfilter-devel@vger.kernel.org, pablo@netfilter.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: "Eric Dumazet" <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1447936112.22599.197.camel@edumazet-glaptop2.roam.corp.google.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo M. Bermudo Garay <pablombg@gmail.com> wrote:
-> Since 357d8cf "tests: use the src/nft binary instead of $PATH one", the
-> tests script needs to be executed from nftables repository root. Now
-> the script can be run from any location and also checks the binary
-> existence.
-> 
-> To run a single test file, the path must be relative from the directory
-> where you launch the script.
+>>
+>> The call gic_handle_irq() sounds like a hardware IRQ func/context.
+>>
+>> The flush_backlog() call is due to the device is being unregistered.
+>>
 
-Looks good, I pushed both patches to nft master.
+Yes, this is the ARM interrupt controller. It appeared as if wifi was
+getting torn down around this.
 
-Thanks!
+>> I'm surprised to see kfree_skb() being called from hardirq context, I
+>> though that was not allowed.
+>>
+>> AFAIK this is the reason we have: __dev_kfree_skb_any() which defer
+>> freeing the SKB if (in_irq() || irqs_disabled()).
+>>
+>> Code:
+>>  void __dev_kfree_skb_any(struct sk_buff *skb, enum skb_free_reason
+>> reason)
+>>  {
+>> 	if (in_irq() || irqs_disabled())
+>> 		__dev_kfree_skb_irq(skb, reason);
+>> 	else
+>> 		dev_kfree_skb(skb);
+>>  }
+>
+> Right, but flush_backlog() is processing packets coming from RX, that
+> should have no conntracking attached at all.
+>
+> Might be a bug in a tunnel ?
+
+Thanks Jesper \ Eric. I'll explore into why a conntrack entry is
+associated with this skb.
