@@ -1,40 +1,51 @@
-From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH iptables] libxt_cgroup: improve wording in the man page
-Date: Thu, 19 Nov 2015 13:58:01 -0500
-Message-ID: <20151119185801.GC28608@mtj.duckdns.org>
-References: <1447959171-20749-1-git-send-email-tj@kernel.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: Extending connmark to 64 bits
+Date: Thu, 19 Nov 2015 22:32:47 +0100
+Message-ID: <20151119213247.GA25336@breakpoint.cc>
+References: <1447802062.16644.12.camel@mattb-dl>
+ <20151119030011.GA6710@breakpoint.cc>
+ <1447904116.12623.2.camel@mattb-dl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-team-b10kYP2dOMg@public.gmane.org,
-	daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org, daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org,
-	nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, Jan Engelhardt <jengelh-9+2X+4sQBs8@public.gmane.org>
-To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org,
-	kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "fw@strlen.de" <fw@strlen.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Matt Bennett <Matt.Bennett@alliedtelesis.co.nz>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49986 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758978AbbKSVcu (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Nov 2015 16:32:50 -0500
 Content-Disposition: inline
-In-Reply-To: <1447959171-20749-1-git-send-email-tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1447904116.12623.2.camel@mattb-dl>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Replace "disadviced" with "not advised" as suggested by Jan.
+Matt Bennett <Matt.Bennett@alliedtelesis.co.nz> wrote:
+> On Thu, 2015-11-19 at 04:00 +0100, Florian Westphal wrote:
+> > Matt Bennett <Matt.Bennett@alliedtelesis.co.nz> wrote:
+> > > Currently we have a number of router features making use of connection
+> > > tracking. As such we now require more than the 32 bits connmark
+> > > currently has. Our first inclination is to extend this field to 64 bits
+> > > and update related areas of code appropriately.
+> > > 
+> > > The major question we have is whether there is a reason this field is 32
+> > > bits (performance reasons or other)?
+> > 
+> > Its meant to align with skb->mark.
+> 
+> I thought that could be the case. Probably the wrong mailing-list to be
+> asking this on but is increasing the number of bits for the skb->mark
+> then a possibility?
 
-Signed-off-by: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Daniel Borkmann <dborkman-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: Jan Engelhardt <jengelh-9+2X+4sQBs8@public.gmane.org>
----
- extensions/libxt_cgroup.man |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Increase sk_buff size?  Doubtful.
 
---- a/extensions/libxt_cgroup.man
-+++ b/extensions/libxt_cgroup.man
-@@ -12,7 +12,7 @@ the net_cls cgroup's id.
- matcher is currently only of limited functionality, meaning it
- will only match on packets that are processed for local sockets
- through early socket demuxing. Therefore, general usage on the
--INPUT chain is disadviced unless the implications are well
-+INPUT chain is not advised unless the implications are well
- understood.
- .PP
- Example:
+> The number of bits available for marking becomes the
+> limiting factor when you have a number of applications needing to mark
+> packets.
+
+Now I am confused.  You mentioned connmark.
+
+Are you marking packets or connections?
+
+Why are 2**32 marks not sufficient?
