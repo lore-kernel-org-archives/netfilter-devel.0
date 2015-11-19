@@ -1,71 +1,135 @@
-From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
-Subject: [PATCH nft 1/2] tests: regression: homogenize indentation style
-Date: Thu, 19 Nov 2015 19:51:48 +0100
-Message-ID: <1447959109-17295-1-git-send-email-pablombg@gmail.com>
-Cc: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:37797 "EHLO
-	mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933081AbbKSSwH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Nov 2015 13:52:07 -0500
-Received: by wmww144 with SMTP id w144so129427177wmw.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2015 10:52:06 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Tejun Heo <tj@kernel.org>
+Subject: [PATCH 2/7] kernfs: implement kernfs_walk_and_get()
+Date: Thu, 19 Nov 2015 13:52:46 -0500
+Message-ID: <1447959171-20749-3-git-send-email-tj@kernel.org>
+References: <1447959171-20749-1-git-send-email-tj@kernel.org>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, cgroups@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-team@fb.com,
+	daniel@iogearbox.net, daniel.wagner@bmw-carit.de,
+	nhorman@tuxdriver.com, Tejun Heo <tj@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: davem@davemloft.net, pablo@netfilter.org, kaber@trash.net,
+	kadlec@blackhole.kfki.hu, lizefan@huawei.com, hannes@cmpxchg.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1447959171-20749-1-git-send-email-tj@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Python interpreter doesn't like mixed indentation. So in order to
-prevent future problems, this commit replace some tabs found in the
-script with space indentation.
+Implement kernfs_walk_and_get() which is similar to
+kernfs_find_and_get() but can walk a path instead of just a name.
 
-Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
+v2: Use strlcpy() instead of strlen() + memcpy() as suggested by
+    David.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: David Miller <davem@davemloft.net>
 ---
- tests/regression/nft-test.py | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/kernfs/dir.c        | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/kernfs.h | 12 ++++++++++++
+ 2 files changed, 58 insertions(+)
 
-diff --git a/tests/regression/nft-test.py b/tests/regression/nft-test.py
-index d2fbe45..ed9653d 100755
---- a/tests/regression/nft-test.py
-+++ b/tests/regression/nft-test.py
-@@ -499,7 +499,7 @@ def rule_add(rule, table_list, chain_list, filename, lineno,
-             payload_log = open("%s.payload" % filename_path)
+diff --git a/fs/kernfs/dir.c b/fs/kernfs/dir.c
+index 91e0045..742bf4a 100644
+--- a/fs/kernfs/dir.c
++++ b/fs/kernfs/dir.c
+@@ -694,6 +694,29 @@ static struct kernfs_node *kernfs_find_ns(struct kernfs_node *parent,
+ 	return NULL;
+ }
  
-         if rule[1].strip() == "ok":
--	    try:
-+            try:
-                 payload_expected.index(rule[0])
-             except (ValueError):
-                 payload_expected = payload_find_expected(payload_log, rule[0])
-@@ -553,7 +553,7 @@ def rule_add(rule, table_list, chain_list, filename, lineno,
-                         if line == "":
-                             break
-                         gotf.write(line)
--	            gotf.close()
-+                    gotf.close()
-                     print_warning("Wrote payload for rule %s" % rule[0], gotf.name, 1)
++static struct kernfs_node *kernfs_walk_ns(struct kernfs_node *parent,
++					  const unsigned char *path,
++					  const void *ns)
++{
++	static char path_buf[PATH_MAX];	/* protected by kernfs_mutex */
++	size_t len = strlcpy(path_buf, path, PATH_MAX);
++	char *p = path_buf;
++	char *name;
++
++	lockdep_assert_held(&kernfs_mutex);
++
++	if (len >= PATH_MAX)
++		return NULL;
++
++	while ((name = strsep(&p, "/")) && parent) {
++		if (*name == '\0')
++			continue;
++		parent = kernfs_find_ns(parent, name, ns);
++	}
++
++	return parent;
++}
++
+ /**
+  * kernfs_find_and_get_ns - find and get kernfs_node with the given name
+  * @parent: kernfs_node to search under
+@@ -719,6 +742,29 @@ struct kernfs_node *kernfs_find_and_get_ns(struct kernfs_node *parent,
+ EXPORT_SYMBOL_GPL(kernfs_find_and_get_ns);
  
-             # Check output of nft
-@@ -722,8 +722,8 @@ def payload_find_expected(payload_log, rule):
+ /**
++ * kernfs_walk_and_get_ns - find and get kernfs_node with the given path
++ * @parent: kernfs_node to search under
++ * @path: path to look for
++ * @ns: the namespace tag to use
++ *
++ * Look for kernfs_node with path @path under @parent and get a reference
++ * if found.  This function may sleep and returns pointer to the found
++ * kernfs_node on success, %NULL on failure.
++ */
++struct kernfs_node *kernfs_walk_and_get_ns(struct kernfs_node *parent,
++					   const char *path, const void *ns)
++{
++	struct kernfs_node *kn;
++
++	mutex_lock(&kernfs_mutex);
++	kn = kernfs_walk_ns(parent, path, ns);
++	kernfs_get(kn);
++	mutex_unlock(&kernfs_mutex);
++
++	return kn;
++}
++
++/**
+  * kernfs_create_root - create a new kernfs hierarchy
+  * @scops: optional syscall operations for the hierarchy
+  * @flags: KERNFS_ROOT_* flags
+diff --git a/include/linux/kernfs.h b/include/linux/kernfs.h
+index 5d4e9c4..af51df3 100644
+--- a/include/linux/kernfs.h
++++ b/include/linux/kernfs.h
+@@ -274,6 +274,8 @@ void pr_cont_kernfs_path(struct kernfs_node *kn);
+ struct kernfs_node *kernfs_get_parent(struct kernfs_node *kn);
+ struct kernfs_node *kernfs_find_and_get_ns(struct kernfs_node *parent,
+ 					   const char *name, const void *ns);
++struct kernfs_node *kernfs_walk_and_get_ns(struct kernfs_node *parent,
++					   const char *path, const void *ns);
+ void kernfs_get(struct kernfs_node *kn);
+ void kernfs_put(struct kernfs_node *kn);
  
-     while True:
-         line = payload_log.readline()
--	if not line:
--	    break
-+        if not line:
-+            break
+@@ -350,6 +352,10 @@ static inline struct kernfs_node *
+ kernfs_find_and_get_ns(struct kernfs_node *parent, const char *name,
+ 		       const void *ns)
+ { return NULL; }
++static inline struct kernfs_node *
++kernfs_walk_and_get_ns(struct kernfs_node *parent, const char *path,
++		       const void *ns)
++{ return NULL; }
  
-         if line[0] == "#":  # rule start
-             rule_line = line.strip()[2:]
-@@ -910,7 +910,7 @@ def main():
+ static inline void kernfs_get(struct kernfs_node *kn) { }
+ static inline void kernfs_put(struct kernfs_node *kn) { }
+@@ -431,6 +437,12 @@ kernfs_find_and_get(struct kernfs_node *kn, const char *name)
+ }
  
-     if not os.path.isdir("tests/regression/"):
-         print "You have to run nft-test.py from the repository root directory, eg.\n\n" + \
--            "	nftables# python tests/regression/nft-test.py\n"
-+            "    nftables# python tests/regression/nft-test.py\n"
-         return
- 
-     test_files = files_ok = run_total = 0
+ static inline struct kernfs_node *
++kernfs_walk_and_get(struct kernfs_node *kn, const char *path)
++{
++	return kernfs_walk_and_get_ns(kn, path, NULL);
++}
++
++static inline struct kernfs_node *
+ kernfs_create_dir(struct kernfs_node *parent, const char *name, umode_t mode,
+ 		  void *priv)
+ {
 -- 
-2.6.2
-
+2.5.0
