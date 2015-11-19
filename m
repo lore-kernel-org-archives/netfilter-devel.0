@@ -1,38 +1,47 @@
-From: Florian Westphal <fw@strlen.de>
+From: Matt Bennett <Matt.Bennett@alliedtelesis.co.nz>
 Subject: Re: Extending connmark to 64 bits
-Date: Thu, 19 Nov 2015 04:00:11 +0100
-Message-ID: <20151119030011.GA6710@breakpoint.cc>
+Date: Thu, 19 Nov 2015 03:35:16 +0000
+Message-ID: <1447904116.12623.2.camel@mattb-dl>
 References: <1447802062.16644.12.camel@mattb-dl>
+	 <20151119030011.GA6710@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Matt Bennett <Matt.Bennett@alliedtelesis.co.nz>
+To: "fw@strlen.de" <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:47389 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755813AbbKSDAO (ORCPT
+Received: from gate2.alliedtelesis.co.nz ([202.36.163.20]:60920 "EHLO
+	gate2.alliedtelesis.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757623AbbKSDfX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Nov 2015 22:00:14 -0500
-Content-Disposition: inline
-In-Reply-To: <1447802062.16644.12.camel@mattb-dl>
+	Wed, 18 Nov 2015 22:35:23 -0500
+In-Reply-To: <20151119030011.GA6710@breakpoint.cc>
+Content-Language: en-US
+Content-ID: <F912D2DE845AC449972562CD9569B5C1@atlnz.lc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Matt Bennett <Matt.Bennett@alliedtelesis.co.nz> wrote:
-> Currently we have a number of router features making use of connection
-> tracking. As such we now require more than the 32 bits connmark
-> currently has. Our first inclination is to extend this field to 64 bits
-> and update related areas of code appropriately.
-> 
-> The major question we have is whether there is a reason this field is 32
-> bits (performance reasons or other)?
-
-Its meant to align with skb->mark.
-
-> If it is not possible to extend this field then perhaps there are other
-> options (beyond disabling some features making use of connection
-> tracking)?
-
-Have you looked at using conntrack labels?
-
-Its a 128bit storage area.
+T24gVGh1LCAyMDE1LTExLTE5IGF0IDA0OjAwICswMTAwLCBGbG9yaWFuIFdlc3RwaGFsIHdyb3Rl
+Og0KPiBNYXR0IEJlbm5ldHQgPE1hdHQuQmVubmV0dEBhbGxpZWR0ZWxlc2lzLmNvLm56PiB3cm90
+ZToNCj4gPiBDdXJyZW50bHkgd2UgaGF2ZSBhIG51bWJlciBvZiByb3V0ZXIgZmVhdHVyZXMgbWFr
+aW5nIHVzZSBvZiBjb25uZWN0aW9uDQo+ID4gdHJhY2tpbmcuIEFzIHN1Y2ggd2Ugbm93IHJlcXVp
+cmUgbW9yZSB0aGFuIHRoZSAzMiBiaXRzIGNvbm5tYXJrDQo+ID4gY3VycmVudGx5IGhhcy4gT3Vy
+IGZpcnN0IGluY2xpbmF0aW9uIGlzIHRvIGV4dGVuZCB0aGlzIGZpZWxkIHRvIDY0IGJpdHMNCj4g
+PiBhbmQgdXBkYXRlIHJlbGF0ZWQgYXJlYXMgb2YgY29kZSBhcHByb3ByaWF0ZWx5Lg0KPiA+IA0K
+PiA+IFRoZSBtYWpvciBxdWVzdGlvbiB3ZSBoYXZlIGlzIHdoZXRoZXIgdGhlcmUgaXMgYSByZWFz
+b24gdGhpcyBmaWVsZCBpcyAzMg0KPiA+IGJpdHMgKHBlcmZvcm1hbmNlIHJlYXNvbnMgb3Igb3Ro
+ZXIpPw0KPiANCj4gSXRzIG1lYW50IHRvIGFsaWduIHdpdGggc2tiLT5tYXJrLg0KDQpJIHRob3Vn
+aHQgdGhhdCBjb3VsZCBiZSB0aGUgY2FzZS4gUHJvYmFibHkgdGhlIHdyb25nIG1haWxpbmctbGlz
+dCB0byBiZQ0KYXNraW5nIHRoaXMgb24gYnV0IGlzIGluY3JlYXNpbmcgdGhlIG51bWJlciBvZiBi
+aXRzIGZvciB0aGUgc2tiLT5tYXJrDQp0aGVuIGEgcG9zc2liaWxpdHk/IFRoZSBudW1iZXIgb2Yg
+Yml0cyBhdmFpbGFibGUgZm9yIG1hcmtpbmcgYmVjb21lcyB0aGUNCmxpbWl0aW5nIGZhY3RvciB3
+aGVuIHlvdSBoYXZlIGEgbnVtYmVyIG9mIGFwcGxpY2F0aW9ucyBuZWVkaW5nIHRvIG1hcmsNCnBh
+Y2tldHMuDQo+IA0KPiA+IElmIGl0IGlzIG5vdCBwb3NzaWJsZSB0byBleHRlbmQgdGhpcyBmaWVs
+ZCB0aGVuIHBlcmhhcHMgdGhlcmUgYXJlIG90aGVyDQo+ID4gb3B0aW9ucyAoYmV5b25kIGRpc2Fi
+bGluZyBzb21lIGZlYXR1cmVzIG1ha2luZyB1c2Ugb2YgY29ubmVjdGlvbg0KPiA+IHRyYWNraW5n
+KT8NCj4gDQo+IEhhdmUgeW91IGxvb2tlZCBhdCB1c2luZyBjb25udHJhY2sgbGFiZWxzPw0KPiAN
+Cj4gSXRzIGEgMTI4Yml0IHN0b3JhZ2UgYXJlYS4NCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJv
+bSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIG5ldGZpbHRlci1kZXZlbCIg
+aW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcN
+Cj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRv
+bW8taW5mby5odG1sDQoNCg==
