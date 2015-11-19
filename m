@@ -1,60 +1,68 @@
 From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
-Subject: [PATCH nft 2/2] tests: regression: allow to run tests from anywhere
-Date: Thu, 19 Nov 2015 19:51:49 +0100
-Message-ID: <1447959109-17295-2-git-send-email-pablombg@gmail.com>
-References: <1447959109-17295-1-git-send-email-pablombg@gmail.com>
+Subject: [PATCH nft 1/2] tests: regression: homogenize indentation style
+Date: Thu, 19 Nov 2015 19:51:48 +0100
+Message-ID: <1447959109-17295-1-git-send-email-pablombg@gmail.com>
 Cc: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:35396 "EHLO
-	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933081AbbKSSwL (ORCPT
+Received: from mail-wm0-f48.google.com ([74.125.82.48]:37797 "EHLO
+	mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933081AbbKSSwH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Nov 2015 13:52:11 -0500
-Received: by wmdw130 with SMTP id w130so252662767wmd.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2015 10:52:10 -0800 (PST)
-In-Reply-To: <1447959109-17295-1-git-send-email-pablombg@gmail.com>
+	Thu, 19 Nov 2015 13:52:07 -0500
+Received: by wmww144 with SMTP id w144so129427177wmw.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2015 10:52:06 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Since 357d8cf "tests: use the src/nft binary instead of $PATH one", the
-tests script needs to be executed from nftables repository root. Now
-the script can be run from any location and also checks the binary
-existence.
-
-To run a single test file, the path must be relative from the directory
-where you launch the script.
+Python interpreter doesn't like mixed indentation. So in order to
+prevent future problems, this commit replace some tabs found in the
+script with space indentation.
 
 Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
 ---
- tests/regression/nft-test.py | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ tests/regression/nft-test.py | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/tests/regression/nft-test.py b/tests/regression/nft-test.py
-index ed9653d..0b0be5d 100755
+index d2fbe45..ed9653d 100755
 --- a/tests/regression/nft-test.py
 +++ b/tests/regression/nft-test.py
-@@ -20,7 +20,7 @@ import argparse
- import signal
+@@ -499,7 +499,7 @@ def rule_add(rule, table_list, chain_list, filename, lineno,
+             payload_log = open("%s.payload" % filename_path)
  
- TERMINAL_PATH = os.getcwd()
--NFT_BIN = TERMINAL_PATH + "/src/nft"
-+NFT_BIN = "src/nft"
- TESTS_PATH = os.path.dirname(os.path.abspath(__file__))
- TESTS_DIRECTORY = ["any", "arp", "bridge", "inet", "ip", "ip6"]
- LOGFILE = "/tmp/nftables-test.log"
-@@ -908,9 +908,11 @@ def main():
-         print "You need to be root to run this, sorry"
-         return
+         if rule[1].strip() == "ok":
+-	    try:
++            try:
+                 payload_expected.index(rule[0])
+             except (ValueError):
+                 payload_expected = payload_find_expected(payload_log, rule[0])
+@@ -553,7 +553,7 @@ def rule_add(rule, table_list, chain_list, filename, lineno,
+                         if line == "":
+                             break
+                         gotf.write(line)
+-	            gotf.close()
++                    gotf.close()
+                     print_warning("Wrote payload for rule %s" % rule[0], gotf.name, 1)
  
--    if not os.path.isdir("tests/regression/"):
--        print "You have to run nft-test.py from the repository root directory, eg.\n\n" + \
--            "    nftables# python tests/regression/nft-test.py\n"
-+    # Change working directory to repository root
-+    os.chdir(TESTS_PATH + "/../..")
-+
-+    if not os.path.isfile(NFT_BIN):
-+        print "The nft binary does not exist. You need to build the project."
+             # Check output of nft
+@@ -722,8 +722,8 @@ def payload_find_expected(payload_log, rule):
+ 
+     while True:
+         line = payload_log.readline()
+-	if not line:
+-	    break
++        if not line:
++            break
+ 
+         if line[0] == "#":  # rule start
+             rule_line = line.strip()[2:]
+@@ -910,7 +910,7 @@ def main():
+ 
+     if not os.path.isdir("tests/regression/"):
+         print "You have to run nft-test.py from the repository root directory, eg.\n\n" + \
+-            "	nftables# python tests/regression/nft-test.py\n"
++            "    nftables# python tests/regression/nft-test.py\n"
          return
  
      test_files = files_ok = run_total = 0
