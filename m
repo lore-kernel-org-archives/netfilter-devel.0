@@ -1,39 +1,44 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nftables] goto vs jump documentation
-Date: Fri, 20 Nov 2015 14:45:31 +0100
-Message-ID: <CAOkSjBiEzMwQoKfZ-SbptULO_NHZUgoO=KELDO-2CNEFKiof_w@mail.gmail.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCHSET v2] netfilter, cgroup: implement xt_cgroup2 match
+Date: Fri, 20 Nov 2015 13:59:12 -0500 (EST)
+Message-ID: <20151120.135912.1506496112678349111.davem@davemloft.net>
+References: <1447959171-20749-1-git-send-email-tj@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f53.google.com ([74.125.82.53]:36090 "EHLO
-	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161335AbbKTNpw convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Nov 2015 08:45:52 -0500
-Received: by wmww144 with SMTP id w144so20044964wmw.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2015 05:45:51 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org,
+	lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
+	cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	kernel-team-b10kYP2dOMg@public.gmane.org, daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org,
+	daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org
+To: tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1447959171-20749-1-git-send-email-tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Date: Thu, 19 Nov 2015 13:52:44 -0500
 
-I've documented the difference between goto and jump in the nftables wi=
-ki [0].
+> This is the second take of the xt_cgroup2 patchset.  Changes from the
+> last take are
+> 
+> * Instead of adding sock->sk_cgroup separately, sock->sk_cgrp_data now
+>   carries either (prioidx, classid) pair or cgroup2 pointer.  This
+>   avoids inflating struct sock with yet another cgroup related field.
+>   Unfortunately, this does add some complexity but that's the
+>   trade-off and the complexity is contained in cgroup proper.
+> 
+> * Various small updats as per David and Jan's reviews.
 
-Let me know if that's OK.
+I like this a lot better, thanks.
 
-regards.
+Please address Daniel's feedback on patch #6 and then I'm personally
+fine with this series.
 
-[0] http://wiki.nftables.org/wiki-nftables/index.php/Jumping_to_chain
+Pablo, are you ok with me merging this into net-next directly or
+would you rather I take patches 1-6 into net-next and then you can
+merge and then add patch #7 on top?
 
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks.
