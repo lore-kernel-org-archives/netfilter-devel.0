@@ -1,57 +1,43 @@
-From: Matt Bennett <Matt.Bennett@alliedtelesis.co.nz>
-Subject: Re: Extending connmark to 64 bits
-Date: Thu, 19 Nov 2015 22:55:32 +0000
-Message-ID: <1447973732.12623.24.camel@mattb-dl>
-References: <1447802062.16644.12.camel@mattb-dl>
-	 <20151119030011.GA6710@breakpoint.cc> <1447904116.12623.2.camel@mattb-dl>
-	 <20151119213247.GA25336@breakpoint.cc>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 2/7] kernfs: implement kernfs_walk_and_get()
+Date: Thu, 19 Nov 2015 20:41:04 -0800
+Message-ID: <20151120044104.GA10693@kroah.com>
+References: <1447959171-20749-1-git-send-email-tj@kernel.org>
+ <1447959171-20749-3-git-send-email-tj@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "fw@strlen.de" <fw@strlen.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: davem@davemloft.net, pablo@netfilter.org, kaber@trash.net,
+	kadlec@blackhole.kfki.hu, lizefan@huawei.com, hannes@cmpxchg.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, cgroups@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-team@fb.com,
+	daniel@iogearbox.net, daniel.wagner@bmw-carit.de,
+	nhorman@tuxdriver.com
+To: Tejun Heo <tj@kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gate2.alliedtelesis.co.nz ([202.36.163.20]:34953 "EHLO
-	gate2.alliedtelesis.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750782AbbKSWzs (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59750 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161909AbbKTElG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Nov 2015 17:55:48 -0500
-In-Reply-To: <20151119213247.GA25336@breakpoint.cc>
-Content-Language: en-US
-Content-ID: <4EAB59967B1C904F9743B555FABD0F6D@atlnz.lc>
+	Thu, 19 Nov 2015 23:41:06 -0500
+Content-Disposition: inline
+In-Reply-To: <1447959171-20749-3-git-send-email-tj@kernel.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-T24gVGh1LCAyMDE1LTExLTE5IGF0IDIyOjMyICswMTAwLCBGbG9yaWFuIFdlc3RwaGFsIHdyb3Rl
-Og0KPiBNYXR0IEJlbm5ldHQgPE1hdHQuQmVubmV0dEBhbGxpZWR0ZWxlc2lzLmNvLm56PiB3cm90
-ZToNCj4gPiBPbiBUaHUsIDIwMTUtMTEtMTkgYXQgMDQ6MDAgKzAxMDAsIEZsb3JpYW4gV2VzdHBo
-YWwgd3JvdGU6DQo+ID4gPiBNYXR0IEJlbm5ldHQgPE1hdHQuQmVubmV0dEBhbGxpZWR0ZWxlc2lz
-LmNvLm56PiB3cm90ZToNCj4gPiA+ID4gQ3VycmVudGx5IHdlIGhhdmUgYSBudW1iZXIgb2Ygcm91
-dGVyIGZlYXR1cmVzIG1ha2luZyB1c2Ugb2YgY29ubmVjdGlvbg0KPiA+ID4gPiB0cmFja2luZy4g
-QXMgc3VjaCB3ZSBub3cgcmVxdWlyZSBtb3JlIHRoYW4gdGhlIDMyIGJpdHMgY29ubm1hcmsNCj4g
-PiA+ID4gY3VycmVudGx5IGhhcy4gT3VyIGZpcnN0IGluY2xpbmF0aW9uIGlzIHRvIGV4dGVuZCB0
-aGlzIGZpZWxkIHRvIDY0IGJpdHMNCj4gPiA+ID4gYW5kIHVwZGF0ZSByZWxhdGVkIGFyZWFzIG9m
-IGNvZGUgYXBwcm9wcmlhdGVseS4NCj4gPiA+ID4gDQo+ID4gPiA+IFRoZSBtYWpvciBxdWVzdGlv
-biB3ZSBoYXZlIGlzIHdoZXRoZXIgdGhlcmUgaXMgYSByZWFzb24gdGhpcyBmaWVsZCBpcyAzMg0K
-PiA+ID4gPiBiaXRzIChwZXJmb3JtYW5jZSByZWFzb25zIG9yIG90aGVyKT8NCj4gPiA+IA0KPiA+
-ID4gSXRzIG1lYW50IHRvIGFsaWduIHdpdGggc2tiLT5tYXJrLg0KPiA+IA0KPiA+IEkgdGhvdWdo
-dCB0aGF0IGNvdWxkIGJlIHRoZSBjYXNlLiBQcm9iYWJseSB0aGUgd3JvbmcgbWFpbGluZy1saXN0
-IHRvIGJlDQo+ID4gYXNraW5nIHRoaXMgb24gYnV0IGlzIGluY3JlYXNpbmcgdGhlIG51bWJlciBv
-ZiBiaXRzIGZvciB0aGUgc2tiLT5tYXJrDQo+ID4gdGhlbiBhIHBvc3NpYmlsaXR5Pw0KPiANCj4g
-SW5jcmVhc2Ugc2tfYnVmZiBzaXplPyAgRG91YnRmdWwuDQo+IA0KPiA+IFRoZSBudW1iZXIgb2Yg
-Yml0cyBhdmFpbGFibGUgZm9yIG1hcmtpbmcgYmVjb21lcyB0aGUNCj4gPiBsaW1pdGluZyBmYWN0
-b3Igd2hlbiB5b3UgaGF2ZSBhIG51bWJlciBvZiBhcHBsaWNhdGlvbnMgbmVlZGluZyB0byBtYXJr
-DQo+ID4gcGFja2V0cy4NCj4gDQo+IE5vdyBJIGFtIGNvbmZ1c2VkLiAgWW91IG1lbnRpb25lZCBj
-b25ubWFyay4NCj4gDQo+IEFyZSB5b3UgbWFya2luZyBwYWNrZXRzIG9yIGNvbm5lY3Rpb25zPw0K
-Qm90aCwgdGhlIGZpcnN0IHBhY2tldCBpbiBhIGZsb3cgdHJhdmVyc2VzIHRocm91Z2ggaXAtdGFi
-bGVzIGFuZA0KbXVsdGlwbGUgYXBwbGljYXRpb25zIHNldCBydWxlcyB0byBtYXJrIHRoZSBwYWNr
-ZXQuIEVhY2ggYXBwbGljYXRpb24NCmdldHMgYSBjZXJ0YWluIGFyZWEgb2YgdGhlIDMyIGJpdCBt
-YXJrIChpLmUuIG9uZSBhcHBsaWNhdGlvbiBoYXMgYml0cw0KMC03LCBuZXh0IGhhcyA4LTE1LCBu
-ZXh0IGhhcyAxNi0zMSkuIFRoZW4gd2Ugc3RvcmUgdGhlIG1hcmsgaW50bw0KY29ubm1hcmsuIFRo
-ZW4gYXMgZWFjaCBwYWNrZXQgaW4gdGhlIGZsb3cgY29tZXMgdGhyb3VnaCB0aGUgZmlyc3QgcnVs
-ZQ0KaW4gaXAtdGFibGVzIHNpbXBseSByZXN0b3JlcyB0aGUgY29ubm1hcmsgYW5kIHRoZSBwYWNr
-ZXQgZ29lcyB0byBlZ3Jlc3MuDQo+IA0KPiBXaHkgYXJlIDIqKjMyIG1hcmtzIG5vdCBzdWZmaWNp
-ZW50Pw0KQXMgSSBtZW50aW9uZWQgYWJvdmUgZWFjaCBhcHBsaWNhdGlvbiBnZXRzIGEgY2VydGFp
-biBiaXRzIG9mIHRoZSAzMiBiaXQNCm1hcmsuIFRoaXMgYWxsb3dzIG11bHRpcGxlIGFwcGxpY2F0
-aW9ucyB0byBtYXJrIHRoZSBmbG93IGFuZCBpbXBsZW1lbnQNCnRoZWlyIGRlc2lyZWQgYmVoYXZp
-b3VyLg0K
+On Thu, Nov 19, 2015 at 01:52:46PM -0500, Tejun Heo wrote:
+> Implement kernfs_walk_and_get() which is similar to
+> kernfs_find_and_get() but can walk a path instead of just a name.
+> 
+> v2: Use strlcpy() instead of strlen() + memcpy() as suggested by
+>     David.
+> 
+> Signed-off-by: Tejun Heo <tj@kernel.org>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: David Miller <davem@davemloft.net>
+> ---
+>  fs/kernfs/dir.c        | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/kernfs.h | 12 ++++++++++++
+>  2 files changed, 58 insertions(+)
+
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
