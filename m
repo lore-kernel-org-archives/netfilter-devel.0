@@ -1,53 +1,71 @@
-From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 6/7] sock, cgroup: add sock->sk_cgroup
-Date: Fri, 20 Nov 2015 14:12:28 -0500
-Message-ID: <20151120191228.GA28383@mtj.duckdns.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCHSET v2] netfilter, cgroup: implement xt_cgroup2 match
+Date: Fri, 20 Nov 2015 20:56:25 +0100
+Message-ID: <20151120195625.GA1124@salvia>
 References: <1447959171-20749-1-git-send-email-tj@kernel.org>
- <1447959171-20749-7-git-send-email-tj@kernel.org>
- <564EFE25.5000906@bmw-carit.de>
+ <20151120.135912.1506496112678349111.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org,
-	kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org,
-	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-team-b10kYP2dOMg@public.gmane.org,
-	daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org
-To: Daniel Wagner <daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org>
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: tj@kernel.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	lizefan@huawei.com, hannes@cmpxchg.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	cgroups@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-team@fb.com, daniel@iogearbox.net,
+	daniel.wagner@bmw-carit.de, nhorman@tuxdriver.com
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:50160 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760128AbbKTT4f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Nov 2015 14:56:35 -0500
+Received: from antivirus1-rhel7.int (antivirus1.int [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id DF216153AA0
+	for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2015 20:56:32 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id CF2DA81080
+	for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2015 20:56:32 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 68D3C4C321
+	for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2015 20:56:30 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <564EFE25.5000906-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20151120.135912.1506496112678349111.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello, Daniel.
-
-On Fri, Nov 20, 2015 at 12:04:05PM +0100, Daniel Wagner wrote:
-> >  static inline u16 sock_cgroup_prioidx(struct sock_cgroup_data *skcd)
-> >  {
-> > -	return skcd->prioidx;
-> > +	return (skcd->is_data & 1) ? skcd->prioidx : 1;
-> >  }
-> >  
-> >  static inline u32 sock_cgroup_classid(struct sock_cgroup_data *skcd)
-> >  {
-> > -	return skcd->classid;
-> > +	return (skcd->is_data & 1) ? skcd->classid : 0;
-> >  }
+On Fri, Nov 20, 2015 at 01:59:12PM -0500, David Miller wrote:
+> From: Tejun Heo <tj@kernel.org>
+> Date: Thu, 19 Nov 2015 13:52:44 -0500
 > 
+> > This is the second take of the xt_cgroup2 patchset.  Changes from the
+> > last take are
+> > 
+> > * Instead of adding sock->sk_cgroup separately, sock->sk_cgrp_data now
+> >   carries either (prioidx, classid) pair or cgroup2 pointer.  This
+> >   avoids inflating struct sock with yet another cgroup related field.
+> >   Unfortunately, this does add some complexity but that's the
+> >   trade-off and the complexity is contained in cgroup proper.
+> > 
+> > * Various small updats as per David and Jan's reviews.
 > 
-> I still try to understand what the code does, hence this stupid question:
+> I like this a lot better, thanks.
 > 
-> Why is sock_cgroup_prioidx() returning 1 if is not data and
-> sock_cgroup_classid() a 0?
+> Please address Daniel's feedback on patch #6 and then I'm personally
+> fine with this series.
+> 
+> Pablo, are you ok with me merging this into net-next directly or
+> would you rather I take patches 1-6 into net-next and then you can
+> merge and then add patch #7 on top?
 
-I prolly should have added comments there.  prioidx carries the cgroup
-ID on the hierarchy net_prio is attached to, so if nothing is
-configured, the default value would be the ID of the root cgroup which
-is always 1.  For net_cls, the unconfigured default value is zero.
-Will refresh the patch with comments.
+I'd suggest you get 1-6, then I'll pull this info my tree. Thanks David!
 
-Thanks.
+Regarding #7, I have a couple two concerns:
 
--- 
-tejun
+1) cgroup currently doesn't work the way users expect, ie. to perform any
+   reasonable firewalling. Since this relies on early demux, only a
+   limited number of sockets get access to the cgroup info.
+
+2) We have traditionally rejected match2 and target2 extensions. I
+   guess you can accomodate the new cgroup code through the revision
+   iptables infrastructure, so we still use the cgroup match.
+
+Let me know, thanks.
