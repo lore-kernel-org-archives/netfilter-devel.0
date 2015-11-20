@@ -1,10 +1,9 @@
 From: Daniel Wagner <daniel.wagner@bmw-carit.de>
-Subject: Re: [PATCH 4/7] netprio_cgroup: limit the maximum css->id to
- USHRT_MAX
-Date: Fri, 20 Nov 2015 10:18:14 +0100
-Message-ID: <564EE556.5070907@bmw-carit.de>
+Subject: Re: [PATCH 6/7] sock, cgroup: add sock->sk_cgroup
+Date: Fri, 20 Nov 2015 12:04:05 +0100
+Message-ID: <564EFE25.5000906@bmw-carit.de>
 References: <1447959171-20749-1-git-send-email-tj@kernel.org>
- <1447959171-20749-5-git-send-email-tj@kernel.org>
+ <1447959171-20749-7-git-send-email-tj@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
@@ -16,25 +15,41 @@ To: Tejun Heo <tj@kernel.org>, <davem@davemloft.net>,
 	<pablo@netfilter.org>, <kaber@trash.net>,
 	<kadlec@blackhole.kfki.hu>, <lizefan@huawei.com>,
 	<hannes@cmpxchg.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1447959171-20749-5-git-send-email-tj@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.bmw-carit.de ([62.245.222.98]:38388 "EHLO
+	mail.bmw-carit.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759425AbbKTLEM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Nov 2015 06:04:12 -0500
+In-Reply-To: <1447959171-20749-7-git-send-email-tj@kernel.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+Hi Tejun,
 
 On 11/19/2015 07:52 PM, Tejun Heo wrote:
-> netprio builds per-netdev contiguous priomap array which is indexed by
-> css->id.  The array is allocated using kzalloc() effectively limiting
-> the maximum ID supported to some thousand range.  This patch caps the
-> maximum supported css->id to USHRT_MAX which should be way above what
-> is actually useable.
-> 
-> This allows reducing sock->sk_cgrp_prioidx to u16 from u32.  The freed
-> up part will be used to overload the cgroup related fields.
-> sock->sk_cgrp_prioidx's position is swapped with sk_mark so that the
-> two cgroup related fields are adjacent.
-> 
-> Signed-off-by: Tejun Heo <tj@kernel.org>
-> Cc: Daniel Borkmann <daniel@iogearbox.net>
-> Cc: Daniel Wagner <daniel.wagner@bmw-carit.de>
+> +/*
+> + * There's a theoretical window where the following accessors race with
+> + * updaters and return part of the previous pointer as the prioidx or
+> + * classid.  Such races are short-lived and the result isn't critical.
+> + */
+>  static inline u16 sock_cgroup_prioidx(struct sock_cgroup_data *skcd)
+>  {
+> -	return skcd->prioidx;
+> +	return (skcd->is_data & 1) ? skcd->prioidx : 1;
+>  }
+>  
+>  static inline u32 sock_cgroup_classid(struct sock_cgroup_data *skcd)
+>  {
+> -	return skcd->classid;
+> +	return (skcd->is_data & 1) ? skcd->classid : 0;
+>  }
 
-Acked-by: Daniel Wagner <daniel.wagner@bmw-carit.de>
+
+I still try to understand what the code does, hence this stupid question:
+
+Why is sock_cgroup_prioidx() returning 1 if is not data and
+sock_cgroup_classid() a 0?
+
+thanks,
+daniel
