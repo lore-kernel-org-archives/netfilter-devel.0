@@ -1,55 +1,39 @@
-From: Daniel Wagner <daniel.wagner@bmw-carit.de>
-Subject: Re: [PATCH 6/7] sock, cgroup: add sock->sk_cgroup
-Date: Fri, 20 Nov 2015 12:04:05 +0100
-Message-ID: <564EFE25.5000906@bmw-carit.de>
-References: <1447959171-20749-1-git-send-email-tj@kernel.org>
- <1447959171-20749-7-git-send-email-tj@kernel.org>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nftables] goto vs jump documentation
+Date: Fri, 20 Nov 2015 14:45:31 +0100
+Message-ID: <CAOkSjBiEzMwQoKfZ-SbptULO_NHZUgoO=KELDO-2CNEFKiof_w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Cc: <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
-	<coreteam@netfilter.org>, <cgroups@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <kernel-team@fb.com>,
-	<daniel@iogearbox.net>, <nhorman@tuxdriver.com>
-To: Tejun Heo <tj@kernel.org>, <davem@davemloft.net>,
-	<pablo@netfilter.org>, <kaber@trash.net>,
-	<kadlec@blackhole.kfki.hu>, <lizefan@huawei.com>,
-	<hannes@cmpxchg.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.bmw-carit.de ([62.245.222.98]:38388 "EHLO
-	mail.bmw-carit.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759425AbbKTLEM (ORCPT
+Received: from mail-wm0-f53.google.com ([74.125.82.53]:36090 "EHLO
+	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161335AbbKTNpw convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Nov 2015 06:04:12 -0500
-In-Reply-To: <1447959171-20749-7-git-send-email-tj@kernel.org>
+	Fri, 20 Nov 2015 08:45:52 -0500
+Received: by wmww144 with SMTP id w144so20044964wmw.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Nov 2015 05:45:51 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Tejun,
+Hi,
 
-On 11/19/2015 07:52 PM, Tejun Heo wrote:
-> +/*
-> + * There's a theoretical window where the following accessors race with
-> + * updaters and return part of the previous pointer as the prioidx or
-> + * classid.  Such races are short-lived and the result isn't critical.
-> + */
->  static inline u16 sock_cgroup_prioidx(struct sock_cgroup_data *skcd)
->  {
-> -	return skcd->prioidx;
-> +	return (skcd->is_data & 1) ? skcd->prioidx : 1;
->  }
->  
->  static inline u32 sock_cgroup_classid(struct sock_cgroup_data *skcd)
->  {
-> -	return skcd->classid;
-> +	return (skcd->is_data & 1) ? skcd->classid : 0;
->  }
+I've documented the difference between goto and jump in the nftables wi=
+ki [0].
 
+Let me know if that's OK.
 
-I still try to understand what the code does, hence this stupid question:
+regards.
 
-Why is sock_cgroup_prioidx() returning 1 if is not data and
-sock_cgroup_classid() a 0?
+[0] http://wiki.nftables.org/wiki-nftables/index.php/Jumping_to_chain
 
-thanks,
-daniel
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
