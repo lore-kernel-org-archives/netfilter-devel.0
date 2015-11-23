@@ -1,56 +1,54 @@
-From: Jan Engelhardt <jengelh-9+2X+4sQBs8@public.gmane.org>
-Subject: RE: [PATCH 9/9] netfilter: implement xt_cgroup cgroup2 path match
-Date: Mon, 23 Nov 2015 18:55:55 +0100 (CET)
-Message-ID: <alpine.LSU.2.20.1511231853260.25633@nerf40.vanv.qr>
-References: <1448122441-9335-1-git-send-email-tj@kernel.org> <1448122441-9335-10-git-send-email-tj@kernel.org> <20151121165605.GC25336@breakpoint.cc> <063D6719AE5E284EB5DD2968C1650D6D1CBDA8E2@AcuExch.aculab.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCHSET v3] netfilter, cgroup: implement cgroup2 path match in
+ xt_cgroup
+Date: Mon, 23 Nov 2015 14:58:04 -0500
+Message-ID: <20151123195804.GB19072@mtj.duckdns.org>
+References: <1448122441-9335-1-git-send-email-tj@kernel.org>
+ <5652BC3A.1010701@bmw-carit.de>
+ <5652D448.3080002@bmw-carit.de>
+ <20151123155346.GE3049@mtj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: 'Florian Westphal' <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>,
-	"davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>,
-	"pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org" <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>,
-	"kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org" <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>,
-	"kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org" <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>,
-	"daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org" <daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org>,
-	"daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org" <daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org>,
-	"nhorman-2XuSBdqkA4SvXiR4WA35Jg@public.gmane.org" <nhorman-2XuSBdqkA4SvXiR4WA35Jg@public.gmane.org>,
-	"lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>,
-	"hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org" <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>,
-	"netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
-	"netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
-	"coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org" <coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>,
-	"cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
-	"linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
-	"kernel-team-b10kYP2dOMg@public.gmane.org" <kernel-team-b10kYP2dOMg@public.gmane.org>,
-	"ninasc-b10kYP2dOMg@public.gmane.org" <ninasc-b10kYP2dOMg@public.gmane.org>,
-	Neil Horman <nhorman-2XuSBdqkA4SvXiR4WA35Jg@public.gmane.org
-To: David Laight <David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org>
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D1CBDA8E2-VkEWCZq2GCInGFn1LkZF6NBPR1lH4CV8@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Cc: davem@davemloft.net, pablo@netfilter.org, kaber@trash.net,
+	kadlec@blackhole.kfki.hu, daniel@iogearbox.net,
+	nhorman@tuxdriver.co, lizefan@huawei.com, hannes@cmpxchg.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, cgroups@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-team@fb.com, ninasc@fb.com
+To: Daniel Wagner <daniel.wagner@bmw-carit.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20151123155346.GE3049@mtj.duckdns.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
-On Monday 2015-11-23 18:35, David Laight wrote:
->From: Florian Westphal
->> Sent: 21 November 2015 16:56
->> > +struct xt_cgroup_info_v1 {
->> > +	char		path[PATH_MAX];
->> > +	__u32		classid;
->> > +
->> > +	/* kernel internal data */
->> > +	void		*priv __attribute__((aligned(8)));
->> > +};
->> 
->> Ahem.  Am I reading this right? This struct is > 4k in size?
->> If so -- Ugh.  Does sizeof(path) really have to be PATH_MAX?
->
->I've not looked at the use, but could you put 'char path[];'
->as the last member an require any allocations to be long enough
->to contain the actual path?
+On Mon, Nov 23, 2015 at 10:53:46AM -0500, Tejun Heo wrote:
+> > [   11.594536] ------------[ cut here ]------------
+> > [   11.595274] WARNING: CPU: 1 PID: 1 at kernel/cgroup_pids.c:97 pids_cancel.constprop.6+0x31/0x40()
+> > [   11.595958] Modules linked in:
+> > [   11.596199] CPU: 1 PID: 1 Comm: systemd Not tainted 4.4.0-rc1+ #196
+> > [   11.596689] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.8.2-0-g33fbe13 by qemu-project.org 04/01/2014
+> > [   11.597632]  ffffffff81f66d8b ffff88007c04bb90 ffffffff8155ccdc 0000000000000000
+> > [   11.598234]  ffff88007c04bbc8 ffffffff810de202 ffff8800793dda00 ffff88007a096800
+> > [   11.598877]  ffff88007c04bc80 ffff88007a6b6200 0000000000000001 ffff88007c04bbd8
+> > [   11.599547] Call Trace:
+> > [   11.599784]  [<ffffffff8155ccdc>] dump_stack+0x4e/0x82
+> > [   11.600197]  [<ffffffff810de202>] warn_slowpath_common+0x82/0xc0
+> > [   11.600705]  [<ffffffff810de2fa>] warn_slowpath_null+0x1a/0x20
+> > [   11.601208]  [<ffffffff8118e261>] pids_cancel.constprop.6+0x31/0x40
+> > [   11.601764]  [<ffffffff8118e32d>] pids_can_attach+0x6d/0xf0
+> 
+> Yeah, this is a known problem regarding css's lifetime.  Working on
+> it.  The earlier dump, I think, is likely to have been caused by the
+> same issue.
 
-Oh, smart :)  Yeah, ebt_among does something like that.
-(.matchsize = -1, hint)
+Just posted the fix for this issue.  Can you please verify the fix?
 
-Except that the "priv" pointer seems to be ruining the fun here -
-kernel vars have to be last, which collides with the requirements
-for []-type members.
+ http://lkml.kernel.org/g/20151123195541.GA19072@mtj.duckdns.org
+
+Thanks a lot!
+
+-- 
+tejun
