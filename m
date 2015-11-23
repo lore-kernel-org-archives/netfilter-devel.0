@@ -1,34 +1,45 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC PATCH nf-next 1/1] netfilter: nft_payload: add packet
- mangling support
-Date: Mon, 23 Nov 2015 12:45:40 +0000
-Message-ID: <20151123124540.GB20290@macbook.localdomain>
-References: <1447078234-21628-1-git-send-email-kaber@trash.net>
- <1447078234-21628-2-git-send-email-kaber@trash.net>
- <20151123123115.GA13479@salvia>
+From: Daniel Wagner <daniel.wagner@bmw-carit.de>
+Subject: Re: [PATCH 7/9] sock, cgroup: add sock->sk_cgroup
+Date: Mon, 23 Nov 2015 14:02:03 +0100
+Message-ID: <56530E4B.4090209@bmw-carit.de>
+References: <1448122441-9335-1-git-send-email-tj@kernel.org>
+ <1448122441-9335-8-git-send-email-tj@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 161-169.trash.net ([213.144.137.169]:43008 "EHLO
-	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753672AbbKWMpp (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Nov 2015 07:45:45 -0500
-Content-Disposition: inline
-In-Reply-To: <20151123123115.GA13479@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Cc: <lizefan@huawei.com>, <hannes@cmpxchg.org>,
+	<netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
+	<coreteam@netfilter.org>, <cgroups@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, <kernel-team@fb.com>,
+	<ninasc@fb.com>, Neil Horman <nhorman@tuxdriver.com>
+To: Tejun Heo <tj@kernel.org>, <davem@davemloft.net>,
+	<pablo@netfilter.org>, <kaber@trash.net>,
+	<kadlec@blackhole.kfki.hu>, <daniel@iogearbox.net>,
+	<nhorman@tuxdriver.co>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1448122441-9335-8-git-send-email-tj@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 23.11, Pablo Neira Ayuso wrote:
-> On Mon, Nov 09, 2015 at 02:10:34PM +0000, Patrick McHardy wrote:
-> > Add support for mangling packet payload. Checksum for the specified
-> > base header is updated automatically, however no double updates (for
-> > pseudo headers) are supported, meaning no stateless NAT is supported.
-> 
-> Patrick, if you have no concerns, I'll pass this to David in the next
-> batch.
+Hi Tejun,
 
-It needs a minor fix to work with link layer headers. I'll try to get it
-ready tonight.
+On 11/21/2015 05:13 PM, Tejun Heo wrote:
+> Signed-off-by: Tejun Heo <tj@kernel.org>
+> Cc: Daniel Borkmann <daniel@iogearbox.net>
+> Cc: Daniel Wagner <daniel.wagner@bmw-carit.de>
+
+I did a quick test and for new connection the cgroup2 match worked as
+expected. For an existing connection I wasn't able to trigger the match.
+
+It is quite likely I do something wrong:
+
+	ssh into the box
+	# mkdir /sys/fs/cgroup/test
+	# echo $$ > /sys/fs/cgroup/test/cgroup.procs
+	# echo $PPID > /sys/fs/cgroup/test/cgroup.procs
+	# iptables -A OUTPUT -m cgroup --path test
+
+Should I see matches with the existing ssh session?
+
+cheers,
+daniel
