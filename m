@@ -1,56 +1,51 @@
 From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 9/9] netfilter: implement xt_cgroup cgroup2 path match
-Date: Mon, 23 Nov 2015 10:41:35 -0500
-Message-ID: <20151123154135.GC3049@mtj.duckdns.org>
+Subject: Re: [PATCH 7/9] sock, cgroup: add sock->sk_cgroup
+Date: Mon, 23 Nov 2015 10:48:09 -0500
+Message-ID: <20151123154809.GD3049@mtj.duckdns.org>
 References: <1448122441-9335-1-git-send-email-tj@kernel.org>
- <1448122441-9335-10-git-send-email-tj@kernel.org>
- <565309D5.80707@bmw-carit.de>
+ <1448122441-9335-8-git-send-email-tj@kernel.org>
+ <56530E4B.4090209@bmw-carit.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org,
 	kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org,
-	nhorman-2XuSBdqkA4SvXiR4WA35Jg@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org,
+	nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org,
 	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
 	coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-team-b10kYP2dOMg@public.gmane.org, ninasc-b10kYP2dOMg@public.gmane.org,
-	Neil Horman <nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>,
-	Jan Engelhardt <jengelh-9+2X+4sQBs8@public.gmane.org>
+	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-team-b10kYP2dOMg@public.gmane.org, ninasc-b10kYP2dOMg@public.gmane.org
 To: Daniel Wagner <daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org>
 Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <565309D5.80707-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org>
+In-Reply-To: <56530E4B.4090209-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org>
 Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
 Hello,
 
-On Mon, Nov 23, 2015 at 01:43:01PM +0100, Daniel Wagner wrote:
-> Hi Tejun,
+On Mon, Nov 23, 2015 at 02:02:03PM +0100, Daniel Wagner wrote:
+> On 11/21/2015 05:13 PM, Tejun Heo wrote:
+> > Signed-off-by: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > Cc: Daniel Borkmann <daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org>
+> > Cc: Daniel Wagner <daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org>
 > 
-> On 11/21/2015 05:14 PM, Tejun Heo wrote:> +static int
-> > cgroup_mt_check_v1(const struct xt_mtchk_param *par)
-> > +{
-> > +	struct xt_cgroup_info_v1 *info = par->matchinfo;
-> > +	struct cgroup *cgrp;
-> > +
-> > +	if ((info->invert_path & ~1) || (info->invert_classid & ~1))
-> > +		return -EINVAL;
+> I did a quick test and for new connection the cgroup2 match worked as
+> expected. For an existing connection I wasn't able to trigger the match.
 > 
-> The checks below use pr_info() in case the configuration is not valid.
-> Is this missing here on purpose?
+> It is quite likely I do something wrong:
+> 
+> 	ssh into the box
+> 	# mkdir /sys/fs/cgroup/test
+> 	# echo $$ > /sys/fs/cgroup/test/cgroup.procs
+> 	# echo $PPID > /sys/fs/cgroup/test/cgroup.procs
+> 	# iptables -A OUTPUT -m cgroup --path test
+> 
+> Should I see matches with the existing ssh session?
 
-It's mostly copied from v0 function but I think it makes sense.  The
-other errors can be caused by incorrect user input but the above one
-can't happen unless iptables extension itself is broken.
-
-> I have tested it slightly and it seems to work (also on an older
-> kernel). I don't know if that qualifies it for a Tested-by but at least
-> Acked-by should do the trick:
-
-Will answer that there.
-
-> Tested-by: Daniel Wagner <daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org>
-> Acked-by: Daniel Wagner <daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org>
+Socket is associated with the creating cgroup and stays associated
+with that cgroup until it's released.  Migrating the process doesn't
+change the ownership of the sockets it has created.  This is in line
+with how other stateful resources such as memory are handled in
+cgroup2 hierarchy.
 
 Thanks.
 
