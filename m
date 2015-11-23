@@ -1,53 +1,48 @@
-From: Michael Wang <yun.wang@profitbricks.com>
-Subject: Re: nfnetlink warnings
-Date: Mon, 23 Nov 2015 11:20:18 +0100
-Message-ID: <5652E862.7000605@profitbricks.com>
-References: <20151123093607.GA5134@pd.tnic>
- <5652E12E.3070500@profitbricks.com> <20151123095455.GB5134@pd.tnic>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: avoid harmless unnitialized variable warnings
+Date: Mon, 23 Nov 2015 11:23:02 +0100
+Message-ID: <20151123102302.GA1614@salvia>
+References: <5585663.OcpAQiytKY@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org,
-	lkml <linux-kernel@vger.kernel.org>
-To: Borislav Petkov <bp@alien8.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151123095455.GB5134@pd.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
+To: Arnd Bergmann <arnd@arndb.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:57262 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752076AbbKWKXG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Nov 2015 05:23:06 -0500
+Received: from antivirus1-rhel7.int (antivirus1.int [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 81D9B18CDC5
+	for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2015 11:23:04 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 6F1F1DA803
+	for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2015 11:23:04 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 86AB0DA80B
+	for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2015 11:23:02 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <5585663.OcpAQiytKY@wuerfel>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-
-
-On 11/23/2015 10:54 AM, Borislav Petkov wrote:
-> Hi Michael,
+On Thu, Nov 19, 2015 at 01:49:59PM +0100, Arnd Bergmann wrote:
+> Several ARM default configurations give us warnings on recent
+> compilers about potentially uninitialized variables in the
+> nfnetlink code in two functions:
 > 
-> On Mon, Nov 23, 2015 at 10:49:34AM +0100, Michael Wang wrote:
->> Why not just initialized it as NULL, or mark it as uninitialized_var()?
+> net/netfilter/nfnetlink_queue.c: In function 'nfqnl_build_packet_message':
+> net/netfilter/nfnetlink_queue.c:519:19: warning: 'nfnl_ct' may be used uninitialized in this function [-Wmaybe-uninitialized]
+>   if (ct && nfnl_ct->build(skb, ct, ctinfo, NFQA_CT, NFQA_CT_INFO) < 0)
 > 
-> because I'd like us to save us the redundant NULL initialization in the
-> if-case.
+> Moving the rcu_dereference(nfnl_ct_hook) call outside of the
+> conditional code avoids the warning without forcing us to
+> preinitialize the variable.
 
-Well, I would vote initialized with NULL, rather than use another else
-branch to do the same thing.
+Applied, thanks Arnd.
 
-> 
-> I'm not saying any of the approaches are good visually, though. Who
-> knows, someone might have a better idea like, maybe "Oh, I wanted to
-> rewrite that code and this handlong is going to be different anyway ..."
-> or so. Or something to that effect.
-
-Who want to do that would take responsibility to make an else branch at
-that time, but reserve the branch at this moment sounds unnecessary, and
-not that pretty frankly speaking.
-
-> 
-> Btw, please do not top-post.
-
-Enjoy ;-)
-
-Regards,
-Michael Wang
-
-> 
-> Thanks.
-> 
