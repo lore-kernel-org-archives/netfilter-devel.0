@@ -1,42 +1,34 @@
-From: Daniel Wagner <daniel.wagner@bmw-carit.de>
-Subject: Re: [PATCH 8/9] netfilter: prepare xt_cgroup for multi revisions
-Date: Mon, 23 Nov 2015 13:44:56 +0100
-Message-ID: <56530A48.1090703@bmw-carit.de>
-References: <1448122441-9335-1-git-send-email-tj@kernel.org>
- <1448122441-9335-9-git-send-email-tj@kernel.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC PATCH nf-next 1/1] netfilter: nft_payload: add packet
+ mangling support
+Date: Mon, 23 Nov 2015 12:45:40 +0000
+Message-ID: <20151123124540.GB20290@macbook.localdomain>
+References: <1447078234-21628-1-git-send-email-kaber@trash.net>
+ <1447078234-21628-2-git-send-email-kaber@trash.net>
+ <20151123123115.GA13479@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Cc: <lizefan@huawei.com>, <hannes@cmpxchg.org>,
-	<netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>,
-	<coreteam@netfilter.org>, <cgroups@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <kernel-team@fb.com>,
-	<ninasc@fb.com>, Neil Horman <nhorman@tuxdriver.com>,
-	Jan Engelhardt <jengelh@inai.de>
-To: Tejun Heo <tj@kernel.org>, <davem@davemloft.net>,
-	<pablo@netfilter.org>, <kaber@trash.net>,
-	<kadlec@blackhole.kfki.hu>, <daniel@iogearbox.net>,
-	<nhorman@tuxdriver.co>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1448122441-9335-9-git-send-email-tj@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 161-169.trash.net ([213.144.137.169]:43008 "EHLO
+	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753672AbbKWMpp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Nov 2015 07:45:45 -0500
+Content-Disposition: inline
+In-Reply-To: <20151123123115.GA13479@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Tejun,
-
-On 11/21/2015 05:14 PM, Tejun Heo wrote:
-> xt_cgroup will grow cgroup2 path based match.  Postfix existing
-> symbols with _v0 and prepare for multi revision registration.
+On 23.11, Pablo Neira Ayuso wrote:
+> On Mon, Nov 09, 2015 at 02:10:34PM +0000, Patrick McHardy wrote:
+> > Add support for mangling packet payload. Checksum for the specified
+> > base header is updated automatically, however no double updates (for
+> > pseudo headers) are supported, meaning no stateless NAT is supported.
 > 
-> Signed-off-by: Tejun Heo <tj@kernel.org>
-> Cc: Daniel Borkmann <daniel@iogearbox.net>
-> Cc: Daniel Wagner <daniel.wagner@bmw-carit.de>
+> Patrick, if you have no concerns, I'll pass this to David in the next
+> batch.
 
-Same as in my reply to patch #9 (yes, I know do it wrong order...
-thought can't stop now... :))
-
-Tested-by: Daniel Wagner <daniel.wagner@bmw-carit.de>
-Acked-by: Daniel Wagner <daniel.wagner@bmw-carit.de>
-
-cheers,
-daniel
+It needs a minor fix to work with link layer headers. I'll try to get it
+ready tonight.
