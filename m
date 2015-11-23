@@ -1,41 +1,46 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] conntrack-tools: add conntrackd.conf(5) manpage
-Date: Mon, 23 Nov 2015 16:05:19 +0100
-Message-ID: <20151123150519.GA1242@salvia>
-References: <144793710566.22054.7165429515812452375.stgit@r2d2.cica.es>
+From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 9/9] netfilter: implement xt_cgroup cgroup2 path match
+Date: Mon, 23 Nov 2015 10:40:13 -0500
+Message-ID: <20151123154013.GB3049@mtj.duckdns.org>
+References: <1448122441-9335-1-git-send-email-tj@kernel.org>
+ <1448122441-9335-10-git-send-email-tj@kernel.org>
+ <20151121165605.GC25336@breakpoint.cc>
+ <20151121170425.GD3428@htj.duckdns.org>
+ <20151121185419.GD25336@breakpoint.cc>
+ <565317F0.2030502@iogearbox.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59906 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753502AbbKWPFc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Nov 2015 10:05:32 -0500
-Received: from antivirus1-rhel7.int (antivirus1.int [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id EDC5F18CDC2
-	for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2015 16:05:29 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id DE8E3DA80B
-	for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2015 16:05:29 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 9EA48DA7FF
-	for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2015 16:05:24 +0100 (CET)
+Cc: Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org,
+	pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org,
+	daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org, nhorman-2XuSBdqkA4SvXiR4WA35Jg@public.gmane.org,
+	lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-team-b10kYP2dOMg@public.gmane.org, ninasc-b10kYP2dOMg@public.gmane.org,
+	Neil Horman <nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>,
+	Jan Engelhardt <jengelh-9+2X+4sQBs8@public.gmane.org>
+To: Daniel Borkmann <daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org>
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <144793710566.22054.7165429515812452375.stgit@r2d2.cica.es>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <565317F0.2030502-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Nov 19, 2015 at 01:46:45PM +0100, Arturo Borrero Gonzalez wrote:
-> This new manpage describes all the configuration options of the conntrackd.conf
-> file.
-> 
-> While at it, point conntrackd(8) to this new manpage.
+Hello, Daniel.
 
-Applied, thanks Arturo.
+On Mon, Nov 23, 2015 at 02:43:12PM +0100, Daniel Borkmann wrote:
+...
+> Haven't looked deeply into kernfs, but if it's possible to get the object
+> from the struct file eventually, you could let iptables frontend open that
+> path and just pass the fd down. Would be sizeof(int) vs PATH_MAX then, i.e.
+> when you have a large number of rules to load.
 
-I added the conntrackd.conf manpage to the Makefile.am so it is
-installed through make install.
+That works in one direction but not in the other.  ie. You can tell
+the kernel the path that way but can't retrieve.  If using path string
+is unacceptable, the best alternative would be an inode number rather
+than a fd; however, using an inode number would be quite cumbersome
+and painful too.
 
-I have also slightly update the authors area at the bottom of this.
-Please, send incremental updates in case you need to refine this.
+Thanks.
+
+-- 
+tejun
