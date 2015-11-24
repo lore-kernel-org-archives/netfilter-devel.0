@@ -1,39 +1,42 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH libnftnl 4/6] src: rename EXPORT_SYMBOL to
- EXPORT_SYMBOL_ALIAS
-Date: Tue, 24 Nov 2015 11:11:56 +0100
-Message-ID: <20151124101156.GA2683@salvia>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nf-next 2/6] netfilter: nf_tables: wrap tracing with a
+ static key
+Date: Tue, 24 Nov 2015 10:13:32 +0000
+Message-ID: <20151124101332.GC2310@macbook.localdomain>
 References: <1448359331-12692-1-git-send-email-fw@strlen.de>
- <1448359331-12692-5-git-send-email-fw@strlen.de>
+ <1448359331-12692-3-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59996 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753028AbbKXKML (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Nov 2015 05:12:11 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id B40F2613A3
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 11:12:07 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id A3B5EDA86E
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 11:12:07 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 9C3BADA876
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 11:12:05 +0100 (CET)
+Received: from 161-169.trash.net ([213.144.137.169]:44466 "EHLO
+	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752744AbbKXKNg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Nov 2015 05:13:36 -0500
 Content-Disposition: inline
-In-Reply-To: <1448359331-12692-5-git-send-email-fw@strlen.de>
+In-Reply-To: <1448359331-12692-3-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 24, 2015 at 11:02:09AM +0100, Florian Westphal wrote:
-> Future symbols don't need backwards-compat aliases.
+On 24.11, Florian Westphal wrote:
+> diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+> index 29a6ca9..dabf5ed 100644
+> --- a/net/netfilter/nf_tables_core.c
+> +++ b/net/netfilter/nf_tables_core.c
+> @@ -138,7 +144,8 @@ next_rule:
+>  		if (unlikely(rule->genmask & (1 << gencursor)))
+>  			continue;
+>  
+> -		rulenum++;
+> +		if (static_key_false(&nft_trace_enabled))
+> +			rulenum++;
 
-Florian, good point.
+This API is deprecated, see Documentation/static-keys.txt.
 
-I have just pushed out this to make sure ongoing work uses the right
-macro and avoid rebases.
-
-Thanks.
+I'm also wondering if this introduces a race condition on architectures
+that don't support jump labels. static_key_slow_inc() simply increases
+the ->enabled counter without further synchronization, so this might
+happen while we're executing this function and some of the increments
+might be skipped.
