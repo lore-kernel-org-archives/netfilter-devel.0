@@ -1,53 +1,62 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH nftables 6/6] src: add trace support to nft monitor mode
-Date: Tue, 24 Nov 2015 12:01:45 +0100
-Message-ID: <20151124110145.GA3421@salvia>
+Date: Tue, 24 Nov 2015 11:04:29 +0000
+Message-ID: <20151124110429.GM2310@macbook.localdomain>
 References: <1448359331-12692-1-git-send-email-fw@strlen.de>
  <1448359331-12692-7-git-send-email-fw@strlen.de>
  <20151124102553.GE2310@macbook.localdomain>
- <20151124104834.GF1740@breakpoint.cc>
- <20151124105816.GL2310@macbook.localdomain>
+ <20151124105333.GA3212@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53708 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754387AbbKXLBx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Nov 2015 06:01:53 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id E64A6DA85E
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 12:01:51 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id CE980DA804
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 12:01:51 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 727DFDA868
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 12:01:46 +0100 (CET)
+Received: from 161-169.trash.net ([213.144.137.169]:44857 "EHLO
+	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754187AbbKXLEd (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Nov 2015 06:04:33 -0500
 Content-Disposition: inline
-In-Reply-To: <20151124105816.GL2310@macbook.localdomain>
+In-Reply-To: <20151124105333.GA3212@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 24, 2015 at 10:58:16AM +0000, Patrick McHardy wrote:
-> On 24.11, Florian Westphal wrote:
-> > > An alternative would be to use our internal datatypes, IOW parse the
-> > > attributes, associate the values with an internal type and use the regular
-> > > printing functions. The benefit would be fully consistent output, also
-> > > with respect to output options like numerical output.
-> > 
-> > Yes, right now virtually all of the printing is in libnftnl
-> > (called from nftables via nftnl_trace_fprintf() ).
+On 24.11, Pablo Neira Ayuso wrote:
+> On Tue, Nov 24, 2015 at 10:25:54AM +0000, Patrick McHardy wrote:
+> > Tracing might be a long running operation. The cache can go out of sync, might
+> > be better to do a lookup on demand.
 > 
-> The downside is that we're stuck to fprintf. I'm working on moving nft to
-> printing to buffers for pretty printing, intending set contents, sorting
-> flow tables in different dimensions etc. If we have external printing we'll
-> be missing some flexibilty in handling it, also regarding logging to other
-> outputs than stdout.
+> We'll need to handle generations in that approach. The kernel lookup
+> per trace will be expensive.
+> 
+> Why not just keep the cache in userspace and update it only when
+> needed? We can easily detect when we get out of sync via ENOBUFS.
+> 
+> > Right now the caching infrastrucure has quite a lot of problems and I'd prefer
+> > to get them fixed before we base new things on it.
+> 
+> The caching infrastructure only needs to have a mode to be populated
+> via set information, then infer existing tables from handles as you
+> indicated.
+> 
+> What other problems you see with it?
 
-What we did do far is to have the fprintf variant for quick printing,
-but this should be based on the printing to buffers. Both approaches
-would be exported.
+Well I keep running into problems with it. We already discussed a few, we're
+dumping way to much information that we don't need and we're making nft
+require root even for unpriviledged operations and just testing ruleset
+syntax.
 
-Does this sound good to you?
+We're basing errors on a cache that might not be up to date.
+
+When I list the bridge table, for some reason it lists *all* tables of all
+families. We're basically doing full dumps of everything in many cases.
+This will be absolutely killing performance with a big ruleset.
+
+AFAIK (did not test) we're only listing sets for the family of the first
+command, then set cache_initializer to true and skip further updates. When
+the ruleset refers to multiple families, the contents will not be present
+but expected.
+
+It basically seems like the big hammer approach + some bugs instead of
+selectively getting what we need when we need it and making sure its
+up to date, at least before generating errors based on it.
