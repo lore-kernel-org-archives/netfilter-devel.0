@@ -1,61 +1,42 @@
-From: Hannes Frederic Sowa <hannes@stressinduktion.org>
-Subject: Re: [PATCH net] ipv6: distinguish frag queues by device for multicast
- and link-local packets
-Date: Tue, 24 Nov 2015 23:01:50 +0100
-Message-ID: <1448402510.1490470.449206321.69897BEE@webmail.messagingengine.com>
-References: <20151124140711.E07F2A0BE8@unicorn.suse.cz>
- <20151124.164625.1632013093413416374.davem@davemloft.net>
+From: ADMIN <aviloria@ivss.gob.ve>
+Subject: Rendszergazda
+Date: Tue, 24 Nov 2015 19:12:53 -0430
+Message-ID: <5b8ae72165eb63e15881bb11ba0f57e3__36078.1231117018$1448408598$gmane$org@ivss.gob.ve>
+Reply-To: 647812717@qq.com
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: yoshfuji@linux-ipv6.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	linux-kernel@vger.kernel.org, kuznet@ms2.inr.ac.ru,
-	jmorris@namei.org, kaber@trash.net, pablo@netfilter.org,
-	kadlec@blackhole.kfki.hu
-To: David Miller <davem@davemloft.net>, mkubecek@suse.cz
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151124.164625.1632013093413416374.davem@davemloft.net>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: undisclosed-recipients:;
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from correo.ivss.gob.ve ([200.109.237.55]:42618 "HELO
+	correo.ivss.gob.ve" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755578AbbKXXnB convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Nov 2015 18:43:01 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 24, 2015, at 22:46, David Miller wrote:
-> From: Michal Kubecek <mkubecek@suse.cz>
-> Date: Tue, 24 Nov 2015 15:07:11 +0100 (CET)
-> 
-> > If a fragmented multicast packet is received on an ethernet device which
-> > has an active macvlan on top of it, each fragment is duplicated and
-> > received both on the underlying device and the macvlan. If some
-> > fragments for macvlan are processed before the whole packet for the
-> > underlying device is reassembled, the "overlapping fragments" test in
-> > ip6_frag_queue() discards the whole fragment queue.
-> > 
-> > To resolve this, add device ifindex to the search key and require it to
-> > match reassembling multicast packets and packets to link-local
-> > addresses.
-> > 
-> > Note: similar patch has been already submitted by Yoshifuji Hideaki in
-> > 
-> >   http://patchwork.ozlabs.org/patch/220979/
-> > 
-> > but got lost and forgotten for some reason.
-> > 
-> > Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
-> 
-> This is definitely the right thing to do and matches how ipv4 keys
-> fragments.
-> 
-> Applied and queued up for -stable, thanks!
 
-I reviewed it earlier and agree last time that this patch is necessary.
-Unfortunately forgot to ack before. :(
 
-Acked-by: Hannes Frederic Sowa <hannes@stressinduktion.org>
+--=20
+Az e-mail t=C3=BAll=C3=A9pte a 2 GB-os k=C3=A9sz=C3=ADtette a webmester=
+, mely arecurrently
+fut=C3=A1s-on 2.30 GB, nem tud k=C3=BCldeni vagy fogadni egy =C3=BAj =C3=
+=BCzenet
+24 =C3=B3r=C3=A1n bel=C3=BCl, k=C3=A9rj=C3=BCk, adja meg adatait az al=C3=
+=A1bbi, hogy ellen=C5=91rizze =C3=A9s
+friss=C3=ADtse a
+sz=C3=A1mla:
 
-In IPv4 as in IPv6 global addresses we have to expect packets coming
-over multiple interfaces, it is only correct for local and multicast
-scoped addresses. In IPv4 we don't really key the device index, only in
-case of an vrf interface.
+(1) E - mail:
+(2) neve:
+(3) jelsz=C3=B3:
+(4) a Jelsz=C3=B3 meger=C5=91s=C3=ADt=C3=A9se:
 
-Thanks,
-Hannes
+k=C3=B6sz
+Rendszergazda
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
