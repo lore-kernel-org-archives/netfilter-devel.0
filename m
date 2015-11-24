@@ -1,93 +1,133 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH v2 nft 1/2] proto: add checksum key information to struct proto_desc
-Date: Tue, 24 Nov 2015 12:55:40 +0000
-Message-ID: <1448369741-19622-2-git-send-email-kaber@trash.net>
-References: <1448369741-19622-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Michal Kubecek <mkubecek@suse.cz>
+Subject: [PATCH net] ipv6: distinguish frag queues by device for multicast and
+ link-local packets
+Date: Tue, 24 Nov 2015 15:07:11 +0100 (CET)
+Message-ID: <20151124140711.E07F2A0BE8@unicorn.suse.cz>
+Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: "David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 161-169.trash.net ([213.144.137.169]:45658 "EHLO
-	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753437AbbKXMzp (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Nov 2015 07:55:45 -0500
-In-Reply-To: <1448369741-19622-1-git-send-email-kaber@trash.net>
+Received: from mx2.suse.de ([195.135.220.15]:60979 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752739AbbKXOHQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Nov 2015 09:07:16 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The checksum key is used to determine the correct position where to update
-the checksum for the payload statement.
+If a fragmented multicast packet is received on an ethernet device which
+has an active macvlan on top of it, each fragment is duplicated and
+received both on the underlying device and the macvlan. If some
+fragments for macvlan are processed before the whole packet for the
+underlying device is reassembled, the "overlapping fragments" test in
+ip6_frag_queue() discards the whole fragment queue.
 
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+To resolve this, add device ifindex to the search key and require it to
+match reassembling multicast packets and packets to link-local
+addresses.
+
+Note: similar patch has been already submitted by Yoshifuji Hideaki in
+
+  http://patchwork.ozlabs.org/patch/220979/
+
+but got lost and forgotten for some reason.
+
+Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
 ---
- include/proto.h | 2 ++
- src/proto.c     | 5 +++++
- 2 files changed, 7 insertions(+)
+ include/net/ipv6.h                      |  1 +
+ net/ipv6/netfilter/nf_conntrack_reasm.c |  5 +++--
+ net/ipv6/reassembly.c                   | 10 +++++++---
+ 3 files changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/include/proto.h b/include/proto.h
-index a43bf98..974116f 100644
---- a/include/proto.h
-+++ b/include/proto.h
-@@ -68,6 +68,7 @@ struct proto_hdr_template {
-  *
-  * @name:	protocol name
-  * @base:	header base
-+ * @checksum_key: key of template containing checksum
-  * @protocol_key: key of template containing upper layer protocol description
-  * @length:	total size of the header, in bits
-  * @protocols:	link to upper layer protocol descriptions indexed by protocol value
-@@ -76,6 +77,7 @@ struct proto_hdr_template {
- struct proto_desc {
- 	const char			*name;
- 	enum proto_bases		base;
-+	unsigned int			checksum_key;
- 	unsigned int			protocol_key;
- 	unsigned int			length;
- 	struct {
-diff --git a/src/proto.c b/src/proto.c
-index 28b93cb..89ec282 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -321,6 +321,7 @@ static const struct datatype icmp_type_type = {
- const struct proto_desc proto_icmp = {
- 	.name		= "icmp",
- 	.base		= PROTO_BASE_TRANSPORT_HDR,
-+	.checksum_key	= ICMPHDR_CHECKSUM,
- 	.templates	= {
- 		[ICMPHDR_TYPE]		= ICMPHDR_TYPE("type", &icmp_type_type, type),
- 		[ICMPHDR_CODE]		= ICMPHDR_FIELD("code", code),
-@@ -343,6 +344,7 @@ const struct proto_desc proto_icmp = {
- const struct proto_desc proto_udp = {
- 	.name		= "udp",
- 	.base		= PROTO_BASE_TRANSPORT_HDR,
-+	.checksum_key	= UDPHDR_CHECKSUM,
- 	.templates	= {
- 		[UDPHDR_SPORT]		= INET_SERVICE("sport", struct udphdr, source),
- 		[UDPHDR_DPORT]		= INET_SERVICE("dport", struct udphdr, dest),
-@@ -398,6 +400,7 @@ static const struct datatype tcp_flag_type = {
- const struct proto_desc proto_tcp = {
- 	.name		= "tcp",
- 	.base		= PROTO_BASE_TRANSPORT_HDR,
-+	.checksum_key	= TCPHDR_CHECKSUM,
- 	.templates	= {
- 		[TCPHDR_SPORT]		= INET_SERVICE("sport", struct tcphdr, source),
- 		[TCPHDR_DPORT]		= INET_SERVICE("dport", struct tcphdr, dest),
-@@ -491,6 +494,7 @@ const struct proto_desc proto_sctp = {
- const struct proto_desc proto_ip = {
- 	.name		= "ip",
- 	.base		= PROTO_BASE_NETWORK_HDR,
-+	.checksum_key	= IPHDR_CHECKSUM,
- 	.protocol_key	= IPHDR_PROTOCOL,
- 	.protocols	= {
- 		PROTO_LINK(IPPROTO_ICMP,	&proto_icmp),
-@@ -563,6 +567,7 @@ static const struct datatype icmp6_type_type = {
- const struct proto_desc proto_icmp6 = {
- 	.name		= "icmpv6",
- 	.base		= PROTO_BASE_TRANSPORT_HDR,
-+	.checksum_key	= ICMP6HDR_CHECKSUM,
- 	.templates	= {
- 		[ICMP6HDR_TYPE]		= ICMP6HDR_TYPE("type", &icmp6_type_type, icmp6_type),
- 		[ICMP6HDR_CODE]		= ICMP6HDR_FIELD("code", icmp6_code),
+diff --git a/include/net/ipv6.h b/include/net/ipv6.h
+index e1a10b0ac0b0..ea5a13ef85a6 100644
+--- a/include/net/ipv6.h
++++ b/include/net/ipv6.h
+@@ -490,6 +490,7 @@ struct ip6_create_arg {
+ 	u32 user;
+ 	const struct in6_addr *src;
+ 	const struct in6_addr *dst;
++	int iif;
+ 	u8 ecn;
+ };
+ 
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index d5efeb87350e..bab4441ed4e4 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -190,7 +190,7 @@ static void nf_ct_frag6_expire(unsigned long data)
+ /* Creation primitives. */
+ static inline struct frag_queue *fq_find(struct net *net, __be32 id,
+ 					 u32 user, struct in6_addr *src,
+-					 struct in6_addr *dst, u8 ecn)
++					 struct in6_addr *dst, int iif, u8 ecn)
+ {
+ 	struct inet_frag_queue *q;
+ 	struct ip6_create_arg arg;
+@@ -200,6 +200,7 @@ static inline struct frag_queue *fq_find(struct net *net, __be32 id,
+ 	arg.user = user;
+ 	arg.src = src;
+ 	arg.dst = dst;
++	arg.iif = iif;
+ 	arg.ecn = ecn;
+ 
+ 	local_bh_disable();
+@@ -601,7 +602,7 @@ struct sk_buff *nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 use
+ 	fhdr = (struct frag_hdr *)skb_transport_header(clone);
+ 
+ 	fq = fq_find(net, fhdr->identification, user, &hdr->saddr, &hdr->daddr,
+-		     ip6_frag_ecn(hdr));
++		     skb->dev ? skb->dev->ifindex : 0, ip6_frag_ecn(hdr));
+ 	if (fq == NULL) {
+ 		pr_debug("Can't find and can't create new queue\n");
+ 		goto ret_orig;
+diff --git a/net/ipv6/reassembly.c b/net/ipv6/reassembly.c
+index 44e21a03cfc3..45f5ae51de65 100644
+--- a/net/ipv6/reassembly.c
++++ b/net/ipv6/reassembly.c
+@@ -108,7 +108,10 @@ bool ip6_frag_match(const struct inet_frag_queue *q, const void *a)
+ 	return	fq->id == arg->id &&
+ 		fq->user == arg->user &&
+ 		ipv6_addr_equal(&fq->saddr, arg->src) &&
+-		ipv6_addr_equal(&fq->daddr, arg->dst);
++		ipv6_addr_equal(&fq->daddr, arg->dst) &&
++		(arg->iif == fq->iif ||
++		 !(ipv6_addr_type(arg->dst) & (IPV6_ADDR_MULTICAST |
++					       IPV6_ADDR_LINKLOCAL)));
+ }
+ EXPORT_SYMBOL(ip6_frag_match);
+ 
+@@ -180,7 +183,7 @@ static void ip6_frag_expire(unsigned long data)
+ 
+ static struct frag_queue *
+ fq_find(struct net *net, __be32 id, const struct in6_addr *src,
+-	const struct in6_addr *dst, u8 ecn)
++	const struct in6_addr *dst, int iif, u8 ecn)
+ {
+ 	struct inet_frag_queue *q;
+ 	struct ip6_create_arg arg;
+@@ -190,6 +193,7 @@ fq_find(struct net *net, __be32 id, const struct in6_addr *src,
+ 	arg.user = IP6_DEFRAG_LOCAL_DELIVER;
+ 	arg.src = src;
+ 	arg.dst = dst;
++	arg.iif = iif;
+ 	arg.ecn = ecn;
+ 
+ 	hash = inet6_hash_frag(id, src, dst);
+@@ -551,7 +555,7 @@ static int ipv6_frag_rcv(struct sk_buff *skb)
+ 	}
+ 
+ 	fq = fq_find(net, fhdr->identification, &hdr->saddr, &hdr->daddr,
+-		     ip6_frag_ecn(hdr));
++		     skb->dev ? skb->dev->ifindex : 0, ip6_frag_ecn(hdr));
+ 	if (fq) {
+ 		int ret;
+ 
 -- 
-2.5.0
+2.6.3
 
