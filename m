@@ -1,35 +1,52 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next 1/6] netfilter: nf_tables: extend tracing
- infrastructure
-Date: Tue, 24 Nov 2015 11:28:41 +0100
-Message-ID: <20151124102841.GD1740@breakpoint.cc>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nf-next 2/6] netfilter: nf_tables: wrap tracing with a
+ static key
+Date: Tue, 24 Nov 2015 10:28:47 +0000
+Message-ID: <20151124102847.GF2310@macbook.localdomain>
 References: <1448359331-12692-1-git-send-email-fw@strlen.de>
- <1448359331-12692-2-git-send-email-fw@strlen.de>
- <20151124102245.GD2683@salvia>
+ <1448359331-12692-3-git-send-email-fw@strlen.de>
+ <20151124101332.GC2310@macbook.localdomain>
+ <20151124102123.GB1740@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58445 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753917AbbKXK2n (ORCPT
+Received: from 161-169.trash.net ([213.144.137.169]:44573 "EHLO
+	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754288AbbKXK2v (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Nov 2015 05:28:43 -0500
+	Tue, 24 Nov 2015 05:28:51 -0500
 Content-Disposition: inline
-In-Reply-To: <20151124102245.GD2683@salvia>
+In-Reply-To: <20151124102123.GB1740@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> BTW, do we really want to use the default NFNLGRP_NFTABLES group?
+On 24.11, Florian Westphal wrote:
+> Patrick McHardy <kaber@trash.net> wrote:
 > 
-> multicast group provide a simple way for filtering out what you don't
-> need from kernelspace. And you can still subscribe both groups
-> NFNLGRP_NFTABLES and NFNLGRP_NFTABLES_TRACE.
+> > I'm also wondering if this introduces a race condition on architectures
+> > that don't support jump labels. static_key_slow_inc() simply increases
+> > the ->enabled counter without further synchronization, so this might
+> > happen while we're executing this function and some of the increments
+> > might be skipped.
 > 
-> I'm telling this when thinking of nft-sync. Why should it be receiving
-> this spamming tracing events when it only cares about ruleset updates?
+> Hmm, adding synchronization for this is braindead.
+> The new trace infrastructure doesn't need this rulenum, I only kept it
+> since thats what Pablo asked me to do.
+> 
+> So we have 3 choices:
+> - ignore this
+> - don't use static key here
+> - kill the old nf_log_packet trace part after all
+> 
+> I find it sad that we have to keep this rule counting around :-/
+> 
+> If there are no further comments I'll remove the static key and do
+> the rule counting unconditinally.
 
-I can add a new group but nftables will need to subscribe to both
-in trace mode since we need to see new rules...
+I wouldn't mind killing the old tracing off, but I think the main reason why
+we added it was for ipt compat. So probably not possible at this point.
+
+I agree that having the rule counting is not particulary nice, but I don't
+see any other way right now than to do it unconditionally.
