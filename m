@@ -1,52 +1,46 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH nf-next 1/6] netfilter: nf_tables: extend tracing
  infrastructure
-Date: Tue, 24 Nov 2015 11:30:45 +0100
-Message-ID: <20151124103045.GA2947@salvia>
+Date: Tue, 24 Nov 2015 10:33:49 +0000
+Message-ID: <20151124103348.GG2310@macbook.localdomain>
 References: <1448359331-12692-1-git-send-email-fw@strlen.de>
  <1448359331-12692-2-git-send-email-fw@strlen.de>
- <20151124101705.GB2683@salvia>
- <20151124102707.GC1740@breakpoint.cc>
+ <20151124102245.GD2683@salvia>
+ <20151124102841.GD1740@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41774 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754074AbbKXKat (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Nov 2015 05:30:49 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id C6DDFB6BAF
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 11:30:48 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id ADCAEDA804
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 11:30:48 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 89E0ADA867
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 11:30:46 +0100 (CET)
+Received: from 161-169.trash.net ([213.144.137.169]:44613 "EHLO
+	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752563AbbKXKdw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Nov 2015 05:33:52 -0500
 Content-Disposition: inline
-In-Reply-To: <20151124102707.GC1740@breakpoint.cc>
+In-Reply-To: <20151124102841.GD1740@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Nov 24, 2015 at 11:27:07AM +0100, Florian Westphal wrote:
+On 24.11, Florian Westphal wrote:
 > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Do you think we can place all this new netlink code in
-> > net/netfilter/nf_tables_trace.c ? So we leave in the core file only
-> > our classifier engine.
+> > BTW, do we really want to use the default NFNLGRP_NFTABLES group?
 > > 
-> > I like the attribute definition rename in nf_tables.h, but this code
-> > we can probably place it away from here.
+> > multicast group provide a simple way for filtering out what you don't
+> > need from kernelspace. And you can still subscribe both groups
+> > NFNLGRP_NFTABLES and NFNLGRP_NFTABLES_TRACE.
+> > 
+> > I'm telling this when thinking of nft-sync. Why should it be receiving
+> > this spamming tracing events when it only cares about ruleset updates?
 > 
-> Ok, I'll see if this is doable without exporting half a dozen of
-> symbols.
+> I can add a new group but nftables will need to subscribe to both
+> in trace mode since we need to see new rules...
 
-If you place this in this core, we should need to export any symbol.
+I agree with Pablo. Under high load this has the potential to decrease
+reliability of rule notifications a lot for any interested listener. Since
+tracing is a debugging tool I don't think we should do that.
 
-nf_tables-objs += nf_tables_core.o nf_tables_api.o nf_tables_trace.o
-
-And I would expect probably only functions to enable/disabling tracing
-and to notify the trace via netlink.
-
-Let me know, thanks.
+BTW and completely unrelated to the netlink group: I think it would be
+nicer to have a "trace" keyword instead of "nftrace set 1" in the nft
+frontend.
