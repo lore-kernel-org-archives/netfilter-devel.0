@@ -1,66 +1,52 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next 3/6] netfilter: nf_tables: disable old tracing if
- listener is present
-Date: Tue, 24 Nov 2015 11:31:05 +0100
-Message-ID: <20151124103105.GE1740@breakpoint.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next 1/6] netfilter: nf_tables: extend tracing
+ infrastructure
+Date: Tue, 24 Nov 2015 11:30:45 +0100
+Message-ID: <20151124103045.GA2947@salvia>
 References: <1448359331-12692-1-git-send-email-fw@strlen.de>
- <1448359331-12692-4-git-send-email-fw@strlen.de>
- <20151124102445.GE2683@salvia>
+ <1448359331-12692-2-git-send-email-fw@strlen.de>
+ <20151124101705.GB2683@salvia>
+ <20151124102707.GC1740@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58458 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754386AbbKXKbG (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Nov 2015 05:31:06 -0500
+Received: from mail.us.es ([193.147.175.20]:41774 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754074AbbKXKat (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Nov 2015 05:30:49 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id C6DDFB6BAF
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 11:30:48 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id ADCAEDA804
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 11:30:48 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 89E0ADA867
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 11:30:46 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20151124102445.GE2683@salvia>
+In-Reply-To: <20151124102707.GC1740@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-> > index dabf5ed..69bdd9a 100644
-> > --- a/net/netfilter/nf_tables_core.c
-> > +++ b/net/netfilter/nf_tables_core.c
-> > @@ -55,6 +55,7 @@ static void __nft_trace_packet(const struct nft_pktinfo *pkt,
-> >  		     rulenum);
-> >  }
-> >  
-> > +static bool prefer_native_trace __read_mostly;
-> >  struct static_key nft_trace_enabled __read_mostly;
-> >  EXPORT_SYMBOL_GPL(nft_trace_enabled);
-> >  
-> > @@ -69,7 +70,13 @@ static inline void nft_trace_packet(const struct nft_pktinfo *pkt,
-> >  		if (!pkt->skb->nf_trace)
-> >  			return;
-> >  		nf_tables_trace_notify(pkt, chain, rule, verdict, type);
-> > -		__nft_trace_packet(pkt, chain, rulenum, type);
-> > +		if (prefer_native_trace)
-> > +			return;
-> > +
-> > +		if (nfnetlink_has_listeners(pkt->net, NFNLGRP_NFTABLES))
-> > +			prefer_native_trace = true;
-> > +		else
-> > +			__nft_trace_packet(pkt, chain, rulenum, type);
+On Tue, Nov 24, 2015 at 11:27:07AM +0100, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Do you think we can place all this new netlink code in
+> > net/netfilter/nf_tables_trace.c ? So we leave in the core file only
+> > our classifier engine.
+> > 
+> > I like the attribute definition rename in nf_tables.h, but this code
+> > we can probably place it away from here.
 > 
-> For this very specific case I prefer a sysctl that we can remove
-> moving forward, then remove this code and default to the new tracing
-> infrastructure once we have indications that adoption of this new
-> tracing infrastructure has been massively adopted instead of the
-> existing one.
+> Ok, I'll see if this is doable without exporting half a dozen of
+> symbols.
 
-So you're saying
+If you place this in this core, we should need to export any symbol.
 
-sysctl nft_old_trace = 1;
+nf_tables-objs += nf_tables_core.o nf_tables_api.o nf_tables_trace.o
 
-and then do
+And I would expect probably only functions to enable/disabling tracing
+and to notify the trace via netlink.
 
-nf_tables_trace_notify(..)
-if (nft_old_trace)
-	__nft_trace_packet();
-
-?
+Let me know, thanks.
