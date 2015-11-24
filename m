@@ -1,54 +1,190 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 3/6] netfilter: nf_tables: disable old tracing if listener is present
-Date: Tue, 24 Nov 2015 11:02:08 +0100
-Message-ID: <1448359331-12692-4-git-send-email-fw@strlen.de>
+Subject: [PATCH nf-next 2/6] netfilter: nf_tables: wrap tracing with a static key
+Date: Tue, 24 Nov 2015 11:02:07 +0100
+Message-ID: <1448359331-12692-3-git-send-email-fw@strlen.de>
 References: <1448359331-12692-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58369 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58368 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753020AbbKXKC0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752994AbbKXKCZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Nov 2015 05:02:26 -0500
+	Tue, 24 Nov 2015 05:02:25 -0500
 In-Reply-To: <1448359331-12692-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-No need to clutter nflog/dmesg ring buffer with the old tracing output
-when the 'native' nfnetlink interface is used.
+Only needed when meta nftrace rule(s) were added.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_tables_core.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ include/net/netfilter/nf_tables_core.h |  1 +
+ include/net/netfilter/nft_meta.h       |  3 +++
+ net/bridge/netfilter/nft_meta_bridge.c |  1 +
+ net/netfilter/nf_tables_core.c         | 20 +++++++++++++++-----
+ net/netfilter/nft_meta.c               | 15 +++++++++++++++
+ 5 files changed, 35 insertions(+), 5 deletions(-)
 
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index c6f400c..8ad6240 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -48,6 +48,7 @@ struct nft_payload {
+ };
+ 
+ extern const struct nft_expr_ops nft_payload_fast_ops;
++extern struct static_key nft_trace_enabled;
+ 
+ int nft_payload_module_init(void);
+ void nft_payload_module_exit(void);
+diff --git a/include/net/netfilter/nft_meta.h b/include/net/netfilter/nft_meta.h
+index 711887a..d27588c 100644
+--- a/include/net/netfilter/nft_meta.h
++++ b/include/net/netfilter/nft_meta.h
+@@ -33,4 +33,7 @@ void nft_meta_set_eval(const struct nft_expr *expr,
+ 		       struct nft_regs *regs,
+ 		       const struct nft_pktinfo *pkt);
+ 
++void nft_meta_set_destroy(const struct nft_ctx *ctx,
++			  const struct nft_expr *expr);
++
+ #endif
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+index a21269b..4b901d9 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -84,6 +84,7 @@ static const struct nft_expr_ops nft_meta_bridge_set_ops = {
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_meta)),
+ 	.eval		= nft_meta_set_eval,
+ 	.init		= nft_meta_set_init,
++	.destroy	= nft_meta_set_destroy,
+ 	.dump		= nft_meta_set_dump,
+ };
+ 
 diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index dabf5ed..69bdd9a 100644
+index 29a6ca9..dabf5ed 100644
 --- a/net/netfilter/nf_tables_core.c
 +++ b/net/netfilter/nf_tables_core.c
-@@ -55,6 +55,7 @@ static void __nft_trace_packet(const struct nft_pktinfo *pkt,
+@@ -16,6 +16,7 @@
+ #include <linux/skbuff.h>
+ #include <linux/netlink.h>
+ #include <linux/netfilter.h>
++#include <linux/static_key.h>
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables_core.h>
+@@ -54,6 +55,9 @@ static void __nft_trace_packet(const struct nft_pktinfo *pkt,
  		     rulenum);
  }
  
-+static bool prefer_native_trace __read_mostly;
- struct static_key nft_trace_enabled __read_mostly;
- EXPORT_SYMBOL_GPL(nft_trace_enabled);
- 
-@@ -69,7 +70,13 @@ static inline void nft_trace_packet(const struct nft_pktinfo *pkt,
- 		if (!pkt->skb->nf_trace)
- 			return;
- 		nf_tables_trace_notify(pkt, chain, rule, verdict, type);
--		__nft_trace_packet(pkt, chain, rulenum, type);
-+		if (prefer_native_trace)
-+			return;
++struct static_key nft_trace_enabled __read_mostly;
++EXPORT_SYMBOL_GPL(nft_trace_enabled);
 +
-+		if (nfnetlink_has_listeners(pkt->net, NFNLGRP_NFTABLES))
-+			prefer_native_trace = true;
-+		else
-+			__nft_trace_packet(pkt, chain, rulenum, type);
+ static inline void nft_trace_packet(const struct nft_pktinfo *pkt,
+ 				    const struct nft_chain *chain,
+ 				    const struct nft_rule *rule,
+@@ -61,7 +65,9 @@ static inline void nft_trace_packet(const struct nft_pktinfo *pkt,
+ 				    u32 verdict,
+ 				    enum nft_trace_types type)
+ {
+-	if (unlikely(pkt->skb->nf_trace)) {
++	if (static_key_false(&nft_trace_enabled)) {
++		if (!pkt->skb->nf_trace)
++			return;
+ 		nf_tables_trace_notify(pkt, chain, rule, verdict, type);
+ 		__nft_trace_packet(pkt, chain, rulenum, type);
  	}
+@@ -138,7 +144,8 @@ next_rule:
+ 		if (unlikely(rule->genmask & (1 << gencursor)))
+ 			continue;
+ 
+-		rulenum++;
++		if (static_key_false(&nft_trace_enabled))
++			rulenum++;
+ 
+ 		nft_rule_for_each_expr(expr, last, rule) {
+ 			if (expr->ops == &nft_cmp_fast_ops)
+@@ -178,7 +185,8 @@ next_rule:
+ 		BUG_ON(stackptr >= NFT_JUMP_STACK_SIZE);
+ 		jumpstack[stackptr].chain = chain;
+ 		jumpstack[stackptr].rule  = rule;
+-		jumpstack[stackptr].rulenum = rulenum;
++		if (static_key_false(&nft_trace_enabled))
++			jumpstack[stackptr].rulenum = rulenum;
+ 		stackptr++;
+ 		/* fall through */
+ 	case NFT_GOTO:
+@@ -188,7 +196,8 @@ next_rule:
+ 		chain = regs.verdict.chain;
+ 		goto do_chain;
+ 	case NFT_CONTINUE:
+-		rulenum++;
++		if (static_key_false(&nft_trace_enabled))
++			rulenum++;
+ 		/* fall through */
+ 	case NFT_RETURN:
+ 		if (stackptr)
+@@ -204,7 +213,8 @@ next_rule:
+ 		stackptr--;
+ 		chain = jumpstack[stackptr].chain;
+ 		rule  = jumpstack[stackptr].rule;
+-		rulenum = jumpstack[stackptr].rulenum;
++		if (static_key_false(&nft_trace_enabled))
++			rulenum = jumpstack[stackptr].rulenum;
+ 		goto next_rule;
+ 	}
+ 
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index e94526a..c2a60ac 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -18,10 +18,12 @@
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
+ #include <linux/smp.h>
++#include <linux/static_key.h>
+ #include <net/dst.h>
+ #include <net/sock.h>
+ #include <net/tcp_states.h> /* for TCP_TIME_WAIT */
+ #include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_core.h>
+ #include <net/netfilter/nft_meta.h>
+ 
+ void nft_meta_get_eval(const struct nft_expr *expr,
+@@ -300,6 +302,9 @@ int nft_meta_set_init(const struct nft_ctx *ctx,
+ 	if (err < 0)
+ 		return err;
+ 
++	if (priv->key == NFT_META_NFTRACE)
++		static_key_slow_inc(&nft_trace_enabled);
++
+ 	return 0;
  }
+ EXPORT_SYMBOL_GPL(nft_meta_set_init);
+@@ -337,6 +342,15 @@ nla_put_failure:
+ }
+ EXPORT_SYMBOL_GPL(nft_meta_set_dump);
+ 
++void nft_meta_set_destroy(const struct nft_ctx *ctx,
++			  const struct nft_expr *expr)
++{
++	const struct nft_meta *priv = nft_expr_priv(expr);
++
++	if (priv->key == NFT_META_NFTRACE)
++		static_key_slow_dec(&nft_trace_enabled);
++}
++
+ static struct nft_expr_type nft_meta_type;
+ static const struct nft_expr_ops nft_meta_get_ops = {
+ 	.type		= &nft_meta_type,
+@@ -351,6 +365,7 @@ static const struct nft_expr_ops nft_meta_set_ops = {
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_meta)),
+ 	.eval		= nft_meta_set_eval,
+ 	.init		= nft_meta_set_init,
++	.destroy	= nft_meta_set_destroy,
+ 	.dump		= nft_meta_set_dump,
+ };
  
 -- 
 2.4.10
