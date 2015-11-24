@@ -1,133 +1,73 @@
-From: Michal Kubecek <mkubecek@suse.cz>
-Subject: [PATCH net] ipv6: distinguish frag queues by device for multicast and
- link-local packets
-Date: Tue, 24 Nov 2015 15:07:11 +0100 (CET)
-Message-ID: <20151124140711.E07F2A0BE8@unicorn.suse.cz>
-Cc: Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	James Morris <jmorris@namei.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: "David S. Miller" <davem@davemloft.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH libnftnl 5/6] src: add trace infrastructure support
+Date: Tue, 24 Nov 2015 14:53:11 +0000
+Message-ID: <20151124145310.GJ14478@macbook.localdomain>
+References: <1448359331-12692-1-git-send-email-fw@strlen.de>
+ <1448359331-12692-6-git-send-email-fw@strlen.de>
+ <20151124121621.GA14478@macbook.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:60979 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752739AbbKXOHQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Nov 2015 09:07:16 -0500
+Received: from 161-169.trash.net ([213.144.137.169]:46509 "EHLO
+	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753535AbbKXOxP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Nov 2015 09:53:15 -0500
+Content-Disposition: inline
+In-Reply-To: <20151124121621.GA14478@macbook.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If a fragmented multicast packet is received on an ethernet device which
-has an active macvlan on top of it, each fragment is duplicated and
-received both on the underlying device and the macvlan. If some
-fragments for macvlan are processed before the whole packet for the
-underlying device is reassembled, the "overlapping fragments" test in
-ip6_frag_queue() discards the whole fragment queue.
+On 24.11, Patrick McHardy wrote:
+> On 24.11, Florian Westphal wrote:
+> > +static int
+> > +print_th(const struct nftnl_trace *t, char *buf, size_t size)
+> > +{
+> > +	uint8_t proto = nftnl_trace_get_u8(t, NFTNL_TRACE_TRANSPORT_PROTO);
+> > +	int ret, len = size, offset = 0;
+> > +	const struct udphdr *uh;
+> > +	uint32_t plen;
+> > +
+> > +	ret = snprintf(buf+offset, len, " protocol %u", proto);
+> > +
+> > +	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+> > +
+> > +	switch (proto) {
+> > +	case IPPROTO_DCCP:
+> > +	case IPPROTO_SCTP:
+> > +	case IPPROTO_TCP:
+> > +	case IPPROTO_UDP:
+> > +	case IPPROTO_UDPLITE:
+> > +		break;
+> > +	default:
+> > +		return 0;
+> > +	}
+> > +
+> > +	/* warning: only sport/dport are valid */
+> > +	uh = nftnl_trace_get_data(t, NFTNL_TRACE_TRANSPORT_HEADER, &plen);
+> > +	if (!uh)
+> > +		return 0;
+> > +
+> > +	ret = snprintf(buf+offset, len, " sport %"PRIu16 " dport %"PRIu16,
+> > +			ntohs(uh->uh_sport), ntohs(uh->uh_dport));
+> > +
+> > +	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+> > +	return offset;
+> > +}
+> > + ...
+> 
+> Regarding this header decoding, a further upside of using nft would be that
+> we can already fully decode all known headers based on our protocol descriptions
+> in a generic fashion.
+> 
+> Basically we just splice off data from the beginning and feed it to payload
+> expression decoding. That should result in a full decode of every protocol
+> we support. Every improvement we will make there will automatically apply to
+> decoding, like (I talked to Pablo about this for a couple of times) supporing
+> encapsulated headers, like GRE/IPIP/... + inner headers.
+> 
+> Hope I can convince you of the upsides :)
 
-To resolve this, add device ifindex to the search key and require it to
-match reassembling multicast packets and packets to link-local
-addresses.
-
-Note: similar patch has been already submitted by Yoshifuji Hideaki in
-
-  http://patchwork.ozlabs.org/patch/220979/
-
-but got lost and forgotten for some reason.
-
-Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
----
- include/net/ipv6.h                      |  1 +
- net/ipv6/netfilter/nf_conntrack_reasm.c |  5 +++--
- net/ipv6/reassembly.c                   | 10 +++++++---
- 3 files changed, 11 insertions(+), 5 deletions(-)
-
-diff --git a/include/net/ipv6.h b/include/net/ipv6.h
-index e1a10b0ac0b0..ea5a13ef85a6 100644
---- a/include/net/ipv6.h
-+++ b/include/net/ipv6.h
-@@ -490,6 +490,7 @@ struct ip6_create_arg {
- 	u32 user;
- 	const struct in6_addr *src;
- 	const struct in6_addr *dst;
-+	int iif;
- 	u8 ecn;
- };
- 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index d5efeb87350e..bab4441ed4e4 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -190,7 +190,7 @@ static void nf_ct_frag6_expire(unsigned long data)
- /* Creation primitives. */
- static inline struct frag_queue *fq_find(struct net *net, __be32 id,
- 					 u32 user, struct in6_addr *src,
--					 struct in6_addr *dst, u8 ecn)
-+					 struct in6_addr *dst, int iif, u8 ecn)
- {
- 	struct inet_frag_queue *q;
- 	struct ip6_create_arg arg;
-@@ -200,6 +200,7 @@ static inline struct frag_queue *fq_find(struct net *net, __be32 id,
- 	arg.user = user;
- 	arg.src = src;
- 	arg.dst = dst;
-+	arg.iif = iif;
- 	arg.ecn = ecn;
- 
- 	local_bh_disable();
-@@ -601,7 +602,7 @@ struct sk_buff *nf_ct_frag6_gather(struct net *net, struct sk_buff *skb, u32 use
- 	fhdr = (struct frag_hdr *)skb_transport_header(clone);
- 
- 	fq = fq_find(net, fhdr->identification, user, &hdr->saddr, &hdr->daddr,
--		     ip6_frag_ecn(hdr));
-+		     skb->dev ? skb->dev->ifindex : 0, ip6_frag_ecn(hdr));
- 	if (fq == NULL) {
- 		pr_debug("Can't find and can't create new queue\n");
- 		goto ret_orig;
-diff --git a/net/ipv6/reassembly.c b/net/ipv6/reassembly.c
-index 44e21a03cfc3..45f5ae51de65 100644
---- a/net/ipv6/reassembly.c
-+++ b/net/ipv6/reassembly.c
-@@ -108,7 +108,10 @@ bool ip6_frag_match(const struct inet_frag_queue *q, const void *a)
- 	return	fq->id == arg->id &&
- 		fq->user == arg->user &&
- 		ipv6_addr_equal(&fq->saddr, arg->src) &&
--		ipv6_addr_equal(&fq->daddr, arg->dst);
-+		ipv6_addr_equal(&fq->daddr, arg->dst) &&
-+		(arg->iif == fq->iif ||
-+		 !(ipv6_addr_type(arg->dst) & (IPV6_ADDR_MULTICAST |
-+					       IPV6_ADDR_LINKLOCAL)));
- }
- EXPORT_SYMBOL(ip6_frag_match);
- 
-@@ -180,7 +183,7 @@ static void ip6_frag_expire(unsigned long data)
- 
- static struct frag_queue *
- fq_find(struct net *net, __be32 id, const struct in6_addr *src,
--	const struct in6_addr *dst, u8 ecn)
-+	const struct in6_addr *dst, int iif, u8 ecn)
- {
- 	struct inet_frag_queue *q;
- 	struct ip6_create_arg arg;
-@@ -190,6 +193,7 @@ fq_find(struct net *net, __be32 id, const struct in6_addr *src,
- 	arg.user = IP6_DEFRAG_LOCAL_DELIVER;
- 	arg.src = src;
- 	arg.dst = dst;
-+	arg.iif = iif;
- 	arg.ecn = ecn;
- 
- 	hash = inet6_hash_frag(id, src, dst);
-@@ -551,7 +555,7 @@ static int ipv6_frag_rcv(struct sk_buff *skb)
- 	}
- 
- 	fq = fq_find(net, fhdr->identification, &hdr->saddr, &hdr->daddr,
--		     ip6_frag_ecn(hdr));
-+		     skb->dev ? skb->dev->ifindex : 0, ip6_frag_ecn(hdr));
- 	if (fq) {
- 		int ret;
- 
--- 
-2.6.3
-
+I'm giving this a shot right now. Will let you know the result.
