@@ -1,68 +1,74 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nf-next 3/6] netfilter: nf_tables: disable old tracing if
- listener is present
-Date: Tue, 24 Nov 2015 11:33:41 +0000
-Message-ID: <20151124113341.GO2310@macbook.localdomain>
+Subject: Re: [PATCH nftables 6/6] src: add trace support to nft monitor mode
+Date: Tue, 24 Nov 2015 11:36:29 +0000
+Message-ID: <20151124113629.GP2310@macbook.localdomain>
 References: <1448359331-12692-1-git-send-email-fw@strlen.de>
- <1448359331-12692-4-git-send-email-fw@strlen.de>
- <20151124102445.GE2683@salvia>
- <20151124103105.GE1740@breakpoint.cc>
- <20151124103938.GB3014@salvia>
- <20151124105300.GK2310@macbook.localdomain>
- <20151124111029.GH1740@breakpoint.cc>
+ <1448359331-12692-7-git-send-email-fw@strlen.de>
+ <20151124102553.GE2310@macbook.localdomain>
+ <20151124105333.GA3212@salvia>
+ <20151124110429.GM2310@macbook.localdomain>
+ <20151124111221.GA3528@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 161-169.trash.net ([213.144.137.169]:45083 "EHLO
+Received: from 161-169.trash.net ([213.144.137.169]:45103 "EHLO
 	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751280AbbKXLdp (ORCPT
+	with ESMTP id S1752006AbbKXLgd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Nov 2015 06:33:45 -0500
+	Tue, 24 Nov 2015 06:36:33 -0500
 Content-Disposition: inline
-In-Reply-To: <20151124111029.GH1740@breakpoint.cc>
+In-Reply-To: <20151124111221.GA3528@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 24.11, Florian Westphal wrote:
-> Patrick McHardy <kaber@trash.net> wrote:
-> > On more thing to consider it interaction with other netfilter subsystems.
+On 24.11, Pablo Neira Ayuso wrote:
+> On Tue, Nov 24, 2015 at 11:04:29AM +0000, Patrick McHardy wrote:
+> > On 24.11, Pablo Neira Ayuso wrote:
+> > Well I keep running into problems with it. We already discussed a few, we're
+> > dumping way to much information that we don't need and we're making nft
+> > require root even for unpriviledged operations and just testing ruleset
+> > syntax.
 > > 
-> > F.i. I think it would be very useful to have per connection tracing, so
-> > we'd store a flag in the nfct and transfer it to every packet. This would
-> > make them show up in the nft ruleset,
+> > We're basing errors on a cache that might not be up to date.
+> > 
+> > When I list the bridge table, for some reason it lists *all* tables of all
+> > families. We're basically doing full dumps of everything in many cases.
+> > This will be absolutely killing performance with a big ruleset.
 > 
-> I'd prefer to complete set support for labels for this, so we can do
-> something like
->  chain ct_trace {
-> 	 type filter hook prerouting priority 0;
-> 	 tcp dport 22 ct state new label set trace
-> 	 ct label trace meta set nftrace 1
->  }
+> OK, I'll be refining this to allow selective dumps.
 > 
->  chain ct_trace_out {
-> 	 type filter hook output priority 0;
-> 	 ct label trace meta set nftrace 1
->  }
+> > AFAIK (did not test) we're only listing sets for the family of the first
+> > command, then set cache_initializer to true and skip further updates. When
+> > the ruleset refers to multiple families, the contents will not be present
+> > but expected.
 > 
-> Which would do in/out tracing without any additional code
-> (except the label set support, of course).
+> This may be related to the kernel patches I have to send to use
+> generations from the dump path.
 
-That's of course one possibilty but it lacks one important point, we could
-not trace the first packet going through conntrack.
+As mentioned, I did not actually test this so far, but its the caching
+code, it initializes for the first rule and only for that rule and bases
+its queries on that handle. OTOH the dumping of all tables indicates that
+it *does* dump more than that. Not sure, would have to test to be sure,
+but the code looks like it.
 
-> > but what about tracing in specific
-> > points of conntrack/NAT itself? Can we send them to the same group and
-> > make them integrate with ruleset tracing?
+> > It basically seems like the big hammer approach + some bugs instead of
+> > selectively getting what we need when we need it and making sure its
+> > up to date, at least before generating errors based on it.
 > 
-> Good point.
+> Selective dumping is good to have indeed, I'm willing to refine this.
 > 
-> I think we would first have to identify possible interesting tracing points.
-> Did you have anything specific in mind?
+> But regarding event tracing, I think it's good to keep a cache in
+> userspace that we update based on the events that we receive, then
+> resync if we hit ENOBUFS, instead of inquiring the kernel for every
+> trace.
 
-I guess the hooks themselves, probably helper invocation and/or results,
-possibly interesting points within helpers, errors in protocol tracking,
-basically I think a good starting point would be what we now have as global
-tracing points.
+Generally I agree.
+
+> So I think Florian can get this in. I'll be resolving the existing
+> caching issues after him as this is not related to his work.
+> 
+> Fine with this approach?
+
+Sure, it we fix this, no question :)
