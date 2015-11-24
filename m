@@ -1,94 +1,45 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nf-next 3/6] netfilter: nf_tables: disable old tracing if
- listener is present
-Date: Tue, 24 Nov 2015 15:42:41 +0000
-Message-ID: <20151124154241.GL14478@macbook.localdomain>
-References: <1448359331-12692-4-git-send-email-fw@strlen.de>
- <20151124102445.GE2683@salvia>
- <20151124103105.GE1740@breakpoint.cc>
- <20151124103938.GB3014@salvia>
- <20151124105300.GK2310@macbook.localdomain>
- <20151124111029.GH1740@breakpoint.cc>
- <20151124113341.GO2310@macbook.localdomain>
- <20151124151542.GA20972@breakpoint.cc>
- <20151124152649.GK14478@macbook.localdomain>
- <20151124153550.GC20972@breakpoint.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nftables] goto vs jump documentation
+Date: Tue, 24 Nov 2015 16:56:35 +0100
+Message-ID: <20151124155635.GA13734@salvia>
+References: <CAOkSjBiEzMwQoKfZ-SbptULO_NHZUgoO=KELDO-2CNEFKiof_w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 161-169.trash.net ([213.144.137.169]:46885 "EHLO
-	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751224AbbKXPmq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Nov 2015 10:42:46 -0500
+Received: from mail.us.es ([193.147.175.20]:51840 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752603AbbKXP4q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Nov 2015 10:56:46 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id C7671B6BAE
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 16:56:42 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B91B1DA803
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 16:56:42 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id D056DDA81D
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 16:56:40 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20151124153550.GC20972@breakpoint.cc>
+In-Reply-To: <CAOkSjBiEzMwQoKfZ-SbptULO_NHZUgoO=KELDO-2CNEFKiof_w@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 24.11, Florian Westphal wrote:
-> Patrick McHardy <kaber@trash.net> wrote:
-> > On 24.11, Florian Westphal wrote:
-> > > We already have an attribute for verdicts, but that won't be enough.
-> > > Adding NFTA_TRACE_FILENAME/LINENO seems wrong to me since that would
-> > > be a pure development thing and we already have tools like perf probe
-> > > for that.
-> > 
-> > Yes absolutely. We have a few things that provide stable identifiers, f.i.
-> > hooks, helper names, protocol names, subsystems (conntrack/NAT/TCP names
-> > will not change), ...
+On Fri, Nov 20, 2015 at 02:45:31PM +0100, Arturo Borrero Gonzalez wrote:
+> Hi,
 > 
-> Ok, so that should work within this proposed set, we would need to add
-> new attributes and types:
+> I've documented the difference between goto and jump in the nftables wiki [0].
 > 
-> e.g. NFT_TRACETYPE_CT which then can set NFTA_TRACE_HELPER_NAME or any other
-> new attr we want/need.
-> 
-> > If we need more granularity we need to define some stable sub-identifiers.
-> > 
-> > > I don't see anything in the current proposal that would not allow to use
-> > > it for further netfilter trace events, however, at least for conntrack
-> > > i suspect it might make more sense to extend ctnetlink instead.
-> > 
-> > Sure, I'm just saying we should consider this. ctnetlink is more about
-> > ct events, not really about the packets.
-> 
-> Right.
-> 
-> > I just think it makes sense to
-> > have a unified view of tracing because you run into ordering issues if you
-> > send events using multiple subsystems. There's also a big advantage in
-> > being able to use a simple tool like nft for all your tracing needs compared
-> > to combining nft, nfnetlink_log and ctnetlink data to get the full picture.
-> 
-> Yes, I see.  This makes sense.  I'm withdrawing the ctnetlink comment.
-> We have extensions for nflog and nfqueue to serialize the CT object
-> entirely withing nfnetlink_log/queue, might also add
-> NFTA_TRACE_CT as a nested attribute that contains the entire ct object.
-> 
-> > I'm all for including all the data we need to get a good picture like you
-> > have now, I just want to make sure we don't make decisions that prevent us
-> > from extending it to other subsystems later on.
-> 
-> Ok.  Basically I'm going to ignore all of your comments here, since I
-> would first like to get the v1 'right' before extending it to more
-> subsystems.
+> Let me know if that's OK.
 
-Absolutely :)
+This looks good.
 
-> IFF you see anything that prevents us from doing such extension, please
-> yell.  But AFAICS the proposed attributes and types should be fine wrt.
-> extensibility.
-> 
-> I'm going to add new netlink group for the trace events and will address
-> all the other comments.
+I'd suggest you place this into add this into a new article:
 
-Sounds good. I'm having first success decoding headers using the nft internal
-protocol structure.
+"Going to chain"
 
-Sounds good. I'm having first success decoding headers using the nft internal
-protocol structure. Needs more refinement but I expect to have a RFC later
-today.
+just after the existing "Jumping to chain". No changes in the content,
+I like that you use the jump concept as reference to explain this new
+one.
