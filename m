@@ -1,376 +1,93 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH v2 nft 2/2] payload: add payload statement
-Date: Tue, 24 Nov 2015 12:55:41 +0000
-Message-ID: <1448369741-19622-3-git-send-email-kaber@trash.net>
+Subject: [PATCH v2 nft 1/2] proto: add checksum key information to struct proto_desc
+Date: Tue, 24 Nov 2015 12:55:40 +0000
+Message-ID: <1448369741-19622-2-git-send-email-kaber@trash.net>
 References: <1448369741-19622-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 161-169.trash.net ([213.144.137.169]:45661 "EHLO
+Received: from 161-169.trash.net ([213.144.137.169]:45658 "EHLO
 	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753387AbbKXMzq (ORCPT
+	with ESMTP id S1753437AbbKXMzp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Nov 2015 07:55:46 -0500
+	Tue, 24 Nov 2015 07:55:45 -0500
 In-Reply-To: <1448369741-19622-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add support for payload mangling using the payload statement. The syntax
-is similar to the other data changing statements:
-
-nft filter output tcp dport set 25
+The checksum key is used to determine the correct position where to update
+the checksum for the payload statement.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- include/linux/netfilter/nf_tables.h | 17 ++++++++++++++
- include/statement.h                 | 11 +++++++++
- src/evaluate.c                      | 25 ++++++++++++++++++--
- src/netlink_delinearize.c           | 46 ++++++++++++++++++++++++++++++++++---
- src/netlink_linearize.c             | 40 ++++++++++++++++++++++++++++++++
- src/parser_bison.y                  |  9 ++++++++
- src/payload.c                       | 24 +++++++++++++++++++
- 7 files changed, 167 insertions(+), 5 deletions(-)
+ include/proto.h | 2 ++
+ src/proto.c     | 5 +++++
+ 2 files changed, 7 insertions(+)
 
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 5ebe3d8..70a9619 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -589,12 +589,26 @@ enum nft_payload_bases {
- };
- 
- /**
-+ * enum nft_payload_csum_types - nf_tables payload expression checksum types
-+ *
-+ * @NFT_PAYLOAD_CSUM_NONE: no checksumming
-+ * @NFT_PAYLOAD_CSUM_INET: internet checksum (RFC 791)
-+ */
-+enum nft_payload_csum_types {
-+	NFT_PAYLOAD_CSUM_NONE,
-+	NFT_PAYLOAD_CSUM_INET,
-+};
-+
-+/**
-  * enum nft_payload_attributes - nf_tables payload expression netlink attributes
+diff --git a/include/proto.h b/include/proto.h
+index a43bf98..974116f 100644
+--- a/include/proto.h
++++ b/include/proto.h
+@@ -68,6 +68,7 @@ struct proto_hdr_template {
   *
-  * @NFTA_PAYLOAD_DREG: destination register to load data into (NLA_U32: nft_registers)
-  * @NFTA_PAYLOAD_BASE: payload base (NLA_U32: nft_payload_bases)
-  * @NFTA_PAYLOAD_OFFSET: payload offset relative to base (NLA_U32)
-  * @NFTA_PAYLOAD_LEN: payload length (NLA_U32)
-+ * @NFTA_PAYLOAD_SREG: source register to load data from (NLA_U32: nft_registers)
-+ * @NFTA_PAYLOAD_CSUM_TYPE: checksum type (NLA_U32)
-+ * @NFTA_PAYLOAD_CSUM_OFFSET: checksum offset relative to base (NLA_U32)
-  */
- enum nft_payload_attributes {
- 	NFTA_PAYLOAD_UNSPEC,
-@@ -602,6 +616,9 @@ enum nft_payload_attributes {
- 	NFTA_PAYLOAD_BASE,
- 	NFTA_PAYLOAD_OFFSET,
- 	NFTA_PAYLOAD_LEN,
-+	NFTA_PAYLOAD_SREG,
-+	NFTA_PAYLOAD_CSUM_TYPE,
-+	NFTA_PAYLOAD_CSUM_OFFSET,
- 	__NFTA_PAYLOAD_MAX
- };
- #define NFTA_PAYLOAD_MAX	(__NFTA_PAYLOAD_MAX - 1)
-diff --git a/include/statement.h b/include/statement.h
-index 8b035d3..53620ae 100644
---- a/include/statement.h
-+++ b/include/statement.h
-@@ -17,6 +17,14 @@ struct counter_stmt {
- 
- extern struct stmt *counter_stmt_alloc(const struct location *loc);
- 
-+struct payload_stmt {
-+	struct expr			*expr;
-+	struct expr			*val;
-+};
-+
-+extern struct stmt *payload_stmt_alloc(const struct location *loc,
-+				       struct expr *payload, struct expr *expr);
-+
- #include <meta.h>
- struct meta_stmt {
- 	enum nft_meta_keys		key;
-@@ -128,6 +136,7 @@ extern struct stmt *set_stmt_alloc(const struct location *loc);
-  * @STMT_EXPRESSION:	expression statement (relational)
-  * @STMT_VERDICT:	verdict statement
-  * @STMT_COUNTER:	counters
-+ * @STMT_PAYLOAD:	payload statement
-  * @STMT_META:		meta statement
-  * @STMT_LIMIT:		limit statement
-  * @STMT_LOG:		log statement
-@@ -145,6 +154,7 @@ enum stmt_types {
- 	STMT_EXPRESSION,
- 	STMT_VERDICT,
- 	STMT_COUNTER,
-+	STMT_PAYLOAD,
- 	STMT_META,
- 	STMT_LIMIT,
- 	STMT_LOG,
-@@ -196,6 +206,7 @@ struct stmt {
- 	union {
- 		struct expr		*expr;
- 		struct counter_stmt	counter;
-+		struct payload_stmt	payload;
- 		struct meta_stmt	meta;
- 		struct log_stmt		log;
- 		struct limit_stmt	limit;
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 7842471..c0a5592 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -427,9 +427,9 @@ static bool resolve_protocol_conflict(struct eval_ctx *ctx,
-  * generate the necessary relational expression and prepend it to the current
-  * statement.
-  */
--static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **expr)
-+static int __expr_evaluate_payload(struct eval_ctx *ctx, struct expr *expr)
- {
--	struct expr *payload = *expr;
-+	struct expr *payload = expr;
- 	enum proto_bases base = payload->payload.base;
- 	struct stmt *nstmt;
- 
-@@ -443,6 +443,14 @@ static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **expr)
- 				  ctx->pctx.protocol[base].desc->name,
- 				  payload->payload.desc->name);
- 
-+	return 0;
-+}
-+
-+static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **expr)
-+{
-+	if (__expr_evaluate_payload(ctx, *expr) < 0)
-+		return -1;
-+
- 	return expr_evaluate_primary(ctx, expr);
- }
- 
-@@ -1342,6 +1350,17 @@ static int stmt_evaluate_verdict(struct eval_ctx *ctx, struct stmt *stmt)
- 	return 0;
- }
- 
-+static int stmt_evaluate_payload(struct eval_ctx *ctx, struct stmt *stmt)
-+{
-+	if (__expr_evaluate_payload(ctx, stmt->payload.expr) < 0)
-+		return -1;
-+
-+	return stmt_evaluate_arg(ctx, stmt,
-+				 stmt->payload.expr->dtype,
-+				 stmt->payload.expr->len,
-+				 &stmt->payload.val);
-+}
-+
- static int stmt_evaluate_meta(struct eval_ctx *ctx, struct stmt *stmt)
- {
- 	return stmt_evaluate_arg(ctx, stmt,
-@@ -1905,6 +1924,8 @@ int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
- 		return stmt_evaluate_expr(ctx, stmt);
- 	case STMT_VERDICT:
- 		return stmt_evaluate_verdict(ctx, stmt);
-+	case STMT_PAYLOAD:
-+		return stmt_evaluate_payload(ctx, stmt);
- 	case STMT_META:
- 		return stmt_evaluate_meta(ctx, stmt);
- 	case STMT_CT:
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 3584de7..debf939 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -397,9 +397,9 @@ static void netlink_parse_byteorder(struct netlink_parse_ctx *ctx,
- 	netlink_set_register(ctx, dreg, expr);
- }
- 
--static void netlink_parse_payload(struct netlink_parse_ctx *ctx,
--				  const struct location *loc,
--				  const struct nftnl_expr *nle)
-+static void netlink_parse_payload_expr(struct netlink_parse_ctx *ctx,
-+				       const struct location *loc,
-+				       const struct nftnl_expr *nle)
- {
- 	enum nft_registers dreg;
- 	uint32_t base, offset, len;
-@@ -416,6 +416,39 @@ static void netlink_parse_payload(struct netlink_parse_ctx *ctx,
- 	netlink_set_register(ctx, dreg, expr);
- }
- 
-+static void netlink_parse_payload_stmt(struct netlink_parse_ctx *ctx,
-+				       const struct location *loc,
-+				       const struct nftnl_expr *nle)
-+{
-+	enum nft_registers sreg;
-+	uint32_t base, offset, len;
-+	struct expr *expr, *val;
-+	struct stmt *stmt;
-+
-+	base   = nftnl_expr_get_u32(nle, NFTNL_EXPR_PAYLOAD_BASE) + 1;
-+	offset = nftnl_expr_get_u32(nle, NFTNL_EXPR_PAYLOAD_OFFSET) * BITS_PER_BYTE;
-+	len    = nftnl_expr_get_u32(nle, NFTNL_EXPR_PAYLOAD_LEN) * BITS_PER_BYTE;
-+
-+	expr = payload_expr_alloc(loc, NULL, 0);
-+	payload_init_raw(expr, base, offset, len);
-+
-+	sreg = netlink_parse_register(nle, NFT_EXPR_PAYLOAD_SREG);
-+	val  = netlink_get_register(ctx, loc, sreg);
-+	stmt = payload_stmt_alloc(loc, expr, val);
-+
-+	list_add_tail(&stmt->list, &ctx->rule->stmts);
-+}
-+
-+static void netlink_parse_payload(struct netlink_parse_ctx *ctx,
-+				  const struct location *loc,
-+				  const struct nftnl_expr *nle)
-+{
-+	if (nftnl_expr_is_set(nle, NFT_EXPR_PAYLOAD_DREG))
-+		netlink_parse_payload_expr(ctx, loc, nle);
-+	else
-+		netlink_parse_payload_stmt(ctx, loc, nle);
-+}
-+
- static void netlink_parse_exthdr(struct netlink_parse_ctx *ctx,
- 				 const struct location *loc,
- 				 const struct nftnl_expr *nle)
-@@ -1554,6 +1587,13 @@ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *r
- 		case STMT_EXPRESSION:
- 			stmt_expr_postprocess(&rctx, prev);
- 			break;
-+		case STMT_PAYLOAD:
-+			expr_postprocess(&rctx, &stmt->payload.expr);
-+			expr_set_type(stmt->payload.val,
-+				      stmt->payload.expr->dtype,
-+				      stmt->payload.expr->byteorder);
-+			expr_postprocess(&rctx, &stmt->payload.val);
-+			break;
- 		case STMT_META:
- 			if (stmt->meta.expr != NULL)
- 				expr_postprocess(&rctx, &stmt->meta.expr);
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index c9af036..588e885 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -680,6 +680,44 @@ static void netlink_gen_counter_stmt(struct netlink_linearize_ctx *ctx,
- 	nftnl_rule_add_expr(ctx->nlr, nle);
- }
- 
-+static void netlink_gen_payload_stmt(struct netlink_linearize_ctx *ctx,
-+				     const struct stmt *stmt)
-+{
-+	struct nftnl_expr *nle;
-+	const struct proto_desc *desc;
-+	const struct expr *expr;
-+	enum nft_registers sreg;
-+	unsigned int csum_off;
-+
-+	sreg = get_register(ctx, stmt->payload.val);
-+	netlink_gen_expr(ctx, stmt->payload.val, sreg);
-+	release_register(ctx, stmt->payload.val);
-+
-+	expr = stmt->payload.expr;
-+
-+	csum_off = 0;
-+	desc = expr->payload.desc;
-+	if (desc != NULL && desc->checksum_key)
-+		csum_off = desc->templates[desc->checksum_key].offset;
-+
-+	nle = alloc_nft_expr("payload");
-+	netlink_put_register(nle, NFTNL_EXPR_PAYLOAD_SREG, sreg);
-+	nftnl_expr_set_u32(nle, NFTNL_EXPR_PAYLOAD_BASE,
-+			   expr->payload.base - 1);
-+	nftnl_expr_set_u32(nle, NFTNL_EXPR_PAYLOAD_OFFSET,
-+			   expr->payload.offset / BITS_PER_BYTE);
-+	nftnl_expr_set_u32(nle, NFTNL_EXPR_PAYLOAD_LEN,
-+			   expr->len / BITS_PER_BYTE);
-+	if (csum_off) {
-+		nftnl_expr_set_u32(nle, NFTNL_EXPR_PAYLOAD_CSUM_TYPE,
-+				   NFT_PAYLOAD_CSUM_INET);
-+		nftnl_expr_set_u32(nle, NFTNL_EXPR_PAYLOAD_CSUM_OFFSET,
-+				   csum_off / BITS_PER_BYTE);
-+	}
-+
-+	nftnl_rule_add_expr(ctx->nlr, nle);
-+}
-+
- static void netlink_gen_meta_stmt(struct netlink_linearize_ctx *ctx,
- 				  const struct stmt *stmt)
- {
-@@ -990,6 +1028,8 @@ static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
- 		return netlink_gen_verdict_stmt(ctx, stmt);
- 	case STMT_COUNTER:
- 		return netlink_gen_counter_stmt(ctx, stmt);
-+	case STMT_PAYLOAD:
-+		return netlink_gen_payload_stmt(ctx, stmt);
- 	case STMT_META:
- 		return netlink_gen_meta_stmt(ctx, stmt);
- 	case STMT_LOG:
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index ab4524b..67d25bb 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -447,6 +447,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %destructor { stmt_free($$); }	stmt match_stmt verdict_stmt
- %type <stmt>			counter_stmt counter_stmt_alloc
- %destructor { stmt_free($$); }	counter_stmt counter_stmt_alloc
-+%type <stmt>			payload_stmt
-+%destructor { stmt_free($$); }	payload_stmt
- %type <stmt>			ct_stmt
- %destructor { stmt_free($$); }	ct_stmt
- %type <stmt>			meta_stmt
-@@ -1312,6 +1314,7 @@ stmt_list		:	stmt
- stmt			:	verdict_stmt
- 			|	match_stmt
- 			|	counter_stmt
-+			|	payload_stmt
- 			|	meta_stmt
- 			|	log_stmt
- 			|	limit_stmt
-@@ -2061,6 +2064,12 @@ ct_stmt			:	CT	ct_key		SET	expr
- 			}
- 			;
- 
-+payload_stmt		:	payload_expr		SET	expr
-+			{
-+				$$ = payload_stmt_alloc(&@$, $1, $3);
-+			}
-+			;
-+
- payload_expr		:	payload_raw_expr
- 			|	eth_hdr_expr
- 			|	vlan_hdr_expr
-diff --git a/src/payload.c b/src/payload.c
-index b75527a..a97041e 100644
---- a/src/payload.c
-+++ b/src/payload.c
-@@ -138,6 +138,30 @@ void payload_init_raw(struct expr *expr, enum proto_bases base,
- 	expr->len		= len;
- }
- 
-+static void payload_stmt_print(const struct stmt *stmt)
-+{
-+	expr_print(stmt->payload.expr);
-+	printf(" set ");
-+	expr_print(stmt->payload.val);
-+}
-+
-+static const struct stmt_ops payload_stmt_ops = {
-+	.type		= STMT_PAYLOAD,
-+	.name		= "payload",
-+	.print		= payload_stmt_print,
-+};
-+
-+struct stmt *payload_stmt_alloc(const struct location *loc,
-+				struct expr *expr, struct expr *val)
-+{
-+	struct stmt *stmt;
-+
-+	stmt = stmt_alloc(loc, &payload_stmt_ops);
-+	stmt->payload.expr = expr;
-+	stmt->payload.val  = val;
-+	return stmt;
-+}
-+
- /**
-  * payload_gen_dependency - generate match expression on payload dependency
-  *
+  * @name:	protocol name
+  * @base:	header base
++ * @checksum_key: key of template containing checksum
+  * @protocol_key: key of template containing upper layer protocol description
+  * @length:	total size of the header, in bits
+  * @protocols:	link to upper layer protocol descriptions indexed by protocol value
+@@ -76,6 +77,7 @@ struct proto_hdr_template {
+ struct proto_desc {
+ 	const char			*name;
+ 	enum proto_bases		base;
++	unsigned int			checksum_key;
+ 	unsigned int			protocol_key;
+ 	unsigned int			length;
+ 	struct {
+diff --git a/src/proto.c b/src/proto.c
+index 28b93cb..89ec282 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -321,6 +321,7 @@ static const struct datatype icmp_type_type = {
+ const struct proto_desc proto_icmp = {
+ 	.name		= "icmp",
+ 	.base		= PROTO_BASE_TRANSPORT_HDR,
++	.checksum_key	= ICMPHDR_CHECKSUM,
+ 	.templates	= {
+ 		[ICMPHDR_TYPE]		= ICMPHDR_TYPE("type", &icmp_type_type, type),
+ 		[ICMPHDR_CODE]		= ICMPHDR_FIELD("code", code),
+@@ -343,6 +344,7 @@ const struct proto_desc proto_icmp = {
+ const struct proto_desc proto_udp = {
+ 	.name		= "udp",
+ 	.base		= PROTO_BASE_TRANSPORT_HDR,
++	.checksum_key	= UDPHDR_CHECKSUM,
+ 	.templates	= {
+ 		[UDPHDR_SPORT]		= INET_SERVICE("sport", struct udphdr, source),
+ 		[UDPHDR_DPORT]		= INET_SERVICE("dport", struct udphdr, dest),
+@@ -398,6 +400,7 @@ static const struct datatype tcp_flag_type = {
+ const struct proto_desc proto_tcp = {
+ 	.name		= "tcp",
+ 	.base		= PROTO_BASE_TRANSPORT_HDR,
++	.checksum_key	= TCPHDR_CHECKSUM,
+ 	.templates	= {
+ 		[TCPHDR_SPORT]		= INET_SERVICE("sport", struct tcphdr, source),
+ 		[TCPHDR_DPORT]		= INET_SERVICE("dport", struct tcphdr, dest),
+@@ -491,6 +494,7 @@ const struct proto_desc proto_sctp = {
+ const struct proto_desc proto_ip = {
+ 	.name		= "ip",
+ 	.base		= PROTO_BASE_NETWORK_HDR,
++	.checksum_key	= IPHDR_CHECKSUM,
+ 	.protocol_key	= IPHDR_PROTOCOL,
+ 	.protocols	= {
+ 		PROTO_LINK(IPPROTO_ICMP,	&proto_icmp),
+@@ -563,6 +567,7 @@ static const struct datatype icmp6_type_type = {
+ const struct proto_desc proto_icmp6 = {
+ 	.name		= "icmpv6",
+ 	.base		= PROTO_BASE_TRANSPORT_HDR,
++	.checksum_key	= ICMP6HDR_CHECKSUM,
+ 	.templates	= {
+ 		[ICMP6HDR_TYPE]		= ICMP6HDR_TYPE("type", &icmp6_type_type, icmp6_type),
+ 		[ICMP6HDR_CODE]		= ICMP6HDR_FIELD("code", icmp6_code),
 -- 
 2.5.0
 
