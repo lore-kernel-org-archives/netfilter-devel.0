@@ -1,76 +1,49 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next 1/6] netfilter: nf_tables: extend tracing
- infrastructure
-Date: Tue, 24 Nov 2015 11:27:07 +0100
-Message-ID: <20151124102707.GC1740@breakpoint.cc>
-References: <1448359331-12692-1-git-send-email-fw@strlen.de>
- <1448359331-12692-2-git-send-email-fw@strlen.de>
- <20151124101705.GB2683@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v2 nf-next 0/9] netfilter: don't copy initns hooks to new
+ namespaces
+Date: Tue, 24 Nov 2015 11:27:46 +0100
+Message-ID: <20151124102746.GA2917@salvia>
+References: <1445597006-11264-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58436 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753967AbbKXK1I (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Nov 2015 05:27:08 -0500
+Received: from mail.us.es ([193.147.175.20]:40335 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754313AbbKXK1u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Nov 2015 05:27:50 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 2768BB6B97
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 11:27:49 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 192D6DA81D
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 11:27:49 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 3E77CDA861
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Nov 2015 11:27:47 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20151124101705.GB2683@salvia>
+In-Reply-To: <1445597006-11264-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Tue, Nov 24, 2015 at 11:02:06AM +0100, Florian Westphal wrote:
-> > nft monitor mode can then decode and display this trace data.
-> > 
-> > Parts of LL/Network/Transport headers are provided as separate
-> > attributes.
-> > 
-> > Otherwise, printing IP address data becomes virtually impossible
-> > for userspace since in the case of the netdev family we really don't
-> > want userspace to have to know all the possible link layer types
-> > and/or sizes just to display/print an ip address.
-> > 
-> > We also don't want userspace to have to follow ipv6 header chains
-> > to get the s/dport info, the kernel already did this work so just
-> > follow suit.
-> > 
-> > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > ---
-> >  include/net/netfilter/nf_tables.h        |   6 +
-> > +static bool trace_notify_put_data(struct sk_buff *nlskb, u16 type,
-> > +				  const struct sk_buff *skb,
-> > +				  int off, unsigned int plen)
+On Fri, Oct 23, 2015 at 12:43:17PM +0200, Florian Westphal wrote:
+> Ads section:
+> conntrack+filter + nat table used in init namespace, single TCP_STREAM lo netperf:
+> 87380  16384  16384    30.00    14348.66
+> with patch set, netperf running in net namespace without rules:
+> 87380  16384  16384    30.00    15683.97
 > 
-> Minor nitpick: Probably you can rename this to _fill_*_info for
-> consistency with other nf_tables netlink code.
+> routing from ns3 -> ns2, filter + nat table & conntrack in all namespaces:
+> 87380  16384  16384    30.00    5664.46
+> without conntrack+any tables in those namespaces:
+> 87380  16384  16384    30.00    7336.54
 
-Sure, will do.
+Florian, I didn't have time so far on this but I really expect that
+you follow up on this with a new version adressing or summarizing
+possible solutions for the corner cases that we have discussed
+previously.
 
-> Do you think we can place all this new netlink code in
-> net/netfilter/nf_tables_trace.c ? So we leave in the core file only
-> our classifier engine.
-> 
-> I like the attribute definition rename in nf_tables.h, but this code
-> we can probably place it away from here.
+We definitely need this for better netns support in iptables.
 
-Ok, I'll see if this is doable without exporting half a dozen of
-symbols.
-
-> >  static int nf_tables_table_notify(const struct nft_ctx *ctx, int event)
-> >  	case NFT_RETURN:
-> > -		nft_trace_packet(pkt, chain, rulenum, NFT_TRACE_RETURN);
-> > +		if (stackptr)
-> 
-> Why this new branch?
-
-Right, I should move it to extra patch.  I think its buggy without the
-extra if (stackptr) test.
-
-If stackptr is 0, then we're returning from a base chain, i.e.
-the policy is evaluated and we have another trace for that.
-
-For old code its not really imporant if rulenum counter is wrong/off,
-but for the new infra its important that the *rule ptr is valid.
+Thanks.
