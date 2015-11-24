@@ -1,92 +1,76 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nftables 6/6] src: add trace support to nft monitor mode
-Date: Tue, 24 Nov 2015 10:25:54 +0000
-Message-ID: <20151124102553.GE2310@macbook.localdomain>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next 1/6] netfilter: nf_tables: extend tracing
+ infrastructure
+Date: Tue, 24 Nov 2015 11:27:07 +0100
+Message-ID: <20151124102707.GC1740@breakpoint.cc>
 References: <1448359331-12692-1-git-send-email-fw@strlen.de>
- <1448359331-12692-7-git-send-email-fw@strlen.de>
+ <1448359331-12692-2-git-send-email-fw@strlen.de>
+ <20151124101705.GB2683@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 161-169.trash.net ([213.144.137.169]:44557 "EHLO
-	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754449AbbKXKZ6 (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58436 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753967AbbKXK1I (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Nov 2015 05:25:58 -0500
+	Tue, 24 Nov 2015 05:27:08 -0500
 Content-Disposition: inline
-In-Reply-To: <1448359331-12692-7-git-send-email-fw@strlen.de>
+In-Reply-To: <20151124101705.GB2683@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 24.11, Florian Westphal wrote:
-> nft monitor [ trace ]
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Tue, Nov 24, 2015 at 11:02:06AM +0100, Florian Westphal wrote:
+> > nft monitor mode can then decode and display this trace data.
+> > 
+> > Parts of LL/Network/Transport headers are provided as separate
+> > attributes.
+> > 
+> > Otherwise, printing IP address data becomes virtually impossible
+> > for userspace since in the case of the netdev family we really don't
+> > want userspace to have to know all the possible link layer types
+> > and/or sizes just to display/print an ip address.
+> > 
+> > We also don't want userspace to have to follow ipv6 header chains
+> > to get the s/dport info, the kernel already did this work so just
+> > follow suit.
+> > 
+> > Signed-off-by: Florian Westphal <fw@strlen.de>
+> > ---
+> >  include/net/netfilter/nf_tables.h        |   6 +
+> > +static bool trace_notify_put_data(struct sk_buff *nlskb, u16 type,
+> > +				  const struct sk_buff *skb,
+> > +				  int off, unsigned int plen)
 > 
-> ... can now display nftables nftrace debug information.
+> Minor nitpick: Probably you can rename this to _fill_*_info for
+> consistency with other nf_tables netlink code.
+
+Sure, will do.
+
+> Do you think we can place all this new netlink code in
+> net/netfilter/nf_tables_trace.c ? So we leave in the core file only
+> our classifier engine.
 > 
-> $ nft rule bridge raw prerouting add tcp dport 22 limit rate 1/second meta nftrace set 1
-> $ nft monitor trace
-> trace id 834dd100 bridge packet src 5e:95:99:72:ea:c5 dst 52:54:40:a2:3f:a6 src 192.168.7.1 dst 192.168.7.11 len 88 ttl 64 id 2719 protocol 6 sport 3628 dport 22 iif eth0
-> trace id 834dd100 bridge raw prerouting rule verdict continue iif eth0
-> trace id 834dd100 rule tcp dport ssh limit rate 1/second nftrace set 1
-> trace id 834dd100 bridge raw prerouting policy verdict accept iif eth0
-> trace id 834dd100 ip filter input rule verdict jump iif br0
-> trace id 834dd100 rule ip saddr . tcp dport vmap { }
-> trace id 834dd100 ip filter test rule verdict accept iif br0
-> trace id 834dd100 rule accept
+> I like the attribute definition rename in nf_tables.h, but this code
+> we can probably place it away from here.
 
-I like this *a lot*. No need for external tools and a much more readable
-output than using any of the other logging mechanisms. Nice work!
+Ok, I'll see if this is doable without exporting half a dozen of
+symbols.
 
-> +static void trace_print_if(const struct nftnl_trace *nlt, uint16_t attr, const char *str)
-> +{
-> +	char __name[IFNAMSIZ];
-> +	const char *ifname;
-> +
-> +        if (!nftnl_trace_is_set(nlt, attr))
-> +		return;
-> +
-> +	ifname = nft_if_indextoname(nftnl_trace_get_u32(nlt, attr), __name);
-> +	if (ifname)
-> +		printf(" %s %s", str, ifname);
-> +	else
-> +		printf(" %s %d", str, nftnl_trace_get_u32(nlt, attr));
-> +}
+> >  static int nf_tables_table_notify(const struct nft_ctx *ctx, int event)
+> >  	case NFT_RETURN:
+> > -		nft_trace_packet(pkt, chain, rulenum, NFT_TRACE_RETURN);
+> > +		if (stackptr)
+> 
+> Why this new branch?
 
-A lot of the other trace attributes are not used so far. I'm wondering if
-you intend to add special print functions for them as well.
+Right, I should move it to extra patch.  I think its buggy without the
+extra if (stackptr) test.
 
-An alternative would be to use our internal datatypes, IOW parse the
-attributes, associate the values with an internal type and use the regular
-printing functions. The benefit would be fully consistent output, also
-with respect to output options like numerical output.
+If stackptr is 0, then we're returning from a base chain, i.e.
+the policy is evaluated and we have another trace for that.
 
-> +static int do_command_monitor(struct netlink_ctx *ctx, struct cmd *cmd)
-> +{
-> +	struct table *t;
-> +	struct set *s;
-> +	struct netlink_mon_handler monhandler;
-> +
-> +	monhandler.cache_needed = need_cache(cmd);
->  	if (monhandler.cache_needed) {
-> +		struct rule *rule, *nrule;
-> +		struct chain *chain;
-> +		int ret;
-> +
->  		list_for_each_entry(t, &table_list, list) {
->  			list_for_each_entry(s, &t->sets, list)
->  				s->init = set_expr_alloc(&cmd->location);
-> +
-> +			if (!(cmd->monitor->flags & (1 << NFT_MSG_TRACE)))
-> +				continue;
-> +
-> +			/* When tracing we'd like to translate the rule handle
-> +			 * we receive in the trace messages to the actual rule
-> +			 * struct to print that out.  Populate rule cache now.
-> +			 */
-
-Tracing might be a long running operation. The cache can go out of sync, might
-be better to do a lookup on demand.
-
-Right now the caching infrastrucure has quite a lot of problems and I'd prefer
-to get them fixed before we base new things on it.
+For old code its not really imporant if rulenum counter is wrong/off,
+but for the new infra its important that the *rule ptr is valid.
