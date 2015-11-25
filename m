@@ -1,53 +1,72 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nft 1/2] src: add dscp support
-Date: Wed, 25 Nov 2015 23:27:15 +0000
-Message-ID: <20151125232715.GE20093@macbook.localdomain>
-References: <1448480362-12411-1-git-send-email-pablo@netfilter.org>
- <20151125200124.GH30712@macbook.localdomain>
- <alpine.LSU.2.20.1511252341470.6198@nerf40.vanv.qr>
+Subject: Re: [PATCH nf-next 3/6] netfilter: nf_tables: disable old tracing if
+ listener is present
+Date: Wed, 25 Nov 2015 23:30:44 +0000
+Message-ID: <20151125233043.GF20093@macbook.localdomain>
+References: <20151124152649.GK14478@macbook.localdomain>
+ <20151124153550.GC20972@breakpoint.cc>
+ <20151124154241.GL14478@macbook.localdomain>
+ <20151125150640.GE18449@macbook.localdomain>
+ <20151125162424.GJ23215@breakpoint.cc>
+ <20151125164629.GB30712@macbook.localdomain>
+ <20151125173240.GG30712@macbook.localdomain>
+ <20151125222710.GK23215@breakpoint.cc>
+ <20151125230412.GB20093@macbook.localdomain>
+ <20151125231648.GM23215@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 161-169.trash.net ([213.144.137.169]:62565 "EHLO
+Received: from 161-169.trash.net ([213.144.137.169]:62600 "EHLO
 	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752047AbbKYX1U (ORCPT
+	with ESMTP id S1750972AbbKYXar (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Nov 2015 18:27:20 -0500
+	Wed, 25 Nov 2015 18:30:47 -0500
 Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.20.1511252341470.6198@nerf40.vanv.qr>
+In-Reply-To: <20151125231648.GM23215@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 26.11, Jan Engelhardt wrote:
+On 26.11, Florian Westphal wrote:
+> Patrick McHardy <kaber@trash.net> wrote:
+> > > True, good point.  In that case I would propose to get rid of "packet"
+> > > message type completely.
+> > > 
+> > > Instead we'd include all the info that we currently have in "packet"
+> > > (i.e. vlanid, headers) on the first message type fired on each nft_do_chain()
+> > > invocation.
+> > > 
+> > > We can also move IIF/OIF info to this 'initial' message
+> > > (which might be of any type depending on the ruleset, due to POLICY
+> > >  type we would however always send at least one, even if there are no
+> > >  matches).
+> > > 
+> > > The price to be paid would be a new variable that we have to keep
+> > > on-stack to know when we can elide the extra packet data.
+> > > 
+> > > Does that sound reasonable?
+> > 
+> > Sure, but is that really easier than including an unconditional (well,
+> > skb->nf_trace == 1) call to nf_tables_trace_notify() before entering
+> > the main loop? I don't see anything wrong the the packet message itself,
+> > just thinking it might be useful to emit one more in this specific
+> > spot.
 > 
-> On Wednesday 2015-11-25 21:01, Patrick McHardy wrote:
-> >On 25.11, Pablo Neira Ayuso wrote:
-> >>  #define TYPE_MAX		(__TYPE_MAX - 1)
-> >> diff --git a/include/proto.h b/include/proto.h
-> >> index a43bf98..41af0c1 100644
-> >> --- a/include/proto.h
-> >> +++ b/include/proto.h
-> >> @@ -176,7 +176,7 @@ enum ip_hdr_fields {
-> >>  	IPHDR_INVALID,
-> >>  	IPHDR_VERSION,
-> >>  	IPHDR_HDRLENGTH,
-> >> -	IPHDR_TOS,
-> >> +	IPHDR_DSCP,
-> >
-> >Shouldn't we keep both?
+> Its not easier, but it will keep the number of messages lower.
 > 
-> >From what I read from RFC 2474, DSCP is the 6-bit portion.
-> The 8-bit field is known as
->   (a) TOS per IPv4 RFC
->   (b) TC (Traffic Class) per IPv6 RFC 2460
->   (c) DS per RFC 2472
-> 
-> I would therefore recommend against IPHDR_DSCP, and instead go
-> with either of IPHDR_TOS, IPHDR_DS, IPHDR_DIFFSERV, or even
-> some mnemonic involving traffic class.
+> AFAIU with nf_tables_trace_notify() for each nft_do_chain() we will
+> have one more message for each table/hook combo...  Hmm...
 
-But we actually do refer to the 6 bit sub-field and the further 2 bit ECN
-sub-field, they are seperate fields with Pablo's patch.
+Yeah that's really a bit unfortunate since we actually only care about the
+first chain on every hook I guess. Basically once per hook, but it seems we
+really need to use once per base chain unless we go deeper down in the stack.
+
+> I I'll see how painful the extra test for 'i have sent packet data
+> for this nft_do_chain invocation' is, if its too complicated
+> I'll move the nf_tables_trace_notify from nft_meta to nft_do_chain.
+> 
+> Let me know in case you spot a problem with that rationale.
+
+No, that seems reasonable to me.
