@@ -1,43 +1,47 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables: Link libext_arpt to static build
-Date: Wed, 25 Nov 2015 20:45:41 +0100
-Message-ID: <20151125194541.GA12517@salvia>
-References: <1448273927-24853-1-git-send-email-daniel.wagner@bmw-carit.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nft 1/2] src: add dscp support
+Date: Wed, 25 Nov 2015 20:01:25 +0000
+Message-ID: <20151125200124.GH30712@macbook.localdomain>
+References: <1448480362-12411-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Daniel Wagner <daniel.wagner@bmw-carit.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39840 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751378AbbKYTpx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Nov 2015 14:45:53 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 060ED12925A
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2015 20:45:52 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id EBE7CDA795
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2015 20:45:51 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id A8514DA7FF
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2015 20:45:47 +0100 (CET)
+Received: from 161-169.trash.net ([213.144.137.169]:60943 "EHLO
+	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752218AbbKYUB3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Nov 2015 15:01:29 -0500
 Content-Disposition: inline
-In-Reply-To: <1448273927-24853-1-git-send-email-daniel.wagner@bmw-carit.de>
+In-Reply-To: <1448480362-12411-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 23, 2015 at 11:18:47AM +0100, Daniel Wagner wrote:
-> The libext_arpt is not included when linking the static version of
-> iptables.
-> 
-> Signed-off-by: Daniel Wagner <daniel.wagner@bmw-carit.de>
-> ---
-> Hi,
-> 
-> I had some troubles getting a static version of iptables. Not sure
-> if I fixed it correctly. Anyway I am able to proceed with testing.
+On 25.11, Pablo Neira Ayuso wrote:
+>  #define TYPE_MAX		(__TYPE_MAX - 1)
+> diff --git a/include/proto.h b/include/proto.h
+> index a43bf98..41af0c1 100644
+> --- a/include/proto.h
+> +++ b/include/proto.h
+> @@ -176,7 +176,7 @@ enum ip_hdr_fields {
+>  	IPHDR_INVALID,
+>  	IPHDR_VERSION,
+>  	IPHDR_HDRLENGTH,
+> -	IPHDR_TOS,
+> +	IPHDR_DSCP,
 
-Could you tell me what options you're using to compile iptables so I
-can try to reproduce it?
+Shouldn't we keep both? I think it should work to do that or at least not be
+difficult to make it work.
 
-Thanks.
+> diff --git a/src/proto.c b/src/proto.c
+> index 28b93cb..0e5932d 100644
+> --- a/src/proto.c
+> +++ b/src/proto.c
+> ...
+> +static const struct datatype dscp_type = {
+> +	.type		= TYPE_DSCP,
+> +	.name		= "dscp_type",
+
+We usually only add a _type suffix if that's really a part of the name,
+pkt dccp_pkttype.
