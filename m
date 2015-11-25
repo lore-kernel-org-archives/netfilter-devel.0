@@ -1,71 +1,87 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH nf-next 3/6] netfilter: nf_tables: disable old tracing
- if listener is present
-Date: Wed, 25 Nov 2015 17:49:20 +0100 (CET)
-Message-ID: <alpine.LSU.2.20.1511251718120.24176@nerf40.vanv.qr>
-References: <20151124102445.GE2683@salvia> <20151124103105.GE1740@breakpoint.cc> <20151124103938.GB3014@salvia> <20151124105300.GK2310@macbook.localdomain> <20151124111029.GH1740@breakpoint.cc> <20151124113341.GO2310@macbook.localdomain>
- <20151124151542.GA20972@breakpoint.cc> <20151124152649.GK14478@macbook.localdomain> <20151124153550.GC20972@breakpoint.cc> <20151124154241.GL14478@macbook.localdomain> <20151125150640.GE18449@macbook.localdomain>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nf-next 3/6] netfilter: nf_tables: disable old tracing if
+ listener is present
+Date: Wed, 25 Nov 2015 16:53:51 +0000
+Message-ID: <20151125165351.GD30712@macbook.localdomain>
+References: <20151124103938.GB3014@salvia>
+ <20151124105300.GK2310@macbook.localdomain>
+ <20151124111029.GH1740@breakpoint.cc>
+ <20151124113341.GO2310@macbook.localdomain>
+ <20151124151542.GA20972@breakpoint.cc>
+ <20151124152649.GK14478@macbook.localdomain>
+ <20151124153550.GC20972@breakpoint.cc>
+ <20151124154241.GL14478@macbook.localdomain>
+ <20151125150640.GE18449@macbook.localdomain>
+ <alpine.LSU.2.20.1511251718120.24176@nerf40.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Cc: Florian Westphal <fw@strlen.de>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:53696 "EHLO ares41.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750928AbbKYQtV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Nov 2015 11:49:21 -0500
-In-Reply-To: <20151125150640.GE18449@macbook.localdomain>
+Received: from 161-169.trash.net ([213.144.137.169]:58846 "EHLO
+	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751106AbbKYQxz (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Nov 2015 11:53:55 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.20.1511251718120.24176@nerf40.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On 25.11, Jan Engelhardt wrote:
+> 
+> On Wednesday 2015-11-25 16:06, Patrick McHardy wrote:
+> >
+> >trace id 85898000 ip ip length 60 ip id 220 ip ttl 64 ip protocol tcp ip saddr 192.168.122.1 ip daddr 192.168.122.84 tcp sport 39558 tcp dport 10000 iif ens3 
+> >[...]
+> >The second part is the we output normal nft expressions, so "ip" is repeated
+> >for every header field. [...] the upside is that the expressions can be
+> >easily copy and pasted into the ruleset if necessary.
+> 
+> "ip ip" looks a bit of out of place. To illustrate,
+> 
+> 	ip && ip.length==60 && ip.id==220 && ...
+> 
+> is what the rule seems to mean. However, it is also conceivable that
+> someone (who does not have the full knowledge as the .y parser does)
+> will read it as
+> 
+> 	ip.ip.length==60 && ip.id==220 ...
+> 
+> and might wonder if that is some magic sauce to test the inside header of an
+> IPIP packet. Altogether, this causes the nft syntax to remain more confusing
+> than the classic iptables one where the &&-segmentation points are reasonably
+> known.
 
-On Wednesday 2015-11-25 16:06, Patrick McHardy wrote:
->
->trace id 85898000 ip ip length 60 ip id 220 ip ttl 64 ip protocol tcp ip saddr 192.168.122.1 ip daddr 192.168.122.84 tcp sport 39558 tcp dport 10000 iif ens3 
->[...]
->The second part is the we output normal nft expressions, so "ip" is repeated
->for every header field. [...] the upside is that the expressions can be
->easily copy and pasted into the ruleset if necessary.
+Its WIP output. It's supposed to read "ip packet", but I agree, I will
+certainly not leave it like this.
 
-"ip ip" looks a bit of out of place. To illustrate,
+> >trace id 85898200 arp filter input verdict 1 mark 0x00000001 iif ens3
+> >
+> >Comments welcome, especially regarding the current limitations we have.
+> 
+> I do not think that the far-right printing of IP addresses in the trace output
+> is a big deal. Even the iptables TRACE mechanism ends up showing the IP address
+> past column 80:
+> 
+> [239310.214731] TRACE: mangle:INPUT:policy:1 IN=wl0 OUT=
+> MAC=7c:7a:91:30:84:cd:18:83:bf:2d:7e:20:08:00 SRC=46.4.122.207
+> DST=192.168.217.18 LEN=88 TOS=0x00 PREC=0x00 TTL=56 ID=42841 DF PROTO=TCP
+> SPT=22 DPT=34572 SEQ=1941015595 ACK=2361189253 WINDOW=1382 RES=0x00 ACK PSH
+> URGP=0 OPT (0101080A0B6162F1038FDA1F) UID=25121 GID=100 
+> 
+> (add syslog timestamps in front for added effect).
+> And perhaps, to a particular reader, the L4 information - which is even
+> more right-shifted in both ipt and nft trace - may be more important
+> than the L3 part.
+> 
+> What I think is a doable way is to output the rule in evaluation order -
+> basically, the way it was input.
+> If the IP TTL is not that important, perhaps that expression should
+> have been moved "to the back" when the rule was generated by the
+> userspace tool before being entered into the kernel.
 
-	ip && ip.length==60 && ip.id==220 && ...
-
-is what the rule seems to mean. However, it is also conceivable that
-someone (who does not have the full knowledge as the .y parser does)
-will read it as
-
-	ip.ip.length==60 && ip.id==220 ...
-
-and might wonder if that is some magic sauce to test the inside header of an
-IPIP packet. Altogether, this causes the nft syntax to remain more confusing
-than the classic iptables one where the &&-segmentation points are reasonably
-known.
-
-
->trace id 85898200 arp filter input verdict 1 mark 0x00000001 iif ens3
->
->Comments welcome, especially regarding the current limitations we have.
-
-I do not think that the far-right printing of IP addresses in the trace output
-is a big deal. Even the iptables TRACE mechanism ends up showing the IP address
-past column 80:
-
-[239310.214731] TRACE: mangle:INPUT:policy:1 IN=wl0 OUT=
-MAC=7c:7a:91:30:84:cd:18:83:bf:2d:7e:20:08:00 SRC=46.4.122.207
-DST=192.168.217.18 LEN=88 TOS=0x00 PREC=0x00 TTL=56 ID=42841 DF PROTO=TCP
-SPT=22 DPT=34572 SEQ=1941015595 ACK=2361189253 WINDOW=1382 RES=0x00 ACK PSH
-URGP=0 OPT (0101080A0B6162F1038FDA1F) UID=25121 GID=100 
-
-(add syslog timestamps in front for added effect).
-And perhaps, to a particular reader, the L4 information - which is even
-more right-shifted in both ipt and nft trace - may be more important
-than the L3 part.
-
-What I think is a doable way is to output the rule in evaluation order -
-basically, the way it was input.
-If the IP TTL is not that important, perhaps that expression should
-have been moved "to the back" when the rule was generated by the
-userspace tool before being entered into the kernel.
+Its a decoded packet dump, not the rule. The rule is of course output in
+evaluation order.
