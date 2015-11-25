@@ -1,61 +1,70 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 1/2] src: add dscp support
-Date: Wed, 25 Nov 2015 23:05:28 +0100
-Message-ID: <20151125220528.GA1028@salvia>
-References: <1448480362-12411-1-git-send-email-pablo@netfilter.org>
- <20151125200124.GH30712@macbook.localdomain>
- <20151125202201.GA11893@salvia>
- <20151125204512.GA20093@macbook.localdomain>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next 3/6] netfilter: nf_tables: disable old tracing if
+ listener is present
+Date: Wed, 25 Nov 2015 23:27:10 +0100
+Message-ID: <20151125222710.GK23215@breakpoint.cc>
+References: <20151124111029.GH1740@breakpoint.cc>
+ <20151124113341.GO2310@macbook.localdomain>
+ <20151124151542.GA20972@breakpoint.cc>
+ <20151124152649.GK14478@macbook.localdomain>
+ <20151124153550.GC20972@breakpoint.cc>
+ <20151124154241.GL14478@macbook.localdomain>
+ <20151125150640.GE18449@macbook.localdomain>
+ <20151125162424.GJ23215@breakpoint.cc>
+ <20151125164629.GB30712@macbook.localdomain>
+ <20151125173240.GG30712@macbook.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55924 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751380AbbKYWFf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Nov 2015 17:05:35 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id C0F331324CE
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2015 23:05:31 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B0140DA801
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2015 23:05:31 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id C7E2FDA795
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 Nov 2015 23:05:29 +0100 (CET)
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34961 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751119AbbKYW1N (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Nov 2015 17:27:13 -0500
 Content-Disposition: inline
-In-Reply-To: <20151125204512.GA20093@macbook.localdomain>
+In-Reply-To: <20151125173240.GG30712@macbook.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 25, 2015 at 08:45:13PM +0000, Patrick McHardy wrote:
-> On 25.11, Pablo Neira Ayuso wrote:
-> > On Wed, Nov 25, 2015 at 08:01:25PM +0000, Patrick McHardy wrote:
-> > > On 25.11, Pablo Neira Ayuso wrote:
-> > > >  #define TYPE_MAX		(__TYPE_MAX - 1)
-> > > > diff --git a/include/proto.h b/include/proto.h
-> > > > index a43bf98..41af0c1 100644
-> > > > --- a/include/proto.h
-> > > > +++ b/include/proto.h
-> > > > @@ -176,7 +176,7 @@ enum ip_hdr_fields {
-> > > >  	IPHDR_INVALID,
-> > > >  	IPHDR_VERSION,
-> > > >  	IPHDR_HDRLENGTH,
-> > > > -	IPHDR_TOS,
-> > > > +	IPHDR_DSCP,
-> > > 
-> > > Shouldn't we keep both? I think it should work to do that or at least not be
-> > > difficult to make it work.
+Patrick McHardy <kaber@trash.net> wrote:
+> On 25.11, Patrick McHardy wrote:
+> > On 25.11, Florian Westphal wrote:
+> > > Hmm, I think it actually increases readability, as all the other lines
+> > > you quoted above are a lot shorter the ip saddr part is a lot more
+> > > visible.
 > > 
-> > Last time we discussed this, people arised concerns related to the
-> > fact that this is obsolete, and nobody should be using this these
-> > days.
-> 
-> I don't really buy into these arguments. We support lots of obsolete things,
-> the fact is that even though it is obsoleted, it still exists and for old
-> devices might even be the only thing they support.
+> > They are actually still missing some minor parts from the original output :)
+> >
+> > But if we want to shorten them, I would suggest f.i. to not repeat the
+> > devices on every line. It seems to logically belong to the "packet" part,
+> > same as vlan id. I guess the only thing we actually need to repeat is the
+> > mark since that might change while we're within the ruleset.
 
-ToS breaks useful things like ECN, and the more I keep reading docs on
-the Internet, the more problem I have to see how the user can benefit
-from this.
+We can do this, but we'll need to make sure that the oif gets printed at
+one point (not available in prerouting)...
+
+> Actually thinking more about this, we might want to send a new "packet"
+> message whenever we enter nft_do_chain(). At that point the packet has been
+> processed by other parts of the network stack since the last "packet"
+> message and it might be helpful to know in which ways it has changed.
+
+True, good point.  In that case I would propose to get rid of "packet"
+message type completely.
+
+Instead we'd include all the info that we currently have in "packet"
+(i.e. vlanid, headers) on the first message type fired on each nft_do_chain()
+invocation.
+
+We can also move IIF/OIF info to this 'initial' message
+(which might be of any type depending on the ruleset, due to POLICY
+ type we would however always send at least one, even if there are no
+ matches).
+
+The price to be paid would be a new variable that we have to keep
+on-stack to know when we can elide the extra packet data.
+
+Does that sound reasonable?
