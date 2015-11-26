@@ -1,99 +1,154 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nf-next 3/6] netfilter: nf_tables: disable old tracing if
- listener is present
-Date: Thu, 26 Nov 2015 11:42:53 +0000
-Message-ID: <20151126114253.GD16828@macbook.localdomain>
-References: <20151124113341.GO2310@macbook.localdomain>
- <20151124151542.GA20972@breakpoint.cc>
- <20151124152649.GK14478@macbook.localdomain>
- <20151124153550.GC20972@breakpoint.cc>
- <20151124154241.GL14478@macbook.localdomain>
- <20151125150640.GE18449@macbook.localdomain>
- <20151125162424.GJ23215@breakpoint.cc>
- <20151125164629.GB30712@macbook.localdomain>
- <20151126105017.GB16828@macbook.localdomain>
- <20151126110329.GB22027@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Subject: [RFC PATCH nft] proto: add missing fields for ARP with IPv4/Ethernet
+Date: Thu, 26 Nov 2015 12:43:16 +0000
+Message-ID: <1448541796-23535-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 161-169.trash.net ([213.144.137.169]:34824 "EHLO
+Received: from 161-169.trash.net ([213.144.137.169]:35360 "EHLO
 	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750791AbbKZLm6 (ORCPT
+	with ESMTP id S1751014AbbKZMnV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Nov 2015 06:42:58 -0500
-Content-Disposition: inline
-In-Reply-To: <20151126110329.GB22027@breakpoint.cc>
+	Thu, 26 Nov 2015 07:43:21 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 26.11, Florian Westphal wrote:
-> Patrick McHardy <kaber@trash.net> wrote:
-> > Ok here's might current state. I've added an output filter and defined
-> > output ordering, so we can surpress some fields and order the remaining
-> > ones the way we want. I've also added redundant payload dependency
-> > elimination.
-> > 
-> > Example output looks like this:
-> > 
-> > trace id 85060d00 arp packet: iif ens3 ether saddr 63:f6:4b:00:54:52 ether daddr c9:4b:a9:00:54:52 arp operation reply arp sha 63:f6:4b:00:54:52 arp sip 192.168.122.1 arp tha c9:4b:a9:00:54:52 arp tip 192.168.122.84
-> > 
-> > trace id 853ff400 ip packet: iif ens3 ether saddr 63:f6:4b:00:54:52 ether daddr c9:4b:a9:00:54:52 ip saddr 192.168.122.1 ip daddr 192.168.122.84 ip tos 16 ip ttl 64 ip id 38325 ip length 60 tcp sport 46156 tcp dport 10000
-> > 
-> > trace id 853ffc00 ip packet: oif ens3 ip saddr 192.168.122.84 ip daddr 192.168.122.1 ip tos 16 ip ttl 64 ip id 51655 ip length 40 tcp sport 10000 tcp dport 46156
-> > 
-> > If people are happy this way I'll start getting it into final shape.
-> 
-> Please do, looks great!
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ include/headers.h  | 14 ++++++++++++++
+ include/proto.h    |  4 ++++
+ src/parser_bison.y |  8 ++++++++
+ src/proto.c        |  8 ++++++++
+ src/scanner.l      |  4 ++++
+ 5 files changed, 38 insertions(+)
 
-Great :)
+I've added the missing fields for ARP using IPv4 and ethernet. The question
+is if we really want to do this. Sure, Linux only supports this, but at least
+on ingress with different media types we might at least theoretically see
+other ARP types I guess.
 
-> But note that I'm still busy with v2 of the libnftnl and kernel parts,
-> there will be minor changes there.
-> 
-> 1. VLAN_TAG attr will be removed, I'll insert vlan header after ethernet
-> one in the LL_HEADER payload.
-> 2. IIF, OIF etc attributes will be removed.  Instead, I plan to reuse
-> meta keys for this in a nested TRACE_META attribute.
+The alternative would be to describe ARP as a layered protocol, the fixed
+part and the protocol specific part depending on ar_hrd. I think we're
+currently missing some infrastructure to express this properly.
 
-Both sound like good ideas, however regarding meta we'd have to use the
-nft attributes even if we're using the tracing infrastructure for different
-subsystems as discussed previously. I guess that would be Ok, just wanted
-to mention it.
+I *think* we should be able to change this in the future in a compatible way
+if necessary  since the tokens for IPv4 actually contain "ip" and the sha/tha
+can be parsed during evaluation.
 
-> Not sure yet how the libnftnl part will look like, I'd prefer to reuse
-> meta decoding parts that we have in libnftnl already
-> (my thinking was that if we'd want e.g. secmark later we could
->  do so more easily if we'd just reuse meta key values).
-> 
-> 3. PACKET message type has been removed.  Kernel will insert the HEADER
-> payloads in the first message sent from each do_chain invocation.
-> 
-> I think this will not interfere with your patch too much.
+If we agree to do it like this for now, what about naming? I don't like the
+token names very much, but I also want to avoid excessively long tokens.
+If someone has a nice reasonable suggestion please let me know.
 
-Probably not, should be quite easy to adapt to any interface changes.
+Cheers,
+Patrick
 
+diff --git a/include/headers.h b/include/headers.h
+index 469d674..15e3002 100644
+--- a/include/headers.h
++++ b/include/headers.h
+@@ -5,6 +5,20 @@
+ # define IPPROTO_UDPLITE	136
+ #endif
+ 
++#include <linux/if_ether.h>
++
++struct arp_ip_hdr {
++	uint16_t	ar_hrd;
++	uint16_t	ar_pro;
++	uint8_t		ar_hln;
++	uint8_t		ar_pln;
++	uint16_t	ar_op;
++	uint8_t		ar_sha[ETH_ALEN];
++	uint8_t		ar_sip[4];
++	uint8_t		ar_tha[ETH_ALEN];
++	uint8_t		ar_tip[4];
++};
++
+ enum tcp_hdr_flags {
+ 	TCP_FLAG_FIN	= 0x01,
+ 	TCP_FLAG_SYN	= 0x02,
+diff --git a/include/proto.h b/include/proto.h
+index 974116f..b6a84d3 100644
+--- a/include/proto.h
++++ b/include/proto.h
+@@ -172,6 +172,10 @@ enum arp_hdr_fields {
+ 	ARPHDR_HLN,
+ 	ARPHDR_PLN,
+ 	ARPHDR_OP,
++	ARPHDR_SHA,
++	ARPHDR_SIP,
++	ARPHDR_THA,
++	ARPHDR_TIP,
+ };
+ 
+ enum ip_hdr_fields {
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index fbfe7ea..e87b4a2 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -242,6 +242,10 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token HLEN			"hlen"
+ %token PLEN			"plen"
+ %token OPERATION		"operation"
++%token SHA			"sha"
++%token SIP			"sip"
++%token THA			"tha"
++%token TIP			"tip"
+ 
+ %token IP			"ip"
+ %token HDRVERSION		"version"
+@@ -2155,6 +2159,10 @@ arp_hdr_field		:	HTYPE		{ $$ = ARPHDR_HRD; }
+ 			|	HLEN		{ $$ = ARPHDR_HLN; }
+ 			|	PLEN		{ $$ = ARPHDR_PLN; }
+ 			|	OPERATION	{ $$ = ARPHDR_OP; }
++			|	SHA		{ $$ = ARPHDR_SHA; }
++			|	SIP		{ $$ = ARPHDR_SIP; }
++			|	THA		{ $$ = ARPHDR_THA; }
++			|	TIP		{ $$ = ARPHDR_TIP; }
+ 			;
+ 
+ ip_hdr_expr		:	IP	ip_hdr_field
+diff --git a/src/proto.c b/src/proto.c
+index 0fe0b88..202c323 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -693,6 +693,10 @@ static const struct datatype arpop_type = {
+ 	HDR_TYPE(__name, __type, struct arphdr, __member)
+ #define ARPHDR_FIELD(__name, __member) \
+ 	HDR_FIELD(__name, struct arphdr, __member)
++#define ARPHDR_ETH_ADDR(__name, __member) \
++	HDR_TYPE(__name, &etheraddr_type, struct arp_ip_hdr, __member)
++#define ARPHDR_IP_ADDR(__name, __member) \
++	HDR_TYPE(__name, &ipaddr_type, struct arp_ip_hdr, __member)
+ 
+ const struct proto_desc proto_arp = {
+ 	.name		= "arp",
+@@ -703,6 +707,10 @@ const struct proto_desc proto_arp = {
+ 		[ARPHDR_HLN]		= ARPHDR_FIELD("hlen", ar_hln),
+ 		[ARPHDR_PLN]		= ARPHDR_FIELD("plen", ar_pln),
+ 		[ARPHDR_OP]		= ARPHDR_TYPE("operation", &arpop_type, ar_op),
++		[ARPHDR_SHA]		= ARPHDR_ETH_ADDR("sha", ar_sha),
++		[ARPHDR_SIP]		= ARPHDR_IP_ADDR("sip", ar_sip),
++		[ARPHDR_THA]		= ARPHDR_ETH_ADDR("tha", ar_tha),
++		[ARPHDR_TIP]		= ARPHDR_IP_ADDR("tip", ar_tip),
+ 	},
+ };
+ 
+diff --git a/src/scanner.l b/src/scanner.l
+index a98e7b6..b0f93cb 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -357,6 +357,10 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "hlen"			{ return HLEN; }
+ "plen"			{ return PLEN; }
+ "operation"		{ return OPERATION; }
++"sha"			{ return SHA; }
++"sip"			{ return SIP; }
++"tha"			{ return THA; }
++"tip"			{ return TIP; }
+ 
+ "ip"			{ return IP; }
+ "version"		{ return HDRVERSION; }
+-- 
+2.5.0
 
-BTW, I had a another idea regarding the kernel side. Just mentioning it
-in case you find it interesting:
-
-We're currently only sending traces for matching rules. If we get NFT_BREAK
-we'll skip sending a trace.
-
-It might also be of interest *why* a rule didn't match. A possibility without
-too much overhead would be in the NFT_BREAK case to send:
-
-* a trace message
-* the current register contents
-* the current *expr
-
-That would allow userspace to look at the first non-matching expression,
-determine the meaning of the register contents and show the expression and
-the actual contents.
-
-So you'd get a rule, let's say an expression "iif eth0" and the register
-content "iif eth1".
-
-Just an idea.
