@@ -1,92 +1,180 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC PATCH -next] netfilter: nf_ct_sctp: validate vtag for new
- conntrack entries
-Date: Thu, 26 Nov 2015 16:53:46 +0000
-Message-ID: <20151126165346.GW16828@macbook.localdomain>
-References: <20151126143328.GC32716@breakpoint.cc>
- <20151126144916.GJ16828@macbook.localdomain>
- <20151126150726.GD32716@breakpoint.cc>
- <20151126151229.GA3412@salvia>
- <20151126152410.GN16828@macbook.localdomain>
- <20151126155426.GA4108@salvia>
- <20151126160227.GQ16828@macbook.localdomain>
- <20151126161529.GA4350@salvia>
- <20151126162528.GS16828@macbook.localdomain>
- <20151126164316.GA4495@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, Michal Kubecek <mkubecek@suse.cz>,
-	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-	netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org,
-	Vlad Yasevich <vyasevich@gmail.com>,
-	Neil Horman <nhorman@tuxdriver.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 nf-next 3/3] netfilter: nf_tables: wrap tracing with a static key
+Date: Thu, 26 Nov 2015 18:59:39 +0100
+Message-ID: <1448560779-28989-4-git-send-email-fw@strlen.de>
+References: <1448560779-28989-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 161-169.trash.net ([213.144.137.169]:37251 "EHLO
-	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751474AbbKZQxw (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37513 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752826AbbKZR7u (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Nov 2015 11:53:52 -0500
-Content-Disposition: inline
-In-Reply-To: <20151126164316.GA4495@salvia>
+	Thu, 26 Nov 2015 12:59:50 -0500
+In-Reply-To: <1448560779-28989-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 26.11, Pablo Neira Ayuso wrote:
-> On Thu, Nov 26, 2015 at 04:25:28PM +0000, Patrick McHardy wrote:
-> > > This doesn't sound so complicated to me:
-> > > 
-> > >         add rule filter prerouting \
-> > >                 ip protocol { tcp, udp, sctp } track
-> > > 
-> > > You just specify what you need for stateful tracking.
-> > 
-> > Sure, or "filter prerouting track" for everything. Let's stay at that
-> > example because it will be a common case and we don't know anything about
-> > protocols.
-> >
-> > > The case above you indicate is enabling conntrack for all packets, the
-> > > -j CT --track is what should govern this IMO.
-> > 
-> > How does it prevent exactly that case we're talking about - someone is
-> > saying "CT --track" without further qualification and means "track
-> > everything".
-> 
-> That indeed means to me track everything based on what conntrack knows
-> how to track.
+Only needed when meta nftrace rule(s) were added.
 
-Right. And the problem is that we do this right now but it might not be
-what the user expects since he's explicitly filtering on connection
-identities and expects stateful filtering to be based on those as well.
-This is exactly what was regarded as the rational for the security fix, so
-it doesn't make sense to now state this is all Ok.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Changes since v1:
+  - do not wrap rulenum++ into static key, because
+  it might get incremented too late when trace
+  rules are added/removed at high rate, giving wrong results.
+  - add EXPORT_SYMBOL for nft_meta_set_destroy.
 
-> > And the SCTP connection tracking module is not available or not
-> > loaded.
-> 
-> If the module is not available, then this is a custom kernel
-> compilation. IMO we should focus on providing good defaults to typical
-> kernel that are included by most distributors.
+ There was another followup patch to disable old tracing
+ infrastructure, but I dropped this for now.
 
-Sure, but that's exactly what we're talking about. I think the number of
-distributors enabling SCTP/whatever tracking statically is basically
-non existant.
+ So, for the time being, you get both tracing formats.
 
-Every kernel is a custom kernel. We shouldn't expect users to dive into
-.config to figure out how to build their ruleset.
+ Should be easy to add sysctl later on to disable the old
+ format.
 
-> If the SCTP tracker becomes part of nf_conntrack by default, then we
-> don't have to worry about the "SCTP module not loaded" case.
+ include/net/netfilter/nf_tables_core.h |  1 +
+ include/net/netfilter/nft_meta.h       |  3 +++
+ net/bridge/netfilter/nft_meta_bridge.c |  1 +
+ net/netfilter/nf_tables_core.c         |  6 +++++-
+ net/netfilter/nf_tables_trace.c        |  4 ++++
+ net/netfilter/nft_meta.c               | 16 ++++++++++++++++
+ 6 files changed, 30 insertions(+), 1 deletion(-)
 
-I agree, but you stated "IMO we should skip enabling things by default"
-and referred to the downside of then having it available in network namespaces.
-Maybe I misunderstood you, but I took that as you don't want to put it
-into nf_conntrack and you don't want it to be autoloaded.
+diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
+index 4ff5424..a9060dd 100644
+--- a/include/net/netfilter/nf_tables_core.h
++++ b/include/net/netfilter/nf_tables_core.h
+@@ -57,6 +57,7 @@ struct nft_payload_set {
+ };
+ 
+ extern const struct nft_expr_ops nft_payload_fast_ops;
++extern struct static_key_false nft_trace_enabled;
+ 
+ int nft_payload_module_init(void);
+ void nft_payload_module_exit(void);
+diff --git a/include/net/netfilter/nft_meta.h b/include/net/netfilter/nft_meta.h
+index 711887a..d27588c 100644
+--- a/include/net/netfilter/nft_meta.h
++++ b/include/net/netfilter/nft_meta.h
+@@ -33,4 +33,7 @@ void nft_meta_set_eval(const struct nft_expr *expr,
+ 		       struct nft_regs *regs,
+ 		       const struct nft_pktinfo *pkt);
+ 
++void nft_meta_set_destroy(const struct nft_ctx *ctx,
++			  const struct nft_expr *expr);
++
+ #endif
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+index a21269b..4b901d9 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -84,6 +84,7 @@ static const struct nft_expr_ops nft_meta_bridge_set_ops = {
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_meta)),
+ 	.eval		= nft_meta_set_eval,
+ 	.init		= nft_meta_set_init,
++	.destroy	= nft_meta_set_destroy,
+ 	.dump		= nft_meta_set_dump,
+ };
+ 
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index e8ba9da..5d3d37b 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -16,6 +16,7 @@
+ #include <linux/skbuff.h>
+ #include <linux/netlink.h>
+ #include <linux/netfilter.h>
++#include <linux/static_key.h>
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables_core.h>
+@@ -62,7 +63,10 @@ static inline void nft_trace_packet(struct nft_traceinfo *info,
+ 				    int rulenum,
+ 				    enum nft_trace_types type)
+ {
+-	if (unlikely(pkt->skb->nf_trace)) {
++	if (static_branch_unlikely(&nft_trace_enabled)) {
++		if (!pkt->skb->nf_trace)
++			return;
++
+ 		info->chain = chain;
+ 		info->rule = rule;
+ 		info->verdict = verdict;
+diff --git a/net/netfilter/nf_tables_trace.c b/net/netfilter/nf_tables_trace.c
+index 2f557b7..7446891 100644
+--- a/net/netfilter/nf_tables_trace.c
++++ b/net/netfilter/nf_tables_trace.c
+@@ -8,6 +8,7 @@
+  */
+ 
+ #include <linux/module.h>
++#include <linux/static_key.h>
+ #include <linux/hash.h>
+ #include <linux/if_vlan.h>
+ #include <linux/init.h>
+@@ -25,6 +26,9 @@
+ 
+ #define NFT_ID_SKB_HASHBITS	12
+ 
++DEFINE_STATIC_KEY_FALSE(nft_trace_enabled);
++EXPORT_SYMBOL_GPL(nft_trace_enabled);
++
+ /* only used if tracing is on */
+ static DEFINE_PER_CPU_READ_MOSTLY(u32, trace_seq);
+ static atomic_t trace_cnt;
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index eaf41e4..1cf6814 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -18,10 +18,12 @@
+ #include <linux/ip.h>
+ #include <linux/ipv6.h>
+ #include <linux/smp.h>
++#include <linux/static_key.h>
+ #include <net/dst.h>
+ #include <net/sock.h>
+ #include <net/tcp_states.h> /* for TCP_TIME_WAIT */
+ #include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_core.h>
+ #include <net/netfilter/nft_meta.h>
+ 
+ void nft_meta_get_eval(const struct nft_expr *expr,
+@@ -299,6 +301,9 @@ int nft_meta_set_init(const struct nft_ctx *ctx,
+ 	if (err < 0)
+ 		return err;
+ 
++	if (priv->key == NFT_META_NFTRACE)
++		static_branch_inc(&nft_trace_enabled);
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(nft_meta_set_init);
+@@ -336,6 +341,16 @@ nla_put_failure:
+ }
+ EXPORT_SYMBOL_GPL(nft_meta_set_dump);
+ 
++void nft_meta_set_destroy(const struct nft_ctx *ctx,
++			  const struct nft_expr *expr)
++{
++	const struct nft_meta *priv = nft_expr_priv(expr);
++
++	if (priv->key == NFT_META_NFTRACE)
++		static_branch_dec(&nft_trace_enabled);
++}
++EXPORT_SYMBOL_GPL(nft_meta_set_destroy);
++
+ static struct nft_expr_type nft_meta_type;
+ static const struct nft_expr_ops nft_meta_get_ops = {
+ 	.type		= &nft_meta_type,
+@@ -350,6 +365,7 @@ static const struct nft_expr_ops nft_meta_set_ops = {
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_meta)),
+ 	.eval		= nft_meta_set_eval,
+ 	.init		= nft_meta_set_init,
++	.destroy	= nft_meta_set_destroy,
+ 	.dump		= nft_meta_set_dump,
+ };
+ 
+-- 
+2.4.10
 
-I'm really not sure what you are arguing or proposing. Explicit tracking
-and the CT target suggest you *don't* want it in nf_conntrack, now you state
-the opposite.
-
-Either way fixes the problem, although I do somewhat agree with Florian that
-its better to not enable it if it definitely is not needed, but I guess its
-acceptable.
