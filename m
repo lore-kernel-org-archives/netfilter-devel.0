@@ -1,10 +1,9 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [RFC PATCH -next] netfilter: nf_ct_sctp: validate vtag for new
  conntrack entries
-Date: Thu, 26 Nov 2015 17:15:29 +0100
-Message-ID: <20151126161529.GA4350@salvia>
-References: <20151125205830.GC1254@unicorn.suse.cz>
- <20151126095133.GA1612@salvia>
+Date: Thu, 26 Nov 2015 16:25:28 +0000
+Message-ID: <20151126162528.GS16828@macbook.localdomain>
+References: <20151126095133.GA1612@salvia>
  <20151126141552.GH16828@macbook.localdomain>
  <20151126143328.GC32716@breakpoint.cc>
  <20151126144916.GJ16828@macbook.localdomain>
@@ -13,6 +12,7 @@ References: <20151125205830.GC1254@unicorn.suse.cz>
  <20151126152410.GN16828@macbook.localdomain>
  <20151126155426.GA4108@salvia>
  <20151126160227.GQ16828@macbook.localdomain>
+ <20151126161529.GA4350@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Florian Westphal <fw@strlen.de>, Michal Kubecek <mkubecek@suse.cz>,
@@ -20,50 +20,54 @@ Cc: Florian Westphal <fw@strlen.de>, Michal Kubecek <mkubecek@suse.cz>,
 	netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org,
 	Vlad Yasevich <vyasevich@gmail.com>,
 	Neil Horman <nhorman@tuxdriver.com>
-To: Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39205 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751270AbbKZQPd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Nov 2015 11:15:33 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id DE317C51BB
-	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2015 17:15:31 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id CF549DA861
-	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2015 17:15:31 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E92A7DA80B
-	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2015 17:15:29 +0100 (CET)
+Received: from 161-169.trash.net ([213.144.137.169]:37042 "EHLO
+	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751165AbbKZQZe (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Nov 2015 11:25:34 -0500
 Content-Disposition: inline
-In-Reply-To: <20151126160227.GQ16828@macbook.localdomain>
+In-Reply-To: <20151126161529.GA4350@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 26, 2015 at 04:02:27PM +0000, Patrick McHardy wrote:
-> On 26.11, Pablo Neira Ayuso wrote:
-> > On Thu, Nov 26, 2015 at 03:24:11PM +0000, Patrick McHardy wrote:
-> > > Consider:
-> > > 
-> > > -i eth0 -j CT --track
-> > > -i eth0 -p sctp --dport 1234 -j ACCEPT
-> > > -i eth0 -m state --state ESTABLISHED -j ACCEPT
-[...]
-> > IMO we should skip enabling things by default. When we enable things
-> > by default someone else follow up later on with some scenario we
-> > didn't consider and then we've got problems. I think we should go in
-> > the direction of explicit configurations, we already do this for
-> > conntrack helpers.
+On 26.11, Pablo Neira Ayuso wrote:
+> On Thu, Nov 26, 2015 at 04:02:27PM +0000, Patrick McHardy wrote:
+> > On 26.11, Pablo Neira Ayuso wrote:
+> > > On Thu, Nov 26, 2015 at 03:24:11PM +0000, Patrick McHardy wrote:
+> > > > Consider:
+> > > > 
+> > > > -i eth0 -j CT --track
+> > > > -i eth0 -p sctp --dport 1234 -j ACCEPT
+> > > > -i eth0 -m state --state ESTABLISHED -j ACCEPT
+> [...]
+> > > IMO we should skip enabling things by default. When we enable things
+> > > by default someone else follow up later on with some scenario we
+> > > didn't consider and then we've got problems. I think we should go in
+> > > the direction of explicit configurations, we already do this for
+> > > conntrack helpers.
+> > 
+> > Well as I already said, it doesn't solve anything regarding this problem,
+> > so how is it relevant?
 > 
-> Well as I already said, it doesn't solve anything regarding this problem,
-> so how is it relevant?
+> This doesn't sound so complicated to me:
+> 
+>         add rule filter prerouting \
+>                 ip protocol { tcp, udp, sctp } track
+> 
+> You just specify what you need for stateful tracking.
 
-This doesn't sound so complicated to me:
+Sure, or "filter prerouting track" for everything. Let's stay at that
+example because it will be a common case and we don't know anything about
+protocols.
 
-        add rule filter prerouting \
-                ip protocol { tcp, udp, sctp } track
+> The case above you indicate is enabling conntrack for all packets, the
+> -j CT --track is what should govern this IMO.
 
-You just specify what you need for stateful tracking.
-
-The case above you indicate is enabling conntrack for all packets, the
--j CT --track is what should govern this IMO.
+How does it prevent exactly that case we're talking about - someone is
+saying "CT --track" without further qualification and means "track
+everything". And the SCTP connection tracking module is not available or
+not loaded. The user uses exactly the rules which lead up to this fix.
+How does this change *anything*? AFAICS its exactly the situation we have
+now.
