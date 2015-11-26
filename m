@@ -1,38 +1,90 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next 3/6] netfilter: nf_tables: disable old tracing if
- listener is present
-Date: Thu, 26 Nov 2015 00:56:37 +0100
-Message-ID: <20151125235637.GO23215@breakpoint.cc>
-References: <20151124151542.GA20972@breakpoint.cc>
- <20151124152649.GK14478@macbook.localdomain>
- <20151124153550.GC20972@breakpoint.cc>
- <20151124154241.GL14478@macbook.localdomain>
- <20151125150640.GE18449@macbook.localdomain>
- <20151125162424.GJ23215@breakpoint.cc>
- <20151125164629.GB30712@macbook.localdomain>
- <20151125173240.GG30712@macbook.localdomain>
- <20151125222710.GK23215@breakpoint.cc>
- <20151125234223.GG20093@macbook.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+From: Jarno Rajahalme <jarno@ovn.org>
+Subject: [PATCH net-next v3 2/8] netfilter: Factor out nf_ct_get_info().
+Date: Wed, 25 Nov 2015 16:08:15 -0800
+Message-ID: <1448496501-109561-3-git-send-email-jarno@ovn.org>
+References: <1448496501-109561-1-git-send-email-jarno@ovn.org>
+Cc: netfilter-devel@vger.kernel.org, dev@openvswitch.org, jarno@ovn.org
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35111 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751198AbbKYX4k (ORCPT
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:40927 "EHLO
+	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753115AbbKZAIs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Nov 2015 18:56:40 -0500
-Content-Disposition: inline
-In-Reply-To: <20151125234223.GG20093@macbook.localdomain>
+	Wed, 25 Nov 2015 19:08:48 -0500
+In-Reply-To: <1448496501-109561-1-git-send-email-jarno@ovn.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy <kaber@trash.net> wrote:
-> Even nicer would be to include the dummy VLAN header in the payload itself
-> and hide the offloading details, but that we can also do in userspace of
-> course.
+Define a new inline function to map conntrack status to enum
+ip_conntrack_info.  This removes the need to otherwise duplicate this
+code in a later patch ("openvswitch: Find existing conntrack entry
+after upcall.").
 
-Will do that.
+Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
+---
+ include/net/netfilter/nf_conntrack.h | 15 +++++++++++++++
+ net/netfilter/nf_conntrack_core.c    | 22 +++-------------------
+ 2 files changed, 18 insertions(+), 19 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index fde4068..b3de10e 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -125,6 +125,21 @@ nf_ct_tuplehash_to_ctrack(const struct nf_conntrack_tuple_hash *hash)
+ 			    tuplehash[hash->tuple.dst.dir]);
+ }
+ 
++static inline enum ip_conntrack_info
++nf_ct_get_info(const struct nf_conntrack_tuple_hash *h)
++{
++	const struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
++
++	if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY)
++		return IP_CT_ESTABLISHED_REPLY;
++	/* Once we've had two way comms, always ESTABLISHED. */
++	if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status))
++		return IP_CT_ESTABLISHED;
++	if (test_bit(IPS_EXPECTED_BIT, &ct->status))
++		return IP_CT_RELATED;
++	return IP_CT_NEW;
++}
++
+ static inline u_int16_t nf_ct_l3num(const struct nf_conn *ct)
+ {
+ 	return ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 3cb3cb8..70ddbd8 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1056,25 +1056,9 @@ resolve_normal_ct(struct net *net, struct nf_conn *tmpl,
+ 	ct = nf_ct_tuplehash_to_ctrack(h);
+ 
+ 	/* It exists; we have (non-exclusive) reference. */
+-	if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY) {
+-		*ctinfo = IP_CT_ESTABLISHED_REPLY;
+-		/* Please set reply bit if this packet OK */
+-		*set_reply = 1;
+-	} else {
+-		/* Once we've had two way comms, always ESTABLISHED. */
+-		if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
+-			pr_debug("nf_conntrack_in: normal packet for %p\n", ct);
+-			*ctinfo = IP_CT_ESTABLISHED;
+-		} else if (test_bit(IPS_EXPECTED_BIT, &ct->status)) {
+-			pr_debug("nf_conntrack_in: related packet for %p\n",
+-				 ct);
+-			*ctinfo = IP_CT_RELATED;
+-		} else {
+-			pr_debug("nf_conntrack_in: new packet for %p\n", ct);
+-			*ctinfo = IP_CT_NEW;
+-		}
+-		*set_reply = 0;
+-	}
++	*ctinfo = nf_ct_get_info(h);
++	*set_reply = NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY;
++
+ 	skb->nfct = &ct->ct_general;
+ 	skb->nfctinfo = *ctinfo;
+ 	return ct;
+-- 
+2.1.4
+
