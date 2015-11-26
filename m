@@ -1,7 +1,7 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCH nft 1/2] src: add dscp support
-Date: Thu, 26 Nov 2015 09:54:45 +0000
-Message-ID: <20151126095444.GK20093@macbook.localdomain>
+Date: Thu, 26 Nov 2015 11:28:33 +0100
+Message-ID: <20151126102833.GA2237@salvia>
 References: <1448480362-12411-1-git-send-email-pablo@netfilter.org>
  <20151125200124.GH30712@macbook.localdomain>
  <20151125202201.GA11893@salvia>
@@ -9,55 +9,70 @@ References: <1448480362-12411-1-git-send-email-pablo@netfilter.org>
  <20151125220528.GA1028@salvia>
  <20151125232323.GD20093@macbook.localdomain>
  <20151126094511.GA1442@salvia>
+ <20151126095444.GK20093@macbook.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 161-169.trash.net ([213.144.137.169]:34012 "EHLO
-	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751060AbbKZJyt (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Nov 2015 04:54:49 -0500
+Received: from mail.us.es ([193.147.175.20]:51482 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750801AbbKZK2h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Nov 2015 05:28:37 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id C020B129262
+	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2015 11:28:35 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B2451DA807
+	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2015 11:28:35 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 4E9D1DA864
+	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2015 11:28:33 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20151126094511.GA1442@salvia>
+In-Reply-To: <20151126095444.GK20093@macbook.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 26.11, Pablo Neira Ayuso wrote:
-> > > ToS breaks useful things like ECN, and the more I keep reading docs on
-> > > the Internet, the more problem I have to see how the user can benefit
-> > > from this.
+On Thu, Nov 26, 2015 at 09:54:45AM +0000, Patrick McHardy wrote:
+> On 26.11, Pablo Neira Ayuso wrote:
+> > > > ToS breaks useful things like ECN, and the more I keep reading docs on
+> > > > the Internet, the more problem I have to see how the user can benefit
+> > > > from this.
+> > > 
+> > > We *match* on ToS, that cannot possibly break anything. Also I'm unsure how
+> > > this could break ECN even otherwise, ToS does not even use the ECN bits.
 > > 
-> > We *match* on ToS, that cannot possibly break anything. Also I'm unsure how
-> > this could break ECN even otherwise, ToS does not even use the ECN bits.
+> > ToS bits overlap with ECN bits, from that original ToS 8 bit-field now
+> > we use 6 bit for DSCP and 2 bits for ECN.
 > 
-> ToS bits overlap with ECN bits, from that original ToS 8 bit-field now
-> we use 6 bit for DSCP and 2 bits for ECN.
+> Sure, but our ToS definition is wrong anyway, the ToS-bits are actually
+> 3 + 3 + 2 unused bits (ECN).
 
-Sure, but our ToS definition is wrong anyway, the ToS-bits are actually
-3 + 3 + 2 unused bits (ECN).
+That's right according to the original ToS definition, but looking a
+bit further on the RFCs, someone outthere extended this, so I found
+this:
 
-> > Its quite simple, if the user has old devices that set ToS values, he will
-> > be able to match on that without manually converting it to DSCP values.
-> > Given that our current tos definition is also not to practical for that
-> > since its too broad, I don't really care that much, although I think it
-> > should rather be fixed than simply thrown out.
-> 
-> People that designed DSCP and ECN did not care about having some
-> reasonable backward compatible behaviour wrt. ToS. They just changed
-> the semantics of those bits long time ago.
-> 
-> I can explore keeping this backward if you like, we can probably
-> accept ToS from the parser, then map it to DSCP, but that will no
-> achieve what the user expected on the network. I'm usually reticent to
-> break old stuff, but in this case I would skip.
+See 22. Historical Definitions for the IPv4 TOS Octet from
+https://tools.ietf.org/html/rfc3168.
 
-My thought was more fixing our ToS field definition, at that point the user
-can use whatever is actually used within his network. I mean, sure, you can
-map them to DSCP, but if you're using old devices that only support the
-ToS definitions its a lot easier to use the same values instead of mapping
-them.
+It refers to https://tools.ietf.org/html/rfc1349 that defines
+Minimize Monetary Cost TOS Value and it extends it to one extra bit
+(from 3 to 4, scratching one from the unused bits).
 
-I don't know. I think it should be fairly easy to fix, so I'd prefer that
-way I guess. Your choice.
+Bottom line says "Because of this unstable history, the definition of
+the ECN field in this document cannot be guaranteed to be backwards
+compatible with all past uses of these two bits."
+
+Anyway, looking at the Linux header definitions, we have the
+
+#define IPTOS_MINCOST           0x02
+
+The mincost thing is there.
+
+#define IPTOS_TOS_MASK          0x1E
+#define IPTOS_TOS(tos)          ((tos)&IPTOS_TOS_MASK)
+
+So it seems our headers are considering ToS is 4 bits too.
+
+Cheers,
+Pablo
