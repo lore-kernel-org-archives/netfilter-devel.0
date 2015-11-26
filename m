@@ -1,70 +1,63 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC PATCH -next] netfilter: nf_ct_sctp: validate vtag for new
- conntrack entries
-Date: Thu, 26 Nov 2015 10:51:33 +0100
-Message-ID: <20151126095133.GA1612@salvia>
-References: <85c8c8c570bdbf6f20f56fdef96d8017fea3cc4c.1448478477.git.marcelo.leitner@gmail.com>
- <20151125194234.GA12460@salvia>
- <5656181E.2010001@gmail.com>
- <20151125205830.GC1254@unicorn.suse.cz>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nft 1/2] src: add dscp support
+Date: Thu, 26 Nov 2015 09:54:45 +0000
+Message-ID: <20151126095444.GK20093@macbook.localdomain>
+References: <1448480362-12411-1-git-send-email-pablo@netfilter.org>
+ <20151125200124.GH30712@macbook.localdomain>
+ <20151125202201.GA11893@salvia>
+ <20151125204512.GA20093@macbook.localdomain>
+ <20151125220528.GA1028@salvia>
+ <20151125232323.GD20093@macbook.localdomain>
+ <20151126094511.GA1442@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
-	netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org,
-	Vlad Yasevich <vyasevich@gmail.com>,
-	Neil Horman <nhorman@tuxdriver.com>
-To: Michal Kubecek <mkubecek@suse.cz>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35784 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753079AbbKZJvz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Nov 2015 04:51:55 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 9D1976E400
-	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2015 10:51:53 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8E27ADA86A
-	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2015 10:51:53 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id BEE05DA803
-	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2015 10:51:50 +0100 (CET)
+Received: from 161-169.trash.net ([213.144.137.169]:34012 "EHLO
+	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751060AbbKZJyt (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Nov 2015 04:54:49 -0500
 Content-Disposition: inline
-In-Reply-To: <20151125205830.GC1254@unicorn.suse.cz>
+In-Reply-To: <20151126094511.GA1442@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 25, 2015 at 09:58:30PM +0100, Michal Kubecek wrote:
-> On Wed, Nov 25, 2015 at 06:20:46PM -0200, Marcelo Ricardo Leitner wrote:
-> > Em 25-11-2015 17:42, Pablo Neira Ayuso escreveu:
-> > >
-> > >Any specific reason ...
-> > >
-> > >not to have this enable by default?
-> > >to have a sysctl switch to enable/disable this?
-> > >
-> > >Thanks.
+On 26.11, Pablo Neira Ayuso wrote:
+> > > ToS breaks useful things like ECN, and the more I keep reading docs on
+> > > the Internet, the more problem I have to see how the user can benefit
+> > > from this.
 > > 
-> > Yes, because it can't be used in routers in the middle. That is,
-> > unless it's a common hop with the initial path..
-> > If it's enabled and this router doesn't see the initial handshake,
-> > it won't allow heartbeats to pass and will block all secondary
-> > paths.
-> > 
-> > So if one is already using commit d7ee35190427 and this went on by
-> > default, it would break his/her setup.
+> > We *match* on ToS, that cannot possibly break anything. Also I'm unsure how
+> > this could break ECN even otherwise, ToS does not even use the ECN bits.
 > 
-> This essentially means anyone using SCTP multihoming and conntrack based
-> rules as commit db29a9508a92 ("netfilter: conntrack: disable generic
-> tracking for known protocols") enforces using the helper. This is where
-> the need for basic multihoming support came from: our customer was using
-> SCTP multihoming through a firewall with connection tracking but without
-> helper (so that only IP addresses were used to match the conntrack); the
-> security fix prevented them from doing that.
+> ToS bits overlap with ECN bits, from that original ToS 8 bit-field now
+> we use 6 bit for DSCP and 2 bits for ECN.
 
-I would really like to see some scrutiny on the SCTP to get it
-embedded into nf_conntrack.
+Sure, but our ToS definition is wrong anyway, the ToS-bits are actually
+3 + 3 + 2 unused bits (ECN).
 
-Similar things with other existing protocols that are supported, where
-you need to modprobe the protocol to get support for this.
+> > Its quite simple, if the user has old devices that set ToS values, he will
+> > be able to match on that without manually converting it to DSCP values.
+> > Given that our current tos definition is also not to practical for that
+> > since its too broad, I don't really care that much, although I think it
+> > should rather be fixed than simply thrown out.
+> 
+> People that designed DSCP and ECN did not care about having some
+> reasonable backward compatible behaviour wrt. ToS. They just changed
+> the semantics of those bits long time ago.
+> 
+> I can explore keeping this backward if you like, we can probably
+> accept ToS from the parser, then map it to DSCP, but that will no
+> achieve what the user expected on the network. I'm usually reticent to
+> break old stuff, but in this case I would skip.
 
-I think this existing behaviour is an anachronism.
+My thought was more fixing our ToS field definition, at that point the user
+can use whatever is actually used within his network. I mean, sure, you can
+map them to DSCP, but if you're using old devices that only support the
+ToS definitions its a lot easier to use the same values instead of mapping
+them.
+
+I don't know. I think it should be fairly easy to fix, so I'd prefer that
+way I guess. Your choice.
