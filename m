@@ -1,8 +1,8 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [RFC PATCH -next] netfilter: nf_ct_sctp: validate vtag for new
  conntrack entries
-Date: Thu, 26 Nov 2015 15:11:17 +0000
-Message-ID: <20151126151117.GM16828@macbook.localdomain>
+Date: Thu, 26 Nov 2015 16:12:29 +0100
+Message-ID: <20151126151229.GA3412@salvia>
 References: <85c8c8c570bdbf6f20f56fdef96d8017fea3cc4c.1448478477.git.marcelo.leitner@gmail.com>
  <20151125194234.GA12460@salvia>
  <5656181E.2010001@gmail.com>
@@ -14,7 +14,7 @@ References: <85c8c8c570bdbf6f20f56fdef96d8017fea3cc4c.1448478477.git.marcelo.lei
  <20151126150726.GD32716@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc: Patrick McHardy <kaber@trash.net>,
 	Michal Kubecek <mkubecek@suse.cz>,
 	Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
 	netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org,
@@ -22,64 +22,25 @@ Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Neil Horman <nhorman@tuxdriver.com>
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 161-169.trash.net ([213.144.137.169]:36470 "EHLO
-	stinky.trash.net" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751501AbbKZPLW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Nov 2015 10:11:22 -0500
+Received: from mail.us.es ([193.147.175.20]:54706 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751016AbbKZPMg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Nov 2015 10:12:36 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id AA89D613A3
+	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2015 16:12:32 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 947EBDA81D
+	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2015 16:12:32 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 9B278DA801
+	for <netfilter-devel@vger.kernel.org>; Thu, 26 Nov 2015 16:12:30 +0100 (CET)
 Content-Disposition: inline
 In-Reply-To: <20151126150726.GD32716@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 26.11, Florian Westphal wrote:
-> Patrick McHardy <kaber@trash.net> wrote:
-> > Yeah, my main concern is that this requires the user to know about protocol
-> > modules, details about how the distribution build the kernel etc.
-> 
-> Yep, sucks.
-> 
-> > main reason for this problem to exists is exactly because users *don't* know
-> > about this, so I'm questioning whether this really solves it.
-> > 
-> > The =y case is easy, it will work. The =m case should probably at least be
-> > handled automatically. And then =n case is impossible to solve correctly
-> > and therefore probably should not be possible.
-> 
-> With you so far.
-> 
-> > I think the question during configuration should be "SCTP support y/n/m".
-> > We would then select the sctp match, build the SCTP conntrack into the
-> > conntrack core the SCTP NAT into the NAT core and the problem can not
-> > occur anymore. Same thing for other protocols. If the user selects n,
-> > no SCTP conntrack, no SCTP match.
-> 
-> So you'd propose that one can have
-> SCTP_MATCH=y
-> CONNTRACK=n
-> 
-> but not:
-> 
-> SCTP_MATCH=y
-> CONNTRACK=y
-> SCTP_CONNTRACK=n
-> 
-> IOW, make SCTP_CONNTRACK a non-visible symbol that
-> just glues sctp conntrack to the conntrack core when
-> both conntrack and sctp match is selected.
-
-Basically, although I wouldn't necessarily call it SCTP match but simply
-SCTP support (for all of netfilter) and enable the individual parts depending
-on their dependencies (CONNTRACK, X_TABLES, ...).
-
-This leaves the question of nft since we don't have explicit options for
-that and no protocol knowledge in the kernel. That might need a bit more
-thought, but generally I think the before mentioned solution would be a
-good idea.
-
-> > Alternatively, as I believe Pablo suggested, we can simply put all conntrack
-> > modules inside the core.
-> 
+On Thu, Nov 26, 2015 at 04:07:26PM +0100, Florian Westphal wrote:
 > I would prefer to NOT force people to use extra connection tracking code
 > for sctp if they don't need it.
 > 
@@ -87,4 +48,8 @@ good idea.
 > to assume that most users will in fact not use sctp (but conntrack for
 > udp and tcp).
 
-I agree, it would be better to not force this code upon users.
+Enabling features through modprobe seems not to be a good idea
+anymore, now we've got namespaces.
+
+We should probably go back to the idea of explicit conntrack
+configuration through rules that we discussed many times before.
