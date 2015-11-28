@@ -1,211 +1,100 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v4 nf-next 2/2] netfilter: nf_tables: wrap tracing with a static key
-Date: Sat, 28 Nov 2015 21:53:05 +0100
-Message-ID: <1448743985-21685-2-git-send-email-fw@strlen.de>
-References: <1448743985-21685-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Bug#806130: linux: netlink_sock_destruct() crash in netns
+Date: Sat, 28 Nov 2015 23:47:20 +0100
+Message-ID: <20151128224720.GA2296@salvia>
+References: <144838019931.22302.9425487048881510008.reportbug@deathstar.cica.es>
+ <1448576098.27159.62.camel@decadent.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	806130@bugs.debian.org, netfilter-devel@vger.kernel.org
+To: Ben Hutchings <ben@decadent.org.uk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40699 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752427AbbK1UxS (ORCPT
+Received: from mail.us.es ([193.147.175.20]:39314 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752342AbbK1Wra convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 28 Nov 2015 15:53:18 -0500
-In-Reply-To: <1448743985-21685-1-git-send-email-fw@strlen.de>
+	Sat, 28 Nov 2015 17:47:30 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id D87F5B6B9E
+	for <netfilter-devel@vger.kernel.org>; Sat, 28 Nov 2015 23:47:27 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id CC288DA809
+	for <netfilter-devel@vger.kernel.org>; Sat, 28 Nov 2015 23:47:27 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 70105DA801
+	for <netfilter-devel@vger.kernel.org>; Sat, 28 Nov 2015 23:47:25 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <1448576098.27159.62.camel@decadent.org.uk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Only needed when meta nftrace rule(s) were added.
-The assumption is that no such rules are active, so the call to
-nft_trace_init is "never" needed.
+On Thu, Nov 26, 2015 at 10:14:58PM +0000, Ben Hutchings wrote:
+> On Tue, 2015-11-24 at 16:49 +0100, Arturo Borrero Gonzalez wrote:
+> > Source: linux
+> > Version: 4.2.6-1
+> > Severity: normal
+> >=20
+> > Dear Maintainer,
+> >=20
+> > thanks for your work in the linux kernel.
+> >=20
+> > I'm experimenting reports like this:
+> >=20
+> > [mar nov 24 16:38:16 2015] ------------[ cut here ]------------
+> > [mar nov 24 16:38:16 2015] WARNING: CPU: 1 PID: 22224 at /build/lin=
+ux-CrHvZ_/linux-4.2.6/net/netlink/af_netlink.c:946 netlink_sock_destruc=
+t+0x103/0x140()
+> > [mar nov 24 16:38:16 2015] Modules linked in: nft_nat nft_chain_nat=
+_ipv4 nf_nat_ipv4 nf_nat nft_log fuse uas usb_storage nft_counter nf_co=
+nntrack_ipv6 nf_defrag_ipv6 nf_conntrack_ipv4 nf_defrag_ipv4 nft_ct nf_=
+conntrack nft_meta nft_hash nft_rbtree nfnetlink_log nf_tables_inet nf_=
+tables_ipv6 nf_tables_ipv4 nf_tables nfnetlink nouveau snd_hda_codec_id=
+t snd_hda_codec_generic mxm_wmi wmi video ttm drm_kms_helper drm iTCO_w=
+dt i2c_algo_bit iTCO_vendor_support coretemp kvm_intel lpc_ich kvm snd_=
+hda_intel mfd_core i2c_i801 snd_hda_codec evdev snd_hda_core pcspkr psm=
+ouse serio_raw snd_hwdep snd_pcm sg rng_core tpm_tis tpm 8250_fintek sh=
+pchp button snd_timer snd soundcore acpi_cpufreq processor thermal_sys =
+parport_pc ppdev lp parport autofs4 ext4 crc16 mbcache jbd2 dm_mod sr_m=
+od cdrom sd_mod ata_generic floppy ata_piix e100
+> > [mar nov 24 16:38:16 2015]=A0=A0mii libata scsi_mod ehci_pci uhci_h=
+cd ehci_hcd usbcore usb_common
+> > [mar nov 24 16:38:16 2015] CPU: 1 PID: 22224 Comm: bash Tainted: G=A0=
+=A0=A0=A0=A0=A0=A0=A0W=A0=A0=A0=A0=A0=A0=A04.2.0-1-amd64 #1 Debian 4.2.=
+6-1
+> [...]
+> > I can reproduce the issue:
+> >=20
+> > =A0% sudo ip netns add test
+> > =A0% sudo ip netns exec test nft -f test.nft
+> > =A0% sudo ip netns del test
+> >=20
+> > Find attached the test.nft file.
 
-When nftrace rules are active, we always call the nft_trace_* functions,
-but will only send netlink messages when all of the following are true:
+sk       Eth Pid    Groups   Rmem     Wmem     Dump     Locks
+Drops     Inode
+ffff8800cbb11000 0   0      00000000 0        0        0 2        0 198=
+55  =20
+ffff88011504f800 4   0      00000000 0        0        0 2        0 198=
+77  =20
+ffff8801153f7000 9   0      00000000 0        0        0 2        0 198=
+76  =20
+ffff880030c23000 10  0      00000000 0        0        0 2        0 198=
+58  =20
+ffff8800cbabb800 12  0      00000000 -4544    0        0 2        0 198=
+90  =20
 
- - traceinfo structure was initialised
- - skb->nf_trace == 1
- - at least one subscriber to trace group.
+wmem is underflowing.
 
-Adding an extra conditional
-(static_branch ... && skb->nf_trace)
-	nft_trace_init( ..)
+Could you check if this also happening in older kernel versions?
 
-Is possible but results in a larger nft_do_chain footprint.
+No need to test under netns, you can just run nft -f and check
+/proc/net/netlink.
 
-Acked-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Changes since v3:
- - add Patricks Acked-by tag.  No other changes.
- Changes since v2:
-  - avoid bloat by always calling __nft_trace_packet once
-    static key is active.
- Changes since v1:
-  - do not wrap rulenum++ into static key, because
-  it might get incremented too late when trace
-  rules are added/removed at high rate, giving wrong results.
-  - add EXPORT_SYMBOL for nft_meta_set_destroy.
-
-
- include/net/netfilter/nf_tables_core.h |  1 +
- include/net/netfilter/nft_meta.h       |  3 +++
- net/bridge/netfilter/nft_meta_bridge.c |  1 +
- net/netfilter/nf_tables_core.c         |  9 ++++++---
- net/netfilter/nf_tables_trace.c        |  4 ++++
- net/netfilter/nft_meta.c               | 16 ++++++++++++++++
- 6 files changed, 31 insertions(+), 3 deletions(-)
-
-diff --git a/include/net/netfilter/nf_tables_core.h b/include/net/netfilter/nf_tables_core.h
-index 4ff5424..a9060dd 100644
---- a/include/net/netfilter/nf_tables_core.h
-+++ b/include/net/netfilter/nf_tables_core.h
-@@ -57,6 +57,7 @@ struct nft_payload_set {
- };
- 
- extern const struct nft_expr_ops nft_payload_fast_ops;
-+extern struct static_key_false nft_trace_enabled;
- 
- int nft_payload_module_init(void);
- void nft_payload_module_exit(void);
-diff --git a/include/net/netfilter/nft_meta.h b/include/net/netfilter/nft_meta.h
-index 711887a..d27588c 100644
---- a/include/net/netfilter/nft_meta.h
-+++ b/include/net/netfilter/nft_meta.h
-@@ -33,4 +33,7 @@ void nft_meta_set_eval(const struct nft_expr *expr,
- 		       struct nft_regs *regs,
- 		       const struct nft_pktinfo *pkt);
- 
-+void nft_meta_set_destroy(const struct nft_ctx *ctx,
-+			  const struct nft_expr *expr);
-+
- #endif
-diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
-index a21269b..4b901d9 100644
---- a/net/bridge/netfilter/nft_meta_bridge.c
-+++ b/net/bridge/netfilter/nft_meta_bridge.c
-@@ -84,6 +84,7 @@ static const struct nft_expr_ops nft_meta_bridge_set_ops = {
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_meta)),
- 	.eval		= nft_meta_set_eval,
- 	.init		= nft_meta_set_init,
-+	.destroy	= nft_meta_set_destroy,
- 	.dump		= nft_meta_set_dump,
- };
- 
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 2395de7..67fa41d 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -16,6 +16,7 @@
- #include <linux/skbuff.h>
- #include <linux/netlink.h>
- #include <linux/netfilter.h>
-+#include <linux/static_key.h>
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nf_tables.h>
- #include <net/netfilter/nf_tables_core.h>
-@@ -50,7 +51,7 @@ static noinline void __nft_trace_packet(struct nft_traceinfo *info,
- {
- 	const struct nft_pktinfo *pkt = info->pkt;
- 
--	if (!pkt->skb->nf_trace)
-+	if (!info->trace || !pkt->skb->nf_trace)
- 		return;
- 
- 	info->chain = chain;
-@@ -70,7 +71,7 @@ static inline void nft_trace_packet(struct nft_traceinfo *info,
- 				    int rulenum,
- 				    enum nft_trace_types type)
- {
--	if (unlikely(info->trace)) {
-+	if (static_branch_unlikely(&nft_trace_enabled)) {
- 		info->rule = rule;
- 		__nft_trace_packet(info, chain, rulenum, type);
- 	}
-@@ -137,7 +138,9 @@ nft_do_chain(struct nft_pktinfo *pkt, void *priv)
- 	unsigned int gencursor = nft_genmask_cur(net);
- 	struct nft_traceinfo info;
- 
--	nft_trace_init(&info, pkt, &regs.verdict, basechain);
-+	info.trace = false;
-+	if (static_branch_unlikely(&nft_trace_enabled))
-+		nft_trace_init(&info, pkt, &regs.verdict, basechain);
- do_chain:
- 	rulenum = 0;
- 	rule = list_entry(&chain->rules, struct nft_rule, list);
-diff --git a/net/netfilter/nf_tables_trace.c b/net/netfilter/nf_tables_trace.c
-index 36fd7ad..e9e959f 100644
---- a/net/netfilter/nf_tables_trace.c
-+++ b/net/netfilter/nf_tables_trace.c
-@@ -8,6 +8,7 @@
-  */
- 
- #include <linux/module.h>
-+#include <linux/static_key.h>
- #include <linux/hash.h>
- #include <linux/jhash.h>
- #include <linux/if_vlan.h>
-@@ -24,6 +25,9 @@
- #define NFT_TRACETYPE_NETWORK_HSIZE	40
- #define NFT_TRACETYPE_TRANSPORT_HSIZE	20
- 
-+DEFINE_STATIC_KEY_FALSE(nft_trace_enabled);
-+EXPORT_SYMBOL_GPL(nft_trace_enabled);
-+
- static int trace_fill_id(struct sk_buff *nlskb, struct sk_buff *skb)
- {
- 	__be32 id;
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 9dfaf4d..85a465b 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -18,10 +18,12 @@
- #include <linux/ip.h>
- #include <linux/ipv6.h>
- #include <linux/smp.h>
-+#include <linux/static_key.h>
- #include <net/dst.h>
- #include <net/sock.h>
- #include <net/tcp_states.h> /* for TCP_TIME_WAIT */
- #include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_core.h>
- #include <net/netfilter/nft_meta.h>
- 
- void nft_meta_get_eval(const struct nft_expr *expr,
-@@ -297,6 +299,9 @@ int nft_meta_set_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		return err;
- 
-+	if (priv->key == NFT_META_NFTRACE)
-+		static_branch_inc(&nft_trace_enabled);
-+
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(nft_meta_set_init);
-@@ -334,6 +339,16 @@ nla_put_failure:
- }
- EXPORT_SYMBOL_GPL(nft_meta_set_dump);
- 
-+void nft_meta_set_destroy(const struct nft_ctx *ctx,
-+			  const struct nft_expr *expr)
-+{
-+	const struct nft_meta *priv = nft_expr_priv(expr);
-+
-+	if (priv->key == NFT_META_NFTRACE)
-+		static_branch_dec(&nft_trace_enabled);
-+}
-+EXPORT_SYMBOL_GPL(nft_meta_set_destroy);
-+
- static struct nft_expr_type nft_meta_type;
- static const struct nft_expr_ops nft_meta_get_ops = {
- 	.type		= &nft_meta_type,
-@@ -348,6 +363,7 @@ static const struct nft_expr_ops nft_meta_set_ops = {
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_meta)),
- 	.eval		= nft_meta_set_eval,
- 	.init		= nft_meta_set_init,
-+	.destroy	= nft_meta_set_destroy,
- 	.dump		= nft_meta_set_dump,
- };
- 
--- 
-2.4.10
-
+Let me know, thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
