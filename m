@@ -1,236 +1,209 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] src: perform sub-byte length matching from the evaluation step
-Date: Sat, 28 Nov 2015 13:50:52 +0100
-Message-ID: <1448715052-5705-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, fw@strlen.de
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nft] src: perform sub-byte length matching from the
+ evaluation step
+Date: Sat, 28 Nov 2015 13:20:23 +0000
+Message-ID: <20151128132023.GC17106@macbook.localdomain>
+References: <1448715052-5705-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="1yeeQ81UyVL57Vl7"
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55805 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751168AbbK1MvF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 28 Nov 2015 07:51:05 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id E7A54B6B9A
-	for <netfilter-devel@vger.kernel.org>; Sat, 28 Nov 2015 13:51:02 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id D7E63DA801
-	for <netfilter-devel@vger.kernel.org>; Sat, 28 Nov 2015 13:51:02 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 3CA5ADA801
-	for <netfilter-devel@vger.kernel.org>; Sat, 28 Nov 2015 13:50:57 +0100 (CET)
+Received: from stinky.trash.net ([213.144.137.162]:58428 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751425AbbK1NU2 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 28 Nov 2015 08:20:28 -0500
+Content-Disposition: inline
+In-Reply-To: <1448715052-5705-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch reworks c3f0501 ("src: netlink_linearize: handle sub-byte lengths")
-to perform the required sub-byte transformations from the evaluation step.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-@Patrick, @Florian: It seems we're falling into subbyte handling
-problems from different fronts, I just hit this while further testing of
-my dscp patch.
+--1yeeQ81UyVL57Vl7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I'm sending this because I think it's sort of ready so we avoid overlap.
+On 28.11, Pablo Neira Ayuso wrote:
+> This patch reworks c3f0501 ("src: netlink_linearize: handle sub-byte lengths")
+> to perform the required sub-byte transformations from the evaluation step.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> @Patrick, @Florian: It seems we're falling into subbyte handling
+> problems from different fronts, I just hit this while further testing of
+> my dscp patch.
+> 
+> I'm sending this because I think it's sort of ready so we avoid overlap.
+> 
+> I'm working on a follow up patch (almost done here) to cover another
+> corner case that we don't handle correctly, which is basically this:
+> 
+>     4 bits    6 bits
+>    +-+-+-+-+-+-+-+-+-+-+
+>    | vers  |   dscp    |
+>    +-+-+-+-+-+-+-+-+-+-+
+>                    ^
+>                    |
+>                    byte boundary
+> 
+> To match dscp in IPv6, we have to fetch 2 bytes from offset 0 via
+> payload expression and the bitmask must be 00ffc000.
+> 
+> I got the code generation correctly, but I'm adjusting the
+> payload_expr_trim() function now.
+> 
+> So I'm basically working on the netlink code generation part.
 
-I'm working on a follow up patch (almost done here) to cover another
-corner case that we don't handle correctly, which is basically this:
+Some comments below.
 
-    4 bits    6 bits
-   +-+-+-+-+-+-+-+-+-+-+
-   | vers  |   dscp    |
-   +-+-+-+-+-+-+-+-+-+-+
-                   ^
-                   |
-                   byte boundary
+> I'm not working on the protocol definition problem:
+> http://marc.info/?l=netfilter-devel&m=144862242521205&w=2, but I also
+> need this gets fixed. Let me know if you will be looking into this, just
+> to avoid overlap.
 
-To match dscp in IPv6, we have to fetch 2 bytes from offset 0 via
-payload expression and the bitmask must be 00ffc000.
+It kinds of depends on the sub-byte handling, so we should get this done
+first. 
 
-I got the code generation correctly, but I'm adjusting the
-payload_expr_trim() function now.
+> -static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **expr)
+> +static void expr_evaluate_payload_subbyte(struct eval_ctx *ctx,
+> +					  struct expr **exprp)
+>  {
+> -	if (__expr_evaluate_payload(ctx, *expr) < 0)
+> +	struct expr *expr = *exprp, *and, *mask;
+> +	unsigned int shift, masklen;
+> +	mpz_t bitmask;
+> +
+> +	shift = expr->payload.offset % BITS_PER_BYTE;
+> +	masklen = expr->len + shift;
+> +
+> +	if (masklen > 128)
+> +		BUG("expr mask length is %u (len %u, shift %u)\n",
+> +		    masklen, expr->len, shift);
+> +
+> +	mpz_init2(bitmask, masklen);
+> +	mpz_bitmask(bitmask, expr->len);
+> +	if (shift)
+> +		mpz_lshift_ui(bitmask, shift);
+> +
+> +	mask = constant_expr_alloc(&expr->location, expr_basetype(expr),
+> +				   BYTEORDER_HOST_ENDIAN, masklen, NULL);
+> +	mpz_set(mask->value, bitmask);
+> +
+> +	and = binop_expr_alloc(&expr->location, OP_AND, expr, mask);
+> +	and->dtype	= expr->dtype;
+> +	and->byteorder	= expr->byteorder;
+> +	and->len	= masklen;
+> +
+> +	*exprp = and;
+> +
+> +	ctx->ectx.shift = shift;
+> +}
+> +
+> +static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **exprp)
+> +{
+> +	struct expr *expr = *exprp;
+> +
+> +	if (__expr_evaluate_payload(ctx, expr) < 0)
+>  		return -1;
+>  
+> -	return expr_evaluate_primary(ctx, expr);
+> +	if (expr->len % BITS_PER_BYTE)
+> +		expr_evaluate_payload_subbyte(ctx, exprp);
+> +
+> +	return expr_evaluate_primary(ctx, &expr);
+>  }
 
-So I'm basically working on the netlink code generation part.
+>From my previous work on this I still have this patch, which allows you to
+generate an rshift to get the payload to offset 0, then transfers it to the
+LHS during binop simplification if its used in a relational expression.
 
-I'm not working on the protocol definition problem:
-http://marc.info/?l=netfilter-devel&m=144862242521205&w=2, but I also
-need this gets fixed. Let me know if you will be looking into this, just
-to avoid overlap.
+The upside is that is generic and reuses what we already have.
 
-Thanks!
+The load masking should IMO not be done in eval but netlink_linearize. We
+don't even know yet if the payload expression is actually used in a relational
+expression or f.i. in a statement, where handling needs to be different.
 
- include/expression.h    |  2 ++
- src/evaluate.c          | 46 +++++++++++++++++++++++++++++++++++++++++---
- src/netlink_linearize.c | 51 -------------------------------------------------
- 3 files changed, 45 insertions(+), 54 deletions(-)
+--1yeeQ81UyVL57Vl7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="rshift.diff"
 
-diff --git a/include/expression.h b/include/expression.h
-index 010cb95..bbb92a5 100644
---- a/include/expression.h
-+++ b/include/expression.h
-@@ -100,11 +100,13 @@ enum symbol_types {
-  * @dtype:	expected datatype
-  * @byteorder:	expected byteorder
-  * @len:	expected len
-+ * @shift:	required value shift
-  */
- struct expr_ctx {
- 	const struct datatype	*dtype;
- 	enum byteorder		byteorder;
- 	unsigned int		len;
-+	unsigned int		shift;
- };
- 
- static inline void __expr_set_context(struct expr_ctx *ctx,
+commit 6f2b9db5d2f2e48e80cdb31a9d792871b75a7f94
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Sat Jun 13 14:51:20 2015 +0200
+
+    evaluate: transfer right shifts to constant side
+    
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
 diff --git a/src/evaluate.c b/src/evaluate.c
-index d44cecc..4b8b5ea 100644
+index b64c231..22d5601 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -285,6 +285,8 @@ static int expr_evaluate_value(struct eval_ctx *ctx, struct expr **expr)
- 		(*expr)->byteorder = ctx->ectx.byteorder;
- 		(*expr)->len = ctx->ectx.len;
- 		mpz_clear(mask);
-+		if (ctx->ectx.shift)
-+			mpz_lshift_ui((*expr)->value, ctx->ectx.shift);
+@@ -463,6 +463,7 @@ static int constant_binop_simplify(struct eval_ctx *ctx, struct expr **expr)
  		break;
- 	case TYPE_STRING:
- 		if (expr_evaluate_string(ctx, expr) < 0)
-@@ -457,12 +459,50 @@ static int __expr_evaluate_payload(struct eval_ctx *ctx, struct expr *expr)
+ 	case OP_LSHIFT:
+ 		assert(left->byteorder == BYTEORDER_HOST_ENDIAN);
++		mpz_set(val, left->value);
+ 		mpz_lshift_ui(val, mpz_get_uint32(right->value));
+ 		mpz_and(val, val, mask);
+ 		break;
+@@ -833,6 +834,8 @@ static int binop_can_transfer(struct eval_ctx *ctx,
+ 			return expr_binary_error(ctx->msgs, right, left,
+ 						 "Comparison is always false");
+ 		return 1;
++	case OP_RSHIFT:
++		return 1;
+ 	case OP_XOR:
+ 		return 1;
+ 	default:
+@@ -850,6 +853,10 @@ static int binop_transfer_one(struct eval_ctx *ctx,
+ 		(*right) = binop_expr_alloc(&(*right)->location, OP_RSHIFT,
+ 					    *right, expr_get(left->right));
+ 		break;
++	case OP_RSHIFT:
++		(*right) = binop_expr_alloc(&(*right)->location, OP_LSHIFT,
++					    *right, expr_get(left->right));
++		break;
+ 	case OP_XOR:
+ 		(*right) = binop_expr_alloc(&(*right)->location, OP_XOR,
+ 					    *right, expr_get(left->right));
+@@ -864,6 +871,7 @@ static int binop_transfer_one(struct eval_ctx *ctx,
+ static int binop_transfer(struct eval_ctx *ctx, struct expr **expr)
+ {
+ 	struct expr *left = (*expr)->left, *i, *next;
++	unsigned int shift;
+ 	int err;
+ 
+ 	if (left->ops->type != EXPR_BINOP)
+@@ -895,10 +903,24 @@ static int binop_transfer(struct eval_ctx *ctx, struct expr **expr)
+ 		return 0;
+ 	}
+ 
+-	left = expr_get((*expr)->left->left);
+-	left->dtype = (*expr)->left->dtype;
+-	expr_free((*expr)->left);
+-	(*expr)->left = left;
++	switch (left->op) {
++	case OP_RSHIFT:
++		/* Mask out the bits the shift would have masked out */
++		shift = mpz_get_uint8(left->right->value);
++		mpz_bitmask(left->right->value, left->left->len);
++		mpz_lshift_ui(left->right->value, shift);
++		left->op = OP_AND;
++		break;
++	case OP_LSHIFT:
++	case OP_XOR:
++		left = expr_get((*expr)->left->left);
++		left->dtype = (*expr)->left->dtype;
++		expr_free((*expr)->left);
++		(*expr)->left = left;
++		break;
++	default:
++		BUG("invalid binop operation %u", left->op);
++	}
  	return 0;
  }
  
--static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **expr)
-+static void expr_evaluate_payload_subbyte(struct eval_ctx *ctx,
-+					  struct expr **exprp)
- {
--	if (__expr_evaluate_payload(ctx, *expr) < 0)
-+	struct expr *expr = *exprp, *and, *mask;
-+	unsigned int shift, masklen;
-+	mpz_t bitmask;
-+
-+	shift = expr->payload.offset % BITS_PER_BYTE;
-+	masklen = expr->len + shift;
-+
-+	if (masklen > 128)
-+		BUG("expr mask length is %u (len %u, shift %u)\n",
-+		    masklen, expr->len, shift);
-+
-+	mpz_init2(bitmask, masklen);
-+	mpz_bitmask(bitmask, expr->len);
-+	if (shift)
-+		mpz_lshift_ui(bitmask, shift);
-+
-+	mask = constant_expr_alloc(&expr->location, expr_basetype(expr),
-+				   BYTEORDER_HOST_ENDIAN, masklen, NULL);
-+	mpz_set(mask->value, bitmask);
-+
-+	and = binop_expr_alloc(&expr->location, OP_AND, expr, mask);
-+	and->dtype	= expr->dtype;
-+	and->byteorder	= expr->byteorder;
-+	and->len	= masklen;
-+
-+	*exprp = and;
-+
-+	ctx->ectx.shift = shift;
-+}
-+
-+static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **exprp)
-+{
-+	struct expr *expr = *exprp;
-+
-+	if (__expr_evaluate_payload(ctx, expr) < 0)
- 		return -1;
- 
--	return expr_evaluate_primary(ctx, expr);
-+	if (expr->len % BITS_PER_BYTE)
-+		expr_evaluate_payload_subbyte(ctx, exprp);
-+
-+	return expr_evaluate_primary(ctx, &expr);
- }
- 
- /*
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 432068d..ee072b8 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -103,44 +103,6 @@ static void netlink_gen_concat(struct netlink_linearize_ctx *ctx,
- 	}
- }
- 
--static void netlink_gen_payload_mask(struct netlink_linearize_ctx *ctx,
--				     const struct expr *expr,
--				     enum nft_registers dreg)
--{
--	struct nft_data_linearize nld, zero = {};
--	struct nftnl_expr *nle;
--	unsigned int offset, len, masklen;
--	mpz_t mask;
--
--	offset = expr->payload.offset % BITS_PER_BYTE;
--	masklen = expr->len + offset;
--
--	if (masklen > 128)
--		BUG("expr mask length is %u (len %u, offset %u)\n",
--				masklen, expr->len, offset);
--
--	mpz_init2(mask, masklen);
--	mpz_bitmask(mask, expr->len);
--
--	if (offset)
--		mpz_lshift_ui(mask, offset);
--
--	nle = alloc_nft_expr("bitwise");
--
--	len = div_round_up(expr->len, BITS_PER_BYTE);
--
--	nftnl_expr_set_u32(nle, NFT_EXPR_BITWISE_SREG, dreg);
--	nftnl_expr_set_u32(nle, NFT_EXPR_BITWISE_DREG, dreg);
--	nftnl_expr_set_u32(nle, NFT_EXPR_BITWISE_LEN, len);
--
--	netlink_gen_raw_data(mask, expr->byteorder, len, &nld);
--	nftnl_expr_set(nle, NFT_EXPR_BITWISE_MASK, nld.value, nld.len);
--	nftnl_expr_set(nle, NFT_EXPR_BITWISE_XOR, &zero.value, nld.len);
--
--	mpz_clear(mask);
--	nftnl_rule_add_expr(ctx->nlr, nle);
--}
--
- static void netlink_gen_payload(struct netlink_linearize_ctx *ctx,
- 				const struct expr *expr,
- 				enum nft_registers dreg)
-@@ -157,9 +119,6 @@ static void netlink_gen_payload(struct netlink_linearize_ctx *ctx,
- 			   div_round_up(expr->len, BITS_PER_BYTE));
- 
- 	nftnl_rule_add_expr(ctx->nlr, nle);
--
--	if (expr->len % BITS_PER_BYTE)
--		netlink_gen_payload_mask(ctx, expr, dreg);
- }
- 
- static void netlink_gen_exthdr(struct netlink_linearize_ctx *ctx,
-@@ -281,15 +240,6 @@ static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
- 			      const struct expr *expr,
- 			      enum nft_registers dreg);
- 
--static void payload_shift_value(const struct expr *left, struct expr *right)
--{
--	if (right->ops->type != EXPR_VALUE ||
--	    left->ops->type != EXPR_PAYLOAD)
--		return;
--
--	mpz_lshift_ui(right->value, left->payload.offset % BITS_PER_BYTE);
--}
--
- static struct expr *netlink_gen_prefix(struct netlink_linearize_ctx *ctx,
- 				       const struct expr *expr,
- 				       enum nft_registers sreg)
-@@ -358,7 +308,6 @@ static void netlink_gen_cmp(struct netlink_linearize_ctx *ctx,
- 	netlink_put_register(nle, NFTNL_EXPR_CMP_SREG, sreg);
- 	nftnl_expr_set_u32(nle, NFTNL_EXPR_CMP_OP,
- 			      netlink_gen_cmp_op(expr->op));
--	payload_shift_value(expr->left, right);
- 	netlink_gen_data(right, &nld);
- 	nftnl_expr_set(nle, NFTNL_EXPR_CMP_DATA, nld.value, len);
- 	release_register(ctx, expr->left);
--- 
-2.1.4
 
+--1yeeQ81UyVL57Vl7--
