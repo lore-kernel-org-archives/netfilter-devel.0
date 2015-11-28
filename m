@@ -1,96 +1,155 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf] netfilter: nf_tables: release objects on netns destruction
-Date: Sun, 29 Nov 2015 00:00:29 +0100
-Message-ID: <1448751629-2965-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, arturo.borrero.glez@gmail.com
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] proto: fix VLAN header definition
+Date: Sun, 29 Nov 2015 00:32:01 +0100
+Message-ID: <20151128233201.GA3542@salvia>
+References: <1448615614-16510-1-git-send-email-kaber@trash.net>
+ <20151127094958.GB15392@breakpoint.cc>
+ <20151127095424.GF4263@macbook.localdomain>
+ <20151127103428.GC15392@breakpoint.cc>
+ <20151127104248.GD15392@breakpoint.cc>
+ <20151127104923.GH4263@macbook.localdomain>
+ <20151127105417.GE15392@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="VbJkn9YxBvnuCH5J"
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39828 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41698 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751723AbbK1XAq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 28 Nov 2015 18:00:46 -0500
+	id S1751829AbbK1XcG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 28 Nov 2015 18:32:06 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 235B7B6B9E
-	for <netfilter-devel@vger.kernel.org>; Sun, 29 Nov 2015 00:00:44 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id B035FB6B9F
+	for <netfilter-devel@vger.kernel.org>; Sun, 29 Nov 2015 00:32:04 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 186E5DA803
-	for <netfilter-devel@vger.kernel.org>; Sun, 29 Nov 2015 00:00:44 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A2638DA732
+	for <netfilter-devel@vger.kernel.org>; Sun, 29 Nov 2015 00:32:04 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 2769BDA732
-	for <netfilter-devel@vger.kernel.org>; Sun, 29 Nov 2015 00:00:42 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id AC071DA803
+	for <netfilter-devel@vger.kernel.org>; Sun, 29 Nov 2015 00:32:02 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20151127105417.GE15392@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We have to release the existing objects on netns removal otherwise we
-leak them.
 
-Reported-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_tables_api.c | 41 ++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 40 insertions(+), 1 deletion(-)
+--VbJkn9YxBvnuCH5J
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 93cc473..428b90a 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4584,7 +4584,7 @@ int nft_data_dump(struct sk_buff *skb, int attr, const struct nft_data *data,
- }
- EXPORT_SYMBOL_GPL(nft_data_dump);
- 
--static int nf_tables_init_net(struct net *net)
-+static int __net_init nf_tables_init_net(struct net *net)
+On Fri, Nov 27, 2015 at 11:54:17AM +0100, Florian Westphal wrote:
+> Patrick McHardy <kaber@trash.net> wrote:
+> > Yes, I also did that and it looks correct. I think we probably have a
+> > discrepancy with bit numbering:
+> > 
+> > Looking at an older patch of you:
+> > 
+> > -               [IPHDR_VERSION]         = HDR_BITFIELD("version", &integer_type, 0, 4),
+> > -               [IPHDR_HDRLENGTH]       = HDR_BITFIELD("hdrlength", &integer_type, 4, 4),
+> > +               [IPHDR_VERSION]         = HDR_BITFIELD("version", &integer_type, 4, 4),
+> > +               [IPHDR_HDRLENGTH]       = HDR_BITFIELD("hdrlength", &integer_type, 0, 4),
+> > 
+> > So you seem to assume a numbering which corresponds to how you would express
+> > it in C. My patch assumes numbering as used in the RFCs/IEEE standards, which
+> > is basically the opposite direction.
+> 
+> Right, there is a general problem with all sub-byte fields.
+> 
+> I just noticed that decoding of ip version/hdrlen doesn't work either.
+> (ip hdrlength 4 ip version 5).
+> 
+> I am sure that I tested matching on ip version/hdrlen on both
+> x86-64 and a MSB machine (don't recall architecture, ppc i think).
+
+The existing approach works fine in x86-64 and ppc here.
+
+pahole also reports that version bitfield offset starts at 0, then
+hdrlength starts at 4, both in x86-64 and ppc.
+
+Probably the problem is the way we calculate the shifts. I managed to
+set the offset according to RFCs/IEEE by adjusting the existing
+arithmetics, I think the offset semantics was accidentally changes
+with this first approach to address sub-byte matching.
+
+See attached proof-of-concept patch.
+
+--VbJkn9YxBvnuCH5J
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="x.patch"
+
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 0790dce..751c0a3 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -109,21 +109,21 @@ static void netlink_gen_payload_mask(struct netlink_linearize_ctx *ctx,
  {
- 	INIT_LIST_HEAD(&net->nft.af_info);
- 	INIT_LIST_HEAD(&net->nft.commit_list);
-@@ -4592,8 +4592,47 @@ static int nf_tables_init_net(struct net *net)
- 	return 0;
+ 	struct nft_data_linearize nld, zero = {};
+ 	struct nftnl_expr *nle;
+-	unsigned int offset, len, masklen;
++	unsigned int shift, len, masklen;
+ 	mpz_t mask;
+ 
+-	offset = expr->payload.offset % BITS_PER_BYTE;
+-	masklen = expr->len + offset;
++	shift = BITS_PER_BYTE - ((expr->payload.offset + expr->len) % BITS_PER_BYTE);
++	masklen = expr->len + shift;
+ 
+ 	if (masklen > 128)
+-		BUG("expr mask length is %u (len %u, offset %u)\n",
+-				masklen, expr->len, offset);
++		BUG("expr mask length is %u (len %u, shift %u)\n",
++				masklen, expr->len, shift);
+ 
+ 	mpz_init2(mask, masklen);
+ 	mpz_bitmask(mask, expr->len);
+ 
+-	if (offset)
+-		mpz_lshift_ui(mask, offset);
++	if (shift)
++		mpz_lshift_ui(mask, shift);
+ 
+ 	nle = alloc_nft_expr("bitwise");
+ 
+@@ -158,7 +158,8 @@ static void netlink_gen_payload(struct netlink_linearize_ctx *ctx,
+ 
+ 	nftnl_rule_add_expr(ctx->nlr, nle);
+ 
+-	if (expr->len % BITS_PER_BYTE)
++	if (expr->payload.offset % BITS_PER_BYTE ||
++	    (expr->payload.offset + expr->len) % BITS_PER_BYTE)
+ 		netlink_gen_payload_mask(ctx, expr, dreg);
  }
  
-+static void __net_exit nf_tables_exit_net(struct net *net)
-+{
-+	struct nft_table *table, *nt;
-+	struct nft_chain *chain, *nc;
-+	struct nft_rule *rule, *nr;
-+	struct nft_set *set, *ns;
-+	struct nft_af_info *afi;
-+	struct nft_ctx ctx;
-+
-+	nfnl_lock(NFNL_SUBSYS_NFTABLES);
-+	list_for_each_entry(afi, &net->nft.af_info, list) {
-+		ctx.afi = afi;
-+		list_for_each_entry_safe(table, nt, &afi->tables, list) {
-+			ctx.table = table;
-+			list_for_each_entry(chain, &table->chains, list) {
-+				ctx.chain = chain;
-+				list_for_each_entry_safe(rule, nr, &chain->rules, list) {
-+					list_del(&rule->list);
-+					nf_tables_rule_destroy(&ctx, rule);
-+				}
-+			}
-+			list_for_each_entry_safe(chain, nc, &table->chains, list) {
-+				list_del(&chain->list);
-+				nf_tables_unregister_hooks(table, chain,
-+							   afi->nops);
-+				nf_tables_chain_destroy(chain);
-+			}
-+			list_for_each_entry_safe(set, ns, &table->sets, list) {
-+				list_del(&set->list);
-+				nft_set_destroy(set);
-+			}
-+			list_del(&table->list);
-+			nf_tables_table_destroy(&ctx);
-+		}
-+	}
-+	nfnl_unlock(NFNL_SUBSYS_NFTABLES);
-+}
-+
- static struct pernet_operations nf_tables_net_ops = {
- 	.init	= nf_tables_init_net,
-+	.exit	= nf_tables_exit_net,
- };
+@@ -283,11 +284,14 @@ static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
  
- static int __init nf_tables_module_init(void)
--- 
-2.1.4
+ static void payload_shift_value(const struct expr *left, struct expr *right)
+ {
++	unsigned int shift;
++
+ 	if (right->ops->type != EXPR_VALUE ||
+ 	    left->ops->type != EXPR_PAYLOAD)
+ 		return;
+ 
+-	mpz_lshift_ui(right->value, left->payload.offset % BITS_PER_BYTE);
++	shift = BITS_PER_BYTE - ((left->payload.offset + left->len) % BITS_PER_BYTE);
++	mpz_lshift_ui(right->value, shift);
+ }
+ 
+ static struct expr *netlink_gen_prefix(struct netlink_linearize_ctx *ctx,
+diff --git a/src/proto.c b/src/proto.c
+index 0fe0b88..9839124 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -508,8 +508,8 @@ const struct proto_desc proto_ip = {
+ 		PROTO_LINK(IPPROTO_SCTP,	&proto_sctp),
+ 	},
+ 	.templates	= {
+-		[IPHDR_VERSION]		= HDR_BITFIELD("version", &integer_type, 4, 4),
+-		[IPHDR_HDRLENGTH]	= HDR_BITFIELD("hdrlength", &integer_type, 0, 4),
++		[IPHDR_VERSION]		= HDR_BITFIELD("version", &integer_type, 0, 4),
++		[IPHDR_HDRLENGTH]	= HDR_BITFIELD("hdrlength", &integer_type, 4, 4),
+ 		[IPHDR_TOS]		= IPHDR_FIELD("tos",		tos),
+ 		[IPHDR_LENGTH]		= IPHDR_FIELD("length",		tot_len),
+ 		[IPHDR_ID]		= IPHDR_FIELD("id",		id),
 
+--VbJkn9YxBvnuCH5J--
