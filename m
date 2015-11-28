@@ -1,48 +1,54 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: GIT: [PATCH v3 0/3] netfilter trace infrastructure support
-Date: Fri, 27 Nov 2015 18:55:16 +0000
-Message-ID: <20151127185516.GA18898@macbook.localdomain>
-References: <1448649800-26153-1-git-send-email-fw@strlen.de>
+From: Linmujia <linmujia@huawei.com>
+Subject: [PATCH nft] null pointer exception
+Date: Sat, 28 Nov 2015 01:55:13 +0000
+Message-ID: <0A900C78B9F2324AB7F4F7A51D1A2F857797855C@szxema505-mbs.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "pablo@netfilter.org" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49395 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755017AbbK0SzU (ORCPT
+Received: from szxga03-in.huawei.com ([119.145.14.66]:47277 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750716AbbK1Bzn convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Nov 2015 13:55:20 -0500
-Content-Disposition: inline
-In-Reply-To: <1448649800-26153-1-git-send-email-fw@strlen.de>
+	Fri, 27 Nov 2015 20:55:43 -0500
+Content-Language: zh-CN
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 27.11, Florian Westphal wrote:
-> 3rd round.
-> 
-> See the individual patches for changelog vs. V 2.
-> 
-> Patrick: Nothing fancy from libnftnl side, just the 3 new attributes
-> (oiftype, nfproto, policy).
-> 
-> On kernel side I addressed all of the comments.
-> 
-> In case of NFPROTO_INET, the new NFTA_TRACE_NFPROTO will be 'NFPROTO_IPV4'
-> (or IPV6), the netlink header family is set to NFPROTO_INET.
+Hi,I think I find out why my last patch stoped the execution of the tool,
+If "stmt_reject_gen_dependency" do not get any payload (payload=null) , it can not call "payload_gen_dependency ",it will cause null pointer exception.
 
-That's sounds good.
+Thanks.
 
-> I tried to reduce nft_do_chain bloat, +80 on my system.
 
-That's even better than I expected, thanks!
 
-> We have one unconditional foo = false assignment, all nftrace calls
-> are avoided in 'no trace rules set' case via static key.
-> 
-> Let me know if you spot more problems.
+Signed-off-by: linmujia <linmujia@huawei.com>
+---
+ src/evaluate.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-I'll review it tommorrow if you don't mind, currently trying to wrap my
-head around the sub-byte and offset expressions. We have some limitations
-which I'd like to address if I'm already working in that area before I
-continue on the tracing part.
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 7aab6aa..bcc2670 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1428,7 +1428,7 @@ static int reject_payload_gen_dependency_family(struct eval_ctx *ctx,
+ 	default:
+ 		BUG("unknown reject family");
+ 	}
+-	return 1;
++	return -1;
+ }
+ 
+ static int stmt_reject_gen_dependency(struct eval_ctx *ctx, struct stmt *stmt,
+@@ -1446,6 +1446,7 @@ static int stmt_reject_gen_dependency(struct eval_ctx *ctx, struct stmt *stmt,
+ 		ret = reject_payload_gen_dependency_family(ctx, stmt, &payload);
+ 		break;
+ 	default:
++		ret = -1;
+ 		BUG("cannot generate reject dependency for type %d",
+ 		    stmt->reject.type);
+ 	}
+-- 
+2.5.1.windows.1
