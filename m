@@ -1,39 +1,40 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] netfilter: ipvs: avoid unused variable warning
-Date: Mon, 30 Nov 2015 10:54:14 +0100
-Message-ID: <9616810.SPqCgIbKt5@wuerfel>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: kernel crash in netlink_sock_destruct()
+Date: Mon, 30 Nov 2015 12:44:30 +0100
+Message-ID: <CAOkSjBhQi-LtTLAaD8VmA0q8PBK0thu6GbQn60J4_OX0cdLQLQ@mail.gmail.com>
+References: <CAOkSjBgsSapxsCeFA6W-BfSZ3SUjr9mxQ3z6F-ABsrY8yb7veg@mail.gmail.com>
+ <CAOkSjBh+UPThVvfsKeT5nhFitJyQGNdbtA1eVVPE_ux3PvsV0Q@mail.gmail.com> <20151127170627.GA3639@macbook.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: Julian Anastasov <ja@ssi.bg>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:37133 "EHLO
+	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751018AbbK3Lou convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Nov 2015 06:44:50 -0500
+Received: by wmww144 with SMTP id w144so133794764wmw.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Nov 2015 03:44:49 -0800 (PST)
+In-Reply-To: <20151127170627.GA3639@macbook.localdomain>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-When CONFIG_PROC_FS is disabled, the local 'net' variable in
-ip_vs_app_net_init becomes unused, as gcc warns:
+On 27 November 2015 at 18:06, Patrick McHardy <kaber@trash.net> wrote:
+>
+> @Arturo: was there any delay between those commands or did you execut=
+e all
+> of them directly after each other?
 
-net/netfilter/ipvs/ip_vs_app.c: In function 'ip_vs_app_net_init':
-net/netfilter/ipvs/ip_vs_app.c:608:14: warning: unused variable 'net' [-Wunused-variable]
+No delay, the time of typing.
 
-This removes the line by moving the pointer dereference into the
-user of the variable.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-
-diff --git a/net/netfilter/ipvs/ip_vs_app.c b/net/netfilter/ipvs/ip_vs_app.c
-index 0328f7250693..e5422d3db501 100644
---- a/net/netfilter/ipvs/ip_vs_app.c
-+++ b/net/netfilter/ipvs/ip_vs_app.c
-@@ -614,8 +614,6 @@ int __net_init ip_vs_app_net_init(struct netns_ipvs *ipvs)
- 
- void __net_exit ip_vs_app_net_cleanup(struct netns_ipvs *ipvs)
- {
--	struct net *net = ipvs->net;
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
