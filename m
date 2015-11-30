@@ -1,72 +1,76 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] proto: fix VLAN header definition
-Date: Mon, 30 Nov 2015 14:57:19 +0100
-Message-ID: <20151130135719.GA1335@salvia>
-References: <20151127103428.GC15392@breakpoint.cc>
- <20151127104248.GD15392@breakpoint.cc>
- <20151127104923.GH4263@macbook.localdomain>
- <20151127105417.GE15392@breakpoint.cc>
- <20151128233201.GA3542@salvia>
- <20151129000929.GA15493@breakpoint.cc>
- <20151129220037.GA2301@salvia>
- <20151129223743.GA29878@breakpoint.cc>
- <20151130123143.GA4233@salvia>
- <20151130135322.GD29878@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38968 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752720AbbK3N5Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Nov 2015 08:57:25 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 0B84518CDC5
-	for <netfilter-devel@vger.kernel.org>; Mon, 30 Nov 2015 14:57:23 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id F0853DA7FF
-	for <netfilter-devel@vger.kernel.org>; Mon, 30 Nov 2015 14:57:22 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 1E5C1DA7FF
-	for <netfilter-devel@vger.kernel.org>; Mon, 30 Nov 2015 14:57:20 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20151130135322.GD29878@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Jarno Rajahalme <jarno-LZ6Gd1LRuIk@public.gmane.org>
+Subject: Re: [PATCH net-next v3 1/8] netfilter: Remove
+	IP_CT_NEW_REPLY definition.
+Date: Mon, 30 Nov 2015 10:16:43 -0800
+Message-ID: <391067B3-D60E-43BC-B669-2DD45924E5D8@ovn.org>
+References: <1448496501-109561-1-git-send-email-jarno@ovn.org>
+ <1448496501-109561-2-git-send-email-jarno@ovn.org>
+ <20151126054100.GB21626@vergenet.net>
+Mime-Version: 1.0 (1.0)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Simon Horman <simon.horman-wFxRvT7yatFl57MIdRCFDg@public.gmane.org>
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <20151126054100.GB21626-IxS8c3vjKQDk1uMJSBkQmQ@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Nov 30, 2015 at 02:53:22PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Sun, Nov 29, 2015 at 11:37:43PM +0100, Florian Westphal wrote:
-> > > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > > > On Sun, Nov 29, 2015 at 01:09:29AM +0100, Florian Westphal wrote:
-> > > > > Thanks for looking at this.  I'll take a closer look tomorrow,
-> > > > > your patch works fine for ip version/hdrlength but seems it messes
-> > > > > with endianess somewhere.
-> > > > 
-> > > > I forgot to update payload_shift_value() too, to skip the shift when
-> > > > not needed, sorry, new patch attached.
-> > > 
-> > > Almost there. Again, with Patricks patch to fix VLAN header:
-> > > 
-> > > # src/nft --debug=netlink add rule bridge raw prerouting ether type vlan vlan type ip vlan id 4094 ip version 4 counter 
-> > > bridge raw prerouting
-> > 
-> > OK, new try, the idea behind is to calculate this shift through:
-> > 
-> >         x = offset % BITS_PER_BYTE
-> >         y = len % BITS_PER_BYTE
-> > 
-> > to get both offset and length at byte level.
-> > 
-> > Then calculate the shift based on this:
-> > 
-> >         shift = BITS_PER_BYTE - (x + y)
-> > 
-> > Does this look good to you?
-> 
-> Sorry, that patch doesn't apply for me to master branch,
-> neither standalone nor on top of your previous patch.
-
-I see, sorry. Anyway, let me revisit these arithmetics again, they
-still don't correctly cover all cases as we need.
+Cj4gT24gTm92IDI1LCAyMDE1LCBhdCAyMTo0MSwgU2ltb24gSG9ybWFuIDxzaW1vbi5ob3JtYW5A
+bmV0cm9ub21lLmNvbT4gd3JvdGU6Cj4gCj4+IE9uIFdlZCwgTm92IDI1LCAyMDE1IGF0IDA0OjA4
+OjE0UE0gLTA4MDAsIEphcm5vIFJhamFoYWxtZSB3cm90ZToKPj4gUmVtb3ZlIHRoZSBkZWZpbml0
+aW9uIG9mIElQX0NUX05FV19SRVBMWSBmcm9tIHRoZSBrZXJuZWwgYXMgaXQgZG9lcwo+PiBub3Qg
+bWFrZSBzZW5zZS4gIFRoaXMgYWxsb3dzIHRoZSBkZWZpbml0aW9uIG9mIElQX0NUX05VTUJFUiB0
+byBiZQo+PiBzaW1wbGlmaWVkIGFzIHdlbGwuCj4+IAo+PiBTaWduZWQtb2ZmLWJ5OiBKYXJubyBS
+YWphaGFsbWUgPGphcm5vQG92bi5vcmc+Cj4gCj4gSSBoYXRlIHRvIGJlIHRoZSBiZWFyZXIgb2Yg
+YmFkIG5ld3MgYnV0IGl0cyBub3QgY2xlYXIKPiB0byBtZSB0aGF0IHRoaXMgY2hhbmdlIGRvZXNu
+J3QgYnJlYWsgdXNlci1zcGFjZS4KPiAKClRoZXNlIHNob3VsZCBiZSBubyBjaGFuZ2UgZm9yIHRo
+ZSB1c2Vyc3BhY2UsIHVubGVzcyBfX0tFUk5FTF9fIGlzIGRlZmluZWQuCgpBbHNvLCB0aGlzIGlz
+IGEgbWlub3IgY2xlYW4tdXAgb25seSwgc28gSSBoYXZlIG5vIHByb2JsZW0gZHJvcHBpbmcgdGhp
+cyBwYXRjaCwgaXMgbmVlZCBiZS4KCiAgSmFybm8KCj4+IC0tLQo+PiBpbmNsdWRlL3VhcGkvbGlu
+dXgvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19jb21tb24uaCB8IDEyICsrKysrKysrKy0tLQo+PiBu
+ZXQvb3BlbnZzd2l0Y2gvY29ubnRyYWNrLmMgICAgICAgICAgICAgICAgICAgICAgICB8ICAyIC0t
+Cj4+IDIgZmlsZXMgY2hhbmdlZCwgOSBpbnNlcnRpb25zKCspLCA1IGRlbGV0aW9ucygtKQo+PiAK
+Pj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvdWFwaS9saW51eC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNr
+X2NvbW1vbi5oIGIvaW5jbHVkZS91YXBpL2xpbnV4L25ldGZpbHRlci9uZl9jb25udHJhY2tfY29t
+bW9uLmgKPj4gaW5kZXggMzE5ZjQ3MS4uMmYwNjdjZiAxMDA2NDQKPj4gLS0tIGEvaW5jbHVkZS91
+YXBpL2xpbnV4L25ldGZpbHRlci9uZl9jb25udHJhY2tfY29tbW9uLmgKPj4gKysrIGIvaW5jbHVk
+ZS91YXBpL2xpbnV4L25ldGZpbHRlci9uZl9jb25udHJhY2tfY29tbW9uLmgKPj4gQEAgLTIwLDkg
+KzIwLDE1IEBAIGVudW0gaXBfY29ubnRyYWNrX2luZm8gewo+PiAKPj4gICAgSVBfQ1RfRVNUQUJM
+SVNIRURfUkVQTFkgPSBJUF9DVF9FU1RBQkxJU0hFRCArIElQX0NUX0lTX1JFUExZLAo+PiAgICBJ
+UF9DVF9SRUxBVEVEX1JFUExZID0gSVBfQ1RfUkVMQVRFRCArIElQX0NUX0lTX1JFUExZLAo+PiAt
+ICAgIElQX0NUX05FV19SRVBMWSA9IElQX0NUX05FVyArIElQX0NUX0lTX1JFUExZLCAgICAKPj4g
+LSAgICAvKiBOdW1iZXIgb2YgZGlzdGluY3QgSVBfQ1QgdHlwZXMgKG5vIE5FVyBpbiByZXBseSBk
+aXJuKS4gKi8KPj4gLSAgICBJUF9DVF9OVU1CRVIgPSBJUF9DVF9JU19SRVBMWSAqIDIgLSAxCj4+
+ICsgICAgLyogTm8gTkVXIGluIHJlcGx5IGRpcmVjdGlvbi4gKi8KPj4gKwo+PiArICAgIC8qIE51
+bWJlciBvZiBkaXN0aW5jdCBJUF9DVCB0eXBlcy4gKi8KPj4gKyAgICBJUF9DVF9OVU1CRVIKPj4g
+Kwo+PiArICAgIC8qIG9ubHkgZm9yIHVzZXJzcGFjZSBjb21wYXRpYmlsaXR5ICovCj4+ICsjaWZu
+ZGVmIF9fS0VSTkVMX18KPj4gKyAgICBJUF9DVF9ORVdfUkVQTFkgPSBJUF9DVF9OVU1CRVI7Cj4+
+ICsjZW5kaWYKPj4gfTsKPj4gCj4+ICNkZWZpbmUgTkZfQ1RfU1RBVEVfSU5WQUxJRF9CSVQgICAg
+ICAgICAgICAoMSA8PCAwKQo+PiBkaWZmIC0tZ2l0IGEvbmV0L29wZW52c3dpdGNoL2Nvbm50cmFj
+ay5jIGIvbmV0L29wZW52c3dpdGNoL2Nvbm50cmFjay5jCj4+IGluZGV4IGMyY2MxMTEuLmEyOGE4
+MTkgMTAwNjQ0Cj4+IC0tLSBhL25ldC9vcGVudnN3aXRjaC9jb25udHJhY2suYwo+PiArKysgYi9u
+ZXQvb3BlbnZzd2l0Y2gvY29ubnRyYWNrLmMKPj4gQEAgLTczLDcgKzczLDYgQEAgc3RhdGljIHU4
+IG92c19jdF9nZXRfc3RhdGUoZW51bSBpcF9jb25udHJhY2tfaW5mbyBjdGluZm8pCj4+ICAgIHN3
+aXRjaCAoY3RpbmZvKSB7Cj4+ICAgIGNhc2UgSVBfQ1RfRVNUQUJMSVNIRURfUkVQTFk6Cj4+ICAg
+IGNhc2UgSVBfQ1RfUkVMQVRFRF9SRVBMWToKPj4gLSAgICBjYXNlIElQX0NUX05FV19SRVBMWToK
+Pj4gICAgICAgIGN0X3N0YXRlIHw9IE9WU19DU19GX1JFUExZX0RJUjsKPj4gICAgICAgIGJyZWFr
+Owo+PiAgICBkZWZhdWx0Ogo+PiBAQCAtOTAsNyArODksNiBAQCBzdGF0aWMgdTggb3ZzX2N0X2dl
+dF9zdGF0ZShlbnVtIGlwX2Nvbm50cmFja19pbmZvIGN0aW5mbykKPj4gICAgICAgIGN0X3N0YXRl
+IHw9IE9WU19DU19GX1JFTEFURUQ7Cj4+ICAgICAgICBicmVhazsKPj4gICAgY2FzZSBJUF9DVF9O
+RVc6Cj4+IC0gICAgY2FzZSBJUF9DVF9ORVdfUkVQTFk6Cj4+ICAgICAgICBjdF9zdGF0ZSB8PSBP
+VlNfQ1NfRl9ORVc7Cj4+ICAgICAgICBicmVhazsKPj4gICAgZGVmYXVsdDoKPj4gLS0gCj4+IDIu
+MS40Cj4+IAo+PiBfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+Xwo+PiBkZXYgbWFpbGluZyBsaXN0Cj4+IGRldkBvcGVudnN3aXRjaC5vcmcKPj4gaHR0cDovL29w
+ZW52c3dpdGNoLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RldgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpkZXYgbWFpbGluZyBsaXN0CmRldkBvcGVudnN3aXRj
+aC5vcmcKaHR0cDovL29wZW52c3dpdGNoLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Rldgo=
