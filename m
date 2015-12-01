@@ -1,42 +1,118 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH] netfilter: ipvs: avoid unused variable warning
-Date: Tue, 1 Dec 2015 16:48:59 +0900
-Message-ID: <20151201074859.GA22945@verge.net.au>
-References: <9616810.SPqCgIbKt5@wuerfel>
- <alpine.LFD.2.11.1511302242210.1918@ja.home.ssi.bg>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	lvs-devel@vger.kernel.org, Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.11.1511302242210.1918@ja.home.ssi.bg>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 1/2] tests: vlan pcp and cfi are located in the first byte
+Date: Tue,  1 Dec 2015 18:44:26 +0100
+Message-ID: <1448991867-21247-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, fw@strlen.de
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:42066 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755546AbbLARok (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Dec 2015 12:44:40 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 2F9F36E405
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Dec 2015 18:44:37 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 21C66DA808
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Dec 2015 18:44:37 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id F07A9DA7E0
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Dec 2015 18:44:32 +0100 (CET)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 30, 2015 at 10:48:34PM +0200, Julian Anastasov wrote:
-> 
-> 	Hello,
-> 
-> On Mon, 30 Nov 2015, Arnd Bergmann wrote:
-> 
-> > When CONFIG_PROC_FS is disabled, the local 'net' variable in
-> > ip_vs_app_net_init becomes unused, as gcc warns:
-> > 
-> > net/netfilter/ipvs/ip_vs_app.c: In function 'ip_vs_app_net_init':
-> > net/netfilter/ipvs/ip_vs_app.c:608:14: warning: unused variable 'net' [-Wunused-variable]
-> > 
-> > This removes the line by moving the pointer dereference into the
-> > user of the variable.
-> > 
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
+Adjust tests to fix wrong payloads, both pcp and cfi are located in the
+first nibble of the first byte.
 
-Thanks, applied to ipvs-next.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ tests/regression/bridge/vlan.t.payload | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/tests/regression/bridge/vlan.t.payload b/tests/regression/bridge/vlan.t.payload
+index 35dc437..02242d2 100644
+--- a/tests/regression/bridge/vlan.t.payload
++++ b/tests/regression/bridge/vlan.t.payload
+@@ -21,7 +21,7 @@ bridge test-bridge input
+   [ payload load 2b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x0000fe0f ]
+-  [ payload load 1b @ link header + 15 => reg 1 ]
++  [ payload load 1b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x00000010 ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x00000000 ]
+ 
+@@ -32,7 +32,7 @@ bridge test-bridge input
+   [ payload load 2b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x0000fe0f ]
+-  [ payload load 1b @ link header + 15 => reg 1 ]
++  [ payload load 1b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x00000010 ) ^ 0x00000000 ]
+   [ cmp neq reg 1 0x00000010 ]
+ 
+@@ -43,7 +43,7 @@ bridge test-bridge input
+   [ payload load 2b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x0000fe0f ]
+-  [ payload load 1b @ link header + 15 => reg 1 ]
++  [ payload load 1b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x00000010 ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x00000010 ]
+ 
+@@ -70,7 +70,7 @@ bridge test-bridge input
+   [ payload load 2b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x0000fe0f ]
+-  [ payload load 1b @ link header + 15 => reg 1 ]
++  [ payload load 1b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x00000010 ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x00000000 ]
+ 
+@@ -81,7 +81,7 @@ bridge test-bridge input
+   [ payload load 2b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x0000fe0f ]
+-  [ payload load 1b @ link header + 15 => reg 1 ]
++  [ payload load 1b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x00000010 ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x00000010 ]
+ 
+@@ -163,10 +163,10 @@ bridge test-bridge input
+   [ payload load 2b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x0000fe0f ]
+-  [ payload load 1b @ link header + 15 => reg 1 ]
++  [ payload load 1b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x00000010 ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x00000010 ]
+-  [ payload load 1b @ link header + 15 => reg 1 ]
++  [ payload load 1b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x000000e0 ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x000000e0 ]
+ 
+@@ -177,10 +177,10 @@ bridge test-bridge input
+   [ payload load 2b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x0000fe0f ]
+-  [ payload load 1b @ link header + 15 => reg 1 ]
++  [ payload load 1b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x00000010 ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x00000010 ]
+-  [ payload load 1b @ link header + 15 => reg 1 ]
++  [ payload load 1b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x000000e0 ) ^ 0x00000000 ]
+   [ cmp eq reg 1 0x00000060 ]
+ 
+@@ -194,7 +194,7 @@ bridge test-bridge input
+   [ payload load 2b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
+   [ lookup reg 1 set set%d ]
+-  [ payload load 1b @ link header + 15 => reg 1 ]
++  [ payload load 1b @ link header + 14 => reg 1 ]
+   [ bitwise reg 1 = (reg=1 & 0x000000e0 ) ^ 0x00000000 ]
+   [ cmp gte reg 1 0x00000001 ]
+   [ cmp lte reg 1 0x00000003 ]
+-- 
+2.1.4
+
