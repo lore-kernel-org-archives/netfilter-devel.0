@@ -1,85 +1,77 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next v3 3/8] netfilter: Allow calling into nat helper
- without skb_dst.g
-Date: Tue, 1 Dec 2015 21:51:19 +0100
-Message-ID: <20151201205119.GA2563@salvia>
-References: <1448496501-109561-1-git-send-email-jarno@ovn.org>
- <1448496501-109561-4-git-send-email-jarno@ovn.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	dev@openvswitch.org
-To: Jarno Rajahalme <jarno@ovn.org>
+From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+Subject: [PATCH nft 1/3] tests: add *.got files to .gitignore
+Date: Tue,  1 Dec 2015 23:45:21 +0100
+Message-ID: <1449009923-10726-1-git-send-email-pablombg@gmail.com>
+Cc: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46352 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756807AbbLAUvY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Dec 2015 15:51:24 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 789B212925F
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Dec 2015 21:51:23 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6B429DA809
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Dec 2015 21:51:23 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E8BD9DA804
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Dec 2015 21:51:20 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1448496501-109561-4-git-send-email-jarno@ovn.org>
+Received: from mail-wm0-f48.google.com ([74.125.82.48]:37559 "EHLO
+	mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756417AbbLAWqA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Dec 2015 17:46:00 -0500
+Received: by wmww144 with SMTP id w144so33554892wmw.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 01 Dec 2015 14:45:59 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 25, 2015 at 04:08:16PM -0800, Jarno Rajahalme wrote:
-> NAT checksum recalculation code assumes existence of skb_dst, which
-> becomes a problem for a later patch in the series ("openvswitch:
-> Interface with NAT.").  Simplify this by removing the check on
-> skb_dst, as the checksum will be dealt with later in the stack.
-> 
-> Suggested-by: Pravin Shelar <pshelar@nicira.com>
-> Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
-> ---
->  net/ipv4/netfilter/nf_nat_l3proto_ipv4.c | 29 ++++++++---------------------
->  net/ipv6/netfilter/nf_nat_l3proto_ipv6.c | 29 ++++++++---------------------
->  2 files changed, 16 insertions(+), 42 deletions(-)
-> 
-> diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-> index 5075b7e..f8aad03 100644
-> --- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-> +++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
-> @@ -127,28 +127,15 @@ static void nf_nat_ipv4_csum_recalc(struct sk_buff *skb,
->  				    u8 proto, void *data, __sum16 *check,
->  				    int datalen, int oldlen)
->  {
-> -	const struct iphdr *iph = ip_hdr(skb);
-> -	struct rtable *rt = skb_rtable(skb);
-> -
->  	if (skb->ip_summed != CHECKSUM_PARTIAL) {
-> -		if (!(rt->rt_flags & RTCF_LOCAL) &&
-> -		    (!skb->dev || skb->dev->features & NETIF_F_V4_CSUM)) {
-> -			skb->ip_summed = CHECKSUM_PARTIAL;
-> -			skb->csum_start = skb_headroom(skb) +
-> -					  skb_network_offset(skb) +
-> -					  ip_hdrlen(skb);
-> -			skb->csum_offset = (void *)check - data;
-> -			*check = ~csum_tcpudp_magic(iph->saddr, iph->daddr,
-> -						    datalen, proto, 0);
-> -		} else {
-> -			*check = 0;
-> -			*check = csum_tcpudp_magic(iph->saddr, iph->daddr,
-> -						   datalen, proto,
-> -						   csum_partial(data, datalen,
-> -								0));
-> -			if (proto == IPPROTO_UDP && !*check)
-> -				*check = CSUM_MANGLED_0;
-> -		}
-> +		const struct iphdr *iph = ip_hdr(skb);
-> +
-> +		skb->ip_summed = CHECKSUM_PARTIAL;
-> +		skb->csum_start = skb_headroom(skb) + skb_network_offset(skb) +
-> +			ip_hdrlen(skb);
-> +		skb->csum_offset = (void *)check - data;
-> +		*check = ~csum_tcpudp_magic(iph->saddr, iph->daddr, datalen,
-> +					    proto, 0);
+During tests execution, some *.payload.got files may be generated. To
+avoid annoyances, this commit adds the pattern to .gitignore. Also, the
+file "dup.t.payload.got", that was presumably included by mistake, has
+been deleted.
 
-Is this change going to work with traffic that is redirected to the
-localhost?
+Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
+---
+ .gitignore                            |  3 +++
+ tests/regression/ip/dup.t.payload.got | 26 --------------------------
+ 2 files changed, 3 insertions(+), 26 deletions(-)
+ delete mode 100644 tests/regression/ip/dup.t.payload.got
+
+diff --git a/.gitignore b/.gitignore
+index 63ef1a2..009f7d0 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -24,5 +24,8 @@ ylwrap
+ src/parser_bison.c
+ src/parser_bison.h
+ 
++# Generated by tests
++*.payload.got
++
+ # Debian package build temporary files
+ build-stamp
+diff --git a/tests/regression/ip/dup.t.payload.got b/tests/regression/ip/dup.t.payload.got
+deleted file mode 100644
+index 23e0a7e..0000000
+--- a/tests/regression/ip/dup.t.payload.got
++++ /dev/null
+@@ -1,26 +0,0 @@
+-# dup to 192.168.2.1 device eth0
+-ip test-ip4 input 
+-  [ immediate reg 1 0x0102a8c0 ]
+-  [ immediate reg 2 0x00000002 0x00000000 0x00000000 0x00000000 ]
+-  [ dup sreg_addr 1  sreg_dev 2 ]
+-
+-# dup to ip saddr map { 192.168.2.120 : 192.168.2.1 } device eth0
+-map%d test-ip4 b
+-map%d test-ip4 0
+-	element 7802a8c0  : 0102a8c0 0 [end]
+-ip test-ip4 input 
+-  [ payload load 4b @ network header + 12 => reg 1 ]
+-  [ lookup reg 1 set map%d dreg 1 ]
+-  [ immediate reg 2 0x00000002 0x00000000 0x00000000 0x00000000 ]
+-  [ dup sreg_addr 1  sreg_dev 2 ]
+-
+-# dup to ip saddr map { 192.168.2.120 : 192.168.2.1 } device eth0
+-map%d test-ip4 b
+-map%d test-ip4 0
+-	element 7802a8c0  : 0102a8c0 0 [end]
+-ip test-ip4 input 
+-  [ payload load 4b @ network header + 12 => reg 1 ]
+-  [ lookup reg 1 set map%d dreg 1 ]
+-  [ immediate reg 2 0x00000002 0x00000000 0x00000000 0x00000000 ]
+-  [ dup sreg_addr 1 sreg_dev 2 ]
+-
+-- 
+2.6.2
+
