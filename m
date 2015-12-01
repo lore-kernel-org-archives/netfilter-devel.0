@@ -1,99 +1,85 @@
-From: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
-Subject: [ANNOUNCE] NetDev 1.1 updates (Seville, Spain February 10-12)
-Date: Tue, 1 Dec 2015 20:40:04 +0100
-Message-ID: <20151201194004.GA5774@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net-next v3 3/8] netfilter: Allow calling into nat helper
+ without skb_dst.g
+Date: Tue, 1 Dec 2015 21:51:19 +0100
+Message-ID: <20151201205119.GA2563@salvia>
+References: <1448496501-109561-1-git-send-email-jarno@ovn.org>
+ <1448496501-109561-4-git-send-email-jarno@ovn.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: lwn-T1hC0tSOHrs@public.gmane.org, info-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org
-To: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	dev@openvswitch.org
+To: Jarno Rajahalme <jarno@ovn.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:46352 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756807AbbLAUvY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Dec 2015 15:51:24 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 789B212925F
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Dec 2015 21:51:23 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 6B429DA809
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Dec 2015 21:51:23 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id E8BD9DA804
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Dec 2015 21:51:20 +0100 (CET)
 Content-Disposition: inline
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1448496501-109561-4-git-send-email-jarno@ovn.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi!
+On Wed, Nov 25, 2015 at 04:08:16PM -0800, Jarno Rajahalme wrote:
+> NAT checksum recalculation code assumes existence of skb_dst, which
+> becomes a problem for a later patch in the series ("openvswitch:
+> Interface with NAT.").  Simplify this by removing the check on
+> skb_dst, as the checksum will be dealt with later in the stack.
+> 
+> Suggested-by: Pravin Shelar <pshelar@nicira.com>
+> Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
+> ---
+>  net/ipv4/netfilter/nf_nat_l3proto_ipv4.c | 29 ++++++++---------------------
+>  net/ipv6/netfilter/nf_nat_l3proto_ipv6.c | 29 ++++++++---------------------
+>  2 files changed, 16 insertions(+), 42 deletions(-)
+> 
+> diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+> index 5075b7e..f8aad03 100644
+> --- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+> +++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+> @@ -127,28 +127,15 @@ static void nf_nat_ipv4_csum_recalc(struct sk_buff *skb,
+>  				    u8 proto, void *data, __sum16 *check,
+>  				    int datalen, int oldlen)
+>  {
+> -	const struct iphdr *iph = ip_hdr(skb);
+> -	struct rtable *rt = skb_rtable(skb);
+> -
+>  	if (skb->ip_summed != CHECKSUM_PARTIAL) {
+> -		if (!(rt->rt_flags & RTCF_LOCAL) &&
+> -		    (!skb->dev || skb->dev->features & NETIF_F_V4_CSUM)) {
+> -			skb->ip_summed = CHECKSUM_PARTIAL;
+> -			skb->csum_start = skb_headroom(skb) +
+> -					  skb_network_offset(skb) +
+> -					  ip_hdrlen(skb);
+> -			skb->csum_offset = (void *)check - data;
+> -			*check = ~csum_tcpudp_magic(iph->saddr, iph->daddr,
+> -						    datalen, proto, 0);
+> -		} else {
+> -			*check = 0;
+> -			*check = csum_tcpudp_magic(iph->saddr, iph->daddr,
+> -						   datalen, proto,
+> -						   csum_partial(data, datalen,
+> -								0));
+> -			if (proto == IPPROTO_UDP && !*check)
+> -				*check = CSUM_MANGLED_0;
+> -		}
+> +		const struct iphdr *iph = ip_hdr(skb);
+> +
+> +		skb->ip_summed = CHECKSUM_PARTIAL;
+> +		skb->csum_start = skb_headroom(skb) + skb_network_offset(skb) +
+> +			ip_hdrlen(skb);
+> +		skb->csum_offset = (void *)check - data;
+> +		*check = ~csum_tcpudp_magic(iph->saddr, iph->daddr, datalen,
+> +					    proto, 0);
 
-We would like to share with you some interesting updates regarding
-netdev 1.1, the community-driven Linux networking conference held
-back-to-back with netconf in Sevilla, Spain, February 10-12, 2016.
-
-First off, we're extending our session proposal submission deadline to
-Dec 20th.
-
-Moreover, we already got a good bunch of interesting accepted talks,
-tutorials and workshops, they are:
-
-= Tutorials =
-
-* In-tree support for 100G switch, no more SDK (Elad Raz, Jiri Pirko)
-
-* Using SR-IOV on OpenStack (Alexander Duyck)
-
-* Ipset - a tool for faster, more efficient firewalling with iptables
-  (Jozsef Kadlecsik)
-
-* Using the VRF Implementation in Linux (David Ahern)
-
-* LibOS as a regression test framework for Linux networking (Hajime Tazaki)
-
-= Talks =
-
-* An adventure of analysis and optimisation of the Linux networking
-  stack (Marco Varlese, Kim-marie Jones)
-
-* Networking in your pocket: how the Linux networking stack is made to
-  work on Android devices (Lorenzo Colitti, Erik Kline)
-
-* "Kernel-level GTP (Generic Tunneling Protocol) implementation
-  (Harald Welte & Andreas Schultz)
-
-* State and Future of generic 6LoWPAN branch (Alexander Aring)
-
-* Securing traffic tunnelled over L3 (Sowmini Varadhan)
-
-= Workshops =
-
-We'll be hosting the Linux Wireless Workshop, this meeting provides
-the forum to discuss wireless (mostly 802.11) related topics.
-
-And even more yet to come... We'll keep you posted.
-
-Registration is open at: https://www.netdevconf.org/1.1/registration.html
-
-                          ____________________
-                         / Don't              \
-                         | procrastinate, buy |
-                         \ your ticket now!   /
-                          --------------------
-                            \
-                             \
-                              .--.
-                             |o_o |
-                             |:_/ |
-                            //   \ \
-                           (|     | )
-                          /'\_   _/`\
-                          \___)=(___/
-
-For more info, visit:
-* netdev 1.1: https://www.netdevconf.org/1.1/
-* netconf 2016: http://vger.kernel.org/netconf2016.html
-
-We would also like to thank those that already confirmed sponsorship:
-Cumulus Networks, Facebook, VmWare, Google, Mellanox, Mojatatu
-Networks, OISF/Suricata and Zen Load Balancer. Thank you a lot!
-
-We're still looking for sponsors, in case you can help us, please
-reach us at: sponsor-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org
-
-If you yearn for the old community tech driven conferences where you
-mingle with fellow geeks (only these would be Linux networking geeks)
-then this would be it. There will be no marketing flashy openings.
-There will just be a pure feed of Linux networking.
-
-See you at netdev 1.1 in Seville, Spain!
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Is this change going to work with traffic that is redirected to the
+localhost?
