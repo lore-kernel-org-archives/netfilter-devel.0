@@ -1,84 +1,72 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v3 nf-next 07/12] netfilter: don't call nf_hook_state_init/_hook_slow unless needed
-Date: Thu,  3 Dec 2015 10:49:40 +0100
-Message-ID: <1449136185-4165-8-git-send-email-fw@strlen.de>
+Subject: [PATCH v3 nf-next 09/12] nfnetlink: add nfnl_dereference_protected helper
+Date: Thu,  3 Dec 2015 10:49:42 +0100
+Message-ID: <1449136185-4165-10-git-send-email-fw@strlen.de>
 References: <1449136185-4165-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52606 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52610 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759429AbbLCJuS (ORCPT
+	by vger.kernel.org with ESMTP id S1759429AbbLCJuZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Dec 2015 04:50:18 -0500
+	Thu, 3 Dec 2015 04:50:25 -0500
 In-Reply-To: <1449136185-4165-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-With the previous patches in place, a netns nf_hook_list might be empty,
-even if e.g. init_net performs filtering/conntrack.
-
-Thus, change nf_hook_thresh to check the hook_list as well before
-initializing hook_state and calling nf_hook_slow().
-
-We still make use of static keys, if no netfilter hooks are loaded we can
-elide further testing since list is guaranteed to be empty.
+to avoid overly long line in followup patch.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- no changes since v2
+ not part of v2 series.
 
- include/linux/netfilter.h | 29 +++++++++++------------------
- 1 file changed, 11 insertions(+), 18 deletions(-)
+ net/netfilter/nfnetlink.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 0ad5567..9230f9a 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -141,22 +141,6 @@ void nf_unregister_sockopt(struct nf_sockopt_ops *reg);
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 46453ab..197b2c6 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -33,6 +33,10 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+ MODULE_ALIAS_NET_PF_PROTO(PF_NETLINK, NETLINK_NETFILTER);
  
- #ifdef HAVE_JUMP_LABEL
- extern struct static_key nf_hooks_needed[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
--
--static inline bool nf_hook_list_active(struct list_head *hook_list,
--				       u_int8_t pf, unsigned int hook)
--{
--	if (__builtin_constant_p(pf) &&
--	    __builtin_constant_p(hook))
--		return static_key_false(&nf_hooks_needed[pf][hook]);
--
--	return !list_empty(hook_list);
--}
--#else
--static inline bool nf_hook_list_active(struct list_head *hook_list,
--				       u_int8_t pf, unsigned int hook)
--{
--	return !list_empty(hook_list);
--}
++#define nfnl_dereference_protected(id) \
++	rcu_dereference_protected(table[(id)].subsys, \
++				  lockdep_nfnl_is_held((id)))
++
+ static char __initdata nfversion[] = "0.30";
+ 
+ static struct {
+@@ -207,8 +211,7 @@ replay:
+ 		} else {
+ 			rcu_read_unlock();
+ 			nfnl_lock(subsys_id);
+-			if (rcu_dereference_protected(table[subsys_id].subsys,
+-				lockdep_is_held(&table[subsys_id].mutex)) != ss ||
++			if (nfnl_dereference_protected(subsys_id) != ss ||
+ 			    nfnetlink_find_client(type, ss) != nc)
+ 				err = -EAGAIN;
+ 			else if (nc->call)
+@@ -298,15 +301,13 @@ replay:
+ 	skb->sk = oskb->sk;
+ 
+ 	nfnl_lock(subsys_id);
+-	ss = rcu_dereference_protected(table[subsys_id].subsys,
+-				       lockdep_is_held(&table[subsys_id].mutex));
++	ss = nfnl_dereference_protected(subsys_id);
+ 	if (!ss) {
+ #ifdef CONFIG_MODULES
+ 		nfnl_unlock(subsys_id);
+ 		request_module("nfnetlink-subsys-%d", subsys_id);
+ 		nfnl_lock(subsys_id);
+-		ss = rcu_dereference_protected(table[subsys_id].subsys,
+-					       lockdep_is_held(&table[subsys_id].mutex));
++		ss = nfnl_dereference_protected(subsys_id);
+ 		if (!ss)
  #endif
- 
- int nf_hook_slow(struct sk_buff *skb, struct nf_hook_state *state);
-@@ -177,9 +161,18 @@ static inline int nf_hook_thresh(u_int8_t pf, unsigned int hook,
- 				 int (*okfn)(struct net *, struct sock *, struct sk_buff *),
- 				 int thresh)
- {
--	struct list_head *hook_list = &net->nf.hooks[pf][hook];
-+	struct list_head *hook_list;
-+
-+#ifdef HAVE_JUMP_LABEL
-+	if (__builtin_constant_p(pf) &&
-+	    __builtin_constant_p(hook) &&
-+	    !static_key_false(&nf_hooks_needed[pf][hook]))
-+		return 1;
-+#endif
-+
-+	hook_list = &net->nf.hooks[pf][hook];
- 
--	if (nf_hook_list_active(hook_list, pf, hook)) {
-+	if (!list_empty(hook_list)) {
- 		struct nf_hook_state state;
- 
- 		nf_hook_state_init(&state, hook_list, hook, thresh,
+ 		{
 -- 
 2.4.10
 
