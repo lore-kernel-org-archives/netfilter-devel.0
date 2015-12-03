@@ -1,401 +1,199 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v3 nf-next 04/12] netfilter: defrag: only register defrag functionality if needed
-Date: Thu,  3 Dec 2015 10:49:37 +0100
-Message-ID: <1449136185-4165-5-git-send-email-fw@strlen.de>
+Subject: [PATCH v3 nf-next 08/12] nftables: add conntrack dependencies for nat/masq/redir expressions
+Date: Thu,  3 Dec 2015 10:49:41 +0100
+Message-ID: <1449136185-4165-9-git-send-email-fw@strlen.de>
 References: <1449136185-4165-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52602 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52608 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932858AbbLCJuJ (ORCPT
+	by vger.kernel.org with ESMTP id S1759429AbbLCJuW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Dec 2015 04:50:09 -0500
+	Thu, 3 Dec 2015 04:50:22 -0500
 In-Reply-To: <1449136185-4165-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nf_defrag modules for ipv4 and ipv6 export an empty stub function.
-Any module that needs the defragmentation hooks registered simply 'calls'
-this empty function to create a 'phony' module dependency -- modprobe magic
-will make sure the appropriate defrag module is loaded.
-
-This extends defragmentation to delay the defragmentation hook registration
-until the functionality is requested within a network namespace instead of
-module load time for all namespaces.
-
-Hooks are only un-registered on module unload or when a namespace that used
-such defrag functionality exits.
+so that conntrack core will add the needed hooks in this namespace.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- no changes since v2
+ no changes since v2.
 
- include/net/netfilter/ipv4/nf_defrag_ipv4.h    |  3 +-
- include/net/netfilter/ipv6/nf_defrag_ipv6.h    |  3 +-
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |  7 +++-
- net/ipv4/netfilter/nf_defrag_ipv4.c            | 49 +++++++++++++++++++++++--
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |  7 +++-
- net/ipv6/netfilter/nf_defrag_ipv6_hooks.c      | 50 +++++++++++++++++++++++---
- net/netfilter/xt_TPROXY.c                      | 15 +++++---
- net/netfilter/xt_socket.c                      | 33 ++++++++++++++---
- 8 files changed, 146 insertions(+), 21 deletions(-)
+ net/ipv4/netfilter/nft_masq_ipv4.c  |  7 +++++++
+ net/ipv4/netfilter/nft_redir_ipv4.c |  7 +++++++
+ net/ipv6/netfilter/nft_masq_ipv6.c  |  7 +++++++
+ net/ipv6/netfilter/nft_redir_ipv6.c |  7 +++++++
+ net/netfilter/nft_masq.c            |  5 +++--
+ net/netfilter/nft_nat.c             | 11 ++++++++++-
+ net/netfilter/nft_redir.c           |  2 +-
+ 7 files changed, 42 insertions(+), 4 deletions(-)
 
-diff --git a/include/net/netfilter/ipv4/nf_defrag_ipv4.h b/include/net/netfilter/ipv4/nf_defrag_ipv4.h
-index f01ef20..db405f7 100644
---- a/include/net/netfilter/ipv4/nf_defrag_ipv4.h
-+++ b/include/net/netfilter/ipv4/nf_defrag_ipv4.h
-@@ -1,6 +1,7 @@
- #ifndef _NF_DEFRAG_IPV4_H
- #define _NF_DEFRAG_IPV4_H
+diff --git a/net/ipv4/netfilter/nft_masq_ipv4.c b/net/ipv4/netfilter/nft_masq_ipv4.c
+index b72ffc5..ee5bb98 100644
+--- a/net/ipv4/netfilter/nft_masq_ipv4.c
++++ b/net/ipv4/netfilter/nft_masq_ipv4.c
+@@ -30,12 +30,19 @@ static void nft_masq_ipv4_eval(const struct nft_expr *expr,
+ 						    &range, pkt->out);
+ }
  
--void nf_defrag_ipv4_enable(void);
-+struct net;
-+int nf_defrag_ipv4_enable(struct net *);
- 
- #endif /* _NF_DEFRAG_IPV4_H */
-diff --git a/include/net/netfilter/ipv6/nf_defrag_ipv6.h b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-index ddf162f..7664efe 100644
---- a/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-+++ b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-@@ -1,7 +1,8 @@
- #ifndef _NF_DEFRAG_IPV6_H
- #define _NF_DEFRAG_IPV6_H
- 
--void nf_defrag_ipv6_enable(void);
-+struct net;
-+int nf_defrag_ipv6_enable(struct net *);
- 
- int nf_ct_frag6_init(void);
- void nf_ct_frag6_cleanup(void);
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 8ed9777..909681e 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -385,6 +385,12 @@ static int ipv4_hooks_register(struct net *net)
- 	if (cnet->users > 1)
- 		goto out_unlock;
- 
-+	err = nf_defrag_ipv4_enable(net);
-+	if (err) {
-+		cnet->users = 0;
-+		goto out_unlock;
-+	}
++static void
++nft_masq_ipv4_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
++{
++	nf_ct_netns_put(ctx->net, NFPROTO_IPV4);
++}
 +
- 	err = nf_register_net_hooks(net, ipv4_conntrack_ops,
- 				    ARRAY_SIZE(ipv4_conntrack_ops));
- 
-@@ -490,7 +496,6 @@ static int __init nf_conntrack_l3proto_ipv4_init(void)
- 	int ret = 0;
- 
- 	need_conntrack();
--	nf_defrag_ipv4_enable();
- 
- 	ret = nf_register_sockopt(&so_getorigdst);
- 	if (ret < 0) {
-diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
-index 6fb869f6..c812bf5 100644
---- a/net/ipv4/netfilter/nf_defrag_ipv4.c
-+++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
-@@ -11,6 +11,7 @@
- #include <linux/netfilter.h>
- #include <linux/module.h>
- #include <linux/skbuff.h>
-+#include <net/netns/generic.h>
- #include <net/route.h>
- #include <net/ip.h>
- 
-@@ -22,6 +23,13 @@
- #endif
- #include <net/netfilter/nf_conntrack_zones.h>
- 
-+static int defrag4_net_id __read_mostly;
-+static DEFINE_MUTEX(defrag4_mutex);
-+
-+struct defrag4_net {
-+	bool enabled;
-+};
-+
- static int nf_ct_ipv4_gather_frags(struct net *net, struct sk_buff *skb,
- 				   u_int32_t user)
- {
-@@ -106,18 +114,53 @@ static struct nf_hook_ops ipv4_defrag_ops[] = {
- 	},
+ static struct nft_expr_type nft_masq_ipv4_type;
+ static const struct nft_expr_ops nft_masq_ipv4_ops = {
+ 	.type		= &nft_masq_ipv4_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_masq)),
+ 	.eval		= nft_masq_ipv4_eval,
+ 	.init		= nft_masq_init,
++	.destroy	= nft_masq_ipv4_destroy,
+ 	.dump		= nft_masq_dump,
+ 	.validate	= nft_masq_validate,
  };
+diff --git a/net/ipv4/netfilter/nft_redir_ipv4.c b/net/ipv4/netfilter/nft_redir_ipv4.c
+index c09d438..862eb5a 100644
+--- a/net/ipv4/netfilter/nft_redir_ipv4.c
++++ b/net/ipv4/netfilter/nft_redir_ipv4.c
+@@ -39,12 +39,19 @@ static void nft_redir_ipv4_eval(const struct nft_expr *expr,
+ 						  pkt->hook);
+ }
  
-+static void __net_exit defrag4_net_exit(struct net *net)
++static void
++nft_redir_ipv4_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
 +{
-+	struct defrag4_net *n = net_generic(net, defrag4_net_id);
-+
-+	if (n->enabled)
-+		nf_unregister_net_hooks(net, ipv4_defrag_ops,
-+					ARRAY_SIZE(ipv4_defrag_ops));
++	nf_ct_netns_put(ctx->net, NFPROTO_IPV4);
 +}
 +
-+static struct pernet_operations defrag4_net_ops = {
-+	.exit = defrag4_net_exit,
-+	.id = &defrag4_net_id,
-+	.size = sizeof(struct defrag4_net),
-+};
-+
- static int __init nf_defrag_init(void)
- {
--	return nf_register_hooks(ipv4_defrag_ops, ARRAY_SIZE(ipv4_defrag_ops));
-+	return register_pernet_subsys(&defrag4_net_ops);
- }
- 
- static void __exit nf_defrag_fini(void)
- {
--	nf_unregister_hooks(ipv4_defrag_ops, ARRAY_SIZE(ipv4_defrag_ops));
-+	unregister_pernet_subsys(&defrag4_net_ops);
- }
- 
--void nf_defrag_ipv4_enable(void)
-+int nf_defrag_ipv4_enable(struct net *net)
- {
-+	struct defrag4_net *n = net_generic(net, defrag4_net_id);
-+	int err = 0;
-+
-+	might_sleep();
-+
-+	if (n->enabled)
-+		return 0;
-+
-+	mutex_lock(&defrag4_mutex);
-+	if (n->enabled)
-+		goto out_unlock;
-+
-+	err = nf_register_net_hooks(net, ipv4_defrag_ops,
-+				    ARRAY_SIZE(ipv4_defrag_ops));
-+	if (err == 0)
-+		n->enabled = true;
-+
-+ out_unlock:
-+	mutex_unlock(&defrag4_mutex);
-+	return err;
- }
- EXPORT_SYMBOL_GPL(nf_defrag_ipv4_enable);
- 
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index 92a090f..1e6a5f4 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -325,6 +325,12 @@ static int ipv6_hooks_register(struct net *net)
- 	if (cnet->users > 1)
- 		goto out_unlock;
- 
-+	err = nf_defrag_ipv6_enable(net);
-+	if (err < 0) {
-+		cnet->users = 0;
-+		goto out_unlock;
-+	}
-+
- 	err = nf_register_net_hooks(net, ipv6_conntrack_ops,
- 				    ARRAY_SIZE(ipv6_conntrack_ops));
- 	if (err)
-@@ -430,7 +436,6 @@ static int __init nf_conntrack_l3proto_ipv6_init(void)
- 	int ret = 0;
- 
- 	need_conntrack();
--	nf_defrag_ipv6_enable();
- 
- 	ret = nf_register_sockopt(&so_getorigdst6);
- 	if (ret < 0) {
-diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-index f7aab5a..b3c10f4 100644
---- a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-+++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-@@ -30,6 +30,13 @@
- #include <net/netfilter/nf_conntrack_zones.h>
- #include <net/netfilter/ipv6/nf_defrag_ipv6.h>
- 
-+static int defrag6_net_id __read_mostly;
-+static DEFINE_MUTEX(defrag6_mutex);
-+
-+struct defrag6_net {
-+	bool enabled;
-+};
-+
- static enum ip6_defrag_users nf_ct6_defrag_user(unsigned int hooknum,
- 						struct sk_buff *skb)
- {
-@@ -87,6 +94,21 @@ static struct nf_hook_ops ipv6_defrag_ops[] = {
- 	},
+ static struct nft_expr_type nft_redir_ipv4_type;
+ static const struct nft_expr_ops nft_redir_ipv4_ops = {
+ 	.type		= &nft_redir_ipv4_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_redir)),
+ 	.eval		= nft_redir_ipv4_eval,
+ 	.init		= nft_redir_init,
++	.destroy	= nft_redir_ipv4_destroy,
+ 	.dump		= nft_redir_dump,
+ 	.validate	= nft_redir_validate,
  };
+diff --git a/net/ipv6/netfilter/nft_masq_ipv6.c b/net/ipv6/netfilter/nft_masq_ipv6.c
+index cd1ac16..a8b3626 100644
+--- a/net/ipv6/netfilter/nft_masq_ipv6.c
++++ b/net/ipv6/netfilter/nft_masq_ipv6.c
+@@ -30,12 +30,19 @@ static void nft_masq_ipv6_eval(const struct nft_expr *expr,
+ 	regs->verdict.code = nf_nat_masquerade_ipv6(pkt->skb, &range, pkt->out);
+ }
  
-+static void __net_exit defrag6_net_exit(struct net *net)
++static void
++nft_masq_ipv6_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
 +{
-+	struct defrag6_net *n = net_generic(net, defrag6_net_id);
-+
-+	if (n->enabled)
-+		nf_unregister_net_hooks(net, ipv6_defrag_ops,
-+					ARRAY_SIZE(ipv6_defrag_ops));
++	nf_ct_netns_put(ctx->net, NFPROTO_IPV6);
 +}
 +
-+static struct pernet_operations defrag6_net_ops = {
-+	.exit = defrag6_net_exit,
-+	.id = &defrag6_net_id,
-+	.size = sizeof(struct defrag6_net),
-+};
-+
- static int __init nf_defrag_init(void)
- {
- 	int ret = 0;
-@@ -96,9 +118,9 @@ static int __init nf_defrag_init(void)
- 		pr_err("nf_defrag_ipv6: can't initialize frag6.\n");
- 		return ret;
- 	}
--	ret = nf_register_hooks(ipv6_defrag_ops, ARRAY_SIZE(ipv6_defrag_ops));
-+	ret = register_pernet_subsys(&defrag6_net_ops);
- 	if (ret < 0) {
--		pr_err("nf_defrag_ipv6: can't register hooks\n");
-+		pr_err("nf_defrag_ipv6: can't register pernet ops\n");
- 		goto cleanup_frag6;
- 	}
- 	return ret;
-@@ -111,12 +133,32 @@ cleanup_frag6:
- 
- static void __exit nf_defrag_fini(void)
- {
--	nf_unregister_hooks(ipv6_defrag_ops, ARRAY_SIZE(ipv6_defrag_ops));
-+	unregister_pernet_subsys(&defrag6_net_ops);
- 	nf_ct_frag6_cleanup();
+ static struct nft_expr_type nft_masq_ipv6_type;
+ static const struct nft_expr_ops nft_masq_ipv6_ops = {
+ 	.type		= &nft_masq_ipv6_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_masq)),
+ 	.eval		= nft_masq_ipv6_eval,
+ 	.init		= nft_masq_init,
++	.destroy	= nft_masq_ipv6_destroy,
+ 	.dump		= nft_masq_dump,
+ 	.validate	= nft_masq_validate,
+ };
+diff --git a/net/ipv6/netfilter/nft_redir_ipv6.c b/net/ipv6/netfilter/nft_redir_ipv6.c
+index aca44e8..ef673cd 100644
+--- a/net/ipv6/netfilter/nft_redir_ipv6.c
++++ b/net/ipv6/netfilter/nft_redir_ipv6.c
+@@ -38,12 +38,19 @@ static void nft_redir_ipv6_eval(const struct nft_expr *expr,
+ 	regs->verdict.code = nf_nat_redirect_ipv6(pkt->skb, &range, pkt->hook);
  }
  
--void nf_defrag_ipv6_enable(void)
-+int nf_defrag_ipv6_enable(struct net *net)
- {
-+	struct defrag6_net *n = net_generic(net, defrag6_net_id);
-+	int err = 0;
-+
-+	might_sleep();
-+
-+	if (n->enabled)
-+		return 0;
-+
-+	mutex_lock(&defrag6_mutex);
-+	if (n->enabled)
-+		goto out_unlock;
-+
-+	err = nf_register_net_hooks(net, ipv6_defrag_ops,
-+				    ARRAY_SIZE(ipv6_defrag_ops));
-+	if (err == 0)
-+		n->enabled = true;
-+
-+ out_unlock:
-+	mutex_unlock(&defrag6_mutex);
-+	return err;
- }
- EXPORT_SYMBOL_GPL(nf_defrag_ipv6_enable);
- 
-diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
-index 3ab591e..f091244 100644
---- a/net/netfilter/xt_TPROXY.c
-+++ b/net/netfilter/xt_TPROXY.c
-@@ -516,6 +516,11 @@ tproxy_tg6_v1(struct sk_buff *skb, const struct xt_action_param *par)
- static int tproxy_tg6_check(const struct xt_tgchk_param *par)
- {
- 	const struct ip6t_ip6 *i = par->entryinfo;
-+	int err;
-+
-+	err = nf_defrag_ipv6_enable(par->net);
-+	if (err)
-+		return err;
- 
- 	if ((i->proto == IPPROTO_TCP || i->proto == IPPROTO_UDP) &&
- 	    !(i->invflags & IP6T_INV_PROTO))
-@@ -530,6 +535,11 @@ static int tproxy_tg6_check(const struct xt_tgchk_param *par)
- static int tproxy_tg4_check(const struct xt_tgchk_param *par)
- {
- 	const struct ipt_ip *i = par->entryinfo;
-+	int err;
-+
-+	err = nf_defrag_ipv4_enable(par->net);
-+	if (err)
-+		return err;
- 
- 	if ((i->proto == IPPROTO_TCP || i->proto == IPPROTO_UDP)
- 	    && !(i->invflags & IPT_INV_PROTO))
-@@ -581,11 +591,6 @@ static struct xt_target tproxy_tg_reg[] __read_mostly = {
- 
- static int __init tproxy_tg_init(void)
- {
--	nf_defrag_ipv4_enable();
--#ifdef XT_TPROXY_HAVE_IPV6
--	nf_defrag_ipv6_enable();
--#endif
--
- 	return xt_register_targets(tproxy_tg_reg, ARRAY_SIZE(tproxy_tg_reg));
- }
- 
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index 2ec08f0..d0f0064 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -418,9 +418,28 @@ socket_mt6_v1_v2_v3(const struct sk_buff *skb, struct xt_action_param *par)
- }
- #endif
- 
-+static int socket_mt_enable_defrag(struct net *net, int family)
++static void
++nft_redir_ipv6_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
 +{
-+	switch (family) {
-+	case NFPROTO_IPV4:
-+		return nf_defrag_ipv4_enable(net);
-+#ifdef XT_SOCKET_HAVE_IPV6
-+	case NFPROTO_IPV6:
-+		return nf_defrag_ipv6_enable(net);
-+#endif
-+	}
-+	WARN_ONCE(1, "Unknown family %d\n", family);
-+	return 0;
++	nf_ct_netns_put(ctx->net, NFPROTO_IPV6);
 +}
 +
- static int socket_mt_v1_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
-+	int err;
-+
-+	err = socket_mt_enable_defrag(par->net, par->family);
-+	if (err)
-+		return err;
+ static struct nft_expr_type nft_redir_ipv6_type;
+ static const struct nft_expr_ops nft_redir_ipv6_ops = {
+ 	.type		= &nft_redir_ipv6_type,
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_redir)),
+ 	.eval		= nft_redir_ipv6_eval,
+ 	.init		= nft_redir_init,
++	.destroy	= nft_redir_ipv6_destroy,
+ 	.dump		= nft_redir_dump,
+ 	.validate	= nft_redir_validate,
+ };
+diff --git a/net/netfilter/nft_masq.c b/net/netfilter/nft_masq.c
+index 9aea747..c7269c3 100644
+--- a/net/netfilter/nft_masq.c
++++ b/net/netfilter/nft_masq.c
+@@ -48,13 +48,14 @@ int nft_masq_init(const struct nft_ctx *ctx,
+ 		return err;
  
- 	if (info->flags & ~XT_SOCKET_FLAGS_V1) {
- 		pr_info("unknown flags 0x%x\n", info->flags & ~XT_SOCKET_FLAGS_V1);
-@@ -432,6 +451,11 @@ static int socket_mt_v1_check(const struct xt_mtchk_param *par)
- static int socket_mt_v2_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_socket_mtinfo2 *info = (struct xt_socket_mtinfo2 *) par->matchinfo;
-+	int err;
-+
-+	err = socket_mt_enable_defrag(par->net, par->family);
-+	if (err)
-+		return err;
+ 	if (tb[NFTA_MASQ_FLAGS] == NULL)
+-		return 0;
++		goto out;
  
- 	if (info->flags & ~XT_SOCKET_FLAGS_V2) {
- 		pr_info("unknown flags 0x%x\n", info->flags & ~XT_SOCKET_FLAGS_V2);
-@@ -444,7 +468,11 @@ static int socket_mt_v3_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_socket_mtinfo3 *info =
- 				    (struct xt_socket_mtinfo3 *)par->matchinfo;
-+	int err;
+ 	priv->flags = ntohl(nla_get_be32(tb[NFTA_MASQ_FLAGS]));
+ 	if (priv->flags & ~NF_NAT_RANGE_MASK)
+ 		return -EINVAL;
++ out:
++	return nf_ct_netns_get(ctx->net, ctx->afi->family);
  
-+	err = socket_mt_enable_defrag(par->net, par->family);
-+	if (err)
-+		return err;
- 	if (info->flags & ~XT_SOCKET_FLAGS_V3) {
- 		pr_info("unknown flags 0x%x\n",
- 			info->flags & ~XT_SOCKET_FLAGS_V3);
-@@ -539,11 +567,6 @@ static struct xt_match socket_mt_reg[] __read_mostly = {
- 
- static int __init socket_mt_init(void)
- {
--	nf_defrag_ipv4_enable();
--#ifdef XT_SOCKET_HAVE_IPV6
--	nf_defrag_ipv6_enable();
--#endif
--
- 	return xt_register_matches(socket_mt_reg, ARRAY_SIZE(socket_mt_reg));
+-	return 0;
  }
+ EXPORT_SYMBOL_GPL(nft_masq_init);
+ 
+diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
+index ee2d717..19a7bf3 100644
+--- a/net/netfilter/nft_nat.c
++++ b/net/netfilter/nft_nat.c
+@@ -209,7 +209,7 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 			return -EINVAL;
+ 	}
+ 
+-	return 0;
++	return nf_ct_netns_get(ctx->net, family);
+ }
+ 
+ static int nft_nat_dump(struct sk_buff *skb, const struct nft_expr *expr)
+@@ -257,12 +257,21 @@ nla_put_failure:
+ 	return -1;
+ }
+ 
++static void
++nft_nat_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
++{
++	const struct nft_nat *priv = nft_expr_priv(expr);
++
++	nf_ct_netns_put(ctx->net, priv->family);
++}
++
+ static struct nft_expr_type nft_nat_type;
+ static const struct nft_expr_ops nft_nat_ops = {
+ 	.type           = &nft_nat_type,
+ 	.size           = NFT_EXPR_SIZE(sizeof(struct nft_nat)),
+ 	.eval           = nft_nat_eval,
+ 	.init           = nft_nat_init,
++	.destroy        = nft_nat_destroy,
+ 	.dump           = nft_nat_dump,
+ 	.validate	= nft_nat_validate,
+ };
+diff --git a/net/netfilter/nft_redir.c b/net/netfilter/nft_redir.c
+index 03f7bf4..f8227ec 100644
+--- a/net/netfilter/nft_redir.c
++++ b/net/netfilter/nft_redir.c
+@@ -79,7 +79,7 @@ int nft_redir_init(const struct nft_ctx *ctx,
+ 			return -EINVAL;
+ 	}
+ 
+-	return 0;
++	return nf_ct_netns_get(ctx->net, ctx->afi->family);
+ }
+ EXPORT_SYMBOL_GPL(nft_redir_init);
  
 -- 
 2.4.10
