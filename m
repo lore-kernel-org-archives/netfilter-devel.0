@@ -1,48 +1,84 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 2/2] src: fix sub-bytes protocol header definition
-Date: Fri, 4 Dec 2015 19:45:24 +0100
-Message-ID: <20151204184524.GA914@salvia>
-References: <1448991867-21247-1-git-send-email-pablo@netfilter.org>
- <1448991867-21247-2-git-send-email-pablo@netfilter.org>
- <20151203002135.GA31167@breakpoint.cc>
+From: Pravin Shelar <pshelar@nicira.com>
+Subject: Re: [ovs-dev] [PATCH net-next v3 3/8] netfilter: Allow calling into
+ nat helper without skb_dst.g
+Date: Fri, 4 Dec 2015 15:45:33 -0800
+Message-ID: <CALnjE+r_af=4c3T-2UC3ZVRYXZ-qWr-QewCpPDhFnw-b-ahVSw@mail.gmail.com>
+References: <1448496501-109561-1-git-send-email-jarno@ovn.org>
+	<1448496501-109561-4-git-send-email-jarno@ovn.org>
+	<20151201205119.GA2563@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=UTF-8
+Cc: Jarno Rajahalme <jarno@ovn.org>,
+	"dev@openvswitch.org" <dev@openvswitch.org>,
+	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53919 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754532AbbLDSpc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Dec 2015 13:45:32 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 09D26C51B7
-	for <netfilter-devel@vger.kernel.org>; Fri,  4 Dec 2015 19:45:31 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 000F9DA795
-	for <netfilter-devel@vger.kernel.org>; Fri,  4 Dec 2015 19:45:30 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id F38FCDA804
-	for <netfilter-devel@vger.kernel.org>; Fri,  4 Dec 2015 19:45:25 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20151203002135.GA31167@breakpoint.cc>
+Received: from mail-ig0-f175.google.com ([209.85.213.175]:35647 "EHLO
+	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751883AbbLDXpe (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Dec 2015 18:45:34 -0500
+Received: by igl9 with SMTP id 9so43397801igl.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 04 Dec 2015 15:45:34 -0800 (PST)
+In-Reply-To: <20151201205119.GA2563@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Dec 03, 2015 at 01:21:35AM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > This aims to fix what we have, I'm willing to give another pass to this.
-> 
-> vlan type ip vlan id 4094 ip version 4 counter packets 567 bytes 37720
-> vlan type ip vlan id 4094 vlan pcp 0 vlan cfi 0 counter packets 567 bytes 37720
-> vlan type ip vlan id 4094 vlan pcp 1 vlan cfi 1 counter packets 0 bytes 0
-> vlan type ip vlan id 4094 vlan pcp 1 vlan cfi 0 counter packets 0 bytes 0
-> vlan type ip vlan id 4094 vlan pcp 0 vlan cfi 1 counter packets 0 bytes 0
-> 
-> tpcdump says:
-> 'length 194: vlan 4094, p 0, ethertype IPv4', i.e. this looks correct.
+On Tue, Dec 1, 2015 at 12:51 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Nov 25, 2015 at 04:08:16PM -0800, Jarno Rajahalme wrote:
+>> NAT checksum recalculation code assumes existence of skb_dst, which
+>> becomes a problem for a later patch in the series ("openvswitch:
+>> Interface with NAT.").  Simplify this by removing the check on
+>> skb_dst, as the checksum will be dealt with later in the stack.
+>>
+>> Suggested-by: Pravin Shelar <pshelar@nicira.com>
+>> Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
+>> ---
+>>  net/ipv4/netfilter/nf_nat_l3proto_ipv4.c | 29 ++++++++---------------------
+>>  net/ipv6/netfilter/nf_nat_l3proto_ipv6.c | 29 ++++++++---------------------
+>>  2 files changed, 16 insertions(+), 42 deletions(-)
+>>
+>> diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+>> index 5075b7e..f8aad03 100644
+>> --- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+>> +++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
+>> @@ -127,28 +127,15 @@ static void nf_nat_ipv4_csum_recalc(struct sk_buff *skb,
+>>                                   u8 proto, void *data, __sum16 *check,
+>>                                   int datalen, int oldlen)
+>>  {
+>> -     const struct iphdr *iph = ip_hdr(skb);
+>> -     struct rtable *rt = skb_rtable(skb);
+>> -
+>>       if (skb->ip_summed != CHECKSUM_PARTIAL) {
+>> -             if (!(rt->rt_flags & RTCF_LOCAL) &&
+>> -                 (!skb->dev || skb->dev->features & NETIF_F_V4_CSUM)) {
+>> -                     skb->ip_summed = CHECKSUM_PARTIAL;
+>> -                     skb->csum_start = skb_headroom(skb) +
+>> -                                       skb_network_offset(skb) +
+>> -                                       ip_hdrlen(skb);
+>> -                     skb->csum_offset = (void *)check - data;
+>> -                     *check = ~csum_tcpudp_magic(iph->saddr, iph->daddr,
+>> -                                                 datalen, proto, 0);
+>> -             } else {
+>> -                     *check = 0;
+>> -                     *check = csum_tcpudp_magic(iph->saddr, iph->daddr,
+>> -                                                datalen, proto,
+>> -                                                csum_partial(data, datalen,
+>> -                                                             0));
+>> -                     if (proto == IPPROTO_UDP && !*check)
+>> -                             *check = CSUM_MANGLED_0;
+>> -             }
+>> +             const struct iphdr *iph = ip_hdr(skb);
+>> +
+>> +             skb->ip_summed = CHECKSUM_PARTIAL;
+>> +             skb->csum_start = skb_headroom(skb) + skb_network_offset(skb) +
+>> +                     ip_hdrlen(skb);
+>> +             skb->csum_offset = (void *)check - data;
+>> +             *check = ~csum_tcpudp_magic(iph->saddr, iph->daddr, datalen,
+>> +                                         proto, 0);
+>
+> Is this change going to work with traffic that is redirected to the
+> localhost?
 
-Thanks for testing.
-
-I have a new patchset including this refined patch. It also includes
-set matching for sub-byte fields. I have also used Patrick's idea of
-using shifts through binop transfer. Will be submitting this tomorrow.
+localhost should handle CHECKSUM_PARTIAL just fine. So I do not see
+problem with always converting skb to CHECKSUM_PARTIAL skb.
