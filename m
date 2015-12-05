@@ -1,84 +1,48 @@
-From: Pravin Shelar <pshelar@nicira.com>
-Subject: Re: [ovs-dev] [PATCH net-next v3 3/8] netfilter: Allow calling into
- nat helper without skb_dst.g
-Date: Fri, 4 Dec 2015 15:45:33 -0800
-Message-ID: <CALnjE+r_af=4c3T-2UC3ZVRYXZ-qWr-QewCpPDhFnw-b-ahVSw@mail.gmail.com>
-References: <1448496501-109561-1-git-send-email-jarno@ovn.org>
-	<1448496501-109561-4-git-send-email-jarno@ovn.org>
-	<20151201205119.GA2563@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Jarno Rajahalme <jarno@ovn.org>,
-	"dev@openvswitch.org" <dev@openvswitch.org>,
-	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Tomer Barletz <barletz@gmail.com>
+Subject: [PATCH] netfilter: Initialize local variables to NULL, to prevent using them when uninitialized.
+Date: Sat,  5 Dec 2015 02:08:43 -0800
+Message-ID: <1449310123-31503-1-git-send-email-barletz@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Tomer Barletz <barletz@gmail.com>
+To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ig0-f175.google.com ([209.85.213.175]:35647 "EHLO
-	mail-ig0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751883AbbLDXpe (ORCPT
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:34442 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753326AbbLEKKg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Dec 2015 18:45:34 -0500
-Received: by igl9 with SMTP id 9so43397801igl.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 04 Dec 2015 15:45:34 -0800 (PST)
-In-Reply-To: <20151201205119.GA2563@salvia>
+	Sat, 5 Dec 2015 05:10:36 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 1, 2015 at 12:51 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Nov 25, 2015 at 04:08:16PM -0800, Jarno Rajahalme wrote:
->> NAT checksum recalculation code assumes existence of skb_dst, which
->> becomes a problem for a later patch in the series ("openvswitch:
->> Interface with NAT.").  Simplify this by removing the check on
->> skb_dst, as the checksum will be dealt with later in the stack.
->>
->> Suggested-by: Pravin Shelar <pshelar@nicira.com>
->> Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
->> ---
->>  net/ipv4/netfilter/nf_nat_l3proto_ipv4.c | 29 ++++++++---------------------
->>  net/ipv6/netfilter/nf_nat_l3proto_ipv6.c | 29 ++++++++---------------------
->>  2 files changed, 16 insertions(+), 42 deletions(-)
->>
->> diff --git a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
->> index 5075b7e..f8aad03 100644
->> --- a/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
->> +++ b/net/ipv4/netfilter/nf_nat_l3proto_ipv4.c
->> @@ -127,28 +127,15 @@ static void nf_nat_ipv4_csum_recalc(struct sk_buff *skb,
->>                                   u8 proto, void *data, __sum16 *check,
->>                                   int datalen, int oldlen)
->>  {
->> -     const struct iphdr *iph = ip_hdr(skb);
->> -     struct rtable *rt = skb_rtable(skb);
->> -
->>       if (skb->ip_summed != CHECKSUM_PARTIAL) {
->> -             if (!(rt->rt_flags & RTCF_LOCAL) &&
->> -                 (!skb->dev || skb->dev->features & NETIF_F_V4_CSUM)) {
->> -                     skb->ip_summed = CHECKSUM_PARTIAL;
->> -                     skb->csum_start = skb_headroom(skb) +
->> -                                       skb_network_offset(skb) +
->> -                                       ip_hdrlen(skb);
->> -                     skb->csum_offset = (void *)check - data;
->> -                     *check = ~csum_tcpudp_magic(iph->saddr, iph->daddr,
->> -                                                 datalen, proto, 0);
->> -             } else {
->> -                     *check = 0;
->> -                     *check = csum_tcpudp_magic(iph->saddr, iph->daddr,
->> -                                                datalen, proto,
->> -                                                csum_partial(data, datalen,
->> -                                                             0));
->> -                     if (proto == IPPROTO_UDP && !*check)
->> -                             *check = CSUM_MANGLED_0;
->> -             }
->> +             const struct iphdr *iph = ip_hdr(skb);
->> +
->> +             skb->ip_summed = CHECKSUM_PARTIAL;
->> +             skb->csum_start = skb_headroom(skb) + skb_network_offset(skb) +
->> +                     ip_hdrlen(skb);
->> +             skb->csum_offset = (void *)check - data;
->> +             *check = ~csum_tcpudp_magic(iph->saddr, iph->daddr, datalen,
->> +                                         proto, 0);
->
-> Is this change going to work with traffic that is redirected to the
-> localhost?
+Signed-off-by: Tomer Barletz <barletz@gmail.com>
+---
+ net/netfilter/nfnetlink_queue.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-localhost should handle CHECKSUM_PARTIAL just fine. So I do not see
-problem with always converting skb to CHECKSUM_PARTIAL skb.
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 7d81d28..e8be660 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -313,7 +313,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 	struct net_device *outdev;
+ 	struct nf_conn *ct = NULL;
+ 	enum ip_conntrack_info uninitialized_var(ctinfo);
+-	struct nfnl_ct_hook *nfnl_ct;
++	struct nfnl_ct_hook *nfnl_ct = NULL;
+ 	bool csum_verify;
+ 	char *secdata = NULL;
+ 	u32 seclen = 0;
+@@ -1041,7 +1041,7 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
+ 	unsigned int verdict;
+ 	struct nf_queue_entry *entry;
+ 	enum ip_conntrack_info uninitialized_var(ctinfo);
+-	struct nfnl_ct_hook *nfnl_ct;
++	struct nfnl_ct_hook *nfnl_ct = NULL;
+ 	struct nf_conn *ct = NULL;
+ 
+ 	struct net *net = sock_net(ctnl);
+-- 
+2.5.0
+
