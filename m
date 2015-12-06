@@ -1,57 +1,137 @@
 From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: Re: [PATCH] extensions: libxt_mark: Add translation to nft
-Date: Sun, 6 Dec 2015 08:18:28 +0530
-Message-ID: <CAKHNQQE5Vdp5cFKA3dLoScQWTJ5G-cRxeT2DF9VwArnMBJ88Bg@mail.gmail.com>
-References: <1449321576-20705-1-git-send-email-shivanib134@gmail.com>
- <20151205191409.GA2830@salvia> <20151205231446.GA1148@salvia>
+Subject: [PATCH v2] extensions: libxt_mark: Add translation to nft
+Date: Sun, 6 Dec 2015 09:02:14 +0530
+Message-ID: <20151206033214.GA5939@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:33933 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752380AbbLFCst (ORCPT
+Received: from mail-pf0-f177.google.com ([209.85.192.177]:33483 "EHLO
+	mail-pf0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752380AbbLFDcX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Dec 2015 21:48:49 -0500
-Received: by wmvv187 with SMTP id v187so122992965wmv.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 05 Dec 2015 18:48:48 -0800 (PST)
-In-Reply-To: <20151205231446.GA1148@salvia>
+	Sat, 5 Dec 2015 22:32:23 -0500
+Received: by pfnn128 with SMTP id n128so46394293pfn.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 05 Dec 2015 19:32:23 -0800 (PST)
+Received: from gmail.com ([14.139.240.83])
+        by smtp.gmail.com with ESMTPSA id u67sm25909689pfi.74.2015.12.05.19.32.21
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Sat, 05 Dec 2015 19:32:22 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Dec 6, 2015 at 4:44 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sat, Dec 05, 2015 at 08:14:09PM +0100, Pablo Neira Ayuso wrote:
->> Hi Shivani,
->>
->> On Sat, Dec 05, 2015 at 06:49:36PM +0530, Shivani Bhardwaj wrote:
->> > Add translation of the metainformation mark to nft.
->> >
->> > Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
->> > ---
->> >  extensions/libxt_mark.c | 60 +++++++++++++++++++++++++++++++++++++++++++++++++
->> >  1 file changed, 60 insertions(+)
->> >
->> > diff --git a/extensions/libxt_mark.c b/extensions/libxt_mark.c
->> > index 7f8c995..5105bf9 100644
->> > --- a/extensions/libxt_mark.c
->> > +++ b/extensions/libxt_mark.c
->> > @@ -102,6 +102,64 @@ mark_save(const void *ip, const struct xt_entry_match *match)
->> >     print_mark(info->mark, info->mask);
->> >  }
->> >
->> > +static void
->> > +print_mark_xlate(struct xt_buf *buf,
->> > +            unsigned int mark, unsigned int mask)
->> > +{
->> > +        if (mask != 0xffffffffU)
->> > +                xt_buf_add(buf, " 0x%x/0x%x", mark, mask);
->>
->> In nftables this should be translated to &.
->
-> I mean:
->         xt_buf_add(buf, " & x%x == x%x", mask, mark);
+Add translation of the metainformation mark to nft.
 
-OK. I'm sending version 2. Please check it.
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+Changes in v2:
+	Fix syntax according to nft and remove trailing whitespaces
 
-Thank you
+ extensions/libxt_mark.c | 64 +++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 62 insertions(+), 2 deletions(-)
+
+diff --git a/extensions/libxt_mark.c b/extensions/libxt_mark.c
+index 7f8c995..b0c06c2 100644
+--- a/extensions/libxt_mark.c
++++ b/extensions/libxt_mark.c
+@@ -75,7 +75,7 @@ mark_print(const void *ip, const struct xt_entry_match *match, int numeric)
+ 
+ 	if (info->invert)
+ 		printf(" !");
+-	
++
+ 	print_mark(info->mark, info->mask);
+ }
+ 
+@@ -97,11 +97,69 @@ mark_save(const void *ip, const struct xt_entry_match *match)
+ 
+ 	if (info->invert)
+ 		printf(" !");
+-	
++
+ 	printf(" --mark");
+ 	print_mark(info->mark, info->mask);
+ }
+ 
++static void
++print_mark_xlate(struct xt_buf *buf,
++		 unsigned int mark, unsigned int mask)
++{
++        if (mask != 0xffffffffU)
++                xt_buf_add(buf, " & x%x == x%x", mark, mask);
++        else
++                xt_buf_add(buf, " & x%x", mark);
++}
++
++static void
++mark_mt_xlate_print(const struct xt_entry_match *match,
++		    struct xt_buf *buf, int numeric)
++{
++	const struct xt_mark_mtinfo1 *info = (const void *)match->data;
++
++	if (info->invert)
++		xt_buf_add(buf, " !=");
++	print_mark_xlate(buf, info->mark, info->mask);
++}
++
++static int
++mark_mt_xlate(const struct xt_entry_match *match,
++	      struct xt_buf *buf, int numeric)
++{
++	const struct xt_mark_mtinfo1 *info = (const void *)match->data;
++
++	xt_buf_add(buf, "ct mark %s", info->invert ? " !=" : "");
++        print_mark_xlate(buf, info->mark, info->mask);
++        xt_buf_add(buf, " ");
++
++        return 1;
++}
++
++static void
++mark_xlate_print(const struct xt_entry_match *match,
++		 struct xt_buf *buf, int numeric)
++{
++	const struct xt_mark_info *info = (const void *)match->data;
++
++        if (info->invert)
++                xt_buf_add(buf, " !=");
++        print_mark_xlate(buf, info->mark, info->mask);
++}
++
++static int
++mark_xlate(const struct xt_entry_match *match,
++	   struct xt_buf *buf, int numeric)
++{
++	const struct xt_mark_info *info = (const void *)match->data;
++
++	xt_buf_add(buf, "ct mark %s", info->invert ? " !=" : "");
++	print_mark_xlate(buf, info->mark, info->mask);
++	xt_buf_add(buf, " ");
++
++	return 1;
++}
++
+ static struct xtables_match mark_mt_reg[] = {
+ 	{
+ 		.family        = NFPROTO_UNSPEC,
+@@ -115,6 +173,7 @@ static struct xtables_match mark_mt_reg[] = {
+ 		.save          = mark_save,
+ 		.x6_parse      = mark_parse,
+ 		.x6_options    = mark_mt_opts,
++		.xlate	       = mark_xlate,
+ 	},
+ 	{
+ 		.version       = XTABLES_VERSION,
+@@ -128,6 +187,7 @@ static struct xtables_match mark_mt_reg[] = {
+ 		.save          = mark_mt_save,
+ 		.x6_parse      = mark_mt_parse,
+ 		.x6_options    = mark_mt_opts,
++		.xlate         = mark_mt_xlate,
+ 	},
+ };
+ 
+-- 
+1.9.1
+
