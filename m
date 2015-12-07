@@ -1,42 +1,63 @@
-From: Nikolay Borisov <kernel@kyup.com>
-Subject: [PATCH] netfilter: nfnetlink_queue: Unregister pernet subsys in case of init failure
-Date: Mon,  7 Dec 2015 12:13:26 +0200
-Message-ID: <1449483206-22618-1-git-send-email-kernel@kyup.com>
-Cc: pablo@netfilter.org, kadlec@blackhole.kfki.hu,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, davem@davemloft.net
-To: fruggeri@arista.com
+From: Xin Long <lucien.xin@gmail.com>
+Subject: [PATCH net] nftables: use list_for_each_entry_safe_reverse to traversal commit_list in nf_tables_abort
+Date: Mon,  7 Dec 2015 18:48:07 +0800
+Message-ID: <15bcb964221e1a9498e901417d020609cd5aac65.1449485287.git.lucien.xin@gmail.com>
+Cc: davem@davemloft.net, fw@strlen.de
+To: network dev <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Commit 3bfe049807c2403 ('netfilter: nfnetlink_{log,queue}:
-Register pernet in first place') reorganised the initialisation
-order of the pernet_subsys to avoid "use-before-initialised"
-condition. However, in doing so the cleanup logic in nfnetlink_queue
-got botched in that the pernet_subsys wasn't cleaned in case
-nfnetlink_subsys_register failed. This patch adds the necessary
-cleanup routine call.
+when we use 'nft -f' to sumbit rules, it will build multiple rules into
+one netlink skb to send to kernel, kernel will process them one by one.
+meanwhile, it add the trans into commit_list to record every commit.
+if one of them's return value is -EAGAIN, status |= NFNL_BATCH_REPLAY
+will be marked. after all the process is done. it will roll back all the
+commits.
 
-Fixes: 3bfe049807c2403 ('netfilter: nfnetlink_{log,queue}: Register
-						pernet in first place')
+now kernel use list_add_tail to add trans to commit, and use
+list_for_each_entry_safe to roll back. which means the order of adding
+and rollback is the same. that will cause some cases cannot work well,
+even trigger call trace, like:
 
-Signed-off-by: Nikolay Borisov <kernel@kyup.com>
+1. add a set into table foo  [return -EAGAIN]:
+   commit_list = 'add set trans'
+2. del foo:
+   commit_list = 'add set trans' -> 'del set trans' -> 'del tab trans'
+then nf_tables_abort will be called to roll back:
+firstly process 'add set trans':
+                   case NFT_MSG_NEWSET:
+                        trans->ctx.table->use--;
+                        list_del_rcu(&nft_trans_set(trans)->list);
+
+  it will del the set from the table foo, but it has removed when del
+  table foo [step 2], then the kernel will panic.
+
+the right order of rollback should be:
+  'del tab trans' -> 'del set trans' -> 'add set trans'.
+which is opposite with commit_list order.
+
+so fix it by rolling back commits with reverse order in nf_tables_abort.
+
+Signed-off-by: Xin Long <lucien.xin@gmail.com>
 ---
- net/netfilter/nfnetlink_queue.c | 1 +
- 1 file changed, 1 insertion(+)
+ net/netfilter/nf_tables_api.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 7d81d280cb4f..2e94603c2dec 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -1417,6 +1417,7 @@ static int __init nfnetlink_queue_init(void)
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 93cc473..4511a78 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4030,7 +4030,8 @@ static int nf_tables_abort(struct sk_buff *skb)
+ 	struct nft_trans *trans, *next;
+ 	struct nft_trans_elem *te;
  
- cleanup_netlink_notifier:
- 	netlink_unregister_notifier(&nfqnl_rtnl_notifier);
-+	unregister_pernet_subsys(&nfnl_queue_net_ops);
- out:
- 	return status;
- }
+-	list_for_each_entry_safe(trans, next, &net->nft.commit_list, list) {
++	list_for_each_entry_safe_reverse(trans, next, &net->nft.commit_list,
++					 list) {
+ 		switch (trans->msg_type) {
+ 		case NFT_MSG_NEWTABLE:
+ 			if (nft_trans_table_update(trans)) {
 -- 
-2.5.0
+2.1.0
