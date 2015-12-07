@@ -1,63 +1,69 @@
-From: Nikolay Borisov <kernel@kyup.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCH] netfilter: nfnetlink_queue: Unregister pernet subsys in
  case of init failure
-Date: Mon, 7 Dec 2015 14:58:44 +0200
-Message-ID: <56658284.9080009@kyup.com>
+Date: Mon, 7 Dec 2015 14:17:46 +0100
+Message-ID: <20151207131746.GA27860@salvia>
 References: <1449483206-22618-1-git-send-email-kernel@kyup.com>
  <56657BA5.6070303@cogentembedded.com>
+ <56658284.9080009@kyup.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, kadlec@blackhole.kfki.hu,
+Content-Type: text/plain; charset=us-ascii
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	fruggeri@arista.com, kadlec@blackhole.kfki.hu,
 	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
 	netdev@vger.kernel.org, davem@davemloft.net
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	fruggeri@arista.com
+To: Nikolay Borisov <kernel@kyup.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:35732 "EHLO
-	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754754AbbLGM6s (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Dec 2015 07:58:48 -0500
-Received: by wmuu63 with SMTP id u63so139305356wmu.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 07 Dec 2015 04:58:47 -0800 (PST)
-In-Reply-To: <56657BA5.6070303@cogentembedded.com>
+Received: from mail.us.es ([193.147.175.20]:41803 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755430AbbLGNRx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Dec 2015 08:17:53 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 87C0B32F90
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Dec 2015 14:17:49 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 7B008DA7E0
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Dec 2015 14:17:49 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 7E007DA804
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Dec 2015 14:17:47 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <56658284.9080009@kyup.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Mon, Dec 07, 2015 at 02:58:44PM +0200, Nikolay Borisov wrote:
+> 
+> 
+> On 12/07/2015 02:29 PM, Sergei Shtylyov wrote:
+> > Hello.
+> > 
+> > On 12/07/2015 01:13 PM, Nikolay Borisov wrote:
+> > 
+> >> Commit 3bfe049807c2403 ('netfilter: nfnetlink_{log,queue}:
+> > 
+> >    Double quotes please, that's what scripts/checkpatch.pl enforces now.
+> > 
+> >> Register pernet in first place') reorganised the initialisation
+> >> order of the pernet_subsys to avoid "use-before-initialised"
+> >> condition. However, in doing so the cleanup logic in nfnetlink_queue
+> >> got botched in that the pernet_subsys wasn't cleaned in case
+> >> nfnetlink_subsys_register failed. This patch adds the necessary
+> >> cleanup routine call.
+> >>
+> >> Fixes: 3bfe049807c2403 ('netfilter: nfnetlink_{log,queue}: Register
+> >>                         pernet in first place')
+> > 
+> >    Likewise.
+> 
+> I will resend it with proper quotes (even though I think this is a minor
+> issue) but I'd like to first gather some review feedback.
 
+Unless someone spots any other more relevant problem with this, I'll
+fix this comestic issues here, no need to resend.
 
-On 12/07/2015 02:29 PM, Sergei Shtylyov wrote:
-> Hello.
-> 
-> On 12/07/2015 01:13 PM, Nikolay Borisov wrote:
-> 
->> Commit 3bfe049807c2403 ('netfilter: nfnetlink_{log,queue}:
-> 
->    Double quotes please, that's what scripts/checkpatch.pl enforces now.
-> 
->> Register pernet in first place') reorganised the initialisation
->> order of the pernet_subsys to avoid "use-before-initialised"
->> condition. However, in doing so the cleanup logic in nfnetlink_queue
->> got botched in that the pernet_subsys wasn't cleaned in case
->> nfnetlink_subsys_register failed. This patch adds the necessary
->> cleanup routine call.
->>
->> Fixes: 3bfe049807c2403 ('netfilter: nfnetlink_{log,queue}: Register
->>                         pernet in first place')
-> 
->    Likewise.
+> Also I dunno if this should be marked for stable.
 
-I will resend it with proper quotes (even though I think this is a minor
-issue) but I'd like to first gather some review feedback.
+Yes, this qualifies for -stable, will take care of that.
 
-Also I dunno if this should be marked for stable.
-
-> 
->>
->> Signed-off-by: Nikolay Borisov <kernel@kyup.com>
-> 
-> [...]
-> 
-> MBR, Sergei
-> 
+Thanks.
