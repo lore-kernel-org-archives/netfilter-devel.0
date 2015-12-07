@@ -1,385 +1,123 @@
-From: Matthias Gerstner <Matthias.Gerstner@ncp-e.com>
-Subject: nf_conntrack_ipv4: UDP packets are spuriously dropped on parallel
- send via loopback device on SMP machines
-Date: Mon, 7 Dec 2015 15:14:33 +0100
-Message-ID: <20151207141433.GA19205@mgpc.ncp.de>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="ZfOjI3PrQbgiZnxM"
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.remote-access.de ([62.153.165.35]:50786 "EHLO
-	mail.ncp-e.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1754693AbbLGOXJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Dec 2015 09:23:09 -0500
-Received: from viruswall.ncp.de (viruswall.ncp.de [62.153.165.41])
-	by mail.ncp-e.com (Postfix) with ESMTPS id 3B426A1AFE
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Dec 2015 15:07:27 +0100 (CET)
-Received: from [172.16.11.201] (port=1596 helo=ex07.ncp.local)
-	by viruswall.ncp.de with esmtps (TLSv1:RC4-MD5:128)
-	(Exim 4.76)
-	(envelope-from <Matthias.Gerstner@ncp-e.com>)
-	id 1a5wYj-0001Br-23
-	for netfilter-devel@vger.kernel.org; Mon, 07 Dec 2015 15:14:33 +0100
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCHSET v4] netfilter, cgroup: implement cgroup2 path match in xt_cgroup
+Date: Mon,  7 Dec 2015 17:38:47 -0500
+Message-ID: <1449527935-27056-1-git-send-email-tj@kernel.org>
+Cc: lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
+	cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	kernel-team-b10kYP2dOMg@public.gmane.org, ninasc-b10kYP2dOMg@public.gmane.org
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org,
+	kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org,
+	daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
---ZfOjI3PrQbgiZnxM
-Content-Type: multipart/mixed; boundary="EeQfGwPcQSOJBaQU"
-Content-Disposition: inline
+Hello,
 
+This is v4 of the xt_cgroup2 patchset.  Changes from v3 are
 
---EeQfGwPcQSOJBaQU
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+* Refreshed on top of net-next/master e72c932d3f8a ("cxgb3: Convert
+  simple_strtoul to kstrtox").  Dropped "cgroups: Allow dynamically
+  changing net_classid" from series as it's already applied.
 
-Hi,
+The changes from v2 to v3 are
 
-I've encountered a strange situation while trying to run my software
-under Linux. And I boiled it down to what I think is a bug in the
-nf_conntrack_ipv4 kernel module. Maybe somebody on this list can help me
-with this.
+* Folded cgroup2 path matching into xt_cgroup as a new revision rather
+  than a separate xt_cgroup2 match as suggested by Pablo.
 
-My software implements the following behaviour:
+* Refreshed on top of Nina's net_cls dynamic config update fix patch.
+  I included the fix patch as part of this series to ease reviewing.
 
-1) a number of listener processes listen for udp packets on a well
-  known port on the localhost via recvfrom()
-2) at some point in time a broadcast process sends a request via udp
-broadcast to this well known port
-3) all the listener processes receive this request and reply
-individually to the broadcast process via sendto()
+The changes from v1 to v2 are
 
-What happens to me is that 1) and 2) work as expected, but the replies
-in step 3) are randomly dropped and never reach the broadcast process.
-The process calling sendto() receives an EPERM return in this case but
-in a more complex (real world) scenario I think the packets are also
-silently dropped.
+* Instead of adding sock->sk_cgroup separately, sock->sk_cgrp_data now
+  carries either (prioidx, classid) pair or cgroup2 pointer.  This
+  avoids inflating struct sock with yet another cgroup related field.
+  Unfortunately, this does add some complexity but that's the
+  trade-off and the complexity is contained in cgroup proper.
 
-This happens under the following circumstances:
-
-- the kernel module nf_conntrack_ipv4 must be loaded
-- no actual firewall/iptable rules are configured, so all packets
-  should be accepted
-- the code needs to run on an SMP machine that allows for real
-  parallelization. I couldn't reproduce this from within a qemu virtual
-  machine, for example. So it looks like a race condition to me.
-
-I've written isolated test cases for the "listener" and the "broadcast"
-part of this scenario. You can find the program source code attached to
-this mail. To reproduce the behaviour the following needs to be done:
-
-- start two instances of the listener program
-- start / ctrl-c / restart the broadcast program until one or both of
-  the listener instances receive an EPERM
-
-I've also managed to trace the location in the kernel code where the
-decision to drop the packet in this situation is actually made. But I
-don't understand the logic that's implemented there. It's in function
-__nf_conntrack_confirm() where the following if clause is matching:
-
-------------------------------------------------------------------------
-hlist_nulls_for_each_entry(h, n, &net->ct.hash[hash], hnnode)
-	if (nf_ct_tuple_equal(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple,
-				&h->tuple) &&
-				zone =3D3D=3D3D nf_ct_zone(nf_ct_tuplehash_to_ctrack(h)))
-------------------------------------------------------------------------
-
-This is the kernel stacktrace leading to it:
-
-Call Trace:
- [<ffffffff81565a3d>] dump_stack+0x45/0x57
- [<ffffffff814bb7f5>] __nf_conntrack_confirm+0x21d/0x2c9
- [<ffffffff81504265>] ipv4_confirm+0x6a/0xe8
- [<ffffffff814b6912>] nf_iterate+0x52/0x8b
- [<ffffffff814b699e>] nf_hook_slow+0x53/0xde
- [<ffffffff814cec9b>] ip_output+0xaf/0xf5
- [<ffffffff814ce26f>] ? ip_fragment+0x673/0x673
- [<ffffffff814cd721>] ip_local_out_sk+0x49/0x6f
- [<ffffffff814cf631>] ip_send_skb+0x13/0x70
- [<ffffffff814ee83b>] udp_send_skb+0x196/0x219
- [<ffffffff814eee78>] udp_sendmsg+0x569/0x7b6
- [<ffffffff814cece1>] ? ip_output+0xf5/0xf5
- [<ffffffff814ed778>] ? udp_recvmsg+0x176/0x335
- [<ffffffff814f758b>] inet_sendmsg+0x5e/0xb5
- [<ffffffff810ee67e>] ? __fget_light+0x3f/0x51
- [<ffffffff81482356>] sock_sendmsg+0x14/0x39
- [<ffffffff81483437>] SyS_sendto+0x12b/0x184
- [<ffffffff810e7fa2>] ? SyS_select+0x9f/0xb4
- [<ffffffff8156abee>] system_call_fastpath+0x12/0x71
-
-The stacktrace is from Linux kernel 4.1.12 but I've also managed to
-reproduce this using the current kernel version 4.3.
-
-Any help is appreciated.
-
-Regards
-
-Matthias
-
---=20
-Matthias Gerstner, Dipl.-Wirtsch.-Inf. (FH)
-Entwicklung
-=20
-NCP engineering GmbH
-Domb=FChler Stra=DFe 2, D-90449, N=FCrnberg
-Gesch=E4ftsf=FChrer Peter S=F6ll, HRB-Nr: 77 86 N=FCrnberg
-=20
-Telefon: +49 911 9968-153, Fax: +49 911 9968-229
-E-Mail: Matthias.Gerstner@ncp-e.com
-Internet: http://www.ncp-e.com
+* Various small updats as per David and Jan's reviews.
 
 
---EeQfGwPcQSOJBaQU
-Content-Type: text/x-c; charset=us-ascii
-Content-Disposition: attachment; filename="listener.c"
-Content-Transfer-Encoding: quoted-printable
+In cgroup v1, dealing with cgroup membership was difficult because the
+number of membership associations was unbound.  As a result, cgroup v1
+grew several controllers whose primary purpose is either tagging
+membership or pull in configuration knobs from other subsystems so
+that cgroup membership test can be avoided.
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <netinet/udp.h>
-#include <arpa/inet.h>
+net_cls and net_prio controllers are examples of the latter.  They
+allow configuring network-specific attributes from cgroup side so that
+network subsystem can avoid testing cgroup membership; unfortunately,
+these are not only cumbersome but also problematic.
 
-#include <string.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <errno.h>
+Both net_cls and net_prio aren't properly hierarchical.  Both inherit
+configuration from the parent on creation but there's no interaction
+afterwards.  An ancestor doesn't restrict the behavior in its subtree
+in anyway and configuration changes aren't propagated downwards.
+Especially when combined with cgroup delegation, this is problematic
+because delegatees can mess up whatever network configuration
+implemented at the system level.  net_prio would allow the delegatees
+to set whatever priority value regardless of CAP_NET_ADMIN and net_cls
+the same for classid.
 
-int main(int argc, const char **argv)
-{
-	int udp_sock =3D socket(AF_INET, SOCK_DGRAM, 0);
-	struct sockaddr_in udp_addr, peer_addr;
-	const int sock_bool =3D 1;
-	const size_t MAX_MSG =3D 1024;
-	uint8_t message[MAX_MSG];
-	socklen_t ip_len =3D sizeof(struct sockaddr_in);
-	int res =3D 0;
+While it is possible to solve these issues from controller side by
+implementing hierarchical allowable ranges in both controllers, it
+would involve quite a bit of complexity in the controllers and further
+obfuscate network configuration as it becomes even more difficult to
+tell what's actually being configured looking from the network side.
+While not much can be done for v1 at this point, as membership
+handling is sane on cgroup v2, it'd be better to make cgroup matching
+behave like other network matches and classifiers than introducing
+further complications.
 
-	/*
-	 * bind to a fixed udp port on localhost
-	 */
-	memset(&udp_addr, 0, sizeof(struct sockaddr_in));
-	udp_addr.sin_family =3D AF_INET;
-	// some fixed port number for finding each other
-	udp_addr.sin_port =3D htons(30451);
-	// listen on the localhost for broadcasts
-	if( inet_aton("127.255.255.255", &udp_addr.sin_addr) =3D=3D 0 )
-	{
-		printf("Failed to set addr\n");
-		return 1;
-	}
+This patchset includes the following eight patches.
 
-	if( setsockopt(udp_sock, SOL_SOCKET, SO_BROADCAST, &sock_bool, sizeof(sock=
-_bool)) !=3D 0 )
-	{
-		printf("Failed to set broadcast option\n");
-		return 1;
-	}
+ 0001-cgroup-record-ancestor-IDs-and-reimplement-cgroup_is.patch
+ 0002-kernfs-implement-kernfs_walk_and_get.patch
+ 0003-cgroup-implement-cgroup_get_from_path-and-expose-cgr.patch
+ 0004-netprio_cgroup-limit-the-maximum-css-id-to-USHRT_MAX.patch
+ 0005-net-wrap-sock-sk_cgrp_prioidx-and-sk_classid-inside-.patch
+ 0006-sock-cgroup-add-sock-sk_cgroup.patch
+ 0007-netfilter-prepare-xt_cgroup-for-multi-revisions.patch
+ 0008-netfilter-implement-xt_cgroup-cgroup2-path-match.patch
 
-	if( setsockopt(udp_sock, SOL_SOCKET, SO_REUSEADDR, &sock_bool, sizeof(sock=
-_bool)) !=3D 0 )
-	{
-		printf("Failed to set reuse option\n");
-		return 1;
-	}
+0001-0003 are prepatory patches in kernfs and cgroup.  These patches
+are available in the following branch which will stay stable.
 
-	if( bind(udp_sock, (struct sockaddr*)&udp_addr, sizeof(udp_addr)) !=3D 0 )
-	{
-		printf("Failed to bind to addr\n");
-		return 1;
-	}
-	=09
-	while( 1 )
-	{
-		res =3D recvfrom( udp_sock, message, MAX_MSG, 0, (struct sockaddr*)&peer_=
-addr, &ip_len );
-=09
-		if( res =3D=3D -1 )
-		{
-			printf("Failed to receive message\n");
-			return 1;
-		}
+ git://git.kernel.org/pub/scm/linux/kernel/git/tj/cgroup.git for-4.5-ancestor-test
 
-		if( ip_len !=3D sizeof(struct sockaddr_in) )
-		{
-			printf("Wrong addr len\n");
-			return 1;
-		}
+0004-0006 consolidate two cgroup related fields in struct sock into
+cgroup_sock_data and update it so that it can alternatively carry a
+cgroup pointer.
 
-		printf("Received message of %d bytes from %s:%d\n",
-			res,
-			inet_ntoa(peer_addr.sin_addr),
-			peer_addr.sin_port
-		);
+0007-0008 implement cgroup2 patch matching in xt_cgroup.
 
-		// ignore actual message content, we just want to reply.
-		//
-		// use the same message for this purpose
-	=09
-		res =3D sendto( udp_sock, message, res, 0, (struct sockaddr*)&peer_addr, =
-ip_len);
+This patchset is on top of net-next/master and also available in the
+following git branch.
 
-		if( res =3D=3D -1 )
-		{
-			perror("Failed to reply");
-		}
-	}
+ git://git.kernel.org/pub/scm/linux/kernel/git/tj/cgroup.git review-xt_cgroup2
 
-	return 0;
-}
+I'll post iptables extension as a reply.  diffstat follows.  Thanks.
 
---EeQfGwPcQSOJBaQU
-Content-Type: text/x-c; charset=us-ascii
-Content-Disposition: attachment; filename="broadcast.c"
-Content-Transfer-Encoding: quoted-printable
+ fs/kernfs/dir.c                          |   46 +++++++++++
+ include/linux/cgroup-defs.h              |  126 +++++++++++++++++++++++++++++++
+ include/linux/cgroup.h                   |   66 +++++++++++++++-
+ include/linux/kernfs.h                   |   12 ++
+ include/net/cls_cgroup.h                 |   11 +-
+ include/net/netprio_cgroup.h             |   16 +++
+ include/net/sock.h                       |   13 ---
+ include/uapi/linux/netfilter/xt_cgroup.h |   15 +++
+ kernel/cgroup.c                          |  126 ++++++++++++++++++++++++-------
+ net/Kconfig                              |    6 +
+ net/core/dev.c                           |    3 
+ net/core/netclassid_cgroup.c             |   11 +-
+ net/core/netprio_cgroup.c                |   19 ++++
+ net/core/scm.c                           |    4 
+ net/core/sock.c                          |   17 ----
+ net/netfilter/nft_meta.c                 |    2 
+ net/netfilter/xt_cgroup.c                |  108 ++++++++++++++++++++++----
+ 17 files changed, 513 insertions(+), 88 deletions(-)
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <netinet/udp.h>
-#include <arpa/inet.h>
-
-#include <string.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <errno.h>
-
-int main(int argc, const char **argv)
-{
-	int udp_sock =3D socket(AF_INET, SOCK_DGRAM, 0);
-	struct sockaddr_in local_addr, peer_addr;
-	const int sock_bool =3D 1;
-	socklen_t ip_len =3D sizeof(struct sockaddr_in);
-	const size_t MAX_MSG =3D 1024;
-	uint8_t message[MAX_MSG];
-	int res =3D 0;
-
-	/*
-	 * bind to some arbitrary UDP port on localhost
-	 */
-	memset(&local_addr, 0, sizeof(struct sockaddr_in));
-	local_addr.sin_family =3D AF_INET;
-	local_addr.sin_port =3D 0;
-
-	// listen on the localhost for broadcasts
-	if( inet_aton("127.0.0.1", &local_addr.sin_addr) =3D=3D 0 )
-	{
-		printf("Failed to set addr\n");
-		return 1;
-	}
-
-	/*
-	 * setup he broadcast target address
-	 */
-=09
-	memset(&peer_addr, 0, sizeof(struct sockaddr_in));
-	peer_addr.sin_family =3D AF_INET;
-	// fixed port number for broadcasting
-	peer_addr.sin_port =3D htons(30451);
-	if( inet_aton("127.255.255.255", &peer_addr.sin_addr) =3D=3D 0 )
-	{
-		printf("Failed to set broadcast addr\n");
-		return 1;
-	}
-
-	/*
-	 * setup the socket
-	 */
-=09
-	if( setsockopt(udp_sock, SOL_SOCKET, SO_BROADCAST, &sock_bool, sizeof(sock=
-_bool)) !=3D 0 )
-	{
-		printf("Failed to set broadcast option\n");
-		return 1;
-	}
-=09
-	if( bind(udp_sock, (struct sockaddr*)&local_addr, sizeof(local_addr)) !=3D=
- 0 )
-	{
-		printf("Failed to bind to addr\n");
-		return 1;
-	}
-
-	if( getsockname( udp_sock, (struct sockaddr*)&local_addr, &ip_len) !=3D 0 )
-	{
-		printf("Failed to get sockname\n");
-		return 1;
-	}
-
-	printf("Bound to %s:%d for replies\n",
-		inet_ntoa(local_addr.sin_addr),
-		local_addr.sin_port
-	);
-
-	/* send some arbitrary data */
-	if( sendto( udp_sock, message, 17, 0, (struct sockaddr*)&peer_addr, ip_len=
- ) =3D=3D -1 )
-	{
-		perror("Failed to send broadcast");
-		return 1;
-	}
-
-	printf("Sent broadcast to %s:%d\n",
-		inet_ntoa(peer_addr.sin_addr),
-		local_addr.sin_port
-	);
-
-	while ( 1 )
-	{
-		res =3D recvfrom( udp_sock, message, MAX_MSG, 0, (struct sockaddr*)&peer_=
-addr, &ip_len );
-
-		if( res =3D=3D -1 )
-		{
-			printf("Failed to receive message\n");
-			return 1;
-		}
-
-		if( ip_len !=3D sizeof(struct sockaddr_in) )
-		{
-			printf("Wrong addr len\n");
-			return 1;
-		}
-
-		printf("Received broadcast reply of %d bytes from %s:%d\n",
-			res,
-			inet_ntoa(peer_addr.sin_addr),
-			peer_addr.sin_port
-		);
-
-		/*
-		 * ignore actual message content
-		 */
-	}
-}
-
---EeQfGwPcQSOJBaQU--
-
---ZfOjI3PrQbgiZnxM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJWZZRJAAoJEEOOx8hIrs/bJrIQAKzoumgQzxZOw3f142FKxerN
-B9uSowUfIAmspo2JjVcl+w2bYKWgOVBGxPGtA79YGptYBzRs/5loco51pzogOIwf
-imBZ4PTdT4FfY7MXEbO39l5xCrpmt/mf4WSaX9mozLFMHTtR4FtGZduT0gPdrAMz
-h5J8nhojRLzWExM66IS1BCpGEe+CjrWRUIbzvNlni14u2HQHoUIi2CgvOc5LR2gf
-Xns+ClWPGuOyUhFJrG3R3pTdHpX+RTvKKNsNp1yBABpj7LPk7HqZHmNgFK5vJQ3/
-dXQJZ2pC5LoGEyHuOMS4BVRvz0nTGO7E+LnZamdiv/i2McbGO+Z56jmku2Q160ok
-kc4hRe3nXE4vkrY04qum/HSBWFmKD4VhtSb7kfuBkfphbNAKDomLaiiwVhrB2Ehh
-vCo4AwLxYCiri2FB/ScRxVYeZTtdAOARzwNk/zumQULALvjmI053HFCJEQ5ahgrz
-u7AwMx8yjQHjel5buJbyBsYDSCdax+fe7AKfRul/KGnvl6VGK7R9aidm2sR38nXD
-YpT8El+Li4ii/1k2AS7gltnZ0DE7wXESeD869bflpu64hsQ3rO9lJIFq9WmAOGne
-JaynQHhWWPfvznEYFjRDUowOhbiJSu6i2QU9fEVtX3bMY4INuv5Rz6rBXZGXoj+h
-AqeUMTS2D3tDwyh5lNUd
-=KJZD
------END PGP SIGNATURE-----
-
---ZfOjI3PrQbgiZnxM--
+--
+tejun
