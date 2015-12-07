@@ -1,52 +1,63 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+From: Nikolay Borisov <kernel@kyup.com>
 Subject: Re: [PATCH] netfilter: nfnetlink_queue: Unregister pernet subsys in
  case of init failure
-Date: Mon, 7 Dec 2015 15:29:25 +0300
-Message-ID: <56657BA5.6070303@cogentembedded.com>
+Date: Mon, 7 Dec 2015 14:58:44 +0200
+Message-ID: <56658284.9080009@kyup.com>
 References: <1449483206-22618-1-git-send-email-kernel@kyup.com>
+ <56657BA5.6070303@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Cc: pablo@netfilter.org, kadlec@blackhole.kfki.hu,
 	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
 	netdev@vger.kernel.org, davem@davemloft.net
-To: Nikolay Borisov <kernel@kyup.com>, fruggeri@arista.com
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	fruggeri@arista.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:36754 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753530AbbLGM32 (ORCPT
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:35732 "EHLO
+	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754754AbbLGM6s (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Dec 2015 07:29:28 -0500
-Received: by lbblt2 with SMTP id lt2so60968400lbb.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 07 Dec 2015 04:29:27 -0800 (PST)
-In-Reply-To: <1449483206-22618-1-git-send-email-kernel@kyup.com>
+	Mon, 7 Dec 2015 07:58:48 -0500
+Received: by wmuu63 with SMTP id u63so139305356wmu.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 07 Dec 2015 04:58:47 -0800 (PST)
+In-Reply-To: <56657BA5.6070303@cogentembedded.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello.
 
-On 12/07/2015 01:13 PM, Nikolay Borisov wrote:
 
-> Commit 3bfe049807c2403 ('netfilter: nfnetlink_{log,queue}:
+On 12/07/2015 02:29 PM, Sergei Shtylyov wrote:
+> Hello.
+> 
+> On 12/07/2015 01:13 PM, Nikolay Borisov wrote:
+> 
+>> Commit 3bfe049807c2403 ('netfilter: nfnetlink_{log,queue}:
+> 
+>    Double quotes please, that's what scripts/checkpatch.pl enforces now.
+> 
+>> Register pernet in first place') reorganised the initialisation
+>> order of the pernet_subsys to avoid "use-before-initialised"
+>> condition. However, in doing so the cleanup logic in nfnetlink_queue
+>> got botched in that the pernet_subsys wasn't cleaned in case
+>> nfnetlink_subsys_register failed. This patch adds the necessary
+>> cleanup routine call.
+>>
+>> Fixes: 3bfe049807c2403 ('netfilter: nfnetlink_{log,queue}: Register
+>>                         pernet in first place')
+> 
+>    Likewise.
 
-    Double quotes please, that's what scripts/checkpatch.pl enforces now.
+I will resend it with proper quotes (even though I think this is a minor
+issue) but I'd like to first gather some review feedback.
 
-> Register pernet in first place') reorganised the initialisation
-> order of the pernet_subsys to avoid "use-before-initialised"
-> condition. However, in doing so the cleanup logic in nfnetlink_queue
-> got botched in that the pernet_subsys wasn't cleaned in case
-> nfnetlink_subsys_register failed. This patch adds the necessary
-> cleanup routine call.
->
-> Fixes: 3bfe049807c2403 ('netfilter: nfnetlink_{log,queue}: Register
-> 						pernet in first place')
+Also I dunno if this should be marked for stable.
 
-    Likewise.
-
->
-> Signed-off-by: Nikolay Borisov <kernel@kyup.com>
-
-[...]
-
-MBR, Sergei
-
+> 
+>>
+>> Signed-off-by: Nikolay Borisov <kernel@kyup.com>
+> 
+> [...]
+> 
+> MBR, Sergei
+> 
