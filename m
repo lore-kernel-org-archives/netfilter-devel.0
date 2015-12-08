@@ -1,30 +1,55 @@
-From: System Administrator <temp@lgp.ae>
-Subject: Warning Mailbox Exceeded Quota Limit
-Date: Tue, 8 Dec 2015 11:13:54 +0000
-Message-ID: <8cdcdd9e-3283-4e9a-adc7-8d5cbb8da8b1__45577.9894757599$1449573666$gmane$org@exchserver.lgp.ae>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: next-20151207 - crash in IPv6 code
+Date: Tue, 8 Dec 2015 12:34:09 +0100
+Message-ID: <20151208113409.GA31055@breakpoint.cc>
+References: <3884.1449551563@turing-police.cc.vt.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: Recipients <temp@lgp.ae>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from web.lgp.ae ([83.111.79.171]:37504 "EHLO exchserver.lgp.ae"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754814AbbLHLUh convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Dec 2015 06:20:37 -0500
-Content-Description: Mail message body
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, pablo@netfilter.org
+To: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <3884.1449551563@turing-police.cc.vt.edu>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Dear user,
+Valdis Kletnieks <Valdis.Kletnieks@vt.edu> wrote:
 
-Your mailbox has Exceeded the quota limit set by the administrator, you will not be able to send or receive mail until you revalidates your account.
+[ CC Pablo ]
 
-Please click the link below or copy paste to your browser to validate your mailbox.
+> Seen this in 2 boots out of two on next-20151207 when IPV6 networking
+> was available.  It was stable when no net was available. Also, next-20161127 is OK.
+> Haven't bisected it yet - this ring any bells?
 
-http://www.jiffy1.com/limit-update
+Thanks for the report, my fault -- its caused by
+029f7f3b8701cc7aca8bdb which is only in Pablos nf-next tree.
 
-Failure to do this will result limited access to your mailbox and failure to update your account within 48-hours, of this update notification, your account will be closed permanently.
+This should fix this bug (proper patch w. changelog coming
+after more testing):
 
-Thanks
-System Administrator.
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -441,11 +441,14 @@ nf_ct_frag6_reasm(struct frag_queue *fq, struct sk_buff *prev,  struct net_devic
+ 			return false;
+ 
+ 		fp->next = prev->next;
+-		skb_queue_walk(head, iter) {
+-			if (iter->next != prev)
+-				continue;
+-			iter->next = fp;
+-			break;
++
++		iter = head;
++		while (iter) {
++			if (iter->next == prev) {
++				iter->next = fp;
++				break;
++			}
++			iter = iter->next;
+ 		}
+ 
+ 		skb_morph(prev, head);
