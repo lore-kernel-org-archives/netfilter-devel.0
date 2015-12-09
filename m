@@ -1,49 +1,56 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v4 nf-next 2/2] netfilter: nf_tables: wrap tracing with a
- static key
-Date: Wed, 9 Dec 2015 13:22:20 +0100
-Message-ID: <20151209122220.GB2185@salvia>
-References: <1448743985-21685-1-git-send-email-fw@strlen.de>
- <1448743985-21685-2-git-send-email-fw@strlen.de>
+From: =?koi8-r?B?58HX0snMz9cg6cfP0tg=?= <iggorok@yandex.ua>
+Subject: Re: nf_conntrack_count is increasing
+Date: Wed, 09 Dec 2015 14:23:20 +0200
+Message-ID: <281761449663800@web2g.yandex.ru>
+References: <3947861449660306@web9g.yandex.ru> <20151209120216.GA11515@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=koi8-r
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39822 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750904AbbLIMW3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Dec 2015 07:22:29 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 268F1FB441
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 13:22:28 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 1787EDA801
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 13:22:28 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 7EBA3DA807
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 13:22:25 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1448743985-21685-2-git-send-email-fw@strlen.de>
+Received: from forward20p.cmail.yandex.net ([77.88.31.15]:49898 "EHLO
+	forward20p.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751370AbbLIMbD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Dec 2015 07:31:03 -0500
+In-Reply-To: <20151209120216.GA11515@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Nov 28, 2015 at 09:53:05PM +0100, Florian Westphal wrote:
-> Only needed when meta nftrace rule(s) were added.
-> The assumption is that no such rules are active, so the call to
-> nft_trace_init is "never" needed.
-> 
-> When nftrace rules are active, we always call the nft_trace_* functions,
-> but will only send netlink messages when all of the following are true:
-> 
->  - traceinfo structure was initialised
->  - skb->nf_trace == 1
->  - at least one subscriber to trace group.
-> 
-> Adding an extra conditional
-> (static_branch ... && skb->nf_trace)
-> 	nft_trace_init( ..)
-> 
-> Is possible but results in a larger nft_do_chain footprint.
+Thank you for your reply. As far I understand nf_ct_put() needed only w=
+hen I use nf_conntrack_find_get(), and doesn't needed with nf_ct_get(sk=
+b, &ctinfo).
+And one more question - Is it possible to clear nf_conntrack_count, aft=
+er those code usage without rebooting router?=20
 
-Also applied, thanks.
+09.12.2015, 14:02, "Florian Westphal" <fw@strlen.de>:
+> =E7=C1=D7=D2=C9=CC=CF=D7 =E9=C7=CF=D2=D8 <iggorok@yandex.ua> wrote:
+>> =9A=9A=9A=9A=9A=9A=9A=9A=9Aif (!nf_ct_get_tuplepr(skb, skb_network_o=
+ffset(skb), proto, &tuple)) \
+>> =9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9Agoto fallback; \
+>> =9A=9A=9A=9A=9A=9A=9A=9A=9Azone.id =3D NF_CT_DEFAULT_ZONE_ID; \
+>> =9A=9A=9A=9A=9A=9A=9A=9A=9Azone.dir =3D NF_CT_DEFAULT_ZONE_DIR; \
+>> =9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=
+=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=
+=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=9A=
+=9A=9A\
+>> =9A=9A=9A=9A=9A=9A=9A=9A=9Athash =3D nf_conntrack_find_get(dev_net(s=
+kb->dev), &zone, &tuple);\
+>> =9A=9A=9A=9A=9A=9A=9A=9A=9Aif (!thash) goto fallback; \
+>> =9A=9A=9A=9A=9A=9A=9A=9A=9Act =3D nf_ct_tuplehash_to_ctrack(thash); =
+\
+>
+>> =9AIf nf_ct_get() fails to retrieve information from sk_buff, which =
+is obvious on ingress, I use nf_ct_get_tuplepr() and nf_conntrack_find_=
+get() like in net/sched/act_connmark.c, but I have encountered a proble=
+m - after a while traffic stops forwarding with the message "nf_conntra=
+ck: table is full" and conntrack -F doesn't help - nf_conntrack_count r=
+emains large - about 200k. Can anyone advise me how to fix this issue?
+>
+> You need to nf_ct_put(ct) once you're done with ct.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
