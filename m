@@ -1,67 +1,67 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH net-next v4 7/8] openvswitch: Delay conntrack helper call
- for new connections.
-Date: Wed, 9 Dec 2015 16:44:43 +0300
-Message-ID: <5668304B.7010409@cogentembedded.com>
-References: <1449622870-48944-1-git-send-email-jarno@ovn.org>
- <1449622870-48944-8-git-send-email-jarno@ovn.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [netfilter-core] [PATCH] netfilter: nfnetlink_queue: Unregister
+ pernet subsys in case of init failure
+Date: Wed, 9 Dec 2015 14:48:25 +0100
+Message-ID: <20151209134825.GA1183@salvia>
+References: <1449483206-22618-1-git-send-email-kernel@kyup.com>
+ <56657BA5.6070303@cogentembedded.com>
+ <56658284.9080009@kyup.com>
+ <20151207131746.GA27860@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, dev@openvswitch.org
-To: Jarno Rajahalme <jarno@ovn.org>, netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	netdev@vger.kernel.org, fruggeri@arista.com,
+	coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+	kadlec@blackhole.kfki.hu, davem@davemloft.net
+To: Nikolay Borisov <kernel@kyup.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lf0-f53.google.com ([209.85.215.53]:34464 "EHLO
-	mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754148AbbLINop (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Dec 2015 08:44:45 -0500
-Received: by lffu14 with SMTP id u14so34554321lff.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Dec 2015 05:44:44 -0800 (PST)
-In-Reply-To: <1449622870-48944-8-git-send-email-jarno@ovn.org>
+Received: from mail.us.es ([193.147.175.20]:39191 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753131AbbLINsb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Dec 2015 08:48:31 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 51B8B1324D9
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 14:48:29 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 3F91DDA7E0
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 14:48:29 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 68D0FDA862
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 14:48:26 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20151207131746.GA27860@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello.
+On Mon, Dec 07, 2015 at 02:17:46PM +0100, Pablo Neira Ayuso wrote:
+> On Mon, Dec 07, 2015 at 02:58:44PM +0200, Nikolay Borisov wrote:
+> > 
+> > 
+> > On 12/07/2015 02:29 PM, Sergei Shtylyov wrote:
+> > > Hello.
+> > > 
+> > > On 12/07/2015 01:13 PM, Nikolay Borisov wrote:
+> > > 
+> > >> Commit 3bfe049807c2403 ('netfilter: nfnetlink_{log,queue}:
+> > > 
+> > >    Double quotes please, that's what scripts/checkpatch.pl enforces now.
+> > > 
+> > >> Register pernet in first place') reorganised the initialisation
+> > >> order of the pernet_subsys to avoid "use-before-initialised"
+> > >> condition. However, in doing so the cleanup logic in nfnetlink_queue
+> > >> got botched in that the pernet_subsys wasn't cleaned in case
+> > >> nfnetlink_subsys_register failed. This patch adds the necessary
+> > >> cleanup routine call.
+> > >>
+> > >> Fixes: 3bfe049807c2403 ('netfilter: nfnetlink_{log,queue}: Register
+> > >>                         pernet in first place')
+> > > 
+> > >    Likewise.
+> > 
+> > I will resend it with proper quotes (even though I think this is a minor
+> > issue) but I'd like to first gather some review feedback.
+> 
+> Unless someone spots any other more relevant problem with this, I'll
+> fix this comestic issues here, no need to resend.
 
-On 12/9/2015 4:01 AM, Jarno Rajahalme wrote:
-
-> There is no need to help connections that are not confirmed, so we can
-> delay helping new connections to the time when they are confirmed.
-> This change is needed for NAT support, and having this as a separate
-> patch will make the following NAT patch a bit easier to review.
->
-> Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
-> ---
->   net/openvswitch/conntrack.c | 20 +++++++++++++++-----
->   1 file changed, 15 insertions(+), 5 deletions(-)
->
-> diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
-> index 7aa38fa..ba44287 100644
-> --- a/net/openvswitch/conntrack.c
-> +++ b/net/openvswitch/conntrack.c
-[...]
-> @@ -491,11 +496,16 @@ static int __ovs_ct_lookup(struct net *net, struct sw_flow_key *key,
->   			return -ENOENT;
->
->   		ovs_ct_update_key(skb, key, true);
-> +	}
->
-> -		if (ovs_ct_helper(skb, info->family) != NF_ACCEPT) {
-> -			WARN_ONCE(1, "helper rejected packet");
-> -			return -EINVAL;
-> -		}
-> +	/* Call the helper right after nf_conntrack_in() for confirmed
-> +	 * connections, but only when commiting for unconfirmed connections.
-> +	 */
-> +	ct = nf_ct_get(skb, &ctinfo);
-> +	if (ct && (nf_ct_is_confirmed(ct) ? !cached : info->commit)
-> +	    && ovs_ct_helper(skb, info->family) != NF_ACCEPT) {
-
-    Please don't place the operators at the start of a continuation lines, 
-place the at the and of a broken up line instead.
-
-[...]
-
-MBR, Sergei
-
+Applied, thanks.
