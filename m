@@ -1,36 +1,36 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: nftables: Change the return type of
- nfulnl_set_timeout() and nfulnl_set_qthresh() to be void.
-Date: Wed, 9 Dec 2015 14:51:58 +0100
-Message-ID: <20151209135158.GA1309@salvia>
-References: <1449576564-30233-1-git-send-email-rami.rosen@intel.com>
+Subject: Re: [PATCH v3 libnftnl 1/3] src: add trace infrastructure support
+Date: Wed, 9 Dec 2015 14:55:57 +0100
+Message-ID: <20151209135557.GA1516@salvia>
+References: <1448649800-26153-1-git-send-email-fw@strlen.de>
+ <1448649800-26153-2-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org
-To: Rami Rosen <rami.rosen@intel.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40104 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41013 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754760AbbLINwF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Dec 2015 08:52:05 -0500
+	id S1753218AbbLIN4C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Dec 2015 08:56:02 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id B94711324D7
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 14:52:04 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id 575091324CE
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 14:56:01 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id A6D6CDA864
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 14:52:04 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 45EB9DA7FF
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 14:56:01 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 49400DA861
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 14:51:59 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id EBCD0DA80B
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 14:55:58 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1449576564-30233-1-git-send-email-rami.rosen@intel.com>
+In-Reply-To: <1448649800-26153-2-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 08, 2015 at 07:09:24AM -0500, Rami Rosen wrote:
->  This patch changes the return type of the static methods nfulnl_set_timeout() and
->  nfulnl_set_qthresh() to be void, as there is no justification and no need for these methods to return int.
+On Fri, Nov 27, 2015 at 07:43:18PM +0100, Florian Westphal wrote:
+> parses trace monitor netlink messages from the kernel and builds
+> nftnl_trace struct that contains the dissected information.
+> 
+> Provides getters to access these attributes.
 
-Applied, thanks.
-
+I leave it to you to push trace code to libnftnl. Thanks.
