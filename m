@@ -1,40 +1,55 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: ipv6: nf_defrag: fix NULL deref panic
-Date: Wed, 9 Dec 2015 14:27:02 +0100
-Message-ID: <20151209132702.GA29572@salvia>
-References: <1449614119-5584-1-git-send-email-fw@strlen.de>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH net-next v4 4/8] openvswitch: Update the CT state key only
+ after nf_conntrack_in().
+Date: Wed, 9 Dec 2015 16:40:46 +0300
+Message-ID: <56682F5E.2090006@cogentembedded.com>
+References: <1449622870-48944-1-git-send-email-jarno@ovn.org>
+ <1449622870-48944-5-git-send-email-jarno@ovn.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Valdis.Kletnieks@vt.edu
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, dev@openvswitch.org
+To: Jarno Rajahalme <jarno@ovn.org>, netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34005 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753942AbbLIN1H (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Dec 2015 08:27:07 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id B12B11324EC
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 14:27:06 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 9A123DA863
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 14:27:06 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id CB6E1DA86D
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 14:27:03 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1449614119-5584-1-git-send-email-fw@strlen.de>
+Received: from mail-lf0-f45.google.com ([209.85.215.45]:36102 "EHLO
+	mail-lf0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753925AbbLINkt (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Dec 2015 08:40:49 -0500
+Received: by lfs39 with SMTP id 39so34612784lfs.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 09 Dec 2015 05:40:48 -0800 (PST)
+In-Reply-To: <1449622870-48944-5-git-send-email-jarno@ovn.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 08, 2015 at 11:35:19PM +0100, Florian Westphal wrote:
-> Valdis reports NULL deref in nf_ct_frag6_gather.
-> Problem is bogus use of skb_queue_walk() -- we miss first skb in the list
-> since we start with head->next instead of head.
-> 
-> In case the element we're looking for was head->next we won't find
-> a result and then trip over NULL iter.
-> 
-> (defrag uses plain NULL-terminated list rather than one terminated by
->  head-of-list-pointer, which is what skb_queue_walk expects).
+Hello.
 
-Applied, thanks Florian.
+On 12/9/2015 4:01 AM, Jarno Rajahalme wrote:
+
+> Only a successful nf_conntrack_in() call can effect a connection state
+> change, so if suffices to update the key only after the
+> nf_conntrack_in() returns.
+>
+> This change is needed for the later NAT patches.
+>
+> Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
+> ---
+>   net/openvswitch/conntrack.c | 9 ++++++---
+>   1 file changed, 6 insertions(+), 3 deletions(-)
+>
+> diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+> index a28a819..10f4a6e 100644
+> --- a/net/openvswitch/conntrack.c
+> +++ b/net/openvswitch/conntrack.c
+> @@ -194,7 +194,6 @@ static int ovs_ct_set_mark(struct sk_buff *skb, struct sw_flow_key *key,
+>   	struct nf_conn *ct;
+>   	u32 new_mark;
+>
+> -
+
+    Unrelated whitespace change?
+
+[...]
+
+MBR, Sergei
+
