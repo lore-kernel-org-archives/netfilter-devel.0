@@ -1,42 +1,48 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCHSET v4] netfilter, cgroup: implement cgroup2 path match
- in xt_cgroup
-Date: Tue, 08 Dec 2015 22:03:43 -0500 (EST)
-Message-ID: <20151208.220343.114057012128485057.davem@davemloft.net>
-References: <1449527935-27056-1-git-send-email-tj@kernel.org>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Subject: Re: [PATCH] Add tcindex to conntrack and add netfilter target/matches
+Date: Wed, 09 Dec 2015 10:07:21 +0100
+Message-ID: <5667EF49.8060707@iogearbox.net>
+References: <1449179951-26327-1-git-send-email-luuk.paulussen@alliedtelesis.co.nz> <1449179951-26327-2-git-send-email-luuk.paulussen@alliedtelesis.co.nz> <5664B698.8040904@alliedtelesis.co.nz> <20151206224522.GA27161@breakpoint.cc> <5664ECCC.1030104@alliedtelesis.co.nz>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org,
-	daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org, daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org,
-	nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org,
-	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-team-b10kYP2dOMg@public.gmane.org, ninasc-b10kYP2dOMg@public.gmane.org
-To: tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1449527935-27056-1-git-send-email-tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Luuk Paulussen <Luuk.Paulussen@alliedtelesis.co.nz>,
+	Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from www62.your-server.de ([213.133.104.62]:53066 "EHLO
+	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753841AbbLIJH2 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Dec 2015 04:07:28 -0500
+In-Reply-To: <5664ECCC.1030104@alliedtelesis.co.nz>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Date: Mon,  7 Dec 2015 17:38:47 -0500
+On 12/07/2015 03:19 AM, Luuk Paulussen wrote:
+> On 12/07/2015 11:45 AM, Florian Westphal wrote:
+>> Luuk Paulussen <Luuk.Paulussen@alliedtelesis.co.nz> wrote:
+>>> Hi All,
+>>>
+>>> I'm still hoping for some feedback on this.  I have some userspace
+>>> patches around this as well, (to set/show the tc_index in the
+>>> connection, and to add the marking/matching rules in iptables), but I am
+>>> holding off on sending them until I know what people think of this
+>>> idea/implementation first.
+>> I can't say for sure since I don't know enough about tc.
+>>
+>> However, AFAICS tc_index seems to be something that should be internal
+>> to tc and not exposed/changeable via iptables.
+> tc_index is a mark that can be set by certain configurable ingress
+> schedulers (dsmark, GRED, ingress) for later classification via the
+> tcindex classifer.  This just adds an alternative mechanism for setting
+> this mark if those schedulers aren't being used.
 
-> 0001-0003 are prepatory patches in kernfs and cgroup.  These patches
-> are available in the following branch which will stay stable.
-> 
->  git://git.kernel.org/pub/scm/linux/kernel/git/tj/cgroup.git for-4.5-ancestor-test
+Fwiw, tc_index can be read/written by cls_bpf (and you can also apply masks
+on that field if needed).
 
-Pulled into net-next.
-
-> 0004-0006 consolidate two cgroup related fields in struct sock into
-> cgroup_sock_data and update it so that it can alternatively carry a
-> cgroup pointer.
-
-Applied to net-next.
-
-> 0007-0008 implement cgroup2 patch matching in xt_cgroup.
-
-I'll leave these for Pablo to integrate.
-
-Thanks.
+> * dsmark sets the tc_index value based on the incoming DSCP value
+> * ingress sets the tc_index value based on other rules (e.g. mark set
+> via iptables)
+> * New code sets tc_index directly based on iptables classification or
+> restoring saved value.
