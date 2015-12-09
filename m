@@ -1,69 +1,39 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net] nftables: use list_for_each_entry_safe_reverse to
- traversal commit_list in nf_tables_abort
-Date: Wed, 9 Dec 2015 15:03:30 +0100
-Message-ID: <20151209140330.GA1695@salvia>
-References: <15bcb964221e1a9498e901417d020609cd5aac65.1449485287.git.lucien.xin@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v3 libnftnl 1/3] src: add trace infrastructure support
+Date: Wed, 9 Dec 2015 15:06:51 +0100
+Message-ID: <20151209140651.GA26134@breakpoint.cc>
+References: <1448649800-26153-1-git-send-email-fw@strlen.de>
+ <1448649800-26153-2-git-send-email-fw@strlen.de>
+ <20151209135557.GA1516@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: network dev <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net, fw@strlen.de
-To: Xin Long <lucien.xin@gmail.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	kaber@trash.net
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43174 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754444AbbLIODh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Dec 2015 09:03:37 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id CEDE11324DD
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 15:03:36 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id BB94FDA81D
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 15:03:36 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 65D98DA867
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 15:03:31 +0100 (CET)
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44512 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754132AbbLIOGx (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Dec 2015 09:06:53 -0500
 Content-Disposition: inline
-In-Reply-To: <15bcb964221e1a9498e901417d020609cd5aac65.1449485287.git.lucien.xin@gmail.com>
+In-Reply-To: <20151209135557.GA1516@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Dec 07, 2015 at 06:48:07PM +0800, Xin Long wrote:
-> when we use 'nft -f' to sumbit rules, it will build multiple rules into
-> one netlink skb to send to kernel, kernel will process them one by one.
-> meanwhile, it add the trans into commit_list to record every commit.
-> if one of them's return value is -EAGAIN, status |= NFNL_BATCH_REPLAY
-> will be marked. after all the process is done. it will roll back all the
-> commits.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Fri, Nov 27, 2015 at 07:43:18PM +0100, Florian Westphal wrote:
+> > parses trace monitor netlink messages from the kernel and builds
+> > nftnl_trace struct that contains the dissected information.
+> > 
+> > Provides getters to access these attributes.
 > 
-> now kernel use list_add_tail to add trans to commit, and use
-> list_for_each_entry_safe to roll back. which means the order of adding
-> and rollback is the same. that will cause some cases cannot work well,
-> even trigger call trace, like:
-> 
-> 1. add a set into table foo  [return -EAGAIN]:
->    commit_list = 'add set trans'
-> 2. del foo:
->    commit_list = 'add set trans' -> 'del set trans' -> 'del tab trans'
-> then nf_tables_abort will be called to roll back:
-> firstly process 'add set trans':
->                    case NFT_MSG_NEWSET:
->                         trans->ctx.table->use--;
->                         list_del_rcu(&nft_trans_set(trans)->list);
-> 
->   it will del the set from the table foo, but it has removed when del
->   table foo [step 2], then the kernel will panic.
-> 
-> the right order of rollback should be:
->   'del tab trans' -> 'del set trans' -> 'add set trans'.
-> which is opposite with commit_list order.
-> 
-> so fix it by rolling back commits with reverse order in nf_tables_abort.
+> I leave it to you to push trace code to libnftnl. Thanks.
 
+Pushed libnftnl changes, thanks Pablo.
 
-You're reporting a kernel panic.
+@Patrick: I won't push anything trace related to nftables.git since I'm
+assuming that you'll take care of nftables side eventually.
 
-Could you please provide a sequence of commands to reproduce it with
-the existing code?
-
-Thanks.
+Cheers,
+Florian
