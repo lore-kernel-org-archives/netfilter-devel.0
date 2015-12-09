@@ -1,39 +1,57 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: undefined reference to `nf_conntrack_untracked'
-Date: Wed, 9 Dec 2015 22:10:45 +0100
-Message-ID: <20151209211045.GA2409@salvia>
-References: <201512061207.vyKl9Dek%fengguang.wu@intel.com>
+Subject: Re: [PATCH -next] netfilter: meta: add support for setting
+ skb->pkttype
+Date: Wed, 9 Dec 2015 23:54:08 +0100
+Message-ID: <20151209225408.GA3086@salvia>
+References: <1449158201-23868-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kbuild-all@01.org, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: kbuild test robot <fengguang.wu@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:44142 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751497AbbLIWyY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Dec 2015 17:54:24 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id ECCD732F81
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 23:54:22 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id DE80EDA7E0
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 23:54:22 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id E9353DA7E0
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 23:54:20 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <201512061207.vyKl9Dek%fengguang.wu@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1449158201-23868-1-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Dec 06, 2015 at 12:47:10PM +0800, kbuild test robot wrote:
-> Hi Pablo,
+On Thu, Dec 03, 2015 at 04:56:41PM +0100, Florian Westphal wrote:
+> This allows to redirect bridged packets to local machine.
 > 
-> FYI, the error/warning still remains.
+> ether type ip ether daddr set aa:53:08:12:34:56 meta pkttype set unicast
 > 
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
-> head:   a2dbb7b56f2c29fc78b18a3fbe47ad80f6912092
-> commit: bbde9fc1824aab58bc78c084163007dd6c03fe5b netfilter: factor out packet duplication for IPv4/IPv6
-> date:   4 months ago
-> config: x86_64-randconfig-s5-12061137 (attached as .config)
-> reproduce:
->         git checkout bbde9fc1824aab58bc78c084163007dd6c03fe5b
->         # save the attached .config to linux build tree
->         make ARCH=x86_64 
+> Without 'set unicast', ip stack discards PACKET_OTHERHOST skbs.
 > 
-> All errors (new ones prefixed by >>):
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  Hi Patrick,
 > 
->    net/built-in.o: In function `nf_dup_ipv4':
-> >> (.text+0xd434f): undefined reference to `nf_conntrack_untracked'
+>  as discussed this adds meta set support for pkttype.
+> 
+>  I'm not sure how restricted it should be; this only allows
+>  changing PACKET_OTHERHOST to something else, but I'm not sure
+>  if this should do more checks on value (e.g. only allow
+>  PACKET_HOST?) or even less (e.g. also allow mangling
+>  mcast and the like?).
+>
+>  It only allows NETDEV and BRIDGE families but thats mainly
+>  because the other ones make no sense (PACKET_OTHERHOST
+>  cannot happen w. IPV4, 6, INET since stack already drops them earlier).
 
-I have just send this patch to address this problem:
+With a 'hash' expression and this mangling, we can emulate the cluster
+match (hence its CLUSTERIP target predecesor too).
 
-http://patchwork.ozlabs.org/patch/554805/
+If mangling doesn't crash the kernel, ie. nonsense configuration just
+results in a drop, then I would make no restrictions.
