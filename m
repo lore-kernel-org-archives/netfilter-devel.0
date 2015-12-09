@@ -1,58 +1,46 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: nf_tables: fix nf_log_trace based tracing
-Date: Wed,  9 Dec 2015 16:31:21 +0100
-Message-ID: <1449675081-29519-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Xin Long <lucien.xin@gmail.com>
+Subject: Re: [PATCH net] nftables: use list_for_each_entry_safe_reverse to
+ traversal commit_list in nf_tables_abort
+Date: Thu, 10 Dec 2015 00:19:09 +0800
+Message-ID: <CADvbK_fjSY3Z365=Bj5xcur-bXUqiXFqD_iPkxTJp_CJLZfZdg@mail.gmail.com>
+References: <15bcb964221e1a9498e901417d020609cd5aac65.1449485287.git.lucien.xin@gmail.com>
+	<20151209140330.GA1695@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: network dev <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org, davem <davem@davemloft.net>,
+	fw@strlen.de
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44682 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751183AbbLIPb0 (ORCPT
+Received: from mail-ig0-f171.google.com ([209.85.213.171]:37800 "EHLO
+	mail-ig0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752038AbbLIQTJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Dec 2015 10:31:26 -0500
+	Wed, 9 Dec 2015 11:19:09 -0500
+In-Reply-To: <20151209140330.GA1695@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nf_log_trace() outputs bogus 'TRACE:' strings because I forgot to update
-the comments array.
+ok, the reproducer:
+1.
+#nft delete table foo
+#nft add table foo
+#nft list tables
+#nft list table foo
+#nft add chain foo bar
+#nft add chain foo baz
+#nft add chain foo bok
+#nft list table foo
 
-Fixes: 33d5a7b14bfd0 ("netfilter: nf_tables: extend tracing infrastructure")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
-diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
-index 67fa41d..e9f8dff 100644
---- a/net/netfilter/nf_tables_core.c
-+++ b/net/netfilter/nf_tables_core.c
-@@ -23,16 +23,10 @@
- #include <net/netfilter/nf_tables.h>
- #include <net/netfilter/nf_log.h>
- 
--enum nft_trace {
--	NFT_TRACE_RULE,
--	NFT_TRACE_RETURN,
--	NFT_TRACE_POLICY,
--};
--
--static const char *const comments[] = {
--	[NFT_TRACE_RULE]	= "rule",
--	[NFT_TRACE_RETURN]	= "return",
--	[NFT_TRACE_POLICY]	= "policy",
-+static const char *const comments[__NFT_TRACETYPE_MAX] = {
-+	[NFT_TRACETYPE_POLICY]	= "policy",
-+	[NFT_TRACETYPE_RETURN]	= "return",
-+	[NFT_TRACETYPE_RULE]	= "rule",
- };
- 
- static struct nf_loginfo trace_loginfo = {
-@@ -47,7 +41,7 @@ static struct nf_loginfo trace_loginfo = {
- 
- static noinline void __nft_trace_packet(struct nft_traceinfo *info,
- 					const struct nft_chain *chain,
--					int rulenum, enum nft_trace type)
-+					int rulenum, enum nft_trace_types type)
- {
- 	const struct nft_pktinfo *pkt = info->pkt;
- 
--- 
-2.4.10
+2. #nft -f panic.rules
+------panic.rules-------
+add rule foo bar ip saddr 127.0.0.1 accept
+add rule foo bar ip saddr {192.168.1.2, 192.168.2.3} jump baz
+add rule foo bar ip saddr {192.168.1.2, 192.168.2.3} jump bok
 
+add rule foo baz ip saddr {192.168.1.2, 192.168.2.3} jump bok
+add rule foo bok ip saddr {192.168.1.2, 192.168.2.3} jump baz
+
+delete table foo
+-------end-----------
+the panic will happen 1/1
