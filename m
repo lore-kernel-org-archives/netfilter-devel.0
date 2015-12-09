@@ -1,80 +1,63 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf 2/2] nfnetlink: fix splat due to incorrect socket memory accounting in skbuff clones
-Date: Wed,  9 Dec 2015 13:12:44 +0100
-Message-ID: <1449663164-1606-2-git-send-email-pablo@netfilter.org>
-References: <1449663164-1606-1-git-send-email-pablo@netfilter.org>
-Cc: arturo.borrero.glez@gmail.com, ben@decadent.org.uk
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v4 nf-next 1/2] netfilter: nf_tables: extend tracing
+ infrastructure
+Date: Wed, 9 Dec 2015 13:22:08 +0100
+Message-ID: <20151209122208.GA2185@salvia>
+References: <1448743985-21685-1-git-send-email-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36955 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39767 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754118AbbLIMNC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Dec 2015 07:13:02 -0500
+	id S1750904AbbLIMWN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Dec 2015 07:22:13 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 2A43D32F86
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 13:12:58 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id F16FFFB450
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 13:22:11 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 1B94FDA7E0
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 13:12:58 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id E1702DA7FF
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 13:22:11 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8DF8BDA86D
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 13:12:51 +0100 (CET)
-In-Reply-To: <1449663164-1606-1-git-send-email-pablo@netfilter.org>
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 80B2ADA80C
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Dec 2015 13:22:09 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <1448743985-21685-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If we attach the sk to the skb, netlink_skb_destructor() will underflow
-the socket receive memory counter and we get warning splat when
-releasing the socket.
+On Sat, Nov 28, 2015 at 09:53:04PM +0100, Florian Westphal wrote:
+> nft monitor mode can then decode and display this trace data.
+> 
+> Parts of LL/Network/Transport headers are provided as separate
+> attributes.
+> 
+> Otherwise, printing IP address data becomes virtually impossible
+> for userspace since in the case of the netdev family we really don't
+> want userspace to have to know all the possible link layer types
+> and/or sizes just to display/print an ip address.
+> 
+> We also don't want userspace to have to follow ipv6 header chains
+> to get the s/dport info, the kernel already did this work for us.
+> 
+> To avoid bloating nft_do_chain all data required for tracing is
+> encapsulated in nft_traceinfo.
+> 
+> The structure is initialized unconditionally(!) for each nft_do_chain
+> invocation.
+> 
+> This unconditionall call will be moved under a static key in a
+> followup patch.
+> 
+> With lots of help from Patrick McHardy and Pablo Neira.
 
-$ cat /proc/net/netlink
-sk       Eth Pid    Groups   Rmem     Wmem     Dump     Locks     Drops     Inode
-ffff8800ca903000 12  0      00000000 -54144   0        0 2        0        17942
-                                     ^^^^^^
+Nice work Florian, applied.
 
-Rmem above shows an underflow.
+> Acked-by: Patrick McHardy <kaber@trash.net>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-And here below the warning splat:
-
-[ 1363.815976] WARNING: CPU: 2 PID: 1356 at net/netlink/af_netlink.c:958 netlink_sock_destruct+0x80/0xb9()
-[...]
-[ 1363.816152] CPU: 2 PID: 1356 Comm: kworker/u16:1 Tainted: G        W       4.4.0-rc1+ #153
-[ 1363.816155] Hardware name: LENOVO 23259H1/23259H1, BIOS G2ET32WW (1.12 ) 05/30/2012
-[ 1363.816160] Workqueue: netns cleanup_net
-[ 1363.816163]  0000000000000000 ffff880119203dd0 ffffffff81240204 0000000000000000
-[ 1363.816169]  ffff880119203e08 ffffffff8104db4b ffffffff813d49a1 ffff8800ca771000
-[ 1363.816174]  ffffffff81a42b00 0000000000000000 ffff8800c0afe1e0 ffff880119203e18
-[ 1363.816179] Call Trace:
-[ 1363.816181]  <IRQ>  [<ffffffff81240204>] dump_stack+0x4e/0x79
-[ 1363.816193]  [<ffffffff8104db4b>] warn_slowpath_common+0x9a/0xb3
-[ 1363.816197]  [<ffffffff813d49a1>] ? netlink_sock_destruct+0x80/0xb9
-
-skb->sk was only needed to lookup for the netns, however we don't need
-this anymore since ("netfilter: nfnetlink: avoid recurrent netns lookups
-in call_batch"), so this patch removes this manual socket assignment.
-
-Reported-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Reported-by: Ben Hutchings <ben@decadent.org.uk>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-I would really appreciate to get a Tested-by: tag from you on this.
-
- net/netfilter/nfnetlink.c | 2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 445590f..77afe91 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -295,8 +295,6 @@ replay:
- 	if (!skb)
- 		return netlink_ack(oskb, nlh, -ENOMEM);
- 
--	skb->sk = oskb->sk;
--
- 	nfnl_lock(subsys_id);
- 	ss = rcu_dereference_protected(table[subsys_id].subsys,
- 				       lockdep_is_held(&table[subsys_id].mutex));
--- 
-2.1.4
-
+BTW, I have inverted these two tags. IIRC they should show the
+timeline, ie. An ack comes after your original work (thus the
+signed-off-by). For patches I get acked myself that get through my
+tree, I keep the ack after by Signed-off-by tag.
