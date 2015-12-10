@@ -1,115 +1,134 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH V2 nf-next] netfilter: meta: add support for setting skb->pkttype
-Date: Thu, 10 Dec 2015 18:04:07 +0100
-Message-ID: <1449767047-15389-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: nf_ct_sctp: validate vtag for new conntrack
+ entries
+Date: Thu, 10 Dec 2015 18:06:57 +0100
+Message-ID: <20151210170647.GA1547@salvia>
+References: <85c8c8c570bdbf6f20f56fdef96d8017fea3cc4c.1449579256.git.marcelo.leitner@gmail.com>
+ <20151210120233.GA2084@salvia>
+ <56697B14.3010909@gmail.com>
+ <20151210134247.GA3942@salvia>
+ <20151210140625.GC3886@mrl.redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org,
+	Vlad Yasevich <vyasevich@gmail.com>,
+	Neil Horman <nhorman@tuxdriver.com>, mkubecek@suse.cz
+To: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:47864 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754122AbbLJREN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Dec 2015 12:04:13 -0500
+Received: from mail.us.es ([193.147.175.20]:34374 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753620AbbLJRHE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Dec 2015 12:07:04 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 142FDDA871
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Dec 2015 18:07:01 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 047C5DA807
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Dec 2015 18:07:01 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 03FEEDA801
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Dec 2015 18:06:59 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20151210140625.GC3886@mrl.redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This allows to redirect bridged packets to local machine:
+On Thu, Dec 10, 2015 at 12:06:25PM -0200, Marcelo Ricardo Leitner wrote:
+> On Thu, Dec 10, 2015 at 02:42:47PM +0100, Pablo Neira Ayuso wrote:
+> > On Thu, Dec 10, 2015 at 11:16:04AM -0200, Marcelo Ricardo Leitner wrote:
+> >
+> > You can use a mask in expectations for wildcard matching, I think
+> > you're basically doing this in your patch. So it would be just one
+> > single expectation for that combination with the permanent flags set
+> > on. I think we may need another flag to make new conntracks
+> 
+> Yes
+> 
+> > independent from the master (IIRC currently if the master conntrack is
+> > gone, related ones will be gone too and we don't want this to happen
+> > in this case).
+> 
+> Ah yes, that too.
+> 
+> If such entry times out, we could promote a related entry to master,
+> maybe.
+>
+> Because with this link in there we are able to remove all the
+> entries when we see a shutdown/abort instead of leaving them to timeout.
 
-ether type ip ether daddr set aa:53:08:12:34:56 meta pkttype set unicast
-Without 'set unicast', ip stack discards PACKET_OTHERHOST skbs.
+I think in this case it doesn't make sense to have a pointer to the
+master conntrack for a new sctp flow that got established via
+expectation. That new sctp flow would be completely independent. I
+would need to audit the core code to evaluate the impact of having a
+conntrack with the IPS_EXPECTED_BIT set with no master set. It would
+be good if you can investigate this.
 
-It is also useful to add support for a '-m cluster like' nft rule
-(where switch floods packets to several nodes, and each cluster node
- node processes a subset of packets for load distribution).
+> > > This was the main reason that I didn't use expectations.  Yet this
+> > > req changed when I realized that we can't process ASCONF chunks without
+> > > validating the AUTH chunk first, which we just can't just when in the middle
+> > > of the communication.
+> > 
+> > OK, so that's why we cannot create expectations for specific
+> > addresses, right?
+> 
+> Right. We would be trusting un-trusty data.
 
-Mangling is restricted to HOST/OTHER/BROAD/MULTICAST, i.e. you cannot set
-skb->pkt_type to PACKET_KERNEL or change PACKET_LOOPBACK to PACKET_HOST.
+I see, but without IP source and destination address in the
+expectation, how is this effective from a security point of view? My
+concerns go in the direction of possible spoofing that result in holes
+in the firewall for sctp traffic.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Changes since v1:
-  - allow setting pkttype to any of host/broadcast/multicast/other.
+> > > After that went down it's just two other:
+> > > - by removing the addresses from it, we have the possibility that a host may
+> > > use multiple addresses but not for a single sctp association, but like
+> > > running two distinct assocs, one using each IP address, but same ports, and
+> > > same vtags. It could happen.. it would cause a clash as the expectation
+> > > would be the same but for different masters.
+> > > 
+> > > - adding vtag to it increases nf_conntrack_tuple by 4 bytes, so 8 bytes per
+> > > nf_conn, while this feature will be off for the majority of the
+> > > installations.> > 
+> > 
+> > Yes, there is a bit more extra memory.
+> > 
+> > I think we can shrink this back by moving the expectation master
+> > pointer to an extension (they are rarely used). Another one to
+> > consider is secmark, I don't know of many using this but I may be wrong.
+> 
+> Ok
 
- net/netfilter/nft_meta.c | 38 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+Anyway, it would be good to evaluate the performance impact on
+enlarging the tuple. Not only extra memory, the hashing for lookups
+will take 4 extra bytes per packet after such change.
 
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 85a465b..c89f835 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -26,6 +26,8 @@
- #include <net/netfilter/nf_tables_core.h>
- #include <net/netfilter/nft_meta.h>
- 
-+#include <uapi/linux/netfilter_bridge.h> /* NF_BR_PRE_ROUTING */
-+
- void nft_meta_get_eval(const struct nft_expr *expr,
- 		       struct nft_regs *regs,
- 		       const struct nft_pktinfo *pkt)
-@@ -190,6 +192,13 @@ err:
- }
- EXPORT_SYMBOL_GPL(nft_meta_get_eval);
- 
-+/* don't change or set _LOOPBACK, _USER, etc. */
-+static bool pkt_type_ok(u32 p)
-+{
-+	return p == PACKET_HOST || p == PACKET_BROADCAST ||
-+	       p == PACKET_MULTICAST || p == PACKET_OTHERHOST;
-+}
-+
- void nft_meta_set_eval(const struct nft_expr *expr,
- 		       struct nft_regs *regs,
- 		       const struct nft_pktinfo *pkt)
-@@ -205,6 +214,11 @@ void nft_meta_set_eval(const struct nft_expr *expr,
- 	case NFT_META_PRIORITY:
- 		skb->priority = value;
- 		break;
-+	case NFT_META_PKTTYPE:
-+		if (skb->pkt_type != value &&
-+		    pkt_type_ok(value) && pkt_type_ok(skb->pkt_type))
-+			skb->pkt_type = value;
-+		break;
- 	case NFT_META_NFTRACE:
- 		skb->nf_trace = 1;
- 		break;
-@@ -273,6 +287,24 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
- }
- EXPORT_SYMBOL_GPL(nft_meta_get_init);
- 
-+static int nft_meta_set_init_pkttype(const struct nft_ctx *ctx)
-+{
-+	unsigned int hooks;
-+
-+	switch (ctx->afi->family) {
-+	case NFPROTO_BRIDGE:
-+		hooks = 1 << NF_BR_PRE_ROUTING;
-+		break;
-+	case NFPROTO_NETDEV:
-+		hooks = 1 << NF_NETDEV_INGRESS;
-+		break;
-+	default:
-+		return -EOPNOTSUPP;
-+	}
-+
-+	return nft_chain_validate_hooks(ctx->chain, hooks);
-+}
-+
- int nft_meta_set_init(const struct nft_ctx *ctx,
- 		      const struct nft_expr *expr,
- 		      const struct nlattr * const tb[])
-@@ -290,6 +322,12 @@ int nft_meta_set_init(const struct nft_ctx *ctx,
- 	case NFT_META_NFTRACE:
- 		len = sizeof(u8);
- 		break;
-+	case NFT_META_PKTTYPE:
-+		err = nft_meta_set_init_pkttype(ctx);
-+		if (err)
-+			return err;
-+		len = sizeof(u8);
-+		break;
- 	default:
- 		return -EOPNOTSUPP;
- 	}
--- 
-2.4.10
+I would need to have a look, but there must be a nice way to
+accomodate this into the expectation infrastructure without having any
+impact on that front. Probably we can have a per-protocol family
+expectation table (instead of a global table) where the hashing to
+look up for expectations depends on the protocol (so in the sctp case,
+we can include the vtag from the ct->state in the hash lookup).
 
+Just an idea, we should avoid any significant impact on performance
+for everyone else just to handle this sctp multihoming case.
+
+> > > The possibility of using RELATED is very attractive, though. Would make more
+> > > sense, I think.
+> > 
+> > OK.
+> > 
+> > > The extra bytes, we might do it, but for that conflict, only if we
+> > > require the usage of conntrack zones in such cases. It would work
+> > > for me..
+> > 
+> > Not sure what you mean.
+> 
+> That we can go this other way if you think it's best, not a problem. :-)
+> 
+> For not breaking d7ee35190427 ("netfilter: nf_ct_sctp: minimal
+> multihoming support"), we would still need that sysctl, something like
+> 'expected_heartbeats', still defaulting to false.
+
+You mean we need that new sysctl to explicitly enable multihoming
+tracking in any case, right?
+
+Thanks.
