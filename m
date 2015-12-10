@@ -1,13 +1,12 @@
-From: Geliang Tang <geliangtang@163.com>
-Subject: [PATCH 4/4] elevator: use list_is_{first,last}
-Date: Thu, 10 Dec 2015 22:20:00 +0800
-Message-ID: <4f2d53c2ddbc9c0d4b00b4db1bd797b53faf8c2d.1449755818.git.geliangtang@163.com>
-References: <305feb971ae11e192f35f25d66bb7b2e28e06c39.1449755818.git.geliangtang@163.com> <394e9e5ece944969fe1ff4f37c9a73bf5543265e.1449755818.git.geliangtang@163.com> <b415535e3c9784ee8529b3e7372b94e759b48bf4.1449755818.git.geliangtang@163.com>
-Cc: Geliang Tang <geliangtang@163.com>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Jan Kara <jack@suse.cz>, Josef Bacik <jbacik@fb.com>,
-	Josh Triplett <josh@joshtriplett.org>,
-	Josh Poimboeuf <jpoimboe@redhat.com>,
+From: Jens Axboe <axboe@kernel.dk>
+Subject: Re: [PATCH 1/4] list: introduce list_is_first()
+Date: Thu, 10 Dec 2015 08:10:34 -0700
+Message-ID: <566995EA.80509@kernel.dk>
+References: <305feb971ae11e192f35f25d66bb7b2e28e06c39.1449755818.git.geliangtang@163.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>,
 	Seth Jennings <sjenning@redhat.com>,
 	Jiri Kosina <jikos@kernel.org>,
 	Vojtech Pavlik <vojtech@suse.com>,
@@ -18,40 +17,26 @@ Cc: Geliang Tang <geliangtang@163.com>,
 	live-patching@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org, netdev@vger.kernel.org,
 	linux-block@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Jens Axboe <axboe@kernel.dk>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <b415535e3c9784ee8529b3e7372b94e759b48bf4.1449755818.git.geliangtang@163.com>
-Sender: netdev-owner@vger.kernel.org
+To: Geliang Tang <geliangtang@163.com>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Jan Kara <jack@suse.cz>, Josef Bacik <jbacik@fb.com>,
+	Josh Triplett <josh@joshtriplett.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <305feb971ae11e192f35f25d66bb7b2e28e06c39.1449755818.git.geliangtang@163.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-For better readability, use list_is_{first,last}() instead of open-coded.
+On 12/10/2015 07:17 AM, Geliang Tang wrote:
+> We already have list_is_last(), it makes sense to also add
+> list_is_first() for consistency. This list utility function
+> to check for first element in a list.
 
-Signed-off-by: Geliang Tang <geliangtang@163.com>
----
- block/noop-iosched.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Honestly, I think we already have way too many of these kind of helpers. 
+IMHO they don't really help, they hurt readability. You should know how 
+the list works anyway, and if you do, then it's a no-brainer what's 
+first and last. If you don't, then you are bound to screw up in other ways.
 
-diff --git a/block/noop-iosched.c b/block/noop-iosched.c
-index a163c48..d44326e 100644
---- a/block/noop-iosched.c
-+++ b/block/noop-iosched.c
-@@ -44,7 +44,7 @@ noop_former_request(struct request_queue *q, struct request *rq)
- {
- 	struct noop_data *nd = q->elevator->elevator_data;
- 
--	if (rq->queuelist.prev == &nd->queue)
-+	if (list_is_first(&rq->queuelist, &nd->queue))
- 		return NULL;
- 	return list_prev_entry(rq, queuelist);
- }
-@@ -54,7 +54,7 @@ noop_latter_request(struct request_queue *q, struct request *rq)
- {
- 	struct noop_data *nd = q->elevator->elevator_data;
- 
--	if (rq->queuelist.next == &nd->queue)
-+	if (list_is_last(&rq->queuelist, &nd->queue))
- 		return NULL;
- 	return list_next_entry(rq, queuelist);
- }
+Just my 2 cents.
+
 -- 
-2.5.0
+Jens Axboe
