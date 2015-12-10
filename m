@@ -1,43 +1,115 @@
-From: Jiri Kosina <jikos@kernel.org>
-Subject: Re: [PATCH 1/4] list: introduce list_is_first()
-Date: Thu, 10 Dec 2015 17:47:19 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1512101745360.9922@cbobk.fhfr.pm>
-References: <305feb971ae11e192f35f25d66bb7b2e28e06c39.1449755818.git.geliangtang@163.com> <566995EA.80509@kernel.dk> <20151210152357.GG29872@treble.redhat.com> <56699BA8.1010009@kernel.dk>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>,
-	Geliang Tang <geliangtang@163.com>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Jan Kara <jack@suse.cz>, Josef Bacik <jbacik@fb.com>,
-	Josh Triplett <josh@joshtriplett.org>,
-	Seth Jennings <sjenning@redhat.com>,
-	Vojtech Pavlik <vojtech@suse.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	live-patching@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-block@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Jens Axboe <axboe@kernel.dk>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56699BA8.1010009@kernel.dk>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH V2 nf-next] netfilter: meta: add support for setting skb->pkttype
+Date: Thu, 10 Dec 2015 18:04:07 +0100
+Message-ID: <1449767047-15389-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:47864 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754122AbbLJREN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Dec 2015 12:04:13 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 10 Dec 2015, Jens Axboe wrote:
+This allows to redirect bridged packets to local machine:
 
-> It's a balance, as we also should not make APIs out of everything. As I said,
-> purely my opinion, but I think the is_last/is_first have jumped the shark.
+ether type ip ether daddr set aa:53:08:12:34:56 meta pkttype set unicast
+Without 'set unicast', ip stack discards PACKET_OTHERHOST skbs.
 
-I don't have a strong opinion either way.
+It is also useful to add support for a '-m cluster like' nft rule
+(where switch floods packets to several nodes, and each cluster node
+ node processes a subset of packets for load distribution).
 
-What I think we should do though, is to either have both (i.e accept this 
-patchset) or have neither of them (i.e. drop list_is_last()).
+Mangling is restricted to HOST/OTHER/BROAD/MULTICAST, i.e. you cannot set
+skb->pkt_type to PACKET_KERNEL or change PACKET_LOOPBACK to PACKET_HOST.
 
-Otherwise people are likely to be confused by such an asymetric API and 
-will keep posting patches for it over and over again.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Changes since v1:
+  - allow setting pkttype to any of host/broadcast/multicast/other.
 
+ net/netfilter/nft_meta.c | 38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
+
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 85a465b..c89f835 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -26,6 +26,8 @@
+ #include <net/netfilter/nf_tables_core.h>
+ #include <net/netfilter/nft_meta.h>
+ 
++#include <uapi/linux/netfilter_bridge.h> /* NF_BR_PRE_ROUTING */
++
+ void nft_meta_get_eval(const struct nft_expr *expr,
+ 		       struct nft_regs *regs,
+ 		       const struct nft_pktinfo *pkt)
+@@ -190,6 +192,13 @@ err:
+ }
+ EXPORT_SYMBOL_GPL(nft_meta_get_eval);
+ 
++/* don't change or set _LOOPBACK, _USER, etc. */
++static bool pkt_type_ok(u32 p)
++{
++	return p == PACKET_HOST || p == PACKET_BROADCAST ||
++	       p == PACKET_MULTICAST || p == PACKET_OTHERHOST;
++}
++
+ void nft_meta_set_eval(const struct nft_expr *expr,
+ 		       struct nft_regs *regs,
+ 		       const struct nft_pktinfo *pkt)
+@@ -205,6 +214,11 @@ void nft_meta_set_eval(const struct nft_expr *expr,
+ 	case NFT_META_PRIORITY:
+ 		skb->priority = value;
+ 		break;
++	case NFT_META_PKTTYPE:
++		if (skb->pkt_type != value &&
++		    pkt_type_ok(value) && pkt_type_ok(skb->pkt_type))
++			skb->pkt_type = value;
++		break;
+ 	case NFT_META_NFTRACE:
+ 		skb->nf_trace = 1;
+ 		break;
+@@ -273,6 +287,24 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
+ }
+ EXPORT_SYMBOL_GPL(nft_meta_get_init);
+ 
++static int nft_meta_set_init_pkttype(const struct nft_ctx *ctx)
++{
++	unsigned int hooks;
++
++	switch (ctx->afi->family) {
++	case NFPROTO_BRIDGE:
++		hooks = 1 << NF_BR_PRE_ROUTING;
++		break;
++	case NFPROTO_NETDEV:
++		hooks = 1 << NF_NETDEV_INGRESS;
++		break;
++	default:
++		return -EOPNOTSUPP;
++	}
++
++	return nft_chain_validate_hooks(ctx->chain, hooks);
++}
++
+ int nft_meta_set_init(const struct nft_ctx *ctx,
+ 		      const struct nft_expr *expr,
+ 		      const struct nlattr * const tb[])
+@@ -290,6 +322,12 @@ int nft_meta_set_init(const struct nft_ctx *ctx,
+ 	case NFT_META_NFTRACE:
+ 		len = sizeof(u8);
+ 		break;
++	case NFT_META_PKTTYPE:
++		err = nft_meta_set_init_pkttype(ctx);
++		if (err)
++			return err;
++		len = sizeof(u8);
++		break;
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
 -- 
-Jiri Kosina
-SUSE Labs
+2.4.10
+
