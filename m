@@ -1,12 +1,15 @@
-From: Jens Axboe <axboe@kernel.dk>
+From: Josh Poimboeuf <jpoimboe@redhat.com>
 Subject: Re: [PATCH 1/4] list: introduce list_is_first()
-Date: Thu, 10 Dec 2015 08:10:34 -0700
-Message-ID: <566995EA.80509@kernel.dk>
+Date: Thu, 10 Dec 2015 09:23:57 -0600
+Message-ID: <20151210152357.GG29872@treble.redhat.com>
 References: <305feb971ae11e192f35f25d66bb7b2e28e06c39.1449755818.git.geliangtang@163.com>
+ <566995EA.80509@kernel.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>,
+Content-Type: text/plain; charset=utf-8
+Cc: Geliang Tang <geliangtang@163.com>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Jan Kara <jack@suse.cz>, Josef Bacik <jbacik@fb.com>,
+	Josh Triplett <josh@joshtriplett.org>,
 	Seth Jennings <sjenning@redhat.com>,
 	Jiri Kosina <jikos@kernel.org>,
 	Vojtech Pavlik <vojtech@suse.com>,
@@ -17,26 +20,46 @@ Cc: Josh Poimboeuf <jpoimboe@redhat.com>,
 	live-patching@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org, netdev@vger.kernel.org,
 	linux-block@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Geliang Tang <geliangtang@163.com>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Jan Kara <jack@suse.cz>, Josef Bacik <jbacik@fb.com>,
-	Josh Triplett <josh@joshtriplett.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <305feb971ae11e192f35f25d66bb7b2e28e06c39.1449755818.git.geliangtang@163.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Jens Axboe <axboe@kernel.dk>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:56566 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751387AbbLJPYB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Dec 2015 10:24:01 -0500
+Content-Disposition: inline
+In-Reply-To: <566995EA.80509@kernel.dk>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12/10/2015 07:17 AM, Geliang Tang wrote:
-> We already have list_is_last(), it makes sense to also add
-> list_is_first() for consistency. This list utility function
-> to check for first element in a list.
+On Thu, Dec 10, 2015 at 08:10:34AM -0700, Jens Axboe wrote:
+> On 12/10/2015 07:17 AM, Geliang Tang wrote:
+> >We already have list_is_last(), it makes sense to also add
+> >list_is_first() for consistency. This list utility function
+> >to check for first element in a list.
+> 
+> Honestly, I think we already have way too many of these kind of helpers.
+> IMHO they don't really help, they hurt readability. You should know how the
+> list works anyway, and if you do, then it's a no-brainer what's first and
+> last. If you don't, then you are bound to screw up in other ways.
+> 
+> Just my 2 cents.
 
-Honestly, I think we already have way too many of these kind of helpers. 
-IMHO they don't really help, they hurt readability. You should know how 
-the list works anyway, and if you do, then it's a no-brainer what's 
-first and last. If you don't, then you are bound to screw up in other ways.
+Personally I would disagree.  Something like:
 
-Just my 2 cents.
+  if (list_is_first(&rq->queuelist, &nd->queue))
+
+is much more readable to me than:
+
+  if (rq->queuelist.prev == &nd->queue)
+
+The first one takes no effort for me -- it's almost English.  While the
+second one takes me a few seconds (and some precious brain cycles) to
+decipher.
+
+Maybe whether it's readable depends on how many years you've been
+looking at the pattern.  But IMHO we shouldn't make "having x # of years
+staring at kernel code" a prerequisite for being able to read kernel
+code.
 
 -- 
-Jens Axboe
+Josh
