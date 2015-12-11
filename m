@@ -1,72 +1,49 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [PATCH 4/5] tests/shell: add tests for handles and comments
-Date: Fri, 11 Dec 2015 14:29:39 +0100
-Message-ID: <CAOkSjBgTH0X2GZzd9adopiX_jijJRe4M0ysWkrfM=W04VF+w+g@mail.gmail.com>
-References: <144982857800.31246.3547570276555930070.stgit@r2d2.cica.es> <144982863023.31246.1243999908078428421.stgit@r2d2.cica.es>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf] netfilter: conntrack: resched in nf_ct_iterate_cleanup
+Date: Fri, 11 Dec 2015 15:43:13 +0100
+Message-ID: <20151211144313.GD8811@breakpoint.cc>
+References: <1449682209-20330-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f45.google.com ([74.125.82.45]:37056 "EHLO
-	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751264AbbLKN37 convert rfc822-to-8bit (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:51084 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754412AbbLKOnO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Dec 2015 08:29:59 -0500
-Received: by wmnn186 with SMTP id n186so31513926wmn.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Dec 2015 05:29:58 -0800 (PST)
-In-Reply-To: <144982863023.31246.1243999908078428421.stgit@r2d2.cica.es>
+	Fri, 11 Dec 2015 09:43:14 -0500
+Content-Disposition: inline
+In-Reply-To: <1449682209-20330-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> diff --git a/tests/shell/testcases/optionals/comments_handles_monitor=
-_0 b/tests/shell/testcases/optionals/comments_handles_monitor_0
-> new file mode 100755
-> index 0000000..f1e2004
-> --- /dev/null
-> +++ b/tests/shell/testcases/optionals/comments_handles_monitor_0
-> @@ -0,0 +1,29 @@
-> +#!/bin/bash
-> +
-> +# handles and comments mix well in monitor
-> +
-> +MKTEMP=3D$(which mktemp)
-> +if [ -x $MKTEMP ] ; then
-> +       tmpfile=3D$(${MKTEMP})
-> +else
-> +       tmpfile=3D$(/tmp/${RANDOM})
-> +fi
-> +
-> +if [ ! -w $tmpfile ] ; then
-> +       echo "Failed to create tmp file" >&2
-> +       exit 0
-> +fi
-> +
-> +trap "rm -rf $tmpfile" EXIT # cleanup if aborted
-> +
-> +set -e
-> +
-> +$NFT add table test
-> +$NFT add chain test test
-> +$NFT monitor -a > $tmpfile &
-> +$NFT add rule test test tcp dport 22 counter accept comment test_com=
-ment
-> +# race :-(
-> +sleep 1
-> +kill $!
-> +grep 'accept comment \"test_comment\" # handle '[[:digit:]]$ $tmpfil=
-e >/dev/null
-> +rm -rf $tmpfile
+Florian Westphal <fw@strlen.de> wrote:
+> Ulrich reports soft lockup with following (shortened) callchain:
+> 
+> NMI watchdog: BUG: soft lockup - CPU#1 stuck for 22s!
+> __netif_receive_skb_core+0x6e4/0x774
+> process_backlog+0x94/0x160
+> net_rx_action+0x88/0x178
+> call_do_softirq+0x24/0x3c
+> do_softirq+0x54/0x6c
+> __local_bh_enable_ip+0x7c/0xbc
+> nf_ct_iterate_cleanup+0x11c/0x22c [nf_conntrack]
+> masq_inet_event+0x20/0x30 [nf_nat_masquerade_ipv6]
+> atomic_notifier_call_chain+0x1c/0x2c
+> ipv6_del_addr+0x1bc/0x220 [ipv6]
+> 
+> Problem is that nf_ct_iterate_cleanup can run for a very long time
+> since it can be interrupted by softirq processing.
+> Moreover, atomic_notifier_call_chain runs with rcu readlock held.
 
-This testcase is so bad designed, we should not include it now. Or fix =
-it later.
+Ulrich just reported another softlockup even with this patch applied.
 
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+One explanation would be non-matching iter(), in this case
+get_next_corpse can take forever since it will walk the entire conntrack
+table, rendering the cond_resched moot.
+
+A V2 patch will be coming to also add a lock break + resched to
+get_next_corpse.
+
+I'll mark it as 'changes requested' in patchwork.
