@@ -1,76 +1,60 @@
-From: Noel Kuntze <noel@familie-kuntze.de>
-Subject: Re: Linux 4.3.1 regression: -m state returns "Protocol wrong type for
- socket"
-Date: Sat, 12 Dec 2015 13:09:25 +0100
-Message-ID: <566C0E75.6080800@familie-kuntze.de>
-References: <n4g4s8$4pr$1@ger.gmane.org> <566BEF33.7090501@gmail.com>
- <alpine.DEB.2.10.1512121116390.13421@blackhole.kfki.hu>
- <566C09F5.6080606@gmail.com>
- <alpine.DEB.2.10.1512121259340.14295@blackhole.kfki.hu>
+From: =?UTF-8?B?RMOibmllbA==?= Fraga <fragabr@gmail.com>
+Subject: Re: Linux 4.3.1 regression: -m state returns "Protocol wrong type
+ for socket"
+Date: Sat, 12 Dec 2015 14:06:55 -0200
+Message-ID: <566c4622.936d810a.ece67.ffffdfc9@mx.google.com>
+References: <n4g4s8$4pr$1@ger.gmane.org>
+	<566BEF33.7090501@gmail.com>
+	<alpine.DEB.2.10.1512121116390.13421@blackhole.kfki.hu>
+	<566C09F5.6080606@gmail.com>
+	<alpine.DEB.2.10.1512121259340.14295@blackhole.kfki.hu>
+	<566C0E75.6080800@familie-kuntze.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: =?UTF-8?Q?D=c3=a2niel_Fraga?= <fragabr@gmail.com>,
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Remzi =?UTF-8?B?QUtZw5xa?= <linuxliste@gmail.com>,
 	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	=?UTF-8?Q?Remzi_AKY=c3=9cZ?= <linuxliste@gmail.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.10.1512121259340.14295@blackhole.kfki.hu>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Noel Kuntze <noel@familie-kuntze.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-qk0-f177.google.com ([209.85.220.177]:35263 "EHLO
+	mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751537AbbLLQHA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 12 Dec 2015 11:07:00 -0500
+In-Reply-To: <566C0E75.6080800@familie-kuntze.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+On Sat, 12 Dec 2015 13:09:25 +0100
+Noel Kuntze <noel@familie-kuntze.de> wrote:
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA256
+> - -m state has been deprecated for some time though.
+> Please try using -m conntrack instead. It offers more
+> functionality and is not considered deprecated.
+> Translation of -m state to --m conntrack:
+> - -m state --state foo,bar -> -m conntrack --ctstate foo,bar
 
-Hello,
+	I tried this:
 
-> > "-m state " could not use without protocol. Therefore we must use w=
-itch
-> > -p tcp.
-> Why should the "state" match be used with protocol? It was never requ=
-ired,
-> nowhere described and the match always worked without any other param=
-eters
-> in the rule.
+iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
-Because that's wrong.
-Remzi is wrong.
-- -m state just accesses the conntrack states, like -m conntrack does.
-It is not protocol specific. All connections, independent of the used p=
-rotocol
-have connection states assigned to them. They are neither protocol
-specific, nor protocol exclusive.
+	And I got the same error:
 
-- -m state has been deprecated for some time though.
-Please try using -m conntrack instead. It offers more
-functionality and is not considered deprecated.
-Translation of -m state to --m conntrack:
-- -m state --state foo,bar -> -m conntrack --ctstate foo,bar
+iptables: Protocol wrong type for socket.
 
-- --=20
+	I'm afraid something has changed between 4.3.0 and 4.3.1 kernel
+and some module isn't loading correctly. Here are the loaded modules:
 
-Mit freundlichen Gr=C3=BC=C3=9Fen/Kind Regards,
-Noel Kuntze
+xt_conntrack            3401  0 
+x_tables               15108  7 xt_comment,ip_tables,xt_tcpudp,xt_conntrack,xt_LOG,iptable_filter,ipt_REJECT
+nf_conntrack_ftp        6750  0 
+nf_conntrack           56108  2 xt_conntrack,nf_conntrack_ftp
 
-GPG Key ID: 0x63EC6658
-=46ingerprint: 23CA BB60 2146 05E7 7278 6592 3839 298F 63EC 6658
+	Is there something missing?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJWbA5zAAoJEDg5KY9j7GZY6LEQAIzah6RLIfu+4qGZTIcSRLqF
-+uiAR1Vv8P3oifmoKiSWIvH54wFoJVnZoqXa+ZTLoDB6gwXyw1857Hc6ZQBhKGNh
-xgrmB/XVCj+d+FwdQMoXO3ayTK3aiEGIcxqLqlLcSoKYgRHUsd6LuNRXFPVU2l3f
-BsaXJefOGM+LTsLrZnLFLIfkMARFV1ihwq7qVTjsAakzzHh3wka2+708py1nBRBm
-GYU7mBKKizX6kGOlVuCjDkyo8t/rB5UfAxIfCv0+pdI+oapGgdaDXpz8y836nZm9
-StU5WhdW0/2dRP6Lwx8chnSffPGiHDfvWScbPw/0KvigsyrclDHgiW1nWJp+ygPB
-ChullV+mdbztDqXXpTxG3lfyL7KfkJNR1lvWNd6TmZew4/2i1F2aw4hyEjuhGBgj
-QhkE4bLkllBhvBTz9hNun9SkomIkZU9nDXuNR6LaouNK8TJPt3t7ccUYdxOiTpR0
-Yl1kLGAfIcxfnJkMHJoRzGjhHKAULzwYJRgjLqIJvBZ6SkY5TEkIHyxGysEt4sGg
-QFZQc+QQZe/LFk2MTQ9OsH/YijolA0sgr3iGZSLERdUdZ7vUF8Ss/H1L+YZU9lF3
-dcpb5vrM3tC5D6KT+FIky1lqkQGoe3vsWf2R8WgLt7hO/H3GikRXpFho2+ypKkWz
-fCw8TfyINXdY9/N0pSfB
-=3DHfZC
------END PGP SIGNATURE-----
-
+-- 
+Linux 4.3.2: Blurry Fish Butt
+http://www.youtube.com/DanielFragaBR
+http://exchangewar.info
+Bitcoin: 12H6661yoLDUZaYPdah6urZS5WiXwTAUgL
