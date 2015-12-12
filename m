@@ -1,73 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: =?UTF-8?B?RMOibmllbA==?= Fraga <fragabr@gmail.com>
 Subject: Re: Linux 4.3.1 regression: -m state returns "Protocol wrong type
  for socket"
-Date: Sat, 12 Dec 2015 20:32:37 +0100
-Message-ID: <20151212193237.GB10759@salvia>
+Date: Sat, 12 Dec 2015 17:34:55 -0200
+Message-ID: <566c76e3.0303810a.334b3.fffffd08@mx.google.com>
 References: <n4g4s8$4pr$1@ger.gmane.org>
- <566BEF33.7090501@gmail.com>
- <alpine.DEB.2.10.1512121116390.13421@blackhole.kfki.hu>
- <566C09F5.6080606@gmail.com>
- <alpine.DEB.2.10.1512121259340.14295@blackhole.kfki.hu>
- <566C0E75.6080800@familie-kuntze.de>
- <566c4622.936d810a.ece67.ffffdfc9@mx.google.com>
+	<566BEF33.7090501@gmail.com>
+	<alpine.DEB.2.10.1512121116390.13421@blackhole.kfki.hu>
+	<566C09F5.6080606@gmail.com>
+	<alpine.DEB.2.10.1512121259340.14295@blackhole.kfki.hu>
+	<566C0E75.6080800@familie-kuntze.de>
+	<20151212191019.GA10759@salvia>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="DocE+STaALJfprDB"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Cc: Noel Kuntze <noel@familie-kuntze.de>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Remzi =?iso-8859-1?Q?AKY=DCZ?= <linuxliste@gmail.com>,
+	Remzi =?UTF-8?B?QUtZw5xa?= <linuxliste@gmail.com>,
 	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: =?iso-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <566c4622.936d810a.ece67.ffffdfc9@mx.google.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-qk0-f175.google.com ([209.85.220.175]:33469 "EHLO
+	mail-qk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753040AbbLLTfD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 12 Dec 2015 14:35:03 -0500
+In-Reply-To: <20151212191019.GA10759@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+On Sat, 12 Dec 2015 20:10:19 +0100
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
---DocE+STaALJfprDB
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-On Sat, Dec 12, 2015 at 02:06:55PM -0200, Dâniel Fraga wrote:
-> 	I tried this:
+> For the record, -m state is *not* deprecated.
 > 
-> iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-> 
-> 	And I got the same error:
-> 
-> iptables: Protocol wrong type for socket.
+> This syntax is still supported and will always be.
 
-There is some problem with the revision infrastructure.
+	Thanks, but why it works on Linux 4.3.0 and it doesn't work on
+Linux 4.3.1 and above? Any hints?
 
-iptables is asking for a match revision that is not available in the
-kernel. So the negotiation between userspace and kernel to use a given
-version of this match is failing for some reason.
-
-Could you apply this patch and tell me what it shows when you run this
-command and the one using -m state?
-
-BTW, any particularly on your setup that is worth mention?
-
-Thanks.
-
---DocE+STaALJfprDB
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="x.patch"
-
-diff --git a/libxtables/xtables.c b/libxtables/xtables.c
-index f14d503..d0e942c 100644
---- a/libxtables/xtables.c
-+++ b/libxtables/xtables.c
-@@ -825,6 +825,8 @@ int xtables_compatible_revision(const char *name, uint8_t revision, int opt)
- 
- static int compatible_match_revision(const char *name, uint8_t revision)
- {
-+	printf("compatible_match_revision name=%s revision=%u\n",
-+		name, revision);
- 	return xt_params->compat_rev(name, revision, afinfo->so_rev_match);
- }
- 
-
---DocE+STaALJfprDB--
+-- 
+Linux 4.3.2: Blurry Fish Butt
+http://www.youtube.com/DanielFragaBR
+http://exchangewar.info
+Bitcoin: 12H6661yoLDUZaYPdah6urZS5WiXwTAUgL
