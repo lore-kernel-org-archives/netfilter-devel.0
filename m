@@ -1,52 +1,41 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net] nftables: use list_for_each_entry_safe_reverse to
- traversal commit_list in nf_tables_abort
-Date: Sun, 13 Dec 2015 22:47:09 +0100
-Message-ID: <20151213214709.GA1827@salvia>
-References: <15bcb964221e1a9498e901417d020609cd5aac65.1449485287.git.lucien.xin@gmail.com>
- <20151209140330.GA1695@salvia>
- <CADvbK_dmqu4aFhQa2FVu=_RAVrSZ6qSixfGN9EM2dZ20CeQqUA@mail.gmail.com>
+Subject: rebasing nf tree
+Date: Sun, 13 Dec 2015 22:51:25 +0100
+Message-ID: <20151213215125.GA2029@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: network dev <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org, davem <davem@davemloft.net>,
-	fw@strlen.de
-To: Xin Long <lucien.xin@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:48576 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750924AbbLMVvf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 13 Dec 2015 16:51:35 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 5A8661324C2
+	for <netfilter-devel@vger.kernel.org>; Sun, 13 Dec 2015 22:51:34 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 4D85ADA72A
+	for <netfilter-devel@vger.kernel.org>; Sun, 13 Dec 2015 22:51:34 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 8EE28DA72A
+	for <netfilter-devel@vger.kernel.org>; Sun, 13 Dec 2015 22:51:32 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <CADvbK_dmqu4aFhQa2FVu=_RAVrSZ6qSixfGN9EM2dZ20CeQqUA@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Dec 10, 2015 at 12:24:21AM +0800, Xin Long wrote:
-> On Wed, Dec 9, 2015 at 10:03 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Mon, Dec 07, 2015 at 06:48:07PM +0800, Xin Long wrote:
-[...]
-> >> the right order of rollback should be:
-> >>   'del tab trans' -> 'del set trans' -> 'add set trans'.
-> >> which is opposite with commit_list order.
-> >>
-> >> so fix it by rolling back commits with reverse order in nf_tables_abort.
-> >
-> >
-> > You're reporting a kernel panic.
-> >
-> > Could you please provide a sequence of commands to reproduce it with
-> > the existing code?
-> >
-> > Thanks.
-> 
-> the reproduce is a kind of long, do i need to repost this patch with
-> the reproduce?
+Hi,
 
-No need to resend.
+I have to toss this patch from the nf tree:
 
-Yes, we need this reverse iteration there to handle the 'delete table'
-command in the batch. This problem happens since we have
-nft_flush_table().
+        netfilter: nf_tables: release objects on netns destruction
 
-Other callsites are artificially restriction deletion of inactive
-objects but that should be removed as we already discuss on the
-mailing list.
+I detected problems in it and I don't want to pass up this fix in
+several incremental updates.
 
-So I'm applying this, thanks.
+So I had to rebase, in case you got that patch into your working copy,
+please just remove it from your head via:
+
+git reset HEAD^
+git reset --hard
+
+then pull back from master. Sorry for the inconvenience.
