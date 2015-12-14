@@ -1,121 +1,71 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable] netfilter: ip6t_SYNPROXY: fix NULL pointer dereference
-Date: Mon, 14 Dec 2015 13:17:16 +0100
-Message-ID: <1450095436-24855-6-git-send-email-pablo@netfilter.org>
-References: <1450095436-24855-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH -stable] netfilter: nf_log: don't zap all loggers on unregister
+Date: Mon, 14 Dec 2015 13:17:11 +0100
+Message-ID: <1450095436-24855-1-git-send-email-pablo@netfilter.org>
 Cc: stable@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38464 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38442 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752911AbbLNMR2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Dec 2015 07:17:28 -0500
+	id S1752789AbbLNMR0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Dec 2015 07:17:26 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 9D5092E4F4
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 13:17:26 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id DEFD98E1C4
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 13:17:21 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 93C7DDA814
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 13:17:26 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id D507CDA874
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 13:17:21 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 173B9DA843
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 13:17:24 +0100 (CET)
-In-Reply-To: <1450095436-24855-1-git-send-email-pablo@netfilter.org>
+	by antivirus1-rhel7.int (Postfix) with ESMTP id DB905DA874
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 13:17:19 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Phil Sutter <phil@nwl.cc>
+From: Florian Westphal <fw@strlen.de>
 
-[ upstream commit 96fffb4f23f124f297d51dedc9cf51d19eb88ee1 ]
+[ upstream commit 205ee117d4dc4a11ac3bd9638bb9b2e839f4de9a ]
 
-This happens when networking namespaces are enabled.
+like nf_log_unset, nf_log_unregister must not reset the list of loggers.
+Otherwise, a call to nf_log_unregister() will render loggers of other nf
+protocols unusable:
 
-Cc: <stable@vger.kernel.org> # 3.12.x
-Cc: <stable@vger.kernel.org> # 3.14.x
+iptables -A INPUT -j LOG
+modprobe nf_log_arp ; rmmod nf_log_arp
+iptables -A INPUT -j LOG
+iptables: No chain/target/match by that name
+
 Cc: <stable@vger.kernel.org> # 3.18.x
 Cc: <stable@vger.kernel.org> # 4.1.x
-Suggested-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Phil Sutter <phil@nwl.cc>
-Acked-by: Patrick McHardy <kaber@trash.net>
+Cc: <stable@vger.kernel.org> # 4.2.x
+Fixes: 30e0c6a6be ("netfilter: nf_log: prepare net namespace support for loggers")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter/ip6t_SYNPROXY.c | 18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ net/netfilter/nf_log.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-index 6edb7b1..bcebc24 100644
---- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
-+++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-@@ -37,12 +37,13 @@ synproxy_build_ip(struct sk_buff *skb, const struct in6_addr *saddr,
- }
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index 675d12c..a5ebd7d 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -107,11 +107,15 @@ EXPORT_SYMBOL(nf_log_register);
  
- static void
--synproxy_send_tcp(const struct sk_buff *skb, struct sk_buff *nskb,
-+synproxy_send_tcp(const struct synproxy_net *snet,
-+		  const struct sk_buff *skb, struct sk_buff *nskb,
- 		  struct nf_conntrack *nfct, enum ip_conntrack_info ctinfo,
- 		  struct ipv6hdr *niph, struct tcphdr *nth,
- 		  unsigned int tcp_hdr_size)
+ void nf_log_unregister(struct nf_logger *logger)
  {
--	struct net *net = nf_ct_net((struct nf_conn *)nfct);
-+	struct net *net = nf_ct_net(snet->tmpl);
- 	struct dst_entry *dst;
- 	struct flowi6 fl6;
++	const struct nf_logger *log;
+ 	int i;
  
-@@ -83,7 +84,8 @@ free_nskb:
+ 	mutex_lock(&nf_log_mutex);
+-	for (i = 0; i < NFPROTO_NUMPROTO; i++)
+-		RCU_INIT_POINTER(loggers[i][logger->type], NULL);
++	for (i = 0; i < NFPROTO_NUMPROTO; i++) {
++		log = nft_log_dereference(loggers[i][logger->type]);
++		if (log == logger)
++			RCU_INIT_POINTER(loggers[i][logger->type], NULL);
++	}
+ 	mutex_unlock(&nf_log_mutex);
  }
- 
- static void
--synproxy_send_client_synack(const struct sk_buff *skb, const struct tcphdr *th,
-+synproxy_send_client_synack(const struct synproxy_net *snet,
-+			    const struct sk_buff *skb, const struct tcphdr *th,
- 			    const struct synproxy_options *opts)
- {
- 	struct sk_buff *nskb;
-@@ -119,7 +121,7 @@ synproxy_send_client_synack(const struct sk_buff *skb, const struct tcphdr *th,
- 
- 	synproxy_build_options(nth, opts);
- 
--	synproxy_send_tcp(skb, nskb, skb->nfct, IP_CT_ESTABLISHED_REPLY,
-+	synproxy_send_tcp(snet, skb, nskb, skb->nfct, IP_CT_ESTABLISHED_REPLY,
- 			  niph, nth, tcp_hdr_size);
- }
- 
-@@ -163,7 +165,7 @@ synproxy_send_server_syn(const struct synproxy_net *snet,
- 
- 	synproxy_build_options(nth, opts);
- 
--	synproxy_send_tcp(skb, nskb, &snet->tmpl->ct_general, IP_CT_NEW,
-+	synproxy_send_tcp(snet, skb, nskb, &snet->tmpl->ct_general, IP_CT_NEW,
- 			  niph, nth, tcp_hdr_size);
- }
- 
-@@ -203,7 +205,7 @@ synproxy_send_server_ack(const struct synproxy_net *snet,
- 
- 	synproxy_build_options(nth, opts);
- 
--	synproxy_send_tcp(skb, nskb, NULL, 0, niph, nth, tcp_hdr_size);
-+	synproxy_send_tcp(snet, skb, nskb, NULL, 0, niph, nth, tcp_hdr_size);
- }
- 
- static void
-@@ -241,7 +243,7 @@ synproxy_send_client_ack(const struct synproxy_net *snet,
- 
- 	synproxy_build_options(nth, opts);
- 
--	synproxy_send_tcp(skb, nskb, NULL, 0, niph, nth, tcp_hdr_size);
-+	synproxy_send_tcp(snet, skb, nskb, NULL, 0, niph, nth, tcp_hdr_size);
- }
- 
- static bool
-@@ -301,7 +303,7 @@ synproxy_tg6(struct sk_buff *skb, const struct xt_action_param *par)
- 					  XT_SYNPROXY_OPT_SACK_PERM |
- 					  XT_SYNPROXY_OPT_ECN);
- 
--		synproxy_send_client_synack(skb, th, &opts);
-+		synproxy_send_client_synack(snet, skb, th, &opts);
- 		return NF_DROP;
- 
- 	} else if (th->ack && !(th->fin || th->rst || th->syn)) {
+ EXPORT_SYMBOL(nf_log_unregister);
 -- 
-2.1.4
+1.7.10.4
 
