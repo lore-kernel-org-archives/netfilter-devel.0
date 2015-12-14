@@ -1,44 +1,64 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable] netfilter: ctnetlink: put back references to master ct and expect objects
-Date: Mon, 14 Dec 2015 20:49:58 +0100
-Message-ID: <1450122598-24145-1-git-send-email-pablo@netfilter.org>
-Cc: stable@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
+From: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
+Subject: [ANNOUNCE] Another round of NetDev 1.1 updates
+Date: Mon, 14 Dec 2015 21:12:31 +0100
+Message-ID: <20151214201231.GA9173@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[ upstream commit 95dd8653de658143770cb0e55a58d2aab97c79d2 ]
+Hi!
 
-We have to put back the references to the master conntrack and the expectation
-that we just created, otherwise we'll leak them.
+We would like to share with you another round of incremental updates
+on accepted sessions in netdev 1.1, the community-driven Linux
+networking conference held back-to-back with netconf in Sevilla,
+Spain, February 10-12, 2016.
 
-Fixes: 0ef71ee1a5b9 ("netfilter: ctnetlink: refactor ctnetlink_create_expect")
-Cc: <stable@vger.kernel.org> # 3.12.x
-Cc: <stable@vger.kernel.org> # 3.14.x
-Cc: <stable@vger.kernel.org> # 3.18.x
-Cc: <stable@vger.kernel.org> # 4.1.x
-Reported-by: Tim Wiess <Tim.Wiess@watchguard.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_netlink.c |    5 -----
- 1 file changed, 5 deletions(-)
+= Keynote =
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index d1c2394..6b8b0ab 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2995,11 +2995,6 @@ ctnetlink_create_expect(struct net *net, u16 zone,
- 	}
- 
- 	err = nf_ct_expect_related_report(exp, portid, report);
--	if (err < 0)
--		goto err_exp;
--
--	return 0;
--err_exp:
- 	nf_ct_expect_put(exp);
- err_ct:
- 	nf_ct_put(ct);
--- 
-1.7.10.4
+* "Hardware Checksumming: Less is More" (David S. Miller)
+
+= BoF =
+
+* "Unlocking SR-IOV in Linux" (John Fastabend)
+
+= Talks =
+
+* "Measuring wifi performance across all Google Fiber customers"
+  (Avery Pennarun)
+
+* "Load balancing with nftables" (Laura Garcia)
+
+= Tutorials =
+
+* "Running Cellular Network Infrastructure on Linux" (Harald Welte)
+
+Remember session proposal submission is open until Dec 20th.
+
+Registration is open at: https://www.netdevconf.org/1.1/registration.html
+
+             _________________________
+            / If you miss netdev 1.1, \
+            \ you'll regret!          /
+             -------------------------
+                \   ^__^
+                 \  (oo)\_______
+                    (__)\       )\/\
+                        ||----w |
+                        ||     ||
+
+For more info, visit:
+* netdev 1.1: https://www.netdevconf.org/1.1/
+* netconf 2016: http://vger.kernel.org/netconf2016.html
+
+We would also like to thank those that already confirmed sponsorship:
+Cumulus Networks, Facebook, VmWare, Google, Mellanox, Mojatatu
+Networks, OISF/Suricata and Zen Load Balancer. Thank you.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
