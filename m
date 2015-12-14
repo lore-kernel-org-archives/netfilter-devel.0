@@ -1,64 +1,99 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: [PATCH net-next] net, cgroup: cgroup_sk_updat_lock was missing
- initializer
-Date: Mon, 14 Dec 2015 11:24:06 -0500
-Message-ID: <20151214162406.GA4026@mtj.duckdns.org>
-References: <1449527935-27056-1-git-send-email-tj@kernel.org>
- <f90d369a0e004fee8d3bfdfe95e0abc0@HKXPR3004MB0088.064d.mgd.msft.net>
+From: Luis Henriques <luis.henriques@canonical.com>
+Subject: Re: [PATCH -stable] netfilter: ipt_rpfilter: remove the nh_scope
+ test in rpfilter_lookup_reverse
+Date: Mon, 14 Dec 2015 17:12:56 +0000
+Message-ID: <20151214171256.GD3120@ares>
+References: <1450095436-24855-1-git-send-email-pablo@netfilter.org>
+ <1450095436-24855-4-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Dexuan Cui <decui@microsoft.com>,
-	"pablo@netfilter.org" <pablo@netfilter.org>,
-	"kaber@trash.net" <kaber@trash.net>,
-	"kadlec@blackhole.kfki.hu" <kadlec@blackhole.kfki.hu>,
-	"daniel@iogearbox.net" <daniel@iogearbox.net>,
-	"daniel.wagner@bmw-carit.de" <daniel.wagner@bmw-carit.de>,
-	"nhorman@tuxdriver.com" <nhorman@tuxdriver.com>,
-	"lizefan@huawei.com" <lizefan@huawei.com>,
-	"hannes@cmpxchg.org" <hannes@cmpxchg.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"coreteam@netfilter.org" <coreteam@netfilter.org>,
-	"cgroups@vger.kernel.org" <cgroups@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"kernel-team@fb.com" <kernel-team@fb.com>,
-	"ninasc@fb.com" <ninasc@fb.com>
-To: "davem@davemloft.net" <davem@davemloft.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, stable@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <f90d369a0e004fee8d3bfdfe95e0abc0@HKXPR3004MB0088.064d.mgd.msft.net>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1450095436-24855-4-git-send-email-pablo@netfilter.org>
+Sender: stable-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-bd1060a1d671 ("sock, cgroup: add sock->sk_cgroup") added global
-spinlock cgroup_sk_update_lock but erroneously skipped initializer
-leading to uninitialized spinlock warning.  Fix it by using
-DEFINE_SPINLOCK().
+On Mon, Dec 14, 2015 at 01:17:14PM +0100, Pablo Neira Ayuso wrote:
+> From: lucien <lucien.xin@gmail.com>
+>=20
+> [ upstream commit cc4998febd567d1c671684abce5595344bd4e8b2 ]
+>=20
+> --accept-local  option works for res.type =3D=3D RTN_LOCAL, which sho=
+uld be
+> from the local table, but there, the fib_info's nh->nh_scope =3D
+> RT_SCOPE_NOWHERE ( > RT_SCOPE_HOST). in fib_create_info().
+>=20
+> 	if (cfg->fc_scope =3D=3D RT_SCOPE_HOST) {
+> 		struct fib_nh *nh =3D fi->fib_nh;
+>=20
+> 		/* Local address is added. */
+> 		if (nhs !=3D 1 || nh->nh_gw)
+> 			goto err_inval;
+> 		nh->nh_scope =3D RT_SCOPE_NOWHERE;   <=3D=3D=3D
+> 		nh->nh_dev =3D dev_get_by_index(net, fi->fib_nh->nh_oif);
+> 		err =3D -ENODEV;
+> 		if (!nh->nh_dev)
+> 			goto failure;
+>=20
+> but in our rpfilter_lookup_reverse():
+>=20
+> 	if (dev_match || flags & XT_RPFILTER_LOOSE)
+> 		return FIB_RES_NH(res).nh_scope <=3D RT_SCOPE_HOST;
+>=20
+> if nh->nh_scope > RT_SCOPE_HOST, it will fail. --accept-local option
+> will never be passed.
+>=20
+> it seems the test is bogus and can be removed to fix this issue.
+>=20
+> 	if (dev_match || flags & XT_RPFILTER_LOOSE)
+> 		return FIB_RES_NH(res).nh_scope <=3D RT_SCOPE_HOST;
+>=20
+> ipv6 does not have this issue.
+>=20
+> Cc: <stable@vger.kernel.org> # 3.14.x
+> Cc: <stable@vger.kernel.org> # 3.18.x
+> Cc: <stable@vger.kernel.org> # 4.1.x
+> Cc: <stable@vger.kernel.org> # 4.2.x
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Dexuan Cui <decui@microsoft.com>
-Fixes: bd1060a1d671 ("sock, cgroup: add sock->sk_cgroup")
----
-Hello, Dexuan.
+Thanks, I'm queuing this one and the next 2 to the 3.16 kernel as well
+(some of the other patches had already been included).
 
-Oops, sorry about that.  Somehow thought it was a different problem
-which is already fixed.  This should do it.
+Cheers,
+--
+Lu=EDs
 
-Thanks.
 
- kernel/cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/kernel/cgroup.c b/kernel/cgroup.c
-index 4f8f792..4466273f 100644
---- a/kernel/cgroup.c
-+++ b/kernel/cgroup.c
-@@ -5790,7 +5790,7 @@ EXPORT_SYMBOL_GPL(cgroup_get_from_path);
- 
- #if defined(CONFIG_CGROUP_NET_PRIO) || defined(CONFIG_CGROUP_NET_CLASSID)
- 
--spinlock_t cgroup_sk_update_lock;
-+DEFINE_SPINLOCK(cgroup_sk_update_lock);
- static bool cgroup_sk_alloc_disabled __read_mostly;
- 
- void cgroup_sk_alloc_disable(void)
+> Signed-off-by: Xin Long <lucien.xin@gmail.com>
+> Acked-by: Florian Westphal <fw@strlen.de>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  net/ipv4/netfilter/ipt_rpfilter.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+>=20
+> diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/i=
+pt_rpfilter.c
+> index 8618fd1..c4ffc9d 100644
+> --- a/net/ipv4/netfilter/ipt_rpfilter.c
+> +++ b/net/ipv4/netfilter/ipt_rpfilter.c
+> @@ -61,9 +61,7 @@ static bool rpfilter_lookup_reverse(struct flowi4 *=
+fl4,
+>  	if (FIB_RES_DEV(res) =3D=3D dev)
+>  		dev_match =3D true;
+>  #endif
+> -	if (dev_match || flags & XT_RPFILTER_LOOSE)
+> -		return FIB_RES_NH(res).nh_scope <=3D RT_SCOPE_HOST;
+> -	return dev_match;
+> +	return dev_match || flags & XT_RPFILTER_LOOSE;
+>  }
+> =20
+>  static bool rpfilter_is_local(const struct sk_buff *skb)
+> --=20
+> 2.1.4
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe stable" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
