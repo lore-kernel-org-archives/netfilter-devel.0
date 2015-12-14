@@ -1,99 +1,99 @@
-From: Luis Henriques <luis.henriques@canonical.com>
-Subject: Re: [PATCH -stable] netfilter: ipt_rpfilter: remove the nh_scope
- test in rpfilter_lookup_reverse
-Date: Mon, 14 Dec 2015 17:12:56 +0000
-Message-ID: <20151214171256.GD3120@ares>
-References: <1450095436-24855-1-git-send-email-pablo@netfilter.org>
- <1450095436-24855-4-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH V2 nf-next] netfilter: meta: add support for setting
+ skb->pkttype
+Date: Mon, 14 Dec 2015 18:26:42 +0100
+Message-ID: <20151214172642.GA1365@salvia>
+References: <1449767047-15389-1-git-send-email-fw@strlen.de>
+ <20151214114525.GA3469@salvia>
+ <20151214133846.GF12854@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, stable@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <stable-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:50665 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751901AbbLNR0q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Dec 2015 12:26:46 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 82857B6BA3
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 18:26:45 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 6BB29DA80B
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 18:26:45 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 82272DA804
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 18:26:43 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1450095436-24855-4-git-send-email-pablo@netfilter.org>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20151214133846.GF12854@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Dec 14, 2015 at 01:17:14PM +0100, Pablo Neira Ayuso wrote:
-> From: lucien <lucien.xin@gmail.com>
->=20
-> [ upstream commit cc4998febd567d1c671684abce5595344bd4e8b2 ]
->=20
-> --accept-local  option works for res.type =3D=3D RTN_LOCAL, which sho=
-uld be
-> from the local table, but there, the fib_info's nh->nh_scope =3D
-> RT_SCOPE_NOWHERE ( > RT_SCOPE_HOST). in fib_create_info().
->=20
-> 	if (cfg->fc_scope =3D=3D RT_SCOPE_HOST) {
-> 		struct fib_nh *nh =3D fi->fib_nh;
->=20
-> 		/* Local address is added. */
-> 		if (nhs !=3D 1 || nh->nh_gw)
-> 			goto err_inval;
-> 		nh->nh_scope =3D RT_SCOPE_NOWHERE;   <=3D=3D=3D
-> 		nh->nh_dev =3D dev_get_by_index(net, fi->fib_nh->nh_oif);
-> 		err =3D -ENODEV;
-> 		if (!nh->nh_dev)
-> 			goto failure;
->=20
-> but in our rpfilter_lookup_reverse():
->=20
-> 	if (dev_match || flags & XT_RPFILTER_LOOSE)
-> 		return FIB_RES_NH(res).nh_scope <=3D RT_SCOPE_HOST;
->=20
-> if nh->nh_scope > RT_SCOPE_HOST, it will fail. --accept-local option
-> will never be passed.
->=20
-> it seems the test is bogus and can be removed to fix this issue.
->=20
-> 	if (dev_match || flags & XT_RPFILTER_LOOSE)
-> 		return FIB_RES_NH(res).nh_scope <=3D RT_SCOPE_HOST;
->=20
-> ipv6 does not have this issue.
->=20
-> Cc: <stable@vger.kernel.org> # 3.14.x
-> Cc: <stable@vger.kernel.org> # 3.18.x
-> Cc: <stable@vger.kernel.org> # 4.1.x
-> Cc: <stable@vger.kernel.org> # 4.2.x
+On Mon, Dec 14, 2015 at 02:38:46PM +0100, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Cc'ing Patrick, I would like to hear him, this is bringing up again
+> > the datatype issue that we discussed before.
+> > 
+> > On Thu, Dec 10, 2015 at 06:04:07PM +0100, Florian Westphal wrote:
+> > > This allows to redirect bridged packets to local machine:
+> > > 
+> > > ether type ip ether daddr set aa:53:08:12:34:56 meta pkttype set unicast
+> > > Without 'set unicast', ip stack discards PACKET_OTHERHOST skbs.
+> > > 
+> > > It is also useful to add support for a '-m cluster like' nft rule
+> > > (where switch floods packets to several nodes, and each cluster node
+> > >  node processes a subset of packets for load distribution).
+> > > 
+> > > Mangling is restricted to HOST/OTHER/BROAD/MULTICAST, i.e. you cannot set
+> > > skb->pkt_type to PACKET_KERNEL or change PACKET_LOOPBACK to PACKET_HOST.
+> > > @@ -190,6 +192,13 @@ err:
+> > >  }
+> > >  EXPORT_SYMBOL_GPL(nft_meta_get_eval);
+> > >  
+> > > +/* don't change or set _LOOPBACK, _USER, etc. */
+> > > +static bool pkt_type_ok(u32 p)
+> > > +{
+> > > +	return p == PACKET_HOST || p == PACKET_BROADCAST ||
+> > > +	       p == PACKET_MULTICAST || p == PACKET_OTHERHOST;
+> > > +}
+> > 
+> > I think we should make use of the datatypes in the kernel side, ie.
+> > add NFT_DATA_PKTTYPE. Currently we are using the raw NFT_DATA_VALUE
+> > which doesn't semantically tell us anything on the kind of data.
+> 
+> Yes, but otherwise you can't parameterize the set operations anymore.
 
-Thanks, I'm queuing this one and the next 2 to the 3.16 kernel as well
-(some of the other patches had already been included).
+We can still via nft_data_init(), we would need a nft_pkttype_init()
+there (or some generic infrastructure to register datatypes from each
+extensions). So as long as you indicate NFT_DATA_PKTTYPE, the data
+will be validated. That will catch both store of pkttype into register
+both from immediate and sets.
 
-Cheers,
---
-Lu=EDs
+> Its probably not a big deal for pkt_type but it would be f.e. for mark,
+> we dfinitely want to take that from a sreg.
+>
+> > The datatype will allow to perform validation from the configuration
+> > plane on correct value that we support, otherwise return -EOPNOTSUPP.
+> > This approach above seems a bit sloppy to me as the validation happens
+> > from the packet path.
+> 
+> Yes, but again ...  I think it would be okay for pkt_type to force
+> specification of the target value at config stage, but it would mean
+> that meta set works differently depending on the key (somethis input
+> is sreg, sometimes a specified attribute value).
 
+Not talking here about passing the data via sreg (through immediate
+expression) or as a netlink attribute. Although that is another
+interesting topic.
 
-> Signed-off-by: Xin Long <lucien.xin@gmail.com>
-> Acked-by: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  net/ipv4/netfilter/ipt_rpfilter.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
->=20
-> diff --git a/net/ipv4/netfilter/ipt_rpfilter.c b/net/ipv4/netfilter/i=
-pt_rpfilter.c
-> index 8618fd1..c4ffc9d 100644
-> --- a/net/ipv4/netfilter/ipt_rpfilter.c
-> +++ b/net/ipv4/netfilter/ipt_rpfilter.c
-> @@ -61,9 +61,7 @@ static bool rpfilter_lookup_reverse(struct flowi4 *=
-fl4,
->  	if (FIB_RES_DEV(res) =3D=3D dev)
->  		dev_match =3D true;
->  #endif
-> -	if (dev_match || flags & XT_RPFILTER_LOOSE)
-> -		return FIB_RES_NH(res).nh_scope <=3D RT_SCOPE_HOST;
-> -	return dev_match;
-> +	return dev_match || flags & XT_RPFILTER_LOOSE;
->  }
-> =20
->  static bool rpfilter_is_local(const struct sk_buff *skb)
-> --=20
-> 2.1.4
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe stable" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Last time I met Patrick a bit more that one month ago, he mentioned it
+would be good to evaluate this from performance point of view as we
+would skip the handling of the immediate expression.
+
+We may keep going with the existing approach, ie. just raw data with
+no semantics, then if we decide to go this path, to retain backward
+compatibility, we would need to pass two data attributes through
+netlink: one with the raw data and another with the specific datatype
+so older kernels keep handling what userspace generates.
+
+Let me see if I can reach Patrick to discuss this.
