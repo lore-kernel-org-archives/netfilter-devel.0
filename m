@@ -1,75 +1,80 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: Re: [PATCH] Add tcindex to conntrack and add netfilter target/matches
-Date: Mon, 14 Dec 2015 10:50:31 +0100
-Message-ID: <566E90E7.4060104@iogearbox.net>
-References: <1449179951-26327-1-git-send-email-luuk.paulussen@alliedtelesis.co.nz> <1449179951-26327-2-git-send-email-luuk.paulussen@alliedtelesis.co.nz> <5664B698.8040904@alliedtelesis.co.nz> <20151206224522.GA27161@breakpoint.cc> <5664ECCC.1030104@alliedtelesis.co.nz> <5667EF49.8060707@iogearbox.net> <566DF87E.40608@alliedtelesis.co.nz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Luuk Paulussen <Luuk.Paulussen@alliedtelesis.co.nz>,
-	Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 4/6] netfilter: nfnetlink: fix splat due to incorrect socket memory accounting in skbuff clones
+Date: Mon, 14 Dec 2015 12:25:44 +0100
+Message-ID: <1450092346-3281-5-git-send-email-pablo@netfilter.org>
+References: <1450092346-3281-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:47800 "EHLO
-	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752660AbbLNJuh (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Dec 2015 04:50:37 -0500
-In-Reply-To: <566DF87E.40608@alliedtelesis.co.nz>
+Received: from mail.us.es ([193.147.175.20]:47726 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752691AbbLNL1x (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Dec 2015 06:27:53 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 0CE201324FE
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 12:27:51 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id F24A29D6AE
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 12:27:50 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 8DDE829F55A
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 12:27:11 +0100 (CET)
+In-Reply-To: <1450092346-3281-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 12/14/2015 12:00 AM, Luuk Paulussen wrote:
-> On 12/09/2015 10:07 PM, Daniel Borkmann wrote:
->> On 12/07/2015 03:19 AM, Luuk Paulussen wrote:
->>> On 12/07/2015 11:45 AM, Florian Westphal wrote:
->>>> Luuk Paulussen <Luuk.Paulussen@alliedtelesis.co.nz> wrote:
->>>>> Hi All,
->>>>>
->>>>> I'm still hoping for some feedback on this.  I have some userspace
->>>>> patches around this as well, (to set/show the tc_index in the
->>>>> connection, and to add the marking/matching rules in iptables), but
->>>>> I am
->>>>> holding off on sending them until I know what people think of this
->>>>> idea/implementation first.
->>>> I can't say for sure since I don't know enough about tc.
->>>>
->>>> However, AFAICS tc_index seems to be something that should be internal
->>>> to tc and not exposed/changeable via iptables.
->>> tc_index is a mark that can be set by certain configurable ingress
->>> schedulers (dsmark, GRED, ingress) for later classification via the
->>> tcindex classifer.  This just adds an alternative mechanism for setting
->>> this mark if those schedulers aren't being used.
->>
->> Fwiw, tc_index can be read/written by cls_bpf (and you can also apply
->> masks
->> on that field if needed).
-> I've just been looking into this and it does seem like it might cover a
-> small part of what we are trying to do, although misses the key part,
-> which is to use connection tracking information to limit full processing
-> to the first packet of a flow in each direction. I'm guessing that there
-> isn't any bpf support for connection information?
+If we attach the sk to the skb from nfnetlink_rcv_batch(), then
+netlink_skb_destructor() will underflow the socket receive memory
+counter and we get warning splat when releasing the socket.
 
-Depends on your requirements, but you could probably implement a minimal
-tracker in cls_bpf through eBPF itself. Or alternatively, add a helper
-function to retrieve the cttuple? Florian mentioned cls_flow already, so
-you could orientate yourself there wrt developing an eBPF helper.
+$ cat /proc/net/netlink
+sk       Eth Pid    Groups   Rmem     Wmem     Dump     Locks     Drops     Inode
+ffff8800ca903000 12  0      00000000 -54144   0        0 2        0        17942
+                                     ^^^^^^
 
-> One thing that isn't quite clear to me. Is it possible to use xt_bfp.c
-> to set the tc_index field from netfilter?  If this is the case, then it
-> does set a precedent
-> for being able to set this value outside of tc code (but sill misses the
-> save/restore possibility).
+Rmem above shows an underflow.
 
-xt_bpf covers only classic BPF, so it's unfortunately not possible to
-match or set tc_index from there.
+And here below the warning splat:
 
-> Given that tc_index is simple metadata I'm guessing that filter
-> performance over the tcindex classifier wouldn't be significantly better?
+[ 1363.815976] WARNING: CPU: 2 PID: 1356 at net/netlink/af_netlink.c:958 netlink_sock_destruct+0x80/0xb9()
+[...]
+[ 1363.816152] CPU: 2 PID: 1356 Comm: kworker/u16:1 Tainted: G        W       4.4.0-rc1+ #153
+[ 1363.816155] Hardware name: LENOVO 23259H1/23259H1, BIOS G2ET32WW (1.12 ) 05/30/2012
+[ 1363.816160] Workqueue: netns cleanup_net
+[ 1363.816163]  0000000000000000 ffff880119203dd0 ffffffff81240204 0000000000000000
+[ 1363.816169]  ffff880119203e08 ffffffff8104db4b ffffffff813d49a1 ffff8800ca771000
+[ 1363.816174]  ffffffff81a42b00 0000000000000000 ffff8800c0afe1e0 ffff880119203e18
+[ 1363.816179] Call Trace:
+[ 1363.816181]  <IRQ>  [<ffffffff81240204>] dump_stack+0x4e/0x79
+[ 1363.816193]  [<ffffffff8104db4b>] warn_slowpath_common+0x9a/0xb3
+[ 1363.816197]  [<ffffffff813d49a1>] ? netlink_sock_destruct+0x80/0xb9
 
-I think it depends on how you encode your information, f.e. if you can get
-away w/o an index to classid mapping through a hash table, etc. Maybe best
-to give it a try on benchmarking.
+skb->sk was only needed to lookup for the netns, however we don't need
+this anymore since 633c9a840d0b ("netfilter: nfnetlink: avoid recurrent
+netns lookups in call_batch") so this patch removes this manual socket
+assignment to resolve this problem.
 
-Cheers,
-Daniel
+Reported-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Reported-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Tested-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ net/netfilter/nfnetlink.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 445590f..77afe91 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -295,8 +295,6 @@ replay:
+ 	if (!skb)
+ 		return netlink_ack(oskb, nlh, -ENOMEM);
+ 
+-	skb->sk = oskb->sk;
+-
+ 	nfnl_lock(subsys_id);
+ 	ss = rcu_dereference_protected(table[subsys_id].subsys,
+ 				       lockdep_is_held(&table[subsys_id].mutex));
+-- 
+2.1.4
+
