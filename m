@@ -1,42 +1,37 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 2/7,v2] src: fix sub-byte protocol header definitions
-Date: Mon, 14 Dec 2015 18:38:59 +0100
-Message-ID: <20151214173859.GA3424@salvia>
-References: <1449342266-2756-1-git-send-email-pablo@netfilter.org>
- <1449342266-2756-2-git-send-email-pablo@netfilter.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next] net, cgroup: cgroup_sk_updat_lock was missing
+ initializer
+Date: Mon, 14 Dec 2015 14:20:43 -0500 (EST)
+Message-ID: <20151214.142043.1185024338854399910.davem@davemloft.net>
+References: <1449527935-27056-1-git-send-email-tj@kernel.org>
+	<f90d369a0e004fee8d3bfdfe95e0abc0@HKXPR3004MB0088.064d.mgd.msft.net>
+	<20151214162406.GA4026@mtj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, fw@strlen.de
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53858 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752590AbbLNRjO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Dec 2015 12:39:14 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 43757FEFAA
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 18:39:10 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 2D80FDA80D
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 18:39:10 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id D79C1DA804
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 18:39:07 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1449342266-2756-2-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: decui@microsoft.com, pablo@netfilter.org, kaber@trash.net,
+	kadlec@blackhole.kfki.hu, daniel@iogearbox.net,
+	daniel.wagner@bmw-carit.de, nhorman@tuxdriver.com,
+	lizefan@huawei.com, hannes@cmpxchg.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	cgroups@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-team@fb.com, ninasc@fb.com
+To: tj@kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151214162406.GA4026@mtj.duckdns.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Dec 05, 2015 at 08:04:21PM +0100, Pablo Neira Ayuso wrote:
-> Update bitfield definitions to match according to the way they are
-> expressed in RFC and IEEE specifications.
+From: Tejun Heo <tj@kernel.org>
+Date: Mon, 14 Dec 2015 11:24:06 -0500
 
-I'm going to apply these series up to 3/7 so we get the definitions
-following the RFC/IEEE format.
+> bd1060a1d671 ("sock, cgroup: add sock->sk_cgroup") added global
+> spinlock cgroup_sk_update_lock but erroneously skipped initializer
+> leading to uninitialized spinlock warning.  Fix it by using
+> DEFINE_SPINLOCK().
+> 
+> Signed-off-by: Tejun Heo <tj@kernel.org>
+> Reported-by: Dexuan Cui <decui@microsoft.com>
+> Fixes: bd1060a1d671 ("sock, cgroup: add sock->sk_cgroup")
 
-Note that vlan ranges are still broken (the code that is generated to
-match a pcp range is not correct).
-
-I'm reworking 4/7 and upper, I'm willing to address all the possible
-issues in one go. Will likely be sending an email with feedback on my
-proposal design for better subbyte handling.
+Applied, thanks.
