@@ -1,71 +1,65 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH -stable-3.18] netfilter: nft_compat: fix module refcount underflow
-Date: Mon, 14 Dec 2015 13:17:12 +0100
-Message-ID: <1450095436-24855-2-git-send-email-pablo@netfilter.org>
+Subject: [PATCH -stable] netfilter: nf_tables: fix bogus warning in nft_data_uninit()
+Date: Mon, 14 Dec 2015 13:17:15 +0100
+Message-ID: <1450095436-24855-5-git-send-email-pablo@netfilter.org>
 References: <1450095436-24855-1-git-send-email-pablo@netfilter.org>
 Cc: stable@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:38460 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752907AbbLNMR2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Dec 2015 07:17:28 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 8F7305C02D
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 13:17:26 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 86B28DA80B
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 13:17:26 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 7FB61DA804
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2015 13:17:23 +0100 (CET)
 In-Reply-To: <1450095436-24855-1-git-send-email-pablo@netfilter.org>
-Sender: stable-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-[ upstream commit 520aa7414bb590f39d0d1591b06018e60cbc7cf4 ]
+From: Mirek Kratochvil <exa.exa@gmail.com>
 
-Feb 12 18:20:42 nfdev kernel: ------------[ cut here ]------------
-Feb 12 18:20:42 nfdev kernel: WARNING: CPU: 4 PID: 4359 at kernel/module.c:963 module_put+0x9b/0xba()
-Feb 12 18:20:42 nfdev kernel: CPU: 4 PID: 4359 Comm: ebtables-compat Tainted: G        W      3.19.0-rc6+ #43
-[...]
-Feb 12 18:20:42 nfdev kernel: Call Trace:
-Feb 12 18:20:42 nfdev kernel: [<ffffffff815fd911>] dump_stack+0x4c/0x65
-Feb 12 18:20:42 nfdev kernel: [<ffffffff8103e6f7>] warn_slowpath_common+0x9c/0xb6
-Feb 12 18:20:42 nfdev kernel: [<ffffffff8109919f>] ? module_put+0x9b/0xba
-Feb 12 18:20:42 nfdev kernel: [<ffffffff8103e726>] warn_slowpath_null+0x15/0x17
-Feb 12 18:20:42 nfdev kernel: [<ffffffff8109919f>] module_put+0x9b/0xba
-Feb 12 18:20:42 nfdev kernel: [<ffffffff813ecf7c>] nft_match_destroy+0x45/0x4c
-Feb 12 18:20:42 nfdev kernel: [<ffffffff813e683f>] nf_tables_rule_destroy+0x28/0x70
+[ upstream commit 960bd2c26421d321e890f1936938196ead41976f ]
 
+The values 0x00000000-0xfffffeff are reserved for userspace datatype. When,
+deleting set elements with maps, a bogus warning is triggered.
+
+WARNING: CPU: 0 PID: 11133 at net/netfilter/nf_tables_api.c:4481 nft_data_uninit+0x35/0x40 [nf_tables]()
+
+This fixes the check accordingly to enum definition in
+include/linux/netfilter/nf_tables.h
+
+Fixes: https://bugzilla.netfilter.org/show_bug.cgi?id=1013
+Cc: <stable@vger.kernel.org> # 3.14.x
 Cc: <stable@vger.kernel.org> # 3.18.x
-Reported-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Signed-off-by: Mirek Kratochvil <exa.exa@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Tested-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
-Already in 3.14.x. Please, push this to 3.18 too. Thanks!
+ net/netfilter/nf_tables_api.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
- net/netfilter/nft_compat.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 265e190..b636486 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -578,8 +578,12 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 		struct xt_match *match = nft_match->ops.data;
- 
- 		if (strcmp(match->name, mt_name) == 0 &&
--		    match->revision == rev && match->family == family)
-+		    match->revision == rev && match->family == family) {
-+			if (!try_module_get(match->me))
-+				return ERR_PTR(-ENOENT);
-+
- 			return &nft_match->ops;
-+		}
- 	}
- 
- 	match = xt_request_find_match(family, mt_name, rev);
-@@ -648,8 +652,12 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 		struct xt_target *target = nft_target->ops.data;
- 
- 		if (strcmp(target->name, tg_name) == 0 &&
--		    target->revision == rev && target->family == family)
-+		    target->revision == rev && target->family == family) {
-+			if (!try_module_get(target->me))
-+				return ERR_PTR(-ENOENT);
-+
- 			return &nft_target->ops;
-+		}
- 	}
- 
- 	target = xt_request_find_target(family, tg_name, rev);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index ad9d11f..34ded09 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4472,9 +4472,9 @@ EXPORT_SYMBOL_GPL(nft_data_init);
+  */
+ void nft_data_uninit(const struct nft_data *data, enum nft_data_types type)
+ {
+-	switch (type) {
+-	case NFT_DATA_VALUE:
++	if (type < NFT_DATA_VERDICT)
+ 		return;
++	switch (type) {
+ 	case NFT_DATA_VERDICT:
+ 		return nft_verdict_uninit(data);
+ 	default:
 -- 
-1.7.10.4
+2.1.4
+
