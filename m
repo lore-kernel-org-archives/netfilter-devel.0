@@ -1,958 +1,254 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/5,nf-next] netfilter: nfnetlink: pass down netns pointer to call() and call_rcu()
-Date: Tue, 15 Dec 2015 19:41:56 +0100
-Message-ID: <1450204917-5418-1-git-send-email-pablo@netfilter.org>
-Cc: kadlec@blackhole.kfki.hu
-To: netfilter-devel@vger.kernel.org
+From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Subject: Re: [PATCH] netfilter: nf_ct_sctp: validate vtag for new conntrack
+ entries
+Date: Tue, 15 Dec 2015 17:03:04 -0200
+Message-ID: <20151215190304.GA3724@mrl.redhat.com>
+References: <85c8c8c570bdbf6f20f56fdef96d8017fea3cc4c.1449579256.git.marcelo.leitner@gmail.com>
+ <20151210120233.GA2084@salvia>
+ <56697B14.3010909@gmail.com>
+ <20151210134247.GA3942@salvia>
+ <20151210140625.GC3886@mrl.redhat.com>
+ <20151210170647.GA1547@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org,
+	Vlad Yasevich <vyasevich@gmail.com>,
+	Neil Horman <nhorman@tuxdriver.com>, mkubecek@suse.cz
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47319 "EHLO mail.us.es"
+Received: from mx1.redhat.com ([209.132.183.28]:46409 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965394AbbLOSst (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Dec 2015 13:48:49 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id C5AC11324E3
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Dec 2015 19:48:47 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id ADBDDDA7FF
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Dec 2015 19:48:47 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id F2C26DA7FF
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Dec 2015 19:48:44 +0100 (CET)
+	id S932232AbbLOTDI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Dec 2015 14:03:08 -0500
+Content-Disposition: inline
+In-Reply-To: <20151210170647.GA1547@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Adapt callsites to avoid recurrent lookup of the netns pointer.
+On Thu, Dec 10, 2015 at 06:06:57PM +0100, Pablo Neira Ayuso wrote:
+> On Thu, Dec 10, 2015 at 12:06:25PM -0200, Marcelo Ricardo Leitner wrote:
+> > On Thu, Dec 10, 2015 at 02:42:47PM +0100, Pablo Neira Ayuso wrote:
+> > > On Thu, Dec 10, 2015 at 11:16:04AM -0200, Marcelo Ricardo Leitner wrote:
+> > >
+> > > You can use a mask in expectations for wildcard matching, I think
+> > > you're basically doing this in your patch. So it would be just one
+> > > single expectation for that combination with the permanent flags set
+> > > on. I think we may need another flag to make new conntracks
+> > 
+> > Yes
+> > 
+> > > independent from the master (IIRC currently if the master conntrack is
+> > > gone, related ones will be gone too and we don't want this to happen
+> > > in this case).
+> > 
+> > Ah yes, that too.
+> > 
+> > If such entry times out, we could promote a related entry to master,
+> > maybe.
+> >
+> > Because with this link in there we are able to remove all the
+> > entries when we see a shutdown/abort instead of leaving them to timeout.
+> 
+> I think in this case it doesn't make sense to have a pointer to the
+> master conntrack for a new sctp flow that got established via
+> expectation. That new sctp flow would be completely independent. I
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-@Jozsef: This modifies ipset bits.
+Not really. It's just another path/transport for the same sctp
+association. From sctp point of view, these two conntrack entries share
+their end points, they refer to the same sockets.
 
- include/linux/netfilter/nfnetlink.h  |   8 +--
- net/netfilter/ipset/ip_set_core.c    | 108 +++++++++++++++--------------------
- net/netfilter/nf_conntrack_netlink.c |  96 ++++++++++++++-----------------
- net/netfilter/nf_tables_api.c        |  30 ++++------
- net/netfilter/nfnetlink.c            |   6 +-
- net/netfilter/nfnetlink_acct.c       |  21 +++----
- net/netfilter/nfnetlink_cthelper.c   |  18 +++---
- net/netfilter/nfnetlink_cttimeout.c  |  38 ++++++------
- net/netfilter/nfnetlink_log.c        |  15 ++---
- net/netfilter/nfnetlink_queue.c      |  36 +++++-------
- net/netfilter/nft_compat.c           |   6 +-
- net/netfilter/xt_osf.c               |   7 ++-
- 12 files changed, 172 insertions(+), 217 deletions(-)
+> would need to audit the core code to evaluate the impact of having a
+> conntrack with the IPS_EXPECTED_BIT set with no master set. It would
+> be good if you can investigate this.
 
-diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
-index 5646b24..ceacbf5 100644
---- a/include/linux/netfilter/nfnetlink.h
-+++ b/include/linux/netfilter/nfnetlink.h
-@@ -8,12 +8,12 @@
- #include <uapi/linux/netfilter/nfnetlink.h>
- 
- struct nfnl_callback {
--	int (*call)(struct sock *nl, struct sk_buff *skb, 
--		    const struct nlmsghdr *nlh,
--		    const struct nlattr * const cda[]);
--	int (*call_rcu)(struct sock *nl, struct sk_buff *skb, 
-+	int (*call)(struct net *net, struct sock *nl, struct sk_buff *skb,
- 		    const struct nlmsghdr *nlh,
- 		    const struct nlattr * const cda[]);
-+	int (*call_rcu)(struct net *net, struct sock *nl, struct sk_buff *skb,
-+			const struct nlmsghdr *nlh,
-+			const struct nlattr * const cda[]);
- 	int (*call_batch)(struct net *net, struct sock *nl, struct sk_buff *skb,
- 			  const struct nlmsghdr *nlh,
- 			  const struct nlattr * const cda[]);
-diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-index 54f3d7c..95db43f 100644
---- a/net/netfilter/ipset/ip_set_core.c
-+++ b/net/netfilter/ipset/ip_set_core.c
-@@ -825,20 +825,17 @@ find_free_id(struct ip_set_net *inst, const char *name, ip_set_id_t *index,
- 	return 0;
- }
- 
--static int
--ip_set_none(struct sock *ctnl, struct sk_buff *skb,
--	    const struct nlmsghdr *nlh,
--	    const struct nlattr * const attr[])
-+static int ip_set_none(struct net *net, struct sock *ctnl, struct sk_buff *skb,
-+		       const struct nlmsghdr *nlh,
-+		       const struct nlattr * const attr[])
- {
- 	return -EOPNOTSUPP;
- }
- 
--static int
--ip_set_create(struct sock *ctnl, struct sk_buff *skb,
--	      const struct nlmsghdr *nlh,
--	      const struct nlattr * const attr[])
-+static int ip_set_create(struct net *net, struct sock *ctnl,
-+			 struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			 const struct nlattr * const attr[])
- {
--	struct net *net = sock_net(ctnl);
- 	struct ip_set_net *inst = ip_set_pernet(net);
- 	struct ip_set *set, *clash = NULL;
- 	ip_set_id_t index = IPSET_INVALID_ID;
-@@ -976,12 +973,11 @@ ip_set_destroy_set(struct ip_set *set)
- 	kfree(set);
- }
- 
--static int
--ip_set_destroy(struct sock *ctnl, struct sk_buff *skb,
--	       const struct nlmsghdr *nlh,
--	       const struct nlattr * const attr[])
-+static int ip_set_destroy(struct net *net, struct sock *ctnl,
-+			  struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			  const struct nlattr * const attr[])
- {
--	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
-+	struct ip_set_net *inst = ip_set_pernet(net);
- 	struct ip_set *s;
- 	ip_set_id_t i;
- 	int ret = 0;
-@@ -1052,12 +1048,11 @@ ip_set_flush_set(struct ip_set *set)
- 	spin_unlock_bh(&set->lock);
- }
- 
--static int
--ip_set_flush(struct sock *ctnl, struct sk_buff *skb,
--	     const struct nlmsghdr *nlh,
--	     const struct nlattr * const attr[])
-+static int ip_set_flush(struct net *net, struct sock *ctnl, struct sk_buff *skb,
-+			const struct nlmsghdr *nlh,
-+			const struct nlattr * const attr[])
- {
--	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
-+	struct ip_set_net *inst = ip_set_pernet(net);
- 	struct ip_set *s;
- 	ip_set_id_t i;
- 
-@@ -1092,12 +1087,11 @@ ip_set_setname2_policy[IPSET_ATTR_CMD_MAX + 1] = {
- 				    .len = IPSET_MAXNAMELEN - 1 },
- };
- 
--static int
--ip_set_rename(struct sock *ctnl, struct sk_buff *skb,
--	      const struct nlmsghdr *nlh,
--	      const struct nlattr * const attr[])
-+static int ip_set_rename(struct net *net, struct sock *ctnl,
-+			 struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			 const struct nlattr * const attr[])
- {
--	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
-+	struct ip_set_net *inst = ip_set_pernet(net);
- 	struct ip_set *set, *s;
- 	const char *name2;
- 	ip_set_id_t i;
-@@ -1142,12 +1136,11 @@ out:
-  * so the ip_set_list always contains valid pointers to the sets.
-  */
- 
--static int
--ip_set_swap(struct sock *ctnl, struct sk_buff *skb,
--	    const struct nlmsghdr *nlh,
--	    const struct nlattr * const attr[])
-+static int ip_set_swap(struct net *net, struct sock *ctnl, struct sk_buff *skb,
-+		       const struct nlmsghdr *nlh,
-+		       const struct nlattr * const attr[])
- {
--	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
-+	struct ip_set_net *inst = ip_set_pernet(net);
- 	struct ip_set *from, *to;
- 	ip_set_id_t from_id, to_id;
- 	char from_name[IPSET_MAXNAMELEN];
-@@ -1413,10 +1406,9 @@ out:
- 	return ret < 0 ? ret : skb->len;
- }
- 
--static int
--ip_set_dump(struct sock *ctnl, struct sk_buff *skb,
--	    const struct nlmsghdr *nlh,
--	    const struct nlattr * const attr[])
-+static int ip_set_dump(struct net *net, struct sock *ctnl, struct sk_buff *skb,
-+		       const struct nlmsghdr *nlh,
-+		       const struct nlattr * const attr[])
- {
- 	if (unlikely(protocol_failed(attr)))
- 		return -IPSET_ERR_PROTOCOL;
-@@ -1500,12 +1492,11 @@ call_ad(struct sock *ctnl, struct sk_buff *skb, struct ip_set *set,
- 	return ret;
- }
- 
--static int
--ip_set_uadd(struct sock *ctnl, struct sk_buff *skb,
--	    const struct nlmsghdr *nlh,
--	    const struct nlattr * const attr[])
-+static int ip_set_uadd(struct net *net, struct sock *ctnl, struct sk_buff *skb,
-+		       const struct nlmsghdr *nlh,
-+		       const struct nlattr * const attr[])
- {
--	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
-+	struct ip_set_net *inst = ip_set_pernet(net);
- 	struct ip_set *set;
- 	struct nlattr *tb[IPSET_ATTR_ADT_MAX + 1] = {};
- 	const struct nlattr *nla;
-@@ -1555,12 +1546,11 @@ ip_set_uadd(struct sock *ctnl, struct sk_buff *skb,
- 	return ret;
- }
- 
--static int
--ip_set_udel(struct sock *ctnl, struct sk_buff *skb,
--	    const struct nlmsghdr *nlh,
--	    const struct nlattr * const attr[])
-+static int ip_set_udel(struct net *net, struct sock *ctnl, struct sk_buff *skb,
-+		       const struct nlmsghdr *nlh,
-+		       const struct nlattr * const attr[])
- {
--	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
-+	struct ip_set_net *inst = ip_set_pernet(net);
- 	struct ip_set *set;
- 	struct nlattr *tb[IPSET_ATTR_ADT_MAX + 1] = {};
- 	const struct nlattr *nla;
-@@ -1610,12 +1600,11 @@ ip_set_udel(struct sock *ctnl, struct sk_buff *skb,
- 	return ret;
- }
- 
--static int
--ip_set_utest(struct sock *ctnl, struct sk_buff *skb,
--	     const struct nlmsghdr *nlh,
--	     const struct nlattr * const attr[])
-+static int ip_set_utest(struct net *net, struct sock *ctnl, struct sk_buff *skb,
-+			const struct nlmsghdr *nlh,
-+			const struct nlattr * const attr[])
- {
--	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
-+	struct ip_set_net *inst = ip_set_pernet(net);
- 	struct ip_set *set;
- 	struct nlattr *tb[IPSET_ATTR_ADT_MAX + 1] = {};
- 	int ret = 0;
-@@ -1646,12 +1635,11 @@ ip_set_utest(struct sock *ctnl, struct sk_buff *skb,
- 
- /* Get headed data of a set */
- 
--static int
--ip_set_header(struct sock *ctnl, struct sk_buff *skb,
--	      const struct nlmsghdr *nlh,
--	      const struct nlattr * const attr[])
-+static int ip_set_header(struct net *net, struct sock *ctnl,
-+			 struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			 const struct nlattr * const attr[])
- {
--	struct ip_set_net *inst = ip_set_pernet(sock_net(ctnl));
-+	struct ip_set_net *inst = ip_set_pernet(net);
- 	const struct ip_set *set;
- 	struct sk_buff *skb2;
- 	struct nlmsghdr *nlh2;
-@@ -1703,10 +1691,9 @@ static const struct nla_policy ip_set_type_policy[IPSET_ATTR_CMD_MAX + 1] = {
- 	[IPSET_ATTR_FAMILY]	= { .type = NLA_U8 },
- };
- 
--static int
--ip_set_type(struct sock *ctnl, struct sk_buff *skb,
--	    const struct nlmsghdr *nlh,
--	    const struct nlattr * const attr[])
-+static int ip_set_type(struct net *net, struct sock *ctnl, struct sk_buff *skb,
-+		       const struct nlmsghdr *nlh,
-+		       const struct nlattr * const attr[])
- {
- 	struct sk_buff *skb2;
- 	struct nlmsghdr *nlh2;
-@@ -1762,10 +1749,9 @@ ip_set_protocol_policy[IPSET_ATTR_CMD_MAX + 1] = {
- 	[IPSET_ATTR_PROTOCOL]	= { .type = NLA_U8 },
- };
- 
--static int
--ip_set_protocol(struct sock *ctnl, struct sk_buff *skb,
--		const struct nlmsghdr *nlh,
--		const struct nlattr * const attr[])
-+static int ip_set_protocol(struct net *net, struct sock *ctnl,
-+			   struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			   const struct nlattr * const attr[])
- {
- 	struct sk_buff *skb2;
- 	struct nlmsghdr *nlh2;
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 9f52729..dbb1bb3 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1113,12 +1113,11 @@ static int ctnetlink_flush_conntrack(struct net *net,
- 	return 0;
- }
- 
--static int
--ctnetlink_del_conntrack(struct sock *ctnl, struct sk_buff *skb,
--			const struct nlmsghdr *nlh,
--			const struct nlattr * const cda[])
-+static int ctnetlink_del_conntrack(struct net *net, struct sock *ctnl,
-+				   struct sk_buff *skb,
-+				   const struct nlmsghdr *nlh,
-+				   const struct nlattr * const cda[])
- {
--	struct net *net = sock_net(ctnl);
- 	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conntrack_tuple tuple;
- 	struct nf_conn *ct;
-@@ -1168,12 +1167,11 @@ ctnetlink_del_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 	return 0;
- }
- 
--static int
--ctnetlink_get_conntrack(struct sock *ctnl, struct sk_buff *skb,
--			const struct nlmsghdr *nlh,
--			const struct nlattr * const cda[])
-+static int ctnetlink_get_conntrack(struct net *net, struct sock *ctnl,
-+				   struct sk_buff *skb,
-+				   const struct nlmsghdr *nlh,
-+				   const struct nlattr * const cda[])
- {
--	struct net *net = sock_net(ctnl);
- 	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conntrack_tuple tuple;
- 	struct nf_conn *ct;
-@@ -1330,10 +1328,10 @@ ctnetlink_dump_dying(struct sk_buff *skb, struct netlink_callback *cb)
- 	return ctnetlink_dump_list(skb, cb, true);
- }
- 
--static int
--ctnetlink_get_ct_dying(struct sock *ctnl, struct sk_buff *skb,
--		       const struct nlmsghdr *nlh,
--		       const struct nlattr * const cda[])
-+static int ctnetlink_get_ct_dying(struct net *net, struct sock *ctnl,
-+				  struct sk_buff *skb,
-+				  const struct nlmsghdr *nlh,
-+				  const struct nlattr * const cda[])
- {
- 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
- 		struct netlink_dump_control c = {
-@@ -1352,10 +1350,10 @@ ctnetlink_dump_unconfirmed(struct sk_buff *skb, struct netlink_callback *cb)
- 	return ctnetlink_dump_list(skb, cb, false);
- }
- 
--static int
--ctnetlink_get_ct_unconfirmed(struct sock *ctnl, struct sk_buff *skb,
--			     const struct nlmsghdr *nlh,
--			     const struct nlattr * const cda[])
-+static int ctnetlink_get_ct_unconfirmed(struct net *net, struct sock *ctnl,
-+					struct sk_buff *skb,
-+					const struct nlmsghdr *nlh,
-+					const struct nlattr * const cda[])
- {
- 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
- 		struct netlink_dump_control c = {
-@@ -1865,12 +1863,11 @@ err1:
- 	return ERR_PTR(err);
- }
- 
--static int
--ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
--			const struct nlmsghdr *nlh,
--			const struct nlattr * const cda[])
-+static int ctnetlink_new_conntrack(struct net *net, struct sock *ctnl,
-+				   struct sk_buff *skb,
-+				   const struct nlmsghdr *nlh,
-+				   const struct nlattr * const cda[])
- {
--	struct net *net = sock_net(ctnl);
- 	struct nf_conntrack_tuple otuple, rtuple;
- 	struct nf_conntrack_tuple_hash *h = NULL;
- 	struct nfgenmsg *nfmsg = nlmsg_data(nlh);
-@@ -2034,10 +2031,10 @@ ctnetlink_ct_stat_cpu_dump(struct sk_buff *skb, struct netlink_callback *cb)
- 	return skb->len;
- }
- 
--static int
--ctnetlink_stat_ct_cpu(struct sock *ctnl, struct sk_buff *skb,
--		      const struct nlmsghdr *nlh,
--		      const struct nlattr * const cda[])
-+static int ctnetlink_stat_ct_cpu(struct net *net, struct sock *ctnl,
-+				 struct sk_buff *skb,
-+				 const struct nlmsghdr *nlh,
-+				 const struct nlattr * const cda[])
- {
- 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
- 		struct netlink_dump_control c = {
-@@ -2080,10 +2077,9 @@ nlmsg_failure:
- 	return -1;
- }
- 
--static int
--ctnetlink_stat_ct(struct sock *ctnl, struct sk_buff *skb,
--		  const struct nlmsghdr *nlh,
--		  const struct nlattr * const cda[])
-+static int ctnetlink_stat_ct(struct net *net, struct sock *ctnl,
-+			     struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			     const struct nlattr * const cda[])
- {
- 	struct sk_buff *skb2;
- 	int err;
-@@ -2729,12 +2725,12 @@ out:
- 	return skb->len;
- }
- 
--static int ctnetlink_dump_exp_ct(struct sock *ctnl, struct sk_buff *skb,
-+static int ctnetlink_dump_exp_ct(struct net *net, struct sock *ctnl,
-+				 struct sk_buff *skb,
- 				 const struct nlmsghdr *nlh,
- 				 const struct nlattr * const cda[])
- {
- 	int err;
--	struct net *net = sock_net(ctnl);
- 	struct nfgenmsg *nfmsg = nlmsg_data(nlh);
- 	u_int8_t u3 = nfmsg->nfgen_family;
- 	struct nf_conntrack_tuple tuple;
-@@ -2768,12 +2764,10 @@ static int ctnetlink_dump_exp_ct(struct sock *ctnl, struct sk_buff *skb,
- 	return err;
- }
- 
--static int
--ctnetlink_get_expect(struct sock *ctnl, struct sk_buff *skb,
--		     const struct nlmsghdr *nlh,
--		     const struct nlattr * const cda[])
-+static int ctnetlink_get_expect(struct net *net, struct sock *ctnl,
-+				struct sk_buff *skb, const struct nlmsghdr *nlh,
-+				const struct nlattr * const cda[])
- {
--	struct net *net = sock_net(ctnl);
- 	struct nf_conntrack_tuple tuple;
- 	struct nf_conntrack_expect *exp;
- 	struct sk_buff *skb2;
-@@ -2784,7 +2778,7 @@ ctnetlink_get_expect(struct sock *ctnl, struct sk_buff *skb,
- 
- 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
- 		if (cda[CTA_EXPECT_MASTER])
--			return ctnetlink_dump_exp_ct(ctnl, skb, nlh, cda);
-+			return ctnetlink_dump_exp_ct(net, ctnl, skb, nlh, cda);
- 		else {
- 			struct netlink_dump_control c = {
- 				.dump = ctnetlink_exp_dump_table,
-@@ -2850,12 +2844,10 @@ out:
- 	return err == -EAGAIN ? -ENOBUFS : err;
- }
- 
--static int
--ctnetlink_del_expect(struct sock *ctnl, struct sk_buff *skb,
--		     const struct nlmsghdr *nlh,
--		     const struct nlattr * const cda[])
-+static int ctnetlink_del_expect(struct net *net, struct sock *ctnl,
-+				struct sk_buff *skb, const struct nlmsghdr *nlh,
-+				const struct nlattr * const cda[])
- {
--	struct net *net = sock_net(ctnl);
- 	struct nf_conntrack_expect *exp;
- 	struct nf_conntrack_tuple tuple;
- 	struct nfgenmsg *nfmsg = nlmsg_data(nlh);
-@@ -3136,12 +3128,10 @@ err_ct:
- 	return err;
- }
- 
--static int
--ctnetlink_new_expect(struct sock *ctnl, struct sk_buff *skb,
--		     const struct nlmsghdr *nlh,
--		     const struct nlattr * const cda[])
-+static int ctnetlink_new_expect(struct net *net, struct sock *ctnl,
-+				struct sk_buff *skb, const struct nlmsghdr *nlh,
-+				const struct nlattr * const cda[])
- {
--	struct net *net = sock_net(ctnl);
- 	struct nf_conntrack_tuple tuple;
- 	struct nf_conntrack_expect *exp;
- 	struct nfgenmsg *nfmsg = nlmsg_data(nlh);
-@@ -3242,10 +3232,10 @@ ctnetlink_exp_stat_cpu_dump(struct sk_buff *skb, struct netlink_callback *cb)
- 	return skb->len;
- }
- 
--static int
--ctnetlink_stat_exp_cpu(struct sock *ctnl, struct sk_buff *skb,
--		       const struct nlmsghdr *nlh,
--		       const struct nlattr * const cda[])
-+static int ctnetlink_stat_exp_cpu(struct net *net, struct sock *ctnl,
-+				  struct sk_buff *skb,
-+				  const struct nlmsghdr *nlh,
-+				  const struct nlattr * const cda[])
- {
- 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
- 		struct netlink_dump_control c = {
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 61edd94..e2369b4 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -543,15 +543,14 @@ done:
- 	return skb->len;
- }
- 
--static int nf_tables_gettable(struct sock *nlsk, struct sk_buff *skb,
--			      const struct nlmsghdr *nlh,
-+static int nf_tables_gettable(struct net *net, struct sock *nlsk,
-+			      struct sk_buff *skb, const struct nlmsghdr *nlh,
- 			      const struct nlattr * const nla[])
- {
- 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
- 	const struct nft_af_info *afi;
- 	const struct nft_table *table;
- 	struct sk_buff *skb2;
--	struct net *net = sock_net(skb->sk);
- 	int family = nfmsg->nfgen_family;
- 	int err;
- 
-@@ -1097,8 +1096,8 @@ done:
- 	return skb->len;
- }
- 
--static int nf_tables_getchain(struct sock *nlsk, struct sk_buff *skb,
--			      const struct nlmsghdr *nlh,
-+static int nf_tables_getchain(struct net *net, struct sock *nlsk,
-+			      struct sk_buff *skb, const struct nlmsghdr *nlh,
- 			      const struct nlattr * const nla[])
- {
- 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
-@@ -1106,7 +1105,6 @@ static int nf_tables_getchain(struct sock *nlsk, struct sk_buff *skb,
- 	const struct nft_table *table;
- 	const struct nft_chain *chain;
- 	struct sk_buff *skb2;
--	struct net *net = sock_net(skb->sk);
- 	int family = nfmsg->nfgen_family;
- 	int err;
- 
-@@ -1923,8 +1921,8 @@ done:
- 	return skb->len;
- }
- 
--static int nf_tables_getrule(struct sock *nlsk, struct sk_buff *skb,
--			     const struct nlmsghdr *nlh,
-+static int nf_tables_getrule(struct net *net, struct sock *nlsk,
-+			     struct sk_buff *skb, const struct nlmsghdr *nlh,
- 			     const struct nlattr * const nla[])
- {
- 	const struct nfgenmsg *nfmsg = nlmsg_data(nlh);
-@@ -1933,7 +1931,6 @@ static int nf_tables_getrule(struct sock *nlsk, struct sk_buff *skb,
- 	const struct nft_chain *chain;
- 	const struct nft_rule *rule;
- 	struct sk_buff *skb2;
--	struct net *net = sock_net(skb->sk);
- 	int family = nfmsg->nfgen_family;
- 	int err;
- 
-@@ -2604,11 +2601,10 @@ static int nf_tables_dump_sets_done(struct netlink_callback *cb)
- 	return 0;
- }
- 
--static int nf_tables_getset(struct sock *nlsk, struct sk_buff *skb,
--			    const struct nlmsghdr *nlh,
-+static int nf_tables_getset(struct net *net, struct sock *nlsk,
-+			    struct sk_buff *skb, const struct nlmsghdr *nlh,
- 			    const struct nlattr * const nla[])
- {
--	struct net *net = sock_net(skb->sk);
- 	const struct nft_set *set;
- 	struct nft_ctx ctx;
- 	struct sk_buff *skb2;
-@@ -3190,11 +3186,10 @@ nla_put_failure:
- 	return -ENOSPC;
- }
- 
--static int nf_tables_getsetelem(struct sock *nlsk, struct sk_buff *skb,
--				const struct nlmsghdr *nlh,
-+static int nf_tables_getsetelem(struct net *net, struct sock *nlsk,
-+				struct sk_buff *skb, const struct nlmsghdr *nlh,
- 				const struct nlattr * const nla[])
- {
--	struct net *net = sock_net(skb->sk);
- 	const struct nft_set *set;
- 	struct nft_ctx ctx;
- 	int err;
-@@ -3723,11 +3718,10 @@ err:
- 	return err;
- }
- 
--static int nf_tables_getgen(struct sock *nlsk, struct sk_buff *skb,
--			    const struct nlmsghdr *nlh,
-+static int nf_tables_getgen(struct net *net, struct sock *nlsk,
-+			    struct sk_buff *skb, const struct nlmsghdr *nlh,
- 			    const struct nlattr * const nla[])
- {
--	struct net *net = sock_net(skb->sk);
- 	struct sk_buff *skb2;
- 	int err;
- 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 77afe91..c6dde34 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -201,7 +201,7 @@ replay:
- 		}
- 
- 		if (nc->call_rcu) {
--			err = nc->call_rcu(net->nfnl, skb, nlh,
-+			err = nc->call_rcu(net, net->nfnl, skb, nlh,
- 					   (const struct nlattr **)cda);
- 			rcu_read_unlock();
- 		} else {
-@@ -212,8 +212,8 @@ replay:
- 			    nfnetlink_find_client(type, ss) != nc)
- 				err = -EAGAIN;
- 			else if (nc->call)
--				err = nc->call(net->nfnl, skb, nlh,
--						   (const struct nlattr **)cda);
-+				err = nc->call(net, net->nfnl, skb, nlh,
-+					       (const struct nlattr **)cda);
- 			else
- 				err = -EINVAL;
- 			nfnl_unlock(subsys_id);
-diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-index fefbf5f..5274b04 100644
---- a/net/netfilter/nfnetlink_acct.c
-+++ b/net/netfilter/nfnetlink_acct.c
-@@ -46,12 +46,11 @@ struct nfacct_filter {
- #define NFACCT_F_QUOTA (NFACCT_F_QUOTA_PKTS | NFACCT_F_QUOTA_BYTES)
- #define NFACCT_OVERQUOTA_BIT	2	/* NFACCT_F_OVERQUOTA */
- 
--static int
--nfnl_acct_new(struct sock *nfnl, struct sk_buff *skb,
--	     const struct nlmsghdr *nlh, const struct nlattr * const tb[])
-+static int nfnl_acct_new(struct net *net, struct sock *nfnl,
-+			 struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			 const struct nlattr * const tb[])
- {
- 	struct nf_acct *nfacct, *matching = NULL;
--	struct net *net = sock_net(nfnl);
- 	char *acct_name;
- 	unsigned int size = 0;
- 	u32 flags = 0;
-@@ -253,11 +252,10 @@ nfacct_filter_alloc(const struct nlattr * const attr)
- 	return filter;
- }
- 
--static int
--nfnl_acct_get(struct sock *nfnl, struct sk_buff *skb,
--	     const struct nlmsghdr *nlh, const struct nlattr * const tb[])
-+static int nfnl_acct_get(struct net *net, struct sock *nfnl,
-+			 struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			 const struct nlattr * const tb[])
- {
--	struct net *net = sock_net(nfnl);
- 	int ret = -ENOENT;
- 	struct nf_acct *cur;
- 	char *acct_name;
-@@ -333,11 +331,10 @@ static int nfnl_acct_try_del(struct nf_acct *cur)
- 	return ret;
- }
- 
--static int
--nfnl_acct_del(struct sock *nfnl, struct sk_buff *skb,
--	     const struct nlmsghdr *nlh, const struct nlattr * const tb[])
-+static int nfnl_acct_del(struct net *net, struct sock *nfnl,
-+			 struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			 const struct nlattr * const tb[])
- {
--	struct net *net = sock_net(nfnl);
- 	char *acct_name;
- 	struct nf_acct *cur;
- 	int ret = -ENOENT;
-diff --git a/net/netfilter/nfnetlink_cthelper.c b/net/netfilter/nfnetlink_cthelper.c
-index 54330fb..e924e95 100644
---- a/net/netfilter/nfnetlink_cthelper.c
-+++ b/net/netfilter/nfnetlink_cthelper.c
-@@ -286,9 +286,9 @@ nfnl_cthelper_update(const struct nlattr * const tb[],
- 	return 0;
- }
- 
--static int
--nfnl_cthelper_new(struct sock *nfnl, struct sk_buff *skb,
--		  const struct nlmsghdr *nlh, const struct nlattr * const tb[])
-+static int nfnl_cthelper_new(struct net *net, struct sock *nfnl,
-+			     struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			     const struct nlattr * const tb[])
- {
- 	const char *helper_name;
- 	struct nf_conntrack_helper *cur, *helper = NULL;
-@@ -498,9 +498,9 @@ out:
- 	return skb->len;
- }
- 
--static int
--nfnl_cthelper_get(struct sock *nfnl, struct sk_buff *skb,
--		  const struct nlmsghdr *nlh, const struct nlattr * const tb[])
-+static int nfnl_cthelper_get(struct net *net, struct sock *nfnl,
-+			     struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			     const struct nlattr * const tb[])
- {
- 	int ret = -ENOENT, i;
- 	struct nf_conntrack_helper *cur;
-@@ -570,9 +570,9 @@ nfnl_cthelper_get(struct sock *nfnl, struct sk_buff *skb,
- 	return ret;
- }
- 
--static int
--nfnl_cthelper_del(struct sock *nfnl, struct sk_buff *skb,
--	     const struct nlmsghdr *nlh, const struct nlattr * const tb[])
-+static int nfnl_cthelper_del(struct net *net, struct sock *nfnl,
-+			     struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			     const struct nlattr * const tb[])
- {
- 	char *helper_name = NULL;
- 	struct nf_conntrack_helper *cur;
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index c7a2d0e..22b657b 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -67,16 +67,15 @@ ctnl_timeout_parse_policy(void *timeouts, struct nf_conntrack_l4proto *l4proto,
- 	return ret;
- }
- 
--static int
--cttimeout_new_timeout(struct sock *ctnl, struct sk_buff *skb,
--		      const struct nlmsghdr *nlh,
--		      const struct nlattr * const cda[])
-+static int cttimeout_new_timeout(struct net *net, struct sock *ctnl,
-+				 struct sk_buff *skb,
-+				 const struct nlmsghdr *nlh,
-+				 const struct nlattr * const cda[])
- {
- 	__u16 l3num;
- 	__u8 l4num;
- 	struct nf_conntrack_l4proto *l4proto;
- 	struct ctnl_timeout *timeout, *matching = NULL;
--	struct net *net = sock_net(skb->sk);
- 	char *name;
- 	int ret;
- 
-@@ -240,10 +239,10 @@ ctnl_timeout_dump(struct sk_buff *skb, struct netlink_callback *cb)
- 	return skb->len;
- }
- 
--static int
--cttimeout_get_timeout(struct sock *ctnl, struct sk_buff *skb,
--		      const struct nlmsghdr *nlh,
--		      const struct nlattr * const cda[])
-+static int cttimeout_get_timeout(struct net *net, struct sock *ctnl,
-+				 struct sk_buff *skb,
-+				 const struct nlmsghdr *nlh,
-+				 const struct nlattr * const cda[])
- {
- 	int ret = -ENOENT;
- 	char *name;
-@@ -339,10 +338,10 @@ static int ctnl_timeout_try_del(struct ctnl_timeout *timeout)
- 	return ret;
- }
- 
--static int
--cttimeout_del_timeout(struct sock *ctnl, struct sk_buff *skb,
--		      const struct nlmsghdr *nlh,
--		      const struct nlattr * const cda[])
-+static int cttimeout_del_timeout(struct net *net, struct sock *ctnl,
-+				 struct sk_buff *skb,
-+				 const struct nlmsghdr *nlh,
-+				 const struct nlattr * const cda[])
- {
- 	char *name;
- 	struct ctnl_timeout *cur;
-@@ -369,15 +368,14 @@ cttimeout_del_timeout(struct sock *ctnl, struct sk_buff *skb,
- 	return ret;
- }
- 
--static int
--cttimeout_default_set(struct sock *ctnl, struct sk_buff *skb,
--		      const struct nlmsghdr *nlh,
--		      const struct nlattr * const cda[])
-+static int cttimeout_default_set(struct net *net, struct sock *ctnl,
-+				 struct sk_buff *skb,
-+				 const struct nlmsghdr *nlh,
-+				 const struct nlattr * const cda[])
- {
- 	__u16 l3num;
- 	__u8 l4num;
- 	struct nf_conntrack_l4proto *l4proto;
--	struct net *net = sock_net(skb->sk);
- 	unsigned int *timeouts;
- 	int ret;
- 
-@@ -459,14 +457,14 @@ nla_put_failure:
- 	return -1;
- }
- 
--static int cttimeout_default_get(struct sock *ctnl, struct sk_buff *skb,
-+static int cttimeout_default_get(struct net *net, struct sock *ctnl,
-+				 struct sk_buff *skb,
- 				 const struct nlmsghdr *nlh,
- 				 const struct nlattr * const cda[])
- {
- 	__u16 l3num;
- 	__u8 l4num;
- 	struct nf_conntrack_l4proto *l4proto;
--	struct net *net = sock_net(skb->sk);
- 	struct sk_buff *skb2;
- 	int ret, err;
- 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 740cce4..2ba94e9 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -789,10 +789,9 @@ static struct notifier_block nfulnl_rtnl_notifier = {
- 	.notifier_call	= nfulnl_rcv_nl_event,
- };
- 
--static int
--nfulnl_recv_unsupp(struct sock *ctnl, struct sk_buff *skb,
--		   const struct nlmsghdr *nlh,
--		   const struct nlattr * const nfqa[])
-+static int nfulnl_recv_unsupp(struct net *net, struct sock *ctnl,
-+			      struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			      const struct nlattr * const nfqa[])
- {
- 	return -ENOTSUPP;
- }
-@@ -813,16 +812,14 @@ static const struct nla_policy nfula_cfg_policy[NFULA_CFG_MAX+1] = {
- 	[NFULA_CFG_FLAGS]	= { .type = NLA_U16 },
- };
- 
--static int
--nfulnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
--		   const struct nlmsghdr *nlh,
--		   const struct nlattr * const nfula[])
-+static int nfulnl_recv_config(struct net *net, struct sock *ctnl,
-+			      struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			      const struct nlattr * const nfula[])
- {
- 	struct nfgenmsg *nfmsg = nlmsg_data(nlh);
- 	u_int16_t group_num = ntohs(nfmsg->res_id);
- 	struct nfulnl_instance *inst;
- 	struct nfulnl_msg_config_cmd *cmd = NULL;
--	struct net *net = sock_net(ctnl);
- 	struct nfnl_log_net *log = nfnl_log_pernet(net);
- 	int ret = 0;
- 	u16 flags = 0;
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 861c661..3d1f16c 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -957,10 +957,10 @@ static int nfq_id_after(unsigned int id, unsigned int max)
- 	return (int)(id - max) > 0;
- }
- 
--static int
--nfqnl_recv_verdict_batch(struct sock *ctnl, struct sk_buff *skb,
--		   const struct nlmsghdr *nlh,
--		   const struct nlattr * const nfqa[])
-+static int nfqnl_recv_verdict_batch(struct net *net, struct sock *ctnl,
-+				    struct sk_buff *skb,
-+				    const struct nlmsghdr *nlh,
-+			            const struct nlattr * const nfqa[])
- {
- 	struct nfgenmsg *nfmsg = nlmsg_data(nlh);
- 	struct nf_queue_entry *entry, *tmp;
-@@ -969,8 +969,6 @@ nfqnl_recv_verdict_batch(struct sock *ctnl, struct sk_buff *skb,
- 	struct nfqnl_instance *queue;
- 	LIST_HEAD(batch_list);
- 	u16 queue_num = ntohs(nfmsg->res_id);
--
--	struct net *net = sock_net(ctnl);
- 	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
- 
- 	queue = verdict_instance_lookup(q, queue_num,
-@@ -1029,14 +1027,13 @@ static struct nf_conn *nfqnl_ct_parse(struct nfnl_ct_hook *nfnl_ct,
- 	return ct;
- }
- 
--static int
--nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
--		   const struct nlmsghdr *nlh,
--		   const struct nlattr * const nfqa[])
-+static int nfqnl_recv_verdict(struct net *net, struct sock *ctnl,
-+			      struct sk_buff *skb,
-+			      const struct nlmsghdr *nlh,
-+			      const struct nlattr * const nfqa[])
- {
- 	struct nfgenmsg *nfmsg = nlmsg_data(nlh);
- 	u_int16_t queue_num = ntohs(nfmsg->res_id);
--
- 	struct nfqnl_msg_verdict_hdr *vhdr;
- 	struct nfqnl_instance *queue;
- 	unsigned int verdict;
-@@ -1044,8 +1041,6 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
- 	enum ip_conntrack_info uninitialized_var(ctinfo);
- 	struct nfnl_ct_hook *nfnl_ct;
- 	struct nf_conn *ct = NULL;
--
--	struct net *net = sock_net(ctnl);
- 	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
- 
- 	queue = instance_lookup(q, queue_num);
-@@ -1092,10 +1087,9 @@ nfqnl_recv_verdict(struct sock *ctnl, struct sk_buff *skb,
- 	return 0;
- }
- 
--static int
--nfqnl_recv_unsupp(struct sock *ctnl, struct sk_buff *skb,
--		  const struct nlmsghdr *nlh,
--		  const struct nlattr * const nfqa[])
-+static int nfqnl_recv_unsupp(struct net *net, struct sock *ctnl,
-+			     struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			     const struct nlattr * const nfqa[])
- {
- 	return -ENOTSUPP;
- }
-@@ -1110,16 +1104,14 @@ static const struct nf_queue_handler nfqh = {
- 	.nf_hook_drop	= &nfqnl_nf_hook_drop,
- };
- 
--static int
--nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
--		  const struct nlmsghdr *nlh,
--		  const struct nlattr * const nfqa[])
-+static int nfqnl_recv_config(struct net *net, struct sock *ctnl,
-+			     struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			     const struct nlattr * const nfqa[])
- {
- 	struct nfgenmsg *nfmsg = nlmsg_data(nlh);
- 	u_int16_t queue_num = ntohs(nfmsg->res_id);
- 	struct nfqnl_instance *queue;
- 	struct nfqnl_msg_config_cmd *cmd = NULL;
--	struct net *net = sock_net(ctnl);
- 	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
- 	int ret = 0;
- 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 9c8fab0..454841b 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -519,9 +519,9 @@ nla_put_failure:
- 	return -1;
- }
- 
--static int
--nfnl_compat_get(struct sock *nfnl, struct sk_buff *skb,
--		const struct nlmsghdr *nlh, const struct nlattr * const tb[])
-+static int nfnl_compat_get(struct net *net, struct sock *nfnl,
-+			   struct sk_buff *skb, const struct nlmsghdr *nlh,
-+			   const struct nlattr * const tb[])
- {
- 	int ret = 0, target;
- 	struct nfgenmsg *nfmsg;
-diff --git a/net/netfilter/xt_osf.c b/net/netfilter/xt_osf.c
-index df8801e..4e3c3af 100644
---- a/net/netfilter/xt_osf.c
-+++ b/net/netfilter/xt_osf.c
-@@ -61,8 +61,8 @@ static const struct nla_policy xt_osf_policy[OSF_ATTR_MAX + 1] = {
- 	[OSF_ATTR_FINGER]	= { .len = sizeof(struct xt_osf_user_finger) },
- };
- 
--static int xt_osf_add_callback(struct sock *ctnl, struct sk_buff *skb,
--			       const struct nlmsghdr *nlh,
-+static int xt_osf_add_callback(struct net *net, struct sock *ctnl,
-+			       struct sk_buff *skb, const struct nlmsghdr *nlh,
- 			       const struct nlattr * const osf_attrs[])
- {
- 	struct xt_osf_user_finger *f;
-@@ -104,7 +104,8 @@ static int xt_osf_add_callback(struct sock *ctnl, struct sk_buff *skb,
- 	return err;
- }
- 
--static int xt_osf_remove_callback(struct sock *ctnl, struct sk_buff *skb,
-+static int xt_osf_remove_callback(struct net *net, struct sock *ctnl,
-+				  struct sk_buff *skb,
- 				  const struct nlmsghdr *nlh,
- 				  const struct nlattr * const osf_attrs[])
- {
--- 
-2.1.4
+Sure. I'll get to that after considering the tuple enlargement.
+
+> > > > This was the main reason that I didn't use expectations.  Yet this
+> > > > req changed when I realized that we can't process ASCONF chunks without
+> > > > validating the AUTH chunk first, which we just can't just when in the middle
+> > > > of the communication.
+> > > 
+> > > OK, so that's why we cannot create expectations for specific
+> > > addresses, right?
+> > 
+> > Right. We would be trusting un-trusty data.
+> 
+> I see, but without IP source and destination address in the
+> expectation, how is this effective from a security point of view? My
+> concerns go in the direction of possible spoofing that result in holes
+> in the firewall for sctp traffic.
+
+It may not be 100% secure without the IP addresses in it but it adds
+another 32bit that the attacker must be able to match in order to get
+through that door.
+
+Currently, if the attacker knows the ports used, it's enough to get
+at least a heartbeat through.
+
+> > > > After that went down it's just two other:
+> > > > - by removing the addresses from it, we have the possibility that a host may
+> > > > use multiple addresses but not for a single sctp association, but like
+> > > > running two distinct assocs, one using each IP address, but same ports, and
+> > > > same vtags. It could happen.. it would cause a clash as the expectation
+> > > > would be the same but for different masters.
+> > > > 
+> > > > - adding vtag to it increases nf_conntrack_tuple by 4 bytes, so 8 bytes per
+> > > > nf_conn, while this feature will be off for the majority of the
+> > > > installations.> > 
+> > > 
+> > > Yes, there is a bit more extra memory.
+> > > 
+> > > I think we can shrink this back by moving the expectation master
+> > > pointer to an extension (they are rarely used). Another one to
+> > > consider is secmark, I don't know of many using this but I may be wrong.
+> > 
+> > Ok
+> 
+> Anyway, it would be good to evaluate the performance impact on
+> enlarging the tuple. Not only extra memory, the hashing for lookups
+> will take 4 extra bytes per packet after such change.
+> 
+> I would need to have a look, but there must be a nice way to
+> accomodate this into the expectation infrastructure without having any
+> impact on that front. Probably we can have a per-protocol family
+> expectation table (instead of a global table) where the hashing to
+> look up for expectations depends on the protocol (so in the sctp case,
+> we can include the vtag from the ct->state in the hash lookup).
+> 
+> Just an idea, we should avoid any significant impact on performance
+> for everyone else just to handle this sctp multihoming case.
+
+This is very interesting, specially considering the below ---v
+
+> > > > The possibility of using RELATED is very attractive, though. Would make more
+> > > > sense, I think.
+> > > 
+> > > OK.
+> > > 
+> > > > The extra bytes, we might do it, but for that conflict, only if we
+> > > > require the usage of conntrack zones in such cases. It would work
+> > > > for me..
+> > > 
+> > > Not sure what you mean.
+> > 
+> > That we can go this other way if you think it's best, not a problem. :-)
+> > 
+> > For not breaking d7ee35190427 ("netfilter: nf_ct_sctp: minimal
+> > multihoming support"), we would still need that sysctl, something like
+> > 'expected_heartbeats', still defaulting to false.
+> 
+> You mean we need that new sysctl to explicitly enable multihoming
+> tracking in any case, right?
+
+I think you got it but I have a feeling that there is a small
+misunderstanding in here. Let me try to rephrase it. We need that new
+sysctl in order to know if we should allow conntrack entries to be
+created from heartbeats alone (as it is today) or if even these
+heartbeats should be matched against a known sport/dport/vtag tuple (as
+I'm proposing with this patch).
+
+
+About the idea to put the vtag into the tuple itself, this is more like a heads
+up, sharing it early. I'm afraid that's going to be very complicated because we
+store all infos in u union in big endian.
+
+                union {
+                        /* Add other protocols here. */
+                        __be64 all;
+			    ^^-- to fit the new be32 (was be16)
+
+                        struct {
+                                __be16 port;
+                        } tcp;
+                        struct {
+                                __be16 port;
+                        } udp;
+                        struct {
+                                u_int8_t type, code;
+                        } icmp;
+                        struct {
+                                __be16 port;
+                        } dccp;
+                        struct {
+                                __be16 port;
+                                __be32 vtag;
+                        } sctp;  <-- expanded
+
+but this change will cause the structs with __be16 to read the higher
+portion of that be64 instead if on a little-endian system.
+
+$ pahole test
+struct pack64 {
+	union {
+		__be64             all;                  /*           8 */
+		struct {
+			__be16     port;                 /*     0     2 */
+		} tcp;                                   /*           2 */
+	} u;                                             /*     0     8 */
+
+	/* size: 8, cachelines: 1, members: 1 */
+	/* last cacheline: 8 bytes */
+};
+struct pack16 {
+	union {
+		__be16             all;                  /*           2 */
+		struct {
+			__be16     port;                 /*     0     2 */
+		} tcp;                                   /*           2 */
+	} u;                                             /*     0     2 */
+
+	/* size: 2, cachelines: 1, members: 1 */
+	/* last cacheline: 2 bytes */
+};
+
+and there is code that relies on this direct mapping, like in:
+
+nf_nat_l4proto_in_range():
+        __be16 port;
+
+        if (maniptype == NF_NAT_MANIP_SRC)
+                port = tuple->src.u.all;
+        else
+                port = tuple->dst.u.all;
+
+nf_nat_ipv6_decode_session():
+        if (ct->status & statusbit) {
+                fl6->daddr = t->dst.u3.in6;
+                if (t->dst.protonum == IPPROTO_TCP ||
+                    t->dst.protonum == IPPROTO_UDP ||
+                    t->dst.protonum == IPPROTO_UDPLITE ||
+                    t->dst.protonum == IPPROTO_DCCP ||
+                    t->dst.protonum == IPPROTO_SCTP)
+                        fl6->fl6_dport = t->dst.u.all;
+        }
+
+ip_vs_conn_drop_conntrack():
+        tuple.src.u3 = cp->caddr;                                         
+        tuple.src.u.all = cp->cport;                                      
+        tuple.src.l3num = cp->af;                                         
+        tuple.dst.u3 = cp->vaddr;                                         
+        tuple.dst.u.all = cp->vport;                                      
+
+amongst others, including the the masks, like in:
+
+__nf_ct_helper_find():
+        struct nf_conntrack_tuple_mask mask = { .src.u.all = htons(0xFFFF) };
+...
+        hlist_for_each_entry_rcu(helper, &nf_ct_helper_hash[h], hnode) {
+                if (nf_ct_tuple_src_mask_cmp(tuple, &helper->tuple, &mask))
+                        return helper;
+        }
+
+and:
+ct_proto_port_check():
+        /* Shortcut to match all recognized protocols by using ->src.all. */
+        if ((info->match_flags & XT_CONNTRACK_ORIGSRC_PORT) &&
+            (tuple->src.u.all == info->origsrc_port) ^
+            !(info->invert_flags & XT_CONNTRACK_ORIGSRC_PORT))
+                return false;
+
+Seems some bit-dancing will be necessary.
+
+Thanks,
+Marcelo
 
