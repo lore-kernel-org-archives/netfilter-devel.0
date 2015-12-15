@@ -1,62 +1,65 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Linux 4.3.1 regression: -m state returns "Protocol wrong type
- for socket"
-Date: Mon, 14 Dec 2015 22:21:26 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1512142220280.32166@blackhole.kfki.hu>
-References: <566C0E75.6080800@familie-kuntze.de> <566c4622.936d810a.ece67.ffffdfc9@mx.google.com> <20151212232044.GE12854@breakpoint.cc> <566cae67.86f60d0a.f3ad2.2638@mx.google.com> <alpine.LSU.2.20.1512130032300.32038@nerf40.vanv.qr>
- <566cb640.46dc0d0a.5c3cc.287a@mx.google.com> <alpine.LSU.2.20.1512130124180.832@nerf40.vanv.qr> <566cbcbe.01ed0d0a.36f37.2c88@mx.google.com> <alpine.LSU.2.20.1512130135350.32160@nerf40.vanv.qr> <alpine.DEB.2.10.1512142140550.31836@blackhole.kfki.hu>
- <20151214205556.GA2927@salvia> <alpine.DEB.2.10.1512142215460.32166@blackhole.kfki.hu>
+From: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Subject: RE: [PATCH net-next] net, cgroup: cgroup_sk_updat_lock was missing
+ initializer
+Date: Tue, 15 Dec 2015 02:11:20 +0000
+Message-ID: <9f79b2053ba7422b816cfc34d380e5d6@HKXPR3004MB0088.064d.mgd.msft.net>
+References: <1449527935-27056-1-git-send-email-tj@kernel.org>
+	<f90d369a0e004fee8d3bfdfe95e0abc0@HKXPR3004MB0088.064d.mgd.msft.net>
+	<20151214162406.GA4026@mtj.duckdns.org>
+ <20151214.142043.1185024338854399910.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jan Engelhardt <jengelh@inai.de>,
-	=?ISO-8859-15?Q?D=E2niel_Fraga?= <fragabr@gmail.com>,
-	Florian Westphal <fw@strlen.de>,
-	Noel Kuntze <noel@familie-kuntze.de>,
-	=?ISO-8859-15?Q?Remzi_AKY=DCZ?= <linuxliste@gmail.com>,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:37752 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932339AbbLNVV1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Dec 2015 16:21:27 -0500
-In-Reply-To: <alpine.DEB.2.10.1512142215460.32166@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: "pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org" <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>,
+	"kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org" <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>,
+	"kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org" <kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org>,
+	"daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org" <daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org>,
+	"daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org" <daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org>,
+	"nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org" <nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>,
+	"lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>,
+	"hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org" <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>,
+	"netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+	"netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+	"coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org" <coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>,
+	"cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+	"linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+	"kernel-team-b10kYP2dOMg@public.gmane.org" <kernel-team-b10kYP2dOMg@public.gmane.org>,
+	"ninasc-b10kYP2dOMg@public.gmane.org" <ninasc-b10kYP2dOMg@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151214.142043.1185024338854399910.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Content-Language: en-US
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 14 Dec 2015, Jozsef Kadlecsik wrote:
-
-> On Mon, 14 Dec 2015, Pablo Neira Ayuso wrote:
+> -----Original Message-----
+> From: David Miller [mailto:davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org]
+> Sent: Tuesday, December 15, 2015 3:21
+> To: tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+> Cc: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>; pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org; kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org;
+> kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org; daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org; daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org;
+> nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org; lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org; hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org;
+> netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org; cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
+> kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; kernel-team-b10kYP2dOMg@public.gmane.org; ninasc-b10kYP2dOMg@public.gmane.org
+> Subject: Re: [PATCH net-next] net, cgroup: cgroup_sk_updat_lock was missing
+> initializer
 > 
-> > On Mon, Dec 14, 2015 at 09:47:31PM +0100, Jozsef Kadlecsik wrote:
-> > > diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-> > > index a355841..a1dfd23 100644
-> > > --- a/net/ipv4/netfilter/Kconfig
-> > > +++ b/net/ipv4/netfilter/Kconfig
-> > > @@ -12,6 +12,7 @@ config NF_DEFRAG_IPV4
-> > >  config NF_CONNTRACK_IPV4
-> > >         tristate "IPv4 connection tracking support (required for NAT)"
-> > >         depends on NF_CONNTRACK
-> > > +       default NETFILTER_XT_MATCH_CONNTRACK
-> > 
-> > I know of some people already giving a try to compiling nftables only
-> > kernels, I think this would create an unnecessary dependency.
-> > 
-> > >         default m if NETFILTER_ADVANCED=n
-> > >         select NF_DEFRAG_IPV4
-> > >         ---help---
+> From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Date: Mon, 14 Dec 2015 11:24:06 -0500
 > 
-> It don't see why would it be a dependency for nftables only kernels. In 
-> that case NETFILTER_XT_MATCH_CONNTRACK is set to "n", so the default would 
-> be the same as currently and just right.
+> > bd1060a1d671 ("sock, cgroup: add sock->sk_cgroup") added global
+> > spinlock cgroup_sk_update_lock but erroneously skipped initializer
+> > leading to uninitialized spinlock warning.  Fix it by using
+> > DEFINE_SPINLOCK().
+> >
+> > Signed-off-by: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> > Reported-by: Dexuan Cui <decui-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+> > Fixes: bd1060a1d671 ("sock, cgroup: add sock->sk_cgroup")
+> 
+> Applied, thanks.
 
-Hmmm, the default would remain the same but wouldn't be right for 
-nftables...
+Thanks! I can confirm it fixed the issue.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Thanks,
+-- Dexuan
