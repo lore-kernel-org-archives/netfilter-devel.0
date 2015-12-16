@@ -1,141 +1,137 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: Re: [PATCH v2] extensions: libxt_mark: Add translation to nft
-Date: Wed, 16 Dec 2015 14:49:48 +0530
-Message-ID: <CAKHNQQF3XFhMJaoi8gBLOeGTLJjxncPQ-s9Tke3nC0FNoGVJjg@mail.gmail.com>
-References: <20151206033214.GA5939@gmail.com> <20151209132600.GA29450@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] netlink_delinearize: add previous statement to rule_pp_ctx
+Date: Wed, 16 Dec 2015 23:38:55 +0100
+Message-ID: <1450305535-18225-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, pablombg@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:35028 "EHLO
-	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933879AbbLPJUI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Dec 2015 04:20:08 -0500
-Received: by mail-wm0-f42.google.com with SMTP id l126so29453534wml.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 16 Dec 2015 01:20:08 -0800 (PST)
-In-Reply-To: <20151209132600.GA29450@salvia>
+Received: from mail.us.es ([193.147.175.20]:34372 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751938AbbLPWj0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Dec 2015 17:39:26 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id A65DDA820D
+	for <netfilter-devel@vger.kernel.org>; Wed, 16 Dec 2015 23:39:23 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 94DF2DA85D
+	for <netfilter-devel@vger.kernel.org>; Wed, 16 Dec 2015 23:39:22 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 6BB8DDA7FF
+	for <netfilter-devel@vger.kernel.org>; Wed, 16 Dec 2015 23:39:07 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Dec 9, 2015 at 6:56 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sun, Dec 06, 2015 at 09:02:14AM +0530, Shivani Bhardwaj wrote:
->> Add translation of the metainformation mark to nft.
->
-> Much better, but I still need some changes.
->
-> Could you include in the description the commands and the result of
-> testing this, eg.
->
-> $ iptables-xlate -I INPUT -m mark --mark 20
-> nft add rule filter INPUT mark 20
->
+564b0e7c13f9 ("netlink_delinearize: postprocess expression before range
+merge") crashes nft when the previous statement is removed via
+payload_dependency_kill() as this pointer is not valid anymore.
 
-Hi Pablo,
+Move the pointer to the previous statement to rule_pp_ctx and invalid it
+when required.
 
-I don't get these results.
-I get the following:
-nft # -I INPUT -m mark --mark 123
+Reported-by: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/netlink_delinearize.c | 30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
 
-What could be the reason for this? A bug in the code or some
-dependency? I have checked the code. It seems to follow the correct
-pattern as per the latest 6 patches.
-Could you please help?
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 8cbabc3..f68fca0 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -944,6 +944,7 @@ struct rule_pp_ctx {
+ 	enum proto_bases	pbase;
+ 	struct stmt		*pdep;
+ 	struct stmt		*stmt;
++	struct stmt		*prev;
+ };
+ 
+ /*
+@@ -957,6 +958,8 @@ static void payload_dependency_kill(struct rule_pp_ctx *ctx, struct expr *expr)
+ 		list_del(&ctx->pdep->list);
+ 		stmt_free(ctx->pdep);
+ 		ctx->pbase = PROTO_BASE_INVALID;
++		if (ctx->pdep == ctx->prev)
++			ctx->prev = NULL;
+ 		ctx->pdep = NULL;
+ 	}
+ }
+@@ -1529,46 +1532,47 @@ static bool expr_may_merge_range(struct expr *expr, struct expr *prev,
+ 	return false;
+ }
+ 
+-static void expr_postprocess_range(struct rule_pp_ctx *ctx, struct stmt *prev,
+-				   enum ops op)
++static void expr_postprocess_range(struct rule_pp_ctx *ctx, enum ops op)
+ {
+ 	struct stmt *nstmt, *stmt = ctx->stmt;
+ 	struct expr *nexpr, *rel;
+ 
+-	nexpr = range_expr_alloc(&prev->location, expr_clone(prev->expr->right),
++	nexpr = range_expr_alloc(&ctx->prev->location,
++				 expr_clone(ctx->prev->expr->right),
+ 				 expr_clone(stmt->expr->right));
+ 	expr_set_type(nexpr, stmt->expr->right->dtype,
+ 		      stmt->expr->right->byteorder);
+ 
+-	rel = relational_expr_alloc(&prev->location, op,
++	rel = relational_expr_alloc(&ctx->prev->location, op,
+ 				    expr_clone(stmt->expr->left), nexpr);
+ 
+ 	nstmt = expr_stmt_alloc(&stmt->location, rel);
+ 	list_add_tail(&nstmt->list, &stmt->list);
+ 
+-	list_del(&prev->list);
+-	stmt_free(prev);
++	list_del(&ctx->prev->list);
++	stmt_free(ctx->prev);
+ 
+ 	list_del(&stmt->list);
+ 	stmt_free(stmt);
+ 	ctx->stmt = nstmt;
+ }
+ 
+-static void stmt_expr_postprocess(struct rule_pp_ctx *ctx, struct stmt *prev)
++static void stmt_expr_postprocess(struct rule_pp_ctx *ctx)
+ {
+ 	enum ops op;
+ 
+ 	expr_postprocess(ctx, &ctx->stmt->expr);
+ 
+-	if (prev && ctx->stmt && ctx->stmt->ops->type == prev->ops->type &&
+-	    expr_may_merge_range(ctx->stmt->expr, prev->expr, &op))
+-		expr_postprocess_range(ctx, prev, op);
++	if (ctx->prev && ctx->stmt &&
++	    ctx->stmt->ops->type == ctx->prev->ops->type &&
++	    expr_may_merge_range(ctx->stmt->expr, ctx->prev->expr, &op))
++		expr_postprocess_range(ctx, op);
+ }
+ 
+ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *rule)
+ {
+ 	struct rule_pp_ctx rctx;
+-	struct stmt *stmt, *next, *prev = NULL;
++	struct stmt *stmt, *next;
+ 
+ 	memset(&rctx, 0, sizeof(rctx));
+ 	proto_ctx_init(&rctx.pctx, rule->handle.family);
+@@ -1578,7 +1582,7 @@ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *r
+ 
+ 		switch (stmt->ops->type) {
+ 		case STMT_EXPRESSION:
+-			stmt_expr_postprocess(&rctx, prev);
++			stmt_expr_postprocess(&rctx);
+ 			break;
+ 		case STMT_PAYLOAD:
+ 			expr_postprocess(&rctx, &stmt->payload.expr);
+@@ -1620,7 +1624,7 @@ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *r
+ 		default:
+ 			break;
+ 		}
+-		prev = rctx.stmt;
++		rctx.prev = rctx.stmt;
+ 	}
+ }
+ 
+-- 
+2.1.4
 
-> Several examples like that would be good covering all possible cases,
-> just to make sure you're testing all possible branches in the code
-> (even if this kind of manual way, there are better ways to cover-test
-> this in an automated way but this simple testing is fine by now).
->
-> More comments below.
->
->> Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
->> ---
->> Changes in v2:
->>       Fix syntax according to nft and remove trailing whitespaces
->>
->>  extensions/libxt_mark.c | 64 +++++++++++++++++++++++++++++++++++++++++++++++--
->>  1 file changed, 62 insertions(+), 2 deletions(-)
->>
->> diff --git a/extensions/libxt_mark.c b/extensions/libxt_mark.c
->> index 7f8c995..b0c06c2 100644
->> --- a/extensions/libxt_mark.c
->> +++ b/extensions/libxt_mark.c
->> @@ -75,7 +75,7 @@ mark_print(const void *ip, const struct xt_entry_match *match, int numeric)
->>
->>       if (info->invert)
->>               printf(" !");
->> -
->> +
->>       print_mark(info->mark, info->mask);
->>  }
->>
->> @@ -97,11 +97,69 @@ mark_save(const void *ip, const struct xt_entry_match *match)
->>
->>       if (info->invert)
->>               printf(" !");
->> -
->> +
->>       printf(" --mark");
->>       print_mark(info->mark, info->mask);
->>  }
->>
->> +static void
->> +print_mark_xlate(struct xt_buf *buf,
->> +              unsigned int mark, unsigned int mask)
->> +{
->> +        if (mask != 0xffffffffU)
->> +                xt_buf_add(buf, " & x%x == x%x", mark, mask);
->> +        else
->> +                xt_buf_add(buf, " & x%x", mark);
->> +}
->> +
->> +static void
->> +mark_mt_xlate_print(const struct xt_entry_match *match,
->> +                 struct xt_buf *buf, int numeric)
->> +{
->> +     const struct xt_mark_mtinfo1 *info = (const void *)match->data;
->> +
->> +     if (info->invert)
->> +             xt_buf_add(buf, " !=");
->> +     print_mark_xlate(buf, info->mark, info->mask);
->> +}
->> +
->> +static int
->> +mark_mt_xlate(const struct xt_entry_match *match,
->> +           struct xt_buf *buf, int numeric)
->> +{
->> +     const struct xt_mark_mtinfo1 *info = (const void *)match->data;
->> +
->> +     xt_buf_add(buf, "ct mark %s", info->invert ? " !=" : "");
->> +        print_mark_xlate(buf, info->mark, info->mask);
->> +        xt_buf_add(buf, " ");
->    ^^^^^^^^
->
-> This indentation is not correct.
->
-
-I'm using checkpatch to look for indentation errors now. Sorry for the
-inconvenience caused.
-
-Thank you
-
->> +
->> +        return 1;
->> +}
->> +
->> +static void
->> +mark_xlate_print(const struct xt_entry_match *match,
->> +              struct xt_buf *buf, int numeric)
->> +{
->> +     const struct xt_mark_info *info = (const void *)match->data;
->> +
->> +        if (info->invert)
->> +                xt_buf_add(buf, " !=");
->> +        print_mark_xlate(buf, info->mark, info->mask);
->         ^^^
->
-> Same here.
->
-> Thanks.
