@@ -1,132 +1,142 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_ct_sctp: validate vtag for new conntrack
- entries
-Date: Thu, 17 Dec 2015 12:05:12 +0100
-Message-ID: <20151217110512.GA1863@salvia>
-References: <85c8c8c570bdbf6f20f56fdef96d8017fea3cc4c.1449579256.git.marcelo.leitner@gmail.com>
- <20151210120233.GA2084@salvia>
- <56697B14.3010909@gmail.com>
- <20151210134247.GA3942@salvia>
- <20151210140625.GC3886@mrl.redhat.com>
- <20151210170647.GA1547@salvia>
- <20151215190304.GA3724@mrl.redhat.com>
+Subject: Re: [RFC nft] ct expr: make directional keys work
+Date: Thu, 17 Dec 2015 12:13:34 +0100
+Message-ID: <20151217111334.GA1694@salvia>
+References: <20151217005533.GA24044@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org,
-	Vlad Yasevich <vyasevich@gmail.com>,
-	Neil Horman <nhorman@tuxdriver.com>, mkubecek@suse.cz
-To: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59911 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35101 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932323AbbLQLFZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Dec 2015 06:05:25 -0500
+	id S1751340AbbLQLNo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Dec 2015 06:13:44 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 26FF81392A0
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2015 12:05:22 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id 9DE441324F5
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2015 12:13:42 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 1464BDA57C
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2015 12:05:22 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 79F18DA863
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2015 12:13:42 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B453CDA8E5
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2015 12:05:15 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B09B3DA865
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2015 12:13:37 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20151215190304.GA3724@mrl.redhat.com>
+In-Reply-To: <20151217005533.GA24044@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 15, 2015 at 05:03:04PM -0200, Marcelo Ricardo Leitner wrote:
-> On Thu, Dec 10, 2015 at 06:06:57PM +0100, Pablo Neira Ayuso wrote:
-> > I think in this case it doesn't make sense to have a pointer to the
-> > master conntrack for a new sctp flow that got established via
-> > expectation. That new sctp flow would be completely independent. I
+On Thu, Dec 17, 2015 at 01:55:33AM +0100, Florian Westphal wrote:
+> some ct expressions don't work at the moment since we never set the
+> 'direction' attribute, but kernel mandates it.
 > 
-> Not really. It's just another path/transport for the same sctp
-> association. From sctp point of view, these two conntrack entries share
-> their end points, they refer to the same sockets.
-
-Then, you will need add support for expected conntrack with no master.
-
-> > > > > This was the main reason that I didn't use expectations.  Yet this
-> > > > > req changed when I realized that we can't process ASCONF chunks without
-> > > > > validating the AUTH chunk first, which we just can't just when in the middle
-> > > > > of the communication.
-> > > > 
-> > > > OK, so that's why we cannot create expectations for specific
-> > > > addresses, right?
-> > > 
-> > > Right. We would be trusting un-trusty data.
-> > 
-> > I see, but without IP source and destination address in the
-> > expectation, how is this effective from a security point of view? My
-> > concerns go in the direction of possible spoofing that result in holes
-> > in the firewall for sctp traffic.
+> The current approach i've been working splits ct keywords into
+> two groups, one mandates a 'direction' argument (saddr, protocol),
+> others do not (mark for example).
 > 
-> It may not be 100% secure without the IP addresses in it but it adds
-> another 32bit that the attacker must be able to match in order to get
-> through that door.
+> Would this syntax be acceptable?
 > 
-> Currently, if the attacker knows the ports used, it's enough to get
-> at least a heartbeat through.
+> ct saddr original 192.168.0.1
 
-You have to come back to us to evaluate how feasible is to push holes
-in the firewall through this helper and what the attacker would get
-from this attack.
+Did you try to fit this in the existing parser to see if it result in
+shift/reduce conflicts?
 
-Anyway, what I'm going to propose you below will allow the user to
-narrow down what peers are allowed to create sctp multihoming
-expectations.
+I'm telling this because the relational expression expects a ct
+expression on the left hand side, and a value on the right hand side.
 
-> About the idea to put the vtag into the tuple itself, this is more like a heads
-> up, sharing it early. I'm afraid that's going to be very complicated because we
-> store all infos in u union in big endian.
+So I think with such syntax the grammar would need to be upgraded to
+something like:
+
+ct_key                  :       SADDR   ORIGINAL        { $$ = ...; }
+                        |       SADDR   REPLY           { $$ = ...; }
+
+Where the $$ would need to encode both the key and direction.
+
+Probably it's easier to fit this into it like this:
+
+ct_expr                 :       CT      ct_key
+                        {
+                                $$ = ct_expr_alloc(&@$, $1, IP_CT_DIR_MAX);
+                        }
+                        |       CT      ct_direction       ct_directional_key
+                        {
+                                $$ = ct_expr_alloc(&@$, $2, $1);
+                        }
+                        ;
+
+ct_direction            :       DIRECTION       STRING
+                        {
+                                int dir;
+
+                                dir = ct_direction_lookup($2);
+                                if (dir < 0)
+                                        display error on wrong direction
+                        }
+                        ;
+
+ct_directional_key      :       SADDR   { $$ = NFT_CT_SADDR; }
+                        ...
+
+> If not, I'd like suggestions on how this should look like instead.
 > 
->                 union {
->                         /* Add other protocols here. */
->                         __be64 all;
-> 			    ^^-- to fit the new be32 (was be16)
+> Since the saddr (and a few other) arguments have unknown size
+> (depends on the l3 tracker tuple sizes), its currently filled in
+> later depending on NH base (i.e. in nft upstream).
 > 
->                         struct {
->                                 __be16 port;
->                         } tcp;
->                         struct {
->                                 __be16 port;
->                         } udp;
->                         struct {
->                                 u_int8_t type, code;
->                         } icmp;
->                         struct {
->                                 __be16 port;
->                         } dccp;
->                         struct {
->                                 __be16 port;
->                                 __be32 vtag;
->                         } sctp;  <-- expanded
+> This means that
 > 
-> but this change will cause the structs with __be16 to read the higher
-> portion of that be64 instead if on a little-endian system.
+> ct proto-dst original ssh
+> 
+> will NOT work, but
+> 
+> ct protocol original tcp ct proto-dst original ssh
+>
+> would.  Is that ok?  I don't see how I could auto-add the dependency in
+> such case.
 
-We should avoid this change in the structure. I'd suggest you better
-extended nf_ct_find_expectation so it handles the special case to
-include the vtag in the search when this is SCTP traffic. There must
-be a generic way to accomodate this. You may need a specific
-expectation for SCTP (so the hashing includes the vtag from the
-ct->state). So the impact to add SCTP multihoming support is minimal
-given that we'll have very little clients of this code.
+I see, you're proposing to extract the dependency from the service,
+but then if I specify 22 instead (numeric value) we cannot extract
+anything from there.
 
-To be more concrete on the path I would follow, I think you have to a
-sctp-multihoming helper just like we do for FTP, IRC, GRE, Netbios and
-friends. The idea is that you register a new struct
-nf_conntrack_helper into the infrastructure. The help function will
-inspect for HEARTBEAT chunks, if found, it will create the
-expectation.
+> Moreover, while this is currently implemented as a dependency (type set to
+> inet_service if PROTO_BASE_TRANSPORT_HDR present) the kernel does just
+> fetch a 16 bit quantity from the tuple so there is no real dependency
+> -- its just raw data.
+> 
+> So we could actually allow things like
+> 
+> ct proto-dst original 22
+> 
+> and it would match anything that has a 22 in the dst.tuple.all field...
+> but -- does that make sense?
 
-Given that we'll be disabling automagic helper assignment soon (the
-existing behaviour is problematic from the security point of view, see
-Eric Leblond's documentation on this), the user can probably skip the
-possible security problems that we're discussing above by narrowing
-down the possible SCTP peers that are allowed to create multihoming
-expectations when explicitly configuring the helper through iptables.
-This should also allow you to skip the sysctl that you need.
+I would start simple, ie. bail out and ask the user that the layer 4
+protocol needs to be explicitly specified in case the port is
+specified, same thing with layer 3. Better to start being a bit more
+restrictive and relax this than the other way around I'd say.
 
-Have a look at: https://home.regit.org/netfilter-en/secure-use-of-helpers/
+> Finally, I'm working on support for packets and byte counters.
+> 
+> Fetching original or reply directions would 'just work' after
+> directional keys are supported, i.e.:
+> 
+> ct packets original > 100
+> 
+> But I'm not sure how we should handle the case where someone wants to test
+> 'X bytes/packets in total'.
+
+I'd suggest to add NFT_CT_CTR_BOTH, ie. we'll have
+NFT_CT_CTR_ORIG, NFT_CT_CTR_REPL and NFT_CT_CTR_BOTH.
+
+Adding a expression to sum things seems too much for this case I think.
+
+> ct packets > 100:
+> could be confusing, also not sure how difficult it is
+> to allow ct keywords that have an optional direction
+
+I think this should fit into the grammar that I'm proposing above with
+no shift/reduce conflicts, ie.
+
+ct packets VALUE
+ct direction original packets VALUE
+ct direction reply packets VALUE
