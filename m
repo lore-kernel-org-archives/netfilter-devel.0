@@ -1,133 +1,67 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [RFC nft] ct expr: make directional keys work
-Date: Thu, 17 Dec 2015 14:03:44 +0100
-Message-ID: <20151217130344.GA3198@breakpoint.cc>
-References: <20151217005533.GA24044@strlen.de>
- <20151217111334.GA1694@salvia>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH net-next v5 2/8] netfilter: Factor out nf_ct_get_info().
+Date: Thu, 17 Dec 2015 16:31:24 +0300
+Message-ID: <5672B92C.1000903@cogentembedded.com>
+References: <1450312607-44050-1-git-send-email-jarno@ovn.org>
+ <1450312607-44050-3-git-send-email-jarno@ovn.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:36288 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753119AbbLQNDq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Dec 2015 08:03:46 -0500
-Content-Disposition: inline
-In-Reply-To: <20151217111334.GA1694@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, dev@openvswitch.org
+To: Jarno Rajahalme <jarno@ovn.org>, netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1450312607-44050-3-git-send-email-jarno@ovn.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Thu, Dec 17, 2015 at 01:55:33AM +0100, Florian Westphal wrote:
-> > some ct expressions don't work at the moment since we never set the
-> > 'direction' attribute, but kernel mandates it.
-> > 
-> > The current approach i've been working splits ct keywords into
-> > two groups, one mandates a 'direction' argument (saddr, protocol),
-> > others do not (mark for example).
-> > 
-> > Would this syntax be acceptable?
-> > 
-> > ct saddr original 192.168.0.1
-> 
-> Did you try to fit this in the existing parser to see if it result in
-> shift/reduce conflicts?
+Hello.
 
-Yes, no s/r conflicts.
+On 12/17/2015 3:36 AM, Jarno Rajahalme wrote:
 
-I'll send what I have later today or tomorrow.
+> Define a new inline function to map conntrack status to enum
+> ip_conntrack_info.  This removes the need to otherwise duplicate this
+> code in a later patch ("openvswitch: Find existing conntrack entry
+> after upcall.").
+>
+> Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
+[...]
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> index 3cb3cb8..7546fc7 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -1056,25 +1056,15 @@ resolve_normal_ct(struct net *net, struct nf_conn *tmpl,
+>   	ct = nf_ct_tuplehash_to_ctrack(h);
+>
+>   	/* It exists; we have (non-exclusive) reference. */
+> -	if (NF_CT_DIRECTION(h) == IP_CT_DIR_REPLY) {
+> -		*ctinfo = IP_CT_ESTABLISHED_REPLY;
+> -		/* Please set reply bit if this packet OK */
+> -		*set_reply = 1;
+> -	} else {
+> -		/* Once we've had two way comms, always ESTABLISHED. */
+> -		if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
+> -			pr_debug("nf_conntrack_in: normal packet for %p\n", ct);
+> -			*ctinfo = IP_CT_ESTABLISHED;
+> -		} else if (test_bit(IPS_EXPECTED_BIT, &ct->status)) {
+> -			pr_debug("nf_conntrack_in: related packet for %p\n",
+> -				 ct);
+> -			*ctinfo = IP_CT_RELATED;
+> -		} else {
+> -			pr_debug("nf_conntrack_in: new packet for %p\n", ct);
+> -			*ctinfo = IP_CT_NEW;
+> -		}
+> -		*set_reply = 0;
+> -	}
+> +	*ctinfo = nf_ct_get_info(h);
+> +	if (*ctinfo == IP_CT_ESTABLISHED)
+> +		pr_debug("nf_conntrack_in: normal packet for %p\n", ct);
+> +	else if (*ctinfo == IP_CT_RELATED)
+> +		pr_debug("nf_conntrack_in: related packet for %p\n", ct);
+> +	else if (*ctinfo == IP_CT_NEW)
+> +		pr_debug("nf_conntrack_in: new packet for %p\n", ct);
 
-> So I think with such syntax the grammar would need to be upgraded to
-> something like:
-> 
-> ct_key                  :       SADDR   ORIGINAL        { $$ = ...; }
->                         |       SADDR   REPLY           { $$ = ...; }
+    This is asking to be a *switch* statement...
 
-I could give that a try too, at the moments its basically
+[...]
 
-ct_expr                 :       CT      ct_key
-                        {
-                                $$ = ct_expr_alloc(&@$, $1, NULL);
-                        }
-                        |       CT      ct_direction       ct_directional_key
-                        {
-                                $$ = ct_expr_alloc(&@$, $1, $2);
-                        }
-
-
-> ct_direction            :       DIRECTION       STRING
->                         {
-
-and no new keywords (reuses the symbolic type in src/ct.c)
-
-> > If not, I'd like suggestions on how this should look like instead.
-> > 
-> > Since the saddr (and a few other) arguments have unknown size
-> > (depends on the l3 tracker tuple sizes), its currently filled in
-> > later depending on NH base (i.e. in nft upstream).
-> > 
-> > This means that
-> > 
-> > ct proto-dst original ssh
-> > 
-> > will NOT work, but
-> > 
-> > ct protocol original tcp ct proto-dst original ssh
-> >
-> > would.  Is that ok?  I don't see how I could auto-add the dependency in
-> > such case.
-> 
-> I see, you're proposing to extract the dependency from the service,
-> but then if I specify 22 instead (numeric value) we cannot extract
-> anything from there.
-
-Yes, thats right.  For consisteny it does make sense to require an
-explicit L4 protocol, so I guess I'll keep it as-is for now.
-
-We can improve it later to allow 'magic' derivation of the dependeny
-if we really want to.
-
-> I would start simple, ie. bail out and ask the user that the layer 4
-> protocol needs to be explicitly specified in case the port is
-> specified, same thing with layer 3. Better to start being a bit more
-> restrictive and relax this than the other way around I'd say.
-
-agree
-
-> > Finally, I'm working on support for packets and byte counters.
-> > 
-> > Fetching original or reply directions would 'just work' after
-> > directional keys are supported, i.e.:
-> > 
-> > ct packets original > 100
-> > 
-> > But I'm not sure how we should handle the case where someone wants to test
-> > 'X bytes/packets in total'.
-> 
-> I'd suggest to add NFT_CT_CTR_BOTH, ie. we'll have
-> NFT_CT_CTR_ORIG, NFT_CT_CTR_REPL and NFT_CT_CTR_BOTH.
-
-Ok, I'll do the summing-up in nft_ct.c then.
-
-> > ct packets > 100:
-> > could be confusing, also not sure how difficult it is
-> > to allow ct keywords that have an optional direction
-> 
-> I think this should fit into the grammar that I'm proposing above with
-> no shift/reduce conflicts, ie.
-> 
-> ct packets VALUE
-> ct direction original packets VALUE
-> ct direction reply packets VALUE
-
-I'll have to check.  I don't want to add any new keywords to the lexer
-since that creates more problems for the grammar.
-
-(where we choke because something that should be treated/parsed as a
- plain string is then cosidered a keyword...)
-
-I think I'll have something presentable by tomorrow.
-
-Thanks.
+MBR, Sergei
