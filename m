@@ -1,63 +1,84 @@
-From: Jarno Rajahalme <jarno-LZ6Gd1LRuIk@public.gmane.org>
-Subject: Re: [PATCH net-next v4 8/8] openvswitch: Interface with
-	NAT.
-Date: Wed, 16 Dec 2015 16:54:38 -0800
-Message-ID: <08BFB958-9E84-4231-B4FF-E0A7FC564609@ovn.org>
-References: <1449622870-48944-1-git-send-email-jarno@ovn.org>
- <1449622870-48944-9-git-send-email-jarno@ovn.org>
- <20151210191008.GA20440@salvia>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <20151210191008.GA20440@salvia>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [RFC nft] ct expr: make directional keys work
+Date: Thu, 17 Dec 2015 01:55:33 +0100
+Message-ID: <20151217005533.GA24044@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34903 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755445AbbLQA57 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Dec 2015 19:57:59 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.80)
+	(envelope-from <fw@strlen.de>)
+	id 1a9MtJ-0006c0-PN
+	for netfilter-devel@vger.kernel.org; Thu, 17 Dec 2015 01:57:57 +0100
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-VGhhbmtzIGZvciByZXZpZXcsIEkgcmVtb3ZlZCB0aGVzZSBpbiB2ZXJzaW9uIDUuCgogIEphcm5v
-Cgo+IE9uIERlYyAxMCwgMjAxNSwgYXQgMTE6MTAgQU0sIFBhYmxvIE5laXJhIEF5dXNvIDxwYWJs
-b0BuZXRmaWx0ZXIub3JnPiB3cm90ZToKPiAKPiBPbiBUdWUsIERlYyAwOCwgMjAxNSBhdCAwNTow
-MToxMFBNIC0wODAwLCBKYXJubyBSYWphaGFsbWUgd3JvdGU6Cj4+IC0JLyogQ2FsbCB0aGUgaGVs
-cGVyIHJpZ2h0IGFmdGVyIG5mX2Nvbm50cmFja19pbigpIGZvciBjb25maXJtZWQKPj4gLQkgKiBj
-b25uZWN0aW9ucywgYnV0IG9ubHkgd2hlbiBjb21taXRpbmcgZm9yIHVuY29uZmlybWVkIGNvbm5l
-Y3Rpb25zLgo+PiAtCSAqLwo+PiAJY3QgPSBuZl9jdF9nZXQoc2tiLCAmY3RpbmZvKTsKPj4gLQlp
-ZiAoY3QgJiYgKG5mX2N0X2lzX2NvbmZpcm1lZChjdCkgPyAhY2FjaGVkIDogaW5mby0+Y29tbWl0
-KQo+PiAtCSAgICAmJiBvdnNfY3RfaGVscGVyKHNrYiwgaW5mby0+ZmFtaWx5KSAhPSBORl9BQ0NF
-UFQpIHsKPj4gLQkJV0FSTl9PTkNFKDEsICJoZWxwZXIgcmVqZWN0ZWQgcGFja2V0Iik7Cj4+IC0J
-CXJldHVybiAtRUlOVkFMOwo+PiArCWlmIChjdCkgewo+PiArI2lmZGVmIENPTkZJR19ORl9OQVRf
-TkVFREVECj4+ICsJCS8qIFBhY2tldHMgc3RhcnRpbmcgYSBuZXcgY29ubmVjdGlvbiBtdXN0IGJl
-IE5BVHRlZCBiZWZvcmUgdGhlCj4+ICsJCSAqIGhlbHBlciwgc28gdGhhdCB0aGUgaGVscGVyIGtu
-b3dzIGFib3V0IHRoZSBOQVQuICBXZSBlbmZvcmNlCj4+ICsJCSAqIHRoaXMgYnkgZGVsYXlpbmcg
-Ym90aCBOQVQgYW5kIGhlbHBlciBjYWxscyBmb3IgdW5jb25maXJtZWQKPj4gKwkJICogY29ubmVj
-dGlvbnMgdW50aWwgdGhlIGNvbW1pdGluZyBDVCBhY3Rpb24uICBGb3IgbGF0ZXIKPj4gKwkJICog
-cGFja2V0cyBOQVQgYW5kIEhlbHBlciBtYXkgYmUgY2FsbGVkIGluIGVpdGhlciBvcmRlci4KPj4g
-KwkJICoKPj4gKwkJICogTkFUIHdpbGwgYmUgZG9uZSBvbmx5IGlmIHRoZSBDVCBhY3Rpb24gaGFz
-IE5BVCwgYW5kIG9ubHkKPj4gKwkJICogb25jZSBwZXIgcGFja2V0IChwZXIgem9uZSksIGFzIGd1
-YXJkZWQgYnkgdGhlIE5BVCBiaXRzIGluCj4+ICsJCSAqIHRoZSBrZXktPmN0LnN0YXRlLgo+PiAr
-CQkgKi8KPj4gKwkJaWYgKGluZm8tPm5hdCAmJiAhKGtleS0+Y3Quc3RhdGUgJiBPVlNfQ1NfRl9O
-QVRfTUFTSykgJiYKPj4gKwkJICAgIChuZl9jdF9pc19jb25maXJtZWQoY3QpIHx8IGluZm8tPmNv
-bW1pdCkgJiYKPj4gKwkJICAgIG92c19jdF9uYXQobmV0LCBrZXksIGluZm8sIHNrYiwgY3QsIGN0
-aW5mbykgIT0gTkZfQUNDRVBUKSB7Cj4+ICsJCQlXQVJOX09OQ0UoMSwgIk5BVCByZWplY3RlZCBw
-YWNrZXQiKTsKPiAKPiBOQVQgY2FuIGRyb3AgcGFja2V0cywgc28gdGhpcyB3YXJuX29uIEkgZG9u
-J3QgdGhpbmsgeW91IG5lZWQgaXQuCj4gCj4+ICsJCQlyZXR1cm4gLUVJTlZBTDsKPj4gKwkJfQo+
-PiArI2VuZGlmCj4+ICsJCS8qIENhbGwgdGhlIGhlbHBlciB3aGVuZXZlciBuZl9jb25udHJhY2tf
-aW4oKSB3YXMgY2FsbGVkIGZvcgo+PiArCQkgKiBjb25maXJtZWQgY29ubmVjdGlvbnMsIGJ1dCBv
-bmx5IHdoZW4gY29tbWl0aW5nIGZvcgo+PiArCQkgKiB1bmNvbmZpcm1lZCBjb25uZWN0aW9ucy4K
-Pj4gKwkJICovCj4+ICsJCWlmICgobmZfY3RfaXNfY29uZmlybWVkKGN0KSA/ICFjYWNoZWQgOiBp
-bmZvLT5jb21taXQpCj4+ICsJCSAgICAmJiBvdnNfY3RfaGVscGVyKHNrYiwgaW5mby0+ZmFtaWx5
-KSAhPSBORl9BQ0NFUFQpIHsKPj4gKwkJCVdBUk5fT05DRSgxLCAiaGVscGVyIHJlamVjdGVkIHBh
-Y2tldCIpOwo+IAo+IFNhbWUgdGhpbmcgbWF5IGhhcHBlbiB3aXRoIGhlbHBlcnMuCgpfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkZXYgbWFpbGluZyBsaXN0
-CmRldkBvcGVudnN3aXRjaC5vcmcKaHR0cDovL29wZW52c3dpdGNoLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2Rldgo=
+some ct expressions don't work at the moment since we never set the
+'direction' attribute, but kernel mandates it.
+
+The current approach i've been working splits ct keywords into
+two groups, one mandates a 'direction' argument (saddr, protocol),
+others do not (mark for example).
+
+Would this syntax be acceptable?
+
+ct saddr original 192.168.0.1
+
+If not, I'd like suggestions on how this should look like instead.
+
+Since the saddr (and a few other) arguments have unknown size
+(depends on the l3 tracker tuple sizes), its currently filled in
+later depending on NH base (i.e. in nft upstream).
+
+This means that
+
+ct proto-dst original ssh
+
+will NOT work, but
+
+ct protocol original tcp ct proto-dst original ssh
+
+would.  Is that ok?  I don't see how I could auto-add the dependency in
+such case.
+
+Moreover, while this is currently implemented as a dependency (type set to
+inet_service if PROTO_BASE_TRANSPORT_HDR present) the kernel does just
+fetch a 16 bit quantity from the tuple so there is no real dependency
+-- its just raw data.
+
+So we could actually allow things like
+
+ct proto-dst original 22
+
+and it would match anything that has a 22 in the dst.tuple.all field...
+but -- does that make sense?
+
+Finally, I'm working on support for packets and byte counters.
+
+Fetching original or reply directions would 'just work' after
+directional keys are supported, i.e.:
+
+ct packets original > 100
+
+But I'm not sure how we should handle the case where someone wants to test
+'X bytes/packets in total'.
+
+ct packets > 100:
+could be confusing, also not sure how difficult it is
+to allow ct keywords that have an optional direction
+
+ct packets both > 100: also looks wrong to me
+
+ct packets original + ct packets reply > 100:
+Looks like the most nft-esque solution to me, but would need new EXPR_ADD.
+
+Thoughts?
+
+Thanks,
+Florian
