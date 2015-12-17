@@ -1,52 +1,39 @@
-From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH net-next v5 7/8] openvswitch: Delay conntrack
- helper call for new connections.
-Date: Thu, 17 Dec 2015 16:33:14 +0300
-Message-ID: <5672B99A.7080404@cogentembedded.com>
-References: <1450312607-44050-1-git-send-email-jarno@ovn.org>
- <1450312607-44050-8-git-send-email-jarno@ovn.org>
+From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+Subject: Re: [PATCH nft] netlink_delinearize: add previous statement to rule_pp_ctx
+Date: Thu, 17 Dec 2015 20:07:00 +0100
+Message-ID: <CAAaDf4sYa2Jug5V0JhT73khGNcxhX+hZmB2JK3iD7MN0ApTc-A@mail.gmail.com>
+References: <1450305535-18225-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarno Rajahalme <jarno-LZ6Gd1LRuIk@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <1450312607-44050-8-git-send-email-jarno-LZ6Gd1LRuIk@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-lf0-f52.google.com ([209.85.215.52]:33166 "EHLO
+	mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754760AbbLQTHD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Dec 2015 14:07:03 -0500
+Received: by mail-lf0-f52.google.com with SMTP id p203so58972596lfa.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2015 11:07:01 -0800 (PST)
+In-Reply-To: <1450305535-18225-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-SGVsbG8uCgpPbiAxMi8xNy8yMDE1IDM6MzYgQU0sIEphcm5vIFJhamFoYWxtZSB3cm90ZToKCj4g
-VGhlcmUgaXMgbm8gbmVlZCB0byBoZWxwIGNvbm5lY3Rpb25zIHRoYXQgYXJlIG5vdCBjb25maXJt
-ZWQsIHNvIHdlIGNhbgo+IGRlbGF5IGhlbHBpbmcgbmV3IGNvbm5lY3Rpb25zIHRvIHRoZSB0aW1l
-IHdoZW4gdGhleSBhcmUgY29uZmlybWVkLgo+IFRoaXMgY2hhbmdlIGlzIG5lZWRlZCBmb3IgTkFU
-IHN1cHBvcnQsIGFuZCBoYXZpbmcgdGhpcyBhcyBhIHNlcGFyYXRlCj4gcGF0Y2ggd2lsbCBtYWtl
-IHRoZSBmb2xsb3dpbmcgTkFUIHBhdGNoIGEgYml0IGVhc2llciB0byByZXZpZXcuCj4KPiBTaWdu
-ZWQtb2ZmLWJ5OiBKYXJubyBSYWphaGFsbWUgPGphcm5vQG92bi5vcmc+Cj4gLS0tCj4gICBuZXQv
-b3BlbnZzd2l0Y2gvY29ubnRyYWNrLmMgfCAyMCArKysrKysrKysrKysrKystLS0tLQo+ICAgMSBm
-aWxlIGNoYW5nZWQsIDE1IGluc2VydGlvbnMoKyksIDUgZGVsZXRpb25zKC0pCj4KPiBkaWZmIC0t
-Z2l0IGEvbmV0L29wZW52c3dpdGNoL2Nvbm50cmFjay5jIGIvbmV0L29wZW52c3dpdGNoL2Nvbm50
-cmFjay5jCj4gaW5kZXggN2FhMzhmYS4uYmE0NDI4NyAxMDA2NDQKPiAtLS0gYS9uZXQvb3BlbnZz
-d2l0Y2gvY29ubnRyYWNrLmMKPiArKysgYi9uZXQvb3BlbnZzd2l0Y2gvY29ubnRyYWNrLmMKWy4u
-Ll0KPiBAQCAtNDkxLDExICs0OTYsMTYgQEAgc3RhdGljIGludCBfX292c19jdF9sb29rdXAoc3Ry
-dWN0IG5ldCAqbmV0LCBzdHJ1Y3Qgc3dfZmxvd19rZXkgKmtleSwKPiAgIAkJCXJldHVybiAtRU5P
-RU5UOwo+Cj4gICAJCW92c19jdF91cGRhdGVfa2V5KHNrYiwga2V5LCB0cnVlKTsKPiArCX0KPgo+
-IC0JCWlmIChvdnNfY3RfaGVscGVyKHNrYiwgaW5mby0+ZmFtaWx5KSAhPSBORl9BQ0NFUFQpIHsK
-PiAtCQkJV0FSTl9PTkNFKDEsICJoZWxwZXIgcmVqZWN0ZWQgcGFja2V0Iik7Cj4gLQkJCXJldHVy
-biAtRUlOVkFMOwo+IC0JCX0KPiArCS8qIENhbGwgdGhlIGhlbHBlciByaWdodCBhZnRlciBuZl9j
-b25udHJhY2tfaW4oKSBmb3IgY29uZmlybWVkCj4gKwkgKiBjb25uZWN0aW9ucywgYnV0IG9ubHkg
-d2hlbiBjb21taXRpbmcgZm9yIHVuY29uZmlybWVkIGNvbm5lY3Rpb25zLgo+ICsJICovCj4gKwlj
-dCA9IG5mX2N0X2dldChza2IsICZjdGluZm8pOwo+ICsJaWYgKGN0ICYmIChuZl9jdF9pc19jb25m
-aXJtZWQoY3QpID8gIWNhY2hlZCA6IGluZm8tPmNvbW1pdCkKPiArCSAgICAmJiBvdnNfY3RfaGVs
-cGVyKHNrYiwgaW5mby0+ZmFtaWx5KSAhPSBORl9BQ0NFUFQpIHsKCiAgICBQbGVhc2UgbGVhdmUg
-JiYgb24gdGhlIGxpbmUgYmVpbmcgYnJva2VuLCBkb24ndCBjYXJyeSBpdCBpbnRvIHRoZSAKY29u
-dGludWF0aW9uIGxpbmUuCgpNQlIsIFNlcmdlaQoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX18KZGV2IG1haWxpbmcgbGlzdApkZXZAb3BlbnZzd2l0Y2gub3Jn
-Cmh0dHA6Ly9vcGVudnN3aXRjaC5vcmcvbWFpbG1hbi9saXN0aW5mby9kZXYK
+2015-12-16 23:38 GMT+01:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> 564b0e7c13f9 ("netlink_delinearize: postprocess expression before range
+> merge") crashes nft when the previous statement is removed via
+> payload_dependency_kill() as this pointer is not valid anymore.
+>
+> Move the pointer to the previous statement to rule_pp_ctx and invalid it
+> when required.
+>
+> Reported-by: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  src/netlink_delinearize.c | 30 +++++++++++++++++-------------
+>  1 file changed, 17 insertions(+), 13 deletions(-)
+
+I have run the regression test suite and the problem seems to be fixed
+with no side effects.
+
+Tested-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
