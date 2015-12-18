@@ -1,42 +1,44 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [RFC nft] ct expr: make directional keys work
-Date: Fri, 18 Dec 2015 18:17:07 +0100
-Message-ID: <20151218171707.GA29573@breakpoint.cc>
-References: <20151217005533.GA24044@strlen.de>
- <20151217111334.GA1694@salvia>
- <20151217130344.GA3198@breakpoint.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] ila: add NETFILTER dependency
+Date: Fri, 18 Dec 2015 18:26:06 +0100
+Message-ID: <20151218172606.GB1299@salvia>
+References: <2011239.T7zzuZGeyk@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc: davem@davemloft.net, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Tom Herbert <tom@herbertland.com>,
 	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40053 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932287AbbLRRRJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Dec 2015 12:17:09 -0500
+To: Arnd Bergmann <arnd@arndb.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20151217130344.GA3198@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <2011239.T7zzuZGeyk@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Florian Westphal <fw@strlen.de> wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > I think this should fit into the grammar that I'm proposing above with
-> > no shift/reduce conflicts, ie.
-> > 
-> > ct packets VALUE
-> > ct direction original packets VALUE
-> > ct direction reply packets VALUE
+On Fri, Dec 18, 2015 at 03:37:37PM +0100, Arnd Bergmann wrote:
+> The recently added generic ILA translation facility fails to
+> build when CONFIG_NETFILTER is disabled:
 > 
-> I'll have to check.  I don't want to add any new keywords to the lexer
-> since that creates more problems for the grammar.
+> net/ipv6/ila/ila_xlat.c:229:20: warning: 'struct nf_hook_state' declared inside parameter list
+> net/ipv6/ila/ila_xlat.c:235:27: error: array type has incomplete element type 'struct nf_hook_ops'
+>  static struct nf_hook_ops ila_nf_hook_ops[] __read_mostly = {
+> 
+> This adds an explicit Kconfig dependency to avoid that case.
 
-Drats, it doesn't work.
-conflicts: 1 shift/reduce
+I'm afraid this extra Kconfig dependency that Arnd adds to fix this is
+a symptom that there is something that doesn't belong there.
 
-'ct direction' is already a valid expression, it loads
-CTINFO2DIR(ctinfo).
+I overlook this new hook on priority -1, how does this integrate into
+our infrastructure?
 
-I'll send what I have in a second, but its not great either.
+And mainly, isn't there any better way to integrate this into the
+stack?
+
+And why didn't you Cc netfilter-devel for code that involves
+Netfilter?
+
+We have to evaluate how this integrates into what we have, if it
+breaks when it interacts with other components that we have.
+
+I'm very sorry to say, but none of this has happened so far.
