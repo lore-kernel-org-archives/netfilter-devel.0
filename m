@@ -1,46 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH V2 nf-next] netfilter: meta: add support for setting
- skb->pkttype
-Date: Fri, 18 Dec 2015 13:07:36 +0100
-Message-ID: <20151218120736.GA2606@salvia>
-References: <1449767047-15389-1-git-send-email-fw@strlen.de>
- <20151214114525.GA3469@salvia>
- <20151214133846.GF12854@breakpoint.cc>
- <20151214172642.GA1365@salvia>
+Subject: Re: [PATCH 0/5] new testsuite for nft
+Date: Fri, 18 Dec 2015 14:08:52 +0100
+Message-ID: <20151218130852.GA3801@salvia>
+References: <144982857800.31246.3547570276555930070.stgit@r2d2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47088 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39642 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752665AbbLRMHj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Dec 2015 07:07:39 -0500
+	id S1752697AbbLRNJA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 18 Dec 2015 08:09:00 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 8D513129257
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Dec 2015 13:07:38 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id 1A4A313A366
+	for <netfilter-devel@vger.kernel.org>; Fri, 18 Dec 2015 14:08:55 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 67872DA865
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Dec 2015 13:07:38 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id E8941DA80D
+	for <netfilter-devel@vger.kernel.org>; Fri, 18 Dec 2015 14:08:54 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 87E8BDA85F
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Dec 2015 13:07:36 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 05EC0DA860
+	for <netfilter-devel@vger.kernel.org>; Fri, 18 Dec 2015 14:08:53 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20151214172642.GA1365@salvia>
+In-Reply-To: <144982857800.31246.3547570276555930070.stgit@r2d2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Dec 14, 2015 at 06:26:42PM +0100, Pablo Neira Ayuso wrote:
-> We may keep going with the existing approach, ie. just raw data with
-> no semantics, then if we decide to go this path, to retain backward
-> compatibility, we would need to pass two data attributes through
-> netlink: one with the raw data and another with the specific datatype
-> so older kernels keep handling what userspace generates.
+On Fri, Dec 11, 2015 at 11:10:08AM +0100, Arturo Borrero Gonzalez wrote:
+> he following series implements a new testsuite for nft.
+> 
+> It's almost similar to what I sent a couple of month ago, but updated
+> with comments by Pablo and other small fixes.
 
-I working on a RFC patchset that should cover these concerns above,
-but I think that new infrastructure is too much for this specific
-case.
+Patches 2/5, 3/5 and 5/5 applied, thanks Arturo!
 
-So I'm reconsidering this, I'm going to apply this patch.
+BTW, it would be good to enhance this to run every test after full
+removal of existing nf_tables modules. Thus, we can exercise the
+abort() path (this will trigger lots of abort() calls due to module
+autoloading).
 
-Thanks.
+I have something like 10 more scripts here that I need to adapt to
+make it fit into this new infrastructure, they are basically testing
+the nft -f path.
