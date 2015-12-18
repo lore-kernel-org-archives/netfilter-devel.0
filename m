@@ -1,44 +1,38 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/5] new testsuite for nft
-Date: Fri, 18 Dec 2015 14:08:52 +0100
-Message-ID: <20151218130852.GA3801@salvia>
-References: <144982857800.31246.3547570276555930070.stgit@r2d2.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: nft_ct: include direction when dumping NFT_CT_L3PROTOCOL key
+Date: Fri, 18 Dec 2015 14:32:07 +0100
+Message-ID: <1450445527-13225-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39642 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752697AbbLRNJA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Dec 2015 08:09:00 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 1A4A313A366
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Dec 2015 14:08:55 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E8941DA80D
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Dec 2015 14:08:54 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 05EC0DA860
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Dec 2015 14:08:53 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <144982857800.31246.3547570276555930070.stgit@r2d2.cica.es>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:39411 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753063AbbLRNgD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 18 Dec 2015 08:36:03 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Dec 11, 2015 at 11:10:08AM +0100, Arturo Borrero Gonzalez wrote:
-> he following series implements a new testsuite for nft.
-> 
-> It's almost similar to what I sent a couple of month ago, but updated
-> with comments by Pablo and other small fixes.
+one nft userspace test case fails with
 
-Patches 2/5, 3/5 and 5/5 applied, thanks Arturo!
+'ct l3proto original ipv4' mismatches 'ct l3proto ipv4'
 
-BTW, it would be good to enhance this to run every test after full
-removal of existing nf_tables modules. Thus, we can exercise the
-abort() path (this will trigger lots of abort() calls due to module
-autoloading).
+... because NFTA_CT_DIRECTION attr is missing.
 
-I have something like 10 more scripts here that I need to adapt to
-make it fit into this new infrastructure, they are basically testing
-the nft -f path.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 8cbca34..9399215 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -366,6 +366,7 @@ static int nft_ct_get_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 		goto nla_put_failure;
+ 
+ 	switch (priv->key) {
++	case NFT_CT_L3PROTOCOL:
+ 	case NFT_CT_PROTOCOL:
+ 	case NFT_CT_SRC:
+ 	case NFT_CT_DST:
+-- 
+2.4.10
+
