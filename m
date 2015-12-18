@@ -1,36 +1,46 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/23] Netfilter updates for net-next
-Date: Fri, 18 Dec 2015 15:38:10 -0500 (EST)
-Message-ID: <20151218.153810.1580152731962835007.davem@davemloft.net>
-References: <1450470409-31427-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft 0/5] ct: add support for directional keys
+Date: Fri, 18 Dec 2015 22:07:58 +0100
+Message-ID: <1450472883-19743-1-git-send-email-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:44956 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965210AbbLRUiM (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40515 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965327AbbLRVMA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Dec 2015 15:38:12 -0500
-In-Reply-To: <1450470409-31427-1-git-send-email-pablo@netfilter.org>
+	Fri, 18 Dec 2015 16:12:00 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Fri, 18 Dec 2015 21:26:26 +0100
+Here are the patches for directional key support that I have.
+They pass our regression test suite, another advantage is that
+nft will no longer parse 'ct saddr 1.2.3.4', it notices that
+a direction is missing.
 
-> The following patchset contains the first batch of Netfilter updates for
-> the upcoming 4.5 kernel. This batch contains userspace netfilter header
-> compilation fixes, support for packet mangling in nf_tables, the new
-> tracing infrastructure for nf_tables and cgroup2 support for iptables.
-> More specifically, they are:
- ...
+The disadvantage is that we also have (not-yet added) keys
+'packets' and 'bytes'.  These are trivial to add, since
+they need a direction, just like ct (s|d)addr.
 
-Pulled.
+But in byte/packet case it would be good to also allow
+matching on total bytes combined (original+reply).
 
-> BTW, I need that you pull net into net-next, I have another batch that
-> requires changes that I don't yet see in net.
+And that either needs 'ambiguos' keys, i.e. allow
+ct packets original > 42  (tells kernel: I want packet count in original direction)
+ct packets > 42  (tells kernel: I want original+reply direction).
 
-I did that several hours ago.
+or a '+' expression so that we can
+ct packets original + ct packets reply and so sum via intermediate expression.
+
+So don't apply this yet, I'll have another stab at attemting to
+not change the parser at all but instead attempt to resolve
+this during evaluation, as Pablo suggested, i.e.
+
+ct direction original
+-> ct direction = original
+
+BUT
+ct direction = original ct saddr
+-> merge into single a single ct expression, asking for saddr
+in original direction.
+
+Patrick, if you have any advice wrt the nft grammar I'd be glad to hear it.
