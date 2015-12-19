@@ -1,57 +1,81 @@
 From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: Re: nftables symbols
-Date: Sat, 19 Dec 2015 23:31:32 +0530
-Message-ID: <CAKHNQQFFSfztaLBDQtH35=im9G4+oAA747XmAHwwPWbpQuRAUA@mail.gmail.com>
-References: <CAKHNQQG0AN5OiThvRJTXHOj5OmzO5UHtDqjn-RqbH5thw-EVkg@mail.gmail.com>
- <20151219174822.GC1421@salvia> <CAKHNQQFrcS3p=LCbE_ijR839Z_vB5Etr5tM4oRbmuRFvEGdh4w@mail.gmail.com>
- <20151219175818.GA1631@salvia>
+Subject: Re: [PATCH v2] extensions: libxt_mark: Add translation to nft
+Date: Sat, 19 Dec 2015 23:41:01 +0530
+Message-ID: <CAKHNQQGddf+RKXceY6X_wWHv5Nok10FRw2bZUA044kaOyt15RQ@mail.gmail.com>
+References: <20151206033214.GA5939@gmail.com> <20151209132600.GA29450@salvia>
+ <CAKHNQQF3XFhMJaoi8gBLOeGTLJjxncPQ-s9Tke3nC0FNoGVJjg@mail.gmail.com>
+ <CAKHNQQEtTZ0Hg57VcgrOTaFZww-3T8nc8+P1WFq5Ms4Ap2qmbg@mail.gmail.com>
+ <CAKHNQQGSbN8QQru8PB9GntbGGBKLT7v3VRYnjhEObshs7qKPcg@mail.gmail.com>
+ <20151218214013.GA26438@salvia> <CAKHNQQGcET7S+RJENLs+p5zwCe4Xd8FdmJTCT5E-16zjD_PNqw@mail.gmail.com>
+ <20151219174720.GA1421@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:35225 "EHLO
-	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964982AbbLSSBx (ORCPT
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:35973 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932876AbbLSSLW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 19 Dec 2015 13:01:53 -0500
-Received: by mail-wm0-f51.google.com with SMTP id l126so22647826wml.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 19 Dec 2015 10:01:52 -0800 (PST)
-In-Reply-To: <20151219175818.GA1631@salvia>
+	Sat, 19 Dec 2015 13:11:22 -0500
+Received: by mail-wm0-f50.google.com with SMTP id p187so22566527wmp.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 19 Dec 2015 10:11:21 -0800 (PST)
+In-Reply-To: <20151219174720.GA1421@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Dec 19, 2015 at 11:28 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sat, Dec 19, 2015 at 11:19:08PM +0530, Shivani Bhardwaj wrote:
->> On Sat, Dec 19, 2015 at 11:18 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> > On Sat, Dec 19, 2015 at 06:17:15PM +0530, Shivani Bhardwaj wrote:
->> >> Hi,
->> >>
->> >> What is nft symbol for the following?
->> >>
->> >> on-port
->> >> on-ip
->> >> tproxy-mark
->> >>
->> >> I'm doing translations for TPROXY.
+On Sat, Dec 19, 2015 at 11:17 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Sat, Dec 19, 2015 at 07:56:56PM +0530, Shivani Bhardwaj wrote:
+>> On Sat, Dec 19, 2015 at 3:10 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>> > But, anyway after applying you patch I can see:
 >> >
->> > There is no native support for TPROXY yet.
+>> > # iptables-translate -I INPUT -m mark --mark 10
+>> > nft insert rule ip filter INPUT ct mark  & xa counter
+>> >
+>> > So this kind of work already.
+>> >
 >>
->> So, should I leave this one for now?
+>> Hi,
+>>
+>> I just tried adding this rule to nft. It does not work. It only works
+>> for integer values of mark. nft shows syntax error for ampersand and
+>> hex values.
+>>
+>> Isn't there something wrong? Please let me know.
 >
-> Yes, leave this by now.
+> The line above should be:
 >
-> We have a wiki page to maintain what it is supported natively and what
-> it is not:
->
-> http://wiki.nftables.org/wiki-nftables/index.php/Supported_features_compared_to_xtables
->
-> I can create an account for you if you're fine with it so you can help
-> us maintain it.
+> nft insert rule ip filter INPUT ct mark & 0xa counter
 >
 
-Yes, it would be great.
+One more question. Why ct mark when we have no conntrack information
+in this module? Shouldn't ct mark be a complete module of conntrack?
 
-Thank you
-
+> You have to add a simple table and chain configuration to test it:
+>
+> nft add table filter
+> nft add chain filter INPUT { type filter hook input priority 0\; }
+>
+> The two lines above create a filter table, then it adds an INPUT chain
+> to that table.
+>
+> The correct translation for:
+>
+> iptables-translate -I INPUT -m mark --mark 10
+>
+> is:
+>
+> nft insert rule ip filter INPUT ct mark 0xa counter
+>
+> Then for:
+>
+> iptables-translate -I INPUT -m mark --mark 10/10
+>
+> is:
+>
+> nft insert rule ip filter INPUT ct mark and 0xa == 0xa counter
+>
+> You have to take the time to find the right translation too and make
+> sure they work.
+>
 > Thanks.
