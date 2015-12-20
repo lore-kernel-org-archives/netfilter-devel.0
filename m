@@ -1,150 +1,88 @@
 From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] extensions: libxt_devgroup: Add translation to nft
-Date: Sun, 20 Dec 2015 17:33:37 +0530
-Message-ID: <20151220120336.GA27589@gmail.com>
+Subject: [PATCH] extensions: libxt_esp: Add translation to nft
+Date: Sun, 20 Dec 2015 23:43:21 +0530
+Message-ID: <20151220181321.GA15015@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f68.google.com ([209.85.220.68]:32894 "EHLO
-	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932552AbbLTMDp (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:33400 "EHLO
+	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750830AbbLTSN3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 Dec 2015 07:03:45 -0500
-Received: by mail-pa0-f68.google.com with SMTP id wq6so9118848pac.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 20 Dec 2015 04:03:45 -0800 (PST)
-Received: from gmail.com ([223.176.166.180])
-        by smtp.gmail.com with ESMTPSA id z3sm14975781pfi.69.2015.12.20.04.03.42
+	Sun, 20 Dec 2015 13:13:29 -0500
+Received: by mail-pf0-f196.google.com with SMTP id 127so6325391pfd.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 20 Dec 2015 10:13:29 -0800 (PST)
+Received: from gmail.com ([223.176.168.0])
+        by smtp.gmail.com with ESMTPSA id cn1sm29227254pad.11.2015.12.20.10.13.26
         for <netfilter-devel@vger.kernel.org>
         (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Sun, 20 Dec 2015 04:03:43 -0800 (PST)
+        Sun, 20 Dec 2015 10:13:27 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation of device group to nftables.
+Add translation for ESP Protocol to nftables.
 
 Examples:
 
-$ sudo iptables-translate -A FORWARD -m devgroup --dst-group 0xc/0xc -j ACCEPT
-nft add rule ip filter FORWARD  oifgroup and 0xc == 0xc counter accept
+$ sudo iptables-translate -A FORWARD -p esp -j ACCEPT
+nft add rule ip filter FORWARD ip protocol esp counter accept
 
-$ sudo iptables-translate -A FORWARD -m devgroup --src-group 20 -j ACCEPT
-nft add rule ip filter FORWARD  iifgroup 0x14 counter accept
+$ sudo iptables-translate -A INPUT  --in-interface  wan --protocol esp -j ACCEPT
+nft add rule ip filter INPUT iifname wan ip protocol esp counter accept
 
-$ sudo iptables-translate -t mangle -A PREROUTING -p tcp --dport 46000 -m devgroup --src-group 23 -j ACCEPT
-nft add rule ip mangle PREROUTING tcp dport 46000  iifgroup 0x17 counter accept
+$ sudo iptables-translate -A INPUT -p 50 -m esp --espspi 500 -j DROP
+nft add rule ip filter INPUT  esp spi 500 counter drop
 
 Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
 ---
- extensions/libxt_devgroup.c | 62 +++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 57 insertions(+), 5 deletions(-)
+ extensions/libxt_esp.c | 23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
-diff --git a/extensions/libxt_devgroup.c b/extensions/libxt_devgroup.c
-index 4a69c82..281b223 100644
---- a/extensions/libxt_devgroup.c
-+++ b/extensions/libxt_devgroup.c
-@@ -37,6 +37,7 @@ static struct xtables_lmap *devgroups;
- static void devgroup_init(struct xt_entry_match *match)
- {
- 	const char file[] = "/etc/iproute2/group_map";
-+
- 	devgroups = xtables_lmap_init(file);
- 	if (devgroups == NULL && errno != ENOENT)
- 		fprintf(stderr, "Warning: %s: %s\n", file, strerror(errno));
-@@ -52,7 +53,7 @@ static void devgroup_parse_groupspec(const char *arg, unsigned int *group,
- 	if (ok && (*end == '/' || *end == '\0')) {
- 		if (*end == '/')
- 			ok = xtables_strtoui(end + 1, NULL, mask,
--			                     0, UINT32_MAX);
-+					     0, UINT32_MAX);
- 		else
- 			*mask = ~0U;
- 		if (!ok)
-@@ -124,12 +125,12 @@ static void devgroup_show(const char *pfx, const struct xt_devgroup_info *info,
- 		if (info->flags & XT_DEVGROUP_INVERT_DST)
- 			printf(" !");
- 		printf(" %sdst-group ", pfx);
--		print_devgroup(info->src_group, info->src_mask, numeric);
-+		print_devgroup(info->dst_group, info->dst_mask, numeric);
- 	}
+diff --git a/extensions/libxt_esp.c b/extensions/libxt_esp.c
+index 294338b..1c198c6 100644
+--- a/extensions/libxt_esp.c
++++ b/extensions/libxt_esp.c
+@@ -79,10 +79,28 @@ static void esp_save(const void *ip, const struct xt_entry_match *match)
+ 
  }
  
- static void devgroup_print(const void *ip, const struct xt_entry_match *match,
--                        int numeric)
-+			   int numeric)
- {
- 	const struct xt_devgroup_info *info = (const void *)match->data;
- 
-@@ -147,8 +148,58 @@ static void devgroup_check(struct xt_fcheck_call *cb)
- {
- 	if (cb->xflags == 0)
- 		xtables_error(PARAMETER_PROBLEM,
--			      "devgroup match: You must specify either "
--			      "'--src-group' or '--dst-group'");
-+			      "devgroup match: You must specify either '--src-group' or '--dst-group'");
-+}
-+
-+static void
-+print_devgroup_xlate(unsigned int id, unsigned int mask,
++static int esp_xlate(const struct xt_entry_match *match,
 +		     struct xt_buf *buf, int numeric)
 +{
-+	const char *name = NULL;
++	const struct xt_esp *espinfo = (struct xt_esp *)match->data;
 +
-+	if (mask != 0xffffffffU)
-+		xt_buf_add(buf, "and 0x%x == 0x%x ", id, mask);
-+	else {
-+		if (numeric == 0)
-+			name = xtables_lmap_id2name(devgroups, id);
-+		if (name)
-+			xt_buf_add(buf, "%s ", name);
++	if (!(espinfo->spis[0] == 0 && espinfo->spis[1] == 0xFFFFFFFF)) {
++		xt_buf_add(buf, "%s esp spi ",
++			   (espinfo->invflags & XT_ESP_INV_SPI) ? " !=" : "");
++		if (espinfo->spis[0] != espinfo->spis[1])
++			xt_buf_add(buf, "%u:%u ", espinfo->spis[0],
++				   espinfo->spis[1]);
 +		else
-+			xt_buf_add(buf, "0x%x ", id);
++			xt_buf_add(buf, "%u ", espinfo->spis[0]);
 +	}
-+}
-+
-+static void
-+devgroup_show_xlate(const char *pfx, const struct xt_devgroup_info *info,
-+		    struct xt_buf *buf, int numeric)
-+{
-+	if (info->flags & XT_DEVGROUP_MATCH_SRC) {
-+		if (info->flags & XT_DEVGROUP_INVERT_SRC)
-+			xt_buf_add(buf, " !=");
-+
-+		xt_buf_add(buf, " %siifgroup ", pfx);
-+		print_devgroup_xlate(info->src_group, info->src_mask,
-+				     buf, numeric);
-+	}
-+
-+	if (info->flags & XT_DEVGROUP_MATCH_DST) {
-+		if (info->flags & XT_DEVGROUP_INVERT_DST)
-+			xt_buf_add(buf, " !=");
-+
-+		xt_buf_add(buf, " %soifgroup ", pfx);
-+		print_devgroup_xlate(info->dst_group, info->dst_mask,
-+				     buf, numeric);
-+	}
-+}
-+
-+static int devgroup_xlate(const struct xt_entry_match *match,
-+			   struct xt_buf *buf, int numeric)
-+{
-+	const struct xt_devgroup_info *info = (const void *)match->data;
-+
-+	devgroup_show_xlate("", info, buf, 0);
 +
 +	return 1;
- }
- 
- static struct xtables_match devgroup_mt_reg = {
-@@ -164,6 +215,7 @@ static struct xtables_match devgroup_mt_reg = {
- 	.x6_parse	= devgroup_parse,
- 	.x6_fcheck	= devgroup_check,
- 	.x6_options	= devgroup_opts,
-+	.xlate		= devgroup_xlate,
++}
++
+ static struct xtables_match esp_match = {
+ 	.family		= NFPROTO_UNSPEC,
+-	.name 		= "esp",
+-	.version 	= XTABLES_VERSION,
++	.name		= "esp",
++	.version	= XTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_esp)),
+ 	.userspacesize	= XT_ALIGN(sizeof(struct xt_esp)),
+ 	.help		= esp_help,
+@@ -90,6 +108,7 @@ static struct xtables_match esp_match = {
+ 	.save		= esp_save,
+ 	.x6_parse	= esp_parse,
+ 	.x6_options	= esp_opts,
++	.xlate		= esp_xlate,
  };
  
- void _init(void)
+ void
 -- 
 1.9.1
 
