@@ -1,88 +1,108 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] extensions: libxt_esp: Add translation to nft
-Date: Sun, 20 Dec 2015 23:43:21 +0530
-Message-ID: <20151220181321.GA15015@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v3 nf-next 0/12] netfilter: don't copy init ns hooks to
+ new namespaces
+Date: Sun, 20 Dec 2015 22:01:54 +0100
+Message-ID: <20151220210154.GG29573@breakpoint.cc>
+References: <1449136185-4165-1-git-send-email-fw@strlen.de>
+ <20151218114226.GB2091@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:33400 "EHLO
-	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750830AbbLTSN3 (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:42356 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750714AbbLTVB5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 Dec 2015 13:13:29 -0500
-Received: by mail-pf0-f196.google.com with SMTP id 127so6325391pfd.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 20 Dec 2015 10:13:29 -0800 (PST)
-Received: from gmail.com ([223.176.168.0])
-        by smtp.gmail.com with ESMTPSA id cn1sm29227254pad.11.2015.12.20.10.13.26
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Sun, 20 Dec 2015 10:13:27 -0800 (PST)
+	Sun, 20 Dec 2015 16:01:57 -0500
 Content-Disposition: inline
+In-Reply-To: <20151218114226.GB2091@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for ESP Protocol to nftables.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Thu, Dec 03, 2015 at 10:49:33AM +0100, Florian Westphal wrote:
+> > My problem with this patch set is the ridiculous amount of code that needs
+> > to be added to cover all the 'register the hooks for conntrack' cases.
 
-Examples:
+[..]
 
-$ sudo iptables-translate -A FORWARD -p esp -j ACCEPT
-nft add rule ip filter FORWARD ip protocol esp counter accept
+> > IOW, it might be a much better idea to respin this patch series so
+> > that it does NOT contain any of the conntrack changes (only 'don't register
+> > xtables hooks + don't register bridge hooks), and then add
+> > net.netfilter.nf_conntrack_disable (or whatever), plus -j CT --track.
+>
+> It would be good to agree on some design for this. Patrick also have
+> concerns on loose conntrack enabling. That we can probably resolve
+> through explicit configuration, something like:
 
-$ sudo iptables-translate -A INPUT  --in-interface  wan --protocol esp -j ACCEPT
-nft add rule ip filter INPUT iifname wan ip protocol esp counter accept
+[..]
 
-$ sudo iptables-translate -A INPUT -p 50 -m esp --espspi 500 -j DROP
-nft add rule ip filter INPUT  esp spi 500 counter drop
+> > That would also solve this issue, albeit not by default and it leaves
+> > the question of how we should deal with defragmentation
+> > (-s 10.2.3.0/24 -p tcp --dport 80 would not work reliably).
+> 
+> IIRC in iptables, we drop this via hotdrop, but in nftables this is an
+> open issue, a user with no defrag should drop fragments in first place
+> in his ruleset.
 
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
----
- extensions/libxt_esp.c | 23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+To clarify, what I meant was user doing this:
 
-diff --git a/extensions/libxt_esp.c b/extensions/libxt_esp.c
-index 294338b..1c198c6 100644
---- a/extensions/libxt_esp.c
-+++ b/extensions/libxt_esp.c
-@@ -79,10 +79,28 @@ static void esp_save(const void *ip, const struct xt_entry_match *match)
- 
- }
- 
-+static int esp_xlate(const struct xt_entry_match *match,
-+		     struct xt_buf *buf, int numeric)
-+{
-+	const struct xt_esp *espinfo = (struct xt_esp *)match->data;
-+
-+	if (!(espinfo->spis[0] == 0 && espinfo->spis[1] == 0xFFFFFFFF)) {
-+		xt_buf_add(buf, "%s esp spi ",
-+			   (espinfo->invflags & XT_ESP_INV_SPI) ? " !=" : "");
-+		if (espinfo->spis[0] != espinfo->spis[1])
-+			xt_buf_add(buf, "%u:%u ", espinfo->spis[0],
-+				   espinfo->spis[1]);
-+		else
-+			xt_buf_add(buf, "%u ", espinfo->spis[0]);
-+	}
-+
-+	return 1;
-+}
-+
- static struct xtables_match esp_match = {
- 	.family		= NFPROTO_UNSPEC,
--	.name 		= "esp",
--	.version 	= XTABLES_VERSION,
-+	.name		= "esp",
-+	.version	= XTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_esp)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_esp)),
- 	.help		= esp_help,
-@@ -90,6 +108,7 @@ static struct xtables_match esp_match = {
- 	.save		= esp_save,
- 	.x6_parse	= esp_parse,
- 	.x6_options	= esp_opts,
-+	.xlate		= esp_xlate,
- };
- 
- void
--- 
-1.9.1
+-s 10.0.0.8/24 -p tcp --dport 80 -j CT --track
 
+Which will only do the expected thing -- feed all http traffic to
+conntrack_in -- for non-fragmented packets.
+
+So if we'd follow this route, i.e. conditional tracking via ruleset,
+we'd need to figure out how to...
+
+1. make sure fragments don't bypass such rules
+2. deal with reply direction (we'd probably need some 'passive'
+   input hook that doesn't create new connections and only checks for
+   reply direction)
+3. how to handle expecations, helpers, etc
+
+Simplest and most backwards-compat solution for #1 would be to
+register the defrag hooks once such a rule is inserted, which IMO
+is the preferable solution, especially because it won't cause backwards
+compat issues.
+
+For #2, I don't have a good solution yet, alternative would be
+to also force adding rule in reply dir, but I hate it since we don't
+require it for NAT either.
+
+Haven't thought about #3 yet.
+
+> In iptables, we can still register the defragmentation hooks as soon
+> as we need conntrack, socket or tproxy.
+
+Yes, we'd need some of the patches from this set to avoid registering in
+all net namespaces, but, I agree -- inferring if defrag is needed seems
+to be easy and correct path forward.
+
+> > Perhaps we could attempt to propogate a *conntrack rule active* bit into
+> > the xtables core and call defrag from there.  Another, simpler alternative
+> > would be to stick an unconditional 'defrag' call into the raw table.
+> 
+> I couldn't come up so far with any scenario that would break with
+> unconditional defragmentation. But unconditional stuff makes me feel a
+> bit nervous as there is usually someone following up with rare
+> situation that forces us to disable it.
+
+Lets forget about unconditional defrag in raw table, it was a ba idea.
+
+> Let me know, thanks Florian.
+
+I'd propose to respin this patch series with all the conntrack parts removed.
+
+I think the conntrack parts are too fragile for now, lets discuss
+conditional-conntrack-via-ruleset during netdev1.1.
+
+We've mentioned 'inverted NOTRACK' so often by now that it would be a
+desaster if we close that door forever by applying a half-baked
+'auto-inferring "solution"' now.
+
+If you'd prefer to toss entire patch set and discuss the entire
+'netns hooking' mess at netdev1.1 -- no problem, just let me know.
+
+Thanks!
