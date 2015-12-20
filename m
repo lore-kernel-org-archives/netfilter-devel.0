@@ -1,28 +1,45 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: Support of different targets in nftables
-Date: Sun, 20 Dec 2015 14:59:58 +0530
-Message-ID: <CAKHNQQEvQ9-RTOFjyrvonCZ-miiwucBcw_M+KufJ2yhjrK2a7g@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Support of different targets in nftables
+Date: Sun, 20 Dec 2015 11:34:16 +0100
+Message-ID: <20151220103416.GA1024@salvia>
+References: <CAKHNQQEvQ9-RTOFjyrvonCZ-miiwucBcw_M+KufJ2yhjrK2a7g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Shivani Bhardwaj <shivanib134@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:32921 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754227AbbLTJaT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 Dec 2015 04:30:19 -0500
-Received: by mail-wm0-f47.google.com with SMTP id p187so34884799wmp.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 20 Dec 2015 01:30:18 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:40913 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754316AbbLTKeX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 20 Dec 2015 05:34:23 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id AF8BE389442
+	for <netfilter-devel@vger.kernel.org>; Sun, 20 Dec 2015 11:34:19 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 9EEE1DA803
+	for <netfilter-devel@vger.kernel.org>; Sun, 20 Dec 2015 11:34:19 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id C5658DA801
+	for <netfilter-devel@vger.kernel.org>; Sun, 20 Dec 2015 11:34:17 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <CAKHNQQEvQ9-RTOFjyrvonCZ-miiwucBcw_M+KufJ2yhjrK2a7g@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Sun, Dec 20, 2015 at 02:59:58PM +0530, Shivani Bhardwaj wrote:
+> Hi,
+> 
+> While doing the translations, I see that iptables-translate is able to
+> produce output only for the target ACCEPT. For all others, it shows
+> 
+> nft # <rules>
+> 
+> Why is it so?
 
-While doing the translations, I see that iptables-translate is able to
-produce output only for the target ACCEPT. For all others, it shows
+This tool you're working on was a proof-of-concept and it incomplete.
 
-nft # <rules>
+So get ready to find incomplete stuff and bugs in it, please, in case
+you find issues, you don't have to ask, you can just send a patch to
+fix them.
 
-Why is it so?
-
-Thank you
+Thank you.
