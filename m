@@ -1,25 +1,37 @@
 From: Tejun Heo <tj@kernel.org>
-Subject: [PATCH 1/2] netfilter: prepare xt_cgroup for multi revisions
-Date: Mon, 21 Dec 2015 16:53:02 -0500
-Message-ID: <20151221215302.GT4026@mtj.duckdns.org>
+Subject: [PATCH 2/2] netfilter: implement xt_cgroup cgroup2 path match
+Date: Mon, 21 Dec 2015 16:55:01 -0500
+Message-ID: <20151221215501.GA25997@mtj.duckdns.org>
+References: <20151221215302.GT4026@mtj.duckdns.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yk0-f180.google.com ([209.85.160.180]:34905 "EHLO
-	mail-yk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751304AbbLUVxF (ORCPT
+Received: from mail-yk0-f181.google.com ([209.85.160.181]:35443 "EHLO
+	mail-yk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752352AbbLUVzD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Dec 2015 16:53:05 -0500
-Received: by mail-yk0-f180.google.com with SMTP id v6so144522888ykc.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Dec 2015 13:53:04 -0800 (PST)
+	Mon, 21 Dec 2015 16:55:03 -0500
+Received: by mail-yk0-f181.google.com with SMTP id v6so144575990ykc.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Dec 2015 13:55:02 -0800 (PST)
 Content-Disposition: inline
+In-Reply-To: <20151221215302.GT4026@mtj.duckdns.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-xt_cgroup will grow cgroup2 path based match.  Postfix existing
-symbols with _v0 and prepare for multi revision registration.
+This patch implements xt_cgroup path match which matches cgroup2
+membership of the associated socket.  The match is recursive and
+invertible.
+
+For rationales on introducing another cgroup based match, please refer
+to a preceding commit "sock, cgroup: add sock->sk_cgroup".
+
+v3: Folded into xt_cgroup as a new revision interface as suggested by
+    Pablo.
+
+v2: Included linux/limits.h from xt_cgroup2.h for PATH_MAX.  Added
+    explicit alignment to the priv field.  Both suggested by Jan.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Cc: Daniel Borkmann <daniel@iogearbox.net>
@@ -28,95 +40,125 @@ CC: Neil Horman <nhorman@tuxdriver.com>
 Cc: Jan Engelhardt <jengelh@inai.de>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Hello,
-
-This is the userspace part of cgroup2 support in xt_cgroup.
-
- http://lkml.kernel.org/g/1449527935-27056-1-git-send-email-tj@kernel.org
-
-Thanks.
-
- include/uapi/linux/netfilter/xt_cgroup.h |    2 -
- net/netfilter/xt_cgroup.c                |   36 ++++++++++++++++---------------
- 2 files changed, 20 insertions(+), 18 deletions(-)
+ include/uapi/linux/netfilter/xt_cgroup.h |   13 +++++
+ net/netfilter/xt_cgroup.c                |   69 +++++++++++++++++++++++++++++++
+ 2 files changed, 82 insertions(+)
 
 --- a/include/uapi/linux/netfilter/xt_cgroup.h
 +++ b/include/uapi/linux/netfilter/xt_cgroup.h
-@@ -3,7 +3,7 @@
+@@ -2,10 +2,23 @@
+ #define _UAPI_XT_CGROUP_H
  
  #include <linux/types.h>
++#include <linux/limits.h>
  
--struct xt_cgroup_info {
-+struct xt_cgroup_info_v0 {
+ struct xt_cgroup_info_v0 {
  	__u32 id;
  	__u32 invert;
  };
+ 
++struct xt_cgroup_info_v1 {
++	__u8		has_path;
++	__u8		has_classid;
++	__u8		invert_path;
++	__u8		invert_classid;
++	char		path[PATH_MAX];
++	__u32		classid;
++
++	/* kernel internal data */
++	void		*priv __attribute__((aligned(8)));
++};
++
+ #endif /* _UAPI_XT_CGROUP_H */
 --- a/net/netfilter/xt_cgroup.c
 +++ b/net/netfilter/xt_cgroup.c
-@@ -24,9 +24,9 @@ MODULE_DESCRIPTION("Xtables: process con
- MODULE_ALIAS("ipt_cgroup");
- MODULE_ALIAS("ip6t_cgroup");
- 
--static int cgroup_mt_check(const struct xt_mtchk_param *par)
-+static int cgroup_mt_check_v0(const struct xt_mtchk_param *par)
- {
--	struct xt_cgroup_info *info = par->matchinfo;
-+	struct xt_cgroup_info_v0 *info = par->matchinfo;
- 
- 	if (info->invert & ~1)
- 		return -EINVAL;
-@@ -35,9 +35,9 @@ static int cgroup_mt_check(const struct
+@@ -34,6 +34,37 @@ static int cgroup_mt_check_v0(const stru
+ 	return 0;
  }
  
++static int cgroup_mt_check_v1(const struct xt_mtchk_param *par)
++{
++	struct xt_cgroup_info_v1 *info = par->matchinfo;
++	struct cgroup *cgrp;
++
++	if ((info->invert_path & ~1) || (info->invert_classid & ~1))
++		return -EINVAL;
++
++	if (!info->has_path && !info->has_classid) {
++		pr_info("xt_cgroup: no path or classid specified\n");
++		return -EINVAL;
++	}
++
++	if (info->has_path && info->has_classid) {
++		pr_info("xt_cgroup: both path and classid specified\n");
++		return -EINVAL;
++	}
++
++	if (info->has_path) {
++		cgrp = cgroup_get_from_path(info->path);
++		if (IS_ERR(cgrp)) {
++			pr_info("xt_cgroup: invalid path, errno=%ld\n",
++				PTR_ERR(cgrp));
++			return -EINVAL;
++		}
++		info->priv = cgrp;
++	}
++
++	return 0;
++}
++
  static bool
--cgroup_mt(const struct sk_buff *skb, struct xt_action_param *par)
-+cgroup_mt_v0(const struct sk_buff *skb, struct xt_action_param *par)
+ cgroup_mt_v0(const struct sk_buff *skb, struct xt_action_param *par)
  {
--	const struct xt_cgroup_info *info = par->matchinfo;
-+	const struct xt_cgroup_info_v0 *info = par->matchinfo;
- 
- 	if (skb->sk == NULL || !sk_fullsock(skb->sk))
- 		return false;
-@@ -46,27 +46,29 @@ cgroup_mt(const struct sk_buff *skb, str
+@@ -46,6 +77,31 @@ cgroup_mt_v0(const struct sk_buff *skb,
  		info->invert;
  }
  
--static struct xt_match cgroup_mt_reg __read_mostly = {
--	.name       = "cgroup",
--	.revision   = 0,
--	.family     = NFPROTO_UNSPEC,
--	.checkentry = cgroup_mt_check,
--	.match      = cgroup_mt,
--	.matchsize  = sizeof(struct xt_cgroup_info),
--	.me         = THIS_MODULE,
--	.hooks      = (1 << NF_INET_LOCAL_OUT) |
--		      (1 << NF_INET_POST_ROUTING) |
--		      (1 << NF_INET_LOCAL_IN),
-+static struct xt_match cgroup_mt_reg[] __read_mostly = {
++static bool cgroup_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
++{
++	const struct xt_cgroup_info_v1 *info = par->matchinfo;
++	struct sock_cgroup_data *skcd = &skb->sk->sk_cgrp_data;
++	struct cgroup *ancestor = info->priv;
++
++	if (!skb->sk || !sk_fullsock(skb->sk))
++		return false;
++
++	if (ancestor)
++		return cgroup_is_descendant(sock_cgroup_ptr(skcd), ancestor) ^
++			info->invert_path;
++	else
++		return (info->classid == sock_cgroup_classid(skcd)) ^
++			info->invert_classid;
++}
++
++static void cgroup_mt_destroy_v1(const struct xt_mtdtor_param *par)
++{
++	struct xt_cgroup_info_v1 *info = par->matchinfo;
++
++	if (info->priv)
++		cgroup_put(info->priv);
++}
++
+ static struct xt_match cgroup_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "cgroup",
+@@ -57,6 +113,19 @@ static struct xt_match cgroup_mt_reg[] _
+ 		.me		= THIS_MODULE,
+ 		.hooks		= (1 << NF_INET_LOCAL_OUT) |
+ 				  (1 << NF_INET_POST_ROUTING) |
++				  (1 << NF_INET_LOCAL_IN),
++	},
 +	{
 +		.name		= "cgroup",
-+		.revision	= 0,
++		.revision	= 1,
 +		.family		= NFPROTO_UNSPEC,
-+		.checkentry	= cgroup_mt_check_v0,
-+		.match		= cgroup_mt_v0,
-+		.matchsize	= sizeof(struct xt_cgroup_info_v0),
++		.checkentry	= cgroup_mt_check_v1,
++		.match		= cgroup_mt_v1,
++		.matchsize	= sizeof(struct xt_cgroup_info_v1),
++		.destroy	= cgroup_mt_destroy_v1,
 +		.me		= THIS_MODULE,
 +		.hooks		= (1 << NF_INET_LOCAL_OUT) |
 +				  (1 << NF_INET_POST_ROUTING) |
-+				  (1 << NF_INET_LOCAL_IN),
-+	},
+ 				  (1 << NF_INET_LOCAL_IN),
+ 	},
  };
- 
- static int __init cgroup_mt_init(void)
- {
--	return xt_register_match(&cgroup_mt_reg);
-+	return xt_register_matches(cgroup_mt_reg, ARRAY_SIZE(cgroup_mt_reg));
- }
- 
- static void __exit cgroup_mt_exit(void)
- {
--	xt_unregister_match(&cgroup_mt_reg);
-+	xt_unregister_matches(cgroup_mt_reg, ARRAY_SIZE(cgroup_mt_reg));
- }
- 
- module_init(cgroup_mt_init);
