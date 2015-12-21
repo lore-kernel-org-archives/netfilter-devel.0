@@ -1,101 +1,122 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] extensions: libxt_NFLOG: Add translation to nft
-Date: Mon, 21 Dec 2015 23:05:59 +0530
-Message-ID: <20151221173559.GA8787@gmail.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: [PATCH 1/2] netfilter: prepare xt_cgroup for multi revisions
+Date: Mon, 21 Dec 2015 16:53:02 -0500
+Message-ID: <20151221215302.GT4026@mtj.duckdns.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:34066 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751302AbbLURgH (ORCPT
+Received: from mail-yk0-f180.google.com ([209.85.160.180]:34905 "EHLO
+	mail-yk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751304AbbLUVxF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Dec 2015 12:36:07 -0500
-Received: by mail-pa0-f52.google.com with SMTP id wq6so102680762pac.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Dec 2015 09:36:06 -0800 (PST)
-Received: from gmail.com ([106.218.39.42])
-        by smtp.gmail.com with ESMTPSA id i72sm16884540pfj.64.2015.12.21.09.36.03
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Mon, 21 Dec 2015 09:36:04 -0800 (PST)
+	Mon, 21 Dec 2015 16:53:05 -0500
+Received: by mail-yk0-f180.google.com with SMTP id v6so144522888ykc.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Dec 2015 13:53:04 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for NF Logging to nftables.
+xt_cgroup will grow cgroup2 path based match.  Postfix existing
+symbols with _v0 and prepare for multi revision registration.
 
-Examples:
-
-$ sudo iptables-translate -A OUTPUT -j NFLOG --nflog-group 30
-nft add rule ip filter OUTPUT counter log group 30
-
-$ sudo iptables-translate -A FORWARD -j NFLOG --nflog-group 32 --nflog-prefix "Prefix 1.0"
-nft add rule ip filter FORWARD counter log prefix \"Prefix 1.0\" log group 32
-
-$ sudo iptables-translate -I INPUT -j NFLOG --nflog-range 256
-nft insert rule ip filter INPUT counter log snaplen 256
-
-$ sudo iptables-translate -I INPUT -j NFLOG --nflog-threshold 25
-nft insert rule ip filter INPUT counter log queue-threshold 25
-
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Daniel Wagner <daniel.wagner@bmw-carit.de>
+CC: Neil Horman <nhorman@tuxdriver.com>
+Cc: Jan Engelhardt <jengelh@inai.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- extensions/libxt_NFLOG.c | 28 +++++++++++++++++++++++++++-
- 1 file changed, 27 insertions(+), 1 deletion(-)
+Hello,
 
-diff --git a/extensions/libxt_NFLOG.c b/extensions/libxt_NFLOG.c
-index 448576a..3d05ce0 100644
---- a/extensions/libxt_NFLOG.c
-+++ b/extensions/libxt_NFLOG.c
-@@ -72,7 +72,7 @@ static void nflog_print(const struct xt_nflog_info *info, char *prefix)
- }
+This is the userspace part of cgroup2 support in xt_cgroup.
+
+ http://lkml.kernel.org/g/1449527935-27056-1-git-send-email-tj@kernel.org
+
+Thanks.
+
+ include/uapi/linux/netfilter/xt_cgroup.h |    2 -
+ net/netfilter/xt_cgroup.c                |   36 ++++++++++++++++---------------
+ 2 files changed, 20 insertions(+), 18 deletions(-)
+
+--- a/include/uapi/linux/netfilter/xt_cgroup.h
++++ b/include/uapi/linux/netfilter/xt_cgroup.h
+@@ -3,7 +3,7 @@
  
- static void NFLOG_print(const void *ip, const struct xt_entry_target *target,
--                        int numeric)
-+			int numeric)
+ #include <linux/types.h>
+ 
+-struct xt_cgroup_info {
++struct xt_cgroup_info_v0 {
+ 	__u32 id;
+ 	__u32 invert;
+ };
+--- a/net/netfilter/xt_cgroup.c
++++ b/net/netfilter/xt_cgroup.c
+@@ -24,9 +24,9 @@ MODULE_DESCRIPTION("Xtables: process con
+ MODULE_ALIAS("ipt_cgroup");
+ MODULE_ALIAS("ip6t_cgroup");
+ 
+-static int cgroup_mt_check(const struct xt_mtchk_param *par)
++static int cgroup_mt_check_v0(const struct xt_mtchk_param *par)
  {
- 	const struct xt_nflog_info *info = (struct xt_nflog_info *)target->data;
+-	struct xt_cgroup_info *info = par->matchinfo;
++	struct xt_cgroup_info_v0 *info = par->matchinfo;
  
-@@ -86,6 +86,31 @@ static void NFLOG_save(const void *ip, const struct xt_entry_target *target)
- 	nflog_print(info, "--");
+ 	if (info->invert & ~1)
+ 		return -EINVAL;
+@@ -35,9 +35,9 @@ static int cgroup_mt_check(const struct
  }
  
-+static void nflog_print_xlate(const struct xt_nflog_info *info,
-+			      char *prefix, struct xt_buf *buf)
-+{
-+	if (info->prefix[0] != '\0')
-+		xt_buf_add(buf, "%slog prefix \\\"%s\\\" ",
-+			   prefix, info->prefix);
-+	if (info->group)
-+		xt_buf_add(buf, "%slog group %u ", prefix, info->group);
-+	if (info->len)
-+		xt_buf_add(buf, "%slog snaplen %u ", prefix, info->len);
-+	if (info->threshold != XT_NFLOG_DEFAULT_THRESHOLD)
-+		xt_buf_add(buf, "%slog queue-threshold %u ",
-+			   prefix, info->threshold);
-+}
-+
-+static int NFLOG_xlate(const struct xt_entry_target *target,
-+		       struct xt_buf *buf, int numeric)
-+{
-+	const struct xt_nflog_info *info = (struct xt_nflog_info *)target->data;
-+
-+	nflog_print_xlate(info, "", buf);
-+
-+	return 1;
-+}
-+
- static struct xtables_target nflog_target = {
- 	.family		= NFPROTO_UNSPEC,
- 	.name		= "NFLOG",
-@@ -98,6 +123,7 @@ static struct xtables_target nflog_target = {
- 	.print		= NFLOG_print,
- 	.save		= NFLOG_save,
- 	.x6_options	= NFLOG_opts,
-+	.xlate		= NFLOG_xlate,
+ static bool
+-cgroup_mt(const struct sk_buff *skb, struct xt_action_param *par)
++cgroup_mt_v0(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+-	const struct xt_cgroup_info *info = par->matchinfo;
++	const struct xt_cgroup_info_v0 *info = par->matchinfo;
+ 
+ 	if (skb->sk == NULL || !sk_fullsock(skb->sk))
+ 		return false;
+@@ -46,27 +46,29 @@ cgroup_mt(const struct sk_buff *skb, str
+ 		info->invert;
+ }
+ 
+-static struct xt_match cgroup_mt_reg __read_mostly = {
+-	.name       = "cgroup",
+-	.revision   = 0,
+-	.family     = NFPROTO_UNSPEC,
+-	.checkentry = cgroup_mt_check,
+-	.match      = cgroup_mt,
+-	.matchsize  = sizeof(struct xt_cgroup_info),
+-	.me         = THIS_MODULE,
+-	.hooks      = (1 << NF_INET_LOCAL_OUT) |
+-		      (1 << NF_INET_POST_ROUTING) |
+-		      (1 << NF_INET_LOCAL_IN),
++static struct xt_match cgroup_mt_reg[] __read_mostly = {
++	{
++		.name		= "cgroup",
++		.revision	= 0,
++		.family		= NFPROTO_UNSPEC,
++		.checkentry	= cgroup_mt_check_v0,
++		.match		= cgroup_mt_v0,
++		.matchsize	= sizeof(struct xt_cgroup_info_v0),
++		.me		= THIS_MODULE,
++		.hooks		= (1 << NF_INET_LOCAL_OUT) |
++				  (1 << NF_INET_POST_ROUTING) |
++				  (1 << NF_INET_LOCAL_IN),
++	},
  };
  
- void _init(void)
--- 
-1.9.1
-
+ static int __init cgroup_mt_init(void)
+ {
+-	return xt_register_match(&cgroup_mt_reg);
++	return xt_register_matches(cgroup_mt_reg, ARRAY_SIZE(cgroup_mt_reg));
+ }
+ 
+ static void __exit cgroup_mt_exit(void)
+ {
+-	xt_unregister_match(&cgroup_mt_reg);
++	xt_unregister_matches(cgroup_mt_reg, ARRAY_SIZE(cgroup_mt_reg));
+ }
+ 
+ module_init(cgroup_mt_init);
