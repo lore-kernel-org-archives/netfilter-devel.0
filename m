@@ -1,64 +1,39 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] extensions: libxt_comment: Add translation to nft
-Date: Tue, 22 Dec 2015 18:04:01 +0100
-Message-ID: <20151222170401.GA20918@salvia>
-References: <cover.1450779140.git.shivanib134@gmail.com>
- <bfd658a271224fa7f3cbab52868300f3fbb1caa8.1450779140.git.shivanib134@gmail.com>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: Re: [PATCH] extensions: libxt_devgroup: Add translation to nft
+Date: Tue, 22 Dec 2015 22:50:34 +0530
+Message-ID: <CAKHNQQHYwBq-uaiFfT8cv6bWfEf17AM0y650VKJ8Rpg7B2pUmA@mail.gmail.com>
+References: <20151220120336.GA27589@gmail.com> <20151222170012.GA20795@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36560 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753872AbbLVREF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Dec 2015 12:04:05 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id D38F023CF69
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 18:04:04 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id C57DBDA808
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 18:04:04 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id D9305DA801
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 18:04:02 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <bfd658a271224fa7f3cbab52868300f3fbb1caa8.1450779140.git.shivanib134@gmail.com>
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:35212 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754721AbbLVRUy (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Dec 2015 12:20:54 -0500
+Received: by mail-wm0-f50.google.com with SMTP id l126so118833950wml.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 09:20:54 -0800 (PST)
+In-Reply-To: <20151222170012.GA20795@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 22, 2015 at 03:48:34PM +0530, Shivani Bhardwaj wrote:
-> Add translation for comment module to nftables.
-> 
-> Examples:
-> 
-> $ sudo iptables-translate -A INPUT -m comment --comment "random comment"
-> nft add rule ip filter INPUT counter comment \"random comment\"
-> 
-> $ sudo iptables-translate -A INPUT -i eth1 -m comment --comment "Local LAN"
-> nft add rule ip filter INPUT iifname eth1 counter comment \"Local LAN\"
-> 
-> Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
-> ---
->  extensions/libxt_comment.c | 17 +++++++++++++++--
->  1 file changed, 15 insertions(+), 2 deletions(-)
-> 
-> diff --git a/extensions/libxt_comment.c b/extensions/libxt_comment.c
-> index 6ed2ff9..bbbd6cb 100644
-> --- a/extensions/libxt_comment.c
-> +++ b/extensions/libxt_comment.c
-> @@ -48,6 +48,18 @@ comment_save(const void *ip, const struct xt_entry_match *match)
->  	xtables_save_string(commentinfo->comment);
->  }
->  
-> +static int
-> +comment_xlate(const struct xt_entry_match *match,
-> +	      struct xt_buf *buf, int numeric)
-> +{
-> +	struct xt_comment_info *commentinfo = (void *)match->data;
-> +
-> +	commentinfo->comment[XT_MAX_COMMENT_LEN-1] = '\0';
-> +	xt_buf_add(buf, "counter comment \\\"%s\\\" ", commentinfo->comment);
-                         ^^^^^^^
+On Tue, Dec 22, 2015 at 10:30 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Sun, Dec 20, 2015 at 05:33:37PM +0530, Shivani Bhardwaj wrote:
+>> Add translation of device group to nftables.
+>
+> git am /tmp/extensions-libxt_devgroup-Add-translation-to-nft.patch -s
+> Applying: extensions: libxt_devgroup: Add translation to nft
+> error: patch failed: extensions/libxt_devgroup.c:37
+> error: extensions/libxt_devgroup.c: patch does not apply
+> Patch failed at 0001 extensions: libxt_devgroup: Add translation to nft
+> The copy of the patch that failed is found in:
+>    /home/pablo/devel/scm/git-netfilter/iptables/.git/rebase-apply/patch
+> When you have resolved this problem, run "git am --continue".
+> If you prefer to skip this patch, run "git am --skip" instead.
+> To restore the original branch and stop patching, run "git am --abort".
+>
+> This one doesn't apply for some reason.
 
-We have to find a better way to fix this from the core infrastructure.
+Should I be sending this one again then?
