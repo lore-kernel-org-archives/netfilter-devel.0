@@ -1,54 +1,64 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] extensions: libxt_NFLOG: Add translation to nft
-Date: Tue, 22 Dec 2015 18:01:51 +0100
-Message-ID: <20151222170151.GA20841@salvia>
-References: <20151221173559.GA8787@gmail.com>
- <CAOkSjBiJ+wWWyt+4ewjEJyMN79C6Navd19Av6n6LVo0tfyd-Ow@mail.gmail.com>
+Subject: Re: [PATCH 2/2] extensions: libxt_comment: Add translation to nft
+Date: Tue, 22 Dec 2015 18:04:01 +0100
+Message-ID: <20151222170401.GA20918@salvia>
+References: <cover.1450779140.git.shivanib134@gmail.com>
+ <bfd658a271224fa7f3cbab52868300f3fbb1caa8.1450779140.git.shivanib134@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Shivani Bhardwaj <shivanib134@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Shivani Bhardwaj <shivanib134@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36155 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36560 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752854AbbLVRBz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Dec 2015 12:01:55 -0500
+	id S1753872AbbLVREF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Dec 2015 12:04:05 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id A441C23CF6F
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 18:01:54 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id D38F023CF69
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 18:04:04 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 969AADA873
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 18:01:54 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id C57DBDA808
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 18:04:04 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 17E5ADA875
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 18:01:52 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id D9305DA801
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 18:04:02 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBiJ+wWWyt+4ewjEJyMN79C6Navd19Av6n6LVo0tfyd-Ow@mail.gmail.com>
+In-Reply-To: <bfd658a271224fa7f3cbab52868300f3fbb1caa8.1450779140.git.shivanib134@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 22, 2015 at 01:47:57PM +0100, Arturo Borrero Gonzalez wrote:
-> On 21 December 2015 at 18:35, Shivani Bhardwaj <shivanib134@gmail.com> wrote:
-> >
-> > +static void nflog_print_xlate(const struct xt_nflog_info *info,
-> > +                             char *prefix, struct xt_buf *buf)
-> > +{
-> > +       if (info->prefix[0] != '\0')
-> > +               xt_buf_add(buf, "%slog prefix \\\"%s\\\" ",
-> > +                          prefix, info->prefix);
-> > +       if (info->group)
-> > +               xt_buf_add(buf, "%slog group %u ", prefix, info->group);
+On Tue, Dec 22, 2015 at 03:48:34PM +0530, Shivani Bhardwaj wrote:
+> Add translation for comment module to nftables.
 > 
-> if info->group is not set, you should probably default to 0, since
-> this group info is mandatory in nftables to consider this logging the
-> same type of NFLOG (ie, use nfnetlink_log).
+> Examples:
 > 
-> For reference, see:
-> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/net/netfilter/nft_log.c#n67
+> $ sudo iptables-translate -A INPUT -m comment --comment "random comment"
+> nft add rule ip filter INPUT counter comment \"random comment\"
+> 
+> $ sudo iptables-translate -A INPUT -i eth1 -m comment --comment "Local LAN"
+> nft add rule ip filter INPUT iifname eth1 counter comment \"Local LAN\"
+> 
+> Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+> ---
+>  extensions/libxt_comment.c | 17 +++++++++++++++--
+>  1 file changed, 15 insertions(+), 2 deletions(-)
+> 
+> diff --git a/extensions/libxt_comment.c b/extensions/libxt_comment.c
+> index 6ed2ff9..bbbd6cb 100644
+> --- a/extensions/libxt_comment.c
+> +++ b/extensions/libxt_comment.c
+> @@ -48,6 +48,18 @@ comment_save(const void *ip, const struct xt_entry_match *match)
+>  	xtables_save_string(commentinfo->comment);
+>  }
+>  
+> +static int
+> +comment_xlate(const struct xt_entry_match *match,
+> +	      struct xt_buf *buf, int numeric)
+> +{
+> +	struct xt_comment_info *commentinfo = (void *)match->data;
+> +
+> +	commentinfo->comment[XT_MAX_COMMENT_LEN-1] = '\0';
+> +	xt_buf_add(buf, "counter comment \\\"%s\\\" ", commentinfo->comment);
+                         ^^^^^^^
 
-Thanks Arturo.
-
-Please Shivani, address Arturo's feedback and send me an incremental
-patch to fix this.
+We have to find a better way to fix this from the core infrastructure.
