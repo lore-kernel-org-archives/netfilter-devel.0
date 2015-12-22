@@ -1,86 +1,127 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] extensions: libxt_NFQUEUE: Add translation to nft
-Date: Tue, 22 Dec 2015 21:21:12 +0100
-Message-ID: <20151222202112.GA4470@salvia>
-References: <20151221132342.GA2582@gmail.com>
- <20151222164020.GA17410@salvia>
- <CAKHNQQE0=tQQcaWCvAgyQGA3yiM3mfZcoLcrfb-Kn8DKaY=+6w@mail.gmail.com>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: Re: [PATCH v2] extensions: libxt_connmark: Add translation to nft
+Date: Wed, 23 Dec 2015 01:59:28 +0530
+Message-ID: <CAKHNQQELH-rbdm5W62VyEt2czZTcXV4iYeW84PMgULR=fLyPzA@mail.gmail.com>
+References: <20151222202306.GA13145@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37891 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751615AbbLVU2N (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Dec 2015 15:28:13 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id A9F5024A0E6
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 21:28:12 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 99D7CDA80B
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 21:28:12 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 5F6C9DA811
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 21:28:10 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <CAKHNQQE0=tQQcaWCvAgyQGA3yiM3mfZcoLcrfb-Kn8DKaY=+6w@mail.gmail.com>
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:37622 "EHLO
+	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753444AbbLVU3s (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Dec 2015 15:29:48 -0500
+Received: by mail-wm0-f45.google.com with SMTP id p187so124935794wmp.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 12:29:48 -0800 (PST)
+In-Reply-To: <20151222202306.GA13145@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Dec 23, 2015 at 01:08:51AM +0530, Shivani Bhardwaj wrote:
-> On Tue, Dec 22, 2015 at 10:10 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Mon, Dec 21, 2015 at 06:53:43PM +0530, Shivani Bhardwaj wrote:
-> >> Add translation of NF queue to nftables.
-> >>
-> >> Examples:
-> >>
-> >> $ sudo iptables-translate -t nat -A PREROUTING -p tcp --dport 80 -j NFQUEUE --queue-num 30
-> >> nft add rule ip nat PREROUTING tcp dport 80 counter  queue num 30
-> >>
-> >> $ sudo iptables-translate -A FORWARD -j NFQUEUE --queue-num 0 --queue-bypass -p TCP --sport 80
-> >> nft add rule ip filter FORWARD tcp sport 80 counter  queue num 0 bypass
-> >                                                      ^
-> > Make sure this space is gone in a v2 of this patch.
-> >
-> >> $ sudo iptables-translate -A FORWARD -j NFQUEUE --queue-balance 0:3
-> >> nft add rule ip filter FORWARD counter  queue num 0-3 fanout
-> >
-> > I think --queue-balance is independent from fanout. Check the code and
-> > make sure this is correct.
-> >
-> Hi,
-> 
-> I have taken reference from here :
-> http://wiki.nftables.org/wiki-nftables/index.php/Queueing_to_userspace
-> 
-> It says:
-> When doing load balancing, you can use the fanout option to use the
-> CPU ID as an index to map packets to the queues. The idea is that you
-> can improve performance if there's a queue/userspace application per
-> CPU
-> 
-> Please let me know if I have understood this wrong.
+On Wed, Dec 23, 2015 at 1:53 AM, Shivani Bhardwaj <shivanib134@gmail.com> wrote:
+> Add translation for connmark to nftables.
+>
+> Examples:
+>
+> $ sudo iptables-translate -A INPUT -m connmark --mark 10/10 -j ACCEPT
+> nft add rule ip filter INPUT ct mark and 0xa == 0xa counter accept
+>
+> $ sudo iptables-translate -A INPUT -m connmark ! --mark 10/10 -j ACCEPT
+> nft add rule ip filter INPUT ct mark and 0xa != 0xa counter accept
+>
+> $ sudo iptables-translate -t mangle -A PREROUTING -p tcp --dport 40 -m connmark --mark 0x40
+> nft add rule ip mangle PREROUTING tcp dport 40 ct mark 0x40 counter
+>
+> Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+> ---
+> Changes in v2:
+>         Fix coding errors for invert test case
+>
+>  extensions/libxt_connmark.c | 45 ++++++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 44 insertions(+), 1 deletion(-)
+>
+> diff --git a/extensions/libxt_connmark.c b/extensions/libxt_connmark.c
+> index 95477de..385ed6e 100644
+> --- a/extensions/libxt_connmark.c
+> +++ b/extensions/libxt_connmark.c
+> @@ -89,7 +89,8 @@ connmark_print(const void *ip, const struct xt_entry_match *match, int numeric)
+>  }
+>
+>  static void
+> -connmark_mt_print(const void *ip, const struct xt_entry_match *match, int numeric)
+> +connmark_mt_print(const void *ip, const struct xt_entry_match *match,
+> +                 int numeric)
+>  {
+>         const struct xt_connmark_mtinfo1 *info = (const void *)match->data;
+>
+> @@ -122,6 +123,46 @@ connmark_mt_save(const void *ip, const struct xt_entry_match *match)
+>         print_mark(info->mark, info->mask);
+>  }
+>
+> +static void print_mark_xlate(unsigned int mark, unsigned int mask,
+> +                            struct xt_buf *buf, const char *str)
+> +{
+> +       if (mask != 0xffffffffU)
+> +               xt_buf_add(buf, " and 0x%x %s 0x%x ", mark, str, mask);
+> +       else
+> +               xt_buf_add(buf, " 0x%x ", mark);
+> +}
+> +
+> +static int connmark_xlate(const struct xt_entry_match *match,
+> +                         struct xt_buf *buf, int numeric)
+> +{
+> +       const struct xt_connmark_info *info = (const void *)match->data;
+> +       const char *str = "==";
+> +
+> +       if (info->invert)
+> +               str = "!=";
+> +
+> +       xt_buf_add(buf, "ct mark");
+> +       print_mark_xlate(info->mark, info->mask, buf, str);
+> +
+> +       return 1;
+> +}
+> +
+> +static int
+> +connmark_mt_xlate(const struct xt_entry_match *match,
+> +                struct xt_buf *buf, int numeric)
+> +{
+> +       const struct xt_connmark_mtinfo1 *info = (const void *)match->data;
+> +       const char *str = "==";
+> +
+> +       if (info->invert)
+> +               str = "!=";
+> +
+> +       xt_buf_add(buf, "ct mark");
+> +       print_mark_xlate(info->mark, info->mask, buf, str);
+> +
+> +       return 1;
+> +}
+> +
+>  static struct xtables_match connmark_mt_reg[] = {
+>         {
+>                 .family        = NFPROTO_UNSPEC,
+> @@ -135,6 +176,7 @@ static struct xtables_match connmark_mt_reg[] = {
+>                 .save          = connmark_save,
+>                 .x6_parse      = connmark_parse,
+>                 .x6_options    = connmark_mt_opts,
+> +               .xlate         = connmark_xlate,
+>         },
+>         {
+>                 .version       = XTABLES_VERSION,
+> @@ -148,6 +190,7 @@ static struct xtables_match connmark_mt_reg[] = {
+>                 .save          = connmark_mt_save,
+>                 .x6_parse      = connmark_mt_parse,
+>                 .x6_options    = connmark_mt_opts,
+> +               .xlate         = connmark_mt_xlate,
+>         },
+>  };
+>
+> --
+> 1.9.1
+>
 
-I think this description above is not precise, please have a look at:
-man iptables-extensions and check NFQUEUE, so you make sure you're
-interpreting things the right way.
-
-       --queue-balance value:value
-              This specifies a range of queues to use. Packets are
-              then balanced across the given queues.  This is useful for
-              multicore systems:  start  multiple  instances  of  the
-              userspace program on queues x, x+1, .. x+n and use
-              "--queue-balance x:x+n". Packets belonging to the same
-              connection are put into the same nfqueue.
-
-       --queue-cpu-fanout
-              Available starting Linux kernel 3.10. When used together
-              with --queue-balance this will use the CPU ID as an index
-              to map packets to the queues. The idea is that you can improve
-              performance if there's a queue per CPU. This requires
-              --queue-balance to be specified.
-
-So fanout is optional.
-
-You can also fix the wiki to avoid this ambiguity. Thanks.
+Please do not consider this one. There's still a case left to be fixed.
+Sorry for the inconvenience.
+Sending v3.
+Thank you.
