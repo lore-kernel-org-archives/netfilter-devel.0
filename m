@@ -1,137 +1,241 @@
-From: "Serge E. Hallyn" <serge.hallyn-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 3/8] cgroup: implement cgroup_get_from_path() and expose
- cgroup_put()
-Date: Mon, 21 Dec 2015 18:22:41 -0600
-Message-ID: <20151222002240.GA6682@mail.hallyn.com>
-References: <1449527935-27056-1-git-send-email-tj@kernel.org>
- <1449527935-27056-4-git-send-email-tj@kernel.org>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH] extensions: libxt_iprange: Add translation to nft
+Date: Tue, 22 Dec 2015 12:35:20 +0530
+Message-ID: <20151222070520.GA20511@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org,
-	kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org,
-	daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org,
-	lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
-	cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	kernel-team-b10kYP2dOMg@public.gmane.org, ninasc-b10kYP2dOMg@public.gmane.org
-To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pf0-f173.google.com ([209.85.192.173]:33218 "EHLO
+	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751653AbbLVHF1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Dec 2015 02:05:27 -0500
+Received: by mail-pf0-f173.google.com with SMTP id n128so85119883pfn.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Dec 2015 23:05:27 -0800 (PST)
+Received: from gmail.com ([171.50.109.40])
+        by smtp.gmail.com with ESMTPSA id e67sm38820978pfj.53.2015.12.21.23.05.24
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Mon, 21 Dec 2015 23:05:26 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1449527935-27056-4-git-send-email-tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Dec 07, 2015 at 05:38:50PM -0500, Tejun Heo wrote:
-> Implement cgroup_get_from_path() using kernfs_walk_and_get() which
-> obtains a default hierarchy cgroup from its path.  This will be used
-> to allow cgroup path based matching from outside cgroup proper -
-> e.g. networking and perf.
+Add translation for iprange to nftables.
 
-Hi Tejun,
+Examples:
 
-I'm trying to figure out how to handle this in the cgroup ns patchset.
-Is this going to be purely used internally?  From the user i see in
-this patchset it looks like I should leave it be (and have @path always
-be absolute)  Is that right?
+$ sudo iptables-translate -A INPUT -m iprange --src-range 192.168.25.149-192.168.25.151 -j ACCEPT
+nft add rule ip filter INPUT  ip saddr 192.168.25.149-192.168.25.151 counter accept
 
-thanks,
--serge
+$ sudo iptables-translate -A INPUT -m iprange --dst-range 192.168.25.149-192.168.25.151 -j ACCEPT
+nft add rule ip filter INPUT  ip daddr 192.168.25.149-192.168.25.151 counter accept
 
-> v2: Add EXPORT_SYMBOL_GPL(cgroup_get_from_path).
-> 
-> Signed-off-by: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> ---
->  include/linux/cgroup.h |  7 +++++++
->  kernel/cgroup.c        | 39 ++++++++++++++++++++++++++++++++++-----
->  2 files changed, 41 insertions(+), 5 deletions(-)
-> 
-> diff --git a/include/linux/cgroup.h b/include/linux/cgroup.h
-> index b5ee2c4..4c3ffab 100644
-> --- a/include/linux/cgroup.h
-> +++ b/include/linux/cgroup.h
-> @@ -81,6 +81,8 @@ struct cgroup_subsys_state *cgroup_get_e_css(struct cgroup *cgroup,
->  struct cgroup_subsys_state *css_tryget_online_from_dir(struct dentry *dentry,
->  						       struct cgroup_subsys *ss);
->  
-> +struct cgroup *cgroup_get_from_path(const char *path);
-> +
->  int cgroup_attach_task_all(struct task_struct *from, struct task_struct *);
->  int cgroup_transfer_tasks(struct cgroup *to, struct cgroup *from);
->  
-> @@ -351,6 +353,11 @@ static inline void css_put_many(struct cgroup_subsys_state *css, unsigned int n)
->  		percpu_ref_put_many(&css->refcnt, n);
->  }
->  
-> +static inline void cgroup_put(struct cgroup *cgrp)
-> +{
-> +	css_put(&cgrp->self);
-> +}
-> +
->  /**
->   * task_css_set_check - obtain a task's css_set with extra access conditions
->   * @task: the task to obtain css_set for
-> diff --git a/kernel/cgroup.c b/kernel/cgroup.c
-> index 3190040..3db5e8f 100644
-> --- a/kernel/cgroup.c
-> +++ b/kernel/cgroup.c
-> @@ -434,11 +434,6 @@ static bool cgroup_tryget(struct cgroup *cgrp)
->  	return css_tryget(&cgrp->self);
->  }
->  
-> -static void cgroup_put(struct cgroup *cgrp)
-> -{
-> -	css_put(&cgrp->self);
-> -}
-> -
->  struct cgroup_subsys_state *of_css(struct kernfs_open_file *of)
->  {
->  	struct cgroup *cgrp = of->kn->parent->priv;
-> @@ -5753,6 +5748,40 @@ struct cgroup_subsys_state *css_from_id(int id, struct cgroup_subsys *ss)
->  	return id > 0 ? idr_find(&ss->css_idr, id) : NULL;
->  }
->  
-> +/**
-> + * cgroup_get_from_path - lookup and get a cgroup from its default hierarchy path
-> + * @path: path on the default hierarchy
-> + *
-> + * Find the cgroup at @path on the default hierarchy, increment its
-> + * reference count and return it.  Returns pointer to the found cgroup on
-> + * success, ERR_PTR(-ENOENT) if @path doens't exist and ERR_PTR(-ENOTDIR)
-> + * if @path points to a non-directory.
-> + */
-> +struct cgroup *cgroup_get_from_path(const char *path)
-> +{
-> +	struct kernfs_node *kn;
-> +	struct cgroup *cgrp;
-> +
-> +	mutex_lock(&cgroup_mutex);
-> +
-> +	kn = kernfs_walk_and_get(cgrp_dfl_root.cgrp.kn, path);
-> +	if (kn) {
-> +		if (kernfs_type(kn) == KERNFS_DIR) {
-> +			cgrp = kn->priv;
-> +			cgroup_get(cgrp);
-> +		} else {
-> +			cgrp = ERR_PTR(-ENOTDIR);
-> +		}
-> +		kernfs_put(kn);
-> +	} else {
-> +		cgrp = ERR_PTR(-ENOENT);
-> +	}
-> +
-> +	mutex_unlock(&cgroup_mutex);
-> +	return cgrp;
-> +}
-> +EXPORT_SYMBOL_GPL(cgroup_get_from_path);
-> +
->  #ifdef CONFIG_CGROUP_DEBUG
->  static struct cgroup_subsys_state *
->  debug_css_alloc(struct cgroup_subsys_state *parent_css)
-> -- 
-> 2.5.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+ extensions/libxt_iprange.c | 111 +++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 102 insertions(+), 9 deletions(-)
+
+diff --git a/extensions/libxt_iprange.c b/extensions/libxt_iprange.c
+index 2c9ea99..9cf6225 100644
+--- a/extensions/libxt_iprange.c
++++ b/extensions/libxt_iprange.c
+@@ -104,7 +104,8 @@ static void iprange_parse(struct xt_option_call *cb)
+ 		info->flags |= IPRANGE_SRC;
+ 		if (cb->invert)
+ 			info->flags |= IPRANGE_SRC_INV;
+-		iprange_parse_range(cb->arg, range, NFPROTO_IPV4, "--src-range");
++		iprange_parse_range(cb->arg, range,
++				    NFPROTO_IPV4, "--src-range");
+ 		info->src.min_ip = range[0].ip;
+ 		info->src.max_ip = range[1].ip;
+ 		break;
+@@ -112,7 +113,8 @@ static void iprange_parse(struct xt_option_call *cb)
+ 		info->flags |= IPRANGE_DST;
+ 		if (cb->invert)
+ 			info->flags |= IPRANGE_DST_INV;
+-		iprange_parse_range(cb->arg, range, NFPROTO_IPV4, "--dst-range");
++		iprange_parse_range(cb->arg, range,
++				    NFPROTO_IPV4, "--dst-range");
+ 		info->dst.min_ip = range[0].ip;
+ 		info->dst.max_ip = range[1].ip;
+ 		break;
+@@ -172,7 +174,7 @@ print_iprange(const struct ipt_iprange *range)
+ }
+ 
+ static void iprange_print(const void *ip, const struct xt_entry_match *match,
+-                          int numeric)
++			  int numeric)
+ {
+ 	const struct ipt_iprange_info *info = (const void *)match->data;
+ 
+@@ -192,7 +194,7 @@ static void iprange_print(const void *ip, const struct xt_entry_match *match,
+ 
+ static void
+ iprange_mt4_print(const void *ip, const struct xt_entry_match *match,
+-                  int numeric)
++		  int numeric)
+ {
+ 	const struct xt_iprange_mtinfo *info = (const void *)match->data;
+ 
+@@ -218,7 +220,7 @@ iprange_mt4_print(const void *ip, const struct xt_entry_match *match,
+ 
+ static void
+ iprange_mt6_print(const void *ip, const struct xt_entry_match *match,
+-                  int numeric)
++		  int numeric)
+ {
+ 	const struct xt_iprange_mtinfo *info = (const void *)match->data;
+ 
+@@ -267,13 +269,15 @@ static void iprange_mt4_save(const void *ip, const struct xt_entry_match *match)
+ 	if (info->flags & IPRANGE_SRC) {
+ 		if (info->flags & IPRANGE_SRC_INV)
+ 			printf(" !");
+-		printf(" --src-range %s", xtables_ipaddr_to_numeric(&info->src_min.in));
++		printf(" --src-range %s",
++		       xtables_ipaddr_to_numeric(&info->src_min.in));
+ 		printf("-%s", xtables_ipaddr_to_numeric(&info->src_max.in));
+ 	}
+ 	if (info->flags & IPRANGE_DST) {
+ 		if (info->flags & IPRANGE_DST_INV)
+ 			printf(" !");
+-		printf(" --dst-range %s", xtables_ipaddr_to_numeric(&info->dst_min.in));
++		printf(" --dst-range %s",
++		       xtables_ipaddr_to_numeric(&info->dst_min.in));
+ 		printf("-%s", xtables_ipaddr_to_numeric(&info->dst_max.in));
+ 	}
+ }
+@@ -285,17 +289,103 @@ static void iprange_mt6_save(const void *ip, const struct xt_entry_match *match)
+ 	if (info->flags & IPRANGE_SRC) {
+ 		if (info->flags & IPRANGE_SRC_INV)
+ 			printf(" !");
+-		printf(" --src-range %s", xtables_ip6addr_to_numeric(&info->src_min.in6));
++		printf(" --src-range %s",
++		       xtables_ip6addr_to_numeric(&info->src_min.in6));
+ 		printf("-%s", xtables_ip6addr_to_numeric(&info->src_max.in6));
+ 	}
+ 	if (info->flags & IPRANGE_DST) {
+ 		if (info->flags & IPRANGE_DST_INV)
+ 			printf(" !");
+-		printf(" --dst-range %s", xtables_ip6addr_to_numeric(&info->dst_min.in6));
++		printf(" --dst-range %s",
++		       xtables_ip6addr_to_numeric(&info->dst_min.in6));
+ 		printf("-%s", xtables_ip6addr_to_numeric(&info->dst_max.in6));
+ 	}
+ }
+ 
++static void
++print_iprange_xlate(const struct ipt_iprange *range,
++		    struct xt_buf *buf)
++{
++	const unsigned char *byte_min, *byte_max;
++
++	byte_min = (const unsigned char *)&range->min_ip;
++	byte_max = (const unsigned char *)&range->max_ip;
++	xt_buf_add(buf, " %u.%u.%u.%u-%u.%u.%u.%u ",
++		   byte_min[0], byte_min[1], byte_min[2], byte_min[3],
++		   byte_max[0], byte_max[1], byte_max[2], byte_max[3]);
++}
++
++static int iprange_xlate(const struct xt_entry_match *match,
++			 struct xt_buf *buf, int numeric)
++{
++	const struct ipt_iprange_info *info = (const void *)match->data;
++
++	if (info->flags & IPRANGE_SRC) {
++		if (info->flags & IPRANGE_SRC_INV)
++			xt_buf_add(buf, " !=");
++		xt_buf_add(buf, " ip saddr");
++		print_iprange_xlate(&info->src, buf);
++	}
++	if (info->flags & IPRANGE_DST) {
++		if (info->flags & IPRANGE_DST_INV)
++			xt_buf_add(buf, " !=");
++		xt_buf_add(buf, " ip daddr");
++		print_iprange_xlate(&info->dst, buf);
++	}
++
++	return 1;
++}
++
++static int iprange_mt4_xlate(const struct xt_entry_match *match,
++			     struct xt_buf *buf, int numeric)
++{
++	const struct xt_iprange_mtinfo *info = (const void *)match->data;
++
++	if (info->flags & IPRANGE_SRC) {
++		if (info->flags & IPRANGE_SRC_INV)
++			xt_buf_add(buf, " !=");
++		xt_buf_add(buf, " ip saddr %s",
++			   xtables_ipaddr_to_numeric(&info->src_min.in));
++		xt_buf_add(buf, "-%s ",
++			   xtables_ipaddr_to_numeric(&info->src_max.in));
++	}
++	if (info->flags & IPRANGE_DST) {
++		if (info->flags & IPRANGE_DST_INV)
++			xt_buf_add(buf, " !=");
++		xt_buf_add(buf, " ip daddr %s",
++			   xtables_ipaddr_to_numeric(&info->dst_min.in));
++		xt_buf_add(buf, "-%s ",
++			   xtables_ipaddr_to_numeric(&info->dst_max.in));
++	}
++
++	return 1;
++}
++
++static int iprange_mt6_xlate(const struct xt_entry_match *match,
++			     struct xt_buf *buf, int numeric)
++{
++	const struct xt_iprange_mtinfo *info = (const void *)match->data;
++
++	if (info->flags & IPRANGE_SRC) {
++		if (info->flags & IPRANGE_SRC_INV)
++			xt_buf_add(buf, " !=");
++		xt_buf_add(buf, " ip saddr %s",
++			   xtables_ip6addr_to_numeric(&info->src_min.in6));
++		xt_buf_add(buf, "-%s ",
++			   xtables_ip6addr_to_numeric(&info->src_max.in6));
++	}
++	if (info->flags & IPRANGE_DST) {
++		if (info->flags & IPRANGE_DST_INV)
++			xt_buf_add(buf, " !=");
++		xt_buf_add(buf, " ip daddr %s",
++			   xtables_ip6addr_to_numeric(&info->dst_min.in6));
++		xt_buf_add(buf, "-%s ",
++			   xtables_ip6addr_to_numeric(&info->dst_max.in6));
++	}
++
++	return 1;
++}
++
+ static struct xtables_match iprange_mt_reg[] = {
+ 	{
+ 		.version       = XTABLES_VERSION,
+@@ -310,6 +400,7 @@ static struct xtables_match iprange_mt_reg[] = {
+ 		.print         = iprange_print,
+ 		.save          = iprange_save,
+ 		.x6_options    = iprange_mt_opts,
++		.xlate	       = iprange_xlate,
+ 	},
+ 	{
+ 		.version       = XTABLES_VERSION,
+@@ -324,6 +415,7 @@ static struct xtables_match iprange_mt_reg[] = {
+ 		.print         = iprange_mt4_print,
+ 		.save          = iprange_mt4_save,
+ 		.x6_options    = iprange_mt_opts,
++		.xlate	       = iprange_mt4_xlate,
+ 	},
+ 	{
+ 		.version       = XTABLES_VERSION,
+@@ -338,6 +430,7 @@ static struct xtables_match iprange_mt_reg[] = {
+ 		.print         = iprange_mt6_print,
+ 		.save          = iprange_mt6_save,
+ 		.x6_options    = iprange_mt_opts,
++		.xlate	       = iprange_mt6_xlate,
+ 	},
+ };
+ 
+-- 
+1.9.1
+
