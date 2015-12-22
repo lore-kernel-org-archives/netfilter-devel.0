@@ -1,243 +1,140 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: [PATCH 2/2] libxt_cgroup2: add support for cgroup2 path matching
-Date: Tue, 22 Dec 2015 13:57:07 -0500
-Message-ID: <20151222185707.GD5003@mtj.duckdns.org>
-References: <20151222185626.GC5003@mtj.duckdns.org>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH] extensions: libxt_devgroup: Add translation to nft
+Date: Wed, 23 Dec 2015 00:40:35 +0530
+Message-ID: <20151222191035.GA9805@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yk0-f181.google.com ([209.85.160.181]:34324 "EHLO
-	mail-yk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753292AbbLVS5J (ORCPT
+Received: from mail-pa0-f66.google.com ([209.85.220.66]:34538 "EHLO
+	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752911AbbLVTKn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Dec 2015 13:57:09 -0500
-Received: by mail-yk0-f181.google.com with SMTP id p130so173073181yka.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 10:57:09 -0800 (PST)
+	Tue, 22 Dec 2015 14:10:43 -0500
+Received: by mail-pa0-f66.google.com with SMTP id yy13so644826pab.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 11:10:42 -0800 (PST)
+Received: from gmail.com ([223.176.190.114])
+        by smtp.gmail.com with ESMTPSA id 15sm42874518pfo.43.2015.12.22.11.10.40
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Tue, 22 Dec 2015 11:10:41 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20151222185626.GC5003@mtj.duckdns.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch updates xt_cgroup so that it supports revision 1 interface
-which includes cgroup2 path based matching.
+Add translation for device group to nftables.
 
-v3: Folded into xt_cgroup as a new revision interface as suggested by
-    Pablo.
+Examples:
 
-v2: cgroup2_match->userspacesize and ->save and man page updated as
-    per Jan.
+$ sudo iptables-translate -A FORWARD -m devgroup --dst-group 0xc/0xc -j ACCEPT
+nft add rule ip filter FORWARD oifgroup and 0xc == 0xc counter accept
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Daniel Borkmann <dborkman@redhat.com>
-Cc: Jan Engelhardt <jengelh@inai.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+$ sudo iptables-translate -t mangle -A PREROUTING -p tcp --dport 46000 -m devgroup --src-group 23 -j ACCEPT
+nft add rule ip mangle PREROUTING tcp dport 46000 iifgroup 0x17 counter accept
+
+$ sudo iptables-translate -A FORWARD -m devgroup ! --dst-group 0xc/0xc -j ACCEPT
+nft add rule ip filter FORWARD oifgroup and 0xc != 0xc counter accept
+
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
 ---
- extensions/libxt_cgroup.c           |   86 ++++++++++++++++++++++++++++++++++++
- extensions/libxt_cgroup.man         |   33 ++++++++-----
- include/linux/netfilter/xt_cgroup.h |   13 +++++
- 3 files changed, 119 insertions(+), 13 deletions(-)
+ extensions/libxt_devgroup.c | 56 +++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 54 insertions(+), 2 deletions(-)
 
---- a/extensions/libxt_cgroup.c
-+++ b/extensions/libxt_cgroup.c
-@@ -4,6 +4,7 @@
- 
- enum {
- 	O_CLASSID = 0,
-+	O_PATH = 1,
- };
- 
- static void cgroup_help_v0(void)
-@@ -13,6 +14,14 @@ static void cgroup_help_v0(void)
- "[!] --cgroup classid            Match cgroup classid\n");
+diff --git a/extensions/libxt_devgroup.c b/extensions/libxt_devgroup.c
+index 1a52627..207f106 100644
+--- a/extensions/libxt_devgroup.c
++++ b/extensions/libxt_devgroup.c
+@@ -37,6 +37,7 @@ static struct xtables_lmap *devgroups;
+ static void devgroup_init(struct xt_entry_match *match)
+ {
+ 	const char file[] = "/etc/iproute2/group";
++
+ 	devgroups = xtables_lmap_init(file);
+ 	if (devgroups == NULL && errno != ENOENT)
+ 		fprintf(stderr, "Warning: %s: %s\n", file, strerror(errno));
+@@ -52,7 +53,7 @@ static void devgroup_parse_groupspec(const char *arg, unsigned int *group,
+ 	if (ok && (*end == '/' || *end == '\0')) {
+ 		if (*end == '/')
+ 			ok = xtables_strtoui(end + 1, NULL, mask,
+-			                     0, UINT32_MAX);
++					     0, UINT32_MAX);
+ 		else
+ 			*mask = ~0U;
+ 		if (!ok)
+@@ -129,7 +130,7 @@ static void devgroup_show(const char *pfx, const struct xt_devgroup_info *info,
  }
  
-+static void cgroup_help_v1(void)
-+{
-+	printf(
-+"cgroup match options:\n"
-+"[!] --path path                 Recursively match path relative to cgroup2 root\n"
-+"[!] --cgroup claasid            Match cgroup classid, can't be used with --path\n");
-+}
-+
- static const struct xt_option_entry cgroup_opts_v0[] = {
- 	{
- 		.name = "cgroup",
-@@ -24,6 +33,24 @@ static const struct xt_option_entry cgro
- 	XTOPT_TABLEEND,
- };
- 
-+static const struct xt_option_entry cgroup_opts_v1[] = {
-+	{
-+		.name = "path",
-+		.id = O_PATH,
-+		.type = XTTYPE_STRING,
-+		.flags = XTOPT_INVERT | XTOPT_PUT,
-+		XTOPT_POINTER(struct xt_cgroup_info_v1, path)
-+	},
-+	{
-+		.name = "cgroup",
-+		.id = O_CLASSID,
-+		.type = XTTYPE_UINT32,
-+		.flags = XTOPT_INVERT | XTOPT_PUT,
-+		XTOPT_POINTER(struct xt_cgroup_info_v1, classid)
-+	},
-+	XTOPT_TABLEEND,
-+};
-+
- static void cgroup_parse_v0(struct xt_option_call *cb)
+ static void devgroup_print(const void *ip, const struct xt_entry_match *match,
+-                        int numeric)
++			   int numeric)
  {
- 	struct xt_cgroup_info_v0 *cgroupinfo = cb->data;
-@@ -33,6 +60,26 @@ static void cgroup_parse_v0(struct xt_op
- 		cgroupinfo->invert = true;
- }
+ 	const struct xt_devgroup_info *info = (const void *)match->data;
  
-+static void cgroup_parse_v1(struct xt_option_call *cb)
-+{
-+	struct xt_cgroup_info_v1 *info = cb->data;
-+
-+	xtables_option_parse(cb);
-+
-+	switch (cb->entry->id) {
-+	case O_PATH:
-+		info->has_path = true;
-+		if (cb->invert)
-+			info->invert_path = true;
-+		break;
-+	case O_CLASSID:
-+		info->has_classid = true;
-+		if (cb->invert)
-+			info->invert_classid = true;
-+		break;
-+	}
-+}
-+
- static void
- cgroup_print_v0(const void *ip, const struct xt_entry_match *match, int numeric)
- {
-@@ -48,6 +95,32 @@ static void cgroup_save_v0(const void *i
- 	printf("%s --cgroup %u", info->invert ? " !" : "", info->id);
+@@ -151,6 +152,56 @@ static void devgroup_check(struct xt_fcheck_call *cb)
+ 			      "'--src-group' or '--dst-group'");
  }
  
 +static void
-+cgroup_print_v1(const void *ip, const struct xt_entry_match *match, int numeric)
++print_devgroup_xlate(unsigned int id, const char *str,  unsigned int mask,
++		     struct xt_buf *buf, int numeric)
 +{
-+	const struct xt_cgroup_info_v1 *info = (void *)match->data;
++	const char *name = NULL;
 +
-+	printf(" cgroup");
-+	if (info->has_path)
-+		printf(" %s%s", info->invert_path ? "! ":"", info->path);
-+	if (info->has_classid)
-+		printf(" %s%u", info->invert_classid ? "! ":"", info->classid);
++	if (mask != 0xffffffff)
++		xt_buf_add(buf, "and 0x%x %s 0x%x ", id, str, mask);
++	else {
++		if (numeric == 0)
++			name = xtables_lmap_id2name(devgroups, id);
++		if (name)
++			xt_buf_add(buf, "%s ", name);
++		else
++			xt_buf_add(buf, "0x%x ", id);
++	}
 +}
 +
-+static void cgroup_save_v1(const void *ip, const struct xt_entry_match *match)
++static void devgroup_show_xlate(const struct xt_devgroup_info *info,
++				struct xt_buf *buf, int numeric)
 +{
-+	const struct xt_cgroup_info_v1 *info = (void *)match->data;
++	const char *str = "==";
 +
-+	if (info->has_path) {
-+		printf("%s --path", info->invert_path ? " !" : "");
-+		xtables_save_string(info->path);
++	if (info->flags & XT_DEVGROUP_MATCH_SRC) {
++		if (info->flags & XT_DEVGROUP_INVERT_SRC)
++			str = "!=";
++		xt_buf_add(buf, "iifgroup ");
++		print_devgroup_xlate(info->src_group, str,
++				     info->src_mask, buf, numeric);
 +	}
 +
-+	if (info->has_classid)
-+		printf("%s --cgroup %u", info->invert_classid ? " !" : "",
-+		       info->classid);
++	if (info->flags & XT_DEVGROUP_MATCH_DST) {
++		if (info->flags & XT_DEVGROUP_INVERT_DST)
++			str = "!=";
++		xt_buf_add(buf, "oifgroup ");
++		print_devgroup_xlate(info->dst_group, str,
++				     info->dst_mask, buf, numeric);
++	}
 +}
 +
- static struct xtables_match cgroup_match[] = {
- 	{
- 		.family		= NFPROTO_UNSPEC,
-@@ -62,6 +135,19 @@ static struct xtables_match cgroup_match
- 		.x6_parse	= cgroup_parse_v0,
- 		.x6_options	= cgroup_opts_v0,
- 	},
-+	{
-+		.family		= NFPROTO_UNSPEC,
-+		.revision	= 1,
-+		.name		= "cgroup",
-+		.version	= XTABLES_VERSION,
-+		.size		= XT_ALIGN(sizeof(struct xt_cgroup_info_v1)),
-+		.userspacesize	= offsetof(struct xt_cgroup_info_v1, priv),
-+		.help		= cgroup_help_v1,
-+		.print		= cgroup_print_v1,
-+		.save		= cgroup_save_v1,
-+		.x6_parse	= cgroup_parse_v1,
-+		.x6_options	= cgroup_opts_v1,
-+	},
++static int devgroup_xlate(const struct xt_entry_match *match,
++			  struct xt_buf *buf, int numeric)
++{
++	const struct xt_devgroup_info *info = (const void *)match->data;
++
++	devgroup_show_xlate(info, buf, 0);
++
++	return 1;
++}
++
+ static struct xtables_match devgroup_mt_reg = {
+ 	.name		= "devgroup",
+ 	.version	= XTABLES_VERSION,
+@@ -164,6 +215,7 @@ static struct xtables_match devgroup_mt_reg = {
+ 	.x6_parse	= devgroup_parse,
+ 	.x6_fcheck	= devgroup_check,
+ 	.x6_options	= devgroup_opts,
++	.xlate		= devgroup_xlate,
  };
  
  void _init(void)
---- a/extensions/libxt_cgroup.man
-+++ b/extensions/libxt_cgroup.man
-@@ -1,23 +1,30 @@
- .TP
--[\fB!\fP] \fB\-\-cgroup\fP \fIfwid\fP
--Match corresponding cgroup for this packet.
-+[\fB!\fP] \fB\-\-path\fP \fIpath\fP
-+Match cgroup2 membership.
- 
--Can be used in the OUTPUT chain to assign particular firewall
--policies for aggregated task/jobs on the system. This allows
--for more fine-grained firewall policies that only match for a
--subset of the system's processes. fwid is the maker set through
--the net_cls cgroup's id.
-+Each socket is associated with the v2 cgroup of the creating process.
-+This matches packets coming from or going to all sockets in the
-+sub-hierarchy of the specified path.  The path should be relative to
-+the root of the cgroup2 hierarchy.
-+.TP
-+[\fB!\fP] \fB\-\-cgroup\fP \fIclassid\fP
-+Match cgroup net_cls classid.
- 
--\fBIMPORTANT\fP: when being used in the INPUT chain, the cgroup
--matcher is currently only of limited functionality, meaning it
--will only match on packets that are processed for local sockets
--through early socket demuxing. Therefore, general usage on the
--INPUT chain is disadviced unless the implications are well
--understood.
-+classid is the marker set through the cgroup net_cls controller.  This
-+option and \-\-path can't be used together.
- .PP
- Example:
- .IP
-+iptables \-A OUTPUT \-p tcp \-\-sport 80 \-m cgroup ! \-\-path service/http-server \-j DROP
-+.IP
- iptables \-A OUTPUT \-p tcp \-\-sport 80 \-m cgroup ! \-\-cgroup 1
- \-j DROP
- .PP
-+\fBIMPORTANT\fP: when being used in the INPUT chain, the cgroup
-+matcher is currently only of limited functionality, meaning it
-+will only match on packets that are processed for local sockets
-+through early socket demuxing. Therefore, general usage on the
-+INPUT chain is not advised unless the implications are well
-+understood.
-+.PP
- Available since Linux 3.14.
---- a/include/linux/netfilter/xt_cgroup.h
-+++ b/include/linux/netfilter/xt_cgroup.h
-@@ -2,10 +2,23 @@
- #define _XT_CGROUP_H
- 
- #include <linux/types.h>
-+#include <linux/limits.h>
- 
- struct xt_cgroup_info_v0 {
- 	__u32 id;
- 	__u32 invert;
- };
- 
-+struct xt_cgroup_info_v1 {
-+	__u8		has_path;
-+	__u8		has_classid;
-+	__u8		invert_path;
-+	__u8		invert_classid;
-+	char		path[PATH_MAX];
-+	__u32		classid;
-+
-+	/* kernel internal data */
-+	void		*priv __attribute__((aligned(8)));
-+};
-+
- #endif /* _XT_CGROUP_H */
+-- 
+1.9.1
+
