@@ -1,150 +1,140 @@
 From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH v3] extensions: libxt_devgroup: Add translation to nft
-Date: Wed, 23 Dec 2015 02:25:23 +0530
-Message-ID: <20151222205523.GA14475@gmail.com>
+Subject: [PATCH v3] extensions: libxt_connmark: Add translation to nft
+Date: Wed, 23 Dec 2015 02:36:26 +0530
+Message-ID: <20151222210626.GA15195@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f67.google.com ([209.85.220.67]:35939 "EHLO
-	mail-pa0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932464AbbLVUza (ORCPT
+Received: from mail-pa0-f65.google.com ([209.85.220.65]:33205 "EHLO
+	mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964897AbbLVVGd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Dec 2015 15:55:30 -0500
-Received: by mail-pa0-f67.google.com with SMTP id jx14so10643347pad.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 12:55:30 -0800 (PST)
+	Tue, 22 Dec 2015 16:06:33 -0500
+Received: by mail-pa0-f65.google.com with SMTP id uo6so992987pac.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 13:06:32 -0800 (PST)
 Received: from gmail.com ([223.176.190.114])
-        by smtp.gmail.com with ESMTPSA id g68sm6143858pfd.55.2015.12.22.12.55.27
+        by smtp.gmail.com with ESMTPSA id 73sm43148846pfa.3.2015.12.22.13.06.30
         for <netfilter-devel@vger.kernel.org>
         (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Tue, 22 Dec 2015 12:55:29 -0800 (PST)
+        Tue, 22 Dec 2015 13:06:31 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for device group to nftables.
+Add translation for connmark to nftables.
 
 Examples:
 
-$ sudo iptables-translate -A FORWARD -m devgroup --src-group 0x2 -j ACCEPT
-nft add rule ip filter FORWARD iifgroup 0x2 counter accept
+$ sudo iptables-translate -A INPUT -m connmark --mark 2 -j ACCEPT
+nft add rule ip filter INPUT ct mark 0x2 counter accept
 
-$ sudo iptables-translate -A FORWARD -m devgroup --dst-group 0xc/0xc -j ACCEPT
-nft add rule ip filter FORWARD oifgroup and 0xc == 0xc counter accept
+$ sudo iptables-translate -A INPUT -m connmark ! --mark 2 -j ACCEPT
+nft add rule ip filter INPUT ct mark != 0x2 counter accept
 
-$ sudo iptables-translate -t mangle -A PREROUTING -p tcp --dport 46000 -m devgroup --src-group 23 -j ACCEPT
-nft add rule ip mangle PREROUTING tcp dport 46000 iifgroup 0x17 counter accept
+$ sudo iptables-translate -A INPUT -m connmark --mark 10/10 -j ACCEPT
+nft add rule ip filter INPUT ct mark and 0xa == 0xa counter accept
 
-$ sudo iptables-translate -A FORWARD -m devgroup ! --dst-group 0xc/0xc -j ACCEPT
-nft add rule ip filter FORWARD oifgroup and 0xc != 0xc counter accept
+$ sudo iptables-translate -A INPUT -m connmark ! --mark 10/10 -j ACCEPT
+nft add rule ip filter INPUT ct mark and 0xa != 0xa counter accept
 
-$ sudo iptables-translate -A FORWARD -m devgroup ! --src-group 0x2 -j ACCEPT
-nft add rule ip filter FORWARD iifgroup != 0x2 counter accept
+$ sudo iptables-translate -t mangle -A PREROUTING -p tcp --dport 40 -m connmark --mark 0x40
+nft add rule ip mangle PREROUTING tcp dport 40 ct mark 0x40 counter
 
 Signed-off-by : Shivani Bhardwaj <shivanib134@gmail.com>
 ---
 Changes in v3:
-	Fix the code to provide fully functional inversions
+	Fix the code for inversion of mark only
 
- extensions/libxt_devgroup.c | 57 +++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 55 insertions(+), 2 deletions(-)
+ extensions/libxt_connmark.c | 47 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 46 insertions(+), 1 deletion(-)
 
-diff --git a/extensions/libxt_devgroup.c b/extensions/libxt_devgroup.c
-index 1a52627..3dec16a 100644
---- a/extensions/libxt_devgroup.c
-+++ b/extensions/libxt_devgroup.c
-@@ -37,6 +37,7 @@ static struct xtables_lmap *devgroups;
- static void devgroup_init(struct xt_entry_match *match)
- {
- 	const char file[] = "/etc/iproute2/group";
-+
- 	devgroups = xtables_lmap_init(file);
- 	if (devgroups == NULL && errno != ENOENT)
- 		fprintf(stderr, "Warning: %s: %s\n", file, strerror(errno));
-@@ -52,7 +53,7 @@ static void devgroup_parse_groupspec(const char *arg, unsigned int *group,
- 	if (ok && (*end == '/' || *end == '\0')) {
- 		if (*end == '/')
- 			ok = xtables_strtoui(end + 1, NULL, mask,
--			                     0, UINT32_MAX);
-+					     0, UINT32_MAX);
- 		else
- 			*mask = ~0U;
- 		if (!ok)
-@@ -129,7 +130,7 @@ static void devgroup_show(const char *pfx, const struct xt_devgroup_info *info,
+diff --git a/extensions/libxt_connmark.c b/extensions/libxt_connmark.c
+index 95477de..6f82b65 100644
+--- a/extensions/libxt_connmark.c
++++ b/extensions/libxt_connmark.c
+@@ -22,6 +22,7 @@
+ #include <stdbool.h>
+ #include <stdint.h>
+ #include <stdio.h>
++#include <string.h>
+ #include <xtables.h>
+ #include <linux/netfilter/xt_connmark.h>
+ 
+@@ -89,7 +90,8 @@ connmark_print(const void *ip, const struct xt_entry_match *match, int numeric)
  }
  
- static void devgroup_print(const void *ip, const struct xt_entry_match *match,
--                        int numeric)
-+			   int numeric)
+ static void
+-connmark_mt_print(const void *ip, const struct xt_entry_match *match, int numeric)
++connmark_mt_print(const void *ip, const struct xt_entry_match *match,
++		  int numeric)
  {
- 	const struct xt_devgroup_info *info = (const void *)match->data;
+ 	const struct xt_connmark_mtinfo1 *info = (const void *)match->data;
  
-@@ -151,6 +152,57 @@ static void devgroup_check(struct xt_fcheck_call *cb)
- 			      "'--src-group' or '--dst-group'");
+@@ -122,6 +124,47 @@ connmark_mt_save(const void *ip, const struct xt_entry_match *match)
+ 	print_mark(info->mark, info->mask);
  }
  
-+static void
-+print_devgroup_xlate(unsigned int id, const char *str,  unsigned int mask,
-+		     struct xt_buf *buf, int numeric)
++static void print_mark_xlate(unsigned int mark, unsigned int mask,
++			     struct xt_buf *buf, const char *str)
 +{
-+	const char *name = NULL;
-+
-+	if (mask != 0xffffffff)
-+		xt_buf_add(buf, "and 0x%x %s 0x%x ", id, str, mask);
-+	else {
-+		if (numeric == 0)
-+			name = xtables_lmap_id2name(devgroups, id);
-+		if (name)
-+			xt_buf_add(buf, "%s ", name);
-+		else
-+			xt_buf_add(buf, "%s0x%x ",
-+				   !strcmp(str, "==") ? "" : "!= ", id);
-+	}
++	if (mask != 0xffffffffU)
++		xt_buf_add(buf, " and 0x%x %s 0x%x ", mark, str, mask);
++	else
++		xt_buf_add(buf, " %s0x%x ",
++			   !strcmp(str, "==") ? "" : "!= ", mark);
 +}
 +
-+static void devgroup_show_xlate(const struct xt_devgroup_info *info,
-+				struct xt_buf *buf, int numeric)
-+{
-+	const char *str = "==";
-+
-+	if (info->flags & XT_DEVGROUP_MATCH_SRC) {
-+		if (info->flags & XT_DEVGROUP_INVERT_SRC)
-+			str = "!=";
-+		xt_buf_add(buf, "iifgroup ");
-+		print_devgroup_xlate(info->src_group, str,
-+				     info->src_mask, buf, numeric);
-+	}
-+
-+	if (info->flags & XT_DEVGROUP_MATCH_DST) {
-+		if (info->flags & XT_DEVGROUP_INVERT_DST)
-+			str = "!=";
-+		xt_buf_add(buf, "oifgroup ");
-+		print_devgroup_xlate(info->dst_group, str,
-+				     info->dst_mask, buf, numeric);
-+	}
-+}
-+
-+static int devgroup_xlate(const struct xt_entry_match *match,
++static int connmark_xlate(const struct xt_entry_match *match,
 +			  struct xt_buf *buf, int numeric)
 +{
-+	const struct xt_devgroup_info *info = (const void *)match->data;
++	const struct xt_connmark_info *info = (const void *)match->data;
++	const char *str = "==";
 +
-+	devgroup_show_xlate(info, buf, 0);
++	if (info->invert)
++		str = "!=";
++
++	xt_buf_add(buf, "ct mark");
++	print_mark_xlate(info->mark, info->mask, buf, str);
 +
 +	return 1;
 +}
 +
- static struct xtables_match devgroup_mt_reg = {
- 	.name		= "devgroup",
- 	.version	= XTABLES_VERSION,
-@@ -164,6 +216,7 @@ static struct xtables_match devgroup_mt_reg = {
- 	.x6_parse	= devgroup_parse,
- 	.x6_fcheck	= devgroup_check,
- 	.x6_options	= devgroup_opts,
-+	.xlate		= devgroup_xlate,
++static int
++connmark_mt_xlate(const struct xt_entry_match *match,
++		 struct xt_buf *buf, int numeric)
++{
++	const struct xt_connmark_mtinfo1 *info = (const void *)match->data;
++	const char *str = "==";
++
++	if (info->invert)
++		str = "!=";
++
++	xt_buf_add(buf, "ct mark");
++	print_mark_xlate(info->mark, info->mask, buf, str);
++
++	return 1;
++}
++
+ static struct xtables_match connmark_mt_reg[] = {
+ 	{
+ 		.family        = NFPROTO_UNSPEC,
+@@ -135,6 +178,7 @@ static struct xtables_match connmark_mt_reg[] = {
+ 		.save          = connmark_save,
+ 		.x6_parse      = connmark_parse,
+ 		.x6_options    = connmark_mt_opts,
++		.xlate	       = connmark_xlate,
+ 	},
+ 	{
+ 		.version       = XTABLES_VERSION,
+@@ -148,6 +192,7 @@ static struct xtables_match connmark_mt_reg[] = {
+ 		.save          = connmark_mt_save,
+ 		.x6_parse      = connmark_mt_parse,
+ 		.x6_options    = connmark_mt_opts,
++		.xlate	       = connmark_mt_xlate,
+ 	},
  };
  
- void _init(void)
 -- 
 1.9.1
 
