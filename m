@@ -1,164 +1,137 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: [PATCH 2/2] netfilter: implement xt_cgroup cgroup2 path match
-Date: Mon, 21 Dec 2015 16:55:01 -0500
-Message-ID: <20151221215501.GA25997@mtj.duckdns.org>
-References: <20151221215302.GT4026@mtj.duckdns.org>
+From: "Serge E. Hallyn" <serge.hallyn-GeWIH/nMZzLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 3/8] cgroup: implement cgroup_get_from_path() and expose
+ cgroup_put()
+Date: Mon, 21 Dec 2015 18:22:41 -0600
+Message-ID: <20151222002240.GA6682@mail.hallyn.com>
+References: <1449527935-27056-1-git-send-email-tj@kernel.org>
+ <1449527935-27056-4-git-send-email-tj@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yk0-f181.google.com ([209.85.160.181]:35443 "EHLO
-	mail-yk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752352AbbLUVzD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Dec 2015 16:55:03 -0500
-Received: by mail-yk0-f181.google.com with SMTP id v6so144575990ykc.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Dec 2015 13:55:02 -0800 (PST)
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org,
+	kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org,
+	daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org,
+	lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
+	cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	kernel-team-b10kYP2dOMg@public.gmane.org, ninasc-b10kYP2dOMg@public.gmane.org
+To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20151221215302.GT4026@mtj.duckdns.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1449527935-27056-4-git-send-email-tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This patch implements xt_cgroup path match which matches cgroup2
-membership of the associated socket.  The match is recursive and
-invertible.
+On Mon, Dec 07, 2015 at 05:38:50PM -0500, Tejun Heo wrote:
+> Implement cgroup_get_from_path() using kernfs_walk_and_get() which
+> obtains a default hierarchy cgroup from its path.  This will be used
+> to allow cgroup path based matching from outside cgroup proper -
+> e.g. networking and perf.
 
-For rationales on introducing another cgroup based match, please refer
-to a preceding commit "sock, cgroup: add sock->sk_cgroup".
+Hi Tejun,
 
-v3: Folded into xt_cgroup as a new revision interface as suggested by
-    Pablo.
+I'm trying to figure out how to handle this in the cgroup ns patchset.
+Is this going to be purely used internally?  From the user i see in
+this patchset it looks like I should leave it be (and have @path always
+be absolute)  Is that right?
 
-v2: Included linux/limits.h from xt_cgroup2.h for PATH_MAX.  Added
-    explicit alignment to the priv field.  Both suggested by Jan.
+thanks,
+-serge
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Daniel Wagner <daniel.wagner@bmw-carit.de>
-CC: Neil Horman <nhorman@tuxdriver.com>
-Cc: Jan Engelhardt <jengelh@inai.de>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/netfilter/xt_cgroup.h |   13 +++++
- net/netfilter/xt_cgroup.c                |   69 +++++++++++++++++++++++++++++++
- 2 files changed, 82 insertions(+)
-
---- a/include/uapi/linux/netfilter/xt_cgroup.h
-+++ b/include/uapi/linux/netfilter/xt_cgroup.h
-@@ -2,10 +2,23 @@
- #define _UAPI_XT_CGROUP_H
- 
- #include <linux/types.h>
-+#include <linux/limits.h>
- 
- struct xt_cgroup_info_v0 {
- 	__u32 id;
- 	__u32 invert;
- };
- 
-+struct xt_cgroup_info_v1 {
-+	__u8		has_path;
-+	__u8		has_classid;
-+	__u8		invert_path;
-+	__u8		invert_classid;
-+	char		path[PATH_MAX];
-+	__u32		classid;
-+
-+	/* kernel internal data */
-+	void		*priv __attribute__((aligned(8)));
-+};
-+
- #endif /* _UAPI_XT_CGROUP_H */
---- a/net/netfilter/xt_cgroup.c
-+++ b/net/netfilter/xt_cgroup.c
-@@ -34,6 +34,37 @@ static int cgroup_mt_check_v0(const stru
- 	return 0;
- }
- 
-+static int cgroup_mt_check_v1(const struct xt_mtchk_param *par)
-+{
-+	struct xt_cgroup_info_v1 *info = par->matchinfo;
-+	struct cgroup *cgrp;
-+
-+	if ((info->invert_path & ~1) || (info->invert_classid & ~1))
-+		return -EINVAL;
-+
-+	if (!info->has_path && !info->has_classid) {
-+		pr_info("xt_cgroup: no path or classid specified\n");
-+		return -EINVAL;
-+	}
-+
-+	if (info->has_path && info->has_classid) {
-+		pr_info("xt_cgroup: both path and classid specified\n");
-+		return -EINVAL;
-+	}
-+
-+	if (info->has_path) {
-+		cgrp = cgroup_get_from_path(info->path);
-+		if (IS_ERR(cgrp)) {
-+			pr_info("xt_cgroup: invalid path, errno=%ld\n",
-+				PTR_ERR(cgrp));
-+			return -EINVAL;
-+		}
-+		info->priv = cgrp;
-+	}
-+
-+	return 0;
-+}
-+
- static bool
- cgroup_mt_v0(const struct sk_buff *skb, struct xt_action_param *par)
- {
-@@ -46,6 +77,31 @@ cgroup_mt_v0(const struct sk_buff *skb,
- 		info->invert;
- }
- 
-+static bool cgroup_mt_v1(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	const struct xt_cgroup_info_v1 *info = par->matchinfo;
-+	struct sock_cgroup_data *skcd = &skb->sk->sk_cgrp_data;
-+	struct cgroup *ancestor = info->priv;
-+
-+	if (!skb->sk || !sk_fullsock(skb->sk))
-+		return false;
-+
-+	if (ancestor)
-+		return cgroup_is_descendant(sock_cgroup_ptr(skcd), ancestor) ^
-+			info->invert_path;
-+	else
-+		return (info->classid == sock_cgroup_classid(skcd)) ^
-+			info->invert_classid;
-+}
-+
-+static void cgroup_mt_destroy_v1(const struct xt_mtdtor_param *par)
-+{
-+	struct xt_cgroup_info_v1 *info = par->matchinfo;
-+
-+	if (info->priv)
-+		cgroup_put(info->priv);
-+}
-+
- static struct xt_match cgroup_mt_reg[] __read_mostly = {
- 	{
- 		.name		= "cgroup",
-@@ -57,6 +113,19 @@ static struct xt_match cgroup_mt_reg[] _
- 		.me		= THIS_MODULE,
- 		.hooks		= (1 << NF_INET_LOCAL_OUT) |
- 				  (1 << NF_INET_POST_ROUTING) |
-+				  (1 << NF_INET_LOCAL_IN),
-+	},
-+	{
-+		.name		= "cgroup",
-+		.revision	= 1,
-+		.family		= NFPROTO_UNSPEC,
-+		.checkentry	= cgroup_mt_check_v1,
-+		.match		= cgroup_mt_v1,
-+		.matchsize	= sizeof(struct xt_cgroup_info_v1),
-+		.destroy	= cgroup_mt_destroy_v1,
-+		.me		= THIS_MODULE,
-+		.hooks		= (1 << NF_INET_LOCAL_OUT) |
-+				  (1 << NF_INET_POST_ROUTING) |
- 				  (1 << NF_INET_LOCAL_IN),
- 	},
- };
+> v2: Add EXPORT_SYMBOL_GPL(cgroup_get_from_path).
+> 
+> Signed-off-by: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+>  include/linux/cgroup.h |  7 +++++++
+>  kernel/cgroup.c        | 39 ++++++++++++++++++++++++++++++++++-----
+>  2 files changed, 41 insertions(+), 5 deletions(-)
+> 
+> diff --git a/include/linux/cgroup.h b/include/linux/cgroup.h
+> index b5ee2c4..4c3ffab 100644
+> --- a/include/linux/cgroup.h
+> +++ b/include/linux/cgroup.h
+> @@ -81,6 +81,8 @@ struct cgroup_subsys_state *cgroup_get_e_css(struct cgroup *cgroup,
+>  struct cgroup_subsys_state *css_tryget_online_from_dir(struct dentry *dentry,
+>  						       struct cgroup_subsys *ss);
+>  
+> +struct cgroup *cgroup_get_from_path(const char *path);
+> +
+>  int cgroup_attach_task_all(struct task_struct *from, struct task_struct *);
+>  int cgroup_transfer_tasks(struct cgroup *to, struct cgroup *from);
+>  
+> @@ -351,6 +353,11 @@ static inline void css_put_many(struct cgroup_subsys_state *css, unsigned int n)
+>  		percpu_ref_put_many(&css->refcnt, n);
+>  }
+>  
+> +static inline void cgroup_put(struct cgroup *cgrp)
+> +{
+> +	css_put(&cgrp->self);
+> +}
+> +
+>  /**
+>   * task_css_set_check - obtain a task's css_set with extra access conditions
+>   * @task: the task to obtain css_set for
+> diff --git a/kernel/cgroup.c b/kernel/cgroup.c
+> index 3190040..3db5e8f 100644
+> --- a/kernel/cgroup.c
+> +++ b/kernel/cgroup.c
+> @@ -434,11 +434,6 @@ static bool cgroup_tryget(struct cgroup *cgrp)
+>  	return css_tryget(&cgrp->self);
+>  }
+>  
+> -static void cgroup_put(struct cgroup *cgrp)
+> -{
+> -	css_put(&cgrp->self);
+> -}
+> -
+>  struct cgroup_subsys_state *of_css(struct kernfs_open_file *of)
+>  {
+>  	struct cgroup *cgrp = of->kn->parent->priv;
+> @@ -5753,6 +5748,40 @@ struct cgroup_subsys_state *css_from_id(int id, struct cgroup_subsys *ss)
+>  	return id > 0 ? idr_find(&ss->css_idr, id) : NULL;
+>  }
+>  
+> +/**
+> + * cgroup_get_from_path - lookup and get a cgroup from its default hierarchy path
+> + * @path: path on the default hierarchy
+> + *
+> + * Find the cgroup at @path on the default hierarchy, increment its
+> + * reference count and return it.  Returns pointer to the found cgroup on
+> + * success, ERR_PTR(-ENOENT) if @path doens't exist and ERR_PTR(-ENOTDIR)
+> + * if @path points to a non-directory.
+> + */
+> +struct cgroup *cgroup_get_from_path(const char *path)
+> +{
+> +	struct kernfs_node *kn;
+> +	struct cgroup *cgrp;
+> +
+> +	mutex_lock(&cgroup_mutex);
+> +
+> +	kn = kernfs_walk_and_get(cgrp_dfl_root.cgrp.kn, path);
+> +	if (kn) {
+> +		if (kernfs_type(kn) == KERNFS_DIR) {
+> +			cgrp = kn->priv;
+> +			cgroup_get(cgrp);
+> +		} else {
+> +			cgrp = ERR_PTR(-ENOTDIR);
+> +		}
+> +		kernfs_put(kn);
+> +	} else {
+> +		cgrp = ERR_PTR(-ENOENT);
+> +	}
+> +
+> +	mutex_unlock(&cgroup_mutex);
+> +	return cgrp;
+> +}
+> +EXPORT_SYMBOL_GPL(cgroup_get_from_path);
+> +
+>  #ifdef CONFIG_CGROUP_DEBUG
+>  static struct cgroup_subsys_state *
+>  debug_css_alloc(struct cgroup_subsys_state *parent_css)
+> -- 
+> 2.5.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
