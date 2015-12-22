@@ -1,104 +1,75 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] extensions: libxt_mac: Add translation to nft
-Date: Tue, 22 Dec 2015 18:06:17 +0530
-Message-ID: <20151222123617.GA8413@gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [PATCH] extensions: libxt_NFLOG: Add translation to nft
+Date: Tue, 22 Dec 2015 13:40:34 +0100
+Message-ID: <CAOkSjBjHyw14nM1jYJ9dCO=N5Mq8MRUHO1dBkL1xrPCqFy5Fxw@mail.gmail.com>
+References: <20151221173559.GA8787@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Shivani Bhardwaj <shivanib134@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f182.google.com ([209.85.192.182]:35900 "EHLO
-	mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754476AbbLVMgY (ORCPT
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:38905 "EHLO
+	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932467AbbLVMky convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Dec 2015 07:36:24 -0500
-Received: by mail-pf0-f182.google.com with SMTP id o64so105943594pfb.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 04:36:23 -0800 (PST)
-Received: from gmail.com ([171.50.109.40])
-        by smtp.gmail.com with ESMTPSA id d26sm17166760pfb.22.2015.12.22.04.36.21
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Tue, 22 Dec 2015 04:36:22 -0800 (PST)
-Content-Disposition: inline
+	Tue, 22 Dec 2015 07:40:54 -0500
+Received: by mail-wm0-f51.google.com with SMTP id l126so109948058wml.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 04:40:54 -0800 (PST)
+In-Reply-To: <20151221173559.GA8787@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for module mac to nftables.
+On 21 December 2015 at 18:35, Shivani Bhardwaj <shivanib134@gmail.com> =
+wrote:
+> Add translation for NF Logging to nftables.
+>
+> Examples:
+>
+> $ sudo iptables-translate -A OUTPUT -j NFLOG --nflog-group 30
+> nft add rule ip filter OUTPUT counter log group 30
+>
+> $ sudo iptables-translate -A FORWARD -j NFLOG --nflog-group 32 --nflo=
+g-prefix "Prefix 1.0"
+> nft add rule ip filter FORWARD counter log prefix \"Prefix 1.0\" log =
+group 32
+>
 
-Examples:
+Hi Shivani,
 
-$ sudo iptables-translate -A INPUT -m mac --mac-source 0a:12:3e:4f:b2:c6 -j DROP
-nft add rule ip filter INPUT  ether saddr 0A:12:3E:4F:B2:C6 counter drop
+I think that rule should translate to:
+ nft add rule ip filter FORWARD counter log prefix \"Prefix 1.0\" group=
+ 32
 
-$ sudo iptables-translate -A INPUT -p tcp --dport 80 -m mac --mac-source 0a:12:3e:4f:b2:c6 -j ACCEPT
-nft add rule ip filter INPUT tcp dport 80  ether saddr 0A:12:3E:4F:B2:C6 counter accept
+so, avoid using multiple 'log' keywords, which will load several
+nftables log expressions.
 
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
----
- extensions/libxt_mac.c | 31 +++++++++++++++++++++++++++++--
- 1 file changed, 29 insertions(+), 2 deletions(-)
+>
+> +static void nflog_print_xlate(const struct xt_nflog_info *info,
+> +                             char *prefix, struct xt_buf *buf)
+> +{
+> +       if (info->prefix[0] !=3D '\0')
+> +               xt_buf_add(buf, "%slog prefix \\\"%s\\\" ",
+> +                          prefix, info->prefix);
+> +       if (info->group)
+> +               xt_buf_add(buf, "%slog group %u ", prefix, info->grou=
+p);
+> +       if (info->len)
+> +               xt_buf_add(buf, "%slog snaplen %u ", prefix, info->le=
+n);
+> +       if (info->threshold !=3D XT_NFLOG_DEFAULT_THRESHOLD)
+> +               xt_buf_add(buf, "%slog queue-threshold %u ",
+> +                          prefix, info->threshold);
+> +}
+> +
 
-diff --git a/extensions/libxt_mac.c b/extensions/libxt_mac.c
-index f171d15..8aae700 100644
---- a/extensions/libxt_mac.c
-+++ b/extensions/libxt_mac.c
-@@ -50,11 +50,12 @@ static void
- mac_print(const void *ip, const struct xt_entry_match *match, int numeric)
- {
- 	const struct xt_mac_info *info = (void *)match->data;
-+
- 	printf(" MAC");
- 
- 	if (info->invert)
- 		printf(" !");
--	
-+
- 	print_mac(info->srcaddr);
- }
- 
-@@ -69,9 +70,34 @@ static void mac_save(const void *ip, const struct xt_entry_match *match)
- 	print_mac(info->srcaddr);
- }
- 
-+static void print_mac_xlate(const unsigned char *macaddress,
-+			    struct xt_buf *buf)
-+{
-+	unsigned int i;
-+
-+	xt_buf_add(buf, " %02X", macaddress[0]);
-+	for (i = 1; i < ETH_ALEN; ++i)
-+		xt_buf_add(buf, ":%02X", macaddress[i]);
-+	xt_buf_add(buf, " ");
-+}
-+
-+static int mac_xlate(const struct xt_entry_match *match,
-+		     struct xt_buf *buf, int numeric)
-+{
-+	const struct xt_mac_info *info = (void *)match->data;
-+
-+	if (info->invert)
-+		xt_buf_add(buf, " !=");
-+
-+	xt_buf_add(buf, " ether saddr");
-+	print_mac_xlate(info->srcaddr, buf);
-+
-+	return 1;
-+}
-+
- static struct xtables_match mac_match = {
- 	.family		= NFPROTO_UNSPEC,
-- 	.name		= "mac",
-+	.name		= "mac",
- 	.version	= XTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_mac_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_mac_info)),
-@@ -80,6 +106,7 @@ static struct xtables_match mac_match = {
- 	.print		= mac_print,
- 	.save		= mac_save,
- 	.x6_options	= mac_opts,
-+	.xlate		= mac_xlate,
- };
- 
- void _init(void)
--- 
-1.9.1
+You may revisit this function.
 
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
