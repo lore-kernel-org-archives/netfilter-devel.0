@@ -1,55 +1,63 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] extensions: libxt_devgroup: Add translation to nft
-Date: Tue, 22 Dec 2015 18:29:08 +0100
-Message-ID: <20151222172908.GA21240@salvia>
-References: <20151220120336.GA27589@gmail.com>
- <20151222170012.GA20795@salvia>
- <CAKHNQQHYwBq-uaiFfT8cv6bWfEf17AM0y650VKJ8Rpg7B2pUmA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH 0/2] Netfilter fixes for net
+Date: Tue, 22 Dec 2015 18:53:15 +0100
+Message-ID: <1450806797-21788-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40013 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:44713 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933393AbbLVR3Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Dec 2015 12:29:24 -0500
+	id S932910AbbLVRxb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Dec 2015 12:53:31 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 0546D23CF71
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 18:29:21 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id 74BA123CF6D
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 18:53:30 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E21C0DA8EB
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 18:29:20 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 67365DA811
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 18:53:30 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id DA1FADA80B
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 18:29:13 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <CAKHNQQHYwBq-uaiFfT8cv6bWfEf17AM0y650VKJ8Rpg7B2pUmA@mail.gmail.com>
+	by antivirus1-rhel7.int (Postfix) with ESMTP id C12E0DA814
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 18:53:25 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 22, 2015 at 10:50:34PM +0530, Shivani Bhardwaj wrote:
-> On Tue, Dec 22, 2015 at 10:30 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Sun, Dec 20, 2015 at 05:33:37PM +0530, Shivani Bhardwaj wrote:
-> >> Add translation of device group to nftables.
-> >
-> > git am /tmp/extensions-libxt_devgroup-Add-translation-to-nft.patch -s
-> > Applying: extensions: libxt_devgroup: Add translation to nft
-> > error: patch failed: extensions/libxt_devgroup.c:37
-> > error: extensions/libxt_devgroup.c: patch does not apply
-> > Patch failed at 0001 extensions: libxt_devgroup: Add translation to nft
-> > The copy of the patch that failed is found in:
-> >    /home/pablo/devel/scm/git-netfilter/iptables/.git/rebase-apply/patch
-> > When you have resolved this problem, run "git am --continue".
-> > If you prefer to skip this patch, run "git am --skip" instead.
-> > To restore the original branch and stop patching, run "git am --abort".
-> >
-> > This one doesn't apply for some reason.
-> 
-> Should I be sending this one again then?
+Hi David,
 
-Of course. If you can't see a patch here:
+The following patchset contains two netfilter fixes:
 
-http://git.netfilter.org/iptables/log/?h=xlate3
+1) Oneliner from Florian to dump missing NFT_CT_L3PROTOCOL netlink
+   attribute, from Florian Westphal.
 
-Then it needs to be submitted again.
+2) Another oneliner for nf_tables to use skb->protocol from the new
+   netdev family, we can't assume ethernet there.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit 73796d8bf27372e26c2b79881947304c14c2d353:
+
+  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net (2015-12-17 14:05:22 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to d5f79b6e4d169039903cc869e16e59ad861dd479:
+
+  netfilter: nft_ct: include direction when dumping NFT_CT_L3PROTOCOL key (2015-12-18 14:45:45 +0100)
+
+----------------------------------------------------------------
+Florian Westphal (1):
+      netfilter: nft_ct: include direction when dumping NFT_CT_L3PROTOCOL key
+
+Pablo Neira Ayuso (1):
+      netfilter: nf_tables: use skb->protocol instead of assuming ethernet header
+
+ net/netfilter/nf_tables_netdev.c | 2 +-
+ net/netfilter/nft_ct.c           | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
