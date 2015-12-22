@@ -1,82 +1,125 @@
 From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] extensions: libxt_NFLOG: Add group_info and remove multiple
- keywords
-Date: Wed, 23 Dec 2015 01:32:46 +0530
-Message-ID: <20151222200246.GA11677@gmail.com>
+Subject: [PATCH v2] extensions: libxt_connmark: Add translation to nft
+Date: Wed, 23 Dec 2015 01:53:06 +0530
+Message-ID: <20151222202306.GA13145@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:34867 "EHLO
-	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933049AbbLVUCx (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33697 "EHLO
+	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753309AbbLVUXM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Dec 2015 15:02:53 -0500
-Received: by mail-pf0-f194.google.com with SMTP id e65so1777127pfe.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 12:02:53 -0800 (PST)
+	Tue, 22 Dec 2015 15:23:12 -0500
+Received: by mail-pf0-f195.google.com with SMTP id 78so2735811pfw.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 22 Dec 2015 12:23:12 -0800 (PST)
 Received: from gmail.com ([223.176.190.114])
-        by smtp.gmail.com with ESMTPSA id p83sm43020228pfi.96.2015.12.22.12.02.50
+        by smtp.gmail.com with ESMTPSA id i66sm9428054pfj.28.2015.12.22.12.23.10
         for <netfilter-devel@vger.kernel.org>
         (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Tue, 22 Dec 2015 12:02:52 -0800 (PST)
+        Tue, 22 Dec 2015 12:23:11 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add group_info with every rule as it is mandatory to consider logging to
-be same type as NFLOG.
-Remove multiple log keywords to avoid loading multiple log expressions
-at a time.
+Add translation for connmark to nftables.
 
 Examples:
 
-$ sudo iptables-translate -I INPUT -j NFLOG --nflog-threshold 2
-nft insert rule ip filter INPUT counter log queue-threshold 2 group 0
+$ sudo iptables-translate -A INPUT -m connmark --mark 10/10 -j ACCEPT
+nft add rule ip filter INPUT ct mark and 0xa == 0xa counter accept
 
-$ sudo iptables-translate -A FORWARD -j NFLOG --nflog-group 32 --nflog-prefix "Prefix 1.0"
-nft add rule ip filter FORWARD counter log prefix \"Prefix 1.0\" group 32
+$ sudo iptables-translate -A INPUT -m connmark ! --mark 10/10 -j ACCEPT
+nft add rule ip filter INPUT ct mark and 0xa != 0xa counter accept
+
+$ sudo iptables-translate -t mangle -A PREROUTING -p tcp --dport 40 -m connmark --mark 0x40
+nft add rule ip mangle PREROUTING tcp dport 40 ct mark 0x40 counter
 
 Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
 ---
- extensions/libxt_NFLOG.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+Changes in v2:
+	Fix coding errors for invert test case
 
-diff --git a/extensions/libxt_NFLOG.c b/extensions/libxt_NFLOG.c
-index 53976d2..e1c9f65 100644
---- a/extensions/libxt_NFLOG.c
-+++ b/extensions/libxt_NFLOG.c
-@@ -8,6 +8,8 @@
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_NFLOG.h>
- 
-+#define DEFAULT_GROUP 0
-+
- enum {
- 	O_GROUP = 0,
- 	O_PREFIX,
-@@ -89,14 +91,17 @@ static void NFLOG_save(const void *ip, const struct xt_entry_target *target)
- static void nflog_print_xlate(const struct xt_nflog_info *info,
- 			      struct xt_buf *buf)
- {
-+	xt_buf_add(buf, "log ");
- 	if (info->prefix[0] != '\0')
--		xt_buf_add(buf, "log prefix \\\"%s\\\" ", info->prefix);
--	if (info->group)
--		xt_buf_add(buf, "log group %u ", info->group);
-+		xt_buf_add(buf, "prefix \\\"%s\\\" ", info->prefix);
- 	if (info->len)
--		xt_buf_add(buf, "log snaplen %u ", info->len);
-+		xt_buf_add(buf, "snaplen %u ", info->len);
- 	if (info->threshold != XT_NFLOG_DEFAULT_THRESHOLD)
--		xt_buf_add(buf, "log queue-threshold %u ", info->threshold);
-+		xt_buf_add(buf, "queue-threshold %u ", info->threshold);
-+	if (info->group)
-+		xt_buf_add(buf, "group %u ", info->group);
-+	else
-+		xt_buf_add(buf, "group %u ", DEFAULT_GROUP);
+ extensions/libxt_connmark.c | 45 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 44 insertions(+), 1 deletion(-)
+
+diff --git a/extensions/libxt_connmark.c b/extensions/libxt_connmark.c
+index 95477de..385ed6e 100644
+--- a/extensions/libxt_connmark.c
++++ b/extensions/libxt_connmark.c
+@@ -89,7 +89,8 @@ connmark_print(const void *ip, const struct xt_entry_match *match, int numeric)
  }
  
- static int NFLOG_xlate(const struct xt_entry_target *target,
+ static void
+-connmark_mt_print(const void *ip, const struct xt_entry_match *match, int numeric)
++connmark_mt_print(const void *ip, const struct xt_entry_match *match,
++		  int numeric)
+ {
+ 	const struct xt_connmark_mtinfo1 *info = (const void *)match->data;
+ 
+@@ -122,6 +123,46 @@ connmark_mt_save(const void *ip, const struct xt_entry_match *match)
+ 	print_mark(info->mark, info->mask);
+ }
+ 
++static void print_mark_xlate(unsigned int mark, unsigned int mask,
++			     struct xt_buf *buf, const char *str)
++{
++	if (mask != 0xffffffffU)
++		xt_buf_add(buf, " and 0x%x %s 0x%x ", mark, str, mask);
++	else
++		xt_buf_add(buf, " 0x%x ", mark);
++}
++
++static int connmark_xlate(const struct xt_entry_match *match,
++			  struct xt_buf *buf, int numeric)
++{
++	const struct xt_connmark_info *info = (const void *)match->data;
++	const char *str = "==";
++
++	if (info->invert)
++		str = "!=";
++
++	xt_buf_add(buf, "ct mark");
++	print_mark_xlate(info->mark, info->mask, buf, str);
++
++	return 1;
++}
++
++static int
++connmark_mt_xlate(const struct xt_entry_match *match,
++		 struct xt_buf *buf, int numeric)
++{
++	const struct xt_connmark_mtinfo1 *info = (const void *)match->data;
++	const char *str = "==";
++
++	if (info->invert)
++		str = "!=";
++
++	xt_buf_add(buf, "ct mark");
++	print_mark_xlate(info->mark, info->mask, buf, str);
++
++	return 1;
++}
++
+ static struct xtables_match connmark_mt_reg[] = {
+ 	{
+ 		.family        = NFPROTO_UNSPEC,
+@@ -135,6 +176,7 @@ static struct xtables_match connmark_mt_reg[] = {
+ 		.save          = connmark_save,
+ 		.x6_parse      = connmark_parse,
+ 		.x6_options    = connmark_mt_opts,
++		.xlate	       = connmark_xlate,
+ 	},
+ 	{
+ 		.version       = XTABLES_VERSION,
+@@ -148,6 +190,7 @@ static struct xtables_match connmark_mt_reg[] = {
+ 		.save          = connmark_mt_save,
+ 		.x6_parse      = connmark_mt_parse,
+ 		.x6_options    = connmark_mt_opts,
++		.xlate	       = connmark_mt_xlate,
+ 	},
+ };
+ 
 -- 
 1.9.1
 
