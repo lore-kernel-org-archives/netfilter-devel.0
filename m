@@ -1,101 +1,58 @@
 From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH v2] extensions: libxt_mark: Fix inversion code
-Date: Wed, 23 Dec 2015 19:43:19 +0530
-Message-ID: <20151223141318.GA15560@gmail.com>
+Subject: [PATCH] include: xtables: Add enum for better nft translation code
+Date: Wed, 23 Dec 2015 19:51:33 +0530
+Message-ID: <20151223142132.GA15698@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f169.google.com ([209.85.192.169]:36025 "EHLO
-	mail-pf0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751075AbbLWON0 (ORCPT
+Received: from mail-pf0-f171.google.com ([209.85.192.171]:36229 "EHLO
+	mail-pf0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750710AbbLWOVj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Dec 2015 09:13:26 -0500
-Received: by mail-pf0-f169.google.com with SMTP id 65so8924414pff.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Dec 2015 06:13:25 -0800 (PST)
+	Wed, 23 Dec 2015 09:21:39 -0500
+Received: by mail-pf0-f171.google.com with SMTP id 65so9012329pff.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Dec 2015 06:21:39 -0800 (PST)
 Received: from gmail.com ([223.176.140.7])
-        by smtp.gmail.com with ESMTPSA id n3sm48360586pfa.79.2015.12.23.06.13.23
+        by smtp.gmail.com with ESMTPSA id 2sm48416383pfl.56.2015.12.23.06.21.37
         for <netfilter-devel@vger.kernel.org>
         (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Wed, 23 Dec 2015 06:13:24 -0800 (PST)
+        Wed, 23 Dec 2015 06:21:38 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix the code associated with invert flag.
-
-Examples:
-
-$ sudo iptables-translate -I INPUT -p tcp -m mark ! --mark 0xa/0xa
-nft insert rule ip filter INPUT ip protocol tcp mark and 0xa != 0xa counter
-
-$ sudo iptables-translate -I INPUT -p tcp -m mark ! --mark 0x1
-nft insert rule ip filter INPUT ip protocol tcp mark != 0x1 counter
+Add enum xt_op for ease to write cleaner and better code for
+nft translation.
 
 Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
 ---
-Changes in v2:
-	Replace string with enum to make code look better
+ include/xtables.h | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
- extensions/libxt_mark.c | 26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
-
-diff --git a/extensions/libxt_mark.c b/extensions/libxt_mark.c
-index 3b96a34..93d38d9 100644
---- a/extensions/libxt_mark.c
-+++ b/extensions/libxt_mark.c
-@@ -103,13 +103,15 @@ mark_save(const void *ip, const struct xt_entry_match *match)
- }
+diff --git a/include/xtables.h b/include/xtables.h
+index 7d97baa..0355057 100644
+--- a/include/xtables.h
++++ b/include/xtables.h
+@@ -414,6 +414,18 @@ struct xtables_globals
+ 	int (*compat_rev)(const char *name, uint8_t rev, int opt);
+ };
  
- static void
--print_mark_xlate(struct xt_buf *buf,
--		 unsigned int mark, unsigned int mask)
-+print_mark_xlate(struct xt_buf *buf, unsigned int mark,
-+		 unsigned int mask, uint32_t op)
- {
- 	if (mask != 0xffffffffU)
--		xt_buf_add(buf, " and 0x%x == 0x%x ", mark, mask);
-+		xt_buf_add(buf, " and 0x%x %s 0x%x ", mark,
-+			   op == XT_OP_EQ ? "==" : "!=", mask);
- 	else
--		xt_buf_add(buf, " 0x%x ", mark);
-+		xt_buf_add(buf, " %s0x%x ",
-+			   op == XT_OP_EQ ? "" : "!= ", mark);
- }
- 
- static int
-@@ -117,9 +119,13 @@ mark_mt_xlate(const struct xt_entry_match *match,
- 	      struct xt_buf *buf, int numeric)
- {
- 	const struct xt_mark_mtinfo1 *info = (const void *)match->data;
-+	enum xt_op op = XT_OP_EQ;
- 
--	xt_buf_add(buf, "mark%s", info->invert ? " !=" : "");
--	print_mark_xlate(buf, info->mark, info->mask);
-+	if (info->invert)
-+		op = XT_OP_NEQ;
++/*
++ * enum op-
++ *
++ * For writing clean nftables translations code
++ */
 +
-+	xt_buf_add(buf, "mark");
-+	print_mark_xlate(buf, info->mark, info->mask, op);
- 
- 	return 1;
- }
-@@ -129,9 +135,13 @@ mark_xlate(const struct xt_entry_match *match,
- 	   struct xt_buf *buf, int numeric)
- {
- 	const struct xt_mark_info *info = (const void *)match->data;
-+	enum xt_op op = XT_OP_EQ;
++enum xt_op {
++	XT_OP_EQ,
++	XT_OP_NEQ,
++	XT_OP_MAX,
++};
 +
-+	if (info->invert)
-+		op = XT_OP_NEQ;
+ #define XT_GETOPT_TABLEEND {.name = NULL, .has_arg = false}
  
--	xt_buf_add(buf, "mark%s", info->invert ? " !=" : "");
--	print_mark_xlate(buf, info->mark, info->mask);
-+	xt_buf_add(buf, "mark");
-+	print_mark_xlate(buf, info->mark, info->mask, op);
- 
- 	return 1;
- }
+ #ifdef __cplusplus
 -- 
 1.9.1
 
