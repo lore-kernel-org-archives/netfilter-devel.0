@@ -1,72 +1,104 @@
 From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] extensions: libxt_cpu: Add translation to nft
-Date: Wed, 23 Dec 2015 22:11:58 +0530
-Message-ID: <20151223164158.GA19616@gmail.com>
+Subject: [PATCH] extensions: libxt_pkttype: Add translation to nft
+Date: Wed, 23 Dec 2015 23:00:25 +0530
+Message-ID: <20151223173024.GA2450@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:36053 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752358AbbLWQmG (ORCPT
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:34262 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933078AbbLWRab (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Dec 2015 11:42:06 -0500
-Received: by mail-pa0-f48.google.com with SMTP id q3so114727912pav.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Dec 2015 08:42:05 -0800 (PST)
-Received: from gmail.com ([106.212.16.211])
-        by smtp.gmail.com with ESMTPSA id zu6sm36578648pac.8.2015.12.23.08.42.02
+	Wed, 23 Dec 2015 12:30:31 -0500
+Received: by mail-pa0-f49.google.com with SMTP id uo6so30989824pac.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Dec 2015 09:30:31 -0800 (PST)
+Received: from gmail.com ([223.176.154.121])
+        by smtp.gmail.com with ESMTPSA id wo3sm53936566pab.25.2015.12.23.09.30.28
         for <netfilter-devel@vger.kernel.org>
         (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Wed, 23 Dec 2015 08:42:03 -0800 (PST)
+        Wed, 23 Dec 2015 09:30:30 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for module cpu to nftables.
+Add translation for packet type to nftables.
 
 Examples:
 
-$ sudo iptables-translate -A INPUT -p tcp --dport 80 -m cpu --cpu 0 -j ACCEPT
-nft add rule ip filter INPUT tcp dport 80 cpu 0 counter accept
+$ sudo iptables-translate -A INPUT -m pkttype --pkt-type broadcast -j DROP
+nft add rule ip filter INPUT pkttype broadcast counter drop
 
-$ sudo iptables-translate -A INPUT -p tcp --dport 80 -m cpu ! --cpu 1 -j ACCEPT
-nft add rule ip filter INPUT tcp dport 80 cpu != 1 counter accept
+$ sudo iptables-translate -A INPUT -m pkttype ! --pkt-type unicast -j DROP
+nft add rule ip filter INPUT pkttype != unicast counter drop
 
 Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
 ---
- extensions/libxt_cpu.c | 13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ extensions/libxt_pkttype.c | 36 ++++++++++++++++++++++++++++++++++--
+ 1 file changed, 34 insertions(+), 2 deletions(-)
 
-diff --git a/extensions/libxt_cpu.c b/extensions/libxt_cpu.c
-index 404a6a6..74e6077 100644
---- a/extensions/libxt_cpu.c
-+++ b/extensions/libxt_cpu.c
-@@ -44,9 +44,19 @@ static void cpu_save(const void *ip, const struct xt_entry_match *match)
- 	printf("%s --cpu %u", info->invert ? " !" : "", info->cpu);
+diff --git a/extensions/libxt_pkttype.c b/extensions/libxt_pkttype.c
+index 1ed3b44..6b91e8a 100644
+--- a/extensions/libxt_pkttype.c
++++ b/extensions/libxt_pkttype.c
+@@ -102,7 +102,7 @@ static void pkttype_print(const void *ip, const struct xt_entry_match *match,
+                           int numeric)
+ {
+ 	const struct xt_pkttype_info *info = (const void *)match->data;
+-	
++
+ 	printf(" PKTTYPE %s= ", info->invert ? "!" : "");
+ 	print_pkttype(info);
+ }
+@@ -110,11 +110,42 @@ static void pkttype_print(const void *ip, const struct xt_entry_match *match,
+ static void pkttype_save(const void *ip, const struct xt_entry_match *match)
+ {
+ 	const struct xt_pkttype_info *info = (const void *)match->data;
+-	
++
+ 	printf("%s --pkt-type ", info->invert ? " !" : "");
+ 	print_pkttype(info);
  }
  
-+static int cpu_xlate(const struct xt_entry_match *match,
-+		     struct xt_buf *buf, int numeric)
-+{
-+	const struct xt_cpu_info *info = (void *)match->data;
++static const struct pkttypes supported_types_xlate[] = {
++	{"unicast", PACKET_HOST, 1, "to us"},
++	{"broadcast", PACKET_BROADCAST, 1, "to all"},
++	{"multicast", PACKET_MULTICAST, 1, "to group"},
++	};
 +
-+	xt_buf_add(buf, "cpu%s %u ", info->invert ? " !=" : "", info->cpu);
++static void print_pkttype_xlate(const struct xt_pkttype_info *info,
++				struct xt_buf *buf)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(supported_types); ++i)
++		if (supported_types_xlate[i].pkttype == info->pkttype) {
++			xt_buf_add(buf, "%s ", supported_types_xlate[i].name);
++			return;
++		}
++
++	xt_buf_add(buf, "%d", info->pkttype);
++}
++
++static int pkttype_xlate(const struct xt_entry_match *match,
++			  struct xt_buf *buf, int numeric)
++{
++	const struct xt_pkttype_info *info = (const void *)match->data;
++
++	xt_buf_add(buf, "pkttype%s ", info->invert ? " !=" : "");
++	print_pkttype_xlate(info, buf);
 +
 +	return 1;
 +}
 +
- static struct xtables_match cpu_match = {
+ static struct xtables_match pkttype_match = {
  	.family		= NFPROTO_UNSPEC,
-- 	.name		= "cpu",
-+	.name		= "cpu",
- 	.version	= XTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_cpu_info)),
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_cpu_info)),
-@@ -55,6 +65,7 @@ static struct xtables_match cpu_match = {
- 	.save		= cpu_save,
- 	.x6_parse	= cpu_parse,
- 	.x6_options	= cpu_opts,
-+	.xlate		= cpu_xlate,
+ 	.name		= "pkttype",
+@@ -126,6 +157,7 @@ static struct xtables_match pkttype_match = {
+ 	.save		= pkttype_save,
+ 	.x6_parse	= pkttype_parse,
+ 	.x6_options	= pkttype_opts,
++	.xlate		= pkttype_xlate,
  };
  
  void _init(void)
