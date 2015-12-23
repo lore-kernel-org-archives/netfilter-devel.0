@@ -1,60 +1,72 @@
 From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: Re: [PATCH] extensions: libxt_helper: Add translation to nft
-Date: Wed, 23 Dec 2015 15:32:54 +0530
-Message-ID: <CAKHNQQFXEZiQPwKO2g3NsDdQyvcBnJqv=8xYa7+sbyj25t+uFg@mail.gmail.com>
-References: <20151223095347.GA5866@gmail.com> <20151223100158.GA1952@salvia>
+Subject: [PATCH v2] extensions: libxt_helper: Add translation to nft
+Date: Wed, 23 Dec 2015 15:38:40 +0530
+Message-ID: <20151223100840.GA6413@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:35870 "EHLO
-	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933904AbbLWKDP (ORCPT
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:33034 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932166AbbLWKIr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Dec 2015 05:03:15 -0500
-Received: by mail-wm0-f54.google.com with SMTP id p187so139914448wmp.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Dec 2015 02:03:14 -0800 (PST)
-In-Reply-To: <20151223100158.GA1952@salvia>
+	Wed, 23 Dec 2015 05:08:47 -0500
+Received: by mail-pa0-f49.google.com with SMTP id cy9so48861450pac.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Dec 2015 02:08:46 -0800 (PST)
+Received: from gmail.com ([106.203.193.102])
+        by smtp.gmail.com with ESMTPSA id g10sm46847622pfj.15.2015.12.23.02.08.44
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Wed, 23 Dec 2015 02:08:45 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Dec 23, 2015 at 3:31 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Dec 23, 2015 at 03:23:47PM +0530, Shivani Bhardwaj wrote:
->> Add translation for helper module to nftables.
->>
->> Examples:
->>
->> $ sudo iptables-translate -A FORWARD -m helper --helper sip
->> nft add rule ip filter FORWARD ct helper \"sip\" counter
->>
->> $ sudo iptables-translate -A FORWARD -m helper ! --helper ftp
->> nft add rule ip filter FORWARD ct helper != \"ftp\" counter
->>
->> Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
->> ---
->>  extensions/libxt_helper.c | 14 ++++++++++++++
->>  1 file changed, 14 insertions(+)
->>
->> diff --git a/extensions/libxt_helper.c b/extensions/libxt_helper.c
->> index c9f9435..5f1d8b1 100644
->> --- a/extensions/libxt_helper.c
->> +++ b/extensions/libxt_helper.c
->> @@ -45,6 +45,19 @@ static void helper_save(const void *ip, const struct xt_entry_match *match)
->>       xtables_save_string(info->name);
->>  }
->>
->> +static int helper_xlate(const struct xt_entry_match *match,
->> +                     struct xt_buf *buf, int numeric)
->> +{
->> +     const struct xt_helper_info *info = (const void *)match->data;
->> +
->> +     xt_buf_add(buf, "ct helper");
->> +
->> +     xt_buf_add(buf, "%s \\\"%s\\\" ",
->> +                info->invert ? " !=" : "", info->name);
->
-> You can place this in one single call of xt_buf_add(), right?
+Add translation for helper module to nftables.
 
-Sending v2.
-Thank you
+Examples:
+
+$ sudo iptables-translate -A FORWARD -m helper --helper sip
+nft add rule ip filter FORWARD ct helper \"sip\" counter
+
+$ sudo iptables-translate -A FORWARD -m helper ! --helper ftp
+nft add rule ip filter FORWARD ct helper != \"ftp\" counter
+
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+ extensions/libxt_helper.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/extensions/libxt_helper.c b/extensions/libxt_helper.c
+index c9f9435..971ce4a 100644
+--- a/extensions/libxt_helper.c
++++ b/extensions/libxt_helper.c
+@@ -45,6 +45,17 @@ static void helper_save(const void *ip, const struct xt_entry_match *match)
+ 	xtables_save_string(info->name);
+ }
+ 
++static int helper_xlate(const struct xt_entry_match *match,
++			struct xt_buf *buf, int numeric)
++{
++	const struct xt_helper_info *info = (const void *)match->data;
++
++	xt_buf_add(buf, "ct helper%s \\\"%s\\\" ",
++		   info->invert ? " !=" : "", info->name);
++
++	return 1;
++}
++
+ static struct xtables_match helper_match = {
+ 	.family		= NFPROTO_UNSPEC,
+ 	.name		= "helper",
+@@ -55,6 +66,7 @@ static struct xtables_match helper_match = {
+ 	.save		= helper_save,
+ 	.x6_parse	= helper_parse,
+ 	.x6_options	= helper_opts,
++	.xlate		= helper_xlate,
+ };
+ 
+ void _init(void)
+-- 
+1.9.1
+
