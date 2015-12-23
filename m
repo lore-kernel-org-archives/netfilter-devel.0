@@ -1,40 +1,75 @@
 From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: Re: [PATCH] extensions: libxt_MARK: Add translation to nft
-Date: Wed, 23 Dec 2015 21:52:36 +0530
-Message-ID: <CAKHNQQEKcVZs6bnEvR=cPeuGJNrfL1zUQVO=oa3QdR+pCvKjNQ@mail.gmail.com>
-References: <20151223153353.GA17748@gmail.com> <alpine.LSU.2.20.1512231714490.9969@nerf40.vanv.qr>
+Subject: [PATCH] extensions: libxt_cpu: Add translation to nft
+Date: Wed, 23 Dec 2015 22:11:58 +0530
+Message-ID: <20151223164158.GA19616@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:38517 "EHLO
-	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752681AbbLWQW5 (ORCPT
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:36053 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752358AbbLWQmG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Dec 2015 11:22:57 -0500
-Received: by mail-wm0-f51.google.com with SMTP id l126so156186643wml.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Dec 2015 08:22:57 -0800 (PST)
-In-Reply-To: <alpine.LSU.2.20.1512231714490.9969@nerf40.vanv.qr>
+	Wed, 23 Dec 2015 11:42:06 -0500
+Received: by mail-pa0-f48.google.com with SMTP id q3so114727912pav.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Dec 2015 08:42:05 -0800 (PST)
+Received: from gmail.com ([106.212.16.211])
+        by smtp.gmail.com with ESMTPSA id zu6sm36578648pac.8.2015.12.23.08.42.02
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Wed, 23 Dec 2015 08:42:03 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Dec 23, 2015 at 9:45 PM, Jan Engelhardt <jengelh@inai.de> wrote:
->
-> On Wednesday 2015-12-23 16:33, Shivani Bhardwaj wrote:
->>+++ b/extensions/libxt_MARK.c
->>@@ -242,7 +242,24 @@ static void mark_tg_save(const void *ip, const struct xt_entry_target *target)
->> {
->>       const struct xt_mark_tginfo2 *info = (const void *)target->data;
->>
->>-      printf(" --set-xmark 0x%x/0x%x", info->mark, info->mask);
->>+      printf(" --set mark 0x%x/0x%x", info->mark, info->mask);
->>+}
->
-> This looks like it will break regular iptables.
+Add translation for module cpu to nftables.
 
-This is my mistake. I'm correcting this. Could you please tell about
-the options or-, and-, mark? Does nftables have an option
-corresponding to these?
+Examples:
 
-Thank you
+$ sudo iptables-translate -A INPUT -p tcp --dport 80 -m cpu --cpu 0 -j ACCEPT
+nft add rule ip filter INPUT tcp dport 80 cpu 0 counter accept
+
+$ sudo iptables-translate -A INPUT -p tcp --dport 80 -m cpu ! --cpu 1 -j ACCEPT
+nft add rule ip filter INPUT tcp dport 80 cpu != 1 counter accept
+
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+ extensions/libxt_cpu.c | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/extensions/libxt_cpu.c b/extensions/libxt_cpu.c
+index 404a6a6..74e6077 100644
+--- a/extensions/libxt_cpu.c
++++ b/extensions/libxt_cpu.c
+@@ -44,9 +44,19 @@ static void cpu_save(const void *ip, const struct xt_entry_match *match)
+ 	printf("%s --cpu %u", info->invert ? " !" : "", info->cpu);
+ }
+ 
++static int cpu_xlate(const struct xt_entry_match *match,
++		     struct xt_buf *buf, int numeric)
++{
++	const struct xt_cpu_info *info = (void *)match->data;
++
++	xt_buf_add(buf, "cpu%s %u ", info->invert ? " !=" : "", info->cpu);
++
++	return 1;
++}
++
+ static struct xtables_match cpu_match = {
+ 	.family		= NFPROTO_UNSPEC,
+- 	.name		= "cpu",
++	.name		= "cpu",
+ 	.version	= XTABLES_VERSION,
+ 	.size		= XT_ALIGN(sizeof(struct xt_cpu_info)),
+ 	.userspacesize	= XT_ALIGN(sizeof(struct xt_cpu_info)),
+@@ -55,6 +65,7 @@ static struct xtables_match cpu_match = {
+ 	.save		= cpu_save,
+ 	.x6_parse	= cpu_parse,
+ 	.x6_options	= cpu_opts,
++	.xlate		= cpu_xlate,
+ };
+ 
+ void _init(void)
+-- 
+1.9.1
+
