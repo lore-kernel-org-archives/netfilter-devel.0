@@ -1,75 +1,107 @@
 From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: Re: [PATCH v3] extensions: libxt_connmark: Add translation to nft
-Date: Fri, 25 Dec 2015 20:09:40 +0530
-Message-ID: <CAKHNQQGsMzYtziBfCQzdUXeNORaQys7UdCv_DPqiBoPKuvH8nw@mail.gmail.com>
-References: <20151223143333.GA16694@gmail.com> <20151225121352.GA4822@salvia>
+Subject: [PATCH v2] extensions: libxt_pkttype: Add translation to nft
+Date: Fri, 25 Dec 2015 20:37:33 +0530
+Message-ID: <20151225150733.GA3105@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:36941 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752925AbbLYOkB (ORCPT
+Received: from mail-pf0-f169.google.com ([209.85.192.169]:36165 "EHLO
+	mail-pf0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753048AbbLYPHk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Dec 2015 09:40:01 -0500
-Received: by mail-wm0-f47.google.com with SMTP id p187so207189685wmp.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 25 Dec 2015 06:40:00 -0800 (PST)
-In-Reply-To: <20151225121352.GA4822@salvia>
+	Fri, 25 Dec 2015 10:07:40 -0500
+Received: by mail-pf0-f169.google.com with SMTP id 65so36946787pff.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 25 Dec 2015 07:07:40 -0800 (PST)
+Received: from gmail.com ([106.204.178.37])
+        by smtp.gmail.com with ESMTPSA id t85sm60225381pfa.34.2015.12.25.07.07.37
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Fri, 25 Dec 2015 07:07:38 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Dec 25, 2015 at 5:43 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Dec 23, 2015 at 08:03:33PM +0530, Shivani Bhardwaj wrote:
->>  static struct xtables_match connmark_mt_reg[] = {
->>       {
->>               .family        = NFPROTO_UNSPEC,
->> @@ -135,6 +178,7 @@ static struct xtables_match connmark_mt_reg[] = {
->>               .save          = connmark_save,
->>               .x6_parse      = connmark_parse,
->>               .x6_options    = connmark_mt_opts,
->> +             .xlate         = connmark_xlate,
->>       },
->>       {
->>               .version       = XTABLES_VERSION,
->> @@ -148,6 +192,7 @@ static struct xtables_match connmark_mt_reg[] = {
->>               .save          = connmark_mt_save,
->>               .x6_parse      = connmark_mt_parse,
->>               .x6_options    = connmark_mt_opts,
->> +             .xlate         = connmark_mt_xlate,
->
-> Careful.
->
-> The different revisions use different structure definitions, ie. the
-> structure binary layout is different, therefore you cannot reuse the
-> same connmark_mt_xlate() for the two different revision.
->
-> Let me make sure I clarify this, this is revision 0:
->
-> struct xt_connmark_info {
->         unsigned long mark, mask;
->         uint8_t invert;
-> };
->
-> This is revision 1:
->
-> struct xt_connmark_mtinfo1 {
->         __u32 mark, mask;
->         __u8 invert;
-> };
->
-> The size of unsigned long depends on the architecture, so this code
-> will not work correctly.
->
-> You have to add a connmark_mt_xlate_v0() and connmark_mt_xlate_v1(),
-> in each of these functions you have to cast data to the right
-> structure layout.
->
-> Thanks.
+Add translation for packet type to nftables.
 
-Thanks for explaining. I understand it now but why is this patch
-wrong? I have used connmark_xlate() and connmark_mt_xlate() in their
-respective places. Do I still get it wrong?
+Examples:
 
-I'm correcting this mistake for MARK.
-Thank you
+$ sudo iptables-translate -A INPUT -m pkttype --pkt-type broadcast -j DROP
+nft add rule ip filter INPUT pkttype broadcast counter drop
+
+$ sudo iptables-translate -A INPUT -m pkttype ! --pkt-type unicast -j DROP
+nft add rule ip filter INPUT pkttype != unicast counter drop
+
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+Changes in v2:
+	Add new structure to remove unneeded parameters
+
+ extensions/libxt_pkttype.c | 37 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+
+diff --git a/extensions/libxt_pkttype.c b/extensions/libxt_pkttype.c
+index 1ed3b44..9dff248 100644
+--- a/extensions/libxt_pkttype.c
++++ b/extensions/libxt_pkttype.c
+@@ -21,6 +21,11 @@ struct pkttypes {
+ 	const char *help;
+ };
+ 
++struct pkttypes_xlate {
++	const char *name;
++	unsigned char pkttype;
++};
++
+ static const struct pkttypes supported_types[] = {
+ 	{"unicast", PACKET_HOST, 1, "to us"},
+ 	{"broadcast", PACKET_BROADCAST, 1, "to all"},
+@@ -115,6 +120,37 @@ static void pkttype_save(const void *ip, const struct xt_entry_match *match)
+ 	print_pkttype(info);
+ }
+ 
++static const struct pkttypes_xlate supported_types_xlate[] = {
++	{"unicast",	PACKET_HOST},
++	{"broadcast",	PACKET_BROADCAST},
++	{"multicast",	PACKET_MULTICAST},
++};
++
++static void print_pkttype_xlate(const struct xt_pkttype_info *info,
++				struct xt_buf *buf)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(supported_types_xlate); ++i)
++		if (supported_types_xlate[i].pkttype == info->pkttype) {
++			xt_buf_add(buf, "%s ", supported_types_xlate[i].name);
++			return;
++		}
++
++	xt_buf_add(buf, "%d", info->pkttype);
++}
++
++static int pkttype_xlate(const struct xt_entry_match *match,
++			  struct xt_buf *buf, int numeric)
++{
++	const struct xt_pkttype_info *info = (const void *)match->data;
++
++	xt_buf_add(buf, "pkttype%s ", info->invert ? " !=" : "");
++	print_pkttype_xlate(info, buf);
++
++	return 1;
++}
++
+ static struct xtables_match pkttype_match = {
+ 	.family		= NFPROTO_UNSPEC,
+ 	.name		= "pkttype",
+@@ -126,6 +162,7 @@ static struct xtables_match pkttype_match = {
+ 	.save		= pkttype_save,
+ 	.x6_parse	= pkttype_parse,
+ 	.x6_options	= pkttype_opts,
++	.xlate		= pkttype_xlate,
+ };
+ 
+ void _init(void)
+-- 
+1.9.1
+
