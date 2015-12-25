@@ -1,32 +1,92 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] tests/shell: add tests for handles and comments
-Date: Fri, 25 Dec 2015 13:17:08 +0100
-Message-ID: <20151225121708.GA5109@salvia>
-References: <145087676257.18415.12296398243898533136.stgit@r2d2.cica.es>
+From: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
+Subject: Re: [PATCH net-next v5 2/8] netfilter: Factor out
+	nf_ct_get_info().
+Date: Fri, 25 Dec 2015 13:30:29 +0100
+Message-ID: <20151225123029.GA7352@salvia>
+References: <1450312607-44050-1-git-send-email-jarno@ovn.org>
+ <1450312607-44050-3-git-send-email-jarno@ovn.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47025 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752470AbbLYMRN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Dec 2015 07:17:13 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 311317B544
-	for <netfilter-devel@vger.kernel.org>; Fri, 25 Dec 2015 13:17:12 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 23A7ADA7E0
-	for <netfilter-devel@vger.kernel.org>; Fri, 25 Dec 2015 13:17:12 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id CC536DA7FF
-	for <netfilter-devel@vger.kernel.org>; Fri, 25 Dec 2015 13:17:09 +0100 (CET)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarno Rajahalme <jarno-LZ6Gd1LRuIk@public.gmane.org>
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <145087676257.18415.12296398243898533136.stgit@r2d2.cica.es>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1450312607-44050-3-git-send-email-jarno-LZ6Gd1LRuIk@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Dec 23, 2015 at 02:19:22PM +0100, Arturo Borrero Gonzalez wrote:
-> Here some tests for optional things like rule handles and comments.
-
-Applied, thanks Arturo.
+T24gV2VkLCBEZWMgMTYsIDIwMTUgYXQgMDQ6MzY6NDFQTSAtMDgwMCwgSmFybm8gUmFqYWhhbG1l
+IHdyb3RlOgo+IERlZmluZSBhIG5ldyBpbmxpbmUgZnVuY3Rpb24gdG8gbWFwIGNvbm50cmFjayBz
+dGF0dXMgdG8gZW51bQo+IGlwX2Nvbm50cmFja19pbmZvLiAgVGhpcyByZW1vdmVzIHRoZSBuZWVk
+IHRvIG90aGVyd2lzZSBkdXBsaWNhdGUgdGhpcwo+IGNvZGUgaW4gYSBsYXRlciBwYXRjaCAoIm9w
+ZW52c3dpdGNoOiBGaW5kIGV4aXN0aW5nIGNvbm50cmFjayBlbnRyeQo+IGFmdGVyIHVwY2FsbC4i
+KS4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBKYXJubyBSYWphaGFsbWUgPGphcm5vQG92bi5vcmc+Cj4g
+LS0tCj4gIGluY2x1ZGUvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2suaCB8IDE1ICsrKysrKysr
+KysrKysrKwo+ICBuZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19jb3JlLmMgICAgfCAyOCArKysr
+KysrKystLS0tLS0tLS0tLS0tLS0tLS0tCj4gIDIgZmlsZXMgY2hhbmdlZCwgMjQgaW5zZXJ0aW9u
+cygrKSwgMTkgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbmV0L25ldGZp
+bHRlci9uZl9jb25udHJhY2suaCBiL2luY2x1ZGUvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2su
+aAo+IGluZGV4IGZkZTQwNjguLmIzZGUxMGUgMTAwNjQ0Cj4gLS0tIGEvaW5jbHVkZS9uZXQvbmV0
+ZmlsdGVyL25mX2Nvbm50cmFjay5oCj4gKysrIGIvaW5jbHVkZS9uZXQvbmV0ZmlsdGVyL25mX2Nv
+bm50cmFjay5oCj4gQEAgLTEyNSw2ICsxMjUsMjEgQEAgbmZfY3RfdHVwbGVoYXNoX3RvX2N0cmFj
+ayhjb25zdCBzdHJ1Y3QgbmZfY29ubnRyYWNrX3R1cGxlX2hhc2ggKmhhc2gpCj4gIAkJCSAgICB0
+dXBsZWhhc2hbaGFzaC0+dHVwbGUuZHN0LmRpcl0pOwo+ICB9Cj4gIAo+ICtzdGF0aWMgaW5saW5l
+IGVudW0gaXBfY29ubnRyYWNrX2luZm8KPiArbmZfY3RfZ2V0X2luZm8oY29uc3Qgc3RydWN0IG5m
+X2Nvbm50cmFja190dXBsZV9oYXNoICpoKQo+ICt7Cj4gKwljb25zdCBzdHJ1Y3QgbmZfY29ubiAq
+Y3QgPSBuZl9jdF90dXBsZWhhc2hfdG9fY3RyYWNrKGgpOwo+ICsKPiArCWlmIChORl9DVF9ESVJF
+Q1RJT04oaCkgPT0gSVBfQ1RfRElSX1JFUExZKQo+ICsJCXJldHVybiBJUF9DVF9FU1RBQkxJU0hF
+RF9SRVBMWTsKPiArCS8qIE9uY2Ugd2UndmUgaGFkIHR3byB3YXkgY29tbXMsIGFsd2F5cyBFU1RB
+QkxJU0hFRC4gKi8KPiArCWlmICh0ZXN0X2JpdChJUFNfU0VFTl9SRVBMWV9CSVQsICZjdC0+c3Rh
+dHVzKSkKPiArCQlyZXR1cm4gSVBfQ1RfRVNUQUJMSVNIRUQ7Cj4gKwlpZiAodGVzdF9iaXQoSVBT
+X0VYUEVDVEVEX0JJVCwgJmN0LT5zdGF0dXMpKQo+ICsJCXJldHVybiBJUF9DVF9SRUxBVEVEOwo+
+ICsJcmV0dXJuIElQX0NUX05FVzsKPiArfQo+ICsKPiAgc3RhdGljIGlubGluZSB1X2ludDE2X3Qg
+bmZfY3RfbDNudW0oY29uc3Qgc3RydWN0IG5mX2Nvbm4gKmN0KQo+ICB7Cj4gIAlyZXR1cm4gY3Qt
+PnR1cGxlaGFzaFtJUF9DVF9ESVJfT1JJR0lOQUxdLnR1cGxlLnNyYy5sM251bTsKPiBkaWZmIC0t
+Z2l0IGEvbmV0L25ldGZpbHRlci9uZl9jb25udHJhY2tfY29yZS5jIGIvbmV0L25ldGZpbHRlci9u
+Zl9jb25udHJhY2tfY29yZS5jCj4gaW5kZXggM2NiM2NiOC4uNzU0NmZjNyAxMDA2NDQKPiAtLS0g
+YS9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19jb3JlLmMKPiArKysgYi9uZXQvbmV0ZmlsdGVy
+L25mX2Nvbm50cmFja19jb3JlLmMKPiBAQCAtMTA1NiwyNSArMTA1NiwxNSBAQCByZXNvbHZlX25v
+cm1hbF9jdChzdHJ1Y3QgbmV0ICpuZXQsIHN0cnVjdCBuZl9jb25uICp0bXBsLAo+ICAJY3QgPSBu
+Zl9jdF90dXBsZWhhc2hfdG9fY3RyYWNrKGgpOwo+ICAKPiAgCS8qIEl0IGV4aXN0czsgd2UgaGF2
+ZSAobm9uLWV4Y2x1c2l2ZSkgcmVmZXJlbmNlLiAqLwo+IC0JaWYgKE5GX0NUX0RJUkVDVElPTiho
+KSA9PSBJUF9DVF9ESVJfUkVQTFkpIHsKPiAtCQkqY3RpbmZvID0gSVBfQ1RfRVNUQUJMSVNIRURf
+UkVQTFk7Cj4gLQkJLyogUGxlYXNlIHNldCByZXBseSBiaXQgaWYgdGhpcyBwYWNrZXQgT0sgKi8K
+PiAtCQkqc2V0X3JlcGx5ID0gMTsKPiAtCX0gZWxzZSB7Cj4gLQkJLyogT25jZSB3ZSd2ZSBoYWQg
+dHdvIHdheSBjb21tcywgYWx3YXlzIEVTVEFCTElTSEVELiAqLwo+IC0JCWlmICh0ZXN0X2JpdChJ
+UFNfU0VFTl9SRVBMWV9CSVQsICZjdC0+c3RhdHVzKSkgewo+IC0JCQlwcl9kZWJ1ZygibmZfY29u
+bnRyYWNrX2luOiBub3JtYWwgcGFja2V0IGZvciAlcFxuIiwgY3QpOwo+IC0JCQkqY3RpbmZvID0g
+SVBfQ1RfRVNUQUJMSVNIRUQ7Cj4gLQkJfSBlbHNlIGlmICh0ZXN0X2JpdChJUFNfRVhQRUNURURf
+QklULCAmY3QtPnN0YXR1cykpIHsKPiAtCQkJcHJfZGVidWcoIm5mX2Nvbm50cmFja19pbjogcmVs
+YXRlZCBwYWNrZXQgZm9yICVwXG4iLAo+IC0JCQkJIGN0KTsKPiAtCQkJKmN0aW5mbyA9IElQX0NU
+X1JFTEFURUQ7Cj4gLQkJfSBlbHNlIHsKPiAtCQkJcHJfZGVidWcoIm5mX2Nvbm50cmFja19pbjog
+bmV3IHBhY2tldCBmb3IgJXBcbiIsIGN0KTsKPiAtCQkJKmN0aW5mbyA9IElQX0NUX05FVzsKPiAt
+CQl9Cj4gLQkJKnNldF9yZXBseSA9IDA7Cj4gLQl9Cj4gKwkqY3RpbmZvID0gbmZfY3RfZ2V0X2lu
+Zm8oaCk7Cj4gKwlpZiAoKmN0aW5mbyA9PSBJUF9DVF9FU1RBQkxJU0hFRCkKPiArCQlwcl9kZWJ1
+ZygibmZfY29ubnRyYWNrX2luOiBub3JtYWwgcGFja2V0IGZvciAlcFxuIiwgY3QpOwo+ICsJZWxz
+ZSBpZiAoKmN0aW5mbyA9PSBJUF9DVF9SRUxBVEVEKQo+ICsJCXByX2RlYnVnKCJuZl9jb25udHJh
+Y2tfaW46IHJlbGF0ZWQgcGFja2V0IGZvciAlcFxuIiwgY3QpOwo+ICsJZWxzZSBpZiAoKmN0aW5m
+byA9PSBJUF9DVF9ORVcpCj4gKwkJcHJfZGVidWcoIm5mX2Nvbm50cmFja19pbjogbmV3IHBhY2tl
+dCBmb3IgJXBcbiIsIGN0KTsKPiArCSpzZXRfcmVwbHkgPSBORl9DVF9ESVJFQ1RJT04oaCkgPT0g
+SVBfQ1RfRElSX1JFUExZOwo+ICsKClRoaXMgcmVzdWx0cyBpbiB3b3JzZSBjb2RlIGZvciBvdXIg
+Y29kZWJhc2UuCgpHaXZlbiB0aGUgbGl0dGxlIGNvZGUgdGhhdCBpcyBjb25zb2xpZGF0ZWQgaW4g
+dGhpcyBwYXRjaHNldCAodGhlIGxhc3QKbGFyZ2VyIHBhdGNoIDgvOCBpcyBiYXNpY2FsbHkgYSBj
+b3B5IG9mIG91ciBOQVQgcGF0aCBidXQgYWRhcHRlZCB0bwp0aGUgb3BlbnZzd2l0Y2ggcGFja2V0
+IGZsb3cgbG9naWMpLCBJIGRvbid0IHRoaW5rIHRoaXMgbGl0dGxlIGVmZm9ydAppbiB0aGlzIHBh
+dGNoIHRvIGNvbnNvbGlkYXRlIHRoaXMgY29kZSBpcyB3b3J0aC4KClRoZSByaWdodCB3YXkgSU1P
+IHdvdWxkIGJlIHRvIGdldCBvcGVudnN3aXRjaCBwYWNrZXQgZmxvdyBjbG9zZXIgdG8Kb3VyIGNv
+ZGViYXNlLCB0aGVuIG1vcmUgY29kZSBjb3VsZCBiZSByZXVzZWQgYnV0IEkgdW5kZXJzdGFuZCB0
+aGF0IGlzCm5vdCBzaW1wbGUgdGhpbmcuCgpQbGVhc2UsIHJldmFtcCBhIG5ldyBwYXRjaHNldCB2
+ZXJzaW9uIGtlZXBpbmcgdGhpcyBmdW5jdGlvbiB0aGF0IHlvdQpuZWVkIGluIHlvdXIgZm9sZGVy
+LgoKVGhhbmtzLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpkZXYgbWFpbGluZyBsaXN0CmRldkBvcGVudnN3aXRjaC5vcmcKaHR0cDovL29wZW52c3dpdGNo
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Rldgo=
