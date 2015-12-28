@@ -1,44 +1,131 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH 2/2] libxt_cgroup2: add support for cgroup2 path matching
-Date: Mon, 28 Dec 2015 11:20:21 -0500
-Message-ID: <20151228162021.GU5003@mtj.duckdns.org>
-References: <20151222185626.GC5003@mtj.duckdns.org>
- <20151222185707.GD5003@mtj.duckdns.org>
- <20151225121822.GB7273@salvia>
- <20151225121914.GA7306@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: nft_limit: allow to invert matching criteria
+Date: Mon, 28 Dec 2015 18:21:44 +0100
+Message-ID: <1451323304-3798-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yk0-f181.google.com ([209.85.160.181]:34127 "EHLO
-	mail-yk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751474AbbL1QUW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Dec 2015 11:20:22 -0500
-Received: by mail-yk0-f181.google.com with SMTP id a85so30259084ykb.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Dec 2015 08:20:22 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20151225121914.GA7306@salvia>
+Received: from mail.us.es ([193.147.175.20]:40326 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751371AbbL1RWB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Dec 2015 12:22:01 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id BBD681D94B1
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Dec 2015 18:21:56 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id AD8D5DA795
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Dec 2015 18:21:56 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id CB0C1DA7FF
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Dec 2015 18:21:52 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Dec 25, 2015 at 01:19:14PM +0100, Pablo Neira Ayuso wrote:
-> On Fri, Dec 25, 2015 at 01:18:22PM +0100, Pablo Neira Ayuso wrote:
-> > On Tue, Dec 22, 2015 at 01:57:07PM -0500, Tejun Heo wrote:
-> > > This patch updates xt_cgroup so that it supports revision 1 interface
-> > > which includes cgroup2 path based matching.
-> > 
-> > Also applied, thanks.
-> 
-> BTW, we have a regression test infrastructure for iptables. Have a
-> look at our .t files under extensions.
-> 
-> Would you add tests for the cgroup match for us?
+This patch allows you to invert the ratelimit matching criteria, so you
+can match packets over the ratelimit. This is required to support what
+hashlimit does.
 
-Sure, will look into it.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/uapi/linux/netfilter/nf_tables.h |  6 ++++++
+ net/netfilter/nft_limit.c                | 16 +++++++++++++---
+ 2 files changed, 19 insertions(+), 3 deletions(-)
 
-Thanks.
-
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index b48a3ab..22043ce 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -780,6 +780,10 @@ enum nft_limit_type {
+ 	NFT_LIMIT_PKT_BYTES
+ };
+ 
++enum nft_limit_flags {
++	NFT_LIMIT_F_INV	= (1 << 0),
++};
++
+ /**
+  * enum nft_limit_attributes - nf_tables limit expression netlink attributes
+  *
+@@ -787,6 +791,7 @@ enum nft_limit_type {
+  * @NFTA_LIMIT_UNIT: refill unit (NLA_U64)
+  * @NFTA_LIMIT_BURST: burst (NLA_U32)
+  * @NFTA_LIMIT_TYPE: type of limit (NLA_U32: enum nft_limit_type)
++ * @NFTA_LIMIT_FLAGS: flags (NLA_U32: enum nft_limit_flags)
+  */
+ enum nft_limit_attributes {
+ 	NFTA_LIMIT_UNSPEC,
+@@ -794,6 +799,7 @@ enum nft_limit_attributes {
+ 	NFTA_LIMIT_UNIT,
+ 	NFTA_LIMIT_BURST,
+ 	NFTA_LIMIT_TYPE,
++	NFTA_LIMIT_FLAGS,
+ 	__NFTA_LIMIT_MAX
+ };
+ #define NFTA_LIMIT_MAX		(__NFTA_LIMIT_MAX - 1)
+diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
+index 5d67938..99d1857 100644
+--- a/net/netfilter/nft_limit.c
++++ b/net/netfilter/nft_limit.c
+@@ -26,6 +26,7 @@ struct nft_limit {
+ 	u64		rate;
+ 	u64		nsecs;
+ 	u32		burst;
++	bool		invert;
+ };
+ 
+ static inline bool nft_limit_eval(struct nft_limit *limit, u64 cost)
+@@ -44,11 +45,11 @@ static inline bool nft_limit_eval(struct nft_limit *limit, u64 cost)
+ 	if (delta >= 0) {
+ 		limit->tokens = delta;
+ 		spin_unlock_bh(&limit_lock);
+-		return false;
++		return limit->invert;
+ 	}
+ 	limit->tokens = tokens;
+ 	spin_unlock_bh(&limit_lock);
+-	return true;
++	return !limit->invert;
+ }
+ 
+ static int nft_limit_init(struct nft_limit *limit,
+@@ -78,6 +79,12 @@ static int nft_limit_init(struct nft_limit *limit,
+ 
+ 		limit->rate = rate;
+ 	}
++	if (tb[NFTA_LIMIT_FLAGS]) {
++		u32 flags = ntohl(nla_get_be32(tb[NFTA_LIMIT_FLAGS]));
++
++		if (flags & NFT_LIMIT_F_INV)
++			limit->invert = true;
++	}
+ 	limit->last = ktime_get_ns();
+ 
+ 	return 0;
+@@ -86,13 +93,15 @@ static int nft_limit_init(struct nft_limit *limit,
+ static int nft_limit_dump(struct sk_buff *skb, const struct nft_limit *limit,
+ 			  enum nft_limit_type type)
+ {
++	u32 flags = limit->invert ? NFT_LIMIT_F_INV : 0;
+ 	u64 secs = div_u64(limit->nsecs, NSEC_PER_SEC);
+ 	u64 rate = limit->rate - limit->burst;
+ 
+ 	if (nla_put_be64(skb, NFTA_LIMIT_RATE, cpu_to_be64(rate)) ||
+ 	    nla_put_be64(skb, NFTA_LIMIT_UNIT, cpu_to_be64(secs)) ||
+ 	    nla_put_be32(skb, NFTA_LIMIT_BURST, htonl(limit->burst)) ||
+-	    nla_put_be32(skb, NFTA_LIMIT_TYPE, htonl(type)))
++	    nla_put_be32(skb, NFTA_LIMIT_TYPE, htonl(type)) ||
++	    nla_put_be32(skb, NFTA_LIMIT_FLAGS, htonl(flags)))
+ 		goto nla_put_failure;
+ 	return 0;
+ 
+@@ -120,6 +129,7 @@ static const struct nla_policy nft_limit_policy[NFTA_LIMIT_MAX + 1] = {
+ 	[NFTA_LIMIT_UNIT]	= { .type = NLA_U64 },
+ 	[NFTA_LIMIT_BURST]	= { .type = NLA_U32 },
+ 	[NFTA_LIMIT_TYPE]	= { .type = NLA_U32 },
++	[NFTA_LIMIT_FLAGS]	= { .type = NLA_U32 },
+ };
+ 
+ static int nft_limit_pkts_init(const struct nft_ctx *ctx,
 -- 
-tejun
+2.1.4
+
