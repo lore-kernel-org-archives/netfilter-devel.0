@@ -1,131 +1,118 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next] netfilter: nft_limit: allow to invert matching criteria
-Date: Mon, 28 Dec 2015 18:21:44 +0100
-Message-ID: <1451323304-3798-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH v2] extensions: libipt_DNAT: Add translation to nft
+Date: Tue, 29 Dec 2015 00:21:45 +0530
+Message-ID: <20151228185145.GA3153@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40326 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751371AbbL1RWB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Dec 2015 12:22:01 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id BBD681D94B1
-	for <netfilter-devel@vger.kernel.org>; Mon, 28 Dec 2015 18:21:56 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id AD8D5DA795
-	for <netfilter-devel@vger.kernel.org>; Mon, 28 Dec 2015 18:21:56 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id CB0C1DA7FF
-	for <netfilter-devel@vger.kernel.org>; Mon, 28 Dec 2015 18:21:52 +0100 (CET)
+Received: from mail-pf0-f181.google.com ([209.85.192.181]:35543 "EHLO
+	mail-pf0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751491AbbL1Svw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Dec 2015 13:51:52 -0500
+Received: by mail-pf0-f181.google.com with SMTP id 78so115561119pfw.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Dec 2015 10:51:51 -0800 (PST)
+Received: from gmail.com ([171.50.51.80])
+        by smtp.gmail.com with ESMTPSA id w85sm34575724pfi.36.2015.12.28.10.51.49
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Mon, 28 Dec 2015 10:51:50 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch allows you to invert the ratelimit matching criteria, so you
-can match packets over the ratelimit. This is required to support what
-hashlimit does.
+Add translation for target DNAT to nftables.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Examples:
+
+$ sudo iptables-translate -t nat -A prerouting -p tcp -o eth0 -j DNAT --to-destination 1.2.3.4
+nft add rule ip nat prerouting oifname eth0 ip protocol tcp counter dnat 1.2.3.4
+
+$ sudo iptables-translate -t nat -A prerouting -p tcp -d 15.45.23.67 --dport 80 -j DNAT --to-destination 192.168.1.1-192.168.1.10
+nft add rule ip nat prerouting ip daddr 15.45.23.67 tcp dport 80 counter dnat 192.168.1.1-192.168.1.10
+
+$ sudo iptables-translate -t nat -A prerouting -p tcp -o eth0 -j DNAT --to-destination 1.2.3.4:1-1023
+nft add rule ip nat prerouting oifname eth0 ip protocol tcp counter dnat 1.2.3.4:1-1023
+
+$ sudo iptables-translate -t nat -A prerouting -p tcp -o eth0 -j DNAT --to-destination 1.2.3.4 --random
+nft add rule ip nat prerouting oifname eth0 ip protocol tcp counter dnat 1.2.3.4 random
+
+$ sudo iptables-translate -t nat -A prerouting -p tcp -o eth0 -j DNAT --to-destination 1.2.3.4 --random --persistent
+nft add rule ip nat prerouting oifname eth0 ip protocol tcp counter dnat 1.2.3.4 random,persistent
+
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  6 ++++++
- net/netfilter/nft_limit.c                | 16 +++++++++++++---
- 2 files changed, 19 insertions(+), 3 deletions(-)
+Changes in v2:
+	Fix the code for using comma separator for multiple options
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index b48a3ab..22043ce 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -780,6 +780,10 @@ enum nft_limit_type {
- 	NFT_LIMIT_PKT_BYTES
- };
- 
-+enum nft_limit_flags {
-+	NFT_LIMIT_F_INV	= (1 << 0),
-+};
-+
- /**
-  * enum nft_limit_attributes - nf_tables limit expression netlink attributes
-  *
-@@ -787,6 +791,7 @@ enum nft_limit_type {
-  * @NFTA_LIMIT_UNIT: refill unit (NLA_U64)
-  * @NFTA_LIMIT_BURST: burst (NLA_U32)
-  * @NFTA_LIMIT_TYPE: type of limit (NLA_U32: enum nft_limit_type)
-+ * @NFTA_LIMIT_FLAGS: flags (NLA_U32: enum nft_limit_flags)
-  */
- enum nft_limit_attributes {
- 	NFTA_LIMIT_UNSPEC,
-@@ -794,6 +799,7 @@ enum nft_limit_attributes {
- 	NFTA_LIMIT_UNIT,
- 	NFTA_LIMIT_BURST,
- 	NFTA_LIMIT_TYPE,
-+	NFTA_LIMIT_FLAGS,
- 	__NFTA_LIMIT_MAX
- };
- #define NFTA_LIMIT_MAX		(__NFTA_LIMIT_MAX - 1)
-diff --git a/net/netfilter/nft_limit.c b/net/netfilter/nft_limit.c
-index 5d67938..99d1857 100644
---- a/net/netfilter/nft_limit.c
-+++ b/net/netfilter/nft_limit.c
-@@ -26,6 +26,7 @@ struct nft_limit {
- 	u64		rate;
- 	u64		nsecs;
- 	u32		burst;
-+	bool		invert;
- };
- 
- static inline bool nft_limit_eval(struct nft_limit *limit, u64 cost)
-@@ -44,11 +45,11 @@ static inline bool nft_limit_eval(struct nft_limit *limit, u64 cost)
- 	if (delta >= 0) {
- 		limit->tokens = delta;
- 		spin_unlock_bh(&limit_lock);
--		return false;
-+		return limit->invert;
+ extensions/libipt_DNAT.c | 46 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
+
+diff --git a/extensions/libipt_DNAT.c b/extensions/libipt_DNAT.c
+index ff18799..e529141 100644
+--- a/extensions/libipt_DNAT.c
++++ b/extensions/libipt_DNAT.c
+@@ -242,6 +242,51 @@ static void DNAT_save(const void *ip, const struct xt_entry_target *target)
  	}
- 	limit->tokens = tokens;
- 	spin_unlock_bh(&limit_lock);
--	return true;
-+	return !limit->invert;
  }
  
- static int nft_limit_init(struct nft_limit *limit,
-@@ -78,6 +79,12 @@ static int nft_limit_init(struct nft_limit *limit,
- 
- 		limit->rate = rate;
- 	}
-+	if (tb[NFTA_LIMIT_FLAGS]) {
-+		u32 flags = ntohl(nla_get_be32(tb[NFTA_LIMIT_FLAGS]));
++static void print_range_xlate(const struct nf_nat_ipv4_range *r,
++			struct xt_buf *buf)
++{
++	if (r->flags & NF_NAT_RANGE_MAP_IPS) {
++		struct in_addr a;
 +
-+		if (flags & NFT_LIMIT_F_INV)
-+			limit->invert = true;
++		a.s_addr = r->min_ip;
++		xt_buf_add(buf, "%s", xtables_ipaddr_to_numeric(&a));
++		if (r->max_ip != r->min_ip) {
++			a.s_addr = r->max_ip;
++			xt_buf_add(buf, "-%s", xtables_ipaddr_to_numeric(&a));
++		}
 +	}
- 	limit->last = ktime_get_ns();
- 
- 	return 0;
-@@ -86,13 +93,15 @@ static int nft_limit_init(struct nft_limit *limit,
- static int nft_limit_dump(struct sk_buff *skb, const struct nft_limit *limit,
- 			  enum nft_limit_type type)
- {
-+	u32 flags = limit->invert ? NFT_LIMIT_F_INV : 0;
- 	u64 secs = div_u64(limit->nsecs, NSEC_PER_SEC);
- 	u64 rate = limit->rate - limit->burst;
- 
- 	if (nla_put_be64(skb, NFTA_LIMIT_RATE, cpu_to_be64(rate)) ||
- 	    nla_put_be64(skb, NFTA_LIMIT_UNIT, cpu_to_be64(secs)) ||
- 	    nla_put_be32(skb, NFTA_LIMIT_BURST, htonl(limit->burst)) ||
--	    nla_put_be32(skb, NFTA_LIMIT_TYPE, htonl(type)))
-+	    nla_put_be32(skb, NFTA_LIMIT_TYPE, htonl(type)) ||
-+	    nla_put_be32(skb, NFTA_LIMIT_FLAGS, htonl(flags)))
- 		goto nla_put_failure;
- 	return 0;
- 
-@@ -120,6 +129,7 @@ static const struct nla_policy nft_limit_policy[NFTA_LIMIT_MAX + 1] = {
- 	[NFTA_LIMIT_UNIT]	= { .type = NLA_U64 },
- 	[NFTA_LIMIT_BURST]	= { .type = NLA_U32 },
- 	[NFTA_LIMIT_TYPE]	= { .type = NLA_U32 },
-+	[NFTA_LIMIT_FLAGS]	= { .type = NLA_U32 },
++	if (r->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
++		xt_buf_add(buf, ":%hu", ntohs(r->min.tcp.port));
++		if (r->max.tcp.port != r->min.tcp.port)
++			xt_buf_add(buf, "-%hu", ntohs(r->max.tcp.port));
++	}
++}
++
++static int DNAT_xlate(const struct xt_entry_target *target,
++		      struct xt_buf *buf, int numeric)
++{
++	const struct ipt_natinfo *info = (const void *)target;
++	unsigned int i = 0;
++	bool sep_need = false;
++	const char *sep = " ";
++
++	for (i = 0; i < info->mr.rangesize; i++) {
++		xt_buf_add(buf, "dnat ");
++		print_range_xlate(&info->mr.range[i], buf);
++		if (info->mr.range[i].flags & NF_NAT_RANGE_PROTO_RANDOM) {
++			xt_buf_add(buf, " random");
++			sep_need = true;
++		}
++		if (info->mr.range[i].flags & NF_NAT_RANGE_PERSISTENT) {
++			if (sep_need)
++				sep = ",";
++			xt_buf_add(buf, "%spersistent", sep);
++		}
++	}
++
++	return 1;
++}
++
+ static struct xtables_target dnat_tg_reg = {
+ 	.name		= "DNAT",
+ 	.version	= XTABLES_VERSION,
+@@ -254,6 +299,7 @@ static struct xtables_target dnat_tg_reg = {
+ 	.print		= DNAT_print,
+ 	.save		= DNAT_save,
+ 	.x6_options	= DNAT_opts,
++	.xlate		= DNAT_xlate,
  };
  
- static int nft_limit_pkts_init(const struct nft_ctx *ctx,
+ void _init(void)
 -- 
-2.1.4
+1.9.1
 
