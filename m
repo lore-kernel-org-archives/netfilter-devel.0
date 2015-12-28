@@ -1,43 +1,25 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: [PATCH iptables] extensions: libxt_cgroup: add unit test
-Date: Mon, 28 Dec 2015 16:41:20 -0500
-Message-ID: <20151228214120.GC30165@mtj.duckdns.org>
-References: <20151222185626.GC5003@mtj.duckdns.org>
- <20151222185707.GD5003@mtj.duckdns.org>
- <20151225121822.GB7273@salvia>
- <20151225121914.GA7306@salvia>
+From: "Mr. Song Chen" <amzambrano@umet.ec>
+Subject: Business Proposal of $12.8m USD!
+Date: Mon, 28 Dec 2015 13:44:23 -0800
+Message-ID: <20151228214759.C2BC3162AE81@mail.umet.ec>
+Reply-To: chen34j@hotmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: Recipients <amzambrano@umet.ec>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yk0-f177.google.com ([209.85.160.177]:35221 "EHLO
-	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752469AbbL1VlW (ORCPT
+Received: from mail.umet.ec ([200.24.215.156]:47916 "EHLO mail.umet.ec"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752566AbbL1WBP convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Dec 2015 16:41:22 -0500
-Received: by mail-yk0-f177.google.com with SMTP id x67so112992558ykd.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 28 Dec 2015 13:41:21 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20151225121914.GA7306@salvia>
+	Mon, 28 Dec 2015 17:01:15 -0500
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add basic tests which depend only on the root cgroup.
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
----
- extensions/libxt_cgroup.t |    8 ++++++++
- 1 file changed, 8 insertions(+)
-
---- /dev/null
-+++ b/extensions/libxt_cgroup.t
-@@ -0,0 +1,8 @@
-+:INPUT,OUTPUT,POSTROUTING
-+*mangle
-+-m cgroup --cgroup 1;=;OK
-+-m cgroup ! --cgroup 1;=;OK
-+-m cgroup --path "/";=;OK
-+-m cgroup ! --path "/";=;OK
-+-m cgroup --cgroup 1 --path "/";;FAIL
-+-m cgroup ;;FAIL
+Dear Friend,
+I am Song Chen i have a Business Proposal of $12.8m USD for you 
+to handle with me from my bank contact me for more information
+(mr.song987@gmail.com)
+Regards,
+Mr Song Chen.
