@@ -1,25 +1,26 @@
-From: "Mr. Song Chen" <amzambrano@umet.ec>
-Subject: Business Proposal of $12.8m USD!
-Date: Mon, 28 Dec 2015 13:44:23 -0800
-Message-ID: <20151228214759.C2BC3162AE81@mail.umet.ec>
-Reply-To: chen34j@hotmail.com
+From: "Zahra Robert" <jakonyvtar@pr.hu>
+Subject: Assalam o Alaikum
+Date: Tue, 29 Dec 2015 04:35:42 +0100
+Message-ID: <7b92fd4404768b371d856449c8a4246a.squirrel__40374.2887582213$1451360215$gmane$org@oldwebmail.prtelecom.hu>
+Reply-To: zahrarobert@yahoo.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
-To: Recipients <amzambrano@umet.ec>
+To: jakonyvtar@pr.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.umet.ec ([200.24.215.156]:47916 "EHLO mail.umet.ec"
+Received: from mail9.pr.hu ([87.242.0.9]:34498 "EHLO mail9.pr.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752566AbbL1WBP convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Dec 2015 17:01:15 -0500
-Content-Description: Mail message body
+	id S1751162AbbL2DgA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Dec 2015 22:36:00 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Dear Friend,
-I am Song Chen i have a Business Proposal of $12.8m USD for you 
-to handle with me from my bank contact me for more information
-(mr.song987@gmail.com)
-Regards,
-Mr Song Chen.
+
+
+
+Cordial greeting message from Eva Zahra, I am seeking for your help,I will
+be very glad if you do assist me to relocate a sum of (US$4 Million
+Dollars)into your Bank account in your country for the benefit of both of
+us i want to use this money for investment. I will give you more details
+as you reply Yours Eva Zahra Robert
+
