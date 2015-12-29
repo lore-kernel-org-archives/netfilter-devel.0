@@ -1,26 +1,40 @@
-From: "Zahra Robert" <jakonyvtar@pr.hu>
-Subject: Assalam o Alaikum
-Date: Tue, 29 Dec 2015 04:35:42 +0100
-Message-ID: <7b92fd4404768b371d856449c8a4246a.squirrel__40374.2887582213$1451360215$gmane$org@oldwebmail.prtelecom.hu>
-Reply-To: zahrarobert@yahoo.com
+From: "Jeff Skoll" <verna.viajar@icdd.uni-kassel.de>
+Subject: Donation/Charity
+Date: Mon, 28 Dec 2015 23:48:15 -0500
+Message-ID: <auto-000005760093@mailadmin.uni-kassel.de>
+Reply-To: jeff.skoll@skollcharity.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: jakonyvtar@pr.hu
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: Me <verna.viajar@icdd.uni-kassel.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail9.pr.hu ([87.242.0.9]:34498 "EHLO mail9.pr.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751162AbbL2DgA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Dec 2015 22:36:00 -0500
+Received: from mx3.its.uni-kassel.de ([141.51.12.64]:20161 "EHLO
+	mx3.its.uni-kassel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753239AbbL2GBd convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Dec 2015 01:01:33 -0500
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
+My name is Jeffrey Skoll, a philanthropist and the founder of one of th=
+e largest private foundations in the world. I believe strongly in =E2=80=
+=98giving while living.=E2=80=99 I had one idea that never changed in m=
+y mind =E2=80=94 that you should use your wealth to help people and I h=
+ave decided to secretly give USD2.498 Million to a randomly selected in=
+dividual. On receipt of this email, you should count yourself as the in=
+dividual. Kindly get back to me at your earliest convenience, so I know=
+ your email address is valid.
 
+Visit the web page to know more about me: http://www.theglobeandmail.co=
+m/news/national/meet-the-canadian-billionaire-whos-giving-it-all-away/a=
+rticle4209888/ or you can read an article of me on Wikipedia.
 
-
-Cordial greeting message from Eva Zahra, I am seeking for your help,I will
-be very glad if you do assist me to relocate a sum of (US$4 Million
-Dollars)into your Bank account in your country for the benefit of both of
-us i want to use this money for investment. I will give you more details
-as you reply Yours Eva Zahra Robert
-
+Regards,
+Jeffrey Skoll.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
