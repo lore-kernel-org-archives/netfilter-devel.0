@@ -1,85 +1,124 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH v2] extensions: libxt_length: Add translation to nft
-Date: Tue, 29 Dec 2015 23:54:25 +0530
-Message-ID: <20151229182425.GA7400@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 2/3 nft] parser: rename multiton_expr to multiton_rhs_expr
+Date: Tue, 29 Dec 2015 21:09:14 +0100
+Message-ID: <1451419755-29997-2-git-send-email-pablo@netfilter.org>
+References: <1451419755-29997-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f175.google.com ([209.85.192.175]:32987 "EHLO
-	mail-pf0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752628AbbL2SYc (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Dec 2015 13:24:32 -0500
-Received: by mail-pf0-f175.google.com with SMTP id q63so94625578pfb.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 29 Dec 2015 10:24:32 -0800 (PST)
-Received: from gmail.com ([106.204.198.143])
-        by smtp.gmail.com with ESMTPSA id 3sm40339649pfn.61.2015.12.29.10.24.29
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Tue, 29 Dec 2015 10:24:30 -0800 (PST)
-Content-Disposition: inline
+Received: from mail.us.es ([193.147.175.20]:59835 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753712AbbL2UJ2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Dec 2015 15:09:28 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id DD7D71022AD
+	for <netfilter-devel@vger.kernel.org>; Tue, 29 Dec 2015 21:09:26 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id D169ADA85F
+	for <netfilter-devel@vger.kernel.org>; Tue, 29 Dec 2015 21:09:26 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 00F8FDA803
+	for <netfilter-devel@vger.kernel.org>; Tue, 29 Dec 2015 21:09:22 +0100 (CET)
+In-Reply-To: <1451419755-29997-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for module length to nftables.
+This rule catches occurrences from the constant rhs, rename it for
+readability reasons.
 
-Examples:
+Note that this rule is still used from the set lhs definition that is
+always constant (as it represents the key to look up for the
+corresponding element).
 
-$ sudo iptables-translate -A INPUT -p icmp -m length --length 86:0xffff -j DROP
-nft add rule ip filter INPUT ip protocol icmp meta length 86-65535 counter drop
-
-$ sudo iptables-translate -A INPUT -p udp -m length --length :400
-nft add rule ip filter INPUT ip protocol udp meta length 0-400 counter
-
-$ sudo iptables-translate -A INPUT -p udp -m length --length 40
-nft add rule ip filter INPUT ip protocol udp meta length 40 counter
-
-$ sudo iptables-translate -A INPUT -p udp -m length ! --length 40
-nft add rule ip filter INPUT ip protocol udp meta length != 40 counter
-
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Changes in v2:
-	Remove unneeded space character
+ src/parser_bison.y | 28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
- extensions/libxt_length.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
-
-diff --git a/extensions/libxt_length.c b/extensions/libxt_length.c
-index 6ea7646..96dab0c 100644
---- a/extensions/libxt_length.c
-+++ b/extensions/libxt_length.c
-@@ -56,6 +56,21 @@ static void length_save(const void *ip, const struct xt_entry_match *match)
- 		printf("%u:%u", info->min, info->max);
- }
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index b49eadb..9f75abe 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -482,10 +482,10 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <expr>			basic_expr
+ %destructor { expr_free($$); }	basic_expr
  
-+static int length_xlate(const struct xt_entry_match *match,
-+			struct xt_buf *buf, int numeric)
-+{
-+	const struct xt_length_info *info = (void *)match->data;
-+
-+	xt_buf_add(buf, "meta length %s", info->invert ? "!= " : "");
-+	if (info->min == info->max)
-+		xt_buf_add(buf, "%u ", info->min);
-+	else
-+		xt_buf_add(buf, "%u-%u ", info->min, info->max);
-+
-+	return 1;
-+}
-+
-+
- static struct xtables_match length_match = {
- 	.family		= NFPROTO_UNSPEC,
- 	.name		= "length",
-@@ -67,6 +82,7 @@ static struct xtables_match length_match = {
- 	.save		= length_save,
- 	.x6_parse	= length_parse,
- 	.x6_options	= length_opts,
-+	.xlate		= length_xlate,
- };
+-%type <expr>			multiton_expr
+-%destructor { expr_free($$); }	multiton_expr
+-%type <expr>			prefix_expr range_expr wildcard_expr
+-%destructor { expr_free($$); }	prefix_expr range_expr wildcard_expr
++%type <expr>			multiton_rhs_expr
++%destructor { expr_free($$); }	multiton_rhs_expr
++%type <expr>			prefix_rhs_expr range_rhs_expr wildcard_rhs_expr
++%destructor { expr_free($$); }	prefix_rhs_expr range_rhs_expr wildcard_rhs_expr
  
- void _init(void)
+ %type <expr>			stmt_expr concat_stmt_expr map_stmt_expr
+ %destructor { expr_free($$); }	stmt_expr concat_stmt_expr map_stmt_expr
+@@ -1608,8 +1608,8 @@ map_stmt_expr		:	concat_stmt_expr	MAP	rhs_expr
+ 			;
+ 
+ stmt_expr		:	map_stmt_expr
+-			|	multiton_expr
+-			|	primary_expr
++			|	multiton_rhs_expr
++			|	primary_rhs_expr
+ 			;
+ 
+ nat_stmt_args		:	stmt_expr
+@@ -1865,19 +1865,19 @@ list_expr		:	basic_expr		COMMA		basic_expr
+ 			}
+ 			;
+ 
+-prefix_expr		:	basic_rhs_expr		SLASH	NUM
++prefix_rhs_expr		:	basic_rhs_expr	SLASH	NUM
+ 			{
+ 				$$ = prefix_expr_alloc(&@$, $1, $3);
+ 			}
+ 			;
+ 
+-range_expr		:	basic_rhs_expr		DASH	basic_rhs_expr
++range_rhs_expr		:	basic_rhs_expr	DASH	basic_rhs_expr
+ 			{
+ 				$$ = range_expr_alloc(&@$, $1, $3);
+ 			}
+ 			;
+ 
+-wildcard_expr		:	ASTERISK
++wildcard_rhs_expr	:	ASTERISK
+ 	       		{
+ 				struct expr *expr;
+ 
+@@ -1888,9 +1888,9 @@ wildcard_expr		:	ASTERISK
+ 			}
+ 			;
+ 
+-multiton_expr		:	prefix_expr
+-			|	range_expr
+-			|	wildcard_expr
++multiton_rhs_expr	:	prefix_rhs_expr
++			|	range_rhs_expr
++			|	wildcard_rhs_expr
+ 			;
+ 
+ map_expr		:	concat_expr	MAP	rhs_expr
+@@ -1966,7 +1966,7 @@ set_elem_option		:	TIMEOUT			time_spec
+ 			;
+ 
+ set_lhs_expr		:	concat_rhs_expr
+-			|	multiton_expr
++			|	multiton_rhs_expr
+ 			;
+ 
+ set_rhs_expr		:	concat_rhs_expr
+@@ -2006,7 +2006,7 @@ list_rhs_expr		:	basic_rhs_expr		COMMA		basic_rhs_expr
+ 			;
+ 
+ rhs_expr		:	concat_rhs_expr		{ $$ = $1; }
+-			|	multiton_expr		{ $$ = $1; }
++			|	multiton_rhs_expr	{ $$ = $1; }
+ 			|	set_expr		{ $$ = $1; }
+ 			;
+ 
 -- 
-1.9.1
+2.1.4
 
