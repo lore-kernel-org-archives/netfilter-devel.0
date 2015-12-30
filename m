@@ -1,116 +1,94 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] extensions: libip6t_SNAT: Add translation to nft
-Date: Wed, 30 Dec 2015 14:54:57 +0530
-Message-ID: <20151230092457.GA7327@gmail.com>
+From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Subject: Re: [PATCH] netfilter: nf_ct_sctp: validate vtag for new conntrack
+ entries
+Date: Wed, 30 Dec 2015 09:49:18 -0200
+Message-ID: <20151230114918.GA16270@localhost.localdomain>
+References: <85c8c8c570bdbf6f20f56fdef96d8017fea3cc4c.1449579256.git.marcelo.leitner@gmail.com>
+ <20151210120233.GA2084@salvia>
+ <56697B14.3010909@gmail.com>
+ <20151210134247.GA3942@salvia>
+ <20151210140625.GC3886@mrl.redhat.com>
+ <20151210170647.GA1547@salvia>
+ <20151215190304.GA3724@mrl.redhat.com>
+ <20151217110512.GA1863@salvia>
+ <567BEA14.9030007@gmail.com>
+ <20151230000317.GA1480@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org,
+	Vlad Yasevich <vyasevich@gmail.com>,
+	Neil Horman <nhorman@tuxdriver.com>, mkubecek@suse.cz
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:33390 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751871AbbL3JZE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Dec 2015 04:25:04 -0500
-Received: by mail-pa0-f45.google.com with SMTP id cy9so136268380pac.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Dec 2015 01:25:03 -0800 (PST)
-Received: from gmail.com ([106.215.166.113])
-        by smtp.gmail.com with ESMTPSA id sy5sm93448652pac.5.2015.12.30.01.25.01
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Wed, 30 Dec 2015 01:25:02 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:44129 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754312AbbL3LtX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Dec 2015 06:49:23 -0500
 Content-Disposition: inline
+In-Reply-To: <20151230000317.GA1480@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for SNAT target to nftables.
+Hi there,
 
-Examples:
+On Wed, Dec 30, 2015 at 01:03:17AM +0100, Pablo Neira Ayuso wrote:
+> Hi Marcelo,
+> 
+> On Thu, Dec 24, 2015 at 10:50:28AM -0200, Marcelo Ricardo Leitner wrote:
+> > I can see how it would work for the vtag-tracking scenario, I think. I'm
+> > just not seeing the non-tracking one (routers in the middle) yet.
+> > It doesn't seem it can fit the helper way because it can't prepare
+> > expectations as it doesn't see the packets in the initial path,
+> > meaning that we would have to have 2 ways of handling such new
+> > entries.
+> 
+> We assume that conntrack sees all traffic in our existing helpers,
+> think of tcp. Otherwise, we may classify packets as invalid if we
+> don't all packets that belong to the flow.
 
-$ sudo ip6tables-translate -t nat -A postrouting -o eth0 -p tcp -j SNAT --to [fec0::1234]:80
-nft add rule ip6 nat postrouting oifname eth0 ip6 nexthdr tcp counter snat fec0::1234 :80
+Yes, okay.
 
-$ sudo ip6tables-translate -t nat -A postrouting -o eth0 -p tcp -j SNAT --to [fec0::1234]:1-20
-nft add rule ip6 nat postrouting oifname eth0 ip6 nexthdr tcp counter snat fec0::1234 :1-20
+> > It would work like: if the helper is not present, allow heartbeats with any
+> > vtag like it currently is. Otherwise, for validating vtag too, only allow
+> > them via expectations.
+> 
+> I'm starting to think the lazy multihoming support is problematic
+> since you can actually allow pushing holes into the firewall, how easy
+> would be to push holes with this mode?
 
-$ sudo ip6tables-translate -t nat -A postrouting -o eth0 -p tcp -j SNAT --to [fec0::1234]:123 --random
-nft add rule ip6 nat postrouting oifname eth0 ip6 nexthdr tcp counter snat fec0::1234 :123 random
+Please don't. Currently there is no other way to do it. The check I want
+to add only works on a corner case of what we already have, on which we
+can do better. It's just that. The way Michal handled the state
+transitions is very good and the fact that the conntrack entries are
+created as NEW, makes them pass the same user validation rules as a real
+new association would do. So there can't be any hitch-hicking...
 
-$ sudo ip6tables-translate -t nat -A postrouting -o eth0 -p tcp -j SNAT --to [fec0::1234]:123 --random-fully --persistent
-nft add rule ip6 nat postrouting oifname eth0 ip6 nexthdr tcp counter snat fec0::1234 :123 fully-random,persistent
+And for vtag probing, that's not an issue either because SCTP just drops
+such heartbeat requests with invalid vtags (at sctp_sf_beat_8_3).
 
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
----
- extensions/libip6t_SNAT.c | 50 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 50 insertions(+)
+The only vector of attack I can think of that the initial multi-homing
+support would allow is a DoS, a flood of incoming heartbeat requests.
+Such flood would _not_ end up on the association buffer because if the
+transport tuple (src ip, dst ip, src port, dst port) doesn't match a
+known association, it's discarded. It's just as any other DoS, but as
+they pass the same user validation rules, there should be rules
+restricting the rate or IP range or something like that if user is
+worried with that. Nothing that could jeopardize the original
+association.
 
-diff --git a/extensions/libip6t_SNAT.c b/extensions/libip6t_SNAT.c
-index 8eb50b8..b85c86c 100644
---- a/extensions/libip6t_SNAT.c
-+++ b/extensions/libip6t_SNAT.c
-@@ -241,6 +241,55 @@ static void SNAT_save(const void *ip, const struct xt_entry_target *target)
- 		printf(" --persistent");
- }
- 
-+static void print_range_xlate(const struct nf_nat_range *range,
-+			      struct xt_buf *buf)
-+{
-+	if (range->flags & NF_NAT_RANGE_MAP_IPS) {
-+		xt_buf_add(buf, "%s",
-+			   xtables_ip6addr_to_numeric(&range->min_addr.in6));
-+
-+		if (memcmp(&range->min_addr, &range->max_addr,
-+			   sizeof(range->min_addr)))
-+			xt_buf_add(buf, "-%s",
-+			     xtables_ip6addr_to_numeric(&range->max_addr.in6));
-+	}
-+	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
-+		xt_buf_add(buf, " :%hu", ntohs(range->min_proto.tcp.port));
-+
-+		if (range->max_proto.tcp.port != range->min_proto.tcp.port)
-+			xt_buf_add(buf, "-%hu",
-+				   ntohs(range->max_proto.tcp.port));
-+	}
-+}
-+
-+static int SNAT_xlate(const struct xt_entry_target *target,
-+		      struct xt_buf *buf, int numeric)
-+{
-+	const struct nf_nat_range *range = (const void *)target->data;
-+	bool sep_need = false;
-+	const char *sep = " ";
-+
-+	xt_buf_add(buf, "snat ");
-+	print_range_xlate(range, buf);
-+	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM) {
-+		xt_buf_add(buf, " random");
-+		sep_need = true;
-+	}
-+	if (range->flags & NF_NAT_RANGE_PROTO_RANDOM_FULLY) {
-+		if (sep_need)
-+			sep = ",";
-+		xt_buf_add(buf, "%sfully-random", sep);
-+		sep_need = true;
-+	}
-+	if (range->flags & NF_NAT_RANGE_PERSISTENT) {
-+		if (sep_need)
-+			sep = ",";
-+		xt_buf_add(buf, "%spersistent", sep);
-+	}
-+
-+	return 1;
-+}
-+
- static struct xtables_target snat_tg_reg = {
- 	.name		= "SNAT",
- 	.version	= XTABLES_VERSION,
-@@ -254,6 +303,7 @@ static struct xtables_target snat_tg_reg = {
- 	.print		= SNAT_print,
- 	.save		= SNAT_save,
- 	.x6_options	= SNAT_opts,
-+	.xlate		= SNAT_xlate,
- };
- 
- void _init(void)
--- 
-1.9.1
+Note that the transport validation is performed before the vtag one, and
+the stack behavior is to also drop out of the blue packets silently.
+Meaning that even if the attacker get a hit at the 32-bit vtag, it will
+be discarded by the transport validation firstly.
+
+So what my patch add to it, it pulls/adds this vtag check to an earlier
+moment, from the stack itself to the firewall, so that the peer
+firewall will be a bit more stateful.
+
+> You can probably achieve the same effect by allowing heartbearts go
+> through via NOTRACK and then have some connection pickup from the
+> middle feature. That, however, would make the user fully aware of the
+> limitations since it would require explicit configuration.
+
+Interesting idea, thanks.
 
