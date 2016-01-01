@@ -1,86 +1,109 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: ulogd's SQLITE3 "buffer" option
-Date: Fri, 01 Jan 2016 11:04:25 +0100
-Message-ID: <1451642665.5359.17.camel@regit.org>
-References: <20151229183831.0ff29890@alex-desktop>
-	 <20151230001905.GA1700@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+From: Alex Xu <alex_y_xu@yahoo.ca>
+Subject: [PATCH] sqlite3: Remove unused "buffer" option.
+Date: Fri,  1 Jan 2016 12:05:42 -0500
+Message-ID: <1451667942-30746-1-git-send-email-alex_y_xu@yahoo.ca>
+Cc: laforge@gnumonks.org, pablo@netfilter.org, eric@regit.org,
 	Alex Xu <alex_y_xu@yahoo.ca>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from home.regit.org ([37.187.126.138]:42640 "EHLO home.regit.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751337AbcAAK2k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Jan 2016 05:28:40 -0500
-In-Reply-To: <20151230001905.GA1700@salvia>
+Received: from nm14-vm0.bullet.mail.bf1.yahoo.com ([98.139.213.164]:49815 "EHLO
+	nm14-vm0.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751922AbcAARMP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 1 Jan 2016 12:12:15 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+---
+ doc/ulogd.sgml                        |  2 --
+ output/sqlite3/ulogd_output_SQLITE3.c | 17 +----------------
+ ulogd.conf.in                         |  2 --
+ 3 files changed, 1 insertion(+), 20 deletions(-)
 
-On Wed, 2015-12-30 at 01:19 +0100, Pablo Neira Ayuso wrote:
-> On Tue, Dec 29, 2015 at 06:38:31PM -0500, Alex Xu wrote:
-> > I was attempting to configure sqlite3 output in ulogd and could not
-> > determine the function of the "buffer" configuration option.
-> >=20
-> > $ grep buffer output/sqlite3/ulogd_output_sqlite3.c
-> > =A0=A0=A0=A0=A0=A0=A0=A0int buffer_size;
-> > =A0=A0=A0=A0=A0=A0=A0=A0int buffer_curr;
-> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0.key =3D "buffer",
-> > #define buffer_ce(pi)=A0=A0=A0(pi)->config_kset->ces[2].u.value
-> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0priv->buffer_curr++=
-;
-> > =A0=A0=A0=A0=A0=A0=A0=A0/* initialize our buffer size and counter *=
-/
-> > =A0=A0=A0=A0=A0=A0=A0=A0priv->buffer_size =3D buffer_ce(pi);
-> > =A0=A0=A0=A0=A0=A0=A0=A0priv->buffer_curr =3D 0;
-> > $ grep -rF buffer_curr .
-> > output/sqlite3/ulogd_output_SQLITE3.c:=A0=A0int buffer_curr;
-> > output/sqlite3/ulogd_output_SQLITE3.c:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-priv-
-> > >buffer_curr++;
-> > output/sqlite3/ulogd_output_SQLITE3.c:=A0=A0priv->buffer_curr =3D 0=
-;
-> >=20
-> > Now, it is quite likely that I am missing something, but it would
-> > appear that buffer_curr is never actually *read*, only *written*,
-> > and it's a basic fact of programming that a variable can have no
-> > effect
-> > if it is never read from. [citation needed]
-> >=20
-> > It would appear that the original code in ulogd-1.x employed a
-> > 'buffer'
-> > which was actually a counter for when to tell sqlite to sync to
-> > disk.
-> > When the code was rewritten by "Holger" and committed by Pablo
-> > Neira
-> > Ayuso (8f7bb61), the syncing part was removed but the buffer
-> > variable
-> > was simply renamed.
-> >=20
-> > Nobody noticed because one fsync every few seconds is tiny.
-> >=20
-> > Therefore, I think we should remove the "buffer" option entirely.
-> >=20
-> > Thoughts? I will send a patch if there are no objections.
->=20
-> This may be well a leftover that was introduced by when that large
-> rewrite took, please submit a patch that we can review.
+diff --git a/doc/ulogd.sgml b/doc/ulogd.sgml
+index 30bfecb..65a63cf 100644
+--- a/doc/ulogd.sgml
++++ b/doc/ulogd.sgml
+@@ -603,8 +603,6 @@ The module defines the following configuration directives:
+ Name of the table to which ulogd should log.
+ <tag>db</tag>
+ Name of the database.
+-<tag>buffer</tag>
+-Size of the sqlite buffer.
+ </descrip>
+ </sect2>
+ 
+diff --git a/output/sqlite3/ulogd_output_SQLITE3.c b/output/sqlite3/ulogd_output_SQLITE3.c
+index 5c49055..20ceb3b 100644
+--- a/output/sqlite3/ulogd_output_SQLITE3.c
++++ b/output/sqlite3/ulogd_output_SQLITE3.c
+@@ -63,8 +63,6 @@ struct sqlite3_priv {
+ 	struct field_lh fields;
+ 	char *stmt;
+ 	sqlite3_stmt *p_stmt;
+-	int buffer_size;
+-	int buffer_curr;
+ 	struct {
+ 		unsigned err_tbl_busy;	/* "Table busy" */
+ 	} stats;
+@@ -83,18 +81,11 @@ static struct config_keyset sqlite3_kset = {
+ 			.type = CONFIG_TYPE_STRING,
+ 			.options = CONFIG_OPT_MANDATORY,
+ 		},
+-		{
+-			.key = "buffer",
+-			.type = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u.value = CFG_BUFFER_DEFAULT,
+-		},
+ 	},
+ };
+ 
+ #define db_ce(pi)		(pi)->config_kset->ces[0].u.string
+ #define table_ce(pi)	(pi)->config_kset->ces[1].u.string
+-#define buffer_ce(pi)	(pi)->config_kset->ces[2].u.value
+ 
+ /* forward declarations */
+ static int sqlite3_createstmt(struct ulogd_pluginstance *);
+@@ -107,9 +98,7 @@ add_row(struct ulogd_pluginstance *pi)
+ 	int ret;
+ 
+ 	ret = sqlite3_step(priv->p_stmt);
+-	if (ret == SQLITE_DONE)
+-		priv->buffer_curr++;
+-	else if (ret == SQLITE_BUSY)
++	if (ret == SQLITE_BUSY)
+ 		priv->stats.err_tbl_busy++;
+ 	else if (ret == SQLITE_ERROR) {
+ 		ret = sqlite3_finalize(priv->p_stmt);
+@@ -404,10 +393,6 @@ sqlite3_start(struct ulogd_pluginstance *pi)
+ 		return -1;
+ 	}
+ 
+-	/* initialize our buffer size and counter */
+-	priv->buffer_size = buffer_ce(pi);
+-	priv->buffer_curr = 0;
+-
+ 	/* create and prepare the actual insert statement */
+ 	sqlite3_createstmt(pi);
+ 
+diff --git a/ulogd.conf.in b/ulogd.conf.in
+index 9624a4b..2fcf39a 100644
+--- a/ulogd.conf.in
++++ b/ulogd.conf.in
+@@ -301,12 +301,10 @@ procedure="INSERT_PACKET_FULL"
+ [sqlite3_ct]
+ table="ulog_ct"
+ db="/var/log/ulogd.sqlite3db"
+-buffer=200
+ 
+ [sqlite3_pkt]
+ table="ulog_pkt"
+ db="/var/log/ulogd.sqlite3db"
+-buffer=200
+ 
+ [sys2]
+ facility=LOG_LOCAL2
+-- 
+2.6.4
 
-Agree on diagnostic, it seems unused in current version of the code.
-Waiting for the patch.
-
-Happy new year to all,
---=20
-Eric Leblond <eric@regit.org>
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
