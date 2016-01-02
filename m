@@ -1,48 +1,40 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset v6.24: Comment string is too long!
-Date: Fri, 1 Jan 2016 23:39:57 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1601012338430.12801@blackhole.kfki.hu>
-References: <CAJiejCQizhn--05MnVzKFLyEFki=K6xzJbL+_b7yVgxYKYmitA@mail.gmail.com>
+From: "Jeff Skoll" <s_w9gc9x@uni-kassel.de>
+Subject: Charity Donation
+Date: Sat, 02 Jan 2016 12:09:43 -0500
+Message-ID: <auto-000000206358@mailadmin.uni-kassel.de>
+Reply-To: jeff.skoll@skollcharity.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: maillist-netfilter <netfilter-devel@vger.kernel.org>
-To: Drunkard Zhang <gongfan193@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: Me <s_w9gc9x@uni-kassel.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:43744 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752309AbcAAWjv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Jan 2016 17:39:51 -0500
-In-Reply-To: <CAJiejCQizhn--05MnVzKFLyEFki=K6xzJbL+_b7yVgxYKYmitA@mail.gmail.com>
+Received: from mx4.its.uni-kassel.de ([141.51.12.63]:61489 "EHLO
+	mx4.its.uni-kassel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751925AbcABRR4 convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 Jan 2016 12:17:56 -0500
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi,
+My name is Jeffrey Skoll, a philanthropist and the founder of one of th=
+e largest private foundations in the world. I believe strongly in =E2=80=
+=98giving while living.=E2=80=99 I had one idea that never changed in m=
+y mind =E2=80=94 that you should use your wealth to help people and I h=
+ave decided to secretly give USD2.498 Million to a randomly selected in=
+dividual. On receipt of this email, you should count yourself as the in=
+dividual. Kindly get back to me at your earliest convenience, so I know=
+ your email address is valid.
 
-On Wed, 30 Dec 2015, Drunkard Zhang wrote:
+Visit the web page to know more about me: http://www.theglobeandmail.co=
+m/news/national/meet-the-canadian-billionaire-whos-giving-it-all-away/a=
+rticle4209888/ or you can read an article of me on Wikipedia.
 
->     I'm trying ipset, and misleaded by the error message: "ipset
-> v6.24: Comment string is too long!", when doing this:
-> 
-> 15:26:34 ~ # ipset create bypass hash:net
-> 15:26:40 ~ # ipset add bypass 42.62.0.0/16 comment "cnc"
-> ipset v6.24: Comment string is too long!
-> 
-> it took me some time to identify where the problem is: "comment"
-> extension should be enabled when creating the set.
-> 
-> So, WOULD YOU PLEASE replace these words with more accurate sentence?
-> In this situation, say "'comment' extension not enabled", others say
-> "Comment string is too long!".
-> 
-> Or, emphasize/highlight "extensions must be enabled before use" in man page.
-
-I'll look into it - I mean both, i.e. better error message and updated 
-manpage :-)
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Regards,
+Jeffrey Skoll.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
