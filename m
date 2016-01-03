@@ -1,46 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] extensions: libxt_length: Add translation to nft
-Date: Sun, 3 Jan 2016 21:25:16 +0100
-Message-ID: <20160103202516.GA18244@salvia>
-References: <20151229182425.GA7400@gmail.com>
+Subject: Re: [PATCH] iptables: add xtables-config-parser.h to BUILT_SOURCES
+Date: Sun, 3 Jan 2016 23:14:32 +0100
+Message-ID: <20160103221432.GA25072@salvia>
+References: <1451497890-23629-1-git-send-email-gustavo@zacarias.com.ar>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+To: Gustavo Zacarias <gustavo@zacarias.com.ar>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43674 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48160 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751385AbcACUZY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Jan 2016 15:25:24 -0500
+	id S1752543AbcACWOj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Jan 2016 17:14:39 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 3E61E1022A1
-	for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2016 21:25:23 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id B200B1022AE
+	for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2016 23:14:35 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 30645DA7E0
-	for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2016 21:25:23 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A354BDA808
+	for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2016 23:14:35 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 4F965DA804
-	for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2016 21:25:21 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id CF0EADA7FF
+	for <netfilter-devel@vger.kernel.org>; Sun,  3 Jan 2016 23:14:33 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20151229182425.GA7400@gmail.com>
+In-Reply-To: <1451497890-23629-1-git-send-email-gustavo@zacarias.com.ar>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Dec 29, 2015 at 11:54:25PM +0530, Shivani Bhardwaj wrote:
-> Add translation for module length to nftables.
-> 
-> Examples:
-> 
-> $ sudo iptables-translate -A INPUT -p icmp -m length --length 86:0xffff -j DROP
-> nft add rule ip filter INPUT ip protocol icmp meta length 86-65535 counter drop
-> 
-> $ sudo iptables-translate -A INPUT -p udp -m length --length :400
-> nft add rule ip filter INPUT ip protocol udp meta length 0-400 counter
-> 
-> $ sudo iptables-translate -A INPUT -p udp -m length --length 40
-> nft add rule ip filter INPUT ip protocol udp meta length 40 counter
-> 
-> $ sudo iptables-translate -A INPUT -p udp -m length ! --length 40
-> nft add rule ip filter INPUT ip protocol udp meta length != 40 counter
+On Wed, Dec 30, 2015 at 02:51:30PM -0300, Gustavo Zacarias wrote:
+> Otherwise other sources that use it might be built before it's ready leading
+> to build failure, for example by iptables/nft.c
 
-Applied, thanks.
+Applied, thanks Gustavo.
