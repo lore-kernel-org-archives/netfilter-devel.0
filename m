@@ -1,54 +1,93 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/2] Add support for ttl translation
-Date: Mon, 4 Jan 2016 18:44:33 +0100
-Message-ID: <20160104174433.GA3947@salvia>
-References: <cover.1451927507.git.shivanib134@gmail.com>
- <20160104174024.GA3706@salvia>
- <CAKHNQQG5oxf2cZ-36ohksHC+rSxGJzFGo2a-Ov_gjbCGh8_WvQ@mail.gmail.com>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH v2] extensions: libipt_ttl: Add translation to nft
+Date: Mon, 4 Jan 2016 23:30:02 +0530
+Message-ID: <20160104180002.GA10529@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55620 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751969AbcADRom (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Jan 2016 12:44:42 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 0224A1324CE
-	for <netfilter-devel@vger.kernel.org>; Mon,  4 Jan 2016 18:44:41 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E72F9DA7E0
-	for <netfilter-devel@vger.kernel.org>; Mon,  4 Jan 2016 18:44:40 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 10669DA807
-	for <netfilter-devel@vger.kernel.org>; Mon,  4 Jan 2016 18:44:39 +0100 (CET)
+Received: from mail-pf0-f173.google.com ([209.85.192.173]:35670 "EHLO
+	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751760AbcADSAK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Jan 2016 13:00:10 -0500
+Received: by mail-pf0-f173.google.com with SMTP id 78so207564009pfw.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 04 Jan 2016 10:00:09 -0800 (PST)
+Received: from gmail.com ([106.201.42.190])
+        by smtp.gmail.com with ESMTPSA id 204sm107044242pfc.67.2016.01.04.10.00.07
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Mon, 04 Jan 2016 10:00:08 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <CAKHNQQG5oxf2cZ-36ohksHC+rSxGJzFGo2a-Ov_gjbCGh8_WvQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 04, 2016 at 11:12:55PM +0530, Shivani Bhardwaj wrote:
-> On Mon, Jan 4, 2016 at 11:10 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Mon, Jan 04, 2016 at 10:49:10PM +0530, Shivani Bhardwaj wrote:
-> >> This patchset adds ttl translation to nftables by adding ip ttl to
-> >> the buffer everytime a ttl match is hit as it is necessary to mention
-> >> the protocol version with ttl, that is,
-> >> $ sudo nft .. ttl 3 ..             won't work but
-> >> $ sudo nft .. ip ttl 3 ..          would work.
-> >
-> > This above is the right syntax.
-> >
-> >> Also, since adding ip to the buffer in the code for ttl won't look
-> >> suitable, some amendments have been done in the nft-ipv4 code.
-> >>
-> >> Shivani Bhardwaj (2):
-> >>   iptables: nft-ipv4: Add ip ttl to the buffer
-> >
-> > I don't think you need this change for nft-ipv4.
-> 
-> Hi Pablo,
-> 
-> Should I be doing xt_buf_add("ip ttl") in the code for ttl?
+Add translation for module ttl to nftables.
 
-Yes, that should be fine.
+Examples:
+
+$ sudo iptables-translate -A INPUT -m ttl --ttl-eq 3 -j ACCEPT
+nft add rule ip filter INPUT ip ttl 3 counter accept
+
+$ sudo iptables-translate -A INPUT -m ttl --ttl-gt 5 -j ACCEPT
+nft add rule ip filter INPUT ip ttl \> 5 counter accept
+
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+Changes in v2:
+	Remove the changes done in nft-ipv4
+
+ extensions/libipt_ttl.c | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
+
+diff --git a/extensions/libipt_ttl.c b/extensions/libipt_ttl.c
+index 5fe08cc..5d897a7 100644
+--- a/extensions/libipt_ttl.c
++++ b/extensions/libipt_ttl.c
+@@ -100,6 +100,35 @@ static void ttl_save(const void *ip, const struct xt_entry_match *match)
+ 	printf(" %u", info->ttl);
+ }
+ 
++static int ttl_xlate(const struct xt_entry_match *match,
++		     struct xt_buf *buf, int numeric)
++{
++	const struct ipt_ttl_info *info =
++			(struct ipt_ttl_info *) match->data;
++
++		switch (info->mode) {
++		case IPT_TTL_EQ:
++			xt_buf_add(buf, "ip ttl");
++			break;
++		case IPT_TTL_NE:
++			xt_buf_add(buf, "ip ttl !=");
++			break;
++		case IPT_TTL_LT:
++			xt_buf_add(buf, "ip ttl \\<");
++			break;
++		case IPT_TTL_GT:
++			xt_buf_add(buf, "ip ttl \\>");
++			break;
++		default:
++			/* error */
++			break;
++	}
++
++	xt_buf_add(buf, " %u ", info->ttl);
++
++	return 1;
++}
++
+ #define s struct ipt_ttl_info
+ static const struct xt_option_entry ttl_opts[] = {
+ 	{.name = "ttl-lt", .id = O_TTL_LT, .excl = F_ANY, .type = XTTYPE_UINT8,
+@@ -126,6 +155,7 @@ static struct xtables_match ttl_mt_reg = {
+ 	.x6_parse	= ttl_parse,
+ 	.x6_fcheck	= ttl_check,
+ 	.x6_options	= ttl_opts,
++	.xlate		= ttl_xlate,
+ };
+ 
+ 
+-- 
+1.9.1
+
