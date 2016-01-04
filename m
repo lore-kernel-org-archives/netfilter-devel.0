@@ -1,90 +1,78 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH 2/2] extensions: libipt_ttl: Add translation to nft
-Date: Mon, 4 Jan 2016 22:50:06 +0530
-Message-ID: <4ee7213d044e0f088542553d2e14f0b19950a5e0.1451927507.git.shivanib134@gmail.com>
-References: <cover.1451927507.git.shivanib134@gmail.com>
+From: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
+Subject: [ANNOUNCE] NetDev 1.1 is approaching...
+Date: Mon, 4 Jan 2016 18:32:17 +0100
+Message-ID: <20160104173217.GA3239@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:35572 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752137AbcADRUN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Jan 2016 12:20:13 -0500
-Received: by mail-pa0-f66.google.com with SMTP id gi1so22669738pac.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 04 Jan 2016 09:20:12 -0800 (PST)
-Received: from gmail.com ([106.201.42.190])
-        by smtp.gmail.com with ESMTPSA id m3sm93828688pfi.87.2016.01.04.09.20.10
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Mon, 04 Jan 2016 09:20:11 -0800 (PST)
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <cover.1451927507.git.shivanib134@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Add translation for module ttl to nftables.
+Hi!
 
-Examples:
+=46or those that still didn't hear about us, Netdev 1.1 is the
+community-driven Linux networking conference. This event will be again
+held back-to-back with NetConf in Sevilla, Spain, February 10-12, 2016.
 
-$ sudo iptables-translate -A INPUT -m ttl --ttl-eq 3 -j ACCEPT
-nft add rule ip filter INPUT ip ttl 3 counter accept
+After the holidays break (happy new year everyone!), we would like to
+make a quick summary on what's been accepted meanwhile.
 
-$ sudo iptables-translate -A INPUT -m ttl --ttl-gt 5 -j ACCEPT
-nft add rule ip filter INPUT ip ttl \> 5 counter accept
+=3D BoF =3D
 
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
----
- extensions/libipt_ttl.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+* Switchdev (Roopa Prabhu & Shrijeet Mukherjee)
 
-diff --git a/extensions/libipt_ttl.c b/extensions/libipt_ttl.c
-index 5fe08cc..5df014b 100644
---- a/extensions/libipt_ttl.c
-+++ b/extensions/libipt_ttl.c
-@@ -100,6 +100,33 @@ static void ttl_save(const void *ip, const struct xt_entry_match *match)
- 	printf(" %u", info->ttl);
- }
- 
-+static int ttl_xlate(const struct xt_entry_match *match,
-+		     struct xt_buf *buf, int numeric)
-+{
-+	const struct ipt_ttl_info *info =
-+			(struct ipt_ttl_info *) match->data;
-+
-+		switch (info->mode) {
-+		case IPT_TTL_EQ:
-+			xt_buf_add(buf, "%u ", info->ttl);
-+			break;
-+		case IPT_TTL_NE:
-+			xt_buf_add(buf, "!= %u ", info->ttl);
-+			break;
-+		case IPT_TTL_LT:
-+			xt_buf_add(buf, "\\< %u ", info->ttl);
-+			break;
-+		case IPT_TTL_GT:
-+			xt_buf_add(buf, "\\> %u ", info->ttl);
-+			break;
-+		default:
-+			/* error */
-+			break;
-+	}
-+
-+	return 1;
-+}
-+
- #define s struct ipt_ttl_info
- static const struct xt_option_entry ttl_opts[] = {
- 	{.name = "ttl-lt", .id = O_TTL_LT, .excl = F_ANY, .type = XTTYPE_UINT8,
-@@ -126,6 +153,7 @@ static struct xtables_match ttl_mt_reg = {
- 	.x6_parse	= ttl_parse,
- 	.x6_fcheck	= ttl_check,
- 	.x6_options	= ttl_opts,
-+	.xlate		= ttl_xlate,
- };
- 
- 
--- 
-1.9.1
+* IPsec performance (Steffen Klassert)
 
+=3D Talks =3D
+
+* Zebra 2.0 and Lagopus: newly-designed routing stack on high-performan=
+ce
+  packet forwarder (Yoshihiro Nakajima, Kunihiro Ishiguro, Masaru Oki,
+  Hirokazu Takahashi)
+
+* Reducing Latency in Linux Wireless Network Drivers" (Tim Shepard)
+
+* Deterministic network emulation using KauNet" (Per Hurtig & Johan Gar=
+cia)
+
+* Suricata IDPS and its interaction with Linux kernel" (Eric Leblond &
+  Giuseppe Longo)
+
+* The CLASShoFIREs: who's got your back?" (Jamal Hadi Salim)
+
+* MACsec: encryption for the wired LAN" (Sabrina Dubroca)
+
+* Bridge filtering with nftables" (Florian Westphal)
+
+* Deploying MPLS with Linux" (Roopa Prabhu)
+
+* IPv6 route lookup performance and scaling" (Michal Kube=C4=8Dek)
+
+* Namespaces and CGroups, the basis of Linux containers" (Rami Rosen)
+
+             ________________________________
+            / We still have more sessions to \
+            \    be announced, stay tuned!   /
+             --------------------------------
+                \   ^__^
+                 \  (oo)\_______
+                    (__)\       )\/\
+                        ||----w |
+                        ||     ||
+
+=46or more info, visit:
+* netdev 1.1: https://www.netdevconf.org/1.1/
+* netconf 2016: http://vger.kernel.org/netconf2016.html
+
+We would also like to thank those that already confirmed sponsorship:
+Cumulus Networks, Facebook, VmWare, Google, Cisco, Mellanox,
+Mojatatu Networks, OISF/Suricata, Zen Load Balancer and LWN.net.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireles=
+s" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
