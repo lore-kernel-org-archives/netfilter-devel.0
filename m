@@ -1,86 +1,104 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_ct_sctp: validate vtag for new conntrack
- entries
-Date: Mon, 4 Jan 2016 13:11:49 +0100
-Message-ID: <20160104121149.GA3941@salvia>
-References: <20151210120233.GA2084@salvia>
- <56697B14.3010909@gmail.com>
- <20151210134247.GA3942@salvia>
- <20151210140625.GC3886@mrl.redhat.com>
- <20151210170647.GA1547@salvia>
- <20151215190304.GA3724@mrl.redhat.com>
- <20151217110512.GA1863@salvia>
- <567BEA14.9030007@gmail.com>
- <20151230000317.GA1480@salvia>
- <20151230114918.GA16270@localhost.localdomain>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 3/4] libnftnl: set: Implement new buffer of TLV objects.
+Date: Mon, 4 Jan 2016 12:06:26 +0000
+Message-ID: <20160104120625.GA31140@macbook.localdomain>
+References: <1451849900-18077-1-git-send-email-carlosfg@riseup.net>
+ <1451849900-18077-3-git-send-email-carlosfg@riseup.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org,
-	Vlad Yasevich <vyasevich@gmail.com>,
-	Neil Horman <nhorman@tuxdriver.com>, mkubecek@suse.cz
-To: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42917 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751598AbcADMLy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Jan 2016 07:11:54 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 0802F130FCA
-	for <netfilter-devel@vger.kernel.org>; Mon,  4 Jan 2016 13:11:53 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E632ADA86E
-	for <netfilter-devel@vger.kernel.org>; Mon,  4 Jan 2016 13:11:52 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id F048FDA86F
-	for <netfilter-devel@vger.kernel.org>; Mon,  4 Jan 2016 13:11:50 +0100 (CET)
+Received: from stinky.trash.net ([213.144.137.162]:44077 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751455AbcADMQp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Jan 2016 07:16:45 -0500
 Content-Disposition: inline
-In-Reply-To: <20151230114918.GA16270@localhost.localdomain>
+In-Reply-To: <1451849900-18077-3-git-send-email-carlosfg@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Marcelo,
+On 03.01, Carlos Falgueras Garc=EDa wrote:
+> +/* TLV validation */
+> +enum nftnl_attr_data_type {
+> +	NFTNL_ATTR_TYPE_UNSPEC,
+> +	NFTNL_ATTR_TYPE_U8,
+> +	NFTNL_ATTR_TYPE_U16,
+> +	NFTNL_ATTR_TYPE_U32,
+> +	NFTNL_ATTR_TYPE_U64,
+> +	NFTNL_ATTR_TYPE_STRING,
+> +	NFTNL_ATTR_TYPE_FLAG,
+> +	NFTNL_ATTR_TYPE_MSECS,
+> +	NFTNL_ATTR_TYPE_NESTED,
+> +	NFTNL_ATTR_TYPE_NESTED_COMPAT,
+> +	NFTNL_ATTR_TYPE_NUL_STRING,
+> +	NFTNL_ATTR_TYPE_BINARY,
+> +	__NFTNL_ATTR_TYPE_MAX,
 
-On Wed, Dec 30, 2015 at 09:49:18AM -0200, Marcelo Ricardo Leitner wrote:
-> Please don't. Currently there is no other way to do it. The check I want
-> to add only works on a corner case of what we already have, on which we
-> can do better. It's just that. The way Michal handled the state
-> transitions is very good and the fact that the conntrack entries are
-> created as NEW, makes them pass the same user validation rules as a real
-> new association would do. So there can't be any hitch-hicking...
->
-> And for vtag probing, that's not an issue either because SCTP just drops
-> such heartbeat requests with invalid vtags (at sctp_sf_beat_8_3).
-> 
-> The only vector of attack I can think of that the initial multi-homing
-> support would allow is a DoS, a flood of incoming heartbeat requests.
-> Such flood would _not_ end up on the association buffer because if the
-> transport tuple (src ip, dst ip, src port, dst port) doesn't match a
-> known association, it's discarded. It's just as any other DoS, but as
-> they pass the same user validation rules, there should be rules
-> restricting the rate or IP range or something like that if user is
-> worried with that. Nothing that could jeopardize the original
-> association.
->
-> Note that the transport validation is performed before the vtag one, and
-> the stack behavior is to also drop out of the blue packets silently.
-> Meaning that even if the attacker get a hit at the 32-bit vtag, it will
-> be discarded by the transport validation firstly.
+We don't need quite a few of these. Compat is obviously unnecessary. Sa=
+me thing
+goes for MSECS and NUL_STRING since the kernel doesn't do interpretatio=
+n of
+the user data. FLAG I would avoid since it uses a full u8, so better ha=
+ve
+userspace simply use that and do interpretation as a flag.
 
-Makes sense indeed, thanks for explaining. Then we have to find a
-incremental path to extend Michal change to make it fit into what we
-have.
+> +/*
+> + * TLV structures:
+> + * nftnl_attr
+> + *  <-- sizeof(nftnl_attr) -->             <-- nftnl_attr->len -->
+> + * +--------------------------+- - - - - -+- - - - -  -- - - - - -+-=
+ - - - - +
+> + * |          Header          |  Pading   |       Payload         | =
+ Pading  |
+> + * |         (4 bytes)        | (4 bytes) |                       | =
+         |
+> + * +--------------------------+- - - - - -+- - - - - - - - - - - -+-=
+ - - - - +
+> + *  <------------------------ nftnl_attr_get_size() ----------------=
+-------->
 
-> So what my patch add to it, it pulls/adds this vtag check to an earlier
-> moment, from the stack itself to the firewall, so that the peer
-> firewall will be a bit more stateful.
+We don't need a header I'd think. Just the raw attributes.
 
-Please check if you can fit part of this logic into l4proto->error(),
-just like ICMP v4 protocol tracker.
+> + * nftnl_attr->type (16 bits)
+> + * +---+---+-------------------------------+
+> + * | N | O | Attribute Type                |
+> + * +---+---+-------------------------------+
+> + * N :=3D Carries nested attributes
+> + * O :=3D Payload stored in network byte order
+> + *
+> + * Note: The N and O flag are mutually exclusive.
+> + */
+> +
+> +struct nftnl_attr {
+> +	uint16_t type;
+> +	uint16_t len;
 
-BTW, I think these new flows should enter as RELATED, not as NEW, just
-like ICMP protocol tracker does.
+u16 is too large for both. Our maximum length is 256 anyways, without t=
+he
+header u8 is enough. For type I'd also say u8 should be enough, especia=
+lly
+when considering the very limited space.
 
-Your patch basically looks to me like an ad-hoc expectation
-infrastructure to handle this case.
+> +#define NFTNLA_F_NESTED		(1 << 15)
+> +#define NFTNLA_F_NET_BYTEORDER	(1 << 14)
+> +#define NFTNLA_TYPE_MASK	~(NFTNLA_F_NESTED | NFTNLA_F_NET_BYTEORDER)
 
-Thanks.
+Also unnecessary since the kernel doesn't do interpretation.
+
+> +#define NFTNL_ALIGNTO		8
+> +#define NFTNL_ALIGN(len)	(((len)+NFTNL_ALIGNTO-1) & ~(NFTNL_ALIGNTO-=
+1))
+
+I'd at least consider whether we really want this or whether userspace =
+should
+do an unconditional copy to avoid unaligned accesses. We have very limi=
+ted
+space and should try to pack tightly.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
