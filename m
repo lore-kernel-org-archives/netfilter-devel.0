@@ -1,43 +1,32 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: =?utf-8?B?562U5aSNOiBbUEFUQ0ggMy8zIG5m?=
- =?utf-8?Q?-next=5D_netfilter?= =?utf-8?Q?=3A?= nf_ct_helper: Add
- nf_conntrack_helpers_register()
-Date: Mon, 4 Jan 2016 17:15:50 +0100
-Message-ID: <20160104161550.GB1303@salvia>
-References: <1451908093-3754-3-git-send-email-pablo@netfilter.org>
- <201601041946.QoN8MveC%fengguang.wu@intel.com>
- <BAY403-EAS25258E748DF4B612DF8D4AF95F20@phx.gbl>
+Subject: Re: [PATCH nft] doc: update meta and ct expression keyword lists
+Date: Mon, 4 Jan 2016 17:23:24 +0100
+Message-ID: <20160104162324.GA1548@salvia>
+References: <1451336853-30224-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: 'kbuild test robot' <lkp@intel.com>, kbuild-all@01.org,
-	netfilter-devel@vger.kernel.org, fgao@ikuai8.com
-To: Feng Gao <gfree.wind@outlook.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46368 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47119 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752020AbcADQQC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Jan 2016 11:16:02 -0500
+	id S1751904AbcADQX2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Jan 2016 11:23:28 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 009721324CB
-	for <netfilter-devel@vger.kernel.org>; Mon,  4 Jan 2016 17:16:00 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id B01141324C2
+	for <netfilter-devel@vger.kernel.org>; Mon,  4 Jan 2016 17:23:27 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id D0B5ADA814
-	for <netfilter-devel@vger.kernel.org>; Mon,  4 Jan 2016 17:15:59 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A1DACDA801
+	for <netfilter-devel@vger.kernel.org>; Mon,  4 Jan 2016 17:23:27 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id AF52DDA803
-	for <netfilter-devel@vger.kernel.org>; Mon,  4 Jan 2016 17:15:55 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id D3190DA803
+	for <netfilter-devel@vger.kernel.org>; Mon,  4 Jan 2016 17:23:25 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <BAY403-EAS25258E748DF4B612DF8D4AF95F20@phx.gbl>
+In-Reply-To: <1451336853-30224-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 04, 2016 at 10:14:40PM +0800, Feng Gao wrote:
-> Hi Pablo,
-> 
-> I received the warning notification.
-> But I just checked the patch file, and find I already initialized the "err"
-> in the nf_conntrack_helpers_register.
-> 
-> http://www.spinics.net/lists/netfilter-devel/msg39270.html
+On Mon, Dec 28, 2015 at 10:07:33PM +0100, Florian Westphal wrote:
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Will fix this here, no problem.
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
