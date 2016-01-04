@@ -1,187 +1,154 @@
 From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
-Subject: [PATCH nft 1/6] tests/py: remove unused variables
-Date: Mon,  4 Jan 2016 11:43:51 +0100
-Message-ID: <1451904236-4481-1-git-send-email-pablombg@gmail.com>
+Subject: [PATCH nft 3/6] tests/py: simplify use of globals
+Date: Mon,  4 Jan 2016 11:43:53 +0100
+Message-ID: <1451904236-4481-3-git-send-email-pablombg@gmail.com>
+References: <1451904236-4481-1-git-send-email-pablombg@gmail.com>
 Cc: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f53.google.com ([74.125.82.53]:36662 "EHLO
-	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753149AbcADKoi (ORCPT
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:33252 "EHLO
+	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753219AbcADKok (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Jan 2016 05:44:38 -0500
-Received: by mail-wm0-f53.google.com with SMTP id l65so157782227wmf.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 04 Jan 2016 02:44:37 -0800 (PST)
+	Mon, 4 Jan 2016 05:44:40 -0500
+Received: by mail-wm0-f51.google.com with SMTP id f206so167946206wmf.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 04 Jan 2016 02:44:40 -0800 (PST)
+In-Reply-To: <1451904236-4481-1-git-send-email-pablombg@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Only that. The script had a lot of unused variables.
+The script made a messy use of globals, these was sometimes accessed
+directly and passed as parameter in other cases.
+
+Since is not expected having to deal with threads in the script, now the
+globals are always accessed directly for the sake of simplicity.
 
 Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
 ---
- tests/py/nft-test.py | 39 +++++++++------------------------------
- 1 file changed, 9 insertions(+), 30 deletions(-)
+ tests/py/nft-test.py | 26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
 diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-index e68087f..cfea1b1 100755
+index 3a2082b..f5d5d84 100755
 --- a/tests/py/nft-test.py
 +++ b/tests/py/nft-test.py
-@@ -19,7 +19,6 @@ import subprocess
- import argparse
- import signal
- 
--TERMINAL_PATH = os.getcwd()
- NFT_BIN = "src/nft"
- TESTS_PATH = os.path.dirname(os.path.abspath(__file__))
- TESTS_DIRECTORY = ["any", "arp", "bridge", "inet", "ip", "ip6"]
-@@ -68,7 +67,7 @@ def print_differences_warning(filename, lineno, rule1, rule2, cmd):
-         "line: " + str(lineno + 1) + ": '" + cmd + "': " + reason
+@@ -164,7 +164,7 @@ def chain_exist(chain, table, filename, lineno):
+     return True if (ret == 0) else False
  
  
--def print_differences_error(filename, lineno, output, cmd):
-+def print_differences_error(filename, lineno, cmd):
-     reason = "Listing is broken."
-     print filename + ": " + Colors.RED + "ERROR: " + Colors.ENDC + \
-         "line: " + str(lineno + 1) + ": '" + cmd + "': " + reason
-@@ -89,7 +88,7 @@ def table_flush(table, filename, lineno):
-     Flush a table.
+-def chain_create(chain, chain_type, chain_list, table, filename, lineno):
++def chain_create(chain, chain_type, table, filename, lineno):
      '''
-     cmd = NFT_BIN + " flush table " + str(table[0]) + " " + str(table[1])
--    ret = execute_cmd(cmd, filename, lineno)
-+    execute_cmd(cmd, filename, lineno)
+     Adds a chain
+     '''
+@@ -230,7 +230,7 @@ def chain_delete(chain, table, filename=None, lineno=None):
+     return 0
  
-     return cmd
  
-@@ -453,8 +452,6 @@ def payload_check_set_elems(want, got):
- def payload_check(payload_buffer, file, cmd):
+-def set_add(set_info, table_list, filename, lineno):
++def set_add(set_info, filename, lineno):
+     '''
+     Adds a set.
+     '''
+@@ -263,7 +263,7 @@ def set_add(set_info, table_list, filename, lineno):
+     return 0
  
-     file.seek(0, 0)
--
--    ret = False
-     i = 0
  
-     for lineno, want_line in enumerate(payload_buffer):
-@@ -511,7 +508,7 @@ def rule_add(rule, table_list, chain_list, filename, lineno,
-             unit_tests += 1
-             table_flush(table, filename, lineno)
-             table_info = " " + table[0] + " " + table[1] + " "
--            cmd = NFT_BIN + " add rule" + table_info + chain + " " + rule[0]
-+            NFT_BIN + " add rule" + table_info + chain + " " + rule[0]
+-def set_add_elements(set_element, set_name, set_all, state, table_list, filename, lineno):
++def set_add_elements(set_element, set_name, state, filename, lineno):
+     '''
+     Adds elements to the set.
+     '''
+@@ -274,7 +274,7 @@ def set_add_elements(set_element, set_name, set_all, state, table_list, filename
  
-             payload_log = os.tmpfile();
- 
-@@ -583,7 +580,7 @@ def rule_add(rule, table_list, chain_list, filename, lineno,
-                             if len(rule_output) <= 0:
-                                 error += 1
-                                 print_differences_error(filename, lineno,
--                                                        rule_output, cmd)
-+                                                        cmd)
-                                 if not force_all_family_option:
-                                     return [ret, warning, error, unit_tests]
- 
-@@ -605,10 +602,10 @@ def preexec():
- def cleanup_on_exit():
      for table in table_list:
+         # Check if set exists.
+-        if (not set_exist(set_name, table, filename, lineno) or set_name not in set_all) and state == "ok":
++        if (not set_exist(set_name, table, filename, lineno) or set_name not in all_set) and state == "ok":
+             reason = "I cannot add an element to the set " + set_name + " since it does not exist."
+             print_error(reason, filename, lineno)
+             return -1
+@@ -301,7 +301,7 @@ def set_add_elements(set_element, set_name, set_all, state, table_list, filename
+         # Add element into a all_set.
+         if ret == 0 and state == "ok":
+             for e in set_element:
+-                set_all[set_name].add(e)
++                all_set[set_name].add(e)
+ 
+     return 0
+ 
+@@ -324,7 +324,7 @@ def set_delete_elements(set_element, set_name, table, filename=None, lineno=None
+     return 0
+ 
+ 
+-def set_delete(all_set, table, filename=None, lineno=None):
++def set_delete(table, filename=None, lineno=None):
+     '''
+     Deletes set and its content.
+     '''
+@@ -454,7 +454,7 @@ def payload_check(payload_buffer, file, cmd):
+     return i > 0
+ 
+ 
+-def rule_add(rule, table_list, chain_list, filename, lineno, force_all_family_option, filename_path):
++def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
+     '''
+     Adds a rule
+     '''
+@@ -576,7 +576,7 @@ def cleanup_on_exit():
          for chain in chain_list:
--            ret = chain_delete(chain, table, "", "")
-+            chain_delete(chain, table, "", "")
+             chain_delete(chain, table, "", "")
          if all_set:
--            ret = set_delete(all_set, table)
--        ret = table_delete(table)
-+            set_delete(all_set, table)
-+        table_delete(table)
+-            set_delete(all_set, table)
++            set_delete(table)
+         table_delete(table)
  
  
- def signal_handler(signal, frame):
-@@ -711,7 +708,6 @@ def payload_find_expected(payload_log, rule):
-     :param rule: nft rule we are going to add
-     '''
-     found = 0
--    pos = 0
-     payload_buffer = []
- 
-     while True:
-@@ -740,16 +736,9 @@ def run_test_file(filename, force_all_family_option, specific_file):
- 
-     :param filename: name of the file with the test rules
-     '''
--
--    if specific_file:
--        filename_path = os.path.join(TERMINAL_PATH, filename)
--    else:
--        filename_path = os.path.join(TESTS_PATH, filename)
--
-+    filename_path = os.path.join(TESTS_PATH, filename)
-     f = open(filename_path)
-     tests = passed = total_unit_run = total_warning = total_error = 0
--    table = ""
--    total_test_passed = True
- 
-     for lineno, line in enumerate(f):
-         if signal_received == 1:
-@@ -767,7 +756,6 @@ def run_test_file(filename, force_all_family_option, specific_file):
-             table_line = line.rstrip()[1:]
-             ret = table_process(table_line, filename, lineno)
-             if (ret != 0):
--                total_test_passed = False
-                 break
-             continue
- 
-@@ -775,7 +763,6 @@ def run_test_file(filename, force_all_family_option, specific_file):
-             chain_line = line.rstrip()[1:].split(";")
-             ret = chain_process(chain_line, filename, lineno)
-             if ret != 0:
--                total_test_passed = False
-                 break
-             continue
- 
-@@ -784,7 +771,6 @@ def run_test_file(filename, force_all_family_option, specific_file):
-             ret = set_process(set_line, filename, lineno)
-             tests += 1
-             if ret == -1:
--                total_test_passed = False
-                 continue
-             passed += 1
-             continue
-@@ -794,7 +780,6 @@ def run_test_file(filename, force_all_family_option, specific_file):
-             ret = set_element_process(element_line, filename, lineno)
-             tests += 1
-             if ret == -1:
--                total_test_passed = False
-                 continue
- 
-             passed += 1
-@@ -825,7 +810,6 @@ def run_test_file(filename, force_all_family_option, specific_file):
-         total_unit_run += result[3]
- 
+@@ -640,7 +640,7 @@ def chain_process(chain_line, filename, lineno):
+     for table in table_list:
+         if len(chain_line) > 1:
+             chain_type = chain_line[1]
+-        ret = chain_create(chain_name, chain_type, chain_list, table, filename, lineno)
++        ret = chain_create(chain_name, chain_type, table, filename, lineno)
          if ret != 0:
--            total_test_passed = False
+             return -1
+     return 0
+@@ -654,7 +654,7 @@ def set_process(set_line, filename, lineno):
+     set_state = set_line[1].split(";")[1]  # ok or fail
+     set_info.append(set_type)
+     set_info.append(set_state)
+-    ret = set_add(set_info, table_list, filename, lineno)
++    ret = set_add(set_info, filename, lineno)
+     if ret == 0:
+         all_set[set_name] = set()
+ 
+@@ -666,7 +666,7 @@ def set_element_process(element_line, filename, lineno):
+     set_name = element_line[0].split(" ")[0]
+     set_element = element_line[0].split(" ")
+     set_element.remove(set_name)
+-    return set_add_elements(set_element, set_name, all_set, rule_state, table_list, filename, lineno)
++    return set_add_elements(set_element, set_name, rule_state, filename, lineno)
+ 
+ 
+ def payload_find_expected(payload_log, rule):
+@@ -770,7 +770,7 @@ def run_test_file(filename, force_all_family_option, specific_file):
+         elif need_fix_option:
              continue
  
-         if warning == 0:  # All ok.
-@@ -837,21 +821,16 @@ def run_test_file(filename, force_all_family_option, specific_file):
-         for chain in chain_list:
-             ret = chain_delete(chain, table, filename, lineno)
-             if ret != 0:
--                total_test_passed = False
+-        result = rule_add(rule, table_list, chain_list, filename, lineno, force_all_family_option, filename_path)
++        result = rule_add(rule, filename, lineno, force_all_family_option, filename_path)
+         tests += 1
+         ret = result[0]
+         warning = result[1]
+@@ -792,7 +792,7 @@ def run_test_file(filename, force_all_family_option, specific_file):
  
          # We delete sets.
          if all_set:
-             ret = set_delete(all_set, table, filename, lineno)
+-            ret = set_delete(all_set, table, filename, lineno)
++            ret = set_delete(table, filename, lineno)
              if ret != 0:
--                total_test_passed = False
                  reason = "There is a problem when we delete a set"
                  print_error(reason, filename, lineno)
- 
-         # We delete tables.
--        ret = table_delete(table, filename, lineno)
--
--        if ret != 0:
--            total_test_passed = False
-+        table_delete(table, filename, lineno)
- 
-     if specific_file:
-         if force_all_family_option:
 -- 
 2.6.4
 
