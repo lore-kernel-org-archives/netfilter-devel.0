@@ -1,93 +1,72 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH v2] extensions: libipt_ttl: Add translation to nft
-Date: Mon, 4 Jan 2016 23:30:02 +0530
-Message-ID: <20160104180002.GA10529@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nft 1/5] ct: add support for directional keys
+Date: Mon, 4 Jan 2016 21:06:48 +0100
+Message-ID: <20160104200648.GB1731@breakpoint.cc>
+References: <1450472883-19743-1-git-send-email-fw@strlen.de>
+ <1450472883-19743-2-git-send-email-fw@strlen.de>
+ <20151229234941.GB1386@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f173.google.com ([209.85.192.173]:35670 "EHLO
-	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751760AbcADSAK (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37046 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751933AbcADUGu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Jan 2016 13:00:10 -0500
-Received: by mail-pf0-f173.google.com with SMTP id 78so207564009pfw.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 04 Jan 2016 10:00:09 -0800 (PST)
-Received: from gmail.com ([106.201.42.190])
-        by smtp.gmail.com with ESMTPSA id 204sm107044242pfc.67.2016.01.04.10.00.07
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Mon, 04 Jan 2016 10:00:08 -0800 (PST)
+	Mon, 4 Jan 2016 15:06:50 -0500
 Content-Disposition: inline
+In-Reply-To: <20151229234941.GB1386@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for module ttl to nftables.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Fri, Dec 18, 2015 at 10:07:59PM +0100, Florian Westphal wrote:
+> > A few keys in the ct expression are directional, i.e.
+> > we need to tell kernel if it should fetch REPLY or ORIGINAL direction.
+> > 
+> > Split ct_keys into ct_keys & ct_keys_dir, the latter are those keys
+> > that the kernel rejects unless also given a direction.
+> > 
+> > During postprocessing we also need to invoke ct_expr_update_type,
+> > problem is that e.g. ct saddr can be any family (ip, ipv6) so we need
+> > to update the expected data type based on the network base.
+> 
+> I think this is the way to go. My original proposal will not allow
+> things like:
+> 
+>         ct direction reply ct daddr original 2.2.2.2
+> 
+> which seems to me like a valid matching, specifically when NAT comes
+> into place (where original and reply tuples are not the same). This is
+> kind of corner case, but I think we shouldn't reduce the expressiveness.
 
-Examples:
+Great, so this seems ready so I pushed the series to nft master.
 
-$ sudo iptables-translate -A INPUT -m ttl --ttl-eq 3 -j ACCEPT
-nft add rule ip filter INPUT ip ttl 3 counter accept
+> > diff --git a/include/expression.h b/include/expression.h
+> > --- a/include/expression.h
+> > +++ b/include/expression.h
+> > @@ -273,6 +273,7 @@ struct expr {
+> >  		struct {
+> >  			/* EXPR_CT */
+> >  			enum nft_ct_keys	key;
+> > +			struct expr		*dir_expr;
+> 
+> I think you can store the direction as a value.
 
-$ sudo iptables-translate -A INPUT -m ttl --ttl-gt 5 -j ACCEPT
-nft add rule ip filter INPUT ip ttl \> 5 counter accept
+Ok, changed to int8_t ..
 
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
----
-Changes in v2:
-	Remove the changes done in nft-ipv4
+> > +		expr_free(ct->ct.dir_expr);
+> > +		ct->ct.dir_expr = direction;
+> > +	}
+> 
+> I'd suggest you parse the direction from the parser, I don't find any
 
- extensions/libipt_ttl.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+... and added a helper to do just that.
 
-diff --git a/extensions/libipt_ttl.c b/extensions/libipt_ttl.c
-index 5fe08cc..5d897a7 100644
---- a/extensions/libipt_ttl.c
-+++ b/extensions/libipt_ttl.c
-@@ -100,6 +100,35 @@ static void ttl_save(const void *ip, const struct xt_entry_match *match)
- 	printf(" %u", info->ttl);
- }
- 
-+static int ttl_xlate(const struct xt_entry_match *match,
-+		     struct xt_buf *buf, int numeric)
-+{
-+	const struct ipt_ttl_info *info =
-+			(struct ipt_ttl_info *) match->data;
-+
-+		switch (info->mode) {
-+		case IPT_TTL_EQ:
-+			xt_buf_add(buf, "ip ttl");
-+			break;
-+		case IPT_TTL_NE:
-+			xt_buf_add(buf, "ip ttl !=");
-+			break;
-+		case IPT_TTL_LT:
-+			xt_buf_add(buf, "ip ttl \\<");
-+			break;
-+		case IPT_TTL_GT:
-+			xt_buf_add(buf, "ip ttl \\>");
-+			break;
-+		default:
-+			/* error */
-+			break;
-+	}
-+
-+	xt_buf_add(buf, " %u ", info->ttl);
-+
-+	return 1;
-+}
-+
- #define s struct ipt_ttl_info
- static const struct xt_option_entry ttl_opts[] = {
- 	{.name = "ttl-lt", .id = O_TTL_LT, .excl = F_ANY, .type = XTTYPE_UINT8,
-@@ -126,6 +155,7 @@ static struct xtables_match ttl_mt_reg = {
- 	.x6_parse	= ttl_parse,
- 	.x6_fcheck	= ttl_check,
- 	.x6_options	= ttl_opts,
-+	.xlate		= ttl_xlate,
- };
- 
- 
--- 
-1.9.1
+There were no other changes.
 
+If you get
+ip/ct.t: WARNING: line: 16: 'src/nft add rule --debug=netlink ip test-ip4 output ct l3proto original ipv4': 'ct l3proto original ipv4' mismatches 'ct l3proto ipv4'
+
+that means kernel lacks d5f79b6e4d1 ('netfilter: nft_ct: include direction when dumping NFT_CT_L3PROTOCOL key').
