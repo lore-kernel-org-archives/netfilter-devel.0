@@ -1,78 +1,44 @@
-From: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
-Subject: [ANNOUNCE] NetDev 1.1 is approaching...
-Date: Mon, 4 Jan 2016 18:32:17 +0100
-Message-ID: <20160104173217.GA3239@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/2] Add support for ttl translation
+Date: Mon, 4 Jan 2016 18:40:24 +0100
+Message-ID: <20160104174024.GA3706@salvia>
+References: <cover.1451927507.git.shivanib134@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Shivani Bhardwaj <shivanib134@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:55195 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752571AbcADRk3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Jan 2016 12:40:29 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 3F7DD1324CA
+	for <netfilter-devel@vger.kernel.org>; Mon,  4 Jan 2016 18:40:28 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 26CC1DA803
+	for <netfilter-devel@vger.kernel.org>; Mon,  4 Jan 2016 18:40:28 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id C376DDA7E0
+	for <netfilter-devel@vger.kernel.org>; Mon,  4 Jan 2016 18:40:25 +0100 (CET)
 Content-Disposition: inline
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <cover.1451927507.git.shivanib134@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi!
+On Mon, Jan 04, 2016 at 10:49:10PM +0530, Shivani Bhardwaj wrote:
+> This patchset adds ttl translation to nftables by adding ip ttl to
+> the buffer everytime a ttl match is hit as it is necessary to mention
+> the protocol version with ttl, that is, 
+> $ sudo nft .. ttl 3 ..             won't work but
+> $ sudo nft .. ip ttl 3 ..          would work.
 
-=46or those that still didn't hear about us, Netdev 1.1 is the
-community-driven Linux networking conference. This event will be again
-held back-to-back with NetConf in Sevilla, Spain, February 10-12, 2016.
+This above is the right syntax.
 
-After the holidays break (happy new year everyone!), we would like to
-make a quick summary on what's been accepted meanwhile.
+> Also, since adding ip to the buffer in the code for ttl won't look
+> suitable, some amendments have been done in the nft-ipv4 code.
+>
+> Shivani Bhardwaj (2):
+>   iptables: nft-ipv4: Add ip ttl to the buffer
 
-=3D BoF =3D
-
-* Switchdev (Roopa Prabhu & Shrijeet Mukherjee)
-
-* IPsec performance (Steffen Klassert)
-
-=3D Talks =3D
-
-* Zebra 2.0 and Lagopus: newly-designed routing stack on high-performan=
-ce
-  packet forwarder (Yoshihiro Nakajima, Kunihiro Ishiguro, Masaru Oki,
-  Hirokazu Takahashi)
-
-* Reducing Latency in Linux Wireless Network Drivers" (Tim Shepard)
-
-* Deterministic network emulation using KauNet" (Per Hurtig & Johan Gar=
-cia)
-
-* Suricata IDPS and its interaction with Linux kernel" (Eric Leblond &
-  Giuseppe Longo)
-
-* The CLASShoFIREs: who's got your back?" (Jamal Hadi Salim)
-
-* MACsec: encryption for the wired LAN" (Sabrina Dubroca)
-
-* Bridge filtering with nftables" (Florian Westphal)
-
-* Deploying MPLS with Linux" (Roopa Prabhu)
-
-* IPv6 route lookup performance and scaling" (Michal Kube=C4=8Dek)
-
-* Namespaces and CGroups, the basis of Linux containers" (Rami Rosen)
-
-             ________________________________
-            / We still have more sessions to \
-            \    be announced, stay tuned!   /
-             --------------------------------
-                \   ^__^
-                 \  (oo)\_______
-                    (__)\       )\/\
-                        ||----w |
-                        ||     ||
-
-=46or more info, visit:
-* netdev 1.1: https://www.netdevconf.org/1.1/
-* netconf 2016: http://vger.kernel.org/netconf2016.html
-
-We would also like to thank those that already confirmed sponsorship:
-Cumulus Networks, Facebook, VmWare, Google, Cisco, Mellanox,
-Mojatatu Networks, OISF/Suricata, Zen Load Balancer and LWN.net.
---
-To unsubscribe from this list: send the line "unsubscribe linux-wireles=
-s" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I don't think you need this change for nft-ipv4.
