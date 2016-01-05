@@ -1,105 +1,74 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] extensions: libip6t_REJECT: Add translation to nft
-Date: Tue, 5 Jan 2016 12:25:04 +0530
-Message-ID: <20160105065504.GA5780@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/4] nf: netfilter: nf_tables_api: Add new attributes
+ into nft_set to store user data.
+Date: Tue, 5 Jan 2016 11:34:06 +0100
+Message-ID: <20160105103406.GA2828@salvia>
+References: <1451849900-18077-1-git-send-email-carlosfg@riseup.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:33411 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753018AbcAEGzL (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Jan 2016 01:55:11 -0500
-Received: by mail-pa0-f48.google.com with SMTP id cy9so210293185pac.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 04 Jan 2016 22:55:10 -0800 (PST)
-Received: from gmail.com ([106.218.187.195])
-        by smtp.gmail.com with ESMTPSA id y84sm84532735pfi.93.2016.01.04.22.55.08
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Mon, 04 Jan 2016 22:55:09 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:58482 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751601AbcAEKeQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Jan 2016 05:34:16 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 5DE30130FC4
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 11:34:14 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 4E1B7DA804
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 11:34:14 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id CE736DA808
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 11:34:11 +0100 (CET)
 Content-Disposition: inline
+In-Reply-To: <1451849900-18077-1-git-send-email-carlosfg@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for target REJECT to nftables.
+On Sun, Jan 03, 2016 at 08:38:17PM +0100, Carlos Falgueras Garc=EDa wro=
+te:
+> @@ -2816,12 +2823,16 @@ static int nf_tables_newset(struct net *net, =
+struct sock *nlsk,
+>  	if (IS_ERR(ops))
+>  		return PTR_ERR(ops);
+> =20
+> +	udlen =3D 0;
+> +	if (nla[NFTA_SET_USERDATA])
+> +		udlen =3D nla_len(nla[NFTA_SET_USERDATA]);
+> +
+>  	size =3D 0;
+>  	if (ops->privsize !=3D NULL)
+>  		size =3D ops->privsize(nla);
+> =20
+>  	err =3D -ENOMEM;
+> -	set =3D kzalloc(sizeof(*set) + size, GFP_KERNEL);
+> +	set =3D kzalloc(sizeof(*set) + size + udlen, GFP_KERNEL);
+>  	if (set =3D=3D NULL)
+>  		goto err1;
+> =20
+> @@ -2830,6 +2841,12 @@ static int nf_tables_newset(struct net *net, s=
+truct sock *nlsk,
+>  	if (err < 0)
+>  		goto err2;
+> =20
+> +	udata =3D NULL;
+> +	if (nla[NFTA_SET_USERDATA]) {
 
-Examples:
+I think this should be:
 
-$ sudo ip6tables-translate -A FORWARD -p TCP --dport 22 -j REJECT --reject-with icmp6-reject-route
-nft add rule ip6 filter FORWARD tcp dport 22 counter reject with icmpv6 type reject-route
+        if (udlen)
 
-$ sudo ip6tables-translate -A FORWARD -p TCP --dport 22 -j REJECT --reject-with tcp-reset
-nft add rule ip6 filter FORWARD tcp dport 22 counter reject with tcp reset
+instead, to ignore zero length user data.
 
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
----
- extensions/libip6t_REJECT.c | 38 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
-
-diff --git a/extensions/libip6t_REJECT.c b/extensions/libip6t_REJECT.c
-index d62f431..6d33ecd 100644
---- a/extensions/libip6t_REJECT.c
-+++ b/extensions/libip6t_REJECT.c
-@@ -17,6 +17,11 @@ struct reject_names {
- 	const char *desc;
- };
- 
-+struct reject_names_xlate {
-+	const char *name;
-+	enum ip6t_reject_with with;
-+};
-+
- enum {
- 	O_REJECT_WITH = 0,
- };
-@@ -124,6 +129,38 @@ static void REJECT_save(const void *ip, const struct xt_entry_target *target)
- 	printf(" --reject-with %s", reject_table[i].name);
- }
- 
-+static const struct reject_names_xlate reject_table_xlate[] = {
-+	{"no-route",		IP6T_ICMP6_NO_ROUTE},
-+	{"admin-prohibited",	IP6T_ICMP6_ADM_PROHIBITED},
-+#if 0
-+	{"not-neighbour",	IP6T_ICMP6_NOT_NEIGHBOR},
-+#endif
-+	{"addr-unreachable",	IP6T_ICMP6_ADDR_UNREACH},
-+	{"port-unreachable",	IP6T_ICMP6_PORT_UNREACH},
-+	{"tcp reset",		IP6T_TCP_RESET},
-+	{"policy-fail",		IP6T_ICMP6_POLICY_FAIL},
-+	{"reject-route",	IP6T_ICMP6_REJECT_ROUTE}
-+};
-+
-+static int REJECT_xlate(const struct xt_entry_target *target,
-+			struct xt_buf *buf, int numeric)
-+{
-+	const struct ip6t_reject_info *reject =
-+				(const struct ip6t_reject_info *)target->data;
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(reject_table_xlate); ++i)
-+		if (reject_table_xlate[i].with == reject->with)
-+			break;
-+	if (reject->with == IP6T_TCP_RESET)
-+		xt_buf_add(buf, "reject with %s", reject_table_xlate[i].name);
-+	else
-+		xt_buf_add(buf, "reject with icmpv6 type %s",
-+			   reject_table_xlate[i].name);
-+
-+	return 1;
-+}
-+
- static struct xtables_target reject_tg6_reg = {
- 	.name = "REJECT",
- 	.version	= XTABLES_VERSION,
-@@ -136,6 +173,7 @@ static struct xtables_target reject_tg6_reg = {
- 	.save		= REJECT_save,
- 	.x6_parse	= REJECT_parse,
- 	.x6_options	= REJECT_opts,
-+	.xlate		= REJECT_xlate,
- };
- 
- void _init(void)
--- 
-1.9.1
-
+> +		udata =3D set->data + size;
+> +		nla_memcpy(udata, nla[NFTA_SET_USERDATA], udlen);
+> +	}
+> +
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
