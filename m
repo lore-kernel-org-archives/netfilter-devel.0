@@ -1,57 +1,46 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH 2/4] rule: when listing all sets, don't print empty
- tables
-Date: Tue, 5 Jan 2016 12:35:44 +0100
-Message-ID: <20160105113544.GA9098@salvia>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [nft PATCH 3/4] rule: delete extra space in sets printing
+Date: Tue, 5 Jan 2016 12:35:40 +0100
+Message-ID: <CAOkSjBgSDmc+RfTy+GXyiZfxVE0Zb8CqHX+vQ_99YBNtoDA9+g@mail.gmail.com>
 References: <145190990642.22285.2420592085262978551.stgit@r2d2.cica.es>
- <145190991185.22285.13328538132434564559.stgit@r2d2.cica.es>
+ <145190991706.22285.17585254866421222372.stgit@r2d2.cica.es> <20160105112815.GC8791@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: multipart/mixed; boundary=001a11435c044cf280052894a441
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41538 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751620AbcAELfw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Jan 2016 06:35:52 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 4F3DF1324D6
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 12:35:51 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 3DBDFDA814
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 12:35:51 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 59A82DA804
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 12:35:49 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <145190991185.22285.13328538132434564559.stgit@r2d2.cica.es>
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:33614 "EHLO
+	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751620AbcAELgB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Jan 2016 06:36:01 -0500
+Received: by mail-wm0-f52.google.com with SMTP id f206so19519215wmf.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 05 Jan 2016 03:36:00 -0800 (PST)
+In-Reply-To: <20160105112815.GC8791@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 04, 2016 at 01:18:31PM +0100, Arturo Borrero Gonzalez wrote:
-> diff --git a/src/rule.c b/src/rule.c
-> index 18ff592..c0e45aa 100644
-> --- a/src/rule.c
-> +++ b/src/rule.c
-> @@ -1009,12 +1009,24 @@ static int do_list_sets(struct netlink_ctx *ctx, struct cmd *cmd)
->  	};
->  	struct table *table;
->  	struct set *set;
-> +	bool printable_sets = false;
->  
->  	list_for_each_entry(table, &table_list, list) {
->  		if (cmd->handle.family != NFPROTO_UNSPEC &&
->  		    cmd->handle.family != table->handle.family)
->  			continue;
->  
-> +		/* if there are no printable sets, don't print empty table */
-> +		list_for_each_entry(set, &table->sets, list) {
-> +			if (!set->flags & SET_F_ANONYMOUS) {
+--001a11435c044cf280052894a441
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Wait, this should be:
+On 5 January 2016 at 12:28, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>
+> But could you post what output you're trying to fix?
+>
 
-        if (!(set->flags & SET_F_ANONYMOUS))
+My email client would mess the text so find attached an example.
 
-instead.
+--=20
+Arturo Borrero Gonz=C3=A1lez
 
-I'm fixing this here.
+--001a11435c044cf280052894a441
+Content-Type: application/octet-stream; name="set.nft"
+Content-Disposition: attachment; filename="set.nft"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_ij1bklwe0
+
+dGFibGUgaW5ldCB0ZXN0IHsKCXNldCB0ZXN0IHsgCgkJICBeCgkJdHlwZSBpcHY0X2FkZHIKCX0K
+fQo=
+--001a11435c044cf280052894a441--
