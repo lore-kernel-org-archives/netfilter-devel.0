@@ -1,63 +1,92 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH 3/4] rule: delete extra space in sets printing
-Date: Tue, 5 Jan 2016 12:28:15 +0100
-Message-ID: <20160105112815.GC8791@salvia>
-References: <145190990642.22285.2420592085262978551.stgit@r2d2.cica.es>
- <145190991706.22285.17585254866421222372.stgit@r2d2.cica.es>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [PATCH] extensions: libip6t_REJECT: Add translation to nft
+Date: Tue, 5 Jan 2016 12:30:37 +0100
+Message-ID: <CAOkSjBiBO6Aj-dmgBLB4jctWD_aXim3cJmoPcWC3_we-SG=YVQ@mail.gmail.com>
+References: <20160105065504.GA5780@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Shivani Bhardwaj <shivanib134@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40195 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752032AbcAEL2U (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Jan 2016 06:28:20 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 437BE1324D7
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 12:28:19 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 35344DA85D
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 12:28:19 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 3C674DA804
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 12:28:17 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <145190991706.22285.17585254866421222372.stgit@r2d2.cica.es>
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:37490 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751798AbcAELa6 convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Jan 2016 06:30:58 -0500
+Received: by mail-wm0-f50.google.com with SMTP id f206so24431215wmf.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 05 Jan 2016 03:30:57 -0800 (PST)
+In-Reply-To: <20160105065504.GA5780@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 04, 2016 at 01:18:37PM +0100, Arturo Borrero Gonzalez wrote:
-> The extra space is printed when sets are printed in tabulated format.
-> However, the space is still required in printing in plain format (ie, monitor).
-> 
-> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> ---
->  0 files changed
-> 
-> diff --git a/src/rule.c b/src/rule.c
-> index c0e45aa..ab39513 100644
-> --- a/src/rule.c
-> +++ b/src/rule.c
-> @@ -267,7 +267,10 @@ static void set_print_declaration(const struct set *set,
->  	if (opts->table != NULL)
->  		printf(" %s", opts->table);
->  
-> -	printf(" %s { %s", set->handle.set, opts->nl);
-> +	printf(" %s {%s", set->handle.set, opts->nl);
+On 5 January 2016 at 07:55, Shivani Bhardwaj <shivanib134@gmail.com> wr=
+ote:
+>
+> +static const struct reject_names_xlate reject_table_xlate[] =3D {
+> +       {"no-route",            IP6T_ICMP6_NO_ROUTE},
+> +       {"admin-prohibited",    IP6T_ICMP6_ADM_PROHIBITED},
+> +#if 0
+> +       {"not-neighbour",       IP6T_ICMP6_NOT_NEIGHBOR},
+> +#endif
+> +       {"addr-unreachable",    IP6T_ICMP6_ADDR_UNREACH},
+> +       {"port-unreachable",    IP6T_ICMP6_PORT_UNREACH},
+> +       {"tcp reset",           IP6T_TCP_RESET},
+> +       {"policy-fail",         IP6T_ICMP6_POLICY_FAIL},
+> +       {"reject-route",        IP6T_ICMP6_REJECT_ROUTE}
+> +};
+
+I wonder the reason behind including code which seems is not going to
+be compiled.
+It was in the original extension code, perhaps you can revisit that now=
+=2E
+
 > +
-> +	if (!strcmp(opts->nl, ""))
+> +static int REJECT_xlate(const struct xt_entry_target *target,
+> +                       struct xt_buf *buf, int numeric)
+> +{
+> +       const struct ip6t_reject_info *reject =3D
+> +                               (const struct ip6t_reject_info *)targ=
+et->data;
+> +       unsigned int i;
+> +
+> +       for (i =3D 0; i < ARRAY_SIZE(reject_table_xlate); ++i)
+> +               if (reject_table_xlate[i].with =3D=3D reject->with)
+> +                       break;
+> +       if (reject->with =3D=3D IP6T_TCP_RESET)
+> +               xt_buf_add(buf, "reject with %s", reject_table_xlate[=
+i].name);
+> +       else
+> +               xt_buf_add(buf, "reject with icmpv6 type %s",
+> +                          reject_table_xlate[i].name);
+> +
+> +       return 1;
+> +}
+> +
 
-This could be replaced by:
+AFAIK, -j REJECT can be used without further options. However, this
+_xlate() function doesn't seem to support it.
 
-        if (!opts->nl[0])
+I would print unconditionally the 'reject' keyword and in case some
+option was used, then include the 'with XXX' thing.
 
-But could you post what output you're trying to fix?
+i.e:
 
-Thanks.
+the rule:
+% [...] -p tcp --dport 22 -j REJECT
+translates to:
+% nft add rule [...] tcp dport 22 reject
 
-> +		printf(" ");
->  
->  	printf("%s%stype %s", opts->tab, opts->tab, set->keytype->name);
->  	if (set->flags & SET_F_MAP)
-> 
+and the rule:
+% [...] -p tcp --dport 22 -j REJECT --reject-with no-route
+translates to:
+% nft add rule [...] tcp dport 22 reject with icmpv6 type no-route
+
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
