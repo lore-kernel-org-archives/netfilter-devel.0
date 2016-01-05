@@ -1,8 +1,8 @@
 From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Subject: [PATCH nf-next 3/5] netfilter: nfnetlink_queue: just returns error
- for unknown command
-Date: Tue, 5 Jan 2016 09:31:40 +0900
-Message-ID: <20160105003140.GD27154@gmail.com>
+Subject: [PATCH nf-next 4/5] netfilter: nfnetlink_queue: autoload
+ nf_conntrack_netlink module NFQA_CFG_F_CONNTRACK config flag
+Date: Tue, 5 Jan 2016 09:32:59 +0900
+Message-ID: <20160105003259.GE27154@gmail.com>
 References: <20151006021001.GA30037@gmail.com>
  <20151006021246.GB30037@gmail.com>
  <20151006100728.GA2429@salvia>
@@ -18,38 +18,48 @@ Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f173.google.com ([209.85.192.173]:33180 "EHLO
-	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753665AbcAEAbp (ORCPT
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:35420 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753681AbcAEAdE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Jan 2016 19:31:45 -0500
-Received: by mail-pf0-f173.google.com with SMTP id q63so174196229pfb.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 04 Jan 2016 16:31:44 -0800 (PST)
+	Mon, 4 Jan 2016 19:33:04 -0500
+Received: by mail-pa0-f52.google.com with SMTP id do7so4494037pab.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 04 Jan 2016 16:33:03 -0800 (PST)
 Content-Disposition: inline
 In-Reply-To: <20160105002456.GA27154@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch stops processing options for unknown command.
+This patch enables to load nf_conntrack_netlink module if
+NFQA_CFG_F_CONNTRACK config flag is specified.
 
 Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
 ---
- net/netfilter/nfnetlink_queue.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nfnetlink_queue.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
 diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index ca00a98..c5cd50c 100644
+index c5cd50c..6168984 100644
 --- a/net/netfilter/nfnetlink_queue.c
 +++ b/net/netfilter/nfnetlink_queue.c
-@@ -1182,7 +1182,7 @@ static int nfqnl_recv_config(struct net *net, struct sock *ctnl,
- 			break;
- 		default:
- 			ret = -ENOTSUPP;
--			break;
-+			goto err_out_unlock;
- 		}
+@@ -1147,6 +1147,17 @@ static int nfqnl_recv_config(struct net *net, struct sock *ctnl,
+ 		if (flags & mask & NFQA_CFG_F_SECCTX)
+ 			return -EOPNOTSUPP;
+ #endif
++		if ((flags & mask & NFQA_CFG_F_CONNTRACK) &&
++		    !rcu_access_pointer(nfnl_ct_hook)) {
++#ifdef CONFIG_MODULES
++			nfnl_unlock(NFNL_SUBSYS_QUEUE);
++			request_module("ip_conntrack_netlink");
++			nfnl_lock(NFNL_SUBSYS_QUEUE);
++			if (rcu_access_pointer(nfnl_ct_hook))
++				return -EAGAIN;
++#endif
++			return -EOPNOTSUPP;
++		}
  	}
  
+ 	rcu_read_lock();
 -- 
 1.7.10.4
 
