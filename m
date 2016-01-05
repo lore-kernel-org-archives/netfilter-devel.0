@@ -1,74 +1,68 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/4] nf: netfilter: nf_tables_api: Add new attributes
- into nft_set to store user data.
-Date: Tue, 5 Jan 2016 11:34:06 +0100
-Message-ID: <20160105103406.GA2828@salvia>
-References: <1451849900-18077-1-git-send-email-carlosfg@riseup.net>
+Subject: Re: [PATCH nf-next 5/5] netfilter: nfnetlink_log: just returns error
+ for unknown command
+Date: Tue, 5 Jan 2016 12:03:53 +0100
+Message-ID: <20160105110353.GA6085@salvia>
+References: <20151006021246.GB30037@gmail.com>
+ <20151006100728.GA2429@salvia>
+ <20151007042016.GA23203@gmail.com>
+ <20151007042550.GC23203@gmail.com>
+ <20151016170532.GA18148@salvia>
+ <20151106004640.GA11266@gmail.com>
+ <20151106004947.GB11266@gmail.com>
+ <20151108221454.GA21221@salvia>
+ <20160105002456.GA27154@gmail.com>
+ <20160105003434.GF27154@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58482 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35363 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751601AbcAEKeQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Jan 2016 05:34:16 -0500
+	id S1751748AbcAELEB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Jan 2016 06:04:01 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 5DE30130FC4
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 11:34:14 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id B68F9130FDC
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 12:03:57 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 4E1B7DA804
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 11:34:14 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A6884DA803
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 12:03:57 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id CE736DA808
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 11:34:11 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id BBE61DA803
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 12:03:54 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1451849900-18077-1-git-send-email-carlosfg@riseup.net>
+In-Reply-To: <20160105003434.GF27154@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Jan 03, 2016 at 08:38:17PM +0100, Carlos Falgueras Garc=EDa wro=
-te:
-> @@ -2816,12 +2823,16 @@ static int nf_tables_newset(struct net *net, =
-struct sock *nlsk,
->  	if (IS_ERR(ops))
->  		return PTR_ERR(ops);
-> =20
-> +	udlen =3D 0;
-> +	if (nla[NFTA_SET_USERDATA])
-> +		udlen =3D nla_len(nla[NFTA_SET_USERDATA]);
-> +
->  	size =3D 0;
->  	if (ops->privsize !=3D NULL)
->  		size =3D ops->privsize(nla);
-> =20
->  	err =3D -ENOMEM;
-> -	set =3D kzalloc(sizeof(*set) + size, GFP_KERNEL);
-> +	set =3D kzalloc(sizeof(*set) + size + udlen, GFP_KERNEL);
->  	if (set =3D=3D NULL)
->  		goto err1;
-> =20
-> @@ -2830,6 +2841,12 @@ static int nf_tables_newset(struct net *net, s=
-truct sock *nlsk,
->  	if (err < 0)
->  		goto err2;
-> =20
-> +	udata =3D NULL;
-> +	if (nla[NFTA_SET_USERDATA]) {
+On Tue, Jan 05, 2016 at 09:34:34AM +0900, Ken-ichirou MATSUZAWA wrote:
+> This patch stops processing options for unknown command.
+> 
+> Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
+> ---
+>  net/netfilter/nfnetlink_log.c |    4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+> index 6a57f10..643c2d3 100644
+> --- a/net/netfilter/nfnetlink_log.c
+> +++ b/net/netfilter/nfnetlink_log.c
+> @@ -888,7 +888,9 @@ static int nfulnl_recv_config(struct net *net, struct sock *ctnl,
+>  			goto out_put;
+>  		default:
+>  			ret = -ENOTSUPP;
+> -			break;
+> +			if (inst)
+> +				goto out_put;
+> +			goto out;
 
-I think this should be:
+We can simplify this to:
 
-        if (udlen)
+                        goto out_put;
 
-instead, to ignore zero length user data.
+since instance_put() already checks if inst is non-null.
 
-> +		udata =3D set->data + size;
-> +		nla_memcpy(udata, nla[NFTA_SET_USERDATA], udlen);
-> +	}
-> +
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+No need to resend, I'll fix this here.
+
+Thanks a lot for following up on this series Ken-ichirou :-).
