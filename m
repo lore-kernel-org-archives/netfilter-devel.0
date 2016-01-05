@@ -1,65 +1,84 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH] netfilter: nf_conntrack: use safer way to lock all
- buckets
-Date: Tue, 5 Jan 2016 11:13:55 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6D1CCBD66E@AcuExch.aculab.com>
-References: <1451960746-28915-1-git-send-email-sasha.levin@oracle.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v2] extensions: libipt_ttl: Add translation to nft
+Date: Tue, 5 Jan 2016 12:17:45 +0100
+Message-ID: <20160105111745.GA6613@salvia>
+References: <20160104180002.GA10529@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"coreteam@netfilter.org" <coreteam@netfilter.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-To: 'Sasha Levin' <sasha.levin@oracle.com>,
-	"pablo@netfilter.org" <pablo@netfilter.org>,
-	"kaber@trash.net" <kaber@trash.net>,
-	"kadlec@blackhole.kfki.hu" <kadlec@blackhole.kfki.hu>,
-	"davem@davemloft.net" <davem@davemloft.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1451960746-28915-1-git-send-email-sasha.levin@oracle.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Shivani Bhardwaj <shivanib134@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:38340 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751739AbcAELRt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Jan 2016 06:17:49 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id A50BE1324D6
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 12:17:48 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 95E64DA804
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 12:17:48 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id AAC23DA804
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 12:17:46 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20160104180002.GA10529@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Sasha Levin
-> Sent: 05 January 2016 02:26
-> When we need to lock all buckets in the connection hashtable we'd attempt to
-> lock 1024 spinlocks, which is way more preemption levels than supported by
-> the kernel. Furthermore, this behavior was hidden by checking if lockdep is
-> enabled, and if it was - use only 8 buckets(!).
+On Mon, Jan 04, 2016 at 11:30:02PM +0530, Shivani Bhardwaj wrote:
+> Add translation for module ttl to nftables.
 > 
-> Fix this by using a global lock and synchronize all buckets on it when we
-> need to lock them all. This is pretty heavyweight, but is only done when we
-> need to resize the hashtable, and that doesn't happen often enough (or at all).
-...
-> +static void nf_conntrack_lock_nested(spinlock_t *lock)
-> +{
-> +	spin_lock_nested(lock, SINGLE_DEPTH_NESTING);
-> +	while (unlikely(nf_conntrack_locks_all)) {
-> +		spin_unlock(lock);
-> +		spin_lock(&nf_conntrack_locks_all_lock);
-> +		spin_unlock(&nf_conntrack_locks_all_lock);
-> +		spin_lock_nested(lock, SINGLE_DEPTH_NESTING);
-> +	}
-> +}
-...
-> @@ -102,16 +126,19 @@ static void nf_conntrack_all_lock(void)
->  {
->  	int i;
+> Examples:
 > 
-> -	for (i = 0; i < CONNTRACK_LOCKS; i++)
-> -		spin_lock_nested(&nf_conntrack_locks[i], i);
-> +	spin_lock(&nf_conntrack_locks_all_lock);
-> +	nf_conntrack_locks_all = true;
-> +
-> +	for (i = 0; i < CONNTRACK_LOCKS; i++) {
-> +		spin_lock(&nf_conntrack_locks[i]);
-> +		spin_unlock(&nf_conntrack_locks[i]);
-> +	}
+> $ sudo iptables-translate -A INPUT -m ttl --ttl-eq 3 -j ACCEPT
+> nft add rule ip filter INPUT ip ttl 3 counter accept
+> 
+> $ sudo iptables-translate -A INPUT -m ttl --ttl-gt 5 -j ACCEPT
+> nft add rule ip filter INPUT ip ttl \> 5 counter accept
+
+Applied with minor glitch.
+
+> Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+> ---
+> Changes in v2:
+> 	Remove the changes done in nft-ipv4
+> 
+>  extensions/libipt_ttl.c | 30 ++++++++++++++++++++++++++++++
+>  1 file changed, 30 insertions(+)
+> 
+> diff --git a/extensions/libipt_ttl.c b/extensions/libipt_ttl.c
+> index 5fe08cc..5d897a7 100644
+> --- a/extensions/libipt_ttl.c
+> +++ b/extensions/libipt_ttl.c
+> @@ -100,6 +100,35 @@ static void ttl_save(const void *ip, const struct xt_entry_match *match)
+>  	printf(" %u", info->ttl);
 >  }
+>  
+> +static int ttl_xlate(const struct xt_entry_match *match,
+> +		     struct xt_buf *buf, int numeric)
+> +{
+> +	const struct ipt_ttl_info *info =
+> +			(struct ipt_ttl_info *) match->data;
+> +
+> +		switch (info->mode) {
+> +		case IPT_TTL_EQ:
+> +			xt_buf_add(buf, "ip ttl");
+> +			break;
+> +		case IPT_TTL_NE:
+> +			xt_buf_add(buf, "ip ttl !=");
+> +			break;
+> +		case IPT_TTL_LT:
+> +			xt_buf_add(buf, "ip ttl \\<");
 
-If spin_lock_nested() does anything like what I think its
-name suggests then I suspect that deadlocks.
+I prefer you use 'lt' instead of \\<.
 
-	David
+> +			break;
+> +		case IPT_TTL_GT:
+> +			xt_buf_add(buf, "ip ttl \\>");
+
+Same thing here: use 'gt'.
+
+No need to resend, I have fixed this here.
+
+Thanks.
