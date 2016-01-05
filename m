@@ -1,73 +1,105 @@
 From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] src: datatype: Modify symbol table for icmpv6 packet types
-Date: Tue, 5 Jan 2016 12:08:36 +0530
-Message-ID: <20160105063836.GA4295@gmail.com>
+Subject: [PATCH] extensions: libip6t_REJECT: Add translation to nft
+Date: Tue, 5 Jan 2016 12:25:04 +0530
+Message-ID: <20160105065504.GA5780@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f172.google.com ([209.85.192.172]:33549 "EHLO
-	mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750787AbcAEGio (ORCPT
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:33411 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753018AbcAEGzL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Jan 2016 01:38:44 -0500
-Received: by mail-pf0-f172.google.com with SMTP id q63so179167705pfb.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 04 Jan 2016 22:38:44 -0800 (PST)
+	Tue, 5 Jan 2016 01:55:11 -0500
+Received: by mail-pa0-f48.google.com with SMTP id cy9so210293185pac.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 04 Jan 2016 22:55:10 -0800 (PST)
 Received: from gmail.com ([106.218.187.195])
-        by smtp.gmail.com with ESMTPSA id v16sm125293431pfi.94.2016.01.04.22.38.41
+        by smtp.gmail.com with ESMTPSA id y84sm84532735pfi.93.2016.01.04.22.55.08
         for <netfilter-devel@vger.kernel.org>
         (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Mon, 04 Jan 2016 22:38:42 -0800 (PST)
+        Mon, 04 Jan 2016 22:55:09 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add the missing symbols and correct the macros corresponding to the
-existing symbols.
+Add translation for target REJECT to nftables.
+
+Examples:
+
+$ sudo ip6tables-translate -A FORWARD -p TCP --dport 22 -j REJECT --reject-with icmp6-reject-route
+nft add rule ip6 filter FORWARD tcp dport 22 counter reject with icmpv6 type reject-route
+
+$ sudo ip6tables-translate -A FORWARD -p TCP --dport 22 -j REJECT --reject-with tcp-reset
+nft add rule ip6 filter FORWARD tcp dport 22 counter reject with tcp reset
 
 Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
 ---
- src/datatype.c | 13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ extensions/libip6t_REJECT.c | 38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-diff --git a/src/datatype.c b/src/datatype.c
-index f56763b..d8599e5 100644
---- a/src/datatype.c
-+++ b/src/datatype.c
-@@ -17,6 +17,7 @@
- #include <arpa/inet.h>
- #include <linux/types.h>
- #include <linux/netfilter.h>
-+#include <linux/icmpv6.h>
- 
- #include <nftables.h>
- #include <datatype.h>
-@@ -26,7 +27,6 @@
- #include <netlink.h>
- 
- #include <netinet/ip_icmp.h>
--#include <netinet/icmp6.h>
- 
- static const struct datatype *datatypes[TYPE_MAX + 1] = {
- 	[TYPE_INVALID]		= &invalid_type,
-@@ -731,10 +731,13 @@ const struct datatype icmp_code_type = {
- 
- static const struct symbol_table icmpv6_code_tbl = {
- 	.symbols	= {
--		SYMBOL("no-route",		ICMP6_DST_UNREACH_NOROUTE),
--		SYMBOL("admin-prohibited",	ICMP6_DST_UNREACH_ADMIN),
--		SYMBOL("addr-unreachable",	ICMP6_DST_UNREACH_ADDR),
--		SYMBOL("port-unreachable",	ICMP6_DST_UNREACH_NOPORT),
-+		SYMBOL("no-route",		ICMPV6_NOROUTE),
-+		SYMBOL("admin-prohibited",	ICMPV6_ADM_PROHIBITED),
-+		SYMBOL("not-neighbour",		ICMPV6_NOT_NEIGHBOUR),
-+		SYMBOL("addr-unreachable",	ICMPV6_ADDR_UNREACH),
-+		SYMBOL("port-unreachable",	ICMPV6_PORT_UNREACH),
-+		SYMBOL("policy-fail",		ICMPV6_POLICY_FAIL),
-+		SYMBOL("reject-route",		ICMPV6_REJECT_ROUTE),
- 		SYMBOL_LIST_END
- 	},
+diff --git a/extensions/libip6t_REJECT.c b/extensions/libip6t_REJECT.c
+index d62f431..6d33ecd 100644
+--- a/extensions/libip6t_REJECT.c
++++ b/extensions/libip6t_REJECT.c
+@@ -17,6 +17,11 @@ struct reject_names {
+ 	const char *desc;
  };
+ 
++struct reject_names_xlate {
++	const char *name;
++	enum ip6t_reject_with with;
++};
++
+ enum {
+ 	O_REJECT_WITH = 0,
+ };
+@@ -124,6 +129,38 @@ static void REJECT_save(const void *ip, const struct xt_entry_target *target)
+ 	printf(" --reject-with %s", reject_table[i].name);
+ }
+ 
++static const struct reject_names_xlate reject_table_xlate[] = {
++	{"no-route",		IP6T_ICMP6_NO_ROUTE},
++	{"admin-prohibited",	IP6T_ICMP6_ADM_PROHIBITED},
++#if 0
++	{"not-neighbour",	IP6T_ICMP6_NOT_NEIGHBOR},
++#endif
++	{"addr-unreachable",	IP6T_ICMP6_ADDR_UNREACH},
++	{"port-unreachable",	IP6T_ICMP6_PORT_UNREACH},
++	{"tcp reset",		IP6T_TCP_RESET},
++	{"policy-fail",		IP6T_ICMP6_POLICY_FAIL},
++	{"reject-route",	IP6T_ICMP6_REJECT_ROUTE}
++};
++
++static int REJECT_xlate(const struct xt_entry_target *target,
++			struct xt_buf *buf, int numeric)
++{
++	const struct ip6t_reject_info *reject =
++				(const struct ip6t_reject_info *)target->data;
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(reject_table_xlate); ++i)
++		if (reject_table_xlate[i].with == reject->with)
++			break;
++	if (reject->with == IP6T_TCP_RESET)
++		xt_buf_add(buf, "reject with %s", reject_table_xlate[i].name);
++	else
++		xt_buf_add(buf, "reject with icmpv6 type %s",
++			   reject_table_xlate[i].name);
++
++	return 1;
++}
++
+ static struct xtables_target reject_tg6_reg = {
+ 	.name = "REJECT",
+ 	.version	= XTABLES_VERSION,
+@@ -136,6 +173,7 @@ static struct xtables_target reject_tg6_reg = {
+ 	.save		= REJECT_save,
+ 	.x6_parse	= REJECT_parse,
+ 	.x6_options	= REJECT_opts,
++	.xlate		= REJECT_xlate,
+ };
+ 
+ void _init(void)
 -- 
 1.9.1
 
