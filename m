@@ -1,68 +1,65 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 5/5] netfilter: nfnetlink_log: just returns error
- for unknown command
-Date: Tue, 5 Jan 2016 12:03:53 +0100
-Message-ID: <20160105110353.GA6085@salvia>
-References: <20151006021246.GB30037@gmail.com>
- <20151006100728.GA2429@salvia>
- <20151007042016.GA23203@gmail.com>
- <20151007042550.GC23203@gmail.com>
- <20151016170532.GA18148@salvia>
- <20151106004640.GA11266@gmail.com>
- <20151106004947.GB11266@gmail.com>
- <20151108221454.GA21221@salvia>
- <20160105002456.GA27154@gmail.com>
- <20160105003434.GF27154@gmail.com>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH] netfilter: nf_conntrack: use safer way to lock all
+ buckets
+Date: Tue, 5 Jan 2016 11:13:55 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6D1CCBD66E@AcuExch.aculab.com>
+References: <1451960746-28915-1-git-send-email-sasha.levin@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35363 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751748AbcAELEB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Jan 2016 06:04:01 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id B68F9130FDC
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 12:03:57 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id A6884DA803
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 12:03:57 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id BBE61DA803
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jan 2016 12:03:54 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20160105003434.GF27154@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"coreteam@netfilter.org" <coreteam@netfilter.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: 'Sasha Levin' <sasha.levin@oracle.com>,
+	"pablo@netfilter.org" <pablo@netfilter.org>,
+	"kaber@trash.net" <kaber@trash.net>,
+	"kadlec@blackhole.kfki.hu" <kadlec@blackhole.kfki.hu>,
+	"davem@davemloft.net" <davem@davemloft.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1451960746-28915-1-git-send-email-sasha.levin@oracle.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jan 05, 2016 at 09:34:34AM +0900, Ken-ichirou MATSUZAWA wrote:
-> This patch stops processing options for unknown command.
+From: Sasha Levin
+> Sent: 05 January 2016 02:26
+> When we need to lock all buckets in the connection hashtable we'd attempt to
+> lock 1024 spinlocks, which is way more preemption levels than supported by
+> the kernel. Furthermore, this behavior was hidden by checking if lockdep is
+> enabled, and if it was - use only 8 buckets(!).
 > 
-> Signed-off-by: Ken-ichirou MATSUZAWA <chamas@h4.dion.ne.jp>
-> ---
->  net/netfilter/nfnetlink_log.c |    4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+> Fix this by using a global lock and synchronize all buckets on it when we
+> need to lock them all. This is pretty heavyweight, but is only done when we
+> need to resize the hashtable, and that doesn't happen often enough (or at all).
+...
+> +static void nf_conntrack_lock_nested(spinlock_t *lock)
+> +{
+> +	spin_lock_nested(lock, SINGLE_DEPTH_NESTING);
+> +	while (unlikely(nf_conntrack_locks_all)) {
+> +		spin_unlock(lock);
+> +		spin_lock(&nf_conntrack_locks_all_lock);
+> +		spin_unlock(&nf_conntrack_locks_all_lock);
+> +		spin_lock_nested(lock, SINGLE_DEPTH_NESTING);
+> +	}
+> +}
+...
+> @@ -102,16 +126,19 @@ static void nf_conntrack_all_lock(void)
+>  {
+>  	int i;
 > 
-> diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-> index 6a57f10..643c2d3 100644
-> --- a/net/netfilter/nfnetlink_log.c
-> +++ b/net/netfilter/nfnetlink_log.c
-> @@ -888,7 +888,9 @@ static int nfulnl_recv_config(struct net *net, struct sock *ctnl,
->  			goto out_put;
->  		default:
->  			ret = -ENOTSUPP;
-> -			break;
-> +			if (inst)
-> +				goto out_put;
-> +			goto out;
+> -	for (i = 0; i < CONNTRACK_LOCKS; i++)
+> -		spin_lock_nested(&nf_conntrack_locks[i], i);
+> +	spin_lock(&nf_conntrack_locks_all_lock);
+> +	nf_conntrack_locks_all = true;
+> +
+> +	for (i = 0; i < CONNTRACK_LOCKS; i++) {
+> +		spin_lock(&nf_conntrack_locks[i]);
+> +		spin_unlock(&nf_conntrack_locks[i]);
+> +	}
+>  }
 
-We can simplify this to:
+If spin_lock_nested() does anything like what I think its
+name suggests then I suspect that deadlocks.
 
-                        goto out_put;
-
-since instance_put() already checks if inst is non-null.
-
-No need to resend, I'll fix this here.
-
-Thanks a lot for following up on this series Ken-ichirou :-).
+	David
