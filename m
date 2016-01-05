@@ -1,18 +1,18 @@
 From: "Skoll, Jeff" <uk038853@student.uni-kassel.de>
 Subject: Charity/Donation
-Date: Mon, 04 Jan 2016 21:40:01 -0500
-Message-ID: <auto-000000074659__46292.7907160067$1451962377$gmane$org@mailadmin.uni-kassel.de>
+Date: Tue, 05 Jan 2016 00:04:11 -0500
+Message-ID: <auto-000000159800@mailadmin.uni-kassel.de>
 Reply-To: jeff.skoll@skollcharity.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: Me <uk038853@student.uni-kassel.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx2.its.uni-kassel.de ([141.51.12.52]:54958 "EHLO
+Received: from mx2.its.uni-kassel.de ([141.51.12.52]:51710 "EHLO
 	mx2.its.uni-kassel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753842AbcAECw2 convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1751867AbcAEFEl convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Jan 2016 21:52:28 -0500
+	Tue, 5 Jan 2016 00:04:41 -0500
 Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
