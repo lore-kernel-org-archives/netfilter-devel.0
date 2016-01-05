@@ -1,172 +1,61 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/3 nft] parser: get rid of multiton_expr from lhs
- relational expression
-Date: Mon, 4 Jan 2016 22:48:53 +0000
-Message-ID: <20160104171238.GC32583@macbook.localdomain>
-References: <1451419755-29997-1-git-send-email-pablo@netfilter.org>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: Re: [PATCH nf-next 1/3] netfilter: nfnetlink_queue: remove
+ duplicated obsolete commands handling
+Date: Tue, 5 Jan 2016 09:24:57 +0900
+Message-ID: <20160105002456.GA27154@gmail.com>
+References: <20151005152315.GA11562@salvia>
+ <20151006021001.GA30037@gmail.com>
+ <20151006021246.GB30037@gmail.com>
+ <20151006100728.GA2429@salvia>
+ <20151007042016.GA23203@gmail.com>
+ <20151007042550.GC23203@gmail.com>
+ <20151016170532.GA18148@salvia>
+ <20151106004640.GA11266@gmail.com>
+ <20151106004947.GB11266@gmail.com>
+ <20151108221454.GA21221@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48391 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752012AbcADWs7 (ORCPT
+Received: from mail-pf0-f171.google.com ([209.85.192.171]:36558 "EHLO
+	mail-pf0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753332AbcAEAZC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Jan 2016 17:48:59 -0500
+	Mon, 4 Jan 2016 19:25:02 -0500
+Received: by mail-pf0-f171.google.com with SMTP id 65so165070310pff.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 04 Jan 2016 16:25:02 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1451419755-29997-1-git-send-email-pablo@netfilter.org>
+In-Reply-To: <20151108221454.GA21221@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 29.12, Pablo Neira Ayuso wrote:
-> The multiton_expr rule matches range, prefix and wildcard expressions
-> which don't make sense from the non-constant lhs. This rule is there to
-> handle the nat statement case, whose expression may be composed of
-> address and port ranges (hence range expressions).
+Sorry for being late often.
 
-Its actually originates from set expressions. As long as we can still use
-it there and can use bitwise and similar expressions for both sets and
-maps this seems fine.
-
-> To resolve this, this patch adds the stmt_expr rule to handle the
-> possible occurrences of map, multiton and primary expressions from
-> statements.
+On Sun, Nov 08, 2015 at 11:14:54PM +0100, Pablo Neira Ayuso wrote:
+> commit 0360ae412d09bc6f4864c801effcb20bfd84520e
+> Author: Florian Westphal <fw@strlen.de>
+> Date:   Fri Nov 23 06:22:21 2012 +0000
 > 
-> This results in more rules but it narrows down what we can find from
-> expressions that are part of action statements.
-
-I had a similar patch which simply split it up into lhs and rhs expressions.
-Using stmt_expr seems a bit limited considering that we already use it for
-other things than statements.
-
-
+>     netfilter: kill support for per-af queue backends
 > 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  src/parser_bison.y | 54 ++++++++++++++++++++++++++++++++++++++++++++----------
->  1 file changed, 44 insertions(+), 10 deletions(-)
+> The former behaviour before Florian's patch is that
+> NFQNL_CFG_CMD_PF_BIND and NFQNL_CFG_CMD_PF_UNBIND are terminal.
 > 
-> diff --git a/src/parser_bison.y b/src/parser_bison.y
-> index d42bd2f..b49eadb 100644
-> --- a/src/parser_bison.y
-> +++ b/src/parser_bison.y
-> @@ -486,6 +486,10 @@ static void location_update(struct location *loc, struct location *rhs, int n)
->  %destructor { expr_free($$); }	multiton_expr
->  %type <expr>			prefix_expr range_expr wildcard_expr
->  %destructor { expr_free($$); }	prefix_expr range_expr wildcard_expr
-> +
-> +%type <expr>			stmt_expr concat_stmt_expr map_stmt_expr
-> +%destructor { expr_free($$); }	stmt_expr concat_stmt_expr map_stmt_expr
-> +
->  %type <expr>			list_expr
->  %destructor { expr_free($$); }	list_expr
->  %type <expr>			concat_expr
-> @@ -1577,20 +1581,51 @@ nat_stmt_alloc		:	SNAT
->  			}
->  			;
->  
-> -nat_stmt_args		:	expr
-> +concat_stmt_expr	:	primary_expr
-> +			|	concat_stmt_expr	DOT	primary_expr
-> +			{
-> +				if ($$->ops->type != EXPR_CONCAT) {
-> +					$$ = concat_expr_alloc(&@$);
-> +					compound_expr_add($$, $1);
-> +				} else {
-> +					struct location rhs[] = {
-> +						[1]	= @2,
-> +						[2]	= @3,
-> +					};
-> +					location_update(&$3->location, rhs, 2);
-> +
-> +					$$ = $1;
-> +					$$->location = @$;
-> +				}
-> +				compound_expr_add($$, $3);
-> +			}
-> +			;
-> +
-> +map_stmt_expr		:	concat_stmt_expr	MAP	rhs_expr
-> +			{
-> +				$$ = map_expr_alloc(&@$, $1, $3);
-> +			}
-> +			;
-> +
-> +stmt_expr		:	map_stmt_expr
-> +			|	multiton_expr
-> +			|	primary_expr
-> +			;
-> +
-> +nat_stmt_args		:	stmt_expr
->  			{
->  				$<stmt>0->nat.addr = $1;
->  			}
-> -			|	expr	COLON	expr
-> +			|	stmt_expr	COLON	stmt_expr
->  			{
->  				$<stmt>0->nat.addr = $1;
->  				$<stmt>0->nat.proto = $3;
->  			}
-> -			|	COLON	expr
-> +			|	COLON		stmt_expr
->  			{
->  				$<stmt>0->nat.proto = $2;
->  			}
-> -			|	nat_stmt_args	nf_nat_flags
-> +			|       nat_stmt_args   nf_nat_flags
->  			{
->  				$<stmt>0->nat.flags = $2;
->  			}
-> @@ -1614,7 +1649,7 @@ redir_stmt		:	redir_stmt_alloc	redir_stmt_arg
->  redir_stmt_alloc	:	REDIRECT	{ $$ = redir_stmt_alloc(&@$); }
->  			;
->  
-> -redir_stmt_arg		:	TO	expr
-> +redir_stmt_arg		:	TO	stmt_expr
->  			{
->  				$<stmt>0->redir.proto = $2;
->  			}
-> @@ -1622,19 +1657,19 @@ redir_stmt_arg		:	TO	expr
->  			{
->  				$<stmt>0->redir.flags = $1;
->  			}
-> -			|	TO	expr	nf_nat_flags
-> +			|	TO	stmt_expr	nf_nat_flags
->  			{
->  				$<stmt>0->redir.proto = $2;
->  				$<stmt>0->redir.flags = $3;
->  			}
->  			;
->  
-> -dup_stmt		:	DUP	TO	expr
-> +dup_stmt		:	DUP	TO	stmt_expr
->  			{
->  				$$ = dup_stmt_alloc(&@$);
->  				$$->dup.to = $3;
->  			}
-> -			|	DUP	TO	expr 	DEVICE	expr
-> +			|	DUP	TO	stmt_expr 	DEVICE	stmt_expr
->  			{
->  				$$ = dup_stmt_alloc(&@$);
->  				$$->dup.to = $3;
-> @@ -1671,7 +1706,7 @@ queue_stmt_args		:	queue_stmt_arg
->  			|	queue_stmt_args	queue_stmt_arg
->  			;
->  
-> -queue_stmt_arg		:	QUEUENUM	expr
-> +queue_stmt_arg		:	QUEUENUM	stmt_expr
->  			{
->  				$<stmt>0->queue.queue = $2;
->  			}
-> @@ -1865,7 +1900,6 @@ map_expr		:	concat_expr	MAP	rhs_expr
->  			;
->  
->  expr			:	concat_expr
-> -			|	multiton_expr
->  			|	set_expr
->  			|       map_expr
->  			;
-> -- 
-> 2.1.4
+> This code is there not to break backward compatibility, ie. old
+> userspace that rely on these commands.
 > 
+> After this patch, we inspect if there is an existing queue for this,
+> which was not happening before.
+
+I tried to follow your advice, would you see again?
+
+> As I said, my concerns go in the direction of possible breakage of old
+> code, we shouldn't break backward.
+
+I'm worry about appended patches 3/5 and 5/5 may not follow it.
+After these patches applied, userspace can not update instance's
+options with invalid command. is it acceptable?
+
+Thanks,
+
