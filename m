@@ -1,78 +1,42 @@
-From: Stephen Hemminger <shemming@brocade.com>
-Subject: header conflict introduced by change to netfilter_ipv4/ip_tables.h
-Date: Wed, 6 Jan 2016 09:20:07 -0800
-Message-ID: <20160106092007.1c5a0c75@xeon-e3>
+From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+Subject: Re: [PATCH nft 2/6] tests/py: fix style
+Date: Wed, 6 Jan 2016 19:55:59 +0100
+Message-ID: <CAAaDf4tcOTTgV6tUZeP_W2u1-Bx_KNMQtaSQ5QnELkbUUC1-Yw@mail.gmail.com>
+References: <1451904236-4481-1-git-send-email-pablombg@gmail.com>
+	<1451904236-4481-2-git-send-email-pablombg@gmail.com>
+	<20160104113202.GB2045@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Mikko Rapeli <mikko.rapeli@iki.fi>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-lb0-f196.google.com ([209.85.217.196]:34707 "EHLO
+	mail-lb0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751971AbcAFS4B (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 6 Jan 2016 13:56:01 -0500
+Received: by mail-lb0-f196.google.com with SMTP id jk7so16335050lbc.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 06 Jan 2016 10:56:00 -0800 (PST)
+In-Reply-To: <20160104113202.GB2045@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This commit breaks compilation of iproute2 with net-next.
+2016-01-04 12:32 GMT+01:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> On Mon, Jan 04, 2016 at 11:43:52AM +0100, Pablo M. Bermudo Garay wrote:
+>> - Adjust lines to 120 columns style
+>
+> Netfilter project coding style sticks to 80 columns. I'd rather keep
+> that.
 
-commit 1ffad83dffd675cd742286ae82dca7d746cb0da8
-Author: Mikko Rapeli <mikko.rapeli@iki.fi>
-Date:   Thu Oct 15 07:56:30 2015 +0200
+I'm sorry. I knew about that rule of project coding style, but I
+skipped it since the script is not part of main program and it has a
+lot of lines exceeding 100 characters. I will submit a new version of
+patchset fixing it.
 
-    netfilter: fix include files for compilation
-   =20
-    Add missing header dependencies and other small changes so that eac=
-h file
-    compiles alone in userspace.
-   =20
-    Signed-off-by: Mikko Rapeli <mikko.rapeli@iki.fi>
-    Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> BTW, I suggest next time you keep this style cleanup patches at the
+> end of the patchset that you submit.
 
-=46or iproute2, a copy of kernel headers (from make install_headers) is=
- used.
-After this change. the build of x_tables.c fails because IFNAMSIZ is al=
-ready
-defined in net/if.h
+Ok, thanks.
 
-gcc -Wall -Wstrict-prototypes  -Wmissing-prototypes -Wmissing-declarati=
-ons -Wold-style-definition -Wformat=3D2 -O2 -I../include -DRESOLVE_HOST=
-NAMES -DLIBDIR=3D\"/usr/lib\" -DCONFDIR=3D\"/etc/iproute2\" -D_GNU_SOUR=
-CE -D_FILE_OFFSET_BITS=3D64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE  =
--DHAVE_SETNS -DHAVE_ELF -DCONFIG_GACT -DCONFIG_GACT_PROB -DIPT_LIB_DIR=3D=
-\"/lib/xtables\" -DYY_NO_INPUT -Wl,-export-dynamic -shared -fpic -o q_a=
-tm.so q_atm.c -latm
-gcc -Wall -Wstrict-prototypes  -Wmissing-prototypes -Wmissing-declarati=
-ons -Wold-style-definition -Wformat=3D2 -O2 -I../include -DRESOLVE_HOST=
-NAMES -DLIBDIR=3D\"/usr/lib\" -DCONFDIR=3D\"/etc/iproute2\" -D_GNU_SOUR=
-CE -D_FILE_OFFSET_BITS=3D64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE  =
--DHAVE_SETNS -DHAVE_ELF -DCONFIG_GACT -DCONFIG_GACT_PROB -DIPT_LIB_DIR=3D=
-\"/lib/xtables\" -DYY_NO_INPUT -Wl,-export-dynamic -shared -fpic -o m_x=
-t.so m_xt.c $(pkg-config xtables --cflags --libs)
-In file included from ../include/linux/netfilter_ipv4/ip_tables.h:20:0,
-                 from m_xt.c:20:
-=2E./include/linux/if.h:26:0: warning: "IFNAMSIZ" redefined
- #define IFNAMSIZ 16
- ^
-In file included from m_xt.c:17:0:
-/usr/include/net/if.h:129:0: note: this is the location of the previous=
- definition
- # define IFNAMSIZ IF_NAMESIZE
- ^
-=2E./include/linux/if.h:71:2: error: redeclaration of enumerator =E2=80=
-=98IFF_UP=E2=80=99
-  IFF_UP    =3D 1<<0,  /* sysfs */
-  ^
-/usr/include/net/if.h:44:5: note: previous definition of =E2=80=98IFF_U=
-P=E2=80=99 was here
-     IFF_UP =3D 0x1,  /* Interface is up.  */
-     ^
-=2E./include/linux/if.h:72:2: error: redeclaration of enumerator =E2=80=
-=98IFF_BROADCAST=E2=80=99
-  IFF_BROADCAST   =3D 1<<1,  /* __volatile__ */
-  ^
-/usr/include/net/if.h:46:5: note: previous definition of =E2=80=98IFF_B=
-ROADCAST=E2=80=99 was here
-     IFF_BROADCAST =3D 0x2, /* Broadcast address valid.  */
-     ^
-=2E./include/linux/if.h:73:2: error: redeclaration of enumerator =E2=80=
-=98IFF_DEBUG=E2=80=99
-  IFF_DEBUG   =3D 1<<2,  /* sysfs */
+> Apart from that, the patchset looks good and I'd like to see this
+> integrated into master.
