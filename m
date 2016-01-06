@@ -1,108 +1,78 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] extensions: libip6t_LOG: Add translation to nft
-Date: Wed, 6 Jan 2016 11:55:21 +0530
-Message-ID: <20160106062520.GA3339@gmail.com>
+From: Stephen Hemminger <shemming@brocade.com>
+Subject: header conflict introduced by change to netfilter_ipv4/ip_tables.h
+Date: Wed, 6 Jan 2016 09:20:07 -0800
+Message-ID: <20160106092007.1c5a0c75@xeon-e3>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f174.google.com ([209.85.192.174]:33764 "EHLO
-	mail-pf0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752170AbcAFGZ1 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Jan 2016 01:25:27 -0500
-Received: by mail-pf0-f174.google.com with SMTP id q63so197476487pfb.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 05 Jan 2016 22:25:27 -0800 (PST)
-Received: from gmail.com ([223.176.134.198])
-        by smtp.gmail.com with ESMTPSA id 6sm74776075pfm.46.2016.01.05.22.25.24
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Tue, 05 Jan 2016 22:25:26 -0800 (PST)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Mikko Rapeli <mikko.rapeli@iki.fi>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Add translation for options log-level and log-prefix of LOG target
-to nftables.
-Full translation of this target awaits the support for the options
-log-tcp-sequence, log-tcp-options, log-ip-options, log-uid and
-log-macdecode in nftables
+This commit breaks compilation of iproute2 with net-next.
 
-Examples:
+commit 1ffad83dffd675cd742286ae82dca7d746cb0da8
+Author: Mikko Rapeli <mikko.rapeli@iki.fi>
+Date:   Thu Oct 15 07:56:30 2015 +0200
 
-$ sudo ip6tables-translate -A FORWARD -p tcp -j LOG --log-level debug
-nft add rule ip6 filter FORWARD ip6 nexthdr tcp counter log level debug
+    netfilter: fix include files for compilation
+   =20
+    Add missing header dependencies and other small changes so that eac=
+h file
+    compiles alone in userspace.
+   =20
+    Signed-off-by: Mikko Rapeli <mikko.rapeli@iki.fi>
+    Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-$ sudo ip6tables-translate -A FORWARD -p tcp -j LOG --log-prefix "Checking log"
-nft add rule ip6 filter FORWARD ip6 nexthdr tcp counter log prefix \"Checking log\" level warn
+=46or iproute2, a copy of kernel headers (from make install_headers) is=
+ used.
+After this change. the build of x_tables.c fails because IFNAMSIZ is al=
+ready
+defined in net/if.h
 
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
----
- extensions/libip6t_LOG.c | 37 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
-
-diff --git a/extensions/libip6t_LOG.c b/extensions/libip6t_LOG.c
-index 4639268..9df86fd 100644
---- a/extensions/libip6t_LOG.c
-+++ b/extensions/libip6t_LOG.c
-@@ -63,6 +63,11 @@ struct ip6t_log_names {
- 	unsigned int level;
- };
- 
-+struct ip6t_log_xlate {
-+	const char *name;
-+	unsigned int level;
-+};
-+
- static const struct ip6t_log_names ip6t_log_names[]
- = { { .name = "alert",   .level = LOG_ALERT },
-     { .name = "crit",    .level = LOG_CRIT },
-@@ -166,6 +171,37 @@ static void LOG_save(const void *ip, const struct xt_entry_target *target)
- 		printf(" --log-macdecode");
- }
- 
-+static const struct ip6t_log_xlate ip6t_log_xlate_names[] = {
-+	{"alert",       LOG_ALERT },
-+	{"crit",        LOG_CRIT },
-+	{"debug",       LOG_DEBUG },
-+	{"emerg",       LOG_EMERG },
-+	{"err",         LOG_ERR },
-+	{"info",        LOG_INFO },
-+	{"notice",      LOG_NOTICE },
-+	{"warn",        LOG_WARNING }
-+};
-+
-+static int LOG_xlate(const struct xt_entry_target *target,
-+		     struct xt_buf *buf, int numeric)
-+{
-+	unsigned int i = 0;
-+	const struct ip6t_log_info *loginfo =
-+			(const struct ip6t_log_info *)target->data;
-+
-+	xt_buf_add(buf, "log ");
-+	if (strcmp(loginfo->prefix, "") != 0)
-+		xt_buf_add(buf, "prefix \\\"%s\\\" ", loginfo->prefix);
-+
-+	for (i = 0; i < ARRAY_SIZE(ip6t_log_xlate_names); ++i)
-+		if (loginfo->level == ip6t_log_xlate_names[i].level) {
-+			xt_buf_add(buf, "level %s",
-+				   ip6t_log_xlate_names[i].name);
-+			break;
-+		}
-+
-+	return 1;
-+}
- static struct xtables_target log_tg6_reg = {
- 	.name          = "LOG",
- 	.version       = XTABLES_VERSION,
-@@ -178,6 +214,7 @@ static struct xtables_target log_tg6_reg = {
- 	.save          = LOG_save,
- 	.x6_parse      = LOG_parse,
- 	.x6_options    = LOG_opts,
-+	.xlate	       = LOG_xlate,
- };
- 
- void _init(void)
--- 
-1.9.1
-
+gcc -Wall -Wstrict-prototypes  -Wmissing-prototypes -Wmissing-declarati=
+ons -Wold-style-definition -Wformat=3D2 -O2 -I../include -DRESOLVE_HOST=
+NAMES -DLIBDIR=3D\"/usr/lib\" -DCONFDIR=3D\"/etc/iproute2\" -D_GNU_SOUR=
+CE -D_FILE_OFFSET_BITS=3D64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE  =
+-DHAVE_SETNS -DHAVE_ELF -DCONFIG_GACT -DCONFIG_GACT_PROB -DIPT_LIB_DIR=3D=
+\"/lib/xtables\" -DYY_NO_INPUT -Wl,-export-dynamic -shared -fpic -o q_a=
+tm.so q_atm.c -latm
+gcc -Wall -Wstrict-prototypes  -Wmissing-prototypes -Wmissing-declarati=
+ons -Wold-style-definition -Wformat=3D2 -O2 -I../include -DRESOLVE_HOST=
+NAMES -DLIBDIR=3D\"/usr/lib\" -DCONFDIR=3D\"/etc/iproute2\" -D_GNU_SOUR=
+CE -D_FILE_OFFSET_BITS=3D64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE  =
+-DHAVE_SETNS -DHAVE_ELF -DCONFIG_GACT -DCONFIG_GACT_PROB -DIPT_LIB_DIR=3D=
+\"/lib/xtables\" -DYY_NO_INPUT -Wl,-export-dynamic -shared -fpic -o m_x=
+t.so m_xt.c $(pkg-config xtables --cflags --libs)
+In file included from ../include/linux/netfilter_ipv4/ip_tables.h:20:0,
+                 from m_xt.c:20:
+=2E./include/linux/if.h:26:0: warning: "IFNAMSIZ" redefined
+ #define IFNAMSIZ 16
+ ^
+In file included from m_xt.c:17:0:
+/usr/include/net/if.h:129:0: note: this is the location of the previous=
+ definition
+ # define IFNAMSIZ IF_NAMESIZE
+ ^
+=2E./include/linux/if.h:71:2: error: redeclaration of enumerator =E2=80=
+=98IFF_UP=E2=80=99
+  IFF_UP    =3D 1<<0,  /* sysfs */
+  ^
+/usr/include/net/if.h:44:5: note: previous definition of =E2=80=98IFF_U=
+P=E2=80=99 was here
+     IFF_UP =3D 0x1,  /* Interface is up.  */
+     ^
+=2E./include/linux/if.h:72:2: error: redeclaration of enumerator =E2=80=
+=98IFF_BROADCAST=E2=80=99
+  IFF_BROADCAST   =3D 1<<1,  /* __volatile__ */
+  ^
+/usr/include/net/if.h:46:5: note: previous definition of =E2=80=98IFF_B=
+ROADCAST=E2=80=99 was here
+     IFF_BROADCAST =3D 0x2, /* Broadcast address valid.  */
+     ^
+=2E./include/linux/if.h:73:2: error: redeclaration of enumerator =E2=80=
+=98IFF_DEBUG=E2=80=99
+  IFF_DEBUG   =3D 1<<2,  /* sysfs */
