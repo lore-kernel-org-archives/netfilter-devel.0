@@ -1,52 +1,123 @@
-From: Mikko Rapeli <mikko.rapeli@iki.fi>
-Subject: Re: header conflict introduced by change to
- netfilter_ipv4/ip_tables.h
-Date: Thu, 7 Jan 2016 21:15:17 +0200
-Message-ID: <20160107191517.GC6104@lakka.kapsi.fi>
-References: <20160106092007.1c5a0c75@xeon-e3>
- <88a455d4b6dc4d4398553e6529d7b94a@HQ1WP-EXMB11.corp.brocade.com>
- <20160107103040.649ab878@xeon-e3>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Stephen Hemminger <shemming@brocade.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160107103040.649ab878@xeon-e3>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] nftables: ct: add byte/packet counter support
+Date: Thu,  7 Jan 2016 21:34:24 +0100
+Message-ID: <1452198864-10134-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:46181 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752492AbcAGUlY (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Jan 2016 15:41:24 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 07, 2016 at 10:30:40AM -0800, Stephen Hemminger wrote:
-> On Thu, 7 Jan 2016 07:29:50 +0000
-> Mikko Rapeli <mikko.rapeli@iki.fi> wrote:
-> 
-> > On Wed, Jan 06, 2016 at 09:20:07AM -0800, Stephen Hemminger wrote:
-> > > This commit breaks compilation of iproute2 with net-next.
-> > 
-> > Ok, linux/if.h and libc net/if.h have overlapping defines, and this is not
-> > the only one. I saw lots of them in the core dump headers.
-> > 
-> > How should we handle them? Another ifndef for IFNAMSIZ into kernel uapi
-> > headers?
-> > 
-> > -Mikko
-> 
-> Probably need to do the same thing that was done previously for these
-> kind of conflicts.  This makes make linux/if.h change to adapt to net/if.h
-> being included before it.
+If the accounting extension isn't present, we'll return a counter
+value of 0.
 
-Ok, got it. And found include/uapi/linux/libc-compat.h. Did not know about it
-and was looking for solutions to these problems.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ WARNING: It doesn't work, but AFAIU the bug is in nft_cmp which
+ doesn't work with u64 and gt/lt test.  Following is true after 1st packet
+ is sent with enabled accounting:
 
-But now I feel like writing a test script for mixing of kernel uapi
-and libc headers to find out how many other collitions are still there.
-Not good for the pile of over 70 patches in my branch
-https://github.com/torvalds/linux/compare/master...mcfrisk:headers_test_v05
+ nft add rule filter input ct original packets gt 10
 
-> Or revert your patch.
+ Seems like it only works for mark, skuid etc because those are u32 and
+ thus use the _fast_ops version.
 
-I'm fine with this too.
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 22043ce..535576e 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -755,6 +755,8 @@ enum nft_ct_keys {
+ 	NFT_CT_PROTO_SRC,
+ 	NFT_CT_PROTO_DST,
+ 	NFT_CT_LABELS,
++	NFT_CT_PKTS,
++	NFT_CT_BYTES,
+ };
+ 
+ /**
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 8cbca34..dc7a3c6 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -16,6 +16,7 @@
+ #include <linux/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_acct.h>
+ #include <net/netfilter/nf_conntrack_tuple.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <net/netfilter/nf_conntrack_ecache.h>
+@@ -30,6 +31,19 @@ struct nft_ct {
+ 	};
+ };
+ 
++static u64 nft_ct_get_eval_counter(const struct nf_conn_counter *c,
++				   enum nft_ct_keys k,
++				   enum ip_conntrack_dir d)
++{
++	if (d == IP_CT_DIR_ORIGINAL ||
++	    d == IP_CT_DIR_REPLY)
++		return k == NFT_CT_BYTES ? atomic64_read(&c[d].bytes) :
++					   atomic64_read(&c[d].packets);
++
++	return nft_ct_get_eval_counter(c, k, IP_CT_DIR_ORIGINAL) +
++	       nft_ct_get_eval_counter(c, k, IP_CT_DIR_REPLY);
++}
++
+ static void nft_ct_get_eval(const struct nft_expr *expr,
+ 			    struct nft_regs *regs,
+ 			    const struct nft_pktinfo *pkt)
+@@ -114,6 +128,17 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
+ 			       NF_CT_LABELS_MAX_SIZE - size);
+ 		return;
+ 	}
++	case NFT_CT_BYTES: /* fallthrough */
++	case NFT_CT_PKTS: {
++		const struct nf_conn_acct *acct = nf_conn_acct_find(ct);
++		u64 count = 0;
++
++		if (acct)
++			count = nft_ct_get_eval_counter(acct->counter,
++							priv->key, priv->dir);
++		memcpy(dest, &count, sizeof(count));
++		return;
++	}
+ #endif
+ 	default:
+ 		break;
+@@ -291,6 +316,13 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
+ 			return -EINVAL;
+ 		len = FIELD_SIZEOF(struct nf_conntrack_tuple, src.u.all);
+ 		break;
++	case NFT_CT_BYTES:
++	case NFT_CT_PKTS:
++		/* no direction? return sum of original + reply */
++		if (tb[NFTA_CT_DIRECTION] == NULL)
++			priv->dir = IP_CT_DIR_MAX;
++		len = sizeof(u64);
++		break;
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
+@@ -366,6 +398,13 @@ static int nft_ct_get_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 		goto nla_put_failure;
+ 
+ 	switch (priv->key) {
++	case NFT_CT_BYTES:
++	case NFT_CT_PKTS:
++		if ((priv->dir == IP_CT_DIR_ORIGINAL ||
++		     priv->dir == IP_CT_DIR_REPLY) &&
++		     nla_put_u8(skb, NFTA_CT_DIRECTION, priv->dir))
++			goto nla_put_failure;
++		break;
+ 	case NFT_CT_PROTOCOL:
+ 	case NFT_CT_SRC:
+ 	case NFT_CT_DST:
+-- 
+2.4.10
 
--Mikko
