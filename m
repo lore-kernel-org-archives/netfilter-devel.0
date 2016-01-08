@@ -1,77 +1,69 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 6/6] tests: ct: remove BUG cases that work with current master
-Date: Fri,  8 Jan 2016 10:42:51 +0100
-Message-ID: <1452246171-13943-7-git-send-email-fw@strlen.de>
-References: <1452246171-13943-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: =?utf-8?B?562U5aSNOiDnrZTlpI06IFtQQVRD?=
+ =?utf-8?Q?H_3=2F3_nf-next=5D_netfilter?= =?utf-8?Q?=3A?= nf_ct_helper: Add
+ nf_conntrack_helpers_register()
+Date: Fri, 8 Jan 2016 13:22:27 +0100
+Message-ID: <20160108122227.GA3384@salvia>
+References: <1451908093-3754-3-git-send-email-pablo@netfilter.org>
+ <201601041946.QoN8MveC%fengguang.wu@intel.com>
+ <BAY403-EAS25258E748DF4B612DF8D4AF95F20@phx.gbl>
+ <20160104161550.GB1303@salvia>
+ <20160104164656.GA2135@salvia>
+ <BAY403-EAS3732A77CAF9E1DCE79ED89395F20@phx.gbl>
+ <BAY403-EAS181F9CE879F779A8E160FD195F50@phx.gbl>
+ <BAY403-EAS167CF4DCA9B031F6AEFDF7F95F60@phx.gbl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Feng Gao <gfree.wind@outlook.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:47946 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932110AbcAHJuu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 Jan 2016 04:50:50 -0500
-In-Reply-To: <1452246171-13943-1-git-send-email-fw@strlen.de>
+Received: from mail.us.es ([193.147.175.20]:57828 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751196AbcAHMWf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 8 Jan 2016 07:22:35 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 60706B5A620
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Jan 2016 13:22:34 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 51497DA7E0
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Jan 2016 13:22:34 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 761A3DA795
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Jan 2016 13:22:32 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <BAY403-EAS167CF4DCA9B031F6AEFDF7F95F60@phx.gbl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We have tests for these in ip/ct.t.
-(can't use ipv4 addresses e.g. in ipv6 family, thats why any/ct.t doesn't work)
+On Fri, Jan 08, 2016 at 08:18:02AM +0800, Feng Gao wrote:
+> Hi Pablo,
+> 
+> I know how to enhance it now, and it must be converted.
+> Because there is one bug in the codes when using
+> nf_conntrack_helpers_register.
+> 
+> Take the following codes as an example
+>     for (i = 0; i < ports_c; i++) {
+>         nf_ct_helper_init(&ftp[i][0], AF_INET, IPPROTO_TCP, "ftp",
+>                   FTP_PORT, ports[i], &ftp_exp_policy, 0,
+>                   sizeof(struct nf_ct_ftp_master), help,
+>                   nf_ct_ftp_from_nlattr, THIS_MODULE);
+>         nf_ct_helper_init(&ftp[i][1], AF_INET6, IPPROTO_TCP, "ftp",
+>                   FTP_PORT, ports[i], &ftp_exp_policy, 0,
+>                   sizeof(struct nf_ct_ftp_master), help,
+>                   nf_ct_ftp_from_nlattr, THIS_MODULE);
+>     }   
+>     ret = nf_conntrack_helpers_register(&ftp[0][0], ports_c * 2);
+> 
+> When init the helper, we initialized the ftp[i][0], ftp[i][1], they are not
+> continuous.
+> So it bring one bug when use nf_conntrack_helpers_register(&ftp[0][0],
+> ports_c * 2);
+> 
+> I will fix it later
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- tests/py/any/ct.t | 33 ---------------------------------
- 1 file changed, 33 deletions(-)
+Then, I going to keep these patchset back in this round, sorry.
 
-diff --git a/tests/py/any/ct.t b/tests/py/any/ct.t
-index 4c27c90..14be798 100644
---- a/tests/py/any/ct.t
-+++ b/tests/py/any/ct.t
-@@ -67,44 +67,11 @@ ct expiration != 33-45;ok;ct expiration != 33s-45s
- ct expiration {33, 55, 67, 88};ok;ct expiration { 1m7s, 33s, 55s, 1m28s}
- - ct expiration != {33, 55, 67, 88};ok;ct expiration { 1m7s, 33s, 55s, 1m28s}
- ct expiration {33-55};ok;ct expiration { 33s-55s}
--# BUG: ct expiration {33-55}
--# Broken output: ct expiration { "4271d23h25m52s"-"8738d3h11m59s" }
- - ct expiration != {33-55};ok
- 
- ct helper "ftp";ok
- ct helper "12345678901234567";fail
- 
--# BUG: ct l3proto "Layer  3 protocol of the connection"
--# nft add rule ip test input ct l3proto arp
--# <cmdline>:1:35-37: Error: Can t parse symbolic invalid expressions
--
--
--# If table is ip6 or inet or bridge family,, It is failed. I can not test it
--# ct saddr 1.2.3.4;ok
--
--# BUG: ct saddr 192.168.3.4
--# <cmdline>:1:1-43: Error: Could not process rule: Invalid argument
--# add rule ip test input ct saddr 192.168.3.4
--# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
--- ct saddr 192.168.3.4;ok
--- ct daddr 192.168.3.4;ok
--
--# BUG: ct protocol tcp
--# <cmdline>:1:1-37: Error: Could not process rule: Invalid argument
--# input ct protocol bgp <cmdline>:1:36-38: Error: Could not resolve protocol name
--# ct protocol tcp;ok
--- ct protocol tcp;ok
--
--- ct proto-src udp;ok
--- ct proto-dst udp;ok
--# BUG: ct proto-src udp and ct proto-dst udp
--# <cmdline>:1:37-39: Error: datatype mismatch, expected invalid, expression has type Internet protocol
--# add rule ip test input ct proto-src udp
--#                       ~~~~~~~~~~~~ ^^^
--# <cmdline>:1:37-39: Error: datatype mismatch, expected invalid, expression has type Internet protocol
--# add rule ip test input ct proto-dst udp
--#                        ~~~~~~~~~~~~ ^^^
--
- ct state . ct mark { new . 0x12345678};ok
- ct state . ct mark { new . 0x12345678, new . 0x34127856, established . 0x12785634};ok
- ct direction . ct mark { original . 0x12345678};ok
--- 
-2.4.10
+Please, take over my 2/3 and 3/3 iteration, fix them and resubmit.
 
+Thanks.
