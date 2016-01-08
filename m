@@ -1,64 +1,100 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 4/6] netlink_linearize: use u64 conversion for 64bit quantities
-Date: Fri,  8 Jan 2016 10:42:49 +0100
-Message-ID: <1452246171-13943-5-git-send-email-fw@strlen.de>
+Subject: [PATCH nft 3/6] ct: add packet/byte counter support
+Date: Fri,  8 Jan 2016 10:42:48 +0100
+Message-ID: <1452246171-13943-4-git-send-email-fw@strlen.de>
 References: <1452246171-13943-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:47939 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:47937 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752272AbcAHJun (ORCPT
+	by vger.kernel.org with ESMTP id S932103AbcAHJuk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 Jan 2016 04:50:43 -0500
+	Fri, 8 Jan 2016 04:50:40 -0500
 In-Reply-To: <1452246171-13943-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nft generated two 4-byte swaps for conntrack byte/packet counters,
-which are 64bit host-endian values:
+packets and bytes need special treatment -- we want to be able to get
+packet/byte counter in either direction, but also express
+'fetch in *BOTH* directions', i.e.
 
-byteorder reg 1 = hton(reg 1, 4, 8) ]
+ct packets original + ct packets reply > 1000
 
-This makes the kernel perform two htonl() calls, but we need
-a cpu_to_be64 conversion instead (reg 1, 8, 8).
+This either requires a '+' expression, a new 'both' direction, or
+keys where direction is optional, i.e.
 
-Without this a rule like 'ct original packets > 10'
-matched when counter was between 1 and 10.
+ct packets > 12345	; original + reply
+ct original packets > 12345 ; original
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/netlink_linearize.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ include/linux/netfilter/nf_tables.h | 2 ++
+ src/ct.c                            | 4 ++++
+ src/parser_bison.y                  | 8 +++++++-
+ 3 files changed, 13 insertions(+), 1 deletion(-)
 
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 48f5f02..c77c462 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -592,6 +592,14 @@ static void netlink_gen_unary(struct netlink_linearize_ctx *ctx,
- 			      enum nft_registers dreg)
- {
- 	struct nftnl_expr *nle;
-+	int byte_size;
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 70a9619..49de2b8 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -744,6 +744,8 @@ enum nft_ct_keys {
+ 	NFT_CT_PROTO_SRC,
+ 	NFT_CT_PROTO_DST,
+ 	NFT_CT_LABELS,
++	NFT_CT_PKTS,
++	NFT_CT_BYTES,
+ };
+ 
+ /**
+diff --git a/src/ct.c b/src/ct.c
+index ff6cd61..b971ba1 100644
+--- a/src/ct.c
++++ b/src/ct.c
+@@ -203,6 +203,10 @@ static const struct ct_template ct_templates[] = {
+ 	[NFT_CT_LABELS]		= CT_TEMPLATE("label", &ct_label_type,
+ 					      BYTEORDER_HOST_ENDIAN,
+ 					      CT_LABEL_BIT_SIZE),
++	[NFT_CT_BYTES]		= CT_TEMPLATE("bytes", &integer_type,
++					      BYTEORDER_HOST_ENDIAN, 64),
++	[NFT_CT_PKTS]		= CT_TEMPLATE("packets", &integer_type,
++					      BYTEORDER_HOST_ENDIAN, 64),
+ };
+ 
+ static void ct_expr_print(const struct expr *expr)
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 0ba6f7c..7690ecc 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -567,7 +567,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ 
+ %type <expr>			ct_expr
+ %destructor { expr_free($$); }	ct_expr
+-%type <val>			ct_key		ct_key_dir
++%type <val>			ct_key		ct_key_dir	ct_key_counters
+ 
+ %type <val>			export_format
+ %type <string>			monitor_event
+@@ -2290,6 +2290,7 @@ ct_key			:	STATE		{ $$ = NFT_CT_STATE; }
+ 			|	EXPIRATION	{ $$ = NFT_CT_EXPIRATION; }
+ 			|	HELPER		{ $$ = NFT_CT_HELPER; }
+ 			|	LABEL		{ $$ = NFT_CT_LABELS; }
++			|	ct_key_counters
+ 			;
+ ct_key_dir		:	SADDR		{ $$ = NFT_CT_SRC; }
+ 			|	DADDR		{ $$ = NFT_CT_DST; }
+@@ -2297,6 +2298,11 @@ ct_key_dir		:	SADDR		{ $$ = NFT_CT_SRC; }
+ 			|	PROTOCOL	{ $$ = NFT_CT_PROTOCOL; }
+ 			|	PROTO_SRC	{ $$ = NFT_CT_PROTO_SRC; }
+ 			|	PROTO_DST	{ $$ = NFT_CT_PROTO_DST; }
++			|	ct_key_counters
++			;
 +
-+	if ((expr->arg->len % 64) == 0)
-+		byte_size = 8;
-+	else if ((expr->arg->len % 32) == 0)
-+		byte_size = 4;
-+	else
-+		byte_size = 2;
++ct_key_counters		:	BYTES		{ $$ = NFT_CT_BYTES; }
++			|	PACKETS		{ $$ = NFT_CT_PKTS; }
+ 			;
  
- 	netlink_gen_expr(ctx, expr->arg, dreg);
- 
-@@ -601,7 +609,7 @@ static void netlink_gen_unary(struct netlink_linearize_ctx *ctx,
- 	nftnl_expr_set_u32(nle, NFTNL_EXPR_BYTEORDER_LEN,
- 			   expr->len / BITS_PER_BYTE);
- 	nftnl_expr_set_u32(nle, NFTNL_EXPR_BYTEORDER_SIZE,
--			   expr->arg->len % 32 ? 2 : 4);
-+			   byte_size);
- 	nftnl_expr_set_u32(nle, NFTNL_EXPR_BYTEORDER_OP,
- 			   netlink_gen_unary_op(expr->op));
- 	nftnl_rule_add_expr(ctx->nlr, nle);
+ ct_stmt			:	CT	ct_key		SET	expr
 -- 
 2.4.10
 
