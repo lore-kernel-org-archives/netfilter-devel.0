@@ -1,14 +1,14 @@
 From: Gao Feng <fgao@ikuai8.com>
-Subject: [PATCH 4/4,nf-next] netfilter: nf_ct_helper: Use unidimensional helper
-Date: Fri,  8 Jan 2016 12:49:59 +0800
-Message-ID: <1452228599-9867-1-git-send-email-fgao@ikuai8.com>
+Subject: [PATCH 4/4,nf-next] netfilter: nf_ct_helper: Use unidimensional helper array instead of bidimensional ones
+Date: Fri,  8 Jan 2016 13:07:51 +0800
+Message-ID: <1452229671-10010-1-git-send-email-fgao@ikuai8.com>
 Cc: fgao@ikuai8.com, netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbgau1.qq.com ([54.206.16.166]:39401 "EHLO smtpbgau1.qq.com"
+Received: from smtpbg65.qq.com ([103.7.28.233]:10193 "EHLO smtpbg65.qq.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753544AbcAHEzU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Jan 2016 23:55:20 -0500
+	id S1750797AbcAHFIS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 8 Jan 2016 00:08:18 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -20,7 +20,7 @@ Signed-off-by: Gao Feng <fgao@ikuai8.com>
  3 files changed, 15 insertions(+), 17 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index 02fefb2..5369269 100644
+index 02fefb2..efeca6e 100644
 --- a/net/netfilter/nf_conntrack_ftp.c
 +++ b/net/netfilter/nf_conntrack_ftp.c
 @@ -572,7 +572,7 @@ static int nf_ct_ftp_from_nlattr(struct nlattr *attr, struct nf_conn *ct)
@@ -62,7 +62,7 @@ index 02fefb2..5369269 100644
  		pr_err("failed to register helpers\n");
  		kfree(ftp_buffer);
 diff --git a/net/netfilter/nf_conntrack_sane.c b/net/netfilter/nf_conntrack_sane.c
-index c93bf8e..9bc6bfb 100644
+index c93bf8e..536c208 100644
 --- a/net/netfilter/nf_conntrack_sane.c
 +++ b/net/netfilter/nf_conntrack_sane.c
 @@ -166,7 +166,7 @@ out:
@@ -105,7 +105,7 @@ index c93bf8e..9bc6bfb 100644
  		pr_err("failed to register helpers\n");
  		kfree(sane_buffer);
 diff --git a/net/netfilter/nf_conntrack_tftp.c b/net/netfilter/nf_conntrack_tftp.c
-index d87c312..f94190a 100644
+index d87c312..d93a61c 100644
 --- a/net/netfilter/nf_conntrack_tftp.c
 +++ b/net/netfilter/nf_conntrack_tftp.c
 @@ -97,7 +97,7 @@ static int tftp_help(struct sk_buff *skb,
