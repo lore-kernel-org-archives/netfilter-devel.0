@@ -1,76 +1,68 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next] nftables: byteorder: provide 64bit le/be conversion
-Date: Fri,  8 Jan 2016 10:29:12 +0100
-Message-ID: <1452245352-2899-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Centro Telefonico/TB <filtro@grupoado.com.mx>
+Subject: Respectfully
+Date: Fri, 08 Jan 2016 10:25:46 +0100
+Message-ID: <201601080924.CBM43331@appwn034.grupoado.com.mx>
+Reply-To: Centro Telefonico/TB <filtro@grupoado.com.mx>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: base64
+To: Recipients <paulchang981@yandex.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:47821 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752077AbcAHJgt (ORCPT
+Received: from mail02.grupoado.com.mx ([201.117.115.71]:15234 "EHLO
+	appwn033.grupoado.com.mx" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753153AbcAHJtw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 Jan 2016 04:36:49 -0500
+	Fri, 8 Jan 2016 04:49:52 -0500
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Needed to convert the (64bit) conntrack counters to BE ordering.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Also needs a small nft change, will submit it soon as part of
- ct counter support series.
-
- net/netfilter/nft_byteorder.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
-
-diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
-index fde5145..383c171 100644
---- a/net/netfilter/nft_byteorder.c
-+++ b/net/netfilter/nft_byteorder.c
-@@ -8,6 +8,7 @@
-  * Development of this code funded by Astaro AG (http://www.astaro.com/)
-  */
- 
-+#include <asm/unaligned.h>
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/module.h>
-@@ -39,6 +40,27 @@ static void nft_byteorder_eval(const struct nft_expr *expr,
- 	d = (void *)dst;
- 
- 	switch (priv->size) {
-+	case 8: {
-+		u64 src64;
-+
-+		switch (priv->op) {
-+		case NFT_BYTEORDER_NTOH:
-+			for (i = 0; i < priv->len / 8; i++) {
-+				src64 = get_unaligned_be64(&src[i]);
-+				src64 = be64_to_cpu((__force __be64)src64);
-+				put_unaligned_be64(src64, &dst[i]);
-+			}
-+			break;
-+		case NFT_BYTEORDER_HTON:
-+			for (i = 0; i < priv->len / 8; i++) {
-+				src64 = get_unaligned_be64(&src[i]);
-+				src64 = (__force u64)cpu_to_be64(src64);
-+				put_unaligned_be64(src64, &dst[i]);
-+			}
-+			break;
-+		}
-+		break;
-+	}
- 	case 4:
- 		switch (priv->op) {
- 		case NFT_BYTEORDER_NTOH:
-@@ -101,6 +123,7 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
- 	switch (priv->size) {
- 	case 2:
- 	case 4:
-+	case 8:
- 		break;
- 	default:
- 		return -EINVAL;
--- 
-2.4.10
-
+SGVsbG8gJiBHcmVldGluZ3Mgb2YgdGhlIGRheSB0byB5b3UsCgpD
+YW4gSSBkaXNjdXNzIGJ1c2luZXNzIHdpdGggeW91PwoKUmVzcGVj
+dGZ1bGx5ICYgV2l0aCBIb25vciwKUEMKCi0tLQpUaGlzIGVtYWls
+IGhhcyBiZWVuIGNoZWNrZWQgZm9yIHZpcnVzZXMgYnkgQXZhc3Qg
+YW50aXZpcnVzIHNvZnR3YXJlLgpodHRwczovL3d3dy5hdmFzdC5j
+b20vYW50aXZpcnVzCgoiTGEgaW5mb3JtYWNpb24gY29udGVuaWRh
+IGVuIGVzdGUgbWVuc2FqZSBlcyBjb25maWRlbmNpYWwgeSBwcml2
+YWRhLCBlc3RhIHByb3RlZ2lkYSBwb3Igc2VjcmV0byBwcm9mZXNp
+b25hbCB5IGVzdGEgZGVzdGluYWRhIHVuaWNhbWVudGUgcGFyYSBl
+bCB1c28gZGUgbGEocykgcGVyc29uYShzKSBpbmRpY2FkYShzKSBl
+biBlbCBjdWVycG8gZGVsIG1lbnNhamUgZGUgZGF0b3MuIFF1ZWRh
+IGVzdHJpY3RhbWVudGUgcHJvaGliaWRhIGN1YWxxdWllciBkaWZ1
+c2lvbiwgZGlzdHJpYnVjaW9uLCBpbXByZXNpb24sIGVkaWNpb24g
+bm8gYXV0b3JpemFkYSBvIGNvcGlhIGRlIGVzdGUgbWVuc2FqZS4g
+c2kgaGEgcmVjaWJpZG8gcG9yIGVycm9yIGVzdGUgbWVuc2FqZSBv
+IHN1IGNvcGlhLCBmYXZvciBkZSBkZXNlY2hhcmxvIG8gZGVzdHJ1
+aXJsbyBpbm1lZGlhdGFtZW50ZSB5IGNvbXVuaWNhcmxvIGFsIHJl
+bWl0ZW50ZSwgbyBsbGFtYXIgYWwgKDUyKSAoNTUpIDUxMzMyNTAw
+IHkgc29saWNpdGFyIGhhYmxhciBjb24gZWwgcmVtaXRlbnRlLiBF
+bCB1c28gbyBkaXNlbWluYWNpb24gbm8gYXV0b3JpemFkb3MgZGUg
+ZXN0YSBpbmZvcm1hY2lvbiBjb25maWRlbmNpYWwgc2VyYW4gcGVy
+c2VndWlkb3MgY29uZm9ybWUgYSBkZXJlY2hvLiBFc3RlIG1lbnNh
+amUgZGUgZGF0b3Mgbm8gY3JlYSBvYmxpZ2FjaW9uZXMgcGFyYSBl
+bCByZW1pdGVudGUgbyBsYSBwZXJzb25hIHBhcmEgbGEgY3VhbCBj
+b2xhYm9yYSwgbmkgcHJldGVuZGUgc2VyIHVzYWRvIGNvbW8gbWVk
+aW8gcGFyYSBjZWxlYnJhciBjb252ZW5pb3MgbyBjb250cmF0b3Mg
+ZGUgY3VhbHF1aWVyIHRpcG8uIEdyYWNpYXMiDQoNCiJUaGUgaW5m
+b3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgbWVzc2FnZSBpcyBw
+cm90ZWN0ZWQgYnkgcHJvZmVzc2lvbmFsIHByaXZpbGVnZSwgaXMg
+Y29uZmlkZW50aWFsIGFuZCBwcml2YXRlLCBhbmQgaXMgaW50ZW5k
+ZWQgb25seSBmb3IgdGhlIHVzZSBvZiB0aGUgaW5kaXZpZHVhbCAo
+cykgYWRkcmVzc2VkIGluIHRoZSBjb250ZW50IG9mIHRoZSBkYXRh
+IG1lc3NhZ2UuIEFueSB1bmF1dGhvcml6ZWQgZGlzY2xvc3VyZSwg
+c3ByZWFkLCBkaXN0cmlidXRpb24sIGVkaXRpb24sIHByaW50IG9y
+IGNvcHkgb2YgdGhpcyBjb21tdW5pY2F0aW9uIGlzIHN0cmljdGx5
+IHByb2hpYml0ZWQuIMKgSWYgYnkgZXJyb3IsIHlvdSBoYXZlIHJl
+Y2VpdmVkIHRoaXMgY29tbXVuaWNhdGlvbiwgb3IgaXRzIGNvcHks
+IHBsZWFzZSBkZWxldGUgaXQgb3IgZGVzdHJveSBpdCBpbW1lZGlh
+dGVseSBhbmQgY29udGFjdCB0aGUgc2VuZGVyLCBvciBjYWxsICg1
+MikgKDU1KSA1MTMzMjUwMCBhbmQgcmVxdWVzdCB0byBzcGVhayB3
+aXRoIHRoZSBzZW5kZXIuIFRoZSB1bmF1dGhvcml6ZWQgdXNlIG9y
+IHNwcmVhZCBvZiB0aGlzIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlv
+biB3aWxsIGJlIHNhbmN0aW9uZWQgYWNjb3JkaW5nIHRvIHRoZSBh
+cHBsaWNhYmxlIGxhdy4gwqBUaGlzIGRhdGEgbWVzc2FnZSBkb2Vz
+IG5vdCBjcmVhdGUgb2JsaWdhdGlvbnMgZm9yIHRoZSBzZW5kZXIg
+b3IgdGhlIHBlcnNvbiBmb3Igd2hpY2ggaGUgb3Igc2hlIGNvbGxh
+Ym9yYXRlcywgYW5kIGlzIG5vdCBhbiBpbnN0cnVtZW50IHRvIGFn
+cmVlIG9uIGNvbnRyYWN0cyBvZiBhbnkga2luZC4gVGhhbmsgeW91
+Ig0K
