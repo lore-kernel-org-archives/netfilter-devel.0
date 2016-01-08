@@ -1,68 +1,61 @@
-From: Centro Telefonico/TB <filtro@grupoado.com.mx>
-Subject: Respectfully
-Date: Fri, 08 Jan 2016 10:25:46 +0100
-Message-ID: <201601080924.CBM43331@appwn034.grupoado.com.mx>
-Reply-To: Centro Telefonico/TB <filtro@grupoado.com.mx>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: base64
-To: Recipients <paulchang981@yandex.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH libnftnl 1/6] src: ct: add packet and byte counter support
+Date: Fri,  8 Jan 2016 10:42:46 +0100
+Message-ID: <1452246171-13943-2-git-send-email-fw@strlen.de>
+References: <1452246171-13943-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail02.grupoado.com.mx ([201.117.115.71]:15234 "EHLO
-	appwn033.grupoado.com.mx" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753153AbcAHJtw (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:47935 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752272AbcAHJud (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 Jan 2016 04:49:52 -0500
-Content-Description: Mail message body
+	Fri, 8 Jan 2016 04:50:33 -0500
+In-Reply-To: <1452246171-13943-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-SGVsbG8gJiBHcmVldGluZ3Mgb2YgdGhlIGRheSB0byB5b3UsCgpD
-YW4gSSBkaXNjdXNzIGJ1c2luZXNzIHdpdGggeW91PwoKUmVzcGVj
-dGZ1bGx5ICYgV2l0aCBIb25vciwKUEMKCi0tLQpUaGlzIGVtYWls
-IGhhcyBiZWVuIGNoZWNrZWQgZm9yIHZpcnVzZXMgYnkgQXZhc3Qg
-YW50aXZpcnVzIHNvZnR3YXJlLgpodHRwczovL3d3dy5hdmFzdC5j
-b20vYW50aXZpcnVzCgoiTGEgaW5mb3JtYWNpb24gY29udGVuaWRh
-IGVuIGVzdGUgbWVuc2FqZSBlcyBjb25maWRlbmNpYWwgeSBwcml2
-YWRhLCBlc3RhIHByb3RlZ2lkYSBwb3Igc2VjcmV0byBwcm9mZXNp
-b25hbCB5IGVzdGEgZGVzdGluYWRhIHVuaWNhbWVudGUgcGFyYSBl
-bCB1c28gZGUgbGEocykgcGVyc29uYShzKSBpbmRpY2FkYShzKSBl
-biBlbCBjdWVycG8gZGVsIG1lbnNhamUgZGUgZGF0b3MuIFF1ZWRh
-IGVzdHJpY3RhbWVudGUgcHJvaGliaWRhIGN1YWxxdWllciBkaWZ1
-c2lvbiwgZGlzdHJpYnVjaW9uLCBpbXByZXNpb24sIGVkaWNpb24g
-bm8gYXV0b3JpemFkYSBvIGNvcGlhIGRlIGVzdGUgbWVuc2FqZS4g
-c2kgaGEgcmVjaWJpZG8gcG9yIGVycm9yIGVzdGUgbWVuc2FqZSBv
-IHN1IGNvcGlhLCBmYXZvciBkZSBkZXNlY2hhcmxvIG8gZGVzdHJ1
-aXJsbyBpbm1lZGlhdGFtZW50ZSB5IGNvbXVuaWNhcmxvIGFsIHJl
-bWl0ZW50ZSwgbyBsbGFtYXIgYWwgKDUyKSAoNTUpIDUxMzMyNTAw
-IHkgc29saWNpdGFyIGhhYmxhciBjb24gZWwgcmVtaXRlbnRlLiBF
-bCB1c28gbyBkaXNlbWluYWNpb24gbm8gYXV0b3JpemFkb3MgZGUg
-ZXN0YSBpbmZvcm1hY2lvbiBjb25maWRlbmNpYWwgc2VyYW4gcGVy
-c2VndWlkb3MgY29uZm9ybWUgYSBkZXJlY2hvLiBFc3RlIG1lbnNh
-amUgZGUgZGF0b3Mgbm8gY3JlYSBvYmxpZ2FjaW9uZXMgcGFyYSBl
-bCByZW1pdGVudGUgbyBsYSBwZXJzb25hIHBhcmEgbGEgY3VhbCBj
-b2xhYm9yYSwgbmkgcHJldGVuZGUgc2VyIHVzYWRvIGNvbW8gbWVk
-aW8gcGFyYSBjZWxlYnJhciBjb252ZW5pb3MgbyBjb250cmF0b3Mg
-ZGUgY3VhbHF1aWVyIHRpcG8uIEdyYWNpYXMiDQoNCiJUaGUgaW5m
-b3JtYXRpb24gY29udGFpbmVkIGluIHRoaXMgbWVzc2FnZSBpcyBw
-cm90ZWN0ZWQgYnkgcHJvZmVzc2lvbmFsIHByaXZpbGVnZSwgaXMg
-Y29uZmlkZW50aWFsIGFuZCBwcml2YXRlLCBhbmQgaXMgaW50ZW5k
-ZWQgb25seSBmb3IgdGhlIHVzZSBvZiB0aGUgaW5kaXZpZHVhbCAo
-cykgYWRkcmVzc2VkIGluIHRoZSBjb250ZW50IG9mIHRoZSBkYXRh
-IG1lc3NhZ2UuIEFueSB1bmF1dGhvcml6ZWQgZGlzY2xvc3VyZSwg
-c3ByZWFkLCBkaXN0cmlidXRpb24sIGVkaXRpb24sIHByaW50IG9y
-IGNvcHkgb2YgdGhpcyBjb21tdW5pY2F0aW9uIGlzIHN0cmljdGx5
-IHByb2hpYml0ZWQuIMKgSWYgYnkgZXJyb3IsIHlvdSBoYXZlIHJl
-Y2VpdmVkIHRoaXMgY29tbXVuaWNhdGlvbiwgb3IgaXRzIGNvcHks
-IHBsZWFzZSBkZWxldGUgaXQgb3IgZGVzdHJveSBpdCBpbW1lZGlh
-dGVseSBhbmQgY29udGFjdCB0aGUgc2VuZGVyLCBvciBjYWxsICg1
-MikgKDU1KSA1MTMzMjUwMCBhbmQgcmVxdWVzdCB0byBzcGVhayB3
-aXRoIHRoZSBzZW5kZXIuIFRoZSB1bmF1dGhvcml6ZWQgdXNlIG9y
-IHNwcmVhZCBvZiB0aGlzIGNvbmZpZGVudGlhbCBpbmZvcm1hdGlv
-biB3aWxsIGJlIHNhbmN0aW9uZWQgYWNjb3JkaW5nIHRvIHRoZSBh
-cHBsaWNhYmxlIGxhdy4gwqBUaGlzIGRhdGEgbWVzc2FnZSBkb2Vz
-IG5vdCBjcmVhdGUgb2JsaWdhdGlvbnMgZm9yIHRoZSBzZW5kZXIg
-b3IgdGhlIHBlcnNvbiBmb3Igd2hpY2ggaGUgb3Igc2hlIGNvbGxh
-Ym9yYXRlcywgYW5kIGlzIG5vdCBhbiBpbnN0cnVtZW50IHRvIGFn
-cmVlIG9uIGNvbnRyYWN0cyBvZiBhbnkga2luZC4gVGhhbmsgeW91
-Ig0K
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/linux/netfilter/nf_tables.h | 2 ++
+ src/expr/ct.c                       | 4 +++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index f77693b..7091d91 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -755,6 +755,8 @@ enum nft_ct_keys {
+ 	NFT_CT_PROTO_SRC,
+ 	NFT_CT_PROTO_DST,
+ 	NFT_CT_LABELS,
++	NFT_CT_PKTS,
++	NFT_CT_BYTES,
+ };
+ 
+ /**
+diff --git a/src/expr/ct.c b/src/expr/ct.c
+index 584dffe..4bee6b1 100644
+--- a/src/expr/ct.c
++++ b/src/expr/ct.c
+@@ -32,7 +32,7 @@ struct nftnl_expr_ct {
+ #define IP_CT_DIR_REPLY		1
+ 
+ #ifndef NFT_CT_MAX
+-#define NFT_CT_MAX (NFT_CT_LABELS + 1)
++#define NFT_CT_MAX (NFT_CT_BYTES + 1)
+ #endif
+ 
+ static int
+@@ -167,6 +167,8 @@ const char *ctkey2str_array[NFT_CT_MAX] = {
+ 	[NFT_CT_PROTO_SRC]	= "proto_src",
+ 	[NFT_CT_PROTO_DST]	= "proto_dst",
+ 	[NFT_CT_LABELS]		= "label",
++	[NFT_CT_PKTS]		= "packets",
++	[NFT_CT_BYTES]		= "bytes",
+ };
+ 
+ static const char *ctkey2str(uint32_t ctkey)
+-- 
+2.4.10
+
