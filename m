@@ -1,85 +1,18 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 16/17] netfilter: nft_byteorder: provide 64bit le/be
- conversion
-Date: Fri, 8 Jan 2016 17:23:51 +0100
-Message-ID: <20160108162351.GD26058@breakpoint.cc>
-References: <1452261737-7475-1-git-send-email-pablo@netfilter.org>
- <1452261737-7475-17-git-send-email-pablo@netfilter.org>
- <063D6719AE5E284EB5DD2968C1650D6D1CCC043B@AcuExch.aculab.com>
+From: Corcodel Marian <asd@marian1000.go.ro>
+Subject: Network card
+Date: Fri, 08 Jan 2016 17:58:24 +0200
+Message-ID: <1452268704.2185.3.camel@marian1000.go.ro>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: 'Pablo Neira Ayuso' <pablo@netfilter.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"davem@davemloft.net" <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: David Laight <David.Laight@ACULAB.COM>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: netdev@vger.kernel.org
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D1CCC043B@AcuExch.aculab.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-David Laight <David.Laight@ACULAB.COM> wrote:
-> From: Pablo Neira Ayuso
-> > Sent: 08 January 2016 14:02
-> > From: Florian Westphal <fw@strlen.de>
-> > 
-> > Needed to convert the (64bit) conntrack counters to BE ordering.
-> > 
-> ...
-> >  	switch (priv->size) {
-> > +	case 8: {
-> > +		u64 src64;
-> > +
-> > +		switch (priv->op) {
-> > +		case NFT_BYTEORDER_NTOH:
-> > +			for (i = 0; i < priv->len / 8; i++) {
-> > +				src64 = get_unaligned_be64(&src[i]);
-> > +				src64 = be64_to_cpu((__force __be64)src64);
-> > +				put_unaligned_be64(src64, &dst[i]);
-> > +			}
-> > +			break;
-> > +		case NFT_BYTEORDER_HTON:
-> > +			for (i = 0; i < priv->len / 8; i++) {
-> > +				src64 = get_unaligned_be64(&src[i]);
-> > +				src64 = (__force u64)cpu_to_be64(src64);
-> > +				put_unaligned_be64(src64, &dst[i]);
-> > +			}
-> > +			break;
-> > +		}
-> > +		break;
-> 
-> That is horrid.
-
-Yes, sorry for this, however ...
-
-> On a little-endian system you are byteswapping the data 3 times.
-> Image the code on a cpu that doesn't support misaligned transfers
-> and doesn't have a byteswap instruction.
-
-diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
---- a/net/netfilter/nft_byteorder.c
-+++ b/net/netfilter/nft_byteorder.c
-@@ -46,16 +46,16 @@ static void nft_byteorder_eval(const struct nft_expr *expr,
- 		switch (priv->op) {
- 		case NFT_BYTEORDER_NTOH:
- 			for (i = 0; i < priv->len / 8; i++) {
--				src64 = get_unaligned_be64(&src[i]);
-+				src64 = get_unaligned((u64 *)&src[i]);
- 				src64 = be64_to_cpu((__force __be64)src64);
--				put_unaligned_be64(src64, &dst[i]);
-+				put_unaligned(src64, (u64 *)&dst[i]);
- 			}
- 			break;
- 		case NFT_BYTEORDER_HTON:
- 			for (i = 0; i < priv->len / 8; i++) {
--				src64 = get_unaligned_be64(&src[i]);
-+				src64 = get_unaligned((u64 *)&src[i]);
- 				src64 = (__force u64)cpu_to_be64(src64);
--				put_unaligned_be64(src64, &dst[i]);
-+				put_unaligned(src64, (u64 *)&dst[i]);
- 			}
- 			break;
- 		}
-
-Results in identical object code.
+Hi i need testers for new driver realtek for follow chips
+4101/8102/8169 more info here 
+https://sourceforge.net/projects/network-card-driver/
+-- 
+Corcodel Marian <asd@marian1000.go.ro>
