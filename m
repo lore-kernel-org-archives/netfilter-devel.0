@@ -1,165 +1,45 @@
-From: fgao@ikuai8.com
-Subject: [PATCH 3/3] netfilter: nf_ct_helper: Use unidimensional helper array instead of bidimensional ones
-Date: Sat,  9 Jan 2016 23:04:10 +0800
-Message-ID: <1452351850-13712-1-git-send-email-fgao@ikuai8.com>
-Cc: fgao@ikuai8.com, netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: =?ISO-8859-15?Q?Kadlecsik_J=F3zsef?=
+	<kadlecsik.jozsef@wigner.mta.hu>
+Subject: Re: [PATCH] ipset tool: Fix link with libtool >= 2.4.4
+Date: Sat, 9 Jan 2016 21:13:19 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1601092112550.19537@mentat.kfki.hu>
+References: <1452122469-22209-1-git-send-email-dev@blino.org> <alpine.DEB.2.10.1601070847180.15530@blackhole.kfki.hu> <m3bn8xsh0i.fsf@euphor.blino.org>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Olivier Blin <dev@blino.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbguseast2.qq.com ([54.204.34.130]:43441 "EHLO
-	smtpbguseast2.qq.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752780AbcAIPEW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 9 Jan 2016 10:04:22 -0500
+Received: from smtp0.kfki.hu ([148.6.0.25]:39775 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755366AbcAIUTV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 9 Jan 2016 15:19:21 -0500
+In-Reply-To: <m3bn8xsh0i.fsf@euphor.blino.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+On Thu, 7 Jan 2016, Olivier Blin wrote:
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- net/netfilter/nf_conntrack_ftp.c  | 10 +++++-----
- net/netfilter/nf_conntrack_sane.c | 22 +++++++++++-----------
- net/netfilter/nf_conntrack_tftp.c | 16 +++++++---------
- 3 files changed, 23 insertions(+), 25 deletions(-)
+> Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> writes:
+> 
+> > On Thu, 7 Jan 2016, Olivier Blin wrote:
+> >
+> >> This is a simple patch to fix link of ipset with latest libtool
+> >> versions.
+> >
+> > Is the patch compatible with non-latest libtool versions?
+> 
+> I have tested this with libtool 2.4.2 and 2.4.6 versions, ipset builds
+> fine with both.
+> 
+> The only downside is that -ldl is now passed twice with older libtool
+> versions, but this should not be a problem.
 
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index 02fefb2..efeca6e 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -572,7 +572,7 @@ static int nf_ct_ftp_from_nlattr(struct nlattr *attr, struct nf_conn *ct)
- 	return 0;
- }
- 
--static struct nf_conntrack_helper ftp[MAX_PORTS][2] __read_mostly;
-+static struct nf_conntrack_helper ftp[MAX_PORTS * 2] __read_mostly;
- 
- static const struct nf_conntrack_expect_policy ftp_exp_policy = {
- 	.max_expected	= 1,
-@@ -582,7 +582,7 @@ static const struct nf_conntrack_expect_policy ftp_exp_policy = {
- /* don't make this __exit, since it's called from __init ! */
- static void nf_conntrack_ftp_fini(void)
- {
--	nf_conntrack_helpers_unregister(&ftp[0][0], ports_c * 2);
-+	nf_conntrack_helpers_unregister(ftp, ports_c * 2);
- 	kfree(ftp_buffer);
- }
- 
-@@ -600,16 +600,16 @@ static int __init nf_conntrack_ftp_init(void)
- 	/* FIXME should be configurable whether IPv4 and IPv6 FTP connections
- 		 are tracked or not - YK */
- 	for (i = 0; i < ports_c; i++) {
--		nf_ct_helper_init(&ftp[i][0], AF_INET, IPPROTO_TCP, "ftp",
-+		nf_ct_helper_init(&ftp[2 * i], AF_INET, IPPROTO_TCP, "ftp",
- 				  FTP_PORT, ports[i], &ftp_exp_policy, 0,
- 				  sizeof(struct nf_ct_ftp_master), help,
- 				  nf_ct_ftp_from_nlattr, THIS_MODULE);
--		nf_ct_helper_init(&ftp[i][1], AF_INET6, IPPROTO_TCP, "ftp",
-+		nf_ct_helper_init(&ftp[2 * i + 1], AF_INET6, IPPROTO_TCP, "ftp",
- 				  FTP_PORT, ports[i], &ftp_exp_policy, 0,
- 				  sizeof(struct nf_ct_ftp_master), help,
- 				  nf_ct_ftp_from_nlattr, THIS_MODULE);
- 	}
--	ret = nf_conntrack_helpers_register(&ftp[0][0], ports_c * 2);
-+	ret = nf_conntrack_helpers_register(ftp, ports_c * 2);
- 	if (ret < 0) {
- 		pr_err("failed to register helpers\n");
- 		kfree(ftp_buffer);
-diff --git a/net/netfilter/nf_conntrack_sane.c b/net/netfilter/nf_conntrack_sane.c
-index c93bf8e..669eae7 100644
---- a/net/netfilter/nf_conntrack_sane.c
-+++ b/net/netfilter/nf_conntrack_sane.c
-@@ -166,7 +166,7 @@ out:
- 	return ret;
- }
- 
--static struct nf_conntrack_helper sane[MAX_PORTS][2] __read_mostly;
-+static struct nf_conntrack_helper sane[MAX_PORTS * 2] __read_mostly;
- 
- static const struct nf_conntrack_expect_policy sane_exp_policy = {
- 	.max_expected	= 1,
-@@ -176,7 +176,7 @@ static const struct nf_conntrack_expect_policy sane_exp_policy = {
- /* don't make this __exit, since it's called from __init ! */
- static void nf_conntrack_sane_fini(void)
- {
--	nf_conntrack_helpers_unregister(&sane[0][0], ports_c * 2);
-+	nf_conntrack_helpers_unregister(sane, ports_c * 2);
- 	kfree(sane_buffer);
- }
- 
-@@ -194,17 +194,17 @@ static int __init nf_conntrack_sane_init(void)
- 	/* FIXME should be configurable whether IPv4 and IPv6 connections
- 		 are tracked or not - YK */
- 	for (i = 0; i < ports_c; i++) {
--		nf_ct_helper_init(&sane[i][0], AF_INET, IPPROTO_TCP, "sane",
--				  SANE_PORT, ports[i], &sane_exp_policy, 0,
--				  sizeof(struct nf_ct_sane_master), help, NULL,
--				  THIS_MODULE);
--		nf_ct_helper_init(&sane[i][1], AF_INET6, IPPROTO_TCP, "sane",
--				  SANE_PORT, ports[i], &sane_exp_policy, 0,
--				  sizeof(struct nf_ct_sane_master), help, NULL,
--				  THIS_MODULE);
-+		nf_ct_helper_init(&sane[2 * i], AF_INET, IPPROTO_TCP,
-+				  "sane", SANE_PORT, ports[i], &sane_exp_policy,
-+				  0, sizeof(struct nf_ct_sane_master), help,
-+				  NULL, THIS_MODULE);
-+		nf_ct_helper_init(&sane[2 * i + 1], AF_INET6, IPPROTO_TCP,
-+				  "sane", SANE_PORT, ports[i], &sane_exp_policy,
-+				  0, sizeof(struct nf_ct_sane_master), help,
-+				  NULL, THIS_MODULE);
- 	}
- 
--	ret = nf_conntrack_helpers_register(&sane[0][0], ports_c * 2);
-+	ret = nf_conntrack_helpers_register(sane, ports_c * 2);
- 	if (ret < 0) {
- 		pr_err("failed to register helpers\n");
- 		kfree(sane_buffer);
-diff --git a/net/netfilter/nf_conntrack_tftp.c b/net/netfilter/nf_conntrack_tftp.c
-index d87c312..b57ae52 100644
---- a/net/netfilter/nf_conntrack_tftp.c
-+++ b/net/netfilter/nf_conntrack_tftp.c
-@@ -97,7 +97,7 @@ static int tftp_help(struct sk_buff *skb,
- 	return ret;
- }
- 
--static struct nf_conntrack_helper tftp[MAX_PORTS][2] __read_mostly;
-+static struct nf_conntrack_helper tftp[MAX_PORTS * 2] __read_mostly;
- 
- static const struct nf_conntrack_expect_policy tftp_exp_policy = {
- 	.max_expected	= 1,
-@@ -106,7 +106,7 @@ static const struct nf_conntrack_expect_policy tftp_exp_policy = {
- 
- static void nf_conntrack_tftp_fini(void)
- {
--	nf_conntrack_helpers_unregister(&tftp[0][0], ports_c * 2);
-+	nf_conntrack_helpers_unregister(tftp, ports_c * 2);
- }
- 
- static int __init nf_conntrack_tftp_init(void)
-@@ -117,17 +117,15 @@ static int __init nf_conntrack_tftp_init(void)
- 		ports[ports_c++] = TFTP_PORT;
- 
- 	for (i = 0; i < ports_c; i++) {
--		memset(&tftp[i], 0, sizeof(tftp[i]));
--
--		nf_ct_helper_init(&tftp[i][0], AF_INET, IPPROTO_UDP, "tftp",
--				  TFTP_PORT, ports[i], &tftp_exp_policy, 0, 0,
--				  tftp_help, NULL, THIS_MODULE);
--		nf_ct_helper_init(&tftp[i][1], AF_INET6, IPPROTO_UDP, "tftp",
-+		nf_ct_helper_init(&tftp[2 * i], AF_INET, IPPROTO_UDP, "tftp",
- 				  TFTP_PORT, ports[i], &tftp_exp_policy, 0, 0,
- 				  tftp_help, NULL, THIS_MODULE);
-+		nf_ct_helper_init(&tftp[2 * i + 1], AF_INET6, IPPROTO_UDP,
-+				  "tftp", TFTP_PORT, ports[i], &tftp_exp_policy,
-+				  0, 0, tftp_help, NULL, THIS_MODULE);
- 	}
- 
--	ret = nf_conntrack_helpers_register(&tftp[0][0], ports_c * 2);
-+	ret = nf_conntrack_helpers_register(tftp, ports_c * 2);
- 	if (ret < 0) {
- 		pr_err("failed to register helpers\n");
- 		return ret;
--- 
-1.9.1
+The patch is applied, thank you.
 
-
-
+Best regards,
+Jozsef
+--
+E-mail : kadlecsik.jozsef@wigner.mta.hu
+PGP key: http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address: Wigner Research Centre for Physics, Hungarian Academy of Sciences
+         H-1525 Budapest 114, POB. 49, Hungary
