@@ -1,43 +1,36 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] extensions: libxt_cgroup: Add translation to nft
-Date: Mon, 11 Jan 2016 20:00:53 +0100
-Message-ID: <20160111190053.GA15977@salvia>
-References: <20160108195313.GA2507@gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next v6 0/7] openvswitch: NAT support.
+Date: Mon, 11 Jan 2016 16:37:43 -0500 (EST)
+Message-ID: <20160111.163743.1973583169300061048.davem@davemloft.net>
+References: <1452277800-46541-1-git-send-email-jarno@ovn.org>
+	<20160111185033.GA15660@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52496 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933424AbcAKTA6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Jan 2016 14:00:58 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id E2944E3A05
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jan 2016 20:00:56 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id CA21DDA804
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jan 2016 20:00:56 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 7B0BEDA807
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jan 2016 20:00:54 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20160108195313.GA2507@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: jarno@ovn.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, dev@openvswitch.org
+To: pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160111185033.GA15660@salvia>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Jan 09, 2016 at 01:23:13AM +0530, Shivani Bhardwaj wrote:
-> Add translation for the network classifier cgroup to nftables.
-> 
-> Examples:
-> 
-> $ sudo iptables-translate -A input -m cgroup --cgroup 0x100001 -j DROP
-> nft add rule ip filter input meta cgroup 1048577 counter drop
-> 
-> $ sudo iptables-translate -A input -m cgroup ! --cgroup 0x100001 -j DROP
-> nft add rule ip filter input meta cgroup != 1048577 counter drop
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 11 Jan 2016 19:50:33 +0100
 
-Please, rebase upon the xlate4 branch. Tejun sent us the cgroups2
-updates and this patch doesn't apply on top of those.
+> On Fri, Jan 08, 2016 at 10:29:53AM -0800, Jarno Rajahalme wrote:
+>> This series adds NAT support to openvswitch kernel module.  A few
+>> changes are needed to the netfilter code to facilitate this (patches
+>> 1-2/8).  Patches 3-6 make the openvswitch kernel module ready for the
+>> patch 7 that adds the NAT support by calling into netfilter NAT code
+>> from the openvswitch conntrack action.
+> 
+> I received this batch just a bit later by when I already submitted my
+> last netfilter batch to David.
+> 
+> I can integrate this into the nf-next tree once the David re-opens his
+> merge window.
+> 
+> @David, let me know if you prefer an alternate path.
 
-Thanks Shivani.
+I'm fine if it goes via your tree Pablo.
