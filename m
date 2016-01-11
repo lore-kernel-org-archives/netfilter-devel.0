@@ -1,49 +1,26 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nft] scanner: disable most rules when we expect literal
- symbol
-Date: Sun, 10 Jan 2016 22:38:43 +0100
-Message-ID: <20160110213843.GA3184@breakpoint.cc>
-References: <1451788347-11846-1-git-send-email-fw@strlen.de>
- <20160105113407.GC1731@breakpoint.cc>
+From: David Miller <davem@davemloft.net>
+Subject: net-next is CLOSED
+Date: Sun, 10 Jan 2016 22:04:10 -0500 (EST)
+Message-ID: <20160110.220410.1596275588914865505.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, linux-wireless@vger.kernel.org
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52010 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757293AbcAJVip (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:60427 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757904AbcAKDEN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 10 Jan 2016 16:38:45 -0500
-Content-Disposition: inline
-In-Reply-To: <20160105113407.GC1731@breakpoint.cc>
+	Sun, 10 Jan 2016 22:04:13 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Florian Westphal <fw@strlen.de> wrote:
-> Florian Westphal <fw@strlen.de> wrote:
-> > nft fails to parse certain corner-cases, for example:
-> > 
-> > nft add rule filter input meta rtclassid daddr
-> > 
-> > ... as it finds DADDR token.  However, 'daddr' might be a valid
-> > routing realm listed in iproute2/rt_realms, so this should be allowed.
-> > 
-> > Pablo suggested to change the start conditions in the scanner
-> > accordingly.
-> > 
-> > After this patch, the following rule works:
-> > 
-> > ct label & (foobar | saddr) == saddr ip saddr 1.2.3.4 rtclassid { 42, cosmos, rule}
-> 
-> Note that this will not work:
-> 
-> ct label eq foobar
 
-This patch doesn't work, we can return from literal mode too early.
+The merge window has just openned, which means that no new submissions
+for net-next should be made at this time.
 
-rtclassid { rule, saddr }
-
-we will leave literal mode after 'rule' so we choke on the SADDR token.
-
-I'm flagging this as 'rejected' and will see if this can be fixed somehow.
+Thanks in advance for your cooperation, and can we _PLEASE_ have one
+release cycle where everyone tries hard not to submit any net-next
+material during this closed time period?  It'll make my life 10 times
+easier.
