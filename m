@@ -1,33 +1,44 @@
-From: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
-Subject: Re: net-next is CLOSED
-Date: Tue, 12 Jan 2016 10:55:08 +0100
-Message-ID: <1452592508.3473.2.camel@sipsolutions.net>
-References: <20160110.220410.1596275588914865505.davem@davemloft.net>
-	 (sfid-20160111_040421_189497_BD7F5F92)
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: parser regression: '/' symbol
+Date: Tue, 12 Jan 2016 12:09:49 +0100
+Message-ID: <CAOkSjBjytRTvdri+g-EGutvrFWsNuRAK5qgffWDVpm-3-X34mA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20160110.220410.1596275588914865505.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org> (sfid-20160111_040421_189497_BD7F5F92)
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
+To: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:37474 "EHLO
+	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759723AbcALLKK convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Jan 2016 06:10:10 -0500
+Received: by mail-wm0-f45.google.com with SMTP id f206so314139006wmf.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Jan 2016 03:10:09 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 2016-01-10 at 22:04 -0500, David Miller wrote:
-> The merge window has just openned, which means that no new
-> submissions for net-next should be made at this time.
-> 
+Hi,
 
-I had a submission before, but perhaps due to my UTF-8 problem
-patchwork didn't pick it up and you missed it. Sorry.
+I've detected a regression using defines in a file:
 
-Let me know if you're planning to pick it up still - if not I'll rebase
-to split it up more properly.
+define network =3D 1.1.1.1/24
 
-Thanks,
-johannes
+and then loading it with `nft -f'.
+
+The error is:
+'Error: syntax error, unexpected /, expecting newline or semicolon'
+
+=46lorian suspects of commit 2a5d44d8b3c88018165d736c9582cebbf40e6362
+(parser: get rid of multiton_expr from lhs relational expression).
+
+regards.
+--=20
+Arturo Borrero Gonz=C3=A1lez
 --
-To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
