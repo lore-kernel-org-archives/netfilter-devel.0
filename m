@@ -1,79 +1,29 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] extensions: libip6t_REDIRECT: Add translation to nft
-Date: Wed, 13 Jan 2016 00:56:44 +0530
-Message-ID: <20160112192644.GA5574@gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: net-next is CLOSED
+Date: Tue, 12 Jan 2016 14:39:52 -0500 (EST)
+Message-ID: <20160112.143952.1560016419671758971.davem@davemloft.net>
+References: <20160110.220410.1596275588914865505.davem@davemloft.net>
+	<1452592508.3473.2.camel@sipsolutions.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f172.google.com ([209.85.192.172]:36270 "EHLO
-	mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752415AbcALT0v (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Jan 2016 14:26:51 -0500
-Received: by mail-pf0-f172.google.com with SMTP id n128so67444014pfn.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Jan 2016 11:26:51 -0800 (PST)
-Received: from gmail.com ([106.201.101.184])
-        by smtp.gmail.com with ESMTPSA id q27sm32138071pfi.80.2016.01.12.11.26.48
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Tue, 12 Jan 2016 11:26:50 -0800 (PST)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	linux-wireless@vger.kernel.org
+To: johannes@sipsolutions.net
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1452592508.3473.2.camel@sipsolutions.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Add translation for REDIRECT target to nftables.
+From: Johannes Berg <johannes@sipsolutions.net>
+Date: Tue, 12 Jan 2016 10:55:08 +0100
 
-Examples:
+> On Sun, 2016-01-10 at 22:04 -0500, David Miller wrote:
+>> The merge window has just openned, which means that no new
+>> submissions for net-next should be made at this time.
+>> 
+> 
+> I had a submission before, but perhaps due to my UTF-8 problem
+> patchwork didn't pick it up and you missed it. Sorry.
 
-$ sudo ip6tables-translate -t nat -A prerouting -p tcp --dport 80 -j REDIRECT --to-ports 8080
-nft add rule ip6 nat prerouting tcp dport 80 counter redirect to 8080
-
-$ sudo ip6tables-translate -t nat -A prerouting -p tcp --dport 80 -j REDIRECT --to-ports 8080 --random
-nft add rule ip6 nat prerouting tcp dport 80 counter redirect to 8080 random
-
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
----
- extensions/libip6t_REDIRECT.c | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
-
-diff --git a/extensions/libip6t_REDIRECT.c b/extensions/libip6t_REDIRECT.c
-index 1724aa6..d907d94 100644
---- a/extensions/libip6t_REDIRECT.c
-+++ b/extensions/libip6t_REDIRECT.c
-@@ -132,6 +132,24 @@ static void REDIRECT_save(const void *ip, const struct xt_entry_target *target)
- 	}
- }
- 
-+static int REDIRECT_xlate(const struct xt_entry_target *target,
-+			  struct xt_buf *buf, int numeric)
-+{
-+	const struct nf_nat_range *range = (const void *)target->data;
-+
-+	if (range->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
-+		xt_buf_add(buf, "redirect to %hu",
-+			   ntohs(range->min_proto.tcp.port));
-+		if (range->max_proto.tcp.port != range->min_proto.tcp.port)
-+			xt_buf_add(buf, "-%hu ",
-+				   ntohs(range->max_proto.tcp.port));
-+		if (range->flags & NF_NAT_RANGE_PROTO_RANDOM)
-+			xt_buf_add(buf, " random ");
-+	}
-+
-+	return 1;
-+}
-+
- static struct xtables_target redirect_tg_reg = {
- 	.name		= "REDIRECT",
- 	.version	= XTABLES_VERSION,
-@@ -143,6 +161,7 @@ static struct xtables_target redirect_tg_reg = {
- 	.print		= REDIRECT_print,
- 	.save		= REDIRECT_save,
- 	.x6_options	= REDIRECT_opts,
-+	.xlate		= REDIRECT_xlate,
- };
- 
- void _init(void)
--- 
-1.9.1
-
+Please just resubmit, thanks.
