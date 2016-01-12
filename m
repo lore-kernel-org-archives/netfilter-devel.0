@@ -1,81 +1,54 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH v2] extensions: libip6t_hl: Add translation to nft
-Date: Tue, 12 Jan 2016 19:58:29 +0530
-Message-ID: <20160112142829.GA5879@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] ipset: allow a 0 netmask with hash_netiface type
+Date: Tue, 12 Jan 2016 17:07:05 +0100
+Message-ID: <1452614825-19749-1-git-send-email-fw@strlen.de>
+Cc: kadlec@blackhole.kfki.hu, Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:33528 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762521AbcALO2g (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58029 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752043AbcALQHv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Jan 2016 09:28:36 -0500
-Received: by mail-pf0-f195.google.com with SMTP id e65so4923208pfe.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Jan 2016 06:28:36 -0800 (PST)
-Received: from gmail.com ([106.204.22.198])
-        by smtp.gmail.com with ESMTPSA id 11sm30942224pfq.87.2016.01.12.06.28.34
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Tue, 12 Jan 2016 06:28:35 -0800 (PST)
-Content-Disposition: inline
+	Tue, 12 Jan 2016 11:07:51 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for hop limit to nftables.
+Jozsef says:
+ The correct behaviour is that if we have
+ ipset create test1 hash:net,iface
+ ipset add test1 0.0.0.0/0,eth0
+ iptables -A INPUT -m set --match-set test1 src,src
 
-Examples:
+ then the rule should match for any traffic coming in through eth0.
 
-$ sudo ip6tables-translate -t nat -A postrouting -m hl --hl-gt 3
-nft add rule ip6 nat postrouting ip6 hoplimit gt 3 counter
+This removes the -EINVAL runtime test to make matching work
+in case packet arrived via the specified interface.
 
-$ sudo ip6tables-translate -t nat -A postrouting -m hl ! --hl-eq 3
-nft add rule ip6 nat postrouting ip6 hoplimit != 3 counter
-
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=1297092
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
-Changes in v2:
-	Alter the contents of array op
-
- extensions/libip6t_hl.c | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
-
-diff --git a/extensions/libip6t_hl.c b/extensions/libip6t_hl.c
-index 3559db4..226b69c 100644
---- a/extensions/libip6t_hl.c
-+++ b/extensions/libip6t_hl.c
-@@ -83,6 +83,23 @@ static void hl_save(const void *ip, const struct xt_entry_match *match)
- 	printf(" %s %u", op[info->mode], info->hop_limit);
- }
+diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
+index 43d8c98..f0f688d 100644
+--- a/net/netfilter/ipset/ip_set_hash_netiface.c
++++ b/net/netfilter/ipset/ip_set_hash_netiface.c
+@@ -164,8 +164,6 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
  
-+static int hl_xlate(const struct xt_entry_match *match,
-+		    struct xt_buf *buf, int numeric)
-+{
-+	static const char *const op[] = {
-+		[IP6T_HL_EQ] = "",
-+		[IP6T_HL_NE] = "!= ",
-+		[IP6T_HL_LT] = "lt ",
-+		[IP6T_HL_GT] = "gt " };
-+
-+	const struct ip6t_hl_info *info =
-+		(struct ip6t_hl_info *) match->data;
-+
-+	xt_buf_add(buf, "ip6 hoplimit %s%u ", op[info->mode], info->hop_limit);
-+
-+	return 1;
-+}
-+
- #define s struct ip6t_hl_info
- static const struct xt_option_entry hl_opts[] = {
- 	{.name = "hl-lt", .id = O_HL_LT, .excl = F_ANY, .type = XTTYPE_UINT8,
-@@ -109,6 +126,7 @@ static struct xtables_match hl_mt6_reg = {
- 	.x6_parse      = hl_parse,
- 	.x6_fcheck     = hl_check,
- 	.x6_options    = hl_opts,
-+	.xlate	       = hl_xlate,
- };
+-	if (e.cidr == 0)
+-		return -EINVAL;
+ 	if (adt == IPSET_TEST)
+ 		e.cidr = HOST_MASK;
  
+@@ -377,8 +375,6 @@ hash_netiface6_kadt(struct ip_set *set, const struct sk_buff *skb,
+ 	};
+ 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ 
+-	if (e.cidr == 0)
+-		return -EINVAL;
+ 	if (adt == IPSET_TEST)
+ 		e.cidr = HOST_MASK;
  
 -- 
-1.9.1
+2.4.10
 
