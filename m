@@ -1,54 +1,79 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] ipset: allow a 0 netmask with hash_netiface type
-Date: Tue, 12 Jan 2016 17:07:05 +0100
-Message-ID: <1452614825-19749-1-git-send-email-fw@strlen.de>
-Cc: kadlec@blackhole.kfki.hu, Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH] extensions: libipt_REDIRECT: Add translation to nft
+Date: Tue, 12 Jan 2016 22:17:54 +0530
+Message-ID: <20160112164754.GA3259@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58029 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752043AbcALQHv (ORCPT
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:35108 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759679AbcALQsD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Jan 2016 11:07:51 -0500
+	Tue, 12 Jan 2016 11:48:03 -0500
+Received: by mail-pa0-f49.google.com with SMTP id ho8so81608874pac.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Jan 2016 08:48:01 -0800 (PST)
+Received: from gmail.com ([106.201.101.184])
+        by smtp.gmail.com with ESMTPSA id l14sm31597671pfb.73.2016.01.12.08.47.59
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Tue, 12 Jan 2016 08:48:00 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jozsef says:
- The correct behaviour is that if we have
- ipset create test1 hash:net,iface
- ipset add test1 0.0.0.0/0,eth0
- iptables -A INPUT -m set --match-set test1 src,src
+Add translation for target REDIRECT to nftables.
 
- then the rule should match for any traffic coming in through eth0.
+Examples:
 
-This removes the -EINVAL runtime test to make matching work
-in case packet arrived via the specified interface.
+$ sudo iptables-translate -t nat -A prerouting -p tcp --dport 80 -j REDIRECT --to-ports 8080
+nft add rule ip nat prerouting tcp dport 80 counter redirect to 8080
 
-Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=1297092
-Signed-off-by: Florian Westphal <fw@strlen.de>
+$ sudo iptables-translate -t nat -A prerouting -p tcp --dport 80 -j REDIRECT --to-ports 8080 --random
+nft add rule ip nat prerouting tcp dport 80 counter redirect to 8080 random
+
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
 ---
-diff --git a/net/netfilter/ipset/ip_set_hash_netiface.c b/net/netfilter/ipset/ip_set_hash_netiface.c
-index 43d8c98..f0f688d 100644
---- a/net/netfilter/ipset/ip_set_hash_netiface.c
-+++ b/net/netfilter/ipset/ip_set_hash_netiface.c
-@@ -164,8 +164,6 @@ hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	};
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
+ extensions/libipt_REDIRECT.c | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/extensions/libipt_REDIRECT.c b/extensions/libipt_REDIRECT.c
+index 610a949..2e5b33d 100644
+--- a/extensions/libipt_REDIRECT.c
++++ b/extensions/libipt_REDIRECT.c
+@@ -135,6 +135,24 @@ static void REDIRECT_save(const void *ip, const struct xt_entry_target *target)
+ 	}
+ }
  
--	if (e.cidr == 0)
--		return -EINVAL;
- 	if (adt == IPSET_TEST)
- 		e.cidr = HOST_MASK;
++static int REDIRECT_xlate(const struct xt_entry_target *target,
++			  struct xt_buf *buf, int numeric)
++{
++	const struct nf_nat_ipv4_multi_range_compat *mr =
++					(const void *)target->data;
++	const struct nf_nat_ipv4_range *r = &mr->range[0];
++
++	if (r->flags & NF_NAT_RANGE_PROTO_SPECIFIED) {
++		xt_buf_add(buf, "redirect to %hu", ntohs(r->min.tcp.port));
++		if (r->max.tcp.port != r->min.tcp.port)
++			xt_buf_add(buf, "-%hu ", ntohs(r->max.tcp.port));
++		if (mr->range[0].flags & NF_NAT_RANGE_PROTO_RANDOM)
++			xt_buf_add(buf, " random ");
++	}
++
++	return 1;
++}
++
+ static struct xtables_target redirect_tg_reg = {
+ 	.name		= "REDIRECT",
+ 	.version	= XTABLES_VERSION,
+@@ -147,6 +165,7 @@ static struct xtables_target redirect_tg_reg = {
+ 	.print		= REDIRECT_print,
+ 	.save		= REDIRECT_save,
+ 	.x6_options	= REDIRECT_opts,
++	.xlate		= REDIRECT_xlate,
+ };
  
-@@ -377,8 +375,6 @@ hash_netiface6_kadt(struct ip_set *set, const struct sk_buff *skb,
- 	};
- 	struct ip_set_ext ext = IP_SET_INIT_KEXT(skb, opt, set);
- 
--	if (e.cidr == 0)
--		return -EINVAL;
- 	if (adt == IPSET_TEST)
- 		e.cidr = HOST_MASK;
- 
+ void _init(void)
 -- 
-2.4.10
+1.9.1
 
