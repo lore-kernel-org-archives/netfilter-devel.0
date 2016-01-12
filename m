@@ -1,56 +1,45 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] nftables: byteorder: avoid uneeded le/be conversion steps
-Date: Mon, 11 Jan 2016 22:49:32 +0100
-Message-ID: <1452548972-24454-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Web-Admin <aviloria@ivss.gob.ve>
+Subject: Rendszergazda
+Date: Mon, 11 Jan 2016 19:45:40 -0430
+Message-ID: <9be54ae74ce7500c227378be116a539c__49200.4920183264$1452557767$gmane$org@ivss.gob.ve>
+Reply-To: 647812717@qq.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: undisclosed-recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:55081 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932851AbcAKVuR (ORCPT
+Received: from correo.ivss.gob.ve ([200.109.237.55]:36872 "HELO
+	correo.ivss.gob.ve" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1759712AbcALAPv convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Jan 2016 16:50:17 -0500
+	Mon, 11 Jan 2016 19:15:51 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David points out that we to three le/be conversions instead
-of just one.  Doesn't matter on x86_64 w. gcc, but other
-architectures might be less lucky.
 
-Since it also simplifies code just follow his advice.
 
-Fixes: c0f3275f5cb ("nftables: byteorder: provide le/be 64 bit conversion helper")
-Suggested-by: David Laight <David.Laight@aculab.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
-NB: This still has the 'potential' cast issue David mentioned
-but since other users in the tree do the same thing I think
-its okay (if not, someone else needs to fix get/put unaligned api,
-I'm not familiar with requirements).
+--=20
+A postal=C3=A1da t=C3=BAll=C3=A9pte a t=C3=A1rol=C3=A1si korl=C3=A1tot,=
+ ami 20 GB-os meghat=C3=A1rozott =C3=A1ltal
+a
+rendszergazda, akkor jelenleg fut=C3=B3 20.9 GB, nem lehet tudni
+k=C3=BCldeni, vagy fogadni az =C3=BAj =C3=BCzeneteket, am=C3=ADg =C3=96=
+n r=C3=A9 hang-=C3=A9rv=C3=A9nyes=C3=ADt a
+postal=C3=A1da. A k=C3=ADs=C3=A9relje meg =C3=BAjra a postal=C3=A1da =C3=
+=A9rv=C3=A9nyes=C3=ADt=C3=A9s=C3=A9t, k=C3=A9rj=C3=BCk, adja
+meg, =C3=A9s k=C3=BCldje vissza nek=C3=BCnk az adatait Ellen=C5=91rizze=
+ =C3=A9s friss=C3=ADtse a a
+fi=C3=B3khoz az al=C3=A1bbi:
 
-diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
-index 383c171..b78c28b 100644
---- a/net/netfilter/nft_byteorder.c
-+++ b/net/netfilter/nft_byteorder.c
-@@ -46,16 +46,14 @@ static void nft_byteorder_eval(const struct nft_expr *expr,
- 		switch (priv->op) {
- 		case NFT_BYTEORDER_NTOH:
- 			for (i = 0; i < priv->len / 8; i++) {
--				src64 = get_unaligned_be64(&src[i]);
--				src64 = be64_to_cpu((__force __be64)src64);
-+				src64 = get_unaligned((u64 *)&src[i]);
- 				put_unaligned_be64(src64, &dst[i]);
- 			}
- 			break;
- 		case NFT_BYTEORDER_HTON:
- 			for (i = 0; i < priv->len / 8; i++) {
- 				src64 = get_unaligned_be64(&src[i]);
--				src64 = (__force u64)cpu_to_be64(src64);
--				put_unaligned_be64(src64, &dst[i]);
-+				put_unaligned(src64, (u64 *)&dst[i]);
- 			}
- 			break;
- 		}
--- 
-2.4.10
+(1) E-mail:
+(2) n=C3=A9v:
+(3) Jelsz=C3=B3:
+(4) Alternat=C3=ADv e-mail:
 
+k=C3=B6sz
+Rendszergazda
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
