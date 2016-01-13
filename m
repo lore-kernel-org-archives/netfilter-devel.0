@@ -1,32 +1,54 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_conntrack_icmpv6: find conntrack related
- to ICMPv6 redirect packet
-Date: Wed, 13 Jan 2016 17:43:41 +0100
-Message-ID: <20160113164341.GA2764@salvia>
-References: <1452692577-31719-1-git-send-email-alin.nastac@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Alin Nastac <alin.nastac@gmail.com>
+Subject: [PATCH nf] netfilter: nft_ct: keep counters away from CONFIG_NF_CONNTRACK_LABELS
+Date: Wed, 13 Jan 2016 17:47:53 +0100
+Message-ID: <1452703673-4046-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54741 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55473 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753202AbcAMQnp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Jan 2016 11:43:45 -0500
+	id S1755096AbcAMQsC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Jan 2016 11:48:02 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 5D1AA2E784A
-	for <netfilter-devel@vger.kernel.org>; Wed, 13 Jan 2016 17:43:44 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id E58692E784D
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 Jan 2016 17:48:01 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 50913DA861
-	for <netfilter-devel@vger.kernel.org>; Wed, 13 Jan 2016 17:43:44 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id D463FDA860
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 Jan 2016 17:48:01 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6FB91DA809
-	for <netfilter-devel@vger.kernel.org>; Wed, 13 Jan 2016 17:43:42 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1452692577-31719-1-git-send-email-alin.nastac@gmail.com>
+	by antivirus1-rhel7.int (Postfix) with ESMTP id D035BDA801
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 Jan 2016 17:47:57 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I'd suggest you submit this patch with a proper description.
+This is accidental, they don't depend on the label infrastructure.
 
-Thanks.
+Fixes: 48f66c905a97 ("netfilter: nft_ct: add byte/packet counter support")
+Reported-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_ct.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index a0eb216..d4a4619 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -127,6 +127,7 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
+ 			       NF_CT_LABELS_MAX_SIZE - size);
+ 		return;
+ 	}
++#endif
+ 	case NFT_CT_BYTES: /* fallthrough */
+ 	case NFT_CT_PKTS: {
+ 		const struct nf_conn_acct *acct = nf_conn_acct_find(ct);
+@@ -138,7 +139,6 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
+ 		memcpy(dest, &count, sizeof(count));
+ 		return;
+ 	}
+-#endif
+ 	default:
+ 		break;
+ 	}
+-- 
+2.1.4
+
