@@ -1,136 +1,132 @@
-From: Eric Leblond <eric@regit.org>
-Subject: Re: [PATCH] sqlite3: Remove unused "buffer" option.
-Date: Wed, 13 Jan 2016 09:12:26 -0500
-Message-ID: <1452694346.11918.3.camel@regit.org>
-References: <1451667942-30746-1-git-send-email-alex_y_xu@yahoo.ca>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: pablo@netfilter.org
-To: Alex Xu <alex_y_xu@yahoo.ca>, netfilter-devel@vger.kernel.org
+From: Alin Nastac <alin.nastac@gmail.com>
+Subject: [PATCH] netfilter: nf_conntrack_icmpv6: find conntrack related to ICMPv6 redirect packet
+Date: Wed, 13 Jan 2016 15:34:20 +0100
+Message-ID: <1452695660-14013-1-git-send-email-alin.nastac@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from home.regit.org ([37.187.126.138]:38781 "EHLO home.regit.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754490AbcAMOMd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Jan 2016 09:12:33 -0500
-In-Reply-To: <1451667942-30746-1-git-send-email-alex_y_xu@yahoo.ca>
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:38827 "EHLO
+	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752035AbcAMOea (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Jan 2016 09:34:30 -0500
+Received: by mail-wm0-f54.google.com with SMTP id b14so374950991wmb.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 Jan 2016 06:34:29 -0800 (PST)
+Received: from cplx250.edegem.eu.thmulti.com (14.125.146.82.ipv4.evonet.be. [82.146.125.14])
+        by smtp.gmail.com with ESMTPSA id m128sm22429824wma.24.2016.01.13.06.34.27
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 13 Jan 2016 06:34:28 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+---
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c | 77 ++++++++++++++++++++++++--
+ 1 file changed, 72 insertions(+), 5 deletions(-)
 
-Good for me but I will need a=C2=A0Signed-off-by line in your patch to =
-be
-able to push it.
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index 660bc10..699848a 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -144,7 +144,7 @@ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
+ static int
+ icmpv6_error_message(struct net *net, struct nf_conn *tmpl,
+ 		     struct sk_buff *skb,
+-		     unsigned int icmp6off,
++		     unsigned int inneripv6off,
+ 		     enum ip_conntrack_info *ctinfo,
+ 		     unsigned int hooknum)
+ {
+@@ -157,9 +157,7 @@ icmpv6_error_message(struct net *net, struct nf_conn *tmpl,
+ 
+ 	/* Are they talking about one of our connections? */
+ 	if (!nf_ct_get_tuplepr(skb,
+-			       skb_network_offset(skb)
+-				+ sizeof(struct ipv6hdr)
+-				+ sizeof(struct icmp6hdr),
++			       inneripv6off,
+ 			       PF_INET6, net, &origtuple)) {
+ 		pr_debug("icmpv6_error: Can't get tuple\n");
+ 		return -NF_ACCEPT;
+@@ -227,9 +225,78 @@ icmpv6_error(struct net *net, struct nf_conn *tmpl,
+ 		nf_conntrack_get(skb->nfct);
+ 		return NF_ACCEPT;
+ 	}
++	dataoff += sizeof(struct icmp6hdr);
+ 
+ 	/* is not error message ? */
+-	if (icmp6h->icmp6_type >= 128)
++	if (icmp6h->icmp6_type == NDISC_REDIRECT) {
++		const struct in6_addr *dst;
++		struct in6_addr _dst;
++		const struct nd_opt_hdr *opt;
++		struct nd_opt_hdr _opt;
++		const struct ipv6hdr *iph;
++		struct ipv6hdr _iph;
++
++		/* skip target address */
++		dataoff += sizeof(_dst);
++
++		/* read destination address */
++		dst = skb_header_pointer(skb, dataoff, sizeof(_dst), &_dst);
++		if (dst == NULL) {
++			if (LOG_INVALID(net, IPPROTO_ICMPV6))
++			nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
++				      "nf_ct_icmpv6: short redirect packet ");
++			return -NF_ACCEPT;
++		}
++		if (ipv6_addr_is_multicast(dst)) {
++			if (LOG_INVALID(net, IPPROTO_ICMPV6))
++			nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
++				      "nf_ct_icmpv6: redirect destination address is multicast ");
++			return -NF_ACCEPT;
++		}
++		dataoff += sizeof(_dst);
++
++		/* find redirected header */
++		while (1) {
++			opt = skb_header_pointer(skb, dataoff, sizeof(_opt), &_opt);
++			if (opt == NULL) {
++				if (LOG_INVALID(net, IPPROTO_ICMPV6))
++				nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
++					      "nf_ct_icmpv6: invalid redirect option ");
++				return -NF_ACCEPT;
++			}
++			if (opt->nd_opt_len == 0) {
++				if (LOG_INVALID(net, IPPROTO_ICMPV6))
++				nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
++					      "nf_ct_icmpv6: invalid redirect option length ");
++				return -NF_ACCEPT;
++			}
++
++			if (opt->nd_opt_type == ND_OPT_REDIRECT_HDR) {
++				dataoff += 8;
++				break;
++			}
++
++			dataoff += opt->nd_opt_len << 3;
++		}
++
++		/* read redirect header */
++		iph = skb_header_pointer(skb, dataoff, sizeof(_iph), &_iph);
++		if (iph == NULL) {
++			if (LOG_INVALID(net, IPPROTO_ICMPV6))
++			nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
++				      "nf_ct_icmpv6: short redirect header ");
++			return -NF_ACCEPT;
++		}
++
++		/* validate destination address */
++		if (!ipv6_addr_equal(&iph->daddr, dst)) {
++			if (LOG_INVALID(net, IPPROTO_ICMPV6))
++			nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
++				      "nf_ct_icmpv6: redirect destination address not matching destination address of redirect header ");
++			return -NF_ACCEPT;
++		}
++	}
++	else if (icmp6h->icmp6_type >= 128)
+ 		return NF_ACCEPT;
+ 
+ 	return icmpv6_error_message(net, tmpl, skb, dataoff, ctinfo, hooknum);
+-- 
+1.7.12.4
 
-Thanks for this work.
---
-Eric
-
-On Fri, 2016-01-01 at 12:05 -0500, Alex Xu wrote:
-> ---
-> =C2=A0doc/ulogd.sgml=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A02 --
-> =C2=A0output/sqlite3/ulogd_output_SQLITE3.c | 17 +----------------
-> =C2=A0ulogd.conf.in=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A02 --
-> =C2=A03 files changed, 1 insertion(+), 20 deletions(-)
->=20
-> diff --git a/doc/ulogd.sgml b/doc/ulogd.sgml
-> index 30bfecb..65a63cf 100644
-> --- a/doc/ulogd.sgml
-> +++ b/doc/ulogd.sgml
-> @@ -603,8 +603,6 @@ The module defines the following configuration
-> directives:
-> =C2=A0Name of the table to which ulogd should log.
-> =C2=A0<tag>db</tag>
-> =C2=A0Name of the database.
-> -<tag>buffer</tag>
-> -Size of the sqlite buffer.
-> =C2=A0</descrip>
-> =C2=A0</sect2>
-> =C2=A0
-> diff --git a/output/sqlite3/ulogd_output_SQLITE3.c
-> b/output/sqlite3/ulogd_output_SQLITE3.c
-> index 5c49055..20ceb3b 100644
-> --- a/output/sqlite3/ulogd_output_SQLITE3.c
-> +++ b/output/sqlite3/ulogd_output_SQLITE3.c
-> @@ -63,8 +63,6 @@ struct sqlite3_priv {
-> =C2=A0	struct field_lh fields;
-> =C2=A0	char *stmt;
-> =C2=A0	sqlite3_stmt *p_stmt;
-> -	int buffer_size;
-> -	int buffer_curr;
-> =C2=A0	struct {
-> =C2=A0		unsigned err_tbl_busy;	/* "Table busy" */
-> =C2=A0	} stats;
-> @@ -83,18 +81,11 @@ static struct config_keyset sqlite3_kset =3D {
-> =C2=A0			.type =3D CONFIG_TYPE_STRING,
-> =C2=A0			.options =3D CONFIG_OPT_MANDATORY,
-> =C2=A0		},
-> -		{
-> -			.key =3D "buffer",
-> -			.type =3D CONFIG_TYPE_INT,
-> -			.options =3D CONFIG_OPT_NONE,
-> -			.u.value =3D CFG_BUFFER_DEFAULT,
-> -		},
-> =C2=A0	},
-> =C2=A0};
-> =C2=A0
-> =C2=A0#define db_ce(pi)		(pi)->config_kset->ces[0].u.string
-> =C2=A0#define table_ce(pi)	(pi)->config_kset->ces[1].u.string
-> -#define buffer_ce(pi)	(pi)->config_kset->ces[2].u.value
-> =C2=A0
-> =C2=A0/* forward declarations */
-> =C2=A0static int sqlite3_createstmt(struct ulogd_pluginstance *);
-> @@ -107,9 +98,7 @@ add_row(struct ulogd_pluginstance *pi)
-> =C2=A0	int ret;
-> =C2=A0
-> =C2=A0	ret =3D sqlite3_step(priv->p_stmt);
-> -	if (ret =3D=3D SQLITE_DONE)
-> -		priv->buffer_curr++;
-> -	else if (ret =3D=3D SQLITE_BUSY)
-> +	if (ret =3D=3D SQLITE_BUSY)
-> =C2=A0		priv->stats.err_tbl_busy++;
-> =C2=A0	else if (ret =3D=3D SQLITE_ERROR) {
-> =C2=A0		ret =3D sqlite3_finalize(priv->p_stmt);
-> @@ -404,10 +393,6 @@ sqlite3_start(struct ulogd_pluginstance *pi)
-> =C2=A0		return -1;
-> =C2=A0	}
-> =C2=A0
-> -	/* initialize our buffer size and counter */
-> -	priv->buffer_size =3D buffer_ce(pi);
-> -	priv->buffer_curr =3D 0;
-> -
-> =C2=A0	/* create and prepare the actual insert statement */
-> =C2=A0	sqlite3_createstmt(pi);
-> =C2=A0
-> diff --git a/ulogd.conf.in b/ulogd.conf.in
-> index 9624a4b..2fcf39a 100644
-> --- a/ulogd.conf.in
-> +++ b/ulogd.conf.in
-> @@ -301,12 +301,10 @@ procedure=3D"INSERT_PACKET_FULL"
-> =C2=A0[sqlite3_ct]
-> =C2=A0table=3D"ulog_ct"
-> =C2=A0db=3D"/var/log/ulogd.sqlite3db"
-> -buffer=3D200
-> =C2=A0
-> =C2=A0[sqlite3_pkt]
-> =C2=A0table=3D"ulog_pkt"
-> =C2=A0db=3D"/var/log/ulogd.sqlite3db"
-> -buffer=3D200
-> =C2=A0
-> =C2=A0[sys2]
-> =C2=A0facility=3DLOG_LOCAL2
---=20
-Eric Leblond <eric@regit.org>
-Blog: https://home.regit.org/
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
