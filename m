@@ -1,132 +1,50 @@
-From: Alin Nastac <alin.nastac@gmail.com>
-Subject: [PATCH] netfilter: nf_conntrack_icmpv6: find conntrack related to ICMPv6 redirect packet
-Date: Wed, 13 Jan 2016 14:42:57 +0100
-Message-ID: <1452692577-31719-1-git-send-email-alin.nastac@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f53.google.com ([74.125.82.53]:34527 "EHLO
-	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754573AbcAMNnE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Jan 2016 08:43:04 -0500
-Received: by mail-wm0-f53.google.com with SMTP id u188so298385623wmu.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 13 Jan 2016 05:43:03 -0800 (PST)
-Received: from cplx250.edegem.eu.thmulti.com (14.125.146.82.ipv4.evonet.be. [82.146.125.14])
-        by smtp.gmail.com with ESMTPSA id 79sm2738729wmo.7.2016.01.13.05.43.01
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 13 Jan 2016 05:43:01 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] netfilter: nft_ct: mark nft_ct_get_eval_counter __maybe_unused
+Date: Wed, 13 Jan 2016 14:58:11 +0100
+Message-ID: <6200241.eeH6DHXzHj@wuerfel>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Cc: Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Florian Westphal <fw@strlen.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+The newly added nft_ct_get_eval_counter() function is only used when
+CONFIG_NF_CONNTRACK_LABELS is set, otherwise gcc warns about the
+unused definition:
+
+netfilter/nft_ct.c:34:12: warning: 'nft_ct_get_eval_counter' defined but not used [-Wunused-function]
+ static u64 nft_ct_get_eval_counter(const struct nf_conn_counter *c,
+
+This marks the function __maybe_unused to shut up the warning.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: 48f66c905a97 ("netfilter: nft_ct: add byte/packet counter support")
 ---
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c | 77 ++++++++++++++++++++++++--
- 1 file changed, 72 insertions(+), 5 deletions(-)
+Found on ARM randconfig builds this week
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index 660bc10..699848a 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -144,7 +144,7 @@ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
- static int
- icmpv6_error_message(struct net *net, struct nf_conn *tmpl,
- 		     struct sk_buff *skb,
--		     unsigned int icmp6off,
-+		     unsigned int inneripv6off,
- 		     enum ip_conntrack_info *ctinfo,
- 		     unsigned int hooknum)
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index a0eb2161e3ef..3496929bbc54 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -31,9 +31,9 @@ struct nft_ct {
+ 	};
+ };
+ 
+-static u64 nft_ct_get_eval_counter(const struct nf_conn_counter *c,
+-				   enum nft_ct_keys k,
+-				   enum ip_conntrack_dir d)
++static u64 __maybe_unused nft_ct_get_eval_counter(const struct nf_conn_counter *c,
++						  enum nft_ct_keys k,
++						  enum ip_conntrack_dir d)
  {
-@@ -157,9 +157,7 @@ icmpv6_error_message(struct net *net, struct nf_conn *tmpl,
- 
- 	/* Are they talking about one of our connections? */
- 	if (!nf_ct_get_tuplepr(skb,
--			       skb_network_offset(skb)
--				+ sizeof(struct ipv6hdr)
--				+ sizeof(struct icmp6hdr),
-+			       inneripv6off,
- 			       PF_INET6, net, &origtuple)) {
- 		pr_debug("icmpv6_error: Can't get tuple\n");
- 		return -NF_ACCEPT;
-@@ -227,9 +225,78 @@ icmpv6_error(struct net *net, struct nf_conn *tmpl,
- 		nf_conntrack_get(skb->nfct);
- 		return NF_ACCEPT;
- 	}
-+	dataoff += sizeof(struct icmp6hdr);
- 
- 	/* is not error message ? */
--	if (icmp6h->icmp6_type >= 128)
-+	if (icmp6h->icmp6_type == NDISC_REDIRECT) {
-+		const struct in6_addr *dst;
-+		struct in6_addr _dst;
-+		const struct nd_opt_hdr *opt;
-+		struct nd_opt_hdr _opt;
-+		const struct ipv6hdr *iph;
-+		struct ipv6hdr _iph;
-+
-+		/* skip target address */
-+		dataoff += sizeof(_dst);
-+
-+		/* read destination address */
-+		dst = skb_header_pointer(skb, dataoff, sizeof(_dst), &_dst);
-+		if (dst == NULL) {
-+			if (LOG_INVALID(net, IPPROTO_ICMPV6))
-+			nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
-+				      "nf_ct_icmpv6: short redirect packet ");
-+			return -NF_ACCEPT;
-+		}
-+		if (ipv6_addr_is_multicast(dst)) {
-+			if (LOG_INVALID(net, IPPROTO_ICMPV6))
-+			nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
-+				      "nf_ct_icmpv6: redirect destination address is multicast ");
-+			return -NF_ACCEPT;
-+		}
-+		dataoff += sizeof(_dst);
-+
-+		/* find redirected header */
-+		while (1) {
-+			opt = skb_header_pointer(skb, dataoff, sizeof(_opt), &_opt);
-+			if (opt == NULL) {
-+				if (LOG_INVALID(net, IPPROTO_ICMPV6))
-+				nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
-+					      "nf_ct_icmpv6: invalid redirect option ");
-+				return -NF_ACCEPT;
-+			}
-+			if (opt->nd_opt_len == 0) {
-+				if (LOG_INVALID(net, IPPROTO_ICMPV6))
-+				nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
-+					      "nf_ct_icmpv6: invalid redirect option length ");
-+				return -NF_ACCEPT;
-+			}
-+
-+			if (opt->nd_opt_type == ND_OPT_REDIRECT_HDR) {
-+				dataoff += 8;
-+				break;
-+			}
-+
-+			dataoff += opt->nd_opt_len << 3;
-+		}
-+
-+		/* read redirect header */
-+		iph = skb_header_pointer(skb, dataoff, sizeof(_iph), &_iph);
-+		if (iph == NULL) {
-+			if (LOG_INVALID(net, IPPROTO_ICMPV6))
-+			nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
-+				      "nf_ct_icmpv6: short redirect header ");
-+			return -NF_ACCEPT;
-+		}
-+
-+		/* validate destination address */
-+		if (!ipv6_addr_equal(&iph->daddr, dst)) {
-+			if (LOG_INVALID(net, IPPROTO_ICMPV6))
-+			nf_log_packet(net, PF_INET6, 0, skb, NULL, NULL, NULL,
-+				      "nf_ct_icmpv6: redirect destination address not matching destination address of redirect header ");
-+			return -NF_ACCEPT;
-+		}
-+	}
-+	else if (icmp6h->icmp6_type >= 128)
- 		return NF_ACCEPT;
- 
- 	return icmpv6_error_message(net, tmpl, skb, dataoff, ctinfo, hooknum);
--- 
-1.7.12.4
-
+ 	if (d < IP_CT_DIR_MAX)
+ 		return k == NFT_CT_BYTES ? atomic64_read(&c[d].bytes) :
