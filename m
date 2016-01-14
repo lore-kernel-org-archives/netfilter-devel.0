@@ -1,51 +1,84 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v2] netfilter: nf_conntrack: use safer way to lock all
- buckets
-Date: Thu, 14 Jan 2016 18:25:27 +0100
-Message-ID: <20160114172527.GA19589@breakpoint.cc>
-References: <1452791036-2161-1-git-send-email-sasha.levin@oracle.com>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH] extensions: libip6t_mh: Add translation to nft
+Date: Thu, 14 Jan 2016 23:10:09 +0530
+Message-ID: <20160114174009.GA4252@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: Sasha Levin <sasha.levin@oracle.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:33041 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753931AbcANRkQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 Jan 2016 12:40:16 -0500
+Received: by mail-pa0-f54.google.com with SMTP id cy9so380238882pac.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 14 Jan 2016 09:40:16 -0800 (PST)
+Received: from gmail.com ([223.176.183.27])
+        by smtp.gmail.com with ESMTPSA id v7sm10610060pfa.77.2016.01.14.09.40.13
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Thu, 14 Jan 2016 09:40:15 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1452791036-2161-1-git-send-email-sasha.levin@oracle.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Sasha Levin <sasha.levin@oracle.com> wrote:
-> When we need to lock all buckets in the connection hashtable we'd attempt to
-> lock 1024 spinlocks, which is way more preemption levels than supported by
-> the kernel. Furthermore, this behavior was hidden by checking if lockdep is
-> enabled, and if it was - use only 8 buckets(!).
-> 
-> Fix this by using a global lock and synchronize all buckets on it when we
-> need to lock them all. This is pretty heavyweight, but is only done when we
-> need to resize the hashtable, and that doesn't happen often enough (or at all).
-> 
-> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> index 3cb3cb8..4ccf5ad 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -66,6 +66,21 @@ EXPORT_SYMBOL_GPL(nf_conntrack_locks);
->  __cacheline_aligned_in_smp DEFINE_SPINLOCK(nf_conntrack_expect_lock);
->  EXPORT_SYMBOL_GPL(nf_conntrack_expect_lock);
->  
-> +spinlock_t nf_conntrack_locks_all_lock;
-> +bool nf_conntrack_locks_all;
+Add translation for mobility header to nftables.
 
-warning: symbol 'nf_conntrack_locks_all_lock' was not declared. Should it be static?
-warning: symbol 'nf_conntrack_locks_all' was not declared.  Should it be static?
+Examples:
 
-> +void nf_conntrack_lock(spinlock_t *lock)
+$ sudo ip6tables-translate -A INPUT -p mh -j ACCEPT
+nft add rule ip6 filter INPUT ip6 nexthdr mobility-header counter accept
 
-__acquires(lock)
+$ sudo ip6tables-translate -A INPUT -p mh --mh-type 1 -j ACCEPT
+nft add rule ip6 filter INPUT ip6 nexthdr mobility-header mh type 1 counter accept
 
-It avoids 'context imbalance in 'nf_conntrack_lock' - wrong count at exit'
-sparse error.
+$ sudo ip6tables-translate -A INPUT -p mh --mh-type 1:3 -j ACCEPT
+nft add rule ip6 filter INPUT ip6 nexthdr mobility-header mh type 1-3 counter accept
 
-Other than that this looks good, thanks.
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+ extensions/libip6t_mh.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+
+diff --git a/extensions/libip6t_mh.c b/extensions/libip6t_mh.c
+index 686a293..55ce028 100644
+--- a/extensions/libip6t_mh.c
++++ b/extensions/libip6t_mh.c
+@@ -202,6 +202,26 @@ static void mh_save(const void *ip, const struct xt_entry_match *match)
+ 		printf(" --mh-type %u", mhinfo->types[0]);
+ }
+ 
++static int mh_xlate(const struct xt_entry_match *match,
++		    struct xt_buf *buf, int numeric)
++{
++	const struct ip6t_mh *mhinfo = (struct ip6t_mh *)match->data;
++
++	if (mhinfo->types[0] == 0 && mhinfo->types[1] == 0xFF)
++		return 0;
++
++	if (mhinfo->types[0] != mhinfo->types[1])
++		xt_buf_add(buf, "mh type%s %u-%u ",
++			   mhinfo->invflags & IP6T_MH_INV_TYPE ? " !=" : "",
++			   mhinfo->types[0], mhinfo->types[1]);
++	else
++		xt_buf_add(buf, "mh type%s %u ",
++			   mhinfo->invflags & IP6T_MH_INV_TYPE ? " !=" : "",
++			   mhinfo->types[0]);
++
++	return 1;
++}
++
+ static const struct xt_option_entry mh_opts[] = {
+ 	{.name = "mh-type", .id = O_MH_TYPE, .type = XTTYPE_STRING,
+ 	 .flags = XTOPT_INVERT},
+@@ -220,6 +240,7 @@ static struct xtables_match mh_mt6_reg = {
+ 	.print		= mh_print,
+ 	.save		= mh_save,
+ 	.x6_options	= mh_opts,
++	.xlate		= mh_xlate,
+ };
+ 
+ void _init(void)
+-- 
+1.9.1
+
