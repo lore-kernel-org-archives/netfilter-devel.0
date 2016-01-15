@@ -1,90 +1,42 @@
-From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Subject: Re: [PATCH 2/8] kernfs: implement kernfs_walk_and_get()
-Date: Fri, 15 Jan 2016 13:29:06 +0100
-Message-ID: <CAMuHMdXT63aJ2hXJg9mtMv-PZYT7CEw+ab-j42_VoFB-ib+ghg@mail.gmail.com>
-References: <1449527935-27056-1-git-send-email-tj@kernel.org>
-	<1449527935-27056-3-git-send-email-tj@kernel.org>
+From: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
+Subject: Reminder: Last day to buy your NetDev 1.1 ticket!
+Date: Fri, 15 Jan 2016 13:55:00 +0100
+Message-ID: <20160115125219.GA2273@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
-	Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org,
-	Daniel Borkmann <daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org>,
-	daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org,
-	Zefan Li <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>,
-	Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>,
-	"netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
-	cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	"linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
-	kernel-team-b10kYP2dOMg@public.gmane.org, ninasc-b10kYP2dOMg@public.gmane.org,
-	Josh Triplett <josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org>
-To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1449527935-27056-3-git-send-email-tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Cc: lwn-T1hC0tSOHrs@public.gmane.org, info-Aq7fehzYRUagpaxmtUs7hg@public.gmane.org
+To: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Dec 7, 2015 at 11:38 PM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> Implement kernfs_walk_and_get() which is similar to
-> kernfs_find_and_get() but can walk a path instead of just a name.
->
-> v2: Use strlcpy() instead of strlen() + memcpy() as suggested by
->     David.
->
-> Signed-off-by: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-> Acked-by: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-> Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-> ---
->  fs/kernfs/dir.c        | 46 ++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/kernfs.h | 12 ++++++++++++
->  2 files changed, 58 insertions(+)
->
-> diff --git a/fs/kernfs/dir.c b/fs/kernfs/dir.c
-> index 91e0045..742bf4a 100644
-> --- a/fs/kernfs/dir.c
-> +++ b/fs/kernfs/dir.c
-> @@ -694,6 +694,29 @@ static struct kernfs_node *kernfs_find_ns(struct kernfs_node *parent,
->         return NULL;
->  }
->
-> +static struct kernfs_node *kernfs_walk_ns(struct kernfs_node *parent,
-> +                                         const unsigned char *path,
-> +                                         const void *ns)
-> +{
-> +       static char path_buf[PATH_MAX]; /* protected by kernfs_mutex */
+Hi!
 
-This is showing up in bloat-o-meter as increasing kernel size by 4 KiB.
+Today is your last day to buy your NetDev 1.1 [1] ticket, so hurry up!
 
-> +       size_t len = strlcpy(path_buf, path, PATH_MAX);
+Netdev 1.1 is the community-driven Linux networking conference held
+back-to-back with netconf in Sevilla, Spain [2], February 10-12, 2016.
 
-The full input string is copied because strsep() replaces the delimiters by
-zeroes?
-Can this be handled in some other way?
+We already got fair amount of good sessions, some numbers:
 
-> +       char *p = path_buf;
-> +       char *name;
-> +
-> +       lockdep_assert_held(&kernfs_mutex);
-> +
-> +       if (len >= PATH_MAX)
-> +               return NULL;
-> +
-> +       while ((name = strsep(&p, "/")) && parent) {
-> +               if (*name == '\0')
-> +                       continue;
-> +               parent = kernfs_find_ns(parent, name, ns);
-> +       }
-> +
-> +       return parent;
-> +}
+* 19 talks.
+* 9 tutorials.
+* 4 BoFs.
+* 2 workshops.
 
-Gr{oetje,eeting}s,
+We're also scheduled two social events, we can anticipate that we'll
+be enjoying a live Flamenco show in one of them, as well as a special
+closing event on Friday.
 
-                        Geert
+Don't wait any longer, buy your ticket now!
 
+We're looking forward meeting you soon at Netdev 1.1.
+
+[1] http://www.netdevconf.org/1.1/
+[2] https://www.youtube.com/watch?v=zk3bNiWYqso
 --
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
