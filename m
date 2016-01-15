@@ -1,54 +1,46 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: nft compat layer
-Date: Fri, 15 Jan 2016 21:06:35 +0100
-Message-ID: <CAOkSjBhpqYQ01xOehhG7zFAzStOcTttQTk1JcLaP_UnAWSzmPw@mail.gmail.com>
+From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH] kernfs: make kernfs_walk_ns() use kernfs_pr_cont_buf[]
+Date: Fri, 15 Jan 2016 14:05:21 -0800
+Message-ID: <20160115220521.GA8722@kroah.com>
+References: <1449527935-27056-1-git-send-email-tj@kernel.org>
+ <1449527935-27056-3-git-send-email-tj@kernel.org>
+ <CAMuHMdXT63aJ2hXJg9mtMv-PZYT7CEw+ab-j42_VoFB-ib+ghg@mail.gmail.com>
+ <20160115173014.GI3520@mtj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Shivani Bhardwaj <shivanib134@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:37254 "EHLO
-	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754343AbcAOUGz convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Jan 2016 15:06:55 -0500
-Received: by mail-wm0-f54.google.com with SMTP id f206so41170889wmf.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Jan 2016 12:06:55 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>,
+	"David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
+	Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org,
+	Daniel Borkmann <daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org>,
+	daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org,
+	Zefan Li <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>,
+	Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>,
+	"netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
+	cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	"linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+	kernel-team-b10kYP2dOMg@public.gmane.org, ninasc-b10kYP2dOMg@public.gmane.org,
+	Josh Triplett <josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org>
+To: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160115173014.GI3520-qYNAdHglDFBN0TnZuCh8vA@public.gmane.org>
+Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Fri, Jan 15, 2016 at 12:30:14PM -0500, Tejun Heo wrote:
+> kernfs_walk_ns() uses a static path_buf[PATH_MAX] to separate out path
+> components.  Keeping around the 4k buffer just for kernfs_walk_ns() is
+> wasteful.  This patch makes it piggyback on kernfs_pr_cont_buf[]
+> instead.  This requires kernfs_walk_ns() to hold kernfs_rename_lock.
+> 
+> Signed-off-by: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Reported-by: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+> ---
+> Hello,
+> 
+> Greg, can you please route this one?
 
-I'm giving a spin to the nft compat layer, since it can be of certain
-importance for distributions.
+Thanks, will take this after 4.5-rc1 is out.
 
-I just want to be clear on what I recommends to end users about
-migrating from iptables (and friends) to nftables.
-
-Could you please remind me in which state was the discussion about
-that patch to show x_tables extensions in nftables rulesets [0]?
-I remember Patrick mentioned several concerns back then about this appr=
-oach.
-
-Currently, with a basic ruleset errors are shown [1]. Also, if you try
-to see what's happening, segfaults [2].
-
-I'm aware of the translations efforts being made by Shivani.
-
-[0] http://patchwork.ozlabs.org/patch/459398/
-[1] http://paste.debian.net/366059
-[2] http://paste.debian.net/366060/
-
-best regards.
-
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+greg k-h
