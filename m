@@ -1,102 +1,42 @@
 From: Stephane Bryant <stephane.ml.bryant@gmail.com>
-Subject: [PATCH nf-next 1/3] netfilter: bridge: add nf_afinfo to enable queuing to userspace
-Date: Fri, 15 Jan 2016 09:48:52 +0100
-Message-ID: <1452847734-3766-2-git-send-email-stephane.ml.bryant@gmail.com>
-References: <1452847734-3766-1-git-send-email-stephane.ml.bryant@gmail.com>
+Subject: [PATCH nf-next 0/3] netfilter: bridge: add queuing to userspace for AF_BRIDGE family
+Date: Fri, 15 Jan 2016 09:48:51 +0100
+Message-ID: <1452847734-3766-1-git-send-email-stephane.ml.bryant@gmail.com>
 Cc: netfilter-devel@vger.kernel.org,
 	stephane <stephane.ml.bryant@gmail.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36346 "EHLO
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36335 "EHLO
 	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750897AbcAOItH (ORCPT
+	with ESMTP id S1750810AbcAOItG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Jan 2016 03:49:07 -0500
-Received: by mail-wm0-f66.google.com with SMTP id l65so1699182wmf.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Jan 2016 00:49:07 -0800 (PST)
-In-Reply-To: <1452847734-3766-1-git-send-email-stephane.ml.bryant@gmail.com>
+	Fri, 15 Jan 2016 03:49:06 -0500
+Received: by mail-wm0-f66.google.com with SMTP id l65so1699110wmf.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Jan 2016 00:49:05 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: stephane <stephane.ml.bryant@gmail.com>
 
-This just adds and registers a nf_afinfo for the ethernet
-bridge, which enables queuing to userspace for the AF_BRIDGE
-family. No checksum computation is done.
+This series of patches intends to add support for queuing to userspace 
+for the AF_BRIDGE family:
+-patch 1 just adds and registers the relevant structures: basic queuing 
+ is enabled
+-patch 2 will pull back the L2 header into the skb sent to the user space
+-patch 3 will reinsert the VLAN header when present
+Each patch can be applied as a standalone.
+No checksum recalculation is performed for transport protocols
 
-Signed-off-by: Stephane Bryant <stephane.ml.bryant@gmail.com>
----
- net/bridge/br_netfilter_hooks.c | 44 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+stephane (3):
+  netfilter: bridge: add nf_afinfo to enable queuing to userspace
+  netfilter: bridge: pull back mac header into skb queued to userspace
+  netfilter: bridge: copy back VLAN header for bridge packet queued to
+    userspace
 
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 7ddbe7e..7f8f922 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -999,6 +999,46 @@ static struct ctl_table brnf_table[] = {
- };
- #endif
- 
-+static void nf_br_saveroute(const struct sk_buff *skb,
-+			    struct nf_queue_entry *entry)
-+{
-+}
-+
-+static int nf_br_reroute(struct sk_buff *skb,
-+			 const struct nf_queue_entry *entry)
-+{
-+	return 0;
-+}
-+
-+__sum16 nf_br_checksum(struct sk_buff *skb, unsigned int hook,
-+		       unsigned int dataoff, u_int8_t protocol)
-+{
-+	return 0;
-+}
-+
-+static __sum16 nf_br_checksum_partial(struct sk_buff *skb, unsigned int hook,
-+				      unsigned int dataoff, unsigned int len,
-+				      u_int8_t protocol)
-+{
-+	return 0;
-+}
-+
-+static int nf_br_route(struct net *net, struct dst_entry **dst,
-+		       struct flowi *fl, bool strict __always_unused)
-+{
-+	return 0;
-+}
-+
-+static const struct nf_afinfo nf_br_afinfo = {
-+	.family			= AF_BRIDGE,
-+	.checksum		= nf_br_checksum,
-+	.checksum_partial	= nf_br_checksum_partial,
-+	.route			= nf_br_route,
-+	.saveroute		= nf_br_saveroute,
-+	.reroute		= nf_br_reroute,
-+	.route_key_size		= 0,
-+};
-+
- static int __init br_netfilter_init(void)
- {
- 	int ret;
-@@ -1018,12 +1058,16 @@ static int __init br_netfilter_init(void)
- #endif
- 	RCU_INIT_POINTER(nf_br_ops, &br_ops);
- 	printk(KERN_NOTICE "Bridge firewalling registered\n");
-+
-+	nf_register_afinfo(&nf_br_afinfo);
-+
- 	return 0;
- }
- 
- static void __exit br_netfilter_fini(void)
- {
- 	RCU_INIT_POINTER(nf_br_ops, NULL);
-+	nf_unregister_afinfo(&nf_br_afinfo);
- 	nf_unregister_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
- #ifdef CONFIG_SYSCTL
- 	unregister_net_sysctl_table(brnf_sysctl_header);
+ net/bridge/br_netfilter_hooks.c | 44 +++++++++++++++++++++++
+ net/netfilter/nfnetlink_queue.c | 80 ++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 119 insertions(+), 5 deletions(-)
+
 -- 
 2.1.4
 
