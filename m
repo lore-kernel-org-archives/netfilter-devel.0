@@ -1,45 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net] netfilter: xt_TCPMSS: handle CHECKSUM_COMPLETE in
- tcpmss_tg6()
-Date: Fri, 15 Jan 2016 14:04:49 -0500 (EST)
-Message-ID: <20160115.140449.1324683966791337294.davem@davemloft.net>
-References: <1452874892.1223.175.camel@edumazet-glaptop2.roam.corp.google.com>
-	<CALx6S348Td5ZHVDTOn+DudAjs9pNjhs6kkEbn-CgYCqXEh0BQg@mail.gmail.com>
-	<1452878324.1223.188.camel@edumazet-glaptop2.roam.corp.google.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: tom@herbertland.com, pablo@netfilter.org, kaber@trash.net,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	herbert@gondor.apana.org.au
-To: eric.dumazet@gmail.com
+From: =?UTF-8?q?Asbj=C3=B8rn=20Sloth=20T=C3=B8nnesen?= <ast@fiberby.dk>
+Subject: [PATCH conntrack 1/2] Revert "conntrack: fix expectation entry creation"
+Date: Fri, 15 Jan 2016 19:47:43 +0000
+Message-ID: <1452887264-26064-1-git-send-email-ast@fiberby.dk>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	pfeiffer.szilard@balabit.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:60587 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750802AbcAOTEx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Jan 2016 14:04:53 -0500
-In-Reply-To: <1452878324.1223.188.camel@edumazet-glaptop2.roam.corp.google.com>
+Received: from mail.asbjorn.biz ([185.38.24.25]:54375 "EHLO mail.asbjorn.biz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751034AbcAOTs3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Jan 2016 14:48:29 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Date: Fri, 15 Jan 2016 09:18:44 -0800
+{} is mask-src and mask-dst, [] is tuple-src and tuple-dst
+mask-* should be stored in mask, tuple-* should be stored in exptuple.
 
-> On Fri, 2016-01-15 at 08:43 -0800, Tom Herbert wrote:
-> 
->> Probably should have a utility function do this. Maybe something like
->> update_hdr_field(skb, old, new)? Could return new value so above could
->> just be:
->> 
->> ipv6h->payload_len = update_hdr_field(skb, ipv6h->payload_len,
->> htons(ntohs(oldlen) + ret);
-> 
-> Well, oldlen would still need to be ipv6h->payload_len
-> 
-> Not sure a helper will be nice for a stable submission.
-> 
-> Probably better for net-next ?
+This reverts commit 3309fdb4413cb32f9b95e05064dc9dbb56550939
+since it mixed up {} and [].
+---
+ src/conntrack.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-Agreed.  We already have those csum_replace{2,4}() helpers in net/checksum.h
-which we could augment with ones that can handle length changes too.
+diff --git a/src/conntrack.c b/src/conntrack.c
+index 3ae4527..324daf4 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -2074,8 +2074,6 @@ int main(int argc, char *argv[])
+ 			break;
+ 		case '{':
+ 		case '}':
+-			nfct_set_addr_from_opt(c, tmpl.exptuple, &ad, &family);
+-			break;
+ 		case '[':
+ 		case ']':
+ 			nfct_set_addr_from_opt(c, tmpl.mask, &ad, &family);
+-- 
+2.6.4
+
