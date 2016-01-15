@@ -1,66 +1,76 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 3/3] netfilter: bridge: copy back VLAN header for
- bridge packet queued to userspace
-Date: Fri, 15 Jan 2016 17:33:15 +0100
-Message-ID: <20160115163315.GA1276@salvia>
-References: <1452847734-3766-1-git-send-email-stephane.ml.bryant@gmail.com>
- <1452847734-3766-4-git-send-email-stephane.ml.bryant@gmail.com>
- <20160115110218.GA2361@salvia>
- <20160115140412.GD7462@breakpoint.cc>
+From: Tom Herbert <tom@herbertland.com>
+Subject: Re: [PATCH net] netfilter: xt_TCPMSS: handle CHECKSUM_COMPLETE in tcpmss_tg6()
+Date: Fri, 15 Jan 2016 08:43:38 -0800
+Message-ID: <CALx6S348Td5ZHVDTOn+DudAjs9pNjhs6kkEbn-CgYCqXEh0BQg@mail.gmail.com>
+References: <1452874892.1223.175.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Stephane Bryant <stephane.ml.bryant@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=UTF-8
+Cc: David Miller <davem@davemloft.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>,
+	Herbert Xu <herbert@gondor.apana.org.au>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44913 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754150AbcAOQdZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Jan 2016 11:33:25 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 09F66245E4D
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 Jan 2016 17:33:23 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id EEC2FDA80C
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 Jan 2016 17:33:22 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 01ADFDA843
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 Jan 2016 17:33:21 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20160115140412.GD7462@breakpoint.cc>
+Received: from mail-io0-f180.google.com ([209.85.223.180]:36588 "EHLO
+	mail-io0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751924AbcAOQnj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Jan 2016 11:43:39 -0500
+Received: by mail-io0-f180.google.com with SMTP id g73so298374239ioe.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Jan 2016 08:43:38 -0800 (PST)
+In-Reply-To: <1452874892.1223.175.camel@edumazet-glaptop2.roam.corp.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jan 15, 2016 at 03:04:12PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > For the specific case of nfnetlink_queue, I would expose the vlan
-> > information through a new netlink attribute NFQA_VLAN (similar to what
-> > we do for NFQA_HWADDR for the layer 3).
-> 
-> If we do this I think it does make sense to consider putting
-> the entire L2 mac header under its own attr too.
-> 
-> This is especially good if we'd later add support for NETDEV
-> family.  Since drivers already pull the L2 header userspace
-> would not need to handle arbirary L2 protocols.
+On Fri, Jan 15, 2016 at 8:21 AM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> From: Eric Dumazet <edumazet@google.com>
+>
+> In case MSS option is added in TCP options, skb length increases by 4.
+> IPv6 needs to update skb->csum if skb has CHECKSUM_COMPLETE,
+> otherwise kernel complains loudly in netdev_rx_csum_fault() with a
+> stack dump.
+>
+> Signed-off-by: Eric Dumazet <edumazet@google.com>
+> ---
+>  net/netfilter/xt_TCPMSS.c |    9 +++++++--
+>  1 file changed, 7 insertions(+), 2 deletions(-)
+>
+> diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+> index b7c43def0dc6..e118397254af 100644
+> --- a/net/netfilter/xt_TCPMSS.c
+> +++ b/net/netfilter/xt_TCPMSS.c
+> @@ -228,7 +228,7 @@ tcpmss_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+>  {
+>         struct ipv6hdr *ipv6h = ipv6_hdr(skb);
+>         u8 nexthdr;
+> -       __be16 frag_off;
+> +       __be16 frag_off, oldlen, newlen;
+>         int tcphoff;
+>         int ret;
+>
+> @@ -244,7 +244,12 @@ tcpmss_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+>                 return NF_DROP;
+>         if (ret > 0) {
+>                 ipv6h = ipv6_hdr(skb);
+> -               ipv6h->payload_len = htons(ntohs(ipv6h->payload_len) + ret);
+> +               oldlen = ipv6h->payload_len;
+> +               newlen = htons(ntohs(oldlen) + ret);
+> +               if (skb->ip_summed == CHECKSUM_COMPLETE)
+> +                       skb->csum = csum_add(csum_sub(skb->csum, oldlen),
+> +                                            newlen);
+> +               ipv6h->payload_len = newlen;
 
-Good point, fine with me.
+Probably should have a utility function do this. Maybe something like
+update_hdr_field(skb, old, new)? Could return new value so above could
+just be:
 
-> > > +				payload += VLAN_HLEN;
-> > > +				payload_len -= VLAN_HLEN;
-> > > +			} else {
-> > > +				entry->skb->vlan_tci &= ~VLAN_TAG_PRESENT;
-> > > +				entry->skb->protocol = veth->h_vlan_proto;
-> > > +			}
-> > > +		}
-> > 
-> > I'm awar it's more work, but it would be good to reduce ifdef pollution
-> > by placing all this bridge netfilter code wrapped into functions under
-> > one single ifdef in this file to improve maintainability.
-> 
-> Right, but for anything family specifiy it would be even better to push
-> it into nf afinfo. In case thats too much work or too cumbersome (e.g.
-> because you'd need 12 function arguments ...) then the ifdef-wrapped
-> helper is fine of course.
+ipv6h->payload_len = update_hdr_field(skb, ipv6h->payload_len,
+htons(ntohs(oldlen) + ret);
 
-I'm fine with pushing this info afinfo if it fits fine there.
+>         }
+>         return XT_CONTINUE;
+>  }
+>
+>
