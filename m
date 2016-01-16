@@ -1,66 +1,71 @@
-From: Sebastian =?ISO-8859-1?Q?P=F6hn?= <sebastian.poehn@gmail.com>
-Subject: Re: nf_conntrack_h323: Fix locking in process_urq
-Date: Fri, 15 Jan 2016 23:57:12 +0100
-Message-ID: <1452898632.3162.0.camel@gmail.com>
-References: <1452894918.4622.3.camel@gmail.com>
-	 <20160115224233.GA20767@breakpoint.cc>
+From: =?UTF-8?Q?st=c3=a9phane_bryant?= <stephane.ml.bryant@gmail.com>
+Subject: Re: [PATCH nf-next 3/3] netfilter: bridge: copy back VLAN header for
+ bridge packet queued to userspace
+Date: Sat, 16 Jan 2016 12:00:24 +0100
+Message-ID: <569A22C8.9030707@gmail.com>
+References: <1452847734-3766-1-git-send-email-stephane.ml.bryant@gmail.com>
+ <1452847734-3766-4-git-send-email-stephane.ml.bryant@gmail.com>
+ <20160115110218.GA2361@salvia> <20160115140412.GD7462@breakpoint.cc>
+ <20160115163315.GA1276@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:38692 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752542AbcAOW5Q (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:33770 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751375AbcAPLAc (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Jan 2016 17:57:16 -0500
-In-Reply-To: <20160115224233.GA20767@breakpoint.cc>
+	Sat, 16 Jan 2016 06:00:32 -0500
+Received: by mail-wm0-f67.google.com with SMTP id u188so7227219wmu.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 16 Jan 2016 03:00:32 -0800 (PST)
+In-Reply-To: <20160115163315.GA1276@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-You are right. The problem is fixed since 3.15 with the expect_lock ref=
-actoring.
-We found this in 3.12. Probably this is something for stable releases 3=
-=2E14 and earlier.
+I will rework the patches taking all these remarks into consideration.
 
-Am 15.01.2016 11:42 nachm. schrieb "Florian Westphal" <fw@strlen.de>:
->
-> Sebastian P=C3=B6hn <sebastian.poehn@gmail.com> wrote:
->
-> [ CC netfilter-devel ]
->
-> > nf_ct_remove_expectations has to be called under nf_conntrack_expec=
-t_lock
->
-> But nf_ct_remove_expectations grabs that lock?
->
-> Added in:
->
-> commit ca7433df3a672efc88e08222cfa4b3aa965ca324
-> Author: Jesper Dangaard Brouer <brouer@redhat.com>
-> netfilter: conntrack: seperate expect locking from nf_conntrack_lock
->
-> > diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter=
-/nf_conntrack_h323_main.c
-> > index 9511af0..d477375 100644
-> > --- a/net/netfilter/nf_conntrack_h323_main.c
-> > +++ b/net/netfilter/nf_conntrack_h323_main.c
-> > @@ -1518,7 +1518,9 @@ static int process_urq(struct sk_buff *skb, s=
-truct nf_conn *ct,
-> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0}
-> > =C2=A0
-> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0/* Clear old expect=
- */
-> > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0spin_lock_bh(&nf_conntra=
-ck_expect_lock);
-> > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0nf_ct_remove_expect=
-ations(ct);
->
-> ... so I'd expect deadlock.
->
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regarding the entire L2 header attribute. I assume it would be a
+separate attribute from the existing NFQA_HWADDR? or would it make sense
+to collapse these 2 into one (potentially with helpers to access each
+relevant field) to avoid duplicating information (and redundancy, and
+potential discrepancies)?
+
+On 01/15/2016 05:33 PM, Pablo Neira Ayuso wrote:
+> On Fri, Jan 15, 2016 at 03:04:12PM +0100, Florian Westphal wrote:
+>> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>>> For the specific case of nfnetlink_queue, I would expose the vlan
+>>> information through a new netlink attribute NFQA_VLAN (similar to what
+>>> we do for NFQA_HWADDR for the layer 3).
+>>
+>> If we do this I think it does make sense to consider putting
+>> the entire L2 mac header under its own attr too.
+>>
+>> This is especially good if we'd later add support for NETDEV
+>> family.  Since drivers already pull the L2 header userspace
+>> would not need to handle arbirary L2 protocols.
+> 
+> Good point, fine with me.
+> 
+>>>> +				payload += VLAN_HLEN;
+>>>> +				payload_len -= VLAN_HLEN;
+>>>> +			} else {
+>>>> +				entry->skb->vlan_tci &= ~VLAN_TAG_PRESENT;
+>>>> +				entry->skb->protocol = veth->h_vlan_proto;
+>>>> +			}
+>>>> +		}
+>>>
+>>> I'm awar it's more work, but it would be good to reduce ifdef pollution
+>>> by placing all this bridge netfilter code wrapped into functions under
+>>> one single ifdef in this file to improve maintainability.
+>>
+>> Right, but for anything family specifiy it would be even better to push
+>> it into nf afinfo. In case thats too much work or too cumbersome (e.g.
+>> because you'd need 12 function arguments ...) then the ifdef-wrapped
+>> helper is fine of course.
+> 
+> I'm fine with pushing this info afinfo if it fits fine there.
+> 
+
