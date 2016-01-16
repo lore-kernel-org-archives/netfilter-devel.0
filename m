@@ -1,53 +1,69 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next 3/3] netfilter: bridge: copy back VLAN header for
- bridge packet queued to userspace
-Date: Sat, 16 Jan 2016 12:06:19 +0100
-Message-ID: <20160116110619.GA28299@breakpoint.cc>
-References: <1452847734-3766-1-git-send-email-stephane.ml.bryant@gmail.com>
- <1452847734-3766-4-git-send-email-stephane.ml.bryant@gmail.com>
- <20160115110218.GA2361@salvia>
- <20160115140412.GD7462@breakpoint.cc>
- <20160115163315.GA1276@salvia>
- <569A22C8.9030707@gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: nft compat layer
+Date: Sat, 16 Jan 2016 20:11:14 +0000
+Message-ID: <20160116201113.GA13076@macbook.localdomain>
+References: <CAOkSjBhpqYQ01xOehhG7zFAzStOcTttQTk1JcLaP_UnAWSzmPw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>,
-	netfilter-devel@vger.kernel.org
-To: =?iso-8859-15?Q?st=E9phane?= bryant <stephane.ml.bryant@gmail.com>
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Shivani Bhardwaj <shivanib134@gmail.com>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40934 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751610AbcAPLGX (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:62498 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752530AbcAPULS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Jan 2016 06:06:23 -0500
+	Sat, 16 Jan 2016 15:11:18 -0500
 Content-Disposition: inline
-In-Reply-To: <569A22C8.9030707@gmail.com>
+In-Reply-To: <CAOkSjBhpqYQ01xOehhG7zFAzStOcTttQTk1JcLaP_UnAWSzmPw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-st=E9phane bryant <stephane.ml.bryant@gmail.com> wrote:
+On 15.01, Arturo Borrero Gonzalez wrote:
+> Hi,
+>=20
+> I'm giving a spin to the nft compat layer, since it can be of certain
+> importance for distributions.
+>=20
+> I just want to be clear on what I recommends to end users about
+> migrating from iptables (and friends) to nftables.
+>=20
+> Could you please remind me in which state was the discussion about
+> that patch to show x_tables extensions in nftables rulesets [0]?
+> I remember Patrick mentioned several concerns back then about this ap=
+proach.
 
-Please don't top-post, thanks.
+My concerns were mainly about unconditionally giving access to ipt exte=
+nsions
+from *nft*. It was not about the compat layer in the kernel, but about =
+whether
+we actually do want to support everything or just conditionally enable =
+those
+that we are sure of.
 
-> Regarding the entire L2 header attribute. I assume it would be a
-> separate attribute from the existing NFQA_HWADDR?
-
-Yes, it would just contain mac header start to skb->data, i.e. without
-VLAN header.  VLAN header would go into a new attribute too.
-
-> Or would it make sense
-> to collapse these 2 into one (potentially with helpers to access each
-> relevant field) to avoid duplicating information (and redundancy, and
-> potential discrepancies)?
-
-Yes but we cannot do it due to backwards compatibility.
-We *can* omit NFQA_HWADDR in the family =3D=3D NFPROTO_BRIDGE case of
-course.
-
-Thanks for working on this,
-=46lorian
+> Currently, with a basic ruleset errors are shown [1]. Also, if you tr=
+y
+> to see what's happening, segfaults [2].
+>=20
+> I'm aware of the translations efforts being made by Shivani.
+>=20
+> [0] http://patchwork.ozlabs.org/patch/459398/
+> [1] http://paste.debian.net/366059
+> [2] http://paste.debian.net/366060/
+>=20
+> best regards.
+>=20
+> --=20
+> Arturo Borrero Gonz=E1lez
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
