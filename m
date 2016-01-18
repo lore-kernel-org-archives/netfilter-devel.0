@@ -1,68 +1,40 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] ip6: Add tests for icmpv6 packet types
-Date: Tue, 19 Jan 2016 00:44:48 +0530
-Message-ID: <20160118191448.GA10814@gmail.com>
+From: Munehisa Kamata <kamatam@amazon.com>
+Subject: Re: [PATCH -stable,4.x.y] netfilter: nf_nat_redirect: add missing
+ NULL pointer check
+Date: Mon, 18 Jan 2016 11:27:13 -0800
+Message-ID: <569D3C91.7040409@amazon.com>
+References: <1446813886-5632-1-git-send-email-pablo@netfilter.org>
+ <20151106170858.GB24185@kroah.com> <20151106172610.GA1357@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f178.google.com ([209.85.192.178]:33845 "EHLO
-	mail-pf0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754270AbcARTOy (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Jan 2016 14:14:54 -0500
-Received: by mail-pf0-f178.google.com with SMTP id q63so166714618pfb.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 18 Jan 2016 11:14:54 -0800 (PST)
-Received: from gmail.com ([106.204.155.198])
-        by smtp.gmail.com with ESMTPSA id 16sm35723509pfh.48.2016.01.18.11.14.52
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Mon, 18 Jan 2016 11:14:53 -0800 (PST)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>, <stable@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Greg KH <gregkh@linuxfoundation.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20151106172610.GA1357@salvia>
+Sender: stable-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Add tests for the icmpv6 packet types policy-fail and reject-route to be
-used with REJECT target.
+Hi Greg,
 
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
----
- tests/regression/ip6/reject.t             | 2 ++
- tests/regression/ip6/reject.t.payload.ip6 | 8 ++++++++
- 2 files changed, 10 insertions(+)
+This commit is already in Linus's tree. Could you please pick this up for 4.1.y?
 
-diff --git a/tests/regression/ip6/reject.t b/tests/regression/ip6/reject.t
-index 60dec90..925c976 100644
---- a/tests/regression/ip6/reject.t
-+++ b/tests/regression/ip6/reject.t
-@@ -6,6 +6,8 @@ reject with icmpv6 type no-route;ok
- reject with icmpv6 type admin-prohibited;ok
- reject with icmpv6 type addr-unreachable;ok
- reject with icmpv6 type port-unreachable;ok;reject
-+reject with icmpv6 type policy-fail;ok
-+reject with icmpv6 type reject-route;ok
- reject with tcp reset;ok;ip6 nexthdr 6 reject with tcp reset
- 
- reject with icmpv6 type host-unreachable;fail
-diff --git a/tests/regression/ip6/reject.t.payload.ip6 b/tests/regression/ip6/reject.t.payload.ip6
-index aa0b9ff..fcae382 100644
---- a/tests/regression/ip6/reject.t.payload.ip6
-+++ b/tests/regression/ip6/reject.t.payload.ip6
-@@ -18,6 +18,14 @@ ip6 test-ip6 output
- ip6 test-ip6 output
-   [ reject type 0 code 4 ]
- 
-+# reject with icmpv6 type policy-fail
-+ip6 test-ip6 output
-+  [ reject type 0 code 5 ]
-+
-+# reject with icmpv6 type reject-route
-+ip6 test-ip6 output
-+  [ reject type 0 code 6 ]
-+
- # reject with tcp reset
- ip6 test-ip6 output
-   [ payload load 1b @ network header + 6 => reg 1 ]
--- 
-1.9.1
+Regards,
+Munehisa
 
+On 11/6/2015 9:26 AM, Pablo Neira Ayuso wrote:
+> On Fri, Nov 06, 2015 at 09:08:58AM -0800, Greg KH wrote:
+>> On Fri, Nov 06, 2015 at 01:44:43PM +0100, Pablo Neira Ayuso wrote:
+>>> From: Munehisa Kamata <kamatam@amazon.com>
+>>>
+>>> [ upstream commit 94f9cd81436c85d8c3a318ba92e236ede73752fc ]
+>>
+>> This isn't a valid git commit id in Linus's tree :(
+> 
+> This is David's tree already:
+> 
+> http://git.kernel.org/cgit/linux/kernel/git/davem/net.git/commit/?id=94f9cd81436c85d8c3a318ba92e236ede73752fc
+> 
+> So this should hit Linus tree soon.
+> 
