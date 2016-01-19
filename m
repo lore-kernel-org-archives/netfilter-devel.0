@@ -1,54 +1,193 @@
-From: Joe Stringer <joe@ovn.org>
-Subject: Re: nf_unregister_net_hook: hook not found!
-Date: Tue, 19 Jan 2016 13:58:00 -0800
-Message-ID: <CAPWQB7HiD5q3QL7igYvkdRJ-O5BtS8Yt1OEkeJAJdvDY=nVsgg@mail.gmail.com>
-References: <8312456317d37de2b445bbece288b268@eikelenboom.it>
- <20151230001259.GA1637@salvia> <874mf0d5i1.fsf@x220.int.ebiederm.org> <52794c2a10ac78199c3912ccf1f97990@eikelenboom.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: ebiederm@xmission.com, Pablo Neira Ayuso <pablo@netfilter.org>,
-	netdev <netdev@vger.kernel.org>, netfilter@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Sander Eikelenboom <linux@eikelenboom.it>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <52794c2a10ac78199c3912ccf1f97990@eikelenboom.it>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Sasha Levin <sasha.levin@oracle.com>
+Subject: [PATCH v3] netfilter: nf_conntrack: use safer way to lock all buckets
+Date: Mon, 18 Jan 2016 19:23:51 -0500
+Message-ID: <1453163031-31443-1-git-send-email-sasha.levin@oracle.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Sasha Levin <sasha.levin@oracle.com>
+To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	davem@davemloft.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from userp1050.oracle.com ([156.151.31.82]:16416 "EHLO
+	userp1050.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933098AbcATFp5 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 20 Jan 2016 00:45:57 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 30 December 2015 at 10:15, Sander Eikelenboom <linux@eikelenboom.it> wrote:
-> On 2015-12-30 03:39, ebiederm@xmission.com wrote:
->>
->> Pablo Neira Ayuso <pablo@netfilter.org> writes:
->>
->>> On Mon, Dec 28, 2015 at 09:05:03PM +0100, Sander Eikelenboom wrote:
->>>>
->>>> Hi,
->>>>
->>>> Running a 4.4.0-rc6 kernel i encountered the warning below.
->>>
->>>
->>> Cc'ing Eric Biederman.
->>>
->>> @Sander, could you provide a way to reproduce this?
->>
->>
->> I am on vacation until the new year, but if this is reproducible we
->> should be able to print out reg, reg->pf, reg->hooknum, reg->hook
->> to figure out which hook is having something very weird happen to it.
->>
->> This is happening in some network namespace exit.
->>
->> Eric
->>
->
-> Unfortunately i have found no way to reproduce,
-> 13 seconds implies it was at boot, but i only have seen this once.
+When we need to lock all buckets in the connection hashtable we'd attempt to
+lock 1024 spinlocks, which is way more preemption levels than supported by
+the kernel. Furthermore, this behavior was hidden by checking if lockdep is
+enabled, and if it was - use only 8 buckets(!).
 
-How about this script?
+Fix this by using a global lock and synchronize all buckets on it when we
+need to lock them all. This is pretty heavyweight, but is only done when we
+need to resize the hashtable, and that doesn't happen often enough (or at all).
 
-#!/bin/sh
+Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+---
+ include/net/netfilter/nf_conntrack_core.h |    8 +++---
+ net/netfilter/nf_conntrack_core.c         |   39 +++++++++++++++++++++--------
+ net/netfilter/nf_conntrack_helper.c       |    2 +-
+ net/netfilter/nf_conntrack_netlink.c      |    2 +-
+ net/netfilter/nfnetlink_cttimeout.c       |    4 +--
+ 5 files changed, 36 insertions(+), 19 deletions(-)
 
-ip netns add at_ns0
-ip netns del at_ns0
-modprobe nf_conntrack_ipv4
-modprobe -r nf_conntrack_ipv4
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 788ef58..62e17d1 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -79,12 +79,10 @@ print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
+             const struct nf_conntrack_l3proto *l3proto,
+             const struct nf_conntrack_l4proto *proto);
+ 
+-#ifdef CONFIG_LOCKDEP
+-# define CONNTRACK_LOCKS 8
+-#else
+-# define CONNTRACK_LOCKS 1024
+-#endif
++#define CONNTRACK_LOCKS 1024
++
+ extern spinlock_t nf_conntrack_locks[CONNTRACK_LOCKS];
++void nf_conntrack_lock(spinlock_t *lock);
+ 
+ extern spinlock_t nf_conntrack_expect_lock;
+ 
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 3cb3cb8..6101fdc 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -64,8 +64,24 @@ __cacheline_aligned_in_smp spinlock_t nf_conntrack_locks[CONNTRACK_LOCKS];
+ EXPORT_SYMBOL_GPL(nf_conntrack_locks);
+ 
+ __cacheline_aligned_in_smp DEFINE_SPINLOCK(nf_conntrack_expect_lock);
++
+ EXPORT_SYMBOL_GPL(nf_conntrack_expect_lock);
+ 
++static __read_mostly spinlock_t nf_conntrack_locks_all_lock;
++static __read_mostly bool nf_conntrack_locks_all;
++
++void nf_conntrack_lock(spinlock_t *lock) __acquires(lock)
++{
++	spin_lock(lock);
++	while (unlikely(nf_conntrack_locks_all)) {
++		spin_unlock(lock);
++		spin_lock(&nf_conntrack_locks_all_lock);
++		spin_unlock(&nf_conntrack_locks_all_lock);
++		spin_lock(lock);
++	}
++}
++EXPORT_SYMBOL_GPL(nf_conntrack_lock);
++
+ static void nf_conntrack_double_unlock(unsigned int h1, unsigned int h2)
+ {
+ 	h1 %= CONNTRACK_LOCKS;
+@@ -82,12 +98,12 @@ static bool nf_conntrack_double_lock(struct net *net, unsigned int h1,
+ 	h1 %= CONNTRACK_LOCKS;
+ 	h2 %= CONNTRACK_LOCKS;
+ 	if (h1 <= h2) {
+-		spin_lock(&nf_conntrack_locks[h1]);
++		nf_conntrack_lock(&nf_conntrack_locks[h1]);
+ 		if (h1 != h2)
+ 			spin_lock_nested(&nf_conntrack_locks[h2],
+ 					 SINGLE_DEPTH_NESTING);
+ 	} else {
+-		spin_lock(&nf_conntrack_locks[h2]);
++		nf_conntrack_lock(&nf_conntrack_locks[h2]);
+ 		spin_lock_nested(&nf_conntrack_locks[h1],
+ 				 SINGLE_DEPTH_NESTING);
+ 	}
+@@ -102,16 +118,19 @@ static void nf_conntrack_all_lock(void)
+ {
+ 	int i;
+ 
+-	for (i = 0; i < CONNTRACK_LOCKS; i++)
+-		spin_lock_nested(&nf_conntrack_locks[i], i);
++	spin_lock(&nf_conntrack_locks_all_lock);
++	nf_conntrack_locks_all = true;
++
++	for (i = 0; i < CONNTRACK_LOCKS; i++) {
++		spin_lock(&nf_conntrack_locks[i]);
++		spin_unlock(&nf_conntrack_locks[i]);
++	}
+ }
+ 
+ static void nf_conntrack_all_unlock(void)
+ {
+-	int i;
+-
+-	for (i = 0; i < CONNTRACK_LOCKS; i++)
+-		spin_unlock(&nf_conntrack_locks[i]);
++	nf_conntrack_locks_all = false;
++	spin_unlock(&nf_conntrack_locks_all_lock);
+ }
+ 
+ unsigned int nf_conntrack_htable_size __read_mostly;
+@@ -757,7 +776,7 @@ restart:
+ 	hash = hash_bucket(_hash, net);
+ 	for (; i < net->ct.htable_size; i++) {
+ 		lockp = &nf_conntrack_locks[hash % CONNTRACK_LOCKS];
+-		spin_lock(lockp);
++		nf_conntrack_lock(lockp);
+ 		if (read_seqcount_retry(&net->ct.generation, sequence)) {
+ 			spin_unlock(lockp);
+ 			goto restart;
+@@ -1382,7 +1401,7 @@ get_next_corpse(struct net *net, int (*iter)(struct nf_conn *i, void *data),
+ 	for (; *bucket < net->ct.htable_size; (*bucket)++) {
+ 		lockp = &nf_conntrack_locks[*bucket % CONNTRACK_LOCKS];
+ 		local_bh_disable();
+-		spin_lock(lockp);
++		nf_conntrack_lock(lockp);
+ 		if (*bucket < net->ct.htable_size) {
+ 			hlist_nulls_for_each_entry(h, n, &net->ct.hash[*bucket], hnnode) {
+ 				if (NF_CT_DIRECTION(h) != IP_CT_DIR_ORIGINAL)
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index bd9d315..3b40ec5 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -425,7 +425,7 @@ static void __nf_conntrack_helper_unregister(struct nf_conntrack_helper *me,
+ 	}
+ 	local_bh_disable();
+ 	for (i = 0; i < net->ct.htable_size; i++) {
+-		spin_lock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
++		nf_conntrack_lock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
+ 		if (i < net->ct.htable_size) {
+ 			hlist_nulls_for_each_entry(h, nn, &net->ct.hash[i], hnnode)
+ 				unhelp(h, me);
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index dbb1bb3..355e855 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -840,7 +840,7 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
+ 	for (; cb->args[0] < net->ct.htable_size; cb->args[0]++) {
+ restart:
+ 		lockp = &nf_conntrack_locks[cb->args[0] % CONNTRACK_LOCKS];
+-		spin_lock(lockp);
++		nf_conntrack_lock(lockp);
+ 		if (cb->args[0] >= net->ct.htable_size) {
+ 			spin_unlock(lockp);
+ 			goto out;
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index 5d010f2..94837d2 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -307,12 +307,12 @@ static void ctnl_untimeout(struct net *net, struct ctnl_timeout *timeout)
+ 
+ 	local_bh_disable();
+ 	for (i = 0; i < net->ct.htable_size; i++) {
+-		spin_lock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
++		nf_conntrack_lock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
+ 		if (i < net->ct.htable_size) {
+ 			hlist_nulls_for_each_entry(h, nn, &net->ct.hash[i], hnnode)
+ 				untimeout(h, timeout);
+ 		}
+-		spin_unlock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
++		nf_conntrack_lock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
+ 	}
+ 	local_bh_enable();
+ }
+-- 
+1.7.10.4
+
