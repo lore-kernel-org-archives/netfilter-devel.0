@@ -1,85 +1,84 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nft: segfault after adding to { type ipv4_addr; flags interval;
- } set
-Date: Tue, 19 Jan 2016 19:46:48 +0100
-Message-ID: <20160119184648.GA24758@salvia>
-References: <1452713709.8513.0@x201s.roaming.asbjorn.biz>
+Subject: Re: nft compat layer
+Date: Tue, 19 Jan 2016 20:04:56 +0100
+Message-ID: <20160119190456.GA24910@salvia>
+References: <CAOkSjBhpqYQ01xOehhG7zFAzStOcTttQTk1JcLaP_UnAWSzmPw@mail.gmail.com>
+ <569CA968.9010702@tpip.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: =?iso-8859-1?Q?Asbj=F8rn_Sloth_T=F8nnesen?= <ast@fiberby.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Andreas Schultz <aschultz@tpip.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37693 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40765 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932510AbcASSqx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Jan 2016 13:46:53 -0500
+	id S1755507AbcASTFA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Jan 2016 14:05:00 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 94CAB261780
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Jan 2016 19:46:51 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id DAB542791A7
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 Jan 2016 20:04:58 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 7CC39DA807
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Jan 2016 19:46:51 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id C82F1DA80B
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 Jan 2016 20:04:58 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8B15ADA804
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Jan 2016 19:46:49 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id F3DAFDA811
+	for <netfilter-devel@vger.kernel.org>; Tue, 19 Jan 2016 20:04:56 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1452713709.8513.0@x201s.roaming.asbjorn.biz>
+In-Reply-To: <569CA968.9010702@tpip.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 13, 2016 at 07:35:09PM +0000, Asbj=F8rn Sloth T=F8nnesen wr=
-ote:
-> Hi,
->=20
-> I have been trying to migrate an ipset net:hash set to a nftables set=
-=2E
-> I don't need the nomatch feature of ipset net:hash, a set with networ=
-k
-> prefixes should do just fine. I do need it as a named set through.
->=20
-> A plain type ipv4_addr set can only hold individual addresses, so
-> that doesn't work with network prefixes.
->=20
-> I found the flags interval in the bison code, and so I tried
-> to test if that would work.
->=20
-> # nft add table testtbl
-> # nft add set testtbl testset { type ipv4_addr\; flags interval\; }
-> # nft add element testtbl testset { 192.168.3.0/24 }
-> > BUG: invalid data expression type prefix
-> > nft: netlink.c:323: netlink_gen_data: Assertion `0' failed.
-> > Aborted
-> # nft add element testtbl testset { 192.168.3.0-192.168.3.255 }
-> > BUG: invalid data expression type range
-> > nft: netlink.c:323: netlink_gen_data: Assertion `0' failed.
-> > Aborted
-> # nft add element testtbl testset { 192.168.3.0, 192.168.3.255 }
-> # nft list tables
-> > Segmentation fault
-> # nft flush ruleset
-> > Segmentation fault
->=20
-> How was the interval flag intended to work?
+Hi Andreas,
 
-Just posted several patches on the mailing list, it would be good if
-you can intensively test them. They apply on top of the current git
-tree.
+On Mon, Jan 18, 2016 at 09:59:20AM +0100, Andreas Schultz wrote:
+> Hi Arturo,
+> 
+> On 01/15/2016 09:06 PM, Arturo Borrero Gonzalez wrote:
+> >Hi,
+> >
+> >I'm giving a spin to the nft compat layer, since it can be of certain
+> >importance for distributions.
+> >
+> >I just want to be clear on what I recommends to end users about
+> >migrating from iptables (and friends) to nftables.
+> >
+> >Could you please remind me in which state was the discussion about
+> >that patch to show x_tables extensions in nftables rulesets [0]?
+> >I remember Patrick mentioned several concerns back then about this approach.
+> 
+> I have an updated version of this patch and also fixed some of
+> the problems I encountered along the way (see attached patches).
+> The nft patch is based on nftables-0.5 and the kernel change
+> should apply cleanly to linux-4.4.
 
-BTW, deletion is not implemented in nft, but I think it should be easy
-to follow up with a patch to make it.
+Thanks for posting your patches.
 
-> It would be great if the ipset article on the wiki, could have some i=
-nfo
-> on how to migrate separate ipset types to nftables set types.
+> With the update patch I can load a fairly complex iptables
+> firewall with iptables-compat, dump it with nft and reload
+> the dump with nft.
 
-Would you like to start such article? I can create an account in the
-wiki page too, it would be a nice contribution.
+BTW, looking at the kernel patches, my first question is why you
+disable the chain/table validation code? Do you remember what problem
+you found in it?
 
-Let me know,
+> diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
+> index 87907d4..2f8f76c 100644
+> --- a/net/ipv4/netfilter/ipt_REJECT.c
+> +++ b/net/ipv4/netfilter/ipt_REJECT.c
+> @@ -76,6 +76,8 @@ static int reject_tg_check(const struct xt_tgchk_param *par)
+>  	if (rejinfo->with == IPT_ICMP_ECHOREPLY) {
+>  		pr_info("ECHOREPLY no longer supported.\n");
+>  		return -EINVAL;
+> +	} else if (par->nft_compat) {
+> +		return 0;
+
+The ipt_entry is emulated from the compat layer, do you remember what
+command needs this?
+
+Same thing in SYNPROXY and the one for the x_tables code.
+
+If you can provide a way to reproduce the problem, I would like to
+resolve the issues in master, if any.
+
 Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
