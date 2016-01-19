@@ -1,67 +1,143 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] extensions: libip6t_mh: Add translation to nft
-Date: Tue, 19 Jan 2016 21:50:27 +0100
-Message-ID: <20160119205027.GA26137@salvia>
-References: <20160114174009.GA4252@gmail.com>
+From: Eric Leblond <eric@regit.org>
+Subject: Re: [PATCH] sqlite3: Remove unused "buffer" option.
+Date: Tue, 19 Jan 2016 22:39:48 +0100
+Message-ID: <1453239588.9793.0.camel@regit.org>
+References: <1452717478-8105-1-git-send-email-alex_y_xu@yahoo.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: pablo@netfilter.org
+To: "Alex Xu (Hello71)" <alex_y_xu@yahoo.ca>,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55109 "EHLO mail.us.es"
+Received: from home.regit.org ([37.187.126.138]:38457 "EHLO home.regit.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756816AbcASUuk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Jan 2016 15:50:40 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id A51AD2791B3
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Jan 2016 21:50:38 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8DD3CDA807
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Jan 2016 21:50:38 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 47337DA795
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Jan 2016 21:50:36 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20160114174009.GA4252@gmail.com>
+	id S1757913AbcASVjz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Jan 2016 16:39:55 -0500
+In-Reply-To: <1452717478-8105-1-git-send-email-alex_y_xu@yahoo.ca>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 14, 2016 at 11:10:09PM +0530, Shivani Bhardwaj wrote:
-> Add translation for mobility header to nftables.
-> 
-> Examples:
-> 
-> $ sudo ip6tables-translate -A INPUT -p mh -j ACCEPT
-> nft add rule ip6 filter INPUT ip6 nexthdr mobility-header counter accept
-> 
-> $ sudo ip6tables-translate -A INPUT -p mh --mh-type 1 -j ACCEPT
-> nft add rule ip6 filter INPUT ip6 nexthdr mobility-header mh type 1 counter accept
-> 
-> $ sudo ip6tables-translate -A INPUT -p mh --mh-type 1:3 -j ACCEPT
-> nft add rule ip6 filter INPUT ip6 nexthdr mobility-header mh type 1-3 counter accept
+Hello,
 
-I think this translation will not work as the mobility header may not
-be exactly the next header, in IPv6 you can get several extension
-headers one after another.
+On Wed, 2016-01-13 at 15:37 -0500, Alex Xu (Hello71) wrote:
+> From: Alex Xu <alex_y_xu@yahoo.ca>
+>=20
+> This option was left behind when the code was rewritten and is no
+> longer
+> functional or useful. Remove it entirely.
+>=20
+> Signed-off-by: Alex Xu (Hello71) <alex_y_xu@yahoo.ca>
 
-By now I'd suggest:
+Thanks! Applied and pushed.
 
-... meta l4proto mobility-header mh type 1 counter
+BR,
+--
+Eric
 
-Anyway, the extension header expression needs some care, it would be
-good to keep this documented in the wiki page.
+> ---
+> =C2=A0doc/ulogd.sgml=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A02 --
+> =C2=A0output/sqlite3/ulogd_output_SQLITE3.c | 17 +----------------
+> =C2=A0ulogd.conf.in=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A02 --
+> =C2=A03 files changed, 1 insertion(+), 20 deletions(-)
+>=20
+> diff --git a/doc/ulogd.sgml b/doc/ulogd.sgml
+> index 30bfecb..65a63cf 100644
+> --- a/doc/ulogd.sgml
+> +++ b/doc/ulogd.sgml
+> @@ -603,8 +603,6 @@ The module defines the following configuration
+> directives:
+> =C2=A0Name of the table to which ulogd should log.
+> =C2=A0<tag>db</tag>
+> =C2=A0Name of the database.
+> -<tag>buffer</tag>
+> -Size of the sqlite buffer.
+> =C2=A0</descrip>
+> =C2=A0</sect2>
+> =C2=A0
+> diff --git a/output/sqlite3/ulogd_output_SQLITE3.c
+> b/output/sqlite3/ulogd_output_SQLITE3.c
+> index 5c49055..20ceb3b 100644
+> --- a/output/sqlite3/ulogd_output_SQLITE3.c
+> +++ b/output/sqlite3/ulogd_output_SQLITE3.c
+> @@ -63,8 +63,6 @@ struct sqlite3_priv {
+> =C2=A0	struct field_lh fields;
+> =C2=A0	char *stmt;
+> =C2=A0	sqlite3_stmt *p_stmt;
+> -	int buffer_size;
+> -	int buffer_curr;
+> =C2=A0	struct {
+> =C2=A0		unsigned err_tbl_busy;	/* "Table busy" */
+> =C2=A0	} stats;
+> @@ -83,18 +81,11 @@ static struct config_keyset sqlite3_kset =3D {
+> =C2=A0			.type =3D CONFIG_TYPE_STRING,
+> =C2=A0			.options =3D CONFIG_OPT_MANDATORY,
+> =C2=A0		},
+> -		{
+> -			.key =3D "buffer",
+> -			.type =3D CONFIG_TYPE_INT,
+> -			.options =3D CONFIG_OPT_NONE,
+> -			.u.value =3D CFG_BUFFER_DEFAULT,
+> -		},
+> =C2=A0	},
+> =C2=A0};
+> =C2=A0
+> =C2=A0#define db_ce(pi)		(pi)->config_kset->ces[0].u.string
+> =C2=A0#define table_ce(pi)	(pi)->config_kset->ces[1].u.string
+> -#define buffer_ce(pi)	(pi)->config_kset->ces[2].u.value
+> =C2=A0
+> =C2=A0/* forward declarations */
+> =C2=A0static int sqlite3_createstmt(struct ulogd_pluginstance *);
+> @@ -107,9 +98,7 @@ add_row(struct ulogd_pluginstance *pi)
+> =C2=A0	int ret;
+> =C2=A0
+> =C2=A0	ret =3D sqlite3_step(priv->p_stmt);
+> -	if (ret =3D=3D SQLITE_DONE)
+> -		priv->buffer_curr++;
+> -	else if (ret =3D=3D SQLITE_BUSY)
+> +	if (ret =3D=3D SQLITE_BUSY)
+> =C2=A0		priv->stats.err_tbl_busy++;
+> =C2=A0	else if (ret =3D=3D SQLITE_ERROR) {
+> =C2=A0		ret =3D sqlite3_finalize(priv->p_stmt);
+> @@ -404,10 +393,6 @@ sqlite3_start(struct ulogd_pluginstance *pi)
+> =C2=A0		return -1;
+> =C2=A0	}
+> =C2=A0
+> -	/* initialize our buffer size and counter */
+> -	priv->buffer_size =3D buffer_ce(pi);
+> -	priv->buffer_curr =3D 0;
+> -
+> =C2=A0	/* create and prepare the actual insert statement */
+> =C2=A0	sqlite3_createstmt(pi);
+> =C2=A0
+> diff --git a/ulogd.conf.in b/ulogd.conf.in
+> index 9624a4b..2fcf39a 100644
+> --- a/ulogd.conf.in
+> +++ b/ulogd.conf.in
+> @@ -301,12 +301,10 @@ procedure=3D"INSERT_PACKET_FULL"
+> =C2=A0[sqlite3_ct]
+> =C2=A0table=3D"ulog_ct"
+> =C2=A0db=3D"/var/log/ulogd.sqlite3db"
+> -buffer=3D200
+> =C2=A0
+> =C2=A0[sqlite3_pkt]
+> =C2=A0table=3D"ulog_pkt"
+> =C2=A0db=3D"/var/log/ulogd.sqlite3db"
+> -buffer=3D200
+> =C2=A0
+> =C2=A0[sys2]
+> =C2=A0facility=3DLOG_LOCAL2
+--=20
+Eric Leblond <eric@regit.org>
+Blog: https://home.regit.org/
 
-While at this, it would be good if you can verify that our definition
-in nftables matches rfc6275 (see nftables/src/exthdr.c), I already
-detected wrong header definitions in the past.
 
-It would be also good if you can go back to all your translations and
-validate what we already got into the tree from the packet path, ie.
-generate traffic that matches the rule in ip6tables and nftables. Note
-sure if you made this checks.
-
-Some of them should be easy to test, some other may take a while,
-python scapy may help in some cases to forge and to inject a packet
-with a specific layout.
-
-Thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
