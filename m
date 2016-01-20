@@ -1,58 +1,53 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next 1/3] netfilter: bridge: add nf_afinfo to enable
- queuing to userspace
-Date: Wed, 20 Jan 2016 16:52:54 +0100
-Message-ID: <20160120155254.GA10903@breakpoint.cc>
-References: <1452847734-3766-1-git-send-email-stephane.ml.bryant@gmail.com>
- <1452847734-3766-2-git-send-email-stephane.ml.bryant@gmail.com>
- <20160115094905.GA7462@breakpoint.cc>
- <569F9ADD.40500@gmail.com>
+Subject: mark set datatype check too strict?
+Date: Wed, 20 Jan 2016 17:31:24 +0100
+Message-ID: <20160120163124.GB10903@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Florian Westphal <fw@strlen.de>, pablo@netfilter.org,
-	netfilter-devel@vger.kernel.org
-To: =?iso-8859-15?Q?st=E9phane?= bryant <stephane.ml.bryant@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50344 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50426 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933838AbcATPw5 (ORCPT
+	by vger.kernel.org with ESMTP id S934015AbcATQbZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Jan 2016 10:52:57 -0500
+	Wed, 20 Jan 2016 11:31:25 -0500
+Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.80)
+	(envelope-from <fw@strlen.de>)
+	id 1aLvfI-0003Vc-48
+	for netfilter-devel@vger.kernel.org; Wed, 20 Jan 2016 17:31:24 +0100
 Content-Disposition: inline
-In-Reply-To: <569F9ADD.40500@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-st=E9phane bryant <stephane.ml.bryant@gmail.com> wrote:
-> >> --- a/net/bridge/br_netfilter_hooks.c
-> >> +++ b/net/bridge/br_netfilter_hooks.c
-> >> @@ -999,6 +999,46 @@ static struct ctl_table brnf_table[] =3D {
-> >>  };
-> >>  #endif
-> >> =20
-> >> +static void nf_br_saveroute(const struct sk_buff *skb,
-> >> +			    struct nf_queue_entry *entry)
-> >=20
-> > Please put all of these functions into a new file.
-> > CONFIG_BRIDGE_NETFILTER will be deprecated, this is the glue part
-> > that allows a bridge to use arp and /ip(6)tables.
-> >=20
->=20
-> Sorry if i am a bit of a slow-learner, but i assume you mean followin=
-g
-> what's done for, e.g., ipv4, and have this into a bridge/netfilter.c =
-and
-> initializing this part of the subsystem.
+Hello Patrick
 
-bridge/netfilter.c sounds good.
-Another option would be net/bridge/netfilter/nf_tables_bridge.c
-(assuming that this is only added for use with nft as opposed to adding
- a nfqueue target to ebtables).
+last your you added check to make this illegal:
+
+nft add rule ip filter input ip daddr 192.168.7.1 meta mark set '(ip saddr & 0xff)'
+datatype mismatch: expected packet mark, expression has type IPv4 address
+
+My question is -- why?
+The changelog for 068e138a8d9eb doesn't say :)
+Doesn't that take away a lot of flexibility?
+
+For instance one could e.g. set conntrack zones based on the VLAN id:
+
+bridge ... prerouting ct zone set vlan id
+(yes, I know that zone cannot be set at the moment).
+
+'nft add rule bridge filter prerouting meta mark set vlan id'
+should work, in my opinion.  Any ideas/comments?
+
+In case its relevant: I'm working on bridge defrag+conntrack, and one
+of the open questions is handling of vlan identifiers
+so that we can deal with overlapping addresses in different VLANs.
+
+Since it might be feasible to allow tracking inside other encap
+protocols (e.g. pppoe) at one point I would prefer to handle isolation
+via conntrack zones since thats already available and not have
+to deal with vlan identifiers directly in the kernel.
+
+But if doing operations like 'set zone based on vlan id' is illegal/
+considered bad I will have to reconsider...
 
 Thanks!
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
