@@ -1,53 +1,79 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: mark set datatype check too strict?
-Date: Wed, 20 Jan 2016 17:31:24 +0100
-Message-ID: <20160120163124.GB10903@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/6] Netfilter fixes for net
+Date: Wed, 20 Jan 2016 18:03:58 +0100
+Message-ID: <1453309444-2297-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:50426 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934015AbcATQbZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Jan 2016 11:31:25 -0500
-Received: from fw by Chamillionaire.breakpoint.cc with local (Exim 4.80)
-	(envelope-from <fw@strlen.de>)
-	id 1aLvfI-0003Vc-48
-	for netfilter-devel@vger.kernel.org; Wed, 20 Jan 2016 17:31:24 +0100
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello Patrick
+Hi David,
 
-last your you added check to make this illegal:
+The following patchset contains Netfilter fixes for your net tree, they
+are:
 
-nft add rule ip filter input ip daddr 192.168.7.1 meta mark set '(ip saddr & 0xff)'
-datatype mismatch: expected packet mark, expression has type IPv4 address
+1) Fix accidental 3-times le/be conversion for 64-bits in nft_byteorder,
+   from Florian Westphal.
 
-My question is -- why?
-The changelog for 068e138a8d9eb doesn't say :)
-Doesn't that take away a lot of flexibility?
+2) Get rid of defensive cidr = 0 check in the ipset hash:netiface set
+   type which doesn't allow valid 0.0.0.0/0 elements, also from Florian.
 
-For instance one could e.g. set conntrack zones based on the VLAN id:
+3) Relocate #endif in nft_ct counter support, this doesn't have any
+   relation with labels.
 
-bridge ... prerouting ct zone set vlan id
-(yes, I know that zone cannot be set at the moment).
+4) Fix TCPMSS target for IPv6 when skb has CHECKSUM_COMPLETE, from
+   Eric Dumazet.
 
-'nft add rule bridge filter prerouting meta mark set vlan id'
-should work, in my opinion.  Any ideas/comments?
+5) Fix netdevice notifier leak from the error path of nf_tables_netdev.
 
-In case its relevant: I'm working on bridge defrag+conntrack, and one
-of the open questions is handling of vlan identifiers
-so that we can deal with overlapping addresses in different VLANs.
+6) Safe conntrack hashtable resizing by introducing a global lock and
+   synchronize all buckets to avoid going over the maximum number of
+   preemption levels, from Sasha Levin.
 
-Since it might be feasible to allow tracking inside other encap
-protocols (e.g. pppoe) at one point I would prefer to handle isolation
-via conntrack zones since thats already available and not have
-to deal with vlan identifiers directly in the kernel.
+You can pull these changes from:
 
-But if doing operations like 'set zone based on vlan id' is illegal/
-considered bad I will have to reconsider...
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
 Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit f1640c3ddeec12804bc9a21feee85fc15aca95f6:
+
+  bgmac: fix a missing check for build_skb (2016-01-13 00:24:14 -0500)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
+
+for you to fetch changes up to b16c29191dc89bd877af99a7b04ce4866728a3e0:
+
+  netfilter: nf_conntrack: use safer way to lock all buckets (2016-01-20 14:15:31 +0100)
+
+----------------------------------------------------------------
+Eric Dumazet (1):
+      netfilter: xt_TCPMSS: handle CHECKSUM_COMPLETE in tcpmss_tg6()
+
+Florian Westphal (2):
+      netfilter: nft_byteorder: avoid unneeded le/be conversion steps
+      netfilter: ipset: allow a 0 netmask with hash_netiface type
+
+Pablo Neira Ayuso (2):
+      netfilter: nft_ct: keep counters away from CONFIG_NF_CONNTRACK_LABELS
+      netfilter: nf_tables_netdev: fix error path in module initialization
+
+Sasha Levin (1):
+      netfilter: nf_conntrack: use safer way to lock all buckets
+
+ include/net/netfilter/nf_conntrack_core.h  |  8 +++----
+ net/netfilter/ipset/ip_set_hash_netiface.c |  4 ----
+ net/netfilter/nf_conntrack_core.c          | 38 ++++++++++++++++++++++--------
+ net/netfilter/nf_conntrack_helper.c        |  2 +-
+ net/netfilter/nf_conntrack_netlink.c       |  2 +-
+ net/netfilter/nf_tables_netdev.c           |  8 +++----
+ net/netfilter/nfnetlink_cttimeout.c        |  4 ++--
+ net/netfilter/nft_byteorder.c              |  6 ++---
+ net/netfilter/nft_ct.c                     |  2 +-
+ net/netfilter/xt_TCPMSS.c                  |  9 +++++--
+ 10 files changed, 49 insertions(+), 34 deletions(-)
