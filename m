@@ -1,116 +1,129 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 1/3] netlink: move binop postprocess to extra function
-Date: Sun, 24 Jan 2016 18:58:25 +0100
-Message-ID: <1453658307-7177-1-git-send-email-fw@strlen.de>
+Subject: [PATCH nft 2/3] tests: add two map test cases
+Date: Sun, 24 Jan 2016 18:58:26 +0100
+Message-ID: <1453658307-7177-2-git-send-email-fw@strlen.de>
+References: <1453658307-7177-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:57951 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:57952 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752194AbcAXSGH (ORCPT
+	by vger.kernel.org with ESMTP id S1752194AbcAXSGL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Jan 2016 13:06:07 -0500
+	Sun, 24 Jan 2016 13:06:11 -0500
+In-Reply-To: <1453658307-7177-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Just move the payload trim part to a separate function.
-Next patch will add a second call site to deal with map ops
-that use a lookup based on a binop result.
+One normal map lookup, one with an explicit binop.
+The latter is supposed to also work with the followup patch applied.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/netlink_delinearize.c | 64 ++++++++++++++++++++++++++---------------------
- 1 file changed, 36 insertions(+), 28 deletions(-)
+ tests/py/inet/map.t                |  8 ++++++++
+ tests/py/inet/map.t.payload.inet   | 11 +++++++++++
+ tests/py/inet/map.t.payload.ip     |  9 +++++++++
+ tests/py/inet/map.t.payload.netdev | 11 +++++++++++
+ tests/py/ip6/map.t                 |  5 +++++
+ tests/py/ip6/map.t.payload         | 10 ++++++++++
+ 6 files changed, 54 insertions(+)
+ create mode 100644 tests/py/inet/map.t
+ create mode 100644 tests/py/inet/map.t.payload.inet
+ create mode 100644 tests/py/inet/map.t.payload.ip
+ create mode 100644 tests/py/inet/map.t.payload.netdev
+ create mode 100644 tests/py/ip6/map.t
+ create mode 100644 tests/py/ip6/map.t.payload
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 3f01781..6876f02 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -1170,6 +1170,41 @@ static struct expr *binop_tree_to_list(struct expr *list, struct expr *expr)
- 	return list;
- }
- 
-+static void binop_postprocess(struct rule_pp_ctx *ctx, struct expr *expr)
-+{
-+	struct expr *binop = expr->left, *value = expr->right;
+diff --git a/tests/py/inet/map.t b/tests/py/inet/map.t
+new file mode 100644
+index 0000000..f48afcd
+--- /dev/null
++++ b/tests/py/inet/map.t
+@@ -0,0 +1,8 @@
++:input;type filter hook input priority 0
++:ingress;type filter hook ingress device lo priority 0
 +
-+	struct expr *payload = binop->left;
-+	struct expr *mask = binop->right;
-+	unsigned int shift;
++*ip;test-ip4;input
++*inet;test-inet;input
++*netdev;test-netdev;ingress
 +
-+	if (payload_expr_trim(payload, mask, &ctx->pctx, &shift)) {
-+		/* mask is implicit, binop needs to be removed.
-+		 *
-+		 * Fix all values of the expression according to the mask
-+		 * and then process the payload instruction using the real
-+		 * sizes and offsets we're interested in.
-+		 *
-+		 * Finally, convert the expression to 1) by replacing
-+		 * the binop with the binop payload expr.
-+		 */
-+		if (value->ops->type == EXPR_VALUE) {
-+			assert(value->len >= expr->left->right->len);
-+			mpz_rshift_ui(value->value, shift);
-+			value->len = payload->len;
-+		}
++mark set ip saddr map { 10.2.3.2 : 0x0000002a, 10.2.3.1 : 0x00000017};ok;mark set ip saddr map { 10.2.3.1 : 0x00000017, 10.2.3.2 : 0x0000002a}
+diff --git a/tests/py/inet/map.t.payload.inet b/tests/py/inet/map.t.payload.inet
+new file mode 100644
+index 0000000..73e68b6
+--- /dev/null
++++ b/tests/py/inet/map.t.payload.inet
+@@ -0,0 +1,11 @@
++# mark set ip saddr map { 10.2.3.2 : 0x0000002a, 10.2.3.1 : 0x00000017}
++map%d test-inet b
++map%d test-inet 0
++	element 0203020a  : 0000002a 0 [end]	element 0103020a  : 00000017 0 [end]
++inet test-inet input
++  [ meta load nfproto => reg 1 ]
++  [ cmp eq reg 1 0x00000002 ]
++  [ payload load 4b @ network header + 12 => reg 1 ]
++  [ lookup reg 1 set map%d dreg 1 ]
++  [ meta set mark with reg 1 ]
 +
-+		payload_match_postprocess(ctx, expr, payload);
+diff --git a/tests/py/inet/map.t.payload.ip b/tests/py/inet/map.t.payload.ip
+new file mode 100644
+index 0000000..54b9583
+--- /dev/null
++++ b/tests/py/inet/map.t.payload.ip
+@@ -0,0 +1,9 @@
++# mark set ip saddr map { 10.2.3.2 : 0x0000002a, 10.2.3.1 : 0x00000017}
++map%d test-ip b
++map%d test-ip 0
++	element 0103020a  : 00000017 0 [end]	element 0203020a  : 0000002a 0 [end]
++ip test-ip input
++  [ payload load 4b @ network header + 12 => reg 1 ]
++  [ lookup reg 1 set map%d dreg 1 ]
++  [ meta set mark with reg 1 ]
 +
-+		assert(expr->left->ops->type == EXPR_BINOP);
+diff --git a/tests/py/inet/map.t.payload.netdev b/tests/py/inet/map.t.payload.netdev
+new file mode 100644
+index 0000000..27a3ca8
+--- /dev/null
++++ b/tests/py/inet/map.t.payload.netdev
+@@ -0,0 +1,11 @@
++# mark set ip saddr map { 10.2.3.2 : 0x0000002a, 10.2.3.1 : 0x00000017}
++map%d test-netdev b
++map%d test-netdev 0
++	element 0103020a  : 00000017 0 [end]	element 0203020a  : 0000002a 0 [end]
++netdev test-netdev ingress
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ payload load 4b @ network header + 12 => reg 1 ]
++  [ lookup reg 1 set map%d dreg 1 ]
++  [ meta set mark with reg 1 ]
 +
-+		assert(binop->left == payload);
-+		expr->left = expr_get(payload);
-+		expr_free(binop);
-+	}
-+}
+diff --git a/tests/py/ip6/map.t b/tests/py/ip6/map.t
+new file mode 100644
+index 0000000..3377f8d
+--- /dev/null
++++ b/tests/py/ip6/map.t
+@@ -0,0 +1,5 @@
++:input;type filter hook input priority 0
++*ip6;test-ip6;input
 +
++mark set ip6 saddr and ::ffff map { ::2 : 0x0000002a, ::ffff : 0x00000017};ok;mark set ip6 saddr & ::ffff map { ::2 : 0x0000002a, ::ffff : 0x00000017}
 +
- static void relational_binop_postprocess(struct rule_pp_ctx *ctx, struct expr *expr)
- {
- 	struct expr *binop = expr->left, *value = expr->right;
-@@ -1202,10 +1237,6 @@ static void relational_binop_postprocess(struct rule_pp_ctx *ctx, struct expr *e
- 	} else if (binop->op == OP_AND &&
- 		   binop->left->ops->type == EXPR_PAYLOAD &&
- 		   binop->right->ops->type == EXPR_VALUE) {
--		struct expr *payload = binop->left;
--		struct expr *mask = binop->right;
--		unsigned int shift;
--
- 		/*
- 		 * This *might* be a payload match testing header fields that
- 		 * have non byte divisible offsets and/or bit lengths.
-@@ -1229,30 +1260,7 @@ static void relational_binop_postprocess(struct rule_pp_ctx *ctx, struct expr *e
- 		 * payload_expr_trim will figure out if the mask is needed to match
- 		 * templates.
- 		 */
--		if (payload_expr_trim(payload, mask, &ctx->pctx, &shift)) {
--			/* mask is implicit, binop needs to be removed.
--			 *
--			 * Fix all values of the expression according to the mask
--			 * and then process the payload instruction using the real
--			 * sizes and offsets we're interested in.
--			 *
--			 * Finally, convert the expression to 1) by replacing
--			 * the binop with the binop payload expr.
--			 */
--			if (value->ops->type == EXPR_VALUE) {
--				assert(value->len >= expr->left->right->len);
--				mpz_rshift_ui(value->value, shift);
--				value->len = payload->len;
--			}
--
--			payload_match_postprocess(ctx, expr, payload);
--
--			assert(expr->left->ops->type == EXPR_BINOP);
--
--			assert(binop->left == payload);
--			expr->left = expr_get(payload);
--			expr_free(binop);
--		}
-+		binop_postprocess(ctx, expr);
- 	}
- }
- 
+diff --git a/tests/py/ip6/map.t.payload b/tests/py/ip6/map.t.payload
+new file mode 100644
+index 0000000..db7df27
+--- /dev/null
++++ b/tests/py/ip6/map.t.payload
+@@ -0,0 +1,10 @@
++# mark set ip6 saddr and ::ffff map { ::2 : 0x0000002a, ::ffff : 0x00000017}
++map%d test-ip6 b
++map%d test-ip6 0
++	element 00000000 00000000 00000000 02000000  : 0000002a 0 [end]	element 00000000 00000000 00000000 ffff0000  : 00000017 0 [end]
++ip6 test-ip6 input
++  [ payload load 16b @ network header + 8 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x00000000 0x00000000 0x00000000 0xffff0000 ) ^ 0x00000000 0x00000000 0x00000000 0x00000000 ]
++  [ lookup reg 1 set map%d dreg 1 ]
++  [ meta set mark with reg 1 ]
++
 -- 
 2.4.10
 
