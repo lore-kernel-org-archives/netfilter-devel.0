@@ -1,68 +1,72 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf] netfilter: nfnetlink: use original skbuff when acking batches
-Date: Sun, 24 Jan 2016 23:42:21 +0100
-Message-ID: <1453675341-5818-1-git-send-email-pablo@netfilter.org>
-Cc: fw@strlen.de, dvyukov@google.com
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52769 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754116AbcAXWmd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Jan 2016 17:42:33 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id AF3C61022A2
-	for <netfilter-devel@vger.kernel.org>; Sun, 24 Jan 2016 23:42:30 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id A0B43DA807
-	for <netfilter-devel@vger.kernel.org>; Sun, 24 Jan 2016 23:42:30 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 9F2C9DA795
-	for <netfilter-devel@vger.kernel.org>; Sun, 24 Jan 2016 23:42:28 +0100 (CET)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: net: GPF in netlink_getsockbyportid
+Date: Mon, 25 Jan 2016 18:03:41 +0800
+Message-ID: <20160125100341.GA6735@gondor.apana.org.au>
+References: <CACT4Y+Zmwr0VbfB5RAoLTCJJAF7epZWbbMkHxtXUwvF3tXbrgQ@mail.gmail.com>
+ <20160123192502.GB17729@breakpoint.cc>
+ <56A3DCF7.7000404@iogearbox.net>
+ <20160124001103.GA2748@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Daniel Borkmann <daniel@iogearbox.net>,
+	Dmitry Vyukov <dvyukov@google.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Thomas Graf <tgraf@suug.ch>,
+	Ken-ichirou MATSUZAWA <chamaken@gmail.com>,
+	Eric Dumazet <edumazet@google.com>,
+	David Herrmann <dh.herrmann@gmail.com>,
+	Nicolas Dichtel <nicolas.dichtel@6wind.com>,
+	netdev <netdev@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	syzkaller <syzkaller@googlegroups.com>,
+	Kostya Serebryany <kcc@google.com>,
+	Alexander Potapenko <glider@google.com>,
+	Sasha Levin <sasha.levin@oracle.com>,
+	netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160124001103.GA2748@breakpoint.cc>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Since bd678e09dc17 ("netfilter: nfnetlink: fix splat due to incorrect
-socket memory accounting in skbuff clones"), we don't manually attach
-the sk to the skbuff clone anymore, so we have to use the original
-skbuff from netlink_ack() which needs to access the sk pointer.
+On Sun, Jan 24, 2016 at 01:11:03AM +0100, Florian Westphal wrote:
+> Daniel Borkmann <daniel@iogearbox.net> wrote:
+> > On 01/23/2016 08:25 PM, Florian Westphal wrote:
+> > >Dmitry Vyukov <dvyukov@google.com> wrote:
+> > >
+> > >[ CC nf-devel, not sure if its nfnetlink fault or NETLINK_MMAP ]
+> > >
+> > >>The following program causes GPF in netlink_getsockbyportid:
+> [..]
+> 
+> > >CONFIG_NETLINK_MMAP and nfnetlink batching strike in unison :-/
+> > >
+> > >root cause is in nfnetlink_rcv_batch():
+> > >
+> > >296 replay:
+> > >297         status = 0;
+> > >298
+> > >299         skb = netlink_skb_clone(oskb, GFP_KERNEL);
+> > >
+> > >The clone op doesn't copy oskb->sk, so we oops in
+> > >__netlink_alloc_skb -> netlink_getsockbyportid() when nfnetlink_rcv_batch
+> > >tries to send netlink ack.
+> > 
+> > If indeed oskb is the mmap'ed netlink skb, then it's not even allowed
+> > to call into skb_clone()
+> 
+> Right, but in this case there is no mmap'd netlink sk involved -- we
+> crash when we try to look up dst netlink socket to see if there is an
+> mmap'd ring attached.
+> 
+> [ and that code isn't there with CONFIG_NETLINK_MMAP=n ].
 
-Fixes: bd678e09dc17 ("netfilter: nfnetlink: fix splat due to incorrect socket memory accounting in skbuff clones")
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nfnetlink.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Let's CC Pablo since he wrote the code in question.
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index a7ba233..62e92af 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -311,14 +311,14 @@ replay:
- #endif
- 		{
- 			nfnl_unlock(subsys_id);
--			netlink_ack(skb, nlh, -EOPNOTSUPP);
-+			netlink_ack(oskb, nlh, -EOPNOTSUPP);
- 			return kfree_skb(skb);
- 		}
- 	}
- 
- 	if (!ss->commit || !ss->abort) {
- 		nfnl_unlock(subsys_id);
--		netlink_ack(skb, nlh, -EOPNOTSUPP);
-+		netlink_ack(oskb, nlh, -EOPNOTSUPP);
- 		return kfree_skb(skb);
- 	}
- 
-@@ -406,7 +406,7 @@ ack:
- 				 * pointing to the batch header.
- 				 */
- 				nfnl_err_reset(&err_list);
--				netlink_ack(skb, nlmsg_hdr(oskb), -ENOMEM);
-+				netlink_ack(oskb, nlmsg_hdr(oskb), -ENOMEM);
- 				status |= NFNL_BATCH_FAILURE;
- 				goto done;
- 			}
+Thanks,
 -- 
-2.1.4
-
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
