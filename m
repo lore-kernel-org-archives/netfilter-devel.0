@@ -1,36 +1,59 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] extensions: fix cgroup2 help message in libxt_cgroup.c.
-Date: Mon, 25 Jan 2016 11:20:49 +0100
-Message-ID: <20160125102049.GA1776@salvia>
-References: <1453702179-21590-1-git-send-email-rami.rosen@intel.com>
+From: =?UTF-8?q?Asbj=C3=B8rn=20Sloth=20T=C3=B8nnesen?= <ast@fiberby.dk>
+Subject: [PATCH conntrack 4/4] tests: conntrack: use local conntrack binary
+Date: Mon, 25 Jan 2016 10:40:30 +0000
+Message-ID: <1453718430-5784-4-git-send-email-ast@fiberby.dk>
+References: <1453718430-5784-1-git-send-email-ast@fiberby.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter@vger.kernel.org, tj@kernel.org, dborkman@redhat.com,
-	jengelh@inai.de, netfilter-devel@vger.kernel.org
-To: Rami Rosen <rami.rosen@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org,
+	=?UTF-8?q?Asbj=C3=B8rn=20Sloth=20T=C3=B8nnesen?= <ast@fiberby.dk>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35646 "EHLO mail.us.es"
+Received: from mail.asbjorn.biz ([185.38.24.25]:57971 "EHLO mail.asbjorn.biz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755832AbcAYKU6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Jan 2016 05:20:58 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 998DF2791A8
-	for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2016 11:20:57 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 86C5ADA808
-	for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2016 11:20:57 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id C0B68DA85F
-	for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2016 11:20:54 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1453702179-21590-1-git-send-email-rami.rosen@intel.com>
+	id S932480AbcAYKlD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Jan 2016 05:41:03 -0500
+In-Reply-To: <1453718430-5784-1-git-send-email-ast@fiberby.dk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 25, 2016 at 08:09:39AM +0200, Rami Rosen wrote:
-> This patch fixes a typo in the cgroup2 cgroup_help_v1() method in extensions\ibxt_cgroup.c.
+The binary under test should be the one, this ensures
+that it is in sync with the tests performed, and that
+users who build from source, can test the binary prior
+to `make install`.
 
-Applied, thanks Rami.
+Signed-off-by: Asbj=C3=B8rn Sloth T=C3=B8nnesen <ast@fiberby.dk>
+---
 
-P.S: Please next time submit your patch to
-netfilter-devel@vger.kernel.org.
+This is my preference, others might prefer it as it is.
+Maybe it should be possible to overwrite with an
+enviromental variable or an argument, currently test-conntrack.c
+doesn't take any arguments, but run-tests.sh passes the
+testdir as an argument.
+
+ tests/conntrack/test-conntrack.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/conntrack/test-conntrack.c b/tests/conntrack/test-co=
+nntrack.c
+index e8d2eb3..f410c09 100644
+--- a/tests/conntrack/test-conntrack.c
++++ b/tests/conntrack/test-conntrack.c
+@@ -17,7 +17,7 @@
+ #include <sys/wait.h>
+ #include <dirent.h>
+=20
+-#define CT_PROG "/usr/sbin/conntrack"
++#define CT_PROG "../../src/conntrack"
+=20
+ int main()
+ {
+--=20
+2.6.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
