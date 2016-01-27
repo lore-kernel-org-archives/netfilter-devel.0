@@ -1,53 +1,70 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] netlink_delinearize: only remove protocol if equal
- cmp is used
-Date: Wed, 27 Jan 2016 16:45:49 +0100
-Message-ID: <20160127154549.GA1330@salvia>
-References: <1453902155-3077-1-git-send-email-fw@strlen.de>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH 1/1] netfilter: h323: avoid potential attack
+Date: Wed, 27 Jan 2016 07:57:43 -0800
+Message-ID: <1453910263.20722.13.camel@edumazet-glaptop2.roam.corp.google.com>
+References: <1453905646-6446-1-git-send-email-zhouzhouyi@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+To: Zhouyi Zhou <zhouzhouyi@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41907 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754678AbcA0PqG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Jan 2016 10:46:06 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 4BCED6C1D
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Jan 2016 16:46:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 3D35DDA809
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Jan 2016 16:46:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 4DF19DA808
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Jan 2016 16:45:58 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1453902155-3077-1-git-send-email-fw@strlen.de>
+Received: from mail-pf0-f173.google.com ([209.85.192.173]:34421 "EHLO
+	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932127AbcA0P5p (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 27 Jan 2016 10:57:45 -0500
+In-Reply-To: <1453905646-6446-1-git-send-email-zhouzhouyi@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 27, 2016 at 02:42:35PM +0100, Florian Westphal wrote:
-> Check for OP_EQ before removing a dependency, else we may zap wrong one,
-> changing the meaning of the rule.
+On Wed, 2016-01-27 at 22:40 +0800, Zhouyi Zhou wrote:
+> From: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
 > 
-> Listing without patch:
-> ip protocol udp udp dport ssh
-> ip protocol udp udp dport ssh
-> counter packets 1 bytes 308 ip protocol udp udp dport ssh
+> I think hackers chould build a malicious h323 packet to overflow
+> the pointer p which will panic during the memcpy(addr, p, len)
 > 
-> With patch:
-> ip protocol != tcp udp dport ssh
-> ip protocol != udp udp dport ssh
-> ip protocol != tcp counter packets 1 bytes 308 udp dport ssh
-
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+> For example, he may fabricate a very large taddr->ipAddress.ip; 
+> 
+> Signed-off-by: Zhouyi Zhou <zhouzhouyi@gmail.com>
 > ---
->  NB: ip protocol != udp udp dport ... is nonsensical, not sure
->  if its worth the hassle to try to reject stuff like this.
+>  net/netfilter/nf_conntrack_h323_main.c |    8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+> index 9511af0..3b3dd8c 100644
+> --- a/net/netfilter/nf_conntrack_h323_main.c
+> +++ b/net/netfilter/nf_conntrack_h323_main.c
+> @@ -110,6 +110,10 @@ int (*nat_q931_hook) (struct sk_buff *skb,
+>  
+>  static DEFINE_SPINLOCK(nf_h323_lock);
+>  static char *h323_buffer;
+> +#define CHECK_BOUND(p, n) do {					\
+> +		if (((p - h323_buffer) + n) > 65536)		\
+> +			return 0;				\
+> +} while (0)
+>  
 
-I agree this is not worth. We'll have more advanced tools to perform
-transformations and more in-depth semantic evaluation of the ruleset
-at some point, but not now ;-)
+
+Do not add 'return X;' or 'goto something;' in macros please.
+
+Even referring to 'h323_buffer' is not nice, and of course 65536 is
+another 'magic' value.
+
+Even if h323_buffer was allocated to hold 65536 bytes, the various
+skb_header_pointer() calls only populated a part of it.
+
+I understand there is a bad precedent in
+net/netfilter/nf_conntrack_h323_asn1.c, but it is not a good reason.
+
+Anyway, if the issue is real, you do not take into account the 2 extra
+bytes for the port.
+
+memcpy(port, p + len, sizeof(__be16));
+
+
+
+
