@@ -1,66 +1,40 @@
-From: Zhouyi Zhou <zhouzhouyi@gmail.com>
-Subject: [PATCH V2] netfilter: h323: avoid potential attack
-Date: Thu, 28 Jan 2016 16:59:57 +0800
-Message-ID: <1453971597-4811-1-git-send-email-zhouzhouyi@gmail.com>
-Cc: Zhouyi Zhou <zhouzhouyi@gmail.com>,
-	Zhouyi Zhou <yizhouzhou@ict.ac.cn>
-To: eric.dumazet@gmail.com, pablo@netfilter.org, kaber@trash.net,
-	kadlec@blackhole.kfki.hu, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.or
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: cttimeout: fix deadlock due to erroneous unlock/lock conversion
+Date: Thu, 28 Jan 2016 13:16:59 +0100
+Message-ID: <1453983419-28688-1-git-send-email-fw@strlen.de>
+Cc: sasha.levin@oracle.com, Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp23.cstnet.cn ([159.226.251.23]:49781 "EHLO cstnet.cn"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751539AbcA1JAY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Jan 2016 04:00:24 -0500
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:42064 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S964868AbcA1M1b (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 Jan 2016 07:27:31 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thanks Eric for your review and advice.
+The spin_unlock call should have been left as-is, revert.
 
-I think hackers chould build a malicious h323 packet to overflow
-the pointer p which will panic during the memcpy(addr, p, len)
-
-For example, he may fabricate a very large taddr->ipAddress.ip;
-
-Signed-off-by: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+Fixes: b16c29191dc89bd ("netfilter: nf_conntrack: use safer way to lock all buckets")
+Reported-by: kernel test robot <fengguang.wu@intel.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_h323_main.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ net/netfilter/nfnetlink_cttimeout.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 9511af0..ccd08c5 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -110,6 +110,7 @@ int (*nat_q931_hook) (struct sk_buff *skb,
- 
- static DEFINE_SPINLOCK(nf_h323_lock);
- static char *h323_buffer;
-+#define CHECK_BOUND(p, n) ((void *)p + n - (void *)h323_buffer > 65536)
- 
- static struct nf_conntrack_helper nf_conntrack_helper_h245;
- static struct nf_conntrack_helper nf_conntrack_helper_q931[];
-@@ -247,6 +248,9 @@ static int get_h245_addr(struct nf_conn *ct, const unsigned char *data,
- 		return 0;
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index 94837d2..2671b9d 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -312,7 +312,7 @@ static void ctnl_untimeout(struct net *net, struct ctnl_timeout *timeout)
+ 			hlist_nulls_for_each_entry(h, nn, &net->ct.hash[i], hnnode)
+ 				untimeout(h, timeout);
+ 		}
+-		nf_conntrack_lock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
++		spin_unlock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
  	}
- 
-+	if (CHECK_BOUND(p, len + sizeof(__be16)))
-+		return 0;
-+
- 	memcpy(addr, p, len);
- 	memset((void *)addr + len, 0, sizeof(*addr) - len);
- 	memcpy(port, p + len, sizeof(__be16));
-@@ -669,6 +673,9 @@ int get_h225_addr(struct nf_conn *ct, unsigned char *data,
- 		return 0;
- 	}
- 
-+	if (CHECK_BOUND(p, len + sizeof(__be16)))
-+		return 0;
-+
- 	memcpy(addr, p, len);
- 	memset((void *)addr + len, 0, sizeof(*addr) - len);
- 	memcpy(port, p + len, sizeof(__be16));
+ 	local_bh_enable();
+ }
 -- 
-1.7.10.4
-
+2.4.10
 
