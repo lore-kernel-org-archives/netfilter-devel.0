@@ -1,102 +1,97 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 10/11] src: annotate follow up dependency just after killing another
-Date: Thu, 28 Jan 2016 22:24:59 +0100
-Message-ID: <1454016300-29969-11-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 05/11] evaluate: only try to replace dummy protocol from link-layer context
+Date: Thu, 28 Jan 2016 22:24:54 +0100
+Message-ID: <1454016300-29969-6-git-send-email-pablo@netfilter.org>
 References: <1454016300-29969-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net, fw@strlen.de
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43802 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43803 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755846AbcA1VZW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Jan 2016 16:25:22 -0500
+	id S964770AbcA1VZT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 Jan 2016 16:25:19 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 521DCC880B
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jan 2016 22:25:21 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id 2506A8E4D0
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jan 2016 22:25:17 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 40556DA807
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jan 2016 22:25:21 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 163B3DA843
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jan 2016 22:25:17 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 74950DA808
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jan 2016 22:25:19 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 41D7ADA801
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jan 2016 22:25:15 +0100 (CET)
 In-Reply-To: <1454016300-29969-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The inet and netdev families generate two implicit dependencies to check
-for the interface type, so we have to check just after killing an implicit
-dependency if there is another that we should annotate to kill it as well.
+Add proto_is_dummy() that returns true for netdev and inet family, the
+only two using a dummy link-layer protocol base definition.
+
+Rename supersede_dep() to meta_iiftype_gen_dependency() since this is
+generating the implicit meta iiftype check for netdev and inet.
+
+This patch also gets rid of the have->length check. The tests pass fine
+without this so I suspect this is superfluos.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/netlink_delinearize.c | 45 +++++++++++++++++++++++++++------------------
- 1 file changed, 27 insertions(+), 18 deletions(-)
+ src/evaluate.c | 25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index cb9c3ab..bbe1876 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -1031,6 +1031,30 @@ static void integer_type_postprocess(struct expr *expr)
- 	}
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 5ef035b..eb442d5 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -359,19 +359,14 @@ conflict_resolution_gen_dependency(struct eval_ctx *ctx, int protocol,
+  * ip saddr adds meta dependency on ipv4 packets
+  * ether saddr adds another dependeny on ethernet frames.
+  */
+-static int supersede_dep(struct eval_ctx *ctx, const struct proto_desc *have,
+-			 struct expr *payload)
++static int meta_iiftype_gen_dependency(struct eval_ctx *ctx,
++				       const struct proto_desc *have,
++				       struct expr *payload)
+ {
+ 	enum proto_bases base = payload->payload.base;
+ 	struct stmt *nstmt;
+ 	uint16_t type;
+ 
+-	if (payload->payload.base != PROTO_BASE_LL_HDR || have->length)
+-		return 1;
+-
+-	if (have != &proto_inet && have != &proto_netdev)
+-		return 1;
+-
+ 	if (proto_dev_type(payload->payload.desc, &type) < 0)
+ 		return expr_error(ctx->msgs, payload,
+ 				  "protocol specification is invalid "
+@@ -387,6 +382,11 @@ static int supersede_dep(struct eval_ctx *ctx, const struct proto_desc *have,
+ 	return 0;
  }
  
-+static void payload_dependency_save(struct rule_pp_ctx *ctx, unsigned int base,
-+				    struct stmt *nstmt, struct expr *tmp)
++static bool proto_is_dummy(const struct proto_desc *desc)
 +{
-+	unsigned int proto = mpz_get_be16(tmp->value);
-+	const struct proto_desc *desc, *next;
-+	bool stacked_header = false;
-+
-+	desc = ctx->pctx.protocol[base].desc;
-+
-+	assert(desc);
-+	if (desc) {
-+		next = proto_find_upper(desc, proto);
-+		stacked_header = next && next->base == base;
-+	}
-+
-+	if (stacked_header) {
-+		ctx->pctx.protocol[base].desc = next;
-+		ctx->pctx.protocol[base].offset += desc->length;
-+		payload_dependency_store(ctx, nstmt, base - 1);
-+	} else {
-+		payload_dependency_store(ctx, nstmt, base);
-+	}
++	return desc == &proto_inet || desc == &proto_netdev;
 +}
 +
- static void payload_match_expand(struct rule_pp_ctx *ctx,
- 				 struct expr *expr,
- 				 struct expr *payload)
-@@ -1068,26 +1092,11 @@ static void payload_match_expand(struct rule_pp_ctx *ctx,
- 		 */
- 		if (ctx->pbase == PROTO_BASE_INVALID &&
- 		    left->flags & EXPR_F_PROTOCOL) {
--			unsigned int proto = mpz_get_be16(tmp->value);
--			const struct proto_desc *desc, *next;
--			bool stacked_header = false;
--
--			desc = ctx->pctx.protocol[base].desc;
--			assert(desc);
--			if (desc) {
--				next = proto_find_upper(desc, proto);
--				stacked_header = next && next->base == base;
--			}
--
--			if (stacked_header) {
--				ctx->pctx.protocol[base].desc = next;
--				ctx->pctx.protocol[base].offset += desc->length;
--				payload_dependency_store(ctx, nstmt, base - 1);
--			} else {
--				payload_dependency_store(ctx, nstmt, base);
--			}
-+			payload_dependency_save(ctx, base, nstmt, tmp);
- 		} else {
- 			payload_dependency_kill(ctx, nexpr->left);
-+			if (left->flags & EXPR_F_PROTOCOL)
-+				payload_dependency_save(ctx, base, nstmt, tmp);
- 		}
- 	}
- 	list_del(&ctx->stmt->list);
+ static int resolve_protocol_conflict(struct eval_ctx *ctx,
+ 				     const struct proto_desc *desc,
+ 				     struct expr *payload)
+@@ -395,9 +395,12 @@ static int resolve_protocol_conflict(struct eval_ctx *ctx,
+ 	struct stmt *nstmt = NULL;
+ 	int link, err;
+ 
+-	err = supersede_dep(ctx, desc, payload);
+-	if (err <= 0)
+-		return err;
++	if (payload->payload.base == PROTO_BASE_LL_HDR &&
++	    proto_is_dummy(desc)) {
++		err = meta_iiftype_gen_dependency(ctx, desc, payload);
++		if (err <= 0)
++			return err;
++	}
+ 
+ 	if (base < PROTO_BASE_MAX) {
+ 		const struct proto_desc *next = ctx->pctx.protocol[base + 1].desc;
 -- 
 2.1.4
 
