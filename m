@@ -1,62 +1,85 @@
-From: "Zhouyi Zhou" <yizhouzhou@ict.ac.cn>
-Subject: Re: Re: [PATCH V2] netfilter: h323: avoid potential attack
-Date: Thu, 28 Jan 2016 23:13:34 +0800 (GMT+08:00)
-Message-ID: <5b6c32.5bd1.15288cbf662.Coremail.yizhouzhou@ict.ac.cn>
-References: <1453971597-4811-1-git-send-email-zhouzhouyi@gmail.com>
- <20160128142959.GB30994@breakpoint.cc>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH] src: netlink_linearize: Fix bug for redirect target
+Date: Fri, 29 Jan 2016 01:05:37 +0530
+Message-ID: <20160128193537.GA23701@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: "Zhouyi Zhou" <zhouzhouyi@gmail.com>, eric.dumazet@gmail.com,
-	pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: "Florian Westphal" <fw@strlen.de>, gnomes@lxorguk.ukuu.org.uk,
-	sergei.shtylyov@cogentembedded.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160128142959.GB30994@breakpoint.cc>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:32836 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753479AbcA1Tfp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 Jan 2016 14:35:45 -0500
+Received: by mail-pa0-f48.google.com with SMTP id cy9so27874014pac.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 28 Jan 2016 11:35:45 -0800 (PST)
+Received: from gmail.com ([106.209.40.35])
+        by smtp.gmail.com with ESMTPSA id l9sm18267001pfb.29.2016.01.28.11.35.42
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Thu, 28 Jan 2016 11:35:43 -0800 (PST)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Thanks for your advices.
-I will take your advice if I could have the opportunity
-to write the final code.
+Before this patch,
+$ sudo nft --debug=netlink add rule ip nat post ip protocol tcp redirect to 100-200
+ip nat post
+  [ payload load 1b @ network header + 9 => reg 1 ]
+  [ cmp eq reg 1 0x00000006 ]
+  [ immediate reg 1 0x00006400 ]
+  [ immediate reg 2 0x0000c800 ]
+  [ redir proto_min reg 1 proto_max reg 5 ]
 
-As matter of factor, I trigger this bug when I tried to 
-migrate H323 code to other operating systems.
+<cmdline>:1:1-56: Error: Could not process rule: Invalid argument
+add rule ip nat post ip protocol tcp redirect to 100-200
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This could trigger a panic because get_h2x5_addr functions
-is the first time we ever try to ask for potentially
-out of range data because of H323 style decodings 
-(the value taddr->ipAddress.ip is decoded in the midway between
-calling skb_header_pointer and calling get_h2x5_addr)
+After this patch,
+$ sudo nft --debug=netlink add rule ip nat post ip protocol tcp redirect to 100-200
+ip nat post
+  [ payload load 1b @ network header + 9 => reg 1 ]
+  [ cmp eq reg 1 0x00000006 ]
+  [ immediate reg 1 0x00006400 ]
+  [ immediate reg 2 0x0000c800 ]
+  [ redir proto_min reg 1 proto_max reg 2 ]
 
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+ src/netlink_linearize.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 7c6ef16..dfe8dca 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -861,17 +861,17 @@ static void netlink_gen_redir_stmt(struct netlink_linearize_ctx *ctx,
+ 					 pmin_reg);
+ 			netlink_gen_expr(ctx, stmt->redir.proto->right,
+ 					 pmax_reg);
+-			nftnl_expr_set_u32(nle,
+-					      NFTNL_EXPR_REDIR_REG_PROTO_MIN,
+-					      pmin_reg);
+-			nftnl_expr_set_u32(nle,
+-					      NFTNL_EXPR_REDIR_REG_PROTO_MAX,
+-					      pmax_reg);
++			netlink_put_register(nle,
++					     NFTNL_EXPR_REDIR_REG_PROTO_MIN,
++					     pmin_reg);
++			netlink_put_register(nle,
++					     NFTNL_EXPR_REDIR_REG_PROTO_MAX,
++					     pmax_reg);
+ 		} else {
+ 			netlink_gen_expr(ctx, stmt->redir.proto, pmin_reg);
+-			nftnl_expr_set_u32(nle,
+-					      NFTNL_EXPR_REDIR_REG_PROTO_MIN,
+-					      pmin_reg);
++			netlink_put_register(nle,
++					     NFTNL_EXPR_REDIR_REG_PROTO_MIN,
++					     pmin_reg);
+ 		}
+ 	}
+ 
+-- 
+1.9.1
 
-> -----Original Messages-----
-> From: "Florian Westphal" <fw@strlen.de>
-> Sent Time: Thursday, January 28, 2016
-> To: "Zhouyi Zhou" <zhouzhouyi@gmail.com>
-> Cc: eric.dumazet@gmail.com, pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.or, "Zhouyi Zhou" <yizhouzhou@ict.ac.cn>
-> Subject: Re: [PATCH V2] netfilter: h323: avoid potential attack
-> 
-> Zhouyi Zhou <zhouzhouyi@gmail.com> wrote:
-> > Thanks Eric for your review and advice.
-> > 
-> > I think hackers chould build a malicious h323 packet to overflow
-> > the pointer p which will panic during the memcpy(addr, p, len)
-> > 
-> > For example, he may fabricate a very large taddr->ipAddress.ip;
-> 
-> Can you be more specific?
-> 
-> h323_buffer is backend storage for skb_header_pointer, i.e.
-> this will error out early when we ask for more data than is available in
-> packet.
-> 
-> I don't understand how this could overflow anything.
-> Even assuming 64k packet we'd still have enough room in h323_buffer
-> for an ipv6 address, no? (we skip the l3/l4 header when extracting
-> packet payload).
-> 
