@@ -1,85 +1,66 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] src: netlink_linearize: Fix bug for redirect target
-Date: Fri, 29 Jan 2016 01:05:37 +0530
-Message-ID: <20160128193537.GA23701@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 04/11] evaluate: don't adjust offset from resolve_protocol_conflict()
+Date: Thu, 28 Jan 2016 22:24:53 +0100
+Message-ID: <1454016300-29969-5-git-send-email-pablo@netfilter.org>
+References: <1454016300-29969-1-git-send-email-pablo@netfilter.org>
+Cc: kaber@trash.net, fw@strlen.de
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:32836 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753479AbcA1Tfp (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Jan 2016 14:35:45 -0500
-Received: by mail-pa0-f48.google.com with SMTP id cy9so27874014pac.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Jan 2016 11:35:45 -0800 (PST)
-Received: from gmail.com ([106.209.40.35])
-        by smtp.gmail.com with ESMTPSA id l9sm18267001pfb.29.2016.01.28.11.35.42
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Thu, 28 Jan 2016 11:35:43 -0800 (PST)
-Content-Disposition: inline
+Received: from mail.us.es ([193.147.175.20]:43796 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750803AbcA1VZS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 Jan 2016 16:25:18 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 620108E4CD
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jan 2016 22:25:16 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 53859DA795
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jan 2016 22:25:16 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 16CB4DA86E
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jan 2016 22:25:14 +0100 (CET)
+In-Reply-To: <1454016300-29969-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Before this patch,
-$ sudo nft --debug=netlink add rule ip nat post ip protocol tcp redirect to 100-200
-ip nat post
-  [ payload load 1b @ network header + 9 => reg 1 ]
-  [ cmp eq reg 1 0x00000006 ]
-  [ immediate reg 1 0x00006400 ]
-  [ immediate reg 2 0x0000c800 ]
-  [ redir proto_min reg 1 proto_max reg 5 ]
+This is not itself a conflict, move this check out of this function.
 
-<cmdline>:1:1-56: Error: Could not process rule: Invalid argument
-add rule ip nat post ip protocol tcp redirect to 100-200
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-After this patch,
-$ sudo nft --debug=netlink add rule ip nat post ip protocol tcp redirect to 100-200
-ip nat post
-  [ payload load 1b @ network header + 9 => reg 1 ]
-  [ cmp eq reg 1 0x00000006 ]
-  [ immediate reg 1 0x00006400 ]
-  [ immediate reg 2 0x0000c800 ]
-  [ redir proto_min reg 1 proto_max reg 2 ]
-
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/netlink_linearize.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ src/evaluate.c | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 7c6ef16..dfe8dca 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -861,17 +861,17 @@ static void netlink_gen_redir_stmt(struct netlink_linearize_ctx *ctx,
- 					 pmin_reg);
- 			netlink_gen_expr(ctx, stmt->redir.proto->right,
- 					 pmax_reg);
--			nftnl_expr_set_u32(nle,
--					      NFTNL_EXPR_REDIR_REG_PROTO_MIN,
--					      pmin_reg);
--			nftnl_expr_set_u32(nle,
--					      NFTNL_EXPR_REDIR_REG_PROTO_MAX,
--					      pmax_reg);
-+			netlink_put_register(nle,
-+					     NFTNL_EXPR_REDIR_REG_PROTO_MIN,
-+					     pmin_reg);
-+			netlink_put_register(nle,
-+					     NFTNL_EXPR_REDIR_REG_PROTO_MAX,
-+					     pmax_reg);
- 		} else {
- 			netlink_gen_expr(ctx, stmt->redir.proto, pmin_reg);
--			nftnl_expr_set_u32(nle,
--					      NFTNL_EXPR_REDIR_REG_PROTO_MIN,
--					      pmin_reg);
-+			netlink_put_register(nle,
-+					     NFTNL_EXPR_REDIR_REG_PROTO_MIN,
-+					     pmin_reg);
- 		}
- 	}
+diff --git a/src/evaluate.c b/src/evaluate.c
+index a294070..5ef035b 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -395,11 +395,6 @@ static int resolve_protocol_conflict(struct eval_ctx *ctx,
+ 	struct stmt *nstmt = NULL;
+ 	int link, err;
  
+-	if (desc == payload->payload.desc) {
+-		payload->payload.offset += ctx->pctx.protocol[base].offset;
+-		return 0;
+-	}
+-
+ 	err = supersede_dep(ctx, desc, payload);
+ 	if (err <= 0)
+ 		return err;
+@@ -448,6 +443,14 @@ static int __expr_evaluate_payload(struct eval_ctx *ctx, struct expr *expr)
+ 			return -1;
+ 		list_add_tail(&nstmt->list, &ctx->stmt->list);
+ 	} else {
++		/* No conflict: Same payload protocol as context, adjust offset
++		 * if needed.
++		 */
++		if (desc == payload->payload.desc) {
++			payload->payload.offset +=
++				ctx->pctx.protocol[base].offset;
++			return 0;
++		}
+ 		/* If we already have context and this payload is on the same
+ 		 * base, try to resolve the protocol conflict.
+ 		 */
 -- 
-1.9.1
+2.1.4
 
