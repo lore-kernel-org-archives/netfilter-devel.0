@@ -1,40 +1,61 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: cttimeout: fix deadlock due to erroneous unlock/lock conversion
-Date: Thu, 28 Jan 2016 13:16:59 +0100
-Message-ID: <1453983419-28688-1-git-send-email-fw@strlen.de>
-Cc: sasha.levin@oracle.com, Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:42064 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964868AbcA1M1b (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Jan 2016 07:27:31 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 1/2] netfilter: ipvs: avoid unused variable warnings
+Date: Thu, 28 Jan 2016 13:28:17 +0100
+Message-ID: <121171795.jNF1vkL58j@wuerfel>
+References: <1453902749-3422685-1-git-send-email-arnd@arndb.de> <alpine.LFD.2.11.1601272156590.2353@ja.home.ssi.bg> <20160127233953.GB5183@verge.net.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Cc: Julian Anastasov <ja@ssi.bg>, Wensong Zhang <wensong@linux-vs.org>,
+	linux-arm-kernel@lists.infradead.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org
+To: Simon Horman <horms@verge.net.au>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160127233953.GB5183@verge.net.au>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The spin_unlock call should have been left as-is, revert.
+On Thursday 28 January 2016 08:39:53 Simon Horman wrote:
+> On Wed, Jan 27, 2016 at 10:01:42PM +0200, Julian Anastasov wrote:
+> > 
+> >       Hello,
+> > 
+> > On Wed, 27 Jan 2016, Arnd Bergmann wrote:
+> > 
+> > > The proc_create() and remove_proc_entry() functions do not reference
+> > > their arguments when CONFIG_PROC_FS is disabled, so we get a couple
+> > > of warnings about unused variables in IPVS:
+> > > 
+> > > ipvs/ip_vs_app.c:608:14: warning: unused variable 'net' [-Wunused-variable]
+> > > ipvs/ip_vs_ctl.c:3950:14: warning: unused variable 'net' [-Wunused-variable]
+> > > ipvs/ip_vs_ctl.c:3994:14: warning: unused variable 'net' [-Wunused-variable]
+> > > 
+> > > This removes the local variables and instead looks them up separately
+> > > for each use, which obviously avoids the warning.
+> > > 
+> > > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> > > Fixes: 4c50a8ce2b63 ("netfilter: ipvs: avoid unused variable warning")
+> > 
+> >       Looks like your previous patch for ip_vs_app_net_cleanup
+> > was delayed in ipvs-next tree. I guess, Simon should drop it and
+> > use this one instead when net-next opens:
+> > 
+> > Acked-by: Julian Anastasov <ja@ssi.bg>
+> 
+> Thanks, and sorry about not pushing the other patch to net-next.
+> I have dropped it and queued up this one in its place.
 
-Fixes: b16c29191dc89bd ("netfilter: nf_conntrack: use safer way to lock all buckets")
-Reported-by: kernel test robot <fengguang.wu@intel.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nfnetlink_cttimeout.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Ah, I had not realized that the other patch was still in ipvs-next
+and not merged in mainline. I did most of my testing on linux-next
+(with the previous patch) and then validated the new one on
+4.5-rc1, which led me to update it to contain the same hunk again.
 
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index 94837d2..2671b9d 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -312,7 +312,7 @@ static void ctnl_untimeout(struct net *net, struct ctnl_timeout *timeout)
- 			hlist_nulls_for_each_entry(h, nn, &net->ct.hash[i], hnnode)
- 				untimeout(h, timeout);
- 		}
--		nf_conntrack_lock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
-+		spin_unlock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
- 	}
- 	local_bh_enable();
- }
--- 
-2.4.10
+Replacing the original patch works fine though, thanks for picking
+it up!
 
+	Arnd
