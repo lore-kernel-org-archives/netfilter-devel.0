@@ -1,56 +1,44 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
 Subject: Re: [PATCH V2] netfilter: h323: avoid potential attack
-Date: Thu, 28 Jan 2016 17:11:18 +0300
-Message-ID: <56AA2186.1090208@cogentembedded.com>
+Date: Thu, 28 Jan 2016 14:15:57 +0000
+Message-ID: <20160128141557.74ad75f0@lxorguk.ukuu.org.uk>
 References: <1453971597-4811-1-git-send-email-zhouzhouyi@gmail.com>
+	<1453985821.7627.17.camel@edumazet-glaptop2.roam.corp.google.com>
+	<a703ec.53db.152885f2292.Coremail.yizhouzhou@ict.ac.cn>
+	<1453989650.7627.30.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
-To: Zhouyi Zhou <zhouzhouyi@gmail.com>, eric.dumazet@gmail.com,
-	pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.or
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:34515 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751896AbcA1OLX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Jan 2016 09:11:23 -0500
-Received: by mail-lb0-f181.google.com with SMTP id cl12so24033045lbc.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Jan 2016 06:11:22 -0800 (PST)
-In-Reply-To: <1453971597-4811-1-git-send-email-zhouzhouyi@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Zhouyi Zhou <yizhouzhou@ict.ac.cn>,
+	Zhouyi Zhou <zhouzhouyi@gmail.com>, pablo@netfilter.org,
+	kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1453989650.7627.30.camel@edumazet-glaptop2.roam.corp.google.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello.
+On Thu, 28 Jan 2016 06:00:50 -0800
+Eric Dumazet <eric.dumazet@gmail.com> wrote:
 
-On 1/28/2016 11:59 AM, Zhouyi Zhou wrote:
+> On Thu, 2016-01-28 at 21:14 +0800, Zhouyi Zhou wrote:
+> 
+> > My patch is intend to prevent kernel panic, to prevent reading garbage
+> > or read data from a prior frame and leak secrets, the prototypes of the 
+> > get_h2x5_addr functions and the functions that call get_h2x5_addr should
+> > be changed, should we do this?   
+> 
+> In term of security, panics are better than allowing attacker to read
+> data from other people, like a password.
+> 
+> BTW, are you able to trigger any panic ?
 
-> Thanks Eric for your review and advice.
->
-> I think hackers chould build a malicious h323 packet to overflow
-> the pointer p which will panic during the memcpy(addr, p, len)
->
-> For example, he may fabricate a very large taddr->ipAddress.ip;
->
-> Signed-off-by: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
-> ---
->   net/netfilter/nf_conntrack_h323_main.c |    7 +++++++
->   1 file changed, 7 insertions(+)
->
-> diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-> index 9511af0..ccd08c5 100644
-> --- a/net/netfilter/nf_conntrack_h323_main.c
-> +++ b/net/netfilter/nf_conntrack_h323_main.c
-> @@ -110,6 +110,7 @@ int (*nat_q931_hook) (struct sk_buff *skb,
->
->   static DEFINE_SPINLOCK(nf_h323_lock);
->   static char *h323_buffer;
-> +#define CHECK_BOUND(p, n) ((void *)p + n - (void *)h323_buffer > 65536)
+We have a smattering of panics in this code in bugzilla going back years.
 
-    You have to enclose the macro parameters in parens when used in expression.
+https://bugzilla.kernel.org/show_bug.cgi?id=12473
 
-MBR, Sergei
+etc
 
+Alan
