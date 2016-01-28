@@ -1,44 +1,43 @@
-From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: [PATCH V2] netfilter: h323: avoid potential attack
-Date: Thu, 28 Jan 2016 14:15:57 +0000
-Message-ID: <20160128141557.74ad75f0@lxorguk.ukuu.org.uk>
+Date: Thu, 28 Jan 2016 15:29:59 +0100
+Message-ID: <20160128142959.GB30994@breakpoint.cc>
 References: <1453971597-4811-1-git-send-email-zhouzhouyi@gmail.com>
-	<1453985821.7627.17.camel@edumazet-glaptop2.roam.corp.google.com>
-	<a703ec.53db.152885f2292.Coremail.yizhouzhou@ict.ac.cn>
-	<1453989650.7627.30.camel@edumazet-glaptop2.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Zhouyi Zhou <yizhouzhou@ict.ac.cn>,
-	Zhouyi Zhou <zhouzhouyi@gmail.com>, pablo@netfilter.org,
-	kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
+Content-Type: text/plain; charset=us-ascii
+Cc: eric.dumazet@gmail.com, pablo@netfilter.org, kaber@trash.net,
+	kadlec@blackhole.kfki.hu, davem@davemloft.net,
 	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1453989650.7627.30.camel@edumazet-glaptop2.roam.corp.google.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.or,
+	Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+To: Zhouyi Zhou <zhouzhouyi@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:42408 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755394AbcA1OaL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 Jan 2016 09:30:11 -0500
+Content-Disposition: inline
+In-Reply-To: <1453971597-4811-1-git-send-email-zhouzhouyi@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 28 Jan 2016 06:00:50 -0800
-Eric Dumazet <eric.dumazet@gmail.com> wrote:
-
-> On Thu, 2016-01-28 at 21:14 +0800, Zhouyi Zhou wrote:
+Zhouyi Zhou <zhouzhouyi@gmail.com> wrote:
+> Thanks Eric for your review and advice.
 > 
-> > My patch is intend to prevent kernel panic, to prevent reading garbage
-> > or read data from a prior frame and leak secrets, the prototypes of the 
-> > get_h2x5_addr functions and the functions that call get_h2x5_addr should
-> > be changed, should we do this?   
+> I think hackers chould build a malicious h323 packet to overflow
+> the pointer p which will panic during the memcpy(addr, p, len)
 > 
-> In term of security, panics are better than allowing attacker to read
-> data from other people, like a password.
-> 
-> BTW, are you able to trigger any panic ?
+> For example, he may fabricate a very large taddr->ipAddress.ip;
 
-We have a smattering of panics in this code in bugzilla going back years.
+Can you be more specific?
 
-https://bugzilla.kernel.org/show_bug.cgi?id=12473
+h323_buffer is backend storage for skb_header_pointer, i.e.
+this will error out early when we ask for more data than is available in
+packet.
 
-etc
+I don't understand how this could overflow anything.
+Even assuming 64k packet we'd still have enough room in h323_buffer
+for an ipv6 address, no? (we skip the l3/l4 header when extracting
+packet payload).
 
-Alan
