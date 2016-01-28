@@ -1,61 +1,43 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 1/2] netfilter: ipvs: avoid unused variable warnings
-Date: Thu, 28 Jan 2016 13:28:17 +0100
-Message-ID: <121171795.jNF1vkL58j@wuerfel>
-References: <1453902749-3422685-1-git-send-email-arnd@arndb.de> <alpine.LFD.2.11.1601272156590.2353@ja.home.ssi.bg> <20160127233953.GB5183@verge.net.au>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH V2] netfilter: h323: avoid potential attack
+Date: Thu, 28 Jan 2016 04:57:01 -0800
+Message-ID: <1453985821.7627.17.camel@edumazet-glaptop2.roam.corp.google.com>
+References: <1453971597-4811-1-git-send-email-zhouzhouyi@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Cc: Julian Anastasov <ja@ssi.bg>, Wensong Zhang <wensong@linux-vs.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org
-To: Simon Horman <horms@verge.net.au>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160127233953.GB5183@verge.net.au>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.or, Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+To: Zhouyi Zhou <zhouzhouyi@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:34470 "EHLO
+	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966320AbcA1M5E (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 Jan 2016 07:57:04 -0500
+In-Reply-To: <1453971597-4811-1-git-send-email-zhouzhouyi@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 28 January 2016 08:39:53 Simon Horman wrote:
-> On Wed, Jan 27, 2016 at 10:01:42PM +0200, Julian Anastasov wrote:
-> > 
-> >       Hello,
-> > 
-> > On Wed, 27 Jan 2016, Arnd Bergmann wrote:
-> > 
-> > > The proc_create() and remove_proc_entry() functions do not reference
-> > > their arguments when CONFIG_PROC_FS is disabled, so we get a couple
-> > > of warnings about unused variables in IPVS:
-> > > 
-> > > ipvs/ip_vs_app.c:608:14: warning: unused variable 'net' [-Wunused-variable]
-> > > ipvs/ip_vs_ctl.c:3950:14: warning: unused variable 'net' [-Wunused-variable]
-> > > ipvs/ip_vs_ctl.c:3994:14: warning: unused variable 'net' [-Wunused-variable]
-> > > 
-> > > This removes the local variables and instead looks them up separately
-> > > for each use, which obviously avoids the warning.
-> > > 
-> > > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > > Fixes: 4c50a8ce2b63 ("netfilter: ipvs: avoid unused variable warning")
-> > 
-> >       Looks like your previous patch for ip_vs_app_net_cleanup
-> > was delayed in ipvs-next tree. I guess, Simon should drop it and
-> > use this one instead when net-next opens:
-> > 
-> > Acked-by: Julian Anastasov <ja@ssi.bg>
+On Thu, 2016-01-28 at 16:59 +0800, Zhouyi Zhou wrote:
+> Thanks Eric for your review and advice.
 > 
-> Thanks, and sorry about not pushing the other patch to net-next.
-> I have dropped it and queued up this one in its place.
+> I think hackers chould build a malicious h323 packet to overflow
+> the pointer p which will panic during the memcpy(addr, p, len)
+> 
+> For example, he may fabricate a very large taddr->ipAddress.ip;
+> 
+> Signed-off-by: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+> ---
 
-Ah, I had not realized that the other patch was still in ipvs-next
-and not merged in mainline. I did most of my testing on linux-next
-(with the previous patch) and then validated the new one on
-4.5-rc1, which led me to update it to contain the same hunk again.
+Except you did not address my feedback about potentially reading not
+initialized memory.
 
-Replacing the original patch works fine though, thanks for picking
-it up!
+if the frame length was 1000 bytes, then surely accessing memory at
+offset 8000 will either read garbage, or read data from a prior frame
+and leak secrets.
 
-	Arnd
+
+
