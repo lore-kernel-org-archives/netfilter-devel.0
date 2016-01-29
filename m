@@ -1,295 +1,91 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 11/11] tests/py: test vlan on ingress
-Date: Thu, 28 Jan 2016 22:25:00 +0100
-Message-ID: <1454016300-29969-12-git-send-email-pablo@netfilter.org>
-References: <1454016300-29969-1-git-send-email-pablo@netfilter.org>
-Cc: kaber@trash.net, fw@strlen.de
-To: netfilter-devel@vger.kernel.org
+From: Zhouyi Zhou <zhouzhouyi@gmail.com>
+Subject: [PATCH V3] netfilter: h323: avoid potential attack
+Date: Fri, 29 Jan 2016 11:25:35 +0800
+Message-ID: <1454037935-14842-1-git-send-email-zhouzhouyi@gmail.com>
+Cc: Zhouyi Zhou <zhouzhouyi@gmail.com>,
+	Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+To: eric.dumazet@gmail.com, pablo@netfilter.org, kaber@trash.net,
+	kadlec@blackhole.kfki.hu, davem@davemloft.net,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org, fw@strlen.de,
+	gnomes@lxorguk.ukuu.org.uk, sergei.shtylyov@cogentembedded.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43806 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755852AbcA1VZX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Jan 2016 16:25:23 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 9810DC8815
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jan 2016 22:25:22 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 87D14DA809
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jan 2016 22:25:22 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6CE24DA795
-	for <netfilter-devel@vger.kernel.org>; Thu, 28 Jan 2016 22:25:20 +0100 (CET)
-In-Reply-To: <1454016300-29969-1-git-send-email-pablo@netfilter.org>
+Received: from smtp21.cstnet.cn ([159.226.251.21]:37533 "EHLO cstnet.cn"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751361AbcA2D2h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 Jan 2016 22:28:37 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This generates the same code as bridge does, but it includes this check
-in first place.
+I think hackers chould build a malicious h323 packet to overflow
+the pointer p which will panic during the memcpy(addr, p, len)
+For example, he may fabricate a very large taddr->ipAddress.ip;
+As suggested by Eric, this module is protected by a lock (nf_h323_lock)
+so adding a variable h323_buffer_valid_bytes that would contain
+the number of valid bytes would not require to change prototypes of
+get_h2x5_addr.
 
-  [ meta load iiftype => reg 1 ]
-  [ cmp eq reg 1 0x00000001 ]
+Signed-off-by: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Reviewed-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com> 
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tests/py/bridge/vlan.t                |   2 +
- tests/py/bridge/vlan.t.payload.netdev | 235 ++++++++++++++++++++++++++++++++++
- 2 files changed, 237 insertions(+)
- create mode 100644 tests/py/bridge/vlan.t.payload.netdev
+ net/netfilter/nf_conntrack_h323_main.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/tests/py/bridge/vlan.t b/tests/py/bridge/vlan.t
-index e7c75bb..526d7cc 100644
---- a/tests/py/bridge/vlan.t
-+++ b/tests/py/bridge/vlan.t
-@@ -1,6 +1,8 @@
- :input;type filter hook input priority 0
-+:ingress;type filter hook ingress device lo priority 0
+diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+index 9511af0..65d84bc 100644
+--- a/net/netfilter/nf_conntrack_h323_main.c
++++ b/net/netfilter/nf_conntrack_h323_main.c
+@@ -110,6 +110,11 @@ int (*nat_q931_hook) (struct sk_buff *skb,
  
- *bridge;test-bridge;input
-+*netdev;test-netdev;ingress
+ static DEFINE_SPINLOCK(nf_h323_lock);
+ static char *h323_buffer;
++static unsigned int h323_buffer_valid_bytes;
++/* check offset overflow and out of range data reference */
++#define CHECK_BOUND(p, n) ((n) > h323_buffer_valid_bytes ||		\
++			   ((void *)(p) + (n) - (void *)h323_buffer	\
++			    > h323_buffer_valid_bytes))
  
- vlan id 4094;ok
- vlan id 0;ok
-diff --git a/tests/py/bridge/vlan.t.payload.netdev b/tests/py/bridge/vlan.t.payload.netdev
-new file mode 100644
-index 0000000..62c7adf
---- /dev/null
-+++ b/tests/py/bridge/vlan.t.payload.netdev
-@@ -0,0 +1,235 @@
-+# vlan id 4094
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x0000fe0f ]
+ static struct nf_conntrack_helper nf_conntrack_helper_h245;
+ static struct nf_conntrack_helper nf_conntrack_helper_q931[];
+@@ -145,6 +150,7 @@ static int get_tpkt_data(struct sk_buff *skb, unsigned int protoff,
+ 
+ 	if (*data == NULL) {	/* first TPKT */
+ 		/* Get first TPKT pointer */
++		h323_buffer_valid_bytes = tcpdatalen;
+ 		tpkt = skb_header_pointer(skb, tcpdataoff, tcpdatalen,
+ 					  h323_buffer);
+ 		BUG_ON(tpkt == NULL);
+@@ -247,6 +253,9 @@ static int get_h245_addr(struct nf_conn *ct, const unsigned char *data,
+ 		return 0;
+ 	}
+ 
++	if (CHECK_BOUND(p, len + sizeof(__be16)))
++		return 0;
 +
-+# vlan id 0
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000000 ]
+ 	memcpy(addr, p, len);
+ 	memset((void *)addr + len, 0, sizeof(*addr) - len);
+ 	memcpy(port, p + len, sizeof(__be16));
+@@ -669,6 +678,9 @@ int get_h225_addr(struct nf_conn *ct, unsigned char *data,
+ 		return 0;
+ 	}
+ 
++	if (CHECK_BOUND(p, len + sizeof(__be16)))
++		return 0;
 +
-+# vlan id 4094 vlan cfi 0
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x0000fe0f ]
-+  [ payload load 1b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00000010 ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000000 ]
-+
-+# vlan id 4094 vlan cfi != 1
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x0000fe0f ]
-+  [ payload load 1b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00000010 ) ^ 0x00000000 ]
-+  [ cmp neq reg 1 0x00000010 ]
-+
-+# vlan id 4094 vlan cfi 1
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x0000fe0f ]
-+  [ payload load 1b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00000010 ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000010 ]
-+
-+# ether type vlan vlan id 4094
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x0000fe0f ]
-+
-+# ether type vlan vlan id 0
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000000 ]
-+
-+# ether type vlan vlan id 4094 vlan cfi 0
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x0000fe0f ]
-+  [ payload load 1b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00000010 ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000000 ]
-+
-+# ether type vlan vlan id 4094 vlan cfi 1
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x0000fe0f ]
-+  [ payload load 1b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00000010 ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000010 ]
-+
-+# vlan id 4094 tcp dport 22
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x0000fe0f ]
-+  [ meta load l4proto => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x00001600 ]
-+
-+# vlan id 1 ip saddr 10.0.0.1
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000100 ]
-+  [ payload load 2b @ link header + 16 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 4b @ network header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x0100000a ]
-+
-+# vlan id 1 ip saddr 10.0.0.0/23
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000100 ]
-+  [ payload load 2b @ link header + 16 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 4b @ network header + 12 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00feffff ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x0000000a ]
-+
-+# vlan id 1 ip saddr 10.0.0.0/23 udp dport 53
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000100 ]
-+  [ payload load 2b @ link header + 16 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 4b @ network header + 12 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00feffff ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x0000000a ]
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x00003500 ]
-+
-+# ether type vlan vlan id 1 ip saddr 10.0.0.0/23 udp dport 53
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000100 ]
-+  [ payload load 2b @ link header + 16 => reg 1 ]
-+  [ cmp eq reg 1 0x00000008 ]
-+  [ payload load 4b @ network header + 12 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00feffff ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x0000000a ]
-+  [ payload load 1b @ network header + 9 => reg 1 ]
-+  [ cmp eq reg 1 0x00000011 ]
-+  [ payload load 2b @ transport header + 2 => reg 1 ]
-+  [ cmp eq reg 1 0x00003500 ]
-+
-+# vlan id 4094 vlan cfi 1 vlan pcp 7
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x0000fe0f ]
-+  [ payload load 1b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00000010 ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000010 ]
-+  [ payload load 1b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000000e0 ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x000000e0 ]
-+
-+# vlan id 4094 vlan cfi 1 vlan pcp 3
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x0000fe0f ]
-+  [ payload load 1b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00000010 ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000010 ]
-+  [ payload load 1b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000000e0 ) ^ 0x00000000 ]
-+  [ cmp eq reg 1 0x00000060 ]
-+
-+# vlan id { 1, 2, 4, 100, 4095 } vlan pcp 1-3
-+set%d test-netdev 3
-+set%d test-netdev 0
-+	element 00000100  : 0 [end]	element 00000200  : 0 [end]	element 00000400  : 0 [end]	element 00006400  : 0 [end]	element 0000ff0f  : 0 [end]
-+netdev test-netdev ingress 
-+  [ meta load iiftype => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ link header + 12 => reg 1 ]
-+  [ cmp eq reg 1 0x00000081 ]
-+  [ payload load 2b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x0000ff0f ) ^ 0x00000000 ]
-+  [ lookup reg 1 set set%d ]
-+  [ payload load 1b @ link header + 14 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000000e0 ) ^ 0x00000000 ]
-+  [ cmp gte reg 1 0x00000001 ]
-+  [ cmp lte reg 1 0x00000003 ]
-+
+ 	memcpy(addr, p, len);
+ 	memset((void *)addr + len, 0, sizeof(*addr) - len);
+ 	memcpy(port, p + len, sizeof(__be16));
+@@ -1248,6 +1260,7 @@ static unsigned char *get_udp_data(struct sk_buff *skb, unsigned int protoff,
+ 	if (dataoff >= skb->len)
+ 		return NULL;
+ 	*datalen = skb->len - dataoff;
++	h323_buffer_valid_bytes = *datalen;
+ 	return skb_header_pointer(skb, dataoff, *datalen, h323_buffer);
+ }
+ 
 -- 
-2.1.4
+1.9.1
+
 
