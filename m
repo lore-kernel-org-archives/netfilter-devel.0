@@ -1,48 +1,88 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 0/3] meta: random match for statistic sampling
-Date: Tue,  2 Feb 2016 00:18:58 +0100
-Message-ID: <1454368741-16368-1-git-send-email-fw@strlen.de>
+Subject: [PATCH nft 1/3] evaluate: move default op lookup into helper
+Date: Tue,  2 Feb 2016 00:18:59 +0100
+Message-ID: <1454368741-16368-2-git-send-email-fw@strlen.de>
+References: <1454368741-16368-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35227 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35228 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750726AbcBAXVe (ORCPT
+	by vger.kernel.org with ESMTP id S1750726AbcBAXVh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Feb 2016 18:21:34 -0500
+	Mon, 1 Feb 2016 18:21:37 -0500
+In-Reply-To: <1454368741-16368-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Replacement for iptables -m statistic 'random' mode.
-I added it to meta match even though its not directly related to an skb
-member. We already have cpu match which isn't related to skb either and
-adding a new expression just for this seemed overkill.
+Split it into its own function, caller is already quite big.
 
-If you'd rather like a new prandom expression just let me know and
-I can rework it.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/evaluate.c | 43 ++++++++++++++++++++++---------------------
+ 1 file changed, 22 insertions(+), 21 deletions(-)
 
-There is also a libnftnl patch but its only so that debug output
-displays 'meta prandom' rather than 'meta unknown'.
+diff --git a/src/evaluate.c b/src/evaluate.c
+index ed78896..4d741e3 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1119,6 +1119,26 @@ static int binop_transfer(struct eval_ctx *ctx, struct expr **expr)
+ 	return 0;
+ }
+ 
++static enum ops expr_defaultop(const struct expr *e)
++{
++	switch (e->ops->type) {
++	case EXPR_RANGE:
++		return OP_RANGE;
++	case EXPR_SET:
++	case EXPR_SET_REF:
++		return OP_LOOKUP;
++	case EXPR_LIST:
++		return OP_FLAGCMP;
++	default:
++		if (e->dtype->basetype != NULL &&
++		    e->dtype->basetype->type == TYPE_BITMASK)
++			return OP_FLAGCMP;
++		break;
++	}
++
++	return OP_EQ;
++}
++
+ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
+ {
+ 	struct expr *rel = *expr, *left, *right;
+@@ -1131,27 +1151,8 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
+ 		return -1;
+ 	right = rel->right;
+ 
+-	if (rel->op == OP_IMPLICIT) {
+-		switch (right->ops->type) {
+-		case EXPR_RANGE:
+-			rel->op = OP_RANGE;
+-			break;
+-		case EXPR_SET:
+-		case EXPR_SET_REF:
+-			rel->op = OP_LOOKUP;
+-			break;
+-		case EXPR_LIST:
+-			rel->op = OP_FLAGCMP;
+-			break;
+-		default:
+-			if (right->dtype->basetype != NULL &&
+-			    right->dtype->basetype->type == TYPE_BITMASK)
+-				rel->op = OP_FLAGCMP;
+-			else
+-				rel->op = OP_EQ;
+-			break;
+-		}
+-	}
++	if (rel->op == OP_IMPLICIT)
++		rel->op = expr_defaultop(rel->right);
+ 
+ 	if (!expr_is_constant(right))
+ 		return expr_binary_error(ctx->msgs, right, rel,
+-- 
+2.4.10
 
-Result after several minutes of constant flooding:
-
-counter packets 2961796882 bytes 248790938088
-meta random <= 0.900000000 counter packets 2665649546 bytes 223914561864
-meta random <= 0.500000000 counter packets 1480856860 bytes 124391976240
-meta random <= 0.100000000 counter packets 296190072 bytes 24879966048
-meta random <= 0.010000000 counter packets 29618610 bytes 2487963240
-meta random <= 0.001000000 counter packets 2963660 bytes 248947440
-meta random <= 0.000100000 counter packets 295486 bytes 24820824
-meta random <= 0.000010000 counter packets 29450 bytes 2473800
-meta random <= 0.000001000 counter packets 2911 bytes 244524
-meta random <= 0.000000100 counter packets 267 bytes 22428
-meta random <= 0.000000010 counter packets 26 bytes 2184
-meta random <= 0.000000001 counter packets 4 bytes 336
-
-... so it seems to work as intended.
-
-Let me know if you spot any issues with current approach.
-
-Kernel part only does '*dest = prandom_u32()', I'll submit it once
-I know that this approach is deemed sane.
-
-Thanks!
