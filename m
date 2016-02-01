@@ -1,7 +1,8 @@
 From: =?UTF-8?q?Asbj=C3=B8rn=20Sloth=20T=C3=B8nnesen?= <ast@fiberby.dk>
-Subject: [PATCH conntrack 1/4] conntrack: split up nfct_set_addr_from_opt()
-Date: Mon,  1 Feb 2016 13:30:04 +0000
-Message-ID: <1454333407-6335-1-git-send-email-ast@fiberby.dk>
+Subject: [PATCH conntrack 4/4] tests: conntrack: add tests for CIDR notation
+Date: Mon,  1 Feb 2016 13:30:07 +0000
+Message-ID: <1454333407-6335-4-git-send-email-ast@fiberby.dk>
+References: <1454333407-6335-1-git-send-email-ast@fiberby.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
@@ -9,92 +10,50 @@ Cc: netfilter-devel@vger.kernel.org,
 	=?UTF-8?q?Asbj=C3=B8rn=20Sloth=20T=C3=B8nnesen?= <ast@fiberby.dk>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.asbjorn.biz ([185.38.24.25]:55842 "EHLO mail.asbjorn.biz"
+Received: from mail.asbjorn.biz ([185.38.24.25]:47413 "EHLO mail.asbjorn.biz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932225AbcBANin (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S932223AbcBANin (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 1 Feb 2016 08:38:43 -0500
+In-Reply-To: <1454333407-6335-1-git-send-email-ast@fiberby.dk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Prepare for CIDR support, by splitting nfct_set_addr_from_opt()
-into nfct_parse_addr_from_opt() for parsing
-and nfct_set_addr_opt() for storing.
-
 Signed-off-by: Asbj=C3=B8rn Sloth T=C3=B8nnesen <ast@fiberby.dk>
 ---
- src/conntrack.c | 33 ++++++++++++++++++++-------------
- 1 file changed, 20 insertions(+), 13 deletions(-)
+ tests/conntrack/testsuite/01delete | 4 ++++
+ tests/conntrack/testsuite/02filter | 2 ++
+ 2 files changed, 6 insertions(+)
 
-diff --git a/src/conntrack.c b/src/conntrack.c
-index 34785f3..a656b84 100644
---- a/src/conntrack.c
-+++ b/src/conntrack.c
-@@ -2083,18 +2083,10 @@ static void merge_bitmasks(struct nfct_bitmask =
-**current,
- }
-=20
- static void
--nfct_set_addr_from_opt(int opt, struct nf_conntrack *ct, union ct_addr=
-ess *ad,
--		       int *family)
-+nfct_set_addr_opt(int opt, struct nf_conntrack *ct, union ct_address *=
-ad,
-+                  int l3protonum)
- {
--	int l3protonum;
--
- 	options |=3D opt2type[opt];
--	l3protonum =3D parse_addr(optarg, ad);
--	if (l3protonum =3D=3D AF_UNSPEC) {
--		exit_error(PARAMETER_PROBLEM,
--			   "Invalid IP address `%s'", optarg);
--	}
--	set_family(family, l3protonum);
- 	switch(l3protonum) {
- 	case AF_INET:
- 		nfct_set_attr_u32(ct,
-@@ -2110,6 +2102,21 @@ nfct_set_addr_from_opt(int opt, struct nf_conntr=
-ack *ct, union ct_address *ad,
- 	nfct_set_attr_u8(ct, opt2attr[opt], l3protonum);
- }
-=20
-+static void
-+nfct_parse_addr_from_opt(int opt, struct nf_conntrack *ct,
-+                         union ct_address *ad, int *family)
-+{
-+	int l3protonum;
-+
-+	l3protonum =3D parse_addr(optarg, ad);
-+	if (l3protonum =3D=3D AF_UNSPEC) {
-+		exit_error(PARAMETER_PROBLEM,
-+			   "Invalid IP address `%s'", optarg);
-+	}
-+	set_family(family, l3protonum);
-+	nfct_set_addr_opt(opt, ct, ad, l3protonum);
-+}
-+
- int main(int argc, char *argv[])
- {
- 	int c, cmd;
-@@ -2188,15 +2195,15 @@ int main(int argc, char *argv[])
- 		case 'd':
- 		case 'r':
- 		case 'q':
--			nfct_set_addr_from_opt(c, tmpl.ct, &ad, &family);
-+			nfct_parse_addr_from_opt(c, tmpl.ct, &ad, &family);
- 			break;
- 		case '[':
- 		case ']':
--			nfct_set_addr_from_opt(c, tmpl.exptuple, &ad, &family);
-+			nfct_parse_addr_from_opt(c, tmpl.exptuple, &ad, &family);
- 			break;
- 		case '{':
- 		case '}':
--			nfct_set_addr_from_opt(c, tmpl.mask, &ad, &family);
-+			nfct_parse_addr_from_opt(c, tmpl.mask, &ad, &family);
- 			break;
- 		case 'p':
- 			options |=3D CT_OPT_PROTO;
+diff --git a/tests/conntrack/testsuite/01delete b/tests/conntrack/tests=
+uite/01delete
+index 566b89f..194d999 100644
+--- a/tests/conntrack/testsuite/01delete
++++ b/tests/conntrack/testsuite/01delete
+@@ -10,3 +10,7 @@
+ -D -s 1.1.1.0 --mask-src 255.255.255.0 -d 2.2.2.0 --mask-dst 255.255.2=
+55.0 ; OK
+ # fails due to 0 matches
+ -D -s 1.1.1.0 --mask-src 255.255.255.0 -d 2.2.2.0 --mask-dst 255.255.2=
+55.0 ; BAD
++# re-create dummy
++-I -s 1.1.1.1 -d 2.2.2.2 -p tcp --sport 10 --dport 20 --state LISTEN -=
+u SEEN_REPLY -t 50 ; OK
++# try same command again but with CIDR
++-D -s 1.1.1.0/24 -d 2.2.2.0/24 ; OK
+diff --git a/tests/conntrack/testsuite/02filter b/tests/conntrack/tests=
+uite/02filter
+index 5d2270b..58ed070 100644
+--- a/tests/conntrack/testsuite/02filter
++++ b/tests/conntrack/testsuite/02filter
+@@ -21,5 +21,7 @@ conntrack -L --mark 0 ; OK
+ conntrack -L --mark 0/0xffffffff; OK
+ # filter by netmask
+ conntrack -L -s 1.1.1.0 --mask-src 255.255.255.0 -d 2.0.0.0 --mask-dst=
+ 255.0.0.0 ; OK
++conntrack -L -s 1.1.1.4/24 -d 2.3.4.5/8 ; OK
++conntrack -L -s 1.1.2.0/24 -d 2.3.4.5/8 ; BAD
+ # delete dummy
+ conntrack -D -d 2.2.2.2 ; OK
 --=20
 2.6.4
 
