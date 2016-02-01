@@ -1,59 +1,62 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] netlink_delinearize: prune implicit binop before payload_match_postprocess()
-Date: Mon,  1 Feb 2016 14:32:45 +0100
-Message-ID: <1454333565-2108-1-git-send-email-pablo@netfilter.org>
-Cc: fw@strlen.de
-To: netfilter-devel@vger.kernel.org
+From: =?iso-8859-1?q?Asbj=F8rn_Sloth_T=F8nnesen?= <ast@fiberby.dk>
+Subject: Re: [PATCH conntrack 4/5 v2] conntrack: add support for netmask
+ filtering
+Date: Mon, 01 Feb 2016 12:17:02 +0000
+Message-ID: <1454329022.4393.1@x201s.roaming.asbjorn.biz>
+References: <20160201110423.GH8095@salvia>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="=-XQgFMfpATaGigVe22NUd"
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49415 "EHLO mail.us.es"
+Received: from mail.asbjorn.biz ([185.38.24.25]:50423 "EHLO mail.asbjorn.biz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932219AbcBANdB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Feb 2016 08:33:01 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 271FC6C26
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Feb 2016 14:33:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 159C4DA811
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Feb 2016 14:33:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E1F0EDA860
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Feb 2016 14:32:57 +0100 (CET)
+	id S932110AbcBANin (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Feb 2016 08:38:43 -0500
+In-Reply-To: <20160201110423.GH8095@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-payload_match_postprocess() expects a relational with payload of his lhs
-and value on the rhs.
+--=-XQgFMfpATaGigVe22NUd
+Content-Type: text/plain; charset=UTF-8
 
-Moreover, payload_match_expand() releases the previous expression so
-valgrind reports an use-after-free when pruning the implicit binop.
+Hi Pablo,
 
-Fix this by calling payload_match_postprocess() in first place.
+On Mon, 1 Feb 2016 12:04:23 +0100, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Mon, Jan 25, 2016 at 11:15:47AM +0000, Asbjørn Sloth Tønnesen wrote:
+> > This patch extends --mask-src and --mask-dst to also work
+> > with the conntrack table, with commands -L, -D, -E and -U.
+> > 
+> > Signed-off-by: Asbjørn Sloth Tønnesen <ast@fiberby.dk>
+> > ---
+> > 
+> > Notes:
+> >     This is almost completely backward compatible,
+> >     since the --mask-* arguments previously gave
+> >     an error is used with these commands and the
+> >     conntrack table.
+> >     
+> >     I have changed the global_family to filter_family,
+> >     and it is only used to pass the family to the callback,
+> >     the alternative would be to change the data argument of
+> >     the callbacks to a struct.
+> 
+> I see changes with regards to previous patchset, not we don't use
+> cidr. I think this is better since it allows a more compact way.
+> 
+> I prefer the cidr-based approach, any reason to drop it?
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/netlink_delinearize.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+I decided to split them up in several patchsets, each having its
+own merits. The netmask and CIDR patches are related, but one is about
+filtering, and the other about adding some sugar to the option parsing.
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index 7d94f30..ae6abb0 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -1229,13 +1229,12 @@ static void binop_postprocess(struct rule_pp_ctx *ctx, struct expr *expr)
- 			value->len = payload->len;
- 		}
- 
--		payload_match_postprocess(ctx, expr, payload);
--
- 		assert(expr->left->ops->type == EXPR_BINOP);
--
- 		assert(binop->left == payload);
- 		expr->left = expr_get(payload);
- 		expr_free(binop);
-+
-+		payload_match_postprocess(ctx, expr, payload);
- 	}
- }
- 
+BTW: I mistakenly also marked the test patch v2, but this only is the only one
+in this patchset from the old one.
+
 -- 
-2.1.4
+Best regards
+Asbjørn Sloth Tønnesen
+Network Engineer
+Fiberby ApS - AS42541
 
+--=-XQgFMfpATaGigVe22NUd--
