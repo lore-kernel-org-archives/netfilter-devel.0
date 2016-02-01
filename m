@@ -1,44 +1,59 @@
-From: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: =?utf-8?Q?=D0=9A=D0=BB=D0=B8=D0=B5=D0=BD=D1=82=D1=81=D0?=
-	=?utf-8?Q?=BA=D0=B8=D0=B5_=D0=B1=D0=B0=D0=B7=D1=8B!!!_=D0?=
-	=?utf-8?Q?=A2=D0=B5=D0=BB=5CViber=5CWhatsapp=3A+791339138?=
-	=?utf-8?Q?37_Skype=3Aprodawez389_Email=3Azradionova92=40g?=
-	=?utf-8?Q?mail=2Ecom_=D0=A3=D0=B7=D0=BD=D0=B0=D0=B9=D1=82?=
-	=?utf-8?Q?=D0=B5_=D0=BF=D0=BE=D0=B4=D1=80=D0=BE=D0=B1=D0?=
-	=?utf-8?Q?=BD=D0=B5=D0=B5!!!?=
-Date: Mon, 1 Feb 2016 10:22:43 +0600
-Message-ID: <BF454CD57DA98645999CD56A9EB02C60@vger.kernel.org>
-Reply-To: "netfilter-devel@vger.kernel.org" <nonen22pp@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] netlink_delinearize: prune implicit binop before payload_match_postprocess()
+Date: Mon,  1 Feb 2016 14:32:45 +0100
+Message-ID: <1454333565-2108-1-git-send-email-pablo@netfilter.org>
+Cc: fw@strlen.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from static-200-94-75-212.alestra.net.mx ([200.94.75.212]:45620 "EHLO
-	localhost.localdomain" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753567AbcBALpj (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Feb 2016 06:45:39 -0500
-Received: from 200.94.75.212 (localhost [IPv6:::1])
-	by localhost.localdomain (Postfix) with SMTP id 3223C8EF6A89
-	for <netfilter-devel@vger.kernel.org>; Sun, 31 Jan 2016 22:22:45 -0600 (CST)
+Received: from mail.us.es ([193.147.175.20]:49415 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932219AbcBANdB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Feb 2016 08:33:01 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 271FC6C26
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Feb 2016 14:33:00 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 159C4DA811
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Feb 2016 14:33:00 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id E1F0EDA860
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Feb 2016 14:32:57 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=D0=A1=D0=BE=D0=B1=D0=B5=D1=80=D0=B5=D0=BC =D0=B4=D0=BB=D1=8F =D0=92=D0=
-=B0=D1=81 =D0=BF=D0=BE =D0=B8=D0=BD=D1=82=D0=B5=D1=80=D0=BD=D0=B5=D1=82=
- =D0=B1=D0=B0=D0=B7=D1=83 =D0=B4=D0=B0=D0=BD=D0=BD=D1=8B=D1=85 =D0=BF=D0=
-=BE=D1=82=D0=B5=D0=BD=D1=86=D0=B8=D0=B0=D0=BB=D1=8C=D0=BD=D1=8B=D1=85 =D0=
-=BA=D0=BB=D0=B8=D0=B5=D0=BD=D1=82=D0=BE=D0=B2 =D0=B4=D0=BB=D1=8F =D0=92=
-=D0=B0=D1=88=D0=B5=D0=B3=D0=BE =D0=91=D0=B8=D0=B7=D0=BD=D0=B5=D1=81=D0=B0=
-!!! =D0=9C=D0=BD=D0=BE=D0=B3=D0=BE! =D0=91=D1=8B=D1=81=D1=82=D1=80=D0=BE=
-! =D0=9D=D0=B5 =D0=B4=D0=BE=D1=80=D0=BE=D0=B3=D0=BE! =D0=A3=D0=B7=D0=BD=
-=D0=B0=D0=B9=D1=82=D0=B5 =D0=BE=D0=B1 =D1=8D=D1=82=D0=BE=D0=BC =D0=BF=D0=
-=BE=D0=B4=D1=80=D0=BE=D0=B1=D0=BD=D0=B5=D0=B5 =D0=BF=D0=BE =D0=A2=D0=B5=
-=D0=BB\Viber\Whatsapp:+79133913837 Skype:prodawez389 Email:gdrozdova37@=
-gmail.com =20
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+payload_match_postprocess() expects a relational with payload of his lhs
+and value on the rhs.
+
+Moreover, payload_match_expand() releases the previous expression so
+valgrind reports an use-after-free when pruning the implicit binop.
+
+Fix this by calling payload_match_postprocess() in first place.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/netlink_delinearize.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 7d94f30..ae6abb0 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1229,13 +1229,12 @@ static void binop_postprocess(struct rule_pp_ctx *ctx, struct expr *expr)
+ 			value->len = payload->len;
+ 		}
+ 
+-		payload_match_postprocess(ctx, expr, payload);
+-
+ 		assert(expr->left->ops->type == EXPR_BINOP);
+-
+ 		assert(binop->left == payload);
+ 		expr->left = expr_get(payload);
+ 		expr_free(binop);
++
++		payload_match_postprocess(ctx, expr, payload);
+ 	}
+ }
+ 
+-- 
+2.1.4
+
