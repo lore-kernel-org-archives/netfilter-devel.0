@@ -1,43 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] comment: Add translation to nft
-Date: Mon, 1 Feb 2016 19:44:36 +0100
-Message-ID: <20160201184436.GA18854@salvia>
-References: <20160201060152.GA10787@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nft] meta: fix error checks in tc handle parser
+Date: Mon, 1 Feb 2016 21:02:43 +0100
+Message-ID: <20160201200243.GB19789@breakpoint.cc>
+References: <1454324556-29019-1-git-send-email-fw@strlen.de>
+ <20160201175330.GA2355@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56639 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752061AbcBASon (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Feb 2016 13:44:43 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 572F261E9C
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Feb 2016 19:44:42 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 489C7DA85D
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Feb 2016 19:44:42 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 2EE70DA862
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Feb 2016 19:44:37 +0100 (CET)
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34796 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753450AbcBAUCp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Feb 2016 15:02:45 -0500
 Content-Disposition: inline
-In-Reply-To: <20160201060152.GA10787@gmail.com>
+In-Reply-To: <20160201175330.GA2355@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Feb 01, 2016 at 11:31:52AM +0530, Shivani Bhardwaj wrote:
-> Add translation for match comment to nftables.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Mon, Feb 01, 2016 at 12:02:36PM +0100, Florian Westphal wrote:
+> > 'meta priority foobar' did not return an error -- instead
+> > we used min/max values with undefined content.
+> > 
+> > Signed-off-by: Florian Westphal <fw@strlen.de>
 > 
-> Example:
-> 
-> $ sudo iptables-translate -A INPUT -s 192.168.0.0 -m comment --comment "A privatized IP block"
-> nft add rule ip filter INPUT ip saddr 192.168.0.0 counter comment \"A privatized IP block\"
+> Fine with me. IIRC, the scanner is still broken though.
 
-Could you rework this patch on top of these:
+Ho-hum.  It is.  And I don't see how this can be fixed.
+Teaching scanner.l about
 
-http://patchwork.ozlabs.org/patch/576671/
-http://patchwork.ozlabs.org/patch/576673/
-http://patchwork.ozlabs.org/patch/576672/
+tchandle       {hexdigit}{4}:{hexdigit}{4}
 
-I have only compile-tested them.
+breaks
+
+tcp sport vmap { 1225:accept, }
+
+( 1225:acc is handle).
+
