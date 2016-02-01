@@ -1,57 +1,75 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net] nftables: use list_for_each_entry_safe_reverse to
- traversal commit_list in nf_tables_abort
-Date: Mon, 1 Feb 2016 12:08:23 +0100
-Message-ID: <20160201110823.GA8361@salvia>
-References: <15bcb964221e1a9498e901417d020609cd5aac65.1449485287.git.lucien.xin@gmail.com>
- <20151209140330.GA1695@salvia>
- <CADvbK_dmqu4aFhQa2FVu=_RAVrSZ6qSixfGN9EM2dZ20CeQqUA@mail.gmail.com>
- <20151213214709.GA1827@salvia>
- <CADvbK_dRmfuJj2ZzueUhSgP4za8A2J1nn9eJvq1fncWsbGGuqA@mail.gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH conntrack 1/5] conntrack: support delete by label
+Date: Mon, 1 Feb 2016 12:20:47 +0100
+Message-ID: <20160201112047.GB540@breakpoint.cc>
+References: <1453720548-14413-1-git-send-email-ast@fiberby.dk>
+ <20160201110222.GE8095@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: network dev <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org, davem <davem@davemloft.net>,
-	fw@strlen.de
-To: Xin Long <lucien.xin@gmail.com>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: =?iso-8859-15?Q?Asbj=F8rn_Sloth_T=F8nnesen?= <ast@fiberby.dk>,
+	netfilter-devel@vger.kernel.org, fw@strlen.de
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58810 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752956AbcBALI1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Feb 2016 06:08:27 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 83533C8812
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Feb 2016 12:08:26 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 7327EDA870
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Feb 2016 12:08:26 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 7E293DA86B
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Feb 2016 12:08:24 +0100 (CET)
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33467 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753583AbcBALUy (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Feb 2016 06:20:54 -0500
 Content-Disposition: inline
-In-Reply-To: <CADvbK_dRmfuJj2ZzueUhSgP4za8A2J1nn9eJvq1fncWsbGGuqA@mail.gmail.com>
+In-Reply-To: <20160201110222.GE8095@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Feb 01, 2016 at 06:47:33PM +0800, Xin Long wrote:
-> >
-> > No need to resend.
-> >
-> > Yes, we need this reverse iteration there to handle the 'delete table'
-> > command in the batch. This problem happens since we have
-> > nft_flush_table().
-> >
-> > Other callsites are artificially restriction deletion of inactive
-> > objects but that should be removed as we already discuss on the
-> > mailing list.
-> >
-> > So I'm applying this, thanks.
-> 
-> Hi Pablo, has this one been applied ?
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Mon, Jan 25, 2016 at 11:15:44AM +0000, Asbj=F8rn Sloth T=F8nnesen =
+wrote:
+> > This option was already silently allowed by 991fc4ae,
+> > but didn't have any effect.
+> >=20
+> > This patch adds the check and documents it.
+>=20
+> Applied, thanks.
+>=20
+> > Cc: Clemence Faure <clemence.faure@sophos.com>
+> > Signed-off-by: Asbj=F8rn Sloth T=F8nnesen <ast@fiberby.dk>
+> > ---
+> >=20
+> > Notes:
+> >     I tried to create a test case, as well but I didn't
+> >     seam to be able to get --label-add to work with
+> >     create.
 
-commit a907e36d54e0ff836e55e04531be201bf6b4d8c8
-Author: Xin Long <lucien.xin@gmail.com>
-Date:   Mon Dec 7 18:48:07 2015 +0800
+It only works if a -m connlabel rule exists on the system at the moment=
+=2E
 
-    netfilter: nf_tables: use reverse traversal commit_list in nf_tables_abort
+https://patchwork.ozlabs.org/patch/553363/
 
+extends it to nftables.
+
+> Cc'ing Florian. I think it would be good to have a test for this labe=
+l
+> support for conntrack.
+
+Right.  We could just add
+
+nf_connlabels_get(ctx->net, (len * BITS_PER_BYTE) - 1);
+
+When attempting to add a label via ctnetlink and label support
+isn't active.
+
+However, unlike the nft/xtables path this would be one-way:
+
+When you have a ruleset that uses -m connlabel, then flush/delete the
+ruleset the extension will not be added to new conntracks anymore
+since ->destroy() hook invocation will _put the connlabel extension
+usage count.
+
+=46or ctnetlink there is no such thing unfortunately (unless we'd add
+refcnts to the individual conntracks but thats something I don't want
+to do since it seems ridiculously expensive with no real gain).
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
