@@ -1,41 +1,110 @@
-From: Weidong Wang <wangweidong1@huawei.com>
-Subject: Re: [PATCH net-next] netfilter: nf_conntrack: remove the unneed check
- for *bucket
-Date: Sun, 31 Jan 2016 11:37:07 +0800
-Message-ID: <56AD8163.4050309@huawei.com>
-References: <56ACABBC.9050303@huawei.com> <20160130213003.GA13560@breakpoint.cc>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH] comment: Add translation to nft
+Date: Mon, 1 Feb 2016 11:31:52 +0530
+Message-ID: <20160201060152.GA10787@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: <pablo@netfilter.org>, <kaber@trash.net>,
-	<kadlec@blackhole.kfki.hu>, David Miller <davem@davemloft.net>,
-	<netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>,
-	<netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160130213003.GA13560@breakpoint.cc>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:32878 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750734AbcBAGCA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Feb 2016 01:02:00 -0500
+Received: by mail-pa0-f45.google.com with SMTP id cy9so76141409pac.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 31 Jan 2016 22:02:00 -0800 (PST)
+Received: from gmail.com ([106.204.142.24])
+        by smtp.gmail.com with ESMTPSA id tv6sm39923927pab.4.2016.01.31.22.01.57
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Sun, 31 Jan 2016 22:01:58 -0800 (PST)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2016/1/31 5:30, Florian Westphal wrote:
-> Weidong Wang <wangweidong1@huawei.com> wrote:
->> In the 'for(...) {}', the *bucket alwasy < net->ct.htable_size,
->> so remove the check
->> @@ -1383,14 +1383,12 @@ get_next_corpse(struct net *net, int (*iter)(struct nf_conn *i, void *data),
->>  		lockp = &nf_conntrack_locks[*bucket % CONNTRACK_LOCKS];
->>  		local_bh_disable();
->>  		spin_lock(lockp);
->> -		if (*bucket < net->ct.htable_size) {
-> 
-> AFAIU net->ct.htable_size can shrink between for-test and aquiring
-> the bucket lockp, so this additional if-test is needed.
-> 
+Add translation for match comment to nftables.
 
-ok, Got it.
-So ignore this patch.
+Example:
 
-Regards,
-Weidong
+$ sudo iptables-translate -A INPUT -s 192.168.0.0 -m comment --comment "A privatized IP block"
+nft add rule ip filter INPUT ip saddr 192.168.0.0 counter comment \"A privatized IP block\"
 
-> .
-> 
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+ extensions/libxt_comment.c | 13 +++++++++++++
+ iptables/nft-ipv4.c        | 17 +++++++++++++++--
+ 2 files changed, 28 insertions(+), 2 deletions(-)
+
+diff --git a/extensions/libxt_comment.c b/extensions/libxt_comment.c
+index 6ed2ff9..e80336c 100644
+--- a/extensions/libxt_comment.c
++++ b/extensions/libxt_comment.c
+@@ -48,6 +48,18 @@ comment_save(const void *ip, const struct xt_entry_match *match)
+ 	xtables_save_string(commentinfo->comment);
+ }
+ 
++static int
++comment_xlate(const struct xt_entry_match *match,
++	      struct xt_buf *buf, int numeric)
++{
++	struct xt_comment_info *commentinfo = (void *)match->data;
++
++	commentinfo->comment[XT_MAX_COMMENT_LEN-1] = '\0';
++	xt_buf_add(buf, "comment \\\"%s\\\" ", commentinfo->comment);
++
++	return 1;
++}
++
+ static struct xtables_match comment_match = {
+ 	.family		= NFPROTO_UNSPEC,
+ 	.name		= "comment",
+@@ -59,6 +71,7 @@ static struct xtables_match comment_match = {
+ 	.save 		= comment_save,
+ 	.x6_parse	= xtables_option_parse,
+ 	.x6_options	= comment_opts,
++	.xlate		= comment_xlate,
+ };
+ 
+ void _init(void)
+diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
+index ede8f17..612b4f6 100644
+--- a/iptables/nft-ipv4.c
++++ b/iptables/nft-ipv4.c
+@@ -433,6 +433,7 @@ static int nft_ipv4_xlate(const void *data, struct xt_buf *buf)
+ {
+ 	const struct iptables_command_state *cs = data;
+ 	int ret;
++	bool comm = false;
+ 
+ 	if (cs->fw.ip.iniface[0] != '\0') {
+ 		xt_buf_add(buf, "iifname %s%s ",
+@@ -477,12 +478,24 @@ static int nft_ipv4_xlate(const void *data, struct xt_buf *buf)
+ 			   inet_ntoa(cs->fw.ip.dst));
+ 	}
+ 
++	/*
++	 * Add counter for match comment as prefix
++	 */
++	if (strcmp(cs->matches->match->name, "comment") == 0) {
++		comm = true;
++		xt_buf_add(buf, "counter ");
++	}
++
+ 	ret = xlate_matches(cs, buf);
+ 	if (!ret)
+ 		return ret;
+ 
+-	/* Always add counters per rule, as in iptables */
+-	xt_buf_add(buf, "counter ");
++	/*
++	 * Always add counters per rule, as in iptables
++	 * except for the match comment
++	 */
++	if (!comm)
++		xt_buf_add(buf, "counter ");
+ 
+ 	ret = xlate_action(cs, !!(cs->fw.ip.flags & IPT_F_GOTO), buf);
+ 
+-- 
+1.9.1
+
