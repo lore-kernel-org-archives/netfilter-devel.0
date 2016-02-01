@@ -1,59 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH conntrack 4/5 v2] conntrack: add support for netmask
- filtering
-Date: Mon, 1 Feb 2016 12:04:23 +0100
-Message-ID: <20160201110423.GH8095@salvia>
-References: <1453720548-14413-1-git-send-email-ast@fiberby.dk>
- <1453720548-14413-4-git-send-email-ast@fiberby.dk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: =?iso-8859-1?Q?Asbj=F8rn_Sloth_T=F8nnesen?= <ast@fiberby.dk>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] meta: fix error checks in tc handle parser
+Date: Mon,  1 Feb 2016 12:02:36 +0100
+Message-ID: <1454324556-29019-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57177 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753475AbcBALEf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Feb 2016 06:04:35 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id E6ED4303D0D
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Feb 2016 12:04:34 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id D6C6EDA808
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Feb 2016 12:04:34 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E2C48DA808
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Feb 2016 12:04:32 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1453720548-14413-4-git-send-email-ast@fiberby.dk>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33284 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753328AbcBALFK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Feb 2016 06:05:10 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jan 25, 2016 at 11:15:47AM +0000, Asbj=F8rn Sloth T=F8nnesen wr=
-ote:
-> This patch extends --mask-src and --mask-dst to also work
-> with the conntrack table, with commands -L, -D, -E and -U.
->=20
-> Signed-off-by: Asbj=F8rn Sloth T=F8nnesen <ast@fiberby.dk>
-> ---
->=20
-> Notes:
->     This is almost completely backward compatible,
->     since the --mask-* arguments previously gave
->     an error is used with these commands and the
->     conntrack table.
->    =20
->     I have changed the global_family to filter_family,
->     and it is only used to pass the family to the callback,
->     the alternative would be to change the data argument of
->     the callbacks to a struct.
+'meta priority foobar' did not return an error -- instead
+we used min/max values with undefined content.
 
-I see changes with regards to previous patchset, not we don't use
-cidr. I think this is better since it allows a more compact way.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/meta.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-I prefer the cidr-based approach, any reason to drop it?
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/src/meta.c b/src/meta.c
+index 8cbc974..7f12f0c 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -100,17 +100,17 @@ static struct error_record *tchandle_type_parse(const struct expr *sym,
+ 	else if (strcmp(sym->identifier, "none") == 0)
+ 		handle = TC_H_UNSPEC;
+ 	else if (sym->identifier[0] == ':') {
+-		if (sscanf(sym->identifier, ":%04x", &handle) < 0)
++		if (sscanf(sym->identifier, ":%04x", &handle) != 1)
+ 			goto err;
+ 	} else if (sym->identifier[strlen(sym->identifier)-1] == ':') {
+-		if (sscanf(sym->identifier, "%04x:", &handle) < 0)
++		if (sscanf(sym->identifier, "%04x:", &handle) != 1)
+ 			goto err;
+ 
+ 		handle <<= 16;
+ 	} else {
+ 		uint32_t min, max;
+ 
+-		if (sscanf(sym->identifier, "%04x:%04x", &min, &max) < 0)
++		if (sscanf(sym->identifier, "%04x:%04x", &min, &max) != 2)
+ 			goto err;
+ 
+ 		handle = max << 16 | min;
+-- 
+2.4.10
+
