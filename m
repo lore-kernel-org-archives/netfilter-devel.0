@@ -1,41 +1,48 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nft] meta: fix error checks in tc handle parser
-Date: Mon, 1 Feb 2016 21:02:43 +0100
-Message-ID: <20160201200243.GB19789@breakpoint.cc>
-References: <1454324556-29019-1-git-send-email-fw@strlen.de>
- <20160201175330.GA2355@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 0/3] meta: random match for statistic sampling
+Date: Tue,  2 Feb 2016 00:18:58 +0100
+Message-ID: <1454368741-16368-1-git-send-email-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34796 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35227 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753450AbcBAUCp (ORCPT
+	by vger.kernel.org with ESMTP id S1750726AbcBAXVe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Feb 2016 15:02:45 -0500
-Content-Disposition: inline
-In-Reply-To: <20160201175330.GA2355@salvia>
+	Mon, 1 Feb 2016 18:21:34 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Mon, Feb 01, 2016 at 12:02:36PM +0100, Florian Westphal wrote:
-> > 'meta priority foobar' did not return an error -- instead
-> > we used min/max values with undefined content.
-> > 
-> > Signed-off-by: Florian Westphal <fw@strlen.de>
-> 
-> Fine with me. IIRC, the scanner is still broken though.
+Replacement for iptables -m statistic 'random' mode.
+I added it to meta match even though its not directly related to an skb
+member. We already have cpu match which isn't related to skb either and
+adding a new expression just for this seemed overkill.
 
-Ho-hum.  It is.  And I don't see how this can be fixed.
-Teaching scanner.l about
+If you'd rather like a new prandom expression just let me know and
+I can rework it.
 
-tchandle       {hexdigit}{4}:{hexdigit}{4}
+There is also a libnftnl patch but its only so that debug output
+displays 'meta prandom' rather than 'meta unknown'.
 
-breaks
+Result after several minutes of constant flooding:
 
-tcp sport vmap { 1225:accept, }
+counter packets 2961796882 bytes 248790938088
+meta random <= 0.900000000 counter packets 2665649546 bytes 223914561864
+meta random <= 0.500000000 counter packets 1480856860 bytes 124391976240
+meta random <= 0.100000000 counter packets 296190072 bytes 24879966048
+meta random <= 0.010000000 counter packets 29618610 bytes 2487963240
+meta random <= 0.001000000 counter packets 2963660 bytes 248947440
+meta random <= 0.000100000 counter packets 295486 bytes 24820824
+meta random <= 0.000010000 counter packets 29450 bytes 2473800
+meta random <= 0.000001000 counter packets 2911 bytes 244524
+meta random <= 0.000000100 counter packets 267 bytes 22428
+meta random <= 0.000000010 counter packets 26 bytes 2184
+meta random <= 0.000000001 counter packets 4 bytes 336
 
-( 1225:acc is handle).
+... so it seems to work as intended.
 
+Let me know if you spot any issues with current approach.
+
+Kernel part only does '*dest = prandom_u32()', I'll submit it once
+I know that this approach is deemed sane.
+
+Thanks!
