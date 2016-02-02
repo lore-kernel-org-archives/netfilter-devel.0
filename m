@@ -1,98 +1,74 @@
-From: Zhouyi Zhou <zhouzhouyi@gmail.com>
-Subject: [PATCH V6] netfilter: h323: avoid potential attack
-Date: Tue,  2 Feb 2016 21:40:04 +0800
-Message-ID: <1454420404-347-1-git-send-email-zhouzhouyi@gmail.com>
-Cc: Zhouyi Zhou <zhouzhouyi@gmail.com>,
-	Zhouyi Zhou <yizhouzhou@ict.ac.cn>
-To: eric.dumazet@gmail.com, pablo@netfilter.org, kaber@trash.net,
-	kadlec@blackhole.kfki.hu, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org, fw@strlen.de,
-	gnomes@lxorguk.ukuu.org.uk, sergei.shtylyov@cogentembedded.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: =?iso-8859-1?q?Asbj=F8rn_Sloth_T=F8nnesen?= <ast@fiberby.dk>
+Subject: Re: [PATCH conntrack 4/5 v2] conntrack: add support for netmask
+ filtering
+Date: Tue, 02 Feb 2016 15:55:53 +0000
+Message-ID: <1454419553.4393.4@x201s.roaming.asbjorn.biz>
+References: <20160201175625.GA2421@salvia>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="=-W5f3DgdCPI54c7r9tqVV"
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.asbjorn.biz ([185.38.24.25]:38843 "EHLO mail.asbjorn.biz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933399AbcBBQAe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Feb 2016 11:00:34 -0500
+In-Reply-To: <20160201175625.GA2421@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-I think hackers chould build a malicious h323 packet to overflow
-the pointer p which will panic during the memcpy(addr, p, len)
-For example, he may fabricate a very large taddr->ipAddress.ip.
+--=-W5f3DgdCPI54c7r9tqVV
+Content-Type: text/plain; charset=UTF-8
 
-In order to avoid this, I add a valid memory reference check in
- get_h2x5_addr functions.
+Hi Pablo,
 
-As suggested by Eric, this module is protected by a lock (nf_h323_lock)
-so adding a variable h323_buffer_valid_bytes that would contain
-the number of valid bytes would not require to change prototypes of
-get_h2x5_addr.
+On Mon, 1 Feb 2016 18:56:25 +0100, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Mon, Feb 01, 2016 at 12:17:02PM +0000, Asbjørn Sloth Tønnesen wrote:
+> > On Mon, 1 Feb 2016 12:04:23 +0100, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > On Mon, Jan 25, 2016 at 11:15:47AM +0000, Asbjørn Sloth Tønnesen wrote:
+> > > > This patch extends --mask-src and --mask-dst to also work
+> > > > with the conntrack table, with commands -L, -D, -E and -U.
+> > > > 
+> > > > Signed-off-by: Asbjørn Sloth Tønnesen <ast@fiberby.dk>
+> > > > ---
+> > > > 
+> > > > Notes:
+> > > >     This is almost completely backward compatible,
+> > > >     since the --mask-* arguments previously gave
+> > > >     an error is used with these commands and the
+> > > >     conntrack table.
+> > > >     
+> > > >     I have changed the global_family to filter_family,
+> > > >     and it is only used to pass the family to the callback,
+> > > >     the alternative would be to change the data argument of
+> > > >     the callbacks to a struct.
+> > > 
+> > > I see changes with regards to previous patchset, not we don't use
+> > > cidr. I think this is better since it allows a more compact way.
+> > > 
+> > > I prefer the cidr-based approach, any reason to drop it?
+> > 
+> > I decided to split them up in several patchsets, each having its
+> > own merits. The netmask and CIDR patches are related, but one is about
+> > filtering, and the other about adding some sugar to the option parsing.
+> 
+> But we don't get anything with this extra option since it's basically
+> equivalent to the cidr based filtering, right?
 
-Thanks Sergei for reviewing.
+Except backwards compatability for the expectation table, on the other hand
+--mask-* has been broken since August, but thats only v1.4.3 so properly not
+long enough to just drop it.
 
-Signed-off-by: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
----
- net/netfilter/nf_conntrack_h323_main.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+Since the filtering internally uses a bitmask in ct.mask, then keeping the --mask-*
+option for all cases is simpler, since it uses the same option flags.
 
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 9511af0..8d24c4b 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -110,6 +110,21 @@ int (*nat_q931_hook) (struct sk_buff *skb,
- 
- static DEFINE_SPINLOCK(nf_h323_lock);
- static char *h323_buffer;
-+static int h323_buffer_valid_bytes;
-+
-+static bool h323_buffer_ref_valid(void *p, int len)
-+{
-+	if ((unsigned long)len > h323_buffer_valid_bytes)
-+		return false;
-+
-+	if (p + len > (void *)h323_buffer + h323_buffer_valid_bytes)
-+		return false;
-+
-+	if (p < (void *)h323_buffer)
-+		return false;
-+
-+	return true;
-+}
- 
- static struct nf_conntrack_helper nf_conntrack_helper_h245;
- static struct nf_conntrack_helper nf_conntrack_helper_q931[];
-@@ -145,6 +160,7 @@ static int get_tpkt_data(struct sk_buff *skb, unsigned int protoff,
- 
- 	if (*data == NULL) {	/* first TPKT */
- 		/* Get first TPKT pointer */
-+		h323_buffer_valid_bytes = tcpdatalen;
- 		tpkt = skb_header_pointer(skb, tcpdataoff, tcpdatalen,
- 					  h323_buffer);
- 		BUG_ON(tpkt == NULL);
-@@ -247,6 +263,9 @@ static int get_h245_addr(struct nf_conn *ct, const unsigned char *data,
- 		return 0;
- 	}
- 
-+	if (!h323_buffer_ref_valid((void *)p, len + sizeof(__be16)))
-+		return 0;
-+
- 	memcpy(addr, p, len);
- 	memset((void *)addr + len, 0, sizeof(*addr) - len);
- 	memcpy(port, p + len, sizeof(__be16));
-@@ -669,6 +688,9 @@ int get_h225_addr(struct nf_conn *ct, unsigned char *data,
- 		return 0;
- 	}
- 
-+	if (!h323_buffer_ref_valid((void *)p, len + sizeof(__be16)))
-+		return 0;
-+
- 	memcpy(addr, p, len);
- 	memset((void *)addr + len, 0, sizeof(*addr) - len);
- 	memcpy(port, p + len, sizeof(__be16));
-@@ -1248,6 +1270,7 @@ static unsigned char *get_udp_data(struct sk_buff *skb, unsigned int protoff,
- 	if (dataoff >= skb->len)
- 		return NULL;
- 	*datalen = skb->len - dataoff;
-+	h323_buffer_valid_bytes = *datalen;
- 	return skb_header_pointer(skb, dataoff, *datalen, h323_buffer);
- }
- 
+Keeping them also makes it possible to inject funky bitmasks.
+
+
 -- 
-1.9.1
+Best regards
+Asbjørn Sloth Tønnesen
+Network Engineer
+Fiberby ApS - AS42541
+
+--=-W5f3DgdCPI54c7r9tqVV--
