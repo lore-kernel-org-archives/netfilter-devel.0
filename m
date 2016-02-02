@@ -1,88 +1,54 @@
-From: phil.turnbull@oracle.com
-Subject: [PATCH nf] netfilter: nfnetlink: correctly validate length of batch messages
-Date: Tue,  2 Feb 2016 13:36:45 -0500
-Message-ID: <1454438205-13147-1-git-send-email-phil.turnbull@oracle.com>
-Cc: Phil Turnbull <phil.turnbull@oracle.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	coreteam@netfilter.org (open list:NETFILTER ({IP,IP6,ARP,EB,NF}TABLES)),
-	netdev@vger.kernel.org (open list:NETWORKING [GENERAL]),
-	linux-kernel@vger.kernel.org (open list)
-To: netfilter-devel@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] 12th Netfilter Workshop in Amsterdam, Netherlands
+Date: Tue, 2 Feb 2016 23:26:47 +0100
+Message-ID: <20160202222647.GA1989@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: lwn@lwn.net
+To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:32856 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932108AbcBBW0w (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Feb 2016 17:26:52 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 95ED8E664E
+	for <netfilter-devel@vger.kernel.org>; Tue,  2 Feb 2016 23:26:50 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 88103DA809
+	for <netfilter-devel@vger.kernel.org>; Tue,  2 Feb 2016 23:26:50 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 49D10DA7E0
+	for <netfilter-devel@vger.kernel.org>; Tue,  2 Feb 2016 23:26:48 +0100 (CET)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Phil Turnbull <phil.turnbull@oracle.com>
+Hi!
 
-If nlh->nlmsg_len is zero then an infinite loop is triggered because
-'skb_pull(skb, msglen);' pulls zero bytes.
+We are glad to announce a new round in the Netfilter Workshop series.
+This year this event will take place in Amsterdam, Netherlands, from
+27th June to 1st July, 2016 [1].
 
-The calculation in nlmsg_len() underflows if 'nlh->nlmsg_len <
-NLMSG_HDRLEN' which bypasses the length validation and will later
-trigger an out-of-bound read.
+This workshop gives us (developers) the chance to meet face to face,
+report on ongoing Netfilter development efforts, discuss open problems
+and decide where to go.
 
-If the length validation does fail then the malformed batch message is
-copied back to userspace. However, we cannot do this because the
-nlh->nlmsg_len can be invalid. This leads to an out-of-bounds read in
-netlink_ack:
+Attendance is free but you require an invitation to participate.
+You may consider attending if you are involved in any aspect of the
+Netfilter development, including projects relying on the Netfilter
+infrastructure such as the Linux Virtual Server (LVS) project. We have
+a very limited number of invitations this year.
 
-    [   41.455421] ==================================================================
-    [   41.456431] BUG: KASAN: slab-out-of-bounds in memcpy+0x1d/0x40 at addr ffff880119e79340
-    [   41.456431] Read of size 4294967280 by task a.out/987
-    [   41.456431] =============================================================================
-    [   41.456431] BUG kmalloc-512 (Not tainted): kasan: bad access detected
-    [   41.456431] -----------------------------------------------------------------------------
-    ...
-    [   41.456431] Bytes b4 ffff880119e79310: 00 00 00 00 d5 03 00 00 b0 fb fe ff 00 00 00 00  ................
-    [   41.456431] Object ffff880119e79320: 20 00 00 00 10 00 05 00 00 00 00 00 00 00 00 00   ...............
-    [   41.456431] Object ffff880119e79330: 14 00 0a 00 01 03 fc 40 45 56 11 22 33 10 00 05  .......@EV."3...
-    [   41.456431] Object ffff880119e79340: f0 ff ff ff 88 99 aa bb 00 14 00 0a 00 06 fe fb  ................
-                                            ^^ start of batch nlmsg with
-                                               nlmsg_len=4294967280
-    ...
-    [   41.456431] Memory state around the buggy address:
-    [   41.456431]  ffff880119e79400: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-    [   41.456431]  ffff880119e79480: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-    [   41.456431] >ffff880119e79500: 00 00 00 00 fc fc fc fc fc fc fc fc fc fc fc fc
-    [   41.456431]                                ^
-    [   41.456431]  ffff880119e79580: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-    [   41.456431]  ffff880119e79600: fc fc fc fc fc fc fc fc fc fc fb fb fb fb fb fb
-    [   41.456431] ==================================================================
+For locals, we are already planning for a sysadmin/user day featured
+by Netfilter talks the first day, covering (but not limited to)
+iptables, nftables, ipset, conntrack, ulogd2 among others. We'll be
+providing more information on this user event soon.
 
-Fix this with better validation of nlh->nlmsg_len and by setting
-NFNL_BATCH_FAILURE if any batch message fails length validation.
+We are looking for sponsors, if you think you can help us to get funds
+to run the workshop, please, contact me and I'll be glad to send you
+our sponsorship policy.
 
-CAP_NET_ADMIN is required to trigger the bugs.
+Have fun.
 
-Fixes: 9ea2aa8b7dba ("netfilter: nfnetlink: validate nfnetlink header from batch")
-Signed-off-by: Phil Turnbull <phil.turnbull@oracle.com>
----
- net/netfilter/nfnetlink.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 62e92af..857ae89 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -328,10 +328,12 @@ replay:
- 		nlh = nlmsg_hdr(skb);
- 		err = 0;
- 
--		if (nlmsg_len(nlh) < sizeof(struct nfgenmsg) ||
--		    skb->len < nlh->nlmsg_len) {
--			err = -EINVAL;
--			goto ack;
-+		if (nlh->nlmsg_len < NLMSG_HDRLEN ||
-+		    skb->len < nlh->nlmsg_len ||
-+		    nlmsg_len(nlh) < sizeof(struct nfgenmsg)) {
-+			nfnl_err_reset(&err_list);
-+			status |= NFNL_BATCH_FAILURE;
-+			goto done;
- 		}
- 
- 		/* Only requests are handled by the kernel */
--- 
-1.9.1
+[1] http://workshop.netfilter.org/2016/
