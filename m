@@ -1,67 +1,43 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 3/3] tests: add test cases for meta random
-Date: Tue,  2 Feb 2016 00:19:01 +0100
-Message-ID: <1454368741-16368-4-git-send-email-fw@strlen.de>
-References: <1454368741-16368-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35233 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750899AbcBAXVo (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Feb 2016 18:21:44 -0500
-In-Reply-To: <1454368741-16368-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Eric Biggers <ebiggers3@gmail.com>
+Subject: [PATCH] netfilter: nft_ct: define nft_ct_get_eval_counter() only when needed
+Date: Mon,  1 Feb 2016 20:30:57 -0600
+Message-ID: <1454380257-27195-1-git-send-email-ebiggers3@gmail.com>
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Eric Biggers <ebiggers3@gmail.com>
+To: pablo@netfilter.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
+This eliminates an "unused function" compiler warning when
+CONFIG_NF_CONNTRACK_LABELS is not defined.
+
+Signed-off-by: Eric Biggers <ebiggers3@gmail.com>
 ---
- tests/py/any/meta.t         |  6 ++++++
- tests/py/any/meta.t.payload | 19 +++++++++++++++++++
- 2 files changed, 25 insertions(+)
+ net/netfilter/nft_ct.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/tests/py/any/meta.t b/tests/py/any/meta.t
-index c10297a..6298e5c 100644
---- a/tests/py/any/meta.t
-+++ b/tests/py/any/meta.t
-@@ -197,3 +197,9 @@ meta cgroup {1048577-1048578};ok;cgroup { 1048577-1048578}
- meta iif . meta oif { lo . eth0 };ok
- meta iif . meta oif . meta mark { lo . eth0 . 0x0000000a };ok
- meta iif . meta oif vmap { lo . eth0 : drop };ok
-+
-+meta random 0.999999999;ok;meta random <= 0.999999999
-+meta random 0.5;ok;meta random <= 0.500000000
-+meta random 0.001;ok;meta random <= 0.001000000
-+meta random 0.000000001;ok;meta random <= 0.000000001
-+meta random 0.0000000005;fail
-diff --git a/tests/py/any/meta.t.payload b/tests/py/any/meta.t.payload
-index 9f7a6d9..5ca13b0 100644
---- a/tests/py/any/meta.t.payload
-+++ b/tests/py/any/meta.t.payload
-@@ -754,3 +754,22 @@ ip test-ip4 output
-   [ meta load oif => reg 9 ]
-   [ lookup reg 1 set map%d dreg 0 ]
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index a0eb216..3cd6b5b 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -31,6 +31,7 @@ struct nft_ct {
+ 	};
+ };
  
-+# meta random 0.999999999
-+ip test-ip4 input
-+  [ meta load prandom => reg 1 ]
-+  [ cmp lte reg 1 0xfbffffff ]
-+
-+# meta random 0.5
-+ip test-ip4 input
-+  [ meta load prandom => reg 1 ]
-+  [ cmp lte reg 1 0x00000080 ]
-+
-+# meta random 0.001
-+ip test-ip4 input
-+  [ meta load prandom => reg 1 ]
-+  [ cmp lte reg 1 0x37894100 ]
-+
-+# meta random 0.000000001
-+ip test-ip4 input
-+  [ meta load prandom => reg 1 ]
-+  [ cmp lte reg 1 0x04000000 ]
++#ifdef CONFIG_NF_CONNTRACK_LABELS
+ static u64 nft_ct_get_eval_counter(const struct nf_conn_counter *c,
+ 				   enum nft_ct_keys k,
+ 				   enum ip_conntrack_dir d)
+@@ -42,6 +43,7 @@ static u64 nft_ct_get_eval_counter(const struct nf_conn_counter *c,
+ 	return nft_ct_get_eval_counter(c, k, IP_CT_DIR_ORIGINAL) +
+ 	       nft_ct_get_eval_counter(c, k, IP_CT_DIR_REPLY);
+ }
++#endif
+ 
+ static void nft_ct_get_eval(const struct nft_expr *expr,
+ 			    struct nft_regs *regs,
 -- 
-2.4.10
-
+2.7.0
