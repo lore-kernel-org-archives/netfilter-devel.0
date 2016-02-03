@@ -1,54 +1,39 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] 12th Netfilter Workshop in Amsterdam, Netherlands
-Date: Tue, 2 Feb 2016 23:26:47 +0100
-Message-ID: <20160202222647.GA1989@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lwn@lwn.net
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:32856 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932108AbcBBW0w (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Feb 2016 17:26:52 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 95ED8E664E
-	for <netfilter-devel@vger.kernel.org>; Tue,  2 Feb 2016 23:26:50 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 88103DA809
-	for <netfilter-devel@vger.kernel.org>; Tue,  2 Feb 2016 23:26:50 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 49D10DA7E0
-	for <netfilter-devel@vger.kernel.org>; Tue,  2 Feb 2016 23:26:48 +0100 (CET)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Joe Stringer <joe@ovn.org>
+Subject: [PATCH nf-next] netfilter: nf_defrag_ipv4: Drop redundant ip_send_check()
+Date: Wed,  3 Feb 2016 10:00:10 -0800
+Message-ID: <1454522410-24976-1-git-send-email-joe@ovn.org>
+Cc: Joe Stringer <joe@ovn.org>, linux-kernel@vger.kernel.org,
+	pablo@netfilter.org, edjee@google.com, edumazet@google.com
+To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi!
+Since commit 0848f6428ba3 ("inet: frags: fix defragmented packet's IP
+header for af_packet"), ip_send_check() would be called twice for
+defragmentation that occurs from netfilter ipv4 defrag hooks. Remove the
+extra call.
 
-We are glad to announce a new round in the Netfilter Workshop series.
-This year this event will take place in Amsterdam, Netherlands, from
-27th June to 1st July, 2016 [1].
+Signed-off-by: Joe Stringer <joe@ovn.org>
+---
+ net/ipv4/netfilter/nf_defrag_ipv4.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-This workshop gives us (developers) the chance to meet face to face,
-report on ongoing Netfilter development efforts, discuss open problems
-and decide where to go.
-
-Attendance is free but you require an invitation to participate.
-You may consider attending if you are involved in any aspect of the
-Netfilter development, including projects relying on the Netfilter
-infrastructure such as the Linux Virtual Server (LVS) project. We have
-a very limited number of invitations this year.
-
-For locals, we are already planning for a sysadmin/user day featured
-by Netfilter talks the first day, covering (but not limited to)
-iptables, nftables, ipset, conntrack, ulogd2 among others. We'll be
-providing more information on this user event soon.
-
-We are looking for sponsors, if you think you can help us to get funds
-to run the workshop, please, contact me and I'll be glad to send you
-our sponsorship policy.
-
-Have fun.
-
-[1] http://workshop.netfilter.org/2016/
+diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
+index 6fb869f646bf..47a541578aeb 100644
+--- a/net/ipv4/netfilter/nf_defrag_ipv4.c
++++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
+@@ -33,10 +33,8 @@ static int nf_ct_ipv4_gather_frags(struct net *net, struct sk_buff *skb,
+ 	err = ip_defrag(net, skb, user);
+ 	local_bh_enable();
+ 
+-	if (!err) {
+-		ip_send_check(ip_hdr(skb));
++	if (!err)
+ 		skb->ignore_df = 1;
+-	}
+ 
+ 	return err;
+ }
+-- 
+2.1.4
