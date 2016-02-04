@@ -1,7 +1,7 @@
-From: Florian Westphal <fw@strlen.de>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH nft 2/3] meta: add prandom matching
-Date: Thu, 4 Feb 2016 17:42:43 +0100
-Message-ID: <20160204164243.GB13973@breakpoint.cc>
+Date: Thu, 4 Feb 2016 18:38:16 +0100
+Message-ID: <20160204173816.GA13157@macbook.localdomain>
 References: <1454368741-16368-1-git-send-email-fw@strlen.de>
  <1454368741-16368-3-git-send-email-fw@strlen.de>
  <DB5D81F9-A143-4DE6-A315-465B72EA84B3@trash.net>
@@ -11,20 +11,20 @@ References: <1454368741-16368-1-git-send-email-fw@strlen.de>
  <20160204160937.GA13973@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:43892 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755199AbcBDQmp (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:48791 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754044AbcBDRiT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Feb 2016 11:42:45 -0500
+	Thu, 4 Feb 2016 12:38:19 -0500
 Content-Disposition: inline
 In-Reply-To: <20160204160937.GA13973@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Florian Westphal <fw@strlen.de> wrote:
+On 04.02, Florian Westphal wrote:
 > Florian Westphal <fw@strlen.de> wrote:
 > > Patrick McHardy <kaber@trash.net> wrote:
 > > > > > Any reason why you chose to add this type instead of a generic floating point type?
@@ -50,21 +50,28 @@ Florian Westphal <fw@strlen.de> wrote:
 > 
 > So I've started to generalize the proposed precision type
 > into type_float which would support 0.000000001 as smallest value.
-> 
+
+Sounds good.
+
 > Does that seem ok or would you use a different precision?
 > (If so, what & why?)
 
+Seems reasonable for this case as 0.000000000232 is the smallest value
+in 32 bit representation.
+
+> Thanks!
+> 
 > > What should happen when user asks for meta random 42.23 ?
 > 
 > That still stands, where would this error be detect best?
 
-I've also been unable to figure out where the u32 scaling has
-to be performed, netlink_linearize.c seems to be a very poor place
-for this since it would mean special-casing netlink_gen_cmp
-to check for OP_LTE and presence of EXPR_META with the meta PRANDOM
-key...?
+It would be nice to handle this in expr_evaluate_value() by propagating
+the limit from the RHS somehow. Right now we base our limits on the
+available bits, we'd also need a numeric limit for this case.
 
-In fact, doing the scaling via precision_type seems to
-be a lot simpler as then its applied only in this one case of the
-prandom META_TEMPLATE while keeping this detail limited to meta.c.
+I guess the question is related to how we're going to do the mapping
+to 32 bit integers. Define a global mapping that is valid for all floats?
+Then the normal bit based range check would work. Not sure if that makes
+sense though.
 
+You're way might have been the better one after all.
