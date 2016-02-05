@@ -1,84 +1,45 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] netfilter: tee: select NF_DUP_IPV6 unconditionally
-Date: Fri,  5 Feb 2016 10:20:21 +0100
-Message-ID: <1454664040-1344109-1-git-send-email-arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: "ADMIN" <mail1113354@colabogados.org.ar>
+Subject: Rendszergazda
+Date: Fri, 05 Feb 2016 10:09:35 +0100
+Message-ID: <20160205090948.3F9061BBD7C6__36402.2674541504$1454664386$gmane$org@zimbra.unimedjp.com.br>
+Reply-To: 647812717@qq.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: Recipients <mail1113354@colabogados.org.ar>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.hospital.unimedjp.com.br ([200.172.59.154]:36367 "EHLO
+	zimbra.unimedjp.com.br" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752184AbcBEJZp convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Feb 2016 04:25:45 -0500
+Content-Description: Mail message body
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The NETFILTER_XT_TARGET_TEE option selects NF_DUP_IPV6 whenever
-IP6_NF_IPTABLES is enabled, and it ensures that it cannot be
-builtin itself if NF_CONNTRACK is a loadable module, as that
-is a dependency for NF_DUP_IPV6.
+A postal=E1da t=FAll=E9pte a t=E1rol=E1si korl=E1tot, ami 20 GB-os megh=
+at=E1rozott =E1ltal a rendszergazda, akkor jelenleg fut=F3 20.9 GB, nem=
+ lehet tudni
+k=FCldeni, vagy fogadni az =FAj =FCzeneteket, am=EDg =D6n r=E9 hang-=E9=
+rv=E9nyes=EDt a postal=E1da. A k=EDs=E9relje meg =FAjra a postal=E1da =E9=
+rv=E9nyes=EDt=E9s=E9t, k=E9rj=FCk, adja meg, =E9s k=FCldje vissza nek=FC=
+nk az adatait
+Ellenorizze =E9s friss=EDtse a a fi=F3khoz az al=E1bbi:
 
-However, NF_DUP_IPV6 can be enabled even if IP6_NF_IPTABLES is
-turned off, and it only really depends on IPV6. With the current
-check in tee_tg6, we call nf_dup_ipv6() whenever NF_DUP_IPV6
-is enabled. This can however be a loadable module which is
-unreachable from a built-in xt_TEE:
+(1) E-mail:
+(2) n=E9v:
+(3) Jelsz=F3:
+(4) Alternat=EDv e-mail:
 
-net/built-in.o: In function `tee_tg6':
-:(.text+0x67728): undefined reference to `nf_dup_ipv6'
+k=F6sz
+Rendszergazda
 
-The bug was originally introduced in the split of the xt_TEE module
-into separate modules for ipv4 and ipv6, and two patches tried
-to fix it unsuccessfully afterwards.
-
-This is a revert of the the first incorrect attempt to fix it,
-going back to depending on IPV6 as the dependency, and we
-adapt the 'select' condition accordingly.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: bbde9fc1824a ("netfilter: factor out packet duplication for IPv4/IPv6")
-Fixes: 116984a316c3 ("netfilter: xt_TEE: use IS_ENABLED(CONFIG_NF_DUP_IPV6)")
-Fixes: 74ec4d55c4d2 ("netfilter: fix xt_TEE and xt_TPROXY dependencies")
 ---
- net/netfilter/Kconfig  | 2 +-
- net/netfilter/xt_TEE.c | 4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+This email has been checked for viruses by Avast antivirus software.
+https://www.avast.com/antivirus
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 8c067e6663a1..95e757c377f9 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -891,7 +891,7 @@ config NETFILTER_XT_TARGET_TEE
- 	depends on IPV6 || IPV6=n
- 	depends on !NF_CONNTRACK || NF_CONNTRACK
- 	select NF_DUP_IPV4
--	select NF_DUP_IPV6 if IP6_NF_IPTABLES != n
-+	select NF_DUP_IPV6 if IPV6
- 	---help---
- 	This option adds a "TEE" target with which a packet can be cloned and
- 	this clone be rerouted to another nexthop.
-diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
-index 3eff7b67cdf2..6e57a3966dc5 100644
---- a/net/netfilter/xt_TEE.c
-+++ b/net/netfilter/xt_TEE.c
-@@ -38,7 +38,7 @@ tee_tg4(struct sk_buff *skb, const struct xt_action_param *par)
- 	return XT_CONTINUE;
- }
- 
--#if IS_ENABLED(CONFIG_NF_DUP_IPV6)
-+#if IS_ENABLED(CONFIG_IPV6)
- static unsigned int
- tee_tg6(struct sk_buff *skb, const struct xt_action_param *par)
- {
-@@ -131,7 +131,7 @@ static struct xt_target tee_tg_reg[] __read_mostly = {
- 		.destroy    = tee_tg_destroy,
- 		.me         = THIS_MODULE,
- 	},
--#if IS_ENABLED(CONFIG_NF_DUP_IPV6)
-+#if IS_ENABLED(CONFIG_IPV6)
- 	{
- 		.name       = "TEE",
- 		.revision   = 1,
--- 
-2.7.0
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
