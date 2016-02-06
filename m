@@ -1,121 +1,85 @@
-From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: [RFC nftables PATCH] nft: add bash completion script
-Date: Fri,  5 Feb 2016 17:53:02 +0100
-Message-ID: <1454691182-6573-1-git-send-email-giuseppelng@gmail.com>
-Cc: Giuseppe Longo <giuseppelng@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:38708 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750729AbcBEQxH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Feb 2016 11:53:07 -0500
-Received: by mail-wm0-f41.google.com with SMTP id p63so35465749wmp.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 05 Feb 2016 08:53:06 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Jarno Rajahalme <jarno-LZ6Gd1LRuIk@public.gmane.org>
+Subject: [PATCH nf-next v7 0/7] openvswitch: NAT support.
+Date: Fri,  5 Feb 2016 17:40:58 -0800
+Message-ID: <1454722865-59558-1-git-send-email-jarno@ovn.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-The following patch adds a bash completion script
-which permits to complete nft commands.
-
-To install it:
-- cp files/nft-completion /etc/bash_completion.d/
-- . /etc/bash_completion.d/nft-completion
-
-The following commands are supported:
-- nft add table <family> <name>
-- nft list table <family> <name>
-- nft list tables
-- nft list sets
-- nft list chains
-- nft list ruleset
-- nft list set <table> <name>
-- nft add set <table> <name>
-- nft add element <table> <set>
-- nft add map <table>
-- nft flush table <family> <table>
-
-Most probably this won't work with sudo, since there
-are some nft commands into the script.
-
-A second patch to add completion in interactive mode
-will come.
-
-This is only a draft,
-any feedback is appreciated.
-
-Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
----
- files/nft-completion | 60 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 60 insertions(+)
- create mode 100644 files/nft-completion
-
-diff --git a/files/nft-completion b/files/nft-completion
-new file mode 100644
-index 0000000..c138312
---- /dev/null
-+++ b/files/nft-completion
-@@ -0,0 +1,60 @@
-+_nft()
-+{
-+    local cur prev
-+    COMPREPLY=()
-+    cur="${COMP_WORDS[COMP_CWORD]}"
-+    prev="${COMP_WORDS[COMP_CWORD-1]}"
-+
-+    local families="ip ip6 arp bridge inet netdev"
-+    local sets=$(nft list sets | grep -i "set" | awk '{print $2 }' | tr -d ' ')
-+
-+    if [ $COMP_CWORD -eq 1 ]; then
-+        COMPREPLY=( $(compgen -W "add flush list" -- $cur) )
-+    elif [ $COMP_CWORD -eq 2 ]; then
-+        case "$prev" in
-+            "add")
-+                command="${prev}"
-+                COMPREPLY=( $(compgen -W "element map table set" -- $cur) )
-+                ;;
-+            "list")
-+                COMPREPLY=( $(compgen -W "chains ruleset set sets table tables" -- $cur) )
-+                ;;
-+            "flush")
-+                COMPREPLY=( $(compgen -W "table" -- $cur) )
-+                ;;
-+            *)
-+                ;;
-+        esac
-+    elif [ $COMP_CWORD -eq 3 ]; then
-+        case "$prev" in
-+            "table")
-+                COMPREPLY=( $(compgen -W "${families}" -- $cur) )
-+                ;;
-+            "set"|"element"|"map")
-+                local tables=$(nft list tables | awk '{print $3 }' | tr -d ' ')
-+                COMPREPLY=( $(compgen -W "${tables}" -- $cur) )
-+                ;;
-+            *)
-+                ;;
-+        esac
-+    elif [ $COMP_CWORD -eq 4 ]; then
-+        local tables=$(nft list tables | awk '{print $3 }' | tr -d ' ')
-+        if [[ "$families" =~ "$prev" ]]; then 
-+            local tables=$(nft list tables "${prev}" | awk '{print $3 }' | tr -d ' ')
-+            COMPREPLY=( $(compgen -W "${tables}" -- $cur) )
-+        fi
-+
-+        if [ "${COMP_WORDS[1]}" != "add" ] && [[ "$tables" =~ "$prev" ]]; then
-+            COMPREPLY=( $(compgen -W "${sets}" -- $cur) )
-+        fi
-+
-+        if [ "${COMP_WORDS[1]}" == "add" ] && [ "${COMP_WORDS[2]}" == "element" ] && [[ "$tables" =~ "$prev" ]]; then
-+            COMPREPLY=( $(compgen -W "${sets}" -- $cur) )
-+        fi
-+    fi
-+
-+    return 0;
-+}
-+
-+complete -F _nft nft
-+
--- 
-2.5.0
-
+VGhpcyBzZXJpZXMgYWRkcyBOQVQgc3VwcG9ydCB0byBvcGVudnN3aXRjaCBrZXJuZWwgbW9kdWxl
+LiAgQSBmZXcKY2hhbmdlcyBhcmUgbmVlZGVkIHRvIHRoZSBuZXRmaWx0ZXIgY29kZSB0byBmYWNp
+bGl0YXRlIHRoaXMgKHBhdGNoZXMKMS0yLzcpLiAgUGF0Y2hlcyAzLTYgbWFrZSB0aGUgb3BlbnZz
+d2l0Y2gga2VybmVsIG1vZHVsZSByZWFkeSBmb3IgdGhlCnBhdGNoIDcgdGhhdCBhZGRzIHRoZSBO
+QVQgc3VwcG9ydCBieSBjYWxsaW5nIGludG8gbmV0ZmlsdGVyIE5BVCBjb2RlCmZyb20gdGhlIG9w
+ZW52c3dpdGNoIGNvbm50cmFjayBhY3Rpb24uCgpUaGlzIHZlcnNpb24gYWRkcmVzc2VzIGFsbCB0
+aGUgY29tbWVudHMgcmVjZWl2ZWQgb24gcHJpb3IgdmVyc2lvbnMgYW5kCnJlYmFzZXMgdG8gY3Vy
+cmVudCBuZi1uZXh0LgoKVGhlIE9WUyBtYXN0ZXIgbm93IGhhcyB0aGUgY29ycmVzcG9uZGluZyBP
+VlMgdXNlcnNwYWNlIHN1cHBvcnQgdG8gdXNlCmFuZCB0ZXN0IHRoZSBOQVQgZmVhdHVyZXMuICBC
+ZWxvdyBpZiBhIHdhbGsgdGhyb3VnaCBvZiBhIHNpbXBsZSB1c2UKY2FzZS4KCkluIHRoaXMgY2Fz
+ZSBwb3J0cyAxIGFuZCAyIGFyZSBpbiBkaWZmZXJlbnQgbmFtZXNwYWNlcy4gIFRoZSBPcGVuRmxv
+dwp0YWJsZSBiZWxvdyBvbmx5IGFsbG93cyBJUHY0IGNvbm5lY3Rpb25zIGluaXRpYXRlZCBmcm9t
+IHBvcnQgMSwgYW5kCmFwcGxpZXMgc291cmNlIE5BVCB0byB0aG9zZSBjb25uZWN0aW9uczoKCiAg
+IGluX3BvcnQ9MSxpcCxhY3Rpb249Y3QoY29tbWl0LHpvbmU9MSxuYXQoc3JjPTEwLjEuMS4yNDAt
+MTAuMS4xLjI1NSkpLDIKICAgaW5fcG9ydD0yLGN0X3N0YXRlPS10cmssaXAsYWN0aW9uPWN0KHRh
+YmxlPTAsem9uZT0xLG5hdCkKICAgaW5fcG9ydD0yLGN0X3N0YXRlPStlc3QsY3Rfem9uZT0xLGlw
+LGFjdGlvbj0xCgpUaGlzIGZsb3cgdGFibGUgbWF0Y2hlcyBhbGwgSVB2NCB0cmFmZmljIGZyb20g
+cG9ydCAxLCBydW5zIHRoZW0KdGhyb3VnaCBjb25udHJhY2sgaW4gem9uZSAxIGFuZCBOQVRzIHRo
+ZW0uICBUaGUgTkFUIGlzIGluaXRpYWxpemVkIHRvCmRvIHNvdXJjZSBJUCBtYXBwaW5nIHRvIHRo
+ZSBnaXZlbiByYW5nZSBmb3IgdGhlIGZpcnN0IHBhY2tldCBvZiBlYWNoCmNvbm5lY3Rpb24sIGFm
+dGVyIHdoaWNoIHRoZSBuZXcgY29ubmVjdGlvbiBpcyBjb21taXR0ZWQgKGNvbmZpcm1lZCkuCkZv
+ciBmdXJ0aGVyIHBhY2tldHMgb2YgYWxyZWFkeSB0cmFja2VkIGNvbm5lY3Rpb25zIE5BVCBpcyBk
+b25lCmFjY29yZGluZyB0byB0aGUgY29ubmVjdGlvbiBzdGF0ZSBhbmQgdGhlIGNvbW1pdCBpcyBh
+IG5vLW9wLiAgRWFjaApwYWNrZXQgdGhhdCBpcyBub3QgZmxhZ2dlZCBhcyBhIGRyb3AgYnkgdGhl
+IENUIGFjdGlvbiBpcyBmb3J3YXJkZWQgdG8KcG9ydCAyLiAgVGhlIENUIGFjdGlvbiBkb2VzIGFu
+IGltcGxpY2l0IGZyYWdtZW50YXRpb24gcmVhc3NlbWJseSwgc28KdGhhdCBvbmx5IGNvbXBsZXRl
+IHBhY2tldHMgYXJlIHJ1biB0aHJvdWdoIGNvbm50cmFjay4gIFJlYXNzZW1ibGVkCnBhY2tldHMg
+YXJlIHJlLWZyYWdtZW50ZWQgb24gb3V0cHV0LgoKVGhlIElQdjQgdHJhZmZpYyBjb21pbmcgZnJv
+bSBwb3J0IDIgaXMgZmlyc3QgbWF0Y2hlZCBmb3IgdGhlCm5vbi10cmFja2VkIHN0YXRlICgtdHJr
+KSwgd2hpY2ggbWVhbnMgdGhhdCB0aGUgcGFja2V0IGhhcyBub3QgYmVlbgp0aHJvdWdoIGEgQ1Qg
+YWN0aW9uIHlldC4gIFN1Y2ggdHJhZmZpYyBpcyBydW4gdHJvdWdoIHRoZSBjb25udHJhY2sgaW4K
+em9uZSAxIGFuZCBhbGwgcGFja2V0cyBhc3NvY2lhdGVkIHdpdGggYSBOQVR0ZWQgY29ubmVjdGlv
+biBhcmUgTkFUdGVkCmFsc28gaW4gdGhlIHJldHVybiBkaXJlY3Rpb24uICBBZnRlciB0aGUgcGFj
+a2V0IGhhcyBiZWVuIHRocm91Z2gKY29ubnRyYWNrIGl0IGlzIHJlY2lyY3VsYXRlZCBiYWNrIHRv
+IE9wZW5GbG93IHRhYmxlIDAgKHdoaWNoIGlzIHRoZQpkZWZhdWx0IHRhYmxlLCBzbyBhbGwgdGhl
+IHJ1bGVzIGFib3ZlIGFyZSBpbiB0YWJsZSAwKS4gIFRoZSBDVCBhY3Rpb24KY2hhbmdlcyB0aGUg
+J3RyaycgZmxhZyB0byBiZWluZyBzZXQsIHNvIHRoZSBwYWNrZXRzIGFmdGVyCnJlY2lyY3VsYXRp
+b24gbm8gbG9uZ2VyIG1hdGNoIHRoZSBzZWNvbmQgcnVsZS4gIFRoZSB0aGlyZCBydWxlIHRoZW4K
+bWF0Y2hlcyB0aGUgcmVjaXJjdWxhdGVkIHBhY2tldHMgdGhhdCB3ZXJlIG1hcmtlZCBhcyBlc3Rh
+Ymxpc2hlZCBieQpjb25udHJhY2sgKCtlc3QpLCBhbmQgdGhlIHBhY2tldCBpcyBvdXRwdXQgb24g
+cG9ydCAxLiAgTWF0Y2hpbmcgb24KY3Rfem9uZSBpcyBub3Qgc3RyaWN0bHkgbmVlZGVkLCBidXQg
+aW4gdGhpcyB0ZXN0IGNhc2UgaXQgdmVyaWZpZXMgdGhhdAp0aGUgY3Rfem9uZSBrZXkgYXR0cmli
+dXRlIGlzIHByb3Blcmx5IHNldCBieSB0aGUgY29ubnRyYWNrIGFjdGlvbi4KCkEgZnVsbCB0ZXN0
+IGNhc2UgcmVxdWlyZXMgcnVsZXMgZm9yIEFSUCBoYW5kbGluZyBub3Qgc2hvd24gaGVyZS4KClRo
+ZSBmbG93IHRhYmxlIGFib3ZlIGlzIGFuIE9wZW5GbG93IHRhYmxlLCBhbmQgdGhlIHJ1bGVzIHRo
+ZXJlaW4KYXJlIHRyYW5zbGF0ZWQgdG8ga2VybmVsIGZsb3cgZW50cmllcyBvbi1kZW1hbmQgYnkg
+b3ZzLXZzd2l0Y2hkLgoKSmFybm8gUmFqYWhhbG1lICg3KToKICBuZXRmaWx0ZXI6IFJlbW92ZSBJ
+UF9DVF9ORVdfUkVQTFkgZGVmaW5pdGlvbi4KICBuZXRmaWx0ZXI6IEFsbG93IGNhbGxpbmcgaW50
+byBuYXQgaGVscGVyIHdpdGhvdXQgc2tiX2RzdC4KICBvcGVudnN3aXRjaDogVXBkYXRlIHRoZSBD
+VCBzdGF0ZSBrZXkgb25seSBhZnRlciBuZl9jb25udHJhY2tfaW4oKS4KICBvcGVudnN3aXRjaDog
+RmluZCBleGlzdGluZyBjb25udHJhY2sgZW50cnkgYWZ0ZXIgdXBjYWxsLgogIG9wZW52c3dpdGNo
+OiBIYW5kbGUgTkZfUkVQRUFUIGluIGNvbm50cmFjayBhY3Rpb24uCiAgb3BlbnZzd2l0Y2g6IERl
+bGF5IGNvbm50cmFjayBoZWxwZXIgY2FsbCBmb3IgbmV3IGNvbm5lY3Rpb25zLgogIG9wZW52c3dp
+dGNoOiBJbnRlcmZhY2Ugd2l0aCBOQVQuCgogaW5jbHVkZS91YXBpL2xpbnV4L25ldGZpbHRlci9u
+Zl9jb25udHJhY2tfY29tbW9uLmggfCAgMTIgKy0KIGluY2x1ZGUvdWFwaS9saW51eC9vcGVudnN3
+aXRjaC5oICAgICAgICAgICAgICAgICAgIHwgIDQ3ICsrCiBuZXQvaXB2NC9uZXRmaWx0ZXIvbmZf
+bmF0X2wzcHJvdG9faXB2NC5jICAgICAgICAgICB8ICAzMCArLQogbmV0L2lwdjYvbmV0ZmlsdGVy
+L25mX25hdF9sM3Byb3RvX2lwdjYuYyAgICAgICAgICAgfCAgMzAgKy0KIG5ldC9vcGVudnN3aXRj
+aC9jb25udHJhY2suYyAgICAgICAgICAgICAgICAgICAgICAgIHwgNjQ2ICsrKysrKysrKysrKysr
+KysrKystLQogbmV0L29wZW52c3dpdGNoL2Nvbm50cmFjay5oICAgICAgICAgICAgICAgICAgICAg
+ICAgfCAgIDMgKy0KIDYgZmlsZXMgY2hhbmdlZCwgNjgyIGluc2VydGlvbnMoKyksIDg2IGRlbGV0
+aW9ucygtKQoKLS0gCjIuMS40CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fXwpkZXYgbWFpbGluZyBsaXN0CmRldkBvcGVudnN3aXRjaC5vcmcKaHR0cDovL29w
+ZW52c3dpdGNoLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Rldgo=
