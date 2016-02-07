@@ -1,68 +1,41 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v2] extensions: libxt_NFQUEUE: Add translation to nft
-Date: Sun, 7 Feb 2016 10:25:04 +0100
-Message-ID: <20160207092504.GB32181@breakpoint.cc>
-References: <20160207060721.GA11310@gmail.com>
+From: Eric Leblond <eric@regit.org>
+Subject: Re: [RFC] a software based on ulogd
+Date: Sun, 07 Feb 2016 11:51:47 +0100
+Message-ID: <a53f427c-6b04-4d3b-898e-ba63fc949f5a@email.android.com>
+References: <20160206104249.GA19349@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
+Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
+To: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:48228 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752104AbcBGJZH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 7 Feb 2016 04:25:07 -0500
-Content-Disposition: inline
-In-Reply-To: <20160207060721.GA11310@gmail.com>
+Received: from home.regit.org ([37.187.126.138]:35798 "EHLO home.regit.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752918AbcBGKwE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 7 Feb 2016 05:52:04 -0500
+In-Reply-To: <20160206104249.GA19349@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Shivani Bhardwaj <shivanib134@gmail.com> wrote:
-> $ sudo iptables-translate -t nat -A PREROUTING -p tcp --dport 80 -j NFQUEUE --queue-num 30
-> nft add rule ip nat PREROUTING tcp dport 80 counter queue num 30
-> 
-> $ sudo iptables-translate -A FORWARD -j NFQUEUE --queue-num 0 --queue-bypass -p TCP --sport 80
-> nft add rule ip filter FORWARD tcp sport 80 counter queue num 0 bypass
-> 
-> $ sudo iptables-translate -A FORWARD -j NFQUEUE --queue-bypass -p TCP --sport 80 --queue-balance 0:3 --queue-cpu-fanout
-> nft add rule ip filter FORWARD tcp sport 80 counter queue num 0-3 bypass,fanout
+SGVsbG8gS2VuLWljaGlyb3UsCgpMZcKgNiBmw6l2ci4gMjAxNiAxMTo0MiBBTSwgS2VuLWljaGly
+b3UgTUFUU1VaQVdBIDxjaGFtYWtlbkBnbWFpbC5jb20+IGEgw6ljcml0wqA6Cj4KPiBIaSwgCj4K
+PiBJIG5lZWQgTmV0ZmxvdyBkYXRhIGJhc2VkIG9uIGNvbm50cmFjaywgSSBhbSB0cnlpbmcgdG8g
+Y3JlYXRlIGEgc29mdHdhcmUgCj4gd2hpY2ggaXMgYmFzZWQgb24gdWxvZ2QuIAo+Cj4gwqDCoMKg
+IGh0dHBzOi8vZ2l0aHViLmNvbS9jaGFtYWtlbi9udXJzLyAKCkkgZmVlbCBzb3JyeSBub3QgYmVp
+bmcgYWJsZSB0byBtZXJnZSB5b3VyIHdvcmsgb24gdWxvZ2QgZHVlIHRvIGxhY2sgb2YgdGltZSBv
+biBteSBzaWRlLiBEbyB5b3UgdGhpbmsgeW91IGNvdWxkIHJlc3VibWl0IGEgcGF0Y2hzZXQgYWRk
+aW5nIG5ldGZsb3cgc3VwcG9ydCB0byB1bG9nZCA/IEkgd2lsbCBtYWtlIHRoZSBuZWNlc3Nhcnkg
+dG8gZ2V0IGl0IGluY2x1ZGVkLgoKQmVzdCByZWdhcmRzLAoKPiBJIGNvcGllZCBDT1BZSU5HIGFu
+ZCBSRUFETUUgZnJvbSB1bG9nZCBzb3VyY2UgY29kZSB0byBkaXN0cmlidXRlLCBhbmQgCj4gYWRk
+ZWQgY29tbWVudDogCj4KPiDCoMKgwqAgYmFzZWQgb24gdWxvZ2Qgd2hpY2ggd2FzIGFsbW9zdCBl
+bnRpcmVseSB3cml0dGVuIGJ5IEhhcmFsZCBXZWx0ZSwgCj4gwqDCoMKgIHdpdGggY29udHJpYnV0
+aW9ucyBmcm9tIGZlbGxvdyBoYWNrZXJzIHN1Y2ggYXMgUGFibG8gTmVpcmEgQXl1c28sIAo+IMKg
+wqDCoCBFcmljIExlYmxvbmQgYW5kIFBpZXJyZSBDaGlmZmxpZXIuIAo+Cj4gdG8gZWFjaCBzb3Vy
+Y2UgZmlsZS4gV291bGQgeW91IHRlbGwgbWUgb3RoZXIgdGhpbmdzIHRvIHJldXNlIHVsb2dkPyAK
+PiBBbmQgSSB3b3VsZCBhcHByZWNpYXRlIGl0IGlmIEkgY291bGQgZ2V0IHlvdXIgYWR2aWNlIHRv
+IHRoaXMgc29mdHdhcmUuIAoKCgo+Cj4gVGhhbmtzLCAKPiAtLSAKPiBUbyB1bnN1YnNjcmliZSBm
+cm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbmV0ZmlsdGVyLWRldmVs
+IiBpbiAKPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9y
+ZyAKPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0wqAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpv
+cmRvbW8taW5mby5odG1sIAo=
 
-translation look correct, thanks!
-
-> +bool sep_need = false;
-
-Is this really needed?
-If it is, please add static keyword too.
-
-> +static int NFQUEUE_xlate_v2(const struct xt_entry_target *target,
-> +			    struct xt_xlate *xl, int numeric)
-> +{
-> +	const struct xt_NFQ_info_v2 *info = (void *) target->data;
-> +
-> +	NFQUEUE_xlate_v1(target, xl, numeric);
-> +
-> +	if (info->bypass & NFQ_FLAG_BYPASS) {
-> +		xt_xlate_add(xl, "bypass");
-> +		sep_need = true;
-> +	}
-> +
-> +	return 1;
-> +}
-> +
-> +static int NFQUEUE_xlate_v3(const struct xt_entry_target *target,
-> +			    struct xt_xlate *xl, int numeric)
-> +{
-> +	const struct xt_NFQ_info_v3 *info = (void *)target->data;
-> +
-> +	NFQUEUE_xlate_v2(target, xl, numeric);
-> +	if (info->flags & NFQ_FLAG_CPU_FANOUT)
-> +		xt_xlate_add(xl, "%sfanout ", sep_need ? "," : "");
-> +
-
-Seems this could be written similar to something like:
-
-if (info->flags & NFQ_FLAG_CPU_FANOUT) {
-	bool sep_needed = info->bypass & NFQ_FLAG_BYPASS;
-	xt_xlate_add(xl, "%sfanout ", sep_need ? "," : "");
-...
