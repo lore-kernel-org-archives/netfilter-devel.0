@@ -1,49 +1,35 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iproute2 v2 21/21] iplink: bridge: add support for
- netfilter call attributes
-Date: Tue, 9 Feb 2016 13:00:49 +0100
-Message-ID: <20160209120049.GA2377@salvia>
-References: <1454973279-9170-1-git-send-email-razor@blackwall.org>
- <1454973279-9170-22-git-send-email-razor@blackwall.org>
+From: Ken-ichirou MATSUZAWA <chamaken@gmail.com>
+Subject: Re: [RFC] a software based on ulogd
+Date: Wed, 10 Feb 2016 10:53:58 +0900
+Message-ID: <20160210015358.GA17470@gmail.com>
+References: <20160206104249.GA19349@gmail.com>
+ <a53f427c-6b04-4d3b-898e-ba63fc949f5a@email.android.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, roopa@cumulusnetworks.com,
-	stephen@networkplumber.org,
-	Nikolay Aleksandrov <nikolay@cumulusnetworks.com>,
-	netfilter-devel@vger.kernel.org, fw@strlen.de
-To: Nikolay Aleksandrov <razor@blackwall.org>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: Netfilter Devel <netfilter-devel@vger.kernel.org>
+To: Eric Leblond <eric@regit.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:33573 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755956AbcBJByE (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Feb 2016 20:54:04 -0500
+Received: by mail-pa0-f44.google.com with SMTP id cy9so3451511pac.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 09 Feb 2016 17:54:03 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1454973279-9170-22-git-send-email-razor@blackwall.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <a53f427c-6b04-4d3b-898e-ba63fc949f5a@email.android.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Nikolay,
+On Sun, Feb 07, 2016 at 11:51:47AM +0100, Eric Leblond wrote:
+> Do you think you could resubmit a patchset adding netflow support to ulogd ?
 
-On Tue, Feb 09, 2016 at 12:14:39AM +0100, Nikolay Aleksandrov wrote:
-> From: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
-> 
-> This patch implements support for the IFLA_BR_NF_CALL_(IP|IP6|ARP)TABLES
-> attributes in iproute2 so it can change their values.
-> 
-> Signed-off-by: Nikolay Aleksandrov <nikolay@cumulusnetworks.com>
-> ---
->  ip/iplink_bridge.c | 45 +++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 45 insertions(+)
-> 
-> diff --git a/ip/iplink_bridge.c b/ip/iplink_bridge.c
-> index a55a36adacdf..1b666f0adef4 100644
-> --- a/ip/iplink_bridge.c
-> +++ b/ip/iplink_bridge.c
-> @@ -47,6 +47,9 @@ static void print_explain(FILE *f)
->  		"                  [ mcast_query_interval QUERY_INTERVAL ]\n"
->  		"                  [ mcast_query_response_interval QUERY_RESPONSE_INTERVAL ]\n"
->  		"                  [ mcast_startup_query_interval STARTUP_QUERY_INTERVAL ]\n"
-> +		"                  [ nf_call_iptables NF_CALL_IPTABLES ]\n"
-> +		"                  [ nf_call_ip6tables NF_CALL_IP6TABLES ]\n"
-> +		"                  [ nf_call_arptables NF_CALL_ARPTABLES ]\n"
+I can send patches, but I have not used this and I don't know if I
+will use it or not.
 
-We will soon have conntrack support for bridge, that will help us kill
-this bridge_netfilter glue code that has caused us many headaches.
+I think NFCT plugin also needs to update to propagate delta counter
+in practical use. Following patch series can be used with NFCT
+destory event as I wrote in comment, and tested it a little bit with
+nfdump.
 
-So I'd prefer not to give more exposition to this.
+Thanks,
