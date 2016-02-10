@@ -1,86 +1,35 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] extensions: libxt_tos: Add translation to nft
-Date: Sun, 14 Feb 2016 19:55:00 +0530
-Message-ID: <20160214142500.GA3397@gmail.com>
+From: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: =?utf-8?Q?=D0=9A=D0=BB=D0=B8=D0=B5=D0=BD=D1=82=D1=81=D0?=
+	=?utf-8?Q?=BA=D0=B8=D0=B5_=D0=B1=D0=B0=D0=B7=D1=8B!_=D0?=
+	=?utf-8?Q?=A2=D0=B5=D0=BB=5CViber=5CWhatsapp=3A+791393935?=
+	=?utf-8?Q?06__Skype=3Aprodawez389__Email=3Amnoskova760=40?=
+	=?utf-8?Q?gmail=2Ecom_=D0=A3=D0=B7=D0=BD=D0=B0=D0=B9=D1?=
+	=?utf-8?Q?=82=D0=B5_=D0=BF=D0=BE=D0=B4=D1=80=D0=BE=D0=B1?=
+	=?utf-8?Q?=D0=BD=D0=B5=D0=B5!!!?=
+Date: Wed, 10 Feb 2016 13:28:57 +0600
+Message-ID: <689327FF6ABE91528E8BC27D897BCA58@vger.kernel.org>
+Reply-To: "netfilter-devel@vger.kernel.org" <mnoskova760@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:34767 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751414AbcBNOZH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 14 Feb 2016 09:25:07 -0500
-Received: by mail-pa0-f49.google.com with SMTP id fy10so32323876pac.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 14 Feb 2016 06:25:07 -0800 (PST)
-Received: from gmail.com ([223.176.165.115])
-        by smtp.gmail.com with ESMTPSA id xg9sm15801079pac.9.2016.02.14.06.25.04
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Sun, 14 Feb 2016 06:25:06 -0800 (PST)
-Content-Disposition: inline
+Received: from [128.199.71.20] ([128.199.71.20]:35244 "EHLO server.localdomain"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751605AbcBOH5T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Feb 2016 02:57:19 -0500
+Received: from 128.199.71.20 (localhost [IPv6:::1])
+	by server.localdomain (Postfix) with SMTP id 6A8A0FC5AB
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Feb 2016 14:28:38 -0500 (EST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for match tos to nftables.
-
-Examples:
-
-$ sudo iptables-translate -A INPUT -m tos --tos 0x02  -j ACCEPT
-nft add rule ip filter INPUT ip tos 0x02 counter accept
-
-$ sudo iptables-translate -A INPUT -m tos --tos 0x02/0x04  -j ACCEPT
-nft add rule ip filter INPUT ip tos and 0x02 == 0x04 counter accept
-
-$ sudo iptables-translate -A INPUT -m tos ! --tos 0x02/0x04  -j ACCEPT
-nft add rule ip filter INPUT ip tos and 0x02 != 0x04 counter accept
-
-Details:
-This patch was sent by Ana, Shivani modified it as per the current
-nftables structure, applied it to the latest branch and tested it.
-
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
-Signed-off-by: Ana Rey <anarey@gmail.com>
----
- extensions/libxt_tos.c | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
-
-diff --git a/extensions/libxt_tos.c b/extensions/libxt_tos.c
-index 81c096f..577e9cb 100644
---- a/extensions/libxt_tos.c
-+++ b/extensions/libxt_tos.c
-@@ -121,6 +121,23 @@ static void tos_mt_save(const void *ip, const struct xt_entry_match *match)
- 	printf(" --tos 0x%02x/0x%02x", info->tos_value, info->tos_mask);
- }
- 
-+static int tos_mt_xlate(const struct xt_entry_match *match,
-+			struct xt_xlate *xl, int numeric)
-+{
-+	const struct xt_tos_match_info *info = (const void *)match->data;
-+
-+	xt_xlate_add(xl, "ip tos ");
-+
-+	if (info->tos_mask == 0xff)
-+		xt_xlate_add(xl, "%s0x%02x ", info->invert ? "!= " : "",
-+			     info->tos_value);
-+	else
-+		xt_xlate_add(xl, "and 0x%02x %s 0x%02x ", info->tos_value,
-+			     info->invert ? "!=" : "==", info->tos_mask);
-+
-+	return 1;
-+}
-+
- static struct xtables_match tos_mt_reg[] = {
- 	{
- 		.version       = XTABLES_VERSION,
-@@ -147,6 +164,7 @@ static struct xtables_match tos_mt_reg[] = {
- 		.save          = tos_mt_save,
- 		.x6_parse      = tos_mt_parse,
- 		.x6_options    = tos_mt_opts,
-+		.xlate	       = tos_mt_xlate,
- 	},
- };
- 
--- 
-1.9.1
-
+=D0=9A=D0=BB=D0=B8=D0=B5=D0=BD=D1=82=D1=81=D0=BA=D0=B8=D0=B5 =D0=B1=D0=B0=
+=D0=B7=D1=8B! =D0=A2=D0=B5=D0=BB\Viber\Whatsapp:+79139393506  Skype:pro=
+dawez389  Email:mnoskova760@gmail.com =D0=A3=D0=B7=D0=BD=D0=B0=D0=B9=D1=
+=82=D0=B5 =D0=BF=D0=BE=D0=B4=D1=80=D0=BE=D0=B1=D0=BD=D0=B5=D0=B5!!!
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
