@@ -1,44 +1,36 @@
-From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 8/8] netfilter: implement xt_cgroup cgroup2 path match
-Date: Fri, 12 Feb 2016 11:05:58 -0500
-Message-ID: <20160212160558.GE3741@mtj.duckdns.org>
-References: <1449527935-27056-1-git-send-email-tj@kernel.org>
- <1449527935-27056-9-git-send-email-tj@kernel.org>
- <CAMXgnP7Eue2NQrUcRSNgM8NJT5XOscPWwqVkuh7LnwQn-1oQ_A@mail.gmail.com>
+From: "Mr. Michael Khan" <projectcommittee@pisem.net>
+Subject: Supply Of Your Products
+Date: Sat, 13 Feb 2016 13:54:42 +0100
+Message-ID: <d5e4bf80f0fd4bf6be4af0b2fac7301f@palazzosquarcialupi.com>
+Reply-To: michaelkhan1@outlook.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
-	kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, daniel-FeC+5ew28dpmcu3hnIyYJQ@public.gmane.org,
-	daniel.wagner-98C5kh4wR6ohFhg+JK9F0w@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org,
-	Li Zefan <lizefan-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>,
-	Johannes Weiner <hannes-druUgvl0LCNAfugRpC6u6w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, coreteam-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org,
-	cgroups-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	"linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
-	kernel-team-b10kYP2dOMg@public.gmane.org, ninasc-b10kYP2dOMg@public.gmane.org, Jan Engelhardt <jengelh-9+2X+4sQBs8@public.gmane.org>
-To: Alban Crequy <alban.crequy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Return-path: <cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAMXgnP7Eue2NQrUcRSNgM8NJT5XOscPWwqVkuh7LnwQn-1oQ_A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: cgroups-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+To: undisclosed-recipients:;
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.uplinkcrm.it ([89.31.76.55]:48930 "EHLO mail.uplinkcrm.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751182AbcBMNBR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 13 Feb 2016 08:01:17 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+Good day,
 
-On Fri, Feb 12, 2016 at 01:10:18AM +0100, Alban Crequy wrote:
-> Is there any plans to implement a similar cgroup2 path match in a
-> cgroup classifier in tc?
+Please Can you furnish me in full details about the standard of your
+products.I will appreciate it more if you can give me with details
+specification / price lists to avoid making a wrong choice of products.
 
-That'd be great.  I wanted to but couldn't figure out the heads and
-tails after staring at the code for half an hour.
+I am a West Africa Union Project Accredited commission Agent and i am
+looking for manufacturers whose product is of good quality. I need
+different kinds of Product and you can reach me for effective and
+efficient business at my email address. (michaelkhan1@yahoo.com)
 
-> I wonder if it will be possible to use cgroup to classify packets in
-> tc without net_cls.class_id in cgroup2.
+I am looking forward to read your response.
 
-You can still match against cgroup v2 path using xt_cgroup and then
-mark it and then match that from tc, which isn't ideal but works.
+Thank you for your cooperation
 
-Thanks.
+Regards,
 
--- 
-tejun
+Mr.Michael Khan.
