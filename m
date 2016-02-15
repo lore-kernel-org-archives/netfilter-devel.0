@@ -1,78 +1,151 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH V6] netfilter: h323: avoid potential attack
-Date: Mon, 15 Feb 2016 20:59:30 +0100
-Message-ID: <20160215195930.GA9001@salvia>
-References: <1454420404-347-1-git-send-email-zhouzhouyi@gmail.com>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH] comment: Add translation to nft
+Date: Tue, 16 Feb 2016 01:40:28 +0530
+Message-ID: <20160215201027.GA13257@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: eric.dumazet@gmail.com, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, fw@strlen.de,
-	gnomes@lxorguk.ukuu.org.uk, sergei.shtylyov@cogentembedded.com,
-	Zhouyi Zhou <yizhouzhou@ict.ac.cn>
-To: Zhouyi Zhou <zhouzhouyi@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59609 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751338AbcBOT7z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Feb 2016 14:59:55 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id B6DCC6C1E
-	for <netfilter-devel@vger.kernel.org>; Mon, 15 Feb 2016 20:59:54 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id A6FE31B2FC3
-	for <netfilter-devel@vger.kernel.org>; Mon, 15 Feb 2016 20:59:54 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 39A5091EB
-	for <netfilter-devel@vger.kernel.org>; Mon, 15 Feb 2016 20:59:35 +0100 (CET)
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:35431 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751461AbcBOULG (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Feb 2016 15:11:06 -0500
+Received: by mail-pa0-f41.google.com with SMTP id ho8so91476812pac.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Feb 2016 12:11:06 -0800 (PST)
+Received: from gmail.com ([116.202.38.191])
+        by smtp.gmail.com with ESMTPSA id r62sm25684431pfr.26.2016.02.15.12.11.03
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Mon, 15 Feb 2016 12:11:05 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <1454420404-347-1-git-send-email-zhouzhouyi@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Feb 02, 2016 at 09:40:04PM +0800, Zhouyi Zhou wrote:
-> diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-> index 9511af0..8d24c4b 100644
-> --- a/net/netfilter/nf_conntrack_h323_main.c
-> +++ b/net/netfilter/nf_conntrack_h323_main.c
-> @@ -110,6 +110,21 @@ int (*nat_q931_hook) (struct sk_buff *skb,
->  
->  static DEFINE_SPINLOCK(nf_h323_lock);
->  static char *h323_buffer;
-> +static int h323_buffer_valid_bytes;
-> +
-> +static bool h323_buffer_ref_valid(void *p, int len)
+Add translation for match comment to nftables.
 
-I'd rather see you pass a parameter to this function with the
-remaining size in the buffer, so we don't need this global variable
-h323_buffer_valid_bytes.
+Example:
 
-You can probably add an initial patch to add a structure to store the
-state information so we reduce the function parameter footprint.
+$ sudo iptables-translate -A INPUT -s 192.168.0.0 -m comment --comment "A privatized IP block"
+nft add rule ip filter INPUT ip saddr 192.168.0.0 counter comment \"A privatized IP block\"
 
-        struct h323_ct_state {
-                ...
-                int buflen;
-        };
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+ extensions/libxt_comment.c | 14 ++++++++++++++
+ iptables/nft-ipv4.c        | 17 +++++++++++++++--
+ iptables/nft-ipv6.c        | 17 +++++++++++++++--
+ 3 files changed, 44 insertions(+), 4 deletions(-)
 
-So you pass up the h323_ct_state structure to function calls,
-something like that.
+diff --git a/extensions/libxt_comment.c b/extensions/libxt_comment.c
+index 6ed2ff9..0461924 100644
+--- a/extensions/libxt_comment.c
++++ b/extensions/libxt_comment.c
+@@ -48,6 +48,19 @@ comment_save(const void *ip, const struct xt_entry_match *match)
+ 	xtables_save_string(commentinfo->comment);
+ }
+ 
++static int
++comment_xlate(const struct xt_entry_match *match,
++	      struct xt_xlate *xl, int numeric)
++{
++	struct xt_comment_info *commentinfo = (void *)match->data;
++
++	commentinfo->comment[XT_MAX_COMMENT_LEN-1] = '\0';
++	xt_xlate_add_comment(xl, commentinfo->comment);
++	xt_xlate_add(xl, "comment \\\"%s\\\" ", commentinfo->comment);
++
++	return 1;
++}
++
+ static struct xtables_match comment_match = {
+ 	.family		= NFPROTO_UNSPEC,
+ 	.name		= "comment",
+@@ -59,6 +72,7 @@ static struct xtables_match comment_match = {
+ 	.save 		= comment_save,
+ 	.x6_parse	= xtables_option_parse,
+ 	.x6_options	= comment_opts,
++	.xlate		= comment_xlate,
+ };
+ 
+ void _init(void)
+diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
+index 5e2857d..f816a8a 100644
+--- a/iptables/nft-ipv4.c
++++ b/iptables/nft-ipv4.c
+@@ -433,6 +433,7 @@ static int nft_ipv4_xlate(const void *data, struct xt_xlate *xl)
+ {
+ 	const struct iptables_command_state *cs = data;
+ 	int ret;
++	bool comm = false;
+ 
+ 	if (cs->fw.ip.iniface[0] != '\0') {
+ 		xt_xlate_add(xl, "iifname %s%s ",
+@@ -477,12 +478,24 @@ static int nft_ipv4_xlate(const void *data, struct xt_xlate *xl)
+ 			   inet_ntoa(cs->fw.ip.dst));
+ 	}
+ 
++	/*
++	 * Add counter for match comment as prefix
++	 */
++	if (strcmp(cs->matches->match->name, "comment") == 0) {
++		comm = true;
++		xt_xlate_add(xl, "counter ");
++	}
++
+ 	ret = xlate_matches(cs, xl);
+ 	if (!ret)
+ 		return ret;
+ 
+-	/* Always add counters per rule, as in iptables */
+-	xt_xlate_add(xl, "counter ");
++	/*
++	 * Always add counters per rule, as in iptables
++	 * except for match comment
++	 */
++	if (!comm)
++		xt_xlate_add(xl, "counter ");
+ 
+ 	ret = xlate_action(cs, !!(cs->fw.ip.flags & IPT_F_GOTO), xl);
+ 
+diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
+index 0ee7957..edc572c 100644
+--- a/iptables/nft-ipv6.c
++++ b/iptables/nft-ipv6.c
+@@ -393,6 +393,7 @@ static int nft_ipv6_xlate(const void *data, struct xt_xlate *xl)
+ {
+ 	const struct iptables_command_state *cs = data;
+ 	int ret;
++	bool comm = false;
+ 
+ 	if (cs->fw6.ipv6.iniface[0] != '\0') {
+ 		xt_xlate_add(xl, "iifname %s%s ",
+@@ -428,12 +429,24 @@ static int nft_ipv6_xlate(const void *data, struct xt_xlate *xl)
+ 	xlate_ipv6_addr("ip6 daddr", &cs->fw6.ipv6.dst,
+ 			cs->fw6.ipv6.invflags & IP6T_INV_DSTIP, xl);
+ 
++	/*
++	 * Add counter as prefix for match comment
++	 */
++	if (strcmp(cs->matches->match->name, "comment") == 0) {
++		comm = true;
++		xt_xlate_add(xl, "counter ");
++	}
++
+ 	ret = xlate_matches(cs, xl);
+ 	if (!ret)
+ 		return ret;
+ 
+-	/* Always add counters per rule, as in iptables */
+-	xt_xlate_add(xl, "counter ");
++	/*
++	 * Always add counters per rule, as in iptables
++	 * except for match comment
++	 */
++	if (!comm)
++		xt_xlate_add(xl, "counter ");
+ 
+ 	ret = xlate_action(cs, !!(cs->fw6.ipv6.flags & IP6T_F_GOTO), xl);
+ 
+-- 
+1.9.1
 
-Thanks.
-
-> +{
-> +	if ((unsigned long)len > h323_buffer_valid_bytes)
-> +		return false;
-> +
-> +	if (p + len > (void *)h323_buffer + h323_buffer_valid_bytes)
-> +		return false;
-> +
-> +	if (p < (void *)h323_buffer)
-> +		return false;
-> +
-> +	return true;
-> +}
->  
->  static struct nf_conntrack_helper nf_conntrack_helper_h245;
->  static struct nf_conntrack_helper nf_conntrack_helper_q931[];
