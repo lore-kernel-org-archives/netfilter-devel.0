@@ -1,110 +1,221 @@
 From: Nikolay Borisov <kernel@kyup.com>
-Subject: [PATCH 2/6] igmp: net: Move igmp namespace init to correct file
-Date: Mon, 15 Feb 2016 12:02:59 +0200
-Message-ID: <1455530583-23053-3-git-send-email-kernel@kyup.com>
+Subject: [PATCH 1/6] ipv4: Namespaceify ip_default_ttl sysctl knob
+Date: Mon, 15 Feb 2016 12:02:58 +0200
+Message-ID: <1455530583-23053-2-git-send-email-kernel@kyup.com>
 References: <1455530583-23053-1-git-send-email-kernel@kyup.com>
 Cc: netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
 	pabeni@redhat.com, jmorris@namei.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:38441 "EHLO
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:34221 "EHLO
 	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751027AbcBOKDK (ORCPT
+	with ESMTP id S1751115AbcBOKDK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 15 Feb 2016 05:03:10 -0500
-Received: by mail-wm0-f47.google.com with SMTP id a4so48490238wme.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Feb 2016 02:03:09 -0800 (PST)
+Received: by mail-wm0-f47.google.com with SMTP id b205so60281463wmb.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Feb 2016 02:03:08 -0800 (PST)
 In-Reply-To: <1455530583-23053-1-git-send-email-kernel@kyup.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When igmp related sysctl were namespacified their initializatin was
-erroneously put into the tcp socket namespace constructor. This
-patch moves the relevant code into the igmp namespace constructor to
-keep things consistent.
-
-Also sprinkle some #ifdefs to silence warnings
-
 Signed-off-by: Nikolay Borisov <kernel@kyup.com>
 ---
- net/ipv4/igmp.c     | 14 ++++++++++++++
- net/ipv4/tcp_ipv4.c |  6 ------
- 2 files changed, 14 insertions(+), 6 deletions(-)
+ include/net/netns/ipv4.h                 |  1 +
+ include/net/route.h                      |  5 ++---
+ net/bridge/netfilter/nft_reject_bridge.c |  8 +++++---
+ net/ipv4/ip_output.c                     |  3 ---
+ net/ipv4/ip_sockglue.c                   |  5 ++++-
+ net/ipv4/netfilter/ipt_SYNPROXY.c        |  3 ++-
+ net/ipv4/proc.c                          |  2 +-
+ net/ipv4/sysctl_net_ipv4.c               | 20 +++++++++++---------
+ 8 files changed, 26 insertions(+), 21 deletions(-)
 
-diff --git a/net/ipv4/igmp.c b/net/ipv4/igmp.c
-index 7c95335bf85e..2aea9f1a2a31 100644
---- a/net/ipv4/igmp.c
-+++ b/net/ipv4/igmp.c
-@@ -1224,7 +1224,9 @@ static void igmp_group_dropped(struct ip_mc_list *im)
- static void igmp_group_added(struct ip_mc_list *im)
- {
- 	struct in_device *in_dev = im->interface;
-+#ifdef CONFIG_IP_MULTICAST
- 	struct net *net = dev_net(in_dev->dev);
-+#endif
+diff --git a/include/net/netns/ipv4.h b/include/net/netns/ipv4.h
+index 848fe8056534..bc8f7f94abcb 100644
+--- a/include/net/netns/ipv4.h
++++ b/include/net/netns/ipv4.h
+@@ -80,6 +80,7 @@ struct netns_ipv4 {
+ 	int sysctl_tcp_ecn;
+ 	int sysctl_tcp_ecn_fallback;
  
- 	if (im->loaded == 0) {
- 		im->loaded = 1;
-@@ -1316,7 +1318,9 @@ static void ip_mc_hash_remove(struct in_device *in_dev,
- void ip_mc_inc_group(struct in_device *in_dev, __be32 addr)
- {
- 	struct ip_mc_list *im;
-+#ifdef CONFIG_IP_MULTICAST
- 	struct net *net = dev_net(in_dev->dev);
-+#endif
++	int sysctl_ip_default_ttl;
+ 	int sysctl_ip_no_pmtu_disc;
+ 	int sysctl_ip_fwd_use_pmtu;
+ 	int sysctl_ip_nonlocal_bind;
+diff --git a/include/net/route.h b/include/net/route.h
+index a3b9ef74a389..9b0a523bb428 100644
+--- a/include/net/route.h
++++ b/include/net/route.h
+@@ -329,14 +329,13 @@ static inline int inet_iif(const struct sk_buff *skb)
+ 	return skb->skb_iif;
+ }
  
- 	ASSERT_RTNL();
- 
-@@ -1643,7 +1647,9 @@ void ip_mc_down(struct in_device *in_dev)
- 
- void ip_mc_init_dev(struct in_device *in_dev)
- {
-+#ifdef CONFIG_IP_MULTICAST
- 	struct net *net = dev_net(in_dev->dev);
-+#endif
- 	ASSERT_RTNL();
- 
- #ifdef CONFIG_IP_MULTICAST
-@@ -1662,7 +1668,9 @@ void ip_mc_init_dev(struct in_device *in_dev)
- void ip_mc_up(struct in_device *in_dev)
- {
- 	struct ip_mc_list *pmc;
-+#ifdef CONFIG_IP_MULTICAST
- 	struct net *net = dev_net(in_dev->dev);
-+#endif
- 
- 	ASSERT_RTNL();
- 
-@@ -2923,6 +2931,12 @@ static int __net_init igmp_net_init(struct net *net)
- 		goto out_sock;
- 	}
- 
-+	/* Sysctl initialization */
-+	net->ipv4.sysctl_igmp_max_memberships = 20;
-+	net->ipv4.sysctl_igmp_max_msf = 10;
-+	/* IGMP reports for link-local multicast groups are enabled by default */
-+	net->ipv4.sysctl_igmp_llm_reports = 1;
-+	net->ipv4.sysctl_igmp_qrv = 2;
- 	return 0;
- 
- out_sock:
-diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
-index ba5d0146e3f0..3f872a6bc274 100644
---- a/net/ipv4/tcp_ipv4.c
-+++ b/net/ipv4/tcp_ipv4.c
-@@ -2399,12 +2399,6 @@ static int __net_init tcp_sk_init(struct net *net)
- 	net->ipv4.sysctl_tcp_fin_timeout = TCP_FIN_TIMEOUT;
- 	net->ipv4.sysctl_tcp_notsent_lowat = UINT_MAX;
- 
--	net->ipv4.sysctl_igmp_max_memberships = 20;
--	net->ipv4.sysctl_igmp_max_msf = 10;
--	/* IGMP reports for link-local multicast groups are enabled by default */
--	net->ipv4.sysctl_igmp_llm_reports = 1;
--	net->ipv4.sysctl_igmp_qrv = 2;
+-extern int sysctl_ip_default_ttl;
 -
+ static inline int ip4_dst_hoplimit(const struct dst_entry *dst)
+ {
+ 	int hoplimit = dst_metric_raw(dst, RTAX_HOPLIMIT);
++	struct net *net = dev_net(dst->dev);
+ 
+ 	if (hoplimit == 0)
+-		hoplimit = sysctl_ip_default_ttl;
++		hoplimit = net->ipv4.sysctl_ip_default_ttl;
+ 	return hoplimit;
+ }
+ 
+diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilter/nft_reject_bridge.c
+index fdba3d9fbff3..adc8d7221dbb 100644
+--- a/net/bridge/netfilter/nft_reject_bridge.c
++++ b/net/bridge/netfilter/nft_reject_bridge.c
+@@ -48,6 +48,7 @@ static void nft_reject_br_send_v4_tcp_reset(struct sk_buff *oldskb,
+ 	struct iphdr *niph;
+ 	const struct tcphdr *oth;
+ 	struct tcphdr _oth;
++	struct net *net = sock_net(oldskb->sk);
+ 
+ 	if (!nft_bridge_iphdr_validate(oldskb))
+ 		return;
+@@ -63,9 +64,9 @@ static void nft_reject_br_send_v4_tcp_reset(struct sk_buff *oldskb,
+ 
+ 	skb_reserve(nskb, LL_MAX_HEADER);
+ 	niph = nf_reject_iphdr_put(nskb, oldskb, IPPROTO_TCP,
+-				   sysctl_ip_default_ttl);
++				   net->ipv4.sysctl_ip_default_ttl);
+ 	nf_reject_ip_tcphdr_put(nskb, oldskb, oth);
+-	niph->ttl	= sysctl_ip_default_ttl;
++	niph->ttl	= net->ipv4.sysctl_ip_default_ttl;
+ 	niph->tot_len	= htons(nskb->len);
+ 	ip_send_check(niph);
+ 
+@@ -85,6 +86,7 @@ static void nft_reject_br_send_v4_unreach(struct sk_buff *oldskb,
+ 	void *payload;
+ 	__wsum csum;
+ 	u8 proto;
++	struct net *net = sock_net(oldskb->sk);
+ 
+ 	if (oldskb->csum_bad || !nft_bridge_iphdr_validate(oldskb))
+ 		return;
+@@ -119,7 +121,7 @@ static void nft_reject_br_send_v4_unreach(struct sk_buff *oldskb,
+ 
+ 	skb_reserve(nskb, LL_MAX_HEADER);
+ 	niph = nf_reject_iphdr_put(nskb, oldskb, IPPROTO_ICMP,
+-				   sysctl_ip_default_ttl);
++				   net->ipv4.sysctl_ip_default_ttl);
+ 
+ 	skb_reset_transport_header(nskb);
+ 	icmph = (struct icmphdr *)skb_put(nskb, sizeof(struct icmphdr));
+diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
+index 64878efa045c..f734c42acdaf 100644
+--- a/net/ipv4/ip_output.c
++++ b/net/ipv4/ip_output.c
+@@ -79,9 +79,6 @@
+ #include <linux/netlink.h>
+ #include <linux/tcp.h>
+ 
+-int sysctl_ip_default_ttl __read_mostly = IPDEFTTL;
+-EXPORT_SYMBOL(sysctl_ip_default_ttl);
+-
+ static int
+ ip_fragment(struct net *net, struct sock *sk, struct sk_buff *skb,
+ 	    unsigned int mtu,
+diff --git a/net/ipv4/ip_sockglue.c b/net/ipv4/ip_sockglue.c
+index 92808f147ef5..3f1befc4e17b 100644
+--- a/net/ipv4/ip_sockglue.c
++++ b/net/ipv4/ip_sockglue.c
+@@ -1341,10 +1341,13 @@ static int do_ip_getsockopt(struct sock *sk, int level, int optname,
+ 		val = inet->tos;
+ 		break;
+ 	case IP_TTL:
++	{
++		struct net *net = sock_net(sk);
+ 		val = (inet->uc_ttl == -1 ?
+-		       sysctl_ip_default_ttl :
++		       net->ipv4.sysctl_ip_default_ttl :
+ 		       inet->uc_ttl);
+ 		break;
++	}
+ 	case IP_HDRINCL:
+ 		val = inet->hdrincl;
+ 		break;
+diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
+index 5fdc556514ba..7b8fbb352877 100644
+--- a/net/ipv4/netfilter/ipt_SYNPROXY.c
++++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
+@@ -21,6 +21,7 @@ static struct iphdr *
+ synproxy_build_ip(struct sk_buff *skb, __be32 saddr, __be32 daddr)
+ {
+ 	struct iphdr *iph;
++	struct net *net = sock_net(skb->sk);
+ 
+ 	skb_reset_network_header(skb);
+ 	iph = (struct iphdr *)skb_put(skb, sizeof(*iph));
+@@ -29,7 +30,7 @@ synproxy_build_ip(struct sk_buff *skb, __be32 saddr, __be32 daddr)
+ 	iph->tos	= 0;
+ 	iph->id		= 0;
+ 	iph->frag_off	= htons(IP_DF);
+-	iph->ttl	= sysctl_ip_default_ttl;
++	iph->ttl	= net->ipv4.sysctl_ip_default_ttl;
+ 	iph->protocol	= IPPROTO_TCP;
+ 	iph->check	= 0;
+ 	iph->saddr	= saddr;
+diff --git a/net/ipv4/proc.c b/net/ipv4/proc.c
+index 3abd9d7a3adf..9f665b63a927 100644
+--- a/net/ipv4/proc.c
++++ b/net/ipv4/proc.c
+@@ -390,7 +390,7 @@ static int snmp_seq_show(struct seq_file *seq, void *v)
+ 
+ 	seq_printf(seq, "\nIp: %d %d",
+ 		   IPV4_DEVCONF_ALL(net, FORWARDING) ? 1 : 2,
+-		   sysctl_ip_default_ttl);
++		   net->ipv4.sysctl_ip_default_ttl);
+ 
+ 	BUILD_BUG_ON(offsetof(struct ipstats_mib, mibs) != 0);
+ 	for (i = 0; snmp4_ipstats_list[i].name != NULL; i++)
+diff --git a/net/ipv4/sysctl_net_ipv4.c b/net/ipv4/sysctl_net_ipv4.c
+index b537338f5c97..a833a9f9e4cd 100644
+--- a/net/ipv4/sysctl_net_ipv4.c
++++ b/net/ipv4/sysctl_net_ipv4.c
+@@ -283,15 +283,6 @@ static struct ctl_table ipv4_table[] = {
+ 		.proc_handler	= proc_dointvec
+ 	},
+ 	{
+-		.procname	= "ip_default_ttl",
+-		.data		= &sysctl_ip_default_ttl,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= &ip_ttl_min,
+-		.extra2		= &ip_ttl_max,
+-	},
+-	{
+ 		.procname	= "tcp_max_orphans",
+ 		.data		= &sysctl_tcp_max_orphans,
+ 		.maxlen		= sizeof(int),
+@@ -753,6 +744,15 @@ static struct ctl_table ipv4_net_table[] = {
+ 		.proc_handler	= proc_dointvec
+ 	},
+ 	{
++		.procname	= "ip_default_ttl",
++		.data		= &init_net.ipv4.sysctl_ip_default_ttl,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= &ip_ttl_min,
++		.extra2		= &ip_ttl_max,
++	},
++	{
+ 		.procname	= "ip_local_port_range",
+ 		.maxlen		= sizeof(init_net.ipv4.ip_local_ports.range),
+ 		.data		= &init_net.ipv4.ip_local_ports.range,
+@@ -988,6 +988,8 @@ static __net_init int ipv4_sysctl_init_net(struct net *net)
+ 	if (!net->ipv4.sysctl_local_reserved_ports)
+ 		goto err_ports;
+ 
++	net->ipv4.sysctl_ip_default_ttl = IPDEFTTL;
++
  	return 0;
- fail:
- 	tcp_sk_exit(net);
+ 
+ err_ports:
 -- 
 2.5.0
 
