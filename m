@@ -1,35 +1,110 @@
-From: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: =?utf-8?Q?=D0=9A=D0=BB=D0=B8=D0=B5=D0=BD=D1=82=D1=81=D0?=
-	=?utf-8?Q?=BA=D0=B8=D0=B5_=D0=B1=D0=B0=D0=B7=D1=8B!_=D0?=
-	=?utf-8?Q?=A2=D0=B5=D0=BB=5CViber=5CWhatsapp=3A+791393935?=
-	=?utf-8?Q?06__Skype=3Aprodawez389__Email=3Amnoskova760=40?=
-	=?utf-8?Q?gmail=2Ecom_=D0=A3=D0=B7=D0=BD=D0=B0=D0=B9=D1?=
-	=?utf-8?Q?=82=D0=B5_=D0=BF=D0=BE=D0=B4=D1=80=D0=BE=D0=B1?=
-	=?utf-8?Q?=D0=BD=D0=B5=D0=B5!!!?=
-Date: Wed, 10 Feb 2016 13:28:57 +0600
-Message-ID: <689327FF6ABE91528E8BC27D897BCA58@vger.kernel.org>
-Reply-To: "netfilter-devel@vger.kernel.org" <mnoskova760@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: <netfilter-devel@vger.kernel.org>
+From: Nikolay Borisov <kernel@kyup.com>
+Subject: [PATCH 2/6] igmp: net: Move igmp namespace init to correct file
+Date: Mon, 15 Feb 2016 12:02:59 +0200
+Message-ID: <1455530583-23053-3-git-send-email-kernel@kyup.com>
+References: <1455530583-23053-1-git-send-email-kernel@kyup.com>
+Cc: netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
+	pabeni@redhat.com, jmorris@namei.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [128.199.71.20] ([128.199.71.20]:35244 "EHLO server.localdomain"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751605AbcBOH5T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Feb 2016 02:57:19 -0500
-Received: from 128.199.71.20 (localhost [IPv6:::1])
-	by server.localdomain (Postfix) with SMTP id 6A8A0FC5AB
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Feb 2016 14:28:38 -0500 (EST)
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:38441 "EHLO
+	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751027AbcBOKDK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Feb 2016 05:03:10 -0500
+Received: by mail-wm0-f47.google.com with SMTP id a4so48490238wme.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 15 Feb 2016 02:03:09 -0800 (PST)
+In-Reply-To: <1455530583-23053-1-git-send-email-kernel@kyup.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=D0=9A=D0=BB=D0=B8=D0=B5=D0=BD=D1=82=D1=81=D0=BA=D0=B8=D0=B5 =D0=B1=D0=B0=
-=D0=B7=D1=8B! =D0=A2=D0=B5=D0=BB\Viber\Whatsapp:+79139393506  Skype:pro=
-dawez389  Email:mnoskova760@gmail.com =D0=A3=D0=B7=D0=BD=D0=B0=D0=B9=D1=
-=82=D0=B5 =D0=BF=D0=BE=D0=B4=D1=80=D0=BE=D0=B1=D0=BD=D0=B5=D0=B5!!!
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+When igmp related sysctl were namespacified their initializatin was
+erroneously put into the tcp socket namespace constructor. This
+patch moves the relevant code into the igmp namespace constructor to
+keep things consistent.
+
+Also sprinkle some #ifdefs to silence warnings
+
+Signed-off-by: Nikolay Borisov <kernel@kyup.com>
+---
+ net/ipv4/igmp.c     | 14 ++++++++++++++
+ net/ipv4/tcp_ipv4.c |  6 ------
+ 2 files changed, 14 insertions(+), 6 deletions(-)
+
+diff --git a/net/ipv4/igmp.c b/net/ipv4/igmp.c
+index 7c95335bf85e..2aea9f1a2a31 100644
+--- a/net/ipv4/igmp.c
++++ b/net/ipv4/igmp.c
+@@ -1224,7 +1224,9 @@ static void igmp_group_dropped(struct ip_mc_list *im)
+ static void igmp_group_added(struct ip_mc_list *im)
+ {
+ 	struct in_device *in_dev = im->interface;
++#ifdef CONFIG_IP_MULTICAST
+ 	struct net *net = dev_net(in_dev->dev);
++#endif
+ 
+ 	if (im->loaded == 0) {
+ 		im->loaded = 1;
+@@ -1316,7 +1318,9 @@ static void ip_mc_hash_remove(struct in_device *in_dev,
+ void ip_mc_inc_group(struct in_device *in_dev, __be32 addr)
+ {
+ 	struct ip_mc_list *im;
++#ifdef CONFIG_IP_MULTICAST
+ 	struct net *net = dev_net(in_dev->dev);
++#endif
+ 
+ 	ASSERT_RTNL();
+ 
+@@ -1643,7 +1647,9 @@ void ip_mc_down(struct in_device *in_dev)
+ 
+ void ip_mc_init_dev(struct in_device *in_dev)
+ {
++#ifdef CONFIG_IP_MULTICAST
+ 	struct net *net = dev_net(in_dev->dev);
++#endif
+ 	ASSERT_RTNL();
+ 
+ #ifdef CONFIG_IP_MULTICAST
+@@ -1662,7 +1668,9 @@ void ip_mc_init_dev(struct in_device *in_dev)
+ void ip_mc_up(struct in_device *in_dev)
+ {
+ 	struct ip_mc_list *pmc;
++#ifdef CONFIG_IP_MULTICAST
+ 	struct net *net = dev_net(in_dev->dev);
++#endif
+ 
+ 	ASSERT_RTNL();
+ 
+@@ -2923,6 +2931,12 @@ static int __net_init igmp_net_init(struct net *net)
+ 		goto out_sock;
+ 	}
+ 
++	/* Sysctl initialization */
++	net->ipv4.sysctl_igmp_max_memberships = 20;
++	net->ipv4.sysctl_igmp_max_msf = 10;
++	/* IGMP reports for link-local multicast groups are enabled by default */
++	net->ipv4.sysctl_igmp_llm_reports = 1;
++	net->ipv4.sysctl_igmp_qrv = 2;
+ 	return 0;
+ 
+ out_sock:
+diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
+index ba5d0146e3f0..3f872a6bc274 100644
+--- a/net/ipv4/tcp_ipv4.c
++++ b/net/ipv4/tcp_ipv4.c
+@@ -2399,12 +2399,6 @@ static int __net_init tcp_sk_init(struct net *net)
+ 	net->ipv4.sysctl_tcp_fin_timeout = TCP_FIN_TIMEOUT;
+ 	net->ipv4.sysctl_tcp_notsent_lowat = UINT_MAX;
+ 
+-	net->ipv4.sysctl_igmp_max_memberships = 20;
+-	net->ipv4.sysctl_igmp_max_msf = 10;
+-	/* IGMP reports for link-local multicast groups are enabled by default */
+-	net->ipv4.sysctl_igmp_llm_reports = 1;
+-	net->ipv4.sysctl_igmp_qrv = 2;
+-
+ 	return 0;
+ fail:
+ 	tcp_sk_exit(net);
+-- 
+2.5.0
+
