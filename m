@@ -1,106 +1,72 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [RESEND PATCH -stable,4.x.y] netfilter: nf_nat_redirect: add missing NULL pointer check
-Date: Tue, 16 Feb 2016 20:41:19 +0100
-Message-ID: <1455651680-11775-1-git-send-email-pablo@netfilter.org>
+Subject: [RESEND PATCH -stable,4.3.y] netfilter: xt_TEE: fix NULL dereference
+Date: Tue, 16 Feb 2016 20:41:20 +0100
+Message-ID: <1455651680-11775-2-git-send-email-pablo@netfilter.org>
+References: <1455651680-11775-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org
 To: stable@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53406 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53407 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755741AbcBPTla (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1755806AbcBPTla (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Tue, 16 Feb 2016 14:41:30 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 396E2C8813
+	by mail.us.es (Postfix) with ESMTP id BEBA3C882D
 	for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2016 20:41:28 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 20EEC1B3D29
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A76FE91DD
 	for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2016 20:41:28 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 16E20ADE5
-	for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2016 20:41:25 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 4779822014
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2016 20:41:26 +0100 (CET)
+In-Reply-To: <1455651680-11775-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Munehisa Kamata <kamatam@amazon.com>
+From: Eric Dumazet <edumazet@google.com>
 
-[ upstream commit 94f9cd81436c85d8c3a318ba92e236ede73752fc ]
+[ upstream commit 45efccdbec3cd465c4776ed9ca1d7b1bba1b7e34 ]
 
-Commit 8b13eddfdf04cbfa561725cfc42d6868fe896f56 ("netfilter: refactor NAT
-redirect IPv4 to use it from nf_tables") has introduced a trivial logic
-change which can result in the following crash.
+iptables -I INPUT ... -j TEE --gateway 10.1.2.3
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000030
-IP: [<ffffffffa033002d>] nf_nat_redirect_ipv4+0x2d/0xa0 [nf_nat_redirect]
-PGD 3ba662067 PUD 3ba661067 PMD 0
-Oops: 0000 [#1] SMP
-Modules linked in: ipv6(E) xt_REDIRECT(E) nf_nat_redirect(E) xt_tcpudp(E) iptable_nat(E) nf_conntrack_ipv4(E) nf_defrag_ipv4(E) nf_nat_ipv4(E) nf_nat(E) nf_conntrack(E) ip_tables(E) x_tables(E) binfmt_misc(E) xfs(E) libcrc32c(E) evbug(E) evdev(E) psmouse(E) i2c_piix4(E) i2c_core(E) acpi_cpufreq(E) button(E) ext4(E) crc16(E) jbd2(E) mbcache(E) dm_mirror(E) dm_region_hash(E) dm_log(E) dm_mod(E)
-CPU: 0 PID: 2536 Comm: ip Tainted: G            E   4.1.7-15.23.amzn1.x86_64 #1
-Hardware name: Xen HVM domU, BIOS 4.2.amazon 05/06/2015
-task: ffff8800eb438000 ti: ffff8803ba664000 task.ti: ffff8803ba664000
-[...]
-Call Trace:
- <IRQ>
- [<ffffffffa0334065>] redirect_tg4+0x15/0x20 [xt_REDIRECT]
- [<ffffffffa02e2e99>] ipt_do_table+0x2b9/0x5e1 [ip_tables]
- [<ffffffffa0328045>] iptable_nat_do_chain+0x25/0x30 [iptable_nat]
- [<ffffffffa031777d>] nf_nat_ipv4_fn+0x13d/0x1f0 [nf_nat_ipv4]
- [<ffffffffa0328020>] ? iptable_nat_ipv4_fn+0x20/0x20 [iptable_nat]
- [<ffffffffa031785e>] nf_nat_ipv4_in+0x2e/0x90 [nf_nat_ipv4]
- [<ffffffffa03280a5>] iptable_nat_ipv4_in+0x15/0x20 [iptable_nat]
- [<ffffffff81449137>] nf_iterate+0x57/0x80
- [<ffffffff814491f7>] nf_hook_slow+0x97/0x100
- [<ffffffff814504d4>] ip_rcv+0x314/0x400
+<crash> because --oif was not specified
 
-unsigned int
-nf_nat_redirect_ipv4(struct sk_buff *skb,
-...
-{
-...
-		rcu_read_lock();
-		indev = __in_dev_get_rcu(skb->dev);
-		if (indev != NULL) {
-			ifa = indev->ifa_list;
-			newdst = ifa->ifa_local; <---
-		}
-		rcu_read_unlock();
-...
-}
+tee_tg_check() sets ->priv pointer to NULL in this case.
 
-Before the commit, 'ifa' had been always checked before access. After the
-commit, however, it could be accessed even if it's NULL. Interestingly,
-this was once fixed in 2003.
-
-http://marc.info/?l=netfilter-devel&m=106668497403047&w=2
-
-In addition to the original one, we have seen the crash when packets that
-need to be redirected somehow arrive on an interface which hasn't been
-yet fully configured.
-
-This change just reverts the logic to the old behavior to avoid the crash.
-
-Fixes: 8b13eddfdf04 ("netfilter: refactor NAT redirect IPv4 to use it from nf_tables")
-Cc: <stable@vger.kernel.org> # 4.1.x
-Cc: <stable@vger.kernel.org> # 4.2.x
+Fixes: bbde9fc1824a ("netfilter: factor out packet duplication for IPv4/IPv6")
 Cc: <stable@vger.kernel.org> # 4.3.x
-Signed-off-by: Munehisa Kamata <kamatam@amazon.com>
+Signed-off-by: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_nat_redirect.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/xt_TEE.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_nat_redirect.c b/net/netfilter/nf_nat_redirect.c
-index 97b75f9..d438698 100644
---- a/net/netfilter/nf_nat_redirect.c
-+++ b/net/netfilter/nf_nat_redirect.c
-@@ -55,7 +55,7 @@ nf_nat_redirect_ipv4(struct sk_buff *skb,
+diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
+index fd980aa..c5fdea1 100644
+--- a/net/netfilter/xt_TEE.c
++++ b/net/netfilter/xt_TEE.c
+@@ -31,8 +31,9 @@ static unsigned int
+ tee_tg4(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+ 	const struct xt_tee_tginfo *info = par->targinfo;
++	int oif = info->priv ? info->priv->oif : 0;
  
- 		rcu_read_lock();
- 		indev = __in_dev_get_rcu(skb->dev);
--		if (indev != NULL) {
-+		if (indev && indev->ifa_list) {
- 			ifa = indev->ifa_list;
- 			newdst = ifa->ifa_local;
- 		}
+-	nf_dup_ipv4(skb, par->hooknum, &info->gw.in, info->priv->oif);
++	nf_dup_ipv4(skb, par->hooknum, &info->gw.in, oif);
+ 
+ 	return XT_CONTINUE;
+ }
+@@ -42,8 +43,9 @@ static unsigned int
+ tee_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ {
+ 	const struct xt_tee_tginfo *info = par->targinfo;
++	int oif = info->priv ? info->priv->oif : 0;
+ 
+-	nf_dup_ipv6(skb, par->hooknum, &info->gw.in6, info->priv->oif);
++	nf_dup_ipv6(skb, par->hooknum, &info->gw.in6, oif);
+ 
+ 	return XT_CONTINUE;
+ }
 -- 
 2.1.4
 
