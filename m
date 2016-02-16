@@ -1,107 +1,92 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v2] netfilter: meta: add PRANDOM support
-Date: Tue, 16 Feb 2016 17:24:08 +0100
-Message-ID: <1455639848-2454-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>,
-	Daniel Borkmann <daniel@iogearbox.net>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC nftables PATCH] nft: add bash completion script
+Date: Tue, 16 Feb 2016 17:26:34 +0100
+Message-ID: <20160216162634.GB3504@salvia>
+References: <1454691182-6573-1-git-send-email-giuseppelng@gmail.com>
+ <20160215195601.GA8938@salvia>
+ <CAFpD06Q_eVk6xPeQH6GVrsHVNQCdXKvuCh-5T3Wi_sHK3tmQrQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Giuseppe Longo <giuseppelng@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40094 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751193AbcBPQXu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Feb 2016 11:23:50 -0500
+Received: from mail.us.es ([193.147.175.20]:45814 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751284AbcBPQ0k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Feb 2016 11:26:40 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 9514F6DFE0
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2016 17:26:37 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 839301B327B
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2016 17:26:37 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 951E81B3344
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2016 17:26:35 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <CAFpD06Q_eVk6xPeQH6GVrsHVNQCdXKvuCh-5T3Wi_sHK3tmQrQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Can be used to randomly match packets e.g. for statistic traffic sampling.
+On Tue, Feb 16, 2016 at 02:00:17PM +0100, Giuseppe Longo wrote:
+> Hi Pablo,
+> 
+> 2016-02-15 20:56 GMT+01:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> > Hi Giuseppe,
+> >
+> > On Fri, Feb 05, 2016 at 05:53:02PM +0100, Giuseppe Longo wrote:
+> >> The following patch adds a bash completion script
+> >> which permits to complete nft commands.
+> >>
+> >> To install it:
+> >> - cp files/nft-completion /etc/bash_completion.d/
+> >> - . /etc/bash_completion.d/nft-completion
+> >>
+> >> The following commands are supported:
+> >> - nft add table <family> <name>
+> >> - nft list table <family> <name>
+> >> - nft list tables
+> >> - nft list sets
+> >> - nft list chains
+> >> - nft list ruleset
+> >> - nft list set <table> <name>
+> >> - nft add set <table> <name>
+> >> - nft add element <table> <set>
+> >> - nft add map <table>
+> >> - nft flush table <family> <table>
+> >>
+> >> Most probably this won't work with sudo, since there
+> >> are some nft commands into the script.
+> >>
+> >> A second patch to add completion in interactive mode
+> >> will come.
+> >>
+> >> This is only a draft,
+> >> any feedback is appreciated.
+> >
+> > Could you explore adding code to inquire the parser on the next
+> > possible tokens ahead? That would greatly simplify the shell script
+> > for bash autocompletion. We should be able to reuse this from
+> > libreadline too.
+> >
+> > I know what I'm asking is a bit more difficult, but it would help us
+> > reduce the amount of code duplication and will reduce the maintainance
+> > burden.
+> >
+> > Let us know, thanks!
+> 
+> Sure, I've looked quickly at bison doc and thought the following idea:
+> We can add a new nft command like "nft complete" to inquire the parser,
+> which will print all the possible word since we have a parse tree.
 
-See commit 3ad0040573b0c00f8848
-("bpf: split state from prandom_u32() and consolidate {c, e}BPF prngs")
-for more info why this doesn't use prandom_u32 directly.
+Sounds reasonable. Let me see if I can come up with a better command
+name, but this naming detail should not stop you at this stage.
 
-Unlike bpf nft_meta can be built as a module, so add an EXPORT_SYMBOL
-for prandom_seed_full_state too.
+> in that way, the bash script will be able to complete the command.
+> 
+> Also, do you confirm that we will skip objects like tables name, chain
+> name, and so on?
 
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Change in v2: use prandom_init_once helper instead of
- open-coding w. static variable
+Yes, let's focus on keyword autocompletion by now.
 
- include/uapi/linux/netfilter/nf_tables.h |  2 ++
- lib/random32.c                           |  1 +
- net/netfilter/nft_meta.c                 | 11 +++++++++++
- 3 files changed, 14 insertions(+)
-
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index be41ffc..b19be0a 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -681,6 +681,7 @@ enum nft_exthdr_attributes {
-  * @NFT_META_IIFGROUP: packet input interface group
-  * @NFT_META_OIFGROUP: packet output interface group
-  * @NFT_META_CGROUP: socket control group (skb->sk->sk_classid)
-+ * @NFT_META_PRANDOM: a 32bit pseudo-random number
-  */
- enum nft_meta_keys {
- 	NFT_META_LEN,
-@@ -707,6 +708,7 @@ enum nft_meta_keys {
- 	NFT_META_IIFGROUP,
- 	NFT_META_OIFGROUP,
- 	NFT_META_CGROUP,
-+	NFT_META_PRANDOM,
- };
- 
- /**
-diff --git a/lib/random32.c b/lib/random32.c
-index 1211191..510d1ce 100644
---- a/lib/random32.c
-+++ b/lib/random32.c
-@@ -255,6 +255,7 @@ void prandom_seed_full_state(struct rnd_state __percpu *pcpu_state)
- 		prandom_warmup(state);
- 	}
- }
-+EXPORT_SYMBOL(prandom_seed_full_state);
- 
- /*
-  *	Generate better values after random number generator
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index fe885bf..16c50b0 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -28,6 +28,8 @@
- 
- #include <uapi/linux/netfilter_bridge.h> /* NF_BR_PRE_ROUTING */
- 
-+static DEFINE_PER_CPU(struct rnd_state, nft_prandom_state);
-+
- void nft_meta_get_eval(const struct nft_expr *expr,
- 		       struct nft_regs *regs,
- 		       const struct nft_pktinfo *pkt)
-@@ -181,6 +183,11 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 		*dest = sock_cgroup_classid(&sk->sk_cgrp_data);
- 		break;
- #endif
-+	case NFT_META_PRANDOM: {
-+		struct rnd_state *state = this_cpu_ptr(&nft_prandom_state);
-+		*dest = prandom_u32_state(state);
-+		break;
-+	}
- 	default:
- 		WARN_ON(1);
- 		goto err;
-@@ -277,6 +284,10 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
- 	case NFT_META_OIFNAME:
- 		len = IFNAMSIZ;
- 		break;
-+	case NFT_META_PRANDOM:
-+		prandom_init_once(&nft_prandom_state);
-+		len = sizeof(u32);
-+		break;
- 	default:
- 		return -EOPNOTSUPP;
- 	}
--- 
-2.4.10
-
+Thanks.
