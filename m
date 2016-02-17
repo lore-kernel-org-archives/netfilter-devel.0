@@ -1,63 +1,98 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH] uapi glibc compat: fix cases where glibc net/if.h is
- included before linux/if.h
-Date: Wed, 17 Feb 2016 10:46:20 -0500 (EST)
-Message-ID: <20160217.104620.239734387234680136.davem@davemloft.net>
-References: <CA+5PVA4P2avVr+m=ittQUyBou9kT2nbK0-Jeo+3coAFyQXTT_A@mail.gmail.com>
-	<1454853801-18064-1-git-send-email-mikko.rapeli@iki.fi>
+From: Joe Stringer <joe-LZ6Gd1LRuIk@public.gmane.org>
+Subject: Re: [PATCH nf-next v7 4/7] openvswitch: Find existing
+ conntrack entry after upcall.
+Date: Wed, 17 Feb 2016 14:03:17 -0800
+Message-ID: <CAPWQB7Ehm6d79XiR2DdR6swPHH4K_S0wkGXSTN2z+awiGk0Gug@mail.gmail.com>
+References: <1454722865-59558-1-git-send-email-jarno@ovn.org>
+ <1454722865-59558-5-git-send-email-jarno@ovn.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: shemming-43mecJUBy8ZBDgjK7y7TUQ@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jwboyer-rxtnV0ftBwyoClj4AeEUq9i2O/JbrIOy@public.gmane.org,
-	pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: mikko.rapeli-X3B1VOXEql0@public.gmane.org
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1454853801-18064-1-git-send-email-mikko.rapeli-X3B1VOXEql0@public.gmane.org>
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: ovs dev <dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+ netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarno Rajahalme <jarno-LZ6Gd1LRuIk@public.gmane.org>
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <1454722865-59558-5-git-send-email-jarno-LZ6Gd1LRuIk@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
-Date: Sun,  7 Feb 2016 16:03:21 +0200
-
-> @@ -68,6 +72,8 @@
->   * @IFF_ECHO: echo sent packets. Volatile.
->   */
->  enum net_device_flags {
-> +/* for compatibility with glibc net/if.h */
-> +#if __UAPI_DEF_IF_NET_DEVICE_FLAGS
->  	IFF_UP				= 1<<0,  /* sysfs */
->  	IFF_BROADCAST			= 1<<1,  /* volatile */
->  	IFF_DEBUG			= 1<<2,  /* sysfs */
-> @@ -84,11 +90,14 @@ enum net_device_flags {
->  	IFF_PORTSEL			= 1<<13, /* sysfs */
->  	IFF_AUTOMEDIA			= 1<<14, /* sysfs */
->  	IFF_DYNAMIC			= 1<<15, /* sysfs */
-> +#endif /* __UAPI_DEF_IF_NET_DEVICE_FLAGS */
->  	IFF_LOWER_UP			= 1<<16, /* volatile */
->  	IFF_DORMANT			= 1<<17, /* volatile */
->  	IFF_ECHO			= 1<<18, /* volatile */
->  };
-
-This is going to get messy is IFF_LOWER_UP, IFF_DORMANT, and IFF_ECHO
-get added the the glibc header.  Why not just handle it now with
-another __UAPI_DEF_FOO guard so that the additions to net/if.h can
-deal with this case too.
-
-> +/* for compatibility with glibc net/if.h */
-> +#if __UAPI_DEF_IF_NET_DEVICE_FLAGS
->  #define IFF_UP				IFF_UP
->  #define IFF_BROADCAST			IFF_BROADCAST
->  #define IFF_DEBUG			IFF_DEBUG
-> @@ -105,6 +114,8 @@ enum net_device_flags {
->  #define IFF_PORTSEL			IFF_PORTSEL
->  #define IFF_AUTOMEDIA			IFF_AUTOMEDIA
->  #define IFF_DYNAMIC			IFF_DYNAMIC
-> +#endif /* __UAPI_DEF_IF_NET_DEVICE_FLAGS */
-> +
->  #define IFF_LOWER_UP			IFF_LOWER_UP
->  #define IFF_DORMANT			IFF_DORMANT
->  #define IFF_ECHO			IFF_ECHO
-
-Likewise.
+T24gNSBGZWJydWFyeSAyMDE2IGF0IDE3OjQxLCBKYXJubyBSYWphaGFsbWUgPGphcm5vQG92bi5v
+cmc+IHdyb3RlOgo+IEFkZCBhIG5ldyBmdW5jdGlvbiBvdnNfY3RfZmluZF9leGlzdGluZygpIHRv
+IGZpbmQgYW4gZXhpc3RpbmcKPiBjb25udHJhY2sgZW50cnkgZm9yIHdoaWNoIHRoaXMgcGFja2V0
+IHdhcyBhbHJlYWR5IGFwcGxpZWQgdG8uICBUaGlzIGlzCj4gb25seSB0byBiZSBjYWxsZWQgd2hl
+biB0aGVyZSBpcyBldmlkZW5jZSB0aGF0IHRoZSBwYWNrZXQgd2FzIGFscmVhZHkKPiB0cmFja2Vk
+IGFuZCBjb21taXR0ZWQsIGJ1dCB3ZSBsb3N0IHRoZSBjdCByZWZlcmVuY2UgZHVlIHRvIGFuCj4g
+dXNlcnNwYWNlIHVwY2FsbC4KPgo+IG92c19jdF9maW5kX2V4aXN0aW5nKCkgaXMgY2FsbGVkIGZy
+b20gc2tiX25mY3RfY2FjaGVkKCksIHdoaWNoIGNhbiBub3cKPiBoaWRlIHRoZSBmYWN0IHRoYXQg
+dGhlIGN0IHJlZmVyZW5jZSBtYXkgaGF2ZSBiZWVuIGxvc3QgZHVlIHRvIGFuCj4gdXBjYWxsLiAg
+VGhpcyBhbGxvd3Mgb3ZzX2N0X2NvbW1pdCgpIHRvIGJlIHNpbXBsaWZpZWQuCj4KPiBUaGlzIHBh
+dGNoIGlzIG5lZWRlZCBieSBsYXRlciAib3BlbnZzd2l0Y2g6IEludGVyZmFjZSB3aXRoIE5BVCIg
+cGF0Y2gsCj4gYXMgd2UgbmVlZCB0byBiZSBhYmxlIHRvIHBhc3MgdGhlIHBhY2tldCB0aHJvdWdo
+IE5BVCB1c2luZyB0aGUKPiBvcmlnaW5hbCBjdCByZWZlcmVuY2UgYWxzbyBhZnRlciB0aGUgcmVm
+ZXJlbmNlIGlzIGxvc3QgYWZ0ZXIgYW4KPiB1cGNhbGwuCj4KPiBTaWduZWQtb2ZmLWJ5OiBKYXJu
+byBSYWphaGFsbWUgPGphcm5vQG92bi5vcmc+CgpQbGVhc2UgcnVuIGNoZWNrcGF0Y2gucGwgYWdh
+aW5zdCB5b3VyIHNlcmllczsgdGhlcmUgYXJlIHZhcmlvdXMgc3R5bGUKaXNzdWVzIGFuZCBhbHNv
+IHRoaW5ncyBsaWtlIHdlIHNob3VsZCBub3QgaGl0IEJVR19PTigpIGluIHBhY2tldApwcm9jZXNz
+aW5nIHBhdGguCgo+ICsvKiBGaW5kIGFuIGV4aXN0aW5nIGNvbm50cmFjayBlbnRyeSBmb3Igd2hp
+Y2ggdGhpcyBwYWNrZXQgd2FzIGFscmVhZHkgYXBwbGllZAo+ICsgKiB0by4gIFRoaXMgaXMgb25s
+eSBjYWxsZWQgd2hlbiB0aGVyZSBpcyBldmlkZW5jZSB0aGF0IHRoZSBwYWNrZXQgd2FzIGFscmVh
+ZHkKPiArICogdHJhY2tlZCBhbmQgY29tbWl0ZWQsIGJ1dCB3ZSBsb3N0IHRoZSBjdCByZWZlcmVu
+Y2UgZHVlIHRvIGFuIHVzZXJzcGFjZQo+ICsgKiB1cGNhbGwuIFRoaXMgbWVhbnMgdGhhdCBvbiBl
+bnRyeSBza2ItPm5mY3QgaXMgTlVMTC4KPiArICogT24gc3VjY2VzcywgcmV0dXJucyBjb25udHJh
+Y2sgcHRyLCBzZXRzIHNrYi0+bmZjdCBhbmQgY3RpbmZvLgo+ICsgKiBNdXN0IGJlIGNhbGxlZCBy
+Y3VfcmVhZF9sb2NrKCllZC4gKi8KCkkgdGhpbmsgdGhpcyByZWFkcyBhIGJpdCBtb3JlIG5hdHVy
+YWw6CgovKiBGaW5kIGFuIGV4aXN0aW5nIGNvbm5lY3Rpb24gd2hpY2ggdGhpcyBwYWNrZXQgYmVs
+b25ncyB0byB3aXRob3V0CnJlLWF0dHJpYnV0aW5nCiAqIHN0YXRpc3RpY3Mgb3IgbW9kaWZ5aW5n
+IHRoZSBjb25uZWN0aW9uIHN0YXRlLiBEdXJpbmcgdXBjYWxsIHByb2Nlc3NpbmcsCiAqIHNrYi0+
+bmZjdCBpcyBsb3N0LCBzbyB0aGlzIGFsbG93cyBpdCB0byBiZSByZWNvdmVyZWQgZHVyaW5nIGFj
+dGlvbnMKZXhlY3V0aW9uLgogKiBNdXN0IGJlIGNhbGxlZCB3aXRoIHJjdV9yZWFkX2xvY2suCiAq
+CiAqIE9uIHN1Y2Nlc3MsIHBvcHVsYXRlcyBza2ItPm5mY3QgYW5kIHNrYi0+bmZjdGluZm8sIGFu
+ZCByZXR1cm5zIHRoZQogKiBjb25uZWN0aW9uLiBSZXR1cm5zIE5VTEwgaWYgdGhlcmUgaXMgbm8g
+ZXhpc3RpbmcgZW50cnkuCiAqLwoKPiArc3RhdGljIHN0cnVjdCBuZl9jb25uICoKPiArb3ZzX2N0
+X2ZpbmRfZXhpc3Rpbmcoc3RydWN0IG5ldCAqbmV0LCBjb25zdCBzdHJ1Y3QgbmZfY29ubnRyYWNr
+X3pvbmUgKnpvbmUsCj4gKyAgICAgICAgICAgICAgICAgICAgdV9pbnQ4X3QgbDNudW0sIHN0cnVj
+dCBza19idWZmICpza2IsCj4gKyAgICAgICAgICAgICAgICAgICAgZW51bSBpcF9jb25udHJhY2tf
+aW5mbyAqY3RpbmZvKQoKVGhlIGNhbGxlciBkb2Vzbid0IHVzZSBjdGluZm8sIHNvIHRoaXMgYXJn
+dW1lbnQgY291bGQgYmUgZHJvcHBlZD8KCjxzbmlwPgoKPiAgICAgICAgIGN0ID0gbmZfY3RfZ2V0
+KHNrYiwgJmN0aW5mbyk7Cj4gKyAgICAgICAvKiBJZiBubyBjdCwgY2hlY2sgaWYgd2UgaGF2ZSBl
+dmlkZW5jZSB0aGF0IGFuIGV4aXN0aW5nIGNvbm50cmFjayBlbnRyeQo+ICsgICAgICAgICogbWln
+aHQgYmUgZm91bmQgZm9yIHRoaXMgc2tiLiAgVGhpcyBoYXBwZW5zIHdoZW4gd2UgbG9zZSBhIHNr
+Yi0+bmZjdAo+ICsgICAgICAgICogZHVlIHRvIGFuIHVwY2FsbC4gIElmIHRoZSBjb25uZWN0aW9u
+IHdhcyBub3QgY29uZmlybWVkLCBpdCBpcyBub3QKPiArICAgICAgICAqIGNhY2hlZCBhbmQgbmVl
+ZHMgdG8gYmUgcnVuIHRocm91Z2ggY29ubnRyYWNrIGFnYWluLiAqLwo+ICsgICAgICAgaWYgKCFj
+dCAmJiBrZXktPmN0LnN0YXRlICYgT1ZTX0NTX0ZfVFJBQ0tFRAo+ICsgICAgICAgICAgICYmICEo
+a2V5LT5jdC5zdGF0ZSAmIE9WU19DU19GX0lOVkFMSUQpCj4gKyAgICAgICAgICAgJiYga2V5LT5j
+dC56b25lID09IGluZm8tPnpvbmUuaWQpCj4gKyAgICAgICAgICAgICAgIGN0ID0gb3ZzX2N0X2Zp
+bmRfZXhpc3RpbmcobmV0LCAmaW5mby0+em9uZSwgaW5mby0+ZmFtaWx5LCBza2IsCj4gKyAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgJmN0aW5mbyk7CgpPcGVyYXRvciBz
+dHlsZSBpbiBuZXQgaXMgYSBiaXQgZGlmZmVyZW50IGZyb20gT1ZTIHVzZXJzcGFjZS4KCj4gICAg
+ICAgICBpZiAoIWN0KQo+ICAgICAgICAgICAgICAgICByZXR1cm4gZmFsc2U7Cj4gKwo+ICAgICAg
+ICAgaWYgKCFuZXRfZXEobmV0LCByZWFkX3BuZXQoJmN0LT5jdF9uZXQpKSkKPiAgICAgICAgICAg
+ICAgICAgcmV0dXJuIGZhbHNlOwo+ICAgICAgICAgaWYgKCFuZl9jdF96b25lX2VxdWFsX2FueShp
+bmZvLT5jdCwgbmZfY3Rfem9uZShjdCkpKQoKVW5yZWxhdGVkIHdoaXRlc3BhY2UuCgo+IEBAIC00
+MjEsNiArNTA4LDEzIEBAIHN0YXRpYyBpbnQgb3ZzX2N0X2xvb2t1cChzdHJ1Y3QgbmV0ICpuZXQs
+IHN0cnVjdCBzd19mbG93X2tleSAqa2V5LAo+ICB7Cj4gICAgICAgICBzdHJ1Y3QgbmZfY29ubnRy
+YWNrX2V4cGVjdCAqZXhwOwo+Cj4gKyAgICAgICAvKiBJZiB3ZSBwYXNzIGFuIGV4cGVjdGVkIHBh
+Y2tldCB0aHJvdWdoIG5mX2Nvbm50cmFja19pbigpIHRoZQo+ICsgICAgICAgICogZXhwZWN0aWF0
+aW9uIHdpbGwgYmUgcmVtb3ZlZCwgYnV0IHRoZSBwYWNrZXQgY291bGQgc3RpbGwgYmUgbG9zdCBp
+bgo+ICsgICAgICAgICogdXBjYWxsIHByb2Nlc3NpbmcuICBUbyBwcmV2ZW50IHRoaXMgZnJvbSBo
+YXBwZW5pbmcgd2UgcGVyZm9ybSBhbgo+ICsgICAgICAgICogZXhwbGljaXQgZXhwZWN0YXRpb24g
+bG9va3VwLiAgRXhwZWN0ZWQgY29ubmVjdGlvbnMgYXJlIGFsd2F5cyBuZXcsCj4gKyAgICAgICAg
+KiBhbmQgd2lsbCBiZSBwYXNzZWQgdGhyb3VnaCBjb25udHJhY2sgb25seSB3aGVuIHRoZXkgYXJl
+IGNvbW1pdHRlZCwKPiArICAgICAgICAqIGFzIGl0IGlzIE9LIHRvIHJlbW92ZSB0aGUgZXhwZWN0
+YXRpb24gYXQgdGhhdCB0aW1lLgo+ICsgICAgICAgICovCgpUaGUgZXhwZWN0YXRpb24gL21heS8g
+YmUgcmVtb3ZlZCwgYnV0IGFzIEkgdW5kZXJzdGFuZCBpdCBkZXBlbmRzIG9uCnRoZSBwcm90b2Nv
+bCBoYW5kbGVyLiBNaW5vciB3b3JkaW5nIHR3ZWFrLCBidXQgdGhpcyBjb21tZW50IG1ha2VzCnNl
+bnNlLiBUaGlzIGh1bmsgY291bGQgYmUgYSBzZXBhcmF0ZSBwYXRjaCB0byBkb2N1bWVudCBleGlz
+dGluZwpiZWhhdmlvdXIsIGJ1dCBJJ20gbm90IGZ1c3NlZCBob3cgaXQncyBzdWJtaXR0ZWQuCgpU
+aGFua3MsCkpvZQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpkZXYgbWFpbGluZyBsaXN0CmRldkBvcGVudnN3aXRjaC5vcmcKaHR0cDovL29wZW52c3dpdGNo
+Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Rldgo=
