@@ -1,45 +1,46 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
+From: Nikolay Borisov <kernel@kyup.com>
 Subject: Re: [PATCH 0/6] Namespacify various ip sysctl knobs
-Date: Tue, 16 Feb 2016 23:14:34 -0600
-Message-ID: <874md76hqd.fsf@x220.int.ebiederm.org>
+Date: Wed, 17 Feb 2016 09:47:41 +0200
+Message-ID: <56C4259D.9080202@kyup.com>
 References: <1455530583-23053-1-git-send-email-kernel@kyup.com>
-	<20160216.204328.1217913168570304116.davem@davemloft.net>
+ <20160216.204328.1217913168570304116.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: kernel@kyup.com, netfilter-devel@vger.kernel.org,
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, ebiederm@xmission.com,
 	pabeni@redhat.com, jmorris@namei.org
 To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:34184 "EHLO
-	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754085AbcBQFYf (ORCPT
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:34788 "EHLO
+	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751583AbcBQHrn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Feb 2016 00:24:35 -0500
-In-Reply-To: <20160216.204328.1217913168570304116.davem@davemloft.net> (David
-	Miller's message of "Tue, 16 Feb 2016 20:43:28 -0500 (EST)")
+	Wed, 17 Feb 2016 02:47:43 -0500
+Received: by mail-wm0-f49.google.com with SMTP id b205so143255877wmb.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2016 23:47:43 -0800 (PST)
+In-Reply-To: <20160216.204328.1217913168570304116.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David Miller <davem@davemloft.net> writes:
 
+
+On 02/17/2016 03:43 AM, David Miller wrote:
 > From: Nikolay Borisov <kernel@kyup.com>
 > Date: Mon, 15 Feb 2016 12:02:57 +0200
->
+> 
 >> This series continues namespacifying more net related knobs.
 >> The focus here is on ip options. Patches 1,3,4,5 namespacify
 >> the respective sysctl knobs. Patch 2 moves some igmp code to the 
 >> correct file (and function) and also adds some #ifdef guards to 
 >> silence compilation warnings. 
->> 
+>>
 >> Finally, patch 5 exposes the ip fragmentation related sysctls 
 >> since all of the knobs are namespaced.
->
+> 
 > Series applied, but I found Arnd's fix for the unused local variable
 > problems much nicer.  I wish you had fixed it that way.
 
-*scratches head*
+I agree, but frankly I haven't really thought about that, but will keep
+it in mind the next time I deal with code :)
 
-Did Arnd send that fix publicly?  I have not seen it, and I was copied
-on the thread, and I don't see such a fix on netdev or netfilter either.
-
-Eric
+Can't you apply his fix on top of my commit?
