@@ -1,75 +1,45 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Subject: Re: [PATCH 1/7] netfilter: fix IS_ERR_VALUE usage
-Date: Wed, 17 Feb 2016 02:31:27 +0000
-Message-ID: <20160217023127.GG17997@ZenIV.linux.org.uk>
-References: <1455546925-22119-1-git-send-email-a.hajda@samsung.com>
- <1455546925-22119-2-git-send-email-a.hajda@samsung.com>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH 0/6] Namespacify various ip sysctl knobs
+Date: Tue, 16 Feb 2016 23:14:34 -0600
+Message-ID: <874md76hqd.fsf@x220.int.ebiederm.org>
+References: <1455530583-23053-1-git-send-email-kernel@kyup.com>
+	<20160216.204328.1217913168570304116.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org,
-	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Andrzej Hajda <a.hajda@samsung.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1455546925-22119-2-git-send-email-a.hajda@samsung.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain
+Cc: kernel@kyup.com, netfilter-devel@vger.kernel.org,
+	pabeni@redhat.com, jmorris@namei.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from out01.mta.xmission.com ([166.70.13.231]:34184 "EHLO
+	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754085AbcBQFYf (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Feb 2016 00:24:35 -0500
+In-Reply-To: <20160216.204328.1217913168570304116.davem@davemloft.net> (David
+	Miller's message of "Tue, 16 Feb 2016 20:43:28 -0500 (EST)")
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Feb 15, 2016 at 03:35:19PM +0100, Andrzej Hajda wrote:
-> IS_ERR_VALUE should be used only with unsigned long type.
-> Otherwise it can work incorrectly. To achieve this function
-> xt_percpu_counter_alloc is modified to return unsigned long,
-> and its result is assigned to temporary variable to perform
-> error checking, before assigning to .pcnt field.
+David Miller <davem@davemloft.net> writes:
 
-	Wrong fix, IMO.  Just have an anon union of u64 pcnt and
-struct xt_counters __percpu *pcpu in there.  And make this
+> From: Nikolay Borisov <kernel@kyup.com>
+> Date: Mon, 15 Feb 2016 12:02:57 +0200
+>
+>> This series continues namespacifying more net related knobs.
+>> The focus here is on ip options. Patches 1,3,4,5 namespacify
+>> the respective sysctl knobs. Patch 2 moves some igmp code to the 
+>> correct file (and function) and also adds some #ifdef guards to 
+>> silence compilation warnings. 
+>> 
+>> Finally, patch 5 exposes the ip fragmentation related sysctls 
+>> since all of the knobs are namespaced.
+>
+> Series applied, but I found Arnd's fix for the unused local variable
+> problems much nicer.  I wish you had fixed it that way.
 
-> +static inline unsigned long xt_percpu_counter_alloc(void)
->  {
->  	if (nr_cpu_ids > 1) {
->  		void __percpu *res = __alloc_percpu(sizeof(struct xt_counters),
->  						    sizeof(struct xt_counters));
->  
->  		if (res == NULL)
-> -			return (u64) -ENOMEM;
-> +			return -ENOMEM;
->  
-> -		return (u64) (__force unsigned long) res;
-> +		return (__force unsigned long) res;
->  	}
->  
->  	return 0;
+*scratches head*
 
-take struct xt_counters * and return 0 or -ENOMEM.  Storing the result of
-allocation in ->pcpu of passed structure.
+Did Arnd send that fix publicly?  I have not seen it, and I was copied
+on the thread, and I don't see such a fix on netdev or netfilter either.
 
-I mean, look at the callers -
-
-> -	e->counters.pcnt = xt_percpu_counter_alloc();
-> -	if (IS_ERR_VALUE(e->counters.pcnt))
-> +	pcnt = xt_percpu_counter_alloc();
-> +	if (IS_ERR_VALUE(pcnt))
->  		return -ENOMEM;
-> +	e->counters.pcnt = pcnt;
-
-should be
-	if (xt_percpu_counter_alloc(&e->counters) < 0)
-		return -ENOMEM;
-
-and similar for the rest of callers.  Moreover, if you look at the _users_
-of that fields, you'll see that a bunch of those actually want to use
-->pcpu instead of doing all those casts.
-
-Really, that's the point - IS_ERR_VALUE is a big red flag saying "we need
-to figure out what's going on in that place", which does include reading
-through the code.  Mechanical "solutions" like that only hide the problem.
+Eric
