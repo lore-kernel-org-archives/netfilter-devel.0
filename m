@@ -1,34 +1,53 @@
-From: Joe Stringer <joe-LZ6Gd1LRuIk@public.gmane.org>
-Subject: Re: [PATCH nf-next v7 5/7] openvswitch: Handle NF_REPEAT
-	in conntrack action.
-Date: Wed, 17 Feb 2016 14:06:54 -0800
-Message-ID: <CAPWQB7H7oCGS7bLAsArHOUw_N1EtB+pp0W5bdLgojv-od=ejWQ@mail.gmail.com>
-References: <1454722865-59558-1-git-send-email-jarno@ovn.org>
- <1454722865-59558-6-git-send-email-jarno@ovn.org>
+From: Joe Stringer <joe@ovn.org>
+Subject: Re: [PATCH nf-next v7 4/7] openvswitch: Find existing conntrack entry
+ after upcall.
+Date: Wed, 17 Feb 2016 15:50:32 -0800
+Message-ID: <CAPWQB7E7bKQVKxhLwA5_VJnon+U3j+1nZOiNWcqQ=CjEG=jn5w@mail.gmail.com>
+References: <1454722865-59558-1-git-send-email-jarno@ovn.org> <1454722865-59558-5-git-send-email-jarno@ovn.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: ovs dev <dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarno Rajahalme <jarno-LZ6Gd1LRuIk@public.gmane.org>
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <1454722865-59558-6-git-send-email-jarno-LZ6Gd1LRuIk@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
+	ovs dev <dev@openvswitch.org>
+To: Jarno Rajahalme <jarno@ovn.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1454722865-59558-5-git-send-email-jarno@ovn.org>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-T24gNSBGZWJydWFyeSAyMDE2IGF0IDE3OjQxLCBKYXJubyBSYWphaGFsbWUgPGphcm5vQG92bi5v
-cmc+IHdyb3RlOgo+IFJlcGVhdCB0aGUgbmZfY29ubnRyYWNrX2luKCkgY2FsbCB3aGVuIGl0IHJl
-dHVybnMgTkZfUkVQRUFULiAgVGhpcwo+IGF2b2lkcyBkcm9wcGluZyBhIFNZTiBwYWNrZXQgcmUt
-b3BlbmluZyBhbiBleGlzdGluZyBUQ1AgY29ubmVjdGlvbi4KPgo+IFNpZ25lZC1vZmYtYnk6IEph
-cm5vIFJhamFoYWxtZSA8amFybm9Ab3ZuLm9yZz4KCkFyZ3VhYmx5IHRoaXMgaXMgYSBidWdmaXgu
-CgpBY2tlZC1ieTogSm9lIFN0cmluZ2VyIDxqb2VAb3ZuLm9yZz4KX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZGV2IG1haWxpbmcgbGlzdApkZXZAb3BlbnZz
-d2l0Y2gub3JnCmh0dHA6Ly9vcGVudnN3aXRjaC5vcmcvbWFpbG1hbi9saXN0aW5mby9kZXYK
+On 5 February 2016 at 17:41, Jarno Rajahalme <jarno@ovn.org> wrote:
+<snip>
+>  /* Determine whether skb->nfct is equal to the result of conntrack lookup. */
+> -static bool skb_nfct_cached(const struct net *net, const struct sk_buff *skb,
+> -                           const struct ovs_conntrack_info *info)
+> +static bool skb_nfct_cached(struct net *net,
+> +                           const struct sw_flow_key *key,
+> +                           const struct ovs_conntrack_info *info,
+> +                           struct sk_buff *skb)
+>  {
+>         enum ip_conntrack_info ctinfo;
+>         struct nf_conn *ct;
+>
+>         ct = nf_ct_get(skb, &ctinfo);
+> +       /* If no ct, check if we have evidence that an existing conntrack entry
+> +        * might be found for this skb.  This happens when we lose a skb->nfct
+> +        * due to an upcall.  If the connection was not confirmed, it is not
+> +        * cached and needs to be run through conntrack again. */
+> +       if (!ct && key->ct.state & OVS_CS_F_TRACKED
+> +           && !(key->ct.state & OVS_CS_F_INVALID)
+> +           && key->ct.zone == info->zone.id)
+> +               ct = ovs_ct_find_existing(net, &info->zone, info->family, skb,
+> +                                         &ctinfo);
+>         if (!ct)
+>                 return false;
+
+Logically I think that this makes more sense residing within
+__ovs_ct_lookup() and actually populating skb->{nfct,nfctinfo} prior
+to making this call to skb_nfct_cached() which answers the question
+"Is skb->nfct the same as if I did a lookup?". Maybe a better name for
+this function is something like ovs_ct_cmp() as it compares the skb's
+nfct against the OVS structures.
+
+The call to nf_ct_get() could move out into __ovs_ct_lookup(), then
+just pass the 'ct' into here. I see that a later patch already adds
+another call to nf_ct_get() into __ovs_ct_lookup(), which should only
+be necessary in the case where it is not already cached.
