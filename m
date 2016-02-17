@@ -1,83 +1,90 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [PATCH conntrackd] conntrackd: Disable systemd support by default
-Date: Wed, 17 Feb 2016 08:50:26 +0100
-Message-ID: <CAOkSjBgUyOd65kZZqg1JZDS1VbDk7mfixLghvMjdDofDsbHTuw@mail.gmail.com>
-References: <1455649785-10958-1-git-send-email-pablo@netfilter.org>
+From: Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: [PATCH 1/7] netfilter: fix IS_ERR_VALUE usage
+Date: Wed, 17 Feb 2016 09:45:50 +0100
+Message-ID: <56C4333E.5070905@samsung.com>
+References: <1455546925-22119-1-git-send-email-a.hajda@samsung.com>
+ <1455546925-22119-2-git-send-email-a.hajda@samsung.com>
+ <20160217023127.GG17997@ZenIV.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:33356 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750837AbcBQHur convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Feb 2016 02:50:47 -0500
-Received: by mail-wm0-f41.google.com with SMTP id g62so224863376wme.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2016 23:50:46 -0800 (PST)
-In-Reply-To: <1455649785-10958-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Cc: linux-kernel@vger.kernel.org,
+	Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+To: Al Viro <viro@ZenIV.linux.org.uk>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-reply-to: <20160217023127.GG17997@ZenIV.linux.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 16 February 2016 at 20:09, Pablo Neira Ayuso <pablo@netfilter.org> w=
-rote:
-> By default, conntrackd is compiled with no built-in systemd support.
-> This patch updates the default runtime behaviour to be consistent
-> with what ./configure provides by default.
+On 02/17/2016 03:31 AM, Al Viro wrote:
+> On Mon, Feb 15, 2016 at 03:35:19PM +0100, Andrzej Hajda wrote:
+>> IS_ERR_VALUE should be used only with unsigned long type.
+>> Otherwise it can work incorrectly. To achieve this function
+>> xt_percpu_counter_alloc is modified to return unsigned long,
+>> and its result is assigned to temporary variable to perform
+>> error checking, before assigning to .pcnt field.
+> 	Wrong fix, IMO.  Just have an anon union of u64 pcnt and
+> struct xt_counters __percpu *pcpu in there.  And make this
 >
-> Thus, users should explicitly indicate "Systemd On" in their configur=
-ation
-> file to enable this.
+>> +static inline unsigned long xt_percpu_counter_alloc(void)
+>>  {
+>>  	if (nr_cpu_ids > 1) {
+>>  		void __percpu *res = __alloc_percpu(sizeof(struct xt_counters),
+>>  						    sizeof(struct xt_counters));
+>>  
+>>  		if (res == NULL)
+>> -			return (u64) -ENOMEM;
+>> +			return -ENOMEM;
+>>  
+>> -		return (u64) (__force unsigned long) res;
+>> +		return (__force unsigned long) res;
+>>  	}
+>>  
+>>  	return 0;
+> take struct xt_counters * and return 0 or -ENOMEM.  Storing the result of
+> allocation in ->pcpu of passed structure.
 >
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  conntrackd.conf.5                | 4 ++--
->  doc/stats/conntrackd.conf        | 4 ++--
->  doc/sync/alarm/conntrackd.conf   | 4 ++--
->  doc/sync/ftfw/conntrackd.conf    | 4 ++--
->  doc/sync/notrack/conntrackd.conf | 4 ++--
->  src/read_config_yy.y             | 4 ++--
->  6 files changed, 12 insertions(+), 12 deletions(-)
+> I mean, look at the callers -
 >
-[...]
-> diff --git a/src/read_config_yy.y b/src/read_config_yy.y
-> index 58ad2d0..6052390 100644
-> --- a/src/read_config_yy.y
-> +++ b/src/read_config_yy.y
-> @@ -1864,8 +1864,8 @@ init_config(char *filename)
->         CONFIG(stats).syslog_facility =3D -1;
->         CONFIG(netlink).subsys_id =3D -1;
+>> -	e->counters.pcnt = xt_percpu_counter_alloc();
+>> -	if (IS_ERR_VALUE(e->counters.pcnt))
+>> +	pcnt = xt_percpu_counter_alloc();
+>> +	if (IS_ERR_VALUE(pcnt))
+>>  		return -ENOMEM;
+>> +	e->counters.pcnt = pcnt;
+> should be
+> 	if (xt_percpu_counter_alloc(&e->counters) < 0)
+> 		return -ENOMEM;
 >
-> -       /* enable systemd by default */
-> -       CONFIG(systemd) =3D 1;
-> +       /* disable systemd by default */
-> +       CONFIG(systemd) =3D 0;
+> and similar for the rest of callers.  Moreover, if you look at the _users_
+> of that fields, you'll see that a bunch of those actually want to use
+> ->pcpu instead of doing all those casts.
 >
->         /* Initialize list of user-space helpers */
->         INIT_LIST_HEAD(&CONFIG(cthelper).list);
+> Really, that's the point - IS_ERR_VALUE is a big red flag saying "we need
+> to figure out what's going on in that place", which does include reading
+> through the code.  Mechanical "solutions" like that only hide the problem.
+>
+>
+I just tried to make the patch the least invasive :)
 
-If we change this logic, there are a parser rules that need changes as =
-well.
+The problem with your proposition is that struct xt_counters is exposed
+to userspace as well as the structs containing it:
+struct arpt_entry,
+struct ipt_entry,
+struct ip6t_entry
 
-[...]
-systemd: T_SYSTEMD T_ON { /* already enabled in init_config() */ };
-systemd: T_SYSTEMD T_OFF
-{
-     conf.systemd =3D 0;
-};
-[...]
+Mixing __percpu pointer into these structures seems problematic.
+Maybe it would be better to skip adding union and do ugly casting
+in xt_percpu_counter_alloc(struct xt_counters *) and friends.
 
-I agree with the patch, so
-
-Acked-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-
-
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+Andrzej
