@@ -1,32 +1,64 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next v7 5/7] openvswitch: Handle NF_REPEAT in
- conntrack action.
-Date: Thu, 18 Feb 2016 14:09:19 +0100
-Message-ID: <20160218130919.GC2296@salvia>
-References: <1454722865-59558-1-git-send-email-jarno@ovn.org>
- <1454722865-59558-6-git-send-email-jarno@ovn.org>
- <CAPWQB7H7oCGS7bLAsArHOUw_N1EtB+pp0W5bdLgojv-od=ejWQ@mail.gmail.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH nf 2/3] netfilter: ipvs: allow rescheduling after RST
+Date: Thu, 18 Feb 2016 16:17:17 +0300
+Message-ID: <56C5C45D.9050807@cogentembedded.com>
+References: <1455756061-21834-1-git-send-email-horms@verge.net.au>
+ <1455756061-21834-3-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jarno Rajahalme <jarno@ovn.org>, netfilter-devel@vger.kernel.org,
-	netdev <netdev@vger.kernel.org>, ovs dev <dev@openvswitch.org>
-To: Joe Stringer <joe@ovn.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPWQB7H7oCGS7bLAsArHOUw_N1EtB+pp0W5bdLgojv-od=ejWQ@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-lf0-f42.google.com ([209.85.215.42]:32954 "EHLO
+	mail-lf0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1426242AbcBRNRU (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Feb 2016 08:17:20 -0500
+Received: by mail-lf0-f42.google.com with SMTP id m1so32487904lfg.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Feb 2016 05:17:19 -0800 (PST)
+In-Reply-To: <1455756061-21834-3-git-send-email-horms@verge.net.au>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Feb 17, 2016 at 02:06:54PM -0800, Joe Stringer wrote:
-> On 5 February 2016 at 17:41, Jarno Rajahalme <jarno@ovn.org> wrote:
-> > Repeat the nf_conntrack_in() call when it returns NF_REPEAT.  This
-> > avoids dropping a SYN packet re-opening an existing TCP connection.
-> >
-> > Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
-> 
-> Arguably this is a bugfix.
-> 
-> Acked-by: Joe Stringer <joe@ovn.org>
+Hello.
 
-You can target this to the nf tree anytime if you want to see this fix
-in mainline.
+On 2/18/2016 3:41 AM, Simon Horman wrote:
+
+> From: Julian Anastasov <ja@ssi.bg>
+>
+> "RFC 5961, 4.2. Mitigation" describes a mechanism to request
+> client to confirm with RST the restart of TCP connection
+> before resending its SYN. As result, IPVS can see SYNs for
+> existing connection in CLOSE state. Add check to allow
+> rescheduling in this state.
+>
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> Signed-off-by: Simon Horman <horms@verge.net.au>
+> ---
+>   net/netfilter/ipvs/ip_vs_core.c | 1 +
+>   1 file changed, 1 insertion(+)
+>
+> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
+> index 4da560005b0e..0c1d3fef9a7c 100644
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -1089,6 +1089,7 @@ static inline bool is_new_conn_expected(const struct ip_vs_conn *cp,
+>   	switch (cp->protocol) {
+>   	case IPPROTO_TCP:
+>   		return (cp->state == IP_VS_TCP_S_TIME_WAIT) ||
+> +			cp->state == IP_VS_TCP_S_CLOSE ||
+
+    I would have been consistent and enclosed this expression into parens as 
+well. BTW, the indentation is not correct anyway.
+
+>   			((conn_reuse_mode & 2) &&
+>   			 (cp->state == IP_VS_TCP_S_FIN_WAIT) &&
+>   			 (cp->flags & IP_VS_CONN_F_NOOUTPUT));
+
+MBR, Sergei
+
