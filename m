@@ -1,64 +1,50 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH nf 2/3] netfilter: ipvs: allow rescheduling after RST
-Date: Thu, 18 Feb 2016 16:17:17 +0300
-Message-ID: <56C5C45D.9050807@cogentembedded.com>
-References: <1455756061-21834-1-git-send-email-horms@verge.net.au>
- <1455756061-21834-3-git-send-email-horms@verge.net.au>
+From: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Subject: =?utf-8?Q?=D0=9A=D0=9B=D0=98=D0=95=D0=9D=D0=A2=D0=A1=D0?=
+	=?utf-8?Q?=9A=D0=98=D0=95_=D0=91=D0=90=D0=97=D0=AB!_=D0?=
+	=?utf-8?Q?=A2=D0=B5=D0=BB=5CViber=5CWhatsapp=3A_+79133913?=
+	=?utf-8?Q?837_Email=3A_mgordeev72=40gmail=2Ecom_Skype=3A_?=
+	=?utf-8?Q?prodawez389?=
+Date: Sat, 20 Feb 2016 02:45:13 +0600
+Message-ID: <AF54E038AD795695494C05BA4EAD6C7C@vger.kernel.org>
+Reply-To: "netfilter-devel@vger.kernel.org" <mgordeev72@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lf0-f42.google.com ([209.85.215.42]:32954 "EHLO
-	mail-lf0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1426242AbcBRNRU (ORCPT
+Received: from [190.144.114.2] ([190.144.114.2]:59945 "EHLO
+	firewalllino.localdomain" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1030531AbcBSWYj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Feb 2016 08:17:20 -0500
-Received: by mail-lf0-f42.google.com with SMTP id m1so32487904lfg.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Feb 2016 05:17:19 -0800 (PST)
-In-Reply-To: <1455756061-21834-3-git-send-email-horms@verge.net.au>
+	Fri, 19 Feb 2016 17:24:39 -0500
+Received: from 190.144.114.2 (localhost [127.0.0.1])
+	by firewalllino.localdomain (Postfix) with SMTP id 99761412AA
+	for <netfilter-devel@vger.kernel.org>; Fri, 19 Feb 2016 15:46:13 -0500 (COT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello.
+=D0=9A=D0=9B=D0=98=D0=95=D0=9D=D0=A2=D0=A1=D0=9A=D0=98=D0=95 =D0=91=D0=90=
+=D0=97=D0=AB!
 
-On 2/18/2016 3:41 AM, Simon Horman wrote:
-
-> From: Julian Anastasov <ja@ssi.bg>
->
-> "RFC 5961, 4.2. Mitigation" describes a mechanism to request
-> client to confirm with RST the restart of TCP connection
-> before resending its SYN. As result, IPVS can see SYNs for
-> existing connection in CLOSE state. Add check to allow
-> rescheduling in this state.
->
-> Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> Signed-off-by: Simon Horman <horms@verge.net.au>
-> ---
->   net/netfilter/ipvs/ip_vs_core.c | 1 +
->   1 file changed, 1 insertion(+)
->
-> diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-> index 4da560005b0e..0c1d3fef9a7c 100644
-> --- a/net/netfilter/ipvs/ip_vs_core.c
-> +++ b/net/netfilter/ipvs/ip_vs_core.c
-> @@ -1089,6 +1089,7 @@ static inline bool is_new_conn_expected(const struct ip_vs_conn *cp,
->   	switch (cp->protocol) {
->   	case IPPROTO_TCP:
->   		return (cp->state == IP_VS_TCP_S_TIME_WAIT) ||
-> +			cp->state == IP_VS_TCP_S_CLOSE ||
-
-    I would have been consistent and enclosed this expression into parens as 
-well. BTW, the indentation is not correct anyway.
-
->   			((conn_reuse_mode & 2) &&
->   			 (cp->state == IP_VS_TCP_S_FIN_WAIT) &&
->   			 (cp->flags & IP_VS_CONN_F_NOOUTPUT));
-
-MBR, Sergei
-
+=D0=A1=D0=BE=D0=B1=D0=B5=D1=80=D0=B5=D0=BC =D0=B4=D0=BB=D1=8F =D0=92=D0=
+=B0=D1=81 =D0=BF=D0=BE =D0=B8=D0=BD=D1=82=D0=B5=D1=80=D0=BD=D0=B5=D1=82=
+ =D0=B1=D0=B0=D0=B7=D1=83 =D0=B4=D0=B0=D0=BD=D0=BD=D1=8B=D1=85 =D0=BF=D0=
+=BE=D1=82=D0=B5=D0=BD=D1=86=D0=B8=D0=B0=D0=BB=D1=8C=D0=BD=D1=8B=D1=85 =D0=
+=BA=D0=BB=D0=B8=D0=B5=D0=BD=D1=82=D0=BE=D0=B2=20
+=D0=B4=D0=BB=D1=8F =D0=92=D0=B0=D1=88=D0=B5=D0=B3=D0=BE =D0=91=D0=B8=D0=
+=B7=D0=BD=D0=B5=D1=81=D0=B0!
+=D0=9C=D0=BD=D0=BE=D0=B3=D0=BE! =D0=91=D1=8B=D1=81=D1=82=D1=80=D0=BE! =D0=
+=9D=D0=B5=D0=B4=D0=BE=D1=80=D0=BE=D0=B3=D0=BE!=20
+=D0=A3=D0=B7=D0=BD=D0=B0=D0=B9=D1=82=D0=B5 =D0=BE=D0=B1 =D1=8D=D1=82=D0=
+=BE=D0=BC =D0=BF=D0=BE=D0=B4=D1=80=D0=BE=D0=B1=D0=BD=D0=B5=D0=B5 =D0=BF=
+=D0=BE=20
+=D0=A2=D0=B5=D0=BB: +79133913837
+Viber: +79133913837
+Whatsapp: +79133913837
+Skype: prodawez389
+Email: mgordeev72@gmail.com
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
