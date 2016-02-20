@@ -1,50 +1,104 @@
-From: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Subject: =?utf-8?Q?=D0=9A=D0=9B=D0=98=D0=95=D0=9D=D0=A2=D0=A1=D0?=
-	=?utf-8?Q?=9A=D0=98=D0=95_=D0=91=D0=90=D0=97=D0=AB!_=D0?=
-	=?utf-8?Q?=A2=D0=B5=D0=BB=5CViber=5CWhatsapp=3A_+79133913?=
-	=?utf-8?Q?837_Email=3A_mgordeev72=40gmail=2Ecom_Skype=3A_?=
-	=?utf-8?Q?prodawez389?=
-Date: Sat, 20 Feb 2016 02:45:13 +0600
-Message-ID: <AF54E038AD795695494C05BA4EAD6C7C@vger.kernel.org>
-Reply-To: "netfilter-devel@vger.kernel.org" <mgordeev72@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: <netfilter-devel@vger.kernel.org>
+From: Stephane Bryant <stephane.ml.bryant@gmail.com>
+Subject: [PATCH nf-next v3 1/3] netfilter: bridge: add nf_afinfo to enable queuing to userspace
+Date: Sat, 20 Feb 2016 10:07:08 +0100
+Message-ID: <1455959230-3680-1-git-send-email-stephane.ml.bryant@gmail.com>
+Cc: netfilter-devel@vger.kernel.org,
+	stephane <stephane.ml.bryant@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [190.144.114.2] ([190.144.114.2]:59945 "EHLO
-	firewalllino.localdomain" rhost-flags-FAIL-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1030531AbcBSWYj (ORCPT
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:37936 "EHLO
+	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2992561AbcBTJHe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Feb 2016 17:24:39 -0500
-Received: from 190.144.114.2 (localhost [127.0.0.1])
-	by firewalllino.localdomain (Postfix) with SMTP id 99761412AA
-	for <netfilter-devel@vger.kernel.org>; Fri, 19 Feb 2016 15:46:13 -0500 (COT)
+	Sat, 20 Feb 2016 04:07:34 -0500
+Received: by mail-wm0-f49.google.com with SMTP id a4so100461744wme.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 20 Feb 2016 01:07:33 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=D0=9A=D0=9B=D0=98=D0=95=D0=9D=D0=A2=D0=A1=D0=9A=D0=98=D0=95 =D0=91=D0=90=
-=D0=97=D0=AB!
+From: stephane <stephane.ml.bryant@gmail.com>
 
-=D0=A1=D0=BE=D0=B1=D0=B5=D1=80=D0=B5=D0=BC =D0=B4=D0=BB=D1=8F =D0=92=D0=
-=B0=D1=81 =D0=BF=D0=BE =D0=B8=D0=BD=D1=82=D0=B5=D1=80=D0=BD=D0=B5=D1=82=
- =D0=B1=D0=B0=D0=B7=D1=83 =D0=B4=D0=B0=D0=BD=D0=BD=D1=8B=D1=85 =D0=BF=D0=
-=BE=D1=82=D0=B5=D0=BD=D1=86=D0=B8=D0=B0=D0=BB=D1=8C=D0=BD=D1=8B=D1=85 =D0=
-=BA=D0=BB=D0=B8=D0=B5=D0=BD=D1=82=D0=BE=D0=B2=20
-=D0=B4=D0=BB=D1=8F =D0=92=D0=B0=D1=88=D0=B5=D0=B3=D0=BE =D0=91=D0=B8=D0=
-=B7=D0=BD=D0=B5=D1=81=D0=B0!
-=D0=9C=D0=BD=D0=BE=D0=B3=D0=BE! =D0=91=D1=8B=D1=81=D1=82=D1=80=D0=BE! =D0=
-=9D=D0=B5=D0=B4=D0=BE=D1=80=D0=BE=D0=B3=D0=BE!=20
-=D0=A3=D0=B7=D0=BD=D0=B0=D0=B9=D1=82=D0=B5 =D0=BE=D0=B1 =D1=8D=D1=82=D0=
-=BE=D0=BC =D0=BF=D0=BE=D0=B4=D1=80=D0=BE=D0=B1=D0=BD=D0=B5=D0=B5 =D0=BF=
-=D0=BE=20
-=D0=A2=D0=B5=D0=BB: +79133913837
-Viber: +79133913837
-Whatsapp: +79133913837
-Skype: prodawez389
-Email: mgordeev72@gmail.com
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This just adds and registers a nf_afinfo for the ethernet
+bridge, which enables queuing to userspace for the AF_BRIDGE
+family. No checksum computation is done.
+
+Signed-off-by: Stephane Bryant <stephane.ml.bryant@gmail.com>
+---
+ net/bridge/netfilter/nf_tables_bridge.c | 47 +++++++++++++++++++++++++++++++--
+ 1 file changed, 45 insertions(+), 2 deletions(-)
+
+diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
+index 7fcdd72..a78c4e2 100644
+--- a/net/bridge/netfilter/nf_tables_bridge.c
++++ b/net/bridge/netfilter/nf_tables_bridge.c
+@@ -162,15 +162,57 @@ static const struct nf_chain_type filter_bridge = {
+ 			  (1 << NF_BR_POST_ROUTING),
+ };
+ 
++static void nf_br_saveroute(const struct sk_buff *skb,
++			    struct nf_queue_entry *entry)
++{
++}
++
++static int nf_br_reroute(struct net *net, struct sk_buff *skb,
++			 const struct nf_queue_entry *entry)
++{
++	return 0;
++}
++
++static __sum16 nf_br_checksum(struct sk_buff *skb, unsigned int hook,
++			      unsigned int dataoff, u_int8_t protocol)
++{
++	return 0;
++}
++
++static __sum16 nf_br_checksum_partial(struct sk_buff *skb, unsigned int hook,
++				      unsigned int dataoff, unsigned int len,
++				      u_int8_t protocol)
++{
++	return 0;
++}
++
++static int nf_br_route(struct net *net, struct dst_entry **dst,
++		       struct flowi *fl, bool strict __always_unused)
++{
++	return 0;
++}
++
++static const struct nf_afinfo nf_br_afinfo = {
++	.family                 = AF_BRIDGE,
++	.checksum               = nf_br_checksum,
++	.checksum_partial       = nf_br_checksum_partial,
++	.route                  = nf_br_route,
++	.saveroute              = nf_br_saveroute,
++	.reroute                = nf_br_reroute,
++	.route_key_size         = 0,
++};
++
+ static int __init nf_tables_bridge_init(void)
+ {
+ 	int ret;
+ 
++	nf_register_afinfo(&nf_br_afinfo);
+ 	nft_register_chain_type(&filter_bridge);
+ 	ret = register_pernet_subsys(&nf_tables_bridge_net_ops);
+-	if (ret < 0)
++	if (ret < 0) {
+ 		nft_unregister_chain_type(&filter_bridge);
+-
++		nf_unregister_afinfo(&nf_br_afinfo);
++	}
+ 	return ret;
+ }
+ 
+@@ -178,6 +220,7 @@ static void __exit nf_tables_bridge_exit(void)
+ {
+ 	unregister_pernet_subsys(&nf_tables_bridge_net_ops);
+ 	nft_unregister_chain_type(&filter_bridge);
++	nf_unregister_afinfo(&nf_br_afinfo);
+ }
+ 
+ module_init(nf_tables_bridge_init);
+-- 
+2.1.4
+
