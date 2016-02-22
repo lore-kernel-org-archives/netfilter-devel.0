@@ -1,232 +1,61 @@
-From: Harald Welte <laforge@gnumonks.org>
-Subject: [PATCH] Add JSON output formatting to nfacct utility
-Date: Mon, 22 Feb 2016 10:12:36 +0100
-Message-ID: <1456132356-23474-1-git-send-email-laforge@gnumonks.org>
+From: Loganaden Velvindron <logan@hackers.mu>
+Subject: [PATCH] Fix musl compatibility
+Date: Mon, 22 Feb 2016 03:51:15 -0800
+Message-ID: <20160222115115.GA17349@mx.elandsys.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [213.95.27.120] ([213.95.27.120]:57492 "EHLO
-	ganesha.gnumonks.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751694AbcBVJji (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Feb 2016 04:39:38 -0500
-Received: from uucp by ganesha.gnumonks.org with local-bsmtp (Exim 4.72)
-	(envelope-from <laforge@gnumonks.org>)
-	id 1aXma9-0005GR-Cn
-	for netfilter-devel@vger.kernel.org; Mon, 22 Feb 2016 10:15:05 +0100
-Received: from laforge by localhost.localdomain with local (Exim 4.86)
-	(envelope-from <laforge@gnumonks.org>)
-	id 1aXmXk-00067F-G9
-	for netfilter-devel@vger.kernel.org; Mon, 22 Feb 2016 10:12:36 +0100
+Received: from ns1.qubic.net ([208.69.177.116]:59413 "EHLO mx.elandsys.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1754649AbcBVMBi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 22 Feb 2016 07:01:38 -0500
+Received: from mx.elandsys.com (IDENT:logan@localhost [127.0.0.1])
+	by mx.elandsys.com (8.14.5/8.14.5) with ESMTP id u1MBpFQ0008363
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Mon, 22 Feb 2016 03:51:16 -0800 (PST)
+Received: (from logan@localhost)
+	by mx.elandsys.com (8.14.5/8.14.5/Submit) id u1MBpFZL026108
+	for netfilter-devel@vger.kernel.org; Mon, 22 Feb 2016 03:51:15 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is based on the JSON support patch of libnetfilter_acct.
----
- nfacct.8     |  2 ++
- src/nfacct.c | 89 ++++++++++++++++++++++++++++++++++++++++++++----------------
- 2 files changed, 68 insertions(+), 23 deletions(-)
+Add missing constants for libxt_TCPOPTSTRIP.c, in case they are not defined.
 
-diff --git a/nfacct.8 b/nfacct.8
-index 0c3249c..bf563ae 100644
---- a/nfacct.8
-+++ b/nfacct.8
-@@ -47,6 +47,8 @@ That atomically obtains and resets the counters.
- .TP
- .BI "xml "
- That displays the output in XML format.
-+.BI "json "
-+That displays the output in JSON format.
- .PP
- .SH SEE ALSO
- .BR iptables (8)
-diff --git a/src/nfacct.c b/src/nfacct.c
-index 2546a6e..d46ee91 100644
---- a/src/nfacct.c
-+++ b/src/nfacct.c
-@@ -137,13 +137,13 @@ int main(int argc, char *argv[])
- 	return ret < 0 ? EXIT_FAILURE : EXIT_SUCCESS;
- }
- 
--static bool xml_header = false;
-+static bool fmt_header = false;
- 
- static int nfacct_cb(const struct nlmsghdr *nlh, void *data)
- {
- 	struct nfacct *nfacct;
- 	char buf[4096];
--	bool *xml = (bool *)data;
-+	int *fmt = (int *)data;
- 
- 	nfacct = nfacct_alloc();
- 	if (nfacct == NULL) {
-@@ -156,17 +156,38 @@ static int nfacct_cb(const struct nlmsghdr *nlh, void *data)
- 		goto err_free;
- 	}
- 
--	if (*xml && !xml_header) {
--		printf("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
--			"<nfacct>\n");
--		xml_header = true;
-+	switch (*fmt) {
-+	case NFACCT_SNPRINTF_T_XML:
-+		if (!fmt_header) {
-+			printf("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
-+				"<nfacct>\n");
-+			fmt_header = true;
-+		}
-+		break;
-+	case NFACCT_SNPRINTF_T_JSON:
-+		if (!fmt_header) {
-+			printf("{ \"timestamp\" : %lld, \n"
-+			       "  \"nfacct_counters\" : [\n",
-+			       (long long) time(NULL));
-+			fmt_header = true;
-+		} else
-+			printf(",\n");
-+		break;
-+	default:
-+		break;
- 	}
- 
--	nfacct_snprintf(buf, sizeof(buf), nfacct,
--			*xml ? NFACCT_SNPRINTF_T_XML :
--			       NFACCT_SNPRINTF_T_PLAIN,
-+	nfacct_snprintf(buf, sizeof(buf), nfacct, *fmt,
- 			NFACCT_SNPRINTF_F_FULL);
--	printf("%s\n", buf);
-+	printf("%s", buf);
-+	switch (*fmt) {
-+	case NFACCT_SNPRINTF_T_JSON:
-+		/* no newline in JSON case */
-+		break;
-+	default:
-+		putchar('\n');
-+		break;
-+	}
- 
- err_free:
- 	nfacct_free(nfacct);
-@@ -174,9 +195,26 @@ err:
- 	return MNL_CB_OK;
- }
- 
-+static void _print_footer(int fmt)
-+{
-+	if (fmt_header) {
-+		switch (fmt) {
-+		case NFACCT_SNPRINTF_T_XML:
-+			printf("</nfacct>\n");
-+			break;
-+		case NFACCT_SNPRINTF_T_JSON:
-+			printf("\n] }\n");
-+			break;
-+		default:
-+			break;
-+		}
-+	}
-+}
+(Original patch from VoidLinux)
+
+Signed-off-by: Loganaden Velvindron <logan@hackers.mu>
+---
+ extensions/libxt_TCPOPTSTRIP.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+diff --git a/extensions/libxt_TCPOPTSTRIP.c b/extensions/libxt_TCPOPTSTRIP.c
+index 6897857..828b593 100644
+--- a/extensions/libxt_TCPOPTSTRIP.c
++++ b/extensions/libxt_TCPOPTSTRIP.c
+@@ -12,6 +12,22 @@
+ #ifndef TCPOPT_MD5SIG
+ #	define TCPOPT_MD5SIG 19
+ #endif
++#ifndef TCPOPT_MAXSEG
++#     define TCPOPT_MAXSEG 2
++#endif
++#ifndef TCPOPT_WINDOW
++#     define TCPOPT_WINDOW 3
++#endif
++#ifndef TCPOPT_SACK_PERMITTED
++#     define TCPOPT_SACK_PERMITTED 4
++#endif
++#ifndef TCPOPT_SACK
++#     define TCPOPT_SACK 5
++#endif
++#ifndef TCPOPT_TIMESTAMP
++#     define TCPOPT_TIMESTAMP 8
++#endif
 +
- static int nfacct_cmd_list(int argc, char *argv[])
- {
--	bool zeroctr = false, xml = false;
-+	bool zeroctr = false;
-+	int fmt = NFACCT_SNPRINTF_T_PLAIN;
- 	struct mnl_socket *nl;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nlmsghdr *nlh;
-@@ -190,9 +228,13 @@ static int nfacct_cmd_list(int argc, char *argv[])
- 				duparg(argv[i]);
- 			zeroctr = true;
- 		} else if (strncmp(argv[i], "xml", strlen(argv[i])) == 0) {
--			if (xml)
-+			if (fmt)
-+				duparg(argv[i]);
-+			fmt = NFACCT_SNPRINTF_T_XML;
-+		} else if (strncmp(argv[i], "json", strlen(argv[i])) == 0) {
-+			if (fmt)
- 				duparg(argv[i]);
--			xml = true;
-+			fmt = NFACCT_SNPRINTF_T_JSON;
- 		} else if (strncmp(argv[i], "counters", strlen(argv[i])) == 0) {
- 			if (mask || value)
- 				duparg(argv[i]);
-@@ -251,7 +293,7 @@ static int nfacct_cmd_list(int argc, char *argv[])
  
- 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
- 	while (ret > 0) {
--		ret = mnl_cb_run(buf, ret, seq, portid, nfacct_cb, &xml);
-+		ret = mnl_cb_run(buf, ret, seq, portid, nfacct_cb, &fmt);
- 		if (ret <= 0)
- 			break;
- 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-@@ -262,8 +304,7 @@ static int nfacct_cmd_list(int argc, char *argv[])
- 	}
- 	mnl_socket_close(nl);
- 
--	if (xml_header)
--		printf("</nfacct>\n");
-+	_print_footer(fmt);
- 
- 	return 0;
- }
-@@ -444,7 +485,8 @@ static int nfacct_cmd_delete(int argc, char *argv[])
- 
- static int nfacct_cmd_get(int argc, char *argv[])
- {
--	bool zeroctr = false, xml = false;
-+	bool zeroctr = false;
-+	int fmt = NFACCT_SNPRINTF_T_PLAIN;
- 	struct mnl_socket *nl;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	struct nlmsghdr *nlh;
-@@ -460,7 +502,9 @@ static int nfacct_cmd_get(int argc, char *argv[])
- 		if (strncmp(argv[i], "reset", strlen(argv[i])) == 0) {
- 			zeroctr = true;
- 		} else if (strncmp(argv[i], "xml", strlen(argv[i])) == 0) {
--			xml = true;
-+			fmt = NFACCT_SNPRINTF_T_XML;
-+		} else if (strncmp(argv[i], "json", strlen(argv[i])) == 0) {
-+			fmt = NFACCT_SNPRINTF_T_JSON;
- 		} else {
- 			nfacct_perror("unknown argument");
- 			return -1;
-@@ -503,7 +547,7 @@ static int nfacct_cmd_get(int argc, char *argv[])
- 
- 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
- 	while (ret > 0) {
--		ret = mnl_cb_run(buf, ret, seq, portid, nfacct_cb, &xml);
-+		ret = mnl_cb_run(buf, ret, seq, portid, nfacct_cb, &fmt);
- 		if (ret <= 0)
- 			break;
- 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-@@ -514,8 +558,7 @@ static int nfacct_cmd_get(int argc, char *argv[])
- 	}
- 	mnl_socket_close(nl);
- 
--	if (xml_header)
--		printf("</nfacct>\n");
-+	_print_footer(fmt);
- 
- 	return 0;
- }
-@@ -660,7 +703,7 @@ static int nfacct_cmd_restore(int argc, char *argv[])
- static int nfacct_cmd_monitor(int argc, char *argv[])
- {
- 	struct mnl_socket *nl;
--	bool xml = false;
-+	int fmt = NFACCT_SNPRINTF_T_PLAIN;
- 	char buf[MNL_SOCKET_BUFFER_SIZE];
- 	int ret, option = NFNLGRP_ACCT_QUOTA;
- 
-@@ -685,7 +728,7 @@ static int nfacct_cmd_monitor(int argc, char *argv[])
- 			break;
- 		}
- 
--		ret = mnl_cb_run(buf, ret, 0, 0, nfacct_cb, &xml);
-+		ret = mnl_cb_run(buf, ret, 0, 0, nfacct_cb, &fmt);
- 		if (ret <= 0)
- 			break;
- 	}
+ enum {
+ 	O_STRIP_OPTION = 0,
 -- 
 2.7.0
-
