@@ -1,112 +1,232 @@
 From: Harald Welte <laforge@gnumonks.org>
-Subject: [PATCH] add JSON output format
-Date: Mon, 22 Feb 2016 10:12:17 +0100
-Message-ID: <1456132337-23426-1-git-send-email-laforge@gnumonks.org>
+Subject: [PATCH] Add JSON output formatting to nfacct utility
+Date: Mon, 22 Feb 2016 10:12:36 +0100
+Message-ID: <1456132356-23474-1-git-send-email-laforge@gnumonks.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [213.95.27.120] ([213.95.27.120]:57487 "EHLO
+Received: from [213.95.27.120] ([213.95.27.120]:57492 "EHLO
 	ganesha.gnumonks.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751796AbcBVJig (ORCPT
+	with ESMTP id S1751694AbcBVJji (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Feb 2016 04:38:36 -0500
+	Mon, 22 Feb 2016 04:39:38 -0500
 Received: from uucp by ganesha.gnumonks.org with local-bsmtp (Exim 4.72)
 	(envelope-from <laforge@gnumonks.org>)
-	id 1aXma9-0005GO-3R
+	id 1aXma9-0005GR-Cn
 	for netfilter-devel@vger.kernel.org; Mon, 22 Feb 2016 10:15:05 +0100
 Received: from laforge by localhost.localdomain with local (Exim 4.86)
 	(envelope-from <laforge@gnumonks.org>)
-	id 1aXmXR-00066T-7i
-	for netfilter-devel@vger.kernel.org; Mon, 22 Feb 2016 10:12:17 +0100
+	id 1aXmXk-00067F-G9
+	for netfilter-devel@vger.kernel.org; Mon, 22 Feb 2016 10:12:36 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-the original output format looks a bit like JSON, but isn't.  The XML
-output is useful if you deal with XML, but a lot of applications prefer
-more lightweight formats like YAML/JSON.
-
-This adds the JSON output format to libnetfilter_acct, which will
-subsequently be used by a similar change in the nfacct utility.
+This is based on the JSON support patch of libnetfilter_acct.
 ---
- include/libnetfilter_acct/libnetfilter_acct.h |  1 +
- src/libnetfilter_acct.c                       | 46 +++++++++++++++++++++++++++
- 2 files changed, 47 insertions(+)
+ nfacct.8     |  2 ++
+ src/nfacct.c | 89 ++++++++++++++++++++++++++++++++++++++++++++----------------
+ 2 files changed, 68 insertions(+), 23 deletions(-)
 
-diff --git a/include/libnetfilter_acct/libnetfilter_acct.h b/include/libnetfilter_acct/libnetfilter_acct.h
-index c6ed858..647490f 100644
---- a/include/libnetfilter_acct/libnetfilter_acct.h
-+++ b/include/libnetfilter_acct/libnetfilter_acct.h
-@@ -41,6 +41,7 @@ int nfacct_nlmsg_parse_payload(const struct nlmsghdr *nlh, struct nfacct *nfacct
- 
- #define NFACCT_SNPRINTF_T_PLAIN 0
- #define NFACCT_SNPRINTF_T_XML 1
-+#define NFACCT_SNPRINTF_T_JSON 2
- 
- int nfacct_snprintf(char *buf, size_t size, struct nfacct *nfacct, uint16_t type, uint16_t flags);
- 
-diff --git a/src/libnetfilter_acct.c b/src/libnetfilter_acct.c
-index bb15c68..b0bcf67 100644
---- a/src/libnetfilter_acct.c
-+++ b/src/libnetfilter_acct.c
-@@ -297,6 +297,49 @@ nfacct_snprintf_plain(char *buf, size_t rem, struct nfacct *nfacct,
- 	return len;
+diff --git a/nfacct.8 b/nfacct.8
+index 0c3249c..bf563ae 100644
+--- a/nfacct.8
++++ b/nfacct.8
+@@ -47,6 +47,8 @@ That atomically obtains and resets the counters.
+ .TP
+ .BI "xml "
+ That displays the output in XML format.
++.BI "json "
++That displays the output in JSON format.
+ .PP
+ .SH SEE ALSO
+ .BR iptables (8)
+diff --git a/src/nfacct.c b/src/nfacct.c
+index 2546a6e..d46ee91 100644
+--- a/src/nfacct.c
++++ b/src/nfacct.c
+@@ -137,13 +137,13 @@ int main(int argc, char *argv[])
+ 	return ret < 0 ? EXIT_FAILURE : EXIT_SUCCESS;
  }
  
-+static int
-+nfacct_snprintf_json(char *buf, size_t rem, struct nfacct *nfacct,
-+		     uint16_t flags)
-+{
-+	int ret = 0, offset = 0, len = 0;
-+
-+	if (flags & NFACCT_SNPRINTF_F_FULL) {
-+		ret = snprintf(buf, rem,
-+			"  { \"pkts\" : %"PRIu64", \"bytes\" : %"PRIu64"",
-+			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_PKTS),
-+			nfacct_attr_get_u64(nfacct, NFACCT_ATTR_BYTES));
-+		SNPRINTF_CHECK(ret, rem, offset, len);
-+
-+		if (nfacct->flags) {
-+			uint32_t mode;
-+			char *mode_name;
-+
-+			mode = nfacct_attr_get_u64(nfacct, NFACCT_ATTR_FLAGS);
-+			if (mode & NFACCT_F_QUOTA_PKTS)
-+				mode_name = "packet";
-+			else if (mode & NFACCT_F_QUOTA_BYTES)
-+				mode_name = "byte";
-+			else
-+				mode_name = "unknown";
-+
-+			ret = snprintf(buf + offset, rem,
-+				", \"quota\" : %"PRIu64", \"mode\" = \"%s\""\
-+				", \"overquota\" = %u",
-+				nfacct_attr_get_u64(nfacct, NFACCT_ATTR_QUOTA),
-+				mode_name,
-+				mode & NFACCT_F_OVERQUOTA ? 1 : 0);
-+			SNPRINTF_CHECK(ret, rem, offset, len);
+-static bool xml_header = false;
++static bool fmt_header = false;
+ 
+ static int nfacct_cb(const struct nlmsghdr *nlh, void *data)
+ {
+ 	struct nfacct *nfacct;
+ 	char buf[4096];
+-	bool *xml = (bool *)data;
++	int *fmt = (int *)data;
+ 
+ 	nfacct = nfacct_alloc();
+ 	if (nfacct == NULL) {
+@@ -156,17 +156,38 @@ static int nfacct_cb(const struct nlmsghdr *nlh, void *data)
+ 		goto err_free;
+ 	}
+ 
+-	if (*xml && !xml_header) {
+-		printf("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+-			"<nfacct>\n");
+-		xml_header = true;
++	switch (*fmt) {
++	case NFACCT_SNPRINTF_T_XML:
++		if (!fmt_header) {
++			printf("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
++				"<nfacct>\n");
++			fmt_header = true;
 +		}
-+
-+		ret = snprintf(buf + offset, rem, ", \"name\" : \"%s\" }",
-+			nfacct_attr_get_str(nfacct, NFACCT_ATTR_NAME));
++		break;
++	case NFACCT_SNPRINTF_T_JSON:
++		if (!fmt_header) {
++			printf("{ \"timestamp\" : %lld, \n"
++			       "  \"nfacct_counters\" : [\n",
++			       (long long) time(NULL));
++			fmt_header = true;
++		} else
++			printf(",\n");
++		break;
++	default:
++		break;
+ 	}
+ 
+-	nfacct_snprintf(buf, sizeof(buf), nfacct,
+-			*xml ? NFACCT_SNPRINTF_T_XML :
+-			       NFACCT_SNPRINTF_T_PLAIN,
++	nfacct_snprintf(buf, sizeof(buf), nfacct, *fmt,
+ 			NFACCT_SNPRINTF_F_FULL);
+-	printf("%s\n", buf);
++	printf("%s", buf);
++	switch (*fmt) {
++	case NFACCT_SNPRINTF_T_JSON:
++		/* no newline in JSON case */
++		break;
++	default:
++		putchar('\n');
++		break;
 +	}
-+	/* non-F_FULL doesn't seem to make sense in JSON */
-+	SNPRINTF_CHECK(ret, rem, offset, len);
-+
-+	return len;
+ 
+ err_free:
+ 	nfacct_free(nfacct);
+@@ -174,9 +195,26 @@ err:
+ 	return MNL_CB_OK;
+ }
+ 
++static void _print_footer(int fmt)
++{
++	if (fmt_header) {
++		switch (fmt) {
++		case NFACCT_SNPRINTF_T_XML:
++			printf("</nfacct>\n");
++			break;
++		case NFACCT_SNPRINTF_T_JSON:
++			printf("\n] }\n");
++			break;
++		default:
++			break;
++		}
++	}
 +}
 +
- #define BUFFER_SIZE(ret, size, rem, offset)		\
- 	size += ret;					\
- 	if (ret > rem)					\
-@@ -393,6 +436,9 @@ int nfacct_snprintf(char *buf, size_t size, struct nfacct *nfacct,
- 	case NFACCT_SNPRINTF_T_XML:
- 		ret = nfacct_snprintf_xml(buf, size, nfacct, flags);
- 		break;
-+	case NFACCT_SNPRINTF_T_JSON:
-+		ret = nfacct_snprintf_json(buf, size, nfacct, flags);
-+		break;
- 	default:
- 		ret = -1;
- 		break;
+ static int nfacct_cmd_list(int argc, char *argv[])
+ {
+-	bool zeroctr = false, xml = false;
++	bool zeroctr = false;
++	int fmt = NFACCT_SNPRINTF_T_PLAIN;
+ 	struct mnl_socket *nl;
+ 	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	struct nlmsghdr *nlh;
+@@ -190,9 +228,13 @@ static int nfacct_cmd_list(int argc, char *argv[])
+ 				duparg(argv[i]);
+ 			zeroctr = true;
+ 		} else if (strncmp(argv[i], "xml", strlen(argv[i])) == 0) {
+-			if (xml)
++			if (fmt)
++				duparg(argv[i]);
++			fmt = NFACCT_SNPRINTF_T_XML;
++		} else if (strncmp(argv[i], "json", strlen(argv[i])) == 0) {
++			if (fmt)
+ 				duparg(argv[i]);
+-			xml = true;
++			fmt = NFACCT_SNPRINTF_T_JSON;
+ 		} else if (strncmp(argv[i], "counters", strlen(argv[i])) == 0) {
+ 			if (mask || value)
+ 				duparg(argv[i]);
+@@ -251,7 +293,7 @@ static int nfacct_cmd_list(int argc, char *argv[])
+ 
+ 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+ 	while (ret > 0) {
+-		ret = mnl_cb_run(buf, ret, seq, portid, nfacct_cb, &xml);
++		ret = mnl_cb_run(buf, ret, seq, portid, nfacct_cb, &fmt);
+ 		if (ret <= 0)
+ 			break;
+ 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+@@ -262,8 +304,7 @@ static int nfacct_cmd_list(int argc, char *argv[])
+ 	}
+ 	mnl_socket_close(nl);
+ 
+-	if (xml_header)
+-		printf("</nfacct>\n");
++	_print_footer(fmt);
+ 
+ 	return 0;
+ }
+@@ -444,7 +485,8 @@ static int nfacct_cmd_delete(int argc, char *argv[])
+ 
+ static int nfacct_cmd_get(int argc, char *argv[])
+ {
+-	bool zeroctr = false, xml = false;
++	bool zeroctr = false;
++	int fmt = NFACCT_SNPRINTF_T_PLAIN;
+ 	struct mnl_socket *nl;
+ 	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	struct nlmsghdr *nlh;
+@@ -460,7 +502,9 @@ static int nfacct_cmd_get(int argc, char *argv[])
+ 		if (strncmp(argv[i], "reset", strlen(argv[i])) == 0) {
+ 			zeroctr = true;
+ 		} else if (strncmp(argv[i], "xml", strlen(argv[i])) == 0) {
+-			xml = true;
++			fmt = NFACCT_SNPRINTF_T_XML;
++		} else if (strncmp(argv[i], "json", strlen(argv[i])) == 0) {
++			fmt = NFACCT_SNPRINTF_T_JSON;
+ 		} else {
+ 			nfacct_perror("unknown argument");
+ 			return -1;
+@@ -503,7 +547,7 @@ static int nfacct_cmd_get(int argc, char *argv[])
+ 
+ 	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+ 	while (ret > 0) {
+-		ret = mnl_cb_run(buf, ret, seq, portid, nfacct_cb, &xml);
++		ret = mnl_cb_run(buf, ret, seq, portid, nfacct_cb, &fmt);
+ 		if (ret <= 0)
+ 			break;
+ 		ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+@@ -514,8 +558,7 @@ static int nfacct_cmd_get(int argc, char *argv[])
+ 	}
+ 	mnl_socket_close(nl);
+ 
+-	if (xml_header)
+-		printf("</nfacct>\n");
++	_print_footer(fmt);
+ 
+ 	return 0;
+ }
+@@ -660,7 +703,7 @@ static int nfacct_cmd_restore(int argc, char *argv[])
+ static int nfacct_cmd_monitor(int argc, char *argv[])
+ {
+ 	struct mnl_socket *nl;
+-	bool xml = false;
++	int fmt = NFACCT_SNPRINTF_T_PLAIN;
+ 	char buf[MNL_SOCKET_BUFFER_SIZE];
+ 	int ret, option = NFNLGRP_ACCT_QUOTA;
+ 
+@@ -685,7 +728,7 @@ static int nfacct_cmd_monitor(int argc, char *argv[])
+ 			break;
+ 		}
+ 
+-		ret = mnl_cb_run(buf, ret, 0, 0, nfacct_cb, &xml);
++		ret = mnl_cb_run(buf, ret, 0, 0, nfacct_cb, &fmt);
+ 		if (ret <= 0)
+ 			break;
+ 	}
 -- 
 2.7.0
 
