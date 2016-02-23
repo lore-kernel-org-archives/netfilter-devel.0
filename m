@@ -1,55 +1,51 @@
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: netfilter: warning at net/ipv4/netfilter/nf_nat_l3proto_ipv4.c:275
- nf_nat_ipv4_fn
-Date: Mon, 22 Feb 2016 19:55:58 -0500
-Message-ID: <56CBAE1E.8030402@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-To: Pablo Neira Ayuso <pablo@netfilter.org>, kaber@trash.net,
-	kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>, coreteam@netfilter.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: [PATCH] netfilter: xt_osf: remove unused variable
+Date: Tue, 23 Feb 2016 13:40:10 +0530
+Message-ID: <1456215010-14878-1-git-send-email-sudipm.mukherjee@gmail.com>
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
+While building with W=1 we got the warning:
+net/netfilter/xt_osf.c:265:9: warning: variable 'loop_cont' set but not used
 
-I've hit the following warning while fuzzing with trinity inside a kvmtool guest
-running the latest -next kernel:
+The local variable loop_cont was only initialized and then assigned a
+value but was never used or checked after that.
+While removing the variable, the case of OSFOPT_TS was not removed so
+that it will serve as a reminder to us that we can do something in that
+particular case.
 
-[ 3196.268106] WARNING: CPU: 3 PID: 660 at net/ipv4/netfilter/nf_nat_l3proto_ipv4.c:275 nf_nat_ipv4_fn+0x65d/0xab0()
+Signed-off-by: Sudip Mukherjee <sudip.mukherjee@codethink.co.uk>
+---
+ net/netfilter/xt_osf.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-[ 3196.268120] Modules linked in:
-
-[ 3196.268142] CPU: 3 PID: 660 Comm: trinity-c95 Not tainted 4.5.0-rc4-next-20160219-sasha-00026-g7978205-dirty #2978
-
-[ 3196.268173]  1ffff10017065e9b ffff8800b832f560 ffffffffa23d9a9d ffffffff00000003
-
-[ 3196.268196]  fffffbfff5c2a630 0000000041b58ab3 ffffffffadb3a8f2 ffffffffa23d9905
-
-[ 3196.268216]  ffffffffa059a760 ffff880371b25494 ffff8800b832f958 ffff8800b832f960
-
-[ 3196.268222] Call Trace:
-
-[ 3196.268273] dump_stack (lib/dump_stack.c:53)
-[ 3196.268375] warn_slowpath_common (kernel/panic.c:483)
-[ 3196.268417] warn_slowpath_null (kernel/panic.c:517)
-[ 3196.268435] nf_nat_ipv4_fn (net/ipv4/netfilter/nf_nat_l3proto_ipv4.c:275 (discriminator 1))
-[ 3196.268543] nf_nat_ipv4_local_fn (net/ipv4/netfilter/nf_nat_l3proto_ipv4.c:429)
-[ 3196.268573] iptable_nat_ipv4_local_fn (net/ipv4/netfilter/iptable_nat.c:65)
-[ 3196.268596] nf_iterate (net/netfilter/core.c:275)
-[ 3196.268622] nf_hook_slow (net/netfilter/core.c:306)
-[ 3196.268701] raw_send_hdrinc (include/linux/netfilter.h:225 include/linux/netfilter.h:249 net/ipv4/raw.c:418)
-[ 3196.268773] raw_sendmsg (net/ipv4/raw.c:640)
-[ 3196.268869] inet_sendmsg (net/ipv4/af_inet.c:740)
-[ 3196.268913] sock_sendmsg (net/socket.c:612 net/socket.c:621)
-[ 3196.268927] SYSC_sendto (net/socket.c:1651)
-[ 3196.269049] SyS_sendto (net/socket.c:1619)
-[ 3196.269074] entry_SYSCALL_64_fastpath (arch/x86/entry/entry_64.S:200)
-
-
-Thanks,
-Sasha
+diff --git a/net/netfilter/xt_osf.c b/net/netfilter/xt_osf.c
+index 4e3c3af..2455b69 100644
+--- a/net/netfilter/xt_osf.c
++++ b/net/netfilter/xt_osf.c
+@@ -262,7 +262,6 @@ xt_osf_match_packet(const struct sk_buff *skb, struct xt_action_param *p)
+ 			if (f->opt[optnum].kind == (*optp)) {
+ 				__u32 len = f->opt[optnum].length;
+ 				const __u8 *optend = optp + len;
+-				int loop_cont = 0;
+ 
+ 				fmatch = FMATCH_OK;
+ 
+@@ -275,7 +274,6 @@ xt_osf_match_packet(const struct sk_buff *skb, struct xt_action_param *p)
+ 					mss = ntohs((__force __be16)mss);
+ 					break;
+ 				case OSFOPT_TS:
+-					loop_cont = 1;
+ 					break;
+ 				}
+ 
+-- 
+1.9.1
