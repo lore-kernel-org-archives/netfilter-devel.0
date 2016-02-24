@@ -1,41 +1,44 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 0/1] ipset patch for nf
-Date: Wed, 24 Feb 2016 21:19:25 +0100
-Message-ID: <1456345166-23605-1-git-send-email-kadlec@blackhole.kfki.hu>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Phil Turnbull <phil.turnbull@oracle.com>
+Subject: [PATCH nf] netfilter: nfnetlink_acct: validate NFACCT_FILTER parameters
+Date: Wed, 24 Feb 2016 15:34:43 -0500
+Message-ID: <1456346083-15562-1-git-send-email-phil.turnbull@oracle.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	coreteam@netfilter.org, Phil Turnbull <phil.turnbull@oracle.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:34010 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751929AbcBXU2Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Feb 2016 15:28:25 -0500
+Received: from aserp1040.oracle.com ([141.146.126.69]:29661 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752562AbcBXUgs (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Feb 2016 15:36:48 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+nfacct_filter_alloc doesn't validate the NFACCT_FILTER_MASK and
+NFACCT_FILTER_VALUE parameters which can trigger a NULL pointer
+dereference. CAP_NET_ADMIN is required to trigger the bug.
 
-Please apply the next patch against the nf tree:
+Signed-off-by: Phil Turnbull <phil.turnbull@oracle.com>
+---
+ net/netfilter/nfnetlink_acct.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-- Deniz Eren reported that parallel flush/dump of list:set type of sets
-  can lead to kernel crash. The bug was due to non-RCU compatible flushing,
-  listing in the set type, fixed by me.
+diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
+index 5274b04..4c2b4c0 100644
+--- a/net/netfilter/nfnetlink_acct.c
++++ b/net/netfilter/nfnetlink_acct.c
+@@ -242,6 +242,9 @@ nfacct_filter_alloc(const struct nlattr * const attr)
+ 	if (err < 0)
+ 		return ERR_PTR(err);
+ 
++	if (!tb[NFACCT_FILTER_MASK] || !tb[NFACCT_FILTER_VALUE])
++		return ERR_PTR(-EINVAL);
++
+ 	filter = kzalloc(sizeof(struct nfacct_filter), GFP_KERNEL);
+ 	if (!filter)
+ 		return ERR_PTR(-ENOMEM);
+-- 
+1.9.1
 
-The following changes since commit 5cc6ce9ff27565949a1001a2889a8dd9fd09e772:
-
-  netfilter: nft_counter: fix erroneous return values (2016-02-08 13:05:02 +0100)
-
-are available in the git repository at:
-
-  git://blackhole.kfki.hu/nf master
-
-for you to fetch changes up to 45040978c8994d1401baf5cc5ac71c1495d4e120:
-
-  netfilter: ipset: Fix set:list type crash when flush/dump set in parallel (2016-02-24 20:32:21 +0100)
-
-----------------------------------------------------------------
-Jozsef Kadlecsik (1):
-      netfilter: ipset: Fix set:list type crash when flush/dump set in parallel
-
- net/netfilter/ipset/ip_set_core.c     |  3 +++
- net/netfilter/ipset/ip_set_list_set.c | 55 ++++++++++++++++++++++--------------------------
- 2 files changed, 28 insertions(+), 30 deletions(-)
