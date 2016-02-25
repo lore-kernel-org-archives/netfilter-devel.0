@@ -1,44 +1,71 @@
-From: Phil Turnbull <phil.turnbull@oracle.com>
-Subject: [PATCH nf] netfilter: nfnetlink_acct: validate NFACCT_FILTER parameters
-Date: Wed, 24 Feb 2016 15:34:43 -0500
-Message-ID: <1456346083-15562-1-git-send-email-phil.turnbull@oracle.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	coreteam@netfilter.org, Phil Turnbull <phil.turnbull@oracle.com>
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 0/4] netfilter: xtables: don't register hooks by default
+Date: Thu, 25 Feb 2016 10:08:34 +0100
+Message-ID: <1456391318-11601-1-git-send-email-fw@strlen.de>
+Cc: ebiederm@xmission.com
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:29661 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752562AbcBXUgs (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37806 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758938AbcBYJN5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Feb 2016 15:36:48 -0500
+	Thu, 25 Feb 2016 04:13:57 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nfacct_filter_alloc doesn't validate the NFACCT_FILTER_MASK and
-NFACCT_FILTER_VALUE parameters which can trigger a NULL pointer
-dereference. CAP_NET_ADMIN is required to trigger the bug.
+This work changes xtables to register tables only
+when the ip(6)tables/arptables command is invoked inside a netns.
+Also changes br_netfilter to not add its sabotage hooks until
+a bridge is created inside the netns.
 
-Signed-off-by: Phil Turnbull <phil.turnbull@oracle.com>
----
- net/netfilter/nfnetlink_acct.c | 3 +++
- 1 file changed, 3 insertions(+)
+The initial namespace isn't affected; hooks are still registered
+on module load time there.
 
-diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-index 5274b04..4c2b4c0 100644
---- a/net/netfilter/nfnetlink_acct.c
-+++ b/net/netfilter/nfnetlink_acct.c
-@@ -242,6 +242,9 @@ nfacct_filter_alloc(const struct nlattr * const attr)
- 	if (err < 0)
- 		return ERR_PTR(err);
- 
-+	if (!tb[NFACCT_FILTER_MASK] || !tb[NFACCT_FILTER_VALUE])
-+		return ERR_PTR(-EINVAL);
-+
- 	filter = kzalloc(sizeof(struct nfacct_filter), GFP_KERNEL);
- 	if (!filter)
- 		return ERR_PTR(-ENOMEM);
--- 
-1.9.1
+netperf receiver running in netns 1.
+init ns with empty mangle+filter table.
 
+Recv   Send    Send
+Socket Socket  Message  Elapsed
+Size   Size    Size     Time     Throughput
+bytes  bytes   bytes    secs.    10^6bits/sec
+
+>From ns2 (empty mangle + filter table):
+87380  16384  16384    180.00   22034.90
+87380  16384  16384    180.00   22355.71
+87380  16384  16384    180.00   21906.88
+
+from ns3, no iptables invocations:
+87380  16384  16384    180.00   23103.76
+87380  16384  16384    180.00   22975.47
+87380  16384  16384    180.00   22880.08
+
+-> ~4% delta.
+
+Changes since last iteration:
+ - dropped the conntrack changes for now
+ - split patch #2 to make review a bit easier
+
+ No other changes.
+
+ include/linux/netfilter.h                 |   29 ++++--------
+ include/linux/netfilter/x_tables.h        |    6 +-
+ include/linux/netfilter_arp/arp_tables.h  |    9 ++-
+ include/linux/netfilter_ipv4/ip_tables.h  |    9 ++-
+ include/linux/netfilter_ipv6/ip6_tables.h |    9 ++-
+ net/bridge/br_netfilter_hooks.c           |   68 ++++++++++++++++++++++++++++--
+ net/ipv4/netfilter/arp_tables.c           |   66 ++++++++++++++++++-----------
+ net/ipv4/netfilter/arptable_filter.c      |   40 ++++++++++-------
+ net/ipv4/netfilter/ip_tables.c            |   63 ++++++++++++++++-----------
+ net/ipv4/netfilter/iptable_filter.c       |   44 ++++++++++++-------
+ net/ipv4/netfilter/iptable_mangle.c       |   41 ++++++++++++------
+ net/ipv4/netfilter/iptable_nat.c          |   41 +++++++++---------
+ net/ipv4/netfilter/iptable_raw.c          |   38 +++++++++++-----
+ net/ipv4/netfilter/iptable_security.c     |   44 ++++++++++++-------
+ net/ipv6/netfilter/ip6_tables.c           |   65 +++++++++++++++++-----------
+ net/ipv6/netfilter/ip6table_filter.c      |   47 ++++++++++++--------
+ net/ipv6/netfilter/ip6table_mangle.c      |   46 ++++++++++++--------
+ net/ipv6/netfilter/ip6table_nat.c         |   41 +++++++++---------
+ net/ipv6/netfilter/ip6table_raw.c         |   46 ++++++++++++--------
+ net/ipv6/netfilter/ip6table_security.c    |   44 +++++++++++--------
+ net/netfilter/x_tables.c                  |   65 +++++++++++++++++-----------
+ 21 files changed, 544 insertions(+), 317 deletions(-)
