@@ -1,45 +1,39 @@
-From: Mart Frauenlob <mart.frauenlob@chello.at>
-Subject: [PATCH 0/2] iptables: utils: Add bash completion
-Date: Thu, 25 Feb 2016 16:06:52 +0100
-Message-ID: <1456412814-4580-1-git-send-email-mart.frauenlob@chello.at>
-To: netfilter-devel@vger.kernel.org
+From: "Yigal Reiss (yreiss)" <yreiss@cisco.com>
+Subject: batch netlink messages - performance improvement
+Date: Thu, 25 Feb 2016 19:43:04 +0000
+Message-ID: <dab4ca588cd243b0b36b7b0283bd50dd@XCH-RCD-014.cisco.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vie01a-qmta-at02-2.mx.upcmail.net ([62.179.121.176]:32044 "EHLO
-	vie01a-qmta-at02-2.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760202AbcBYPY4 (ORCPT
+Received: from rcdn-iport-4.cisco.com ([173.37.86.75]:47471 "EHLO
+	rcdn-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933646AbcBYTw6 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Feb 2016 10:24:56 -0500
-Received: from [172.31.218.30] (helo=vie01a-dmta-at03-3.mx.upcmail.net)
-	by vie01a-pqmta-at02.mx.upcmail.net with esmtps (UNKNOWN:AES256-GCM-SHA384:256)
-	(Exim 4.72)
-	(envelope-from <mart.frauenlob@chello.at>)
-	id 1aYxVR-0007xK-Rb
-	for netfilter-devel@vger.kernel.org; Thu, 25 Feb 2016 16:07:05 +0100
-Received: from [172.31.216.43] (helo=vie01a-pemc-psmtp-pe01)
-	by vie01a-dmta-at03.mx.upcmail.net with esmtp (Exim 4.72)
-	(envelope-from <mart.frauenlob@chello.at>)
-	id 1aYxVO-00014J-Or
-	for netfilter-devel@vger.kernel.org; Thu, 25 Feb 2016 16:07:02 +0100
+	Thu, 25 Feb 2016 14:52:58 -0500
+Received: from XCH-RCD-012.cisco.com (xch-rcd-012.cisco.com [173.37.102.22])
+	by alln-core-9.cisco.com (8.14.5/8.14.5) with ESMTP id u1PJh4Cw019940
+	(version=TLSv1/SSLv3 cipher=AES256-SHA bits=256 verify=FAIL)
+	for <netfilter-devel@vger.kernel.org>; Thu, 25 Feb 2016 19:43:05 GMT
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
-Good day!
+I would like to check an idea.
 
-The first patch adds completion code for the bash shell.
-The second patch adds it to the build routine.
+I am using nfqueue for DPI in user space. I use the already existing batch verdict from user space. The problem with that is that reducing the number of user <--> kernel context switches is bound to 1/2, since kernel --> user space still reports every single packet. So if I have batch verdict for every 25 or 50 packets, then still I only reduced the number of switches by an order of 2. 
 
-Would be great if you consider it.
+So I tried batching the unicast netlink messages (carrying the packets) from kernel to user space. I do that by calling sk->sk_data_ready(sk); (in __netlink_sendskb() in af_netlink.c) only every [N] packets. This seems to contribute similar performance improvements as the batch verdict.
 
-Best regards,
-Mart
+However I have no experience in kernel programming and currently I only implemented a quick and dirty hack (no timeout, assuming a single socket...) just to demonstrate the improvement. My question is therefore whether such an improvement could be interesting for the main kernel. Does it bear any problems etc.
 
----
- configure.ac                             |   13 +
- utils/Makefile.am                        |    3 +
- utils/iptables_bash_completion/README.md |  290 ++++
- utils/iptables_bash_completion/iptables  | 2426 ++++++++++++++++++++++++++++++
- 4 files changed, 2732 insertions(+), 0 deletions(-)
- create mode 100644 utils/iptables_bash_completion/README.md
- create mode 100644 utils/iptables_bash_completion/iptables
----
+If this suggestion makes sense, how would you suggest proceed with this idea? I could continue and start working on a patch, but since as I wrote I have no experience in kernel programming I would like to have some thumbs up for the directions I'm taking, what makes sense and what's not etc so I don't waste my and other people time.
+
+B.t.w., I saw that there is another potential improvement which is mmaping the packets to user space. I couldn't figure out whether this feature is complete in any kernel version and is it ready to use. 
+
+Thanks,
+Yigal
+
