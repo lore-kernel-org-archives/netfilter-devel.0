@@ -1,54 +1,56 @@
-From: Mikko Rapeli <mikko.rapeli@iki.fi>
-Subject: Re: header conflict introduced by change to
- netfilter_ipv4/ip_tables.h
-Date: Fri, 26 Feb 2016 09:18:17 +0200
-Message-ID: <20160226071817.GG6104@lakka.kapsi.fi>
-References: <20160106092007.1c5a0c75@xeon-e3>
- <20160225210856.GB10608@pox.localdomain>
+From: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
+Subject: Re: [PATCH] uapi glibc compat: fix cases where glibc net/if.h is
+ included before linux/if.h
+Date: Fri, 26 Feb 2016 09:25:13 +0200
+Message-ID: <20160226072513.GH6104@lakka.kapsi.fi>
+References: <CA+5PVA4P2avVr+m=ittQUyBou9kT2nbK0-Jeo+3coAFyQXTT_A@mail.gmail.com>
+ <1454853801-18064-1-git-send-email-mikko.rapeli@iki.fi>
+ <20160217.104620.239734387234680136.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Stephen Hemminger <shemming@brocade.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Thomas Graf <tgraf@suug.ch>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: shemming-43mecJUBy8ZBDgjK7y7TUQ@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jwboyer-rxtnV0ftBwyoClj4AeEUq9i2O/JbrIOy@public.gmane.org,
+	pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, libc-alpha-9JcytcrH/bA+uJoB2kUjGw@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20160225210856.GB10608@pox.localdomain>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <20160217.104620.239734387234680136.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Feb 25, 2016 at 10:08:56PM +0100, Thomas Graf wrote:
-> On 01/06/16 at 09:20am, Stephen Hemminger wrote:
-> > This commit breaks compilation of iproute2 with net-next.
-> > 
-> > commit 1ffad83dffd675cd742286ae82dca7d746cb0da8
-> > Author: Mikko Rapeli <mikko.rapeli@iki.fi>
-> > Date:   Thu Oct 15 07:56:30 2015 +0200
-> > 
-> >     netfilter: fix include files for compilation
-> >     
-> >     Add missing header dependencies and other small changes so that each file
-> >     compiles alone in userspace.
-> >     
-> >     Signed-off-by: Mikko Rapeli <mikko.rapeli@iki.fi>
-> >     Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > 
-> > For iproute2, a copy of kernel headers (from make install_headers) is used.
-> > After this change. the build of x_tables.c fails because IFNAMSIZ is already
-> > defined in net/if.h
-> 
-> There is another issue with this commit. iptables.h included from m_ipt.c
-> includes  xtables.h which includes <xtables-version.h> which is not
-> available on a system without xtables.
-> 
-> gcc -Wall -Wstrict-prototypes  -Wmissing-prototypes -Wmissing-declarations -Wold-style-definition -Wformat=2 -O2 -I../include -DRESOLVE_HOSTNAMES -DLIBDIR=\"/usr/lib\" -DCONFDIR=\"/etc/iproute2\" -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE  -DHAVE_SETNS -DHAVE_ELF -DCONFIG_GACT -DCONFIG_GACT_PROB -DIPT_LIB_DIR=\"/lib/xtables\" -DYY_NO_INPUT   -c -o m_ipt.o m_ipt.c
-> In file included from ../include/iptables.h:5:0,
->                  from m_ipt.c:17:
-> ../include/xtables.h:34:29: fatal error: xtables-version.h: No such file or directory
->  #include <xtables-version.h>
+(Adding libc-alpha list, review of https://lkml.org/lkml/2016/2/7/89 )
 
-I don't see any dependencies from kernel side uapi headers to iptables or
-xtables in my tree based on v4.5-rc2. Maybe this is a problem in
-iproute2.
+On Wed, Feb 17, 2016 at 10:46:20AM -0500, David Miller wrote:
+> From: Mikko Rapeli <mikko.rapeli-X3B1VOXEql0@public.gmane.org>
+> Date: Sun,  7 Feb 2016 16:03:21 +0200
+> 
+> > @@ -68,6 +72,8 @@
+> >   * @IFF_ECHO: echo sent packets. Volatile.
+> >   */
+> >  enum net_device_flags {
+> > +/* for compatibility with glibc net/if.h */
+> > +#if __UAPI_DEF_IF_NET_DEVICE_FLAGS
+> >  	IFF_UP				= 1<<0,  /* sysfs */
+> >  	IFF_BROADCAST			= 1<<1,  /* volatile */
+> >  	IFF_DEBUG			= 1<<2,  /* sysfs */
+> > @@ -84,11 +90,14 @@ enum net_device_flags {
+> >  	IFF_PORTSEL			= 1<<13, /* sysfs */
+> >  	IFF_AUTOMEDIA			= 1<<14, /* sysfs */
+> >  	IFF_DYNAMIC			= 1<<15, /* sysfs */
+> > +#endif /* __UAPI_DEF_IF_NET_DEVICE_FLAGS */
+> >  	IFF_LOWER_UP			= 1<<16, /* volatile */
+> >  	IFF_DORMANT			= 1<<17, /* volatile */
+> >  	IFF_ECHO			= 1<<18, /* volatile */
+> >  };
+> 
+> This is going to get messy is IFF_LOWER_UP, IFF_DORMANT, and IFF_ECHO
+> get added the the glibc header.  Why not just handle it now with
+> another __UAPI_DEF_FOO guard so that the additions to net/if.h can
+> deal with this case too.
+
+Do you mean that the enum should be protected with a single guard or
+should I have one guard for current conflicts and one for the future
+if glibc headers include IFF_LOWER_UP and others?
 
 -Mikko
