@@ -1,46 +1,40 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: header conflict introduced by change to
- netfilter_ipv4/ip_tables.h
-Date: Fri, 26 Feb 2016 10:13:07 +0100
-Message-ID: <20160226091307.GA20785@pox.localdomain>
-References: <20160106092007.1c5a0c75@xeon-e3>
- <20160225210856.GB10608@pox.localdomain>
- <20160226071817.GG6104@lakka.kapsi.fi>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: batch netlink messages - performance improvement
+Date: Fri, 26 Feb 2016 11:04:52 +0100
+Message-ID: <20160226100452.GA2148@breakpoint.cc>
+References: <dab4ca588cd243b0b36b7b0283bd50dd@XCH-RCD-014.cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Stephen Hemminger <shemming@brocade.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Mikko Rapeli <mikko.rapeli@iki.fi>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "Yigal Reiss (yreiss)" <yreiss@cisco.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41170 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750883AbcBZKEz (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Feb 2016 05:04:55 -0500
 Content-Disposition: inline
-In-Reply-To: <20160226071817.GG6104@lakka.kapsi.fi>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <dab4ca588cd243b0b36b7b0283bd50dd@XCH-RCD-014.cisco.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02/26/16 at 09:18am, Mikko Rapeli wrote:
-> On Thu, Feb 25, 2016 at 10:08:56PM +0100, Thomas Graf wrote:
-> > There is another issue with this commit. iptables.h included from m_ipt.c
-> > includes  xtables.h which includes <xtables-version.h> which is not
-> > available on a system without xtables.
-> > 
-> > gcc -Wall -Wstrict-prototypes  -Wmissing-prototypes -Wmissing-declarations -Wold-style-definition -Wformat=2 -O2 -I../include -DRESOLVE_HOSTNAMES -DLIBDIR=\"/usr/lib\" -DCONFDIR=\"/etc/iproute2\" -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE  -DHAVE_SETNS -DHAVE_ELF -DCONFIG_GACT -DCONFIG_GACT_PROB -DIPT_LIB_DIR=\"/lib/xtables\" -DYY_NO_INPUT   -c -o m_ipt.o m_ipt.c
-> > In file included from ../include/iptables.h:5:0,
-> >                  from m_ipt.c:17:
-> > ../include/xtables.h:34:29: fatal error: xtables-version.h: No such file or directory
-> >  #include <xtables-version.h>
-> 
-> I don't see any dependencies from kernel side uapi headers to iptables or
-> xtables in my tree based on v4.5-rc2. Maybe this is a problem in
-> iproute2.
+Yigal Reiss (yreiss) <yreiss@cisco.com> wrote:
+> So I tried batching the unicast netlink messages (carrying the packets) from kernel to user space. I do that by calling sk->sk_data_ready(sk); (in __netlink_sendskb() in af_netlink.c) only every [N] packets. This seems to contribute similar performance improvements as the batch verdict.
 
-Right, it's an iproute2 issue in the commit to backport these original
-changes to iproute2:
+Uh?
 
-commit 5cd1adba79d33644debd4ba498bb262c5bebcfba
-Author: Stephen Hemminger <stephen@networkplumber.org>
-Date:   Sun Jan 3 15:14:27 2016 -0800
+That makes no sense to me.  Why and how does that help?
+Can you share numbers or example program that exhibits
+this behaviour?
 
-    Update to current iptables headers
-    
-    Keep in sync with current iptables upstream
+I'd expect that in most cases (in non-idle case) that
+sock_def_readable usually doesn't do anything (skwq_has_sleeper should
+be false).
+
+For nfqueue best receipe seems to be
+recvmmsg + batch number of vectors read + NFQA_CFG_F_GSO.
+
+> If this suggestion makes sense, how would you suggest proceed with this idea?
+
+I'd first like to understand what is so expensive in sock_def_readable
+that this helps in first place.
