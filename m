@@ -1,55 +1,49 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft] evaluate: reject set references in set elements
-Date: Mon, 29 Feb 2016 17:50:39 +0100
-Message-ID: <1456764639-28299-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: "Mr. DOUGLAS" <douglascontact6048@live.com>
+Subject: =?utf-8?q?INFORMA=C3=87=C3=83O_IMPORTANTE__RE=3A_Consultoria_de_Investime?=
+ =?utf-8?q?nto_em_sua_Localidade=2E?=
+Date: Sun, 28 Feb 2016 04:39:39 -0800
+Message-ID: <20160228133845.646498FD67E__18919.5657651455$1456766075$gmane$org@webmail.cefet-rj.br>
+Reply-To: johnsondouglas8738@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: Recipients <douglascontact6048@live.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:46872 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751070AbcB2QuW (ORCPT
+Received: from webmail.cefet-rj.br ([200.9.149.52]:55536 "EHLO
+	webmail.cefet-rj.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750871AbcB2ROQ convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Feb 2016 11:50:22 -0500
+	Mon, 29 Feb 2016 12:14:16 -0500
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-given
+Oi,
 
-table filter {
-  set local {
-    type iface_index
-    elements = { lo }
-  }
-  chain input {
-    type filter hook input priority 0;
-    iif { @lan, } accept;
-  }
-}
+Temos planejado investir alguns fundos no seu pa=EDs.
 
-nft BUG()s.  I don't see how we could support sets-in-set; add a sanity
-check and error out instead.
+Responder se voc=EA estiver interessado.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- src/evaluate.c | 5 +++++
- 1 file changed, 5 insertions(+)
+Sauda=E7=F5es,
+Sir Henry Neville Lindley Keswick
+Presidente da Jardine Matheson Holdings Ltd
+https://en.wikipedia.org/wiki/Keswick_family
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index ed78896..a49cdd9 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -920,6 +920,11 @@ static int expr_evaluate_set(struct eval_ctx *ctx, struct expr **expr)
- 		if (list_member_evaluate(ctx, &i) < 0)
- 			return -1;
- 
-+		if (i->ops->type == EXPR_SET_ELEM &&
-+		    i->key->ops->type == EXPR_SET_REF)
-+			return expr_error(ctx->msgs, i,
-+					  "Set reference cannot be part of another set");
-+
- 		if (!expr_is_constant(i))
- 			return expr_error(ctx->msgs, i,
- 					  "Set member is not constant");
--- 
-2.4.10
+Hi friend,
 
+Our family is interested in investing funds in your locality.
+
+More information for you interest .
+
+Greetings,
+Sir Henry Neville Lindley Keswick
+Chairman of Jardine Matheson Holdings Ltd
+https://en.wikipedia.org/wiki/Keswick_family
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
