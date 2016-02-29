@@ -1,90 +1,195 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: unused code in net/netfilter/ipset/ip_set_bitmap_ipmac.c
-Date: Mon, 29 Feb 2016 13:27:51 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1602291326090.2600@hadrien>
-References: <alpine.DEB.2.10.1602291202590.2600@hadrien> <alpine.DEB.2.10.1602291218360.21350@blackhole.kfki.hu>
+From: Zefir Kurtisi <zefir.kurtisi@neratec.com>
+Subject: [BUG] kernel crash in br_netfilter
+Date: Mon, 29 Feb 2016 13:33:34 +0100
+Message-ID: <56D43A9E.2070504@neratec.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Julia Lawall <julia.lawall@lip6.fr>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Daniel Borkmann <daniel@iogearbox.net>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.10.1602291218360.21350@blackhole.kfki.hu>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="------------000401020302070800030702"
+Cc: Florian Westphal <fw@strlen.de>
+To: OpenWrt Development List <openwrt-devel@lists.openwrt.org>,
+ netfilter-devel@vger.kernel.org
+Return-path: <openwrt-devel-bounces@lists.openwrt.org>
+List-Unsubscribe: <https://lists.openwrt.org/cgi-bin/mailman/options/openwrt-devel>,
+ <mailto:openwrt-devel-request@lists.openwrt.org?subject=unsubscribe>
+List-Archive: <http://lists.openwrt.org/pipermail/openwrt-devel/>
+List-Post: <mailto:openwrt-devel@lists.openwrt.org>
+List-Help: <mailto:openwrt-devel-request@lists.openwrt.org?subject=help>
+List-Subscribe: <https://lists.openwrt.org/cgi-bin/mailman/listinfo/openwrt-devel>,
+ <mailto:openwrt-devel-request@lists.openwrt.org?subject=subscribe>
+Errors-To: openwrt-devel-bounces@lists.openwrt.org
+Sender: "openwrt-devel" <openwrt-devel-bounces@lists.openwrt.org>
 List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------000401020302070800030702
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+I've been fighting a kernel bug that is producing random crashes around network /
+skb_layer for a long time and was able to isolate it (or one of its components) to
+the br_netfilter module.
+
+I am reproducing the bug with PowerPC (TL-WDR4900v1.3) and MIPS (DB120, ar71xx)
+based systems. Florian Westphal did not see it on kvm/x86, it is unclear whether
+this requires a physical system or is CPU specific. This bug is in the latest
+OpenWRT (tested HEAD is 03b15ae9), as it happens with firmwares built 2+ years
+ago, so it is no current regression but something that was there for a long time.
 
 
-On Mon, 29 Feb 2016, Jozsef Kadlecsik wrote:
+Reproducing the crash
+1. build the firmware for the system to test
+   * use default configuration
+   * ensure to select CONFIG_BRIDGE_NETFILTER in kernel_menuconfig
+2. boot the device and access it over serial
+3. ensure br-lan bridge has at least two active ports
+   * tested with ath9k + Ethernet (gianfar and ag71xx)
+   * if not enabled, enable radio0 and ensure wlan0 is in bridge
+4. run: sysctl -w net.bridge.bridge-nf-call-iptables=1
+5. from your host, continuously ping the device over Ethernet
+6. run: ifconfig br-lan down
 
-> Hi,
->
-> On Mon, 29 Feb 2016, Julia Lawall wrote:
->
-> > The file net/netfilter/ipset/ip_set_bitmap_ipmac.c seems to contain a lot
-> > of static functions that are not used in the file:
-> >
-> > bitmap_ipmac_add_timeout
-> > bitmap_ipmac_do_add
-> > bitmap_ipmac_do_del
-> > bitmap_ipmac_do_head
-> > bitmap_ipmac_do_list
-> > bitmap_ipmac_do_test
-> > bitmap_ipmac_gc_test
-> > bitmap_ipmac_is_filled
-> > bitmap_ipmac_kadt
-> > bitmap_ipmac_same_set
-> > bitmap_ipmac_uadt
-> >
-> > Have I overooked something?
->
-> Yes: the file includes ip_set_bitmap_gen.h in which all those functions
-> are used.
+The next ingress packet causes a fatal crash.
 
-OK, thanks.  I saw the incude, but I didn't sufficiently appreciate the
-#defines at the beginning.  Thanks.
+Trace logs for MIPS and PPC are attached and hint to __nf_conntrack_confirm
 
-> > I was looking at this code, with Daniel Borkmann, because there seems to
-> > be a bug in the function bitmap_ipmac_uadt:
-> >
-> > 	if (tb[IPSET_ATTR_ETHER]) {
-> >                 memcpy(e.ether, nla_data(tb[IPSET_ATTR_ETHER]), ETH_ALEN);
-> >                 e.add_mac = 1;
-> >         }
-> >
-> > Later in the same file, there is:
-> >
-> > static struct ip_set_type bitmap_ipmac_type = {
-> > 	...
-> >         .adt_policy     = {
-> > 		...
-> > 		[IPSET_ATTR_ETHER]      = { .type = NLA_BINARY,
-> >                                             .len  = ETH_ALEN },
-> > 		...},
-> > 	...
-> > };
-> >
-> > The type NLA_BINARY indicates that the length is a maximum possible
-> > length, and thus a check of the actual length is needed before the memcpy.
->
-> You are right here (and the similar spotting in ip_set_hash_mac.c) - I'll
-> prepare a patch and submit it.
 
-Great.  Thanks.
+Let me know if I could provide more information to further isolate the problem.
 
-julia
 
->
-> Best regards,
-> Jozsef
-> -
-> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-> Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
->           H-1525 Budapest 114, POB. 49, Hungary
->
+Thanks,
+Zefir
+
+
+
+--------------000401020302070800030702
+Content-Type: text/plain; charset=UTF-8;
+ name="tracelog-MIPS.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="tracelog-MIPS.txt"
+
+WyAgMTkxLjMyMTE2M10gYnItbGFuOiBwb3J0IDEoZXRoMC4xKSBlbnRlcmVkIGRpc2FibGVk
+IHN0YXRlClsgIDE5Mi42NDY2NTZdIENQVSAwIFVuYWJsZSB0byBoYW5kbGUga2VybmVsIHBh
+Z2luZyByZXF1ZXN0IGF0IHZpcnR1YWwgYWRkcmVzcyAwMDIwMDIwMCwgZXBjID09IDg3MDAw
+NjcwLCByYSA9PSA4NzAwMThmNApbICAxOTIuNjU3NDQ2XSBPb3BzWyMxXToKWyAgMTkyLjY1
+OTc2MV0gQ1BVOiAwIFBJRDogMCBDb21tOiBzd2FwcGVyIE5vdCB0YWludGVkIDQuMS4xNiAj
+MQpbICAxOTIuNjY1NTkzXSB0YXNrOiA4MDNjZTk1OCB0aTogODAzYzgwMDAgdGFzay50aTog
+ODAzYzgwMDAKWyAgMTkyLjY3MTA2OV0gJCAwICAgOiAwMDAwMDAwMCAwMDAwMDAwMCA4MDAw
+MDAwMSAwMDIwMDIwMApbICAxOTIuNjc2NDEwXSAkIDQgICA6IDg2YzBmYTIwIDAwMDAwMDAx
+IDAwMDAwMDAwIGE0NDQ2NWI5ClsgIDE5Mi42ODE3NDJdICQgOCAgIDogODZjMGZhNzggODZj
+MGZhNzggMDAwMDAwMDAgMDAwMDAwMDAKWyAgMTkyLjY4NzA3NV0gJDEyICAgOiAxMTVmMDAw
+MiAwMDAwMDAwMCAwMDAwMDAwMCBjMGE4MDExNApbICAxOTIuNjkyNDA4XSAkMTYgICA6IDg2
+YzBmYTIwIDAwMDAwNmNjIDAwMDAwN2I2IDgwM2U1YWYwClsgIDE5Mi42OTc3NDJdICQyMCAg
+IDogMDAwMDA2Y2MgMDAwMDAwMDQgODAzZTVhZjAgMDAwMDAwMDAKWyAgMTkyLjcwMzA4Ml0g
+JDI0ICAgOiAwMDAwMDAwMCA4NzEzNjdkNCAgICAgICAgICAgICAgICAgIApbICAxOTIuNzA4
+NDE2XSAkMjggICA6IDgwM2M4MDAwIDgwM2M5YTI4IDg2YzBmYTYwIDg3MDAxOGY0ClsgIDE5
+Mi43MTM3NTBdIEhpICAgIDogMDAwMDA3YjYKWyAgMTkyLjcxNjY3MF0gTG8gICAgOiBiNWE3
+NDgwMApbICAxOTIuNzE5NjI4XSBlcGMgICA6IDg3MDAwNjcwIG5mX2Nvbm50cmFja19maW5k
+X2dldCsweDY4LzB4ODggW25mX2Nvbm50cmFja10KWyAgMTkyLjcyNjY5OF0gcmEgICAgOiA4
+NzAwMThmNCBfX25mX2Nvbm50cmFja19jb25maXJtKzB4YzAvMHgzNjQgW25mX2Nvbm50cmFj
+a10KWyAgMTkyLjczMzkyN10gU3RhdHVzOiAxMTAwZmMwMyBLRVJORUwgRVhMIElFIApbICAx
+OTIuNzM4MTk2XSBDYXVzZSA6IDgwODAwMDBjClsgIDE5Mi43NDExMTddIEJhZFZBIDogMDAy
+MDAyMDAKWyAgMTkyLjc0NDA0MF0gUHJJZCAgOiAwMDAxOTc0YyAoTUlQUyA3NEtjKQpbICAx
+OTIuNzQ4MDE1XSBNb2R1bGVzIGxpbmtlZCBpbjogYXRoOWsgYXRoOWtfY29tbW9uIHBwcG9l
+IHBwcF9hc3luYyBpcHRhYmxlX25hdCBhdGg5a19odyBhdGggcHBwb3ggcHBwX2dlbmVyaWMg
+bmZfbmF0X2lwdjQgbmZfY29ubnRyYWNrX2lwdjYgbmZfY29ubnRyYWNrX2lwdjQgbWFjODAy
+MTEgaXB0X1JFSkVDVCBpcHRfTUFTUVVFUkFERSBjZmc4MDIxMSB4dF90aW1lIHh0X3RjcHVk
+cCB4dF9zdGF0ZSB4dF9uYW4KWyAgMTkyLjgxNjI4NF0gUHJvY2VzcyBzd2FwcGVyIChwaWQ6
+IDAsIHRocmVhZGluZm89ODAzYzgwMDAsIHRhc2s9ODAzY2U5NTgsIHRscz0wMDAwMDAwMCkK
+WyAgMTkyLjgyNDMxMV0gU3RhY2sgOiA4NzM0MjI0MCA4NzEzNTc0NCAwMDAwMDAwMSAwMjAw
+MDAwMCA4MDNjOWFhYyA4MDNjOWFlYyA4MDNjYWJhYyA4NzM0MjI0MAogICAgICAgICAgMDAw
+MDAwMDEgMDAwMDAwMDQgMDAwMDAwMDMgZmZmZmZmNjIgMDAwMDAwMDAgODAyNmVmYjAgODZj
+MGZhMjAgODczNDIyNDAKICAgICAgICAgIDAwMDAwMDAwIDg3MzFmMDAwIDg2YzE4MTAwIDg3
+MTM3MDU4IDAwMDAwMDAwIDg3MzQyMjQwIDgwM2M5YWVjIDg3MzQyMjQwCiAgICAgICAgICA4
+MDNjYWIyNCBmZmZmZmZmYiAwMDAwMDAwMSA4MDI2ZjA5MCA4NzM0Y2E4MCA4Nzg2NWI3YyAw
+MDAwMDAwMCAwMDAwMDAwOAogICAgICAgICAgMDAwMDAwMDAgODcxMzcwNTggODAzY2FiYTQg
+ODczNDIyNDAgMDAwMDAwMDEgODczMWYwMDAgODczNDIyNDAgODczMWYwNWMKICAgICAgICAg
+IC4uLgpbICAxOTIuODYwNjQzXSBDYWxsIFRyYWNlOgpbICAxOTIuODYzMTMzXSBbPDg3MDAw
+NjcwPl0gbmZfY29ubnRyYWNrX2ZpbmRfZ2V0KzB4NjgvMHg4OCBbbmZfY29ubnRyYWNrXQpb
+ICAxOTIuODY5ODUwXSAKWyAgMTkyLjg3MTM1Nl0gCkNvZGU6IDAwMDIwMzM2ICA4YzgyMDAw
+OCAgMzA0NTAwMDEgPDE0YTAwMDAyPiBhYzYyMDAwMCAgYWM0MzAwMDQgIDNjMDIwMDIwICAy
+NDQyMDIwMCAgYWM4MjAwMGMgClsgIDE5Mi44ODE1MTJdIC0tLVsgZW5kIHRyYWNlIDFlNzE2
+ZWIxN2U0MGFmOGIgXS0tLQpbICAxOTIuODg4MjQ3XSBLZXJuZWwgcGFuaWMgLSBub3Qgc3lu
+Y2luZzogRmF0YWwgZXhjZXB0aW9uIGluIGludGVycnVwdApbICAxOTIuODk1NjU0XSBSZWJv
+b3RpbmcgaW4gMyBzZWNvbmRzLi4KCg==
+--------------000401020302070800030702
+Content-Type: text/plain; charset=UTF-8;
+ name="tracelog-PowerPC.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="tracelog-PowerPC.txt"
+
+WyAgIDY5LjgzNDEyOV0gYnIwOiBwb3J0IDMoZXRoMSkgZW50ZXJlZCBkaXNhYmxlZCBzdGF0
+ZQpbICAgNjkuODM1NDI3XSBicjA6IHBvcnQgMSh3bGFuMCkgZW50ZXJlZCBkaXNhYmxlZCBz
+dGF0ZQpbICAgNzcuNDkzNTMwXSBVbmFibGUgdG8gaGFuZGxlIGtlcm5lbCBwYWdpbmcgcmVx
+dWVzdCBmb3IgZGF0YSBhdCBhZGRyZXNzIDB4MDAyMDAyMDAKWyAgIDc3LjQ5NTQxNV0gRmF1
+bHRpbmcgaW5zdHJ1Y3Rpb24gYWRkcmVzczogMHhkMzJjZTg3NApbICAgNzcuNDk2NjY5XSBP
+b3BzOiBLZXJuZWwgYWNjZXNzIG9mIGJhZCBhcmVhLCBzaWc6IDExIFsjMV0KWyAgIDc3LjQ5
+ODAyN10gRFQ1MApbICAgNzcuNDk4NDkzXSBNb2R1bGVzIGxpbmtlZCBpbjogYXRoOWsgYXRo
+OWtfY29tbW9uIGlwdGFibGVfbmF0IGF0aDlrX2h3IGF0aCBuZl9uYXRfaXB2NCBuZl9jb25u
+dHJhY2tfaXB2NCBtYWM4MDIxMSBpcHRfUkVKRUNUIGlwdF9NQVNRVUVSQURFIGNmZzgwMjEx
+IHh0X3RpbWUgeHRfdGNwdWRwIHh0X3RjcG1zcyB4dF9zdHJpbmcgeHRfc3RhdGlzdGljIHh0
+X3N0YXRlIHh0X3JlY2VudCB4dF9xdW90YSB4dF9wa2gKWyAgIDc3LjUyMjgzMF0gQ1BVOiAw
+IFBJRDogMCBDb21tOiBzd2FwcGVyIE5vdCB0YWludGVkIDMuMTguMjMgIzEwClsgICA3Ny41
+MjQzMjNdIHRhc2s6IGMwMzViMzAwIHRpOiBjZmZlNjAwMCB0YXNrLnRpOiBjMDM3MDAwMApb
+ICAgNzcuNTI1Njg0XSBOSVA6IGQzMmNlODc0IExSOiBkMzJjZmZlYyBDVFI6IGQzNWIxM2M0
+ClsgICA3Ny41MjY5MzZdIFJFR1M6IGNmZmU3YzYwIFRSQVA6IDAzMDAgICBOb3QgdGFpbnRl
+ZCAgKDMuMTguMjMpClsgICA3Ny41Mjg0MDNdIE1TUjogMDAwMjkwMDAgPENFLEVFLE1FPiAg
+Q1I6IDQyMDAyMDgyICBYRVI6IDIwMDAwMDAwClsgICA3Ny41Mjk5NTFdIERFQVI6IDAwMjAw
+MjAwIEVTUjogMDA4MDAwMDAgCkdQUjAwOiBjNzYyYjIxOCBjZmZlN2QxMCBjMDM1YjMwMCBj
+NzYyYjFjMCA4ZGI4ZDMyZCBkNzIwNDRkMCAwMDAwMDAwMCAwMDAwMDAwMCAKR1BSMDg6IDAw
+MDAwMDAxIDgwMDAwMDAxIDAwMjAwMjAwIDMzMmY0YjhiIDIyMDAyMDgyIDEwMDI1NDIwIDAw
+MjAwMDAwIGM3NjU0MDgwIApHUFIxNjogYzc1MDRkODAgYzdiN2U1NDAgY2ZiYTQ2NzggYzdi
+NGEwMDAgMDAwMDg2ZGQgMDAwMDAwMDAgODAwMDAwMDAgMDAwMDAwMDIgCkdQUjI0OiBjNzYy
+YjIwMCAwMDAwMGUyNSAwMDAwMDJiMSBjMDM2NmZjOCAwMDAwMDIyNSAwMDAwMDZiMSAwMDAw
+MDAwMCBjNzYyYjFjMCAKWyAgIDc3LjUzODE0NF0gTklQIFtkMzJjZTg3NF0gMHhkMzJjZTg3
+NApbICAgNzcuNTM5MDc1XSBMUiBbZDMyY2ZmZWNdIF9fbmZfY29ubnRyYWNrX2NvbmZpcm0r
+MHgyYzgvMHgzNGMgW25mX2Nvbm50cmFja10KWyAgIDc3LjU0MDgyNl0gQ2FsbCBUcmFjZToK
+WyAgIDc3LjU0MTQ0OV0gW2NmZmU3ZDEwXSBbZDM1Yjk3NjBdIG5mX25hdF9pcHY0X2ZuKzB4
+MTNjLzB4MjAwIFtuZl9uYXRfaXB2NF0gKHVucmVsaWFibGUpClsgICA3Ny41NDM0NzhdIFtj
+ZmZlN2Q0MF0gW2MwMjI2NDBjXSBuZl9pdGVyYXRlKzB4NzAvMHhjMApbICAgNzcuNTQ0Nzc4
+XSBbY2ZmZTdkODBdIFtjMDIyNjRkOF0gbmZfaG9va19zbG93KzB4N2MvMHgxMjQKWyAgIDc3
+LjU0NjE0M10gW2NmZmU3ZGMwXSBbYzAyMmM5MTRdIGlwX2xvY2FsX2RlbGl2ZXIrMHg5OC8w
+eGJjClsgICA3Ny41NDc1NzhdIFtjZmZlN2RkMF0gW2MwMWVlZTYwXSBfX25ldGlmX3JlY2Vp
+dmVfc2tiX2NvcmUrMHg2NjgvMHg3OWMKWyAgIDc3LjU0OTIyOF0gW2NmZmU3ZTMwXSBbYzAx
+ZjBkODRdIG5ldGlmX3JlY2VpdmVfc2tiX2ludGVybmFsKzB4NjAvMHg4NApbICAgNzcuNTUw
+ODg0XSBbY2ZmZTdlNTBdIFtjMDI4NTc4NF0gYnJfaGFuZGxlX2ZyYW1lKzB4MjFjLzB4MzJj
+ClsgICA3Ny41NTIzMzddIFtjZmZlN2U3MF0gW2MwMWVlY2UwXSBfX25ldGlmX3JlY2VpdmVf
+c2tiX2NvcmUrMHg0ZTgvMHg3OWMKWyAgIDc3LjU1Mzk4NV0gW2NmZmU3ZWQwXSBbYzAxZjBk
+ODRdIG5ldGlmX3JlY2VpdmVfc2tiX2ludGVybmFsKzB4NjAvMHg4NApbICAgNzcuNTU1NjM4
+XSBbY2ZmZTdlZjBdIFtkMzI4Yzc2NF0gZ2Zhcl9jbGVhbl9yeF9yaW5nKzB4MzljLzB4MmI3
+YyBbZ2lhbmZhcl9kcml2ZXJdClsgICA3Ny41NTc1NTFdIFtjZmZlN2Y0MF0gW2QzMjhjOWNj
+XSBnZmFyX2NsZWFuX3J4X3JpbmcrMHg2MDQvMHgyYjdjIFtnaWFuZmFyX2RyaXZlcl0KWyAg
+IDc3LjU1OTQ2Ml0gW2NmZmU3ZjYwXSBbYzAxZjEwMGNdIG5ldF9yeF9hY3Rpb24rMHg3NC8w
+eDE4OApbICAgNzcuNTYwODU3XSBbY2ZmZTdmOTBdIFtjMDAyNDUwOF0gX19kb19zb2Z0aXJx
+KzB4YTgvMHgxYTgKWyAgIDc3LjU2MjIyMl0gW2NmZmU3ZmUwXSBbYzAwMjQ3ZjRdIGlycV9l
+eGl0KzB4NGMvMHg2NApbICAgNzcuNTYzNDc5XSBbY2ZmZTdmZjBdIFtjMDAwYzE5OF0gY2Fs
+bF9kb19pcnErMHgyNC8weDNjClsgICA3Ny41NjQ4MDJdIFtjMDM3MWU4MF0gW2MwMDA0Mjgw
+XSBkb19JUlErMHg3NC8weGIwClsgICA3Ny41NjYwMTZdIFtjMDM3MWVhMF0gW2MwMDBkN2E4
+XSByZXRfZnJvbV9leGNlcHQrMHgwLzB4MTgKWyAgIDc3LjU2NzQwOF0gLS0tIGludGVycnVw
+dDogNTAxIGF0IGFyY2hfY3B1X2lkbGUrMHgyNC8weDYwClsgICA3Ny41Njc0MDhdICAgICBM
+UiA9IGFyY2hfY3B1X2lkbGUrMHgyNC8weDYwClsgICA3Ny41Njk4NDldIFtjMDM3MWY2MF0g
+W2MwMDRkZGJjXSByY3VfaWRsZV9lbnRlcisweDgwLzB4YTggKHVucmVsaWFibGUpClsgICA3
+Ny41NzE1MjldIFtjMDM3MWY3MF0gW2MwMDQyZTg4XSBjcHVfc3RhcnR1cF9lbnRyeSsweGVj
+LzB4MjE4ClsgICA3Ny41NzMwMDVdIFtjMDM3MWZiMF0gW2MwMzM3OTgwXSBzdGFydF9rZXJu
+ZWwrMHgzMDQvMHgzMTgKWyAgIDc3LjU3NDM5MF0gW2MwMzcxZmYwXSBbYzAwMDAzOTRdIHNl
+dF9pdm9yKzB4MTIwLzB4MTVjClsgICA3Ny41NzU2ODVdIEluc3RydWN0aW9uIGR1bXA6Clsg
+ICA3Ny41NzY0MzldIDU0ODQ3MDNlIDdkNDQ1MDUwIDdkNDM0YTc4IDU1NGFjMDNlIDdjNmEx
+ODUwIDRlODAwMDIwIDgxNDMwMDBjIDdkNDkwMDM0IApbICAgNzcuNTc4NDI0XSA1NTI5ZDk3
+ZSAwZjA5MDAwMCA4MTIzMDAwOCA3MTI4MDAwMSA8OTEyYTAwMDA+IDQwODIwMDA4IDkxNDkw
+MDA0IDNkMjAwMDIwIApbICAgNzcuNTgwNDUzXSAtLS1bIGVuZCB0cmFjZSBkMDkzZmFiZmJj
+MjU0NTVjIF0tLS0KWyAgIDc3LjU4Mjk3M10gClsgICA3OC41NzMzMDVdIEtlcm5lbCBwYW5p
+YyAtIG5vdCBzeW5jaW5nOiBGYXRhbCBleGNlcHRpb24gaW4gaW50ZXJydXB0ClsgICA3OC44
+ODMyNjFdIG10ZG9vcHM6IHJlYWR5IDIxNSwgMjE2IChubyBlcmFzZSkKWyAgIDc4Ljg4NDM4
+Ml0gUmVib290aW5nIGluIDMgc2Vjb25kcy4uCgoK
+--------------000401020302070800030702
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+openwrt-devel mailing list
+openwrt-devel@lists.openwrt.org
+https://lists.openwrt.org/cgi-bin/mailman/listinfo/openwrt-devel
+
+--------------000401020302070800030702--
