@@ -1,62 +1,74 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: Re: [PATCH] src: netlink_delinearize: Fix datatype for len
-Date: Mon, 29 Feb 2016 15:58:45 +0530
-Message-ID: <CAKHNQQGJ3qS=gVHpoQCr+w7K9+FU7sypVOBS07KNFg=z9UAt8A@mail.gmail.com>
-References: <20160228194043.GA15021@gmail.com> <20160229100632.GA7277@breakpoint.cc>
+From: Julia Lawall <julia.lawall@lip6.fr>
+Subject: unused code in net/netfilter/ipset/ip_set_bitmap_ipmac.c
+Date: Mon, 29 Feb 2016 12:14:39 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1602291202590.2600@hadrien>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:36508 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752054AbcB2K30 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Feb 2016 05:29:26 -0500
-Received: by mail-wm0-f41.google.com with SMTP id n186so42049822wmn.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Feb 2016 02:29:25 -0800 (PST)
-In-Reply-To: <20160229100632.GA7277@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Feb 29, 2016 at 3:36 PM, Florian Westphal <fw@strlen.de> wrote:
-> Shivani Bhardwaj <shivanib134@gmail.com> wrote:
->> Change the data type of len from unsigned int to int in order to make
->> it valid for checks like
->>
->> if (len < 0)
->>
->> The issue was brought into attention by the unexplained behavior of
->> frag with frag-off. Bugzilla entry:
->> https://bugzilla.netfilter.org/show_bug.cgi?id=935
->>
->> This patch fixes this bug, however there are still issues with frag
->> that need to be fixed.
->
-> exthdr (frag) seems to have several issues:
->
-> - we should reject exthdr and only allow it with ipv6.
-> - for inet/bridge, we should also inject ipv6 dependency
-> - some exthdrs (frag for instance) have odd bit lengths
->   and need mask/shift instructions.
->
-> For example, in your example rule we generate:
->    [ exthdr load 1b @ 44 + 2 => reg 1 ]
->    [ cmp eq reg 1 0x00002100 ]
->
-> But thats not correct -- we truncated the load to one byte.
-> Instead we should have loaded 2 bytes and then masked off the extra 3bits.
->
-> I'll work on this.
+The file net/netfilter/ipset/ip_set_bitmap_ipmac.c seems to contain a lot
+of static functions that are not used in the file:
 
-In the chain this rule shows up as
+bitmap_ipmac_add_timeout
+bitmap_ipmac_do_add
+bitmap_ipmac_do_del
+bitmap_ipmac_do_head
+bitmap_ipmac_do_list
+bitmap_ipmac_do_test
+bitmap_ipmac_gc_test
+bitmap_ipmac_is_filled
+bitmap_ipmac_kadt
+bitmap_ipmac_same_set
+bitmap_ipmac_uadt
 
-chain input {
-        type filter hook input priority 0; policy accept;
-        frag unknown 0x0 [invalid type]
-    }
+Have I overooked something?
 
-This is also the case with some icmpv6 options (id and max-delay),
-please take a note of this too.
-Thanks.
+I was looking at this code, with Daniel Borkmann, because there seems to
+be a bug in the function bitmap_ipmac_uadt:
+
+	if (tb[IPSET_ATTR_ETHER]) {
+                memcpy(e.ether, nla_data(tb[IPSET_ATTR_ETHER]), ETH_ALEN);
+                e.add_mac = 1;
+        }
+
+Later in the same file, there is:
+
+static struct ip_set_type bitmap_ipmac_type = {
+	...
+        .adt_policy     = {
+		...
+		[IPSET_ATTR_ETHER]      = { .type = NLA_BINARY,
+                                            .len  = ETH_ALEN },
+		...},
+	...
+};
+
+The type NLA_BINARY indicates that the length is a maximum possible
+length, and thus a check of the actual length is needed before the memcpy.
+
+The file net/netfilter/ipset/ip_set_hash_mac.c seems to have a similar
+problem.  The following static functions are not used:
+
+hash_mac4_data_equal
+hash_mac4_data_list
+hash_mac4_data_next
+hash_mac4_kadt
+hash_mac4_uadt
+
+And the following code:
+
+ether_addr_copy(e.ether, nla_data(tb[IPSET_ATTR_ETHER]));
+
+in hash_mac4_uadt does not seem to have a check on the length, and the
+field is defined in the same way as above.
+
+julia
