@@ -1,59 +1,45 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nft] datatype, meta: add new ifname_type for
- iifname/oifname
-Date: Mon, 29 Feb 2016 14:19:23 +0100
-Message-ID: <20160229131923.GB7277@breakpoint.cc>
-References: <1456514374-28827-1-git-send-email-fw@strlen.de>
- <20160229131202.GA16476@salvia>
+From: "Loganaden Velvindron" <logan@hackers.mu>
+Subject: Re: [PATCH] Fix musl compatibility
+Date: Mon, 29 Feb 2016 08:21:02 -0500
+Message-ID: <4a77358cc887f29232c7a8ab304196d0.squirrel@email.powweb.com>
+References: <20160222115115.GA17349@mx.elandsys.com>
+    <20160229125418.GA15995@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Cc: "Loganaden Velvindron" <logan@hackers.mu>,
+	netfilter-devel@vger.kernel.org
+To: "Pablo Neira Ayuso" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:46344 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752672AbcB2NTZ (ORCPT
+Received: from walmailout08.yourhostingaccount.com ([65.254.253.234]:56870
+	"EHLO walmailout08.yourhostingaccount.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752897AbcB2Nwg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Feb 2016 08:19:25 -0500
-Content-Disposition: inline
-In-Reply-To: <20160229131202.GA16476@salvia>
+	Mon, 29 Feb 2016 08:52:36 -0500
+Received: from mailscan02.yourhostingaccount.com ([10.1.15.2] helo=walmailscan02.yourhostingaccount.com)
+	by walmailout08.yourhostingaccount.com with esmtp (Exim)
+	id 1aaNlz-0001Gr-KS
+	for netfilter-devel@vger.kernel.org; Mon, 29 Feb 2016 08:22:03 -0500
+Received: from [10.114.3.33] (helo=walimpout13)
+	by walmailscan02.yourhostingaccount.com with esmtp (Exim)
+	id 1aaNlz-0004cU-F4
+	for netfilter-devel@vger.kernel.org; Mon, 29 Feb 2016 08:22:03 -0500
+In-Reply-To: <20160229125418.GA15995@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Hi Florian,
-> 
-> On Fri, Feb 26, 2016 at 08:19:34PM +0100, Florian Westphal wrote:
-> > String is an unqualified type and we do not have a data element to
-> > derive the element size from at set creation time.
-> > 
-> > Add a new string subtype -- iface_name -- and switch
-> > meta iifname/oifname to use it instead of string.
-> > 
-> > One can then define a named set for interface names with
-> > 
-> > nft add set filter ifnames '{type iface_name; }'
-> 
-> The problem is that unqualified types cannot be currently used because
-> the have no specific length.
-
-Yes.
+> On Mon, Feb 22, 2016 at 03:51:15AM -0800, Loganaden Velvindron wrote:
+>> Add missing constants for libxt_TCPOPTSTRIP.c, in case they are not
+>> defined.
+>>
+>> (Original patch from VoidLinux)
 >
-> Carlos has been submitting patches for a while (he's on Cc) that it
-> would be great to see in the tree at some point this week. Basically,
-> he's introducing a TLV infrastructure to store metainformation in the
-> USERDATA area.
-> 
-> The idea is to use these new TLVs to include the length of this
-> datatype. This allows us to interpret the data when dumping it from
-> the kernel and transform it to object via set_delinearize().
+> OK, applied. Thanks.
+>
 
-Ok, but how do you plan to handle the key length?
+Thank you Pablo !
 
-Currently the kernel will -EINVAL in nf_tables_newset() because the
-key length is 0 for unqualified types.
 
-Since nft has no information on the element keys (yet) I don't see
-how the TLV infrastructure helps in this case.
 
-I'll wait for your patches.
+
+
