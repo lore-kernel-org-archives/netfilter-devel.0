@@ -1,62 +1,90 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] netfilter: ipset: Fix set:list type crash when
- flush/dump set in parallel
-Date: Mon, 29 Feb 2016 13:22:18 +0100
-Message-ID: <20160229122218.GA12101@salvia>
-References: <1456345166-23605-1-git-send-email-kadlec@blackhole.kfki.hu>
- <1456345166-23605-2-git-send-email-kadlec@blackhole.kfki.hu>
+From: Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: unused code in net/netfilter/ipset/ip_set_bitmap_ipmac.c
+Date: Mon, 29 Feb 2016 13:27:51 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1602291326090.2600@hadrien>
+References: <alpine.DEB.2.10.1602291202590.2600@hadrien> <alpine.DEB.2.10.1602291218360.21350@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Julia Lawall <julia.lawall@lip6.fr>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Daniel Borkmann <daniel@iogearbox.net>
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53427 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754002AbcB2MW2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Feb 2016 07:22:28 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 103744B9E6
-	for <netfilter-devel@vger.kernel.org>; Mon, 29 Feb 2016 13:22:26 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id F1445DA8FB
-	for <netfilter-devel@vger.kernel.org>; Mon, 29 Feb 2016 13:22:25 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id DB1EFDA391
-	for <netfilter-devel@vger.kernel.org>; Mon, 29 Feb 2016 13:22:23 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1456345166-23605-2-git-send-email-kadlec@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.10.1602291218360.21350@blackhole.kfki.hu>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Feb 24, 2016 at 09:19:26PM +0100, Jozsef Kadlecsik wrote:
-> Flushing/listing entries was not RCU safe, so parallel flush/dump
-> could lead to kernel crash. Bug reported by Deniz Eren.
-> 
-> Fixes netfilter bugzilla id #1050.
-> 
-> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> ---
->  net/netfilter/ipset/ip_set_core.c     |  3 ++
->  net/netfilter/ipset/ip_set_list_set.c | 55 ++++++++++++++++-------------------
->  2 files changed, 28 insertions(+), 30 deletions(-)
-> 
-> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
-> index 95db43f..7e6568c 100644
-> --- a/net/netfilter/ipset/ip_set_core.c
-> +++ b/net/netfilter/ipset/ip_set_core.c
-> @@ -985,6 +985,9 @@ static int ip_set_destroy(struct net *net, struct sock *ctnl,
->  	if (unlikely(protocol_failed(attr)))
->  		return -IPSET_ERR_PROTOCOL;
->  
-> +	/* Must wait for flush to be really finished in list:set */
-> +	rcu_barrier();
 
-Jozsef, are you sure you need this rcu_barrier()?
 
-This is waiting for rcu callback completion (ie. decrement the set
-reference counter and releasing the extension and object itself).
+On Mon, 29 Feb 2016, Jozsef Kadlecsik wrote:
 
-The rcu read side should be safe when accessing old copies from the
-dumping path when using call_rcu().
+> Hi,
+>
+> On Mon, 29 Feb 2016, Julia Lawall wrote:
+>
+> > The file net/netfilter/ipset/ip_set_bitmap_ipmac.c seems to contain a lot
+> > of static functions that are not used in the file:
+> >
+> > bitmap_ipmac_add_timeout
+> > bitmap_ipmac_do_add
+> > bitmap_ipmac_do_del
+> > bitmap_ipmac_do_head
+> > bitmap_ipmac_do_list
+> > bitmap_ipmac_do_test
+> > bitmap_ipmac_gc_test
+> > bitmap_ipmac_is_filled
+> > bitmap_ipmac_kadt
+> > bitmap_ipmac_same_set
+> > bitmap_ipmac_uadt
+> >
+> > Have I overooked something?
+>
+> Yes: the file includes ip_set_bitmap_gen.h in which all those functions
+> are used.
 
-Let me know, thanks!
+OK, thanks.  I saw the incude, but I didn't sufficiently appreciate the
+#defines at the beginning.  Thanks.
+
+> > I was looking at this code, with Daniel Borkmann, because there seems to
+> > be a bug in the function bitmap_ipmac_uadt:
+> >
+> > 	if (tb[IPSET_ATTR_ETHER]) {
+> >                 memcpy(e.ether, nla_data(tb[IPSET_ATTR_ETHER]), ETH_ALEN);
+> >                 e.add_mac = 1;
+> >         }
+> >
+> > Later in the same file, there is:
+> >
+> > static struct ip_set_type bitmap_ipmac_type = {
+> > 	...
+> >         .adt_policy     = {
+> > 		...
+> > 		[IPSET_ATTR_ETHER]      = { .type = NLA_BINARY,
+> >                                             .len  = ETH_ALEN },
+> > 		...},
+> > 	...
+> > };
+> >
+> > The type NLA_BINARY indicates that the length is a maximum possible
+> > length, and thus a check of the actual length is needed before the memcpy.
+>
+> You are right here (and the similar spotting in ip_set_hash_mac.c) - I'll
+> prepare a patch and submit it.
+
+Great.  Thanks.
+
+julia
+
+>
+> Best regards,
+> Jozsef
+> -
+> E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+> Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+>           H-1525 Budapest 114, POB. 49, Hungary
+>
