@@ -1,37 +1,62 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] add JSON output format
-Date: Mon, 29 Feb 2016 12:43:43 +0100
-Message-ID: <20160229114343.GA11451@salvia>
-References: <1456132337-23426-1-git-send-email-laforge@gnumonks.org>
+Subject: Re: [PATCH 1/1] netfilter: ipset: Fix set:list type crash when
+ flush/dump set in parallel
+Date: Mon, 29 Feb 2016 13:22:18 +0100
+Message-ID: <20160229122218.GA12101@salvia>
+References: <1456345166-23605-1-git-send-email-kadlec@blackhole.kfki.hu>
+ <1456345166-23605-2-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Harald Welte <laforge@gnumonks.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46356 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53427 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753820AbcB2Lny (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Feb 2016 06:43:54 -0500
+	id S1754002AbcB2MW2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 29 Feb 2016 07:22:28 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 1AB5C4B9E8
-	for <netfilter-devel@vger.kernel.org>; Mon, 29 Feb 2016 12:43:51 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id 103744B9E6
+	for <netfilter-devel@vger.kernel.org>; Mon, 29 Feb 2016 13:22:26 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 0A933DA384
-	for <netfilter-devel@vger.kernel.org>; Mon, 29 Feb 2016 12:43:51 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id F1445DA8FB
+	for <netfilter-devel@vger.kernel.org>; Mon, 29 Feb 2016 13:22:25 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 4709ADA384
-	for <netfilter-devel@vger.kernel.org>; Mon, 29 Feb 2016 12:43:45 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id DB1EFDA391
+	for <netfilter-devel@vger.kernel.org>; Mon, 29 Feb 2016 13:22:23 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1456132337-23426-1-git-send-email-laforge@gnumonks.org>
+In-Reply-To: <1456345166-23605-2-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Feb 22, 2016 at 10:12:17AM +0100, Harald Welte wrote:
-> the original output format looks a bit like JSON, but isn't.  The XML
-> output is useful if you deal with XML, but a lot of applications prefer
-> more lightweight formats like YAML/JSON.
+On Wed, Feb 24, 2016 at 09:19:26PM +0100, Jozsef Kadlecsik wrote:
+> Flushing/listing entries was not RCU safe, so parallel flush/dump
+> could lead to kernel crash. Bug reported by Deniz Eren.
 > 
-> This adds the JSON output format to libnetfilter_acct, which will
-> subsequently be used by a similar change in the nfacct utility.
+> Fixes netfilter bugzilla id #1050.
+> 
+> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> ---
+>  net/netfilter/ipset/ip_set_core.c     |  3 ++
+>  net/netfilter/ipset/ip_set_list_set.c | 55 ++++++++++++++++-------------------
+>  2 files changed, 28 insertions(+), 30 deletions(-)
+> 
+> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> index 95db43f..7e6568c 100644
+> --- a/net/netfilter/ipset/ip_set_core.c
+> +++ b/net/netfilter/ipset/ip_set_core.c
+> @@ -985,6 +985,9 @@ static int ip_set_destroy(struct net *net, struct sock *ctnl,
+>  	if (unlikely(protocol_failed(attr)))
+>  		return -IPSET_ERR_PROTOCOL;
+>  
+> +	/* Must wait for flush to be really finished in list:set */
+> +	rcu_barrier();
 
-Applied, thanks Harald!
+Jozsef, are you sure you need this rcu_barrier()?
+
+This is waiting for rcu callback completion (ie. decrement the set
+reference counter and releasing the extension and object itself).
+
+The rcu read side should be safe when accessing old copies from the
+dumping path when using call_rcu().
+
+Let me know, thanks!
