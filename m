@@ -1,93 +1,78 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next v3 2/3] netfilter: bridge: pass L2 header and
- VLAN as netlink attributes in queues to userspace
-Date: Mon, 29 Feb 2016 13:40:32 +0100
-Message-ID: <20160229124032.GA15467@salvia>
-References: <1455959230-3680-1-git-send-email-stephane.ml.bryant@gmail.com>
- <1455959230-3680-2-git-send-email-stephane.ml.bryant@gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 1/1] netfilter: ipset: Fix set:list type crash when
+ flush/dump set in parallel
+Date: Mon, 29 Feb 2016 13:47:59 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1602291325430.21350@blackhole.kfki.hu>
+References: <1456345166-23605-1-git-send-email-kadlec@blackhole.kfki.hu> <1456345166-23605-2-git-send-email-kadlec@blackhole.kfki.hu> <20160229122218.GA12101@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Stephane Bryant <stephane.ml.bryant@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56160 "EHLO mail.us.es"
+Received: from smtp2.kfki.hu ([148.6.0.28]:56742 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753490AbcB2Mkp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Feb 2016 07:40:45 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 715084B9E5
-	for <netfilter-devel@vger.kernel.org>; Mon, 29 Feb 2016 13:40:44 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 56F9EDA8F8
-	for <netfilter-devel@vger.kernel.org>; Mon, 29 Feb 2016 13:40:44 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id EBB23DA8F9
-	for <netfilter-devel@vger.kernel.org>; Mon, 29 Feb 2016 13:40:41 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <1455959230-3680-2-git-send-email-stephane.ml.bryant@gmail.com>
+	id S1750704AbcB2MrU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 29 Feb 2016 07:47:20 -0500
+In-Reply-To: <20160229122218.GA12101@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Feb 20, 2016 at 10:07:09AM +0100, Stephane Bryant wrote:
-> From: stephane <stephane.ml.bryant@gmail.com>
+On Mon, 29 Feb 2016, Pablo Neira Ayuso wrote:
+
+> On Wed, Feb 24, 2016 at 09:19:26PM +0100, Jozsef Kadlecsik wrote:
+> > Flushing/listing entries was not RCU safe, so parallel flush/dump
+> > could lead to kernel crash. Bug reported by Deniz Eren.
+> > 
+> > Fixes netfilter bugzilla id #1050.
+> > 
+> > Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> > ---
+> >  net/netfilter/ipset/ip_set_core.c     |  3 ++
+> >  net/netfilter/ipset/ip_set_list_set.c | 55 ++++++++++++++++-------------------
+> >  2 files changed, 28 insertions(+), 30 deletions(-)
+> > 
+> > diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> > index 95db43f..7e6568c 100644
+> > --- a/net/netfilter/ipset/ip_set_core.c
+> > +++ b/net/netfilter/ipset/ip_set_core.c
+> > @@ -985,6 +985,9 @@ static int ip_set_destroy(struct net *net, struct sock *ctnl,
+> >  	if (unlikely(protocol_failed(attr)))
+> >  		return -IPSET_ERR_PROTOCOL;
+> >  
+> > +	/* Must wait for flush to be really finished in list:set */
+> > +	rcu_barrier();
 > 
-> -this creates 2 netlink attribute NLQA_VLAN and NLQA_L2HDR
-> -these are filled up for the PF_BRIDGE family on the way to userspace
+> Jozsef, are you sure you need this rcu_barrier()?
 > 
-> Signed-off-by: Stephane Bryant <stephane.ml.bryant@gmail.com>
-> ---
->  include/uapi/linux/netfilter/nfnetlink_queue.h |  7 ++++
->  net/netfilter/nfnetlink_queue.c                | 53 ++++++++++++++++++++++++++
->  2 files changed, 60 insertions(+)
-> 
-> diff --git a/include/uapi/linux/netfilter/nfnetlink_queue.h b/include/uapi/linux/netfilter/nfnetlink_queue.h
-> index b67a853..211fcdc 100644
-> --- a/include/uapi/linux/netfilter/nfnetlink_queue.h
-> +++ b/include/uapi/linux/netfilter/nfnetlink_queue.h
-> @@ -30,6 +30,11 @@ struct nfqnl_msg_packet_timestamp {
->  	__aligned_be64	usec;
->  };
->  
-> +struct nfqnl_msg_vlan {
-> +	__be16                  proto;
-> +	__u16                   tci;
-> +} __attribute__ ((packed));
+> This is waiting for rcu callback completion (ie. decrement the set
+> reference counter and releasing the extension and object itself).
 
-Stephane, I'm very looking forward to having this update pushed
-mainstream.
+Yes, that's exactly what it's waiting for, in the case of sets which are 
+elements in set:list type of sets.
 
-However, this I think it would be good if you can translate this to
-use nested attributes.
+> The rcu read side should be safe when accessing old copies from the
+> dumping path when using call_rcu().
 
-See nla_nest_start() and nla_nest_end(). Then, add a new vlan
-attributes for this:
+Three competing actions play role here: flush/delete, destroy, dumping. 
+The rcu_barrier() above waits for the flush/delete actions. The rcu read 
+side has access to the set id only and must lookup the set by id in order 
+to get the name, which is protected by a reference counter. The function 
+ip_set_name_byindex() intentionally checks that the reference counter 
+cannot be equal to zero and I believe it's an important internal sanity 
+checking and I don't want to remove it. The problem was that the reference 
+counter of the set was first decremented at flush/delete and so we could 
+get a BUG_ON() crash in ip_set_name_byindex() when an ongoing dumping was 
+processed. So the reference counter must be released last for a successful 
+parallel dumping. If rcu_barrier() was not added to the destroy path, a 
+"destroy" immediately following a "flush" can lead to the error "set is in 
+use, cannot delete". I tested it and couldn't find a simpler way.
 
-        enum nfqnl_vlan_attr {
-                NFQA_VLAN_UNSPEC,
-                NFQA_VLAN_PROTO,
-                NFQA_VLAN_TCI,
-                __NFQA_VLAN_MAX,
-        };
-        #define NFQA_VLAN_MAX   (__NFQA_VLAN_MAX + 1)
+It is the destroy path for sets, so it should not be performance critical.
 
-Using structure to encapsulate netlink data is highly discouraged. I
-know we're doing this already in old attribute but that we cannot
-change since it's part of the ABI. But I would like that we start
-doing this the right way for new attributes.
-
-Let me know,
-Thanks!
-
-> +
->  enum nfqnl_attr_type {
->  	NFQA_UNSPEC,
->  	NFQA_PACKET_HDR,
-> @@ -50,6 +55,8 @@ enum nfqnl_attr_type {
->  	NFQA_UID,			/* __u32 sk uid */
->  	NFQA_GID,			/* __u32 sk gid */
->  	NFQA_SECCTX,			/* security context string */
-> +	NFQA_VLAN,                      /* packet vlan info */
-> +	NFQA_L2HDR,                     /* full L2 header */
->  
->  	__NFQA_MAX
->  };
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
