@@ -1,77 +1,193 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] extensions: libip6t_MASQUERADE: Add translation to nft
-Date: Wed, 2 Mar 2016 00:05:47 +0530
-Message-ID: <20160301183547.GA12993@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next,v2] netfilter: nft_masq: support port range
+Date: Tue,  1 Mar 2016 19:55:14 +0100
+Message-ID: <1456858514-1391-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:34764 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752813AbcCASfy (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Mar 2016 13:35:54 -0500
-Received: by mail-pa0-f47.google.com with SMTP id fy10so116460485pac.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 01 Mar 2016 10:35:54 -0800 (PST)
-Received: from gmail.com ([223.183.15.73])
-        by smtp.gmail.com with ESMTPSA id x13sm47177953pfa.72.2016.03.01.10.35.51
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Tue, 01 Mar 2016 10:35:52 -0800 (PST)
-Content-Disposition: inline
+Received: from mail.us.es ([193.147.175.20]:35796 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751374AbcCASzh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Mar 2016 13:55:37 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id B9F547419
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 19:55:35 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 38756DA384
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 19:55:23 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id F22CBDA395
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 19:55:18 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for target masquerade to nftables.
-Full translation of this target awaits the support for --to-ports
-option.
+Complete masquerading support by allowing port range selection.
 
-Examples:
-
-$ sudo ip6tables-translate -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-nft add rule ip6 nat POSTROUTING oifname eth0 counter masquerade
-
-$ sudo ip6tables-translate -t nat -A POSTROUTING -j MASQUERADE --random
-nft add rule ip6 nat POSTROUTING counter masquerade random
-
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- extensions/libip6t_MASQUERADE.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+v2: Fix netlink parsing problems in the dump and init function.
 
-diff --git a/extensions/libip6t_MASQUERADE.c b/extensions/libip6t_MASQUERADE.c
-index eb9213e..325cdcd 100644
---- a/extensions/libip6t_MASQUERADE.c
-+++ b/extensions/libip6t_MASQUERADE.c
-@@ -131,6 +131,20 @@ MASQUERADE_save(const void *ip, const struct xt_entry_target *target)
- 		printf(" --random");
- }
+ include/net/netfilter/nft_masq.h         |  4 ++-
+ include/uapi/linux/netfilter/nf_tables.h |  4 +++
+ net/ipv4/netfilter/nft_masq_ipv4.c       |  7 ++++-
+ net/ipv6/netfilter/nft_masq_ipv6.c       |  7 ++++-
+ net/netfilter/nft_masq.c                 | 51 +++++++++++++++++++++++++-------
+ 5 files changed, 59 insertions(+), 14 deletions(-)
+
+diff --git a/include/net/netfilter/nft_masq.h b/include/net/netfilter/nft_masq.h
+index e2a518b..a3f3c11 100644
+--- a/include/net/netfilter/nft_masq.h
++++ b/include/net/netfilter/nft_masq.h
+@@ -2,7 +2,9 @@
+ #define _NFT_MASQ_H_
  
-+static int
-+MASQUERADE_xlate(const struct xt_entry_target *target,
-+		 struct xt_xlate *xl, int numeric)
-+{
-+	const struct nf_nat_range *r = (const void *)target->data;
-+
-+	xt_xlate_add(xl, "masquerade ");
-+
-+	if (r->flags & NF_NAT_RANGE_PROTO_RANDOM)
-+		xt_xlate_add(xl, "random ");
-+
-+	return 1;
-+}
-+
- static struct xtables_target masquerade_tg_reg = {
- 	.name		= "MASQUERADE",
- 	.version	= XTABLES_VERSION,
-@@ -142,6 +156,7 @@ static struct xtables_target masquerade_tg_reg = {
- 	.print		= MASQUERADE_print,
- 	.save		= MASQUERADE_save,
- 	.x6_options	= MASQUERADE_opts,
-+	.xlate		= MASQUERADE_xlate,
+ struct nft_masq {
+-	u32	flags;
++	u32			flags;
++	enum nft_registers      sreg_proto_min:8;
++	enum nft_registers      sreg_proto_max:8;
  };
  
- void _init(void)
+ extern const struct nla_policy nft_masq_policy[];
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index b19be0a..eeffde1 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -951,10 +951,14 @@ enum nft_nat_attributes {
+  * enum nft_masq_attributes - nf_tables masquerade expression attributes
+  *
+  * @NFTA_MASQ_FLAGS: NAT flags (see NF_NAT_RANGE_* in linux/netfilter/nf_nat.h) (NLA_U32)
++ * @NFTA_MASQ_REG_PROTO_MIN: source register of proto range start (NLA_U32: nft_registers)
++ * @NFTA_MASQ_REG_PROTO_MAX: source register of proto range end (NLA_U32: nft_registers)
+  */
+ enum nft_masq_attributes {
+ 	NFTA_MASQ_UNSPEC,
+ 	NFTA_MASQ_FLAGS,
++	NFTA_MASQ_REG_PROTO_MIN,
++	NFTA_MASQ_REG_PROTO_MAX,
+ 	__NFTA_MASQ_MAX
+ };
+ #define NFTA_MASQ_MAX		(__NFTA_MASQ_MAX - 1)
+diff --git a/net/ipv4/netfilter/nft_masq_ipv4.c b/net/ipv4/netfilter/nft_masq_ipv4.c
+index b72ffc5..51ced81 100644
+--- a/net/ipv4/netfilter/nft_masq_ipv4.c
++++ b/net/ipv4/netfilter/nft_masq_ipv4.c
+@@ -25,7 +25,12 @@ static void nft_masq_ipv4_eval(const struct nft_expr *expr,
+ 
+ 	memset(&range, 0, sizeof(range));
+ 	range.flags = priv->flags;
+-
++	if (priv->sreg_proto_min) {
++		range.min_proto.all =
++			*(__be16 *)&regs->data[priv->sreg_proto_min];
++		range.max_proto.all =
++			*(__be16 *)&regs->data[priv->sreg_proto_max];
++	}
+ 	regs->verdict.code = nf_nat_masquerade_ipv4(pkt->skb, pkt->hook,
+ 						    &range, pkt->out);
+ }
+diff --git a/net/ipv6/netfilter/nft_masq_ipv6.c b/net/ipv6/netfilter/nft_masq_ipv6.c
+index cd1ac16..9597ffb 100644
+--- a/net/ipv6/netfilter/nft_masq_ipv6.c
++++ b/net/ipv6/netfilter/nft_masq_ipv6.c
+@@ -26,7 +26,12 @@ static void nft_masq_ipv6_eval(const struct nft_expr *expr,
+ 
+ 	memset(&range, 0, sizeof(range));
+ 	range.flags = priv->flags;
+-
++	if (priv->sreg_proto_min) {
++		range.min_proto.all =
++			*(__be16 *)&regs->data[priv->sreg_proto_min];
++		range.max_proto.all =
++			*(__be16 *)&regs->data[priv->sreg_proto_max];
++	}
+ 	regs->verdict.code = nf_nat_masquerade_ipv6(pkt->skb, &range, pkt->out);
+ }
+ 
+diff --git a/net/netfilter/nft_masq.c b/net/netfilter/nft_masq.c
+index 9aea747..81b5ad6 100644
+--- a/net/netfilter/nft_masq.c
++++ b/net/netfilter/nft_masq.c
+@@ -17,7 +17,9 @@
+ #include <net/netfilter/nft_masq.h>
+ 
+ const struct nla_policy nft_masq_policy[NFTA_MASQ_MAX + 1] = {
+-	[NFTA_MASQ_FLAGS]	= { .type = NLA_U32 },
++	[NFTA_MASQ_FLAGS]		= { .type = NLA_U32 },
++	[NFTA_MASQ_REG_PROTO_MIN]	= { .type = NLA_U32 },
++	[NFTA_MASQ_REG_PROTO_MAX]	= { .type = NLA_U32 },
+ };
+ EXPORT_SYMBOL_GPL(nft_masq_policy);
+ 
+@@ -40,6 +42,7 @@ int nft_masq_init(const struct nft_ctx *ctx,
+ 		  const struct nft_expr *expr,
+ 		  const struct nlattr * const tb[])
+ {
++	u32 plen = FIELD_SIZEOF(struct nf_nat_range, min_addr.all);
+ 	struct nft_masq *priv = nft_expr_priv(expr);
+ 	int err;
+ 
+@@ -47,12 +50,32 @@ int nft_masq_init(const struct nft_ctx *ctx,
+ 	if (err)
+ 		return err;
+ 
+-	if (tb[NFTA_MASQ_FLAGS] == NULL)
+-		return 0;
+-
+-	priv->flags = ntohl(nla_get_be32(tb[NFTA_MASQ_FLAGS]));
+-	if (priv->flags & ~NF_NAT_RANGE_MASK)
+-		return -EINVAL;
++	if (tb[NFTA_MASQ_FLAGS]) {
++		priv->flags = ntohl(nla_get_be32(tb[NFTA_MASQ_FLAGS]));
++		if (priv->flags & ~NF_NAT_RANGE_MASK)
++			return -EINVAL;
++	}
++
++	if (tb[NFTA_MASQ_REG_PROTO_MIN]) {
++		priv->sreg_proto_min =
++			nft_parse_register(tb[NFTA_MASQ_REG_PROTO_MIN]);
++
++		err = nft_validate_register_load(priv->sreg_proto_min, plen);
++		if (err < 0)
++			return err;
++
++		if (tb[NFTA_MASQ_REG_PROTO_MAX]) {
++			priv->sreg_proto_max =
++				nft_parse_register(tb[NFTA_MASQ_REG_PROTO_MAX]);
++
++			err = nft_validate_register_load(priv->sreg_proto_max,
++							 plen);
++			if (err < 0)
++				return err;
++		} else {
++			priv->sreg_proto_max = priv->sreg_proto_min;
++		}
++	}
+ 
+ 	return 0;
+ }
+@@ -62,12 +85,18 @@ int nft_masq_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ {
+ 	const struct nft_masq *priv = nft_expr_priv(expr);
+ 
+-	if (priv->flags == 0)
+-		return 0;
+-
+-	if (nla_put_be32(skb, NFTA_MASQ_FLAGS, htonl(priv->flags)))
++	if (priv->flags != 0 &&
++	    nla_put_be32(skb, NFTA_MASQ_FLAGS, htonl(priv->flags)))
+ 		goto nla_put_failure;
+ 
++	if (priv->sreg_proto_min) {
++		if (nft_dump_register(skb, NFTA_MASQ_REG_PROTO_MIN,
++				      priv->sreg_proto_min) ||
++		    nft_dump_register(skb, NFTA_MASQ_REG_PROTO_MAX,
++				      priv->sreg_proto_max))
++			goto nla_put_failure;
++	}
++
+ 	return 0;
+ 
+ nla_put_failure:
 -- 
-1.9.1
+2.1.4
 
