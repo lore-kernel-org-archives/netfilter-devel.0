@@ -1,230 +1,71 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft v2] src: Add support for masquerade port selection
-Date: Tue,  1 Mar 2016 14:12:19 +0100
-Message-ID: <1456837939-18466-1-git-send-email-pablo@netfilter.org>
-Cc: shivanib134@gmail.com
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nft] datatype, meta: add new ifname_type for
+ iifname/oifname
+Date: Tue, 1 Mar 2016 14:15:22 +0100
+Message-ID: <20160301131522.GA22826@salvia>
+References: <1456514374-28827-1-git-send-email-fw@strlen.de>
+ <20160229131202.GA16476@salvia>
+ <20160229131923.GB7277@breakpoint.cc>
+ <20160301101114.GA2654@salvia>
+ <20160301110055.GA22817@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42991 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43923 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752548AbcCANMo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Mar 2016 08:12:44 -0500
+	id S1753649AbcCANP2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Mar 2016 08:15:28 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id CEBF3E6649
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 14:12:41 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id B1398E664E
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 14:15:26 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id BF31FDA396
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 14:12:41 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A1BF2DA385
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 14:15:26 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id C09F6DA385
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 14:12:35 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 26FA1DA39B
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 14:15:24 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20160301110055.GA22817@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Shivani Bhardwaj <shivanib134@gmail.com>
+On Tue, Mar 01, 2016 at 12:00:55PM +0100, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > > Ok, but how do you plan to handle the key length?
+> > 
+> > Right, in concatenations we can infer this from the lhs, but in set
+> > definitions there is not way.
+> 
+> Okay.  So whats the plan there?
 
-Provide full support for masquerading by allowing port range selection.
+I would review Carlos' patches, recover Patrick patch to add typeof()
+and check if we can get all the pieces together to support this.
 
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v2: Resolve pending problems in original Shivani's work in the evaluation
-    step and use stmt_expr from the parser.
+> > What I would suggest is to recover a patch that Patrick submitted that
+> > introduces typeof(X) so we can use this from set definitions. We can
+> > store in the TLV the original subtype X as a string. Thus, when
+> > listing back to userspace we can use this information to display back
+> > the typeof(X).
+> 
+> So you mean you'd use something like
+> 
+> nft add set filter ifnames '{typeof(meta iifname); }' ?
+> 
+> That should indeed work since we can derive the size
+> from the meta iifname (or whatever other field),
+> 
+> > We have to potentially support every meta and packet selector,
+> > including crazy ones as 48 bits fields, and last time we discussed
+> > this, we agreed that adding one type per field size is not the way to
+> > go.
+> 
+> Ok, yes, I see your point.
+> 
+> > Let me know your opinion on this, thanks!
+> 
+> I think typeof would be good; we could indeed derive the key size with
+> this without the need for a new type.
 
- include/statement.h       |  1 +
- src/evaluate.c            |  6 ++++++
- src/netlink_delinearize.c | 29 +++++++++++++++++++++++++++--
- src/netlink_linearize.c   | 24 ++++++++++++++++++++++++
- src/parser_bison.y        | 23 +++++++++++++++++------
- src/statement.c           | 11 +++++++++++
- 6 files changed, 86 insertions(+), 8 deletions(-)
-
-diff --git a/include/statement.h b/include/statement.h
-index 102d95f..e7872b0 100644
---- a/include/statement.h
-+++ b/include/statement.h
-@@ -86,6 +86,7 @@ extern struct stmt *nat_stmt_alloc(const struct location *loc);
- 
- struct masq_stmt {
- 	uint32_t		flags;
-+	struct expr		*proto;
- };
- 
- extern struct stmt *masq_stmt_alloc(const struct location *loc);
-diff --git a/src/evaluate.c b/src/evaluate.c
-index ed78896..3815301 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1849,6 +1849,12 @@ static int stmt_evaluate_masq(struct eval_ctx *ctx, struct stmt *stmt)
- 	if (err < 0)
- 		return err;
- 
-+	if (stmt->masq.proto != NULL) {
-+		err = nat_evaluate_transport(ctx, stmt, &stmt->masq.proto);
-+		if (err < 0)
-+			return err;
-+	}
-+
- 	stmt->flags |= STMT_F_TERMINAL;
- 	return 0;
- }
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index ae6abb0..820a353 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -726,16 +726,41 @@ static void netlink_parse_masq(struct netlink_parse_ctx *ctx,
- 			       const struct location *loc,
- 			       const struct nftnl_expr *nle)
- {
-+	enum nft_registers reg1, reg2;
-+	struct expr *proto;
- 	struct stmt *stmt;
--	uint32_t flags;
-+	uint32_t flags = 0;
- 
--	flags = 0;
- 	if (nftnl_expr_is_set(nle, NFTNL_EXPR_MASQ_FLAGS))
- 		flags = nftnl_expr_get_u32(nle, NFTNL_EXPR_MASQ_FLAGS);
- 
- 	stmt = masq_stmt_alloc(loc);
- 	stmt->masq.flags = flags;
- 
-+	reg1 = netlink_parse_register(nle, NFTNL_EXPR_MASQ_REG_PROTO_MIN);
-+	if (reg1) {
-+		proto = netlink_get_register(ctx, loc, reg1);
-+		if (proto == NULL)
-+			return netlink_error(ctx, loc,
-+					     "MASQUERADE statement"
-+					     "has no proto expression");
-+		expr_set_type(proto, &inet_service_type, BYTEORDER_BIG_ENDIAN);
-+		stmt->masq.proto = proto;
-+	}
-+
-+	reg2 = netlink_parse_register(nle, NFTNL_EXPR_MASQ_REG_PROTO_MAX);
-+	if (reg2 && reg2 != reg1) {
-+		proto = netlink_get_register(ctx, loc, reg2);
-+		if (proto == NULL)
-+			return netlink_error(ctx, loc,
-+					     "MASQUERADE statement"
-+					     "has no proto expression");
-+		expr_set_type(proto, &inet_service_type, BYTEORDER_BIG_ENDIAN);
-+		if (stmt->masq.proto != NULL)
-+			proto = range_expr_alloc(loc, stmt->nat.proto, proto);
-+		stmt->nat.proto = proto;
-+	}
-+
- 	list_add_tail(&stmt->list, &ctx->rule->stmts);
- }
- 
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 86b49c6..b3dbaca 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -884,12 +884,36 @@ static void netlink_gen_nat_stmt(struct netlink_linearize_ctx *ctx,
- static void netlink_gen_masq_stmt(struct netlink_linearize_ctx *ctx,
- 				  const struct stmt *stmt)
- {
-+	enum nft_registers pmin_reg, pmax_reg;
- 	struct nftnl_expr *nle;
-+	int registers = 0;
- 
- 	nle = alloc_nft_expr("masq");
- 	if (stmt->masq.flags != 0)
- 		nftnl_expr_set_u32(nle, NFTNL_EXPR_MASQ_FLAGS,
- 				      stmt->masq.flags);
-+	if (stmt->masq.proto) {
-+		pmin_reg = get_register(ctx, NULL);
-+		registers++;
-+
-+		if (stmt->masq.proto->ops->type == EXPR_RANGE) {
-+			pmax_reg = get_register(ctx, NULL);
-+			registers++;
-+
-+			netlink_gen_expr(ctx, stmt->masq.proto->left, pmin_reg);
-+			netlink_gen_expr(ctx, stmt->masq.proto->right, pmax_reg);
-+			netlink_put_register(nle, NFTNL_EXPR_MASQ_REG_PROTO_MIN, pmin_reg);
-+			netlink_put_register(nle, NFTNL_EXPR_MASQ_REG_PROTO_MAX, pmax_reg);
-+		} else {
-+			netlink_gen_expr(ctx, stmt->masq.proto, pmin_reg);
-+			netlink_put_register(nle, NFTNL_EXPR_MASQ_REG_PROTO_MIN, pmin_reg);
-+		}
-+	}
-+
-+	while (registers > 0) {
-+		release_register(ctx, NULL);
-+		registers--;
-+	}
- 
- 	nftnl_rule_add_expr(ctx->nlr, nle);
- }
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 05ade0f..d41fc0a 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -1644,17 +1644,28 @@ nat_stmt_args		:	stmt_expr
- 			}
- 			;
- 
--masq_stmt		:	masq_stmt_alloc
--			|	masq_stmt_alloc	nf_nat_flags
--			{
--				$$ = $1;
--				$$->masq.flags = $2;
--			}
-+masq_stmt		:	masq_stmt_alloc		masq_stmt_args
-+			|	masq_stmt_alloc
- 			;
- 
- masq_stmt_alloc		:	MASQUERADE 	{ $$ = masq_stmt_alloc(&@$); }
- 			;
- 
-+masq_stmt_args		:	TO 	COLON	stmt_expr
-+			{
-+				$<stmt>0->masq.proto = $3;
-+			}
-+			|	TO 	COLON	stmt_expr	nf_nat_flags
-+			{
-+				$<stmt>0->masq.proto = $3;
-+				$<stmt>0->masq.flags = $4;
-+			}
-+			|	nf_nat_flags
-+			{
-+				$<stmt>0->masq.flags = $1;
-+			}
-+			;
-+
- redir_stmt		:	redir_stmt_alloc	redir_stmt_arg
- 			|	redir_stmt_alloc
- 			;
-diff --git a/src/statement.c b/src/statement.c
-index ca92441..0fd3afe 100644
---- a/src/statement.c
-+++ b/src/statement.c
-@@ -385,13 +385,24 @@ static void masq_stmt_print(const struct stmt *stmt)
- {
- 	printf("masquerade");
- 
-+	if (stmt->masq.proto) {
-+		printf(":");
-+		expr_print(stmt->masq.proto);
-+	}
-+
- 	print_nf_nat_flags(stmt->masq.flags);
- }
- 
-+static void masq_stmt_destroy(struct stmt *stmt)
-+{
-+	expr_free(stmt->masq.proto);
-+}
-+
- static const struct stmt_ops masq_stmt_ops = {
- 	.type		= STMT_MASQ,
- 	.name		= "masq",
- 	.print		= masq_stmt_print,
-+	.destroy	= masq_stmt_destroy,
- };
- 
- struct stmt *masq_stmt_alloc(const struct location *loc)
--- 
-2.1.4
-
+Yep, we have a plan to address this then.
