@@ -1,52 +1,236 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [Outreachy kernel] [PATCH] extensions: libxt_statistic: Add
- translation to nft
-Date: Tue, 1 Mar 2016 20:00:05 +0100
-Message-ID: <20160301190005.GA1532@salvia>
-References: <20160229212216.GA29706@sonyv>
- <CAKHNQQH2sE3A_jV0kuwBaTQZS1Z90RwuRoL+dvhPyCOV=Ev=9w@mail.gmail.com>
- <20160301101331.GA2714@salvia>
- <20160301155657.GB3838@sonyv>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Shivani Bhardwaj <shivanib134@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>,
-	outreachy-kernel <outreachy-kernel@googlegroups.com>
-To: Laura Garcia <nevola@gmail.com>
+Subject: [PATCH libnftnl] expr: masq: Add support for port selection
+Date: Tue,  1 Mar 2016 20:01:42 +0100
+Message-ID: <1456858902-1685-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36610 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36950 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751889AbcCATAM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Mar 2016 14:00:12 -0500
+	id S1752984AbcCATB5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Mar 2016 14:01:57 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 9D1296DFC9
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 20:00:10 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id 2082761E80
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 20:01:49 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8D284DA8F9
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 20:00:10 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 03EF9DA38E
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 20:01:49 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 218E5DA390
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 20:00:07 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20160301155657.GB3838@sonyv>
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 436ADDA8F7
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 20:01:46 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 01, 2016 at 04:56:59PM +0100, Laura Garcia wrote:
-> On Tue, Mar 01, 2016 at 11:13:31AM +0100, Pablo Neira Ayuso wrote:
-> > 
-> > I would like to have them merged upstream, no need to wait to fully
-> > support every extension, we can document these limitations in the wiki
-> > and the commit log.
-> > 
-> > IIRC, if the .xlate indirection returns 0, then it means no
-> > translation is available. We can use that for things that we don't
-> > support yet.
-> >
-> 
-> Hi Pablo, should I have to include this in the patch?
+From: Shivani Bhardwaj <shivanib134@gmail.com>
 
-Yes please.
+Complete masquerading support by allowing port range selection.
 
-Address Shivani's feedback and send a v2. Thanks Laura.
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+No changes, just original Shivani's patch.
+
+ include/libnftnl/expr.h             |  4 ++-
+ include/linux/netfilter/nf_tables.h |  2 ++
+ src/expr/masq.c                     | 60 +++++++++++++++++++++++++++++++++++--
+ tests/nft-expr_masq-test.c          |  8 +++++
+ 4 files changed, 71 insertions(+), 3 deletions(-)
+
+diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
+index 9487b02..da6a251 100644
+--- a/include/libnftnl/expr.h
++++ b/include/libnftnl/expr.h
+@@ -170,7 +170,9 @@ enum {
+ };
+ 
+ enum {
+-	NFTNL_EXPR_MASQ_FLAGS	= NFTNL_EXPR_BASE,
++	NFTNL_EXPR_MASQ_FLAGS		= NFTNL_EXPR_BASE,
++	NFTNL_EXPR_MASQ_REG_PROTO_MIN,
++	NFTNL_EXPR_MASQ_REG_PROTO_MAX,
+ };
+ 
+ enum {
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index b250799..2fc2db5 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -951,6 +951,8 @@ enum nft_nat_attributes {
+ enum nft_masq_attributes {
+ 	NFTA_MASQ_UNSPEC,
+ 	NFTA_MASQ_FLAGS,
++	NFTA_MASQ_REG_PROTO_MIN,
++	NFTA_MASQ_REG_PROTO_MAX,
+ 	__NFTA_MASQ_MAX
+ };
+ #define NFTA_MASQ_MAX		(__NFTA_MASQ_MAX - 1)
+diff --git a/src/expr/masq.c b/src/expr/masq.c
+index 01512b4..ff72e2d 100644
+--- a/src/expr/masq.c
++++ b/src/expr/masq.c
+@@ -21,7 +21,9 @@
+ #include <libnftnl/rule.h>
+ 
+ struct nftnl_expr_masq {
+-	uint32_t	flags;
++	uint32_t		flags;
++	enum nft_registers	sreg_proto_min;
++	enum nft_registers	sreg_proto_max;
+ };
+ 
+ static int
+@@ -34,6 +36,12 @@ nftnl_expr_masq_set(struct nftnl_expr *e, uint16_t type,
+ 	case NFTNL_EXPR_MASQ_FLAGS:
+ 		masq->flags = *((uint32_t *)data);
+ 		break;
++	case NFTNL_EXPR_MASQ_REG_PROTO_MIN:
++		masq->sreg_proto_min = *((uint32_t *)data);
++		break;
++	case NFTNL_EXPR_MASQ_REG_PROTO_MAX:
++		masq->sreg_proto_max = *((uint32_t *)data);
++		break;
+ 	default:
+ 		return -1;
+ 	}
+@@ -50,6 +58,12 @@ nftnl_expr_masq_get(const struct nftnl_expr *e, uint16_t type,
+ 	case NFTNL_EXPR_MASQ_FLAGS:
+ 		*data_len = sizeof(masq->flags);
+ 		return &masq->flags;
++	case NFTNL_EXPR_MASQ_REG_PROTO_MIN:
++		*data_len = sizeof(masq->sreg_proto_min);
++		return &masq->sreg_proto_min;
++	case NFTNL_EXPR_MASQ_REG_PROTO_MAX:
++		*data_len = sizeof(masq->sreg_proto_max);
++		return &masq->sreg_proto_max;
+ 	}
+ 	return NULL;
+ }
+@@ -63,6 +77,8 @@ static int nftnl_expr_masq_cb(const struct nlattr *attr, void *data)
+ 		return MNL_CB_OK;
+ 
+ 	switch (type) {
++	case NFTA_MASQ_REG_PROTO_MIN:
++	case NFTA_MASQ_REG_PROTO_MAX:
+ 	case NFTA_MASQ_FLAGS:
+ 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
+ 			abi_breakage();
+@@ -80,6 +96,12 @@ nftnl_expr_masq_build(struct nlmsghdr *nlh, struct nftnl_expr *e)
+ 
+ 	if (e->flags & (1 << NFTNL_EXPR_MASQ_FLAGS))
+ 		mnl_attr_put_u32(nlh, NFTA_MASQ_FLAGS, htobe32(masq->flags));
++	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MIN))
++		mnl_attr_put_u32(nlh, NFTA_MASQ_REG_PROTO_MIN,
++				 htobe32(masq->sreg_proto_min));
++	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MAX))
++		mnl_attr_put_u32(nlh, NFTA_MASQ_REG_PROTO_MAX,
++				 htobe32(masq->sreg_proto_max));
+ }
+ 
+ static int
+@@ -94,6 +116,16 @@ nftnl_expr_masq_parse(struct nftnl_expr *e, struct nlattr *attr)
+ 	if (tb[NFTA_MASQ_FLAGS]) {
+ 		masq->flags = be32toh(mnl_attr_get_u32(tb[NFTA_MASQ_FLAGS]));
+ 		e->flags |= (1 << NFTNL_EXPR_MASQ_FLAGS);
++        }
++	if (tb[NFTA_MASQ_REG_PROTO_MIN]) {
++		masq->sreg_proto_min =
++			be32toh(mnl_attr_get_u32(tb[NFTA_MASQ_REG_PROTO_MIN]));
++		e->flags |= (1 << NFTNL_EXPR_MASQ_REG_PROTO_MIN);
++	}
++	if (tb[NFTA_MASQ_REG_PROTO_MAX]) {
++		masq->sreg_proto_max =
++			be32toh(mnl_attr_get_u32(tb[NFTA_MASQ_REG_PROTO_MAX]));
++		e->flags |= (1 << NFTNL_EXPR_MASQ_REG_PROTO_MAX);
+ 	}
+ 
+ 	return 0;
+@@ -104,11 +136,17 @@ nftnl_expr_masq_json_parse(struct nftnl_expr *e, json_t *root,
+ 			      struct nftnl_parse_err *err)
+ {
+ #ifdef JSON_PARSING
+-	uint32_t flags;
++	uint32_t reg, flags;
+ 
+ 	if (nftnl_jansson_parse_val(root, "flags", NFTNL_TYPE_U32, &flags,
+ 				  err) == 0)
+ 		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_FLAGS, flags);
++	if (nftnl_jansson_parse_reg(root, "sreg_proto_min", NFTNL_TYPE_U32,
++				    &reg, err) == 0)
++		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_REG_PROTO_MIN, reg);
++	if (nftnl_jansson_parse_reg(root, "sreg_proto_max", NFTNL_TYPE_U32,
++				    &reg, err) == 0)
++		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_REG_PROTO_MAX, reg);
+ 
+ 	return 0;
+ #else
+@@ -123,10 +161,19 @@ nftnl_expr_masq_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
+ {
+ #ifdef XML_PARSING
+ 	uint32_t flags;
++	uint32_t reg_proto_min, reg_proto_max;
+ 
+ 	if (nftnl_mxml_num_parse(tree, "flags", MXML_DESCEND_FIRST, BASE_DEC,
+ 			       &flags, NFTNL_TYPE_U32, NFTNL_XML_MAND, err) == 0)
+ 		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_FLAGS, flags);
++	if (nftnl_mxml_reg_parse(tree, "sreg_proto_min", &reg_proto_min,
++				 MXML_DESCEND, NFTNL_XML_MAND, err) == 0)
++		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_REG_PROTO_MIN,
++				   reg_proto_min);
++	if (nftnl_mxml_reg_parse(tree, "sreg_proto_max", &reg_proto_max,
++				 MXML_DESCEND, NFTNL_XML_MAND, err) == 0)
++		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_REG_PROTO_MAX,
++				   reg_proto_max);
+ 
+ 	return 0;
+ #else
+@@ -142,6 +189,10 @@ static int nftnl_expr_masq_export(char *buf, size_t size,
+ 
+ 	if (e->flags & (1 << NFTNL_EXPR_MASQ_FLAGS))
+ 		nftnl_buf_u32(&b, type, masq->flags, FLAGS);
++	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MIN))
++		nftnl_buf_u32(&b, type, masq->sreg_proto_min, SREG_PROTO_MIN);
++	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MAX))
++		nftnl_buf_u32(&b, type, masq->sreg_proto_max, SREG_PROTO_MAX);
+ 
+ 	return nftnl_buf_done(&b);
+ }
+@@ -153,6 +204,11 @@ static int nftnl_expr_masq_snprintf_default(char *buf, size_t len,
+ 
+ 	if (e->flags & (1 << NFTNL_EXPR_MASQ_FLAGS))
+ 		return snprintf(buf, len, "flags 0x%x ", masq->flags);
++	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MIN)) {
++		return snprintf(buf, len,
++				"proto_min reg %u proto_max reg %u ",
++				masq->sreg_proto_min, masq->sreg_proto_max);
++	}
+ 
+ 	return 0;
+ }
+diff --git a/tests/nft-expr_masq-test.c b/tests/nft-expr_masq-test.c
+index 51d4dc7..f0302e2 100644
+--- a/tests/nft-expr_masq-test.c
++++ b/tests/nft-expr_masq-test.c
+@@ -31,6 +31,12 @@ static void cmp_nftnl_expr(struct nftnl_expr *rule_a,
+ 	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_MASQ_FLAGS) !=
+ 	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_MASQ_FLAGS))
+ 		print_err("Expr NFTNL_EXPR_MASQ_FLAGS mismatches");
++	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_MASQ_REG_PROTO_MIN) !=
++	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_MASQ_REG_PROTO_MIN))
++		print_err("Expr NFTNL_EXPR_MASQ_REG_PROTO_MIN mismatches");
++	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_MASQ_REG_PROTO_MAX) !=
++	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_MASQ_REG_PROTO_MAX))
++		print_err("Expr NFTNL_EXPR_MASQ_REG_PROTO_MAX mismatches");
+ }
+ 
+ int main(int argc, char *argv[])
+@@ -51,6 +57,8 @@ int main(int argc, char *argv[])
+ 		print_err("OOM");
+ 
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_MASQ_FLAGS, 0x1234568);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_MASQ_REG_PROTO_MIN, 0x5432178);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_MASQ_REG_PROTO_MAX, 0x8765421);
+ 
+ 	nftnl_rule_add_expr(a, ex);
+ 
+-- 
+2.1.4
+
