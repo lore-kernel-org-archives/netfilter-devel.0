@@ -1,52 +1,78 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables: extensions: iptables-translate prints extra
- "nft" after printing any error
-Date: Tue, 1 Mar 2016 18:59:02 +0100
-Message-ID: <20160301175902.GA32303@salvia>
-References: <CAHSpA592Skw5FonNYgO_o19c9PQqUe_Foagr6_Nm2USG8rVnBg@mail.gmail.com>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH] extensions: libipt_MASQUERADE: Add translation to nft
+Date: Tue, 1 Mar 2016 23:54:44 +0530
+Message-ID: <20160301182444.GA12026@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Guruswamy Basavaiah <guru2018@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51449 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751292AbcCAR7N (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Mar 2016 12:59:13 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 47CFA4BA1A
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 18:59:10 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 3069EDA38E
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 18:59:10 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 995EEDA3AE
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 18:59:07 +0100 (CET)
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:35641 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750813AbcCASYv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Mar 2016 13:24:51 -0500
+Received: by mail-pa0-f49.google.com with SMTP id bj10so47541244pad.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 01 Mar 2016 10:24:51 -0800 (PST)
+Received: from gmail.com ([223.183.15.73])
+        by smtp.gmail.com with ESMTPSA id ud10sm47245054pab.27.2016.03.01.10.24.48
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Tue, 01 Mar 2016 10:24:50 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <CAHSpA592Skw5FonNYgO_o19c9PQqUe_Foagr6_Nm2USG8rVnBg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Feb 26, 2016 at 12:34:50AM +0530, Guruswamy Basavaiah wrote:
->  Output of command "./iptables-translate junk" is Bad argument
->  `junk' Try `iptables-translate -h' or 'iptables-translate --help' for more
->  information. nft
-> 
-> Output of command "./iptables-translate -B" is
-> iptables-translate v1.6.0: unknown option "-B"
-> Try `iptables-translate -h' or 'iptables-translate --help' for more
-> information.
-> nft
-> 
-> nft should have not been printed in both the cases. Moving the printf
-> call after the do_parse function call
+Add translation for target MASQUERADE to nftables.
+Full translation of this target awaits the support for --to-ports option.
 
-Manually applied, thanks.
+Examples:
 
-Please note that your patches are being mangled by your MUA. This is
-problematic since patchwork will not catch your patches:
+$ sudo iptables-translate -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+nft add rule ip nat POSTROUTING oifname eth0 counter masquerade
 
-http://patchwork.ozlabs.org/project/netfilter-devel/list/
+$ sudo iptables-translate -t nat -A POSTROUTING -j MASQUERADE --random
+nft add rule ip nat POSTROUTING counter masquerade random
 
-Please, fix this, you'll save me time if you send me proper patches.
-Thanks.
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+ extensions/libipt_MASQUERADE.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/extensions/libipt_MASQUERADE.c b/extensions/libipt_MASQUERADE.c
+index ea07445..1dc8853 100644
+--- a/extensions/libipt_MASQUERADE.c
++++ b/extensions/libipt_MASQUERADE.c
+@@ -134,6 +134,22 @@ MASQUERADE_save(const void *ip, const struct xt_entry_target *target)
+ 		printf(" --random");
+ }
+ 
++static int
++MASQUERADE_xlate(const struct xt_entry_target *target,
++		 struct xt_xlate *xl, int numeric)
++{
++	const struct nf_nat_ipv4_multi_range_compat *mr =
++					(const void *)target->data;
++	const struct nf_nat_ipv4_range *r = &mr->range[0];
++
++	xt_xlate_add(xl, "masquerade ");
++
++	if (r->flags & NF_NAT_RANGE_PROTO_RANDOM)
++		xt_xlate_add(xl, "random ");
++
++	return 1;
++}
++
+ static struct xtables_target masquerade_tg_reg = {
+ 	.name		= "MASQUERADE",
+ 	.version	= XTABLES_VERSION,
+@@ -146,6 +162,7 @@ static struct xtables_target masquerade_tg_reg = {
+ 	.print		= MASQUERADE_print,
+ 	.save		= MASQUERADE_save,
+ 	.x6_options	= MASQUERADE_opts,
++	.xlate		= MASQUERADE_xlate,
+ };
+ 
+ void _init(void)
+-- 
+1.9.1
+
