@@ -1,236 +1,231 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH libnftnl] expr: masq: Add support for port selection
-Date: Tue,  1 Mar 2016 20:01:42 +0100
-Message-ID: <1456858902-1685-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft,v3] src: Add support for masquerade port selection
+Date: Tue,  1 Mar 2016 20:05:33 +0100
+Message-ID: <1456859133-1975-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36950 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37656 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752984AbcCATB5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Mar 2016 14:01:57 -0500
+	id S1751938AbcCATFo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Mar 2016 14:05:44 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 2082761E80
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 20:01:49 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id B9B0F80FF
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 20:05:42 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 03EF9DA38E
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 20:01:49 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 85D2ACA0F9
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 20:05:41 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 436ADDA8F7
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 20:01:46 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 25B79DA3A1
+	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 20:05:38 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Shivani Bhardwaj <shivanib134@gmail.com>
 
-Complete masquerading support by allowing port range selection.
+Provide full support for masquerading by allowing port range selection, eg.
+
+ # nft add rule nat postrouting ip protocol tcp masquerade to :1024-10024
 
 Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-No changes, just original Shivani's patch.
+v3: Don't use stmt->nat.proto from the delinearize step.
+    As previous patch, based on original Shivani's work.
 
- include/libnftnl/expr.h             |  4 ++-
- include/linux/netfilter/nf_tables.h |  2 ++
- src/expr/masq.c                     | 60 +++++++++++++++++++++++++++++++++++--
- tests/nft-expr_masq-test.c          |  8 +++++
- 4 files changed, 71 insertions(+), 3 deletions(-)
+ include/statement.h       |  1 +
+ src/evaluate.c            |  6 ++++++
+ src/netlink_delinearize.c | 29 +++++++++++++++++++++++++++--
+ src/netlink_linearize.c   | 24 ++++++++++++++++++++++++
+ src/parser_bison.y        | 23 +++++++++++++++++------
+ src/statement.c           | 11 +++++++++++
+ 6 files changed, 86 insertions(+), 8 deletions(-)
 
-diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
-index 9487b02..da6a251 100644
---- a/include/libnftnl/expr.h
-+++ b/include/libnftnl/expr.h
-@@ -170,7 +170,9 @@ enum {
+diff --git a/include/statement.h b/include/statement.h
+index 102d95f..e7872b0 100644
+--- a/include/statement.h
++++ b/include/statement.h
+@@ -86,6 +86,7 @@ extern struct stmt *nat_stmt_alloc(const struct location *loc);
+ 
+ struct masq_stmt {
+ 	uint32_t		flags;
++	struct expr		*proto;
  };
  
- enum {
--	NFTNL_EXPR_MASQ_FLAGS	= NFTNL_EXPR_BASE,
-+	NFTNL_EXPR_MASQ_FLAGS		= NFTNL_EXPR_BASE,
-+	NFTNL_EXPR_MASQ_REG_PROTO_MIN,
-+	NFTNL_EXPR_MASQ_REG_PROTO_MAX,
- };
+ extern struct stmt *masq_stmt_alloc(const struct location *loc);
+diff --git a/src/evaluate.c b/src/evaluate.c
+index ed78896..3815301 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -1849,6 +1849,12 @@ static int stmt_evaluate_masq(struct eval_ctx *ctx, struct stmt *stmt)
+ 	if (err < 0)
+ 		return err;
  
- enum {
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index b250799..2fc2db5 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -951,6 +951,8 @@ enum nft_nat_attributes {
- enum nft_masq_attributes {
- 	NFTA_MASQ_UNSPEC,
- 	NFTA_MASQ_FLAGS,
-+	NFTA_MASQ_REG_PROTO_MIN,
-+	NFTA_MASQ_REG_PROTO_MAX,
- 	__NFTA_MASQ_MAX
- };
- #define NFTA_MASQ_MAX		(__NFTA_MASQ_MAX - 1)
-diff --git a/src/expr/masq.c b/src/expr/masq.c
-index 01512b4..ff72e2d 100644
---- a/src/expr/masq.c
-+++ b/src/expr/masq.c
-@@ -21,7 +21,9 @@
- #include <libnftnl/rule.h>
- 
- struct nftnl_expr_masq {
--	uint32_t	flags;
-+	uint32_t		flags;
-+	enum nft_registers	sreg_proto_min;
-+	enum nft_registers	sreg_proto_max;
- };
- 
- static int
-@@ -34,6 +36,12 @@ nftnl_expr_masq_set(struct nftnl_expr *e, uint16_t type,
- 	case NFTNL_EXPR_MASQ_FLAGS:
- 		masq->flags = *((uint32_t *)data);
- 		break;
-+	case NFTNL_EXPR_MASQ_REG_PROTO_MIN:
-+		masq->sreg_proto_min = *((uint32_t *)data);
-+		break;
-+	case NFTNL_EXPR_MASQ_REG_PROTO_MAX:
-+		masq->sreg_proto_max = *((uint32_t *)data);
-+		break;
- 	default:
- 		return -1;
- 	}
-@@ -50,6 +58,12 @@ nftnl_expr_masq_get(const struct nftnl_expr *e, uint16_t type,
- 	case NFTNL_EXPR_MASQ_FLAGS:
- 		*data_len = sizeof(masq->flags);
- 		return &masq->flags;
-+	case NFTNL_EXPR_MASQ_REG_PROTO_MIN:
-+		*data_len = sizeof(masq->sreg_proto_min);
-+		return &masq->sreg_proto_min;
-+	case NFTNL_EXPR_MASQ_REG_PROTO_MAX:
-+		*data_len = sizeof(masq->sreg_proto_max);
-+		return &masq->sreg_proto_max;
- 	}
- 	return NULL;
- }
-@@ -63,6 +77,8 @@ static int nftnl_expr_masq_cb(const struct nlattr *attr, void *data)
- 		return MNL_CB_OK;
- 
- 	switch (type) {
-+	case NFTA_MASQ_REG_PROTO_MIN:
-+	case NFTA_MASQ_REG_PROTO_MAX:
- 	case NFTA_MASQ_FLAGS:
- 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
- 			abi_breakage();
-@@ -80,6 +96,12 @@ nftnl_expr_masq_build(struct nlmsghdr *nlh, struct nftnl_expr *e)
- 
- 	if (e->flags & (1 << NFTNL_EXPR_MASQ_FLAGS))
- 		mnl_attr_put_u32(nlh, NFTA_MASQ_FLAGS, htobe32(masq->flags));
-+	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MIN))
-+		mnl_attr_put_u32(nlh, NFTA_MASQ_REG_PROTO_MIN,
-+				 htobe32(masq->sreg_proto_min));
-+	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MAX))
-+		mnl_attr_put_u32(nlh, NFTA_MASQ_REG_PROTO_MAX,
-+				 htobe32(masq->sreg_proto_max));
- }
- 
- static int
-@@ -94,6 +116,16 @@ nftnl_expr_masq_parse(struct nftnl_expr *e, struct nlattr *attr)
- 	if (tb[NFTA_MASQ_FLAGS]) {
- 		masq->flags = be32toh(mnl_attr_get_u32(tb[NFTA_MASQ_FLAGS]));
- 		e->flags |= (1 << NFTNL_EXPR_MASQ_FLAGS);
-+        }
-+	if (tb[NFTA_MASQ_REG_PROTO_MIN]) {
-+		masq->sreg_proto_min =
-+			be32toh(mnl_attr_get_u32(tb[NFTA_MASQ_REG_PROTO_MIN]));
-+		e->flags |= (1 << NFTNL_EXPR_MASQ_REG_PROTO_MIN);
++	if (stmt->masq.proto != NULL) {
++		err = nat_evaluate_transport(ctx, stmt, &stmt->masq.proto);
++		if (err < 0)
++			return err;
 +	}
-+	if (tb[NFTA_MASQ_REG_PROTO_MAX]) {
-+		masq->sreg_proto_max =
-+			be32toh(mnl_attr_get_u32(tb[NFTA_MASQ_REG_PROTO_MAX]));
-+		e->flags |= (1 << NFTNL_EXPR_MASQ_REG_PROTO_MAX);
- 	}
- 
++
+ 	stmt->flags |= STMT_F_TERMINAL;
  	return 0;
-@@ -104,11 +136,17 @@ nftnl_expr_masq_json_parse(struct nftnl_expr *e, json_t *root,
- 			      struct nftnl_parse_err *err)
+ }
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index ae6abb0..e388b9f 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -726,16 +726,41 @@ static void netlink_parse_masq(struct netlink_parse_ctx *ctx,
+ 			       const struct location *loc,
+ 			       const struct nftnl_expr *nle)
  {
- #ifdef JSON_PARSING
++	enum nft_registers reg1, reg2;
++	struct expr *proto;
+ 	struct stmt *stmt;
 -	uint32_t flags;
-+	uint32_t reg, flags;
++	uint32_t flags = 0;
  
- 	if (nftnl_jansson_parse_val(root, "flags", NFTNL_TYPE_U32, &flags,
- 				  err) == 0)
- 		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_FLAGS, flags);
-+	if (nftnl_jansson_parse_reg(root, "sreg_proto_min", NFTNL_TYPE_U32,
-+				    &reg, err) == 0)
-+		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_REG_PROTO_MIN, reg);
-+	if (nftnl_jansson_parse_reg(root, "sreg_proto_max", NFTNL_TYPE_U32,
-+				    &reg, err) == 0)
-+		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_REG_PROTO_MAX, reg);
+-	flags = 0;
+ 	if (nftnl_expr_is_set(nle, NFTNL_EXPR_MASQ_FLAGS))
+ 		flags = nftnl_expr_get_u32(nle, NFTNL_EXPR_MASQ_FLAGS);
  
- 	return 0;
- #else
-@@ -123,10 +161,19 @@ nftnl_expr_masq_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
- {
- #ifdef XML_PARSING
- 	uint32_t flags;
-+	uint32_t reg_proto_min, reg_proto_max;
+ 	stmt = masq_stmt_alloc(loc);
+ 	stmt->masq.flags = flags;
  
- 	if (nftnl_mxml_num_parse(tree, "flags", MXML_DESCEND_FIRST, BASE_DEC,
- 			       &flags, NFTNL_TYPE_U32, NFTNL_XML_MAND, err) == 0)
- 		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_FLAGS, flags);
-+	if (nftnl_mxml_reg_parse(tree, "sreg_proto_min", &reg_proto_min,
-+				 MXML_DESCEND, NFTNL_XML_MAND, err) == 0)
-+		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_REG_PROTO_MIN,
-+				   reg_proto_min);
-+	if (nftnl_mxml_reg_parse(tree, "sreg_proto_max", &reg_proto_max,
-+				 MXML_DESCEND, NFTNL_XML_MAND, err) == 0)
-+		nftnl_expr_set_u32(e, NFTNL_EXPR_MASQ_REG_PROTO_MAX,
-+				   reg_proto_max);
- 
- 	return 0;
- #else
-@@ -142,6 +189,10 @@ static int nftnl_expr_masq_export(char *buf, size_t size,
- 
- 	if (e->flags & (1 << NFTNL_EXPR_MASQ_FLAGS))
- 		nftnl_buf_u32(&b, type, masq->flags, FLAGS);
-+	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MIN))
-+		nftnl_buf_u32(&b, type, masq->sreg_proto_min, SREG_PROTO_MIN);
-+	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MAX))
-+		nftnl_buf_u32(&b, type, masq->sreg_proto_max, SREG_PROTO_MAX);
- 
- 	return nftnl_buf_done(&b);
++	reg1 = netlink_parse_register(nle, NFTNL_EXPR_MASQ_REG_PROTO_MIN);
++	if (reg1) {
++		proto = netlink_get_register(ctx, loc, reg1);
++		if (proto == NULL)
++			return netlink_error(ctx, loc,
++					     "MASQUERADE statement"
++					     "has no proto expression");
++		expr_set_type(proto, &inet_service_type, BYTEORDER_BIG_ENDIAN);
++		stmt->masq.proto = proto;
++	}
++
++	reg2 = netlink_parse_register(nle, NFTNL_EXPR_MASQ_REG_PROTO_MAX);
++	if (reg2 && reg2 != reg1) {
++		proto = netlink_get_register(ctx, loc, reg2);
++		if (proto == NULL)
++			return netlink_error(ctx, loc,
++					     "MASQUERADE statement"
++					     "has no proto expression");
++		expr_set_type(proto, &inet_service_type, BYTEORDER_BIG_ENDIAN);
++		if (stmt->masq.proto != NULL)
++			proto = range_expr_alloc(loc, stmt->masq.proto, proto);
++		stmt->masq.proto = proto;
++	}
++
+ 	list_add_tail(&stmt->list, &ctx->rule->stmts);
  }
-@@ -153,6 +204,11 @@ static int nftnl_expr_masq_snprintf_default(char *buf, size_t len,
  
- 	if (e->flags & (1 << NFTNL_EXPR_MASQ_FLAGS))
- 		return snprintf(buf, len, "flags 0x%x ", masq->flags);
-+	if (e->flags & (1 << NFTNL_EXPR_MASQ_REG_PROTO_MIN)) {
-+		return snprintf(buf, len,
-+				"proto_min reg %u proto_max reg %u ",
-+				masq->sreg_proto_min, masq->sreg_proto_max);
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 86b49c6..b3dbaca 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -884,12 +884,36 @@ static void netlink_gen_nat_stmt(struct netlink_linearize_ctx *ctx,
+ static void netlink_gen_masq_stmt(struct netlink_linearize_ctx *ctx,
+ 				  const struct stmt *stmt)
+ {
++	enum nft_registers pmin_reg, pmax_reg;
+ 	struct nftnl_expr *nle;
++	int registers = 0;
+ 
+ 	nle = alloc_nft_expr("masq");
+ 	if (stmt->masq.flags != 0)
+ 		nftnl_expr_set_u32(nle, NFTNL_EXPR_MASQ_FLAGS,
+ 				      stmt->masq.flags);
++	if (stmt->masq.proto) {
++		pmin_reg = get_register(ctx, NULL);
++		registers++;
++
++		if (stmt->masq.proto->ops->type == EXPR_RANGE) {
++			pmax_reg = get_register(ctx, NULL);
++			registers++;
++
++			netlink_gen_expr(ctx, stmt->masq.proto->left, pmin_reg);
++			netlink_gen_expr(ctx, stmt->masq.proto->right, pmax_reg);
++			netlink_put_register(nle, NFTNL_EXPR_MASQ_REG_PROTO_MIN, pmin_reg);
++			netlink_put_register(nle, NFTNL_EXPR_MASQ_REG_PROTO_MAX, pmax_reg);
++		} else {
++			netlink_gen_expr(ctx, stmt->masq.proto, pmin_reg);
++			netlink_put_register(nle, NFTNL_EXPR_MASQ_REG_PROTO_MIN, pmin_reg);
++		}
++	}
++
++	while (registers > 0) {
++		release_register(ctx, NULL);
++		registers--;
 +	}
  
- 	return 0;
+ 	nftnl_rule_add_expr(ctx->nlr, nle);
  }
-diff --git a/tests/nft-expr_masq-test.c b/tests/nft-expr_masq-test.c
-index 51d4dc7..f0302e2 100644
---- a/tests/nft-expr_masq-test.c
-+++ b/tests/nft-expr_masq-test.c
-@@ -31,6 +31,12 @@ static void cmp_nftnl_expr(struct nftnl_expr *rule_a,
- 	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_MASQ_FLAGS) !=
- 	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_MASQ_FLAGS))
- 		print_err("Expr NFTNL_EXPR_MASQ_FLAGS mismatches");
-+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_MASQ_REG_PROTO_MIN) !=
-+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_MASQ_REG_PROTO_MIN))
-+		print_err("Expr NFTNL_EXPR_MASQ_REG_PROTO_MIN mismatches");
-+	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_MASQ_REG_PROTO_MAX) !=
-+	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_MASQ_REG_PROTO_MAX))
-+		print_err("Expr NFTNL_EXPR_MASQ_REG_PROTO_MAX mismatches");
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 05ade0f..d41fc0a 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1644,17 +1644,28 @@ nat_stmt_args		:	stmt_expr
+ 			}
+ 			;
+ 
+-masq_stmt		:	masq_stmt_alloc
+-			|	masq_stmt_alloc	nf_nat_flags
+-			{
+-				$$ = $1;
+-				$$->masq.flags = $2;
+-			}
++masq_stmt		:	masq_stmt_alloc		masq_stmt_args
++			|	masq_stmt_alloc
+ 			;
+ 
+ masq_stmt_alloc		:	MASQUERADE 	{ $$ = masq_stmt_alloc(&@$); }
+ 			;
+ 
++masq_stmt_args		:	TO 	COLON	stmt_expr
++			{
++				$<stmt>0->masq.proto = $3;
++			}
++			|	TO 	COLON	stmt_expr	nf_nat_flags
++			{
++				$<stmt>0->masq.proto = $3;
++				$<stmt>0->masq.flags = $4;
++			}
++			|	nf_nat_flags
++			{
++				$<stmt>0->masq.flags = $1;
++			}
++			;
++
+ redir_stmt		:	redir_stmt_alloc	redir_stmt_arg
+ 			|	redir_stmt_alloc
+ 			;
+diff --git a/src/statement.c b/src/statement.c
+index ca92441..0fd3afe 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -385,13 +385,24 @@ static void masq_stmt_print(const struct stmt *stmt)
+ {
+ 	printf("masquerade");
+ 
++	if (stmt->masq.proto) {
++		printf(":");
++		expr_print(stmt->masq.proto);
++	}
++
+ 	print_nf_nat_flags(stmt->masq.flags);
  }
  
- int main(int argc, char *argv[])
-@@ -51,6 +57,8 @@ int main(int argc, char *argv[])
- 		print_err("OOM");
++static void masq_stmt_destroy(struct stmt *stmt)
++{
++	expr_free(stmt->masq.proto);
++}
++
+ static const struct stmt_ops masq_stmt_ops = {
+ 	.type		= STMT_MASQ,
+ 	.name		= "masq",
+ 	.print		= masq_stmt_print,
++	.destroy	= masq_stmt_destroy,
+ };
  
- 	nftnl_expr_set_u32(ex, NFTNL_EXPR_MASQ_FLAGS, 0x1234568);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_MASQ_REG_PROTO_MIN, 0x5432178);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_MASQ_REG_PROTO_MAX, 0x8765421);
- 
- 	nftnl_rule_add_expr(a, ex);
- 
+ struct stmt *masq_stmt_alloc(const struct location *loc)
 -- 
 2.1.4
 
