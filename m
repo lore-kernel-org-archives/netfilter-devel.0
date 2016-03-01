@@ -1,69 +1,61 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 07/10] exthdr: remove implicit dependencies
-Date: Tue,  1 Mar 2016 16:37:47 +0100
-Message-ID: <1456846670-28179-8-git-send-email-fw@strlen.de>
+Subject: [PATCH nft 08/10] exthdr: store offset for later use
+Date: Tue,  1 Mar 2016 16:37:48 +0100
+Message-ID: <1456846670-28179-9-git-send-email-fw@strlen.de>
 References: <1456846670-28179-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49310 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49312 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753994AbcCAPhz (ORCPT
+	by vger.kernel.org with ESMTP id S1754358AbcCAPiA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Mar 2016 10:37:55 -0500
+	Tue, 1 Mar 2016 10:38:00 -0500
 In-Reply-To: <1456846670-28179-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-exthdr expression requires a dependency on ipv6; we can
-thus remove an ipv6 protocol test if its present.
+Its possible that we cannot find the template without also
+considering an implicit mask.  For this we need to store the offset.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/netlink_delinearize.c | 13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ include/expression.h | 1 +
+ src/exthdr.c         | 2 ++
+ 2 files changed, 3 insertions(+)
 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index ae6abb0..eec7d0f 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -982,10 +982,10 @@ struct rule_pp_ctx {
- /*
-  * Kill a redundant payload dependecy that is implied by a higher layer payload expression.
-  */
--static void payload_dependency_kill(struct rule_pp_ctx *ctx, struct expr *expr)
-+static void __payload_dependency_kill(struct rule_pp_ctx *ctx, enum proto_bases base)
+diff --git a/include/expression.h b/include/expression.h
+index eacbb2d..72b6f69 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -264,6 +264,7 @@ struct expr {
+ 			/* EXPR_EXTHDR */
+ 			const struct exthdr_desc	*desc;
+ 			const struct proto_hdr_template	*tmpl;
++			unsigned int			offset;
+ 		} exthdr;
+ 		struct {
+ 			/* EXPR_META */
+diff --git a/src/exthdr.c b/src/exthdr.c
+index 9ed0b6a..512de0a 100644
+--- a/src/exthdr.c
++++ b/src/exthdr.c
+@@ -37,6 +37,7 @@ static void exthdr_expr_clone(struct expr *new, const struct expr *expr)
  {
- 	if (ctx->pbase != PROTO_BASE_INVALID &&
--	    ctx->pbase == expr->payload.base &&
-+	    ctx->pbase == base &&
- 	    ctx->pdep != NULL) {
- 		list_del(&ctx->pdep->list);
- 		stmt_free(ctx->pdep);
-@@ -996,6 +996,11 @@ static void payload_dependency_kill(struct rule_pp_ctx *ctx, struct expr *expr)
- 	}
+ 	new->exthdr.desc = expr->exthdr.desc;
+ 	new->exthdr.tmpl = expr->exthdr.tmpl;
++	new->exthdr.offset = expr->exthdr.offset;
  }
  
-+static void payload_dependency_kill(struct rule_pp_ctx *ctx, const struct expr *expr)
-+{
-+	__payload_dependency_kill(ctx, expr->payload.base);
-+}
-+
- static void payload_dependency_store(struct rule_pp_ctx *ctx,
- 				     struct stmt *stmt,
- 				     enum proto_bases base)
-@@ -1505,8 +1510,10 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
- 	case EXPR_SET_ELEM:
- 		expr_postprocess(ctx, &expr->key);
- 		break;
--	case EXPR_SET_REF:
- 	case EXPR_EXTHDR:
-+		__payload_dependency_kill(ctx, PROTO_BASE_NETWORK_HDR);
-+		break;
-+	case EXPR_SET_REF:
- 	case EXPR_META:
- 	case EXPR_VERDICT:
- 		break;
+ static const struct expr_ops exthdr_expr_ops = {
+@@ -86,6 +87,7 @@ void exthdr_init_raw(struct expr *expr, uint8_t type,
+ 	assert(expr->ops->type == EXPR_EXTHDR);
+ 
+ 	expr->len = len;
++	expr->exthdr.offset = offset;
+ 	expr->exthdr.desc = exthdr_protocols[type];
+ 	assert(expr->exthdr.desc != NULL);
+ 
 -- 
 2.4.10
 
