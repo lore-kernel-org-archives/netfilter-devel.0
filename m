@@ -1,56 +1,46 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nft] datatype, meta: add new ifname_type for
- iifname/oifname
-Date: Tue, 1 Mar 2016 12:00:55 +0100
-Message-ID: <20160301110055.GA22817@breakpoint.cc>
-References: <1456514374-28827-1-git-send-email-fw@strlen.de>
- <20160229131202.GA16476@salvia>
- <20160229131923.GB7277@breakpoint.cc>
- <20160301101114.GA2654@salvia>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH] src: proto: Add missing packet type
+Date: Tue, 1 Mar 2016 18:09:12 +0530
+Message-ID: <20160301123912.GA6905@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:48626 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752340AbcCALA4 (ORCPT
+Received: from mail-pf0-f182.google.com ([209.85.192.182]:33789 "EHLO
+	mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750823AbcCAMjU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Mar 2016 06:00:56 -0500
+	Tue, 1 Mar 2016 07:39:20 -0500
+Received: by mail-pf0-f182.google.com with SMTP id 124so50627015pfg.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 01 Mar 2016 04:39:20 -0800 (PST)
+Received: from gmail.com ([223.183.15.73])
+        by smtp.gmail.com with ESMTPSA id l62sm45463328pfj.7.2016.03.01.04.39.17
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Tue, 01 Mar 2016 04:39:18 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20160301101114.GA2654@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Ok, but how do you plan to handle the key length?
-> 
-> Right, in concatenations we can infer this from the lhs, but in set
-> definitions there is not way.
+Add missing packet type "invalid" for DCCP.
 
-Okay.  So whats the plan there?
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+ src/proto.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-> What I would suggest is to recover a patch that Patrick submitted that
-> introduces typeof(X) so we can use this from set definitions. We can
-> store in the TLV the original subtype X as a string. Thus, when
-> listing back to userspace we can use this information to display back
-> the typeof(X).
+diff --git a/src/proto.c b/src/proto.c
+index 0ed98ed..4d049f5 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -443,6 +443,7 @@ static const struct symbol_table dccp_pkttype_tbl = {
+ 		SYMBOL("reset",		DCCP_PKT_RESET),
+ 		SYMBOL("sync",		DCCP_PKT_SYNC),
+ 		SYMBOL("syncack",	DCCP_PKT_SYNCACK),
++		SYMBOL("invalid",	DCCP_PKT_INVALID),
+ 		SYMBOL_LIST_END
+ 	},
+ };
+-- 
+1.9.1
 
-So you mean you'd use something like
-
-nft add set filter ifnames '{typeof(meta iifname); }' ?
-
-That should indeed work since we can derive the size
-from the meta iifname (or whatever other field),
-
-> We have to potentially support every meta and packet selector,
-> including crazy ones as 48 bits fields, and last time we discussed
-> this, we agreed that adding one type per field size is not the way to
-> go.
-
-Ok, yes, I see your point.
-
-> Let me know your opinion on this, thanks!
-
-I think typeof would be good; we could indeed derive the key size with
-this without the need for a new type.
