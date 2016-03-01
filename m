@@ -1,78 +1,67 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH] extensions: libip6t_hbh: Add translation to nft
-Date: Wed, 2 Mar 2016 03:22:43 +0530
-Message-ID: <20160301215243.GA19576@gmail.com>
+From: Laison Computech Inc <7sales@laiisoncomputech.com>
+Subject: CISCO AND AVAYA IP Phones
+Date: Wed, 02 Mar 2016 03:10:42 +0700
+Message-ID: <20160301210950.A766F572DCD__20930.8555852205$1456875789$gmane$org@srv-mta.gcmillenium.com.br>
+Reply-To: sales@laiisoncomputech.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: Recipients <7sales@laiisoncomputech.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f182.google.com ([209.85.192.182]:32857 "EHLO
-	mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751203AbcCAVwu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Mar 2016 16:52:50 -0500
-Received: by mail-pf0-f182.google.com with SMTP id 124so58501625pfg.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 01 Mar 2016 13:52:50 -0800 (PST)
-Received: from gmail.com ([223.183.15.73])
-        by smtp.gmail.com with ESMTPSA id u90sm47703292pfa.60.2016.03.01.13.52.48
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Tue, 01 Mar 2016 13:52:49 -0800 (PST)
-Content-Disposition: inline
+Received: from srv-mta.gcmillenium.com.br ([177.125.218.132]:46448 "EHLO
+	srv-mta.gcmillenium.com.br" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750843AbcCAXmt convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Mar 2016 18:42:49 -0500
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for module hop-by-hop to nftables.
-Full translation of this match awaits the support for --hbh-opts option.
+Hi,
 
-Examples:
+Clean tested working pulls CPUs and QTYs in stock.
 
-$ sudo ip6tables-translate -A INPUT -m hbh --hbh-len 33
-nft add rule ip6 filter INPUT hbh hdrlength 33 counter
+115 X X5650
+65 X E5410
+75 X X5660
+145 X E5530
+100 X E5645
+40 X X5680
+75 X X5690
 
-$ sudo ip6tables-translate -A INPUT -m hbh ! --hbh-len 33
-nft add rule ip6 filter INPUT hbh hdrlength != 33 counter
+Brand new sealed IP phones and QTYs in stock.
 
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
----
- extensions/libip6t_hbh.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+55 x CP-7937G
+77 x CP-7942G
+54 x CP-7945G
+75 x CP-7962G
+=2E.....
+45 x Avaya 9630
+65 x Avaya 9641
+55 x Avaya 9640=20
 
-diff --git a/extensions/libip6t_hbh.c b/extensions/libip6t_hbh.c
-index c0389ed..f968036 100644
---- a/extensions/libip6t_hbh.c
-+++ b/extensions/libip6t_hbh.c
-@@ -164,6 +164,22 @@ static void hbh_save(const void *ip, const struct xt_entry_match *match)
- 	print_options(optinfo->optsnr, (uint16_t *)optinfo->opts);
- }
- 
-+static int hbh_xlate(const struct xt_entry_match *match,
-+		     struct xt_xlate *xl, int numeric)
-+{
-+	const struct ip6t_opts *optinfo = (struct ip6t_opts *)match->data;
-+
-+	xt_xlate_add(xl, "hbh ");
-+
-+	if (optinfo->flags & IP6T_OPTS_LEN) {
-+		xt_xlate_add(xl, "hdrlength%s %u ",
-+			     optinfo->invflags & IP6T_OPTS_INV_LEN ? " !=" : "",
-+			     optinfo->hdrlen);
-+	}
-+
-+	return 1;
-+}
-+
- static struct xtables_match hbh_mt6_reg = {
- 	.name 		= "hbh",
- 	.version	= XTABLES_VERSION,
-@@ -175,6 +191,7 @@ static struct xtables_match hbh_mt6_reg = {
- 	.save		= hbh_save,
- 	.x6_parse	= hbh_parse,
- 	.x6_options	= hbh_opts,
-+	.xlate		= hbh_xlate,
- };
- 
- void
--- 
-1.9.1
+USED IT HARDWARE FROM:
 
+=46UJITSU       IBM         SUN        HP
+QUANTUM   DELL       HDS        STK
+NETAPP      SGI         Oracle      EMC=B2
+
+3Com, ADVA, Alcatel, Brocade, Cisco,
+Cabletron, Enterasys, Extreme Networks,
+Huawei, Marconi, Nortel, Qlogic, Avaya
+
+Let me know if you're interested. We are very open to offers and willin=
+g to work with you to make sure that we have a deal.
+
+Sincerely
+Barbara Johnson
+Laison Computech Inc
+Tel: +1-657-205-7860
+=46ax: +1-347-214-0478
+Email: sales@laiisoncomputech.com
+Web: www.laisoncomputech.com
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
