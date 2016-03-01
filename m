@@ -1,72 +1,56 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [Outreachy kernel] [PATCH] extensions: libxt_statistic: Add
- translation to nft
-Date: Tue, 1 Mar 2016 11:13:31 +0100
-Message-ID: <20160301101331.GA2714@salvia>
-References: <20160229212216.GA29706@sonyv>
- <CAKHNQQH2sE3A_jV0kuwBaTQZS1Z90RwuRoL+dvhPyCOV=Ev=9w@mail.gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nft] datatype, meta: add new ifname_type for
+ iifname/oifname
+Date: Tue, 1 Mar 2016 12:00:55 +0100
+Message-ID: <20160301110055.GA22817@breakpoint.cc>
+References: <1456514374-28827-1-git-send-email-fw@strlen.de>
+ <20160229131202.GA16476@salvia>
+ <20160229131923.GB7277@breakpoint.cc>
+ <20160301101114.GA2654@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Laura Garcia Liebana <nevola@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>, Florian Westphal <fw@strlen.de>,
-	outreachy-kernel <outreachy-kernel@googlegroups.com>
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37989 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751984AbcCAKNl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Mar 2016 05:13:41 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id D2C0E1F1908
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 11:13:39 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id C07A6DA3A6
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 11:13:39 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 318F0DA38F
-	for <netfilter-devel@vger.kernel.org>; Tue,  1 Mar 2016 11:13:37 +0100 (CET)
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:48626 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752340AbcCALA4 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Mar 2016 06:00:56 -0500
 Content-Disposition: inline
-In-Reply-To: <CAKHNQQH2sE3A_jV0kuwBaTQZS1Z90RwuRoL+dvhPyCOV=Ev=9w@mail.gmail.com>
+In-Reply-To: <20160301101114.GA2654@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 01, 2016 at 03:21:24PM +0530, Shivani Bhardwaj wrote:
-> On Tue, Mar 1, 2016 at 2:52 AM, Laura Garcia Liebana <nevola@gmail.com> wrote:
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Ok, but how do you plan to handle the key length?
 > 
-> Hi Laura,
-> 
-> > Add translation for random to nftables.
-> >
-> Here, you are providing translation for module statistic, random is
-> just a mode for matching the rule. Please make sure to use correct
-> module name in the commit message next time.
-> 
-> > Examples:
-> >
-> > $ iptables-translate -A INPUT -m statistic --mode random --probability
-> > 0.1 -j ACCEPT
-> > nft add rule ip filter INPUT meta random 0.10000000009 counter accept
-> >
-> > $ iptables-translate -A INPUT -m statistic --mode random ! --probability
-> > 0.1 -j ACCEPT
-> > nft add rule ip filter INPUT meta random != 0.10000000009 counter accept
-> >
-> 
-> The match statistic is not yet supported in nftables, so these
-> translations are not going to work. You can track the supported
-> extensions here:
-> http://wiki.nftables.org/wiki-nftables/index.php/Supported_features_compared_to_xtables,
-> you can edit any discrepancies you find on this page.
+> Right, in concatenations we can infer this from the lhs, but in set
+> definitions there is not way.
 
-I'm seeing here that there are partial translations that are not in
-the tree.
+Okay.  So whats the plan there?
 
-I would like to have them merged upstream, no need to wait to fully
-support every extension, we can document these limitations in the wiki
-and the commit log.
+> What I would suggest is to recover a patch that Patrick submitted that
+> introduces typeof(X) so we can use this from set definitions. We can
+> store in the TLV the original subtype X as a string. Thus, when
+> listing back to userspace we can use this information to display back
+> the typeof(X).
 
-IIRC, if the .xlate indirection returns 0, then it means no
-translation is available. We can use that for things that we don't
-support yet.
+So you mean you'd use something like
 
+nft add set filter ifnames '{typeof(meta iifname); }' ?
+
+That should indeed work since we can derive the size
+from the meta iifname (or whatever other field),
+
+> We have to potentially support every meta and packet selector,
+> including crazy ones as 48 bits fields, and last time we discussed
+> this, we agreed that adding one type per field size is not the way to
+> go.
+
+Ok, yes, I see your point.
+
+> Let me know your opinion on this, thanks!
+
+I think typeof would be good; we could indeed derive the key size with
+this without the need for a new type.
