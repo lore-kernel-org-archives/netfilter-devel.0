@@ -1,451 +1,103 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 01/10] evaluate: enforce ip6 proto with exthdr expression
-Date: Tue,  1 Mar 2016 16:37:41 +0100
-Message-ID: <1456846670-28179-2-git-send-email-fw@strlen.de>
+Subject: [PATCH nft 03/10] netlink: add and use netlink_gen_exthdr_mask
+Date: Tue,  1 Mar 2016 16:37:43 +0100
+Message-ID: <1456846670-28179-4-git-send-email-fw@strlen.de>
 References: <1456846670-28179-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49297 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49299 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754540AbcCAPhg (ORCPT
+	by vger.kernel.org with ESMTP id S1754539AbcCAPhm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Mar 2016 10:37:36 -0500
+	Tue, 1 Mar 2016 10:37:42 -0500
 In-Reply-To: <1456846670-28179-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Don't allow use of exthdr with e.g. ip family.
-Move frag.t to ip6 directory and don't use it with ipv4 anymore.
+rule ip6 filter input frag frag-off 33
 
-This change causes major test failures for all exthdr users
-since they now fail with inet/bridge/netdev families.
+before patch:
+ [ exthdr load 1b @ 44 + 2 => reg 1 ]
+ [ cmp eq reg 1 0x00002100 ]
 
-Will be resolved in a later patch -- we need to add
-an ipv6 dependency for them.
+We truncated 13bit field to 1 byte.
+
+after patch:
+ [ exthdr load 2b @ 44 + 2 => reg 1 ]
+ [ bitwise reg 1 = (reg=1 & 0x0000f8ff ) ^ 0x00000000 ]
+ [ cmp eq reg 1 0x00000801 ]
+
+- ask for 2 bytes
+- mask out the 3 lower bits
+- shift the value by 3 so equality test will pass for 33
+
+This causes test failures, will be fixed up in a later patch
+(the test suite expects the old, broken input).
+
+It also misses the reverse translation to remove the binop,
+find the right template and undo the shift of the value.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/evaluate.c                  |  18 ++++++-
- tests/py/any/frag.t             |  67 ------------------------
- tests/py/any/frag.t.payload     | 109 ----------------------------------------
- tests/py/ip6/frag.t             |  63 +++++++++++++++++++++++
- tests/py/ip6/frag.t.payload.ip6 | 109 ++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 189 insertions(+), 177 deletions(-)
- delete mode 100644 tests/py/any/frag.t
- delete mode 100644 tests/py/any/frag.t.payload
- create mode 100644 tests/py/ip6/frag.t
- create mode 100644 tests/py/ip6/frag.t.payload.ip6
+ src/netlink_linearize.c | 27 ++++++++++++++++++++++++---
+ 1 file changed, 24 insertions(+), 3 deletions(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index a49cdd9..47a1f8c 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -343,6 +343,21 @@ conflict_resolution_gen_dependency(struct eval_ctx *ctx, int protocol,
- 	return 0;
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 7715a28..7ff3b00 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -181,6 +181,18 @@ static void netlink_gen_payload(struct netlink_linearize_ctx *ctx,
+ 	netlink_gen_payload_mask(ctx, expr, dreg);
  }
  
-+/*
-+ * Exthdr expression: check whether dependencies are fulfilled.
-+ */
-+static int expr_evaluate_exthdr(struct eval_ctx *ctx, struct expr **expr)
++static void netlink_gen_exthdr_mask(struct netlink_linearize_ctx *ctx,
++				    const struct expr *expr,
++				    enum nft_registers dreg)
 +{
-+	const struct proto_desc *base;
++	unsigned int shift, offset;
 +
-+	base = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
-+	if (base == &proto_ip6)
-+		return expr_evaluate_primary(ctx, expr);
-+
-+	return expr_error(ctx->msgs, *expr,
-+			  "exthdr can only be used with ipv6");
++	offset = expr->exthdr.tmpl->offset % BITS_PER_BYTE;
++	shift = payload_shift_calc(expr, offset);
++	if (shift || offset)
++		netlink_gen_mask(ctx, expr, shift, dreg);
 +}
 +
- /* dependency supersede.
-  *
-  * 'inet' is a 'phony' l2 dependeny used by NFPROTO_INET to fulfill network
-@@ -1320,8 +1335,9 @@ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
- 		return 0;
- 	case EXPR_VALUE:
- 		return expr_evaluate_value(ctx, expr);
--	case EXPR_VERDICT:
- 	case EXPR_EXTHDR:
-+		return expr_evaluate_exthdr(ctx, expr);
-+	case EXPR_VERDICT:
- 	case EXPR_META:
- 		return expr_evaluate_primary(ctx, expr);
- 	case EXPR_PAYLOAD:
-diff --git a/tests/py/any/frag.t b/tests/py/any/frag.t
-deleted file mode 100644
-index 8b5e34a..0000000
---- a/tests/py/any/frag.t
-+++ /dev/null
-@@ -1,67 +0,0 @@
--:output;type filter hook output priority 0
--:ingress;type filter hook ingress device lo priority 0
--
--*ip;test-ip4;output
--*ip6;test-ip6;output
--*inet;test-inet;output
--*arp;test-arp;output
--*bridge;test-bridge;output
--*netdev;test-netdev;ingress
--
--frag nexthdr tcp;ok;frag nexthdr 6
--frag nexthdr != icmp;ok;frag nexthdr != 1
--frag nexthdr {esp, ah, comp, udp, udplite, tcp, dccp, sctp};ok;frag nexthdr { 51, 136, 132, 6, 108, 50, 17, 33}
--- frag nexthdr != {esp, ah, comp, udp, udplite, tcp, dccp, sctp};ok
--frag nexthdr esp;ok;frag nexthdr 50
--frag nexthdr ah;ok;frag nexthdr 51
--
--frag reserved 22;ok
--frag reserved != 233;ok
--frag reserved 33-45;ok
--frag reserved != 33-45;ok
--frag reserved { 33, 55, 67, 88};ok
--- frag reserved != { 33, 55, 67, 88};ok
--frag reserved { 33-55};ok
--- frag reserved != { 33-55};ok
--
--# BUG: frag frag-off 22 and frag frag-off { 33-55}
--# This breaks table listing: "netlink: Error: Relational expression size mismatch"
--
--- frag frag-off 22;ok
--- frag frag-off != 233;ok
--- frag frag-off 33-45;ok
--- frag frag-off != 33-45;ok
--- frag frag-off { 33, 55, 67, 88};ok
--- frag frag-off != { 33, 55, 67, 88};ok
--- frag frag-off { 33-55};ok
--- frag frag-off != { 33-55};ok
--
--# BUG  frag reserved2 33 and frag reserved2 1
--# $ sudo nft add rule ip test input frag reserved2 33
--# <cmdline>:1:39-40: Error: Value 33 exceeds valid range 0-3
--# add rule ip test input frag reserved2 33
--#                                      ^^
--# sudo nft add rule ip test input frag reserved2 1
--# <cmdline>:1:1-39: Error: Could not process rule: Invalid argument
--# add rule ip test input frag reserved2 1
--# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
--
--# BUG more-fragments 1 and frag more-fragments 4
--# frag more-fragments 1
--# <cmdline>:1:1-44: Error: Could not process rule: Invalid argument
--# add rule ip test input frag more-fragments 1
--# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
--# $ sudo nft add rule ip test input frag more-fragments 4
--# <cmdline>:1:44-44: Error: Value 4 exceeds valid range 0-1
--# add rule ip test input frag more-fragments 4
--#                                           ^
--
--frag id 1;ok
--frag id 22;ok
--frag id != 33;ok
--frag id 33-45;ok
--frag id != 33-45;ok
--frag id { 33, 55, 67, 88};ok
--- frag id != { 33, 55, 67, 88};ok
--frag id { 33-55};ok
--- frag id != { 33-55};ok
-diff --git a/tests/py/any/frag.t.payload b/tests/py/any/frag.t.payload
-deleted file mode 100644
-index a91ab3f..0000000
---- a/tests/py/any/frag.t.payload
-+++ /dev/null
-@@ -1,109 +0,0 @@
--# frag nexthdr tcp
--ip test-ip4 output
--  [ exthdr load 1b @ 44 + 0 => reg 1 ]
--  [ cmp eq reg 1 0x00000006 ]
--
--# frag nexthdr != icmp
--ip test-ip4 output
--  [ exthdr load 1b @ 44 + 0 => reg 1 ]
--  [ cmp neq reg 1 0x00000001 ]
--
--# frag nexthdr {esp, ah, comp, udp, udplite, tcp, dccp, sctp}
--set%d test-ip4 3
--set%d test-ip4 0
--	element 00000032  : 0 [end]	element 00000033  : 0 [end]	element 0000006c  : 0 [end]	element 00000011  : 0 [end]	element 00000088  : 0 [end]	element 00000006  : 0 [end]	element 00000021  : 0 [end]	element 00000084  : 0 [end]
--ip test-ip4 output
--  [ exthdr load 1b @ 44 + 0 => reg 1 ]
--  [ lookup reg 1 set set%d ]
--
--# frag nexthdr esp
--ip test-ip4 output
--  [ exthdr load 1b @ 44 + 0 => reg 1 ]
--  [ cmp eq reg 1 0x00000032 ]
--
--# frag nexthdr ah
--ip test-ip4 output
--  [ exthdr load 1b @ 44 + 0 => reg 1 ]
--  [ cmp eq reg 1 0x00000033 ]
--
--# frag reserved 22
--ip test-ip4 output
--  [ exthdr load 1b @ 44 + 1 => reg 1 ]
--  [ cmp eq reg 1 0x00000016 ]
--
--# frag reserved != 233
--ip test-ip4 output
--  [ exthdr load 1b @ 44 + 1 => reg 1 ]
--  [ cmp neq reg 1 0x000000e9 ]
--
--# frag reserved 33-45
--ip test-ip4 output
--  [ exthdr load 1b @ 44 + 1 => reg 1 ]
--  [ cmp gte reg 1 0x00000021 ]
--  [ cmp lte reg 1 0x0000002d ]
--
--# frag reserved != 33-45
--ip test-ip4 output
--  [ exthdr load 1b @ 44 + 1 => reg 1 ]
--  [ cmp lt reg 1 0x00000021 ]
--  [ cmp gt reg 1 0x0000002d ]
--
--# frag reserved { 33, 55, 67, 88}
--set%d test-ip4 3
--set%d test-ip4 0
--	element 00000021  : 0 [end]	element 00000037  : 0 [end]	element 00000043  : 0 [end]	element 00000058  : 0 [end]
--ip test-ip4 output
--  [ exthdr load 1b @ 44 + 1 => reg 1 ]
--  [ lookup reg 1 set set%d ]
--
--# frag reserved { 33-55}
--set%d test-ip4 7
--set%d test-ip4 0
--	element 00000000  : 1 [end]	element 00000021  : 0 [end]	element 00000038  : 1 [end]
--ip test-ip4 output
--  [ exthdr load 1b @ 44 + 1 => reg 1 ]
--  [ lookup reg 1 set set%d ]
--
--# frag id 1
--ip test-ip4 output
--  [ exthdr load 4b @ 44 + 4 => reg 1 ]
--  [ cmp eq reg 1 0x01000000 ]
--
--# frag id 22
--ip test-ip4 output
--  [ exthdr load 4b @ 44 + 4 => reg 1 ]
--  [ cmp eq reg 1 0x16000000 ]
--
--# frag id != 33
--ip test-ip4 output
--  [ exthdr load 4b @ 44 + 4 => reg 1 ]
--  [ cmp neq reg 1 0x21000000 ]
--
--# frag id 33-45
--ip test-ip4 output
--  [ exthdr load 4b @ 44 + 4 => reg 1 ]
--  [ cmp gte reg 1 0x21000000 ]
--  [ cmp lte reg 1 0x2d000000 ]
--
--# frag id != 33-45
--ip test-ip4 output
--  [ exthdr load 4b @ 44 + 4 => reg 1 ]
--  [ cmp lt reg 1 0x21000000 ]
--  [ cmp gt reg 1 0x2d000000 ]
--
--# frag id { 33, 55, 67, 88}
--set%d test-ip4 3
--set%d test-ip4 0
--	element 21000000  : 0 [end]	element 37000000  : 0 [end]	element 43000000  : 0 [end]	element 58000000  : 0 [end]
--ip test-ip4 output
--  [ exthdr load 4b @ 44 + 4 => reg 1 ]
--  [ lookup reg 1 set set%d ]
--
--# frag id { 33-55}
--set%d test-ip4 7
--set%d test-ip4 0
--	element 00000000  : 1 [end]	element 21000000  : 0 [end]	element 38000000  : 1 [end]
--ip test-ip4 output
--  [ exthdr load 4b @ 44 + 4 => reg 1 ]
--  [ lookup reg 1 set set%d ]
--
-diff --git a/tests/py/ip6/frag.t b/tests/py/ip6/frag.t
-new file mode 100644
-index 0000000..56801ed
---- /dev/null
-+++ b/tests/py/ip6/frag.t
-@@ -0,0 +1,63 @@
-+:output;type filter hook output priority 0
-+:ingress;type filter hook ingress device lo priority 0
+ static void netlink_gen_exthdr(struct netlink_linearize_ctx *ctx,
+ 			       const struct expr *expr,
+ 			       enum nft_registers dreg)
+@@ -194,8 +206,10 @@ static void netlink_gen_exthdr(struct netlink_linearize_ctx *ctx,
+ 	nftnl_expr_set_u32(nle, NFTNL_EXPR_EXTHDR_OFFSET,
+ 			   expr->exthdr.tmpl->offset / BITS_PER_BYTE);
+ 	nftnl_expr_set_u32(nle, NFTNL_EXPR_EXTHDR_LEN,
+-			   expr->len / BITS_PER_BYTE);
++			   div_round_up(expr->len, BITS_PER_BYTE));
+ 	nftnl_rule_add_expr(ctx->nlr, nle);
 +
-+*ip6;test-ip6;output
-+*inet;test-inet;output
++	netlink_gen_exthdr_mask(ctx, expr, dreg);
+ }
+ 
+ static void netlink_gen_meta(struct netlink_linearize_ctx *ctx,
+@@ -306,10 +320,17 @@ static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
+ 
+ static void payload_shift_value(const struct expr *left, struct expr *right)
+ {
+-	if (right->ops->type != EXPR_VALUE ||
+-	    left->ops->type != EXPR_PAYLOAD)
++	if (right->ops->type != EXPR_VALUE)
+ 		return;
+ 
++	switch (left->ops->type) {
++	case EXPR_PAYLOAD:
++	case EXPR_EXTHDR:
++		break;
++	default:
++		return;
++	}
 +
-+frag nexthdr tcp;ok;frag nexthdr 6
-+frag nexthdr != icmp;ok;frag nexthdr != 1
-+frag nexthdr {esp, ah, comp, udp, udplite, tcp, dccp, sctp};ok;frag nexthdr { 51, 136, 132, 6, 108, 50, 17, 33}
-+- frag nexthdr != {esp, ah, comp, udp, udplite, tcp, dccp, sctp};ok
-+frag nexthdr esp;ok;frag nexthdr 50
-+frag nexthdr ah;ok;frag nexthdr 51
-+
-+frag reserved 22;ok
-+frag reserved != 233;ok
-+frag reserved 33-45;ok
-+frag reserved != 33-45;ok
-+frag reserved { 33, 55, 67, 88};ok
-+- frag reserved != { 33, 55, 67, 88};ok
-+frag reserved { 33-55};ok
-+- frag reserved != { 33-55};ok
-+
-+# BUG: frag frag-off 22 and frag frag-off { 33-55}
-+# This breaks table listing: "netlink: Error: Relational expression size mismatch"
-+
-+- frag frag-off 22;ok
-+- frag frag-off != 233;ok
-+- frag frag-off 33-45;ok
-+- frag frag-off != 33-45;ok
-+- frag frag-off { 33, 55, 67, 88};ok
-+- frag frag-off != { 33, 55, 67, 88};ok
-+- frag frag-off { 33-55};ok
-+- frag frag-off != { 33-55};ok
-+
-+# BUG  frag reserved2 33 and frag reserved2 1
-+# $ sudo nft add rule ip test input frag reserved2 33
-+# <cmdline>:1:39-40: Error: Value 33 exceeds valid range 0-3
-+# add rule ip test input frag reserved2 33
-+#                                      ^^
-+# sudo nft add rule ip test input frag reserved2 1
-+# <cmdline>:1:1-39: Error: Could not process rule: Invalid argument
-+# add rule ip test input frag reserved2 1
-+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-+
-+# BUG more-fragments 1 and frag more-fragments 4
-+# frag more-fragments 1
-+# <cmdline>:1:1-44: Error: Could not process rule: Invalid argument
-+# add rule ip test input frag more-fragments 1
-+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-+# $ sudo nft add rule ip test input frag more-fragments 4
-+# <cmdline>:1:44-44: Error: Value 4 exceeds valid range 0-1
-+# add rule ip test input frag more-fragments 4
-+#                                           ^
-+
-+frag id 1;ok
-+frag id 22;ok
-+frag id != 33;ok
-+frag id 33-45;ok
-+frag id != 33-45;ok
-+frag id { 33, 55, 67, 88};ok
-+- frag id != { 33, 55, 67, 88};ok
-+frag id { 33-55};ok
-+- frag id != { 33-55};ok
-diff --git a/tests/py/ip6/frag.t.payload.ip6 b/tests/py/ip6/frag.t.payload.ip6
-new file mode 100644
-index 0000000..f2d04b6
---- /dev/null
-+++ b/tests/py/ip6/frag.t.payload.ip6
-@@ -0,0 +1,109 @@
-+# frag nexthdr tcp
-+ip6 test-ip6 output
-+  [ exthdr load 1b @ 44 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000006 ]
-+
-+# frag nexthdr != icmp
-+ip6 test-ip6 output
-+  [ exthdr load 1b @ 44 + 0 => reg 1 ]
-+  [ cmp neq reg 1 0x00000001 ]
-+
-+# frag nexthdr {esp, ah, comp, udp, udplite, tcp, dccp, sctp}
-+set%d test-ip6 3
-+set%d test-ip6 0
-+	element 00000032  : 0 [end]	element 00000033  : 0 [end]	element 0000006c  : 0 [end]	element 00000011  : 0 [end]	element 00000088  : 0 [end]	element 00000006  : 0 [end]	element 00000021  : 0 [end]	element 00000084  : 0 [end]
-+ip6 test-ip6 output
-+  [ exthdr load 1b @ 44 + 0 => reg 1 ]
-+  [ lookup reg 1 set set%d ]
-+
-+# frag nexthdr esp
-+ip6 test-ip6 output
-+  [ exthdr load 1b @ 44 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000032 ]
-+
-+# frag nexthdr ah
-+ip6 test-ip6 output
-+  [ exthdr load 1b @ 44 + 0 => reg 1 ]
-+  [ cmp eq reg 1 0x00000033 ]
-+
-+# frag reserved 22
-+ip6 test-ip6 output
-+  [ exthdr load 1b @ 44 + 1 => reg 1 ]
-+  [ cmp eq reg 1 0x00000016 ]
-+
-+# frag reserved != 233
-+ip6 test-ip6 output
-+  [ exthdr load 1b @ 44 + 1 => reg 1 ]
-+  [ cmp neq reg 1 0x000000e9 ]
-+
-+# frag reserved 33-45
-+ip6 test-ip6 output
-+  [ exthdr load 1b @ 44 + 1 => reg 1 ]
-+  [ cmp gte reg 1 0x00000021 ]
-+  [ cmp lte reg 1 0x0000002d ]
-+
-+# frag reserved != 33-45
-+ip6 test-ip6 output
-+  [ exthdr load 1b @ 44 + 1 => reg 1 ]
-+  [ cmp lt reg 1 0x00000021 ]
-+  [ cmp gt reg 1 0x0000002d ]
-+
-+# frag reserved { 33, 55, 67, 88}
-+set%d test-ip6 3
-+set%d test-ip6 0
-+	element 00000021  : 0 [end]	element 00000037  : 0 [end]	element 00000043  : 0 [end]	element 00000058  : 0 [end]
-+ip6 test-ip6 output
-+  [ exthdr load 1b @ 44 + 1 => reg 1 ]
-+  [ lookup reg 1 set set%d ]
-+
-+# frag reserved { 33-55}
-+set%d test-ip6 7
-+set%d test-ip6 0
-+	element 00000000  : 1 [end]	element 00000021  : 0 [end]	element 00000038  : 1 [end]
-+ip6 test-ip6 output
-+  [ exthdr load 1b @ 44 + 1 => reg 1 ]
-+  [ lookup reg 1 set set%d ]
-+
-+# frag id 1
-+ip6 test-ip6 output
-+  [ exthdr load 4b @ 44 + 4 => reg 1 ]
-+  [ cmp eq reg 1 0x01000000 ]
-+
-+# frag id 22
-+ip6 test-ip6 output
-+  [ exthdr load 4b @ 44 + 4 => reg 1 ]
-+  [ cmp eq reg 1 0x16000000 ]
-+
-+# frag id != 33
-+ip6 test-ip6 output
-+  [ exthdr load 4b @ 44 + 4 => reg 1 ]
-+  [ cmp neq reg 1 0x21000000 ]
-+
-+# frag id 33-45
-+ip6 test-ip6 output
-+  [ exthdr load 4b @ 44 + 4 => reg 1 ]
-+  [ cmp gte reg 1 0x21000000 ]
-+  [ cmp lte reg 1 0x2d000000 ]
-+
-+# frag id != 33-45
-+ip6 test-ip6 output
-+  [ exthdr load 4b @ 44 + 4 => reg 1 ]
-+  [ cmp lt reg 1 0x21000000 ]
-+  [ cmp gt reg 1 0x2d000000 ]
-+
-+# frag id { 33, 55, 67, 88}
-+set%d test-ip6 3
-+set%d test-ip6 0
-+	element 21000000  : 0 [end]	element 37000000  : 0 [end]	element 43000000  : 0 [end]	element 58000000  : 0 [end]
-+ip6 test-ip6 output
-+  [ exthdr load 4b @ 44 + 4 => reg 1 ]
-+  [ lookup reg 1 set set%d ]
-+
-+# frag id { 33-55}
-+set%d test-ip6 7
-+set%d test-ip6 0
-+	element 00000000  : 1 [end]	element 21000000  : 0 [end]	element 38000000  : 1 [end]
-+ip6 test-ip6 output
-+  [ exthdr load 4b @ 44 + 4 => reg 1 ]
-+  [ lookup reg 1 set set%d ]
-+
+ 	mpz_lshift_ui(right->value,
+ 			payload_shift_calc(left, left->payload.offset));
+ }
 -- 
 2.4.10
 
