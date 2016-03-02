@@ -1,55 +1,89 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH 1/2] iptables: utils: Add bash completion
-Date: Wed, 2 Mar 2016 12:57:37 +0100 (CET)
-Message-ID: <alpine.LSU.2.20.1603021237030.15093@nerf40.vanv.qr>
-References: <1456412814-4580-1-git-send-email-mart.frauenlob@chello.at> <1456412814-4580-2-git-send-email-mart.frauenlob@chello.at> <20160302113411.GA2068@salvia>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v3] extensions: libxt_statistic: Add translation to nft
+Date: Wed, 2 Mar 2016 13:10:33 +0100
+Message-ID: <20160302121033.GA4348@breakpoint.cc>
+References: <20160301204042.GA15382@sonyv>
+ <20160302114611.GA3008@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: Mart Frauenlob <mart.frauenlob@chello.at>,
-	netfilter-devel@vger.kernel.org,
-	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Laura Garcia Liebana <nevola@gmail.com>,
+	netfilter-devel@vger.kernel.org, shivanib134@gmail.com,
+	fw@strlen.de, outreachy-kernel@googlegroups.com
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:35878 "EHLO ares41.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755207AbcCBMEl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Mar 2016 07:04:41 -0500
-In-Reply-To: <20160302113411.GA2068@salvia>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52060 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753358AbcCBMKg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Mar 2016 07:10:36 -0500
+Content-Disposition: inline
+In-Reply-To: <20160302114611.GA3008@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Tue, Mar 01, 2016 at 09:40:45PM +0100, Laura Garcia Liebana wrote:
+> > Add translation for random mode to nftables. The nth mode is not
+> > supported yet.
+> > 
+> > Examples:
+> > 
+> > $ iptables-translate -A INPUT -m statistic --mode random --probability
+> > 0.1 -j ACCEPT
+> > nft add rule ip filter INPUT meta random 0.10000000009 counter accept
+> 
+> Is this translation correct?
 
-On Wednesday 2016-03-02 12:34, Pablo Neira Ayuso wrote:
->On Thu, Feb 25, 2016 at 04:06:53PM +0100, Mart Frauenlob wrote:
->> This is a fully featured completion for ip[6]tables.
->>  utils/iptables_bash_completion/README.md |  290 ++++
->>  utils/iptables_bash_completion/iptables  | 2426 ++++++++++++++++++++++++++++++
->
->This is fair good amount of work, but this is also quite a bit of
->new shell code to be maintained in our trees.
+Yes.
 
-That much is true..
+> I can see in 
+> 
+> static bool
+> statistic_mt(const struct sk_buff *skb, struct xt_action_param *par)
+> {
+>         const struct xt_statistic_info *info = par->matchinfo;
+>         bool ret = info->flags & XT_STATISTIC_INVERT;
+>         int nval, oval;
+> 
+>         switch (info->mode) {
+>         case XT_STATISTIC_MODE_RANDOM:
+>                 if ((prandom_u32() & 0x7FFFFFFF) < info->u.random.probability)
+> 
+> --probability seems to check for "less than" the random value.
 
->Moreover, I was told that, in the specific case of debian, there is a
->package (bash-completion) where you place this.
+Yes.
 
-In other environments, bash-completion is more of a dumping ground
-for scripts that (1.) do not live with their upstream, _and_, (2.)
-also do not live with the distro-level source package for some
-reason.
+> I think meta random 0.10000000009 will only match for the exact case.
 
-12:42 zap:~ # rpm -qf /etc/bash_completion.d/* /usr/share/bash-completion/* | sort -u
-btrfsprogs-4.3.1-10.1.x86_64
-grub2-2.02~beta2-20.14.2.x86_64
-gstreamer-1.6.3-65.3.x86_64
-kmod-21-0.x86_64
-libreoffice-5.0.4.2-28.1.x86_64
-util-linux-2.25.1-20.1.x86_64
-util-linux-systemd-2.25.1-20.1.x86_64
-youtube-dl-2016.03.01-101.1.noarch
-zypper-1.11.34-1.1.x86_64
-[...]
+No; I thought that 'nft ... meta random 0.5' should on average match half of
+the time so the proposed nft prandom patch set makes LE the default op.
 
-Having the completion script in the iptables releases would easily
-ensure it always trickles down to distros in the same fashion, without
-distro-level maintainers have to pull it down from $some_random_place.
+So meta random 0.1 is in fact 'meta random le 0.1' (and nft will display
+it like this).
+
+> > $ iptables-translate -A INPUT -m statistic --mode random ! --probability
+> > 0.1 -j ACCEPT
+> > nft add rule ip filter INPUT meta random != 0.10000000009 counter accept
+> 
+> Then, the opposite has to be:
+> 
+>         meta random gte 0.10000000009
+
+Good point, this is not intuitive.
+
+Currently if no operator is given and the type is TYPE_PROBABILITY then
+we just use le instead of eq (just like we pick "&" in some cases).
+
+But if user asks 'meta random ne 0.1' then the match propability is close
+to 100%.
+
+Do you think its enough to just document that you need to use le/ge etc.
+for this?
+
+Other option would be to rewrite NE to GE if rh value is a probability,
+but I'm not sure if such 'helpful' logic isn't too likely to get in the
+way.
+
+Yet another option is to just disallow EQ and NE ops and throw an error.
+
+Other suggestions?
