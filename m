@@ -1,64 +1,59 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH v3] extensions: libxt_statistic: Add translation to nft
-Date: Wed, 2 Mar 2016 14:52:04 +0100 (CET)
-Message-ID: <alpine.LSU.2.20.1603021409540.15745@nerf40.vanv.qr>
-References: <20160301204042.GA15382@sonyv> <20160302114611.GA3008@salvia> <20160302121033.GA4348@breakpoint.cc>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: Re: [PATCH] extensions: libxt_sctp: Add translation to nft
+Date: Wed, 2 Mar 2016 19:44:51 +0530
+Message-ID: <CAKHNQQHaEwP1u0eSzjMnQ2Zc1heLLiHoSYJ+-i4-QP=qBuwzew@mail.gmail.com>
+References: <20160301204056.GA18229@gmail.com> <20160302114826.GA3493@salvia> <20160302115453.GA4365@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Laura Garcia Liebana <nevola@gmail.com>,
-	netfilter-devel@vger.kernel.org, shivanib134@gmail.com,
-	outreachy-kernel@googlegroups.com
-To: Florian Westphal <fw@strlen.de>
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:36236 "EHLO ares41.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751121AbcCBNwG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Mar 2016 08:52:06 -0500
-In-Reply-To: <20160302121033.GA4348@breakpoint.cc>
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:38027 "EHLO
+	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750785AbcCBOPd (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Mar 2016 09:15:33 -0500
+Received: by mail-wm0-f42.google.com with SMTP id l68so79765157wml.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 02 Mar 2016 06:15:32 -0800 (PST)
+In-Reply-To: <20160302115453.GA4365@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Wednesday 2016-03-02 13:10, Florian Westphal wrote:
->>         case XT_STATISTIC_MODE_RANDOM:
->>                 if ((prandom_u32() & 0x7FFFFFFF) < info->u.random.pr=
-obability)
->>=20
->> --probability seems to check for "less than" the random value.
+On Wed, Mar 2, 2016 at 5:24 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Mar 02, 2016 at 12:48:26PM +0100, Pablo Neira Ayuso wrote:
+>> On Wed, Mar 02, 2016 at 02:10:56AM +0530, Shivani Bhardwaj wrote:
+>> > Add translation for sctp to nftables.
+>> > Full translation of this match awaits the support for --chunk-types
+>> > option.
+>>
+>> Please, keep this documented in the wiki too so we remember there is a
+>> partial translation for this.
+>>
+>> > Examples:
+>> >
+>> > $ sudo iptables-translate -A INPUT -p sctp --dport 80 -j DROP
+>> > nft add rule ip filter INPUT sctp dport 80 counter drop
+>> >
+>> > $ sudo iptables-translate -A INPUT -p sctp ! --sport 80:100 -j ACCEPT
+>> > nft add rule ip filter INPUT sctp sport != 80-100 counter accept
+>>
+>> Applied, thanks Shivani.
 >
->Yes. [...]=20
->Other suggestions?
+> Sorry, I have to keep this back.
+>
+> This crazy thing seems to be valid:
+>
+>         iptables -I INPUT -p sctp -m sctp
+>
+> and this will be translated as:
+>
+>         nft add rule filter INPUT ip protocol sctp sctp
 
-"--probability" is meant to represent saying "with a probability
-of=C2=A0p=3D10%, ...". This does not mandate any particular operator.
+dmesg shows me
 
-The use of the LE operator seems more of an implementation detail for
-use with discrete approaches (such as prandom_u32 and counting =C3=A0 l=
-a
-Nth), and therefore should not be exposed by nft. Think of asking a
-hypothetical hardware device which answers the probability question.
+x_tables: ip_tables: sctp match: only valid for protocol 132
 
-int mtinit(prob p) { setup_hw(p); }
-bool match() { return hw_says(); }
-
-
-
-=46urthermore, it surprises me that iptables even supports
-!=C2=A0--probability, because you can just express it as 1-p
-instead.
-
-"32% of people voted for Party 1, not 32% for Party 2"
-
-Nobody does that. Instead,
-
-"32% of people voted for Party 1, 68% (or: the rest) for Party 2"
-
-which is probably also why I have never seen !=C2=A0--p in the
-wild, because anyone could just specify 1-p instead.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+means sctp match is valid for sctp protocol. There should not be an
+sctp match (correct me if I am wrong here), should this be on
+bugzilla?
