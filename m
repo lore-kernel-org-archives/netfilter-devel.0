@@ -1,89 +1,143 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v3] extensions: libxt_statistic: Add translation to nft
-Date: Wed, 2 Mar 2016 13:10:33 +0100
-Message-ID: <20160302121033.GA4348@breakpoint.cc>
-References: <20160301204042.GA15382@sonyv>
- <20160302114611.GA3008@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Laura Garcia Liebana <nevola@gmail.com>,
-	netfilter-devel@vger.kernel.org, shivanib134@gmail.com,
-	fw@strlen.de, outreachy-kernel@googlegroups.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Ismo Puustinen <ismo.puustinen@intel.com>
+Subject: [PATCH nft 1/1] scanner: add support for include directories
+Date: Wed,  2 Mar 2016 14:11:30 +0200
+Message-ID: <1456920690-14477-2-git-send-email-ismo.puustinen@intel.com>
+References: <1456920690-14477-1-git-send-email-ismo.puustinen@intel.com>
+Cc: Ismo Puustinen <ismo.puustinen@intel.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52060 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753358AbcCBMKg (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Mar 2016 07:10:36 -0500
-Content-Disposition: inline
-In-Reply-To: <20160302114611.GA3008@salvia>
+Received: from mga14.intel.com ([192.55.52.115]:12087 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754484AbcCBMLy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Mar 2016 07:11:54 -0500
+In-Reply-To: <1456920690-14477-1-git-send-email-ismo.puustinen@intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Tue, Mar 01, 2016 at 09:40:45PM +0100, Laura Garcia Liebana wrote:
-> > Add translation for random mode to nftables. The nth mode is not
-> > supported yet.
-> > 
-> > Examples:
-> > 
-> > $ iptables-translate -A INPUT -m statistic --mode random --probability
-> > 0.1 -j ACCEPT
-> > nft add rule ip filter INPUT meta random 0.10000000009 counter accept
-> 
-> Is this translation correct?
+If a string after "include" keyword points to a directory instead of a
+file, consider the directory to contain only nft rule files and try to
+load them all. This helps with a use case where services drop their own
+firewall configuration files into a directory and nft needs to include
+those without knowing the exact file names.
 
-Yes.
+Signed-off-by: Ismo Puustinen <ismo.puustinen@intel.com>
+---
+ src/main.c    |  4 ++--
+ src/scanner.l | 73 +++++++++++++++++++++++++++++++++++++++++++++++------------
+ 2 files changed, 61 insertions(+), 16 deletions(-)
 
-> I can see in 
-> 
-> static bool
-> statistic_mt(const struct sk_buff *skb, struct xt_action_param *par)
-> {
->         const struct xt_statistic_info *info = par->matchinfo;
->         bool ret = info->flags & XT_STATISTIC_INVERT;
->         int nval, oval;
-> 
->         switch (info->mode) {
->         case XT_STATISTIC_MODE_RANDOM:
->                 if ((prandom_u32() & 0x7FFFFFFF) < info->u.random.probability)
-> 
-> --probability seems to check for "less than" the random value.
+diff --git a/src/main.c b/src/main.c
+index 7bbcfc4..395bde2 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -36,8 +36,8 @@ unsigned int handle_output;
+ unsigned int debug_level;
+ #endif
+ 
+-const char *include_paths[INCLUDE_PATHS_MAX] = { DEFAULT_INCLUDE_PATH };
+-static unsigned int num_include_paths = 1;
++const char *include_paths[INCLUDE_PATHS_MAX] = { DEFAULT_INCLUDE_PATH, "." };
++static unsigned int num_include_paths = 2;
+ 
+ enum opt_vals {
+ 	OPT_HELP		= 'h',
+diff --git a/src/scanner.l b/src/scanner.l
+index a0dee47..58ecd71 100644
+--- a/src/scanner.l
++++ b/src/scanner.l
+@@ -10,6 +10,8 @@
+ 
+ %{
+ 
++#include <dirent.h>
++#include <libgen.h>
+ #include <limits.h>
+ #include <netinet/in.h>
+ #include <arpa/inet.h>
+@@ -620,26 +622,69 @@ int scanner_include_file(void *scanner, const char *filename,
+ 
+ 	f = NULL;
+ 	for (i = 0; i < INCLUDE_PATHS_MAX; i++) {
++		DIR *directory = NULL;
++
+ 		if (include_paths[i] == NULL)
+ 			break;
+ 		snprintf(buf, sizeof(buf), "%s/%s", include_paths[i], filename);
+-		f = fopen(buf, "r");
+-		if (f != NULL)
++
++		directory = opendir(buf);
++
++		if (directory == NULL && errno != ENOTDIR) {
++			/* Could not access the directory or file. */
++			continue;
++		}
++		else if (directory != NULL) {
++			struct dirent *de;
++
++			/* If the path is a directory, assume that all files there need
++			 * to be included. */
++			while ((de = readdir(directory))) {
++				char dirbuf[PATH_MAX];
++
++				snprintf(dirbuf, sizeof(dirbuf), "%s/%s", buf, de->d_name);
++
++				if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0)
++					continue;
++
++				f = fopen(dirbuf, "r");
++
++				if (f == NULL) {
++					erec = error(loc, "Could not open file \"%s\": %s\n",
++							filename, strerror(errno));
++					closedir(directory);
++					goto err;
++				}
++				name = de->d_name;
++
++				erec = scanner_push_file(scanner, name, f, loc);
++				if (erec != NULL) {
++					closedir(directory);
++					goto err;
++				}
++			}
++
++			closedir(directory);
+ 			break;
+-	}
+-	if (f == NULL) {
+-		f = fopen(filename, "r");
+-		if (f == NULL) {
+-			erec = error(loc, "Could not open file \"%s\": %s\n",
+-				     filename, strerror(errno));
+-			goto err;
+ 		}
+-		name = filename;
+-	}
++		else {
++			/* A simple include file. */
++			f = fopen(buf, "r");
++			if (f == NULL) {
++				erec = error(loc, "Could not open file \"%s\": %s\n",
++						filename, strerror(errno));
++				goto err;
++			}
+ 
+-	erec = scanner_push_file(scanner, name, f, loc);
+-	if (erec != NULL)
+-		goto err;
++			if (strcmp(".", dirname(buf)) == 0)
++				name = filename;
++
++			erec = scanner_push_file(scanner, name, f, loc);
++			if (erec != NULL)
++				goto err;
++			break;
++		}
++	}
+ 	return 0;
+ 
+ err:
+-- 
+2.5.0
 
-Yes.
-
-> I think meta random 0.10000000009 will only match for the exact case.
-
-No; I thought that 'nft ... meta random 0.5' should on average match half of
-the time so the proposed nft prandom patch set makes LE the default op.
-
-So meta random 0.1 is in fact 'meta random le 0.1' (and nft will display
-it like this).
-
-> > $ iptables-translate -A INPUT -m statistic --mode random ! --probability
-> > 0.1 -j ACCEPT
-> > nft add rule ip filter INPUT meta random != 0.10000000009 counter accept
-> 
-> Then, the opposite has to be:
-> 
->         meta random gte 0.10000000009
-
-Good point, this is not intuitive.
-
-Currently if no operator is given and the type is TYPE_PROBABILITY then
-we just use le instead of eq (just like we pick "&" in some cases).
-
-But if user asks 'meta random ne 0.1' then the match propability is close
-to 100%.
-
-Do you think its enough to just document that you need to use le/ge etc.
-for this?
-
-Other option would be to rewrite NE to GE if rh value is a probability,
-but I'm not sure if such 'helpful' logic isn't too likely to get in the
-way.
-
-Yet another option is to just disallow EQ and NE ops and throw an error.
-
-Other suggestions?
