@@ -1,80 +1,77 @@
-From: Mart Frauenlob <mart.frauenlob@chello.at>
-Subject: Re: [PATCH 1/2] iptables: utils: Add bash completion
-Date: Wed, 2 Mar 2016 13:24:01 +0100
-Message-ID: <56D6DB61.7070203@chello.at>
-References: <1456412814-4580-1-git-send-email-mart.frauenlob@chello.at>
- <1456412814-4580-2-git-send-email-mart.frauenlob@chello.at>
- <20160302113411.GA2068@salvia>
-Reply-To: mart.frauenlob@chello.at
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v3] extensions: libxt_statistic: Add translation to nft
+Date: Wed, 2 Mar 2016 13:33:39 +0100
+Message-ID: <20160302123339.GA4930@salvia>
+References: <20160301204042.GA15382@sonyv>
+ <20160302114611.GA3008@salvia>
+ <20160302121033.GA4348@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Laura Garcia Liebana <nevola@gmail.com>,
+	netfilter-devel@vger.kernel.org, shivanib134@gmail.com,
+	outreachy-kernel@googlegroups.com
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vie01a-dmta-at02-3.mx.upcmail.net ([62.179.121.150]:27527 "EHLO
-	vie01a-dmta-at02-3.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752485AbcCBMYF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Mar 2016 07:24:05 -0500
-Received: from [172.31.216.43] (helo=vie01a-pemc-psmtp-pe01)
-	by vie01a-dmta-pe01.mx.upcmail.net with esmtp (Exim 4.72)
-	(envelope-from <mart.frauenlob@chello.at>)
-	id 1ab5ov-0007ab-OT
-	for netfilter-devel@vger.kernel.org; Wed, 02 Mar 2016 13:24:01 +0100
-In-Reply-To: <20160302113411.GA2068@salvia>
+Received: from mail.us.es ([193.147.175.20]:41100 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752980AbcCBMdr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Mar 2016 07:33:47 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 94CD061E89
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Mar 2016 13:33:43 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 828C9DA3A4
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Mar 2016 13:33:43 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 882E2DA38C
+	for <netfilter-devel@vger.kernel.org>; Wed,  2 Mar 2016 13:33:40 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20160302121033.GA4348@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02.03.2016 12:34, Pablo Neira Ayuso wrote:
-> On Thu, Feb 25, 2016 at 04:06:53PM +0100, Mart Frauenlob wrote:
->> This is a fully featured completion for ip[6]tables.
->> It knows about all the basic parameters and the options of all
->> targets and matches. Mandatory and exclusive options and inversion
->> of options are taken care of. Protocol dependency and previously
->> set values of options are also taken into account.
->> Completion of option values is done whereever possible.
->> Enviroment variables allow to modify completion behaviour.
->> As to feed ip address from file or to turn on input validation.
->> A readme file is included.
->>
->> Signed-off-by: Mart Frauenlob <mart.frauenlob@chello.at>
->> ---
->>   utils/iptables_bash_completion/README.md |  290 ++++
->>   utils/iptables_bash_completion/iptables  | 2426 ++++++++++++++++++++++++++++++
+On Wed, Mar 02, 2016 at 01:10:33PM +0100, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > I think meta random 0.10000000009 will only match for the exact case.
+> 
+> No; I thought that 'nft ... meta random 0.5' should on average match half of
+> the time so the proposed nft prandom patch set makes LE the default op.
+> 
+> So meta random 0.1 is in fact 'meta random le 0.1' (and nft will display
+> it like this).
+> 
+> > > $ iptables-translate -A INPUT -m statistic --mode random ! --probability
+> > > 0.1 -j ACCEPT
+> > > nft add rule ip filter INPUT meta random != 0.10000000009 counter accept
+> > 
+> > Then, the opposite has to be:
+> > 
+> >         meta random gte 0.10000000009
+> 
+> Good point, this is not intuitive.
+> 
+> Currently if no operator is given and the type is TYPE_PROBABILITY then
+> we just use le instead of eq (just like we pick "&" in some cases).
+> 
+> But if user asks 'meta random ne 0.1' then the match propability is close
+> to 100%.
+> 
+> Do you think its enough to just document that you need to use le/ge etc.
+> for this?
 >
-> This is fair good amount of work, but this is also quite a bit of
-> new shell code to be maintained in our trees.
->
-> Moreover, I was told that, in the specific case of debian, there is a
-> package (bash-completion) where you place this.
->
-> So sorry, I'm not applying this.
+> Other option would be to rewrite NE to GE if rh value is a probability,
+> but I'm not sure if such 'helpful' logic isn't too likely to get in the
+> way.
+> 
+> Yet another option is to just disallow EQ and NE ops and throw an error.
+> 
+> Other suggestions?
 
-Hello Pablo,
+I'm fine with the probability scaling, but I think we should keep this
+consistent with other selectors, so I would use lt and gte instead
+here.
 
-what a pitty! :-/
-Before writing this patch, I've asked the developers of bash completion 
-for inclusion.
-For them it's fair to big and specific to maintain.
-They were worried about iptables becoming deprecated and them having 
-dead code in their package.
-The only chance for inclusion, and that's not granted too, is to 
-additionally write a test suite with tools I don't have any knowledge 
-about yet - and to sign up as maintainer there.
-So they recommended me to request inclusion in iptables.
+We can potentially use ranges here too and other available operations
+such as prefixes (although this one I don't know use case for this).
 
-I think this is a good piece of work, probably the best featured bash 
-completion ever, and I'd wish to get it distributed.
-My abilities in that matter are limited.
-
-Of course I'd keep fixing bugs and add new iptables features (though I 
-think there are not many to expect in the future, right?).
-If someone submits a bug report, I'll take care of it if anyhow 
-possible. Just need to be notified by CC or so.
-
-Thanks for considering.
-
-Best regards,
-Mart
-
+Thanks.
