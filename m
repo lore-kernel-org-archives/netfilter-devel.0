@@ -1,132 +1,68 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v3] extensions: libxt_statistic: Add translation to nft
-Date: Wed, 2 Mar 2016 14:44:38 +0100
-Message-ID: <20160302134438.GE4348@breakpoint.cc>
-References: <20160301204042.GA15382@sonyv>
- <20160302114611.GA3008@salvia>
- <20160302121033.GA4348@breakpoint.cc>
- <20160302123339.GA4930@salvia>
- <20160302123738.GB4348@breakpoint.cc>
- <20160302124626.GA5243@salvia>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: Re: [PATCH] extensions: libip6t_hbh: Add translation to nft
+Date: Wed, 2 Mar 2016 19:17:36 +0530
+Message-ID: <CAKHNQQFDEQ2Wp_rV4TG2OgdayuFJmORdaBhzyAx7VghvjNiBcg@mail.gmail.com>
+References: <20160301215243.GA19576@gmail.com> <20160302114928.GB3493@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Cc: Florian Westphal <fw@strlen.de>,
-	Laura Garcia Liebana <nevola@gmail.com>,
-	netfilter-devel@vger.kernel.org, shivanib134@gmail.com,
-	outreachy-kernel@googlegroups.com
+Content-Type: text/plain; charset=UTF-8
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52237 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750999AbcCBNol convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Mar 2016 08:44:41 -0500
-Content-Disposition: inline
-In-Reply-To: <20160302124626.GA5243@salvia>
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:37581 "EHLO
+	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750999AbcCBNsR (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Mar 2016 08:48:17 -0500
+Received: by mail-wm0-f49.google.com with SMTP id p65so78635190wmp.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 02 Mar 2016 05:48:17 -0800 (PST)
+In-Reply-To: <20160302114928.GB3493@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Mar 02, 2016 at 01:37:38PM +0100, Florian Westphal wrote:
-> > Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > 
-> > [ nft meta random ]
-> > 
-> > > I'm fine with the probability scaling, but I think we should keep this
-> > > consistent with other selectors, so I would use lt and gte instead
-> > > here.
-> > > 
-> > > We can potentially use ranges here too and other available operations
-> > > such as prefixes (although this one I don't know use case for this).
-> > 
-> > Ok, so just to clarify.  You want me to submit v2 of nft meta random
-> > patch set that turns:
-> > 
-> > meta random value
-> > into
-> > meta random lt value
-> > 
-> > ... and ...
-> > 
-> > meta random ne value
-> > into
-> > meta random ge value
-> > 
-> > Is that correct?
-> 
-> I think so, so this becomes consistent with other selectors that we
-> have. Does this sound reasonable to you?
+On Wed, Mar 2, 2016 at 5:19 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Mar 02, 2016 at 03:22:43AM +0530, Shivani Bhardwaj wrote:
+>> Add translation for module hop-by-hop to nftables.
+>> Full translation of this match awaits the support for --hbh-opts option.
+>>
+>> Examples:
+>>
+>> $ sudo ip6tables-translate -A INPUT -m hbh --hbh-len 33
+>> nft add rule ip6 filter INPUT hbh hdrlength 33 counter
+>>
+>> $ sudo ip6tables-translate -A INPUT -m hbh ! --hbh-len 33
+>> nft add rule ip6 filter INPUT hbh hdrlength != 33 counter
+>>
+>> Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+>> ---
+>>  extensions/libip6t_hbh.c | 17 +++++++++++++++++
+>>  1 file changed, 17 insertions(+)
+>>
+>> diff --git a/extensions/libip6t_hbh.c b/extensions/libip6t_hbh.c
+>> index c0389ed..f968036 100644
+>> --- a/extensions/libip6t_hbh.c
+>> +++ b/extensions/libip6t_hbh.c
+>> @@ -164,6 +164,22 @@ static void hbh_save(const void *ip, const struct xt_entry_match *match)
+>>       print_options(optinfo->optsnr, (uint16_t *)optinfo->opts);
+>>  }
+>>
+>> +static int hbh_xlate(const struct xt_entry_match *match,
+>> +                  struct xt_xlate *xl, int numeric)
+>> +{
+>> +     const struct ip6t_opts *optinfo = (struct ip6t_opts *)match->data;
+>> +
+>> +     xt_xlate_add(xl, "hbh ");
+>> +
+>> +     if (optinfo->flags & IP6T_OPTS_LEN) {
+>
+> If no header length is passed, then this will print:
+>
+> nft add rule ip6 filter INPUT hbh counter
+>
 
-I tried to find an existing op that behaves this way, but did not find
-any.
+What should be the rule generated in case none of the options is mentioned?
 
-The first part (making meta random value translate to meta random le
-value) seems fine, this is similar to e.g. tcp flags which uses '&' as
-default op when user did not provide an operator.
+# iptables-translate -A INPUT -m hbh
+?
 
-But for a given operation, I could not find any place where we 'disobey'
-the op and silently use something else.
-So I disagree with second part -- i think meta random ne value
-should be left as-is, i.e. NOT 'guess' that user wanted 'ge' instead.
-
-I think users wanting 'negate meta random 0.9' should just
-use 'meta random 0.1' 8-)
-
-Regarding existing behaviour, this is what happens for
-tcp flags:
-
-"tcp flags syn":
-  [ payload load 1b @ transport header + 13 => reg 1 ]
-  [ bitwise reg 1 = (reg=1 & 0x00000002 ) ^ 0x00000000 ]
-  [ cmp neq reg 1 0x00000000 ]
-
--> i.e. we assume user wants bit-test, i.e. 'tcp flags & syn != 0'.
-
-Some users instead expect this to behave like iptables
- --syn, i.e.  'match if syn is set and ack cleared'.
-
-But I think its fine as-is, since 'tcp flags ack' does the sane
-thing and matches when ACK flag is set, rather than *only* ACK
-being set.
-
-"tcp flags eq syn":
-  [ payload load 1b @ transport header + 13 => reg 1 ]
-  [ cmp eq reg 1 0x00000002 ]
-"tcp flags ne syn":
-  [ payload load 1b @ transport header + 13 => reg 1 ]
-  [ cmp neq reg 1 0x00000002 ]
-
-So we do what we're told for both eq and ne.
-And as you can see, ne is NOT the inverse of the implicit
-'tcp flags syn'.
-
-To get the negation of 'tcp flags syn' user needs to ask for
-"tcp flags & syn == 0":
-  [ payload load 1b @ transport header + 13 => reg 1 ]
-  [ bitwise reg 1 = (reg=1 & 0x00000002 ) ^ 0x00000000 ]
-  [ cmp eq reg 1 0x00000000 ]
-
-... and I think nft behaviour is consistent in this regard:
-
-We attempt to pick the most sane op if nothing was provided
-(eq in most cases, bit-test for some others) and otherwise
-do what we're told.
-
-Could do something like this:
-
-@@ -1239,6 +1239,12 @@ static int expr_evaluate_relational(struct eval_ctx *ctx, struct expr **expr)
- 
-                /* fall through */
-        case OP_NEQ:
-+               if (rel->right->dtype->type == TYPE_PROBABILITY)
-+                       return expr_binary_error(ctx->msgs,right, left,
-+                                                "Relational expression (%s) is undefined "
-+                                                "for probability type",
-+                                                expr_op_symbols[rel->op]);
-+               /* fallthrough */
-        case OP_FLAGCMP:
-
-... but that could also prevent someone from doing something smart, so
-I'm reluctant to disallow this just because this doesn't do what some people expect
-at first glance...
+> which will not work.
