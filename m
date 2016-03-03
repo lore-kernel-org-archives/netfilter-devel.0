@@ -1,23 +1,23 @@
 From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH v2] extensions: libxt_dccp: Add translation to nft
-Date: Fri, 4 Mar 2016 03:22:02 +0530
-Message-ID: <20160303215148.GA5408@gmail.com>
+Subject: [PATCH v3] extensions: libxt_dccp: Add translation to nft
+Date: Fri, 4 Mar 2016 03:31:45 +0530
+Message-ID: <20160303220145.GA6872@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:36455 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753474AbcCCVwK (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:32781 "EHLO
+	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754573AbcCCWBw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Mar 2016 16:52:10 -0500
-Received: by mail-pf0-f195.google.com with SMTP id q129so2028025pfb.3
-        for <netfilter-devel@vger.kernel.org>; Thu, 03 Mar 2016 13:52:09 -0800 (PST)
+	Thu, 3 Mar 2016 17:01:52 -0500
+Received: by mail-pf0-f194.google.com with SMTP id 63so2045283pfe.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 03 Mar 2016 14:01:52 -0800 (PST)
 Received: from gmail.com ([223.176.176.65])
-        by smtp.gmail.com with ESMTPSA id t75sm364322pfa.54.2016.03.03.13.52.06
+        by smtp.gmail.com with ESMTPSA id 81sm414937pfa.12.2016.03.03.14.01.49
         for <netfilter-devel@vger.kernel.org>
         (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Thu, 03 Mar 2016 13:52:08 -0800 (PST)
+        Thu, 03 Mar 2016 14:01:50 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -42,8 +42,11 @@ nft add rule ip filter INPUT dccp dport 100 dccp type {request, response, data, 
 
 Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
 ---
+Changes in v3:
+	Return 0 if translation for dccp-option is demanded
+
 Changes in v2:
-	Fix bugs and remove invalid dccp type
+        Fix bugs and remove invalid dccp type
 
 Following is not added in commit message as it is not translation code
 issue:
@@ -53,14 +56,14 @@ with rules like
 * dccp type reset
 is going to throw errors.
 
- extensions/libxt_dccp.c | 89 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 89 insertions(+)
+ extensions/libxt_dccp.c | 92 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 92 insertions(+)
 
 diff --git a/extensions/libxt_dccp.c b/extensions/libxt_dccp.c
-index a35cabb..8bccd7a 100644
+index a35cabb..0d4f369 100644
 --- a/extensions/libxt_dccp.c
 +++ b/extensions/libxt_dccp.c
-@@ -277,6 +277,94 @@ static void dccp_save(const void *ip, const struct xt_entry_match *match)
+@@ -277,6 +277,97 @@ static void dccp_save(const void *ip, const struct xt_entry_match *match)
  	}
  }
  
@@ -150,12 +153,15 @@ index a35cabb..8bccd7a 100644
 +	if (einfo->flags & XT_DCCP_TYPE)
 +		ret = dccp_type_xlate(einfo, xl);
 +
++	if (einfo->flags & XT_DCCP_OPTION)
++		ret = 0;
++
 +	return ret;
 +}
  static struct xtables_match dccp_match = {
  	.name		= "dccp",
  	.family		= NFPROTO_UNSPEC,
-@@ -288,6 +376,7 @@ static struct xtables_match dccp_match = {
+@@ -288,6 +379,7 @@ static struct xtables_match dccp_match = {
  	.save		= dccp_save,
  	.x6_parse	= dccp_parse,
  	.x6_options	= dccp_opts,
