@@ -1,42 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] extensions: libxt_sctp: Add translation to nft
-Date: Thu, 3 Mar 2016 13:22:01 +0100
-Message-ID: <20160303122201.GB2094@salvia>
-References: <20160302192848.GA683@gmail.com>
+From: Mart Frauenlob <mart.frauenlob@chello.at>
+Subject: Re: [PATCH 1/2] iptables: utils: Add bash completion
+Date: Thu, 3 Mar 2016 15:18:45 +0100
+Message-ID: <56D847C5.2030707@chello.at>
+References: <1456412814-4580-1-git-send-email-mart.frauenlob@chello.at>
+ <1456412814-4580-2-git-send-email-mart.frauenlob@chello.at>
+ <20160302113411.GA2068@salvia> <56D6DB61.7070203@chello.at>
+ <20160302125445.GA5129@salvia>
+Reply-To: mart.frauenlob@chello.at
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Mart Frauenlob <mart.frauenlob@chello.at>,
+	netfilter-devel@vger.kernel.org,
+	Giuseppe Longo <giuseppelng@gmail.com>,
+	Eric Leblond <eric@regit.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39644 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751247AbcCCMWE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Mar 2016 07:22:04 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 1DA18C1259
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 Mar 2016 13:22:03 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 0D43EDA39D
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 Mar 2016 13:22:03 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B797ADA8F7
-	for <netfilter-devel@vger.kernel.org>; Thu,  3 Mar 2016 13:22:00 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20160302192848.GA683@gmail.com>
+Received: from vie01a-dmta-at02-2.mx.upcmail.net ([62.179.121.149]:58758 "EHLO
+	vie01a-dmta-at02-2.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757733AbcCCOSt (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Mar 2016 09:18:49 -0500
+Received: from [172.31.216.43] (helo=vie01a-pemc-psmtp-pe01)
+	by vie01a-dmta-pe01.mx.upcmail.net with esmtp (Exim 4.72)
+	(envelope-from <mart.frauenlob@chello.at>)
+	id 1abU5W-0002PX-C5
+	for netfilter-devel@vger.kernel.org; Thu, 03 Mar 2016 15:18:46 +0100
+In-Reply-To: <20160302125445.GA5129@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Mar 03, 2016 at 12:58:48AM +0530, Shivani Bhardwaj wrote:
-> Add translation for sctp to nftables.
-> Full translation of this match awaits the support for --chunk-types
-> option.
-> 
-> Examples:
-> 
-> $ sudo iptables-translate -A INPUT -p sctp --dport 80 -j DROP
-> nft add rule ip filter INPUT sctp dport 80 counter drop
-> 
-> $ sudo iptables-translate -A INPUT -p sctp ! --sport 80:100 -j ACCEPT
-> nft add rule ip filter INPUT sctp sport != 80-100 counter accept
+On 02.03.2016 13:54, Pablo Neira Ayuso wrote:
+> On Wed, Mar 02, 2016 at 01:24:01PM +0100, Mart Frauenlob wrote:
+>> On 02.03.2016 12:34, Pablo Neira Ayuso wrote:
+>>> On Thu, Feb 25, 2016 at 04:06:53PM +0100, Mart Frauenlob wrote:
+[...]
+>
+> One idea is to push into iptables some infrastructure so the script
+> can inquire iptables on available options. This would be simple C code
+> to be places on every extension to print the options. Then, add a tool
+> like iptables-completion that you can use to inquire what is possible
+> to get as options. Thus, we get a generic script that inquires
+> iptables, instead of having them all hardcoded into the script.
 
-Also applied, thanks.
+One more thing coming into my mind:
+A new tool would not be backwards compatible.
+While the shell completion could be used with old versions up to when 
+the -S parameter was introduced. When commenting out some unsupported 
+extensions in their definition array, it'll be suitable for vast parts.
+
