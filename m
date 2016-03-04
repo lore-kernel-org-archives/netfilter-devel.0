@@ -1,48 +1,43 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [PATCH nft 0/1] Proposal: include directories for rulesets
-Date: Fri, 4 Mar 2016 10:57:40 +0100
-Message-ID: <CAOkSjBjPom6KFPLEae7=LWUd79LuqPvV5mfQrhy37HY-jALvYw@mail.gmail.com>
-References: <1456920690-14477-1-git-send-email-ismo.puustinen@intel.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nft 3/4] meta: add probability matching
+Date: Fri, 4 Mar 2016 12:12:06 +0100
+Message-ID: <20160304111206.GA31929@breakpoint.cc>
+References: <1457027814-14795-1-git-send-email-fw@strlen.de>
+ <1457027814-14795-2-git-send-email-fw@strlen.de>
+ <alpine.LSU.2.20.1603032005570.446@nerf40.vanv.qr>
+ <20160303203226.GA2728@breakpoint.cc>
+ <alpine.LSU.2.20.1603032141160.3198@nerf40.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Ismo Puustinen <ismo.puustinen@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33882 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752793AbcCDJ6B convert rfc822-to-8bit (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58185 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750777AbcCDLMJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Mar 2016 04:58:01 -0500
-Received: by mail-wm0-f65.google.com with SMTP id p65so3307843wmp.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 04 Mar 2016 01:58:01 -0800 (PST)
-In-Reply-To: <1456920690-14477-1-git-send-email-ismo.puustinen@intel.com>
+	Fri, 4 Mar 2016 06:12:09 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.20.1603032141160.3198@nerf40.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 2 March 2016 at 13:11, Ismo Puustinen <ismo.puustinen@intel.com> wro=
-te:
-> A nice-to-have feature in nft would be the ability to use include
-> directories that contain rule files. The use case would be support fo=
-r
-> services dropping their custom configuration files into a directory,
-> allowing a more modular firewall configuration.
->
-> This is a proof-of-concept patch -- I'm not very familiar with nftabl=
-es
-> code base and conventions.
->
+Jan Engelhardt <jengelh@inai.de> wrote:
+> >> >+		if (tmp >= UINT_MAX || d > 0.9999999)
+> >> >+			return error(loc, "Probability " META_PROB_FMT " too %s", d, "big");
+> >> 
+> >> You are misappropriating some 430 points here. 0.9999999 maps to
+> >> just 0xfffffe51.
+> >
+> >Sorry, I am not following.
+> 
+> 0.9999999997 is still a valid probability, but you are making it 
+> impossible to select it by cutting off at d > 0.9999999000.
 
-Hi Ismo,
+I'll change it to allow one more digit, so that supported range will
+be 0.00000001 (0x0000002a) to
+   0.99999999 (0xffffffd4).
 
-I like the idea. What I'm wondering is if it worth having another
-directive like 'includedir' to be more explicit.
-
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+(I'll wait a bit in case anyone has opinion where to suppress display of
+ LTE op and where to handle de-scaling of the kernel side integer back
+ to 0.12345 output).
