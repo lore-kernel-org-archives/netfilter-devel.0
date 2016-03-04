@@ -1,174 +1,58 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH v3] extensions: libxt_dccp: Add translation to nft
-Date: Fri, 4 Mar 2016 03:31:45 +0530
-Message-ID: <20160303220145.GA6872@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] rule: simplify ("rule: delete extra space in sets printing")
+Date: Fri,  4 Mar 2016 10:25:32 +0100
+Message-ID: <1457083532-1595-1-git-send-email-pablo@netfilter.org>
+Cc: arturo.borrero.glez@gmail.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:32781 "EHLO
-	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754573AbcCCWBw (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Mar 2016 17:01:52 -0500
-Received: by mail-pf0-f194.google.com with SMTP id 63so2045283pfe.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 03 Mar 2016 14:01:52 -0800 (PST)
-Received: from gmail.com ([223.176.176.65])
-        by smtp.gmail.com with ESMTPSA id 81sm414937pfa.12.2016.03.03.14.01.49
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Thu, 03 Mar 2016 14:01:50 -0800 (PST)
-Content-Disposition: inline
+Received: from mail.us.es ([193.147.175.20]:40613 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758982AbcCDJZk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Mar 2016 04:25:40 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id C0F8273F9
+	for <netfilter-devel@vger.kernel.org>; Fri,  4 Mar 2016 10:25:37 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A65A0330FB
+	for <netfilter-devel@vger.kernel.org>; Fri,  4 Mar 2016 10:25:37 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id ABA91CA0ED
+	for <netfilter-devel@vger.kernel.org>; Fri,  4 Mar 2016 10:25:34 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for dccp to nftables.
+This simplifies bd23f7628570 ("rule: delete extra space in sets printing")
+by passing the whitespace from set_print_plain() called from the monitoring
+path.
 
-Full translation of this match awaits the support for --dccp-option.
-
-Examples:
-
-$ sudo iptables-translate -A INPUT -p dccp -m dccp --sport 100
-nft add rule ip filter INPUT dccp sport 100 counter
-
-$ sudo iptables-translate -A INPUT -p dccp -m dccp --dport 100:200
-nft add rule ip filter INPUT dccp dport 100-200 counter
-
-$ sudo iptables-translate -A INPUT -p dccp -m dccp ! --dport 100
-nft add rule ip filter INPUT dccp dport != 100 counter
-
-$ sudo iptables-translate -A INPUT -p dccp -m dccp --dport 100 --dccp-types REQUEST,RESPONSE,DATA,ACK,DATAACK,CLOSEREQ,CLOSE,SYNC,SYNCACK
-nft add rule ip filter INPUT dccp dport 100 dccp type {request, response, data, ack, dataack, closereq, close, sync, syncack} counter
-
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Changes in v3:
-	Return 0 if translation for dccp-option is demanded
+ src/rule.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-Changes in v2:
-        Fix bugs and remove invalid dccp type
-
-Following is not added in commit message as it is not translation code
-issue:
-* Since inversion of set is not possible in nftables, using dccp
-with rules like
-...dccp type != {request, response}..
-* dccp type reset
-is going to throw errors.
-
- extensions/libxt_dccp.c | 92 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 92 insertions(+)
-
-diff --git a/extensions/libxt_dccp.c b/extensions/libxt_dccp.c
-index a35cabb..0d4f369 100644
---- a/extensions/libxt_dccp.c
-+++ b/extensions/libxt_dccp.c
-@@ -277,6 +277,97 @@ static void dccp_save(const void *ip, const struct xt_entry_match *match)
- 	}
- }
+diff --git a/src/rule.c b/src/rule.c
+index 2f03b98..0b78549 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -269,9 +269,6 @@ static void set_print_declaration(const struct set *set,
  
-+static const char *const dccp_pkt_types_xlate[] = {
-+	[DCCP_PKT_REQUEST]      = "request",
-+	[DCCP_PKT_RESPONSE]     = "response",
-+	[DCCP_PKT_DATA]         = "data",
-+	[DCCP_PKT_ACK]          = "ack",
-+	[DCCP_PKT_DATAACK]      = "dataack",
-+	[DCCP_PKT_CLOSEREQ]     = "closereq",
-+	[DCCP_PKT_CLOSE]        = "close",
-+	[DCCP_PKT_RESET]        = "reset",
-+	[DCCP_PKT_SYNC]         = "sync",
-+	[DCCP_PKT_SYNCACK]      = "syncack",
-+};
-+
-+static int dccp_type_xlate(const struct xt_dccp_info *einfo,
-+			   struct xt_xlate *xl)
-+{
-+	bool have_type = false, set_need = false;
-+	uint16_t types = einfo->typemask;
-+
-+	if (types & (1 << DCCP_PKT_INVALID))
-+		return 0;
-+
-+	xt_xlate_add(xl, "dccp type%s ", einfo->invflags ? " !=" : "");
-+
-+	if ((types != 0) && !(types == (types & -types))) {
-+		xt_xlate_add(xl, "{");
-+		set_need = true;
-+	}
-+
-+	while (types) {
-+		unsigned int i;
-+
-+		for (i = 0; !(types & (1 << i)); i++);
-+
-+		if (have_type)
-+			xt_xlate_add(xl, ", ");
-+		else
-+			have_type = true;
-+
-+		xt_xlate_add(xl, "%s", dccp_pkt_types_xlate[i]);
-+
-+		types &= ~(1 << i);
-+	}
-+
-+	if (set_need)
-+		xt_xlate_add(xl, "}");
-+
-+	xt_xlate_add(xl, " ");
-+
-+	return 1;
-+}
-+
-+static int dccp_xlate(const struct xt_entry_match *match,
-+		      struct xt_xlate *xl, int numeric)
-+{
-+	const struct xt_dccp_info *einfo =
-+			(const struct xt_dccp_info *)match->data;
-+	int ret = 1;
-+
-+	xt_xlate_add(xl, "dccp ");
-+
-+	if (einfo->flags & XT_DCCP_SRC_PORTS) {
-+		if (einfo->spts[0] != einfo->spts[1])
-+			xt_xlate_add(xl, "sport%s %u-%u ",
-+				     einfo->invflags & XT_DCCP_SRC_PORTS ? " !=" : "",
-+				     einfo->spts[0], einfo->spts[1]);
-+		else
-+			xt_xlate_add(xl, "sport%s %u ",
-+				     einfo->invflags & XT_DCCP_SRC_PORTS ? " !=" : "",
-+				     einfo->spts[0]);
-+	}
-+
-+	if (einfo->flags & XT_DCCP_DEST_PORTS) {
-+		if (einfo->dpts[0] != einfo->dpts[1])
-+			xt_xlate_add(xl, "dport%s %u-%u ",
-+				     einfo->invflags & XT_DCCP_DEST_PORTS ? " !=" : "",
-+				     einfo->dpts[0], einfo->dpts[1]);
-+		else
-+			xt_xlate_add(xl, "dport%s %u ",
-+				     einfo->invflags & XT_DCCP_DEST_PORTS ? " !=" : "",
-+				     einfo->dpts[0]);
-+	}
-+
-+	if (einfo->flags & XT_DCCP_TYPE)
-+		ret = dccp_type_xlate(einfo, xl);
-+
-+	if (einfo->flags & XT_DCCP_OPTION)
-+		ret = 0;
-+
-+	return ret;
-+}
- static struct xtables_match dccp_match = {
- 	.name		= "dccp",
- 	.family		= NFPROTO_UNSPEC,
-@@ -288,6 +379,7 @@ static struct xtables_match dccp_match = {
- 	.save		= dccp_save,
- 	.x6_parse	= dccp_parse,
- 	.x6_options	= dccp_opts,
-+	.xlate		= dccp_xlate,
- };
+ 	printf(" %s {%s", set->handle.set, opts->nl);
  
- void _init(void)
+-	if (!opts->nl[0])
+-		printf(" ");
+-
+ 	printf("%s%stype %s", opts->tab, opts->tab, set->keytype->name);
+ 	if (set->flags & SET_F_MAP)
+ 		printf(" : %s", set->datatype->name);
+@@ -352,7 +349,7 @@ void set_print_plain(const struct set *s)
+ {
+ 	struct print_fmt_options opts = {
+ 		.tab		= "",
+-		.nl		= "",
++		.nl		= " ",
+ 		.table		= s->handle.table,
+ 		.family		= family2str(s->handle.family),
+ 		.stmt_separator	= ";",
 -- 
-1.9.1
+2.1.4
 
