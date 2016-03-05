@@ -1,70 +1,97 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: using connlabel match
-Date: Sat, 5 Mar 2016 13:37:20 +0100
-Message-ID: <20160305123720.GA2691@salvia>
-References: <CAKHNQQF6-3OgGbnF5=Wm46-=d0j80ExwiEVV7Rrm6czLT4YHGw@mail.gmail.com>
+Subject: Re: extensions: libxt_multiport: Multiport translations
+Date: Sat, 5 Mar 2016 13:42:11 +0100
+Message-ID: <20160305124211.GA2676@salvia>
+References: <CAKrM2X=PyBuF=ZrNkBFoTB4m+7pr15WUC_AahYn+x9wwf5Eibg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+To: ppang@linux.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48235 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48612 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753628AbcCEMhZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Mar 2016 07:37:25 -0500
+	id S1754892AbcCEMmV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 5 Mar 2016 07:42:21 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 7ABFA7400
-	for <netfilter-devel@vger.kernel.org>; Sat,  5 Mar 2016 13:37:24 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id A46C87400
+	for <netfilter-devel@vger.kernel.org>; Sat,  5 Mar 2016 13:42:14 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6986FDA8FA
-	for <netfilter-devel@vger.kernel.org>; Sat,  5 Mar 2016 13:37:24 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 94FACDA388
+	for <netfilter-devel@vger.kernel.org>; Sat,  5 Mar 2016 13:42:14 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 045F3DA8FB
-	for <netfilter-devel@vger.kernel.org>; Sat,  5 Mar 2016 13:37:22 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 9A1D8DA8F9
+	for <netfilter-devel@vger.kernel.org>; Sat,  5 Mar 2016 13:42:12 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <CAKHNQQF6-3OgGbnF5=Wm46-=d0j80ExwiEVV7Rrm6czLT4YHGw@mail.gmail.com>
+In-Reply-To: <CAKrM2X=PyBuF=ZrNkBFoTB4m+7pr15WUC_AahYn+x9wwf5Eibg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Shivani,
-
-On Fri, Mar 04, 2016 at 04:05:24AM +0530, Shivani Bhardwaj wrote:
-> Hi Pablo,
+On Thu, Mar 03, 2016 at 06:02:41PM +0000, Piyush Pangtey wrote:
+> Added multiport translations for ipv4 only .
+> It's for review pupose only , it definitely needs changes .
 > 
-> connlabel match never loads. It shows
-> iptables v1.6.0: Couldn't load match `connlabel':No such file or directory
+> example :
+> iptables-translate -A INPUT -p tcp -m multiport --dports 22,http,ssh -j ACCEPT
+> nft add rule ip filter INPUT ip protocol tcp dport  { 22,80,22 } counter accept
 > 
-> I see this conversation here:
-> https://patchwork.ozlabs.org/patch/386215/ and the patch which causes
-> this http://git.netfilter.org/iptables/commit/?id=51340f7b6a1103b12d86ef488f7140406d80401e.
-> However, Florian sent a patch to deal with this
-> http://git.netfilter.org/iptables/commit/?id=825fbda5482a7d5ec5a6619c81fe07ff865c7d6e.
-> May be I'm doing it all wrong. I'm not sure how connlabel should be
-> used. Could you please clarify?
+> diff --git a/extensions/libxt_multiport.c b/extensions/libxt_multiport.c
+> index 03af5a9..6b46f93 100644
+> --- a/extensions/libxt_multiport.c
+> +++ b/extensions/libxt_multiport.c
+> @@ -468,6 +468,67 @@ static void multiport_save6_v1(const void *ip_void,
+>      __multiport_save_v1(match, ip->proto);
+>  }
+> 
+> +static int multiport_xlate(const struct xt_entry_match *match, struct
+> xt_xlate *xl,
+> +             int numeric)
+> +{
+> +    const struct xt_multiport_v1 *multiinfo
+> +        = (const struct xt_multiport_v1 *)match->data;
 
-Please, check that you have libnetfilter_conntrack and by when you
-call iptables ./configure it doesn't show that connlabel is enabled.
+The = should be on the first line, ie.
 
-        WARNING: libnetfilter_conntrack not found, connlabel match will not be built
+        const struct xt_multiport_v1 *multiinfo =
+                (const struct xt_multiport_v1 *)match->data;
 
-It would be good to fix this in configure.ac in iptables so the
-iptables configuration shows that connlabel support is on/off.
+> +    unsigned int i;
+   ^^^^
+I see spaces here, there should be an 8-chars tab indentation there.
 
-Iptables Configuration:                                                          
-  IPv4 support:                         ${enable_ipv4}                           
-  IPv6 support:                         ${enable_ipv6}                           
-  Devel support:                        ${enable_devel}                          
-  IPQ support:                          ${enable_libipq}                         
-  Large file support:                   ${enable_largefile}                      
-  BPF utils support:                    ${enable_bpfc}                           
-  nfsynproxy util support:              ${enable_nfsynproxy}                     
-  nftables support:                     ${enable_nftables}                       
-                                                                                 
-Build parameters:                                                                
-  Put plugins into executable (static): ${enable_static}                         
-  Support plugins via dlopen (shared):  ${enable_shared}                         
-  Installation prefix (--prefix):       ${prefix}                                
-  Xtables extension directory:          ${e_xtlibdir}                            
-  Pkg-config directory:                 ${e_pkgconfigdir}"  
+Please, make sure coding style is correct.
 
-Would you mind sending a patch for configure.ac in iptables?
+> +    switch (multiinfo->flags) {
+> +    case XT_MULTIPORT_SOURCE:
+> +        xt_xlate_add(xl,"sport ");
+                           ^
+                          add space after comma
+
+> +        break;
+> +
+
+No need for this extra line break;
+
+> +    case XT_MULTIPORT_DESTINATION:
+> +        xt_xlate_add(xl,"dport ");
+> +        break;
+> +
+> +    default:
+> +        return 1;
+> +    }
+> +    xt_xlate_add(xl," { ");
+> +    for (i=0; i < multiinfo->count; i++) {
+             ^
+add space betwen variable and value, ie.
+
+        i = 0
+
+this is preferred.
+
+> +        xt_xlate_add(xl,"%u%s", multiinfo->ports[i],
+> +                (i+1) != multiinfo->count ? "," : "");
+
+Align this line with the parens:
+
+        xt_xlate_add(xl,"%u%s", multiinfo->ports[i],
+                    i + 1 != multiinfo->count ? "," : "");
+
