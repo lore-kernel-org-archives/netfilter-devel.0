@@ -1,67 +1,34 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH nf 2/3] netfilter: ipvs: allow rescheduling after RST
-Date: Sat, 5 Mar 2016 15:01:13 +0200 (EET)
-Message-ID: <alpine.LFD.2.11.1603051500180.1715@ja.home.ssi.bg>
-References: <1455756061-21834-1-git-send-email-horms@verge.net.au> <1455756061-21834-3-git-send-email-horms@verge.net.au> <56C5C45D.9050807@cogentembedded.com>
+From: Piyush Pangtey <gokuvsvegita@gmail.com>
+Subject: Reading rules from multiple files
+Date: Sat, 5 Mar 2016 22:54:04 +0530
+Message-ID: <CAKrM2Xm9d76ZxvSL-WPk+W62dX1QCFk6pB0r=g_ktajHZkz2mg@mail.gmail.com>
+Reply-To: ppang@linux.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <56C5C45D.9050807@cogentembedded.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-vk0-f43.google.com ([209.85.213.43]:34369 "EHLO
+	mail-vk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750744AbcCERYF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 5 Mar 2016 12:24:05 -0500
+Received: by mail-vk0-f43.google.com with SMTP id e185so82590635vkb.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 05 Mar 2016 09:24:05 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Currently in nftables , reading rules from files ( '-f/--file
+filename' ) works only with a single file.
+If a directory contains multiple rule files , it cant be done by :
 
-	Hello,
+ $ nft -f /usr/local/etc/nftables/*
+<cmdline>:1:1-1: Error: syntax error, unexpected /
+/usr/local/etc/nftables/inet-filter /usr/local/etc/nftables/ipv4-filter
 
-On Thu, 18 Feb 2016, Sergei Shtylyov wrote:
+instead
+$ nft -f /usr/local/etc/nftables/inet-filter -f
+/usr/local/etc/nftables/ipv4-mangle
 
-> On 2/18/2016 3:41 AM, Simon Horman wrote:
-> 
-> > From: Julian Anastasov <ja@ssi.bg>
-> >
-> > "RFC 5961, 4.2. Mitigation" describes a mechanism to request
-> > client to confirm with RST the restart of TCP connection
-> > before resending its SYN. As result, IPVS can see SYNs for
-> > existing connection in CLOSE state. Add check to allow
-> > rescheduling in this state.
-> >
-> > Signed-off-by: Julian Anastasov <ja@ssi.bg>
-> > Signed-off-by: Simon Horman <horms@verge.net.au>
-> > ---
-> >   net/netfilter/ipvs/ip_vs_core.c | 1 +
-> >   1 file changed, 1 insertion(+)
-> >
-> > diff --git a/net/netfilter/ipvs/ip_vs_core.c
-> > b/net/netfilter/ipvs/ip_vs_core.c
-> > index 4da560005b0e..0c1d3fef9a7c 100644
-> > --- a/net/netfilter/ipvs/ip_vs_core.c
-> > +++ b/net/netfilter/ipvs/ip_vs_core.c
-> > @@ -1089,6 +1089,7 @@ static inline bool is_new_conn_expected(const struct
-> > ip_vs_conn *cp,
-> >    switch (cp->protocol) {
-> >    case IPPROTO_TCP:
-> >   		return (cp->state == IP_VS_TCP_S_TIME_WAIT) ||
-> > +			cp->state == IP_VS_TCP_S_CLOSE ||
-> 
->    I would have been consistent and enclosed this expression into parens as
-> well. BTW, the indentation is not correct anyway.
+but adding '-f' each time for a file is cumbersome .
 
-	Thanks! I'll send new version...
-
-> 
-> >      ((conn_reuse_mode & 2) &&
-> >       (cp->state == IP_VS_TCP_S_FIN_WAIT) &&
-> >       (cp->flags & IP_VS_CONN_F_NOOUTPUT));
-> 
-> MBR, Sergei
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+Is this behaviour ignored for some reasons ?
