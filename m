@@ -1,97 +1,67 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: extensions: libxt_multiport: Multiport translations
-Date: Sat, 5 Mar 2016 13:42:11 +0100
-Message-ID: <20160305124211.GA2676@salvia>
-References: <CAKrM2X=PyBuF=ZrNkBFoTB4m+7pr15WUC_AahYn+x9wwf5Eibg@mail.gmail.com>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH nf 2/3] netfilter: ipvs: allow rescheduling after RST
+Date: Sat, 5 Mar 2016 15:01:13 +0200 (EET)
+Message-ID: <alpine.LFD.2.11.1603051500180.1715@ja.home.ssi.bg>
+References: <1455756061-21834-1-git-send-email-horms@verge.net.au> <1455756061-21834-3-git-send-email-horms@verge.net.au> <56C5C45D.9050807@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: ppang@linux.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48612 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754892AbcCEMmV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 5 Mar 2016 07:42:21 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id A46C87400
-	for <netfilter-devel@vger.kernel.org>; Sat,  5 Mar 2016 13:42:14 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 94FACDA388
-	for <netfilter-devel@vger.kernel.org>; Sat,  5 Mar 2016 13:42:14 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 9A1D8DA8F9
-	for <netfilter-devel@vger.kernel.org>; Sat,  5 Mar 2016 13:42:12 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <CAKrM2X=PyBuF=ZrNkBFoTB4m+7pr15WUC_AahYn+x9wwf5Eibg@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Simon Horman <horms@verge.net.au>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <56C5C45D.9050807@cogentembedded.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Mar 03, 2016 at 06:02:41PM +0000, Piyush Pangtey wrote:
-> Added multiport translations for ipv4 only .
-> It's for review pupose only , it definitely needs changes .
+
+	Hello,
+
+On Thu, 18 Feb 2016, Sergei Shtylyov wrote:
+
+> On 2/18/2016 3:41 AM, Simon Horman wrote:
 > 
-> example :
-> iptables-translate -A INPUT -p tcp -m multiport --dports 22,http,ssh -j ACCEPT
-> nft add rule ip filter INPUT ip protocol tcp dport  { 22,80,22 } counter accept
+> > From: Julian Anastasov <ja@ssi.bg>
+> >
+> > "RFC 5961, 4.2. Mitigation" describes a mechanism to request
+> > client to confirm with RST the restart of TCP connection
+> > before resending its SYN. As result, IPVS can see SYNs for
+> > existing connection in CLOSE state. Add check to allow
+> > rescheduling in this state.
+> >
+> > Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> > Signed-off-by: Simon Horman <horms@verge.net.au>
+> > ---
+> >   net/netfilter/ipvs/ip_vs_core.c | 1 +
+> >   1 file changed, 1 insertion(+)
+> >
+> > diff --git a/net/netfilter/ipvs/ip_vs_core.c
+> > b/net/netfilter/ipvs/ip_vs_core.c
+> > index 4da560005b0e..0c1d3fef9a7c 100644
+> > --- a/net/netfilter/ipvs/ip_vs_core.c
+> > +++ b/net/netfilter/ipvs/ip_vs_core.c
+> > @@ -1089,6 +1089,7 @@ static inline bool is_new_conn_expected(const struct
+> > ip_vs_conn *cp,
+> >    switch (cp->protocol) {
+> >    case IPPROTO_TCP:
+> >   		return (cp->state == IP_VS_TCP_S_TIME_WAIT) ||
+> > +			cp->state == IP_VS_TCP_S_CLOSE ||
 > 
-> diff --git a/extensions/libxt_multiport.c b/extensions/libxt_multiport.c
-> index 03af5a9..6b46f93 100644
-> --- a/extensions/libxt_multiport.c
-> +++ b/extensions/libxt_multiport.c
-> @@ -468,6 +468,67 @@ static void multiport_save6_v1(const void *ip_void,
->      __multiport_save_v1(match, ip->proto);
->  }
+>    I would have been consistent and enclosed this expression into parens as
+> well. BTW, the indentation is not correct anyway.
+
+	Thanks! I'll send new version...
+
 > 
-> +static int multiport_xlate(const struct xt_entry_match *match, struct
-> xt_xlate *xl,
-> +             int numeric)
-> +{
-> +    const struct xt_multiport_v1 *multiinfo
-> +        = (const struct xt_multiport_v1 *)match->data;
+> >      ((conn_reuse_mode & 2) &&
+> >       (cp->state == IP_VS_TCP_S_FIN_WAIT) &&
+> >       (cp->flags & IP_VS_CONN_F_NOOUTPUT));
+> 
+> MBR, Sergei
 
-The = should be on the first line, ie.
+Regards
 
-        const struct xt_multiport_v1 *multiinfo =
-                (const struct xt_multiport_v1 *)match->data;
-
-> +    unsigned int i;
-   ^^^^
-I see spaces here, there should be an 8-chars tab indentation there.
-
-Please, make sure coding style is correct.
-
-> +    switch (multiinfo->flags) {
-> +    case XT_MULTIPORT_SOURCE:
-> +        xt_xlate_add(xl,"sport ");
-                           ^
-                          add space after comma
-
-> +        break;
-> +
-
-No need for this extra line break;
-
-> +    case XT_MULTIPORT_DESTINATION:
-> +        xt_xlate_add(xl,"dport ");
-> +        break;
-> +
-> +    default:
-> +        return 1;
-> +    }
-> +    xt_xlate_add(xl," { ");
-> +    for (i=0; i < multiinfo->count; i++) {
-             ^
-add space betwen variable and value, ie.
-
-        i = 0
-
-this is preferred.
-
-> +        xt_xlate_add(xl,"%u%s", multiinfo->ports[i],
-> +                (i+1) != multiinfo->count ? "," : "");
-
-Align this line with the parens:
-
-        xt_xlate_add(xl,"%u%s", multiinfo->ports[i],
-                    i + 1 != multiinfo->count ? "," : "");
-
+--
+Julian Anastasov <ja@ssi.bg>
