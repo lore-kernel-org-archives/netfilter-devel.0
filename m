@@ -1,55 +1,68 @@
 From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCHv2] extensions: libip6t_icmp6: Add translation to nft
-Date: Sun, 6 Mar 2016 23:23:10 +0100
-Message-ID: <20160306222308.GA20846@sonyv>
+Subject: [PATCHv2] extensions: libipt_icmp: Add translation to nft
+Date: Sun, 6 Mar 2016 23:24:44 +0100
+Message-ID: <20160306222442.GA20945@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: shivanib134@gmail.com, pablo@netfilter.org,
 	outreachy-kernel@googlegroups.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:38182 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750848AbcCFWXP (ORCPT
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:38766 "EHLO
+	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750848AbcCFWYs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 6 Mar 2016 17:23:15 -0500
-Received: by mail-wm0-f46.google.com with SMTP id l68so50648759wml.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 06 Mar 2016 14:23:15 -0800 (PST)
+	Sun, 6 Mar 2016 17:24:48 -0500
+Received: by mail-wm0-f42.google.com with SMTP id l68so50671229wml.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 06 Mar 2016 14:24:47 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for icmpv6 to nftables. Not supported types in nftables
-are: no-route, communication-prohibited, beyond-scope,
-address-unreachable, port-unreachable, failed-policy, reject-route,
-ttl-zero-during-transit, ttl-zero-during-reassembly, bad-header,
-unknown-header-type and unknown-option.
+Add translation for icmp to nftables. Not supported types in nftables
+are: any, network-unreachable, host-unreachable, protocol-unreachable,
+port-unreachable, fragmentation-needed, source-route-failed,
+network-unknown, host-unknown, network-prohibited, host-prohibited,
+TOS-network-unreachable, TOS-host-unreachable, communication-prohibited,
+host-precedence-violation, precedence-cutoff, network-redirect,
+host-redirect, TOS-network-redirect, TOS-host-redirect,
+router-advertisement, router-solicitation, ttl-zero-during-transit,
+ttl-zero-during-reassembly, ip-header-bad and required-option-missing.
 
 Examples:
 
-$ ip6tables-translate -t filter -A INPUT -m icmp6 --icmpv6-type 1 -j LOG
-nft add rule ip6 filter INPUT icmpv6 type destination-unreachable counter log level warn
+$ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type echo-reply -j LOG
+nft add rule ip filter INPUT icmp type echo-reply counter log level warn
 
-$ ip6tables-translate -t filter -A INPUT -m icmp6 --icmpv6-type neighbour-advertisement -j LOG
-nft add rule ip6 filter INPUT icmpv6 type nd-neighbor-advert counter log level warn
+$ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type 3 -j LOG
+nft add rule ip filter INPUT icmp type destination-unreachable counter log level warn
 
-$ ip6tables-translate -t filter -A INPUT -m icmp6 ! --icmpv6-type packet-too-big -j LOG
-nft add rule ip6 filter INPUT icmpv6 type != packet-too-big counter log level warn
+$ sudo iptables-translate -t filter -A INPUT -m icmp ! --icmp-type 3 -j LOG
+nft add rule ip filter INPUT icmp type != destination-unreachable counter log level warn
 
 Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
 ---
 v2:
 	- Detection of not supported types in nftables, as Shivani suggested.
 
- extensions/libip6t_icmp6.c | 53 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 53 insertions(+)
+ extensions/libipt_icmp.c | 46 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 45 insertions(+), 1 deletion(-)
 
-diff --git a/extensions/libip6t_icmp6.c b/extensions/libip6t_icmp6.c
-index e183ce6..70f9c21 100644
---- a/extensions/libip6t_icmp6.c
-+++ b/extensions/libip6t_icmp6.c
-@@ -222,6 +222,58 @@ static void icmp6_save(const void *ip, const struct xt_entry_match *match)
- 		printf("/%u", icmpv6->code[0]);
+diff --git a/extensions/libipt_icmp.c b/extensions/libipt_icmp.c
+index 666e7da..89eb36e 100644
+--- a/extensions/libipt_icmp.c
++++ b/extensions/libipt_icmp.c
+@@ -218,7 +218,7 @@ static void print_icmptype(uint8_t type,
+ }
+ 
+ static void icmp_print(const void *ip, const struct xt_entry_match *match,
+-                       int numeric)
++		       int numeric)
+ {
+ 	const struct ipt_icmp *icmp = (struct ipt_icmp *)match->data;
+ 
+@@ -249,6 +249,49 @@ static void icmp_save(const void *ip, const struct xt_entry_match *match)
+ 	}
  }
  
 +static unsigned int type_xlate_print(struct xt_xlate *xl, unsigned int icmptype,
@@ -61,40 +74,30 @@ index e183ce6..70f9c21 100644
 +		return 0;
 +
 +	switch (icmptype) {
-+	case 133:
-+		xt_xlate_add(xl, "nd-router-solicit");
-+		break;
-+	case 134:
-+		xt_xlate_add(xl, "nd-router-advert");
-+		break;
-+	case 135:
-+		xt_xlate_add(xl, "nd-neighbor-solicit");
-+		break;
-+	case 136:
-+		xt_xlate_add(xl, "nd-neighbor-advert");
-+		break;
-+	case 137:
-+		xt_xlate_add(xl, "nd-redirect");
-+		break;
++	case 0xFF:
++	case 9:
++	case 10:
++		return 0;
 +	default:
-+		for (i = 0; ARRAY_SIZE(icmpv6_codes); ++i)
-+			if (icmpv6_codes[i].type == icmptype &&
-+			    icmpv6_codes[i].code_min == code_min &&
-+			    icmpv6_codes[i].code_max == code_max)
++		for (i = 0; ARRAY_SIZE(icmp_codes); ++i)
++			if (icmp_codes[i].type == icmptype &&
++			    icmp_codes[i].code_min == code_min &&
++			    icmp_codes[i].code_max == code_max)
 +				break;
-+			xt_xlate_add(xl, icmpv6_codes[i].name);
++
++			xt_xlate_add(xl, icmp_codes[i].name);
 +	}
 +
 +	return 1;
 +}
 +
-+static int icmp6_xlate(const struct xt_entry_match *match, struct xt_xlate *xl,
++static int icmp_xlate(const struct xt_entry_match *match, struct xt_xlate *xl,
 +		       int numeric)
 +{
-+	const struct ip6t_icmp *info = (struct ip6t_icmp *)match->data;
++	const struct ipt_icmp *info = (struct ipt_icmp *)match->data;
 +
-+	xt_xlate_add(xl, "icmpv6 type%s ",
-+		     (info->invflags & IP6T_ICMP_INV) ? " !=" : "");
++	xt_xlate_add(xl, "icmp type%s ",
++		     (info->invflags & IPT_ICMP_INV) ? " !=" : "");
 +
 +	if (!type_xlate_print(xl, info->type, info->code[0], info->code[1]))
 +		return 0;
@@ -104,14 +107,15 @@ index e183ce6..70f9c21 100644
 +	return 1;
 +}
 +
- static struct xtables_match icmp6_mt6_reg = {
- 	.name 		= "icmp6",
- 	.version 	= XTABLES_VERSION,
-@@ -234,6 +286,7 @@ static struct xtables_match icmp6_mt6_reg = {
- 	.save		= icmp6_save,
- 	.x6_parse	= icmp6_parse,
- 	.x6_options	= icmp6_opts,
-+	.xlate		= icmp6_xlate,
++
+ static struct xtables_match icmp_mt_reg = {
+ 	.name		= "icmp",
+ 	.version	= XTABLES_VERSION,
+@@ -261,6 +304,7 @@ static struct xtables_match icmp_mt_reg = {
+ 	.save		= icmp_save,
+ 	.x6_parse	= icmp_parse,
+ 	.x6_options	= icmp_opts,
++	.xlate		= icmp_xlate,
  };
  
  void _init(void)
