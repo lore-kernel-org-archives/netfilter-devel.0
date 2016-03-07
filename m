@@ -1,101 +1,102 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] configure: Show support for connlabel
-Date: Mon, 7 Mar 2016 15:09:13 +0100
-Message-ID: <20160307140913.GA27599@salvia>
-References: <20160307091447.GA10194@gmail.com>
+Subject: Re: [PATCH] extensions: libipt_icmp: Add translation to nft
+Date: Mon, 7 Mar 2016 15:34:32 +0100
+Message-ID: <20160307143432.GA28000@salvia>
+References: <20160305200039.GA14269@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, shivanib134@gmail.com,
+	outreachy-kernel@googlegroups.com
+To: Laura Garcia Liebana <nevola@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36588 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41335 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752212AbcCGOJY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Mar 2016 09:09:24 -0500
+	id S1752273AbcCGOek (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Mar 2016 09:34:40 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 76A51C124F
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 15:09:22 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id C0E26C124B
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 15:34:36 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 65732DA394
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 15:09:22 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A8098DA38C
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 15:34:36 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id AFC0EDA39C
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 15:09:14 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id AAFB1DA8F7
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 15:34:33 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20160307091447.GA10194@gmail.com>
+In-Reply-To: <20160305200039.GA14269@sonyv>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 07, 2016 at 02:44:47PM +0530, Shivani Bhardwaj wrote:
-> Add the --enable-connlabel option and show whether it is already
-> supported.
+On Sat, Mar 05, 2016 at 09:00:41PM +0100, Laura Garcia Liebana wrote:
+> Add translation for icmp to nftables.
 > 
-> After this patch, iptables configuration shows up as:
+> Examples:
 > 
-> Iptables Configuration:
->   IPv4 support:				yes
->   IPv6 support:				yes
->   Devel support:			yes
->   IPQ support:				no
->   Large file support:			yes
->   BPF utils support:			no
->   nfsynproxy util support:		no
->   nftables support:			yes
->   connlabel support:			yes
+> $ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type any -j LOG
+> nft add rule ip filter INPUT icmp type any counter log level warn
 > 
-> Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+> $ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type 3/1 -j LOG
+> nft add rule ip filter INPUT icmp type host-unreachable counter log level warn
+> 
+> $ sudo iptables-translate -t filter -A INPUT -m icmp ! --icmp-type 3 -j LOG
+> nft add rule ip filter INPUT icmp type != destination-unreachable counter log level warn
+> 
+> Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
 > ---
->  configure.ac | 5 +++++
->  1 file changed, 5 insertions(+)
+>  extensions/libipt_icmp.c | 33 ++++++++++++++++++++++++++++++++-
+>  1 file changed, 32 insertions(+), 1 deletion(-)
 > 
-> diff --git a/configure.ac b/configure.ac
-> index 33a8f2d..c946d69 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-> @@ -63,6 +63,9 @@ AC_ARG_WITH([pkgconfigdir], AS_HELP_STRING([--with-pkgconfigdir=PATH],
->  AC_ARG_ENABLE([nftables],
->  	AS_HELP_STRING([--disable-nftables], [Do not build nftables compat]),
->  	[enable_nftables="$enableval"], [enable_nftables="yes"])
-> +AC_ARG_ENABLE([connlabel],
-> +	AS_HELP_STRING([--enable-connlabel], [Build libnetfilter_conntrack]),
-> +	[enable_connlabel="$enableval"], [enable_connlabel="yes"])
-
-I think there is still some missing code here. If the user requests
-connlabel but libnetfilter_conntrack (including the right version) is
-not available, then I would fail and display an error since the user
-is explicitly asking for this.
-
-Otherwise, we can fall back on the existing behaviour: just lazy check
-if it's there and enable it in that case. If the library is not
-present, just skip this.
-
-The --disable-connlabel should also work, in that case, we should skip
-adding support for this.
-
-Can you look into fitting this logic into this? Thanks.
-
->  libiptc_LDFLAGS2="";
->  AX_CHECK_LINKER_FLAGS([-Wl,--no-as-needed],
-> @@ -114,6 +117,7 @@ AM_CONDITIONAL([ENABLE_LIBIPQ], [test "$enable_libipq" = "yes"])
->  AM_CONDITIONAL([ENABLE_BPFC], [test "$enable_bpfc" = "yes"])
->  AM_CONDITIONAL([ENABLE_SYNCONF], [test "$enable_nfsynproxy" = "yes"])
->  AM_CONDITIONAL([ENABLE_NFTABLES], [test "$enable_nftables" = "yes"])
-> +AM_CONDITIONAL([ENABLE_CONNLABEL], [test "$enable_connlabel" = "yes"])
+> diff --git a/extensions/libipt_icmp.c b/extensions/libipt_icmp.c
+> index 666e7da..795172f 100644
+> --- a/extensions/libipt_icmp.c
+> +++ b/extensions/libipt_icmp.c
+> @@ -218,7 +218,7 @@ static void print_icmptype(uint8_t type,
+>  }
 >  
->  if test "x$enable_bpfc" = "xyes" || test "x$enable_nfsynproxy" = "xyes"; then
->  	AC_CHECK_LIB(pcap, pcap_compile,, AC_MSG_ERROR(missing libpcap library required by bpf compiler or nfsynproxy tool))
-> @@ -243,6 +247,7 @@ Iptables Configuration:
->    BPF utils support:			${enable_bpfc}
->    nfsynproxy util support:		${enable_nfsynproxy}
->    nftables support:			${enable_nftables}
-> +  connlabel support:			${enable_connlabel}
+>  static void icmp_print(const void *ip, const struct xt_entry_match *match,
+> -                       int numeric)
+> +		       int numeric)
+>  {
+>  	const struct ipt_icmp *icmp = (struct ipt_icmp *)match->data;
 >  
->  Build parameters:
->    Put plugins into executable (static):	${enable_static}
-> -- 
-> 1.9.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> @@ -249,6 +249,36 @@ static void icmp_save(const void *ip, const struct xt_entry_match *match)
+>  	}
+>  }
+>  
+> +static void type_xlate_print(struct xt_xlate *xl, unsigned int icmptype,
+> +			     unsigned int code_min, unsigned int code_max)
+> +{
+> +	unsigned int i;
+> +
+> +	for (i = 0; ARRAY_SIZE(icmp_codes); i++)
+> +		if (icmp_codes[i].type == icmptype &&
+> +		    icmp_codes[i].code_min == code_min &&
+> +		    icmp_codes[i].code_max == code_max)
+> +			break;
+> +
+> +	xt_xlate_add(xl, icmp_codes[i].name);
+> +}
+> +
+> +static int icmp_xlate(const struct xt_entry_match *match, struct xt_xlate *xl,
+> +		       int numeric)
+> +{
+> +	const struct ipt_icmp *info = (struct ipt_icmp *)match->data;
+> +
+> +	xt_xlate_add(xl, "icmp type%s ",
+> +		     (info->invflags & IPT_ICMP_INV) ? " !=" : "");
+> +
+> +	type_xlate_print(xl, info->type, info->code[0], info->code[1]);
+> +
+> +	xt_xlate_add(xl, " ");
+> +
+> +	return 1;
+> +}
+
+icmpv6 codes matching can be translated to:
+
+        icmpv6 code VALUE
+
+I know this is still broken in nft when listing, but I have initial
+a couple of patches to fix this here almost done.
+
+So please provide the translation for this too, this will work soon.
