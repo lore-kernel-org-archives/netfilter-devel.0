@@ -1,49 +1,78 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH 3/4] ipvs: allow rescheduling after RST
-Date: Mon,  7 Mar 2016 12:03:33 +0900
-Message-ID: <1457319814-8027-4-git-send-email-horms@verge.net.au>
-References: <1457319814-8027-1-git-send-email-horms@verge.net.au>
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH] configure: Show support for connlabel
+Date: Mon, 7 Mar 2016 14:44:47 +0530
+Message-ID: <20160307091447.GA10194@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:43828 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751958AbcCGDDt (ORCPT
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:33809 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752445AbcCGJOx (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 6 Mar 2016 22:03:49 -0500
-In-Reply-To: <1457319814-8027-1-git-send-email-horms@verge.net.au>
+	Mon, 7 Mar 2016 04:14:53 -0500
+Received: by mail-pa0-f41.google.com with SMTP id fy10so75312944pac.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 07 Mar 2016 01:14:53 -0800 (PST)
+Received: from gmail.com ([106.212.1.83])
+        by smtp.gmail.com with ESMTPSA id w20sm22621146pfi.31.2016.03.07.01.14.51
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Mon, 07 Mar 2016 01:14:52 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Julian Anastasov <ja@ssi.bg>
+Add the --enable-connlabel option and show whether it is already
+supported.
 
-"RFC 5961, 4.2. Mitigation" describes a mechanism to request
-client to confirm with RST the restart of TCP connection
-before resending its SYN. As result, IPVS can see SYNs for
-existing connection in CLOSE state. Add check to allow
-rescheduling in this state.
+After this patch, iptables configuration shows up as:
 
-Signed-off-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Iptables Configuration:
+  IPv4 support:				yes
+  IPv6 support:				yes
+  Devel support:			yes
+  IPQ support:				no
+  Large file support:			yes
+  BPF utils support:			no
+  nfsynproxy util support:		no
+  nftables support:			yes
+  connlabel support:			yes
+
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
 ---
- net/netfilter/ipvs/ip_vs_core.c | 1 +
- 1 file changed, 1 insertion(+)
+ configure.ac | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs_core.c
-index 4da560005b0e..b9a4082afa3a 100644
---- a/net/netfilter/ipvs/ip_vs_core.c
-+++ b/net/netfilter/ipvs/ip_vs_core.c
-@@ -1089,6 +1089,7 @@ static inline bool is_new_conn_expected(const struct ip_vs_conn *cp,
- 	switch (cp->protocol) {
- 	case IPPROTO_TCP:
- 		return (cp->state == IP_VS_TCP_S_TIME_WAIT) ||
-+		       (cp->state == IP_VS_TCP_S_CLOSE) ||
- 			((conn_reuse_mode & 2) &&
- 			 (cp->state == IP_VS_TCP_S_FIN_WAIT) &&
- 			 (cp->flags & IP_VS_CONN_F_NOOUTPUT));
+diff --git a/configure.ac b/configure.ac
+index 33a8f2d..c946d69 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -63,6 +63,9 @@ AC_ARG_WITH([pkgconfigdir], AS_HELP_STRING([--with-pkgconfigdir=PATH],
+ AC_ARG_ENABLE([nftables],
+ 	AS_HELP_STRING([--disable-nftables], [Do not build nftables compat]),
+ 	[enable_nftables="$enableval"], [enable_nftables="yes"])
++AC_ARG_ENABLE([connlabel],
++	AS_HELP_STRING([--enable-connlabel], [Build libnetfilter_conntrack]),
++	[enable_connlabel="$enableval"], [enable_connlabel="yes"])
+ 
+ libiptc_LDFLAGS2="";
+ AX_CHECK_LINKER_FLAGS([-Wl,--no-as-needed],
+@@ -114,6 +117,7 @@ AM_CONDITIONAL([ENABLE_LIBIPQ], [test "$enable_libipq" = "yes"])
+ AM_CONDITIONAL([ENABLE_BPFC], [test "$enable_bpfc" = "yes"])
+ AM_CONDITIONAL([ENABLE_SYNCONF], [test "$enable_nfsynproxy" = "yes"])
+ AM_CONDITIONAL([ENABLE_NFTABLES], [test "$enable_nftables" = "yes"])
++AM_CONDITIONAL([ENABLE_CONNLABEL], [test "$enable_connlabel" = "yes"])
+ 
+ if test "x$enable_bpfc" = "xyes" || test "x$enable_nfsynproxy" = "xyes"; then
+ 	AC_CHECK_LIB(pcap, pcap_compile,, AC_MSG_ERROR(missing libpcap library required by bpf compiler or nfsynproxy tool))
+@@ -243,6 +247,7 @@ Iptables Configuration:
+   BPF utils support:			${enable_bpfc}
+   nfsynproxy util support:		${enable_nfsynproxy}
+   nftables support:			${enable_nftables}
++  connlabel support:			${enable_connlabel}
+ 
+ Build parameters:
+   Put plugins into executable (static):	${enable_static}
 -- 
-2.1.4
+1.9.1
 
