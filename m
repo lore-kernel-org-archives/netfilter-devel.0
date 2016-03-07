@@ -1,102 +1,191 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] extensions: libipt_icmp: Add translation to nft
-Date: Mon, 7 Mar 2016 15:34:32 +0100
-Message-ID: <20160307143432.GA28000@salvia>
-References: <20160305200039.GA14269@sonyv>
+Subject: Re: [PATCH v3] extensions: libxt_dccp: Add translation to nft
+Date: Mon, 7 Mar 2016 15:39:04 +0100
+Message-ID: <20160307143904.GA28237@salvia>
+References: <20160303220145.GA6872@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, shivanib134@gmail.com,
-	outreachy-kernel@googlegroups.com
-To: Laura Garcia Liebana <nevola@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Shivani Bhardwaj <shivanib134@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41335 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42181 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752273AbcCGOek (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Mar 2016 09:34:40 -0500
+	id S932104AbcCGOjK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Mar 2016 09:39:10 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id C0E26C124B
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 15:34:36 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id 5DA06C124F
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 15:39:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id A8098DA38C
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 15:34:36 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 4D3E3DA384
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 15:39:08 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id AAFB1DA8F7
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 15:34:33 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id BDA08DA391
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 15:39:05 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20160305200039.GA14269@sonyv>
+In-Reply-To: <20160303220145.GA6872@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Mar 05, 2016 at 09:00:41PM +0100, Laura Garcia Liebana wrote:
-> Add translation for icmp to nftables.
+On Fri, Mar 04, 2016 at 03:31:45AM +0530, Shivani Bhardwaj wrote:
+> Add translation for dccp to nftables.
+> 
+> Full translation of this match awaits the support for --dccp-option.
 > 
 > Examples:
 > 
-> $ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type any -j LOG
-> nft add rule ip filter INPUT icmp type any counter log level warn
+> $ sudo iptables-translate -A INPUT -p dccp -m dccp --sport 100
+> nft add rule ip filter INPUT dccp sport 100 counter
 > 
-> $ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type 3/1 -j LOG
-> nft add rule ip filter INPUT icmp type host-unreachable counter log level warn
+> $ sudo iptables-translate -A INPUT -p dccp -m dccp --dport 100:200
+> nft add rule ip filter INPUT dccp dport 100-200 counter
 > 
-> $ sudo iptables-translate -t filter -A INPUT -m icmp ! --icmp-type 3 -j LOG
-> nft add rule ip filter INPUT icmp type != destination-unreachable counter log level warn
+> $ sudo iptables-translate -A INPUT -p dccp -m dccp ! --dport 100
+> nft add rule ip filter INPUT dccp dport != 100 counter
 > 
-> Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+> $ sudo iptables-translate -A INPUT -p dccp -m dccp --dport 100 --dccp-types REQUEST,RESPONSE,DATA,ACK,DATAACK,CLOSEREQ,CLOSE,SYNC,SYNCACK
+> nft add rule ip filter INPUT dccp dport 100 dccp type {request, response, data, ack, dataack, closereq, close, sync, syncack} counter
+> 
+> Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
 > ---
->  extensions/libipt_icmp.c | 33 ++++++++++++++++++++++++++++++++-
->  1 file changed, 32 insertions(+), 1 deletion(-)
+> Changes in v3:
+> 	Return 0 if translation for dccp-option is demanded
 > 
-> diff --git a/extensions/libipt_icmp.c b/extensions/libipt_icmp.c
-> index 666e7da..795172f 100644
-> --- a/extensions/libipt_icmp.c
-> +++ b/extensions/libipt_icmp.c
-> @@ -218,7 +218,7 @@ static void print_icmptype(uint8_t type,
->  }
->  
->  static void icmp_print(const void *ip, const struct xt_entry_match *match,
-> -                       int numeric)
-> +		       int numeric)
->  {
->  	const struct ipt_icmp *icmp = (struct ipt_icmp *)match->data;
->  
-> @@ -249,6 +249,36 @@ static void icmp_save(const void *ip, const struct xt_entry_match *match)
+> Changes in v2:
+>         Fix bugs and remove invalid dccp type
+> 
+> Following is not added in commit message as it is not translation code
+> issue:
+> * Since inversion of set is not possible in nftables, using dccp
+> with rules like
+> ...dccp type != {request, response}..
+> * dccp type reset
+> is going to throw errors.
+> 
+>  extensions/libxt_dccp.c | 92 +++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 92 insertions(+)
+> 
+> diff --git a/extensions/libxt_dccp.c b/extensions/libxt_dccp.c
+> index a35cabb..0d4f369 100644
+> --- a/extensions/libxt_dccp.c
+> +++ b/extensions/libxt_dccp.c
+> @@ -277,6 +277,97 @@ static void dccp_save(const void *ip, const struct xt_entry_match *match)
 >  	}
 >  }
 >  
-> +static void type_xlate_print(struct xt_xlate *xl, unsigned int icmptype,
-> +			     unsigned int code_min, unsigned int code_max)
+> +static const char *const dccp_pkt_types_xlate[] = {
+> +	[DCCP_PKT_REQUEST]      = "request",
+> +	[DCCP_PKT_RESPONSE]     = "response",
+> +	[DCCP_PKT_DATA]         = "data",
+> +	[DCCP_PKT_ACK]          = "ack",
+> +	[DCCP_PKT_DATAACK]      = "dataack",
+> +	[DCCP_PKT_CLOSEREQ]     = "closereq",
+> +	[DCCP_PKT_CLOSE]        = "close",
+> +	[DCCP_PKT_RESET]        = "reset",
+> +	[DCCP_PKT_SYNC]         = "sync",
+> +	[DCCP_PKT_SYNCACK]      = "syncack",
+> +};
+> +
+> +static int dccp_type_xlate(const struct xt_dccp_info *einfo,
+> +			   struct xt_xlate *xl)
 > +{
-> +	unsigned int i;
+> +	bool have_type = false, set_need = false;
+> +	uint16_t types = einfo->typemask;
 > +
-> +	for (i = 0; ARRAY_SIZE(icmp_codes); i++)
-> +		if (icmp_codes[i].type == icmptype &&
-> +		    icmp_codes[i].code_min == code_min &&
-> +		    icmp_codes[i].code_max == code_max)
-> +			break;
+> +	if (types & (1 << DCCP_PKT_INVALID))
+> +		return 0;
 > +
-> +	xt_xlate_add(xl, icmp_codes[i].name);
-> +}
+> +	xt_xlate_add(xl, "dccp type%s ", einfo->invflags ? " !=" : "");
 > +
-> +static int icmp_xlate(const struct xt_entry_match *match, struct xt_xlate *xl,
-> +		       int numeric)
-> +{
-> +	const struct ipt_icmp *info = (struct ipt_icmp *)match->data;
+> +	if ((types != 0) && !(types == (types & -types))) {
+> +		xt_xlate_add(xl, "{");
+> +		set_need = true;
+> +	}
 > +
-> +	xt_xlate_add(xl, "icmp type%s ",
-> +		     (info->invflags & IPT_ICMP_INV) ? " !=" : "");
+> +	while (types) {
+> +		unsigned int i;
 > +
-> +	type_xlate_print(xl, info->type, info->code[0], info->code[1]);
+> +		for (i = 0; !(types & (1 << i)); i++);
+> +
+> +		if (have_type)
+> +			xt_xlate_add(xl, ", ");
+> +		else
+> +			have_type = true;
+> +
+> +		xt_xlate_add(xl, "%s", dccp_pkt_types_xlate[i]);
+> +
+> +		types &= ~(1 << i);
+> +	}
+> +
+> +	if (set_need)
+> +		xt_xlate_add(xl, "}");
 > +
 > +	xt_xlate_add(xl, " ");
 > +
 > +	return 1;
 > +}
+> +
+> +static int dccp_xlate(const struct xt_entry_match *match,
+> +		      struct xt_xlate *xl, int numeric)
+> +{
+> +	const struct xt_dccp_info *einfo =
+> +			(const struct xt_dccp_info *)match->data;
+> +	int ret = 1;
+> +
+> +	xt_xlate_add(xl, "dccp ");
+> +
+> +	if (einfo->flags & XT_DCCP_SRC_PORTS) {
+> +		if (einfo->spts[0] != einfo->spts[1])
+> +			xt_xlate_add(xl, "sport%s %u-%u ",
+> +				     einfo->invflags & XT_DCCP_SRC_PORTS ? " !=" : "",
+> +				     einfo->spts[0], einfo->spts[1]);
+> +		else
+> +			xt_xlate_add(xl, "sport%s %u ",
+> +				     einfo->invflags & XT_DCCP_SRC_PORTS ? " !=" : "",
+> +				     einfo->spts[0]);
+> +	}
+> +
+> +	if (einfo->flags & XT_DCCP_DEST_PORTS) {
+> +		if (einfo->dpts[0] != einfo->dpts[1])
+> +			xt_xlate_add(xl, "dport%s %u-%u ",
+> +				     einfo->invflags & XT_DCCP_DEST_PORTS ? " !=" : "",
+> +				     einfo->dpts[0], einfo->dpts[1]);
+> +		else
+> +			xt_xlate_add(xl, "dport%s %u ",
+> +				     einfo->invflags & XT_DCCP_DEST_PORTS ? " !=" : "",
+> +				     einfo->dpts[0]);
+> +	}
+> +
+> +	if (einfo->flags & XT_DCCP_TYPE)
+> +		ret = dccp_type_xlate(einfo, xl);
+> +
+> +	if (einfo->flags & XT_DCCP_OPTION)
+> +		ret = 0;
 
-icmpv6 codes matching can be translated to:
+Shouldn't you check fot this XT_DCCP_OPTION in first place?
 
-        icmpv6 code VALUE
+Or you achieve the same effect? I don't remember how this is behaving
+when we already translated many things but just one thing got left
+behind.
 
-I know this is still broken in nft when listing, but I have initial
-a couple of patches to fix this here almost done.
 
-So please provide the translation for this too, this will work soon.
+> +
+> +	return ret;
+> +}
+>  static struct xtables_match dccp_match = {
+>  	.name		= "dccp",
+>  	.family		= NFPROTO_UNSPEC,
+> @@ -288,6 +379,7 @@ static struct xtables_match dccp_match = {
+>  	.save		= dccp_save,
+>  	.x6_parse	= dccp_parse,
+>  	.x6_options	= dccp_opts,
+> +	.xlate		= dccp_xlate,
+>  };
+>  
+>  void _init(void)
+> -- 
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
