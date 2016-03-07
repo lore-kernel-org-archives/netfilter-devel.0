@@ -1,114 +1,192 @@
-From: Piyush Pangtey <gokuvsvegita@gmail.com>
-Subject: [PATCH] doc: nft: Fixed a typo and added/changed punctuation
-Date: Mon, 7 Mar 2016 20:24:20 +0530
-Message-ID: <20160307145420.GA4852@fate>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: Re: [PATCH v3] extensions: libxt_dccp: Add translation to nft
+Date: Mon, 7 Mar 2016 22:13:51 +0530
+Message-ID: <CAKHNQQG+=0mFAnzsq7ZEM8H8ON=0EfSrVrfMtY3i1DeRKheCyw@mail.gmail.com>
+References: <20160303220145.GA6872@gmail.com> <20160307143904.GA28237@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f65.google.com ([209.85.220.65]:36074 "EHLO
-	mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752492AbcCGOyF (ORCPT
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:33349 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752516AbcCGQob (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Mar 2016 09:54:05 -0500
-Received: by mail-pa0-f65.google.com with SMTP id 1so2222088pal.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 07 Mar 2016 06:54:05 -0800 (PST)
-Received: from fate ([14.139.254.36])
-        by smtp.gmail.com with ESMTPSA id 17sm24700813pfp.96.2016.03.07.06.54.03
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Mon, 07 Mar 2016 06:54:04 -0800 (PST)
-Content-Disposition: inline
+	Mon, 7 Mar 2016 11:44:31 -0500
+Received: by mail-ob0-f171.google.com with SMTP id fz5so110668917obc.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 07 Mar 2016 08:44:31 -0800 (PST)
+In-Reply-To: <20160307143904.GA28237@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Instead of using '/' longopts , use ',' ,as followed by man pages of other
-programs.
+On Mon, Mar 7, 2016 at 8:09 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Fri, Mar 04, 2016 at 03:31:45AM +0530, Shivani Bhardwaj wrote:
+>> Add translation for dccp to nftables.
+>>
+>> Full translation of this match awaits the support for --dccp-option.
+>>
+>> Examples:
+>>
+>> $ sudo iptables-translate -A INPUT -p dccp -m dccp --sport 100
+>> nft add rule ip filter INPUT dccp sport 100 counter
+>>
+>> $ sudo iptables-translate -A INPUT -p dccp -m dccp --dport 100:200
+>> nft add rule ip filter INPUT dccp dport 100-200 counter
+>>
+>> $ sudo iptables-translate -A INPUT -p dccp -m dccp ! --dport 100
+>> nft add rule ip filter INPUT dccp dport != 100 counter
+>>
+>> $ sudo iptables-translate -A INPUT -p dccp -m dccp --dport 100 --dccp-types REQUEST,RESPONSE,DATA,ACK,DATAACK,CLOSEREQ,CLOSE,SYNC,SYNCACK
+>> nft add rule ip filter INPUT dccp dport 100 dccp type {request, response, data, ack, dataack, closereq, close, sync, syncack} counter
+>>
+>> Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+>> ---
+>> Changes in v3:
+>>       Return 0 if translation for dccp-option is demanded
+>>
+>> Changes in v2:
+>>         Fix bugs and remove invalid dccp type
+>>
+>> Following is not added in commit message as it is not translation code
+>> issue:
+>> * Since inversion of set is not possible in nftables, using dccp
+>> with rules like
+>> ...dccp type != {request, response}..
+>> * dccp type reset
+>> is going to throw errors.
+>>
+>>  extensions/libxt_dccp.c | 92 +++++++++++++++++++++++++++++++++++++++++++++++++
+>>  1 file changed, 92 insertions(+)
+>>
+>> diff --git a/extensions/libxt_dccp.c b/extensions/libxt_dccp.c
+>> index a35cabb..0d4f369 100644
+>> --- a/extensions/libxt_dccp.c
+>> +++ b/extensions/libxt_dccp.c
+>> @@ -277,6 +277,97 @@ static void dccp_save(const void *ip, const struct xt_entry_match *match)
+>>       }
+>>  }
+>>
+>> +static const char *const dccp_pkt_types_xlate[] = {
+>> +     [DCCP_PKT_REQUEST]      = "request",
+>> +     [DCCP_PKT_RESPONSE]     = "response",
+>> +     [DCCP_PKT_DATA]         = "data",
+>> +     [DCCP_PKT_ACK]          = "ack",
+>> +     [DCCP_PKT_DATAACK]      = "dataack",
+>> +     [DCCP_PKT_CLOSEREQ]     = "closereq",
+>> +     [DCCP_PKT_CLOSE]        = "close",
+>> +     [DCCP_PKT_RESET]        = "reset",
+>> +     [DCCP_PKT_SYNC]         = "sync",
+>> +     [DCCP_PKT_SYNCACK]      = "syncack",
+>> +};
+>> +
+>> +static int dccp_type_xlate(const struct xt_dccp_info *einfo,
+>> +                        struct xt_xlate *xl)
+>> +{
+>> +     bool have_type = false, set_need = false;
+>> +     uint16_t types = einfo->typemask;
+>> +
+>> +     if (types & (1 << DCCP_PKT_INVALID))
+>> +             return 0;
+>> +
+>> +     xt_xlate_add(xl, "dccp type%s ", einfo->invflags ? " !=" : "");
+>> +
+>> +     if ((types != 0) && !(types == (types & -types))) {
+>> +             xt_xlate_add(xl, "{");
+>> +             set_need = true;
+>> +     }
+>> +
+>> +     while (types) {
+>> +             unsigned int i;
+>> +
+>> +             for (i = 0; !(types & (1 << i)); i++);
+>> +
+>> +             if (have_type)
+>> +                     xt_xlate_add(xl, ", ");
+>> +             else
+>> +                     have_type = true;
+>> +
+>> +             xt_xlate_add(xl, "%s", dccp_pkt_types_xlate[i]);
+>> +
+>> +             types &= ~(1 << i);
+>> +     }
+>> +
+>> +     if (set_need)
+>> +             xt_xlate_add(xl, "}");
+>> +
+>> +     xt_xlate_add(xl, " ");
+>> +
+>> +     return 1;
+>> +}
+>> +
+>> +static int dccp_xlate(const struct xt_entry_match *match,
+>> +                   struct xt_xlate *xl, int numeric)
+>> +{
+>> +     const struct xt_dccp_info *einfo =
+>> +                     (const struct xt_dccp_info *)match->data;
+>> +     int ret = 1;
+>> +
+>> +     xt_xlate_add(xl, "dccp ");
+>> +
+>> +     if (einfo->flags & XT_DCCP_SRC_PORTS) {
+>> +             if (einfo->spts[0] != einfo->spts[1])
+>> +                     xt_xlate_add(xl, "sport%s %u-%u ",
+>> +                                  einfo->invflags & XT_DCCP_SRC_PORTS ? " !=" : "",
+>> +                                  einfo->spts[0], einfo->spts[1]);
+>> +             else
+>> +                     xt_xlate_add(xl, "sport%s %u ",
+>> +                                  einfo->invflags & XT_DCCP_SRC_PORTS ? " !=" : "",
+>> +                                  einfo->spts[0]);
+>> +     }
+>> +
+>> +     if (einfo->flags & XT_DCCP_DEST_PORTS) {
+>> +             if (einfo->dpts[0] != einfo->dpts[1])
+>> +                     xt_xlate_add(xl, "dport%s %u-%u ",
+>> +                                  einfo->invflags & XT_DCCP_DEST_PORTS ? " !=" : "",
+>> +                                  einfo->dpts[0], einfo->dpts[1]);
+>> +             else
+>> +                     xt_xlate_add(xl, "dport%s %u ",
+>> +                                  einfo->invflags & XT_DCCP_DEST_PORTS ? " !=" : "",
+>> +                                  einfo->dpts[0]);
+>> +     }
+>> +
+>> +     if (einfo->flags & XT_DCCP_TYPE)
+>> +             ret = dccp_type_xlate(einfo, xl);
+>> +
+>> +     if (einfo->flags & XT_DCCP_OPTION)
+>> +             ret = 0;
+>
+> Shouldn't you check fot this XT_DCCP_OPTION in first place?
+>
+> Or you achieve the same effect? I don't remember how this is behaving
+> when we already translated many things but just one thing got left
+> behind.
+>
+This gives the same effect.
 
-Signed-off-by: Piyush Pangtey <gokuvsvegita@gmail.com>
----
- doc/nft.xml | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+$ sudo iptables-translate -A INPUT -p dccp -m dccp --sport 100 --dccp-option 1
+nft # -A INPUT -p dccp -m dccp --sport 100 --dccp-option 1
 
-diff --git a/doc/nft.xml b/doc/nft.xml
-index 7cc9988..eab97f5 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -80,7 +80,7 @@ vi:ts=4 sw=4
- 
- 		<variablelist>
- 			<varlistentry>
--				<term><option>-h/--help</option></term>
-+				<term><option>-h, --help</option></term>
- 				<listitem>
- 					<para>
- 						Show help message and all options.
-@@ -88,7 +88,7 @@ vi:ts=4 sw=4
- 				</listitem>
- 			</varlistentry>
- 			<varlistentry>
--				<term><option>-v/--version</option></term>
-+				<term><option>-v, --version</option></term>
- 				<listitem>
- 					<para>
- 						Show version.
-@@ -96,7 +96,7 @@ vi:ts=4 sw=4
- 				</listitem>
- 			</varlistentry>
- 			<varlistentry>
--				<term><option>-n/--numeric</option></term>
-+				<term><option>-n, --numeric</option></term>
- 				<listitem>
- 					<para>
- 						Numeric output: Addresses and other information
-@@ -117,7 +117,7 @@ vi:ts=4 sw=4
- 				</listitem>
- 			</varlistentry>
- 			<varlistentry>
--				<term><option>-a/--handle</option></term>
-+				<term><option>-a, --handle</option></term>
- 				<listitem>
- 					<para>
- 						Show rule handles in output.
-@@ -125,15 +125,15 @@ vi:ts=4 sw=4
- 				</listitem>
- 			</varlistentry>
- 			<varlistentry>
--				<term><option>-I/--includepath <replaceable>directory</replaceable></option></term>
-+				<term><option>-I, --includepath <replaceable>directory</replaceable></option></term>
- 				<listitem>
- 					<para>
--						Add the directory <replaceable>directory</replaceable> to the list of directories to by searched for included files.
-+						Add the directory <replaceable>directory</replaceable> to the list of directories to be searched for included files.
- 					</para>
- 				</listitem>
- 			</varlistentry>
- 			<varlistentry>
--				<term><option>-f/--file <replaceable>filename</replaceable></option></term>
-+				<term><option>-f, --file <replaceable>filename</replaceable></option></term>
- 				<listitem>
- 					<para>
- 						Read input from <replaceable>filename</replaceable>.
-@@ -141,7 +141,7 @@ vi:ts=4 sw=4
- 				</listitem>
- 			</varlistentry>
- 			<varlistentry>
--				<term><option>-i/--interactive</option></term>
-+				<term><option>-i, --interactive</option></term>
- 				<listitem>
- 					<para>
- 						Read input from an interactive readline CLI.
-@@ -156,8 +156,8 @@ vi:ts=4 sw=4
- 		<refsect2>
- 			<title>Lexical conventions</title>
- 			<para>
--				Input is parsed line-wise. When the last character of a line just before
--				the newline character is a non-quoted backslash (<literal>\</literal>),
-+				Input is parsed line-wise. When the last character of a line, just before
-+				the newline character, is a non-quoted backslash (<literal>\</literal>),
- 				the next line is treated as a continuation. Multiple commands on the
- 				same line can be separated using a semicolon (<literal>;</literal>).
- 			</para>
--- 
-1.9.1
-
+Please let me know if you're referring to something else.
+>
+>> +
+>> +     return ret;
+>> +}
+>>  static struct xtables_match dccp_match = {
+>>       .name           = "dccp",
+>>       .family         = NFPROTO_UNSPEC,
+>> @@ -288,6 +379,7 @@ static struct xtables_match dccp_match = {
+>>       .save           = dccp_save,
+>>       .x6_parse       = dccp_parse,
+>>       .x6_options     = dccp_opts,
+>> +     .xlate          = dccp_xlate,
+>>  };
+>>
+>>  void _init(void)
+>> --
+>> 1.9.1
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
