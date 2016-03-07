@@ -1,161 +1,54 @@
-From: Laura Garcia <nevola@gmail.com>
-Subject: Re: [PATCHv2] extensions: libipt_icmp: Add translation to nft
-Date: Mon, 7 Mar 2016 19:04:46 +0100
-Message-ID: <20160307180445.GA22851@sonyv>
-References: <20160306222442.GA20945@sonyv>
- <20160307171408.GB29573@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] doc: nft: Fixed a typo and added/changed punctuation
+Date: Mon, 7 Mar 2016 19:06:00 +0100
+Message-ID: <20160307180600.GA6777@salvia>
+References: <20160307145420.GA4852@fate>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, shivanib134@gmail.com,
-	outreachy-kernel@googlegroups.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Piyush Pangtey <gokuvsvegita@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:36902 "EHLO
-	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752557AbcCGSEx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Mar 2016 13:04:53 -0500
-Received: by mail-wm0-f42.google.com with SMTP id p65so80357968wmp.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 07 Mar 2016 10:04:52 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:54926 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752861AbcCGSGF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Mar 2016 13:06:05 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id EAC777400
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 19:06:03 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id DCD76DA8F9
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 19:06:03 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id D8F54DA3A8
+	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 19:06:01 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20160307171408.GB29573@salvia>
+In-Reply-To: <20160307145420.GA4852@fate>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 07, 2016 at 06:14:08PM +0100, Pablo Neira Ayuso wrote:
-> On Sun, Mar 06, 2016 at 11:24:44PM +0100, Laura Garcia Liebana wrote:
-> > Add translation for icmp to nftables. Not supported types in nftables
-> > are: any, network-unreachable, host-unreachable, protocol-unreachable,
-> > port-unreachable, fragmentation-needed, source-route-failed,
-> > network-unknown, host-unknown, network-prohibited, host-prohibited,
-> > TOS-network-unreachable, TOS-host-unreachable, communication-prohibited,
-> > host-precedence-violation, precedence-cutoff, network-redirect,
-> > host-redirect, TOS-network-redirect, TOS-host-redirect,
-> > router-advertisement, router-solicitation, ttl-zero-during-transit,
-> > ttl-zero-during-reassembly, ip-header-bad and required-option-missing.
-> > 
-> > Examples:
-> > 
-> > $ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type echo-reply -j LOG
-> > nft add rule ip filter INPUT icmp type echo-reply counter log level warn
-> > 
-> > $ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type 3 -j LOG
-> > nft add rule ip filter INPUT icmp type destination-unreachable counter log level warn
-> > 
-> > $ sudo iptables-translate -t filter -A INPUT -m icmp ! --icmp-type 3 -j LOG
-> > nft add rule ip filter INPUT icmp type != destination-unreachable counter log level warn
-> > 
-> > Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
-> > ---
-> > v2:
-> > 	- Detection of not supported types in nftables, as Shivani suggested.
-> > 
-> >  extensions/libipt_icmp.c | 46 +++++++++++++++++++++++++++++++++++++++++++++-
-> >  1 file changed, 45 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/extensions/libipt_icmp.c b/extensions/libipt_icmp.c
-> > index 666e7da..89eb36e 100644
-> > --- a/extensions/libipt_icmp.c
-> > +++ b/extensions/libipt_icmp.c
-> > @@ -218,7 +218,7 @@ static void print_icmptype(uint8_t type,
-> >  }
-> >  
-> >  static void icmp_print(const void *ip, const struct xt_entry_match *match,
-> > -                       int numeric)
-> > +		       int numeric)
-> >  {
-> >  	const struct ipt_icmp *icmp = (struct ipt_icmp *)match->data;
-> >  
-> > @@ -249,6 +249,49 @@ static void icmp_save(const void *ip, const struct xt_entry_match *match)
-> >  	}
-> >  }
-> >  
-> > +static unsigned int type_xlate_print(struct xt_xlate *xl, unsigned int icmptype,
-> > +			     unsigned int code_min, unsigned int code_max)
-> > +{
-> > +	unsigned int i;
-> > +
-> > +	if (code_min == code_max)
-> > +		return 0;
-> > +
-> > +	switch (icmptype) {
-> > +	case 0xFF:
-> > +	case 9:
-> > +	case 10:
+On Mon, Mar 07, 2016 at 08:24:20PM +0530, Piyush Pangtey wrote:
+> Instead of using '/' longopts , use ',' ,as followed by man pages of other
+> programs.
 > 
-> Why are we skipping these here?
+> Signed-off-by: Piyush Pangtey <gokuvsvegita@gmail.com>
+> ---
+>  doc/nft.xml | 20 ++++++++++----------
+>  1 file changed, 10 insertions(+), 10 deletions(-)
 > 
+> diff --git a/doc/nft.xml b/doc/nft.xml
+> index 7cc9988..eab97f5 100644
+> --- a/doc/nft.xml
+> +++ b/doc/nft.xml
+> @@ -156,8 +156,8 @@ vi:ts=4 sw=4
+>  		<refsect2>
+>  			<title>Lexical conventions</title>
+>  			<para>
+> -				Input is parsed line-wise. When the last character of a line just before
+> -				the newline character is a non-quoted backslash (<literal>\</literal>),
+> +				Input is parsed line-wise. When the last character of a line, just before
+> +				the newline character, is a non-quoted backslash (<literal>\</literal>),
+>  				the next line is treated as a continuation. Multiple commands on the
+>  				same line can be separated using a semicolon (<literal>;</literal>).
+>  			</para>
 
-These are types which doesn't seem to be supported by nftables: any,
-router-advertisement and router-solicitation, so in this case we would
-return a 0 in order to indicate that the translation is not supported.
-
-> > +		return 0;
-> > +	default:
-> > +		for (i = 0; ARRAY_SIZE(icmp_codes); ++i)
-> 
-> Missing bracket here.
-> 
-> > +			if (icmp_codes[i].type == icmptype &&
-> > +			    icmp_codes[i].code_min == code_min &&
-> > +			    icmp_codes[i].code_max == code_max)
-> > +				break;
-> > +
-> > +			xt_xlate_add(xl, icmp_codes[i].name);
-> 
-> Same thing. But as I said in the previous patch, are you sure you need
-> this code snippet above at this stage?
-> 
-
-The brackets are not missing here, sorry for the confusion. Inside the for
-statement we only have the condition. Just the xt_late_add function indentation is not correct.
-
-This code it's needed in order to translate from types numbers to type
-names, but we're ensuring after that which types names are similar in
-iptables and nftables. For example, with this code we get:
-
-$ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type 3 -j LOG
-nft add rule ip filter INPUT icmp type destination-unreachable counter log level warn
-
-Without this code:
-
-$ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type 3 -j LOG
-nft add rule ip filter INPUT icmp type 3 counter log level warn
-
-
-> > +	}
-> > +
-> > +	return 1;
-> > +}
-> > +
-> > +static int icmp_xlate(const struct xt_entry_match *match, struct xt_xlate *xl,
-> > +		       int numeric)
-> > +{
-> > +	const struct ipt_icmp *info = (struct ipt_icmp *)match->data;
-> > +
-> > +	xt_xlate_add(xl, "icmp type%s ",
-> > +		     (info->invflags & IPT_ICMP_INV) ? " !=" : "");
-> > +
-> > +	if (!type_xlate_print(xl, info->type, info->code[0], info->code[1]))
-> > +		return 0;
-> > +
-> > +	xt_xlate_add(xl, " ");
-> > +
-> > +	return 1;
-> > +}
-> > +
-> > +
-> >  static struct xtables_match icmp_mt_reg = {
-> >  	.name		= "icmp",
-> >  	.version	= XTABLES_VERSION,
-> > @@ -261,6 +304,7 @@ static struct xtables_match icmp_mt_reg = {
-> >  	.save		= icmp_save,
-> >  	.x6_parse	= icmp_parse,
-> >  	.x6_options	= icmp_opts,
-> > +	.xlate		= icmp_xlate,
-> >  };
-> >  
-> >  void _init(void)
-> > -- 
-> > 2.7.0
-> > 
+This looks good, but this chunk doesn't match the description, right?
