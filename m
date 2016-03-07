@@ -1,124 +1,54 @@
-From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCHv2] extensions: libipt_icmp: Add translation to nft
-Date: Sun, 6 Mar 2016 23:24:44 +0100
-Message-ID: <20160306222442.GA20945@sonyv>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: shivanib134@gmail.com, pablo@netfilter.org,
-	outreachy-kernel@googlegroups.com
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:38766 "EHLO
-	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750848AbcCFWYs (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 6 Mar 2016 17:24:48 -0500
-Received: by mail-wm0-f42.google.com with SMTP id l68so50671229wml.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 06 Mar 2016 14:24:47 -0800 (PST)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT PULL v2 0/4] IPVS Fixes for v4.5
+Date: Mon,  7 Mar 2016 12:03:30 +0900
+Message-ID: <1457319814-8027-1-git-send-email-horms@verge.net.au>
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Add translation for icmp to nftables. Not supported types in nftables
-are: any, network-unreachable, host-unreachable, protocol-unreachable,
-port-unreachable, fragmentation-needed, source-route-failed,
-network-unknown, host-unknown, network-prohibited, host-prohibited,
-TOS-network-unreachable, TOS-host-unreachable, communication-prohibited,
-host-precedence-violation, precedence-cutoff, network-redirect,
-host-redirect, TOS-network-redirect, TOS-host-redirect,
-router-advertisement, router-solicitation, ttl-zero-during-transit,
-ttl-zero-during-reassembly, ip-header-bad and required-option-missing.
+Hi Pablo,
 
-Examples:
+please consider these IPVS fixes for v4.5 or
+if it is too late please consider them for v4.6.
 
-$ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type echo-reply -j LOG
-nft add rule ip filter INPUT icmp type echo-reply counter log level warn
+* Arnd Bergman has corrected an error whereby the SIP persistence engine
+  may incorrectly access protocol fields
+* Julian Anastasov has corrected a problem reported by Jiri Bohac with the
+  connection rescheduling mechanism added in 3.10 when new SYNs in
+  connection to dead real server can be redirected to another real server.
+* Marco Angaroni resolved a problem in the SIP persistence engine
+  whereby the Call-ID could not be found if it was at the beginning of a
+  SIP message.
 
-$ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type 3 -j LOG
-nft add rule ip filter INPUT icmp type destination-unreachable counter log level warn
+The following changes since commit 017b1b6d28c479f1ad9a7a41f775545a3e1cba35:
 
-$ sudo iptables-translate -t filter -A INPUT -m icmp ! --icmp-type 3 -j LOG
-nft add rule ip filter INPUT icmp type != destination-unreachable counter log level warn
+  netfilter: nfnetlink_acct: validate NFACCT_FILTER parameters (2016-02-29 13:27:21 +0100)
 
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
----
-v2:
-	- Detection of not supported types in nftables, as Shivani suggested.
+are available in the git repository at:
 
- extensions/libipt_icmp.c | 46 +++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 45 insertions(+), 1 deletion(-)
+  https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes-for-v4.5
 
-diff --git a/extensions/libipt_icmp.c b/extensions/libipt_icmp.c
-index 666e7da..89eb36e 100644
---- a/extensions/libipt_icmp.c
-+++ b/extensions/libipt_icmp.c
-@@ -218,7 +218,7 @@ static void print_icmptype(uint8_t type,
- }
- 
- static void icmp_print(const void *ip, const struct xt_entry_match *match,
--                       int numeric)
-+		       int numeric)
- {
- 	const struct ipt_icmp *icmp = (struct ipt_icmp *)match->data;
- 
-@@ -249,6 +249,49 @@ static void icmp_save(const void *ip, const struct xt_entry_match *match)
- 	}
- }
- 
-+static unsigned int type_xlate_print(struct xt_xlate *xl, unsigned int icmptype,
-+			     unsigned int code_min, unsigned int code_max)
-+{
-+	unsigned int i;
-+
-+	if (code_min == code_max)
-+		return 0;
-+
-+	switch (icmptype) {
-+	case 0xFF:
-+	case 9:
-+	case 10:
-+		return 0;
-+	default:
-+		for (i = 0; ARRAY_SIZE(icmp_codes); ++i)
-+			if (icmp_codes[i].type == icmptype &&
-+			    icmp_codes[i].code_min == code_min &&
-+			    icmp_codes[i].code_max == code_max)
-+				break;
-+
-+			xt_xlate_add(xl, icmp_codes[i].name);
-+	}
-+
-+	return 1;
-+}
-+
-+static int icmp_xlate(const struct xt_entry_match *match, struct xt_xlate *xl,
-+		       int numeric)
-+{
-+	const struct ipt_icmp *info = (struct ipt_icmp *)match->data;
-+
-+	xt_xlate_add(xl, "icmp type%s ",
-+		     (info->invflags & IPT_ICMP_INV) ? " !=" : "");
-+
-+	if (!type_xlate_print(xl, info->type, info->code[0], info->code[1]))
-+		return 0;
-+
-+	xt_xlate_add(xl, " ");
-+
-+	return 1;
-+}
-+
-+
- static struct xtables_match icmp_mt_reg = {
- 	.name		= "icmp",
- 	.version	= XTABLES_VERSION,
-@@ -261,6 +304,7 @@ static struct xtables_match icmp_mt_reg = {
- 	.save		= icmp_save,
- 	.x6_parse	= icmp_parse,
- 	.x6_options	= icmp_opts,
-+	.xlate		= icmp_xlate,
- };
- 
- void _init(void)
--- 
-2.7.0
+for you to fetch changes up to 7617a24f83b5d67f4dab1844956be1cebc44aec8:
 
+  ipvs: correct initial offset of Call-ID header search in SIP persistence engine (2016-03-07 11:53:35 +0900)
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      ipvs: handle ip_vs_fill_iph_skb_off failure
+
+Julian Anastasov (2):
+      ipvs: drop first packet to redirect conntrack
+      ipvs: allow rescheduling after RST
+
+Marco Angaroni (1):
+      ipvs: correct initial offset of Call-ID header search in SIP persistence engine
+
+ include/net/ip_vs.h               | 17 +++++++++++++++++
+ net/netfilter/ipvs/ip_vs_core.c   | 38 +++++++++++++++++++++++++++++---------
+ net/netfilter/ipvs/ip_vs_pe_sip.c |  6 +++---
+ 3 files changed, 49 insertions(+), 12 deletions(-)
