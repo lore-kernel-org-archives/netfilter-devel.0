@@ -1,51 +1,50 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] extensions: libxt_connlabel: Add translation to nft
-Date: Mon, 7 Mar 2016 14:05:24 +0100
-Message-ID: <20160307130524.GA26624@salvia>
-References: <20160305214746.GA16464@gmail.com>
- <20160306000703.GA31513@breakpoint.cc>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Seeking help for implementing CT HELPER in nftables
+Date: Mon, 7 Mar 2016 14:20:12 +0100
+Message-ID: <20160307132011.GA7620@macbook.localdomain>
+References: <56DAC502.2060809@c-s.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Shivani Bhardwaj <shivanib134@gmail.com>,
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+To: christophe leroy <christophe.leroy@c-s.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36294 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752641AbcCGNFe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Mar 2016 08:05:34 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 7A1B74B0F7
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 14:05:30 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6AB9F28D239
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 14:05:30 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 10E0ACA105
-	for <netfilter-devel@vger.kernel.org>; Mon,  7 Mar 2016 14:05:25 +0100 (CET)
+Received: from stinky.trash.net ([213.144.137.162]:50007 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752169AbcCGNUQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 7 Mar 2016 08:20:16 -0500
 Content-Disposition: inline
-In-Reply-To: <20160306000703.GA31513@breakpoint.cc>
+In-Reply-To: <56DAC502.2060809@c-s.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Mar 06, 2016 at 01:07:03AM +0100, Florian Westphal wrote:
-> Shivani Bhardwaj <shivanib134@gmail.com> wrote:
-> > Add translation for connlabel to nftables.
-> > Full translation for this match awaits the support for --set option.
+On 05.03, christophe leroy wrote:
+> Hello,
 > 
-> Hmm, I sent patches for that a while ago, don't know why they were
-> not applied... Pablo?
+> I'm trying to implement support for CT HELPERs in linux kernel for
+> nftables and need some help/guidance.
+> 
+> The rule beeing 'udp dport tftp ct helper set "tftp"', I get
+> nft_ct_set_init() called when I add the rule in the table output filter
+> table.
+> 
+> I believe I have to call nf_ct_helper_ext_add() from nft_ct_set_init(),
+> but for that I need the name of the helper that is to be set, ie 'tftp'.
+> How do I get the name of the requested helper in that function ? I
+> suppose once I get it I can do the same as  xt_ct_set_helper() does.
 
-Please, push the the connlabel support to nft.
+This depends on how we want to implement this. We could pass a static helper
+name in a new CT attribute, look the helper up in the init path and assign it
+to the conntrack in the eval function. This means we'd require a single rule
+for every helper assignment.
 
-We can probably introduce something like:
+Alternatively we could pass the helper name in a register and do the lookup
+at runtime, that would allow to use maps for helper assignment, IOW:
 
-        ct connlabel bitset bar
+ct set helper tcp dport { 21 : ftp, 5060 : sip, ... }
 
-instead of:
-
-        ct connlabel set ct connlabel | bar
-
-in a follow up patch, which looks more compact to me. We can accept
-both syntax I'd say so we can introduce this without breaking
-backward.
+Since helper assignment should probably also do a module load, I'm leaning
+towards the first possibility. If we still want to do map based assignements,
+we could use maps of CT expressions, similar to what we do with dynset but
+with statically initialized expressions.
