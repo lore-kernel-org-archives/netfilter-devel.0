@@ -1,77 +1,37 @@
-From: =?UTF-8?Q?Carlos_Falgueras_Garc=c3=ada?= <carlosfg@riseup.net>
-Subject: Re: [PATCH 3/3 v2] nftables: rule: Change the field "rule->comment"
- for an nftnl_attrbuf.
-Date: Tue, 8 Mar 2016 10:58:19 +0100
-Message-ID: <56DEA23B.80302@riseup.net>
-References: <1456763140-15121-1-git-send-email-carlosfg@riseup.net>
- <1456763140-15121-3-git-send-email-carlosfg@riseup.net>
- <20160302183744.GB1351@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-To: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:58547 "EHLO mx1.riseup.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932071AbcCHJ6Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Mar 2016 04:58:24 -0500
-In-Reply-To: <20160302183744.GB1351@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 01/10] netfilter: ipvs: Remove noisy debug print from ip_vs_del_service
+Date: Tue,  8 Mar 2016 11:00:41 +0100
+Message-ID: <1457431250-3086-2-git-send-email-pablo@netfilter.org>
+References: <1457431250-3086-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1457431250-3086-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 02/03/16 19:37, Pablo Neira Ayuso wrote:
-> On Mon, Feb 29, 2016 at 05:25:40PM +0100, Carlos Falgueras Garc=EDa w=
-rote:
->> diff --git a/src/rule.c b/src/rule.c
->> index 18ff592..499fa7b 100644
->> --- a/src/rule.c
->> +++ b/src/rule.c
->> @@ -23,6 +23,7 @@
->>
->>   #include <libnftnl/common.h>
->>   #include <libnftnl/ruleset.h>
->> +#include <libnftnl/attr.h>
->>   #include <netinet/ip.h>
->>   #include <linux/netfilter.h>
->>   #include <linux/netfilter_arp.h>
->> @@ -366,6 +367,7 @@ struct rule *rule_alloc(const struct location *l=
-oc, const struct handle *h)
->>   	rule->location =3D *loc;
->>   	init_list_head(&rule->list);
->>   	init_list_head(&rule->stmts);
->> +	rule->udata =3D NULL;
->>   	if (h !=3D NULL)
->>   		rule->handle =3D *h;
->>   	return rule;
->> @@ -375,21 +377,53 @@ void rule_free(struct rule *rule)
->>   {
->>   	stmt_list_free(&rule->stmts);
->>   	handle_free(&rule->handle);
->> -	xfree(rule->comment);
->> +	nftnl_attrbuf_free(rule->udata);
->
-> I would rename this function to:
->
->          nftnl_udata_free();
->
-> So all functions that now refer to nftnl_attrbuf_* look like:
->
->          nftnl_udata_*()
->
-> then, to push/retrieve attributes, I would use the prefix:
->
->          nftnl_udata_attr_*()
+From: Yannick Brosseau <scientist@fb.com>
 
-I renamed all functions following these rule except=20
-"nftnl_udata_attr_put" which I changed to "nftnl_udata_put" because=20
-functions like "nftnl_udata_attr_put_strz" would have very long name. I=
-t=20
-is ok?
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This have been there for a long time, but does not seem to add value
+
+Signed-off-by: Yannick Brosseau <scientist@fb.com>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+---
+ net/netfilter/ipvs/ip_vs_ctl.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index e7c1b05..daf4cb7 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -1376,8 +1376,6 @@ static void __ip_vs_del_service(struct ip_vs_service *svc, bool cleanup)
+ 	struct ip_vs_pe *old_pe;
+ 	struct netns_ipvs *ipvs = svc->ipvs;
+ 
+-	pr_info("%s: enter\n", __func__);
+-
+ 	/* Count only IPv4 services for old get/setsockopt interface */
+ 	if (svc->af == AF_INET)
+ 		ipvs->num_services--;
+-- 
+2.1.4
