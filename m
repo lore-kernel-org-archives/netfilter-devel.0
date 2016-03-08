@@ -1,75 +1,151 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] configure: Show support for connlabel
-Date: Tue, 8 Mar 2016 14:54:23 +0100
-Message-ID: <20160308135423.GA10602@salvia>
-References: <20160307091447.GA10194@gmail.com>
- <20160307140913.GA27599@salvia>
- <CAKHNQQEp7uV+afTfZ73k6srRQyj1ks_dsWYsbu0N_bWzsoNd-Q@mail.gmail.com>
- <20160307175646.GA30910@salvia>
- <20160307180044.GA4134@salvia>
- <CAKHNQQFEtTkdrT9+f1i2XSG8+nk7ivCZz7bJcJm4tfbtGeCJtw@mail.gmail.com>
- <20160308133758.GA5764@salvia>
- <alpine.LSU.2.20.1603081441060.13514@nerf40.vanv.qr>
+From: FaTe <gokuvsvegita@gmail.com>
+Subject: [PATCH v2] doc: nft: Fixed a typo and added/changed punctuation
+Date: Tue, 8 Mar 2016 19:57:15 +0530
+Message-ID: <56DEE143.60604@gmail.com>
+References: <20160307145420.GA4852@fate> <20160307180600.GA6777@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Shivani Bhardwaj <shivanib134@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@inai.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54257 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932139AbcCHNyc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Mar 2016 08:54:32 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id B4DD013C0E4
-	for <netfilter-devel@vger.kernel.org>; Tue,  8 Mar 2016 14:54:29 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id A4254DA388
-	for <netfilter-devel@vger.kernel.org>; Tue,  8 Mar 2016 14:54:29 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 0430EDA388
-	for <netfilter-devel@vger.kernel.org>; Tue,  8 Mar 2016 14:54:24 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.20.1603081441060.13514@nerf40.vanv.qr>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:34246 "EHLO
+	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751516AbcCHO1G (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Mar 2016 09:27:06 -0500
+Received: by mail-pf0-f194.google.com with SMTP id 184so1352108pff.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 08 Mar 2016 06:27:04 -0800 (PST)
+In-Reply-To: <20160307180600.GA6777@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 08, 2016 at 02:47:13PM +0100, Jan Engelhardt wrote:
-> 
-> On Tuesday 2016-03-08 14:37, Pablo Neira Ayuso wrote:
-> >>>> Those are the userspace bits for the old ip_queue support that was
-> >>>> removed years ago, since NFQUEUE superseded for many years.
-> >>>> You can still cd iptables/libipq and type 'make' to compile the
-> >>>> this small userspace library since we have to keep new iptables
-> >>>> releases running with old kernels.
-> >>>
-> >>> This is always compiling libipq even with --disable-libipq, this looks
-> >>> like a bug in our build infrastructure.
-> 
-> If you manually and intentionally chdir to libipq and attempt to built it, why
-> forbid it? Having "if ENABLE_LIBIPQ" in the toplevel Makefile.am seems
-> sufficient.
+In nft's man page , instead of using '/' between shortopt and longopt in the
+"SYNOPSIS" and "OPTIONS" section , use '|' and ',' respectively.
+(just like the man pages of iptables, etc.)
 
-That top level "if ENABLE_LIBIPQ" seems fine, I overlooked this.
+Fixed a typo and added missing ',' .
 
-> AS_HELP_STRING([--enable-libipq], [Build and install libipq])
-> in configure.ac is also right, since ipq is build-disabled by default.
-> 
-> >> Yes. Also, I see that devel should have --disable-devel instead of
-> >> --enable-devel option and the appropriate functionality associated
-> >> with it. Please correct me if I am wrong here.
-> 
-> The help texts:
-> AS_HELP_STRING([--enable-devel], [Install Xtables development headers])
-> should indeed read
-> AS_HELP_STRING([--disable-devel], [Avoid installation of Xtables development headers])
-> because headers are build-*enabled* by default.
-> 
-> But the actual option parsing (--enable-devel, --enable-devel=no,
-> --disable-devel) that AC_ARG_ENABLE provides needs no change AFAICS.
+Signed-off-by: Piyush Pangtey <gokuvsvegita@gmail.com>
+---
+ doc/nft.xml | 32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-Right, this is also controled via top level Makefile.am.
-
-@Shivani, please focus on improving connlabel integration into our
-configure thing.
+diff --git a/doc/nft.xml b/doc/nft.xml
+index 7cc9988..e4d227c 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -34,19 +34,19 @@ vi:ts=4 sw=4
+ 		<cmdsynopsis>
+ 			<command>nft</command>
+ 			<arg choice="opt">
+-				<option>-n/--numeric</option>
++				<option>-n | --numeric</option>
+ 			</arg>
+ 			<arg choice="opt">
+-				<option>-I/--includepath</option>
++				<option>[-I | --includepath]</option>
+ 				<replaceable>directory</replaceable>
+ 			</arg>
+ 			<group>
+ 				<arg choice="opt">
+-					<option>-f/--file</option>
++					<option>[-f | --file]</option>
+ 					<replaceable>filename</replaceable>
+ 				</arg>
+ 				<arg choice="opt">
+-					<option>-i/--interactive</option>
++					<option>[-i | --interactive]</option>
+ 				</arg>
+ 				<arg choice="opt" rep="repeat">
+ 					<replaceable>cmd</replaceable>
+@@ -56,10 +56,10 @@ vi:ts=4 sw=4
+ 		<cmdsynopsis>
+ 			<command>nft</command>
+ 			<arg choice="opt">
+-				<option>-h/--help</option>
++				<option>-h | --help</option>
+ 			</arg>
+ 			<arg choice="opt">
+-				<option>-v/--version</option>
++				<option>-v | --version</option>
+ 			</arg>
+ 		</cmdsynopsis>
+ 	</refsynopsisdiv>
+@@ -80,7 +80,7 @@ vi:ts=4 sw=4
+ 
+ 		<variablelist>
+ 			<varlistentry>
+-				<term><option>-h/--help</option></term>
++				<term><option>-h, --help</option></term>
+ 				<listitem>
+ 					<para>
+ 						Show help message and all options.
+@@ -88,7 +88,7 @@ vi:ts=4 sw=4
+ 				</listitem>
+ 			</varlistentry>
+ 			<varlistentry>
+-				<term><option>-v/--version</option></term>
++				<term><option>-v, --version</option></term>
+ 				<listitem>
+ 					<para>
+ 						Show version.
+@@ -96,7 +96,7 @@ vi:ts=4 sw=4
+ 				</listitem>
+ 			</varlistentry>
+ 			<varlistentry>
+-				<term><option>-n/--numeric</option></term>
++				<term><option>-n, --numeric</option></term>
+ 				<listitem>
+ 					<para>
+ 						Numeric output: Addresses and other information
+@@ -117,7 +117,7 @@ vi:ts=4 sw=4
+ 				</listitem>
+ 			</varlistentry>
+ 			<varlistentry>
+-				<term><option>-a/--handle</option></term>
++				<term><option>-a, --handle</option></term>
+ 				<listitem>
+ 					<para>
+ 						Show rule handles in output.
+@@ -125,15 +125,15 @@ vi:ts=4 sw=4
+ 				</listitem>
+ 			</varlistentry>
+ 			<varlistentry>
+-				<term><option>-I/--includepath <replaceable>directory</replaceable></option></term>
++				<term><option>-I, --includepath <replaceable>directory</replaceable></option></term>
+ 				<listitem>
+ 					<para>
+-						Add the directory <replaceable>directory</replaceable> to the list of directories to by searched for included files.
++						Add the directory <replaceable>directory</replaceable> to the list of directories to be searched for included files.
+ 					</para>
+ 				</listitem>
+ 			</varlistentry>
+ 			<varlistentry>
+-				<term><option>-f/--file <replaceable>filename</replaceable></option></term>
++				<term><option>-f, --file <replaceable>filename</replaceable></option></term>
+ 				<listitem>
+ 					<para>
+ 						Read input from <replaceable>filename</replaceable>.
+@@ -141,7 +141,7 @@ vi:ts=4 sw=4
+ 				</listitem>
+ 			</varlistentry>
+ 			<varlistentry>
+-				<term><option>-i/--interactive</option></term>
++				<term><option>-i, --interactive</option></term>
+ 				<listitem>
+ 					<para>
+ 						Read input from an interactive readline CLI.
+@@ -156,8 +156,8 @@ vi:ts=4 sw=4
+ 		<refsect2>
+ 			<title>Lexical conventions</title>
+ 			<para>
+-				Input is parsed line-wise. When the last character of a line just before
+-				the newline character is a non-quoted backslash (<literal>\</literal>),
++				Input is parsed line-wise. When the last character of a line, just before
++				the newline character, is a non-quoted backslash (<literal>\</literal>),
+ 				the next line is treated as a continuation. Multiple commands on the
+ 				same line can be separated using a semicolon (<literal>;</literal>).
+ 			</para>
+-- 
+1.9.1
