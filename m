@@ -1,127 +1,93 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv3] extensions: libipt_icmp: Add translation to nft
-Date: Tue, 8 Mar 2016 11:53:46 +0100
-Message-ID: <20160308105346.GB4008@salvia>
-References: <20160307212141.GA10594@sonyv>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [BUG] kernel crash in br_netfilter
+Date: Tue, 8 Mar 2016 12:06:00 +0100
+Message-ID: <20160308110600.GA1011@breakpoint.cc>
+References: <56D43A9E.2070504@neratec.com>
+ <56DDBDCD.8000004@neratec.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, shivanib134@gmail.com,
-	outreachy-kernel@googlegroups.com
-To: Laura Garcia Liebana <nevola@gmail.com>
+Cc: Stephen Hemminger <stephen@networkplumber.org>,
+	OpenWrt Development List <openwrt-devel@lists.openwrt.org>,
+	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+	Felix Fietkau <nbd@openwrt.org>
+To: Zefir Kurtisi <zefir.kurtisi@neratec.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:32853 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932567AbcCHKxz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Mar 2016 05:53:55 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id B6669810C
-	for <netfilter-devel@vger.kernel.org>; Tue,  8 Mar 2016 11:53:53 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8C3DDDA39D
-	for <netfilter-devel@vger.kernel.org>; Tue,  8 Mar 2016 11:53:53 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B492ADA3AF
-	for <netfilter-devel@vger.kernel.org>; Tue,  8 Mar 2016 11:53:46 +0100 (CET)
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37793 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932479AbcCHLGE (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Mar 2016 06:06:04 -0500
 Content-Disposition: inline
-In-Reply-To: <20160307212141.GA10594@sonyv>
+In-Reply-To: <56DDBDCD.8000004@neratec.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 07, 2016 at 10:21:44PM +0100, Laura Garcia Liebana wrote:
-> Add translation for icmp to nftables. Not supported types in nftables
+Zefir Kurtisi <zefir.kurtisi@neratec.com> wrote:
+> > Reproducing the crash
+> > 1. build the firmware for the system to test
+> >    * use default configuration
+> >    * ensure to select CONFIG_BRIDGE_NETFILTER in kernel_menuconfig
+> > 2. boot the device and access it over serial
+> > 3. ensure br-lan bridge has at least two active ports
+> >    * tested with ath9k + Ethernet (gianfar and ag71xx)
+> >    * if not enabled, enable radio0 and ensure wlan0 is in bridge
+> > 4. run: sysctl -w net.bridge.bridge-nf-call-iptables=1
+> > 5. from your host, continuously ping the device over Ethernet
+> > 6. run: ifconfig br-lan down
+> > 
+> > The next ingress packet causes a fatal crash.
+> > 
+> > Trace logs for MIPS and PPC are attached and hint to __nf_conntrack_confirm
+> > 
+> > 
+> > Let me know if I could provide more information to further isolate the problem.
+> > 
+> > 
+> Got forward with that issue and after wondering why the netfilter folks were
+> unable to reproduce, it finally turned out the problematic code is OWRT private in
+> target/linux/generic/patches-X/120-bridge_allow_receiption_on_disabled_port.patch
 
-These are actually icmp codes that we don't support yet, right?
+Yes, the patch is wrong.  As you discovered, the
+br_netfilter/call-iptables infrastructure will free the skb, so all code
+after NF_HOOK in this patch results in use-after-free.
 
-> are: any, network-unreachable, host-unreachable, protocol-unreachable,
-> port-unreachable, fragmentation-needed, source-route-failed,
-> network-unknown, host-unknown, network-prohibited, host-prohibited,
-> TOS-network-unreachable, TOS-host-unreachable, communication-prohibited,
-> host-precedence-violation, precedence-cutoff, network-redirect,
-> host-redirect, TOS-network-redirect, TOS-host-redirect,
-> router-advertisement, router-solicitation, ttl-zero-during-transit,
-> ttl-zero-during-reassembly, ip-header-bad and required-option-missing.
-> 
-> Examples:
-> 
-> $ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type echo-reply -j LOG
-> nft add rule ip filter INPUT icmp type echo-reply counter log level warn
-> 
-> $ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type 3 -j LOG
-> nft add rule ip filter INPUT icmp type destination-unreachable counter log level warn
-> 
-> $ sudo iptables-translate -t filter -A INPUT -m icmp ! --icmp-type 3 -j LOG
-> nft add rule ip filter INPUT icmp type != destination-unreachable counter log level warn
-> 
-> Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
-> ---
-> v2:
-> 	- Detection of not supported types in nftables, as Shivani suggested.
-> v3:
-> 	- Fix array iteration protection.
-> 
->  extensions/libipt_icmp.c | 49 +++++++++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 48 insertions(+), 1 deletion(-)
-> 
-> diff --git a/extensions/libipt_icmp.c b/extensions/libipt_icmp.c
-> index 666e7da..2c8be87 100644
-> --- a/extensions/libipt_icmp.c
-> +++ b/extensions/libipt_icmp.c
-> @@ -218,7 +218,7 @@ static void print_icmptype(uint8_t type,
->  }
->  
->  static void icmp_print(const void *ip, const struct xt_entry_match *match,
-> -                       int numeric)
-> +		       int numeric)
+Seems the quick-fix (but thats also not correct) is to use NF_BR_LOCAL_IN instead so that
+we bypass the call-iptables infrastructure.
 
-I think this change doesn't below this patch.
+> 1. gets passed to br_handle_frame()
+> 2. enters the BR_STATE_DISABLED case in the mentioned patch
+> 3. gets passed to the related NF_HOOK
+>    a) in br_nf_pre_routing() a conntrack context ct is created
+>    b) that in the same nf_iterate() is destroyed in br_nf_pre_routing_finish()
+> 4. in the br_pass_frame_up() following the NF_HOOK
+>    a) ipv4_confirm() runs __nf_conntrack_confirm(ct) with invalid ct
+>    b) which attempts to nf_ct_del_from_dying_or_unconfirmed_list(ct)
+>    c) and with that de-references and writes to LIST_POISON2 in pprev
 
->  {
->  	const struct ipt_icmp *icmp = (struct ipt_icmp *)match->data;
->  
-> @@ -249,6 +249,52 @@ static void icmp_save(const void *ip, const struct xt_entry_match *match)
->  	}
->  }
->  
-> +static unsigned int type_xlate_print(struct xt_xlate *xl, unsigned int icmptype,
-> +			     unsigned int code_min, unsigned int code_max)
-                       ^^^^^^
+Yes, once NF_HOOK returns skb is in undefined state.
 
-This should be aligned with the line above:
+This snippet (from mainline):
 
-static unsigned int type_xlate_print(struct xt_xlate *xl, unsigned int icmptype,
-                                     unsigned int code_min,
-                                     unsigned int code_max)
+                /* Deliver packet to local host only */
+                if (NF_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_IN,
+                            dev_net(skb->dev), NULL, skb, skb->dev, NULL,
+                            br_handle_local_finish)) {
+                        return RX_HANDLER_CONSUMED; /* consumed by filter */
+                } else {
+                        *pskb = skb;
+                        return RX_HANDLER_PASS; /* continue processing */
+                }
 
-> +{
-> +	unsigned int i;
-> +
-> +	if (code_min == code_max)
-> +		return 0;
-> +
-> +	switch (icmptype) {
-> +	case 0xFF:
+... is also dubious.  It only works because no module in current
+uptream kernel registers a destructive hook in NF_BR_LOCAL_IN.
 
-You can skip the 0xff case by adding nothing.
+In fact, this looks like we get crash here as well once we gain ability to
+NFQUEUE in nftables bridge family.
 
-> +	case 9:
-> +	case 10:
+> My hot-fix to prevent the crash is to instead of passing the skb to NF_HOOK
+> directly pass it to br_handle_local_finish(). But having insufficient insight into
+> what is going on there, this is fighting the symptoms rather than solving the root
+> cause. Maybe it is even better to drop patch 120 (not tested yet)?
 
-You can send me a two-liner for this for nft, so we don't need this I
-think.
-
-> +		return 0;
-> +	default:
-> +		for (i = 0; i < ARRAY_SIZE(icmp_codes); ++i)
-> +			if (icmp_codes[i].type == icmptype &&
-> +			    icmp_codes[i].code_min == code_min &&
-> +			    icmp_codes[i].code_max == code_max)
-> +				break;
-> +
-> +		if (i != ARRAY_SIZE(icmp_codes))
-> +			xt_xlate_add(xl, icmp_codes[i].name);
-> +		else
-> +			return 0;
-> +	}
-> +
-> +	return 1;
-> +}
+Sorry, I don't know why this patch was not merged upstream and do not know why its
+in openwrt.
