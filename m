@@ -1,174 +1,113 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 08/10] netfilter: bridge: register hooks only when bridge interface is added
-Date: Tue,  8 Mar 2016 11:00:48 +0100
-Message-ID: <1457431250-3086-9-git-send-email-pablo@netfilter.org>
-References: <1457431250-3086-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH 1/3 v2] libnftnl: Implement new buffer of TLV objects.
+Date: Tue, 8 Mar 2016 11:10:20 +0100
+Message-ID: <20160308101020.GA3390@salvia>
+References: <1456763140-15121-1-git-send-email-carlosfg@riseup.net>
+ <20160302183207.GA1351@salvia>
+ <56DEA21E.4000603@riseup.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40402 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:45322 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932742AbcCHKBN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Mar 2016 05:01:13 -0500
+	id S932818AbcCHKKa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Mar 2016 05:10:30 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id DD1518431
-	for <netfilter-devel@vger.kernel.org>; Tue,  8 Mar 2016 11:01:11 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id C073F61E80
+	for <netfilter-devel@vger.kernel.org>; Tue,  8 Mar 2016 11:10:26 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id CF58ADA396
-	for <netfilter-devel@vger.kernel.org>; Tue,  8 Mar 2016 11:01:11 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id ADB13DA380
+	for <netfilter-devel@vger.kernel.org>; Tue,  8 Mar 2016 11:10:26 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id CD36B3337
-	for <netfilter-devel@vger.kernel.org>; Tue,  8 Mar 2016 11:01:09 +0100 (CET)
-In-Reply-To: <1457431250-3086-1-git-send-email-pablo@netfilter.org>
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 5D182DA396
+	for <netfilter-devel@vger.kernel.org>; Tue,  8 Mar 2016 11:10:24 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <56DEA21E.4000603@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
+On Tue, Mar 08, 2016 at 10:57:50AM +0100, Carlos Falgueras Garc=EDa wro=
+te:
+> On 02/03/16 19:32, Pablo Neira Ayuso wrote:
+> >On Mon, Feb 29, 2016 at 05:25:38PM +0100, Carlos Falgueras Garc=EDa =
+wrote:
+> >>diff --git a/include/attr.h b/include/attr.h
+> >>new file mode 100644
+> >>index 0000000..2a29fa0
+> >>--- /dev/null
+> >>+++ b/include/attr.h
+> >>@@ -0,0 +1,40 @@
+> >>+#ifndef _LIBNFTNL_ATTR_INTERNAL_H_
+> >>+#define _LIBNFTNL_ATTR_INTERNAL_H_
+> >>+
+> >>+#include <stdint.h>
+> >>+#include <stddef.h>
+> >>+
+> >>+/*
+> >>+ * TLV structures:
+> >>+ * nftnl_attr
+> >>+ *  <-------- HEADER --------> <------ PAYLOAD ------>
+> >>+ * +------------+-------------+- - - - - - - - - - - -+
+> >>+ * |    type    |     len     |         value         |
+> >>+ * |  (1 byte)  |   (1 byte)  |                       |
+> >>+ * +--------------------------+- - - - - - - - - - - -+
+> >>+ *  <-- sizeof(nftnl_attr) --> <-- nftnl_attr->len -->
+> >>+ */
+> >>+struct __attribute__((__packed__)) nftnl_attr {
+> >>+	uint8_t type;
+> >>+	uint8_t len;
+> >>+	unsigned char value[];
+> >>+};
+> >
+> >struct nftnl_attr {
+> >       ...
+> >} __attribute__((__packed__));
+> >
+>=20
+> I forgot these, sorry. I'll send a new versi=F3n now.
 
-This moves bridge hooks to a register-when-needed scheme.
+Thanks Carlos.
 
-We use a device notifier to register the 'call-iptables' netfilter hooks
-only once a bridge gets added.
+> >>diff --git a/src/libnftnl.map b/src/libnftnl.map
+> >>index 2e193b7..65bd37e 100644
+> >>--- a/src/libnftnl.map
+> >>+++ b/src/libnftnl.map
+> >>@@ -336,6 +336,22 @@ global:
+> >>    nftnl_set_snprintf;
+> >>    nftnl_set_fprintf;
+> >>
+> >>+  nftnl_attrbuf_alloc;
+> >>+  nftnl_attrbuf_free;
+> >>+  nftnl_attrbuf_get_len;
+> >>+  nftnl_attrbuf_get_size;
+> >>+  nftnl_attrbuf_get_data;
+> >>+  nftnl_attrbuf_copy_data;
+> >>+  nftnl_attrbuf_get_start;
+> >>+  nftnl_attrbuf_get_end;
+> >>+  nftnl_attr_get_type;
+> >>+  nftnl_attr_get_len;
+> >>+  nftnl_attr_get_value;
+> >>+  nftnl_attr_put;
+> >>+  nftnl_attr_put_check;
+> >>+  nftnl_attr_next;
+> >>+  nftnl_attr_parse;
+> >
+> >Are you sure we need to export all these? Please only export those
+> >functions that we really need at this stage for nft.
+>=20
+> The only function that is not being used now is "nftnl_udata_size". B=
+ut I
+> left it because "size" is an attribute of the object and I think it i=
+s right
+> to allow the access to it. I must remove it anyway?
 
-This means that if the initial namespace uses a bridge, newly created
-network namespaces no longer get the PRE_ROUTING ipt_sabotage hook.
-
-It will registered in that network namespace once a bridge is created
-within that namespace.
-
-A few modules still use global hooks:
-
-- conntrack
-- bridge PF_BRIDGE hooks
-- IPVS
-- CLUSTER match (deprecated)
-- SYNPROXY
-
-As long as these modules are not loaded/used, a new network namespace has
-empty hook list and NF_HOOK() will boil down to single list_empty test even
-if initial namespace does stateless packet filtering.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/bridge/br_netfilter_hooks.c | 68 +++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 65 insertions(+), 3 deletions(-)
-
-diff --git a/net/bridge/br_netfilter_hooks.c b/net/bridge/br_netfilter_hooks.c
-index 7ddbe7e..44114a9 100644
---- a/net/bridge/br_netfilter_hooks.c
-+++ b/net/bridge/br_netfilter_hooks.c
-@@ -37,6 +37,7 @@
- #include <net/addrconf.h>
- #include <net/route.h>
- #include <net/netfilter/br_netfilter.h>
-+#include <net/netns/generic.h>
- 
- #include <asm/uaccess.h>
- #include "br_private.h"
-@@ -44,6 +45,12 @@
- #include <linux/sysctl.h>
- #endif
- 
-+static int brnf_net_id __read_mostly;
-+
-+struct brnf_net {
-+	bool enabled;
-+};
-+
- #ifdef CONFIG_SYSCTL
- static struct ctl_table_header *brnf_sysctl_header;
- static int brnf_call_iptables __read_mostly = 1;
-@@ -938,6 +945,53 @@ static struct nf_hook_ops br_nf_ops[] __read_mostly = {
- 	},
- };
- 
-+static int brnf_device_event(struct notifier_block *unused, unsigned long event,
-+			     void *ptr)
-+{
-+	struct net_device *dev = netdev_notifier_info_to_dev(ptr);
-+	struct brnf_net *brnet;
-+	struct net *net;
-+	int ret;
-+
-+	if (event != NETDEV_REGISTER || !(dev->priv_flags & IFF_EBRIDGE))
-+		return NOTIFY_DONE;
-+
-+	ASSERT_RTNL();
-+
-+	net = dev_net(dev);
-+	brnet = net_generic(net, brnf_net_id);
-+	if (brnet->enabled)
-+		return NOTIFY_OK;
-+
-+	ret = nf_register_net_hooks(net, br_nf_ops, ARRAY_SIZE(br_nf_ops));
-+	if (ret)
-+		return NOTIFY_BAD;
-+
-+	brnet->enabled = true;
-+	return NOTIFY_OK;
-+}
-+
-+static void __net_exit brnf_exit_net(struct net *net)
-+{
-+	struct brnf_net *brnet = net_generic(net, brnf_net_id);
-+
-+	if (!brnet->enabled)
-+		return;
-+
-+	nf_unregister_net_hooks(net, br_nf_ops, ARRAY_SIZE(br_nf_ops));
-+	brnet->enabled = false;
-+}
-+
-+static struct pernet_operations brnf_net_ops __read_mostly = {
-+	.exit = brnf_exit_net,
-+	.id   = &brnf_net_id,
-+	.size = sizeof(struct brnf_net),
-+};
-+
-+static struct notifier_block brnf_notifier __read_mostly = {
-+	.notifier_call = brnf_device_event,
-+};
-+
- #ifdef CONFIG_SYSCTL
- static
- int brnf_sysctl_call_tables(struct ctl_table *ctl, int write,
-@@ -1003,16 +1057,23 @@ static int __init br_netfilter_init(void)
- {
- 	int ret;
- 
--	ret = nf_register_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
-+	ret = register_pernet_subsys(&brnf_net_ops);
- 	if (ret < 0)
- 		return ret;
- 
-+	ret = register_netdevice_notifier(&brnf_notifier);
-+	if (ret < 0) {
-+		unregister_pernet_subsys(&brnf_net_ops);
-+		return ret;
-+	}
-+
- #ifdef CONFIG_SYSCTL
- 	brnf_sysctl_header = register_net_sysctl(&init_net, "net/bridge", brnf_table);
- 	if (brnf_sysctl_header == NULL) {
- 		printk(KERN_WARNING
- 		       "br_netfilter: can't register to sysctl.\n");
--		nf_unregister_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
-+		unregister_netdevice_notifier(&brnf_notifier);
-+		unregister_pernet_subsys(&brnf_net_ops);
- 		return -ENOMEM;
- 	}
- #endif
-@@ -1024,7 +1085,8 @@ static int __init br_netfilter_init(void)
- static void __exit br_netfilter_fini(void)
- {
- 	RCU_INIT_POINTER(nf_br_ops, NULL);
--	nf_unregister_hooks(br_nf_ops, ARRAY_SIZE(br_nf_ops));
-+	unregister_netdevice_notifier(&brnf_notifier);
-+	unregister_pernet_subsys(&brnf_net_ops);
- #ifdef CONFIG_SYSCTL
- 	unregister_net_sysctl_table(brnf_sysctl_header);
- #endif
--- 
-2.1.4
-
+OK, keep it.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
