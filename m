@@ -1,110 +1,64 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 3/4] nft-test: don't zap remainder of rule after handling a set
-Date: Wed,  9 Mar 2016 00:09:47 +0100
-Message-ID: <1457478588-12592-3-git-send-email-fw@strlen.de>
-References: <1457478588-12592-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Christophe Leroy <christophe.leroy@c-s.fr>
+Subject: Re: Seeking help for implementing CT HELPER in nftables
+Date: Wed, 9 Mar 2016 00:25:21 +0100
+Message-ID: <56DF5F61.2060000@c-s.fr>
+References: <56DAC502.2060809@c-s.fr>
+ <20160307132011.GA7620@macbook.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:39526 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751086AbcCHXQ5 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Mar 2016 18:16:57 -0500
-In-Reply-To: <1457478588-12592-1-git-send-email-fw@strlen.de>
+Received: from pegase1.c-s.fr ([93.17.236.30]:31810 "EHLO mailhub1.si.c-s.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750985AbcCHXZb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Mar 2016 18:25:31 -0500
+In-Reply-To: <20160307132011.GA7620@macbook.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Don't delete the part after the set, i.e. given
 
- chain input {
-     type filter hook input priority 0; policy accept;
-     vlan id { 1, 2, 4, 100, 4095} vlan pcp 1-3
- }
+Le 07/03/2016 14:20, Patrick McHardy a =E9crit :
+> On 05.03, christophe leroy wrote:
+>> Hello,
+>>
+>> I'm trying to implement support for CT HELPERs in linux kernel for
+>> nftables and need some help/guidance.
+>>
+>> The rule beeing 'udp dport tftp ct helper set "tftp"', I get
+>> nft_ct_set_init() called when I add the rule in the table output fil=
+ter
+>> table.
+>>
+>> I believe I have to call nf_ct_helper_ext_add() from nft_ct_set_init=
+(),
+>> but for that I need the name of the helper that is to be set, ie 'tf=
+tp'.
+>> How do I get the name of the requested helper in that function ? I
+>> suppose once I get it I can do the same as  xt_ct_set_helper() does.
+> This depends on how we want to implement this. We could pass a static=
+ helper
+> name in a new CT attribute, look the helper up in the init path and a=
+ssign it
+> to the conntrack in the eval function. This means we'd require a sing=
+le rule
+> for every helper assignment.
+How do we add a new CT attribute for that ? Is there any exemple in=20
+other parts of the kernel for doing that ?
+Is it just to add a NFTA_CT_HELPER then add it in the nft_ct_policy=20
+structure as an NLA_STRING type and then retrieve it with nla_strl_cpy(=
+) ?
+But how does it gets populated with the helper string passed in by nft =
+?
 
-don't remove the vlan pcp 1-3 part.
+Christophe
 
-This exposes following bug:
 
-bridge/vlan.t: WARNING: line: 32:
-'nft add rule --debug=netlink bridge test-bridge input vlan id { 1, 2, 4, 100, 4095 } vlan pcp 1-3': 'vlan id { 1, 2, 4, 100, 4095 } vlan pcp 1-3' mismatches 'vlan id { 4, 1, 2, 4095, 100} vlan pcp 0-0'
-
-We do not shift the range, so on reverse translation we get a 0-0 output.
-The bug will be fixes in a followup commit.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- tests/py/inet/tcp.t  |  2 +-
- tests/py/nft-test.py | 18 ++++++++++++------
- 2 files changed, 13 insertions(+), 7 deletions(-)
-
-diff --git a/tests/py/inet/tcp.t b/tests/py/inet/tcp.t
-index f99035e..9618e53 100644
---- a/tests/py/inet/tcp.t
-+++ b/tests/py/inet/tcp.t
-@@ -37,7 +37,7 @@ tcp sport 1024 tcp dport 22;ok
- tcp sport 1024 tcp dport 22 tcp sequence 0;ok
- 
- tcp sequence 0 tcp sport 1024 tcp dport 22;ok;tcp sport 1024 tcp dport 22 tcp sequence 0
--tcp sequence 0 tcp sport { 1024, 1022} tcp dport 22;ok
-+tcp sequence 0 tcp sport { 1024, 1022} tcp dport 22;ok;tcp sport { 1022, 1024} tcp dport 22 tcp sequence 0
- 
- tcp sequence 22;ok
- tcp sequence != 233;ok
-diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-index 9dc2b95..1256a33 100755
---- a/tests/py/nft-test.py
-+++ b/tests/py/nft-test.py
-@@ -436,21 +436,27 @@ def set_check_element(rule1, rule2):
-         list2.sort()
-         if cmp(list1, list2) == 0:
-             ret = 0
--    return ret
- 
-+    if ret != 0:
-+        return ret
-+
-+    return cmp(rule1[end1:], rule2[end2:])
- 
- def output_clean(pre_output, chain):
--    pos_chain = pre_output[0].find(chain.name)
-+    pos_chain = pre_output.find(chain.name)
-     if pos_chain == -1:
-         return ""
--    output_intermediate = pre_output[0][pos_chain:]
-+    output_intermediate = pre_output[pos_chain:]
-     brace_start = output_intermediate.find("{")
-     brace_end = output_intermediate.find("}")
-     pre_rule = output_intermediate[brace_start:brace_end]
-     if pre_rule[1:].find("{") > -1:  # this rule has a set.
-         set = pre_rule[1:].replace("\t", "").replace("\n", "").strip()
-         set = set.split(";")[2].strip() + "}"
--        return set
-+        remainder = output_clean(chain.name + " {;;" + output_intermediate[brace_end+1:], chain)
-+        if len(remainder) <= 0:
-+            return set
-+        return set + " " + remainder
-     else:
-         rule = pre_rule.split(";")[2].replace("\t", "").replace("\n", "").\
-             strip()
-@@ -604,7 +610,7 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
-                     if not force_all_family_option:
-                         return [ret, warning, error, unit_tests]
-                 else:
--                    rule_output = output_clean(pre_output, chain)
-+                    rule_output = output_clean(pre_output[0], chain)
-                     if len(rule) == 3:
-                         teoric_exit = rule[2]
-                     else:
-@@ -612,7 +618,7 @@ def rule_add(rule, filename, lineno, force_all_family_option, filename_path):
- 
-                     if rule_output.rstrip() != teoric_exit.rstrip():
-                         if rule[0].find("{") != -1:  # anonymous sets
--                            if set_check_element(teoric_exit, rule_output) != 0:
-+                            if set_check_element(teoric_exit.rstrip(), rule_output.rstrip()) != 0:
-                                 warning += 1
-                                 print_differences_warning(filename, lineno,
-                                                           rule[0], rule_output,
--- 
-2.4.10
-
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
