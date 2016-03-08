@@ -1,77 +1,137 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 4/4] netlink_delinarize: shift constant for ranges too
-Date: Wed,  9 Mar 2016 00:09:48 +0100
-Message-ID: <1457478588-12592-4-git-send-email-fw@strlen.de>
-References: <1457478588-12592-1-git-send-email-fw@strlen.de>
+Subject: [PATCH nft 1/4] tests: frag: enable more tests
+Date: Wed,  9 Mar 2016 00:09:45 +0100
+Message-ID: <1457478588-12592-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:39527 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:39524 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750940AbcCHXQ5 (ORCPT
+	by vger.kernel.org with ESMTP id S1750882AbcCHXQ4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Mar 2016 18:16:57 -0500
-In-Reply-To: <1457478588-12592-1-git-send-email-fw@strlen.de>
+	Tue, 8 Mar 2016 18:16:56 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-... else rule like vlan pcp 1-3 won't work and will be displayed
-as 0-0 (reverse direction already works since range is represented
-as two lte/gte compare expressions).
-
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/netlink_linearize.c               | 2 ++
- tests/py/bridge/vlan.t.payload        | 4 ++--
- tests/py/bridge/vlan.t.payload.netdev | 4 ++--
- 3 files changed, 6 insertions(+), 4 deletions(-)
+ tests/py/ip6/frag.t              |  8 ++++----
+ tests/py/ip6/frag.t.payload.inet | 38 ++++++++++++++++++++++++++++++++++++++
+ tests/py/ip6/frag.t.payload.ip6  | 30 ++++++++++++++++++++++++++++++
+ 3 files changed, 72 insertions(+), 4 deletions(-)
 
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 49b4676..bb51de7 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -446,6 +446,7 @@ static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
- 		BUG("invalid range operation %u\n", expr->op);
- 	}
+diff --git a/tests/py/ip6/frag.t b/tests/py/ip6/frag.t
+index 56801ed..1551044 100644
+--- a/tests/py/ip6/frag.t
++++ b/tests/py/ip6/frag.t
+@@ -23,13 +23,13 @@ frag reserved { 33-55};ok
+ # BUG: frag frag-off 22 and frag frag-off { 33-55}
+ # This breaks table listing: "netlink: Error: Relational expression size mismatch"
  
-+	payload_shift_value(expr->left, range->left);
- 	netlink_gen_data(range->left, &nld);
- 	nftnl_expr_set(nle, NFTNL_EXPR_CMP_DATA, nld.value, nld.len);
- 	nftnl_rule_add_expr(ctx->nlr, nle);
-@@ -466,6 +467,7 @@ static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
- 		BUG("invalid range operation %u\n", expr->op);
- 	}
+-- frag frag-off 22;ok
+-- frag frag-off != 233;ok
++frag frag-off 22;ok
++frag frag-off != 233;ok
+ - frag frag-off 33-45;ok
+ - frag frag-off != 33-45;ok
+-- frag frag-off { 33, 55, 67, 88};ok
++frag frag-off { 33, 55, 67, 88};ok
+ - frag frag-off != { 33, 55, 67, 88};ok
+-- frag frag-off { 33-55};ok
++frag frag-off { 33-55};ok
+ - frag frag-off != { 33-55};ok
  
-+	payload_shift_value(expr->left, range->right);
- 	netlink_gen_data(range->right, &nld);
- 	nftnl_expr_set(nle, NFTNL_EXPR_CMP_DATA, nld.value, nld.len);
- 	nftnl_rule_add_expr(ctx->nlr, nle);
-diff --git a/tests/py/bridge/vlan.t.payload b/tests/py/bridge/vlan.t.payload
-index 02242d2..78ee7ef 100644
---- a/tests/py/bridge/vlan.t.payload
-+++ b/tests/py/bridge/vlan.t.payload
-@@ -196,6 +196,6 @@ bridge test-bridge input
+ # BUG  frag reserved2 33 and frag reserved2 1
+diff --git a/tests/py/ip6/frag.t.payload.inet b/tests/py/ip6/frag.t.payload.inet
+index 7cedaf3..e04d128 100644
+--- a/tests/py/ip6/frag.t.payload.inet
++++ b/tests/py/ip6/frag.t.payload.inet
+@@ -86,6 +86,44 @@ inet test-inet output
+   [ exthdr load 1b @ 44 + 1 => reg 1 ]
    [ lookup reg 1 set set%d ]
-   [ payload load 1b @ link header + 14 => reg 1 ]
-   [ bitwise reg 1 = (reg=1 & 0x000000e0 ) ^ 0x00000000 ]
--  [ cmp gte reg 1 0x00000001 ]
--  [ cmp lte reg 1 0x00000003 ]
-+  [ cmp gte reg 1 0x00000020 ]
-+  [ cmp lte reg 1 0x00000060 ]
  
-diff --git a/tests/py/bridge/vlan.t.payload.netdev b/tests/py/bridge/vlan.t.payload.netdev
-index 62c7adf..f60587f 100644
---- a/tests/py/bridge/vlan.t.payload.netdev
-+++ b/tests/py/bridge/vlan.t.payload.netdev
-@@ -230,6 +230,6 @@ netdev test-netdev ingress
++# frag frag-off 22
++inet test-inet output
++  [ meta load nfproto => reg 1 ]
++  [ cmp eq reg 1 0x0000000a ]
++  [ exthdr load 2b @ 44 + 2 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x0000f8ff ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x0000b000 ]
++
++# frag frag-off != 233
++inet test-inet output
++  [ meta load nfproto => reg 1 ]
++  [ cmp eq reg 1 0x0000000a ]
++  [ exthdr load 2b @ 44 + 2 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x0000f8ff ) ^ 0x00000000 ]
++  [ cmp neq reg 1 0x00004807 ]
++
++# frag frag-off { 33, 55, 67, 88}
++set%d test-inet 3
++set%d test-inet 0
++	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
++inet test-inet output
++  [ meta load nfproto => reg 1 ]
++  [ cmp eq reg 1 0x0000000a ]
++  [ exthdr load 2b @ 44 + 2 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x0000f8ff ) ^ 0x00000000 ]
++  [ lookup reg 1 set set%d ]
++
++# frag frag-off { 33-55}
++set%d test-inet 7
++set%d test-inet 0
++	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
++inet test-inet output
++  [ meta load nfproto => reg 1 ]
++  [ cmp eq reg 1 0x0000000a ]
++  [ exthdr load 2b @ 44 + 2 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x0000f8ff ) ^ 0x00000000 ]
++  [ lookup reg 1 set set%d ]
++
+ # frag id 1
+ inet test-inet output
+   [ meta load nfproto => reg 1 ]
+diff --git a/tests/py/ip6/frag.t.payload.ip6 b/tests/py/ip6/frag.t.payload.ip6
+index f2d04b6..b3da6fe 100644
+--- a/tests/py/ip6/frag.t.payload.ip6
++++ b/tests/py/ip6/frag.t.payload.ip6
+@@ -64,6 +64,36 @@ ip6 test-ip6 output
+   [ exthdr load 1b @ 44 + 1 => reg 1 ]
    [ lookup reg 1 set set%d ]
-   [ payload load 1b @ link header + 14 => reg 1 ]
-   [ bitwise reg 1 = (reg=1 & 0x000000e0 ) ^ 0x00000000 ]
--  [ cmp gte reg 1 0x00000001 ]
--  [ cmp lte reg 1 0x00000003 ]
-+  [ cmp gte reg 1 0x00000020 ]
-+  [ cmp lte reg 1 0x00000060 ]
  
++# frag frag-off 22
++ip6 test-ip6 output
++  [ exthdr load 2b @ 44 + 2 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x0000f8ff ) ^ 0x00000000 ]
++  [ cmp eq reg 1 0x0000b000 ]
++
++# frag frag-off != 233
++ip6 test-ip6 output
++  [ exthdr load 2b @ 44 + 2 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x0000f8ff ) ^ 0x00000000 ]
++  [ cmp neq reg 1 0x00004807 ]
++
++# frag frag-off { 33, 55, 67, 88}
++set%d test-ip6 3
++set%d test-ip6 0
++	element 00002100  : 0 [end]	element 00003700  : 0 [end]	element 00004300  : 0 [end]	element 00005800  : 0 [end]
++ip6 test-ip6 output
++  [ exthdr load 2b @ 44 + 2 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x0000f8ff ) ^ 0x00000000 ]
++  [ lookup reg 1 set set%d ]
++
++# frag frag-off { 33-55}
++set%d test-ip6 7
++set%d test-ip6 0
++	element 00000000  : 1 [end]	element 00002100  : 0 [end]	element 00003800  : 1 [end]
++ip6 test-ip6 output 
++  [ exthdr load 2b @ 44 + 2 => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x0000f8ff ) ^ 0x00000000 ]
++  [ lookup reg 1 set set%d ]
++
+ # frag id 1
+ ip6 test-ip6 output
+   [ exthdr load 4b @ 44 + 4 => reg 1 ]
 -- 
 2.4.10
 
