@@ -1,382 +1,101 @@
-From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
-Subject: [PATCH 1/4 v3] libnftnl: Implement new buffer of TLV objects.
-Date: Tue,  8 Mar 2016 11:43:31 +0100
-Message-ID: <1457433811-18285-1-git-send-email-carlosfg@riseup.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCHv3] extensions: libip6t_icmp6: Add translation to nft
+Date: Tue, 8 Mar 2016 11:51:29 +0100
+Message-ID: <20160308105129.GA4008@salvia>
+References: <20160307212252.GA10639@sonyv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: pablo@netfilter.org, kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, shivanib134@gmail.com,
+	outreachy-kernel@googlegroups.com
+To: Laura Garcia Liebana <nevola@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:39731 "EHLO mx1.riseup.net"
+Received: from mail.us.es ([193.147.175.20]:60427 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932567AbcCHKo0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Mar 2016 05:44:26 -0500
+	id S1750791AbcCHKve (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Mar 2016 05:51:34 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 8C41A8431
+	for <netfilter-devel@vger.kernel.org>; Tue,  8 Mar 2016 11:51:31 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 7D3E1DA396
+	for <netfilter-devel@vger.kernel.org>; Tue,  8 Mar 2016 11:51:31 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 0273BDA384
+	for <netfilter-devel@vger.kernel.org>; Tue,  8 Mar 2016 11:51:29 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <20160307212252.GA10639@sonyv>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-These functions allow to create a buffer (nftnl_udata_buf) of TLV objec=
-ts
-(nftnl_udata). It is inspired by libmnl/src/attr.c. It can be used to s=
-tore
-several variable length user data into an object.
+Hi Laura,
 
-Example usage:
-	```
-	struct nftnl_udata_buf *buf;
-	struct nftnl_udata *attr;
-	const char str[] =3D "Hello World!";
+On Mon, Mar 07, 2016 at 10:22:55PM +0100, Laura Garcia Liebana wrote:
+> Add translation for icmpv6 to nftables. Not supported types in nftables
+> are: no-route, communication-prohibited, beyond-scope,
+> address-unreachable, port-unreachable, failed-policy, reject-route,
+> ttl-zero-during-transit, ttl-zero-during-reassembly, bad-header,
+> unknown-header-type and unknown-option.
+> 
+> Examples:
+> 
+> $ ip6tables-translate -t filter -A INPUT -m icmp6 --icmpv6-type 1 -j LOG
+> nft add rule ip6 filter INPUT icmpv6 type destination-unreachable counter log level warn
+> 
+> $ ip6tables-translate -t filter -A INPUT -m icmp6 --icmpv6-type neighbour-advertisement -j LOG
+> nft add rule ip6 filter INPUT icmpv6 type nd-neighbor-advert counter log level warn
+> 
+> $ ip6tables-translate -t filter -A INPUT -m icmp6 ! --icmpv6-type packet-too-big -j LOG
+> nft add rule ip6 filter INPUT icmpv6 type != packet-too-big counter log level warn
 
-	buf =3D nftnl_udata_alloc(UDATA_SIZE);
-	if (!buf) {
-		perror("OOM");
-		exit(EXIT_FAILURE);
-	}
+Not related to your patches, I just noticed this:
 
-	if (!nftnl_udata_put_strz(buf, MY_TYPE, str)) {
-		perror("Can't put attribute \"%s\"", str);
-		exit(EXIT_FAILURE);
-	}
+        log level warn
 
-	nftnl_udata_for_each(buf, attr) {
-		printf("%s\n", (char *)nftnl_udata_attr_value(attr));
-	}
+Could you send a patch to remove the "level warn" thing? The default
+logging level is already warning in nft so better if we don't display
+this.
 
-	nftnl_udata_free(buf);
-	```
+BTW, applied with one minor glitch below.
 
-Signed-off-by: Carlos Falgueras Garc=C3=ADa <carlosfg@riseup.net>
----
- include/Makefile.am          |   1 +
- include/libnftnl/Makefile.am |   1 +
- include/libnftnl/udata.h     |  53 +++++++++++++++++
- include/udata.h              |  40 +++++++++++++
- src/Makefile.am              |   1 +
- src/libnftnl.map             |  16 ++++++
- src/udata.c                  | 132 +++++++++++++++++++++++++++++++++++=
-++++++++
- 7 files changed, 244 insertions(+)
- create mode 100644 include/libnftnl/udata.h
- create mode 100644 include/udata.h
- create mode 100644 src/udata.c
+> Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+> ---
+> v2:
+> 	- Detection of not supported types in nftables, as Shivani suggested.
+> v3:
+> 	- Generalize the source code, as Pablo suggested.
+> 
+>  extensions/libip6t_icmp6.c | 65 ++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 65 insertions(+)
+> 
+> diff --git a/extensions/libip6t_icmp6.c b/extensions/libip6t_icmp6.c
+> index e183ce6..08eca99 100644
+> --- a/extensions/libip6t_icmp6.c
+> +++ b/extensions/libip6t_icmp6.c
+> @@ -4,6 +4,9 @@
+>  #include <xtables.h>
+>  #include <limits.h> /* INT_MAX in ip6_tables.h */
+>  #include <linux/netfilter_ipv6/ip6_tables.h>
+> +#include <netinet/icmp6.h>
+> +
+> +#define XT_ICMPV6_TYPE(type)	(type - ND_ROUTER_SOLICIT)
+>  
+>  enum {
+>  	O_ICMPV6_TYPE = 0,
+> @@ -15,6 +18,14 @@ struct icmpv6_names {
+>  	uint8_t code_min, code_max;
+>  };
+>  
+> +static const char *icmp6_type_xlate_array[] = {
+> +	[XT_ICMPV6_TYPE(ND_ROUTER_SOLICIT)]	= "nd-router-solicit",
+> +	[XT_ICMPV6_TYPE(ND_ROUTER_ADVERT)]	= "nd-router-advert",
+> +	[XT_ICMPV6_TYPE(ND_NEIGHBOR_SOLICIT)]	= "nd-neighbor-solicit",
+> +	[XT_ICMPV6_TYPE(ND_NEIGHBOR_ADVERT)]	= "nd-neighbor-advert",
+> +	[XT_ICMPV6_TYPE(ND_REDIRECT)]		= "nd-redirect",
+> +};
 
-diff --git a/include/Makefile.am b/include/Makefile.am
-index be9eb9b..9f55737 100644
---- a/include/Makefile.am
-+++ b/include/Makefile.am
-@@ -12,4 +12,5 @@ noinst_HEADERS =3D internal.h	\
- 		 expr.h		\
- 		 json.h		\
- 		 set_elem.h	\
-+		 udata.h	\
- 		 utils.h
-diff --git a/include/libnftnl/Makefile.am b/include/libnftnl/Makefile.a=
-m
-index 84f01b6..457ec95 100644
---- a/include/libnftnl/Makefile.am
-+++ b/include/libnftnl/Makefile.am
-@@ -7,4 +7,5 @@ pkginclude_HEADERS =3D batch.h		\
- 		     set.h		\
- 		     ruleset.h		\
- 		     common.h		\
-+		     udata.h		\
- 		     gen.h
-diff --git a/include/libnftnl/udata.h b/include/libnftnl/udata.h
-new file mode 100644
-index 0000000..cf328b4
---- /dev/null
-+++ b/include/libnftnl/udata.h
-@@ -0,0 +1,53 @@
-+#ifndef _LIBNFTNL_UDATA_H_
-+#define _LIBNFTNL_UDATA_H_
-+
-+#include <stdio.h>
-+#include <stdint.h>
-+
-+/*
-+ * nftnl user data attributes API
-+ */
-+struct nftnl_udata;
-+struct nftnl_udata_buf;
-+
-+/* nftnl_udata_buf */
-+struct nftnl_udata_buf *nftnl_udata_alloc(size_t data_size);
-+void nftnl_udata_free(struct nftnl_udata_buf *buf);
-+size_t nftnl_udata_len(const struct nftnl_udata_buf *buf);
-+size_t nftnl_udata_size(const struct nftnl_udata_buf *buf);
-+void *nftnl_udata_data(const struct nftnl_udata_buf *buf);
-+void nftnl_udata_copy_data(struct nftnl_udata_buf *buf, const void *da=
-ta,
-+			   size_t len);
-+struct nftnl_udata *nftnl_udata_start(const struct nftnl_udata_buf *bu=
-f);
-+struct nftnl_udata *nftnl_udata_end(const struct nftnl_udata_buf *buf)=
-;
-+
-+/* putters */
-+struct nftnl_udata *nftnl_udata_put(struct nftnl_udata_buf *buf, uint8=
-_t type,
-+				    size_t len, const void *value);
-+struct nftnl_udata *nftnl_udata_put_strz(struct nftnl_udata_buf *buf,
-+					 uint8_t type, const char *strz);
-+
-+/* nftnl_udata_attr */
-+uint8_t nftnl_udata_attr_type(const struct nftnl_udata *attr);
-+uint8_t nftnl_udata_attr_len(const struct nftnl_udata *attr);
-+void *nftnl_udata_attr_value(const struct nftnl_udata *attr);
-+
-+/* iterator */
-+struct nftnl_udata *nftnl_udata_attr_next(const struct nftnl_udata *at=
-tr);
-+
-+#define nftnl_udata_for_each(buf, attr)                       \
-+	for ((attr) =3D nftnl_udata_start(buf);                 \
-+	     (char *)(nftnl_udata_end(buf)) > (char *)(attr); \
-+	     (attr) =3D nftnl_udata_attr_next(attr))
-+
-+/* callback-based attribute parsers */
-+#define NFTNL_CB_ERROR	-1
-+#define NFTNL_CB_STOP	 0
-+#define NFTNL_CB_OK	 1
-+
-+typedef int (*nftnl_udata_cb_t)(const struct nftnl_udata *attr,
-+				void *data);
-+int nftnl_udata_parse(const struct nftnl_udata_buf *buf, nftnl_udata_c=
-b_t cb,
-+		      void *data);
-+
-+#endif /* _LIBNFTNL_UDATA_H_ */
-diff --git a/include/udata.h b/include/udata.h
-new file mode 100644
-index 0000000..271ee50
---- /dev/null
-+++ b/include/udata.h
-@@ -0,0 +1,40 @@
-+#ifndef _LIBNFTNL_UDATA_INTERNAL_H_
-+#define _LIBNFTNL_UDATA_INTERNAL_H_
-+
-+#include <stdint.h>
-+#include <stddef.h>
-+
-+/*
-+ * TLV structures:
-+ * nftnl_udata
-+ *  <-------- HEADER --------> <------ PAYLOAD ------>
-+ * +------------+-------------+- - - - - - - - - - - -+
-+ * |    type    |     len     |         value         |
-+ * |  (1 byte)  |   (1 byte)  |                       |
-+ * +--------------------------+- - - - - - - - - - - -+
-+ *  <-- sizeof(nftnl_udata) -> <-- nftnl_udata->len -->
-+ */
-+struct nftnl_udata {
-+	uint8_t type;
-+	uint8_t len;
-+	unsigned char value[];
-+} __attribute__((__packed__));
-+
-+/*
-+ *              +---------------------------------++
-+ *              | data[]                          ||
-+ *              |   ||                            ||
-+ *              |   \/                            \/
-+ *  +-------+-------+-------+-------+ ... +-------+- - - - - - -+
-+ *  | size  |  end  |  TLV  |  TLV  |     |  TLV  |    Empty    |
-+ *  +-------+-------+-------+-------+ ... +-------+- - - - - - -+
-+ *                  |<---- nftnl_udata_len() ---->|
-+ *                  |<----------- nftnl_udata_size() ---------->|
-+ */
-+struct nftnl_udata_buf {
-+	size_t size;
-+	char  *end;
-+	char   data[];
-+};
-+
-+#endif /* _LIBNFTNL_UDATA_INTERNAL_H_ */
-diff --git a/src/Makefile.am b/src/Makefile.am
-index a27e292..7e580e4 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -19,6 +19,7 @@ libnftnl_la_SOURCES =3D utils.c		\
- 		      ruleset.c		\
- 		      mxml.c		\
- 		      jansson.c		\
-+		      udata.c		\
- 		      expr.c		\
- 		      expr_ops.c	\
- 		      expr/bitwise.c	\
-diff --git a/src/libnftnl.map b/src/libnftnl.map
-index 2e193b7..d6cd2a7 100644
---- a/src/libnftnl.map
-+++ b/src/libnftnl.map
-@@ -336,6 +336,22 @@ global:
-   nftnl_set_snprintf;
-   nftnl_set_fprintf;
-=20
-+  nftnl_udata_alloc;
-+  nftnl_udata_free;
-+  nftnl_udata_len;
-+  nftnl_udata_size;
-+  nftnl_udata_data;
-+  nftnl_udata_copy_data;
-+  nftnl_udata_start;
-+  nftnl_udata_end;
-+  nftnl_udata_put;
-+  nftnl_udata_put_strz;
-+  nftnl_udata_attr_type;
-+  nftnl_udata_attr_len;
-+  nftnl_udata_attr_value;
-+  nftnl_udata_attr_next;
-+  nftnl_udata_parse;
-+
-   nftnl_set_list_alloc;
-   nftnl_set_list_free;
-   nftnl_set_list_add;
-diff --git a/src/udata.c b/src/udata.c
-new file mode 100644
-index 0000000..71a2c46
---- /dev/null
-+++ b/src/udata.c
-@@ -0,0 +1,132 @@
-+#include <libnftnl/udata.h>
-+#include <udata.h>
-+#include <utils.h>
-+
-+#include <stdlib.h>
-+#include <stdint.h>
-+#include <string.h>
-+
-+
-+struct nftnl_udata_buf *nftnl_udata_alloc(size_t data_size)
-+{
-+	struct nftnl_udata_buf *buf;
-+
-+	buf =3D (struct nftnl_udata_buf *)
-+		malloc(sizeof(struct nftnl_udata_buf) + data_size);
-+	buf->size =3D data_size;
-+	buf->end =3D buf->data;
-+
-+	return buf;
-+}
-+EXPORT_SYMBOL(nftnl_udata_alloc);
-+
-+void nftnl_udata_free(struct nftnl_udata_buf *buf)
-+{
-+	buf->size =3D 0;
-+	buf->end =3D NULL;
-+	free((void *)buf);
-+}
-+EXPORT_SYMBOL(nftnl_udata_free);
-+
-+size_t nftnl_udata_len(const struct nftnl_udata_buf *buf)
-+{
-+	return (size_t)(buf->end - buf->data);
-+}
-+EXPORT_SYMBOL(nftnl_udata_len);
-+
-+size_t nftnl_udata_size(const struct nftnl_udata_buf *buf)
-+{
-+	return buf->size;
-+}
-+EXPORT_SYMBOL(nftnl_udata_size);
-+
-+void *nftnl_udata_data(const struct nftnl_udata_buf *buf)
-+{
-+	return (void *)buf->data;
-+}
-+EXPORT_SYMBOL(nftnl_udata_data);
-+
-+void nftnl_udata_copy_data(struct nftnl_udata_buf *buf,
-+			   const void *data, size_t len)
-+{
-+	memcpy(buf->data, data, len <=3D buf->size ? len : buf->size);
-+	buf->end =3D buf->data + len;
-+}
-+EXPORT_SYMBOL(nftnl_udata_copy_data);
-+
-+struct nftnl_udata *nftnl_udata_start(const struct nftnl_udata_buf *bu=
-f)
-+{
-+	return (struct nftnl_udata *)buf->data;
-+}
-+EXPORT_SYMBOL(nftnl_udata_start);
-+
-+struct nftnl_udata *nftnl_udata_end(const struct nftnl_udata_buf *buf)
-+{
-+	return (struct nftnl_udata *)buf->end;
-+}
-+EXPORT_SYMBOL(nftnl_udata_end);
-+
-+struct nftnl_udata *nftnl_udata_put(struct nftnl_udata_buf *buf,
-+				    uint8_t type, size_t len, const void *value)
-+{
-+	struct nftnl_udata *attr =3D NULL;
-+
-+	/* Check if there is enough space */
-+	if (buf->size >=3D len + sizeof(struct nftnl_udata)) {
-+		attr =3D (struct nftnl_udata *)buf->end;
-+		attr->len  =3D len;
-+		attr->type =3D type;
-+		memcpy(attr->value, value, len);
-+
-+		buf->end =3D (char *)nftnl_udata_attr_next(attr);
-+	}
-+
-+	return attr;
-+}
-+EXPORT_SYMBOL(nftnl_udata_put);
-+
-+struct nftnl_udata *nftnl_udata_put_strz(struct nftnl_udata_buf *buf,
-+					 uint8_t type, const char *strz)
-+{
-+	return nftnl_udata_put(buf, type, strlen(strz) + 1, strz);
-+}
-+EXPORT_SYMBOL(nftnl_udata_put_strz);
-+
-+uint8_t nftnl_udata_attr_type(const struct nftnl_udata *attr)
-+{
-+	return attr->type;
-+}
-+EXPORT_SYMBOL(nftnl_udata_attr_type);
-+
-+uint8_t nftnl_udata_attr_len(const struct nftnl_udata *attr)
-+{
-+	return attr->len;
-+}
-+EXPORT_SYMBOL(nftnl_udata_attr_len);
-+
-+void *nftnl_udata_attr_value(const struct nftnl_udata *attr)
-+{
-+	return (void *)attr->value;
-+}
-+EXPORT_SYMBOL(nftnl_udata_attr_value);
-+
-+struct nftnl_udata *nftnl_udata_attr_next(const struct nftnl_udata *at=
-tr)
-+{
-+	return (struct nftnl_udata *)&attr->value[attr->len];
-+}
-+EXPORT_SYMBOL(nftnl_udata_attr_next);
-+
-+int nftnl_udata_parse(const struct nftnl_udata_buf *buf, nftnl_udata_c=
-b_t cb,
-+		     void *data)
-+{
-+	int ret =3D NFTNL_CB_OK;
-+	const struct nftnl_udata *attr;
-+
-+	nftnl_udata_for_each(buf, attr) {
-+		ret =3D cb(attr, data);
-+		if (ret <=3D NFTNL_CB_STOP)
-+			return ret;
-+	}
-+	return ret;
-+}
-+EXPORT_SYMBOL(nftnl_udata_parse);
---=20
-2.7.2
+Next time move these definitions to where they are used. I prefer to
+get these where we use them, the closer we have the context to read
+the code, the less you have to scroll up and down (thus change visual
+context). This time, I made this manual change myself here.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks.
