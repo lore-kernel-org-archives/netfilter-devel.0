@@ -1,52 +1,60 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/10] Netfilter/IPVS updates for net-next
-Date: Tue, 08 Mar 2016 14:28:49 -0500 (EST)
-Message-ID: <20160308.142849.1605654925313096504.davem@davemloft.net>
-References: <1457431250-3086-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1457431250-3086-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 1/1] netfilter: ipset: Check IPSET_ATTR_ETHER netlink attribute length
+Date: Tue,  8 Mar 2016 20:44:20 +0100
+Message-ID: <1457466260-20373-2-git-send-email-kadlec@blackhole.kfki.hu>
+References: <1457466260-20373-1-git-send-email-kadlec@blackhole.kfki.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-in.kfki.hu ([148.6.0.25]:41563 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750932AbcCHTni (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Mar 2016 14:43:38 -0500
+In-Reply-To: <1457466260-20373-1-git-send-email-kadlec@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue,  8 Mar 2016 11:00:40 +0100
+Julia Lawall pointed out that IPSET_ATTR_ETHER netlink attribute length
+was not checked explicitly, just for the maximum possible size. Malicious
+netlink clients could send shorter attribute and thus resulting a kernel
+read after the buffer.
 
-> The following patchset contains Netfilter updates for your net-next tree,
-> they are:
-> 
-> 1) Remove useless debug message when deleting IPVS service, from
->    Yannick Brosseau.
-> 
-> 2) Get rid of compilation warning when CONFIG_PROC_FS is unset in
->    several spots of the IPVS code, from Arnd Bergmann.
-> 
-> 3) Add prandom_u32 support to nft_meta, from Florian Westphal.
-> 
-> 4) Remove unused variable in xt_osf, from Sudip Mukherjee.
-> 
-> 5) Don't calculate IP checksum twice from netfilter ipv4 defrag hook
->    since fixing af_packet defragmentation issues, from Joe Stringer.
-> 
-> 6) On-demand hook registration for iptables from netns. Instead of
->    registering the hooks for every available netns whenever we need
->    one of the support tables, we register this on the specific netns
->    that needs it, patchset from Florian Westphal.
-> 
-> 7) Add missing port range selection to nf_tables masquerading support.
-> 
-> BTW, just for the record, there is a typo in the description of
-> 5f6c253ebe93b0 ("netfilter: bridge: register hooks only when bridge
-> interface is added") that refers to the cluster match as deprecated, but
-> it is actually the CLUSTERIP target (which registers hooks
-> inconditionally) the one that is scheduled for removal.
-> 
-> You can pull these changes from:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+The patch adds the explicit length checkings.
 
-Pulled, thanks Pablo!
+Reported-by: Julia Lawall <julia.lawall@lip6.fr>
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ net/netfilter/ipset/ip_set_bitmap_ipmac.c | 2 ++
+ net/netfilter/ipset/ip_set_hash_mac.c     | 3 ++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/ipset/ip_set_bitmap_ipmac.c b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+index 29dde20..9a065f6 100644
+--- a/net/netfilter/ipset/ip_set_bitmap_ipmac.c
++++ b/net/netfilter/ipset/ip_set_bitmap_ipmac.c
+@@ -267,6 +267,8 @@ bitmap_ipmac_uadt(struct ip_set *set, struct nlattr *tb[],
+ 
+ 	e.id = ip_to_id(map, ip);
+ 	if (tb[IPSET_ATTR_ETHER]) {
++		if (nla_len(tb[IPSET_ATTR_ETHER]) != ETH_ALEN)
++			return -IPSET_ERR_PROTOCOL;
+ 		memcpy(e.ether, nla_data(tb[IPSET_ATTR_ETHER]), ETH_ALEN);
+ 		e.add_mac = 1;
+ 	}
+diff --git a/net/netfilter/ipset/ip_set_hash_mac.c b/net/netfilter/ipset/ip_set_hash_mac.c
+index f1e7d2c..8f004ed 100644
+--- a/net/netfilter/ipset/ip_set_hash_mac.c
++++ b/net/netfilter/ipset/ip_set_hash_mac.c
+@@ -110,7 +110,8 @@ hash_mac4_uadt(struct ip_set *set, struct nlattr *tb[],
+ 	if (tb[IPSET_ATTR_LINENO])
+ 		*lineno = nla_get_u32(tb[IPSET_ATTR_LINENO]);
+ 
+-	if (unlikely(!tb[IPSET_ATTR_ETHER]))
++	if (unlikely(!tb[IPSET_ATTR_ETHER] ||
++		     nla_len(tb[IPSET_ATTR_ETHER]) != ETH_ALEN))
+ 		return -IPSET_ERR_PROTOCOL;
+ 
+ 	ret = ip_set_get_extensions(set, tb, &ext);
+-- 
+1.8.5.1
+
