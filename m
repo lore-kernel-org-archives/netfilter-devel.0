@@ -1,93 +1,61 @@
-From: Florian Westphal <fw@strlen.de>
+From: Felix Fietkau <nbd@openwrt.org>
 Subject: Re: [BUG] kernel crash in br_netfilter
-Date: Tue, 8 Mar 2016 12:06:00 +0100
-Message-ID: <20160308110600.GA1011@breakpoint.cc>
-References: <56D43A9E.2070504@neratec.com>
- <56DDBDCD.8000004@neratec.com>
+Date: Tue, 8 Mar 2016 12:55:58 +0100
+Message-ID: <56DEBDCE.2070900@openwrt.org>
+References: <56D43A9E.2070504@neratec.com> <56DDBDCD.8000004@neratec.com>
+ <20160308110600.GA1011@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Cc: Stephen Hemminger <stephen@networkplumber.org>,
-	OpenWrt Development List <openwrt-devel@lists.openwrt.org>,
-	netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-	Felix Fietkau <nbd@openwrt.org>
-To: Zefir Kurtisi <zefir.kurtisi@neratec.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37793 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932479AbcCHLGE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Mar 2016 06:06:04 -0500
-Content-Disposition: inline
-In-Reply-To: <56DDBDCD.8000004@neratec.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+ OpenWrt Development List <openwrt-devel@lists.openwrt.org>,
+ netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>, Zefir Kurtisi <zefir.kurtisi@neratec.com>
+Return-path: <openwrt-devel-bounces@lists.openwrt.org>
+In-Reply-To: <20160308110600.GA1011@breakpoint.cc>
+List-Unsubscribe: <https://lists.openwrt.org/cgi-bin/mailman/options/openwrt-devel>,
+ <mailto:openwrt-devel-request@lists.openwrt.org?subject=unsubscribe>
+List-Archive: <http://lists.openwrt.org/pipermail/openwrt-devel/>
+List-Post: <mailto:openwrt-devel@lists.openwrt.org>
+List-Help: <mailto:openwrt-devel-request@lists.openwrt.org?subject=help>
+List-Subscribe: <https://lists.openwrt.org/cgi-bin/mailman/listinfo/openwrt-devel>,
+ <mailto:openwrt-devel-request@lists.openwrt.org?subject=subscribe>
+Errors-To: openwrt-devel-bounces@lists.openwrt.org
+Sender: "openwrt-devel" <openwrt-devel-bounces@lists.openwrt.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-Zefir Kurtisi <zefir.kurtisi@neratec.com> wrote:
-> > Reproducing the crash
-> > 1. build the firmware for the system to test
-> >    * use default configuration
-> >    * ensure to select CONFIG_BRIDGE_NETFILTER in kernel_menuconfig
-> > 2. boot the device and access it over serial
-> > 3. ensure br-lan bridge has at least two active ports
-> >    * tested with ath9k + Ethernet (gianfar and ag71xx)
-> >    * if not enabled, enable radio0 and ensure wlan0 is in bridge
-> > 4. run: sysctl -w net.bridge.bridge-nf-call-iptables=1
-> > 5. from your host, continuously ping the device over Ethernet
-> > 6. run: ifconfig br-lan down
-> > 
-> > The next ingress packet causes a fatal crash.
-> > 
-> > Trace logs for MIPS and PPC are attached and hint to __nf_conntrack_confirm
-> > 
-> > 
-> > Let me know if I could provide more information to further isolate the problem.
-> > 
-> > 
-> Got forward with that issue and after wondering why the netfilter folks were
-> unable to reproduce, it finally turned out the problematic code is OWRT private in
-> target/linux/generic/patches-X/120-bridge_allow_receiption_on_disabled_port.patch
-
-Yes, the patch is wrong.  As you discovered, the
-br_netfilter/call-iptables infrastructure will free the skb, so all code
-after NF_HOOK in this patch results in use-after-free.
-
-Seems the quick-fix (but thats also not correct) is to use NF_BR_LOCAL_IN instead so that
-we bypass the call-iptables infrastructure.
-
-> 1. gets passed to br_handle_frame()
-> 2. enters the BR_STATE_DISABLED case in the mentioned patch
-> 3. gets passed to the related NF_HOOK
->    a) in br_nf_pre_routing() a conntrack context ct is created
->    b) that in the same nf_iterate() is destroyed in br_nf_pre_routing_finish()
-> 4. in the br_pass_frame_up() following the NF_HOOK
->    a) ipv4_confirm() runs __nf_conntrack_confirm(ct) with invalid ct
->    b) which attempts to nf_ct_del_from_dying_or_unconfirmed_list(ct)
->    c) and with that de-references and writes to LIST_POISON2 in pprev
-
-Yes, once NF_HOOK returns skb is in undefined state.
-
-This snippet (from mainline):
-
-                /* Deliver packet to local host only */
-                if (NF_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_IN,
-                            dev_net(skb->dev), NULL, skb, skb->dev, NULL,
-                            br_handle_local_finish)) {
-                        return RX_HANDLER_CONSUMED; /* consumed by filter */
-                } else {
-                        *pskb = skb;
-                        return RX_HANDLER_PASS; /* continue processing */
-                }
-
-... is also dubious.  It only works because no module in current
-uptream kernel registers a destructive hook in NF_BR_LOCAL_IN.
-
-In fact, this looks like we get crash here as well once we gain ability to
-NFQUEUE in nftables bridge family.
-
-> My hot-fix to prevent the crash is to instead of passing the skb to NF_HOOK
-> directly pass it to br_handle_local_finish(). But having insufficient insight into
-> what is going on there, this is fighting the symptoms rather than solving the root
-> cause. Maybe it is even better to drop patch 120 (not tested yet)?
-
-Sorry, I don't know why this patch was not merged upstream and do not know why its
-in openwrt.
+T24gMjAxNi0wMy0wOCAxMjowNiwgRmxvcmlhbiBXZXN0cGhhbCB3cm90ZToKPj4gTXkgaG90LWZp
+eCB0byBwcmV2ZW50IHRoZSBjcmFzaCBpcyB0byBpbnN0ZWFkIG9mIHBhc3NpbmcgdGhlIHNrYiB0
+byBORl9IT09LCj4+IGRpcmVjdGx5IHBhc3MgaXQgdG8gYnJfaGFuZGxlX2xvY2FsX2ZpbmlzaCgp
+LiBCdXQgaGF2aW5nIGluc3VmZmljaWVudCBpbnNpZ2h0IGludG8KPj4gd2hhdCBpcyBnb2luZyBv
+biB0aGVyZSwgdGhpcyBpcyBmaWdodGluZyB0aGUgc3ltcHRvbXMgcmF0aGVyIHRoYW4gc29sdmlu
+ZyB0aGUgcm9vdAo+PiBjYXVzZS4gTWF5YmUgaXQgaXMgZXZlbiBiZXR0ZXIgdG8gZHJvcCBwYXRj
+aCAxMjAgKG5vdCB0ZXN0ZWQgeWV0KT8KPiAKPiBTb3JyeSwgSSBkb24ndCBrbm93IHdoeSB0aGlz
+IHBhdGNoIHdhcyBub3QgbWVyZ2VkIHVwc3RyZWFtIGFuZCBkbyBub3Qga25vdyB3aHkgaXRzCj4g
+aW4gb3BlbndydC4KVGhpcyBwYXRjaCBleGlzdHMsIGJlY2F1c2UgaXQncyBvdGhlcndpc2UgaW1w
+b3NzaWJsZSB0byBicmlkZ2UgYSBjbGllbnQKbW9kZSAoNGFkZHIpIFdMQU4gaW50ZXJmYWNlIHdo
+ZW4gZW5jcnlwdGlvbiBpcyBlbmFibGVkLgoKd3BhX3N1cHBsaWNhbnQgbmVlZHMgdG8gcmVjZWl2
+ZSBFQVAgcGFja2V0cyBiZWZvcmUgaXQgd2lsbCBjaGFuZ2UgdGhlCm9wZXJzdGF0ZSB0byBhbGxv
+dyB0aGUgYnJpZGdlIGFuZCB0aGUgcmVzdCBvZiB0aGUgbmV0d29yayBzdGFjayB0byBkbwp0aGVp
+ciB0aGluZy4KClRoaXMgdXNlZCB0byB3b3JrIGluIGEgd2hpbGUgYmFjaywgYW5kIEkgdGhpbmsg
+aXQgZ290IGJyb2tlbiBieSB0aGlzCmNvbW1pdDoKCmNvbW1pdCA1NzZlYjYyNTk4ZjEwYzhjN2Zk
+NzU3MDNmZTg5MDEwY2RjZmZmNTk2CkF1dGhvcjogc3RlcGhlbiBoZW1taW5nZXIgPHNoZW1taW5n
+ZXJAdnlhdHRhLmNvbT4KRGF0ZTogICBGcmkgRGVjIDI4IDE4OjE1OjIyIDIwMTIgKzAwMDAKCiBi
+cmlkZ2U6IHJlc3BlY3QgUkZDMjg2MyBvcGVyYXRpb25hbCBzdGF0ZQoKIFRoZSBicmlkZ2UgbGlu
+ayBkZXRlY3Rpb24gc2hvdWxkIGZvbGxvdyB0aGUgb3BlcmF0aW9uYWwgc3RhdGUKIG9mIHRoZSBs
+b3dlciBkZXZpY2UsIHJhdGhlciB0aGFuIHRoZSBjYXJyaWVyIGJpdC4gVGhpcyBhbGxvd3MgZGV2
+aWNlcwogbGlrZSB0dW5uZWxzIHRoYXQgYXJlIGNvbnRyb2xsZWQgYnkgdXNlcnNwYWNlIGNvbnRy
+b2wgcGxhbmUgdG8gd29yawogd2l0aCBicmlkZ2UgU1RQIGxpbmsgbWFuYWdlbWVudC4KCiBTaWdu
+ZWQtb2ZmLWJ5OiBTdGVwaGVuIEhlbW1pbmdlciA8c2hlbW1pbmdlckB2eWF0dGEuY29tPgogUmV2
+aWV3ZWQtYnk6IEZsYXZpbyBMZWl0bmVyIDxmYmxAcmVkaGF0LmNvbT4KIFNpZ25lZC1vZmYtYnk6
+IERhdmlkIFMuIE1pbGxlciA8ZGF2ZW1AZGF2ZW1sb2Z0Lm5ldD4KCkJhY2sgdGhlbiBJIHByb3Bv
+c2VkIGEgcGF0Y2ggZm9yIHVwc3RyZWFtIGluY2x1c2lvbiwgZ290IHNvbWUgZmVlZGJhY2ssClN0
+ZXBoZW4gc2VudCBtZSB0aGlzIHBhdGNoIGFuZCBJIGZpeGVkIGl0IHVwIGEgYml0IGFuZCByZS1z
+dWJtaXR0ZWQgaXQuCkkgdGhpbmsgaXQgZ290IGxvc3Qgc29tZXdoZXJlIGluIHRoZSBwcm9jZXNz
+IGFuZCBhZnRlciB0aGF0IEkgbG9zdCB0cmFjawphbmQgZGlkbid0IGdldCBhcm91bmQgdG8gcmUt
+c3VibWl0dGluZyBpdC4KClNvIHdlIGtlcHQgdGhlIHBhdGNoIGluIE9wZW5XcnQgYmVjYXVzZSBh
+cyBmYXIgYXMgSSBrbm93LCB0aGUgcmVncmVzc2lvbgpzdGlsbCBleGlzdHMgaW4gY3VycmVudCBr
+ZXJuZWxzLgoKLSBGZWxpeApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpvcGVud3J0LWRldmVsIG1haWxpbmcgbGlzdApvcGVud3J0LWRldmVsQGxpc3RzLm9w
+ZW53cnQub3JnCmh0dHBzOi8vbGlzdHMub3BlbndydC5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3Rp
+bmZvL29wZW53cnQtZGV2ZWwK
