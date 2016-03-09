@@ -1,64 +1,71 @@
-From: Christophe Leroy <christophe.leroy@c-s.fr>
-Subject: Re: Seeking help for implementing CT HELPER in nftables
-Date: Wed, 9 Mar 2016 00:25:21 +0100
-Message-ID: <56DF5F61.2060000@c-s.fr>
-References: <56DAC502.2060809@c-s.fr>
- <20160307132011.GA7620@macbook.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+From: Jarno Rajahalme <jarno@ovn.org>
+Subject: [PATCH nf-next v8 1/8] netfilter: Remove IP_CT_NEW_REPLY definition.
+Date: Tue,  8 Mar 2016 16:24:37 -0800
+Message-ID: <1457483084-13944-1-git-send-email-jarno@ovn.org>
+Cc: netdev@vger.kernel.org, dev@openvswitch.org, jarno@ovn.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from pegase1.c-s.fr ([93.17.236.30]:31810 "EHLO mailhub1.si.c-s.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750985AbcCHXZb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Mar 2016 18:25:31 -0500
-In-Reply-To: <20160307132011.GA7620@macbook.localdomain>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:60157 "EHLO
+	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750940AbcCIAZP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Mar 2016 19:25:15 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Remove the definition of IP_CT_NEW_REPLY from the kernel as it does
+not make sense.  This allows the definition of IP_CT_NUMBER to be
+simplified as well.
 
-Le 07/03/2016 14:20, Patrick McHardy a =E9crit :
-> On 05.03, christophe leroy wrote:
->> Hello,
->>
->> I'm trying to implement support for CT HELPERs in linux kernel for
->> nftables and need some help/guidance.
->>
->> The rule beeing 'udp dport tftp ct helper set "tftp"', I get
->> nft_ct_set_init() called when I add the rule in the table output fil=
-ter
->> table.
->>
->> I believe I have to call nf_ct_helper_ext_add() from nft_ct_set_init=
-(),
->> but for that I need the name of the helper that is to be set, ie 'tf=
-tp'.
->> How do I get the name of the requested helper in that function ? I
->> suppose once I get it I can do the same as  xt_ct_set_helper() does.
-> This depends on how we want to implement this. We could pass a static=
- helper
-> name in a new CT attribute, look the helper up in the init path and a=
-ssign it
-> to the conntrack in the eval function. This means we'd require a sing=
-le rule
-> for every helper assignment.
-How do we add a new CT attribute for that ? Is there any exemple in=20
-other parts of the kernel for doing that ?
-Is it just to add a NFTA_CT_HELPER then add it in the nft_ct_policy=20
-structure as an NLA_STRING type and then retrieve it with nla_strl_cpy(=
-) ?
-But how does it gets populated with the helper string passed in by nft =
-?
+Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
+---
+ include/uapi/linux/netfilter/nf_conntrack_common.h | 12 +++++++++---
+ net/openvswitch/conntrack.c                        |  2 --
+ 2 files changed, 9 insertions(+), 5 deletions(-)
 
-Christophe
+diff --git a/include/uapi/linux/netfilter/nf_conntrack_common.h b/include/uapi/linux/netfilter/nf_conntrack_common.h
+index 319f471..6d074d1 100644
+--- a/include/uapi/linux/netfilter/nf_conntrack_common.h
++++ b/include/uapi/linux/netfilter/nf_conntrack_common.h
+@@ -20,9 +20,15 @@ enum ip_conntrack_info {
+ 
+ 	IP_CT_ESTABLISHED_REPLY = IP_CT_ESTABLISHED + IP_CT_IS_REPLY,
+ 	IP_CT_RELATED_REPLY = IP_CT_RELATED + IP_CT_IS_REPLY,
+-	IP_CT_NEW_REPLY = IP_CT_NEW + IP_CT_IS_REPLY,	
+-	/* Number of distinct IP_CT types (no NEW in reply dirn). */
+-	IP_CT_NUMBER = IP_CT_IS_REPLY * 2 - 1
++	/* No NEW in reply direction. */
++
++	/* Number of distinct IP_CT types. */
++	IP_CT_NUMBER,
++
++	/* only for userspace compatibility */
++#ifndef __KERNEL__
++	IP_CT_NEW_REPLY = IP_CT_NUMBER,
++#endif
+ };
+ 
+ #define NF_CT_STATE_INVALID_BIT			(1 << 0)
+diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+index ee6ff8f..3045290 100644
+--- a/net/openvswitch/conntrack.c
++++ b/net/openvswitch/conntrack.c
+@@ -75,7 +75,6 @@ static u8 ovs_ct_get_state(enum ip_conntrack_info ctinfo)
+ 	switch (ctinfo) {
+ 	case IP_CT_ESTABLISHED_REPLY:
+ 	case IP_CT_RELATED_REPLY:
+-	case IP_CT_NEW_REPLY:
+ 		ct_state |= OVS_CS_F_REPLY_DIR;
+ 		break;
+ 	default:
+@@ -92,7 +91,6 @@ static u8 ovs_ct_get_state(enum ip_conntrack_info ctinfo)
+ 		ct_state |= OVS_CS_F_RELATED;
+ 		break;
+ 	case IP_CT_NEW:
+-	case IP_CT_NEW_REPLY:
+ 		ct_state |= OVS_CS_F_NEW;
+ 		break;
+ 	default:
+-- 
+2.1.4
 
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
