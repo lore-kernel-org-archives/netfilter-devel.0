@@ -1,32 +1,44 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nft: Modified punctuation used in nft's show_help
-Date: Wed, 9 Mar 2016 13:33:00 +0100
-Message-ID: <20160309123300.GA30404@salvia>
-References: <56DFCDE5.90003@gmail.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH nf-next v8 3/8] openvswitch: Add commentary to conntrack.c
+Date: Wed, 9 Mar 2016 16:50:13 +0300
+Message-ID: <56E02A15.6030005@cogentembedded.com>
+References: <1457483084-13944-1-git-send-email-jarno@ovn.org>
+ <1457483084-13944-3-git-send-email-jarno@ovn.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Piyush Pangtey <gokuvsvegita@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57494 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753502AbcCIMdI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Mar 2016 07:33:08 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 8BC981BFA97
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Mar 2016 13:33:07 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 7D4DADA391
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Mar 2016 13:33:07 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B52ECDA8F9
-	for <netfilter-devel@vger.kernel.org>; Wed,  9 Mar 2016 13:33:05 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <56DFCDE5.90003@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, dev@openvswitch.org
+To: Jarno Rajahalme <jarno@ovn.org>, netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1457483084-13944-3-git-send-email-jarno@ovn.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Mar 09, 2016 at 12:46:53PM +0530, Piyush Pangtey wrote:
-> Replaced '/' between shortopt and longopt with ',' , as used by other utilities.
+Hello.
 
-Applied, thanks.
+On 3/9/2016 3:24 AM, Jarno Rajahalme wrote:
+
+> This makes the code easier to understand and the following patches
+> more focused.
+>
+> Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
+> ---
+>   net/openvswitch/conntrack.c | 21 ++++++++++++++++++++-
+>   1 file changed, 20 insertions(+), 1 deletion(-)
+>
+> diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+> index 3045290..8cd0110 100644
+> --- a/net/openvswitch/conntrack.c
+> +++ b/net/openvswitch/conntrack.c
+[...]
+> @@ -418,6 +429,13 @@ static int ovs_ct_lookup(struct net *net, struct sw_flow_key *key,
+>   {
+>   	struct nf_conntrack_expect *exp;
+>
+> +	/* If we pass an expected packet through nf_conntrack_in() the
+> +	 * expectiation is typically removed, but the packet could still be
+
+    Expectation.
+[...]
+
+MBR, Sergei
