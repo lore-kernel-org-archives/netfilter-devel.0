@@ -1,33 +1,65 @@
-From: "Yigal Reiss (yreiss)" <yreiss@cisco.com>
-Subject: NFQUEUE "fail-open" only open to queue limit and not receive buffer
- limit
-Date: Wed, 9 Mar 2016 20:37:13 +0000
-Message-ID: <7966959fae8e4dd5b13ba4d607ac2db4@XCH-RTP-014.cisco.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [RFC] net: ipv4 -- Introduce ifa limit per net
+Date: Wed, 09 Mar 2016 15:47:25 -0500 (EST)
+Message-ID: <20160309.154725.1921352291794389965.davem@davemloft.net>
+References: <20160309175307.GM2207@uranus.lan>
+	<20160309.152730.691838022304871697.davem@davemloft.net>
+	<20160309204158.GO2207@uranus.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: alexei.starovoitov@gmail.com, eric.dumazet@gmail.com,
+	netdev@vger.kernel.org, solar@openwall.com, vvs@virtuozzo.com,
+	avagin@virtuozzo.com, xemul@virtuozzo.com, vdavydov@virtuozzo.com,
+	khorenko@virtuozzo.com, pablo@netfilter.org,
+	netfilter-devel@vger.kernel.org
+To: gorcunov@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rcdn-iport-7.cisco.com ([173.37.86.78]:64410 "EHLO
-	rcdn-iport-7.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752167AbcCIUhP convert rfc822-to-8bit (ORCPT
+Received: from shards.monkeyblade.net ([149.20.54.216]:33659 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753880AbcCIUrd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Mar 2016 15:37:15 -0500
-Received: from XCH-RTP-014.cisco.com (xch-rtp-014.cisco.com [64.101.220.154])
-	by rcdn-core-9.cisco.com (8.14.5/8.14.5) with ESMTP id u29KbEdq007098
-	(version=TLSv1/SSLv3 cipher=AES256-SHA bits=256 verify=FAIL)
-	for <netfilter-devel@vger.kernel.org>; Wed, 9 Mar 2016 20:37:14 GMT
-Content-Language: en-US
+	Wed, 9 Mar 2016 15:47:33 -0500
+In-Reply-To: <20160309204158.GO2207@uranus.lan>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently the "fail-open" feature in NFQUEUE passes packets only in the case where the limit comes from the queue size (queue->queue_total >= queue->queue_maxlen).
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Date: Wed, 9 Mar 2016 23:41:58 +0300
 
-In case where the qlen is high and the load is high, packets will be dropped as result of crossing the socket's receive buffer size. This will eventually be reported through the proc file as 'user dropped' (don't know why). 
+> On Wed, Mar 09, 2016 at 03:27:30PM -0500, David Miller wrote:
+>> > 
+>> > Yes. I can drop it off for a while and run tests without it,
+>> > then turn it back and try again. Would you like to see such
+>> > numbers?
+>> 
+>> That would be very helpful, yes.
+> 
+> Just sent out. Take a look please. Indeed it sits inside get_next_corpse
+> a lot. And now I think I've to figure out where we can optimize it.
+> Continue tomorrow.
 
->From user perspective IMO the user doesn't care if the packet cannot be passed as a result of a queue size or socket receive buffer size. This is quite arbitrary and depends on average packet size. Actually the result may be opposite to what the user desired if he raises the qlen wishing to increase availability but in fact causing more packets be dropped due to receive buffer limitations.
-I suggest implementing the same behavior (fail open) also for the case where nfnetlink_unicast() fails (which usually would be due to receive buffer limit).
+The problem is that the masquerading code flushes the entire conntrack
+table once for _every_ address removed.
 
-Does this make sense?
+The code path is:
 
-If so, what would be the recommended way of achieving that? The problem is that skb is being freed at netlink level (netlink_attachskb). So it's either copying the skb each time before calling nfnetlink_unicast() (wasteful) or passing a flag all the way to indicate that freeing is not desired (lots of changes and involves also core netlink). Any other suggestions?
+masq_device_event()
+	if (event == NETDEV_DOWN) {
+		/* Device was downed.  Search entire table for
+		 * conntracks which were associated with that device,
+		 * and forget them.
+		 */
+		NF_CT_ASSERT(dev->ifindex != 0);
+
+		nf_ct_iterate_cleanup(net, device_cmp,
+				      (void *)(long)dev->ifindex, 0, 0);
+
+So if you have a million IP addresses, this flush happens a million times
+on inetdev destroy.
+
+Part of the problem is that we emit NETDEV_DOWN inetdev notifiers per
+address removed, instead of once per inetdev destroy.
+
+Maybe if we put some boolean state into the inetdev, we could make sure
+we did this flush only once time while inetdev->dead = 1.
