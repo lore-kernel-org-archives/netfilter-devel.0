@@ -1,72 +1,110 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: Regarding libxt_multiport translation in nft
-Date: Wed, 9 Mar 2016 11:06:05 +0100
-Message-ID: <CAOkSjBimhamOTLjrQghozFRdj=FvRMO=nkGG0ADui7fw5-7KQQ@mail.gmail.com>
-References: <20160307212141.GA10594@sonyv> <20160308105346.GB4008@salvia> <56DFCB53.8090601@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: FaTe <gokuvsvegita@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] parser_bison: allow 'snat' and 'dnat' keywords from the right-hand side
+Date: Wed,  9 Mar 2016 12:35:11 +0100
+Message-ID: <1457523311-19512-1-git-send-email-pablo@netfilter.org>
+Cc: karol@babioch.de
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:34975 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750853AbcCIKGb convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Mar 2016 05:06:31 -0500
-Received: by mail-wm0-f46.google.com with SMTP id l68so170260201wml.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Mar 2016 02:06:31 -0800 (PST)
-In-Reply-To: <56DFCB53.8090601@gmail.com>
+Received: from mail.us.es ([193.147.175.20]:38079 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753552AbcCILf1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Mar 2016 06:35:27 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id C7699843E
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Mar 2016 12:35:20 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 9AA05DA8FB
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Mar 2016 12:35:20 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id E19EEDA8F8
+	for <netfilter-devel@vger.kernel.org>; Wed,  9 Mar 2016 12:35:15 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 9 March 2016 at 08:05, FaTe <gokuvsvegita@gmail.com> wrote:
-> Hello Pablo,
->
-> I would require some guidance regarding the libxt_multiport translati=
-on in nft.
->
-> If the translation is over ip4 family :
-> $ iptables-translate -A INPUT -p tcp -m multiport --ports 3:4  -j ACC=
-EPT
-> nft add rule ip filter INPUT ip protocol tcp dport { 3-4 } tcp sport =
-{ 3-4 } counter accept
->                              ^^^^^^^^^^^
->                              this causes problem.
-> Similarly for ipv6 :
-> $ ip6tables-translate -A input -p tcp -m multiport --dports 1024:2048=
-,2049:3333 -j ACCEPT
-> nft add rule ip6 filter input meta l4proto tcp dport { 1024-2048,2049=
--3333 } counter accept
->                               ^^^^^^^^^^^^
->                               this is causing problem.
->
-> both the strings "ip protocol" and "meta l4proto" is not introduced b=
-y libxt_multiport.
-> And in the absence of both , the command works.
->
-> For example ,
-> $ nft add rule ip filter INPUT tcp dport { 3-4 } tcp sport { 3-4 } co=
-unter accept
->
-> $ nft add rule ip6 filter input tcp dport { 1024-2048,2049-3333 } cou=
-nter accept
->
-> Any comment regarding this behaviour ?
+Parse 'snat' and 'dnat' reserved keywords from the right-hand side as
+symbols. Thus, we can use them as values from ct status.
 
-They are different statements, rules should be something like:
- * meta l4proto tcp tcp dport XX
- * ip protocol tcp tcp dport XX
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=950
+Reported-by: Ana Rey <anarey@gmail.com>
+Reported-by: Karol Babioch <karol@babioch.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/parser_bison.y        | 12 ++++++++++++
+ tests/py/any/ct.t         |  8 +++-----
+ tests/py/any/ct.t.payload | 19 +++++++++++++++++++
+ 3 files changed, 34 insertions(+), 5 deletions(-)
 
-However, the two statements are redundants... the second implies the fi=
-rst.
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 3f22639..90978ab 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -2196,6 +2196,18 @@ primary_rhs_expr	:	symbol_expr		{ $$ = $1; }
+ 							 BYTEORDER_HOST_ENDIAN,
+ 							 sizeof(data) * BITS_PER_BYTE, &data);
+ 			}
++			|	SNAT
++			{
++				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
++						       current_scope(state),
++						       "snat");
++			}
++			|	DNAT
++			{
++				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
++						       current_scope(state),
++						       "dnat");
++			}
+ 			;
+ 
+ relational_op		:	EQ		{ $$ = OP_EQ; }
+diff --git a/tests/py/any/ct.t b/tests/py/any/ct.t
+index 6896b1f..095e86c 100644
+--- a/tests/py/any/ct.t
++++ b/tests/py/any/ct.t
+@@ -26,13 +26,11 @@ ct status != expected;ok
+ ct status seen-reply;ok
+ ct status != seen-reply;ok
+ ct status {expected, seen-reply, assured, confirmed, dying};ok
++ct status expected,seen-reply,assured,confirmed,snat,dnat,dying;ok
++ct status snat;ok
++ct status dnat;ok
+ ct status xxx;fail
+ 
+-# SYMBOL("snat", IPS_SRC_NAT)
+-# SYMBOL("dnat", IPS_DST_NAT)
+-- ct status snat;ok
+-- ct status dnat;ok
+-
+ ct mark 0;ok;ct mark 0x00000000
+ ct mark or 0x23 == 0x11;ok;ct mark | 0x00000023 == 0x00000011
+ ct mark or 0x3 != 0x1;ok;ct mark | 0x00000003 != 0x00000001
+diff --git a/tests/py/any/ct.t.payload b/tests/py/any/ct.t.payload
+index ac99429..62e9259 100644
+--- a/tests/py/any/ct.t.payload
++++ b/tests/py/any/ct.t.payload
+@@ -304,3 +304,22 @@ ip test-ip4 output
+   [ ct load bytes => reg 1 ]
+   [ byteorder reg 1 = hton(reg 1, 8, 8) ]
+   [ cmp gt reg 1 0x00000000 0xa0860100 ]
++
++# ct status expected,seen-reply,assured,confirmed,snat,dnat,dying
++ip test-ip4 output
++  [ ct load status => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x0000023f ) ^ 0x00000000 ]
++  [ cmp neq reg 1 0x00000000 ]
++
++# ct status snat
++ip test-ip4 output
++  [ ct load status => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x00000010 ) ^ 0x00000000 ]
++  [ cmp neq reg 1 0x00000000 ]
++
++# ct status dnat
++ip test-ip4 output
++  [ ct load status => reg 1 ]
++  [ bitwise reg 1 = (reg=1 & 0x00000020 ) ^ 0x00000000 ]
++  [ cmp neq reg 1 0x00000000 ]
++
+-- 
+2.1.4
 
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
