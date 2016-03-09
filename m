@@ -1,80 +1,64 @@
-From: FaTe <gokuvsvegita@gmail.com>
-Subject: [PATCH] libip6t_hbh: Add translation to nft
-Date: Wed, 9 Mar 2016 12:42:45 +0530
-Message-ID: <56DFCCED.8040909@gmail.com>
-References: <20160307212141.GA10594@sonyv> <20160308105346.GB4008@salvia>
+From: Piyush Pangtey <gokuvsvegita@gmail.com>
+Subject: nft: Modified punctuation used in nft's show_help
+Date: Wed, 9 Mar 2016 12:46:53 +0530
+Message-ID: <56DFCDE5.90003@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f179.google.com ([209.85.192.179]:33324 "EHLO
-	mail-pf0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751478AbcCIHM2 (ORCPT
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:35260 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751316AbcCIHQg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Mar 2016 02:12:28 -0500
-Received: by mail-pf0-f179.google.com with SMTP id 124so33207588pfg.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 08 Mar 2016 23:12:28 -0800 (PST)
-In-Reply-To: <20160308105346.GB4008@salvia>
+	Wed, 9 Mar 2016 02:16:36 -0500
+Received: by mail-pa0-f49.google.com with SMTP id td3so5770891pab.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 08 Mar 2016 23:16:36 -0800 (PST)
+Received: from [10.11.40.64] ([14.139.254.36])
+        by smtp.gmail.com with ESMTPSA id wx3sm9727694pab.25.2016.03.08.23.16.34
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Tue, 08 Mar 2016 23:16:35 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Added translation for hbh module .
-
-Note: Currently, --hbh-opts support dont exist in nftables .
-
-Example :
-$ ip6tables-translate -A INPUT -m hbh --hbh-len 40
-nft add rule ip6 filter INPUT hbh hdrlength  40 counter
-
-$ sudo ip6tables-translate -A INPUT -m hbh ! --hbh-len 40
-nft add rule ip6 filter INPUT hbh hdrlength  != 40 counter
+Replaced '/' between shortopt and longopt with ',' , as used by other utilities.
 
 Signed-off-by: Piyush Pangtey <gokuvsvegita@gmail.com>
 ---
- extensions/libip6t_hbh.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ src/main.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/extensions/libip6t_hbh.c b/extensions/libip6t_hbh.c
-index c0389ed..98dcade 100644
---- a/extensions/libip6t_hbh.c
-+++ b/extensions/libip6t_hbh.c
-@@ -164,6 +164,27 @@ static void hbh_save(const void *ip, const struct xt_entry_match *match)
- 	print_options(optinfo->optsnr, (uint16_t *)optinfo->opts);
- }
- 
-+static int hbh_xlate(const struct xt_entry_match *match, struct xt_xlate *xl,
-+		     int numeric)
-+{
-+	const struct ip6t_opts *optinfo = (struct ip6t_opts *)match->data;
-+
-+	if (optinfo->flags & IP6T_OPTS_LEN) {
-+		xt_xlate_add(xl," hbh hdrlength %s %u",
-+			    (optinfo->invflags & IP6T_OPTS_INV_LEN) ? " !=" :
-+			    "", optinfo->hdrlen);
-+	} else {
-+		return 0;
-+	}
-+
-+	if (optinfo->flags & IP6T_OPTS_OPTS)
-+		return 0;
-+
-+	xt_xlate_add(xl, " ");
-+
-+	return 1;
-+
-+}
- static struct xtables_match hbh_mt6_reg = {
- 	.name 		= "hbh",
- 	.version	= XTABLES_VERSION,
-@@ -175,6 +196,7 @@ static struct xtables_match hbh_mt6_reg = {
- 	.save		= hbh_save,
- 	.x6_parse	= hbh_parse,
- 	.x6_options	= hbh_opts,
-+	.xlate 		= hbh_xlate,
- };
- 
- void
+diff --git a/src/main.c b/src/main.c
+index 7bbcfc4..d643970 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -107,19 +107,19 @@ static void show_help(const char *name)
+ "Usage: %s [ options ] [ cmds... ]\n"
+ "\n"
+ "Options:\n"
+-"  -h/--help			Show this help\n"
+-"  -v/--version			Show version information\n"
++"  -h, --help			Show this help\n"
++"  -v, --version			Show version information\n"
+ "\n"
+-"  -f/--file <filename>		Read input from <filename>\n"
+-"  -i/--interactive		Read input from interactive CLI\n"
++"  -f, --file <filename>		Read input from <filename>\n"
++"  -i, --interactive		Read input from interactive CLI\n"
+ "\n"
+-"  -n/--numeric			When specified once, show network addresses numerically (default behaviour).\n"
++"  -n, --numeric			When specified once, show network addresses numerically (default behaviour).\n"
+ "  				When specified twice, show Internet services,\n"
+ "				user IDs and group IDs numerically.\n"
+ "				When specified thrice, also show protocols numerically.\n"
+ "  -N				Translate IP addresses to names.\n"
+-"  -a/--handle			Output rule handle.\n"
+-"  -I/--includepath <directory>	Add <directory> to the paths searched for include files.\n"
++"  -a, --handle			Output rule handle.\n"
++"  -I, --includepath <directory>	Add <directory> to the paths searched for include files.\n"
+ #ifdef DEBUG
+ "  --debug <level [,level...]>	Specify debugging level (scanner, parser, eval, netlink, mnl, proto-ctx, segtree, all)\n"
+ #endif
 -- 
 1.9.1
