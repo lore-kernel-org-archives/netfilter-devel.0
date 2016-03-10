@@ -1,81 +1,111 @@
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: Re: [RFC] net: ipv4 -- Introduce ifa limit per net
-Date: Thu, 10 Mar 2016 18:09:20 +0300
-Message-ID: <20160310150920.GC21154@uranus.lan>
-References: <20160309204158.GO2207@uranus.lan>
- <20160309.154725.1921352291794389965.davem@davemloft.net>
- <20160309205746.GQ2207@uranus.lan>
- <20160309.161038.283281065293712589.davem@davemloft.net>
- <20160309211629.GR2207@uranus.lan>
- <20160310102018.GA21154@uranus.lan>
- <20160310110324.GB21154@uranus.lan>
+From: Laura Garcia Liebana <nevola@gmail.com>
+Subject: [PATCHv4] extensions: libipt_icmp: Add translation to nft
+Date: Thu, 10 Mar 2016 17:12:04 +0100
+Message-ID: <20160310161201.GA9569@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, solar@openwall.com, vvs@virtuozzo.com,
-	avagin@virtuozzo.com, xemul@virtuozzo.com, vdavydov@virtuozzo.com,
-	khorenko@virtuozzo.com, pablo@netfilter.org,
-	netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>, alexei.starovoitov@gmail.com,
-	eric.dumazet@gmail.com
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: shivanib134@gmail.com, pablo@netfilter.org,
+	outreachy-kernel@googlegroups.com
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:38214 "EHLO
+	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752709AbcCJQMJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Mar 2016 11:12:09 -0500
+Received: by mail-wm0-f54.google.com with SMTP id l68so35248941wml.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2016 08:12:08 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20160310110324.GB21154@uranus.lan>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Mar 10, 2016 at 02:03:24PM +0300, Cyrill Gorcunov wrote:
-> On Thu, Mar 10, 2016 at 01:20:18PM +0300, Cyrill Gorcunov wrote:
-> > On Thu, Mar 10, 2016 at 12:16:29AM +0300, Cyrill Gorcunov wrote:
-> > > 
-> > > Thanks for explanation, Dave! I'll continue on this task tomorrow
-> > > tryin to implement optimization you proposed.
-> > 
-> > OK, here are the results for the preliminary patch with conntrack running
-> ...
-> >  net/ipv4/devinet.c |   13 ++++++++++++-
-> >  1 file changed, 12 insertions(+), 1 deletion(-)
-> > 
-> > Index: linux-ml.git/net/ipv4/devinet.c
-> > ===================================================================
-> > --- linux-ml.git.orig/net/ipv4/devinet.c
-> > +++ linux-ml.git/net/ipv4/devinet.c
-> > @@ -403,7 +403,18 @@ no_promotions:
-> >  	   So that, this order is correct.
-> >  	 */
-> 
-> This patch is wrong, so drop it please. I'll do another.
+Add translation for icmp to nftables. Not supported types in nftables
+are: any, network-unreachable, host-unreachable, protocol-unreachable,
+port-unreachable, fragmentation-needed, source-route-failed,
+network-unknown, host-unknown, network-prohibited, host-prohibited,
+TOS-network-unreachable, TOS-host-unreachable, communication-prohibited,
+host-precedence-violation, precedence-cutoff, network-redirect,
+host-redirect, TOS-network-redirect, TOS-host-redirect,
+router-advertisement, router-solicitation, ttl-zero-during-transit,
+ttl-zero-during-reassembly, ip-header-bad and required-option-missing.
 
-Here I think is a better variant. The resulst are good
-enough -- 1 sec for cleanup. Does the patch look sane?
+Examples:
+
+$ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type echo-reply -j ACCEPT
+nft add rule ip filter INPUT icmp type echo-reply counter accept
+
+$ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type 3 -j ACCEPT
+nft add rule ip filter INPUT icmp type destination-unreachable counter accept
+
+$ sudo iptables-translate -t filter -A INPUT -m icmp ! --icmp-type 3 -j ACCEPT
+nft add rule ip filter INPUT icmp type != destination-unreachable counter accept
+
+Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
 ---
- net/ipv4/netfilter/nf_nat_masquerade_ipv4.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+v2:
+	- Detection of not supported types in nftables, as Shivani suggested.
+v3:
+	- Fix array iteration protection.
+v4:
+	- icmp types router-advertisement and router-solicitation already supported in nft.
 
-Index: linux-ml.git/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-===================================================================
---- linux-ml.git.orig/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-+++ linux-ml.git/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-@@ -108,9 +108,22 @@ static int masq_inet_event(struct notifi
- 			   unsigned long event,
- 			   void *ptr)
- {
--	struct net_device *dev = ((struct in_ifaddr *)ptr)->ifa_dev->dev;
-+	struct in_ifaddr *ifa = ptr;
-+	struct net_device *dev = ifa->ifa_dev->dev;
- 	struct netdev_notifier_info info;
+ extensions/libipt_icmp.c | 36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
+
+diff --git a/extensions/libipt_icmp.c b/extensions/libipt_icmp.c
+index 666e7da..cc8e732 100644
+--- a/extensions/libipt_icmp.c
++++ b/extensions/libipt_icmp.c
+@@ -249,6 +249,41 @@ static void icmp_save(const void *ip, const struct xt_entry_match *match)
+ 	}
+ }
  
-+	if (event == NETDEV_DOWN) {
-+		/*
-+		 * When we meet dead device which is
-+		 * being released with dozeon of addresses
-+		 * assigned -- we can optimize calls
-+		 * to conntrack cleanups and do it only
-+		 * once.
-+		 */
-+		if (ifa->ifa_dev->dead && ifa->ifa_next)
-+			return NOTIFY_DONE;
++static unsigned int type_xlate_print(struct xt_xlate *xl, unsigned int icmptype,
++				     unsigned int code_min,
++				     unsigned int code_max)
++{
++	unsigned int i;
++
++	if (code_min != code_max && icmptype != 0xFF) {
++		for (i = 0; i < ARRAY_SIZE(icmp_codes); ++i)
++			if (icmp_codes[i].type == icmptype &&
++			    icmp_codes[i].code_min == code_min &&
++			    icmp_codes[i].code_max == code_max) {
++				xt_xlate_add(xl, icmp_codes[i].name);
++				return 1;
++			}
 +	}
 +
- 	netdev_notifier_info_init(&info, dev);
- 	return masq_device_event(this, event, &info);
- }
++	return 0;
++}
++
++static int icmp_xlate(const struct xt_entry_match *match, struct xt_xlate *xl,
++		      int numeric)
++{
++	const struct ipt_icmp *info = (struct ipt_icmp *)match->data;
++
++	xt_xlate_add(xl, "icmp type%s ",
++		     (info->invflags & IPT_ICMP_INV) ? " !=" : "");
++
++	if (!type_xlate_print(xl, info->type, info->code[0], info->code[1]))
++		return 0;
++
++	xt_xlate_add(xl, " ");
++
++	return 1;
++}
++
+ static struct xtables_match icmp_mt_reg = {
+ 	.name		= "icmp",
+ 	.version	= XTABLES_VERSION,
+@@ -261,6 +296,7 @@ static struct xtables_match icmp_mt_reg = {
+ 	.save		= icmp_save,
+ 	.x6_parse	= icmp_parse,
+ 	.x6_options	= icmp_opts,
++	.xlate		= icmp_xlate,
+ };
+ 
+ void _init(void)
+-- 
+2.7.0
+
