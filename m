@@ -1,33 +1,43 @@
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: Re: [RFC] net: ipv4 -- Introduce ifa limit per net
-Date: Fri, 11 Mar 2016 01:40:56 +0300
-Message-ID: <20160310224056.GF1989@uranus.lan>
-References: <20160310.160521.1642655131932337300.davem@davemloft.net>
- <20160310211945.GD1989@uranus.lan>
- <20160310215959.GE1989@uranus.lan>
- <20160310.173630.525547775491939864.davem@davemloft.net>
+From: Joe Stringer <joe-LZ6Gd1LRuIk@public.gmane.org>
+Subject: Re: [PATCH nf-next v10 8/8] openvswitch: Interface with
+	NAT.
+Date: Fri, 11 Mar 2016 12:48:26 +1300
+Message-ID: <CAPWQB7E2cCdkSnBDV=eaq=McHY9PWhyacDuAqDZTreVSW6j-8Q@mail.gmail.com>
+References: <1457636063-92746-1-git-send-email-jarno@ovn.org>
+ <1457636063-92746-9-git-send-email-jarno@ovn.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: xiyou.wangcong@gmail.com, alexei.starovoitov@gmail.com,
-	eric.dumazet@gmail.com, netdev@vger.kernel.org, solar@openwall.com,
-	vvs@virtuozzo.com, avagin@virtuozzo.com, xemul@virtuozzo.com,
-	vdavydov@virtuozzo.com, khorenko@virtuozzo.com,
-	pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160310.173630.525547775491939864.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: ovs dev <dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+ netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarno Rajahalme <jarno-LZ6Gd1LRuIk@public.gmane.org>
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <1457636063-92746-9-git-send-email-jarno-LZ6Gd1LRuIk@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Mar 10, 2016 at 05:36:30PM -0500, David Miller wrote:
-> > 
-> > Works like a charm! So David, what are the next steps then?
-> > Mind to gather all your patches into one (maybe)?
-> 
-> I'll re-review all of the changes tomorrow and also look into ipv6
-> masq, to see if it needs the same treatment, as well.
-> 
-> Thanks for all of your help and testing so far.
-
-Thanks a lot, David!
+T24gMTEgTWFyY2ggMjAxNiBhdCAwNzo1NCwgSmFybm8gUmFqYWhhbG1lIDxqYXJub0Bvdm4ub3Jn
+PiB3cm90ZToKPiBFeHRlbmQgT1ZTIGNvbm50cmFjayBpbnRlcmZhY2UgdG8gY292ZXIgTkFULiAg
+TmV3IG5lc3RlZAo+IE9WU19DVF9BVFRSX05BVCBhdHRyaWJ1dGUgbWF5IGJlIHVzZWQgdG8gaW5j
+bHVkZSBOQVQgd2l0aCBhIENUIGFjdGlvbi4KPiBBIGJhcmUgT1ZTX0NUX0FUVFJfTkFUIG9ubHkg
+bWFuZ2xlcyBleGlzdGluZyBhbmQgZXhwZWN0ZWQgY29ubmVjdGlvbnMuCj4gSWYgT1ZTX05BVF9B
+VFRSX1NSQyBvciBPVlNfTkFUX0FUVFJfRFNUIGlzIGluY2x1ZGVkIHdpdGhpbiB0aGUgbmVzdGVk
+Cj4gYXR0cmlidXRlcywgbmV3IChub24tY29tbWl0dGVkL25vbi1jb25maXJtZWQpIGNvbm5lY3Rp
+b25zIGFyZSBtYW5nbGVkCj4gYWNjb3JkaW5nIHRvIHRoZSByZXN0IG9mIHRoZSBuZXN0ZWQgYXR0
+cmlidXRlcy4KPgo+IFRoZSBjb3JyZXNwb25kaW5nIE9WUyB1c2Vyc3BhY2UgcGF0Y2ggc2VyaWVz
+IGluY2x1ZGVzIHRlc3QgY2FzZXMgKGluCj4gdGVzdHMvc3lzdGVtLXRyYWZmaWMuYXQpIHRoYXQg
+YWxzbyBzZXJ2ZSBhcyBleGFtcGxlIHVzZXMuCj4KPiBUaGlzIHdvcmsgZXh0ZW5kcyBvbiBhIGJy
+YW5jaCBieSBUaG9tYXMgR3JhZiBhdAo+IGh0dHBzOi8vZ2l0aHViLmNvbS90Z3JhZi9vdnMvdHJl
+ZS9uYXQuCj4KPiBTaWduZWQtb2ZmLWJ5OiBKYXJubyBSYWphaGFsbWUgPGphcm5vQG92bi5vcmc+
+Cj4gQWNrZWQtYnk6IFRob21hcyBHcmFmIDx0Z3JhZkBzdXVnLmNoPgoKQWNrZWQtYnk6IEpvZSBT
+dHJpbmdlciA8am9lQG92bi5vcmc+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fCmRldiBtYWlsaW5nIGxpc3QKZGV2QG9wZW52c3dpdGNoLm9yZwpodHRwOi8v
+b3BlbnZzd2l0Y2gub3JnL21haWxtYW4vbGlzdGluZm8vZGV2Cg==
