@@ -1,37 +1,27 @@
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: Re: [RFC] net: ipv4 -- Introduce ifa limit per net
-Date: Fri, 11 Mar 2016 00:59:59 +0300
-Message-ID: <20160310215959.GE1989@uranus.lan>
-References: <20160310200133.GA1989@uranus.lan>
- <20160310.150311.1210460824855467762.davem@davemloft.net>
- <20160310201351.GB1989@uranus.lan>
- <20160310.160521.1642655131932337300.davem@davemloft.net>
- <20160310211945.GD1989@uranus.lan>
+From: Joe Stringer <joe@ovn.org>
+Subject: Re: [PATCH nf-next v10 3/8] openvswitch: Add commentary to conntrack.c
+Date: Fri, 11 Mar 2016 11:01:06 +1300
+Message-ID: <CAPWQB7F8Nr4Dbbd+SX_OCsRAfzr4ccZJwzxrWqW2Mdb35gHaRA@mail.gmail.com>
+References: <1457636063-92746-1-git-send-email-jarno@ovn.org> <1457636063-92746-4-git-send-email-jarno@ovn.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: xiyou.wangcong@gmail.com, alexei.starovoitov@gmail.com,
-	eric.dumazet@gmail.com, netdev@vger.kernel.org, solar@openwall.com,
-	vvs@virtuozzo.com, avagin@virtuozzo.com, xemul@virtuozzo.com,
-	vdavydov@virtuozzo.com, khorenko@virtuozzo.com,
-	pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>,
+	ovs dev <dev@openvswitch.org>
+To: Jarno Rajahalme <jarno@ovn.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:36746 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932235AbcCJWAL (ORCPT
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:38589 "EHLO
+	relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932591AbcCJWBa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Mar 2016 17:00:11 -0500
-Content-Disposition: inline
-In-Reply-To: <20160310211945.GD1989@uranus.lan>
+	Thu, 10 Mar 2016 17:01:30 -0500
+In-Reply-To: <1457636063-92746-4-git-send-email-jarno@ovn.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 11, 2016 at 12:19:45AM +0300, Cyrill Gorcunov wrote:
-> > 
-> > Oh yes they do, from masq's non-inet notifier.  masq registers two
-> > notifiers, one for generic netdev and one for inetdev.
-> 
-> Thanks a huge David! I'll test it just to be sure.
+On 11 March 2016 at 07:54, Jarno Rajahalme <jarno@ovn.org> wrote:
+> This makes the code easier to understand and the following patches
+> more focused.
+>
+> Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
 
-Works like a charm! So David, what are the next steps then?
-Mind to gather all your patches into one (maybe)?
+Acked-by: Joe Stringer <joe@ovn.org>
