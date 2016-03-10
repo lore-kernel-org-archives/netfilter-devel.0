@@ -1,108 +1,52 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [RFC] net: ipv4 -- Introduce ifa limit per net
-Date: Thu, 10 Mar 2016 13:01:38 -0500 (EST)
-Message-ID: <20160310.130138.1302349043066531127.davem@davemloft.net>
-References: <20160310102018.GA21154@uranus.lan>
-	<20160310110324.GB21154@uranus.lan>
-	<20160310150920.GC21154@uranus.lan>
+From: Laura Garcia Liebana <nevola@gmail.com>
+Subject: [PATCH] extensions: libipt_LOG: Avoid to print the default log level
+ in the translation
+Date: Thu, 10 Mar 2016 19:15:40 +0100
+Message-ID: <20160310181537.GA16699@sonyv>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: alexei.starovoitov@gmail.com, eric.dumazet@gmail.com,
-	netdev@vger.kernel.org, solar@openwall.com, vvs@virtuozzo.com,
-	avagin@virtuozzo.com, xemul@virtuozzo.com, vdavydov@virtuozzo.com,
-	khorenko@virtuozzo.com, pablo@netfilter.org,
-	netfilter-devel@vger.kernel.org
-To: gorcunov@gmail.com
+Content-Type: text/plain; charset=us-ascii
+Cc: shivanib134@gmail.com, pablo@netfilter.org,
+	outreachy-kernel@googlegroups.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:49618 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752455AbcCJSBl (ORCPT
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:35472 "EHLO
+	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753051AbcCJSPs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Mar 2016 13:01:41 -0500
-In-Reply-To: <20160310150920.GC21154@uranus.lan>
+	Thu, 10 Mar 2016 13:15:48 -0500
+Received: by mail-wm0-f42.google.com with SMTP id l68so42319320wml.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2016 10:15:47 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Date: Thu, 10 Mar 2016 18:09:20 +0300
+Avoid to print the log level in the translation when the level is the
+default value.
 
-> On Thu, Mar 10, 2016 at 02:03:24PM +0300, Cyrill Gorcunov wrote:
->> On Thu, Mar 10, 2016 at 01:20:18PM +0300, Cyrill Gorcunov wrote:
->> > On Thu, Mar 10, 2016 at 12:16:29AM +0300, Cyrill Gorcunov wrote:
->> > > 
->> > > Thanks for explanation, Dave! I'll continue on this task tomorrow
->> > > tryin to implement optimization you proposed.
->> > 
->> > OK, here are the results for the preliminary patch with conntrack running
->> ...
->> >  net/ipv4/devinet.c |   13 ++++++++++++-
->> >  1 file changed, 12 insertions(+), 1 deletion(-)
->> > 
->> > Index: linux-ml.git/net/ipv4/devinet.c
->> > ===================================================================
->> > --- linux-ml.git.orig/net/ipv4/devinet.c
->> > +++ linux-ml.git/net/ipv4/devinet.c
->> > @@ -403,7 +403,18 @@ no_promotions:
->> >  	   So that, this order is correct.
->> >  	 */
->> 
->> This patch is wrong, so drop it please. I'll do another.
-> 
-> Here I think is a better variant. The resulst are good
-> enough -- 1 sec for cleanup. Does the patch look sane?
+Example:
 
-I'm tempted to say that we should provide these notifier handlers with
-the information they need, explicitly, to handle this case.
+$ sudo iptables-translate -t filter -A INPUT -m icmp ! --icmp-type 10 -j LOG
+nft add rule ip filter INPUT icmp type != router-solicitation counter log
 
-Most intdev notifiers actually want to know the individual addresses
-that get removed, one by one.  That's handled by the existing
-NETDEV_DOWN event and the ifa we pass to that.
+Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+---
+ extensions/libipt_LOG.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-But some, like this netfilter masq case, would be satisfied with a
-single event that tells them the whole inetdev instance is being torn
-down.  Which is the case we care about here.
-
-We currently don't use NETDEV_UNREGISTER for inetdev notifiers, so
-maybe we could use that.
-
-And that is consistent with the core netdev notifier that triggers
-this call chain in the first place.
-
-Roughly, something like this:
-
-diff --git a/net/ipv4/devinet.c b/net/ipv4/devinet.c
-index 8c3df2c..6eee5cb 100644
---- a/net/ipv4/devinet.c
-+++ b/net/ipv4/devinet.c
-@@ -292,6 +292,11 @@ static void inetdev_destroy(struct in_device *in_dev)
+diff --git a/extensions/libipt_LOG.c b/extensions/libipt_LOG.c
+index f3875b6..216b1ca 100644
+--- a/extensions/libipt_LOG.c
++++ b/extensions/libipt_LOG.c
+@@ -194,7 +194,8 @@ static int LOG_xlate(const struct xt_entry_target *target,
+ 		xt_xlate_add(xl, "prefix \\\"%s\\\" ", loginfo->prefix);
  
- 	in_dev->dead = 1;
- 
-+	if (in_dev->ifa_list)
-+		blocking_notifier_call_chain(&inetaddr_chain,
-+					     NETDEV_UNREGISTER,
-+					     in_dev->ifa_list);
-+
- 	ip_mc_destroy_dev(in_dev);
- 
- 	while ((ifa = in_dev->ifa_list) != NULL) {
-diff --git a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-index c6eb421..1bb8026 100644
---- a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-+++ b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
-@@ -111,6 +111,10 @@ static int masq_inet_event(struct notifier_block *this,
- 	struct net_device *dev = ((struct in_ifaddr *)ptr)->ifa_dev->dev;
- 	struct netdev_notifier_info info;
- 
-+	if (event != NETDEV_UNREGISTER)
-+		return NOTIFY_DONE;
-+	event = NETDEV_DOWN;
-+
- 	netdev_notifier_info_init(&info, dev);
- 	return masq_device_event(this, event, &info);
- }
-
-
-
+ 	for (i = 0; i < ARRAY_SIZE(ipt_log_xlate_names); ++i)
+-		if (loginfo->level == ipt_log_xlate_names[i].level) {
++		if (loginfo->level != LOG_DEFAULT_LEVEL &&
++		    loginfo->level == ipt_log_xlate_names[i].level) {
+ 			xt_xlate_add(xl, "level %s ",
+ 				   ipt_log_xlate_names[i].name);
+ 			break;
+-- 
+2.7.0
 
