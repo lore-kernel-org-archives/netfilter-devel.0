@@ -1,43 +1,36 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: x_tables: check for size overflow
-Date: Thu, 10 Mar 2016 01:56:23 +0100
-Message-ID: <1457571383-25520-1-git-send-email-fw@strlen.de>
-Cc: hawkes@google.com, Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:42551 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934460AbcCJA4F (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Mar 2016 19:56:05 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Joe Stringer <joe-LZ6Gd1LRuIk@public.gmane.org>
+Subject: Re: [PATCH nf-next v9 4/8] openvswitch: Update the CT
+ state key only after nf_conntrack_in().
+Date: Wed, 9 Mar 2016 18:12:46 -0800
+Message-ID: <CAPWQB7GhbtuMUPMLECdv=nkyUL0=hZgdPcKqA73zK_F=jvPKtw@mail.gmail.com>
+References: <1457565024-27300-1-git-send-email-jarno@ovn.org>
+ <1457565024-27300-4-git-send-email-jarno@ovn.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: ovs dev <dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+ netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarno Rajahalme <jarno-LZ6Gd1LRuIk@public.gmane.org>
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <1457565024-27300-4-git-send-email-jarno-LZ6Gd1LRuIk@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-Ben Hawkes says:
- integer overflow in xt_alloc_table_info, which on 32-bit systems can
- lead to small structure allocation and a copy_from_user based heap
- corruption.
-
-Reported-by: Ben Hawkes <hawkes@google.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/x_tables.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index c8a0b7d..17a9a9f 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -659,6 +659,9 @@ struct xt_table_info *xt_alloc_table_info(unsigned int size)
- 	struct xt_table_info *info = NULL;
- 	size_t sz = sizeof(*info) + size;
- 
-+	if (sz < size || sz < sizeof(*info))
-+		return NULL;
-+
- 	/* Pedantry: prevent them from hitting BUG() in vmalloc.c --RR */
- 	if ((SMP_ALIGN(size) >> PAGE_SHIFT) + 2 > totalram_pages)
- 		return NULL;
--- 
-2.4.10
-
+T24gOSBNYXJjaCAyMDE2IGF0IDE1OjEwLCBKYXJubyBSYWphaGFsbWUgPGphcm5vQG92bi5vcmc+
+IHdyb3RlOgo+IE9ubHkgYSBzdWNjZXNzZnVsIG5mX2Nvbm50cmFja19pbigpIGNhbGwgY2FuIGVm
+ZmVjdCBhIGNvbm5lY3Rpb24gc3RhdGUKPiBjaGFuZ2UsIHNvIGlmIHN1ZmZpY2VzIHRvIHVwZGF0
+ZSB0aGUga2V5IG9ubHkgYWZ0ZXIgdGhlCj4gbmZfY29ubnRyYWNrX2luKCkgcmV0dXJucy4KCiJp
+dCIgc3VmZmljZXMgdG8gdXBkYXRlLi4uCgo+IFRoaXMgY2hhbmdlIGlzIG5lZWRlZCBmb3IgdGhl
+IGxhdGVyIE5BVCBwYXRjaGVzLgo+Cj4gU2lnbmVkLW9mZi1ieTogSmFybm8gUmFqYWhhbG1lIDxq
+YXJub0Bvdm4ub3JnPgoKQWNrZWQtYnk6IEpvZSBTdHJpbmdlciA8am9lQG92bi5vcmc+Cl9fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRldiBtYWlsaW5nIGxp
+c3QKZGV2QG9wZW52c3dpdGNoLm9yZwpodHRwOi8vb3BlbnZzd2l0Y2gub3JnL21haWxtYW4vbGlz
+dGluZm8vZGV2Cg==
