@@ -1,49 +1,36 @@
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: Re: [RFC] net: ipv4 -- Introduce ifa limit per net
-Date: Thu, 10 Mar 2016 14:03:24 +0300
-Message-ID: <20160310110324.GB21154@uranus.lan>
-References: <20160309204158.GO2207@uranus.lan>
- <20160309.154725.1921352291794389965.davem@davemloft.net>
- <20160309205746.GQ2207@uranus.lan>
- <20160309.161038.283281065293712589.davem@davemloft.net>
- <20160309211629.GR2207@uranus.lan>
- <20160310102018.GA21154@uranus.lan>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft 1/4] tests: frag: enable more tests
+Date: Thu, 10 Mar 2016 12:10:35 +0100
+Message-ID: <20160310111035.GA2695@salvia>
+References: <1457478588-12592-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, solar@openwall.com, vvs@virtuozzo.com,
-	avagin@virtuozzo.com, xemul@virtuozzo.com, vdavydov@virtuozzo.com,
-	khorenko@virtuozzo.com, pablo@netfilter.org,
-	netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>, alexei.starovoitov@gmail.com,
-	eric.dumazet@gmail.com
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:36163 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965761AbcCJLDd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Mar 2016 06:03:33 -0500
+Received: from mail.us.es ([193.147.175.20]:52491 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935251AbcCJLKk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Mar 2016 06:10:40 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id E4BEEDA722
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2016 12:10:36 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id CE6C8DA388
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2016 12:10:36 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 00071DA383
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2016 12:10:34 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20160310102018.GA21154@uranus.lan>
+In-Reply-To: <1457478588-12592-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Mar 10, 2016 at 01:20:18PM +0300, Cyrill Gorcunov wrote:
-> On Thu, Mar 10, 2016 at 12:16:29AM +0300, Cyrill Gorcunov wrote:
-> > 
-> > Thanks for explanation, Dave! I'll continue on this task tomorrow
-> > tryin to implement optimization you proposed.
-> 
-> OK, here are the results for the preliminary patch with conntrack running
-...
->  net/ipv4/devinet.c |   13 ++++++++++++-
->  1 file changed, 12 insertions(+), 1 deletion(-)
-> 
-> Index: linux-ml.git/net/ipv4/devinet.c
-> ===================================================================
-> --- linux-ml.git.orig/net/ipv4/devinet.c
-> +++ linux-ml.git/net/ipv4/devinet.c
-> @@ -403,7 +403,18 @@ no_promotions:
->  	   So that, this order is correct.
->  	 */
+On Wed, Mar 09, 2016 at 12:09:45AM +0100, Florian Westphal wrote:
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-This patch is wrong, so drop it please. I'll do another.
+Thanks for these fixes Florian.
+
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+for the entire series.
