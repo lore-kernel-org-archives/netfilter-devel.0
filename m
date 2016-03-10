@@ -1,51 +1,74 @@
-From: Jarno Rajahalme <jarno-LZ6Gd1LRuIk@public.gmane.org>
-Subject: Re: [PATCH nf-next v9 8/8] openvswitch: Interface with
-	NAT.
-Date: Thu, 10 Mar 2016 10:45:27 -0800
-Message-ID: <947C7126-09A4-4C70-B638-F4A75C1BC52D@ovn.org>
-References: <1457565024-27300-1-git-send-email-jarno@ovn.org>
- <1457565024-27300-8-git-send-email-jarno@ovn.org>
- <CAPWQB7GkhrfZaaT-LkTP7Esfj4tzU=Fgto2ZaSq4YkurhOf8bw@mail.gmail.com>
- <20160310120021.GA26693@pox.localdomain>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: ovs dev <dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Thomas Graf <tgraf-G/eBtMaohhA@public.gmane.org>
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <20160310120021.GA26693-4EA/1caXOu0mYvmMESoHnA@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] libip6t_hbh: Add translation to nft
+Date: Thu, 10 Mar 2016 19:47:15 +0100
+Message-ID: <20160310184715.GA16857@salvia>
+References: <20160307212141.GA10594@sonyv>
+ <20160308105346.GB4008@salvia>
+ <56DFCCED.8040909@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: FaTe <gokuvsvegita@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:49367 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750929AbcCJSrS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Mar 2016 13:47:18 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 68B7FC9EDB
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2016 19:47:17 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 57812DA383
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2016 19:47:17 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 26DB5DA383
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2016 19:47:15 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <56DFCCED.8040909@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Cj4gT24gTWFyIDEwLCAyMDE2LCBhdCA0OjAwIEFNLCBUaG9tYXMgR3JhZiA8dGdyYWZAc3V1Zy5j
-aD4gd3JvdGU6Cj4gCj4gT24gMDMvMDkvMTYgYXQgMDc6NDdwbSwgSm9lIFN0cmluZ2VyIHdyb3Rl
-Ogo+PiBPbiA5IE1hcmNoIDIwMTYgYXQgMTU6MTAsIEphcm5vIFJhamFoYWxtZSA8amFybm9Ab3Zu
-Lm9yZz4gd3JvdGU6Cj4+PiBFeHRlbmQgT1ZTIGNvbm50cmFjayBpbnRlcmZhY2UgdG8gY292ZXIg
-TkFULiAgTmV3IG5lc3RlZAo+Pj4gT1ZTX0NUX0FUVFJfTkFUIGF0dHJpYnV0ZSBtYXkgYmUgdXNl
-ZCB0byBpbmNsdWRlIE5BVCB3aXRoIGEgQ1QgYWN0aW9uLgo+Pj4gQSBiYXJlIE9WU19DVF9BVFRS
-X05BVCBvbmx5IG1hbmdsZXMgZXhpc3RpbmcgYW5kIGV4cGVjdGVkIGNvbm5lY3Rpb25zLgo+Pj4g
-SWYgT1ZTX05BVF9BVFRSX1NSQyBvciBPVlNfTkFUX0FUVFJfRFNUIGlzIGluY2x1ZGVkIHdpdGhp
-biB0aGUgbmVzdGVkCj4+PiBhdHRyaWJ1dGVzLCBuZXcgKG5vbi1jb21taXR0ZWQvbm9uLWNvbmZp
-cm1lZCkgY29ubmVjdGlvbnMgYXJlIG1hbmdsZWQKPj4+IGFjY29yZGluZyB0byB0aGUgcmVzdCBv
-ZiB0aGUgbmVzdGVkIGF0dHJpYnV0ZXMuCj4+PiAKPj4+IFRoZSBjb3JyZXNwb25kaW5nIE9WUyB1
-c2Vyc3BhY2UgcGF0Y2ggc2VyaWVzIGluY2x1ZGVzIHRlc3QgY2FzZXMgKGluCj4+PiB0ZXN0cy9z
-eXN0ZW0tdHJhZmZpYy5hdCkgdGhhdCBhbHNvIHNlcnZlIGFzIGV4YW1wbGUgdXNlcy4KPj4+IAo+
-Pj4gVGhpcyB3b3JrIGV4dGVuZHMgb24gYSBicmFuY2ggYnkgVGhvbWFzIEdyYWYgYXQKPj4+IGh0
-dHBzOi8vZ2l0aHViLmNvbS90Z3JhZi9vdnMvdHJlZS9uYXQuCj4+IAo+PiBUaG9tYXMsIEkgZ3Vl
-c3MgdGhlcmUgd2FzIG5vdCBzaWdub2ZmIGluIHRoZXNlIHBhdGNoZXMgc28gSmFybm8gZG9lcwo+
-PiBub3QgaGF2ZSB5b3VyIHNpZ25vZmYgaW4gdGhpcyBwYXRjaC4KPiAKPiBUaGF0J3MgZmluZS4g
-VGhlIGNvZGUgaGFzIGV2b2x2ZWQgYSBsb3Qgc2luY2UuIEkgZG9uJ3Qgc2VlIGFueXRoaW5nCj4g
-ZnVydGhlciB0aGFuIHdoYXQgSm9lIHNwb3R0ZWQgc28gZmVlbCBmcmVlIHRvIGFkZCBteQo+IAo+
-IEFja2VkLWJ5OiBUaG9tYXMgR3JhZiA8dGdyYWZAc3V1Zy5jaD4KClRoYW5rcyEKCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRldiBtYWlsaW5nIGxpc3QK
-ZGV2QG9wZW52c3dpdGNoLm9yZwpodHRwOi8vb3BlbnZzd2l0Y2gub3JnL21haWxtYW4vbGlzdGlu
-Zm8vZGV2Cg==
+On Wed, Mar 09, 2016 at 12:42:45PM +0530, FaTe wrote:
+> Added translation for hbh module .
+> 
+> Note: Currently, --hbh-opts support dont exist in nftables .
+> 
+> Example :
+> $ ip6tables-translate -A INPUT -m hbh --hbh-len 40
+> nft add rule ip6 filter INPUT hbh hdrlength  40 counter
+> 
+> $ sudo ip6tables-translate -A INPUT -m hbh ! --hbh-len 40
+> nft add rule ip6 filter INPUT hbh hdrlength  != 40 counter
+> 
+> Signed-off-by: Piyush Pangtey <gokuvsvegita@gmail.com>
+> ---
+>  extensions/libip6t_hbh.c | 22 ++++++++++++++++++++++
+>  1 file changed, 22 insertions(+)
+> 
+> diff --git a/extensions/libip6t_hbh.c b/extensions/libip6t_hbh.c
+> index c0389ed..98dcade 100644
+> --- a/extensions/libip6t_hbh.c
+> +++ b/extensions/libip6t_hbh.c
+> @@ -164,6 +164,27 @@ static void hbh_save(const void *ip, const struct xt_entry_match *match)
+>  	print_options(optinfo->optsnr, (uint16_t *)optinfo->opts);
+>  }
+>  
+> +static int hbh_xlate(const struct xt_entry_match *match, struct xt_xlate *xl,
+> +		     int numeric)
+> +{
+> +	const struct ip6t_opts *optinfo = (struct ip6t_opts *)match->data;
+> +
+> +	if (optinfo->flags & IP6T_OPTS_LEN) {
+> +		xt_xlate_add(xl," hbh hdrlength %s %u",
+> +			    (optinfo->invflags & IP6T_OPTS_INV_LEN) ? " !=" :
+> +			    "", optinfo->hdrlen);
+
+I suggested Shivani you check how to translate:
+
+ip6tables -I INPUT -m hbh
+
+which seems to be value too.
+
+http://www.spinics.net/lists/netfilter-devel/msg41045.html
+
+So we make sure we provide a right translation for that too.
