@@ -1,20 +1,20 @@
 From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCHv4] extensions: libipt_icmp: Add translation to nft
-Date: Thu, 10 Mar 2016 17:12:04 +0100
-Message-ID: <20160310161201.GA9569@sonyv>
+Subject: [PATCHv5] extensions: libipt_icmp: Add translation to nft
+Date: Thu, 10 Mar 2016 17:17:46 +0100
+Message-ID: <20160310161743.GA9997@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: shivanib134@gmail.com, pablo@netfilter.org,
 	outreachy-kernel@googlegroups.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:38214 "EHLO
-	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752709AbcCJQMJ (ORCPT
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:32956 "EHLO
+	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753542AbcCJQRv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Mar 2016 11:12:09 -0500
-Received: by mail-wm0-f54.google.com with SMTP id l68so35248941wml.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2016 08:12:08 -0800 (PST)
+	Thu, 10 Mar 2016 11:17:51 -0500
+Received: by mail-wm0-f47.google.com with SMTP id l68so35463232wml.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2016 08:17:50 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -26,8 +26,7 @@ network-unknown, host-unknown, network-prohibited, host-prohibited,
 TOS-network-unreachable, TOS-host-unreachable, communication-prohibited,
 host-precedence-violation, precedence-cutoff, network-redirect,
 host-redirect, TOS-network-redirect, TOS-host-redirect,
-router-advertisement, router-solicitation, ttl-zero-during-transit,
-ttl-zero-during-reassembly, ip-header-bad and required-option-missing.
+ttl-zero-during-transit, ttl-zero-during-reassembly, ip-header-bad and required-option-missing.
 
 Examples:
 
@@ -48,6 +47,8 @@ v3:
 	- Fix array iteration protection.
 v4:
 	- icmp types router-advertisement and router-solicitation already supported in nft.
+v5:
+	- Update commit message with the correct not supported codes.
 
  extensions/libipt_icmp.c | 36 ++++++++++++++++++++++++++++++++++++
  1 file changed, 36 insertions(+)
