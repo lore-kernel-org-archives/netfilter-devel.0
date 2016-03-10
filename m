@@ -1,49 +1,35 @@
-From: Thomas Graf <tgraf-G/eBtMaohhA@public.gmane.org>
-Subject: Re: [PATCH nf-next v9 8/8] openvswitch: Interface with
-	NAT.
-Date: Thu, 10 Mar 2016 13:00:21 +0100
-Message-ID: <20160310120021.GA26693@pox.localdomain>
-References: <1457565024-27300-1-git-send-email-jarno@ovn.org>
- <1457565024-27300-8-git-send-email-jarno@ovn.org>
- <CAPWQB7GkhrfZaaT-LkTP7Esfj4tzU=Fgto2ZaSq4YkurhOf8bw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: ovs dev <dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-To: Joe Stringer <joe-LZ6Gd1LRuIk@public.gmane.org>
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAPWQB7GkhrfZaaT-LkTP7Esfj4tzU=Fgto2ZaSq4YkurhOf8bw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Id: netfilter-devel.vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH libnftnl] trace: fix missing NFTNL_TRACE_JUMP_TARGET in nftnl_trace_get_str()
+Date: Thu, 10 Mar 2016 13:16:50 +0100
+Message-ID: <1457612210-10975-1-git-send-email-kaber@trash.net>
+Cc: fw@strlen.de, netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:44574 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751588AbcCJMQ6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Mar 2016 07:16:58 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-T24gMDMvMDkvMTYgYXQgMDc6NDdwbSwgSm9lIFN0cmluZ2VyIHdyb3RlOgo+IE9uIDkgTWFyY2gg
-MjAxNiBhdCAxNToxMCwgSmFybm8gUmFqYWhhbG1lIDxqYXJub0Bvdm4ub3JnPiB3cm90ZToKPiA+
-IEV4dGVuZCBPVlMgY29ubnRyYWNrIGludGVyZmFjZSB0byBjb3ZlciBOQVQuICBOZXcgbmVzdGVk
-Cj4gPiBPVlNfQ1RfQVRUUl9OQVQgYXR0cmlidXRlIG1heSBiZSB1c2VkIHRvIGluY2x1ZGUgTkFU
-IHdpdGggYSBDVCBhY3Rpb24uCj4gPiBBIGJhcmUgT1ZTX0NUX0FUVFJfTkFUIG9ubHkgbWFuZ2xl
-cyBleGlzdGluZyBhbmQgZXhwZWN0ZWQgY29ubmVjdGlvbnMuCj4gPiBJZiBPVlNfTkFUX0FUVFJf
-U1JDIG9yIE9WU19OQVRfQVRUUl9EU1QgaXMgaW5jbHVkZWQgd2l0aGluIHRoZSBuZXN0ZWQKPiA+
-IGF0dHJpYnV0ZXMsIG5ldyAobm9uLWNvbW1pdHRlZC9ub24tY29uZmlybWVkKSBjb25uZWN0aW9u
-cyBhcmUgbWFuZ2xlZAo+ID4gYWNjb3JkaW5nIHRvIHRoZSByZXN0IG9mIHRoZSBuZXN0ZWQgYXR0
-cmlidXRlcy4KPiA+Cj4gPiBUaGUgY29ycmVzcG9uZGluZyBPVlMgdXNlcnNwYWNlIHBhdGNoIHNl
-cmllcyBpbmNsdWRlcyB0ZXN0IGNhc2VzIChpbgo+ID4gdGVzdHMvc3lzdGVtLXRyYWZmaWMuYXQp
-IHRoYXQgYWxzbyBzZXJ2ZSBhcyBleGFtcGxlIHVzZXMuCj4gPgo+ID4gVGhpcyB3b3JrIGV4dGVu
-ZHMgb24gYSBicmFuY2ggYnkgVGhvbWFzIEdyYWYgYXQKPiA+IGh0dHBzOi8vZ2l0aHViLmNvbS90
-Z3JhZi9vdnMvdHJlZS9uYXQuCj4gCj4gVGhvbWFzLCBJIGd1ZXNzIHRoZXJlIHdhcyBub3Qgc2ln
-bm9mZiBpbiB0aGVzZSBwYXRjaGVzIHNvIEphcm5vIGRvZXMKPiBub3QgaGF2ZSB5b3VyIHNpZ25v
-ZmYgaW4gdGhpcyBwYXRjaC4KClRoYXQncyBmaW5lLiBUaGUgY29kZSBoYXMgZXZvbHZlZCBhIGxv
-dCBzaW5jZS4gSSBkb24ndCBzZWUgYW55dGhpbmcKZnVydGhlciB0aGFuIHdoYXQgSm9lIHNwb3R0
-ZWQgc28gZmVlbCBmcmVlIHRvIGFkZCBteQoKQWNrZWQtYnk6IFRob21hcyBHcmFmIDx0Z3JhZkBz
-dXVnLmNoPgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpk
-ZXYgbWFpbGluZyBsaXN0CmRldkBvcGVudnN3aXRjaC5vcmcKaHR0cDovL29wZW52c3dpdGNoLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2Rldgo=
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ src/trace.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/trace.c b/src/trace.c
+index 9655f0a..849003b 100644
+--- a/src/trace.c
++++ b/src/trace.c
+@@ -208,6 +208,7 @@ const char *nftnl_trace_get_str(const struct nftnl_trace *trace, uint16_t type)
+ 	switch (type) {
+ 	case NFTNL_TRACE_CHAIN: return trace->chain;
+ 	case NFTNL_TRACE_TABLE: return trace->table;
++	case NFTNL_TRACE_JUMP_TARGET: return trace->jump_target;
+ 	default: break;
+ 	}
+ 	return NULL;
+-- 
+2.5.0
+
