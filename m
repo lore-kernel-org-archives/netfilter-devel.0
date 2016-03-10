@@ -1,157 +1,85 @@
-From: Jarno Rajahalme <jarno@ovn.org>
-Subject: Re: [PATCH nf-next v9 8/8] openvswitch: Interface with NAT.
-Date: Thu, 10 Mar 2016 10:55:53 -0800
-Message-ID: <D23E44DD-FA6D-4095-ABC8-CAE8E032BE7A@ovn.org>
-References: <1457565024-27300-1-git-send-email-jarno@ovn.org> <1457565024-27300-8-git-send-email-jarno@ovn.org> <CAPWQB7GkhrfZaaT-LkTP7Esfj4tzU=Fgto2ZaSq4YkurhOf8bw@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Thomas Graf <tgraf@suug.ch>, netfilter-devel@vger.kernel.org,
-	netdev <netdev@vger.kernel.org>, ovs dev <dev@openvswitch.org>
-To: Joe Stringer <joe@ovn.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:35216 "EHLO
-	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751652AbcCJS4C convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Mar 2016 13:56:02 -0500
-In-Reply-To: <CAPWQB7GkhrfZaaT-LkTP7Esfj4tzU=Fgto2ZaSq4YkurhOf8bw@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: Re: [RFC] net: ipv4 -- Introduce ifa limit per net
+Date: Thu, 10 Mar 2016 11:02:28 -0800
+Message-ID: <CAM_iQpWWbj00H-cKvpeaKq6mVWK_D2CFuarXiE6YDQeQX5JupA@mail.gmail.com>
+References: <20160310102018.GA21154@uranus.lan>
+	<20160310110324.GB21154@uranus.lan>
+	<20160310150920.GC21154@uranus.lan>
+	<20160310.130138.1302349043066531127.davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>,
+	Alexei Starovoitov <alexei.starovoitov@gmail.com>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	Linux Kernel Network Developers <netdev@vger.kernel.org>,
+	solar@openwall.com, Vasily Averin <vvs@virtuozzo.com>,
+	avagin@virtuozzo.com, xemul@virtuozzo.com, vdavydov@virtuozzo.com,
+	khorenko@virtuozzo.com, Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160310.130138.1302349043066531127.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Thanks for the reviews Joe! Comments below.
+On Thu, Mar 10, 2016 at 10:01 AM, David Miller <davem@davemloft.net> wrote:
+> I'm tempted to say that we should provide these notifier handlers with
+> the information they need, explicitly, to handle this case.
+>
+> Most intdev notifiers actually want to know the individual addresses
+> that get removed, one by one.  That's handled by the existing
+> NETDEV_DOWN event and the ifa we pass to that.
+>
+> But some, like this netfilter masq case, would be satisfied with a
+> single event that tells them the whole inetdev instance is being torn
+> down.  Which is the case we care about here.
+>
+> We currently don't use NETDEV_UNREGISTER for inetdev notifiers, so
+> maybe we could use that.
+>
+> And that is consistent with the core netdev notifier that triggers
+> this call chain in the first place.
+>
+> Roughly, something like this:
+>
+> diff --git a/net/ipv4/devinet.c b/net/ipv4/devinet.c
+> index 8c3df2c..6eee5cb 100644
+> --- a/net/ipv4/devinet.c
+> +++ b/net/ipv4/devinet.c
+> @@ -292,6 +292,11 @@ static void inetdev_destroy(struct in_device *in_dev)
+>
+>         in_dev->dead = 1;
+>
+> +       if (in_dev->ifa_list)
+> +               blocking_notifier_call_chain(&inetaddr_chain,
+> +                                            NETDEV_UNREGISTER,
+> +                                            in_dev->ifa_list);
+> +
+>         ip_mc_destroy_dev(in_dev);
 
-> On Mar 9, 2016, at 7:47 PM, Joe Stringer <joe@ovn.org> wrote:
->=20
-> Hi Jarno,
->=20
-> Thanks for working on this. Mostly just a few style things around #if=
-defs below.
->=20
-> On 9 March 2016 at 15:10, Jarno Rajahalme <jarno@ovn.org> wrote:
->> Extend OVS conntrack interface to cover NAT.  New nested
->> OVS_CT_ATTR_NAT attribute may be used to include NAT with a CT actio=
-n.
->> A bare OVS_CT_ATTR_NAT only mangles existing and expected connection=
-s.
->> If OVS_NAT_ATTR_SRC or OVS_NAT_ATTR_DST is included within the neste=
-d
->> attributes, new (non-committed/non-confirmed) connections are mangle=
-d
->> according to the rest of the nested attributes.
->>=20
->> The corresponding OVS userspace patch series includes test cases (in
->> tests/system-traffic.at) that also serve as example uses.
->>=20
->> This work extends on a branch by Thomas Graf at
->> https://github.com/tgraf/ovs/tree/nat.
->=20
-> Thomas, I guess there was not signoff in these patches so Jarno does
-> not have your signoff in this patch.
->=20
->> Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
->> ---
->> v9: Fixed module dependencies.
->>=20
->> include/uapi/linux/openvswitch.h |  49 ++++
->> net/openvswitch/Kconfig          |   3 +-
->> net/openvswitch/conntrack.c      | 523 +++++++++++++++++++++++++++++=
-++++++++--
->> net/openvswitch/conntrack.h      |   3 +-
->> 4 files changed, 551 insertions(+), 27 deletions(-)
->=20
-> <snip>
->=20
->> diff --git a/net/openvswitch/Kconfig b/net/openvswitch/Kconfig
->> index cd5fd9d..23471a4 100644
->> --- a/net/openvswitch/Kconfig
->> +++ b/net/openvswitch/Kconfig
->> @@ -6,7 +6,8 @@ config OPENVSWITCH
->>        tristate "Open vSwitch"
->>        depends on INET
->>        depends on !NF_CONNTRACK || \
->> -                  (NF_CONNTRACK && (!NF_DEFRAG_IPV6 || NF_DEFRAG_IP=
-V6))
->> +                  (NF_CONNTRACK && ((!NF_DEFRAG_IPV6 || NF_DEFRAG_I=
-PV6) && \
->> +                                (!NF_NAT || NF_NAT)))
->=20
-> Whitespace.
->=20
 
-=46ixed.
+Hmm, but inetdev_destroy() is only called when NETDEV_UNREGISTER
+is happening and masq already registers a netdev notifier...
 
->>        select LIBCRC32C
->>        select MPLS
->>        select NET_MPLS_GSO
->> diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack=
-=2Ec
->> index 5711f80..6455237 100644
->> --- a/net/openvswitch/conntrack.c
->> +++ b/net/openvswitch/conntrack.c
->=20
-> <snip>
->=20
->> struct ovs_ct_len_tbl {
->> -       size_t maxlen;
->> -       size_t minlen;
->> +       int maxlen;
->> +       int minlen;
->> };
->=20
-> Are these changed for a specific reason, or just to use INT_MAX rathe=
-r
-> than SIZE_MAX in ovs_ct_len_tbl?
->=20
 
-=E2=80=98maxlen=E2=80=99 and =E2=80=98minlen=E2=80=99 are compared agai=
-nst the values returned by nla_len(), which returns an int:
 
-net/netlink.h:static inline int nla_len(const struct nlattr *nla)
+>
+>         while ((ifa = in_dev->ifa_list) != NULL) {
+> diff --git a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
+> index c6eb421..1bb8026 100644
+> --- a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
+> +++ b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
+> @@ -111,6 +111,10 @@ static int masq_inet_event(struct notifier_block *this,
+>         struct net_device *dev = ((struct in_ifaddr *)ptr)->ifa_dev->dev;
+>         struct netdev_notifier_info info;
+>
+> +       if (event != NETDEV_UNREGISTER)
+> +               return NOTIFY_DONE;
+> +       event = NETDEV_DOWN;
+> +
+>         netdev_notifier_info_init(&info, dev);
+>         return masq_device_event(this, event, &info);
+>  }
 
-so I figured it is better to have these as ints, too.
-
->> /* Metadata mark for masked write to conntrack mark */
->> @@ -42,15 +52,29 @@ struct md_labels {
->>        struct ovs_key_ct_labels mask;
->> };
->>=20
->> +#ifdef CONFIG_NF_NAT_NEEDED
->> +enum ovs_ct_nat {
->> +       OVS_CT_NAT =3D 1 << 0,     /* NAT for committed connections =
-only. */
->> +       OVS_CT_SRC_NAT =3D 1 << 1, /* Source NAT for NEW connections=
-=2E */
->> +       OVS_CT_DST_NAT =3D 1 << 2, /* Destination NAT for NEW connec=
-tions. */
->> +};
->> +#endif
->=20
-> Here...
->=20
->> /* Conntrack action context for execution. */
->> struct ovs_conntrack_info {
->>        struct nf_conntrack_helper *helper;
->>        struct nf_conntrack_zone zone;
->>        struct nf_conn *ct;
->>        u8 commit : 1;
->> +#ifdef CONFIG_NF_NAT_NEEDED
->> +       u8 nat : 3;                 /* enum ovs_ct_nat */
->> +#endif
->=20
-> and here.. I wonder if we can trim more of these #ifdefs, for
-> readability and more compiler coverage if the feature is disabled.
->=20
-
-Trimmed this and other #ifdefs as you suggested, and it still compiles =
-when NAT is disabled.
-
-Just posted the v10, which I hope will be the final version :-)
-
-  Jarno
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If masq really doesn't care about inetdev destroy or inetaddr removal,
+we should just remove its inetaddr notifier.
