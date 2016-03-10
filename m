@@ -1,63 +1,108 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nft_compat: check match/targetinfo attr size
-Date: Thu, 10 Mar 2016 18:16:19 +0100
-Message-ID: <20160310171619.GA3483@salvia>
-References: <1457478261-11247-1-git-send-email-fw@strlen.de>
- <20160310164710.GA3267@salvia>
- <20160310170001.GC14718@breakpoint.cc>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [RFC] net: ipv4 -- Introduce ifa limit per net
+Date: Thu, 10 Mar 2016 13:01:38 -0500 (EST)
+Message-ID: <20160310.130138.1302349043066531127.davem@davemloft.net>
+References: <20160310102018.GA21154@uranus.lan>
+	<20160310110324.GB21154@uranus.lan>
+	<20160310150920.GC21154@uranus.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: alexei.starovoitov@gmail.com, eric.dumazet@gmail.com,
+	netdev@vger.kernel.org, solar@openwall.com, vvs@virtuozzo.com,
+	avagin@virtuozzo.com, xemul@virtuozzo.com, vdavydov@virtuozzo.com,
+	khorenko@virtuozzo.com, pablo@netfilter.org,
+	netfilter-devel@vger.kernel.org
+To: gorcunov@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:32950 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753085AbcCJRQZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Mar 2016 12:16:25 -0500
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 4E771114F44
-	for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2016 18:16:24 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 3E65EDA380
-	for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2016 18:16:24 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B99D7DA386
-	for <netfilter-devel@vger.kernel.org>; Thu, 10 Mar 2016 18:16:18 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20160310170001.GC14718@breakpoint.cc>
+Received: from shards.monkeyblade.net ([149.20.54.216]:49618 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752455AbcCJSBl (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Mar 2016 13:01:41 -0500
+In-Reply-To: <20160310150920.GC21154@uranus.lan>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Mar 10, 2016 at 06:00:01PM +0100, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Wed, Mar 09, 2016 at 12:04:21AM +0100, Florian Westphal wrote:
-> > > We copy accoring to ->target|matchsize, so check that the netlink attribute
-> > > (which can include padding and might be larger) contains enough data.
-> > > 
-> > > Reported-by: Julia Lawall <Julia.Lawall@lip6.fr>
-> > > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > 
-> > I think xt_check_match() and xt_check_target() already validate this
-> > for us.
-> 
-> But AFAICS we copy before this:
-> 
-> nft_target_init:
-> 
-> size = XT_ALIGN(nla_len(tb[NFTA_TARGET_INFO]));
-> ...
-> target_compat_from_user(target, nla_data(tb[NFTA_TARGET_INFO]), info);
->    -> memcpy(out, in, t->targetsize);
-> 
-> xt_check_target(&par, size, proto, inv);  // checks size vs. targetsize
-> 
-> 'target' is sized based on target->targetsize in
-> nft_target_select_ops().
-> 
-> So if tb[NFTA_TARGET_INFO] is != t->targetsize we might copy more
-> data than whats in 'in', no?
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Date: Thu, 10 Mar 2016 18:09:20 +0300
 
-Right, if the user passes less information, then we would be copying
-more than what we have.
+> On Thu, Mar 10, 2016 at 02:03:24PM +0300, Cyrill Gorcunov wrote:
+>> On Thu, Mar 10, 2016 at 01:20:18PM +0300, Cyrill Gorcunov wrote:
+>> > On Thu, Mar 10, 2016 at 12:16:29AM +0300, Cyrill Gorcunov wrote:
+>> > > 
+>> > > Thanks for explanation, Dave! I'll continue on this task tomorrow
+>> > > tryin to implement optimization you proposed.
+>> > 
+>> > OK, here are the results for the preliminary patch with conntrack running
+>> ...
+>> >  net/ipv4/devinet.c |   13 ++++++++++++-
+>> >  1 file changed, 12 insertions(+), 1 deletion(-)
+>> > 
+>> > Index: linux-ml.git/net/ipv4/devinet.c
+>> > ===================================================================
+>> > --- linux-ml.git.orig/net/ipv4/devinet.c
+>> > +++ linux-ml.git/net/ipv4/devinet.c
+>> > @@ -403,7 +403,18 @@ no_promotions:
+>> >  	   So that, this order is correct.
+>> >  	 */
+>> 
+>> This patch is wrong, so drop it please. I'll do another.
+> 
+> Here I think is a better variant. The resulst are good
+> enough -- 1 sec for cleanup. Does the patch look sane?
 
-I'm going to place this in the nf-next, thanks Florian.
+I'm tempted to say that we should provide these notifier handlers with
+the information they need, explicitly, to handle this case.
+
+Most intdev notifiers actually want to know the individual addresses
+that get removed, one by one.  That's handled by the existing
+NETDEV_DOWN event and the ifa we pass to that.
+
+But some, like this netfilter masq case, would be satisfied with a
+single event that tells them the whole inetdev instance is being torn
+down.  Which is the case we care about here.
+
+We currently don't use NETDEV_UNREGISTER for inetdev notifiers, so
+maybe we could use that.
+
+And that is consistent with the core netdev notifier that triggers
+this call chain in the first place.
+
+Roughly, something like this:
+
+diff --git a/net/ipv4/devinet.c b/net/ipv4/devinet.c
+index 8c3df2c..6eee5cb 100644
+--- a/net/ipv4/devinet.c
++++ b/net/ipv4/devinet.c
+@@ -292,6 +292,11 @@ static void inetdev_destroy(struct in_device *in_dev)
+ 
+ 	in_dev->dead = 1;
+ 
++	if (in_dev->ifa_list)
++		blocking_notifier_call_chain(&inetaddr_chain,
++					     NETDEV_UNREGISTER,
++					     in_dev->ifa_list);
++
+ 	ip_mc_destroy_dev(in_dev);
+ 
+ 	while ((ifa = in_dev->ifa_list) != NULL) {
+diff --git a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
+index c6eb421..1bb8026 100644
+--- a/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
++++ b/net/ipv4/netfilter/nf_nat_masquerade_ipv4.c
+@@ -111,6 +111,10 @@ static int masq_inet_event(struct notifier_block *this,
+ 	struct net_device *dev = ((struct in_ifaddr *)ptr)->ifa_dev->dev;
+ 	struct netdev_notifier_info info;
+ 
++	if (event != NETDEV_UNREGISTER)
++		return NOTIFY_DONE;
++	event = NETDEV_DOWN;
++
+ 	netdev_notifier_info_init(&info, dev);
+ 	return masq_device_event(this, event, &info);
+ }
+
+
+
+
