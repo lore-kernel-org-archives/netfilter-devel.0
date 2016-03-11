@@ -1,20 +1,24 @@
 From: Piyush Pangtey <gokuvsvegita@gmail.com>
 Subject: [PATCH v4] extensions: libxt_multiport: Add translation to nft
-Date: Fri, 11 Mar 2016 17:06:04 +0530
-Message-ID: <20160311113604.GA4217@fate>
+Date: Fri, 11 Mar 2016 17:28:44 +0530
+Message-ID: <20160311115844.GA7226@fate>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f67.google.com ([209.85.220.67]:34620 "EHLO
-	mail-pa0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751575AbcCKLfu (ORCPT
+Received: from mail-pa0-f66.google.com ([209.85.220.66]:35237 "EHLO
+	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751660AbcCKL6a (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Mar 2016 06:35:50 -0500
-Received: by mail-pa0-f67.google.com with SMTP id hj7so8098294pac.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 11 Mar 2016 03:35:49 -0800 (PST)
+	Fri, 11 Mar 2016 06:58:30 -0500
+Received: by mail-pa0-f66.google.com with SMTP id fl4so8161995pad.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 11 Mar 2016 03:58:29 -0800 (PST)
+Received: from fate ([14.139.254.36])
+        by smtp.gmail.com with ESMTPSA id ml5sm12560388pab.2.2016.03.11.03.58.27
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Fri, 11 Mar 2016 03:58:28 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -61,13 +65,13 @@ v4:
 
 Signed-off-by: Piyush Pangtey <gokuvsvegita@gmail.com>
 ---
- extensions/libxt_multiport.c | 199 +++++++++++++++++++++++++++++++++++=
+ extensions/libxt_multiport.c | 201 +++++++++++++++++++++++++++++++++++=
 ++++++++
- 1 file changed, 199 insertions(+)
+ 1 file changed, 201 insertions(+)
 
 diff --git a/extensions/libxt_multiport.c b/extensions/libxt_multiport.=
 c
-index 03af5a9..61b9917 100644
+index 03af5a9..755d2a7 100644
 --- a/extensions/libxt_multiport.c
 +++ b/extensions/libxt_multiport.c
 @@ -278,6 +278,18 @@ print_port(uint16_t port, uint8_t protocol, int nu=
@@ -76,7 +80,7 @@ meric)
 =20
  static void
 +print_port_xlate(struct xt_xlate *xl, uint16_t port, uint8_t protocol,
-+		int numeric)
++		 int numeric)
 +{
 +	const char *service;
 +
@@ -143,7 +147,7 @@ h,
                                  const struct xt_entry_match *match, in=
 t numeric)
  {
-@@ -468,6 +514,155 @@ static void multiport_save6_v1(const void *ip_voi=
+@@ -468,6 +514,157 @@ static void multiport_save6_v1(const void *ip_voi=
 d,
  	__multiport_save_v1(match, ip->proto);
  }
@@ -157,8 +161,10 @@ d,
 +	bool have_multiple =3D false, have_invert =3D false;
 +
 +	if ((proto_name =3D proto_to_name(protocol)) !=3D NULL) {
-+		if (multiinfo->count > 1) have_multiple =3D true;
-+		if (multiinfo->invert) have_invert =3D true;
++		if (multiinfo->count > 1)
++			have_multiple =3D true;
++		if (multiinfo->invert)
++			have_invert =3D true;
 +		if (have_multiple && have_invert)
 +			return 0;
 +
@@ -300,7 +306,7 @@ d,
  static struct xtables_match multiport_mt_reg[] =3D {
  	{
  		.family        =3D NFPROTO_IPV4,
-@@ -482,6 +677,7 @@ static struct xtables_match multiport_mt_reg[] =3D =
+@@ -482,6 +679,7 @@ static struct xtables_match multiport_mt_reg[] =3D =
 {
  		.print         =3D multiport_print,
  		.save          =3D multiport_save,
@@ -309,7 +315,7 @@ d,
  	},
  	{
  		.family        =3D NFPROTO_IPV6,
-@@ -496,6 +692,7 @@ static struct xtables_match multiport_mt_reg[] =3D =
+@@ -496,6 +694,7 @@ static struct xtables_match multiport_mt_reg[] =3D =
 {
  		.print         =3D multiport_print6,
  		.save          =3D multiport_save6,
@@ -318,7 +324,7 @@ d,
  	},
  	{
  		.family        =3D NFPROTO_IPV4,
-@@ -510,6 +707,7 @@ static struct xtables_match multiport_mt_reg[] =3D =
+@@ -510,6 +709,7 @@ static struct xtables_match multiport_mt_reg[] =3D =
 {
  		.print         =3D multiport_print_v1,
  		.save          =3D multiport_save_v1,
@@ -327,7 +333,7 @@ d,
  	},
  	{
  		.family        =3D NFPROTO_IPV6,
-@@ -524,6 +722,7 @@ static struct xtables_match multiport_mt_reg[] =3D =
+@@ -524,6 +724,7 @@ static struct xtables_match multiport_mt_reg[] =3D =
 {
  		.print         =3D multiport_print6_v1,
  		.save          =3D multiport_save6_v1,
