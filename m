@@ -1,43 +1,66 @@
-From: Joe Stringer <joe-LZ6Gd1LRuIk@public.gmane.org>
-Subject: Re: [PATCH nf-next v10 8/8] openvswitch: Interface with
-	NAT.
-Date: Fri, 11 Mar 2016 12:48:26 +1300
-Message-ID: <CAPWQB7E2cCdkSnBDV=eaq=McHY9PWhyacDuAqDZTreVSW6j-8Q@mail.gmail.com>
-References: <1457636063-92746-1-git-send-email-jarno@ovn.org>
- <1457636063-92746-9-git-send-email-jarno@ovn.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: NFQUEUE "fail-open" only open to queue limit and not receive
+ buffer limit
+Date: Fri, 11 Mar 2016 01:14:21 +0100
+Message-ID: <20160311001421.GA6620@breakpoint.cc>
+References: <7966959fae8e4dd5b13ba4d607ac2db4@XCH-RTP-014.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: ovs dev <dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
- netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarno Rajahalme <jarno-LZ6Gd1LRuIk@public.gmane.org>
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <1457636063-92746-9-git-send-email-jarno-LZ6Gd1LRuIk@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "Yigal Reiss (yreiss)" <yreiss@cisco.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45279 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932844AbcCKAOY (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Mar 2016 19:14:24 -0500
+Content-Disposition: inline
+In-Reply-To: <7966959fae8e4dd5b13ba4d607ac2db4@XCH-RTP-014.cisco.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-T24gMTEgTWFyY2ggMjAxNiBhdCAwNzo1NCwgSmFybm8gUmFqYWhhbG1lIDxqYXJub0Bvdm4ub3Jn
-PiB3cm90ZToKPiBFeHRlbmQgT1ZTIGNvbm50cmFjayBpbnRlcmZhY2UgdG8gY292ZXIgTkFULiAg
-TmV3IG5lc3RlZAo+IE9WU19DVF9BVFRSX05BVCBhdHRyaWJ1dGUgbWF5IGJlIHVzZWQgdG8gaW5j
-bHVkZSBOQVQgd2l0aCBhIENUIGFjdGlvbi4KPiBBIGJhcmUgT1ZTX0NUX0FUVFJfTkFUIG9ubHkg
-bWFuZ2xlcyBleGlzdGluZyBhbmQgZXhwZWN0ZWQgY29ubmVjdGlvbnMuCj4gSWYgT1ZTX05BVF9B
-VFRSX1NSQyBvciBPVlNfTkFUX0FUVFJfRFNUIGlzIGluY2x1ZGVkIHdpdGhpbiB0aGUgbmVzdGVk
-Cj4gYXR0cmlidXRlcywgbmV3IChub24tY29tbWl0dGVkL25vbi1jb25maXJtZWQpIGNvbm5lY3Rp
-b25zIGFyZSBtYW5nbGVkCj4gYWNjb3JkaW5nIHRvIHRoZSByZXN0IG9mIHRoZSBuZXN0ZWQgYXR0
-cmlidXRlcy4KPgo+IFRoZSBjb3JyZXNwb25kaW5nIE9WUyB1c2Vyc3BhY2UgcGF0Y2ggc2VyaWVz
-IGluY2x1ZGVzIHRlc3QgY2FzZXMgKGluCj4gdGVzdHMvc3lzdGVtLXRyYWZmaWMuYXQpIHRoYXQg
-YWxzbyBzZXJ2ZSBhcyBleGFtcGxlIHVzZXMuCj4KPiBUaGlzIHdvcmsgZXh0ZW5kcyBvbiBhIGJy
-YW5jaCBieSBUaG9tYXMgR3JhZiBhdAo+IGh0dHBzOi8vZ2l0aHViLmNvbS90Z3JhZi9vdnMvdHJl
-ZS9uYXQuCj4KPiBTaWduZWQtb2ZmLWJ5OiBKYXJubyBSYWphaGFsbWUgPGphcm5vQG92bi5vcmc+
-Cj4gQWNrZWQtYnk6IFRob21hcyBHcmFmIDx0Z3JhZkBzdXVnLmNoPgoKQWNrZWQtYnk6IEpvZSBT
-dHJpbmdlciA8am9lQG92bi5vcmc+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmRldiBtYWlsaW5nIGxpc3QKZGV2QG9wZW52c3dpdGNoLm9yZwpodHRwOi8v
-b3BlbnZzd2l0Y2gub3JnL21haWxtYW4vbGlzdGluZm8vZGV2Cg==
+Yigal Reiss (yreiss) <yreiss@cisco.com> wrote:
+> Currently the "fail-open" feature in NFQUEUE passes packets only in the case where the limit comes from the queue size (queue->queue_total >= queue->queue_maxlen).
+
+Right.
+
+> In case where the qlen is high and the load is high, packets will be dropped as result of crossing the socket's receive buffer size. This will eventually be reported through the proc file as 'user dropped' (don't know why).
+
+It should also be reported to the application via -ENOBUFS (see
+netlink_overrun() in net/netlink.c .
+
+> From user perspective IMO the user doesn't care if the packet cannot be passed as a result of a queue size or socket receive buffer size.
+> This is quite arbitrary and depends on average packet size.
+
+Yes, it depends on packet size and time until verdict is sent.
+
+> Actually the result may be opposite to what the user desired if he raises the qlen wishing to increase availability but in fact causing more packets be dropped
+> due to receive buffer limitations.
+
+If userspace bumps qlen it should also increase its sk buffer size
+accordingly.  (see for instance nfnl_rcvbufsiz() in libnfnetlink).
+
+> I suggest implementing the same behavior (fail open) also for the case where nfnetlink_unicast() fails (which usually would be due to receive buffer limit).
+> 
+> Does this make sense?
+
+Even when qlen is near-full sk rmem could be low, and vice versa.
+
+I agree that it would be nice to also implement failopen reinject.
+
+> If so, what would be the recommended way of achieving that?
+> The problem is that skb is being freed at netlink level (netlink_attachskb).
+> So it's either copying the skb each time before calling nfnetlink_unicast()
+> (wasteful) or passing a flag all the way to indicate that freeing is not desired (lots of changes and involves also core netlink). Any other suggestions?
+
+I think it would be good to consider auditing the kernel and see if its
+feasible to switch to a 'skb must be free'd by caller on error' model.
+
+This doesn't necessarily mean changing netlink_unicast(), it could for
+instance be resolved by adding netlink_unicast_try (you might want
+to figure out a better name...) that doesn't free on error and then
+make netlink_unicast a short-hand wrapper for the latter to keep
+the current fire-and-forget sematics around.
+
+(Alternatively, use your 'flag' method, I'm not sure what will
+ be 'nicer' or less intrusive).
