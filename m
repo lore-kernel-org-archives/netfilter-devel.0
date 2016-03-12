@@ -1,124 +1,130 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH v3] configure: Show support for connlabel
-Date: Sat, 12 Mar 2016 17:48:04 +0530
-Message-ID: <20160312121804.GA27150@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH V7] netfilter: h323: avoid potential attack
+Date: Sat, 12 Mar 2016 13:19:02 +0100
+Message-ID: <20160312121902.GA2398@salvia>
+References: <1455984239-5807-1-git-send-email-zhouzhouyi@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Cc: eric.dumazet@gmail.com, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, fw@strlen.de,
+	gnomes@lxorguk.ukuu.org.uk, sergei.shtylyov@cogentembedded.com,
+	Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+To: Zhouyi Zhou <zhouzhouyi@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:34040 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750998AbcCLMSm (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 12 Mar 2016 07:18:42 -0500
-Received: by mail-pf0-f195.google.com with SMTP id n5so3885302pfn.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 04:18:41 -0800 (PST)
-Received: from gmail.com ([116.202.34.68])
-        by smtp.gmail.com with ESMTPSA id x64sm19556213pfa.72.2016.03.12.04.18.39
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Sat, 12 Mar 2016 04:18:40 -0800 (PST)
+Received: from mail.us.es ([193.147.175.20]:51772 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751523AbcCLMTM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 12 Mar 2016 07:19:12 -0500
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id E7B194B9F3
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 13:19:10 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id CA7C4DA8F8
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 13:19:10 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 414C1DA385
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 13:19:07 +0100 (CET)
 Content-Disposition: inline
+In-Reply-To: <1455984239-5807-1-git-send-email-zhouzhouyi@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add the --disable-connlabel option and the appropriate functionality
-associated with it.
+On Sun, Feb 21, 2016 at 12:03:59AM +0800, Zhouyi Zhou wrote:
+> I think hackers chould build a malicious h323 packet to overflow
+> the pointer p which will panic during the memcpy(addr, p, len)
+> For example, he may fabricate a very large taddr->ipAddress.ip in
+> function get_h225_addr.
+> 
+> To avoid above, I add buffer boundary checking both in get addr
+> functions and set addr functions.
+> 
+> Because the temporary h323 buffer is dynamiclly allocated, I remove
+> the h323 spin lock in my patch.
+> 
+> Signed-off-by: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+> ---
+>  include/linux/netfilter/nf_conntrack_h323.h |  17 +-
+>  net/ipv4/netfilter/nf_nat_h323.c            |  33 ++-
+>  net/netfilter/nf_conntrack_h323_main.c      | 328 +++++++++++++++++-----------
+>  3 files changed, 244 insertions(+), 134 deletions(-)
+> 
+> diff --git a/include/linux/netfilter/nf_conntrack_h323.h b/include/linux/netfilter/nf_conntrack_h323.h
+> index 858d9b2..6c6fea1 100644
+> --- a/include/linux/netfilter/nf_conntrack_h323.h
+> +++ b/include/linux/netfilter/nf_conntrack_h323.h
+> @@ -27,11 +27,17 @@ struct nf_ct_h323_master {
+>  	};
+>  };
+>  
+> +struct h323_ct_state {
+> +	unsigned char *buf;
+> +	unsigned char *data;
+> +	int buflen;
+> +};
+> +
+>  struct nf_conn;
+>  
+>  int get_h225_addr(struct nf_conn *ct, unsigned char *data,
+>  		  TransportAddress *taddr, union nf_inet_addr *addr,
+> -		  __be16 *port);
+> +		  __be16 *port, struct h323_ct_state *ctstate);
+>  void nf_conntrack_h245_expect(struct nf_conn *new,
+>  			      struct nf_conntrack_expect *this);
+>  void nf_conntrack_q931_expect(struct nf_conn *new,
+> @@ -50,12 +56,14 @@ extern int (*set_sig_addr_hook) (struct sk_buff *skb,
+>  				 struct nf_conn *ct,
+>  				 enum ip_conntrack_info ctinfo,
+>  				 unsigned int protoff, unsigned char **data,
+> -				 TransportAddress *taddr, int count);
+> +				 TransportAddress *taddr, int count,
+> +				 struct h323_ct_state *ctstate);
+>  extern int (*set_ras_addr_hook) (struct sk_buff *skb,
+>  				 struct nf_conn *ct,
+>  				 enum ip_conntrack_info ctinfo,
+>  				 unsigned int protoff, unsigned char **data,
+> -				 TransportAddress *taddr, int count);
+> +				 TransportAddress *taddr, int count,
+> +				 struct h323_ct_state *ctstate);
+>  extern int (*nat_rtp_rtcp_hook) (struct sk_buff *skb,
+>  				 struct nf_conn *ct,
+>  				 enum ip_conntrack_info ctinfo,
+> @@ -90,7 +98,8 @@ extern int (*nat_q931_hook) (struct sk_buff *skb, struct nf_conn *ct,
+>  			     unsigned int protoff,
+>  			     unsigned char **data, TransportAddress *taddr,
+>  			     int idx, __be16 port,
+> -			     struct nf_conntrack_expect *exp);
+> +			     struct nf_conntrack_expect *exp,
+> +			     struct h323_ct_state *ctstate);
+>  
+>  #endif
+>  
+> diff --git a/net/ipv4/netfilter/nf_nat_h323.c b/net/ipv4/netfilter/nf_nat_h323.c
+> index 574f7eb..5ed2d70 100644
+> --- a/net/ipv4/netfilter/nf_nat_h323.c
+> +++ b/net/ipv4/netfilter/nf_nat_h323.c
+> @@ -33,12 +33,20 @@ static int set_addr(struct sk_buff *skb, unsigned int protoff,
+>  	} __attribute__ ((__packed__)) buf;
+>  	const struct tcphdr *th;
+>  	struct tcphdr _tcph;
+> +	int datalen;
+> +	struct iphdr *iph = ip_hdr(skb);
+>  
+>  	buf.ip = ip;
+>  	buf.port = port;
+>  	addroff += dataoff;
+>  
+>  	if (ip_hdr(skb)->protocol == IPPROTO_TCP) {
+> +		th = (void *)iph + iph->ihl * 4;
+> +		datalen = skb->len - (iph->ihl * 4 + th->doff * 4);
 
-After this patch, iptables configuration shows up as:
+You cannot trust the information that is available in the header. If
+this is bogus this check will be defeated. That's why we pass this
+protoff parameters to each function.
 
-Iptables Configuration:
-  IPv4 support:                         yes
-  IPv6 support:                         yes
-  Devel support:                        yes
-  IPQ support:                          no
-  Large file support:                   yes
-  BPF utils support:                    no
-  nfsynproxy util support:              no
-  nftables support:                     yes
-  connlabel support:                    yes
+You also refer to get_h225_addr() in your description. That function
+always copies 4 or 16 bytes, so I would appreciate if you can describe
+the possible issue further.
 
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
----
-Changes in v3:
-	Remove check for libnfnetlink from the if block
-
-Changes in v2:
-	Correct the option to disable-connlabel and add code to make it
-	work
-
- configure.ac | 30 +++++++++++++++++++++---------
- 1 file changed, 21 insertions(+), 9 deletions(-)
-
-diff --git a/configure.ac b/configure.ac
-index 33a8f2d..f9bc2a3 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -63,6 +63,10 @@ AC_ARG_WITH([pkgconfigdir], AS_HELP_STRING([--with-pkgconfigdir=PATH],
- AC_ARG_ENABLE([nftables],
- 	AS_HELP_STRING([--disable-nftables], [Do not build nftables compat]),
- 	[enable_nftables="$enableval"], [enable_nftables="yes"])
-+AC_ARG_ENABLE([connlabel],
-+	AS_HELP_STRING([--disable-connlabel],
-+	[Do not build libnetfilter_conntrack]),
-+	[enable_connlabel="$enableval"], [enable_connlabel="yes"])
- 
- libiptc_LDFLAGS2="";
- AX_CHECK_LINKER_FLAGS([-Wl,--no-as-needed],
-@@ -93,15 +97,6 @@ if test "$ac_cv_header_linux_ip_vs_h" != "yes"; then
- 	blacklist_modules="$blacklist_modules ipvs";
- fi;
- 
--PKG_CHECK_MODULES([libnetfilter_conntrack], [libnetfilter_conntrack >= 1.0.4],
--	[nfconntrack=1], [nfconntrack=0])
--AM_CONDITIONAL([HAVE_LIBNETFILTER_CONNTRACK], [test "$nfconntrack" = 1])
--
--if test "$nfconntrack" -ne 1; then
--	blacklist_modules="$blacklist_modules connlabel";
--	echo "WARNING: libnetfilter_conntrack not found, connlabel match will not be built";
--fi;
--
- AC_CHECK_SIZEOF([struct ip6_hdr], [], [#include <netinet/ip6.h>])
- 
- AM_CONDITIONAL([ENABLE_STATIC], [test "$enable_static" = "yes"])
-@@ -114,6 +109,7 @@ AM_CONDITIONAL([ENABLE_LIBIPQ], [test "$enable_libipq" = "yes"])
- AM_CONDITIONAL([ENABLE_BPFC], [test "$enable_bpfc" = "yes"])
- AM_CONDITIONAL([ENABLE_SYNCONF], [test "$enable_nfsynproxy" = "yes"])
- AM_CONDITIONAL([ENABLE_NFTABLES], [test "$enable_nftables" = "yes"])
-+AM_CONDITIONAL([ENABLE_CONNLABEL], [test "$enable_connlabel" = "yes"])
- 
- if test "x$enable_bpfc" = "xyes" || test "x$enable_nfsynproxy" = "xyes"; then
- 	AC_CHECK_LIB(pcap, pcap_compile,, AC_MSG_ERROR(missing libpcap library required by bpf compiler or nfsynproxy tool))
-@@ -168,6 +164,21 @@ if test "$nftables" != 1; then
- 	blacklist_a_modules="$blacklist_a_modules mangle"
- fi
- 
-+if test "x$enable_connlabel" = "xyes"; then
-+	PKG_CHECK_MODULES([libnetfilter_conntrack],
-+		[libnetfilter_conntrack >= 1.0.4],
-+		[nfconntrack=1], [nfconntrack=0])
-+
-+	if test "$nfconntrack" -ne 1; then
-+		blacklist_modules="$blacklist_modules connlabel";
-+		echo "WARNING: libnetfilter_conntrack not found, connlabel match will not be built";
-+	fi;
-+else
-+	blacklist_modules="$blacklist_modules connlabel";
-+fi;
-+
-+AM_CONDITIONAL([HAVE_LIBNETFILTER_CONNTRACK], [test "$nfconntrack" = 1])
-+
- AC_SUBST([blacklist_modules])
- AC_SUBST([blacklist_x_modules])
- AC_SUBST([blacklist_b_modules])
-@@ -243,6 +254,7 @@ Iptables Configuration:
-   BPF utils support:			${enable_bpfc}
-   nfsynproxy util support:		${enable_nfsynproxy}
-   nftables support:			${enable_nftables}
-+  connlabel support:			${enable_connlabel}
- 
- Build parameters:
-   Put plugins into executable (static):	${enable_static}
--- 
-1.9.1
-
+Thanks.
