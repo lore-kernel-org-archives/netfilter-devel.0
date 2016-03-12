@@ -1,369 +1,310 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/4 v4] libnftnl: Implement new buffer of TLV objects
-Date: Sat, 12 Mar 2016 12:09:47 +0100
-Message-ID: <20160312110947.GA1764@salvia>
+Subject: Re: [PATCH 4/4 v4] nftables: rule: Change the field "rule->comment"
+ for an nftnl_udata_buf
+Date: Sat, 12 Mar 2016 12:29:55 +0100
+Message-ID: <20160312112955.GC1764@salvia>
 References: <1457645836-10996-1-git-send-email-carlosfg@riseup.net>
+ <1457645836-10996-4-git-send-email-carlosfg@riseup.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
 To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45506 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47203 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751674AbcCLLJx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 12 Mar 2016 06:09:53 -0500
+	id S1752251AbcCLLaF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 12 Mar 2016 06:30:05 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 7CECE4B9E5
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 12:09:51 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id 49F6C4B9E5
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 12:30:03 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6CFCCDA8F8
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 12:09:51 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 36CA7DA8FA
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 12:30:03 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E93CADA8F8
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 12:09:48 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id C69BBDA8FB
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 12:30:00 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1457645836-10996-1-git-send-email-carlosfg@riseup.net>
+In-Reply-To: <1457645836-10996-4-git-send-email-carlosfg@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Carlos,
-
-Almost there, just a bit more small incremental changes.
-
-On Thu, Mar 10, 2016 at 10:37:13PM +0100, Carlos Falgueras Garc=EDa wro=
+On Thu, Mar 10, 2016 at 10:37:16PM +0100, Carlos Falgueras Garc=EDa wro=
 te:
-> These functions allow to create a buffer (nftnl_udata_buf) of TLV obj=
-ects
-> (nftnl_udata). It is inspired by libmnl/src/attr.c. It can be used to=
- store
-> several variable length user data into an object.
->=20
-> Example usage:
-> 	```
-> 	struct nftnl_udata_buf *buf;
-> 	struct nftnl_udata *attr;
-> 	const char str[] =3D "Hello World!";
->=20
-> 	buf =3D nftnl_udata_alloc(UDATA_SIZE);
-> 	if (!buf) {
-> 		perror("OOM");
-> 		exit(EXIT_FAILURE);
-> 	}
->=20
-> 	if (!nftnl_udata_put_strz(buf, MY_TYPE, str)) {
-> 		perror("Can't put attribute \"%s\"", str);
-> 		exit(EXIT_FAILURE);
-> 	}
->=20
-> 	nftnl_udata_for_each(buf, attr) {
-> 		printf("%s\n", (char *)nftnl_udata_attr_value(attr));
-> 	}
->=20
-> 	nftnl_udata_free(buf);
-> 	```
+> Now it is possible to store multiple variable length user data into r=
+ule.
+> Modify the parser in order to fill the nftnl_udata with the comment, =
+and
+> the print function for extract these commentary and print it to user.
 >=20
 > Signed-off-by: Carlos Falgueras Garc=EDa <carlosfg@riseup.net>
 > ---
->  include/Makefile.am          |   1 +
->  include/libnftnl/Makefile.am |   1 +
->  include/libnftnl/udata.h     |  48 ++++++++++++++++
->  include/udata.h              |  40 +++++++++++++
->  src/Makefile.am              |   1 +
->  src/libnftnl.map             |  16 ++++++
->  src/udata.c                  | 134 +++++++++++++++++++++++++++++++++=
-++++++++++
->  7 files changed, 241 insertions(+)
->  create mode 100644 include/libnftnl/udata.h
->  create mode 100644 include/udata.h
->  create mode 100644 src/udata.c
+>  include/rule.h            | 11 +++++++++--
+>  src/netlink_delinearize.c |  7 +++++--
+>  src/netlink_linearize.c   |  6 ++++--
+>  src/parser_bison.y        | 14 +++++++++++++-
+>  src/rule.c                | 45 +++++++++++++++++++++++++++++++++++++=
++++++---
+>  5 files changed, 73 insertions(+), 10 deletions(-)
 >=20
-> diff --git a/include/Makefile.am b/include/Makefile.am
-> index be9eb9b..9f55737 100644
-> --- a/include/Makefile.am
-> +++ b/include/Makefile.am
-> @@ -12,4 +12,5 @@ noinst_HEADERS =3D internal.h	\
->  		 expr.h		\
->  		 json.h		\
->  		 set_elem.h	\
-> +		 udata.h	\
->  		 utils.h
-> diff --git a/include/libnftnl/Makefile.am b/include/libnftnl/Makefile=
-=2Eam
-> index 84f01b6..457ec95 100644
-> --- a/include/libnftnl/Makefile.am
-> +++ b/include/libnftnl/Makefile.am
-> @@ -7,4 +7,5 @@ pkginclude_HEADERS =3D batch.h		\
->  		     set.h		\
->  		     ruleset.h		\
->  		     common.h		\
-> +		     udata.h		\
->  		     gen.h
-> diff --git a/include/libnftnl/udata.h b/include/libnftnl/udata.h
-> new file mode 100644
-> index 0000000..a74e54c
-> --- /dev/null
-> +++ b/include/libnftnl/udata.h
-> @@ -0,0 +1,48 @@
-> +#ifndef _LIBNFTNL_UDATA_H_
-> +#define _LIBNFTNL_UDATA_H_
-> +
-> +#include <stdio.h>
-> +#include <stdint.h>
-> +
-> +/*
-> + * nftnl user data attributes API
-> + */
-> +struct nftnl_udata;
-> +struct nftnl_udata_buf;
-> +
-> +/* nftnl_udata_buf */
-> +struct nftnl_udata_buf *nftnl_udata_alloc(size_t data_size);
-> +void nftnl_udata_free(struct nftnl_udata_buf *buf);
-> +size_t nftnl_udata_len(const struct nftnl_udata_buf *buf);
-> +size_t nftnl_udata_size(const struct nftnl_udata_buf *buf);
-> +void *nftnl_udata_data(const struct nftnl_udata_buf *buf);
-> +void nftnl_udata_copy_data(struct nftnl_udata_buf *buf, const void *=
-data,
-> +			   size_t len);
-> +struct nftnl_udata *nftnl_udata_start(const struct nftnl_udata_buf *=
-buf);
-> +struct nftnl_udata *nftnl_udata_end(const struct nftnl_udata_buf *bu=
-f);
-> +
-> +/* putters */
-> +struct nftnl_udata *nftnl_udata_put(struct nftnl_udata_buf *buf, uin=
-t8_t type,
-> +				    size_t len, const void *value);
-> +struct nftnl_udata *nftnl_udata_put_strz(struct nftnl_udata_buf *buf=
-,
-> +					 uint8_t type, const char *strz);
-> +
-> +/* nftnl_udata_attr */
-> +uint8_t nftnl_udata_attr_type(const struct nftnl_udata *attr);
-> +uint8_t nftnl_udata_attr_len(const struct nftnl_udata *attr);
-> +void *nftnl_udata_attr_value(const struct nftnl_udata *attr);
-> +
-> +/* iterator */
-> +struct nftnl_udata *nftnl_udata_attr_next(const struct nftnl_udata *=
-attr);
-> +
-> +#define nftnl_udata_for_each(buf, attr)                       \
-> +	for ((attr) =3D nftnl_udata_start(buf);                 \
-> +	     (char *)(nftnl_udata_end(buf)) > (char *)(attr); \
-> +	     (attr) =3D nftnl_udata_attr_next(attr))
-> +
-> +typedef int (*nftnl_udata_cb_t)(const struct nftnl_udata *attr,
-> +				void *data);
-> +int nftnl_udata_parse(const struct nftnl_udata_buf *buf, nftnl_udata=
-_cb_t cb,
-> +		      void *data);
-> +
-> +#endif /* _LIBNFTNL_UDATA_H_ */
-> diff --git a/include/udata.h b/include/udata.h
-> new file mode 100644
-> index 0000000..271ee50
-> --- /dev/null
-> +++ b/include/udata.h
-> @@ -0,0 +1,40 @@
-> +#ifndef _LIBNFTNL_UDATA_INTERNAL_H_
-> +#define _LIBNFTNL_UDATA_INTERNAL_H_
-> +
-> +#include <stdint.h>
-> +#include <stddef.h>
-> +
-> +/*
-> + * TLV structures:
-> + * nftnl_udata
-> + *  <-------- HEADER --------> <------ PAYLOAD ------>
-> + * +------------+-------------+- - - - - - - - - - - -+
-> + * |    type    |     len     |         value         |
-> + * |  (1 byte)  |   (1 byte)  |                       |
-> + * +--------------------------+- - - - - - - - - - - -+
-> + *  <-- sizeof(nftnl_udata) -> <-- nftnl_udata->len -->
-> + */
-> +struct nftnl_udata {
-> +	uint8_t type;
-> +	uint8_t len;
-> +	unsigned char value[];
-> +} __attribute__((__packed__));
-> +
-> +/*
-> + *              +---------------------------------++
-> + *              | data[]                          ||
-> + *              |   ||                            ||
-> + *              |   \/                            \/
-> + *  +-------+-------+-------+-------+ ... +-------+- - - - - - -+
-> + *  | size  |  end  |  TLV  |  TLV  |     |  TLV  |    Empty    |
-> + *  +-------+-------+-------+-------+ ... +-------+- - - - - - -+
-> + *                  |<---- nftnl_udata_len() ---->|
-> + *                  |<----------- nftnl_udata_size() ---------->|
-> + */
-> +struct nftnl_udata_buf {
-> +	size_t size;
-> +	char  *end;
-> +	char   data[];
-> +};
-> +
-> +#endif /* _LIBNFTNL_UDATA_INTERNAL_H_ */
-> diff --git a/src/Makefile.am b/src/Makefile.am
-> index a27e292..7e580e4 100644
-> --- a/src/Makefile.am
-> +++ b/src/Makefile.am
-> @@ -19,6 +19,7 @@ libnftnl_la_SOURCES =3D utils.c		\
->  		      ruleset.c		\
->  		      mxml.c		\
->  		      jansson.c		\
-> +		      udata.c		\
->  		      expr.c		\
->  		      expr_ops.c	\
->  		      expr/bitwise.c	\
-> diff --git a/src/libnftnl.map b/src/libnftnl.map
-> index 2e193b7..d6cd2a7 100644
-> --- a/src/libnftnl.map
-> +++ b/src/libnftnl.map
-> @@ -336,6 +336,22 @@ global:
->    nftnl_set_snprintf;
->    nftnl_set_fprintf;
-> =20
-> +  nftnl_udata_alloc;
-> +  nftnl_udata_free;
-> +  nftnl_udata_len;
-> +  nftnl_udata_size;
-> +  nftnl_udata_data;
-> +  nftnl_udata_copy_data;
-> +  nftnl_udata_start;
-> +  nftnl_udata_end;
-> +  nftnl_udata_put;
-> +  nftnl_udata_put_strz;
-> +  nftnl_udata_attr_type;
-> +  nftnl_udata_attr_len;
-> +  nftnl_udata_attr_value;
-> +  nftnl_udata_attr_next;
-> +  nftnl_udata_parse;
-
-Please, add these new symbols to LIBNFTNL_4.1.
-
->    nftnl_set_list_alloc;
->    nftnl_set_list_free;
->    nftnl_set_list_add;
-> diff --git a/src/udata.c b/src/udata.c
-> new file mode 100644
-> index 0000000..0503ca3
-> --- /dev/null
-> +++ b/src/udata.c
-> @@ -0,0 +1,134 @@
+> diff --git a/include/rule.h b/include/rule.h
+> index c848f0f..c500e88 100644
+> --- a/include/rule.h
+> +++ b/include/rule.h
+> @@ -4,6 +4,7 @@
+>  #include <stdint.h>
+>  #include <nftables.h>
+>  #include <list.h>
 > +#include <libnftnl/udata.h>
-> +#include <udata.h>
-> +#include <utils.h>
+> =20
+>  /**
+>   * struct handle - handle for tables, chains, rules and sets
+> @@ -155,7 +156,7 @@ extern void chain_print_plain(const struct chain =
+*chain);
+>   * @location:	location the rule was defined at
+>   * @stmt:	list of statements
+>   * @num_stmts:	number of statements in stmts list
+> - * @comment:	comment
+> + * @udata:	user data
+>   */
+>  struct rule {
+>  	struct list_head	list;
+> @@ -163,7 +164,7 @@ struct rule {
+>  	struct location		location;
+>  	struct list_head	stmts;
+>  	unsigned int		num_stmts;
+> -	const char		*comment;
+> +	struct nftnl_udata_buf	*udata;
+
+I think we should keep the:
+
+        const char              *comment;
+
+The nftnl_udata_buf should only be used when building the TLV area
+from the netlink_linearize step, and when parsing the TLV and covert
+it to attribute from netlink_delinearize. Otherwise, we have to deal
+with this internal layout from other parts of nft that are not netlink
+specific.
+
+>  };
+> =20
+>  extern struct rule *rule_alloc(const struct location *loc,
+> @@ -396,4 +397,10 @@ extern int do_command(struct netlink_ctx *ctx, s=
+truct cmd *cmd);
+>  extern int cache_update(enum cmd_ops cmd, struct list_head *msgs);
+>  extern void cache_release(void);
+> =20
+> +enum udata_type {
+> +	UDATA_TYPE_COMMENT,
+> +	__UDATA_TYPE_MAX,
+> +};
+> +#define UDATA_TYPE_MAX (__UDATA_TYPE_MAX - 1)
 > +
-> +#include <stdlib.h>
-> +#include <stdint.h>
-> +#include <string.h>
+>  #endif /* NFTABLES_RULE_H */
+> diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+> index d431588..e655e00 100644
+> --- a/src/netlink_delinearize.c
+> +++ b/src/netlink_delinearize.c
+> @@ -25,6 +25,7 @@
+>  #include <utils.h>
+>  #include <erec.h>
+>  #include <sys/socket.h>
+> +#include <libnftnl/udata.h>
+> =20
+>  struct netlink_parse_ctx {
+>  	struct list_head	*msgs;
+> @@ -1773,8 +1774,10 @@ struct rule *netlink_delinearize_rule(struct n=
+etlink_ctx *ctx,
+>  		uint32_t len;
+> =20
+>  		data =3D nftnl_rule_get_data(nlr, NFTNL_RULE_USERDATA, &len);
+> -		pctx->rule->comment =3D xmalloc(len);
+> -		memcpy((char *)pctx->rule->comment, data, len);
+> +		pctx->rule->udata =3D nftnl_udata_alloc(len);
+> +		if (!pctx->rule->udata)
+> +			memory_allocation_error();
+> +		nftnl_udata_copy_data(pctx->rule->udata, data, len);
+
+Therefore, here you should extract the data from the udata and set
+pctx->rule->comment.
+
+>  	}
+> =20
+>  	nftnl_expr_foreach((struct nftnl_rule *)nlr, netlink_parse_expr, pc=
+tx);
+> diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+> index bb51de7..5ac438e 100644
+> --- a/src/netlink_linearize.c
+> +++ b/src/netlink_linearize.c
+> @@ -21,6 +21,7 @@
+>  #include <netinet/in.h>
+> =20
+>  #include <linux/netfilter.h>
+> +#include <libnftnl/udata.h>
+> =20
+> =20
+>  struct netlink_linearize_ctx {
+> @@ -1171,9 +1172,10 @@ void netlink_linearize_rule(struct netlink_ctx=
+ *ctx, struct nftnl_rule *nlr,
+>  	list_for_each_entry(stmt, &rule->stmts, list)
+>  		netlink_gen_stmt(&lctx, stmt);
+> =20
+> -	if (rule->comment)
+> +	if (rule->udata)
+>  		nftnl_rule_set_data(nlr, NFTNL_RULE_USERDATA,
+> -				    rule->comment, strlen(rule->comment) + 1);
+> +				    nftnl_udata_data(rule->udata),
+> +				    nftnl_udata_len(rule->udata));
+
+When linearizing, you should do something like:
+
+if (rule->comment) {
+	udata =3D nftnl_udata_alloc(NFT_USERDATA_MAXLEN));
+        if (!udata)
+                memory_allocation_error();
+
+	if (!nftnl_udata_put_strz(udata, UDATA_TYPE_COMMENT, rule->comment))
+                memory_allocation_error();
+
+        nftnl_rule_set_data(nlr, NFTNL_RULE_USERDATA,
+                            nftnl_udata_data(udata),
+                            nftnl_udata_len(udata));
+}
+
+>
+>  	netlink_dump_rule(nlr);
+>  }
+> diff --git a/src/parser_bison.y b/src/parser_bison.y
+> index 90978ab..9f8c005 100644
+> --- a/src/parser_bison.y
+> +++ b/src/parser_bison.y
+> @@ -24,6 +24,7 @@
+>  #include <netinet/icmp6.h>
+>  #include <libnftnl/common.h>
+>  #include <libnftnl/set.h>
+> +#include <libnftnl/udata.h>
+> =20
+>  #include <rule.h>
+>  #include <statement.h>
+> @@ -1303,7 +1304,18 @@ rule			:	stmt_list	comment_spec
+>  				struct stmt *i;
+> =20
+>  				$$ =3D rule_alloc(&@$, NULL);
+> -				$$->comment =3D $2;
 > +
-> +struct nftnl_udata_buf *nftnl_udata_alloc(size_t data_size)
+> +				if ($2) {
+> +					if (!($$->udata =3D nftnl_udata_alloc(NFT_USERDATA_MAXLEN)))
+> +						memory_allocation_error();
+> +
+> +					if (!nftnl_udata_put_strz($$->udata, UDATA_TYPE_COMMENT, $2)) {
+> +						erec_queue(error(&@2, "Comment too long: \"%s\"", $2),
+> +							state->msgs);
+> +						YYERROR;
+> +					}
+> +				}
+
+With the change I propose above, you don't need to update the parser
+anymore.
+
+> +
+>  				list_for_each_entry(i, $1, list)
+>  					$$->num_stmts++;
+>  				list_splice_tail($1, &$$->stmts);
+> diff --git a/src/rule.c b/src/rule.c
+> index 0b78549..112ae85 100644
+> --- a/src/rule.c
+> +++ b/src/rule.c
+> @@ -23,6 +23,7 @@
+> =20
+>  #include <libnftnl/common.h>
+>  #include <libnftnl/ruleset.h>
+> +#include <libnftnl/udata.h>
+>  #include <netinet/ip.h>
+>  #include <linux/netfilter.h>
+>  #include <linux/netfilter_arp.h>
+> @@ -375,21 +376,59 @@ void rule_free(struct rule *rule)
+>  {
+>  	stmt_list_free(&rule->stmts);
+>  	handle_free(&rule->handle);
+> -	xfree(rule->comment);
+> +	nftnl_udata_free(rule->udata);
+
+This change, you will not need it with the change I'm proposing.
+
+>  	xfree(rule);
+>  }
+> =20
+> +static int rule_parse_udata_cb(const struct nftnl_udata *attr, void =
+*data)
 > +{
-> +	struct nftnl_udata_buf *buf;
+> +	unsigned char *value =3D nftnl_udata_attr_value(attr);
+> +	uint8_t type =3D nftnl_udata_attr_type(attr);
+> +	uint8_t len =3D nftnl_udata_attr_len(attr);
+> +	const struct nftnl_udata **tb =3D data;
 > +
-> +	buf =3D (struct nftnl_udata_buf *)
-> +		malloc(sizeof(struct nftnl_udata_buf) + data_size);
-
-No need for casting, ie.
-
-	buf =3D malloc(sizeof(struct nftnl_udata_buf) + data_size);
-
-> +	if (!buf)
-> +		return NULL;
-> +	buf->size =3D data_size;
-> +	buf->end =3D buf->data;
+> +	switch (type) {
+> +	case UDATA_TYPE_COMMENT:
+> +		if (value[len - 1] !=3D '\0')
+> +			return -1;
+> +		break;
+> +	default:
+> +		break;
+> +	};
 > +
-> +	return buf;
+> +	tb[type] =3D attr;
+> +	return 1;
 > +}
-> +EXPORT_SYMBOL(nftnl_udata_alloc);
 > +
-> +void nftnl_udata_free(struct nftnl_udata_buf *buf)
+> +static void rule_print_udata(const struct nftnl_udata *tb[], uint8_t=
+ type)
 > +{
-> +	buf->size =3D 0;
-> +	buf->end =3D NULL;
-> +	free((void *)buf);
-             ^^^^^^^^
-No need for cast this either here.
-
-> +}
-> +EXPORT_SYMBOL(nftnl_udata_free);
+> +	if (!tb[type])
+> +		return;
 > +
-> +size_t nftnl_udata_len(const struct nftnl_udata_buf *buf)
-
-Better use uint32_t instead of size_t. This type depends on the arch
-so in 32 bit will be u32 and in 64 bit will be u64.
-
-And uint32_t should be sufficient for this, same thing here and
-everywhere else.
-
-> +{
-> +	return (size_t)(buf->end - buf->data);
-> +}
-> +EXPORT_SYMBOL(nftnl_udata_len);
-> +
-> +size_t nftnl_udata_size(const struct nftnl_udata_buf *buf)
-
-Same thing here.
-
-> +{
-> +	return buf->size;
-> +}
-> +EXPORT_SYMBOL(nftnl_udata_size);
-> +
-> +void *nftnl_udata_data(const struct nftnl_udata_buf *buf)
-> +{
-> +	return (void *)buf->data;
-> +}
-> +EXPORT_SYMBOL(nftnl_udata_data);
-> +
-> +void nftnl_udata_copy_data(struct nftnl_udata_buf *buf,
-> +			   const void *data, size_t len)
-> +{
-> +	memcpy(buf->data, data, len <=3D buf->size ? len : buf->size);
-> +	buf->end =3D buf->data + len;
-> +}
-> +EXPORT_SYMBOL(nftnl_udata_copy_data);
-> +
-> +struct nftnl_udata *nftnl_udata_start(const struct nftnl_udata_buf *=
-buf)
-> +{
-> +	return (struct nftnl_udata *)buf->data;
-> +}
-> +EXPORT_SYMBOL(nftnl_udata_start);
-> +
-> +struct nftnl_udata *nftnl_udata_end(const struct nftnl_udata_buf *bu=
-f)
-> +{
-> +	return (struct nftnl_udata *)buf->end;
-> +}
-> +EXPORT_SYMBOL(nftnl_udata_end);
-> +
-> +struct nftnl_udata *nftnl_udata_put(struct nftnl_udata_buf *buf,
-> +				    uint8_t type, size_t len, const void *value)
-> +{
-> +	struct nftnl_udata *attr =3D NULL;
-> +
-> +	/* Check if there is enough space */
-
-Remove this comment.
-
-> +	if (buf->size >=3D len + sizeof(struct nftnl_udata)) {
-> +		attr =3D (struct nftnl_udata *)buf->end;
-> +		attr->len  =3D len;
-> +		attr->type =3D type;
-> +		memcpy(attr->value, value, len);
-> +
-> +		buf->end =3D (char *)nftnl_udata_attr_next(attr);
+> +	switch (type) {
+> +	case UDATA_TYPE_COMMENT:
+> +		printf("comment \"%s\" ",
+> +		       (char *)nftnl_udata_attr_value(tb[type]));
+> +		break;
+> +	default:
+> +		break;
 > +	}
-> +
-> +	return attr;
+> +}
 
-Why return the nftnl_udata? You can just return a boolean instead.
-Same thing in nftnl_udata_put_strz().
+=2E.. And these functions, you will place them in netlink_delinearize.c=
+,
+which is where they belong since they are dealing with a low-level
+netlink aspect.
+
+>  void rule_print(const struct rule *rule)
+>  {
+>  	const struct stmt *stmt;
+> +	const struct nftnl_udata *tb[UDATA_TYPE_MAX + 1] =3D {};
+> =20
+>  	list_for_each_entry(stmt, &rule->stmts, list) {
+>  		stmt->ops->print(stmt);
+>  		printf(" ");
+>  	}
+> =20
+> -	if (rule->comment)
+> -		printf("comment \"%s\" ", rule->comment);
+> +	if (rule->udata) {
+> +		if (nftnl_udata_parse(rule->udata, rule_parse_udata_cb, tb) > 0)
+> +			rule_print_udata(tb, UDATA_TYPE_COMMENT);
+> +	}
+
+With the change I'm proposing above, you will not need this either.
+
+>  	if (handle_output > 0)
+>  		printf("# handle %" PRIu64, rule->handle.handle);
+> --=20
+> 2.7.2
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
