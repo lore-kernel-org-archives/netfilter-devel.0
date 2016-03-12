@@ -1,70 +1,47 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: userns, netns, and quick physical memory consumption by
- unprivileged user
-Date: Sat, 12 Mar 2016 12:41:40 +0100
-Message-ID: <20160312114140.GA2023@salvia>
-References: <m3d1rclioc.fsf@gmail.com>
- <m3r3fhhx4c.fsf@gmail.com>
- <20160311153406.GB6620@breakpoint.cc>
+Subject: Re: [PATCH] extensions: libip6t_LOG: Avoid to print the default log
+ level in the translation
+Date: Sat, 12 Mar 2016 12:42:51 +0100
+Message-ID: <20160312114251.GA2173@salvia>
+References: <1457725772-10913-1-git-send-email-rodanber@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "Yuriy M. Kaminskiy" <yumkam@gmail.com>, netdev@vger.kernel.org,
-	containers@lists.osdl.org, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Roberto =?iso-8859-1?Q?Garc=EDa?= <rodanber@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48247 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48422 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752456AbcCLLlq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 12 Mar 2016 06:41:46 -0500
+	id S1751912AbcCLLm4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 12 Mar 2016 06:42:56 -0500
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 71AB74B9E7
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 12:41:44 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id 13E0D4B9E4
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 12:42:55 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 5FD2DDA38C
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 12:41:44 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 037BEDA8F9
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 12:42:55 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 0CB2ADA380
-	for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 12:41:42 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 196ECDA385
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 12:42:53 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20160311153406.GB6620@breakpoint.cc>
+In-Reply-To: <1457725772-10913-1-git-send-email-rodanber@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 11, 2016 at 04:34:06PM +0100, Florian Westphal wrote:
-> Yuriy M. Kaminskiy <yumkam@gmail.com> wrote:
-> > BTW, all those hash/conntrack/etc default sizes was calculated from
-> > physical memory size in assumption there will be only *one* instance of
-> > those tables. Obviously, introduction of network namespaces (and
-> > especially unprivileged user-ns) thrown this assumption in the window
-> > (and here comes that "falling back to vmalloc" message again; in pre-netns
-> > world, those tables were allocated *once* on early system startup, with
-> > typically plenty of free and unfragmented memory).
-> 
-> No idea how to fix this expect by removing conntrack support in net
-> namespaces completely.
-> 
-> I'd disallow all write accesses to skb->nfct (NAT, CONNMARK,
-> CONNSECMARK, ...) and then no longer clear skb->nfct when forwarding
-> packet from init_ns to container.
-> 
-> Containers could then still test conntrack as seen from init namespace pov
-> in PREROUTING/FORWARD/INPUT (but not OUTPUT, obviously).
-> 
-> [ OUTPUT *might* be doable as well by allowing NEW creation in output
->   but skipping nat and deferring the confirmation/commit of the new
->   entry to the table until skb leaves initns ]
-> 
-> We could key conntrack entries to initns conntrack table
-> instead of adding one new table per netns, but seems like this only
-> replaces one problem with a new one (filling/blocking initns table from
-> another netns).
+On Fri, Mar 11, 2016 at 08:49:32PM +0100, Roberto Garc=EDa wrote:
+> Remove the log level when default is used
+>=20
+> Before:
+> 	$ sudo iptables-translate -I INPUT -j LOG
+> 	nft add rule filter INPUT log level warning
+>=20
+> After:
+> 	$ sudo iptables-translate -I INPUT -j LOG
+> 	nft add rule filter INPUT counter log
 
-We can add a global perns limit in terms of conntrack entries that can
-only be set via CAP_NET_ADMIN from the initns. Thus, we avoid the
-filling/blocking from another netns, or hide this knob to
-unpriviledged userns somehow.
-
-In the previous netfilter workshop I remember we agreed on going
-towards having a single conntrack table for netns, so I suggest we
-follow that direction.
+Applied, thanks Roberto!
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
