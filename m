@@ -1,75 +1,77 @@
 From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCH] extensions: libipt_REJECT: Avoid to print the default reject
- with value in the translation
-Date: Sat, 12 Mar 2016 18:29:32 +0100
-Message-ID: <20160312172929.GA15987@sonyv>
+Subject: [PATCH] extensions: libip6t_REJECT: Avoid to print the default
+ reject with value in the translation
+Date: Sat, 12 Mar 2016 18:31:31 +0100
+Message-ID: <20160312173128.GA16044@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: shivanib134@gmail.com, pablo@netfilter.org,
 	outreachy-kernel@googlegroups.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:37139 "EHLO
-	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751883AbcCLR3h (ORCPT
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:36428 "EHLO
+	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751682AbcCLRbf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 12 Mar 2016 12:29:37 -0500
-Received: by mail-wm0-f50.google.com with SMTP id p65so53903088wmp.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 09:29:36 -0800 (PST)
+	Sat, 12 Mar 2016 12:31:35 -0500
+Received: by mail-wm0-f41.google.com with SMTP id n186so56777700wmn.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 12 Mar 2016 09:31:35 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Avoid to print the reject with value in the translation when the value is the default.
+Avoid to print the reject with value in the translation when the value
+is the default.
 
 Before this patch:
 
-$ sudo iptables-translate -A FORWARD -p TCP --dport 22 -j REJECT
-nft add rule ip filter FORWARD tcp dport 22 counter reject with icmp type port-unreachable
+$ sudo ip6tables-translate -A FORWARD -p TCP --dport 22 -j REJECT
+nft add rule ip6 filter FORWARD tcp dport 22 counter reject with icmpv6 type port-unreachable
 
 After this patch:
 
-$ sudo iptables-translate -A FORWARD -p TCP --dport 22 -j REJECT
-nft add rule ip filter FORWARD tcp dport 22 counter reject
+$ sudo ip6tables-translate -A FORWARD -p TCP --dport 22 -j REJECT
+nft add rule ip6 filter FORWARD tcp dport 22 counter reject
 
 Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
 ---
- extensions/libipt_REJECT.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ extensions/libip6t_REJECT.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/extensions/libipt_REJECT.c b/extensions/libipt_REJECT.c
-index 4148776..0e9b7d7 100644
---- a/extensions/libipt_REJECT.c
-+++ b/extensions/libipt_REJECT.c
-@@ -17,6 +17,8 @@
- #define IPT_ICMP_ADMIN_PROHIBITED	IPT_TCP_RESET + 1
- #endif
+diff --git a/extensions/libip6t_REJECT.c b/extensions/libip6t_REJECT.c
+index c30f292..d54c3b2 100644
+--- a/extensions/libip6t_REJECT.c
++++ b/extensions/libip6t_REJECT.c
+@@ -10,6 +10,8 @@
+ #include <xtables.h>
+ #include <linux/netfilter_ipv6/ip6t_REJECT.h>
  
-+#define DEFAULT_REJECT_WITH	IPT_ICMP_PORT_UNREACHABLE
++#define DEFAULT_REJECT_WITH	IP6T_ICMP6_PORT_UNREACH
 +
  struct reject_names {
  	const char *name;
  	const char *alias;
-@@ -92,7 +94,7 @@ static void REJECT_init(struct xt_entry_target *t)
- 	struct ipt_reject_info *reject = (struct ipt_reject_info *)t->data;
+@@ -81,7 +83,7 @@ static void REJECT_init(struct xt_entry_target *t)
+ 	struct ip6t_reject_info *reject = (struct ip6t_reject_info *)t->data;
  
  	/* default */
--	reject->with = IPT_ICMP_PORT_UNREACHABLE;
+-	reject->with = IP6T_ICMP6_PORT_UNREACH;
 +	reject->with = DEFAULT_REJECT_WITH;
  
  }
  
-@@ -171,7 +173,9 @@ static int REJECT_xlate(const void *ip, const struct xt_entry_target *target,
+@@ -149,7 +151,10 @@ static int REJECT_xlate(const void *ip, const struct xt_entry_target *target,
+ 	for (i = 0; i < ARRAY_SIZE(reject_table_xlate); ++i)
+ 		if (reject_table_xlate[i].with == reject->with)
  			break;
- 	}
- 
--	if (reject->with == IPT_TCP_RESET)
+-	if (reject->with == IP6T_TCP_RESET)
++
 +	if (reject->with == DEFAULT_REJECT_WITH)
 +		xt_xlate_add(xl, "reject");
-+	else if (reject->with == IPT_TCP_RESET)
- 		xt_xlate_add(xl, "reject with %s",
- 			   reject_table_xlate[i].name);
++	else if (reject->with == IP6T_TCP_RESET)
+ 		xt_xlate_add(xl, "reject with %s", reject_table_xlate[i].name);
  	else
+ 		xt_xlate_add(xl, "reject with icmpv6 type %s",
 -- 
 2.7.0
 
