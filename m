@@ -1,90 +1,87 @@
-From: Piyush Pangtey <gokuvsvegita@gmail.com>
-Subject: [RFC] nft: Remove memory-leak
-Date: Sun, 13 Mar 2016 17:38:43 +0530
-Message-ID: <20160313120843.GA6919@fate>
+From: Vishwanath Pai <vpai@akamai.com>
+Subject: Re: [PATCH] netfilter: fix race condition in ipset save and delete
+Date: Sun, 13 Mar 2016 12:25:36 -0400
+Message-ID: <56E59480.1060304@akamai.com>
+References: <20160313023317.GA14181@akamai.com>
+ <alpine.DEB.2.10.1603131254230.18557@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	johunt@akamai.com, netdev@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f179.google.com ([209.85.192.179]:34161 "EHLO
-	mail-pf0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932584AbcCMMIg (ORCPT
+Received: from prod-mail-xrelay05.akamai.com ([23.79.238.179]:29866 "EHLO
+	prod-mail-xrelay05.akamai.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751441AbcCMQZh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 13 Mar 2016 08:08:36 -0400
-Received: by mail-pf0-f179.google.com with SMTP id x3so22131378pfb.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 13 Mar 2016 05:08:28 -0700 (PDT)
-Content-Disposition: inline
+	Sun, 13 Mar 2016 12:25:37 -0400
+In-Reply-To: <alpine.DEB.2.10.1603131254230.18557@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Memory leak due to the absence of matching free :
-==4797== 189 bytes in 27 blocks are definitely lost in loss record 22 of 51
-==4797==    at 0x4C2AB80: malloc (in
-/usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==4797==    by 0x57A3839: strdup (strdup.c:42)
-==4797==    by 0x41C00D: xstrdup (utils.c:64)
-==4797==    by 0x411E4B: netlink_delinearize_chain.isra.3 (netlink.c:717)
-==4797==    by 0x411F20: list_chain_cb (netlink.c:748)
-==4797==    by 0x504A943: nft_chain_list_foreach (chain.c:1015)
-==4797==    by 0x41455E: netlink_list_chains (netlink.c:771)
-==4797==    by 0x4078EF: cache_init_objects (rule.c:90)
-==4797==    by 0x4078EF: cache_init (rule.c:130)
-==4797==    by 0x4078EF: cache_update (rule.c:147)
-==4797==    by 0x40FB09: cmd_evaluate (evaluate.c:2475)
-==4797==    by 0x4296BC: nft_parse (parser_bison.y:655)
-==4797==    by 0x4064CC: nft_run (main.c:231)
-==4797==    by 0x42CE57: cli_complete (cli.c:124)
-==4797==
-==4797== LEAK SUMMARY:
-==4797==    definitely lost: 189 bytes in 27 blocks
-==4797==    indirectly lost: 0 bytes in 0 blocks
-==4797==      possibly lost: 0 bytes in 0 blocks
-==4797==    still reachable: 112,010 bytes in 278 blocks
-==4797==         suppressed: 0 bytes in 0 blocks
+Hi Jozsef,
 
-After removing xstrdup from src/netlink.c:717 and src/netlink.c:722:
-==4545==
-==4545== HEAP SUMMARY:
-==4545==     in use at exit: 111,856 bytes in 269 blocks
-==4545==   total heap usage: 796 allocs, 527 frees, 754,306 bytes allocated
-==4545==
-==4545== LEAK SUMMARY:
-==4545==    definitely lost: 0 bytes in 0 blocks
-==4545==    indirectly lost: 0 bytes in 0 blocks
-==4545==      possibly lost: 0 bytes in 0 blocks
-==4545==    still reachable: 111,856 bytes in 269 blocks
-==4545==         suppressed: 0 bytes in 0 blocks
+On 03/13/2016 08:07 AM, Jozsef Kadlecsik wrote:
+> Hi,
+> 
+> On Sat, 12 Mar 2016, Vishwanath Pai wrote:
+> 
+>> netfilter: fix race condition in ipset save and delete
+>>
+>> This fix adds a new reference counter (ref_kernel) for the struct ip_set.
+>> The other reference counter (ref) is used to track references from the
+>> userspace and we need a separate counter to keep track of in-kernel
+>> references. Using the same ref counter for both userspace and kernel
+>> references causes a race condition which can be demonstrated by the
+>> following script:
+>>
+>> #!/bin/sh
+>> ipset create hash_ip1 hash:ip family inet hashsize 1024 maxelem 500000 \
+>> counters
+>> ipset create hash_ip2 hash:ip family inet hashsize 300000 maxelem 500000 \
+>> counters
+>> ipset create hash_ip3 hash:ip family inet hashsize 1024 maxelem 500000 \
+>> counters
+>>
+>> ipset save &
+>>
+>> ipset swap hash_ip3 hash_ip2
+>> ipset destroy hash_ip3 /* will crash the machine */
+>>
+>> Swap will exchange the values of ref so destroy will see ref = 0 instead of
+>> ref = 1. With this fix in place swap will not suceed because ipset save
+>> still has ref_kernel on the set (ip_set_swap doesn't swap ref_kernel).
+>>
+>> Both delete and swap will error out if ref_kernel != 0 on the set.
+>>
+>> Note: The changes to *_head functions is because previously we would
+>> increment ref whenever we called these functions, we don't do that
+>> anymore.
+> 
+> Overall, I agree with your patch, however I disagree with the description 
+> and some details. 
+> 
+> It's a race between dump & swap and then destroy - dump and destroy are 
+> safe. The "ref" reference counter *is* kernel related: it keeps track of 
+> references from other kernel subsystems (netfilter matches/targets) and 
+> from ipset itself when a set is a member of another set. It would be 
+> misleading to call "ref" as userspace reference counter.
+> 
+> The reference counter you introduce is for netlink events (technically 
+> just for dump), so it would better be named "ref_netlink" instead of 
+> "ref_kernel" (similarly, ip_set_get|put_ref_netlink).
+> 
+> Please update the patch, the description and resubmit. Thanks!
+> 
+> Best regards,
+> Jozsef
+> 
 
-Signed-off-by: Piyush Pangtey <gokuvsvegita@gmail.com>
----
- src/netlink.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thanks for reviewing, I will update the patch and send it again.
 
-diff --git a/src/netlink.c b/src/netlink.c
-index ba0c20a..2917288 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -714,12 +714,12 @@ static struct chain *netlink_delinearize_chain(struct netlink_ctx *ctx,
- 		chain->priority      =
- 			nftnl_chain_get_s32(nlc, NFTNL_CHAIN_PRIO);
- 		chain->type          =
--			xstrdup(nftnl_chain_get_str(nlc, NFTNL_CHAIN_TYPE));
-+			nftnl_chain_get_str(nlc, NFTNL_CHAIN_TYPE);
- 		chain->policy          =
- 			nftnl_chain_get_u32(nlc, NFTNL_CHAIN_POLICY);
- 		if (nftnl_chain_is_set(nlc, NFTNL_CHAIN_DEV)) {
- 			chain->dev	=
--				xstrdup(nftnl_chain_get_str(nlc, NFTNL_CHAIN_DEV));
-+				nftnl_chain_get_str(nlc, NFTNL_CHAIN_DEV);
- 		}
- 		chain->flags        |= CHAIN_F_BASECHAIN;
- 	}
--- 
-1.9.1
+Thanks,
+Vishwanath
 
-
--- 
-
-With regards,
-Piyush Pangtey <gokuvsvegita@gmail.com>
