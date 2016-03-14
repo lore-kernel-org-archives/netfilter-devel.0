@@ -1,113 +1,113 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next v3 1/3] netfilter: connlabels: move helpers to xt_connlabel
-Date: Mon, 14 Mar 2016 14:46:32 +0100
-Message-ID: <1457963194-19132-2-git-send-email-fw@strlen.de>
+Subject: [PATCH nf-next v3 3/3] netfilter: nftables: add connlabel set support
+Date: Mon, 14 Mar 2016 14:46:34 +0100
+Message-ID: <1457963194-19132-4-git-send-email-fw@strlen.de>
 References: <1457963194-19132-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52682 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52685 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755373AbcCNNqQ (ORCPT
+	by vger.kernel.org with ESMTP id S932123AbcCNNqV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Mar 2016 09:46:16 -0400
+	Mon, 14 Mar 2016 09:46:21 -0400
 In-Reply-To: <1457963194-19132-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently labels can only be set either by iptables connlabel
-match or via ctnetlink.
+Conntrack labels are currently sized depending on the iptables
+ruleset, i.e. if we're asked to test or set bits 1, 2, and 65 then we
+would allocate enough room to store at least bit 65.
 
-Before adding nftables set support, clean up the clabel core and move
-helpers that nft will not need after all to the xtables module.
+However, with nft, the input is just a register with arbitrary runtime
+content.
+
+We therefore ask for the upper ceiling we currently have, which is
+enough room to store 128 bits.
+
+Alternatively, we could alter nf_connlabel_replace to increase
+net->ct.label_words at run time, but since 128 bits is not that
+big we'd only save sizeof(long) so it doesn't seem worth it for now.
+
+Caveats: to set a label one has to use:
+
+ct label set ct label | bar
+
+as 'ct label set bar' will clear all other labels.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- Changes since v2:
-  keep nf_connlabel_set where it is
-  kill label_bits helper, use BIT_WORD() instead
+ No changes since v2.
 
- include/net/netfilter/nf_conntrack_labels.h |  1 -
- net/netfilter/nf_conntrack_labels.c         | 19 +------------------
- net/netfilter/xt_connlabel.c                | 12 +++++++++++-
- 3 files changed, 12 insertions(+), 20 deletions(-)
+ net/netfilter/nft_ct.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-diff --git a/include/net/netfilter/nf_conntrack_labels.h b/include/net/netfilter/nf_conntrack_labels.h
-index 7e2b1d0..5167818 100644
---- a/include/net/netfilter/nf_conntrack_labels.h
-+++ b/include/net/netfilter/nf_conntrack_labels.h
-@@ -45,7 +45,6 @@ static inline struct nf_conn_labels *nf_ct_labels_ext_add(struct nf_conn *ct)
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index d4a4619..f926861 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -198,6 +198,12 @@ static void nft_ct_set_eval(const struct nft_expr *expr,
+ 		}
+ 		break;
  #endif
++#ifdef CONFIG_NF_CONNTRACK_LABELS
++	case NFT_CT_LABELS:
++		nf_connlabels_replace(ct, &regs->data[priv->sreg], NULL,
++				      NF_CT_LABELS_MAX_SIZE / sizeof(u32));
++		break;
++#endif
+ 	default:
+ 		break;
+ 	}
+@@ -276,6 +282,9 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
+ 		if (tb[NFTA_CT_DIRECTION] != NULL)
+ 			return -EINVAL;
+ 		len = NF_CT_LABELS_MAX_SIZE;
++		err = nf_connlabels_get(ctx->net, (len * BITS_PER_BYTE) - 1);
++		if (err)
++			return err;
+ 		break;
+ #endif
+ 	case NFT_CT_HELPER:
+@@ -362,9 +371,21 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+ 	switch (priv->key) {
+ #ifdef CONFIG_NF_CONNTRACK_MARK
+ 	case NFT_CT_MARK:
++		if (tb[NFTA_CT_DIRECTION])
++			return -EINVAL;
+ 		len = FIELD_SIZEOF(struct nf_conn, mark);
+ 		break;
+ #endif
++#ifdef CONFIG_NF_CONNTRACK_LABELS
++	case NFT_CT_LABELS:
++		if (tb[NFTA_CT_DIRECTION])
++			return -EINVAL;
++		len = NF_CT_LABELS_MAX_SIZE;
++		err = nf_connlabels_get(ctx->net, (len * BITS_PER_BYTE) - 1);
++		if (err)
++			return err;
++		break;
++#endif
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
+@@ -384,6 +405,16 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+ static void nft_ct_destroy(const struct nft_ctx *ctx,
+ 			   const struct nft_expr *expr)
+ {
++	struct nft_ct *priv = nft_expr_priv(expr);
++
++	switch (priv->key) {
++#ifdef CONFIG_NF_CONNTRACK_LABELS
++	case NFT_CT_LABELS:
++		nf_connlabels_put(ctx->net);
++		break;
++#endif
++	}
++
+ 	nft_ct_l3proto_module_put(ctx->afi->family);
  }
  
--bool nf_connlabel_match(const struct nf_conn *ct, u16 bit);
- int nf_connlabel_set(struct nf_conn *ct, u16 bit);
- 
- int nf_connlabels_replace(struct nf_conn *ct,
-diff --git a/net/netfilter/nf_conntrack_labels.c b/net/netfilter/nf_conntrack_labels.c
-index 3ce5c31..3a30900 100644
---- a/net/netfilter/nf_conntrack_labels.c
-+++ b/net/netfilter/nf_conntrack_labels.c
-@@ -16,28 +16,11 @@
- 
- static spinlock_t nf_connlabels_lock;
- 
--static unsigned int label_bits(const struct nf_conn_labels *l)
--{
--	unsigned int longs = l->words;
--	return longs * BITS_PER_LONG;
--}
--
--bool nf_connlabel_match(const struct nf_conn *ct, u16 bit)
--{
--	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
--
--	if (!labels)
--		return false;
--
--	return bit < label_bits(labels) && test_bit(bit, labels->bits);
--}
--EXPORT_SYMBOL_GPL(nf_connlabel_match);
--
- int nf_connlabel_set(struct nf_conn *ct, u16 bit)
- {
- 	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
- 
--	if (!labels || bit >= label_bits(labels))
-+	if (!labels || BIT_WORD(bit) >= labels->words)
- 		return -ENOSPC;
- 
- 	if (test_bit(bit, labels->bits))
-diff --git a/net/netfilter/xt_connlabel.c b/net/netfilter/xt_connlabel.c
-index bb9cbeb..d9b3e53 100644
---- a/net/netfilter/xt_connlabel.c
-+++ b/net/netfilter/xt_connlabel.c
-@@ -18,6 +18,16 @@ MODULE_DESCRIPTION("Xtables: add/match connection trackling labels");
- MODULE_ALIAS("ipt_connlabel");
- MODULE_ALIAS("ip6t_connlabel");
- 
-+static bool connlabel_match(const struct nf_conn *ct, u16 bit)
-+{
-+	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
-+
-+	if (!labels)
-+		return false;
-+
-+	return BIT_WORD(bit) < labels->words && test_bit(bit, labels->bits);
-+}
-+
- static bool
- connlabel_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
-@@ -33,7 +43,7 @@ connlabel_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	if (info->options & XT_CONNLABEL_OP_SET)
- 		return (nf_connlabel_set(ct, info->bit) == 0) ^ invert;
- 
--	return nf_connlabel_match(ct, info->bit) ^ invert;
-+	return connlabel_match(ct, info->bit) ^ invert;
- }
- 
- static int connlabel_mt_check(const struct xt_mtchk_param *par)
 -- 
 2.4.10
 
