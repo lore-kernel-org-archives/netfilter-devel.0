@@ -1,56 +1,113 @@
-From: Nicholas Mc Guire <hofrat@osadl.org>
-Subject: [PATCH] netfilter: nf_conntrack: consolidate lock/unlock into unlock_wait
-Date: Mon, 14 Mar 2016 12:39:02 +0100
-Message-ID: <1457955542-2377-1-git-send-email-hofrat@osadl.org>
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Nicholas Mc Guire <hofrat@osadl.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next v3 1/3] netfilter: connlabels: move helpers to xt_connlabel
+Date: Mon, 14 Mar 2016 14:46:32 +0100
+Message-ID: <1457963194-19132-2-git-send-email-fw@strlen.de>
+References: <1457963194-19132-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:52682 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755373AbcCNNqQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Mar 2016 09:46:16 -0400
+In-Reply-To: <1457963194-19132-1-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The spin_lock()/spin_unlock() is synchronizing on the 
-nf_conntrack_locks_all_lock which is equivalent to 
-spin_unlock_wait() but the later should be more efficient.
+Currently labels can only be set either by iptables connlabel
+match or via ctnetlink.
 
-Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+Before adding nftables set support, clean up the clabel core and move
+helpers that nft will not need after all to the xtables module.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
+ Changes since v2:
+  keep nf_connlabel_set where it is
+  kill label_bits helper, use BIT_WORD() instead
 
-Patch was compile tested with: x86_64_defconfig (implies CONFIG_NETFILTER=y)
-Simple run test on x86 64 with a few trivial ipfilter rules active.
+ include/net/netfilter/nf_conntrack_labels.h |  1 -
+ net/netfilter/nf_conntrack_labels.c         | 19 +------------------
+ net/netfilter/xt_connlabel.c                | 12 +++++++++++-
+ 3 files changed, 12 insertions(+), 20 deletions(-)
 
-Patch is against linux-next (localversion-next is next-20160311)
-
- net/netfilter/nf_conntrack_core.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index f60b4fd..afde5f5 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -74,8 +74,7 @@ void nf_conntrack_lock(spinlock_t *lock) __acquires(lock)
- 	spin_lock(lock);
- 	while (unlikely(nf_conntrack_locks_all)) {
- 		spin_unlock(lock);
--		spin_lock(&nf_conntrack_locks_all_lock);
--		spin_unlock(&nf_conntrack_locks_all_lock);
-+		spin_unlock_wait(&nf_conntrack_locks_all_lock);
- 		spin_lock(lock);
- 	}
- }
-@@ -121,8 +120,7 @@ static void nf_conntrack_all_lock(void)
- 	nf_conntrack_locks_all = true;
- 
- 	for (i = 0; i < CONNTRACK_LOCKS; i++) {
--		spin_lock(&nf_conntrack_locks[i]);
--		spin_unlock(&nf_conntrack_locks[i]);
-+		spin_unlock_wait(&nf_conntrack_locks[i]);
- 	}
+diff --git a/include/net/netfilter/nf_conntrack_labels.h b/include/net/netfilter/nf_conntrack_labels.h
+index 7e2b1d0..5167818 100644
+--- a/include/net/netfilter/nf_conntrack_labels.h
++++ b/include/net/netfilter/nf_conntrack_labels.h
+@@ -45,7 +45,6 @@ static inline struct nf_conn_labels *nf_ct_labels_ext_add(struct nf_conn *ct)
+ #endif
  }
  
+-bool nf_connlabel_match(const struct nf_conn *ct, u16 bit);
+ int nf_connlabel_set(struct nf_conn *ct, u16 bit);
+ 
+ int nf_connlabels_replace(struct nf_conn *ct,
+diff --git a/net/netfilter/nf_conntrack_labels.c b/net/netfilter/nf_conntrack_labels.c
+index 3ce5c31..3a30900 100644
+--- a/net/netfilter/nf_conntrack_labels.c
++++ b/net/netfilter/nf_conntrack_labels.c
+@@ -16,28 +16,11 @@
+ 
+ static spinlock_t nf_connlabels_lock;
+ 
+-static unsigned int label_bits(const struct nf_conn_labels *l)
+-{
+-	unsigned int longs = l->words;
+-	return longs * BITS_PER_LONG;
+-}
+-
+-bool nf_connlabel_match(const struct nf_conn *ct, u16 bit)
+-{
+-	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
+-
+-	if (!labels)
+-		return false;
+-
+-	return bit < label_bits(labels) && test_bit(bit, labels->bits);
+-}
+-EXPORT_SYMBOL_GPL(nf_connlabel_match);
+-
+ int nf_connlabel_set(struct nf_conn *ct, u16 bit)
+ {
+ 	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
+ 
+-	if (!labels || bit >= label_bits(labels))
++	if (!labels || BIT_WORD(bit) >= labels->words)
+ 		return -ENOSPC;
+ 
+ 	if (test_bit(bit, labels->bits))
+diff --git a/net/netfilter/xt_connlabel.c b/net/netfilter/xt_connlabel.c
+index bb9cbeb..d9b3e53 100644
+--- a/net/netfilter/xt_connlabel.c
++++ b/net/netfilter/xt_connlabel.c
+@@ -18,6 +18,16 @@ MODULE_DESCRIPTION("Xtables: add/match connection trackling labels");
+ MODULE_ALIAS("ipt_connlabel");
+ MODULE_ALIAS("ip6t_connlabel");
+ 
++static bool connlabel_match(const struct nf_conn *ct, u16 bit)
++{
++	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
++
++	if (!labels)
++		return false;
++
++	return BIT_WORD(bit) < labels->words && test_bit(bit, labels->bits);
++}
++
+ static bool
+ connlabel_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+@@ -33,7 +43,7 @@ connlabel_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	if (info->options & XT_CONNLABEL_OP_SET)
+ 		return (nf_connlabel_set(ct, info->bit) == 0) ^ invert;
+ 
+-	return nf_connlabel_match(ct, info->bit) ^ invert;
++	return connlabel_match(ct, info->bit) ^ invert;
+ }
+ 
+ static int connlabel_mt_check(const struct xt_mtchk_param *par)
 -- 
-2.1.4
+2.4.10
+
