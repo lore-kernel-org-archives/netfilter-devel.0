@@ -1,35 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [RFC] net: ipv4 -- Introduce ifa limit per net
-Date: Sun, 13 Mar 2016 23:29:03 -0400 (EDT)
-Message-ID: <20160313.232903.1428877113335503120.davem@davemloft.net>
-References: <20160311.154046.890043899835986091.davem@davemloft.net>
-	<20160311212247.GH1989@uranus.lan>
-	<20160311215912.GI1989@uranus.lan>
+From: ravin goyal <ravirocks1021@gmail.com>
+Subject: libnetfilter_conntrack's NFCT_OF_TIMESTAMP is not working
+Date: Mon, 14 Mar 2016 10:39:20 +0530
+Message-ID: <CANU0Mn2zLUqjhcOWKYvSFetH94sp2zf8O7rkFaoYa7sfTn8epg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: xiyou.wangcong@gmail.com, alexei.starovoitov@gmail.com,
-	eric.dumazet@gmail.com, netdev@vger.kernel.org, solar@openwall.com,
-	vvs@virtuozzo.com, avagin@virtuozzo.com, xemul@virtuozzo.com,
-	vdavydov@virtuozzo.com, khorenko@virtuozzo.com,
-	pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: gorcunov@gmail.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:40988 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750866AbcCND3J (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 13 Mar 2016 23:29:09 -0400
-In-Reply-To: <20160311215912.GI1989@uranus.lan>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Date: Sat, 12 Mar 2016 00:59:12 +0300
+Hii
 
-> Here is a cumulative one, which works just brilliant! Thanks a lot, David!
-> (I cahcnged reported-by tag, since it's Solar Designer who tell us
->  about the issue, I forgot to mentioned it in first report, very
->  sorry).
+regarding libnetfilter_conntrack I have been working on getting start
+and stop timestamp of the connection, I lookup source code and found
+if i enable NFCT_OF_TIMESTAMP (echo "1" >
+/proc/sys/net/netfilter/nf_conntrack_timestamp)  , i will get the same
+but when i ran
+conntrack -E -eDESTROY -otimestamp,extended , it didn't show the start
+and stop time and when i print the value it said flags=1,
+NFCT_OF_TIMESTAMP is 8
+somehow the following line....
+if (flags & NFCT_OF_TIMESTAMP) in code
+/src/conntrack/snprint_default.c doesn't match hence function
+__snprintf_timestamp_start and __snprintf_timestamp_stop doesn't get
+called.
 
-Thanks for fixing this up and retesting, applied and queued up for -stable.
+I don't know how else can i set or use NFCT_OF_TIMESTAMP
+
+any help regarding this issue would be appreciated
+
+Regards
+Ravin Goyal
