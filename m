@@ -1,34 +1,54 @@
-From: ravin goyal <ravirocks1021@gmail.com>
-Subject: libnetfilter_conntrack's NFCT_OF_TIMESTAMP is not working
-Date: Mon, 14 Mar 2016 10:39:20 +0530
-Message-ID: <CANU0Mn2zLUqjhcOWKYvSFetH94sp2zf8O7rkFaoYa7sfTn8epg@mail.gmail.com>
+From: Piyush Pangtey <gokuvsvegita@gmail.com>
+Subject: [PATCH] nft: Remove memory-leak
+Date: Mon, 14 Mar 2016 14:11:53 +0530
+Message-ID: <20160314084153.GA4064@fate>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pf0-f173.google.com ([209.85.192.173]:36364 "EHLO
+	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755425AbcCNIlm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Mar 2016 04:41:42 -0400
+Received: by mail-pf0-f173.google.com with SMTP id u190so102122805pfb.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Mar 2016 01:41:41 -0700 (PDT)
+Received: from fate ([14.139.254.36])
+        by smtp.gmail.com with ESMTPSA id s14sm30238100pfa.3.2016.03.14.01.41.39
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Mon, 14 Mar 2016 01:41:40 -0700 (PDT)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hii
+Added matching xfree calls in chain_free(), for the chain members 'type' and
+'dev'.
 
-regarding libnetfilter_conntrack I have been working on getting start
-and stop timestamp of the connection, I lookup source code and found
-if i enable NFCT_OF_TIMESTAMP (echo "1" >
-/proc/sys/net/netfilter/nf_conntrack_timestamp)  , i will get the same
-but when i ran
-conntrack -E -eDESTROY -otimestamp,extended , it didn't show the start
-and stop time and when i print the value it said flags=1,
-NFCT_OF_TIMESTAMP is 8
-somehow the following line....
-if (flags & NFCT_OF_TIMESTAMP) in code
-/src/conntrack/snprint_default.c doesn't match hence function
-__snprintf_timestamp_start and __snprintf_timestamp_stop doesn't get
-called.
+Signed-off-by: Piyush Pangtey <gokuvsvegita@gmail.com>
+---
+ src/rule.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-I don't know how else can i set or use NFCT_OF_TIMESTAMP
+diff --git a/src/rule.c b/src/rule.c
+index 0b78549..85987b9 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -510,6 +510,9 @@ void chain_free(struct chain *chain)
+ 		rule_free(rule);
+ 	handle_free(&chain->handle);
+ 	scope_release(&chain->scope);
++	xfree(chain->type);
++	if (chain->dev != NULL)
++		xfree(chain->dev);
+ 	xfree(chain);
+ }
+ 
+-- 
+1.9.1
 
-any help regarding this issue would be appreciated
 
-Regards
-Ravin Goyal
+-- 
+
+With regards,
+Piyush Pangtey <gokuvsvegita@gmail.com>
