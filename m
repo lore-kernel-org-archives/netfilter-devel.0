@@ -1,35 +1,180 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [RFC PATCH 0/3] connlabel set support using extra setter attr
-Date: Tue, 15 Mar 2016 17:10:08 +0100
-Message-ID: <1458058211-11147-1-git-send-email-fw@strlen.de>
+Subject: [PATCH nf-next 1/3] netfilter: nftables: add connlabel set support
+Date: Tue, 15 Mar 2016 17:10:09 +0100
+Message-ID: <1458058211-11147-2-git-send-email-fw@strlen.de>
+References: <1458058211-11147-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:55484 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:55486 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756335AbcCOQJz (ORCPT
+	by vger.kernel.org with ESMTP id S1756310AbcCOQJ7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Mar 2016 12:09:55 -0400
+	Tue, 15 Mar 2016 12:09:59 -0400
+In-Reply-To: <1458058211-11147-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo
+Instead of taking the value to set from a source register, userspace
+passes the bit that we should set as a netlink attribute.
 
-This attempts to implement the set support via your proposed
-setter attribute.
+This follows a similar approach that xtables 'connlabel'
+match uses, so when user inputs
 
-IOW instead of taking an sreg and replacing the entire label
-area with whatever is contained therein take a bit number
-passed in from userspace and set only that one bit.
+    ct label set bar
 
-So ct label set foo
+then we will set the bit used by the 'bar' label and leave the rest alone.
 
-will really mean 'set the foo bit in the label area', just like
-iptables -m connlabel --label foo --set
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Pablo, I know its too late for -next, I'm resending this now while
+ this stuff is fresh on my plate -- its unlikely that this will cause
+ merge issues.
 
-I'm sure that there are better ways to implement the expr <-> attr
-conversion, see patch #3.
+ So if everything is fine I can resubmit once -next opens up again.
 
-Comments welcome, I'll respin it once -next is open again.
+ This takes the different approach you suggested -- pass in the bit we want
+ to set via an extra attribute (no sreg).
 
-Thanks,
-Florian
+ include/uapi/linux/netfilter/nf_tables.h |  2 ++
+ net/netfilter/nft_ct.c                   | 53 ++++++++++++++++++++++++++++++--
+ 2 files changed, 53 insertions(+), 2 deletions(-)
+
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index eeffde1..12bc116 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -770,6 +770,7 @@ enum nft_ct_keys {
+  * @NFTA_CT_KEY: conntrack data item to load (NLA_U32: nft_ct_keys)
+  * @NFTA_CT_DIRECTION: direction in case of directional keys (NLA_U8)
+  * @NFTA_CT_SREG: source register (NLA_U32)
++ * @NFTA_CT_LABEL: label bit number to set (NLA_U32)
+  */
+ enum nft_ct_attributes {
+ 	NFTA_CT_UNSPEC,
+@@ -777,6 +778,7 @@ enum nft_ct_attributes {
+ 	NFTA_CT_KEY,
+ 	NFTA_CT_DIRECTION,
+ 	NFTA_CT_SREG,
++	NFTA_CT_LABEL,
+ 	__NFTA_CT_MAX
+ };
+ #define NFTA_CT_MAX		(__NFTA_CT_MAX - 1)
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index d4a4619..76da69d 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -29,6 +29,7 @@ struct nft_ct {
+ 		enum nft_registers	dreg:8;
+ 		enum nft_registers	sreg:8;
+ 	};
++	u8			set_label_bit;
+ };
+ 
+ static u64 nft_ct_get_eval_counter(const struct nf_conn_counter *c,
+@@ -198,6 +199,11 @@ static void nft_ct_set_eval(const struct nft_expr *expr,
+ 		}
+ 		break;
+ #endif
++#ifdef CONFIG_NF_CONNTRACK_LABELS
++	case NFT_CT_LABELS:
++		nf_connlabel_set(ct, priv->set_label_bit);
++		break;
++#endif
+ 	default:
+ 		break;
+ 	}
+@@ -276,6 +282,9 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
+ 		if (tb[NFTA_CT_DIRECTION] != NULL)
+ 			return -EINVAL;
+ 		len = NF_CT_LABELS_MAX_SIZE;
++		err = nf_connlabels_get(ctx->net, (len * BITS_PER_BYTE) - 1);
++		if (err)
++			return err;
+ 		break;
+ #endif
+ 	case NFT_CT_HELPER:
+@@ -355,16 +364,39 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+ 			   const struct nlattr * const tb[])
+ {
+ 	struct nft_ct *priv = nft_expr_priv(expr);
+-	unsigned int len;
++	unsigned int len = 0;
+ 	int err;
+ 
+ 	priv->key = ntohl(nla_get_be32(tb[NFTA_CT_KEY]));
+ 	switch (priv->key) {
+ #ifdef CONFIG_NF_CONNTRACK_MARK
+ 	case NFT_CT_MARK:
++		if (tb[NFTA_CT_DIRECTION])
++			return -EINVAL;
+ 		len = FIELD_SIZEOF(struct nf_conn, mark);
+ 		break;
+ #endif
++#ifdef CONFIG_NF_CONNTRACK_LABELS
++	case NFT_CT_LABELS: {
++		u32 bit;
++
++		if (tb[NFTA_CT_DIRECTION] || tb[NFTA_CT_SREG] ||
++		    tb[NFTA_CT_LABEL] == NULL)
++			return -EINVAL;
++
++		bit = ntohl(nla_get_be32(tb[NFTA_CT_LABEL]));
++		priv->set_label_bit = (u8)bit;
++
++		if (bit > priv->set_label_bit)
++			return -ERANGE;
++
++		err = nf_connlabels_get(ctx->net, bit + 1);
++		if (err < 0)
++			return err;
++
++		return nft_ct_l3proto_try_module_get(ctx->afi->family);
++	}
++#endif
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
+@@ -384,6 +416,18 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+ static void nft_ct_destroy(const struct nft_ctx *ctx,
+ 			   const struct nft_expr *expr)
+ {
++	struct nft_ct *priv = nft_expr_priv(expr);
++
++	switch (priv->key) {
++#ifdef CONFIG_NF_CONNTRACK_LABELS
++	case NFT_CT_LABELS:
++		nf_connlabels_put(ctx->net);
++		break;
++#endif
++	default:
++		break;
++	}
++
+ 	nft_ct_l3proto_module_put(ctx->afi->family);
+ }
+ 
+@@ -430,6 +474,11 @@ static int nft_ct_set_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 		goto nla_put_failure;
+ 	if (nla_put_be32(skb, NFTA_CT_KEY, htonl(priv->key)))
+ 		goto nla_put_failure;
++
++	if (priv->key == NFT_CT_LABELS &&
++	    nla_put_be32(skb, NFTA_CT_LABEL, htonl(priv->set_label_bit)))
++		goto nla_put_failure;
++
+ 	return 0;
+ 
+ nla_put_failure:
+@@ -468,7 +517,7 @@ nft_ct_select_ops(const struct nft_ctx *ctx,
+ 	if (tb[NFTA_CT_DREG])
+ 		return &nft_ct_get_ops;
+ 
+-	if (tb[NFTA_CT_SREG])
++	if (tb[NFTA_CT_SREG] || tb[NFTA_CT_LABEL])
+ 		return &nft_ct_set_ops;
+ 
+ 	return ERR_PTR(-EINVAL);
+-- 
+2.4.10
+
