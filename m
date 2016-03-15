@@ -1,84 +1,69 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v3] configure: Show support for connlabel
-Date: Tue, 15 Mar 2016 01:36:01 +0100
-Message-ID: <20160315003601.GA23295@salvia>
-References: <20160312121804.GA27150@gmail.com>
+Subject: Re: [PATCH v5] extensions: libxt_multiport: Add translation to nft
+Date: Tue, 15 Mar 2016 02:06:04 +0100
+Message-ID: <20160315010604.GA23490@salvia>
+References: <20160313084618.GA3913@fate>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+To: Piyush Pangtey <gokuvsvegita@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58563 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60220 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932254AbcCOAgI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Mar 2016 20:36:08 -0400
+	id S1754262AbcCOBGL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Mar 2016 21:06:11 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 30378114F49
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 01:36:04 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id 281CA114F48
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 02:06:09 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 1AB65DA8F8
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 01:36:04 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 1901FDA8FB
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 02:06:09 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 3DCE2DA8F8
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 01:36:02 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 8BC73DA386
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 02:06:05 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <20160312121804.GA27150@gmail.com>
+In-Reply-To: <20160313084618.GA3913@fate>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Mar 12, 2016 at 05:48:04PM +0530, Shivani Bhardwaj wrote:
-> Add the --disable-connlabel option and the appropriate functionality
-> associated with it.
+On Sun, Mar 13, 2016 at 02:16:18PM +0530, Piyush Pangtey wrote:
+> Added full translation for multiport
 > 
-> After this patch, iptables configuration shows up as:
-> 
-> Iptables Configuration:
->   IPv4 support:                         yes
->   IPv6 support:                         yes
->   Devel support:                        yes
->   IPQ support:                          no
->   Large file support:                   yes
->   BPF utils support:                    no
->   nfsynproxy util support:              no
->   nftables support:                     yes
->   connlabel support:                    yes
+> Examples :
+> $ iptables-translate -A input -p tcp -m multiport --ports ssh:http -j ACCEPT
+> nft add rule ip filter input ip protocol tcp tcp dport ssh - http tcp sport ssh - http counter accept
 
-I think we are almost there, see below.
+--ports is not so easy to translate as this implies an 'or'. But what
+you expressed above is an 'and'.
 
-> Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
-> ---
-> Changes in v3:
-> 	Remove check for libnfnetlink from the if block
-> 
-> Changes in v2:
-> 	Correct the option to disable-connlabel and add code to make it
-> 	work
-> 
->  configure.ac | 30 +++++++++++++++++++++---------
->  1 file changed, 21 insertions(+), 9 deletions(-)
-> 
-> diff --git a/configure.ac b/configure.ac
-> index 33a8f2d..f9bc2a3 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-[...]
-> @@ -168,6 +164,21 @@ if test "$nftables" != 1; then
->  	blacklist_a_modules="$blacklist_a_modules mangle"
->  fi
->  
-> +if test "x$enable_connlabel" = "xyes"; then
-> +	PKG_CHECK_MODULES([libnetfilter_conntrack],
-> +		[libnetfilter_conntrack >= 1.0.4],
-> +		[nfconntrack=1], [nfconntrack=0])
-> +
-> +	if test "$nfconntrack" -ne 1; then
-> +		blacklist_modules="$blacklist_modules connlabel";
-> +		echo "WARNING: libnetfilter_conntrack not found, connlabel match will not be built";
+So please return 0 for this case so we remember that we currently have
+no translation for this. Actually, I remember Shivani documented this
+on wiki.nftables.org.
 
-Could you set enable_connlabel to "no" when this occurs so the banner
-also displays that connlabel support has been skipped?
+> $ iptables-translate -A input -p sctp -m multiport --dports 11:18  -j ACCEPT
+> nft add rule ip filter input ip protocol sctp sctp dport 11 - 18 counter accept
 
-> +	fi;
-> +else
-> +	blacklist_modules="$blacklist_modules connlabel";
-> +fi;
+Almost there.
+
+Note that nft generates the dependencies for you, so you can simplify
+this translation above to:
+
+$ iptables-translate -A input -p tcp -m multiport --dports ssh:http -j ACCEPT
+nft add rule ip filter input tcp dport 22-80 counter accept
+
+> $ iptables-translate -A input -p dccp -m multiport --sports 11:18 -j ACCEPT
+> nft add rule ip filter input ip protocol dccp dccp sport 11 - 18 counter
+> accept
+
+You can remove "ip protocol dccp".
+
+> $ ip6tables-translate -A input -p udplite -m multiport --sports 11:18 -j ACCEPT
+> nft add rule ip6 filter input meta l4proto udplite udplite sport 11 - 18
+> counter accept
+
+You can also remove "meta l4proto udplite".
+
+Please, don't forget to test that nft accepts the syntax that you
+propose as translation.
+
+Thanks.
