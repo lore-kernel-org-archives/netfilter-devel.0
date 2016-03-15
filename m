@@ -1,129 +1,88 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 3/3] ct: add conntrack label set support
-Date: Tue, 15 Mar 2016 18:11:57 +0100
-Message-ID: <20160315171157.GB25284@salvia>
-References: <1458058211-11147-1-git-send-email-fw@strlen.de>
- <1458058211-11147-4-git-send-email-fw@strlen.de>
+From: Weongyo Jeong <weongyo.linux@gmail.com>
+Subject: [PATCH] netfilter: nf_conntrack: Uses pr_fmt() for logging.
+Date: Tue, 15 Mar 2016 10:57:44 -0700
+Message-ID: <20160315175741.GA11458@jwg>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41437 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934827AbcCORMB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Mar 2016 13:12:01 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 4012F114F52
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 18:12:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 2B4D7DA38A
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 18:12:00 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 434B1DA8F9
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 18:11:58 +0100 (CET)
+Received: from mail-pf0-f176.google.com ([209.85.192.176]:34028 "EHLO
+	mail-pf0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751069AbcCOR5r (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Mar 2016 13:57:47 -0400
+Received: by mail-pf0-f176.google.com with SMTP id x3so38055072pfb.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 10:57:46 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1458058211-11147-4-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 15, 2016 at 05:10:11PM +0100, Florian Westphal wrote:
-> Pablo suggested to support this by adding the label bit number
-> that we want to set as a netlink attribute and pass that to the kernel.
-> 
-> IOW, ct label set doesn't use an sreg -- instead, the bit that we
-> should set in the conntrack label area is taken directly from the user.
-> 
-> This works pretty much the same way as '-m connlabel --set foo'.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  I find the placement of the expr <-> attribute conversion
->  in netlink_(de)linearize to be pretty bad, but doing it
->  during stmt_evaluate_ct() requires extra member in
->  stmt->ct to store the 'extracted' bit value.
-> 
->  Thoughts?
-> 
->  src/evaluate.c            | 19 +++++++++++++++----
->  src/netlink_delinearize.c | 24 +++++++++++++++++++++---
->  src/netlink_linearize.c   | 20 ++++++++++++++------
->  3 files changed, 50 insertions(+), 13 deletions(-)
-> 
-> diff --git a/src/evaluate.c b/src/evaluate.c
-> index 473f014..7a3be46 100644
-> --- a/src/evaluate.c
-> +++ b/src/evaluate.c
-> @@ -1462,10 +1462,21 @@ static int stmt_evaluate_meta(struct eval_ctx *ctx, struct stmt *stmt)
->  
->  static int stmt_evaluate_ct(struct eval_ctx *ctx, struct stmt *stmt)
->  {
-> -	return stmt_evaluate_arg(ctx, stmt,
-> -				 stmt->ct.tmpl->dtype,
-> -				 stmt->ct.tmpl->len,
-> -				 &stmt->ct.expr);
-> +	int ret = stmt_evaluate_arg(ctx, stmt, stmt->ct.tmpl->dtype,
-> +				    stmt->ct.tmpl->len, &stmt->ct.expr);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	switch (stmt->ct.key) {
-> +	case NFT_CT_LABELS:
-> +		if (stmt->ct.expr->ops->type != EXPR_VALUE)
-> +			return stmt_error(ctx, stmt, "label expected");
-> +		break;
-> +	default:
-> +		break;
-> +	}
-> +
-> +	return 0;
->  }
->  
->  static int reject_payload_gen_dependency_tcp(struct eval_ctx *ctx,
-> diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-> index d431588..86ff376 100644
-> --- a/src/netlink_delinearize.c
-> +++ b/src/netlink_delinearize.c
-> @@ -524,10 +524,28 @@ static void netlink_parse_ct_stmt(struct netlink_parse_ctx *ctx,
->  	struct stmt *stmt;
->  	struct expr *expr;
->  
-> -	sreg = netlink_parse_register(nle, NFTNL_EXPR_CT_SREG);
-> -	expr = netlink_get_register(ctx, loc, sreg);
-> -
->  	key  = nftnl_expr_get_u32(nle, NFTNL_EXPR_CT_KEY);
-> +	switch (key) {
-> +	case NFT_CT_LABELS: {
-> +		unsigned char data[128];
-> +		mpz_t value;
-> +
-> +		mpz_init(value);
-> +		mpz_setbit(value, nftnl_expr_get_u16(nle, NFTNL_EXPR_CT_LABEL));
-> +
-> +		mpz_export_data(data, value, BYTEORDER_HOST_ENDIAN, sizeof(data));
-> +		expr = constant_expr_alloc(loc, &integer_type,
-> +					   BYTEORDER_BIG_ENDIAN,
-> +					   BITS_PER_BYTE * sizeof(data), data);
-> +		break;
-> +	}
+Uses pr_fmt() macro for debugging messages of nf_conntrack module.
 
-If we have some generic way to parse immediates, this would look like:
+Signed-off-by: Weongyo Jeong <weongyo.linux@gmail.com>
+---
+ net/netfilter/nf_conntrack_core.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-        if (nfntl_attr_is_set(nle, NFTNL_EXPR_CT_SREG)) {
-                ...
-        } else if (nftnl_attr_is_set(nle, NFTNL_EXPR_CT_IMM)) {
-                ...
-        }
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index f60b4fd..be79af0 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -12,6 +12,8 @@
+  * published by the Free Software Foundation.
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/types.h>
+ #include <linux/netfilter.h>
+ #include <linux/module.h>
+@@ -968,7 +970,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 
+ 	if (!l4proto->new(ct, skb, dataoff, timeouts)) {
+ 		nf_conntrack_free(ct);
+-		pr_debug("init conntrack: can't track with proto module\n");
++		pr_debug("can't track with proto module\n");
+ 		return NULL;
+ 	}
+ 
+@@ -990,7 +992,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
+ 		spin_lock(&nf_conntrack_expect_lock);
+ 		exp = nf_ct_find_expectation(net, zone, tuple);
+ 		if (exp) {
+-			pr_debug("conntrack: expectation arrives ct=%p exp=%p\n",
++			pr_debug("expectation arrives ct=%p exp=%p\n",
+ 				 ct, exp);
+ 			/* Welcome, Mr. Bond.  We've been expecting you... */
+ 			__set_bit(IPS_EXPECTED_BIT, &ct->status);
+@@ -1055,7 +1057,7 @@ resolve_normal_ct(struct net *net, struct nf_conn *tmpl,
+ 	if (!nf_ct_get_tuple(skb, skb_network_offset(skb),
+ 			     dataoff, l3num, protonum, net, &tuple, l3proto,
+ 			     l4proto)) {
+-		pr_debug("resolve_normal_ct: Can't get tuple\n");
++		pr_debug("Can't get tuple\n");
+ 		return NULL;
+ 	}
+ 
+@@ -1081,14 +1083,13 @@ resolve_normal_ct(struct net *net, struct nf_conn *tmpl,
+ 	} else {
+ 		/* Once we've had two way comms, always ESTABLISHED. */
+ 		if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
+-			pr_debug("nf_conntrack_in: normal packet for %p\n", ct);
++			pr_debug("normal packet for %p\n", ct);
+ 			*ctinfo = IP_CT_ESTABLISHED;
+ 		} else if (test_bit(IPS_EXPECTED_BIT, &ct->status)) {
+-			pr_debug("nf_conntrack_in: related packet for %p\n",
+-				 ct);
++			pr_debug("related packet for %p\n", ct);
+ 			*ctinfo = IP_CT_RELATED;
+ 		} else {
+-			pr_debug("nf_conntrack_in: new packet for %p\n", ct);
++			pr_debug("new packet for %p\n", ct);
+ 			*ctinfo = IP_CT_NEW;
+ 		}
+ 		*set_reply = 0;
+-- 
+2.1.3
 
-Would this look nicer this way to you?
-
-> +	default:
-> +		sreg = netlink_parse_register(nle, NFTNL_EXPR_CT_SREG);
-> +		expr = netlink_get_register(ctx, loc, sreg);
-> +		break;
-> +	}
-> +
-> +
->  	stmt = ct_stmt_alloc(loc, key, expr);
->  	expr_set_type(expr, stmt->ct.tmpl->dtype, stmt->ct.tmpl->byteorder);
->  
