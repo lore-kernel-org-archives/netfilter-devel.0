@@ -1,26 +1,39 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: nf_conntrack: consolidate lock/unlock into
- unlock_wait
-Date: Tue, 15 Mar 2016 01:11:21 +0100
-Message-ID: <20160315001121.GA24820@salvia>
-References: <1457955542-2377-1-git-send-email-hofrat@osadl.org>
+Subject: Re: [PATCH] Shows proper function name for pr_debug() messages.
+Date: Tue, 15 Mar 2016 01:15:01 +0100
+Message-ID: <20160315001501.GA27056@salvia>
+References: <20160314200733.GA8907@jwg>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Nicholas Mc Guire <hofrat@osadl.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Weongyo Jeong <weongyo.linux@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:57219 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754337AbcCOAPL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Mar 2016 20:15:11 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 03CE0114F43
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 01:15:09 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id EA762DA383
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 01:15:08 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 910B3DA38B
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 01:15:06 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <1457955542-2377-1-git-send-email-hofrat@osadl.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20160314200733.GA8907@jwg>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 14, 2016 at 12:39:02PM +0100, Nicholas Mc Guire wrote:
-> The spin_lock()/spin_unlock() is synchronizing on the 
-> nf_conntrack_locks_all_lock which is equivalent to 
-> spin_unlock_wait() but the later should be more efficient.
+On Mon, Mar 14, 2016 at 01:07:36PM -0700, Weongyo Jeong wrote:
+> It seems pr_debug() calls didn't be updated while code was refactoring.
 
-Applied, thanks.
+Better add:
+
+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+
+at the top of the file.
+
+Have a look at beacd3e8ef23 ("netfilter: nfnetlink_log: Make use of
+pr_fmt where applicable") for instance.
