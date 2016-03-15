@@ -1,85 +1,177 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: Re: [PATCH v3] configure: Show support for connlabel
-Date: Wed, 16 Mar 2016 00:32:51 +0530
-Message-ID: <CAKHNQQHQjiHE26UwYWGPKr+baDftxymBjmr9mJF5mepQBr8+QA@mail.gmail.com>
-References: <20160312121804.GA27150@gmail.com> <20160315003601.GA23295@salvia>
+From: =?UTF-8?Q?Carlos_Falgueras_Garc=c3=ada?= <carlosfg@riseup.net>
+Subject: Re: [PATCH 1/4 v4] libnftnl: Implement new buffer of TLV objects
+Date: Tue, 15 Mar 2016 21:29:13 +0100
+Message-ID: <56E87099.2070003@riseup.net>
+References: <1457645836-10996-1-git-send-email-carlosfg@riseup.net>
+ <20160312110947.GA1764@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:33533 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934145AbcCOTDb (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Mar 2016 15:03:31 -0400
-Received: by mail-ob0-f182.google.com with SMTP id fz5so27666064obc.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 12:03:31 -0700 (PDT)
-In-Reply-To: <20160315003601.GA23295@salvia>
+Received: from mx1.riseup.net ([198.252.153.129]:53808 "EHLO mx1.riseup.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934941AbcCOU3R (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Mar 2016 16:29:17 -0400
+In-Reply-To: <20160312110947.GA1764@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 15, 2016 at 6:06 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Sat, Mar 12, 2016 at 05:48:04PM +0530, Shivani Bhardwaj wrote:
->> Add the --disable-connlabel option and the appropriate functionality
->> associated with it.
->>
->> After this patch, iptables configuration shows up as:
->>
->> Iptables Configuration:
->>   IPv4 support:                         yes
->>   IPv6 support:                         yes
->>   Devel support:                        yes
->>   IPQ support:                          no
->>   Large file support:                   yes
->>   BPF utils support:                    no
->>   nfsynproxy util support:              no
->>   nftables support:                     yes
->>   connlabel support:                    yes
->
-> I think we are almost there, see below.
->
->> Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
->> ---
->> Changes in v3:
->>       Remove check for libnfnetlink from the if block
->>
->> Changes in v2:
->>       Correct the option to disable-connlabel and add code to make it
->>       work
->>
->>  configure.ac | 30 +++++++++++++++++++++---------
->>  1 file changed, 21 insertions(+), 9 deletions(-)
->>
->> diff --git a/configure.ac b/configure.ac
->> index 33a8f2d..f9bc2a3 100644
->> --- a/configure.ac
->> +++ b/configure.ac
-> [...]
->> @@ -168,6 +164,21 @@ if test "$nftables" != 1; then
->>       blacklist_a_modules="$blacklist_a_modules mangle"
->>  fi
->>
->> +if test "x$enable_connlabel" = "xyes"; then
->> +     PKG_CHECK_MODULES([libnetfilter_conntrack],
->> +             [libnetfilter_conntrack >= 1.0.4],
->> +             [nfconntrack=1], [nfconntrack=0])
->> +
->> +     if test "$nfconntrack" -ne 1; then
->> +             blacklist_modules="$blacklist_modules connlabel";
->> +             echo "WARNING: libnetfilter_conntrack not found, connlabel match will not be built";
->
-> Could you set enable_connlabel to "no" when this occurs so the banner
-> also displays that connlabel support has been skipped?
->
-OK. Thanks.
-One question, in case of nftables, I see enable_nftables is nowhere
-set to "no", should that be added in case package requirements are not
-met?
-Same for bpfc and nfsynproxy.
+Thank you Pablo for the feedback. I will send now the version 5 with all 
+changes you have asked me.
 
->> +     fi;
->> +else
->> +     blacklist_modules="$blacklist_modules connlabel";
->> +fi;
+On 12/03/16 12:09, Pablo Neira Ayuso wrote:
+>> diff --git a/src/libnftnl.map b/src/libnftnl.map
+>> index 2e193b7..d6cd2a7 100644
+>> --- a/src/libnftnl.map
+>> +++ b/src/libnftnl.map
+>> @@ -336,6 +336,22 @@ global:
+>>     nftnl_set_snprintf;
+>>     nftnl_set_fprintf;
+>>
+>> +  nftnl_udata_alloc;
+>> +  nftnl_udata_free;
+>> +  nftnl_udata_len;
+>> +  nftnl_udata_size;
+>> +  nftnl_udata_data;
+>> +  nftnl_udata_copy_data;
+>> +  nftnl_udata_start;
+>> +  nftnl_udata_end;
+>> +  nftnl_udata_put;
+>> +  nftnl_udata_put_strz;
+>> +  nftnl_udata_attr_type;
+>> +  nftnl_udata_attr_len;
+>> +  nftnl_udata_attr_value;
+>> +  nftnl_udata_attr_next;
+>> +  nftnl_udata_parse;
+>
+> Please, add these new symbols to LIBNFTNL_4.1.
+Done
+
+>> diff --git a/src/udata.c b/src/udata.c
+>> new file mode 100644
+>> index 0000000..0503ca3
+>> --- /dev/null
+>> +++ b/src/udata.c
+>> @@ -0,0 +1,134 @@
+>> +#include <libnftnl/udata.h>
+>> +#include <udata.h>
+>> +#include <utils.h>
+>> +
+>> +#include <stdlib.h>
+>> +#include <stdint.h>
+>> +#include <string.h>
+>> +
+>> +struct nftnl_udata_buf *nftnl_udata_alloc(size_t data_size)
+>> +{
+>> +	struct nftnl_udata_buf *buf;
+>> +
+>> +	buf = (struct nftnl_udata_buf *)
+>> +		malloc(sizeof(struct nftnl_udata_buf) + data_size);
+>
+> No need for casting, ie.
+>
+> 	buf = malloc(sizeof(struct nftnl_udata_buf) + data_size);
+>
+>> +	if (!buf)
+>> +		return NULL;
+>> +	buf->size = data_size;
+>> +	buf->end = buf->data;
+>> +
+>> +	return buf;
+>> +}
+>> +EXPORT_SYMBOL(nftnl_udata_alloc);
+>> +
+>> +void nftnl_udata_free(struct nftnl_udata_buf *buf)
+>> +{
+>> +	buf->size = 0;
+>> +	buf->end = NULL;
+>> +	free((void *)buf);
+>               ^^^^^^^^
+> No need for cast this either here.
+>
+
+I have changed this everywere.
+
+>> +}
+>> +EXPORT_SYMBOL(nftnl_udata_free);
+>> +
+>> +size_t nftnl_udata_len(const struct nftnl_udata_buf *buf)
+>
+> Better use uint32_t instead of size_t. This type depends on the arch
+> so in 32 bit will be u32 and in 64 bit will be u64.
+>
+> And uint32_t should be sufficient for this, same thing here and
+> everywhere else.
+>
+>> +{
+>> +	return (size_t)(buf->end - buf->data);
+>> +}
+>> +EXPORT_SYMBOL(nftnl_udata_len);
+>> +
+>> +size_t nftnl_udata_size(const struct nftnl_udata_buf *buf)
+>
+> Same thing here.
+
+Done.
+
+>
+>> +{
+>> +	return buf->size;
+>> +}
+>> +EXPORT_SYMBOL(nftnl_udata_size);
+>> +
+>> +void *nftnl_udata_data(const struct nftnl_udata_buf *buf)
+>> +{
+>> +	return (void *)buf->data;
+>> +}
+>> +EXPORT_SYMBOL(nftnl_udata_data);
+>> +
+>> +void nftnl_udata_copy_data(struct nftnl_udata_buf *buf,
+>> +			   const void *data, size_t len)
+>> +{
+>> +	memcpy(buf->data, data, len <= buf->size ? len : buf->size);
+>> +	buf->end = buf->data + len;
+>> +}
+>> +EXPORT_SYMBOL(nftnl_udata_copy_data);
+>> +
+>> +struct nftnl_udata *nftnl_udata_start(const struct nftnl_udata_buf *buf)
+>> +{
+>> +	return (struct nftnl_udata *)buf->data;
+>> +}
+>> +EXPORT_SYMBOL(nftnl_udata_start);
+>> +
+>> +struct nftnl_udata *nftnl_udata_end(const struct nftnl_udata_buf *buf)
+>> +{
+>> +	return (struct nftnl_udata *)buf->end;
+>> +}
+>> +EXPORT_SYMBOL(nftnl_udata_end);
+>> +
+>> +struct nftnl_udata *nftnl_udata_put(struct nftnl_udata_buf *buf,
+>> +				    uint8_t type, size_t len, const void *value)
+>> +{
+>> +	struct nftnl_udata *attr = NULL;
+>> +
+>> +	/* Check if there is enough space */
+>
+> Remove this comment.
+
+Done.
+
+>
+>> +	if (buf->size >= len + sizeof(struct nftnl_udata)) {
+>> +		attr = (struct nftnl_udata *)buf->end;
+>> +		attr->len  = len;
+>> +		attr->type = type;
+>> +		memcpy(attr->value, value, len);
+>> +
+>> +		buf->end = (char *)nftnl_udata_attr_next(attr);
+>> +	}
+>> +
+>> +	return attr;
+>
+> Why return the nftnl_udata? You can just return a boolean instead.
+> Same thing in nftnl_udata_put_strz().
+
+I thought it would be useful, actually it is not. I deleted it.
