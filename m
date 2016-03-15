@@ -1,49 +1,62 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH] nft: Removed ^L characters
-Date: Tue, 15 Mar 2016 09:49:28 +0100 (CET)
-Message-ID: <alpine.LSU.2.20.1603150944430.25426@nerf40.vanv.qr>
-References: <20160315031330.GA4185@fate>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: libnetfilter_conntrack's NFCT_OF_TIMESTAMP is not working
+Date: Tue, 15 Mar 2016 11:19:02 +0100
+Message-ID: <20160315101902.GA1396@salvia>
+References: <CANU0Mn3qL9Bd=fJAzpAhwit9WQas3N9oMynuunLBS+3084=Btw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Piyush Pangtey <gokuvsvegita@gmail.com>
+To: ravin goyal <ravirocks1021@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:37826 "EHLO ares41.inai.de"
+Received: from mail.us.es ([193.147.175.20]:39308 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932072AbcCOItb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Mar 2016 04:49:31 -0400
-In-Reply-To: <20160315031330.GA4185@fate>
+	id S932225AbcCOKTK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Mar 2016 06:19:10 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id C7AF0114818
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 11:19:05 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B7016DA38F
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 11:19:05 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id C56C2DA388
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 11:19:03 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <CANU0Mn3qL9Bd=fJAzpAhwit9WQas3N9oMynuunLBS+3084=Btw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 2016-03-15 04:13, Piyush Pangtey wrote:
-
->Unnecessary line-feed characters removed.
->
->Signed-off-by: Piyush Pangtey <gokuvsvegita@gmail.com>
->---
-> COPYING        |  8 ++++----
->
->diff --git a/COPYING b/COPYING
->index bf7f06e..b9e45a5 100644
->--- a/COPYING
->+++ b/COPYING
->@@ -63,7 +63,7 @@ patent must be licensed for everyone's free use or not licensed at all.
+On Tue, Mar 15, 2016 at 12:04:35PM +0530, ravin goyal wrote:
+> Hi
 > 
->   The precise terms and conditions for copying, distribution and
-> modification follow.
->-
-
->+
-> 		    GNU GENERAL PUBLIC LICENSE
->    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+> this email is in reference to previous email regarding the NFCT_OF_TIMESTAMP,
 > 
+> setting /proc/sys/net/netfilter/nf_conntrack_timestamp to 1 or 0
+> doesn't run the following code in
+> /libnetfilter_conntrack-1.0.4/src/conntrack/snprintf_default.c file
+> 
+>         if (flags & NFCT_OF_TIMESTAMP) {
+>                 if (test_bit(ATTR_TIMESTAMP_START, ct->head.set)) {
+>                         ret = __snprintf_timestamp_start(buf+offset, len, ct);
+>                         BUFFER_SIZE(ret, size, len, offset);
+>                 }
+>                 if (test_bit(ATTR_TIMESTAMP_STOP, ct->head.set)) {
+>                         ret = __snprintf_timestamp_stop(buf+offset, len, ct);
+>                         BUFFER_SIZE(ret, size, len, offset);
+>                 }
+>         }
+> 
+> flags and NFCT_OF_TIMESTMP is always 1 and 8 respectively no matter value of
+> /proc/sys/net/netfilter/nf_conntrack_timestamp is 1 or 0
+> 
+> So what value should i set of nf_conntrack_timestamp if i want to get
+> start and stop timestamp from __snprintf_timestamp_start and
+> __snprintf_timestamp_stop respectively.
 
-This is a pointless exercise. The file (files) are copied verbatim from 
-upstream. For the license file, you also just disabled filesystem level 
-deduplication via hardlink because its contents are now needlessy 
-different from other redundant copies installed by other software.
+# echo 1 > /proc/sys/net/netfilter/nf_conntrack_timestamp
 
-^L has its purposes, namely it indicates where to make a page break, 
-should you consider sending the file to a line printer, or opening it a 
-program equal to understanding the same (like LibreOffice).
+This is working fine here:
+
+# conntrack -E -o ktimestamp
+[DESTROY] udp      17 src=10.10.10.132 dst=8.8.8.8 sport=123 dport=123 src=8.8.8.8 dst=10.10.10.132 sport=123 dport=123 delta-time=30 [start=Tue Mar 15 11:15:59 2016] [stop=Tue Mar 15 11:16:29 2016]
+
