@@ -1,52 +1,85 @@
-From: Piyush Pangtey <gokuvsvegita@gmail.com>
-Subject: Memory-leak in nft
-Date: Tue, 15 Mar 2016 23:53:05 +0530
-Message-ID: <20160315182305.GA4044@fate>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: Re: [PATCH v3] configure: Show support for connlabel
+Date: Wed, 16 Mar 2016 00:32:51 +0530
+Message-ID: <CAKHNQQHQjiHE26UwYWGPKr+baDftxymBjmr9mJF5mepQBr8+QA@mail.gmail.com>
+References: <20160312121804.GA27150@gmail.com> <20160315003601.GA23295@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f179.google.com ([209.85.192.179]:34738 "EHLO
-	mail-pf0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965543AbcCOSXH (ORCPT
+Received: from mail-ob0-f182.google.com ([209.85.214.182]:33533 "EHLO
+	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934145AbcCOTDb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Mar 2016 14:23:07 -0400
-Received: by mail-pf0-f179.google.com with SMTP id x3so38879223pfb.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 11:23:05 -0700 (PDT)
-Received: from fate ([117.219.42.195])
-        by smtp.gmail.com with ESMTPSA id q26sm41241957pfi.57.2016.03.15.11.23.01
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Tue, 15 Mar 2016 11:23:04 -0700 (PDT)
-Content-Disposition: inline
+	Tue, 15 Mar 2016 15:03:31 -0400
+Received: by mail-ob0-f182.google.com with SMTP id fz5so27666064obc.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 12:03:31 -0700 (PDT)
+In-Reply-To: <20160315003601.GA23295@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-There is still some memory-leak in nft which is due to no matching free for
-xstrdup in scanner.l:580.
-In main.c, argv is passed as a const, and in main.c:270 filename points to this
-const location (by optarg).
-So it would be safe to remove xstrdup from scanner.l:580.
+On Tue, Mar 15, 2016 at 6:06 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Sat, Mar 12, 2016 at 05:48:04PM +0530, Shivani Bhardwaj wrote:
+>> Add the --disable-connlabel option and the appropriate functionality
+>> associated with it.
+>>
+>> After this patch, iptables configuration shows up as:
+>>
+>> Iptables Configuration:
+>>   IPv4 support:                         yes
+>>   IPv6 support:                         yes
+>>   Devel support:                        yes
+>>   IPQ support:                          no
+>>   Large file support:                   yes
+>>   BPF utils support:                    no
+>>   nfsynproxy util support:              no
+>>   nftables support:                     yes
+>>   connlabel support:                    yes
+>
+> I think we are almost there, see below.
+>
+>> Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+>> ---
+>> Changes in v3:
+>>       Remove check for libnfnetlink from the if block
+>>
+>> Changes in v2:
+>>       Correct the option to disable-connlabel and add code to make it
+>>       work
+>>
+>>  configure.ac | 30 +++++++++++++++++++++---------
+>>  1 file changed, 21 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/configure.ac b/configure.ac
+>> index 33a8f2d..f9bc2a3 100644
+>> --- a/configure.ac
+>> +++ b/configure.ac
+> [...]
+>> @@ -168,6 +164,21 @@ if test "$nftables" != 1; then
+>>       blacklist_a_modules="$blacklist_a_modules mangle"
+>>  fi
+>>
+>> +if test "x$enable_connlabel" = "xyes"; then
+>> +     PKG_CHECK_MODULES([libnetfilter_conntrack],
+>> +             [libnetfilter_conntrack >= 1.0.4],
+>> +             [nfconntrack=1], [nfconntrack=0])
+>> +
+>> +     if test "$nfconntrack" -ne 1; then
+>> +             blacklist_modules="$blacklist_modules connlabel";
+>> +             echo "WARNING: libnetfilter_conntrack not found, connlabel match will not be built";
+>
+> Could you set enable_connlabel to "no" when this occurs so the banner
+> also displays that connlabel support has been skipped?
+>
+OK. Thanks.
+One question, in case of nftables, I see enable_nftables is nowhere
+set to "no", should that be added in case package requirements are not
+met?
+Same for bpfc and nfsynproxy.
 
-$ sudo valgrind --leak-check=full nft -f ~/backup.nft
-
-==4075== 22 bytes in 1 blocks are definitely lost in loss record 1 of 3
-==4075==    at 0x4C2AB80: malloc (in
-/usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-==4075==    by 0x57A3839: strdup (strdup.c:42)
-==4075==    by 0x41C0BD: xstrdup (utils.c:64)
-==4075==    by 0x41EFA1: scanner_push_file (scanner.l:581)
-==4075==    by 0x426C88: scanner_read_file (scanner.l:601)
-==4075==    by 0x406225: main (main.c:347)
-==4075== 
-==4075== LEAK SUMMARY:
-==4075==    definitely lost: 22 bytes in 1 blocks
-==4075==    indirectly lost: 0 bytes in 0 blocks
-==4075==      possibly lost: 0 bytes in 0 blocks
-==4075==    still reachable: 832 bytes in 2 blocks
-==4075==         suppressed: 0 bytes in 0 blocks
-
--- 
-
-With regards,
-Piyush Pangtey <gokuvsvegita@gmail.com>
+>> +     fi;
+>> +else
+>> +     blacklist_modules="$blacklist_modules connlabel";
+>> +fi;
