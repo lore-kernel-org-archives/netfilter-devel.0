@@ -1,159 +1,67 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 00/18] Netfilter/IPVS/OVS updates for net-next
-Date: Tue, 15 Mar 2016 02:27:44 +0100
-Message-ID: <1458005282-24665-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH nf-next v4 3/3] netfilter: nftables: add connlabel set
+ support
+Date: Tue, 15 Mar 2016 03:14:00 +0100
+Message-ID: <20160315021400.GA24921@salvia>
+References: <1457963194-19132-1-git-send-email-fw@strlen.de>
+ <1457964554-13907-1-git-send-email-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33214 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35658 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932903AbcCOB22 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Mar 2016 21:28:28 -0400
+	id S1751997AbcCOCOG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Mar 2016 22:14:06 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 7BFA4114F4E
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 02:28:23 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id B317F114F43
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 03:14:03 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 60EB8DA8F7
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 02:28:23 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A372ADA383
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 03:14:03 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 52CF3DA8FB
-	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 02:28:17 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id C7BCEDA8FB
+	for <netfilter-devel@vger.kernel.org>; Tue, 15 Mar 2016 03:14:01 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <1457964554-13907-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi David,
+Hi Florian,
 
-The following patchset contains Netfilter/IPVS fixes and OVS NAT
-support, more specifically this batch is composed of:
+On Mon, Mar 14, 2016 at 03:09:14PM +0100, Florian Westphal wrote:
+> Conntrack labels are currently sized depending on the iptables
+> ruleset, i.e. if we're asked to test or set bits 1, 2, and 65 then we
+> would allocate enough room to store at least bit 65.
+> 
+> However, with nft, the input is just a register with arbitrary runtime
+> content.
+> 
+> We therefore ask for the upper ceiling we currently have, which is
+> enough room to store 128 bits.
 
-1) Fix a crash in ipset when performing a parallel flush/dump with
-   set:list type, from Jozsef Kadlecsik.
+We can probably allow passing the label value as attribute to the
+nft_ct expression so you don't have to use the upper ceiling. Patrick
+suggested something similar for nft_ct set helper support.
 
-2) Make sure NFACCT_FILTER_* netlink attributes are in place before
-   accessing them, from Phil Turnbull.
+BTW, during NetDev 0.1 he also suggested an alternative to maps that
+would suit well for this case, the idea is to use the NFT_SET_EXT_EXPR
+to store the connlabel set expression and build a dictionary as
+alternative, it would be something like:
 
-3) Check return error code from ip_vs_fill_iph_skb_off() in IPVS SIP
-   helper, from Arnd Bergmann.
+        ip saddr map {
+                1.2.3.4 : connlabel bitset foo,
+        }
 
-4) Add workaround to IPVS to reschedule existing connections to new
-   destination server by dropping the packet and wait for retransmission
-   of TCP syn packet, from Julian Anastasov.
+So based on the source IP address, for the matching key we run the
+expression on the data part of the element.
 
-5) Allow connection rescheduling in IPVS when in CLOSE state, also
-   from Julian.
+> Alternatively, we could alter nf_connlabel_replace to increase
+> net->ct.label_words at run time, but since 128 bits is not that
+> big we'd only save sizeof(long) so it doesn't seem worth it for now.
 
-6) Fix wrong offset of SIP Call-ID in IPVS helper, from Marco Angaroni.
+That's right, we save little memory.
 
-7) Validate IPSET_ATTR_ETHER netlink attribute length, from Jozsef.
-
-8) Check match/targetinfo netlink attribute size in nft_compat,
-   patch from Florian Westphal.
-
-9) Check for integer overflow on 32-bit systems in x_tables, from
-   Florian Westphal.
-
-Several patches from Jarno Rajahalme to prepare the introduction of
-NAT support to OVS based on the Netfilter infrastructure:
-
-10) Schedule IP_CT_NEW_REPLY definition for removal in
-    nf_conntrack_common.h.
-
-11) Simplify checksumming recalculation in nf_nat.
-
-12) Add comments to the openvswitch conntrack code, from Jarno.
-
-13) Update the CT state key only after successful nf_conntrack_in()
-    invocation.
-
-14) Find existing conntrack entry after upcall.
-
-15) Handle NF_REPEAT case due to templates in nf_conntrack_in().
-
-16) Call the conntrack helper functions once the conntrack has been
-    confirmed.
-
-17) And finally, add the NAT interface to OVS.
-
-The batch closes with:
-
-18) Cleanup to use spin_unlock_wait() instead of
-    spin_lock()/spin_unlock(), from Nicholas Mc Guire.
-
-You can pull these changes from:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
-
-Thanks!
-
-----------------------------------------------------------------
-
-The following changes since commit 3b8377dca1fd1974d245b2a04a708fc434761c65:
-
-  Merge branch 'variable-length-ll-headers' (2016-03-09 22:13:01 -0500)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
-
-for you to fetch changes up to e39365be031e37b229f745ea49db0b25e82436fa:
-
-  netfilter: nf_conntrack: consolidate lock/unlock into unlock_wait (2016-03-15 01:10:42 +0100)
-
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      ipvs: handle ip_vs_fill_iph_skb_off failure
-
-Florian Westphal (2):
-      netfilter: nft_compat: check match/targetinfo attr size
-      netfilter: x_tables: check for size overflow
-
-Jarno Rajahalme (8):
-      netfilter: Remove IP_CT_NEW_REPLY definition.
-      netfilter: Allow calling into nat helper without skb_dst.
-      openvswitch: Add commentary to conntrack.c
-      openvswitch: Update the CT state key only after nf_conntrack_in().
-      openvswitch: Find existing conntrack entry after upcall.
-      openvswitch: Handle NF_REPEAT in conntrack action.
-      openvswitch: Delay conntrack helper call for new connections.
-      openvswitch: Interface with NAT.
-
-Jozsef Kadlecsik (2):
-      netfilter: ipset: Fix set:list type crash when flush/dump set in parallel
-      netfilter: ipset: Check IPSET_ATTR_ETHER netlink attribute length
-
-Julian Anastasov (2):
-      ipvs: drop first packet to redirect conntrack
-      ipvs: allow rescheduling after RST
-
-Marco Angaroni (1):
-      ipvs: correct initial offset of Call-ID header search in SIP persistence engine
-
-Nicholas Mc Guire (1):
-      netfilter: nf_conntrack: consolidate lock/unlock into unlock_wait
-
-Pablo Neira Ayuso (2):
-      Merge branch 'master' of git://blackhole.kfki.hu/nf
-      Merge tag 'ipvs-fixes-for-v4.5' of https://git.kernel.org/.../horms/ipvs
-
-Phil Turnbull (1):
-      netfilter: nfnetlink_acct: validate NFACCT_FILTER parameters
-
- include/net/ip_vs.h                                |  17 +
- include/uapi/linux/netfilter/nf_conntrack_common.h |  12 +-
- include/uapi/linux/openvswitch.h                   |  49 ++
- net/ipv4/netfilter/nf_nat_l3proto_ipv4.c           |  30 +-
- net/ipv6/netfilter/nf_nat_l3proto_ipv6.c           |  30 +-
- net/netfilter/ipset/ip_set_bitmap_ipmac.c          |   2 +
- net/netfilter/ipset/ip_set_core.c                  |   3 +
- net/netfilter/ipset/ip_set_hash_mac.c              |   3 +-
- net/netfilter/ipset/ip_set_list_set.c              |  55 +-
- net/netfilter/ipvs/ip_vs_core.c                    |  38 +-
- net/netfilter/ipvs/ip_vs_pe_sip.c                  |   6 +-
- net/netfilter/nf_conntrack_core.c                  |   6 +-
- net/netfilter/nfnetlink_acct.c                     |   3 +
- net/netfilter/nft_compat.c                         |   6 +
- net/netfilter/x_tables.c                           |   3 +
- net/openvswitch/Kconfig                            |   3 +-
- net/openvswitch/conntrack.c                        | 660 +++++++++++++++++++--
- net/openvswitch/conntrack.h                        |   3 +-
- 18 files changed, 795 insertions(+), 134 deletions(-)
+Sorry for this late spinning on this, giving another think after
+looking at nf_connlabels_replace() that we don't have it xt_connlabel.
