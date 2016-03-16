@@ -1,77 +1,224 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v3] configure: Show support for connlabel
-Date: Wed, 16 Mar 2016 19:30:37 +0100
-Message-ID: <20160316183037.GA4627@salvia>
-References: <20160312121804.GA27150@gmail.com>
- <20160315003601.GA23295@salvia>
- <CAKHNQQHQjiHE26UwYWGPKr+baDftxymBjmr9mJF5mepQBr8+QA@mail.gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH v2] netfilter: fix race condition in ipset save, swap
+ and delete
+Date: Wed, 16 Mar 2016 21:35:53 +0100 (CET)
+Message-ID: <alpine.DEB.2.10.1603162134000.7414@blackhole.kfki.hu>
+References: <20160314195446.GA3642@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: pablo@netfilter.org, kaber@trash.net,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	johunt@akamai.com, netdev@vger.kernel.org
+To: Vishwanath Pai <vpai@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49330 "EHLO mail.us.es"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:34587 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934996AbcCPSao (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Mar 2016 14:30:44 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id E299AC1268
-	for <netfilter-devel@vger.kernel.org>; Wed, 16 Mar 2016 19:30:40 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id D3810DA383
-	for <netfilter-devel@vger.kernel.org>; Wed, 16 Mar 2016 19:30:40 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E3F55DA380
-	for <netfilter-devel@vger.kernel.org>; Wed, 16 Mar 2016 19:30:38 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <CAKHNQQHQjiHE26UwYWGPKr+baDftxymBjmr9mJF5mepQBr8+QA@mail.gmail.com>
+	id S1751051AbcCPUfK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Mar 2016 16:35:10 -0400
+In-Reply-To: <20160314195446.GA3642@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 16, 2016 at 12:32:51AM +0530, Shivani Bhardwaj wrote:
-> On Tue, Mar 15, 2016 at 6:06 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> >> +if test "x$enable_connlabel" = "xyes"; then
-> >> +     PKG_CHECK_MODULES([libnetfilter_conntrack],
-> >> +             [libnetfilter_conntrack >= 1.0.4],
-> >> +             [nfconntrack=1], [nfconntrack=0])
-> >> +
-> >> +     if test "$nfconntrack" -ne 1; then
-> >> +             blacklist_modules="$blacklist_modules connlabel";
-> >> +             echo "WARNING: libnetfilter_conntrack not found, connlabel match will not be built";
-> >
-> > Could you set enable_connlabel to "no" when this occurs so the banner
-> > also displays that connlabel support has been skipped?
-> >
-> OK. Thanks.
-> One question, in case of nftables, I see enable_nftables is nowhere
-> set to "no", should that be added in case package requirements are not
-> met?
+Hi,
 
-$ ./configure --prefix=/usr --disable-nftables
-checking for a BSD-compatible install... /usr/bin/install -c
-checking whether build environment is sane... yes
-checking for a thread-safe mkdir -p... /bin/mkdir -p
-...
-Iptables Configuration:
-  IPv4 support:                         yes
-  IPv6 support:                         yes
-  Devel support:                        yes
-  IPQ support:                          no
-  Large file support:                   yes
-  BPF utils support:                    no
-  nfsynproxy util support:              no
-  nftables support:                     no <------
-  connlabel support:                    yes
+On Mon, 14 Mar 2016, Vishwanath Pai wrote:
 
-It says "no" when explicitly disabled. Note that the connlabel case
-was special with regards to others, since it didn't ask for explicit
-disable/enable in first place.
+> I have updated the patch according to comments by Jozsef. Renamed
+> ref_kernel to ref_netlink, renamed _put/_get functions and updated the
+> description in commit log.
 
-> Same for bpfc and nfsynproxy.
+Patch is applied to the ipset git tree - you use some older kernel tree 
+and I had to apply it manually. I'll send the patch for kernel inclusion.
 
-I can see here these:
+Best regards,
+Jozsef
 
---disable-nfsynproxy --disable-bpf-compiler
+> --
+> 
+> netfilter: fix race condition in ipset save, swap and delete
+> 
+> This fix adds a new reference counter (ref_netlink) for the struct ip_set.
+> The other reference counter (ref) can be swapped out by ip_set_swap and we
+> need a separate counter to keep track of references for netlink events
+> like dump. Using the same ref counter for dump causes a race condition
+> which can be demonstrated by the following script:
+> 
+> #!/bin/sh
+> ipset create hash_ip1 hash:ip family inet hashsize 1024 maxelem 500000 \
+> counters
+> ipset create hash_ip2 hash:ip family inet hashsize 300000 maxelem 500000 \
+> counters
+> ipset create hash_ip3 hash:ip family inet hashsize 1024 maxelem 500000 \
+> counters
+> 
+> ipset save &
+> 
+> ipset swap hash_ip3 hash_ip2
+> ipset destroy hash_ip3 /* will crash the machine */
+> 
+> Swap will exchange the values of ref so destroy will see ref = 0 instead of
+> ref = 1. With this fix in place swap will not succeed because ipset save
+> still has ref_netlink on the set (ip_set_swap doesn't swap ref_netlink).
+> 
+> Both delete and swap will error out if ref_netlink != 0 on the set.
+> 
+> Note: The changes to *_head functions is because previously we would
+> increment ref whenever we called these functions, we don't do that
+> anymore.
+> 
+> Reviewed-by: Joshua Hunt <johunt@akamai.com>
+> Signed-off-by: Vishwanath Pai <vpai@akamai.com>
+> 
+> --
+> 
+> diff --git a/include/linux/netfilter/ipset/ip_set.h b/include/linux/netfilter/ipset/ip_set.h
+> index 0e1f433..f48b8a6 100644
+> --- a/include/linux/netfilter/ipset/ip_set.h
+> +++ b/include/linux/netfilter/ipset/ip_set.h
+> @@ -234,6 +234,10 @@ struct ip_set {
+>  	spinlock_t lock;
+>  	/* References to the set */
+>  	u32 ref;
+> +	/* References to the set for netlink events like dump,
+> +	 * ref can be swapped out by ip_set_swap
+> +	 */
+> +	u32 ref_netlink;
+>  	/* The core set type */
+>  	struct ip_set_type *type;
+>  	/* The type variant doing the real job */
+> diff --git a/net/netfilter/ipset/ip_set_bitmap_gen.h b/net/netfilter/ipset/ip_set_bitmap_gen.h
+> index b0bc475..2e8e7e5 100644
+> --- a/net/netfilter/ipset/ip_set_bitmap_gen.h
+> +++ b/net/netfilter/ipset/ip_set_bitmap_gen.h
+> @@ -95,7 +95,7 @@ mtype_head(struct ip_set *set, struct sk_buff *skb)
+>  	if (!nested)
+>  		goto nla_put_failure;
+>  	if (mtype_do_head(skb, map) ||
+> -	    nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref - 1)) ||
+> +	    nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref)) ||
+>  	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE, htonl(memsize)))
+>  		goto nla_put_failure;
+>  	if (unlikely(ip_set_put_flags(skb, set)))
+> diff --git a/net/netfilter/ipset/ip_set_core.c b/net/netfilter/ipset/ip_set_core.c
+> index 95db43f..a558075 100644
+> --- a/net/netfilter/ipset/ip_set_core.c
+> +++ b/net/netfilter/ipset/ip_set_core.c
+> @@ -497,6 +497,26 @@ __ip_set_put(struct ip_set *set)
+>  	write_unlock_bh(&ip_set_ref_lock);
+>  }
+>  
+> +/* set->ref can be swapped out by ip_set_swap, netlink events (like dump) need
+> + * a separate reference counter
+> + */
+> +static inline void
+> +__ip_set_get_netlink(struct ip_set *set)
+> +{
+> +	write_lock_bh(&ip_set_ref_lock);
+> +	set->ref_netlink++;
+> +	write_unlock_bh(&ip_set_ref_lock);
+> +}
+> +
+> +static inline void
+> +__ip_set_put_netlink(struct ip_set *set)
+> +{
+> +	write_lock_bh(&ip_set_ref_lock);
+> +	BUG_ON(set->ref_netlink == 0);
+> +	set->ref_netlink--;
+> +	write_unlock_bh(&ip_set_ref_lock);
+> +}
+> +
+>  /* Add, del and test set entries from kernel.
+>   *
+>   * The set behind the index must exist and must be referenced
+> @@ -999,7 +1019,7 @@ static int ip_set_destroy(struct net *net, struct sock *ctnl,
+>  	if (!attr[IPSET_ATTR_SETNAME]) {
+>  		for (i = 0; i < inst->ip_set_max; i++) {
+>  			s = ip_set(inst, i);
+> -			if (s && s->ref) {
+> +			if (s && (s->ref || s->ref_netlink)) {
+>  				ret = -IPSET_ERR_BUSY;
+>  				goto out;
+>  			}
+> @@ -1021,7 +1041,7 @@ static int ip_set_destroy(struct net *net, struct sock *ctnl,
+>  		if (!s) {
+>  			ret = -ENOENT;
+>  			goto out;
+> -		} else if (s->ref) {
+> +		} else if (s->ref || s->ref_netlink) {
+>  			ret = -IPSET_ERR_BUSY;
+>  			goto out;
+>  		}
+> @@ -1168,6 +1188,9 @@ static int ip_set_swap(struct net *net, struct sock *ctnl, struct sk_buff *skb,
+>  	      from->family == to->family))
+>  		return -IPSET_ERR_TYPE_MISMATCH;
+>  
+> +	if (from->ref_netlink || to->ref_netlink)
+> +		return -EBUSY;
+> +
+>  	strncpy(from_name, from->name, IPSET_MAXNAMELEN);
+>  	strncpy(from->name, to->name, IPSET_MAXNAMELEN);
+>  	strncpy(to->name, from_name, IPSET_MAXNAMELEN);
+> @@ -1203,7 +1226,7 @@ ip_set_dump_done(struct netlink_callback *cb)
+>  		if (set->variant->uref)
+>  			set->variant->uref(set, cb, false);
+>  		pr_debug("release set %s\n", set->name);
+> -		__ip_set_put_byindex(inst, index);
+> +		__ip_set_put_netlink(set);
+>  	}
+>  	return 0;
+>  }
+> @@ -1325,7 +1348,7 @@ dump_last:
+>  		if (!cb->args[IPSET_CB_ARG0]) {
+>  			/* Start listing: make sure set won't be destroyed */
+>  			pr_debug("reference set\n");
+> -			set->ref++;
+> +			set->ref_netlink++;
+>  		}
+>  		write_unlock_bh(&ip_set_ref_lock);
+>  		nlh = start_msg(skb, NETLINK_CB(cb->skb).portid,
+> @@ -1393,7 +1416,7 @@ release_refcount:
+>  		if (set->variant->uref)
+>  			set->variant->uref(set, cb, false);
+>  		pr_debug("release set %s\n", set->name);
+> -		__ip_set_put_byindex(inst, index);
+> +		__ip_set_put_netlink(set);
+>  		cb->args[IPSET_CB_ARG0] = 0;
+>  	}
+>  out:
+> diff --git a/net/netfilter/ipset/ip_set_hash_gen.h b/net/netfilter/ipset/ip_set_hash_gen.h
+> index e5336ab..d32fd6b 100644
+> --- a/net/netfilter/ipset/ip_set_hash_gen.h
+> +++ b/net/netfilter/ipset/ip_set_hash_gen.h
+> @@ -1082,7 +1082,7 @@ mtype_head(struct ip_set *set, struct sk_buff *skb)
+>  	if (nla_put_u32(skb, IPSET_ATTR_MARKMASK, h->markmask))
+>  		goto nla_put_failure;
+>  #endif
+> -	if (nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref - 1)) ||
+> +	if (nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref)) ||
+>  	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE, htonl(memsize)))
+>  		goto nla_put_failure;
+>  	if (unlikely(ip_set_put_flags(skb, set)))
+> diff --git a/net/netfilter/ipset/ip_set_list_set.c b/net/netfilter/ipset/ip_set_list_set.c
+> index bbede95..00f92ae 100644
+> --- a/net/netfilter/ipset/ip_set_list_set.c
+> +++ b/net/netfilter/ipset/ip_set_list_set.c
+> @@ -457,7 +457,7 @@ list_set_head(struct ip_set *set, struct sk_buff *skb)
+>  	if (!nested)
+>  		goto nla_put_failure;
+>  	if (nla_put_net32(skb, IPSET_ATTR_SIZE, htonl(map->size)) ||
+> -	    nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref - 1)) ||
+> +	    nla_put_net32(skb, IPSET_ATTR_REFERENCES, htonl(set->ref)) ||
+>  	    nla_put_net32(skb, IPSET_ATTR_MEMSIZE,
+>  			  htonl(sizeof(*map) + n * set->dsize)))
+>  		goto nla_put_failure;
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-show "no" in the configuration message.
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
