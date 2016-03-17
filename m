@@ -1,34 +1,62 @@
-From: AllKind <AllKind@fastest.cc>
-Subject: Re: [ANNOUNCE] ipset 6.29 released
-Date: Thu, 17 Mar 2016 06:45:06 +0100
-Message-ID: <56EA4462.6010106@fastest.cc>
-References: <alpine.DEB.2.10.1603162136130.7414@blackhole.kfki.hu>
-Reply-To: AllKind@fastest.cc
+From: "Zhouyi Zhou" <yizhouzhou@ict.ac.cn>
+Subject: Re: Re: [PATCH V7] netfilter: h323: avoid potential attack
+Date: Thu, 17 Mar 2016 14:41:29 +0800 (GMT+08:00)
+Message-ID: <1b9fc79.23ab4.153834ebe7a.Coremail.yizhouzhou@ict.ac.cn>
+References: <1455984239-5807-1-git-send-email-zhouzhouyi@gmail.com>
+ <20160312121902.GA2398@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out2-smtp.messagingengine.com ([66.111.4.26]:52930 "EHLO
-	out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751564AbcCQFpI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Mar 2016 01:45:08 -0400
-Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
-	by mailout.nyi.internal (Postfix) with ESMTP id 0A7A620EB5
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 01:45:07 -0400 (EDT)
-In-Reply-To: <alpine.DEB.2.10.1603162136130.7414@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: "Zhouyi Zhou" <zhouzhouyi@gmail.com>, eric.dumazet@gmail.com,
+	kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org, fw@strlen.de,
+	gnomes@lxorguk.ukuu.org.uk, sergei.shtylyov@cogentembedded.com
+To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160312121902.GA2398@salvia>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 16.03.2016 21:40, Jozsef Kadlecsik wrote:
-> Hi,
->
-> ipset 6.29 is released, because the configure script was broken and a
-> race condition was fixed in concurrent save-swap and then delete
-> operations.
-[...]
+Thanks Pablo for reviewing
+> From: "Pablo Neira Ayuso" <pablo@netfilter.org>
+> Sent Time: Saturday, March 12, 2016
+> To: "Zhouyi Zhou" <zhouzhouyi@gmail.com>
 
-No more utils update? why?
+> On Sun, Feb 21, 2016 at 12:03:59AM +0800, Zhouyi Zhou wrote:
+> > I think hackers chould build a malicious h323 packet to overflow
+(iph->ihl * 4 + th->doff * 4);
+> You cannot trust the information that is available in the header. If
+> this is bogus this check will be defeated. That's why we pass this
+> protoff parameters to each function.
+The length of IP header is checked in the function nf_conntrack_in which calls
+get_l4proto hook to detect bogus ip header. 
+There is no where in the call stack to the function set_addr to check bogus
+TCP header, and my code does the job:
++		th = (void *)iph + iph->ihl * 4;
++		datalen = skb->len - (iph->ihl * 4 + th->doff * 4);
++		/* check offset overflow */
++		if (addroff > datalen)
++			return  -1;
+if th->doff be too big addroff will greater than datalen.
+> 
+> You also refer to get_h225_addr() in your description. That function
+> always copies 4 or 16 bytes, so I would appreciate if you can describe
+> the possible issue further.
+The problem of get_h225_addr lies in bogus taddr->ipAddress.ip, if this value
+is too big, it may make the pointer p point to no exist address.
+(gdb) list 686
+681                       struct h323_ct_state *ctstate)
+682     {
+683             const unsigned char *p;
+684             int len;
+685
+686             switch (taddr->choice) {
+687             case eTransportAddress_ipAddress:
+688                     if (nf_ct_l3num(ct) != AF_INET)
+689                             return 0;
+690                     p = data + taddr->ipAddress.ip;
 
+Thanks for your time and effort
+Cheers
+Zhouyi
