@@ -1,38 +1,47 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] nft: include/mini-gmp.h is not included at "make dist"
-Date: Thu, 17 Mar 2016 16:40:43 +0100
-Message-ID: <20160317154043.GA5349@salvia>
-References: <56EA81C8.1080408@westermo.se>
+Subject: Re: [nft PATCH] tests/shell: unload modules between tests
+Date: Thu, 17 Mar 2016 16:42:51 +0100
+Message-ID: <20160317154251.GA5866@salvia>
+References: <145820368731.17259.3174729391842967272.stgit@r2d2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Magnus =?iso-8859-1?Q?=D6berg?= <magnus.oberg@westermo.se>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49376 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49751 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753097AbcCQPky (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Mar 2016 11:40:54 -0400
+	id S964964AbcCQPmz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Mar 2016 11:42:55 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id BAF01114F5E
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 16:40:51 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id 0FDC513C0DC
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 16:42:54 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id AD323DA8F8
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 16:40:51 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 01967DA385
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 16:42:54 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 4AFA0DA8FB
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 16:40:48 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 260DDDA8FB
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 16:42:52 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <56EA81C8.1080408@westermo.se>
+In-Reply-To: <145820368731.17259.3174729391842967272.stgit@r2d2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Mar 17, 2016 at 11:07:04AM +0100, Magnus =D6berg wrote:
-> Added missing dist. file mini-gmp.h in include/Makefile.am
+On Thu, Mar 17, 2016 at 09:34:47AM +0100, Arturo Borrero Gonzalez wrote:
+> This patch adjusts the main test script so it unload all nftables
+> kernel modules between tests.
+> 
+> This way we achieve two interesting things:
+>  * avoid false errors in some testcases due to module loading order
+>  * the module loading/unloading path itself
+> 
+> The false positives is for example, listing ruleset per families, which depends
+> on the loading order of nf_tables_xx modules.
+> 
+> We can later add more modules to unload incrementally (for
+> example nf_tables_switchdev).
+> 
+> This patch assumes we are working with a kernel which is compiled with
+> nf_tables =m, the case using =y is not supported and can still produce false
+> positives in some testcases due to module ordering.
 
-Applied, thanks.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks Arturo.
