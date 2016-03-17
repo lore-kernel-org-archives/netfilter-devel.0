@@ -1,38 +1,47 @@
-From: Arpan Kapoor <rpnkpr@gmail.com>
-Subject: Re: [PATCH] iptables: Replace gethostbyname() with getaddrinfo()
-Date: Thu, 17 Mar 2016 21:45:43 +0530
-Message-ID: <20160317161509.GA5809@arch>
-References: <1458219439-561-1-git-send-email-rpnkpr@gmail.com>
- <alpine.LSU.2.20.1603171443100.30641@nerf40.vanv.qr>
-Reply-To: rpnkpr@gmail.com
+From: Piyush Pangtey <gokuvsvegita@gmail.com>
+Subject: Re: [nft PATCH] tests/shell: unload modules between tests
+Date: Thu, 17 Mar 2016 23:32:01 +0530
+Message-ID: <56EAF119.3070009@gmail.com>
+References: <145820368731.17259.3174729391842967272.stgit@r2d2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:34688 "EHLO
-	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965729AbcCQQQS (ORCPT
+Received: from mail-pf0-f176.google.com ([209.85.192.176]:35269 "EHLO
+	mail-pf0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030383AbcCQSBo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Mar 2016 12:16:18 -0400
-Received: by mail-pf0-f194.google.com with SMTP id n5so11701791pfn.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 09:16:18 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.20.1603171443100.30641@nerf40.vanv.qr>
+	Thu, 17 Mar 2016 14:01:44 -0400
+Received: by mail-pf0-f176.google.com with SMTP id n5so130422526pfn.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 11:01:44 -0700 (PDT)
+In-Reply-To: <145820368731.17259.3174729391842967272.stgit@r2d2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Mar 17, 2016 at 02:44:00PM +0100, Jan Engelhardt wrote:
+On Thursday 17 March 2016 02:04 PM, Arturo Borrero Gonzalez wrote:
+> This patch adjusts the main test script so it unload all nftables
+> kernel modules between tests.
 > 
-> You should just remove host_to_ipaddr and ipparse_hostnetwork,
-> because nothing appears to be using them anymore. Everything
-> switched to xtopt_parse_host.
+> This way we achieve two interesting things:
+>  * avoid false errors in some testcases due to module loading order
+>  * the module loading/unloading path itself
+> 
+[....]
+> 	test_output=$(NFT=$NFT ${testfile} ${TESTS_OUTPUT} 2>&1)
+> @@ -69,4 +90,4 @@ done
+>  echo ""
+>  msg_info "results: [OK] $ok [FAILED] $failed [TOTAL] $((ok+failed))"
+>  
+> -$NFT flush ruleset
+> +kernel_cleanup
+>
 
-ipparse_hostnetwork is utilized by xtables_ipparse_any and
-xtables_ipparse_multiple which are being used by
-1) arpmangle_parse (extensions/libarpt_mangle.c)
-2) do_command4 (iptables/iptables.c)
-3) nft_ipv4_post_parse (iptables/nft-ipv4.c)
+I'm getting nonzero return code(1) by this last kernel_cleanup call, maybe.
 
-Excuse me if I'm missing something. I'm new to the codebase
-and this is my first patch.
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
