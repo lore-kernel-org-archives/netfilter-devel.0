@@ -1,40 +1,27 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ANNOUNCE] ipset 6.29 released
-Date: Thu, 17 Mar 2016 14:00:52 +0100 (CET)
-Message-ID: <alpine.DEB.2.10.1603171357330.17324@blackhole.kfki.hu>
-References: <alpine.DEB.2.10.1603162136130.7414@blackhole.kfki.hu> <56EA4462.6010106@fastest.cc>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH] iptables: Replace gethostbyname() with getaddrinfo()
+Date: Thu, 17 Mar 2016 14:44:00 +0100 (CET)
+Message-ID: <alpine.LSU.2.20.1603171443100.30641@nerf40.vanv.qr>
+References: <1458219439-561-1-git-send-email-rpnkpr@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: AllKind <AllKind@fastest.cc>
+Content-Type: text/plain; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Arpan Kapoor <rpnkpr@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:38105 "EHLO smtp0.kfki.hu"
+Received: from ares41.inai.de ([46.4.122.207]:39108 "EHLO ares41.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935577AbcCQNAH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Mar 2016 09:00:07 -0400
-In-Reply-To: <56EA4462.6010106@fastest.cc>
+	id S1756438AbcCQNoD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Mar 2016 09:44:03 -0400
+In-Reply-To: <1458219439-561-1-git-send-email-rpnkpr@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 17 Mar 2016, AllKind wrote:
 
-> On 16.03.2016 21:40, Jozsef Kadlecsik wrote:
-> > 
-> > ipset 6.29 is released, because the configure script was broken and a
-> > race condition was fixed in concurrent save-swap and then delete
-> > operations.
-> [...]
-> 
-> No more utils update? why?
+On Thursday 2016-03-17 13:57, Arpan Kapoor wrote:
 
-I'm travelling with surprisingly bad network access and I was happy to 
-push out the release to solve the configure issue. Utils is not forgotten 
-:-)
+>Make the function host_to_ipaddr() similar to host_to_ip6addr(),
+>using getaddrinfo() instead of the obsoleted gethostbyname().
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+You should just remove host_to_ipaddr and ipparse_hostnetwork,
+because nothing appears to be using them anymore. Everything
+switched to xtopt_parse_host.
