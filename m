@@ -1,47 +1,51 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] tests/shell: unload modules between tests
-Date: Thu, 17 Mar 2016 16:42:51 +0100
-Message-ID: <20160317154251.GA5866@salvia>
-References: <145820368731.17259.3174729391842967272.stgit@r2d2.cica.es>
+Subject: Re: [PATCHv7] extensions: libipt_icmp: Add translation to nft
+Date: Thu, 17 Mar 2016 16:46:26 +0100
+Message-ID: <20160317154626.GA10673@salvia>
+References: <20160316220019.GA2952@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, shivanib134@gmail.com,
+	outreachy-kernel@googlegroups.com
+To: Laura Garcia Liebana <nevola@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49751 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:50333 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964964AbcCQPmz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Mar 2016 11:42:55 -0400
+	id S1030505AbcCQPqe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Mar 2016 11:46:34 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 0FDC513C0DC
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 16:42:54 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id E748313C0E7
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 16:46:32 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 01967DA385
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 16:42:54 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id D9DD3DA8F8
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 16:46:32 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 260DDDA8FB
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 16:42:52 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id E317BDA391
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 16:46:30 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <145820368731.17259.3174729391842967272.stgit@r2d2.cica.es>
+In-Reply-To: <20160316220019.GA2952@sonyv>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Mar 17, 2016 at 09:34:47AM +0100, Arturo Borrero Gonzalez wrote:
-> This patch adjusts the main test script so it unload all nftables
-> kernel modules between tests.
+On Wed, Mar 16, 2016 at 11:00:22PM +0100, Laura Garcia Liebana wrote:
+> Add translation for icmp to nftables. Not supported icmp codes in nftables
+> are: network-unreachable, host-unreachable, protocol-unreachable,
+> port-unreachable, fragmentation-needed, source-route-failed,
+> network-unknown, host-unknown, network-prohibited, host-prohibited,
+> TOS-network-unreachable, TOS-host-unreachable, communication-prohibited,
+> host-precedence-violation, precedence-cutoff, network-redirect,
+> host-redirect, TOS-network-redirect, TOS-host-redirect,
+> ttl-zero-during-transit, ttl-zero-during-reassembly, ip-header-bad and required-option-missing.
 > 
-> This way we achieve two interesting things:
->  * avoid false errors in some testcases due to module loading order
->  * the module loading/unloading path itself
+> Examples:
 > 
-> The false positives is for example, listing ruleset per families, which depends
-> on the loading order of nf_tables_xx modules.
+> $ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type echo-reply -j ACCEPT
+> nft add rule ip filter INPUT icmp type echo-reply counter accept
 > 
-> We can later add more modules to unload incrementally (for
-> example nf_tables_switchdev).
+> $ sudo iptables-translate -t filter -A INPUT -m icmp --icmp-type 3 -j ACCEPT
+> nft add rule ip filter INPUT icmp type destination-unreachable counter accept
 > 
-> This patch assumes we are working with a kernel which is compiled with
-> nf_tables =m, the case using =y is not supported and can still produce false
-> positives in some testcases due to module ordering.
+> $ sudo iptables-translate -t filter -A INPUT -m icmp ! --icmp-type 3 -j ACCEPT
+> nft add rule ip filter INPUT icmp type != destination-unreachable counter accept
 
-Applied, thanks Arturo.
+Applied, thanks Laura.
