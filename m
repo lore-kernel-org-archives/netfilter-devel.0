@@ -1,62 +1,90 @@
-From: "Zhouyi Zhou" <yizhouzhou@ict.ac.cn>
-Subject: Re: Re: [PATCH V7] netfilter: h323: avoid potential attack
-Date: Thu, 17 Mar 2016 14:41:29 +0800 (GMT+08:00)
-Message-ID: <1b9fc79.23ab4.153834ebe7a.Coremail.yizhouzhou@ict.ac.cn>
-References: <1455984239-5807-1-git-send-email-zhouzhouyi@gmail.com>
- <20160312121902.GA2398@salvia>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH] tests/shell: unload modules between tests
+Date: Thu, 17 Mar 2016 09:34:47 +0100
+Message-ID: <145820368731.17259.3174729391842967272.stgit@r2d2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: "Zhouyi Zhou" <zhouzhouyi@gmail.com>, eric.dumazet@gmail.com,
-	kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org, fw@strlen.de,
-	gnomes@lxorguk.ukuu.org.uk, sergei.shtylyov@cogentembedded.com
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20160312121902.GA2398@salvia>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp3.cica.es ([150.214.5.190]:34448 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932676AbcCQIfG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Mar 2016 04:35:06 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Thanks Pablo for reviewing
-> From: "Pablo Neira Ayuso" <pablo@netfilter.org>
-> Sent Time: Saturday, March 12, 2016
-> To: "Zhouyi Zhou" <zhouzhouyi@gmail.com>
+This patch adjusts the main test script so it unload all nftables
+kernel modules between tests.
 
-> On Sun, Feb 21, 2016 at 12:03:59AM +0800, Zhouyi Zhou wrote:
-> > I think hackers chould build a malicious h323 packet to overflow
-(iph->ihl * 4 + th->doff * 4);
-> You cannot trust the information that is available in the header. If
-> this is bogus this check will be defeated. That's why we pass this
-> protoff parameters to each function.
-The length of IP header is checked in the function nf_conntrack_in which calls
-get_l4proto hook to detect bogus ip header. 
-There is no where in the call stack to the function set_addr to check bogus
-TCP header, and my code does the job:
-+		th = (void *)iph + iph->ihl * 4;
-+		datalen = skb->len - (iph->ihl * 4 + th->doff * 4);
-+		/* check offset overflow */
-+		if (addroff > datalen)
-+			return  -1;
-if th->doff be too big addroff will greater than datalen.
-> 
-> You also refer to get_h225_addr() in your description. That function
-> always copies 4 or 16 bytes, so I would appreciate if you can describe
-> the possible issue further.
-The problem of get_h225_addr lies in bogus taddr->ipAddress.ip, if this value
-is too big, it may make the pointer p point to no exist address.
-(gdb) list 686
-681                       struct h323_ct_state *ctstate)
-682     {
-683             const unsigned char *p;
-684             int len;
-685
-686             switch (taddr->choice) {
-687             case eTransportAddress_ipAddress:
-688                     if (nf_ct_l3num(ct) != AF_INET)
-689                             return 0;
-690                     p = data + taddr->ipAddress.ip;
+This way we achieve two interesting things:
+ * avoid false errors in some testcases due to module loading order
+ * the module loading/unloading path itself
 
-Thanks for your time and effort
-Cheers
-Zhouyi
+The false positives is for example, listing ruleset per families, which depends
+on the loading order of nf_tables_xx modules.
+
+We can later add more modules to unload incrementally (for
+example nf_tables_switchdev).
+
+This patch assumes we are working with a kernel which is compiled with
+nf_tables =m, the case using =y is not supported and can still produce false
+positives in some testcases due to module ordering.
+
+Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ tests/shell/run-tests.sh |   25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
+
+diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
+index df2670b..c08a3eb 100755
+--- a/tests/shell/run-tests.sh
++++ b/tests/shell/run-tests.sh
+@@ -37,16 +37,37 @@ if [ ! -x "$FIND" ] ; then
+ 	msg_error "no find binary found"
+ fi
+ 
++MODPROBE="$(which modprobe)"
++if [ ! -x "$MODPROBE" ] ; then
++	msg_error "no modprobe binary found"
++fi
++
+ if [ "$1" == "-v" ] ; then
+ 	VERBOSE=y
+ fi
+ 
++kernel_cleanup() {
++	$NFT flush ruleset
++	$MODPROBE -rq \
++	nft_reject_ipv4 nft_reject_ipv6 nft_bridge_reject \
++	nft_reject_ipv6 nft_reject \
++	nft_redir_ipv4 nft_redir_ipv6 nft_redir \
++	nft_dup_ipv4 nft_dup_ipv6 nft_dup \
++	nft_nat_ipv4 nft_nat_ipv6 nft_nat \
++	nft_masq_ipv4 nft_masq_ipv6 nft_masq \
++	nft_exthdr nft_payload nft_cmp \
++	nft_meta nft_bridge_meta nft_counter nft_log nft_limit \
++	nft_hash nft_rbtree nft_ct nft_compat \
++	nf_tables_inet nf_tables_bridge nf_tables_arp \
++	nf_tables_ipv4 nf_tables_ipv6 nf_tables
++}
++
+ echo ""
+ ok=0
+ failed=0
+ for testfile in $(${FIND} ${TESTDIR} -executable -regex .*${RETURNCODE_SEPARATOR}[0-9]+)
+ do
+-	$NFT flush ruleset
++	kernel_cleanup
+ 
+ 	rc_spec=$(awk -F${RETURNCODE_SEPARATOR} '{print $NF}' <<< $testfile)
+ 	test_output=$(NFT=$NFT ${testfile} ${TESTS_OUTPUT} 2>&1)
+@@ -69,4 +90,4 @@ done
+ echo ""
+ msg_info "results: [OK] $ok [FAILED] $failed [TOTAL] $((ok+failed))"
+ 
+-$NFT flush ruleset
++kernel_cleanup
+
