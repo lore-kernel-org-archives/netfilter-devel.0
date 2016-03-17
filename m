@@ -1,44 +1,38 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv2] extensions: libipt_REJECT: Avoid to print the default
- reject with value in the translation
-Date: Thu, 17 Mar 2016 16:46:48 +0100
-Message-ID: <20160317154648.GC10673@salvia>
-References: <20160316222358.GA5106@sonyv>
+From: Arpan Kapoor <rpnkpr@gmail.com>
+Subject: Re: [PATCH] iptables: Replace gethostbyname() with getaddrinfo()
+Date: Thu, 17 Mar 2016 21:45:43 +0530
+Message-ID: <20160317161509.GA5809@arch>
+References: <1458219439-561-1-git-send-email-rpnkpr@gmail.com>
+ <alpine.LSU.2.20.1603171443100.30641@nerf40.vanv.qr>
+Reply-To: rpnkpr@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, shivanib134@gmail.com,
-	outreachy-kernel@googlegroups.com
-To: Laura Garcia Liebana <nevola@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@inai.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50452 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030508AbcCQPq4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Mar 2016 11:46:56 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 7C00813C0E7
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 16:46:55 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6D3CDDA38E
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 16:46:55 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 12287DA390
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 16:46:53 +0100 (CET)
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:34688 "EHLO
+	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965729AbcCQQQS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Mar 2016 12:16:18 -0400
+Received: by mail-pf0-f194.google.com with SMTP id n5so11701791pfn.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Mar 2016 09:16:18 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20160316222358.GA5106@sonyv>
+In-Reply-To: <alpine.LSU.2.20.1603171443100.30641@nerf40.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 16, 2016 at 11:24:00PM +0100, Laura Garcia Liebana wrote:
-> Avoid to print the reject with value in the translation when the value is the default.
+On Thu, Mar 17, 2016 at 02:44:00PM +0100, Jan Engelhardt wrote:
 > 
-> Before this patch:
-> 
-> $ sudo iptables-translate -A FORWARD -p TCP --dport 22 -j REJECT
-> nft add rule ip filter FORWARD tcp dport 22 counter reject with icmp type port-unreachable
-> 
-> After this patch:
-> 
-> $ sudo iptables-translate -A FORWARD -p TCP --dport 22 -j REJECT
-> nft add rule ip filter FORWARD tcp dport 22 counter reject
+> You should just remove host_to_ipaddr and ipparse_hostnetwork,
+> because nothing appears to be using them anymore. Everything
+> switched to xtopt_parse_host.
 
-Applied this too, thanks.
+ipparse_hostnetwork is utilized by xtables_ipparse_any and
+xtables_ipparse_multiple which are being used by
+1) arpmangle_parse (extensions/libarpt_mangle.c)
+2) do_command4 (iptables/iptables.c)
+3) nft_ipv4_post_parse (iptables/nft-ipv4.c)
+
+Excuse me if I'm missing something. I'm new to the codebase
+and this is my first patch.
