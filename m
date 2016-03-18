@@ -1,44 +1,79 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: x_tables: deal with bogus nextoffset values
-Date: Fri, 18 Mar 2016 23:02:00 +0100
-Message-ID: <20160318220200.GA1574@salvia>
-References: <1457571362-25441-1-git-send-email-fw@strlen.de>
- <20160310141231.GA13006@salvia>
- <20160318130340.GA9843@unicorn.suse.cz>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH] netfilter: x_tables: ensure e->next_offset consistency
+ with table size
+Date: Fri, 18 Mar 2016 15:23:55 -0700
+Message-ID: <1458339835.31963.17.camel@edumazet-glaptop3.roam.corp.google.com>
+References: <1458338325-1456-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, fw@strlen.de, mkubecek@suse.cz,
 	hawkes@google.com
-To: Michal Kubecek <mkubecek@suse.cz>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48878 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750775AbcCRWCJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Mar 2016 18:02:09 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 347FF4B0F5
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Mar 2016 23:02:05 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 25AEFDA8F7
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Mar 2016 23:02:05 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id DE2F3DA8FA
-	for <netfilter-devel@vger.kernel.org>; Fri, 18 Mar 2016 23:02:01 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <20160318130340.GA9843@unicorn.suse.cz>
+Received: from mail-pf0-f175.google.com ([209.85.192.175]:35088 "EHLO
+	mail-pf0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753407AbcCRWX5 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 18 Mar 2016 18:23:57 -0400
+Received: by mail-pf0-f175.google.com with SMTP id n5so184578797pfn.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Mar 2016 15:23:57 -0700 (PDT)
+In-Reply-To: <1458338325-1456-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Michal,
+On Fri, 2016-03-18 at 22:58 +0100, Pablo Neira Ayuso wrote:
+> This patch introduces the generic __xt_entry_foreach() that includes a
+> new parameter to account for remaining entry bytes in the table that we
+> didn't walk so far. If the amount of remaining bytes is zero, then we
+> keep validating this table, otherwise for < 0 we just reject this.
+> 
+> Reported-by: Ben Hawkes <hawkes@google.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+> Slightly tested here, will be spinning on this again with more testing
+> tomorrow morning. I'll appreciate any extra hand on testing this
+> further.
+> 
+>  include/linux/netfilter/x_tables.h | 10 ++++++++++
+>  net/ipv4/netfilter/arp_tables.c    | 17 +++++++++++++++--
+>  net/ipv4/netfilter/ip_tables.c     | 16 ++++++++++++++--
+>  net/ipv6/netfilter/ip6_tables.c    | 16 ++++++++++++++--
+>  4 files changed, 53 insertions(+), 6 deletions(-)
+> 
+> diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+> index c557741..1206830 100644
+> --- a/include/linux/netfilter/x_tables.h
+> +++ b/include/linux/netfilter/x_tables.h
+> @@ -411,6 +411,16 @@ xt_get_per_cpu_counter(struct xt_counters *cnt, unsigned int cpu)
+>  struct nf_hook_ops *xt_hook_link(const struct xt_table *, nf_hookfn *);
+>  void xt_hook_unlink(const struct xt_table *, struct nf_hook_ops *);
+>  
+> +/* Similar to xt_entry_foreach, but this tell us how many bytes are remaining
+> + * after the iteration. If remain is < 0 then this table we're iterating over
+> + * is wrong.
+> + */
+> +#define __xt_entry_foreach(pos, ehead, esize, remain)			\
+> +	for ((pos) = (typeof(pos))(ehead), (remain) = (esize);		\
+> +	     (pos) < (typeof(pos))((char *)(ehead) + (esize));		\
+> +	     (remain) -= (pos)->next_offset,				\
+> +	     (pos) = (typeof(pos))((char *)(pos) + (pos)->next_offset))
+> +
+>  #ifdef CONFIG_COMPAT
+>  #include <net/compat.h>
+>  
+> diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+> index b488cac..9081cda 100644
+> --- a/net/ipv4/netfilter/arp_tables.c
+> +++ b/net/ipv4/netfilter/arp_tables.c
+> @@ -637,6 +637,7 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
+>  	struct arpt_entry *iter;
+>  	unsigned int i;
+>  	int ret = 0;
+> +	s64 remain;
+>  
 
-On Fri, Mar 18, 2016 at 02:03:40PM +0100, Michal Kubecek wrote:
-> I can't see this patch neither in nf nor in nf-next even if the other
-> one (netfilter: x_tables: check for size overflow) is in nf-next. Was it
-> omitted on purpose or is it a mistake?
+Looks overkill to use s64 on 32bit kernels ?
+long should be enough I guess.
 
-We've been considering different solutions for this, so this is still
-under debate, just proposed a new one here:
 
-http://patchwork.ozlabs.org/patch/599721/
-
-Thanks.
