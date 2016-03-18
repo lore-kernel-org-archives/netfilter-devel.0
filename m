@@ -1,54 +1,67 @@
-From: Helmut Schaa <helmut.schaa@googlemail.com>
-Subject: [PATCH] ulogd: fix cross compilation errors with mysql_config
-Date: Fri, 18 Mar 2016 15:43:24 +0100
-Message-ID: <1458312204-2874-1-git-send-email-helmut.schaa@googlemail.com>
-Cc: Helmut Schaa <helmut.schaa@googlemail.com>
-To: netfilter-devel@vger.kernel.org
+From: Stephane Bryant <stephane.ml.bryant@gmail.com>
+Subject: [PATCH nf-next v4 3/3] netfilter: bridge: nf queue verdict to use NFQA_VLAN and NFQA_L2HDR
+Date: Fri, 18 Mar 2016 18:33:36 +0100
+Message-ID: <1458322416-4137-3-git-send-email-stephane.ml.bryant@gmail.com>
+References: <1458322416-4137-1-git-send-email-stephane.ml.bryant@gmail.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Stephane Bryant <stephane.ml.bryant@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:36922 "EHLO
-	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751352AbcCROoP (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35973 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757602AbcCRReF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Mar 2016 10:44:15 -0400
-Received: by mail-wm0-f49.google.com with SMTP id p65so40548746wmp.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Mar 2016 07:44:14 -0700 (PDT)
+	Fri, 18 Mar 2016 13:34:05 -0400
+Received: by mail-wm0-f65.google.com with SMTP id l68so7681414wml.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Mar 2016 10:34:04 -0700 (PDT)
+In-Reply-To: <1458322416-4137-1-git-send-email-stephane.ml.bryant@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When cross-compiling ulogd, mysql_config and pg_config will return build host
-configuration not build target configuration. This leads to build failures
-if mysql_config is installed on the host system but mysql is not available
-on the build target.
+This makes nf queues use NFQA_VLAN and NFQA_L2HDR in verdict to modify the
+original skb
 
-Fix this by not using mysql_config and pg_config for cross-compilation.
-
-Signed-off-by: Helmut Schaa <helmut.schaa@googlemail.com>
+Signed-off-by: Stephane Bryant <stephane.ml.bryant@gmail.com>
 ---
- acinclude.m4 | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/netfilter/nfnetlink_queue.c | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff --git a/acinclude.m4 b/acinclude.m4
-index 56d47b8..bd21255 100644
---- a/acinclude.m4
-+++ b/acinclude.m4
-@@ -35,7 +35,7 @@ if test "$pg_prefix" != "no"; then
- AC_MSG_CHECKING([for PostgreSQL pg_config program])
- for d in $pg_prefix/bin /usr/bin /usr/local/bin /usr/local/pgsql/bin /opt/pgsql/bin /opt/packages/pgsql/bin
- do
--	if test -x $d/pg_config
-+	if test -x $d/pg_config -a "$cross_compiling" = "no";
- 	then
- 		AC_MSG_RESULT(found pg_config in $d)
- 		PQINCPATH=`$d/pg_config --includedir`
-@@ -130,7 +130,7 @@ if test "$my_prefix" != "no"; then
- AC_MSG_CHECKING([for MySQL mysql_config program])
- for d in $my_prefix/bin /usr/bin /usr/local/bin /usr/local/mysql/bin /opt/mysql/bin /opt/packages/mysql/bin
- do
--	if test -x $d/mysql_config
-+	if test -x $d/mysql_config -a "$cross_compiling" = "no";
- 	then
- 		AC_MSG_RESULT(found mysql_config in $d)
- 		MYSQL_INC=`$d/mysql_config --include`
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index acfc15c..ece25c5 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1127,6 +1127,31 @@ static int nfqnl_recv_verdict(struct net *net, struct sock *ctnl,
+ 			ct = nfqnl_ct_parse(nfnl_ct, nlh, nfqa, entry, &ctinfo);
+ 	}
+ 
++	if (nfqa[NFQA_VLAN]) {
++		struct nlattr *vlan_tci =
++			nla_find_nested(nfqa[NFQA_VLAN], NFQA_VLAN_TCI);
++		struct nlattr *vlan_proto =
++			nla_find_nested(nfqa[NFQA_VLAN], NFQA_VLAN_PROTO);
++
++		if (vlan_tci)
++			entry->skb->vlan_tci = nla_get_u16(vlan_tci);
++
++		if (vlan_proto)
++			entry->skb->vlan_proto = nla_get_be16(vlan_proto);
++	}
++
++	if (nfqa[NFQA_L2HDR]) {
++		int mac_header_len = entry->skb->network_header -
++			entry->skb->mac_header;
++
++		if (mac_header_len != nla_len(nfqa[NFQA_L2HDR]))
++			verdict = NF_DROP;
++		else if (mac_header_len > 0)
++			memcpy(skb_mac_header(entry->skb),
++			       nla_data(nfqa[NFQA_L2HDR]),
++			       mac_header_len);
++	}
++
+ 	if (nfqa[NFQA_PAYLOAD]) {
+ 		u16 payload_len = nla_len(nfqa[NFQA_PAYLOAD]);
+ 		int diff = payload_len - entry->skb->len;
 -- 
-1.8.4.5
+2.1.4
 
