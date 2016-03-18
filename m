@@ -1,50 +1,278 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next v4 2/3] netfilter: bridge: pass L2 header and
- VLAN as netlink attributes in queues to userspace
-Date: Fri, 18 Mar 2016 19:22:24 +0100
-Message-ID: <20160318182224.GB21628@breakpoint.cc>
-References: <1458322416-4137-1-git-send-email-stephane.ml.bryant@gmail.com>
- <1458322416-4137-2-git-send-email-stephane.ml.bryant@gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH 2/2] tests/shell: add testcases for Netfilter bug #965
+Date: Fri, 18 Mar 2016 20:29:34 +0100
+Message-ID: <145832937468.1466.1675834855792100862.stgit@nfdev2.cica.es>
+References: <145832936930.1466.10807188686798508369.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Stephane Bryant <stephane.ml.bryant@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: sander.contrib@gmail.com, pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:34219 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750811AbcCRSW0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Mar 2016 14:22:26 -0400
-Content-Disposition: inline
-In-Reply-To: <1458322416-4137-2-git-send-email-stephane.ml.bryant@gmail.com>
+Received: from smtp3.cica.es ([150.214.5.190]:58481 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753464AbcCRT3n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 18 Mar 2016 15:29:43 -0400
+In-Reply-To: <145832936930.1466.10807188686798508369.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Stephane Bryant <stephane.ml.bryant@gmail.com> wrote:
-> From: stephane <stephane.ml.bryant@gmail.com>
-> 
-> -this creates 2 netlink attribute NLQA_VLAN and NLQA_L2HDR
-> -these are filled up for the PF_BRIDGE family on the way to userspace
-> -NFQA_VLAN is a nested attribute, with the NFQA_VLAN_PROTO and the
->  NFQA_VLAN_TCI carrying the corresponding vlan_proto and vlan_tci
->  fields from the skb.
-> 
-> +	if ((entry->state.pf != PF_BRIDGE) || (!skb_mac_header_was_set(entskb)))
-> +		return 0;
+Testscases for Netfilter bug #965:
+ * add rule at position
+ * insert rule at position
+ * replace rule with given handle
+ * delete rule with given handle
+ * don't allow to delete rules with position keyword
 
-Nit: Inner () are not needed.
+Netfilter Bugzilla: http://bugzilla.netfilter.org/show_bug.cgi?id=965
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ .../testcases/rule_management/0001addposition_0    |   27 ++++++++++++++++++++
+ .../testcases/rule_management/0002insertposition_0 |   27 ++++++++++++++++++++
+ tests/shell/testcases/rule_management/0003insert_0 |   27 ++++++++++++++++++++
+ .../shell/testcases/rule_management/0004replace_0  |   24 ++++++++++++++++++
+ .../shell/testcases/rule_management/0005replace_1  |   11 ++++++++
+ .../shell/testcases/rule_management/0006replace_1  |   11 ++++++++
+ tests/shell/testcases/rule_management/0007delete_0 |   25 +++++++++++++++++++
+ tests/shell/testcases/rule_management/0008delete_1 |   11 ++++++++
+ tests/shell/testcases/rule_management/0009delete_1 |   11 ++++++++
+ 9 files changed, 174 insertions(+)
+ create mode 100755 tests/shell/testcases/rule_management/0001addposition_0
+ create mode 100755 tests/shell/testcases/rule_management/0002insertposition_0
+ create mode 100755 tests/shell/testcases/rule_management/0003insert_0
+ create mode 100755 tests/shell/testcases/rule_management/0004replace_0
+ create mode 100755 tests/shell/testcases/rule_management/0005replace_1
+ create mode 100755 tests/shell/testcases/rule_management/0006replace_1
+ create mode 100755 tests/shell/testcases/rule_management/0007delete_0
+ create mode 100755 tests/shell/testcases/rule_management/0008delete_1
+ create mode 100755 tests/shell/testcases/rule_management/0009delete_1
 
-> +	if (skb_vlan_tag_present(entskb)) {
-> +		nlalen += nla_total_size(nla_total_size(sizeof(__u16)) +
-> +					 nla_total_size(sizeof(__be16)));
-> +	}
+diff --git a/tests/shell/testcases/rule_management/0001addposition_0 b/tests/shell/testcases/rule_management/0001addposition_0
+new file mode 100755
+index 0000000..f6294ad
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0001addposition_0
+@@ -0,0 +1,27 @@
++#!/bin/bash
++
++# tests for Netfilter bug #965 and the related fix
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++$NFT add rule t c accept	# should have handle 2
++$NFT add rule t c accept	# should have handle 3
++$NFT add rule t c position 2 drop
++
++EXPECTED="table ip t {
++	chain c {
++		accept 
++		drop 
++		accept 
++	}
++}"
++
++GET="$($NFT list ruleset)"
++
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
+diff --git a/tests/shell/testcases/rule_management/0002insertposition_0 b/tests/shell/testcases/rule_management/0002insertposition_0
+new file mode 100755
+index 0000000..49fcf7c
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0002insertposition_0
+@@ -0,0 +1,27 @@
++#!/bin/bash
++
++# tests for Netfilter bug #965 and the related fix
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++$NFT add rule t c accept	# should have handle 2
++$NFT add rule t c accept	# should have handle 3
++$NFT insert rule t c position 2 drop
++
++EXPECTED="table ip t {
++	chain c {
++		drop 
++		accept 
++		accept 
++	}
++}"
++
++GET="$($NFT list ruleset)"
++
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
+diff --git a/tests/shell/testcases/rule_management/0003insert_0 b/tests/shell/testcases/rule_management/0003insert_0
+new file mode 100755
+index 0000000..407a293
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0003insert_0
+@@ -0,0 +1,27 @@
++#!/bin/bash
++
++# tests for Netfilter bug #965
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++$NFT insert rule t c accept
++$NFT insert rule t c drop
++$NFT insert rule t c masquerade
++
++EXPECTED="table ip t {
++	chain c {
++		masquerade 
++		drop 
++		accept 
++	}
++}"
++
++GET="$($NFT list ruleset)"
++
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
+diff --git a/tests/shell/testcases/rule_management/0004replace_0 b/tests/shell/testcases/rule_management/0004replace_0
+new file mode 100755
+index 0000000..92acc30
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0004replace_0
+@@ -0,0 +1,24 @@
++#!/bin/bash
++
++# tests for Netfilter bug #965 and the related fix
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++$NFT add rule t c accept	# should have handle 2
++$NFT replace rule t c handle 2 drop
++
++EXPECTED="table ip t {
++	chain c {
++		drop 
++	}
++}"
++
++GET="$($NFT list ruleset)"
++
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
+diff --git a/tests/shell/testcases/rule_management/0005replace_1 b/tests/shell/testcases/rule_management/0005replace_1
+new file mode 100755
+index 0000000..e82995a
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0005replace_1
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++# tests for Netfilter bug #965 and the related fix
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++# kernel should return ENOENT
++$NFT replace rule t c handle 2 drop 2>/dev/null
++echo "E: missing kernel ENOENT" >&2
+diff --git a/tests/shell/testcases/rule_management/0006replace_1 b/tests/shell/testcases/rule_management/0006replace_1
+new file mode 100755
+index 0000000..5dfcba0
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0006replace_1
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++# tests for Netfilter bug #965 and the related fix
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++# position keyword with replace action is not allowed, this should fail
++$NFT replace rule t c position 2 drop 2>/dev/null
++echo "E: allowed replace with position specification" >&2
+diff --git a/tests/shell/testcases/rule_management/0007delete_0 b/tests/shell/testcases/rule_management/0007delete_0
+new file mode 100755
+index 0000000..8b00cd3
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0007delete_0
+@@ -0,0 +1,25 @@
++#!/bin/bash
++
++# tests for Netfilter bug #965 and the related fix
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++$NFT add rule t c accept	# should have handle 2
++$NFT add rule t c drop		# should have handle 3
++$NFT delete rule t c handle 2
++
++EXPECTED="table ip t {
++	chain c {
++		drop 
++	}
++}"
++
++GET="$($NFT list ruleset)"
++
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
+diff --git a/tests/shell/testcases/rule_management/0008delete_1 b/tests/shell/testcases/rule_management/0008delete_1
+new file mode 100755
+index 0000000..3dce219
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0008delete_1
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++# tests for Netfilter bug #965 and the related fix
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++# this should fail, we don't allow delete with position
++$NFT delete rule t c position 2 drop 2>/dev/null
++echo "E: allowed position spec with delete action" >&2
+diff --git a/tests/shell/testcases/rule_management/0009delete_1 b/tests/shell/testcases/rule_management/0009delete_1
+new file mode 100755
+index 0000000..87fec60
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0009delete_1
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++# tests for Netfilter bug #965 and the related fix
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++# kernel ENOENT
++$NFT delete rule t c handle 3333 2>/dev/null
++echo "E: missing kernel ENOENT" >&2
 
-Nit: {} not needed.
-
-> +		if (nla_put_u16(skb, NFQA_VLAN_TCI, entskb->vlan_tci))
-> +			goto nla_put_failure;
-
-I would suggest to use nla_put_be16 + htons here, we also use bigendian
-for things like skb->mark.
-
-Rest looks good to me, thanks!
