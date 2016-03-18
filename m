@@ -1,72 +1,52 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: conntrack-tool question for contribution.
-Date: Fri, 18 Mar 2016 12:59:24 +0100
-Message-ID: <CAOkSjBidYJPMAcvnSUShTU1oq5ABUvXKhqaiK7OsWEC6rBOpag@mail.gmail.com>
-References: <CAC3B9fnKEGUsV_ir+7Y3wyy9C2KYDMbBaj-5emDhSN4V_F46DQ@mail.gmail.com>
+From: Michal Kubecek <mkubecek@suse.cz>
+Subject: Re: [PATCH nf] netfilter: x_tables: deal with bogus nextoffset values
+Date: Fri, 18 Mar 2016 14:03:40 +0100
+Message-ID: <20160318130340.GA9843@unicorn.suse.cz>
+References: <1457571362-25441-1-git-send-email-fw@strlen.de>
+ <20160310141231.GA13006@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Miguel Angel Ajo Pelayo <majopela@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	hawkes@google.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:33000 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752190AbcCRL7p convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Mar 2016 07:59:45 -0400
-Received: by mail-wm0-f41.google.com with SMTP id l68so65406525wml.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 18 Mar 2016 04:59:44 -0700 (PDT)
-In-Reply-To: <CAC3B9fnKEGUsV_ir+7Y3wyy9C2KYDMbBaj-5emDhSN4V_F46DQ@mail.gmail.com>
+Received: from mx2.suse.de ([195.135.220.15]:37974 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932306AbcCRNDm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 18 Mar 2016 09:03:42 -0400
+Content-Disposition: inline
+In-Reply-To: <20160310141231.GA13006@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 16 March 2016 at 12:16, Miguel Angel Ajo Pelayo <majopela@redhat.com=
-> wrote:
-> I was considering the possibility of making an small contribution to
-> conntrack-tool
-> to allow the batching of commands in a single conntrack-tool call.
->
-> Specifically I'm interested in batching delete commands.
->
-> In some of the neutron reference implementations we make use of connt=
-rack-tool
-> to target and kill any active connection when security group rules ar=
-e removed.
->
-> That sometimes expands in thousands of calls due to combinations (wor=
-st
-> scenario is n_port^2 calls for a very common type of rule we have).
->
->
-> So I was considering two options:
->
-> 1) Adding a mode to accept conntrack-tool actions via stdin
-> 2) Accepting the cmdline notation of separating multiple command line=
-s
-> with "--" in a single call to conntrack tool.
->
->
-> Any thoughts or recommendations in this regard?
->
+On Thu, Mar 10, 2016 at 03:12:31PM +0100, Pablo Neira Ayuso wrote:
+> On Thu, Mar 10, 2016 at 01:56:02AM +0100, Florian Westphal wrote:
+> > Ben Hawkes says:
+> > 
+> >  In the mark_source_chains function (net/ipv4/netfilter/ip_tables.c) it
+> >  is possible for a user-supplied ipt_entry structure to have a large
+> >  next_offset field. This field is not bounds checked prior to writing a
+> >  counter value at the supplied offset.
+> > 
+> > Problem is that xt_entry_foreach() macro stops iterating once e->next_offset
+> > is out of bounds, assuming this is the last entry.
+> > 
+> > With malformed data thats not necessarily the case so we can
+> > write outside of allocated area later as we might not have walked the
+> > entire blob.
+> > 
+> > Fix this by simplifying mark_source_chains -- it already has to check
+> > if nextoff is in range to catch invalid jumps, so just do the check
+> > when we move to a next entry as well.
+...
+> I'll place this in nf-next together with remaining pending fixes, it
+> seems we'll have 4.5 just after this -rc7 so I don't think we'll get
+> there in time for this.
 
-Hi Miguel Angel,
+Hi,
 
-I wonder if the kernel support batching of messages in ctnetlink. You
-may want to check the sources [0][1].
+I can't see this patch neither in nf nor in nf-next even if the other
+one (netfilter: x_tables: check for size overflow) is in nf-next. Was it
+omitted on purpose or is it a mistake?
 
-Perhaps you want the conntrack utility to simply chain a lot of calls
-to the kernel rather than a proper batch of messages. In this case, I
-don't know exactly why but I like more your 2) option.
-
-[0] http://lxr.free-electrons.com/source/net/netfilter/nf_conntrack_net=
-link.c#L3260
-[1] http://lxr.free-electrons.com/source/net/netfilter/nfnetlink.c#L282
-
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+                                                          Michal Kubecek
