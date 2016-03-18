@@ -1,115 +1,60 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH 1/2] src/parser_bison: fix ruleid_spec ambiguity
-Date: Fri, 18 Mar 2016 20:29:29 +0100
-Message-ID: <145832936930.1466.10807188686798508369.stgit@nfdev2.cica.es>
+From: Guruswamy Basavaiah <guru2018@gmail.com>
+Subject: [PATCH] iptables-translate: translate iptables --flush
+Date: Sat, 19 Mar 2016 02:05:49 +0530
+Message-ID: <20160318203549.GA18494@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: sander.contrib@gmail.com, pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:58477 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753464AbcCRT3j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Mar 2016 15:29:39 -0400
+Received: from mail-pf0-f177.google.com ([209.85.192.177]:35987 "EHLO
+	mail-pf0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751546AbcCRUfx (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 18 Mar 2016 16:35:53 -0400
+Received: by mail-pf0-f177.google.com with SMTP id u190so182165179pfb.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 18 Mar 2016 13:35:52 -0700 (PDT)
+Received: from localhost.localdomain ([1.23.7.45])
+        by smtp.gmail.com with ESMTPSA id f12sm22984452pfd.87.2016.03.18.13.35.50
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Fri, 18 Mar 2016 13:35:51 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently, parser allows both 'handle' and 'position' as part of the
-same grammar rule. But we don't combine them in any case actually.
+translation for iptables --flush 
 
-As a result of this, deleting rules using "position" keyword deletes all
-rules for chain.
+Examples: $ sudo
+ iptables-translate -F INPUT nft flush chain ip filter INPUT
 
-Split the ruleid_spec in two types:
- * one for handles
- * one for positions
+$ sudo iptables-translate -F -t nat
+nft flush table ip nat
 
-This change complies with the syntax/grammar described currently in the wiki.
+Signed-off-by: Guruswamy Basavaiah <guru2018@gmail.com>
 
-Netfilter bug: http://bugzilla.netfilter.org/show_bug.cgi?id=965
-Reported-by: Jesper Sander Lindgren <sander.contrib@gmail.com>
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- src/parser_bison.y |   26 +++++++++++++++++---------
- 1 file changed, 17 insertions(+), 9 deletions(-)
+ iptables/xtables-translate.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 9e86f26..5ff69ef 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -419,8 +419,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %type <cmd>			base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
- %destructor { cmd_free($$); }	base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
- 
--%type <handle>			table_spec chain_spec chain_identifier ruleid_spec ruleset_spec
--%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec ruleset_spec
-+%type <handle>			table_spec chain_spec chain_identifier rulehandle_spec ruleposition_spec ruleset_spec
-+%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier rulehandle_spec ruleposition_spec ruleset_spec
- %type <handle>			set_spec set_identifier
- %destructor { handle_free(&$$); } set_spec set_identifier
- %type <val>			handle_spec family_spec family_spec_explicit position_spec chain_policy prio_spec
-@@ -704,11 +704,11 @@ add_cmd			:	TABLE		table_spec
- 				close_scope(state);
- 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_CHAIN, &$2, &@$, $5);
- 			}
--			|	RULE		ruleid_spec	rule
-+			|	RULE		ruleposition_spec	rule
- 			{
- 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_RULE, &$2, &@$, $3);
- 			}
--			|	/* empty */	ruleid_spec	rule
-+			|	/* empty */	ruleposition_spec	rule
- 			{
- 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_RULE, &$1, &@$, $2);
- 			}
-@@ -732,7 +732,7 @@ add_cmd			:	TABLE		table_spec
- 			}
- 			;
- 
--replace_cmd		:	RULE		ruleid_spec	rule
-+replace_cmd		:	RULE		rulehandle_spec	rule
- 			{
- 				$$ = cmd_alloc(CMD_REPLACE, CMD_OBJ_RULE, &$2, &@$, $3);
- 			}
-@@ -763,7 +763,7 @@ create_cmd		:	TABLE		table_spec
- 			}
- 			;
- 
--insert_cmd		:	RULE		ruleid_spec	rule
-+insert_cmd		:	RULE		ruleposition_spec	rule
- 			{
- 				$$ = cmd_alloc(CMD_INSERT, CMD_OBJ_RULE, &$2, &@$, $3);
- 			}
-@@ -777,7 +777,7 @@ delete_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_CHAIN, &$2, &@$, NULL);
- 			}
--			|	RULE		ruleid_spec
-+			|	RULE		rulehandle_spec
- 			{
- 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_RULE, &$2, &@$, NULL);
- 			}
-@@ -1236,11 +1236,19 @@ position_spec		:	/* empty */
- 			}
- 			;
- 
--ruleid_spec		:	chain_spec	handle_spec	position_spec
-+rulehandle_spec		:	chain_spec	handle_spec
- 			{
- 				$$		= $1;
- 				$$.handle	= $2;
--				$$.position	= $3;
-+				$$.position	= 0;
-+			}
-+			;
-+
-+ruleposition_spec	:	chain_spec	position_spec
-+			{
-+				$$		= $1;
-+				$$.handle	= 0;
-+				$$.position	= $2;
- 			}
- 			;
- 
+diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
+index 13a0bc7..354357c 100644
+--- a/iptables/xtables-translate.c
++++ b/iptables/xtables-translate.c
+@@ -216,6 +216,14 @@ static int do_command_xlate(struct nft_handle *h, int argc, char *argv[],
+ 		}
+ 		break;
+ 	case CMD_FLUSH:
++		if (p.chain) {
++			printf("flush chain %s %s %s\n",
++				family2str[h->family], p.table, p.chain);
++		} else {
++			printf("flush table %s %s\n",
++				family2str[h->family], p.table);
++		}
++		ret = 1;
+ 		break;
+ 	case CMD_ZERO:
+ 		break;
+-- 
+2.5.0
 
