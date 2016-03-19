@@ -1,209 +1,142 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 1/4] netfilter: x_tables: validate e->target_offset early
-Date: Sat, 19 Mar 2016 22:51:31 +0100
-Message-ID: <1458424294-8678-1-git-send-email-fw@strlen.de>
+Subject: [PATCH 2/4] netfilter: x_tables: don't move to non-existent next rule
+Date: Sat, 19 Mar 2016 22:51:32 +0100
+Message-ID: <1458424294-8678-2-git-send-email-fw@strlen.de>
+References: <1458424294-8678-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35265 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35266 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932143AbcCSVvS (ORCPT
+	by vger.kernel.org with ESMTP id S932143AbcCSVvU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 19 Mar 2016 17:51:18 -0400
+	Sat, 19 Mar 2016 17:51:20 -0400
+In-Reply-To: <1458424294-8678-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We should check that e->target_offset is sane before
-mark_source_chains gets called since it will fetch the target entry
-for loop detection.
+Ben Hawkes says:
 
+ In the mark_source_chains function (net/ipv4/netfilter/ip_tables.c) it
+ is possible for a user-supplied ipt_entry structure to have a large
+ next_offset field. This field is not bounds checked prior to writing a
+ counter value at the supplied offset.
+
+Problem is that xt_entry_foreach() macro stops iterating once
+e->next_offset is out of bounds, assuming this is the last entry that
+will be used.
+
+However, if the blob is malformed its possible that mark_source_chains
+function attempts to move past the last entry iff this last entry
+doesn't have a verdict/jump (i.e. evaluation continues with next rule).
+
+To fix this we check that the next address isn't above the blob size.
+
+We know from initial xt_entry_foreach that all e->next_offset values are
+sane except the last entry, where last + last->next_offset brought us above
+the total_size.
+
+Reported-by: Ben Hawkes <hawkes@google.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/ipv4/netfilter/arp_tables.c | 17 ++++++++---------
- net/ipv4/netfilter/ip_tables.c  | 17 ++++++++---------
- net/ipv6/netfilter/ip6_tables.c | 17 ++++++++---------
- 3 files changed, 24 insertions(+), 27 deletions(-)
+ net/ipv4/netfilter/arp_tables.c | 10 +++++++---
+ net/ipv4/netfilter/ip_tables.c  |  6 ++++++
+ net/ipv6/netfilter/ip6_tables.c |  6 ++++++
+ 3 files changed, 19 insertions(+), 3 deletions(-)
 
 diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index bf08192..830bbe8 100644
+index 830bbe8..2347a5c 100644
 --- a/net/ipv4/netfilter/arp_tables.c
 +++ b/net/ipv4/netfilter/arp_tables.c
-@@ -474,14 +474,12 @@ next:
- 	return 1;
- }
+@@ -439,6 +439,8 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
+ 				size = e->next_offset;
+ 				e = (struct arpt_entry *)
+ 					(entry0 + pos + size);
++				if (pos + size >= newinfo->size)
++					return 0;
+ 				e->counters.pcnt = pos;
+ 				pos += size;
+ 			} else {
+@@ -458,9 +460,13 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
+ 					/* This a jump; chase it. */
+ 					duprintf("Jump rule %u -> %u\n",
+ 						 pos, newpos);
++					e = (struct arpt_entry *)
++						(entry0 + newpos);
+ 				} else {
+ 					/* ... this is a fallthru */
+ 					newpos = pos + e->next_offset;
++					if (newpos >= newinfo->size)
++						return 0;
+ 				}
+ 				e = (struct arpt_entry *)
+ 					(entry0 + newpos);
+@@ -690,10 +696,8 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
+ 		}
+ 	}
  
--static inline int check_entry(const struct arpt_entry *e, const char *name)
-+static inline int check_entry(const struct arpt_entry *e)
- {
- 	const struct xt_entry_target *t;
- 
--	if (!arp_checkentry(&e->arp)) {
--		duprintf("arp_tables: arp check failed %p %s.\n", e, name);
-+	if (!arp_checkentry(&e->arp))
- 		return -EINVAL;
+-	if (!mark_source_chains(newinfo, repl->valid_hooks, entry0)) {
+-		duprintf("Looping hook\n");
++	if (!mark_source_chains(newinfo, repl->valid_hooks, entry0))
+ 		return -ELOOP;
 -	}
  
- 	if (e->target_offset + sizeof(struct xt_entry_target) > e->next_offset)
- 		return -EINVAL;
-@@ -522,10 +520,6 @@ find_check_entry(struct arpt_entry *e, const char *name, unsigned int size)
- 	struct xt_target *target;
- 	int ret;
- 
--	ret = check_entry(e, name);
--	if (ret)
--		return ret;
--
- 	e->counters.pcnt = xt_percpu_counter_alloc();
- 	if (IS_ERR_VALUE(e->counters.pcnt))
- 		return -ENOMEM;
-@@ -576,6 +570,7 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
- 					     unsigned int valid_hooks)
- {
- 	unsigned int h;
-+	int err;
- 
- 	if ((unsigned long)e % __alignof__(struct arpt_entry) != 0 ||
- 	    (unsigned char *)e + sizeof(struct arpt_entry) >= limit) {
-@@ -590,6 +585,10 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
- 		return -EINVAL;
- 	}
- 
-+	err = check_entry(e);
-+	if (err)
-+		return err;
-+
- 	/* Check hooks & underflows */
- 	for (h = 0; h < NF_ARP_NUMHOOKS; h++) {
- 		if (!(valid_hooks & (1 << h)))
-@@ -1246,7 +1245,7 @@ check_compat_entry_size_and_hooks(struct compat_arpt_entry *e,
- 	}
- 
- 	/* For purposes of check_entry casting the compat entry is fine */
--	ret = check_entry((struct arpt_entry *)e, name);
-+	ret = check_entry((struct arpt_entry *)e);
- 	if (ret)
- 		return ret;
- 
+ 	/* Finally, each sanity check must pass */
+ 	i = 0;
 diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index e53f8d6..1d72a3c 100644
+index 1d72a3c..07ce901 100644
 --- a/net/ipv4/netfilter/ip_tables.c
 +++ b/net/ipv4/netfilter/ip_tables.c
-@@ -569,14 +569,12 @@ static void cleanup_match(struct xt_entry_match *m, struct net *net)
- }
- 
- static int
--check_entry(const struct ipt_entry *e, const char *name)
-+check_entry(const struct ipt_entry *e)
- {
- 	const struct xt_entry_target *t;
- 
--	if (!ip_checkentry(&e->ip)) {
--		duprintf("ip check failed %p %s.\n", e, name);
-+	if (!ip_checkentry(&e->ip))
- 		return -EINVAL;
--	}
- 
- 	if (e->target_offset + sizeof(struct xt_entry_target) >
- 	    e->next_offset)
-@@ -666,10 +664,6 @@ find_check_entry(struct ipt_entry *e, struct net *net, const char *name,
- 	struct xt_mtchk_param mtpar;
- 	struct xt_entry_match *ematch;
- 
--	ret = check_entry(e, name);
--	if (ret)
--		return ret;
--
- 	e->counters.pcnt = xt_percpu_counter_alloc();
- 	if (IS_ERR_VALUE(e->counters.pcnt))
- 		return -ENOMEM;
-@@ -741,6 +735,7 @@ check_entry_size_and_hooks(struct ipt_entry *e,
- 			   unsigned int valid_hooks)
- {
- 	unsigned int h;
-+	int err;
- 
- 	if ((unsigned long)e % __alignof__(struct ipt_entry) != 0 ||
- 	    (unsigned char *)e + sizeof(struct ipt_entry) >= limit) {
-@@ -755,6 +750,10 @@ check_entry_size_and_hooks(struct ipt_entry *e,
- 		return -EINVAL;
- 	}
- 
-+	err = check_entry(e);
-+	if (err)
-+		return err;
-+
- 	/* Check hooks & underflows */
- 	for (h = 0; h < NF_INET_NUMHOOKS; h++) {
- 		if (!(valid_hooks & (1 << h)))
-@@ -1506,7 +1505,7 @@ check_compat_entry_size_and_hooks(struct compat_ipt_entry *e,
- 	}
- 
- 	/* For purposes of check_entry casting the compat entry is fine */
--	ret = check_entry((struct ipt_entry *)e, name);
-+	ret = check_entry((struct ipt_entry *)e);
- 	if (ret)
- 		return ret;
- 
+@@ -521,6 +521,8 @@ mark_source_chains(const struct xt_table_info *newinfo,
+ 				size = e->next_offset;
+ 				e = (struct ipt_entry *)
+ 					(entry0 + pos + size);
++				if (pos + size >= newinfo->size)
++					return 0;
+ 				e->counters.pcnt = pos;
+ 				pos += size;
+ 			} else {
+@@ -539,9 +541,13 @@ mark_source_chains(const struct xt_table_info *newinfo,
+ 					/* This a jump; chase it. */
+ 					duprintf("Jump rule %u -> %u\n",
+ 						 pos, newpos);
++					e = (struct ipt_entry *)
++						(entry0 + newpos);
+ 				} else {
+ 					/* ... this is a fallthru */
+ 					newpos = pos + e->next_offset;
++					if (newpos >= newinfo->size)
++						return 0;
+ 				}
+ 				e = (struct ipt_entry *)
+ 					(entry0 + newpos);
 diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 84f9baf..26a5ad1 100644
+index 26a5ad1..99068dc 100644
 --- a/net/ipv6/netfilter/ip6_tables.c
 +++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -581,14 +581,12 @@ static void cleanup_match(struct xt_entry_match *m, struct net *net)
- }
- 
- static int
--check_entry(const struct ip6t_entry *e, const char *name)
-+check_entry(const struct ip6t_entry *e)
- {
- 	const struct xt_entry_target *t;
- 
--	if (!ip6_checkentry(&e->ipv6)) {
--		duprintf("ip_tables: ip check failed %p %s.\n", e, name);
-+	if (!ip6_checkentry(&e->ipv6))
- 		return -EINVAL;
--	}
- 
- 	if (e->target_offset + sizeof(struct xt_entry_target) >
- 	    e->next_offset)
-@@ -679,10 +677,6 @@ find_check_entry(struct ip6t_entry *e, struct net *net, const char *name,
- 	struct xt_mtchk_param mtpar;
- 	struct xt_entry_match *ematch;
- 
--	ret = check_entry(e, name);
--	if (ret)
--		return ret;
--
- 	e->counters.pcnt = xt_percpu_counter_alloc();
- 	if (IS_ERR_VALUE(e->counters.pcnt))
- 		return -ENOMEM;
-@@ -753,6 +747,7 @@ check_entry_size_and_hooks(struct ip6t_entry *e,
- 			   unsigned int valid_hooks)
- {
- 	unsigned int h;
-+	int err;
- 
- 	if ((unsigned long)e % __alignof__(struct ip6t_entry) != 0 ||
- 	    (unsigned char *)e + sizeof(struct ip6t_entry) >= limit) {
-@@ -767,6 +762,10 @@ check_entry_size_and_hooks(struct ip6t_entry *e,
- 		return -EINVAL;
- 	}
- 
-+	err = check_entry(e);
-+	if (err)
-+		return err;
-+
- 	/* Check hooks & underflows */
- 	for (h = 0; h < NF_INET_NUMHOOKS; h++) {
- 		if (!(valid_hooks & (1 << h)))
-@@ -1518,7 +1517,7 @@ check_compat_entry_size_and_hooks(struct compat_ip6t_entry *e,
- 	}
- 
- 	/* For purposes of check_entry casting the compat entry is fine */
--	ret = check_entry((struct ip6t_entry *)e, name);
-+	ret = check_entry((struct ip6t_entry *)e);
- 	if (ret)
- 		return ret;
- 
+@@ -533,6 +533,8 @@ mark_source_chains(const struct xt_table_info *newinfo,
+ 				size = e->next_offset;
+ 				e = (struct ip6t_entry *)
+ 					(entry0 + pos + size);
++				if (pos + size >= newinfo->size)
++					return 0;
+ 				e->counters.pcnt = pos;
+ 				pos += size;
+ 			} else {
+@@ -551,9 +553,13 @@ mark_source_chains(const struct xt_table_info *newinfo,
+ 					/* This a jump; chase it. */
+ 					duprintf("Jump rule %u -> %u\n",
+ 						 pos, newpos);
++					e = (struct ip6t_entry *)
++						(entry0 + newpos);
+ 				} else {
+ 					/* ... this is a fallthru */
+ 					newpos = pos + e->next_offset;
++					if (newpos >= newinfo->size)
++						return 0;
+ 				}
+ 				e = (struct ip6t_entry *)
+ 					(entry0 + newpos);
 -- 
 2.4.10
 
