@@ -1,115 +1,47 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH 1/2] src/parser_bison: fix ruleid_spec ambiguity
-Date: Fri, 18 Mar 2016 20:14:26 +0100
-Message-ID: <145832846678.11442.11097916539235202354.stgit@nostromo>
+Subject: Re: [nft PATCH 2/2] tests/shell: add testcases for Netfilter bug #965
+Date: Sat, 19 Mar 2016 16:57:44 +0100
+Message-ID: <CAOkSjBgLF2gs=CgPTrP7SY7bOU3AUbqxTUpVa3mMx2-VQHbxgg@mail.gmail.com>
+References: <145832846678.11442.11097916539235202354.stgit@nostromo> <145832847321.11442.4869938717972076465.stgit@nostromo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: sander.contrib@gmail.com, pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: sander.contrib@gmail.com, Pablo Neira Ayuso <pablo@netfilter.org>
+To: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 183.red-81-44-194.dynamicip.rima-tde.net ([81.44.194.183]:44708
-	"EHLO nostromo" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751812AbcCSOS1 (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36054 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754167AbcCSP6G convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 19 Mar 2016 10:18:27 -0400
+	Sat, 19 Mar 2016 11:58:06 -0400
+Received: by mail-wm0-f68.google.com with SMTP id l68so12304431wml.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 19 Mar 2016 08:58:05 -0700 (PDT)
+In-Reply-To: <145832847321.11442.4869938717972076465.stgit@nostromo>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently, parser allows both 'handle' and 'position' as part of the
-same grammar rule. But we don't combine them in any case actually.
+On 18 March 2016 at 20:14, Arturo Borrero Gonzalez
+<arturo.borrero.glez@gmail.com> wrote:
+> Testscases for Netfilter bug #965:
+>  * add rule at position
+>  * insert rule at position
+>  * replace rule with given handle
+>  * delete rule with given handle
+>  * don't allow to delete rules with position keyword
+>
+> Netfilter Bugzilla: http://bugzilla.netfilter.org/show_bug.cgi?id=3D9=
+65
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com=
+>
 
-As a result of this, deleting rules using "position" keyword deletes all
-rules for chain.
+sorry for the duplicated patches, something was wrong with my email con=
+fig.
 
-Split the ruleid_spec in two types:
- * one for handles
- * one for positions
-
-This change complies with the syntax/grammar described currently in the wiki.
-
-Netfilter bug: http://bugzilla.netfilter.org/show_bug.cgi?id=965
-Reported-by: Jesper Sander Lindgren <sander.contrib@gmail.com>
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- 0 files changed
-
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 9e86f26..5ff69ef 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -419,8 +419,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %type <cmd>			base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
- %destructor { cmd_free($$); }	base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
- 
--%type <handle>			table_spec chain_spec chain_identifier ruleid_spec ruleset_spec
--%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec ruleset_spec
-+%type <handle>			table_spec chain_spec chain_identifier rulehandle_spec ruleposition_spec ruleset_spec
-+%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier rulehandle_spec ruleposition_spec ruleset_spec
- %type <handle>			set_spec set_identifier
- %destructor { handle_free(&$$); } set_spec set_identifier
- %type <val>			handle_spec family_spec family_spec_explicit position_spec chain_policy prio_spec
-@@ -704,11 +704,11 @@ add_cmd			:	TABLE		table_spec
- 				close_scope(state);
- 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_CHAIN, &$2, &@$, $5);
- 			}
--			|	RULE		ruleid_spec	rule
-+			|	RULE		ruleposition_spec	rule
- 			{
- 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_RULE, &$2, &@$, $3);
- 			}
--			|	/* empty */	ruleid_spec	rule
-+			|	/* empty */	ruleposition_spec	rule
- 			{
- 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_RULE, &$1, &@$, $2);
- 			}
-@@ -732,7 +732,7 @@ add_cmd			:	TABLE		table_spec
- 			}
- 			;
- 
--replace_cmd		:	RULE		ruleid_spec	rule
-+replace_cmd		:	RULE		rulehandle_spec	rule
- 			{
- 				$$ = cmd_alloc(CMD_REPLACE, CMD_OBJ_RULE, &$2, &@$, $3);
- 			}
-@@ -763,7 +763,7 @@ create_cmd		:	TABLE		table_spec
- 			}
- 			;
- 
--insert_cmd		:	RULE		ruleid_spec	rule
-+insert_cmd		:	RULE		ruleposition_spec	rule
- 			{
- 				$$ = cmd_alloc(CMD_INSERT, CMD_OBJ_RULE, &$2, &@$, $3);
- 			}
-@@ -777,7 +777,7 @@ delete_cmd		:	TABLE		table_spec
- 			{
- 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_CHAIN, &$2, &@$, NULL);
- 			}
--			|	RULE		ruleid_spec
-+			|	RULE		rulehandle_spec
- 			{
- 				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_RULE, &$2, &@$, NULL);
- 			}
-@@ -1236,11 +1236,19 @@ position_spec		:	/* empty */
- 			}
- 			;
- 
--ruleid_spec		:	chain_spec	handle_spec	position_spec
-+rulehandle_spec		:	chain_spec	handle_spec
- 			{
- 				$$		= $1;
- 				$$.handle	= $2;
--				$$.position	= $3;
-+				$$.position	= 0;
-+			}
-+			;
-+
-+ruleposition_spec	:	chain_spec	position_spec
-+			{
-+				$$		= $1;
-+				$$.handle	= 0;
-+				$$.position	= $2;
- 			}
- 			;
- 
-
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
