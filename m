@@ -1,47 +1,209 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [nft PATCH 2/2] tests/shell: add testcases for Netfilter bug #965
-Date: Sat, 19 Mar 2016 16:57:44 +0100
-Message-ID: <CAOkSjBgLF2gs=CgPTrP7SY7bOU3AUbqxTUpVa3mMx2-VQHbxgg@mail.gmail.com>
-References: <145832846678.11442.11097916539235202354.stgit@nostromo> <145832847321.11442.4869938717972076465.stgit@nostromo>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: sander.contrib@gmail.com, Pablo Neira Ayuso <pablo@netfilter.org>
-To: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 1/4] netfilter: x_tables: validate e->target_offset early
+Date: Sat, 19 Mar 2016 22:51:31 +0100
+Message-ID: <1458424294-8678-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36054 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754167AbcCSP6G convert rfc822-to-8bit (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35265 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932143AbcCSVvS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 19 Mar 2016 11:58:06 -0400
-Received: by mail-wm0-f68.google.com with SMTP id l68so12304431wml.3
-        for <netfilter-devel@vger.kernel.org>; Sat, 19 Mar 2016 08:58:05 -0700 (PDT)
-In-Reply-To: <145832847321.11442.4869938717972076465.stgit@nostromo>
+	Sat, 19 Mar 2016 17:51:18 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 18 March 2016 at 20:14, Arturo Borrero Gonzalez
-<arturo.borrero.glez@gmail.com> wrote:
-> Testscases for Netfilter bug #965:
->  * add rule at position
->  * insert rule at position
->  * replace rule with given handle
->  * delete rule with given handle
->  * don't allow to delete rules with position keyword
->
-> Netfilter Bugzilla: http://bugzilla.netfilter.org/show_bug.cgi?id=3D9=
-65
-> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com=
->
+We should check that e->target_offset is sane before
+mark_source_chains gets called since it will fetch the target entry
+for loop detection.
 
-sorry for the duplicated patches, something was wrong with my email con=
-fig.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/ipv4/netfilter/arp_tables.c | 17 ++++++++---------
+ net/ipv4/netfilter/ip_tables.c  | 17 ++++++++---------
+ net/ipv6/netfilter/ip6_tables.c | 17 ++++++++---------
+ 3 files changed, 24 insertions(+), 27 deletions(-)
 
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index bf08192..830bbe8 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -474,14 +474,12 @@ next:
+ 	return 1;
+ }
+ 
+-static inline int check_entry(const struct arpt_entry *e, const char *name)
++static inline int check_entry(const struct arpt_entry *e)
+ {
+ 	const struct xt_entry_target *t;
+ 
+-	if (!arp_checkentry(&e->arp)) {
+-		duprintf("arp_tables: arp check failed %p %s.\n", e, name);
++	if (!arp_checkentry(&e->arp))
+ 		return -EINVAL;
+-	}
+ 
+ 	if (e->target_offset + sizeof(struct xt_entry_target) > e->next_offset)
+ 		return -EINVAL;
+@@ -522,10 +520,6 @@ find_check_entry(struct arpt_entry *e, const char *name, unsigned int size)
+ 	struct xt_target *target;
+ 	int ret;
+ 
+-	ret = check_entry(e, name);
+-	if (ret)
+-		return ret;
+-
+ 	e->counters.pcnt = xt_percpu_counter_alloc();
+ 	if (IS_ERR_VALUE(e->counters.pcnt))
+ 		return -ENOMEM;
+@@ -576,6 +570,7 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
+ 					     unsigned int valid_hooks)
+ {
+ 	unsigned int h;
++	int err;
+ 
+ 	if ((unsigned long)e % __alignof__(struct arpt_entry) != 0 ||
+ 	    (unsigned char *)e + sizeof(struct arpt_entry) >= limit) {
+@@ -590,6 +585,10 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
+ 		return -EINVAL;
+ 	}
+ 
++	err = check_entry(e);
++	if (err)
++		return err;
++
+ 	/* Check hooks & underflows */
+ 	for (h = 0; h < NF_ARP_NUMHOOKS; h++) {
+ 		if (!(valid_hooks & (1 << h)))
+@@ -1246,7 +1245,7 @@ check_compat_entry_size_and_hooks(struct compat_arpt_entry *e,
+ 	}
+ 
+ 	/* For purposes of check_entry casting the compat entry is fine */
+-	ret = check_entry((struct arpt_entry *)e, name);
++	ret = check_entry((struct arpt_entry *)e);
+ 	if (ret)
+ 		return ret;
+ 
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index e53f8d6..1d72a3c 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -569,14 +569,12 @@ static void cleanup_match(struct xt_entry_match *m, struct net *net)
+ }
+ 
+ static int
+-check_entry(const struct ipt_entry *e, const char *name)
++check_entry(const struct ipt_entry *e)
+ {
+ 	const struct xt_entry_target *t;
+ 
+-	if (!ip_checkentry(&e->ip)) {
+-		duprintf("ip check failed %p %s.\n", e, name);
++	if (!ip_checkentry(&e->ip))
+ 		return -EINVAL;
+-	}
+ 
+ 	if (e->target_offset + sizeof(struct xt_entry_target) >
+ 	    e->next_offset)
+@@ -666,10 +664,6 @@ find_check_entry(struct ipt_entry *e, struct net *net, const char *name,
+ 	struct xt_mtchk_param mtpar;
+ 	struct xt_entry_match *ematch;
+ 
+-	ret = check_entry(e, name);
+-	if (ret)
+-		return ret;
+-
+ 	e->counters.pcnt = xt_percpu_counter_alloc();
+ 	if (IS_ERR_VALUE(e->counters.pcnt))
+ 		return -ENOMEM;
+@@ -741,6 +735,7 @@ check_entry_size_and_hooks(struct ipt_entry *e,
+ 			   unsigned int valid_hooks)
+ {
+ 	unsigned int h;
++	int err;
+ 
+ 	if ((unsigned long)e % __alignof__(struct ipt_entry) != 0 ||
+ 	    (unsigned char *)e + sizeof(struct ipt_entry) >= limit) {
+@@ -755,6 +750,10 @@ check_entry_size_and_hooks(struct ipt_entry *e,
+ 		return -EINVAL;
+ 	}
+ 
++	err = check_entry(e);
++	if (err)
++		return err;
++
+ 	/* Check hooks & underflows */
+ 	for (h = 0; h < NF_INET_NUMHOOKS; h++) {
+ 		if (!(valid_hooks & (1 << h)))
+@@ -1506,7 +1505,7 @@ check_compat_entry_size_and_hooks(struct compat_ipt_entry *e,
+ 	}
+ 
+ 	/* For purposes of check_entry casting the compat entry is fine */
+-	ret = check_entry((struct ipt_entry *)e, name);
++	ret = check_entry((struct ipt_entry *)e);
+ 	if (ret)
+ 		return ret;
+ 
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 84f9baf..26a5ad1 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -581,14 +581,12 @@ static void cleanup_match(struct xt_entry_match *m, struct net *net)
+ }
+ 
+ static int
+-check_entry(const struct ip6t_entry *e, const char *name)
++check_entry(const struct ip6t_entry *e)
+ {
+ 	const struct xt_entry_target *t;
+ 
+-	if (!ip6_checkentry(&e->ipv6)) {
+-		duprintf("ip_tables: ip check failed %p %s.\n", e, name);
++	if (!ip6_checkentry(&e->ipv6))
+ 		return -EINVAL;
+-	}
+ 
+ 	if (e->target_offset + sizeof(struct xt_entry_target) >
+ 	    e->next_offset)
+@@ -679,10 +677,6 @@ find_check_entry(struct ip6t_entry *e, struct net *net, const char *name,
+ 	struct xt_mtchk_param mtpar;
+ 	struct xt_entry_match *ematch;
+ 
+-	ret = check_entry(e, name);
+-	if (ret)
+-		return ret;
+-
+ 	e->counters.pcnt = xt_percpu_counter_alloc();
+ 	if (IS_ERR_VALUE(e->counters.pcnt))
+ 		return -ENOMEM;
+@@ -753,6 +747,7 @@ check_entry_size_and_hooks(struct ip6t_entry *e,
+ 			   unsigned int valid_hooks)
+ {
+ 	unsigned int h;
++	int err;
+ 
+ 	if ((unsigned long)e % __alignof__(struct ip6t_entry) != 0 ||
+ 	    (unsigned char *)e + sizeof(struct ip6t_entry) >= limit) {
+@@ -767,6 +762,10 @@ check_entry_size_and_hooks(struct ip6t_entry *e,
+ 		return -EINVAL;
+ 	}
+ 
++	err = check_entry(e);
++	if (err)
++		return err;
++
+ 	/* Check hooks & underflows */
+ 	for (h = 0; h < NF_INET_NUMHOOKS; h++) {
+ 		if (!(valid_hooks & (1 << h)))
+@@ -1518,7 +1517,7 @@ check_compat_entry_size_and_hooks(struct compat_ip6t_entry *e,
+ 	}
+ 
+ 	/* For purposes of check_entry casting the compat entry is fine */
+-	ret = check_entry((struct ip6t_entry *)e, name);
++	ret = check_entry((struct ip6t_entry *)e);
+ 	if (ret)
+ 		return ret;
+ 
+-- 
+2.4.10
+
