@@ -1,55 +1,111 @@
-From: Jarno Rajahalme <jarno@ovn.org>
-Subject: [PATCH] openvswitch: Fix checking for new expected connections.
-Date: Mon, 21 Mar 2016 11:15:19 -0700
-Message-ID: <1458584119-2693-1-git-send-email-jarno@ovn.org>
-Cc: kernel-janitors@vger.kernel.org, dev@openvswitch.org, jarno@ovn.org
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH net-next] change nfqueue failopen to apply also to
+ receive message buffer in addition to queue size
+Date: Mon, 21 Mar 2016 22:35:32 +0100
+Message-ID: <20160321213532.GA1818@salvia>
+References: <2ba8dceec36a41149598e43f09af048e@XCH-RTP-014.cisco.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="6c2NcOVqGQ03X4Wi"
+Cc: "'netdev@vger.kernel.org'" <netdev@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"Florian Westphal (fw@strlen.de)" <fw@strlen.de>
+To: "Yigal Reiss (yreiss)" <yreiss@cisco.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:55233 "EHLO
-	relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756434AbcCUSPi (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Mar 2016 14:15:38 -0400
+Received: from mail.us.es ([193.147.175.20]:35291 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751268AbcCUVfp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Mar 2016 17:35:45 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 275B0C125C
+	for <netfilter-devel@vger.kernel.org>; Mon, 21 Mar 2016 22:35:43 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 16CE3DA388
+	for <netfilter-devel@vger.kernel.org>; Mon, 21 Mar 2016 22:35:43 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 472D8DA380
+	for <netfilter-devel@vger.kernel.org>; Mon, 21 Mar 2016 22:35:41 +0100 (CET)
+Content-Disposition: inline
+In-Reply-To: <2ba8dceec36a41149598e43f09af048e@XCH-RTP-014.cisco.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-OVS should call into CT NAT for packets of new expected connections only
-when the conntrack state is persisted with the 'commit' option to the
-OVS CT action.  The test for this condition is doubly wrong, as the CT
-status field is ANDed with the bit number (IPS_EXPECTED_BIT) rather
-than the mask (IPS_EXPECTED), and due to the wrong assumption that the
-expected bit would apply only for the first (i.e., 'new') packet of a
-connection, while in fact the expected bit remains on for the lifetime of
-an expected connection.  The 'ctinfo' value IP_CT_RELATED derived from
-the ct status can be used instead, as it is only ever applicable to
-the 'new' packets of the expected connection.
 
-Fixes: 05752523e565 ('openvswitch: Interface with NAT.')
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
----
- net/openvswitch/conntrack.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+--6c2NcOVqGQ03X4Wi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
-index dc5eb29..47f7c62 100644
---- a/net/openvswitch/conntrack.c
-+++ b/net/openvswitch/conntrack.c
-@@ -664,11 +664,12 @@ static int ovs_ct_nat(struct net *net, struct sw_flow_key *key,
+On Mon, Mar 21, 2016 at 11:23:43AM +0000, Yigal Reiss (yreiss) wrote:
+> @@ -582,10 +585,17 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
+>  	*packet_id_ptr = htonl(entry->id);
+>  
+>  	/* nfnetlink_unicast will either free the nskb or add it to a socket */
+> -	err = nfnetlink_unicast(nskb, net, queue->peer_portid, MSG_DONTWAIT);
+> +	err = nfnetlink_unicast_nofree(nskb, net, queue->peer_portid, MSG_DONTWAIT);
+
+This keeps nskb around, this skbuff contains the netlink message, not
+the network packet itself that is located in entry->skb.
+
+>  	if (err < 0) {
+> -		queue->queue_user_dropped++;
+> -		goto err_out_unlock;
+> +		if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
+> +		        queue->nobuf_failopened++;
+> +		        failopen = 1;
+> +			err = 0;
+
+In case we couldn't deliver due to socket buffer overrun, if the
+NFQA_CFG_F_FAIL_OPEN flag is set, you set failopen to 1.
+
+> +		}
+> +		else {
+> +		    queue->queue_user_dropped++;
+> +		}
+> +		goto err_out_free_nskb;
+
+And finally, jump to err_out_free_nskb.
+
+>  	}
+>  
+>  	__enqueue_entry(queue, entry);
+> @@ -595,7 +605,6 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
+>  
+>  err_out_free_nskb:
+>  	kfree_skb(nskb);
+
+Which just releases the netlink skbuff.
+
+> -err_out_unlock:
+>  	spin_unlock_bh(&queue->lock);
+>  	if (failopen)
+>  		nf_reinject(entry, NF_ACCEPT);
+
+And reinjects the packet.
+
+So isn't the more simple patch that I'm attaching achieving what you need?
+
+Let me know, thanks.
+
+--6c2NcOVqGQ03X4Wi
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="x.patch"
+
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 7542999..cb5b630 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -582,7 +582,12 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
+ 	/* nfnetlink_unicast will either free the nskb or add it to a socket */
+ 	err = nfnetlink_unicast(nskb, net, queue->peer_portid, MSG_DONTWAIT);
+ 	if (err < 0) {
+-		queue->queue_user_dropped++;
++		if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
++			failopen = 1;
++			err = 0;
++		} else {
++			queue->queue_user_dropped++;
++		}
+ 		goto err_out_unlock;
+ 	}
  
- 	/* Determine NAT type.
- 	 * Check if the NAT type can be deduced from the tracked connection.
--	 * Make sure expected traffic is NATted only when committing.
-+	 * Make sure new expected connections (IP_CT_RELATED) are NATted only
-+	 * when committing.
- 	 */
- 	if (info->nat & OVS_CT_NAT && ctinfo != IP_CT_NEW &&
- 	    ct->status & IPS_NAT_MASK &&
--	    (!(ct->status & IPS_EXPECTED_BIT) || info->commit)) {
-+	    (ctinfo != IP_CT_RELATED || info->commit)) {
- 		/* NAT an established or related connection like before. */
- 		if (CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY)
- 			/* This is the REPLY direction for a connection
--- 
-2.1.4
 
+--6c2NcOVqGQ03X4Wi--
