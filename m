@@ -1,113 +1,55 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH net-next] change nfqueue failopen to apply also to
- receive message buffer in addition to queue size
-Date: Mon, 21 Mar 2016 13:22:36 +0100
-Message-ID: <20160321122236.GB29493@breakpoint.cc>
-References: <2ba8dceec36a41149598e43f09af048e@XCH-RTP-014.cisco.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: "'netdev@vger.kernel.org'" <netdev@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"Florian Westphal (fw@strlen.de)" <fw@strlen.de>,
-	stephen@networkplumber.org
-To: "Yigal Reiss (yreiss)" <yreiss@cisco.com>
+From: Jarno Rajahalme <jarno@ovn.org>
+Subject: [PATCH] openvswitch: Fix checking for new expected connections.
+Date: Mon, 21 Mar 2016 11:15:19 -0700
+Message-ID: <1458584119-2693-1-git-send-email-jarno@ovn.org>
+Cc: kernel-janitors@vger.kernel.org, dev@openvswitch.org, jarno@ovn.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:36719 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754162AbcCUMWj (ORCPT
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:55233 "EHLO
+	relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756434AbcCUSPi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Mar 2016 08:22:39 -0400
-Content-Disposition: inline
-In-Reply-To: <2ba8dceec36a41149598e43f09af048e@XCH-RTP-014.cisco.com>
+	Mon, 21 Mar 2016 14:15:38 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Yigal Reiss (yreiss) <yreiss@cisco.com> wrote:
+OVS should call into CT NAT for packets of new expected connections only
+when the conntrack state is persisted with the 'commit' option to the
+OVS CT action.  The test for this condition is doubly wrong, as the CT
+status field is ANDed with the bit number (IPS_EXPECTED_BIT) rather
+than the mask (IPS_EXPECTED), and due to the wrong assumption that the
+expected bit would apply only for the first (i.e., 'new') packet of a
+connection, while in fact the expected bit remains on for the lifetime of
+an expected connection.  The 'ctinfo' value IP_CT_RELATED derived from
+the ct status can be used instead, as it is only ever applicable to
+the 'new' packets of the expected connection.
 
-[ CC shemminger ]
+Fixes: 05752523e565 ('openvswitch: Interface with NAT.')
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
+---
+ net/openvswitch/conntrack.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-This is the place where the commit message should go.
-
-The Subject: line alone isn't enough for a large patch like this.
-
-> Signed-off-by: Yigal Reiss <yreiss@cisco.com>
-> ---
-> 
-> NOTE: this is a re-send after being bounced by the test robot for a compiler warning. I hope I'm doing the right thing in resubmitting rather than replying to the original message. Recompiled w/o warnings and re-tested. 
-
-Resubmit is ok.
-
-> This is follow-up on http://marc.info/?l=netfilter-devel&m=145765526817347&w=2 
-
-Perhaps you could summarize the discussion in the commit message.
-
-> Existing fail-open mechanism for nfqueue only applies for message that cannot be sent due to queue size (queue_maxlen). It does not apply when the failure is due to socket receive buffer size. This seems to be quite arbitrary since different packet sizes for the same queue and buffer sizes yield failure for different reasons.
-> 
-> This patch makes both behave the same. 
-
-This should go into the commit log, not here.
-
-> There is also a change in the proc file (/proc/net/netfilter/nfnetlink_queue) to account for the fail-opened packets.
+diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+index dc5eb29..47f7c62 100644
+--- a/net/openvswitch/conntrack.c
++++ b/net/openvswitch/conntrack.c
+@@ -664,11 +664,12 @@ static int ovs_ct_nat(struct net *net, struct sw_flow_key *key,
  
-> One change to existing behavior which I would like to stress is in the function netlink_unicast (now in netlink_unicast_nofree). In case where a call to sk_filter() returned non-zero value, netlink_unicast would set its returned error value to skb->len. I don't see how this ever made sense and I couldn't find anyone looking at this value. I changed this in order to have a consistent (err<0) return value on errors which was required for my changes. If anyone sees a problem with this change I'd like to know.
+ 	/* Determine NAT type.
+ 	 * Check if the NAT type can be deduced from the tracked connection.
+-	 * Make sure expected traffic is NATted only when committing.
++	 * Make sure new expected connections (IP_CT_RELATED) are NATted only
++	 * when committing.
+ 	 */
+ 	if (info->nat & OVS_CT_NAT && ctinfo != IP_CT_NEW &&
+ 	    ct->status & IPS_NAT_MASK &&
+-	    (!(ct->status & IPS_EXPECTED_BIT) || info->commit)) {
++	    (ctinfo != IP_CT_RELATED || info->commit)) {
+ 		/* NAT an established or related connection like before. */
+ 		if (CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY)
+ 			/* This is the REPLY direction for a connection
+-- 
+2.1.4
 
-Should be done in a separate change.
-
-It looks like a bug -- AFAICS if a sk filter is active on the nfnetlink
-sk we will believe sk got queued and will put the (free'd) skb ptr on
-the reinject list.
-
-Added here:
-   commit b1153f29ee07dc1a788964409255a4b4fae50b98
-   Author: Stephen Hemminger <shemminger@vyatta.com>
-   netlink: make socket filters work on netlink
-
-It looks like the intent is to hide the error from writes happening
-on netlink sk, but doing so also hides it from nfnetlink_queue which
-relies on skb having been attached to the sk when we don't see an error.
-
-Maybe Stephen remembers details?
-Is the error masking intentional/needed?
-
-If so it seems we will need to refactor this a bit to
-differentiate between kernel-internal caller and "called
-on behalf of userspace"....
-
-> -
-> +        unsigned int queue_failopened;
-> +        unsigned int nobuf_failopened;
-
-Is this useful...?
-
-Userspace already should get -ENOBUFS errors on netlink overrun.
-
-> -	seq_printf(s, "%5u %6u %5u %1u %5u %5u %5u %8u %2d\n",
-> +	seq_printf(s, "%5u %6u %5u %1u %5u %5u %5u %8u %5u %5u %2d\n",
-
-Problematic since it changes layout of a file we unfortunately have to
-view as uapi.
-
-I would prefer if we could leave the proc file alone and not
-add any new stats counters for this, unless there is a good argument
-for doing so.
-
-> +			     long *timeo, struct sock *ssk)
-> +{
-> +    int ret = netlink_attachskb_nofree(sk, skb, timeo, ssk);
-> +    if (ret < 0)
-> +	kfree_skb(skb);
-> +    return ret;
-> +}
-
-Seems this patch is whitespace damaged.
-Please send a patch to yourself and make sure it applies cleanly via git-am.
-
-> @@ -1752,7 +1760,6 @@ int netlink_attachskb(struct sock *sk, struct sk_buff *skb,
->  		sock_put(sk);
->  
->  		if (signal_pending(current)) {
-> -			kfree_skb(skb);
->  			return sock_intr_errno(*timeo);
->  		}
-
-This would make the {} unneded so these should be zapped too.
