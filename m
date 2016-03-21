@@ -1,111 +1,51 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net-next] change nfqueue failopen to apply also to
- receive message buffer in addition to queue size
-Date: Mon, 21 Mar 2016 22:35:32 +0100
-Message-ID: <20160321213532.GA1818@salvia>
-References: <2ba8dceec36a41149598e43f09af048e@XCH-RTP-014.cisco.com>
+Subject: Re: [PATCH 0/1] ipset patch for nf
+Date: Mon, 21 Mar 2016 22:37:30 +0100
+Message-ID: <20160321213730.GA1885@salvia>
+References: <1458162150-13601-1-git-send-email-kadlec@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="6c2NcOVqGQ03X4Wi"
-Cc: "'netdev@vger.kernel.org'" <netdev@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"Florian Westphal (fw@strlen.de)" <fw@strlen.de>
-To: "Yigal Reiss (yreiss)" <yreiss@cisco.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35291 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35403 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751268AbcCUVfp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Mar 2016 17:35:45 -0400
+	id S1750745AbcCUVhi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Mar 2016 17:37:38 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 275B0C125C
-	for <netfilter-devel@vger.kernel.org>; Mon, 21 Mar 2016 22:35:43 +0100 (CET)
+	by mail.us.es (Postfix) with ESMTP id 5E4C2C125B
+	for <netfilter-devel@vger.kernel.org>; Mon, 21 Mar 2016 22:37:37 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 16CE3DA388
-	for <netfilter-devel@vger.kernel.org>; Mon, 21 Mar 2016 22:35:43 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 43732DA8F8
+	for <netfilter-devel@vger.kernel.org>; Mon, 21 Mar 2016 22:37:37 +0100 (CET)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 472D8DA380
-	for <netfilter-devel@vger.kernel.org>; Mon, 21 Mar 2016 22:35:41 +0100 (CET)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 66502DA385
+	for <netfilter-devel@vger.kernel.org>; Mon, 21 Mar 2016 22:37:35 +0100 (CET)
 Content-Disposition: inline
-In-Reply-To: <2ba8dceec36a41149598e43f09af048e@XCH-RTP-014.cisco.com>
+In-Reply-To: <1458162150-13601-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Wed, Mar 16, 2016 at 10:02:29PM +0100, Jozsef Kadlecsik wrote:
+> Hi Pablo,
+> 
+> Please apply the next patch against the nf tree:
+> 
+> - There was a race condition between parallel save/swap and delete,
+>   which resulted a kernel crash due to the increase ref for save, swap,
+>   wrong ref decrease operations. Reported and fixed by Vishwanath Pai.
+> 
+> The patch should be applied to the older stable kernel branches too.
+> 
+> Best regards,
+> Jozsef
+> 
+> The following changes since commit fe1c3e3f630ef7765f34d9585d6b524899502b3f:
+> 
+>   netfilter: ipset: Check IPSET_ATTR_ETHER netlink attribute length (2016-03-16 21:43:50 +0100)
+> 
+> are available in the git repository at:
+> 
+>   git://blackhole.kfki.hu/nf master
 
---6c2NcOVqGQ03X4Wi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Mar 21, 2016 at 11:23:43AM +0000, Yigal Reiss (yreiss) wrote:
-> @@ -582,10 +585,17 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
->  	*packet_id_ptr = htonl(entry->id);
->  
->  	/* nfnetlink_unicast will either free the nskb or add it to a socket */
-> -	err = nfnetlink_unicast(nskb, net, queue->peer_portid, MSG_DONTWAIT);
-> +	err = nfnetlink_unicast_nofree(nskb, net, queue->peer_portid, MSG_DONTWAIT);
-
-This keeps nskb around, this skbuff contains the netlink message, not
-the network packet itself that is located in entry->skb.
-
->  	if (err < 0) {
-> -		queue->queue_user_dropped++;
-> -		goto err_out_unlock;
-> +		if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
-> +		        queue->nobuf_failopened++;
-> +		        failopen = 1;
-> +			err = 0;
-
-In case we couldn't deliver due to socket buffer overrun, if the
-NFQA_CFG_F_FAIL_OPEN flag is set, you set failopen to 1.
-
-> +		}
-> +		else {
-> +		    queue->queue_user_dropped++;
-> +		}
-> +		goto err_out_free_nskb;
-
-And finally, jump to err_out_free_nskb.
-
->  	}
->  
->  	__enqueue_entry(queue, entry);
-> @@ -595,7 +605,6 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
->  
->  err_out_free_nskb:
->  	kfree_skb(nskb);
-
-Which just releases the netlink skbuff.
-
-> -err_out_unlock:
->  	spin_unlock_bh(&queue->lock);
->  	if (failopen)
->  		nf_reinject(entry, NF_ACCEPT);
-
-And reinjects the packet.
-
-So isn't the more simple patch that I'm attaching achieving what you need?
-
-Let me know, thanks.
-
---6c2NcOVqGQ03X4Wi
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="x.patch"
-
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 7542999..cb5b630 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -582,7 +582,12 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
- 	/* nfnetlink_unicast will either free the nskb or add it to a socket */
- 	err = nfnetlink_unicast(nskb, net, queue->peer_portid, MSG_DONTWAIT);
- 	if (err < 0) {
--		queue->queue_user_dropped++;
-+		if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
-+			failopen = 1;
-+			err = 0;
-+		} else {
-+			queue->queue_user_dropped++;
-+		}
- 		goto err_out_unlock;
- 	}
- 
-
---6c2NcOVqGQ03X4Wi--
+Pulled, thanks Jozsef.
