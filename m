@@ -1,160 +1,129 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 4/4 v5] nftables: rule: Change the field "rule->comment"
- for an nftnl_udata_buf
-Date: Mon, 21 Mar 2016 23:13:30 +0100
-Message-ID: <20160321221330.GA2534@salvia>
-References: <1458073687-23870-1-git-send-email-carlosfg@riseup.net>
- <1458073687-23870-4-git-send-email-carlosfg@riseup.net>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH v4] configure: Show support for connlabel
+Date: Tue, 22 Mar 2016 10:43:06 +0530
+Message-ID: <20160322051306.GA9115@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37949 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750844AbcCUWNi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Mar 2016 18:13:38 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 2F740C125B
-	for <netfilter-devel@vger.kernel.org>; Mon, 21 Mar 2016 23:13:37 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 1F666DA8F9
-	for <netfilter-devel@vger.kernel.org>; Mon, 21 Mar 2016 23:13:37 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 32818DA8F9
-	for <netfilter-devel@vger.kernel.org>; Mon, 21 Mar 2016 23:13:35 +0100 (CET)
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:36355 "EHLO
+	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750857AbcCVFNo (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Mar 2016 01:13:44 -0400
+Received: by mail-pf0-f195.google.com with SMTP id q129so34290791pfb.3
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Mar 2016 22:13:44 -0700 (PDT)
+Received: from gmail.com ([116.202.34.149])
+        by smtp.gmail.com with ESMTPSA id fn3sm44610055pab.20.2016.03.21.22.13.41
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Mon, 21 Mar 2016 22:13:43 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1458073687-23870-4-git-send-email-carlosfg@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 15, 2016 at 09:28:07PM +0100, Carlos Falgueras Garc=EDa wro=
-te:
-> Now it is possible to store multiple variable length user data into r=
-ule.
-> Modify the parser in order to fill the nftnl_udata with the comment, =
-and
-> the print function for extract these commentary and print it to user.
->=20
-> Signed-off-by: Carlos Falgueras Garc=EDa <carlosfg@riseup.net>
-> ---
->  include/rule.h            |  7 +++++++
->  src/netlink_delinearize.c | 52 +++++++++++++++++++++++++++++++++++++=
-++++++++--
->  src/netlink_linearize.c   | 16 +++++++++++++--
->  3 files changed, 71 insertions(+), 4 deletions(-)
->=20
-> diff --git a/include/rule.h b/include/rule.h
-> index c848f0f..b52f0ac 100644
-> --- a/include/rule.h
-> +++ b/include/rule.h
-> @@ -4,6 +4,7 @@
->  #include <stdint.h>
->  #include <nftables.h>
->  #include <list.h>
-> +#include <libnftnl/udata.h>
-> =20
->  /**
->   * struct handle - handle for tables, chains, rules and sets
-> @@ -396,4 +397,10 @@ extern int do_command(struct netlink_ctx *ctx, s=
-truct cmd *cmd);
->  extern int cache_update(enum cmd_ops cmd, struct list_head *msgs);
->  extern void cache_release(void);
-> =20
-> +enum udata_type {
-> +	UDATA_TYPE_COMMENT,
-> +	__UDATA_TYPE_MAX,
-> +};
-> +#define UDATA_TYPE_MAX (__UDATA_TYPE_MAX - 1)
-> +
->  #endif /* NFTABLES_RULE_H */
-> diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-> index d431588..5fcb5c1 100644
-> --- a/src/netlink_delinearize.c
-> +++ b/src/netlink_delinearize.c
-> @@ -25,6 +25,7 @@
->  #include <utils.h>
->  #include <erec.h>
->  #include <sys/socket.h>
-> +#include <libnftnl/udata.h>
-> =20
->  struct netlink_parse_ctx {
->  	struct list_head	*msgs;
-> @@ -1746,6 +1747,54 @@ static void rule_parse_postprocess(struct netl=
-ink_parse_ctx *ctx, struct rule *r
->  	}
->  }
-> =20
-> +static int parse_udata_cb(const struct nftnl_udata *attr, void *data=
-)
-> +{
-> +	unsigned char *value =3D nftnl_udata_attr_value(attr);
-> +	uint8_t type =3D nftnl_udata_attr_type(attr);
-> +	uint8_t len =3D nftnl_udata_attr_len(attr);
-> +	const struct nftnl_udata **tb =3D data;
-> +
-> +	switch (type) {
-> +	case UDATA_TYPE_COMMENT:
-> +		if (value[len - 1] !=3D '\0')
-> +			return -1;
-> +		break;
-> +	default:
-> +		break;
-> +	};
-> +
-> +	tb[type] =3D attr;
-> +	return 1;
-> +}
-> +
-> +static char *udata_get_comment(const void *data, uint32_t data_len)
-> +{
-> +	const struct nftnl_udata *tb[UDATA_TYPE_MAX + 1] =3D {};
-> +	struct nftnl_udata_buf *udata;
-> +	uint8_t attr_len;
-> +	char *comment =3D NULL;
-> +
-> +	udata =3D nftnl_udata_alloc(data_len);
-> +	if (!udata)
-> +		memory_allocation_error();
-> +	nftnl_udata_copy_data(udata, data, data_len);
-> +
-> +	if (nftnl_udata_parse(udata, parse_udata_cb, tb) <=3D 0)
-> +		goto exit;
+Add the --disable-connlabel option and the appropriate functionality
+associated with it.
 
-I think this should be instead:
+After this patch, iptables configuration shows up as:
 
-	if (nftnl_udata_parse(data, data_len, parse_udata_cb, tb) <=3D 0)
+Iptables Configuration:
+  IPv4 support:                         yes
+  IPv6 support:                         yes
+  Devel support:                        yes
+  IPQ support:                          no
+  Large file support:                   yes
+  BPF utils support:                    no
+  nfsynproxy util support:              no
+  nftables support:                     yes
+  connlabel support:                    yes
 
-So you don't need to allocate the buffer then copy data into it.
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+Changes in v4:
+	Set enable_connlabel to "no" when package requirements are not
+	met
 
-I think the buffer infrastructure is only necessary to build the TLV
-attributes, not to parse it.
+Changes in v3:
+        Remove check for libnfnetlink from the if block
 
-> +	if (!tb[UDATA_TYPE_COMMENT])
-> +		goto exit;
-> +
-> +	attr_len =3D nftnl_udata_attr_len(tb[UDATA_TYPE_COMMENT]);
-> +	comment =3D xmalloc(attr_len);
-> +	memcpy(comment, nftnl_udata_attr_value(tb[UDATA_TYPE_COMMENT]),
-> +	       attr_len);
+Changes in v2:
+	Correct the option to disable-connlabel and add code to make it
+	work
 
-I'd suggest:
+ configure.ac | 31 ++++++++++++++++++++++---------
+ 1 file changed, 22 insertions(+), 9 deletions(-)
 
-        comment =3D xstrdup(nftnl_udata_attr_get_str(tb[UDATA_TYPE_COMM=
-ENT]));
+diff --git a/configure.ac b/configure.ac
+index 33a8f2d..12bffa9 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -63,6 +63,10 @@ AC_ARG_WITH([pkgconfigdir], AS_HELP_STRING([--with-pkgconfigdir=PATH],
+ AC_ARG_ENABLE([nftables],
+ 	AS_HELP_STRING([--disable-nftables], [Do not build nftables compat]),
+ 	[enable_nftables="$enableval"], [enable_nftables="yes"])
++AC_ARG_ENABLE([connlabel],
++	AS_HELP_STRING([--disable-connlabel],
++	[Do not build libnetfilter_conntrack]),
++	[enable_connlabel="$enableval"], [enable_connlabel="yes"])
+ 
+ libiptc_LDFLAGS2="";
+ AX_CHECK_LINKER_FLAGS([-Wl,--no-as-needed],
+@@ -93,15 +97,6 @@ if test "$ac_cv_header_linux_ip_vs_h" != "yes"; then
+ 	blacklist_modules="$blacklist_modules ipvs";
+ fi;
+ 
+-PKG_CHECK_MODULES([libnetfilter_conntrack], [libnetfilter_conntrack >= 1.0.4],
+-	[nfconntrack=1], [nfconntrack=0])
+-AM_CONDITIONAL([HAVE_LIBNETFILTER_CONNTRACK], [test "$nfconntrack" = 1])
+-
+-if test "$nfconntrack" -ne 1; then
+-	blacklist_modules="$blacklist_modules connlabel";
+-	echo "WARNING: libnetfilter_conntrack not found, connlabel match will not be built";
+-fi;
+-
+ AC_CHECK_SIZEOF([struct ip6_hdr], [], [#include <netinet/ip6.h>])
+ 
+ AM_CONDITIONAL([ENABLE_STATIC], [test "$enable_static" = "yes"])
+@@ -114,6 +109,7 @@ AM_CONDITIONAL([ENABLE_LIBIPQ], [test "$enable_libipq" = "yes"])
+ AM_CONDITIONAL([ENABLE_BPFC], [test "$enable_bpfc" = "yes"])
+ AM_CONDITIONAL([ENABLE_SYNCONF], [test "$enable_nfsynproxy" = "yes"])
+ AM_CONDITIONAL([ENABLE_NFTABLES], [test "$enable_nftables" = "yes"])
++AM_CONDITIONAL([ENABLE_CONNLABEL], [test "$enable_connlabel" = "yes"])
+ 
+ if test "x$enable_bpfc" = "xyes" || test "x$enable_nfsynproxy" = "xyes"; then
+ 	AC_CHECK_LIB(pcap, pcap_compile,, AC_MSG_ERROR(missing libpcap library required by bpf compiler or nfsynproxy tool))
+@@ -168,6 +164,22 @@ if test "$nftables" != 1; then
+ 	blacklist_a_modules="$blacklist_a_modules mangle"
+ fi
+ 
++if test "x$enable_connlabel" = "xyes"; then
++	PKG_CHECK_MODULES([libnetfilter_conntrack],
++		[libnetfilter_conntrack >= 1.0.4],
++		[nfconntrack=1], [nfconntrack=0])
++
++	if test "$nfconntrack" -ne 1; then
++		blacklist_modules="$blacklist_modules connlabel";
++		echo "WARNING: libnetfilter_conntrack not found, connlabel match will not be built";
++		enable_connlabel = "no";
++	fi;
++else
++	blacklist_modules="$blacklist_modules connlabel";
++fi;
++
++AM_CONDITIONAL([HAVE_LIBNETFILTER_CONNTRACK], [test "$nfconntrack" = 1])
++
+ AC_SUBST([blacklist_modules])
+ AC_SUBST([blacklist_x_modules])
+ AC_SUBST([blacklist_b_modules])
+@@ -243,6 +255,7 @@ Iptables Configuration:
+   BPF utils support:			${enable_bpfc}
+   nfsynproxy util support:		${enable_nfsynproxy}
+   nftables support:			${enable_nftables}
++  connlabel support:			${enable_connlabel}
+ 
+ Build parameters:
+   Put plugins into executable (static):	${enable_static}
+-- 
+1.9.1
 
-> +
-> +exit:
-> +	nftnl_udata_free(udata);
-> +	return comment;
-> +}
-> +
->  struct rule *netlink_delinearize_rule(struct netlink_ctx *ctx,
->  				      const struct nftnl_rule *nlr)
->  {
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
