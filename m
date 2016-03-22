@@ -1,54 +1,72 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] tests/shell: add new testcases for commit/rollback
-Date: Tue, 22 Mar 2016 19:49:55 +0100
-Message-ID: <20160322184955.GA6521@salvia>
-References: <145830792808.5446.13784125186138242867.stgit@r2d2.cica.es>
+From: Bill <boober95@rogers.com>
+Subject: Test case example for conntrack expectation doesn't work?
+Date: Tue, 22 Mar 2016 14:51:19 -0400
+Message-ID: <201603221451.19903.boober95@rogers.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37328 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751351AbcCVSuD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Mar 2016 14:50:03 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 6E9A36EF27
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Mar 2016 19:50:02 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 627D6DA8F9
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Mar 2016 19:50:02 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 89347DA8F9
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Mar 2016 19:50:00 +0100 (CET)
+Received: from nm14-vm1.access.bullet.mail.bf1.yahoo.com ([216.109.115.16]:39047
+	"EHLO nm14-vm1.access.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750910AbcCVS5c (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Mar 2016 14:57:32 -0400
 Content-Disposition: inline
-In-Reply-To: <145830792808.5446.13784125186138242867.stgit@r2d2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Mar 18, 2016 at 02:32:08PM +0100, Arturo Borrero Gonzalez wrote:
-> New simple testcases for kernel commit/rollback operations.
-> 
-> * ruleset A is loaded (good ruleset)
-> * ruleset B is loaded (bad ruleset): fail is expected
-> * ruleset A should remain in the kernel
+I and trying use netfilter, and expectations, for ALG development.  But 
+running the example test for creating a new expectation doesn't work.  I 
+thought it used to on an older version, but not now.  I see there are a lot 
+of changes to conntrack lately and wonder if this have been changed?
 
-$ git am nft-tests-shell-add-new-testcases-for-commit-rollback.patch -s
-Applying: tests/shell: add new testcases for commit/rollback
-patch:50: trailing whitespace.
-                ct state new 
-patch:51: trailing whitespace.
-                tcp dport { 22222} 
-patch:52: trailing whitespace.
-                ip saddr @t drop 
-patch:53: trailing whitespace.
-                jump other 
-patch:123: trailing whitespace.
-                ct state new 
-warning: squelched 15 whitespace errors
-warning: 20 lines add whitespace errors.
+Here is the info on the test I have an issue with and the configuration I have 
+been testing on:
 
-I guess you're getting this from the output of nft, but this generates
-a bit of noise in git when trying to apply this.
 
-Could you have a look and resubmit? Thanks.
+Software versions:
+
+Debian Testing
+Kernel 4.3.0-1-amd64
+conntrack v1.4.3 (conntrack-tools)
+
+
+The FTP modules for nat and conntrack have been loaded:
+
+lsmod | fgrep ftp
+nf_nat_tftp            16384  0
+nf_conntrack_tftp      16384  1 nf_nat_tftp
+nf_nat_ftp             16384  0
+nf_conntrack_ftp       20480  1 nf_nat_ftp
+nf_nat                 24576  4 
+nf_nat_ftp,nf_nat_ipv4,nf_nat_tftp,nf_nat_masquerade_ipv4
+nf_conntrack          118784  10 
+nf_nat_ftp,nf_nat,nf_nat_ipv4,nf_nat_tftp,xt_conntrack,nf_nat_masquerade_ipv4,nf_conntrack_netlink,nf_conntrack_ftp,nf_conntrack_ipv4,nf_conntrack_tftp
+
+
+Failed creating of an FTP expectation, right from the test suite:
+
+bash test.sh create-expect
+conntrack v1.4.3 (conntrack-tools): Operation failed: master conntrack not 
+found
+
+
+Other tests with FTP helper seem to work just fine:
+
+bash test.sh new-nat
+creating a new conntrack (NAT)
+conntrack v1.4.3 (conntrack-tools): 1 flow entries have been created.
+
+conntrack -L -s 1.1.1.1
+tcp      6 38 SYN_SENT2 src=1.1.1.1 dst=2.2.2.2 sport=2005 dport=21 
+src=8.8.8.8 dst=1.1.1.1 sport=21 dport=2005 mark=0 helper=ftp use=1
+conntrack v1.4.3 (conntrack-tools): 1 flow entries have been shown.
+
+
+Anyhow, pointers version of the tests/conntrack that work, or info on how to 
+fix this would be appreciated.
+
+Bill
+
