@@ -1,72 +1,111 @@
-From: Bill <boober95@rogers.com>
-Subject: Test case example for conntrack expectation doesn't work?
-Date: Tue, 22 Mar 2016 14:51:19 -0400
-Message-ID: <201603221451.19903.boober95@rogers.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next v5 3/3] netfilter: bridge: nf queue verdict to
+ use NFQA_VLAN and NFQA_L2HDR
+Date: Tue, 22 Mar 2016 20:12:15 +0100
+Message-ID: <20160322191215.GA7018@salvia>
+References: <1458461206-4338-1-git-send-email-stephane.ml.bryant@gmail.com>
+ <1458461206-4338-3-git-send-email-stephane.ml.bryant@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Stephane Bryant <stephane.ml.bryant@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nm14-vm1.access.bullet.mail.bf1.yahoo.com ([216.109.115.16]:39047
-	"EHLO nm14-vm1.access.bullet.mail.bf1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750910AbcCVS5c (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Mar 2016 14:57:32 -0400
+Received: from mail.us.es ([193.147.175.20]:40928 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751939AbcCVTMa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Mar 2016 15:12:30 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id D8771C9EFC
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Mar 2016 20:12:28 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id CC354DA386
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Mar 2016 20:12:28 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id D697EDA380
+	for <netfilter-devel@vger.kernel.org>; Tue, 22 Mar 2016 20:12:24 +0100 (CET)
 Content-Disposition: inline
+In-Reply-To: <1458461206-4338-3-git-send-email-stephane.ml.bryant@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I and trying use netfilter, and expectations, for ALG development.  But 
-running the example test for creating a new expectation doesn't work.  I 
-thought it used to on an older version, but not now.  I see there are a lot 
-of changes to conntrack lately and wonder if this have been changed?
+Hi Stephane,
 
-Here is the info on the test I have an issue with and the configuration I have 
-been testing on:
+We're almost there, a bit more changes for this please.
 
+On Sun, Mar 20, 2016 at 09:06:46AM +0100, Stephane Bryant wrote:
+> This makes nf queues use NFQA_VLAN and NFQA_L2HDR in verdict to modify the
+> original skb
+> 
+> Signed-off-by: Stephane Bryant <stephane.ml.bryant@gmail.com>
+> ---
+>  net/netfilter/nfnetlink_queue.c | 25 +++++++++++++++++++++++++
+>  1 file changed, 25 insertions(+)
+> 
+> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+> index 0da0276..aa526f0 100644
+> --- a/net/netfilter/nfnetlink_queue.c
+> +++ b/net/netfilter/nfnetlink_queue.c
+> @@ -1126,6 +1126,31 @@ static int nfqnl_recv_verdict(struct net *net, struct sock *ctnl,
+>  			ct = nfqnl_ct_parse(nfnl_ct, nlh, nfqa, entry, &ctinfo);
+>  	}
+>  
+> +	if (nfqa[NFQA_VLAN]) {
+> +		struct nlattr *vlan_tci =
+> +			nla_find_nested(nfqa[NFQA_VLAN], NFQA_VLAN_TCI);
+> +		struct nlattr *vlan_proto =
+> +			nla_find_nested(nfqa[NFQA_VLAN], NFQA_VLAN_PROTO);
+> +
+> +		if (vlan_tci)
+> +			entry->skb->vlan_tci = ntohs(nla_get_be16(vlan_tci));
+> +
+> +		if (vlan_proto)
+> +			entry->skb->vlan_proto = nla_get_be16(vlan_proto);
+> +	}
 
-Software versions:
+Could you replace this chunk above by something like...
 
-Debian Testing
-Kernel 4.3.0-1-amd64
-conntrack v1.4.3 (conntrack-tools)
+        if (entry->state.pf == PF_BRIDGE) {
+                err = nfqa_parse_bridge(nfqa);
+                if (err < 0)
+                        return err;
+        }
 
+Then, this nfqa_parse_bridge() should look like;
 
-The FTP modules for nat and conntrack have been loaded:
+        if (nfqa[NFQA_VLAN]) {
+                struct nlattr *tb[NFQA_VLAN_MAX + 1];
 
-lsmod | fgrep ftp
-nf_nat_tftp            16384  0
-nf_conntrack_tftp      16384  1 nf_nat_tftp
-nf_nat_ftp             16384  0
-nf_conntrack_ftp       20480  1 nf_nat_ftp
-nf_nat                 24576  4 
-nf_nat_ftp,nf_nat_ipv4,nf_nat_tftp,nf_nat_masquerade_ipv4
-nf_conntrack          118784  10 
-nf_nat_ftp,nf_nat,nf_nat_ipv4,nf_nat_tftp,xt_conntrack,nf_nat_masquerade_ipv4,nf_conntrack_netlink,nf_conntrack_ftp,nf_conntrack_ipv4,nf_conntrack_tftp
+                err = nla_parse_nested(tb, NFQA_VLAN_MAX, nfqa[NFQA_VLAN],
+                                       nfqa_vlan_policy);
+                if (err < 0)
+                        return err;
 
+                if (!tb[NFQA_VLAN_TCI] ||
+                    !tb[NFTA_VLAN_PROTO])
+                        return -EINVAL;
 
-Failed creating of an FTP expectation, right from the test suite:
+                if (tb[NFQA_VLAN_TCI])
+			entry->skb->vlan_tci =
+                                ntohs(nla_get_be16(tb[NFQA_VLAN_TCI]));
+                if (tb[NFAQ_VLAN_PROTO])
+                        entry->skb->vlan_proto =
+                                nla_get_be16(tb[NFQA_VLAN_PROTO]);
+        }
 
-bash test.sh create-expect
-conntrack v1.4.3 (conntrack-tools): Operation failed: master conntrack not 
-found
+        if (nfqa[NFQA_L2HDR]) {
+                ...
+        }
 
+You will need the policy structure BTW:
 
-Other tests with FTP helper seem to work just fine:
+static const struct nla_policy nfqa_verdict_policy[NFQA_VLAN_MAX + 1] = {
+        [NFQA_VLAN_TCI]         = { .type = NLA_U16 },
+        [NFQA_VLAN_PROTO]       = { .type = NLA_U16 },
+};
 
-bash test.sh new-nat
-creating a new conntrack (NAT)
-conntrack v1.4.3 (conntrack-tools): 1 flow entries have been created.
+And don't forget to update nfqa_verdict_policy to add the NFQA_VLAN
+nested attribute there as:
 
-conntrack -L -s 1.1.1.1
-tcp      6 38 SYN_SENT2 src=1.1.1.1 dst=2.2.2.2 sport=2005 dport=21 
-src=8.8.8.8 dst=1.1.1.1 sport=21 dport=2005 mark=0 helper=ftp use=1
-conntrack v1.4.3 (conntrack-tools): 1 flow entries have been shown.
+        .type   = NLA_NESTED.
 
-
-Anyhow, pointers version of the tests/conntrack that work, or info on how to 
-fix this would be appreciated.
-
-Bill
-
+Thanks !
