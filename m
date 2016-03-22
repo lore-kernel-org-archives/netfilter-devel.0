@@ -1,352 +1,211 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/4 v5] libnftnl: Implement new buffer of TLV objects
-Date: Tue, 22 Mar 2016 17:55:37 +0100
-Message-ID: <20160322165537.GA1148@salvia>
-References: <1458073687-23870-1-git-send-email-carlosfg@riseup.net>
- <20160321221018.GA2059@salvia>
- <56F12E57.9030807@riseup.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 1/5] netfilter: x_tables: validate e->target_offset early
+Date: Tue, 22 Mar 2016 18:02:49 +0100
+Message-ID: <1458666173-24318-2-git-send-email-fw@strlen.de>
+References: <1458666173-24318-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51956 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751753AbcCVQzr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Mar 2016 12:55:47 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id E32B81BFA94
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Mar 2016 17:55:44 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id D0DA4DA8F8
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Mar 2016 17:55:44 +0100 (CET)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id C4CC4DA8FB
-	for <netfilter-devel@vger.kernel.org>; Tue, 22 Mar 2016 17:55:42 +0100 (CET)
-Content-Disposition: inline
-In-Reply-To: <56F12E57.9030807@riseup.net>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:38136 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756167AbcCVRCp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Mar 2016 13:02:45 -0400
+In-Reply-To: <1458666173-24318-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Mar 22, 2016 at 12:36:55PM +0100, Carlos Falgueras Garc=EDa wro=
-te:
-> On 21/03/16 23:10, Pablo Neira Ayuso wrote:
-> >On Tue, Mar 15, 2016 at 09:28:04PM +0100, Carlos Falgueras Garc=EDa =
-wrote:
-> >>These functions allow to create a buffer (nftnl_udata_buf) of TLV o=
-bjects
-> >>(nftnl_udata). It is inspired by libmnl/src/attr.c. It can be used =
-to store
-> >>several variable length user data into an object.
-> >>
-> >>Example usage:
-> >>	```
-> >>	struct nftnl_udata_buf *buf;
-> >>	struct nftnl_udata *attr;
-> >>	const char str[] =3D "Hello World!";
-> >>
-> >>	buf =3D nftnl_udata_alloc(UDATA_SIZE);
-> >>	if (!buf) {
-> >>		perror("OOM");
-> >>		exit(EXIT_FAILURE);
-> >>	}
-> >>
-> >>	if (!nftnl_udata_put_strz(buf, MY_TYPE, str)) {
-> >>		perror("Can't put attribute \"%s\"", str);
-> >>		exit(EXIT_FAILURE);
-> >>	}
-> >>
-> >>	nftnl_udata_for_each(buf, attr) {
-> >>		printf("%s\n", (char *)nftnl_udata_attr_value(attr));
-> >>	}
-> >>
-> >u> 	nftnl_udata_free(buf);
-> >>	```
->=20
-> I don't understand what that means :/
->=20
-> >>Signed-off-by: Carlos Falgueras Garc=EDa <carlosfg@riseup.net>
-> >>---
-> >>  include/Makefile.am          |   1 +
-> >>  include/libnftnl/Makefile.am |   1 +
-> >>  include/libnftnl/udata.h     |  49 ++++++++++++++++
-> >>  include/udata.h              |  40 +++++++++++++
-> >>  src/Makefile.am              |   1 +
-> >>  src/libnftnl.map             |  32 +++++++++++
-> >>  src/udata.c                  | 133 ++++++++++++++++++++++++++++++=
-+++++++++++++
-> >>  7 files changed, 257 insertions(+)
-> >>  create mode 100644 include/libnftnl/udata.h
-> >>  create mode 100644 include/udata.h
-> >>  create mode 100644 src/udata.c
-> >>
-> >>diff --git a/include/Makefile.am b/include/Makefile.am
-> >>index be9eb9b..9f55737 100644
-> >>--- a/include/Makefile.am
-> >>+++ b/include/Makefile.am
-> >>@@ -12,4 +12,5 @@ noinst_HEADERS =3D internal.h	\
-> >>  		 expr.h		\
-> >>  		 json.h		\
-> >>  		 set_elem.h	\
-> >>+		 udata.h	\
-> >>  		 utils.h
-> >>diff --git a/include/libnftnl/Makefile.am b/include/libnftnl/Makefi=
-le.am
-> >>index 84f01b6..457ec95 100644
-> >>--- a/include/libnftnl/Makefile.am
-> >>+++ b/include/libnftnl/Makefile.am
-> >>@@ -7,4 +7,5 @@ pkginclude_HEADERS =3D batch.h		\
-> >>  		     set.h		\
-> >>  		     ruleset.h		\
-> >>  		     common.h		\
-> >>+		     udata.h		\
-> >>  		     gen.h
-> >>diff --git a/include/libnftnl/udata.h b/include/libnftnl/udata.h
-> >>new file mode 100644
-> >>index 0000000..f65a1dc
-> >>--- /dev/null
-> >>+++ b/include/libnftnl/udata.h
-> >>@@ -0,0 +1,49 @@
-> >>+#ifndef _LIBNFTNL_UDATA_H_
-> >>+#define _LIBNFTNL_UDATA_H_
-> >>+
-> >>+#include <stdio.h>
-> >>+#include <stdint.h>
-> >>+#include <stdbool.h>
-> >>+
-> >>+/*
-> >>+ * nftnl user data attributes API
-> >>+ */
-> >>+struct nftnl_udata;
-> >>+struct nftnl_udata_buf;
-> >>+
-> >>+/* nftnl_udata_buf */
-> >>+struct nftnl_udata_buf *nftnl_udata_alloc(uint32_t data_size);
-> >>+void nftnl_udata_free(struct nftnl_udata_buf *buf);
-> >
-> >If nftnl_udata_alloc() returns struct nftnl_udata_buf, then it's
-> >better to call this:
-> >
-> >         nftnl_udata_buf_alloc()
-> >
-> >instead.
-> >
-> >>+uint32_t nftnl_udata_len(const struct nftnl_udata_buf *buf);
-> >>+uint32_t nftnl_udata_size(const struct nftnl_udata_buf *buf);
-> >>+void *nftnl_udata_data(const struct nftnl_udata_buf *buf);
-> >
-> >Same thing for these functions: nftnl_udata_buf_*().
-> >
-> >>+void nftnl_udata_copy_data(struct nftnl_udata_buf *buf, const void=
- *data,
-> >>+			   uint32_t len);
-> >
-> >Please, rename this to:
-> >
-> >         nftnl_udata_buf_put()
-> >
->=20
-> Ok.
->=20
-> >>+struct nftnl_udata *nftnl_udata_start(const struct nftnl_udata_buf=
- *buf);
-> >>+struct nftnl_udata *nftnl_udata_end(const struct nftnl_udata_buf *=
-buf);
-> >>+
-> >>+/* putters */
-> >>+bool nftnl_udata_put(struct nftnl_udata_buf *buf, uint8_t type, ui=
-nt32_t len,
-> >>+		     const void *value);
-> >>+bool nftnl_udata_put_strz(struct nftnl_udata_buf *buf, uint8_t typ=
-e,
-> >>+			  const char *strz);
-> >>+
-> >>+/* nftnl_udata_attr */
-> >>+uint8_t nftnl_udata_attr_type(const struct nftnl_udata *attr);
-> >>+uint8_t nftnl_udata_attr_len(const struct nftnl_udata *attr);
-> >>+void *nftnl_udata_attr_value(const struct nftnl_udata *attr);
-> >>+
-> >>+/* iterator */
-> >>+struct nftnl_udata *nftnl_udata_attr_next(const struct nftnl_udata=
- *attr);
-> >>+
-> >>+#define nftnl_udata_for_each(buf, attr)                       \
-> >>+	for ((attr) =3D nftnl_udata_start(buf);                 \
-> >>+	     (char *)(nftnl_udata_end(buf)) > (char *)(attr); \
-> >>+	     (attr) =3D nftnl_udata_attr_next(attr))
-> >>+
-> >>+typedef int (*nftnl_udata_cb_t)(const struct nftnl_udata *attr,
-> >>+				void *data);
-> >>+int nftnl_udata_parse(const struct nftnl_udata_buf *buf, nftnl_uda=
-ta_cb_t cb,
-> >>+		      void *data);
-> >>+
-> >>+#endif /* _LIBNFTNL_UDATA_H_ */
-> >>diff --git a/include/udata.h b/include/udata.h
-> >>new file mode 100644
-> >>index 0000000..407a3b9
-> >>--- /dev/null
-> >>+++ b/include/udata.h
-> >>@@ -0,0 +1,40 @@
-> >>+#ifndef _LIBNFTNL_UDATA_INTERNAL_H_
-> >>+#define _LIBNFTNL_UDATA_INTERNAL_H_
-> >>+
-> >>+#include <stdint.h>
-> >>+#include <stddef.h>
-> >>+
-> >>+/*
-> >>+ * TLV structures:
-> >>+ * nftnl_udata
-> >>+ *  <-------- HEADER --------> <------ PAYLOAD ------>
-> >>+ * +------------+-------------+- - - - - - - - - - - -+
-> >>+ * |    type    |     len     |         value         |
-> >>+ * |  (1 byte)  |   (1 byte)  |                       |
-> >>+ * +--------------------------+- - - - - - - - - - - -+
-> >>+ *  <-- sizeof(nftnl_udata) -> <-- nftnl_udata->len -->
-> >>+ */
-> >>+struct nftnl_udata {
-> >>+	uint8_t		type;
-> >>+	uint8_t		len;
-> >>+	unsigned char	value[];
-> >>+} __attribute__((__packed__));
-> >>+
-> >>+/*
-> >>+ *              +---------------------------------++
-> >>+ *              | data[]                          ||
-> >>+ *              |   ||                            ||
-> >>+ *              |   \/                            \/
-> >>+ *  +-------+-------+-------+-------+ ... +-------+- - - - - - -+
-> >>+ *  | size  |  end  |  TLV  |  TLV  |     |  TLV  |    Empty    |
-> >>+ *  +-------+-------+-------+-------+ ... +-------+- - - - - - -+
-> >>+ *                  |<---- nftnl_udata_len() ---->|
-> >>+ *                  |<----------- nftnl_udata_size() ---------->|
-> >>+ */
-> >>+struct nftnl_udata_buf {
-> >>+	uint32_t	size;
-> >>+	char		*end;
-> >>+	char		data[];
-> >>+};
-> >>+
-> >>+#endif /* _LIBNFTNL_UDATA_INTERNAL_H_ */
-> >>diff --git a/src/Makefile.am b/src/Makefile.am
-> >>index a27e292..7e580e4 100644
-> >>--- a/src/Makefile.am
-> >>+++ b/src/Makefile.am
-> >>@@ -19,6 +19,7 @@ libnftnl_la_SOURCES =3D utils.c		\
-> >>  		      ruleset.c		\
-> >>  		      mxml.c		\
-> >>  		      jansson.c		\
-> >>+		      udata.c		\
-> >>  		      expr.c		\
-> >>  		      expr_ops.c	\
-> >>  		      expr/bitwise.c	\
-> >>diff --git a/src/libnftnl.map b/src/libnftnl.map
-> >>index 2e193b7..329caca 100644
-> >>--- a/src/libnftnl.map
-> >>+++ b/src/libnftnl.map
-> >>@@ -336,6 +336,22 @@ global:
-> >>    nftnl_set_snprintf;
-> >>    nftnl_set_fprintf;
-> >>
-> >>+  nftnl_udata_alloc;
-> >>+  nftnl_udata_free;
-> >>+  nftnl_udata_len;
-> >>+  nftnl_udata_size;
-> >>+  nftnl_udata_data;
-> >>+  nftnl_udata_copy_data;
-> >>+  nftnl_udata_start;
-> >>+  nftnl_udata_end;
-> >>+  nftnl_udata_put;
-> >>+  nftnl_udata_put_strz;
-> >>+  nftnl_udata_attr_type;
-> >>+  nftnl_udata_attr_len;
-> >>+  nftnl_udata_attr_value;
-> >>+  nftnl_udata_attr_next;
-> >>+  nftnl_udata_parse;
-> >
-> >These above, you can remove them...
-> >
-> >>    nftnl_set_list_alloc;
-> >>    nftnl_set_list_free;
-> >>    nftnl_set_list_add;
-> >>@@ -512,4 +528,20 @@ LIBNFTNL_4.1 {
-> >>  	nftnl_trace_get_data;
-> >>
-> >>  	nftnl_trace_nlmsg_parse;
-> >>+
-> >>+	nftnl_udata_alloc;
-> >>+	nftnl_udata_free;
-> >>+	nftnl_udata_len;
-> >>+	nftnl_udata_size;
-> >>+	nftnl_udata_data;
-> >>+	nftnl_udata_copy_data;
-> >>+	nftnl_udata_start;
-> >>+	nftnl_udata_end;
-> >>+	nftnl_udata_put;
-> >>+	nftnl_udata_put_strz;
-> >>+	nftnl_udata_attr_type;
-> >>+	nftnl_udata_attr_len;
-> >>+	nftnl_udata_attr_value;
-> >>+	nftnl_udata_attr_next;
-> >>+	nftnl_udata_parse;
-> >
-> >... Since now you have placed them here in the right place, which is
-> >the list of new symbols available under LIBNFTNL_4.1 :)
->=20
-> Of course. Sorry, i didn't realize about that.
->=20
-> >>  } LIBNFTNL_4;
-> >>diff --git a/src/udata.c b/src/udata.c
-> >>new file mode 100644
-> >>index 0000000..61ee6c9
-> >>--- /dev/null
-> >>+++ b/src/udata.c
-> >>@@ -0,0 +1,133 @@
-> >>+#include <libnftnl/udata.h>
-> >>+#include <udata.h>
-> >>+#include <utils.h>
-> >>+
-> >>+#include <stdlib.h>
-> >>+#include <stdint.h>
-> >>+#include <string.h>
-> >>+
-> >>+struct nftnl_udata_buf *nftnl_udata_alloc(uint32_t data_size)
-> >>+{
-> >>+	struct nftnl_udata_buf *buf;
-> >>+
-> >>+	buf =3D malloc(sizeof(struct nftnl_udata_buf) + data_size);
-> >>+	if (!buf)
-> >>+		return NULL;
-> >>+	buf->size =3D data_size;
-> >>+	buf->end =3D buf->data;
-> >>+
-> >>+	return buf;
-> >>+}
-> >>+EXPORT_SYMBOL(nftnl_udata_alloc);
-> >>+
-> >>+void nftnl_udata_free(struct nftnl_udata_buf *buf)
-> >>+{
-> >>+	buf->size =3D 0;
-> >>+	buf->end =3D NULL;
-> >
-> >No need to set this to zero and NULL given that we're just releasing
-> >this object.
->=20
-> I've put this because if you forget free the object and then you use =
-it,
-> you'll have the chance to obtain no error if the memory hasn't been
-> overwritten. In this way, when you use the object after free it, you'=
-ll
-> realize it is empty and something is worng.
->=20
-> I don't know if it is a good practise. I must get rid of this anyway?
+We should check that e->target_offset is sane before
+mark_source_chains gets called since it will fetch the target entry
+for loop detection.
 
-We should be able to catch that via valgrind and such, which should be
-the way to validate this. Please, make sure you run valgrind in your
-patches and that it doesn't report any unexpected behaviour.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/ipv4/netfilter/arp_tables.c | 17 ++++++++---------
+ net/ipv4/netfilter/ip_tables.c  | 17 ++++++++---------
+ net/ipv6/netfilter/ip6_tables.c | 17 ++++++++---------
+ 3 files changed, 24 insertions(+), 27 deletions(-)
+
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index bf08192..830bbe8 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -474,14 +474,12 @@ next:
+ 	return 1;
+ }
+ 
+-static inline int check_entry(const struct arpt_entry *e, const char *name)
++static inline int check_entry(const struct arpt_entry *e)
+ {
+ 	const struct xt_entry_target *t;
+ 
+-	if (!arp_checkentry(&e->arp)) {
+-		duprintf("arp_tables: arp check failed %p %s.\n", e, name);
++	if (!arp_checkentry(&e->arp))
+ 		return -EINVAL;
+-	}
+ 
+ 	if (e->target_offset + sizeof(struct xt_entry_target) > e->next_offset)
+ 		return -EINVAL;
+@@ -522,10 +520,6 @@ find_check_entry(struct arpt_entry *e, const char *name, unsigned int size)
+ 	struct xt_target *target;
+ 	int ret;
+ 
+-	ret = check_entry(e, name);
+-	if (ret)
+-		return ret;
+-
+ 	e->counters.pcnt = xt_percpu_counter_alloc();
+ 	if (IS_ERR_VALUE(e->counters.pcnt))
+ 		return -ENOMEM;
+@@ -576,6 +570,7 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
+ 					     unsigned int valid_hooks)
+ {
+ 	unsigned int h;
++	int err;
+ 
+ 	if ((unsigned long)e % __alignof__(struct arpt_entry) != 0 ||
+ 	    (unsigned char *)e + sizeof(struct arpt_entry) >= limit) {
+@@ -590,6 +585,10 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
+ 		return -EINVAL;
+ 	}
+ 
++	err = check_entry(e);
++	if (err)
++		return err;
++
+ 	/* Check hooks & underflows */
+ 	for (h = 0; h < NF_ARP_NUMHOOKS; h++) {
+ 		if (!(valid_hooks & (1 << h)))
+@@ -1246,7 +1245,7 @@ check_compat_entry_size_and_hooks(struct compat_arpt_entry *e,
+ 	}
+ 
+ 	/* For purposes of check_entry casting the compat entry is fine */
+-	ret = check_entry((struct arpt_entry *)e, name);
++	ret = check_entry((struct arpt_entry *)e);
+ 	if (ret)
+ 		return ret;
+ 
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index e53f8d6..1d72a3c 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -569,14 +569,12 @@ static void cleanup_match(struct xt_entry_match *m, struct net *net)
+ }
+ 
+ static int
+-check_entry(const struct ipt_entry *e, const char *name)
++check_entry(const struct ipt_entry *e)
+ {
+ 	const struct xt_entry_target *t;
+ 
+-	if (!ip_checkentry(&e->ip)) {
+-		duprintf("ip check failed %p %s.\n", e, name);
++	if (!ip_checkentry(&e->ip))
+ 		return -EINVAL;
+-	}
+ 
+ 	if (e->target_offset + sizeof(struct xt_entry_target) >
+ 	    e->next_offset)
+@@ -666,10 +664,6 @@ find_check_entry(struct ipt_entry *e, struct net *net, const char *name,
+ 	struct xt_mtchk_param mtpar;
+ 	struct xt_entry_match *ematch;
+ 
+-	ret = check_entry(e, name);
+-	if (ret)
+-		return ret;
+-
+ 	e->counters.pcnt = xt_percpu_counter_alloc();
+ 	if (IS_ERR_VALUE(e->counters.pcnt))
+ 		return -ENOMEM;
+@@ -741,6 +735,7 @@ check_entry_size_and_hooks(struct ipt_entry *e,
+ 			   unsigned int valid_hooks)
+ {
+ 	unsigned int h;
++	int err;
+ 
+ 	if ((unsigned long)e % __alignof__(struct ipt_entry) != 0 ||
+ 	    (unsigned char *)e + sizeof(struct ipt_entry) >= limit) {
+@@ -755,6 +750,10 @@ check_entry_size_and_hooks(struct ipt_entry *e,
+ 		return -EINVAL;
+ 	}
+ 
++	err = check_entry(e);
++	if (err)
++		return err;
++
+ 	/* Check hooks & underflows */
+ 	for (h = 0; h < NF_INET_NUMHOOKS; h++) {
+ 		if (!(valid_hooks & (1 << h)))
+@@ -1506,7 +1505,7 @@ check_compat_entry_size_and_hooks(struct compat_ipt_entry *e,
+ 	}
+ 
+ 	/* For purposes of check_entry casting the compat entry is fine */
+-	ret = check_entry((struct ipt_entry *)e, name);
++	ret = check_entry((struct ipt_entry *)e);
+ 	if (ret)
+ 		return ret;
+ 
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 84f9baf..26a5ad1 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -581,14 +581,12 @@ static void cleanup_match(struct xt_entry_match *m, struct net *net)
+ }
+ 
+ static int
+-check_entry(const struct ip6t_entry *e, const char *name)
++check_entry(const struct ip6t_entry *e)
+ {
+ 	const struct xt_entry_target *t;
+ 
+-	if (!ip6_checkentry(&e->ipv6)) {
+-		duprintf("ip_tables: ip check failed %p %s.\n", e, name);
++	if (!ip6_checkentry(&e->ipv6))
+ 		return -EINVAL;
+-	}
+ 
+ 	if (e->target_offset + sizeof(struct xt_entry_target) >
+ 	    e->next_offset)
+@@ -679,10 +677,6 @@ find_check_entry(struct ip6t_entry *e, struct net *net, const char *name,
+ 	struct xt_mtchk_param mtpar;
+ 	struct xt_entry_match *ematch;
+ 
+-	ret = check_entry(e, name);
+-	if (ret)
+-		return ret;
+-
+ 	e->counters.pcnt = xt_percpu_counter_alloc();
+ 	if (IS_ERR_VALUE(e->counters.pcnt))
+ 		return -ENOMEM;
+@@ -753,6 +747,7 @@ check_entry_size_and_hooks(struct ip6t_entry *e,
+ 			   unsigned int valid_hooks)
+ {
+ 	unsigned int h;
++	int err;
+ 
+ 	if ((unsigned long)e % __alignof__(struct ip6t_entry) != 0 ||
+ 	    (unsigned char *)e + sizeof(struct ip6t_entry) >= limit) {
+@@ -767,6 +762,10 @@ check_entry_size_and_hooks(struct ip6t_entry *e,
+ 		return -EINVAL;
+ 	}
+ 
++	err = check_entry(e);
++	if (err)
++		return err;
++
+ 	/* Check hooks & underflows */
+ 	for (h = 0; h < NF_INET_NUMHOOKS; h++) {
+ 		if (!(valid_hooks & (1 << h)))
+@@ -1518,7 +1517,7 @@ check_compat_entry_size_and_hooks(struct compat_ip6t_entry *e,
+ 	}
+ 
+ 	/* For purposes of check_entry casting the compat entry is fine */
+-	ret = check_entry((struct ip6t_entry *)e, name);
++	ret = check_entry((struct ip6t_entry *)e);
+ 	if (ret)
+ 		return ret;
+ 
+-- 
+2.4.10
+
