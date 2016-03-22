@@ -1,160 +1,219 @@
-From: =?UTF-8?Q?Carlos_Falgueras_Garc=c3=ada?= <carlosfg@riseup.net>
-Subject: Re: [PATCH 4/4 v5] nftables: rule: Change the field "rule->comment"
- for an nftnl_udata_buf
-Date: Tue, 22 Mar 2016 12:37:25 +0100
-Message-ID: <56F12E75.7030609@riseup.net>
-References: <1458073687-23870-1-git-send-email-carlosfg@riseup.net>
- <1458073687-23870-4-git-send-email-carlosfg@riseup.net>
- <20160321221330.GA2534@salvia>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH] tests/shell: add chain validations tests
+Date: Tue, 22 Mar 2016 14:06:09 +0100
+Message-ID: <145865193086.6118.9200431804176858644.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:53017 "EHLO mx1.riseup.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759045AbcCVLh3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Mar 2016 07:37:29 -0400
-In-Reply-To: <20160321221330.GA2534@salvia>
+Received: from smtp3.cica.es ([150.214.5.190]:33676 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752032AbcCVNGY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Mar 2016 09:06:24 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 21/03/16 23:13, Pablo Neira Ayuso wrote:
-> On Tue, Mar 15, 2016 at 09:28:07PM +0100, Carlos Falgueras Garc=EDa w=
-rote:
->> Now it is possible to store multiple variable length user data into =
-rule.
->> Modify the parser in order to fill the nftnl_udata with the comment,=
- and
->> the print function for extract these commentary and print it to user=
-=2E
->>
->> Signed-off-by: Carlos Falgueras Garc=EDa <carlosfg@riseup.net>
->> ---
->>   include/rule.h            |  7 +++++++
->>   src/netlink_delinearize.c | 52 +++++++++++++++++++++++++++++++++++=
-++++++++++--
->>   src/netlink_linearize.c   | 16 +++++++++++++--
->>   3 files changed, 71 insertions(+), 4 deletions(-)
->>
->> diff --git a/include/rule.h b/include/rule.h
->> index c848f0f..b52f0ac 100644
->> --- a/include/rule.h
->> +++ b/include/rule.h
->> @@ -4,6 +4,7 @@
->>   #include <stdint.h>
->>   #include <nftables.h>
->>   #include <list.h>
->> +#include <libnftnl/udata.h>
->>
->>   /**
->>    * struct handle - handle for tables, chains, rules and sets
->> @@ -396,4 +397,10 @@ extern int do_command(struct netlink_ctx *ctx, =
-struct cmd *cmd);
->>   extern int cache_update(enum cmd_ops cmd, struct list_head *msgs);
->>   extern void cache_release(void);
->>
->> +enum udata_type {
->> +	UDATA_TYPE_COMMENT,
->> +	__UDATA_TYPE_MAX,
->> +};
->> +#define UDATA_TYPE_MAX (__UDATA_TYPE_MAX - 1)
->> +
->>   #endif /* NFTABLES_RULE_H */
->> diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
->> index d431588..5fcb5c1 100644
->> --- a/src/netlink_delinearize.c
->> +++ b/src/netlink_delinearize.c
->> @@ -25,6 +25,7 @@
->>   #include <utils.h>
->>   #include <erec.h>
->>   #include <sys/socket.h>
->> +#include <libnftnl/udata.h>
->>
->>   struct netlink_parse_ctx {
->>   	struct list_head	*msgs;
->> @@ -1746,6 +1747,54 @@ static void rule_parse_postprocess(struct net=
-link_parse_ctx *ctx, struct rule *r
->>   	}
->>   }
->>
->> +static int parse_udata_cb(const struct nftnl_udata *attr, void *dat=
-a)
->> +{
->> +	unsigned char *value =3D nftnl_udata_attr_value(attr);
->> +	uint8_t type =3D nftnl_udata_attr_type(attr);
->> +	uint8_t len =3D nftnl_udata_attr_len(attr);
->> +	const struct nftnl_udata **tb =3D data;
->> +
->> +	switch (type) {
->> +	case UDATA_TYPE_COMMENT:
->> +		if (value[len - 1] !=3D '\0')
->> +			return -1;
->> +		break;
->> +	default:
->> +		break;
->> +	};
->> +
->> +	tb[type] =3D attr;
->> +	return 1;
->> +}
->> +
->> +static char *udata_get_comment(const void *data, uint32_t data_len)
->> +{
->> +	const struct nftnl_udata *tb[UDATA_TYPE_MAX + 1] =3D {};
->> +	struct nftnl_udata_buf *udata;
->> +	uint8_t attr_len;
->> +	char *comment =3D NULL;
->> +
->> +	udata =3D nftnl_udata_alloc(data_len);
->> +	if (!udata)
->> +		memory_allocation_error();
->> +	nftnl_udata_copy_data(udata, data, data_len);
->> +
->> +	if (nftnl_udata_parse(udata, parse_udata_cb, tb) <=3D 0)
->> +		goto exit;
->
-> I think this should be instead:
->
-> 	if (nftnl_udata_parse(data, data_len, parse_udata_cb, tb) <=3D 0)
->
-> So you don't need to allocate the buffer then copy data into it.
->
-> I think the buffer infrastructure is only necessary to build the TLV
-> attributes, not to parse it.
->
+Some basic test regarding chains: jumps and validations.
 
-Ok.
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+NOTE: the testcases/chains/0009masquerade_jump_1 file fails, seems like a bug
+in the kernel validation. Needs more investigation.
 
->> +	if (!tb[UDATA_TYPE_COMMENT])
->> +		goto exit;
->> +
->> +	attr_len =3D nftnl_udata_attr_len(tb[UDATA_TYPE_COMMENT]);
->> +	comment =3D xmalloc(attr_len);
->> +	memcpy(comment, nftnl_udata_attr_value(tb[UDATA_TYPE_COMMENT]),
->> +	       attr_len);
->
-> I'd suggest:
->
->          comment =3D xstrdup(nftnl_udata_attr_get_str(tb[UDATA_TYPE_C=
-OMMENT]));
+ tests/shell/testcases/chains/0001jumps_0           |   17 +++++++++++++++
+ tests/shell/testcases/chains/0002jumps_1           |   22 ++++++++++++++++++++
+ tests/shell/testcases/chains/0003jump_loop_1       |   21 +++++++++++++++++++
+ tests/shell/testcases/chains/0004busy_1            |   11 ++++++++++
+ tests/shell/testcases/chains/0005busy_map_1        |   11 ++++++++++
+ tests/shell/testcases/chains/0006masquerade_0      |    7 ++++++
+ tests/shell/testcases/chains/0007masquerade_1      |    9 ++++++++
+ tests/shell/testcases/chains/0008masquerade_jump_1 |   11 ++++++++++
+ tests/shell/testcases/chains/0009masquerade_jump_1 |   11 ++++++++++
+ 9 files changed, 120 insertions(+)
+ create mode 100755 tests/shell/testcases/chains/0001jumps_0
+ create mode 100755 tests/shell/testcases/chains/0002jumps_1
+ create mode 100755 tests/shell/testcases/chains/0003jump_loop_1
+ create mode 100755 tests/shell/testcases/chains/0004busy_1
+ create mode 100755 tests/shell/testcases/chains/0005busy_map_1
+ create mode 100755 tests/shell/testcases/chains/0006masquerade_0
+ create mode 100755 tests/shell/testcases/chains/0007masquerade_1
+ create mode 100755 tests/shell/testcases/chains/0008masquerade_jump_1
+ create mode 100755 tests/shell/testcases/chains/0009masquerade_jump_1
 
-I'll change this.
+diff --git a/tests/shell/testcases/chains/0001jumps_0 b/tests/shell/testcases/chains/0001jumps_0
+new file mode 100755
+index 0000000..b39df38
+--- /dev/null
++++ b/tests/shell/testcases/chains/0001jumps_0
+@@ -0,0 +1,17 @@
++#!/bin/bash
++
++set -e
++
++MAX_JUMPS=16
++
++$NFT add table t
++
++for i in $(seq 1 $MAX_JUMPS)
++do
++	$NFT add chain t c${i}
++done
++
++for i in $(seq 1 $((MAX_JUMPS - 1)))
++do
++	$NFT add rule t c${i} jump c$((i + 1))
++done
+diff --git a/tests/shell/testcases/chains/0002jumps_1 b/tests/shell/testcases/chains/0002jumps_1
+new file mode 100755
+index 0000000..0cc8928
+--- /dev/null
++++ b/tests/shell/testcases/chains/0002jumps_1
+@@ -0,0 +1,22 @@
++#!/bin/bash
++
++set -e
++
++MAX_JUMPS=16
++
++$NFT add table t
++
++for i in $(seq 1 $MAX_JUMPS)
++do
++	$NFT add chain t c${i}
++done
++
++for i in $(seq 1 $((MAX_JUMPS - 1)))
++do
++	$NFT add rule t c${i} jump c$((i + 1))
++done
++
++# this last jump should fail: too many links
++$NFT add chain t c$((MAX_JUMPS + 1))
++$NFT add rule t c${MAX_JUMPS} jump c$((MAX_JUMPS + 1)) 2>/dev/null
++echo "E: max jumps ignored?" >&2
+diff --git a/tests/shell/testcases/chains/0003jump_loop_1 b/tests/shell/testcases/chains/0003jump_loop_1
+new file mode 100755
+index 0000000..f74361f
+--- /dev/null
++++ b/tests/shell/testcases/chains/0003jump_loop_1
+@@ -0,0 +1,21 @@
++#!/bin/bash
++
++set -e
++
++MAX_JUMPS=16
++
++$NFT add table t
++
++for i in $(seq 1 $MAX_JUMPS)
++do
++	$NFT add chain t c${i}
++done
++
++for i in $(seq 1 $((MAX_JUMPS - 1)))
++do
++	$NFT add rule t c${i} jump c$((i + 1))
++done
++
++# this last jump should fail: loop
++$NFT add rule t c${MAX_JUMPS} jump c1 2>/dev/null
++echo "E: loop of jumps ignored?" >&2
+diff --git a/tests/shell/testcases/chains/0004busy_1 b/tests/shell/testcases/chains/0004busy_1
+new file mode 100755
+index 0000000..cc9a0da
+--- /dev/null
++++ b/tests/shell/testcases/chains/0004busy_1
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++set -e
++
++$NFT add table t
++$NFT add chain t c1
++$NFT add chain t c2
++$NFT add rule t c1 jump c2
++# kernel should return EBUSY
++$NFT delete chain t c2 2>/dev/null
++echo "E: deleted a busy chain?" >&2
+diff --git a/tests/shell/testcases/chains/0005busy_map_1 b/tests/shell/testcases/chains/0005busy_map_1
+new file mode 100755
+index 0000000..93eca82
+--- /dev/null
++++ b/tests/shell/testcases/chains/0005busy_map_1
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++set -e
++
++$NFT add table t
++$NFT add chain t c1
++$NFT add chain t c2
++$NFT add rule t c1 tcp dport vmap { 1 : jump c2 }
++# kernel should return EBUSY
++$NFT delete chain t c2 2>/dev/null
++echo "E: deleted a busy chain?" >&2
+diff --git a/tests/shell/testcases/chains/0006masquerade_0 b/tests/shell/testcases/chains/0006masquerade_0
+new file mode 100755
+index 0000000..7934998
+--- /dev/null
++++ b/tests/shell/testcases/chains/0006masquerade_0
+@@ -0,0 +1,7 @@
++#!/bin/bash
++
++set -e
++
++$NFT add table t
++$NFT add chain t c1 {type nat hook postrouting priority 0 \; }
++$NFT add rule t c1 masquerade
+diff --git a/tests/shell/testcases/chains/0007masquerade_1 b/tests/shell/testcases/chains/0007masquerade_1
+new file mode 100755
+index 0000000..4e98d10
+--- /dev/null
++++ b/tests/shell/testcases/chains/0007masquerade_1
+@@ -0,0 +1,9 @@
++#!/bin/bash
++
++set -e
++
++$NFT add table t
++$NFT add chain t c1 {type filter hook output priority 0 \; }
++# wrong hook output, only postrouting is valid
++$NFT add rule t c1 masquerade 2>/dev/null
++echo "E: accepted masquerade in output hook" >&2
+diff --git a/tests/shell/testcases/chains/0008masquerade_jump_1 b/tests/shell/testcases/chains/0008masquerade_jump_1
+new file mode 100755
+index 0000000..7754ed0
+--- /dev/null
++++ b/tests/shell/testcases/chains/0008masquerade_jump_1
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++set -e
++
++$NFT add table t
++$NFT add chain t output {type nat hook output priority 0 \; }
++$NFT add chain t c1
++$NFT add rule t c1 masquerade
++# kernel should return EOPNOTSUPP
++$NFT add rule t output jump c1 2>/dev/null
++echo "E: accepted masquerade in output hook" >&2
+diff --git a/tests/shell/testcases/chains/0009masquerade_jump_1 b/tests/shell/testcases/chains/0009masquerade_jump_1
+new file mode 100755
+index 0000000..684d441
+--- /dev/null
++++ b/tests/shell/testcases/chains/0009masquerade_jump_1
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++set -e
++
++$NFT add table t
++$NFT add chain t output {type nat hook output priority 0 \; }
++$NFT add chain t c1
++$NFT add rule t c1 masquerade
++# kernel should return EOPNOTSUPP
++$NFT add rule t output tcp dport vmap {1 :jump c1 } 2>/dev/null
++echo "E: accepted masquerade in output hook in a vmap" >&2
 
->> +
->> +exit:
->> +	nftnl_udata_free(udata);
->> +	return comment;
->> +}
->> +
->>   struct rule *netlink_delinearize_rule(struct netlink_ctx *ctx,
->>   				      const struct nftnl_rule *nlr)
->>   {
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
