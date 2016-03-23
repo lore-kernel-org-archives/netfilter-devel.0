@@ -1,278 +1,93 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH 3/3] tests/shell: add testcases for Netfilter bug #965
-Date: Wed, 23 Mar 2016 13:51:43 +0100
-Message-ID: <145873750378.10004.16685712526295738112.stgit@nfdev2.cica.es>
-References: <145873749309.10004.11477358360509958985.stgit@nfdev2.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+From: Liping Zhang <zlpwmdx@163.com>
+Subject: [PATCH] netfilter: ip6t_SYNPROXY: remove magic number
+Date: Wed, 23 Mar 2016 22:29:16 +0800
+Message-ID: <1458743356-4045-1-git-send-email-zlpwmdx@163.com>
+Cc: Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org, kaber@trash.net, davem@davemloft.net,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:40000 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754589AbcCWMvv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Mar 2016 08:51:51 -0400
-In-Reply-To: <145873749309.10004.11477358360509958985.stgit@nfdev2.cica.es>
+Received: from m12-17.163.com ([220.181.12.17]:32880 "EHLO m12-17.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751610AbcCWOaH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Mar 2016 10:30:07 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Testscases for Netfilter bug #965:
- * add rule at position
- * insert rule at position
- * replace rule with given handle
- * delete rule with given handle
- * don't allow to delete rules with position keyword
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Netfilter Bugzilla: http://bugzilla.netfilter.org/show_bug.cgi?id=965
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Replace '64' with the per-net ipv6_devconf_all's hop_limit when
+building the ipv6 header.
+
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- .../testcases/rule_management/0001addposition_0    |   27 ++++++++++++++++++++
- .../testcases/rule_management/0002insertposition_0 |   27 ++++++++++++++++++++
- tests/shell/testcases/rule_management/0003insert_0 |   27 ++++++++++++++++++++
- .../shell/testcases/rule_management/0004replace_0  |   24 ++++++++++++++++++
- .../shell/testcases/rule_management/0005replace_1  |   11 ++++++++
- .../shell/testcases/rule_management/0006replace_1  |   11 ++++++++
- tests/shell/testcases/rule_management/0007delete_0 |   25 +++++++++++++++++++
- tests/shell/testcases/rule_management/0008delete_1 |   11 ++++++++
- tests/shell/testcases/rule_management/0009delete_1 |   11 ++++++++
- 9 files changed, 174 insertions(+)
- create mode 100755 tests/shell/testcases/rule_management/0001addposition_0
- create mode 100755 tests/shell/testcases/rule_management/0002insertposition_0
- create mode 100755 tests/shell/testcases/rule_management/0003insert_0
- create mode 100755 tests/shell/testcases/rule_management/0004replace_0
- create mode 100755 tests/shell/testcases/rule_management/0005replace_1
- create mode 100755 tests/shell/testcases/rule_management/0006replace_1
- create mode 100755 tests/shell/testcases/rule_management/0007delete_0
- create mode 100755 tests/shell/testcases/rule_management/0008delete_1
- create mode 100755 tests/shell/testcases/rule_management/0009delete_1
+ net/ipv6/netfilter/ip6t_SYNPROXY.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-diff --git a/tests/shell/testcases/rule_management/0001addposition_0 b/tests/shell/testcases/rule_management/0001addposition_0
-new file mode 100755
-index 0000000..e66bfff
---- /dev/null
-+++ b/tests/shell/testcases/rule_management/0001addposition_0
-@@ -0,0 +1,27 @@
-+#!/bin/bash
-+
-+# tests for Netfilter bug #965 and the related fix
-+# (regarding rule management with a given position/handle spec)
-+
-+set -e
-+$NFT add table t
-+$NFT add chain t c
-+$NFT add rule t c accept	# should have handle 2
-+$NFT add rule t c accept	# should have handle 3
-+$NFT add rule t c position 2 drop
-+
-+EXPECTED="table ip t {
-+	chain c {
-+		accept
-+		drop
-+		accept
-+	}
-+}"
-+
-+GET="$($NFT list ruleset)"
-+
-+if [ "$EXPECTED" != "$GET" ] ; then
-+	DIFF="$(which diff)"
-+	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
-+	exit 1
-+fi
-diff --git a/tests/shell/testcases/rule_management/0002insertposition_0 b/tests/shell/testcases/rule_management/0002insertposition_0
-new file mode 100755
-index 0000000..cf8a568
---- /dev/null
-+++ b/tests/shell/testcases/rule_management/0002insertposition_0
-@@ -0,0 +1,27 @@
-+#!/bin/bash
-+
-+# tests for Netfilter bug #965 and the related fix
-+# (regarding rule management with a given position/handle spec)
-+
-+set -e
-+$NFT add table t
-+$NFT add chain t c
-+$NFT add rule t c accept	# should have handle 2
-+$NFT add rule t c accept	# should have handle 3
-+$NFT insert rule t c position 2 drop
-+
-+EXPECTED="table ip t {
-+	chain c {
-+		drop
-+		accept
-+		accept
-+	}
-+}"
-+
-+GET="$($NFT list ruleset)"
-+
-+if [ "$EXPECTED" != "$GET" ] ; then
-+	DIFF="$(which diff)"
-+	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
-+	exit 1
-+fi
-diff --git a/tests/shell/testcases/rule_management/0003insert_0 b/tests/shell/testcases/rule_management/0003insert_0
-new file mode 100755
-index 0000000..6691c16
---- /dev/null
-+++ b/tests/shell/testcases/rule_management/0003insert_0
-@@ -0,0 +1,27 @@
-+#!/bin/bash
-+
-+# tests for Netfilter bug #965
-+# (regarding rule management with a given position/handle spec)
-+
-+set -e
-+$NFT add table t
-+$NFT add chain t c
-+$NFT insert rule t c accept
-+$NFT insert rule t c drop
-+$NFT insert rule t c masquerade
-+
-+EXPECTED="table ip t {
-+	chain c {
-+		masquerade
-+		drop
-+		accept
-+	}
-+}"
-+
-+GET="$($NFT list ruleset)"
-+
-+if [ "$EXPECTED" != "$GET" ] ; then
-+	DIFF="$(which diff)"
-+	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
-+	exit 1
-+fi
-diff --git a/tests/shell/testcases/rule_management/0004replace_0 b/tests/shell/testcases/rule_management/0004replace_0
-new file mode 100755
-index 0000000..6a4b949
---- /dev/null
-+++ b/tests/shell/testcases/rule_management/0004replace_0
-@@ -0,0 +1,24 @@
-+#!/bin/bash
-+
-+# tests for Netfilter bug #965 and the related fix
-+# (regarding rule management with a given position/handle spec)
-+
-+set -e
-+$NFT add table t
-+$NFT add chain t c
-+$NFT add rule t c accept	# should have handle 2
-+$NFT replace rule t c handle 2 drop
-+
-+EXPECTED="table ip t {
-+	chain c {
-+		drop
-+	}
-+}"
-+
-+GET="$($NFT list ruleset)"
-+
-+if [ "$EXPECTED" != "$GET" ] ; then
-+	DIFF="$(which diff)"
-+	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
-+	exit 1
-+fi
-diff --git a/tests/shell/testcases/rule_management/0005replace_1 b/tests/shell/testcases/rule_management/0005replace_1
-new file mode 100755
-index 0000000..e82995a
---- /dev/null
-+++ b/tests/shell/testcases/rule_management/0005replace_1
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+# tests for Netfilter bug #965 and the related fix
-+# (regarding rule management with a given position/handle spec)
-+
-+set -e
-+$NFT add table t
-+$NFT add chain t c
-+# kernel should return ENOENT
-+$NFT replace rule t c handle 2 drop 2>/dev/null
-+echo "E: missing kernel ENOENT" >&2
-diff --git a/tests/shell/testcases/rule_management/0006replace_1 b/tests/shell/testcases/rule_management/0006replace_1
-new file mode 100755
-index 0000000..5dfcba0
---- /dev/null
-+++ b/tests/shell/testcases/rule_management/0006replace_1
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+# tests for Netfilter bug #965 and the related fix
-+# (regarding rule management with a given position/handle spec)
-+
-+set -e
-+$NFT add table t
-+$NFT add chain t c
-+# position keyword with replace action is not allowed, this should fail
-+$NFT replace rule t c position 2 drop 2>/dev/null
-+echo "E: allowed replace with position specification" >&2
-diff --git a/tests/shell/testcases/rule_management/0007delete_0 b/tests/shell/testcases/rule_management/0007delete_0
-new file mode 100755
-index 0000000..126fe5d
---- /dev/null
-+++ b/tests/shell/testcases/rule_management/0007delete_0
-@@ -0,0 +1,25 @@
-+#!/bin/bash
-+
-+# tests for Netfilter bug #965 and the related fix
-+# (regarding rule management with a given position/handle spec)
-+
-+set -e
-+$NFT add table t
-+$NFT add chain t c
-+$NFT add rule t c accept	# should have handle 2
-+$NFT add rule t c drop		# should have handle 3
-+$NFT delete rule t c handle 2
-+
-+EXPECTED="table ip t {
-+	chain c {
-+		drop
-+	}
-+}"
-+
-+GET="$($NFT list ruleset)"
-+
-+if [ "$EXPECTED" != "$GET" ] ; then
-+	DIFF="$(which diff)"
-+	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
-+	exit 1
-+fi
-diff --git a/tests/shell/testcases/rule_management/0008delete_1 b/tests/shell/testcases/rule_management/0008delete_1
-new file mode 100755
-index 0000000..3dce219
---- /dev/null
-+++ b/tests/shell/testcases/rule_management/0008delete_1
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+# tests for Netfilter bug #965 and the related fix
-+# (regarding rule management with a given position/handle spec)
-+
-+set -e
-+$NFT add table t
-+$NFT add chain t c
-+# this should fail, we don't allow delete with position
-+$NFT delete rule t c position 2 drop 2>/dev/null
-+echo "E: allowed position spec with delete action" >&2
-diff --git a/tests/shell/testcases/rule_management/0009delete_1 b/tests/shell/testcases/rule_management/0009delete_1
-new file mode 100755
-index 0000000..87fec60
---- /dev/null
-+++ b/tests/shell/testcases/rule_management/0009delete_1
-@@ -0,0 +1,11 @@
-+#!/bin/bash
-+
-+# tests for Netfilter bug #965 and the related fix
-+# (regarding rule management with a given position/handle spec)
-+
-+set -e
-+$NFT add table t
-+$NFT add chain t c
-+# kernel ENOENT
-+$NFT delete rule t c handle 3333 2>/dev/null
-+echo "E: missing kernel ENOENT" >&2
+diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+index 3deed58..b99314a 100644
+--- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
++++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+@@ -20,15 +20,16 @@
+ #include <net/netfilter/nf_conntrack_synproxy.h>
+ 
+ static struct ipv6hdr *
+-synproxy_build_ip(struct sk_buff *skb, const struct in6_addr *saddr,
+-				       const struct in6_addr *daddr)
++synproxy_build_ip(struct net *net, struct sk_buff *skb,
++		  const struct in6_addr *saddr,
++		  const struct in6_addr *daddr)
+ {
+ 	struct ipv6hdr *iph;
+ 
+ 	skb_reset_network_header(skb);
+ 	iph = (struct ipv6hdr *)skb_put(skb, sizeof(*iph));
+ 	ip6_flow_hdr(iph, 0, 0);
+-	iph->hop_limit	= 64;	//XXX
++	iph->hop_limit	= net->ipv6.devconf_all->hop_limit;
+ 	iph->nexthdr	= IPPROTO_TCP;
+ 	iph->saddr	= *saddr;
+ 	iph->daddr	= *daddr;
+@@ -103,7 +104,8 @@ synproxy_send_client_synack(const struct synproxy_net *snet,
+ 		return;
+ 	skb_reserve(nskb, MAX_TCP_HEADER);
+ 
+-	niph = synproxy_build_ip(nskb, &iph->daddr, &iph->saddr);
++	niph = synproxy_build_ip(nf_ct_net(snet->tmpl), nskb, &iph->daddr,
++				 &iph->saddr);
+ 
+ 	skb_reset_transport_header(nskb);
+ 	nth = (struct tcphdr *)skb_put(nskb, tcp_hdr_size);
+@@ -144,7 +146,8 @@ synproxy_send_server_syn(const struct synproxy_net *snet,
+ 		return;
+ 	skb_reserve(nskb, MAX_TCP_HEADER);
+ 
+-	niph = synproxy_build_ip(nskb, &iph->saddr, &iph->daddr);
++	niph = synproxy_build_ip(nf_ct_net(snet->tmpl), nskb, &iph->saddr,
++				 &iph->daddr);
+ 
+ 	skb_reset_transport_header(nskb);
+ 	nth = (struct tcphdr *)skb_put(nskb, tcp_hdr_size);
+@@ -189,7 +192,8 @@ synproxy_send_server_ack(const struct synproxy_net *snet,
+ 		return;
+ 	skb_reserve(nskb, MAX_TCP_HEADER);
+ 
+-	niph = synproxy_build_ip(nskb, &iph->daddr, &iph->saddr);
++	niph = synproxy_build_ip(nf_ct_net(snet->tmpl), nskb, &iph->daddr,
++				 &iph->saddr);
+ 
+ 	skb_reset_transport_header(nskb);
+ 	nth = (struct tcphdr *)skb_put(nskb, tcp_hdr_size);
+@@ -227,7 +231,8 @@ synproxy_send_client_ack(const struct synproxy_net *snet,
+ 		return;
+ 	skb_reserve(nskb, MAX_TCP_HEADER);
+ 
+-	niph = synproxy_build_ip(nskb, &iph->saddr, &iph->daddr);
++	niph = synproxy_build_ip(nf_ct_net(snet->tmpl), nskb, &iph->saddr,
++				 &iph->daddr);
+ 
+ 	skb_reset_transport_header(nskb);
+ 	nth = (struct tcphdr *)skb_put(nskb, tcp_hdr_size);
+-- 
+1.7.9.5
+
 
