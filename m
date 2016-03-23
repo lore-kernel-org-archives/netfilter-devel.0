@@ -1,131 +1,117 @@
-From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
-Subject: [PATCH 3/4 v6] libnftnl: test: Update test to check new nftnl_udata features of nftnl_rule
-Date: Tue, 22 Mar 2016 20:46:26 +0100
-Message-ID: <1458675987-32398-3-git-send-email-carlosfg@riseup.net>
-References: <1458675987-32398-1-git-send-email-carlosfg@riseup.net>
+From: Mart Frauenlob <mart.frauenlob@chello.at>
+Subject: Re: [nft PATCH] tests/shell: add chain validations tests
+Date: Wed, 23 Mar 2016 01:09:06 +0100
+Message-ID: <56F1DEA2.70409@chello.at>
+References: <145865193086.6118.9200431804176858644.stgit@nfdev2.cica.es>
+Reply-To: mart.frauenlob@chello.at
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: pablo@netfilter.org, kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:51467 "EHLO mx1.riseup.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751251AbcCVTqo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Mar 2016 15:46:44 -0400
-In-Reply-To: <1458675987-32398-1-git-send-email-carlosfg@riseup.net>
+Received: from vie01a-dmta-at01-1.mx.upcmail.net ([62.179.121.145]:15403 "EHLO
+	vie01a-dmta-at01-1.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752628AbcCWAJI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Mar 2016 20:09:08 -0400
+Received: from [172.31.216.43] (helo=vie01a-pemc-psmtp-pe01)
+	by vie01a-dmta-at01.mx.upcmail.net with esmtp (Exim 4.72)
+	(envelope-from <mart.frauenlob@chello.at>)
+	id 1aiWMC-0006yY-Sl
+	for netfilter-devel@vger.kernel.org; Wed, 23 Mar 2016 01:09:04 +0100
+In-Reply-To: <145865193086.6118.9200431804176858644.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Modify nft-rule-test.c to check TLV attribute inclusion in nftnl_rule.
-Add "*-rule-udata.[json|xml]" to check parsers.
+Good day,
 
-Signed-off-by: Carlos Falgueras Garc=C3=ADa <carlosfg@riseup.net>
----
- tests/jsonfiles/71-rule-udata.json |  1 +
- tests/nft-rule-test.c              | 21 +++++++++++++++++++++
- tests/xmlfiles/82-rule-udata.xml   |  1 +
- 3 files changed, 23 insertions(+)
- create mode 100644 tests/jsonfiles/71-rule-udata.json
- create mode 100644 tests/xmlfiles/82-rule-udata.xml
+On 22.03.2016 14:06, Arturo Borrero Gonzalez wrote:
+> Some basic test regarding chains: jumps and validations.
+>
+> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+> ---
+> NOTE: the testcases/chains/0009masquerade_jump_1 file fails, seems like a bug
+> in the kernel validation. Needs more investigation.
+>
+>   tests/shell/testcases/chains/0001jumps_0           |   17 +++++++++++++++
+>   tests/shell/testcases/chains/0002jumps_1           |   22 ++++++++++++++++++++
+>   tests/shell/testcases/chains/0003jump_loop_1       |   21 +++++++++++++++++++
+>   tests/shell/testcases/chains/0004busy_1            |   11 ++++++++++
+>   tests/shell/testcases/chains/0005busy_map_1        |   11 ++++++++++
+>   tests/shell/testcases/chains/0006masquerade_0      |    7 ++++++
+>   tests/shell/testcases/chains/0007masquerade_1      |    9 ++++++++
+>   tests/shell/testcases/chains/0008masquerade_jump_1 |   11 ++++++++++
+>   tests/shell/testcases/chains/0009masquerade_jump_1 |   11 ++++++++++
+>   9 files changed, 120 insertions(+)
+>   create mode 100755 tests/shell/testcases/chains/0001jumps_0
+>   create mode 100755 tests/shell/testcases/chains/0002jumps_1
+>   create mode 100755 tests/shell/testcases/chains/0003jump_loop_1
+>   create mode 100755 tests/shell/testcases/chains/0004busy_1
+>   create mode 100755 tests/shell/testcases/chains/0005busy_map_1
+>   create mode 100755 tests/shell/testcases/chains/0006masquerade_0
+>   create mode 100755 tests/shell/testcases/chains/0007masquerade_1
+>   create mode 100755 tests/shell/testcases/chains/0008masquerade_jump_1
+>   create mode 100755 tests/shell/testcases/chains/0009masquerade_jump_1
+>
+> diff --git a/tests/shell/testcases/chains/0001jumps_0 b/tests/shell/testcases/chains/0001jumps_0
+> new file mode 100755
+> index 0000000..b39df38
+> --- /dev/null
+> +++ b/tests/shell/testcases/chains/0001jumps_0
+> @@ -0,0 +1,17 @@
+> +#!/bin/bash
 
-diff --git a/tests/jsonfiles/71-rule-udata.json b/tests/jsonfiles/71-ru=
-le-udata.json
-new file mode 100644
-index 0000000..02d7903
---- /dev/null
-+++ b/tests/jsonfiles/71-rule-udata.json
-@@ -0,0 +1 @@
-+{"nftables":[{"add":[{"rule":{"family":"ip","table":"filter","chain":"=
-input","handle":71,"expr":[{"type":"counter","pkts":135,"bytes":21655}]=
-,"userdata":[{"type":0,"length":12,"value":"68656C6C6F20776F726C6400"},=
-{"type":1,"length":9,"value":"627920776F726C6400"}]}}]}]}
-diff --git a/tests/nft-rule-test.c b/tests/nft-rule-test.c
-index dff9634..0cbbb99 100644
---- a/tests/nft-rule-test.c
-+++ b/tests/nft-rule-test.c
-@@ -15,6 +15,7 @@
- #include <netinet/in.h>
- #include <linux/netfilter/nf_tables.h>
- #include <libnftnl/rule.h>
-+#include <libnftnl/udata.h>
-=20
- static int test_ok =3D 1;
-=20
-@@ -26,6 +27,9 @@ static void print_err(const char *msg)
-=20
- static void cmp_nftnl_rule(struct nftnl_rule *a, struct nftnl_rule *b)
- {
-+	const void *udata_a, *udata_b;
-+	uint32_t len_a, len_b;
-+
- 	if (nftnl_rule_get_u32(a, NFTNL_RULE_FAMILY) !=3D
- 	    nftnl_rule_get_u32(b, NFTNL_RULE_FAMILY))
- 		print_err("Rule family mismatches");
-@@ -47,6 +51,12 @@ static void cmp_nftnl_rule(struct nftnl_rule *a, str=
-uct nftnl_rule *b)
- 	if (nftnl_rule_get_u64(a, NFTNL_RULE_POSITION) !=3D
- 	    nftnl_rule_get_u64(b, NFTNL_RULE_POSITION))
- 		print_err("Rule compat_position mismatches");
-+
-+	udata_a =3D nftnl_rule_get_data(a, NFTNL_RULE_USERDATA, &len_a);
-+	udata_b =3D nftnl_rule_get_data(b, NFTNL_RULE_USERDATA, &len_b);
-+
-+	if (len_a !=3D len_b || memcmp(udata_a, udata_b, len_a) !=3D 0)
-+		print_err("Rule userdata mismatches");
- }
-=20
- int main(int argc, char *argv[])
-@@ -54,12 +64,20 @@ int main(int argc, char *argv[])
- 	struct nftnl_rule *a, *b;
- 	char buf[4096];
- 	struct nlmsghdr *nlh;
-+	struct nftnl_udata_buf *udata;
-=20
- 	a =3D nftnl_rule_alloc();
- 	b =3D nftnl_rule_alloc();
- 	if (a =3D=3D NULL || b =3D=3D NULL)
- 		print_err("OOM");
-=20
-+	udata =3D nftnl_udata_buf_alloc(NFT_USERDATA_MAXLEN);
-+	if (!udata)
-+		print_err("OOM");
-+
-+	if (!nftnl_udata_put_strz(udata, 0, "hello world"))
-+		print_err("User data too big");
-+
- 	nftnl_rule_set_u32(a, NFTNL_RULE_FAMILY, AF_INET);
- 	nftnl_rule_set_str(a, NFTNL_RULE_TABLE, "table");
- 	nftnl_rule_set_str(a, NFTNL_RULE_CHAIN, "chain");
-@@ -67,6 +85,9 @@ int main(int argc, char *argv[])
- 	nftnl_rule_set_u32(a, NFTNL_RULE_COMPAT_PROTO, 0x12345678);
- 	nftnl_rule_set_u32(a, NFTNL_RULE_COMPAT_FLAGS, 0x12345678);
- 	nftnl_rule_set_u64(a, NFTNL_RULE_POSITION, 0x1234567812345678);
-+	nftnl_rule_set_data(a, NFTNL_RULE_USERDATA,
-+			    nftnl_udata_buf_data(udata),
-+			    nftnl_udata_buf_len(udata));
-=20
- 	nlh =3D nftnl_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE, AF_INET, 0, =
-1234);
- 	nftnl_rule_nlmsg_build_payload(nlh, a);
-diff --git a/tests/xmlfiles/82-rule-udata.xml b/tests/xmlfiles/82-rule-=
-udata.xml
-new file mode 100644
-index 0000000..b986926
---- /dev/null
-+++ b/tests/xmlfiles/82-rule-udata.xml
-@@ -0,0 +1 @@
-+<nftables><add><rule><family>ip6</family><table>filter</table><chain>i=
-nput</chain><handle>82</handle><expr type=3D"counter"><pkts>3</pkts><by=
-tes>177</bytes></expr><userdata><attr><type>0</type><length>12</length>=
-<value>68656C6C6F20776F726C6400</value></attr><attr><type>1</type><leng=
-th>9</length><value>627920776F726C6400</value></attr></userdata></rule>=
-</add></nftables>
---=20
-2.7.2
+I've not looked up the code calling this, but:
+First: bash only?
+Second: It's not granted to be in /bin.
+Third: May not be the wanted version.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So a shebang like:
+#!/usr/bin/env bash
+or
+#!/urs/bin/env sh
+should be more compatible and fail proof.
+
+> +
+> +set -e
+> +
+> +MAX_JUMPS=16
+> +
+> +$NFT add table t
+Unquoted variable, may fail if, unlikely but possible, the name contains 
+i.e. spaces.
+
+> +
+> +for i in $(seq 1 $MAX_JUMPS)
+> +do
+> +	$NFT add chain t c${i}
+> +done
+Requires `seq' binary.
+I think for ((i=1; i<=$MAX_JUMPS; i++)) is more portable.
+
+> +
+> +for i in $(seq 1 $((MAX_JUMPS - 1)))
+> +do
+> +	$NFT add rule t c${i} jump c$((i + 1))
+> +done
+
+Why not add functions? i.e.
+
+runft() {
+"$NFT" "$@"
+}
+
+nfat() {
+runft add table "$@"
+}
+
+nfac() {
+runft add chain "$@"
+}
+....
+
+[...]
+
+Best regards,
+Mart
