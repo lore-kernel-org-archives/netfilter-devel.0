@@ -1,7 +1,7 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH 2/3] src/evaluate.c: improve rule management checks
-Date: Wed, 23 Mar 2016 13:51:38 +0100
-Message-ID: <145873749855.10004.10666252455830923605.stgit@nfdev2.cica.es>
+Subject: [nft PATCH 3/3] tests/shell: add testcases for Netfilter bug #965
+Date: Wed, 23 Mar 2016 13:51:43 +0100
+Message-ID: <145873750378.10004.16685712526295738112.stgit@nfdev2.cica.es>
 References: <145873749309.10004.11477358360509958985.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -9,101 +9,270 @@ Content-Transfer-Encoding: 7bit
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:39994 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:40000 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754589AbcCWMvq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Mar 2016 08:51:46 -0400
+	id S1754589AbcCWMvv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Mar 2016 08:51:51 -0400
 In-Reply-To: <145873749309.10004.11477358360509958985.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Improve checks (and error reporting) for basic rule management operations.
+Testscases for Netfilter bug #965:
+ * add rule at position
+ * insert rule at position
+ * replace rule with given handle
+ * delete rule with given handle
+ * don't allow to delete rules with position keyword
 
-This includes a fix for netfilter bug #965.
-
-Netfilter bug: http://bugzilla.netfilter.org/show_bug.cgi?id=965
-Reported-by: Jesper Sander Lindgren <sander.contrib@gmail.com>
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Netfilter Bugzilla: http://bugzilla.netfilter.org/show_bug.cgi?id=965
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- src/evaluate.c |   53 ++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 52 insertions(+), 1 deletion(-)
+ .../testcases/rule_management/0001addposition_0    |   27 ++++++++++++++++++++
+ .../testcases/rule_management/0002insertposition_0 |   27 ++++++++++++++++++++
+ tests/shell/testcases/rule_management/0003insert_0 |   27 ++++++++++++++++++++
+ .../shell/testcases/rule_management/0004replace_0  |   24 ++++++++++++++++++
+ .../shell/testcases/rule_management/0005replace_1  |   11 ++++++++
+ .../shell/testcases/rule_management/0006replace_1  |   11 ++++++++
+ tests/shell/testcases/rule_management/0007delete_0 |   25 +++++++++++++++++++
+ tests/shell/testcases/rule_management/0008delete_1 |   11 ++++++++
+ tests/shell/testcases/rule_management/0009delete_1 |   11 ++++++++
+ 9 files changed, 174 insertions(+)
+ create mode 100755 tests/shell/testcases/rule_management/0001addposition_0
+ create mode 100755 tests/shell/testcases/rule_management/0002insertposition_0
+ create mode 100755 tests/shell/testcases/rule_management/0003insert_0
+ create mode 100755 tests/shell/testcases/rule_management/0004replace_0
+ create mode 100755 tests/shell/testcases/rule_management/0005replace_1
+ create mode 100755 tests/shell/testcases/rule_management/0006replace_1
+ create mode 100755 tests/shell/testcases/rule_management/0007delete_0
+ create mode 100755 tests/shell/testcases/rule_management/0008delete_1
+ create mode 100755 tests/shell/testcases/rule_management/0009delete_1
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 473f014..de8302b 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2160,11 +2160,59 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- 	return 0;
- }
- 
-+static int rule_evaluate_cmd(struct eval_ctx *ctx)
-+{
-+	struct handle *handle = &ctx->cmd->handle;
+diff --git a/tests/shell/testcases/rule_management/0001addposition_0 b/tests/shell/testcases/rule_management/0001addposition_0
+new file mode 100755
+index 0000000..e66bfff
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0001addposition_0
+@@ -0,0 +1,27 @@
++#!/bin/bash
 +
-+	/* allowed:
-+	 * - insert [position] (no handle)
-+	 * - add [position] (no handle)
-+	 * - replace <handle> (no position)
-+	 * - delete <handle> (no position)
-+	 */
++# tests for Netfilter bug #965 and the related fix
++# (regarding rule management with a given position/handle spec)
 +
-+	switch (ctx->cmd->op) {
-+	case CMD_INSERT:
-+		if (handle->handle != 0)
-+			return cmd_error(ctx, "Could not insert rule: handle "
-+					 "not allowed.");
-+		break;
-+	case CMD_ADD:
-+		if (handle->handle != 0)
-+			return cmd_error(ctx, "Could not add rule: handle not "
-+					 "allowed.");
-+		break;
-+	case CMD_REPLACE:
-+		if (handle->position != 0)
-+			return cmd_error(ctx, "Could not replace rule: "
-+					 "position not allowed.");
-+		if (handle->handle == 0)
-+			return cmd_error(ctx, "Could not replace rule: missing"
-+					 " handle.");
-+		break;
-+	case CMD_DELETE:
-+		if (handle->position != 0)
-+			return cmd_error(ctx, "Could not delete rule: position"
-+					 " not allowed.");
-+		if (handle->handle == 0)
-+			return cmd_error(ctx, "Could not delete rule: missing "
-+					 "handle.");
-+		break;
-+	default:
-+		BUG("unkown command type %u\n", ctx->cmd->op);
++set -e
++$NFT add table t
++$NFT add chain t c
++$NFT add rule t c accept	# should have handle 2
++$NFT add rule t c accept	# should have handle 3
++$NFT add rule t c position 2 drop
++
++EXPECTED="table ip t {
++	chain c {
++		accept
++		drop
++		accept
 +	}
++}"
 +
-+	return 0;
-+}
++GET="$($NFT list ruleset)"
 +
- static int rule_evaluate(struct eval_ctx *ctx, struct rule *rule)
- {
- 	struct stmt *stmt, *tstmt = NULL;
- 	struct error_record *erec;
- 
-+	if (rule_evaluate_cmd(ctx) < 0)
-+		return -1;
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
+diff --git a/tests/shell/testcases/rule_management/0002insertposition_0 b/tests/shell/testcases/rule_management/0002insertposition_0
+new file mode 100755
+index 0000000..cf8a568
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0002insertposition_0
+@@ -0,0 +1,27 @@
++#!/bin/bash
 +
- 	proto_ctx_init(&ctx->pctx, rule->handle.family);
- 	memset(&ctx->ectx, 0, sizeof(ctx->ectx));
- 
-@@ -2345,8 +2393,11 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
- 			return ret;
- 
- 		return setelem_evaluate(ctx, &cmd->expr);
--	case CMD_OBJ_SET:
- 	case CMD_OBJ_RULE:
-+		if (rule_evaluate_cmd(ctx) < 0)
-+			return -1;
-+		/* fall through */
-+	case CMD_OBJ_SET:
- 	case CMD_OBJ_CHAIN:
- 	case CMD_OBJ_TABLE:
- 		return 0;
++# tests for Netfilter bug #965 and the related fix
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++$NFT add rule t c accept	# should have handle 2
++$NFT add rule t c accept	# should have handle 3
++$NFT insert rule t c position 2 drop
++
++EXPECTED="table ip t {
++	chain c {
++		drop
++		accept
++		accept
++	}
++}"
++
++GET="$($NFT list ruleset)"
++
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
+diff --git a/tests/shell/testcases/rule_management/0003insert_0 b/tests/shell/testcases/rule_management/0003insert_0
+new file mode 100755
+index 0000000..6691c16
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0003insert_0
+@@ -0,0 +1,27 @@
++#!/bin/bash
++
++# tests for Netfilter bug #965
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++$NFT insert rule t c accept
++$NFT insert rule t c drop
++$NFT insert rule t c masquerade
++
++EXPECTED="table ip t {
++	chain c {
++		masquerade
++		drop
++		accept
++	}
++}"
++
++GET="$($NFT list ruleset)"
++
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
+diff --git a/tests/shell/testcases/rule_management/0004replace_0 b/tests/shell/testcases/rule_management/0004replace_0
+new file mode 100755
+index 0000000..6a4b949
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0004replace_0
+@@ -0,0 +1,24 @@
++#!/bin/bash
++
++# tests for Netfilter bug #965 and the related fix
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++$NFT add rule t c accept	# should have handle 2
++$NFT replace rule t c handle 2 drop
++
++EXPECTED="table ip t {
++	chain c {
++		drop
++	}
++}"
++
++GET="$($NFT list ruleset)"
++
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
+diff --git a/tests/shell/testcases/rule_management/0005replace_1 b/tests/shell/testcases/rule_management/0005replace_1
+new file mode 100755
+index 0000000..e82995a
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0005replace_1
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++# tests for Netfilter bug #965 and the related fix
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++# kernel should return ENOENT
++$NFT replace rule t c handle 2 drop 2>/dev/null
++echo "E: missing kernel ENOENT" >&2
+diff --git a/tests/shell/testcases/rule_management/0006replace_1 b/tests/shell/testcases/rule_management/0006replace_1
+new file mode 100755
+index 0000000..5dfcba0
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0006replace_1
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++# tests for Netfilter bug #965 and the related fix
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++# position keyword with replace action is not allowed, this should fail
++$NFT replace rule t c position 2 drop 2>/dev/null
++echo "E: allowed replace with position specification" >&2
+diff --git a/tests/shell/testcases/rule_management/0007delete_0 b/tests/shell/testcases/rule_management/0007delete_0
+new file mode 100755
+index 0000000..126fe5d
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0007delete_0
+@@ -0,0 +1,25 @@
++#!/bin/bash
++
++# tests for Netfilter bug #965 and the related fix
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++$NFT add rule t c accept	# should have handle 2
++$NFT add rule t c drop		# should have handle 3
++$NFT delete rule t c handle 2
++
++EXPECTED="table ip t {
++	chain c {
++		drop
++	}
++}"
++
++GET="$($NFT list ruleset)"
++
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
+diff --git a/tests/shell/testcases/rule_management/0008delete_1 b/tests/shell/testcases/rule_management/0008delete_1
+new file mode 100755
+index 0000000..3dce219
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0008delete_1
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++# tests for Netfilter bug #965 and the related fix
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++# this should fail, we don't allow delete with position
++$NFT delete rule t c position 2 drop 2>/dev/null
++echo "E: allowed position spec with delete action" >&2
+diff --git a/tests/shell/testcases/rule_management/0009delete_1 b/tests/shell/testcases/rule_management/0009delete_1
+new file mode 100755
+index 0000000..87fec60
+--- /dev/null
++++ b/tests/shell/testcases/rule_management/0009delete_1
+@@ -0,0 +1,11 @@
++#!/bin/bash
++
++# tests for Netfilter bug #965 and the related fix
++# (regarding rule management with a given position/handle spec)
++
++set -e
++$NFT add table t
++$NFT add chain t c
++# kernel ENOENT
++$NFT delete rule t c handle 3333 2>/dev/null
++echo "E: missing kernel ENOENT" >&2
 
