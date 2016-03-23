@@ -1,73 +1,91 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Subject: Re: [nft PATCH] tests/shell: add chain validations tests
-Date: Wed, 23 Mar 2016 08:44:31 +0100
-Message-ID: <CAOkSjBimNsBCYTK3AnHc4iFUkkjGoDU+y7Hn1j+qEfjHLPSR4A@mail.gmail.com>
-References: <145865193086.6118.9200431804176858644.stgit@nfdev2.cica.es> <20160322192019.GA7551@salvia>
+Date: Wed, 23 Mar 2016 09:02:32 +0100
+Message-ID: <CAOkSjBiKBH1bw0jBn2d5kRSmwJe_9DiHBGYCz46J+nDicqKsMQ@mail.gmail.com>
+References: <145865193086.6118.9200431804176858644.stgit@nfdev2.cica.es> <56F1DEA2.70409@chello.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: mart.frauenlob@chello.at
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:38204 "EHLO
-	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752518AbcCWHow convert rfc822-to-8bit (ORCPT
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:34700 "EHLO
+	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753251AbcCWICx convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Mar 2016 03:44:52 -0400
-Received: by mail-wm0-f43.google.com with SMTP id l68so11818521wml.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Mar 2016 00:44:52 -0700 (PDT)
-In-Reply-To: <20160322192019.GA7551@salvia>
+	Wed, 23 Mar 2016 04:02:53 -0400
+Received: by mail-wm0-f45.google.com with SMTP id p65so222303087wmp.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Mar 2016 01:02:52 -0700 (PDT)
+In-Reply-To: <56F1DEA2.70409@chello.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 22 March 2016 at 20:20, Pablo Neira Ayuso <pablo@netfilter.org> wrot=
-e:
-> On Tue, Mar 22, 2016 at 02:06:09PM +0100, Arturo Borrero Gonzalez wro=
-te:
->> Some basic test regarding chains: jumps and validations.
->>
->> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.co=
-m>
->> ---
->> NOTE: the testcases/chains/0009masquerade_jump_1 file fails, seems l=
-ike a bug
->> in the kernel validation. Needs more investigation.
+On 23 March 2016 at 01:09, Mart Frauenlob <mart.frauenlob@chello.at> wr=
+ote:
 >
-> I can see this there:
+> I've not looked up the code calling this, but:
+> First: bash only?
+> Second: It's not granted to be in /bin.
+> Third: May not be the wanted version.
 >
->> +$NFT add chain t output {type nat hook output priority 0 \; }
+> So a shebang like:
+> #!/usr/bin/env bash
+> or
+> #!/urs/bin/env sh
+> should be more compatible and fail proof.
 >
-> We only support masquerade from postrouting.
+>> +
+>> +set -e
+>> +
+>> +MAX_JUMPS=3D16
+>> +
+>> +$NFT add table t
 >
-> static struct xt_target masquerade_tg_reg __read_mostly =3D {
->         .name           =3D "MASQUERADE",
->         .family         =3D NFPROTO_IPV4,
->         .target         =3D masquerade_tg,
->         .targetsize     =3D sizeof(struct nf_nat_ipv4_multi_range_com=
-pat),
->         .table          =3D "nat",
->         .hooks          =3D 1 << NF_INET_POST_ROUTING,
+> Unquoted variable, may fail if, unlikely but possible, the name conta=
+ins
+> i.e. spaces.
 >
-> BTW, it would be good to add more tests to exercise the chain loop
-> detection code.
+>> +
+>> +for i in $(seq 1 $MAX_JUMPS)
+>> +do
+>> +       $NFT add chain t c${i}
+>> +done
 >
-> Please, fix and resubmit, thanks.
+> Requires `seq' binary.
+> I think for ((i=3D1; i<=3D$MAX_JUMPS; i++)) is more portable.
+>
+>> +
+>> +for i in $(seq 1 $((MAX_JUMPS - 1)))
+>> +do
+>> +       $NFT add rule t c${i} jump c$((i + 1))
+>> +done
+>
+>
+> Why not add functions? i.e.
+>
 
-Probably mi description of the problem was poor.
+Hi Mart,
 
-The offending testcase is testing, in fact, that we can add a rule
-with a jump to a chain with a masquerade rule, thus connecting
-masquerade to a output hook:
+yes, bash only :-) I think it's a very good shell. I'm not using any
+bash operand which depends on the version... I don't expect anybody to
+run this testsuite in bash v1 (20 years old already).
 
-$NFT add table t
-$NFT add chain t output {type nat hook output priority 0 \; }
-$NFT add chain t c1
-$NFT add rule t c1 masquerade
-$NFT add rule t output tcp dport vmap {1 :jump c1 }
+I didn't really care about portability... this is an internal script
+to perform internal tests, this is going to be run in very few
+systems.
 
-this don't fail, and that's the problem indeed.
+Also, no functions, because I want the nft commands to be really
+really clear, so debugging is easier.
 
+Is this testsuite failing for you? Have you run it?
+
+I would really like to review patches to incrementally improve the
+testsuite, which has been deliberately simplified to focus on what
+matter for us: testing nftables :-)
+
+thanks, best regards.
 --=20
 Arturo Borrero Gonz=C3=A1lez
 --
