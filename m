@@ -1,117 +1,77 @@
-From: Mart Frauenlob <mart.frauenlob@chello.at>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Subject: Re: [nft PATCH] tests/shell: add chain validations tests
-Date: Wed, 23 Mar 2016 01:09:06 +0100
-Message-ID: <56F1DEA2.70409@chello.at>
-References: <145865193086.6118.9200431804176858644.stgit@nfdev2.cica.es>
-Reply-To: mart.frauenlob@chello.at
+Date: Wed, 23 Mar 2016 08:44:31 +0100
+Message-ID: <CAOkSjBimNsBCYTK3AnHc4iFUkkjGoDU+y7Hn1j+qEfjHLPSR4A@mail.gmail.com>
+References: <145865193086.6118.9200431804176858644.stgit@nfdev2.cica.es> <20160322192019.GA7551@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vie01a-dmta-at01-1.mx.upcmail.net ([62.179.121.145]:15403 "EHLO
-	vie01a-dmta-at01-1.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752628AbcCWAJI (ORCPT
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:38204 "EHLO
+	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752518AbcCWHow convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Mar 2016 20:09:08 -0400
-Received: from [172.31.216.43] (helo=vie01a-pemc-psmtp-pe01)
-	by vie01a-dmta-at01.mx.upcmail.net with esmtp (Exim 4.72)
-	(envelope-from <mart.frauenlob@chello.at>)
-	id 1aiWMC-0006yY-Sl
-	for netfilter-devel@vger.kernel.org; Wed, 23 Mar 2016 01:09:04 +0100
-In-Reply-To: <145865193086.6118.9200431804176858644.stgit@nfdev2.cica.es>
+	Wed, 23 Mar 2016 03:44:52 -0400
+Received: by mail-wm0-f43.google.com with SMTP id l68so11818521wml.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Mar 2016 00:44:52 -0700 (PDT)
+In-Reply-To: <20160322192019.GA7551@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Good day,
-
-On 22.03.2016 14:06, Arturo Borrero Gonzalez wrote:
-> Some basic test regarding chains: jumps and validations.
+On 22 March 2016 at 20:20, Pablo Neira Ayuso <pablo@netfilter.org> wrot=
+e:
+> On Tue, Mar 22, 2016 at 02:06:09PM +0100, Arturo Borrero Gonzalez wro=
+te:
+>> Some basic test regarding chains: jumps and validations.
+>>
+>> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.co=
+m>
+>> ---
+>> NOTE: the testcases/chains/0009masquerade_jump_1 file fails, seems l=
+ike a bug
+>> in the kernel validation. Needs more investigation.
 >
-> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> ---
-> NOTE: the testcases/chains/0009masquerade_jump_1 file fails, seems like a bug
-> in the kernel validation. Needs more investigation.
+> I can see this there:
 >
->   tests/shell/testcases/chains/0001jumps_0           |   17 +++++++++++++++
->   tests/shell/testcases/chains/0002jumps_1           |   22 ++++++++++++++++++++
->   tests/shell/testcases/chains/0003jump_loop_1       |   21 +++++++++++++++++++
->   tests/shell/testcases/chains/0004busy_1            |   11 ++++++++++
->   tests/shell/testcases/chains/0005busy_map_1        |   11 ++++++++++
->   tests/shell/testcases/chains/0006masquerade_0      |    7 ++++++
->   tests/shell/testcases/chains/0007masquerade_1      |    9 ++++++++
->   tests/shell/testcases/chains/0008masquerade_jump_1 |   11 ++++++++++
->   tests/shell/testcases/chains/0009masquerade_jump_1 |   11 ++++++++++
->   9 files changed, 120 insertions(+)
->   create mode 100755 tests/shell/testcases/chains/0001jumps_0
->   create mode 100755 tests/shell/testcases/chains/0002jumps_1
->   create mode 100755 tests/shell/testcases/chains/0003jump_loop_1
->   create mode 100755 tests/shell/testcases/chains/0004busy_1
->   create mode 100755 tests/shell/testcases/chains/0005busy_map_1
->   create mode 100755 tests/shell/testcases/chains/0006masquerade_0
->   create mode 100755 tests/shell/testcases/chains/0007masquerade_1
->   create mode 100755 tests/shell/testcases/chains/0008masquerade_jump_1
->   create mode 100755 tests/shell/testcases/chains/0009masquerade_jump_1
+>> +$NFT add chain t output {type nat hook output priority 0 \; }
 >
-> diff --git a/tests/shell/testcases/chains/0001jumps_0 b/tests/shell/testcases/chains/0001jumps_0
-> new file mode 100755
-> index 0000000..b39df38
-> --- /dev/null
-> +++ b/tests/shell/testcases/chains/0001jumps_0
-> @@ -0,0 +1,17 @@
-> +#!/bin/bash
+> We only support masquerade from postrouting.
+>
+> static struct xt_target masquerade_tg_reg __read_mostly =3D {
+>         .name           =3D "MASQUERADE",
+>         .family         =3D NFPROTO_IPV4,
+>         .target         =3D masquerade_tg,
+>         .targetsize     =3D sizeof(struct nf_nat_ipv4_multi_range_com=
+pat),
+>         .table          =3D "nat",
+>         .hooks          =3D 1 << NF_INET_POST_ROUTING,
+>
+> BTW, it would be good to add more tests to exercise the chain loop
+> detection code.
+>
+> Please, fix and resubmit, thanks.
 
-I've not looked up the code calling this, but:
-First: bash only?
-Second: It's not granted to be in /bin.
-Third: May not be the wanted version.
+Probably mi description of the problem was poor.
 
-So a shebang like:
-#!/usr/bin/env bash
-or
-#!/urs/bin/env sh
-should be more compatible and fail proof.
+The offending testcase is testing, in fact, that we can add a rule
+with a jump to a chain with a masquerade rule, thus connecting
+masquerade to a output hook:
 
-> +
-> +set -e
-> +
-> +MAX_JUMPS=16
-> +
-> +$NFT add table t
-Unquoted variable, may fail if, unlikely but possible, the name contains 
-i.e. spaces.
+$NFT add table t
+$NFT add chain t output {type nat hook output priority 0 \; }
+$NFT add chain t c1
+$NFT add rule t c1 masquerade
+$NFT add rule t output tcp dport vmap {1 :jump c1 }
 
-> +
-> +for i in $(seq 1 $MAX_JUMPS)
-> +do
-> +	$NFT add chain t c${i}
-> +done
-Requires `seq' binary.
-I think for ((i=1; i<=$MAX_JUMPS; i++)) is more portable.
+this don't fail, and that's the problem indeed.
 
-> +
-> +for i in $(seq 1 $((MAX_JUMPS - 1)))
-> +do
-> +	$NFT add rule t c${i} jump c$((i + 1))
-> +done
-
-Why not add functions? i.e.
-
-runft() {
-"$NFT" "$@"
-}
-
-nfat() {
-runft add table "$@"
-}
-
-nfac() {
-runft add chain "$@"
-}
-....
-
-[...]
-
-Best regards,
-Mart
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
