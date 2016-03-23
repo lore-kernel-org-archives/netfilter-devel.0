@@ -1,153 +1,219 @@
-From: Liping Zhang <zlpwmdx@163.com>
-Subject: [PATCH] netfilter: ipv4: fix NULL dereference
-Date: Wed, 23 Mar 2016 22:27:30 +0800
-Message-ID: <1458743250-4003-1-git-send-email-zlpwmdx@163.com>
-Cc: kernel@kyup.com, Liping Zhang <liping.zhang@spreadtrum.com>
-To: netfilter-devel@vger.kernel.org, pablo@netfilter.org,
-	kaber@trash.net, davem@davemloft.net
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] src: store parser location for handle and position IDs
+Date: Wed, 23 Mar 2016 16:51:05 +0100
+Message-ID: <1458748265-6100-1-git-send-email-pablo@netfilter.org>
+Cc: arturo.borrero.glez@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-18.163.com ([220.181.12.18]:34992 "EHLO m12-18.163.com"
+Received: from mail.us.es ([193.147.175.20]:58203 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753574AbcCWOqA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Mar 2016 10:46:00 -0400
+	id S1755388AbcCWPvZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Mar 2016 11:51:25 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 1EFB98426
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 Mar 2016 16:51:19 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id BCD35DA8F9
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 Mar 2016 16:51:19 +0100 (CET)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A1C5EDA8F9
+	for <netfilter-devel@vger.kernel.org>; Wed, 23 Mar 2016 16:51:17 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+Store the parser location structure for handle and position IDs so we
+can use this information from the evaluation step, to provide better
+error reporting.
 
-Commit fa50d974d104 ("ipv4: Namespaceify ip_default_ttl sysctl knob")
-introduce the namespaceify ip_default_ttl, but sk_buff->sk maybe NULL,
-so sock_net(skb->sk) will dereference the NULL pointer and oops will
-happen.
-
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/bridge/netfilter/nft_reject_bridge.c |   20 ++++++++++----------
- net/ipv4/netfilter/ipt_SYNPROXY.c        |   16 ++++++++++------
- 2 files changed, 20 insertions(+), 16 deletions(-)
+ include/rule.h            | 26 ++++++++++++++++++++++++--
+ src/netlink.c             | 14 +++++++-------
+ src/netlink_delinearize.c |  4 ++--
+ src/parser_bison.y        | 19 ++++++++++++++-----
+ src/rule.c                |  6 +++---
+ 5 files changed, 50 insertions(+), 19 deletions(-)
 
-diff --git a/net/bridge/netfilter/nft_reject_bridge.c b/net/bridge/netfilter/nft_reject_bridge.c
-index adc8d72..77f7e7a 100644
---- a/net/bridge/netfilter/nft_reject_bridge.c
-+++ b/net/bridge/netfilter/nft_reject_bridge.c
-@@ -40,7 +40,8 @@ static void nft_reject_br_push_etherhdr(struct sk_buff *oldskb,
- /* We cannot use oldskb->dev, it can be either bridge device (NF_BRIDGE INPUT)
-  * or the bridge port (NF_BRIDGE PREROUTING).
-  */
--static void nft_reject_br_send_v4_tcp_reset(struct sk_buff *oldskb,
-+static void nft_reject_br_send_v4_tcp_reset(struct net *net,
-+					    struct sk_buff *oldskb,
- 					    const struct net_device *dev,
- 					    int hook)
- {
-@@ -48,7 +49,6 @@ static void nft_reject_br_send_v4_tcp_reset(struct sk_buff *oldskb,
- 	struct iphdr *niph;
- 	const struct tcphdr *oth;
- 	struct tcphdr _oth;
--	struct net *net = sock_net(oldskb->sk);
+diff --git a/include/rule.h b/include/rule.h
+index c848f0f..f36f912 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -6,6 +6,28 @@
+ #include <list.h>
  
- 	if (!nft_bridge_iphdr_validate(oldskb))
- 		return;
-@@ -75,7 +75,8 @@ static void nft_reject_br_send_v4_tcp_reset(struct sk_buff *oldskb,
- 	br_deliver(br_port_get_rcu(dev), nskb);
+ /**
++ * struct handle_id - handle ID
++ *
++ * @location:	location this handle was defined at
++ * @id:		handle ID value
++ */
++struct handle_id {
++	struct location		location;
++	uint64_t		id;
++};
++
++/**
++ * struct position_id - position ID
++ *
++ * @location:	location this position was defined at
++ * @id:		position ID value
++ */
++struct position_id {
++	struct location		location;
++	uint64_t		id;
++};
++
++/**
+  * struct handle - handle for tables, chains, rules and sets
+  *
+  * @family:	protocol family
+@@ -21,8 +43,8 @@ struct handle {
+ 	const char		*table;
+ 	const char		*chain;
+ 	const char		*set;
+-	uint64_t		handle;
+-	uint64_t		position;
++	struct handle_id	handle;
++	struct position_id	position;
+ 	uint32_t		set_id;
+ };
+ 
+diff --git a/src/netlink.c b/src/netlink.c
+index ba0c20a..e3ba2ed 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -143,8 +143,8 @@ struct nftnl_chain *alloc_nftnl_chain(const struct handle *h)
+ 
+ 	nftnl_chain_set_u32(nlc, NFTNL_CHAIN_FAMILY, h->family);
+ 	nftnl_chain_set_str(nlc, NFTNL_CHAIN_TABLE, h->table);
+-	if (h->handle != 0)
+-		nftnl_chain_set_u64(nlc, NFTNL_CHAIN_HANDLE, h->handle);
++	if (h->handle.id != 0)
++		nftnl_chain_set_u64(nlc, NFTNL_CHAIN_HANDLE, h->handle.id);
+ 	if (h->chain != NULL)
+ 		nftnl_chain_set_str(nlc, NFTNL_CHAIN_NAME, h->chain);
+ 
+@@ -163,10 +163,10 @@ struct nftnl_rule *alloc_nftnl_rule(const struct handle *h)
+ 	nftnl_rule_set_str(nlr, NFTNL_RULE_TABLE, h->table);
+ 	if (h->chain != NULL)
+ 		nftnl_rule_set_str(nlr, NFTNL_RULE_CHAIN, h->chain);
+-	if (h->handle)
+-		nftnl_rule_set_u64(nlr, NFTNL_RULE_HANDLE, h->handle);
+-	if (h->position)
+-		nftnl_rule_set_u64(nlr, NFTNL_RULE_POSITION, h->position);
++	if (h->handle.id)
++		nftnl_rule_set_u64(nlr, NFTNL_RULE_HANDLE, h->handle.id);
++	if (h->position.id)
++		nftnl_rule_set_u64(nlr, NFTNL_RULE_POSITION, h->position.id);
+ 
+ 	return nlr;
+ }
+@@ -700,7 +700,7 @@ static struct chain *netlink_delinearize_chain(struct netlink_ctx *ctx,
+ 		nftnl_chain_get_u32(nlc, NFTNL_CHAIN_FAMILY);
+ 	chain->handle.table  =
+ 		xstrdup(nftnl_chain_get_str(nlc, NFTNL_CHAIN_TABLE));
+-	chain->handle.handle =
++	chain->handle.handle.id =
+ 		nftnl_chain_get_u64(nlc, NFTNL_CHAIN_HANDLE);
+ 
+ 	if (nftnl_chain_is_set(nlc, NFTNL_CHAIN_HOOKNUM) &&
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index d431588..848acd6 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1759,10 +1759,10 @@ struct rule *netlink_delinearize_rule(struct netlink_ctx *ctx,
+ 	h.family = nftnl_rule_get_u32(nlr, NFTNL_RULE_FAMILY);
+ 	h.table  = xstrdup(nftnl_rule_get_str(nlr, NFTNL_RULE_TABLE));
+ 	h.chain  = xstrdup(nftnl_rule_get_str(nlr, NFTNL_RULE_CHAIN));
+-	h.handle = nftnl_rule_get_u64(nlr, NFTNL_RULE_HANDLE);
++	h.handle.id = nftnl_rule_get_u64(nlr, NFTNL_RULE_HANDLE);
+ 
+ 	if (nftnl_rule_is_set(nlr, NFTNL_RULE_POSITION))
+-		h.position = nftnl_rule_get_u64(nlr, NFTNL_RULE_POSITION);
++		h.position.id = nftnl_rule_get_u64(nlr, NFTNL_RULE_POSITION);
+ 
+ 	pctx->rule = rule_alloc(&netlink_location, &h);
+ 	pctx->table = table_lookup(&h);
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 7790865..a2d2687 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -133,6 +133,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ 	struct expr		*expr;
+ 	struct set		*set;
+ 	const struct datatype	*datatype;
++	struct handle_id	handle_id;
++	struct position_id	position_id;
  }
  
--static void nft_reject_br_send_v4_unreach(struct sk_buff *oldskb,
-+static void nft_reject_br_send_v4_unreach(struct net *net,
-+					  struct sk_buff *oldskb,
- 					  const struct net_device *dev,
- 					  int hook, u8 code)
- {
-@@ -86,7 +87,6 @@ static void nft_reject_br_send_v4_unreach(struct sk_buff *oldskb,
- 	void *payload;
- 	__wsum csum;
- 	u8 proto;
--	struct net *net = sock_net(oldskb->sk);
+ %token TOKEN_EOF 0		"end of file"
+@@ -423,7 +425,10 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec ruleset_spec
+ %type <handle>			set_spec set_identifier
+ %destructor { handle_free(&$$); } set_spec set_identifier
+-%type <val>			handle_spec family_spec family_spec_explicit position_spec chain_policy prio_spec
++%type <val>			family_spec family_spec_explicit chain_policy prio_spec
++
++%type <handle_id>		handle_spec
++%type <position_id>		position_spec
  
- 	if (oldskb->csum_bad || !nft_bridge_iphdr_validate(oldskb))
- 		return;
-@@ -273,17 +273,17 @@ static void nft_reject_bridge_eval(const struct nft_expr *expr,
- 	case htons(ETH_P_IP):
- 		switch (priv->type) {
- 		case NFT_REJECT_ICMP_UNREACH:
--			nft_reject_br_send_v4_unreach(pkt->skb, pkt->in,
--						      pkt->hook,
-+			nft_reject_br_send_v4_unreach(pkt->net, pkt->skb,
-+						      pkt->in, pkt->hook,
- 						      priv->icmp_code);
- 			break;
- 		case NFT_REJECT_TCP_RST:
--			nft_reject_br_send_v4_tcp_reset(pkt->skb, pkt->in,
--							pkt->hook);
-+			nft_reject_br_send_v4_tcp_reset(pkt->net, pkt->skb,
-+							pkt->in, pkt->hook);
- 			break;
- 		case NFT_REJECT_ICMPX_UNREACH:
--			nft_reject_br_send_v4_unreach(pkt->skb, pkt->in,
--						      pkt->hook,
-+			nft_reject_br_send_v4_unreach(pkt->net, pkt->skb,
-+						      pkt->in, pkt->hook,
- 						      nft_reject_icmp_code(priv->icmp_code));
- 			break;
- 		}
-diff --git a/net/ipv4/netfilter/ipt_SYNPROXY.c b/net/ipv4/netfilter/ipt_SYNPROXY.c
-index 7b8fbb3..6b4f501 100644
---- a/net/ipv4/netfilter/ipt_SYNPROXY.c
-+++ b/net/ipv4/netfilter/ipt_SYNPROXY.c
-@@ -18,10 +18,10 @@
- #include <net/netfilter/nf_conntrack_synproxy.h>
+ %type <string>			dev_spec
+ %destructor { xfree($$); }	dev_spec
+@@ -1224,21 +1229,25 @@ set_identifier		:	identifier
  
- static struct iphdr *
--synproxy_build_ip(struct sk_buff *skb, __be32 saddr, __be32 daddr)
-+synproxy_build_ip(struct net *net, struct sk_buff *skb, __be32 saddr,
-+		  __be32 daddr)
- {
- 	struct iphdr *iph;
--	struct net *net = sock_net(skb->sk);
+ handle_spec		:	/* empty */
+ 			{
+-				$$ = 0;
++				memset(&$$, 0, sizeof($$));
+ 			}
+ 			|	HANDLE		NUM
+ 			{
+-				$$ = $2;
++				memset(&$$, 0, sizeof($$));
++				$$.location	= @$;
++				$$.id		= $2;
+ 			}
+ 			;
  
- 	skb_reset_network_header(skb);
- 	iph = (struct iphdr *)skb_put(skb, sizeof(*iph));
-@@ -91,7 +91,8 @@ synproxy_send_client_synack(const struct synproxy_net *snet,
- 		return;
- 	skb_reserve(nskb, MAX_TCP_HEADER);
+ position_spec		:	/* empty */
+ 			{
+-				$$ = 0;
++				memset(&$$, 0, sizeof($$));
+ 			}
+ 			|	POSITION	NUM
+ 			{
+-				$$ = $2;
++				memset(&$$, 0, sizeof($$));
++				$$.location	= @$;
++				$$.id		= $2;
+ 			}
+ 			;
  
--	niph = synproxy_build_ip(nskb, iph->daddr, iph->saddr);
-+	niph = synproxy_build_ip(nf_ct_net(snet->tmpl), nskb, iph->daddr,
-+				 iph->saddr);
+diff --git a/src/rule.c b/src/rule.c
+index 85987b9..28e16d0 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -44,9 +44,9 @@ void handle_merge(struct handle *dst, const struct handle *src)
+ 		dst->chain = xstrdup(src->chain);
+ 	if (dst->set == NULL && src->set != NULL)
+ 		dst->set = xstrdup(src->set);
+-	if (dst->handle == 0)
++	if (dst->handle.id == 0)
+ 		dst->handle = src->handle;
+-	if (dst->position == 0)
++	if (dst->position.id == 0)
+ 		dst->position = src->position;
+ }
  
- 	skb_reset_transport_header(nskb);
- 	nth = (struct tcphdr *)skb_put(nskb, tcp_hdr_size);
-@@ -132,7 +133,8 @@ synproxy_send_server_syn(const struct synproxy_net *snet,
- 		return;
- 	skb_reserve(nskb, MAX_TCP_HEADER);
+@@ -392,7 +392,7 @@ void rule_print(const struct rule *rule)
+ 		printf("comment \"%s\" ", rule->comment);
  
--	niph = synproxy_build_ip(nskb, iph->saddr, iph->daddr);
-+	niph = synproxy_build_ip(nf_ct_net(snet->tmpl), nskb, iph->saddr,
-+				 iph->daddr);
+ 	if (handle_output > 0)
+-		printf("# handle %" PRIu64, rule->handle.handle);
++		printf("# handle %" PRIu64, rule->handle.handle.id);
+ }
  
- 	skb_reset_transport_header(nskb);
- 	nth = (struct tcphdr *)skb_put(nskb, tcp_hdr_size);
-@@ -177,7 +179,8 @@ synproxy_send_server_ack(const struct synproxy_net *snet,
- 		return;
- 	skb_reserve(nskb, MAX_TCP_HEADER);
- 
--	niph = synproxy_build_ip(nskb, iph->daddr, iph->saddr);
-+	niph = synproxy_build_ip(nf_ct_net(snet->tmpl), nskb, iph->daddr,
-+				 iph->saddr);
- 
- 	skb_reset_transport_header(nskb);
- 	nth = (struct tcphdr *)skb_put(nskb, tcp_hdr_size);
-@@ -215,7 +218,8 @@ synproxy_send_client_ack(const struct synproxy_net *snet,
- 		return;
- 	skb_reserve(nskb, MAX_TCP_HEADER);
- 
--	niph = synproxy_build_ip(nskb, iph->saddr, iph->daddr);
-+	niph = synproxy_build_ip(nf_ct_net(snet->tmpl), nskb, iph->saddr,
-+				 iph->daddr);
- 
- 	skb_reset_transport_header(nskb);
- 	nth = (struct tcphdr *)skb_put(nskb, tcp_hdr_size);
+ struct scope *scope_init(struct scope *scope, const struct scope *parent)
 -- 
-1.7.9.5
-
+2.1.4
 
