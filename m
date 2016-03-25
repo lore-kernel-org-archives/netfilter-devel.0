@@ -1,7 +1,7 @@
 From: "Liping Zhang" <zlpwmdx@163.com>
-Subject: Re:Re: [PATCH] netfilter: ipv4: fix NULL dereference
-Date: Fri, 25 Mar 2016 14:38:15 +0800 (CST)
-Message-ID: <21bea8ab.6e3f.153ac7eaa52.Coremail.zlpwmdx@163.com>
+Subject: Re: [PATCH] netfilter: ipv4: fix NULL dereference
+Date: Fri, 25 Mar 2016 15:24:17 +0800 (CST)
+Message-ID: <8a67176.7ced.153aca8cfbd.Coremail.zlpwmdx@163.com>
 References: <1458743250-4003-1-git-send-email-zlpwmdx@163.com>
  <20160324202205.GA2167@salvia>
 Mime-Version: 1.0
@@ -12,10 +12,10 @@ Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
 	"Liping Zhang" <liping.zhang@spreadtrum.com>
 To: "Pablo Neira Ayuso" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m13-128.163.com ([220.181.13.128]:39152 "EHLO m13-128.163.com"
+Received: from m13-128.163.com ([220.181.13.128]:48016 "EHLO m13-128.163.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751938AbcCYGyC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Mar 2016 02:54:02 -0400
+	id S1752008AbcCYHYq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Mar 2016 03:24:46 -0400
 In-Reply-To: <20160324202205.GA2167@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -34,5 +34,5 @@ bmV0ICpuZXQsCgotc3lucHJveHlfcmVjdl9jbGllbnRfYWNrKGNvbnN0IHN0cnVjdCBzeW5wcm94
 eV9uZXQgKnNuZXQsCitzeW5wcm94eV9yZWN2X2NsaWVudF9hY2soc3RydWN0IG5ldCAqbmV0LAog
 ICAgICAgICAgICAgICAgICAgICAgICAgY29uc3Qgc3RydWN0IHNrX2J1ZmYgKnNrYiwgY29uc3Qg
 c3RydWN0IHRjcGhkciAqdGgsCiAgICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3Qgc3lucHJv
-eHlfb3B0aW9ucyAqb3B0cywgdTMyIHJlY3Zfc2VxKQogeworICAgICAgIHN0cnVjdCBzeW5wcm94
+eHlfb3B0aW9ucyAqb3B0cywgdTMyIHJlY3Zfc2VxKSAgeworICAgICAgIHN0cnVjdCBzeW5wcm94
 eV9uZXQgKnNuZXQgPSBzeW5wcm94eV9wZXJuZXQobmV0KTsKCj4KPlRoYW5rcy4K
