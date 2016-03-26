@@ -1,104 +1,107 @@
 From: Stephane Bryant <stephane.ml.bryant@gmail.com>
-Subject: [PATCH nf-next v6 1/3] netfilter: bridge: add nf_afinfo to enable queuing to userspace
-Date: Sat, 26 Mar 2016 08:42:10 +0100
-Message-ID: <1458978132-8006-1-git-send-email-stephane.ml.bryant@gmail.com>
+Subject: [PATCH nf-next v6 3/3] netfilter: bridge: nf queue verdict to use NFQA_VLAN and NFQA_L2HDR
+Date: Sat, 26 Mar 2016 08:42:12 +0100
+Message-ID: <1458978132-8006-3-git-send-email-stephane.ml.bryant@gmail.com>
+References: <1458978132-8006-1-git-send-email-stephane.ml.bryant@gmail.com>
 Cc: netfilter-devel@vger.kernel.org,
-	stephane <stephane.ml.bryant@gmail.com>
+	Stephane Bryant <stephane.ml.bryant@gmail.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34200 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751483AbcCZHmX (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36677 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751617AbcCZHmY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 26 Mar 2016 03:42:23 -0400
-Received: by mail-wm0-f67.google.com with SMTP id p65so8359036wmp.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Mar 2016 00:42:22 -0700 (PDT)
+	Sat, 26 Mar 2016 03:42:24 -0400
+Received: by mail-wm0-f65.google.com with SMTP id l68so8339332wml.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 26 Mar 2016 00:42:24 -0700 (PDT)
+In-Reply-To: <1458978132-8006-1-git-send-email-stephane.ml.bryant@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: stephane <stephane.ml.bryant@gmail.com>
-
-This just adds and registers a nf_afinfo for the ethernet
-bridge, which enables queuing to userspace for the AF_BRIDGE
-family. No checksum computation is done.
+This makes nf queues use NFQA_VLAN and NFQA_L2HDR in verdict to modify the
+original skb
 
 Signed-off-by: Stephane Bryant <stephane.ml.bryant@gmail.com>
 ---
- net/bridge/netfilter/nf_tables_bridge.c | 47 +++++++++++++++++++++++++++++++--
- 1 file changed, 45 insertions(+), 2 deletions(-)
+ net/netfilter/nfnetlink_queue.c | 45 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
 
-diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
-index 7fcdd72..a78c4e2 100644
---- a/net/bridge/netfilter/nf_tables_bridge.c
-+++ b/net/bridge/netfilter/nf_tables_bridge.c
-@@ -162,15 +162,57 @@ static const struct nf_chain_type filter_bridge = {
- 			  (1 << NF_BR_POST_ROUTING),
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 6451f5d..a7ad25a 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -967,12 +967,18 @@ static struct notifier_block nfqnl_rtnl_notifier = {
+ 	.notifier_call	= nfqnl_rcv_nl_event,
  };
  
-+static void nf_br_saveroute(const struct sk_buff *skb,
-+			    struct nf_queue_entry *entry)
-+{
-+}
-+
-+static int nf_br_reroute(struct net *net, struct sk_buff *skb,
-+			 const struct nf_queue_entry *entry)
-+{
-+	return 0;
-+}
-+
-+static __sum16 nf_br_checksum(struct sk_buff *skb, unsigned int hook,
-+			      unsigned int dataoff, u_int8_t protocol)
-+{
-+	return 0;
-+}
-+
-+static __sum16 nf_br_checksum_partial(struct sk_buff *skb, unsigned int hook,
-+				      unsigned int dataoff, unsigned int len,
-+				      u_int8_t protocol)
-+{
-+	return 0;
-+}
-+
-+static int nf_br_route(struct net *net, struct dst_entry **dst,
-+		       struct flowi *fl, bool strict __always_unused)
-+{
-+	return 0;
-+}
-+
-+static const struct nf_afinfo nf_br_afinfo = {
-+	.family                 = AF_BRIDGE,
-+	.checksum               = nf_br_checksum,
-+	.checksum_partial       = nf_br_checksum_partial,
-+	.route                  = nf_br_route,
-+	.saveroute              = nf_br_saveroute,
-+	.reroute                = nf_br_reroute,
-+	.route_key_size         = 0,
++static const struct nla_policy nfqa_vlan_policy[NFQA_VLAN_MAX + 1] = {
++	[NFQA_VLAN_TCI]		= { .type = NLA_U16},
++	[NFQA_VLAN_PROTO]	= { .type = NLA_U16},
 +};
 +
- static int __init nf_tables_bridge_init(void)
- {
- 	int ret;
+ static const struct nla_policy nfqa_verdict_policy[NFQA_MAX+1] = {
+ 	[NFQA_VERDICT_HDR]	= { .len = sizeof(struct nfqnl_msg_verdict_hdr) },
+ 	[NFQA_MARK]		= { .type = NLA_U32 },
+ 	[NFQA_PAYLOAD]		= { .type = NLA_UNSPEC },
+ 	[NFQA_CT]		= { .type = NLA_UNSPEC },
+ 	[NFQA_EXP]		= { .type = NLA_UNSPEC },
++	[NFQA_VLAN]		= { .type = NLA_NESTED },
+ };
  
-+	nf_register_afinfo(&nf_br_afinfo);
- 	nft_register_chain_type(&filter_bridge);
- 	ret = register_pernet_subsys(&nf_tables_bridge_net_ops);
--	if (ret < 0)
-+	if (ret < 0) {
- 		nft_unregister_chain_type(&filter_bridge);
--
-+		nf_unregister_afinfo(&nf_br_afinfo);
+ static const struct nla_policy nfqa_verdict_batch_policy[NFQA_MAX+1] = {
+@@ -1086,6 +1092,40 @@ static struct nf_conn *nfqnl_ct_parse(struct nfnl_ct_hook *nfnl_ct,
+ 	return ct;
+ }
+ 
++static int nfqa_parse_bridge(struct nf_queue_entry *entry,
++			     const struct nlattr * const nfqa[])
++{
++	if (nfqa[NFQA_VLAN]) {
++		int err;
++		struct nlattr *tb[NFQA_VLAN_MAX + 1];
++
++		err = nla_parse_nested(tb, NFQA_VLAN_MAX, nfqa[NFQA_VLAN],
++				       nfqa_vlan_policy);
++		if (err < 0)
++			return err;
++
++		if (!tb[NFQA_VLAN_TCI] || !tb[NFQA_VLAN_PROTO])
++			return -EINVAL;
++
++		entry->skb->vlan_tci = ntohs(nla_get_be16(tb[NFQA_VLAN_TCI]));
++		entry->skb->vlan_proto = nla_get_be16(tb[NFQA_VLAN_PROTO]);
 +	}
- 	return ret;
- }
++
++	if (nfqa[NFQA_L2HDR]) {
++		int mac_header_len = entry->skb->network_header -
++			entry->skb->mac_header;
++
++		if (mac_header_len != nla_len(nfqa[NFQA_L2HDR]))
++			return -EINVAL;
++		else if (mac_header_len > 0)
++			memcpy(skb_mac_header(entry->skb),
++			       nla_data(nfqa[NFQA_L2HDR]),
++			       mac_header_len);
++	}
++
++	return 0;
++}
++
+ static int nfqnl_recv_verdict(struct net *net, struct sock *ctnl,
+ 			      struct sk_buff *skb,
+ 			      const struct nlmsghdr *nlh,
+@@ -1127,6 +1167,11 @@ static int nfqnl_recv_verdict(struct net *net, struct sock *ctnl,
+ 			ct = nfqnl_ct_parse(nfnl_ct, nlh, nfqa, entry, &ctinfo);
+ 	}
  
-@@ -178,6 +220,7 @@ static void __exit nf_tables_bridge_exit(void)
- {
- 	unregister_pernet_subsys(&nf_tables_bridge_net_ops);
- 	nft_unregister_chain_type(&filter_bridge);
-+	nf_unregister_afinfo(&nf_br_afinfo);
- }
- 
- module_init(nf_tables_bridge_init);
++	if (entry->state.pf == PF_BRIDGE) {
++		if (nfqa_parse_bridge(entry, nfqa) < 0)
++			verdict = NF_DROP;
++	}
++
+ 	if (nfqa[NFQA_PAYLOAD]) {
+ 		u16 payload_len = nla_len(nfqa[NFQA_PAYLOAD]);
+ 		int diff = payload_len - entry->skb->len;
 -- 
 2.1.4
 
