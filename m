@@ -1,45 +1,64 @@
-From: "Yigal Reiss (yreiss)" <yreiss@cisco.com>
-Subject: NFQ breaks conntrack creation to confirmation path for a fast UDP
- stream causing dropped packets
-Date: Mon, 28 Mar 2016 18:54:59 +0000
-Message-ID: <0f95cd7b83dc47969639081df1bfe911@XCH-RTP-014.cisco.com>
+From: Guruswamy Basavaiah <guru2018@gmail.com>
+Subject: [PATCH] iptables-translate: Initializing comment member in xt_xlate
+ structure
+Date: Tue, 29 Mar 2016 00:34:36 +0530
+Message-ID: <20160328190436.GA19755@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from alln-iport-2.cisco.com ([173.37.142.89]:41157 "EHLO
-	alln-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751639AbcC1SzI convert rfc822-to-8bit (ORCPT
+Received: from mail-pa0-f65.google.com ([209.85.220.65]:33623 "EHLO
+	mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751005AbcC1TEm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Mar 2016 14:55:08 -0400
-Received: from XCH-RTP-011.cisco.com (xch-rtp-011.cisco.com [64.101.220.151])
-	by alln-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id u2SIt0VC032418
-	(version=TLSv1/SSLv3 cipher=AES256-SHA bits=256 verify=FAIL)
-	for <netfilter-devel@vger.kernel.org>; Mon, 28 Mar 2016 18:55:00 GMT
-Content-Language: en-US
+	Mon, 28 Mar 2016 15:04:42 -0400
+Received: by mail-pa0-f65.google.com with SMTP id q6so16600231pav.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Mar 2016 12:04:41 -0700 (PDT)
+Received: from localhost.localdomain ([1.23.10.201])
+        by smtp.gmail.com with ESMTPSA id e87sm37454741pfb.76.2016.03.28.12.04.39
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Mon, 28 Mar 2016 12:04:40 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Sending a high throughput stream of UDP packets through NFQ causes a few packets to be dropped.
+Initializing comment member in xt_xlate structure. 
 
-Let's say we have 10 packets with same tuple going in. They all receive different conntrack objects (with confirmed flag unset).
+Because of not initializing, when translating iptables command with multiple
+ip addresses, In the translated commands --comment field is getting added.
 
-They then get grabbed by user space through NFQ and suppose they all get accept verdict.
+Before fix:
+inbhdhcp21574:basavaia$>sudo ./iptables-translate -A INPUT --source "40.0.0.1, 30.0.0.1" --dest "20.0.0.1, 60.0.0.1" -j ACCEPT
+nft add rule ip filter INPUT ip saddr 40.0.0.1 ip daddr 20.0.0.1 counter accept
+add rule ip filter INPUT ip saddr 40.0.0.1 ip daddr 60.0.0.1 counter comment \" \" accept
+add rule ip filter INPUT ip saddr 30.0.0.1 ip daddr 20.0.0.1 counter comment \" \" accept
+add rule ip filter INPUT ip saddr 30.0.0.1 ip daddr 60.0.0.1 counter comment \" \" accept
 
-The first one to be accepted will go through the standard flow (get confirmed and the conntrack will be entered into the hash table). 
+After fix:
+inbhdhcp21574:basavaia$>sudo ./iptables-translate -A INPUT --source "40.0.0.1, 30.0.0.1" --dest "20.0.0.1, 60.0.0.1" -j ACCEPT
+nft add rule ip filter INPUT ip saddr 40.0.0.1 ip daddr 20.0.0.1 counter accept
+add rule ip filter INPUT ip saddr 40.0.0.1 ip daddr 60.0.0.1 counter accept
+add rule ip filter INPUT ip saddr 30.0.0.1 ip daddr 20.0.0.1 counter accept
+add rule ip filter INPUT ip saddr 30.0.0.1 ip daddr 60.0.0.1 counter accept
 
-The other 9 packets are reinjected and upon being sent for confirmation (ipv4_confirm) at some point it gets dropped (in __nf_conntrack_confirm). The conditions for being dropped are that a conntrack entry with that tuple already exists. The reason for dropping is given as comment in the code:
+Signed-off-by: Guruswamy Basavaiah <guru2018@gmail.com>
+---
+ libxtables/xtables.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-/* See if there's one in the list already, including reverse:
-NAT could have grabbed it without realizing, since we're
-not in the hash.  If there is, we lost race. */
-
-Dropping packets in this case seems like a malfunction IMO. True, UDP is not guaranteed, but still this may in some cases cause degradation in functionality to a working application. Any opinions on that?
-
-Also any ideas for how to resolve this? Seems like there is a strong assumption of serialization in conntrack, that is that one packet enters the ip layer only after the previous packet has left (i.e. confirmed). So any solution that only replaces the contract with the more updated one in the middle (not that I know how to do it) will be only partial (since the packet has already traversed some hooks which may have relied on having a 'good' conntrack). 
-
-Any thoughts appreciated.
-
-
+diff --git a/libxtables/xtables.c b/libxtables/xtables.c
+index fe24caa..cdb56c0 100644
+--- a/libxtables/xtables.c
++++ b/libxtables/xtables.c
+@@ -2014,6 +2014,7 @@ struct xt_xlate *xt_xlate_alloc(int size)
+ 	xl->buf.size = size;
+ 	xl->buf.rem = size;
+ 	xl->buf.off = 0;
++	bzero(xl->comment, NFT_USERDATA_MAXLEN);
+ 
+ 	return xl;
+ }
+-- 
+2.5.0
 
