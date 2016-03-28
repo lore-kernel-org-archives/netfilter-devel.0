@@ -1,36 +1,66 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: BUG: net/netfilter: KASAN: stack-out-of-bounds in tcp_packet
-Date: Mon, 28 Mar 2016 19:05:43 +0200
-Message-ID: <20160328170543.GA31104@salvia>
-References: <56F7D3AD.10003@gmail.com>
- <alpine.DEB.2.10.1603280010120.19633@blackhole.kfki.hu>
- <alpine.DEB.2.10.1603280024160.19777@blackhole.kfki.hu>
- <56F8987B.5030501@gmail.com>
- <56F92E21.30509@gmail.com>
- <alpine.DEB.2.10.1603281844200.23985@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Baozeng Ding <sploving1@gmail.com>,
-	Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1603281844200.23985@blackhole.kfki.hu>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: [PATCH 7/9] netfilter: nfnetlink_queue: honor NFQA_CFG_F_FAIL_OPEN when netlink unicast fails
+Date: Mon, 28 Mar 2016 19:58:00 +0200
+Message-ID: <1459187882-5357-8-git-send-email-pablo@netfilter.org>
+References: <1459187882-5357-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:50853 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754829AbcC1R6Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Mar 2016 13:58:16 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 0622FE839B
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Mar 2016 19:58:14 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B150FDA8F7
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Mar 2016 19:58:14 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B6EE3DA8F8
+	for <netfilter-devel@vger.kernel.org>; Mon, 28 Mar 2016 19:58:12 +0200 (CEST)
+In-Reply-To: <1459187882-5357-1-git-send-email-pablo@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 28, 2016 at 06:48:51PM +0200, Jozsef Kadlecsik wrote:
-> Hi David, Pablo,
-> 
-> David, do you agree with the patch for net/ipv4/tcp_input.c? If yes, how 
-> should I proceed? Should I send the whole patch to you or is it OK to send 
-> to Pablo?
+When netlink unicast fails to deliver the message to userspace, we
+should also check if the NFQA_CFG_F_FAIL_OPEN flag is set so we reinject
+the packet back to the stack.
 
-Submit a formal patch and Cc: netdev@vger.kernel.org and
-netfilter-devel@vger.kernel.org, then we can request David to ack this
-if he considers it fine or the other way around (I ack it he takes
-it).
+I think the user expects no packet drops when this flag is set due to
+queueing to userspace errors, no matter if related to the internal queue
+or when sending the netlink message to userspace.
 
-Thanks!
+The userspace application will still get the ENOBUFS error via recvmsg()
+so the user still knows that, with the current configuration that is in
+place, the userspace application is not consuming the messages at the
+pace that the kernel needs.
+
+Reported-by: "Yigal Reiss (yreiss)" <yreiss@cisco.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Tested-by: "Yigal Reiss (yreiss)" <yreiss@cisco.com>
+---
+ net/netfilter/nfnetlink_queue.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 7542999..cb5b630 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -582,7 +582,12 @@ __nfqnl_enqueue_packet(struct net *net, struct nfqnl_instance *queue,
+ 	/* nfnetlink_unicast will either free the nskb or add it to a socket */
+ 	err = nfnetlink_unicast(nskb, net, queue->peer_portid, MSG_DONTWAIT);
+ 	if (err < 0) {
+-		queue->queue_user_dropped++;
++		if (queue->flags & NFQA_CFG_F_FAIL_OPEN) {
++			failopen = 1;
++			err = 0;
++		} else {
++			queue->queue_user_dropped++;
++		}
+ 		goto err_out_unlock;
+ 	}
+ 
+-- 
+2.1.4
+
