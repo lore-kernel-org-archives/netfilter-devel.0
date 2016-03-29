@@ -1,37 +1,32 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH V2] netfilter: ip6t_SYNPROXY: remove magic number
-Date: Tue, 29 Mar 2016 13:10:42 +0200
-Message-ID: <20160329111042.GA12446@salvia>
-References: <1459175247-13846-1-git-send-email-zlpwmdx@163.com>
+Subject: Re: [PATCH] netfilter: nf_conntrack: Uses pr_fmt() for logging.
+Date: Tue, 29 Mar 2016 13:10:21 +0200
+Message-ID: <20160329111021.GA12432@salvia>
+References: <20160315175741.GA11458@jwg>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpwmdx@163.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Weongyo Jeong <weongyo.linux@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38914 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38774 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752488AbcC2LKy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Mar 2016 07:10:54 -0400
+	id S1751905AbcC2LK2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Mar 2016 07:10:28 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id CF8C68454
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Mar 2016 13:10:52 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 101C6843B
+	for <netfilter-devel@vger.kernel.org>; Tue, 29 Mar 2016 13:10:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 82F8EDA3A3
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Mar 2016 13:10:53 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B8164DA3AA
+	for <netfilter-devel@vger.kernel.org>; Tue, 29 Mar 2016 13:10:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B4A086722
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Mar 2016 13:10:48 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B9DD9E1506
+	for <netfilter-devel@vger.kernel.org>; Tue, 29 Mar 2016 13:10:23 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1459175247-13846-1-git-send-email-zlpwmdx@163.com>
+In-Reply-To: <20160315175741.GA11458@jwg>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Mar 28, 2016 at 10:27:27PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
-> 
-> Replace '64' with the per-net ipv6_devconf_all's hop_limit when
-> building the ipv6 header.
+On Tue, Mar 15, 2016 at 10:57:44AM -0700, Weongyo Jeong wrote:
+> Uses pr_fmt() macro for debugging messages of nf_conntrack module.
 
 Applied, thanks.
