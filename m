@@ -1,54 +1,37 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 1/1] net: netfilter: Fix stack out of bounds when parsing TCP options
-Date: Wed, 30 Mar 2016 11:34:35 +0200
-Message-ID: <1459330475-2220-2-git-send-email-kadlec@blackhole.kfki.hu>
-References: <1459330475-2220-1-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: [PATCH 0/1] netfilter TCP conntrack option parser fix
+Date: Wed, 30 Mar 2016 11:34:34 +0200
+Message-ID: <1459330475-2220-1-git-send-email-kadlec@blackhole.kfki.hu>
 Cc: Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:44827 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:44828 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750954AbcC3Jdn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1750854AbcC3Jdn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 30 Mar 2016 05:33:43 -0400
-In-Reply-To: <1459330475-2220-1-git-send-email-kadlec@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Baozeng Ding reported a KASAN stack out of bounds issue - it uncovered that
-the TCP option parsing routines in netfilter TCP connection tracking could
-read one byte out of the buffer of the TCP options.  Therefore in the patch
-we check that the available data length is large enough to parse both TCP
-option code and size.
+Hi Pablo,
 
-Reported-by: Baozeng Ding <sploving1@gmail.com>
-Tested-by: Baozeng Ding <sploving1@gmail.com>
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
+Please consider applying the next patch for the stable branches. It fixes
+a one byte read after the buffer issue discovered by Baozeng Ding.
+
+The following changes since commit 29421198c3a860092e27c2ad8499dfe603398817:
+
+  netfilter: ipv4: fix NULL dereference (2016-03-28 17:59:29 +0200)
+
+are available in the git repository at:
+
+  git://blackhole.kfki.hu/nf master
+
+for you to fetch changes up to becfb96a8663e3884d78c23ab747df3fe4e1e50d:
+
+  net: netfilter: Fix stack out of bounds when parsing TCP options (2016-03-29 11:44:13 +0200)
+
+----------------------------------------------------------------
+Jozsef Kadlecsik (1):
+      net: netfilter: Fix stack out of bounds when parsing TCP options
+
  net/netfilter/nf_conntrack_proto_tcp.c | 4 ++++
  1 file changed, 4 insertions(+)
-
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 278f3b9..7cc1d9c 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -410,6 +410,8 @@ static void tcp_options(const struct sk_buff *skb,
- 			length--;
- 			continue;
- 		default:
-+			if (length < 2)
-+				return;
- 			opsize=*ptr++;
- 			if (opsize < 2) /* "silly options" */
- 				return;
-@@ -470,6 +472,8 @@ static void tcp_sack(const struct sk_buff *skb, unsigned int dataoff,
- 			length--;
- 			continue;
- 		default:
-+			if (length < 2)
-+				return;
- 			opsize = *ptr++;
- 			if (opsize < 2) /* "silly options" */
- 				return;
--- 
-1.8.5.1
-
