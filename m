@@ -1,37 +1,42 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 0/1] netfilter TCP conntrack option parser fix
-Date: Wed, 30 Mar 2016 11:34:34 +0200
-Message-ID: <1459330475-2220-1-git-send-email-kadlec@blackhole.kfki.hu>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Stephan Arndt <arndt.stephan@gmail.com>
+Subject: Writing nftables extension / modifying packets via nftables and netfilter
+Date: Wed, 30 Mar 2016 13:30:02 +0200
+Message-ID: <CADe663tomjpV68twUaR7+vQcuqsEhs_=XJ1qiZHUOhM-i9bkkQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:44828 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750854AbcC3Jdn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Mar 2016 05:33:43 -0400
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:36786 "EHLO
+	mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751393AbcC3LaE (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Mar 2016 07:30:04 -0400
+Received: by mail-wm0-f49.google.com with SMTP id 127so93340210wmu.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 30 Mar 2016 04:30:03 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Hello!
 
-Please consider applying the next patch for the stable branches. It fixes
-a one byte read after the buffer issue discovered by Baozeng Ding.
+I would like to write a netfilter module to modify packets going in
+and out of my machine (TCP/IP headers, maybe content) after some
+analysis of the packet. For this, I wanted to extend nftables with new
+matches or targets that control this modification behavior. I've
+looked around some, but couldn't find documentation on how to do this
+properly using nftables, can someone point me in the right direction?
 
-The following changes since commit 29421198c3a860092e27c2ad8499dfe603398817:
+Using a netfilter/iptables combo, this kind of extension seems to be
+pretty well documented (e.g. at the HOWTO page for netfilter hacking
+[1]). I could also go this route, but as nftables seems to be poised
+to succeed iptables, I wanted to try my hands at using the
+future-proof technology.
 
-  netfilter: ipv4: fix NULL dereference (2016-03-28 17:59:29 +0200)
+Regards,
 
-are available in the git repository at:
+Stephan
 
-  git://blackhole.kfki.hu/nf master
+[1] http://www.netfilter.org/documentation/HOWTO/netfilter-hacking-HOWTO-4.html
 
-for you to fetch changes up to becfb96a8663e3884d78c23ab747df3fe4e1e50d:
-
-  net: netfilter: Fix stack out of bounds when parsing TCP options (2016-03-29 11:44:13 +0200)
-
-----------------------------------------------------------------
-Jozsef Kadlecsik (1):
-      net: netfilter: Fix stack out of bounds when parsing TCP options
-
- net/netfilter/nf_conntrack_proto_tcp.c | 4 ++++
- 1 file changed, 4 insertions(+)
+PS: Offtopic: The header of the mailing lists webpage:
+http://netfilter.org/mailinglists.html seems to be missing a 't' :
+Mailinglists of _he netfilter/iptables project
