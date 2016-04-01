@@ -1,354 +1,60 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf 17/17] netfilter: x_tables: introduce and use xt_copy_counters_from_user
-Date: Fri,  1 Apr 2016 15:37:59 +0200
-Message-ID: <1459517879-13527-1-git-send-email-fw@strlen.de>
-References: <1459513057-30652-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Matthias Schiffer <mschiffer@universe-factory.net>
+Subject: [PATCH xtables-addons] build: fix configure compatiblity with POSIX shells
+Date: Fri,  1 Apr 2016 22:35:34 +0200
+Message-ID: <080ce332d72f144b21b5d63986b6e8ebd9bc3095.1459542934.git.mschiffer@universe-factory.net>
+Cc: netfilter-devel@vger.kernel.org
+To: jengelh@inai.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:46656 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753543AbcDANhm (ORCPT
+Received: from chaos.universe-factory.net ([37.72.148.22]:53705 "EHLO
+	chaos.universe-factory.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751045AbcDAUmJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Apr 2016 09:37:42 -0400
-In-Reply-To: <1459513057-30652-1-git-send-email-fw@strlen.de>
+	Fri, 1 Apr 2016 16:42:09 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The three variants use same copy&pasted code, condense this into a
-helper and use that.
-
-Make sure info.name is 0-terminated.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+The kernel version detection code uses some bashisms, which makes the build
+fail on Debian systems where /bin/sh links to dash. Replace with POSIX-
+conforming commands at the cost of requiring awk.
 ---
- V2: add EXPORT_SYMBOL(), else iptables=m builds fail.
+ configure.ac | 24 +++++++++---------------
+ 1 file changed, 9 insertions(+), 15 deletions(-)
 
- include/linux/netfilter/x_tables.h |  3 ++
- net/ipv4/netfilter/arp_tables.c    | 48 +++----------------------
- net/ipv4/netfilter/ip_tables.c     | 48 +++----------------------
- net/ipv6/netfilter/ip6_tables.c    | 49 +++----------------------
- net/netfilter/x_tables.c           | 74 ++++++++++++++++++++++++++++++++++++++
- 5 files changed, 92 insertions(+), 130 deletions(-)
-
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index e2da9b9..4dd9306 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -251,6 +251,9 @@ int xt_check_match(struct xt_mtchk_param *, unsigned int size, u_int8_t proto,
- int xt_check_target(struct xt_tgchk_param *, unsigned int size, u_int8_t proto,
- 		    bool inv_proto);
+diff --git a/configure.ac b/configure.ac
+index 82a1355..735c090 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -44,21 +44,15 @@ regular_CFLAGS="-Wall -Waggregate-return -Wmissing-declarations \
  
-+void *xt_copy_counters_from_user(const void __user *user, unsigned int len,
-+				 struct xt_counters_info *info, bool compat);
-+
- struct xt_table *xt_register_table(struct net *net,
- 				   const struct xt_table *table,
- 				   struct xt_table_info *bootstrap,
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 8cefb7a..60f5161 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -1123,55 +1123,17 @@ static int do_add_counters(struct net *net, const void __user *user,
- 	unsigned int i;
- 	struct xt_counters_info tmp;
- 	struct xt_counters *paddc;
--	unsigned int num_counters;
--	const char *name;
--	int size;
--	void *ptmp;
- 	struct xt_table *t;
- 	const struct xt_table_info *private;
- 	int ret = 0;
- 	struct arpt_entry *iter;
- 	unsigned int addend;
--#ifdef CONFIG_COMPAT
--	struct compat_xt_counters_info compat_tmp;
--
--	if (compat) {
--		ptmp = &compat_tmp;
--		size = sizeof(struct compat_xt_counters_info);
--	} else
--#endif
--	{
--		ptmp = &tmp;
--		size = sizeof(struct xt_counters_info);
--	}
- 
--	if (copy_from_user(ptmp, user, size) != 0)
--		return -EFAULT;
--
--#ifdef CONFIG_COMPAT
--	if (compat) {
--		num_counters = compat_tmp.num_counters;
--		name = compat_tmp.name;
--	} else
--#endif
--	{
--		num_counters = tmp.num_counters;
--		name = tmp.name;
--	}
--
--	if (len != size + num_counters * sizeof(struct xt_counters))
--		return -EINVAL;
--
--	paddc = vmalloc(len - size);
--	if (!paddc)
--		return -ENOMEM;
--
--	if (copy_from_user(paddc, user + size, len - size) != 0) {
--		ret = -EFAULT;
--		goto free;
--	}
-+	paddc = xt_copy_counters_from_user(user, len, &tmp, compat);
-+	if (IS_ERR(paddc))
-+		return PTR_ERR(paddc);
- 
--	t = xt_find_table_lock(net, NFPROTO_ARP, name);
-+	t = xt_find_table_lock(net, NFPROTO_ARP, tmp.name);
- 	if (IS_ERR_OR_NULL(t)) {
- 		ret = t ? PTR_ERR(t) : -ENOENT;
- 		goto free;
-@@ -1179,7 +1141,7 @@ static int do_add_counters(struct net *net, const void __user *user,
- 
- 	local_bh_disable();
- 	private = t->private;
--	if (private->number != num_counters) {
-+	if (private->number != tmp.num_counters) {
- 		ret = -EINVAL;
- 		goto unlock_up_free;
- 	}
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 9340ce0..735d1ee 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -1307,55 +1307,17 @@ do_add_counters(struct net *net, const void __user *user,
- 	unsigned int i;
- 	struct xt_counters_info tmp;
- 	struct xt_counters *paddc;
--	unsigned int num_counters;
--	const char *name;
--	int size;
--	void *ptmp;
- 	struct xt_table *t;
- 	const struct xt_table_info *private;
- 	int ret = 0;
- 	struct ipt_entry *iter;
- 	unsigned int addend;
--#ifdef CONFIG_COMPAT
--	struct compat_xt_counters_info compat_tmp;
--
--	if (compat) {
--		ptmp = &compat_tmp;
--		size = sizeof(struct compat_xt_counters_info);
--	} else
--#endif
--	{
--		ptmp = &tmp;
--		size = sizeof(struct xt_counters_info);
--	}
- 
--	if (copy_from_user(ptmp, user, size) != 0)
--		return -EFAULT;
--
--#ifdef CONFIG_COMPAT
--	if (compat) {
--		num_counters = compat_tmp.num_counters;
--		name = compat_tmp.name;
--	} else
--#endif
--	{
--		num_counters = tmp.num_counters;
--		name = tmp.name;
--	}
--
--	if (len != size + num_counters * sizeof(struct xt_counters))
--		return -EINVAL;
--
--	paddc = vmalloc(len - size);
--	if (!paddc)
--		return -ENOMEM;
--
--	if (copy_from_user(paddc, user + size, len - size) != 0) {
--		ret = -EFAULT;
--		goto free;
--	}
-+	paddc = xt_copy_counters_from_user(user, len, &tmp, compat);
-+	if (IS_ERR(paddc))
-+		return PTR_ERR(paddc);
- 
--	t = xt_find_table_lock(net, AF_INET, name);
-+	t = xt_find_table_lock(net, AF_INET, tmp.name);
- 	if (IS_ERR_OR_NULL(t)) {
- 		ret = t ? PTR_ERR(t) : -ENOENT;
- 		goto free;
-@@ -1363,7 +1325,7 @@ do_add_counters(struct net *net, const void __user *user,
- 
- 	local_bh_disable();
- 	private = t->private;
--	if (private->number != num_counters) {
-+	if (private->number != tmp.num_counters) {
- 		ret = -EINVAL;
- 		goto unlock_up_free;
- 	}
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index aa01085..73e606c 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1319,55 +1319,16 @@ do_add_counters(struct net *net, const void __user *user, unsigned int len,
- 	unsigned int i;
- 	struct xt_counters_info tmp;
- 	struct xt_counters *paddc;
--	unsigned int num_counters;
--	char *name;
--	int size;
--	void *ptmp;
- 	struct xt_table *t;
- 	const struct xt_table_info *private;
- 	int ret = 0;
- 	struct ip6t_entry *iter;
- 	unsigned int addend;
--#ifdef CONFIG_COMPAT
--	struct compat_xt_counters_info compat_tmp;
--
--	if (compat) {
--		ptmp = &compat_tmp;
--		size = sizeof(struct compat_xt_counters_info);
--	} else
--#endif
--	{
--		ptmp = &tmp;
--		size = sizeof(struct xt_counters_info);
--	}
--
--	if (copy_from_user(ptmp, user, size) != 0)
--		return -EFAULT;
--
--#ifdef CONFIG_COMPAT
--	if (compat) {
--		num_counters = compat_tmp.num_counters;
--		name = compat_tmp.name;
--	} else
--#endif
--	{
--		num_counters = tmp.num_counters;
--		name = tmp.name;
--	}
--
--	if (len != size + num_counters * sizeof(struct xt_counters))
--		return -EINVAL;
--
--	paddc = vmalloc(len - size);
--	if (!paddc)
--		return -ENOMEM;
--
--	if (copy_from_user(paddc, user + size, len - size) != 0) {
--		ret = -EFAULT;
--		goto free;
--	}
- 
--	t = xt_find_table_lock(net, AF_INET6, name);
-+	paddc = xt_copy_counters_from_user(user, len, &tmp, compat);
-+	if (IS_ERR(paddc))
-+		return PTR_ERR(paddc);
-+	t = xt_find_table_lock(net, AF_INET6, tmp.name);
- 	if (IS_ERR_OR_NULL(t)) {
- 		ret = t ? PTR_ERR(t) : -ENOENT;
- 		goto free;
-@@ -1375,7 +1336,7 @@ do_add_counters(struct net *net, const void __user *user, unsigned int len,
- 
- 	local_bh_disable();
- 	private = t->private;
--	if (private->number != num_counters) {
-+	if (private->number != tmp.num_counters) {
- 		ret = -EINVAL;
- 		goto unlock_up_free;
- 	}
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 9ec23ffa..c69c892 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -752,6 +752,80 @@ int xt_check_target(struct xt_tgchk_param *par,
- }
- EXPORT_SYMBOL_GPL(xt_check_target);
- 
-+/**
-+ * xt_copy_counters_from_user - copy counters and metadata from userspace
-+ *
-+ * @user: src pointer to userspace memory
-+ * @len: alleged size of userspace memory
-+ * @info: where to store the xt_counters_info metadata
-+ * @compat: true if we setsockopt call is done by 32bit task on 64bit kernel
-+ *
-+ * Copies counter meta data from @user and stores it in @info.
-+ *
-+ * vmallocs memory to hold the counters, then copies the counter data
-+ * from @user to the new memory and returns a pointer to it.
-+ *
-+ * If @compat is true, @info gets converted automatically to the 64bit
-+ * representation.
-+ *
-+ * The metadata associated with the counters is stored in @info.
-+ *
-+ * Return: returns pointer that caller has to test via IS_ERR().
-+ * If IS_ERR is false, caller has to vfree the pointer.
-+ */
-+void *xt_copy_counters_from_user(const void __user *user, unsigned int len,
-+				 struct xt_counters_info *info, bool compat)
-+{
-+	void *mem;
-+	u64 size;
-+
-+#ifdef CONFIG_COMPAT
-+	if (compat) {
-+		/* structures only differ in size due to alignment */
-+		struct compat_xt_counters_info compat_tmp;
-+
-+		if (len <= sizeof(compat_tmp))
-+			return ERR_PTR(-EINVAL);
-+
-+		len -= sizeof(compat_tmp);
-+		if (copy_from_user(&compat_tmp, user, sizeof(compat_tmp)) != 0)
-+			return ERR_PTR(-EFAULT);
-+
-+		strlcpy(info->name, compat_tmp.name, sizeof(info->name));
-+		info->num_counters = compat_tmp.num_counters;
-+		user += sizeof(compat_tmp);
-+	} else
-+#endif
-+	{
-+		if (len <= sizeof(*info))
-+			return ERR_PTR(-EINVAL);
-+
-+		len -= sizeof(*info);
-+		if (copy_from_user(info, user, sizeof(*info)) != 0)
-+			return ERR_PTR(-EFAULT);
-+
-+		info->name[sizeof(info->name) - 1] = '\0';
-+		user += sizeof(*info);
-+	}
-+
-+	size = sizeof(struct xt_counters);
-+	size *= info->num_counters;
-+
-+	if (size != (u64)len)
-+		return ERR_PTR(-EINVAL);
-+
-+	mem = vmalloc(len);
-+	if (!mem)
-+		return ERR_PTR(-ENOMEM);
-+
-+	if (copy_from_user(mem, user, len) == 0)
-+		return mem;
-+
-+	vfree(mem);
-+	return ERR_PTR(-EFAULT);
-+}
-+EXPORT_SYMBOL_GPL(xt_copy_counters_from_user);
-+
- #ifdef CONFIG_COMPAT
- int xt_compat_target_offset(const struct xt_target *target)
- {
+ if test -n "$kbuilddir"; then
+ 	AC_MSG_CHECKING([kernel version that we will build against])
+-	krel="$(make -sC "$kbuilddir" M=$PWD kernelrelease)";
+-	kmajor="${krel%%[[^0-9]]*}";
+-	kmajor="$(($kmajor+0))";
+-	krel="${krel:${#kmajor}}";
+-	krel="${krel#.}";
+-	kminor="${krel%%[[^0-9]]*}";
+-	kminor="$(($kminor+0))";
+-	krel="${krel:${#kminor}}";
+-	krel="${krel#.}";
+-	kmicro="${krel%%[[^0-9]]*}";
+-	kmicro="$(($kmicro+0))";
+-	krel="${krel:${#kmicro}}";
+-	krel="${krel#.}";
+-	kstable="${krel%%[[^0-9]]*}";
+-	kstable="$(($kstable+0))";
++	krel="$(make -sC "$kbuilddir" M=$PWD kernelrelease | $AWK -v 'FS=[[^0-9.]]' '{print $1; exit}')";
++	save_IFS=$IFS;
++	IFS='.';
++	set x $krel;
++	kmajor="$(($2+0))";
++	kminor="$(($3+0))";
++	kmicro="$(($4+0))";
++	kstable="$(($5+0))";
++	IFS=$save_IFS;
+ 	if test -z "$kmajor" -o -z "$kminor" -o -z "$kmicro"; then
+ 		echo "WARNING: Version detection did not succeed. Continue at own luck.";
+ 	else
 -- 
-2.7.3
+2.8.0
 
