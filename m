@@ -1,38 +1,49 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf 11/17] netfilter: ip6_tables: simplify translate_compat_table args
-Date: Fri,  1 Apr 2016 14:17:31 +0200
-Message-ID: <1459513057-30652-12-git-send-email-fw@strlen.de>
+Subject: [PATCH nf 12/17] netfilter: arp_tables: simplify translate_compat_table args
+Date: Fri,  1 Apr 2016 14:17:32 +0200
+Message-ID: <1459513057-30652-13-git-send-email-fw@strlen.de>
 References: <1459513057-30652-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:46478 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:46480 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754862AbcDAMR4 (ORCPT
+	by vger.kernel.org with ESMTP id S1758573AbcDAMR7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Apr 2016 08:17:56 -0400
+	Fri, 1 Apr 2016 08:17:59 -0400
 In-Reply-To: <1459513057-30652-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/ipv6/netfilter/ip6_tables.c | 59 +++++++++++++++++------------------------
- 1 file changed, 24 insertions(+), 35 deletions(-)
+ net/ipv4/netfilter/arp_tables.c | 82 ++++++++++++++++++-----------------------
+ 1 file changed, 36 insertions(+), 46 deletions(-)
 
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 6957627..8d082c55 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1461,7 +1461,6 @@ compat_copy_entry_to_user(struct ip6t_entry *e, void __user **dstptr,
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 95ed4e4..1d1386d 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -1214,6 +1214,18 @@ static int do_add_counters(struct net *net, const void __user *user,
+ }
  
- static int
- compat_find_calc_match(struct xt_entry_match *m,
--		       const char *name,
- 		       const struct ip6t_ip6 *ipv6,
- 		       int *size)
+ #ifdef CONFIG_COMPAT
++struct compat_arpt_replace {
++	char				name[XT_TABLE_MAXNAMELEN];
++	u32				valid_hooks;
++	u32				num_entries;
++	u32				size;
++	u32				hook_entry[NF_ARP_NUMHOOKS];
++	u32				underflow[NF_ARP_NUMHOOKS];
++	u32				num_counters;
++	compat_uptr_t			counters;
++	struct compat_arpt_entry	entries[0];
++};
++
+ static inline void compat_release_entry(struct compat_arpt_entry *e)
  {
-@@ -1498,8 +1497,7 @@ check_compat_entry_size_and_hooks(struct compat_ip6t_entry *e,
+ 	struct xt_entry_target *t;
+@@ -1229,8 +1241,7 @@ check_compat_entry_size_and_hooks(struct compat_arpt_entry *e,
  				  const unsigned char *base,
  				  const unsigned char *limit,
  				  const unsigned int *hook_entries,
@@ -40,43 +51,35 @@ index 6957627..8d082c55 100644
 -				  const char *name)
 +				  const unsigned int *underflows)
  {
- 	struct xt_entry_match *ematch;
  	struct xt_entry_target *t;
-@@ -1535,7 +1533,7 @@ check_compat_entry_size_and_hooks(struct compat_ip6t_entry *e,
- 	entry_offset = (void *)e - (void *)base;
- 	j = 0;
- 	xt_ematch_foreach(ematch, e) {
--		ret = compat_find_calc_match(ematch, name, &e->ipv6, &off);
-+		ret = compat_find_calc_match(ematch, &e->ipv6, &off);
- 		if (ret != 0)
- 			goto release_matches;
- 		++j;
-@@ -1584,7 +1582,7 @@ release_matches:
+ 	struct xt_target *target;
+@@ -1301,7 +1312,7 @@ out:
  
  static int
- compat_copy_entry_from_user(struct compat_ip6t_entry *e, void **dstptr,
+ compat_copy_entry_from_user(struct compat_arpt_entry *e, void **dstptr,
 -			    unsigned int *size, const char *name,
 +			    unsigned int *size,
  			    struct xt_table_info *newinfo, unsigned char *base)
  {
  	struct xt_entry_target *t;
-@@ -1664,14 +1662,9 @@ static int compat_check_entry(struct ip6t_entry *e, struct net *net,
+@@ -1334,14 +1345,9 @@ compat_copy_entry_from_user(struct compat_arpt_entry *e, void **dstptr,
+ 	return ret;
+ }
  
- static int
- translate_compat_table(struct net *net,
--		       const char *name,
--		       unsigned int valid_hooks,
- 		       struct xt_table_info **pinfo,
- 		       void **pentry0,
--		       unsigned int total_size,
--		       unsigned int number,
--		       unsigned int *hook_entries,
--		       unsigned int *underflows)
-+		       const struct compat_ip6t_replace *compatr)
+-static int translate_compat_table(const char *name,
+-				  unsigned int valid_hooks,
+-				  struct xt_table_info **pinfo,
++static int translate_compat_table(struct xt_table_info **pinfo,
+ 				  void **pentry0,
+-				  unsigned int total_size,
+-				  unsigned int number,
+-				  unsigned int *hook_entries,
+-				  unsigned int *underflows)
++				  const struct compat_arpt_replace *compatr)
  {
  	unsigned int i, j;
  	struct xt_table_info *newinfo, *info;
-@@ -1683,8 +1676,8 @@ translate_compat_table(struct net *net,
+@@ -1353,8 +1359,8 @@ static int translate_compat_table(const char *name,
  
  	info = *pinfo;
  	entry0 = *pentry0;
@@ -86,13 +89,13 @@ index 6957627..8d082c55 100644
 +	info->number = compatr->num_entries;
  
  	/* Init all hooks to impossible value. */
- 	for (i = 0; i < NF_INET_NUMHOOKS; i++) {
-@@ -1695,40 +1688,39 @@ translate_compat_table(struct net *net,
+ 	for (i = 0; i < NF_ARP_NUMHOOKS; i++) {
+@@ -1365,40 +1371,39 @@ static int translate_compat_table(const char *name,
  	duprintf("translate_compat_table: size %u\n", info->size);
  	j = 0;
- 	xt_compat_lock(AF_INET6);
--	xt_compat_init_offsets(AF_INET6, number);
-+	xt_compat_init_offsets(AF_INET6, compatr->num_entries);
+ 	xt_compat_lock(NFPROTO_ARP);
+-	xt_compat_init_offsets(NFPROTO_ARP, number);
++	xt_compat_init_offsets(NFPROTO_ARP, compatr->num_entries);
  	/* Walk through entries, checking offsets. */
 -	xt_entry_foreach(iter0, entry0, total_size) {
 +	xt_entry_foreach(iter0, entry0, compatr->size) {
@@ -120,7 +123,7 @@ index 6957627..8d082c55 100644
  	}
  
  	/* Check hooks all assigned */
- 	for (i = 0; i < NF_INET_NUMHOOKS; i++) {
+ 	for (i = 0; i < NF_ARP_NUMHOOKS; i++) {
  		/* Only hooks which are valid */
 -		if (!(valid_hooks & (1 << i)))
 +		if (!(compatr->valid_hooks & (1 << i)))
@@ -138,13 +141,13 @@ index 6957627..8d082c55 100644
  			goto out_unlock;
  		}
  	}
-@@ -1738,17 +1730,17 @@ translate_compat_table(struct net *net,
+@@ -1408,17 +1413,17 @@ static int translate_compat_table(const char *name,
  	if (!newinfo)
  		goto out_unlock;
  
 -	newinfo->number = number;
 +	newinfo->number = compatr->num_entries;
- 	for (i = 0; i < NF_INET_NUMHOOKS; i++) {
+ 	for (i = 0; i < NF_ARP_NUMHOOKS; i++) {
  		newinfo->hook_entry[i] = info->hook_entry[i];
  		newinfo->underflow[i] = info->underflow[i];
  	}
@@ -160,7 +163,7 @@ index 6957627..8d082c55 100644
  		if (ret != 0)
  			break;
  	}
-@@ -1758,12 +1750,12 @@ translate_compat_table(struct net *net,
+@@ -1428,7 +1433,7 @@ static int translate_compat_table(const char *name,
  		goto free_newinfo;
  
  	ret = -ELOOP;
@@ -169,13 +172,16 @@ index 6957627..8d082c55 100644
  		goto free_newinfo;
  
  	i = 0;
- 	xt_entry_foreach(iter1, entry1, newinfo->size) {
--		ret = compat_check_entry(iter1, net, name);
-+		ret = compat_check_entry(iter1, net, compatr->name);
- 		if (ret != 0)
+@@ -1439,7 +1444,7 @@ static int translate_compat_table(const char *name,
  			break;
- 		++i;
-@@ -1803,7 +1795,7 @@ translate_compat_table(struct net *net,
+ 		}
+ 
+-		ret = check_target(iter1, name);
++		ret = check_target(iter1, compatr->name);
+ 		if (ret != 0) {
+ 			xt_percpu_counter_free(iter1->counters.pcnt);
+ 			break;
+@@ -1481,7 +1486,7 @@ static int translate_compat_table(const char *name,
  free_newinfo:
  	xt_free_table_info(newinfo);
  out:
@@ -184,15 +190,34 @@ index 6957627..8d082c55 100644
  		if (j-- == 0)
  			break;
  		compat_release_entry(iter0);
-@@ -1848,10 +1840,7 @@ compat_do_replace(struct net *net, void __user *user, unsigned int len)
+@@ -1493,18 +1498,6 @@ out_unlock:
+ 	goto out;
+ }
+ 
+-struct compat_arpt_replace {
+-	char				name[XT_TABLE_MAXNAMELEN];
+-	u32				valid_hooks;
+-	u32				num_entries;
+-	u32				size;
+-	u32				hook_entry[NF_ARP_NUMHOOKS];
+-	u32				underflow[NF_ARP_NUMHOOKS];
+-	u32				num_counters;
+-	compat_uptr_t			counters;
+-	struct compat_arpt_entry	entries[0];
+-};
+-
+ static int compat_do_replace(struct net *net, void __user *user,
+ 			     unsigned int len)
+ {
+@@ -1537,10 +1530,7 @@ static int compat_do_replace(struct net *net, void __user *user,
  		goto free_newinfo;
  	}
  
--	ret = translate_compat_table(net, tmp.name, tmp.valid_hooks,
+-	ret = translate_compat_table(tmp.name, tmp.valid_hooks,
 -				     &newinfo, &loc_cpu_entry, tmp.size,
 -				     tmp.num_entries, tmp.hook_entry,
 -				     tmp.underflow);
-+	ret = translate_compat_table(net, &newinfo, &loc_cpu_entry, &tmp);
++	ret = translate_compat_table(&newinfo, &loc_cpu_entry, &tmp);
  	if (ret != 0)
  		goto free_newinfo;
  
