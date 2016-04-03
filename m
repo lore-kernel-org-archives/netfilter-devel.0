@@ -1,62 +1,37 @@
-From: Matthias Schiffer <mschiffer@universe-factory.net>
-Subject: [PATCH xtables-addons v2] build: fix configure compatiblity with POSIX shells
-Date: Sun,  3 Apr 2016 14:01:01 +0200
-Message-ID: <f07a0a5cb8b3c5e1aee8b30c7fa21ccfbf24a95a.1459684812.git.mschiffer@universe-factory.net>
-Cc: netfilter-devel@vger.kernel.org
-To: jengelh@inai.de
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from chaos.universe-factory.net ([37.72.148.22]:39448 "EHLO
-	chaos.universe-factory.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753088AbcDCMBK (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Apr 2016 08:01:10 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+Subject: [PATCH] netfilter: unnecessary to check whether ip6_route_output() returns NULL
+Date: Sun,  3 Apr 2016 22:03:33 +0800
+Message-ID: <1459692213-3948-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
+To: "David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	James Morris <jmorris@namei.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The kernel version detection code uses some bashisms, which makes the build
-fail on Debian systems where /bin/sh links to dash. Replace with POSIX-
-conforming commands at the cost of requiring awk.
+ip6_route_output() never returns NULL, so it is not appropriate to
+check if the return value is NULL.
+
+Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
 ---
-v2: reset IFS as early as possible 
+ net/ipv6/netfilter/nf_reject_ipv6.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- configure.ac | 24 +++++++++---------------
- 1 file changed, 9 insertions(+), 15 deletions(-)
-
-diff --git a/configure.ac b/configure.ac
-index 82a1355..5a5ea57 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -44,21 +44,15 @@ regular_CFLAGS="-Wall -Waggregate-return -Wmissing-declarations \
- 
- if test -n "$kbuilddir"; then
- 	AC_MSG_CHECKING([kernel version that we will build against])
--	krel="$(make -sC "$kbuilddir" M=$PWD kernelrelease)";
--	kmajor="${krel%%[[^0-9]]*}";
--	kmajor="$(($kmajor+0))";
--	krel="${krel:${#kmajor}}";
--	krel="${krel#.}";
--	kminor="${krel%%[[^0-9]]*}";
--	kminor="$(($kminor+0))";
--	krel="${krel:${#kminor}}";
--	krel="${krel#.}";
--	kmicro="${krel%%[[^0-9]]*}";
--	kmicro="$(($kmicro+0))";
--	krel="${krel:${#kmicro}}";
--	krel="${krel#.}";
--	kstable="${krel%%[[^0-9]]*}";
--	kstable="$(($kstable+0))";
-+	krel="$(make -sC "$kbuilddir" M=$PWD kernelrelease | $AWK -v 'FS=[[^0-9.]]' '{print $1; exit}')";
-+	save_IFS=$IFS;
-+	IFS='.';
-+	set x $krel;
-+	IFS=$save_IFS;
-+	kmajor="$(($2+0))";
-+	kminor="$(($3+0))";
-+	kmicro="$(($4+0))";
-+	kstable="$(($5+0))";
- 	if test -z "$kmajor" -o -z "$kminor" -o -z "$kmicro"; then
- 		echo "WARNING: Version detection did not succeed. Continue at own luck.";
- 	else
+diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
+index 4709f65..a540022 100644
+--- a/net/ipv6/netfilter/nf_reject_ipv6.c
++++ b/net/ipv6/netfilter/nf_reject_ipv6.c
+@@ -158,7 +158,7 @@ void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
+ 	fl6.fl6_dport = otcph->source;
+ 	security_skb_classify_flow(oldskb, flowi6_to_flowi(&fl6));
+ 	dst = ip6_route_output(net, NULL, &fl6);
+-	if (dst == NULL || dst->error) {
++	if (dst->error) {
+ 		dst_release(dst);
+ 		return;
+ 	}
 -- 
-2.8.0
-
+1.8.3.1
