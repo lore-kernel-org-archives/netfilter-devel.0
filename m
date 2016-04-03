@@ -1,37 +1,37 @@
-From: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-Subject: [PATCH] netfilter: unnecessary to check whether ip6_route_output() returns NULL
-Date: Sun,  3 Apr 2016 22:03:33 +0800
-Message-ID: <1459692213-3948-1-git-send-email-yanhaishuang@cmss.chinamobile.com>
-Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
-To: "David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	James Morris <jmorris@namei.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH xtables-addons] build: fix configure compatiblity with
+ POSIX shells
+Date: Sun, 3 Apr 2016 18:01:31 +0200 (CEST)
+Message-ID: <alpine.LSU.2.20.1604031800440.5788@nerf40.vanv.qr>
+References: <080ce332d72f144b21b5d63986b6e8ebd9bc3095.1459542934.git.mschiffer@universe-factory.net> <alpine.LSU.2.20.1604031202380.31323@nerf40.vanv.qr> <57010529.3030404@universe-factory.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Matthias Schiffer <mschiffer@universe-factory.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ares41.inai.de ([46.4.122.207]:41758 "EHLO ares41.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752355AbcDCQBd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Apr 2016 12:01:33 -0400
+In-Reply-To: <57010529.3030404@universe-factory.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-ip6_route_output() never returns NULL, so it is not appropriate to
-check if the return value is NULL.
 
-Signed-off-by: Haishuang Yan <yanhaishuang@cmss.chinamobile.com>
----
- net/ipv6/netfilter/nf_reject_ipv6.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Sunday 2016-04-03 13:57, Matthias Schiffer wrote:
+>> To test its resilience against silly krel strings (not exactly unheard of),
+>> let's pretend that
+>> 
+>> 	krel="4x.6.0"
+>> 
+>> checking kernel version that we will build against... ./configure: line
+>> 11957: 4x: value too great for base (error toke
+>> n is "4x")
+>> ./configure: line 8: printf %s\n: command not found
+>
+>Weird, what version/variant of awk are you using (or were you just changing
+>the value of krel in an artificial test and dropped the awk call
+>altogether)? krel should be cut off at the first character not in the set
+>[0-9.], so krel would be "4" and version 4.0.0.0 should result.
 
-diff --git a/net/ipv6/netfilter/nf_reject_ipv6.c b/net/ipv6/netfilter/nf_reject_ipv6.c
-index 4709f65..a540022 100644
---- a/net/ipv6/netfilter/nf_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nf_reject_ipv6.c
-@@ -158,7 +158,7 @@ void nf_send_reset6(struct net *net, struct sk_buff *oldskb, int hook)
- 	fl6.fl6_dport = otcph->source;
- 	security_skb_classify_flow(oldskb, flowi6_to_flowi(&fl6));
- 	dst = ip6_route_output(net, NULL, &fl6);
--	if (dst == NULL || dst->error) {
-+	if (dst->error) {
- 		dst_release(dst);
- 		return;
- 	}
--- 
-1.8.3.1
+Aha; yes, I had dropped awk altogether.
