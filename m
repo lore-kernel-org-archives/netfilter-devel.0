@@ -1,41 +1,31 @@
 From: Mart Frauenlob <mart.frauenlob@chello.at>
-Subject: [PATCH] conntrack-tools: Fix build for old automake. autoreconf fails with automake version smaller than 1.12, because of undefined macro AM_PROG_AR. So only expand it if it's actually defined.
-Date: Mon,  4 Apr 2016 11:29:39 +0200
-Message-ID: <1459762179-10041-2-git-send-email-mart.frauenlob@chello.at>
-References: <1459762179-10041-1-git-send-email-mart.frauenlob@chello.at>
+Subject: [PATCH v2] conntrack-tools: Fix build for old automake
+Date: Mon,  4 Apr 2016 11:39:39 +0200
+Message-ID: <1459762780-10255-1-git-send-email-mart.frauenlob@chello.at>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vie01a-dmta-at01-3.mx.upcmail.net ([62.179.121.147]:39156 "EHLO
-	vie01a-dmta-at01-3.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751334AbcDDJ3y (ORCPT
+Received: from vie01a-dmta-at02-3.mx.upcmail.net ([62.179.121.150]:30848 "EHLO
+	vie01a-dmta-at02-3.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755006AbcDDJj7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Apr 2016 05:29:54 -0400
+	Mon, 4 Apr 2016 05:39:59 -0400
 Received: from [172.31.216.43] (helo=vie01a-pemc-psmtp-pe01)
-	by vie01a-dmta-at01.mx.upcmail.net with esmtp (Exim 4.72)
+	by vie01a-dmta-pe01.mx.upcmail.net with esmtp (Exim 4.72)
 	(envelope-from <mart.frauenlob@chello.at>)
-	id 1an0pT-0001IZ-HP
-	for netfilter-devel@vger.kernel.org; Mon, 04 Apr 2016 11:29:51 +0200
-In-Reply-To: <1459762179-10041-1-git-send-email-mart.frauenlob@chello.at>
+	id 1an0z8-0000cA-WF
+	for netfilter-devel@vger.kernel.org; Mon, 04 Apr 2016 11:39:51 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
----
- configure.ac |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index c541034..2c5913f 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -14,7 +14,7 @@ AC_SUBST([libdl_LIBS])
- 
- AC_PROG_CC
- AC_DISABLE_STATIC
--AM_PROG_AR
-+m4_ifdef([AM_PROG_AR], [AM_PROG_AR]) dnl Workaround for Automake 1.11
- AM_PROG_LIBTOOL
- AC_PROG_INSTALL
- AC_PROG_LN_S
--- 
-1.7.2.5
+Good day,
 
+on my old system with automake 1.11 creating the build environment
+with autoreconf fails.
+I'm a automake newb, but this patch solves this for me.
+I hope it's appropriate.
+
+Resending this as missing signed off and format-patch didn't put a newline after subject.
+
+Best regards,
+Mart
