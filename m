@@ -1,37 +1,30 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: [PATCH xtables-addons] build: fix configure compatiblity with
- POSIX shells
-Date: Sun, 3 Apr 2016 18:01:31 +0200 (CEST)
-Message-ID: <alpine.LSU.2.20.1604031800440.5788@nerf40.vanv.qr>
-References: <080ce332d72f144b21b5d63986b6e8ebd9bc3095.1459542934.git.mschiffer@universe-factory.net> <alpine.LSU.2.20.1604031202380.31323@nerf40.vanv.qr> <57010529.3030404@universe-factory.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Matthias Schiffer <mschiffer@universe-factory.net>
+From: Mart Frauenlob <mart.frauenlob@chello.at>
+Subject: [PATCH] conntrack-tools: Fix build for old automake
+Date: Mon,  4 Apr 2016 11:29:38 +0200
+Message-ID: <1459762179-10041-1-git-send-email-mart.frauenlob@chello.at>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:41758 "EHLO ares41.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752355AbcDCQBd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Apr 2016 12:01:33 -0400
-In-Reply-To: <57010529.3030404@universe-factory.net>
+Received: from vie01a-dmta-at03-1.mx.upcmail.net ([62.179.121.151]:11370 "EHLO
+	vie01a-dmta-at03-1.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751334AbcDDJ3v (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 4 Apr 2016 05:29:51 -0400
+Received: from [172.31.216.43] (helo=vie01a-pemc-psmtp-pe01)
+	by vie01a-dmta-at03.mx.upcmail.net with esmtp (Exim 4.72)
+	(envelope-from <mart.frauenlob@chello.at>)
+	id 1an0pO-0001Xw-C0
+	for netfilter-devel@vger.kernel.org; Mon, 04 Apr 2016 11:29:46 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Sunday 2016-04-03 13:57, Matthias Schiffer wrote:
->> To test its resilience against silly krel strings (not exactly unheard of),
->> let's pretend that
->> 
->> 	krel="4x.6.0"
->> 
->> checking kernel version that we will build against... ./configure: line
->> 11957: 4x: value too great for base (error toke
->> n is "4x")
->> ./configure: line 8: printf %s\n: command not found
->
->Weird, what version/variant of awk are you using (or were you just changing
->the value of krel in an artificial test and dropped the awk call
->altogether)? krel should be cut off at the first character not in the set
->[0-9.], so krel would be "4" and version 4.0.0.0 should result.
+Good day,
 
-Aha; yes, I had dropped awk altogether.
+on my old system with automake 1.11 creating the build environment
+with autoreconf fails.
+I'm a automake newb, but this patch solves this for me.
+I hope it's appropriate.
+
+Best regards,
+Mart
+
