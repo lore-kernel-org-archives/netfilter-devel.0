@@ -1,52 +1,40 @@
 From: Mart Frauenlob <mart.frauenlob@chello.at>
-Subject: [PATCH] conntrack: Fix wrong --src, or --dst option shown.
-Date: Mon,  4 Apr 2016 11:41:04 +0200
-Message-ID: <1459762864-10326-1-git-send-email-mart.frauenlob@chello.at>
+Subject: [PATCH] conntrack: Add missing tables dying and unconfirmed to usage output.
+Date: Mon,  4 Apr 2016 11:43:57 +0200
+Message-ID: <1459763037-10400-1-git-send-email-mart.frauenlob@chello.at>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vie01a-dmta-at03-1.mx.upcmail.net ([62.179.121.151]:29140 "EHLO
-	vie01a-dmta-at03-1.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754730AbcDDJlO (ORCPT
+Received: from vie01a-dmta-at02-3.mx.upcmail.net ([62.179.121.150]:61194 "EHLO
+	vie01a-dmta-at02-3.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750810AbcDDJoC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Apr 2016 05:41:14 -0400
+	Mon, 4 Apr 2016 05:44:02 -0400
 Received: from [172.31.216.43] (helo=vie01a-pemc-psmtp-pe01)
-	by vie01a-dmta-at03.mx.upcmail.net with esmtp (Exim 4.72)
+	by vie01a-dmta-pe01.mx.upcmail.net with esmtp (Exim 4.72)
 	(envelope-from <mart.frauenlob@chello.at>)
-	id 1an10S-0002ai-Ev
-	for netfilter-devel@vger.kernel.org; Mon, 04 Apr 2016 11:41:12 +0200
+	id 1an13A-0000zT-KZ
+	for netfilter-devel@vger.kernel.org; Mon, 04 Apr 2016 11:44:00 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
- If running into PARAMETER_PROBLEM on usage of --mask-src, or --mask-dst
- without using the needed --orig-src, or --orig-dst option,
- the wrong options were offered in the error message.
-
 Signed-off-by: Mart Frauenlob <mart.frauenlob@chello.at>
 ---
- src/conntrack.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ src/conntrack.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/src/conntrack.c b/src/conntrack.c
-index 2367459..d40f23f 100644
+index d40f23f..b384e07 100644
 --- a/src/conntrack.c
 +++ b/src/conntrack.c
-@@ -2091,14 +2091,14 @@ nfct_filter_init(const int family)
- 	if (options & CT_OPT_MASK_SRC) {
- 		if (!(options & CT_OPT_ORIG_SRC))
- 			exit_error(PARAMETER_PROBLEM,
--			           "Can't use --mask-src without --src");
-+			           "Can't use --mask-src without --orig-src");
- 		nfct_network_attr_prepare(family, DIR_SRC);
- 	}
+@@ -520,7 +520,7 @@ static const char usage_commands[] =
+ 	"  -S\t\t\t\tShow statistics\n";
  
- 	if (options & CT_OPT_MASK_DST) {
- 		if (!(options & CT_OPT_ORIG_DST))
- 			exit_error(PARAMETER_PROBLEM,
--			           "Can't use --mask-dst without --dst");
-+			           "Can't use --mask-dst without --orig-dst");
- 		nfct_network_attr_prepare(family, DIR_DST);
- 	}
- }
+ static const char usage_tables[] =
+-	"Tables: conntrack, expect\n";
++	"Tables: conntrack, expect, dying, unconfirmed\n";
+ 
+ static const char usage_conntrack_parameters[] =
+ 	"Conntrack parameters and options:\n"
 -- 
 1.7.2.5
 
