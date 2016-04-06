@@ -1,47 +1,52 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [iptables PATCH] extensions/libxt_tcp: fix nftables translate flags
- value, 'none' vs '0x0'
-Date: Wed, 06 Apr 2016 14:10:52 +0200
-Message-ID: <145994465193.22717.2137088538000837721.stgit@nfdev2.cica.es>
+From: "Vadim A. Misbakh-Soloviov" <mva@mva.name>
+Subject: Re: [iptables PATCH] extensions/libxt_tcp: fix nftables translate flags value, 'none' vs '0x0'
+Date: Wed, 06 Apr 2016 19:54:01 +0600
+Message-ID: <1664957.l7oG8eJ0uH@note>
+References: <145994465193.22717.2137088538000837721.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter@mva.name
+Content-Type: multipart/signed; boundary="nextPart2326905.DJ3x0Ny6tn"; micalg="pgp-sha256"; protocol="application/pgp-signature"
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:48235 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754237AbcDFMLC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Apr 2016 08:11:02 -0400
+Received: from forward20m.cmail.yandex.net ([5.255.216.151]:48081 "EHLO
+	forward20m.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750792AbcDFOBh (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 6 Apr 2016 10:01:37 -0400
+In-Reply-To: <145994465193.22717.2137088538000837721.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The iptables command:
- -m tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG NONE
+--nextPart2326905.DJ3x0Ny6tn
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 
-should translate to:
- tcp flags & fin|syn|rst|psh|ack|urg == 0x0
+Tested-by: Vadim A. Misbakh-Soloviov <netfilter@mva.name>
 
-instead of:
- tcp flags & fin|syn|rst|psh|ack|urg == none
+--
+// now it generates valid nftables rule
+--nextPart2326905.DJ3x0Ny6tn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
 
-Reported-by: Vadim A. Misbakh-Soloviov <netfilter@mva.name>
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- extensions/libxt_tcp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-diff --git a/extensions/libxt_tcp.c b/extensions/libxt_tcp.c
-index 6a85ed4..2a14035 100644
---- a/extensions/libxt_tcp.c
-+++ b/extensions/libxt_tcp.c
-@@ -390,7 +390,7 @@ static void print_tcp_xlate(struct xt_xlate *xl, uint8_t flags)
- 	}
- 
- 	if (!have_flag)
--		xt_xlate_add(xl, "none");
-+		xt_xlate_add(xl, "0x0");
- }
- 
- static int tcp_xlate(const void *ip, const struct xt_entry_match *match,
+iQIcBAABCAAGBQJXBRT5AAoJECZQPTSbOzNL368QAJXfgIEZ1wqreKt2g8imXWk0
+VhPrsB6bHJyL53smBbpb3A0AwT0+qbMWn/Tisse9XwDfFSiP2rFqYJN/jvK/ZLNE
+PUpm11XAgRjdSTFIdfm0zH4tBzDChqiMG40KnBcbxrkq5+opGDH2gnbUsQ1i/kgf
+PDGqzzR/RPkQc3LWJKKMzvKfvV0uQstF85/o590ynw5WKEni2GurB0cw67Y/5TZU
+Acp5dvu71/IDWjEWaN7r9N06JpdYLoTKfBi8uZhpcXy8wHoRdtDS4zFEmL8ioYDL
+/ZOuPu4y0Hs1merlSorRGrtXZCxOmUXdUyaP2mm5TvsUU5SNddriDwIUhvaHg7Pk
+YQl3SShjgZUa9YaoXEmFrm9+WoqG50YfSBioSE5ZJ8rG83cO1R/8+grWpwwiySfc
+vVMxa+XTJ0ZbpIUQCqk8vw6h06wPQCEgfziQmlzhq9hbK8vQq49Op1rkHrTxU39f
+1KQHpfGqh2r3Te2DbGObAwsBlMSvyqqEBJQUnZrvcvqboZwnn8wV/4joT0CXHgKo
+iqXlxLSlkzHD1n4oXLG9HHwweqA06OhkxZb6UQVPn5YXWEPBwKA8atfYzay90zP3
+rSRprfVFoqfUeRWFSJTk0OY6DhkynOB6LaievR/K5ngTFVVcAvvJS24TEykHJAcA
+PbqAnckKHtsY+rYMheY9
+=+P+X
+-----END PGP SIGNATURE-----
+
+--nextPart2326905.DJ3x0Ny6tn--
 
