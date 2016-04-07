@@ -1,42 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables-translate: Moving of printing nft back to
- xtables_xlate_main
-Date: Thu, 7 Apr 2016 11:51:16 +0200
-Message-ID: <20160407095116.GB2959@salvia>
-References: <20160331183624.GA7030@localhost.localdomain>
+Subject: Re: [PATCH nf] netfilter: arp_tables: register table in initns
+Date: Thu, 7 Apr 2016 12:01:11 +0200
+Message-ID: <20160407100111.GA6178@salvia>
+References: <1459242316-8100-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Guruswamy Basavaiah <guru2018@gmail.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51388 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55221 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755429AbcDGJvV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Apr 2016 05:51:21 -0400
+	id S1751240AbcDGKBa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Apr 2016 06:01:30 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 4687C4B9FA
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 11:51:20 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id E8D4610078E
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 12:01:28 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 389DBDA38A
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 11:51:20 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id D36C8DA388
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 12:01:28 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id A9EF5DA391
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 11:51:17 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 6B14FAD81
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 12:01:12 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160331183624.GA7030@localhost.localdomain>
+In-Reply-To: <1459242316-8100-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 01, 2016 at 12:06:24AM +0530, Guruswamy Basavaiah wrote:
-> Moving of printing "nft" back to xtables_xlate_main from
->  function do_command_xlate.
-> 
-> This reverts of previous commit 4f75601d37349c5a983a969d46c1ff0604991b5c
-> which was breaking "iptables-restore-translate -f" and "./nft -f"
+On Tue, Mar 29, 2016 at 11:05:16AM +0200, Florian Westphal wrote:
+> arptables is broken since we didn't register the table anymore --
+> even 'arptables -L' fails.
 
-Instead of reverting, you can probably check:
-
-        if (!restore)
-                printf("nft ");
-
-so the nft keyword is not shown via iptables-restore-translate.
+Applied, thanks Florian.
