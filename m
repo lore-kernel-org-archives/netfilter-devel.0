@@ -1,50 +1,56 @@
-From: Mart Frauenlob <mart.frauenlob@chello.at>
-Subject: nfct parameters
-Date: Thu, 7 Apr 2016 11:31:56 +0200
-Message-ID: <5706290C.7080000@chello.at>
-Reply-To: mart.frauenlob@chello.at
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH nft] src: evaluate: Show error for fanout without balance
+Date: Thu, 7 Apr 2016 15:06:40 +0530
+Message-ID: <20160407093640.GA5034@shivani>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vie01a-dmta-at02-1.mx.upcmail.net ([62.179.121.148]:22106 "EHLO
-	vie01a-dmta-at02-1.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751397AbcDGJcA (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:33036 "EHLO
+	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755206AbcDGJhS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Apr 2016 05:32:00 -0400
-Received: from [172.31.216.44] (helo=vie01a-pemc-psmtp-pe02)
-	by vie01a-dmta-pe01.mx.upcmail.net with esmtp (Exim 4.72)
-	(envelope-from <mart.frauenlob@chello.at>)
-	id 1ao6I9-0004sv-OZ
-	for netfilter-devel@vger.kernel.org; Thu, 07 Apr 2016 11:31:57 +0200
+	Thu, 7 Apr 2016 05:37:18 -0400
+Received: by mail-pf0-f193.google.com with SMTP id e190so6719155pfe.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 07 Apr 2016 02:37:18 -0700 (PDT)
+Received: from shivani ([116.202.34.78])
+        by smtp.gmail.com with ESMTPSA id zu10sm10725157pab.31.2016.04.07.02.37.15
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Thu, 07 Apr 2016 02:37:16 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Good day,
+The idea of fanout option is to improve the performance by indexing CPU
+ID to map packets to the queues. This is used for load balancing.
+Fanout option is not required when there is a single queue specified.
 
-while I'm writing bash completion code for conntrack-tools, I browsed 
-through the source and found some things, that raised this questions for 
-me (I'm no C developer, so limited here).
+According to iptables, queue balance should be specified in order to use
+fanout, following that, throw an error in nftables if the range of
+queues for load balancing is not specified with the fanout option.
 
-1: Are there three undocumented parameters?
-namely: disable, default-get, default-set
-At least there are functions that do something... not sure what exactly 
-w/ the default-* cmds.
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+ src/evaluate.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-2: in src/nfct-extensions/timeout.c there is:
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 473f014..f3fe13d 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2000,6 +2000,11 @@ static int stmt_evaluate_queue(struct eval_ctx *ctx, struct stmt *stmt)
+ 		if (!expr_is_constant(stmt->queue.queue))
+ 			return expr_error(ctx->msgs, stmt->queue.queue,
+ 					  "queue number is not constant");
++		if (stmt->queue.queue->ops->type != EXPR_RANGE &&
++		    (stmt->queue.flags & NFT_QUEUE_FLAG_CPU_FANOUT))
++			return expr_error(ctx->msgs, stmt->queue.queue,
++					  "fanout requires queue num range"
++					  " to be specified");
+ 	}
+ 	return 0;
+ }
+-- 
+1.9.1
 
-static void
-nfct_cmd_timeout_usage(char *argv[])
-{
-     fprintf(stderr, "nfct v%s: Missing command\n"
-             "%s <list|add|delete|get|flush|set> timeout "
-             "[<parameters>, ...]\n", VERSION, argv[0]);
-}
-
-Where a 'set' command is printed. Which is another discrepancy?
-
-If my reading is correct, please take this mail as a bug report.
-
-Best regards,
-Mart
