@@ -1,38 +1,56 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] net: netfilter: Fix stack out of bounds when parsing
- TCP options
-Date: Thu, 7 Apr 2016 18:43:11 +0200
-Message-ID: <20160407164311.GA2535@salvia>
-References: <1459330475-2220-1-git-send-email-kadlec@blackhole.kfki.hu>
- <1459330475-2220-2-git-send-email-kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] conntrack-tools: Fix build for old automake.
+Date: Thu, 7 Apr 2016 18:47:58 +0200
+Message-ID: <20160407164758.GA5353@salvia>
+References: <1459762780-10255-1-git-send-email-mart.frauenlob@chello.at>
+ <1459762780-10255-2-git-send-email-mart.frauenlob@chello.at>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Mart Frauenlob <mart.frauenlob@chello.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52330 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53095 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752235AbcDGQnP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Apr 2016 12:43:15 -0400
+	id S1756834AbcDGQsB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Apr 2016 12:48:01 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 594574B0F6
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 18:43:13 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 7C8C54B0FD
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 18:48:00 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 4972ADA8FB
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 18:43:13 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 6CD54DA392
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 18:48:00 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 3A61DDA38E
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 18:43:11 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 36F36DA391
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 18:47:58 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1459330475-2220-2-git-send-email-kadlec@blackhole.kfki.hu>
+In-Reply-To: <1459762780-10255-2-git-send-email-mart.frauenlob@chello.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Mar 30, 2016 at 11:34:35AM +0200, Jozsef Kadlecsik wrote:
-> Baozeng Ding reported a KASAN stack out of bounds issue - it uncovered that
-> the TCP option parsing routines in netfilter TCP connection tracking could
-> read one byte out of the buffer of the TCP options.  Therefore in the patch
-> we check that the available data length is large enough to parse both TCP
-> option code and size.
+On Mon, Apr 04, 2016 at 11:39:40AM +0200, Mart Frauenlob wrote:
+>  autoreconf fails with automake version smaller than 1.12,
+>  because of undefined macro AM_PROG_AR.
+>  So only expand it if it's actually defined.
+> 
+> Signed-off-by: Mart Frauenlob <mart.frauenlob@chello.at>
+> ---
+>  configure.ac |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/configure.ac b/configure.ac
+> index c541034..2c5913f 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -14,7 +14,7 @@ AC_SUBST([libdl_LIBS])
+>  
+>  AC_PROG_CC
+>  AC_DISABLE_STATIC
+> -AM_PROG_AR
+> +m4_ifdef([AM_PROG_AR], [AM_PROG_AR]) dnl Workaround for Automake 1.11
 
-Applied, thanks Jozsef.
+How old is your old system? is it still a distro maintained version?
+
+BTW, you can remove the comment, we can get to this information
+through 'git annotate' these days.
+
+Thanks.
