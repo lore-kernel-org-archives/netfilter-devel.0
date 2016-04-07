@@ -1,62 +1,176 @@
-From: Mart Frauenlob <mart.frauenlob@chello.at>
-Subject: Re: [PATCH] conntrack-tools: Fix build for old automake.
-Date: Thu, 7 Apr 2016 19:33:43 +0200
-Message-ID: <570699F7.1010907@chello.at>
-References: <1459762780-10255-1-git-send-email-mart.frauenlob@chello.at>
- <1459762780-10255-2-git-send-email-mart.frauenlob@chello.at>
- <20160407164758.GA5353@salvia>
-Reply-To: mart.frauenlob@chello.at
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] doc: Complete the documentation of statements
+Date: Thu, 7 Apr 2016 19:39:16 +0200
+Message-ID: <20160407173916.GA7098@salvia>
+References: <20160406060919.GA2432@shivani>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Shivani Bhardwaj <shivanib134@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vie01a-dmta-at02-3.mx.upcmail.net ([62.179.121.150]:33185 "EHLO
-	vie01a-dmta-at02-3.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756057AbcDGRdo (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Apr 2016 13:33:44 -0400
-Received: from [172.31.216.43] (helo=vie01a-pemc-psmtp-pe01)
-	by vie01a-dmta-pe01.mx.upcmail.net with esmtp (Exim 4.72)
-	(envelope-from <mart.frauenlob@chello.at>)
-	id 1aoDoM-0008Uh-5P
-	for netfilter-devel@vger.kernel.org; Thu, 07 Apr 2016 19:33:42 +0200
-In-Reply-To: <20160407164758.GA5353@salvia>
+Received: from mail.us.es ([193.147.175.20]:33788 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756654AbcDGRjU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Apr 2016 13:39:20 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 15BFCC1275
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 19:39:19 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 00C56DA385
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 19:39:19 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 798E9DA385
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 19:39:16 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20160406060919.GA2432@shivani>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 07.04.2016 18:47, Pablo Neira Ayuso wrote:
-> On Mon, Apr 04, 2016 at 11:39:40AM +0200, Mart Frauenlob wrote:
->>   autoreconf fails with automake version smaller than 1.12,
->>   because of undefined macro AM_PROG_AR.
->>   So only expand it if it's actually defined.
->>
->> Signed-off-by: Mart Frauenlob <mart.frauenlob@chello.at>
->> ---
->>   configure.ac |    2 +-
->>   1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/configure.ac b/configure.ac
->> index c541034..2c5913f 100644
->> --- a/configure.ac
->> +++ b/configure.ac
->> @@ -14,7 +14,7 @@ AC_SUBST([libdl_LIBS])
->>
->>   AC_PROG_CC
->>   AC_DISABLE_STATIC
->> -AM_PROG_AR
->> +m4_ifdef([AM_PROG_AR], [AM_PROG_AR]) dnl Workaround for Automake 1.11
->
-> How old is your old system? is it still a distro maintained version?
+On Wed, Apr 06, 2016 at 11:39:19AM +0530, Shivani Bhardwaj wrote:
+> Add documentation corresponding to LOG STATEMENT, REJECT STATEMENT,
+> COUNTER STATEMENT, META STATEMENT, LIMIT STATEMENT, NAT STATEMENT,
+> QUEUE STATEMENT.
 
-cat /etc/debian_version
-6.0.10
-Has automake 1.11.
+Providing a bit of feedback to enhance this.
 
-> BTW, you can remove the comment, we can get to this information
-> through 'git annotate' these days.
->
-> Thanks.
->
+> Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+> ---
+>  doc/nft.xml | 188 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 187 insertions(+), 1 deletion(-)
+> 
+> diff --git a/doc/nft.xml b/doc/nft.xml
+> index e4d227c..cec4dbf 100644
+> --- a/doc/nft.xml
+> +++ b/doc/nft.xml
+> @@ -2186,36 +2186,222 @@ filter input iif eth0 drop
+>  		<refsect2>
+>  			<title>Log statement</title>
+>  			<para>
+> +				A log statement is used to set logging attributes of a packet. Default log level is warn.
 
+A suggestion, we can reuse part of the wording that we already have
+via 'man iptables-extensions'. So extracting from there and mangling
+to adapt it for this purpose...
+
+"The log statement enables logging of matching packets. When this
+statement is used from a rule, the Linux kernel will print some
+information on all matching packets, such as header fields, via the
+kernel log (where it can be read with dmesg(1) or read in the syslog.
+
+This is a non-terminating statement, so the rule evaluation continues
+after the packet is logged."
+
+Shivani, IIRC you can also use 'log' to send logs via netlink through
+our nflog subsystem (see libnetfilter_log). This should be also
+documented. See NFLOG in iptables-extensions for reference on the
+idea, IIRC group, snaplen and queue-threshold are specific of this
+variant.
+
+> +				<table frame="all">
+> +					<title>LOG statement</title>
+> +					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+> +						<colspec colname='c1'/>
+> +						<colspec colname='c2'/>
+> +						<colspec colname='c3'/>
+> +						<thead>
+> +							<row>
+> +								<entry>Keyword</entry>
+> +								<entry>Description</entry>
+> +								<entry>Type</entry>
+> +							</row>
+> +						</thead>
+> +						<tbody>
+> +							<row>
+> +								<entry>level</entry>
+> +								<entry>Level of logging</entry>
+> +								<entry>unsigned integer (32 bit), emerg, alert, crit, err, warn, notice, info, debug</entry>
+> +							</row>
+> +							<row>
+> +								<entry>prefix</entry>
+> +								<entry>Prefix log messages</entry>
+> +								<entry>string</entry>
+> +							</row>
+> +						</tbody>
+> +					</tgroup>
+> +				</table>
+>  			</para>
+>  		</refsect2>
+>  		<refsect2>
+>  			<title>Reject statement</title>
+>  			<para>
+> +				A reject statement is used to set an error packet response. The default error packet is port-unreachable.
+
+Would be good to have a look at iptables-extensions again to see if we
+can extend this a bit.
+
+> +				<table frame="all">
+> +					<title>REJECT statement (ipv4)</title>
+> +					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+> +						<colspec colname='c1'/>
+> +						<colspec colname='c2'/>
+> +						<colspec colname='c3'/>
+> +						<thead>
+> +							<row>
+> +								<entry>Keyword</entry>
+> +								<entry>Description</entry>
+> +								<entry>Type</entry>
+> +							</row>
+> +						</thead>
+> +						<tbody>
+> +							<row>
+> +								<entry>with icmp type</entry>
+> +								<entry>ICMP response to be sent to the host</entry>
+> +								<entry>unsigned integer (8 bit), net-unreachable, host-unreachable, prot-unreachable, port-unreachable, net-prohibited, host-prohibited, admin-prohibited</entry>
+> +							</row>
+> +							<row>
+> +								<entry>with</entry>
+> +								<entry>Used on rules which only match the TCP</entry>
+> +								<entry>tcp reset</entry>
+> +							</row>
+> +						</tbody>
+> +					</tgroup>
+> +				</table>
+> +				<table frame="all">
+> +					<title>REJECT statement (ipv6)</title>
+> +					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
+> +						<colspec colname='c1'/>
+> +						<colspec colname='c2'/>
+> +						<colspec colname='c3'/>
+> +						<thead>
+> +							<row>
+> +								<entry>Keyword</entry>
+> +								<entry>Description</entry>
+> +								<entry>Type</entry>
+> +							</row>
+> +						</thead>
+> +						<tbody>
+> +							<row>
+> +								<entry>with icmpv6 type</entry>
+> +								<entry>ICMP6 response to be sent to the host</entry>
+> +								<entry>unsigned integer (8 bit), no-route, admin-prohibited, addr-unreachable, port-unreachable, policy-fail, reject-route</entry>
+> +							</row>
+> +							<row>
+> +								<entry>with</entry>
+> +								<entry>Used on rules which only match the TCP</entry>
+> +								<entry>tcp reset</entry>
+> +							</row>
+> +						</tbody>
+> +					</tgroup>
+> +				</table>
+>  			</para>
+>  		</refsect2>
+>  		<refsect2>
+>  			<title>Counter statement</title>
+>  			<para>
+> +				A counter statement sets the hit count of packets along with the number of bytes.
+>  			</para>
+>  		</refsect2>
+>  		<refsect2>
+>  			<title>Meta statement</title>
+>  			<para>
+> +				A meta statement sets the value of a meta expression.
+
+Could you also add here the existing meta fields that we can use from
+the meta statement? I mean: mark, priority, nftrace and pkttype.
+
+Thanks for working on this!
