@@ -1,58 +1,52 @@
-From: Mart Frauenlob <mart.frauenlob@chello.at>
-Subject: [PATCH 5/5] conntrack: man: Add description of tables dying and unconfirmed.
-Date: Thu,  7 Apr 2016 20:31:42 +0200
-Message-ID: <1460053902-2200-6-git-send-email-mart.frauenlob@chello.at>
-References: <1460053902-2200-1-git-send-email-mart.frauenlob@chello.at>
+From: Guruswamy Basavaiah <guru2018@gmail.com>
+Subject: [PATCH] Printing the table name before chain name.
+Date: Fri,  8 Apr 2016 01:08:14 +0530
+Message-ID: <1460057894-20466-1-git-send-email-guru2018@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vie01a-dmta-at01-2.mx.upcmail.net ([62.179.121.146]:47550 "EHLO
-	vie01a-dmta-at01-2.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756860AbcDGScW (ORCPT
+Received: from mail-pa0-f65.google.com ([209.85.220.65]:35103 "EHLO
+	mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932078AbcDGTiS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Apr 2016 14:32:22 -0400
-Received: from [172.31.216.43] (helo=vie01a-pemc-psmtp-pe01)
-	by vie01a-dmta-at01.mx.upcmail.net with esmtp (Exim 4.72)
-	(envelope-from <mart.frauenlob@chello.at>)
-	id 1aoEj6-0006GL-9i
-	for netfilter-devel@vger.kernel.org; Thu, 07 Apr 2016 20:32:20 +0200
-In-Reply-To: <1460053902-2200-1-git-send-email-mart.frauenlob@chello.at>
+	Thu, 7 Apr 2016 15:38:18 -0400
+Received: by mail-pa0-f65.google.com with SMTP id zy2so7465967pac.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 07 Apr 2016 12:38:18 -0700 (PDT)
+Received: from localhost.localdomain.localdomain ([1.23.8.201])
+        by smtp.gmail.com with ESMTPSA id f8sm13942112pfj.49.2016.04.07.12.38.16
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Thu, 07 Apr 2016 12:38:17 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Command ./iptables-restore-translate, was printing
+table name before the chain name for user added chains.
+This is breaking ./nft -f command.
 
-Signed-off-by: Mart Frauenlob <mart.frauenlob@chello.at>
+Before fix, output of "./iptables-restore-translate"
+add chain ip OUTPUT_direct raw
+
+After fix:
+add chain ip raw OUTPUT_direct
+
+Signed-off-by: Guruswamy Basavaiah <guru2018@gmail.com>
 ---
- conntrack.8 |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+ iptables/xtables-translate.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/conntrack.8 b/conntrack.8
-index e54951a..dfde9f0 100644
---- a/conntrack.8
-+++ b/conntrack.8
-@@ -48,6 +48,23 @@ mechanism used to "expect" RELATED connections to existing ones.  Expectations
- are generally used by "connection tracking helpers" (sometimes called
- application level gateways [ALGs]) for more complex protocols such as FTP,
- SIP, H.323.
-+.TP
-+.BR "dying" :
-+This table shows the conntrack entries, that have expired and that have been
-+destroyed by the connection tracking system itself, or via the conntrack utility.
-+.TP
-+.BR "unconfirmed" :
-+This table shows new entries, that are not yet inserted into the conntrack table.
-+These entries are attached to packets that are traversing the stack,
-+but did not reach the confirmation point at the postrouting hook.
-+.PP
-+The tables "dying" and "unconfirmed" are basically only useful for debugging purposes.
-+Under normal operation, it is hard to see entries in any of them.
-+There are corner cases, where it is valid to see entries in the
-+unconfirmed table:
-+1) when packets that are enqueued via nfqueue, or
-+2) when conntrackd runs in event reliable mode.
-+.PP
- .SH OPTIONS
- The options recognized by 
- .B conntrack
+diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
+index 354357c..0b2c0bf 100644
+--- a/iptables/xtables-translate.c
++++ b/iptables/xtables-translate.c
+@@ -297,7 +297,7 @@ static const struct option options[] = {
+ static int xlate_chain_user_add(struct nft_handle *h, const char *chain,
+ 				const char *table)
+ {
+-	printf("add chain %s %s %s\n", family2str[h->family], chain, table);
++	printf("add chain %s %s %s\n", family2str[h->family], table, chain);
+ 	return 0;
+ }
+ 
 -- 
-1.7.2.5
+2.5.5
 
