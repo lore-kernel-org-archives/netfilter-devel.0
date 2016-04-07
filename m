@@ -1,38 +1,66 @@
-From: Mart Frauenlob <mart.frauenlob@chello.at>
-Subject: Re: [PATCH] conntrack: Rename option --protonum to --proto.
-Date: Thu, 7 Apr 2016 19:26:31 +0200
-Message-ID: <57069847.3010709@chello.at>
-References: <1459891918-2283-1-git-send-email-mart.frauenlob@chello.at>
- <20160407094207.GB1919@salvia>
-Reply-To: mart.frauenlob@chello.at
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH nft v2] src: evaluate: Show error for fanout without balance
+Date: Thu, 7 Apr 2016 22:58:54 +0530
+Message-ID: <20160407172854.GA3233@shivani>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vie01a-dmta-at01-2.mx.upcmail.net ([62.179.121.146]:52844 "EHLO
-	vie01a-dmta-at01-2.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756863AbcDGR0e (ORCPT
+Received: from mail-pf0-f182.google.com ([209.85.192.182]:36566 "EHLO
+	mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756660AbcDGR3b (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Apr 2016 13:26:34 -0400
-Received: from [172.31.216.43] (helo=vie01a-pemc-psmtp-pe01)
-	by vie01a-dmta-at01.mx.upcmail.net with esmtp (Exim 4.72)
-	(envelope-from <mart.frauenlob@chello.at>)
-	id 1aoDhO-0001X1-L6
-	for netfilter-devel@vger.kernel.org; Thu, 07 Apr 2016 19:26:30 +0200
-In-Reply-To: <20160407094207.GB1919@salvia>
+	Thu, 7 Apr 2016 13:29:31 -0400
+Received: by mail-pf0-f182.google.com with SMTP id e128so59473111pfe.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 07 Apr 2016 10:29:31 -0700 (PDT)
+Received: from shivani ([116.202.34.236])
+        by smtp.gmail.com with ESMTPSA id m10sm13530869pfi.32.2016.04.07.10.29.29
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Thu, 07 Apr 2016 10:29:30 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 07.04.2016 11:42, Pablo Neira Ayuso wrote:
-> On Tue, Apr 05, 2016 at 11:31:58PM +0200, Mart Frauenlob wrote:
->> Usage shows --protonum, while the man page talks about --proto.
->> Should be --proto in usage too. --protonum remains valid,
->> but is marked deprecated in source.
->
-> You better fix the manpage. Please, don't unnecessarily deprecate
-> things. Thanks.
->
+The idea of fanout option is to improve the performance by indexing CPU
+ID to map packets to the queues. This is used for load balancing.
+Fanout option is not required when there is a single queue specified.
 
-ok, I'll update docs to show both.
+According to iptables, queue balance should be specified in order to use
+fanout. Following that, throw an error in nftables if the range of
+queues for load balancing is not specified with the fanout option.
+
+After this patch,
+
+$ sudo nft add rule ip filter forward counter queue num 0 fanout
+<cmdline>:1:46-46: Error: fanout requires queue num range to be specified
+add rule ip filter forward counter queue num 0 fanout
+                                             ^
+
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+Changes in v2:
+	Update the description with error that is going to show up
+
+ src/evaluate.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 473f014..f3fe13d 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2000,6 +2000,11 @@ static int stmt_evaluate_queue(struct eval_ctx *ctx, struct stmt *stmt)
+ 		if (!expr_is_constant(stmt->queue.queue))
+ 			return expr_error(ctx->msgs, stmt->queue.queue,
+ 					  "queue number is not constant");
++		if (stmt->queue.queue->ops->type != EXPR_RANGE &&
++		    (stmt->queue.flags & NFT_QUEUE_FLAG_CPU_FANOUT))
++			return expr_error(ctx->msgs, stmt->queue.queue,
++					  "fanout requires queue num range"
++					  " to be specified");
+ 	}
+ 	return 0;
+ }
+-- 
+1.9.1
+
