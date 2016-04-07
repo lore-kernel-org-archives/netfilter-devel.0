@@ -1,61 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nfct parameters
-Date: Thu, 7 Apr 2016 19:02:27 +0200
-Message-ID: <20160407170227.GA5825@salvia>
-References: <5706290C.7080000@chello.at>
+Subject: Re: [PATCH nft] src: evaluate: Show error for fanout without balance
+Date: Thu, 7 Apr 2016 19:13:17 +0200
+Message-ID: <20160407171317.GA6225@salvia>
+References: <20160407093640.GA5034@shivani>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Mart Frauenlob <mart.frauenlob@chello.at>
+To: Shivani Bhardwaj <shivanib134@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55875 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58115 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932149AbcDGRCf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Apr 2016 13:02:35 -0400
+	id S1750993AbcDGRNW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Apr 2016 13:13:22 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id C9891EAA8B
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 19:02:33 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id C1559C9ED3
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 19:13:19 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B9486DA391
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 19:02:33 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B230EDA386
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 19:13:19 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id AB458DA38C
-	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 19:02:31 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 9C9D9DA386
+	for <netfilter-devel@vger.kernel.org>; Thu,  7 Apr 2016 19:13:17 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <5706290C.7080000@chello.at>
+In-Reply-To: <20160407093640.GA5034@shivani>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 07, 2016 at 11:31:56AM +0200, Mart Frauenlob wrote:
-> Good day,
+On Thu, Apr 07, 2016 at 03:06:40PM +0530, Shivani Bhardwaj wrote:
+> The idea of fanout option is to improve the performance by indexing CPU
+> ID to map packets to the queues. This is used for load balancing.
+> Fanout option is not required when there is a single queue specified.
 > 
-> while I'm writing bash completion code for conntrack-tools, I browsed
-> through the source and found some things, that raised this questions for me
-> (I'm no C developer, so limited here).
-> 
-> 1: Are there three undocumented parameters?
-> namely: disable, default-get, default-set
-> At least there are functions that do something... not sure what exactly w/
-> the default-* cmds.
+> According to iptables, queue balance should be specified in order to use
+> fanout, following that, throw an error in nftables if the range of
+> queues for load balancing is not specified with the fanout option.
 
-They set the default timeouts. They provide a replacement for the
-/proc/ interface to set default conntrack protocol timeouts.
+Curious, how does iptables behave when you pass fanout and a single
+queue?
 
-'disable' is for userspace helpers. You can disable enqueueing packets
-to userspace for helper inspection.
+Could you also include how the nft error output looks like after your
+patch in your description?
 
-> 2: in src/nfct-extensions/timeout.c there is:
-> 
-> static void
-> nfct_cmd_timeout_usage(char *argv[])
-> {
->     fprintf(stderr, "nfct v%s: Missing command\n"
->             "%s <list|add|delete|get|flush|set> timeout "
->             "[<parameters>, ...]\n", VERSION, argv[0]);
-> }
-> 
-> Where a 'set' command is printed. Which is another discrepancy?
-> 
-> If my reading is correct, please take this mail as a bug report.
-
-Right, we seem not to have any 'set' there.
+Thanks.
