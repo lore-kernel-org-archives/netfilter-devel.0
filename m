@@ -1,99 +1,62 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH RFC nf-next 0/3] named expressions for nf_tables
-Date: Thu, 7 Apr 2016 23:49:42 +0200
-Message-ID: <20160407214942.GB731@breakpoint.cc>
-References: <1459961493-7494-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Subject: [PATCH iptables] xtables: use exponential delay when waiting for xtables lock
+Date: Thu,  7 Apr 2016 21:07:25 -0600
+Message-ID: <1460084845-28057-1-git-send-email-subashab@codeaurora.org>
+Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:57425 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750925AbcDGVtp (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:57792 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751495AbcDHDIQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Apr 2016 17:49:45 -0400
-Content-Disposition: inline
-In-Reply-To: <1459961493-7494-1-git-send-email-pablo@netfilter.org>
+	Thu, 7 Apr 2016 23:08:16 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> This patchset introduces the named stateful expressions for nf_tables,
-> that allows userspace to set a name for the stateful expression for
-> several reasons:
-> 
->  * Provide a unique identifier to fetch and reset it internal state.
->  * Allow to update of their parameters and internal state.
->  * Allow to fetch and reset its internal state.
->  * Refer to the same stateful expression from one or more rules.
->
+ip[6]tables currently waits for 1 second for the xtables lock to
+be freed if the -w option is used. We have seen that the lock is
+held much less than that resulting in unnecessary delay when
+trying to acquire the lock. This problem is even severe in case
+of latency sensitive applications.
 
-Can't all of this be achieved via custom chains already...?
+Introduce an exponential delay starting from 10ms (experimentally
+determined) up to a second.
 
-> nf_tables currently supports to stateful expressions: limit and counter,
-> therefore you can create named instances of this expressions through
-> this new infrastructure.
+Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+---
+ iptables/xshared.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-> Several examples on how this would look from userspace:
-> 
-> * Add the 'tcp-counter' counter to the 'filter' table:
-> 
->  # nft add counter filter tcp-counter
-> 
-> * Delete this counter (only possible if not dereferenced from a rule):
-> 
->  # nft delete counter filter tcp-counter
-> 
-> * List existing named counters:
-> 
->  # nft lists counters
->  table ip filter {
->         counter tcp-counter {
->                 packets 6086 bytes 6278052
->         }
->         counter udp-counter {
->                 packets 272 bytes 64690
->         }
->         counter icmp-counter {
->                 packets 10 bytes 840
->         }
->  }
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index 81c2581..d90ac13 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -247,6 +247,7 @@ void xs_init_match(struct xtables_match *match)
+ bool xtables_lock(int wait)
+ {
+ 	int fd, waited = 0, i = 0;
++	useconds_t base_delay = 10000;
+ 
+ 	fd = open(XT_LOCK_NAME, O_CREAT, 0600);
+ 	if (fd < 0)
+@@ -257,10 +258,15 @@ bool xtables_lock(int wait)
+ 			return true;
+ 		else if (wait >= 0 && waited >= wait)
+ 			return false;
+-		if (++i % 2 == 0)
++		if ((++i % 2 == 0) && (base_delay >= 200000))
+ 			fprintf(stderr, "Another app is currently holding the xtables lock; "
+ 				"waiting (%ds) for it to exit...\n", waited);
+ 		waited++;
+-		sleep(1);
++		if (base_delay > 1000000) {
++			sleep(1);
++		} else {
++			usleep(base_delay);
++			base_delay *= 2;
++		}
+ 	}
+ }
+-- 
+1.8.2.1
 
-Can't you already create a 'named counter' via
-
-chain tcp-counter {
-	counter
-}
-
-?
-
-Seems to me we only would have to teach nft list to
-allow filtering output on chain names, e.g.
-
-nft list table filter \*-counter
-
-to have something similar using exsiting feature set.
-
-> So far, only counters are supported, but it should be possible to
-> support named limits. I have another (imcomplete) patch that allows to
-> update the named expressions parameters, this can be useful to
-> dynamically update the ratelimiting policies, the command line should
-> look like:
-> 
->  # nft update limit name user01234 rate 250 mbytes/day
-
-Similar comment here, you could create
-
-chain user01234 {
-	limit rate 100 mbytes/day
-}
-
-This feature seems strange to me, AFAIU it adds a container for single
-expressions, so it just seems to be a subset of what we already have
-(namely chains as containers of rules).
-
-What am I missing? :)
-
-Is there something that is too cumbersome to achive with a chain-based
-approach?
