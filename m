@@ -1,62 +1,52 @@
-From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-Subject: [PATCH iptables] xtables: use exponential delay when waiting for xtables lock
-Date: Thu,  7 Apr 2016 21:07:25 -0600
-Message-ID: <1460084845-28057-1-git-send-email-subashab@codeaurora.org>
-Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
-To: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+From: Mart Frauenlob <mart.frauenlob@chello.at>
+Subject: [PATCH 3/4] nfct: helper: correct error messages.
+Date: Fri,  8 Apr 2016 08:18:43 +0200
+Message-ID: <1460096324-17426-4-git-send-email-mart.frauenlob@chello.at>
+References: <1460096324-17426-1-git-send-email-mart.frauenlob@chello.at>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:57792 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751495AbcDHDIQ (ORCPT
+Received: from vie01a-dmta-at02-1.mx.upcmail.net ([62.179.121.148]:64388 "EHLO
+	vie01a-dmta-at02-1.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753001AbcDHGS4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Apr 2016 23:08:16 -0400
+	Fri, 8 Apr 2016 02:18:56 -0400
+Received: from [172.31.216.43] (helo=vie01a-pemc-psmtp-pe01)
+	by vie01a-dmta-pe01.mx.upcmail.net with esmtp (Exim 4.72)
+	(envelope-from <mart.frauenlob@chello.at>)
+	id 1aoPks-0003h4-3w
+	for netfilter-devel@vger.kernel.org; Fri, 08 Apr 2016 08:18:54 +0200
+In-Reply-To: <1460096324-17426-1-git-send-email-mart.frauenlob@chello.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-ip[6]tables currently waits for 1 second for the xtables lock to
-be freed if the -w option is used. We have seen that the lock is
-held much less than that resulting in unnecessary delay when
-trying to acquire the lock. This problem is even severe in case
-of latency sensitive applications.
 
-Introduce an exponential delay starting from 10ms (experimentally
-determined) up to a second.
-
-Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Signed-off-by: Mart Frauenlob <mart.frauenlob@chello.at>
 ---
- iptables/xshared.c | 10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ src/nfct-extensions/helper.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/iptables/xshared.c b/iptables/xshared.c
-index 81c2581..d90ac13 100644
---- a/iptables/xshared.c
-+++ b/iptables/xshared.c
-@@ -247,6 +247,7 @@ void xs_init_match(struct xtables_match *match)
- bool xtables_lock(int wait)
+diff --git a/src/nfct-extensions/helper.c b/src/nfct-extensions/helper.c
+index dfc55e7..0569827 100644
+--- a/src/nfct-extensions/helper.c
++++ b/src/nfct-extensions/helper.c
+@@ -33,7 +33,7 @@ static void
+ nfct_cmd_helper_usage(char *argv[])
  {
- 	int fd, waited = 0, i = 0;
-+	useconds_t base_delay = 10000;
- 
- 	fd = open(XT_LOCK_NAME, O_CREAT, 0600);
- 	if (fd < 0)
-@@ -257,10 +258,15 @@ bool xtables_lock(int wait)
- 			return true;
- 		else if (wait >= 0 && waited >= wait)
- 			return false;
--		if (++i % 2 == 0)
-+		if ((++i % 2 == 0) && (base_delay >= 200000))
- 			fprintf(stderr, "Another app is currently holding the xtables lock; "
- 				"waiting (%ds) for it to exit...\n", waited);
- 		waited++;
--		sleep(1);
-+		if (base_delay > 1000000) {
-+			sleep(1);
-+		} else {
-+			usleep(base_delay);
-+			base_delay *= 2;
-+		}
- 	}
+ 	fprintf(stderr, "nfct v%s: Missing command\n"
+-			"%s helper list|add|delete|get|flush "
++			"%s helper list|add|delete|disable|get|flush "
+ 			"[parameters...]\n", VERSION, argv[0]);
  }
+ 
+@@ -408,7 +408,7 @@ nfct_cmd_helper_disable(struct mnl_socket *nl, int argc, char *argv[])
+ 
+ 	if (argc < 6) {
+ 		nfct_perror("missing parameters\n"
+-			    "syntax: nfct add helper name family protocol");
++			    "syntax: nfct disable helper name family protocol");
+ 		return -1;
+ 	}
+ 
 -- 
-1.8.2.1
+1.7.2.5
 
