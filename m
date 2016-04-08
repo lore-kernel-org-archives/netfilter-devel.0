@@ -1,44 +1,109 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/4] nfct: documentation updates and corrections.
-Date: Fri, 8 Apr 2016 12:36:43 +0200
-Message-ID: <20160408103643.GE2142@salvia>
-References: <1460096324-17426-1-git-send-email-mart.frauenlob@chello.at>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nf_tables PATCH] netfilter: nf_tables: invert chain deletion abort
+ path
+Date: Fri, 08 Apr 2016 12:56:10 +0200
+Message-ID: <146011296985.3580.3314850969369156279.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Mart Frauenlob <mart.frauenlob@chello.at>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41564 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757915AbcDHKgx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 Apr 2016 06:36:53 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id F17D11E11CC
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 12:36:46 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E29B2DA391
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 12:36:46 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id D6BEFDA38B
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 12:36:44 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1460096324-17426-1-git-send-email-mart.frauenlob@chello.at>
+Received: from smtp3.cica.es ([150.214.5.190]:51569 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755900AbcDHK4Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 8 Apr 2016 06:56:24 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Apr 08, 2016 at 08:18:40AM +0200, Mart Frauenlob wrote:
-> 
-> Good day,
-> 
-> this series includes some documentation updates and corrections for nfct.
+Before this patch, chain deletetion abort path re-add chains in reverse
+order of what was originally in the ruleset.
+Invert the order, so the ruleset is exactly the same after abort.
 
-Series applied.
+Example, using 2 config files:
 
-> For the first patch: add missing commands to usage output,
-> 
-> I was not able to trigger the usage output. I think the parser is broken.
+ruleset_good.nft:
+==== 8< ====
+flush ruleset
+table ip t {
+	chain c1 {
+	}
+	chain c2 {
+	}
+	chain c3 {
+	}
+}
+==== 8< ====
 
-Yes, this is broken.
+ruleset_bad.nft:
+==== 8< ====
+flush ruleset
+table ip t {
+	chain c1 {
+	}
+	chain c2 {
+		jump c6
+	}
+	chain c3 {
+	}
+}
+==== 8< ====
 
-It would be good to add getopt_long to disable the help and version
-via -h and -v. Similar what we have in nft.
+
+before this patch:
+
+% nft -f ruleset_good.nft
+% nft -f ruleset_bad.nft
+% nft list ruleset
+table ip t {
+	chain c3 {
+	}
+
+	chain c2 {
+	}
+
+	chain c1 {
+	}
+}
+
+[ note, inverse order of chain listing ]
+
+after this patch:
+
+% nft -f ruleset_good.nft
+% nft -f ruleset_bad.nft
+% nft list ruleset
+table ip t {
+	chain c1 {
+	}
+
+	chain c2 {
+	}
+
+	chain c3 {
+	}
+}
+
+[ note, same order of chain listing ]
+
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ net/netfilter/nf_tables_api.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 2011977..8578cc6 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -4060,8 +4060,8 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb)
+ 			break;
+ 		case NFT_MSG_DELCHAIN:
+ 			trans->ctx.table->use++;
+-			list_add_tail_rcu(&trans->ctx.chain->list,
+-					  &trans->ctx.table->chains);
++			list_add_rcu(&trans->ctx.chain->list,
++				     &trans->ctx.table->chains);
+ 			nft_trans_destroy(trans);
+ 			break;
+ 		case NFT_MSG_NEWRULE:
+
