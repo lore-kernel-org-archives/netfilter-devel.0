@@ -1,84 +1,46 @@
-From: Mart Frauenlob <mart.frauenlob@chello.at>
-Subject: Re: [PATCH] conntrack-tools: Fix build for old automake.
-Date: Fri, 8 Apr 2016 08:40:01 +0200
-Message-ID: <57075241.80906@chello.at>
-References: <1459762780-10255-1-git-send-email-mart.frauenlob@chello.at>
- <1459762780-10255-2-git-send-email-mart.frauenlob@chello.at>
- <20160407164758.GA5353@salvia> <570699F7.1010907@chello.at>
- <20160407175009.GB7271@salvia> <57069E8E.7050709@chello.at>
-Reply-To: mart.frauenlob@chello.at
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH] test/shell/run-tests.sh: also unload NAT modules
+Date: Fri, 08 Apr 2016 10:47:15 +0200
+Message-ID: <146010523543.17551.10690033432370786467.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vie01a-dmta-at03-2.mx.upcmail.net ([62.179.121.152]:63206 "EHLO
-	vie01a-dmta-at03-2.mx.upcmail.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750995AbcDHGkE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 Apr 2016 02:40:04 -0400
-Received: from [172.31.216.43] (helo=vie01a-pemc-psmtp-pe01)
-	by vie01a-dmta-at03.mx.upcmail.net with esmtp (Exim 4.72)
-	(envelope-from <mart.frauenlob@chello.at>)
-	id 1aoQ5K-0005yl-3Y
-	for netfilter-devel@vger.kernel.org; Fri, 08 Apr 2016 08:40:02 +0200
-In-Reply-To: <57069E8E.7050709@chello.at>
+Received: from smtp3.cica.es ([150.214.5.190]:40785 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753498AbcDHIrZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 8 Apr 2016 04:47:25 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id 2509251F27A
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 08:47:22 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id ta1H6r6vgtpI for <netfilter-devel@vger.kernel.org>;
+	Fri,  8 Apr 2016 10:47:16 +0200 (CEST)
+Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
+	by smtp.cica.es (Postfix) with ESMTP id E03A951F282
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 10:47:15 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 07.04.2016 19:53, Mart Frauenlob wrote:
-> On 07.04.2016 19:50, Pablo Neira Ayuso wrote:
->> On Thu, Apr 07, 2016 at 07:33:43PM +0200, Mart Frauenlob wrote:
->>> On 07.04.2016 18:47, Pablo Neira Ayuso wrote:
->>>> On Mon, Apr 04, 2016 at 11:39:40AM +0200, Mart Frauenlob wrote:
->>>>>   autoreconf fails with automake version smaller than 1.12,
->>>>>   because of undefined macro AM_PROG_AR.
->>>>>   So only expand it if it's actually defined.
->>>>>
->>>>> Signed-off-by: Mart Frauenlob <mart.frauenlob@chello.at>
->>>>> ---
->>>>>   configure.ac |    2 +-
->>>>>   1 files changed, 1 insertions(+), 1 deletions(-)
->>>>>
->>>>> diff --git a/configure.ac b/configure.ac
->>>>> index c541034..2c5913f 100644
->>>>> --- a/configure.ac
->>>>> +++ b/configure.ac
->>>>> @@ -14,7 +14,7 @@ AC_SUBST([libdl_LIBS])
->>>>>
->>>>>   AC_PROG_CC
->>>>>   AC_DISABLE_STATIC
->>>>> -AM_PROG_AR
->>>>> +m4_ifdef([AM_PROG_AR], [AM_PROG_AR]) dnl Workaround for Automake 1.11
->>>>
->>>> How old is your old system? is it still a distro maintained version?
->>>
->>> cat /etc/debian_version
->>> 6.0.10
->>> Has automake 1.11.
->>
->> Is that still maintained?
->>
->
-> Quoting https://www.debian.org/News/2016/20160212 :
->
-> February 12th, 2016
-> The Debian Long Term Support (LTS) Team hereby announces that Debian 6.0
-> ("squeeze") support will reach its end-of-life on February 29, 2016,
-> five years after its initial release on February 6, 2011.
->
-> Hm, no longer since 2 months....
+Also unload NAT modules between tests.
 
-What does that macro actually do in configure?
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ tests/shell/run-tests.sh |    1 +
+ 1 file changed, 1 insertion(+)
 
-AM_PROG_AR([act-if-fail])
-
-     You must use this macro when you use the archiver in your project, 
-if you want support for unusual archivers such as Microsoft lib. The 
-content of the optional argument is executed if the archiver interface 
-is not recognized; the default action is to abort configure with an 
-error message.
-
-Does this archiver get called at all?
+diff --git a/tests/shell/run-tests.sh b/tests/shell/run-tests.sh
+index 620fe57..0bbb136 100755
+--- a/tests/shell/run-tests.sh
++++ b/tests/shell/run-tests.sh
+@@ -56,6 +56,7 @@ kernel_cleanup() {
+ 	nft_exthdr nft_payload nft_cmp \
+ 	nft_meta nft_meta_bridge nft_counter nft_log nft_limit \
+ 	nft_hash nft_rbtree nft_ct nft_compat \
++	nft_chain_nat_ipv4 nft_chain_nat_ipv6 \
+ 	nf_tables_inet nf_tables_bridge nf_tables_arp \
+ 	nf_tables_ipv4 nf_tables_ipv6 nf_tables
+ }
 
