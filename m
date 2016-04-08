@@ -1,109 +1,40 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nf_tables PATCH] netfilter: nf_tables: invert chain deletion abort
- path
-Date: Fri, 08 Apr 2016 12:56:10 +0200
-Message-ID: <146011296985.3580.3314850969369156279.stgit@nfdev2.cica.es>
+From: Meyer Raffaele <raffaele.meyer@fhnw.ch>
+Subject: Possible segfault in nft utility
+Date: Fri, 8 Apr 2016 11:10:47 +0000
+Message-ID: <60982738E3650D41B91037A907B50C6A31797345@MXAMU25.adm.ds.fhnw.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:51569 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755900AbcDHK4Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 Apr 2016 06:56:24 -0400
+Received: from mxnmu12.fhnw.ch ([147.86.3.25]:41987 "EHLO mxnmu12.fhnw.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756517AbcDHLKv convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 8 Apr 2016 07:10:51 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mxnmu12.fhnw.ch (Postfix) with ESMTP id ED514114389
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 13:10:48 +0200 (CEST)
+Received: from mxnmu12.fhnw.ch ([127.0.0.1])
+ by localhost (mxnmu12.fhnw.ch [127.0.0.1]) (amavisd-new, port 10041)
+ with LMTP id 06333-17 for <netfilter-devel@vger.kernel.org>;
+ Fri,  8 Apr 2016 13:10:48 +0200 (CEST)
+Received: from MXEMU24.edu.ds.fhnw.ch (mxemu24.edu.ds.fhnw.ch [10.51.2.37])
+	by mxnmu12.fhnw.ch (Postfix) with ESMTP id 5E535114320
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 13:10:48 +0200 (CEST)
+Content-Language: de-DE
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Before this patch, chain deletetion abort path re-add chains in reverse
-order of what was originally in the ruleset.
-Invert the order, so the ruleset is exactly the same after abort.
+Dear Sir or Madam
 
-Example, using 2 config files:
+I am currently using nftables under Ubuntu 15.10. Kernel version is 4.2.0-16-generic and nftables version is nftables v0.4 (Support Edward Snowden).
+I was looking for a way to match packets based on the mss optional value in the tcp header. While using the describe command, I encountered a segfault:
 
-ruleset_good.nft:
-==== 8< ====
-flush ruleset
-table ip t {
-	chain c1 {
-	}
-	chain c2 {
-	}
-	chain c3 {
-	}
-}
-==== 8< ====
+user@machine:~$ nft describe tcp reserved
+Segmentation fault (core dumped)
 
-ruleset_bad.nft:
-==== 8< ====
-flush ruleset
-table ip t {
-	chain c1 {
-	}
-	chain c2 {
-		jump c6
-	}
-	chain c3 {
-	}
-}
-==== 8< ====
+It is not really a bad bug since the reserved keyword is probably not used anyway but I thought to report it. At the same time I wanted to ask if it is possible to match packets on wether they have a MaximumSegmentSize set in the TCP header or not. I want this since most of the TCP-Syn flood tools seem to not set this option and most legitimate TCP stacks do set it.
 
-
-before this patch:
-
-% nft -f ruleset_good.nft
-% nft -f ruleset_bad.nft
-% nft list ruleset
-table ip t {
-	chain c3 {
-	}
-
-	chain c2 {
-	}
-
-	chain c1 {
-	}
-}
-
-[ note, inverse order of chain listing ]
-
-after this patch:
-
-% nft -f ruleset_good.nft
-% nft -f ruleset_bad.nft
-% nft list ruleset
-table ip t {
-	chain c1 {
-	}
-
-	chain c2 {
-	}
-
-	chain c3 {
-	}
-}
-
-[ note, same order of chain listing ]
-
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- net/netfilter/nf_tables_api.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 2011977..8578cc6 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -4060,8 +4060,8 @@ static int nf_tables_abort(struct net *net, struct sk_buff *skb)
- 			break;
- 		case NFT_MSG_DELCHAIN:
- 			trans->ctx.table->use++;
--			list_add_tail_rcu(&trans->ctx.chain->list,
--					  &trans->ctx.table->chains);
-+			list_add_rcu(&trans->ctx.chain->list,
-+				     &trans->ctx.table->chains);
- 			nft_trans_destroy(trans);
- 			break;
- 		case NFT_MSG_NEWRULE:
-
+Greetings
+Raffaele Meyer
