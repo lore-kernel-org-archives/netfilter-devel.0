@@ -1,82 +1,114 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft v2] src: evaluate: Show error for fanout without
- balance
-Date: Fri, 8 Apr 2016 13:26:52 +0200
-Message-ID: <20160408112652.GA3580@salvia>
-References: <20160407172854.GA3233@shivani>
+Subject: Re: [PATCH RFC nf-next 0/3] named expressions for nf_tables
+Date: Fri, 8 Apr 2016 13:43:51 +0200
+Message-ID: <20160408114351.GA6869@salvia>
+References: <1459961493-7494-1-git-send-email-pablo@netfilter.org>
+ <20160407214942.GB731@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55940 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33853 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753459AbcDHL1A (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 Apr 2016 07:27:00 -0400
+	id S1758128AbcDHLoC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 8 Apr 2016 07:44:02 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id DACA2C9EED
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 13:26:58 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 89317E839A
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 13:44:00 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id CC322DA395
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 13:26:58 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 72596DA399
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 13:44:00 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id CB958DA395
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 13:26:56 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 7B313DA398
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 13:43:57 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160407172854.GA3233@shivani>
+In-Reply-To: <20160407214942.GB731@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 07, 2016 at 10:58:54PM +0530, Shivani Bhardwaj wrote:
-> The idea of fanout option is to improve the performance by indexing CPU
-> ID to map packets to the queues. This is used for load balancing.
-> Fanout option is not required when there is a single queue specified.
+On Thu, Apr 07, 2016 at 11:49:42PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Several examples on how this would look from userspace:
+> > 
+> > * Add the 'tcp-counter' counter to the 'filter' table:
+> > 
+> >  # nft add counter filter tcp-counter
+> > 
+> > * Delete this counter (only possible if not dereferenced from a rule):
+> > 
+> >  # nft delete counter filter tcp-counter
+> > 
+> > * List existing named counters:
+> > 
+> >  # nft lists counters
+> >  table ip filter {
+> >         counter tcp-counter {
+> >                 packets 6086 bytes 6278052
+> >         }
+> >         counter udp-counter {
+> >                 packets 272 bytes 64690
+> >         }
+> >         counter icmp-counter {
+> >                 packets 10 bytes 840
+> >         }
+> >  }
 > 
-> According to iptables, queue balance should be specified in order to use
-> fanout. Following that, throw an error in nftables if the range of
-> queues for load balancing is not specified with the fanout option.
+> Can't you already create a 'named counter' via
 > 
-> After this patch,
+> chain tcp-counter {
+> 	counter
+> }
 > 
-> $ sudo nft add rule ip filter forward counter queue num 0 fanout
-> <cmdline>:1:46-46: Error: fanout requires queue num range to be specified
-> add rule ip filter forward counter queue num 0 fanout
->                                              ^
+> ?
+> 
+> Seems to me we only would have to teach nft list to
+> allow filtering output on chain names, e.g.
+> 
+> nft list table filter \*-counter
+> 
+> to have something similar using exsiting feature set.
 
-Thanks, I'm applying this with updates, basically adding this chunk to
-your patch:
+Right, but we still need a way to uniquely identify this stateful
+expression for atomic dump'n'reset.
 
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 4b7c1f5..444ed4c 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -1722,6 +1722,7 @@ queue_stmt_args           :       queue_stmt_arg
- queue_stmt_arg         :       QUEUENUM        stmt_expr
-                        {
-                                $<stmt>0->queue.queue = $2;
-+                               $<stmt>0->queue.queue->location = @$;
-                        }
-                        |       queue_stmt_flags
-                        {
+> > So far, only counters are supported, but it should be possible to
+> > support named limits. I have another (imcomplete) patch that allows to
+> > update the named expressions parameters, this can be useful to
+> > dynamically update the ratelimiting policies, the command line should
+> > look like:
+> > 
+> >  # nft update limit name user01234 rate 250 mbytes/day
+> 
+> Similar comment here, you could create
+> 
+> chain user01234 {
+> 	limit rate 100 mbytes/day
+> }
 
-I'm basically reseting the location here.
+Right, we can replace this rule via the handle, but I see two problems
+with this:
 
-So the error printing look like:
+1) The user needs to track the rule handle, not so much of a problem
+   since userspace can do this at the cost of a bit of more
+   complexity.
 
-    $ sudo nft add rule ip filter forward counter queue num 0 fanout
-    <cmdline>:1:46-46: Error: fanout requires a range to be specified
-    add rule ip filter forward counter queue num 0 fanout
-                                             ^^^^^
+2) When replacing the rule, the new expression starts from no history
+   as it will be a new expression, we'll be basically reseting it.
 
-which seems slightly better.
+Using 'nft update limit...' I think we should be capable of upgrading
+the ratelimit by keeping around the quota that the user has already
+consumed.
 
-We can probably use expr_binary_error() instead expr_error() so we get
-something like:
+The idea is, if we know the previous cost of every byte/packets in
+terms of tokens, given that tokens are generated per nanosecond and
+that know how many tokens we have already consumed, then we can
+recalculate the quota that has been already consumed and add this to
+the limit update, eg. if limit rate is 100 mbytes/day but the user
+already consumed 50 mbytes, when calling:
 
-    $ sudo nft add rule ip filter forward counter queue num 0 fanout
-    <cmdline>:1:46-46: Error: fanout requires a range to be specified
-    add rule ip filter forward counter queue num 0 fanout
-                                             ^^^^^ ~~~~~~
+        nft update limit rate 200 mbytes/day
 
-But this requires revisiting the parser to convert the flags to
-expressions, let's have a look at this later.
+we can keep the 50 mbytes that were already consumed around.
+
+Let me know, thanks.
