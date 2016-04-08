@@ -1,40 +1,82 @@
-From: Meyer Raffaele <raffaele.meyer@fhnw.ch>
-Subject: Possible segfault in nft utility
-Date: Fri, 8 Apr 2016 11:10:47 +0000
-Message-ID: <60982738E3650D41B91037A907B50C6A31797345@MXAMU25.adm.ds.fhnw.ch>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft v2] src: evaluate: Show error for fanout without
+ balance
+Date: Fri, 8 Apr 2016 13:26:52 +0200
+Message-ID: <20160408112652.GA3580@salvia>
+References: <20160407172854.GA3233@shivani>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Shivani Bhardwaj <shivanib134@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mxnmu12.fhnw.ch ([147.86.3.25]:41987 "EHLO mxnmu12.fhnw.ch"
+Received: from mail.us.es ([193.147.175.20]:55940 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756517AbcDHLKv convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 Apr 2016 07:10:51 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mxnmu12.fhnw.ch (Postfix) with ESMTP id ED514114389
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 13:10:48 +0200 (CEST)
-Received: from mxnmu12.fhnw.ch ([127.0.0.1])
- by localhost (mxnmu12.fhnw.ch [127.0.0.1]) (amavisd-new, port 10041)
- with LMTP id 06333-17 for <netfilter-devel@vger.kernel.org>;
- Fri,  8 Apr 2016 13:10:48 +0200 (CEST)
-Received: from MXEMU24.edu.ds.fhnw.ch (mxemu24.edu.ds.fhnw.ch [10.51.2.37])
-	by mxnmu12.fhnw.ch (Postfix) with ESMTP id 5E535114320
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 13:10:48 +0200 (CEST)
-Content-Language: de-DE
+	id S1753459AbcDHL1A (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 8 Apr 2016 07:27:00 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id DACA2C9EED
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 13:26:58 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id CC322DA395
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 13:26:58 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id CB958DA395
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 Apr 2016 13:26:56 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20160407172854.GA3233@shivani>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Dear Sir or Madam
+On Thu, Apr 07, 2016 at 10:58:54PM +0530, Shivani Bhardwaj wrote:
+> The idea of fanout option is to improve the performance by indexing CPU
+> ID to map packets to the queues. This is used for load balancing.
+> Fanout option is not required when there is a single queue specified.
+> 
+> According to iptables, queue balance should be specified in order to use
+> fanout. Following that, throw an error in nftables if the range of
+> queues for load balancing is not specified with the fanout option.
+> 
+> After this patch,
+> 
+> $ sudo nft add rule ip filter forward counter queue num 0 fanout
+> <cmdline>:1:46-46: Error: fanout requires queue num range to be specified
+> add rule ip filter forward counter queue num 0 fanout
+>                                              ^
 
-I am currently using nftables under Ubuntu 15.10. Kernel version is 4.2.0-16-generic and nftables version is nftables v0.4 (Support Edward Snowden).
-I was looking for a way to match packets based on the mss optional value in the tcp header. While using the describe command, I encountered a segfault:
+Thanks, I'm applying this with updates, basically adding this chunk to
+your patch:
 
-user@machine:~$ nft describe tcp reserved
-Segmentation fault (core dumped)
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 4b7c1f5..444ed4c 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1722,6 +1722,7 @@ queue_stmt_args           :       queue_stmt_arg
+ queue_stmt_arg         :       QUEUENUM        stmt_expr
+                        {
+                                $<stmt>0->queue.queue = $2;
++                               $<stmt>0->queue.queue->location = @$;
+                        }
+                        |       queue_stmt_flags
+                        {
 
-It is not really a bad bug since the reserved keyword is probably not used anyway but I thought to report it. At the same time I wanted to ask if it is possible to match packets on wether they have a MaximumSegmentSize set in the TCP header or not. I want this since most of the TCP-Syn flood tools seem to not set this option and most legitimate TCP stacks do set it.
+I'm basically reseting the location here.
 
-Greetings
-Raffaele Meyer
+So the error printing look like:
+
+    $ sudo nft add rule ip filter forward counter queue num 0 fanout
+    <cmdline>:1:46-46: Error: fanout requires a range to be specified
+    add rule ip filter forward counter queue num 0 fanout
+                                             ^^^^^
+
+which seems slightly better.
+
+We can probably use expr_binary_error() instead expr_error() so we get
+something like:
+
+    $ sudo nft add rule ip filter forward counter queue num 0 fanout
+    <cmdline>:1:46-46: Error: fanout requires a range to be specified
+    add rule ip filter forward counter queue num 0 fanout
+                                             ^^^^^ ~~~~~~
+
+But this requires revisiting the parser to convert the flags to
+expressions, let's have a look at this later.
