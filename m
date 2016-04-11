@@ -1,20 +1,47 @@
-From: darlehen@info.com
-Subject: LOAN
-Date: Sat, 09 Apr 2016 03:32:27 +0530
-Message-ID: <20160408220028.09FCD13F558__22536.2727688209$1460225840$gmane$org@bescomm.terengganu.my>
-Reply-To: legacyassetgrougp@hotmail.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: Recipients <darlehen@info.com>
+From: Guruswamy Basavaiah <guru2018@gmail.com>
+Subject: [PATCH] Not printing "nft" in iptables-restore-translate command
+Date: Mon, 11 Apr 2016 13:10:33 +0530
+Message-ID: <1460360433-14709-1-git-send-email-guru2018@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bescomm.terengganu.my ([202.188.29.20]:49860 "EHLO
-	bescomm.terengganu.my" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751771AbcDISRM convert rfc822-to-8bit (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34021 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752472AbcDKHkm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 9 Apr 2016 14:17:12 -0400
-Content-Description: Mail message body
+	Mon, 11 Apr 2016 03:40:42 -0400
+Received: by mail-wm0-f67.google.com with SMTP id n3so19208093wmn.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Apr 2016 00:40:41 -0700 (PDT)
+Received: from inbhdhcp214179.apac.nsn-net.net ([62.159.77.165])
+        by smtp.gmail.com with ESMTPSA id m6sm26264349wje.21.2016.04.11.00.40.39
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLSv1/SSLv3 cipher=OTHER);
+        Mon, 11 Apr 2016 00:40:40 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Brauchen Sie einen Kredit? Wir bieten Darlehen in 2% gelten heute Kontakt mit uns auf: legacyassetgrougp@hotmail.com
+No need to print "nft" in function do_command_xlate,
+if the function is called from iptables-restore-translate command.
+
+Signed-off-by: Guruswamy Basavaiah <guru2018@gmail.com>
+---
+ iptables/xtables-translate.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
+index 0b2c0bf..1c64178 100644
+--- a/iptables/xtables-translate.c
++++ b/iptables/xtables-translate.c
+@@ -193,7 +193,9 @@ static int do_command_xlate(struct nft_handle *h, int argc, char *argv[],
+ 
+ 	do_parse(h, argc, argv, &p, &cs, &args);
+ 
+-	printf("nft ");
++	if (!restore) {
++		printf("nft ");
++	}
+ 	switch (p.command) {
+ 	case CMD_APPEND:
+ 		ret = 1;
+-- 
+2.5.5
+
