@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/8] netfilter: nf_conntrack: Uses pr_fmt() for logging.
-Date: Wed, 13 Apr 2016 01:02:39 +0200
-Message-ID: <1460502166-20340-2-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 2/8] netfilter: bridge: add nf_afinfo to enable queuing to userspace
+Date: Wed, 13 Apr 2016 01:02:40 +0200
+Message-ID: <1460502166-20340-3-git-send-email-pablo@netfilter.org>
 References: <1460502166-20340-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,73 +10,89 @@ In-Reply-To: <1460502166-20340-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Weongyo Jeong <weongyo.linux@gmail.com>
+From: Stephane Bryant <stephane.ml.bryant@gmail.com>
 
-Uses pr_fmt() macro for debugging messages of nf_conntrack module.
+This just adds and registers a nf_afinfo for the ethernet
+bridge, which enables queuing to userspace for the AF_BRIDGE
+family. No checksum computation is done.
 
-Signed-off-by: Weongyo Jeong <weongyo.linux@gmail.com>
+Signed-off-by: Stephane Bryant <stephane.ml.bryant@gmail.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_core.c | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ net/bridge/netfilter/nf_tables_bridge.c | 47 +++++++++++++++++++++++++++++++--
+ 1 file changed, 45 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index afde5f5..2fd6074 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -12,6 +12,8 @@
-  * published by the Free Software Foundation.
-  */
+diff --git a/net/bridge/netfilter/nf_tables_bridge.c b/net/bridge/netfilter/nf_tables_bridge.c
+index 7fcdd72..a78c4e2 100644
+--- a/net/bridge/netfilter/nf_tables_bridge.c
++++ b/net/bridge/netfilter/nf_tables_bridge.c
+@@ -162,15 +162,57 @@ static const struct nf_chain_type filter_bridge = {
+ 			  (1 << NF_BR_POST_ROUTING),
+ };
  
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++static void nf_br_saveroute(const struct sk_buff *skb,
++			    struct nf_queue_entry *entry)
++{
++}
 +
- #include <linux/types.h>
- #include <linux/netfilter.h>
- #include <linux/module.h>
-@@ -966,7 +968,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
++static int nf_br_reroute(struct net *net, struct sk_buff *skb,
++			 const struct nf_queue_entry *entry)
++{
++	return 0;
++}
++
++static __sum16 nf_br_checksum(struct sk_buff *skb, unsigned int hook,
++			      unsigned int dataoff, u_int8_t protocol)
++{
++	return 0;
++}
++
++static __sum16 nf_br_checksum_partial(struct sk_buff *skb, unsigned int hook,
++				      unsigned int dataoff, unsigned int len,
++				      u_int8_t protocol)
++{
++	return 0;
++}
++
++static int nf_br_route(struct net *net, struct dst_entry **dst,
++		       struct flowi *fl, bool strict __always_unused)
++{
++	return 0;
++}
++
++static const struct nf_afinfo nf_br_afinfo = {
++	.family                 = AF_BRIDGE,
++	.checksum               = nf_br_checksum,
++	.checksum_partial       = nf_br_checksum_partial,
++	.route                  = nf_br_route,
++	.saveroute              = nf_br_saveroute,
++	.reroute                = nf_br_reroute,
++	.route_key_size         = 0,
++};
++
+ static int __init nf_tables_bridge_init(void)
+ {
+ 	int ret;
  
- 	if (!l4proto->new(ct, skb, dataoff, timeouts)) {
- 		nf_conntrack_free(ct);
--		pr_debug("init conntrack: can't track with proto module\n");
-+		pr_debug("can't track with proto module\n");
- 		return NULL;
- 	}
++	nf_register_afinfo(&nf_br_afinfo);
+ 	nft_register_chain_type(&filter_bridge);
+ 	ret = register_pernet_subsys(&nf_tables_bridge_net_ops);
+-	if (ret < 0)
++	if (ret < 0) {
+ 		nft_unregister_chain_type(&filter_bridge);
+-
++		nf_unregister_afinfo(&nf_br_afinfo);
++	}
+ 	return ret;
+ }
  
-@@ -988,7 +990,7 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- 		spin_lock(&nf_conntrack_expect_lock);
- 		exp = nf_ct_find_expectation(net, zone, tuple);
- 		if (exp) {
--			pr_debug("conntrack: expectation arrives ct=%p exp=%p\n",
-+			pr_debug("expectation arrives ct=%p exp=%p\n",
- 				 ct, exp);
- 			/* Welcome, Mr. Bond.  We've been expecting you... */
- 			__set_bit(IPS_EXPECTED_BIT, &ct->status);
-@@ -1053,7 +1055,7 @@ resolve_normal_ct(struct net *net, struct nf_conn *tmpl,
- 	if (!nf_ct_get_tuple(skb, skb_network_offset(skb),
- 			     dataoff, l3num, protonum, net, &tuple, l3proto,
- 			     l4proto)) {
--		pr_debug("resolve_normal_ct: Can't get tuple\n");
-+		pr_debug("Can't get tuple\n");
- 		return NULL;
- 	}
+@@ -178,6 +220,7 @@ static void __exit nf_tables_bridge_exit(void)
+ {
+ 	unregister_pernet_subsys(&nf_tables_bridge_net_ops);
+ 	nft_unregister_chain_type(&filter_bridge);
++	nf_unregister_afinfo(&nf_br_afinfo);
+ }
  
-@@ -1079,14 +1081,13 @@ resolve_normal_ct(struct net *net, struct nf_conn *tmpl,
- 	} else {
- 		/* Once we've had two way comms, always ESTABLISHED. */
- 		if (test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
--			pr_debug("nf_conntrack_in: normal packet for %p\n", ct);
-+			pr_debug("normal packet for %p\n", ct);
- 			*ctinfo = IP_CT_ESTABLISHED;
- 		} else if (test_bit(IPS_EXPECTED_BIT, &ct->status)) {
--			pr_debug("nf_conntrack_in: related packet for %p\n",
--				 ct);
-+			pr_debug("related packet for %p\n", ct);
- 			*ctinfo = IP_CT_RELATED;
- 		} else {
--			pr_debug("nf_conntrack_in: new packet for %p\n", ct);
-+			pr_debug("new packet for %p\n", ct);
- 			*ctinfo = IP_CT_NEW;
- 		}
- 		*set_reply = 0;
+ module_init(nf_tables_bridge_init);
 -- 
 2.1.4
