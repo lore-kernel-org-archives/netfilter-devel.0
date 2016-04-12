@@ -1,130 +1,71 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH v3] src/evaluate.c: improve rule management checks
-Date: Tue, 12 Apr 2016 11:44:17 +0200
-Message-ID: <146045423317.18092.10497374259960545713.stgit@nfdev2.cica.es>
+From: Christophe Leroy <christophe.leroy@c-s.fr>
+Subject: Re: Seeking help for implementing CT HELPER in nftables
+Date: Tue, 12 Apr 2016 15:40:01 +0200
+Message-ID: <570CFAB1.6090409@c-s.fr>
+References: <56DAC502.2060809@c-s.fr>
+ <20160307132011.GA7620@macbook.localdomain> <56DF5F61.2060000@c-s.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:46220 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932110AbcDLJo2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Apr 2016 05:44:28 -0400
+Received: from pegase1.c-s.fr ([93.17.236.30]:50093 "EHLO pegase1.c-s.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932221AbcDLNkE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Apr 2016 09:40:04 -0400
+In-Reply-To: <56DF5F61.2060000@c-s.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Improve checks (and error reporting) for basic rule management operations.
-This includes a fix for netfilter bug #965.
+Patrick, can you help ?
 
-Netfilter bug: http://bugzilla.netfilter.org/show_bug.cgi?id=965
-Reported-by: Jesper Sander Lindgren <sander.contrib@gmail.com>
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
-v3: refreshed error messages with Pablo's suggestions
+Le 09/03/2016 00:25, Christophe Leroy a =E9crit :
+>
+> Le 07/03/2016 14:20, Patrick McHardy a =E9crit :
+>> On 05.03, christophe leroy wrote:
+>>> Hello,
+>>>
+>>> I'm trying to implement support for CT HELPERs in linux kernel for
+>>> nftables and need some help/guidance.
+>>>
+>>> The rule beeing 'udp dport tftp ct helper set "tftp"', I get
+>>> nft_ct_set_init() called when I add the rule in the table output fi=
+lter
+>>> table.
+>>>
+>>> I believe I have to call nf_ct_helper_ext_add() from nft_ct_set_ini=
+t(),
+>>> but for that I need the name of the helper that is to be set, ie=20
+>>> 'tftp'.
+>>> How do I get the name of the requested helper in that function ? I
+>>> suppose once I get it I can do the same as  xt_ct_set_helper() does=
+=2E
+>> This depends on how we want to implement this. We could pass a stati=
+c=20
+>> helper
+>> name in a new CT attribute, look the helper up in the init path and=20
+>> assign it
+>> to the conntrack in the eval function. This means we'd require a=20
+>> single rule
+>> for every helper assignment.
+> How do we add a new CT attribute for that ? Is there any exemple in=20
+> other parts of the kernel for doing that ?
+> Is it just to add a NFTA_CT_HELPER then add it in the nft_ct_policy=20
+> structure as an NLA_STRING type and then retrieve it with=20
+> nla_strl_cpy() ?
+> But how does it gets populated with the helper string passed in by nf=
+t ?
+>
+> Christophe
+>
+>
 
- src/evaluate.c |   68 +++++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 67 insertions(+), 1 deletion(-)
-
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 473f014..d9ac854 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -65,6 +65,12 @@ static int __fmtstring(4, 5) __stmt_binary_error(struct eval_ctx *ctx,
- 	__stmt_binary_error(ctx, &(s1)->location, NULL, fmt, ## args)
- #define cmd_error(ctx, fmt, args...) \
- 	__stmt_binary_error(ctx, &(ctx->cmd)->location, NULL, fmt, ## args)
-+#define handle_error(ctx, fmt, args...) \
-+	__stmt_binary_error(ctx, &ctx->cmd->handle.handle.location, NULL, fmt, ## args)
-+#define position_error(ctx, fmt, args...) \
-+	__stmt_binary_error(ctx, &ctx->cmd->handle.position.location, NULL, fmt, ## args)
-+#define handle_position_error(ctx, fmt, args...) \
-+	__stmt_binary_error(ctx, &ctx->cmd->handle.handle.location, &ctx->cmd->handle.position.location, fmt, ## args)
- 
- static int __fmtstring(3, 4) set_error(struct eval_ctx *ctx,
- 				       const struct set *set,
-@@ -2160,11 +2166,68 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- 	return 0;
- }
- 
-+static int rule_evaluate_cmd(struct eval_ctx *ctx)
-+{
-+	struct handle *handle = &ctx->cmd->handle;
-+
-+	/* allowed:
-+	 * - insert [position] (no handle)
-+	 * - add [position] (no handle)
-+	 * - replace <handle> (no position)
-+	 * - delete <handle> (no position)
-+	 */
-+
-+	switch (ctx->cmd->op) {
-+	case CMD_INSERT:
-+		if (handle->handle.id && handle->position.id)
-+			return handle_position_error(ctx, "use only `position'"
-+						     " instead");
-+
-+		if (handle->handle.id)
-+			return handle_error(ctx, "use `position' instead");
-+		break;
-+	case CMD_ADD:
-+		if (handle->handle.id && handle->position.id)
-+			return handle_position_error(ctx, "use only `position'"
-+						     " instead");
-+
-+		if (handle->handle.id)
-+			return handle_error(ctx, "use `position' instead");
-+
-+		break;
-+	case CMD_REPLACE:
-+		if (handle->handle.id && handle->position.id)
-+			return handle_position_error(ctx, "use only `handle' "
-+						     "instead");
-+		if (handle->position.id)
-+			return position_error(ctx, "use `handle' instead");
-+		if (!handle->handle.id)
-+			return cmd_error(ctx, "missing `handle'");
-+		break;
-+	case CMD_DELETE:
-+		if (handle->handle.id && handle->position.id)
-+			return handle_position_error(ctx, "use only `handle' "
-+						     "instead");
-+		if (handle->position.id)
-+			return position_error(ctx, "use `handle' instead");
-+		if (!handle->handle.id)
-+			return cmd_error(ctx, "missing `handle'");
-+		break;
-+	default:
-+		BUG("unkown command type %u\n", ctx->cmd->op);
-+	}
-+
-+	return 0;
-+}
-+
- static int rule_evaluate(struct eval_ctx *ctx, struct rule *rule)
- {
- 	struct stmt *stmt, *tstmt = NULL;
- 	struct error_record *erec;
- 
-+	if (rule_evaluate_cmd(ctx) < 0)
-+		return -1;
-+
- 	proto_ctx_init(&ctx->pctx, rule->handle.family);
- 	memset(&ctx->ectx, 0, sizeof(ctx->ectx));
- 
-@@ -2345,8 +2408,11 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
- 			return ret;
- 
- 		return setelem_evaluate(ctx, &cmd->expr);
--	case CMD_OBJ_SET:
- 	case CMD_OBJ_RULE:
-+		if (rule_evaluate_cmd(ctx) < 0)
-+			return -1;
-+		/* fall through */
-+	case CMD_OBJ_SET:
- 	case CMD_OBJ_CHAIN:
- 	case CMD_OBJ_TABLE:
- 		return 0;
-
+Christophe
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
