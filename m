@@ -1,134 +1,213 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v5 nf-next 3/4] netfilter: connlabels: change nf_connlabels_get bit arg to 'highest used'
-Date: Tue, 12 Apr 2016 18:14:25 +0200
-Message-ID: <1460477666-17823-4-git-send-email-fw@strlen.de>
+Subject: [PATCH v5 nf-next 4/4] netfilter: nftables: add connlabel set support
+Date: Tue, 12 Apr 2016 18:14:26 +0200
+Message-ID: <1460477666-17823-5-git-send-email-fw@strlen.de>
 References: <1460477666-17823-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37356 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37359 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751290AbcDLQOS (ORCPT
+	by vger.kernel.org with ESMTP id S1751290AbcDLQOW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Apr 2016 12:14:18 -0400
+	Tue, 12 Apr 2016 12:14:22 -0400
 In-Reply-To: <1460477666-17823-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-nf_connlabel_set() takes the bit number that we would like to set.
-nf_connlabels_get() however took the number of bits that we want to
-support.
+Instead of taking the value to set from a source register, userspace
+passes the bit that we should set as an immediate netlink value.
 
-So e.g. nf_connlabels_get(32) support bits 0 to 31, but not 32.
-This changes nf_connlabels_get() to take the highest bit that we want
-to set.
+This follows a similar approach that xtables 'connlabel'
+match uses, so when user inputs
 
-Callers then don't have to cope with a potential integer wrap
-when using nf_connlabels_get(bit + 1) anymore.
+    ct label set bar
 
-Current callers are fine, this change is only to make folloup
-nft ct label set support simpler.
+then we will set the bit used by the 'bar' label and leave the rest alone.
+Pablo suggested to re-use the immediate attributes already used by
+nft_immediate, nft_bitwise and nft_cmp to re-use as much code as
+possible.
+
+Just add new NFTA_CT_IMM that contains nested data attributes.
+We can then use nft_data_init and nft_data_dump for this as well.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- No changes since last version.
+ Changes since last version:
+ - add generic NFTA_CT_IMM and pass it a struct nft_data.
 
- include/net/netfilter/nf_conntrack_labels.h | 4 ++--
- net/netfilter/nf_conntrack_labels.c         | 9 +++++----
- net/netfilter/nft_ct.c                      | 2 ++
- net/netfilter/xt_connlabel.c                | 2 +-
- net/openvswitch/conntrack.c                 | 2 +-
- 5 files changed, 11 insertions(+), 8 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h |  2 +
+ net/netfilter/nft_ct.c                   | 76 ++++++++++++++++++++++++++++++--
+ 2 files changed, 75 insertions(+), 3 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_labels.h b/include/net/netfilter/nf_conntrack_labels.h
-index 5167818..c5f8fc73 100644
---- a/include/net/netfilter/nf_conntrack_labels.h
-+++ b/include/net/netfilter/nf_conntrack_labels.h
-@@ -53,11 +53,11 @@ int nf_connlabels_replace(struct nf_conn *ct,
- #ifdef CONFIG_NF_CONNTRACK_LABELS
- int nf_conntrack_labels_init(void);
- void nf_conntrack_labels_fini(void);
--int nf_connlabels_get(struct net *net, unsigned int n_bits);
-+int nf_connlabels_get(struct net *net, unsigned int bit);
- void nf_connlabels_put(struct net *net);
- #else
- static inline int nf_conntrack_labels_init(void) { return 0; }
- static inline void nf_conntrack_labels_fini(void) {}
--static inline int nf_connlabels_get(struct net *net, unsigned int n_bits) { return 0; }
-+static inline int nf_connlabels_get(struct net *net, unsigned int bit) { return 0; }
- static inline void nf_connlabels_put(struct net *net) {}
- #endif
-diff --git a/net/netfilter/nf_conntrack_labels.c b/net/netfilter/nf_conntrack_labels.c
-index bd7f26b..252e6a7 100644
---- a/net/netfilter/nf_conntrack_labels.c
-+++ b/net/netfilter/nf_conntrack_labels.c
-@@ -78,15 +78,14 @@ int nf_connlabels_replace(struct nf_conn *ct,
- }
- EXPORT_SYMBOL_GPL(nf_connlabels_replace);
- 
--int nf_connlabels_get(struct net *net, unsigned int n_bits)
-+int nf_connlabels_get(struct net *net, unsigned int bits)
- {
- 	size_t words;
- 
--	if (n_bits > (NF_CT_LABELS_MAX_SIZE * BITS_PER_BYTE))
-+	words = BIT_WORD(bits) + 1;
-+	if (words > NF_CT_LABELS_MAX_SIZE / sizeof(long))
- 		return -ERANGE;
- 
--	words = BITS_TO_LONGS(n_bits);
--
- 	spin_lock(&nf_connlabels_lock);
- 	net->ct.labels_used++;
- 	if (words > net->ct.label_words)
-@@ -115,6 +114,8 @@ static struct nf_ct_ext_type labels_extend __read_mostly = {
- 
- int nf_conntrack_labels_init(void)
- {
-+	BUILD_BUG_ON(NF_CT_LABELS_MAX_SIZE / sizeof(long) >= U8_MAX);
-+
- 	spin_lock_init(&nf_connlabels_lock);
- 	return nf_ct_extend_register(&labels_extend);
- }
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index eeffde1..608b647 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -770,6 +770,7 @@ enum nft_ct_keys {
+  * @NFTA_CT_KEY: conntrack data item to load (NLA_U32: nft_ct_keys)
+  * @NFTA_CT_DIRECTION: direction in case of directional keys (NLA_U8)
+  * @NFTA_CT_SREG: source register (NLA_U32)
++ * @NFTA_CT_IMM: immediate value (NLA_NESTED)
+  */
+ enum nft_ct_attributes {
+ 	NFTA_CT_UNSPEC,
+@@ -777,6 +778,7 @@ enum nft_ct_attributes {
+ 	NFTA_CT_KEY,
+ 	NFTA_CT_DIRECTION,
+ 	NFTA_CT_SREG,
++	NFTA_CT_IMM,
+ 	__NFTA_CT_MAX
+ };
+ #define NFTA_CT_MAX		(__NFTA_CT_MAX - 1)
 diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index d4a4619..25998fa 100644
+index 25998fa..4ec1cea 100644
 --- a/net/netfilter/nft_ct.c
 +++ b/net/netfilter/nft_ct.c
-@@ -484,6 +484,8 @@ static struct nft_expr_type nft_ct_type __read_mostly = {
+@@ -29,6 +29,11 @@ struct nft_ct {
+ 		enum nft_registers	dreg:8;
+ 		enum nft_registers	sreg:8;
+ 	};
++	union {
++		u8		set_bit;
++	} imm;
++	unsigned int		imm_len:8;
++	struct nft_data		immediate;
+ };
  
- static int __init nft_ct_module_init(void)
+ static u64 nft_ct_get_eval_counter(const struct nf_conn_counter *c,
+@@ -198,6 +203,11 @@ static void nft_ct_set_eval(const struct nft_expr *expr,
+ 		}
+ 		break;
+ #endif
++#ifdef CONFIG_NF_CONNTRACK_LABELS
++	case NFT_CT_LABELS:
++		nf_connlabel_set(ct, priv->imm.set_bit);
++		break;
++#endif
+ 	default:
+ 		break;
+ 	}
+@@ -208,6 +218,7 @@ static const struct nla_policy nft_ct_policy[NFTA_CT_MAX + 1] = {
+ 	[NFTA_CT_KEY]		= { .type = NLA_U32 },
+ 	[NFTA_CT_DIRECTION]	= { .type = NLA_U8 },
+ 	[NFTA_CT_SREG]		= { .type = NLA_U32 },
++	[NFTA_CT_IMM]		= { .type = NLA_NESTED },
+ };
+ 
+ static int nft_ct_l3proto_try_module_get(uint8_t family)
+@@ -276,6 +287,9 @@ static int nft_ct_get_init(const struct nft_ctx *ctx,
+ 		if (tb[NFTA_CT_DIRECTION] != NULL)
+ 			return -EINVAL;
+ 		len = NF_CT_LABELS_MAX_SIZE;
++		err = nf_connlabels_get(ctx->net, (len * BITS_PER_BYTE) - 1);
++		if (err)
++			return err;
+ 		break;
+ #endif
+ 	case NFT_CT_HELPER:
+@@ -355,16 +369,50 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+ 			   const struct nlattr * const tb[])
  {
-+	BUILD_BUG_ON(NF_CT_LABELS_MAX_SIZE > NFT_REG_SIZE);
+ 	struct nft_ct *priv = nft_expr_priv(expr);
++	struct nft_data_desc imm_desc = {};
+ 	unsigned int len;
+ 	int err;
+ 
+ 	priv->key = ntohl(nla_get_be32(tb[NFTA_CT_KEY]));
 +
- 	return nft_register_expr(&nft_ct_type);
++	if (tb[NFTA_CT_IMM]) {
++		/* We currently do not support both sreg and imm */
++		if (tb[NFTA_CT_SREG])
++			return -EINVAL;
++
++		err = nft_data_init(NULL, &priv->immediate, sizeof(priv->immediate),
++				    &imm_desc, tb[NFTA_CT_IMM]);
++		if (err < 0)
++			return err;
++
++		if (imm_desc.type != NFT_DATA_VALUE)
++			return -EINVAL;
++	}
+ 	switch (priv->key) {
+ #ifdef CONFIG_NF_CONNTRACK_MARK
+ 	case NFT_CT_MARK:
++		if (tb[NFTA_CT_DIRECTION])
++			return -EINVAL;
+ 		len = FIELD_SIZEOF(struct nf_conn, mark);
+ 		break;
+ #endif
++#ifdef CONFIG_NF_CONNTRACK_LABELS
++	case NFT_CT_LABELS:
++		if (tb[NFTA_CT_DIRECTION] || imm_desc.len != sizeof(u32))
++			return -EINVAL;
++
++		err = nf_connlabels_get(ctx->net, htonl(priv->immediate.data[0]));
++		if (err < 0)
++			return err;
++
++		priv->imm_len = sizeof(u32);
++		priv->imm.set_bit = htonl(priv->immediate.data[0]);
++
++		err = nft_ct_l3proto_try_module_get(ctx->afi->family);
++		if (err < 0)
++			nf_connlabels_put(ctx->net);
++		return err;
++#endif
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
+@@ -384,6 +432,18 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+ static void nft_ct_destroy(const struct nft_ctx *ctx,
+ 			   const struct nft_expr *expr)
+ {
++	struct nft_ct *priv = nft_expr_priv(expr);
++
++	switch (priv->key) {
++#ifdef CONFIG_NF_CONNTRACK_LABELS
++	case NFT_CT_LABELS:
++		nf_connlabels_put(ctx->net);
++		break;
++#endif
++	default:
++		break;
++	}
++
+ 	nft_ct_l3proto_module_put(ctx->afi->family);
  }
  
-diff --git a/net/netfilter/xt_connlabel.c b/net/netfilter/xt_connlabel.c
-index d9b3e53..a79af25 100644
---- a/net/netfilter/xt_connlabel.c
-+++ b/net/netfilter/xt_connlabel.c
-@@ -65,7 +65,7 @@ static int connlabel_mt_check(const struct xt_mtchk_param *par)
- 		return ret;
- 	}
+@@ -426,10 +486,20 @@ static int nft_ct_set_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ {
+ 	const struct nft_ct *priv = nft_expr_priv(expr);
  
--	ret = nf_connlabels_get(par->net, info->bit + 1);
-+	ret = nf_connlabels_get(par->net, info->bit);
- 	if (ret < 0)
- 		nf_ct_l3proto_module_put(par->family);
- 	return ret;
-diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
-index dc5eb29..3da6107 100644
---- a/net/openvswitch/conntrack.c
-+++ b/net/openvswitch/conntrack.c
-@@ -1342,7 +1342,7 @@ void ovs_ct_init(struct net *net)
- 	unsigned int n_bits = sizeof(struct ovs_key_ct_labels) * BITS_PER_BYTE;
- 	struct ovs_net *ovs_net = net_generic(net, ovs_net_id);
+-	if (nft_dump_register(skb, NFTA_CT_SREG, priv->sreg))
+-		goto nla_put_failure;
+ 	if (nla_put_be32(skb, NFTA_CT_KEY, htonl(priv->key)))
+ 		goto nla_put_failure;
++
++	if (priv->imm_len) {
++		if (nft_data_dump(skb, NFTA_CT_IMM, &priv->immediate,
++				  NFT_DATA_VALUE, priv->imm_len) < 0)
++			goto nla_put_failure;
++
++		return 0;
++	}
++
++	if (nft_dump_register(skb, NFTA_CT_SREG, priv->sreg))
++		goto nla_put_failure;
++
+ 	return 0;
  
--	if (nf_connlabels_get(net, n_bits)) {
-+	if (nf_connlabels_get(net, n_bits - 1)) {
- 		ovs_net->xt_label = false;
- 		OVS_NLERR(true, "Failed to set connlabel length");
- 	} else {
+ nla_put_failure:
+@@ -468,7 +538,7 @@ nft_ct_select_ops(const struct nft_ctx *ctx,
+ 	if (tb[NFTA_CT_DREG])
+ 		return &nft_ct_get_ops;
+ 
+-	if (tb[NFTA_CT_SREG])
++	if (tb[NFTA_CT_SREG] || tb[NFTA_CT_IMM])
+ 		return &nft_ct_set_ops;
+ 
+ 	return ERR_PTR(-EINVAL);
 -- 
 2.7.3
 
