@@ -1,40 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH v3] src/evaluate.c: improve rule management checks
-Date: Wed, 13 Apr 2016 01:11:18 +0200
-Message-ID: <20160412231118.GA20783@salvia>
-References: <146045423317.18092.10497374259960545713.stgit@nfdev2.cica.es>
+Subject: Re: [PATCH] netfilter: ebtables: Fix extension lookup with identical
+ name
+Date: Wed, 13 Apr 2016 01:17:35 +0200
+Message-ID: <20160412231735.GA21103@salvia>
+References: <1460417474-8899-1-git-send-email-phil@nwl.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>
+To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37111 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37449 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932523AbcDLXLe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Apr 2016 19:11:34 -0400
+	id S934003AbcDLXRw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Apr 2016 19:17:52 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 3547EC9EE1
-	for <netfilter-devel@vger.kernel.org>; Wed, 13 Apr 2016 01:11:32 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 1240CC9EEA
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 Apr 2016 01:17:51 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 1C06A1B3065
-	for <netfilter-devel@vger.kernel.org>; Wed, 13 Apr 2016 01:11:32 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 026C6AD87
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 Apr 2016 01:17:51 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 612371B3009
-	for <netfilter-devel@vger.kernel.org>; Wed, 13 Apr 2016 01:11:29 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 95E0CAD73
+	for <netfilter-devel@vger.kernel.org>; Wed, 13 Apr 2016 01:17:48 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <146045423317.18092.10497374259960545713.stgit@nfdev2.cica.es>
+In-Reply-To: <1460417474-8899-1-git-send-email-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 12, 2016 at 11:44:17AM +0200, Arturo Borrero Gonzalez wrote:
-> Improve checks (and error reporting) for basic rule management operations.
-> This includes a fix for netfilter bug #965.
+On Tue, Apr 12, 2016 at 01:31:14AM +0200, Phil Sutter wrote:
+> If a requested extension exists as module and is not loaded,
+> ebt_check_match() might accidentally use an NFPROTO_UNSPEC one with same
+> name and fail.
+> 
+> Reproduced with limit match: Given xt_limit and ebt_limit both built as
+> module, the following would fail:
+> 
+>   modprobe xt_limit
+>   ebtables -I INPUT --limit 1/s -j ACCEPT
+> 
+> The fix is to make ebt_check_match() distrust a found NFPROTO_UNSPEC
+> extension and retry after requesting an appropriate module.
 
 Applied, thanks.
-
-Please, stick to the subject line that we've been using for a while,
-for consistency, eg.
-
-        evaluate: improve rule management checks
-
-Thanks for your help.
