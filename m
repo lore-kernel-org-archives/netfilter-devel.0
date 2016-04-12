@@ -1,111 +1,134 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v5 nf-next 1/4] netfilter: connlabels: move helpers to xt_connlabel
-Date: Tue, 12 Apr 2016 18:14:23 +0200
-Message-ID: <1460477666-17823-2-git-send-email-fw@strlen.de>
+Subject: [PATCH v5 nf-next 3/4] netfilter: connlabels: change nf_connlabels_get bit arg to 'highest used'
+Date: Tue, 12 Apr 2016 18:14:25 +0200
+Message-ID: <1460477666-17823-4-git-send-email-fw@strlen.de>
 References: <1460477666-17823-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37352 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:37356 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751120AbcDLQOR (ORCPT
+	by vger.kernel.org with ESMTP id S1751290AbcDLQOS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Apr 2016 12:14:17 -0400
+	Tue, 12 Apr 2016 12:14:18 -0400
 In-Reply-To: <1460477666-17823-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently labels can only be set either by iptables connlabel
-match or via ctnetlink.
+nf_connlabel_set() takes the bit number that we would like to set.
+nf_connlabels_get() however took the number of bits that we want to
+support.
 
-Before adding nftables set support, clean up the clabel core and move
-helpers that nft will not need after all to the xtables module.
+So e.g. nf_connlabels_get(32) support bits 0 to 31, but not 32.
+This changes nf_connlabels_get() to take the highest bit that we want
+to set.
+
+Callers then don't have to cope with a potential integer wrap
+when using nf_connlabels_get(bit + 1) anymore.
+
+Current callers are fine, this change is only to make folloup
+nft ct label set support simpler.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- No changes since last iteration.
+ No changes since last version.
 
- include/net/netfilter/nf_conntrack_labels.h |  1 -
- net/netfilter/nf_conntrack_labels.c         | 19 +------------------
- net/netfilter/xt_connlabel.c                | 12 +++++++++++-
- 3 files changed, 12 insertions(+), 20 deletions(-)
+ include/net/netfilter/nf_conntrack_labels.h | 4 ++--
+ net/netfilter/nf_conntrack_labels.c         | 9 +++++----
+ net/netfilter/nft_ct.c                      | 2 ++
+ net/netfilter/xt_connlabel.c                | 2 +-
+ net/openvswitch/conntrack.c                 | 2 +-
+ 5 files changed, 11 insertions(+), 8 deletions(-)
 
 diff --git a/include/net/netfilter/nf_conntrack_labels.h b/include/net/netfilter/nf_conntrack_labels.h
-index 7e2b1d0..5167818 100644
+index 5167818..c5f8fc73 100644
 --- a/include/net/netfilter/nf_conntrack_labels.h
 +++ b/include/net/netfilter/nf_conntrack_labels.h
-@@ -45,7 +45,6 @@ static inline struct nf_conn_labels *nf_ct_labels_ext_add(struct nf_conn *ct)
+@@ -53,11 +53,11 @@ int nf_connlabels_replace(struct nf_conn *ct,
+ #ifdef CONFIG_NF_CONNTRACK_LABELS
+ int nf_conntrack_labels_init(void);
+ void nf_conntrack_labels_fini(void);
+-int nf_connlabels_get(struct net *net, unsigned int n_bits);
++int nf_connlabels_get(struct net *net, unsigned int bit);
+ void nf_connlabels_put(struct net *net);
+ #else
+ static inline int nf_conntrack_labels_init(void) { return 0; }
+ static inline void nf_conntrack_labels_fini(void) {}
+-static inline int nf_connlabels_get(struct net *net, unsigned int n_bits) { return 0; }
++static inline int nf_connlabels_get(struct net *net, unsigned int bit) { return 0; }
+ static inline void nf_connlabels_put(struct net *net) {}
  #endif
- }
- 
--bool nf_connlabel_match(const struct nf_conn *ct, u16 bit);
- int nf_connlabel_set(struct nf_conn *ct, u16 bit);
- 
- int nf_connlabels_replace(struct nf_conn *ct,
 diff --git a/net/netfilter/nf_conntrack_labels.c b/net/netfilter/nf_conntrack_labels.c
-index 3ce5c31..3a30900 100644
+index bd7f26b..252e6a7 100644
 --- a/net/netfilter/nf_conntrack_labels.c
 +++ b/net/netfilter/nf_conntrack_labels.c
-@@ -16,28 +16,11 @@
+@@ -78,15 +78,14 @@ int nf_connlabels_replace(struct nf_conn *ct,
+ }
+ EXPORT_SYMBOL_GPL(nf_connlabels_replace);
  
- static spinlock_t nf_connlabels_lock;
- 
--static unsigned int label_bits(const struct nf_conn_labels *l)
--{
--	unsigned int longs = l->words;
--	return longs * BITS_PER_LONG;
--}
--
--bool nf_connlabel_match(const struct nf_conn *ct, u16 bit)
--{
--	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
--
--	if (!labels)
--		return false;
--
--	return bit < label_bits(labels) && test_bit(bit, labels->bits);
--}
--EXPORT_SYMBOL_GPL(nf_connlabel_match);
--
- int nf_connlabel_set(struct nf_conn *ct, u16 bit)
+-int nf_connlabels_get(struct net *net, unsigned int n_bits)
++int nf_connlabels_get(struct net *net, unsigned int bits)
  {
- 	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
+ 	size_t words;
  
--	if (!labels || bit >= label_bits(labels))
-+	if (!labels || BIT_WORD(bit) >= labels->words)
- 		return -ENOSPC;
+-	if (n_bits > (NF_CT_LABELS_MAX_SIZE * BITS_PER_BYTE))
++	words = BIT_WORD(bits) + 1;
++	if (words > NF_CT_LABELS_MAX_SIZE / sizeof(long))
+ 		return -ERANGE;
  
- 	if (test_bit(bit, labels->bits))
-diff --git a/net/netfilter/xt_connlabel.c b/net/netfilter/xt_connlabel.c
-index bb9cbeb..d9b3e53 100644
---- a/net/netfilter/xt_connlabel.c
-+++ b/net/netfilter/xt_connlabel.c
-@@ -18,6 +18,16 @@ MODULE_DESCRIPTION("Xtables: add/match connection trackling labels");
- MODULE_ALIAS("ipt_connlabel");
- MODULE_ALIAS("ip6t_connlabel");
+-	words = BITS_TO_LONGS(n_bits);
+-
+ 	spin_lock(&nf_connlabels_lock);
+ 	net->ct.labels_used++;
+ 	if (words > net->ct.label_words)
+@@ -115,6 +114,8 @@ static struct nf_ct_ext_type labels_extend __read_mostly = {
  
-+static bool connlabel_match(const struct nf_conn *ct, u16 bit)
-+{
-+	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
-+
-+	if (!labels)
-+		return false;
-+
-+	return BIT_WORD(bit) < labels->words && test_bit(bit, labels->bits);
-+}
-+
- static bool
- connlabel_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ int nf_conntrack_labels_init(void)
  {
-@@ -33,7 +43,7 @@ connlabel_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	if (info->options & XT_CONNLABEL_OP_SET)
- 		return (nf_connlabel_set(ct, info->bit) == 0) ^ invert;
++	BUILD_BUG_ON(NF_CT_LABELS_MAX_SIZE / sizeof(long) >= U8_MAX);
++
+ 	spin_lock_init(&nf_connlabels_lock);
+ 	return nf_ct_extend_register(&labels_extend);
+ }
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index d4a4619..25998fa 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -484,6 +484,8 @@ static struct nft_expr_type nft_ct_type __read_mostly = {
  
--	return nf_connlabel_match(ct, info->bit) ^ invert;
-+	return connlabel_match(ct, info->bit) ^ invert;
+ static int __init nft_ct_module_init(void)
+ {
++	BUILD_BUG_ON(NF_CT_LABELS_MAX_SIZE > NFT_REG_SIZE);
++
+ 	return nft_register_expr(&nft_ct_type);
  }
  
- static int connlabel_mt_check(const struct xt_mtchk_param *par)
+diff --git a/net/netfilter/xt_connlabel.c b/net/netfilter/xt_connlabel.c
+index d9b3e53..a79af25 100644
+--- a/net/netfilter/xt_connlabel.c
++++ b/net/netfilter/xt_connlabel.c
+@@ -65,7 +65,7 @@ static int connlabel_mt_check(const struct xt_mtchk_param *par)
+ 		return ret;
+ 	}
+ 
+-	ret = nf_connlabels_get(par->net, info->bit + 1);
++	ret = nf_connlabels_get(par->net, info->bit);
+ 	if (ret < 0)
+ 		nf_ct_l3proto_module_put(par->family);
+ 	return ret;
+diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
+index dc5eb29..3da6107 100644
+--- a/net/openvswitch/conntrack.c
++++ b/net/openvswitch/conntrack.c
+@@ -1342,7 +1342,7 @@ void ovs_ct_init(struct net *net)
+ 	unsigned int n_bits = sizeof(struct ovs_key_ct_labels) * BITS_PER_BYTE;
+ 	struct ovs_net *ovs_net = net_generic(net, ovs_net_id);
+ 
+-	if (nf_connlabels_get(net, n_bits)) {
++	if (nf_connlabels_get(net, n_bits - 1)) {
+ 		ovs_net->xt_label = false;
+ 		OVS_NLERR(true, "Failed to set connlabel length");
+ 	} else {
 -- 
 2.7.3
 
