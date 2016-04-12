@@ -1,137 +1,63 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 4/4] netfilter: nft_rbtree: allow adjacent intervals with dynamic updates
-Date: Tue, 12 Apr 2016 23:50:37 +0200
-Message-ID: <1460497837-20693-5-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next 3/4] netfilter: nft_rbtree: introduce nft_rbtree_interval_end() helper
+Date: Tue, 12 Apr 2016 23:50:36 +0200
+Message-ID: <1460497837-20693-4-git-send-email-pablo@netfilter.org>
 References: <1460497837-20693-1-git-send-email-pablo@netfilter.org>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59313 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59309 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933559AbcDLVux (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Apr 2016 17:50:53 -0400
+	id S933716AbcDLVuv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Apr 2016 17:50:51 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 43899E665A
-	for <netfilter-devel@vger.kernel.org>; Tue, 12 Apr 2016 23:50:51 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id AA9C8E666E
+	for <netfilter-devel@vger.kernel.org>; Tue, 12 Apr 2016 23:50:49 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 283671B3065
-	for <netfilter-devel@vger.kernel.org>; Tue, 12 Apr 2016 23:50:51 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 90D08D1D81
+	for <netfilter-devel@vger.kernel.org>; Tue, 12 Apr 2016 23:50:49 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8E4431B309A
-	for <netfilter-devel@vger.kernel.org>; Tue, 12 Apr 2016 23:50:48 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 0B5DBD1D81
+	for <netfilter-devel@vger.kernel.org>; Tue, 12 Apr 2016 23:50:47 +0200 (CEST)
 In-Reply-To: <1460497837-20693-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch fixes dynamic element updates for adjacent intervals in the
-rb-tree representation.
-
-Since elements are sorted in the rb-tree, in case of adjacent nodes with
-the same key, the assumption is that an interval end node must be placed
-before an interval opening.
-
-In tree lookup operations, the idea is to search for the closer element
-that is larger than the one we're searching for. Given that we'll have
-to matching, we have to take the opening interval in case of adjacent
-nodes.
-
-Range merges are not trivial with the current representation,
-specifically we have to check if node extensions are equal and make sure
-we keep the existing internal states around.
+Add this new nft_rbtree_interval_end() helper function to check in the
+end interval is set.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_rbtree.c | 40 +++++++++++++++++++++++++++++++++++-----
- 1 file changed, 35 insertions(+), 5 deletions(-)
+ net/netfilter/nft_rbtree.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/net/netfilter/nft_rbtree.c b/net/netfilter/nft_rbtree.c
-index 29f2ab8..f762094 100644
+index 1c30f41..29f2ab8 100644
 --- a/net/netfilter/nft_rbtree.c
 +++ b/net/netfilter/nft_rbtree.c
-@@ -35,6 +35,12 @@ static bool nft_rbtree_interval_end(const struct nft_rbtree_elem *rbe)
- 	       (*nft_set_ext_flags(&rbe->ext) & NFT_SET_ELEM_INTERVAL_END);
- }
+@@ -29,6 +29,11 @@ struct nft_rbtree_elem {
+ 	struct nft_set_ext	ext;
+ };
  
-+static bool nft_rbtree_equal(const struct nft_set *set, const void *this,
-+			     const struct nft_rbtree_elem *interval)
++static bool nft_rbtree_interval_end(const struct nft_rbtree_elem *rbe)
 +{
-+	return memcmp(this, nft_set_ext_key(&interval->ext), set->klen) == 0;
++	return nft_set_ext_exists(&rbe->ext, NFT_SET_EXT_FLAGS) &&
++	       (*nft_set_ext_flags(&rbe->ext) & NFT_SET_ELEM_INTERVAL_END);
 +}
-+
+ 
  static bool nft_rbtree_lookup(const struct nft_set *set, const u32 *key,
  			      const struct nft_set_ext **ext)
- {
-@@ -42,6 +48,7 @@ static bool nft_rbtree_lookup(const struct nft_set *set, const u32 *key,
- 	const struct nft_rbtree_elem *rbe, *interval = NULL;
- 	const struct rb_node *parent;
- 	u8 genmask = nft_genmask_cur(read_pnet(&set->pnet));
-+	const void *this;
- 	int d;
- 
- 	spin_lock_bh(&nft_rbtree_lock);
-@@ -49,9 +56,16 @@ static bool nft_rbtree_lookup(const struct nft_set *set, const u32 *key,
- 	while (parent != NULL) {
- 		rbe = rb_entry(parent, struct nft_rbtree_elem, node);
- 
--		d = memcmp(nft_set_ext_key(&rbe->ext), key, set->klen);
-+		this = nft_set_ext_key(&rbe->ext);
-+		d = memcmp(this, key, set->klen);
- 		if (d < 0) {
- 			parent = parent->rb_left;
-+			/* In case of adjacent ranges, we always see the high
-+			 * part of the range in first place, before the low one.
-+			 * So don't update interval if the keys are equal.
-+			 */
-+			if (interval && nft_rbtree_equal(set, this, interval))
-+				continue;
- 			interval = rbe;
- 		} else if (d > 0)
- 			parent = parent->rb_right;
-@@ -101,9 +115,16 @@ static int __nft_rbtree_insert(const struct nft_set *set,
- 		else if (d > 0)
- 			p = &parent->rb_right;
- 		else {
--			if (nft_set_elem_active(&rbe->ext, genmask))
--				return -EEXIST;
--			p = &parent->rb_left;
-+			if (nft_set_elem_active(&rbe->ext, genmask)) {
-+				if (nft_rbtree_interval_end(rbe) &&
-+				    !nft_rbtree_interval_end(new))
-+					p = &parent->rb_left;
-+				else if (!nft_rbtree_interval_end(rbe) &&
-+					 nft_rbtree_interval_end(new))
-+					p = &parent->rb_right;
-+				else
-+					return -EEXIST;
-+			}
- 		}
- 	}
- 	rb_link_node(&new->node, parent, p);
-@@ -148,7 +169,7 @@ static void *nft_rbtree_deactivate(const struct nft_set *set,
- {
- 	const struct nft_rbtree *priv = nft_set_priv(set);
- 	const struct rb_node *parent = priv->root.rb_node;
--	struct nft_rbtree_elem *rbe;
-+	struct nft_rbtree_elem *rbe, *this = elem->priv;
- 	u8 genmask = nft_genmask_cur(read_pnet(&set->pnet));
- 	int d;
- 
-@@ -166,6 +187,15 @@ static void *nft_rbtree_deactivate(const struct nft_set *set,
+@@ -56,9 +61,7 @@ found:
  				parent = parent->rb_left;
  				continue;
  			}
-+			if (nft_rbtree_interval_end(rbe) &&
-+			    !nft_rbtree_interval_end(this)) {
-+				parent = parent->rb_left;
-+				continue;
-+			} else if (!nft_rbtree_interval_end(rbe) &&
-+				   nft_rbtree_interval_end(this)) {
-+				parent = parent->rb_right;
-+				continue;
-+			}
- 			nft_set_elem_change_active(set, &rbe->ext);
- 			return rbe;
- 		}
+-			if (nft_set_ext_exists(&rbe->ext, NFT_SET_EXT_FLAGS) &&
+-			    *nft_set_ext_flags(&rbe->ext) &
+-			    NFT_SET_ELEM_INTERVAL_END)
++			if (nft_rbtree_interval_end(rbe))
+ 				goto out;
+ 			spin_unlock_bh(&nft_rbtree_lock);
+ 
 -- 
 2.1.4
 
