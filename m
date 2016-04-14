@@ -1,61 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: conntrack: don't acquire lock during
- seq_printf
-Date: Thu, 14 Apr 2016 12:05:42 +0200
-Message-ID: <20160414100542.GA2644@salvia>
-References: <1460402069-22101-1-git-send-email-fw@strlen.de>
- <20160414094346.GA2056@salvia>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v5 nf-next 4/4] netfilter: nftables: add connlabel set
+ support
+Date: Thu, 14 Apr 2016 12:05:27 +0200
+Message-ID: <20160414100527.GB3192@breakpoint.cc>
+References: <1460477666-17823-1-git-send-email-fw@strlen.de>
+ <1460477666-17823-5-git-send-email-fw@strlen.de>
+ <20160414094835.GA2119@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36261 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752674AbcDNKFr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Apr 2016 06:05:47 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id E9BC21373AC
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2016 12:05:45 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id D90119D0F3
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2016 12:05:45 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 291DD9D0F7
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2016 12:05:43 +0200 (CEST)
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41651 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753003AbcDNKFa (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 Apr 2016 06:05:30 -0400
 Content-Disposition: inline
-In-Reply-To: <20160414094346.GA2056@salvia>
+In-Reply-To: <20160414094835.GA2119@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Apr 11, 2016 at 09:14:29PM +0200, Florian Westphal wrote:
-> read access doesn't need any lock here.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Tue, Apr 12, 2016 at 06:14:26PM +0200, Florian Westphal wrote:
+> > diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+> > index 25998fa..4ec1cea 100644
+> > --- a/net/netfilter/nft_ct.c
+> > +++ b/net/netfilter/nft_ct.c
+> > @@ -29,6 +29,11 @@ struct nft_ct {
+> >  		enum nft_registers	dreg:8;
+> >  		enum nft_registers	sreg:8;
+> >  	};
+> > +	union {
+> > +		u8		set_bit;
+> > +	} imm;
+> > +	unsigned int		imm_len:8;
+> > +	struct nft_data		immediate;
 > 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  net/netfilter/nf_conntrack_proto_sctp.c | 8 +-------
->  net/netfilter/nf_conntrack_proto_tcp.c  | 8 +-------
->  2 files changed, 2 insertions(+), 14 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-> index 9578a7c..1d7ab96 100644
-> --- a/net/netfilter/nf_conntrack_proto_sctp.c
-> +++ b/net/netfilter/nf_conntrack_proto_sctp.c
-> @@ -191,13 +191,7 @@ static void sctp_print_tuple(struct seq_file *s,
->  /* Print out the private part of the conntrack. */
->  static void sctp_print_conntrack(struct seq_file *s, struct nf_conn *ct)
->  {
-> -	enum sctp_conntrack state;
-> -
-> -	spin_lock_bh(&ct->lock);
-> -	state = ct->proto.sctp.state;
+> Could you use select_ops() so we don't increase the size of nft_ct for
+> other users?
 
-Don't we need at least READ_ONCE() here?
+Sure.
 
-> -	spin_unlock_bh(&ct->lock);
-> -
-> -	seq_printf(s, "%s ", sctp_conntrack_names[state]);
-> +	seq_printf(s, "%s ", sctp_conntrack_names[ct->proto.sctp.state]);
->  }
->  
->  #define for_each_sctp_chunk(skb, sch, _sch, offset, dataoff, count)	\
+I'd split this into nft_ct (sreg/dreg)
+and nft_ct_set_imm (set from immediate).
+
+Does that sound okay?
