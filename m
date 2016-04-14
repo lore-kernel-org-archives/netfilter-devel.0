@@ -1,59 +1,69 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next] netfilter: nf_ct_helper: disable automatic helper assignment
-Date: Thu, 14 Apr 2016 17:13:41 +0200
-Message-ID: <1460646821-15401-1-git-send-email-pablo@netfilter.org>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH 1/2] NFQUEUE: Fix bug with order of fanout and bypass
+Date: Thu, 14 Apr 2016 20:55:58 +0530
+Message-ID: <20160414152557.GA5338@shivani>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37455 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751226AbcDNPOI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Apr 2016 11:14:08 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 47547E8387
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2016 17:14:03 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 37D7DC21A4
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2016 17:14:03 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 073589D0E0
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2016 17:14:01 +0200 (CEST)
+Received: from mail-pa0-f65.google.com ([209.85.220.65]:33251 "EHLO
+	mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932196AbcDNP0f (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 Apr 2016 11:26:35 -0400
+Received: by mail-pa0-f65.google.com with SMTP id vv3so7074939pab.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2016 08:26:35 -0700 (PDT)
+Received: from shivani ([116.202.32.122])
+        by smtp.gmail.com with ESMTPSA id c9sm58683163pfd.24.2016.04.14.08.26.33
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Thu, 14 Apr 2016 08:26:34 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Four years ago we introduced a new sysctl knob to disable automatic
-helper assignment in 72110dfaa907 ("netfilter: nf_ct_helper: disable
-automatic helper assignment"). This knob kept this behaviour enabled by
-default to remain conservative.
+NFQUEUE had a bug with the ordering of fanout and bypass options which
+was arising due to same and odd values for flags and bypass when used
+together. Because of this, during bitwise ANDing of flags and
+NFQ_FLAG_CPU_FANOUT, the value always evaluated to false (since
+NFQ_FLAG_CPU_FANOUT=0x02) and led to skipping of fanout option
+whenever it was used before bypass because then flags would be 1.
 
-This measure was introduced to provide a secure way to configure
-iptables and connection tracking helpers through explicit rules.
+Before this patch,
 
-Give the time we have waited for this, let's turn off this by default
-now, worse case users still have a chance to recover the former
-behaviour by explicitly enabling this back through sysctl.
+$ sudo iptables -A FORWARD -j NFQUEUE -p TCP --sport 80 --queue-balance 0:3 --queue-cpu-fanout --queue-bypass
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination
+NFQUEUE    tcp  --  anywhere             anywhere             tcp spt:http NFQUEUE balance 0:3 bypass
+
+After this patch,
+
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination
+NFQUEUE    tcp  --  anywhere             anywhere             tcp spt:http NFQUEUE balance 0:3 bypass cpu-fanout
+
+Closes bugzilla entry: http://bugzilla.netfilter.org/show_bug.cgi?id=939
+
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
 ---
- net/netfilter/nf_conntrack_helper.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ extensions/libxt_NFQUEUE.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 3b40ec5..498bf74 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -38,10 +38,10 @@ unsigned int nf_ct_helper_hsize __read_mostly;
- EXPORT_SYMBOL_GPL(nf_ct_helper_hsize);
- static unsigned int nf_ct_helper_count __read_mostly;
- 
--static bool nf_ct_auto_assign_helper __read_mostly = true;
-+static bool nf_ct_auto_assign_helper __read_mostly = false;
- module_param_named(nf_conntrack_helper, nf_ct_auto_assign_helper, bool, 0644);
- MODULE_PARM_DESC(nf_conntrack_helper,
--		 "Enable automatic conntrack helper assignment (default 1)");
-+		 "Enable automatic conntrack helper assignment (default 0)");
- 
- #ifdef CONFIG_SYSCTL
- static struct ctl_table helper_sysctl_table[] = {
+diff --git a/extensions/libxt_NFQUEUE.c b/extensions/libxt_NFQUEUE.c
+index 8115457..0b5becc 100644
+--- a/extensions/libxt_NFQUEUE.c
++++ b/extensions/libxt_NFQUEUE.c
+@@ -99,7 +99,7 @@ static void NFQUEUE_parse_v2(struct xt_option_call *cb)
+ 	NFQUEUE_parse_v1(cb);
+ 	switch (cb->entry->id) {
+ 	case O_QUEUE_BYPASS:
+-		info->bypass = 1;
++		info->bypass |= NFQ_FLAG_BYPASS;
+ 		break;
+ 	}
+ }
 -- 
-2.1.4
+1.9.1
 
