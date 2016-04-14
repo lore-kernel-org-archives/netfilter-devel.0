@@ -1,53 +1,47 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf] netfilter: ipv6: Orphan skbs in nf_ct_frag6_gather()
-Date: Thu, 14 Apr 2016 10:40:15 +0200
-Message-ID: <20160414084015.GA3192@breakpoint.cc>
-References: <1460570974-44050-1-git-send-email-joe@ovn.org>
- <063D6719AE5E284EB5DD2968C1650D6D5F4A226C@AcuExch.aculab.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v5 nf-next 4/4] netfilter: nftables: add connlabel set
+ support
+Date: Thu, 14 Apr 2016 11:57:03 +0200
+Message-ID: <20160414094835.GA2119@salvia>
+References: <1460477666-17823-1-git-send-email-fw@strlen.de>
+ <1460477666-17823-5-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: 'Joe Stringer' <joe@ovn.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"fw@strlen.de" <fw@strlen.de>,
-	"diproiettod@vmware.com" <diproiettod@vmware.com>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: David Laight <David.Laight@ACULAB.COM>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41216 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752498AbcDNIkZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Apr 2016 04:40:25 -0400
+Received: from mail.us.es ([193.147.175.20]:33479 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751886AbcDNJ5J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 Apr 2016 05:57:09 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 97A45E839D
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2016 11:57:06 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 8A1CE9D0ED
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2016 11:57:06 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 763F39D0E8
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2016 11:57:04 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D5F4A226C@AcuExch.aculab.com>
+In-Reply-To: <1460477666-17823-5-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David Laight <David.Laight@ACULAB.COM> wrote:
-> From: Joe Stringer
-> > Sent: 13 April 2016 19:10
-> > This is the IPv6 equivalent of commit 8282f27449bf ("inet: frag: Always
-> > orphan skbs inside ip_defrag()").
-> > 
-> > Prior to commit 029f7f3b8701 ("netfilter: ipv6: nf_defrag: avoid/free
-> > clone operations"), ipv6 fragments sent to nf_ct_frag6_gather() would be
-> > cloned (implicitly orphaning) prior to queueing for reassembly. As such,
-> > when the IPv6 message is eventually reassembled, the skb->sk for all
-> > fragments would be NULL. After that commit was introduced, rather than
-> > cloning, the original skbs were queued directly without orphaning. The
-> > end result is that all frags except for the first and last may have a
-> > socket attached.
-> 
-> I'd have thought that the queued fragments would still want to be
-> resource-counted against the socket (I think that is what skb->sk is for).
+On Tue, Apr 12, 2016 at 06:14:26PM +0200, Florian Westphal wrote:
+> diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+> index 25998fa..4ec1cea 100644
+> --- a/net/netfilter/nft_ct.c
+> +++ b/net/netfilter/nft_ct.c
+> @@ -29,6 +29,11 @@ struct nft_ct {
+>  		enum nft_registers	dreg:8;
+>  		enum nft_registers	sreg:8;
+>  	};
+> +	union {
+> +		u8		set_bit;
+> +	} imm;
+> +	unsigned int		imm_len:8;
+> +	struct nft_data		immediate;
 
-No, ipv4/ipv6 reasm has its own accouting.
-
-> Although I can't imagine why IPv6 reassembly is happening on skb
-> associated with a socket.
-
-Right, thats a much more interesting question -- both ipv4 and
-ipv6 orphan skbs before NF_HOOK prerouting trip.
-
-(That being said, I don't mind the patch, I'm just be curious how this
- can happen).
+Could you use select_ops() so we don't increase the size of nft_ct for
+other users?
