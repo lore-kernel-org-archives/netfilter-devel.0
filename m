@@ -1,189 +1,174 @@
-From: =?UTF-8?Q?Carlos_Falgueras_Garc=c3=ada?= <carlosfg@riseup.net>
-Subject: Re: [PATCH 2/4 v6] libnftnl: rule: Change the "userdata" attribute to
- use new TLV buffer
-Date: Thu, 14 Apr 2016 19:55:42 +0200
-Message-ID: <570FD99E.7040708@riseup.net>
-References: <1458675987-32398-1-git-send-email-carlosfg@riseup.net>
- <1458675987-32398-2-git-send-email-carlosfg@riseup.net>
- <20160413235918.GA12737@salvia>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nft PATCH] tests/shell: delete tempfile failover in testcases
+Date: Thu, 14 Apr 2016 21:47:05 +0200
+Message-ID: <146066322498.28580.12517682150584977759.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:50754 "EHLO mx1.riseup.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751986AbcDNRzt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Apr 2016 13:55:49 -0400
-In-Reply-To: <20160413235918.GA12737@salvia>
+Received: from smtp3.cica.es ([150.214.5.190]:53817 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751161AbcDNTrQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 Apr 2016 15:47:16 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id 9F20E51F13C
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2016 19:47:11 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id jMYGRLUBHtcS for <netfilter-devel@vger.kernel.org>;
+	Thu, 14 Apr 2016 21:47:06 +0200 (CEST)
+Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
+	by smtp.cica.es (Postfix) with ESMTP id EBCD651F125
+	for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2016 21:47:05 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 14/04/16 01:59, Pablo Neira Ayuso wrote:
-> On Tue, Mar 22, 2016 at 08:46:25PM +0100, Carlos Falgueras Garc=EDa w=
-rote:
->> diff --git a/src/rule.c b/src/rule.c
->> index 3a32bf6..db96e5b 100644
->> --- a/src/rule.c
->> +++ b/src/rule.c
->> @@ -28,6 +28,7 @@
->>   #include <libnftnl/rule.h>
->>   #include <libnftnl/set.h>
->>   #include <libnftnl/expr.h>
->> +#include <libnftnl/udata.h>
->>
->>   struct nftnl_rule {
->>   	struct list_head head;
->> @@ -38,10 +39,7 @@ struct nftnl_rule {
->>   	const char	*chain;
->>   	uint64_t	handle;
->>   	uint64_t	position;
->> -	struct {
->> -			void		*data;
->> -			uint32_t	len;
->> -	} user;
->> +	struct nftnl_udata_buf	*userdata;
->
-> This change, we don't need it, see below.
->
->> @@ -162,8 +171,14 @@ void nftnl_rule_set_data(struct nftnl_rule *r, =
-uint16_t attr,
->>   		r->position =3D *((uint64_t *)data);
->>   		break;
->>   	case NFTNL_RULE_USERDATA:
->> -		r->user.data =3D (void *)data;
->> -		r->user.len =3D data_len;
->> +		if (r->flags & (1 << NFTNL_RULE_USERDATA))
->> +			nftnl_udata_buf_free(r->userdata);
->> +		r->userdata =3D nftnl_udata_buf_alloc(data_len);
->> +		if (!r->userdata) {
->> +			perror("nftnl_rule_set_data - userdata");
->> +			return;
->> +		}
->> +		nftnl_udata_buf_put(r->userdata, data, data_len);
->
-> Think about this: From nft, we allocate the udata_buf, then we add th=
-e
-> attributes. Once we have the TLV area ready, we pass it as a pointer
-> via nftnl_rule_set_data().
->
-> Then, from libnftnl you allocate nftnl_udata_buf_alloc() again, but w=
-e
-> actually don't need this. The reason is that udata_buf is *only*
-> needed to build the sequence of TLVs. Once we're done with it, we can
-> just pass the memory blob area that contains this info.
+It seems both Debian/Fedora (and derivates) contains mktemp (from the coreutils
+package) so it makes no sense to have this failover, which looks buggy also.
 
-I don't understand. With the modification to the patch [4/4 v6] you=20
-made, there is still a data copy and it is passed in the same way. This=
-=20
-copy has moved from libnftnl to nft, but it still exists. Diff between=20
-the original and modified version of "netlink_linearize_rule" function:
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ tests/shell/testcases/netns/0001nft-f_0         |    8 +-------
+ tests/shell/testcases/netns/0003many_0          |    8 +-------
+ tests/shell/testcases/nft-f/0001define_slash_0  |    8 +-------
+ tests/shell/testcases/nft-f/0002rollback_rule_0 |    8 +-------
+ tests/shell/testcases/nft-f/0003rollback_jump_0 |    8 +-------
+ tests/shell/testcases/nft-f/0004rollback_set_0  |    8 +-------
+ tests/shell/testcases/nft-f/0005rollback_map_0  |    8 +-------
+ 7 files changed, 7 insertions(+), 49 deletions(-)
 
---- carlos/src/netlink_linearize.c
-+++ pablo/src/netlink_linearize.c
-@@ -1163,7 +1163,6 @@ void netlink_linearize_rule(struct netlink_ctx=20
-*ctx, struct nftnl_rule *nlr,
-  			    const struct rule *rule)
-  {
-  	struct netlink_linearize_ctx lctx;
--	struct nftnl_udata_buf *udata;
-  	const struct stmt *stmt;
+diff --git a/tests/shell/testcases/netns/0001nft-f_0 b/tests/shell/testcases/netns/0001nft-f_0
+index 721444a..e616363 100755
+--- a/tests/shell/testcases/netns/0001nft-f_0
++++ b/tests/shell/testcases/netns/0001nft-f_0
+@@ -8,13 +8,7 @@ if [ ! -x "$IP" ] ; then
+ 	exit 1
+ fi
+ 
+-MKTEMP=$(which mktemp)
+-if [ -x $MKTEMP ] ; then
+-	tmpfile=$(${MKTEMP})
+-else
+-	tmpfile=$(/tmp/${RANDOM})
+-fi
+-
++tmpfile=$(mktemp)
+ if [ ! -w $tmpfile ] ; then
+ 	echo "Failed to create tmp file" >&2
+ 	exit 0
+diff --git a/tests/shell/testcases/netns/0003many_0 b/tests/shell/testcases/netns/0003many_0
+index b6706ff..ad71ae3 100755
+--- a/tests/shell/testcases/netns/0003many_0
++++ b/tests/shell/testcases/netns/0003many_0
+@@ -11,13 +11,7 @@ if [ ! -x "$IP" ] ; then
+ 	exit 1
+ fi
+ 
+-MKTEMP=$(which mktemp)
+-if [ -x $MKTEMP ] ; then
+-	tmpfile=$(${MKTEMP})
+-else
+-	tmpfile=$(/tmp/${RANDOM})
+-fi
+-
++tmpfile=$(mktemp)
+ if [ ! -w $tmpfile ] ; then
+ 	echo "Failed to create tmp file" >&2
+ 	exit 0
+diff --git a/tests/shell/testcases/nft-f/0001define_slash_0 b/tests/shell/testcases/nft-f/0001define_slash_0
+index 4ce7089..bf0763d 100755
+--- a/tests/shell/testcases/nft-f/0001define_slash_0
++++ b/tests/shell/testcases/nft-f/0001define_slash_0
+@@ -2,13 +2,7 @@
+ 
+ # tests for commit 85d6803 (parser_bison: initializer_expr must use rhs_expr)
+ 
+-MKTEMP=$(which mktemp)
+-if [ -x $MKTEMP ] ; then
+-	tmpfile=$(${MKTEMP})
+-else
+-	tmpfile=$(/tmp/${RANDOM})
+-fi
+-
++tmpfile=$(mktemp)
+ if [ ! -w $tmpfile ] ; then
+ 	echo "Failed to create tmp file" >&2
+ 	exit 0
+diff --git a/tests/shell/testcases/nft-f/0002rollback_rule_0 b/tests/shell/testcases/nft-f/0002rollback_rule_0
+index a3f6676..b1e224c 100755
+--- a/tests/shell/testcases/nft-f/0002rollback_rule_0
++++ b/tests/shell/testcases/nft-f/0002rollback_rule_0
+@@ -3,13 +3,7 @@
+ # test a kernel rollback operation
+ # fail reason: rule
+ 
+-MKTEMP=$(which mktemp)
+-if [ -x $MKTEMP ] ; then
+-	tmpfile=$(${MKTEMP})
+-else
+-	tmpfile=$(/tmp/${RANDOM})
+-fi
+-
++tmpfile=$(mktemp)
+ if [ ! -w $tmpfile ] ; then
+ 	echo "Failed to create tmp file" >&2
+ 	exit 0
+diff --git a/tests/shell/testcases/nft-f/0003rollback_jump_0 b/tests/shell/testcases/nft-f/0003rollback_jump_0
+index b3ebe94..567a70e 100755
+--- a/tests/shell/testcases/nft-f/0003rollback_jump_0
++++ b/tests/shell/testcases/nft-f/0003rollback_jump_0
+@@ -3,13 +3,7 @@
+ # test a kernel rollback operation
+ # fail reason: invalid jump
+ 
+-MKTEMP=$(which mktemp)
+-if [ -x $MKTEMP ] ; then
+-	tmpfile=$(${MKTEMP})
+-else
+-	tmpfile=$(/tmp/${RANDOM})
+-fi
+-
++tmpfile=$(mktemp)
+ if [ ! -w $tmpfile ] ; then
+ 	echo "Failed to create tmp file" >&2
+ 	exit 0
+diff --git a/tests/shell/testcases/nft-f/0004rollback_set_0 b/tests/shell/testcases/nft-f/0004rollback_set_0
+index 55043ef..3521aeb 100755
+--- a/tests/shell/testcases/nft-f/0004rollback_set_0
++++ b/tests/shell/testcases/nft-f/0004rollback_set_0
+@@ -3,13 +3,7 @@
+ # test a kernel rollback operation
+ # fail reason: invalid set
+ 
+-MKTEMP=$(which mktemp)
+-if [ -x $MKTEMP ] ; then
+-	tmpfile=$(${MKTEMP})
+-else
+-	tmpfile=$(/tmp/${RANDOM})
+-fi
+-
++tmpfile=$(mktemp)
+ if [ ! -w $tmpfile ] ; then
+ 	echo "Failed to create tmp file" >&2
+ 	exit 0
+diff --git a/tests/shell/testcases/nft-f/0005rollback_map_0 b/tests/shell/testcases/nft-f/0005rollback_map_0
+index 38018f6..21b6a63 100755
+--- a/tests/shell/testcases/nft-f/0005rollback_map_0
++++ b/tests/shell/testcases/nft-f/0005rollback_map_0
+@@ -3,13 +3,7 @@
+ # test a kernel rollback operation
+ # fail reason: invalid map
+ 
+-MKTEMP=$(which mktemp)
+-if [ -x $MKTEMP ] ; then
+-	tmpfile=$(${MKTEMP})
+-else
+-	tmpfile=$(/tmp/${RANDOM})
+-fi
+-
++tmpfile=$(mktemp)
+ if [ ! -w $tmpfile ] ; then
+ 	echo "Failed to create tmp file" >&2
+ 	exit 0
 
-  	memset(&lctx, 0, sizeof(lctx));
-@@ -1174,6 +1173,10 @@ void netlink_linearize_rule(struct netlink_ctx=20
-*ctx, struct nftnl_rule *nlr,
-  		netlink_gen_stmt(&lctx, stmt);
-
-  	if (rule->comment) {
-+		struct nftnl_udata_buf *udata;
-+		uint32_t udlen;
-+		void *ud;
-+
-  		udata =3D nftnl_udata_buf_alloc(NFT_USERDATA_MAXLEN);
-  		if (!udata)
-  			memory_allocation_error();
-@@ -1182,9 +1185,11 @@ void netlink_linearize_rule(struct netlink_ctx=20
-*ctx, struct nftnl_rule *nlr,
-  					  rule->comment))
-  			memory_allocation_error();
-
--		nftnl_rule_set_data(nlr, NFTNL_RULE_USERDATA,
--				    nftnl_udata_buf_data(udata),
--				    nftnl_udata_buf_len(udata));
-+		udlen =3D nftnl_udata_buf_len(udata);
-+		ud =3D xmalloc(udlen);
-+		memcpy(ud, nftnl_udata_buf_data(udata), udlen);
-+
-+		nftnl_rule_set_data(nlr, NFTNL_RULE_USERDATA, ud, udlen);
-
-  		nftnl_udata_buf_free(udata);
-  	}
-
->
-> For this reason, I'm entirely keeping back this patch.
->
-> Good thing though is that we don't need it to get this working :-)
->
-
-Now there are a couple of leaks because this patch added a couple of=20
-neccessary 'frees':
-
-@@ -75,6 +82,8 @@ void nftnl_rule_free(struct nftnl_rule *r)
-  		xfree(r->table);
-  	if (r->chain !=3D NULL)
-  		xfree(r->chain);
-+	if (r->flags & (1 << NFTNL_RULE_USERDATA))
-+		nftnl_udata_buf_free(r->userdata);
-
-  	xfree(r);
-  }
-
-and
-
-@@ -162,8 +171,14 @@ void nftnl_rule_set_data(struct nftnl_rule *r,=20
-uint16_t attr,
-  		r->position =3D *((uint64_t *)data);
-  		break;
-  	case NFTNL_RULE_USERDATA:
--		r->user.data =3D (void *)data;
--		r->user.len =3D data_len;
-+		if (r->flags & (1 << NFTNL_RULE_USERDATA))
-+			nftnl_udata_buf_free(r->userdata);
-+		r->userdata =3D nftnl_udata_buf_alloc(data_len);
-+		if (!r->userdata) {
-+			perror("nftnl_rule_set_data - userdata");
-+			return;
-+		}
-+		nftnl_udata_buf_put(r->userdata, data, data_len);
-  		break;
-  	}
-
-There are another 'frees' I think is better to change it for=20
-'nftnl_udata_buf_free', although in practice it is the same.
-
-If you agree, I'll send a modified version of patch [2/4 v6] without th=
-e=20
-xml and json chunks, but keeping "struct nftnl_udata_buf" in "struct=20
-nftnl_rule":
-
-  struct nftnl_rule {
-  	struct list_head head;
-@@ -38,10 +39,7 @@ struct nftnl_rule {
-  	const char	*chain;
-  	uint64_t	handle;
-  	uint64_t	position;
--	struct {
--			void		*data;
--			uint32_t	len;
--	} user;
-+	struct nftnl_udata_buf	*userdata;
-  	struct {
-  			uint32_t	flags;
-  			uint32_t	proto;
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
