@@ -1,63 +1,58 @@
-From: Joe Stringer <joe@ovn.org>
-Subject: Re: [PATCH nf] netfilter: ipv6: Orphan skbs in nf_ct_frag6_gather()
-Date: Thu, 14 Apr 2016 17:35:39 -0700
-Message-ID: <CAPWQB7EV-boR1_yaBeY8tQtHgc09+14jQ_q7yk=bpwrtqL+20Q@mail.gmail.com>
-References: <1460570974-44050-1-git-send-email-joe@ovn.org>
- <063D6719AE5E284EB5DD2968C1650D6D5F4A226C@AcuExch.aculab.com>
- <20160414084015.GA3192@breakpoint.cc> <20160414103533.GA3211@salvia>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH libnftnl] tests: nat-test: Use different values to test
+Date: Fri, 15 Apr 2016 13:42:57 +0530
+Message-ID: <20160415081257.GA3489@shivani>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Florian Westphal <fw@strlen.de>,
-	David Laight <David.Laight@aculab.com>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"diproiettod@vmware.com" <diproiettod@vmware.com>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:36808 "EHLO
-	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752482AbcDOAgE (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:36265 "EHLO
+	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751536AbcDOINe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Apr 2016 20:36:04 -0400
-In-Reply-To: <20160414103533.GA3211@salvia>
+	Fri, 15 Apr 2016 04:13:34 -0400
+Received: by mail-pf0-f196.google.com with SMTP id p185so5052209pfb.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Apr 2016 01:13:34 -0700 (PDT)
+Received: from shivani ([116.202.36.8])
+        by smtp.gmail.com with ESMTPSA id o65sm2552318pfb.24.2016.04.15.01.13.32
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Fri, 15 Apr 2016 01:13:33 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 14 April 2016 at 03:35, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Thu, Apr 14, 2016 at 10:40:15AM +0200, Florian Westphal wrote:
->> David Laight <David.Laight@ACULAB.COM> wrote:
->> > From: Joe Stringer
->> > > Sent: 13 April 2016 19:10
->> > > This is the IPv6 equivalent of commit 8282f27449bf ("inet: frag: Always
->> > > orphan skbs inside ip_defrag()").
->> > >
->> > > Prior to commit 029f7f3b8701 ("netfilter: ipv6: nf_defrag: avoid/free
->> > > clone operations"), ipv6 fragments sent to nf_ct_frag6_gather() would be
->> > > cloned (implicitly orphaning) prior to queueing for reassembly. As such,
->> > > when the IPv6 message is eventually reassembled, the skb->sk for all
->> > > fragments would be NULL. After that commit was introduced, rather than
->> > > cloning, the original skbs were queued directly without orphaning. The
->> > > end result is that all frags except for the first and last may have a
->> > > socket attached.
->> >
->> > I'd have thought that the queued fragments would still want to be
->> > resource-counted against the socket (I think that is what skb->sk is for).
->>
->> No, ipv4/ipv6 reasm has its own accouting.
->>
->> > Although I can't imagine why IPv6 reassembly is happening on skb
->> > associated with a socket.
->>
->> Right, thats a much more interesting question -- both ipv4 and
->> ipv6 orphan skbs before NF_HOOK prerouting trip.
->>
->> (That being said, I don't mind the patch, I'm just be curious how this
->>  can happen).
->
-> If this change is specific to get this working in ovs and its
-> conntrack support, then I don't think this belong to core
-> infrastructure. This should be fixed in ovs instead.
+Tests are more effective if different values are set so, use different
+values for every expression.
 
-I admit I've only been able to reproduce it with OVS. My main reason
-for proposing the fix this way was just because this is what the IPv4
-code does, so I figured IPv6 should be consistent with that.
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+ tests/nft-expr_nat-test.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/tests/nft-expr_nat-test.c b/tests/nft-expr_nat-test.c
+index 50b115c..fd3a488 100644
+--- a/tests/nft-expr_nat-test.c
++++ b/tests/nft-expr_nat-test.c
+@@ -72,12 +72,12 @@ int main(int argc, char *argv[])
+ 		print_err("OOM");
+ 
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_TYPE, 0x1234568);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_FAMILY, 0x1234568);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_REG_ADDR_MIN, 0x1234568);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_REG_ADDR_MAX, 0x1234568);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_REG_PROTO_MIN, 0x1234568);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_REG_PROTO_MAX, 0x1234568);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_FLAGS, 0x1234568);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_FAMILY, 0x3456721);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_REG_ADDR_MIN, 0x1452638);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_REG_ADDR_MAX, 0x5134682);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_REG_PROTO_MIN, 0x6124385);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_REG_PROTO_MAX, 0x2153846);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_FLAGS, 0x4213683);
+ 
+ 	nftnl_rule_add_expr(a, ex);
+ 
+-- 
+1.9.1
+
