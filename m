@@ -1,174 +1,72 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH] tests/shell: delete tempfile failover in testcases
-Date: Thu, 14 Apr 2016 21:47:05 +0200
-Message-ID: <146066322498.28580.12517682150584977759.stgit@nfdev2.cica.es>
+From: Joe Stringer <joe@ovn.org>
+Subject: Re: [PATCH nf] netfilter: ipv6: Orphan skbs in nf_ct_frag6_gather()
+Date: Thu, 14 Apr 2016 17:14:07 -0700
+Message-ID: <CAPWQB7GGqbUNgqt1nT6RfqtWwL8pYmnBcjb=y6UC4Nw1pVbEpQ@mail.gmail.com>
+References: <1460570974-44050-1-git-send-email-joe@ovn.org>
+ <063D6719AE5E284EB5DD2968C1650D6D5F4A226C@AcuExch.aculab.com> <20160414084015.GA3192@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:53817 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751161AbcDNTrQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Apr 2016 15:47:16 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id 9F20E51F13C
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2016 19:47:11 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id jMYGRLUBHtcS for <netfilter-devel@vger.kernel.org>;
-	Thu, 14 Apr 2016 21:47:06 +0200 (CEST)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-	by smtp.cica.es (Postfix) with ESMTP id EBCD651F125
-	for <netfilter-devel@vger.kernel.org>; Thu, 14 Apr 2016 21:47:05 +0200 (CEST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: David Laight <David.Laight@aculab.com>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"diproiettod@vmware.com" <diproiettod@vmware.com>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160414084015.GA3192@breakpoint.cc>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-It seems both Debian/Fedora (and derivates) contains mktemp (from the coreutils
-package) so it makes no sense to have this failover, which looks buggy also.
+On 14 April 2016 at 01:40, Florian Westphal <fw@strlen.de> wrote:
+> David Laight <David.Laight@ACULAB.COM> wrote:
+>> From: Joe Stringer
+>> > Sent: 13 April 2016 19:10
+>> > This is the IPv6 equivalent of commit 8282f27449bf ("inet: frag: Always
+>> > orphan skbs inside ip_defrag()").
+>> >
+>> > Prior to commit 029f7f3b8701 ("netfilter: ipv6: nf_defrag: avoid/free
+>> > clone operations"), ipv6 fragments sent to nf_ct_frag6_gather() would be
+>> > cloned (implicitly orphaning) prior to queueing for reassembly. As such,
+>> > when the IPv6 message is eventually reassembled, the skb->sk for all
+>> > fragments would be NULL. After that commit was introduced, rather than
+>> > cloning, the original skbs were queued directly without orphaning. The
+>> > end result is that all frags except for the first and last may have a
+>> > socket attached.
+>>
+>> I'd have thought that the queued fragments would still want to be
+>> resource-counted against the socket (I think that is what skb->sk is for).
+>
+> No, ipv4/ipv6 reasm has its own accouting.
+>
+>> Although I can't imagine why IPv6 reassembly is happening on skb
+>> associated with a socket.
+>
+> Right, thats a much more interesting question -- both ipv4 and
+> ipv6 orphan skbs before NF_HOOK prerouting trip.
+>
+> (That being said, I don't mind the patch, I'm just be curious how this
+>  can happen).
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- tests/shell/testcases/netns/0001nft-f_0         |    8 +-------
- tests/shell/testcases/netns/0003many_0          |    8 +-------
- tests/shell/testcases/nft-f/0001define_slash_0  |    8 +-------
- tests/shell/testcases/nft-f/0002rollback_rule_0 |    8 +-------
- tests/shell/testcases/nft-f/0003rollback_jump_0 |    8 +-------
- tests/shell/testcases/nft-f/0004rollback_set_0  |    8 +-------
- tests/shell/testcases/nft-f/0005rollback_map_0  |    8 +-------
- 7 files changed, 7 insertions(+), 49 deletions(-)
+The topology is quite simple, there is a veth pair connected between a
+namespace and OVS. The OVS bridge has an internal port. The
+bridge is configured with flows to send packets through conntrack
+(causing packet reassembly + refragmentation on output), and then
+forward packets between the host and the veth. The internal port and
+the veth inside the netns have IP addresses configured in the same
+subnet.
 
-diff --git a/tests/shell/testcases/netns/0001nft-f_0 b/tests/shell/testcases/netns/0001nft-f_0
-index 721444a..e616363 100755
---- a/tests/shell/testcases/netns/0001nft-f_0
-+++ b/tests/shell/testcases/netns/0001nft-f_0
-@@ -8,13 +8,7 @@ if [ ! -x "$IP" ] ; then
- 	exit 1
- fi
- 
--MKTEMP=$(which mktemp)
--if [ -x $MKTEMP ] ; then
--	tmpfile=$(${MKTEMP})
--else
--	tmpfile=$(/tmp/${RANDOM})
--fi
--
-+tmpfile=$(mktemp)
- if [ ! -w $tmpfile ] ; then
- 	echo "Failed to create tmp file" >&2
- 	exit 0
-diff --git a/tests/shell/testcases/netns/0003many_0 b/tests/shell/testcases/netns/0003many_0
-index b6706ff..ad71ae3 100755
---- a/tests/shell/testcases/netns/0003many_0
-+++ b/tests/shell/testcases/netns/0003many_0
-@@ -11,13 +11,7 @@ if [ ! -x "$IP" ] ; then
- 	exit 1
- fi
- 
--MKTEMP=$(which mktemp)
--if [ -x $MKTEMP ] ; then
--	tmpfile=$(${MKTEMP})
--else
--	tmpfile=$(/tmp/${RANDOM})
--fi
--
-+tmpfile=$(mktemp)
- if [ ! -w $tmpfile ] ; then
- 	echo "Failed to create tmp file" >&2
- 	exit 0
-diff --git a/tests/shell/testcases/nft-f/0001define_slash_0 b/tests/shell/testcases/nft-f/0001define_slash_0
-index 4ce7089..bf0763d 100755
---- a/tests/shell/testcases/nft-f/0001define_slash_0
-+++ b/tests/shell/testcases/nft-f/0001define_slash_0
-@@ -2,13 +2,7 @@
- 
- # tests for commit 85d6803 (parser_bison: initializer_expr must use rhs_expr)
- 
--MKTEMP=$(which mktemp)
--if [ -x $MKTEMP ] ; then
--	tmpfile=$(${MKTEMP})
--else
--	tmpfile=$(/tmp/${RANDOM})
--fi
--
-+tmpfile=$(mktemp)
- if [ ! -w $tmpfile ] ; then
- 	echo "Failed to create tmp file" >&2
- 	exit 0
-diff --git a/tests/shell/testcases/nft-f/0002rollback_rule_0 b/tests/shell/testcases/nft-f/0002rollback_rule_0
-index a3f6676..b1e224c 100755
---- a/tests/shell/testcases/nft-f/0002rollback_rule_0
-+++ b/tests/shell/testcases/nft-f/0002rollback_rule_0
-@@ -3,13 +3,7 @@
- # test a kernel rollback operation
- # fail reason: rule
- 
--MKTEMP=$(which mktemp)
--if [ -x $MKTEMP ] ; then
--	tmpfile=$(${MKTEMP})
--else
--	tmpfile=$(/tmp/${RANDOM})
--fi
--
-+tmpfile=$(mktemp)
- if [ ! -w $tmpfile ] ; then
- 	echo "Failed to create tmp file" >&2
- 	exit 0
-diff --git a/tests/shell/testcases/nft-f/0003rollback_jump_0 b/tests/shell/testcases/nft-f/0003rollback_jump_0
-index b3ebe94..567a70e 100755
---- a/tests/shell/testcases/nft-f/0003rollback_jump_0
-+++ b/tests/shell/testcases/nft-f/0003rollback_jump_0
-@@ -3,13 +3,7 @@
- # test a kernel rollback operation
- # fail reason: invalid jump
- 
--MKTEMP=$(which mktemp)
--if [ -x $MKTEMP ] ; then
--	tmpfile=$(${MKTEMP})
--else
--	tmpfile=$(/tmp/${RANDOM})
--fi
--
-+tmpfile=$(mktemp)
- if [ ! -w $tmpfile ] ; then
- 	echo "Failed to create tmp file" >&2
- 	exit 0
-diff --git a/tests/shell/testcases/nft-f/0004rollback_set_0 b/tests/shell/testcases/nft-f/0004rollback_set_0
-index 55043ef..3521aeb 100755
---- a/tests/shell/testcases/nft-f/0004rollback_set_0
-+++ b/tests/shell/testcases/nft-f/0004rollback_set_0
-@@ -3,13 +3,7 @@
- # test a kernel rollback operation
- # fail reason: invalid set
- 
--MKTEMP=$(which mktemp)
--if [ -x $MKTEMP ] ; then
--	tmpfile=$(${MKTEMP})
--else
--	tmpfile=$(/tmp/${RANDOM})
--fi
--
-+tmpfile=$(mktemp)
- if [ ! -w $tmpfile ] ; then
- 	echo "Failed to create tmp file" >&2
- 	exit 0
-diff --git a/tests/shell/testcases/nft-f/0005rollback_map_0 b/tests/shell/testcases/nft-f/0005rollback_map_0
-index 38018f6..21b6a63 100755
---- a/tests/shell/testcases/nft-f/0005rollback_map_0
-+++ b/tests/shell/testcases/nft-f/0005rollback_map_0
-@@ -3,13 +3,7 @@
- # test a kernel rollback operation
- # fail reason: invalid map
- 
--MKTEMP=$(which mktemp)
--if [ -x $MKTEMP ] ; then
--	tmpfile=$(${MKTEMP})
--else
--	tmpfile=$(/tmp/${RANDOM})
--fi
--
-+tmpfile=$(mktemp)
- if [ ! -w $tmpfile ] ; then
- 	echo "Failed to create tmp file" >&2
- 	exit 0
+In the test case, we send a large ICMPv6 ping request from the
+namespace to the internal port. The namespace will fragment the IP
+message into fragments and send through the veth. OVS processes these,
+sends to conntrack (reassembly), then decides to output to the
+internal port (refragmenting). The host stack finally receives the
+fragments and processes the ICMP request. On response, the host sends
+several fragments to OVS. OVS reassembles these and sends them to
+conntrack, then decides to forward to the veth. When forwarding to the
+veth, the skb frag queue is in this state with many skbs (all except
+first and last) having skb->sk populated, and we hit the
+BUG_ON(skb->sk) in ip6_fragment() just prior to transmitting to the veth.
 
+In regards to your question about prerouting, does the response even
+hit the input path on the host? An ICMP response is generated, and it
+needs to be directed out to the device (output path), then when the
+internal device receives it, it starts OVS processing.
