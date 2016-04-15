@@ -1,58 +1,100 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH libnftnl] tests: nat-test: Use different values to test
-Date: Fri, 15 Apr 2016 13:42:57 +0530
-Message-ID: <20160415081257.GA3489@shivani>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next] netfilter: ctnetlink: restore inlining for netlink message size calculation
+Date: Fri, 15 Apr 2016 12:24:57 +0200
+Message-ID: <1460715897-9722-1-git-send-email-pablo@netfilter.org>
+Cc: sfr@canb.auug.org.au
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:36265 "EHLO
-	mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751536AbcDOINe (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Apr 2016 04:13:34 -0400
-Received: by mail-pf0-f196.google.com with SMTP id p185so5052209pfb.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Apr 2016 01:13:34 -0700 (PDT)
-Received: from shivani ([116.202.36.8])
-        by smtp.gmail.com with ESMTPSA id o65sm2552318pfb.24.2016.04.15.01.13.32
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Fri, 15 Apr 2016 01:13:33 -0700 (PDT)
-Content-Disposition: inline
+Received: from mail.us.es ([193.147.175.20]:58827 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751551AbcDOKZG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Apr 2016 06:25:06 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id E98A5EAA83
+	for <netfilter-devel@vger.kernel.org>; Fri, 15 Apr 2016 12:25:03 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id D546D9D0F5
+	for <netfilter-devel@vger.kernel.org>; Fri, 15 Apr 2016 12:25:03 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A7A9A9D105
+	for <netfilter-devel@vger.kernel.org>; Fri, 15 Apr 2016 12:25:01 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Tests are more effective if different values are set so, use different
-values for every expression.
+Calm down gcc warnings:
 
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+net/netfilter/nf_conntrack_netlink.c:529:15: warning: 'ctnetlink_proto_size' defined but not used [-Wunused-function]
+ static size_t ctnetlink_proto_size(const struct nf_conn *ct)
+               ^
+net/netfilter/nf_conntrack_netlink.c:546:15: warning: 'ctnetlink_acct_size' defined but not used [-Wunused-function]
+ static size_t ctnetlink_acct_size(const struct nf_conn *ct)
+               ^
+net/netfilter/nf_conntrack_netlink.c:556:12: warning: 'ctnetlink_secctx_size' defined but not used [-Wunused-function]
+ static int ctnetlink_secctx_size(const struct nf_conn *ct)
+            ^
+net/netfilter/nf_conntrack_netlink.c:572:15: warning: 'ctnetlink_timestamp_size' defined but not used [-Wunused-function]
+ static size_t ctnetlink_timestamp_size(const struct nf_conn *ct)
+               ^
+
+So gcc compiles them out when CONFIG_NF_CONNTRACK_EVENTS and
+CONFIG_NETFILTER_NETLINK_GLUE_CT are not set.
+
+Fixes: 4054ff45454a9a4 ("netfilter: ctnetlink: remove unnecessary inlining")
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- tests/nft-expr_nat-test.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ net/netfilter/nf_conntrack_netlink.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/tests/nft-expr_nat-test.c b/tests/nft-expr_nat-test.c
-index 50b115c..fd3a488 100644
---- a/tests/nft-expr_nat-test.c
-+++ b/tests/nft-expr_nat-test.c
-@@ -72,12 +72,12 @@ int main(int argc, char *argv[])
- 		print_err("OOM");
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index caa4efe..6cca30e 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -336,7 +336,7 @@ nla_put_failure:
+ #endif
  
- 	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_TYPE, 0x1234568);
--	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_FAMILY, 0x1234568);
--	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_REG_ADDR_MIN, 0x1234568);
--	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_REG_ADDR_MAX, 0x1234568);
--	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_REG_PROTO_MIN, 0x1234568);
--	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_REG_PROTO_MAX, 0x1234568);
--	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_FLAGS, 0x1234568);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_FAMILY, 0x3456721);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_REG_ADDR_MIN, 0x1452638);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_REG_ADDR_MAX, 0x5134682);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_REG_PROTO_MIN, 0x6124385);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_REG_PROTO_MAX, 0x2153846);
-+	nftnl_expr_set_u32(ex, NFTNL_EXPR_NAT_FLAGS, 0x4213683);
+ #ifdef CONFIG_NF_CONNTRACK_LABELS
+-static int ctnetlink_label_size(const struct nf_conn *ct)
++static inline int ctnetlink_label_size(const struct nf_conn *ct)
+ {
+ 	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
  
- 	nftnl_rule_add_expr(a, ex);
+@@ -526,7 +526,7 @@ nla_put_failure:
+ 	return -1;
+ }
  
+-static size_t ctnetlink_proto_size(const struct nf_conn *ct)
++static inline size_t ctnetlink_proto_size(const struct nf_conn *ct)
+ {
+ 	struct nf_conntrack_l3proto *l3proto;
+ 	struct nf_conntrack_l4proto *l4proto;
+@@ -543,7 +543,7 @@ static size_t ctnetlink_proto_size(const struct nf_conn *ct)
+ 	return len;
+ }
+ 
+-static size_t ctnetlink_acct_size(const struct nf_conn *ct)
++static inline size_t ctnetlink_acct_size(const struct nf_conn *ct)
+ {
+ 	if (!nf_ct_ext_exist(ct, NF_CT_EXT_ACCT))
+ 		return 0;
+@@ -553,7 +553,7 @@ static size_t ctnetlink_acct_size(const struct nf_conn *ct)
+ 	       ;
+ }
+ 
+-static int ctnetlink_secctx_size(const struct nf_conn *ct)
++static inline int ctnetlink_secctx_size(const struct nf_conn *ct)
+ {
+ #ifdef CONFIG_NF_CONNTRACK_SECMARK
+ 	int len, ret;
+@@ -569,7 +569,7 @@ static int ctnetlink_secctx_size(const struct nf_conn *ct)
+ #endif
+ }
+ 
+-static size_t ctnetlink_timestamp_size(const struct nf_conn *ct)
++static inline size_t ctnetlink_timestamp_size(const struct nf_conn *ct)
+ {
+ #ifdef CONFIG_NF_CONNTRACK_TIMESTAMP
+ 	if (!nf_ct_ext_exist(ct, NF_CT_EXT_TSTAMP))
 -- 
-1.9.1
+2.1.4
 
