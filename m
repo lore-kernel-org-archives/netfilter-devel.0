@@ -1,37 +1,58 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH] tests/shell: add testcases for Netfilter bug #965
-Date: Fri, 15 Apr 2016 12:39:38 +0200
-Message-ID: <20160415103938.GA10582@salvia>
-References: <146062067574.20303.17765460378437095142.stgit@nfdev2.cica.es>
+Subject: Re: [PATCH 1/2] NFQUEUE: Fix bug with order of fanout and bypass
+Date: Fri, 15 Apr 2016 12:44:05 +0200
+Message-ID: <20160415104405.GA10807@salvia>
+References: <20160414152557.GA5338@shivani>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+To: Shivani Bhardwaj <shivanib134@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33045 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:33958 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751213AbcDOKjo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Apr 2016 06:39:44 -0400
+	id S1753647AbcDOKoM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Apr 2016 06:44:12 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 80795FF14D
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 Apr 2016 12:39:42 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id A7346114816
+	for <netfilter-devel@vger.kernel.org>; Fri, 15 Apr 2016 12:44:10 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 7109FEBADB
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 Apr 2016 12:39:42 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 95FE59D0F7
+	for <netfilter-devel@vger.kernel.org>; Fri, 15 Apr 2016 12:44:10 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 7FE58FAB45
-	for <netfilter-devel@vger.kernel.org>; Fri, 15 Apr 2016 12:39:39 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id DC6C1C21A2
+	for <netfilter-devel@vger.kernel.org>; Fri, 15 Apr 2016 12:44:07 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <146062067574.20303.17765460378437095142.stgit@nfdev2.cica.es>
+In-Reply-To: <20160414152557.GA5338@shivani>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 14, 2016 at 09:58:56AM +0200, Arturo Borrero Gonzalez wrote:
-> Testscases for Netfilter bug #965:
->  * add rule at position
->  * insert rule at position
->  * replace rule with given handle
->  * delete rule with given handle
->  * don't allow to delete rules with position keyword
+On Thu, Apr 14, 2016 at 08:55:58PM +0530, Shivani Bhardwaj wrote:
+> NFQUEUE had a bug with the ordering of fanout and bypass options which
+> was arising due to same and odd values for flags and bypass when used
+> together. Because of this, during bitwise ANDing of flags and
+> NFQ_FLAG_CPU_FANOUT, the value always evaluated to false (since
+> NFQ_FLAG_CPU_FANOUT=0x02) and led to skipping of fanout option
+> whenever it was used before bypass because then flags would be 1.
+> 
+> Before this patch,
+> 
+> $ sudo iptables -A FORWARD -j NFQUEUE -p TCP --sport 80 --queue-balance 0:3 --queue-cpu-fanout --queue-bypass
+>
+> Chain FORWARD (policy ACCEPT)
+> target     prot opt source               destination
+> NFQUEUE    tcp  --  anywhere             anywhere             tcp spt:http NFQUEUE balance 0:3 bypass
+> 
+> After this patch,
+> 
+> Chain FORWARD (policy ACCEPT)
+> target     prot opt source               destination
+> NFQUEUE    tcp  --  anywhere             anywhere             tcp spt:http NFQUEUE balance 0:3 bypass cpu-fanout
+> 
+> Closes bugzilla entry: http://bugzilla.netfilter.org/show_bug.cgi?id=939
 
-Applied, thanks.
+Shivani, thanks for following up on this.
+
+Would you also update extensions/libxt_NFQUEUE.t to add a test so we
+make sure this regression doesn't happen ever again?
+
+Thanks.
