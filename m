@@ -1,71 +1,112 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [PATCH 1/1] payload: only merge if adjacent and combined size
- fits into a register
-Date: Sat, 16 Apr 2016 15:17:56 +0200
-Message-ID: <CAOkSjBhw32VvJewnQitmVxKzrBSG3yp=38g5cCzgsDvhmiVRZA@mail.gmail.com>
-References: <1460725779-12066-1-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:36714 "EHLO
-	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751286AbcDPNSR convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Apr 2016 09:18:17 -0400
-Received: by mail-wm0-f44.google.com with SMTP id v188so63710974wme.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 16 Apr 2016 06:18:16 -0700 (PDT)
-In-Reply-To: <1460725779-12066-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] netfilter: ctnetlink: add more #ifdef around unused code
+Date: Sat, 16 Apr 2016 22:17:43 +0200
+Message-ID: <1460837916-1241019-1-git-send-email-arnd@arndb.de>
+Cc: Arnd Bergmann <arnd@arndb.de>, Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Ken-ichirou MATSUZAWA <chamaken@gmail.com>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 15 April 2016 at 15:09, Florian Westphal <fw@strlen.de> wrote:
-> add rule ip6 filter input ip6 saddr ::1/128 ip6 daddr ::1/128 fails,
-> we ask to compare a 32byte immediate which is not supported:
->
->   [ payload load 32b @ network header + 8 =3D> reg 1 ]
->   [ cmp eq reg 1 0x00000000 0x00000000 0x00000000 0x01000000 0x000000=
-00 0x00000000 0x00000000 0x02000000 ]
->
-> We would need to use two cmps in this case, i.e.:
->
->   [ payload load 32b @ network header + 8 =3D> reg 1 ]
->   [ cmp eq reg 1 0x00000000 0x00000000 0x00000000 0x01000000 ]
->   [ cmp eq reg 2 0x00000000 0x00000000 0x00000000 0x02000000 ]
->
-> Seems however that this requires a bit more changes to how nft
-> handles register allocations, we'd also need to undo the constant mer=
-ge.
->
-> Lets disable merging for now so that we generate
->
->   [ payload load 16b @ network header + 8 =3D> reg 1 ]
->   [ cmp eq reg 1 0x00000000 0x00000000 0x00000000 0x01000000 ]
->   [ payload load 16b @ network header + 24 =3D> reg 1 ]
->   [ cmp eq reg 1 0x00000000 0x00000000 0x00000000 0x02000000 ]
->
-> ... if merge would bring us over the 128 bit register size.
->
-> Closes: http://bugzilla.netfilter.org/show_bug.cgi?id=3D1032
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  include/payload.h               |  2 +-
->  src/payload.c                   | 27 ++++++++++++++++++++-------
->  src/rule.c                      |  2 +-
->  tests/py/ip6/ip6.t              |  1 +
->  tests/py/ip6/ip6.t.payload.inet |  9 +++++++++
->  tests/py/ip6/ip6.t.payload.ip6  |  7 +++++++
->  6 files changed, 39 insertions(+), 9 deletions(-)
->
+A recent patch removed many 'inline' annotations for static
+functions in this file, which has caused warnings for functions
+that are not used in a given configuration, in particular when
+CONFIG_NF_CONNTRACK_EVENTS is disabled:
 
-Acked-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+nf_conntrack_netlink.c:572:15: 'ctnetlink_timestamp_size' defined but not used
+nf_conntrack_netlink.c:546:15: 'ctnetlink_acct_size' defined but not used
+nf_conntrack_netlink.c:339:12: 'ctnetlink_label_size' defined but not used
+
+I first tried to replace some of the existing #ifdefs with nicer
+'if (IS_ENABLED())' checks, but ran into several other problems
+with that, so this patch adds even more #ifdef conditionals to
+avoid the remaining warnings. Another option would be to put
+'__maybe_unused' annotations in place of the previous 'inline'
+keyword.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: 4054ff45454a ("netfilter: ctnetlink: remove unnecessary inlining")
+---
+ net/netfilter/nf_conntrack_netlink.c | 26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index caa4efe5930b..f893012986c7 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -336,6 +336,7 @@ nla_put_failure:
+ #endif
+ 
+ #ifdef CONFIG_NF_CONNTRACK_LABELS
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
+ static int ctnetlink_label_size(const struct nf_conn *ct)
+ {
+ 	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
+@@ -344,6 +345,7 @@ static int ctnetlink_label_size(const struct nf_conn *ct)
+ 		return 0;
+ 	return nla_total_size(labels->words * sizeof(long));
+ }
++#endif
+ 
+ static int
+ ctnetlink_dump_labels(struct sk_buff *skb, const struct nf_conn *ct)
+@@ -526,6 +528,7 @@ nla_put_failure:
+ 	return -1;
+ }
+ 
++#if defined(CONFIG_NF_CONNTRACK_EVENTS) || defined(CONFIG_NETFILTER_NETLINK_GLUE_CT)
+ static size_t ctnetlink_proto_size(const struct nf_conn *ct)
+ {
+ 	struct nf_conntrack_l3proto *l3proto;
+@@ -543,16 +546,6 @@ static size_t ctnetlink_proto_size(const struct nf_conn *ct)
+ 	return len;
+ }
+ 
+-static size_t ctnetlink_acct_size(const struct nf_conn *ct)
+-{
+-	if (!nf_ct_ext_exist(ct, NF_CT_EXT_ACCT))
+-		return 0;
+-	return 2 * nla_total_size(0) /* CTA_COUNTERS_ORIG|REPL */
+-	       + 2 * nla_total_size(sizeof(uint64_t)) /* CTA_COUNTERS_PACKETS */
+-	       + 2 * nla_total_size(sizeof(uint64_t)) /* CTA_COUNTERS_BYTES */
+-	       ;
+-}
+-
+ static int ctnetlink_secctx_size(const struct nf_conn *ct)
+ {
+ #ifdef CONFIG_NF_CONNTRACK_SECMARK
+@@ -568,6 +561,18 @@ static int ctnetlink_secctx_size(const struct nf_conn *ct)
+ 	return 0;
+ #endif
+ }
++#endif
++
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
++static size_t ctnetlink_acct_size(const struct nf_conn *ct)
++{
++	if (!nf_ct_ext_exist(ct, NF_CT_EXT_ACCT))
++		return 0;
++	return 2 * nla_total_size(0) /* CTA_COUNTERS_ORIG|REPL */
++	       + 2 * nla_total_size(sizeof(uint64_t)) /* CTA_COUNTERS_PACKETS */
++	       + 2 * nla_total_size(sizeof(uint64_t)) /* CTA_COUNTERS_BYTES */
++	       ;
++}
+ 
+ static size_t ctnetlink_timestamp_size(const struct nf_conn *ct)
+ {
+@@ -580,7 +585,6 @@ static size_t ctnetlink_timestamp_size(const struct nf_conn *ct)
+ #endif
+ }
+ 
+-#ifdef CONFIG_NF_CONNTRACK_EVENTS
+ static size_t ctnetlink_nlmsg_size(const struct nf_conn *ct)
+ {
+ 	return NLMSG_ALIGN(sizeof(struct nfgenmsg))
+-- 
+2.7.0
