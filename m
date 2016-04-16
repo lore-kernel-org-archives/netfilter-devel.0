@@ -1,30 +1,33 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v5 nf-next 0/4] netfilter: nftables: add connlabel set
- support
-Date: Fri, 15 Apr 2016 15:14:14 +0200
-Message-ID: <20160415131414.GM3192@breakpoint.cc>
-References: <1460477666-17823-1-git-send-email-fw@strlen.de>
- <20160415110020.GA12188@salvia>
+From: AllKind <AllKind@fastest.cc>
+Subject: [announce] conntrack-tools-bash_completion 1.0 released
+Date: Sat, 16 Apr 2016 09:42:07 +0200
+Message-ID: <d727dd6f-ae29-12da-4715-18664ec534fd@fastest.cc>
+Reply-To: AllKind@fastest.cc
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44463 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750910AbcDONOR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Apr 2016 09:14:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20160415110020.GA12188@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+To: "netfilter@vger.kernel.org" <netfilter@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > First 4 patches are preparation changes, patch #4 adds set support.
-> 
-> Florian, I can push into the tree the 3 preparation patches, I don't
-> see many changes on them. You can follow up with the nft_ct changes
-> later on.
+Good day everybody!
 
-That would be great, thanks!
+I've written bash shell programmable completion code for the 
+conntrack-tools.
+This package includes completions for conntrack, conntrackd and nfct.
+
+http://www.netfilter.org/projects/conntrack/index.html
+
+It's available for you at these locations:
+
+https://sourceforge.net/projects/conntrack-tools-bash-compl/
+https://github.com/AllKind/conntrack-tools-bash_completion
+
+I hope you can make use of it!
+
+Best regards,
+AllKind
+
+
