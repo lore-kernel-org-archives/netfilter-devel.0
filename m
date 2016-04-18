@@ -1,12 +1,11 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Arnd Bergmann <arnd@arndb.de>
 Subject: Re: [PATCH] netfilter: ctnetlink: add more #ifdef around unused code
-Date: Mon, 18 Apr 2016 20:43:36 +0200
-Message-ID: <20160418184336.GA16586@salvia>
-References: <1460837916-1241019-1-git-send-email-arnd@arndb.de>
- <20160418181659.GA2427@salvia>
- <4187960.DvZepuNvUx@wuerfel>
+Date: Mon, 18 Apr 2016 22:04:43 +0200
+Message-ID: <3838598.xdNY1BW5d9@wuerfel>
+References: <1460837916-1241019-1-git-send-email-arnd@arndb.de> <4187960.DvZepuNvUx@wuerfel> <20160418184336.GA16586@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Cc: Patrick McHardy <kaber@trash.net>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	"David S. Miller" <davem@davemloft.net>,
@@ -14,37 +13,46 @@ Cc: Patrick McHardy <kaber@trash.net>,
 	Ken-ichirou MATSUZAWA <chamaken@gmail.com>,
 	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
 	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4187960.DvZepuNvUx@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mout.kundenserver.de ([217.72.192.74]:54224 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752019AbcDRUFS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Apr 2016 16:05:18 -0400
+In-Reply-To: <20160418184336.GA16586@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Apr 18, 2016 at 08:33:15PM +0200, Arnd Bergmann wrote:
-> On Monday 18 April 2016 20:16:59 Pablo Neira Ayuso wrote:
-> > On Sat, Apr 16, 2016 at 10:17:43PM +0200, Arnd Bergmann wrote:
-> > > A recent patch removed many 'inline' annotations for static
-> > > functions in this file, which has caused warnings for functions
-> > > that are not used in a given configuration, in particular when
-> > > CONFIG_NF_CONNTRACK_EVENTS is disabled:
+On Monday 18 April 2016 20:43:36 Pablo Neira Ayuso wrote:
+> On Mon, Apr 18, 2016 at 08:33:15PM +0200, Arnd Bergmann wrote:
+> > On Monday 18 April 2016 20:16:59 Pablo Neira Ayuso wrote:
+> > > On Sat, Apr 16, 2016 at 10:17:43PM +0200, Arnd Bergmann wrote:
+> > > > A recent patch removed many 'inline' annotations for static
+> > > > functions in this file, which has caused warnings for functions
+> > > > that are not used in a given configuration, in particular when
+> > > > CONFIG_NF_CONNTRACK_EVENTS is disabled:
+> > > > 
+> > > > nf_conntrack_netlink.c:572:15: 'ctnetlink_timestamp_size' defined but not used
+> > > > nf_conntrack_netlink.c:546:15: 'ctnetlink_acct_size' defined but not used
+> > > > nf_conntrack_netlink.c:339:12: 'ctnetlink_label_size' defined but not used
 > > > 
-> > > nf_conntrack_netlink.c:572:15: 'ctnetlink_timestamp_size' defined but not used
-> > > nf_conntrack_netlink.c:546:15: 'ctnetlink_acct_size' defined but not used
-> > > nf_conntrack_netlink.c:339:12: 'ctnetlink_label_size' defined but not used
+> > > Arnd, thanks for the fix.
+> > > 
+> > > I'm planning to push this though:
+> > > 
+> > > http://patchwork.ozlabs.org/patch/610820/
+> > > 
+> > > This is restoring the inlines for the size calculation functions, but
+> > > I think that's ok. They are rather small and they're called from the
+> > > event notification path (ie. packet path), so the compiler just place
+> > > them out of the way when not needed and we calm down the gcc warning.
 > > 
-> > Arnd, thanks for the fix.
-> > 
-> > I'm planning to push this though:
-> > 
-> > http://patchwork.ozlabs.org/patch/610820/
-> > 
-> > This is restoring the inlines for the size calculation functions, but
-> > I think that's ok. They are rather small and they're called from the
-> > event notification path (ie. packet path), so the compiler just place
-> > them out of the way when not needed and we calm down the gcc warning.
+> > Looks good. I'll put this in my randconfig builder to replace my own
+> > patch and will let you know if you missed something.
 > 
-> Looks good. I'll put this in my randconfig builder to replace my own
-> patch and will let you know if you missed something.
+> Thanks, will wait for your ack then.
 
-Thanks, will wait for your ack then.
+100 clean randconfig builds later, looks good to me.
+
+Acked-by: Arnd Bergmann <arnd@arndb.de>
