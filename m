@@ -1,77 +1,116 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 7/7] evaluate: bail out on prefix or range to non-interval set
-Date: Mon, 18 Apr 2016 20:14:35 +0200
-Message-ID: <1461003275-2330-8-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 4/7] segtree: explicit initialization via set_to_intervals()
+Date: Mon, 18 Apr 2016 20:14:32 +0200
+Message-ID: <1461003275-2330-5-git-send-email-pablo@netfilter.org>
 References: <1461003275-2330-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35462 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35448 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751591AbcDRSO5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Apr 2016 14:14:57 -0400
+	id S1751519AbcDRSO4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Apr 2016 14:14:56 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id B9FB1C1068
-	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:55 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 1940DC108C
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:54 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 9C0089D0E7
-	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:55 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 889B09D0E7
+	by antivirus1-rhel7.int (Postfix) with ESMTP id F2DC19D107
 	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:53 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id BA1489D114
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:51 +0200 (CEST)
 In-Reply-To: <1461003275-2330-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If you declare a set with no interval flag, you get this bug message:
-
- # nft add element filter myset { 192.168.1.100/24 }
- BUG: invalid data expression type prefix
- nft: netlink.c:323: netlink_gen_data: Assertion `0' failed.
- Aborted
-
-After this patch, we provide a clue to the user:
-
- # nft add element filter myset { 192.168.1.100/24 }
- <cmdline>:1:23-38: Error: Set member cannot be prefix, missing interval flag on declaration
- add element filter myset { 192.168.1.100/24 }
-                            ^^^^^^^^^^^^^^^^
-
- # nft add element filter myset { 192.168.1.100-192.168.1.200 }
- <cmdline>:1:23-49: Error: Set member cannot be range, missing interval flag on declaration
- add element filter myset { 192.168.1.100-192.168.1.200 }
-                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Allow explicit compound expression to initialize the set intervals.
+Incremental updates to interval sets require this.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/evaluate.c | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ include/expression.h |  3 ++-
+ src/rule.c           |  2 +-
+ src/segtree.c        | 15 ++++++++-------
+ 3 files changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 346e34f..be4dac7 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -957,6 +957,21 @@ static int expr_evaluate_set_elem(struct eval_ctx *ctx, struct expr **expr)
- 	if (expr_evaluate(ctx, &elem->key) < 0)
- 		return -1;
+diff --git a/include/expression.h b/include/expression.h
+index 72b6f69..62a1e51 100644
+--- a/include/expression.h
++++ b/include/expression.h
+@@ -364,7 +364,8 @@ extern struct expr *concat_expr_alloc(const struct location *loc);
+ extern struct expr *list_expr_alloc(const struct location *loc);
  
-+	if (ctx->set && !(ctx->set->flags & SET_F_INTERVAL)) {
-+		switch (elem->key->ops->type) {
-+		case EXPR_PREFIX:
-+			return expr_error(ctx->msgs, elem,
-+					  "Set member cannot be prefix, "
-+					  "missing interval flag on declaration");
-+		case EXPR_RANGE:
-+			return expr_error(ctx->msgs, elem,
-+					  "Set member cannot be range, "
-+					  "missing interval flag on declaration");
-+		default:
-+			break;
-+		}
-+	}
-+
- 	elem->dtype = elem->key->dtype;
- 	elem->len   = elem->key->len;
- 	elem->flags = elem->key->flags;
+ extern struct expr *set_expr_alloc(const struct location *loc);
+-extern int set_to_intervals(struct list_head *msgs, struct set *set);
++extern int set_to_intervals(struct list_head *msgs, struct set *set,
++			    struct expr *init);
+ 
+ extern struct expr *mapping_expr_alloc(const struct location *loc,
+ 				       struct expr *from, struct expr *to);
+diff --git a/src/rule.c b/src/rule.c
+index b7f4a07..43a606b 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -878,7 +878,7 @@ static int do_add_set(struct netlink_ctx *ctx, const struct handle *h,
+ 		return -1;
+ 	if (set->init != NULL) {
+ 		if (set->flags & SET_F_INTERVAL &&
+-		    set_to_intervals(ctx->msgs, set) < 0)
++		    set_to_intervals(ctx->msgs, set, set->init) < 0)
+ 			return -1;
+ 		if (do_add_setelems(ctx, &set->handle, set->init) < 0)
+ 			return -1;
+diff --git a/src/segtree.c b/src/segtree.c
+index d8f98fa..c0a8c28 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -64,11 +64,12 @@ struct elementary_interval {
+ 	struct expr			*expr;
+ };
+ 
+-static void seg_tree_init(struct seg_tree *tree, const struct set *set)
++static void seg_tree_init(struct seg_tree *tree, const struct set *set,
++			  struct expr *init)
+ {
+ 	struct expr *first;
+ 
+-	first = list_entry(set->init->expressions.next, struct expr, list);
++	first = list_entry(init->expressions.next, struct expr, list);
+ 	tree->root	= RB_ROOT;
+ 	tree->keytype	= set->keytype;
+ 	tree->keylen	= set->keylen;
+@@ -431,14 +432,14 @@ static void set_insert_interval(struct expr *set, struct seg_tree *tree,
+ 	compound_expr_add(set, expr);
+ }
+ 
+-int set_to_intervals(struct list_head *errs, struct set *set)
++int set_to_intervals(struct list_head *errs, struct set *set, struct expr *init)
+ {
+ 	struct elementary_interval *ei, *next;
+ 	struct seg_tree tree;
+ 	LIST_HEAD(list);
+ 
+-	seg_tree_init(&tree, set);
+-	if (set_to_segtree(errs, set->init, &tree) < 0)
++	seg_tree_init(&tree, set, init);
++	if (set_to_segtree(errs, init, &tree) < 0)
+ 		return -1;
+ 	segtree_linearize(&list, &tree);
+ 
+@@ -448,12 +449,12 @@ int set_to_intervals(struct list_head *errs, struct set *set)
+ 				     2 * tree.keylen / BITS_PER_BYTE, ei->left,
+ 				     2 * tree.keylen / BITS_PER_BYTE, ei->right);
+ 		}
+-		set_insert_interval(set->init, &tree, ei);
++		set_insert_interval(init, &tree, ei);
+ 		ei_destroy(ei);
+ 	}
+ 
+ 	if (segtree_debug()) {
+-		expr_print(set->init);
++		expr_print(init);
+ 		pr_gmp_debug("\n");
+ 	}
+ 	return 0;
 -- 
 2.1.4
 
