@@ -1,126 +1,56 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 5/7] rule: support for incremental set interval element updates
-Date: Mon, 18 Apr 2016 20:14:33 +0200
-Message-ID: <1461003275-2330-6-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 3/7] segtree: handle adjacent interval nodes from expr_value_cmp()
+Date: Mon, 18 Apr 2016 20:14:31 +0200
+Message-ID: <1461003275-2330-4-git-send-email-pablo@netfilter.org>
 References: <1461003275-2330-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35454 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35443 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751671AbcDRSO5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Apr 2016 14:14:57 -0400
+	id S1751533AbcDRSOz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Apr 2016 14:14:55 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id E4A56C1085
-	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:54 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 8FB2EC1068
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:53 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id C95A59D0EF
-	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:54 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 794A59D10D
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:53 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6D4A89D108
-	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:52 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 2209E9D106
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:51 +0200 (CEST)
 In-Reply-To: <1461003275-2330-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Introduce __do_add_setelems() and do_delete_setelems() to support
-incremental set interval element updates.
-
->From do_add_set(), use netlink_add_setelems() not to try to re-add the
-same elements again
+Named sets may contain adjacent interval nodes, when equal in key, look
+at the flags. Those with EXPR_F_INTERVAL_END should come in first place.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/rule.c | 52 ++++++++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 42 insertions(+), 10 deletions(-)
+ src/segtree.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/src/rule.c b/src/rule.c
-index 43a606b..e2f15ee 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -863,26 +863,39 @@ static int do_add_chain(struct netlink_ctx *ctx, const struct handle *h,
- 	return 0;
- }
- 
--static int do_add_setelems(struct netlink_ctx *ctx, const struct handle *h,
--			   const struct expr *expr)
-+static int __do_add_setelems(struct netlink_ctx *ctx, const struct handle *h,
-+			     struct set *set, struct expr *expr)
+diff --git a/src/segtree.c b/src/segtree.c
+index 75f02b9..d8f98fa 100644
+--- a/src/segtree.c
++++ b/src/segtree.c
+@@ -487,8 +487,15 @@ static int expr_value_cmp(const void *p1, const void *p2)
  {
-+	if (set->flags & SET_F_INTERVAL &&
-+	    set_to_intervals(ctx->msgs, set, expr) < 0)
+ 	struct expr *e1 = *(void * const *)p1;
+ 	struct expr *e2 = *(void * const *)p2;
++	int ret;
+ 
+-	return mpz_cmp(expr_value(e1)->value, expr_value(e2)->value);
++	ret = mpz_cmp(expr_value(e1)->value, expr_value(e2)->value);
++	if (ret == 0 && (e1->flags & EXPR_F_INTERVAL_END))
 +		return -1;
++	else
++		return 1;
 +
- 	if (netlink_add_setelems(ctx, h, expr) < 0)
- 		return -1;
-+
- 	return 0;
++	return ret;
  }
  
-+static int do_add_setelems(struct netlink_ctx *ctx, const struct handle *h,
-+			   struct expr *init)
-+{
-+	struct table *table;
-+	struct set *set;
-+
-+	table = table_lookup(h);
-+	set = set_lookup(table, h->set);
-+
-+	return __do_add_setelems(ctx, h, set, init);
-+}
-+
- static int do_add_set(struct netlink_ctx *ctx, const struct handle *h,
- 		      struct set *set)
- {
- 	if (netlink_add_set(ctx, h, set) < 0)
- 		return -1;
--	if (set->init != NULL) {
--		if (set->flags & SET_F_INTERVAL &&
--		    set_to_intervals(ctx->msgs, set, set->init) < 0)
--			return -1;
--		if (do_add_setelems(ctx, &set->handle, set->init) < 0)
--			return -1;
--	}
-+	if (set->init != NULL)
-+		return __do_add_setelems(ctx, &set->handle, set, set->init);
-+
- 	return 0;
- }
- 
-@@ -961,6 +974,25 @@ static int do_command_insert(struct netlink_ctx *ctx, struct cmd *cmd)
- 	return 0;
- }
- 
-+static int do_delete_setelems(struct netlink_ctx *ctx, const struct handle *h,
-+			      struct expr *expr)
-+{
-+	struct table *table;
-+	struct set *set;
-+
-+	table = table_lookup(h);
-+	set = set_lookup(table, h->set);
-+
-+	if (set->flags & SET_F_INTERVAL &&
-+	    set_to_intervals(ctx->msgs, set, expr) < 0)
-+		return -1;
-+
-+	if (netlink_delete_setelems(ctx, h, expr) < 0)
-+		return -1;
-+
-+	return 0;
-+}
-+
- static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
- {
- 	switch (cmd->obj) {
-@@ -974,7 +1006,7 @@ static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_SET:
- 		return netlink_delete_set(ctx, &cmd->handle, &cmd->location);
- 	case CMD_OBJ_SETELEM:
--		return netlink_delete_setelems(ctx, &cmd->handle, cmd->expr);
-+		return do_delete_setelems(ctx, &cmd->handle, cmd->expr);
- 	default:
- 		BUG("invalid command object type %u\n", cmd->obj);
- 	}
+ void interval_map_decompose(struct expr *set)
 -- 
 2.1.4
 
