@@ -1,56 +1,73 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: ctnetlink: add more #ifdef around unused code
-Date: Mon, 18 Apr 2016 20:16:59 +0200
-Message-ID: <20160418181659.GA2427@salvia>
-References: <1460837916-1241019-1-git-send-email-arnd@arndb.de>
+Subject: Re: [PATCH 1/1] payload: only merge if adjacent and combined size
+ fits into a register
+Date: Mon, 18 Apr 2016 20:20:00 +0200
+Message-ID: <20160418182000.GA2580@salvia>
+References: <1460725779-12066-1-git-send-email-fw@strlen.de>
+ <CAOkSjBhw32VvJewnQitmVxKzrBSG3yp=38g5cCzgsDvhmiVRZA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Ken-ichirou MATSUZAWA <chamaken@gmail.com>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
+Cc: Florian Westphal <fw@strlen.de>,
+	Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35758 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36365 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751563AbcDRSRH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Apr 2016 14:17:07 -0400
+	id S1750717AbcDRSUT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Apr 2016 14:20:19 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 568BFC107F
-	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:17:03 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 79D9DC1089
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:20:12 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 45CCDFAB44
-	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:17:03 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 0EDF4A737
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:20:12 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id D98369D104
-	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:17:00 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id BF109A737
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:20:05 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1460837916-1241019-1-git-send-email-arnd@arndb.de>
+In-Reply-To: <CAOkSjBhw32VvJewnQitmVxKzrBSG3yp=38g5cCzgsDvhmiVRZA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Apr 16, 2016 at 10:17:43PM +0200, Arnd Bergmann wrote:
-> A recent patch removed many 'inline' annotations for static
-> functions in this file, which has caused warnings for functions
-> that are not used in a given configuration, in particular when
-> CONFIG_NF_CONNTRACK_EVENTS is disabled:
+On Sat, Apr 16, 2016 at 03:17:56PM +0200, Arturo Borrero Gonzalez wrote:
+> On 15 April 2016 at 15:09, Florian Westphal <fw@strlen.de> wrote:
+> > add rule ip6 filter input ip6 saddr ::1/128 ip6 daddr ::1/128 fails,
+> > we ask to compare a 32byte immediate which is not supported:
+> >
+> >   [ payload load 32b @ network header + 8 => reg 1 ]
+> >   [ cmp eq reg 1 0x00000000 0x00000000 0x00000000 0x01000000 0x00000000 0x00000000 0x00000000 0x02000000 ]
+> >
+> > We would need to use two cmps in this case, i.e.:
+> >
+> >   [ payload load 32b @ network header + 8 => reg 1 ]
+> >   [ cmp eq reg 1 0x00000000 0x00000000 0x00000000 0x01000000 ]
+> >   [ cmp eq reg 2 0x00000000 0x00000000 0x00000000 0x02000000 ]
+> >
+> > Seems however that this requires a bit more changes to how nft
+> > handles register allocations, we'd also need to undo the constant merge.
+> >
+> > Lets disable merging for now so that we generate
+> >
+> >   [ payload load 16b @ network header + 8 => reg 1 ]
+> >   [ cmp eq reg 1 0x00000000 0x00000000 0x00000000 0x01000000 ]
+> >   [ payload load 16b @ network header + 24 => reg 1 ]
+> >   [ cmp eq reg 1 0x00000000 0x00000000 0x00000000 0x02000000 ]
+> >
+> > ... if merge would bring us over the 128 bit register size.
+> >
+> > Closes: http://bugzilla.netfilter.org/show_bug.cgi?id=1032
+> > Signed-off-by: Florian Westphal <fw@strlen.de>
+> > ---
+> >  include/payload.h               |  2 +-
+> >  src/payload.c                   | 27 ++++++++++++++++++++-------
+> >  src/rule.c                      |  2 +-
+> >  tests/py/ip6/ip6.t              |  1 +
+> >  tests/py/ip6/ip6.t.payload.inet |  9 +++++++++
+> >  tests/py/ip6/ip6.t.payload.ip6  |  7 +++++++
+> >  6 files changed, 39 insertions(+), 9 deletions(-)
+> >
 > 
-> nf_conntrack_netlink.c:572:15: 'ctnetlink_timestamp_size' defined but not used
-> nf_conntrack_netlink.c:546:15: 'ctnetlink_acct_size' defined but not used
-> nf_conntrack_netlink.c:339:12: 'ctnetlink_label_size' defined but not used
+> Acked-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 
-Arnd, thanks for the fix.
-
-I'm planning to push this though:
-
-http://patchwork.ozlabs.org/patch/610820/
-
-This is restoring the inlines for the size calculation functions, but
-I think that's ok. They are rather small and they're called from the
-event notification path (ie. packet path), so the compiler just place
-them out of the way when not needed and we calm down the gcc warning.
-
-Thanks!
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
