@@ -1,30 +1,98 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 0/3] netfilter: conntrack: prepare for hashtable merge, take 1
-Date: Mon, 18 Apr 2016 16:16:58 +0200
-Message-ID: <1460989021-10780-1-git-send-email-fw@strlen.de>
+Subject: [PATCH nf-next 3/3] netfilter: conntrack: use get_random_once for conntrack hash seed
+Date: Mon, 18 Apr 2016 16:17:01 +0200
+Message-ID: <1460989021-10780-4-git-send-email-fw@strlen.de>
+References: <1460989021-10780-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:48400 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:48406 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751600AbcDROQs (ORCPT
+	by vger.kernel.org with ESMTP id S1751807AbcDROQx (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Apr 2016 10:16:48 -0400
+	Mon, 18 Apr 2016 10:16:53 -0400
+In-Reply-To: <1460989021-10780-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This small series prepares for upcoming merge of the per-namespace hash tables
-into a single table (or rater, three tables
--- conntrack hash, expect hash and nat bysrc hash).
+As earlier commit removed accessed to the hash from other files we can
+also make it static.
 
-Arguments for merging it:
-- We stop wasting (assuming default size) 250k backing store per namespace
-- net namespace is just another part of the connection id, much like
-  ip addresses or conntrack zones -- no need to treat it specially
-- allows to get rid of the per-netns conntrack slab as well
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/net/netfilter/nf_conntrack.h |  2 --
+ net/netfilter/nf_conntrack_core.c    | 26 +++-----------------------
+ 2 files changed, 3 insertions(+), 25 deletions(-)
 
-These patches are first preparations.
-We replace per-netns conntrack has generation seqcount by single one.
-
-While at it, this replaces the method used to obtain the hash seed
-by the (nowadays) more common get_random_once().
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index fde4068..dd78bea 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -289,8 +289,6 @@ struct kernel_param;
+ int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp);
+ extern unsigned int nf_conntrack_htable_size;
+ extern unsigned int nf_conntrack_max;
+-extern unsigned int nf_conntrack_hash_rnd;
+-void init_nf_conntrack_hash_rnd(void);
+ 
+ struct nf_conn *nf_ct_tmpl_alloc(struct net *net,
+ 				 const struct nf_conntrack_zone *zone,
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index a53c009..1fd0ff1 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -142,13 +142,14 @@ EXPORT_SYMBOL_GPL(nf_conntrack_max);
+ DEFINE_PER_CPU(struct nf_conn, nf_conntrack_untracked);
+ EXPORT_PER_CPU_SYMBOL(nf_conntrack_untracked);
+ 
+-unsigned int nf_conntrack_hash_rnd __read_mostly;
+-EXPORT_SYMBOL_GPL(nf_conntrack_hash_rnd);
++static unsigned int nf_conntrack_hash_rnd __read_mostly;
+ 
+ static u32 hash_conntrack_raw(const struct nf_conntrack_tuple *tuple)
+ {
+ 	unsigned int n;
+ 
++	get_random_once(&nf_conntrack_hash_rnd, sizeof(nf_conntrack_hash_rnd));
++
+ 	/* The direction must be ignored, so we hash everything up to the
+ 	 * destination ports (which is a multiple of 4) and treat the last
+ 	 * three bytes manually.
+@@ -815,21 +816,6 @@ restart:
+ 	return dropped;
+ }
+ 
+-void init_nf_conntrack_hash_rnd(void)
+-{
+-	unsigned int rand;
+-
+-	/*
+-	 * Why not initialize nf_conntrack_rnd in a "init()" function ?
+-	 * Because there isn't enough entropy when system initializing,
+-	 * and we initialize it as late as possible.
+-	 */
+-	do {
+-		get_random_bytes(&rand, sizeof(rand));
+-	} while (!rand);
+-	cmpxchg(&nf_conntrack_hash_rnd, 0, rand);
+-}
+-
+ static struct nf_conn *
+ __nf_conntrack_alloc(struct net *net,
+ 		     const struct nf_conntrack_zone *zone,
+@@ -839,12 +825,6 @@ __nf_conntrack_alloc(struct net *net,
+ {
+ 	struct nf_conn *ct;
+ 
+-	if (unlikely(!nf_conntrack_hash_rnd)) {
+-		init_nf_conntrack_hash_rnd();
+-		/* recompute the hash as nf_conntrack_hash_rnd is initialized */
+-		hash = hash_conntrack_raw(orig);
+-	}
+-
+ 	/* We don't want any race condition at early drop stage */
+ 	atomic_inc(&net->ct.count);
+ 
+-- 
+2.7.3
 
