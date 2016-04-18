@@ -1,112 +1,143 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] netfilter: ctnetlink: add more #ifdef around unused code
-Date: Sat, 16 Apr 2016 22:17:43 +0200
-Message-ID: <1460837916-1241019-1-git-send-email-arnd@arndb.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>,
-	Daniel Borkmann <daniel@iogearbox.net>,
-	Ken-ichirou MATSUZAWA <chamaken@gmail.com>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 1/3] netfilter: conntrack: move generation seqcnt out of netns_ct
+Date: Mon, 18 Apr 2016 16:16:59 +0200
+Message-ID: <1460989021-10780-2-git-send-email-fw@strlen.de>
+References: <1460989021-10780-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:48401 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751609AbcDROQq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Apr 2016 10:16:46 -0400
+In-Reply-To: <1460989021-10780-1-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-A recent patch removed many 'inline' annotations for static
-functions in this file, which has caused warnings for functions
-that are not used in a given configuration, in particular when
-CONFIG_NF_CONNTRACK_EVENTS is disabled:
+We only allow rehash in init namespace, so we only use
+init_ns.generation.  And even if we would allow it, it makes no sense
+as the conntrack locks are global; any ongoing rehash prevents insert/
+delete.
 
-nf_conntrack_netlink.c:572:15: 'ctnetlink_timestamp_size' defined but not used
-nf_conntrack_netlink.c:546:15: 'ctnetlink_acct_size' defined but not used
-nf_conntrack_netlink.c:339:12: 'ctnetlink_label_size' defined but not used
+So make this private to nf_conntrack_core instead.
 
-I first tried to replace some of the existing #ifdefs with nicer
-'if (IS_ENABLED())' checks, but ran into several other problems
-with that, so this patch adds even more #ifdef conditionals to
-avoid the remaining warnings. Another option would be to put
-'__maybe_unused' annotations in place of the previous 'inline'
-keyword.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Fixes: 4054ff45454a ("netfilter: ctnetlink: remove unnecessary inlining")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_netlink.c | 26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ include/net/netns/conntrack.h     |  1 -
+ net/netfilter/nf_conntrack_core.c | 20 +++++++++++---------
+ 2 files changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index caa4efe5930b..f893012986c7 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -336,6 +336,7 @@ nla_put_failure:
- #endif
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+index 723b61c..b052785 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -94,7 +94,6 @@ struct netns_ct {
+ 	int			sysctl_checksum;
  
- #ifdef CONFIG_NF_CONNTRACK_LABELS
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
- static int ctnetlink_label_size(const struct nf_conn *ct)
- {
- 	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
-@@ -344,6 +345,7 @@ static int ctnetlink_label_size(const struct nf_conn *ct)
- 		return 0;
- 	return nla_total_size(labels->words * sizeof(long));
- }
-+#endif
+ 	unsigned int		htable_size;
+-	seqcount_t		generation;
+ 	struct kmem_cache	*nf_conntrack_cachep;
+ 	struct hlist_nulls_head	*hash;
+ 	struct hlist_head	*expect_hash;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 2fd6074..a53c009 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -69,6 +69,7 @@ __cacheline_aligned_in_smp DEFINE_SPINLOCK(nf_conntrack_expect_lock);
+ EXPORT_SYMBOL_GPL(nf_conntrack_expect_lock);
  
- static int
- ctnetlink_dump_labels(struct sk_buff *skb, const struct nf_conn *ct)
-@@ -526,6 +528,7 @@ nla_put_failure:
- 	return -1;
- }
+ static __read_mostly spinlock_t nf_conntrack_locks_all_lock;
++static __read_mostly seqcount_t nf_conntrack_generation;
+ static __read_mostly bool nf_conntrack_locks_all;
  
-+#if defined(CONFIG_NF_CONNTRACK_EVENTS) || defined(CONFIG_NETFILTER_NETLINK_GLUE_CT)
- static size_t ctnetlink_proto_size(const struct nf_conn *ct)
- {
- 	struct nf_conntrack_l3proto *l3proto;
-@@ -543,16 +546,6 @@ static size_t ctnetlink_proto_size(const struct nf_conn *ct)
- 	return len;
- }
+ void nf_conntrack_lock(spinlock_t *lock) __acquires(lock)
+@@ -107,7 +108,7 @@ static bool nf_conntrack_double_lock(struct net *net, unsigned int h1,
+ 		spin_lock_nested(&nf_conntrack_locks[h1],
+ 				 SINGLE_DEPTH_NESTING);
+ 	}
+-	if (read_seqcount_retry(&net->ct.generation, sequence)) {
++	if (read_seqcount_retry(&nf_conntrack_generation, sequence)) {
+ 		nf_conntrack_double_unlock(h1, h2);
+ 		return true;
+ 	}
+@@ -393,7 +394,7 @@ static void nf_ct_delete_from_lists(struct nf_conn *ct)
  
--static size_t ctnetlink_acct_size(const struct nf_conn *ct)
--{
--	if (!nf_ct_ext_exist(ct, NF_CT_EXT_ACCT))
--		return 0;
--	return 2 * nla_total_size(0) /* CTA_COUNTERS_ORIG|REPL */
--	       + 2 * nla_total_size(sizeof(uint64_t)) /* CTA_COUNTERS_PACKETS */
--	       + 2 * nla_total_size(sizeof(uint64_t)) /* CTA_COUNTERS_BYTES */
--	       ;
--}
--
- static int ctnetlink_secctx_size(const struct nf_conn *ct)
- {
- #ifdef CONFIG_NF_CONNTRACK_SECMARK
-@@ -568,6 +561,18 @@ static int ctnetlink_secctx_size(const struct nf_conn *ct)
- 	return 0;
- #endif
- }
-+#endif
+ 	local_bh_disable();
+ 	do {
+-		sequence = read_seqcount_begin(&net->ct.generation);
++		sequence = read_seqcount_begin(&nf_conntrack_generation);
+ 		hash = hash_conntrack(net,
+ 				      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+ 		reply_hash = hash_conntrack(net,
+@@ -560,7 +561,7 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
+ 
+ 	local_bh_disable();
+ 	do {
+-		sequence = read_seqcount_begin(&net->ct.generation);
++		sequence = read_seqcount_begin(&nf_conntrack_generation);
+ 		hash = hash_conntrack(net,
+ 				      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+ 		reply_hash = hash_conntrack(net,
+@@ -628,7 +629,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 	local_bh_disable();
+ 
+ 	do {
+-		sequence = read_seqcount_begin(&net->ct.generation);
++		sequence = read_seqcount_begin(&nf_conntrack_generation);
+ 		/* reuse the hash saved before */
+ 		hash = *(unsigned long *)&ct->tuplehash[IP_CT_DIR_REPLY].hnnode.pprev;
+ 		hash = hash_bucket(hash, net);
+@@ -771,12 +772,12 @@ static noinline int early_drop(struct net *net, unsigned int _hash)
+ 
+ 	local_bh_disable();
+ restart:
+-	sequence = read_seqcount_begin(&net->ct.generation);
++	sequence = read_seqcount_begin(&nf_conntrack_generation);
+ 	hash = hash_bucket(_hash, net);
+ 	for (; i < net->ct.htable_size; i++) {
+ 		lockp = &nf_conntrack_locks[hash % CONNTRACK_LOCKS];
+ 		nf_conntrack_lock(lockp);
+-		if (read_seqcount_retry(&net->ct.generation, sequence)) {
++		if (read_seqcount_retry(&nf_conntrack_generation, sequence)) {
+ 			spin_unlock(lockp);
+ 			goto restart;
+ 		}
+@@ -1607,7 +1608,7 @@ int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
+ 
+ 	local_bh_disable();
+ 	nf_conntrack_all_lock();
+-	write_seqcount_begin(&init_net.ct.generation);
++	write_seqcount_begin(&nf_conntrack_generation);
+ 
+ 	/* Lookups in the old hash might happen in parallel, which means we
+ 	 * might get false negatives during connection lookup. New connections
+@@ -1631,7 +1632,7 @@ int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
+ 	init_net.ct.htable_size = nf_conntrack_htable_size = hashsize;
+ 	init_net.ct.hash = hash;
+ 
+-	write_seqcount_end(&init_net.ct.generation);
++	write_seqcount_end(&nf_conntrack_generation);
+ 	nf_conntrack_all_unlock();
+ 	local_bh_enable();
+ 
+@@ -1657,6 +1658,8 @@ int nf_conntrack_init_start(void)
+ 	int max_factor = 8;
+ 	int i, ret, cpu;
+ 
++	seqcount_init(&nf_conntrack_generation);
 +
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
-+static size_t ctnetlink_acct_size(const struct nf_conn *ct)
-+{
-+	if (!nf_ct_ext_exist(ct, NF_CT_EXT_ACCT))
-+		return 0;
-+	return 2 * nla_total_size(0) /* CTA_COUNTERS_ORIG|REPL */
-+	       + 2 * nla_total_size(sizeof(uint64_t)) /* CTA_COUNTERS_PACKETS */
-+	       + 2 * nla_total_size(sizeof(uint64_t)) /* CTA_COUNTERS_BYTES */
-+	       ;
-+}
+ 	for (i = 0; i < CONNTRACK_LOCKS; i++)
+ 		spin_lock_init(&nf_conntrack_locks[i]);
  
- static size_t ctnetlink_timestamp_size(const struct nf_conn *ct)
- {
-@@ -580,7 +585,6 @@ static size_t ctnetlink_timestamp_size(const struct nf_conn *ct)
- #endif
- }
+@@ -1783,7 +1786,6 @@ int nf_conntrack_init_net(struct net *net)
+ 	int cpu;
  
--#ifdef CONFIG_NF_CONNTRACK_EVENTS
- static size_t ctnetlink_nlmsg_size(const struct nf_conn *ct)
- {
- 	return NLMSG_ALIGN(sizeof(struct nfgenmsg))
+ 	atomic_set(&net->ct.count, 0);
+-	seqcount_init(&net->ct.generation);
+ 
+ 	net->ct.pcpu_lists = alloc_percpu(struct ct_pcpu);
+ 	if (!net->ct.pcpu_lists)
 -- 
-2.7.0
+2.7.3
+
