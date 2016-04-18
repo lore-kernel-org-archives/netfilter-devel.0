@@ -1,56 +1,77 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 3/7] segtree: handle adjacent interval nodes from expr_value_cmp()
-Date: Mon, 18 Apr 2016 20:14:31 +0200
-Message-ID: <1461003275-2330-4-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 7/7] evaluate: bail out on prefix or range to non-interval set
+Date: Mon, 18 Apr 2016 20:14:35 +0200
+Message-ID: <1461003275-2330-8-git-send-email-pablo@netfilter.org>
 References: <1461003275-2330-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35443 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35462 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751533AbcDRSOz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Apr 2016 14:14:55 -0400
+	id S1751591AbcDRSO5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Apr 2016 14:14:57 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 8FB2EC1068
-	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:53 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id B9FB1C1068
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:55 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 794A59D10D
-	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:53 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 9C0089D0E7
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:55 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 2209E9D106
-	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:51 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 889B09D0E7
+	for <netfilter-devel@vger.kernel.org>; Mon, 18 Apr 2016 20:14:53 +0200 (CEST)
 In-Reply-To: <1461003275-2330-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Named sets may contain adjacent interval nodes, when equal in key, look
-at the flags. Those with EXPR_F_INTERVAL_END should come in first place.
+If you declare a set with no interval flag, you get this bug message:
+
+ # nft add element filter myset { 192.168.1.100/24 }
+ BUG: invalid data expression type prefix
+ nft: netlink.c:323: netlink_gen_data: Assertion `0' failed.
+ Aborted
+
+After this patch, we provide a clue to the user:
+
+ # nft add element filter myset { 192.168.1.100/24 }
+ <cmdline>:1:23-38: Error: Set member cannot be prefix, missing interval flag on declaration
+ add element filter myset { 192.168.1.100/24 }
+                            ^^^^^^^^^^^^^^^^
+
+ # nft add element filter myset { 192.168.1.100-192.168.1.200 }
+ <cmdline>:1:23-49: Error: Set member cannot be range, missing interval flag on declaration
+ add element filter myset { 192.168.1.100-192.168.1.200 }
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/segtree.c | 9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ src/evaluate.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/src/segtree.c b/src/segtree.c
-index 75f02b9..d8f98fa 100644
---- a/src/segtree.c
-+++ b/src/segtree.c
-@@ -487,8 +487,15 @@ static int expr_value_cmp(const void *p1, const void *p2)
- {
- 	struct expr *e1 = *(void * const *)p1;
- 	struct expr *e2 = *(void * const *)p2;
-+	int ret;
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 346e34f..be4dac7 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -957,6 +957,21 @@ static int expr_evaluate_set_elem(struct eval_ctx *ctx, struct expr **expr)
+ 	if (expr_evaluate(ctx, &elem->key) < 0)
+ 		return -1;
  
--	return mpz_cmp(expr_value(e1)->value, expr_value(e2)->value);
-+	ret = mpz_cmp(expr_value(e1)->value, expr_value(e2)->value);
-+	if (ret == 0 && (e1->flags & EXPR_F_INTERVAL_END))
-+		return -1;
-+	else
-+		return 1;
++	if (ctx->set && !(ctx->set->flags & SET_F_INTERVAL)) {
++		switch (elem->key->ops->type) {
++		case EXPR_PREFIX:
++			return expr_error(ctx->msgs, elem,
++					  "Set member cannot be prefix, "
++					  "missing interval flag on declaration");
++		case EXPR_RANGE:
++			return expr_error(ctx->msgs, elem,
++					  "Set member cannot be range, "
++					  "missing interval flag on declaration");
++		default:
++			break;
++		}
++	}
 +
-+	return ret;
- }
- 
- void interval_map_decompose(struct expr *set)
+ 	elem->dtype = elem->key->dtype;
+ 	elem->len   = elem->key->len;
+ 	elem->flags = elem->key->flags;
 -- 
 2.1.4
 
