@@ -1,63 +1,25 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH] evaluate: better error reporting in too long sets names
-Date: Wed, 20 Apr 2016 15:43:00 +0200
-Message-ID: <146115978018.25287.16460508385150502285.stgit@nfdev2.cica.es>
+From: Bogdan Harjoc <harjoc@gmail.com>
+Subject: Minor issue in libnetfilter_queue.c - nfq_set_queue_maxlen
+Date: Wed, 20 Apr 2016 18:36:34 +0300
+Message-ID: <CAF4+tmr1mOH4eRA8sW74GocCR9kd2i3iaPWtCOgq_nG03oLzTw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:53091 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751369AbcDTNnO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Apr 2016 09:43:14 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id B1FB351F238
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 Apr 2016 13:43:06 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id k2_fg13lpbOd for <netfilter-devel@vger.kernel.org>;
-	Wed, 20 Apr 2016 15:43:01 +0200 (CEST)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-	by smtp.cica.es (Postfix) with ESMTP id 5D1CD51F15F
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 Apr 2016 15:43:01 +0200 (CEST)
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:38512 "EHLO
+	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752680AbcDTPgg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 20 Apr 2016 11:36:36 -0400
+Received: by mail-wm0-f41.google.com with SMTP id u206so88120243wme.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Apr 2016 08:36:35 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently, if we choose a set name larger than allowed, the error message is:
- Error: Could not process rule: Numerical result out of range
+Nfq_set_queue_maxlen() allocates a struct nfqnl_msg_config_params
+(int32 + int8) and only stores a queue_maxlen which is an int32. It
+should probably be just
 
-Let's inform the user with a better error message.
++NFA_LENGTH(sizeof(uint32_t))
 
-We can discuss later if length of set names should be increased, but I think
-this better error reporting is necessary right now to avoid headaches to users.
-
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- src/evaluate.c |    5 +++++
- 1 file changed, 5 insertions(+)
-
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 346e34f..b86e5b6 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2123,6 +2123,7 @@ static int setelem_evaluate(struct eval_ctx *ctx, struct expr **expr)
- 
- static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- {
-+	size_t namelen = IFNAMSIZ - 1;
- 	struct table *table;
- 	const char *type;
- 
-@@ -2136,6 +2137,10 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- 
- 	type = set->flags & SET_F_MAP ? "map" : "set";
- 
-+	if (strlen(set->handle.set) > namelen)
-+		return cmd_error(ctx, "%s maximum allowed name length is %lu",
-+				 type, namelen);
-+
- 	if (set->keytype == NULL)
- 		return set_error(ctx, set, "%s definition does not specify "
- 				 "key data type", type);
-
+Probably not an issue since the buffer is just larger than it needs to be.
