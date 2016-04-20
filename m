@@ -1,95 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH RFC nf-next 0/3] named expressions for nf_tables
-Date: Tue, 19 Apr 2016 21:46:38 +0200
-Message-ID: <20160419194638.GA7710@salvia>
-References: <1459961493-7494-1-git-send-email-pablo@netfilter.org>
- <570BC27F.9080409@tpip.net>
+From: Simon Horman <horms@verge.net.au>
+Subject: [GIT PULL nf-next 0/3] IPVS Updates for v4.6
+Date: Wed, 20 Apr 2016 12:46:31 +1000
+Message-ID: <1461120394-5548-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Andreas Schultz <aschultz@tpip.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40818 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750859AbcDSTqv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Apr 2016 15:46:51 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id ECE76C9EC2
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Apr 2016 21:46:49 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id D9FAFC21AF
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Apr 2016 21:46:49 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B71669D0F0
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Apr 2016 21:46:47 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <570BC27F.9080409@tpip.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Andreas,
+Hi Pablo,
 
-On Mon, Apr 11, 2016 at 05:27:59PM +0200, Andreas Schultz wrote:
-> Would this support to have rules based on the value of a counter and/or
-> the current rate (like quotas in nfacct)?
-> 
-> something like this:
-> 
-> nft add rule filter tcp-chain counter name tcp-counter bytes > 10000 jump deny
->
-> A more realistic setup might more look like:
-> 
-> table ip filter {
->          counter counter-user1234 {
->                  packets 6086 bytes 6278052
->          }
-> 
->          chain chain-user1234 {
->                  counter name counter-user1234
-> 		 counter name counter-user1234 > 10000000 goto chain-user1234-overlimit
-> 		 counter name counter-user1234 > 500000 goto rate-limit
-> 		 accept
->          }
-> 
->          chain chain-user1234-overlimit {
->                  do-once notify userspace somehow
-> 		 reject
->          }
+please consider these enhancements to the IPVS. They allow SIP connections
+originating from real-servers to be load balanced by the SIP psersitence
+engine as is already implemented in the other direction. And for better one
+packet scheduling (OPS) performance.
 
-I think we can express this with:
+The following changes since commit 4a96300cec88729415683db8a2b909563b09fbaa:
 
-        nft add limit counter-user1234 rate over 100 mbytes/day
-        nft add rule filter input \
-                limit name counter-user1234 \
-                log prefix "user1234" group 10 \
-                reject
+  netfilter: ctnetlink: restore inlining for netlink message size calculation (2016-04-18 22:14:40 +0200)
 
-The idea is to create a 'counter-user1234' limit. Then refer to this
-from the rule.
+are available in the git repository at:
 
-BTW, currently the 'reject' statement will rely on icmp unreach to
-reject this. Probably you want a plain 'drop' here.
+  https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs-for-v4.7
 
-> As far as I know there is currently no mechanism in nft that could do
-> the "do-once notify userspace somehow", or is there???
+for you to fetch changes up to 8fb04d9fc70a67ccabf71dbabf92d7f6fca64a16:
 
-You can do this through the log statement, and then use
-libnetfilter_log for your application.
+  ipvs: don't alter conntrack in OPS mode (2016-04-20 12:34:17 +1000)
 
-> The other issue I have with such a scheme that it requires lots of chains per
-> client and might limit the number of clients that could be supported.
+----------------------------------------------------------------
+Marco Angaroni (3):
+      ipvs: handle connections started by real-servers
+      ipvs: optimize release of connections in OPS mode
+      ipvs: don't alter conntrack in OPS mode
 
-I think we can skip the extra non-base chains in the example above.
-The question is if you would be OK by specifying the quota using
-ratelimit, opposed to counter.
-
-The idea is that you can reset limits with something like:
-
-        nft reset limit name user1234
-
-so this basically resets the quota. Or even upgrade via:
-
-        nft update limit name user1234 over 1000 mbytes/day
-
-(this would keep what it's been consumed already, so statefulness is
-preserved).
+ include/net/ip_vs.h               |  17 +++++
+ net/netfilter/ipvs/ip_vs_conn.c   |  29 ++++++-
+ net/netfilter/ipvs/ip_vs_core.c   | 154 ++++++++++++++++++++++++++++++++++++++
+ net/netfilter/ipvs/ip_vs_ctl.c    |  46 +++++++++++-
+ net/netfilter/ipvs/ip_vs_nfct.c   |   4 +
+ net/netfilter/ipvs/ip_vs_pe_sip.c |  15 ++++
+ 6 files changed, 260 insertions(+), 5 deletions(-)
