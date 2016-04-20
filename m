@@ -1,25 +1,33 @@
-From: Bogdan Harjoc <harjoc@gmail.com>
-Subject: Minor issue in libnetfilter_queue.c - nfq_set_queue_maxlen
-Date: Wed, 20 Apr 2016 18:36:34 +0300
-Message-ID: <CAF4+tmr1mOH4eRA8sW74GocCR9kd2i3iaPWtCOgq_nG03oLzTw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Jarno Rajahalme <jarno@ovn.org>
+Subject: [PATCH] nf_nat_packet: Clear skb hash after modifying packet headers.
+Date: Wed, 20 Apr 2016 14:31:10 -0700
+Message-ID: <1461187870-54322-1-git-send-email-jarno@ovn.org>
+Cc: kernel-janitors@vger.kernel.org, dev@openvswitch.org, jarno@ovn.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:38512 "EHLO
-	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752680AbcDTPgg (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Apr 2016 11:36:36 -0400
-Received: by mail-wm0-f41.google.com with SMTP id u206so88120243wme.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Apr 2016 08:36:35 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Sender: kernel-janitors-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Nfq_set_queue_maxlen() allocates a struct nfqnl_msg_config_params
-(int32 + int8) and only stores a queue_maxlen which is an int32. It
-should probably be just
+Clear the skb hash when it does not reflect the actual header values
+any more.
 
-+NFA_LENGTH(sizeof(uint32_t))
+Signed-off-by: Jarno Rajahalme <jarno@ovn.org>
+---
+ net/netfilter/nf_nat_core.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Probably not an issue since the buffer is just larger than it needs to be.
+diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
+index 06a9f45..3c2302f 100644
+--- a/net/netfilter/nf_nat_core.c
++++ b/net/netfilter/nf_nat_core.c
+@@ -505,6 +505,7 @@ unsigned int nf_nat_packet(struct nf_conn *ct,
+ 		if (!l3proto->manip_pkt(skb, 0, l4proto, &target, mtype))
+ 			return NF_DROP;
+ 	}
++	skb_clear_hash(skb);
+ 	return NF_ACCEPT;
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_packet);
+-- 
+2.1.4
+
