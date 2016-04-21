@@ -1,62 +1,263 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH] tests: py: allow to run tests with other nft binaries
-Date: Thu, 21 Apr 2016 11:43:54 +0200
-Message-ID: <146123183481.8142.11138398894868501284.stgit@nfdev2.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v6 -next 2/4] netfilter: nftables: add connlabel set support
+Date: Thu, 21 Apr 2016 16:34:42 +0200
+Message-ID: <1461249284-12114-3-git-send-email-fw@strlen.de>
+References: <1461249284-12114-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:48289 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751582AbcDUJoE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Apr 2016 05:44:04 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id A378851F277
-	for <netfilter-devel@vger.kernel.org>; Thu, 21 Apr 2016 09:44:01 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id tsX-rEAaLqJ3 for <netfilter-devel@vger.kernel.org>;
-	Thu, 21 Apr 2016 11:43:56 +0200 (CEST)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-	by smtp.cica.es (Postfix) with ESMTP id 0086951F276
-	for <netfilter-devel@vger.kernel.org>; Thu, 21 Apr 2016 11:43:55 +0200 (CEST)
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:54971 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751920AbcDUOec (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Apr 2016 10:34:32 -0400
+In-Reply-To: <1461249284-12114-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Allow to run tests with other nft binaries by reading a 'NFT'
-environment variable, allowing arbitrary locations for the nft binary.
+Instead of taking the value to set from a source register, userspace
+passes the bit that we should set as an immediate netlink value.
 
-This is what the tests/shell/run-tests.sh script does.
+This follows a similar approach that xtables 'connlabel'
+match uses, so when user inputs
 
-Among other thing, this allow us to properly hook this testsuite
-from the Debian CI environment (https://ci.debian.net) where we can perform
-tests for packages 'as installed'.
+    ct label set bar
 
-Examples:
+then we will set the bit used by the 'bar' label and leave the rest alone.
+Pablo suggested to re-use the immediate attributes already used by
+nft_immediate, nft_bitwise and nft_cmp to re-use as much code as
+possible.
 
- # run with default config (ie src/nft)
- % ./nft-test.py
+Just add new NFTA_CT_IMM that contains nested data attributes.
+We can then use nft_data_init and nft_data_dump for this as well.
 
- # run with installed binary (ie /usr/sbin/nft)
- % NFT=/usr/sbin/nft ./nft-test.py
+In case we can't set a label because the conntrack extension is missing
+we abort rule evaluation.
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tests/py/nft-test.py |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Changes since v5:
+  - use a different struct (nft_ct_imm) and use select_ops
+  to pick it if an immediate attribute was provided.
 
-diff --git a/tests/py/nft-test.py b/tests/py/nft-test.py
-index 1256a33..df0fbad 100755
---- a/tests/py/nft-test.py
-+++ b/tests/py/nft-test.py
-@@ -19,7 +19,7 @@ import subprocess
- import argparse
- import signal
+ include/uapi/linux/netfilter/nf_tables.h |   2 +
+ net/netfilter/nft_ct.c                   | 131 +++++++++++++++++++++++++++++++
+ 2 files changed, 133 insertions(+)
+
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index eeffde1..608b647 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -770,6 +770,7 @@ enum nft_ct_keys {
+  * @NFTA_CT_KEY: conntrack data item to load (NLA_U32: nft_ct_keys)
+  * @NFTA_CT_DIRECTION: direction in case of directional keys (NLA_U8)
+  * @NFTA_CT_SREG: source register (NLA_U32)
++ * @NFTA_CT_IMM: immediate value (NLA_NESTED)
+  */
+ enum nft_ct_attributes {
+ 	NFTA_CT_UNSPEC,
+@@ -777,6 +778,7 @@ enum nft_ct_attributes {
+ 	NFTA_CT_KEY,
+ 	NFTA_CT_DIRECTION,
+ 	NFTA_CT_SREG,
++	NFTA_CT_IMM,
+ 	__NFTA_CT_MAX
+ };
+ #define NFTA_CT_MAX		(__NFTA_CT_MAX - 1)
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 4f66cb9..a461c3e 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -31,6 +31,15 @@ struct nft_ct_reg {
+ 	};
+ };
  
--NFT_BIN = "src/nft"
-+NFT_BIN = os.getenv('NFT', "src/nft")
- TESTS_PATH = os.path.dirname(os.path.abspath(__file__))
- TESTS_DIRECTORY = ["any", "arp", "bridge", "inet", "ip", "ip6"]
- LOGFILE = "/tmp/nftables-test.log"
++struct nft_ct_imm {
++	enum nft_ct_keys	key:8;
++	union {
++		u8		set_bit;
++	} imm;
++	unsigned int		imm_len:8;
++	struct nft_data		immediate;
++};
++
+ static u64 nft_ct_get_eval_counter(const struct nf_conn_counter *c,
+ 				   enum nft_ct_keys k,
+ 				   enum ip_conntrack_dir d)
+@@ -203,11 +212,40 @@ static void nft_ct_set_eval(const struct nft_expr *expr,
+ 	}
+ }
+ 
++static void nft_ct_imm_eval(const struct nft_expr *expr,
++			    struct nft_regs *regs,
++			    const struct nft_pktinfo *pkt)
++{
++	const struct nft_ct_imm *priv = nft_expr_priv(expr);
++	struct sk_buff *skb = pkt->skb;
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct;
++
++	ct = nf_ct_get(skb, &ctinfo);
++	if (!ct)
++		return;
++
++	switch (priv->key) {
++#ifdef CONFIG_NF_CONNTRACK_LABELS
++	case NFT_CT_LABELS:
++		if (nf_connlabel_set(ct, priv->imm.set_bit))
++			goto err;
++		break;
++#endif
++	default:
++		break;
++	}
++	return;
++err:
++	regs->verdict.code = NFT_BREAK;
++}
++
+ static const struct nla_policy nft_ct_policy[NFTA_CT_MAX + 1] = {
+ 	[NFTA_CT_DREG]		= { .type = NLA_U32 },
+ 	[NFTA_CT_KEY]		= { .type = NLA_U32 },
+ 	[NFTA_CT_DIRECTION]	= { .type = NLA_U8 },
+ 	[NFTA_CT_SREG]		= { .type = NLA_U32 },
++	[NFTA_CT_IMM]		= { .type = NLA_NESTED },
+ };
+ 
+ static int nft_ct_l3proto_try_module_get(uint8_t family)
+@@ -381,12 +419,78 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+ 	return 0;
+ }
+ 
++static int nft_ct_imm_init(const struct nft_ctx *ctx,
++			   const struct nft_expr *expr,
++			   const struct nlattr * const tb[])
++{
++	struct nft_ct_imm *priv = nft_expr_priv(expr);
++	struct nft_data_desc imm_desc = {};
++	int err;
++
++	err = nft_data_init(NULL, &priv->immediate, sizeof(priv->immediate),
++			    &imm_desc, tb[NFTA_CT_IMM]);
++	if (err < 0)
++		return err;
++
++	if (imm_desc.type != NFT_DATA_VALUE)
++		return -EINVAL;
++
++	err = nft_ct_l3proto_try_module_get(ctx->afi->family);
++	if (err < 0)
++		return err;
++
++	priv->imm_len = imm_desc.len;
++	priv->key = ntohl(nla_get_be32(tb[NFTA_CT_KEY]));
++	switch (priv->key) {
++#ifdef CONFIG_NF_CONNTRACK_LABELS
++	case NFT_CT_LABELS:
++		err = -EINVAL;
++		if (tb[NFTA_CT_DIRECTION] || priv->imm_len != sizeof(u32))
++			goto err;
++
++		err = nf_connlabels_get(ctx->net,
++					htonl(priv->immediate.data[0]));
++		if (err < 0)
++			goto err;
++
++		priv->imm.set_bit = htonl(priv->immediate.data[0]);
++		break;
++#endif
++	default:
++		err = -EOPNOTSUPP;
++		goto err;
++	}
++
++	return 0;
++ err:
++	nft_ct_l3proto_module_put(ctx->afi->family);
++	return err;
++}
++
+ static void nft_ct_reg_destroy(const struct nft_ctx *ctx,
+ 			       const struct nft_expr *expr)
+ {
+ 	nft_ct_l3proto_module_put(ctx->afi->family);
+ }
+ 
++static void nft_ct_imm_destroy(const struct nft_ctx *ctx,
++			       const struct nft_expr *expr)
++{
++	struct nft_ct_imm *priv = nft_expr_priv(expr);
++
++	switch (priv->key) {
++#ifdef CONFIG_NF_CONNTRACK_LABELS
++	case NFT_CT_LABELS:
++		nf_connlabels_put(ctx->net);
++		break;
++#endif
++	default:
++		break;
++	}
++
++	nft_ct_l3proto_module_put(ctx->afi->family);
++}
++
+ static int nft_ct_get_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ {
+ 	const struct nft_ct_reg *priv = nft_expr_priv(expr);
+@@ -436,6 +540,18 @@ nla_put_failure:
+ 	return -1;
+ }
+ 
++static int nft_ct_imm_dump(struct sk_buff *skb, const struct nft_expr *expr)
++{
++	const struct nft_ct_imm *priv = nft_expr_priv(expr);
++
++	if (nla_put_be32(skb, NFTA_CT_KEY, htonl(priv->key)))
++		return -1;
++	if (nft_data_dump(skb, NFTA_CT_IMM, &priv->immediate,
++			  NFT_DATA_VALUE, priv->imm_len) < 0)
++		return -1;
++	return 0;
++}
++
+ static struct nft_expr_type nft_ct_type;
+ static const struct nft_expr_ops nft_ct_get_ops = {
+ 	.type		= &nft_ct_type,
+@@ -455,6 +571,15 @@ static const struct nft_expr_ops nft_ct_set_ops = {
+ 	.dump		= nft_ct_set_dump,
+ };
+ 
++static const struct nft_expr_ops nft_ct_imm_ops = {
++	.type		= &nft_ct_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ct_imm)),
++	.eval		= nft_ct_imm_eval,
++	.init		= nft_ct_imm_init,
++	.destroy	= nft_ct_imm_destroy,
++	.dump		= nft_ct_imm_dump,
++};
++
+ static const struct nft_expr_ops *
+ nft_ct_select_ops(const struct nft_ctx *ctx,
+ 		    const struct nlattr * const tb[])
+@@ -465,12 +590,18 @@ nft_ct_select_ops(const struct nft_ctx *ctx,
+ 	if (tb[NFTA_CT_DREG] && tb[NFTA_CT_SREG])
+ 		return ERR_PTR(-EINVAL);
+ 
++	if (tb[NFTA_CT_SREG] && tb[NFTA_CT_IMM])
++		return ERR_PTR(-EINVAL);
++
+ 	if (tb[NFTA_CT_DREG])
+ 		return &nft_ct_get_ops;
+ 
+ 	if (tb[NFTA_CT_SREG])
+ 		return &nft_ct_set_ops;
+ 
++	if (tb[NFTA_CT_IMM])
++		return &nft_ct_imm_ops;
++
+ 	return ERR_PTR(-EINVAL);
+ }
+ 
+-- 
+2.7.3
 
