@@ -1,101 +1,58 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH net-next 9/9] taskstats: use the libnl API to align nlattr on 64-bit
-Date: Fri, 22 Apr 2016 17:31:24 +0200
-Message-ID: <1461339084-3849-10-git-send-email-nicolas.dichtel@6wind.com>
+From: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH net-next 2/9] libnl: nla_put_le64(): align on
+ a 64-bit area
+Date: Fri, 22 Apr 2016 09:51:20 -0700
+Message-ID: <1461343880.7627.34.camel@edumazet-glaptop3.roam.corp.google.com>
 References: <1461339084-3849-1-git-send-email-nicolas.dichtel@6wind.com>
-Cc: davem@davemloft.net, linux-kernel@vger.kernel.org,
-	linux-wpan@vger.kernel.org, aar@pengutronix.de,
-	pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	pshelar@nicira.com, kuznet@ms2.inr.ac.ru, jmorris@namei.org,
-	yoshfuji@linux-ipv6.org, netfilter-devel@vger.kernel.org,
-	dev@openvswitch.org, steffen.klassert@secunet.com,
-	herbert@gondor.apana.org.au, bsingharora@gmail.com,
-	Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1461339084-3849-1-git-send-email-nicolas.dichtel@6wind.com>
-Sender: netdev-owner@vger.kernel.org
+ <1461339084-3849-3-git-send-email-nicolas.dichtel@6wind.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org,
+ herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org, aar-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ bsingharora-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org,
+ yoshfuji-VfPWfsRibaP+Ru+s062T9g@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org, jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org,
+ linux-wpan-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org
+To: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <1461339084-3849-3-git-send-email-nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-Goal of this patch is to use the new libnl API to align netlink attribute
-when needed.
-The layout of the netlink message will be a bit different after the patch,
-because the padattr (TASKSTATS_TYPE_STATS) will be inside the nested
-attribute instead of before it.
-
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
----
- kernel/taskstats.c | 37 +++++--------------------------------
- 1 file changed, 5 insertions(+), 32 deletions(-)
-
-diff --git a/kernel/taskstats.c b/kernel/taskstats.c
-index 21f82c29c914..b3f05ee20d18 100644
---- a/kernel/taskstats.c
-+++ b/kernel/taskstats.c
-@@ -357,10 +357,6 @@ static int parse(struct nlattr *na, struct cpumask *mask)
- 	return ret;
- }
- 
--#if defined(CONFIG_64BIT) && !defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)
--#define TASKSTATS_NEEDS_PADDING 1
--#endif
--
- static struct taskstats *mk_reply(struct sk_buff *skb, int type, u32 pid)
- {
- 	struct nlattr *na, *ret;
-@@ -370,29 +366,6 @@ static struct taskstats *mk_reply(struct sk_buff *skb, int type, u32 pid)
- 			? TASKSTATS_TYPE_AGGR_PID
- 			: TASKSTATS_TYPE_AGGR_TGID;
- 
--	/*
--	 * The taskstats structure is internally aligned on 8 byte
--	 * boundaries but the layout of the aggregrate reply, with
--	 * two NLA headers and the pid (each 4 bytes), actually
--	 * force the entire structure to be unaligned. This causes
--	 * the kernel to issue unaligned access warnings on some
--	 * architectures like ia64. Unfortunately, some software out there
--	 * doesn't properly unroll the NLA packet and assumes that the start
--	 * of the taskstats structure will always be 20 bytes from the start
--	 * of the netlink payload. Aligning the start of the taskstats
--	 * structure breaks this software, which we don't want. So, for now
--	 * the alignment only happens on architectures that require it
--	 * and those users will have to update to fixed versions of those
--	 * packages. Space is reserved in the packet only when needed.
--	 * This ifdef should be removed in several years e.g. 2012 once
--	 * we can be confident that fixed versions are installed on most
--	 * systems. We add the padding before the aggregate since the
--	 * aggregate is already a defined type.
--	 */
--#ifdef TASKSTATS_NEEDS_PADDING
--	if (nla_put(skb, TASKSTATS_TYPE_NULL, 0, NULL) < 0)
--		goto err;
--#endif
- 	na = nla_nest_start(skb, aggr);
- 	if (!na)
- 		goto err;
-@@ -401,7 +374,8 @@ static struct taskstats *mk_reply(struct sk_buff *skb, int type, u32 pid)
- 		nla_nest_cancel(skb, na);
- 		goto err;
- 	}
--	ret = nla_reserve(skb, TASKSTATS_TYPE_STATS, sizeof(struct taskstats));
-+	ret = nla_reserve_64bit(skb, TASKSTATS_TYPE_STATS,
-+				sizeof(struct taskstats), TASKSTATS_TYPE_NULL);
- 	if (!ret) {
- 		nla_nest_cancel(skb, na);
- 		goto err;
-@@ -500,10 +474,9 @@ static size_t taskstats_packet_size(void)
- 	size_t size;
- 
- 	size = nla_total_size(sizeof(u32)) +
--		nla_total_size(sizeof(struct taskstats)) + nla_total_size(0);
--#ifdef TASKSTATS_NEEDS_PADDING
--	size += nla_total_size(0); /* Padding for alignment */
--#endif
-+		nla_total_size_64bit(sizeof(struct taskstats)) +
-+		nla_total_size(0);
-+
- 	return size;
- }
- 
--- 
-2.8.1
+T24gRnJpLCAyMDE2LTA0LTIyIGF0IDE3OjMxICswMjAwLCBOaWNvbGFzIERpY2h0ZWwgd3JvdGU6
+Cj4gbmxhX2RhdGEoKSBpcyBub3cgYWxpZ25lZCBvbiBhIDY0LWJpdCBhcmVhLgo+IAo+IFNpZ25l
+ZC1vZmYtYnk6IE5pY29sYXMgRGljaHRlbCA8bmljb2xhcy5kaWNodGVsQDZ3aW5kLmNvbT4KPiAt
+LS0KPiAgaW5jbHVkZS9uZXQvbmV0bGluay5oICAgICB8ICA4ICsrKysrLS0tCj4gIGluY2x1ZGUv
+bmV0L25sODAyMTU0LmggICAgfCAgNiArKysrKysKPiAgbmV0L2llZWU4MDIxNTQvbmw4MDIxNTQu
+YyB8IDEzICsrKysrKysrLS0tLS0KPiAgMyBmaWxlcyBjaGFuZ2VkLCAxOSBpbnNlcnRpb25zKCsp
+LCA4IGRlbGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQgYS9pbmNsdWRlL25ldC9uZXRsaW5rLmgg
+Yi9pbmNsdWRlL25ldC9uZXRsaW5rLmgKPiBpbmRleCA2ZjUxYThhMDY0OTguLjdmNmI5OTQ4M2Fi
+NyAxMDA2NDQKPiAtLS0gYS9pbmNsdWRlL25ldC9uZXRsaW5rLmgKPiArKysgYi9pbmNsdWRlL25l
+dC9uZXRsaW5rLmgKPiBAQCAtODc4LDE0ICs4NzgsMTYgQEAgc3RhdGljIGlubGluZSBpbnQgbmxh
+X3B1dF9uZXQ2NChzdHJ1Y3Qgc2tfYnVmZiAqc2tiLCBpbnQgYXR0cnR5cGUsIF9fYmU2NCB2YWx1
+ZSkKPiAgfQo+ICAKPiAgLyoqCj4gLSAqIG5sYV9wdXRfbGU2NCAtIEFkZCBhIF9fbGU2NCBuZXRs
+aW5rIGF0dHJpYnV0ZSB0byBhIHNvY2tldCBidWZmZXIKPiArICogbmxhX3B1dF9sZTY0IC0gQWRk
+IGEgX19sZTY0IG5ldGxpbmsgYXR0cmlidXRlIHRvIGEgc29ja2V0IGJ1ZmZlciBhbmQgYWxpZ24g
+aXQKPiAgICogQHNrYjogc29ja2V0IGJ1ZmZlciB0byBhZGQgYXR0cmlidXRlIHRvCj4gICAqIEBh
+dHRydHlwZTogYXR0cmlidXRlIHR5cGUKPiAgICogQHZhbHVlOiBudW1lcmljIHZhbHVlCj4gKyAq
+IEBwYWRhdHRyOiBhdHRyaWJ1dGUgdHlwZSBmb3IgdGhlIHBhZGRpbmcKPiAgICovCj4gLXN0YXRp
+YyBpbmxpbmUgaW50IG5sYV9wdXRfbGU2NChzdHJ1Y3Qgc2tfYnVmZiAqc2tiLCBpbnQgYXR0cnR5
+cGUsIF9fbGU2NCB2YWx1ZSkKPiArc3RhdGljIGlubGluZSBpbnQgbmxhX3B1dF9sZTY0KHN0cnVj
+dCBza19idWZmICpza2IsIGludCBhdHRydHlwZSwgX19sZTY0IHZhbHVlLAo+ICsJCQkgICAgICAg
+aW50IHBhZGF0dHIpCj4gIHsKPiAtCXJldHVybiBubGFfcHV0KHNrYiwgYXR0cnR5cGUsIHNpemVv
+ZihfX2xlNjQpLCAmdmFsdWUpOwo+ICsJcmV0dXJuIG5sYV9wdXRfNjRiaXQoc2tiLCBhdHRydHlw
+ZSwgc2l6ZW9mKF9fbGU2NCksICZ2YWx1ZSwgcGFkYXR0cik7Cj4gIH0KPiAgCgpCdXQgX3doeV8g
+aXMgaXQgbmVlZGVkID8KCm5sYV9wdXQoKSBoYXMgbm8gYWxpZ25tZW50IGFzc3VtcHRpb25zLCBp
+dCBzaW1wbHkgY29waWVzIDggYnl0ZXMuCgpTZWVtcyB0aGlzIGlzIGdvaW5nIHRvbyBmYXIuCgoK
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRldiBtYWls
+aW5nIGxpc3QKZGV2QG9wZW52c3dpdGNoLm9yZwpodHRwOi8vb3BlbnZzd2l0Y2gub3JnL21haWxt
+YW4vbGlzdGluZm8vZGV2Cg==
