@@ -1,41 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCHv2 net] openvswitch: Orphan skbs before IPv6 defrag
-Date: Thu, 21 Apr 2016 13:42:52 -0400 (EDT)
-Message-ID: <20160421.134252.2090014694706317498.davem@davemloft.net>
-References: <1461016307-14098-1-git-send-email-joe@ovn.org>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, fw@strlen.de,
-	netfilter-devel@vger.kernel.org, diproiettod@vmware.com,
-	pablo@netfilter.org
-To: joe@ovn.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1461016307-14098-1-git-send-email-joe@ovn.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH] netfilter: ip6t_SYNPROXY: unnecessary to check whether ip6_route_output returns NULL
+Date: Fri, 22 Apr 2016 02:56:57 -0700
+Message-ID: <1461319017-3421-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from m50-135.163.com ([123.125.50.135]:44320 "EHLO m50-135.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751084AbcDVJ5a (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Apr 2016 05:57:30 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Joe Stringer <joe@ovn.org>
-Date: Mon, 18 Apr 2016 14:51:47 -0700
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-> This is the IPv6 counterpart to commit 8282f27449bf ("inet: frag: Always
-> orphan skbs inside ip_defrag()").
-> 
-> Prior to commit 029f7f3b8701 ("netfilter: ipv6: nf_defrag: avoid/free
-> clone operations"), ipv6 fragments sent to nf_ct_frag6_gather() would be
-> cloned (implicitly orphaning) prior to queueing for reassembly. As such,
-> when the IPv6 message is eventually reassembled, the skb->sk for all
-> fragments would be NULL. After that commit was introduced, rather than
-> cloning, the original skbs were queued directly without orphaning. The
-> end result is that all frags except for the first and last may have a
-> socket attached.
-> 
-> This commit explicitly orphans such skbs during nf_ct_frag6_gather() to
-> prevent BUG_ON(skb->sk) during a later call to ip6_fragment().
- ...
-> Fixes: 029f7f3b8701 ("netfilter: ipv6: nf_defrag: avoid/free clone
-> operations")
-> Reported-by: Daniele Di Proietto <diproiettod@vmware.com>
-> Signed-off-by: Joe Stringer <joe@ovn.org>
+ip6_route_output() will never return a NULL pointer, so there's no need
+to check it.
 
-Applied and queued up for -stable, thanks.
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+---
+ net/ipv6/netfilter/ip6t_SYNPROXY.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+index 5d778dd..06bed74 100644
+--- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
++++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
+@@ -60,7 +60,7 @@ synproxy_send_tcp(struct net *net,
+ 	fl6.fl6_dport = nth->dest;
+ 	security_skb_classify_flow((struct sk_buff *)skb, flowi6_to_flowi(&fl6));
+ 	dst = ip6_route_output(net, NULL, &fl6);
+-	if (dst == NULL || dst->error) {
++	if (dst->error) {
+ 		dst_release(dst);
+ 		goto free_nskb;
+ 	}
+-- 
+1.7.9.5
+
+
