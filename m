@@ -1,55 +1,60 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: [PATCH] netfilter: resolve compilation error in userspace when using ip_tables.h
-Date: Fri, 22 Apr 2016 16:04:30 +0200
-Message-ID: <1461333870-17030-1-git-send-email-jengelh@inai.de>
-References: <alpine.LSU.2.20.1604221535250.14824@nerf40.vanv.qr>
-Cc: netfilter-devel@vger.kernel.org, mikko.rapeli@iki.fi,
-	normand@linux.vnet.ibm.com
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:46998 "EHLO ares41.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753409AbcDVOEc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Apr 2016 10:04:32 -0400
-In-Reply-To: <alpine.LSU.2.20.1604221535250.14824@nerf40.vanv.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: [PATCH net-next 0/9] netlink: align attributes when needed (patchset #1)
+Date: Fri, 22 Apr 2016 17:31:15 +0200
+Message-ID: <1461339084-3849-1-git-send-email-nicolas.dichtel@6wind.com>
+Cc: davem@davemloft.net, linux-kernel@vger.kernel.org,
+	linux-wpan@vger.kernel.org, aar@pengutronix.de,
+	pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	pshelar@nicira.com, kuznet@ms2.inr.ac.ru, jmorris@namei.org,
+	yoshfuji@linux-ipv6.org, netfilter-devel@vger.kernel.org,
+	dev@openvswitch.org, steffen.klassert@secunet.com,
+	herbert@gondor.apana.org.au, bsingharora@gmail.com
+To: netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Compilation of iptables plugins which include these two lines
 
-	#include <xtables.h>
-	#include <linux/netfilter_ipv4/ip_tables.h>
+This is the continuation of the work done to align netlink attributes
+when these attributes contain some 64-bit fields.
 
-fails since commit 1ffad83dffd675cd742286ae82dca7d746cb0da8, because
-the userspace parts almost everywhere include <net/if.h>, which
-collides with <linux/if.h>.
+David, if the third patch is too big (or maybe the series), I can split it.
+Just tell me what you prefer.
 
-Use the __KERNEL__ trick that was last present in
-d16cf20e2f2f13411eece7f7fb72c17d141c4a84^:include/linux/netfilter_ipv4/ip_queue.h
-to resolve this.
+ include/linux/netfilter/ipset/ip_set.h             |  9 ++--
+ include/net/netlink.h                              | 60 ++++++++++++++++------
+ include/net/nl802154.h                             |  6 +++
+ include/uapi/linux/fib_rules.h                     |  1 +
+ include/uapi/linux/l2tp.h                          |  1 +
+ include/uapi/linux/lwtunnel.h                      |  2 +
+ include/uapi/linux/neighbour.h                     |  2 +
+ include/uapi/linux/netfilter/ipset/ip_set.h        |  1 +
+ include/uapi/linux/netfilter/nf_tables.h           |  8 +++
+ include/uapi/linux/netfilter/nfnetlink_acct.h      |  1 +
+ include/uapi/linux/netfilter/nfnetlink_conntrack.h |  3 ++
+ include/uapi/linux/openvswitch.h                   |  1 +
+ include/uapi/linux/tcp_metrics.h                   |  1 +
+ include/uapi/linux/xfrm.h                          |  1 +
+ kernel/taskstats.c                                 | 37 ++-----------
+ lib/nlattr.c                                       |  8 ++-
+ net/core/fib_rules.c                               |  4 +-
+ net/core/neighbour.c                               | 19 +++----
+ net/ieee802154/nl802154.c                          | 13 +++--
+ net/ipv4/ip_tunnel_core.c                          | 10 ++--
+ net/ipv4/tcp_metrics.c                             |  6 ++-
+ net/l2tp/l2tp_netlink.c                            |  3 +-
+ net/netfilter/nf_conntrack_netlink.c               | 18 ++++---
+ net/netfilter/nf_conntrack_proto_dccp.c            |  4 +-
+ net/netfilter/nf_tables_api.c                      | 24 ++++++---
+ net/netfilter/nf_tables_trace.c                    |  5 +-
+ net/netfilter/nfnetlink_acct.c                     |  9 ++--
+ net/netfilter/nft_counter.c                        |  6 ++-
+ net/netfilter/nft_dynset.c                         |  3 +-
+ net/netfilter/nft_limit.c                          |  6 ++-
+ net/openvswitch/flow_netlink.c                     |  5 +-
+ net/xfrm/xfrm_user.c                               | 10 ++--
+ 32 files changed, 178 insertions(+), 109 deletions(-)
 
-Signed-off-by: Jan Engelhardt <jengelh@inai.de>
----
- include/uapi/linux/netfilter_ipv4/ip_tables.h | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/include/uapi/linux/netfilter_ipv4/ip_tables.h b/include/uapi/linux/netfilter_ipv4/ip_tables.h
-index d0da53d..784a4b7 100644
---- a/include/uapi/linux/netfilter_ipv4/ip_tables.h
-+++ b/include/uapi/linux/netfilter_ipv4/ip_tables.h
-@@ -17,7 +17,11 @@
- 
- #include <linux/types.h>
- #include <linux/compiler.h>
--#include <linux/if.h>
-+#ifdef __KERNEL__
-+#	include <linux/if.h>
-+#else
-+#	include <net/if.h>
-+#endif
- #include <linux/netfilter_ipv4.h>
- 
- #include <linux/netfilter/x_tables.h>
--- 
-2.6.6
-
+Comments are welcomed,
+Regards,
+Nicolas
