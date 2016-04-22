@@ -1,42 +1,38 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH] netfilter: ip6t_SYNPROXY: unnecessary to check whether ip6_route_output returns NULL
-Date: Fri, 22 Apr 2016 02:56:57 -0700
-Message-ID: <1461319017-3421-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m50-135.163.com ([123.125.50.135]:44320 "EHLO m50-135.163.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751084AbcDVJ5a (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Apr 2016 05:57:30 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 05/23] netfilter: x_tables: assert minimum target size
+Date: Fri, 22 Apr 2016 15:39:36 +0200
+Message-ID: <1461332394-3994-6-git-send-email-pablo@netfilter.org>
+References: <1461332394-3994-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1461332394-3994-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+From: Florian Westphal <fw@strlen.de>
 
-ip6_route_output() will never return a NULL pointer, so there's no need
-to check it.
+The target size includes the size of the xt_entry_target struct.
 
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/ipv6/netfilter/ip6t_SYNPROXY.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/x_tables.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/ipv6/netfilter/ip6t_SYNPROXY.c b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-index 5d778dd..06bed74 100644
---- a/net/ipv6/netfilter/ip6t_SYNPROXY.c
-+++ b/net/ipv6/netfilter/ip6t_SYNPROXY.c
-@@ -60,7 +60,7 @@ synproxy_send_tcp(struct net *net,
- 	fl6.fl6_dport = nth->dest;
- 	security_skb_classify_flow((struct sk_buff *)skb, flowi6_to_flowi(&fl6));
- 	dst = ip6_route_output(net, NULL, &fl6);
--	if (dst == NULL || dst->error) {
-+	if (dst->error) {
- 		dst_release(dst);
- 		goto free_nskb;
- 	}
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 1f44bfa..ec1b718 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -568,6 +568,9 @@ int xt_check_entry_offsets(const void *base,
+ 		return -EINVAL;
+ 
+ 	t = (void *)(e + target_offset);
++	if (t->u.target_size < sizeof(*t))
++		return -EINVAL;
++
+ 	if (target_offset + t->u.target_size > next_offset)
+ 		return -EINVAL;
+ 
 -- 
-1.7.9.5
-
-
+2.1.4
