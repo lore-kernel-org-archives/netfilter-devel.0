@@ -1,41 +1,55 @@
 From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: xtables-addons build failed with linux 4.5 header
-Date: Fri, 22 Apr 2016 15:46:26 +0200 (CEST)
-Message-ID: <alpine.LSU.2.20.1604221535250.14824@nerf40.vanv.qr>
-References: <57175EB6.8040308@linux.vnet.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, normand@linux.vnet.ibm.com
-To: mikko.rapeli@iki.fi
+Subject: [PATCH] netfilter: resolve compilation error in userspace when using ip_tables.h
+Date: Fri, 22 Apr 2016 16:04:30 +0200
+Message-ID: <1461333870-17030-1-git-send-email-jengelh@inai.de>
+References: <alpine.LSU.2.20.1604221535250.14824@nerf40.vanv.qr>
+Cc: netfilter-devel@vger.kernel.org, mikko.rapeli@iki.fi,
+	normand@linux.vnet.ibm.com
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:46894 "EHLO ares41.inai.de"
+Received: from ares41.inai.de ([46.4.122.207]:46998 "EHLO ares41.inai.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752918AbcDVNq2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Apr 2016 09:46:28 -0400
-In-Reply-To: <57175EB6.8040308@linux.vnet.ibm.com>
+	id S1753409AbcDVOEc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Apr 2016 10:04:32 -0400
+In-Reply-To: <alpine.LSU.2.20.1604221535250.14824@nerf40.vanv.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Compilation of iptables plugins which include these two lines
 
-On Wednesday 2016-04-20 12:49, Normand wrote:
-> -fasynchronous-unwind-tables -g -o libxt_pknock.oo -c libxt_pknock.c;
-> [   81s] In file included from /usr/include/iptables/xtables.h:16:0,
-> [   81s]                  from libxt_pknock.c:15:
-> [   81s] /usr/include/linux/if.h:71:2: error: redeclaration of enumerator
-> 'IFF_UP'
-> [   81s]   IFF_UP    = 1<<0,  /* sysfs */
-> [   81s]   ^
+	#include <xtables.h>
+	#include <linux/netfilter_ipv4/ip_tables.h>
 
-git blame include/uapi/linux/netfilter_ipv4/ip_tables.h:
-1ffad83d (Mikko Rapeli  2015-10-15 07:56:30 +0200  20) #include <linux/if.h>
+fails since commit 1ffad83dffd675cd742286ae82dca7d746cb0da8, because
+the userspace parts almost everywhere include <net/if.h>, which
+collides with <linux/if.h>.
 
-Great. That commit broke userspace programs like
+Use the __KERNEL__ trick that was last present in
+d16cf20e2f2f13411eece7f7fb72c17d141c4a84^:include/linux/netfilter_ipv4/ip_queue.h
+to resolve this.
 
- #include <net/if.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+---
+ include/uapi/linux/netfilter_ipv4/ip_tables.h | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-The only reason it did not break the iptables source code _yet_ is 
-because iptables.git keeps a cached copy (old by now). As soon as 
-someone updates those too as part of the regular routine, all goes to 
-the bin.
+diff --git a/include/uapi/linux/netfilter_ipv4/ip_tables.h b/include/uapi/linux/netfilter_ipv4/ip_tables.h
+index d0da53d..784a4b7 100644
+--- a/include/uapi/linux/netfilter_ipv4/ip_tables.h
++++ b/include/uapi/linux/netfilter_ipv4/ip_tables.h
+@@ -17,7 +17,11 @@
+ 
+ #include <linux/types.h>
+ #include <linux/compiler.h>
+-#include <linux/if.h>
++#ifdef __KERNEL__
++#	include <linux/if.h>
++#else
++#	include <net/if.h>
++#endif
+ #include <linux/netfilter_ipv4.h>
+ 
+ #include <linux/netfilter/x_tables.h>
+-- 
+2.6.6
+
