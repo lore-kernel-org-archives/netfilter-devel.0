@@ -1,117 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 01/23] netfilter: x_tables: don't move to non-existent next rule
-Date: Fri, 22 Apr 2016 15:39:32 +0200
-Message-ID: <1461332394-3994-2-git-send-email-pablo@netfilter.org>
-References: <1461332394-3994-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1461332394-3994-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: xtables-addons build failed with linux 4.5 header
+Date: Fri, 22 Apr 2016 15:46:26 +0200 (CEST)
+Message-ID: <alpine.LSU.2.20.1604221535250.14824@nerf40.vanv.qr>
+References: <57175EB6.8040308@linux.vnet.ibm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, normand@linux.vnet.ibm.com
+To: mikko.rapeli@iki.fi
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ares41.inai.de ([46.4.122.207]:46894 "EHLO ares41.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752918AbcDVNq2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Apr 2016 09:46:28 -0400
+In-Reply-To: <57175EB6.8040308@linux.vnet.ibm.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Florian Westphal <fw@strlen.de>
 
-Ben Hawkes says:
+On Wednesday 2016-04-20 12:49, Normand wrote:
+> -fasynchronous-unwind-tables -g -o libxt_pknock.oo -c libxt_pknock.c;
+> [   81s] In file included from /usr/include/iptables/xtables.h:16:0,
+> [   81s]                  from libxt_pknock.c:15:
+> [   81s] /usr/include/linux/if.h:71:2: error: redeclaration of enumerator
+> 'IFF_UP'
+> [   81s]   IFF_UP    = 1<<0,  /* sysfs */
+> [   81s]   ^
 
- In the mark_source_chains function (net/ipv4/netfilter/ip_tables.c) it
- is possible for a user-supplied ipt_entry structure to have a large
- next_offset field. This field is not bounds checked prior to writing a
- counter value at the supplied offset.
+git blame include/uapi/linux/netfilter_ipv4/ip_tables.h:
+1ffad83d (Mikko Rapeli  2015-10-15 07:56:30 +0200  20) #include <linux/if.h>
 
-Base chains enforce absolute verdict.
+Great. That commit broke userspace programs like
 
-User defined chains are supposed to end with an unconditional return,
-xtables userspace adds them automatically.
+ #include <net/if.h>
+ #include <linux/netfilter_ipv4/ip_tables.h>
 
-But if such return is missing we will move to non-existent next rule.
-
-Reported-by: Ben Hawkes <hawkes@google.com>
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/ipv4/netfilter/arp_tables.c | 8 +++++---
- net/ipv4/netfilter/ip_tables.c  | 4 ++++
- net/ipv6/netfilter/ip6_tables.c | 4 ++++
- 3 files changed, 13 insertions(+), 3 deletions(-)
-
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 4133b0f..82a434b 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -439,6 +439,8 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
- 				size = e->next_offset;
- 				e = (struct arpt_entry *)
- 					(entry0 + pos + size);
-+				if (pos + size >= newinfo->size)
-+					return 0;
- 				e->counters.pcnt = pos;
- 				pos += size;
- 			} else {
-@@ -461,6 +463,8 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
- 				} else {
- 					/* ... this is a fallthru */
- 					newpos = pos + e->next_offset;
-+					if (newpos >= newinfo->size)
-+						return 0;
- 				}
- 				e = (struct arpt_entry *)
- 					(entry0 + newpos);
-@@ -691,10 +695,8 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
- 		}
- 	}
- 
--	if (!mark_source_chains(newinfo, repl->valid_hooks, entry0)) {
--		duprintf("Looping hook\n");
-+	if (!mark_source_chains(newinfo, repl->valid_hooks, entry0))
- 		return -ELOOP;
--	}
- 
- 	/* Finally, each sanity check must pass */
- 	i = 0;
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 631c100..e301a3d 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -520,6 +520,8 @@ mark_source_chains(const struct xt_table_info *newinfo,
- 				size = e->next_offset;
- 				e = (struct ipt_entry *)
- 					(entry0 + pos + size);
-+				if (pos + size >= newinfo->size)
-+					return 0;
- 				e->counters.pcnt = pos;
- 				pos += size;
- 			} else {
-@@ -541,6 +543,8 @@ mark_source_chains(const struct xt_table_info *newinfo,
- 				} else {
- 					/* ... this is a fallthru */
- 					newpos = pos + e->next_offset;
-+					if (newpos >= newinfo->size)
-+						return 0;
- 				}
- 				e = (struct ipt_entry *)
- 					(entry0 + newpos);
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 86b67b7..7b3335b 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -532,6 +532,8 @@ mark_source_chains(const struct xt_table_info *newinfo,
- 				size = e->next_offset;
- 				e = (struct ip6t_entry *)
- 					(entry0 + pos + size);
-+				if (pos + size >= newinfo->size)
-+					return 0;
- 				e->counters.pcnt = pos;
- 				pos += size;
- 			} else {
-@@ -553,6 +555,8 @@ mark_source_chains(const struct xt_table_info *newinfo,
- 				} else {
- 					/* ... this is a fallthru */
- 					newpos = pos + e->next_offset;
-+					if (newpos >= newinfo->size)
-+						return 0;
- 				}
- 				e = (struct ip6t_entry *)
- 					(entry0 + newpos);
--- 
-2.1.4
+The only reason it did not break the iptables source code _yet_ is 
+because iptables.git keeps a cached copy (old by now). As soon as 
+someone updates those too as part of the regular routine, all goes to 
+the bin.
