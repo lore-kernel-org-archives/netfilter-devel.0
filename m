@@ -1,58 +1,54 @@
-From: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH net-next 2/9] libnl: nla_put_le64(): align on
- a 64-bit area
-Date: Fri, 22 Apr 2016 09:51:20 -0700
-Message-ID: <1461343880.7627.34.camel@edumazet-glaptop3.roam.corp.google.com>
-References: <1461339084-3849-1-git-send-email-nicolas.dichtel@6wind.com>
- <1461339084-3849-3-git-send-email-nicolas.dichtel@6wind.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org,
- herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org, aar-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- bsingharora-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org,
- yoshfuji-VfPWfsRibaP+Ru+s062T9g@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org, jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org,
- linux-wpan-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org
-To: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <1461339084-3849-3-git-send-email-nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 0/4] Interval overlap detection for named sets
+Date: Sat, 23 Apr 2016 18:08:36 +0200
+Message-ID: <1461427720-4939-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:33747 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751826AbcDWQIv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 23 Apr 2016 12:08:51 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 054C8114812
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Apr 2016 18:08:48 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id EC0AB9D119
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Apr 2016 18:08:47 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id C3ADB9D119
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Apr 2016 18:08:45 +0200 (CEST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-T24gRnJpLCAyMDE2LTA0LTIyIGF0IDE3OjMxICswMjAwLCBOaWNvbGFzIERpY2h0ZWwgd3JvdGU6
-Cj4gbmxhX2RhdGEoKSBpcyBub3cgYWxpZ25lZCBvbiBhIDY0LWJpdCBhcmVhLgo+IAo+IFNpZ25l
-ZC1vZmYtYnk6IE5pY29sYXMgRGljaHRlbCA8bmljb2xhcy5kaWNodGVsQDZ3aW5kLmNvbT4KPiAt
-LS0KPiAgaW5jbHVkZS9uZXQvbmV0bGluay5oICAgICB8ICA4ICsrKysrLS0tCj4gIGluY2x1ZGUv
-bmV0L25sODAyMTU0LmggICAgfCAgNiArKysrKysKPiAgbmV0L2llZWU4MDIxNTQvbmw4MDIxNTQu
-YyB8IDEzICsrKysrKysrLS0tLS0KPiAgMyBmaWxlcyBjaGFuZ2VkLCAxOSBpbnNlcnRpb25zKCsp
-LCA4IGRlbGV0aW9ucygtKQo+IAo+IGRpZmYgLS1naXQgYS9pbmNsdWRlL25ldC9uZXRsaW5rLmgg
-Yi9pbmNsdWRlL25ldC9uZXRsaW5rLmgKPiBpbmRleCA2ZjUxYThhMDY0OTguLjdmNmI5OTQ4M2Fi
-NyAxMDA2NDQKPiAtLS0gYS9pbmNsdWRlL25ldC9uZXRsaW5rLmgKPiArKysgYi9pbmNsdWRlL25l
-dC9uZXRsaW5rLmgKPiBAQCAtODc4LDE0ICs4NzgsMTYgQEAgc3RhdGljIGlubGluZSBpbnQgbmxh
-X3B1dF9uZXQ2NChzdHJ1Y3Qgc2tfYnVmZiAqc2tiLCBpbnQgYXR0cnR5cGUsIF9fYmU2NCB2YWx1
-ZSkKPiAgfQo+ICAKPiAgLyoqCj4gLSAqIG5sYV9wdXRfbGU2NCAtIEFkZCBhIF9fbGU2NCBuZXRs
-aW5rIGF0dHJpYnV0ZSB0byBhIHNvY2tldCBidWZmZXIKPiArICogbmxhX3B1dF9sZTY0IC0gQWRk
-IGEgX19sZTY0IG5ldGxpbmsgYXR0cmlidXRlIHRvIGEgc29ja2V0IGJ1ZmZlciBhbmQgYWxpZ24g
-aXQKPiAgICogQHNrYjogc29ja2V0IGJ1ZmZlciB0byBhZGQgYXR0cmlidXRlIHRvCj4gICAqIEBh
-dHRydHlwZTogYXR0cmlidXRlIHR5cGUKPiAgICogQHZhbHVlOiBudW1lcmljIHZhbHVlCj4gKyAq
-IEBwYWRhdHRyOiBhdHRyaWJ1dGUgdHlwZSBmb3IgdGhlIHBhZGRpbmcKPiAgICovCj4gLXN0YXRp
-YyBpbmxpbmUgaW50IG5sYV9wdXRfbGU2NChzdHJ1Y3Qgc2tfYnVmZiAqc2tiLCBpbnQgYXR0cnR5
-cGUsIF9fbGU2NCB2YWx1ZSkKPiArc3RhdGljIGlubGluZSBpbnQgbmxhX3B1dF9sZTY0KHN0cnVj
-dCBza19idWZmICpza2IsIGludCBhdHRydHlwZSwgX19sZTY0IHZhbHVlLAo+ICsJCQkgICAgICAg
-aW50IHBhZGF0dHIpCj4gIHsKPiAtCXJldHVybiBubGFfcHV0KHNrYiwgYXR0cnR5cGUsIHNpemVv
-ZihfX2xlNjQpLCAmdmFsdWUpOwo+ICsJcmV0dXJuIG5sYV9wdXRfNjRiaXQoc2tiLCBhdHRydHlw
-ZSwgc2l6ZW9mKF9fbGU2NCksICZ2YWx1ZSwgcGFkYXR0cik7Cj4gIH0KPiAgCgpCdXQgX3doeV8g
-aXMgaXQgbmVlZGVkID8KCm5sYV9wdXQoKSBoYXMgbm8gYWxpZ25tZW50IGFzc3VtcHRpb25zLCBp
-dCBzaW1wbHkgY29waWVzIDggYnl0ZXMuCgpTZWVtcyB0aGlzIGlzIGdvaW5nIHRvbyBmYXIuCgoK
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRldiBtYWls
-aW5nIGxpc3QKZGV2QG9wZW52c3dpdGNoLm9yZwpodHRwOi8vb3BlbnZzd2l0Y2gub3JnL21haWxt
-YW4vbGlzdGluZm8vZGV2Cg==
+Hi,
+
+This patchset adds the missing code to reject overlapping intervals.
+
+ # nft add table ip filter
+ # nft add set ip filter myset { type ipv4_addr\; flags interval\; }
+ # nft add chain ip filter output { type filter hook output priority 0\; }
+ # nft add rule ip daddr @myset counter packets 0 bytes 0
+ # nft add element ip filter myset { 127.0.0.0/16 }
+
+Then, if you add an overlapping element:
+
+ # nft add element ip filter myset { 127.0.0.0/24 }
+ <cmdline>:1:31-42: Error: interval overlaps with an existing one
+ add element ip filter myset { 127.0.0.0/24 }
+                               ^^^^^^^^^^^^
+
+The new validation code from userspace rejects this to avoid shadowing
+issues.
+
+Pablo Neira Ayuso (4):
+  segtree: set expr->len for prefix expression from interval_map_decompose()
+  segtree: add expr_to_intervals()
+  segtree: rename set expression set_to_segtree()
+  segtree: add interval overlap detection for dynamic updates
+
+ src/segtree.c | 92 +++++++++++++++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 80 insertions(+), 12 deletions(-)
+
+-- 
+2.1.4
+
