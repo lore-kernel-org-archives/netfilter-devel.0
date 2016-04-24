@@ -1,130 +1,137 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH nft 5/6] proto: add protocol header fields filter and ordering for packet decoding
-Date: Sun, 24 Apr 2016 22:30:39 +0100
-Message-ID: <1461533440-10605-6-git-send-email-kaber@trash.net>
+Subject: [PATCH nft 4/6] payload: add payload_is_stacked()
+Date: Sun, 24 Apr 2016 22:30:38 +0100
+Message-ID: <1461533440-10605-5-git-send-email-kaber@trash.net>
 References: <1461533440-10605-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org, fw@strlen.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52079 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:52076 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753124AbcDXVjU (ORCPT
+	with ESMTP id S1753174AbcDXVjU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Sun, 24 Apr 2016 17:39:20 -0400
 In-Reply-To: <1461533440-10605-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The next patch introduces packet decoding for tracing messages based on
-the proto definitions. In order to provide a readable output, add a filter
-to surpress uninteresting header fields and allow to specify and explicit
-output order.
+Add payload_is_stacked() to determine whether a protocol expression match defines
+a stacked protocol on the same layer.
 
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 ---
- include/proto.h |  5 +++++
- src/proto.c     | 37 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 42 insertions(+)
+ include/payload.h         |  2 ++
+ src/netlink_delinearize.c | 28 +++++-----------------------
+ src/payload.c             | 20 ++++++++++++++++++++
+ 3 files changed, 27 insertions(+), 23 deletions(-)
 
-diff --git a/include/proto.h b/include/proto.h
-index c252a67..2a662a1 100644
---- a/include/proto.h
-+++ b/include/proto.h
-@@ -85,6 +85,11 @@ struct proto_desc {
- 		const struct proto_desc		*desc;
- 	}				protocols[PROTO_UPPER_MAX];
- 	struct proto_hdr_template	templates[PROTO_HDRS_MAX];
-+	struct {
-+		uint8_t				order[PROTO_HDRS_MAX];
-+		uint32_t			filter;
-+	}				format;
+diff --git a/include/payload.h b/include/payload.h
+index eb9ff17..b180ff5 100644
+--- a/include/payload.h
++++ b/include/payload.h
+@@ -30,6 +30,8 @@ struct payload_dep_ctx {
+ 	struct stmt		*prev;
+ };
+ 
++extern bool payload_is_stacked(const struct proto_desc *desc,
++			       const struct expr *expr);
+ extern void payload_dependency_store(struct payload_dep_ctx *ctx,
+ 				     struct stmt *stmt,
+ 				     enum proto_bases base);
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 59e5f3e..84f94fc 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1032,27 +1032,6 @@ static void integer_type_postprocess(struct expr *expr)
+ 	}
+ }
+ 
+-static void payload_dependency_save(struct rule_pp_ctx *ctx, unsigned int base,
+-				    struct stmt *nstmt, struct expr *tmp)
+-{
+-	unsigned int proto = mpz_get_be16(tmp->value);
+-	const struct proto_desc *desc, *next;
+-	bool stacked_header = false;
+-
+-	desc = ctx->pctx.protocol[base].desc;
+-
+-	assert(desc);
+-	if (desc) {
+-		next = proto_find_upper(desc, proto);
+-		stacked_header = next && next->base == base;
+-	}
+-
+-	if (stacked_header)
+-		payload_dependency_store(&ctx->pdctx, nstmt, base - 1);
+-	else
+-		payload_dependency_store(&ctx->pdctx, nstmt, base);
+-}
+-
+ static void payload_match_expand(struct rule_pp_ctx *ctx,
+ 				 struct expr *expr,
+ 				 struct expr *payload)
+@@ -1063,6 +1042,7 @@ static void payload_match_expand(struct rule_pp_ctx *ctx,
+ 	struct expr *nexpr = NULL;
+ 	enum proto_bases base = left->payload.base;
+ 	const struct expr_ops *payload_ops = left->ops;
++	bool stacked;
+ 
+ 	payload_expr_expand(&list, left, &ctx->pctx);
+ 
+@@ -1084,6 +1064,8 @@ static void payload_match_expand(struct rule_pp_ctx *ctx,
+ 		assert(left->payload.base);
+ 		assert(base == left->payload.base);
+ 
++		stacked = payload_is_stacked(ctx->pctx.protocol[base].desc, nexpr);
 +
- };
+ 		/* Remember the first payload protocol expression to
+ 		 * kill it later on if made redundant by a higher layer
+ 		 * payload expression.
+@@ -1091,11 +1073,11 @@ static void payload_match_expand(struct rule_pp_ctx *ctx,
+ 		if (ctx->pdctx.pbase == PROTO_BASE_INVALID &&
+ 		    expr->op == OP_EQ &&
+ 		    left->flags & EXPR_F_PROTOCOL) {
+-			payload_dependency_save(ctx, base, nstmt, tmp);
++			payload_dependency_store(&ctx->pdctx, nstmt, base - stacked);
+ 		} else {
+ 			payload_dependency_kill(&ctx->pdctx, nexpr->left);
+ 			if (left->flags & EXPR_F_PROTOCOL)
+-				payload_dependency_save(ctx, base, nstmt, tmp);
++				payload_dependency_store(&ctx->pdctx, nstmt, base - stacked);
+ 		}
+ 	}
+ 	list_del(&ctx->stmt->list);
+diff --git a/src/payload.c b/src/payload.c
+index 9dca56b..0bbfb54 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -322,6 +322,26 @@ int exthdr_gen_dependency(struct eval_ctx *ctx, const struct expr *expr,
+ }
  
- #define PROTO_LINK(__num, __desc)	{ .num = (__num), .desc = (__desc), }
-diff --git a/src/proto.c b/src/proto.c
-index 329d991..cecde0f 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -244,6 +244,12 @@ const struct proto_desc proto_ah = {
- 		[AHHDR_SPI]		= AHHDR_FIELD("spi", spi),
- 		[AHHDR_SEQUENCE]	= AHHDR_FIELD("sequence", seq_no),
- 	},
-+	.format		= {
-+		.order	= {
-+			AHHDR_SPI, AHHDR_HDRLENGTH, AHHDR_NEXTHDR,
-+		},
-+		.filter	= (1 << AHHDR_RESERVED) | (1 << AHHDR_SEQUENCE)
-+	},
- };
- 
- /*
-@@ -431,6 +437,11 @@ const struct proto_desc proto_tcp = {
- 		[TCPHDR_CHECKSUM]	= TCPHDR_FIELD("checksum", check),
- 		[TCPHDR_URGPTR]		= TCPHDR_FIELD("urgptr", urg_ptr),
- 	},
-+	.format		= {
-+		.filter	= (1 << TCPHDR_SEQ) | (1 << TCPHDR_ACKSEQ) |
-+			  (1 << TCPHDR_DOFF) | (1 << TCPHDR_RESERVED) |
-+			  (1 << TCPHDR_URGPTR),
-+	},
- };
- 
- /*
-@@ -535,6 +546,14 @@ const struct proto_desc proto_ip = {
- 		[IPHDR_SADDR]		= IPHDR_ADDR("saddr",		saddr),
- 		[IPHDR_DADDR]		= IPHDR_ADDR("daddr",		daddr),
- 	},
-+	.format		= {
-+		.order	= {
-+			IPHDR_SADDR, IPHDR_DADDR, IPHDR_TOS, IPHDR_TTL,
-+			IPHDR_ID, IPHDR_PROTOCOL, IPHDR_LENGTH,
-+		},
-+		.filter	= (1 << IPHDR_VERSION)  | (1 << IPHDR_HDRLENGTH) |
-+			  (1 << IPHDR_FRAG_OFF),
-+	},
- };
- 
- /*
-@@ -631,6 +650,14 @@ const struct proto_desc proto_ip6 = {
- 		[IP6HDR_SADDR]		= IP6HDR_ADDR("saddr",		saddr),
- 		[IP6HDR_DADDR]		= IP6HDR_ADDR("daddr",		daddr),
- 	},
-+	.format		= {
-+		.order	= {
-+			IP6HDR_SADDR, IP6HDR_DADDR, IP6HDR_PRIORITY,
-+			IP6HDR_HOPLIMIT, IP6HDR_FLOWLABEL, IP6HDR_NEXTHDR,
-+			IP6HDR_LENGTH,
-+		},
-+		.filter	= (1 << IP6HDR_VERSION),
-+	},
- };
- 
- /*
-@@ -719,6 +746,10 @@ const struct proto_desc proto_arp = {
- 		[ARPHDR_PLN]		= ARPHDR_FIELD("plen", ar_pln),
- 		[ARPHDR_OP]		= ARPHDR_TYPE("operation", &arpop_type, ar_op),
- 	},
-+	.format		= {
-+		.filter	= (1 << ARPHDR_HRD) | (1 << ARPHDR_PRO) |
-+			  (1 << ARPHDR_HLN) | (1 << ARPHDR_PLN),
-+	},
- };
- 
- /*
-@@ -818,6 +849,12 @@ const struct proto_desc proto_eth = {
- 		[ETHHDR_SADDR]		= ETHHDR_ADDR("saddr", ether_shost),
- 		[ETHHDR_TYPE]		= ETHHDR_TYPE("type", ether_type),
- 	},
-+	.format		= {
-+		.order	= {
-+			ETHHDR_SADDR, ETHHDR_DADDR, ETHHDR_TYPE,
-+		},
-+	},
+ /**
++ * payload_is_stacked - return whether a payload protocol match defines a stacked
++ * 			protocol on the same layer
++ *
++ * @desc: current protocol description on this layer
++ * @expr: payload match
++ */
++bool payload_is_stacked(const struct proto_desc *desc, const struct expr *expr)
++{
++	const struct proto_desc *next;
 +
- };
- 
- /*
++	if (expr->left->ops->type != EXPR_PAYLOAD ||
++	    !(expr->left->flags & EXPR_F_PROTOCOL) ||
++	    expr->op != OP_EQ)
++		return false;
++
++	next = proto_find_upper(desc, mpz_get_be16(expr->right->value));
++	return next && next->base == desc->base;
++}
++
++/**
+  * payload_dependency_store - store a possibly redundant protocol match
+  *
+  * @ctx: payload dependency context
 -- 
 2.5.5
 
