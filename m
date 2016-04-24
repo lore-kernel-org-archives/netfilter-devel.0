@@ -1,115 +1,130 @@
-From: Hannes Frederic Sowa <hannes@stressinduktion.org>
-Subject: Re: [PATCH nf-next 2/3] netfilter: conntrack: use get_random_once for
- nat and expectations
-Date: Sun, 24 Apr 2016 20:59:17 +0200
-Message-ID: <571D1785.7040509@stressinduktion.org>
-References: <1460989021-10780-1-git-send-email-fw@strlen.de>
- <1460989021-10780-3-git-send-email-fw@strlen.de>
- <20160424140915.GA1141@salvia> <20160424151620.GA27317@breakpoint.cc>
- <571D0751.5020504@stressinduktion.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH nft 5/6] proto: add protocol header fields filter and ordering for packet decoding
+Date: Sun, 24 Apr 2016 22:30:39 +0100
+Message-ID: <1461533440-10605-6-git-send-email-kaber@trash.net>
+References: <1461533440-10605-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+To: pablo@netfilter.org, fw@strlen.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out2-smtp.messagingengine.com ([66.111.4.26]:55865 "EHLO
-	out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751440AbcDXS7V (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:52079 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753124AbcDXVjU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Apr 2016 14:59:21 -0400
-Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
-	by mailout.nyi.internal (Postfix) with ESMTP id 4A63125E24
-	for <netfilter-devel@vger.kernel.org>; Sun, 24 Apr 2016 14:59:20 -0400 (EDT)
-In-Reply-To: <571D0751.5020504@stressinduktion.org>
+	Sun, 24 Apr 2016 17:39:20 -0400
+In-Reply-To: <1461533440-10605-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 24.04.2016 19:50, Hannes Frederic Sowa wrote:
-> Hello,
-> 
-> On 24.04.2016 17:16, Florian Westphal wrote:
->> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->>
->> [ CC Hannes ]
->>
->>> On Mon, Apr 18, 2016 at 04:17:00PM +0200, Florian Westphal wrote:
->>>> Use a private seed and init it using get_random_once.
->>>>
->>>> Signed-off-by: Florian Westphal <fw@strlen.de>
->>>> ---
->>>>  net/netfilter/nf_conntrack_expect.c | 7 +++----
->>>>  net/netfilter/nf_nat_core.c         | 6 ++++--
->>>>  2 files changed, 7 insertions(+), 6 deletions(-)
->>>>
->>>> diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
->>>> index 278927a..c2f7c4f 100644
->>>> --- a/net/netfilter/nf_conntrack_expect.c
->>>> +++ b/net/netfilter/nf_conntrack_expect.c
->>>> @@ -38,6 +38,7 @@ EXPORT_SYMBOL_GPL(nf_ct_expect_hsize);
->>>>  unsigned int nf_ct_expect_max __read_mostly;
->>>>  
->>>>  static struct kmem_cache *nf_ct_expect_cachep __read_mostly;
->>>> +static unsigned int nf_ct_expect_hashrnd __read_mostly;
->>>>  
->>>>  /* nf_conntrack_expect helper functions */
->>>>  void nf_ct_unlink_expect_report(struct nf_conntrack_expect *exp,
->>>> @@ -76,13 +77,11 @@ static unsigned int nf_ct_expect_dst_hash(const struct nf_conntrack_tuple *tuple
->>>>  {
->>>>  	unsigned int hash;
->>>>  
->>>> -	if (unlikely(!nf_conntrack_hash_rnd)) {
->>>> -		init_nf_conntrack_hash_rnd();
->>>> -	}
->>>> +	get_random_once(&nf_ct_expect_hashrnd, sizeof(nf_ct_expect_hashrnd));
->>>
->>> Not related to your patch, but to the underlying infrastructure: I can
->>> see get_random_once() implementation uses static_key_true() branch
->>> check.
->>>
->>> Shouldn't this be static_key_false() instead? On architectures with
->>> not jump_labels support, this will translate to unlikely().
->>
->> Yes, looks like it.  Hannes?
-> 
-> The code is a bit tricky but still looks correct to me.
-> 
-> static_keys are only allowed to be used in two ways:
-> 
-> static_key_false()/INIT_FALSE -> after boot the hook is disabled and the
-> branch is unlikely
-> static_key_true()/INIT_TRUE -> after book the hook is enabled and the
-> branch is likely
-> 
-> I actually need the following: after boot the hook is enabled *but* the
-> branch is unlikely, but this isn't really implemented in the jump_label
-> api and wouldn't be that easy.
-> 
-> I worked around this but Linus suggested that likely/unlikely doesn't
-> really matter that much on modern CPUs and I should simply use
-> static_key_true instead. The unlikely is the wrong annotation for this
-> particular case but the static keys internally do automatic the right
-> thing. We just have an unconditional jump instead of a nop in case of
-> the fast path right now.
-> 
-> If we really would like to improve that we would need to extend the
-> static key state, which doesn't seem worthwhile for that.
-> 
->>> If so, I can send a patch for this. I can see this DO_ONCE() API is
->>> also using the deprecated interfaces.
->>
->> I think it just predates the new api.
->>
-> 
-> Yes, that is true, we could upgrade to the new API. But also with the
-> new API all the above still holds and we still end up having the wrong
-> likely/unlikely.
+The next patch introduces packet decoding for tracing messages based on
+the proto definitions. In order to provide a readable output, add a filter
+to surpress uninteresting header fields and allow to specify and explicit
+output order.
 
-I just updated myself about the new API and we now can actually express
-the correct intention and state. If no one is already working on that, I
-can provide a patch to update net_get_random_once to the new API.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ include/proto.h |  5 +++++
+ src/proto.c     | 37 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 42 insertions(+)
 
-Thanks,
-Hannes
+diff --git a/include/proto.h b/include/proto.h
+index c252a67..2a662a1 100644
+--- a/include/proto.h
++++ b/include/proto.h
+@@ -85,6 +85,11 @@ struct proto_desc {
+ 		const struct proto_desc		*desc;
+ 	}				protocols[PROTO_UPPER_MAX];
+ 	struct proto_hdr_template	templates[PROTO_HDRS_MAX];
++	struct {
++		uint8_t				order[PROTO_HDRS_MAX];
++		uint32_t			filter;
++	}				format;
++
+ };
+ 
+ #define PROTO_LINK(__num, __desc)	{ .num = (__num), .desc = (__desc), }
+diff --git a/src/proto.c b/src/proto.c
+index 329d991..cecde0f 100644
+--- a/src/proto.c
++++ b/src/proto.c
+@@ -244,6 +244,12 @@ const struct proto_desc proto_ah = {
+ 		[AHHDR_SPI]		= AHHDR_FIELD("spi", spi),
+ 		[AHHDR_SEQUENCE]	= AHHDR_FIELD("sequence", seq_no),
+ 	},
++	.format		= {
++		.order	= {
++			AHHDR_SPI, AHHDR_HDRLENGTH, AHHDR_NEXTHDR,
++		},
++		.filter	= (1 << AHHDR_RESERVED) | (1 << AHHDR_SEQUENCE)
++	},
+ };
+ 
+ /*
+@@ -431,6 +437,11 @@ const struct proto_desc proto_tcp = {
+ 		[TCPHDR_CHECKSUM]	= TCPHDR_FIELD("checksum", check),
+ 		[TCPHDR_URGPTR]		= TCPHDR_FIELD("urgptr", urg_ptr),
+ 	},
++	.format		= {
++		.filter	= (1 << TCPHDR_SEQ) | (1 << TCPHDR_ACKSEQ) |
++			  (1 << TCPHDR_DOFF) | (1 << TCPHDR_RESERVED) |
++			  (1 << TCPHDR_URGPTR),
++	},
+ };
+ 
+ /*
+@@ -535,6 +546,14 @@ const struct proto_desc proto_ip = {
+ 		[IPHDR_SADDR]		= IPHDR_ADDR("saddr",		saddr),
+ 		[IPHDR_DADDR]		= IPHDR_ADDR("daddr",		daddr),
+ 	},
++	.format		= {
++		.order	= {
++			IPHDR_SADDR, IPHDR_DADDR, IPHDR_TOS, IPHDR_TTL,
++			IPHDR_ID, IPHDR_PROTOCOL, IPHDR_LENGTH,
++		},
++		.filter	= (1 << IPHDR_VERSION)  | (1 << IPHDR_HDRLENGTH) |
++			  (1 << IPHDR_FRAG_OFF),
++	},
+ };
+ 
+ /*
+@@ -631,6 +650,14 @@ const struct proto_desc proto_ip6 = {
+ 		[IP6HDR_SADDR]		= IP6HDR_ADDR("saddr",		saddr),
+ 		[IP6HDR_DADDR]		= IP6HDR_ADDR("daddr",		daddr),
+ 	},
++	.format		= {
++		.order	= {
++			IP6HDR_SADDR, IP6HDR_DADDR, IP6HDR_PRIORITY,
++			IP6HDR_HOPLIMIT, IP6HDR_FLOWLABEL, IP6HDR_NEXTHDR,
++			IP6HDR_LENGTH,
++		},
++		.filter	= (1 << IP6HDR_VERSION),
++	},
+ };
+ 
+ /*
+@@ -719,6 +746,10 @@ const struct proto_desc proto_arp = {
+ 		[ARPHDR_PLN]		= ARPHDR_FIELD("plen", ar_pln),
+ 		[ARPHDR_OP]		= ARPHDR_TYPE("operation", &arpop_type, ar_op),
+ 	},
++	.format		= {
++		.filter	= (1 << ARPHDR_HRD) | (1 << ARPHDR_PRO) |
++			  (1 << ARPHDR_HLN) | (1 << ARPHDR_PLN),
++	},
+ };
+ 
+ /*
+@@ -818,6 +849,12 @@ const struct proto_desc proto_eth = {
+ 		[ETHHDR_SADDR]		= ETHHDR_ADDR("saddr", ether_shost),
+ 		[ETHHDR_TYPE]		= ETHHDR_TYPE("type", ether_type),
+ 	},
++	.format		= {
++		.order	= {
++			ETHHDR_SADDR, ETHHDR_DADDR, ETHHDR_TYPE,
++		},
++	},
++
+ };
+ 
+ /*
+-- 
+2.5.5
 
