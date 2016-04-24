@@ -1,48 +1,38 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: conntrack: avoid integer overflow when resizing
-Date: Sun, 24 Apr 2016 01:18:21 +0200
-Message-ID: <1461453501-4428-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58653 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752120AbcDWXSH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 23 Apr 2016 19:18:07 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net-next 0/9] netlink: align attributes when
+ needed (patchset #1)
+Date: Sat, 23 Apr 2016 20:13:59 -0400 (EDT)
+Message-ID: <20160423.201359.395973791059696609.davem@davemloft.net>
+References: <1461339084-3849-1-git-send-email-nicolas.dichtel@6wind.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org,
+ herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org, aar-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ bsingharora-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org,
+ yoshfuji-VfPWfsRibaP+Ru+s062T9g@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org, linux-wpan-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org
+To: nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <1461339084-3849-1-git-send-email-nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-Can overflow so we might allocate very small table when bucket count is
-high on a 32bit platform.
-
-Note: resize is only possible from init_netns.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_core.c | 7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 2bbb962..11daca5 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1563,8 +1563,15 @@ void *nf_ct_alloc_hashtable(unsigned int *sizep, int nulls)
- 	unsigned int nr_slots, i;
- 	size_t sz;
- 
-+	if (*sizep > (UINT_MAX / sizeof(struct hlist_nulls_head)))
-+		return NULL;
-+
- 	BUILD_BUG_ON(sizeof(struct hlist_nulls_head) != sizeof(struct hlist_head));
- 	nr_slots = *sizep = roundup(*sizep, PAGE_SIZE / sizeof(struct hlist_nulls_head));
-+
-+	if (nr_slots > (UINT_MAX / sizeof(struct hlist_nulls_head)))
-+		return NULL;
-+
- 	sz = nr_slots * sizeof(struct hlist_nulls_head);
- 	hash = (void *)__get_free_pages(GFP_KERNEL | __GFP_NOWARN | __GFP_ZERO,
- 					get_order(sz));
--- 
-2.7.3
-
+RnJvbTogTmljb2xhcyBEaWNodGVsIDxuaWNvbGFzLmRpY2h0ZWxANndpbmQuY29tPgpEYXRlOiBG
+cmksIDIyIEFwciAyMDE2IDE3OjMxOjE1ICswMjAwCgo+IFRoaXMgaXMgdGhlIGNvbnRpbnVhdGlv
+biBvZiB0aGUgd29yayBkb25lIHRvIGFsaWduIG5ldGxpbmsgYXR0cmlidXRlcwo+IHdoZW4gdGhl
+c2UgYXR0cmlidXRlcyBjb250YWluIHNvbWUgNjQtYml0IGZpZWxkcy4KPiAKPiBEYXZpZCwgaWYg
+dGhlIHRoaXJkIHBhdGNoIGlzIHRvbyBiaWcgKG9yIG1heWJlIHRoZSBzZXJpZXMpLCBJIGNhbiBz
+cGxpdCBpdC4KPiBKdXN0IHRlbGwgbWUgd2hhdCB5b3UgcHJlZmVyLgoKVGhpcyBsb29rcyBleGNl
+bGxlbnQsIHNlcmllcyBhcHBsaWVkLCB0aGFua3MhCl9fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fCmRldiBtYWlsaW5nIGxpc3QKZGV2QG9wZW52c3dpdGNoLm9y
+ZwpodHRwOi8vb3BlbnZzd2l0Y2gub3JnL21haWxtYW4vbGlzdGluZm8vZGV2Cg==
