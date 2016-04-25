@@ -1,43 +1,97 @@
-From: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH net-next 2/9] libnl: nla_put_le64(): align on
- a 64-bit area
-Date: Mon, 25 Apr 2016 09:41:51 +0200
-Message-ID: <571DCA3F.3040403@6wind.com>
-References: <1461339084-3849-1-git-send-email-nicolas.dichtel@6wind.com>
- <1461339084-3849-3-git-send-email-nicolas.dichtel@6wind.com>
- <1461343880.7627.34.camel@edumazet-glaptop3.roam.corp.google.com>
- <60b94d1a-23a2-ec18-7f2b-2ba21946af03@pengutronix.de>
- <9d534571-916d-b368-a398-7f03a1f512ec@pengutronix.de>
-Reply-To: nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org,
- herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org, yoshfuji-VfPWfsRibaP+Ru+s062T9g@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- bsingharora-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org,
- netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org,
- kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org, jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org, linux-wpan-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org
-To: Alexander Aring <aar-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <9d534571-916d-b368-a398-7f03a1f512ec-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: [PATCH net-next 1/9] rtnl: use nla_put_u64_64bit()
+Date: Mon, 25 Apr 2016 10:25:14 +0200
+Message-ID: <1461572722-6029-2-git-send-email-nicolas.dichtel@6wind.com>
+References: <1461572722-6029-1-git-send-email-nicolas.dichtel@6wind.com>
+Cc: davem@davemloft.net, jhs@mojatatu.com, stephen@networkplumber.org,
+	pshelar@nicira.com, aar@pengutronix.de, linux-wpan@vger.kernel.org,
+	wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
+	pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	johannes@sipsolutions.net, linux-wireless@vger.kernel.org,
+	Nicolas Dichtel <nicolas.dichtel@6wind.com>
+To: netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1461572722-6029-1-git-send-email-nicolas.dichtel@6wind.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-TGUgMjMvMDQvMjAxNiAxOToyOCwgQWxleGFuZGVyIEFyaW5nIGEgw6ljcml0IDoKPgo+IEhpLAo+
-Cj4gT24gMDQvMjMvMjAxNiAwNzowNSBQTSwgQWxleGFuZGVyIEFyaW5nIHdyb3RlOgo+IC4uLgo+
-Pgo+PiBpZiB0aGlzIGlzIHJlYWxseSBuZWVkZWQsIHRoZW4gbmxhX3B1dF91NjQvYmU2NC9ldGMg
-bmVlZCB0byBiZSBjaGFuZ2VkIGFsc28sCj4KPiBPa2F5LCBJIGZvdW5kIFBBVENIIDMvOSBkbyBp
-dCBmb3IgYmU2NCwgYnV0IHdoYXQncyBhYm91dCB1NjQ/Ckl0J3MgYWxzbyBwbGFubmVkLiBJIHdp
-bGwgc2VuZCBzZXZlcmFsICJzbWFsbCIgc2VyaWVzIHRvIGVhc2UgaW50ZWdyYXRpb24uCgoKUmVn
-YXJkcywKTmljb2xhcwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpkZXYgbWFpbGluZyBsaXN0CmRldkBvcGVudnN3aXRjaC5vcmcKaHR0cDovL29wZW52c3dp
-dGNoLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Rldgo=
+Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+---
+ include/uapi/linux/if_link.h |  1 +
+ net/core/rtnetlink.c         | 36 ++++++++++++++++++------------------
+ 2 files changed, 19 insertions(+), 18 deletions(-)
+
+diff --git a/include/uapi/linux/if_link.h b/include/uapi/linux/if_link.h
+index ba69d4447249..5fdd3a42e377 100644
+--- a/include/uapi/linux/if_link.h
++++ b/include/uapi/linux/if_link.h
+@@ -666,6 +666,7 @@ enum {
+ 	IFLA_VF_STATS_TX_BYTES,
+ 	IFLA_VF_STATS_BROADCAST,
+ 	IFLA_VF_STATS_MULTICAST,
++	IFLA_VF_STATS_PAD,
+ 	__IFLA_VF_STATS_MAX,
+ };
+ 
+diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
+index 5ec059d52823..9efc1f34ef3b 100644
+--- a/net/core/rtnetlink.c
++++ b/net/core/rtnetlink.c
+@@ -825,17 +825,17 @@ static inline int rtnl_vfinfo_size(const struct net_device *dev,
+ 			 nla_total_size(sizeof(struct ifla_vf_link_state)) +
+ 			 nla_total_size(sizeof(struct ifla_vf_rss_query_en)) +
+ 			 /* IFLA_VF_STATS_RX_PACKETS */
+-			 nla_total_size(sizeof(__u64)) +
++			 nla_total_size_64bit(sizeof(__u64)) +
+ 			 /* IFLA_VF_STATS_TX_PACKETS */
+-			 nla_total_size(sizeof(__u64)) +
++			 nla_total_size_64bit(sizeof(__u64)) +
+ 			 /* IFLA_VF_STATS_RX_BYTES */
+-			 nla_total_size(sizeof(__u64)) +
++			 nla_total_size_64bit(sizeof(__u64)) +
+ 			 /* IFLA_VF_STATS_TX_BYTES */
+-			 nla_total_size(sizeof(__u64)) +
++			 nla_total_size_64bit(sizeof(__u64)) +
+ 			 /* IFLA_VF_STATS_BROADCAST */
+-			 nla_total_size(sizeof(__u64)) +
++			 nla_total_size_64bit(sizeof(__u64)) +
+ 			 /* IFLA_VF_STATS_MULTICAST */
+-			 nla_total_size(sizeof(__u64)) +
++			 nla_total_size_64bit(sizeof(__u64)) +
+ 			 nla_total_size(sizeof(struct ifla_vf_trust)));
+ 		return size;
+ 	} else
+@@ -1153,18 +1153,18 @@ static noinline_for_stack int rtnl_fill_vfinfo(struct sk_buff *skb,
+ 		nla_nest_cancel(skb, vfinfo);
+ 		return -EMSGSIZE;
+ 	}
+-	if (nla_put_u64(skb, IFLA_VF_STATS_RX_PACKETS,
+-			vf_stats.rx_packets) ||
+-	    nla_put_u64(skb, IFLA_VF_STATS_TX_PACKETS,
+-			vf_stats.tx_packets) ||
+-	    nla_put_u64(skb, IFLA_VF_STATS_RX_BYTES,
+-			vf_stats.rx_bytes) ||
+-	    nla_put_u64(skb, IFLA_VF_STATS_TX_BYTES,
+-			vf_stats.tx_bytes) ||
+-	    nla_put_u64(skb, IFLA_VF_STATS_BROADCAST,
+-			vf_stats.broadcast) ||
+-	    nla_put_u64(skb, IFLA_VF_STATS_MULTICAST,
+-			vf_stats.multicast))
++	if (nla_put_u64_64bit(skb, IFLA_VF_STATS_RX_PACKETS,
++			      vf_stats.rx_packets, IFLA_VF_STATS_PAD) ||
++	    nla_put_u64_64bit(skb, IFLA_VF_STATS_TX_PACKETS,
++			      vf_stats.tx_packets, IFLA_VF_STATS_PAD) ||
++	    nla_put_u64_64bit(skb, IFLA_VF_STATS_RX_BYTES,
++			      vf_stats.rx_bytes, IFLA_VF_STATS_PAD) ||
++	    nla_put_u64_64bit(skb, IFLA_VF_STATS_TX_BYTES,
++			      vf_stats.tx_bytes, IFLA_VF_STATS_PAD) ||
++	    nla_put_u64_64bit(skb, IFLA_VF_STATS_BROADCAST,
++			      vf_stats.broadcast, IFLA_VF_STATS_PAD) ||
++	    nla_put_u64_64bit(skb, IFLA_VF_STATS_MULTICAST,
++			      vf_stats.multicast, IFLA_VF_STATS_PAD))
+ 		return -EMSGSIZE;
+ 	nla_nest_end(skb, vfstats);
+ 	nla_nest_end(skb, vf);
+-- 
+2.8.1
