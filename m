@@ -1,85 +1,54 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: [PATCH net-next 3/9] ipv6: use nla_put_u64_64bit()
-Date: Mon, 25 Apr 2016 10:25:16 +0200
-Message-ID: <1461572722-6029-4-git-send-email-nicolas.dichtel@6wind.com>
-References: <1461572722-6029-1-git-send-email-nicolas.dichtel@6wind.com>
-Cc: davem@davemloft.net, jhs@mojatatu.com, stephen@networkplumber.org,
-	pshelar@nicira.com, aar@pengutronix.de, linux-wpan@vger.kernel.org,
-	wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
-	pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	johannes@sipsolutions.net, linux-wireless@vger.kernel.org,
-	Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: netdev@vger.kernel.org
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: new ipset set type - hash:ip,mac
+Date: Mon, 25 Apr 2016 11:18:12 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1604251117280.5773@blackhole.kfki.hu>
+References: <8357c05ce35b35c21e8e06dd43f4d5b8@chilan.com>
+Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="110391812-948068085-1461575892=:5773"
+Cc: netfilter-devel@vger.kernel.org
+To: =?ISO-8859-2?Q?Tomasz_Chili=F1ski?= <tomasz.chilinski@chilan.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from host.76.145.23.62.rev.coltfrance.com ([62.23.145.76]:54429 "EHLO
-	proxy.6wind.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753878AbcDYIZq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Apr 2016 04:25:46 -0400
-In-Reply-To: <1461572722-6029-1-git-send-email-nicolas.dichtel@6wind.com>
+Received: from smtp-in.kfki.hu ([148.6.0.28]:45742 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753730AbcDYJRN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Apr 2016 05:17:13 -0400
+In-Reply-To: <8357c05ce35b35c21e8e06dd43f4d5b8@chilan.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
----
- include/uapi/linux/ila.h |  1 +
- net/ipv6/ila/ila_lwt.c   |  3 ++-
- net/ipv6/ila/ila_xlat.c  | 15 +++++++++------
- 3 files changed, 12 insertions(+), 7 deletions(-)
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-diff --git a/include/uapi/linux/ila.h b/include/uapi/linux/ila.h
-index abde7bbd6f3b..cd97951680bf 100644
---- a/include/uapi/linux/ila.h
-+++ b/include/uapi/linux/ila.h
-@@ -14,6 +14,7 @@ enum {
- 	ILA_ATTR_LOCATOR_MATCH,			/* u64 */
- 	ILA_ATTR_IFINDEX,			/* s32 */
- 	ILA_ATTR_DIR,				/* u32 */
-+	ILA_ATTR_PAD,
- 
- 	__ILA_ATTR_MAX,
- };
-diff --git a/net/ipv6/ila/ila_lwt.c b/net/ipv6/ila/ila_lwt.c
-index 2ae3c4fd8aab..9db3621b2126 100644
---- a/net/ipv6/ila/ila_lwt.c
-+++ b/net/ipv6/ila/ila_lwt.c
-@@ -109,7 +109,8 @@ static int ila_fill_encap_info(struct sk_buff *skb,
- {
- 	struct ila_params *p = ila_params_lwtunnel(lwtstate);
- 
--	if (nla_put_u64(skb, ILA_ATTR_LOCATOR, (__force u64)p->locator))
-+	if (nla_put_u64_64bit(skb, ILA_ATTR_LOCATOR, (__force u64)p->locator,
-+			      ILA_ATTR_PAD))
- 		goto nla_put_failure;
- 
- 	return 0;
-diff --git a/net/ipv6/ila/ila_xlat.c b/net/ipv6/ila/ila_xlat.c
-index 0b03533453e4..0e9e579410da 100644
---- a/net/ipv6/ila/ila_xlat.c
-+++ b/net/ipv6/ila/ila_xlat.c
-@@ -418,12 +418,15 @@ static int ila_nl_cmd_del_mapping(struct sk_buff *skb, struct genl_info *info)
- 
- static int ila_fill_info(struct ila_map *ila, struct sk_buff *msg)
- {
--	if (nla_put_u64(msg, ILA_ATTR_IDENTIFIER,
--			(__force u64)ila->p.identifier) ||
--	    nla_put_u64(msg, ILA_ATTR_LOCATOR,
--			(__force u64)ila->p.ip.locator) ||
--	    nla_put_u64(msg, ILA_ATTR_LOCATOR_MATCH,
--			(__force u64)ila->p.ip.locator_match) ||
-+	if (nla_put_u64_64bit(msg, ILA_ATTR_IDENTIFIER,
-+			      (__force u64)ila->p.identifier,
-+			      ILA_ATTR_PAD) ||
-+	    nla_put_u64_64bit(msg, ILA_ATTR_LOCATOR,
-+			      (__force u64)ila->p.ip.locator,
-+			      ILA_ATTR_PAD) ||
-+	    nla_put_u64_64bit(msg, ILA_ATTR_LOCATOR_MATCH,
-+			      (__force u64)ila->p.ip.locator_match,
-+			      ILA_ATTR_PAD) ||
- 	    nla_put_s32(msg, ILA_ATTR_IFINDEX, ila->p.ifindex) ||
- 	    nla_put_u32(msg, ILA_ATTR_DIR, ila->p.dir))
- 		return -1;
--- 
-2.8.1
+--110391812-948068085-1461575892=:5773
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
+On Sun, 24 Apr 2016, Tomasz Chili=C5=84ski wrote:
+
+> First - thanks a lot for excellent ipset toolkit!
+> Second - Sorry for posting directly to you, but didn't get reply from
+> netfilter-devel
+> mailing list after trying to subscribe there.
+>=20
+> I've created lately my own very missed set type hash:ip,mac
+> which stored any ipv4/ipv6 - mac pairs using hashing structures.
+> It allows to create only single set with all addresses and macs
+> used in quite large lans without bothering with separated sets
+> for different ip segments.
+>=20
+> I've attached patches for kernel 4.1 and ipset 6.29.
+> I could also prepare for newer kernel versions if one would be
+> interested in it ;-)
+>=20
+> Any feedback or small review would be very appreciated!
+
+Thanks your patch, I'll review and report back.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
+--110391812-948068085-1461575892=:5773--
