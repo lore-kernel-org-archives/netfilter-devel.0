@@ -1,47 +1,63 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 0/3] netfilter: conntrack: prepare for hashtable
- merge, take 1
-Date: Mon, 25 Apr 2016 14:26:53 +0200
-Message-ID: <20160425122653.GA3523@salvia>
-References: <1460989021-10780-1-git-send-email-fw@strlen.de>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v6 -next 2/4] netfilter: nftables: add connlabel set
+ support
+Date: Mon, 25 Apr 2016 14:29:33 +0200
+Message-ID: <20160425122933.GE28797@breakpoint.cc>
+References: <1461249284-12114-1-git-send-email-fw@strlen.de>
+ <1461249284-12114-3-git-send-email-fw@strlen.de>
+ <20160425103522.GB29560@macbook.localdomain>
+ <20160425105909.GC28797@breakpoint.cc>
+ <20160425111638.GB30849@macbook.localdomain>
+ <20160425115622.GD28797@breakpoint.cc>
+ <20160425121607.GA2907@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60853 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932147AbcDYM3A (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Apr 2016 08:29:00 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 21E13C124F
-	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 14:28:59 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 10D63FAB51
-	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 14:28:59 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id CFE04FAB53
-	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 14:28:56 +0200 (CEST)
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:60239 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932147AbcDYM3g (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Apr 2016 08:29:36 -0400
 Content-Disposition: inline
-In-Reply-To: <1460989021-10780-1-git-send-email-fw@strlen.de>
+In-Reply-To: <20160425121607.GA2907@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Apr 18, 2016 at 04:16:58PM +0200, Florian Westphal wrote:
-> This small series prepares for upcoming merge of the per-namespace hash tables
-> into a single table (or rater, three tables
-> -- conntrack hash, expect hash and nat bysrc hash).
-> 
-> Arguments for merging it:
-> - We stop wasting (assuming default size) 250k backing store per namespace
-> - net namespace is just another part of the connection id, much like
->   ip addresses or conntrack zones -- no need to treat it specially
-> - allows to get rid of the per-netns conntrack slab as well
-> 
-> These patches are first preparations.
-> We replace per-netns conntrack has generation seqcount by single one.
-> 
-> While at it, this replaces the method used to obtain the hash seed
-> by the (nowadays) more common get_random_once().
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Different thing is to indicate the bit number from an immediate, ie.
+> we use set_bit() based on the register data that we get, so we can use
+> maps as Patrick suggests.
 
-Series applied, thanks Florian.
+Right.
+
+> > I don't want to resubmit until there is consensus as to what the
+> > preferred solution is.
+> >
+> > We could go for a 3rd alternative, namely:
+> > 
+> > u16 bit = regs->data[priv->sreg];
+> > set_bit(bit, ct->labels);
+> >
+> > i.e. have userspace place the _bit_ that we want to set in the
+> > source register.
+> > 
+> > If we go for sreg that would be my favored solution.
+> 
+> I'm fine with this.
+
+Ok.  Unless Patrick objects this is what I'll work on, i.e.
+have nft_ct grab the bit number to toggle from the source register.
+
+> > The only drawback vs #1 is that get and set work differently
+> > (get places all labels into dreg, set expects bit to set).
+> > 
+> > (We also need to validate at eval time but thats not a problem
+> >  in this case).
+> 
+> You mean a check to make sure we don't go over the boundary, just to
+> avoid crashing. That seems OK to me.
+
+Yes, thats what I meant.
