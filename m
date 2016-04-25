@@ -1,70 +1,124 @@
-From: Mikko Rapeli <mikko.rapeli@iki.fi>
-Subject: Re: [PATCH v2] uapi glibc compat: fix compile errors when glibc
- net/if.h included before linux/if.h
-Date: Mon, 25 Apr 2016 15:13:35 +0300
-Message-ID: <20160425121335.GL5160@lakka.kapsi.fi>
-References: <1461512707-23058-1-git-send-email-mikko.rapeli@iki.fi>
- <571DFED1.1090601@arm.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH v6 -next 2/4] netfilter: nftables: add connlabel set
+ support
+Date: Mon, 25 Apr 2016 14:16:07 +0200
+Message-ID: <20160425121607.GA2907@salvia>
+References: <1461249284-12114-1-git-send-email-fw@strlen.de>
+ <1461249284-12114-3-git-send-email-fw@strlen.de>
+ <20160425103522.GB29560@macbook.localdomain>
+ <20160425105909.GC28797@breakpoint.cc>
+ <20160425111638.GB30849@macbook.localdomain>
+ <20160425115622.GD28797@breakpoint.cc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Zhang Shengju <zhangshengju@cmss.chinamobile.com>,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	linux-kernel@vger.kernel.org, Jan Engelhardt <jengelh@inai.de>,
-	Josh Boyer <jwboyer@fedoraproject.org>,
-	Waldemar Brodkorb <mail@waldemar-brodkorb.de>,
-	Gabriel Laskar <gabriel@lse.epita.fr>,
-	netfilter-devel@vger.kernel.org, libc-alpha@sourceware.org,
-	Rich Felker <dalias@libc.org>, nd <nd@arm.com>
-To: Szabolcs Nagy <szabolcs.nagy@arm.com>
-Return-path: <libc-alpha-return-69133-glibc-alpha=m.gmane.org@sourceware.org>
-List-Unsubscribe: <mailto:libc-alpha-unsubscribe-glibc-alpha=m.gmane.org@sourceware.org>
-List-Subscribe: <mailto:libc-alpha-subscribe@sourceware.org>
-List-Archive: <http://sourceware.org/ml/libc-alpha/>
-List-Post: <mailto:libc-alpha@sourceware.org>
-List-Help: <mailto:libc-alpha-help@sourceware.org>, <http://sourceware.org/ml/#faqs>
-Sender: libc-alpha-owner@sourceware.org
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:58274 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932325AbcDYMSj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Apr 2016 08:18:39 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id C64E71BFAA4
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 14:18:37 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id AA1E19D11C
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 14:18:37 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 1ECFAFAB52
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 14:18:34 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <571DFED1.1090601@arm.com>
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20160425115622.GD28797@breakpoint.cc>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Apr 25, 2016 at 12:26:09PM +0100, Szabolcs Nagy wrote:
-> On 24/04/16 16:45, Mikko Rapeli wrote:
-> > glibc's net/if.h contains copies of definitions from linux/if.h and these
-> > conflict and cause build failures if both files are included by application
-> > source code. Changes in uapi headers, which fixed header file dependencies to
-> > include linux/if.h when it was needed, e.g. commit 1ffad83d, made the
-> > net/if.h and linux/if.h incompatibilities visible as build failures for
-> > userspace applications like iproute2 and xtables-addons.
+On Mon, Apr 25, 2016 at 01:56:22PM +0200, Florian Westphal wrote:
+> Patrick McHardy <kaber@trash.net> wrote:
+> > On 25.04, Florian Westphal wrote:
+> > > Patrick McHardy <kaber@trash.net> wrote:
+> > > > On 21.04, Florian Westphal wrote:
+> > > > > Pablo suggested to re-use the immediate attributes already used by
+> > > > > nft_immediate, nft_bitwise and nft_cmp to re-use as much code as
+> > > > > possible.
+> > > > > 
+> > > > > Just add new NFTA_CT_IMM that contains nested data attributes.
+> > > > > We can then use nft_data_init and nft_data_dump for this as well.
+> > > > 
+> > > > What's the argument against using immediate and a register?
+> > > 
+> > > http://marc.info/?l=netfilter-devel&m=145800804914781&w=2
+> > > 
+> > > <quote>
+> > > > However, with nft, the input is just a register with arbitrary runtime
+> > > > content.
+> > > > 
+> > > > We therefore ask for the upper ceiling we currently have, which is
+> > > > enough room to store 128 bits.
+> > > 
+> > > We can probably allow passing the label value as attribute to the
+> > > nft_ct expression so you don't have to use the upper ceiling. Patrick
+> > > suggested something similar for nft_ct set helper support.
+> > > </unqote>
 > > 
-> > This patch fixes compile errors when glibc net/if.h is included before
-> > linux/if.h:
-> > 
+> > Helpers are somewhat special because we need to load the modules and get
+> > a reference to the helper structure, so we need the context of what the
+> > immediate will be used for. I'd certainly prefer not to use immediates
+> > since that means we'll need a single rule per assignment. Especially with
+> > helpers it seems a lot nicer to simply use a map.
 > 
-> there should be a way to turn the conflicting definitions
-> off if a libc header is included first. (the other direction
-> won't work in general because linux definitions can be wrong
-> for user space.)
+> Okay, fair enough.
+> 
+> > The alternative to internally handling it would be to some propagating
+> > validation to immediates / sets which invoke the actual user of the data.
+> > So in the case of helpers, we could replace the name by references to
+> > the helper structures and reverse this during dumping.
+> > 
+> > Regarding connlabels this doesn't really apply though. We expect userspace
+> > to create a reasonable ruleset and anything that does not cause critical
+> > errors is validated in userspace.
+> 
+> Yes.  So we have three choices here (pseudo-code)
+> 
+> memcpy(ct->labels, regs->data[priv->sreg], sizeof(reg));
+> vs.
+> set_bit(priv->imm, ct->labels);
+> 
+> The latter is what the iptables module does, I do not mind if we
+> go for #1 (treat the label area just like an 128bit register and
+> replace it completely with whatever is in the source register).
+> 
+> My only problem is that Pablo suggested #2 whereas you recommend #1.
+
+I don't think we should go memcpy(). This won't be equivalent to what
+iptables does.
+
+Different thing is to indicate the bit number from an immediate, ie.
+we use set_bit() based on the register data that we get, so we can use
+maps as Patrick suggests.
+
+> I don't want to resubmit until there is consensus as to what the
+> preferred solution is.
 >
-> currently the only way to avoid the conflict is to define
-> __GLIBC__ and a handful of glibc include guard macros that
-> are not part of any public api, so a libc implementation
-> might not want to do this.
+> We could go for a 3rd alternative, namely:
 > 
-> e.g. the kernel could turn off the potentially conflicting
-> definitions if the libc defines __LIBC_WANTS_NO_UAPI_DEFS
-> (it can use finer grain control, but there should be a
-> non-glibc specific way to do this).
+> u16 bit = regs->data[priv->sreg];
+> set_bit(bit, ct->labels);
+>
+> i.e. have userspace place the _bit_ that we want to set in the
+> source register.
+> 
+> If we go for sreg that would be my favored solution.
 
-True. Maybe Linux kernel could allow non-glibc userspace headers to define
-__UAPI_DEF's as they wish but fall back to a default 1 as in lines after:
+I'm fine with this.
 
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/libc-compat.h#n118
+> The only drawback vs #1 is that get and set work differently
+> (get places all labels into dreg, set expects bit to set).
+> 
+> (We also need to validate at eval time but thats not a problem
+>  in this case).
 
-But sometimes users run old libc's and want to use shiny features from newer
-kernel and thus use kernel headers for some extra definitions to existing
-libc headers and use them in system calls.
+You mean a check to make sure we don't go over the boundary, just to
+avoid crashing. That seems OK to me.
 
-Driver specific ioctl's are a good example.
-
--Mikko
+We can still reuse part of your ct immediate work for the helper setup
+anyway.
