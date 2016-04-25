@@ -1,160 +1,84 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nft 0/4] Interval overlap detection for named sets
-Date: Mon, 25 Apr 2016 22:49:08 +0100
-Message-ID: <20160425214908.GB29318@macbook.localdomain>
-References: <1461427720-4939-1-git-send-email-pablo@netfilter.org>
- <20160425103832.GC29560@macbook.localdomain>
- <20160425115721.GB1043@salvia>
- <20160425165956.GB9987@macbook.localdomain>
- <20160425213233.GA1584@salvia>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v6 -next 2/4] netfilter: nftables: add connlabel set
+ support
+Date: Mon, 25 Apr 2016 23:54:12 +0200
+Message-ID: <20160425215412.GC17538@breakpoint.cc>
+References: <1461249284-12114-1-git-send-email-fw@strlen.de>
+ <1461249284-12114-3-git-send-email-fw@strlen.de>
+ <20160425103522.GB29560@macbook.localdomain>
+ <20160425105909.GC28797@breakpoint.cc>
+ <20160425111638.GB30849@macbook.localdomain>
+ <20160425115622.GD28797@breakpoint.cc>
+ <20160425170541.GC9987@macbook.localdomain>
+ <20160425211937.GB17538@breakpoint.cc>
+ <20160425213519.GA29318@macbook.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57962 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965002AbcDYVtT (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33371 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965002AbcDYVyP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Apr 2016 17:49:19 -0400
+	Mon, 25 Apr 2016 17:54:15 -0400
 Content-Disposition: inline
-In-Reply-To: <20160425213233.GA1584@salvia>
+In-Reply-To: <20160425213519.GA29318@macbook.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 25.04, Pablo Neira Ayuso wrote:
-> On Mon, Apr 25, 2016 at 05:59:56PM +0100, Patrick McHardy wrote:
-> > On 25.04, Pablo Neira Ayuso wrote:
-> > > There is issue, eg:
-> > > 
-> > > # nft add element ip x myset { 1.1.1.0/24 }
-> > > # nft add element ip x myset { 1.1.1.1 }
-> > > # nft list ruleset
-> > > table ip x {
-> > >         set myset {
-> > >                 type ipv4_addr
-> > >                 flags interval
-> > >                 elements = { 1.1.1.0, 1.1.1.1}
-> > >         }
-> > >         ...
-> > > }
-> > > 
-> > > If we don't reject the above by now, the listing back to userspace is
-> > > not consistent. This is not trivial to resolve since the
-> > > representation in the kernel (rbtree) are individual nodes. For the
-> > > example above we get a representation like:
-> > > 
-> > > { 0.0.0.0/end, 1.1.1.0, 1.1.1.1, 1.1.1.2/end, 1.1.1.255/end }
-> > > 
-> > > This is hard to reconstruct from userspace given that intervals are
-> > > not easy to identify anymore after this situation.
-> > 
-> > Yes, the 1.1.1.2/end is also incorrect, which is what messes up the
-> > reconstruction.
+Patrick McHardy <kaber@trash.net> wrote:
+> > If not, I see no choice other than resubmitting the original V1 kernel
+> > patch that simply copied the entire sreg into the label area, this way
+> > no userspace changes are needed.
 > 
-> It is not only this, if you add this:
-> 
-> 192.168.0.100-192.168.0.200
-> 
-> and then later on:
-> 
-> 192.168.100.0/24
-> 
-> You get:
-> 
-> { 0.0.0.0/end, 192.168.0.0, 192.168.0.100, 192.168.0.201/end, 192.168.1.0/end }
-> 
-> and the interval reconstruction back on the listing becomes inconsistent.
-> 
-> On top of that, deletion breaks this even further since the user would
-> use what nft reconstructs from those overlapping interval (which is
-> not what explicit inserted). Then, trying to delete element from what
-> we get back via listing makes this even worse as we end up leaving the
-> set in more inconsistent state and triggering bogus mismatches.
+> I have to follow up on the previous discussion. Just wondering, what's wrong
+> with simply memcpy'ing and supplying the full set of labels?
 
-That's a good point. For consistency reasons, deletions would have to punch
-a hole in existing ranges. I guess its a question of how to think of set
-elements, do we think of them as containing ranges or every element within a
-range? The later appears to more practical and also solve these problems, IOW
-if we have 192.168.0.0/24 and delete 192.168.0.255 the resulting set contains
-a range .0-.254.
+Ok, here is a summary.
 
-> > For sets its quite easy. If we insert something that is completely overlapped,
-> > there's nothing to do anyways. We simply do nothing. If we insert somsething
-> > that extends an interval in one of both directions, we adjust it appropriately.
-> 
-> As I said, this adjustment can be done from userspace by deleting the
-> previous interval and by adding the new one in the same batch.
-> 
-> > We already do exactly this when adding multiple elements to a set in a single
-> > step:
-> > 
-> > # nft --debug=segtree,netlink filter output ip saddr { 192.168.1.0/24, 192.168.1.100 } counter
-> 
-> Just a side note to be clear: I'm not modifying the behaviour for
-> anonymous sets in my patches.
+iptables: userspace gives u16 indicating bit, kernel test_bit()s or
+set_bits depending if set or get is wanted.
 
-Yeah, this was just for demonstration of what the seqtree does in this case.
+The checkentry hook tells the kernel that label extension for X bits should be
+allocated for new conntracks (where X is what userspace gave in the
+match struct).
 
-> > __set%d filter 7
-> > insert: [c0a80100 c0a801ff]
-> > insert: [c0a80164 c0a80164]
-> > split [c0a80100 c0a801ff]
-> > iter: [c0a80100 c0a80163]
-> > iter: [c0a80164 c0a80164]
-> > iter: [c0a80165 c0a801ff]
-> > list: [00000000 c0a800ff]
-> > list: [c0a80100 c0a801ff]
-> > list: [c0a80200 ffffffff]
-> > 
-> > __set%d filter 0
-> > 	element 00000000  : 1 [end]	element 0001a8c0  : 0 [end]	element 0002a8c0  : 1 [end]
-> > 
-> > Simply keeping track of the seqtree changes and applying those to the kernel
-> > should handle this fine.
-> 
-> Assuming the shadowed interval is in the kernel, we can delete it and
-> add the new one in the same go from the batch.
-> 
-> Assuming the new interval is shadowed by what we have in the kernel,
-> we can just send no update.
 
-Yeah, that's even easier, the tracking might just reduce a few deletions that
-we will immediately re-add.
+nftables:
+get operation simply copies the label area to the sreg.
+Since we only support up to 129 labels at the moment this fits into
+an nft register.
 
-> > > > For maps something like this does make sense, but for sets it only
-> > > > makes it harder to use.
-> > > > 
-> > > > Generally, we have a conflict resolution based on size, the more specific
-> > > > element wins. The assumption being that if you add something generic and
-> > > > something more specific, the more specific item is an exception to the
-> > > > more generic one.
-> > > 
-> > > Conflicts can be resolved through merges from userspace at some point.
-> > > Basically the idea is that, when maps are not in place, the smaller
-> > > interval will get removed and the new larger one is added in the same
-> > > batch, so this happens in the same go. nft can deal with these
-> > > overlaps so this is easier to users.
-> > 
-> > The conflict resolution policy needs to be discussed. As I explained, we
-> > already do this, but use a different policy (try adding a map with
-> > two overlapping ranges). This of course so far only applies when the
-> > overlapping elements are added in a single step, so using a different
-> > policy for successive additions might make sense, however its something
-> > I'd like to discuss first.
-> >
-> > > This requires a bit more work on the caching side, but I would like to
-> > > provide a more conservative solution by now by rejecting overlaps.
-> > 
-> > I fully agree for maps for now, but for sets it seems rather simple to do
-> > a proper adjustment. I can give it a try if you want.
-> 
-> Frankly, I don't see any reason not to push this update.
->
-> You can follow up with an incremental update if you want, but I would
-> like to see this is working in the next release. The current approach
-> is conservative in the sense that it rejects what can take us to
-> problems, we can enhance this by making nft smarter in the sense of
-> allowing this automatic adjustments.
+nft ct label bla
 
-I agree. Let me have a closer look at the details, but no objections from me.
+simply expands to a bit test on the sreg filled from nft_ct expression.
+
+There is currently no 'please enable labels for new conntracks'.
+
+First proposal for set operation was to simply expect userspace to
+populate the label space for us and memcpy the sreg to the label area.
+
+So
+
+nft label set bla
+
+will *replace* the entire area with the sreg content, i.e. we delete
+any other label(s) present.
+
+To only set a label, one has to use
+
+ct labels set ct labels | bla
+
+I have no preference; this is the most simple patch/approach since
+it requires no userspace changes (except documenting it).
+
+Second drawback is that we don't know which label(s) will be set or
+requested so we either have to unconditionally allocate 16 byte
+in the conntrack extension, or, alternatively, raise the 'use this many
+bits when allocating a new conntrack' variable in the packet path (should
+not be a huge deal since after some time all conntracks would have
+sufficient space).
+
+3rd drawback is that its not atomic anymore since we replace
+the entire thing (but I don't think this is a problem in practice).
