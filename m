@@ -1,94 +1,70 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 0/4] Interval overlap detection for named sets
-Date: Mon, 25 Apr 2016 13:57:21 +0200
-Message-ID: <20160425115721.GB1043@salvia>
-References: <1461427720-4939-1-git-send-email-pablo@netfilter.org>
- <20160425103832.GC29560@macbook.localdomain>
+From: Mikko Rapeli <mikko.rapeli@iki.fi>
+Subject: Re: [PATCH v2] uapi glibc compat: fix compile errors when glibc
+ net/if.h included before linux/if.h
+Date: Mon, 25 Apr 2016 15:13:35 +0300
+Message-ID: <20160425121335.GL5160@lakka.kapsi.fi>
+References: <1461512707-23058-1-git-send-email-mikko.rapeli@iki.fi>
+ <571DFED1.1090601@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51780 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754558AbcDYL75 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Apr 2016 07:59:57 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 7D6FF11481D
-	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 13:59:55 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 659809D11F
-	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 13:59:55 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 17D089D11F
-	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 13:59:53 +0200 (CEST)
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Zhang Shengju <zhangshengju@cmss.chinamobile.com>,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	linux-kernel@vger.kernel.org, Jan Engelhardt <jengelh@inai.de>,
+	Josh Boyer <jwboyer@fedoraproject.org>,
+	Waldemar Brodkorb <mail@waldemar-brodkorb.de>,
+	Gabriel Laskar <gabriel@lse.epita.fr>,
+	netfilter-devel@vger.kernel.org, libc-alpha@sourceware.org,
+	Rich Felker <dalias@libc.org>, nd <nd@arm.com>
+To: Szabolcs Nagy <szabolcs.nagy@arm.com>
+Return-path: <libc-alpha-return-69133-glibc-alpha=m.gmane.org@sourceware.org>
+List-Unsubscribe: <mailto:libc-alpha-unsubscribe-glibc-alpha=m.gmane.org@sourceware.org>
+List-Subscribe: <mailto:libc-alpha-subscribe@sourceware.org>
+List-Archive: <http://sourceware.org/ml/libc-alpha/>
+List-Post: <mailto:libc-alpha@sourceware.org>
+List-Help: <mailto:libc-alpha-help@sourceware.org>, <http://sourceware.org/ml/#faqs>
+Sender: libc-alpha-owner@sourceware.org
 Content-Disposition: inline
-In-Reply-To: <20160425103832.GC29560@macbook.localdomain>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <571DFED1.1090601@arm.com>
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Apr 25, 2016 at 11:38:32AM +0100, Patrick McHardy wrote:
-> On 23.04, Pablo Neira Ayuso wrote:
-> > Hi,
+On Mon, Apr 25, 2016 at 12:26:09PM +0100, Szabolcs Nagy wrote:
+> On 24/04/16 16:45, Mikko Rapeli wrote:
+> > glibc's net/if.h contains copies of definitions from linux/if.h and these
+> > conflict and cause build failures if both files are included by application
+> > source code. Changes in uapi headers, which fixed header file dependencies to
+> > include linux/if.h when it was needed, e.g. commit 1ffad83d, made the
+> > net/if.h and linux/if.h incompatibilities visible as build failures for
+> > userspace applications like iproute2 and xtables-addons.
 > > 
-> > This patchset adds the missing code to reject overlapping intervals.
+> > This patch fixes compile errors when glibc net/if.h is included before
+> > linux/if.h:
 > > 
-> >  # nft add table ip filter
-> >  # nft add set ip filter myset { type ipv4_addr\; flags interval\; }
-> >  # nft add chain ip filter output { type filter hook output priority 0\; }
-> >  # nft add rule ip daddr @myset counter packets 0 bytes 0
-> >  # nft add element ip filter myset { 127.0.0.0/16 }
-> > 
-> > Then, if you add an overlapping element:
-> > 
-> >  # nft add element ip filter myset { 127.0.0.0/24 }
-> >  <cmdline>:1:31-42: Error: interval overlaps with an existing one
-> >  add element ip filter myset { 127.0.0.0/24 }
-> >                                ^^^^^^^^^^^^
-> > 
-> > The new validation code from userspace rejects this to avoid shadowing
-> > issues.
 > 
-> This is actually intended. There is no issue with shadowing since sets only
-> contain one statement, present or not present.
-
-There is issue, eg:
-
-# nft add element ip x myset { 1.1.1.0/24 }
-# nft add element ip x myset { 1.1.1.1 }
-# nft list ruleset
-table ip x {
-        set myset {
-                type ipv4_addr
-                flags interval
-                elements = { 1.1.1.0, 1.1.1.1}
-        }
-        ...
-}
-
-If we don't reject the above by now, the listing back to userspace is
-not consistent. This is not trivial to resolve since the
-representation in the kernel (rbtree) are individual nodes. For the
-example above we get a representation like:
-
-{ 0.0.0.0/end, 1.1.1.0, 1.1.1.1, 1.1.1.2/end, 1.1.1.255/end }
-
-This is hard to reconstruct from userspace given that intervals are
-not easy to identify anymore after this situation.
-
-> For maps something like this does make sense, but for sets it only
-> makes it harder to use.
+> there should be a way to turn the conflicting definitions
+> off if a libc header is included first. (the other direction
+> won't work in general because linux definitions can be wrong
+> for user space.)
+>
+> currently the only way to avoid the conflict is to define
+> __GLIBC__ and a handful of glibc include guard macros that
+> are not part of any public api, so a libc implementation
+> might not want to do this.
 > 
-> Generally, we have a conflict resolution based on size, the more specific
-> element wins. The assumption being that if you add something generic and
-> something more specific, the more specific item is an exception to the
-> more generic one.
+> e.g. the kernel could turn off the potentially conflicting
+> definitions if the libc defines __LIBC_WANTS_NO_UAPI_DEFS
+> (it can use finer grain control, but there should be a
+> non-glibc specific way to do this).
 
-Conflicts can be resolved through merges from userspace at some point.
-Basically the idea is that, when maps are not in place, the smaller
-interval will get removed and the new larger one is added in the same
-batch, so this happens in the same go. nft can deal with these
-overlaps so this is easier to users.
+True. Maybe Linux kernel could allow non-glibc userspace headers to define
+__UAPI_DEF's as they wish but fall back to a default 1 as in lines after:
 
-This requires a bit more work on the caching side, but I would like to
-provide a more conservative solution by now by rejecting overlaps.
+https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/include/uapi/linux/libc-compat.h#n118
+
+But sometimes users run old libc's and want to use shiny features from newer
+kernel and thus use kernel headers for some extra definitions to existing
+libc headers and use them in system calls.
+
+Driver specific ioctl's are a good example.
+
+-Mikko
