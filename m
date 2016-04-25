@@ -1,54 +1,62 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: new ipset set type - hash:ip,mac
-Date: Mon, 25 Apr 2016 11:18:12 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1604251117280.5773@blackhole.kfki.hu>
-References: <8357c05ce35b35c21e8e06dd43f4d5b8@chilan.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nft 0/6] ruleset tracing
+Date: Mon, 25 Apr 2016 11:49:29 +0200
+Message-ID: <20160425094929.GB28797@breakpoint.cc>
+References: <1461533440-10605-1-git-send-email-kaber@trash.net>
+ <20160424222213.GA28797@breakpoint.cc>
+ <20160424225718.GA14306@macbook.localdomain>
+ <20160425002357.GA18237@macbook.localdomain>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="110391812-948068085-1461575892=:5773"
-Cc: netfilter-devel@vger.kernel.org
-To: =?ISO-8859-2?Q?Tomasz_Chili=F1ski?= <tomasz.chilinski@chilan.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, pablo@netfilter.org,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:45742 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753730AbcDYJRN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Apr 2016 05:17:13 -0400
-In-Reply-To: <8357c05ce35b35c21e8e06dd43f4d5b8@chilan.com>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:59891 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752367AbcDYJtf (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Apr 2016 05:49:35 -0400
+Content-Disposition: inline
+In-Reply-To: <20160425002357.GA18237@macbook.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Patrick McHardy <kaber@trash.net> wrote:
+> On 24.04, Patrick McHardy wrote:
+> > On 25.04, Florian Westphal wrote:
+> > > Patrick McHardy <kaber@trash.net> wrote:
+> > > > The following patches contain the latest version of the ruleset tracing
+> > > > functionality.
+> > > > I consider this patchset complete. Testing and comments welcome.
+> > > 
+> > > Seems it doesn't work with inet table, I get segfault in expr_print
+> > > (EXPR_VALUE expr with expr->dtype == NULL).
+> > > 
+> > > Callchain that produces this expression is:
+> > > 
+> > > trace_gen_stmts -> payload_expr_expand -> payload_expr_alloc
+> > > 
+> > > desc argument to payload_expr_alloc is the inet one, which
+> > > has no template for types != 0, so tmpl->dtype that gets passed
+> > > to expr_alloc is NULL.
+> > 
+> > Thanks, I'll look into that.
+> > 
+> > > Works fine without inet table. Only "problem" I found is that
+> > > nft displays the ether addr reversed vs. what 'ip link' shows,
+> > > i.e. if ip link says 1:2:3:4:5:6 nft shows 6:5:4:3:2:1.
+> > > 
+> > > I'll do more tests tomorrow and will double check that its not
+> > > a kernel bug.
+> > 
+> > That's just a missing byte order conversion, I've fixed it locally.
+> 
+> This patch should fix both issues.
 
---110391812-948068085-1461575892=:5773
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+It does, thanks!
 
-On Sun, 24 Apr 2016, Tomasz Chili=C5=84ski wrote:
-
-> First - thanks a lot for excellent ipset toolkit!
-> Second - Sorry for posting directly to you, but didn't get reply from
-> netfilter-devel
-> mailing list after trying to subscribe there.
->=20
-> I've created lately my own very missed set type hash:ip,mac
-> which stored any ipv4/ipv6 - mac pairs using hashing structures.
-> It allows to create only single set with all addresses and macs
-> used in quite large lans without bothering with separated sets
-> for different ip segments.
->=20
-> I've attached patches for kernel 4.1 and ipset 6.29.
-> I could also prepare for newer kernel versions if one would be
-> interested in it ;-)
->=20
-> Any feedback or small review would be very appreciated!
-
-Thanks your patch, I'll review and report back.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
---110391812-948068085-1461575892=:5773--
+Seems to work fine now, only missing enhancement would be to add new
+rules to the cache; currently when nft monitor is running it
+will print out a added rules, but they are not printed out in new trace
+events (restarting the nft monitor process works fine).
