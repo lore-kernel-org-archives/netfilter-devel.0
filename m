@@ -1,99 +1,43 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nft 0/6] ruleset tracing
-Date: Mon, 25 Apr 2016 01:23:57 +0100
-Message-ID: <20160425002357.GA18237@macbook.localdomain>
-References: <1461533440-10605-1-git-send-email-kaber@trash.net>
- <20160424222213.GA28797@breakpoint.cc>
- <20160424225718.GA14306@macbook.localdomain>
+From: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH net-next 2/9] libnl: nla_put_le64(): align on
+ a 64-bit area
+Date: Mon, 25 Apr 2016 09:41:51 +0200
+Message-ID: <571DCA3F.3040403@6wind.com>
+References: <1461339084-3849-1-git-send-email-nicolas.dichtel@6wind.com>
+ <1461339084-3849-3-git-send-email-nicolas.dichtel@6wind.com>
+ <1461343880.7627.34.camel@edumazet-glaptop3.roam.corp.google.com>
+ <60b94d1a-23a2-ec18-7f2b-2ba21946af03@pengutronix.de>
+ <9d534571-916d-b368-a398-7f03a1f512ec@pengutronix.de>
+Reply-To: nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="DocE+STaALJfprDB"
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52665 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751868AbcDYAYE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Apr 2016 20:24:04 -0400
-Content-Disposition: inline
-In-Reply-To: <20160424225718.GA14306@macbook.localdomain>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org,
+ herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org, yoshfuji-VfPWfsRibaP+Ru+s062T9g@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ bsingharora-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org,
+ netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org,
+ kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org, jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org, linux-wpan-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org
+To: Alexander Aring <aar-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>, Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <9d534571-916d-b368-a398-7f03a1f512ec-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-
---DocE+STaALJfprDB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On 24.04, Patrick McHardy wrote:
-> On 25.04, Florian Westphal wrote:
-> > Patrick McHardy <kaber@trash.net> wrote:
-> > > The following patches contain the latest version of the ruleset tracing
-> > > functionality.
-> > > I consider this patchset complete. Testing and comments welcome.
-> > 
-> > Seems it doesn't work with inet table, I get segfault in expr_print
-> > (EXPR_VALUE expr with expr->dtype == NULL).
-> > 
-> > Callchain that produces this expression is:
-> > 
-> > trace_gen_stmts -> payload_expr_expand -> payload_expr_alloc
-> > 
-> > desc argument to payload_expr_alloc is the inet one, which
-> > has no template for types != 0, so tmpl->dtype that gets passed
-> > to expr_alloc is NULL.
-> 
-> Thanks, I'll look into that.
-> 
-> > Works fine without inet table. Only "problem" I found is that
-> > nft displays the ether addr reversed vs. what 'ip link' shows,
-> > i.e. if ip link says 1:2:3:4:5:6 nft shows 6:5:4:3:2:1.
-> > 
-> > I'll do more tests tomorrow and will double check that its not
-> > a kernel bug.
-> 
-> That's just a missing byte order conversion, I've fixed it locally.
-
-This patch should fix both issues.
-
---DocE+STaALJfprDB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="x.diff"
-
-diff --git a/src/netlink.c b/src/netlink.c
-index 890e9b9..761c7b4 100644
---- a/src/netlink.c
-+++ b/src/netlink.c
-@@ -2234,6 +2234,8 @@ restart:
- 
- 		tmp = constant_expr_splice(rhs, lhs->len);
- 		expr_set_type(tmp, lhs->dtype, lhs->byteorder);
-+		if (tmp->byteorder == BYTEORDER_HOST_ENDIAN)
-+			mpz_switch_byteorder(tmp->value, tmp->len / BITS_PER_BYTE);
- 
- 		/* Skip unknown and filtered expressions */
- 		desc = lhs->payload.desc;
-@@ -2290,6 +2292,7 @@ static void trace_print_packet(const struct nftnl_trace *nlt)
- 	struct list_head stmts = LIST_HEAD_INIT(stmts);
- 	struct payload_dep_ctx pctx = {};
- 	struct proto_ctx ctx;
-+	uint32_t nfproto;
- 	uint16_t dev_type;
- 	struct stmt *stmt, *next;
- 
-@@ -2306,6 +2309,13 @@ static void trace_print_packet(const struct nftnl_trace *nlt)
- 						 NFT_META_OIF));
- 
- 	proto_ctx_init(&ctx, nftnl_trace_get_u32(nlt, NFTNL_TRACE_FAMILY));
-+	if (ctx.protocol[PROTO_BASE_LL_HDR].desc == &proto_inet &&
-+	    nftnl_trace_is_set(nlt, NFTNL_TRACE_NFPROTO)) {
-+		nfproto = nftnl_trace_get_u32(nlt, NFTNL_TRACE_NFPROTO);
-+		proto_ctx_update(&ctx, PROTO_BASE_LL_HDR, &netlink_location, NULL);
-+		proto_ctx_update(&ctx, PROTO_BASE_NETWORK_HDR, &netlink_location,
-+				 proto_find_upper(&proto_inet, nfproto));
-+	}
- 	if (ctx.protocol[PROTO_BASE_LL_HDR].desc == NULL &&
- 	    nftnl_trace_is_set(nlt, NFTNL_TRACE_IIFTYPE)) {
- 		dev_type = nftnl_trace_get_u16(nlt, NFTNL_TRACE_IIFTYPE);
-
---DocE+STaALJfprDB--
+TGUgMjMvMDQvMjAxNiAxOToyOCwgQWxleGFuZGVyIEFyaW5nIGEgw6ljcml0IDoKPgo+IEhpLAo+
+Cj4gT24gMDQvMjMvMjAxNiAwNzowNSBQTSwgQWxleGFuZGVyIEFyaW5nIHdyb3RlOgo+IC4uLgo+
+Pgo+PiBpZiB0aGlzIGlzIHJlYWxseSBuZWVkZWQsIHRoZW4gbmxhX3B1dF91NjQvYmU2NC9ldGMg
+bmVlZCB0byBiZSBjaGFuZ2VkIGFsc28sCj4KPiBPa2F5LCBJIGZvdW5kIFBBVENIIDMvOSBkbyBp
+dCBmb3IgYmU2NCwgYnV0IHdoYXQncyBhYm91dCB1NjQ/Ckl0J3MgYWxzbyBwbGFubmVkLiBJIHdp
+bGwgc2VuZCBzZXZlcmFsICJzbWFsbCIgc2VyaWVzIHRvIGVhc2UgaW50ZWdyYXRpb24uCgoKUmVn
+YXJkcywKTmljb2xhcwpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpkZXYgbWFpbGluZyBsaXN0CmRldkBvcGVudnN3aXRjaC5vcmcKaHR0cDovL29wZW52c3dp
+dGNoLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Rldgo=
