@@ -1,33 +1,35 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/4] nf_tables: basic dynamic support for set intervals
-Date: Mon, 25 Apr 2016 14:28:56 +0200
-Message-ID: <20160425122856.GA3600@salvia>
-References: <1460497837-20693-1-git-send-email-pablo@netfilter.org>
+Subject: Re: [GIT PULL nf-next 0/3] IPVS Updates for v4.6
+Date: Mon, 25 Apr 2016 14:57:57 +0200
+Message-ID: <20160425125757.GA4050@salvia>
+References: <1461120394-5548-1-git-send-email-horms@verge.net.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33304 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932147AbcDYMbc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Apr 2016 08:31:32 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id C681F83D23
-	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 14:31:25 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B0070FAB5B
-	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 14:31:25 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6B2B4FAB5E
-	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 14:31:22 +0200 (CEST)
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1460497837-20693-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1461120394-5548-1-git-send-email-horms@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Apr 12, 2016 at 11:50:33PM +0200, Pablo Neira Ayuso wrote:
-> This patchset resolves the main issues with the dynamic support for
-> range and its existing rb-tree implementation.
+On Wed, Apr 20, 2016 at 12:46:31PM +1000, Simon Horman wrote:
+> Hi Pablo,
+> 
+> please consider these enhancements to the IPVS. They allow SIP connections
+> originating from real-servers to be load balanced by the SIP psersitence
+> engine as is already implemented in the other direction. And for better one
+> packet scheduling (OPS) performance.
+> 
+> The following changes since commit 4a96300cec88729415683db8a2b909563b09fbaa:
+> 
+>   netfilter: ctnetlink: restore inlining for netlink message size calculation (2016-04-18 22:14:40 +0200)
+> 
+> are available in the git repository at:
+> 
+>   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs-for-v4.7
 
-I'm applying this series now.
+Pulled, thanks Simon.
