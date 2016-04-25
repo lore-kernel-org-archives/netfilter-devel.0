@@ -1,99 +1,94 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v6 -next 2/4] netfilter: nftables: add connlabel set
- support
-Date: Mon, 25 Apr 2016 13:56:22 +0200
-Message-ID: <20160425115622.GD28797@breakpoint.cc>
-References: <1461249284-12114-1-git-send-email-fw@strlen.de>
- <1461249284-12114-3-git-send-email-fw@strlen.de>
- <20160425103522.GB29560@macbook.localdomain>
- <20160425105909.GC28797@breakpoint.cc>
- <20160425111638.GB30849@macbook.localdomain>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft 0/4] Interval overlap detection for named sets
+Date: Mon, 25 Apr 2016 13:57:21 +0200
+Message-ID: <20160425115721.GB1043@salvia>
+References: <1461427720-4939-1-git-send-email-pablo@netfilter.org>
+ <20160425103832.GC29560@macbook.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:60147 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932088AbcDYL4Z (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Apr 2016 07:56:25 -0400
+Received: from mail.us.es ([193.147.175.20]:51780 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754558AbcDYL75 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Apr 2016 07:59:57 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 7D6FF11481D
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 13:59:55 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 659809D11F
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 13:59:55 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 17D089D11F
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 13:59:53 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160425111638.GB30849@macbook.localdomain>
+In-Reply-To: <20160425103832.GC29560@macbook.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy <kaber@trash.net> wrote:
-> On 25.04, Florian Westphal wrote:
-> > Patrick McHardy <kaber@trash.net> wrote:
-> > > On 21.04, Florian Westphal wrote:
-> > > > Pablo suggested to re-use the immediate attributes already used by
-> > > > nft_immediate, nft_bitwise and nft_cmp to re-use as much code as
-> > > > possible.
-> > > > 
-> > > > Just add new NFTA_CT_IMM that contains nested data attributes.
-> > > > We can then use nft_data_init and nft_data_dump for this as well.
-> > > 
-> > > What's the argument against using immediate and a register?
+On Mon, Apr 25, 2016 at 11:38:32AM +0100, Patrick McHardy wrote:
+> On 23.04, Pablo Neira Ayuso wrote:
+> > Hi,
 > > 
-> > http://marc.info/?l=netfilter-devel&m=145800804914781&w=2
+> > This patchset adds the missing code to reject overlapping intervals.
 > > 
-> > <quote>
-> > > However, with nft, the input is just a register with arbitrary runtime
-> > > content.
-> > > 
-> > > We therefore ask for the upper ceiling we currently have, which is
-> > > enough room to store 128 bits.
+> >  # nft add table ip filter
+> >  # nft add set ip filter myset { type ipv4_addr\; flags interval\; }
+> >  # nft add chain ip filter output { type filter hook output priority 0\; }
+> >  # nft add rule ip daddr @myset counter packets 0 bytes 0
+> >  # nft add element ip filter myset { 127.0.0.0/16 }
 > > 
-> > We can probably allow passing the label value as attribute to the
-> > nft_ct expression so you don't have to use the upper ceiling. Patrick
-> > suggested something similar for nft_ct set helper support.
-> > </unqote>
+> > Then, if you add an overlapping element:
+> > 
+> >  # nft add element ip filter myset { 127.0.0.0/24 }
+> >  <cmdline>:1:31-42: Error: interval overlaps with an existing one
+> >  add element ip filter myset { 127.0.0.0/24 }
+> >                                ^^^^^^^^^^^^
+> > 
+> > The new validation code from userspace rejects this to avoid shadowing
+> > issues.
 > 
-> Helpers are somewhat special because we need to load the modules and get
-> a reference to the helper structure, so we need the context of what the
-> immediate will be used for. I'd certainly prefer not to use immediates
-> since that means we'll need a single rule per assignment. Especially with
-> helpers it seems a lot nicer to simply use a map.
+> This is actually intended. There is no issue with shadowing since sets only
+> contain one statement, present or not present.
 
-Okay, fair enough.
+There is issue, eg:
 
-> The alternative to internally handling it would be to some propagating
-> validation to immediates / sets which invoke the actual user of the data.
-> So in the case of helpers, we could replace the name by references to
-> the helper structures and reverse this during dumping.
+# nft add element ip x myset { 1.1.1.0/24 }
+# nft add element ip x myset { 1.1.1.1 }
+# nft list ruleset
+table ip x {
+        set myset {
+                type ipv4_addr
+                flags interval
+                elements = { 1.1.1.0, 1.1.1.1}
+        }
+        ...
+}
+
+If we don't reject the above by now, the listing back to userspace is
+not consistent. This is not trivial to resolve since the
+representation in the kernel (rbtree) are individual nodes. For the
+example above we get a representation like:
+
+{ 0.0.0.0/end, 1.1.1.0, 1.1.1.1, 1.1.1.2/end, 1.1.1.255/end }
+
+This is hard to reconstruct from userspace given that intervals are
+not easy to identify anymore after this situation.
+
+> For maps something like this does make sense, but for sets it only
+> makes it harder to use.
 > 
-> Regarding connlabels this doesn't really apply though. We expect userspace
-> to create a reasonable ruleset and anything that does not cause critical
-> errors is validated in userspace.
+> Generally, we have a conflict resolution based on size, the more specific
+> element wins. The assumption being that if you add something generic and
+> something more specific, the more specific item is an exception to the
+> more generic one.
 
-Yes.  So we have three choices here (pseudo-code)
+Conflicts can be resolved through merges from userspace at some point.
+Basically the idea is that, when maps are not in place, the smaller
+interval will get removed and the new larger one is added in the same
+batch, so this happens in the same go. nft can deal with these
+overlaps so this is easier to users.
 
-memcpy(ct->labels, regs->data[priv->sreg], sizeof(reg));
-vs.
-set_bit(priv->imm, ct->labels);
-
-The latter is what the iptables module does, I do not mind if we
-go for #1 (treat the label area just like an 128bit register and
-replace it completely with whatever is in the source register).
-
-My only problem is that Pablo suggested #2 whereas you recommend #1.
-
-I don't want to resubmit until there is consensus as to what the
-preferred solution is.
-
-We could go for a 3rd alternative, namely:
-
-u16 bit = regs->data[priv->sreg];
-set_bit(bit, ct->labels);
-
-i.e. have userspace place the _bit_ that we want to set in the
-source register.
-
-If we go for sreg that would be my favored solution.
-
-The only drawback vs #1 is that get and set work differently
-(get places all labels into dreg, set expects bit to set).
-
-(We also need to validate at eval time but thats not a problem
- in this case).
+This requires a bit more work on the caching side, but I would like to
+provide a more conservative solution by now by rejecting overlaps.
