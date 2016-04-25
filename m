@@ -1,63 +1,37 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v6 -next 2/4] netfilter: nftables: add connlabel set
- support
-Date: Mon, 25 Apr 2016 14:29:33 +0200
-Message-ID: <20160425122933.GE28797@breakpoint.cc>
-References: <1461249284-12114-1-git-send-email-fw@strlen.de>
- <1461249284-12114-3-git-send-email-fw@strlen.de>
- <20160425103522.GB29560@macbook.localdomain>
- <20160425105909.GC28797@breakpoint.cc>
- <20160425111638.GB30849@macbook.localdomain>
- <20160425115622.GD28797@breakpoint.cc>
- <20160425121607.GA2907@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: ip6t_SYNPROXY: unnecessary to check whether
+ ip6_route_output returns NULL
+Date: Mon, 25 Apr 2016 14:27:24 +0200
+Message-ID: <20160425122724.GA3559@salvia>
+References: <1461319017-3421-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:60239 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932147AbcDYM3g (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Apr 2016 08:29:36 -0400
+Received: from mail.us.es ([193.147.175.20]:60965 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932147AbcDYM3n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Apr 2016 08:29:43 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 99D3AC1243
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 14:29:41 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 82DD5FAB5D
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 14:29:41 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 67ECA9D11F
+	for <netfilter-devel@vger.kernel.org>; Mon, 25 Apr 2016 14:29:27 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160425121607.GA2907@salvia>
+In-Reply-To: <1461319017-3421-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Different thing is to indicate the bit number from an immediate, ie.
-> we use set_bit() based on the register data that we get, so we can use
-> maps as Patrick suggests.
-
-Right.
-
-> > I don't want to resubmit until there is consensus as to what the
-> > preferred solution is.
-> >
-> > We could go for a 3rd alternative, namely:
-> > 
-> > u16 bit = regs->data[priv->sreg];
-> > set_bit(bit, ct->labels);
-> >
-> > i.e. have userspace place the _bit_ that we want to set in the
-> > source register.
-> > 
-> > If we go for sreg that would be my favored solution.
+On Fri, Apr 22, 2016 at 02:56:57AM -0700, Liping Zhang wrote:
+> From: Liping Zhang <liping.zhang@spreadtrum.com>
 > 
-> I'm fine with this.
+> ip6_route_output() will never return a NULL pointer, so there's no need
+> to check it.
 
-Ok.  Unless Patrick objects this is what I'll work on, i.e.
-have nft_ct grab the bit number to toggle from the source register.
-
-> > The only drawback vs #1 is that get and set work differently
-> > (get places all labels into dreg, set expects bit to set).
-> > 
-> > (We also need to validate at eval time but thats not a problem
-> >  in this case).
-> 
-> You mean a check to make sure we don't go over the boundary, just to
-> avoid crashing. That seems OK to me.
-
-Yes, thats what I meant.
+Applied, thanks.
