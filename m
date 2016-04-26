@@ -1,64 +1,46 @@
-From: Giuseppe Longo <giuseppelng@gmail.com>
-Subject: [iptables PATCH] configure: make libmnl and libnftnl hard requirements
-Date: Tue, 26 Apr 2016 21:27:58 +0200
-Message-ID: <1461698878-4459-1-git-send-email-giuseppe@glongo.it>
-Cc: Giuseppe Longo <giuseppelng@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Lev Stipakov <lstipakov@gmail.com>
+Subject: Re: iptables audit target causes kernel panic with
+ iptables-persistent (kernel 3.2.78)
+Date: Tue, 26 Apr 2016 22:58:35 +0300
+Message-ID: <571FC86B.9000703@gmail.com>
+References: <nfnajo$4cj$1@ger.gmane.org>
+ <CAHC9VhQ7577V3M_t9_GCJuGWsrCtUFJb-GjOnCmmEP+rHr-BcQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: linux-audit@redhat.com, netfilter-devel@vger.kernel.org
+To: Paul Moore <paul@paul-moore.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35301 "EHLO
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33513 "EHLO
 	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751772AbcDZT2D (ORCPT
+	with ESMTP id S1751845AbcDZT6k (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Apr 2016 15:28:03 -0400
-Received: by mail-wm0-f68.google.com with SMTP id e201so7006005wme.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Apr 2016 12:28:02 -0700 (PDT)
+	Tue, 26 Apr 2016 15:58:40 -0400
+Received: by mail-wm0-f68.google.com with SMTP id r12so7287489wme.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Apr 2016 12:58:39 -0700 (PDT)
+In-Reply-To: <CAHC9VhQ7577V3M_t9_GCJuGWsrCtUFJb-GjOnCmmEP+rHr-BcQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Giuseppe Longo <giuseppelng@gmail.com>
+Yep, it works fine on Debian 8:
 
-Iptables building is broken if either libmnl orlibnftnl
-is not installed on the system.
+lev@debi:~$ uname -a
+Linux debi 3.16.0-4-amd64 #1 SMP Debian 3.16.7-ckt20-1+deb8u3 
+(2016-01-17) x86_64 GNU/Linux
 
-Configure script actually checks if libmnl and libnftnl are installed,
-but doesn't exit if they are not.
 
-Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
----
- configure.ac | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
-
-diff --git a/configure.ac b/configure.ac
-index 12bffa9..b170add 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -122,8 +122,26 @@ AM_CONDITIONAL([HAVE_LIBNFNETLINK], [test "$nfnetlink" = 1])
- if test "x$enable_nftables" = "xyes"; then
- 	PKG_CHECK_MODULES([libmnl], [libmnl >= 1.0], [mnl=1], [mnl=0])
- 
-+	if test "$mnl" = 0;
-+	then
-+		echo "*** Error: No suitable libmnl found. ***"
-+		echo "    Please install the 'libmnl' package"
-+		echo "    Or consider --disable-nftables to skip"
-+		echo "    iptables-compat over nftables support."
-+		exit 1
-+	fi
-+
- 	PKG_CHECK_MODULES([libnftnl], [libnftnl >= 1.0.5], [nftables=1], [nftables=0])
- 
-+	if test "$nftables" = 0;
-+	then
-+		echo "*** Error: no suitable libnftnl found. ***"
-+		echo "    Please install the 'libnftnl' package"
-+		echo "    Or consider --disable-nftables to skip"
-+		echo "    iptables-compat over nftables support."
-+		exit 1
-+	fi
-+
- 	AM_PROG_LEX
- 	AC_PROG_YACC
- 
--- 
-2.5.0
+On 26.04.2016 21:54, Paul Moore wrote:
+>>
+>> I cannot reproduce it on (one of) previous kernel version:
+>>
+>>    lev@debi7:~$ uname -a
+>>    Linux debi7 3.2.0-4-amd64 #1 SMP Debian 3.2.73-2+deb7u2 x86_64 GNU/Linux
+>>
+>>    lev@debi7:~$ dpkg -l | grep iptables
+>>    ii  iptables                           1.4.14-3.1
+>>    ii  iptables-persistent                0.5.7+deb7u1
+>
+> Unfortunately I don't have a Debian system available to test, but have
+> you tried reproducing this on a more modern kernel?
+>
 
