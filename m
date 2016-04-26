@@ -1,54 +1,72 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: iptables audit target causes kernel panic with
- iptables-persistent (kernel 3.2.78)
-Date: Tue, 26 Apr 2016 16:17:20 -0400
-Message-ID: <CAHC9VhTRdW-bfCw6hBPkrkVdBS_fA3jEZwiBUj_m2VtLDFEuSw@mail.gmail.com>
-References: <nfnajo$4cj$1@ger.gmane.org>
-	<CAHC9VhQ7577V3M_t9_GCJuGWsrCtUFJb-GjOnCmmEP+rHr-BcQ@mail.gmail.com>
-	<571FC86B.9000703@gmail.com>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [iptables PATCH] configure: make libmnl and libnftnl hard
+ requirements
+Date: Tue, 26 Apr 2016 23:20:19 +0200 (CEST)
+Message-ID: <alpine.LSU.2.20.1604262318470.24999@nerf40.vanv.qr>
+References: <1461698878-4459-1-git-send-email-giuseppe@glongo.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: linux-audit@redhat.com, netfilter-devel@vger.kernel.org
-To: Lev Stipakov <lstipakov@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Giuseppe Longo <giuseppelng@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f41.google.com ([209.85.218.41]:34881 "EHLO
-	mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752514AbcDZURV (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Apr 2016 16:17:21 -0400
-Received: by mail-oi0-f41.google.com with SMTP id x19so27571083oix.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Apr 2016 13:17:21 -0700 (PDT)
-In-Reply-To: <571FC86B.9000703@gmail.com>
+Received: from ares41.inai.de ([46.4.122.207]:40318 "EHLO ares41.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752409AbcDZVUW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Apr 2016 17:20:22 -0400
+In-Reply-To: <1461698878-4459-1-git-send-email-giuseppe@glongo.it>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 26, 2016 at 3:58 PM, Lev Stipakov <lstipakov@gmail.com> wrote:
-> Yep, it works fine on Debian 8:
->
-> lev@debi:~$ uname -a
-> Linux debi 3.16.0-4-amd64 #1 SMP Debian 3.16.7-ckt20-1+deb8u3 (2016-01-17)
-> x86_64 GNU/Linux
 
-I would suggest bringing this up with the Debian kernel
-packagers/maintainers, or doing a git-bisect of the Debian kernel if
-you are comfortable with that sort of thing.
+On Tuesday 2016-04-26 21:27, Giuseppe Longo wrote:
+>index 12bffa9..b170add 100644
+>--- a/configure.ac
+>+++ b/configure.ac
+>@@ -122,8 +122,26 @@ AM_CONDITIONAL([HAVE_LIBNFNETLINK], [test "$nfnetlink" = 1])
+> if test "x$enable_nftables" = "xyes"; then
+> 	PKG_CHECK_MODULES([libmnl], [libmnl >= 1.0], [mnl=1], [mnl=0])
+> 
+>+	if test "$mnl" = 0;
+>+	then
+>+		echo "*** Error: No suitable libmnl found. ***"
+>+		echo "    Please install the 'libmnl' package"
+>+		echo "    Or consider --disable-nftables to skip"
+>+		echo "    iptables-compat over nftables support."
+>+		exit 1
+>+	fi
 
-> On 26.04.2016 21:54, Paul Moore wrote:
->>>
->>>
->>> I cannot reproduce it on (one of) previous kernel version:
->>>
->>>    lev@debi7:~$ uname -a
->>>    Linux debi7 3.2.0-4-amd64 #1 SMP Debian 3.2.73-2+deb7u2 x86_64
->>> GNU/Linux
->>>
->>>    lev@debi7:~$ dpkg -l | grep iptables
->>>    ii  iptables                           1.4.14-3.1
->>>    ii  iptables-persistent                0.5.7+deb7u1
->>
->> Unfortunately I don't have a Debian system available to test, but have
->> you tried reproducing this on a more modern kernel?
+As told you before, I find this unnecessary large.
+Consider this instead.
 
+
+>From afcbd592265af0c3a65c21e8f23e1c2f5a348396 Mon Sep 17 00:00:00 2001
+From: Jan Engelhardt <jengelh@inai.de>
+Date: Tue, 26 Apr 2016 23:18:26 +0200
+Subject: [PATCH] build: hard-require libmnl, libnftnl for iptables-nft
+
+Signed-off-by: Jan Engelhardt <jengelh@inai.de>
+---
+ configure.ac | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 12bffa9..e4eafc6 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -120,9 +120,10 @@ PKG_CHECK_MODULES([libnfnetlink], [libnfnetlink >= 1.0],
+ AM_CONDITIONAL([HAVE_LIBNFNETLINK], [test "$nfnetlink" = 1])
+ 
+ if test "x$enable_nftables" = "xyes"; then
+-	PKG_CHECK_MODULES([libmnl], [libmnl >= 1.0], [mnl=1], [mnl=0])
+-
+-	PKG_CHECK_MODULES([libnftnl], [libnftnl >= 1.0.5], [nftables=1], [nftables=0])
++	PKG_CHECK_MODULES([libmnl], [libmnl >= 1.0])
++	PKG_CHECK_MODULES([libnftnl], [libnftnl >= 1.0.5])
++	mnl=1
++	nftables=1
+ 
+ 	AM_PROG_LEX
+ 	AC_PROG_YACC
 -- 
-paul moore
-www.paul-moore.com
+2.6.6
+
