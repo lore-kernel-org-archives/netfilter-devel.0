@@ -1,43 +1,62 @@
-From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Subject: Re: [PATCH net-next 9/9] wireless: use nla_put_u64_64bit()
-Date: Tue, 26 Apr 2016 09:51:31 +0200
-Message-ID: <571F1E03.90703@6wind.com>
-References: <1461572722-6029-1-git-send-email-nicolas.dichtel@6wind.com>
- <1461572722-6029-10-git-send-email-nicolas.dichtel@6wind.com>
- <1461656345.16188.6.camel@sipsolutions.net>
-Reply-To: nicolas.dichtel@6wind.com
+From: Lev Stipakov <lstipakov@gmail.com>
+Subject: iptables audit target causes kernel panic with iptables-persistent
+	(kernel 3.2.78)
+Date: Tue, 26 Apr 2016 11:58:32 +0300
+Message-ID: <nfnajo$4cj$1@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: davem@davemloft.net, jhs@mojatatu.com, stephen@networkplumber.org,
-	pshelar@nicira.com, aar@pengutronix.de, linux-wpan@vger.kernel.org,
-	wensong@linux-vs.org, horms@verge.net.au, ja@ssi.bg,
-	pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-wireless@vger.kernel.org
-To: Johannes Berg <johannes@sipsolutions.net>, netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1461656345.16188.6.camel@sipsolutions.net>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: linux-audit@redhat.com
+Return-path: <linux-audit-bounces@redhat.com>
+List-Unsubscribe: <https://www.redhat.com/mailman/options/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/archives/linux-audit>
+List-Post: <mailto:linux-audit@redhat.com>
+List-Help: <mailto:linux-audit-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-audit>,
+	<mailto:linux-audit-request@redhat.com?subject=subscribe>
+Sender: linux-audit-bounces@redhat.com
+Errors-To: linux-audit-bounces@redhat.com
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Johannes,
+Hello,
 
-Le 26/04/2016 09:39, Johannes Berg a =C3=A9crit :
-> Hi Nicholas,
->=20
-> Thanks for doing this.
->=20
-> I'll also add a fix for the macro-generated nla_put_64() in
-> nl80211_send_station(), unless there was a particular reason you didn=
-'t
-> take that one?
->=20
-> I suspect you just missed it while grepping, but wanted to ask.
-Yes you're right. I missed it. Thank you for the check.
+I see kernel panic with iptables-persistent package installed and one 
+iptables rule with AUDIT target.
 
-I will send the last patchset in some minutes.
+   root@debian7:~# uname -a
+   Linux debian7 3.2.0-4-amd64 #1 SMP Debian 3.2.78-1 x86_64 GNU/Linux
+
+   root@debian7:~# dpkg -l | grep iptables
+   ii  iptables			1.4.14-3.1
+   ii  iptables-persistent	0.5.7+deb7u1
+
+Steps to reproduce:
+
+1) Install Debian 7 and iptables-persistent (see versions above)
+2) Add iptables rule (must be OUTPUT chain):
+
+   root@debian7:~# iptables -I OUTPUT -j AUDIT --type ACCEPT
+
+3) Save rule:
+
+   root@debian7:~# iptables-save > /etc/iptables/rules.v4
+
+4) Reboot
+
+5) Kernel panic (screenshot): 
+https://www.dropbox.com/s/db40e5kc10e4ddg/kernel_panic2.png?dl=0
 
 
-Regards,
-Nicolas
+I cannot reproduce it on (one of) previous kernel version:
+
+   lev@debi7:~$ uname -a
+   Linux debi7 3.2.0-4-amd64 #1 SMP Debian 3.2.73-2+deb7u2 x86_64 GNU/Linux
+
+   lev@debi7:~$ dpkg -l | grep iptables
+   ii  iptables                           1.4.14-3.1
+   ii  iptables-persistent                0.5.7+deb7u1
+
+
+-Lev
