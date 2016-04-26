@@ -1,67 +1,64 @@
-From: Paul Moore <paul@paul-moore.com>
-Subject: Re: iptables audit target causes kernel panic with
- iptables-persistent (kernel 3.2.78)
-Date: Tue, 26 Apr 2016 14:54:26 -0400
-Message-ID: <CAHC9VhQ7577V3M_t9_GCJuGWsrCtUFJb-GjOnCmmEP+rHr-BcQ@mail.gmail.com>
-References: <nfnajo$4cj$1@ger.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: linux-audit@redhat.com, netfilter-devel@vger.kernel.org
-To: Lev Stipakov <lstipakov@gmail.com>
+From: Giuseppe Longo <giuseppelng@gmail.com>
+Subject: [iptables PATCH] configure: make libmnl and libnftnl hard requirements
+Date: Tue, 26 Apr 2016 21:27:58 +0200
+Message-ID: <1461698878-4459-1-git-send-email-giuseppe@glongo.it>
+Cc: Giuseppe Longo <giuseppelng@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f52.google.com ([209.85.218.52]:33237 "EHLO
-	mail-oi0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752318AbcDZSy1 (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35301 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751772AbcDZT2D (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Apr 2016 14:54:27 -0400
-Received: by mail-oi0-f52.google.com with SMTP id r78so25252548oie.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Apr 2016 11:54:27 -0700 (PDT)
-In-Reply-To: <nfnajo$4cj$1@ger.gmane.org>
+	Tue, 26 Apr 2016 15:28:03 -0400
+Received: by mail-wm0-f68.google.com with SMTP id e201so7006005wme.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 26 Apr 2016 12:28:02 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 26, 2016 at 4:58 AM, Lev Stipakov <lstipakov@gmail.com> wrote:
-> Hello,
->
-> I see kernel panic with iptables-persistent package installed and one
-> iptables rule with AUDIT target.
->
->   root@debian7:~# uname -a
->   Linux debian7 3.2.0-4-amd64 #1 SMP Debian 3.2.78-1 x86_64 GNU/Linux
->
->   root@debian7:~# dpkg -l | grep iptables
->   ii  iptables                  1.4.14-3.1
->   ii  iptables-persistent       0.5.7+deb7u1
->
-> Steps to reproduce:
->
-> 1) Install Debian 7 and iptables-persistent (see versions above)
-> 2) Add iptables rule (must be OUTPUT chain):
->
->   root@debian7:~# iptables -I OUTPUT -j AUDIT --type ACCEPT
->
-> 3) Save rule:
->
->   root@debian7:~# iptables-save > /etc/iptables/rules.v4
->
-> 4) Reboot
->
-> 5) Kernel panic (screenshot):
-> https://www.dropbox.com/s/db40e5kc10e4ddg/kernel_panic2.png?dl=0
->
->
-> I cannot reproduce it on (one of) previous kernel version:
->
->   lev@debi7:~$ uname -a
->   Linux debi7 3.2.0-4-amd64 #1 SMP Debian 3.2.73-2+deb7u2 x86_64 GNU/Linux
->
->   lev@debi7:~$ dpkg -l | grep iptables
->   ii  iptables                           1.4.14-3.1
->   ii  iptables-persistent                0.5.7+deb7u1
+From: Giuseppe Longo <giuseppelng@gmail.com>
 
-Unfortunately I don't have a Debian system available to test, but have
-you tried reproducing this on a more modern kernel?
+Iptables building is broken if either libmnl orlibnftnl
+is not installed on the system.
 
+Configure script actually checks if libmnl and libnftnl are installed,
+but doesn't exit if they are not.
+
+Signed-off-by: Giuseppe Longo <giuseppelng@gmail.com>
+---
+ configure.ac | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/configure.ac b/configure.ac
+index 12bffa9..b170add 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -122,8 +122,26 @@ AM_CONDITIONAL([HAVE_LIBNFNETLINK], [test "$nfnetlink" = 1])
+ if test "x$enable_nftables" = "xyes"; then
+ 	PKG_CHECK_MODULES([libmnl], [libmnl >= 1.0], [mnl=1], [mnl=0])
+ 
++	if test "$mnl" = 0;
++	then
++		echo "*** Error: No suitable libmnl found. ***"
++		echo "    Please install the 'libmnl' package"
++		echo "    Or consider --disable-nftables to skip"
++		echo "    iptables-compat over nftables support."
++		exit 1
++	fi
++
+ 	PKG_CHECK_MODULES([libnftnl], [libnftnl >= 1.0.5], [nftables=1], [nftables=0])
+ 
++	if test "$nftables" = 0;
++	then
++		echo "*** Error: no suitable libnftnl found. ***"
++		echo "    Please install the 'libnftnl' package"
++		echo "    Or consider --disable-nftables to skip"
++		echo "    iptables-compat over nftables support."
++		exit 1
++	fi
++
+ 	AM_PROG_LEX
+ 	AC_PROG_YACC
+ 
 -- 
-paul moore
-www.paul-moore.com
+2.5.0
+
