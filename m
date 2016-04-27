@@ -1,55 +1,68 @@
-From: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH net-next v2] taskstats: fix nl parsing in
-	accounting/getdelays.c
-Date: Wed, 27 Apr 2016 17:53:08 +0200
-Message-ID: <1461772388-3763-1-git-send-email-nicolas.dichtel@6wind.com>
-References: <5720DFA1.3080503@6wind.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft 7/7] nft: add flow statement
+Date: Wed, 27 Apr 2016 18:37:27 +0200
+Message-ID: <20160427163727.GA2006@salvia>
+References: <1461756590-22880-1-git-send-email-kaber@trash.net>
+ <1461756590-22880-8-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org,
- herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org, aar-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, yoshfuji-VfPWfsRibaP+Ru+s062T9g@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org, jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org,
- linux-wpan-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org
-To: bsingharora-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <5720DFA1.3080503-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:32993 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752806AbcD0Qhh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 27 Apr 2016 12:37:37 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 13153E6642
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2016 18:37:35 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 04A24A91F
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2016 18:37:35 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id F295464472
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2016 18:37:32 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1461756590-22880-8-git-send-email-kaber@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-VGhlIHR5cGUgVEFTS1NUQVRTX1RZUEVfTlVMTCBzaG91bGQgYWx3YXlzIGJlIGlnbm9yZWQuCgpX
-aGVuIGp1bXBpbmcgdG8gdGhlIG5leHQgYXR0cmlidXRlLCBvbmx5IHRoZSBsZW5ndGggb2YgdGhl
-IGN1cnJlbnQKYXR0cmlidXRlIHNob3VsZCBiZSBhZGRlZCwgbm90IHRoZSBsZW5ndGggb2YgYWxs
-IG5lc3RlZCBhdHRyaWJ1dGVzLgpUaGlzIGxhc3QgYnVnIHdhcyBub3QgdmlzaWJsZSBiZWZvcmUg
-Y29tbWl0IDgwZGY1NTQyNzVjMiwgYmVjYXVzZSB0aGUKa2VybmVsIGRpZG4ndCBwdXQgbW9yZSB0
-aGFuIHR3byBuZXN0ZWQgYXR0cmlidXRlcy4KCkZpeGVzOiBhM2JhZjY0OWNhOWMgKCJbUEFUQ0hd
-IHBlci10YXNrLWRlbGF5LWFjY291bnRpbmc6IGRvY3VtZW50YXRpb24iKQpGaXhlczogODBkZjU1
-NDI3NWMyICgidGFza3N0YXRzOiB1c2UgdGhlIGxpYm5sIEFQSSB0byBhbGlnbiBubGF0dHIgb24g
-NjQtYml0IikKU2lnbmVkLW9mZi1ieTogTmljb2xhcyBEaWNodGVsIDxuaWNvbGFzLmRpY2h0ZWxA
-NndpbmQuY29tPgotLS0KIERvY3VtZW50YXRpb24vYWNjb3VudGluZy9nZXRkZWxheXMuYyB8IDUg
-KysrKy0KIDEgZmlsZSBjaGFuZ2VkLCA0IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkKCmRp
-ZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL2FjY291bnRpbmcvZ2V0ZGVsYXlzLmMgYi9Eb2N1bWVu
-dGF0aW9uL2FjY291bnRpbmcvZ2V0ZGVsYXlzLmMKaW5kZXggNzc4NWZiNWViOTNmLi5iNWNhNTM2
-ZTU2YTggMTAwNjQ0Ci0tLSBhL0RvY3VtZW50YXRpb24vYWNjb3VudGluZy9nZXRkZWxheXMuYwor
-KysgYi9Eb2N1bWVudGF0aW9uL2FjY291bnRpbmcvZ2V0ZGVsYXlzLmMKQEAgLTUwNSw2ICs1MDUs
-OCBAQCBpbnQgbWFpbihpbnQgYXJnYywgY2hhciAqYXJndltdKQogCQkJCQkJaWYgKCFsb29wKQog
-CQkJCQkJCWdvdG8gZG9uZTsKIAkJCQkJCWJyZWFrOworCQkJCQljYXNlIFRBU0tTVEFUU19UWVBF
-X05VTEw6CisJCQkJCQlicmVhazsKIAkJCQkJZGVmYXVsdDoKIAkJCQkJCWZwcmludGYoc3RkZXJy
-LCAiVW5rbm93biBuZXN0ZWQiCiAJCQkJCQkJIiBubGFfdHlwZSAlZFxuIiwKQEAgLTUxMiw3ICs1
-MTQsOCBAQCBpbnQgbWFpbihpbnQgYXJnYywgY2hhciAqYXJndltdKQogCQkJCQkJYnJlYWs7CiAJ
-CQkJCX0KIAkJCQkJbGVuMiArPSBOTEFfQUxJR04obmEtPm5sYV9sZW4pOwotCQkJCQluYSA9IChz
-dHJ1Y3QgbmxhdHRyICopICgoY2hhciAqKSBuYSArIGxlbjIpOworCQkJCQluYSA9IChzdHJ1Y3Qg
-bmxhdHRyICopKChjaGFyICopbmEgKworCQkJCQkJCSAgICAgICBOTEFfQUxJR04obmEtPm5sYV9s
-ZW4pKTsKIAkJCQl9CiAJCQkJYnJlYWs7CiAKLS0gCjIuOC4xCgpfX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkZXYgbWFpbGluZyBsaXN0CmRldkBvcGVudnN3
-aXRjaC5vcmcKaHR0cDovL29wZW52c3dpdGNoLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Rldgo=
+On Wed, Apr 27, 2016 at 12:29:50PM +0100, Patrick McHardy wrote:
+> The flow statement allows to instantiate per flow statements for user
+> defined flows. This can so far be used for per flow accounting or limiting,
+> similar to what the iptables hashlimit provides. Flows can be aged using
+> the timeout option.
+> 
+> Examples:
+> 
+> # nft filter input flow ip saddr . tcp dport limit rate 10/second
+> # nft filter input flow table acct iif . ip saddr timeout 60s counter
+
+I think you have to update this syntax to:
+
+# nft add rule filter input \
+        flow { ip saddr . tcp dport limit rate 10/second }
+             ^                                           ^
+
+# nft add rule filter input \
+        flow table acct { iif . ip saddr timeout 60s counter }
+                        ^                                    ^
+
+so the idea is to wrap this around brackets.
+
+When playing around with this in your initial patchset I found very
+confusing that it may not look obvious to users that they can only use
+one single statement.
+
+For example:
+
+# nft add rule filter input \
+        flow table acct iif . ip saddr timeout 60s counter limit rate 10/second
+                                                           ~~~~~~~~~~~~~~~~~~~~
+
+Note that this limit rate applies globally.
+
+This may cause us problems in the future too if we extend this to
+support more than one single statement per flowtable entry (Not
+telling we need this now, but if someone comes up with a useful
+usecase, we should be capable of extending this).
