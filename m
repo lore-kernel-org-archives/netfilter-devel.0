@@ -1,87 +1,188 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [nft PATCH] evaluate: better error reporting in too long sets names
-Date: Thu, 28 Apr 2016 09:42:43 +0200
-Message-ID: <CAOkSjBjxO4_5osADYYowJQp4s_LVv-QR645tVCUEEs6HE3R5Og@mail.gmail.com>
-References: <146115978018.25287.16460508385150502285.stgit@nfdev2.cica.es> <20160427171419.GA7625@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:36138 "EHLO
-	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750838AbcD1HnE convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Apr 2016 03:43:04 -0400
-Received: by mail-wm0-f44.google.com with SMTP id n129so54546224wmn.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Apr 2016 00:43:03 -0700 (PDT)
-In-Reply-To: <20160427171419.GA7625@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Michal Kubecek <mkubecek@suse.cz>
+Subject: [PATCH nf-next] netfilter: allow logging from non-init namespaces
+Date: Wed, 27 Apr 2016 14:48:02 +0200
+Message-ID: <20160428074838.0BBB5A0C94@unicorn.suse.cz>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Jonathan Corbet <corbet@lwn.net>, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, bridge@lists.linux-foundation.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <linux-doc-owner@vger.kernel.org>
+Sender: linux-doc-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 27 April 2016 at 19:14, Pablo Neira Ayuso <pablo@netfilter.org> wrot=
-e:
-> On Wed, Apr 20, 2016 at 03:43:00PM +0200, Arturo Borrero Gonzalez wro=
-te:
->> Currently, if we choose a set name larger than allowed, the error me=
-ssage is:
->>  Error: Could not process rule: Numerical result out of range
->>
->> Let's inform the user with a better error message.
->>
->> We can discuss later if length of set names should be increased, but=
- I think
->> this better error reporting is necessary right now to avoid headache=
-s to users.
->
-> /* The max length of strings including NUL: set and type identifiers =
-*/
-> #define IPSET_MAXNAMELEN        32
->
-> I would like that we get the same length as ipset, this should make i=
-t
-> easier for people to migrate.
->
-> This would require a bit of work though since the interface name size
-> is limited by the register size. Not much a problem, but it would
-> require a bit of code adjustments from the kernel.
->
-> So let me postpone this userspace check.
+Commit 69b34fb996b2 ("netfilter: xt_LOG: add net namespace support for
+xt_LOG") disabled logging packets using the LOG target from non-init
+namespaces. The motivation was to prevent containers from flooding
+kernel log of the host. The plan was to keep it that way until syslog
+namespace implementation allows containers to log in a safe way.
 
-We would need the userspace check anyway to avoid the very misleading
-error reporting from the kernel.
-Then if tomorrow we change the name length, we just need an oneliner
-here to update with the new size. I remember in the past we discussed
-using set names as completely variable size strings, but that's
-another discussion.
+However, the work on syslog namespace seems to have hit a dead end
+somewhere in 2013 and there are users who want to use xt_LOG in all
+network namespaces. This patch allows to do so by setting
 
-If loading a ruleset with 'nft -f' with lot of nested and included
-files, the error is just very difficult to track down; I've hit it
-several times already.
+  /proc/sys/net/netfilter/nf_log_all_netns
 
-=3D=3D t.nft =3D=3D
-flush ruleset
-table t {
-    set abcdefghijklmopqrst {
-         type ipv4_addr
-    }
-}
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+to a nonzero value. This sysctl is only accessible from init_net so that
+one cannot switch the behaviour from inside a container.
 
-% nft -f t.nft
-t.nft:2:1-2: Error: Could not process rule: Numerical result out of ran=
-ge
-table t {
-^^
+Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
+---
+ Documentation/networking/netfilter-sysctl.txt | 10 ++++++++++
+ include/net/netfilter/nf_log.h                |  3 +++
+ net/bridge/netfilter/ebt_log.c                |  2 +-
+ net/ipv4/netfilter/nf_log_arp.c               |  2 +-
+ net/ipv4/netfilter/nf_log_ipv4.c              |  2 +-
+ net/ipv6/netfilter/nf_log_ipv6.c              |  2 +-
+ net/netfilter/nf_log.c                        | 22 ++++++++++++++++++++++
+ 7 files changed, 39 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/networking/netfilter-sysctl.txt
 
-So I don't understand the point in not including some more informative
-message right now.
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/Documentation/networking/netfilter-sysctl.txt b/Documentation/networking/netfilter-sysctl.txt
+new file mode 100644
+index 000000000000..55791e50e169
+--- /dev/null
++++ b/Documentation/networking/netfilter-sysctl.txt
+@@ -0,0 +1,10 @@
++/proc/sys/net/netfilter/* Variables:
++
++nf_log_all_netns - BOOLEAN
++	0 - disabled (default)
++	not 0 - enabled
++
++	By default, only init_net namespace can log packets into kernel log
++	with LOG target; this aims to prevent containers from flooding host
++	kernel log. If enabled, this target also works in other network
++	namespaces. This variable is only accessible from init_net.
+diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
+index 57639fca223a..8c4b018eef72 100644
+--- a/include/net/netfilter/nf_log.h
++++ b/include/net/netfilter/nf_log.h
+@@ -49,6 +49,9 @@ struct nf_logger {
+ 	struct module		*me;
+ };
+ 
++/* sysctl_nf_log_all_netns - allow LOG target in all network namespaces */
++extern int sysctl_nf_log_all_netns;
++
+ /* Function to register/unregister log function. */
+ int nf_log_register(u_int8_t pf, struct nf_logger *logger);
+ void nf_log_unregister(struct nf_logger *logger);
+diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+index 152300d164ac..735230ec0e49 100644
+--- a/net/bridge/netfilter/ebt_log.c
++++ b/net/bridge/netfilter/ebt_log.c
+@@ -78,7 +78,7 @@ ebt_log_packet(struct net *net, u_int8_t pf, unsigned int hooknum,
+ 	unsigned int bitmask;
+ 
+ 	/* FIXME: Disabled from containers until syslog ns is supported */
+-	if (!net_eq(net, &init_net))
++	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
+ 		return;
+ 
+ 	spin_lock_bh(&ebt_log_lock);
+diff --git a/net/ipv4/netfilter/nf_log_arp.c b/net/ipv4/netfilter/nf_log_arp.c
+index e7ad950cf9ef..39e1348dfe45 100644
+--- a/net/ipv4/netfilter/nf_log_arp.c
++++ b/net/ipv4/netfilter/nf_log_arp.c
+@@ -87,7 +87,7 @@ static void nf_log_arp_packet(struct net *net, u_int8_t pf,
+ 	struct nf_log_buf *m;
+ 
+ 	/* FIXME: Disabled from containers until syslog ns is supported */
+-	if (!net_eq(net, &init_net))
++	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
+ 		return;
+ 
+ 	m = nf_log_buf_open();
+diff --git a/net/ipv4/netfilter/nf_log_ipv4.c b/net/ipv4/netfilter/nf_log_ipv4.c
+index 076aadda0473..2b0083112ed8 100644
+--- a/net/ipv4/netfilter/nf_log_ipv4.c
++++ b/net/ipv4/netfilter/nf_log_ipv4.c
+@@ -319,7 +319,7 @@ static void nf_log_ip_packet(struct net *net, u_int8_t pf,
+ 	struct nf_log_buf *m;
+ 
+ 	/* FIXME: Disabled from containers until syslog ns is supported */
+-	if (!net_eq(net, &init_net))
++	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
+ 		return;
+ 
+ 	m = nf_log_buf_open();
+diff --git a/net/ipv6/netfilter/nf_log_ipv6.c b/net/ipv6/netfilter/nf_log_ipv6.c
+index 8dd869642f45..04960486d0e2 100644
+--- a/net/ipv6/netfilter/nf_log_ipv6.c
++++ b/net/ipv6/netfilter/nf_log_ipv6.c
+@@ -351,7 +351,7 @@ static void nf_log_ip6_packet(struct net *net, u_int8_t pf,
+ 	struct nf_log_buf *m;
+ 
+ 	/* FIXME: Disabled from containers until syslog ns is supported */
+-	if (!net_eq(net, &init_net))
++	if (!net_eq(net, &init_net) && !sysctl_nf_log_all_netns)
+ 		return;
+ 
+ 	m = nf_log_buf_open();
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index a5d41dfa9f05..a5f4c57b14c5 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -16,6 +16,9 @@
+ #define NF_LOG_PREFIXLEN		128
+ #define NFLOGGER_NAME_LEN		64
+ 
++int sysctl_nf_log_all_netns __read_mostly;
++EXPORT_SYMBOL(sysctl_nf_log_all_netns);
++
+ static struct nf_logger __rcu *loggers[NFPROTO_NUMPROTO][NF_LOG_TYPE_MAX] __read_mostly;
+ static DEFINE_MUTEX(nf_log_mutex);
+ 
+@@ -392,6 +395,18 @@ static const struct file_operations nflog_file_ops = {
+ #ifdef CONFIG_SYSCTL
+ static char nf_log_sysctl_fnames[NFPROTO_NUMPROTO-NFPROTO_UNSPEC][3];
+ static struct ctl_table nf_log_sysctl_table[NFPROTO_NUMPROTO+1];
++static struct ctl_table_header *nf_log_sysctl_fhdr;
++
++static struct ctl_table nf_log_sysctl_ftable[] = {
++	{
++		.procname	= "nf_log_all_netns",
++		.data		= &sysctl_nf_log_all_netns,
++		.maxlen		= sizeof(sysctl_nf_log_all_netns),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++	},
++	{ }
++};
+ 
+ static int nf_log_proc_dostring(struct ctl_table *table, int write,
+ 			 void __user *buffer, size_t *lenp, loff_t *ppos)
+@@ -461,6 +476,10 @@ static int netfilter_log_sysctl_init(struct net *net)
+ 			nf_log_sysctl_table[i].extra1 =
+ 				(void *)(unsigned long) i;
+ 		}
++		nf_log_sysctl_fhdr = register_net_sysctl(net, "net/netfilter",
++							 nf_log_sysctl_ftable);
++		if (!nf_log_sysctl_fhdr)
++			goto err_freg;
+ 	}
+ 
+ 	net->nf.nf_log_dir_header = register_net_sysctl(net,
+@@ -474,6 +493,7 @@ static int netfilter_log_sysctl_init(struct net *net)
+ err_reg:
+ 	if (!net_eq(net, &init_net))
+ 		kfree(table);
++err_freg:
+ err_alloc:
+ 	return -ENOMEM;
+ }
+@@ -486,6 +506,8 @@ static void netfilter_log_sysctl_exit(struct net *net)
+ 	unregister_net_sysctl_table(net->nf.nf_log_dir_header);
+ 	if (!net_eq(net, &init_net))
+ 		kfree(table);
++	else
++		unregister_net_sysctl_table(nf_log_sysctl_fhdr);
+ }
+ #else
+ static int netfilter_log_sysctl_init(struct net *net)
+-- 
+2.8.1
+
