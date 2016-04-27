@@ -1,68 +1,31 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft 7/7] nft: add flow statement
-Date: Wed, 27 Apr 2016 18:37:27 +0200
-Message-ID: <20160427163727.GA2006@salvia>
-References: <1461756590-22880-1-git-send-email-kaber@trash.net>
- <1461756590-22880-8-git-send-email-kaber@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH net-next 9/9] taskstats: use the libnl API to align
+ nlattr on 64-bit
+Date: Wed, 27 Apr 2016 12:41:15 -0400 (EDT)
+Message-ID: <20160427.124115.463605194182852802.davem@davemloft.net>
+References: <57201287.80002@gmail.com>
+	<57206A47.2010906@6wind.com>
+	<5720B0A2.1030405@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:32993 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752806AbcD0Qhh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Apr 2016 12:37:37 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 13153E6642
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2016 18:37:35 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 04A24A91F
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2016 18:37:35 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id F295464472
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Apr 2016 18:37:32 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1461756590-22880-8-git-send-email-kaber@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: nicolas.dichtel@6wind.com, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-wpan@vger.kernel.org,
+	aar@pengutronix.de, pablo@netfilter.org, kaber@trash.net,
+	kadlec@blackhole.kfki.hu, pshelar@nicira.com, kuznet@ms2.inr.ac.ru,
+	jmorris@namei.org, yoshfuji@linux-ipv6.org,
+	netfilter-devel@vger.kernel.org, dev@openvswitch.org,
+	steffen.klassert@secunet.com, herbert@gondor.apana.org.au
+To: bsingharora@gmail.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <5720B0A2.1030405@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Apr 27, 2016 at 12:29:50PM +0100, Patrick McHardy wrote:
-> The flow statement allows to instantiate per flow statements for user
-> defined flows. This can so far be used for per flow accounting or limiting,
-> similar to what the iptables hashlimit provides. Flows can be aged using
-> the timeout option.
-> 
-> Examples:
-> 
-> # nft filter input flow ip saddr . tcp dport limit rate 10/second
-> # nft filter input flow table acct iif . ip saddr timeout 60s counter
+From: Balbir Singh <bsingharora@gmail.com>
+Date: Wed, 27 Apr 2016 22:29:22 +1000
 
-I think you have to update this syntax to:
+> My concern is ABI breakage of user space.
 
-# nft add rule filter input \
-        flow { ip saddr . tcp dport limit rate 10/second }
-             ^                                           ^
-
-# nft add rule filter input \
-        flow table acct { iif . ip saddr timeout 60s counter }
-                        ^                                    ^
-
-so the idea is to wrap this around brackets.
-
-When playing around with this in your initial patchset I found very
-confusing that it may not look obvious to users that they can only use
-one single statement.
-
-For example:
-
-# nft add rule filter input \
-        flow table acct iif . ip saddr timeout 60s counter limit rate 10/second
-                                                           ~~~~~~~~~~~~~~~~~~~~
-
-Note that this limit rate applies globally.
-
-This may cause us problems in the future too if we extend this to
-support more than one single statement per flowtable entry (Not
-telling we need this now, but if someone comes up with a useful
-usecase, we should be capable of extending this).
+The "ABI" is that unrecognized attributes must be silently ignored by
+userspace.
