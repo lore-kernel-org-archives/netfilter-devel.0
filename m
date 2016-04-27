@@ -1,83 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [iptables PATCH] configure: make libmnl and libnftnl hard
- requirements
-Date: Tue, 26 Apr 2016 23:37:55 +0200
-Message-ID: <20160426213755.GA4813@salvia>
-References: <1461698878-4459-1-git-send-email-giuseppe@glongo.it>
- <alpine.LSU.2.20.1604262318470.24999@nerf40.vanv.qr>
+From: Balbir Singh <bsingharora-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH net-next 9/9] taskstats: use the libnl API to
+ align nlattr on 64-bit
+Date: Wed, 27 Apr 2016 11:14:47 +1000
+Message-ID: <57201287.80002@gmail.com>
+References: <1461339084-3849-1-git-send-email-nicolas.dichtel@6wind.com>
+ <1461339084-3849-10-git-send-email-nicolas.dichtel@6wind.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Giuseppe Longo <giuseppelng@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@inai.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55371 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752207AbcDZViF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Apr 2016 17:38:05 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 7AA21C126A
-	for <netfilter-devel@vger.kernel.org>; Tue, 26 Apr 2016 23:38:02 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6C55E6446A
-	for <netfilter-devel@vger.kernel.org>; Tue, 26 Apr 2016 23:38:02 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E90BA64465
-	for <netfilter-devel@vger.kernel.org>; Tue, 26 Apr 2016 23:37:59 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.20.1604262318470.24999@nerf40.vanv.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, steffen.klassert-opNxpl+3fjRBDgjK7y7TUQ@public.gmane.org,
+ herbert-lOAM2aK0SrRLBo1qDEOMRrpzq4S04n8Q@public.gmane.org, aar-bIcnvbaLZ9MEGnE8C9+IrQ@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, yoshfuji-VfPWfsRibaP+Ru+s062T9g@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org, jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org,
+ linux-wpan-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org
+To: Nicolas Dichtel <nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <1461339084-3849-10-git-send-email-nicolas.dichtel-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Apr 26, 2016 at 11:20:19PM +0200, Jan Engelhardt wrote:
-> 
-> On Tuesday 2016-04-26 21:27, Giuseppe Longo wrote:
-> >index 12bffa9..b170add 100644
-> >--- a/configure.ac
-> >+++ b/configure.ac
-> >@@ -122,8 +122,26 @@ AM_CONDITIONAL([HAVE_LIBNFNETLINK], [test "$nfnetlink" = 1])
-> > if test "x$enable_nftables" = "xyes"; then
-> > 	PKG_CHECK_MODULES([libmnl], [libmnl >= 1.0], [mnl=1], [mnl=0])
-> > 
-> >+	if test "$mnl" = 0;
-> >+	then
-> >+		echo "*** Error: No suitable libmnl found. ***"
-> >+		echo "    Please install the 'libmnl' package"
-> >+		echo "    Or consider --disable-nftables to skip"
-> >+		echo "    iptables-compat over nftables support."
-> >+		exit 1
-> >+	fi
-> 
-> As told you before, I find this unnecessary large.
-> Consider this instead.
-> 
-> 
-> From afcbd592265af0c3a65c21e8f23e1c2f5a348396 Mon Sep 17 00:00:00 2001
-> From: Jan Engelhardt <jengelh@inai.de>
-> Date: Tue, 26 Apr 2016 23:18:26 +0200
-> Subject: [PATCH] build: hard-require libmnl, libnftnl for iptables-nft
-> 
-> Signed-off-by: Jan Engelhardt <jengelh@inai.de>
-> ---
->  configure.ac | 7 ++++---
->  1 file changed, 4 insertions(+), 3 deletions(-)
-> 
-> diff --git a/configure.ac b/configure.ac
-> index 12bffa9..e4eafc6 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-> @@ -120,9 +120,10 @@ PKG_CHECK_MODULES([libnfnetlink], [libnfnetlink >= 1.0],
->  AM_CONDITIONAL([HAVE_LIBNFNETLINK], [test "$nfnetlink" = 1])
->  
->  if test "x$enable_nftables" = "xyes"; then
-> -	PKG_CHECK_MODULES([libmnl], [libmnl >= 1.0], [mnl=1], [mnl=0])
-> -
-> -	PKG_CHECK_MODULES([libnftnl], [libnftnl >= 1.0.5], [nftables=1], [nftables=0])
-> +	PKG_CHECK_MODULES([libmnl], [libmnl >= 1.0])
-> +	PKG_CHECK_MODULES([libnftnl], [libnftnl >= 1.0.5])
-> +	mnl=1
-> +	nftables=1
-
-This doesn't give a clue to users on what they can actually do.
-
-I find Giuseppe's patch more informative.
+CgpPbiAyMy8wNC8xNiAwMTozMSwgTmljb2xhcyBEaWNodGVsIHdyb3RlOgo+IEdvYWwgb2YgdGhp
+cyBwYXRjaCBpcyB0byB1c2UgdGhlIG5ldyBsaWJubCBBUEkgdG8gYWxpZ24gbmV0bGluayBhdHRy
+aWJ1dGUKPiB3aGVuIG5lZWRlZC4KPiBUaGUgbGF5b3V0IG9mIHRoZSBuZXRsaW5rIG1lc3NhZ2Ug
+d2lsbCBiZSBhIGJpdCBkaWZmZXJlbnQgYWZ0ZXIgdGhlIHBhdGNoLAo+IGJlY2F1c2UgdGhlIHBh
+ZGF0dHIgKFRBU0tTVEFUU19UWVBFX1NUQVRTKSB3aWxsIGJlIGluc2lkZSB0aGUgbmVzdGVkCj4g
+YXR0cmlidXRlIGluc3RlYWQgb2YgYmVmb3JlIGl0Lgo+IAo+IFNpZ25lZC1vZmYtYnk6IE5pY29s
+YXMgRGljaHRlbCA8bmljb2xhcy5kaWNodGVsQDZ3aW5kLmNvbT4KClRoZSBsYXlvdXQgd2lsbCBj
+aGFuZ2UvYnJlYWsgdXNlciBzcGFjZSAtLSBJJ3ZlIG5vdCB0ZXN0ZWQgdGhlIHBhdGNoIHRob3Vn
+aC4uCgpCYWxiaXIgU2luZ2guCiAKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KZGV2IG1haWxpbmcgbGlzdApkZXZAb3BlbnZzd2l0Y2gub3JnCmh0dHA6Ly9v
+cGVudnN3aXRjaC5vcmcvbWFpbG1hbi9saXN0aW5mby9kZXYK
