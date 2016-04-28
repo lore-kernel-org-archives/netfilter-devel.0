@@ -1,43 +1,48 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [nf_tables PATCH] netfilter: nf_tables: invert chain deletion
- abort path
-Date: Thu, 28 Apr 2016 10:55:56 +0200
-Message-ID: <CAOkSjBiyaiG6PrVyq3A+43-AcPaAigQfR5ByNNbgtqu=v93MJg@mail.gmail.com>
-References: <146011296985.3580.3314850969369156279.stgit@nfdev2.cica.es> <20160414102434.GA2905@salvia>
+Subject: [nft PATCH] dist: include tests/ directory and files in tarball
+Date: Thu, 28 Apr 2016 11:14:38 +0200
+Message-ID: <146183487873.3430.10556920470037312368.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:37887 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752309AbcD1I4R convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Apr 2016 04:56:17 -0400
-Received: by mail-wm0-f46.google.com with SMTP id a17so53356630wme.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Apr 2016 01:56:16 -0700 (PDT)
-In-Reply-To: <20160414102434.GA2905@salvia>
+Received: from smtp3.cica.es ([150.214.5.190]:32842 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753365AbcD1JOq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 Apr 2016 05:14:46 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id BF79951F243
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 Apr 2016 09:14:44 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id NIVLNDbM2s2I for <netfilter-devel@vger.kernel.org>;
+	Thu, 28 Apr 2016 11:14:39 +0200 (CEST)
+Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
+	by smtp.cica.es (Postfix) with ESMTP id AEAA451F0CE
+	for <netfilter-devel@vger.kernel.org>; Thu, 28 Apr 2016 11:14:39 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 14 April 2016 at 12:24, Pablo Neira Ayuso <pablo@netfilter.org> wrot=
-e:
->
-> Thanks for coming up with this Arturo.
->
-> I have a better way to fix this by not adding/removing the objects to
-> the lists.
->
-> Ping me back if I don't come up with the fix anytime soon.
+If we include tests/ in the release tarball, downstream distributors
+can run the testsuites themselves while developing the packages.
 
-ping :-)
+This way, tests can be run in a more integrated environment and they can
+discover errors related to the integration with the given distribution itself.
 
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ Makefile.am |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/Makefile.am b/Makefile.am
+index 068009b..10aa40f 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -4,3 +4,5 @@ SUBDIRS = 	src	\
+ 		include	\
+ 		doc	\
+ 		files
++
++EXTRA_DIST =	tests
+
