@@ -1,39 +1,48 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [nft PATCH] dist: include tests/ directory and files in tarball
-Date: Thu, 28 Apr 2016 15:35:10 +0200
-Message-ID: <CAOkSjBgk6XOsK7KHrb0P_k9UCXV0_-jzAeGjCB_V6+UTcMoXFg@mail.gmail.com>
-References: <146183487873.3430.10556920470037312368.stgit@nfdev2.cica.es>
- <20160428092720.GA1848@salvia> <CAOkSjBj7FQLjnyWx+rEdLhm47xaGT5YgL-0XjTqZTXeTV630Rw@mail.gmail.com>
- <20160428122052.GA2399@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 0/9] netfilter: remove per-netns conntrack tables, part 1
+Date: Thu, 28 Apr 2016 19:13:39 +0200
+Message-ID: <1461863628-23350-1-git-send-email-fw@strlen.de>
+Cc: netdev@vger.kernel.org
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:38711 "EHLO
-	mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751865AbcD1Nfc convert rfc822-to-8bit (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41564 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751734AbcD1RNb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Apr 2016 09:35:32 -0400
-Received: by mail-wm0-f42.google.com with SMTP id g17so41866811wme.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 28 Apr 2016 06:35:31 -0700 (PDT)
-In-Reply-To: <20160428122052.GA2399@salvia>
+	Thu, 28 Apr 2016 13:13:31 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 28 April 2016 at 14:20, Pablo Neira Ayuso <pablo@netfilter.org> wrot=
-e:
-> So integrating this can be useful to you?
+[ CCing netdev so netns folks can have a look too ]
 
-Yes, my plan is to launch the tests from the debian continuous
-integration system.
+This patch series removes the per-netns connection tracking tables.
+All conntrack objects are then stored in one global global table.
 
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This avoids the infamous 'vmalloc' when lots of namespaces are used:
+We no longer allocate a new conntrack table for each namespace (with 64k
+size this saves 512kb of memory per netns).
+
+- net namespace address is made part of conntrack hash, to spread
+  conntracks over entire table even if netns has overlapping ip addresses.
+- lookup and iterators net_eq() to skip conntracks living in a different
+  namespace.
+
+Only the main conntrack table is converted here:
+NAT bysrc and expectation hashes are still per namespace (will be unified
+in a followup series).  Also, this retains the per-namespace kmem cache
+for the conntrack objects.  This will also be resolved in a followup series.
+
+Comments welcome.
+
+ include/net/netfilter/nf_conntrack_core.h             |   11 
+ include/net/netns/conntrack.h                         |    2 
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c        |    2 
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c |   38 ++
+ net/netfilter/nf_conntrack_core.c                     |  233 +++++++++---------
+ net/netfilter/nf_conntrack_helper.c                   |    6 
+ net/netfilter/nf_conntrack_netlink.c                  |   11 
+ net/netfilter/nf_conntrack_standalone.c               |   13 -
+ net/netfilter/nf_nat_core.c                           |    2 
+ net/netfilter/nfnetlink_cttimeout.c                   |    6 
+ 10 files changed, 179 insertions(+), 145 deletions(-)
+
