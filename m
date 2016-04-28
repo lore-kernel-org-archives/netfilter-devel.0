@@ -1,117 +1,47 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 9/9] netfilter: conntrack: consider ct netns in early_drop logic
-Date: Thu, 28 Apr 2016 19:13:48 +0200
-Message-ID: <1461863628-23350-10-git-send-email-fw@strlen.de>
-References: <1461863628-23350-1-git-send-email-fw@strlen.de>
-Cc: netdev@vger.kernel.org, Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: subashab@codeaurora.org
+Subject: Re: [PATCH iptables] xtables: use exponential delay when waiting for
+ xtables lock
+Date: Thu, 28 Apr 2016 13:14:17 -0600
+Message-ID: <569a5c79f8ca32db942694308c3e1500@codeaurora.org>
+References: <1460084845-28057-1-git-send-email-subashab@codeaurora.org>
+ <CAML_gOfhesCGBk5WWpmAsi3GQNHu5ZZpe9Wg36HCjGgQuRNeOg@mail.gmail.com>
+ <20160428092541.GB1529@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Liping Zhang <zlpnobody@gmail.com>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41586 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753185AbcD1RN7 (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:56637 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751865AbcD1TOT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Apr 2016 13:13:59 -0400
-In-Reply-To: <1461863628-23350-1-git-send-email-fw@strlen.de>
+	Thu, 28 Apr 2016 15:14:19 -0400
+In-Reply-To: <20160428092541.GB1529@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When iterating, skip conntrack entries living in a different netns.
+>> 
+>> This break the "-w" option's semantic, i.e. if the user input
+>> "iptables -w 1", and concurrency happen,
+>> we will just only wait 10ms and return an error.
+> 
+> If there's any chance this patch can break existing setups then we
+> can't take this.
+> 
+> I'd suggest you add support to express millisecond precision using a
+> dot notation, ie.
+> 
+>         -w .000001
+> 
+> that means 10 ms.
 
-We could ignore netns and kill some other non-assured one, but it
-has two problems:
+Thanks Liping / Pablo for your comments.
 
-- a netns can kill non-assured conntracks in other namespace
-- we would start to 'over-subscribe' the affected/overlimit netns.
+I'll raise a new patchset for this.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_core.c | 43 +++++++++++++++++++++++----------------
- 1 file changed, 25 insertions(+), 18 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index d58b597..418e4bc 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -763,18 +763,20 @@ static noinline int early_drop(struct net *net, unsigned int _hash)
- {
- 	/* Use oldest entry, which is roughly LRU */
- 	struct nf_conntrack_tuple_hash *h;
--	struct nf_conn *ct = NULL, *tmp;
-+	struct nf_conn *tmp;
- 	struct hlist_nulls_node *n;
--	unsigned int i = 0, cnt = 0;
--	int dropped = 0;
--	unsigned int hash, sequence;
-+	unsigned int i, hash, sequence;
-+	struct nf_conn *ct = NULL;
- 	spinlock_t *lockp;
-+	bool ret = false;
-+
-+	i = 0;
- 
- 	local_bh_disable();
- restart:
- 	sequence = read_seqcount_begin(&nf_conntrack_generation);
--	hash = scale_hash(_hash);
--	for (; i < nf_conntrack_htable_size; i++) {
-+	for (; i < NF_CT_EVICTION_RANGE; i++) {
-+		hash = scale_hash(_hash++);
- 		lockp = &nf_conntrack_locks[hash % CONNTRACK_LOCKS];
- 		nf_conntrack_lock(lockp);
- 		if (read_seqcount_retry(&nf_conntrack_generation, sequence)) {
-@@ -784,35 +786,40 @@ restart:
- 		hlist_nulls_for_each_entry_rcu(h, n, &nf_conntrack_hash[hash],
- 					       hnnode) {
- 			tmp = nf_ct_tuplehash_to_ctrack(h);
--			if (!test_bit(IPS_ASSURED_BIT, &tmp->status) &&
--			    !nf_ct_is_dying(tmp) &&
--			    atomic_inc_not_zero(&tmp->ct_general.use)) {
-+
-+			if (test_bit(IPS_ASSURED_BIT, &tmp->status) ||
-+			    !net_eq(nf_ct_net(tmp), net) ||
-+			    nf_ct_is_dying(tmp))
-+				continue;
-+
-+			if (atomic_inc_not_zero(&tmp->ct_general.use)) {
- 				ct = tmp;
- 				break;
- 			}
--			cnt++;
- 		}
- 
--		hash = (hash + 1) % nf_conntrack_htable_size;
- 		spin_unlock(lockp);
--
--		if (ct || cnt >= NF_CT_EVICTION_RANGE)
-+		if (ct)
- 			break;
--
- 	}
-+
- 	local_bh_enable();
- 
- 	if (!ct)
--		return dropped;
-+		return false;
- 
--	if (del_timer(&ct->timeout)) {
-+	/* kill only if in same netns -- might have moved due to
-+	 * SLAB_DESTROY_BY_RCU rules
-+	 */
-+	if (net_eq(nf_ct_net(ct), net) && del_timer(&ct->timeout)) {
- 		if (nf_ct_delete(ct, 0, 0)) {
--			dropped = 1;
- 			NF_CT_STAT_INC_ATOMIC(net, early_drop);
-+			ret = true;
- 		}
- 	}
-+
- 	nf_ct_put(ct);
--	return dropped;
-+	return ret;
- }
- 
- static struct nf_conn *
--- 
-2.7.3
-
+--
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora 
+Forum, a Linux Foundation Collaborative Project.
