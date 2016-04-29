@@ -1,41 +1,36 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next] netfilter: fix IS_ERR_VALUE usage
-Date: Fri, 29 Apr 2016 11:17:54 +0200
-Message-ID: <20160429091754.GN17538@breakpoint.cc>
-References: <1461920038-6795-1-git-send-email-pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH] dist: include tests/ directory and files in tarball
+Date: Fri, 29 Apr 2016 11:19:31 +0200
+Message-ID: <20160429091931.GA12758@salvia>
+References: <146183487873.3430.10556920470037312368.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, a.hajda@samsung.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:42899 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752599AbcD2JR6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Apr 2016 05:17:58 -0400
+Received: from mail.us.es ([193.147.175.20]:56893 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752022AbcD2JTm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 29 Apr 2016 05:19:42 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 124BCC1255
+	for <netfilter-devel@vger.kernel.org>; Fri, 29 Apr 2016 11:19:41 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id D763E100A78
+	for <netfilter-devel@vger.kernel.org>; Fri, 29 Apr 2016 11:19:40 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id BFD2E100A54
+	for <netfilter-devel@vger.kernel.org>; Fri, 29 Apr 2016 11:19:36 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1461920038-6795-1-git-send-email-pablo@netfilter.org>
+In-Reply-To: <146183487873.3430.10556920470037312368.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> This is a forward-ported original patch from Andrzej Hajda, he said:
+On Thu, Apr 28, 2016 at 11:14:38AM +0200, Arturo Borrero Gonzalez wrote:
+> If we include tests/ in the release tarball, downstream distributors
+> can run the testsuites themselves while developing the packages.
 > 
-> "IS_ERR_VALUE should be used only with unsigned long type.
-> Otherwise it can work incorrectly. To achieve this function
-> xt_percpu_counter_alloc is modified to return unsigned long,
-> and its result is assigned to temporary variable to perform
-> error checking, before assigning to .pcnt field.
-> 
-> The patch follows conclusion from discussion on LKML [1][2].
-> 
-> [1]: http://permalink.gmane.org/gmane.linux.kernel/2120927
-> [2]: http://permalink.gmane.org/gmane.linux.kernel/2150581"
-> 
-> Original patch from Andrzej is here:
-> 
-> http://patchwork.ozlabs.org/patch/582970/
-> 
-> This patch has clashed with input validation fixes for x_tables.
+> This way, tests can be run in a more integrated environment and they can
+> discover errors related to the integration with the given distribution itself.
 
-AFAICS this isn't a bug fix so I'm fine with this going into nf-next.
+Applied.
