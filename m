@@ -1,38 +1,57 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: IDLETIMER: fix race condition when destroy
- the target
-Date: Fri, 29 Apr 2016 12:10:35 +0200
-Message-ID: <20160429101035.GA15788@salvia>
-References: <1461224828-3274-1-git-send-email-zlpnobody@163.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpnobody@163.com>
+From: Daniel Wagner <wagi@monom.org>
+Subject: [PATCH] examples: load modules when adding chains or tables
+Date: Fri, 29 Apr 2016 12:07:34 +0200
+Message-ID: <1461924454-19498-1-git-send-email-wagi@monom.org>
+Cc: Daniel Wagner <daniel.wagner@bmw-carit.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44537 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751215AbcD2KKl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Apr 2016 06:10:41 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id DFE6E1AC751
-	for <netfilter-devel@vger.kernel.org>; Fri, 29 Apr 2016 12:10:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id CC8D9100A5D
-	for <netfilter-devel@vger.kernel.org>; Fri, 29 Apr 2016 12:10:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B1EBA100A5D
-	for <netfilter-devel@vger.kernel.org>; Fri, 29 Apr 2016 12:10:36 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1461224828-3274-1-git-send-email-zlpnobody@163.com>
+Received: from hotel311.server4you.de ([85.25.146.15]:40880 "EHLO
+	hotel311.server4you.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751257AbcD2KQj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 29 Apr 2016 06:16:39 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 21, 2016 at 12:47:08AM -0700, Liping Zhang wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
-> 
-> Workqueue maybe still in running while we destroy the IDLETIMER target,
-> thus cause a use after free error, add cancel_work_sync() to avoid such
-> situation.
+From: Daniel Wagner <daniel.wagner@bmw-carit.de>
 
-Applied, thanks.
+Tell the kernel to load the necessary modules by adding
+the NLM_F_CREATE flag.
+
+Signed-off-by: Daniel Wagner <daniel.wagner@bmw-carit.de>
+---
+
+This is for libnftnl.
+
+examples/nft-chain-add.c | 2 +-
+ examples/nft-table-add.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/examples/nft-chain-add.c b/examples/nft-chain-add.c
+index 3afc06e..ca1edf9 100644
+--- a/examples/nft-chain-add.c
++++ b/examples/nft-chain-add.c
+@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
+ 	chain_seq = seq;
+ 	nlh = nftnl_chain_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
+ 					NFT_MSG_NEWCHAIN, family,
+-					NLM_F_ACK, seq++);
++					NLM_F_CREATE|NLM_F_ACK, seq++);
+ 	nftnl_chain_nlmsg_build_payload(nlh, t);
+ 	nftnl_chain_free(t);
+ 	mnl_nlmsg_batch_next(batch);
+diff --git a/examples/nft-table-add.c b/examples/nft-table-add.c
+index db6e39e..aa6e268 100644
+--- a/examples/nft-table-add.c
++++ b/examples/nft-table-add.c
+@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
+ 	family = nftnl_table_get_u32(t, NFTNL_TABLE_FAMILY);
+ 	nlh = nftnl_table_nlmsg_build_hdr(mnl_nlmsg_batch_current(batch),
+ 					NFT_MSG_NEWTABLE, family,
+-					NLM_F_ACK, seq++);
++					NLM_F_CREATE|NLM_F_ACK, seq++);
+ 	nftnl_table_nlmsg_build_payload(nlh, t);
+ 	nftnl_table_free(t);
+ 	mnl_nlmsg_batch_next(batch);
+-- 
+2.5.5
