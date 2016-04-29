@@ -1,31 +1,40 @@
-From: Daniel Wagner <daniel.wagner@bmw-carit.de>
-Subject: Re: [PATCH] examples: load modules when adding chains or tables
-Date: Fri, 29 Apr 2016 13:33:29 +0200
-Message-ID: <ae1c0688-55c5-017e-7c84-983242ee43b2@bmw-carit.de>
-References: <1461924454-19498-1-git-send-email-wagi@monom.org>
- <20160429101811.GA16070@salvia>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next 8/9] netfilter: conntrack: use a single hashtable
+ for all namespaces
+Date: Fri, 29 Apr 2016 17:04:50 +0200
+Message-ID: <20160429150450.GR17538@breakpoint.cc>
+References: <1461863628-23350-1-git-send-email-fw@strlen.de>
+ <1461863628-23350-9-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.bmw-carit.de ([62.245.222.98]:58581 "EHLO
-	mail.bmw-carit.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752081AbcD2LjD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Apr 2016 07:39:03 -0400
-In-Reply-To: <20160429101811.GA16070@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1461863628-23350-9-git-send-email-fw@strlen.de>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 04/29/2016 12:18 PM, Pablo Neira Ayuso wrote:
-> On Fri, Apr 29, 2016 at 12:07:34PM +0200, Daniel Wagner wrote:
->> From: Daniel Wagner <daniel.wagner@bmw-carit.de>
->>
->> Tell the kernel to load the necessary modules by adding
->> the NLM_F_CREATE flag.
+Florian Westphal <fw@strlen.de> wrote:
+> We already include netns address in the hash and compare the netns pointers
+> during lookup, so even if namespaces have overlapping addresses entries
+> will be spread across the table.
 > 
-> Applied, thanks for following up on this.
+> Assuming 64k bucket size, this change saves 0.5 mbyte per namespace on a
+> 64bit system.
+> 
+> NAT bysrc and expectation hash is still per namespace, those will
+> changed too soon.
+> 
+> Future patch will also make conntrack object slab cache global again.
+> 
+> @@ -1527,7 +1528,6 @@ i_see_dead_people:
+>  	}
+>  
+>  	list_for_each_entry(net, net_exit_list, exit_list) {
+> -		nf_ct_free_hashtable(net->ct.hash, net->ct.htable_size);
 
-np. you saved me time debugging, so it's a fair deal :)
+Removing this is ok, but nf_ct_free_hashtable() must now be called in
+nf_conntrack_cleanup_end().
+
+I'll wait with v2 for a couple of days.
