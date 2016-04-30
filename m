@@ -1,60 +1,39 @@
-From: Jarno Rajahalme <jarno-LZ6Gd1LRuIk@public.gmane.org>
-Subject: Re: [PATCH] nf_nat_packet: Clear skb hash after modifying
-	packet headers.
-Date: Fri, 29 Apr 2016 11:04:03 -0700
-Message-ID: <BF2D351F-29C4-49BA-9C97-231BB513DD23@ovn.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] nf_nat_packet: Clear skb hash after modifying packet
+ headers.
+Date: Sat, 30 Apr 2016 09:57:43 +0200
+Message-ID: <20160430075743.GA26902@breakpoint.cc>
 References: <1461187870-54322-1-git-send-email-jarno@ovn.org>
- <20160429090959.GA7236@salvia> <20160429091212.GL17538@breakpoint.cc>
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
-To: Florian Westphal <fw-HFFVJYpyMKqzQB+pC5nmwQ@public.gmane.org>
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <20160429091212.GL17538-E0PNVn5OA6ohrxcnuTQ+TQ@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Id: netfilter-devel.vger.kernel.org
+ <20160429090959.GA7236@salvia>
+ <20160429091212.GL17538@breakpoint.cc>
+ <BF2D351F-29C4-49BA-9C97-231BB513DD23@ovn.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	dev@openvswitch.org
+To: Jarno Rajahalme <jarno@ovn.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44447 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751954AbcD3H5t (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 30 Apr 2016 03:57:49 -0400
+Content-Disposition: inline
+In-Reply-To: <BF2D351F-29C4-49BA-9C97-231BB513DD23@ovn.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Cj4gT24gQXByIDI5LCAyMDE2LCBhdCAyOjEyIEFNLCBGbG9yaWFuIFdlc3RwaGFsIDxmd0BzdHJs
-ZW4uZGU+IHdyb3RlOgo+IAo+IFBhYmxvIE5laXJhIEF5dXNvIDxwYWJsb0BuZXRmaWx0ZXIub3Jn
-IDxtYWlsdG86cGFibG9AbmV0ZmlsdGVyLm9yZz4+IHdyb3RlOgo+PiBPbiBXZWQsIEFwciAyMCwg
-MjAxNiBhdCAwMjozMToxMFBNIC0wNzAwLCBKYXJubyBSYWphaGFsbWUgd3JvdGU6Cj4+PiBDbGVh
-ciB0aGUgc2tiIGhhc2ggd2hlbiBpdCBkb2VzIG5vdCByZWZsZWN0IHRoZSBhY3R1YWwgaGVhZGVy
-IHZhbHVlcwo+Pj4gYW55IG1vcmUuCj4+PiAKPj4+IFNpZ25lZC1vZmYtYnk6IEphcm5vIFJhamFo
-YWxtZSA8amFybm9Ab3ZuLm9yZz4KPj4+IC0tLQo+Pj4gbmV0L25ldGZpbHRlci9uZl9uYXRfY29y
-ZS5jIHwgMSArCj4+PiAxIGZpbGUgY2hhbmdlZCwgMSBpbnNlcnRpb24oKykKPj4+IAo+Pj4gZGlm
-ZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIvbmZfbmF0X2NvcmUuYyBiL25ldC9uZXRmaWx0ZXIvbmZf
-bmF0X2NvcmUuYwo+Pj4gaW5kZXggMDZhOWY0NS4uM2MyMzAyZiAxMDA2NDQKPj4+IC0tLSBhL25l
-dC9uZXRmaWx0ZXIvbmZfbmF0X2NvcmUuYwo+Pj4gKysrIGIvbmV0L25ldGZpbHRlci9uZl9uYXRf
-Y29yZS5jCj4+PiBAQCAtNTA1LDYgKzUwNSw3IEBAIHVuc2lnbmVkIGludCBuZl9uYXRfcGFja2V0
-KHN0cnVjdCBuZl9jb25uICpjdCwKPj4+IAkJaWYgKCFsM3Byb3RvLT5tYW5pcF9wa3Qoc2tiLCAw
-LCBsNHByb3RvLCAmdGFyZ2V0LCBtdHlwZSkpCj4+PiAJCQlyZXR1cm4gTkZfRFJPUDsKPj4+IAl9
-Cj4+PiArCXNrYl9jbGVhcl9oYXNoKHNrYik7Cj4+PiAJcmV0dXJuIE5GX0FDQ0VQVDsKPj4+IH0K
-Pj4gCj4+IENjJ2luZyBGbG9yaWFuLgo+PiAKPj4gVGhpcyBzZWVtcyB0byBhZmZlY3QgdGhlIG5l
-dyB0cmFjaW5nIGluZnJhc3RydWN0dXJlIGZvciBuZl90YWJsZXM6Cj4gCj4gUmlnaHQuCj4gCj4g
-SmFybm8sIHdoYXQgaXMgeW91ciBwYXRjaCB0cnlpbmcgdG8gZml4PwoKSW4gdGhlIE9WUyBkYXRh
-cGF0aCB3ZSBjbGVhciB0aGUgc2tiIGhhc2ggd2hlbmV2ZXIgd2UgY2hhbmdlIGFueSBvZiB0aGUg
-ZmllbGRzIHRoYXQgbWF5IGJlIHVzZWQgdG8gY29tcHV0ZSBpdC4gVGhpcyBndWFyYW50ZWVzIHRo
-YXQgYW55IGdpdmVuIGZsb3cgd2lsbCBnZXQgdGhlIHNhbWUgaGFzaCB2YWx1ZSB3aGVuIGFzc2ln
-bmluZyBwYWNrZXRzIHRvIGJvbmQgaW50ZXJmYWNlcyBiYXNlZCBvbiB0aGUgc2tiIGhhc2guIElm
-IHRoZSBoYXNoIGlzIG5vdCBjbGVhcmVkLCBzb21lIHBhY2tldHMgbWF5IHVzZSB0aGUgcHJlLW5h
-dCBoYXNoIHByb3ZpZGVkIGJ5IGEgbmljLCBmb3IgZXhhbXBsZSwgd2hpbGUgb3RoZXJzIG1heSBu
-b3QgaGF2ZSB0aGUgbmljIHByb3ZpZGVkIGhhc2ggYW5kIGNvbXB1dGUgYSBuZXcgb25lIHBvc3Qt
-bmF0LiBBbHNvLCBpZiBETkFUIGlzIHVzZWQgZm9yIGxvYWQgYmFsYW5jaW5nLCB0aGUgaGFzaCBz
-aG91bGQgYmUgY29tcHV0ZWQgYWZ0ZXIgdGhlIE5BVCBmb3IgdGhlIGRpZmZlcmVuY2UgaW4gdGhl
-IGRlc3RpbmF0aW9uIGFkZHJlc3MgdG8gbWFrZSBhIGRpZmZlcmVuY2UgaW4gdGhlIGhhc2ggdmFs
-dWUuCgpXZSBjb3VsZCBhbHNvIGNsZWFyIHRoZSBoYXNoIGluIHRoZSBPVlMgZGF0YXBhdGggY29k
-ZSBhZnRlciBjYWxsaW5nIGludG8gbmYgbmF0LCBidXQgY291bGQgdGhhdCBzdGlsbCBoYXZlIHRo
-ZSBzYW1lIGlzc3VlIHdpdGggYWZmZWN0aW5nIHRoZSBuZl90YWJsZXMgdHJhY2luZyAob2Ygd2hp
-Y2ggSSBrbm93IG5vdGhpbmcgYWJvdXQpPwoKICBKYXJubwoKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KZGV2IG1haWxpbmcgbGlzdApkZXZAb3BlbnZzd2l0
-Y2gub3JnCmh0dHA6Ly9vcGVudnN3aXRjaC5vcmcvbWFpbG1hbi9saXN0aW5mby9kZXYK
+Jarno Rajahalme <jarno@ovn.org> wrote:
+> In the OVS datapath we clear the skb hash whenever we change any of the fields that may be used to compute it. This guarantees that any given flow will get the same hash value when assigning packets to bond interfaces based on the skb hash. If the hash is not cleared, some packets may use the pre-nat hash provided by a nic, for example, while others may not have the nic provided hash and compute a new one post-nat. Also, if DNAT is used for load balancing, the hash should be computed after the NAT for the difference in the destination address to make a difference in the hash value.
+> 
+> We could also clear the hash in the OVS datapath code after calling into nf nat, but could that still have the same issue with affecting the nf_tables tracing (of which I know nothing about)?
+
+No, that would not affect nft.
+
+Note that we could also remove the skb_get_hash() usage in nf trace (we
+want to compute a pseudo-id that doesn't change while skb travels the
+netfilter hooks).
+
+For now I'd prefer if the hash reset would happen in OVS.
