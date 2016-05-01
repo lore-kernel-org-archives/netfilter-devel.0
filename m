@@ -1,39 +1,85 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] nf_nat_packet: Clear skb hash after modifying packet
- headers.
-Date: Sat, 30 Apr 2016 09:57:43 +0200
-Message-ID: <20160430075743.GA26902@breakpoint.cc>
-References: <1461187870-54322-1-git-send-email-jarno@ovn.org>
- <20160429090959.GA7236@salvia>
- <20160429091212.GL17538@breakpoint.cc>
- <BF2D351F-29C4-49BA-9C97-231BB513DD23@ovn.org>
+Subject: Re: [PATCH nf] netfilter: conntrack: avoid integer overflow when
+ resizing
+Date: Sun, 1 May 2016 21:48:34 +0200
+Message-ID: <20160501194834.GA19580@breakpoint.cc>
+References: <1461453501-4428-1-git-send-email-fw@strlen.de>
+ <20160429095902.GA15406@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	dev@openvswitch.org
-To: Jarno Rajahalme <jarno@ovn.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44447 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:45282 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751954AbcD3H5t (ORCPT
+	by vger.kernel.org with ESMTP id S1752088AbcEATsh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 30 Apr 2016 03:57:49 -0400
+	Sun, 1 May 2016 15:48:37 -0400
 Content-Disposition: inline
-In-Reply-To: <BF2D351F-29C4-49BA-9C97-231BB513DD23@ovn.org>
+In-Reply-To: <20160429095902.GA15406@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jarno Rajahalme <jarno@ovn.org> wrote:
-> In the OVS datapath we clear the skb hash whenever we change any of the fields that may be used to compute it. This guarantees that any given flow will get the same hash value when assigning packets to bond interfaces based on the skb hash. If the hash is not cleared, some packets may use the pre-nat hash provided by a nic, for example, while others may not have the nic provided hash and compute a new one post-nat. Also, if DNAT is used for load balancing, the hash should be computed after the NAT for the difference in the destination address to make a difference in the hash value.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+
+[ Sorry for late reply ]
+
+> On Sun, Apr 24, 2016 at 01:18:21AM +0200, Florian Westphal wrote:
+> > Can overflow so we might allocate very small table when bucket count is
+> > high on a 32bit platform.
+> > 
+> > Note: resize is only possible from init_netns.
+> > 
+> > Signed-off-by: Florian Westphal <fw@strlen.de>
+> > ---
+> >  net/netfilter/nf_conntrack_core.c | 7 +++++++
+> >  1 file changed, 7 insertions(+)
+> > 
+> > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> > index 2bbb962..11daca5 100644
+> > --- a/net/netfilter/nf_conntrack_core.c
+> > +++ b/net/netfilter/nf_conntrack_core.c
+> > @@ -1563,8 +1563,15 @@ void *nf_ct_alloc_hashtable(unsigned int *sizep, int nulls)
+> >  	unsigned int nr_slots, i;
+> >  	size_t sz;
+> >  
+> > +	if (*sizep > (UINT_MAX / sizeof(struct hlist_nulls_head)))
+> > +		return NULL;
 > 
-> We could also clear the hash in the OVS datapath code after calling into nf nat, but could that still have the same issue with affecting the nf_tables tracing (of which I know nothing about)?
+> *sizep gets initially set to the number of buckets.
 
-No, that would not affect nft.
+Yes.
 
-Note that we could also remove the skb_get_hash() usage in nf trace (we
-want to compute a pseudo-id that doesn't change while skb travels the
-netfilter hooks).
+> >  	BUILD_BUG_ON(sizeof(struct hlist_nulls_head) != sizeof(struct hlist_head));
+> >  	nr_slots = *sizep = roundup(*sizep, PAGE_SIZE / sizeof(struct hlist_nulls_head));
+> 
+> Then, this value is divided by the number of hlist heads that fit into
+> a page.
 
-For now I'd prefer if the hash reset would happen in OVS.
+No, its rounded up to a multiple of PAGE/hlist heads, so for very large
+values of *sizep nr_slots would be 0.
+
+> > +	if (nr_slots > (UINT_MAX / sizeof(struct hlist_nulls_head)))
+> > +		return NULL;
+
+Alternative would be to change this to:
+
+if (nr_slots == 0 || nr_slots > (UINT_MAX / sizeof(struct hlist_nulls_head)))
+	return NULL;
+
+Or, add this check:
+
+if (nr_slots < roundup(1, PAGE_SIZE / sizeof(struct hlist_nulls_head))
+    nr_slots = roundup(1, PAGE_SIZE / sizeof(struct hlist_nulls_head)))
+
+I wasn't sure if its better to fail or if we should just pretend a sane
+value was given.
+
+Let me know what you think and I'll submit a v2.
+
+[ Its not a big deal, but eventually I'd like to make the sysctl
+  writeable so users can just increase that, no need to use this obscure
+  module parameter/sysfs param ... ]
+
+Cheers,
+Florian
