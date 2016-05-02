@@ -1,36 +1,152 @@
-From: Waleed Messe <waleedmesse4@gmail.com>
-Subject: Good days to you
-Date: Mon, 2 May 2016 09:33:49 +0200
-Message-ID: <CABQi95G=ynE83wzrD1BwSHL69Lopx0R0CTGarHmecwQ10cDeGw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: undisclosed-recipients:;
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 nf-next 7/9] netfilter: conntrack: make netns address part of hash
+Date: Mon,  2 May 2016 18:39:34 +0200
+Message-ID: <1462207174-24561-1-git-send-email-fw@strlen.de>
+References: <1461863628-23350-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:35953 "EHLO
-	mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752445AbcEBHdu convert rfc822-to-8bit (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:46935 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754168AbcEBQjX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 May 2016 03:33:50 -0400
-Received: by mail-oi0-f67.google.com with SMTP id i2so26328646oib.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 02 May 2016 00:33:50 -0700 (PDT)
+	Mon, 2 May 2016 12:39:23 -0400
+In-Reply-To: <1461863628-23350-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Good days to you
+Once we place all conntracks into a global hash table we want them to be
+spread across entire hash table, even if namespaces have overlapping ip
+addresses.
 
-Please kindly accept my apology for sending you this email without
-your consent i am Dr.Waleed Messe,The director in charge of auditing
-and accounting section of Bank Of Africa Ouagadougou Burkina-Faso in
-West Africa, I am writing to request your assistance to transfer the
-sum of  =E2=82=AC18.9 Euro, feel free to contact me here (wlemse@gmail.=
-com)
-for more clarifications if you are really interested in my proposal
-Have a nice day
+We add nf_conntrack_netns_hash helper to later re-use it for nat bysrc
+and expectation hash handling.  The helper also allows us to avoid the
+(then) pointless hashing of init_net if kernel is built without netns
+support.
 
-Dr.Waleed Messe
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Changes since v1:
+ use hash32_ptr instead of hash_ptr
+
+ include/net/netfilter/nf_conntrack_core.h | 10 +++++++++
+ net/netfilter/nf_conntrack_core.c         | 34 +++++++++++++++----------------
+ 2 files changed, 27 insertions(+), 17 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 62e17d1..c05ee81 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -12,6 +12,7 @@
+ #ifndef _NF_CONNTRACK_CORE_H
+ #define _NF_CONNTRACK_CORE_H
+ 
++#include <linux/hash.h>
+ #include <linux/netfilter.h>
+ #include <net/netfilter/nf_conntrack_l3proto.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+@@ -86,4 +87,13 @@ void nf_conntrack_lock(spinlock_t *lock);
+ 
+ extern spinlock_t nf_conntrack_expect_lock;
+ 
++static inline u32 nf_conntrack_netns_hash(const struct net *net)
++{
++#ifdef CONFIG_NET_NS
++	return hash32_ptr(net);
++#else
++	return 0;
++#endif
++}
++
+ #endif /* _NF_CONNTRACK_CORE_H */
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 10ae2ee..c29b929 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -144,9 +144,11 @@ EXPORT_PER_CPU_SYMBOL(nf_conntrack_untracked);
+ 
+ static unsigned int nf_conntrack_hash_rnd __read_mostly;
+ 
+-static u32 hash_conntrack_raw(const struct nf_conntrack_tuple *tuple)
++static u32 hash_conntrack_raw(const struct nf_conntrack_tuple *tuple,
++			      const struct net *net)
+ {
+ 	unsigned int n;
++	u32 seed;
+ 
+ 	get_random_once(&nf_conntrack_hash_rnd, sizeof(nf_conntrack_hash_rnd));
+ 
+@@ -154,32 +156,29 @@ static u32 hash_conntrack_raw(const struct nf_conntrack_tuple *tuple)
+ 	 * destination ports (which is a multiple of 4) and treat the last
+ 	 * three bytes manually.
+ 	 */
++	seed = nf_conntrack_hash_rnd ^ nf_conntrack_netns_hash(net);
+ 	n = (sizeof(tuple->src) + sizeof(tuple->dst.u3)) / sizeof(u32);
+-	return jhash2((u32 *)tuple, n, nf_conntrack_hash_rnd ^
++	return jhash2((u32 *)tuple, n, seed ^
+ 		      (((__force __u16)tuple->dst.u.all << 16) |
+ 		      tuple->dst.protonum));
+ }
+ 
+-static u32 __hash_bucket(u32 hash, unsigned int size)
+-{
+-	return reciprocal_scale(hash, size);
+-}
+-
+ static u32 hash_bucket(u32 hash, const struct net *net)
+ {
+-	return __hash_bucket(hash, net->ct.htable_size);
++	return reciprocal_scale(hash, net->ct.htable_size);
+ }
+ 
+-static u_int32_t __hash_conntrack(const struct nf_conntrack_tuple *tuple,
+-				  unsigned int size)
++static u32 __hash_conntrack(const struct net *net,
++			    const struct nf_conntrack_tuple *tuple,
++			    unsigned int size)
+ {
+-	return __hash_bucket(hash_conntrack_raw(tuple), size);
++	return reciprocal_scale(hash_conntrack_raw(tuple, net), size);
+ }
+ 
+-static inline u_int32_t hash_conntrack(const struct net *net,
+-				       const struct nf_conntrack_tuple *tuple)
++static u32 hash_conntrack(const struct net *net,
++			  const struct nf_conntrack_tuple *tuple)
+ {
+-	return __hash_conntrack(tuple, net->ct.htable_size);
++	return __hash_conntrack(net, tuple, net->ct.htable_size);
+ }
+ 
+ bool
+@@ -535,7 +534,7 @@ nf_conntrack_find_get(struct net *net, const struct nf_conntrack_zone *zone,
+ 		      const struct nf_conntrack_tuple *tuple)
+ {
+ 	return __nf_conntrack_find_get(net, zone, tuple,
+-				       hash_conntrack_raw(tuple));
++				       hash_conntrack_raw(tuple, net));
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_find_get);
+ 
+@@ -1041,7 +1040,7 @@ resolve_normal_ct(struct net *net, struct nf_conn *tmpl,
+ 
+ 	/* look for tuple match */
+ 	zone = nf_ct_zone_tmpl(tmpl, skb, &tmp);
+-	hash = hash_conntrack_raw(&tuple);
++	hash = hash_conntrack_raw(&tuple, net);
+ 	h = __nf_conntrack_find_get(net, zone, &tuple, hash);
+ 	if (!h) {
+ 		h = init_conntrack(net, tmpl, &tuple, l3proto, l4proto,
+@@ -1605,7 +1604,8 @@ int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
+ 					struct nf_conntrack_tuple_hash, hnnode);
+ 			ct = nf_ct_tuplehash_to_ctrack(h);
+ 			hlist_nulls_del_rcu(&h->hnnode);
+-			bucket = __hash_conntrack(&h->tuple, hashsize);
++			bucket = __hash_conntrack(nf_ct_net(ct),
++						  &h->tuple, hashsize);
+ 			hlist_nulls_add_head_rcu(&h->hnnode, &hash[bucket]);
+ 		}
+ 	}
+-- 
+2.7.3
+
