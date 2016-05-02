@@ -1,117 +1,48 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf-next 9/9] netfilter: conntrack: consider ct netns in early_drop logic
-Date: Mon,  2 May 2016 18:40:14 +0200
-Message-ID: <1462207214-7507-1-git-send-email-fw@strlen.de>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH v2 nf-next 7/9] netfilter: conntrack: make netns address
+ part of hash
+Date: Mon, 02 May 2016 09:51:25 -0700
+Message-ID: <1462207885.5535.258.camel@edumazet-glaptop3.roam.corp.google.com>
 References: <1461863628-23350-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+	 <1462207174-24561-1-git-send-email-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:46943 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753775AbcEBQkB (ORCPT
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:34669 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753598AbcEBQv1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 May 2016 12:40:01 -0400
-In-Reply-To: <1461863628-23350-1-git-send-email-fw@strlen.de>
+	Mon, 2 May 2016 12:51:27 -0400
+Received: by mail-pa0-f54.google.com with SMTP id r5so77911346pag.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 02 May 2016 09:51:27 -0700 (PDT)
+In-Reply-To: <1462207174-24561-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When iterating, skip conntrack entries living in a different netns.
+On Mon, 2016-05-02 at 18:39 +0200, Florian Westphal wrote:
+> Once we place all conntracks into a global hash table we want them to be
+> spread across entire hash table, even if namespaces have overlapping ip
+> addresses.
+>  
+> +static inline u32 nf_conntrack_netns_hash(const struct net *net)
+> +{
+> +#ifdef CONFIG_NET_NS
+> +	return hash32_ptr(net);
+> +#else
+> +	return 0;
+> +#endif
+> +}
+> +
 
-We could ignore netns and kill some other non-assured one, but it
-has two problems:
+Are you reinventing net_hash_mix() ?
 
-- a netns can kill non-assured conntracks in other namespace
-- we would start to 'over-subscribe' the affected/overlimit netns.
+If net_hash_mix() is not good enough, please fix it ;)
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_core.c | 43 +++++++++++++++++++++++----------------
- 1 file changed, 25 insertions(+), 18 deletions(-)
+hash_ptr() is not that good, as ongoing thread in lkml shows.
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 9091d48..c02e935 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -763,18 +763,20 @@ static noinline int early_drop(struct net *net, unsigned int _hash)
- {
- 	/* Use oldest entry, which is roughly LRU */
- 	struct nf_conntrack_tuple_hash *h;
--	struct nf_conn *ct = NULL, *tmp;
-+	struct nf_conn *tmp;
- 	struct hlist_nulls_node *n;
--	unsigned int i = 0, cnt = 0;
--	int dropped = 0;
--	unsigned int hash, sequence;
-+	unsigned int i, hash, sequence;
-+	struct nf_conn *ct = NULL;
- 	spinlock_t *lockp;
-+	bool ret = false;
-+
-+	i = 0;
- 
- 	local_bh_disable();
- restart:
- 	sequence = read_seqcount_begin(&nf_conntrack_generation);
--	hash = scale_hash(_hash);
--	for (; i < nf_conntrack_htable_size; i++) {
-+	for (; i < NF_CT_EVICTION_RANGE; i++) {
-+		hash = scale_hash(_hash++);
- 		lockp = &nf_conntrack_locks[hash % CONNTRACK_LOCKS];
- 		nf_conntrack_lock(lockp);
- 		if (read_seqcount_retry(&nf_conntrack_generation, sequence)) {
-@@ -784,35 +786,40 @@ restart:
- 		hlist_nulls_for_each_entry_rcu(h, n, &nf_conntrack_hash[hash],
- 					       hnnode) {
- 			tmp = nf_ct_tuplehash_to_ctrack(h);
--			if (!test_bit(IPS_ASSURED_BIT, &tmp->status) &&
--			    !nf_ct_is_dying(tmp) &&
--			    atomic_inc_not_zero(&tmp->ct_general.use)) {
-+
-+			if (test_bit(IPS_ASSURED_BIT, &tmp->status) ||
-+			    !net_eq(nf_ct_net(tmp), net) ||
-+			    nf_ct_is_dying(tmp))
-+				continue;
-+
-+			if (atomic_inc_not_zero(&tmp->ct_general.use)) {
- 				ct = tmp;
- 				break;
- 			}
--			cnt++;
- 		}
- 
--		hash = (hash + 1) % nf_conntrack_htable_size;
- 		spin_unlock(lockp);
--
--		if (ct || cnt >= NF_CT_EVICTION_RANGE)
-+		if (ct)
- 			break;
--
- 	}
-+
- 	local_bh_enable();
- 
- 	if (!ct)
--		return dropped;
-+		return false;
- 
--	if (del_timer(&ct->timeout)) {
-+	/* kill only if in same netns -- might have moved due to
-+	 * SLAB_DESTROY_BY_RCU rules
-+	 */
-+	if (net_eq(nf_ct_net(ct), net) && del_timer(&ct->timeout)) {
- 		if (nf_ct_delete(ct, 0, 0)) {
--			dropped = 1;
- 			NF_CT_STAT_INC_ATOMIC(net, early_drop);
-+			ret = true;
- 		}
- 	}
-+
- 	nf_ct_put(ct);
--	return dropped;
-+	return ret;
- }
- 
- static struct nf_conn *
--- 
-2.7.3
+Thanks.
+
 
