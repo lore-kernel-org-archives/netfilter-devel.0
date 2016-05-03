@@ -1,52 +1,47 @@
-From: Toby DiPasquale <toby@cbcg.net>
-Subject: Re: off-by-one in DecodeQ931
-Date: Tue, 3 May 2016 01:12:06 -0400
-Message-ID: <CAML0wpGWvcpB5GE_zAjOeO6ki_nszaj+hR9yyadwu_3hQno7Cg@mail.gmail.com>
-References: <CAML0wpEBwXdzWX7g3LDJRDOVM0J7dkuhH8b+96ZhRf54+qUgwQ@mail.gmail.com>
-	<20160425152905.GA8621@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: pablo@netfilter.org, Patrick McHardy <kaber@trash.net>,
-	kadlec@blackhole.kfki.hu, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next 1/4] netfilter: conntrack: __nf_ct_l4proto_find() always returns valid pointer
+Date: Tue,  3 May 2016 12:51:54 +0200
+Message-ID: <1462272716-23603-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yw0-f196.google.com ([209.85.161.196]:34812 "EHLO
-	mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751066AbcECFMH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 May 2016 01:12:07 -0400
-Received: by mail-yw0-f196.google.com with SMTP id i22so728523ywc.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 02 May 2016 22:12:07 -0700 (PDT)
-In-Reply-To: <20160425152905.GA8621@strlen.de>
+Received: from mail.us.es ([193.147.175.20]:50963 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750728AbcECKwU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 May 2016 06:52:20 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id BDEB013C0D9
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 12:52:18 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id AC787ADE2
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 12:52:18 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 83C5CA86B
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 12:52:16 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Apr 25, 2016 at 11:29 AM, Florian Westphal <fw@strlen.de> wrote:
-> -> sz (size_t) will underflow here
->
-> I'd suggest to change the if (sz < 1) to if (sz < 2) to
-> resolve this, the while loop below has to be taken anyway.
+Remove unnecessary check for non-nul pointer in destroy_conntrack()
+given that __nf_ct_l4proto_find() returns the generic protocol tracker
+if the protocol is not supported.
 
-Thanks, Florian! Updated patch below:
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Signed-off-by: Toby DiPasquale <toby@cbcg.net>
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 1fd0ff1..32fba4f 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -360,7 +360,7 @@ destroy_conntrack(struct nf_conntrack *nfct)
+ 	}
+ 	rcu_read_lock();
+ 	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
+-	if (l4proto && l4proto->destroy)
++	if (l4proto->destroy)
+ 		l4proto->destroy(ct);
+ 
+ 	rcu_read_unlock();
+-- 
+2.1.4
 
-diff --git a/net/netfilter/nf_conntrack_h323_asn1.c
-b/net/netfilter/nf_conntrack_h323_asn1.c
-index bcd5ed6..89b2e46 100644
---- a/net/netfilter/nf_conntrack_h323_asn1.c
-+++ b/net/netfilter/nf_conntrack_h323_asn1.c
-@@ -846,9 +846,10 @@ int DecodeQ931(unsigned char *buf, size_t sz, Q931 *q931)
-        sz -= len;
-
-        /* Message Type */
--       if (sz < 1)
-+       if (sz < 2)
-                return H323_ERROR_BOUND;
-        q931->MessageType = *p++;
-+       sz--;
-        PRINT("MessageType = %02X\n", q931->MessageType);
-        if (*p & 0x80) {
-                p++;
