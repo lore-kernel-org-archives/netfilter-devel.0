@@ -1,99 +1,43 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 5/9] netfilter: conntrack: small refactoring of
- conntrack seq_printf
-Date: Tue, 3 May 2016 20:12:50 +0200
-Message-ID: <20160503181250.GA4508@salvia>
-References: <1461863628-23350-1-git-send-email-fw@strlen.de>
- <1461863628-23350-6-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Phil Turnbull <phil.turnbull@oracle.com>
+Subject: [PATCH nf] netfilter: nfnetlink_acct: validate NFACCT_QUOTA parameter
+Date: Tue,  3 May 2016 16:39:19 -0400
+Message-ID: <1462307959-3553-1-git-send-email-phil.turnbull@oracle.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	coreteam@netfilter.org, Phil Turnbull <phil.turnbull@oracle.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45048 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933625AbcECSNA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 May 2016 14:13:00 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 9F819C2B10
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 20:12:57 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8F07B3591
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 20:12:57 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8DB5AA79F
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 20:12:55 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1461863628-23350-6-git-send-email-fw@strlen.de>
+Received: from userp1040.oracle.com ([156.151.31.81]:38058 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756493AbcECUkN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 May 2016 16:40:13 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 28, 2016 at 07:13:44PM +0200, Florian Westphal wrote:
-> The iteration process is lockless, so we test if the conntrack object is
-> eligible for printing (e.g. is AF_INET) after obtaining the reference
-> count.
-> 
-> Once we put all conntracks into same hash table we might see more
-> entries that need to be skipped.
-> 
-> So add a helper and first perform the test in a lockless fashion
-> for fast skip.
-> 
-> Once we obtain the reference count, just repeat the check.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  .../netfilter/nf_conntrack_l3proto_ipv4_compat.c   | 24 +++++++++++++++++-----
->  1 file changed, 19 insertions(+), 5 deletions(-)
-> 
-> diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-> index f0dfe92..483cf79 100644
-> --- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-> +++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-> @@ -114,6 +114,19 @@ static inline void ct_show_secctx(struct seq_file *s, const struct nf_conn *ct)
->  }
->  #endif
->  
-> +static bool ct_seq_should_skip(const struct nf_conn *ct,
-> +			       const struct nf_conntrack_tuple_hash *hash)
-> +{
-> +	/* we only want to print DIR_ORIGINAL */
-> +	if (NF_CT_DIRECTION(hash))
-> +		return true;
-> +
-> +	if (nf_ct_l3num(ct) != AF_INET)
-> +		return true;
-> +
-> +	return false;
-> +}
-> +
->  static int ct_seq_show(struct seq_file *s, void *v)
->  {
->  	struct nf_conntrack_tuple_hash *hash = v;
-> @@ -123,14 +136,15 @@ static int ct_seq_show(struct seq_file *s, void *v)
->  	int ret = 0;
->  
->  	NF_CT_ASSERT(ct);
-> -	if (unlikely(!atomic_inc_not_zero(&ct->ct_general.use)))
-> +	if (ct_seq_should_skip(ct, hash))
->  		return 0;
->  
-> +	if (unlikely(!atomic_inc_not_zero(&ct->ct_general.use)))
-> +		return 0;
->  
-> -	/* we only want to print DIR_ORIGINAL */
-> -	if (NF_CT_DIRECTION(hash))
-> -		goto release;
-> -	if (nf_ct_l3num(ct) != AF_INET)
-> +	/* check if we raced w. object reuse */
-> +	if (!nf_ct_is_confirmed(ct) ||
+If a quota bit is set in NFACCT_FLAGS but the NFACCT_QUOTA parameter is
+missing then a NULL pointer dereference is triggered. CAP_NET_ADMIN is
+required to trigger the bug.
 
-This refactoring includes this new check, is this intentional?
+Signed-off-by: Phil Turnbull <phil.turnbull@oracle.com>
+---
+ net/netfilter/nfnetlink_acct.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-> +	    ct_seq_should_skip(ct, hash))
->  		goto release;
->  
->  	l3proto = __nf_ct_l3proto_find(nf_ct_l3num(ct));
-> -- 
-> 2.7.3
-> 
+diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
+index 4c2b4c0..dbd0803 100644
+--- a/net/netfilter/nfnetlink_acct.c
++++ b/net/netfilter/nfnetlink_acct.c
+@@ -96,6 +96,8 @@ static int nfnl_acct_new(struct net *net, struct sock *nfnl,
+ 			return -EINVAL;
+ 		if (flags & NFACCT_F_OVERQUOTA)
+ 			return -EINVAL;
++		if ((flags & NFACCT_F_QUOTA) && !tb[NFACCT_QUOTA])
++			return -EINVAL;
+ 
+ 		size += sizeof(u64);
+ 	}
+-- 
+2.8.0
+
