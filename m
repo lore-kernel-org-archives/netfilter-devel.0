@@ -1,45 +1,56 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next,v4] netfilter: conntrack: introduce clash
- resolution on insertion race
-Date: Tue, 3 May 2016 16:36:12 +0200
-Message-ID: <20160503143612.GF2395@breakpoint.cc>
-References: <1462280210-13007-1-git-send-email-pablo@netfilter.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49708 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755748AbcECOgP (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 May 2016 10:36:15 -0400
-Content-Disposition: inline
-In-Reply-To: <1462280210-13007-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Jarno Rajahalme <jarno-LZ6Gd1LRuIk@public.gmane.org>
+Subject: Re: [PATCH nf-next 4/4] openvswitch: __nf_ct_l{3,
+	4}proto_find() always return a valid pointer
+Date: Tue, 3 May 2016 09:46:12 -0700
+Message-ID: <7C6D07D6-7560-4D1C-856A-CBEA8E6C269B@ovn.org>
+References: <1462272863-23946-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: ovs dev <dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>, joestringer-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org,
+ netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pablo Neira Ayuso <pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <1462272863-23946-1-git-send-email-pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> This patch introduces nf_ct_resolve_clash() to resolve race condition on
-> conntrack insertions.
-> 
-> This is particularly a problem for connection-less protocols such as
-> UDP, with no initial handshake. Two or more packets may race to insert
-> the entry resulting in packet drops.
-> 
-> Another problematic scenario are packets enqueued to userspace via
-> NFQUEUE after the raw table, that make it easier to trigger this
-> race.
-> 
-> To resolve this, the idea is to reset the conntrack entry to the one
-> that won race. Packet and bytes counters are also merged.
-> 
-> The 'insert_failed' stats still accounts for this situation, after
-> this patch, the drop counter is bumped whenever we drop packets, so we
-> can watch for unresolved clashes.
-> 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
-> v4: Explicit initialization of ret = NF_DROP for dying conntracks.
-
-Looks good, thanks for working on this.
+QWNrZWQtYnk6IEphcm5vIFJhamFoYWxtZSA8anJhamFoYWxtZUBuaWNpcmEuY29tPgoKPiBPbiBN
+YXkgMywgMjAxNiwgYXQgMzo1NCBBTSwgUGFibG8gTmVpcmEgQXl1c28gPHBhYmxvQG5ldGZpbHRl
+ci5vcmc+IHdyb3RlOgo+IAo+IElmIHRoZSBwcm90b2NvbCBpcyBub3QgbmF0aXZlbHkgc3VwcG9y
+dGVkLCB0aGlzIGFzc2lnbnMgZ2VuZXJpYyBwcm90b2NvbAo+IHRyYWNrZXIgc28gd2UgY2FuIGFs
+d2F5cyBhc3N1bWUgYSB2YWxpZCBwb2ludGVyIGFmdGVyIHRoZXNlIGNhbGxzLgo+IAo+IFNpZ25l
+ZC1vZmYtYnk6IFBhYmxvIE5laXJhIEF5dXNvIDxwYWJsb0BuZXRmaWx0ZXIub3JnPgo+IC0tLQo+
+IG5ldC9vcGVudnN3aXRjaC9jb25udHJhY2suYyB8IDggLS0tLS0tLS0KPiAxIGZpbGUgY2hhbmdl
+ZCwgOCBkZWxldGlvbnMoLSkKPiAKPiBkaWZmIC0tZ2l0IGEvbmV0L29wZW52c3dpdGNoL2Nvbm50
+cmFjay5jIGIvbmV0L29wZW52c3dpdGNoL2Nvbm50cmFjay5jCj4gaW5kZXggOTc0MWE3Ni4uOWYw
+YmM0OSAxMDA2NDQKPiAtLS0gYS9uZXQvb3BlbnZzd2l0Y2gvY29ubnRyYWNrLmMKPiArKysgYi9u
+ZXQvb3BlbnZzd2l0Y2gvY29ubnRyYWNrLmMKPiBAQCAtNDM5LDIwICs0MzksMTIgQEAgb3ZzX2N0
+X2ZpbmRfZXhpc3Rpbmcoc3RydWN0IG5ldCAqbmV0LCBjb25zdCBzdHJ1Y3QgbmZfY29ubnRyYWNr
+X3pvbmUgKnpvbmUsCj4gCXU4IHByb3RvbnVtOwo+IAo+IAlsM3Byb3RvID0gX19uZl9jdF9sM3By
+b3RvX2ZpbmQobDNudW0pOwo+IC0JaWYgKCFsM3Byb3RvKSB7Cj4gLQkJcHJfZGVidWcoIm92c19j
+dF9maW5kX2V4aXN0aW5nOiBDYW4ndCBnZXQgbDNwcm90b1xuIik7Cj4gLQkJcmV0dXJuIE5VTEw7
+Cj4gLQl9Cj4gCWlmIChsM3Byb3RvLT5nZXRfbDRwcm90byhza2IsIHNrYl9uZXR3b3JrX29mZnNl
+dChza2IpLCAmZGF0YW9mZiwKPiAJCQkJICZwcm90b251bSkgPD0gMCkgewo+IAkJcHJfZGVidWco
+Im92c19jdF9maW5kX2V4aXN0aW5nOiBDYW4ndCBnZXQgcHJvdG9udW1cbiIpOwo+IAkJcmV0dXJu
+IE5VTEw7Cj4gCX0KPiAJbDRwcm90byA9IF9fbmZfY3RfbDRwcm90b19maW5kKGwzbnVtLCBwcm90
+b251bSk7Cj4gLQlpZiAoIWw0cHJvdG8pIHsKPiAtCQlwcl9kZWJ1Zygib3ZzX2N0X2ZpbmRfZXhp
+c3Rpbmc6IENhbid0IGdldCBsNHByb3RvXG4iKTsKPiAtCQlyZXR1cm4gTlVMTDsKPiAtCX0KPiAJ
+aWYgKCFuZl9jdF9nZXRfdHVwbGUoc2tiLCBza2JfbmV0d29ya19vZmZzZXQoc2tiKSwgZGF0YW9m
+ZiwgbDNudW0sCj4gCQkJICAgICBwcm90b251bSwgbmV0LCAmdHVwbGUsIGwzcHJvdG8sIGw0cHJv
+dG8pKSB7Cj4gCQlwcl9kZWJ1Zygib3ZzX2N0X2ZpbmRfZXhpc3Rpbmc6IENhbid0IGdldCB0dXBs
+ZVxuIik7Cj4gLS0gCj4gMi4xLjQKPiAKPiAtLQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBs
+aXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBuZXRmaWx0ZXItZGV2ZWwiIGluCj4gdGhl
+IGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPiBNb3JlIG1h
+am9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0
+bWwKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRldiBt
+YWlsaW5nIGxpc3QKZGV2QG9wZW52c3dpdGNoLm9yZwpodHRwOi8vb3BlbnZzd2l0Y2gub3JnL21h
+aWxtYW4vbGlzdGluZm8vZGV2Cg==
