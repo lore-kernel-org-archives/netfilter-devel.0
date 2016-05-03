@@ -1,23 +1,23 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next,v3] netfilter: conntrack: introduce clash resolution on insertion race
-Date: Tue,  3 May 2016 14:51:23 +0200
-Message-ID: <1462279883-12818-1-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next,v4] netfilter: conntrack: introduce clash resolution on insertion race
+Date: Tue,  3 May 2016 14:56:50 +0200
+Message-ID: <1462280210-13007-1-git-send-email-pablo@netfilter.org>
 Cc: fw@strlen.de
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33368 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34650 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932762AbcECMvc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 May 2016 08:51:32 -0400
+	id S933168AbcECM47 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 May 2016 08:56:59 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 9D11D114801
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 14:51:30 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 1DF5F1BFA88
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 14:56:57 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 895A2A862
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 14:51:30 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 071546446D
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 14:56:57 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 5A029A862
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 14:51:27 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A4F14D1D85
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 14:56:54 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
@@ -41,8 +41,7 @@ can watch for unresolved clashes.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-v3: Florian wants more comments, rename old_ct to 'loser_ct'.
-    Don't call resolve_clash for dying conntracks.
+v4: Explicit initialization of ret = NF_DROP for dying conntracks.
 
  include/net/netfilter/nf_conntrack_l4proto.h |  3 ++
  net/netfilter/nf_conntrack_core.c            | 55 ++++++++++++++++++++++++++--
@@ -65,7 +64,7 @@ index 956d8a6..1a5fb36 100644
             hdr.  Return true if possible. */
  	bool (*pkt_to_tuple)(const struct sk_buff *skb, unsigned int dataoff,
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 8462b54..eceaca5 100644
+index 8462b54..8b844e3 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
 @@ -616,6 +616,50 @@ static inline void nf_ct_acct_update(struct nf_conn *ct,
@@ -123,7 +122,7 @@ index 8462b54..eceaca5 100644
  	enum ip_conntrack_info ctinfo;
  	struct net *net;
  	unsigned int sequence;
-+	int ret;
++	int ret = NF_DROP;
  
  	ct = nf_ct_get(skb, &ctinfo);
  	net = nf_ct_net(ct);
