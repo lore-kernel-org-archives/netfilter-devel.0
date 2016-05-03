@@ -1,196 +1,83 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next,v5] netfilter: conntrack: introduce clash resolution on insertion race
-Date: Tue,  3 May 2016 19:22:11 +0200
-Message-ID: <1462296131-3697-1-git-send-email-pablo@netfilter.org>
-Cc: fw@strlen.de
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36965 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933319AbcECRWU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 May 2016 13:22:20 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id AD6661BFA8D
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 19:22:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 9BF8533AA
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 19:22:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 660C1358D
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 19:22:16 +0200 (CEST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: Re: [PATCH nf-next 3/9] netfilter: conntrack: don't attempt to
+ iterate over empty table
+Date: Tue, 3 May 2016 19:41:44 +0200
+Message-ID: <20160503174144.GA3782@salvia>
+References: <1461863628-23350-1-git-send-email-fw@strlen.de>
+ <1461863628-23350-4-git-send-email-fw@strlen.de>
+ <20160503170357.GA21641@salvia>
+ <20160503171744.GG2395@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160503171744.GG2395@breakpoint.cc>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This patch introduces nf_ct_resolve_clash() to resolve race condition on
-conntrack insertions.
+On Tue, May 03, 2016 at 07:17:44PM +0200, Florian Westphal wrote:
+> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Thu, Apr 28, 2016 at 07:13:42PM +0200, Florian Westphal wrote:
+> > > Once we place all conntracks into same table iteration becomes more
+> > > costly because the table contains conntracks that we are not interested
+> > > in (belonging to other netns).
+> > > 
+> > > So don't bother scanning if the current namespace has no entries.
+> > > 
+> > > Signed-off-by: Florian Westphal <fw@strlen.de>
+> > > ---
+> > >  net/netfilter/nf_conntrack_core.c | 3 +++
+> > >  1 file changed, 3 insertions(+)
+> > > 
+> > > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> > > index 29fa08b..f2e75a5 100644
+> > > --- a/net/netfilter/nf_conntrack_core.c
+> > > +++ b/net/netfilter/nf_conntrack_core.c
+> > > @@ -1428,6 +1428,9 @@ void nf_ct_iterate_cleanup(struct net *net,
+> > >  
+> > >  	might_sleep();
+> > >  
+> > > +	if (atomic_read(&net->ct.count) == 0)
+> > > +		return;
+> > 
+> > This optimization gets defeated with just one single conntrack (ie.
+> > net->ct.count == 1), so I wonder if this is practical thing.
+> 
+> I was thinking of the cleanup we do in the netns exit path
+> (in nf_conntrack_cleanup_net_list() ).
 
-This is particularly a problem for connection-less protocols such as
-UDP, with no initial handshake. Two or more packets may race to insert
-the entry resulting in packet drops.
+Right, but in that path we still have entries in the table.
 
-Another problematic scenario are packets enqueued to userspace via
-NFQUEUE after the raw table, that make it easier to trigger this
-race.
+> If you don't like this I can move the check here:
+> 
+> i_see_dead_people:
+>     busy = 0;
+>     list_for_each_entry(net, net_exit_list, exit_list) {
+>     // here
+>     if (atomic_read .. > 0)
+>        nf_ct_iterate_cleanup(net, kill_all, ...
 
-To resolve this, the idea is to reset the conntrack entry to the one
-that won race. Packet and bytes counters are also merged.
+I don't mind about placing this or there, as I said, my question is
+how often we will hit this optimization in a real scenario.
 
-The 'insert_failed' stats still accounts for this situation, after
-this patch, the drop counter is bumped whenever we drop packets, so we
-can watch for unresolved clashes.
+If you think the answer is often, then this will help.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-v5: Minor cleanup, use skb->nfct as Florian suggested.
+Otherwise, every time we'll go container destruction path, we'll hit
+slow path, ie.  scanning the full table.
 
- include/net/netfilter/nf_conntrack_l4proto.h |  3 ++
- net/netfilter/nf_conntrack_core.c            | 53 ++++++++++++++++++++++++++--
- net/netfilter/nf_conntrack_proto_udp.c       |  2 ++
- net/netfilter/nf_conntrack_proto_udplite.c   |  2 ++
- 4 files changed, 57 insertions(+), 3 deletions(-)
+> > At the cost of consuming more memory per conntrack, we may consider
+> > adding a per-net list so this iteration doesn't become a problem.
+> 
+> I don't think that will be needed.   We don't have any such iterations
+> in the fast path.
+>
+> For dumps via ctnetlink it shouldn't be a big deal either, if needed
+> we can optimize that to use rcu readlocks only and 'upgrade' to locked
+> path only when we want to dump the candidate ct.
+> for deferred pruning).
+> early_drop will go away soon (i'll rework it to do the early_drop from
+> work queue).
 
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index 956d8a6..1a5fb36 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -23,6 +23,9 @@ struct nf_conntrack_l4proto {
- 	/* L4 Protocol number. */
- 	u_int8_t l4proto;
- 
-+	/* Resolve clashes on insertion races. */
-+	bool allow_clash;
-+
- 	/* Try to fill in the third arg: dataoff is offset past network protocol
-            hdr.  Return true if possible. */
- 	bool (*pkt_to_tuple)(const struct sk_buff *skb, unsigned int dataoff,
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 8462b54..059c420 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -616,6 +616,48 @@ static inline void nf_ct_acct_update(struct nf_conn *ct,
- 	}
- }
- 
-+static void nf_ct_acct_merge(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
-+			     const struct nf_conn *loser_ct)
-+{
-+	struct nf_conn_acct *acct;
-+
-+	acct = nf_conn_acct_find(loser_ct);
-+	if (acct) {
-+		struct nf_conn_counter *counter = acct->counter;
-+		enum ip_conntrack_info ctinfo;
-+		unsigned int bytes;
-+
-+		/* u32 should be fine since we must have seen one packet. */
-+		bytes = atomic64_read(&counter[CTINFO2DIR(ctinfo)].bytes);
-+		nf_ct_acct_update(ct, ctinfo, bytes);
-+	}
-+}
-+
-+/* Resolve race on insertion if this protocol allows this. */
-+static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
-+			       enum ip_conntrack_info ctinfo,
-+			       struct nf_conntrack_tuple_hash *h)
-+{
-+	/* This is the conntrack entry already in hashes that won race. */
-+	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
-+	struct nf_conntrack_l4proto *l4proto;
-+
-+	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
-+	if (l4proto->allow_clash &&
-+	    !nf_ct_is_dying(ct) &&
-+	    atomic_inc_not_zero(&ct->ct_general.use)) {
-+		nf_ct_acct_merge(ct, ctinfo, (struct nf_conn *)skb->nfct);
-+		nf_conntrack_put(skb->nfct);
-+		/* Assign conntrack already in hashes to this skbuff. Don't
-+		 * modify skb->nfctinfo to ensure consistent stateful filtering.
-+		 */
-+		skb->nfct = &ct->ct_general;
-+		return NF_ACCEPT;
-+	}
-+	NF_CT_STAT_INC(net, drop);
-+	return NF_DROP;
-+}
-+
- /* Confirm a connection given skb; places it in hash table */
- int
- __nf_conntrack_confirm(struct sk_buff *skb)
-@@ -630,6 +672,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	enum ip_conntrack_info ctinfo;
- 	struct net *net;
- 	unsigned int sequence;
-+	int ret = NF_DROP;
- 
- 	ct = nf_ct_get(skb, &ctinfo);
- 	net = nf_ct_net(ct);
-@@ -672,8 +715,10 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	 */
- 	nf_ct_del_from_dying_or_unconfirmed_list(ct);
- 
--	if (unlikely(nf_ct_is_dying(ct)))
--		goto out;
-+	if (unlikely(nf_ct_is_dying(ct))) {
-+		nf_ct_add_to_dying_list(ct);
-+		goto dying;
-+	}
- 
- 	/* See if there's one in the list already, including reverse:
- 	   NAT could have grabbed it without realizing, since we're
-@@ -727,10 +772,12 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 
- out:
- 	nf_ct_add_to_dying_list(ct);
-+	ret = nf_ct_resolve_clash(net, skb, ctinfo, h);
-+dying:
- 	nf_conntrack_double_unlock(hash, reply_hash);
- 	NF_CT_STAT_INC(net, insert_failed);
- 	local_bh_enable();
--	return NF_DROP;
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(__nf_conntrack_confirm);
- 
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 478f92f..4fd0405 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -309,6 +309,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4 __read_mostly =
- 	.l3proto		= PF_INET,
- 	.l4proto		= IPPROTO_UDP,
- 	.name			= "udp",
-+	.allow_clash		= true,
- 	.pkt_to_tuple		= udp_pkt_to_tuple,
- 	.invert_tuple		= udp_invert_tuple,
- 	.print_tuple		= udp_print_tuple,
-@@ -341,6 +342,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6 __read_mostly =
- 	.l3proto		= PF_INET6,
- 	.l4proto		= IPPROTO_UDP,
- 	.name			= "udp",
-+	.allow_clash		= true,
- 	.pkt_to_tuple		= udp_pkt_to_tuple,
- 	.invert_tuple		= udp_invert_tuple,
- 	.print_tuple		= udp_print_tuple,
-diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
-index 1ac8ee1..9d692f5 100644
---- a/net/netfilter/nf_conntrack_proto_udplite.c
-+++ b/net/netfilter/nf_conntrack_proto_udplite.c
-@@ -274,6 +274,7 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 __read_mostly =
- 	.l3proto		= PF_INET,
- 	.l4proto		= IPPROTO_UDPLITE,
- 	.name			= "udplite",
-+	.allow_clash		= true,
- 	.pkt_to_tuple		= udplite_pkt_to_tuple,
- 	.invert_tuple		= udplite_invert_tuple,
- 	.print_tuple		= udplite_print_tuple,
-@@ -306,6 +307,7 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
- 	.l3proto		= PF_INET6,
- 	.l4proto		= IPPROTO_UDPLITE,
- 	.name			= "udplite",
-+	.allow_clash		= true,
- 	.pkt_to_tuple		= udplite_pkt_to_tuple,
- 	.invert_tuple		= udplite_invert_tuple,
- 	.print_tuple		= udplite_print_tuple,
--- 
-2.1.4
-
+OK.
