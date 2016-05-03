@@ -1,181 +1,103 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 3/4] netfilter: conntrack: introduce clash resolution on insertion race
-Date: Tue,  3 May 2016 12:51:56 +0200
-Message-ID: <1462272716-23603-3-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nf-next 2/4] netfilter: conntrack: introduce nf_ct_acct_update()
+Date: Tue,  3 May 2016 12:51:55 +0200
+Message-ID: <1462272716-23603-2-git-send-email-pablo@netfilter.org>
 References: <1462272716-23603-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50990 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:50997 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755464AbcECKwY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 May 2016 06:52:24 -0400
+	id S1755546AbcECKwZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 May 2016 06:52:25 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 5FCA713C0E2
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 12:52:22 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id C589013C0D9
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 12:52:23 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 454D6358D
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 12:52:22 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B2F4CA864
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 12:52:23 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 1765DA865
-	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 12:52:20 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A452FB5045
+	for <netfilter-devel@vger.kernel.org>; Tue,  3 May 2016 12:52:18 +0200 (CEST)
 In-Reply-To: <1462272716-23603-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch introduces nf_ct_resolve_clash() to resolve race condition on
-conntrack insertions.
-
-This is particularly a problem for connection-less protocols such as
-UDP, with no initial handshake. Two or more packets may race to insert
-the entry resulting in packet drops.
-
-Another problematic scenario are packets enqueued to userspace via
-NFQUEUE after the raw table, that make it easier to trigger this
-race.
-
-To resolve this, the idea is to reset the conntrack entry to the one
-that won race. Packet and bytes counters are also merged.
-
-The 'insert_failed' stats still accounts for this situation, after
-this patch, the drop counter is bumped whenever we drop packets, so we
-can watch for unresolved clashes.
+Introduce a helper function to update conntrack counters.
+__nf_ct_kill_acct() was unnecessarily subtracting skb_network_offset()
+that is expected to be zero from the ipv4/ipv6 hooks.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/net/netfilter/nf_conntrack_l4proto.h |  3 ++
- net/netfilter/nf_conntrack_core.c            | 45 +++++++++++++++++++++++++++-
- net/netfilter/nf_conntrack_proto_udp.c       |  2 ++
- net/netfilter/nf_conntrack_proto_udplite.c   |  2 ++
- 4 files changed, 51 insertions(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_core.c | 42 ++++++++++++++++++---------------------
+ 1 file changed, 19 insertions(+), 23 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index 956d8a6..1a5fb36 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -23,6 +23,9 @@ struct nf_conntrack_l4proto {
- 	/* L4 Protocol number. */
- 	u_int8_t l4proto;
- 
-+	/* Resolve clashes on insertion races. */
-+	bool allow_clash;
-+
- 	/* Try to fill in the third arg: dataoff is offset past network protocol
-            hdr.  Return true if possible. */
- 	bool (*pkt_to_tuple)(const struct sk_buff *skb, unsigned int dataoff,
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 8462b54..126e6f5 100644
+index 32fba4f..8462b54 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -616,6 +616,47 @@ static inline void nf_ct_acct_update(struct nf_conn *ct,
- 	}
+@@ -601,6 +601,21 @@ out:
  }
+ EXPORT_SYMBOL_GPL(nf_conntrack_hash_check_insert);
  
-+static void nf_ct_acct_merge(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
-+			     const struct nf_conn *old_ct)
++static inline void nf_ct_acct_update(struct nf_conn *ct,
++				     enum ip_conntrack_info ctinfo,
++				     unsigned int len)
 +{
 +	struct nf_conn_acct *acct;
 +
-+	acct = nf_conn_acct_find(old_ct);
++	acct = nf_conn_acct_find(ct);
 +	if (acct) {
 +		struct nf_conn_counter *counter = acct->counter;
-+		enum ip_conntrack_info ctinfo;
-+		unsigned int bytes;
 +
-+		/* u32 should be fine since we must have seen one packet. */
-+		bytes = atomic64_read(&counter[CTINFO2DIR(ctinfo)].bytes);
-+		nf_ct_acct_update(ct, ctinfo, bytes);
++		atomic64_inc(&counter[CTINFO2DIR(ctinfo)].packets);
++		atomic64_add(len, &counter[CTINFO2DIR(ctinfo)].bytes);
 +	}
-+}
-+
-+/* Resolve race on insertion if this protocol allows this. */
-+static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
-+			       const struct nf_conn *old_ct,
-+			       enum ip_conntrack_info ctinfo,
-+			       struct nf_conntrack_tuple_hash *h)
-+{
-+	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
-+	struct nf_conntrack_l4proto *l4proto;
-+
-+	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
-+	if (l4proto->allow_clash &&
-+	    !nf_ct_is_dying(ct) &&
-+	    atomic_inc_not_zero(&ct->ct_general.use)) {
-+		/* Don't modify skb->nfctinfo, we're at POSTROUTING so this
-+		 * packet is already leaving our framework, it is too late.
-+		 */
-+		skb->nfct = &ct->ct_general;
-+		nf_ct_acct_merge(ct, ctinfo, old_ct);
-+		return NF_ACCEPT;
-+	}
-+	NF_CT_STAT_INC(net, drop);
-+	return NF_DROP;
 +}
 +
  /* Confirm a connection given skb; places it in hash table */
  int
  __nf_conntrack_confirm(struct sk_buff *skb)
-@@ -630,6 +671,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	enum ip_conntrack_info ctinfo;
- 	struct net *net;
- 	unsigned int sequence;
-+	int ret;
+@@ -1251,17 +1266,8 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
+ 	}
  
- 	ct = nf_ct_get(skb, &ctinfo);
- 	net = nf_ct_net(ct);
-@@ -726,11 +768,12 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	return NF_ACCEPT;
- 
- out:
-+	ret = nf_ct_resolve_clash(net, skb, ct, ctinfo, h);
- 	nf_ct_add_to_dying_list(ct);
- 	nf_conntrack_double_unlock(hash, reply_hash);
- 	NF_CT_STAT_INC(net, insert_failed);
- 	local_bh_enable();
--	return NF_DROP;
-+	return ret;
+ acct:
+-	if (do_acct) {
+-		struct nf_conn_acct *acct;
+-
+-		acct = nf_conn_acct_find(ct);
+-		if (acct) {
+-			struct nf_conn_counter *counter = acct->counter;
+-
+-			atomic64_inc(&counter[CTINFO2DIR(ctinfo)].packets);
+-			atomic64_add(skb->len, &counter[CTINFO2DIR(ctinfo)].bytes);
+-		}
+-	}
++	if (do_acct)
++		nf_ct_acct_update(ct, ctinfo, skb->len);
  }
- EXPORT_SYMBOL_GPL(__nf_conntrack_confirm);
+ EXPORT_SYMBOL_GPL(__nf_ct_refresh_acct);
  
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 478f92f..4fd0405 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -309,6 +309,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4 __read_mostly =
- 	.l3proto		= PF_INET,
- 	.l4proto		= IPPROTO_UDP,
- 	.name			= "udp",
-+	.allow_clash		= true,
- 	.pkt_to_tuple		= udp_pkt_to_tuple,
- 	.invert_tuple		= udp_invert_tuple,
- 	.print_tuple		= udp_print_tuple,
-@@ -341,6 +342,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6 __read_mostly =
- 	.l3proto		= PF_INET6,
- 	.l4proto		= IPPROTO_UDP,
- 	.name			= "udp",
-+	.allow_clash		= true,
- 	.pkt_to_tuple		= udp_pkt_to_tuple,
- 	.invert_tuple		= udp_invert_tuple,
- 	.print_tuple		= udp_print_tuple,
-diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
-index 1ac8ee1..9d692f5 100644
---- a/net/netfilter/nf_conntrack_proto_udplite.c
-+++ b/net/netfilter/nf_conntrack_proto_udplite.c
-@@ -274,6 +274,7 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 __read_mostly =
- 	.l3proto		= PF_INET,
- 	.l4proto		= IPPROTO_UDPLITE,
- 	.name			= "udplite",
-+	.allow_clash		= true,
- 	.pkt_to_tuple		= udplite_pkt_to_tuple,
- 	.invert_tuple		= udplite_invert_tuple,
- 	.print_tuple		= udplite_print_tuple,
-@@ -306,6 +307,7 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
- 	.l3proto		= PF_INET6,
- 	.l4proto		= IPPROTO_UDPLITE,
- 	.name			= "udplite",
-+	.allow_clash		= true,
- 	.pkt_to_tuple		= udplite_pkt_to_tuple,
- 	.invert_tuple		= udplite_invert_tuple,
- 	.print_tuple		= udplite_print_tuple,
+@@ -1270,18 +1276,8 @@ bool __nf_ct_kill_acct(struct nf_conn *ct,
+ 		       const struct sk_buff *skb,
+ 		       int do_acct)
+ {
+-	if (do_acct) {
+-		struct nf_conn_acct *acct;
+-
+-		acct = nf_conn_acct_find(ct);
+-		if (acct) {
+-			struct nf_conn_counter *counter = acct->counter;
+-
+-			atomic64_inc(&counter[CTINFO2DIR(ctinfo)].packets);
+-			atomic64_add(skb->len - skb_network_offset(skb),
+-				     &counter[CTINFO2DIR(ctinfo)].bytes);
+-		}
+-	}
++	if (do_acct)
++		nf_ct_acct_update(ct, ctinfo, skb->len);
+ 
+ 	if (del_timer(&ct->timeout)) {
+ 		ct->timeout.function((unsigned long)ct);
 -- 
 2.1.4
 
