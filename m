@@ -1,97 +1,96 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: conntrack: avoid integer overflow when
- resizing
-Date: Wed, 4 May 2016 00:45:16 +0200
-Message-ID: <20160503224516.GA4794@salvia>
-References: <1461453501-4428-1-git-send-email-fw@strlen.de>
- <20160429095902.GA15406@salvia>
- <20160501194834.GA19580@breakpoint.cc>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [nft PATCH] evaluate: better error reporting in too long sets names
+Date: Wed, 4 May 2016 08:26:43 +0200
+Message-ID: <CAOkSjBh1rqYyCdkMxbHewHtY7vc7q9FmKYs6wwgwmE29AHE8ew@mail.gmail.com>
+References: <146115978018.25287.16460508385150502285.stgit@nfdev2.cica.es>
+ <20160427171419.GA7625@salvia> <CAOkSjBjxO4_5osADYYowJQp4s_LVv-QR645tVCUEEs6HE3R5Og@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49708 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756436AbcECWpZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 May 2016 18:45:25 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 889421B7F82
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 May 2016 00:45:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 765DEFAB48
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 May 2016 00:45:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 79518D1D85
-	for <netfilter-devel@vger.kernel.org>; Wed,  4 May 2016 00:45:21 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20160501194834.GA19580@breakpoint.cc>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36455 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757287AbcEDG1E convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 May 2016 02:27:04 -0400
+Received: by mail-wm0-f66.google.com with SMTP id w143so8395025wmw.3
+        for <netfilter-devel@vger.kernel.org>; Tue, 03 May 2016 23:27:04 -0700 (PDT)
+In-Reply-To: <CAOkSjBjxO4_5osADYYowJQp4s_LVv-QR645tVCUEEs6HE3R5Og@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, May 01, 2016 at 09:48:34PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> 
-> [ Sorry for late reply ]
-> 
-> > On Sun, Apr 24, 2016 at 01:18:21AM +0200, Florian Westphal wrote:
-> > > Can overflow so we might allocate very small table when bucket count is
-> > > high on a 32bit platform.
-> > > 
-> > > Note: resize is only possible from init_netns.
-> > > 
-> > > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > > ---
-> > >  net/netfilter/nf_conntrack_core.c | 7 +++++++
-> > >  1 file changed, 7 insertions(+)
-> > > 
-> > > diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> > > index 2bbb962..11daca5 100644
-> > > --- a/net/netfilter/nf_conntrack_core.c
-> > > +++ b/net/netfilter/nf_conntrack_core.c
-> > > @@ -1563,8 +1563,15 @@ void *nf_ct_alloc_hashtable(unsigned int *sizep, int nulls)
-> > >  	unsigned int nr_slots, i;
-> > >  	size_t sz;
-> > >  
-> > > +	if (*sizep > (UINT_MAX / sizeof(struct hlist_nulls_head)))
-> > > +		return NULL;
-> > 
-> > *sizep gets initially set to the number of buckets.
-> 
-> Yes.
-> 
-> > >  	BUILD_BUG_ON(sizeof(struct hlist_nulls_head) != sizeof(struct hlist_head));
-> > >  	nr_slots = *sizep = roundup(*sizep, PAGE_SIZE / sizeof(struct hlist_nulls_head));
-> > 
-> > Then, this value is divided by the number of hlist heads that fit into
-> > a page.
-> 
-> No, its rounded up to a multiple of PAGE/hlist heads, so for very large
-> values of *sizep nr_slots would be 0.
-> 
-> > > +	if (nr_slots > (UINT_MAX / sizeof(struct hlist_nulls_head)))
-> > > +		return NULL;
-> 
-> Alternative would be to change this to:
-> 
-> if (nr_slots == 0 || nr_slots > (UINT_MAX / sizeof(struct hlist_nulls_head)))
-> 	return NULL;
-> 
-> Or, add this check:
-> 
-> if (nr_slots < roundup(1, PAGE_SIZE / sizeof(struct hlist_nulls_head))
->     nr_slots = roundup(1, PAGE_SIZE / sizeof(struct hlist_nulls_head)))
-> 
-> I wasn't sure if its better to fail or if we should just pretend a sane
-> value was given.
+On 28 April 2016 at 09:42, Arturo Borrero Gonzalez
+<arturo.borrero.glez@gmail.com> wrote:
+> On 27 April 2016 at 19:14, Pablo Neira Ayuso <pablo@netfilter.org> wr=
+ote:
+>> On Wed, Apr 20, 2016 at 03:43:00PM +0200, Arturo Borrero Gonzalez wr=
+ote:
+>>> Currently, if we choose a set name larger than allowed, the error m=
+essage is:
+>>>  Error: Could not process rule: Numerical result out of range
+>>>
+>>> Let's inform the user with a better error message.
+>>>
+>>> We can discuss later if length of set names should be increased, bu=
+t I think
+>>> this better error reporting is necessary right now to avoid headach=
+es to users.
+>>
+>> /* The max length of strings including NUL: set and type identifiers=
+ */
+>> #define IPSET_MAXNAMELEN        32
+>>
+>> I would like that we get the same length as ipset, this should make =
+it
+>> easier for people to migrate.
+>>
+>> This would require a bit of work though since the interface name siz=
+e
+>> is limited by the register size. Not much a problem, but it would
+>> require a bit of code adjustments from the kernel.
+>>
+>> So let me postpone this userspace check.
+>
+> We would need the userspace check anyway to avoid the very misleading
+> error reporting from the kernel.
+> Then if tomorrow we change the name length, we just need an oneliner
+> here to update with the new size. I remember in the past we discussed
+> using set names as completely variable size strings, but that's
+> another discussion.
+>
+> If loading a ruleset with 'nft -f' with lot of nested and included
+> files, the error is just very difficult to track down; I've hit it
+> several times already.
+>
+> =3D=3D t.nft =3D=3D
+> flush ruleset
+> table t {
+>     set abcdefghijklmopqrst {
+>          type ipv4_addr
+>     }
+> }
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>
+> % nft -f t.nft
+> t.nft:2:1-2: Error: Could not process rule: Numerical result out of r=
+ange
+> table t {
+> ^^
+>
+> So I don't understand the point in not including some more informativ=
+e
+> message right now.
+> --
 
-I prefer an explicit failure, so the user knows that what is asking
-for is not supported, rather than masking the problem.
 
-> Let me know what you think and I'll submit a v2.
-> 
-> [ Its not a big deal, but eventually I'd like to make the sysctl
->   writeable so users can just increase that, no need to use this obscure
->   module parameter/sysfs param ... ]
-
-Sounds good to me.
+ping
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
