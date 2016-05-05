@@ -1,68 +1,64 @@
-From: <elizabeth.andrews@childrens.harvard.edu>
-Subject: netfilter-devel
-Date: Wed, 05 May 2016 19:45:39 0000
-Message-ID: <000101d1a706$b36da2e8$c0a80001@comstar.ru>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH -nf v7] netfilter: nftables: add connlabel set support
+Date: Thu, 5 May 2016 15:51:22 +0200
+Message-ID: <20160505135122.GA12977@breakpoint.cc>
+References: <1461664793-22342-1-git-send-email-fw@strlen.de>
+ <20160505115432.GA10879@salvia>
 Mime-Version: 1.0
-Content-Type: application/zip; name="netfilter-devel.zip"
-Content-Transfer-Encoding: base64
-To: "netfilter-devel" <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from DramTeatrPushkina.access.comstar.ru ([89.175.118.110]:36461
-	"HELO comstar.ru" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with SMTP id S1752471AbcEENpo (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:54662 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752622AbcEENv0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 May 2016 09:45:44 -0400
-Content-Disposition: attachment
+	Thu, 5 May 2016 09:51:26 -0400
+Content-Disposition: inline
+In-Reply-To: <20160505115432.GA10879@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Tue, Apr 26, 2016 at 11:59:53AM +0200, Florian Westphal wrote:
+> > diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+> > index 25998fa..4ef41a8 100644
+> > --- a/net/netfilter/nft_ct.c
+> > +++ b/net/netfilter/nft_ct.c
+> > @@ -198,9 +198,22 @@ static void nft_ct_set_eval(const struct nft_expr *expr,
+> >  		}
+> >  		break;
+> >  #endif
+> > +#ifdef CONFIG_NF_CONNTRACK_LABELS
+> > +	case NFT_CT_LABELS:
+> > +		if (nf_connlabels_replace(ct,
+> > +					  &regs->data[priv->sreg],
+> > +					  &regs->data[priv->sreg],
+> > +					  NF_CT_LABELS_MAX_SIZE / sizeof(u32)))
+> > +			goto err;
+> > +		break;
+> > +#endif
+> >  	default:
+> >  		break;
+> >  	}
+> > +
+> > +	return;
+> > +err:
+> > +	regs->verdict.code = NFT_BREAK;
+> 
+> This will trigger a warning when CONFIG_NF_CONNTRACK_LABELS is
+> disabled (the err: label will be unused).
+> 
+> I have fixed this here with:
 
+Thanks, fix looks good!
 
-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
+> But still I'm unsure we should stop evaluating the rule. How can we
+> reach this error situation?
+
+It happens when you hit a conntrack that doesn't have the connlabel
+extension attached because it predates the nft label set rule.
+
+I don't mind changing this to not break and continue with evaluation
+(i followed what xt_connlabel does but we don't need to follow that
+ example).
