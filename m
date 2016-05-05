@@ -1,35 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables: update pf.os
-Date: Thu, 5 May 2016 17:03:08 +0200
-Message-ID: <20160505150308.GA27256@salvia>
-References: <1461948000-20076-1-git-send-email-xose.vazquez@gmail.com>
+From: Brian Haley <brian.haley@hpe.com>
+Subject: Re: [PATCH nf-next 0/9] netfilter: remove per-netns conntrack tables,
+ part 1
+Date: Thu, 5 May 2016 16:27:15 -0400
+Message-ID: <572BACA3.6070303@hpe.com>
+References: <1461863628-23350-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Evgeniy Polyakov <johnpol@2ka.mxt.ru>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Xose Vazquez Perez <xose.vazquez@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45716 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756734AbcEEPDV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 May 2016 11:03:21 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 82759C9EDC
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 May 2016 17:03:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6D5D2179E50
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 May 2016 17:03:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8B76C1B3076
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 May 2016 17:03:14 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1461948000-20076-1-git-send-email-xose.vazquez@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1461863628-23350-1-git-send-email-fw@strlen.de>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Apr 29, 2016 at 06:40:00PM +0200, Xose Vazquez Perez wrote:
-> Sync with latest *BSD release: https://gitweb.dragonflybsd.org/dragonfly.git/blob_plain/HEAD:/etc/pf.os
-> Changelog: http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/etc/pf.os
+On 04/28/2016 01:13 PM, Florian Westphal wrote:
+> [ CCing netdev so netns folks can have a look too ]
+>
+> This patch series removes the per-netns connection tracking tables.
+> All conntrack objects are then stored in one global global table.
+>
+> This avoids the infamous 'vmalloc' when lots of namespaces are used:
+> We no longer allocate a new conntrack table for each namespace (with 64k
+> size this saves 512kb of memory per netns).
+>
+> - net namespace address is made part of conntrack hash, to spread
+>    conntracks over entire table even if netns has overlapping ip addresses.
+> - lookup and iterators net_eq() to skip conntracks living in a different
+>    namespace.
 
-Applied, thanks.
+Hi Florian,
+
+Question on this series.
+
+Openstack networking creates virtual routers using namespaces for isolation 
+between users.  VETH pairs are used to connect the interfaces on these routers 
+to different networks, whether they are internal (private) or external (public). 
+  In most cases NAT is done inside the namespace as packets move between the 
+networks.
+
+I've seen cases where certain users are attacked, where the CT table is filled 
+such that we start seeing "nf_conntrack: table full, dropping packet" messages 
+(as expected).  But other users continue to function normally, unaffected.  Is 
+this still the case - each netns has some limit it can't exceed?  I didn't see 
+it, but your comment in 9/9 seemed like something was there -  "we would start 
+to 'over-subscribe' the affected/overlimit netns".
+
+Thanks,
+
+-Brian
