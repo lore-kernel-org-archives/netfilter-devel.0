@@ -1,53 +1,237 @@
-From: Brian Haley <brian.haley@hpe.com>
-Subject: Re: [PATCH nf-next 0/9] netfilter: remove per-netns conntrack tables,
- part 1
-Date: Thu, 5 May 2016 18:55:07 -0400
-Message-ID: <572BCF4B.2040504@hpe.com>
-References: <1461863628-23350-1-git-send-email-fw@strlen.de>
- <572BACA3.6070303@hpe.com> <20160505205418.GA21687@breakpoint.cc>
- <572BC7A5.1060503@hpe.com> <20160505223632.GB21687@breakpoint.cc>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+Subject: [PATCH v2] xtables: Add a smaller delay option when waiting for xtables lock
+Date: Thu,  5 May 2016 21:18:19 -0600
+Message-ID: <1462504699-14988-1-git-send-email-subashab@codeaurora.org>
+Cc: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>,
+	Liping Zhang <zlpnobody@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from g9t5009.houston.hp.com ([15.240.92.67]:52204 "EHLO
-	g9t5009.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757868AbcEEWzK (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:48475 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755970AbcEFDTD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 May 2016 18:55:10 -0400
-In-Reply-To: <20160505223632.GB21687@breakpoint.cc>
+	Thu, 5 May 2016 23:19:03 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 05/05/2016 06:36 PM, Florian Westphal wrote:
-> Brian Haley <brian.haley@hpe.com> wrote:
->>>> I've seen cases where certain users are attacked, where the CT table is
->>>> filled such that we start seeing "nf_conntrack: table full, dropping packet"
->>>> messages (as expected).  But other users continue to function normally,
->>>> unaffected.  Is this still the case - each netns has some limit it can't
->>>> exceed?
->>>
->>> The limit is global, the accounting per namespace.
->>
->> So this is a change from existing.
->
-> No, see __nf_conntrack_alloc():
->
->          if (nf_conntrack_max &&
->              unlikely(atomic_read(&net->ct.count) > nf_conntrack_max)) {
-> 		...
->
-> ct.count is whatever number of entries the namespace has allocated,
-> so max number of possible conntracks is always infinite if number
-> of net namespaces is unlimited (barring memory constraints, of course).
+ip[6]tables currently waits for 1 second for the xtables lock to be
+freed if the -w option is used. We have seen that the lock is held
+much less than that resulting in unnecessary delay when trying to
+acquire the lock. This problem is even severe in case of latency
+sensitive applications.
 
-Ah yes, nf_conntrack_max is a global, thanks for setting me straight.  So I 
-guess the tuning might just include increasing the bucket count in order to try 
-and keep the number of items in each one small since there will be more entries 
-in this single table now.
+Introduce an delay option with 10ms granularity (experimentally
+determined) by specifying the delay in [seconds.milliseconds] as
+an argument to -w. If milliseconds are not specified, the existing
+behavior of 1 second sleep is preserved.
 
-Thanks,
+v1->v2: Change behavior to take millisecond sleep as an argument to
+-w as suggested by Pablo. Also maintain current behavior for -w to
+sleep for 1 second as mentioned by Liping.
 
--Brian
+Cc: Liping Zhang <zlpnobody@gmail.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
+---
+ iptables/ip6tables.c | 12 +++++++-----
+ iptables/iptables.c  | 12 +++++++-----
+ iptables/xshared.c   | 27 ++++++++++++++++++++-------
+ iptables/xshared.h   |  2 +-
+ iptables/xtables.c   |  6 +++---
+ 5 files changed, 38 insertions(+), 21 deletions(-)
+
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index 2731209..d19c5d5 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -259,7 +259,9 @@ exit_printhelp(const struct xtables_rule_match *matches)
+ "				network interface name ([+] for wildcard)\n"
+ "  --table	-t table	table to manipulate (default: `filter')\n"
+ "  --verbose	-v		verbose mode\n"
+-"  --wait	-w [seconds]	wait for the xtables lock\n"
++"  --wait	-w [seconds.milliseconds]\n"
++"				wait for the xtables lock\n"
++"				10ms is the minimum millisecond resolution\n"
+ "  --line-numbers		print line numbers when listing\n"
+ "  --exact	-x		expand numbers (display exact values)\n"
+ /*"[!] --fragment	-f		match second or further fragments only\n"*/
+@@ -1324,7 +1326,7 @@ int do_command6(int argc, char *argv[], char **table,
+ 	struct in6_addr *smasks = NULL, *dmasks = NULL;
+ 
+ 	int verbose = 0;
+-	int wait = 0;
++	double wait = 0;
+ 	const char *chain = NULL;
+ 	const char *shostnetworkmask = NULL, *dhostnetworkmask = NULL;
+ 	const char *policy = NULL, *newname = NULL;
+@@ -1606,12 +1608,12 @@ int do_command6(int argc, char *argv[], char **table,
+ 			}
+ 			wait = -1;
+ 			if (optarg) {
+-				if (sscanf(optarg, "%i", &wait) != 1)
++				if (sscanf(optarg, "%lf", &wait) != 1)
+ 					xtables_error(PARAMETER_PROBLEM,
+ 						"wait seconds not numeric");
+ 			} else if (optind < argc && argv[optind][0] != '-'
+ 						 && argv[optind][0] != '!')
+-				if (sscanf(argv[optind++], "%i", &wait) != 1)
++				if (sscanf(argv[optind++], "%lf", &wait) != 1)
+ 					xtables_error(PARAMETER_PROBLEM,
+ 						"wait seconds not numeric");
+ 			break;
+@@ -1768,7 +1770,7 @@ int do_command6(int argc, char *argv[], char **table,
+ 		if (wait == 0)
+ 			fprintf(stderr, "Perhaps you want to use the -w option?\n");
+ 		else
+-			fprintf(stderr, "Stopped waiting after %ds.\n", wait);
++			fprintf(stderr, "Stopped waiting after %fs.\n", wait);
+ 		xtables_free_opts(1);
+ 		exit(RESOURCE_PROBLEM);
+ 	}
+diff --git a/iptables/iptables.c b/iptables/iptables.c
+index 91617c2..64bd1a1 100644
+--- a/iptables/iptables.c
++++ b/iptables/iptables.c
+@@ -253,7 +253,9 @@ exit_printhelp(const struct xtables_rule_match *matches)
+ "				network interface name ([+] for wildcard)\n"
+ "  --table	-t table	table to manipulate (default: `filter')\n"
+ "  --verbose	-v		verbose mode\n"
+-"  --wait	-w [seconds]	wait for the xtables lock\n"
++"  --wait	-w [seconds.milliseconds]\n"
++"				wait for the xtables lock\n"
++"				10ms is the minimum millisecond resolution\n"
+ "  --line-numbers		print line numbers when listing\n"
+ "  --exact	-x		expand numbers (display exact values)\n"
+ "[!] --fragment	-f		match second or further fragments only\n"
+@@ -1320,7 +1322,7 @@ int do_command4(int argc, char *argv[], char **table,
+ 	struct in_addr *daddrs = NULL, *dmasks = NULL;
+ 
+ 	int verbose = 0;
+-	int wait = 0;
++	double wait = 0;
+ 	const char *chain = NULL;
+ 	const char *shostnetworkmask = NULL, *dhostnetworkmask = NULL;
+ 	const char *policy = NULL, *newname = NULL;
+@@ -1599,12 +1601,12 @@ int do_command4(int argc, char *argv[], char **table,
+ 			}
+ 			wait = -1;
+ 			if (optarg) {
+-				if (sscanf(optarg, "%i", &wait) != 1)
++				if (sscanf(optarg, "%lf", &wait) != 1)
+ 					xtables_error(PARAMETER_PROBLEM,
+ 						"wait seconds not numeric");
+ 			} else if (optind < argc && argv[optind][0] != '-'
+ 						 && argv[optind][0] != '!')
+-				if (sscanf(argv[optind++], "%i", &wait) != 1)
++				if (sscanf(argv[optind++], "%lf", &wait) != 1)
+ 					xtables_error(PARAMETER_PROBLEM,
+ 						"wait seconds not numeric");
+ 			break;
+@@ -1764,7 +1766,7 @@ int do_command4(int argc, char *argv[], char **table,
+ 		if (wait == 0)
+ 			fprintf(stderr, "Perhaps you want to use the -w option?\n");
+ 		else
+-			fprintf(stderr, "Stopped waiting after %ds.\n", wait);
++			fprintf(stderr, "Stopped waiting after %fs.\n", wait);
+ 		xtables_free_opts(1);
+ 		exit(RESOURCE_PROBLEM);
+ 	}
+diff --git a/iptables/xshared.c b/iptables/xshared.c
+index 81c2581..2aeb8b8 100644
+--- a/iptables/xshared.c
++++ b/iptables/xshared.c
+@@ -15,6 +15,8 @@
+ #include "xshared.h"
+ 
+ #define XT_LOCK_NAME	"/run/xtables.lock"
++#define BASE_MICROSECOND_WAIT	10000
++#define WAIT_PRECISION	100
+ 
+ /*
+  * Print out any special helps. A user might like to be able to add a --help
+@@ -244,9 +246,11 @@ void xs_init_match(struct xtables_match *match)
+ 		match->init(match->m);
+ }
+ 
+-bool xtables_lock(int wait)
++bool xtables_lock(double wait)
+ {
+-	int fd, waited = 0, i = 0;
++	int fd, waited = 0, i = 0, us_wait = 0, us_waited = 0;
++
++	us_wait = (((int)(wait*WAIT_PRECISION))%WAIT_PRECISION)*BASE_MICROSECOND_WAIT;
+ 
+ 	fd = open(XT_LOCK_NAME, O_CREAT, 0600);
+ 	if (fd < 0)
+@@ -255,12 +259,21 @@ bool xtables_lock(int wait)
+ 	while (1) {
+ 		if (flock(fd, LOCK_EX | LOCK_NB) == 0)
+ 			return true;
+-		else if (wait >= 0 && waited >= wait)
++		else if (wait >= 0 && waited >= (int)wait && us_waited >= us_wait)
+ 			return false;
+-		if (++i % 2 == 0)
++		if ((++i % 2 == 0 && !us_wait) || (++i % 10 == 0))
+ 			fprintf(stderr, "Another app is currently holding the xtables lock; "
+-				"waiting (%ds) for it to exit...\n", waited);
+-		waited++;
+-		sleep(1);
++				"waiting (%ds %dms) for it to exit...\n", waited, us_waited/1000);
++		if (us_wait) {
++			us_waited += BASE_MICROSECOND_WAIT;
++			usleep(BASE_MICROSECOND_WAIT);
++			if (us_waited == 1000000) {
++				waited++;
++				us_waited = 0;
++			}
++		} else {
++			waited++;
++			sleep(1);
++		}
+ 	}
+ }
+diff --git a/iptables/xshared.h b/iptables/xshared.h
+index 40dd915..de4ae99 100644
+--- a/iptables/xshared.h
++++ b/iptables/xshared.h
+@@ -85,7 +85,7 @@ extern struct xtables_match *load_proto(struct iptables_command_state *);
+ extern int subcmd_main(int, char **, const struct subcommand *);
+ extern void xs_init_target(struct xtables_target *);
+ extern void xs_init_match(struct xtables_match *);
+-extern bool xtables_lock(int wait);
++extern bool xtables_lock(double wait);
+ 
+ extern const struct xtables_afinfo *afinfo;
+ 
+diff --git a/iptables/xtables.c b/iptables/xtables.c
+index ecd577c..d980060 100644
+--- a/iptables/xtables.c
++++ b/iptables/xtables.c
+@@ -686,7 +686,7 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 	struct xtables_match *m;
+ 	struct xtables_rule_match *matchp;
+ 	struct xtables_target *t;
+-	int wait = 0;
++	double wait = 0;
+ 
+ 	memset(cs, 0, sizeof(*cs));
+ 	cs->jumpto = "";
+@@ -1009,12 +1009,12 @@ void do_parse(struct nft_handle *h, int argc, char *argv[],
+ 					      "iptables-restore");
+ 			}
+ 			if (optarg) {
+-				if (sscanf(optarg, "%i", &wait) != 1)
++				if (sscanf(optarg, "%lf", &wait) != 1)
+ 					xtables_error(PARAMETER_PROBLEM,
+ 						      "wait seconds not numeric");
+ 			} else if (optind < argc && argv[optind][0] != '-'
+ 				   && argv[optind][0] != '!')
+-				if (sscanf(argv[optind++], "%i", &wait) != 1)
++				if (sscanf(argv[optind++], "%lf", &wait) != 1)
+ 					xtables_error(PARAMETER_PROBLEM,
+ 						      "wait seconds not numeric");
+ 			break;
+-- 
+1.8.2.1
+
