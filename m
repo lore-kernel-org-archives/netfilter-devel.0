@@ -1,55 +1,38 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH net] netfilter: nf_conntrack: Use net_mutex for helper
- unregistration.
-Date: Sat, 7 May 2016 11:18:45 +0200
-Message-ID: <20160507091845.GA6911@breakpoint.cc>
-References: <1462488637-46877-1-git-send-email-joe@ovn.org>
- <20160506110325.GA2420@salvia>
- <CAPWQB7H0qdi2+rL92_O=-ku+FeqDSGEmn+d0wivk-1RSAsgeFw@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next 0/3] netfilter: remove per-netns conntrack
+ tables, part 2
+Date: Mon, 9 May 2016 00:19:12 +0200
+Message-ID: <20160508221912.GA10278@salvia>
+References: <1462488709-13031-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-	Florian Westphal <fw@strlen.de>
-To: Joe Stringer <joe@ovn.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58460 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752083AbcEGJSu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 7 May 2016 05:18:50 -0400
+Received: from mail.us.es ([193.147.175.20]:58695 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750822AbcEHWTS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 8 May 2016 18:19:18 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 2C7AB1B1CFF
+	for <netfilter-devel@vger.kernel.org>; Mon,  9 May 2016 00:19:15 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 1C87EB5045
+	for <netfilter-devel@vger.kernel.org>; Mon,  9 May 2016 00:19:15 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 27EC1A90C
+	for <netfilter-devel@vger.kernel.org>; Mon,  9 May 2016 00:19:13 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <CAPWQB7H0qdi2+rL92_O=-ku+FeqDSGEmn+d0wivk-1RSAsgeFw@mail.gmail.com>
+In-Reply-To: <1462488709-13031-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Joe Stringer <joe@ovn.org> wrote:
-> > If so, probably I can append this as comment to this function so we
-> > don't forget. If we ever have .exit callbacks (I don't expect so), we
-> > would need to wait for worker completion.
+On Fri, May 06, 2016 at 12:51:46AM +0200, Florian Westphal wrote:
+> This series removes the per-namespace duplication of the expectation table.
+> We use one table for all namespaces, using net_hash_mix(net) as additional
+> hash seed so entries are spread evenly even if addresses overlap.
 > 
-> Sounds reasonable to me.
-> 
-> I see there's a bunch of other unregister locations like
-> nf_nat_l3proto_clean(), nf_nat_l4proto_clean(), nf_unregister_hook()
-> which might need similar treatment?
+> The max limit was already global, even before this patch.
+> couting is still done per namespace.
 
-I think they are fine, hook entries are duplicated per netns so we
-should not access data in a removed module.
-
-However, we might be able to trigger the
-
-WARN(1, "nf_unregister_net_hook: hook not found!\n");
-
-part in nf_unregister_net_hook():
-
-[ destroy netns -> destruction queued -> rmmod -> all hooks are
-destroyed -> netns workq runs -> nf_unregister_net_hook gets called
--> hook already gone ]
-
-For nf_nat_l3|4proto_clean I don't see a problem either, if netns
-is gone all these conntracks will be zapped once the workqueue runs, even if
-the iteration in those function did not see the netns anymore.
-
-Cheers,
-Florian
+Series applied, thanks Florian.
