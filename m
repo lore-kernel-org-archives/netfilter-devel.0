@@ -1,43 +1,49 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 0/3] netfilter: remove per-netns conntrack
- tables, part 3
-Date: Mon, 9 May 2016 16:45:00 +0200
-Message-ID: <20160509144500.GA3059@salvia>
-References: <1462803872-13497-1-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48621 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750998AbcEIOpN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 May 2016 10:45:13 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id E9DD44BCC4
-	for <netfilter-devel@vger.kernel.org>; Mon,  9 May 2016 16:45:06 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id DAB3313470F
-	for <netfilter-devel@vger.kernel.org>; Mon,  9 May 2016 16:45:06 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 7ED8C134711
-	for <netfilter-devel@vger.kernel.org>; Mon,  9 May 2016 16:45:01 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1462803872-13497-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: [PATCH 09/36] netfilter: nft_rbtree: introduce nft_rbtree_interval_end() helper
+Date: Mon,  9 May 2016 20:46:27 +0200
+Message-ID: <1462819614-5402-10-git-send-email-pablo@netfilter.org>
+References: <1462819614-5402-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1462819614-5402-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, May 09, 2016 at 04:24:29PM +0200, Florian Westphal wrote:
-> This series removes the per-namespace duplication of the NAT bysource table.
-[...]
-> I have another patch queued to convert nat bysource table to an rhashtable.
-> However; it seems better to wait until the next merge window so that bug
-> reports can be more easily pointed to the de-duplication work or a rhashtable
-> conversion, I will therefore hold this back for now.
+Add this new nft_rbtree_interval_end() helper function to check in the
+end interval is set.
 
-Agreed, thanks Florian.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nft_rbtree.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-Series applied.
-
-Will be sending a batch with pending nf-next updates today, including
-these three patches.
+diff --git a/net/netfilter/nft_rbtree.c b/net/netfilter/nft_rbtree.c
+index 1c30f41..29f2ab8 100644
+--- a/net/netfilter/nft_rbtree.c
++++ b/net/netfilter/nft_rbtree.c
+@@ -29,6 +29,11 @@ struct nft_rbtree_elem {
+ 	struct nft_set_ext	ext;
+ };
+ 
++static bool nft_rbtree_interval_end(const struct nft_rbtree_elem *rbe)
++{
++	return nft_set_ext_exists(&rbe->ext, NFT_SET_EXT_FLAGS) &&
++	       (*nft_set_ext_flags(&rbe->ext) & NFT_SET_ELEM_INTERVAL_END);
++}
+ 
+ static bool nft_rbtree_lookup(const struct nft_set *set, const u32 *key,
+ 			      const struct nft_set_ext **ext)
+@@ -56,9 +61,7 @@ found:
+ 				parent = parent->rb_left;
+ 				continue;
+ 			}
+-			if (nft_set_ext_exists(&rbe->ext, NFT_SET_EXT_FLAGS) &&
+-			    *nft_set_ext_flags(&rbe->ext) &
+-			    NFT_SET_ELEM_INTERVAL_END)
++			if (nft_rbtree_interval_end(rbe))
+ 				goto out;
+ 			spin_unlock_bh(&nft_rbtree_lock);
+ 
+-- 
+2.1.4
