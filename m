@@ -1,38 +1,45 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/3] netfilter: conntrack: init all_locks to avoid debug warning
-Date: Mon,  9 May 2016 21:52:01 +0200
-Message-ID: <1462823523-6682-2-git-send-email-pablo@netfilter.org>
-References: <1462823523-6682-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH] netfilter: conntrack: remove uninitialized shadow
+ variable
+Date: Mon, 9 May 2016 22:01:17 +0200
+Message-ID: <20160509200117.GA6957@salvia>
+References: <1462823254-3137116-1-git-send-email-arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	Florian Westphal <fw@strlen.de>,
+	Daniel Borkmann <daniel@iogearbox.net>,
+	Sasha Levin <sasha.levin@oracle.com>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1462823523-6682-1-git-send-email-pablo@netfilter.org>
+Content-Disposition: inline
+In-Reply-To: <1462823254-3137116-1-git-send-email-arnd@arndb.de>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+On Mon, May 09, 2016 at 09:47:23PM +0200, Arnd Bergmann wrote:
+> A recent commit introduced an unconditional use of an uninitialized
+> variable, as reported in this gcc warning:
+> 
+> net/netfilter/nf_conntrack_core.c: In function '__nf_conntrack_confirm':
+> net/netfilter/nf_conntrack_core.c:632:33: error: 'ctinfo' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+>    bytes = atomic64_read(&counter[CTINFO2DIR(ctinfo)].bytes);
+>                                  ^
+> net/netfilter/nf_conntrack_core.c:628:26: note: 'ctinfo' was declared here
+>    enum ip_conntrack_info ctinfo;
+> 
+> The problem is that a local variable shadows the function parameter.
+> This removes the local variable, which looks like what Pablo originally
+> intended.
 
-Else we get 'BUG: spinlock bad magic on CPU#' on resize when
-spin lock debugging is enabled.
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nf_conntrack_core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Sorry for this, I wonder why gcc didn't catch up this here.
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index afde5f5..895d11d 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -66,7 +66,7 @@ EXPORT_SYMBOL_GPL(nf_conntrack_locks);
- __cacheline_aligned_in_smp DEFINE_SPINLOCK(nf_conntrack_expect_lock);
- EXPORT_SYMBOL_GPL(nf_conntrack_expect_lock);
- 
--static __read_mostly spinlock_t nf_conntrack_locks_all_lock;
-+static __read_mostly DEFINE_SPINLOCK(nf_conntrack_locks_all_lock);
- static __read_mostly bool nf_conntrack_locks_all;
- 
- void nf_conntrack_lock(spinlock_t *lock) __acquires(lock)
--- 
-2.1.4
+@David, you can integrate this into your net-next tree.
+
+Thanks for fixing up this Arnd.
