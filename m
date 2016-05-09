@@ -1,34 +1,318 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [GIT PULL nf-next 0/1] Second Round of IPVS Updates for v4.7
-Date: Mon, 9 May 2016 00:19:26 +0200
-Message-ID: <20160508221926.GA10292@salvia>
-References: <1462519959-22382-1-git-send-email-horms@verge.net.au>
+From: Josh Boyer <jwboyer@fedoraproject.org>
+Subject: Re: [PATCH v2] uapi glibc compat: fix compile errors when glibc
+ net/if.h included before linux/if.h
+Date: Mon, 9 May 2016 09:59:22 -0400
+Message-ID: <CA+5PVA7eQLc1UGbaJg9B2BY-6L35Vx3Enpc6Ez9ySucGsY+o6A@mail.gmail.com>
+References: <1461512707-23058-1-git-send-email-mikko.rapeli@iki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1462519959-22382-1-git-send-email-horms@verge.net.au>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Cc: "David S. Miller" <davem@davemloft.net>, Zhang Shengju <zhangshengju@cmss.chinamobile.com>,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	"Linux-Kernel@Vger. Kernel. Org" <linux-kernel@vger.kernel.org>, Jan Engelhardt <jengelh@inai.de>,
+	Waldemar Brodkorb <mail@waldemar-brodkorb.de>, Gabriel Laskar <gabriel@lse.epita.fr>,
+	netfilter-devel@vger.kernel.org, libc-alpha <libc-alpha@sourceware.org>
+To: Mikko Rapeli <mikko.rapeli@iki.fi>
+Return-path: <libc-alpha-return-69451-glibc-alpha=m.gmane.org@sourceware.org>
+List-Unsubscribe: <mailto:libc-alpha-unsubscribe-glibc-alpha=m.gmane.org@sourceware.org>
+List-Subscribe: <mailto:libc-alpha-subscribe@sourceware.org>
+List-Archive: <http://sourceware.org/ml/libc-alpha/>
+List-Post: <mailto:libc-alpha@sourceware.org>
+List-Help: <mailto:libc-alpha-help@sourceware.org>, <http://sourceware.org/ml/#faqs>
+Sender: libc-alpha-owner@sourceware.org
+In-Reply-To: <1461512707-23058-1-git-send-email-mikko.rapeli@iki.fi>
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, May 06, 2016 at 04:32:38PM +0900, Simon Horman wrote:
-> Hi Pablo,
-> 
-> please consider these enhancements to the IPVS. They allow its
-> DoS mitigation strategy effective in conjunction with the SIP persistence
-> engine.
-> 
-> The following changes since commit cb39ad8b8ef224c544074962780bf763077d6141:
-> 
->   netfilter: nf_tables: allow set names up to 32 bytes (2016-05-05 16:39:51 +0200)
-> 
-> are available in the git repository at:
-> 
->   https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs2-for-v4.7
+On Sun, Apr 24, 2016 at 11:45 AM, Mikko Rapeli <mikko.rapeli@iki.fi> wrote:
+> glibc's net/if.h contains copies of definitions from linux/if.h and these
+> conflict and cause build failures if both files are included by applicati=
+on
+> source code. Changes in uapi headers, which fixed header file dependencie=
+s to
+> include linux/if.h when it was needed, e.g. commit 1ffad83d, made the
+> net/if.h and linux/if.h incompatibilities visible as build failures for
+> userspace applications like iproute2 and xtables-addons.
+>
+> This patch fixes compile errors when glibc net/if.h is included before
+> linux/if.h:
+>
+> ./linux/if.h:99:21: error: redeclaration of enumerator =E2=80=98IFF_NOARP=
+=E2=80=99
+> ./linux/if.h:98:23: error: redeclaration of enumerator =E2=80=98IFF_RUNNI=
+NG=E2=80=99
+> ./linux/if.h:97:26: error: redeclaration of enumerator =E2=80=98IFF_NOTRA=
+ILERS=E2=80=99
+> ./linux/if.h:96:27: error: redeclaration of enumerator =E2=80=98IFF_POINT=
+OPOINT=E2=80=99
+> ./linux/if.h:95:24: error: redeclaration of enumerator =E2=80=98IFF_LOOPB=
+ACK=E2=80=99
+> ./linux/if.h:94:21: error: redeclaration of enumerator =E2=80=98IFF_DEBUG=
+=E2=80=99
+> ./linux/if.h:93:25: error: redeclaration of enumerator =E2=80=98IFF_BROAD=
+CAST=E2=80=99
+> ./linux/if.h:92:19: error: redeclaration of enumerator =E2=80=98IFF_UP=E2=
+=80=99
+> ./linux/if.h:252:8: error: redefinition of =E2=80=98struct ifconf=E2=80=
+=99
+> ./linux/if.h:203:8: error: redefinition of =E2=80=98struct ifreq=E2=80=99
+> ./linux/if.h:169:8: error: redefinition of =E2=80=98struct ifmap=E2=80=99
+> ./linux/if.h:107:23: error: redeclaration of enumerator =E2=80=98IFF_DYNA=
+MIC=E2=80=99
+> ./linux/if.h:106:25: error: redeclaration of enumerator =E2=80=98IFF_AUTO=
+MEDIA=E2=80=99
+> ./linux/if.h:105:23: error: redeclaration of enumerator =E2=80=98IFF_PORT=
+SEL=E2=80=99
+> ./linux/if.h:104:25: error: redeclaration of enumerator =E2=80=98IFF_MULT=
+ICAST=E2=80=99
+> ./linux/if.h:103:21: error: redeclaration of enumerator =E2=80=98IFF_SLAV=
+E=E2=80=99
+> ./linux/if.h:102:22: error: redeclaration of enumerator =E2=80=98IFF_MAST=
+ER=E2=80=99
+> ./linux/if.h:101:24: error: redeclaration of enumerator =E2=80=98IFF_ALLM=
+ULTI=E2=80=99
+> ./linux/if.h:100:23: error: redeclaration of enumerator =E2=80=98IFF_PROM=
+ISC=E2=80=99
+>
+> The cases where linux/if.h is included before net/if.h need a similar fix=
+ in
+> the glibc side, or the order of include files can be changed userspace
+> code as a workaround.
+>
+> This change was tested in x86 userspace on Debian unstable with
+> scripts/headers_compile_test.sh:
+>
+> $ make headers_install && \
+>   cd usr/include && ../../scripts/headers_compile_test.sh -l -k
+> ...
+> cc -Wall -c -nostdinc -I /usr/lib/gcc/i586-linux-gnu/5/include -I /usr/li=
+b/gcc/i586-linux-gnu/5/include-fixed -I . -I /home/mcfrisk/src/linux-2.6/us=
+r/headers_compile_test_include.2uX2zH -I /home/mcfrisk/src/linux-2.6/usr/he=
+aders_compile_test_include.2uX2zH/i586-linux-gnu -o /dev/null ./linux/if.h_=
+libc_before_kernel.h
+> PASSED libc before kernel test: ./linux/if.h
+>
+> Reported-by: Jan Engelhardt <jengelh@inai.de>
+> Reported-by: Josh Boyer <jwboyer@fedoraproject.org>
+> Reported-by: Stephen Hemminger <shemming@brocade.com>
+> Reported-by: Waldemar Brodkorb <mail@waldemar-brodkorb.de>
+> Cc: Gabriel Laskar <gabriel@lse.epita.fr>
+> Signed-off-by: Mikko Rapeli <mikko.rapeli@iki.fi>
 
-Pulled, thanks Simon.
+Bump.  Did this get lost in a queue somewhere?
+
+josh
+
+> ---
+>  include/uapi/linux/if.h          | 28 +++++++++++++++++++++++++
+>  include/uapi/linux/libc-compat.h | 44 ++++++++++++++++++++++++++++++++++=
+++++++
+>  2 files changed, 72 insertions(+)
+>
+> v1:
+> http://marc.info/?l=3Dlinux-kernel&m=3D145485386721798&w=3D2
+>
+> v2:
+> Added handling for net_device_flags IFF_LOWER_UP, IFF_DORMANT and IFF_ECH=
+O
+> which are unknown to glibc as suggested by David Miller in
+> http://marc.info/?l=3Dlinux-kernel&m=3D145650410726228&w=3D2
+>
+> diff --git a/include/uapi/linux/if.h b/include/uapi/linux/if.h
+> index f802775..e601c8c 100644
+> --- a/include/uapi/linux/if.h
+> +++ b/include/uapi/linux/if.h
+> @@ -19,14 +19,20 @@
+>  #ifndef _LINUX_IF_H
+>  #define _LINUX_IF_H
+>
+> +#include <linux/libc-compat.h>          /* for compatibility with glibc =
+*/
+>  #include <linux/types.h>               /* for "__kernel_caddr_t" et al *=
+/
+>  #include <linux/socket.h>              /* for "struct sockaddr" et al  *=
+/
+>  #include <linux/compiler.h>            /* for "__user" et al           *=
+/
+>
+> +#if __UAPI_DEF_IF_IFNAMSIZ
+>  #define        IFNAMSIZ        16
+> +#endif /* __UAPI_DEF_IF_IFNAMSIZ */
+>  #define        IFALIASZ        256
+>  #include <linux/hdlc/ioctl.h>
+>
+> +/* For glibc compatibility. An empty enum does not compile. */
+> +#if __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO !=3D 0 && \
+> +    __UAPI_DEF_IF_NET_DEVICE_FLAGS !=3D 0
+>  /**
+>   * enum net_device_flags - &struct net_device flags
+>   *
+> @@ -68,6 +74,8 @@
+>   * @IFF_ECHO: echo sent packets. Volatile.
+>   */
+>  enum net_device_flags {
+> +/* for compatibility with glibc net/if.h */
+> +#if __UAPI_DEF_IF_NET_DEVICE_FLAGS
+>         IFF_UP                          =3D 1<<0,  /* sysfs */
+>         IFF_BROADCAST                   =3D 1<<1,  /* volatile */
+>         IFF_DEBUG                       =3D 1<<2,  /* sysfs */
+> @@ -84,11 +92,17 @@ enum net_device_flags {
+>         IFF_PORTSEL                     =3D 1<<13, /* sysfs */
+>         IFF_AUTOMEDIA                   =3D 1<<14, /* sysfs */
+>         IFF_DYNAMIC                     =3D 1<<15, /* sysfs */
+> +#endif /* __UAPI_DEF_IF_NET_DEVICE_FLAGS */
+> +#if __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO
+>         IFF_LOWER_UP                    =3D 1<<16, /* volatile */
+>         IFF_DORMANT                     =3D 1<<17, /* volatile */
+>         IFF_ECHO                        =3D 1<<18, /* volatile */
+> +#endif /* __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO */
+>  };
+> +#endif /* __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO !=3D 0 &&=
+ __UAPI_DEF_IF_NET_DEVICE_FLAGS !=3D 0 */
+>
+> +/* for compatibility with glibc net/if.h */
+> +#if __UAPI_DEF_IF_NET_DEVICE_FLAGS
+>  #define IFF_UP                         IFF_UP
+>  #define IFF_BROADCAST                  IFF_BROADCAST
+>  #define IFF_DEBUG                      IFF_DEBUG
+> @@ -105,9 +119,13 @@ enum net_device_flags {
+>  #define IFF_PORTSEL                    IFF_PORTSEL
+>  #define IFF_AUTOMEDIA                  IFF_AUTOMEDIA
+>  #define IFF_DYNAMIC                    IFF_DYNAMIC
+> +#endif /* __UAPI_DEF_IF_NET_DEVICE_FLAGS */
+> +
+> +#if __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO
+>  #define IFF_LOWER_UP                   IFF_LOWER_UP
+>  #define IFF_DORMANT                    IFF_DORMANT
+>  #define IFF_ECHO                       IFF_ECHO
+> +#endif /* __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO */
+>
+>  #define IFF_VOLATILE   (IFF_LOOPBACK|IFF_POINTOPOINT|IFF_BROADCAST|IFF_E=
+CHO|\
+>                 IFF_MASTER|IFF_SLAVE|IFF_RUNNING|IFF_LOWER_UP|IFF_DORMANT=
+)
+> @@ -166,6 +184,8 @@ enum {
+>   *     being very small might be worth keeping for clean configuration.
+>   */
+>
+> +/* for compatibility with glibc net/if.h */
+> +#if __UAPI_DEF_IF_IFMAP
+>  struct ifmap {
+>         unsigned long mem_start;
+>         unsigned long mem_end;
+> @@ -175,6 +195,7 @@ struct ifmap {
+>         unsigned char port;
+>         /* 3 bytes spare */
+>  };
+> +#endif /* __UAPI_DEF_IF_IFMAP */
+>
+>  struct if_settings {
+>         unsigned int type;      /* Type of physical device or protocol */
+> @@ -200,6 +221,8 @@ struct if_settings {
+>   * remainder may be interface specific.
+>   */
+>
+> +/* for compatibility with glibc net/if.h */
+> +#if __UAPI_DEF_IF_IFREQ
+>  struct ifreq {
+>  #define IFHWADDRLEN    6
+>         union
+> @@ -223,6 +246,7 @@ struct ifreq {
+>                 struct  if_settings ifru_settings;
+>         } ifr_ifru;
+>  };
+> +#endif /* __UAPI_DEF_IF_IFREQ */
+>
+>  #define ifr_name       ifr_ifrn.ifrn_name      /* interface name       *=
+/
+>  #define ifr_hwaddr     ifr_ifru.ifru_hwaddr    /* MAC address          *=
+/
+> @@ -249,6 +273,8 @@ struct ifreq {
+>   * must know all networks accessible).
+>   */
+>
+> +/* for compatibility with glibc net/if.h */
+> +#if __UAPI_DEF_IF_IFCONF
+>  struct ifconf  {
+>         int     ifc_len;                        /* size of buffer       *=
+/
+>         union {
+> @@ -256,6 +282,8 @@ struct ifconf  {
+>                 struct ifreq __user *ifcu_req;
+>         } ifc_ifcu;
+>  };
+> +#endif /* __UAPI_DEF_IF_IFCONF */
+> +
+>  #define        ifc_buf ifc_ifcu.ifcu_buf               /* buffer address=
+       */
+>  #define        ifc_req ifc_ifcu.ifcu_req               /* array of struc=
+tures  */
+>
+> diff --git a/include/uapi/linux/libc-compat.h b/include/uapi/linux/libc-c=
+ompat.h
+> index 7d024ce..d5e38c7 100644
+> --- a/include/uapi/linux/libc-compat.h
+> +++ b/include/uapi/linux/libc-compat.h
+> @@ -51,6 +51,40 @@
+>  /* We have included glibc headers... */
+>  #if defined(__GLIBC__)
+>
+> +/* Coordinate with glibc net/if.h header. */
+> +#if defined(_NET_IF_H)
+> +
+> +/* GLIBC headers included first so don't define anything
+> + * that would already be defined. */
+> +
+> +#define __UAPI_DEF_IF_IFCONF 0
+> +#define __UAPI_DEF_IF_IFMAP 0
+> +#define __UAPI_DEF_IF_IFNAMSIZ 0
+> +#define __UAPI_DEF_IF_IFREQ 0
+> +/* Everything up to IFF_DYNAMIC, matches net/if.h until glibc 2.23 */
+> +#define __UAPI_DEF_IF_NET_DEVICE_FLAGS 0
+> +/* For the future if glibc adds IFF_LOWER_UP, IFF_DORMANT and IFF_ECHO *=
+/
+> +#ifndef __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO
+> +#define __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO 1
+> +#endif /* __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO */
+> +
+> +#else /* _NET_IF_H */
+> +
+> +/* Linux headers included first, and we must define everything
+> + * we need. The expectation is that glibc will check the
+> + * __UAPI_DEF_* defines and adjust appropriately. */
+> +
+> +#define __UAPI_DEF_IF_IFCONF 1
+> +#define __UAPI_DEF_IF_IFMAP 1
+> +#define __UAPI_DEF_IF_IFNAMSIZ 1
+> +#define __UAPI_DEF_IF_IFREQ 1
+> +/* Everything up to IFF_DYNAMIC, matches net/if.h until glibc 2.23 */
+> +#define __UAPI_DEF_IF_NET_DEVICE_FLAGS 1
+> +/* For the future if glibc adds IFF_LOWER_UP, IFF_DORMANT and IFF_ECHO *=
+/
+> +#define __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO 1
+> +
+> +#endif /* _NET_IF_H */
+> +
+>  /* Coordinate with glibc netinet/in.h header. */
+>  #if defined(_NETINET_IN_H)
+>
+> @@ -117,6 +151,16 @@
+>   * that we need. */
+>  #else /* !defined(__GLIBC__) */
+>
+> +/* Definitions for if.h */
+> +#define __UAPI_DEF_IF_IFCONF 1
+> +#define __UAPI_DEF_IF_IFMAP 1
+> +#define __UAPI_DEF_IF_IFNAMSIZ 1
+> +#define __UAPI_DEF_IF_IFREQ 1
+> +/* Everything up to IFF_DYNAMIC, matches net/if.h until glibc 2.23 */
+> +#define __UAPI_DEF_IF_NET_DEVICE_FLAGS 1
+> +/* For the future if glibc adds IFF_LOWER_UP, IFF_DORMANT and IFF_ECHO *=
+/
+> +#define __UAPI_DEF_IF_NET_DEVICE_FLAGS_LOWER_UP_DORMANT_ECHO 1
+> +
+>  /* Definitions for in.h */
+>  #define __UAPI_DEF_IN_ADDR             1
+>  #define __UAPI_DEF_IN_IPPROTO          1
+> --
+> 2.8.0.rc3
+>
