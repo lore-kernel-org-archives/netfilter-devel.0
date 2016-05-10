@@ -1,60 +1,79 @@
-From: tcharding <me@tobin.cc>
-Subject: [PATCH 3/3] bridge: netfilter: checkpatch null comparison fixes
-Date: Tue, 10 May 2016 11:26:58 +1000
-Message-ID: <1462843618-21914-4-git-send-email-me@tobin.cc>
-References: <1462843618-21914-1-git-send-email-me@tobin.cc>
-Cc: Tobin C Harding <me@tobin.cc>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org
-To: Stephen Hemminger <stephen@networkplumber.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out5-smtp.messagingengine.com ([66.111.4.29]:41529 "EHLO
-	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754085AbcEJB1P (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 May 2016 21:27:15 -0400
-Received: from compute2.internal (compute2.nyi.internal [10.202.2.42])
-	by mailout.nyi.internal (Postfix) with ESMTP id ADC32201AB
-	for <netfilter-devel@vger.kernel.org>; Mon,  9 May 2016 21:27:14 -0400 (EDT)
-In-Reply-To: <1462843618-21914-1-git-send-email-me@tobin.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v2] uapi glibc compat: fix compile errors when glibc
+ net/if.h included before linux/if.h
+Date: Mon, 09 May 2016 21:29:53 -0400 (EDT)
+Message-ID: <20160509.212953.2176297121729133081.davem@davemloft.net>
+References: <1461512707-23058-1-git-send-email-mikko.rapeli@iki.fi>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=iso-8859-7
+Content-Transfer-Encoding: base64
+Cc: zhangshengju@cmss.chinamobile.com, stephen@networkplumber.org,
+ linux-kernel@vger.kernel.org, jengelh@inai.de, jwboyer@fedoraproject.org,
+ mail@waldemar-brodkorb.de, gabriel@lse.epita.fr,
+ netfilter-devel@vger.kernel.org, libc-alpha@sourceware.org
+To: mikko.rapeli@iki.fi
+Return-path: <libc-alpha-return-69466-glibc-alpha=m.gmane.org@sourceware.org>
+List-Unsubscribe: <mailto:libc-alpha-unsubscribe-glibc-alpha=m.gmane.org@sourceware.org>
+List-Subscribe: <mailto:libc-alpha-subscribe@sourceware.org>
+List-Archive: <http://sourceware.org/ml/libc-alpha/>
+List-Post: <mailto:libc-alpha@sourceware.org>
+List-Help: <mailto:libc-alpha-help@sourceware.org>, <http://sourceware.org/ml/#faqs>
+Sender: libc-alpha-owner@sourceware.org
+In-Reply-To: <1461512707-23058-1-git-send-email-mikko.rapeli@iki.fi>
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Tobin C Harding <me@tobin.cc>
-
-checkpatch produces comparison to null 'checks'.
-
-This patch amends them.
-
-Signed-off-by: Tobin C Harding <me@tobin.cc>
----
- net/bridge/netfilter/ebt_stp.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/net/bridge/netfilter/ebt_stp.c b/net/bridge/netfilter/ebt_stp.c
-index 9df943f..677904f 100644
---- a/net/bridge/netfilter/ebt_stp.c
-+++ b/net/bridge/netfilter/ebt_stp.c
-@@ -128,7 +128,7 @@ ebt_stp_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 	const u8 header[6] = {0x42, 0x42, 0x03, 0x00, 0x00, 0x00};
- 
- 	sp = skb_header_pointer(skb, 0, sizeof(_stph), &_stph);
--	if (sp == NULL)
-+	if (!sp)
- 		return false;
- 
- 	/* The stp code only considers these */
-@@ -146,7 +146,7 @@ ebt_stp_mt(const struct sk_buff *skb, struct xt_action_param *par)
- 
- 		st = skb_header_pointer(skb, sizeof(_stph),
- 					sizeof(_stpc), &_stpc);
--		if (st == NULL)
-+		if (!st)
- 			return false;
- 		return ebt_filter_config(info, st);
- 	}
--- 
-2.8.2
-
+RnJvbTogTWlra28gUmFwZWxpIDxtaWtrby5yYXBlbGlAaWtpLmZpPg0KRGF0ZTogU3VuLCAyNCBB
+cHIgMjAxNiAxNzo0NTowMCArMDIwMA0KDQo+IGdsaWJjJ3MgbmV0L2lmLmggY29udGFpbnMgY29w
+aWVzIG9mIGRlZmluaXRpb25zIGZyb20gbGludXgvaWYuaCBhbmQgdGhlc2UNCj4gY29uZmxpY3Qg
+YW5kIGNhdXNlIGJ1aWxkIGZhaWx1cmVzIGlmIGJvdGggZmlsZXMgYXJlIGluY2x1ZGVkIGJ5IGFw
+cGxpY2F0aW9uDQo+IHNvdXJjZSBjb2RlLiBDaGFuZ2VzIGluIHVhcGkgaGVhZGVycywgd2hpY2gg
+Zml4ZWQgaGVhZGVyIGZpbGUgZGVwZW5kZW5jaWVzIHRvDQo+IGluY2x1ZGUgbGludXgvaWYuaCB3
+aGVuIGl0IHdhcyBuZWVkZWQsIGUuZy4gY29tbWl0IDFmZmFkODNkLCBtYWRlIHRoZQ0KPiBuZXQv
+aWYuaCBhbmQgbGludXgvaWYuaCBpbmNvbXBhdGliaWxpdGllcyB2aXNpYmxlIGFzIGJ1aWxkIGZh
+aWx1cmVzIGZvcg0KPiB1c2Vyc3BhY2UgYXBwbGljYXRpb25zIGxpa2UgaXByb3V0ZTIgYW5kIHh0
+YWJsZXMtYWRkb25zLg0KPiANCj4gVGhpcyBwYXRjaCBmaXhlcyBjb21waWxlIGVycm9ycyB3aGVu
+IGdsaWJjIG5ldC9pZi5oIGlzIGluY2x1ZGVkIGJlZm9yZQ0KPiBsaW51eC9pZi5oOg0KPiANCj4g
+Li9saW51eC9pZi5oOjk5OjIxOiBlcnJvcjogcmVkZWNsYXJhdGlvbiBvZiBlbnVtZXJhdG9yIKFJ
+RkZfTk9BUlCiDQo+IC4vbGludXgvaWYuaDo5ODoyMzogZXJyb3I6IHJlZGVjbGFyYXRpb24gb2Yg
+ZW51bWVyYXRvciChSUZGX1JVTk5JTkeiDQo+IC4vbGludXgvaWYuaDo5NzoyNjogZXJyb3I6IHJl
+ZGVjbGFyYXRpb24gb2YgZW51bWVyYXRvciChSUZGX05PVFJBSUxFUlOiDQo+IC4vbGludXgvaWYu
+aDo5NjoyNzogZXJyb3I6IHJlZGVjbGFyYXRpb24gb2YgZW51bWVyYXRvciChSUZGX1BPSU5UT1BP
+SU5Uog0KPiAuL2xpbnV4L2lmLmg6OTU6MjQ6IGVycm9yOiByZWRlY2xhcmF0aW9uIG9mIGVudW1l
+cmF0b3IgoUlGRl9MT09QQkFDS6INCj4gLi9saW51eC9pZi5oOjk0OjIxOiBlcnJvcjogcmVkZWNs
+YXJhdGlvbiBvZiBlbnVtZXJhdG9yIKFJRkZfREVCVUeiDQo+IC4vbGludXgvaWYuaDo5MzoyNTog
+ZXJyb3I6IHJlZGVjbGFyYXRpb24gb2YgZW51bWVyYXRvciChSUZGX0JST0FEQ0FTVKINCj4gLi9s
+aW51eC9pZi5oOjkyOjE5OiBlcnJvcjogcmVkZWNsYXJhdGlvbiBvZiBlbnVtZXJhdG9yIKFJRkZf
+VVCiDQo+IC4vbGludXgvaWYuaDoyNTI6ODogZXJyb3I6IHJlZGVmaW5pdGlvbiBvZiChc3RydWN0
+IGlmY29uZqINCj4gLi9saW51eC9pZi5oOjIwMzo4OiBlcnJvcjogcmVkZWZpbml0aW9uIG9mIKFz
+dHJ1Y3QgaWZyZXGiDQo+IC4vbGludXgvaWYuaDoxNjk6ODogZXJyb3I6IHJlZGVmaW5pdGlvbiBv
+ZiChc3RydWN0IGlmbWFwog0KPiAuL2xpbnV4L2lmLmg6MTA3OjIzOiBlcnJvcjogcmVkZWNsYXJh
+dGlvbiBvZiBlbnVtZXJhdG9yIKFJRkZfRFlOQU1JQ6INCj4gLi9saW51eC9pZi5oOjEwNjoyNTog
+ZXJyb3I6IHJlZGVjbGFyYXRpb24gb2YgZW51bWVyYXRvciChSUZGX0FVVE9NRURJQaINCj4gLi9s
+aW51eC9pZi5oOjEwNToyMzogZXJyb3I6IHJlZGVjbGFyYXRpb24gb2YgZW51bWVyYXRvciChSUZG
+X1BPUlRTRUyiDQo+IC4vbGludXgvaWYuaDoxMDQ6MjU6IGVycm9yOiByZWRlY2xhcmF0aW9uIG9m
+IGVudW1lcmF0b3IgoUlGRl9NVUxUSUNBU1SiDQo+IC4vbGludXgvaWYuaDoxMDM6MjE6IGVycm9y
+OiByZWRlY2xhcmF0aW9uIG9mIGVudW1lcmF0b3IgoUlGRl9TTEFWRaINCj4gLi9saW51eC9pZi5o
+OjEwMjoyMjogZXJyb3I6IHJlZGVjbGFyYXRpb24gb2YgZW51bWVyYXRvciChSUZGX01BU1RFUqIN
+Cj4gLi9saW51eC9pZi5oOjEwMToyNDogZXJyb3I6IHJlZGVjbGFyYXRpb24gb2YgZW51bWVyYXRv
+ciChSUZGX0FMTE1VTFRJog0KPiAuL2xpbnV4L2lmLmg6MTAwOjIzOiBlcnJvcjogcmVkZWNsYXJh
+dGlvbiBvZiBlbnVtZXJhdG9yIKFJRkZfUFJPTUlTQ6INCj4gDQo+IFRoZSBjYXNlcyB3aGVyZSBs
+aW51eC9pZi5oIGlzIGluY2x1ZGVkIGJlZm9yZSBuZXQvaWYuaCBuZWVkIGEgc2ltaWxhciBmaXgg
+aW4NCj4gdGhlIGdsaWJjIHNpZGUsIG9yIHRoZSBvcmRlciBvZiBpbmNsdWRlIGZpbGVzIGNhbiBi
+ZSBjaGFuZ2VkIHVzZXJzcGFjZQ0KPiBjb2RlIGFzIGEgd29ya2Fyb3VuZC4NCj4gDQo+IFRoaXMg
+Y2hhbmdlIHdhcyB0ZXN0ZWQgaW4geDg2IHVzZXJzcGFjZSBvbiBEZWJpYW4gdW5zdGFibGUgd2l0
+aA0KPiBzY3JpcHRzL2hlYWRlcnNfY29tcGlsZV90ZXN0LnNoOg0KPiANCj4gJCBtYWtlIGhlYWRl
+cnNfaW5zdGFsbCAmJiBcDQo+ICAgY2QgdXNyL2luY2x1ZGUgJiYgLi4vLi4vc2NyaXB0cy9oZWFk
+ZXJzX2NvbXBpbGVfdGVzdC5zaCAtbCAtaw0KPiAuLi4NCj4gY2MgLVdhbGwgLWMgLW5vc3RkaW5j
+IC1JIC91c3IvbGliL2djYy9pNTg2LWxpbnV4LWdudS81L2luY2x1ZGUgLUkgL3Vzci9saWIvZ2Nj
+L2k1ODYtbGludXgtZ251LzUvaW5jbHVkZS1maXhlZCAtSSAuIC1JIC9ob21lL21jZnJpc2svc3Jj
+L2xpbnV4LTIuNi91c3IvaGVhZGVyc19jb21waWxlX3Rlc3RfaW5jbHVkZS4ydVgyekggLUkgL2hv
+bWUvbWNmcmlzay9zcmMvbGludXgtMi42L3Vzci9oZWFkZXJzX2NvbXBpbGVfdGVzdF9pbmNsdWRl
+LjJ1WDJ6SC9pNTg2LWxpbnV4LWdudSAtbyAvZGV2L251bGwgLi9saW51eC9pZi5oX2xpYmNfYmVm
+b3JlX2tlcm5lbC5oDQo+IFBBU1NFRCBsaWJjIGJlZm9yZSBrZXJuZWwgdGVzdDogLi9saW51eC9p
+Zi5oDQo+IA0KPiBSZXBvcnRlZC1ieTogSmFuIEVuZ2VsaGFyZHQgPGplbmdlbGhAaW5haS5kZT4N
+Cj4gUmVwb3J0ZWQtYnk6IEpvc2ggQm95ZXIgPGp3Ym95ZXJAZmVkb3JhcHJvamVjdC5vcmc+DQo+
+IFJlcG9ydGVkLWJ5OiBTdGVwaGVuIEhlbW1pbmdlciA8c2hlbW1pbmdAYnJvY2FkZS5jb20+DQo+
+IFJlcG9ydGVkLWJ5OiBXYWxkZW1hciBCcm9ka29yYiA8bWFpbEB3YWxkZW1hci1icm9ka29yYi5k
+ZT4NCj4gQ2M6IEdhYnJpZWwgTGFza2FyIDxnYWJyaWVsQGxzZS5lcGl0YS5mcj4NCj4gU2lnbmVk
+LW9mZi1ieTogTWlra28gUmFwZWxpIDxtaWtrby5yYXBlbGlAaWtpLmZpPg0KDQpBcHBsaWVkIGFu
+ZCBxdWV1ZWQgdXAgZm9yIC1zdGFibGUsIHQgaGFua3MuDQo=
