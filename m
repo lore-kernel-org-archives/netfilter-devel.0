@@ -1,32 +1,40 @@
 From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 0/3] Netfilter fixes for net
-Date: Tue, 10 May 2016 00:50:57 -0400 (EDT)
-Message-ID: <20160510.005057.1121993023398331451.davem@davemloft.net>
-References: <1462823523-6682-1-git-send-email-pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: conntrack: remove uninitialized shadow
+ variable
+Date: Tue, 10 May 2016 01:04:18 -0400 (EDT)
+Message-ID: <20160510.010418.1148844422449581387.davem@davemloft.net>
+References: <1462823254-3137116-1-git-send-email-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Cc: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+	fw@strlen.de, daniel@iogearbox.net, sasha.levin@oracle.com,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: arnd@arndb.de
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1462823523-6682-1-git-send-email-pablo@netfilter.org>
+In-Reply-To: <1462823254-3137116-1-git-send-email-arnd@arndb.de>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Mon,  9 May 2016 21:52:00 +0200
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Mon,  9 May 2016 21:47:23 +0200
 
-> The following patchset contain Netfilter simple fixes for your net tree,
-> two one-liner and one two-liner:
+> A recent commit introduced an unconditional use of an uninitialized
+> variable, as reported in this gcc warning:
 > 
-> 1) Oneliner to fix missing spinlock definition that triggers
->    'BUG: spinlock bad magic on CPU#' when spinlock debugging is enabled,
->    from Florian Westphal.
+> net/netfilter/nf_conntrack_core.c: In function '__nf_conntrack_confirm':
+> net/netfilter/nf_conntrack_core.c:632:33: error: 'ctinfo' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+>    bytes = atomic64_read(&counter[CTINFO2DIR(ctinfo)].bytes);
+>                                  ^
+> net/netfilter/nf_conntrack_core.c:628:26: note: 'ctinfo' was declared here
+>    enum ip_conntrack_info ctinfo;
 > 
-> 2) Fix missing workqueue cancelation on IDLETIMER removal,
->    from Liping Zhang.
+> The problem is that a local variable shadows the function parameter.
+> This removes the local variable, which looks like what Pablo originally
+> intended.
 > 
-> 3) Fix insufficient validation of netlink of NFACCT_QUOTA in
->    nfnetlink_acct, from Phil Turnbull.
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Fixes: 71d8c47fc653 ("netfilter: conntrack: introduce clash resolution on insertion race")
 
-Pulled, thanks.
+Applied.
