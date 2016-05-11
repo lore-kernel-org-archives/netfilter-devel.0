@@ -1,133 +1,353 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 06/12] proto: update IPv6 flowlabel offset and length according to RFC2460
-Date: Wed, 11 May 2016 23:05:10 +0200
-Message-ID: <1463000716-11885-6-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 04/12] src: move payload sub-byte matching to the evaluation step
+Date: Wed, 11 May 2016 23:05:08 +0200
+Message-ID: <1463000716-11885-4-git-send-email-pablo@netfilter.org>
 References: <1463000716-11885-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40456 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40452 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752084AbcEKVF2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 May 2016 17:05:28 -0400
+	id S1751682AbcEKVF1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 May 2016 17:05:27 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id B86AD1BD5BC
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 May 2016 23:05:26 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id C81E51BD5BA
+	for <netfilter-devel@vger.kernel.org>; Wed, 11 May 2016 23:05:25 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id A5491CA101
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 May 2016 23:05:26 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B5282FAB57
+	for <netfilter-devel@vger.kernel.org>; Wed, 11 May 2016 23:05:25 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 88A93FF2FD
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 May 2016 23:05:24 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 7AA26FF2FC
+	for <netfilter-devel@vger.kernel.org>; Wed, 11 May 2016 23:05:23 +0200 (CEST)
 In-Reply-To: <1463000716-11885-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a 20 bit field according to Section 3. IPv6 Header Format.
+Generating the bitwise logic to match sub-byte payload fields from the
+linearize step has several problems:
+
+1) When the bits are split between two bytes and the payload field is
+   smaller than one byte, we need to extend the expression length on
+   both sides (payload and constant) of the relational expression.
+
+2) Explicit bitmask operations on sub-byte payload fields need to be
+   merge to the implicit bitmask operation, otherwise we generate two
+   bitwise instructions. This is not resolved by this patch, but we
+   should have a look at some point to this.
+
+With this approach, we can benefit from the binary operation transfer
+for shifts to provide a generic way to adjust the constant side of the
+expression.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- doc/nft.xml                     | 2 +-
- src/proto.c                     | 2 +-
- tests/py/ip6/ip6.t.payload.inet | 4 ++++
- tests/py/ip6/ip6.t.payload.ip6  | 4 ++++
- 4 files changed, 10 insertions(+), 2 deletions(-)
+ src/evaluate.c          | 105 ++++++++++++++++++++++++++++++++++++++++++++----
+ src/netlink_linearize.c |  99 ---------------------------------------------
+ 2 files changed, 97 insertions(+), 107 deletions(-)
 
-diff --git a/doc/nft.xml b/doc/nft.xml
-index e4d227c..19b5607 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -1479,7 +1479,7 @@ filter output oif eth0
- 							<row>
- 								<entry>flowlabel</entry>
- 								<entry>Flow label</entry>
--								<entry></entry>
-+								<entry>integer (20 bit)</entry>
- 							</row>
- 							<row>
- 								<entry>length</entry>
-diff --git a/src/proto.c b/src/proto.c
-index cecde0f..9e972a3 100644
---- a/src/proto.c
-+++ b/src/proto.c
-@@ -643,7 +643,7 @@ const struct proto_desc proto_ip6 = {
- 	.templates	= {
- 		[IP6HDR_VERSION]	= HDR_BITFIELD("version", &integer_type, 0, 4),
- 		[IP6HDR_PRIORITY]	= HDR_BITFIELD("priority", &integer_type, 4, 4),
--		[IP6HDR_FLOWLABEL]	= IP6HDR_FIELD("flowlabel",	flow_lbl),
-+		[IP6HDR_FLOWLABEL]	= HDR_BITFIELD("flowlabel", &integer_type, 12, 20),
- 		[IP6HDR_LENGTH]		= IP6HDR_FIELD("length",	payload_len),
- 		[IP6HDR_NEXTHDR]	= INET_PROTOCOL("nexthdr", struct ipv6hdr, nexthdr),
- 		[IP6HDR_HOPLIMIT]	= IP6HDR_FIELD("hoplimit",	hop_limit),
-diff --git a/tests/py/ip6/ip6.t.payload.inet b/tests/py/ip6/ip6.t.payload.inet
-index 4d2ea35..3d0ae39 100644
---- a/tests/py/ip6/ip6.t.payload.inet
-+++ b/tests/py/ip6/ip6.t.payload.inet
-@@ -3,6 +3,7 @@ inet test-inet input
-   [ meta load nfproto => reg 1 ]
-   [ cmp eq reg 1 0x0000000a ]
-   [ payload load 3b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00ffff0f ) ^ 0x00000000 ]
-   [ cmp eq reg 1 0x00160000 ]
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 72a0e43..ab73261 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -362,30 +362,108 @@ conflict_resolution_gen_dependency(struct eval_ctx *ctx, int protocol,
+ 	return 0;
+ }
  
- # ip6 flowlabel != 233
-@@ -10,6 +11,7 @@ inet test-inet input
-   [ meta load nfproto => reg 1 ]
-   [ cmp eq reg 1 0x0000000a ]
-   [ payload load 3b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00ffff0f ) ^ 0x00000000 ]
-   [ cmp neq reg 1 0x00e90000 ]
++static uint8_t expr_offset_shift(const struct expr *expr, unsigned int offset)
++{
++	unsigned int new_offset, len;
++	int shift;
++
++	new_offset = offset % BITS_PER_BYTE;
++	len = round_up(expr->len, BITS_PER_BYTE);
++	shift = len - (new_offset + expr->len);
++	assert(shift >= 0);
++
++	return shift;
++}
++
++static void expr_evaluate_bits(struct eval_ctx *ctx, struct expr **exprp)
++{
++	struct expr *expr = *exprp, *and, *mask, *lshift, *off;
++	unsigned masklen;
++	uint8_t shift;
++	mpz_t bitmask;
++
++	switch (expr->ops->type) {
++	case EXPR_PAYLOAD:
++		shift = expr_offset_shift(expr, expr->payload.offset);
++		break;
++	case EXPR_EXTHDR:
++		shift = expr_offset_shift(expr, expr->exthdr.tmpl->offset);
++		break;
++	default:
++		BUG("Unknown expression %s\n", expr->ops->name);
++	}
++
++	masklen = expr->len + shift;
++	assert(masklen <= NFT_REG_SIZE * BITS_PER_BYTE);
++
++	mpz_init2(bitmask, masklen);
++	mpz_bitmask(bitmask, expr->len);
++	mpz_lshift_ui(bitmask, shift);
++
++	mask = constant_expr_alloc(&expr->location, expr_basetype(expr),
++				   BYTEORDER_HOST_ENDIAN, masklen, NULL);
++	mpz_set(mask->value, bitmask);
++
++	and = binop_expr_alloc(&expr->location, OP_AND, expr, mask);
++	and->dtype	= expr->dtype;
++	and->byteorder	= expr->byteorder;
++	and->len	= masklen;
++
++	if (shift) {
++		off = constant_expr_alloc(&expr->location,
++					  expr_basetype(expr),
++					  BYTEORDER_BIG_ENDIAN,
++					  sizeof(shift), &shift);
++
++		lshift = binop_expr_alloc(&expr->location, OP_RSHIFT, and, off);
++		lshift->dtype		= expr->dtype;
++		lshift->byteorder	= expr->byteorder;
++		lshift->len		= masklen;
++
++		*exprp = lshift;
++	} else
++		*exprp = and;
++}
++
++static int __expr_evaluate_exthdr(struct eval_ctx *ctx, struct expr **exprp)
++{
++	struct expr *expr = *exprp;
++
++	if (expr_evaluate_primary(ctx, exprp) < 0)
++		return -1;
++
++	if (expr->exthdr.tmpl->offset % BITS_PER_BYTE != 0 ||
++	    expr->len % BITS_PER_BYTE != 0)
++		expr_evaluate_bits(ctx, exprp);
++
++	return 0;
++}
++
+ /*
+  * Exthdr expression: check whether dependencies are fulfilled, otherwise
+  * generate the necessary relational expression and prepend it to the current
+  * statement.
+  */
+-static int expr_evaluate_exthdr(struct eval_ctx *ctx, struct expr **expr)
++static int expr_evaluate_exthdr(struct eval_ctx *ctx, struct expr **exprp)
+ {
+ 	const struct proto_desc *base;
++	struct expr *expr = *exprp;
+ 	struct stmt *nstmt;
  
- # ip6 flowlabel { 33, 55, 67, 88}
-@@ -20,6 +22,7 @@ inet test-inet input
-   [ meta load nfproto => reg 1 ]
-   [ cmp eq reg 1 0x0000000a ]
-   [ payload load 3b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00ffff0f ) ^ 0x00000000 ]
-   [ lookup reg 1 set set%d ]
+ 	base = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
+ 	if (base == &proto_ip6)
+-		return expr_evaluate_primary(ctx, expr);
++		return __expr_evaluate_exthdr(ctx, exprp);
  
- # ip6 flowlabel { 33-55}
-@@ -30,6 +33,7 @@ inet test-inet input
-   [ meta load nfproto => reg 1 ]
-   [ cmp eq reg 1 0x0000000a ]
-   [ payload load 3b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00ffff0f ) ^ 0x00000000 ]
-   [ lookup reg 1 set set%d ]
+ 	if (base)
+-		return expr_error(ctx->msgs, *expr,
++		return expr_error(ctx->msgs, expr,
+ 				  "cannot use exthdr with %s", base->name);
  
- # ip6 length 22
-diff --git a/tests/py/ip6/ip6.t.payload.ip6 b/tests/py/ip6/ip6.t.payload.ip6
-index db59bfb..55286ee 100644
---- a/tests/py/ip6/ip6.t.payload.ip6
-+++ b/tests/py/ip6/ip6.t.payload.ip6
-@@ -1,11 +1,13 @@
- # ip6 flowlabel 22
- ip6 test-ip6 input
-   [ payload load 3b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00ffff0f ) ^ 0x00000000 ]
-   [ cmp eq reg 1 0x00160000 ]
+-	if (exthdr_gen_dependency(ctx, *expr, &nstmt) < 0)
++	if (exthdr_gen_dependency(ctx, expr, &nstmt) < 0)
+ 		return -1;
  
- # ip6 flowlabel != 233
- ip6 test-ip6 input
-   [ payload load 3b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00ffff0f ) ^ 0x00000000 ]
-   [ cmp neq reg 1 0x00e90000 ]
+ 	list_add(&nstmt->list, &ctx->rule->stmts);
  
- # ip6 flowlabel { 33, 55, 67, 88}
-@@ -14,6 +16,7 @@ set%d test-ip6 0
- 	element 00210000  : 0 [end]	element 00370000  : 0 [end]	element 00430000  : 0 [end]	element 00580000  : 0 [end]
- ip6 test-ip6 input
-   [ payload load 3b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00ffff0f ) ^ 0x00000000 ]
-   [ lookup reg 1 set set%d ]
+-	return expr_evaluate_primary(ctx, expr);
++	return __expr_evaluate_exthdr(ctx, exprp);
+ }
  
- # ip6 flowlabel { 33-55}
-@@ -22,6 +25,7 @@ set%d test-ip6 0
- 	element 00000000  : 1 [end]	element 00210000  : 0 [end]	element 00380000  : 1 [end]
- ip6 test-ip6 input
-   [ payload load 3b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00ffff0f ) ^ 0x00000000 ]
-   [ lookup reg 1 set set%d ]
+ /* dependency supersede.
+@@ -509,12 +587,21 @@ static int __expr_evaluate_payload(struct eval_ctx *ctx, struct expr *expr)
+ 	return 0;
+ }
  
- # ip6 length 22
+-static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **expr)
++static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **exprp)
+ {
+-	if (__expr_evaluate_payload(ctx, *expr) < 0)
++	struct expr *expr = *exprp;
++
++	if (__expr_evaluate_payload(ctx, expr) < 0)
+ 		return -1;
+ 
+-	return expr_evaluate_primary(ctx, expr);
++	if (expr_evaluate_primary(ctx, exprp) < 0)
++		return -1;
++
++	if (expr->payload.offset % BITS_PER_BYTE != 0 ||
++	    expr->len % BITS_PER_BYTE != 0)
++		expr_evaluate_bits(ctx, exprp);
++
++	return 0;
+ }
+ 
+ /*
+@@ -1096,6 +1183,8 @@ static int binop_can_transfer(struct eval_ctx *ctx,
+ 						 "Comparison is always false");
+ 		return 1;
+ 	case OP_RSHIFT:
++		if (ctx->ectx.len < right->len + mpz_get_uint32(left->right->value))
++			ctx->ectx.len += mpz_get_uint32(left->right->value);
+ 		return 1;
+ 	case OP_XOR:
+ 		return 1;
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 3263043..e0c73c0 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -104,64 +104,6 @@ static void netlink_gen_concat(struct netlink_linearize_ctx *ctx,
+ 	}
+ }
+ 
+-static unsigned int payload_shift_calc(const struct expr *expr,
+-				       unsigned int offset)
+-{
+-	unsigned int len;
+-	int shift;
+-
+-	offset %= BITS_PER_BYTE;
+-	len = round_up(expr->len, BITS_PER_BYTE);
+-	shift = len - (offset + expr->len);
+-	assert(shift >= 0);
+-
+-	return shift;
+-}
+-
+-static void netlink_gen_mask(struct netlink_linearize_ctx *ctx,
+-			     const struct expr *expr,
+-			     unsigned int shift,
+-			     enum nft_registers dreg)
+-{
+-	struct nft_data_linearize nld, zero = {};
+-	unsigned int len, masklen;
+-	struct nftnl_expr *nle;
+-	mpz_t mask;
+-
+-	masklen = expr->len + shift;
+-	assert(masklen <= NFT_REG_SIZE * BITS_PER_BYTE);
+-	mpz_init2(mask, masklen);
+-	mpz_bitmask(mask, expr->len);
+-	mpz_lshift_ui(mask, shift);
+-
+-	nle = alloc_nft_expr("bitwise");
+-
+-	len = div_round_up(expr->len, BITS_PER_BYTE);
+-
+-	nftnl_expr_set_u32(nle, NFT_EXPR_BITWISE_SREG, dreg);
+-	nftnl_expr_set_u32(nle, NFT_EXPR_BITWISE_DREG, dreg);
+-	nftnl_expr_set_u32(nle, NFT_EXPR_BITWISE_LEN, len);
+-
+-	netlink_gen_raw_data(mask, expr->byteorder, len, &nld);
+-	nftnl_expr_set(nle, NFT_EXPR_BITWISE_MASK, nld.value, nld.len);
+-	nftnl_expr_set(nle, NFT_EXPR_BITWISE_XOR, &zero.value, nld.len);
+-
+-	mpz_clear(mask);
+-	nftnl_rule_add_expr(ctx->nlr, nle);
+-}
+-
+-static void netlink_gen_payload_mask(struct netlink_linearize_ctx *ctx,
+-				     const struct expr *expr,
+-				     enum nft_registers dreg)
+-{
+-	unsigned int shift, offset;
+-
+-	offset = expr->payload.offset % BITS_PER_BYTE;
+-	shift = payload_shift_calc(expr, offset);
+-	if (shift || offset)
+-		netlink_gen_mask(ctx, expr, shift, dreg);
+-}
+-
+ static void netlink_gen_payload(struct netlink_linearize_ctx *ctx,
+ 				const struct expr *expr,
+ 				enum nft_registers dreg)
+@@ -178,20 +120,6 @@ static void netlink_gen_payload(struct netlink_linearize_ctx *ctx,
+ 			   div_round_up(expr->len, BITS_PER_BYTE));
+ 
+ 	nftnl_rule_add_expr(ctx->nlr, nle);
+-
+-	netlink_gen_payload_mask(ctx, expr, dreg);
+-}
+-
+-static void netlink_gen_exthdr_mask(struct netlink_linearize_ctx *ctx,
+-				    const struct expr *expr,
+-				    enum nft_registers dreg)
+-{
+-	unsigned int shift, offset;
+-
+-	offset = expr->exthdr.tmpl->offset % BITS_PER_BYTE;
+-	shift = payload_shift_calc(expr, offset);
+-	if (shift || offset)
+-		netlink_gen_mask(ctx, expr, shift, dreg);
+ }
+ 
+ static void netlink_gen_exthdr(struct netlink_linearize_ctx *ctx,
+@@ -209,8 +137,6 @@ static void netlink_gen_exthdr(struct netlink_linearize_ctx *ctx,
+ 	nftnl_expr_set_u32(nle, NFTNL_EXPR_EXTHDR_LEN,
+ 			   div_round_up(expr->len, BITS_PER_BYTE));
+ 	nftnl_rule_add_expr(ctx->nlr, nle);
+-
+-	netlink_gen_exthdr_mask(ctx, expr, dreg);
+ }
+ 
+ static void netlink_gen_meta(struct netlink_linearize_ctx *ctx,
+@@ -319,28 +245,6 @@ static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
+ 			      const struct expr *expr,
+ 			      enum nft_registers dreg);
+ 
+-static void payload_shift_value(const struct expr *left, struct expr *right)
+-{
+-	unsigned int offset;
+-
+-	if (right->ops->type != EXPR_VALUE)
+-		return;
+-
+-	switch (left->ops->type) {
+-	case EXPR_PAYLOAD:
+-		offset = left->payload.offset;
+-		break;
+-	case EXPR_EXTHDR:
+-		offset = left->exthdr.tmpl->offset;
+-		break;
+-	default:
+-		return;
+-	}
+-
+-	mpz_lshift_ui(right->value,
+-			payload_shift_calc(left, offset));
+-}
+-
+ static struct expr *netlink_gen_prefix(struct netlink_linearize_ctx *ctx,
+ 				       const struct expr *expr,
+ 				       enum nft_registers sreg)
+@@ -409,7 +313,6 @@ static void netlink_gen_cmp(struct netlink_linearize_ctx *ctx,
+ 	netlink_put_register(nle, NFTNL_EXPR_CMP_SREG, sreg);
+ 	nftnl_expr_set_u32(nle, NFTNL_EXPR_CMP_OP,
+ 			   netlink_gen_cmp_op(expr->op));
+-	payload_shift_value(expr->left, right);
+ 	netlink_gen_data(right, &nld);
+ 	nftnl_expr_set(nle, NFTNL_EXPR_CMP_DATA, nld.value, len);
+ 	release_register(ctx, expr->left);
+@@ -447,7 +350,6 @@ static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
+ 		BUG("invalid range operation %u\n", expr->op);
+ 	}
+ 
+-	payload_shift_value(expr->left, range->left);
+ 	netlink_gen_data(range->left, &nld);
+ 	nftnl_expr_set(nle, NFTNL_EXPR_CMP_DATA, nld.value, nld.len);
+ 	nftnl_rule_add_expr(ctx->nlr, nle);
+@@ -468,7 +370,6 @@ static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
+ 		BUG("invalid range operation %u\n", expr->op);
+ 	}
+ 
+-	payload_shift_value(expr->left, range->right);
+ 	netlink_gen_data(range->right, &nld);
+ 	nftnl_expr_set(nle, NFTNL_EXPR_CMP_DATA, nld.value, nld.len);
+ 	nftnl_rule_add_expr(ctx->nlr, nle);
 -- 
 2.1.4
 
