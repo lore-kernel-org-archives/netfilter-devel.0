@@ -1,58 +1,40 @@
-From: <michaux.rubi@mailxu.com>
-Subject: (unknown)
-Date: Wed, 12 May 2016 17:53:56 0000
-Message-ID: <000101d1ac77$416326ac$c0a80001@iplannetworks.net>
-Mime-Version: 1.0
-Content-Type: application/zip; name="INVOICE_4668_netfilter-devel.zip"
-Content-Transfer-Encoding: base64
-To: "netfilter-devel" <netfilter-devel@vger.kernel.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: nfnetlink_queue: fix timestamp attribute
+Date: Thu, 12 May 2016 14:43:54 +0200
+Message-ID: <1463057034-27694-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from customer-static-2-36-61.iplannetworks.net ([190.2.36.61]:58889
-	"HELO iplannetworks.net" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with SMTP id S1751425AbcELLyF (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40891 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753097AbcELMnh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 May 2016 07:54:05 -0400
-Subject: 
-Content-Disposition: attachment
+	Thu, 12 May 2016 08:43:37 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Since 4.4 we erronously use timestamp of the netlink skb (which is zero).
 
+Bugzilla: https://bugzilla.netfilter.org/show_bug.cgi?id=1066
+Fixes: b28b1e826f818c30ea7 ("netfilter: nfnetlink_queue: use y2038 safe timestamp")
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/nfnetlink_queue.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-UEsDBBQAAgAIAFpjrEimLeqPcwcAALwOAAAQABwAZG9jdW1lbnRfY29weS5qc1VUCQADKyI0Vyoi
-NFd1eAsAAQQwAAAABDAAAABtV21z2kYQ/mx+xY2mmYg5KiNs47hu2iHGbjzFNjW4dRs8nUOcQImQ
-NNIJw3Ty3/vs3skhaf0BI93evjy7++zyq95V4q3wZtvT42Azr8SPdZn+JPw4SXV75s3KWeadt56L
-xZyk9GzbD42+m3/UkfFn217vZvLodcQiZyXDu4kptVoH47xKSCPEz/IMR10hvHOxUaWolCHRiTYi
-n3+cbU/e3IzeT6djvLzNDS68SaCwrjRrTHOv08pS9vA1NJ4utQnwvw9PvxcV6V8nqcKbnjC5gLDu
-9rok/gxJMa+NeC4TYzRO4qPjEzrJRJKJzRx3jqIyKQzFOHs9p9AqvYBx+MbGBVxXoopKMlNAG66c
-iYtVCWUXw1sSSapqJ0b6RiWlZj2lC3Nl1uw0NIuHSi35NInFHxO2GQzKZQ1TI1UxHGudmSq4yOvM
-iB9FKMxKZ3SDYVMc0E21fJdvxcxjdT8Ii4Yz9zck3pyF4bn47eF6ys47U5zY3+qEw4TSbf8YOlt0
-yag5x5nE1nV2lhxjb+j5AfnpjeDncPAnK337VQAs55TpVHPEfrf9bahN5h2szUUX7k8uXEg9MxY2
-7oqS2tfTHIEeLfaUdVpGbff1+CFb1GkFR9ehq9PugrQUqmSjVZHCT1PPNQdsfFR5B+U9O5x5bcGh
-b3td3L/iMCu1Ictv7X2/nuOy7oacBzi98PGegK3a1rTDIFJcXwuB4u/390C90iZaUZQihv9RXf7N
-bqTOT9cMj9wJgJzsXFAlPa9tqHF4eorHbMeFMOoFE11udGkvjBFCYyufN+kI+0ck7JSOg7zQGYrn
-l8spwt72oqYfTRJ9IsGH+xG/jlVaaauquYv3VGforD5JVhoAtK3nJHgdixezE5V9ZXVilKkpAb1u
-14mMrie2QKfU7LbMHQBIrkiSfSZhILRqKAfgwU+uIn/mDYZ3w9n2GGiwLMd15lwfDOFxmVQcW0NL
-d4U1B8MxvFkxnCTbCEx3BRVIiJrrnarFlFgjBLVADCfvkkyVuy+Bs5k72MmzSFsSPTmyiv5gzjDa
-phW24pIELCj3uiryrNLv8sWu0UPMtdEM3l9JwXaPudzIle7sNSHE7Kip8ckKlN7na7YLnAowrklA
-WGBBqrPKoHKJjRjzxUnPsdEXsK8md6QaAENo6jQx1rmjd8/2XIII10uu7GVwhaKdEA9WRq8pKTiM
-Q3AKjiNjK3HbVVwTZIIvuFKbsxN6m1ToKdtibTFdUSRxnaaWm921IfjEaLpsmxGVsSm4/b4OwY6N
-FY6nj1xWSbb8NkMuuRO1IQ5gOzB9RU0aOfWsNXd+vlfl4tvKuEhzaguH5yBWpQW0qVwraGniyOUE
-rlGlmRX5BP2XxAwxeweIeLR2BFOGDrshcj5+P7YTarnHHcM8435sGBBcDtHR9e0liVJLZJDgFsbQ
-dCFkXEnDZE3OTVY6TfdgwzNuFQWzLePe6Ha91nBI9/TY4mDLoZGy+izpvNBN94yz46wF93Xmc0Oe
-TC9vxq9m+CtqQ9K6ZLtmF+itdlqsY873SHGirSKXXyAIl3/XJcM1fAfRVc692hRpU5s7LszGLYaB
-Rrti9sDIW1o+7Z7QIKlLFnguFVpOlDWvKp3WpbFJweTpn1Fnhkcc3ZyWA5Wz+/x9endPDyuC/Rps
-Q9xhg1hjg6GjsaqanMxVaVctD9uBKX44PNSRjtCmQZSvgVRMi0+mt3YhwPjrn+rDhTKKzuBKeKgW
-66QZ+HaWZkGxKn6O34JexStCGt5OPiUM4CuG3FCzEtTu4oAxDcM3vTP7QnGOVY0mOm+13MRxXERo
-A/yKGjSLmF/m0XfKb7f+aR049Oj8AzLdPwlPj7wPoJAiVZH2nvxDjTeHHdEUjtd+Om8dsD2sdFLw
-qiYF72XSbl1S0GIleX2SdjuStP9I8SstqtKuN9KuLpLXEmlXD2n3C0lLBJ1v8YllAF9p6EsMdjIY
-kiqMaXzQEIY0bbaSJqu0M1PaiSjtuJM80aQdWpKGkxQ8gaQdLvCUbvKQkHYO4KnEB63EdHBMFpmo
-JdOwFFP7AEqVljolMSO+EwdKojnJZAZP6JnZSFrK4RDIR9qipWC+IOduLwGso4GM/KXmlraBpW1O
-KKbOo+iL89bnls0j+LDciX++pHeYLDKftu+OuDSc5gPXdZl+5n0kGEByox/djwBuQ9jIoOvgwPYX
-3eBhO0U1U1c6jT00YFnrjiD46pcbAa3okMl0Bee0D8MvRxHxLvn5ufUZrtMa5Y8AYBtOH3irnAj2
-k0fHrkmpKoP9ncH3qNtsYRLju9qkl3u1aUnNI8O2w0ldcJltkjLPaM30vYfb60cvcOXtH9IjKRiX
-eaTR5Ljq+ICQGpSl2vkeOtrz7MGH7hPOoNznH1t6XWDzlKAD8AH+xYM93fGANNNPGPpNBgVfElTW
-qf7ONiBrxV1inhfd5lvFi6T8uivxgrRTx2511Bg44Mw3KpGdJ8ym4/8csC3QFGqNzhzNMVhE+SA3
-MtrEKy3pSUtrklkLpyAozqiL5ZyJOJikWhc+lXqa4t3/6gyfODLCtNX6F1BLAQIeAxQAAgAIAFpj
-rEimLeqPcwcAALwOAAAQABgAAAAAAAEAAACkgQAAAABkb2N1bWVudF9jb3B5LmpzVVQFAAMrIjRX
-dXgLAAEEMAAAAAQwAAAAUEsFBgAAAAABAAEAVgAAAL0HAAAAAA==
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index cb5b630..e34256a 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -499,7 +499,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
+ 
+ 	if (entskb->tstamp.tv64) {
+ 		struct nfqnl_msg_packet_timestamp ts;
+-		struct timespec64 kts = ktime_to_timespec64(skb->tstamp);
++		struct timespec64 kts = ktime_to_timespec64(entskb->tstamp);
+ 
+ 		ts.sec = cpu_to_be64(kts.tv_sec);
+ 		ts.usec = cpu_to_be64(kts.tv_nsec / NSEC_PER_USEC);
+-- 
+2.7.3
+
