@@ -1,40 +1,36 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf] netfilter: nfnetlink_queue: fix timestamp attribute
-Date: Thu, 12 May 2016 14:43:54 +0200
-Message-ID: <1463057034-27694-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf] netfilter: nfnetlink_queue: fix timestamp attribute
+Date: Thu, 12 May 2016 17:07:32 +0200
+Message-ID: <20160512150732.GA16949@salvia>
+References: <1463057034-27694-1-git-send-email-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40891 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753097AbcELMnh (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 May 2016 08:43:37 -0400
+Received: from mail.us.es ([193.147.175.20]:40506 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752172AbcELPHn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 12 May 2016 11:07:43 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 0AA8913C0E0
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 May 2016 17:07:40 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id EF0352687FC
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 May 2016 17:07:39 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 83F5D2687CB
+	for <netfilter-devel@vger.kernel.org>; Thu, 12 May 2016 17:07:36 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1463057034-27694-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Since 4.4 we erronously use timestamp of the netlink skb (which is zero).
+On Thu, May 12, 2016 at 02:43:54PM +0200, Florian Westphal wrote:
+> Since 4.4 we erronously use timestamp of the netlink skb (which is zero).
+> 
+> Bugzilla: https://bugzilla.netfilter.org/show_bug.cgi?id=1066
+> Fixes: b28b1e826f818c30ea7 ("netfilter: nfnetlink_queue: use y2038 safe timestamp")
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Bugzilla: https://bugzilla.netfilter.org/show_bug.cgi?id=1066
-Fixes: b28b1e826f818c30ea7 ("netfilter: nfnetlink_queue: use y2038 safe timestamp")
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nfnetlink_queue.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index cb5b630..e34256a 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -499,7 +499,7 @@ nfqnl_build_packet_message(struct net *net, struct nfqnl_instance *queue,
- 
- 	if (entskb->tstamp.tv64) {
- 		struct nfqnl_msg_packet_timestamp ts;
--		struct timespec64 kts = ktime_to_timespec64(skb->tstamp);
-+		struct timespec64 kts = ktime_to_timespec64(entskb->tstamp);
- 
- 		ts.sec = cpu_to_be64(kts.tv_sec);
- 		ts.usec = cpu_to_be64(kts.tv_nsec / NSEC_PER_USEC);
--- 
-2.7.3
-
+Argh, my fault. Thanks for fixing up this, applied.
