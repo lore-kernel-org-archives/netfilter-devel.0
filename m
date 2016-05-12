@@ -1,309 +1,58 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH v3] doc: Complete the documentation of statements
-Date: Thu, 12 May 2016 16:57:14 +0530
-Message-ID: <20160512112714.GA10290@shivani>
+From: <michaux.rubi@mailxu.com>
+Subject: (unknown)
+Date: Wed, 12 May 2016 17:53:56 0000
+Message-ID: <000101d1ac77$416326ac$c0a80001@iplannetworks.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: application/zip; name="INVOICE_4668_netfilter-devel.zip"
+Content-Transfer-Encoding: base64
+To: "netfilter-devel" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:34215 "EHLO
-	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752648AbcELL13 (ORCPT
+Received: from customer-static-2-36-61.iplannetworks.net ([190.2.36.61]:58889
+	"HELO iplannetworks.net" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with SMTP id S1751425AbcELLyF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 May 2016 07:27:29 -0400
-Received: by mail-pf0-f194.google.com with SMTP id 145so6198242pfz.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 May 2016 04:27:29 -0700 (PDT)
-Received: from shivani ([124.124.47.116])
-        by smtp.gmail.com with ESMTPSA id fn3sm19198719pab.20.2016.05.12.04.27.27
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Thu, 12 May 2016 04:27:28 -0700 (PDT)
-Content-Disposition: inline
+	Thu, 12 May 2016 07:54:05 -0400
+Subject: 
+Content-Disposition: attachment
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add documentation corresponding to LOG STATEMENT, REJECT STATEMENT,
-COUNTER STATEMENT, META STATEMENT, LIMIT STATEMENT, NAT STATEMENT,
-QUEUE STATEMENT.
 
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
----
-Changes in v3:
-	Correct meta fields, use lowercase statement names, merge nflog
-	with log.
 
-Changes in v2:
-	Add more content to the description.
-
- doc/nft.xml | 227 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 225 insertions(+), 2 deletions(-)
-
-diff --git a/doc/nft.xml b/doc/nft.xml
-index e4d227c..e3cd2d3 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -2186,36 +2186,259 @@ filter input iif eth0 drop
- 		<refsect2>
- 			<title>Log statement</title>
- 			<para>
-+				<cmdsynopsis>
-+					        <command>log</command>
-+					<group choice="req">
-+						        <arg>prefix</arg>
-+							<arg>level</arg>
-+	                                </group>
-+				</cmdsynopsis>
- 			</para>
--		</refsect2>
-+			<para>
-+				The log statement enables logging of matching packets. When this statement is used from a rule, the Linux kernel will print some information on all matching packets, such as header fields, via the kernel log (where it can be read with dmesg(1) or read in the syslog). This is a non-terminating statement, so the rule evaluation continues after the packet is logged. It is necessary to mention the group [default 0] to consider logging with nflog.
-+				<table frame="all">
-+					<title>log statement</title>
-+					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-+						<colspec colname='c1'/>
-+						<colspec colname='c2'/>
-+						<colspec colname='c3'/>
-+						<thead>
-+							<row>
-+								<entry>Keyword</entry>
-+								<entry>Description</entry>
-+								<entry>Type</entry>
-+							</row>
-+						</thead>
-+						<tbody>
-+							<row>
-+								<entry>level</entry>
-+								<entry>Level of logging</entry>
-+								<entry>unsigned integer (32 bit), emerg, alert, crit, err, warn [default], notice, info, debug</entry>
-+							</row>
-+							<row>
-+								<entry>prefix</entry>
-+								<entry>Prefix log messages</entry>
-+								<entry>string</entry>
-+							</row>
-+							<row>
-+                                                                <entry>group</entry>
-+                                                                <entry>Netlink group to send messages to</entry>
-+                                                                <entry>unsigned integer (32 bit)</entry>
-+                                                        </row>
-+                                                         <row>
-+                                                                <entry>snaplen</entry>
-+                                                                <entry>Length of payload to include in netlink message</entry>
-+                                                                <entry>unsigned integer (32 bit)</entry>
-+                                                        </row>
-+                                                         <row>
-+                                                                <entry>queue-threshold</entry>
-+                                                                <entry>Queue threshold value</entry>
-+                                                                <entry>unsigned integer (32 bit)</entry>
-+                                                        </row>
-+						</tbody>
-+					</tgroup>
-+				</table>
-+			</para>
-+                </refsect2>
- 		<refsect2>
- 			<title>Reject statement</title>
- 			<para>
-+				A reject statement is used to send back an error packet in response to the matched packet otherwise it is equivalent to drop so it is a terminating statement, ending rule traversal. This statement is only valid in the input, forward and output chains, and user-defined chains which are only called from those chains.
-+				<table frame="all">
-+					<title>reject statement (ipv4)</title>
-+					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-+						<colspec colname='c1'/>
-+						<colspec colname='c2'/>
-+						<colspec colname='c3'/>
-+						<thead>
-+							<row>
-+								<entry>Keyword</entry>
-+								<entry>Description</entry>
-+								<entry>Type</entry>
-+							</row>
-+						</thead>
-+						<tbody>
-+							<row>
-+								<entry>with icmp type</entry>
-+								<entry>ICMP response to be sent to the host</entry>
-+								<entry>unsigned integer (8 bit), net-unreachable, host-unreachable, prot-unreachable, port-unreachable [default], net-prohibited, host-prohibited, admin-prohibited</entry>
-+							</row>
-+							<row>
-+								<entry>with</entry>
-+								<entry>Used on rules which only match the TCP</entry>
-+								<entry>tcp reset</entry>
-+							</row>
-+						</tbody>
-+					</tgroup>
-+				</table>
-+				<table frame="all">
-+					<title>reject statement (ipv6)</title>
-+					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-+						<colspec colname='c1'/>
-+						<colspec colname='c2'/>
-+						<colspec colname='c3'/>
-+						<thead>
-+							<row>
-+								<entry>Keyword</entry>
-+								<entry>Description</entry>
-+								<entry>Type</entry>
-+							</row>
-+						</thead>
-+						<tbody>
-+							<row>
-+								<entry>with icmpv6 type</entry>
-+								<entry>ICMP6 response to be sent to the host</entry>
-+								<entry>unsigned integer (8 bit), no-route, admin-prohibited, addr-unreachable, port-unreachable [default], policy-fail, reject-route</entry>
-+							</row>
-+							<row>
-+								<entry>with</entry>
-+								<entry>Used on rules which only match the TCP</entry>
-+								<entry>tcp reset</entry>
-+							</row>
-+						</tbody>
-+					</tgroup>
-+				</table>
- 			</para>
- 		</refsect2>
- 		<refsect2>
- 			<title>Counter statement</title>
- 			<para>
-+				A counter statement sets the hit count of packets along with the number of bytes.
- 			</para>
- 		</refsect2>
- 		<refsect2>
- 			<title>Meta statement</title>
- 			<para>
-+				A meta statement sets the value of a meta expression.
-+				The existing meta fields are: priority, mark, pkttype, nftrace.
- 			</para>
- 		</refsect2>
- 		<refsect2>
- 			<title>Limit statement</title>
- 			<para>
-+				<cmdsynopsis>
-+					<command>limit</command>
-+						<group choice="req">
-+							<arg>rate</arg>
-+							<arg>burst</arg>
-+						</group>
-+				</cmdsynopsis>
-+			</para>
-+			<para>
-+				A limit statement is used to set a specified limit attribute.
-+				<table frame="all">
-+					<title>limit statement</title>
-+					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-+						<colspec colname='c1'/>
-+						<colspec colname='c2'/>
-+						<colspec colname='c3'/>
-+						<thead>
-+							<row>
-+								<entry>Keyword</entry>
-+								<entry>Description</entry>
-+								<entry>Type</entry>
-+							</row>
-+						</thead>
-+						<tbody>
-+							<row>
-+								<entry>rate</entry>
-+								<entry>Maximum average matching rate</entry>
-+								<entry>size (bytes, kbytes, mbytes)/time (second, minute, hour, day, week)</entry>
-+							</row>
-+							<row>
-+								<entry>burst</entry>
-+								<entry>Maximum initial number of packets</entry>
-+								<entry>packets, size (bytes, kbytes, mbytes)</entry>
-+							</row>
-+						</tbody>
-+					</tgroup>
-+				</table>
- 			</para>
- 		</refsect2>
--			<refsect2>
-+		<refsect2>
- 			<title>NAT statement</title>
- 			<para>
-+				<cmdsynopsis>
-+					        <group choice="req">
-+						        <arg>snat</arg>
-+							<arg>dnat</arg>
-+	                                        </group>
-+		                                <arg choice="req"><replaceable>flags</replaceable></arg>
-+				</cmdsynopsis>
-+			</para>
-+			<para>
-+				The nat statement is only valid from nat chain types. It specifies that the source/destination address of the packet should be modified (and all future packets in this connection will also be mangled), and rules should cease being examined.
-+			</para>
-+			<para>
-+				<table frame="all">
-+				<title>nat statement</title>
-+					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-+						<colspec colname='c1'/>
-+						<colspec colname='c2'/>
-+						<colspec colname='c3'/>
-+						<thead>
-+							<row>
-+								<entry>Keyword</entry>
-+								<entry>Description</entry>
-+								<entry>Type</entry>
-+							</row>
-+						</thead>
-+						<tbody>
-+							<row>
-+								<entry>snat</entry>
-+								<entry>Specifies that the source address of the packet should be modified</entry>
-+								<entry>ipv4 address/ipv6 address</entry>
-+							</row>
-+							<row>
-+								<entry>dnat</entry>
-+								<entry>Specifies that the destination address of the packet should be modified</entry>
-+								<entry>ipv4 address/ipv6 address</entry>
-+							</row>
-+							<row>
-+								<entry>flags</entry>
-+								<entry>Flags</entry>
-+								<entry>random, fully-random, persistent</entry>
-+							</row>
-+						</tbody>
-+					</tgroup>
-+				</table>
- 			</para>
- 		</refsect2>
- 		<refsect2>
- 			<title>Queue statement</title>
- 			<para>
-+				<table frame="all">
-+					<title>queue statement</title>
-+					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
-+						<colspec colname='c1'/>
-+						<colspec colname='c2'/>
-+						<colspec colname='c3'/>
-+						<thead>
-+							<row>
-+								<entry>Keyword</entry>
-+								<entry>Description</entry>
-+								<entry>Type</entry>
-+							</row>
-+						</thead>
-+						<tbody>
-+							<row>
-+								<entry>num</entry>
-+								<entry>Sets queue number</entry>
-+								<entry>unsigned integer (16 bit)</entry>
-+							</row>
-+							<row>
-+								<entry>flags</entry>
-+								<entry>Flags</entry>
-+								<entry>bypass, fanout</entry>
-+							</row>
-+							<row>
-+								<entry>total</entry>
-+								<entry>Sets total load-balanced queues</entry>
-+								<entry>unsigned integer (16 bit)</entry>
-+							</row>
-+						</tbody>
-+					</tgroup>
-+				</table>
- 			</para>
- 		</refsect2>
- 	</refsect1>
--- 
-1.9.1
-
+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
