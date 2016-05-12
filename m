@@ -1,353 +1,339 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 04/12] src: move payload sub-byte matching to the evaluation step
-Date: Wed, 11 May 2016 23:05:08 +0200
-Message-ID: <1463000716-11885-4-git-send-email-pablo@netfilter.org>
-References: <1463000716-11885-1-git-send-email-pablo@netfilter.org>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH v2] doc: Complete the documentation of statements
+Date: Thu, 12 May 2016 13:38:45 +0530
+Message-ID: <20160512080845.GA25231@shivani>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40452 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751682AbcEKVF1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 May 2016 17:05:27 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id C81E51BD5BA
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 May 2016 23:05:25 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B5282FAB57
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 May 2016 23:05:25 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 7AA26FF2FC
-	for <netfilter-devel@vger.kernel.org>; Wed, 11 May 2016 23:05:23 +0200 (CEST)
-In-Reply-To: <1463000716-11885-1-git-send-email-pablo@netfilter.org>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:35551 "EHLO
+	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751552AbcELIJN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 12 May 2016 04:09:13 -0400
+Received: by mail-pf0-f195.google.com with SMTP id r187so6803331pfr.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 May 2016 01:09:12 -0700 (PDT)
+Received: from shivani ([124.124.47.116])
+        by smtp.gmail.com with ESMTPSA id a64sm17628145pfa.6.2016.05.12.01.09.10
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Thu, 12 May 2016 01:09:11 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Generating the bitwise logic to match sub-byte payload fields from the
-linearize step has several problems:
+Add documentation corresponding to LOG STATEMENT, NFLOG STATEMENT,
+REJECT STATEMENT, COUNTER STATEMENT, META STATEMENT, LIMIT STATEMENT,
+NAT STATEMENT and QUEUE STATEMENT.
 
-1) When the bits are split between two bytes and the payload field is
-   smaller than one byte, we need to extend the expression length on
-   both sides (payload and constant) of the relational expression.
-
-2) Explicit bitmask operations on sub-byte payload fields need to be
-   merge to the implicit bitmask operation, otherwise we generate two
-   bitwise instructions. This is not resolved by this patch, but we
-   should have a look at some point to this.
-
-With this approach, we can benefit from the binary operation transfer
-for shifts to provide a generic way to adjust the constant side of the
-expression.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
 ---
- src/evaluate.c          | 105 ++++++++++++++++++++++++++++++++++++++++++++----
- src/netlink_linearize.c |  99 ---------------------------------------------
- 2 files changed, 97 insertions(+), 107 deletions(-)
+Changes in v2:
+	Add more content to the description.
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 72a0e43..ab73261 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -362,30 +362,108 @@ conflict_resolution_gen_dependency(struct eval_ctx *ctx, int protocol,
- 	return 0;
- }
- 
-+static uint8_t expr_offset_shift(const struct expr *expr, unsigned int offset)
-+{
-+	unsigned int new_offset, len;
-+	int shift;
+ doc/nft.xml | 259 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 258 insertions(+), 1 deletion(-)
+
+diff --git a/doc/nft.xml b/doc/nft.xml
+index e4d227c..be3a713 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -2185,37 +2185,294 @@ filter input iif eth0 drop
+ 		</refsect2>
+ 		<refsect2>
+ 			<title>Log statement</title>
++			<cmdsynopsis>
++                                        <command>log</command>
++                                <group choice="req">
++                                                <arg>prefix</arg>
++                                                <arg>level</arg>
++                                </group>
 +
-+	new_offset = offset % BITS_PER_BYTE;
-+	len = round_up(expr->len, BITS_PER_BYTE);
-+	shift = len - (new_offset + expr->len);
-+	assert(shift >= 0);
++                        </cmdsynopsis>
+ 			<para>
++				 &#13;&#10;The log statement enables logging of matching packets. When this statement is used from a rule, the Linux kernel will print some information on all matching packets, such as header fields, via the kernel log (where it can be read with dmesg(1) or read in the syslog). This is a non-terminating statement, so the rule evaluation continues after the packet is logged.
++				<table frame="all">
++					<title>LOG statement</title>
++					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
++						<colspec colname='c1'/>
++						<colspec colname='c2'/>
++						<colspec colname='c3'/>
++						<thead>
++							<row>
++								<entry>Keyword</entry>
++								<entry>Description</entry>
++								<entry>Type</entry>
++							</row>
++						</thead>
++						<tbody>
++							<row>
++								<entry>level</entry>
++								<entry>Level of logging</entry>
++								<entry>unsigned integer (32 bit), emerg, alert, crit, err, warn [default], notice, info, debug</entry>
++							</row>
++							<row>
++								<entry>prefix</entry>
++								<entry>Prefix log messages</entry>
++								<entry>string</entry>
++							</row>
++						</tbody>
++					</tgroup>
++				</table>
+ 			</para>
+ 		</refsect2>
+ 		<refsect2>
++			<title>nflog statement</title>
++			 <cmdsynopsis>
++                                        <command>log</command>
++                                        <arg opt="req">group</arg>
++                                <group choice="req">
++                                                <arg>prefix</arg>
++                                                <arg>queue-threshold</arg>
++                                                <arg>snaplen</arg>
++                                </group>
 +
-+	return shift;
-+}
++			</cmdsynopsis>
++			<para>
++				&#13;&#10;The nflog statement provides logging of matching packets. When this statement is set for a rule, the Linux kernel will pass the packet to the loaded logging backend to log the packet. This is used in combination with nfnetlink_log as logging backend, which will multicast the packet through a netlink socket to the specified multicast group. One or more userspace processes may subscribe to the group to receive the packets. Like log statement, this is a non-terminating statement, i.e. rule traversal continues at the next rule. It is necessary to mention the group [default 0] to consider logging with nflog.
++                                <table frame="all">
++                                        <title>NFLOG statement</title>
++                                        <tgroup cols='3' align='left' colsep='1' rowsep='1'>
++                                                <colspec colname='c1'/>
++                                                <colspec colname='c2'/>
++                                                <colspec colname='c3'/>
++                                                <thead>
++                                                        <row>
++                                                                <entry>Keyword</entry>
++                                                                <entry>Description</entry>
++                                                                <entry>Type</entry>
++                                                        </row>
++                                                </thead>
++                                                <tbody>
++                                                        <row>
++                                                                <entry>prefix</entry>
++                                                                <entry>Prepend to log messages</entry>
++                                                                <entry>string</entry>
++                                                        </row>
++                                                        <row>
++                                                                <entry>group</entry>
++                                                                <entry>Netlink group to send messages to</entry>
++                                                                <entry>unsigned integer (32 bit)</entry>
++							</row>
++							 <row>
++                                                                <entry>snaplen</entry>
++								<entry>Length of payload to include in netlink message</entry>
++                                                                <entry>unsigned integer (32 bit)</entry>
++                                                        </row>
++							 <row>
++                                                                <entry>queue-threshold</entry>
++                                                                <entry>Queue threshold value</entry>
++                                                                <entry>unsigned integer (32 bit)</entry>
++                                                        </row>
++                                                </tbody>
++                                        </tgroup>
++                                </table>
++                        </para>
++                </refsect2>
++		<refsect2>
+ 			<title>Reject statement</title>
+ 			<para>
++				A reject statement is used to send back an error packet in response to the matched packet otherwise it is equivalent to drop so it is a terminating statement, ending rule traversal. This statement is only valid in the input, forward and output chains, and user-defined chains which are only called from those chains.
++				<table frame="all">
++					<title>REJECT statement (ipv4)</title>
++					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
++						<colspec colname='c1'/>
++						<colspec colname='c2'/>
++						<colspec colname='c3'/>
++						<thead>
++							<row>
++								<entry>Keyword</entry>
++								<entry>Description</entry>
++								<entry>Type</entry>
++							</row>
++						</thead>
++						<tbody>
++							<row>
++								<entry>with icmp type</entry>
++								<entry>ICMP response to be sent to the host</entry>
++								<entry>unsigned integer (8 bit), net-unreachable, host-unreachable, prot-unreachable, port-unreachable [default], net-prohibited, host-prohibited, admin-prohibited</entry>
++							</row>
++							<row>
++								<entry>with</entry>
++								<entry>Used on rules which only match the TCP</entry>
++								<entry>tcp reset</entry>
++							</row>
++						</tbody>
++					</tgroup>
++				</table>
++				<table frame="all">
++					<title>REJECT statement (ipv6)</title>
++					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
++						<colspec colname='c1'/>
++						<colspec colname='c2'/>
++						<colspec colname='c3'/>
++						<thead>
++							<row>
++								<entry>Keyword</entry>
++								<entry>Description</entry>
++								<entry>Type</entry>
++							</row>
++						</thead>
++						<tbody>
++							<row>
++								<entry>with icmpv6 type</entry>
++								<entry>ICMP6 response to be sent to the host</entry>
++								<entry>unsigned integer (8 bit), no-route, admin-prohibited, addr-unreachable, port-unreachable [default], policy-fail, reject-route</entry>
++							</row>
++							<row>
++								<entry>with</entry>
++								<entry>Used on rules which only match the TCP</entry>
++								<entry>tcp reset</entry>
++							</row>
++						</tbody>
++					</tgroup>
++				</table>
+ 			</para>
+ 		</refsect2>
+ 		<refsect2>
+ 			<title>Counter statement</title>
+ 			<para>
++				A counter statement sets the hit count of packets along with the number of bytes.
+ 			</para>
+ 		</refsect2>
+ 		<refsect2>
+ 			<title>Meta statement</title>
+ 			<para>
++				A meta statement sets the value of a meta expression.
++				The existing meta fields are: length, nfproto, l4proto, protocol, priority, mark, iif, iifname, iiftype, oif, oifname, oiftype, skuid, skgid, nftrace, rtclassid, ibriport, obriport, pkttype, cpu, iifgroup, oifgroup, cgroup.
+ 			</para>
+ 		</refsect2>
+ 		<refsect2>
++			<cmdsynopsis>
++				<command>limit</command>
++					<group choice="req">
++						<arg>rate</arg>
++						<arg>burst</arg>
++                                        </group>
++                        </cmdsynopsis>
 +
-+static void expr_evaluate_bits(struct eval_ctx *ctx, struct expr **exprp)
-+{
-+	struct expr *expr = *exprp, *and, *mask, *lshift, *off;
-+	unsigned masklen;
-+	uint8_t shift;
-+	mpz_t bitmask;
-+
-+	switch (expr->ops->type) {
-+	case EXPR_PAYLOAD:
-+		shift = expr_offset_shift(expr, expr->payload.offset);
-+		break;
-+	case EXPR_EXTHDR:
-+		shift = expr_offset_shift(expr, expr->exthdr.tmpl->offset);
-+		break;
-+	default:
-+		BUG("Unknown expression %s\n", expr->ops->name);
-+	}
-+
-+	masklen = expr->len + shift;
-+	assert(masklen <= NFT_REG_SIZE * BITS_PER_BYTE);
-+
-+	mpz_init2(bitmask, masklen);
-+	mpz_bitmask(bitmask, expr->len);
-+	mpz_lshift_ui(bitmask, shift);
-+
-+	mask = constant_expr_alloc(&expr->location, expr_basetype(expr),
-+				   BYTEORDER_HOST_ENDIAN, masklen, NULL);
-+	mpz_set(mask->value, bitmask);
-+
-+	and = binop_expr_alloc(&expr->location, OP_AND, expr, mask);
-+	and->dtype	= expr->dtype;
-+	and->byteorder	= expr->byteorder;
-+	and->len	= masklen;
-+
-+	if (shift) {
-+		off = constant_expr_alloc(&expr->location,
-+					  expr_basetype(expr),
-+					  BYTEORDER_BIG_ENDIAN,
-+					  sizeof(shift), &shift);
-+
-+		lshift = binop_expr_alloc(&expr->location, OP_RSHIFT, and, off);
-+		lshift->dtype		= expr->dtype;
-+		lshift->byteorder	= expr->byteorder;
-+		lshift->len		= masklen;
-+
-+		*exprp = lshift;
-+	} else
-+		*exprp = and;
-+}
-+
-+static int __expr_evaluate_exthdr(struct eval_ctx *ctx, struct expr **exprp)
-+{
-+	struct expr *expr = *exprp;
-+
-+	if (expr_evaluate_primary(ctx, exprp) < 0)
-+		return -1;
-+
-+	if (expr->exthdr.tmpl->offset % BITS_PER_BYTE != 0 ||
-+	    expr->len % BITS_PER_BYTE != 0)
-+		expr_evaluate_bits(ctx, exprp);
-+
-+	return 0;
-+}
-+
- /*
-  * Exthdr expression: check whether dependencies are fulfilled, otherwise
-  * generate the necessary relational expression and prepend it to the current
-  * statement.
-  */
--static int expr_evaluate_exthdr(struct eval_ctx *ctx, struct expr **expr)
-+static int expr_evaluate_exthdr(struct eval_ctx *ctx, struct expr **exprp)
- {
- 	const struct proto_desc *base;
-+	struct expr *expr = *exprp;
- 	struct stmt *nstmt;
- 
- 	base = ctx->pctx.protocol[PROTO_BASE_NETWORK_HDR].desc;
- 	if (base == &proto_ip6)
--		return expr_evaluate_primary(ctx, expr);
-+		return __expr_evaluate_exthdr(ctx, exprp);
- 
- 	if (base)
--		return expr_error(ctx->msgs, *expr,
-+		return expr_error(ctx->msgs, expr,
- 				  "cannot use exthdr with %s", base->name);
- 
--	if (exthdr_gen_dependency(ctx, *expr, &nstmt) < 0)
-+	if (exthdr_gen_dependency(ctx, expr, &nstmt) < 0)
- 		return -1;
- 
- 	list_add(&nstmt->list, &ctx->rule->stmts);
- 
--	return expr_evaluate_primary(ctx, expr);
-+	return __expr_evaluate_exthdr(ctx, exprp);
- }
- 
- /* dependency supersede.
-@@ -509,12 +587,21 @@ static int __expr_evaluate_payload(struct eval_ctx *ctx, struct expr *expr)
- 	return 0;
- }
- 
--static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **expr)
-+static int expr_evaluate_payload(struct eval_ctx *ctx, struct expr **exprp)
- {
--	if (__expr_evaluate_payload(ctx, *expr) < 0)
-+	struct expr *expr = *exprp;
-+
-+	if (__expr_evaluate_payload(ctx, expr) < 0)
- 		return -1;
- 
--	return expr_evaluate_primary(ctx, expr);
-+	if (expr_evaluate_primary(ctx, exprp) < 0)
-+		return -1;
-+
-+	if (expr->payload.offset % BITS_PER_BYTE != 0 ||
-+	    expr->len % BITS_PER_BYTE != 0)
-+		expr_evaluate_bits(ctx, exprp);
-+
-+	return 0;
- }
- 
- /*
-@@ -1096,6 +1183,8 @@ static int binop_can_transfer(struct eval_ctx *ctx,
- 						 "Comparison is always false");
- 		return 1;
- 	case OP_RSHIFT:
-+		if (ctx->ectx.len < right->len + mpz_get_uint32(left->right->value))
-+			ctx->ectx.len += mpz_get_uint32(left->right->value);
- 		return 1;
- 	case OP_XOR:
- 		return 1;
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 3263043..e0c73c0 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -104,64 +104,6 @@ static void netlink_gen_concat(struct netlink_linearize_ctx *ctx,
- 	}
- }
- 
--static unsigned int payload_shift_calc(const struct expr *expr,
--				       unsigned int offset)
--{
--	unsigned int len;
--	int shift;
--
--	offset %= BITS_PER_BYTE;
--	len = round_up(expr->len, BITS_PER_BYTE);
--	shift = len - (offset + expr->len);
--	assert(shift >= 0);
--
--	return shift;
--}
--
--static void netlink_gen_mask(struct netlink_linearize_ctx *ctx,
--			     const struct expr *expr,
--			     unsigned int shift,
--			     enum nft_registers dreg)
--{
--	struct nft_data_linearize nld, zero = {};
--	unsigned int len, masklen;
--	struct nftnl_expr *nle;
--	mpz_t mask;
--
--	masklen = expr->len + shift;
--	assert(masklen <= NFT_REG_SIZE * BITS_PER_BYTE);
--	mpz_init2(mask, masklen);
--	mpz_bitmask(mask, expr->len);
--	mpz_lshift_ui(mask, shift);
--
--	nle = alloc_nft_expr("bitwise");
--
--	len = div_round_up(expr->len, BITS_PER_BYTE);
--
--	nftnl_expr_set_u32(nle, NFT_EXPR_BITWISE_SREG, dreg);
--	nftnl_expr_set_u32(nle, NFT_EXPR_BITWISE_DREG, dreg);
--	nftnl_expr_set_u32(nle, NFT_EXPR_BITWISE_LEN, len);
--
--	netlink_gen_raw_data(mask, expr->byteorder, len, &nld);
--	nftnl_expr_set(nle, NFT_EXPR_BITWISE_MASK, nld.value, nld.len);
--	nftnl_expr_set(nle, NFT_EXPR_BITWISE_XOR, &zero.value, nld.len);
--
--	mpz_clear(mask);
--	nftnl_rule_add_expr(ctx->nlr, nle);
--}
--
--static void netlink_gen_payload_mask(struct netlink_linearize_ctx *ctx,
--				     const struct expr *expr,
--				     enum nft_registers dreg)
--{
--	unsigned int shift, offset;
--
--	offset = expr->payload.offset % BITS_PER_BYTE;
--	shift = payload_shift_calc(expr, offset);
--	if (shift || offset)
--		netlink_gen_mask(ctx, expr, shift, dreg);
--}
--
- static void netlink_gen_payload(struct netlink_linearize_ctx *ctx,
- 				const struct expr *expr,
- 				enum nft_registers dreg)
-@@ -178,20 +120,6 @@ static void netlink_gen_payload(struct netlink_linearize_ctx *ctx,
- 			   div_round_up(expr->len, BITS_PER_BYTE));
- 
- 	nftnl_rule_add_expr(ctx->nlr, nle);
--
--	netlink_gen_payload_mask(ctx, expr, dreg);
--}
--
--static void netlink_gen_exthdr_mask(struct netlink_linearize_ctx *ctx,
--				    const struct expr *expr,
--				    enum nft_registers dreg)
--{
--	unsigned int shift, offset;
--
--	offset = expr->exthdr.tmpl->offset % BITS_PER_BYTE;
--	shift = payload_shift_calc(expr, offset);
--	if (shift || offset)
--		netlink_gen_mask(ctx, expr, shift, dreg);
- }
- 
- static void netlink_gen_exthdr(struct netlink_linearize_ctx *ctx,
-@@ -209,8 +137,6 @@ static void netlink_gen_exthdr(struct netlink_linearize_ctx *ctx,
- 	nftnl_expr_set_u32(nle, NFTNL_EXPR_EXTHDR_LEN,
- 			   div_round_up(expr->len, BITS_PER_BYTE));
- 	nftnl_rule_add_expr(ctx->nlr, nle);
--
--	netlink_gen_exthdr_mask(ctx, expr, dreg);
- }
- 
- static void netlink_gen_meta(struct netlink_linearize_ctx *ctx,
-@@ -319,28 +245,6 @@ static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
- 			      const struct expr *expr,
- 			      enum nft_registers dreg);
- 
--static void payload_shift_value(const struct expr *left, struct expr *right)
--{
--	unsigned int offset;
--
--	if (right->ops->type != EXPR_VALUE)
--		return;
--
--	switch (left->ops->type) {
--	case EXPR_PAYLOAD:
--		offset = left->payload.offset;
--		break;
--	case EXPR_EXTHDR:
--		offset = left->exthdr.tmpl->offset;
--		break;
--	default:
--		return;
--	}
--
--	mpz_lshift_ui(right->value,
--			payload_shift_calc(left, offset));
--}
--
- static struct expr *netlink_gen_prefix(struct netlink_linearize_ctx *ctx,
- 				       const struct expr *expr,
- 				       enum nft_registers sreg)
-@@ -409,7 +313,6 @@ static void netlink_gen_cmp(struct netlink_linearize_ctx *ctx,
- 	netlink_put_register(nle, NFTNL_EXPR_CMP_SREG, sreg);
- 	nftnl_expr_set_u32(nle, NFTNL_EXPR_CMP_OP,
- 			   netlink_gen_cmp_op(expr->op));
--	payload_shift_value(expr->left, right);
- 	netlink_gen_data(right, &nld);
- 	nftnl_expr_set(nle, NFTNL_EXPR_CMP_DATA, nld.value, len);
- 	release_register(ctx, expr->left);
-@@ -447,7 +350,6 @@ static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
- 		BUG("invalid range operation %u\n", expr->op);
- 	}
- 
--	payload_shift_value(expr->left, range->left);
- 	netlink_gen_data(range->left, &nld);
- 	nftnl_expr_set(nle, NFTNL_EXPR_CMP_DATA, nld.value, nld.len);
- 	nftnl_rule_add_expr(ctx->nlr, nle);
-@@ -468,7 +370,6 @@ static void netlink_gen_range(struct netlink_linearize_ctx *ctx,
- 		BUG("invalid range operation %u\n", expr->op);
- 	}
- 
--	payload_shift_value(expr->left, range->right);
- 	netlink_gen_data(range->right, &nld);
- 	nftnl_expr_set(nle, NFTNL_EXPR_CMP_DATA, nld.value, nld.len);
- 	nftnl_rule_add_expr(ctx->nlr, nle);
+ 			<title>Limit statement</title>
+ 			<para>
++				&#13;&#10;A limit statement is used to set a specified limit attribute.
++				<table frame="all">
++					<title>Limit statement</title>
++					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
++						<colspec colname='c1'/>
++						<colspec colname='c2'/>
++						<colspec colname='c3'/>
++						<thead>
++							<row>
++								<entry>Keyword</entry>
++								<entry>Description</entry>
++								<entry>Type</entry>
++							</row>
++						</thead>
++						<tbody>
++							<row>
++								<entry>rate</entry>
++								<entry>Maximum average matching rate</entry>
++								<entry>size (bytes, kbytes, mbytes)/time (second, minute, hour, day, week)</entry>
++							</row>
++							<row>
++								<entry>burst</entry>
++								<entry>Maximum initial number of packets</entry>
++								<entry>packets, size (bytes, kbytes, mbytes)</entry>
++							</row>
++						</tbody>
++					</tgroup>
++				</table>
+ 			</para>
+ 		</refsect2>
+-			<refsect2>
++		<refsect2>
+ 			<title>NAT statement</title>
++			<cmdsynopsis>
++                                        <group choice="req">
++                                                <arg>snat</arg>
++                                                <arg>dnat</arg>
++                                        </group>
++                                        <arg choice="req"><replaceable>flags</replaceable></arg>
++                                </cmdsynopsis>
+ 			<para>
++				&#13;&#10;The nat statement is only valid in the nat table. It specifies that the source/destination address of the packet should be modified (and all future packets in this connection will also be mangled), and rules should cease being examined.
++			</para>
++			<para>
++				<table frame="all">
++				<title>NAT statement</title>
++					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
++						<colspec colname='c1'/>
++						<colspec colname='c2'/>
++						<colspec colname='c3'/>
++						<thead>
++							<row>
++								<entry>Keyword</entry>
++								<entry>Description</entry>
++								<entry>Type</entry>
++							</row>
++						</thead>
++						<tbody>
++							<row>
++								<entry>snat</entry>
++								<entry>Specifies that the source address of the packet should be modified</entry>
++								<entry>ipv4 address/ipv6 address</entry>
++							</row>
++							<row>
++								<entry>dnat</entry>
++								<entry>Specifies that the destination address of the packet should be modified</entry>
++								<entry>ipv4 address/ipv6 address</entry>
++							</row>
++							<row>
++								<entry>flags</entry>
++								<entry>Flags</entry>
++								<entry>random, fully-random, persistent</entry>
++							</row>
++						</tbody>
++					</tgroup>
++				</table>
+ 			</para>
+ 		</refsect2>
+ 		<refsect2>
+ 			<title>Queue statement</title>
+ 			<para>
++				<table frame="all">
++					<title>Queue statement</title>
++					<tgroup cols='3' align='left' colsep='1' rowsep='1'>
++						<colspec colname='c1'/>
++						<colspec colname='c2'/>
++						<colspec colname='c3'/>
++						<thead>
++							<row>
++								<entry>Keyword</entry>
++								<entry>Description</entry>
++								<entry>Type</entry>
++							</row>
++						</thead>
++						<tbody>
++							<row>
++								<entry>num</entry>
++								<entry>Sets queue number</entry>
++								<entry>unsigned integer (16 bit)</entry>
++							</row>
++							<row>
++								<entry>flags</entry>
++								<entry>Flags</entry>
++								<entry>bypass, fanout</entry>
++							</row>
++							<row>
++								<entry>total</entry>
++								<entry>Sets total load-balanced queues</entry>
++								<entry>unsigned integer (16 bit)</entry>
++							</row>
++						</tbody>
++					</tgroup>
++				</table>
+ 			</para>
+ 		</refsect2>
+ 	</refsect1>
 -- 
-2.1.4
+1.9.1
 
