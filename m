@@ -1,94 +1,74 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf V2] netfilter: fix oops in nfqueue during netns error
- unwinding
-Date: Fri, 13 May 2016 22:04:42 +0200
-Message-ID: <20160513200442.GA29941@breakpoint.cc>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH nf V2] netfilter: fix oops in nfqueue during netns error unwinding
+Date: Fri, 13 May 2016 15:26:44 -0500
+Message-ID: <87h9e1puuz.fsf@x220.int.ebiederm.org>
 References: <1462981273-21676-1-git-send-email-fw@strlen.de>
- <20160512094725.GB1777@salvia>
- <87twi3qmlf.fsf@x220.int.ebiederm.org>
- <20160512164000.GA9815@breakpoint.cc>
- <87a8jtrbk3.fsf@x220.int.ebiederm.org>
+	<20160512094725.GB1777@salvia> <87twi3qmlf.fsf@x220.int.ebiederm.org>
+	<20160512164000.GA9815@breakpoint.cc>
+	<87a8jtrbk3.fsf@x220.int.ebiederm.org>
+	<20160513200442.GA29941@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: text/plain
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org, dale.4d@gmail.com,
 	netdev@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <87a8jtrbk3.fsf@x220.int.ebiederm.org>
+In-Reply-To: <20160513200442.GA29941@breakpoint.cc> (Florian Westphal's
+	message of "Fri, 13 May 2016 22:04:42 +0200")
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Eric W. Biederman <ebiederm@xmission.com> wrote:
-> > AFAICS no other callers do something similar, but yes,
-> > we'd need this all over the place if there are others.
-> >
-> > Maybe we need a saner fix, e.g. by adding bounds check to net_generic(),
-> > and making sure that net_generic() returns non-NULL only if the per
-> > netns memory was allocated properly.
-> 
-> As a first approximiation I am thinking we should fix by making
-> nf_queue_register_handler a per netns operation.
+Florian Westphal <fw@strlen.de> writes:
 
-We can do that but then we'd end up storing the very same address
-for each namespace which I think isn't nice either.
+> Eric W. Biederman <ebiederm@xmission.com> wrote:
+>> > AFAICS no other callers do something similar, but yes,
+>> > we'd need this all over the place if there are others.
+>> >
+>> > Maybe we need a saner fix, e.g. by adding bounds check to net_generic(),
+>> > and making sure that net_generic() returns non-NULL only if the per
+>> > netns memory was allocated properly.
+>> 
+>> As a first approximiation I am thinking we should fix by making
+>> nf_queue_register_handler a per netns operation.
+>
+> We can do that but then we'd end up storing the very same address
+> for each namespace which I think isn't nice either.
 
-> Either that or give nfnetlink_queue it's own dedicated place in
-> struct net for struct nfnl_queue_net.
+Sort of.  At the same time we fundamentally need a per namespace
+variable to ask if things were initialized.  So using the address as
+that variable changes the equation not at all, and keeps the code
+simpler.
 
-That would work too, but then I don't see why that is preferrable
-to this proposed patch. We could add a helper for this so that
-we have something like
+>> Either that or give nfnetlink_queue it's own dedicated place in
+>> struct net for struct nfnl_queue_net.
+>
+> That would work too, but then I don't see why that is preferrable
+> to this proposed patch. We could add a helper for this so that
+> we have something like
+>
+> static bool netns_was_inited(const struct net *n)
+> {
+> 	return net->list.next != NULL;
+> }
 
-static bool netns_was_inited(const struct net *n)
-{
-	return net->list.next != NULL;
-}
+That does not work because the real question were the things this piece
+of code cares about initialized.
 
-Another alternative is this patch (not even compile tested, just to
-illustrate the idea):
+> Another alternative is this patch (not even compile tested, just to
+> illustrate the idea):
 
-diff --git a/include/net/netns/generic.h b/include/net/netns/generic.h
---- a/include/net/netns/generic.h
-+++ b/include/net/netns/generic.h
-@@ -38,7 +38,11 @@ static inline void *net_generic(const struct net *net, int id)
- 
- 	rcu_read_lock();
- 	ng = rcu_dereference(net->gen);
--	ptr = ng->ptr[id - 1];
-+
-+	if (ng->len < id)
-+		ptr = ng->ptr[id - 1];
-+	else
-+		ptr = NULL;
- 	rcu_read_unlock();
- 
- 	return ptr;
-diff --git a/net/core/net_namespace.c b/net/core/net_namespace.c
---- a/net/core/net_namespace.c
-+++ b/net/core/net_namespace.c
-@@ -111,6 +111,7 @@ static int ops_init(const struct pernet_operations *ops, struct net *net)
- 		return 0;
- 
- cleanup:
-+	net_assign_generic(net, *ops->id, NULL);
- 	kfree(data);
- 
- out:
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -927,6 +927,9 @@ static void nfqnl_nf_hook_drop(struct net *net, struct nf_hook_ops *hook)
- 	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
- 	int i;
- 
-+	if (!q)
-+		return;
-+
- 	rcu_read_lock();
- 	for (i = 0; i < INSTANCE_BUCKETS; i++) {
- 		struct nfqnl_instance *inst;
+Very much no.
 
-What do you think?
+I believe that changing net_generic to return a value so that
+nfqnl_nf_hook_drop can detect if the timing is wrong is an error.
+
+I also don't think your changes to net_generic will work as the number
+of pointers should have been allocted properly from the start.  
+
+Your proposed change is just papering over the problem and fixing it at
+the wrong level.  (The obvious level yes) but still the wrong level.
+
+> What do you think?
+
+Eric
