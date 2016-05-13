@@ -1,44 +1,102 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [nft PATCH 3/3] tests/shell: add testcase to catch segfault if
- invalid syntax was used
-Date: Fri, 13 May 2016 12:29:04 +0200
-Message-ID: <CAOkSjBhTM2mA75dDXPPBmTNSUnqpNe2rG17Ld1Q8uA-4q278qg@mail.gmail.com>
-References: <146296620273.3706.17267671338035433056.stgit@nfdev2.cica.es>
- <146296621327.3706.18265491927507888269.stgit@nfdev2.cica.es> <20160513094032.GC4008@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 1/2] parser_bison: update flow table syntax
+Date: Fri, 13 May 2016 20:08:28 +0200
+Message-ID: <1463162909-23139-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:35511 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751604AbcEMK3Z convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 May 2016 06:29:25 -0400
-Received: by mail-wm0-f46.google.com with SMTP id e201so16797578wme.0
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 May 2016 03:29:25 -0700 (PDT)
-In-Reply-To: <20160513094032.GC4008@salvia>
+Received: from mail.us.es ([193.147.175.20]:35284 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751573AbcEMSIn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 13 May 2016 14:08:43 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 9BE9F1EFDA3
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 May 2016 20:08:41 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 8C1CACA100
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 May 2016 20:08:41 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id C37722687C1
+	for <netfilter-devel@vger.kernel.org>; Fri, 13 May 2016 20:08:37 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 13 May 2016 at 11:40, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, May 11, 2016 at 01:30:13PM +0200, Arturo Borrero Gonzalez wro=
-te:
->> Let's add
->
-> Applied.
->
-> I have included in the commit log message that this refers to
-> "evaluate: check for NULL datatype in rhs in lookup expr".
+Before we release next nft version, update the syntax to wrap the flow
+table definition between brackets, eg.
 
-Oops, thanks, my fault.
+ # nft add rule filter input tcp dport 22 ct state new \
+	flow table ssh { ip saddr limit rate 10/second }
 
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ # nft add rule filter input \
+        flow table acct { iif . ip saddr timeout 60s counter }
+
+When playing around with this in your initial patchset I found very
+confusing that it may not look obvious to users that they can only use
+one single statement.
+
+For example:
+
+ # nft add rule filter input \
+        flow table acct iif . ip saddr timeout 60s counter limit rate 10/second
+                                                           ~~~~~~~~~~~~~~~~~~~~
+
+Note that this limit rate applies globally, so this patch resolves this
+ambiguity.
+
+This may cause us problems in the future too if we extend this to
+support more than one single statement per flowtable entry (Not
+telling we need this now, but if someone comes up with a useful
+usecase, we should be capable of extending this).
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/parser_bison.y | 12 ++++++------
+ src/statement.c    |  2 ++
+ 2 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 8a7785b..76cf65c 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1765,17 +1765,17 @@ set_stmt_op		:	ADD	{ $$ = NFT_DYNSET_OP_ADD; }
+ 			|	UPDATE	{ $$ = NFT_DYNSET_OP_UPDATE; }
+ 			;
+ 
+-flow_stmt		:	flow_stmt_alloc		flow_stmt_opts	flow_key_expr	stmt
++flow_stmt		:	flow_stmt_alloc		flow_stmt_opts	'{' flow_key_expr stmt '}'
+ 			{
+-				$1->flow.key  = $3;
+-				$1->flow.stmt = $4;
++				$1->flow.key  = $4;
++				$1->flow.stmt = $5;
+ 				$$->location  = @$;
+ 				$$ = $1;
+ 			}
+-			|	flow_stmt_alloc		flow_key_expr	stmt
++			|	flow_stmt_alloc		'{' flow_key_expr stmt '}'
+ 			{
+-				$1->flow.key  = $2;
+-				$1->flow.stmt = $3;
++				$1->flow.key  = $3;
++				$1->flow.stmt = $4;
+ 				$$->location  = @$;
+ 				$$ = $1;
+ 			}
+diff --git a/src/statement.c b/src/statement.c
+index 988cfeb..76f528b 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -112,9 +112,11 @@ static void flow_stmt_print(const struct stmt *stmt)
+ 		expr_print(stmt->flow.set);
+ 		printf(" ");
+ 	}
++	printf("{ ");
+ 	expr_print(stmt->flow.key);
+ 	printf(" ");
+ 	stmt_print(stmt->flow.stmt);
++	printf("} ");
+ }
+ 
+ static void flow_stmt_destroy(struct stmt *stmt)
+-- 
+2.1.4
+
