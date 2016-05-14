@@ -1,68 +1,44 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf V2] netfilter: fix oops in nfqueue during netns error
- unwinding
-Date: Sat, 14 May 2016 12:33:09 +0200
-Message-ID: <20160514103309.GD29941@breakpoint.cc>
-References: <1462981273-21676-1-git-send-email-fw@strlen.de>
- <20160512094725.GB1777@salvia>
- <87twi3qmlf.fsf@x220.int.ebiederm.org>
- <20160512164000.GA9815@breakpoint.cc>
- <87a8jtrbk3.fsf@x220.int.ebiederm.org>
- <20160513200442.GA29941@breakpoint.cc>
- <87zirtofgp.fsf@x220.int.ebiederm.org>
- <20160513212029.GC29941@breakpoint.cc>
- <87k2ixo3pn.fsf@x220.int.ebiederm.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, dale.4d@gmail.com,
-	netdev@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nft] evaluate: fix crash if we add an error format rule
+Date: Sat, 14 May 2016 20:43:35 +0800
+Message-ID: <1463229815-39269-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:43786 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751934AbcENKdQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 14 May 2016 06:33:16 -0400
-Content-Disposition: inline
-In-Reply-To: <87k2ixo3pn.fsf@x220.int.ebiederm.org>
+Received: from m12-14.163.com ([220.181.12.14]:54444 "EHLO m12-14.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752070AbcENMok (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 14 May 2016 08:44:40 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric W. Biederman <ebiederm@xmission.com> wrote:
-> Florian Westphal <fw@strlen.de> writes:
-> 
-> > Eric W. Biederman <ebiederm@xmission.com> wrote:
-> >> Florian could you test and verify this patch fixes your issues?
-> >
-> > Yes, this seems to work.
-> >
-> > Pablo, I'm fine with this patch going into -nf/stable but I do not think
-> > making the pointers per netns is a desireable option in the long term.
-> >
-> >> Unlike the other possibilities that have been discussed this also
-> >> addresses the nf_queue path as well as the nf_queue_hook_drop path.
-> >
-> > The nf_queue path should have been fine, no?
-> >
-> > Or putting it differently: can we start processing skbs before a netns
-> > is fully initialized?
-> 
-> The practical case that worries me is what happens when someone does
-> "rmmod nfnetlink_queue" while the system is running.  It appears to me
-> that today we could free the per netns data during the rcu grace period
-> and cause a similar issue in nfnl_queue_pernet.
->
-> That looks like it could affect both the nf_queue path and the
-> nf_queue_nf_hook_drop path.
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-OK, I'll check this again but I seem to recall this was fine (the
-nfqueue module exit path sets the handler to NULL before doing anything
-else).
+If we add a such nft rule:
+  nft add rule filter input ip protocol icmp tcp dport 0
 
-The normal netns exit path should be fine too as exit and free happens
-in two distinct loops, i.e. while (without your change) we can have
-calls to nf_queue_hook_drop after the nfqueue netns exit function was
-called, these calls will always happen before the pernets data is
-freed.
+we will always meet the assert condition:
+  nft: evaluate.c:536: resolve_protocol_conflict: Assertion `base < (__PROTO_BASE_MAX - 1)' failed.
+  Aborted (core dumped)
+---
+ src/evaluate.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 53f19b2..c317761 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -533,7 +533,7 @@ static int resolve_protocol_conflict(struct eval_ctx *ctx,
+ 		list_add_tail(&nstmt->list, &ctx->stmt->list);
+ 	}
+ 
+-	assert(base < PROTO_BASE_MAX);
++	assert(base <= PROTO_BASE_MAX);
+ 	/* This payload and the existing context don't match, conflict. */
+ 	if (ctx->pctx.protocol[base + 1].desc != NULL)
+ 		return 1;
+-- 
+2.5.5
+
+
