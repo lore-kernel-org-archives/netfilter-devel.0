@@ -1,46 +1,89 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nft] evaluate: fix crash if we add an error format rule
-Date: Sat, 14 May 2016 22:05:04 +0200
-Message-ID: <20160514200504.GE29941@breakpoint.cc>
-References: <1463229815-39269-1-git-send-email-zlpnobody@163.com>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH nf V2] netfilter: fix oops in nfqueue during netns error unwinding
+Date: Sat, 14 May 2016 22:00:09 -0500
+Message-ID: <87h9e0do06.fsf@x220.int.ebiederm.org>
+References: <1462981273-21676-1-git-send-email-fw@strlen.de>
+	<20160512094725.GB1777@salvia> <87twi3qmlf.fsf@x220.int.ebiederm.org>
+	<20160512164000.GA9815@breakpoint.cc>
+	<87a8jtrbk3.fsf@x220.int.ebiederm.org>
+	<20160513200442.GA29941@breakpoint.cc>
+	<87zirtofgp.fsf@x220.int.ebiederm.org>
+	<20160513212029.GC29941@breakpoint.cc>
+	<87k2ixo3pn.fsf@x220.int.ebiederm.org>
+	<20160514103309.GD29941@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpnobody@163.com>
+Content-Type: text/plain
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, dale.4d@gmail.com,
+	netdev@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44012 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932399AbcENUFT (ORCPT
+Received: from out01.mta.xmission.com ([166.70.13.231]:37361 "EHLO
+	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753994AbcEODLA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 14 May 2016 16:05:19 -0400
-Content-Disposition: inline
-In-Reply-To: <1463229815-39269-1-git-send-email-zlpnobody@163.com>
+	Sat, 14 May 2016 23:11:00 -0400
+In-Reply-To: <20160514103309.GD29941@breakpoint.cc> (Florian Westphal's
+	message of "Sat, 14 May 2016 12:33:09 +0200")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Liping Zhang <zlpnobody@163.com> wrote:
-> If we add a such nft rule:
->   nft add rule filter input ip protocol icmp tcp dport 0
-> 
-> we will always meet the assert condition:
->   nft: evaluate.c:536: resolve_protocol_conflict: Assertion `base < (__PROTO_BASE_MAX - 1)' failed.
->   Aborted (core dumped)
-> ---
->  src/evaluate.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/src/evaluate.c b/src/evaluate.c
-> index 53f19b2..c317761 100644
-> --- a/src/evaluate.c
-> +++ b/src/evaluate.c
-> @@ -533,7 +533,7 @@ static int resolve_protocol_conflict(struct eval_ctx *ctx,
->  		list_add_tail(&nstmt->list, &ctx->stmt->list);
->  	}
->  
-> -	assert(base < PROTO_BASE_MAX);
-> +	assert(base <= PROTO_BASE_MAX);
+Florian Westphal <fw@strlen.de> writes:
 
-Right, BASE_MAX is in fact the transport header base.
+> Eric W. Biederman <ebiederm@xmission.com> wrote:
+>> Florian Westphal <fw@strlen.de> writes:
+>> 
+>> > Eric W. Biederman <ebiederm@xmission.com> wrote:
+>> >> Florian could you test and verify this patch fixes your issues?
+>> >
+>> > Yes, this seems to work.
+>> >
+>> > Pablo, I'm fine with this patch going into -nf/stable but I do not think
+>> > making the pointers per netns is a desireable option in the long term.
+>> >
+>> >> Unlike the other possibilities that have been discussed this also
+>> >> addresses the nf_queue path as well as the nf_queue_hook_drop path.
+>> >
+>> > The nf_queue path should have been fine, no?
+>> >
+>> > Or putting it differently: can we start processing skbs before a netns
+>> > is fully initialized?
+>> 
+>> The practical case that worries me is what happens when someone does
+>> "rmmod nfnetlink_queue" while the system is running.  It appears to me
+>> that today we could free the per netns data during the rcu grace period
+>> and cause a similar issue in nfnl_queue_pernet.
+>>
+>> That looks like it could affect both the nf_queue path and the
+>> nf_queue_nf_hook_drop path.
+>
+> OK, I'll check this again but I seem to recall this was fine (the
+> nfqueue module exit path sets the handler to NULL before doing anything
+> else).
 
-Applied, thanks!
+Good point.
+
+Yes, the nfnetlink_queue module calls nf_unregister_queue_handler()
+in the module fini method before it does anything else.  That does
+set queue_handler to NULL and calls synchronize_rcu() before anything
+else.
+
+So in practice that is not a problem, but being disconnected from
+everything else that is not immediately apparent.  Sigh.
+
+> The normal netns exit path should be fine too as exit and free happens
+> in two distinct loops, i.e. while (without your change) we can have
+> calls to nf_queue_hook_drop after the nfqueue netns exit function was
+> called, these calls will always happen before the pernets data is
+> freed.
+
+Ouch.  That is a little scary.  Today we only have remove_proc_entry
+in nfnl_queue_net_exit.  If we had something more substantial those
+calls after .exit (without my change) we could get into nasty to find
+oopses.  So I guess I did prevent a possible future issue with my patch.
+
+
+I am half wondering if we could make everything simpler by simply not
+allowing nfnetlink_queue be a module.
+
+Eric
