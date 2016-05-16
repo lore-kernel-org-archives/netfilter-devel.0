@@ -1,117 +1,62 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next] netfilter: helper: avoid extra expectation iterations on unregister
-Date: Sun, 15 May 2016 19:50:14 +0200
-Message-ID: <1463334614-10189-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:44425 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750896AbcEORt5 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 15 May 2016 13:49:57 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Michal Kubecek <mkubecek@suse.cz>
+Subject: Re: [PATCH nf-next] netfilter: allow logging from non-init
+	namespaces
+Date: Mon, 16 May 2016 08:43:16 +0200
+Message-ID: <20160516064316.GA6455@unicorn.suse.cz>
+References: <20160428074838.0BBB5A0C94@unicorn.suse.cz>
+	<20160512095726.GA1975@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: bridge@lists.linux-foundation.org, Jonathan Corbet <corbet@lwn.net>,
+	netdev@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
+Content-Disposition: inline
+In-Reply-To: <20160512095726.GA1975@salvia>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The expectation table is not duplicated per net namespace anymore, so we can move
-the expectation table and conntrack table iteration out of the per-net loop.
+On Thu, May 12, 2016 at 11:57:26AM +0200, Pablo Neira Ayuso wrote:
+> Hi Michal,
+> 
+> On Wed, Apr 27, 2016 at 02:48:02PM +0200, Michal Kubecek wrote:
+> > Commit 69b34fb996b2 ("netfilter: xt_LOG: add net namespace support for
+> > xt_LOG") disabled logging packets using the LOG target from non-init
+> > namespaces. The motivation was to prevent containers from flooding
+> > kernel log of the host. The plan was to keep it that way until syslog
+> > namespace implementation allows containers to log in a safe way.
+> > 
+> > However, the work on syslog namespace seems to have hit a dead end
+> > somewhere in 2013 and there are users who want to use xt_LOG in all
+> > network namespaces. This patch allows to do so by setting
+> 
+> I understand this stuff is tricky. Did you contact already namespace
+> folks to see if they plan any move on this?
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/nf_conntrack_helper.c | 61 +++++++++++++++++++------------------
- 1 file changed, 32 insertions(+), 29 deletions(-)
+Not yet. I'll contact the people involved in the discussion about the
+serires submitted in 2013 to check what their plans are (and if there
+are any).
 
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index f703adb..7ba16e9 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -390,11 +390,38 @@ static void __nf_conntrack_helper_unregister(struct nf_conntrack_helper *me,
- 					     struct net *net)
- {
- 	struct nf_conntrack_tuple_hash *h;
-+	const struct hlist_nulls_node *nn;
-+	int cpu;
-+
-+	/* Get rid of expecteds, set helpers to NULL. */
-+	for_each_possible_cpu(cpu) {
-+		struct ct_pcpu *pcpu = per_cpu_ptr(net->ct.pcpu_lists, cpu);
-+
-+		spin_lock_bh(&pcpu->lock);
-+		hlist_nulls_for_each_entry(h, nn, &pcpu->unconfirmed, hnnode)
-+			unhelp(h, me);
-+		spin_unlock_bh(&pcpu->lock);
-+	}
-+}
-+
-+void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
-+{
-+	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conntrack_expect *exp;
- 	const struct hlist_node *next;
- 	const struct hlist_nulls_node *nn;
-+	struct net *net;
- 	unsigned int i;
--	int cpu;
-+
-+	mutex_lock(&nf_ct_helper_mutex);
-+	hlist_del_rcu(&me->hnode);
-+	nf_ct_helper_count--;
-+	mutex_unlock(&nf_ct_helper_mutex);
-+
-+	/* Make sure every nothing is still using the helper unless its a
-+	 * connection in the hash.
-+	 */
-+	synchronize_rcu();
- 
- 	/* Get rid of expectations */
- 	spin_lock_bh(&nf_conntrack_expect_lock);
-@@ -414,15 +441,11 @@ static void __nf_conntrack_helper_unregister(struct nf_conntrack_helper *me,
- 	}
- 	spin_unlock_bh(&nf_conntrack_expect_lock);
- 
--	/* Get rid of expecteds, set helpers to NULL. */
--	for_each_possible_cpu(cpu) {
--		struct ct_pcpu *pcpu = per_cpu_ptr(net->ct.pcpu_lists, cpu);
-+	rtnl_lock();
-+	for_each_net(net)
-+		__nf_conntrack_helper_unregister(me, net);
-+	rtnl_unlock();
- 
--		spin_lock_bh(&pcpu->lock);
--		hlist_nulls_for_each_entry(h, nn, &pcpu->unconfirmed, hnnode)
--			unhelp(h, me);
--		spin_unlock_bh(&pcpu->lock);
--	}
- 	local_bh_disable();
- 	for (i = 0; i < nf_conntrack_htable_size; i++) {
- 		nf_conntrack_lock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
-@@ -434,26 +457,6 @@ static void __nf_conntrack_helper_unregister(struct nf_conntrack_helper *me,
- 	}
- 	local_bh_enable();
- }
--
--void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
--{
--	struct net *net;
--
--	mutex_lock(&nf_ct_helper_mutex);
--	hlist_del_rcu(&me->hnode);
--	nf_ct_helper_count--;
--	mutex_unlock(&nf_ct_helper_mutex);
--
--	/* Make sure every nothing is still using the helper unless its a
--	 * connection in the hash.
--	 */
--	synchronize_rcu();
--
--	rtnl_lock();
--	for_each_net(net)
--		__nf_conntrack_helper_unregister(me, net);
--	rtnl_unlock();
--}
- EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
- 
- static struct nf_ct_ext_type helper_extend __read_mostly = {
--- 
-2.7.3
+> >   /proc/sys/net/netfilter/nf_log_all_netns
+> 
+> My only concern with this is that I don't see how users know what log
+> message has triggered from what container.
 
+IMHO this is a more generic issue with containers: there is no (known to
+me) link between userspace "containers" and kernel namespaces that could
+be used in kernel log messages. In this case, --log-prefix can be used
+in netfilter logging rules to identify the container messages belong to.
+
+                                                          Michal Kubecek
