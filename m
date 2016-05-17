@@ -1,76 +1,43 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnetfilter_conntrack PATCH 1/3] src: add support for IPv6 to
- struct __nfct_nat
-Date: Tue, 17 May 2016 17:45:49 +0200
-Message-ID: <20160517154549.GA1998@salvia>
-References: <146348935823.4910.10745657047372991575.stgit@nfdev2.cica.es>
- <146348943198.4910.10995009662328384564.stgit@nfdev2.cica.es>
+From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
+Subject: [PATCH] libnftnl: tests: Free nftnl_udata_buf before exit
+Date: Tue, 17 May 2016 18:00:14 +0200
+Message-ID: <1463500816-26155-1-git-send-email-carlosfg@riseup.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, fw@strlen.de
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35697 "EHLO mail.us.es"
+Received: from mx1.riseup.net ([198.252.153.129]:38802 "EHLO mx1.riseup.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755035AbcEQPp6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 May 2016 11:45:58 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 5E24F4B0EF
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2016 17:45:56 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 4BB4DD1D8A
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2016 17:45:56 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 3B1E3D1D8A
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2016 17:45:54 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <146348943198.4910.10995009662328384564.stgit@nfdev2.cica.es>
+	id S1754484AbcEQQA3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 May 2016 12:00:29 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 17, 2016 at 02:50:32PM +0200, Arturo Borrero Gonzalez wrote:
-> @@ -114,18 +129,34 @@ int __setobjopt(struct nf_conntrack *ct, unsigned int option)
->  
->  static int getobjopt_is_snat(const struct nf_conntrack *ct)
->  {
-> -	return ((test_bit(ATTR_STATUS, ct->head.set) ?
-> -		ct->status & IPS_SRC_NAT_DONE : 1) &&
-> -		ct->repl.dst.v4 != 
-> -		ct->head.orig.src.v4);
-> +	if (!(test_bit(ATTR_STATUS, ct->head.set) ?
-> +		ct->status & IPS_SRC_NAT_DONE : 1))
-> +		return 0;
+Signed-off-by: Carlos Falgueras Garc=C3=ADa <carlosfg@riseup.net>
+---
+ tests/nft-rule-test.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Better untangle this code:
+diff --git a/tests/nft-rule-test.c b/tests/nft-rule-test.c
+index 2f6e35f..dee3530 100644
+--- a/tests/nft-rule-test.c
++++ b/tests/nft-rule-test.c
+@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
+ 	nftnl_rule_set_data(a, NFTNL_RULE_USERDATA,
+ 			    nftnl_udata_buf_data(udata),
+ 			    nftnl_udata_buf_len(udata));
++	nftnl_udata_buf_free(udata);
+=20
+ 	nlh =3D nftnl_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE, AF_INET, 0, =
+1234);
+ 	nftnl_rule_nlmsg_build_payload(nlh, a);
+--=20
+2.8.2
 
-        if (!test_bit(ATTR_STATUS, ct->head.set))
-                return 0;
-
-        if (!(ct->status & IPS_SRC_NAT_DONE))
-                return 0;
-
-        switch (ct->head.orig.l3protonum) {
-        case AF_INET:
-                return ct->repl.dst.v4 != ct->head.orig.src.v4;
-        default:
-                return 0;
-        }
-
-> +	switch (ct->head.orig.l3protonum) {
-> +	case AF_INET:
-> +		return ct->repl.dst.v4 != ct->head.orig.src.v4;
-> +	case AF_INET6:
-> +		return 0;
-
-It is a bit strange to me that you add in this patch all these:
-
-        case AF_INET6:
-                return 0;
-
-I'd rather see you adding this in 2/3 when you implement IPv6 support.
-
-> +	default:
-> +		return 0;
-> +	}
->  }
->  
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
