@@ -1,51 +1,50 @@
-From: subashab@codeaurora.org
-Subject: Re: [PATCH v2] xtables: Add a smaller delay option when waiting for
- xtables lock
-Date: Mon, 16 May 2016 21:30:15 -0600
-Message-ID: <8502fe32e83f67c567d4fadeb6c479f4@codeaurora.org>
-References: <1462504699-14988-1-git-send-email-subashab@codeaurora.org>
- <20160509214044.GA23794@salvia>
+From: Joe Stringer <joe@ovn.org>
+Subject: Re: [PATCH net] netfilter: nf_conntrack: Use net_mutex for helper unregistration.
+Date: Mon, 16 May 2016 21:38:53 -0700
+Message-ID: <CAPWQB7Eqoxk6-B5iEhkk9yF-DDduavtm=K8OE-3Of7JF6-Opvg@mail.gmail.com>
+References: <1462488637-46877-1-git-send-email-joe@ovn.org> <20160506110325.GA2420@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+	Florian Westphal <fw@strlen.de>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:57671 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751073AbcEQDaQ (ORCPT
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:50122 "EHLO
+	relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751215AbcEQEjR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 May 2016 23:30:16 -0400
-In-Reply-To: <20160509214044.GA23794@salvia>
+	Tue, 17 May 2016 00:39:17 -0400
+In-Reply-To: <20160506110325.GA2420@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> 
-> My impression after looking at this patch is that you can simplify it
-> using 'struct timeval' and use select() to wait for the time you need.
-> 
+On 6 May 2016 at 04:03, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Hi Joe,
+>
+> On Thu, May 05, 2016 at 03:50:37PM -0700, Joe Stringer wrote:
+>> diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+>> index 3b40ec575cd5..6860b19be406 100644
+>> --- a/net/netfilter/nf_conntrack_helper.c
+>> +++ b/net/netfilter/nf_conntrack_helper.c
+>> @@ -449,10 +449,10 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
+>>        */
+>>       synchronize_rcu();
+>>
+>> -     rtnl_lock();
+>> +     mutex_lock(&net_mutex);
+>>       for_each_net(net)
+>>               __nf_conntrack_helper_unregister(me, net);
+>> -     rtnl_unlock();
+>> +     mutex_unlock(&net_mutex);
+>
+> This simple solution works because we have no .exit callbacks in any
+> of our helpers. Otherwise, the helper code may be already gone by when
+> the worker has a chance to run to release the netns.
+>
+> If so, probably I can append this as comment to this function so we
+> don't forget. If we ever have .exit callbacks (I don't expect so), we
+> would need to wait for worker completion.
 
-Hi Pablo
+Hi Pablo,
 
-Sure, I can send a v3 with the select. Just to clarify, here is what the 
-patch does -
-
-iptables -w 2.1
-
-0.01s sleep, retry
-0.02s sleep, retry
-0.03s sleep, retry
-...
-2.1s sleep, exit
-
-Note that it sleeps for 10ms and retries rather than sleeping for a 
-single iteration for 2.1s seconds and then retrying.
-
-Let me know if there are any concerns with this.
-
---
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora 
-Forum, a Linux Foundation Collaborative Project.
-
+Did you want me to re-spin this patch or look into another approach?
