@@ -1,77 +1,49 @@
-From: subashab@codeaurora.org
-Subject: Re: [PATCH v2] xtables: Add a smaller delay option when waiting for
- xtables lock
-Date: Tue, 17 May 2016 12:25:53 -0600
-Message-ID: <736e561105702835e5cedea5e3ed18b7@codeaurora.org>
-References: <1462504699-14988-1-git-send-email-subashab@codeaurora.org>
- <20160509214044.GA23794@salvia>
- <8502fe32e83f67c567d4fadeb6c479f4@codeaurora.org>
- <20160517104152.GA3354@salvia>
+From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
+Subject: [PATCH] libnftnl: gitignore: Fix mistake in gitignore regexp
+Date: Tue, 17 May 2016 21:11:39 +0200
+Message-ID: <1463512299-1105-1-git-send-email-carlosfg@riseup.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:37817 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752359AbcEQS0G (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 May 2016 14:26:06 -0400
-In-Reply-To: <20160517104152.GA3354@salvia>
+Received: from mx1.riseup.net ([198.252.153.129]:36301 "EHLO mx1.riseup.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752694AbcEQTLv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 May 2016 15:11:51 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->> iptables -w 2.1
->> 
->> 0.01s sleep, retry
->> 0.02s sleep, retry
->> 0.03s sleep, retry
->> ...
->> 2.1s sleep, exit
->> 
->> Note that it sleeps for 10ms and retries rather than sleeping for a 
->> single
->> iteration for 2.1s seconds and then retrying.
->> 
->> Let me know if there are any concerns with this.
-> 
-> But this is changing the existing behaviour, right? My understanding
-> is that -w indicates the net wait time for each try.
+If a whole directory was ignored, files inside it will not be checked.
 
-Hi Pablo
+Reported-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Carlos Falgueras Garc=C3=ADa <carlosfg@riseup.net>
+---
+ .gitignore | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Currently, each wait time is 1 second. -w is the overall time upto which 
-it has to wait.
-
-bool xtables_lock(int wait)
-{
-	int fd, waited = 0, i = 0;
-
-	fd = open(XT_LOCK_NAME, O_CREAT, 0600);
-	if (fd < 0)
-		return true;
-
-	while (1) {
-		if (flock(fd, LOCK_EX | LOCK_NB) == 0)
-			return true;
-		else if (wait >= 0 && waited >= wait)  //total time upto which we need 
-to wait.
-			return false;
-		if (++i % 2 == 0)
-			fprintf(stderr, "Another app is currently holding the xtables lock; "
-				"waiting (%ds) for it to exit...\n", waited);
-		waited++;
-		sleep(1); //sleep for one second only
-	}
-}
-
-My patch does not change the behavior of -w itself. It only changes the 
-sleep interval to 10ms when a decimal is specified.
-Existing behavior of 1 second sleep for integral interval is preserved.
+diff --git a/.gitignore b/.gitignore
+index 3d6ebf4..1650e58 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -23,9 +23,9 @@ doxygen.cfg
+ # Debian package build temporary files
+ build-stamp
+=20
+-examples/
++examples/*
+ !examples/*.c
+ !examples/Makefile.am
+-tests/
++tests/*
+ !tests/*.c
+ !tests/Makefile.am
+--=20
+2.8.2
 
 --
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora 
-Forum, a Linux Foundation Collaborative Project.
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
