@@ -1,58 +1,77 @@
-From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
-Subject: [PATCH 1/2] libnfntl: Fix segfault due to invalid free of rule user data
-Date: Tue, 17 May 2016 18:00:15 +0200
-Message-ID: <1463500816-26155-2-git-send-email-carlosfg@riseup.net>
-References: <1463500816-26155-1-git-send-email-carlosfg@riseup.net>
+From: subashab@codeaurora.org
+Subject: Re: [PATCH v2] xtables: Add a smaller delay option when waiting for
+ xtables lock
+Date: Tue, 17 May 2016 12:25:53 -0600
+Message-ID: <736e561105702835e5cedea5e3ed18b7@codeaurora.org>
+References: <1462504699-14988-1-git-send-email-subashab@codeaurora.org>
+ <20160509214044.GA23794@salvia>
+ <8502fe32e83f67c567d4fadeb6c479f4@codeaurora.org>
+ <20160517104152.GA3354@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:38858 "EHLO mx1.riseup.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755332AbcEQQAn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 May 2016 12:00:43 -0400
-In-Reply-To: <1463500816-26155-1-git-send-email-carlosfg@riseup.net>
+Received: from smtp.codeaurora.org ([198.145.29.96]:37817 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752359AbcEQS0G (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 May 2016 14:26:06 -0400
+In-Reply-To: <20160517104152.GA3354@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If the user allocates a nftnl_udata_buf and then passes the TLV data to
-nftnl_rule_set_data, the pointer stored in rule.user.data is not the be=
-gining of
-the allocated block. In this situation, if it calls to nftnl_rule_free,=
- it tries
-to free this pointer and segfault is thrown.
+>> iptables -w 2.1
+>> 
+>> 0.01s sleep, retry
+>> 0.02s sleep, retry
+>> 0.03s sleep, retry
+>> ...
+>> 2.1s sleep, exit
+>> 
+>> Note that it sleeps for 10ms and retries rather than sleeping for a 
+>> single
+>> iteration for 2.1s seconds and then retrying.
+>> 
+>> Let me know if there are any concerns with this.
+> 
+> But this is changing the existing behaviour, right? My understanding
+> is that -w indicates the net wait time for each try.
 
-Signed-off-by: Carlos Falgueras Garc=C3=ADa <carlosfg@riseup.net>
----
- src/rule.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+Hi Pablo
 
-diff --git a/src/rule.c b/src/rule.c
-index c299548..3f276f8 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -167,7 +167,12 @@ void nftnl_rule_set_data(struct nftnl_rule *r, uin=
-t16_t attr,
- 		if (r->user.data !=3D NULL)
- 			xfree(r->user.data);
-=20
--		r->user.data =3D (void *)data;
-+		r->user.data =3D malloc(data_len);
-+		if (!r->user.data) {
-+			perror("libnftnl: " __FILE__ ": nftnl_rule_set_data()");
-+			return;
-+		}
-+		memcpy(r->user.data, data, data_len);
- 		r->user.len =3D data_len;
- 		break;
- 	}
---=20
-2.8.2
+Currently, each wait time is 1 second. -w is the overall time upto which 
+it has to wait.
+
+bool xtables_lock(int wait)
+{
+	int fd, waited = 0, i = 0;
+
+	fd = open(XT_LOCK_NAME, O_CREAT, 0600);
+	if (fd < 0)
+		return true;
+
+	while (1) {
+		if (flock(fd, LOCK_EX | LOCK_NB) == 0)
+			return true;
+		else if (wait >= 0 && waited >= wait)  //total time upto which we need 
+to wait.
+			return false;
+		if (++i % 2 == 0)
+			fprintf(stderr, "Another app is currently holding the xtables lock; "
+				"waiting (%ds) for it to exit...\n", waited);
+		waited++;
+		sleep(1); //sleep for one second only
+	}
+}
+
+My patch does not change the behavior of -w itself. It only changes the 
+sleep interval to 10ms when a decimal is specified.
+Existing behavior of 1 second sleep for integral interval is preserved.
 
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora 
+Forum, a Linux Foundation Collaborative Project.
