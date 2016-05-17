@@ -1,75 +1,42 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH net] netfilter: nf_conntrack: Use net_mutex for helper
- unregistration.
-Date: Tue, 17 May 2016 12:16:01 +0200
-Message-ID: <20160517101601.GA2244@salvia>
-References: <1462488637-46877-1-git-send-email-joe@ovn.org>
- <20160506110325.GA2420@salvia>
- <CAPWQB7Eqoxk6-B5iEhkk9yF-DDduavtm=K8OE-3Of7JF6-Opvg@mail.gmail.com>
+Subject: Re: [PATCH] libnftnl: Add to .gitignore all auto-generated files
+ when a "make check" is done
+Date: Tue, 17 May 2016 12:29:29 +0200
+Message-ID: <20160517102929.GA3048@salvia>
+References: <1463402341-13221-1-git-send-email-carlosfg@riseup.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
-	Florian Westphal <fw@strlen.de>,
-	"Eric W. Biederman" <ebiederm@xmission.com>
-To: Joe Stringer <joe@ovn.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52192 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56943 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751155AbcEQKQI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 May 2016 06:16:08 -0400
+	id S1751376AbcEQK3r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 May 2016 06:29:47 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 36C2F1B5343
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2016 12:16:05 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id DA9181B7F85
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2016 12:29:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 2607E11CF37
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2016 12:16:05 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B5E7111D00C
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2016 12:29:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 1345E11C4F0
-	for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2016 12:16:03 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B7FF211C4F1
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 May 2016 12:29:34 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <CAPWQB7Eqoxk6-B5iEhkk9yF-DDduavtm=K8OE-3Of7JF6-Opvg@mail.gmail.com>
+In-Reply-To: <1463402341-13221-1-git-send-email-carlosfg@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Cc'ing Eric Biederman.
+On Mon, May 16, 2016 at 02:39:01PM +0200, Carlos Falgueras Garc=EDa wro=
+te:
+> It ignores files inside "test/" and "examples/" except all c code (*.=
+c) and the
+> "Makefile.am"
 
-On Mon, May 16, 2016 at 09:38:53PM -0700, Joe Stringer wrote:
-> On 6 May 2016 at 04:03, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Hi Joe,
-> >
-> > On Thu, May 05, 2016 at 03:50:37PM -0700, Joe Stringer wrote:
-> >> diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-> >> index 3b40ec575cd5..6860b19be406 100644
-> >> --- a/net/netfilter/nf_conntrack_helper.c
-> >> +++ b/net/netfilter/nf_conntrack_helper.c
-> >> @@ -449,10 +449,10 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
-> >>        */
-> >>       synchronize_rcu();
-> >>
-> >> -     rtnl_lock();
-> >> +     mutex_lock(&net_mutex);
-> >>       for_each_net(net)
-> >>               __nf_conntrack_helper_unregister(me, net);
-> >> -     rtnl_unlock();
-> >> +     mutex_unlock(&net_mutex);
-> >
-> > This simple solution works because we have no .exit callbacks in any
-> > of our helpers. Otherwise, the helper code may be already gone by when
-> > the worker has a chance to run to release the netns.
-> >
-> > If so, probably I can append this as comment to this function so we
-> > don't forget. If we ever have .exit callbacks (I don't expect so), we
-> > would need to wait for worker completion.
-> 
-> Hi Pablo,
-> 
-> Did you want me to re-spin this patch or look into another approach?
-
-Last time I looked into this, my impression was that we should
-register each conntrack helper via register_pernet_subsys(). Then,
-from the exit path I was missing something like netns_barrier() [ note
-that I didn't seem to find anything similar] to ensure netns workqueue
-completion before we leave from the module exit path so that the
-->exit() netns callback code doesn't go away.
-
-That would also avoid the rtnl_lock() dependency.
+Applied, thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
