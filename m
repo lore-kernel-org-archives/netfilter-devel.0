@@ -1,29 +1,51 @@
-From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: Re: [ANNOUNCE] Netdev 1.2 conference
-Date: Mon, 16 May 2016 11:50:08 -0700
-Message-ID: <20160516115008.0dc2c795@xeon-e3>
-References: <m2shxi10bp.wl@gmail.com>
+From: subashab@codeaurora.org
+Subject: Re: [PATCH v2] xtables: Add a smaller delay option when waiting for
+ xtables lock
+Date: Mon, 16 May 2016 21:30:15 -0600
+Message-ID: <8502fe32e83f67c567d4fadeb6c479f4@codeaurora.org>
+References: <1462504699-14988-1-git-send-email-subashab@codeaurora.org>
+ <20160509214044.GA23794@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-wireless@vger.kernel.org, lwn@lwn.net
-To: Hajime Tazaki <thehajime@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <m2shxi10bp.wl@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:57671 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751073AbcEQDaQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 May 2016 23:30:16 -0400
+In-Reply-To: <20160509214044.GA23794@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 17 May 2016 00:36:58 +0900
-Hajime Tazaki <thehajime@gmail.com> wrote:
+> 
+> My impression after looking at this patch is that you can simplify it
+> using 'struct timeval' and use select() to wait for the time you need.
+> 
 
-> Following the last successful Netdev 0.1 in Ottawa, Canada and
-> 1.1 in Seville, Spain. We are happy to announce the third Netdev conference:
-> Netdev 1.2 (year 1, conference 2) from 5th to 7th October 2016 in Tokyo,
-> Japan (http://netdevconf.org/1.2/).
+Hi Pablo
 
+Sure, I can send a v3 with the select. Just to clarify, here is what the 
+patch does -
 
-I understand that getting a free date for a conference is hard to find,
-but those dates overlap with LinuxCon Europe in Berlin. There may not
-be a lot of overlap in possible attendees but it seems like there might
-be a better date?
+iptables -w 2.1
+
+0.01s sleep, retry
+0.02s sleep, retry
+0.03s sleep, retry
+...
+2.1s sleep, exit
+
+Note that it sleeps for 10ms and retries rather than sleeping for a 
+single iteration for 2.1s seconds and then retrying.
+
+Let me know if there are any concerns with this.
+
+--
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora 
+Forum, a Linux Foundation Collaborative Project.
+
