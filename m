@@ -1,36 +1,52 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] rule: add support for display flow tables content
-Date: Fri, 20 May 2016 20:17:20 +0200
-Message-ID: <20160520181720.GA2686@salvia>
-References: <1463748912-19762-1-git-send-email-pablombg@gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 1/3] netfilter: ipset: use setup_timer() and
+ mod_timer().
+Date: Fri, 20 May 2016 22:40:47 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1605202238420.16031@blackhole.kfki.hu>
+References: <1463173145-16167-1-git-send-email-falakreyaz@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Vishwanath Pai <vpai@akamai.com>,
+	Joshua Hunt <johunt@akamai.com>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Muhammad Falak R Wani <falakreyaz@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54060 "EHLO mail.us.es"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:51053 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750792AbcETSRf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 May 2016 14:17:35 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 44DEBE5A45
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 May 2016 20:17:33 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 34BFD35E2
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 May 2016 20:17:33 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 244BC11C38E
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 May 2016 20:17:29 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1463748912-19762-1-git-send-email-pablombg@gmail.com>
+	id S1750961AbcETUj3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 May 2016 16:39:29 -0400
+In-Reply-To: <1463173145-16167-1-git-send-email-falakreyaz@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, May 20, 2016 at 02:55:12PM +0200, Pablo M. Bermudo Garay wrote:
-> This commit adds a new command that displays the definition of a single
-> flow table:
-> 
-> If no family is specified, ip is assumed.
+On Sat, 14 May 2016, Muhammad Falak R Wani wrote:
 
-Applied, thanks. Please include an example next time in your patch
-description.
+> Use setup_timer() and instead of init_timer(), being the preferred way
+> of setting up a timer.
+> 
+> Also, quoting the mod_timer() function comment:
+> -> mod_timer() is a more efficient way to update the expire field of an
+>    active timer (if the timer is inactive it will be activated).
+> 
+> Use setup_timer() and mod_timer() to setup and arm a timer, making the
+> code compact and easier to read.
+> 
+> Signed-off-by: Muhammad Falak R Wani <falakreyaz@gmail.com>
+> ---
+>  net/netfilter/ipset/ip_set_bitmap_gen.h | 7 ++-----
+>  1 file changed, 2 insertions(+), 5 deletions(-)
+
+The patch and the other too in the series as well are applied in the ipset 
+git repository and will be submitted for kernel inclusion. Thanks.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
