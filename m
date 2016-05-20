@@ -1,91 +1,102 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] xtables: Add a smaller delay option when waiting for
- xtables lock
-Date: Fri, 20 May 2016 12:14:46 +0200
-Message-ID: <20160520101446.GA8771@salvia>
-References: <1462504699-14988-1-git-send-email-subashab@codeaurora.org>
- <20160509214044.GA23794@salvia>
- <8502fe32e83f67c567d4fadeb6c479f4@codeaurora.org>
- <20160517104152.GA3354@salvia>
- <736e561105702835e5cedea5e3ed18b7@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
-To: subashab@codeaurora.org
+From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+Subject: [PATCH nft] rule: add support for display flow tables content
+Date: Fri, 20 May 2016 14:55:12 +0200
+Message-ID: <1463748912-19762-1-git-send-email-pablombg@gmail.com>
+Cc: pablo@netfilter.org, "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45517 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753936AbcETKOx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 May 2016 06:14:53 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id EFC72EAA75
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 May 2016 12:14:50 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id DEA1615D623
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 May 2016 12:14:50 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B60C011C38B
-	for <netfilter-devel@vger.kernel.org>; Fri, 20 May 2016 12:14:47 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <736e561105702835e5cedea5e3ed18b7@codeaurora.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36567 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932239AbcETMzk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 May 2016 08:55:40 -0400
+Received: by mail-wm0-f68.google.com with SMTP id q62so827904wmg.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 May 2016 05:55:40 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 17, 2016 at 12:25:53PM -0600, subashab@codeaurora.org wrote:
-> >>iptables -w 2.1
-> >>
-> >>0.01s sleep, retry
-> >>0.02s sleep, retry
-> >>0.03s sleep, retry
-> >>...
-> >>2.1s sleep, exit
-> >>
-> >>Note that it sleeps for 10ms and retries rather than sleeping for a
-> >>single
-> >>iteration for 2.1s seconds and then retrying.
-> >>
-> >>Let me know if there are any concerns with this.
-> >
-> >But this is changing the existing behaviour, right? My understanding
-> >is that -w indicates the net wait time for each try.
-> 
-> Hi Pablo
-> 
-> Currently, each wait time is 1 second. -w is the overall time upto which it
-> has to wait.
-> 
-> bool xtables_lock(int wait)
-> {
-> 	int fd, waited = 0, i = 0;
-> 
-> 	fd = open(XT_LOCK_NAME, O_CREAT, 0600);
-> 	if (fd < 0)
-> 		return true;
-> 
-> 	while (1) {
-> 		if (flock(fd, LOCK_EX | LOCK_NB) == 0)
-> 			return true;
-> 		else if (wait >= 0 && waited >= wait)  //total time upto which we need to
-> wait.
-> 			return false;
-> 		if (++i % 2 == 0)
-> 			fprintf(stderr, "Another app is currently holding the xtables lock; "
-> 				"waiting (%ds) for it to exit...\n", waited);
-> 		waited++;
-> 		sleep(1); //sleep for one second only
-> 	}
-> }
-> 
-> My patch does not change the behavior of -w itself. It only changes the
-> sleep interval to 10ms when a decimal is specified.
+This commit adds a new command that displays the definition of a single
+flow table:
 
-Sorry, then I misunderstood the semantics of -w, I remembered this
-specified the sleep interval but I was wrong.
+If no family is specified, ip is assumed.
 
-> Existing behavior of 1 second sleep for integral interval is preserved.
+Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
+---
+ include/rule.h     |  1 +
+ src/evaluate.c     | 11 +++++++++++
+ src/parser_bison.y |  4 ++++
+ src/rule.c         |  2 ++
+ 4 files changed, 18 insertions(+)
 
-Then, I'd suggest you add a new specific option to specify the
-interval, allowing this sec.msecs notation, preserving the 1 second
-interval as default.
+diff --git a/include/rule.h b/include/rule.h
+index ae77c4c..bd24648 100644
+--- a/include/rule.h
++++ b/include/rule.h
+@@ -316,6 +316,7 @@ enum cmd_obj {
+ 	CMD_OBJ_EXPR,
+ 	CMD_OBJ_MONITOR,
+ 	CMD_OBJ_EXPORT,
++	CMD_OBJ_FLOWTABLE,
+ 	CMD_OBJ_FLOWTABLES,
+ };
+ 
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 3600ad0..cb4d2a5 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2652,6 +2652,7 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
+ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
+ {
+ 	struct table *table;
++	struct set *set;
+ 	int ret;
+ 
+ 	ret = cache_update(cmd->op, ctx->msgs);
+@@ -2677,6 +2678,16 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
+ 			return cmd_error(ctx, "Could not process rule: Set '%s' does not exist",
+ 					 cmd->handle.set);
+ 		return 0;
++	case CMD_OBJ_FLOWTABLE:
++		table = table_lookup(&cmd->handle);
++		if (table == NULL)
++			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
++					 cmd->handle.table);
++		set = set_lookup(table, cmd->handle.set);
++		if (set == NULL || !(set->flags & SET_F_EVAL))
++			return cmd_error(ctx, "Could not process rule: Flow table '%s' does not exist",
++					 cmd->handle.set);
++		return 0;
+ 	case CMD_OBJ_CHAIN:
+ 		table = table_lookup(&cmd->handle);
+ 		if (table == NULL)
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index c71f6df..0452b8f 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -840,6 +840,10 @@ list_cmd		:	TABLE		table_spec
+ 			{
+ 				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_FLOWTABLES, &$3, &@$, NULL);
+ 			}
++			|	FLOW TABLE	set_spec
++			{
++				$$ = cmd_alloc(CMD_LIST, CMD_OBJ_FLOWTABLE, &$3, &@$, NULL);
++			}
+ 			;
+ 
+ flush_cmd		:	TABLE		table_spec
+diff --git a/src/rule.c b/src/rule.c
+index 1bc5c68..5613f96 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -1214,6 +1214,8 @@ static int do_command_list(struct netlink_ctx *ctx, struct cmd *cmd)
+ 		return do_list_ruleset(ctx, cmd);
+ 	case CMD_OBJ_FLOWTABLES:
+ 		return do_list_sets(ctx, cmd);
++	case CMD_OBJ_FLOWTABLE:
++		return do_list_set(ctx, cmd, table);
+ 	default:
+ 		BUG("invalid command object type %u\n", cmd->obj);
+ 	}
+-- 
+2.8.2
 
-Thanks.
