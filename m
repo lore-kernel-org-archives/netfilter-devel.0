@@ -1,63 +1,57 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH iptables] extensions: libxt_limit: fix a wrong translation to nft rule
-Date: Sat, 21 May 2016 18:07:16 +0800
-Message-ID: <1463825236-33317-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>,
-	Shivani Bhardwaj <shivanib134@gmail.com>
-To: pablo@netfilter.org
+From: Taehee Yoo <ap420073@gmail.com>
+Subject: Re: [PATCH 1/2] netfilter: helper: Fix incorrect helper name.
+Date: Mon, 23 May 2016 00:03:55 +0900
+Message-ID: <CAMArcTUm9PeVD3+Vq7g0OffqxUZQJYRJs304jAF90LXH1Xj1YA@mail.gmail.com>
+References: <1463231956-26867-1-git-send-email-ap420073@gmail.com>
+	<20160517103842.GA3324@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: Patrick McHardy <kaber@trash.net>, kadlec@blackhole.kfki.hu,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-15.163.com ([220.181.12.15]:52518 "EHLO m12-15.163.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751661AbcEUKIP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 21 May 2016 06:08:15 -0400
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35499 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752015AbcEVPD5 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 22 May 2016 11:03:57 -0400
+Received: by mail-wm0-f65.google.com with SMTP id f75so2275202wmf.2
+        for <netfilter-devel@vger.kernel.org>; Sun, 22 May 2016 08:03:56 -0700 (PDT)
+In-Reply-To: <20160517103842.GA3324@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
-
-The default burst value is 5 in iptables limit extension while it is 0 in
-nft limit expression, if the burst value is default, it will not be
-displayed when we dump the rules. But when we do translation from iptables
-rules to nft rules, we should keep the limit burst value unchanged, even if
-it is not displayed in iptables rules.
-
-And now, if the limit-burst value in the iptables rule is 5 or 0, they are
-all translated to nft rule without burst, this is wrong:
-
-$ sudo iptables-translate -A INPUT -m limit --limit 10/s --limit-burst 5
-nft add rule ip filter INPUT limit rate 10/second counter
-$ sudo iptables-translate -A INPUT -m limit --limit 10/s --limit-burst 0
-nft add rule ip filter INPUT limit rate 10/second burst 0 packets counter
-
-Apply this patch, translation will become:
-
-$ sudo iptables-translate -A INPUT -m limit --limit 10/s --limit-burst 5
-nft add rule ip filter INPUT limit rate 10/second burst 5 packets counter
-$ sudo iptables-translate -A INPUT -m limit --limit 10/s --limit-burst 0
-nft add rule ip filter INPUT limit rate 10/second counter
-
-Fixes: a8dfbe3a3acb ("extensions: libxt_limit: Add translation to nft")
-Cc: Shivani Bhardwaj <shivanib134@gmail.com>
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
----
- extensions/libxt_limit.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/extensions/libxt_limit.c b/extensions/libxt_limit.c
-index c88d26b..6652849 100644
---- a/extensions/libxt_limit.c
-+++ b/extensions/libxt_limit.c
-@@ -184,7 +184,7 @@ static int limit_xlate(const void *ip, const struct xt_entry_match *match,
- 
- 	xt_xlate_add(xl, "limit rate");
- 	print_rate_xlate(r->avg, xl);
--	if (r->burst != XT_LIMIT_BURST)
-+	if (r->burst != 0)
- 		xt_xlate_add(xl, "burst %u packets ", r->burst);
- 
- 	return 1;
--- 
-2.5.5
+2016-05-17 19:38 GMT+09:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> On Sat, May 14, 2016 at 10:19:16PM +0900, Taehee Yoo wrote:
+>> when register to helper, each helper adds port to name.
+>> correct form is 'protocol name-port' but irc, sip and tftp adds
+>> a iterator value. so it fix it.
+>
+> Could you track since when this works in this way?
+>
+> This inconsistency has been probably there since long time ago, and we
+> expose this names through iptables -m helper.
+>
+> What I mean is: I understand this is inconsistent, but if we change
+> this now, we may break existing rulesets.
 
 
+Thank you for your review.
+And Apologize for late reply.
+
+I agree that patch destroys so much rulesets.
+but I want to solve the issue that is helper cannot check duplicated
+helper rules.
+nf_conntrack_helper_register() checks name && l3num && protonum to
+check duplicated rules.
+but tftp, sip and irc helper always have unique helper name because
+that includes iterator value.
+(tftp-1, tftp-2, tftp-3 ...)
+helper-name is good method to check duplicated rules.
+but we need another check method to solve this issue and keep rulsets.
+so far, my idea is that using help callback function's pointer address.
+pseudo code is : "if (port && l3num && protonum && help)"
+
+Do you have any advice?
+
+Taehee Yoo
