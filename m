@@ -1,7 +1,7 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: kernel 4.5.1 issue at system boot
-Date: Mon, 23 May 2016 11:57:06 +0200
-Message-ID: <20160523095706.GA2193@salvia>
+Date: Mon, 23 May 2016 12:08:11 +0200
+Message-ID: <20160523100811.GA9385@breakpoint.cc>
 References: <CAOkSjBh-P0RNKhNeR8fBmRVda7mtU9332punaUufO4Rx3aqpqA@mail.gmail.com>
  <CAOkSjBh--Ro9YzOdsTQsK6F73kPMdihjfU-tbyHc9gYN4gjOYA@mail.gmail.com>
 Mime-Version: 1.0
@@ -10,25 +10,17 @@ Cc: Netfilter Development Mailing list
 	<netfilter-devel@vger.kernel.org>
 To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45686 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753233AbcEWJ5U (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 May 2016 05:57:20 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id A2CD7E8393
-	for <netfilter-devel@vger.kernel.org>; Mon, 23 May 2016 11:57:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8D99611D026
-	for <netfilter-devel@vger.kernel.org>; Mon, 23 May 2016 11:57:18 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id DFE1415D646
-	for <netfilter-devel@vger.kernel.org>; Mon, 23 May 2016 11:57:11 +0200 (CEST)
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:55746 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752793AbcEWKIO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 May 2016 06:08:14 -0400
 Content-Disposition: inline
 In-Reply-To: <CAOkSjBh--Ro9YzOdsTQsK6F73kPMdihjfU-tbyHc9gYN4gjOYA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 23, 2016 at 08:50:29AM +0200, Arturo Borrero Gonzalez wrote:
+Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
 > On 23 May 2016 at 08:49, Arturo Borrero Gonzalez
 > <arturo.borrero.glez@gmail.com> wrote:
 > > This was in the log of my system boot today:
@@ -38,8 +30,6 @@ On Mon, May 23, 2016 at 08:50:29AM +0200, Arturo Borrero Gonzalez wrote:
 > 
 > http://paste.debian.net/695904/
 
-Please, give a try to this one to confirm this resolves your issue:
+This looks like an ABBA-style deadlock of
+net_mutex and nfnl_lock(NFNL_SUBSYS_NFTABLES).
 
-http://patchwork.ozlabs.org/patch/622175/
-
-Thanks.
