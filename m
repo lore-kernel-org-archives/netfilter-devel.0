@@ -1,56 +1,112 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables] extensions: libxt_limit: fix a wrong
- translation to nft rule
-Date: Mon, 23 May 2016 19:27:35 +0200
-Message-ID: <20160523172735.GA1098@salvia>
-References: <1463825236-33317-1-git-send-email-zlpnobody@163.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [ipset] hash:net,iface bug?
+Date: Mon, 23 May 2016 20:49:05 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1605232044560.2937@blackhole.kfki.hu>
+References: <bc61b1ffc5fd4402bab9a533a1b2a384@BTS-XEXCH01-B.eset.corp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>,
-	Shivani Bhardwaj <shivanib134@gmail.com>
-To: Liping Zhang <zlpnobody@163.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Marek Mrva <mrva@eset.sk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46252 "EHLO mail.us.es"
+Received: from smtp2.kfki.hu ([148.6.0.28]:35245 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752102AbcEWR1p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 May 2016 13:27:45 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 8150FC1256
-	for <netfilter-devel@vger.kernel.org>; Mon, 23 May 2016 19:27:41 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6D92E15D62F
-	for <netfilter-devel@vger.kernel.org>; Mon, 23 May 2016 19:27:41 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 36BBD15D647
-	for <netfilter-devel@vger.kernel.org>; Mon, 23 May 2016 19:27:36 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1463825236-33317-1-git-send-email-zlpnobody@163.com>
+	id S1750710AbcEWSrp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 May 2016 14:47:45 -0400
+In-Reply-To: <bc61b1ffc5fd4402bab9a533a1b2a384@BTS-XEXCH01-B.eset.corp>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, May 21, 2016 at 06:07:16PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
-> 
-> The default burst value is 5 in iptables limit extension while it is 0 in
-> nft limit expression, if the burst value is default, it will not be
-> displayed when we dump the rules. But when we do translation from iptables
-> rules to nft rules, we should keep the limit burst value unchanged, even if
-> it is not displayed in iptables rules.
-> 
-> And now, if the limit-burst value in the iptables rule is 5 or 0, they are
-> all translated to nft rule without burst, this is wrong:
-> 
-> $ sudo iptables-translate -A INPUT -m limit --limit 10/s --limit-burst 5
-> nft add rule ip filter INPUT limit rate 10/second counter
-> $ sudo iptables-translate -A INPUT -m limit --limit 10/s --limit-burst 0
-> nft add rule ip filter INPUT limit rate 10/second burst 0 packets counter
-> 
-> Apply this patch, translation will become:
-> 
-> $ sudo iptables-translate -A INPUT -m limit --limit 10/s --limit-burst 5
-> nft add rule ip filter INPUT limit rate 10/second burst 5 packets counter
-> $ sudo iptables-translate -A INPUT -m limit --limit 10/s --limit-burst 0
-> nft add rule ip filter INPUT limit rate 10/second counter
+On Mon, 23 May 2016, Marek Mrva wrote:
 
-Applied, thanks.
+> I have been playing with hash:net,iface table for a couple of days now, 
+> but for the love of me, I can't make it accept physdev: devices.
+> 
+> The man says: When the interface is flagged with physdev:, the interface 
+> is interpreted as the incoming/outgoing bridge port.
+> 
+> It all boils down to this code (for IPv4):
+> 
+> --- kernel/net/netfilter/ipset/ip_set_hash_netiface.c@154, ipset repository ---
+> 
+> static int
+> hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
+>                     const struct xt_action_param *par,
+>                     enum ipset_adt adt, struct ip_set_adt_opt *opt)
+> {
+> --- snip ---
+>         if (opt->cmdflags & IPSET_FLAG_PHYSDEV) {
+> #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
+>                 const char *eiface = SRCDIR ? get_physindev_name(skb) :
+>                                               get_physoutdev_name(skb);
+> 
+>                 if (!eiface)
+>                         return -EINVAL;
+>                 STRLCPY(e.iface, eiface);
+>                 e.physdev = 1;
+> #endif
+>         } else {
+>                 STRLCPY(e.iface, SRCDIR ? IFACE(in) : IFACE(out));
+>         }
+> --- snip ---
+> }
+> 
+> The IPSET_FLAG_PHYSDEV (value 2) is never set, nor could I find any 
+> useful references to it (I tried really hard). I believe this code never 
+> obtains the "physical" (bridge) port. opt->cmdflags (probably?) contains 
+> flags passed to ipset code by iptables. I've seen these values used:
+> 
+> 1	-j SET --exists
+> 8	-m set ! --update-counters
+> 16	-m set ! --update-subcounters
+> 32	-m set --bytes-lt (or any other combination of bytes/packets)
+> 128	-m set --return-nomatch
+> 
+> The table resembling it most closely is this one:
+> 
+> --- include/libipset/linux_ip_set.h@159, ipset repository ---
+> 
+> /* Flags at command level or match/target flags, lower half of cmdattrs*/
+> enum ipset_cmd_flags {
+>         IPSET_FLAG_BIT_EXIST    = 0,
+>         IPSET_FLAG_EXIST        = (1 << IPSET_FLAG_BIT_EXIST),
+>         IPSET_FLAG_BIT_LIST_SETNAME = 1,
+>         IPSET_FLAG_LIST_SETNAME = (1 << IPSET_FLAG_BIT_LIST_SETNAME),
+>         IPSET_FLAG_BIT_LIST_HEADER = 2,
+>         IPSET_FLAG_LIST_HEADER  = (1 << IPSET_FLAG_BIT_LIST_HEADER),
+>         IPSET_FLAG_BIT_SKIP_COUNTER_UPDATE = 3,
+>         IPSET_FLAG_SKIP_COUNTER_UPDATE =
+>                 (1 << IPSET_FLAG_BIT_SKIP_COUNTER_UPDATE),
+>         IPSET_FLAG_BIT_SKIP_SUBCOUNTER_UPDATE = 4,
+>         IPSET_FLAG_SKIP_SUBCOUNTER_UPDATE =
+>                 (1 << IPSET_FLAG_BIT_SKIP_SUBCOUNTER_UPDATE),
+>         IPSET_FLAG_BIT_MATCH_COUNTERS = 5,
+>         IPSET_FLAG_MATCH_COUNTERS = (1 << IPSET_FLAG_BIT_MATCH_COUNTERS),
+>         IPSET_FLAG_BIT_RETURN_NOMATCH = 7,
+>         IPSET_FLAG_RETURN_NOMATCH = (1 << IPSET_FLAG_BIT_RETURN_NOMATCH),
+>         IPSET_FLAG_BIT_MAP_SKBMARK = 8,
+>         IPSET_FLAG_MAP_SKBMARK = (1 << IPSET_FLAG_BIT_MAP_SKBMARK),
+>         IPSET_FLAG_BIT_MAP_SKBPRIO = 9,
+>         IPSET_FLAG_MAP_SKBPRIO = (1 << IPSET_FLAG_BIT_MAP_SKBPRIO),
+>         IPSET_FLAG_BIT_MAP_SKBQUEUE = 10,
+>         IPSET_FLAG_MAP_SKBQUEUE = (1 << IPSET_FLAG_BIT_MAP_SKBQUEUE),
+>         IPSET_FLAG_CMD_MAX = 15,
+> };
+> 
+> If that is correct, the IPSET_FLAG_LIST_SETNAME should be responsible 
+> for using PHYSDEV. I tried searching for this flag, but was unable to 
+> find a place where it is set.
+> 
+> Any ideas on this are very welcome :)
+
+The IPSET_FLAG_PHYSDEV is passed from userspace, of course, see 
+ipset_parse_iface() in lib/parse.c. However, it seems it is not stored 
+when the user input in processed in the kernel. I'll double check and fix 
+it.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
