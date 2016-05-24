@@ -1,51 +1,61 @@
-From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
-Subject: [PATCH] libnftnl: set_elem: Fix memory leak
-Date: Tue, 24 May 2016 17:17:07 +0200
-Message-ID: <1464103027-18484-1-git-send-email-carlosfg@riseup.net>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [RFC][PATCH 2/3] locking: Annotate spin_unlock_wait() users
+Date: Tue, 24 May 2016 09:17:13 -0700
+Message-ID: <CA+55aFyyHbPVMx8cZbKONy5cevxsYA0qbwapboA0dD8hPSwPWg@mail.gmail.com>
+References: <20160524142723.178148277@infradead.org>
+	<20160524143649.608476390@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:51768 "EHLO mx1.riseup.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752428AbcEXPRV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2016 11:17:21 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Manfred Spraul <manfred@colorfullife.com>,
+	Davidlohr Bueso <dave@stgolabs.net>,
+	Paul McKenney <paulmck@linux.vnet.ibm.com>,
+	Will Deacon <will.deacon@arm.com>,
+	Boqun Feng <boqun.feng@gmail.com>,
+	Waiman Long <Waiman.Long@hpe.com>, Tejun Heo <tj@kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>,
+	Oleg Nesterov <oleg@redhat.com>,
+	netfilter-devel@vger.kernel.org,
+	Sasha Levin <sasha.levin@oracle.com>, hofrat@osadl.org
+To: Peter Zijlstra <peterz@infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160524143649.608476390@infradead.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-User data must be freed.
+On Tue, May 24, 2016 at 7:27 AM, Peter Zijlstra <peterz@infradead.org> wrote:
+> spin_unlock_wait() has an unintuitive 'feature' in that it doesn't
+> fully serialize against the spin_unlock() we've waited on.
 
-How to reproduce:
-    > nft add table t
-    > nft add set t s {type ipv4_addr\;}
-    > valgrind nft add element t s {1.1.1.1}
+NAK.
 
-Signed-off-by: Carlos Falgueras Garc=C3=ADa <carlosfg@riseup.net>
----
- src/set_elem.c | 3 +++
- 1 file changed, 3 insertions(+)
+We don't start adding more of this "after_ctrl_dep" crap.
 
-diff --git a/src/set_elem.c b/src/set_elem.c
-index 353f21e..990be24 100644
---- a/src/set_elem.c
-+++ b/src/set_elem.c
-@@ -51,6 +51,9 @@ void nftnl_set_elem_free(struct nftnl_set_elem *s)
- 	if (s->flags & (1 << NFTNL_SET_ELEM_EXPR))
- 		nftnl_expr_free(s->expr);
-=20
-+	if (s->flags & (1 << NFTNL_SET_ELEM_USERDATA))
-+		xfree(s->user.data);
-+
- 	xfree(s);
- }
- EXPORT_SYMBOL_ALIAS(nftnl_set_elem_free, nft_set_elem_free);
---=20
-2.8.2
+It's completely impossible to understand, and even people who have
+been locking experts have gotten it wrong.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So it is *completely* unacceptable to have it in drivers.
+
+This needs to be either hidden inside the basic spinlock functions,
+_or_ it needs to be a clear and unambiguous interface. Anything that
+starts talking about control dependencies is not it.
+
+Note that this really is about naming and use, not about
+implementation. So something like "spin_sync_after_unlock_wait()" is
+acceptable, even if the actual _implementation_ were to be exactly the
+same as the "after_ctrl_dep()" crap.
+
+The difference is that one talks about incomprehensible implementation
+details that nobody outside of the person who *implemented* the
+spinlock code is supposed to understand (and seriously, I have my
+doubts even the spinlock implementer understands it, judging by the
+last time this happened), and the other is a much simpler semantic
+guarantee.
+
+So don't talk about "acquire". And most certainly don't talk about
+"control dependencies". Not if we end up having things like *drivers*
+using this like in this example libata.
+
+                Linus
