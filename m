@@ -1,47 +1,91 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] netfilter: helper: Fix helper unregister count.
-Date: Tue, 24 May 2016 12:14:10 +0200
-Message-ID: <20160524101410.GB2724@salvia>
-References: <1463231993-26917-1-git-send-email-ap420073@gmail.com>
- <CA+6hz4pj-wp5Vye6GSxiZM1-Bfq=qcJCUJD0hjEbmmtRsTfhow@mail.gmail.com>
- <20160524092608.GA2132@salvia>
- <CA+6hz4qEt7CMCuTAf+8ik2LGUJ7SLVuSkkd8VCbgvL4MehEsWQ@mail.gmail.com>
- <20160524094200.GA2294@salvia>
- <CA+6hz4pHweCqvTU0UhiKHcCg=kYAj0z1t1Ow26u3njDxPHXsgg@mail.gmail.com>
- <20160524095518.GA2434@salvia>
- <CA+6hz4reMcuYk=x5ouJbgb=YogR9ycnoySEDy2XuSiGZj7CDPg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Taehee Yoo <ap420073@gmail.com>, Patrick McHardy <kaber@trash.net>,
-	kadlec@blackhole.kfki.hu,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Feng Gao <gfree.wind@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] netlink_delinerize: don't use meta_match_postprocess for ct pp
+Date: Tue, 24 May 2016 14:02:49 +0200
+Message-ID: <1464091369-4230-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37436 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751581AbcEXKOR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2016 06:14:17 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id ACD3E13C0D5
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 May 2016 12:14:14 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 9A293A876
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 May 2016 12:14:14 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 0707415D62C
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 May 2016 12:14:12 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <CA+6hz4reMcuYk=x5ouJbgb=YogR9ycnoySEDy2XuSiGZj7CDPg@mail.gmail.com>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58046 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751954AbcEXMCc (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 May 2016 08:02:32 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 24, 2016 at 06:03:41PM +0800, Feng Gao wrote:
-> Hi Pablo,
-> 
-> Then could you give me some tips that how could i should to do next?
-> Rebase the codes, and resubmit the commit about register helpers?
-> Or Give up this and try to other commits?
+meta_match_postprocess uses meta.base which is only accessible if
+left expression has EXPR_META type, so we can't use it to handle ct postprocessing.
 
-Let's get the fixes in the tree first. Then, I'd suggest you follow up
-with your patches once the fixes show up in nf-next.
+To reduce copy-pastry factor the common part into ct_meta_common_postprocess(),
+then call that from both meta and ct postprocessing.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/netlink_delinearize.c | 36 +++++++++++++++++++++++++++++-------
+ 1 file changed, 29 insertions(+), 7 deletions(-)
+
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index de5d66c..9e26078 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1161,6 +1161,23 @@ static void payload_match_postprocess(struct rule_pp_ctx *ctx,
+ 	}
+ }
+ 
++static void ct_meta_common_postprocess(const struct expr *expr)
++{
++	const struct expr *left = expr->left;
++	struct expr *right = expr->right;
++
++	switch (expr->op) {
++	case OP_LOOKUP:
++		expr_set_type(right, left->dtype, left->byteorder);
++		if (right->dtype == &integer_type)
++			integer_type_postprocess(right);
++		break;
++
++	default:
++		break;
++	}
++}
++
+ static void meta_match_postprocess(struct rule_pp_ctx *ctx,
+ 				   const struct expr *expr)
+ {
+@@ -1178,13 +1195,8 @@ static void meta_match_postprocess(struct rule_pp_ctx *ctx,
+ 			payload_dependency_store(&ctx->pdctx, ctx->stmt,
+ 						 left->meta.base);
+ 		break;
+-	case OP_LOOKUP:
+-		expr_set_type(expr->right, expr->left->dtype,
+-			      expr->left->byteorder);
+-		if (expr->right->dtype == &integer_type)
+-			integer_type_postprocess(expr->right);
+-		break;
+ 	default:
++		ct_meta_common_postprocess(expr);
+ 		break;
+ 	}
+ }
+@@ -1192,7 +1204,17 @@ static void meta_match_postprocess(struct rule_pp_ctx *ctx,
+ static void ct_match_postprocess(struct rule_pp_ctx *ctx,
+ 				 const struct expr *expr)
+ {
+-	return meta_match_postprocess(ctx, expr);
++	switch (expr->op) {
++	case OP_EQ:
++		if (expr->right->ops->type == EXPR_RANGE)
++			break;
++
++		expr->left->ops->pctx_update(&ctx->pctx, expr);
++		break;
++	default:
++		ct_meta_common_postprocess(expr);
++		break;
++	}
+ }
+ 
+ /* Convert a bitmask to a prefix length */
+-- 
+2.7.3
+
