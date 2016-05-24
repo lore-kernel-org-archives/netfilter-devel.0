@@ -1,20 +1,19 @@
-From: Tejun Heo <tj@kernel.org>
+From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [RFC][PATCH 2/3] locking: Annotate spin_unlock_wait() users
-Date: Tue, 24 May 2016 12:22:07 -0400
-Message-ID: <20160524162207.GB3354@mtj.duckdns.org>
+Date: Tue, 24 May 2016 18:57:41 +0200
+Message-ID: <20160524165741.GB15189@worktop.bitpit.net>
 References: <20160524142723.178148277@infradead.org>
  <20160524143649.608476390@infradead.org>
  <CA+55aFyyHbPVMx8cZbKONy5cevxsYA0qbwapboA0dD8hPSwPWg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Peter Zijlstra <peterz@infradead.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
 	Manfred Spraul <manfred@colorfullife.com>,
 	Davidlohr Bueso <dave@stgolabs.net>,
 	Paul McKenney <paulmck@linux.vnet.ibm.com>,
 	Will Deacon <will.deacon@arm.com>,
 	Boqun Feng <boqun.feng@gmail.com>,
-	Waiman Long <Waiman.Long@hpe.com>,
+	Waiman Long <Waiman.Long@hpe.com>, Tejun Heo <tj@kernel.org>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
 	David Miller <davem@davemloft.net>,
@@ -22,30 +21,32 @@ Cc: Peter Zijlstra <peterz@infradead.org>,
 	netfilter-devel@vger.kernel.org,
 	Sasha Levin <sasha.levin@oracle.com>, hofrat@osadl.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yw0-f196.google.com ([209.85.161.196]:34665 "EHLO
-	mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752183AbcEXQWK (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2016 12:22:10 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <CA+55aFyyHbPVMx8cZbKONy5cevxsYA0qbwapboA0dD8hPSwPWg@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-Hello,
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 On Tue, May 24, 2016 at 09:17:13AM -0700, Linus Torvalds wrote:
-> So don't talk about "acquire". And most certainly don't talk about
-> "control dependencies". Not if we end up having things like *drivers*
-> using this like in this example libata.
 
-A delta but that particular libata usage is probably not needed now.
-The path was used while libata was gradually adding error handlers to
-the low level drivers.  I don't think we don't have any left w/o one
-at this point.  I'll verify and get rid of that usage.
+> This needs to be either hidden inside the basic spinlock functions,
+> _or_ it needs to be a clear and unambiguous interface. Anything that
+> starts talking about control dependencies is not it.
+> 
+> Note that this really is about naming and use, not about
+> implementation. So something like "spin_sync_after_unlock_wait()" is
+> acceptable, even if the actual _implementation_ were to be exactly the
+> same as the "after_ctrl_dep()" crap.
 
-Thanks.
+OK; so I would prefer to keep the smp_acquire__after_ctrl_dep() crap for
+common use in smp_cond_acquire() and such, but I'd be more than happy to
+just stuff it unconditionally into spin_unlock_wait().
 
--- 
-tejun
+Most users really need it, and its restores intuitive semantics to the
+primitive.
+
+I'm assuming the explicit use then left in ipc/sem.c (as paired with the
+spin_is_locked) is fine with you; that's certainly not driver code.
+
+Todays series was really more about auditing all the spin_unlock_wait()
+usage sites.
