@@ -1,42 +1,45 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [RFC][PATCH 2/3] locking: Annotate spin_unlock_wait() users
-Date: Tue, 24 May 2016 18:58:36 +0200
-Message-ID: <20160524165836.GC15189@worktop.bitpit.net>
-References: <20160524142723.178148277@infradead.org>
- <20160524143649.608476390@infradead.org>
- <CA+55aFyyHbPVMx8cZbKONy5cevxsYA0qbwapboA0dD8hPSwPWg@mail.gmail.com>
- <20160524162207.GB3354@mtj.duckdns.org>
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: xtables-addons: Kernel 4.4.0 OOPS with xt_CHAOS
+Date: Tue, 24 May 2016 19:15:52 +0200 (CEST)
+Message-ID: <alpine.LSU.2.20.1605241910190.19042@nerf40.vanv.qr>
+References: <CAOxNAe+PUyGO3GkZDP1BMxnXpSjv4KZq7ArB0+aU-N8AK0KTvA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Manfred Spraul <manfred@colorfullife.com>,
-	Davidlohr Bueso <dave@stgolabs.net>,
-	Paul McKenney <paulmck@linux.vnet.ibm.com>,
-	Will Deacon <will.deacon@arm.com>,
-	Boqun Feng <boqun.feng@gmail.com>,
-	Waiman Long <Waiman.Long@hpe.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>,
-	Oleg Nesterov <oleg@redhat.com>,
-	netfilter-devel@vger.kernel.org,
-	Sasha Levin <sasha.levin@oracle.com>, hofrat@osadl.org
-To: Tejun Heo <tj@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160524162207.GB3354@mtj.duckdns.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Feliksas <computershik@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ares41.inai.de ([46.4.122.207]:38504 "EHLO ares41.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751425AbcEXRPz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 May 2016 13:15:55 -0400
+In-Reply-To: <CAOxNAe+PUyGO3GkZDP1BMxnXpSjv4KZq7ArB0+aU-N8AK0KTvA@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 24, 2016 at 12:22:07PM -0400, Tejun Heo wrote:
-> A delta but that particular libata usage is probably not needed now.
-> The path was used while libata was gradually adding error handlers to
-> the low level drivers.  I don't think we don't have any left w/o one
-> at this point.  I'll verify and get rid of that usage.
 
-OK, that would be great; I was sorta lost in there, but it looked like
-if you need the spin_unlock_wait() you also need the extra barrier
-thing.
+On Tuesday 2016-05-10 17:15, Feliksas wrote:
+>After upgrading from Wily to Xenial, my server started being frequently
+>rebooted by an HP iLO watchdog. I turned it off, and installed kdump
+>tools, and managed to capture a kernel crashdump. Turned out to be a
+>network-related OOPS, looks like a bug with xtables modules and kernel
+>4.4.0 (the issue doesn't seem to occur with 4.2.0).
+>The offending iptables rule, now removed:
+>
+>iptables -A INPUT -j CHAOS --tarpit
 
-If you can remove it, better still.
+    [exception RIP: __ip_route_output_key_hash+1184]
+ #9 [ffff8803fa4436e8] __kmalloc_node_track_caller at ffffffff811eed95
+#10 [ffff8803fa443770] ip_route_output_flow at ffffffff81757a11
+#11 [ffff8803fa443798] ip_route_me_harder at ffffffff817ace31
+#12 [ffff8803fa443810] tarpit_tg4 at ffffffffc065bb83 [xt_TARPIT]
+
+The presence of __kmalloc_node_track_caller suggests that +1184 might be near
+the fib_lookup call in the __ip_route_output_key_hash function. However, that
+looks quite outside xtables-addons.
+
+I will make the bold assumption that xt_TARPIT's call of 
+ip_route_me_harder has a valid netns passed. The flowi structure though,
+is ip_route_me_harder's territory.
+
+>Kernel version 4.4.0-22-generic #39-Ubuntu SMP Thu May 5 16:53:32 UTC
+>2016 x86_64 x86_64 x86_64 GNU/Linux
