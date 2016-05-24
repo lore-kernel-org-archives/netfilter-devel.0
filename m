@@ -1,112 +1,48 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ipset] hash:net,iface bug?
-Date: Mon, 23 May 2016 20:49:05 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1605232044560.2937@blackhole.kfki.hu>
-References: <bc61b1ffc5fd4402bab9a533a1b2a384@BTS-XEXCH01-B.eset.corp>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [libnetfilter-conntrack PATCH] qa: update test_api with IPv6 NAT
+Date: Tue, 24 May 2016 11:09:39 +0200
+Message-ID: <146408097950.11122.5672229125585867763.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Marek Mrva <mrva@eset.sk>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:35245 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750710AbcEWSrp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 May 2016 14:47:45 -0400
-In-Reply-To: <bc61b1ffc5fd4402bab9a533a1b2a384@BTS-XEXCH01-B.eset.corp>
+Received: from smtp3.cica.es ([150.214.5.190]:41359 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754965AbcEXJJs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 May 2016 05:09:48 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id C8B0A51F28A
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 May 2016 09:09:44 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id h8EeuCAAX_jV for <netfilter-devel@vger.kernel.org>;
+	Tue, 24 May 2016 11:09:39 +0200 (CEST)
+Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
+	(Authenticated sender: servers@cica.es)
+	by smtp.cica.es (Postfix) with ESMTP id DD6FD51F208
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 May 2016 11:09:39 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 23 May 2016, Marek Mrva wrote:
+Comparators are not implemented.
 
-> I have been playing with hash:net,iface table for a couple of days now, 
-> but for the love of me, I can't make it accept physdev: devices.
-> 
-> The man says: When the interface is flagged with physdev:, the interface 
-> is interpreted as the incoming/outgoing bridge port.
-> 
-> It all boils down to this code (for IPv4):
-> 
-> --- kernel/net/netfilter/ipset/ip_set_hash_netiface.c@154, ipset repository ---
-> 
-> static int
-> hash_netiface4_kadt(struct ip_set *set, const struct sk_buff *skb,
->                     const struct xt_action_param *par,
->                     enum ipset_adt adt, struct ip_set_adt_opt *opt)
-> {
-> --- snip ---
->         if (opt->cmdflags & IPSET_FLAG_PHYSDEV) {
-> #if IS_ENABLED(CONFIG_BRIDGE_NETFILTER)
->                 const char *eiface = SRCDIR ? get_physindev_name(skb) :
->                                               get_physoutdev_name(skb);
-> 
->                 if (!eiface)
->                         return -EINVAL;
->                 STRLCPY(e.iface, eiface);
->                 e.physdev = 1;
-> #endif
->         } else {
->                 STRLCPY(e.iface, SRCDIR ? IFACE(in) : IFACE(out));
->         }
-> --- snip ---
-> }
-> 
-> The IPSET_FLAG_PHYSDEV (value 2) is never set, nor could I find any 
-> useful references to it (I tried really hard). I believe this code never 
-> obtains the "physical" (bridge) port. opt->cmdflags (probably?) contains 
-> flags passed to ipset code by iptables. I've seen these values used:
-> 
-> 1	-j SET --exists
-> 8	-m set ! --update-counters
-> 16	-m set ! --update-subcounters
-> 32	-m set --bytes-lt (or any other combination of bytes/packets)
-> 128	-m set --return-nomatch
-> 
-> The table resembling it most closely is this one:
-> 
-> --- include/libipset/linux_ip_set.h@159, ipset repository ---
-> 
-> /* Flags at command level or match/target flags, lower half of cmdattrs*/
-> enum ipset_cmd_flags {
->         IPSET_FLAG_BIT_EXIST    = 0,
->         IPSET_FLAG_EXIST        = (1 << IPSET_FLAG_BIT_EXIST),
->         IPSET_FLAG_BIT_LIST_SETNAME = 1,
->         IPSET_FLAG_LIST_SETNAME = (1 << IPSET_FLAG_BIT_LIST_SETNAME),
->         IPSET_FLAG_BIT_LIST_HEADER = 2,
->         IPSET_FLAG_LIST_HEADER  = (1 << IPSET_FLAG_BIT_LIST_HEADER),
->         IPSET_FLAG_BIT_SKIP_COUNTER_UPDATE = 3,
->         IPSET_FLAG_SKIP_COUNTER_UPDATE =
->                 (1 << IPSET_FLAG_BIT_SKIP_COUNTER_UPDATE),
->         IPSET_FLAG_BIT_SKIP_SUBCOUNTER_UPDATE = 4,
->         IPSET_FLAG_SKIP_SUBCOUNTER_UPDATE =
->                 (1 << IPSET_FLAG_BIT_SKIP_SUBCOUNTER_UPDATE),
->         IPSET_FLAG_BIT_MATCH_COUNTERS = 5,
->         IPSET_FLAG_MATCH_COUNTERS = (1 << IPSET_FLAG_BIT_MATCH_COUNTERS),
->         IPSET_FLAG_BIT_RETURN_NOMATCH = 7,
->         IPSET_FLAG_RETURN_NOMATCH = (1 << IPSET_FLAG_BIT_RETURN_NOMATCH),
->         IPSET_FLAG_BIT_MAP_SKBMARK = 8,
->         IPSET_FLAG_MAP_SKBMARK = (1 << IPSET_FLAG_BIT_MAP_SKBMARK),
->         IPSET_FLAG_BIT_MAP_SKBPRIO = 9,
->         IPSET_FLAG_MAP_SKBPRIO = (1 << IPSET_FLAG_BIT_MAP_SKBPRIO),
->         IPSET_FLAG_BIT_MAP_SKBQUEUE = 10,
->         IPSET_FLAG_MAP_SKBQUEUE = (1 << IPSET_FLAG_BIT_MAP_SKBQUEUE),
->         IPSET_FLAG_CMD_MAX = 15,
-> };
-> 
-> If that is correct, the IPSET_FLAG_LIST_SETNAME should be responsible 
-> for using PHYSDEV. I tried searching for this flag, but was unable to 
-> find a place where it is set.
-> 
-> Any ideas on this are very welcome :)
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+---
+ qa/test_api.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-The IPSET_FLAG_PHYSDEV is passed from userspace, of course, see 
-ipset_parse_iface() in lib/parse.c. However, it seems it is not stored 
-when the user input in processed in the kernel. I'll double check and fix 
-it.
+diff --git a/qa/test_api.c b/qa/test_api.c
+index 3742357..b96ecf7 100644
+--- a/qa/test_api.c
++++ b/qa/test_api.c
+@@ -178,6 +178,8 @@ static int test_nfct_cmp_api_single(struct nf_conntrack *ct1,
+ 	/* FIXME: not implemented comparators: */
+ 	case ATTR_SNAT_IPV4:
+ 	case ATTR_DNAT_IPV4:
++	case ATTR_SNAT_IPV6:
++	case ATTR_DNAT_IPV6:
+ 	case ATTR_SNAT_PORT:
+ 	case ATTR_DNAT_PORT:
+ 
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
