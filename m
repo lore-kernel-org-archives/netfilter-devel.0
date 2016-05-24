@@ -1,60 +1,51 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [RFC][PATCH 3/3] locking,netfilter: Fix nf_conntrack_lock()
-Date: Tue, 24 May 2016 16:42:28 +0200
-Message-ID: <20160524144228.GA15189@worktop.bitpit.net>
-References: <20160524142723.178148277@infradead.org>
- <20160524143649.673861121@infradead.org>
+From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
+Subject: [PATCH] libnftnl: set_elem: Fix memory leak
+Date: Tue, 24 May 2016 17:17:07 +0200
+Message-ID: <1464103027-18484-1-git-send-email-carlosfg@riseup.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: boqun.feng@gmail.com, Waiman.Long@hpe.com, tj@kernel.org,
-	pablo@netfilter.org, kaber@trash.net, davem@davemloft.net,
-	oleg@redhat.com, netfilter-devel@vger.kernel.org,
-	sasha.levin@oracle.com, hofrat@osadl.org
-To: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
-	manfred@colorfullife.com, dave@stgolabs.net,
-	paulmck@linux.vnet.ibm.com, will.deacon@arm.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160524143649.673861121@infradead.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mx1.riseup.net ([198.252.153.129]:51768 "EHLO mx1.riseup.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752428AbcEXPRV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 May 2016 11:17:21 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 24, 2016 at 04:27:26PM +0200, Peter Zijlstra wrote:
-> nf_conntrack_lock{,_all}() is borken as it misses a bunch of memory
-> barriers to order the whole global vs local locks scheme.
-> 
-> Even x86 (and other TSO archs) are affected.
-> 
-> Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-> ---
->  net/netfilter/nf_conntrack_core.c |   30 +++++++++++++++++++++++++++++-
->  1 file changed, 29 insertions(+), 1 deletion(-)
-> 
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -74,7 +74,18 @@ void nf_conntrack_lock(spinlock_t *lock)
->  	spin_lock(lock);
->  	while (unlikely(nf_conntrack_locks_all)) {
+User data must be freed.
 
-And note that we can replace nf_conntrack_locks_all with
-spin_is_locked(nf_conntrack_locks_all_lock), since that is the exact
-same state.
+How to reproduce:
+    > nft add table t
+    > nft add set t s {type ipv4_addr\;}
+    > valgrind nft add element t s {1.1.1.1}
 
-But I didn't want to do too much in one go.
+Signed-off-by: Carlos Falgueras Garc=C3=ADa <carlosfg@riseup.net>
+---
+ src/set_elem.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
->  		spin_unlock(lock);
-> +		/*
-> +		 * Order the nf_contrack_locks_all load vs the spin_unlock_wait()
-> +		 * loads below, to ensure locks_all is indeed held.
-> +		 */
-> +		smp_rmb(); /* spin_lock(locks_all) */
->  		spin_unlock_wait(&nf_conntrack_locks_all_lock);
-> +		/*
-> +		 * The control dependency's LOAD->STORE order is enough to
-> +		 * guarantee the spin_lock() is ordered after the above
-> +		 * unlock_wait(). And the ACQUIRE of the lock ensures we are
-> +		 * fully ordered against the spin_unlock() of locks_all.
-> +		 */
->  		spin_lock(lock);
->  	}
->  }
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 353f21e..990be24 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -51,6 +51,9 @@ void nftnl_set_elem_free(struct nftnl_set_elem *s)
+ 	if (s->flags & (1 << NFTNL_SET_ELEM_EXPR))
+ 		nftnl_expr_free(s->expr);
+=20
++	if (s->flags & (1 << NFTNL_SET_ELEM_USERDATA))
++		xfree(s->user.data);
++
+ 	xfree(s);
+ }
+ EXPORT_SYMBOL_ALIAS(nftnl_set_elem_free, nft_set_elem_free);
+--=20
+2.8.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
