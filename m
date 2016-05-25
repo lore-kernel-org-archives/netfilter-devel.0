@@ -1,49 +1,44 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v3] doc: Complete the documentation of statements
-Date: Wed, 25 May 2016 12:01:38 +0200
-Message-ID: <20160525100138.GA11028@salvia>
-References: <20160512112714.GA10290@shivani>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next] netfilter: conntrack: allow increasing bucket
+ size via sysctl too
+Date: Wed, 25 May 2016 12:04:50 +0200
+Message-ID: <20160525100450.GA22288@breakpoint.cc>
+References: <1463334309-8685-1-git-send-email-fw@strlen.de>
+ <201605251426.gLgNgu5U%fengguang.wu@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+Cc: Florian Westphal <fw@strlen.de>, kbuild-all@01.org,
+	netfilter-devel@vger.kernel.org
+To: kbuild test robot <lkp@intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46881 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750773AbcEYKBs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 May 2016 06:01:48 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 0D7F6178584
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 May 2016 12:01:46 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id F21C511FE80
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 May 2016 12:01:45 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 9C46F11FE80
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 May 2016 12:01:40 +0200 (CEST)
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:59649 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750769AbcEYKE6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 May 2016 06:04:58 -0400
 Content-Disposition: inline
-In-Reply-To: <20160512112714.GA10290@shivani>
+In-Reply-To: <201605251426.gLgNgu5U%fengguang.wu@intel.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 12, 2016 at 04:57:14PM +0530, Shivani Bhardwaj wrote:
-> Add documentation corresponding to LOG STATEMENT, REJECT STATEMENT,
-> COUNTER STATEMENT, META STATEMENT, LIMIT STATEMENT, NAT STATEMENT,
-> QUEUE STATEMENT.
+kbuild test robot <lkp@intel.com> wrote:
+> url:    https://github.com/0day-ci/linux/commits/Florian-Westphal/netfilter-conntrack-allow-increasing-bucket-size-via-sysctl-too/20160516-014623
+> base:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next master
+> config: x86_64-randconfig-n0-05251422 (attached as .config)
+> compiler: gcc-6 (Debian 6.1.1-1) 6.1.1 20160430
+> reproduce:
+>         # save the attached .config to linux build tree
+>         make ARCH=x86_64 
+> 
+> Note: the linux-review/Florian-Westphal/netfilter-conntrack-allow-increasing-bucket-size-via-sysctl-too/20160516-014623 HEAD 5f39f4af5e5d9cf4d678faa29015e6aa5b89513d builds fine.
+>       It only hurts bisectibility.
+> 
+> All errors (new ones prefixed by >>):
+> 
+>    net/netfilter/nf_conntrack_standalone.c: In function 'nf_conntrack_standalone_init':
+> >> net/netfilter/nf_conntrack_standalone.c:640:2: error: 'nf_conntrack_htable_size_user' undeclared (first use in this function)
+>      nf_conntrack_htable_size_user = nf_conntrack_htable_size;
+>      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>    net/netfilter/nf_conntrack_standalone.c:640:2: note: each undeclared identifier is reported only once for each function it appears in
 
-We're almost there. Look, this syntax the manpage shows after your
-update is not correct:
-
-   LIMIT STATEMENT
-       limit {rate | burst}
-
-This should look like:
-
-        limit rate [over] _rate_ [units] [burst _burst_ ]
-
-Have a look at 'limit_stmt' in src/parser_bison.y for the production
-in the grammar that we have. This should show what is there.
-
-Would you give this another spin?
-
-Thanks.
+I'll send a v2 once -next is open again.
