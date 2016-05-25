@@ -1,32 +1,101 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnetfilter-conntrack PATCH] qa: update test_api with IPv6 NAT
-Date: Wed, 25 May 2016 10:53:53 +0200
-Message-ID: <20160525085353.GA4245@salvia>
-References: <146408097950.11122.5672229125585867763.stgit@nfdev2.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [PATCH nf] netfilter: nf_ct_helper: Fix helper unregister count.
+Date: Wed, 25 May 2016 11:12:38 +0200
+Message-ID: <1464167558-7851-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48610 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55884 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751355AbcEYIx6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 May 2016 04:53:58 -0400
+	id S1752950AbcEYJMs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 May 2016 05:12:48 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id BEFBC1C4383
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 May 2016 10:53:56 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 4076A1C4399
+	for <netfilter-devel@vger.kernel.org>; Wed, 25 May 2016 11:12:45 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B03BD11C38B
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 May 2016 10:53:56 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 2DE04A867
+	for <netfilter-devel@vger.kernel.org>; Wed, 25 May 2016 11:12:45 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id A89AF15D620
-	for <netfilter-devel@vger.kernel.org>; Wed, 25 May 2016 10:53:54 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <146408097950.11122.5672229125585867763.stgit@nfdev2.cica.es>
+	by antivirus1-rhel7.int (Postfix) with ESMTP id DC9A215D634
+	for <netfilter-devel@vger.kernel.org>; Wed, 25 May 2016 11:12:42 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 24, 2016 at 11:09:39AM +0200, Arturo Borrero Gonzalez wrote:
-> Comparators are not implemented.
+From: Taehee Yoo <ap420073@gmail.com>
 
-Applied, thanks Arturo.
+helpers should unregister the only registered ports.
+but, helper cannot have correct registered ports value when
+failed to register.
+
+Signed-off-by: Taehee Yoo <ap420073@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nf_conntrack_ftp.c  | 1 +
+ net/netfilter/nf_conntrack_irc.c  | 1 +
+ net/netfilter/nf_conntrack_sane.c | 1 +
+ net/netfilter/nf_conntrack_sip.c  | 1 +
+ net/netfilter/nf_conntrack_tftp.c | 1 +
+ 5 files changed, 5 insertions(+)
+
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index 883c691..19efeba 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -632,6 +632,7 @@ static int __init nf_conntrack_ftp_init(void)
+ 			if (ret) {
+ 				pr_err("failed to register helper for pf: %d port: %d\n",
+ 				       ftp[i][j].tuple.src.l3num, ports[i]);
++				ports_c = i;
+ 				nf_conntrack_ftp_fini();
+ 				return ret;
+ 			}
+diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
+index 8b6da27..f97ac61 100644
+--- a/net/netfilter/nf_conntrack_irc.c
++++ b/net/netfilter/nf_conntrack_irc.c
+@@ -271,6 +271,7 @@ static int __init nf_conntrack_irc_init(void)
+ 		if (ret) {
+ 			pr_err("failed to register helper for pf: %u port: %u\n",
+ 			       irc[i].tuple.src.l3num, ports[i]);
++			ports_c = i;
+ 			nf_conntrack_irc_fini();
+ 			return ret;
+ 		}
+diff --git a/net/netfilter/nf_conntrack_sane.c b/net/netfilter/nf_conntrack_sane.c
+index 7523a57..3fcbaab 100644
+--- a/net/netfilter/nf_conntrack_sane.c
++++ b/net/netfilter/nf_conntrack_sane.c
+@@ -223,6 +223,7 @@ static int __init nf_conntrack_sane_init(void)
+ 			if (ret) {
+ 				pr_err("failed to register helper for pf: %d port: %d\n",
+ 				       sane[i][j].tuple.src.l3num, ports[i]);
++				ports_c = i;
+ 				nf_conntrack_sane_fini();
+ 				return ret;
+ 			}
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 3e06402..f72ba55 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -1669,6 +1669,7 @@ static int __init nf_conntrack_sip_init(void)
+ 			if (ret) {
+ 				pr_err("failed to register helper for pf: %u port: %u\n",
+ 				       sip[i][j].tuple.src.l3num, ports[i]);
++				ports_c = i;
+ 				nf_conntrack_sip_fini();
+ 				return ret;
+ 			}
+diff --git a/net/netfilter/nf_conntrack_tftp.c b/net/netfilter/nf_conntrack_tftp.c
+index 36f9640..2e65b543 100644
+--- a/net/netfilter/nf_conntrack_tftp.c
++++ b/net/netfilter/nf_conntrack_tftp.c
+@@ -142,6 +142,7 @@ static int __init nf_conntrack_tftp_init(void)
+ 			if (ret) {
+ 				pr_err("failed to register helper for pf: %u port: %u\n",
+ 				       tftp[i][j].tuple.src.l3num, ports[i]);
++				ports_c = i;
+ 				nf_conntrack_tftp_fini();
+ 				return ret;
+ 			}
+-- 
+2.1.4
+
