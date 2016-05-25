@@ -1,45 +1,109 @@
-From: Jan Engelhardt <jengelh@inai.de>
-Subject: Re: xtables-addons: Kernel 4.4.0 OOPS with xt_CHAOS
-Date: Tue, 24 May 2016 19:15:52 +0200 (CEST)
-Message-ID: <alpine.LSU.2.20.1605241910190.19042@nerf40.vanv.qr>
-References: <CAOxNAe+PUyGO3GkZDP1BMxnXpSjv4KZq7ArB0+aU-N8AK0KTvA@mail.gmail.com>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [RFC][PATCH 1/3] locking: Introduce smp_acquire__after_ctrl_dep
+Date: Tue, 24 May 2016 21:53:29 -0700
+Message-ID: <20160525045329.GQ4148@linux.vnet.ibm.com>
+References: <20160524142723.178148277@infradead.org>
+ <20160524143649.523586684@infradead.org>
+ <57451581.6000700@hpe.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Feliksas <computershik@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Peter Zijlstra <peterz@infradead.org>,
+	linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
+	manfred@colorfullife.com, dave@stgolabs.net, will.deacon@arm.com,
+	boqun.feng@gmail.com, tj@kernel.org, pablo@netfilter.org,
+	kaber@trash.net, davem@davemloft.net, oleg@redhat.com,
+	netfilter-devel@vger.kernel.org, sasha.levin@oracle.com,
+	hofrat@osadl.org
+To: Waiman Long <waiman.long@hpe.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ares41.inai.de ([46.4.122.207]:38504 "EHLO ares41.inai.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751425AbcEXRPz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 May 2016 13:15:55 -0400
-In-Reply-To: <CAOxNAe+PUyGO3GkZDP1BMxnXpSjv4KZq7ArB0+aU-N8AK0KTvA@mail.gmail.com>
+Received: from e36.co.us.ibm.com ([32.97.110.154]:34094 "EHLO
+	e36.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751109AbcEYExf (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 May 2016 00:53:35 -0400
+Received: from localhost
+	by e36.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <netfilter-devel@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
+	Tue, 24 May 2016 22:53:34 -0600
+Content-Disposition: inline
+In-Reply-To: <57451581.6000700@hpe.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tue, May 24, 2016 at 11:01:21PM -0400, Waiman Long wrote:
+> On 05/24/2016 10:27 AM, Peter Zijlstra wrote:
+> >Introduce smp_acquire__after_ctrl_dep(), this construct is not
+> >uncommen, but the lack of this barrier is.
+> >
+> >Signed-off-by: Peter Zijlstra (Intel)<peterz@infradead.org>
+> >---
+> >  include/linux/compiler.h |   14 ++++++++++----
+> >  ipc/sem.c                |   14 ++------------
+> >  2 files changed, 12 insertions(+), 16 deletions(-)
+> >
+> >--- a/include/linux/compiler.h
+> >+++ b/include/linux/compiler.h
+> >@@ -305,20 +305,26 @@ static __always_inline void __write_once
+> >  })
+> >
+> >  /**
+> >+ * smp_acquire__after_ctrl_dep() - Provide ACQUIRE ordering after a control dependency
+> >+ *
+> >+ * A control dependency provides a LOAD->STORE order, the additional RMB
+> >+ * provides LOAD->LOAD order, together they provide LOAD->{LOAD,STORE} order,
+> >+ * aka. ACQUIRE.
+> >+ */
+> >+#define smp_acquire__after_ctrl_dep()		smp_rmb()
+> >+
+> >+/**
+> >   * smp_cond_acquire() - Spin wait for cond with ACQUIRE ordering
+> >   * @cond: boolean expression to wait for
+> >   *
+> >   * Equivalent to using smp_load_acquire() on the condition variable but employs
+> >   * the control dependency of the wait to reduce the barrier on many platforms.
+> >   *
+> >- * The control dependency provides a LOAD->STORE order, the additional RMB
+> >- * provides LOAD->LOAD order, together they provide LOAD->{LOAD,STORE} order,
+> >- * aka. ACQUIRE.
+> >   */
+> >  #define smp_cond_acquire(cond)	do {		\
+> >  	while (!(cond))				\
+> >  		cpu_relax();			\
+> >-	smp_rmb(); /* ctrl + rmb := acquire */	\
+> >+	smp_acquire__after_ctrl_dep();		\
+> >  } while (0)
+> >
+> >
+> 
+> I have a question about the claim that control dependence + rmb is
+> equivalent to an acquire memory barrier. For example,
+> 
+> S1:    if (a)
+> S2:       b = 1;
+>        smp_rmb()
+> S3:    c = 2;
+> 
+> Since c is independent of both a and b, is it possible that the cpu
+> may reorder to execute store statement S3 first before S1 and S2?
 
-On Tuesday 2016-05-10 17:15, Feliksas wrote:
->After upgrading from Wily to Xenial, my server started being frequently
->rebooted by an HP iLO watchdog. I turned it off, and installed kdump
->tools, and managed to capture a kernel crashdump. Turned out to be a
->network-related OOPS, looks like a bug with xtables modules and kernel
->4.4.0 (the issue doesn't seem to occur with 4.2.0).
->The offending iptables rule, now removed:
->
->iptables -A INPUT -j CHAOS --tarpit
+The CPUs I know of won't do, nor should the compiler, at least assuming
+"a" (AKA "cond") includes READ_ONCE().  Ditto "b" and WRITE_ONCE().
+Otherwise, the compiler could do quite a few "interesting" things,
+especially if it knows the value of "b".  For example, if the compiler
+knows that b==1, without the volatile casts, the compiler could just
+throw away both S1 and S2, eliminating any ordering.  This can get
+quite tricky -- see memory-barriers.txt for more mischief.
 
-    [exception RIP: __ip_route_output_key_hash+1184]
- #9 [ffff8803fa4436e8] __kmalloc_node_track_caller at ffffffff811eed95
-#10 [ffff8803fa443770] ip_route_output_flow at ffffffff81757a11
-#11 [ffff8803fa443798] ip_route_me_harder at ffffffff817ace31
-#12 [ffff8803fa443810] tarpit_tg4 at ffffffffc065bb83 [xt_TARPIT]
+The smp_rmb() is not needed in this example because S3 is a write, not
+a read.  Perhaps you meant something more like this:
 
-The presence of __kmalloc_node_track_caller suggests that +1184 might be near
-the fib_lookup call in the __ip_route_output_key_hash function. However, that
-looks quite outside xtables-addons.
+	if (READ_ONCE(a))
+		WRITE_ONCE(b, 1);
+	smp_rmb();
+	r1 = READ_ONCE(c);
 
-I will make the bold assumption that xt_TARPIT's call of 
-ip_route_me_harder has a valid netns passed. The flowi structure though,
-is ip_route_me_harder's territory.
+This sequence would guarantee that "a" was read before "c".
 
->Kernel version 4.4.0-22-generic #39-Ubuntu SMP Thu May 5 16:53:32 UTC
->2016 x86_64 x86_64 x86_64 GNU/Linux
+							Thanx, Paul
+
