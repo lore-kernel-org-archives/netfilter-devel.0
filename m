@@ -1,40 +1,100 @@
-From: John Stultz <john.stultz@linaro.org>
-Subject: [Regression?] iptables broken on 32bit with pre-4.7-rc
-Date: Wed, 25 May 2016 22:52:38 -0700
-Message-ID: <CALAqxLXgAA=zV_AAOTkWE3yFaxNJ02y0jGwVrdTW+rSCrSUMkg@mail.gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [Regression?] iptables broken on 32bit with pre-4.7-rc
+Date: Thu, 26 May 2016 11:51:12 +0200
+Message-ID: <20160526095112.GA14828@breakpoint.cc>
+References: <CALAqxLXgAA=zV_AAOTkWE3yFaxNJ02y0jGwVrdTW+rSCrSUMkg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: lkml <linux-kernel@vger.kernel.org>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	lkml <linux-kernel@vger.kernel.org>,
 	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+To: John Stultz <john.stultz@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CALAqxLXgAA=zV_AAOTkWE3yFaxNJ02y0jGwVrdTW+rSCrSUMkg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hey Florian, Pablo,
+John Stultz <john.stultz@linaro.org> wrote:
+> In updating a 32bit arm device from 4.6 to Linus' current HEAD, I
+> noticed I was having some trouble with networking, and realized that
+> /proc/net/ip_tables_names was suddenly empty.
+> 
+> Digging through the registration process, it seems we're catching on the:
+> 
+>        if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
+>            target_offset + sizeof(struct xt_standard_target) != next_offset)
+>                return -EINVAL;
+> 
+> check added in 7ed2abddd20cf ("netfilter: x_tables: check standard
+> target size too").
+> 
+> Where next_offset seems to be 4 bytes larger then the the offset +
+> standard_target struct size.
 
-In updating a 32bit arm device from 4.6 to Linus' current HEAD, I
-noticed I was having some trouble with networking, and realized that
-/proc/net/ip_tables_names was suddenly empty.
+I guess its because arm32 needs 8 byte alignment for 64bit
+quantities.  So we can fix this either via XT_ALIGN()'ing the
+target_offset + sizeof() result or by weakening the test to a '>'.
 
-Digging through the registration process, it seems we're catching on the:
+Since we already test proper alignment of start-of-rule in
+check_entry_size_and_hooks() I'd suggest we just change the test
+to fail only if the next offset is within the min size, i.e.:
 
-       if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
-           target_offset + sizeof(struct xt_standard_target) != next_offset)
-               return -EINVAL;
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index c69c892..9643047 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -612,7 +612,7 @@ int xt_compat_check_entry_offsets(const void *base, const char *elems,
+                return -EINVAL;
+ 
+        if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
+-           target_offset + sizeof(struct compat_xt_standard_target) != next_offset)
++           target_offset + sizeof(struct compat_xt_standard_target) > next_offset)
+                return -EINVAL;
+ 
+        /* compat_xt_entry match has less strict aligment requirements,
+@@ -694,7 +694,7 @@ int xt_check_entry_offsets(const void *base,
+                return -EINVAL;
+ 
+        if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
+-           target_offset + sizeof(struct xt_standard_target) != next_offset)
++           target_offset + sizeof(struct xt_standard_target) > next_offset)
+                return -EINVAL;
+ 
+        return xt_check_entry_match(elems, base + target_offset,
 
-check added in 7ed2abddd20cf ("netfilter: x_tables: check standard
-target size too").
+> I'm not exactly sure how the next_offset value is set, so I'm hoping
+> the proper fix is more obvious to one of you.
 
-Where next_offset seems to be 4 bytes larger then the the offset +
-standard_target struct size.
+Its the start of the next rule so it has to be properly aligned
+via XT_ALIGN().  Only 32bit system I tested was plain x86 which
+only needs 4byte alignment for u64...
 
-Commenting out those checks (the commit doesn't revert cleanly), seems
-to get things going again for me.
+Alternative would be something like this:
 
-I'm not exactly sure how the next_offset value is set, so I'm hoping
-the proper fix is more obvious to one of you.
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index c69c892..ca16c26 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -612,7 +612,7 @@ int xt_compat_check_entry_offsets(const void *base, const char *elems,
+                return -EINVAL;
+ 
+        if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
+-           target_offset + sizeof(struct compat_xt_standard_target) != next_offset)
++           XT_COMPAT_ALIGN(target_offset + sizeof(struct compat_xt_standard_target)) != next_offset)
+                return -EINVAL;
+ 
+        /* compat_xt_entry match has less strict aligment requirements,
+@@ -694,7 +694,7 @@ int xt_check_entry_offsets(const void *base,
+                return -EINVAL;
+ 
+        if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
+-           target_offset + sizeof(struct xt_standard_target) != next_offset)
++           XT_ALIGN(target_offset + sizeof(struct xt_standard_target)) != next_offset)
+                return -EINVAL;
+ 
+        return xt_check_entry_match(elems, base + target_offset,
 
-thanks
--john
+
+but afaics the stricter check does not buy anything.
