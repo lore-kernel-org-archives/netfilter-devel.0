@@ -1,44 +1,56 @@
-From: Paolo Abeni <pabeni@redhat.com>
-Subject: [PATCH nf] netfilter: set again FLOWI_FLAG_KNOWN_NH at flowi6_flags
-Date: Thu, 26 May 2016 19:08:10 +0200
-Message-ID: <57f1193ae2ca44c7a901cab0b0f53d603afdca04.1464262477.git.pabeni@redhat.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [ipset] hash:net,iface bug?
+Date: Thu, 26 May 2016 21:40:29 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1605262132160.24467@blackhole.kfki.hu>
+References: <bc61b1ffc5fd4402bab9a533a1b2a384@BTS-XEXCH01-B.eset.corp> <alpine.DEB.2.10.1605232044560.2937@blackhole.kfki.hu>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Marek Mrva <mrva@eset.sk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57750 "EHLO mx1.redhat.com"
+Received: from smtp1.kfki.hu ([148.6.0.26]:51871 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751497AbcEZRIX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 May 2016 13:08:23 -0400
+	id S1754298AbcEZTjI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 May 2016 15:39:08 -0400
+In-Reply-To: <alpine.DEB.2.10.1605232044560.2937@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-With the commit 48e8aa6e3137 ("ipv6: Set FLOWI_FLAG_KNOWN_NH at
-flowi6_flags") ip6_pol_route() callers were asked to to set the
-FLOWI_FLAG_KNOWN_NH properly and xt_TEE was updated accordingly,
-but with the later refactor in commit bbde9fc1824a ("netfilter:
-factor out packet duplication for IPv4/IPv6") the flowi6_flags
-update was lost.
-This commit re-add it just before the routing decision.
+On Mon, 23 May 2016, Jozsef Kadlecsik wrote:
 
-Fixes: bbde9fc1824a ("netfilter: factor out packet duplication for IPv4/IPv6")
-Signed-off-by: Paolo Abeni <pabeni@redhat.com>
----
- net/ipv6/netfilter/nf_dup_ipv6.c | 1 +
- 1 file changed, 1 insertion(+)
+> On Mon, 23 May 2016, Marek Mrva wrote:
+> 
+> > I have been playing with hash:net,iface table for a couple of days now, 
+> > but for the love of me, I can't make it accept physdev: devices.
+> > 
+> > The man says: When the interface is flagged with physdev:, the interface 
+> > is interpreted as the incoming/outgoing bridge port.
+[...]
+>
+> The IPSET_FLAG_PHYSDEV is passed from userspace, of course, see 
+> ipset_parse_iface() in lib/parse.c. However, it seems it is not stored 
+> when the user input in processed in the kernel. I'll double check and fix 
+> it.
 
-diff --git a/net/ipv6/netfilter/nf_dup_ipv6.c b/net/ipv6/netfilter/nf_dup_ipv6.c
-index 6989c70..4a84b5a 100644
---- a/net/ipv6/netfilter/nf_dup_ipv6.c
-+++ b/net/ipv6/netfilter/nf_dup_ipv6.c
-@@ -33,6 +33,7 @@ static bool nf_dup_ipv6_route(struct net *net, struct sk_buff *skb,
- 	fl6.daddr = *gw;
- 	fl6.flowlabel = (__force __be32)(((iph->flow_lbl[0] & 0xF) << 16) |
- 			(iph->flow_lbl[1] << 8) | iph->flow_lbl[2]);
-+	fl6.flowi6_flags = FLOWI_FLAG_KNOWN_NH;
- 	dst = ip6_route_output(net, NULL, &fl6);
- 	if (dst->error) {
- 		dst_release(dst);
--- 
-1.8.3.1
+Digging into the code further, the IPSET_FLAG_PHYSDEV is stored in the 
+kernel in the hash data. However, the logic to test it is broken. The 
+current code in the kernel assumes that the "set" match has got a flag 
+like "--match--physdev", however there is no such a flag.
 
+The problem is that we may store in a hash:net,iface type of set both or 
+either of
+
+10.0.0.0/24,eth0
+10.0.0.0/24,physdev:eth0
+
+So we have to tell to the "set" match which one we want to match. I'm 
+going to add the flag "--match--physdev" to the "set" match in a new 
+revision.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
+          H-1525 Budapest 114, POB. 49, Hungary
