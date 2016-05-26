@@ -1,113 +1,76 @@
-From: John Stultz <john.stultz@linaro.org>
-Subject: Re: [Regression?] iptables broken on 32bit with pre-4.7-rc
-Date: Thu, 26 May 2016 14:00:35 -0700
-Message-ID: <CALAqxLWFvLhV8V++dFnNu0C2zmwgTyy5EKsnx9BGFvVpa-CN5A@mail.gmail.com>
-References: <CALAqxLXgAA=zV_AAOTkWE3yFaxNJ02y0jGwVrdTW+rSCrSUMkg@mail.gmail.com>
-	<20160526095112.GA14828@breakpoint.cc>
+From: Chris Metcalf <cmetcalf@mellanox.com>
+Subject: Re: [PATCH -v2 4/6] locking, arch: Update spin_unlock_wait()
+Date: Thu, 26 May 2016 17:10:36 -0400
+Message-ID: <bff5e0b4-c572-cf4c-82fe-a672b8b5fb14@mellanox.com>
+References: <20160526141922.163198062@infradead.org>
+ <20160526142354.293350777@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	lkml <linux-kernel@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-oi0-f49.google.com ([209.85.218.49]:35032 "EHLO
-	mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755114AbcEZVAg (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 May 2016 17:00:36 -0400
-Received: by mail-oi0-f49.google.com with SMTP id w184so137200772oiw.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 May 2016 14:00:36 -0700 (PDT)
-In-Reply-To: <20160526095112.GA14828@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: <boqun.feng@gmail.com>, <Waiman.Long@hpe.com>, <tj@kernel.org>,
+	<pablo@netfilter.org>, <kaber@trash.net>, <davem@davemloft.net>,
+	<oleg@redhat.com>, <netfilter-devel@vger.kernel.org>,
+	<sasha.levin@oracle.com>, <hofrat@osadl.org>, <rth@twiddle.net>,
+	<vgupta@synopsys.com>, <linux@armlinux.org.uk>,
+	<realmz6@gmail.com>, <rkuo@codeaurora.org>, <tony.luck@intel.com>,
+	<james.hogan@imgtec.com>, <ralf@linux-mips.org>,
+	<dhowells@redhat.com>, <jejb@parisc-linux.org>,
+	<mpe@ellerman.id.au>, <schwidefsky@de.ibm.com>,
+	<ysato@users.sourceforge.jp>, <chris@zankel.net>
+To: Peter Zijlstra <peterz@infradead.org>,
+	<linux-kernel@vger.kernel.org>, <torvalds@linux-foundation.org>,
+	<manfred@colorfullife.com>, <dave@stgolabs.net>,
+	<paulmck@linux.vnet.ibm.com>, <will.deacon@arm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160526142354.293350777@infradead.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, May 26, 2016 at 2:51 AM, Florian Westphal <fw@strlen.de> wrote:
-> John Stultz <john.stultz@linaro.org> wrote:
->> In updating a 32bit arm device from 4.6 to Linus' current HEAD, I
->> noticed I was having some trouble with networking, and realized that
->> /proc/net/ip_tables_names was suddenly empty.
->>
->> Digging through the registration process, it seems we're catching on the:
->>
->>        if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
->>            target_offset + sizeof(struct xt_standard_target) != next_offset)
->>                return -EINVAL;
->>
->> check added in 7ed2abddd20cf ("netfilter: x_tables: check standard
->> target size too").
->>
->> Where next_offset seems to be 4 bytes larger then the the offset +
->> standard_target struct size.
->
-> I guess its because arm32 needs 8 byte alignment for 64bit
-> quantities.  So we can fix this either via XT_ALIGN()'ing the
-> target_offset + sizeof() result or by weakening the test to a '>'.
->
-> Since we already test proper alignment of start-of-rule in
-> check_entry_size_and_hooks() I'd suggest we just change the test
-> to fail only if the next offset is within the min size, i.e.:
->
-> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-> index c69c892..9643047 100644
-> --- a/net/netfilter/x_tables.c
-> +++ b/net/netfilter/x_tables.c
-> @@ -612,7 +612,7 @@ int xt_compat_check_entry_offsets(const void *base, const char *elems,
->                 return -EINVAL;
->
->         if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
-> -           target_offset + sizeof(struct compat_xt_standard_target) != next_offset)
-> +           target_offset + sizeof(struct compat_xt_standard_target) > next_offset)
->                 return -EINVAL;
->
->         /* compat_xt_entry match has less strict aligment requirements,
-> @@ -694,7 +694,7 @@ int xt_check_entry_offsets(const void *base,
->                 return -EINVAL;
->
->         if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
-> -           target_offset + sizeof(struct xt_standard_target) != next_offset)
-> +           target_offset + sizeof(struct xt_standard_target) > next_offset)
->                 return -EINVAL;
->
->         return xt_check_entry_match(elems, base + target_offset,
->
->> I'm not exactly sure how the next_offset value is set, so I'm hoping
->> the proper fix is more obvious to one of you.
->
-> Its the start of the next rule so it has to be properly aligned
-> via XT_ALIGN().  Only 32bit system I tested was plain x86 which
-> only needs 4byte alignment for u64...
->
-> Alternative would be something like this:
->
-> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-> index c69c892..ca16c26 100644
-> --- a/net/netfilter/x_tables.c
-> +++ b/net/netfilter/x_tables.c
-> @@ -612,7 +612,7 @@ int xt_compat_check_entry_offsets(const void *base, const char *elems,
->                 return -EINVAL;
->
->         if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
-> -           target_offset + sizeof(struct compat_xt_standard_target) != next_offset)
-> +           XT_COMPAT_ALIGN(target_offset + sizeof(struct compat_xt_standard_target)) != next_offset)
->                 return -EINVAL;
->
->         /* compat_xt_entry match has less strict aligment requirements,
-> @@ -694,7 +694,7 @@ int xt_check_entry_offsets(const void *base,
->                 return -EINVAL;
->
->         if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
-> -           target_offset + sizeof(struct xt_standard_target) != next_offset)
-> +           XT_ALIGN(target_offset + sizeof(struct xt_standard_target)) != next_offset)
->                 return -EINVAL;
->
->         return xt_check_entry_match(elems, base + target_offset,
->
->
-> but afaics the stricter check does not buy anything.
+On 5/26/2016 10:19 AM, Peter Zijlstra wrote:
+> --- a/arch/tile/lib/spinlock_32.c
+> +++ b/arch/tile/lib/spinlock_32.c
+> @@ -72,10 +72,14 @@ void arch_spin_unlock_wait(arch_spinlock
+>   	if (next == curr)
+>   		return;
+>   
+> +	smp_rmb();
+> +
+>   	/* Wait until the current locker has released the lock. */
+>   	do {
+>   		delay_backoff(iterations++);
+>   	} while (READ_ONCE(lock->current_ticket) == curr);
+> +
+> +	smp_acquire__after_ctrl_dep();
+>   }
+>   EXPORT_SYMBOL(arch_spin_unlock_wait);
+>   
+> --- a/arch/tile/lib/spinlock_64.c
+> +++ b/arch/tile/lib/spinlock_64.c
+> @@ -72,10 +72,14 @@ void arch_spin_unlock_wait(arch_spinlock
+>   	if (arch_spin_next(val) == curr)
+>   		return;
+>   
+> +	smp_rmb();
+> +
+>   	/* Wait until the current locker has released the lock. */
+>   	do {
+>   		delay_backoff(iterations++);
+>   	} while (arch_spin_current(READ_ONCE(lock->lock)) == curr);
+> +
+> +	smp_acquire__after_ctrl_dep();
+>   }
+>   EXPORT_SYMBOL(arch_spin_unlock_wait);
 
-I can validate that either of these solutions solves the issue for me.
-But I'll leave the pick of which to merge up to you. :)
+The smp_rmb() are unnecessary for tile.  We READ_ONCE next/curr from the
+lock and compare them, so we know the load(s) are complete.  There's no
+microarchitectural speculation going on so that's that.  Then we READ_ONCE
+the next load on the lock from within the wait loop, so our load/load
+ordering is guaranteed.
 
-Thanks so much for the quick response!
--john
+With that change,
+
+Acked-by: Chris Metcalf <cmetcalf@mellanox.com> [for tile]
+
+-- 
+Chris Metcalf, Mellanox Technologies
+http://www.mellanox.com
