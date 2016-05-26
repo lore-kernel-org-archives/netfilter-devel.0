@@ -1,56 +1,113 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ipset] hash:net,iface bug?
-Date: Thu, 26 May 2016 21:40:29 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1605262132160.24467@blackhole.kfki.hu>
-References: <bc61b1ffc5fd4402bab9a533a1b2a384@BTS-XEXCH01-B.eset.corp> <alpine.DEB.2.10.1605232044560.2937@blackhole.kfki.hu>
+From: John Stultz <john.stultz@linaro.org>
+Subject: Re: [Regression?] iptables broken on 32bit with pre-4.7-rc
+Date: Thu, 26 May 2016 14:00:35 -0700
+Message-ID: <CALAqxLWFvLhV8V++dFnNu0C2zmwgTyy5EKsnx9BGFvVpa-CN5A@mail.gmail.com>
+References: <CALAqxLXgAA=zV_AAOTkWE3yFaxNJ02y0jGwVrdTW+rSCrSUMkg@mail.gmail.com>
+	<20160526095112.GA14828@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Marek Mrva <mrva@eset.sk>
+Content-Type: text/plain; charset=UTF-8
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	lkml <linux-kernel@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:51871 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754298AbcEZTjI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 May 2016 15:39:08 -0400
-In-Reply-To: <alpine.DEB.2.10.1605232044560.2937@blackhole.kfki.hu>
+Received: from mail-oi0-f49.google.com ([209.85.218.49]:35032 "EHLO
+	mail-oi0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755114AbcEZVAg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 May 2016 17:00:36 -0400
+Received: by mail-oi0-f49.google.com with SMTP id w184so137200772oiw.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 May 2016 14:00:36 -0700 (PDT)
+In-Reply-To: <20160526095112.GA14828@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 23 May 2016, Jozsef Kadlecsik wrote:
-
-> On Mon, 23 May 2016, Marek Mrva wrote:
-> 
-> > I have been playing with hash:net,iface table for a couple of days now, 
-> > but for the love of me, I can't make it accept physdev: devices.
-> > 
-> > The man says: When the interface is flagged with physdev:, the interface 
-> > is interpreted as the incoming/outgoing bridge port.
-[...]
+On Thu, May 26, 2016 at 2:51 AM, Florian Westphal <fw@strlen.de> wrote:
+> John Stultz <john.stultz@linaro.org> wrote:
+>> In updating a 32bit arm device from 4.6 to Linus' current HEAD, I
+>> noticed I was having some trouble with networking, and realized that
+>> /proc/net/ip_tables_names was suddenly empty.
+>>
+>> Digging through the registration process, it seems we're catching on the:
+>>
+>>        if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
+>>            target_offset + sizeof(struct xt_standard_target) != next_offset)
+>>                return -EINVAL;
+>>
+>> check added in 7ed2abddd20cf ("netfilter: x_tables: check standard
+>> target size too").
+>>
+>> Where next_offset seems to be 4 bytes larger then the the offset +
+>> standard_target struct size.
 >
-> The IPSET_FLAG_PHYSDEV is passed from userspace, of course, see 
-> ipset_parse_iface() in lib/parse.c. However, it seems it is not stored 
-> when the user input in processed in the kernel. I'll double check and fix 
-> it.
+> I guess its because arm32 needs 8 byte alignment for 64bit
+> quantities.  So we can fix this either via XT_ALIGN()'ing the
+> target_offset + sizeof() result or by weakening the test to a '>'.
+>
+> Since we already test proper alignment of start-of-rule in
+> check_entry_size_and_hooks() I'd suggest we just change the test
+> to fail only if the next offset is within the min size, i.e.:
+>
+> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+> index c69c892..9643047 100644
+> --- a/net/netfilter/x_tables.c
+> +++ b/net/netfilter/x_tables.c
+> @@ -612,7 +612,7 @@ int xt_compat_check_entry_offsets(const void *base, const char *elems,
+>                 return -EINVAL;
+>
+>         if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
+> -           target_offset + sizeof(struct compat_xt_standard_target) != next_offset)
+> +           target_offset + sizeof(struct compat_xt_standard_target) > next_offset)
+>                 return -EINVAL;
+>
+>         /* compat_xt_entry match has less strict aligment requirements,
+> @@ -694,7 +694,7 @@ int xt_check_entry_offsets(const void *base,
+>                 return -EINVAL;
+>
+>         if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
+> -           target_offset + sizeof(struct xt_standard_target) != next_offset)
+> +           target_offset + sizeof(struct xt_standard_target) > next_offset)
+>                 return -EINVAL;
+>
+>         return xt_check_entry_match(elems, base + target_offset,
+>
+>> I'm not exactly sure how the next_offset value is set, so I'm hoping
+>> the proper fix is more obvious to one of you.
+>
+> Its the start of the next rule so it has to be properly aligned
+> via XT_ALIGN().  Only 32bit system I tested was plain x86 which
+> only needs 4byte alignment for u64...
+>
+> Alternative would be something like this:
+>
+> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+> index c69c892..ca16c26 100644
+> --- a/net/netfilter/x_tables.c
+> +++ b/net/netfilter/x_tables.c
+> @@ -612,7 +612,7 @@ int xt_compat_check_entry_offsets(const void *base, const char *elems,
+>                 return -EINVAL;
+>
+>         if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
+> -           target_offset + sizeof(struct compat_xt_standard_target) != next_offset)
+> +           XT_COMPAT_ALIGN(target_offset + sizeof(struct compat_xt_standard_target)) != next_offset)
+>                 return -EINVAL;
+>
+>         /* compat_xt_entry match has less strict aligment requirements,
+> @@ -694,7 +694,7 @@ int xt_check_entry_offsets(const void *base,
+>                 return -EINVAL;
+>
+>         if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
+> -           target_offset + sizeof(struct xt_standard_target) != next_offset)
+> +           XT_ALIGN(target_offset + sizeof(struct xt_standard_target)) != next_offset)
+>                 return -EINVAL;
+>
+>         return xt_check_entry_match(elems, base + target_offset,
+>
+>
+> but afaics the stricter check does not buy anything.
 
-Digging into the code further, the IPSET_FLAG_PHYSDEV is stored in the 
-kernel in the hash data. However, the logic to test it is broken. The 
-current code in the kernel assumes that the "set" match has got a flag 
-like "--match--physdev", however there is no such a flag.
+I can validate that either of these solutions solves the issue for me.
+But I'll leave the pick of which to merge up to you. :)
 
-The problem is that we may store in a hash:net,iface type of set both or 
-either of
-
-10.0.0.0/24,eth0
-10.0.0.0/24,physdev:eth0
-
-So we have to tell to the "set" match which one we want to match. I'm 
-going to add the flag "--match--physdev" to the "set" match in a new 
-revision.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+Thanks so much for the quick response!
+-john
