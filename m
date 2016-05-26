@@ -1,100 +1,59 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [Regression?] iptables broken on 32bit with pre-4.7-rc
-Date: Thu, 26 May 2016 11:51:12 +0200
-Message-ID: <20160526095112.GA14828@breakpoint.cc>
-References: <CALAqxLXgAA=zV_AAOTkWE3yFaxNJ02y0jGwVrdTW+rSCrSUMkg@mail.gmail.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [RFC][PATCH 3/3] locking,netfilter: Fix nf_conntrack_lock()
+Date: Thu, 26 May 2016 15:54:06 +0200
+Message-ID: <20160526135406.GK3192@twins.programming.kicks-ass.net>
+References: <20160524142723.178148277@infradead.org>
+ <20160524143649.673861121@infradead.org>
+ <3e1671fc-be0f-bc95-4fbb-6bfc56e6c15b@colorfullife.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	lkml <linux-kernel@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: John Stultz <john.stultz@linaro.org>
+Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
+	dave@stgolabs.net, paulmck@linux.vnet.ibm.com, will.deacon@arm.com,
+	boqun.feng@gmail.com, Waiman.Long@hpe.com, tj@kernel.org,
+	pablo@netfilter.org, kaber@trash.net, davem@davemloft.net,
+	oleg@redhat.com, netfilter-devel@vger.kernel.org,
+	sasha.levin@oracle.com, hofrat@osadl.org
+To: Manfred Spraul <manfred@colorfullife.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CALAqxLXgAA=zV_AAOTkWE3yFaxNJ02y0jGwVrdTW+rSCrSUMkg@mail.gmail.com>
+In-Reply-To: <3e1671fc-be0f-bc95-4fbb-6bfc56e6c15b@colorfullife.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-John Stultz <john.stultz@linaro.org> wrote:
-> In updating a 32bit arm device from 4.6 to Linus' current HEAD, I
-> noticed I was having some trouble with networking, and realized that
-> /proc/net/ip_tables_names was suddenly empty.
-> 
-> Digging through the registration process, it seems we're catching on the:
-> 
->        if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
->            target_offset + sizeof(struct xt_standard_target) != next_offset)
->                return -EINVAL;
-> 
-> check added in 7ed2abddd20cf ("netfilter: x_tables: check standard
-> target size too").
-> 
-> Where next_offset seems to be 4 bytes larger then the the offset +
-> standard_target struct size.
+On Tue, May 24, 2016 at 10:41:43PM +0200, Manfred Spraul wrote:
+> >--- a/net/netfilter/nf_conntrack_core.c
+> >+++ b/net/netfilter/nf_conntrack_core.c
+> >@@ -74,7 +74,18 @@ void nf_conntrack_lock(spinlock_t *lock)
+> >  	spin_lock(lock);
+> >  	while (unlikely(nf_conntrack_locks_all)) {
+> >  		spin_unlock(lock);
+> >+		/*
+> >+		 * Order the nf_contrack_locks_all load vs the spin_unlock_wait()
+> >+		 * loads below, to ensure locks_all is indeed held.
+> >+		 */
+> >+		smp_rmb(); /* spin_lock(locks_all) */
+> >  		spin_unlock_wait(&nf_conntrack_locks_all_lock);
 
-I guess its because arm32 needs 8 byte alignment for 64bit
-quantities.  So we can fix this either via XT_ALIGN()'ing the
-target_offset + sizeof() result or by weakening the test to a '>'.
+> I don't understand the comment, and I don't understand why the smp_rmb() is
+> required: What do you want to protect against?
 
-Since we already test proper alignment of start-of-rule in
-check_entry_size_and_hooks() I'd suggest we just change the test
-to fail only if the next offset is within the min size, i.e.:
+I order against the spin_unlock_wait() load of
+nf_conntrack_locks_all_lock being done _before_ the
+nf_conntrack_locks_all load.
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index c69c892..9643047 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -612,7 +612,7 @@ int xt_compat_check_entry_offsets(const void *base, const char *elems,
-                return -EINVAL;
- 
-        if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
--           target_offset + sizeof(struct compat_xt_standard_target) != next_offset)
-+           target_offset + sizeof(struct compat_xt_standard_target) > next_offset)
-                return -EINVAL;
- 
-        /* compat_xt_entry match has less strict aligment requirements,
-@@ -694,7 +694,7 @@ int xt_check_entry_offsets(const void *base,
-                return -EINVAL;
- 
-        if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
--           target_offset + sizeof(struct xt_standard_target) != next_offset)
-+           target_offset + sizeof(struct xt_standard_target) > next_offset)
-                return -EINVAL;
- 
-        return xt_check_entry_match(elems, base + target_offset,
+This is possible because the spin_unlock() in between will stop the
+nf_conntrack_locks_all load from falling down, but it doesn't stop the
+&nf_conntrack_locks_all_lock lock from being done early.
 
-> I'm not exactly sure how the next_offset value is set, so I'm hoping
-> the proper fix is more obvious to one of you.
-
-Its the start of the next rule so it has to be properly aligned
-via XT_ALIGN().  Only 32bit system I tested was plain x86 which
-only needs 4byte alignment for u64...
-
-Alternative would be something like this:
-
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index c69c892..ca16c26 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -612,7 +612,7 @@ int xt_compat_check_entry_offsets(const void *base, const char *elems,
-                return -EINVAL;
- 
-        if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
--           target_offset + sizeof(struct compat_xt_standard_target) != next_offset)
-+           XT_COMPAT_ALIGN(target_offset + sizeof(struct compat_xt_standard_target)) != next_offset)
-                return -EINVAL;
- 
-        /* compat_xt_entry match has less strict aligment requirements,
-@@ -694,7 +694,7 @@ int xt_check_entry_offsets(const void *base,
-                return -EINVAL;
- 
-        if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
--           target_offset + sizeof(struct xt_standard_target) != next_offset)
-+           XT_ALIGN(target_offset + sizeof(struct xt_standard_target)) != next_offset)
-                return -EINVAL;
- 
-        return xt_check_entry_match(elems, base + target_offset,
+Inverting these two loads could result in not waiting when we should.
 
 
-but afaics the stricter check does not buy anything.
+	nf_conntrack_all_lock()		nf_conntrack_lock()
+
+					  [L] all_locks == unlocked
+	  [S] spin_lock(&all_lock);
+	  [S] all = true;
+					  [L] all == true
+
+And we'll not wait for the current all_lock section to finish.
+Resulting in an all_lock and lock section at the same time.
