@@ -1,174 +1,90 @@
-From: Sam Patton <sam@enhancedip.org>
-Subject: BUG: netfilter hooks: problems porting to 4.4.6
-Date: Fri, 27 May 2016 13:53:07 -0400
-Message-ID: <CABvMDUemp8Zb8dv2vcQ_Mm5Wk5u5LorLc3z+hRp5HoLk-R=tjw@mail.gmail.com>
+From: Chris Metcalf <cmetcalf@mellanox.com>
+Subject: Re: [PATCH -v2 4/6] locking, arch: Update spin_unlock_wait()
+Date: Fri, 27 May 2016 15:34:13 -0400
+Message-ID: <903f2076-9e24-afb7-0b17-e41457854907@mellanox.com>
+References: <20160526141922.163198062@infradead.org>
+ <20160526142354.293350777@infradead.org>
+ <bff5e0b4-c572-cf4c-82fe-a672b8b5fb14@mellanox.com>
+ <20160527090548.GZ3193@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: <linux-kernel@vger.kernel.org>, <torvalds@linux-foundation.org>,
+	<manfred@colorfullife.com>, <dave@stgolabs.net>,
+	<paulmck@linux.vnet.ibm.com>, <will.deacon@arm.com>,
+	<boqun.feng@gmail.com>, <Waiman.Long@hpe.com>, <tj@kernel.org>,
+	<pablo@netfilter.org>, <kaber@trash.net>, <davem@davemloft.net>,
+	<oleg@redhat.com>, <netfilter-devel@vger.kernel.org>,
+	<sasha.levin@oracle.com>, <hofrat@osadl.org>, <rth@twiddle.net>,
+	<vgupta@synopsys.com>, <linux@armlinux.org.uk>,
+	<realmz6@gmail.com>, <rkuo@codeaurora.org>, <tony.luck@intel.com>,
+	<james.hogan@imgtec.com>, <ralf@linux-mips.org>,
+	<dhowells@redhat.com>, <jejb@parisc-linux.org>,
+	<mpe@ellerman.id.au>, <schwidefsky@de.ibm.com>,
+	<ysato@users.sourceforge.jp>, <chris@zankel.net>
+To: Peter Zijlstra <peterz@infradead.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:36099 "EHLO
-	mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932838AbcE0RxI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 May 2016 13:53:08 -0400
-Received: by mail-io0-f193.google.com with SMTP id m17so5783072ioi.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 27 May 2016 10:53:08 -0700 (PDT)
+Received: from mail-db3on0089.outbound.protection.outlook.com ([157.55.234.89]:29616
+	"EHLO emea01-db3-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753221AbcE0Tei (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 May 2016 15:34:38 -0400
+In-Reply-To: <20160527090548.GZ3193@twins.programming.kicks-ass.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Did something change in Netfilter on the 4.4.6 kernel that would affect my
+On 5/27/2016 5:05 AM, Peter Zijlstra wrote:
+> On Thu, May 26, 2016 at 05:10:36PM -0400, Chris Metcalf wrote:
+>> On 5/26/2016 10:19 AM, Peter Zijlstra wrote:
+>>> --- a/arch/tile/lib/spinlock_32.c
+>>> +++ b/arch/tile/lib/spinlock_32.c
+>>> @@ -72,10 +72,14 @@ void arch_spin_unlock_wait(arch_spinlock
+>>>   	if (next == curr)
+>>>   		return;
+>>> +	smp_rmb();
+>>> +
+>>>   	/* Wait until the current locker has released the lock. */
+>>>   	do {
+>>>   		delay_backoff(iterations++);
+>>>   	} while (READ_ONCE(lock->current_ticket) == curr);
+>>> +
+>>> +	smp_acquire__after_ctrl_dep();
+>>>   }
+>>>   EXPORT_SYMBOL(arch_spin_unlock_wait);
+>>> --- a/arch/tile/lib/spinlock_64.c
+>>> +++ b/arch/tile/lib/spinlock_64.c
+>>> @@ -72,10 +72,14 @@ void arch_spin_unlock_wait(arch_spinlock
+>>>   	if (arch_spin_next(val) == curr)
+>>>   		return;
+>>> +	smp_rmb();
+>>> +
+>>>   	/* Wait until the current locker has released the lock. */
+>>>   	do {
+>>>   		delay_backoff(iterations++);
+>>>   	} while (arch_spin_current(READ_ONCE(lock->lock)) == curr);
+>>> +
+>>> +	smp_acquire__after_ctrl_dep();
+>>>   }
+>>>   EXPORT_SYMBOL(arch_spin_unlock_wait);
+>> The smp_rmb() are unnecessary for tile.  We READ_ONCE next/curr from the
+>> lock and compare them, so we know the load(s) are complete.  There's no
+>> microarchitectural speculation going on so that's that.  Then we READ_ONCE
+>> the next load on the lock from within the wait loop, so our load/load
+>> ordering is guaranteed.
+> Does TILE never speculate reads? Because in that case the control
+> dependency already provides a full load->load,store barrier and you'd
+> want smp_acquire__after_ctrl_dep() to be a barrier() instead of
+> smp_rmb().
+
+Yes, that's a good point.  I didn't look at the definition of smp_acquire__after_ctrl_dep(),
+but it certainly sounds like that's exactly a compiler barrier for tile.  There is no load
+speculation performed.  The only out-of-order stuff that happens is in the memory
+subsystem: stores will become visible in arbitrary order, and loads will arrive in
+arbitrary order, but as soon as the result of a load is used in any other kind of
+instruction, the instruction issue will halt until the pending load(s) for the instruction
+operands are available.
+
+-- 
+Chris Metcalf, Mellanox Technologies
+http://www.mellanox.com
 
-Netfilter hook driver?  I have a driver that works in 2.6.38, 3.10.49 and
-
-3.15.3.   I started porting the driver to the 4.4.6 kernel and
-
-can't get it to work.  Specifically, apply_eip_snat() in the driver never gets
-
-called and it should get called as packets leave the NAT.  The
-
-print statement below  where I print out maniptype is always returning 1.
-
-e.g. NF_NAT_MANIP_DST.
-
-
-Here's my iptables command:
-
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-
-
-Here's relevant code snippets.
-
-static struct nf_hook_ops nf_nat_ops[] __read_mostly = {
-
-      // Before packet filtering, change destination
-
-      {
-
-              .hook           = nf_eipnat_in,
-
-              .owner          = THIS_MODULE,
-
-              .pf             = PF_INET,
-
-              .hooknum        = NF_INET_PRE_ROUTING,
-
-              .priority       = NF_IP_PRI_NAT_DST,
-
-      },
-
-      // After packet filtering, change source
-
-      {
-
-              .hook           = nf_eipnat_out,
-
-              .owner          = THIS_MODULE,
-
-              .pf             = PF_INET,
-
-              .hooknum        = NF_INET_POST_ROUTING,
-
-              .priority       = NF_IP_PRI_NAT_SRC,
-
-      },
-
-};
-
-
-
-nf_eipnat_in(unsigned int hooknum,
-
-        struct sk_buff *skb,
-
-        const struct net_device *in,
-
-        const struct net_device *out,
-
-        int (*okfn)(struct sk_buff *))
-
-{
-
-      printk("nf_eipnat_in\n");
-
-      return nf_nat_fn("dnat in prerouting", hooknum, skb, in, out, okfn);
-
-}
-
-
-
-static unsigned int
-
-nf_eipnat_out(unsigned int hooknum,
-
-         struct sk_buff *skb,
-
-         const struct net_device *in,
-
-         const struct net_device *out,
-
-         int (*okfn)(struct sk_buff *))
-
-{
-
-      printk("nf_eipnat_out\n");
-
-      return nf_nat_fn("snat out postrouting", hooknum, skb, in, out, okfn);
-
-}
-
-
-static unsigned int
-
-nf_nat_fn(char *instring,
-
-        unsigned int hooknum,
-
-        struct sk_buff *skb,
-
-        const struct net_device *in,
-
-        const struct net_device *out,
-
-        int (*okfn)(struct sk_buff *))
-
-{
-
-      unsigned int retval = 0;
-
-
-      /* maniptype == SRC for postrouting. */
-
-      enum nf_nat_manip_type maniptype = HOOK2MANIP(hooknum);
-
-      printk("maniptype = %d\n", maniptype);
-
-
-      /* We never see fragments: conntrack defrags on pre-routing
-
-         and local-out, and nf_nat_out protects post-routing. */
-
-      NF_CT_ASSERT(!(ip_hdr(skb)->frag_off & htons(IP_MF | IP_OFFSET)));
-
-
-      //printskb(instring, skb, in, out);
-
-      if(maniptype == NF_NAT_MANIP_DST){
-
-              retval = apply_eip_dnat(in, skb);
-
-      }
-
-      else{
-
-              retval = apply_eip_snat(out, skb);
-
-      }
-
-
-      return retval;
-
-}
-
-Thanks!
-
--Sam
