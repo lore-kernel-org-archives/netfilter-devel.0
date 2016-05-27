@@ -1,77 +1,131 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH -v2 4/6] locking, arch: Update spin_unlock_wait()
-Date: Fri, 27 May 2016 11:05:48 +0200
-Message-ID: <20160527090548.GZ3193@twins.programming.kicks-ass.net>
-References: <20160526141922.163198062@infradead.org>
- <20160526142354.293350777@infradead.org>
- <bff5e0b4-c572-cf4c-82fe-a672b8b5fb14@mellanox.com>
+From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
+Subject: [PATCH 2/2 nft] set_elem: Use libnftnl/udata to store set element comment
+Date: Fri, 27 May 2016 16:56:55 +0200
+Message-ID: <1464361015-14755-2-git-send-email-carlosfg@riseup.net>
+References: <1464361015-14755-1-git-send-email-carlosfg@riseup.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
-	manfred@colorfullife.com, dave@stgolabs.net,
-	paulmck@linux.vnet.ibm.com, will.deacon@arm.com,
-	boqun.feng@gmail.com, Waiman.Long@hpe.com, tj@kernel.org,
-	pablo@netfilter.org, kaber@trash.net, davem@davemloft.net,
-	oleg@redhat.com, netfilter-devel@vger.kernel.org,
-	sasha.levin@oracle.com, hofrat@osadl.org, rth@twiddle.net,
-	vgupta@synopsys.com, linux@armlinux.org.uk, realmz6@gmail.com,
-	rkuo@codeaurora.org, tony.luck@intel.com, james.hogan@imgtec.com,
-	ralf@linux-mips.org, dhowells@redhat.com, jejb@parisc-linux.org,
-	mpe@ellerman.id.au, schwidefsky@de.ibm.com,
-	ysato@users.sourceforge.jp, chris@zankel.net
-To: Chris Metcalf <cmetcalf@mellanox.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:45462 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932690AbcE0JHR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 May 2016 05:07:17 -0400
-Content-Disposition: inline
-In-Reply-To: <bff5e0b4-c572-cf4c-82fe-a672b8b5fb14@mellanox.com>
+Received: from mx1.riseup.net ([198.252.153.129]:53183 "EHLO mx1.riseup.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754585AbcE0O5J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 May 2016 10:57:09 -0400
+In-Reply-To: <1464361015-14755-1-git-send-email-carlosfg@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 26, 2016 at 05:10:36PM -0400, Chris Metcalf wrote:
-> On 5/26/2016 10:19 AM, Peter Zijlstra wrote:
-> >--- a/arch/tile/lib/spinlock_32.c
-> >+++ b/arch/tile/lib/spinlock_32.c
-> >@@ -72,10 +72,14 @@ void arch_spin_unlock_wait(arch_spinlock
-> >  	if (next == curr)
-> >  		return;
-> >+	smp_rmb();
-> >+
-> >  	/* Wait until the current locker has released the lock. */
-> >  	do {
-> >  		delay_backoff(iterations++);
-> >  	} while (READ_ONCE(lock->current_ticket) == curr);
-> >+
-> >+	smp_acquire__after_ctrl_dep();
-> >  }
-> >  EXPORT_SYMBOL(arch_spin_unlock_wait);
-> >--- a/arch/tile/lib/spinlock_64.c
-> >+++ b/arch/tile/lib/spinlock_64.c
-> >@@ -72,10 +72,14 @@ void arch_spin_unlock_wait(arch_spinlock
-> >  	if (arch_spin_next(val) == curr)
-> >  		return;
-> >+	smp_rmb();
-> >+
-> >  	/* Wait until the current locker has released the lock. */
-> >  	do {
-> >  		delay_backoff(iterations++);
-> >  	} while (arch_spin_current(READ_ONCE(lock->lock)) == curr);
-> >+
-> >+	smp_acquire__after_ctrl_dep();
-> >  }
-> >  EXPORT_SYMBOL(arch_spin_unlock_wait);
-> 
-> The smp_rmb() are unnecessary for tile.  We READ_ONCE next/curr from the
-> lock and compare them, so we know the load(s) are complete.  There's no
-> microarchitectural speculation going on so that's that.  Then we READ_ONCE
-> the next load on the lock from within the wait loop, so our load/load
-> ordering is guaranteed.
+The set element comment is stored in nftnl_set_elem->user.data using
+libnftnl/udata infrastructure. This allows store multiple variable leng=
+th
+user data into set element.
 
-Does TILE never speculate reads? Because in that case the control
-dependency already provides a full load->load,store barrier and you'd
-want smp_acquire__after_ctrl_dep() to be a barrier() instead of
-smp_rmb().
+Signed-off-by: Carlos Falgueras Garc=C3=ADa <carlosfg@riseup.net>
+---
+ src/netlink.c | 50 ++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 46 insertions(+), 4 deletions(-)
 
+diff --git a/src/netlink.c b/src/netlink.c
+index b0dcb90..f82d4fa 100644
+--- a/src/netlink.c
++++ b/src/netlink.c
+@@ -22,6 +22,7 @@
+ #include <libnftnl/chain.h>
+ #include <libnftnl/expr.h>
+ #include <libnftnl/set.h>
++#include <libnftnl/udata.h>
+ #include <libnftnl/common.h>
+ #include <linux/netfilter/nfnetlink.h>
+ #include <linux/netfilter/nf_tables.h>
+@@ -208,6 +209,7 @@ static struct nftnl_set_elem *alloc_nftnl_setelem(c=
+onst struct expr *expr)
+ 	const struct expr *elem, *key, *data;
+ 	struct nftnl_set_elem *nlse;
+ 	struct nft_data_linearize nld;
++	struct nftnl_udata_buf *udbuf;
+=20
+ 	nlse =3D nftnl_set_elem_alloc();
+ 	if (nlse =3D=3D NULL)
+@@ -228,9 +230,18 @@ static struct nftnl_set_elem *alloc_nftnl_setelem(=
+const struct expr *expr)
+ 	if (elem->timeout)
+ 		nftnl_set_elem_set_u64(nlse, NFTNL_SET_ELEM_TIMEOUT,
+ 				       elem->timeout);
+-	if (elem->comment)
++	if (elem->comment) {
++		udbuf =3D nftnl_udata_buf_alloc(NFT_USERDATA_MAXLEN);
++		if (!udbuf)
++			memory_allocation_error();
++		if (!nftnl_udata_put_strz(udbuf, UDATA_TYPE_COMMENT,
++					  elem->comment))
++			memory_allocation_error();
+ 		nftnl_set_elem_set(nlse, NFTNL_SET_ELEM_USERDATA,
+-				   elem->comment, strlen(elem->comment) + 1);
++				   nftnl_udata_buf_data(udbuf),
++				   nftnl_udata_buf_len(udbuf));
++		nftnl_udata_buf_free(udbuf);
++	}
+=20
+ 	if (data !=3D NULL) {
+ 		netlink_gen_data(data, &nld);
+@@ -1421,6 +1432,38 @@ static struct expr *netlink_parse_concat_elem(co=
+nst struct datatype *dtype,
+ 	return concat;
+ }
+=20
++static int parse_udata_cb(const struct nftnl_udata *attr, void *data)
++{
++	unsigned char *value =3D nftnl_udata_get(attr);
++	uint8_t type =3D nftnl_udata_type(attr);
++	uint8_t len =3D nftnl_udata_len(attr);
++	const struct nftnl_udata **tb =3D data;
++
++	switch (type) {
++	case UDATA_TYPE_COMMENT:
++		if (value[len - 1] !=3D '\0')
++			return -1;
++		break;
++	default:
++		return 0;
++	}
++	tb[type] =3D attr;
++	return 0;
++}
++
++static char *udata_get_comment(const void *data, uint32_t data_len)
++{
++	const struct nftnl_udata *tb[UDATA_TYPE_MAX + 1] =3D {};
++
++	if (nftnl_udata_parse(data, data_len, parse_udata_cb, tb) < 0)
++		return NULL;
++
++	if (!tb[UDATA_TYPE_COMMENT])
++		return NULL;
++
++	return xstrdup(nftnl_udata_get(tb[UDATA_TYPE_COMMENT]));
++}
++
+ static int netlink_delinearize_setelem(struct nftnl_set_elem *nlse,
+ 				       const struct set *set)
+ {
+@@ -1457,8 +1500,7 @@ static int netlink_delinearize_setelem(struct nft=
+nl_set_elem *nlse,
+ 		uint32_t len;
+=20
+ 		data =3D nftnl_set_elem_get(nlse, NFTNL_SET_ELEM_USERDATA, &len);
+-		expr->comment =3D xmalloc(len);
+-		memcpy((char *)expr->comment, data, len);
++		expr->comment =3D udata_get_comment(data, len);
+ 	}
+ 	if (nftnl_set_elem_is_set(nlse, NFT_SET_ELEM_ATTR_EXPR)) {
+ 		const struct nftnl_expr *nle;
+--=20
+2.8.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
