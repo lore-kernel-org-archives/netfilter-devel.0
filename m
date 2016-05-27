@@ -1,10 +1,10 @@
 From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [PATCH -v2 4/6] locking, arch: Update spin_unlock_wait()
-Date: Fri, 27 May 2016 11:02:21 +0200
-Message-ID: <20160527090221.GY3193@twins.programming.kicks-ass.net>
+Date: Fri, 27 May 2016 11:05:48 +0200
+Message-ID: <20160527090548.GZ3193@twins.programming.kicks-ass.net>
 References: <20160526141922.163198062@infradead.org>
  <20160526142354.293350777@infradead.org>
- <20160527084649.065c7609@mschwide>
+ <bff5e0b4-c572-cf4c-82fe-a672b8b5fb14@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
@@ -17,45 +17,61 @@ Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
 	vgupta@synopsys.com, linux@armlinux.org.uk, realmz6@gmail.com,
 	rkuo@codeaurora.org, tony.luck@intel.com, james.hogan@imgtec.com,
 	ralf@linux-mips.org, dhowells@redhat.com, jejb@parisc-linux.org,
-	mpe@ellerman.id.au, ysato@users.sourceforge.jp,
-	cmetcalf@mellanox.com, chris@zankel.net,
-	Heiko Carstens <heiko.carstens@de.ibm.com>
-To: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+	mpe@ellerman.id.au, schwidefsky@de.ibm.com,
+	ysato@users.sourceforge.jp, chris@zankel.net
+To: Chris Metcalf <cmetcalf@mellanox.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from merlin.infradead.org ([205.233.59.134]:45462 "EHLO
+	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932690AbcE0JHR (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 May 2016 05:07:17 -0400
 Content-Disposition: inline
-In-Reply-To: <20160527084649.065c7609@mschwide>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <bff5e0b4-c572-cf4c-82fe-a672b8b5fb14@mellanox.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, May 27, 2016 at 08:46:49AM +0200, Martin Schwidefsky wrote:
-> > This fixes a number of spin_unlock_wait() users that (not
-> > unreasonably) rely on this.
-> 
-> All that is missing is an smp_rmb(), no? 
-
-Indeed.
-
-> > --- a/arch/s390/include/asm/spinlock.h
-> > +++ b/arch/s390/include/asm/spinlock.h
-> > @@ -95,8 +95,7 @@ static inline void arch_spin_unlock(arch
-> > 
-> >  static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
-> >  {
-> > -	while (arch_spin_is_locked(lock))
-> > -		arch_spin_relax(lock);
-> > +	smp_cond_load_acquire(&lock->lock, !VAL);
+On Thu, May 26, 2016 at 05:10:36PM -0400, Chris Metcalf wrote:
+> On 5/26/2016 10:19 AM, Peter Zijlstra wrote:
+> >--- a/arch/tile/lib/spinlock_32.c
+> >+++ b/arch/tile/lib/spinlock_32.c
+> >@@ -72,10 +72,14 @@ void arch_spin_unlock_wait(arch_spinlock
+> >  	if (next == curr)
+> >  		return;
+> >+	smp_rmb();
+> >+
+> >  	/* Wait until the current locker has released the lock. */
+> >  	do {
+> >  		delay_backoff(iterations++);
+> >  	} while (READ_ONCE(lock->current_ticket) == curr);
+> >+
+> >+	smp_acquire__after_ctrl_dep();
 > >  }
-> > 
-> >  /*
+> >  EXPORT_SYMBOL(arch_spin_unlock_wait);
+> >--- a/arch/tile/lib/spinlock_64.c
+> >+++ b/arch/tile/lib/spinlock_64.c
+> >@@ -72,10 +72,14 @@ void arch_spin_unlock_wait(arch_spinlock
+> >  	if (arch_spin_next(val) == curr)
+> >  		return;
+> >+	smp_rmb();
+> >+
+> >  	/* Wait until the current locker has released the lock. */
+> >  	do {
+> >  		delay_backoff(iterations++);
+> >  	} while (arch_spin_current(READ_ONCE(lock->lock)) == curr);
+> >+
+> >+	smp_acquire__after_ctrl_dep();
+> >  }
+> >  EXPORT_SYMBOL(arch_spin_unlock_wait);
 > 
-> This change adds the smp_rmb() at the end of the waiting loop, but
-> it also replaces arch_spin_relax() alias arch_lock_relax() with a
-> cpu_relax(). This is not good, these two functions do *very* different
-> things. cpu_relax() does an undirected yield with diagnose 0x44 but
-> only if the system is non-SMT. arch_lock_relax() does an additional
-> cpu_is_preempted() to test if the target cpu is running and does a
-> directed yield with diagnose 0x9c. 
-> 
-> Why can't we just add the smp_rmb() to the arch_spin_unlock_wait()?
+> The smp_rmb() are unnecessary for tile.  We READ_ONCE next/curr from the
+> lock and compare them, so we know the load(s) are complete.  There's no
+> microarchitectural speculation going on so that's that.  Then we READ_ONCE
+> the next load on the lock from within the wait loop, so our load/load
+> ordering is guaranteed.
 
-We can; I forgot about the special cpu_relax on s390, will fix.
+Does TILE never speculate reads? Because in that case the control
+dependency already provides a full load->load,store barrier and you'd
+want smp_acquire__after_ctrl_dep() to be a barrier() instead of
+smp_rmb().
+
