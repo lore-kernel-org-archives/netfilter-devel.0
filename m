@@ -1,58 +1,54 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nft 3/3] meta: fix a format error display when we set priority to root or none
-Date: Sun, 29 May 2016 18:08:09 +0800
-Message-ID: <1464516489-21616-3-git-send-email-zlpnobody@163.com>
-References: <1464516489-21616-1-git-send-email-zlpnobody@163.com>
+Subject: [PATCH nft] parser: fix crash if we add a chain with an error chain type
+Date: Sun, 29 May 2016 19:25:37 +0800
+Message-ID: <1464521137-26146-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org,
 	Liping Zhang <liping.zhang@spreadtrum.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-17.163.com ([220.181.12.17]:37168 "EHLO m12-17.163.com"
+Received: from m12-11.163.com ([220.181.12.11]:37611 "EHLO m12-11.163.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932079AbcE2KJa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 May 2016 06:09:30 -0400
-In-Reply-To: <1464516489-21616-1-git-send-email-zlpnobody@163.com>
+	id S932135AbcE2L0S (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 29 May 2016 07:26:18 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Also delete the redundant '\n'.
-This fixes:
+If we add a chain and specify the nonexistent chain type, chain_type_name_lookup
+will return a NULL pointer, and meet the assert condition in xstrdup.
+Fix crash like this:
 
-  # nft add rule filter test meta priority set root
-  # nft list chain filter test
-  table ip filter {
-      chain test {
-          meta priority set root
-  none
-  ffff:ffff
-      }
-  }
+  # nft add chain filter input {type none hook input priority 0\;}
+  nft: utils.c:63: xstrdup: Assertion `s != ((void *)0)' failed.
+  Aborted (core dumped)
 
 Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- src/meta.c | 6 ++++--
+ src/parser_bison.y | 6 ++++--
  1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/src/meta.c b/src/meta.c
-index 74d2b4c..75431a2 100644
---- a/src/meta.c
-+++ b/src/meta.c
-@@ -74,9 +74,11 @@ static void tchandle_type_print(const struct expr *expr)
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 0452b8f..ef10dee 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1124,12 +1124,14 @@ type_identifier		:	STRING	{ $$ = $1; }
  
- 	switch(handle) {
- 	case TC_H_ROOT:
--		printf("root\n");
-+		printf("root");
-+		break;
- 	case TC_H_UNSPEC:
--		printf("none\n");
-+		printf("none");
-+		break;
- 	default:
- 		if (TC_H_MAJ(handle) == 0)
- 			printf(":%04x", TC_H_MIN(handle));
+ hook_spec		:	TYPE		STRING		HOOK		STRING		dev_spec	PRIORITY	prio_spec
+ 			{
+-				$<chain>0->type		= xstrdup(chain_type_name_lookup($2));
+-				if ($<chain>0->type == NULL) {
++				const char *chain_type = chain_type_name_lookup($2);
++
++				if (chain_type == NULL) {
+ 					erec_queue(error(&@2, "unknown chain type %s", $2),
+ 						   state->msgs);
+ 					YYERROR;
+ 				}
++				$<chain>0->type		= xstrdup(chain_type);
+ 				xfree($2);
+ 
+ 				$<chain>0->hookstr	= chain_hookname_lookup($4);
 -- 
 2.5.5
 
