@@ -1,55 +1,21 @@
-From: Richard <tuxbox.guru@gmail.com>
-Subject: Re: Netfilter_Bridge parent bridge name in hook
-Date: Sat, 28 May 2016 09:11:10 +0100
-Message-ID: <CAKQROYX6JZkaSdn_uAWpnhtXVWZ36_YqAYB4MPvzhud7kBa5cg@mail.gmail.com>
-References: <CAKQROYVMwycJ-EyWNkHMKpk66a68rTdiCV-tCfyNqW8nspunVg@mail.gmail.com>
+From: program12@uscombat.info
+Subject: Hello
+Date: Sun, 29 May 2016 00:44:38 +0000
+Message-ID: <672868.7733.bm__26418.6147055172$1464483179$gmane$org@smtp113.mail.ne1.yahoo.com>
+Reply-To: cplkristibakar@outlook.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: Recipients <program12@uscombat.info>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:34370 "EHLO
-	mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750701AbcE1ILM (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 28 May 2016 04:11:12 -0400
-Received: by mail-lf0-f67.google.com with SMTP id 65so10380140lfq.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 28 May 2016 01:11:11 -0700 (PDT)
-In-Reply-To: <CAKQROYVMwycJ-EyWNkHMKpk66a68rTdiCV-tCfyNqW8nspunVg@mail.gmail.com>
+Received: from nm4-vm2.bullet.mail.ne1.yahoo.com ([98.138.90.152]:44737 "EHLO
+	nm4-vm2.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752554AbcE2AwY convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 28 May 2016 20:52:24 -0400
+Content-Description: Mail message body
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 22 May 2016 at 20:05, Richard <tuxbox.guru@gmail.com> wrote:
-> Hi All,
->
-> I have a netfilter_bridge hook kernel module working very well, but it
-> acts on all bridge interfaces.  Not for a lack of trying to find a
-> method to find which will show me the name of the Bridge interface the
-> ingress/egress net_devices are a member of.
->
-> Below is the hook (boiler plate prototype) - in->name = eth0, which is
-> what I need... but I also need to know what bridge eth0 is enslaved
-> in.
->
-> unsigned int nf_icmp_forward_hook(unsigned int hooknum,
->                                   struct sk_buff* skb,
->                                   const struct net_device* in,
->                                   const struct net_device* out,
->                                   int (*okfn)(struct sk_buff*));
->
->
-> How can I get the Bridge name that the IN devices is a member of.
->
-> Any pointers would be greatly appreciated.
->
->
-> Regards,
-> Richard
-
-
-To answer, (and conclude the question) Thanks for all the help.
-
-    rtnl_lock();
-    br_master = netdev_master_upper_dev_get((struct net_device *)in);
-    rtnl_unlock();
-
-Richard
+Hi,
+I am Kristi and i saw your contact through google page of your country which impress me and i feel we can be friends to share ideals and reason together for good,if not bad then let us know more about each other and i hope there will be no problem for us to be friend with no bad intention.You can also reply me through email(cplkristibakar@outlook.com) so that i can share details about myself, i will be waiting to hear from you soon. 
