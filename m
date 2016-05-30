@@ -1,67 +1,35 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] nf_queue: Make the queue_handler pernet
-Date: Mon, 30 May 2016 11:31:19 +0200
-Message-ID: <20160530093119.GA27929@salvia>
-References: <1462981273-21676-1-git-send-email-fw@strlen.de>
- <20160512094725.GB1777@salvia>
- <87twi3qmlf.fsf@x220.int.ebiederm.org>
- <20160512164000.GA9815@breakpoint.cc>
- <87a8jtrbk3.fsf@x220.int.ebiederm.org>
- <20160513200442.GA29941@breakpoint.cc>
- <87zirtofgp.fsf@x220.int.ebiederm.org>
- <20160513212029.GC29941@breakpoint.cc>
- <87bn49nzzn.fsf_-_@x220.int.ebiederm.org>
+Subject: Re: [PATCH 2/2] netfilter: helper: Fix helper unregister count.
+Date: Mon, 30 May 2016 11:31:51 +0200
+Message-ID: <20160530093151.GA27946@salvia>
+References: <1463231993-26917-1-git-send-email-ap420073@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, dale.4d@gmail.com,
-	netdev@vger.kernel.org, Florian Westphal <fw@strlen.de>
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
+	netfilter-devel@vger.kernel.org
+To: Taehee Yoo <ap420073@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:36909 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754333AbcE3Jb4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 May 2016 05:31:56 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 493A91C0966
+	for <netfilter-devel@vger.kernel.org>; Mon, 30 May 2016 11:31:55 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 38D3115D643
+	for <netfilter-devel@vger.kernel.org>; Mon, 30 May 2016 11:31:55 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id EA34115D647
+	for <netfilter-devel@vger.kernel.org>; Mon, 30 May 2016 11:31:52 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <87bn49nzzn.fsf_-_@x220.int.ebiederm.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1463231993-26917-1-git-send-email-ap420073@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, May 13, 2016 at 09:18:52PM -0500, Eric W. Biederman wrote:
-> 
-> Florian Weber reported:
-> > Under full load (unshare() in loop -> OOM conditions) we can
-> > get kernel panic:
-> >
-> > BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
-> > IP: [<ffffffff81476c85>] nfqnl_nf_hook_drop+0x35/0x70
-> > [..]
-> > task: ffff88012dfa3840 ti: ffff88012dffc000 task.ti: ffff88012dffc000
-> > RIP: 0010:[<ffffffff81476c85>]  [<ffffffff81476c85>] nfqnl_nf_hook_drop+0x35/0x70
-> > RSP: 0000:ffff88012dfffd80  EFLAGS: 00010206
-> > RAX: 0000000000000008 RBX: ffffffff81add0c0 RCX: ffff88013fd80000
-> > [..]
-> > Call Trace:
-> >  [<ffffffff81474d98>] nf_queue_nf_hook_drop+0x18/0x20
-> >  [<ffffffff814738eb>] nf_unregister_net_hook+0xdb/0x150
-> >  [<ffffffff8147398f>] netfilter_net_exit+0x2f/0x60
-> >  [<ffffffff8141b088>] ops_exit_list.isra.4+0x38/0x60
-> >  [<ffffffff8141b652>] setup_net+0xc2/0x120
-> >  [<ffffffff8141bd09>] copy_net_ns+0x79/0x120
-> >  [<ffffffff8106965b>] create_new_namespaces+0x11b/0x1e0
-> >  [<ffffffff810698a7>] unshare_nsproxy_namespaces+0x57/0xa0
-> >  [<ffffffff8104baa2>] SyS_unshare+0x1b2/0x340
-> >  [<ffffffff81608276>] entry_SYSCALL_64_fastpath+0x1e/0xa8
-> > Code: 65 00 48 89 e5 41 56 41 55 41 54 53 83 e8 01 48 8b 97 70 12 00 00 48 98 49 89 f4 4c 8b 74 c2 18 4d 8d 6e 08 49 81 c6 88 00 00 00 <49> 8b 5d 00 48 85 db 74 1a 48 89 df 4c 89 e2 48 c7 c6 90 68 47
-> >
-> 
-> The simple fix for this requires a new pernet variable for struct
-> nf_queue that indicates when it is safe to use the dynamically
-> allocated nf_queue state.
-> 
-> As we need a variable anyway make nf_register_queue_handler and
-> nf_unregister_queue_handler pernet.  This allows the existing logic of
-> when it is safe to use the state from the nfnetlink_queue module to be
-> reused with no changes except for making it per net.
-> 
-> The syncrhonize_rcu from nf_unregister_queue_handler is moved to a new
-> function nfnl_queue_net_exit_batch so that the worst case of having a
-> syncrhonize_rcu in the pernet exit path is not experienced in batch
-> mode.
+On Sat, May 14, 2016 at 10:19:53PM +0900, Taehee Yoo wrote:
+> helpers should unregister the only registered ports.
+> but, helper cannot have correct registered ports value when
+> failed to register.
 
 Applied, thanks.
