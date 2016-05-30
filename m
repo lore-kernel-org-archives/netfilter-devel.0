@@ -1,51 +1,33 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: kernel 4.5.1 issue at system boot
-Date: Mon, 30 May 2016 19:22:13 +0200
-Message-ID: <20160530172213.GA1349@salvia>
-References: <CAOkSjBh-P0RNKhNeR8fBmRVda7mtU9332punaUufO4Rx3aqpqA@mail.gmail.com>
- <CAOkSjBh--Ro9YzOdsTQsK6F73kPMdihjfU-tbyHc9gYN4gjOYA@mail.gmail.com>
- <20160523100811.GA9385@breakpoint.cc>
+Subject: Re: [PATCH 1/2 nft] parser: Centralize commentary rule
+Date: Mon, 30 May 2016 19:39:30 +0200
+Message-ID: <20160530173930.GA4361@salvia>
+References: <1464626140-3449-1-git-send-email-carlosfg@riseup.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36948 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:39356 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161249AbcE3RWS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 May 2016 13:22:18 -0400
+	id S1161249AbcE3Rjp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 May 2016 13:39:45 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 6837A1B5CA7
-	for <netfilter-devel@vger.kernel.org>; Mon, 30 May 2016 19:22:16 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id E78771B5CA4
+	for <netfilter-devel@vger.kernel.org>; Mon, 30 May 2016 19:39:43 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 5A0961B3264
-	for <netfilter-devel@vger.kernel.org>; Mon, 30 May 2016 19:22:16 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 98D521B322D
+	for <netfilter-devel@vger.kernel.org>; Mon, 30 May 2016 19:39:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 043F01B3260
-	for <netfilter-devel@vger.kernel.org>; Mon, 30 May 2016 19:22:14 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 1BD341B3229
+	for <netfilter-devel@vger.kernel.org>; Mon, 30 May 2016 19:39:35 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160523100811.GA9385@breakpoint.cc>
+In-Reply-To: <1464626140-3449-1-git-send-email-carlosfg@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 23, 2016 at 12:08:11PM +0200, Florian Westphal wrote:
-> Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
-> > On 23 May 2016 at 08:49, Arturo Borrero Gonzalez
-> > <arturo.borrero.glez@gmail.com> wrote:
-> > > This was in the log of my system boot today:
-> > >
-> > 
-> > Probably more readable in this link:
-> > 
-> > http://paste.debian.net/695904/
-> 
-> This looks like an ABBA-style deadlock of
-> net_mutex and nfnl_lock(NFNL_SUBSYS_NFTABLES).
+Applied, thanks.
 
-@Arturo: Could you enable CONFIG_LOCKDEP and CONFIG_DEBUG_MUTEXES?
-this instrumention should provide a bit more information on the locks
-that are involved in the deadlock.
+I have rewritten the email subject, the typical jargon word for this
+is "consolidation" instead of centralize.
 
-Thanks.
