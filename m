@@ -1,109 +1,207 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [nf-next PATCH] netfilter: nf_tables: add support for inverted
- login in nft_lookup
-Date: Tue, 31 May 2016 18:42:49 +0200
-Message-ID: <CAOkSjBggF4118vD=o4S-fw0y+jnaepTTKpqrnCbWDEiLj3JNBA@mail.gmail.com>
-References: <146469443294.16092.10350972377628813816.stgit@nfdev2.cica.es>
- <20160531144401.GB11135@breakpoint.cc> <CAOkSjBgdNOzgbK_v=2_xE2=HUjN508nZNa5knU-BM9zEt-dAzg@mail.gmail.com>
- <CAOkSjBjGVAzVPz8H3NnF_ZBE934nM4ibQ57dk_Eo9gEiG2aX8A@mail.gmail.com>
+From: Laura Garcia Liebana <nevola@gmail.com>
+Subject: [PATCH v3] extensions: libxt_multiport: Add translation to nft
+Date: Tue, 31 May 2016 20:26:11 +0200
+Message-ID: <20160531182607.GA17802@sonyv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34924 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750744AbcEaQnL convert rfc822-to-8bit (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35620 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755489AbcEaS0Q (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 May 2016 12:43:11 -0400
-Received: by mail-wm0-f68.google.com with SMTP id e3so34360757wme.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 09:43:10 -0700 (PDT)
-In-Reply-To: <CAOkSjBjGVAzVPz8H3NnF_ZBE934nM4ibQ57dk_Eo9gEiG2aX8A@mail.gmail.com>
+	Tue, 31 May 2016 14:26:16 -0400
+Received: by mail-wm0-f66.google.com with SMTP id e3so35163000wme.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 11:26:15 -0700 (PDT)
+Received: from sonyv ([91.126.73.162])
+        by smtp.gmail.com with ESMTPSA id a81sm30685798wma.16.2016.05.31.11.26.13
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Tue, 31 May 2016 11:26:13 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 31 May 2016 at 18:18, Arturo Borrero Gonzalez
-<arturo.borrero.glez@gmail.com> wrote:
-> On 31 May 2016 at 17:50, Arturo Borrero Gonzalez
-> <arturo.borrero.glez@gmail.com> wrote:
->> On 31 May 2016 at 16:44, Florian Westphal <fw@strlen.de> wrote:
->>> Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
->>>> -     if (set->ops->lookup(set, &regs->data[priv->sreg], &ext)) {
->>>> +     if (set->ops->lookup(set, &regs->data[priv->sreg], &ext) ^
->>>> +         priv->invert) {
->>>>               if (set->flags & NFT_SET_MAP)
->>>>                       nft_data_copy(&regs->data[priv->dreg],
->>>>                                     nft_set_ext_data(ext), set->dl=
-en);
->>>
->>> Whats the plan for SET_MAP here?
->>> You enter 'lookup found a result' branch here in case we did not fi=
-nd
->>> anything and invert is set.
->>>
->>> I think its better to use a
->>>
->>> } else if (priv->invert) {
->>>         return;
->>> }
->>>
->
-> Not that easy, we should consider 4 cases:
->  * lookup false, invert false -> NFT_BREAK
->  * lookup false, invert true -> return w/o NFT_BREAK
->  * lookup true, invert false -> return w/o NFT_BREAK
->  * lookup true, invert true -> NFT_BREAK
->
-> The XOR approach in my original patch seems to over these cases, ie,
-> we enter the return branch only if lookup&invert are different.
-> I think the nft_data_copy() should not worry us if we prevent the
-> combination from happening in _init()
-> The only penalty seems the additional boolean check for NFT_SET_MAP
-> (which must always fail if priv->invert is true)
->
-> So, I'm updating the _init() function with the additional restriction=
-s.
->
-> Am I missing something else?
+Add translation for multiport to nftables, which it's supported natively.
 
-We could be also extra defensive a do something like this:
+Examples:
 
-static void nft_lookup_eval(const struct nft_expr *expr,
-                            struct nft_regs *regs,
-                            const struct nft_pktinfo *pkt)
-{
-        const struct nft_lookup *priv =3D nft_expr_priv(expr);
-        const struct nft_set *set =3D priv->set;
-        const struct nft_set_ext *ext;
-        bool found;
+$ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport --dports 80,81 -j ACCEPT
+nft add rule ip filter INPUT ip protocol tcp tcp dport { 80,81} counter accept
 
-        found =3D set->ops->lookup(set, &regs->data[priv->sreg], &ext);
+$ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport --dports 80:88 -j ACCEPT
+nft add rule ip filter INPUT ip protocol tcp tcp dport 80-88 counter accept
 
-        if (!(found ^ priv->invert)) {
-                regs->verdict.code =3D NFT_BREAK;
-                return;
-        }
+$ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport ! --dports 80:88 -j ACCEPT
+nft add rule ip filter INPUT ip protocol tcp tcp dport != 80-88 counter accept
 
-        if (set->flags & NFT_SET_MAP && found && !priv->invert)
-                nft_data_copy(&regs->data[priv->dreg],
-                              nft_set_ext_data(ext), set->dlen);
+Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+---
+Changes in v2:
+	- Add curley brackets to lists and range of ports.
+Changes in v3:
+	- Avoid {} in port ranges
 
-}
+ extensions/libxt_multiport.c | 118 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 118 insertions(+)
 
-( web version http://paste.debian.net/713014 )
+diff --git a/extensions/libxt_multiport.c b/extensions/libxt_multiport.c
+index 03af5a9..869ce37 100644
+--- a/extensions/libxt_multiport.c
++++ b/extensions/libxt_multiport.c
+@@ -468,6 +468,120 @@ static void multiport_save6_v1(const void *ip_void,
+ 	__multiport_save_v1(match, ip->proto);
+ }
+ 
++static int __multiport_xlate(const void *ip, const struct xt_entry_match *match,
++			     struct xt_xlate *xl, int numeric)
++{
++	const struct xt_multiport *multiinfo
++		= (const struct xt_multiport *)match->data;
++	unsigned int i;
++
++	switch (multiinfo->flags) {
++	case XT_MULTIPORT_SOURCE:
++		xt_xlate_add(xl, "sport ");
++		break;
++	case XT_MULTIPORT_DESTINATION:
++		xt_xlate_add(xl, "dport ");
++		break;
++	case XT_MULTIPORT_EITHER:
++		return 0;
++	}
++
++	if (multiinfo->count > 1)
++		xt_xlate_add(xl, "{ ");
++
++	for (i = 0; i < multiinfo->count; i++)
++		xt_xlate_add(xl, "%s%u", i ? "," : "", multiinfo->ports[i]);
++
++	if (multiinfo->count > 1)
++		xt_xlate_add(xl, "}");
++
++	xt_xlate_add(xl, " ");
++
++	return 1;
++}
++
++static int multiport_xlate(const void *ip, const struct xt_entry_match *match,
++			   struct xt_xlate *xl, int numeric)
++{
++	uint8_t proto = ((const struct ipt_ip *)ip)->proto;
++
++	xt_xlate_add(xl, "%s ", proto_to_name(proto));
++	return __multiport_xlate(ip, match, xl, numeric);
++}
++
++static int multiport_xlate6(const void *ip, const struct xt_entry_match *match,
++			    struct xt_xlate *xl, int numeric)
++{
++	uint8_t proto = ((const struct ip6t_ip6 *)ip)->proto;
++
++	xt_xlate_add(xl, "%s ", proto_to_name(proto));
++	return __multiport_xlate(ip, match, xl, numeric);
++}
++
++static int __multiport_xlate_v1(const void *ip,
++				const struct xt_entry_match *match,
++				struct xt_xlate *xl, int numeric)
++{
++	const struct xt_multiport_v1 *multiinfo
++		= (const struct xt_multiport_v1 *)match->data;
++	unsigned int i;
++
++	switch (multiinfo->flags) {
++	case XT_MULTIPORT_SOURCE:
++		xt_xlate_add(xl, "sport ");
++		break;
++	case XT_MULTIPORT_DESTINATION:
++		xt_xlate_add(xl, "dport ");
++		break;
++	case XT_MULTIPORT_EITHER:
++		return 0;
++	}
++
++	if (multiinfo->invert)
++		xt_xlate_add(xl, "!= ");
++	
++	if (multiinfo->count > 2 || 
++	    (multiinfo->count > 1 && !multiinfo->pflags[0])) {
++		xt_xlate_add(xl, "{ ");
++		if (multiinfo->invert)
++			return 0;
++	}
++
++	for (i = 0; i < multiinfo->count; i++) {
++		xt_xlate_add(xl, "%s%u", i ? "," : "", multiinfo->ports[i]);
++		if (multiinfo->pflags[i])
++			xt_xlate_add(xl, "-%u", multiinfo->ports[++i]);
++	}
++
++	if (multiinfo->count > 2 ||
++	    (multiinfo->count > 1 && !multiinfo->pflags[0]))
++		xt_xlate_add(xl, "}");
++
++	xt_xlate_add(xl, " ");
++
++	return 1;
++}
++
++static int multiport_xlate_v1(const void *ip,
++			      const struct xt_entry_match *match,
++			      struct xt_xlate *xl, int numeric)
++{
++	uint8_t proto = ((const struct ipt_ip *)ip)->proto;
++
++	xt_xlate_add(xl, "%s ", proto_to_name(proto));
++	return __multiport_xlate_v1(ip, match, xl, numeric);
++}
++
++static int multiport_xlate6_v1(const void *ip,
++			       const struct xt_entry_match *match,
++			       struct xt_xlate *xl, int numeric)
++{
++	uint8_t proto = ((const struct ip6t_ip6 *)ip)->proto;
++
++	xt_xlate_add(xl, "%s ", proto_to_name(proto));
++	return __multiport_xlate_v1(ip, match, xl, numeric);
++}
++
+ static struct xtables_match multiport_mt_reg[] = {
+ 	{
+ 		.family        = NFPROTO_IPV4,
+@@ -482,6 +596,7 @@ static struct xtables_match multiport_mt_reg[] = {
+ 		.print         = multiport_print,
+ 		.save          = multiport_save,
+ 		.x6_options    = multiport_opts,
++		.xlate         = multiport_xlate,
+ 	},
+ 	{
+ 		.family        = NFPROTO_IPV6,
+@@ -496,6 +611,7 @@ static struct xtables_match multiport_mt_reg[] = {
+ 		.print         = multiport_print6,
+ 		.save          = multiport_save6,
+ 		.x6_options    = multiport_opts,
++		.xlate         = multiport_xlate6,
+ 	},
+ 	{
+ 		.family        = NFPROTO_IPV4,
+@@ -510,6 +626,7 @@ static struct xtables_match multiport_mt_reg[] = {
+ 		.print         = multiport_print_v1,
+ 		.save          = multiport_save_v1,
+ 		.x6_options    = multiport_opts,
++		.xlate         = multiport_xlate_v1,
+ 	},
+ 	{
+ 		.family        = NFPROTO_IPV6,
+@@ -524,6 +641,7 @@ static struct xtables_match multiport_mt_reg[] = {
+ 		.print         = multiport_print6_v1,
+ 		.save          = multiport_save6_v1,
+ 		.x6_options    = multiport_opts,
++		.xlate         = multiport_xlate6_v1,
+ 	},
+ };
+ 
+-- 
+2.7.0
 
-But, once _init() has been updated to prevent the combination of flags
-and dreg/map, I don't know if it worth these extra checks in _eval().
-
-please let me know your thoughts
-
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
