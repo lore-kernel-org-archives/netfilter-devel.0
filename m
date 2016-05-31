@@ -1,136 +1,260 @@
-From: "paulmade20@gmail.com" <paulmade20@gmail.com>
-Subject: We Humbly Need Your Assistance.
-Date: Tue, 31 May 2016 15:01:18 +0900 (JST)
-Message-ID: <1393061288.150108669.1464674478612.JavaMail.root@goo.jp>
-References: <854460508.150108104.1464674456744.JavaMail.root@goo.jp>
-Reply-To: "paulmade1@hotmail.com" <paulmade1@hotmail.com>
+From: Laura Garcia <nevola@gmail.com>
+Subject: Re: [PATCH v2] extensions: libxt_multiport: Add translation to nft
+Date: Tue, 31 May 2016 09:22:41 +0200
+Message-ID: <20160531072239.GA26590@sonyv>
+References: <20160530194748.GA25328@sonyv>
+ <CAOkSjBgKZyr-GJLWwASNoLOftJbQu5boiTpMOfNsj7YCktYGxw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_150108667_1750808075.1464674478609"
-To: unlisted-recipients:; (no To-header on input)
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gfdefer007.mail.goo.jp ([153.149.229.140]:41286 "EHLO
-	gfdefer007.mail.goo.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751394AbcEaGBX (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33776 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751316AbcEaHWq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 May 2016 02:01:23 -0400
-In-Reply-To: <854460508.150108104.1464674456744.JavaMail.root@goo.jp>
+	Tue, 31 May 2016 03:22:46 -0400
+Received: by mail-wm0-f66.google.com with SMTP id a136so29744272wme.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 00:22:45 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CAOkSjBgKZyr-GJLWwASNoLOftJbQu5boiTpMOfNsj7YCktYGxw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-------=_Part_150108667_1750808075.1464674478609
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
+On Tue, May 31, 2016 at 12:08:57AM +0200, Arturo Borrero Gonzalez wrote=
+:
+> On 30 May 2016 at 21:47, Laura Garcia Liebana <nevola@gmail.com> wrot=
+e:
+> > Add translation for multiport to nftables, which it's supported nat=
+ively.
+> >
+> > Examples:
+> >
+> > $ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport --=
+dports 80,81 -j ACCEPT
+> > nft add rule ip filter INPUT ip protocol tcp tcp dport { 80,81} cou=
+nter accept
+> >
+> > $ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport --=
+dports 80:88 -j ACCEPT
+> > nft add rule ip filter INPUT ip protocol tcp tcp dport { 80-88} cou=
+nter accept
+> >
+> > $ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport ! =
+--dports 80:88 -j ACCEPT
+> > nft add rule ip filter INPUT ip protocol tcp tcp dport !=3D 80-88 c=
+ounter accept
+> >
+>=20
+> Lets clarify the syntax, this is valid:
+>=20
+> tcp dport 8000-8100
+> tcp dport { 8000-8100}
+> tcp dport { 8000-8100, 9000-9100}
+>=20
+> but they mean different things. It seems we should avoid the braces {=
+}
+> for the range case, otherwise we would be using a set with a single
+> element.
+>=20
 
-Good Day
-Please kindly find the attached for more details
+Yes, you're right. I'll change it in order to allow port ranges without=
+ {}.
+
+> However,
+>=20
+> tcp dport {8000,8100} <-- valid
+> tcp dport 8000,8100 <-- invalid
+>=20
+> So we should always use braces {} in the non-range case.
+>=20
+> Same seems to apply in the case of inversion.
+>=20
+> so we end with this combinations:
+>=20
+> tcp dport {x,x}
+> tcp dport !=3D {x,x}
+
+This is not supported.
+
+> tcp dport x-x
+> tcp dport !=3D x-x
+>=20
+> BTW, related to this, there seems to be a bug in nftables:
+>=20
+> % nft add rule t c tcp dport !=3D {80, 81}
+> BUG: invalid expression type set
+> nft: evaluate.c:1463: expr_evaluate_relational: Assertion `0' failed.
+> Aborted
+>=20
+>=20
+> > Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+> > ---
+> > Changes in v2:
+> >         - Add curley brackets to lists and range of ports.
+> >
+> >  extensions/libxt_multiport.c | 116 +++++++++++++++++++++++++++++++=
+++++++++++++
+> >  1 file changed, 116 insertions(+)
+> >
+> > diff --git a/extensions/libxt_multiport.c b/extensions/libxt_multip=
+ort.c
+> > index 03af5a9..25b5589 100644
+> > --- a/extensions/libxt_multiport.c
+> > +++ b/extensions/libxt_multiport.c
+> > @@ -468,6 +468,118 @@ static void multiport_save6_v1(const void *ip=
+_void,
+> >         __multiport_save_v1(match, ip->proto);
+> >  }
+> >
+> > +static int __multiport_xlate(const void *ip, const struct xt_entry=
+_match *match,
+> > +                            struct xt_xlate *xl, int numeric)
+> > +{
+> > +       const struct xt_multiport *multiinfo
+> > +               =3D (const struct xt_multiport *)match->data;
+> > +       unsigned int i;
+> > +
+> > +       switch (multiinfo->flags) {
+> > +       case XT_MULTIPORT_SOURCE:
+> > +               xt_xlate_add(xl, "sport ");
+> > +               break;
+> > +       case XT_MULTIPORT_DESTINATION:
+> > +               xt_xlate_add(xl, "dport ");
+> > +               break;
+> > +       case XT_MULTIPORT_EITHER:
+> > +               return 0;
+> > +       }
+>=20
+> this case XT_MULTIPORT_EITHER seems unsupported in nftables.
+>=20
+> Is there anything established to do in case we find an impossible
+> translation? print a warning or something? I don't know right now.
+> I guess we should avoid printing an invalid nftables rule as if the
+> translation was 100% ok (which is not true in this case).
+>=20
+
+It was agreed to return 0 if the translation is not supported for
+nftables. Currently, it does.
+
+> Just wondering, I should check myself because I don't know this right=
+ now.
+>=20
+>=20
+> > +
+> > +       if (multiinfo->count > 1)
+> > +               xt_xlate_add(xl, "{ ");
+> > +
+> > +       for (i =3D 0; i < multiinfo->count; i++)
+> > +               xt_xlate_add(xl, "%s%u", i ? "," : "", multiinfo->p=
+orts[i]);
+> > +
+> > +       if (multiinfo->count > 1)
+> > +               xt_xlate_add(xl, "}");
+> > +
+> > +       xt_xlate_add(xl, " ");
+> > +
+> > +       return 1;
+> > +}
+> > +
+> > +static int multiport_xlate(const void *ip, const struct xt_entry_m=
+atch *match,
+> > +                          struct xt_xlate *xl, int numeric)
+> > +{
+> > +       uint8_t proto =3D ((const struct ipt_ip *)ip)->proto;
+> > +
+> > +       xt_xlate_add(xl, "%s ", proto_to_name(proto));
+> > +       return __multiport_xlate(ip, match, xl, numeric);
+> > +}
+> > +
+> > +static int multiport_xlate6(const void *ip, const struct xt_entry_=
+match *match,
+> > +                           struct xt_xlate *xl, int numeric)
+> > +{
+> > +       uint8_t proto =3D ((const struct ip6t_ip6 *)ip)->proto;
+> > +
+> > +       xt_xlate_add(xl, "%s ", proto_to_name(proto));
+> > +       return __multiport_xlate(ip, match, xl, numeric);
+> > +}
+> > +
+> > +static int __multiport_xlate_v1(const void *ip,
+> > +                               const struct xt_entry_match *match,
+> > +                               struct xt_xlate *xl, int numeric)
+> > +{
+> > +       const struct xt_multiport_v1 *multiinfo
+> > +               =3D (const struct xt_multiport_v1 *)match->data;
+> > +       unsigned int i;
+> > +
+> > +       switch (multiinfo->flags) {
+> > +       case XT_MULTIPORT_SOURCE:
+> > +               xt_xlate_add(xl, "sport ");
+> > +               break;
+> > +       case XT_MULTIPORT_DESTINATION:
+> > +               xt_xlate_add(xl, "dport ");
+> > +               break;
+> > +       case XT_MULTIPORT_EITHER:
+> > +               return 0;
+> > +       }
+>=20
+> same XT_MULTIPORT_EITHER here.
+>=20
+
+Same as before.
+
+> > +
+> > +       if (multiinfo->invert) {
+> > +               xt_xlate_add(xl, "!=3D ");
+> > +       } else {
+> > +               if (multiinfo->count > 1)
+> > +                       xt_xlate_add(xl, "{ ");
+> > +       }
+>=20
+> This if/else seems bogus. We only allow port sets if not inverting?
+>=20
+
+This should be now changed as we've to accept port ranges without {}.
+
+> > +
+> > +       for (i =3D 0; i < multiinfo->count; i++) {
+> > +               xt_xlate_add(xl, "%s%u", i ? "," : "", multiinfo->p=
+orts[i]);
+> > +               if (i && multiinfo->invert)
+> > +                       return 0;
+>=20
+> This return here could mean that we build an incomplete nftables rule
+> (ie, missing '}')
+>=20
+
+Such condition cares that there is no translation in nftables for:
+
+tcp dport !=3D { 80,88 }
+
+So the closed } doesn't even matter.
 
 
-Regards,
-Paul Made.
-------=_Part_150108667_1750808075.1464674478609
-Content-Type: application/pdf; name="We Humbly Need Your Assistance.pdf"
-Content-Disposition: attachment;
- filename="We Humbly Need Your Assistance.pdf"
-Content-Transfer-Encoding: base64
+> > +               if (multiinfo->pflags[i])
+> > +                       xt_xlate_add(xl, "-%u", multiinfo->ports[++=
+i]);
+> > +       }
+> > +
 
-JVBERi0xLjMKJeLjz9MKMiAwIG9iago8PAovQ3JlYXRpb25EYXRlIChEOjIwMTYwMzA2MDQwNjE1
-LTA4JzAwJykKL01vZERhdGUgKEQ6MjAxNjAzMDYwNDA2MTUtMDgnMDAnKQovUHJvZHVjZXIgKEJD
-TCBlYXN5UERGIDcuMDAgXCgwMzU1XCkpCi9DcmVhdG9yIChlYXN5UERGIFNESyA3IDcuMCkKPj4K
-ZW5kb2JqCgo3IDAgb2JqCjw8IC9UeXBlIC9Bbm5vdAovU3VidHlwZSAvTGluawovUmVjdCBbMTgu
-MjU4IDUxNC42IDI4MS45NyA1MDEuOThdCi9Cb3JkZXIgWzAgMCAwXQovQSA8PCAvUyAvVVJJIC9V
-UkkgKGh0dHA6Ly93d3cuaHJ3Lm9yZy9yZXBvcnRzLzIwMDIvemltYmFid2UvWmltTGFuZDAzMDIt
-MDMuaHRtKSA+Pgo+PgplbmRvYmoKCjkgMCBvYmoKWwowIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAw
-IDAgMCAwCjAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAyMjggMjI4CjIyOCAyMjggMjkxIDIy
-OCA0NTYgMjI4IDIyOCAyMjggMjczIDI3MyAyMjggMjI4IDIyOCAyNzMgMjI4IDIyOAo0NTYgNDU2
-IDQ1NiA0NTYgNDU2IDQ1NiAyMjggNDU2IDQ1NiA0NTYgMjI4IDIyOCAyMjggMjI4IDIyOCAyMjgK
-MjI4IDU0NyA1NDcgNTkyIDU5MiA1NDcgNTAxIDYzOCA1OTIgMjI4IDQxMCAyMjggNDU2IDY4MyA1
-OTIgNjM4CjU0NyAyMjggNTkyIDU0NyA1MDEgNTkyIDIyOCA3NzQgMjI4IDU0NyA1MDEgMjI4IDIy
-OCAyMjggMjI4IDIyOAoyMjggNDU2IDQ1NiA0MTAgNDU2IDQ1NiAyMjggNDU2IDQ1NiAxODIgMjI4
-IDQxMCAxODIgNjgzIDQ1NiA0NTYKNDU2IDQ1NiAyNzMgNDEwIDIyOCA0NTYgNDEwIDU5MiA0MTAg
-NDEwIDQxMCAyMjggMjI4IDIyOCAyMjggMjI4CjIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAy
-MjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOAoyMjggMjI4IDE4MiAyMjggMjI4IDIy
-OCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjgKMjI4IDIyOCAyMjggMjI4
-IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDI3MyAyMjggMjI4CjIyOCAyMjgg
-MjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOAoy
-MjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIy
-OCAyMjgKMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4
-IDIyOCAyMjggMjI4CjIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjgg
-MjI4IDIyOCAyMjggMjI4IDIyOAoyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAy
-MjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjgKXQplbmRvYmoKCjEgMCBvYmoKPDwKL0NvdW50IDAK
-Pj4KZW5kb2JqCgozIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyA0IDAgUgo+PgplbmRv
-YmoKCjExIDAgb2JqCjw8Ci9MZW5ndGggMzA5NAovRmlsdGVyIC9GbGF0ZURlY29kZQo+PgpzdHJl
-YW0KeNqNWdty20YSfddXzMM+gFsSjQuv2Sf5lthlJdpIrtQm2ochMCRmBWCYASCG+fqc7h6AtItO
-bdlVBIdz6enLOaeheJql65mKp/N5usbHKktmyu+uXj9evXqfzFWiHrdXyWwaZ+tExfg3PKdpNl2s
-1DJeTpOFeqyvfot+MeqHvt5UR/WjMcUkTSP1H9d7ddu2tu10k5vJf9Xjx6t4mqRYE0/T1SLDx2wd
-p3Tm2YHJ2YHhOVmpxTqbLlM57L139XfqXvfV5CZNVtGdLobt1U0yTWa4x2OBiTBJN+pnuyu7Vr1x
-NdlVW5jkmovz4YZ7b2Fs2yq3Vb/oyrTq0XivJ+k6ys21urjsTeNxW/+sdFOoh07dNoWfpElkDi2+
-emO6a1jrnzt3aLAFtvroSt00pt30fne+5TzNZEuY8aI7o17rnUqXcXytfnBkfY+rOGwiG0zSLJJN
-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
-F4zeIxqUs5LyPOHd49VffGibywplbmRzdHJlYW0KZW5kb2JqCgo2IDAgb2JqCjw8Ci9UeXBlIC9Q
-YWdlCi9QYXJlbnQgNCAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8
-Ci9Gb250IDw8Ci9GMTUgOCAwIFIKPj4KL1Byb2NTZXQgWy9QREYgL1RleHQgL0ltYWdlQiAvSW1h
-Z2VDXSA+PgovQ29udGVudHMgMTEgMCBSCi9Bbm5vdHMgWwo3IDAgUgpdCj4+CmVuZG9iagoKNCAw
-IG9iago8PAovVHlwZSAvUGFnZXMKL0tpZHMgWwo2IDAgUgpdCi9Db3VudCAxCj4+CmVuZG9iagoK
-MTAgMCBvYmoKPDwKL1R5cGUgL0ZvbnREZXNjcmlwdG9yCi9Bc2NlbnQgOTIyCi9DYXBIZWlnaHQg
-NzkwCi9EZXNjZW50IC0yMTAKL0ZsYWdzIDMyCi9Gb250QkJveCBbMCAtMjEwIDExODIgOTIyXQov
-SXRhbGljQW5nbGUgMAovU3RlbVYgMAovRm9udE5hbWUgL0FyaWFsTmFycm93Cj4+CmVuZG9iagoK
-OCAwIG9iago8PAovVHlwZSAvRm9udAovU3VidHlwZSAvVHJ1ZVR5cGUKL0Jhc2VGb250IC9Bcmlh
-bE5hcnJvdwovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwovRmlyc3RDaGFyIDAKL0xhc3RDaGFy
-IDI1NQovRm9udERlc2NyaXB0b3IgMTAgMCBSCi9XaWR0aHMgOSAwIFIKPj4KZW5kb2JqCgo1IDAg
-b2JqCm51bGwKZW5kb2JqCgp4cmVmCjAgMTIKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAxMzQ4
-IDAwMDAwIG4gCjAwMDAwMDAwMTUgMDAwMDAgbiAKMDAwMDAwMTM3OSAwMDAwMCBuIAowMDAwMDA0
-Nzg1IDAwMDAwIG4gCjAwMDAwMDUxODMgMDAwMDAgbiAKMDAwMDAwNDU5OCAwMDAwMCBuIAowMDAw
-MDAwMTc5IDAwMDAwIG4gCjAwMDAwMDUwMTYgMDAwMDAgbiAKMDAwMDAwMDM2NCAwMDAwMCBuIAow
-MDAwMDA0ODQ1IDAwMDAwIG4gCjAwMDAwMDE0MjkgMDAwMDAgbiAKdHJhaWxlcgo8PAovU2l6ZSAx
-MgovUm9vdCAzIDAgUgovSW5mbyAyIDAgUgovSURbPDQwZjc4NWE3NmVhOWI0NTg5NzA1NjJhNzA1
-YmVkODk5Pjw0MGY3ODVhNzZlYTliNDU4OTcwNTYyYTcwNWJlZDg5OT5dCj4+CnN0YXJ0eHJlZgo1
-MjA0CiUlRU9GCg==
-------=_Part_150108667_1750808075.1464674478609--
+If the rule needs such closed } , then it's controlled here:
+
+> > +       if (multiinfo->count > 1 && !multiinfo->invert)
+> > +               xt_xlate_add(xl, "}");
+> > +
+> > +       xt_xlate_add(xl, " ");
+> > +
+> > +       return 1;
+> > +}
+>=20
+>=20
+> --=20
+> Arturo Borrero Gonz=E1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
