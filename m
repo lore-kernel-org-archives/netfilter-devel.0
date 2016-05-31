@@ -1,144 +1,69 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nf-next PATCH v3] netfilter: nf_tables: add support for inverted
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [nf-next PATCH] netfilter: nf_tables: add support for inverted
  login in nft_lookup
-Date: Tue, 31 May 2016 14:32:15 +0200
-Message-ID: <146469785438.21116.13446718035036247660.stgit@nfdev2.cica.es>
+Date: Tue, 31 May 2016 16:44:01 +0200
+Message-ID: <20160531144401.GB11135@breakpoint.cc>
+References: <146469443294.16092.10350972377628813816.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:50054 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751498AbcEaMcW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 May 2016 08:32:22 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id 331B551F2E3
-	for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 12:32:19 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id t4Wcz_EOmnud for <netfilter-devel@vger.kernel.org>;
-	Tue, 31 May 2016 14:32:14 +0200 (CEST)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-	(Authenticated sender: servers@cica.es)
-	by smtp.cica.es (Postfix) with ESMTP id EA3D151F2E5
-	for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 14:32:13 +0200 (CEST)
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40697 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753686AbcEaOoI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 31 May 2016 10:44:08 -0400
+Content-Disposition: inline
+In-Reply-To: <146469443294.16092.10350972377628813816.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Introduce a new configuration option for this expression, which allows users
-to invert the logic of set lookups.
+Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
+> -	if (set->ops->lookup(set, &regs->data[priv->sreg], &ext)) {
+> +	if (set->ops->lookup(set, &regs->data[priv->sreg], &ext) ^
+> +	    priv->invert) {
+>  		if (set->flags & NFT_SET_MAP)
+>  			nft_data_copy(&regs->data[priv->dreg],
+>  				      nft_set_ext_data(ext), set->dlen);
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
-v2: better aling memory of struct nft_lookup, put 'bool invert' before bindings
-v3: include flags coherence validation
+Whats the plan for SET_MAP here?
+You enter 'lookup found a result' branch here in case we did not find
+anything and invert is set.
 
- include/uapi/linux/netfilter/nf_tables.h |    6 ++++++
- net/netfilter/nft_lookup.c               |   19 ++++++++++++++++++-
- 2 files changed, 24 insertions(+), 1 deletion(-)
+I think its better to use a
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 6a4dbe0..01751fa 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -546,6 +546,10 @@ enum nft_cmp_attributes {
- };
- #define NFTA_CMP_MAX		(__NFTA_CMP_MAX - 1)
- 
-+enum nft_lookup_flags {
-+	NFT_LOOKUP_F_INV = (1 << 0),
-+};
-+
- /**
-  * enum nft_lookup_attributes - nf_tables set lookup expression netlink attributes
-  *
-@@ -553,6 +557,7 @@ enum nft_cmp_attributes {
-  * @NFTA_LOOKUP_SREG: source register of the data to look for (NLA_U32: nft_registers)
-  * @NFTA_LOOKUP_DREG: destination register (NLA_U32: nft_registers)
-  * @NFTA_LOOKUP_SET_ID: uniquely identifies a set in a transaction (NLA_U32)
-+ * @NFTA_LOOKUP_FLAGS: flags (NLA_U32: enum nft_lookup_flags)
-  */
- enum nft_lookup_attributes {
- 	NFTA_LOOKUP_UNSPEC,
-@@ -560,6 +565,7 @@ enum nft_lookup_attributes {
- 	NFTA_LOOKUP_SREG,
- 	NFTA_LOOKUP_DREG,
- 	NFTA_LOOKUP_SET_ID,
-+	NFTA_LOOKUP_FLAGS,
- 	__NFTA_LOOKUP_MAX
- };
- #define NFTA_LOOKUP_MAX		(__NFTA_LOOKUP_MAX - 1)
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index b3c31ef..e96b86a 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -22,6 +22,7 @@ struct nft_lookup {
- 	struct nft_set			*set;
- 	enum nft_registers		sreg:8;
- 	enum nft_registers		dreg:8;
-+	bool				invert;
- 	struct nft_set_binding		binding;
- };
- 
-@@ -33,7 +34,8 @@ static void nft_lookup_eval(const struct nft_expr *expr,
- 	const struct nft_set *set = priv->set;
- 	const struct nft_set_ext *ext;
- 
--	if (set->ops->lookup(set, &regs->data[priv->sreg], &ext)) {
-+	if (set->ops->lookup(set, &regs->data[priv->sreg], &ext) ^
-+	    priv->invert) {
- 		if (set->flags & NFT_SET_MAP)
- 			nft_data_copy(&regs->data[priv->dreg],
- 				      nft_set_ext_data(ext), set->dlen);
-@@ -47,6 +49,7 @@ static const struct nla_policy nft_lookup_policy[NFTA_LOOKUP_MAX + 1] = {
- 	[NFTA_LOOKUP_SET_ID]	= { .type = NLA_U32 },
- 	[NFTA_LOOKUP_SREG]	= { .type = NLA_U32 },
- 	[NFTA_LOOKUP_DREG]	= { .type = NLA_U32 },
-+	[NFTA_LOOKUP_FLAGS]	= { .type = NLA_U32 },
- };
- 
- static int nft_lookup_init(const struct nft_ctx *ctx,
-@@ -55,6 +58,7 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- {
- 	struct nft_lookup *priv = nft_expr_priv(expr);
- 	struct nft_set *set;
-+	u32 flags;
- 	int err;
- 
- 	if (tb[NFTA_LOOKUP_SET] == NULL ||
-@@ -91,6 +95,16 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- 	} else if (set->flags & NFT_SET_MAP)
- 		return -EINVAL;
- 
-+	if (tb[NFTA_LOOKUP_FLAGS]) {
-+		flags = ntohl(nla_get_be32(tb[NFTA_LOOKUP_FLAGS]));
-+
-+		if (flags & ~NFT_LOOKUP_F_INV)
-+			return -EINVAL;
-+
-+		if (flags & NFT_LOOKUP_F_INV)
-+			priv->invert = true;
-+	}
-+
- 	priv->binding.flags = set->flags & NFT_SET_MAP;
- 
- 	err = nf_tables_bind_set(ctx, set, &priv->binding);
-@@ -112,6 +126,7 @@ static void nft_lookup_destroy(const struct nft_ctx *ctx,
- static int nft_lookup_dump(struct sk_buff *skb, const struct nft_expr *expr)
- {
- 	const struct nft_lookup *priv = nft_expr_priv(expr);
-+	u32 flags = priv->invert ? NFT_LOOKUP_F_INV : 0;
- 
- 	if (nla_put_string(skb, NFTA_LOOKUP_SET, priv->set->name))
- 		goto nla_put_failure;
-@@ -120,6 +135,8 @@ static int nft_lookup_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	if (priv->set->flags & NFT_SET_MAP)
- 		if (nft_dump_register(skb, NFTA_LOOKUP_DREG, priv->dreg))
- 			goto nla_put_failure;
-+	if (nla_put_be32(skb, NFTA_LOOKUP_FLAGS, htonl(flags)))
-+		goto nla_put_failure;
- 	return 0;
- 
- nla_put_failure:
+} else if (priv->invert) {
+	return;
+}
 
+here.
+
+> @@ -47,6 +49,7 @@ static const struct nla_policy nft_lookup_policy[NFTA_LOOKUP_MAX + 1] = {
+>  	[NFTA_LOOKUP_SET_ID]	= { .type = NLA_U32 },
+>  	[NFTA_LOOKUP_SREG]	= { .type = NLA_U32 },
+>  	[NFTA_LOOKUP_DREG]	= { .type = NLA_U32 },
+> +	[NFTA_LOOKUP_FLAGS]	= { .type = NLA_U32 },
+>  };
+>  
+>  static int nft_lookup_init(const struct nft_ctx *ctx,
+> @@ -55,6 +58,7 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
+>  {
+>  	struct nft_lookup *priv = nft_expr_priv(expr);
+>  	struct nft_set *set;
+> +	u32 flags;
+>  	int err;
+>  
+>  	if (tb[NFTA_LOOKUP_SET] == NULL ||
+> @@ -91,6 +95,12 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
+>  	} else if (set->flags & NFT_SET_MAP)
+>  		return -EINVAL;
+>  
+> +	if (tb[NFTA_LOOKUP_FLAGS]) {
+> +		flags = ntohl(nla_get_be32(tb[NFTA_LOOKUP_FLAGS]));
+> +		if (flags & NFT_LOOKUP_F_INV)
+> +			priv->invert = true;
+> +	}
+> +
+
+I think we should EINVAL if NFT_LOOKUP_F_INV is given with dreg/map.
