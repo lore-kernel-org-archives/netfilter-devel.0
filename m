@@ -1,57 +1,44 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Subject: Re: [PATCH v2] extensions: libxt_multiport: Add translation to nft
-Date: Tue, 31 May 2016 10:17:12 +0200
-Message-ID: <CAOkSjBg9uQpAe2VpBFy6jcAk+87+qapC7inwGaG7fjZ+Mx6Ucw@mail.gmail.com>
+Date: Tue, 31 May 2016 10:23:31 +0200
+Message-ID: <CAOkSjBjezoobHAqOpL9oNz1hPJ+6P-+ebNeUBkgOVo1Ni-xzHA@mail.gmail.com>
 References: <20160530194748.GA25328@sonyv> <CAOkSjBgKZyr-GJLWwASNoLOftJbQu5boiTpMOfNsj7YCktYGxw@mail.gmail.com>
- <20160531072239.GA26590@sonyv>
+ <20160530224104.GA2199@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
+Cc: Laura Garcia Liebana <nevola@gmail.com>,
+	Netfilter Development Mailing list
 	<netfilter-devel@vger.kernel.org>
-To: Laura Garcia <nevola@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:35998 "EHLO
-	mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756467AbcEaIRe convert rfc822-to-8bit (ORCPT
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:34082 "EHLO
+	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755457AbcEaIXw convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 May 2016 04:17:34 -0400
-Received: by mail-wm0-f48.google.com with SMTP id n129so117966283wmn.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 01:17:33 -0700 (PDT)
-In-Reply-To: <20160531072239.GA26590@sonyv>
+	Tue, 31 May 2016 04:23:52 -0400
+Received: by mail-wm0-f45.google.com with SMTP id z87so20338368wmh.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 01:23:51 -0700 (PDT)
+In-Reply-To: <20160530224104.GA2199@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 31 May 2016 at 09:22, Laura Garcia <nevola@gmail.com> wrote:
->> > +
->> > +       for (i =3D 0; i < multiinfo->count; i++) {
->> > +               xt_xlate_add(xl, "%s%u", i ? "," : "", multiinfo->=
-ports[i]);
->> > +               if (i && multiinfo->invert)
->> > +                       return 0;
->>
->> This return here could mean that we build an incomplete nftables rul=
-e
->> (ie, missing '}')
->>
+On 31 May 2016 at 00:41, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> This is not yet supported. This requires a small kernel patch to allo=
+w
+> inversions in the nft_lookup.c. Then, the little extra code for
+> libnftnl and nft.
 >
-> Such condition cares that there is no translation in nftables for:
->
-> tcp dport !=3D { 80,88 }
->
-> So the closed } doesn't even matter.
->
+> All tests for this usecase are disabled at the moment.
 
-Then, at the start of the xlate function, I would suggest to do an
-early return if we are about to translate an unsupported rule.
+What is your idea of the implementation?
 
-No need to keep checking if we are in the inversion case
+Perhaps adding NFTA_LOOKUP_FLAGS and also:
+enum nft_lookup_flags {
+   NFT_LOOKUP_F_INV =3D (1 << 0),
+};
 
->> > +       if (multiinfo->count > 1 && !multiinfo->invert)
->> > +               xt_xlate_add(xl, "}");
->> > +
 
-like here
 --=20
 Arturo Borrero Gonz=C3=A1lez
 --
