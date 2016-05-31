@@ -1,10 +1,7 @@
 From: Peter Zijlstra <peterz@infradead.org>
-Subject: [PATCH -v3 2/8] locking: Introduce cmpwait()
-Date: Tue, 31 May 2016 11:41:36 +0200
-Message-ID: <20160531094843.976191553@infradead.org>
-References: <20160531094134.606249808@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Subject: [PATCH -v3 0/8] spin_unlock_wait borkage and assorted bits
+Date: Tue, 31 May 2016 11:41:34 +0200
+Message-ID: <20160531094134.606249808@infradead.org>
 Cc: boqun.feng@gmail.com, Waiman.Long@hpe.com, tj@kernel.org,
 	pablo@netfilter.org, kaber@trash.net, davem@davemloft.net,
 	oleg@redhat.com, netfilter-devel@vger.kernel.org,
@@ -13,54 +10,24 @@ To: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
 	manfred@colorfullife.com, dave@stgolabs.net,
 	paulmck@linux.vnet.ibm.com, will.deacon@arm.com
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline; filename=peterz-locking-cmp_and_wait.patch
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Provide the cmpwait() primitive, which will 'spin' wait for a variable
-to change and use it to implement smp_cond_load_acquire().
+Similar to -v2 in that it rewrites spin_unlock_wait() for all.
 
-This primitive can be implemented with hardware assist on some
-platforms (ARM64, x86).
+The new spin_unlock_wait() provides ACQUIRE semantics to match the RELEASE of
+the spin_unlock() we waited for and thereby ensure we can fully observe its
+critical section.
 
-Suggested-by: Will Deacon <will.deacon@arm.com>
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
----
- include/linux/compiler.h |   19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+This fixes a number (pretty much all) spin_unlock_wait() users.
 
---- a/include/linux/compiler.h
-+++ b/include/linux/compiler.h
-@@ -305,6 +305,23 @@ static __always_inline void __write_once
- })
- 
- /**
-+ * cmpwait - compare and wait for a variable to change
-+ * @ptr: pointer to the variable to wait on
-+ * @val: the value it should change from
-+ *
-+ * A simple constuct that waits for a variable to change from a known
-+ * value; some architectures can do this in hardware.
-+ */
-+#ifndef cmpwait
-+#define cmpwait(ptr, val) do {					\
-+	typeof (ptr) __ptr = (ptr);				\
-+	typeof (val) __val = (val);				\
-+	while (READ_ONCE(*__ptr) == __val)			\
-+		cpu_relax();					\
-+} while (0)
-+#endif
-+
-+/**
-  * smp_cond_load_acquire() - (Spin) wait for cond with ACQUIRE ordering
-  * @ptr: pointer to the variable to wait on
-  * @cond: boolean expression to wait for
-@@ -327,7 +344,7 @@ static __always_inline void __write_once
- 		VAL = READ_ONCE(*__PTR);			\
- 		if (cond_expr)					\
- 			break;					\
--		cpu_relax();					\
-+		cmpwait(__PTR, VAL);				\
- 	}							\
- 	smp_rmb(); /* ctrl + rmb := acquire */			\
- 	VAL;							\
+This series pulls in the smp_cond_acquire() rewrite because it introduces a lot
+of new users of it. All simple spin_unlock_wait() implementations end up being
+one.
+
+New in this series; apart from the fixes from the last posting (s390,tile),
+is that it moves smp_cond_load_acquire() and friends into asm-generic/barrier.h
+such that architectures that explicitly do not do load speculation (tile)
+can override smp_acquire__after_ctrl_dep().
+
+I'm planning on queuing these patches for 4.8.
