@@ -1,85 +1,136 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] extensions: libxt_multiport: Add translation to nft
-Date: Tue, 31 May 2016 00:41:04 +0200
-Message-ID: <20160530224104.GA2199@salvia>
-References: <20160530194748.GA25328@sonyv>
- <CAOkSjBgKZyr-GJLWwASNoLOftJbQu5boiTpMOfNsj7YCktYGxw@mail.gmail.com>
+From: "paulmade20@gmail.com" <paulmade20@gmail.com>
+Subject: We Humbly Need Your Assistance.
+Date: Tue, 31 May 2016 15:01:18 +0900 (JST)
+Message-ID: <1393061288.150108669.1464674478612.JavaMail.root@goo.jp>
+References: <854460508.150108104.1464674456744.JavaMail.root@goo.jp>
+Reply-To: "paulmade1@hotmail.com" <paulmade1@hotmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Laura Garcia Liebana <nevola@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: multipart/mixed;
+	boundary="----=_Part_150108667_1750808075.1464674478609"
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43633 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161681AbcE3WlM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 May 2016 18:41:12 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 154A71B6C07
-	for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 00:41:08 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 051EFA8E2
-	for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 00:41:08 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 063976447E
-	for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 00:41:06 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBgKZyr-GJLWwASNoLOftJbQu5boiTpMOfNsj7YCktYGxw@mail.gmail.com>
+Received: from gfdefer007.mail.goo.jp ([153.149.229.140]:41286 "EHLO
+	gfdefer007.mail.goo.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751394AbcEaGBX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 31 May 2016 02:01:23 -0400
+In-Reply-To: <854460508.150108104.1464674456744.JavaMail.root@goo.jp>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 31, 2016 at 12:08:57AM +0200, Arturo Borrero Gonzalez wrote:
-> On 30 May 2016 at 21:47, Laura Garcia Liebana <nevola@gmail.com> wrote:
-> > Add translation for multiport to nftables, which it's supported natively.
-> >
-> > Examples:
-> >
-> > $ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport --dports 80,81 -j ACCEPT
-> > nft add rule ip filter INPUT ip protocol tcp tcp dport { 80,81} counter accept
-> >
-> > $ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport --dports 80:88 -j ACCEPT
-> > nft add rule ip filter INPUT ip protocol tcp tcp dport { 80-88} counter accept
-> >
-> > $ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport ! --dports 80:88 -j ACCEPT
-> > nft add rule ip filter INPUT ip protocol tcp tcp dport != 80-88 counter accept
-> >
-> 
-> Lets clarify the syntax, this is valid:
-> 
-> tcp dport 8000-8100
-> tcp dport { 8000-8100}
-> tcp dport { 8000-8100, 9000-9100}
-> 
-> but they mean different things. It seems we should avoid the braces {}
-> for the range case, otherwise we would be using a set with a single
-> element.
-> 
-> However,
-> 
-> tcp dport {8000,8100} <-- valid
-> tcp dport 8000,8100 <-- invalid
-> 
-> So we should always use braces {} in the non-range case.
-> 
-> Same seems to apply in the case of inversion.
-> 
-> so we end with this combinations:
-> 
-> tcp dport {x,x}
-> tcp dport != {x,x}
-> tcp dport x-x
-> tcp dport != x-x
-> 
-> BTW, related to this, there seems to be a bug in nftables:
-> 
-> % nft add rule t c tcp dport != {80, 81}
-> BUG: invalid expression type set
-> nft: evaluate.c:1463: expr_evaluate_relational: Assertion `0' failed.
-> Aborted
+------=_Part_150108667_1750808075.1464674478609
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
 
-This is not yet supported. This requires a small kernel patch to allow
-inversions in the nft_lookup.c. Then, the little extra code for
-libnftnl and nft.
+Good Day
+Please kindly find the attached for more details
 
-All tests for this usecase are disabled at the moment.
+
+Regards,
+Paul Made.
+------=_Part_150108667_1750808075.1464674478609
+Content-Type: application/pdf; name="We Humbly Need Your Assistance.pdf"
+Content-Disposition: attachment;
+ filename="We Humbly Need Your Assistance.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjMKJeLjz9MKMiAwIG9iago8PAovQ3JlYXRpb25EYXRlIChEOjIwMTYwMzA2MDQwNjE1
+LTA4JzAwJykKL01vZERhdGUgKEQ6MjAxNjAzMDYwNDA2MTUtMDgnMDAnKQovUHJvZHVjZXIgKEJD
+TCBlYXN5UERGIDcuMDAgXCgwMzU1XCkpCi9DcmVhdG9yIChlYXN5UERGIFNESyA3IDcuMCkKPj4K
+ZW5kb2JqCgo3IDAgb2JqCjw8IC9UeXBlIC9Bbm5vdAovU3VidHlwZSAvTGluawovUmVjdCBbMTgu
+MjU4IDUxNC42IDI4MS45NyA1MDEuOThdCi9Cb3JkZXIgWzAgMCAwXQovQSA8PCAvUyAvVVJJIC9V
+UkkgKGh0dHA6Ly93d3cuaHJ3Lm9yZy9yZXBvcnRzLzIwMDIvemltYmFid2UvWmltTGFuZDAzMDIt
+MDMuaHRtKSA+Pgo+PgplbmRvYmoKCjkgMCBvYmoKWwowIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAw
+IDAgMCAwCjAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAyMjggMjI4CjIyOCAyMjggMjkxIDIy
+OCA0NTYgMjI4IDIyOCAyMjggMjczIDI3MyAyMjggMjI4IDIyOCAyNzMgMjI4IDIyOAo0NTYgNDU2
+IDQ1NiA0NTYgNDU2IDQ1NiAyMjggNDU2IDQ1NiA0NTYgMjI4IDIyOCAyMjggMjI4IDIyOCAyMjgK
+MjI4IDU0NyA1NDcgNTkyIDU5MiA1NDcgNTAxIDYzOCA1OTIgMjI4IDQxMCAyMjggNDU2IDY4MyA1
+OTIgNjM4CjU0NyAyMjggNTkyIDU0NyA1MDEgNTkyIDIyOCA3NzQgMjI4IDU0NyA1MDEgMjI4IDIy
+OCAyMjggMjI4IDIyOAoyMjggNDU2IDQ1NiA0MTAgNDU2IDQ1NiAyMjggNDU2IDQ1NiAxODIgMjI4
+IDQxMCAxODIgNjgzIDQ1NiA0NTYKNDU2IDQ1NiAyNzMgNDEwIDIyOCA0NTYgNDEwIDU5MiA0MTAg
+NDEwIDQxMCAyMjggMjI4IDIyOCAyMjggMjI4CjIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAy
+MjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOAoyMjggMjI4IDE4MiAyMjggMjI4IDIy
+OCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjgKMjI4IDIyOCAyMjggMjI4
+IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDI3MyAyMjggMjI4CjIyOCAyMjgg
+MjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOAoy
+MjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIy
+OCAyMjgKMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4
+IDIyOCAyMjggMjI4CjIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjgg
+MjI4IDIyOCAyMjggMjI4IDIyOAoyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjggMjI4IDIyOCAy
+MjggMjI4IDIyOCAyMjggMjI4IDIyOCAyMjgKXQplbmRvYmoKCjEgMCBvYmoKPDwKL0NvdW50IDAK
+Pj4KZW5kb2JqCgozIDAgb2JqCjw8Ci9UeXBlIC9DYXRhbG9nCi9QYWdlcyA0IDAgUgo+PgplbmRv
+YmoKCjExIDAgb2JqCjw8Ci9MZW5ndGggMzA5NAovRmlsdGVyIC9GbGF0ZURlY29kZQo+PgpzdHJl
+YW0KeNqNWdty20YSfddXzMM+gFsSjQuv2Sf5lthlJdpIrtQm2ochMCRmBWCYASCG+fqc7h6AtItO
+bdlVBIdz6enLOaeheJql65mKp/N5usbHKktmyu+uXj9evXqfzFWiHrdXyWwaZ+tExfg3PKdpNl2s
+1DJeTpOFeqyvfot+MeqHvt5UR/WjMcUkTSP1H9d7ddu2tu10k5vJf9Xjx6t4mqRYE0/T1SLDx2wd
+p3Tm2YHJ2YHhOVmpxTqbLlM57L139XfqXvfV5CZNVtGdLobt1U0yTWa4x2OBiTBJN+pnuyu7Vr1x
+NdlVW5jkmovz4YZ7b2Fs2yq3Vb/oyrTq0XivJ+k6ys21urjsTeNxW/+sdFOoh07dNoWfpElkDi2+
+emO6a1jrnzt3aLAFtvroSt00pt30fne+5TzNZEuY8aI7o17rnUqXcXytfnBkfY+rOGwiG0zSLJJN
+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
+F4zeIxqUs5LyPOHd49VffGibywplbmRzdHJlYW0KZW5kb2JqCgo2IDAgb2JqCjw8Ci9UeXBlIC9Q
+YWdlCi9QYXJlbnQgNCAwIFIKL01lZGlhQm94IFsgMCAwIDYxMiA3OTIgXQovUmVzb3VyY2VzIDw8
+Ci9Gb250IDw8Ci9GMTUgOCAwIFIKPj4KL1Byb2NTZXQgWy9QREYgL1RleHQgL0ltYWdlQiAvSW1h
+Z2VDXSA+PgovQ29udGVudHMgMTEgMCBSCi9Bbm5vdHMgWwo3IDAgUgpdCj4+CmVuZG9iagoKNCAw
+IG9iago8PAovVHlwZSAvUGFnZXMKL0tpZHMgWwo2IDAgUgpdCi9Db3VudCAxCj4+CmVuZG9iagoK
+MTAgMCBvYmoKPDwKL1R5cGUgL0ZvbnREZXNjcmlwdG9yCi9Bc2NlbnQgOTIyCi9DYXBIZWlnaHQg
+NzkwCi9EZXNjZW50IC0yMTAKL0ZsYWdzIDMyCi9Gb250QkJveCBbMCAtMjEwIDExODIgOTIyXQov
+SXRhbGljQW5nbGUgMAovU3RlbVYgMAovRm9udE5hbWUgL0FyaWFsTmFycm93Cj4+CmVuZG9iagoK
+OCAwIG9iago8PAovVHlwZSAvRm9udAovU3VidHlwZSAvVHJ1ZVR5cGUKL0Jhc2VGb250IC9Bcmlh
+bE5hcnJvdwovRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZwovRmlyc3RDaGFyIDAKL0xhc3RDaGFy
+IDI1NQovRm9udERlc2NyaXB0b3IgMTAgMCBSCi9XaWR0aHMgOSAwIFIKPj4KZW5kb2JqCgo1IDAg
+b2JqCm51bGwKZW5kb2JqCgp4cmVmCjAgMTIKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAxMzQ4
+IDAwMDAwIG4gCjAwMDAwMDAwMTUgMDAwMDAgbiAKMDAwMDAwMTM3OSAwMDAwMCBuIAowMDAwMDA0
+Nzg1IDAwMDAwIG4gCjAwMDAwMDUxODMgMDAwMDAgbiAKMDAwMDAwNDU5OCAwMDAwMCBuIAowMDAw
+MDAwMTc5IDAwMDAwIG4gCjAwMDAwMDUwMTYgMDAwMDAgbiAKMDAwMDAwMDM2NCAwMDAwMCBuIAow
+MDAwMDA0ODQ1IDAwMDAwIG4gCjAwMDAwMDE0MjkgMDAwMDAgbiAKdHJhaWxlcgo8PAovU2l6ZSAx
+MgovUm9vdCAzIDAgUgovSW5mbyAyIDAgUgovSURbPDQwZjc4NWE3NmVhOWI0NTg5NzA1NjJhNzA1
+YmVkODk5Pjw0MGY3ODVhNzZlYTliNDU4OTcwNTYyYTcwNWJlZDg5OT5dCj4+CnN0YXJ0eHJlZgo1
+MjA0CiUlRU9GCg==
+------=_Part_150108667_1750808075.1464674478609--
