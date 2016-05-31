@@ -1,46 +1,66 @@
 From: Peter Zijlstra <peterz@infradead.org>
-Subject: [PATCH -v3 8/8] locking, tile: Provide TILE specific smp_acquire__after_ctrl_dep
-Date: Tue, 31 May 2016 11:41:42 +0200
-Message-ID: <20160531094844.342792251@infradead.org>
+Subject: [PATCH -v3 2/8] locking: Introduce cmpwait()
+Date: Tue, 31 May 2016 11:41:36 +0200
+Message-ID: <20160531094843.976191553@infradead.org>
 References: <20160531094134.606249808@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Cc: boqun.feng@gmail.com, Waiman.Long@hpe.com, tj@kernel.org,
 	pablo@netfilter.org, kaber@trash.net, davem@davemloft.net,
 	oleg@redhat.com, netfilter-devel@vger.kernel.org,
-	sasha.levin@oracle.com, hofrat@osadl.org, peterz@infradead.org,
-	Chris Metcalf <cmetcalf@mellanox.com>
+	sasha.levin@oracle.com, hofrat@osadl.org, peterz@infradead.org
 To: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
 	manfred@colorfullife.com, dave@stgolabs.net,
 	paulmck@linux.vnet.ibm.com, will.deacon@arm.com
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline; filename=peterz-tile-ctrl-dep.patch
+Content-Disposition: inline; filename=peterz-locking-cmp_and_wait.patch
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Since TILE doesn't do read speculation, its control dependencies also
-guarantee LOAD->LOAD order and we don't need the additional RMB
-otherwise required to provide ACQUIRE semantics.
+Provide the cmpwait() primitive, which will 'spin' wait for a variable
+to change and use it to implement smp_cond_load_acquire().
 
-Cc: Chris Metcalf <cmetcalf@mellanox.com>
+This primitive can be implemented with hardware assist on some
+platforms (ARM64, x86).
+
+Suggested-by: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 ---
- arch/tile/include/asm/barrier.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ include/linux/compiler.h |   19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
---- a/arch/tile/include/asm/barrier.h
-+++ b/arch/tile/include/asm/barrier.h
-@@ -87,6 +87,13 @@ mb_incoherent(void)
- #define __smp_mb__after_atomic()	__smp_mb()
- #endif
+--- a/include/linux/compiler.h
++++ b/include/linux/compiler.h
+@@ -305,6 +305,23 @@ static __always_inline void __write_once
+ })
  
-+/*
-+ * The TILE architecture does not do speculative reads; this ensures
-+ * that a control dependency also orders against loads and already provides
-+ * a LOAD->{LOAD,STORE} order and can forgo the additional RMB.
+ /**
++ * cmpwait - compare and wait for a variable to change
++ * @ptr: pointer to the variable to wait on
++ * @val: the value it should change from
++ *
++ * A simple constuct that waits for a variable to change from a known
++ * value; some architectures can do this in hardware.
 + */
-+#define smp_acquire__after_ctrl_dep()	barrier()
++#ifndef cmpwait
++#define cmpwait(ptr, val) do {					\
++	typeof (ptr) __ptr = (ptr);				\
++	typeof (val) __val = (val);				\
++	while (READ_ONCE(*__ptr) == __val)			\
++		cpu_relax();					\
++} while (0)
++#endif
 +
- #include <asm-generic/barrier.h>
- 
- #endif /* !__ASSEMBLY__ */
++/**
+  * smp_cond_load_acquire() - (Spin) wait for cond with ACQUIRE ordering
+  * @ptr: pointer to the variable to wait on
+  * @cond: boolean expression to wait for
+@@ -327,7 +344,7 @@ static __always_inline void __write_once
+ 		VAL = READ_ONCE(*__PTR);			\
+ 		if (cond_expr)					\
+ 			break;					\
+-		cpu_relax();					\
++		cmpwait(__PTR, VAL);				\
+ 	}							\
+ 	smp_rmb(); /* ctrl + rmb := acquire */			\
+ 	VAL;							\
