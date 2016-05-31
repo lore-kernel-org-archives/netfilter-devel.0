@@ -1,49 +1,55 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] extensions: libxt_multiport: Add translation to nft
-Date: Tue, 31 May 2016 12:03:55 +0200
-Message-ID: <20160531100355.GA1784@salvia>
-References: <20160530194748.GA25328@sonyv>
- <CAOkSjBgKZyr-GJLWwASNoLOftJbQu5boiTpMOfNsj7YCktYGxw@mail.gmail.com>
- <20160530224104.GA2199@salvia>
- <CAOkSjBjezoobHAqOpL9oNz1hPJ+6P-+ebNeUBkgOVo1Ni-xzHA@mail.gmail.com>
+From: =?UTF-8?Q?Carlos_Falgueras_Garc=c3=ada?= <carlosfg@riseup.net>
+Subject: Re: [PATCH libnfntl] Check all strdup
+Date: Tue, 31 May 2016 12:07:11 +0200
+Message-ID: <afd1014f-6221-b9ec-9d92-10077d3cb3d1@riseup.net>
+References: <1464627822-6173-1-git-send-email-carlosfg@riseup.net>
+ <20160530171634.GA1017@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Laura Garcia Liebana <nevola@gmail.com>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36047 "EHLO mail.us.es"
+Received: from mx1.riseup.net ([198.252.153.129]:49714 "EHLO mx1.riseup.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751626AbcEaKEA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 May 2016 06:04:00 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 3522C1C3302
-	for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 12:03:58 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 23DB315D64D
-	for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 12:03:58 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 180DB15D64C
-	for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 12:03:56 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <CAOkSjBjezoobHAqOpL9oNz1hPJ+6P-+ebNeUBkgOVo1Ni-xzHA@mail.gmail.com>
+	id S1750779AbcEaKHP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 31 May 2016 06:07:15 -0400
+In-Reply-To: <20160530171634.GA1017@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 31, 2016 at 10:23:31AM +0200, Arturo Borrero Gonzalez wrote:
-> On 31 May 2016 at 00:41, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > This is not yet supported. This requires a small kernel patch to allow
-> > inversions in the nft_lookup.c. Then, the little extra code for
-> > libnftnl and nft.
-> >
-> > All tests for this usecase are disabled at the moment.
-> 
-> What is your idea of the implementation?
-> 
-> Perhaps adding NFTA_LOOKUP_FLAGS and also:
-> enum nft_lookup_flags {
->    NFT_LOOKUP_F_INV = (1 << 0),
-> };
+On 05/30/2016 07:16 PM, Pablo Neira Ayuso wrote:
+> On Mon, May 30, 2016 at 07:03:42PM +0200, Carlos Falgueras Garc=EDa w=
+rote:
+>> diff --git a/src/set.c b/src/set.c
+>> index dbea93b..65b8f1e 100644
+>> --- a/src/set.c
+>> +++ b/src/set.c
+>> @@ -291,10 +295,16 @@ struct nftnl_set *nftnl_set_clone(const struct=
+ nftnl_set *set)
+>>
+>>  	memcpy(newset, set, sizeof(*set));
+>>
+>> -	if (set->flags & (1 << NFTNL_SET_TABLE))
+>> +	if (set->flags & (1 << NFTNL_SET_TABLE)) {
+>>  		newset->table =3D strdup(set->table);
+>> -	if (set->flags & (1 << NFTNL_SET_NAME))
+>> +		if (!newset->table)
+>> +			return NULL;
+>> +	}
+>> +	if (set->flags & (1 << NFTNL_SET_NAME)) {
+>>  		newset->name =3D strdup(set->name);
+>> +		if (!newset->name)
+>> +			return NULL;
+>> +	}
+>
+> This is leaking the clone object.
+>
 
-Something like that, yes.
+Thanks. I have fixed it and nfntl_set_elem_clone().
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
