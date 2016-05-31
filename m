@@ -1,46 +1,59 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nf-next PATCH v2] netfilter: nf_tables: add support for inverted
- login in nft_lookup
-Date: Tue, 31 May 2016 13:57:16 +0200
-Message-ID: <146469577386.17442.8631583064566384839.stgit@nfdev2.cica.es>
+Subject: [libnftnl PATCH v2] expr: lookup: give support for inverted matching
+Date: Tue, 31 May 2016 14:03:10 +0200
+Message-ID: <146469610712.22148.15640593727383542091.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:55549 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:48979 "EHLO smtp.cica.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753819AbcEaL5W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 May 2016 07:57:22 -0400
+	id S1752560AbcEaMDW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 31 May 2016 08:03:22 -0400
 Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id E54EE51F2EA
-	for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 11:57:19 +0000 (UTC)
+	by smtp.cica.es (Postfix) with ESMTP id 4C25251F2CB
+	for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 12:03:19 +0000 (UTC)
 Received: from smtp.cica.es ([127.0.0.1])
 	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 5xE2Jko0NJrH for <netfilter-devel@vger.kernel.org>;
-	Tue, 31 May 2016 13:57:14 +0200 (CEST)
+	with ESMTP id quok2Db8T4DL for <netfilter-devel@vger.kernel.org>;
+	Tue, 31 May 2016 14:03:09 +0200 (CEST)
 Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
 	(Authenticated sender: servers@cica.es)
-	by smtp.cica.es (Postfix) with ESMTP id BA08151F2D3
-	for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 13:57:14 +0200 (CEST)
+	by smtp.cica.es (Postfix) with ESMTP id 261EC51F2D3
+	for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 14:03:09 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Introduce a new configuration option for this expression, which allows users
-to invert the logic of set lookups.
+Inverted matching support was included in the kernel, let's give support here
+as well.
 
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
-v2: better aling memory of struct nft_lookup, put 'bool invert' before bindings
+v2: patch now includes also update to tests/nft-expr_lookup-test.c
 
- include/uapi/linux/netfilter/nf_tables.h |    6 ++++++
- net/netfilter/nft_lookup.c               |   15 ++++++++++++++-
- 2 files changed, 20 insertions(+), 1 deletion(-)
+ include/libnftnl/expr.h             |    1 +
+ include/linux/netfilter/nf_tables.h |    6 ++++++
+ src/expr/lookup.c                   |   32 +++++++++++++++++++++++++++++---
+ tests/nft-expr_lookup-test.c        |    4 ++++
+ 4 files changed, 40 insertions(+), 3 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
+index f192103..ec8cb10 100644
+--- a/include/libnftnl/expr.h
++++ b/include/libnftnl/expr.h
+@@ -107,6 +107,7 @@ enum {
+ 	NFTNL_EXPR_LOOKUP_DREG,
+ 	NFTNL_EXPR_LOOKUP_SET,
+ 	NFTNL_EXPR_LOOKUP_SET_ID,
++	NFTNL_EXPR_LOOKUP_FLAGS,
+ };
+ 
+ enum {
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
 index 6a4dbe0..01751fa 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
 @@ -546,6 +546,10 @@ enum nft_cmp_attributes {
  };
  #define NFTA_CMP_MAX		(__NFTA_CMP_MAX - 1)
@@ -68,72 +81,151 @@ index 6a4dbe0..01751fa 100644
  	__NFTA_LOOKUP_MAX
  };
  #define NFTA_LOOKUP_MAX		(__NFTA_LOOKUP_MAX - 1)
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index b3c31ef..648e635 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -22,6 +22,7 @@ struct nft_lookup {
- 	struct nft_set			*set;
- 	enum nft_registers		sreg:8;
- 	enum nft_registers		dreg:8;
-+	bool				invert;
- 	struct nft_set_binding		binding;
+diff --git a/src/expr/lookup.c b/src/expr/lookup.c
+index ed32ba6..59a3c5c 100644
+--- a/src/expr/lookup.c
++++ b/src/expr/lookup.c
+@@ -26,6 +26,7 @@ struct nftnl_expr_lookup {
+ 	enum nft_registers	dreg;
+ 	char			*set_name;
+ 	uint32_t		set_id;
++	uint32_t		flags;
  };
  
-@@ -33,7 +34,8 @@ static void nft_lookup_eval(const struct nft_expr *expr,
- 	const struct nft_set *set = priv->set;
- 	const struct nft_set_ext *ext;
+ static int
+@@ -47,6 +48,9 @@ nftnl_expr_lookup_set(struct nftnl_expr *e, uint16_t type,
+ 	case NFTNL_EXPR_LOOKUP_SET_ID:
+ 		lookup->set_id = *((uint32_t *)data);
+ 		break;
++	case NFTNL_EXPR_LOOKUP_FLAGS:
++		lookup->flags = *((uint32_t *)data);
++		break;
+ 	default:
+ 		return -1;
+ 	}
+@@ -70,6 +74,8 @@ nftnl_expr_lookup_get(const struct nftnl_expr *e, uint16_t type,
+ 		return lookup->set_name;
+ 	case NFTNL_EXPR_LOOKUP_SET_ID:
+ 		return &lookup->set_id;
++	case NFTNL_EXPR_LOOKUP_FLAGS:
++		return &lookup->flags;
+ 	}
+ 	return NULL;
+ }
+@@ -86,6 +92,7 @@ static int nftnl_expr_lookup_cb(const struct nlattr *attr, void *data)
+ 	case NFTA_LOOKUP_SREG:
+ 	case NFTA_LOOKUP_DREG:
+ 	case NFTA_LOOKUP_SET_ID:
++	case NFTA_LOOKUP_FLAGS:
+ 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
+ 			abi_breakage();
+ 		break;
+@@ -113,6 +120,8 @@ nftnl_expr_lookup_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
+ 	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_SET_ID)) {
+ 		mnl_attr_put_u32(nlh, NFTA_LOOKUP_SET_ID,
+ 				 htonl(lookup->set_id));
++	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_FLAGS))
++		mnl_attr_put_u32(nlh, NFTA_LOOKUP_FLAGS, htonl(lookup->flags));
+ 	}
+ }
  
--	if (set->ops->lookup(set, &regs->data[priv->sreg], &ext)) {
-+	if (set->ops->lookup(set, &regs->data[priv->sreg], &ext) ^
-+	    priv->invert) {
- 		if (set->flags & NFT_SET_MAP)
- 			nft_data_copy(&regs->data[priv->dreg],
- 				      nft_set_ext_data(ext), set->dlen);
-@@ -47,6 +49,7 @@ static const struct nla_policy nft_lookup_policy[NFTA_LOOKUP_MAX + 1] = {
- 	[NFTA_LOOKUP_SET_ID]	= { .type = NLA_U32 },
- 	[NFTA_LOOKUP_SREG]	= { .type = NLA_U32 },
- 	[NFTA_LOOKUP_DREG]	= { .type = NLA_U32 },
-+	[NFTA_LOOKUP_FLAGS]	= { .type = NLA_U32 },
- };
- 
- static int nft_lookup_init(const struct nft_ctx *ctx,
-@@ -55,6 +58,7 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- {
- 	struct nft_lookup *priv = nft_expr_priv(expr);
- 	struct nft_set *set;
-+	u32 flags;
- 	int err;
- 
- 	if (tb[NFTA_LOOKUP_SET] == NULL ||
-@@ -91,6 +95,12 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- 	} else if (set->flags & NFT_SET_MAP)
- 		return -EINVAL;
- 
+@@ -144,6 +153,10 @@ nftnl_expr_lookup_parse(struct nftnl_expr *e, struct nlattr *attr)
+ 			ntohl(mnl_attr_get_u32(tb[NFTA_LOOKUP_SET_ID]));
+ 		e->flags |= (1 << NFTNL_EXPR_LOOKUP_SET_ID);
+ 	}
 +	if (tb[NFTA_LOOKUP_FLAGS]) {
-+		flags = ntohl(nla_get_be32(tb[NFTA_LOOKUP_FLAGS]));
-+		if (flags & NFT_LOOKUP_F_INV)
-+			priv->invert = true;
++		lookup->flags = ntohl(mnl_attr_get_u32(tb[NFTA_LOOKUP_FLAGS]));
++		e->flags |= (1 << NFTNL_EXPR_LOOKUP_FLAGS);
 +	}
-+
- 	priv->binding.flags = set->flags & NFT_SET_MAP;
  
- 	err = nf_tables_bind_set(ctx, set, &priv->binding);
-@@ -112,6 +122,7 @@ static void nft_lookup_destroy(const struct nft_ctx *ctx,
- static int nft_lookup_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 	return ret;
+ }
+@@ -154,7 +167,7 @@ nftnl_expr_lookup_json_parse(struct nftnl_expr *e, json_t *root,
  {
- 	const struct nft_lookup *priv = nft_expr_priv(expr);
-+	u32 flags = priv->invert ? NFT_LOOKUP_F_INV : 0;
+ #ifdef JSON_PARSING
+ 	const char *set_name;
+-	uint32_t sreg, dreg;
++	uint32_t sreg, dreg, flags;
  
- 	if (nla_put_string(skb, NFTA_LOOKUP_SET, priv->set->name))
- 		goto nla_put_failure;
-@@ -120,6 +131,8 @@ static int nft_lookup_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	if (priv->set->flags & NFT_SET_MAP)
- 		if (nft_dump_register(skb, NFTA_LOOKUP_DREG, priv->dreg))
- 			goto nla_put_failure;
-+	if (nla_put_be32(skb, NFTA_LOOKUP_FLAGS, htonl(flags)))
-+		goto nla_put_failure;
+ 	set_name = nftnl_jansson_parse_str(root, "set", err);
+ 	if (set_name != NULL)
+@@ -166,6 +179,10 @@ nftnl_expr_lookup_json_parse(struct nftnl_expr *e, json_t *root,
+ 	if (nftnl_jansson_parse_reg(root, "dreg", NFTNL_TYPE_U32, &dreg, err) == 0)
+ 		nftnl_expr_set_u32(e, NFTNL_EXPR_LOOKUP_DREG, dreg);
+ 
++	if (nftnl_jansson_parse_val(root, "flags", NFTNL_TYPE_U32,
++				    &flags, err) == 0)
++		nftnl_expr_set_u32(e, NFTNL_EXPR_LOOKUP_FLAGS, flags);
++
  	return 0;
+ #else
+ 	errno = EOPNOTSUPP;
+@@ -179,7 +196,7 @@ nftnl_expr_lookup_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
+ {
+ #ifdef XML_PARSING
+ 	const char *set_name;
+-	uint32_t sreg, dreg;
++	uint32_t sreg, dreg, flags;
  
- nla_put_failure:
+ 	set_name = nftnl_mxml_str_parse(tree, "set", MXML_DESCEND_FIRST,
+ 				      NFTNL_XML_MAND, err);
+@@ -194,6 +211,11 @@ nftnl_expr_lookup_xml_parse(struct nftnl_expr *e, mxml_node_t *tree,
+ 			       err) == 0)
+ 		nftnl_expr_set_u32(e, NFTNL_EXPR_LOOKUP_DREG, dreg);
+ 
++        if (nftnl_mxml_num_parse(tree, "flags", MXML_DESCEND_FIRST, BASE_DEC,
++				 &flags, NFTNL_TYPE_U32,
++				 NFTNL_XML_MAND, err) == 0)
++                nftnl_expr_set_u32(e, NFTNL_EXPR_LOOKUP_FLAGS, flags);
++
+ 	return 0;
+ #else
+ 	errno = EOPNOTSUPP;
+@@ -214,6 +236,8 @@ nftnl_expr_lookup_export(char *buf, size_t size,
+ 		nftnl_buf_u32(&b, type, l->sreg, SREG);
+ 	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_DREG))
+ 		nftnl_buf_u32(&b, type, l->dreg, DREG);
++	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_FLAGS))
++		nftnl_buf_u32(&b, type, l->flags, FLAGS);
+ 
+ 	return nftnl_buf_done(&b);
+ }
+@@ -228,12 +252,14 @@ nftnl_expr_lookup_snprintf_default(char *buf, size_t size,
+ 	ret = snprintf(buf, len, "reg %u set %s ", l->sreg, l->set_name);
+ 	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+-
+ 	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_DREG)) {
+ 		ret = snprintf(buf+offset, len, "dreg %u ", l->dreg);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	}
+ 
++	ret = snprintf(buf + offset, len, "0x%x ", l->flags);
++	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
++
+ 	return offset;
+ }
+ 
+diff --git a/tests/nft-expr_lookup-test.c b/tests/nft-expr_lookup-test.c
+index ad028e9..94ca4df 100644
+--- a/tests/nft-expr_lookup-test.c
++++ b/tests/nft-expr_lookup-test.c
+@@ -42,6 +42,9 @@ static void cmp_nftnl_expr(struct nftnl_expr *rule_a,
+ 	nftnl_expr_get(rule_b, NFTNL_EXPR_LOOKUP_SET, &data_lenb);
+ 	if (data_lena != data_lenb)
+ 		print_err("Expr NFTNL_EXPR_LOOKUP_SET size mismatches");
++	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_LOOKUP_FLAGS) !=
++	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_LOOPUP_FLAGS))
++		print_err("Expr NFTNL_EXPR_LOOkUP_FLAGS mismatches");
+ }
+ 
+ int main(int argc, char *argv[])
+@@ -66,6 +69,7 @@ int main(int argc, char *argv[])
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_LOOKUP_DREG, 0x12345678);
+ 	nftnl_expr_set(ex, NFTNL_EXPR_LOOKUP_SET, &lookup_set,
+ 			  sizeof(lookup_set));
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_LOOKUP_FLAGS, 0x12345678);
+ 
+ 	nftnl_rule_add_expr(a, ex);
+ 
 
