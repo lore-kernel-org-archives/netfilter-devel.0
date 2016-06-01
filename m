@@ -1,90 +1,44 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [PATCH v3] extensions: libxt_multiport: Add translation to nft
-Date: Wed, 1 Jun 2016 16:43:45 +0200
-Message-ID: <CAOkSjBiGUCk83+Muwc6naTUJXTXgK7s0Bi+fvcCB6=WW50dxQQ@mail.gmail.com>
-References: <20160531182607.GA17802@sonyv>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] extensions: libxt_mark: fix a wrong translation to nft
+ when mask is specified
+Date: Wed, 1 Jun 2016 17:08:32 +0200
+Message-ID: <20160601150832.GA1412@salvia>
+References: <1464782837-40104-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Laura Garcia Liebana <nevola@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>,
+	Shivani Bhardwaj <shivanib134@gmail.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34949 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751648AbcFAOoH convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Jun 2016 10:44:07 -0400
-Received: by mail-wm0-f67.google.com with SMTP id e3so7457408wme.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 01 Jun 2016 07:44:06 -0700 (PDT)
-In-Reply-To: <20160531182607.GA17802@sonyv>
+Received: from mail.us.es ([193.147.175.20]:59226 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751545AbcFAPIl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Jun 2016 11:08:41 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 9C94A1B9BA6
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 17:08:37 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 8DCD19EBBE
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 17:08:37 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id CFE479EBC1
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 17:08:33 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1464782837-40104-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 31 May 2016 at 20:26, Laura Garcia Liebana <nevola@gmail.com> wrote:
-> +static int __multiport_xlate_v1(const void *ip,
-> +                               const struct xt_entry_match *match,
-> +                               struct xt_xlate *xl, int numeric)
-> +{
-> +       const struct xt_multiport_v1 *multiinfo
-> +               =3D (const struct xt_multiport_v1 *)match->data;
-> +       unsigned int i;
-> +
-> +       switch (multiinfo->flags) {
-> +       case XT_MULTIPORT_SOURCE:
-> +               xt_xlate_add(xl, "sport ");
-> +               break;
-> +       case XT_MULTIPORT_DESTINATION:
-> +               xt_xlate_add(xl, "dport ");
-> +               break;
-> +       case XT_MULTIPORT_EITHER:
-> +               return 0;
-> +       }
-> +
-> +       if (multiinfo->invert)
-> +               xt_xlate_add(xl, "!=3D ");
-> +
-> +       if (multiinfo->count > 2 ||
-> +           (multiinfo->count > 1 && !multiinfo->pflags[0])) {
-> +               xt_xlate_add(xl, "{ ");
-> +               if (multiinfo->invert)
-> +                       return 0;
-> +       }
-> +
+On Wed, Jun 01, 2016 at 08:07:17PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <liping.zhang@spreadtrum.com>
+> 
+> The mask and mark's order is reversed, so when we specify the mask, we will
+> get the wrong translation result:
+>   # iptables-translate -A INPUT -m mark --mark 0x1/0xff
+>   nft add rule ip filter INPUT mark and 0x1 == 0xff counter
+> 
+> Apply this patch, translation will become:
+>   # iptables-translate -A INPUT -m mark --mark 0x1/0xff
+>   nft add rule ip filter INPUT mark and 0xff == 0x1 counter
 
-I fail to understand this return here
-
-Other than that, the patch looks good.
-
-> +       for (i =3D 0; i < multiinfo->count; i++) {
-> +               xt_xlate_add(xl, "%s%u", i ? "," : "", multiinfo->por=
-ts[i]);
-> +               if (multiinfo->pflags[i])
-> +                       xt_xlate_add(xl, "-%u", multiinfo->ports[++i]=
-);
-> +       }
-> +
-> +       if (multiinfo->count > 2 ||
-> +           (multiinfo->count > 1 && !multiinfo->pflags[0]))
-> +               xt_xlate_add(xl, "}");
-> +
-> +       xt_xlate_add(xl, " ");
-> +
-> +       return 1;
-> +}
-
-I missed this in previous revisions of your patch:
-
-% iptables -A t -p tcp -m multiport --dports 80:100
-% iptables -A t -p tcp -m multiport --dports 80:100,299:444
-
-both rules are valid. This means that avoiding the single-element set
-in the port-range case doesn't seems that important, sorry for that.
-
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks.
