@@ -1,42 +1,28 @@
-From: Xiubo Li <lixiubo@cmss.chinamobile.com>
-Subject: Re: [PATCH] netfilter: fix possible ZERO_SIZE_PTR pointerdereferencing
- error.
-Date: Wed, 01 Jun 2016 17:52:59 +0800
-Message-ID: <574EB07B.3060307@cmss.chinamobile.com>
-References: <1464770068-7508-1-git-send-email-lixiubo@cmss.chinamobile.com> <20160601092711.GB2711@salvia>
+From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+Subject: Re: [PATCH nft] evaluate: fix "list set" unexpected behaviour
+Date: Wed, 1 Jun 2016 12:14:43 +0200
+Message-ID: <CAAaDf4vyLjjP74eMsqsH1dwV9JckbG4vVioVmLWW4GTD98mw5g@mail.gmail.com>
+References: <20160601085117.6717-1-pablombg@gmail.com>
+	<20160601092056.GA2711@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20160601092711.GB2711@salvia>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-yw0-f180.google.com ([209.85.161.180]:36270 "EHLO
+	mail-yw0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751415AbcFAKOo (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Jun 2016 06:14:44 -0400
+Received: by mail-yw0-f180.google.com with SMTP id x189so13517974ywe.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Jun 2016 03:14:43 -0700 (PDT)
+In-Reply-To: <20160601092056.GA2711@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
->>   net/netfilter/x_tables.c | 3 +++
->>   1 file changed, 3 insertions(+)
->>
->> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
->> index c8a0b7d..4df8e38 100644
->> --- a/net/netfilter/x_tables.c
->> +++ b/net/netfilter/x_tables.c
->> @@ -1185,6 +1185,9 @@ struct nf_hook_ops *xt_hook_link(const struct xt_table *table, nf_hookfn *fn)
+2016-06-01 11:20 GMT+02:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> I'd suggest:
 >
-> What kernel version are you using? I don't see xt_hook_link() in the
-> development tree.
+>                     set == NULL && set->flags & (SET_F_EVAL | SET_F_MAP)
 
-Sorry, in the wrong tree, i just work on linux-next tree, forget to 
-checkout the newest tags.
-
-Should I will use nf.git tree or others instead ?
-
->
-
-
-Thanks very much.
-
-BRs
-Xiubo Li
+Oh, sure. Thank you for pointing that out.
