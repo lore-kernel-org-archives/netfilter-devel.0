@@ -1,102 +1,68 @@
-From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCH] doc: fix old parameters and update datatypes
-Date: Thu, 2 Jun 2016 00:25:13 +0200
-Message-ID: <20160601222511.GA4314@sonyv>
+From: Boqun Feng <boqun.feng@gmail.com>
+Subject: Re: [PATCH -v3 3/8] locking: Introduce smp_acquire__after_ctrl_dep
+Date: Thu, 2 Jun 2016 07:19:43 +0800
+Message-ID: <20160601231943.GD30064@insomnia>
+References: <20160531094134.606249808@infradead.org>
+ <20160531094844.037298593@infradead.org>
+ <20160601135214.GC30064@insomnia>
+ <20160601162255.GT3190@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33605 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750863AbcFAWZS (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Jun 2016 18:25:18 -0400
-Received: by mail-wm0-f68.google.com with SMTP id a136so10760373wme.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 01 Jun 2016 15:25:17 -0700 (PDT)
-Received: from sonyv ([213.143.50.104])
-        by smtp.gmail.com with ESMTPSA id g192sm34887801wme.15.2016.06.01.15.25.16
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Wed, 01 Jun 2016 15:25:16 -0700 (PDT)
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="k4f25fnPtRuIRUb3"
+Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
+	manfred@colorfullife.com, dave@stgolabs.net,
+	paulmck@linux.vnet.ibm.com, will.deacon@arm.com,
+	Waiman.Long@hpe.com, tj@kernel.org, pablo@netfilter.org,
+	kaber@trash.net, davem@davemloft.net, oleg@redhat.com,
+	netfilter-devel@vger.kernel.org, sasha.levin@oracle.com,
+	hofrat@osadl.org
+To: Peter Zijlstra <peterz@infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20160601162255.GT3190@twins.programming.kicks-ass.net>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Fix old identifiers like 'ipcomp' and 'op' with 'comp' and 'operation'
-instead. Update some FIXME datatypes.
 
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
----
- doc/nft.xml | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+--k4f25fnPtRuIRUb3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/doc/nft.xml b/doc/nft.xml
-index 0ebf51a..b9f3c69 100644
---- a/doc/nft.xml
-+++ b/doc/nft.xml
-@@ -1331,7 +1331,7 @@ filter output oif eth0
- 							<row>
- 								<entry>htype</entry>
- 								<entry>ARP hardware type</entry>
--								<entry>FIXME</entry>
-+								<entry>integer (16 bit)</entry>
- 							</row>
- 							<row>
- 								<entry>ptype</entry>
-@@ -1349,9 +1349,9 @@ filter output oif eth0
- 								<entry>integer (8 bit)</entry>
- 							</row>
- 							<row>
--								<entry>op</entry>
-+								<entry>operation</entry>
- 								<entry>Operation</entry>
--								<entry>FIXME</entry>
-+								<entry>arp_op</entry>
- 							</row>
- 						</tbody>
- 					</tgroup>
-@@ -1578,7 +1578,7 @@ filter output oif eth0
- 							<row>
- 								<entry>reserved</entry>
- 								<entry>Reserved area</entry>
--								<entry>FIXME</entry>
-+								<entry>integer (4 bit)</entry>
- 							</row>
- 							<row>
- 								<entry>flags</entry>
-@@ -1829,7 +1829,7 @@ filter output oif eth0
- 							<row>
- 								<entry>reserved</entry>
- 								<entry>Reserved area</entry>
--								<entry>FIXME</entry>
-+								<entry>integer (4 bit)</entry>
- 							</row>
- 							<row>
- 								<entry>spi</entry>
-@@ -1890,7 +1890,7 @@ filter output oif eth0
- 			<title>IPcomp header expression</title>
- 			<para>
- 				<cmdsynopsis>
--					<command>ipcomp</command>
-+					<command>comp</command>
- 					<arg opt="req"><replaceable>IPComp header field</replaceable></arg>
- 				</cmdsynopsis>
- 			</para>
-@@ -1917,12 +1917,12 @@ filter output oif eth0
- 							<row>
- 								<entry>flags</entry>
- 								<entry>Flags</entry>
--								<entry>FIXME</entry>
-+								<entry>bitmask</entry>
- 							</row>
- 							<row>
- 								<entry>cpi</entry>
- 								<entry>Compression Parameter Index</entry>
--								<entry>FIXME</entry>
-+								<entry>integer (16 bit)</entry>
- 							</row>
- 						</tbody>
- 					</tgroup>
--- 
-2.7.0
+On Wed, Jun 01, 2016 at 06:22:55PM +0200, Peter Zijlstra wrote:
+> On Wed, Jun 01, 2016 at 09:52:14PM +0800, Boqun Feng wrote:
+> > On Tue, May 31, 2016 at 11:41:37AM +0200, Peter Zijlstra wrote:
+>=20
+> > > @@ -292,7 +282,7 @@ static void sem_wait_array(struct sem_ar
+> > >  		sem =3D sma->sem_base + i;
+> > >  		spin_unlock_wait(&sem->lock);
+> > >  	}
+> > > -	ipc_smp_acquire__after_spin_is_unlocked();
+> > > +	smp_acquire__after_ctrl_dep();
+> >=20
+> > I wonder whether we can kill this barrier after updating
+> > spin_unlock_wait() to ACQUIRE?
+>=20
+> See patch 5 doing that :-)
 
+Oops, right ;-)
+
+Regards,
+Boqun
+
+--k4f25fnPtRuIRUb3
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAABCAAGBQJXT22JAAoJEEl56MO1B/q4+W0H/1GIqudmMPVieC/ebtu3mySs
+LER03q8exkKgnD9sdLENokyjCTxEvyaQ2JLqDT98an9Cza5SmOFV7fumMDZikf1V
+zL/kAaQnTd/OXfpiN9YmmTr5Uyyeav8JfE0DcZVaidk8ohyXJeEvvI0l9z7UEPoi
+zPyiMkxYdfcXTqTemH2/8LpRdxvvohDpPDsiDbzFBY5AZ0N8jif2+7EMcKxqD+Ur
+qRFKsOwUUmAlnYYxfv07Zdfd4lPUr8LefAfEtk1PYhCCmT83F9kNnG4XU0w0jlkF
++mwiHW6FqMuUS6tqhBGYpnGT/sUOCZarEo8UkxdY0Wl2kUJ5CdYdTlnw5i63suA=
+=g+US
+-----END PGP SIGNATURE-----
+
+--k4f25fnPtRuIRUb3--
