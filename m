@@ -1,52 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: fix possible ZERO_SIZE_PTR
- pointerdereferencing error.
-Date: Wed, 1 Jun 2016 13:04:25 +0200
-Message-ID: <20160601110425.GA8276@salvia>
-References: <1464770068-7508-1-git-send-email-lixiubo@cmss.chinamobile.com>
- <20160601092711.GB2711@salvia>
- <574EB07B.3060307@cmss.chinamobile.com>
+Subject: Re: [PATCH nft v2] evaluate: fix "list set" unexpected behaviour
+Date: Wed, 1 Jun 2016 13:11:44 +0200
+Message-ID: <20160601111144.GA11275@salvia>
+References: <20160601101651.23971-1-pablombg@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org
-To: Xiubo Li <lixiubo@cmss.chinamobile.com>
+Cc: netfilter-devel@vger.kernel.org
+To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47923 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48413 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751527AbcFALEb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Jun 2016 07:04:31 -0400
+	id S1750716AbcFALLw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Jun 2016 07:11:52 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 04F7B8D051A
-	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 13:04:30 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 07DE04BADC2
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 13:11:51 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E4C1F1B3240
-	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 13:04:29 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id EB01E1BDA04
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 13:11:50 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 9F6451B3240
-	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 13:04:27 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 0345D1BDA0B
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 13:11:49 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <574EB07B.3060307@cmss.chinamobile.com>
+In-Reply-To: <20160601101651.23971-1-pablombg@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 01, 2016 at 05:52:59PM +0800, Xiubo Li wrote:
-> >>  net/netfilter/x_tables.c | 3 +++
-> >>  1 file changed, 3 insertions(+)
-> >>
-> >>diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-> >>index c8a0b7d..4df8e38 100644
-> >>--- a/net/netfilter/x_tables.c
-> >>+++ b/net/netfilter/x_tables.c
-> >>@@ -1185,6 +1185,9 @@ struct nf_hook_ops *xt_hook_link(const struct xt_table *table, nf_hookfn *fn)
-> >
-> >What kernel version are you using? I don't see xt_hook_link() in the
-> >development tree.
+On Wed, Jun 01, 2016 at 12:16:51PM +0200, Pablo M. Bermudo Garay wrote:
+> Special sets like maps and flow tables have their own commands to be
+> listed and inspected.
 > 
-> Sorry, in the wrong tree, i just work on linux-next tree, forget to checkout
-> the newest tags.
+> Before this patch, "nft list set" was able to display these special sets
+> content:
 > 
-> Should I will use nf.git tree or others instead ?
+>   # nft list set filter test
+>   table ip filter {
+>           map test {
+>                   type ipv4_addr : inet_service
+>                   elements = { 192.168.1.101 : http-alt}
+>           }
+>   }
+> 
+> Now an error is shown:
+> 
+>   # nft list set filter test
+>   <cmdline>:1:1-20: Error: Could not process rule: Set 'test' does not exist
+>   list set filter test
+>   ^^^^^^^^^^^^^^^^^^^^
 
-Yes please, thanks.
+OK, let's place this in the tree before the release.
+
+Applied, thanks.
