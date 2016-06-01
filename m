@@ -1,60 +1,52 @@
-From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
-Subject: [PATCH nft v2] evaluate: fix "list set" unexpected behaviour
-Date: Wed,  1 Jun 2016 12:16:51 +0200
-Message-ID: <20160601101651.23971-1-pablombg@gmail.com>
-Cc: pablo@netfilter.org, "Pablo M. Bermudo Garay" <pablombg@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: fix possible ZERO_SIZE_PTR
+ pointerdereferencing error.
+Date: Wed, 1 Jun 2016 13:04:25 +0200
+Message-ID: <20160601110425.GA8276@salvia>
+References: <1464770068-7508-1-git-send-email-lixiubo@cmss.chinamobile.com>
+ <20160601092711.GB2711@salvia>
+ <574EB07B.3060307@cmss.chinamobile.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org
+To: Xiubo Li <lixiubo@cmss.chinamobile.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36359 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751412AbcFAKRY (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Jun 2016 06:17:24 -0400
-Received: by mail-wm0-f66.google.com with SMTP id q62so5294409wmg.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 01 Jun 2016 03:17:23 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:47923 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751527AbcFALEb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Jun 2016 07:04:31 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 04F7B8D051A
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 13:04:30 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id E4C1F1B3240
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 13:04:29 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 9F6451B3240
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 13:04:27 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <574EB07B.3060307@cmss.chinamobile.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Special sets like maps and flow tables have their own commands to be
-listed and inspected.
+On Wed, Jun 01, 2016 at 05:52:59PM +0800, Xiubo Li wrote:
+> >>  net/netfilter/x_tables.c | 3 +++
+> >>  1 file changed, 3 insertions(+)
+> >>
+> >>diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+> >>index c8a0b7d..4df8e38 100644
+> >>--- a/net/netfilter/x_tables.c
+> >>+++ b/net/netfilter/x_tables.c
+> >>@@ -1185,6 +1185,9 @@ struct nf_hook_ops *xt_hook_link(const struct xt_table *table, nf_hookfn *fn)
+> >
+> >What kernel version are you using? I don't see xt_hook_link() in the
+> >development tree.
+> 
+> Sorry, in the wrong tree, i just work on linux-next tree, forget to checkout
+> the newest tags.
+> 
+> Should I will use nf.git tree or others instead ?
 
-Before this patch, "nft list set" was able to display these special sets
-content:
-
-  # nft list set filter test
-  table ip filter {
-          map test {
-                  type ipv4_addr : inet_service
-                  elements = { 192.168.1.101 : http-alt}
-          }
-  }
-
-Now an error is shown:
-
-  # nft list set filter test
-  <cmdline>:1:1-20: Error: Could not process rule: Set 'test' does not exist
-  list set filter test
-  ^^^^^^^^^^^^^^^^^^^^
-
-Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
----
- src/evaluate.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 423523f..f24e5f3 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2674,7 +2674,8 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
- 		if (table == NULL)
- 			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
- 					 cmd->handle.table);
--		if (set_lookup(table, cmd->handle.set) == NULL)
-+		set = set_lookup(table, cmd->handle.set);
-+		if (set == NULL || set->flags & (SET_F_MAP | SET_F_EVAL))
- 			return cmd_error(ctx, "Could not process rule: Set '%s' does not exist",
- 					 cmd->handle.set);
- 		return 0;
--- 
-2.8.3
-
+Yes please, thanks.
