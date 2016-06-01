@@ -1,53 +1,52 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH -v3 7/8] locking: Move smp_cond_load_acquire() and
- friends into asm-generic/barrier.h
-Date: Wed, 1 Jun 2016 19:13:22 +0200
-Message-ID: <20160601171322.GU3190@twins.programming.kicks-ass.net>
-References: <20160531094134.606249808@infradead.org>
- <20160531094844.282806055@infradead.org>
- <574DED82.9080200@hpe.com>
- <20160601093158.GN3190@twins.programming.kicks-ass.net>
- <20160601120009.GB355@arm.com>
- <20160601120654.GR3190@twins.programming.kicks-ass.net>
- <20160601121333.GC355@arm.com>
- <20160601124541.GS3190@twins.programming.kicks-ass.net>
- <20160601140713.GE355@arm.com>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH] extensions: libxt_connmark: Fix order of mask and mark
+Date: Wed, 1 Jun 2016 23:38:27 +0530
+Message-ID: <20160601180827.GA5279@shivani>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Waiman Long <waiman.long@hpe.com>, linux-kernel@vger.kernel.org,
-	torvalds@linux-foundation.org, manfred@colorfullife.com,
-	dave@stgolabs.net, paulmck@linux.vnet.ibm.com,
-	boqun.feng@gmail.com, tj@kernel.org, pablo@netfilter.org,
-	kaber@trash.net, davem@davemloft.net, oleg@redhat.com,
-	netfilter-devel@vger.kernel.org, sasha.levin@oracle.com,
-	hofrat@osadl.org
-To: Will Deacon <will.deacon@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:35794 "EHLO
+	mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751624AbcFASJL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Jun 2016 14:09:11 -0400
+Received: by mail-pf0-f193.google.com with SMTP id f144so4809708pfa.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Jun 2016 11:09:11 -0700 (PDT)
+Received: from shivani ([116.202.32.105])
+        by smtp.gmail.com with ESMTPSA id x71sm24189625pfj.43.2016.06.01.11.09.08
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Wed, 01 Jun 2016 11:09:10 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20160601140713.GE355@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 01, 2016 at 03:07:14PM +0100, Will Deacon wrote:
-> On Wed, Jun 01, 2016 at 02:45:41PM +0200, Peter Zijlstra wrote:
-> > On Wed, Jun 01, 2016 at 01:13:33PM +0100, Will Deacon wrote:
-> > > On Wed, Jun 01, 2016 at 02:06:54PM +0200, Peter Zijlstra wrote:
-> > 
-> > > > Works for me; but that would loose using cmpwait() for
-> > > > !smp_cond_load_acquire() spins, you fine with that?
-> > > > 
-> > > > The two conversions in the patch were both !acquire spins.
-> > > 
-> > > Maybe we could go the whole hog and add smp_cond_load_relaxed?
-> > 
-> > What about say the cmpxchg loops in queued_write_lock_slowpath()
-> > ? Would that be something you'd like to use wfe for?
-> 
-> Without actually running the code on real hardware, it's hard to say
-> for sure. I notice that those loops are using cpu_relax_lowlatency
-> at present and we *know* that we're next in the queue (i.e. we're just
-> waiting for existing readers to drain), so the benefit of wfe is somewhat
-> questionable here and I don't think we'd want to add that initially.
+The order of mask and mark in the output is wrong. This has been pointed
+out: http://git.netfilter.org/iptables/commit/?id=8548dd253833027c68ac6400c3118ef788fabe5d
+by Liping Zhang <liping.zhang@spreadtrum.com>.
+This patch fixes the same issue with connmark.
 
-OK, we can always change our minds anyway. OK I'll respin/fold/massage
-the series to make it go away.
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+ extensions/libxt_connmark.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/extensions/libxt_connmark.c b/extensions/libxt_connmark.c
+index fbfeb74..958a50c 100644
+--- a/extensions/libxt_connmark.c
++++ b/extensions/libxt_connmark.c
+@@ -127,8 +127,8 @@ static void print_mark_xlate(unsigned int mark, unsigned int mask,
+ 			     struct xt_xlate *xl, uint32_t op)
+ {
+ 	if (mask != 0xffffffffU)
+-		xt_xlate_add(xl, " and 0x%x %s 0x%x ", mark,
+-			   op == XT_OP_EQ ? "==" : "!=", mask);
++		xt_xlate_add(xl, " and 0x%x %s 0x%x ", mask,
++			   op == XT_OP_EQ ? "==" : "!=", mark);
+ 	else
+ 		xt_xlate_add(xl, " %s0x%x ",
+ 			   op == XT_OP_EQ ? "" : "!= ", mark);
+-- 
+1.9.1
+
