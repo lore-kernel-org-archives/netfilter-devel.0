@@ -1,148 +1,61 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH -v3 7/8] locking: Move smp_cond_load_acquire() and
- friends into asm-generic/barrier.h
-Date: Wed, 1 Jun 2016 11:31:58 +0200
-Message-ID: <20160601093158.GN3190@twins.programming.kicks-ass.net>
-References: <20160531094134.606249808@infradead.org>
- <20160531094844.282806055@infradead.org>
- <574DED82.9080200@hpe.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] doc: fix compression parameter index
+Date: Wed, 1 Jun 2016 11:32:12 +0200
+Message-ID: <20160601093212.GA2985@salvia>
+References: <20160531191629.GA22706@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
-	manfred@colorfullife.com, dave@stgolabs.net,
-	paulmck@linux.vnet.ibm.com, will.deacon@arm.com,
-	boqun.feng@gmail.com, tj@kernel.org, pablo@netfilter.org,
-	kaber@trash.net, davem@davemloft.net, oleg@redhat.com,
-	netfilter-devel@vger.kernel.org, sasha.levin@oracle.com,
-	hofrat@osadl.org
-To: Waiman Long <waiman.long@hpe.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Laura Garcia Liebana <nevola@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:50623 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757333AbcFAJcZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Jun 2016 05:32:25 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id AAF525B2CC5
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 11:32:20 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 92B4B934C2
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 11:32:20 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B7BCA93464
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 11:32:17 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <574DED82.9080200@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20160531191629.GA22706@sonyv>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, May 31, 2016 at 04:01:06PM -0400, Waiman Long wrote:
-> You are doing two READ_ONCE's in the smp_cond_load_acquire loop. Can we
-> change it to do just one READ_ONCE, like
+On Tue, May 31, 2016 at 09:16:32PM +0200, Laura Garcia Liebana wrote:
+> Fix the compression parameter index 'cpi' instead of 'cfi'.
+
+Applied, thanks Laura.
+
+BTW, see below.
+
+> Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+> ---
+>  doc/nft.xml | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> --- a/include/asm-generic/barrier.h
-> +++ b/include/asm-generic/barrier.h
-> @@ -229,12 +229,18 @@ do {
->   * value; some architectures can do this in hardware.
->   */
->  #ifndef cmpwait
-> +#define cmpwait(ptr, val) ({                                   \
->         typeof (ptr) __ptr = (ptr);                             \
-> +       typeof (val) __old = (val);                             \
-> +       typeof (val) __new;                                     \
-> +       for (;;) {                                              \
-> +               __new = READ_ONCE(*__ptr);                      \
-> +               if (__new != __old)                             \
-> +                       break;                                  \
->                 cpu_relax();                                    \
-> +       }                                                       \
-> +       __new;                                                  \
-> +})
->  #endif
-> 
->  /**
-> @@ -251,12 +257,11 @@ do {
->  #ifndef smp_cond_load_acquire
->  #define smp_cond_load_acquire(ptr, cond_expr) ({               \
->         typeof(ptr) __PTR = (ptr);                              \
-> +       typeof(*ptr) VAL = READ_ONCE(*__PTR);                   \
->         for (;;) {                                              \
->                 if (cond_expr)                                  \
->                         break;                                  \
-> +               VAL = cmpwait(__PTR, VAL);                      \
->         }                                                       \
->         smp_acquire__after_ctrl_dep();                          \
->         VAL;                                                    \
+> diff --git a/doc/nft.xml b/doc/nft.xml
+> index 22d023e..0ebf51a 100644
+> --- a/doc/nft.xml
+> +++ b/doc/nft.xml
+> @@ -1920,7 +1920,7 @@ filter output oif eth0
+>  								<entry>FIXME</entry>
+>  							</row>
+>  							<row>
+> -								<entry>cfi</entry>
+> +								<entry>cpi</entry>
+>  								<entry>Compression Parameter Index</entry>
+>  								<entry>FIXME</entry>
 
-Yes, that generates slightly better code, but now that you made me look
-at it, I think we need to kill the cmpwait() in the generic version and
-only keep it for arch versions.
+Could you replace all these FIXME by the corresponding type?
 
-/me ponders...
+You can easily get the types using the 'describe' command.
 
-So cmpwait() as implemented here has strict semantics; but arch
-implementations as previously proposed have less strict semantics; and
-the use here follows that less strict variant.
+        # nft describe comp cpi
+        payload expression, datatype integer (integer), 16 bits
 
-The difference being that the arch implementations of cmpwait can have
-false positives (ie. return early, without a changed value)
-smp_cond_load_acquire() can deal with these false positives seeing how
-its in a loop and does its own (more specific) comparison.
-
-Exposing cmpwait(), with the documented semantics, means that arch
-versions need an additional loop inside to match these strict semantics,
-or we need to weaken the cmpwait() semantics, at which point I'm not
-entirely sure its worth keeping as a generic primitive...
-
-Hmm, so if we can find a use for the weaker cmpwait() outside of
-smp_cond_load_acquire() I think we can make a case for keeping it, and
-looking at qspinlock.h there's two sites we can replace cpu_relax() with
-it.
-
-Will, since ARM64 seems to want to use this, does the below make sense
-to you?
-
----
- include/asm-generic/barrier.h | 15 ++++++---------
- kernel/locking/qspinlock.c    |  4 ++--
- 2 files changed, 8 insertions(+), 11 deletions(-)
-
-diff --git a/include/asm-generic/barrier.h b/include/asm-generic/barrier.h
-index be9222b10d17..05feda5c22e6 100644
---- a/include/asm-generic/barrier.h
-+++ b/include/asm-generic/barrier.h
-@@ -221,20 +221,17 @@ do {									\
- #endif
- 
- /**
-- * cmpwait - compare and wait for a variable to change
-+ * cmpwait - compare and wait for a variable to 'change'
-  * @ptr: pointer to the variable to wait on
-  * @val: the value it should change from
-  *
-- * A simple constuct that waits for a variable to change from a known
-- * value; some architectures can do this in hardware.
-+ * A 'better' cpu_relax(), some architectures can avoid polling and have event
-+ * based wakeups on variables. Such constructs allow false positives on the
-+ * 'change' and can return early. Therefore this reduces to cpu_relax()
-+ * without hardware assist.
-  */
- #ifndef cmpwait
--#define cmpwait(ptr, val) do {					\
--	typeof (ptr) __ptr = (ptr);				\
--	typeof (val) __val = (val);				\
--	while (READ_ONCE(*__ptr) == __val)			\
--		cpu_relax();					\
--} while (0)
-+#define cmpwait(ptr, val)	cpu_relax()
- #endif
- 
- /**
-diff --git a/kernel/locking/qspinlock.c b/kernel/locking/qspinlock.c
-index e98e5bf679e9..60a811d56406 100644
---- a/kernel/locking/qspinlock.c
-+++ b/kernel/locking/qspinlock.c
-@@ -311,7 +311,7 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
- 	 */
- 	if (val == _Q_PENDING_VAL) {
- 		while ((val = atomic_read(&lock->val)) == _Q_PENDING_VAL)
--			cpu_relax();
-+			cmpwait(&lock->val.counter, _Q_PENDING_VAL);
- 	}
- 
- 	/*
-@@ -481,7 +481,7 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
- 	 */
- 	if (!next) {
- 		while (!(next = READ_ONCE(node->next)))
--			cpu_relax();
-+			cmpwait(&node->next, NULL);
- 	}
- 
- 	arch_mcs_spin_unlock_contended(&next->locked);
+Thanks.
