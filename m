@@ -1,54 +1,90 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH -v3 7/8] locking: Move smp_cond_load_acquire() and
- friends into asm-generic/barrier.h
-Date: Wed, 1 Jun 2016 15:07:14 +0100
-Message-ID: <20160601140713.GE355@arm.com>
-References: <20160531094134.606249808@infradead.org>
- <20160531094844.282806055@infradead.org>
- <574DED82.9080200@hpe.com>
- <20160601093158.GN3190@twins.programming.kicks-ass.net>
- <20160601120009.GB355@arm.com>
- <20160601120654.GR3190@twins.programming.kicks-ass.net>
- <20160601121333.GC355@arm.com>
- <20160601124541.GS3190@twins.programming.kicks-ass.net>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [PATCH v3] extensions: libxt_multiport: Add translation to nft
+Date: Wed, 1 Jun 2016 16:43:45 +0200
+Message-ID: <CAOkSjBiGUCk83+Muwc6naTUJXTXgK7s0Bi+fvcCB6=WW50dxQQ@mail.gmail.com>
+References: <20160531182607.GA17802@sonyv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Waiman Long <waiman.long@hpe.com>, linux-kernel@vger.kernel.org,
-	torvalds@linux-foundation.org, manfred@colorfullife.com,
-	dave@stgolabs.net, paulmck@linux.vnet.ibm.com,
-	boqun.feng@gmail.com, tj@kernel.org, pablo@netfilter.org,
-	kaber@trash.net, davem@davemloft.net, oleg@redhat.com,
-	netfilter-devel@vger.kernel.org, sasha.levin@oracle.com,
-	hofrat@osadl.org
-To: Peter Zijlstra <peterz@infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Laura Garcia Liebana <nevola@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:38091 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754156AbcFAOHB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Jun 2016 10:07:01 -0400
-Content-Disposition: inline
-In-Reply-To: <20160601124541.GS3190@twins.programming.kicks-ass.net>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34949 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751648AbcFAOoH convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Jun 2016 10:44:07 -0400
+Received: by mail-wm0-f67.google.com with SMTP id e3so7457408wme.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Jun 2016 07:44:06 -0700 (PDT)
+In-Reply-To: <20160531182607.GA17802@sonyv>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 01, 2016 at 02:45:41PM +0200, Peter Zijlstra wrote:
-> On Wed, Jun 01, 2016 at 01:13:33PM +0100, Will Deacon wrote:
-> > On Wed, Jun 01, 2016 at 02:06:54PM +0200, Peter Zijlstra wrote:
-> 
-> > > Works for me; but that would loose using cmpwait() for
-> > > !smp_cond_load_acquire() spins, you fine with that?
-> > > 
-> > > The two conversions in the patch were both !acquire spins.
-> > 
-> > Maybe we could go the whole hog and add smp_cond_load_relaxed?
-> 
-> What about say the cmpxchg loops in queued_write_lock_slowpath()
-> ? Would that be something you'd like to use wfe for?
+On 31 May 2016 at 20:26, Laura Garcia Liebana <nevola@gmail.com> wrote:
+> +static int __multiport_xlate_v1(const void *ip,
+> +                               const struct xt_entry_match *match,
+> +                               struct xt_xlate *xl, int numeric)
+> +{
+> +       const struct xt_multiport_v1 *multiinfo
+> +               =3D (const struct xt_multiport_v1 *)match->data;
+> +       unsigned int i;
+> +
+> +       switch (multiinfo->flags) {
+> +       case XT_MULTIPORT_SOURCE:
+> +               xt_xlate_add(xl, "sport ");
+> +               break;
+> +       case XT_MULTIPORT_DESTINATION:
+> +               xt_xlate_add(xl, "dport ");
+> +               break;
+> +       case XT_MULTIPORT_EITHER:
+> +               return 0;
+> +       }
+> +
+> +       if (multiinfo->invert)
+> +               xt_xlate_add(xl, "!=3D ");
+> +
+> +       if (multiinfo->count > 2 ||
+> +           (multiinfo->count > 1 && !multiinfo->pflags[0])) {
+> +               xt_xlate_add(xl, "{ ");
+> +               if (multiinfo->invert)
+> +                       return 0;
+> +       }
+> +
 
-Without actually running the code on real hardware, it's hard to say
-for sure. I notice that those loops are using cpu_relax_lowlatency
-at present and we *know* that we're next in the queue (i.e. we're just
-waiting for existing readers to drain), so the benefit of wfe is somewhat
-questionable here and I don't think we'd want to add that initially.
+I fail to understand this return here
 
-Will
+Other than that, the patch looks good.
+
+> +       for (i =3D 0; i < multiinfo->count; i++) {
+> +               xt_xlate_add(xl, "%s%u", i ? "," : "", multiinfo->por=
+ts[i]);
+> +               if (multiinfo->pflags[i])
+> +                       xt_xlate_add(xl, "-%u", multiinfo->ports[++i]=
+);
+> +       }
+> +
+> +       if (multiinfo->count > 2 ||
+> +           (multiinfo->count > 1 && !multiinfo->pflags[0]))
+> +               xt_xlate_add(xl, "}");
+> +
+> +       xt_xlate_add(xl, " ");
+> +
+> +       return 1;
+> +}
+
+I missed this in previous revisions of your patch:
+
+% iptables -A t -p tcp -m multiport --dports 80:100
+% iptables -A t -p tcp -m multiport --dports 80:100,299:444
+
+both rules are valid. This means that avoiding the single-element set
+in the port-range case doesn't seems that important, sorry for that.
+
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
