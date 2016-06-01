@@ -1,51 +1,78 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [nf-next PATCH] netfilter: nf_tables: add support for inverted
- login in nft_lookup
-Date: Wed, 1 Jun 2016 10:58:36 +0200
-Message-ID: <20160601085836.GB27858@breakpoint.cc>
-References: <146469443294.16092.10350972377628813816.stgit@nfdev2.cica.es>
- <20160531144401.GB11135@breakpoint.cc>
- <CAOkSjBgdNOzgbK_v=2_xE2=HUjN508nZNa5knU-BM9zEt-dAzg@mail.gmail.com>
- <CAOkSjBjGVAzVPz8H3NnF_ZBE934nM4ibQ57dk_Eo9gEiG2aX8A@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft] evaluate: fix "list set" unexpected behaviour
+Date: Wed, 1 Jun 2016 11:20:56 +0200
+Message-ID: <20160601092056.GA2711@salvia>
+References: <20160601085117.6717-1-pablombg@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:42598 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757536AbcFAI6l (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Jun 2016 04:58:41 -0400
+Received: from mail.us.es ([193.147.175.20]:47233 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753671AbcFAJVM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Jun 2016 05:21:12 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 78F4D1EFDA7
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 11:21:07 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 53F0C1BDA04
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 11:21:07 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 391A31BDA1C
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 11:21:05 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBjGVAzVPz8H3NnF_ZBE934nM4ibQ57dk_Eo9gEiG2aX8A@mail.gmail.com>
+In-Reply-To: <20160601085117.6717-1-pablombg@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com> wrote:
-> On 31 May 2016 at 17:50, Arturo Borrero Gonzalez
-> <arturo.borrero.glez@gmail.com> wrote:
-> > On 31 May 2016 at 16:44, Florian Westphal <fw@strlen.de> wrote:
-> >> I think its better to use a
-> >>
-> >> } else if (priv->invert) {
-> >>         return;
-> >> }
-> >>
+On Wed, Jun 01, 2016 at 10:51:17AM +0200, Pablo M. Bermudo Garay wrote:
+> Special sets like maps and flow tables have their own commands to be
+> listed and inspected.
 > 
-> Not that easy, we should consider 4 cases:
->  * lookup false, invert false -> NFT_BREAK
->  * lookup false, invert true -> return w/o NFT_BREAK
->  * lookup true, invert false -> return w/o NFT_BREAK
->  * lookup true, invert true -> NFT_BREAK
+> Before this patch, "nft list set" was able to display these special sets
+> content:
+> 
+>   # nft list set filter test
+>   table ip filter {
+>           map test {
+>                   type ipv4_addr : inet_service
+>                   elements = { 192.168.1.101 : http-alt}
+>           }
+>   }
+> 
+> Now an error is shown:
+> 
+>   # nft list set filter test
+>   <cmdline>:1:1-20: Error: Could not process rule: Set 'test' does not exist
+>   list set filter test
+>   ^^^^^^^^^^^^^^^^^^^^
+> 
+> Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
+> ---
+>  src/evaluate.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/src/evaluate.c b/src/evaluate.c
+> index 423523f..86884a2 100644
+> --- a/src/evaluate.c
+> +++ b/src/evaluate.c
+> @@ -2674,7 +2674,9 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
+>  		if (table == NULL)
+>  			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
+>  					 cmd->handle.table);
+> -		if (set_lookup(table, cmd->handle.set) == NULL)
+> +		set = set_lookup(table, cmd->handle.set);
+> +		if (set == NULL || set->flags & SET_F_MAP ||
+> +		    set->flags & SET_F_EVAL)
 
-Right...
+I'd suggest:
 
-> The XOR approach in my original patch seems to over these cases, ie,
-> we enter the return branch only if lookup&invert are different.
-> I think the nft_data_copy() should not worry us if we prevent the
-> combination from happening in _init()
+                    set == NULL && set->flags & (SET_F_EVAL | SET_F_MAP)
 
-Agree, thanks Arturo!
+>  			return cmd_error(ctx, "Could not process rule: Set '%s' does not exist",
+>  					 cmd->handle.set);
+>  		return 0;
+> -- 
+> 2.8.3
+> 
