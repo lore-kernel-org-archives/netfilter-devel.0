@@ -1,52 +1,48 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH] extensions: libxt_mark: fix a wrong translation to nft when mask is specified
-Date: Wed,  1 Jun 2016 20:07:17 +0800
-Message-ID: <1464782837-40104-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>,
-	Shivani Bhardwaj <shivanib134@gmail.com>
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-16.163.com ([220.181.12.16]:43299 "EHLO m12-16.163.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751527AbcFAMIk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Jun 2016 08:08:40 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH -v3 7/8] locking: Move smp_cond_load_acquire() and
+ friends into asm-generic/barrier.h
+Date: Wed, 1 Jun 2016 13:13:33 +0100
+Message-ID: <20160601121333.GC355@arm.com>
+References: <20160531094134.606249808@infradead.org>
+ <20160531094844.282806055@infradead.org>
+ <574DED82.9080200@hpe.com>
+ <20160601093158.GN3190@twins.programming.kicks-ass.net>
+ <20160601120009.GB355@arm.com>
+ <20160601120654.GR3190@twins.programming.kicks-ass.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Waiman Long <waiman.long@hpe.com>, linux-kernel@vger.kernel.org,
+	torvalds@linux-foundation.org, manfred@colorfullife.com,
+	dave@stgolabs.net, paulmck@linux.vnet.ibm.com,
+	boqun.feng@gmail.com, tj@kernel.org, pablo@netfilter.org,
+	kaber@trash.net, davem@davemloft.net, oleg@redhat.com,
+	netfilter-devel@vger.kernel.org, sasha.levin@oracle.com,
+	hofrat@osadl.org
+To: Peter Zijlstra <peterz@infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160601120654.GR3190@twins.programming.kicks-ass.net>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+On Wed, Jun 01, 2016 at 02:06:54PM +0200, Peter Zijlstra wrote:
+> On Wed, Jun 01, 2016 at 01:00:10PM +0100, Will Deacon wrote:
+> > On Wed, Jun 01, 2016 at 11:31:58AM +0200, Peter Zijlstra wrote:
+> > > Will, since ARM64 seems to want to use this, does the below make sense
+> > > to you?
+> > 
+> > Not especially -- I was going to override smp_cond_load_acquire anyway
+> > because I want to build it using cmpwait_acquire and get rid of the
+> > smp_acquire__after_ctrl_dep trick, which is likely slower on arm64.
+> > 
+> > So I'd be happier nuking cmpwait from the generic interfaces and using
+> > smp_cond_load_acquire everywhere, if that's possible.
+> 
+> Works for me; but that would loose using cmpwait() for
+> !smp_cond_load_acquire() spins, you fine with that?
+> 
+> The two conversions in the patch were both !acquire spins.
 
-The mask and mark's order is reversed, so when we specify the mask, we will
-get the wrong translation result:
-  # iptables-translate -A INPUT -m mark --mark 0x1/0xff
-  nft add rule ip filter INPUT mark and 0x1 == 0xff counter
+Maybe we could go the whole hog and add smp_cond_load_relaxed?
 
-Apply this patch, translation will become:
-  # iptables-translate -A INPUT -m mark --mark 0x1/0xff
-  nft add rule ip filter INPUT mark and 0xff == 0x1 counter
-
-Cc: Shivani Bhardwaj <shivanib134@gmail.com>
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
----
- extensions/libxt_mark.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/extensions/libxt_mark.c b/extensions/libxt_mark.c
-index 939b4ac..6eccd5b 100644
---- a/extensions/libxt_mark.c
-+++ b/extensions/libxt_mark.c
-@@ -107,8 +107,8 @@ print_mark_xlate(struct xt_xlate *xl, unsigned int mark,
- 		 unsigned int mask, uint32_t op)
- {
- 	if (mask != 0xffffffffU)
--		xt_xlate_add(xl, " and 0x%x %s 0x%x ", mark,
--			   op == XT_OP_EQ ? "==" : "!=", mask);
-+		xt_xlate_add(xl, " and 0x%x %s 0x%x ", mask,
-+			   op == XT_OP_EQ ? "==" : "!=", mark);
- 	else
- 		xt_xlate_add(xl, " %s0x%x ",
- 			   op == XT_OP_EQ ? "" : "!= ", mark);
--- 
-2.5.5
-
-
+Will
