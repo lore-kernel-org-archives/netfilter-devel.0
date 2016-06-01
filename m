@@ -1,44 +1,43 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] extensions: libxt_mark: fix a wrong translation to nft
- when mask is specified
-Date: Wed, 1 Jun 2016 17:08:32 +0200
-Message-ID: <20160601150832.GA1412@salvia>
-References: <1464782837-40104-1-git-send-email-zlpnobody@163.com>
+Subject: Re: [PATCH] extensions: libxt_ipcomp: Add translation to nft
+Date: Wed, 1 Jun 2016 17:11:20 +0200
+Message-ID: <20160601151120.GA1537@salvia>
+References: <20160531220657.GA31779@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>,
-	Shivani Bhardwaj <shivanib134@gmail.com>
-To: Liping Zhang <zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Laura Garcia Liebana <nevola@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59226 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59929 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751545AbcFAPIl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Jun 2016 11:08:41 -0400
+	id S1751545AbcFAPLs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 1 Jun 2016 11:11:48 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 9C94A1B9BA6
-	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 17:08:37 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id EA6041BFA8F
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 17:11:23 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8DCD19EBBE
-	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 17:08:37 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id DCEE19EBB2
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 17:11:23 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id CFE479EBC1
-	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 17:08:33 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id D06709EBB1
+	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 17:11:21 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1464782837-40104-1-git-send-email-zlpnobody@163.com>
+In-Reply-To: <20160531220657.GA31779@sonyv>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 01, 2016 at 08:07:17PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
+On Wed, Jun 01, 2016 at 12:06:59AM +0200, Laura Garcia Liebana wrote:
+> Add translation of ipcomp to nftables.
 > 
-> The mask and mark's order is reversed, so when we specify the mask, we will
-> get the wrong translation result:
->   # iptables-translate -A INPUT -m mark --mark 0x1/0xff
->   nft add rule ip filter INPUT mark and 0x1 == 0xff counter
+> First value of the parameter 'ipcompspi' will be translated to 'cpi'
+> parameter in nftables. Parameter 'compres' is not supported in nftables.
 > 
-> Apply this patch, translation will become:
->   # iptables-translate -A INPUT -m mark --mark 0x1/0xff
->   nft add rule ip filter INPUT mark and 0xff == 0x1 counter
+> Examples:
+> 
+> $ sudo iptables-translate -t filter -A INPUT -m ipcomp --ipcompspi 0x12 -j ACCEPT
+> nft add rule ip filter INPUT comp cpi 18 counter accept
+> 
+> $ sudo iptables-translate -t filter -A INPUT -m ipcomp ! --ipcompspi 0x12 -j ACCEPT
+> nft add rule ip filter INPUT comp cpi != 18 counter accept
 
-Applied, thanks.
+Applied, thanks Laura.
