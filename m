@@ -1,76 +1,67 @@
-From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCH] extensions: libxt_ipcomp: Add translation to nft
-Date: Wed, 1 Jun 2016 00:06:59 +0200
-Message-ID: <20160531220657.GA31779@sonyv>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: x_tables: don't reject valid target size on some architectures
+Date: Wed,  1 Jun 2016 02:04:44 +0200
+Message-ID: <1464739484-7817-1-git-send-email-fw@strlen.de>
+Cc: john.stultz@linaro.org, Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36703 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755348AbcEaWHE (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:41949 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752711AbcFAAEd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 May 2016 18:07:04 -0400
-Received: by mail-wm0-f68.google.com with SMTP id q62so1301745wmg.3
-        for <netfilter-devel@vger.kernel.org>; Tue, 31 May 2016 15:07:02 -0700 (PDT)
-Received: from sonyv (128.red-176-84-210.dynamicip.rima-tde.net. [176.84.210.128])
-        by smtp.gmail.com with ESMTPSA id e8sm31666543wma.2.2016.05.31.15.07.01
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Tue, 31 May 2016 15:07:01 -0700 (PDT)
-Content-Disposition: inline
+	Tue, 31 May 2016 20:04:33 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation of ipcomp to nftables.
+Quoting John Stultz:
+  In updating a 32bit arm device from 4.6 to Linus' current HEAD, I
+  noticed I was having some trouble with networking, and realized that
+  /proc/net/ip_tables_names was suddenly empty.
+  Digging through the registration process, it seems we're catching on the:
 
-First value of the parameter 'ipcompspi' will be translated to 'cpi'
-parameter in nftables. Parameter 'compres' is not supported in nftables.
+   if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
+       target_offset + sizeof(struct xt_standard_target) != next_offset)
+         return -EINVAL;
 
-Examples:
+  Where next_offset seems to be 4 bytes larger then the
+  offset + standard_target struct size.
 
-$ sudo iptables-translate -t filter -A INPUT -m ipcomp --ipcompspi 0x12 -j ACCEPT
-nft add rule ip filter INPUT comp cpi 18 counter accept
+next_offset needs to be aligned via XT_ALIGN (so we can access all members
+of ip(6)t_entry struct).
 
-$ sudo iptables-translate -t filter -A INPUT -m ipcomp ! --ipcompspi 0x12 -j ACCEPT
-nft add rule ip filter INPUT comp cpi != 18 counter accept
+This problem didn't show up on i686 as it only needs 4-byte alignment for
+u64, but iptables userspace on other 32bit arches does insert extra padding.
 
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+Reported-by: John Stultz <john.stultz@linaro.org>
+Tested-by: John Stultz <john.stultz@linaro.org>
+Fixes: 7ed2abddd20cf ("netfilter: x_tables: check standard target size too")
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- extensions/libxt_ipcomp.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ net/netfilter/x_tables.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/extensions/libxt_ipcomp.c b/extensions/libxt_ipcomp.c
-index b157e7b..19b251a 100644
---- a/extensions/libxt_ipcomp.c
-+++ b/extensions/libxt_ipcomp.c
-@@ -95,6 +95,18 @@ static void comp_save(const void *ip, const struct xt_entry_match *match)
- 		printf(" --compres");
- }
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index c69c892..2675d58 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -612,7 +612,7 @@ int xt_compat_check_entry_offsets(const void *base, const char *elems,
+ 		return -EINVAL;
  
-+static int comp_xlate(const void *ip, const struct xt_entry_match *match,
-+			struct xt_xlate *xl, int numeric)
-+{
-+	const struct xt_ipcomp *compinfo = (struct xt_ipcomp *)match->data;
-+
-+	xt_xlate_add(xl, "comp cpi %s%u ",
-+		     (compinfo->invflags & XT_IPCOMP_INV_SPI) ? "!= " : "",
-+		     compinfo->spis[0]);
-+
-+	return 1;
-+}
-+
- static struct xtables_match comp_mt_reg = {
- 	.name          = "ipcomp",
- 	.version       = XTABLES_VERSION,
-@@ -106,6 +118,7 @@ static struct xtables_match comp_mt_reg = {
- 	.save          = comp_save,
- 	.x6_parse      = comp_parse,
- 	.x6_options    = comp_opts,
-+	.xlate         = comp_xlate,
- };
+ 	if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
+-	    target_offset + sizeof(struct compat_xt_standard_target) != next_offset)
++	    COMPAT_XT_ALIGN(target_offset + sizeof(struct compat_xt_standard_target)) != next_offset)
+ 		return -EINVAL;
  
- void
+ 	/* compat_xt_entry match has less strict aligment requirements,
+@@ -694,7 +694,7 @@ int xt_check_entry_offsets(const void *base,
+ 		return -EINVAL;
+ 
+ 	if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
+-	    target_offset + sizeof(struct xt_standard_target) != next_offset)
++	    XT_ALIGN(target_offset + sizeof(struct xt_standard_target)) != next_offset)
+ 		return -EINVAL;
+ 
+ 	return xt_check_entry_match(elems, base + target_offset,
 -- 
-2.7.0
+2.7.3
 
