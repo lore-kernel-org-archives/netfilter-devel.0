@@ -1,76 +1,102 @@
 From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCH] extensions: libip6t_hbh: Add translation to nft
-Date: Thu, 2 Jun 2016 00:08:08 +0200
-Message-ID: <20160601220804.GA3515@sonyv>
+Subject: [PATCH] doc: fix old parameters and update datatypes
+Date: Thu, 2 Jun 2016 00:25:13 +0200
+Message-ID: <20160601222511.GA4314@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35992 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751001AbcFAWIN (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33605 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750863AbcFAWZS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Jun 2016 18:08:13 -0400
-Received: by mail-wm0-f66.google.com with SMTP id q62so10586684wmg.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 01 Jun 2016 15:08:13 -0700 (PDT)
+	Wed, 1 Jun 2016 18:25:18 -0400
+Received: by mail-wm0-f68.google.com with SMTP id a136so10760373wme.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 01 Jun 2016 15:25:17 -0700 (PDT)
 Received: from sonyv ([213.143.50.104])
-        by smtp.gmail.com with ESMTPSA id f186sm36574703wma.13.2016.06.01.15.08.11
+        by smtp.gmail.com with ESMTPSA id g192sm34887801wme.15.2016.06.01.15.25.16
         for <netfilter-devel@vger.kernel.org>
         (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Wed, 01 Jun 2016 15:08:11 -0700 (PDT)
+        Wed, 01 Jun 2016 15:25:16 -0700 (PDT)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for Hop-By-Hop header to nftables. Hbh options are not
-supported yet in nft.
-
-$ sudo ip6tables-translate -t filter -A INPUT -m hbh --hbh-len 22
-nft add rule ip6 filter INPUT hbh hdrlength 22 counter
-
-$ sudo ip6tables-translate -t filter -A INPUT -m hbh ! --hbh-len 22
-nft add rule ip6 filter INPUT hbh hdrlength != 22 counter
+Fix old identifiers like 'ipcomp' and 'op' with 'comp' and 'operation'
+instead. Update some FIXME datatypes.
 
 Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
 ---
- extensions/libip6t_hbh.c | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ doc/nft.xml | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/extensions/libip6t_hbh.c b/extensions/libip6t_hbh.c
-index c0389ed..416681d 100644
---- a/extensions/libip6t_hbh.c
-+++ b/extensions/libip6t_hbh.c
-@@ -164,6 +164,22 @@ static void hbh_save(const void *ip, const struct xt_entry_match *match)
- 	print_options(optinfo->optsnr, (uint16_t *)optinfo->opts);
- }
- 
-+static int hbh_xlate(const void *ip, const struct xt_entry_match *match,
-+		     struct xt_xlate *xl, int numeric)
-+{
-+	const struct ip6t_opts *optinfo = (struct ip6t_opts *)match->data;
-+
-+	if (!(optinfo->flags & IP6T_OPTS_LEN) ||
-+	    (optinfo->flags & IP6T_OPTS_OPTS))
-+		return 0;
-+
-+	xt_xlate_add(xl, "hbh hdrlength %s%u ",
-+		     (optinfo->invflags & IP6T_OPTS_INV_LEN) ? "!= " : "",
-+		     optinfo->hdrlen);
-+
-+	return 1;
-+}
-+
- static struct xtables_match hbh_mt6_reg = {
- 	.name 		= "hbh",
- 	.version	= XTABLES_VERSION,
-@@ -175,6 +191,7 @@ static struct xtables_match hbh_mt6_reg = {
- 	.save		= hbh_save,
- 	.x6_parse	= hbh_parse,
- 	.x6_options	= hbh_opts,
-+	.xlate		= hbh_xlate,
- };
- 
- void
+diff --git a/doc/nft.xml b/doc/nft.xml
+index 0ebf51a..b9f3c69 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -1331,7 +1331,7 @@ filter output oif eth0
+ 							<row>
+ 								<entry>htype</entry>
+ 								<entry>ARP hardware type</entry>
+-								<entry>FIXME</entry>
++								<entry>integer (16 bit)</entry>
+ 							</row>
+ 							<row>
+ 								<entry>ptype</entry>
+@@ -1349,9 +1349,9 @@ filter output oif eth0
+ 								<entry>integer (8 bit)</entry>
+ 							</row>
+ 							<row>
+-								<entry>op</entry>
++								<entry>operation</entry>
+ 								<entry>Operation</entry>
+-								<entry>FIXME</entry>
++								<entry>arp_op</entry>
+ 							</row>
+ 						</tbody>
+ 					</tgroup>
+@@ -1578,7 +1578,7 @@ filter output oif eth0
+ 							<row>
+ 								<entry>reserved</entry>
+ 								<entry>Reserved area</entry>
+-								<entry>FIXME</entry>
++								<entry>integer (4 bit)</entry>
+ 							</row>
+ 							<row>
+ 								<entry>flags</entry>
+@@ -1829,7 +1829,7 @@ filter output oif eth0
+ 							<row>
+ 								<entry>reserved</entry>
+ 								<entry>Reserved area</entry>
+-								<entry>FIXME</entry>
++								<entry>integer (4 bit)</entry>
+ 							</row>
+ 							<row>
+ 								<entry>spi</entry>
+@@ -1890,7 +1890,7 @@ filter output oif eth0
+ 			<title>IPcomp header expression</title>
+ 			<para>
+ 				<cmdsynopsis>
+-					<command>ipcomp</command>
++					<command>comp</command>
+ 					<arg opt="req"><replaceable>IPComp header field</replaceable></arg>
+ 				</cmdsynopsis>
+ 			</para>
+@@ -1917,12 +1917,12 @@ filter output oif eth0
+ 							<row>
+ 								<entry>flags</entry>
+ 								<entry>Flags</entry>
+-								<entry>FIXME</entry>
++								<entry>bitmask</entry>
+ 							</row>
+ 							<row>
+ 								<entry>cpi</entry>
+ 								<entry>Compression Parameter Index</entry>
+-								<entry>FIXME</entry>
++								<entry>integer (16 bit)</entry>
+ 							</row>
+ 						</tbody>
+ 					</tgroup>
 -- 
 2.7.0
 
