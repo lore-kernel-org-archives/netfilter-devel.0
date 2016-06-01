@@ -1,78 +1,61 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] evaluate: fix "list set" unexpected behaviour
-Date: Wed, 1 Jun 2016 11:20:56 +0200
-Message-ID: <20160601092056.GA2711@salvia>
-References: <20160601085117.6717-1-pablombg@gmail.com>
+Subject: Re: [PATCH] netfilter: fix possible ZERO_SIZE_PTR pointer
+ dereferencing error.
+Date: Wed, 1 Jun 2016 11:27:11 +0200
+Message-ID: <20160601092711.GB2711@salvia>
+References: <1464770068-7508-1-git-send-email-lixiubo@cmss.chinamobile.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47233 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753671AbcFAJVM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Jun 2016 05:21:12 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 78F4D1EFDA7
-	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 11:21:07 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 53F0C1BDA04
-	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 11:21:07 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 391A31BDA1C
-	for <netfilter-devel@vger.kernel.org>; Wed,  1 Jun 2016 11:21:05 +0200 (CEST)
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu, davem@davemloft.net,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, netdev@vger.kernel.org
+To: Xiubo Li <lixiubo@cmss.chinamobile.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160601085117.6717-1-pablombg@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1464770068-7508-1-git-send-email-lixiubo@cmss.chinamobile.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jun 01, 2016 at 10:51:17AM +0200, Pablo M. Bermudo Garay wrote:
-> Special sets like maps and flow tables have their own commands to be
-> listed and inspected.
+On Wed, Jun 01, 2016 at 04:34:28PM +0800, Xiubo Li wrote:
+> Since we cannot make sure the 'hook_mask' will always be none zero
+> here. If it equals to zero, the num_hooks will be zero too, and then
+> kmalloc() will return ZERO_SIZE_PTR, which is (void *)16.
 > 
-> Before this patch, "nft list set" was able to display these special sets
-> content:
+> Then the following error check will fails:
+>   ops = kmalloc(sizeof(*ops) * num_hooks, GFP_KERNEL);
+>   if (ops == NULL)
+>           return ERR_PTR(-ENOMEM);
 > 
->   # nft list set filter test
->   table ip filter {
->           map test {
->                   type ipv4_addr : inet_service
->                   elements = { 192.168.1.101 : http-alt}
->           }
->   }
+> So this patch fix this with just doing the zero check before calling
+> kmalloc() is called.
 > 
-> Now an error is shown:
+> Maybe the case above will never happen here, but in theory.
 > 
->   # nft list set filter test
->   <cmdline>:1:1-20: Error: Could not process rule: Set 'test' does not exist
->   list set filter test
->   ^^^^^^^^^^^^^^^^^^^^
-> 
-> Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
+> Signed-off-by: Xiubo Li <lixiubo@cmss.chinamobile.com>
 > ---
->  src/evaluate.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+>  net/netfilter/x_tables.c | 3 +++
+>  1 file changed, 3 insertions(+)
 > 
-> diff --git a/src/evaluate.c b/src/evaluate.c
-> index 423523f..86884a2 100644
-> --- a/src/evaluate.c
-> +++ b/src/evaluate.c
-> @@ -2674,7 +2674,9 @@ static int cmd_evaluate_list(struct eval_ctx *ctx, struct cmd *cmd)
->  		if (table == NULL)
->  			return cmd_error(ctx, "Could not process rule: Table '%s' does not exist",
->  					 cmd->handle.table);
-> -		if (set_lookup(table, cmd->handle.set) == NULL)
-> +		set = set_lookup(table, cmd->handle.set);
-> +		if (set == NULL || set->flags & SET_F_MAP ||
-> +		    set->flags & SET_F_EVAL)
+> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+> index c8a0b7d..4df8e38 100644
+> --- a/net/netfilter/x_tables.c
+> +++ b/net/netfilter/x_tables.c
+> @@ -1185,6 +1185,9 @@ struct nf_hook_ops *xt_hook_link(const struct xt_table *table, nf_hookfn *fn)
 
-I'd suggest:
+What kernel version are you using? I don't see xt_hook_link() in the
+development tree.
 
-                    set == NULL && set->flags & (SET_F_EVAL | SET_F_MAP)
-
->  			return cmd_error(ctx, "Could not process rule: Set '%s' does not exist",
->  					 cmd->handle.set);
->  		return 0;
+>  	struct nf_hook_ops *ops;
+>  	int ret;
+>  
+> +	if (!num_hooks)
+> +		return ERR_PTR(-EINVAL);
+> +
+>  	ops = kmalloc(sizeof(*ops) * num_hooks, GFP_KERNEL);
+>  	if (ops == NULL)
+>  		return ERR_PTR(-ENOMEM);
 > -- 
-> 2.8.3
+> 1.8.3.1
+> 
+> 
 > 
