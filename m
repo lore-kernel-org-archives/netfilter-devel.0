@@ -1,58 +1,44 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH -v4 5/7] locking, arch: Update spin_unlock_wait()
-Date: Thu, 2 Jun 2016 18:04:39 +0200
-Message-ID: <20160602160439.GE3190@twins.programming.kicks-ass.net>
-References: <20160602115157.249037373@infradead.org>
- <20160602115439.085385545@infradead.org>
- <20160602142440.GE30064@insomnia>
- <20160602144424.GV3193@twins.programming.kicks-ass.net>
- <20160602151107.GA23133@insomnia>
+From: Guillaume Nault <g.nault@alphalink.fr>
+Subject: Next libmnl release
+Date: Thu, 2 Jun 2016 18:21:50 +0200
+Message-ID: <20160602162150.GC1592@alphalink.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
-	manfred@colorfullife.com, dave@stgolabs.net,
-	paulmck@linux.vnet.ibm.com, will.deacon@arm.com,
-	Waiman.Long@hpe.com, tj@kernel.org, pablo@netfilter.org,
-	kaber@trash.net, davem@davemloft.net, oleg@redhat.com,
-	netfilter-devel@vger.kernel.org, sasha.levin@oracle.com,
-	hofrat@osadl.org, jejb@parisc-linux.org, chris@zankel.net,
-	rth@twiddle.net, dhowells@redhat.com, schwidefsky@de.ibm.com,
-	mpe@ellerman.id.au, ralf@linux-mips.org, linux@armlinux.org.uk,
-	rkuo@codeaurora.org, vgupta@synopsys.com, james.hogan@imgtec.com,
-	realmz6@gmail.com, ysato@users.sourceforge.jp, tony.luck@intel.com,
-	cmetcalf@mellanox.com
-To: Boqun Feng <boqun.feng@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from zimbra.alphalink.fr ([217.15.80.77]:46171 "EHLO
+	zimbra.alphalink.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752912AbcFBQ2J (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 Jun 2016 12:28:09 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail-2-cbv2.admin.alphalink.fr (Postfix) with ESMTP id E86CA2B5216B
+	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jun 2016 18:21:51 +0200 (CEST)
+Received: from zimbra.alphalink.fr ([127.0.0.1])
+	by localhost (mail-2-cbv2.admin.alphalink.fr [127.0.0.1]) (amavisd-new, port 10032)
+	with ESMTP id 29Wou8EjhF0G for <netfilter-devel@vger.kernel.org>;
+	Thu,  2 Jun 2016 18:21:50 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by mail-2-cbv2.admin.alphalink.fr (Postfix) with ESMTP id CB65A2B52228
+	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jun 2016 18:21:50 +0200 (CEST)
+Received: from zimbra.alphalink.fr ([127.0.0.1])
+	by localhost (mail-2-cbv2.admin.alphalink.fr [127.0.0.1]) (amavisd-new, port 10026)
+	with ESMTP id CfZprtHc0jKt for <netfilter-devel@vger.kernel.org>;
+	Thu,  2 Jun 2016 18:21:50 +0200 (CEST)
+Received: from c-dev-0.admin.alphalink.fr (94-84-15-217.reverse.alphalink.fr [217.15.84.94])
+	by zimbra.alphalink.fr (Postfix) with ESMTP id A42E72B5216B
+	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jun 2016 18:21:50 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160602151107.GA23133@insomnia>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 02, 2016 at 11:11:07PM +0800, Boqun Feng wrote:
-> On Thu, Jun 02, 2016 at 04:44:24PM +0200, Peter Zijlstra wrote:
-> > Let me go ponder that some :/
-> > 
-> 
-> An intial thought of the fix is making queued_spin_unlock_wait() an
-> atomic-nop too:
-> 
-> static inline void queued_spin_unlock_wait(struct qspinlock *lock)
-> {
-> 	struct __qspinlock *l = (struct __qspinlock *)lock;
-> 	
-> 	while (!cmpxchg(&l->locked, 0, 0))
-> 		cpu_relax();
-> }
-> 
-> This could make queued_spin_unlock_wait() a WRITE, with a smp_mb()
-> preceding it, it would act like a RELEASE, which can be paired with
-> spin_lock().
-> 
-> Just food for thought. ;-)
+Hi,
 
-Not sure that'll actually work. The qspinlock store is completely
-unordered and not part of a ll/sc or anything like that.
+Are there any plans for a new libmnl release? Sure there aren't so many
+changes, but there are still valuable features, fixes and documentation
+updates. Releasing a new version and updating the online documentation
+would help making them widely available.
 
-Doing competing stores might even result in loosing it entirely.
+Regards,
 
-But I think I got something.. Lemme go test it :-)
+Guillaume
