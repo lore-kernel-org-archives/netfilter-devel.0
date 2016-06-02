@@ -1,12 +1,12 @@
-From: Boqun Feng <boqun.feng@gmail.com>
+From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [PATCH -v4 5/7] locking, arch: Update spin_unlock_wait()
-Date: Thu, 2 Jun 2016 22:24:40 +0800
-Message-ID: <20160602142440.GE30064@insomnia>
+Date: Thu, 2 Jun 2016 16:44:24 +0200
+Message-ID: <20160602144424.GV3193@twins.programming.kicks-ass.net>
 References: <20160602115157.249037373@infradead.org>
  <20160602115439.085385545@infradead.org>
+ <20160602142440.GE30064@insomnia>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="TD8GDToEDw0WLGOL"
+Content-Type: text/plain; charset=us-ascii
 Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
 	manfred@colorfullife.com, dave@stgolabs.net,
 	paulmck@linux.vnet.ibm.com, will.deacon@arm.com,
@@ -19,95 +19,63 @@ Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
 	rkuo@codeaurora.org, vgupta@synopsys.com, james.hogan@imgtec.com,
 	realmz6@gmail.com, ysato@users.sourceforge.jp, tony.luck@intel.com,
 	cmetcalf@mellanox.com
-To: Peter Zijlstra <peterz@infradead.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+To: Boqun Feng <boqun.feng@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:52678 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932128AbcFBOpC (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 Jun 2016 10:45:02 -0400
 Content-Disposition: inline
-In-Reply-To: <20160602115439.085385545@infradead.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20160602142440.GE30064@insomnia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+On Thu, Jun 02, 2016 at 10:24:40PM +0800, Boqun Feng wrote:
+> On Thu, Jun 02, 2016 at 01:52:02PM +0200, Peter Zijlstra wrote:
+> About spin_unlock_wait() on ppc, I actually have a fix pending review:
+> 
+> http://lkml.kernel.org/r/1461130033-70898-1-git-send-email-boqun.feng@gmail.com
 
---TD8GDToEDw0WLGOL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Please use the normal commit quoting style:
 
-On Thu, Jun 02, 2016 at 01:52:02PM +0200, Peter Zijlstra wrote:
-[snip]
-> --- a/arch/powerpc/include/asm/spinlock.h
-> +++ b/arch/powerpc/include/asm/spinlock.h
-> @@ -27,6 +27,8 @@
->  #include <asm/asm-compat.h>
->  #include <asm/synch.h>
->  #include <asm/ppc-opcode.h>
-> +#include <asm/barrier.h>
-> +#include <asm/processor.h>
-> =20
->  #ifdef CONFIG_PPC64
->  /* use 0x800000yy when locked, where yy =3D=3D CPU number */
-> @@ -165,8 +167,10 @@ static inline void arch_spin_unlock(arch
->  #ifdef CONFIG_PPC64
->  extern void arch_spin_unlock_wait(arch_spinlock_t *lock);
->  #else
-> -#define arch_spin_unlock_wait(lock) \
-> -	do { while (arch_spin_is_locked(lock)) cpu_relax(); } while (0)
-> +static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
-> +{
-> +	smp_cond_load_acquire(&lock->slock, !VAL);
-> +}
->  #endif
-> =20
+  d86b8da04dfa ("arm64: spinlock: serialise spin_unlock_wait against concurrent lockers")
 
-About spin_unlock_wait() on ppc, I actually have a fix pending review:
+> that patch fixed a different problem when people want to pair a
+> spin_unlock_wait() with a spin_lock().
 
-http://lkml.kernel.org/r/1461130033-70898-1-git-send-email-boqun.feng@gmail=
-=2Ecom
+Argh, indeed, and I think qspinlock is still broken there :/ But my poor
+brain is about to give in for the day.
 
-that patch fixed a different problem when people want to pair a
-spin_unlock_wait() with a spin_lock().
+Let me go ponder that some :/
 
-I think we still need that fix, and there are two conflicts with this
-series:
+> I think we still need that fix, and there are two conflicts with this
+> series:
+> 
+> 1.	arch_spin_unlock_wait() code for PPC32 was deleted, and
+> 	consolidated into one.
 
-1.	arch_spin_unlock_wait() code for PPC32 was deleted, and
-	consolidated into one.
+Nice.
 
-2.	I actually downgraded spin_unlock_wait() to !ACQUIRE ;-)
+> 2.	I actually downgraded spin_unlock_wait() to !ACQUIRE ;-)
 
+Fail ;-)
 
-I can think of two ways to solve thoes conflicts:
+> I can think of two ways to solve thoes conflicts:
+> 
+> 1.	Modify my patch to make spin_unlock_wait() an ACQUIRE, and it
+> 	can be merged in powerpc tree, and possible go into to mainline
+> 	before 4.7. Then there is no need for this series to have code
+> 	for ppc, therefore no conflict.
 
-1.	Modify my patch to make spin_unlock_wait() an ACQUIRE, and it
-	can be merged in powerpc tree, and possible go into to mainline
-	before 4.7. Then there is no need for this series to have code
-	for ppc, therefore no conflict.
+Hardly any other unlock_wait is an acquire, everyone is 'broken' :-/
 
-or
+> or
+> 
+> 2.	I can rebase my patch on this series, and it can be added in
+> 	this series, and will go into mainline at 4.8.
+> 
+> 
+> Michael and Peter, any thought?
 
-2.	I can rebase my patch on this series, and it can be added in
-	this series, and will go into mainline at 4.8.
-
-
-Michael and Peter, any thought?
-
-Regards,
-Boqun
-
->  /*
-
---TD8GDToEDw0WLGOL
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAABCAAGBQJXUEGiAAoJEEl56MO1B/q4C7cH/33evgT/8w9kToBwin+GWNYh
-n+fvTt1p9J/nH53IBBzRNezqvIEa2M2tgeErQObsss7qnVQmzSmJqaqjKAfsRvxv
-A3eCorQPlsH0P+Gkwl3jouCLKvpBy/XwAOAh8cTpk5V3ujSkxlTfoQjKq/w/s1fC
-aHiiA5jCVWtrng03VsAhHdhpbvuvqQWg9nKxCg7sPoSzS+nnCov4GNiV3U5TsymK
-ClavNr+Vxe1/wT84nGEsVConKfaLwk8Z1tPFP+F1xN29/RqO+q1+jfMA9I+qc2PC
-C35RFcdPyO3ILrqVcewVMA6nThxveVNmfquyw6sHHYX1M9lBNgcTG0X0vo2BqDc=
-=v9Pb
------END PGP SIGNATURE-----
-
---TD8GDToEDw0WLGOL--
+I'm fine with it going in early, I can rebase, no problem.
