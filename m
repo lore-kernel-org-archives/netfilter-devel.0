@@ -1,53 +1,26 @@
-From: Vishwanath Pai <vpai@akamai.com>
-Subject: [PATCH] netfilter/nflog: nflog-range does not truncate packets
-Date: Wed, 1 Jun 2016 20:23:54 -0400
-Message-ID: <20160602002354.GG1644@akamai.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/7] Netfilter fixes for net
+Date: Wed, 01 Jun 2016 17:54:38 -0700 (PDT)
+Message-ID: <20160601.175438.76076801384954718.davem@davemloft.net>
+References: <1464782604-19346-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: coreteam@netfilter.org, johunt@akamai.com, netdev@vger.kernel.org,
-	pai.vishwain@gmail.com
-To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	netfilter-devel@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <1464782604-19346-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-netfilter/nflog: nflog-range does not truncate packets
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Wed,  1 Jun 2016 14:03:17 +0200
 
-The --nflog-range parameter from userspace is ignored in the kernel and
-the entire packet is sent to the userspace. The per-instance parameter
-copy_range still works, with this change --nflog-range will have
-preference over copy_range.
+> The following patchset contains Netfilter fixes for your net tree,
+> they are:
+ ...
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-Signed-off-by: Vishwanath Pai <vpai@akamai.com>
-Reviewed-by: Joshua Hunt <johunt@akamai.com>
-
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 4ef1fae..f40ddba 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -680,7 +680,6 @@ nfulnl_log_packet(struct net *net,
- 		if (qthreshold > li->u.ulog.qthreshold)
- 			qthreshold = li->u.ulog.qthreshold;
- 
--
- 	switch (inst->copy_mode) {
- 	case NFULNL_COPY_META:
- 	case NFULNL_COPY_NONE:
-@@ -688,10 +687,12 @@ nfulnl_log_packet(struct net *net,
- 		break;
- 
- 	case NFULNL_COPY_PACKET:
--		if (inst->copy_range > skb->len)
-+		data_len = inst->copy_range;
-+		if (li->u.ulog.copy_len < data_len)
-+			data_len = li->u.ulog.copy_len;
-+
-+		if (data_len > skb->len)
- 			data_len = skb->len;
--		else
--			data_len = inst->copy_range;
- 
- 		size += nla_total_size(data_len);
- 		break;
+Pulled, thanks Pablo.
