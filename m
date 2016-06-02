@@ -1,202 +1,105 @@
-From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCHv4] extensions: libxt_multiport: Add translation to nft
-Date: Thu, 2 Jun 2016 19:29:26 +0200
-Message-ID: <20160602172923.GA24172@sonyv>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH -v4 5/7] locking, arch: Update spin_unlock_wait()
+Date: Thu, 2 Jun 2016 18:57:00 +0100
+Message-ID: <20160602175659.GB7697@arm.com>
+References: <20160602115157.249037373@infradead.org>
+ <20160602115439.085385545@infradead.org>
+ <20160602142440.GE30064@insomnia>
+ <20160602144424.GV3193@twins.programming.kicks-ass.net>
+ <20160602163425.GV3205@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34691 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932175AbcFBR3c (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Jun 2016 13:29:32 -0400
-Received: by mail-wm0-f67.google.com with SMTP id n184so17060856wmn.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 02 Jun 2016 10:29:31 -0700 (PDT)
-Received: from sonyv (5.40.227.236.static.user.ono.com. [5.40.227.236])
-        by smtp.gmail.com with ESMTPSA id d195sm2251501wmd.12.2016.06.02.10.29.29
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Thu, 02 Jun 2016 10:29:29 -0700 (PDT)
+Cc: Boqun Feng <boqun.feng@gmail.com>, linux-kernel@vger.kernel.org,
+	torvalds@linux-foundation.org, manfred@colorfullife.com,
+	dave@stgolabs.net, paulmck@linux.vnet.ibm.com, Waiman.Long@hpe.com,
+	tj@kernel.org, pablo@netfilter.org, kaber@trash.net,
+	davem@davemloft.net, oleg@redhat.com,
+	netfilter-devel@vger.kernel.org, sasha.levin@oracle.com,
+	hofrat@osadl.org, jejb@parisc-linux.org, chris@zankel.net,
+	rth@twiddle.net, dhowells@redhat.com, schwidefsky@de.ibm.com,
+	mpe@ellerman.id.au, ralf@linux-mips.org, linux@armlinux.org.uk,
+	rkuo@codeaurora.org, vgupta@synopsys.com, james.hogan@imgtec.com,
+	realmz6@gmail.com, ysato@users.sourceforge.jp, tony.luck@intel.com,
+	cmetcalf@mellanox.com
+To: Peter Zijlstra <peterz@infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20160602163425.GV3205@twins.programming.kicks-ass.net>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Add translation for multiport to nftables, which it's supported natively.
+On Thu, Jun 02, 2016 at 06:34:25PM +0200, Peter Zijlstra wrote:
+> On Thu, Jun 02, 2016 at 04:44:24PM +0200, Peter Zijlstra wrote:
+> > On Thu, Jun 02, 2016 at 10:24:40PM +0800, Boqun Feng wrote:
+> > > On Thu, Jun 02, 2016 at 01:52:02PM +0200, Peter Zijlstra wrote:
+> > > About spin_unlock_wait() on ppc, I actually have a fix pending review:
+> > > 
+> > > http://lkml.kernel.org/r/1461130033-70898-1-git-send-email-boqun.feng@gmail.com
+> > 
+> > > that patch fixed a different problem when people want to pair a
+> > > spin_unlock_wait() with a spin_lock().
+> > 
+> > Argh, indeed, and I think qspinlock is still broken there :/ But my poor
+> > brain is about to give in for the day.
+> 
+> This 'replaces' commit:
+> 
+>   54cf809b9512 ("locking,qspinlock: Fix spin_is_locked() and spin_unlock_wait()")
+> 
+> and seems to still work with the test case from that thread while
+> getting rid of the extra barriers.
+> 
+> ---
+>  include/asm-generic/qspinlock.h | 37 +++++++----------------------------
+>  kernel/locking/qspinlock.c      | 43 +++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 50 insertions(+), 30 deletions(-)
+> 
+> diff --git a/include/asm-generic/qspinlock.h b/include/asm-generic/qspinlock.h
+> index 6bd05700d8c9..9e3dff16d5dc 100644
+> --- a/include/asm-generic/qspinlock.h
+> +++ b/include/asm-generic/qspinlock.h
+> @@ -28,30 +28,13 @@
+>   */
+>  static __always_inline int queued_spin_is_locked(struct qspinlock *lock)
+>  {
+> -	/*
+> -	 * queued_spin_lock_slowpath() can ACQUIRE the lock before
+> -	 * issuing the unordered store that sets _Q_LOCKED_VAL.
+> -	 *
+> -	 * See both smp_cond_acquire() sites for more detail.
+> -	 *
+> -	 * This however means that in code like:
+> -	 *
+> -	 *   spin_lock(A)		spin_lock(B)
+> -	 *   spin_unlock_wait(B)	spin_is_locked(A)
+> -	 *   do_something()		do_something()
+> +	/* 
+> +	 * See queued_spin_unlock_wait().
+>  	 *
+> -	 * Both CPUs can end up running do_something() because the store
+> -	 * setting _Q_LOCKED_VAL will pass through the loads in
+> -	 * spin_unlock_wait() and/or spin_is_locked().
+> -	 *
+> -	 * Avoid this by issuing a full memory barrier between the spin_lock()
+> -	 * and the loads in spin_unlock_wait() and spin_is_locked().
+> -	 *
+> -	 * Note that regular mutual exclusion doesn't care about this
+> -	 * delayed store.
+> +	 * Any !0 state indicates it is locked, even if _Q_LOCKED_VAL
+> +	 * isn't immediately observable.
+>  	 */
+> -	smp_mb();
+> -	return atomic_read(&lock->val) & _Q_LOCKED_MASK;
+> +	return !!atomic_read(&lock->val);
+>  }
 
-Examples:
+I'm failing to keep up here :(
 
-$ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport --dports 80,81 -j ACCEPT
-nft add rule ip filter INPUT ip protocol tcp tcp dport { 80,81} counter accept
+The fast-path code in queued_spin_lock is just an atomic_cmpxchg_acquire.
+If that's built out of LL/SC instructions, then why don't we need a barrier
+here in queued_spin_is_locked?
 
-$ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport --dports 80:88 -j ACCEPT
-nft add rule ip filter INPUT ip protocol tcp tcp dport 80-88 counter accept
+Or is the decision now that only spin_unlock_wait is required to enforce
+this ordering?
 
-$ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport ! --dports 80:88 -j ACCEPT
-nft add rule ip filter INPUT ip protocol tcp tcp dport != 80-88 counter accept
-
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
----
-Changes in v4:
-        - Support != {} as already given
-
-extensions/libxt_multiport.c | 115 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 115 insertions(+)
-
-diff --git a/extensions/libxt_multiport.c b/extensions/libxt_multiport.c
-index 03af5a9..9b27260 100644
---- a/extensions/libxt_multiport.c
-+++ b/extensions/libxt_multiport.c
-@@ -468,6 +468,117 @@ static void multiport_save6_v1(const void *ip_void,
- 	__multiport_save_v1(match, ip->proto);
- }
- 
-+static int __multiport_xlate(const void *ip, const struct xt_entry_match *match,
-+			     struct xt_xlate *xl, int numeric)
-+{
-+	const struct xt_multiport *multiinfo
-+		= (const struct xt_multiport *)match->data;
-+	unsigned int i;
-+
-+	switch (multiinfo->flags) {
-+	case XT_MULTIPORT_SOURCE:
-+		xt_xlate_add(xl, "sport ");
-+		break;
-+	case XT_MULTIPORT_DESTINATION:
-+		xt_xlate_add(xl, "dport ");
-+		break;
-+	case XT_MULTIPORT_EITHER:
-+		return 0;
-+	}
-+
-+	if (multiinfo->count > 1)
-+		xt_xlate_add(xl, "{ ");
-+
-+	for (i = 0; i < multiinfo->count; i++)
-+		xt_xlate_add(xl, "%s%u", i ? "," : "", multiinfo->ports[i]);
-+
-+	if (multiinfo->count > 1)
-+		xt_xlate_add(xl, "}");
-+
-+	xt_xlate_add(xl, " ");
-+
-+	return 1;
-+}
-+
-+static int multiport_xlate(const void *ip, const struct xt_entry_match *match,
-+			   struct xt_xlate *xl, int numeric)
-+{
-+	uint8_t proto = ((const struct ipt_ip *)ip)->proto;
-+
-+	xt_xlate_add(xl, "%s ", proto_to_name(proto));
-+	return __multiport_xlate(ip, match, xl, numeric);
-+}
-+
-+static int multiport_xlate6(const void *ip, const struct xt_entry_match *match,
-+			    struct xt_xlate *xl, int numeric)
-+{
-+	uint8_t proto = ((const struct ip6t_ip6 *)ip)->proto;
-+
-+	xt_xlate_add(xl, "%s ", proto_to_name(proto));
-+	return __multiport_xlate(ip, match, xl, numeric);
-+}
-+
-+static int __multiport_xlate_v1(const void *ip,
-+				const struct xt_entry_match *match,
-+				struct xt_xlate *xl, int numeric)
-+{
-+	const struct xt_multiport_v1 *multiinfo
-+		= (const struct xt_multiport_v1 *)match->data;
-+	unsigned int i;
-+
-+	switch (multiinfo->flags) {
-+	case XT_MULTIPORT_SOURCE:
-+		xt_xlate_add(xl, "sport ");
-+		break;
-+	case XT_MULTIPORT_DESTINATION:
-+		xt_xlate_add(xl, "dport ");
-+		break;
-+	case XT_MULTIPORT_EITHER:
-+		return 0;
-+	}
-+
-+	if (multiinfo->invert)
-+		xt_xlate_add(xl, "!= ");
-+	
-+	if (multiinfo->count > 2 || 
-+	    (multiinfo->count > 1 && !multiinfo->pflags[0]))
-+		xt_xlate_add(xl, "{ ");
-+
-+	for (i = 0; i < multiinfo->count; i++) {
-+		xt_xlate_add(xl, "%s%u", i ? "," : "", multiinfo->ports[i]);
-+		if (multiinfo->pflags[i])
-+			xt_xlate_add(xl, "-%u", multiinfo->ports[++i]);
-+	}
-+
-+	if (multiinfo->count > 2 ||
-+	    (multiinfo->count > 1 && !multiinfo->pflags[0]))
-+		xt_xlate_add(xl, "}");
-+
-+	xt_xlate_add(xl, " ");
-+
-+	return 1;
-+}
-+
-+static int multiport_xlate_v1(const void *ip,
-+			      const struct xt_entry_match *match,
-+			      struct xt_xlate *xl, int numeric)
-+{
-+	uint8_t proto = ((const struct ipt_ip *)ip)->proto;
-+
-+	xt_xlate_add(xl, "%s ", proto_to_name(proto));
-+	return __multiport_xlate_v1(ip, match, xl, numeric);
-+}
-+
-+static int multiport_xlate6_v1(const void *ip,
-+			       const struct xt_entry_match *match,
-+			       struct xt_xlate *xl, int numeric)
-+{
-+	uint8_t proto = ((const struct ip6t_ip6 *)ip)->proto;
-+
-+	xt_xlate_add(xl, "%s ", proto_to_name(proto));
-+	return __multiport_xlate_v1(ip, match, xl, numeric);
-+}
-+
- static struct xtables_match multiport_mt_reg[] = {
- 	{
- 		.family        = NFPROTO_IPV4,
-@@ -482,6 +593,7 @@ static struct xtables_match multiport_mt_reg[] = {
- 		.print         = multiport_print,
- 		.save          = multiport_save,
- 		.x6_options    = multiport_opts,
-+		.xlate         = multiport_xlate,
- 	},
- 	{
- 		.family        = NFPROTO_IPV6,
-@@ -496,6 +608,7 @@ static struct xtables_match multiport_mt_reg[] = {
- 		.print         = multiport_print6,
- 		.save          = multiport_save6,
- 		.x6_options    = multiport_opts,
-+		.xlate         = multiport_xlate6,
- 	},
- 	{
- 		.family        = NFPROTO_IPV4,
-@@ -510,6 +623,7 @@ static struct xtables_match multiport_mt_reg[] = {
- 		.print         = multiport_print_v1,
- 		.save          = multiport_save_v1,
- 		.x6_options    = multiport_opts,
-+		.xlate         = multiport_xlate_v1,
- 	},
- 	{
- 		.family        = NFPROTO_IPV6,
-@@ -524,6 +638,7 @@ static struct xtables_match multiport_mt_reg[] = {
- 		.print         = multiport_print6_v1,
- 		.save          = multiport_save6_v1,
- 		.x6_options    = multiport_opts,
-+		.xlate         = multiport_xlate6_v1,
- 	},
- };
- 
--- 
-2.7.0
-
+Will
