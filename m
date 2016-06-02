@@ -1,43 +1,105 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] extensions: libip6t_hbh: Add translation to nft
-Date: Thu, 2 Jun 2016 13:08:47 +0200
-Message-ID: <20160602110847.GA3428@salvia>
-References: <20160601220804.GA3515@sonyv>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: [PATCH -v4 2/7] locking: Introduce smp_acquire__after_ctrl_dep
+Date: Thu, 02 Jun 2016 13:51:59 +0200
+Message-ID: <20160602115438.899627568@infradead.org>
+References: <20160602115157.249037373@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Laura Garcia Liebana <nevola@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60423 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751968AbcFBLI6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Jun 2016 07:08:58 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 705F77D834B
-	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jun 2016 13:08:57 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6022C15D628
-	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jun 2016 13:08:57 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 588249EBC4
-	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jun 2016 13:08:55 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20160601220804.GA3515@sonyv>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Cc: boqun.feng@gmail.com, Waiman.Long@hpe.com, tj@kernel.org,
+	pablo@netfilter.org, kaber@trash.net, davem@davemloft.net,
+	oleg@redhat.com, netfilter-devel@vger.kernel.org,
+	sasha.levin@oracle.com, hofrat@osadl.org, peterz@infradead.org
+To: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
+	manfred@colorfullife.com, dave@stgolabs.net,
+	paulmck@linux.vnet.ibm.com, will.deacon@arm.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline; filename=peterz-locking-smp_acquire__after_ctrl_dep.patch
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jun 02, 2016 at 12:08:08AM +0200, Laura Garcia Liebana wrote:
-> Add translation for Hop-By-Hop header to nftables. Hbh options are not
-> supported yet in nft.
+Introduce smp_acquire__after_ctrl_dep(), this construct is not
+uncommen, but the lack of this barrier is.
 
-It would be good to document this in the wiki, as Shivani did already.
-It would be also good if you can document what is missing to be
-capable of matching these hbh options there.
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+---
+ include/linux/compiler.h |   17 ++++++++++++-----
+ ipc/sem.c                |   14 ++------------
+ 2 files changed, 14 insertions(+), 17 deletions(-)
 
-> $ sudo ip6tables-translate -t filter -A INPUT -m hbh --hbh-len 22
-> nft add rule ip6 filter INPUT hbh hdrlength 22 counter
-> 
-> $ sudo ip6tables-translate -t filter -A INPUT -m hbh ! --hbh-len 22
-> nft add rule ip6 filter INPUT hbh hdrlength != 22 counter
-
-Applied, thanks Laura.
+--- a/include/linux/compiler.h
++++ b/include/linux/compiler.h
+@@ -305,6 +305,17 @@ static __always_inline void __write_once
+ })
+ 
+ /**
++ * smp_acquire__after_ctrl_dep() - Provide ACQUIRE ordering after a control dependency
++ *
++ * A control dependency provides a LOAD->STORE order, the additional RMB
++ * provides LOAD->LOAD order, together they provide LOAD->{LOAD,STORE} order,
++ * aka. (load)-ACQUIRE.
++ *
++ * Architectures that do not do load speculation can have this be barrier().
++ */
++#define smp_acquire__after_ctrl_dep()		smp_rmb()
++
++/**
+  * smp_cond_load_acquire() - (Spin) wait for cond with ACQUIRE ordering
+  * @ptr: pointer to the variable to wait on
+  * @cond: boolean expression to wait for
+@@ -314,10 +325,6 @@ static __always_inline void __write_once
+  *
+  * Due to C lacking lambda expressions we load the value of *ptr into a
+  * pre-named variable @VAL to be used in @cond.
+- *
+- * The control dependency provides a LOAD->STORE order, the additional RMB
+- * provides LOAD->LOAD order, together they provide LOAD->{LOAD,STORE} order,
+- * aka. ACQUIRE.
+  */
+ #ifndef smp_cond_load_acquire
+ #define smp_cond_load_acquire(ptr, cond_expr) ({		\
+@@ -329,7 +336,7 @@ static __always_inline void __write_once
+ 			break;					\
+ 		cpu_relax();					\
+ 	}							\
+-	smp_rmb(); /* ctrl + rmb := acquire */			\
++	smp_acquire__after_ctrl_dep();				\
+ 	VAL;							\
+ })
+ #endif
+--- a/ipc/sem.c
++++ b/ipc/sem.c
+@@ -260,16 +260,6 @@ static void sem_rcu_free(struct rcu_head
+ }
+ 
+ /*
+- * spin_unlock_wait() and !spin_is_locked() are not memory barriers, they
+- * are only control barriers.
+- * The code must pair with spin_unlock(&sem->lock) or
+- * spin_unlock(&sem_perm.lock), thus just the control barrier is insufficient.
+- *
+- * smp_rmb() is sufficient, as writes cannot pass the control barrier.
+- */
+-#define ipc_smp_acquire__after_spin_is_unlocked()	smp_rmb()
+-
+-/*
+  * Wait until all currently ongoing simple ops have completed.
+  * Caller must own sem_perm.lock.
+  * New simple ops cannot start, because simple ops first check
+@@ -292,7 +282,7 @@ static void sem_wait_array(struct sem_ar
+ 		sem = sma->sem_base + i;
+ 		spin_unlock_wait(&sem->lock);
+ 	}
+-	ipc_smp_acquire__after_spin_is_unlocked();
++	smp_acquire__after_ctrl_dep();
+ }
+ 
+ /*
+@@ -350,7 +340,7 @@ static inline int sem_lock(struct sem_ar
+ 			 *	complex_count++;
+ 			 *	spin_unlock(sem_perm.lock);
+ 			 */
+-			ipc_smp_acquire__after_spin_is_unlocked();
++			smp_acquire__after_ctrl_dep();
+ 
+ 			/*
+ 			 * Now repeat the test of complex_count:
