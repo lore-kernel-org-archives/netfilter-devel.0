@@ -1,15 +1,14 @@
-From: Boqun Feng <boqun.feng@gmail.com>
+From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [PATCH -v4 5/7] locking, arch: Update spin_unlock_wait()
-Date: Thu, 2 Jun 2016 23:57:51 +0800
-Message-ID: <20160602155751.GB23133@insomnia>
+Date: Thu, 2 Jun 2016 18:04:39 +0200
+Message-ID: <20160602160439.GE3190@twins.programming.kicks-ass.net>
 References: <20160602115157.249037373@infradead.org>
  <20160602115439.085385545@infradead.org>
  <20160602142440.GE30064@insomnia>
  <20160602144424.GV3193@twins.programming.kicks-ass.net>
  <20160602151107.GA23133@insomnia>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="IiVenqGWf+H9Y6IX"
+Content-Type: text/plain; charset=us-ascii
 Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
 	manfred@colorfullife.com, dave@stgolabs.net,
 	paulmck@linux.vnet.ibm.com, will.deacon@arm.com,
@@ -22,49 +21,38 @@ Cc: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
 	rkuo@codeaurora.org, vgupta@synopsys.com, james.hogan@imgtec.com,
 	realmz6@gmail.com, ysato@users.sourceforge.jp, tony.luck@intel.com,
 	cmetcalf@mellanox.com
-To: Peter Zijlstra <peterz@infradead.org>
+To: Boqun Feng <boqun.feng@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20160602151107.GA23133@insomnia>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
---IiVenqGWf+H9Y6IX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
 On Thu, Jun 02, 2016 at 11:11:07PM +0800, Boqun Feng wrote:
-[snip]
->=20
-> OK, I will resend a new patch making spin_unlock_wait() align the
-> semantics in your series.
->=20
+> On Thu, Jun 02, 2016 at 04:44:24PM +0200, Peter Zijlstra wrote:
+> > Let me go ponder that some :/
+> > 
+> 
+> An intial thought of the fix is making queued_spin_unlock_wait() an
+> atomic-nop too:
+> 
+> static inline void queued_spin_unlock_wait(struct qspinlock *lock)
+> {
+> 	struct __qspinlock *l = (struct __qspinlock *)lock;
+> 	
+> 	while (!cmpxchg(&l->locked, 0, 0))
+> 		cpu_relax();
+> }
+> 
+> This could make queued_spin_unlock_wait() a WRITE, with a smp_mb()
+> preceding it, it would act like a RELEASE, which can be paired with
+> spin_lock().
+> 
+> Just food for thought. ;-)
 
-I realize that if my patch goes first then it's more safe and convenient
-to keep the two smp_mb()s in ppc arch_spin_unlock_wait(). I will only do
-fix and clean up in my patch and leave the semantics changing part to
-you ;-)
+Not sure that'll actually work. The qspinlock store is completely
+unordered and not part of a ll/sc or anything like that.
 
-> Regards,
-> Boqun
+Doing competing stores might even result in loosing it entirely.
 
-
-
---IiVenqGWf+H9Y6IX
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEbBAABCAAGBQJXUFd3AAoJEEl56MO1B/q4ELoH9idk9QnmBY7yI4KUujv6x6/y
-LkIjxEZSQbcrQaLTLXlrNMxvdQbOkrA1NYvb7vV9yMABD+9nxnj2TO2Ja+hHxijE
-4bS/+APOVW1JMAvw9uOWe/2DgaczjpwdpzlV7O9rh4ELXDHtJXdvPmmfZIn/QlZ+
-o4MjHQhRc57I4MOuiIK1oD8H+onkmLGRmXZdH46+qD5EVwiX//Cc6GOUHTtQfBiE
-akE7Me0+OrYqOylcfveVPL8I2F5KGy7apuhPrdF7KRt68pdAz2z4PE4n+5qXJ7pz
-5duCmiGiJ2/Cxi2zNSQFl+MLYR/k3/nqgD2Ku30BfSaHiqv27IWaFiuV1th/7Q==
-=Iw9p
------END PGP SIGNATURE-----
-
---IiVenqGWf+H9Y6IX--
+But I think I got something.. Lemme go test it :-)
