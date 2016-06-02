@@ -1,46 +1,36 @@
 From: Peter Zijlstra <peterz@infradead.org>
-Subject: [PATCH -v4 4/7] locking, tile: Provide TILE specific smp_acquire__after_ctrl_dep
-Date: Thu, 02 Jun 2016 13:52:01 +0200
-Message-ID: <20160602115439.024758256@infradead.org>
-References: <20160602115157.249037373@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Subject: [PATCH -v4 0/7] spin_unlock_wait borkage and assorted bits
+Date: Thu, 02 Jun 2016 13:51:57 +0200
+Message-ID: <20160602115157.249037373@infradead.org>
 Cc: boqun.feng@gmail.com, Waiman.Long@hpe.com, tj@kernel.org,
 	pablo@netfilter.org, kaber@trash.net, davem@davemloft.net,
 	oleg@redhat.com, netfilter-devel@vger.kernel.org,
-	sasha.levin@oracle.com, hofrat@osadl.org, peterz@infradead.org,
-	Chris Metcalf <cmetcalf@mellanox.com>
+	sasha.levin@oracle.com, hofrat@osadl.org, peterz@infradead.org
 To: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
 	manfred@colorfullife.com, dave@stgolabs.net,
 	paulmck@linux.vnet.ibm.com, will.deacon@arm.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline; filename=peterz-tile-ctrl-dep.patch
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:58201 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932743AbcFBL5x (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 Jun 2016 07:57:53 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Since TILE doesn't do read speculation, its control dependencies also
-guarantee LOAD->LOAD order and we don't need the additional RMB
-otherwise required to provide ACQUIRE semantics.
+Similar to -v3 in that it rewrites spin_unlock_wait() for all.
 
-Acked-by: Chris Metcalf <cmetcalf@mellanox.com>
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
----
- arch/tile/include/asm/barrier.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+The new spin_unlock_wait() provides ACQUIRE semantics to match the RELEASE of
+the spin_unlock() we waited for and thereby ensure we can fully observe its
+critical section.
 
---- a/arch/tile/include/asm/barrier.h
-+++ b/arch/tile/include/asm/barrier.h
-@@ -87,6 +87,13 @@ mb_incoherent(void)
- #define __smp_mb__after_atomic()	__smp_mb()
- #endif
- 
-+/*
-+ * The TILE architecture does not do speculative reads; this ensures
-+ * that a control dependency also orders against loads and already provides
-+ * a LOAD->{LOAD,STORE} order and can forgo the additional RMB.
-+ */
-+#define smp_acquire__after_ctrl_dep()	barrier()
-+
- #include <asm-generic/barrier.h>
- 
- #endif /* !__ASSEMBLY__ */
+This fixes a number (pretty much all) spin_unlock_wait() users.
+
+This series pulls in the smp_cond_acquire() rewrite because it introduces a lot
+of new users of it. All simple spin_unlock_wait() implementations end up being
+one.
+
+New in this series is the removal of cmpwait() and a reorder of patches.
+
+I'm planning on queuing these patches for 4.8.
+
