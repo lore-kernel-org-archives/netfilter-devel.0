@@ -1,50 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: x_tables: don't reject valid target size
- on some architectures
-Date: Thu, 2 Jun 2016 14:10:24 +0200
-Message-ID: <20160602121024.GA13294@salvia>
-References: <1464739484-7817-1-git-send-email-fw@strlen.de>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH] extensions: libxt_devgroup: Fix order of mask and id
+Date: Thu, 2 Jun 2016 18:54:42 +0530
+Message-ID: <20160602132442.GA7807@shivani>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, john.stultz@linaro.org
-To: Florian Westphal <fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38180 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751004AbcFBMKb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Jun 2016 08:10:31 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 0A58D52BE02
-	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jun 2016 14:10:28 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id EEB7115D634
-	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jun 2016 14:10:27 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 5458815D634
-	for <netfilter-devel@vger.kernel.org>; Thu,  2 Jun 2016 14:10:25 +0200 (CEST)
+Received: from mail-pa0-f68.google.com ([209.85.220.68]:35996 "EHLO
+	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932346AbcFBNZY (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 Jun 2016 09:25:24 -0400
+Received: by mail-pa0-f68.google.com with SMTP id fg1so3352674pad.3
+        for <netfilter-devel@vger.kernel.org>; Thu, 02 Jun 2016 06:25:24 -0700 (PDT)
+Received: from shivani ([116.202.34.180])
+        by smtp.gmail.com with ESMTPSA id 8sm1073718pfq.11.2016.06.02.06.25.21
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Thu, 02 Jun 2016 06:25:23 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1464739484-7817-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 01, 2016 at 02:04:44AM +0200, Florian Westphal wrote:
-> Quoting John Stultz:
->   In updating a 32bit arm device from 4.6 to Linus' current HEAD, I
->   noticed I was having some trouble with networking, and realized that
->   /proc/net/ip_tables_names was suddenly empty.
->   Digging through the registration process, it seems we're catching on the:
-> 
->    if (strcmp(t->u.user.name, XT_STANDARD_TARGET) == 0 &&
->        target_offset + sizeof(struct xt_standard_target) != next_offset)
->          return -EINVAL;
-> 
->   Where next_offset seems to be 4 bytes larger then the
->   offset + standard_target struct size.
-> 
-> next_offset needs to be aligned via XT_ALIGN (so we can access all members
-> of ip(6)t_entry struct).
-> 
-> This problem didn't show up on i686 as it only needs 4-byte alignment for
-> u64, but iptables userspace on other 32bit arches does insert extra padding.
+The order of mask and id in the translated code is not apt
+so fix it.
+This patch follows commit 8548dd by Liping Zhang.
 
-Applied, thanks Florian.
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+ extensions/libxt_devgroup.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/extensions/libxt_devgroup.c b/extensions/libxt_devgroup.c
+index a30fff0..f110ea7 100644
+--- a/extensions/libxt_devgroup.c
++++ b/extensions/libxt_devgroup.c
+@@ -158,8 +158,8 @@ print_devgroup_xlate(unsigned int id, uint32_t op,  unsigned int mask,
+ 	const char *name = NULL;
+ 
+ 	if (mask != 0xffffffff)
+-		xt_xlate_add(xl, "and 0x%x %s 0x%x ", id,
+-			   op == XT_OP_EQ ? "==" : "!=", mask);
++		xt_xlate_add(xl, "and 0x%x %s 0x%x ", mask,
++			   op == XT_OP_EQ ? "==" : "!=", id);
+ 	else {
+ 		if (numeric == 0)
+ 			name = xtables_lmap_id2name(devgroups, id);
+-- 
+1.9.1
+
