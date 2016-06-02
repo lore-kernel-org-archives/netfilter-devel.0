@@ -1,33 +1,202 @@
-From: Guillaume Nault <g.nault@alphalink.fr>
-Subject: Re: Next libmnl release
-Date: Thu, 2 Jun 2016 19:20:31 +0200
-Message-ID: <20160602172031.GD1592@alphalink.fr>
-References: <20160602162150.GC1592@alphalink.fr>
- <20160602170158.GA2596@salvia>
+From: Laura Garcia Liebana <nevola@gmail.com>
+Subject: [PATCHv4] extensions: libxt_multiport: Add translation to nft
+Date: Thu, 2 Jun 2016 19:29:26 +0200
+Message-ID: <20160602172923.GA24172@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from zimbra.alphalink.fr ([217.15.80.77]:48123 "EHLO
-	zimbra.alphalink.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932088AbcFBRUf (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34691 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932175AbcFBR3c (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Jun 2016 13:20:35 -0400
+	Thu, 2 Jun 2016 13:29:32 -0400
+Received: by mail-wm0-f67.google.com with SMTP id n184so17060856wmn.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 02 Jun 2016 10:29:31 -0700 (PDT)
+Received: from sonyv (5.40.227.236.static.user.ono.com. [5.40.227.236])
+        by smtp.gmail.com with ESMTPSA id d195sm2251501wmd.12.2016.06.02.10.29.29
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Thu, 02 Jun 2016 10:29:29 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20160602170158.GA2596@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 02, 2016 at 07:01:58PM +0200, Pablo Neira Ayuso wrote:
-> On Thu, Jun 02, 2016 at 06:21:50PM +0200, Guillaume Nault wrote:
-> > Hi,
-> > 
-> > Are there any plans for a new libmnl release? Sure there aren't so many
-> > changes, but there are still valuable features, fixes and documentation
-> > updates. Releasing a new version and updating the online documentation
-> > would help making them widely available.
-> 
-> Will schedule one asap.
-> 
-Great, thanks!
+Add translation for multiport to nftables, which it's supported natively.
+
+Examples:
+
+$ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport --dports 80,81 -j ACCEPT
+nft add rule ip filter INPUT ip protocol tcp tcp dport { 80,81} counter accept
+
+$ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport --dports 80:88 -j ACCEPT
+nft add rule ip filter INPUT ip protocol tcp tcp dport 80-88 counter accept
+
+$ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport ! --dports 80:88 -j ACCEPT
+nft add rule ip filter INPUT ip protocol tcp tcp dport != 80-88 counter accept
+
+Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+---
+Changes in v4:
+        - Support != {} as already given
+
+extensions/libxt_multiport.c | 115 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 115 insertions(+)
+
+diff --git a/extensions/libxt_multiport.c b/extensions/libxt_multiport.c
+index 03af5a9..9b27260 100644
+--- a/extensions/libxt_multiport.c
++++ b/extensions/libxt_multiport.c
+@@ -468,6 +468,117 @@ static void multiport_save6_v1(const void *ip_void,
+ 	__multiport_save_v1(match, ip->proto);
+ }
+ 
++static int __multiport_xlate(const void *ip, const struct xt_entry_match *match,
++			     struct xt_xlate *xl, int numeric)
++{
++	const struct xt_multiport *multiinfo
++		= (const struct xt_multiport *)match->data;
++	unsigned int i;
++
++	switch (multiinfo->flags) {
++	case XT_MULTIPORT_SOURCE:
++		xt_xlate_add(xl, "sport ");
++		break;
++	case XT_MULTIPORT_DESTINATION:
++		xt_xlate_add(xl, "dport ");
++		break;
++	case XT_MULTIPORT_EITHER:
++		return 0;
++	}
++
++	if (multiinfo->count > 1)
++		xt_xlate_add(xl, "{ ");
++
++	for (i = 0; i < multiinfo->count; i++)
++		xt_xlate_add(xl, "%s%u", i ? "," : "", multiinfo->ports[i]);
++
++	if (multiinfo->count > 1)
++		xt_xlate_add(xl, "}");
++
++	xt_xlate_add(xl, " ");
++
++	return 1;
++}
++
++static int multiport_xlate(const void *ip, const struct xt_entry_match *match,
++			   struct xt_xlate *xl, int numeric)
++{
++	uint8_t proto = ((const struct ipt_ip *)ip)->proto;
++
++	xt_xlate_add(xl, "%s ", proto_to_name(proto));
++	return __multiport_xlate(ip, match, xl, numeric);
++}
++
++static int multiport_xlate6(const void *ip, const struct xt_entry_match *match,
++			    struct xt_xlate *xl, int numeric)
++{
++	uint8_t proto = ((const struct ip6t_ip6 *)ip)->proto;
++
++	xt_xlate_add(xl, "%s ", proto_to_name(proto));
++	return __multiport_xlate(ip, match, xl, numeric);
++}
++
++static int __multiport_xlate_v1(const void *ip,
++				const struct xt_entry_match *match,
++				struct xt_xlate *xl, int numeric)
++{
++	const struct xt_multiport_v1 *multiinfo
++		= (const struct xt_multiport_v1 *)match->data;
++	unsigned int i;
++
++	switch (multiinfo->flags) {
++	case XT_MULTIPORT_SOURCE:
++		xt_xlate_add(xl, "sport ");
++		break;
++	case XT_MULTIPORT_DESTINATION:
++		xt_xlate_add(xl, "dport ");
++		break;
++	case XT_MULTIPORT_EITHER:
++		return 0;
++	}
++
++	if (multiinfo->invert)
++		xt_xlate_add(xl, "!= ");
++	
++	if (multiinfo->count > 2 || 
++	    (multiinfo->count > 1 && !multiinfo->pflags[0]))
++		xt_xlate_add(xl, "{ ");
++
++	for (i = 0; i < multiinfo->count; i++) {
++		xt_xlate_add(xl, "%s%u", i ? "," : "", multiinfo->ports[i]);
++		if (multiinfo->pflags[i])
++			xt_xlate_add(xl, "-%u", multiinfo->ports[++i]);
++	}
++
++	if (multiinfo->count > 2 ||
++	    (multiinfo->count > 1 && !multiinfo->pflags[0]))
++		xt_xlate_add(xl, "}");
++
++	xt_xlate_add(xl, " ");
++
++	return 1;
++}
++
++static int multiport_xlate_v1(const void *ip,
++			      const struct xt_entry_match *match,
++			      struct xt_xlate *xl, int numeric)
++{
++	uint8_t proto = ((const struct ipt_ip *)ip)->proto;
++
++	xt_xlate_add(xl, "%s ", proto_to_name(proto));
++	return __multiport_xlate_v1(ip, match, xl, numeric);
++}
++
++static int multiport_xlate6_v1(const void *ip,
++			       const struct xt_entry_match *match,
++			       struct xt_xlate *xl, int numeric)
++{
++	uint8_t proto = ((const struct ip6t_ip6 *)ip)->proto;
++
++	xt_xlate_add(xl, "%s ", proto_to_name(proto));
++	return __multiport_xlate_v1(ip, match, xl, numeric);
++}
++
+ static struct xtables_match multiport_mt_reg[] = {
+ 	{
+ 		.family        = NFPROTO_IPV4,
+@@ -482,6 +593,7 @@ static struct xtables_match multiport_mt_reg[] = {
+ 		.print         = multiport_print,
+ 		.save          = multiport_save,
+ 		.x6_options    = multiport_opts,
++		.xlate         = multiport_xlate,
+ 	},
+ 	{
+ 		.family        = NFPROTO_IPV6,
+@@ -496,6 +608,7 @@ static struct xtables_match multiport_mt_reg[] = {
+ 		.print         = multiport_print6,
+ 		.save          = multiport_save6,
+ 		.x6_options    = multiport_opts,
++		.xlate         = multiport_xlate6,
+ 	},
+ 	{
+ 		.family        = NFPROTO_IPV4,
+@@ -510,6 +623,7 @@ static struct xtables_match multiport_mt_reg[] = {
+ 		.print         = multiport_print_v1,
+ 		.save          = multiport_save_v1,
+ 		.x6_options    = multiport_opts,
++		.xlate         = multiport_xlate_v1,
+ 	},
+ 	{
+ 		.family        = NFPROTO_IPV6,
+@@ -524,6 +638,7 @@ static struct xtables_match multiport_mt_reg[] = {
+ 		.print         = multiport_print6_v1,
+ 		.save          = multiport_save6_v1,
+ 		.x6_options    = multiport_opts,
++		.xlate         = multiport_xlate6_v1,
+ 	},
+ };
+ 
+-- 
+2.7.0
+
