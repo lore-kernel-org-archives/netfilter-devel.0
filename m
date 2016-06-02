@@ -1,36 +1,604 @@
 From: Peter Zijlstra <peterz@infradead.org>
-Subject: [PATCH -v4 0/7] spin_unlock_wait borkage and assorted bits
-Date: Thu, 02 Jun 2016 13:51:57 +0200
-Message-ID: <20160602115157.249037373@infradead.org>
+Subject: [PATCH -v4 5/7] locking, arch: Update spin_unlock_wait()
+Date: Thu, 02 Jun 2016 13:52:02 +0200
+Message-ID: <20160602115439.085385545@infradead.org>
+References: <20160602115157.249037373@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Cc: boqun.feng@gmail.com, Waiman.Long@hpe.com, tj@kernel.org,
 	pablo@netfilter.org, kaber@trash.net, davem@davemloft.net,
 	oleg@redhat.com, netfilter-devel@vger.kernel.org,
-	sasha.levin@oracle.com, hofrat@osadl.org, peterz@infradead.org
+	sasha.levin@oracle.com, hofrat@osadl.org, peterz@infradead.org,
+	jejb@parisc-linux.org, chris@zankel.net, rth@twiddle.net,
+	dhowells@redhat.com, schwidefsky@de.ibm.com, mpe@ellerman.id.au,
+	ralf@linux-mips.org, linux@armlinux.org.uk, rkuo@codeaurora.org,
+	vgupta@synopsys.com, james.hogan@imgtec.com, realmz6@gmail.com,
+	ysato@users.sourceforge.jp, tony.luck@intel.com,
+	cmetcalf@mellanox.com
 To: linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
 	manfred@colorfullife.com, dave@stgolabs.net,
 	paulmck@linux.vnet.ibm.com, will.deacon@arm.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58201 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932743AbcFBL5x (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Jun 2016 07:57:53 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline; filename=peterz-locking-spin_unlock_wait.patch
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Similar to -v3 in that it rewrites spin_unlock_wait() for all.
+This patch updates/fixes all spin_unlock_wait() implementations.
 
-The new spin_unlock_wait() provides ACQUIRE semantics to match the RELEASE of
-the spin_unlock() we waited for and thereby ensure we can fully observe its
-critical section.
+The update is in semantics; where it previously was only a control
+dependency, we now upgrade to a full load-acquire to match the
+store-release from the spin_unlock() we waited on. This ensures that
+when spin_unlock_wait() returns, we're guaranteed to observe the full
+critical section we waited on.
 
-This fixes a number (pretty much all) spin_unlock_wait() users.
+This fixes a number of spin_unlock_wait() users that (not
+unreasonably) rely on this.
 
-This series pulls in the smp_cond_acquire() rewrite because it introduces a lot
-of new users of it. All simple spin_unlock_wait() implementations end up being
-one.
+I also fixed a number of ticket lock versions to only wait on the
+current lock holder, instead of for a full unlock, as this is
+sufficient.
 
-New in this series is the removal of cmpwait() and a reorder of patches.
+Furthermore; again for ticket locks; I added an smp_rmb() in between
+the initial ticket load and the spin loop testing the current value
+because I could not convince myself the address dependency is
+sufficient, esp. if the loads are of different sizes.
 
-I'm planning on queuing these patches for 4.8.
+I'm more than happy to remove this smp_rmb() again if people are
+certain the address dependency does indeed work as expected.
 
+Cc: jejb@parisc-linux.org
+Cc: davem@davemloft.net
+Cc: chris@zankel.net
+Cc: rth@twiddle.net
+Cc: dhowells@redhat.com
+Cc: schwidefsky@de.ibm.com
+Cc: mpe@ellerman.id.au
+Cc: ralf@linux-mips.org
+Cc: linux@armlinux.org.uk
+Cc: rkuo@codeaurora.org
+Cc: vgupta@synopsys.com
+Cc: james.hogan@imgtec.com
+Cc: realmz6@gmail.com
+Cc: ysato@users.sourceforge.jp
+Cc: tony.luck@intel.com
+Cc: cmetcalf@mellanox.com
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+---
+ arch/alpha/include/asm/spinlock.h    |    9 +++++++--
+ arch/arc/include/asm/spinlock.h      |    7 +++++--
+ arch/arm/include/asm/spinlock.h      |   19 +++++++++++++++++--
+ arch/blackfin/include/asm/spinlock.h |    5 +++--
+ arch/hexagon/include/asm/spinlock.h  |   10 ++++++++--
+ arch/ia64/include/asm/spinlock.h     |    4 ++++
+ arch/m32r/include/asm/spinlock.h     |    9 +++++++--
+ arch/metag/include/asm/spinlock.h    |   14 ++++++++++++--
+ arch/mips/include/asm/spinlock.h     |   19 +++++++++++++++++--
+ arch/mn10300/include/asm/spinlock.h  |    8 +++++++-
+ arch/parisc/include/asm/spinlock.h   |    9 +++++++--
+ arch/powerpc/include/asm/spinlock.h  |    8 ++++++--
+ arch/s390/include/asm/spinlock.h     |    3 +++
+ arch/sh/include/asm/spinlock.h       |   10 ++++++++--
+ arch/sparc/include/asm/spinlock_32.h |    7 +++++--
+ arch/sparc/include/asm/spinlock_64.h |   10 +++++++---
+ arch/tile/lib/spinlock_32.c          |    6 ++++++
+ arch/tile/lib/spinlock_64.c          |    6 ++++++
+ arch/xtensa/include/asm/spinlock.h   |   10 ++++++++--
+ include/asm-generic/barrier.h        |    2 +-
+ include/asm-generic/qspinlock.h      |    5 +++--
+ include/linux/spinlock_up.h          |   10 +++++++---
+ 22 files changed, 154 insertions(+), 36 deletions(-)
+
+--- a/arch/alpha/include/asm/spinlock.h
++++ b/arch/alpha/include/asm/spinlock.h
+@@ -3,6 +3,8 @@
+ 
+ #include <linux/kernel.h>
+ #include <asm/current.h>
++#include <asm/barrier.h>
++#include <asm/processor.h>
+ 
+ /*
+  * Simple spin lock operations.  There are two variants, one clears IRQ's
+@@ -13,8 +15,11 @@
+ 
+ #define arch_spin_lock_flags(lock, flags) arch_spin_lock(lock)
+ #define arch_spin_is_locked(x)	((x)->lock != 0)
+-#define arch_spin_unlock_wait(x) \
+-		do { cpu_relax(); } while ((x)->lock)
++
++static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
++{
++	smp_cond_load_acquire(&lock->lock, !VAL);
++}
+ 
+ static inline int arch_spin_value_unlocked(arch_spinlock_t lock)
+ {
+--- a/arch/arc/include/asm/spinlock.h
++++ b/arch/arc/include/asm/spinlock.h
+@@ -15,8 +15,11 @@
+ 
+ #define arch_spin_is_locked(x)	((x)->slock != __ARCH_SPIN_LOCK_UNLOCKED__)
+ #define arch_spin_lock_flags(lock, flags)	arch_spin_lock(lock)
+-#define arch_spin_unlock_wait(x) \
+-	do { while (arch_spin_is_locked(x)) cpu_relax(); } while (0)
++
++static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
++{
++	smp_cond_load_acquire(&lock->slock, !VAL);
++}
+ 
+ #ifdef CONFIG_ARC_HAS_LLSC
+ 
+--- a/arch/arm/include/asm/spinlock.h
++++ b/arch/arm/include/asm/spinlock.h
+@@ -6,6 +6,8 @@
+ #endif
+ 
+ #include <linux/prefetch.h>
++#include <asm/barrier.h>
++#include <asm/processor.h>
+ 
+ /*
+  * sev and wfe are ARMv6K extensions.  Uniprocessor ARMv6 may not have the K
+@@ -50,8 +52,21 @@ static inline void dsb_sev(void)
+  * memory.
+  */
+ 
+-#define arch_spin_unlock_wait(lock) \
+-	do { while (arch_spin_is_locked(lock)) cpu_relax(); } while (0)
++static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
++{
++	u16 owner = READ_ONCE(lock->tickets.owner);
++
++	for (;;) {
++		arch_spinlock_t tmp = READ_ONCE(*lock);
++
++		if (tmp.tickets.owner == tmp.tickets.next ||
++		    tmp.tickets.owner != owner)
++			break;
++
++		wfe();
++	}
++	smp_acquire__after_ctrl_dep();
++}
+ 
+ #define arch_spin_lock_flags(lock, flags) arch_spin_lock(lock)
+ 
+--- a/arch/blackfin/include/asm/spinlock.h
++++ b/arch/blackfin/include/asm/spinlock.h
+@@ -12,6 +12,8 @@
+ #else
+ 
+ #include <linux/atomic.h>
++#include <asm/processor.h>
++#include <asm/barrier.h>
+ 
+ asmlinkage int __raw_spin_is_locked_asm(volatile int *ptr);
+ asmlinkage void __raw_spin_lock_asm(volatile int *ptr);
+@@ -48,8 +50,7 @@ static inline void arch_spin_unlock(arch
+ 
+ static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
+ {
+-	while (arch_spin_is_locked(lock))
+-		cpu_relax();
++	smp_cond_load_acquire(&lock->lock, !VAL);
+ }
+ 
+ static inline int arch_read_can_lock(arch_rwlock_t *rw)
+--- a/arch/hexagon/include/asm/spinlock.h
++++ b/arch/hexagon/include/asm/spinlock.h
+@@ -23,6 +23,8 @@
+ #define _ASM_SPINLOCK_H
+ 
+ #include <asm/irqflags.h>
++#include <asm/barrier.h>
++#include <asm/processor.h>
+ 
+ /*
+  * This file is pulled in for SMP builds.
+@@ -176,8 +178,12 @@ static inline unsigned int arch_spin_try
+  * SMP spinlocks are intended to allow only a single CPU at the lock
+  */
+ #define arch_spin_lock_flags(lock, flags) arch_spin_lock(lock)
+-#define arch_spin_unlock_wait(lock) \
+-	do {while (arch_spin_is_locked(lock)) cpu_relax(); } while (0)
++
++static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
++{
++	smp_cond_load_acquire(&lock->lock, !VAL);
++}
++
+ #define arch_spin_is_locked(x) ((x)->lock != 0)
+ 
+ #define arch_read_lock_flags(lock, flags) arch_read_lock(lock)
+--- a/arch/ia64/include/asm/spinlock.h
++++ b/arch/ia64/include/asm/spinlock.h
+@@ -15,6 +15,8 @@
+ 
+ #include <linux/atomic.h>
+ #include <asm/intrinsics.h>
++#include <asm/barrier.h>
++#include <asm/processor.h>
+ 
+ #define arch_spin_lock_init(x)			((x)->lock = 0)
+ 
+@@ -86,6 +88,8 @@ static __always_inline void __ticket_spi
+ 			return;
+ 		cpu_relax();
+ 	}
++
++	smp_acquire__after_ctrl_dep();
+ }
+ 
+ static inline int __ticket_spin_is_locked(arch_spinlock_t *lock)
+--- a/arch/m32r/include/asm/spinlock.h
++++ b/arch/m32r/include/asm/spinlock.h
+@@ -13,6 +13,8 @@
+ #include <linux/atomic.h>
+ #include <asm/dcache_clear.h>
+ #include <asm/page.h>
++#include <asm/barrier.h>
++#include <asm/processor.h>
+ 
+ /*
+  * Your basic SMP spinlocks, allowing only a single CPU anywhere
+@@ -27,8 +29,11 @@
+ 
+ #define arch_spin_is_locked(x)		(*(volatile int *)(&(x)->slock) <= 0)
+ #define arch_spin_lock_flags(lock, flags) arch_spin_lock(lock)
+-#define arch_spin_unlock_wait(x) \
+-		do { cpu_relax(); } while (arch_spin_is_locked(x))
++
++static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
++{
++	smp_cond_load_acquire(&lock->slock, VAL > 0);
++}
+ 
+ /**
+  * arch_spin_trylock - Try spin lock and return a result
+--- a/arch/metag/include/asm/spinlock.h
++++ b/arch/metag/include/asm/spinlock.h
+@@ -1,14 +1,24 @@
+ #ifndef __ASM_SPINLOCK_H
+ #define __ASM_SPINLOCK_H
+ 
++#include <asm/barrier.h>
++#include <asm/processor.h>
++
+ #ifdef CONFIG_METAG_ATOMICITY_LOCK1
+ #include <asm/spinlock_lock1.h>
+ #else
+ #include <asm/spinlock_lnkget.h>
+ #endif
+ 
+-#define arch_spin_unlock_wait(lock) \
+-	do { while (arch_spin_is_locked(lock)) cpu_relax(); } while (0)
++/*
++ * both lock1 and lnkget are test-and-set spinlocks with 0 unlocked and 1
++ * locked.
++ */
++
++static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
++{
++	smp_cond_load_acquire(&lock->lock, !VAL);
++}
+ 
+ #define arch_spin_lock_flags(lock, flags) arch_spin_lock(lock)
+ 
+--- a/arch/mips/include/asm/spinlock.h
++++ b/arch/mips/include/asm/spinlock.h
+@@ -12,6 +12,7 @@
+ #include <linux/compiler.h>
+ 
+ #include <asm/barrier.h>
++#include <asm/processor.h>
+ #include <asm/compiler.h>
+ #include <asm/war.h>
+ 
+@@ -48,8 +49,22 @@ static inline int arch_spin_value_unlock
+ }
+ 
+ #define arch_spin_lock_flags(lock, flags) arch_spin_lock(lock)
+-#define arch_spin_unlock_wait(x) \
+-	while (arch_spin_is_locked(x)) { cpu_relax(); }
++
++static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
++{
++	u16 owner = READ_ONCE(lock->h.serving_now);
++	smp_rmb();
++	for (;;) {
++		arch_spinlock_t tmp = READ_ONCE(*lock);
++
++		if (tmp.h.serving_now == tmp.h.ticket ||
++		    tmp.h.serving_now != owner)
++			break;
++
++		cpu_relax();
++	}
++	smp_acquire__after_ctrl_dep();
++}
+ 
+ static inline int arch_spin_is_contended(arch_spinlock_t *lock)
+ {
+--- a/arch/mn10300/include/asm/spinlock.h
++++ b/arch/mn10300/include/asm/spinlock.h
+@@ -12,6 +12,8 @@
+ #define _ASM_SPINLOCK_H
+ 
+ #include <linux/atomic.h>
++#include <asm/barrier.h>
++#include <asm/processor.h>
+ #include <asm/rwlock.h>
+ #include <asm/page.h>
+ 
+@@ -23,7 +25,11 @@
+  */
+ 
+ #define arch_spin_is_locked(x)	(*(volatile signed char *)(&(x)->slock) != 0)
+-#define arch_spin_unlock_wait(x) do { barrier(); } while (arch_spin_is_locked(x))
++
++static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
++{
++	smp_cond_load_acquire(&lock->slock, !VAL);
++}
+ 
+ static inline void arch_spin_unlock(arch_spinlock_t *lock)
+ {
+--- a/arch/parisc/include/asm/spinlock.h
++++ b/arch/parisc/include/asm/spinlock.h
+@@ -13,8 +13,13 @@ static inline int arch_spin_is_locked(ar
+ }
+ 
+ #define arch_spin_lock(lock) arch_spin_lock_flags(lock, 0)
+-#define arch_spin_unlock_wait(x) \
+-		do { cpu_relax(); } while (arch_spin_is_locked(x))
++
++static inline void arch_spin_unlock_wait(arch_spinlock_t *x)
++{
++	volatile unsigned int *a = __ldcw_align(x);
++
++	smp_cond_load_acquire(a, VAL);
++}
+ 
+ static inline void arch_spin_lock_flags(arch_spinlock_t *x,
+ 					 unsigned long flags)
+--- a/arch/powerpc/include/asm/spinlock.h
++++ b/arch/powerpc/include/asm/spinlock.h
+@@ -27,6 +27,8 @@
+ #include <asm/asm-compat.h>
+ #include <asm/synch.h>
+ #include <asm/ppc-opcode.h>
++#include <asm/barrier.h>
++#include <asm/processor.h>
+ 
+ #ifdef CONFIG_PPC64
+ /* use 0x800000yy when locked, where yy == CPU number */
+@@ -165,8 +167,10 @@ static inline void arch_spin_unlock(arch
+ #ifdef CONFIG_PPC64
+ extern void arch_spin_unlock_wait(arch_spinlock_t *lock);
+ #else
+-#define arch_spin_unlock_wait(lock) \
+-	do { while (arch_spin_is_locked(lock)) cpu_relax(); } while (0)
++static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
++{
++	smp_cond_load_acquire(&lock->slock, !VAL);
++}
+ #endif
+ 
+ /*
+--- a/arch/s390/include/asm/spinlock.h
++++ b/arch/s390/include/asm/spinlock.h
+@@ -10,6 +10,8 @@
+ #define __ASM_SPINLOCK_H
+ 
+ #include <linux/smp.h>
++#include <asm/barrier.h>
++#include <asm/processor.h>
+ 
+ #define SPINLOCK_LOCKVAL (S390_lowcore.spinlock_lockval)
+ 
+@@ -97,6 +99,7 @@ static inline void arch_spin_unlock_wait
+ {
+ 	while (arch_spin_is_locked(lock))
+ 		arch_spin_relax(lock);
++	smp_acquire__after_ctrl_dep();
+ }
+ 
+ /*
+--- a/arch/sh/include/asm/spinlock.h
++++ b/arch/sh/include/asm/spinlock.h
+@@ -19,14 +19,20 @@
+ #error "Need movli.l/movco.l for spinlocks"
+ #endif
+ 
++#include <asm/barrier.h>
++#include <asm/processor.h>
++
+ /*
+  * Your basic SMP spinlocks, allowing only a single CPU anywhere
+  */
+ 
+ #define arch_spin_is_locked(x)		((x)->lock <= 0)
+ #define arch_spin_lock_flags(lock, flags) arch_spin_lock(lock)
+-#define arch_spin_unlock_wait(x) \
+-	do { while (arch_spin_is_locked(x)) cpu_relax(); } while (0)
++
++static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
++{
++	smp_cond_load_acquire(&lock->lock, VAL > 0);
++}
+ 
+ /*
+  * Simple spin lock operations.  There are two variants, one clears IRQ's
+--- a/arch/sparc/include/asm/spinlock_32.h
++++ b/arch/sparc/include/asm/spinlock_32.h
+@@ -9,12 +9,15 @@
+ #ifndef __ASSEMBLY__
+ 
+ #include <asm/psr.h>
++#include <asm/barrier.h>
+ #include <asm/processor.h> /* for cpu_relax */
+ 
+ #define arch_spin_is_locked(lock) (*((volatile unsigned char *)(lock)) != 0)
+ 
+-#define arch_spin_unlock_wait(lock) \
+-	do { while (arch_spin_is_locked(lock)) cpu_relax(); } while (0)
++static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
++{
++	smp_cond_load_acquire(&lock->lock, !VAL);
++}
+ 
+ static inline void arch_spin_lock(arch_spinlock_t *lock)
+ {
+--- a/arch/sparc/include/asm/spinlock_64.h
++++ b/arch/sparc/include/asm/spinlock_64.h
+@@ -8,6 +8,9 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
++#include <asm/processor.h>
++#include <asm/barrier.h>
++
+ /* To get debugging spinlocks which detect and catch
+  * deadlock situations, set CONFIG_DEBUG_SPINLOCK
+  * and rebuild your kernel.
+@@ -23,9 +26,10 @@
+ 
+ #define arch_spin_is_locked(lp)	((lp)->lock != 0)
+ 
+-#define arch_spin_unlock_wait(lp)	\
+-	do {	rmb();			\
+-	} while((lp)->lock)
++static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
++{
++	smp_cond_load_acquire(&lock->lock, !VAL);
++}
+ 
+ static inline void arch_spin_lock(arch_spinlock_t *lock)
+ {
+--- a/arch/tile/lib/spinlock_32.c
++++ b/arch/tile/lib/spinlock_32.c
+@@ -76,6 +76,12 @@ void arch_spin_unlock_wait(arch_spinlock
+ 	do {
+ 		delay_backoff(iterations++);
+ 	} while (READ_ONCE(lock->current_ticket) == curr);
++
++	/*
++	 * The TILE architecture doesn't do read speculation; therefore
++	 * a control dependency guarantees a LOAD->{LOAD,STORE} order.
++	 */
++	barrier();
+ }
+ EXPORT_SYMBOL(arch_spin_unlock_wait);
+ 
+--- a/arch/tile/lib/spinlock_64.c
++++ b/arch/tile/lib/spinlock_64.c
+@@ -76,6 +76,12 @@ void arch_spin_unlock_wait(arch_spinlock
+ 	do {
+ 		delay_backoff(iterations++);
+ 	} while (arch_spin_current(READ_ONCE(lock->lock)) == curr);
++
++	/*
++	 * The TILE architecture doesn't do read speculation; therefore
++	 * a control dependency guarantees a LOAD->{LOAD,STORE} order.
++	 */
++	barrier();
+ }
+ EXPORT_SYMBOL(arch_spin_unlock_wait);
+ 
+--- a/arch/xtensa/include/asm/spinlock.h
++++ b/arch/xtensa/include/asm/spinlock.h
+@@ -11,6 +11,9 @@
+ #ifndef _XTENSA_SPINLOCK_H
+ #define _XTENSA_SPINLOCK_H
+ 
++#include <asm/barrier.h>
++#include <asm/processor.h>
++
+ /*
+  * spinlock
+  *
+@@ -29,8 +32,11 @@
+  */
+ 
+ #define arch_spin_is_locked(x) ((x)->slock != 0)
+-#define arch_spin_unlock_wait(lock) \
+-	do { while (arch_spin_is_locked(lock)) cpu_relax(); } while (0)
++
++static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
++{
++	smp_cond_load_acquire(&lock->slock, !VAL);
++}
+ 
+ #define arch_spin_lock_flags(lock, flags) arch_spin_lock(lock)
+ 
+--- a/include/asm-generic/barrier.h
++++ b/include/asm-generic/barrier.h
+@@ -194,7 +194,7 @@ do {									\
+ })
+ #endif
+ 
+-#endif
++#endif	/* CONFIG_SMP */
+ 
+ /* Barriers for virtual machine guests when talking to an SMP host */
+ #define virt_mb() __smp_mb()
+--- a/include/asm-generic/qspinlock.h
++++ b/include/asm-generic/qspinlock.h
+@@ -20,6 +20,8 @@
+ #define __ASM_GENERIC_QSPINLOCK_H
+ 
+ #include <asm-generic/qspinlock_types.h>
++#include <asm/barrier.h>
++#include <asm/processor.h>
+ 
+ /**
+  * queued_spin_is_locked - is the spinlock locked?
+@@ -133,8 +135,7 @@ static inline void queued_spin_unlock_wa
+ {
+ 	/* See queued_spin_is_locked() */
+ 	smp_mb();
+-	while (atomic_read(&lock->val) & _Q_LOCKED_MASK)
+-		cpu_relax();
++	smp_cond_load_acquire(&lock->val.counter, !(VAL & _Q_LOCKED_MASK));
+ }
+ 
+ #ifndef virt_spin_lock
+--- a/include/linux/spinlock_up.h
++++ b/include/linux/spinlock_up.h
+@@ -6,6 +6,7 @@
+ #endif
+ 
+ #include <asm/processor.h>	/* for cpu_relax() */
++#include <asm/barrier.h>
+ 
+ /*
+  * include/linux/spinlock_up.h - UP-debug version of spinlocks.
+@@ -25,6 +26,11 @@
+ #ifdef CONFIG_DEBUG_SPINLOCK
+ #define arch_spin_is_locked(x)		((x)->slock == 0)
+ 
++static inline void arch_spin_unlock_wait(arch_spinlock_t *lock)
++{
++	smp_cond_load_acquire(&lock->slock, VAL);
++}
++
+ static inline void arch_spin_lock(arch_spinlock_t *lock)
+ {
+ 	lock->slock = 0;
+@@ -67,6 +73,7 @@ static inline void arch_spin_unlock(arch
+ 
+ #else /* DEBUG_SPINLOCK */
+ #define arch_spin_is_locked(lock)	((void)(lock), 0)
++#define arch_spin_unlock_wait(lock)	do { barrier(); (void)(lock); } while (0)
+ /* for sched/core.c and kernel_lock.c: */
+ # define arch_spin_lock(lock)		do { barrier(); (void)(lock); } while (0)
+ # define arch_spin_lock_flags(lock, flags)	do { barrier(); (void)(lock); } while (0)
+@@ -79,7 +86,4 @@ static inline void arch_spin_unlock(arch
+ #define arch_read_can_lock(lock)	(((void)(lock), 1))
+ #define arch_write_can_lock(lock)	(((void)(lock), 1))
+ 
+-#define arch_spin_unlock_wait(lock) \
+-		do { cpu_relax(); } while (arch_spin_is_locked(lock))
+-
+ #endif /* __LINUX_SPINLOCK_UP_H */
