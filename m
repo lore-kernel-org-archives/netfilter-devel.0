@@ -1,94 +1,60 @@
-From: Michal Kubecek <mkubecek@suse.cz>
-Subject: [PATCH ipvs-next] ipvs: count pre-established TCP states as active
-Date: Fri,  3 Jun 2016 17:56:50 +0200 (CEST)
-Message-ID: <20160603155650.292BEA0E60@unicorn.suse.cz>
-Cc: Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>
-To: lvs-devel@vger.kernel.org
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Sender: lvs-devel-owner@vger.kernel.org
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH -v4 5/7] locking, arch: Update spin_unlock_wait()
+Date: Fri, 3 Jun 2016 18:35:37 +0100
+Message-ID: <20160603173537.GR9915@arm.com>
+References: <20160602115157.249037373@infradead.org>
+ <20160602115439.085385545@infradead.org>
+ <20160602142440.GE30064@insomnia>
+ <20160602144424.GV3193@twins.programming.kicks-ass.net>
+ <20160602163425.GV3205@twins.programming.kicks-ass.net>
+ <20160602175659.GB7697@arm.com>
+ <20160602215119.GF3190@twins.programming.kicks-ass.net>
+ <20160603124734.GK9915@arm.com>
+ <20160603134249.GA3693@twins.programming.kicks-ass.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Boqun Feng <boqun.feng@gmail.com>, linux-kernel@vger.kernel.org,
+	torvalds@linux-foundation.org, manfred@colorfullife.com,
+	dave@stgolabs.net, paulmck@linux.vnet.ibm.com, Waiman.Long@hpe.com,
+	tj@kernel.org, pablo@netfilter.org, kaber@trash.net,
+	davem@davemloft.net, oleg@redhat.com,
+	netfilter-devel@vger.kernel.org, sasha.levin@oracle.com,
+	hofrat@osadl.org, jejb@parisc-linux.org, chris@zankel.net,
+	rth@twiddle.net, dhowells@redhat.com, schwidefsky@de.ibm.com,
+	mpe@ellerman.id.au, ralf@linux-mips.org, linux@armlinux.org.uk,
+	rkuo@codeaurora.org, vgupta@synopsys.com, james.hogan@imgtec.com,
+	realmz6@gmail.com, ysato@users.sourceforge.jp, tony.luck@intel.com,
+	cmetcalf@mellanox.com, "H. Peter Anvin" <hpa@zytor.com>
+To: Peter Zijlstra <peterz@infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20160603134249.GA3693@twins.programming.kicks-ass.net>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Some users observed that "least connection" distribution algorithm doesn't
-handle well bursts of TCP connections from reconnecting clients after
-a node or network failure.
+On Fri, Jun 03, 2016 at 03:42:49PM +0200, Peter Zijlstra wrote:
+> On Fri, Jun 03, 2016 at 01:47:34PM +0100, Will Deacon wrote:
+> > Even on x86, I think you need a fence here:
+> > 
+> > X86 lock
+> > {
+> > }
+> >  P0                | P1                ;
+> >  MOV EAX,$1        | MOV EAX,$1        ;
+> >  LOCK XCHG [x],EAX | LOCK XCHG [y],EAX ;
+> >  MOV EBX,[y]       | MOV EBX,[x]       ;
+> > exists
+> > (0:EAX=0 /\ 0:EBX=0 /\ 1:EAX=0 /\ 1:EBX=0)
+> > 
+> > is permitted by herd.
+> 
+> I am puzzled.. this should not be. You say adding MFENCE after LOCK XCHG
+> makes it 'work', but we assume LOCK <op> is a full fence all over the
+> place.
+> 
+> I'm thinking herd is busted.
 
-This is because the algorithm counts active connection as worth 256
-inactive ones where for TCP, "active" only means TCP connections in
-ESTABLISHED state. In case of a connection burst, new connections are
-handled before previous ones have finished the three way handshaking so
-that all are still counted as "inactive", i.e. cheap ones. The become
-"active" quickly but at that time, all of them are already assigned to one
-real server (or few), resulting in highly unbalanced distribution.
+FWIW -- I spoke to the Herd authors and they confirmed that this is a
+regresion in herd (fixed in the bleeding edge version).
 
-Address this by counting the "pre-established" states as "active".
-
-Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
----
- net/netfilter/ipvs/ip_vs_proto_tcp.c | 25 +++++++++++++++++++++++--
- 1 file changed, 23 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-index d7024b2ed769..5117bcb7d2f0 100644
---- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -395,6 +395,20 @@ static const char *const tcp_state_name_table[IP_VS_TCP_S_LAST+1] = {
- 	[IP_VS_TCP_S_LAST]		=	"BUG!",
- };
- 
-+static const bool tcp_state_active_table[IP_VS_TCP_S_LAST] = {
-+	[IP_VS_TCP_S_NONE]		=	false,
-+	[IP_VS_TCP_S_ESTABLISHED]	=	true,
-+	[IP_VS_TCP_S_SYN_SENT]		=	true,
-+	[IP_VS_TCP_S_SYN_RECV]		=	true,
-+	[IP_VS_TCP_S_FIN_WAIT]		=	false,
-+	[IP_VS_TCP_S_TIME_WAIT]		=	false,
-+	[IP_VS_TCP_S_CLOSE]		=	false,
-+	[IP_VS_TCP_S_CLOSE_WAIT]	=	false,
-+	[IP_VS_TCP_S_LAST_ACK]		=	false,
-+	[IP_VS_TCP_S_LISTEN]		=	false,
-+	[IP_VS_TCP_S_SYNACK]		=	true,
-+};
-+
- #define sNO IP_VS_TCP_S_NONE
- #define sES IP_VS_TCP_S_ESTABLISHED
- #define sSS IP_VS_TCP_S_SYN_SENT
-@@ -418,6 +432,13 @@ static const char * tcp_state_name(int state)
- 	return tcp_state_name_table[state] ? tcp_state_name_table[state] : "?";
- }
- 
-+static bool tcp_state_active(int state)
-+{
-+	if (state >= IP_VS_TCP_S_LAST)
-+		return false;
-+	return tcp_state_active_table[state];
-+}
-+
- static struct tcp_states_t tcp_states [] = {
- /*	INPUT */
- /*        sNO, sES, sSS, sSR, sFW, sTW, sCL, sCW, sLA, sLI, sSA	*/
-@@ -540,12 +561,12 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
- 
- 		if (dest) {
- 			if (!(cp->flags & IP_VS_CONN_F_INACTIVE) &&
--			    (new_state != IP_VS_TCP_S_ESTABLISHED)) {
-+			    !tcp_state_active(new_state)) {
- 				atomic_dec(&dest->activeconns);
- 				atomic_inc(&dest->inactconns);
- 				cp->flags |= IP_VS_CONN_F_INACTIVE;
- 			} else if ((cp->flags & IP_VS_CONN_F_INACTIVE) &&
--				   (new_state == IP_VS_TCP_S_ESTABLISHED)) {
-+				   tcp_state_active(new_state)) {
- 				atomic_inc(&dest->activeconns);
- 				atomic_dec(&dest->inactconns);
- 				cp->flags &= ~IP_VS_CONN_F_INACTIVE;
--- 
-2.8.3
-
+Will
