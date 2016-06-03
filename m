@@ -1,75 +1,70 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [RFC][PATCH 1/3] locking: Introduce smp_acquire__after_ctrl_dep
-Date: Fri, 3 Jun 2016 14:45:53 +0100
-Message-ID: <20160603134552.GL9915@arm.com>
-References: <20160524143649.523586684@infradead.org>
- <57451581.6000700@hpe.com>
- <20160525045329.GQ4148@linux.vnet.ibm.com>
- <5745C2CA.4040003@hpe.com>
- <20160525155747.GE3789@linux.vnet.ibm.com>
- <57514B6E.6010001@synopsys.com>
- <20160603093834.GI3190@twins.programming.kicks-ass.net>
- <20160603120827.GT5231@linux.vnet.ibm.com>
- <20160603122310.GM3190@twins.programming.kicks-ass.net>
- <20160603133238.GV5231@linux.vnet.ibm.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH -v4 5/7] locking, arch: Update spin_unlock_wait()
+Date: Fri, 3 Jun 2016 15:48:42 +0200
+Message-ID: <20160603134842.GB3693@twins.programming.kicks-ass.net>
+References: <20160602115157.249037373@infradead.org>
+ <20160602115439.085385545@infradead.org>
+ <20160602142440.GE30064@insomnia>
+ <20160602144424.GV3193@twins.programming.kicks-ass.net>
+ <20160602163425.GV3205@twins.programming.kicks-ass.net>
+ <20160602175659.GB7697@arm.com>
+ <20160602215119.GF3190@twins.programming.kicks-ass.net>
+ <20160603124734.GK9915@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Peter Zijlstra <peterz@infradead.org>,
-	Vineet Gupta <Vineet.Gupta1@synopsys.com>,
-	Waiman Long <waiman.long@hpe.com>,
-	linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
-	manfred@colorfullife.com, dave@stgolabs.net, boqun.feng@gmail.com,
+Cc: Boqun Feng <boqun.feng@gmail.com>, linux-kernel@vger.kernel.org,
+	torvalds@linux-foundation.org, manfred@colorfullife.com,
+	dave@stgolabs.net, paulmck@linux.vnet.ibm.com, Waiman.Long@hpe.com,
 	tj@kernel.org, pablo@netfilter.org, kaber@trash.net,
 	davem@davemloft.net, oleg@redhat.com,
 	netfilter-devel@vger.kernel.org, sasha.levin@oracle.com,
-	hofrat@osadl.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+	hofrat@osadl.org, jejb@parisc-linux.org, chris@zankel.net,
+	rth@twiddle.net, dhowells@redhat.com, schwidefsky@de.ibm.com,
+	mpe@ellerman.id.au, ralf@linux-mips.org, linux@armlinux.org.uk,
+	rkuo@codeaurora.org, vgupta@synopsys.com, james.hogan@imgtec.com,
+	realmz6@gmail.com, ysato@users.sourceforge.jp, tony.luck@intel.com,
+	cmetcalf@mellanox.com
+To: Will Deacon <will.deacon@arm.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:52832 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932538AbcFCNpj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Jun 2016 09:45:39 -0400
+Received: from bombadil.infradead.org ([198.137.202.9]:57601 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932705AbcFCNtH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Jun 2016 09:49:07 -0400
 Content-Disposition: inline
-In-Reply-To: <20160603133238.GV5231@linux.vnet.ibm.com>
+In-Reply-To: <20160603124734.GK9915@arm.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 03, 2016 at 06:32:38AM -0700, Paul E. McKenney wrote:
-> On Fri, Jun 03, 2016 at 02:23:10PM +0200, Peter Zijlstra wrote:
-> > On Fri, Jun 03, 2016 at 05:08:27AM -0700, Paul E. McKenney wrote:
-> > > On Fri, Jun 03, 2016 at 11:38:34AM +0200, Peter Zijlstra wrote:
-> > > > On Fri, Jun 03, 2016 at 02:48:38PM +0530, Vineet Gupta wrote:
-> > > > > On Wednesday 25 May 2016 09:27 PM, Paul E. McKenney wrote:
-> > > > > > For your example, but keeping the compiler in check:
-> > > > > > 
-> > > > > > 	if (READ_ONCE(a))
-> > > > > > 		WRITE_ONCE(b, 1);
-> > > > > > 	smp_rmb();
-> > > > > > 	WRITE_ONCE(c, 2);
-> > > > 
-> > > > So I think it example is broken. The store to @c is not in fact
-> > > > dependent on the condition of @a.
-> > > 
-> > > At first glance, the compiler could pull the write to "c" above the
-> > > conditional, but the "memory" constraint in smp_rmb() prevents this.
-> > > From a hardware viewpoint, the write to "c" does depend on the "if",
-> > > as the conditional branch does precede that write in execution order.
-> > > 
-> > > But yes, this is using smp_rmb() in a very strange way, if that is
-> > > what you are getting at.
-> > 
-> > Well, the CPU could decide that the store to C happens either way around
-> > the branch. I'm not sure I'd rely on CPUs not being _that_ clever.
+On Fri, Jun 03, 2016 at 01:47:34PM +0100, Will Deacon wrote:
+> > Now, the normal atomic_foo_acquire() stuff uses smp_mb() as per
+> > smp_mb__after_atomic(), its just ARM64 and PPC that go all 'funny' and
+> > need this extra barrier. Blergh. So lets shelf this issue for a bit.
 > 
-> If I remember correctly, both Power and ARM guarantee that the CPU won't
-> be that clever.  Not sure about Itanium.
+> Hmm... I certainly plan to get qspinlock up and running for arm64 in the
+> near future, so I'm not keen on shelving it for very long.
 
-I wouldn't be so sure about ARM. On 32-bit, at least, we have conditional
-store instructions so if the compiler could somehow use one of those for
-the first WRITE_ONCE then there's very obviously no control dependency
-on the second WRITE_ONCE and they could be observed out of order.
+Sure; so short term we could always have arm64/ppc specific versions of
+these functions where the difference matters.
 
-I note that smp_rmb() on ARM and arm64 actually orders against subsequent
-(in program order) writes, so this is still pretty theoretical for us.
+Alternatively we need to introduce yet another barrier like:
 
-Will
+	smp_mb__after_acquire()
+
+Or something like that, which is a no-op by default except for arm64 and
+ppc.
+
+But I'm thinking nobody really wants more barrier primitives :/ (says he
+who just added one).
+
+> > This unordered store however, can be delayed (store buffer) such that
+> > the loads from spin_unlock_wait/spin_is_locked can pass up before it
+> > (even on TSO arches).
+> 
+> Right, and this is surprisingly similar to the LL/SC problem imo.
+
+Yes and no. Yes because its an unordered store, no because a competing
+ll/sc cannot make it fail the store and retry as done per your and
+boqun's fancy solution.
+
+
