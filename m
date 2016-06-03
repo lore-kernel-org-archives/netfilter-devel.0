@@ -1,7 +1,7 @@
-From: Will Deacon <will.deacon@arm.com>
+From: Peter Zijlstra <peterz@infradead.org>
 Subject: Re: [PATCH -v4 5/7] locking, arch: Update spin_unlock_wait()
-Date: Fri, 3 Jun 2016 18:35:37 +0100
-Message-ID: <20160603173537.GR9915@arm.com>
+Date: Fri, 3 Jun 2016 21:13:14 +0200
+Message-ID: <20160603191314.GA3710@twins.programming.kicks-ass.net>
 References: <20160602115157.249037373@infradead.org>
  <20160602115439.085385545@infradead.org>
  <20160602142440.GE30064@insomnia>
@@ -11,6 +11,7 @@ References: <20160602115157.249037373@infradead.org>
  <20160602215119.GF3190@twins.programming.kicks-ass.net>
  <20160603124734.GK9915@arm.com>
  <20160603134249.GA3693@twins.programming.kicks-ass.net>
+ <20160603173537.GR9915@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Boqun Feng <boqun.feng@gmail.com>, linux-kernel@vger.kernel.org,
@@ -25,36 +26,43 @@ Cc: Boqun Feng <boqun.feng@gmail.com>, linux-kernel@vger.kernel.org,
 	rkuo@codeaurora.org, vgupta@synopsys.com, james.hogan@imgtec.com,
 	realmz6@gmail.com, ysato@users.sourceforge.jp, tony.luck@intel.com,
 	cmetcalf@mellanox.com, "H. Peter Anvin" <hpa@zytor.com>
-To: Peter Zijlstra <peterz@infradead.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+To: Will Deacon <will.deacon@arm.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:45117 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932268AbcFCTNs (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Jun 2016 15:13:48 -0400
 Content-Disposition: inline
-In-Reply-To: <20160603134249.GA3693@twins.programming.kicks-ass.net>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20160603173537.GR9915@arm.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 03, 2016 at 03:42:49PM +0200, Peter Zijlstra wrote:
-> On Fri, Jun 03, 2016 at 01:47:34PM +0100, Will Deacon wrote:
-> > Even on x86, I think you need a fence here:
+On Fri, Jun 03, 2016 at 06:35:37PM +0100, Will Deacon wrote:
+> On Fri, Jun 03, 2016 at 03:42:49PM +0200, Peter Zijlstra wrote:
+> > On Fri, Jun 03, 2016 at 01:47:34PM +0100, Will Deacon wrote:
+> > > Even on x86, I think you need a fence here:
+> > > 
+> > > X86 lock
+> > > {
+> > > }
+> > >  P0                | P1                ;
+> > >  MOV EAX,$1        | MOV EAX,$1        ;
+> > >  LOCK XCHG [x],EAX | LOCK XCHG [y],EAX ;
+> > >  MOV EBX,[y]       | MOV EBX,[x]       ;
+> > > exists
+> > > (0:EAX=0 /\ 0:EBX=0 /\ 1:EAX=0 /\ 1:EBX=0)
+> > > 
+> > > is permitted by herd.
 > > 
-> > X86 lock
-> > {
-> > }
-> >  P0                | P1                ;
-> >  MOV EAX,$1        | MOV EAX,$1        ;
-> >  LOCK XCHG [x],EAX | LOCK XCHG [y],EAX ;
-> >  MOV EBX,[y]       | MOV EBX,[x]       ;
-> > exists
-> > (0:EAX=0 /\ 0:EBX=0 /\ 1:EAX=0 /\ 1:EBX=0)
+> > I am puzzled.. this should not be. You say adding MFENCE after LOCK XCHG
+> > makes it 'work', but we assume LOCK <op> is a full fence all over the
+> > place.
 > > 
-> > is permitted by herd.
+> > I'm thinking herd is busted.
 > 
-> I am puzzled.. this should not be. You say adding MFENCE after LOCK XCHG
-> makes it 'work', but we assume LOCK <op> is a full fence all over the
-> place.
-> 
-> I'm thinking herd is busted.
+> FWIW -- I spoke to the Herd authors and they confirmed that this is a
+> regresion in herd (fixed in the bleeding edge version).
 
-FWIW -- I spoke to the Herd authors and they confirmed that this is a
-regresion in herd (fixed in the bleeding edge version).
-
-Will
+Good, means I'm not slowly going crazeh -- or at least, this isn't one
+of the signs :-)
