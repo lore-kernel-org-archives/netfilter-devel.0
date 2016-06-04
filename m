@@ -1,106 +1,189 @@
-From: rodanber@gmail.com
-Subject: [PATCH] iptables: extensions: libxt_MARK: Add translation to nft
-Date: Sat,  4 Jun 2016 14:42:30 +0200
-Message-ID: <1465044150-13229-1-git-send-email-rodanber@gmail.com>
+From: Laura Garcia Liebana <nevola@gmail.com>
+Subject: [PATCH] doc: Update datatypes
+Date: Sun, 5 Jun 2016 00:33:31 +0200
+Message-ID: <20160604223328.GA30197@sonyv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: =?UTF-8?q?Roberto=20Garc=C3=ADa?= <rodanber@gmail.com>
+Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35337 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750838AbcFDMml (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36402 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750938AbcFDWdg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 4 Jun 2016 08:42:41 -0400
-Received: by mail-wm0-f66.google.com with SMTP id e3so5189850wme.2
-        for <netfilter-devel@vger.kernel.org>; Sat, 04 Jun 2016 05:42:40 -0700 (PDT)
+	Sat, 4 Jun 2016 18:33:36 -0400
+Received: by mail-wm0-f68.google.com with SMTP id m124so6379313wme.3
+        for <netfilter-devel@vger.kernel.org>; Sat, 04 Jun 2016 15:33:35 -0700 (PDT)
+Received: from sonyv (128.red-176-84-210.dynamicip.rima-tde.net. [176.84.210.128])
+        by smtp.gmail.com with ESMTPSA id y3sm12525579wji.40.2016.06.04.15.33.33
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Sat, 04 Jun 2016 15:33:33 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: Roberto Garc=C3=ADa <rodanber@gmail.com>
+Check and update nft parameter datatypes.
 
-Add translation for the MARK target to nftables.
-
-Examples:
-
-$ sudo iptables-translate -t mangle -A OUTPUT -p tcp --dport 22 -j MARK
---set-mark 64
-nft add rule ip mangle OUTPUT tcp dport 22 counter meta mark set 0x40
-
-$ sudo iptables-translate -t mangle -A OUTPUT -p tcp --dport 22 -j MARK
---set-xmark 64
-nft add rule ip mangle OUTPUT tcp dport 22 counter meta mark set 0x40
-
-$ sudo iptables-translate -t mangle -A OUTPUT -p tcp --dport 22 -j MARK
---or-mark 64
-nft add rule ip mangle OUTPUT tcp dport 22 counter meta mark set mark o=
-r 0x40
-
-$ sudo iptables-translate -t mangle -A OUTPUT -p tcp --dport 22 -j MARK=
- --and-mark
-64
-nft add rule ip mangle OUTPUT tcp dport 22 counter meta mark set mark a=
-nd 0x40
-
-$ sudo iptables-translate -t mangle -A OUTPUT -p tcp --dport 22 -j MARK
---xor-mark 64
-
-nft add rule ip mangle OUTPUT tcp dport 22 counter meta mark set mark x=
-or 0x40
-
-Signed-off-by: Roberto Garc=C3=ADa <rodanber@gmail.com>
+Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
 ---
- extensions/libxt_MARK.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ doc/nft.xml | 42 ++++++++++++++++--------------------------
+ 1 file changed, 16 insertions(+), 26 deletions(-)
 
-diff --git a/extensions/libxt_MARK.c b/extensions/libxt_MARK.c
-index 556dbde..9383f64 100644
---- a/extensions/libxt_MARK.c
-+++ b/extensions/libxt_MARK.c
-@@ -245,6 +245,26 @@ static void mark_tg_save(const void *ip, const str=
-uct xt_entry_target *target)
- 	printf(" --set-xmark 0x%x/0x%x", info->mark, info->mask);
- }
-=20
-+static int mark_tg_xlate(const void *ip, const struct xt_entry_target =
-*target,
-+			 struct xt_xlate *xl, int numeric)
-+{
-+	const struct xt_mark_tginfo2 *info =3D (const void *)target->data;
-+
-+	if (info->mark =3D=3D 0)
-+		xt_xlate_add(xl, "meta mark set mark and 0x%x",
-+			     (unsigned int)(uint32_t)~info->mask);
-+	else if (info->mark =3D=3D info->mask)
-+		xt_xlate_add(xl, "meta mark set mark or 0x%x", info->mark);
-+	else if (info->mask =3D=3D 0)
-+		xt_xlate_add(xl, "meta mark set mark xor 0x%x", info->mark);
-+	else if (info->mask =3D=3D 0xffffffffU)
-+		xt_xlate_add(xl, "meta mark set 0x%x", info->mark);
-+	else
-+		xt_xlate_add(xl, "meta mark xset 0x%x/0x%x", info->mark, info->mask)=
-;
-+
-+	return 1;
-+}
-+
- static struct xtables_target mark_tg_reg[] =3D {
- 	{
- 		.family        =3D NFPROTO_UNSPEC,
-@@ -287,6 +307,7 @@ static struct xtables_target mark_tg_reg[] =3D {
- 		.x6_parse      =3D mark_tg_parse,
- 		.x6_fcheck     =3D mark_tg_check,
- 		.x6_options    =3D mark_tg_opts,
-+		.xlate	       =3D mark_tg_xlate,
- 	},
- };
-=20
---=20
-2.8.0
+diff --git a/doc/nft.xml b/doc/nft.xml
+index b9f3c69..ea47e2b 100644
+--- a/doc/nft.xml
++++ b/doc/nft.xml
+@@ -1029,12 +1029,12 @@ filter output ip6 daddr ::1
+ 							<row>
+ 								<entry>priority</entry>
+ 								<entry>TC packet priority</entry>
+-								<entry>integer (32 bit)</entry>
++								<entry>tc_handle</entry>
+ 							</row>
+ 							<row>
+ 								<entry>mark</entry>
+ 								<entry>Packet mark</entry>
+-								<entry>packetmark</entry>
++								<entry>mark</entry>
+ 							</row>
+ 							<row>
+ 								<entry>iif</entry>
+@@ -1104,12 +1104,12 @@ filter output ip6 daddr ::1
+ 							<row>
+ 								<entry>iifgroup</entry>
+ 								<entry>incoming device group</entry>
+-								<entry>devgroup_type</entry>
++								<entry>devgroup</entry>
+ 							</row>
+ 							<row>
+ 								<entry>oifgroup</entry>
+ 								<entry>outgoing device group</entry>
+-								<entry>devgroup_type</entry>
++								<entry>devgroup</entry>
+ 							</row>
+ 							<row>
+ 								<entry>cgroup</entry>
+@@ -1287,7 +1287,7 @@ filter output oif eth0
+ 							<row>
+ 								<entry>cfi</entry>
+ 								<entry>Canonical Format Indicator</entry>
+-								<entry>flag</entry>
++								<entry>integer (1 bit)</entry>
+ 							</row>
+ 							<row>
+ 								<entry>pcp</entry>
+@@ -1297,7 +1297,7 @@ filter output oif eth0
+ 							<row>
+ 								<entry>type</entry>
+ 								<entry>EtherType</entry>
+-								<entry>ethertype</entry>
++								<entry>ether_type</entry>
+ 							</row>
+ 						</tbody>
+ 					</tgroup>
+@@ -1336,7 +1336,7 @@ filter output oif eth0
+ 							<row>
+ 								<entry>ptype</entry>
+ 								<entry>EtherType</entry>
+-								<entry>ethertype</entry>
++								<entry>ether_type</entry>
+ 							</row>
+ 							<row>
+ 								<entry>hlen</entry>
+@@ -1395,12 +1395,12 @@ filter output oif eth0
+ 							<row>
+ 								<entry>dscp</entry>
+ 								<entry>Differentiated Services Code Point</entry>
+-								<entry>integer (6 bit)</entry>
++								<entry>dscp</entry>
+ 							</row>
+ 							<row>
+ 								<entry>ecn</entry>
+ 								<entry>Explicit Congestion Notification</entry>
+-								<entry>integer (2 bit)</entry>
++								<entry>ecn</entry>
+ 							</row>
+ 							<row>
+ 								<entry>length</entry>
+@@ -1477,19 +1477,14 @@ filter output oif eth0
+ 								<entry>integer (4 bit)</entry>
+ 							</row>
+ 							<row>
+-								<entry>priority</entry>
+-								<entry></entry>
+-								<entry></entry>
+-							</row>
+-							<row>
+ 								<entry>dscp</entry>
+ 								<entry>Differentiated Services Code Point</entry>
+-								<entry>integer (6 bit)</entry>
++								<entry>dscp</entry>
+ 							</row>
+ 							<row>
+ 								<entry>ecn</entry>
+ 								<entry>Explicit Congestion Notification</entry>
+-								<entry>integer (2 bit)</entry>
++								<entry>ecn</entry>
+ 							</row>
+ 							<row>
+ 								<entry>flowlabel</entry>
+@@ -1583,7 +1578,7 @@ filter output oif eth0
+ 							<row>
+ 								<entry>flags</entry>
+ 								<entry>TCP flags</entry>
+-								<entry>tcp_flags</entry>
++								<entry>tcp_flag</entry>
+ 							</row>
+ 							<row>
+ 								<entry>window</entry>
+@@ -1689,11 +1684,6 @@ filter output oif eth0
+ 								<entry>inet_service</entry>
+ 							</row>
+ 							<row>
+-								<entry>cscov</entry>
+-								<entry>Checksum coverage</entry>
+-								<entry>integer (16 bit)</entry>
+-							</row>
+-							<row>
+ 								<entry>checksum</entry>
+ 								<entry>Checksum</entry>
+ 								<entry>integer (16 bit)</entry>
+@@ -1819,7 +1809,7 @@ filter output oif eth0
+ 							<row>
+ 								<entry>nexthdr</entry>
+ 								<entry>Next header protocol</entry>
+-								<entry>inet_service</entry>
++								<entry>inet_proto</entry>
+ 							</row>
+ 							<row>
+ 								<entry>hdrlength</entry>
+@@ -1829,7 +1819,7 @@ filter output oif eth0
+ 							<row>
+ 								<entry>reserved</entry>
+ 								<entry>Reserved area</entry>
+-								<entry>integer (4 bit)</entry>
++								<entry>integer (16 bit)</entry>
+ 							</row>
+ 							<row>
+ 								<entry>spi</entry>
+@@ -1912,7 +1902,7 @@ filter output oif eth0
+ 							<row>
+ 								<entry>nexthdr</entry>
+ 								<entry>Next header protocol</entry>
+-								<entry>inet_service</entry>
++								<entry>inet_proto</entry>
+ 							</row>
+ 							<row>
+ 								<entry>flags</entry>
+@@ -2015,7 +2005,7 @@ filter output oif eth0
+ 							<row>
+ 								<entry>mark</entry>
+ 								<entry>Connection mark</entry>
+-								<entry>packetmark</entry>
++								<entry>mark</entry>
+ 							</row>
+ 							<row>
+ 								<entry>expiration</entry>
+-- 
+2.7.0
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
