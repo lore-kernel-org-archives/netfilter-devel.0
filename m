@@ -1,68 +1,106 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH -v4 5/7] locking, arch: Update spin_unlock_wait()
-Date: Fri, 3 Jun 2016 21:13:14 +0200
-Message-ID: <20160603191314.GA3710@twins.programming.kicks-ass.net>
-References: <20160602115157.249037373@infradead.org>
- <20160602115439.085385545@infradead.org>
- <20160602142440.GE30064@insomnia>
- <20160602144424.GV3193@twins.programming.kicks-ass.net>
- <20160602163425.GV3205@twins.programming.kicks-ass.net>
- <20160602175659.GB7697@arm.com>
- <20160602215119.GF3190@twins.programming.kicks-ass.net>
- <20160603124734.GK9915@arm.com>
- <20160603134249.GA3693@twins.programming.kicks-ass.net>
- <20160603173537.GR9915@arm.com>
+From: rodanber@gmail.com
+Subject: [PATCH] iptables: extensions: libxt_MARK: Add translation to nft
+Date: Sat,  4 Jun 2016 14:42:30 +0200
+Message-ID: <1465044150-13229-1-git-send-email-rodanber@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Boqun Feng <boqun.feng@gmail.com>, linux-kernel@vger.kernel.org,
-	torvalds@linux-foundation.org, manfred@colorfullife.com,
-	dave@stgolabs.net, paulmck@linux.vnet.ibm.com, Waiman.Long@hpe.com,
-	tj@kernel.org, pablo@netfilter.org, kaber@trash.net,
-	davem@davemloft.net, oleg@redhat.com,
-	netfilter-devel@vger.kernel.org, sasha.levin@oracle.com,
-	hofrat@osadl.org, jejb@parisc-linux.org, chris@zankel.net,
-	rth@twiddle.net, dhowells@redhat.com, schwidefsky@de.ibm.com,
-	mpe@ellerman.id.au, ralf@linux-mips.org, linux@armlinux.org.uk,
-	rkuo@codeaurora.org, vgupta@synopsys.com, james.hogan@imgtec.com,
-	realmz6@gmail.com, ysato@users.sourceforge.jp, tony.luck@intel.com,
-	cmetcalf@mellanox.com, "H. Peter Anvin" <hpa@zytor.com>
-To: Will Deacon <will.deacon@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: =?UTF-8?q?Roberto=20Garc=C3=ADa?= <rodanber@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:45117 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932268AbcFCTNs (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35337 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750838AbcFDMml (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Jun 2016 15:13:48 -0400
-Content-Disposition: inline
-In-Reply-To: <20160603173537.GR9915@arm.com>
+	Sat, 4 Jun 2016 08:42:41 -0400
+Received: by mail-wm0-f66.google.com with SMTP id e3so5189850wme.2
+        for <netfilter-devel@vger.kernel.org>; Sat, 04 Jun 2016 05:42:40 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 03, 2016 at 06:35:37PM +0100, Will Deacon wrote:
-> On Fri, Jun 03, 2016 at 03:42:49PM +0200, Peter Zijlstra wrote:
-> > On Fri, Jun 03, 2016 at 01:47:34PM +0100, Will Deacon wrote:
-> > > Even on x86, I think you need a fence here:
-> > > 
-> > > X86 lock
-> > > {
-> > > }
-> > >  P0                | P1                ;
-> > >  MOV EAX,$1        | MOV EAX,$1        ;
-> > >  LOCK XCHG [x],EAX | LOCK XCHG [y],EAX ;
-> > >  MOV EBX,[y]       | MOV EBX,[x]       ;
-> > > exists
-> > > (0:EAX=0 /\ 0:EBX=0 /\ 1:EAX=0 /\ 1:EBX=0)
-> > > 
-> > > is permitted by herd.
-> > 
-> > I am puzzled.. this should not be. You say adding MFENCE after LOCK XCHG
-> > makes it 'work', but we assume LOCK <op> is a full fence all over the
-> > place.
-> > 
-> > I'm thinking herd is busted.
-> 
-> FWIW -- I spoke to the Herd authors and they confirmed that this is a
-> regresion in herd (fixed in the bleeding edge version).
+=46rom: Roberto Garc=C3=ADa <rodanber@gmail.com>
 
-Good, means I'm not slowly going crazeh -- or at least, this isn't one
-of the signs :-)
+Add translation for the MARK target to nftables.
+
+Examples:
+
+$ sudo iptables-translate -t mangle -A OUTPUT -p tcp --dport 22 -j MARK
+--set-mark 64
+nft add rule ip mangle OUTPUT tcp dport 22 counter meta mark set 0x40
+
+$ sudo iptables-translate -t mangle -A OUTPUT -p tcp --dport 22 -j MARK
+--set-xmark 64
+nft add rule ip mangle OUTPUT tcp dport 22 counter meta mark set 0x40
+
+$ sudo iptables-translate -t mangle -A OUTPUT -p tcp --dport 22 -j MARK
+--or-mark 64
+nft add rule ip mangle OUTPUT tcp dport 22 counter meta mark set mark o=
+r 0x40
+
+$ sudo iptables-translate -t mangle -A OUTPUT -p tcp --dport 22 -j MARK=
+ --and-mark
+64
+nft add rule ip mangle OUTPUT tcp dport 22 counter meta mark set mark a=
+nd 0x40
+
+$ sudo iptables-translate -t mangle -A OUTPUT -p tcp --dport 22 -j MARK
+--xor-mark 64
+
+nft add rule ip mangle OUTPUT tcp dport 22 counter meta mark set mark x=
+or 0x40
+
+Signed-off-by: Roberto Garc=C3=ADa <rodanber@gmail.com>
+---
+ extensions/libxt_MARK.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+
+diff --git a/extensions/libxt_MARK.c b/extensions/libxt_MARK.c
+index 556dbde..9383f64 100644
+--- a/extensions/libxt_MARK.c
++++ b/extensions/libxt_MARK.c
+@@ -245,6 +245,26 @@ static void mark_tg_save(const void *ip, const str=
+uct xt_entry_target *target)
+ 	printf(" --set-xmark 0x%x/0x%x", info->mark, info->mask);
+ }
+=20
++static int mark_tg_xlate(const void *ip, const struct xt_entry_target =
+*target,
++			 struct xt_xlate *xl, int numeric)
++{
++	const struct xt_mark_tginfo2 *info =3D (const void *)target->data;
++
++	if (info->mark =3D=3D 0)
++		xt_xlate_add(xl, "meta mark set mark and 0x%x",
++			     (unsigned int)(uint32_t)~info->mask);
++	else if (info->mark =3D=3D info->mask)
++		xt_xlate_add(xl, "meta mark set mark or 0x%x", info->mark);
++	else if (info->mask =3D=3D 0)
++		xt_xlate_add(xl, "meta mark set mark xor 0x%x", info->mark);
++	else if (info->mask =3D=3D 0xffffffffU)
++		xt_xlate_add(xl, "meta mark set 0x%x", info->mark);
++	else
++		xt_xlate_add(xl, "meta mark xset 0x%x/0x%x", info->mark, info->mask)=
+;
++
++	return 1;
++}
++
+ static struct xtables_target mark_tg_reg[] =3D {
+ 	{
+ 		.family        =3D NFPROTO_UNSPEC,
+@@ -287,6 +307,7 @@ static struct xtables_target mark_tg_reg[] =3D {
+ 		.x6_parse      =3D mark_tg_parse,
+ 		.x6_fcheck     =3D mark_tg_check,
+ 		.x6_options    =3D mark_tg_opts,
++		.xlate	       =3D mark_tg_xlate,
+ 	},
+ };
+=20
+--=20
+2.8.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
