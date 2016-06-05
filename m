@@ -1,46 +1,46 @@
-From: Andreas Schwab <schwab@linux-m68k.org>
+From: Florian Westphal <fw@strlen.de>
 Subject: Re: [PATCH 07/23] netfilter: x_tables: check standard target size too
-Date: Sun, 05 Jun 2016 23:11:36 +0200
-Message-ID: <8760tn5ojb.fsf@linux-m68k.org>
+Date: Mon, 6 Jun 2016 00:02:10 +0200
+Message-ID: <20160605220210.GA7827@breakpoint.cc>
 References: <1461332394-3994-1-git-send-email-pablo@netfilter.org>
-	<1461332394-3994-8-git-send-email-pablo@netfilter.org>
+ <1461332394-3994-8-git-send-email-pablo@netfilter.org>
+ <8760tn5ojb.fsf@linux-m68k.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org, davem@davemloft.net,
 	netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1461332394-3994-8-git-send-email-pablo@netfilter.org> (Pablo
-	Neira Ayuso's message of "Fri, 22 Apr 2016 15:39:38 +0200")
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Andreas Schwab <schwab@linux-m68k.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:51479 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752845AbcFEWCS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 5 Jun 2016 18:02:18 -0400
+Content-Disposition: inline
+In-Reply-To: <8760tn5ojb.fsf@linux-m68k.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> writes:
+Andreas Schwab <schwab@linux-m68k.org> wrote:
+> > From: Florian Westphal <fw@strlen.de>
+> >
+> > We have targets and standard targets -- the latter carries a verdict.
+> >
+> > The ip/ip6tables validation functions will access t->verdict for the
+> > standard targets to fetch the jump offset or verdict for chainloop
+> > detection, but this happens before the targets get checked/validated.
+> >
+> > Thus we also need to check for verdict presence here, else t->verdict
+> > can point right after a blob.
+> >
+> > Spotted with UBSAN while testing malformed blobs.
+> 
+> This breaks iptables on PPC32.
 
-> From: Florian Westphal <fw@strlen.de>
->
-> We have targets and standard targets -- the latter carries a verdict.
->
-> The ip/ip6tables validation functions will access t->verdict for the
-> standard targets to fetch the jump offset or verdict for chainloop
-> detection, but this happens before the targets get checked/validated.
->
-> Thus we also need to check for verdict presence here, else t->verdict
-> can point right after a blob.
->
-> Spotted with UBSAN while testing malformed blobs.
+Yes, we got bug report for arm32, I'm sorry about this -- only 32bit
+platform I tested was i686 and that only needs 4byte alignment for u64.
 
-This breaks iptables on PPC32.
+This fix should help:
 
-# iptables -nL
-iptables v1.4.21: can't initialize iptables table `filter': Table does not exist (do you need to insmod?)
-Perhaps iptables or your kernel needs to be upgraded.
-# modprobe iptable-filter
-FATAL: Error inserting iptable_filter (/lib/modules/4.7.0-rc1/kernel/net/ipv4/netfilter/iptable_filter.ko): Invalid argument
-
-Andreas.
-
--- 
-Andreas Schwab, schwab@linux-m68k.org
-GPG Key fingerprint = 58CA 54C7 6D53 942B 1756  01D3 44D5 214B 8276 4ED5
-"And now for something completely different."
+https://git.kernel.org/cgit/linux/kernel/git/pablo/nf.git/commit/?id=7b7eba0f3515fca3296b8881d583f7c1042f5226
