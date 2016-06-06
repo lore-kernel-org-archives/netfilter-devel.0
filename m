@@ -1,126 +1,122 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH ipvs-next] ipvs: count pre-established TCP states as
- active
-Date: Mon, 6 Jun 2016 10:23:20 +0300 (EEST)
-Message-ID: <alpine.LFD.2.11.1606060943060.1691@ja.home.ssi.bg>
-References: <20160603155650.292BEA0E60@unicorn.suse.cz>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [PATCH] iptables: extensions: libxt_MARK: Add translation to nft
+Date: Mon, 6 Jun 2016 10:37:50 +0200
+Message-ID: <CAOkSjBjTaVNkoD99K_OihjH1uNdJN37sy1KVnRRm_+MAKUO_Wg@mail.gmail.com>
+References: <1465044150-13229-1-git-send-email-rodanber@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: lvs-devel@vger.kernel.org, Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>
-To: Michal Kubecek <mkubecek@suse.cz>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20160603155650.292BEA0E60@unicorn.suse.cz>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: =?UTF-8?Q?Roberto_Garc=C3=ADa?= <rodanber@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35658 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751823AbcFFIiL convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Jun 2016 04:38:11 -0400
+Received: by mail-wm0-f65.google.com with SMTP id k184so8145069wme.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jun 2016 01:38:10 -0700 (PDT)
+In-Reply-To: <1465044150-13229-1-git-send-email-rodanber@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+On 4 June 2016 at 14:42,  <rodanber@gmail.com> wrote:
+> From: Roberto Garc=C3=ADa <rodanber@gmail.com>
+>
+> Add translation for the MARK target to nftables.
+>
+> Examples:
+>
+> $ sudo iptables-translate -t mangle -A OUTPUT -p tcp --dport 22 -j MA=
+RK
+> --set-mark 64
+> nft add rule ip mangle OUTPUT tcp dport 22 counter meta mark set 0x40
+>
+> $ sudo iptables-translate -t mangle -A OUTPUT -p tcp --dport 22 -j MA=
+RK
+> --set-xmark 64
+> nft add rule ip mangle OUTPUT tcp dport 22 counter meta mark set 0x40
+>
+> $ sudo iptables-translate -t mangle -A OUTPUT -p tcp --dport 22 -j MA=
+RK
+> --or-mark 64
+> nft add rule ip mangle OUTPUT tcp dport 22 counter meta mark set mark=
+ or 0x40
+>
+> $ sudo iptables-translate -t mangle -A OUTPUT -p tcp --dport 22 -j MA=
+RK --and-mark
+> 64
+> nft add rule ip mangle OUTPUT tcp dport 22 counter meta mark set mark=
+ and 0x40
+>
+> $ sudo iptables-translate -t mangle -A OUTPUT -p tcp --dport 22 -j MA=
+RK
+> --xor-mark 64
+>
+> nft add rule ip mangle OUTPUT tcp dport 22 counter meta mark set mark=
+ xor 0x40
+>
 
-	Hello,
+I miss some examples on working with masks. I would like to see how do
+you translate for example '--set-xmark value/mask' and '--set-mark
+value/mask'.
 
-On Fri, 3 Jun 2016, Michal Kubecek wrote:
+Perhaps you could delete the '-p tcp --dport 22' thing, so we are
+short and to the point with the examples.
 
-> Some users observed that "least connection" distribution algorithm doesn't
-> handle well bursts of TCP connections from reconnecting clients after
-> a node or network failure.
-> 
-> This is because the algorithm counts active connection as worth 256
-> inactive ones where for TCP, "active" only means TCP connections in
-> ESTABLISHED state. In case of a connection burst, new connections are
-> handled before previous ones have finished the three way handshaking so
-> that all are still counted as "inactive", i.e. cheap ones. The become
-> "active" quickly but at that time, all of them are already assigned to one
-> real server (or few), resulting in highly unbalanced distribution.
-> 
-> Address this by counting the "pre-established" states as "active".
-> 
-> Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
-
-	LC and WLC are bursty by nature. May be a new
-scheduler is needed that combines the LC algorithm with
-WRR mode to adaptively reduce the difference in load,
-especially for the case when new server is started in
-a setup with many servers.
-
-	Give me some days or week to analyze the effects of
-your patch, mostly in situations of SYN attack. Note that
-there can be schedulers affected by this change but I think
-they will only benefit from it.
-For example:
-
-- LBLC, LBLCR: can use weight as threshold for activeconns
-- NQ, SED: only activeconns are used
-- OVF: weight is used as threshold for activeconns,
-	inactconns are not used
-
-	Schedulers not part of the kernel can be affacted
-too. So, for now the plan is to apply this patch. If there
-are other opinions, please speak up.
-
+> Signed-off-by: Roberto Garc=C3=ADa <rodanber@gmail.com>
 > ---
->  net/netfilter/ipvs/ip_vs_proto_tcp.c | 25 +++++++++++++++++++++++--
->  1 file changed, 23 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> index d7024b2ed769..5117bcb7d2f0 100644
-> --- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> +++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> @@ -395,6 +395,20 @@ static const char *const tcp_state_name_table[IP_VS_TCP_S_LAST+1] = {
->  	[IP_VS_TCP_S_LAST]		=	"BUG!",
->  };
->  
-> +static const bool tcp_state_active_table[IP_VS_TCP_S_LAST] = {
-> +	[IP_VS_TCP_S_NONE]		=	false,
-> +	[IP_VS_TCP_S_ESTABLISHED]	=	true,
-> +	[IP_VS_TCP_S_SYN_SENT]		=	true,
-> +	[IP_VS_TCP_S_SYN_RECV]		=	true,
-> +	[IP_VS_TCP_S_FIN_WAIT]		=	false,
-> +	[IP_VS_TCP_S_TIME_WAIT]		=	false,
-> +	[IP_VS_TCP_S_CLOSE]		=	false,
-> +	[IP_VS_TCP_S_CLOSE_WAIT]	=	false,
-> +	[IP_VS_TCP_S_LAST_ACK]		=	false,
-> +	[IP_VS_TCP_S_LISTEN]		=	false,
-> +	[IP_VS_TCP_S_SYNACK]		=	true,
-> +};
-> +
->  #define sNO IP_VS_TCP_S_NONE
->  #define sES IP_VS_TCP_S_ESTABLISHED
->  #define sSS IP_VS_TCP_S_SYN_SENT
-> @@ -418,6 +432,13 @@ static const char * tcp_state_name(int state)
->  	return tcp_state_name_table[state] ? tcp_state_name_table[state] : "?";
+>  extensions/libxt_MARK.c | 21 +++++++++++++++++++++
+>  1 file changed, 21 insertions(+)
+>
+> diff --git a/extensions/libxt_MARK.c b/extensions/libxt_MARK.c
+> index 556dbde..9383f64 100644
+> --- a/extensions/libxt_MARK.c
+> +++ b/extensions/libxt_MARK.c
+> @@ -245,6 +245,26 @@ static void mark_tg_save(const void *ip, const s=
+truct xt_entry_target *target)
+>         printf(" --set-xmark 0x%x/0x%x", info->mark, info->mask);
 >  }
->  
-> +static bool tcp_state_active(int state)
+>
+> +static int mark_tg_xlate(const void *ip, const struct xt_entry_targe=
+t *target,
+> +                        struct xt_xlate *xl, int numeric)
 > +{
-> +	if (state >= IP_VS_TCP_S_LAST)
-> +		return false;
-> +	return tcp_state_active_table[state];
-> +}
+> +       const struct xt_mark_tginfo2 *info =3D (const void *)target->=
+data;
 > +
->  static struct tcp_states_t tcp_states [] = {
->  /*	INPUT */
->  /*        sNO, sES, sSS, sSR, sFW, sTW, sCL, sCW, sLA, sLI, sSA	*/
-> @@ -540,12 +561,12 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
->  
->  		if (dest) {
->  			if (!(cp->flags & IP_VS_CONN_F_INACTIVE) &&
-> -			    (new_state != IP_VS_TCP_S_ESTABLISHED)) {
-> +			    !tcp_state_active(new_state)) {
->  				atomic_dec(&dest->activeconns);
->  				atomic_inc(&dest->inactconns);
->  				cp->flags |= IP_VS_CONN_F_INACTIVE;
->  			} else if ((cp->flags & IP_VS_CONN_F_INACTIVE) &&
-> -				   (new_state == IP_VS_TCP_S_ESTABLISHED)) {
-> +				   tcp_state_active(new_state)) {
->  				atomic_inc(&dest->activeconns);
->  				atomic_dec(&dest->inactconns);
->  				cp->flags &= ~IP_VS_CONN_F_INACTIVE;
-> -- 
-> 2.8.3
+> +       if (info->mark =3D=3D 0)
+> +               xt_xlate_add(xl, "meta mark set mark and 0x%x",
+> +                            (unsigned int)(uint32_t)~info->mask);
 
-Regards
+This double casting seems very weird to me. I would try to have only
+one casting at most. Did you try it? Probably no cast is even
+required, actually (I don't know)
+
+> +       else if (info->mark =3D=3D info->mask)
+> +               xt_xlate_add(xl, "meta mark set mark or 0x%x", info->=
+mark);
+> +       else if (info->mask =3D=3D 0)
+> +               xt_xlate_add(xl, "meta mark set mark xor 0x%x", info-=
+>mark);
+> +       else if (info->mask =3D=3D 0xffffffffU)
+> +               xt_xlate_add(xl, "meta mark set 0x%x", info->mark);
+> +       else
+> +               xt_xlate_add(xl, "meta mark xset 0x%x/0x%x", info->ma=
+rk, info->mask);
+
+'meta mark xset' ? Probably you can print 'meta mark set'
+unconditionally so you avoid this kind of errors.
+
+> +
+> +       return 1;
+> +}
+
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
