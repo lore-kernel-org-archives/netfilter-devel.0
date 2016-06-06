@@ -1,53 +1,63 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv4] extensions: libxt_multiport: Add translation to nft
-Date: Mon, 6 Jun 2016 13:27:45 +0200
-Message-ID: <20160606112745.GA30079@salvia>
-References: <20160602172923.GA24172@sonyv>
+Subject: Re: [PATCH] extensions: libip6t_frag: Add translation to nft
+Date: Mon, 6 Jun 2016 13:35:30 +0200
+Message-ID: <20160606113530.GA6995@salvia>
+References: <20160602165756.GA21013@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Laura Garcia Liebana <nevola@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52911 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:54499 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751250AbcFFL1x (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jun 2016 07:27:53 -0400
+	id S1750974AbcFFLfn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Jun 2016 07:35:43 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 6F98310078A
-	for <netfilter-devel@vger.kernel.org>; Mon,  6 Jun 2016 13:27:52 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 249481EFDC5
+	for <netfilter-devel@vger.kernel.org>; Mon,  6 Jun 2016 13:35:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 5F31F1B32E1
-	for <netfilter-devel@vger.kernel.org>; Mon,  6 Jun 2016 13:27:52 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 116F11BA111
+	for <netfilter-devel@vger.kernel.org>; Mon,  6 Jun 2016 13:35:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 43FEB1B32D4
-	for <netfilter-devel@vger.kernel.org>; Mon,  6 Jun 2016 13:27:50 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 713B71BA10E
+	for <netfilter-devel@vger.kernel.org>; Mon,  6 Jun 2016 13:35:39 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160602172923.GA24172@sonyv>
+In-Reply-To: <20160602165756.GA21013@sonyv>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 02, 2016 at 07:29:26PM +0200, Laura Garcia Liebana wrote:
-> Add translation for multiport to nftables, which it's supported natively.
-> 
-> Examples:
-> 
-> $ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport --dports 80,81 -j ACCEPT
-> nft add rule ip filter INPUT ip protocol tcp tcp dport { 80,81} counter accept
-> 
-> $ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport --dports 80:88 -j ACCEPT
-> nft add rule ip filter INPUT ip protocol tcp tcp dport 80-88 counter accept
-> 
-> $ sudo iptables-translate -t filter -A INPUT -p tcp -m multiport ! --dports 80:88 -j ACCEPT
-> nft add rule ip filter INPUT ip protocol tcp tcp dport != 80-88 counter accept
+On Thu, Jun 02, 2016 at 06:57:58PM +0200, Laura Garcia Liebana wrote:
+> Add translation for frag to nftables. Not supported yet in nft: fraglen,
+> fragfirst and fraglast.
 
-Applied.
+You can provide translations for fragfirst and fraglast.
 
-Please, enable trailing whitespace detection in your editor:
+'--fragfirst' is actually frag-off 0.
+and '--fraglast' is more-fragments 1.
 
-patch:88:
-trailing whitespace.
-        if (multiinfo->count > 2 || 
-                                   ^
- warning: 2 lines add whitespace errors.
+Note that because there is no 1:1 mapping, it doesn't mean you can
+translate things.
 
-Thanks.
+And regarding --fraglen, if you look at
+iptables/extensions/libip6t_frag.c, you'll see:
+
+        case O_FRAGLEN:
+                /*
+                 * As of Linux 3.0, the kernel does not check for
+                 * fraglen at all.
+                 */
+                if (cb->invert)
+                        fraginfo->invflags |= IP6T_FRAG_INV_LEN;
+                fraginfo->flags |= IP6T_FRAG_LEN;
+                break;
+
+Then, browsing:
+
+http://lxr.free-electrons.com/source/net/ipv6/netfilter/ip6t_frag.c
+
+shows no references to IP6T_FRAG_LEN in the kernel, so this confirms
+this option was already deprecated time ago and the comment in the
+iptables source code is correct.
+
+Please, respin and send a v2 including this useful information on the
+commit message so we keep this in the record.
