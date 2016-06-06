@@ -1,164 +1,129 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [RFC][PATCH 1/3] locking: Introduce smp_acquire__after_ctrl_dep
-Date: Mon, 6 Jun 2016 10:28:24 -0700
-Message-ID: <20160606172824.GA10383@linux.vnet.ibm.com>
-References: <20160525045329.GQ4148@linux.vnet.ibm.com>
- <5745C2CA.4040003@hpe.com>
- <20160525155747.GE3789@linux.vnet.ibm.com>
- <57514B6E.6010001@synopsys.com>
- <20160603093834.GI3190@twins.programming.kicks-ass.net>
- <20160603120827.GT5231@linux.vnet.ibm.com>
- <20160603122310.GM3190@twins.programming.kicks-ass.net>
- <20160603133238.GV5231@linux.vnet.ibm.com>
- <20160603134552.GL9915@arm.com>
- <20160604152929.GZ5231@linux.vnet.ibm.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Laura Garcia Liebana <nevola@gmail.com>
+Subject: [PATCHv2] extensions: libxt_dscp: Add translation to nft
+Date: Mon, 6 Jun 2016 20:51:04 +0200
+Message-ID: <20160606185101.GA1408@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Peter Zijlstra <peterz@infradead.org>,
-	Vineet Gupta <Vineet.Gupta1@synopsys.com>,
-	Waiman Long <waiman.long@hpe.com>,
-	linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
-	manfred@colorfullife.com, dave@stgolabs.net, boqun.feng@gmail.com,
-	tj@kernel.org, pablo@netfilter.org, kaber@trash.net,
-	davem@davemloft.net, oleg@redhat.com,
-	netfilter-devel@vger.kernel.org, sasha.levin@oracle.com,
-	hofrat@osadl.org
-To: Will Deacon <will.deacon@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35293 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751313AbcFFSvI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Jun 2016 14:51:08 -0400
+Received: by mail-wm0-f68.google.com with SMTP id k184so12283136wme.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jun 2016 11:51:08 -0700 (PDT)
+Received: from sonyv (cli-5b7e49a2.wholesale.adamo.es. [91.126.73.162])
+        by smtp.gmail.com with ESMTPSA id c2sm15562019wme.4.2016.06.06.11.51.06
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Mon, 06 Jun 2016 11:51:06 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20160604152929.GZ5231@linux.vnet.ibm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jun 04, 2016 at 08:29:29AM -0700, Paul E. McKenney wrote:
-> On Fri, Jun 03, 2016 at 02:45:53PM +0100, Will Deacon wrote:
-> > On Fri, Jun 03, 2016 at 06:32:38AM -0700, Paul E. McKenney wrote:
-> > > On Fri, Jun 03, 2016 at 02:23:10PM +0200, Peter Zijlstra wrote:
-> > > > On Fri, Jun 03, 2016 at 05:08:27AM -0700, Paul E. McKenney wrote:
-> > > > > On Fri, Jun 03, 2016 at 11:38:34AM +0200, Peter Zijlstra wrote:
-> > > > > > On Fri, Jun 03, 2016 at 02:48:38PM +0530, Vineet Gupta wrote:
-> > > > > > > On Wednesday 25 May 2016 09:27 PM, Paul E. McKenney wrote:
-> > > > > > > > For your example, but keeping the compiler in check:
-> > > > > > > > 
-> > > > > > > > 	if (READ_ONCE(a))
-> > > > > > > > 		WRITE_ONCE(b, 1);
-> > > > > > > > 	smp_rmb();
-> > > > > > > > 	WRITE_ONCE(c, 2);
-> > > > > > 
-> > > > > > So I think it example is broken. The store to @c is not in fact
-> > > > > > dependent on the condition of @a.
-> > > > > 
-> > > > > At first glance, the compiler could pull the write to "c" above the
-> > > > > conditional, but the "memory" constraint in smp_rmb() prevents this.
-> > > > > From a hardware viewpoint, the write to "c" does depend on the "if",
-> > > > > as the conditional branch does precede that write in execution order.
-> > > > > 
-> > > > > But yes, this is using smp_rmb() in a very strange way, if that is
-> > > > > what you are getting at.
-> > > > 
-> > > > Well, the CPU could decide that the store to C happens either way around
-> > > > the branch. I'm not sure I'd rely on CPUs not being _that_ clever.
-> > > 
-> > > If I remember correctly, both Power and ARM guarantee that the CPU won't
-> > > be that clever.  Not sure about Itanium.
-> > 
-> > I wouldn't be so sure about ARM. On 32-bit, at least, we have conditional
-> > store instructions so if the compiler could somehow use one of those for
-> > the first WRITE_ONCE then there's very obviously no control dependency
-> > on the second WRITE_ONCE and they could be observed out of order.
-> 
-> OK, good to know...
-> 
-> > I note that smp_rmb() on ARM and arm64 actually orders against subsequent
-> > (in program order) writes, so this is still pretty theoretical for us.
-> 
-> So the combined control-dependency/smp_rmb() still works, but I should
-> re-examine the straight control dependency stuff.
+Add translation for dscp to nftables, for both ipv4 and ipv6.
 
-And how about the patch below?
+Examples:
 
-							Thanx, Paul
+$ sudo iptables-translate -t filter -A INPUT -m dscp --dscp 0x32 -j ACCEPT
+nft add rule ip filter INPUT ip dscp 0x32 counter accept
 
-------------------------------------------------------------------------
+$ sudo ip6tables-translate -t filter -A INPUT -m dscp ! --dscp 0x32 -j ACCEPT
+nft add rule ip6 filter INPUT ip6 dscp != 0x32 counter accept
 
-commit 43672d15aeb69b1a196c06cbc071cbade8d247fd
-Author: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Date:   Mon Jun 6 10:19:42 2016 -0700
+Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+---
+Changes in v2:
+	- Remove NFPROTO_UNSPEC register
 
-    documentation: Clarify limited control-dependency scope
-    
-    Nothing in the control-dependencies section of memory-barriers.txt
-    says that control dependencies don't extend beyond the end of the
-    if-statement containing the control dependency.  Worse yet, in many
-    situations, they do extend beyond that if-statement.  In particular,
-    the compiler cannot destroy the control dependency given proper use of
-    READ_ONCE() and WRITE_ONCE().  However, a weakly ordered system having
-    a conditional-move instruction provides the control-dependency guarantee
-    only to code within the scope of the if-statement itself.
-    
-    This commit therefore adds words and an example demonstrating this
-    limitation of control dependencies.
-    
-    Reported-by: Will Deacon <will.deacon@arm.com>
-    Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+ extensions/libxt_dscp.c | 71 ++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 58 insertions(+), 13 deletions(-)
 
-diff --git a/Documentation/memory-barriers.txt b/Documentation/memory-barriers.txt
-index 147ae8ec836f..a4d0a99de04d 100644
---- a/Documentation/memory-barriers.txt
-+++ b/Documentation/memory-barriers.txt
-@@ -806,6 +806,41 @@ out-guess your code.  More generally, although READ_ONCE() does force
- the compiler to actually emit code for a given load, it does not force
- the compiler to use the results.
+diff --git a/extensions/libxt_dscp.c b/extensions/libxt_dscp.c
+index 02b22a4..adc7827 100644
+--- a/extensions/libxt_dscp.c
++++ b/extensions/libxt_dscp.c
+@@ -91,21 +91,66 @@ static void dscp_save(const void *ip, const struct xt_entry_match *match)
+ 	printf("%s --dscp 0x%02x", dinfo->invert ? " !" : "", dinfo->dscp);
+ }
  
-+In addition, control dependencies apply only to the then-clause and
-+else-clause of the if-statement in question.  In particular, it does
-+not necessarily apply to code following the if-statement:
+-static struct xtables_match dscp_match = {
+-	.family		= NFPROTO_UNSPEC,
+-	.name 		= "dscp",
+-	.version 	= XTABLES_VERSION,
+-	.size 		= XT_ALIGN(sizeof(struct xt_dscp_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct xt_dscp_info)),
+-	.help		= dscp_help,
+-	.print		= dscp_print,
+-	.save		= dscp_save,
+-	.x6_parse	= dscp_parse,
+-	.x6_fcheck	= dscp_check,
+-	.x6_options	= dscp_opts,
++static int __dscp_xlate(const void *ip, const struct xt_entry_match *match,
++		      struct xt_xlate *xl, int numeric)
++{
++	const struct xt_dscp_info *dinfo =
++		(const struct xt_dscp_info *)match->data;
 +
-+	q = READ_ONCE(a);
-+	if (q) {
-+		WRITE_ONCE(b, p);
-+	} else {
-+		WRITE_ONCE(b, r);
-+	}
-+	WRITE_ONCE(c, 1);  /* BUG: No ordering against the read from "a". */
++	xt_xlate_add(xl, "dscp %s0x%02x ", dinfo->invert ? "!= " : "",
++		     dinfo->dscp);
 +
-+It is tempting to argue that there in fact is ordering because the
-+compiler cannot reorder volatile accesses and also cannot reorder
-+the writes to "b" with the condition.  Unfortunately for this line
-+of reasoning, the compiler might compile the two writes to "b" as
-+conditional-move instructions, as in this fanciful pseudo-assembly
-+language:
++	return 1;
++}
 +
-+	ld r1,a
-+	ld r2,p
-+	ld r3,r
-+	cmp r1,$0
-+	cmov,ne r4,r2
-+	cmov,eq r4,r3
-+	st r4,b
-+	st $1,c
++static int dscp_xlate(const void *ip, const struct xt_entry_match *match,
++		      struct xt_xlate *xl, int numeric)
++{
++	xt_xlate_add(xl, "ip ");
 +
-+A weakly ordered CPU would have no dependency of any sort between the load
-+from "a" and the store to "c".  The control dependencies would extend
-+only to the pair of cmov instructions and the store depending on them.
-+In short, control dependencies apply only to the stores in the then-clause
-+and else-clause of the if-statement in question (including functions
-+invoked by those two clauses), not to code following that if-statement.
++	return __dscp_xlate(ip, match, xl, numeric);
++}
 +
- Finally, control dependencies do -not- provide transitivity.  This is
- demonstrated by two related examples, with the initial values of
- x and y both being zero:
-@@ -869,6 +904,12 @@ In summary:
-       atomic{,64}_read() can help to preserve your control dependency.
-       Please see the COMPILER BARRIER section for more information.
++static int dscp_xlate6(const void *ip, const struct xt_entry_match *match,
++		      struct xt_xlate *xl, int numeric)
++{
++	xt_xlate_add(xl, "ip6 ");
++
++	return __dscp_xlate(ip, match, xl, numeric);
++}
++
++static struct xtables_match dscp_mt_reg[] = {
++	{
++		.family		= NFPROTO_IPV4,
++		.name           = "dscp",
++		.version        = XTABLES_VERSION,
++		.size           = XT_ALIGN(sizeof(struct xt_dscp_info)),
++		.userspacesize	= XT_ALIGN(sizeof(struct xt_dscp_info)),
++		.help		= dscp_help,
++		.print		= dscp_print,
++		.save		= dscp_save,
++		.x6_parse	= dscp_parse,
++		.x6_fcheck	= dscp_check,
++		.x6_options	= dscp_opts,
++		.xlate		= dscp_xlate,
++	},
++	{
++		.family		= NFPROTO_IPV6,
++		.name           = "dscp",
++		.version        = XTABLES_VERSION,
++		.size           = XT_ALIGN(sizeof(struct xt_dscp_info)),
++		.userspacesize	= XT_ALIGN(sizeof(struct xt_dscp_info)),
++		.help		= dscp_help,
++		.print		= dscp_print,
++		.save		= dscp_save,
++		.x6_parse	= dscp_parse,
++		.x6_fcheck	= dscp_check,
++		.x6_options	= dscp_opts,
++		.xlate		= dscp_xlate6,
++	},
+ };
  
-+  (*) Control dependencies apply only to the then-clause and else-clause
-+      of the if-statement containing the control dependency, including
-+      any functions that these two clauses call.  Control dependencies
-+      do -not- apply to code following the if-statement containing the
-+      control dependency.
-+
-   (*) Control dependencies pair normally with other types of barriers.
- 
-   (*) Control dependencies do -not- provide transitivity.  If you
+ void _init(void)
+ {
+-	xtables_register_match(&dscp_match);
++	xtables_register_matches(dscp_mt_reg, ARRAY_SIZE(dscp_mt_reg));
+ }
+-- 
+2.7.0
+
