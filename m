@@ -1,116 +1,116 @@
-From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCHv2] extensions: libip6t_frag: Add translation to nft
-Date: Mon, 6 Jun 2016 21:25:46 +0200
-Message-ID: <20160606192543.GA4818@sonyv>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 1/1] payload: don't update protocol context if we can't find a description
+Date: Mon,  6 Jun 2016 22:01:18 +0200
+Message-ID: <1465243278-22625-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35843 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752370AbcFFTZu (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53843 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752574AbcFFUBB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jun 2016 15:25:50 -0400
-Received: by mail-wm0-f65.google.com with SMTP id m124so17774804wme.3
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jun 2016 12:25:50 -0700 (PDT)
-Received: from sonyv (cli-5b7e49a2.wholesale.adamo.es. [91.126.73.162])
-        by smtp.gmail.com with ESMTPSA id x124sm15609933wmg.24.2016.06.06.12.25.48
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Mon, 06 Jun 2016 12:25:48 -0700 (PDT)
-Content-Disposition: inline
+	Mon, 6 Jun 2016 16:01:01 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for frag to nftables. According to the --fraglen code:
+Since commit
+20b1131c07acd2fc ("payload: fix stacked headers protocol context tracking")
+we deref null pointer if we can't find a description for the desired
+protocol, so "ip protocol 254" crashes while testing protocols 6 or 17
+(tcp, udp) works.
 
-	case O_FRAGLEN:
-		/*
-		 * As of Linux 3.0, the kernel does not check for
-		 * fraglen at all.
-		 */
+Also add a test case for this.
 
-In addition, the kernel code doesn't show any reference to the flag
-IP6T_FRAG_LEN, so this option is deprecated and won't be translated to
-nft.
-
-Examples:
-
-$ sudo iptables-translate -t filter -A INPUT -m frag --fragid 100:200 -j ACCEPT
-nft add rule ip6 filter INPUT frag id 100-200 counter accept
-
-$ sudo iptables-translate -t filter -A INPUT -m frag --fragid 100 --fragres --fragmore -j ACCEPT
-nft add rule ip6 filter INPUT frag id 100 frag reserved 1 frag more-fragments 1 counter accept
-
-$ sudo iptables-translate -t filter -A INPUT -m frag ! --fragid 100:200 -j ACCEPT
-nft add rule ip6 filter INPUT frag id != 100-200 counter accept
-
-$ sudo iptables-translate -t filter -A INPUT -m frag --fragid 100:200 --fraglast -j ACCEPT
-nft add rule ip6 filter INPUT frag id 100-200 frag more-fragments 1 counter accept
-
-$ sudo iptables-translate -t filter -A INPUT -m frag --fragid 100:200 --fragfirst -j ACCEPT
-nft add rule ip6 filter INPUT frag id 100-200 frag frag-off 0 counter accept
-
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1072
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
-Changes in v2:
-	- Include translation for fragfirst and fraglast.
-	- fraglen is marked as deprecated.
+ src/payload.c                   | 3 +++
+ tests/py/ip/ip.t                | 3 +++
+ tests/py/ip/ip.t.payload        | 5 +++++
+ tests/py/ip/ip.t.payload.inet   | 7 +++++++
+ tests/py/ip/ip.t.payload.netdev | 7 +++++++
+ 5 files changed, 25 insertions(+)
 
- extensions/libip6t_frag.c | 33 +++++++++++++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
-
-diff --git a/extensions/libip6t_frag.c b/extensions/libip6t_frag.c
-index 023df62..0a24eae 100644
---- a/extensions/libip6t_frag.c
-+++ b/extensions/libip6t_frag.c
-@@ -173,6 +173,38 @@ static void frag_save(const void *ip, const struct xt_entry_match *match)
- 		printf(" --fraglast");
- }
+diff --git a/src/payload.c b/src/payload.c
+index ac0e917..9ba980a 100644
+--- a/src/payload.c
++++ b/src/payload.c
+@@ -85,6 +85,9 @@ static void payload_expr_pctx_update(struct proto_ctx *ctx,
+ 	base = ctx->protocol[left->payload.base].desc;
+ 	desc = proto_find_upper(base, proto);
  
-+static int frag_xlate(const void *ip, const struct xt_entry_match *match,
-+		      struct xt_xlate *xl, int numeric)
-+{
-+	const struct ip6t_frag *fraginfo = (struct ip6t_frag *)match->data;
++	if (!desc)
++		return;
 +
-+	if (fraginfo->flags & IP6T_FRAG_LEN)
-+		return 0;
-+
-+	if (!(fraginfo->ids[0] == 0 && fraginfo->ids[1] == 0xFFFFFFFF)) {
-+		xt_xlate_add(xl, "frag id %s",
-+			     (fraginfo->invflags & IP6T_FRAG_INV_IDS) ?
-+			     "!= " : "");
-+		if (fraginfo->ids[0] != fraginfo->ids[1])
-+			xt_xlate_add(xl, "%u-%u ", fraginfo->ids[0],
-+				     fraginfo->ids[1]);
-+		else
-+			xt_xlate_add(xl, "%u ", fraginfo->ids[0]);
-+	}
-+
-+	if (fraginfo->flags & IP6T_FRAG_RES)
-+		xt_xlate_add(xl, "frag reserved 1 ");
-+
-+	if (fraginfo->flags & IP6T_FRAG_FST)
-+		xt_xlate_add(xl, "frag frag-off 0 ");
-+
-+	if ((fraginfo->flags & IP6T_FRAG_MF) ||
-+	    (fraginfo->flags & IP6T_FRAG_NMF))
-+		xt_xlate_add(xl, "frag more-fragments 1 ");
-+
-+	return 1;
-+}
-+
- static struct xtables_match frag_mt6_reg = {
- 	.name          = "frag",
- 	.version       = XTABLES_VERSION,
-@@ -185,6 +217,7 @@ static struct xtables_match frag_mt6_reg = {
- 	.save          = frag_save,
- 	.x6_parse      = frag_parse,
- 	.x6_options    = frag_opts,
-+	.xlate	       = frag_xlate,
- };
+ 	assert(desc->base <= PROTO_BASE_MAX);
+ 	if (desc->base == base->base) {
+ 		assert(base->length > 0);
+diff --git a/tests/py/ip/ip.t b/tests/py/ip/ip.t
+index 594136c..a265b75 100644
+--- a/tests/py/ip/ip.t
++++ b/tests/py/ip/ip.t
+@@ -75,6 +75,9 @@ ip protocol != tcp;ok;ip protocol != 6
+ ip protocol { icmp, esp, ah, comp, udp, udplite, tcp, dccp, sctp} accept;ok;ip protocol { 33, 136, 17, 51, 50, 6, 132, 1, 108} accept
+ - ip protocol != { icmp, esp, ah, comp, udp, udplite, tcp, dccp, sctp} accept;ok
  
- void
++ip protocol 255;ok
++ip protocol 256;fail
++
+ ip checksum 13172 drop;ok
+ ip checksum 22;ok
+ ip checksum != 233;ok
+diff --git a/tests/py/ip/ip.t.payload b/tests/py/ip/ip.t.payload
+index 3bd3358..15cc590 100644
+--- a/tests/py/ip/ip.t.payload
++++ b/tests/py/ip/ip.t.payload
+@@ -204,6 +204,11 @@ ip test-ip4 input
+   [ lookup reg 1 set __set%d ]
+   [ immediate reg 0 accept ]
+ 
++# ip protocol 255
++ip test-ip4 input
++  [ payload load 1b @ network header + 9 => reg 1 ]
++  [ cmp eq reg 1 0x000000ff ]
++
+ # ip checksum 13172 drop
+ ip test-ip4 input
+   [ payload load 2b @ network header + 10 => reg 1 ]
+diff --git a/tests/py/ip/ip.t.payload.inet b/tests/py/ip/ip.t.payload.inet
+index ef4692e..e495246 100644
+--- a/tests/py/ip/ip.t.payload.inet
++++ b/tests/py/ip/ip.t.payload.inet
+@@ -268,6 +268,13 @@ inet test-inet input
+   [ lookup reg 1 set __set%d ]
+   [ immediate reg 0 accept ]
+ 
++# ip protocol 255
++ip test-ip4 input
++  [ meta load nfproto => reg 1 ]
++  [ cmp eq reg 1 0x00000002 ]
++  [ payload load 1b @ network header + 9 => reg 1 ]
++  [ cmp eq reg 1 0x000000ff ]
++
+ # ip checksum 13172 drop
+ inet test-inet input
+   [ meta load nfproto => reg 1 ]
+diff --git a/tests/py/ip/ip.t.payload.netdev b/tests/py/ip/ip.t.payload.netdev
+index 4feaa27..8eaee4c 100644
+--- a/tests/py/ip/ip.t.payload.netdev
++++ b/tests/py/ip/ip.t.payload.netdev
+@@ -204,6 +204,13 @@ netdev test-netdev ingress
+   [ lookup reg 1 set __set%d ]
+   [ immediate reg 0 accept ]
+ 
++# ip protocol 255
++ip test-ip4 input
++  [ meta load protocol => reg 1 ]
++  [ cmp eq reg 1 0x00000008 ]
++  [ payload load 1b @ network header + 9 => reg 1 ]
++  [ cmp eq reg 1 0x000000ff ]
++
+ # ip checksum 13172 drop
+ netdev test-netdev ingress 
+   [ meta load protocol => reg 1 ]
 -- 
-2.7.0
+2.7.3
 
