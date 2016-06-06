@@ -1,44 +1,35 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] payload: don't update protocol context if we can't
- find a description
-Date: Tue, 7 Jun 2016 00:16:24 +0200
-Message-ID: <20160606221624.GA1413@salvia>
-References: <1465243278-22625-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH] netfilter/nflog: nflog-range does not truncate packets
+Date: Tue, 7 Jun 2016 00:31:06 +0200
+Message-ID: <20160606223106.GA1621@salvia>
+References: <20160602002354.GG1644@akamai.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49113 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752736AbcFFWQ3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jun 2016 18:16:29 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id BCE40CD6F09
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jun 2016 00:16:27 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B03F39EBA4
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jun 2016 00:16:27 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 63FB89EBA8
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jun 2016 00:16:25 +0200 (CEST)
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	johunt@akamai.com, netdev@vger.kernel.org, pai.vishwain@gmail.com
+To: Vishwanath Pai <vpai@akamai.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1465243278-22625-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20160602002354.GG1644@akamai.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jun 06, 2016 at 10:01:18PM +0200, Florian Westphal wrote:
-> Since commit
-> 20b1131c07acd2fc ("payload: fix stacked headers protocol context tracking")
-> we deref null pointer if we can't find a description for the desired
-> protocol, so "ip protocol 254" crashes while testing protocols 6 or 17
-> (tcp, udp) works.
+On Wed, Jun 01, 2016 at 08:23:54PM -0400, Vishwanath Pai wrote:
+> netfilter/nflog: nflog-range does not truncate packets
 > 
-> Also add a test case for this.
-> 
-> Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1072
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+> The --nflog-range parameter from userspace is ignored in the kernel and
+> the entire packet is sent to the userspace. The per-instance parameter
+> copy_range still works, with this change --nflog-range will have
+> preference over copy_range.
 
-Thanks for fixing this!
+I think it's reasonable to assume that --nflog-range from the rule
+applies globally to any instance.
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+However, per-instance copy_range has prevailed over --nflog-range
+since the beginning, so I would follow a more conservative approach,
+ie. remain copy_range in preference over --nflog-range.
+
+So I'd suggest you invert this logic.
+
+Let me know, thanks.
