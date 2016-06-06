@@ -1,284 +1,164 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH -v4 5/7] locking, arch: Update spin_unlock_wait()
-Date: Mon, 6 Jun 2016 18:08:36 +0200
-Message-ID: <20160606160836.GC30154@twins.programming.kicks-ass.net>
-References: <20160602115157.249037373@infradead.org>
- <20160602115439.085385545@infradead.org>
- <20160602142440.GE30064@insomnia>
- <20160602144424.GV3193@twins.programming.kicks-ass.net>
- <20160602163425.GV3205@twins.programming.kicks-ass.net>
- <20160602175659.GB7697@arm.com>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [RFC][PATCH 1/3] locking: Introduce smp_acquire__after_ctrl_dep
+Date: Mon, 6 Jun 2016 10:28:24 -0700
+Message-ID: <20160606172824.GA10383@linux.vnet.ibm.com>
+References: <20160525045329.GQ4148@linux.vnet.ibm.com>
+ <5745C2CA.4040003@hpe.com>
+ <20160525155747.GE3789@linux.vnet.ibm.com>
+ <57514B6E.6010001@synopsys.com>
+ <20160603093834.GI3190@twins.programming.kicks-ass.net>
+ <20160603120827.GT5231@linux.vnet.ibm.com>
+ <20160603122310.GM3190@twins.programming.kicks-ass.net>
+ <20160603133238.GV5231@linux.vnet.ibm.com>
+ <20160603134552.GL9915@arm.com>
+ <20160604152929.GZ5231@linux.vnet.ibm.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Boqun Feng <boqun.feng@gmail.com>, linux-kernel@vger.kernel.org,
-	torvalds@linux-foundation.org, manfred@colorfullife.com,
-	dave@stgolabs.net, paulmck@linux.vnet.ibm.com, Waiman.Long@hpe.com,
+Cc: Peter Zijlstra <peterz@infradead.org>,
+	Vineet Gupta <Vineet.Gupta1@synopsys.com>,
+	Waiman Long <waiman.long@hpe.com>,
+	linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
+	manfred@colorfullife.com, dave@stgolabs.net, boqun.feng@gmail.com,
 	tj@kernel.org, pablo@netfilter.org, kaber@trash.net,
 	davem@davemloft.net, oleg@redhat.com,
 	netfilter-devel@vger.kernel.org, sasha.levin@oracle.com,
-	hofrat@osadl.org, jejb@parisc-linux.org, chris@zankel.net,
-	rth@twiddle.net, dhowells@redhat.com, schwidefsky@de.ibm.com,
-	mpe@ellerman.id.au, ralf@linux-mips.org, linux@armlinux.org.uk,
-	rkuo@codeaurora.org, vgupta@synopsys.com, james.hogan@imgtec.com,
-	realmz6@gmail.com, ysato@users.sourceforge.jp, tony.luck@intel.com,
-	cmetcalf@mellanox.com
+	hofrat@osadl.org
 To: Will Deacon <will.deacon@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160602175659.GB7697@arm.com>
+In-Reply-To: <20160604152929.GZ5231@linux.vnet.ibm.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Jun 02, 2016 at 06:57:00PM +0100, Will Deacon wrote:
-> > This 'replaces' commit:
+On Sat, Jun 04, 2016 at 08:29:29AM -0700, Paul E. McKenney wrote:
+> On Fri, Jun 03, 2016 at 02:45:53PM +0100, Will Deacon wrote:
+> > On Fri, Jun 03, 2016 at 06:32:38AM -0700, Paul E. McKenney wrote:
+> > > On Fri, Jun 03, 2016 at 02:23:10PM +0200, Peter Zijlstra wrote:
+> > > > On Fri, Jun 03, 2016 at 05:08:27AM -0700, Paul E. McKenney wrote:
+> > > > > On Fri, Jun 03, 2016 at 11:38:34AM +0200, Peter Zijlstra wrote:
+> > > > > > On Fri, Jun 03, 2016 at 02:48:38PM +0530, Vineet Gupta wrote:
+> > > > > > > On Wednesday 25 May 2016 09:27 PM, Paul E. McKenney wrote:
+> > > > > > > > For your example, but keeping the compiler in check:
+> > > > > > > > 
+> > > > > > > > 	if (READ_ONCE(a))
+> > > > > > > > 		WRITE_ONCE(b, 1);
+> > > > > > > > 	smp_rmb();
+> > > > > > > > 	WRITE_ONCE(c, 2);
+> > > > > > 
+> > > > > > So I think it example is broken. The store to @c is not in fact
+> > > > > > dependent on the condition of @a.
+> > > > > 
+> > > > > At first glance, the compiler could pull the write to "c" above the
+> > > > > conditional, but the "memory" constraint in smp_rmb() prevents this.
+> > > > > From a hardware viewpoint, the write to "c" does depend on the "if",
+> > > > > as the conditional branch does precede that write in execution order.
+> > > > > 
+> > > > > But yes, this is using smp_rmb() in a very strange way, if that is
+> > > > > what you are getting at.
+> > > > 
+> > > > Well, the CPU could decide that the store to C happens either way around
+> > > > the branch. I'm not sure I'd rely on CPUs not being _that_ clever.
+> > > 
+> > > If I remember correctly, both Power and ARM guarantee that the CPU won't
+> > > be that clever.  Not sure about Itanium.
 > > 
-> >   54cf809b9512 ("locking,qspinlock: Fix spin_is_locked() and spin_unlock_wait()")
-> > 
-> > and seems to still work with the test case from that thread while
-> > getting rid of the extra barriers.
+> > I wouldn't be so sure about ARM. On 32-bit, at least, we have conditional
+> > store instructions so if the compiler could somehow use one of those for
+> > the first WRITE_ONCE then there's very obviously no control dependency
+> > on the second WRITE_ONCE and they could be observed out of order.
+> 
+> OK, good to know...
+> 
+> > I note that smp_rmb() on ARM and arm64 actually orders against subsequent
+> > (in program order) writes, so this is still pretty theoretical for us.
+> 
+> So the combined control-dependency/smp_rmb() still works, but I should
+> re-examine the straight control dependency stuff.
 
-New version :-)
+And how about the patch below?
 
-This one has moar comments; and also tries to address an issue with
-xchg_tail(), which is its own consumer. Paul, Will said you'd love the
-address dependency through union members :-)
+							Thanx, Paul
 
-(I should split this in at least 3 patches I suppose)
+------------------------------------------------------------------------
 
-ARM64 and PPC should provide private versions of is_locked and
-unlock_wait; because while this one deals with the unordered store as
-per qspinlock construction, it still relies on cmpxchg_acquire()'s store
-being visible.
+commit 43672d15aeb69b1a196c06cbc071cbade8d247fd
+Author: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Date:   Mon Jun 6 10:19:42 2016 -0700
 
----
- include/asm-generic/qspinlock.h |  40 ++++---------
- kernel/locking/qspinlock.c      | 126 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 137 insertions(+), 29 deletions(-)
+    documentation: Clarify limited control-dependency scope
+    
+    Nothing in the control-dependencies section of memory-barriers.txt
+    says that control dependencies don't extend beyond the end of the
+    if-statement containing the control dependency.  Worse yet, in many
+    situations, they do extend beyond that if-statement.  In particular,
+    the compiler cannot destroy the control dependency given proper use of
+    READ_ONCE() and WRITE_ONCE().  However, a weakly ordered system having
+    a conditional-move instruction provides the control-dependency guarantee
+    only to code within the scope of the if-statement itself.
+    
+    This commit therefore adds words and an example demonstrating this
+    limitation of control dependencies.
+    
+    Reported-by: Will Deacon <will.deacon@arm.com>
+    Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 
-diff --git a/include/asm-generic/qspinlock.h b/include/asm-generic/qspinlock.h
-index 6bd05700d8c9..3020bdb7a43c 100644
---- a/include/asm-generic/qspinlock.h
-+++ b/include/asm-generic/qspinlock.h
-@@ -26,33 +26,18 @@
-  * @lock: Pointer to queued spinlock structure
-  * Return: 1 if it is locked, 0 otherwise
-  */
-+#ifndef queued_spin_is_locked
- static __always_inline int queued_spin_is_locked(struct qspinlock *lock)
- {
- 	/*
--	 * queued_spin_lock_slowpath() can ACQUIRE the lock before
--	 * issuing the unordered store that sets _Q_LOCKED_VAL.
-+	 * See queued_spin_unlock_wait().
- 	 *
--	 * See both smp_cond_acquire() sites for more detail.
--	 *
--	 * This however means that in code like:
--	 *
--	 *   spin_lock(A)		spin_lock(B)
--	 *   spin_unlock_wait(B)	spin_is_locked(A)
--	 *   do_something()		do_something()
--	 *
--	 * Both CPUs can end up running do_something() because the store
--	 * setting _Q_LOCKED_VAL will pass through the loads in
--	 * spin_unlock_wait() and/or spin_is_locked().
--	 *
--	 * Avoid this by issuing a full memory barrier between the spin_lock()
--	 * and the loads in spin_unlock_wait() and spin_is_locked().
--	 *
--	 * Note that regular mutual exclusion doesn't care about this
--	 * delayed store.
-+	 * Any !0 state indicates it is locked, even if _Q_LOCKED_VAL
-+	 * isn't immediately observable.
- 	 */
--	smp_mb();
--	return atomic_read(&lock->val) & _Q_LOCKED_MASK;
-+	return !!atomic_read(&lock->val);
- }
-+#endif
+diff --git a/Documentation/memory-barriers.txt b/Documentation/memory-barriers.txt
+index 147ae8ec836f..a4d0a99de04d 100644
+--- a/Documentation/memory-barriers.txt
++++ b/Documentation/memory-barriers.txt
+@@ -806,6 +806,41 @@ out-guess your code.  More generally, although READ_ONCE() does force
+ the compiler to actually emit code for a given load, it does not force
+ the compiler to use the results.
  
- /**
-  * queued_spin_value_unlocked - is the spinlock structure unlocked?
-@@ -78,6 +63,7 @@ static __always_inline int queued_spin_is_contended(struct qspinlock *lock)
- {
- 	return atomic_read(&lock->val) & ~_Q_LOCKED_MASK;
- }
++In addition, control dependencies apply only to the then-clause and
++else-clause of the if-statement in question.  In particular, it does
++not necessarily apply to code following the if-statement:
 +
- /**
-  * queued_spin_trylock - try to acquire the queued spinlock
-  * @lock : Pointer to queued spinlock structure
-@@ -123,19 +109,15 @@ static __always_inline void queued_spin_unlock(struct qspinlock *lock)
- #endif
- 
- /**
-- * queued_spin_unlock_wait - wait until current lock holder releases the lock
-+ * queued_spin_unlock_wait - wait until the _current_ lock holder releases the lock
-  * @lock : Pointer to queued spinlock structure
-  *
-  * There is a very slight possibility of live-lock if the lockers keep coming
-  * and the waiter is just unfortunate enough to not see any unlock state.
-  */
--static inline void queued_spin_unlock_wait(struct qspinlock *lock)
--{
--	/* See queued_spin_is_locked() */
--	smp_mb();
--	while (atomic_read(&lock->val) & _Q_LOCKED_MASK)
--		cpu_relax();
--}
-+#ifndef queued_spin_unlock_wait
-+void queued_spin_unlock_wait(struct qspinlock *lock);
-+#endif
- 
- #ifndef virt_spin_lock
- static __always_inline bool virt_spin_lock(struct qspinlock *lock)
-diff --git a/kernel/locking/qspinlock.c b/kernel/locking/qspinlock.c
-index ce2f75e32ae1..e1c29d352e0e 100644
---- a/kernel/locking/qspinlock.c
-+++ b/kernel/locking/qspinlock.c
-@@ -395,6 +395,8 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
- 	 * pending stuff.
- 	 *
- 	 * p,*,* -> n,*,*
-+	 *
-+	 * RELEASE, such that the stores to @node must be complete.
- 	 */
- 	old = xchg_tail(lock, tail);
- 	next = NULL;
-@@ -405,6 +407,15 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
- 	 */
- 	if (old & _Q_TAIL_MASK) {
- 		prev = decode_tail(old);
-+		/*
-+		 * The above xchg_tail() is also load of @lock which generates,
-+		 * through decode_tail(), a pointer.
-+		 *
-+		 * The address dependency matches the RELEASE of xchg_tail()
-+		 * such that the access to @prev must happen after.
-+		 */
-+		smp_read_barrier_depends();
-+
- 		WRITE_ONCE(prev->next, node);
- 
- 		pv_wait_node(node, prev);
-@@ -496,6 +507,121 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
- EXPORT_SYMBOL(queued_spin_lock_slowpath);
- 
- /*
-+ * PROBLEM: some architectures have an interesting issue with atomic ACQUIRE
-+ * operations in that the ACQUIRE applies to the LOAD _not_ the STORE (ARM64,
-+ * PPC). Also qspinlock has a similar issue per construction, the setting of
-+ * the locked byte can be unordered acquiring the lock proper.
-+ *
-+ * This gets to be 'interesting' in the following cases, where the /should/s
-+ * end up false because of this issue.
-+ *
-+ *
-+ * CASE 1:
-+ *
-+ * So the spin_is_locked() correctness issue comes from something like:
-+ *
-+ *   CPU0				CPU1
-+ *
-+ *   global_lock();			local_lock(i)
-+ *     spin_lock(&G)			  spin_lock(&L[i])
-+ *     for (i)				  if (!spin_is_locked(&G)) {
-+ *       spin_unlock_wait(&L[i]);	    smp_acquire__after_ctrl_dep();
-+ * 					    return;
-+ * 					  }
-+ * 					  // deal with fail
-+ *
-+ * Where it is important CPU1 sees G locked or CPU0 sees L[i] locked such
-+ * that there is exclusion between the two critical sections.
-+ *
-+ * The load from spin_is_locked(&G) /should/ be constrained by the ACQUIRE from
-+ * spin_lock(&L[i]), and similarly the load(s) from spin_unlock_wait(&L[i])
-+ * /should/ be constrained by the ACQUIRE from spin_lock(&G).
-+ *
-+ * Similarly, later stuff is constrained by the ACQUIRE from CTRL+RMB.
-+ *
-+ *
-+ * CASE 2:
-+ *
-+ * For spin_unlock_wait() there is a second correctness issue, namely:
-+ *
-+ *   CPU0				CPU1
-+ *
-+ *   flag = set;
-+ *   smp_mb();				spin_lock(&l)
-+ *   spin_unlock_wait(&l);		if (!flag)
-+ *					  // add to lockless list
-+ * 					spin_unlock(&l);
-+ *   // iterate lockless list
-+ *
-+ * Which wants to ensure that CPU1 will stop adding bits to the list and CPU0
-+ * will observe the last entry on the list (if spin_unlock_wait() had ACQUIRE
-+ * semantics etc..)
-+ *
-+ * Where flag /should/ be ordered against the locked store of l.
-+ */
-+
-+
-+/*
-+ * queued_spin_lock_slowpath() can (load-)ACQUIRE the lock before
-+ * issuing an _unordered_ store to set _Q_LOCKED_VAL.
-+ *
-+ * This means that the store can be delayed, but no later than the
-+ * store-release from the unlock. This means that simply observing
-+ * _Q_LOCKED_VAL is not sufficient to determine if the lock is acquired.
-+ *
-+ * There are two paths that can issue the unordered store:
-+ *
-+ *  (1) clear_pending_set_locked():	*,1,0 -> *,0,1
-+ *
-+ *  (2) set_locked():			t,0,0 -> t,0,1 ; t != 0
-+ *      atomic_cmpxchg_relaxed():	t,0,0 -> 0,0,1
-+ *
-+ * However, in both cases we have other !0 state we've set before to queue
-+ * ourseves:
-+ *
-+ * For (1) we have the atomic_cmpxchg_acquire() that set _Q_PENDING_VAL, our
-+ * load is constrained by that ACQUIRE to not pass before that, and thus must
-+ * observe the store.
-+ *
-+ * For (2) we have a more intersting scenario. We enqueue ourselves using
-+ * xchg_tail(), which ends up being a RELEASE. This in itself is not
-+ * sufficient, however that is followed by an smp_cond_acquire() on the same
-+ * word, giving a RELEASE->ACQUIRE ordering. This again constrains our load and
-+ * guarantees we must observe that store.
-+ *
-+ * Therefore both cases have other !0 state that is observable before the
-+ * unordered locked byte store comes through. This means we can use that to
-+ * wait for the lock store, and then wait for an unlock.
-+ */
-+#ifndef queued_spin_unlock_wait
-+void queued_spin_unlock_wait(struct qspinlock *lock)
-+{
-+	u32 val;
-+
-+	for (;;) {
-+		val = atomic_read(&lock->val);
-+
-+		if (!val) /* not locked, we're done */
-+			goto done;
-+
-+		if (val & _Q_LOCKED_MASK) /* locked, go wait for unlock */
-+			break;
-+
-+		/* not locked, but pending, wait until we observe the lock */
-+		cpu_relax();
++	q = READ_ONCE(a);
++	if (q) {
++		WRITE_ONCE(b, p);
++	} else {
++		WRITE_ONCE(b, r);
 +	}
++	WRITE_ONCE(c, 1);  /* BUG: No ordering against the read from "a". */
 +
-+	/* any unlock is good */
-+	while (atomic_read(&lock->val) & _Q_LOCKED_MASK)
-+		cpu_relax();
++It is tempting to argue that there in fact is ordering because the
++compiler cannot reorder volatile accesses and also cannot reorder
++the writes to "b" with the condition.  Unfortunately for this line
++of reasoning, the compiler might compile the two writes to "b" as
++conditional-move instructions, as in this fanciful pseudo-assembly
++language:
 +
-+done:
-+	smp_rmb();
-+}
-+EXPORT_SYMBOL(queued_spin_unlock_wait);
-+#endif
++	ld r1,a
++	ld r2,p
++	ld r3,r
++	cmp r1,$0
++	cmov,ne r4,r2
++	cmov,eq r4,r3
++	st r4,b
++	st $1,c
 +
-+/*
-  * Generate the paravirt code for queued_spin_unlock_slowpath().
-  */
- #if !defined(_GEN_PV_LOCK_SLOWPATH) && defined(CONFIG_PARAVIRT_SPINLOCKS)
++A weakly ordered CPU would have no dependency of any sort between the load
++from "a" and the store to "c".  The control dependencies would extend
++only to the pair of cmov instructions and the store depending on them.
++In short, control dependencies apply only to the stores in the then-clause
++and else-clause of the if-statement in question (including functions
++invoked by those two clauses), not to code following that if-statement.
++
+ Finally, control dependencies do -not- provide transitivity.  This is
+ demonstrated by two related examples, with the initial values of
+ x and y both being zero:
+@@ -869,6 +904,12 @@ In summary:
+       atomic{,64}_read() can help to preserve your control dependency.
+       Please see the COMPILER BARRIER section for more information.
+ 
++  (*) Control dependencies apply only to the then-clause and else-clause
++      of the if-statement containing the control dependency, including
++      any functions that these two clauses call.  Control dependencies
++      do -not- apply to code following the if-statement containing the
++      control dependency.
++
+   (*) Control dependencies pair normally with other types of barriers.
+ 
+   (*) Control dependencies do -not- provide transitivity.  If you
