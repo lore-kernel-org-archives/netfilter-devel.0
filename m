@@ -1,38 +1,60 @@
-From: Sylvain Lemieux <slemieux.tyco@gmail.com>
-Subject: 4.7-rc2: iptables broken on ARM 32 bits
-Date: Mon, 06 Jun 2016 08:52:54 -0400
-Message-ID: <1465217574.9851.13.camel@localhost>
+From: Toby DiPasquale <toby@cbcg.net>
+Subject: Re: off-by-one in DecodeQ931
+Date: Mon, 6 Jun 2016 09:50:18 -0400
+Message-ID: <CAML0wpGqddtn92Rb2CSmV0kZfTzOxdCU-+dAFG1HUAaqQa8RUw@mail.gmail.com>
+References: <CAML0wpEBwXdzWX7g3LDJRDOVM0J7dkuhH8b+96ZhRf54+qUgwQ@mail.gmail.com>
+ <20160425152905.GA8621@strlen.de> <CAML0wpGWvcpB5GE_zAjOeO6ki_nszaj+hR9yyadwu_3hQno7Cg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: john.stultz@linaro.org, fw@strlen.de, arnd@arndb.de,
-	netfilter-devel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=UTF-8
+Cc: pablo@netfilter.org, Patrick McHardy <kaber@trash.net>,
+	kadlec@blackhole.kfki.hu, davem@davemloft.net,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-io0-f177.google.com ([209.85.223.177]:35741 "EHLO
-	mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751182AbcFFMw7 (ORCPT
+Received: from mail-yw0-f181.google.com ([209.85.161.181]:34898 "EHLO
+	mail-yw0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751469AbcFFNuU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jun 2016 08:52:59 -0400
-Received: by mail-io0-f177.google.com with SMTP id o189so127063089ioe.2
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jun 2016 05:52:59 -0700 (PDT)
+	Mon, 6 Jun 2016 09:50:20 -0400
+Received: by mail-yw0-f181.google.com with SMTP id o16so140394427ywd.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 06 Jun 2016 06:50:19 -0700 (PDT)
+In-Reply-To: <CAML0wpGWvcpB5GE_zAjOeO6ki_nszaj+hR9yyadwu_3hQno7Cg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
+Is this latest patch OK?
 
-the issue with the broken iptables on 32 bits ARM platform
-is still present in 4.7-rc2.
+On Tue, May 3, 2016 at 1:12 AM, Toby DiPasquale <toby@cbcg.net> wrote:
+> On Mon, Apr 25, 2016 at 11:29 AM, Florian Westphal <fw@strlen.de> wrote:
+>> -> sz (size_t) will underflow here
+>>
+>> I'd suggest to change the if (sz < 1) to if (sz < 2) to
+>> resolve this, the while loop below has to be taken anyway.
+>
+> Thanks, Florian! Updated patch below:
+>
+> Signed-off-by: Toby DiPasquale <toby@cbcg.net>
+>
+> diff --git a/net/netfilter/nf_conntrack_h323_asn1.c
+> b/net/netfilter/nf_conntrack_h323_asn1.c
+> index bcd5ed6..89b2e46 100644
+> --- a/net/netfilter/nf_conntrack_h323_asn1.c
+> +++ b/net/netfilter/nf_conntrack_h323_asn1.c
+> @@ -846,9 +846,10 @@ int DecodeQ931(unsigned char *buf, size_t sz, Q931 *q931)
+>         sz -= len;
+>
+>         /* Message Type */
+> -       if (sz < 1)
+> +       if (sz < 2)
+>                 return H323_ERROR_BOUND;
+>         q931->MessageType = *p++;
+> +       sz--;
+>         PRINT("MessageType = %02X\n", q931->MessageType);
+>         if (*p & 0x80) {
+>                 p++;
 
-The issue was initially reported by John Stultz; please refer
-to this link for details: https://lkml.org/lkml/2016/5/26/351
-
-I tested the second solution and this fix the issue for me.
-
-Is there any plan to include a fix in rc3?
 
 
-Sylvain Lemieux
-
-
+-- 
+Toby DiPasquale
