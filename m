@@ -1,46 +1,126 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 07/23] netfilter: x_tables: check standard target size too
-Date: Mon, 6 Jun 2016 00:02:10 +0200
-Message-ID: <20160605220210.GA7827@breakpoint.cc>
-References: <1461332394-3994-1-git-send-email-pablo@netfilter.org>
- <1461332394-3994-8-git-send-email-pablo@netfilter.org>
- <8760tn5ojb.fsf@linux-m68k.org>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH ipvs-next] ipvs: count pre-established TCP states as
+ active
+Date: Mon, 6 Jun 2016 10:23:20 +0300 (EEST)
+Message-ID: <alpine.LFD.2.11.1606060943060.1691@ja.home.ssi.bg>
+References: <20160603155650.292BEA0E60@unicorn.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net,
-	netdev@vger.kernel.org
-To: Andreas Schwab <schwab@linux-m68k.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:51479 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752845AbcFEWCS (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Jun 2016 18:02:18 -0400
-Content-Disposition: inline
-In-Reply-To: <8760tn5ojb.fsf@linux-m68k.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: lvs-devel@vger.kernel.org, Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>
+To: Michal Kubecek <mkubecek@suse.cz>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160603155650.292BEA0E60@unicorn.suse.cz>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Andreas Schwab <schwab@linux-m68k.org> wrote:
-> > From: Florian Westphal <fw@strlen.de>
-> >
-> > We have targets and standard targets -- the latter carries a verdict.
-> >
-> > The ip/ip6tables validation functions will access t->verdict for the
-> > standard targets to fetch the jump offset or verdict for chainloop
-> > detection, but this happens before the targets get checked/validated.
-> >
-> > Thus we also need to check for verdict presence here, else t->verdict
-> > can point right after a blob.
-> >
-> > Spotted with UBSAN while testing malformed blobs.
+
+	Hello,
+
+On Fri, 3 Jun 2016, Michal Kubecek wrote:
+
+> Some users observed that "least connection" distribution algorithm doesn't
+> handle well bursts of TCP connections from reconnecting clients after
+> a node or network failure.
 > 
-> This breaks iptables on PPC32.
+> This is because the algorithm counts active connection as worth 256
+> inactive ones where for TCP, "active" only means TCP connections in
+> ESTABLISHED state. In case of a connection burst, new connections are
+> handled before previous ones have finished the three way handshaking so
+> that all are still counted as "inactive", i.e. cheap ones. The become
+> "active" quickly but at that time, all of them are already assigned to one
+> real server (or few), resulting in highly unbalanced distribution.
+> 
+> Address this by counting the "pre-established" states as "active".
+> 
+> Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
 
-Yes, we got bug report for arm32, I'm sorry about this -- only 32bit
-platform I tested was i686 and that only needs 4byte alignment for u64.
+	LC and WLC are bursty by nature. May be a new
+scheduler is needed that combines the LC algorithm with
+WRR mode to adaptively reduce the difference in load,
+especially for the case when new server is started in
+a setup with many servers.
 
-This fix should help:
+	Give me some days or week to analyze the effects of
+your patch, mostly in situations of SYN attack. Note that
+there can be schedulers affected by this change but I think
+they will only benefit from it.
+For example:
 
-https://git.kernel.org/cgit/linux/kernel/git/pablo/nf.git/commit/?id=7b7eba0f3515fca3296b8881d583f7c1042f5226
+- LBLC, LBLCR: can use weight as threshold for activeconns
+- NQ, SED: only activeconns are used
+- OVF: weight is used as threshold for activeconns,
+	inactconns are not used
+
+	Schedulers not part of the kernel can be affacted
+too. So, for now the plan is to apply this patch. If there
+are other opinions, please speak up.
+
+> ---
+>  net/netfilter/ipvs/ip_vs_proto_tcp.c | 25 +++++++++++++++++++++++--
+>  1 file changed, 23 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> index d7024b2ed769..5117bcb7d2f0 100644
+> --- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> +++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
+> @@ -395,6 +395,20 @@ static const char *const tcp_state_name_table[IP_VS_TCP_S_LAST+1] = {
+>  	[IP_VS_TCP_S_LAST]		=	"BUG!",
+>  };
+>  
+> +static const bool tcp_state_active_table[IP_VS_TCP_S_LAST] = {
+> +	[IP_VS_TCP_S_NONE]		=	false,
+> +	[IP_VS_TCP_S_ESTABLISHED]	=	true,
+> +	[IP_VS_TCP_S_SYN_SENT]		=	true,
+> +	[IP_VS_TCP_S_SYN_RECV]		=	true,
+> +	[IP_VS_TCP_S_FIN_WAIT]		=	false,
+> +	[IP_VS_TCP_S_TIME_WAIT]		=	false,
+> +	[IP_VS_TCP_S_CLOSE]		=	false,
+> +	[IP_VS_TCP_S_CLOSE_WAIT]	=	false,
+> +	[IP_VS_TCP_S_LAST_ACK]		=	false,
+> +	[IP_VS_TCP_S_LISTEN]		=	false,
+> +	[IP_VS_TCP_S_SYNACK]		=	true,
+> +};
+> +
+>  #define sNO IP_VS_TCP_S_NONE
+>  #define sES IP_VS_TCP_S_ESTABLISHED
+>  #define sSS IP_VS_TCP_S_SYN_SENT
+> @@ -418,6 +432,13 @@ static const char * tcp_state_name(int state)
+>  	return tcp_state_name_table[state] ? tcp_state_name_table[state] : "?";
+>  }
+>  
+> +static bool tcp_state_active(int state)
+> +{
+> +	if (state >= IP_VS_TCP_S_LAST)
+> +		return false;
+> +	return tcp_state_active_table[state];
+> +}
+> +
+>  static struct tcp_states_t tcp_states [] = {
+>  /*	INPUT */
+>  /*        sNO, sES, sSS, sSR, sFW, sTW, sCL, sCW, sLA, sLI, sSA	*/
+> @@ -540,12 +561,12 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
+>  
+>  		if (dest) {
+>  			if (!(cp->flags & IP_VS_CONN_F_INACTIVE) &&
+> -			    (new_state != IP_VS_TCP_S_ESTABLISHED)) {
+> +			    !tcp_state_active(new_state)) {
+>  				atomic_dec(&dest->activeconns);
+>  				atomic_inc(&dest->inactconns);
+>  				cp->flags |= IP_VS_CONN_F_INACTIVE;
+>  			} else if ((cp->flags & IP_VS_CONN_F_INACTIVE) &&
+> -				   (new_state == IP_VS_TCP_S_ESTABLISHED)) {
+> +				   tcp_state_active(new_state)) {
+>  				atomic_inc(&dest->activeconns);
+>  				atomic_dec(&dest->inactconns);
+>  				cp->flags &= ~IP_VS_CONN_F_INACTIVE;
+> -- 
+> 2.8.3
+
+Regards
