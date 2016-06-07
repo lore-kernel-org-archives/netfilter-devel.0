@@ -1,7 +1,7 @@
 From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Subject: Re: [RFC][PATCH 1/3] locking: Introduce smp_acquire__after_ctrl_dep
-Date: Tue, 7 Jun 2016 11:44:41 -0700
-Message-ID: <20160607184441.GH3723@linux.vnet.ibm.com>
+Date: Tue, 7 Jun 2016 11:54:11 -0700
+Message-ID: <20160607185411.GI3723@linux.vnet.ibm.com>
 References: <20160603133238.GV5231@linux.vnet.ibm.com>
  <20160603134552.GL9915@arm.com>
  <20160604152929.GZ5231@linux.vnet.ibm.com>
@@ -26,20 +26,11 @@ Cc: Hannes Frederic Sowa <hannes@stressinduktion.org>,
 	netfilter-devel@vger.kernel.org, sasha.levin@oracle.com,
 	hofrat@osadl.org
 To: Will Deacon <will.deacon@arm.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e38.co.us.ibm.com ([32.97.110.159]:33713 "EHLO
-	e38.co.us.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161049AbcFGSoq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jun 2016 14:44:46 -0400
-Received: from localhost
-	by e38.co.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-	for <netfilter-devel@vger.kernel.org> from <paulmck@linux.vnet.ibm.com>;
-	Tue, 7 Jun 2016 12:44:45 -0600
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20160607180106.GD20477@arm.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 On Tue, Jun 07, 2016 at 07:01:07PM +0100, Will Deacon wrote:
 > On Tue, Jun 07, 2016 at 08:23:15AM -0700, Paul E. McKenney wrote:
@@ -70,7 +61,6 @@ On Tue, Jun 07, 2016 at 07:01:07PM +0100, Will Deacon wrote:
 > being ordered and I can see it happening in practice in the face of
 > conditional stores.
 
-Thank you for the info, Will!
+Thank you for the information, Will!
 
 							Thanx, Paul
-
