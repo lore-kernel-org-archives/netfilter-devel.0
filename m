@@ -1,38 +1,49 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: helper: avoid extra expectation
- iterations on unregister
-Date: Tue, 7 Jun 2016 17:28:49 +0200
-Message-ID: <20160607152849.GA23880@salvia>
-References: <1463334614-10189-1-git-send-email-fw@strlen.de>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 1/3] bridge: netfilter: checkpatch whitespace fixes
+Date: Tue, 07 Jun 2016 10:04:40 -0700
+Message-ID: <1465319080.25087.28.camel@perches.com>
+References: <1462843618-21914-1-git-send-email-me@tobin.cc>
+	 <1462843618-21914-2-git-send-email-me@tobin.cc>
+	 <20160607151458.GA18008@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59741 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754780AbcFGP2y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jun 2016 11:28:54 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 33E48921777
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jun 2016 17:28:53 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 24F8A9EBA1
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jun 2016 17:28:53 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 21D189EBA1
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jun 2016 17:28:51 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1463334614-10189-1-git-send-email-fw@strlen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Stephen Hemminger <stephen@networkplumber.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>, tcharding <me@tobin.cc>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160607151458.GA18008@salvia>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, May 15, 2016 at 07:50:14PM +0200, Florian Westphal wrote:
-> The expectation table is not duplicated per net namespace anymore, so we can move
-> the expectation table and conntrack table iteration out of the per-net loop.
+On Tue, 2016-06-07 at 17:14 +0200, Pablo Neira Ayuso wrote:
+> On Tue, May 10, 2016 at 11:26:56AM +1000, tcharding wrote:
+> > From: Tobin C Harding <me@tobin.cc>
+> > This is my second linux kernel patch. Unsure if I was meant to cc m=
+ultiple mailing lists?
+[]
+> > diff --git a/net/bridge/netfilter/ebt_stp.c b/net/bridge/netfilter/=
+ebt_stp.c
+[]
+> > @@ -55,65 +55,65 @@ static bool ebt_filter_config(const struct ebt_=
+stp_info *info,
+> > =A0	if (info->bitmask & EBT_STP_ROOTPRIO) {
+> > =A0		v16 =3D NR16(stpc->root);
+> > =A0		if (FWINV(v16 < c->root_priol ||
+> > -		=A0=A0=A0=A0v16 > c->root_priou, EBT_STP_ROOTPRIO))
+> > +			=A0=A0v16 > c->root_priou, EBT_STP_ROOTPRIO))
+> I don't think this coding style is right. This is a common approach
+> (to align the condition when split in several lines) in other 'net' c=
+ode.
 
-Florian, I can place this in the nf-next tree. This hit the queue in a
-very late stage of the previous merge window so basically it was hard
-to pass it on to David without pushing a bit.
+Perhaps you misread the code.
 
-Or let me know if you prefer to resubmit, thanks.
+The alignment is changed for the 1st argument of the FWINV macro
+to be more similar to the style used in the rest of net/
+
+But using a longer initial line would be more readable:
+
+=A0		if (FWINV(v16 < c->root_priol ||=A0v16 > c->root_priou,
+			=A0=A0EBT_STP_ROOTPRIO))
