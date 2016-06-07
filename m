@@ -1,75 +1,71 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH -v4 5/7] locking, arch: Update spin_unlock_wait()
-Date: Tue, 7 Jun 2016 14:00:16 +0200
-Message-ID: <20160607120016.GG30154@twins.programming.kicks-ass.net>
-References: <20160602115157.249037373@infradead.org>
- <20160602115439.085385545@infradead.org>
- <20160602142440.GE30064@insomnia>
- <20160602144424.GV3193@twins.programming.kicks-ass.net>
- <20160602163425.GV3205@twins.programming.kicks-ass.net>
- <20160602175659.GB7697@arm.com>
- <20160606160836.GC30154@twins.programming.kicks-ass.net>
- <20160607114315.GF23133@insomnia>
+From: Hannes Frederic Sowa <hannes@stressinduktion.org>
+Subject: Re: [RFC][PATCH 1/3] locking: Introduce smp_acquire__after_ctrl_dep
+Date: Tue, 7 Jun 2016 14:41:44 +0200
+Message-ID: <c8b77029-7652-04e7-efaa-693206b7ec62@stressinduktion.org>
+References: <5745C2CA.4040003@hpe.com>
+ <20160525155747.GE3789@linux.vnet.ibm.com> <57514B6E.6010001@synopsys.com>
+ <20160603093834.GI3190@twins.programming.kicks-ass.net>
+ <20160603120827.GT5231@linux.vnet.ibm.com>
+ <20160603122310.GM3190@twins.programming.kicks-ass.net>
+ <20160603133238.GV5231@linux.vnet.ibm.com> <20160603134552.GL9915@arm.com>
+ <20160604152929.GZ5231@linux.vnet.ibm.com>
+ <20160606172824.GA10383@linux.vnet.ibm.com>
+ <20160607071508.GL30909@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org,
-	torvalds@linux-foundation.org, manfred@colorfullife.com,
-	dave@stgolabs.net, paulmck@linux.vnet.ibm.com, Waiman.Long@hpe.com,
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: Will Deacon <will.deacon@arm.com>,
+	Vineet Gupta <Vineet.Gupta1@synopsys.com>,
+	Waiman Long <waiman.long@hpe.com>,
+	linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
+	manfred@colorfullife.com, dave@stgolabs.net, boqun.feng@gmail.com,
 	tj@kernel.org, pablo@netfilter.org, kaber@trash.net,
 	davem@davemloft.net, oleg@redhat.com,
 	netfilter-devel@vger.kernel.org, sasha.levin@oracle.com,
-	hofrat@osadl.org, jejb@parisc-linux.org, chris@zankel.net,
-	rth@twiddle.net, dhowells@redhat.com, schwidefsky@de.ibm.com,
-	mpe@ellerman.id.au, ralf@linux-mips.org, linux@armlinux.org.uk,
-	rkuo@codeaurora.org, vgupta@synopsys.com, james.hogan@imgtec.com,
-	realmz6@gmail.com, ysato@users.sourceforge.jp, tony.luck@intel.com,
-	cmetcalf@mellanox.com
-To: Boqun Feng <boqun.feng@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54138 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754001AbcFGMBX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jun 2016 08:01:23 -0400
-Content-Disposition: inline
-In-Reply-To: <20160607114315.GF23133@insomnia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	hofrat@osadl.org
+To: Peter Zijlstra <peterz@infradead.org>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160607071508.GL30909@twins.programming.kicks-ass.net>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jun 07, 2016 at 07:43:15PM +0800, Boqun Feng wrote:
-> On Mon, Jun 06, 2016 at 06:08:36PM +0200, Peter Zijlstra wrote:
-> > diff --git a/kernel/locking/qspinlock.c b/kernel/locking/qspinlock.c
-> > index ce2f75e32ae1..e1c29d352e0e 100644
-> > --- a/kernel/locking/qspinlock.c
-> > +++ b/kernel/locking/qspinlock.c
-> > @@ -395,6 +395,8 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
-> >  	 * pending stuff.
-> >  	 *
-> >  	 * p,*,* -> n,*,*
-> > +	 *
-> > +	 * RELEASE, such that the stores to @node must be complete.
-> >  	 */
-> >  	old = xchg_tail(lock, tail);
-> >  	next = NULL;
-> > @@ -405,6 +407,15 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
-> >  	 */
-> >  	if (old & _Q_TAIL_MASK) {
-> >  		prev = decode_tail(old);
-> > +		/*
-> > +		 * The above xchg_tail() is also load of @lock which generates,
-> > +		 * through decode_tail(), a pointer.
-> > +		 *
-> > +		 * The address dependency matches the RELEASE of xchg_tail()
-> > +		 * such that the access to @prev must happen after.
-> > +		 */
-> > +		smp_read_barrier_depends();
-> 
-> Should this barrier be put before decode_tail()? Because it's the
-> dependency old -> prev that we want to protect here.
+On 07.06.2016 09:15, Peter Zijlstra wrote:
+>>
+>> diff --git a/Documentation/memory-barriers.txt b/Documentation/memory-barriers.txt
+>> index 147ae8ec836f..a4d0a99de04d 100644
+>> --- a/Documentation/memory-barriers.txt
+>> +++ b/Documentation/memory-barriers.txt
+>> @@ -806,6 +806,41 @@ out-guess your code.  More generally, although READ_ONCE() does force
+>>  the compiler to actually emit code for a given load, it does not force
+>>  the compiler to use the results.
+>>  
+>> +In addition, control dependencies apply only to the then-clause and
+>> +else-clause of the if-statement in question.  In particular, it does
+>> +not necessarily apply to code following the if-statement:
+>> +
+>> +	q = READ_ONCE(a);
+>> +	if (q) {
+>> +		WRITE_ONCE(b, p);
+>> +	} else {
+>> +		WRITE_ONCE(b, r);
+>> +	}
+>> +	WRITE_ONCE(c, 1);  /* BUG: No ordering against the read from "a". */
+>> +
+>> +It is tempting to argue that there in fact is ordering because the
+>> +compiler cannot reorder volatile accesses and also cannot reorder
+>> +the writes to "b" with the condition.  Unfortunately for this line
+>> +of reasoning, the compiler might compile the two writes to "b" as
+>> +conditional-move instructions, as in this fanciful pseudo-assembly
+>> +language:
 
-I don't think it matters one way or the other. The old->prev
-transformation is pure; it doesn't depend on any state other than old.
+I wonder if we already guarantee by kernel compiler settings that this
+behavior is not allowed by at least gcc.
 
-I put it between prev and dereferences of prev, because that's what made
-most sense to me; but really anywhere between the load of @old and the
-first dereference of @prev is fine I suspect.
+We unconditionally set --param allow-store-data-races=0 which should
+actually prevent gcc from generating such conditional stores.
+
+Am I seeing this correct here?
+
+Thanks,
+Hannes
