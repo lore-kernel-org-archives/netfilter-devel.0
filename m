@@ -1,52 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2 libnftnl] Check all strdup
-Date: Tue, 7 Jun 2016 17:08:10 +0200
-Message-ID: <20160607150810.GA17951@salvia>
-References: <1464689312-8136-1-git-send-email-carlosfg@riseup.net>
+Subject: Re: [PATCH 1/3] bridge: netfilter: checkpatch whitespace fixes
+Date: Tue, 7 Jun 2016 17:14:58 +0200
+Message-ID: <20160607151458.GA18008@salvia>
+References: <1462843618-21914-1-git-send-email-me@tobin.cc>
+ <1462843618-21914-2-git-send-email-me@tobin.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55125 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752515AbcFGPIX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jun 2016 11:08:23 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id E5C1F921778
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jun 2016 17:08:21 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id D02EB9EBAF
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jun 2016 17:08:21 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 51C709EBAF
-	for <netfilter-devel@vger.kernel.org>; Tue,  7 Jun 2016 17:08:12 +0200 (CEST)
+Content-Type: text/plain; charset=us-ascii
+Cc: Stephen Hemminger <stephen@networkplumber.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+To: tcharding <me@tobin.cc>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1464689312-8136-1-git-send-email-carlosfg@riseup.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1462843618-21914-2-git-send-email-me@tobin.cc>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Carlos,
+Hi,
 
-On Tue, May 31, 2016 at 12:08:32PM +0200, Carlos Falgueras Garc=EDa wro=
-te:
-> Check all strdup possible error and treat it consequently.
+On Tue, May 10, 2016 at 11:26:56AM +1000, tcharding wrote:
+> From: Tobin C Harding <me@tobin.cc>
+> 
+> checkpatch produces various white space 'checks'.
+> 
+> This patch amends them.
+> 
+> Signed-off-by: Tobin C Harding <me@tobin.cc>
+> ---
+> This is my second linux kernel patch. Unsure if I was meant to cc multiple mailing lists?
+> 
+> thanks
+> 
+>  net/bridge/netfilter/ebt_stp.c | 24 ++++++++++++------------
+>  1 file changed, 12 insertions(+), 12 deletions(-)
+> 
+> diff --git a/net/bridge/netfilter/ebt_stp.c b/net/bridge/netfilter/ebt_stp.c
+> index 6b731e1..26a0859 100644
+> --- a/net/bridge/netfilter/ebt_stp.c
+> +++ b/net/bridge/netfilter/ebt_stp.c
+> @@ -55,65 +55,65 @@ static bool ebt_filter_config(const struct ebt_stp_info *info,
+>  	if (info->bitmask & EBT_STP_ROOTPRIO) {
+>  		v16 = NR16(stpc->root);
+>  		if (FWINV(v16 < c->root_priol ||
+> -		    v16 > c->root_priou, EBT_STP_ROOTPRIO))
+> +			  v16 > c->root_priou, EBT_STP_ROOTPRIO))
 
-Please, manually apply these two patches in your local working copy:
-
-http://patchwork.ozlabs.org/patch/631659/
-http://patchwork.ozlabs.org/patch/631660/
-
-Then, continue with the patch that I'm attaching.
-
-As you can see, the idea is to return an integer for _set_data() and
-_set_str(), so the caller can check if the internal string allocation
-that the library performs has failed.
-
-Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I don't think this coding style is right. This is a common approach
+(to align the condition when split in several lines) in other 'net' code.
