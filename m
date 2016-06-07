@@ -1,7 +1,7 @@
-From: Peter Zijlstra <peterz@infradead.org>
+From: Will Deacon <will.deacon@arm.com>
 Subject: Re: [RFC][PATCH 1/3] locking: Introduce smp_acquire__after_ctrl_dep
-Date: Tue, 7 Jun 2016 19:48:53 +0200
-Message-ID: <20160607174853.GJ30154@twins.programming.kicks-ass.net>
+Date: Tue, 7 Jun 2016 19:01:07 +0100
+Message-ID: <20160607180106.GD20477@arm.com>
 References: <20160603122310.GM3190@twins.programming.kicks-ass.net>
  <20160603133238.GV5231@linux.vnet.ibm.com>
  <20160603134552.GL9915@arm.com>
@@ -15,7 +15,7 @@ References: <20160603122310.GM3190@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Hannes Frederic Sowa <hannes@stressinduktion.org>,
-	Will Deacon <will.deacon@arm.com>,
+	Peter Zijlstra <peterz@infradead.org>,
 	Vineet Gupta <Vineet.Gupta1@synopsys.com>,
 	Waiman Long <waiman.long@hpe.com>,
 	linux-kernel@vger.kernel.org, torvalds@linux-foundation.org,
@@ -32,32 +32,31 @@ Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 On Tue, Jun 07, 2016 at 08:23:15AM -0700, Paul E. McKenney wrote:
-> and if the hardware is not excessively clever (bad bet, by the
-> way, long term),
-
-This ^
-
-> > Is there something else than conditional move instructions that could
-> > come to play here? Obviously a much smarter CPU could evaluate all the
-> > jumps and come to the conclusion that the write to c is never depending
-> > on the load from a, but is this implemented somewhere in hardware?
+> On Tue, Jun 07, 2016 at 04:59:02PM +0200, Hannes Frederic Sowa wrote:
+> > Sorry, to follow-up again on this. Will Deacon's comments were about
+> > conditional-move instructions, which this compiler-option would prevent,
+> > as far as I can see it.
 > 
-> I don't know of any hardware that does that, but given that conditional
-> moves are supported by some weakly ordered hardware, it looks to me
-> that we are stuck with the possibility of "a"-"c" reordering.
+> According to this email thread, I believe that this works the other
+> way around:
+> 
+> http://thread.gmane.org/gmane.linux.kernel/1721993
+> 
+> That parameter prevents the compiler from converting a conditional
+> store into an unconditional store, which would be really problematic.
+> Give the current kernel build, I believe that the compiler really is
+> within its rights to use conditional-move instructions as shown above.
+> But I again must defer to Will Deacon on the details.
 
-Is why I'm scared of relying on the non-condition.
+A multi_v7_defconfig build of mainline certainly spits out conditional
+store instructions, but I have no idea whether these correspond to
+WRITE_ONCE or not:
 
-The if and else branches are obviously dependent on the completion of
-the load; anything after that, not so much.
+$ objdump -d vmlinux | grep 'str\(eq\|ne\)' | wc -l
+7326
 
-You could construct an argument against this program order speculation
-based on interrupts, which should not observe the stores out of order
-etc.. but if the hardware is that clever, it can also abort the entire
-speculation on interrupt (much like hardware transactions already can).
+At the end of the day, the ARM architecture says you can't rely on this
+being ordered and I can see it happening in practice in the face of
+conditional stores.
 
-So even if today no hardware is this clever (and that isn't proven)
-there's nothing saying it will not ever be.
-
-This is why I really do not want to advertise and or rely on this
-behaviour.
+Will
