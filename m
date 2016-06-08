@@ -1,56 +1,38 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH iptables] extensions: libxt_TRACE: Add translation to nft
-Date: Wed,  8 Jun 2016 20:47:03 +0800
-Message-ID: <1465390023-28026-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next 4/4] netfilter: nft_meta: add explicitly
+ nf_logger_find_get call
+Date: Wed, 8 Jun 2016 14:59:32 +0200
+Message-ID: <20160608125932.GA29699@breakpoint.cc>
+References: <1465389800-27842-1-git-send-email-zlpnobody@163.com>
+ <1465389800-27842-5-git-send-email-zlpnobody@163.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
 	Liping Zhang <liping.zhang@spreadtrum.com>
-To: pablo@netfilter.org
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-14.163.com ([220.181.12.14]:37419 "EHLO m12-14.163.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161596AbcFHMrg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jun 2016 08:47:36 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:59374 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752103AbcFHM7z (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Jun 2016 08:59:55 -0400
+Content-Disposition: inline
+In-Reply-To: <1465389800-27842-5-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+Liping Zhang <zlpnobody@163.com> wrote:
+> From: Liping Zhang <liping.zhang@spreadtrum.com>
+> 
+> Like xt_TRACE do, we should request related nf_log module appropriately.
+> Otherwise, if the nf_log_ipv4 kernel module is not installed, and the
+> user add the following nft rule:
+>   # nft add rule filter input nftrace set 1
+> 
+> There will be no trace log generated until we install nf_log_ipv4 module
+> manually.
 
-For example:
+With nftables we have a new infrastructure in place that emits trace info via
+nfnetlink.
 
-  # iptables-translate -t raw -A PREROUTING -j TRACE
-  nft add rule ip raw PREROUTING counter nftrace set 1
-
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
----
- extensions/libxt_TRACE.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/extensions/libxt_TRACE.c b/extensions/libxt_TRACE.c
-index 0282e6f..7cb3585 100644
---- a/extensions/libxt_TRACE.c
-+++ b/extensions/libxt_TRACE.c
-@@ -7,12 +7,20 @@
- #include <xtables.h>
- #include <linux/netfilter/x_tables.h>
- 
-+static int trace_xlate(const void *ip, const struct xt_entry_target *target,
-+		       struct xt_xlate *xl, int numeric)
-+{
-+	xt_xlate_add(xl, "nftrace set 1");
-+	return 1;
-+}
-+
- static struct xtables_target trace_target = {
- 	.family		= NFPROTO_UNSPEC,
- 	.name		= "TRACE",
- 	.version	= XTABLES_VERSION,
- 	.size		= XT_ALIGN(0),
- 	.userspacesize	= XT_ALIGN(0),
-+	.xlate		= trace_xlate,
- };
- 
- void _init(void)
--- 
-2.5.5
-
-
+So loading nf_log_ipX isn't needed anymore in nft.
