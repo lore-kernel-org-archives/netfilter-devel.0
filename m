@@ -1,75 +1,99 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/3] bridge: netfilter: checkpatch whitespace fixes
-Date: Wed, 8 Jun 2016 13:52:48 +0200
-Message-ID: <20160608115248.GA2603@salvia>
-References: <1462843618-21914-1-git-send-email-me@tobin.cc>
- <1462843618-21914-2-git-send-email-me@tobin.cc>
- <20160607151458.GA18008@salvia>
- <1465319080.25087.28.camel@perches.com>
- <20160607173417.GA1141@salvia>
- <1465322550.25087.40.camel@perches.com>
+Subject: Re: [PATCH] netfilter/nflog: nflog-range does not truncate packets
+Date: Wed, 8 Jun 2016 14:16:25 +0200
+Message-ID: <20160608121625.GA4097@salvia>
+References: <20160602002354.GG1644@akamai.com>
+ <20160606223106.GA1621@salvia>
+ <57575367.4010604@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: tcharding <me@tobin.cc>,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	"David S. Miller" <davem@davemloft.net>,
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
 	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org
-To: Joe Perches <joe@perches.com>
+	johunt@akamai.com, netdev@vger.kernel.org, pai.vishwain@gmail.com
+To: Vishwanath Pai <vpai@akamai.com>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1465322550.25087.40.camel@perches.com>
+In-Reply-To: <57575367.4010604@akamai.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jun 07, 2016 at 11:02:30AM -0700, Joe Perches wrote:
-> On Tue, 2016-06-07 at 19:34 +0200, Pablo Neira Ayuso wrote:
-> > On Tue, Jun 07, 2016 at 10:04:40AM -0700, Joe Perches wrote:
-> > > One more question, is this chunk below correct from
-> > > coding style point of view?
-> >=20
-> > =A0=A0=A0=A0=A0=A0=A0=A0if (info->bitmask & EBT_STP_ROOTADDR) {
-> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0verdict =3D 0;
-> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0for (i =3D 0; i < 6=
-; i++)
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0verdict |=3D (stpc->root[2+i] ^ c->root_addr[i]) &
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0c->root_addrmsk[i];
-> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0verdict |=3D (stpc->root[2 + i] ^ c->root_addr[i]) &
-> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0c->root_addrmsk[i];
-> >=20
-> > I think the previous line is fine.
->=20
-> "2+i" or "2 + i", either is OK.
-> Multiple line statement alignment doesn't
-> matter much.
+On Tue, Jun 07, 2016 at 07:06:15PM -0400, Vishwanath Pai wrote:
+> On 06/06/2016 06:31 PM, Pablo Neira Ayuso wrote:
+> > On Wed, Jun 01, 2016 at 08:23:54PM -0400, Vishwanath Pai wrote:
+> >> netfilter/nflog: nflog-range does not truncate packets
+> >>
+> >> The --nflog-range parameter from userspace is ignored in the kernel and
+> >> the entire packet is sent to the userspace. The per-instance parameter
+> >> copy_range still works, with this change --nflog-range will have
+> >> preference over copy_range.
+> > 
+> > I think it's reasonable to assume that --nflog-range from the rule
+> > applies globally to any instance.
+> > 
+> > However, per-instance copy_range has prevailed over --nflog-range
+> > since the beginning, so I would follow a more conservative approach,
+> > ie. remain copy_range in preference over --nflog-range.
+> > 
+> > So I'd suggest you invert this logic.
+> > 
+> > Let me know, thanks.
+> > 
+> 
+> Thanks for reviewing this. I think my comment on the patch was
+> misleading, we do give preference to copy_range and that is what we
+> default to.
 
-Sorry, I was actually refering to:
+Looking again at your code:
 
-> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0verdict |=3D (stpc->root[2 + i] ^ c->root_addr[i]) &
-> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0c->root_addrmsk[i];
-                                    ^^^
+        case NFULNL_COPY_PACKET:
+-               if (inst->copy_range > skb->len)
++               data_len = inst->copy_range;
++               if (li->u.ulog.copy_len < data_len)
++                       data_len = li->u.ulog.copy_len;
 
-instead of:
+data_len is set to instance's copy_range.
 
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0verdict |=3D (stpc->root[2+i] ^ c->root_addr[i]) &
-> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0c->root_addrmsk[i];
-                                       ^
+But then, if the NFLOG rule indicates smaller copy_len, you use this
+value. So to my understanding, NFLOG rule prevails over instance's
+copy_range in what matters, which is to shrink the copy range.
 
-here.
+> --nflog-range will not override the per-instance default,
+> the only time it would get preference is when its value is lesser than
+> the per-instance value. If copy_range is lesser than --nflog-range then
+> we retain copy_range.
+>
+> So basically what we are doing is min(copy_range, nflog-range).
+> Just wanted to clarify this, if this is not how it's meant to be
+> please let me know.
+>
+> Also, there is a bug in my patch, li->u.ulog.copy_len can be set to "0"
+> from userspace (if --nflog-range is not specified), so we have to check
+> for this condition before using the value. I will send a V2 of the patch
+> based on your reply.
 
-> I think either is fine and both are "don't care, don't need"
-> to change from one to another to satisfy some silly whitespace
-> overlord brainless script.
->=20
-> Perhaps it's better to add a function for this though.
+Currently, li->u.ulog.copy_len is set to "0" by default when not
+specified.
 
-I like this function idea :).
+But copy_len = 0 is a valid possibility, so this looks a bit more
+tricky to me to fix since we may need to get flags here to know when
+this is set.
+
+Probably something like:
+
+        if (li->flags & NF_LOG_F_COPY_RANGE)
+                data_len = li->u.ulog.copy_len;
+        /* Per-instance copy range prevails over global per-rule option. */
+        if (data_len < inst->copy_range)
+                data_len = inst->copy_range;
+        if (data_len > skb->len)
+                data_len = skb->len;
+
+Although this would require a bit more code to introduce these flags.
+
+You will also need a new flag for xt_NFLOG:
+
+#define XT_NFLOG_COPY_LEN       0x2
+
+it seems other XT_NFLOG_* flags were already in place.
+
+Interesting that nobody noticed this for so long BTW.
