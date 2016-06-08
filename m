@@ -1,60 +1,74 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf-next] netfilter: xt_cpu: no need to check the validity of invert flag
-Date: Wed,  8 Jun 2016 20:23:27 +0800
-Message-ID: <1465388607-26771-1-git-send-email-zlpnobody@163.com>
+Subject: [PATCH nf-next 4/4] netfilter: nft_meta: add explicitly nf_logger_find_get call
+Date: Wed,  8 Jun 2016 20:43:20 +0800
+Message-ID: <1465389800-27842-5-git-send-email-zlpnobody@163.com>
+References: <1465389800-27842-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org,
 	Liping Zhang <liping.zhang@spreadtrum.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-18.163.com ([220.181.12.18]:55613 "EHLO m12-18.163.com"
+Received: from m12-15.163.com ([220.181.12.15]:33426 "EHLO m12-15.163.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753106AbcFHMX7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jun 2016 08:23:59 -0400
+	id S1422765AbcFHMoP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Jun 2016 08:44:15 -0400
+In-Reply-To: <1465389800-27842-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Instead, we can convert invert flag and ensure it is 1 or 0.
+Like xt_TRACE do, we should request related nf_log module appropriately.
+Otherwise, if the nf_log_ipv4 kernel module is not installed, and the
+user add the following nft rule:
+  # nft add rule filter input nftrace set 1
+
+There will be no trace log generated until we install nf_log_ipv4 module
+manually.
 
 Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- net/netfilter/xt_cpu.c | 12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ net/netfilter/nft_meta.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/xt_cpu.c b/net/netfilter/xt_cpu.c
-index c7a2e54..ca1eaaf 100644
---- a/net/netfilter/xt_cpu.c
-+++ b/net/netfilter/xt_cpu.c
-@@ -25,27 +25,17 @@ MODULE_DESCRIPTION("Xtables: CPU match");
- MODULE_ALIAS("ipt_cpu");
- MODULE_ALIAS("ip6t_cpu");
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index f4bad9d..abeb2ef 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -24,6 +24,7 @@
+ #include <net/tcp_states.h> /* for TCP_TIME_WAIT */
+ #include <net/netfilter/nf_tables.h>
+ #include <net/netfilter/nf_tables_core.h>
++#include <net/netfilter/nf_log.h>
+ #include <net/netfilter/nft_meta.h>
  
--static int cpu_mt_check(const struct xt_mtchk_param *par)
--{
--	const struct xt_cpu_info *info = par->matchinfo;
--
--	if (info->invert & ~1)
--		return -EINVAL;
--	return 0;
--}
--
- static bool cpu_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_cpu_info *info = par->matchinfo;
+ #include <uapi/linux/netfilter_bridge.h> /* NF_BR_PRE_ROUTING */
+@@ -348,8 +349,13 @@ int nft_meta_set_init(const struct nft_ctx *ctx,
+ 	if (err < 0)
+ 		return err;
  
--	return (info->cpu == smp_processor_id()) ^ info->invert;
-+	return (info->cpu == smp_processor_id()) ^ !!info->invert;
+-	if (priv->key == NFT_META_NFTRACE)
++	if (priv->key == NFT_META_NFTRACE) {
++		err = nf_logger_find_get(ctx->afi->family, NF_LOG_TYPE_LOG);
++		if (err < 0)
++			return err;
++
+ 		static_branch_inc(&nft_trace_enabled);
++	}
+ 
+ 	return 0;
  }
+@@ -393,8 +399,10 @@ void nft_meta_set_destroy(const struct nft_ctx *ctx,
+ {
+ 	const struct nft_meta *priv = nft_expr_priv(expr);
  
- static struct xt_match cpu_mt_reg __read_mostly = {
- 	.name       = "cpu",
- 	.revision   = 0,
- 	.family     = NFPROTO_UNSPEC,
--	.checkentry = cpu_mt_check,
- 	.match      = cpu_mt,
- 	.matchsize  = sizeof(struct xt_cpu_info),
- 	.me         = THIS_MODULE,
+-	if (priv->key == NFT_META_NFTRACE)
++	if (priv->key == NFT_META_NFTRACE) {
+ 		static_branch_dec(&nft_trace_enabled);
++		nf_logger_put(ctx->afi->family, NF_LOG_TYPE_LOG);
++	}
+ }
+ EXPORT_SYMBOL_GPL(nft_meta_set_destroy);
+ 
 -- 
 2.5.5
 
