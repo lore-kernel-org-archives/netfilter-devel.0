@@ -1,47 +1,55 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf-next 0/4] netfilter: request related nf_log module when we add TRACE rule
-Date: Wed,  8 Jun 2016 20:43:16 +0800
-Message-ID: <1465389800-27842-1-git-send-email-zlpnobody@163.com>
+Subject: [PATCH iptables] extensions: libxt_TRACE: Add translation to nft
+Date: Wed,  8 Jun 2016 20:47:03 +0800
+Message-ID: <1465390023-28026-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org,
 	Liping Zhang <liping.zhang@spreadtrum.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-15.163.com ([220.181.12.15]:32930 "EHLO m12-15.163.com"
+Received: from m12-14.163.com ([220.181.12.14]:37419 "EHLO m12-14.163.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751215AbcFHMoG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jun 2016 08:44:06 -0400
+	id S1161596AbcFHMrg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Jun 2016 08:47:36 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-This patch set solve such problem, for example, if we add a following
-iptables rule:
-  # iptables -t raw -I PREROUTING -j TRACE
-And nf_log_ipv4 kernel module is not installed, no trace log
-will be generated, until we install the nf_log_ipv4 module manully.
+For example:
 
-This is not friendly, so we add nf_logger_find_get call explicitly
-when xt_TRACE target is created. Nft nftrace meta has the same
-problem.
+  # iptables-translate -t raw -A PREROUTING -j TRACE
+  nft add rule ip raw PREROUTING counter nftrace set 1
 
-And in order to avoid special treatment of NFPROTO_INET family again
-and again, I move the special logic to the inside of nf_logger_find_get
-and nf_logger_put, so caller can ignore it. 
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+---
+ extensions/libxt_TRACE.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Liping Zhang (4):
-  netfilter: nf_log: handle NFPROTO_INET properly in
-    nf_logger_[find_get|put]
-  netfilter: nft_log: no need to deal with NFPROTO_INET family
-  netfilter: xt_TRACE: add explicitly nf_logger_find_get call
-  netfilter: nft_meta: add explicitly nf_logger_find_get call
-
- net/netfilter/nf_log.c   | 20 ++++++++++++++++++++
- net/netfilter/nft_log.c  | 21 +--------------------
- net/netfilter/nft_meta.c | 12 ++++++++++--
- net/netfilter/xt_TRACE.c | 25 +++++++++++++++++++------
- 4 files changed, 50 insertions(+), 28 deletions(-)
-
+diff --git a/extensions/libxt_TRACE.c b/extensions/libxt_TRACE.c
+index 0282e6f..7cb3585 100644
+--- a/extensions/libxt_TRACE.c
++++ b/extensions/libxt_TRACE.c
+@@ -7,12 +7,20 @@
+ #include <xtables.h>
+ #include <linux/netfilter/x_tables.h>
+ 
++static int trace_xlate(const void *ip, const struct xt_entry_target *target,
++		       struct xt_xlate *xl, int numeric)
++{
++	xt_xlate_add(xl, "nftrace set 1");
++	return 1;
++}
++
+ static struct xtables_target trace_target = {
+ 	.family		= NFPROTO_UNSPEC,
+ 	.name		= "TRACE",
+ 	.version	= XTABLES_VERSION,
+ 	.size		= XT_ALIGN(0),
+ 	.userspacesize	= XT_ALIGN(0),
++	.xlate		= trace_xlate,
+ };
+ 
+ void _init(void)
 -- 
 2.5.5
 
