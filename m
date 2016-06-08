@@ -1,42 +1,75 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2 libnftnl] Check all strdup
-Date: Wed, 8 Jun 2016 13:46:09 +0200
-Message-ID: <20160608114609.GB2436@salvia>
-References: <1464689312-8136-1-git-send-email-carlosfg@riseup.net>
- <20160607150810.GA17951@salvia>
- <20160608110701.GA919@salvia>
- <20160608113741.GA13163@breakpoint.cc>
+Subject: Re: [PATCH 1/3] bridge: netfilter: checkpatch whitespace fixes
+Date: Wed, 8 Jun 2016 13:52:48 +0200
+Message-ID: <20160608115248.GA2603@salvia>
+References: <1462843618-21914-1-git-send-email-me@tobin.cc>
+ <1462843618-21914-2-git-send-email-me@tobin.cc>
+ <20160607151458.GA18008@salvia>
+ <1465319080.25087.28.camel@perches.com>
+ <20160607173417.GA1141@salvia>
+ <1465322550.25087.40.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>,
-	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47491 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751320AbcFHLqo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jun 2016 07:46:44 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 57E411BFAB0
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jun 2016 13:46:42 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8ADA9358E
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jun 2016 13:46:41 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B86776448D
-	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jun 2016 13:46:36 +0200 (CEST)
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: tcharding <me@tobin.cc>,
+	Stephen Hemminger <stephen@networkplumber.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20160608113741.GA13163@breakpoint.cc>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1465322550.25087.40.camel@perches.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jun 08, 2016 at 01:37:41PM +0200, Florian Westphal wrote:
-> Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > +	if (attr > NFTNL_CHAIN_MAX) {
-> > +		errno = -EOPNOTSUPP;
-> 
-> The negation should be dropped.
+On Tue, Jun 07, 2016 at 11:02:30AM -0700, Joe Perches wrote:
+> On Tue, 2016-06-07 at 19:34 +0200, Pablo Neira Ayuso wrote:
+> > On Tue, Jun 07, 2016 at 10:04:40AM -0700, Joe Perches wrote:
+> > > One more question, is this chunk below correct from
+> > > coding style point of view?
+> >=20
+> > =A0=A0=A0=A0=A0=A0=A0=A0if (info->bitmask & EBT_STP_ROOTADDR) {
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0verdict =3D 0;
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0for (i =3D 0; i < 6=
+; i++)
+> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0verdict |=3D (stpc->root[2+i] ^ c->root_addr[i]) &
+> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0c->root_addrmsk[i];
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0verdict |=3D (stpc->root[2 + i] ^ c->root_addr[i]) &
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0c->root_addrmsk[i];
+> >=20
+> > I think the previous line is fine.
+>=20
+> "2+i" or "2 + i", either is OK.
+> Multiple line statement alignment doesn't
+> matter much.
 
-Right, this should be:
+Sorry, I was actually refering to:
 
-                errno = EOPNOTSUPP;
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0verdict |=3D (stpc->root[2 + i] ^ c->root_addr[i]) &
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0c->root_addrmsk[i];
+                                    ^^^
+
+instead of:
+
+> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0verdict |=3D (stpc->root[2+i] ^ c->root_addr[i]) &
+> > -=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0c->root_addrmsk[i];
+                                       ^
+
+here.
+
+> I think either is fine and both are "don't care, don't need"
+> to change from one to another to satisfy some silly whitespace
+> overlord brainless script.
+>=20
+> Perhaps it's better to add a function for this though.
+
+I like this function idea :).
