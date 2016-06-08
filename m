@@ -1,122 +1,102 @@
-From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCHv4] extensions: libip6t_frag: Add translation to nft
-Date: Wed, 8 Jun 2016 19:47:28 +0200
-Message-ID: <20160608174725.GA21856@sonyv>
+From: =?UTF-8?Q?Roberto_Garc=c3=ada?= <rodanber@gmail.com>
+Subject: [PATCH v2] iptables: extensions: libxt_MARK: Add translation to nft
+Date: Thu, 9 Jun 2016 00:24:53 +0200
+Message-ID: <c6a9fe06-8b97-93c3-2abb-f50f2d64cd88@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36454 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753745AbcFHRrc (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:33882 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1424070AbcFHWZB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jun 2016 13:47:32 -0400
-Received: by mail-wm0-f66.google.com with SMTP id m124so4748109wme.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jun 2016 10:47:32 -0700 (PDT)
-Received: from sonyv (cli-5b7e49a2.wholesale.adamo.es. [91.126.73.162])
-        by smtp.gmail.com with ESMTPSA id g8sm3253694wme.23.2016.06.08.10.47.30
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Wed, 08 Jun 2016 10:47:30 -0700 (PDT)
-Content-Disposition: inline
+	Wed, 8 Jun 2016 18:25:01 -0400
+Received: by mail-wm0-f67.google.com with SMTP id n184so6305985wmn.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 08 Jun 2016 15:25:01 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add translation for frag to nftables. According to the --fraglen code:
-
-	case O_FRAGLEN:
-		/*
-		 * As of Linux 3.0, the kernel does not check for
-		 * fraglen at all.
-		 */
-
-In addition, the kernel code doesn't show any reference to the flag
-IP6T_FRAG_LEN, so this option is deprecated and won't be translated to
-nft.
+Add translation for the MARK target to nftables.
 
 Examples:
 
-$ sudo iptables-translate -t filter -A INPUT -m frag --fragid 100:200 -j ACCEPT
-nft add rule ip6 filter INPUT frag id 100-200 counter accept
+$ sudo iptables-translate -t mangle -A OUTPUT -j MARK --set-mark 64
 
-$ sudo iptables-translate -t filter -A INPUT -m frag --fragid 100 --fragres --fragmore -j ACCEPT
-nft add rule ip6 filter INPUT frag id 100 frag reserved 1 frag more-fragments 1 counter accept
+nft add rule ip mangle OUTPUT counter meta mark set 0x40
 
-$ sudo iptables-translate -t filter -A INPUT -m frag ! --fragid 100:200 -j ACCEPT
-nft add rule ip6 filter INPUT frag id != 100-200 counter accept
+$ sudo iptables-translate -t mangle -A OUTPUT -j MARK --set-xmark 0x40/=
+0x32
 
-$ sudo iptables-translate -t filter -A INPUT -m frag --fragid 100:200 --fraglast -j ACCEPT
-nft add rule ip6 filter INPUT frag id 100-200 frag more-fragments 1 counter accept
+nft add rule ip mangle OUTPUT counter meta mark set mark xor 0x40 and 0=
+x32
 
-$ sudo iptables-translate -t filter -A INPUT -m frag --fragid 100:200 --fragfirst -j ACCEPT
-nft add rule ip6 filter INPUT frag id 100-200 frag frag-off 0 counter accept
+$ sudo iptables-translate -t mangle -A OUTPUT -j MARK --or-mark 64
 
-$ sudo iptables-translate -t filter -A INPUT -m frag --fraglast -j ACCEPT
-nft add rule ip6 filter INPUT frag more-fragments 0 counter accept
+nft add rule ip mangle OUTPUT counter meta mark set mark or 0x40
 
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+$ sudo iptables-translate -t mangle -A OUTPUT -j MARK --and-mark 64
+
+nft add rule ip mangle OUTPUT counter meta mark set mark and 0x40
+
+$ sudo iptables-translate -t mangle -A OUTPUT -j MARK --xor-mark 64
+
+nft add rule ip mangle OUTPUT counter meta mark set mark xor 0x40
+
+Signed-off-by: Roberto Garc=C3=ADa <rodanber@gmail.com>
 ---
-Changes in v2:
-	- Include translation for fragfirst and fraglast.
-	- fraglen is marked as deprecated.
-Changes in v3:
-	- Ignore completely IP6T_FRAG_LEN.
-Changes in v4:
-	- Traduce fraglast as no more fragments.
+  extensions/libxt_MARK.c | 23 +++++++++++++++++++++++
+  1 file changed, 23 insertions(+)
 
- extensions/libip6t_frag.c | 32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
-
-diff --git a/extensions/libip6t_frag.c b/extensions/libip6t_frag.c
-index 023df62..57487c4 100644
---- a/extensions/libip6t_frag.c
-+++ b/extensions/libip6t_frag.c
-@@ -173,6 +173,37 @@ static void frag_save(const void *ip, const struct xt_entry_match *match)
- 		printf(" --fraglast");
- }
- 
-+static int frag_xlate(const void *ip, const struct xt_entry_match *match,
-+		      struct xt_xlate *xl, int numeric)
+diff --git a/extensions/libxt_MARK.c b/extensions/libxt_MARK.c
+index 556dbde..ec1ed05 100644
+--- a/extensions/libxt_MARK.c
++++ b/extensions/libxt_MARK.c
+@@ -245,6 +245,28 @@ static void mark_tg_save(const void *ip, const=20
+struct xt_entry_target *target)
+  	printf(" --set-xmark 0x%x/0x%x", info->mark, info->mask);
+  }
+  +static int mark_tg_xlate(const void *ip, const struct xt_entry_targe=
+t=20
+*target,
++			 struct xt_xlate *xl, int numeric)
 +{
-+	const struct ip6t_frag *fraginfo = (struct ip6t_frag *)match->data;
++	const struct xt_mark_tginfo2 *info =3D (const void *)target->data;
 +
-+	if (!(fraginfo->ids[0] == 0 && fraginfo->ids[1] == 0xFFFFFFFF)) {
-+		xt_xlate_add(xl, "frag id %s",
-+			     (fraginfo->invflags & IP6T_FRAG_INV_IDS) ?
-+			     "!= " : "");
-+		if (fraginfo->ids[0] != fraginfo->ids[1])
-+			xt_xlate_add(xl, "%u-%u ", fraginfo->ids[0],
-+				     fraginfo->ids[1]);
-+		else
-+			xt_xlate_add(xl, "%u ", fraginfo->ids[0]);
-+	}
++	xt_xlate_add(xl, "meta mark set ");
 +
-+	if (fraginfo->flags & IP6T_FRAG_RES)
-+		xt_xlate_add(xl, "frag reserved 1 ");
-+
-+	if (fraginfo->flags & IP6T_FRAG_FST)
-+		xt_xlate_add(xl, "frag frag-off 0 ");
-+
-+	if (fraginfo->flags & IP6T_FRAG_MF)
-+		xt_xlate_add(xl, "frag more-fragments 1 ");
-+
-+	if (fraginfo->flags & IP6T_FRAG_NMF)
-+		xt_xlate_add(xl, "frag more-fragments 0 ");
++	if (info->mark =3D=3D 0)
++		xt_xlate_add(xl, "mark and 0x%x ", ~info->mask);
++	else if (info->mark =3D=3D info->mask)
++		xt_xlate_add(xl, "mark or 0x%x ", info->mark);
++	else if (info->mask =3D=3D 0)
++		xt_xlate_add(xl, "mark xor 0x%x ", info->mark);
++	else if (info->mask =3D=3D 0xffffffffU)
++		xt_xlate_add(xl, "0x%x ", info->mark);
++	else
++		xt_xlate_add(xl, "mark xor 0x%x and 0x%x ", info->mark,
++			     info->mask);
 +
 +	return 1;
 +}
 +
- static struct xtables_match frag_mt6_reg = {
- 	.name          = "frag",
- 	.version       = XTABLES_VERSION,
-@@ -185,6 +216,7 @@ static struct xtables_match frag_mt6_reg = {
- 	.save          = frag_save,
- 	.x6_parse      = frag_parse,
- 	.x6_options    = frag_opts,
-+	.xlate	       = frag_xlate,
- };
- 
- void
--- 
-2.7.0
+  static struct xtables_target mark_tg_reg[] =3D {
+  	{
+  		.family        =3D NFPROTO_UNSPEC,
+@@ -287,6 +309,7 @@ static struct xtables_target mark_tg_reg[] =3D {
+  		.x6_parse      =3D mark_tg_parse,
+  		.x6_fcheck     =3D mark_tg_check,
+  		.x6_options    =3D mark_tg_opts,
++		.xlate	       =3D mark_tg_xlate,
+  	},
+  };
+  -- 2.8.0
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
