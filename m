@@ -1,36 +1,38 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next 3/4] netfilter: xt_TRACE: add explicitly
- nf_logger_find_get call
-Date: Wed, 8 Jun 2016 15:00:51 +0200
-Message-ID: <20160608130051.GB29699@breakpoint.cc>
-References: <1465389800-27842-1-git-send-email-zlpnobody@163.com>
- <1465389800-27842-4-git-send-email-zlpnobody@163.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH iptables] extensions: libxt_TRACE: Add translation to nft
+Date: Wed, 8 Jun 2016 16:56:05 +0200
+Message-ID: <20160608145605.GA5586@salvia>
+References: <1465390023-28026-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+Cc: netfilter-devel@vger.kernel.org,
 	Liping Zhang <liping.zhang@spreadtrum.com>
 To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:59382 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752103AbcFHNBA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Jun 2016 09:01:00 -0400
+Received: from mail.us.es ([193.147.175.20]:41428 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754088AbcFHO4O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Jun 2016 10:56:14 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id D5D136FB87B
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jun 2016 16:56:11 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id C7E7A9EBA3
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jun 2016 16:56:11 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id D83839EBA9
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jun 2016 16:56:06 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1465389800-27842-4-git-send-email-zlpnobody@163.com>
+In-Reply-To: <1465390023-28026-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Liping Zhang <zlpnobody@163.com> wrote:
+On Wed, Jun 08, 2016 at 08:47:03PM +0800, Liping Zhang wrote:
 > From: Liping Zhang <liping.zhang@spreadtrum.com>
 > 
-> Consider such situation, if nf_log_ipv4 kernel module is not installed,
-> and the user add a following iptables rule:
->   # iptables -t raw -I PREROUTING -j TRACE
+> For example:
 > 
-> There will be no trace log generated until the user install nf_log_ipv4
-> module manully.
+>   # iptables-translate -t raw -A PREROUTING -j TRACE
+>   nft add rule ip raw PREROUTING counter nftrace set 1
 
-Right, this is a constant source of confusion.
-
-Acked-by: Florian Westphal <fw@strlen.de>
+Applied, thanks.
