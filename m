@@ -1,10 +1,11 @@
-From: Florian Westphal <fw@strlen.de>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: [PATCH net-next] nfnetlink_queue: enable PID info retrieval
-Date: Thu, 9 Jun 2016 23:35:17 +0200
-Message-ID: <20160609213517.GA25288@breakpoint.cc>
+Date: Thu, 09 Jun 2016 14:17:11 -0700
+Message-ID: <1465507031.7945.44.camel@edumazet-glaptop3.roam.corp.google.com>
 References: <1465505409-1232-1-git-send-email-saeedm@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org,
 	Yevgeny Petrilin <yevgenyp@mellanox.com>,
@@ -15,12 +16,15 @@ Cc: "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 To: Saeed Mahameed <saeedm@mellanox.com>
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
 In-Reply-To: <1465505409-1232-1-git-send-email-saeedm@mellanox.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Saeed Mahameed <saeedm@mellanox.com> wrote:
+On Thu, 2016-06-09 at 23:50 +0300, Saeed Mahameed wrote:
+> From: Matthew Finlay <matt@mellanox.com>
+
+
+> diff --git a/net/socket.c b/net/socket.c
 > index a1bd161..67de200 100644
 > --- a/net/socket.c
 > +++ b/net/socket.c
@@ -33,11 +37,6 @@ Saeed Mahameed <saeedm@mellanox.com> wrote:
 >  	file->private_data = sock;
 >  	return file;
 
-This looks like this leaks sock_pid reference...?
+Wow, that is a serious memory leak weapon (of struct pid)
 
-(find_get_pid -> get_pid -> atomic_inc() , I don't see a put_pid in the
- patch)
-
-Can't comment further than this since I'm not familiar with vfs; e.g.
-I can't say if fown_struct is right place or not, or if this approach
-even works when creating process has exited after fork, etc.
+Why don't you store the pid value, instead of a pointer ?
