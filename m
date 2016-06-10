@@ -1,79 +1,39 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH net-next] nfnetlink_queue: enable PID info retrieval
-Date: Fri, 10 Jun 2016 08:31:08 -0700
-Message-ID: <1465572668.7945.62.camel@edumazet-glaptop3.roam.corp.google.com>
-References: <1465505409-1232-1-git-send-email-saeedm@mellanox.com>
-	 <1465507031.7945.44.camel@edumazet-glaptop3.roam.corp.google.com>
-	 <063D6719AE5E284EB5DD2968C1650D6D5F4D4981@AcuExch.aculab.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Saeed Mahameed <saeedm@mellanox.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	Yevgeny Petrilin <yevgenyp@mellanox.com>,
-	Andre Melkoumian <andre@mellanox.com>,
-	Matthew Finlay <matt@mellanox.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: David Laight <David.Laight@ACULAB.COM>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next] netfilter: conntrack: align nf_conn on cacheline boundary
+Date: Fri, 10 Jun 2016 22:25:22 +0200
+Message-ID: <1465590322-2174-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f68.google.com ([209.85.220.68]:34621 "EHLO
-	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753264AbcFJPbL (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:36912 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751949AbcFJUZF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Jun 2016 11:31:11 -0400
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D5F4D4981@AcuExch.aculab.com>
+	Fri, 10 Jun 2016 16:25:05 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 2016-06-10 at 14:29 +0000, David Laight wrote:
-> From: Eric Dumazet
-> > Sent: 09 June 2016 22:17
-> > On Thu, 2016-06-09 at 23:50 +0300, Saeed Mahameed wrote:
-> > > From: Matthew Finlay <matt@mellanox.com>
-> > 
-> > 
-> > > diff --git a/net/socket.c b/net/socket.c
-> > > index a1bd161..67de200 100644
-> > > --- a/net/socket.c
-> > > +++ b/net/socket.c
-> > > @@ -382,6 +382,7 @@ struct file *sock_alloc_file(struct socket *sock, int flags, const char *dname)
-> > >  	}
-> > >
-> > >  	sock->file = file;
-> > > +	file->f_owner.sock_pid  = find_get_pid(task_pid_nr(current));
-> > >  	file->f_flags = O_RDWR | (flags & O_NONBLOCK);
-> > >  	file->private_data = sock;
-> > >  	return file;
-> > 
-> > Wow, that is a serious memory leak weapon (of struct pid)
-> > 
-> > Why don't you store the pid value, instead of a pointer ?
-> 
-> Since the numeric 'pid' values can be reused (with no grace time) you'd
-> need to hold a reference to the pid structure (added in about 2.6.27) instead.
-> Which is just a smaller memory leak!
+increases struct size by 32 bytes (288 -> 320), but it is the right thing,
+else any attempt to (re-)arrange nf_conn members by cacheline won't work.
 
-Smaller than what ?
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ gives checkpatch warn due to line > 80 lines but I don't want to
+ add a line-break after | just for checkpatch...
 
-
-I fail to see how keeping a reference on the pid structure of the
-process who created a socket can be useful, other than some optional
-LSM.
-
-A socket can be given via af_unix to another process.
-
-Original process might have died.
-
-Keeping a ref on the pid wont prevent this.
-
-So the 'pid' here looks as a pure hint/info. Better store it directly
-and avoid all the ref counting and indirection games that are going to
-slow down nfnetlink quite a lot with all these extra cache line misses
-and locks.
-
-
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index c74dac7..a459176 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1711,7 +1711,7 @@ int nf_conntrack_init_start(void)
+ 
+ 	nf_conntrack_cachep = kmem_cache_create("nf_conntrack",
+ 						sizeof(struct nf_conn), 0,
+-						SLAB_DESTROY_BY_RCU, NULL);
++						SLAB_DESTROY_BY_RCU | SLAB_HWCACHE_ALIGN, NULL);
+ 	if (!nf_conntrack_cachep)
+ 		goto err_cachep;
+ 
+-- 
+2.7.3
 
