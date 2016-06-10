@@ -1,66 +1,36 @@
-From: Daniel Wagner <daniel.wagner@bmw-carit.de>
-Subject: Re: [PATCH net-next] nfnetlink_queue: enable PID info retrieval
-Date: Fri, 10 Jun 2016 08:40:34 +0200
-Message-ID: <2ec75506-1ba0-5b16-4cd4-7b40cc969871@bmw-carit.de>
-References: <1465505409-1232-1-git-send-email-saeedm@mellanox.com>
- <20160609213517.GA25288@breakpoint.cc> <5759EBF5.4010902@iogearbox.net>
- <5759FA28.3060900@iogearbox.net>
+From: Thomas Woerner <twoerner@redhat.com>
+Subject: ip6tables: Warn about use of DROP in nat table
+Date: Fri, 10 Jun 2016 12:16:13 +0200
+Message-ID: <37eef83b-8e81-b3ae-3dea-e51a913b3e2e@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: "David S. Miller" <davem@davemloft.net>, <netdev@vger.kernel.org>,
-	<netfilter-devel@vger.kernel.org>,
-	Yevgeny Petrilin <yevgenyp@mellanox.com>,
-	Andre Melkoumian <andre@mellanox.com>,
-	Matthew Finlay <matt@mellanox.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	<john.fastabend@gmail.com>, <hannes@stressinduktion.org>,
-	<tj@kernel.org>, <viro@zeniv.linux.org.uk>
-To: Daniel Borkmann <daniel@iogearbox.net>,
-	Florian Westphal <fw@strlen.de>,
-	Saeed Mahameed <saeedm@mellanox.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cit-hm8-mail01.bmw-carit.de ([212.118.206.84]:55024 "EHLO
-	cit-hm8-gw01.bmw-carit.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751017AbcFJGqH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Jun 2016 02:46:07 -0400
-In-Reply-To: <5759FA28.3060900@iogearbox.net>
+Received: from mx1.redhat.com ([209.132.183.28]:49440 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932549AbcFJKQP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Jun 2016 06:16:15 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mx1.redhat.com (Postfix) with ESMTPS id B727072D2F
+	for <netfilter-devel@vger.kernel.org>; Fri, 10 Jun 2016 10:16:14 +0000 (UTC)
+Received: from brasilia.fritz.box (brasilia.str.redhat.com [10.33.200.35])
+	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id u5AAGD8J031419
+	for <netfilter-devel@vger.kernel.org>; Fri, 10 Jun 2016 06:16:14 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Daniel,
+Hello,
 
-> [ Cc'ing John, Daniel, et al ]
-> 
-> Btw, while I just looked at scm_detach_fds(), I think commits ...
-> 
->  * 48a87cc26c13 ("net: netprio: fd passed in SCM_RIGHTS datagram not set
-> correctly")
->  * d84295067fc7 ("net: net_cls: fd passed in SCM_RIGHTS datagram not set
-> correctly")
-> 
-> ... might not be correct, maybe I'm missing something ...? Lets say
-> process A
-> has a socket fd that it sends via SCM_RIGHTS to process B. Process A was
-> the
-> one that called sk_alloc() originally. Now in scm_detach_fds() we
-> install a new
-> fd for process B pointing to the same sock (file's private_data) and
-> above commits
-> update the cached socket cgroup data for net_cls/net_prio to the new
-> process B.
-> So, if process A for example still sends data over that socket, skbs
-> will then
-> wrongly match on B's cgroup membership instead of A's, no?
+in iptables.c there is a check of DROP usage in the nat table.In 
+ip6tables, this check is not there.Is this intentional?
 
-I can't remember the details right now (need to read up again but I wont
-have time till Wednesday).
+These are the commits for iptables that added and modified the 
+check:1eada72b, 9bb76094 and e0390bee
 
->From your analysis I would say that is not the desired effect. A should
-match against its own cgroup and not the one of B.
+What do you think about adding this also to ip6ables?
 
-cheers,
-daniel
+Regards,
+Thomas
