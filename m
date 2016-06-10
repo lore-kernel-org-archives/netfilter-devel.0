@@ -1,112 +1,56 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2 libnftnl] Check memory allocations in setters
-Date: Fri, 10 Jun 2016 13:15:55 +0200
-Message-ID: <20160610111555.GA1194@salvia>
+From: =?UTF-8?Q?Carlos_Falgueras_Garc=c3=ada?= <carlosfg@riseup.net>
+Subject: Re: [PATCH 1/2 libnftnl] Fix leak in nftnl_*_unset()
+Date: Fri, 10 Jun 2016 13:21:39 +0200
+Message-ID: <540743c1-d376-643d-1ba6-402ebb2ee140@riseup.net>
 References: <1465554054-16283-1-git-send-email-carlosfg@riseup.net>
- <1465554054-16283-2-git-send-email-carlosfg@riseup.net>
+ <CAOkSjBh1f-psUnErLLbEifZm9_Af62gPeDFS89srVvVp3s9q_Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56036 "EHLO mail.us.es"
+Received: from mx1.riseup.net ([198.252.153.129]:54633 "EHLO mx1.riseup.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752706AbcFJLQP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Jun 2016 07:16:15 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 2C9DE493784
-	for <netfilter-devel@vger.kernel.org>; Fri, 10 Jun 2016 13:16:13 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 1A6851B3266
-	for <netfilter-devel@vger.kernel.org>; Fri, 10 Jun 2016 13:16:13 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 479731B326D
-	for <netfilter-devel@vger.kernel.org>; Fri, 10 Jun 2016 13:15:58 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1465554054-16283-2-git-send-email-carlosfg@riseup.net>
+	id S1752462AbcFJLVo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Jun 2016 07:21:44 -0400
+In-Reply-To: <CAOkSjBh1f-psUnErLLbEifZm9_Af62gPeDFS89srVvVp3s9q_Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 10, 2016 at 12:20:54PM +0200, Carlos Falgueras Garc=EDa wro=
-te:
-> When you set an object attribute the memory is copied, sometimes an
-> allocations is needed and it must be checked. Before this patch all s=
-etters
-> method return void, so this patch makes all setters return int instea=
-d void
-> to communicate the error to user.
->=20
-> Summary:
-> 	* All setters return int instead void
-> 	* All memory allocations inside setters are checked
-> 	* Unsetters are used if is possible in order to consolidate
->=20
-> Signed-off-by: Carlos Falgueras Garc=EDa <carlosfg@riseup.net>
-> ---
->  include/libnftnl/chain.h   | 16 +++++++-------
->  include/libnftnl/expr.h    | 12 +++++------
->  include/libnftnl/gen.h     |  8 +++----
->  include/libnftnl/rule.h    | 12 +++++------
->  include/libnftnl/ruleset.h |  2 +-
->  include/libnftnl/set.h     | 20 ++++++++---------
->  include/libnftnl/table.h   | 12 +++++------
->  src/chain.c                | 54 +++++++++++++++++++++++++-----------=
-----------
->  src/expr.c                 | 36 ++++++++++++++++++-------------
->  src/expr/dynset.c          |  5 ++++-
->  src/expr/immediate.c       |  6 +++---
->  src/expr/log.c             |  7 ++++--
->  src/expr/lookup.c          |  5 ++++-
->  src/gen.c                  | 20 ++++++++++-------
->  src/rule.c                 | 46 ++++++++++++++++++++----------------=
----
->  src/ruleset.c              | 19 ++++++++++------
->  src/set.c                  | 40 ++++++++++++++++++----------------
->  src/set_elem.c             | 33 ++++++++++++++--------------
->  src/table.c                | 28 +++++++++++++-----------
->  19 files changed, 210 insertions(+), 171 deletions(-)
->=20
-> diff --git a/include/libnftnl/chain.h b/include/libnftnl/chain.h
-> index 954b39f..6419dee 100644
-> --- a/include/libnftnl/chain.h
-> +++ b/include/libnftnl/chain.h
-> @@ -36,14 +36,14 @@ enum nftnl_chain_attr {
-> =20
->  bool nftnl_chain_is_set(const struct nftnl_chain *c, uint16_t attr);
->  void nftnl_chain_unset(struct nftnl_chain *c, uint16_t attr);
-> -void nftnl_chain_set(struct nftnl_chain *t, uint16_t attr, const voi=
-d *data);
-> -void nftnl_chain_set_data(struct nftnl_chain *t, uint16_t attr,
-> -			     const void *data, uint32_t data_len);
-> -void nftnl_chain_set_u8(struct nftnl_chain *t, uint16_t attr, uint8_=
-t data);
-> -void nftnl_chain_set_u32(struct nftnl_chain *t, uint16_t attr, uint3=
-2_t data);
-> -void nftnl_chain_set_s32(struct nftnl_chain *t, uint16_t attr, int32=
-_t data);
-> -void nftnl_chain_set_u64(struct nftnl_chain *t, uint16_t attr, uint6=
-4_t data);
-> -void nftnl_chain_set_str(struct nftnl_chain *t, uint16_t attr, const=
- char *str);
-> +int nftnl_chain_set(struct nftnl_chain *t, uint16_t attr, const void=
- *data);
-> +int nftnl_chain_set_data(struct nftnl_chain *t, uint16_t attr,
-> +			 const void *data, uint32_t data_len);
-> +int nftnl_chain_set_u8(struct nftnl_chain *t, uint16_t attr, uint8_t=
- data);
-> +int nftnl_chain_set_u32(struct nftnl_chain *t, uint16_t attr, uint32=
-_t data);
-> +int nftnl_chain_set_s32(struct nftnl_chain *t, uint16_t attr, int32_=
-t data);
-> +int nftnl_chain_set_u64(struct nftnl_chain *t, uint16_t attr, uint64=
-_t data);
+On 06/10/2016 01:14 PM, Arturo Borrero Gonzalez wrote:
+> On 10 June 2016 at 12:20, Carlos Falgueras Garc=C3=ADa <carlosfg@rise=
+up.net> wrote:
+>> Signed-off-by: Carlos Falgueras Garc=C3=ADa <carlosfg@riseup.net>
+>> ---
+>>  src/rule.c     | 1 +
+>>  src/set_elem.c | 1 +
+>>  2 files changed, 2 insertions(+)
+>>
+>> diff --git a/src/rule.c b/src/rule.c
+>> index 1e1a138..4c22436 100644
+>> --- a/src/rule.c
+>> +++ b/src/rule.c
+>> @@ -112,6 +112,7 @@ void nftnl_rule_unset(struct nftnl_rule *r, uint=
+16_t attr)
+>>         case NFTNL_RULE_POSITION:
+>>         case NFTNL_RULE_FAMILY:
+>>         case NFTNL_RULE_USERDATA:
+>> +               xfree(r->user.data);
+>>                 break;
+>>         }
+>>
+>
+> I think you need to isolate this NFTNL_RULE_USERDATA case from the
+> others by avoiding the fall through.
+>
+> Example: an user calling nftnl_rule_unset() with NFTNL_RULE_FAMILY
+> will free 'r->user.data'. That doesn't seem correct.
 
-_set_uXX never fail, so leave them using void as this just makes this
-more complicated.
-
-Please only update _set_data() and _set_str() as in my original patch
-that I handed over to you. Thanks.
+thank you! This is an embarrassing mistake >.<
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
