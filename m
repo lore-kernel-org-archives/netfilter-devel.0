@@ -1,61 +1,48 @@
-From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
-Subject: [PATCH 1/2 v2,libnftnl] Fix leak in nftnl_*_unset()
-Date: Fri, 10 Jun 2016 14:22:45 +0200
-Message-ID: <20160610122246.1621-1-carlosfg@riseup.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: pablo@netfilter.org
+From: Thomas Woerner <twoerner@redhat.com>
+Subject: [PATCH] ip6tables: Warn about use of DROP in nat table
+Date: Fri, 10 Jun 2016 14:57:58 +0200
+Message-ID: <1465563478-7602-1-git-send-email-twoerner@redhat.com>
+Cc: Thomas Woerner <twoerner@redhat.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:42488 "EHLO mx1.riseup.net"
+Received: from mx1.redhat.com ([209.132.183.28]:46667 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932102AbcFJMWy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 10 Jun 2016 08:22:54 -0400
+	id S932124AbcFJM6C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 10 Jun 2016 08:58:02 -0400
+Received: from int-mx14.intmail.prod.int.phx2.redhat.com (int-mx14.intmail.prod.int.phx2.redhat.com [10.5.11.27])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by mx1.redhat.com (Postfix) with ESMTPS id 7C088C05B1FE
+	for <netfilter-devel@vger.kernel.org>; Fri, 10 Jun 2016 12:58:01 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Carlos Falgueras Garc=C3=ADa <carlosfg@riseup.net>
+Clone of 1eada72b with 9bb76094 and e0390bee on top.
+
+Signed-off-by: Thomas Woerner <twoerner@redhat.com>
 ---
- src/rule.c     | 2 ++
- src/set_elem.c | 2 ++
- 2 files changed, 4 insertions(+)
+:100644 100644 2731209... c48ddf9... M	iptables/ip6tables.c
+ iptables/ip6tables.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/src/rule.c b/src/rule.c
-index 1e1a138..19e8b95 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -111,7 +111,9 @@ void nftnl_rule_unset(struct nftnl_rule *r, uint16_=
-t attr)
- 	case NFTNL_RULE_COMPAT_FLAGS:
- 	case NFTNL_RULE_POSITION:
- 	case NFTNL_RULE_FAMILY:
-+		break;
- 	case NFTNL_RULE_USERDATA:
-+		xfree(r->user.data);
- 		break;
+diff --git a/iptables/ip6tables.c b/iptables/ip6tables.c
+index 2731209..c48ddf9 100644
+--- a/iptables/ip6tables.c
++++ b/iptables/ip6tables.c
+@@ -1720,6 +1720,13 @@ int do_command6(int argc, char *argv[], char **table,
+ 		cs.invert = FALSE;
  	}
-=20
-diff --git a/src/set_elem.c b/src/set_elem.c
-index da30b02..f40515c 100644
---- a/src/set_elem.c
-+++ b/src/set_elem.c
-@@ -81,7 +81,9 @@ void nftnl_set_elem_unset(struct nftnl_set_elem *s, u=
-int16_t attr)
- 	case NFTNL_SET_ELEM_DATA:	/* NFTA_SET_ELEM_DATA */
- 	case NFTNL_SET_ELEM_TIMEOUT:	/* NFTA_SET_ELEM_TIMEOUT */
- 	case NFTNL_SET_ELEM_EXPIRATION:	/* NFTA_SET_ELEM_EXPIRATION */
-+		break;
- 	case NFTNL_SET_ELEM_USERDATA:	/* NFTA_SET_ELEM_USERDATA */
-+		xfree(s->user.data);
- 		break;
- 	case NFTNL_SET_ELEM_EXPR:
- 		if (s->flags & (1 << NFTNL_SET_ELEM_EXPR)) {
---=20
-2.8.3
+ 
++	if (strcmp(*table, "nat") == 0 &&
++	    ((policy != NULL && strcmp(policy, "DROP") == 0) ||
++	    (cs.jumpto != NULL && strcmp(cs.jumpto, "DROP") == 0)))
++		xtables_error(PARAMETER_PROBLEM,
++			"\nThe \"nat\" table is not intended for filtering, "
++		        "the use of DROP is therefore inhibited.\n\n");
++
+ 	for (matchp = cs.matches; matchp; matchp = matchp->next)
+ 		xtables_option_mfcall(matchp->match);
+ 	if (cs.target != NULL)
+-- 
+2.5.5
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
