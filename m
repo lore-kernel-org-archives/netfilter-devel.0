@@ -1,55 +1,54 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nft PATCH] tests/shell: cleanup tempfile handling in
- testcases/sets/cache_handling_0
-Date: Sat, 11 Jun 2016 12:25:59 +0200
-Message-ID: <146564075890.10180.12129365273166621494.stgit@nfdev2.cica.es>
+From: Tobin Harding <me@tobin.cc>
+Subject: Re: [PATCH 1/3] bridge: netfilter: checkpatch whitespace fixes
+Date: Sat, 11 Jun 2016 20:44:13 +1000
+Message-ID: <20160611104413.GA1160@eros.local>
+References: <1462843618-21914-2-git-send-email-me@tobin.cc>
+ <20160607151458.GA18008@salvia>
+ <1465319080.25087.28.camel@perches.com>
+ <20160607173417.GA1141@salvia>
+ <1465322550.25087.40.camel@perches.com>
+ <20160608115248.GA2603@salvia>
+ <1465404750.25087.68.camel@perches.com>
+ <20160608173121.GA25147@salvia>
+ <20160608173830.GA25403@salvia>
+ <1465495218.25087.74.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Stephen Hemminger <stephen@networkplumber.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org
+To: Joe Perches <joe@perches.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:33494 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751559AbcFKK0F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Jun 2016 06:26:05 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id 26C8951F1F7
-	for <netfilter-devel@vger.kernel.org>; Sat, 11 Jun 2016 10:26:02 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id N_oy5aNWs20y for <netfilter-devel@vger.kernel.org>;
-	Sat, 11 Jun 2016 12:25:57 +0200 (CEST)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-	(Authenticated sender: servers@cica.es)
-	by smtp.cica.es (Postfix) with ESMTP id 40A1F51F1D3
-	for <netfilter-devel@vger.kernel.org>; Sat, 11 Jun 2016 12:25:57 +0200 (CEST)
+Received: from out2-smtp.messagingengine.com ([66.111.4.26]:44674 "EHLO
+	out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751115AbcFKKoU (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 11 Jun 2016 06:44:20 -0400
+Content-Disposition: inline
+In-Reply-To: <1465495218.25087.74.camel@perches.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It uses a bogus pattern which was cleaned up already in others testscases,
-and this is a leftover.
+On Thu, Jun 09, 2016 at 11:00:18AM -0700, Joe Perches wrote:
+> On Wed, 2016-06-08 at 19:38 +0200, Pablo Neira Ayuso wrote:
+> > On Wed, Jun 08, 2016 at 07:31:21PM +0200, Pablo Neira Ayuso wrote:
+> > looks easier to readable than original Tobin's, so I'll wait for you
+> > to resubmit.
+> 
+> Well, maybe next week after the other couple patches are in -next.
+> 
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- tests/shell/testcases/sets/cache_handling_0 |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+Not sure if I should have been adding anything to this thread since I submitted
+the original patch. I'm new to the LKML and have not been able to follow the
+subtleties of conversation in this thread about who wants who to do what or if
+anyone needs to do anything.
 
-diff --git a/tests/shell/testcases/sets/cache_handling_0 b/tests/shell/testcases/sets/cache_handling_0
-index c79e013..9a73769 100755
---- a/tests/shell/testcases/sets/cache_handling_0
-+++ b/tests/shell/testcases/sets/cache_handling_0
-@@ -1,12 +1,6 @@
- #!/bin/bash
- 
--MKTEMP=$(which mktemp)
--if [ -x $MKTEMP ] ; then
--	tmpfile=$(${MKTEMP})
--else
--	tmpfile=$(/tmp/${RANDOM})
--fi
--
-+tmpfile=$(mktemp)
- if [ ! -w $tmpfile ] ; then
- 	echo "Failed to create tmp file" >&2
- 	exit 0
+If there is any follow up that is required (or requested) of me I am more than
+happy to do so. I hope I have not created unnecessary work for you fellas by
+adding this whitespace patch to the set. I will be more cautious about making
+changes to satisfy checkpatch.pl in future.
 
+thanks,
+Tobin.
