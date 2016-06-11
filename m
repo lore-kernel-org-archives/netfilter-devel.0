@@ -1,54 +1,49 @@
-From: Tobin Harding <me@tobin.cc>
-Subject: Re: [PATCH 1/3] bridge: netfilter: checkpatch whitespace fixes
-Date: Sat, 11 Jun 2016 20:44:13 +1000
-Message-ID: <20160611104413.GA1160@eros.local>
-References: <1462843618-21914-2-git-send-email-me@tobin.cc>
- <20160607151458.GA18008@salvia>
- <1465319080.25087.28.camel@perches.com>
- <20160607173417.GA1141@salvia>
- <1465322550.25087.40.camel@perches.com>
- <20160608115248.GA2603@salvia>
- <1465404750.25087.68.camel@perches.com>
- <20160608173121.GA25147@salvia>
- <20160608173830.GA25403@salvia>
- <1465495218.25087.74.camel@perches.com>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH nf-next] netfilter: nf_log: Remove NULL check
+Date: Sun, 12 Jun 2016 00:26:10 +0530
+Message-ID: <20160611185610.GA3374@shivani>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Stephen Hemminger <stephen@networkplumber.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org
-To: Joe Perches <joe@perches.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out2-smtp.messagingengine.com ([66.111.4.26]:44674 "EHLO
-	out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751115AbcFKKoU (ORCPT
+Received: from mail-pa0-f67.google.com ([209.85.220.67]:34247 "EHLO
+	mail-pa0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751802AbcFKS4x (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Jun 2016 06:44:20 -0400
+	Sat, 11 Jun 2016 14:56:53 -0400
+Received: by mail-pa0-f67.google.com with SMTP id ug1so7390954pab.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 11 Jun 2016 11:56:53 -0700 (PDT)
+Received: from shivani ([116.202.36.139])
+        by smtp.gmail.com with ESMTPSA id l67sm26413516pfi.10.2016.06.11.11.56.51
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Sat, 11 Jun 2016 11:56:52 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1465495218.25087.74.camel@perches.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 09, 2016 at 11:00:18AM -0700, Joe Perches wrote:
-> On Wed, 2016-06-08 at 19:38 +0200, Pablo Neira Ayuso wrote:
-> > On Wed, Jun 08, 2016 at 07:31:21PM +0200, Pablo Neira Ayuso wrote:
-> > looks easier to readable than original Tobin's, so I'll wait for you
-> > to resubmit.
-> 
-> Well, maybe next week after the other couple patches are in -next.
-> 
+If 'logger' was NULL, there would be a direct jump to the label 'out',
+since it has already been checked for NULL, remove this unnecessary
+check.
 
-Not sure if I should have been adding anything to this thread since I submitted
-the original patch. I'm new to the LKML and have not been able to follow the
-subtleties of conversation in this thread about who wants who to do what or if
-anyone needs to do anything.
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+ net/netfilter/nf_log.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-If there is any follow up that is required (or requested) of me I am more than
-happy to do so. I hope I have not created unnecessary work for you fellas by
-adding this whitespace patch to the set. I will be more cautious about making
-changes to satisfy checkpatch.pl in future.
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index a5d41df..93236ab 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -167,7 +167,7 @@ int nf_logger_find_get(int pf, enum nf_log_type type)
+ 	if (logger == NULL)
+ 		goto out;
+ 
+-	if (logger && try_module_get(logger->me))
++	if (try_module_get(logger->me))
+ 		ret = 0;
+ out:
+ 	rcu_read_unlock();
+-- 
+1.9.1
 
-thanks,
-Tobin.
