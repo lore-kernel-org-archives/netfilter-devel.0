@@ -1,109 +1,76 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH ipvs-next] ipvs: count pre-established TCP states as
- active
-Date: Sun, 12 Jun 2016 18:27:39 +0300 (EEST)
-Message-ID: <alpine.LFD.2.11.1606121825110.2021@ja.home.ssi.bg>
-References: <20160603155650.292BEA0E60@unicorn.suse.cz>
+From: Toby DiPasquale <toby@cbcg.net>
+Subject: Re: off-by-one in DecodeQ931
+Date: Sun, 12 Jun 2016 19:29:44 -0400
+Message-ID: <CAML0wpF0--_6kz_zSNrrz7XgWjtJ6JzULgZDKZULfQrghUqYaA@mail.gmail.com>
+References: <CAML0wpEBwXdzWX7g3LDJRDOVM0J7dkuhH8b+96ZhRf54+qUgwQ@mail.gmail.com>
+ <20160425152905.GA8621@strlen.de> <CAML0wpGWvcpB5GE_zAjOeO6ki_nszaj+hR9yyadwu_3hQno7Cg@mail.gmail.com>
+ <CAML0wpGqddtn92Rb2CSmV0kZfTzOxdCU-+dAFG1HUAaqQa8RUw@mail.gmail.com>
+ <20160606143555.GC7827@breakpoint.cc> <20160606145510.GB1168@salvia>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: lvs-devel@vger.kernel.org, Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
+Content-Type: multipart/mixed; boundary=001a1142738c97e2a805351d2554
+Cc: Florian Westphal <fw@strlen.de>, Patrick McHardy <kaber@trash.net>,
+	kadlec@blackhole.kfki.hu, davem@davemloft.net,
 	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>
-To: Michal Kubecek <mkubecek@suse.cz>
+	netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20160603155650.292BEA0E60@unicorn.suse.cz>
+In-Reply-To: <20160606145510.GB1168@salvia>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+--001a1142738c97e2a805351d2554
+Content-Type: text/plain; charset=UTF-8
 
-	Hello,
+Attached is the patch generated with git format-patch.
 
-On Fri, 3 Jun 2016, Michal Kubecek wrote:
+On Mon, Jun 6, 2016 at 10:55 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Mon, Jun 06, 2016 at 04:35:55PM +0200, Florian Westphal wrote:
+>> Toby DiPasquale <toby@cbcg.net> wrote:
+>> > Is this latest patch OK?
+>>
+>> Yes, I don't know why it wasn't applied yet.
+>>
+>> Pablo?
+>
+> This doesn't apply.
+>
+> $ git am /tmp/off-by-one-in-DecodeQ931.patch -s
+> Applying: off-by-one in DecodeQ931
+> error: patch failed: net/netfilter/nf_conntrack_h323_asn1.c:846
+> error: net/netfilter/nf_conntrack_h323_asn1.c: patch does not apply
+> Patch failed at 0001 off-by-one in DecodeQ931
+> The copy of the patch that failed is found in:
+>    patch
+> When you have resolved this problem, run "git am --continue".
+> If you prefer to skip this patch, run "git am --skip" instead.
+> To restore the original branch and stop patching, run "git am --abort".
+>
+> Could you resubmit using git-format-patch? Thanks.
 
-> Some users observed that "least connection" distribution algorithm doesn't
-> handle well bursts of TCP connections from reconnecting clients after
-> a node or network failure.
-> 
-> This is because the algorithm counts active connection as worth 256
-> inactive ones where for TCP, "active" only means TCP connections in
-> ESTABLISHED state. In case of a connection burst, new connections are
-> handled before previous ones have finished the three way handshaking so
-> that all are still counted as "inactive", i.e. cheap ones. The become
-> "active" quickly but at that time, all of them are already assigned to one
-> real server (or few), resulting in highly unbalanced distribution.
-> 
-> Address this by counting the "pre-established" states as "active".
-> 
-> Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
 
-Acked-by: Julian Anastasov <ja@ssi.bg>
 
-	Simon, please apply!
+-- 
+Toby DiPasquale
 
-> ---
->  net/netfilter/ipvs/ip_vs_proto_tcp.c | 25 +++++++++++++++++++++++--
->  1 file changed, 23 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> index d7024b2ed769..5117bcb7d2f0 100644
-> --- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> +++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-> @@ -395,6 +395,20 @@ static const char *const tcp_state_name_table[IP_VS_TCP_S_LAST+1] = {
->  	[IP_VS_TCP_S_LAST]		=	"BUG!",
->  };
->  
-> +static const bool tcp_state_active_table[IP_VS_TCP_S_LAST] = {
-> +	[IP_VS_TCP_S_NONE]		=	false,
-> +	[IP_VS_TCP_S_ESTABLISHED]	=	true,
-> +	[IP_VS_TCP_S_SYN_SENT]		=	true,
-> +	[IP_VS_TCP_S_SYN_RECV]		=	true,
-> +	[IP_VS_TCP_S_FIN_WAIT]		=	false,
-> +	[IP_VS_TCP_S_TIME_WAIT]		=	false,
-> +	[IP_VS_TCP_S_CLOSE]		=	false,
-> +	[IP_VS_TCP_S_CLOSE_WAIT]	=	false,
-> +	[IP_VS_TCP_S_LAST_ACK]		=	false,
-> +	[IP_VS_TCP_S_LISTEN]		=	false,
-> +	[IP_VS_TCP_S_SYNACK]		=	true,
-> +};
-> +
->  #define sNO IP_VS_TCP_S_NONE
->  #define sES IP_VS_TCP_S_ESTABLISHED
->  #define sSS IP_VS_TCP_S_SYN_SENT
-> @@ -418,6 +432,13 @@ static const char * tcp_state_name(int state)
->  	return tcp_state_name_table[state] ? tcp_state_name_table[state] : "?";
->  }
->  
-> +static bool tcp_state_active(int state)
-> +{
-> +	if (state >= IP_VS_TCP_S_LAST)
-> +		return false;
-> +	return tcp_state_active_table[state];
-> +}
-> +
->  static struct tcp_states_t tcp_states [] = {
->  /*	INPUT */
->  /*        sNO, sES, sSS, sSR, sFW, sTW, sCL, sCW, sLA, sLI, sSA	*/
-> @@ -540,12 +561,12 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
->  
->  		if (dest) {
->  			if (!(cp->flags & IP_VS_CONN_F_INACTIVE) &&
-> -			    (new_state != IP_VS_TCP_S_ESTABLISHED)) {
-> +			    !tcp_state_active(new_state)) {
->  				atomic_dec(&dest->activeconns);
->  				atomic_inc(&dest->inactconns);
->  				cp->flags |= IP_VS_CONN_F_INACTIVE;
->  			} else if ((cp->flags & IP_VS_CONN_F_INACTIVE) &&
-> -				   (new_state == IP_VS_TCP_S_ESTABLISHED)) {
-> +				   tcp_state_active(new_state)) {
->  				atomic_inc(&dest->activeconns);
->  				atomic_dec(&dest->inactconns);
->  				cp->flags &= ~IP_VS_CONN_F_INACTIVE;
-> -- 
-> 2.8.3
+--001a1142738c97e2a805351d2554
+Content-Type: application/octet-stream; name="off-by-one.patch"
+Content-Disposition: attachment; filename="off-by-one.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_ipd83dgt0
 
-Regards
+RnJvbSAyY2FkYTVmZGNlMGVjZDViNDQ1YTM2MDkxNzQzMWNmMGRmZmZhNGJiIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBUb2J5IERpUGFzcXVhbGUgPHRvYnlAY2JjZy5uZXQ+CkRhdGU6
+IFN1biwgMTIgSnVuIDIwMTYgMTk6Mjc6NTMgLTA0MDAKU3ViamVjdDogW1BBVENIXSBmaXggb2Zm
+LWJ5LW9uZSBpbiBEZWNvZGVROTMxCgotLS0KIG5ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2gz
+MjNfYXNuMS5jIHwgMyArKy0KIDEgZmlsZSBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDEgZGVs
+ZXRpb24oLSkKCmRpZmYgLS1naXQgYS9uZXQvbmV0ZmlsdGVyL25mX2Nvbm50cmFja19oMzIzX2Fz
+bjEuYyBiL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2gzMjNfYXNuMS5jCmluZGV4IGJjZDVl
+ZDYuLjg5YjJlNDYgMTAwNjQ0Ci0tLSBhL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2gzMjNf
+YXNuMS5jCisrKyBiL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2gzMjNfYXNuMS5jCkBAIC04
+NDYsOSArODQ2LDEwIEBAIGludCBEZWNvZGVROTMxKHVuc2lnbmVkIGNoYXIgKmJ1Ziwgc2l6ZV90
+IHN6LCBROTMxICpxOTMxKQogCXN6IC09IGxlbjsKIAogCS8qIE1lc3NhZ2UgVHlwZSAqLwotCWlm
+IChzeiA8IDEpCisJaWYgKHN6IDwgMikKIAkJcmV0dXJuIEgzMjNfRVJST1JfQk9VTkQ7CiAJcTkz
+MS0+TWVzc2FnZVR5cGUgPSAqcCsrOworCXN6LS07CiAJUFJJTlQoIk1lc3NhZ2VUeXBlID0gJTAy
+WFxuIiwgcTkzMS0+TWVzc2FnZVR5cGUpOwogCWlmICgqcCAmIDB4ODApIHsKIAkJcCsrOwotLSAK
+Mi43LjQKCg==
+--001a1142738c97e2a805351d2554--
