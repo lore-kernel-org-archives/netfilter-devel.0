@@ -1,56 +1,66 @@
-From: "Vink, Ronald" <ronald.vink@boskalis.com>
-Subject: RE: [ANNOUNCE] libnftnl 1.0.6 release
-Date: Mon, 13 Jun 2016 09:23:50 +0000
-Message-ID: <DB5PR04MB1224BDE0A3161F753134F57299530@DB5PR04MB1224.eurprd04.prod.outlook.com>
-References: <20160530105545.GA16431@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Cc: "lwn@lwn.net" <lwn@lwn.net>,
-	"netfilter@vger.kernel.org" <netfilter@vger.kernel.org>,
-	"netfilter-announce@lists.netfilter.org"
-	<netfilter-announce@lists.netfilter.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20160530105545.GA16431@salvia>
-Content-Language: en-US
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nft] tests: shell: add endless jump loop tests
+Date: Mon, 13 Jun 2016 20:53:55 +0800
+Message-ID: <1465822435-39991-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from m12-14.163.com ([220.181.12.14]:38282 "EHLO m12-14.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1422747AbcFMMyn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Jun 2016 08:54:43 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Unsubscribe
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
+Add some tests for endless jump loop validation.
 
------Original Message-----
-From: netfilter-announce [mailto:netfilter-announce-bounces@lists.netfilter.org] On Behalf Of Pablo Neira Ayuso
-Sent: maandag 30 mei 2016 12:56
-To: netfilter-devel@vger.kernel.org
-Cc: lwn@lwn.net; netfilter@vger.kernel.org; netfilter-announce@lists.netfilter.org
-Subject: [ANNOUNCE] libnftnl 1.0.6 release
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+---
+ tests/shell/testcases/chains/0010endless_jump_loop_1 |  9 +++++++++
+ tests/shell/testcases/chains/0011endless_jump_loop_1 | 14 ++++++++++++++
+ 2 files changed, 23 insertions(+)
+ create mode 100755 tests/shell/testcases/chains/0010endless_jump_loop_1
+ create mode 100755 tests/shell/testcases/chains/0011endless_jump_loop_1
 
-Hi!
+diff --git a/tests/shell/testcases/chains/0010endless_jump_loop_1 b/tests/shell/testcases/chains/0010endless_jump_loop_1
+new file mode 100755
+index 0000000..dba70e1
+--- /dev/null
++++ b/tests/shell/testcases/chains/0010endless_jump_loop_1
+@@ -0,0 +1,9 @@
++#!/bin/bash
++
++set -e
++
++$NFT add table t
++$NFT add chain t c
++# kernel should return ELOOP
++$NFT add rule t c tcp dport vmap {1 : jump c} 2>/dev/null
++echo "E: accepted endless jump loop in a vmap" >&2
+diff --git a/tests/shell/testcases/chains/0011endless_jump_loop_1 b/tests/shell/testcases/chains/0011endless_jump_loop_1
+new file mode 100755
+index 0000000..adbff8d
+--- /dev/null
++++ b/tests/shell/testcases/chains/0011endless_jump_loop_1
+@@ -0,0 +1,14 @@
++#!/bin/bash
++
++set -e
++
++$NFT add table t
++$NFT add chain t c1
++$NFT add chain t c2
++$NFT add map t m {type inet_service : verdict \;}
++$NFT add element t m {2 : jump c2}
++$NFT add rule t c1 tcp dport vmap @m
++
++# kernel should return ELOOP
++$NFT add element t m {1 : jump c1} 2>/dev/null
++echo "E: accepted endless jump loop in a vmap" >&2
+-- 
+2.5.5
 
-The Netfilter project proudly presents:
-
-        libnftnl 1.0.6
-
-libnftnl is a userspace library providing a low-level netlink programming interface (API) to the in-kernel nf_tables subsystem. The library libnftnl has been previously known as libnftables. This library is currently used by the nft command line tool.
-
-This release includes the following list of updates:
-
-* New TLV infrastructure for user data are in rule, set and elements.
-* Support for the new tracing infrastructure.
-* Matching of ct bytes and packets.
-* meta prandom support.
-* Enhancements for the limit expressions.
-* Support for payload mangling.
-* Masquerading port range selection.
-  ... and fixes.
-
-You can download this library from:
-
-http://www.netfilter.org/projects/libnftnl/downloads.html
-ftp://ftp.netfilter.org/pub/libnftnl/
-
-Enjoy this new release and help us testing, thanks!
 
