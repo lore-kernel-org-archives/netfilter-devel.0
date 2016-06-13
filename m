@@ -1,204 +1,148 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 2/3] netfilter: nf_tables: fix a endless jump
- loop when use vmap
-Date: Mon, 13 Jun 2016 20:19:02 +0200
-Message-ID: <20160613181902.GA2699@salvia>
-References: <1465618828-22162-1-git-send-email-zlpnobody@163.com>
- <1465618828-22162-3-git-send-email-zlpnobody@163.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="RnlQjJ0d97Da+TV1"
-Cc: netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpnobody@163.com>
+From: Kevin Cernekee <cernekee@chromium.org>
+Subject: [PATCH V2] net: Allow xt_owner in any user namespace
+Date: Mon, 13 Jun 2016 13:42:59 -0700
+Message-ID: <1465850579-23431-1-git-send-email-cernekee@chromium.org>
+Cc: netfilter-devel@vger.kernel.org, ebiederm@xmission.com
+To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59403 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932515AbcFMSTR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Jun 2016 14:19:17 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id D0DA81B7F86
-	for <netfilter-devel@vger.kernel.org>; Mon, 13 Jun 2016 20:19:14 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B8C4E9EBAD
-	for <netfilter-devel@vger.kernel.org>; Mon, 13 Jun 2016 20:19:14 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 0259A9EBAB
-	for <netfilter-devel@vger.kernel.org>; Mon, 13 Jun 2016 20:19:11 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1465618828-22162-3-git-send-email-zlpnobody@163.com>
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:34651 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161183AbcFMUnV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Jun 2016 16:43:21 -0400
+Received: by mail-pa0-f43.google.com with SMTP id bz2so48920819pad.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 13 Jun 2016 13:43:20 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: "Eric W. Biederman" <ebiederm@xmission.com>
 
---RnlQjJ0d97Da+TV1
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Making this work is a little tricky as it really isn't kosher to
+change the xt_owner_match_info in a check function.
 
-On Sat, Jun 11, 2016 at 12:20:27PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
-> 
-> Currently, user can add such a wrong nft rules successfully, which
-> will cause an endless jump loop:
->   # nft add rule filter test tcp dport vmap {1: jump test}
-> 
-> This is because before we commit, the element in the current anonymous
-> set is inactive, so osp->walk will skip this element and miss the
-> validate check.
-> 
-> So we should also check the inactive element when we do loops check,
-> and ignore the inactive element when we do dump.
-> 
-> This patch also fix the testcase fail in
-> nftables/tests/shell/testcases/chains/0009masquerade_jump_1.
+Without changing xt_owner_match_info we need to know the user
+namespace the uids and gids are specified in.  In the common case
+net->user_ns == current_user_ns().  Verify net->user_ns ==
+current_user_ns() in owner_check so we can later assume it in
+owner_mt.
 
-Thanks for tracking down and fixing this one.
+In owner_check also verify that all of the uids and gids specified are
+in net->user_ns and that the expected min/max relationship exists
+between the uids and gids in xt_owner_match_info.
 
-I've made a new version based on your original patch, find it
-attached.
+In owner_mt get the network namespace from the outgoing socket, as this
+must be the same network namespace as the netfilter rules, and use that
+network namespace to find the user namespace the uids and gids in
+xt_match_owner_info are encoded in.  Then convert from their encoded
+from into the kernel internal format for uids and gids and perform the
+owner match.
 
-Basically, the idea is to pass the genmask through iter, so we can
-perform the conditional check based on whether 1) we're dumping or
-2) checking for loops (ie. in the middle of a transaction).
-
-Let me know if you see any problem with this different approach,
-thanks.
-
---RnlQjJ0d97Da+TV1
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-netfilter-nf_tables-fix-a-endless-jump-loop-when-use.patch"
-
->From 0e1a07d8a5315d06531beb311a30464d1b207023 Mon Sep 17 00:00:00 2001
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Sat, 11 Jun 2016 12:20:27 +0800
-Subject: [PATCH] netfilter: nf_tables: fix a endless jump loop when use vmap
-
-Liping Zhang says:
-
-"Users may add such a wrong nft rules successfully, which will cause an
-endless jump loop:
-
-  # nft add rule filter test tcp dport vmap {1: jump test}
-
-This is because before we commit, the element in the current anonymous
-set is inactive, so osp->walk will skip this element and miss the
-validate check."
-
-This patch passes the generation mask to the walk function through the
-iter container structure depending on the code path:
-
-1) If we're dumping the elements, then we have to check if the element
-   is active in the current generation. Thus, we check for the current
-   bit in the genmask.
-
-2) If we're checking for loops, then we have to check if the element is
-   active in the next generation, as we're in the middle of a
-   transaction. Thus, we check for the next bit in the genmask.
-
-Reported-by: Liping Zhang <liping.zhang@spreadtrum.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Kevin Cernekee <cernekee@chromium.org>
 ---
- include/net/netfilter/nf_tables.h |  1 +
- net/netfilter/nf_tables_api.c     | 15 +++++++++------
- net/netfilter/nft_hash.c          |  3 +--
- net/netfilter/nft_rbtree.c        |  3 +--
- 4 files changed, 12 insertions(+), 10 deletions(-)
 
-diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
-index 7b3d97c..065fcf3 100644
---- a/include/net/netfilter/nf_tables.h
-+++ b/include/net/netfilter/nf_tables.h
-@@ -167,6 +167,7 @@ struct nft_set_elem {
+
+Original post:
+https://lists.linuxfoundation.org/pipermail/containers/2014-May/034514.html
+
+V1->V2:
+
+ - Change (max <= min) check to (max < min), because it is legal for
+min == max.  I suspect this was the root cause of this error:
+
+https://lists.linuxfoundation.org/pipermail/containers/2014-June/034661.html
+
+ - Fix checkpatch warnings.
+
+
+This was tested on a system running Linux 3.14, then compile-tested on
+Linus' master branch.
+
+Similar to ping_group_range, this code does not try to detect
+noncontiguous UID/GID ranges.
+
+
+ net/netfilter/xt_owner.c | 42 ++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 36 insertions(+), 6 deletions(-)
+
+diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
+index 1302b475abcb..e1c1f31ef1e9 100644
+--- a/net/netfilter/xt_owner.c
++++ b/net/netfilter/xt_owner.c
+@@ -21,11 +21,39 @@
+ static int owner_check(const struct xt_mtchk_param *par)
+ {
+ 	struct xt_owner_match_info *info = par->matchinfo;
++	struct net *net = par->net;
  
- struct nft_set;
- struct nft_set_iter {
-+	u8		genmask;
- 	unsigned int	count;
- 	unsigned int	skip;
- 	int		err;
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 44de9b9..ccce337 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -2976,6 +2976,7 @@ int nf_tables_bind_set(const struct nft_ctx *ctx, struct nft_set *set,
- 				goto bind;
- 		}
+-	/* For now only allow adding matches from the initial user namespace */
++	/* Only allow the common case where the userns of the writer
++	 * matches the userns of the network namespace.
++	 */
+ 	if ((info->match & (XT_OWNER_UID|XT_OWNER_GID)) &&
+-	    (current_user_ns() != &init_user_ns))
++	    (current_user_ns() != net->user_ns))
+ 		return -EINVAL;
++
++	/* Ensure the uids are valid */
++	if (info->match & XT_OWNER_UID) {
++		kuid_t uid_min = make_kuid(net->user_ns, info->uid_min);
++		kuid_t uid_max = make_kuid(net->user_ns, info->uid_max);
++
++		if (!uid_valid(uid_min) || !uid_valid(uid_max) ||
++		    (info->uid_max < info->uid_min) ||
++		    uid_lt(uid_max, uid_min)) {
++			return -EINVAL;
++		}
++	}
++
++	/* Ensure the gids are valid */
++	if (info->match & XT_OWNER_GID) {
++		kgid_t gid_min = make_kgid(net->user_ns, info->gid_min);
++		kgid_t gid_max = make_kgid(net->user_ns, info->gid_max);
++
++		if (!gid_valid(gid_min) || !gid_valid(gid_max) ||
++		    (info->gid_max < info->gid_min) ||
++		    gid_lt(gid_max, gid_min)) {
++			return -EINVAL;
++		}
++	}
++
+ 	return 0;
+ }
  
-+		iter.genmask	= nft_genmask_next(read_pnet(&set->pnet));
- 		iter.skip 	= 0;
- 		iter.count	= 0;
- 		iter.err	= 0;
-@@ -3217,12 +3218,13 @@ static int nf_tables_dump_set(struct sk_buff *skb, struct netlink_callback *cb)
- 	if (nest == NULL)
- 		goto nla_put_failure;
+@@ -35,6 +63,7 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	const struct xt_owner_match_info *info = par->matchinfo;
+ 	const struct file *filp;
+ 	struct sock *sk = skb_to_full_sk(skb);
++	const struct net *net;
  
--	args.cb		= cb;
--	args.skb	= skb;
--	args.iter.skip	= cb->args[0];
--	args.iter.count	= 0;
--	args.iter.err   = 0;
--	args.iter.fn	= nf_tables_dump_setelem;
-+	args.cb			= cb;
-+	args.skb		= skb;
-+	args.iter.genmask	= nft_genmask_cur(read_pnet(&set->pnet));
-+	args.iter.skip		= cb->args[0];
-+	args.iter.count		= 0;
-+	args.iter.err		= 0;
-+	args.iter.fn		= nf_tables_dump_setelem;
- 	set->ops->walk(&ctx, set, &args.iter);
+ 	if (sk == NULL || sk->sk_socket == NULL)
+ 		return (info->match ^ info->invert) == 0;
+@@ -50,9 +79,10 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 		return ((info->match ^ info->invert) &
+ 		       (XT_OWNER_UID | XT_OWNER_GID)) == 0;
  
- 	nla_nest_end(skb, nest);
-@@ -4321,6 +4323,7 @@ static int nf_tables_check_loops(const struct nft_ctx *ctx,
- 			    binding->chain != chain)
- 				continue;
++	net = sock_net(skb->sk);
+ 	if (info->match & XT_OWNER_UID) {
+-		kuid_t uid_min = make_kuid(&init_user_ns, info->uid_min);
+-		kuid_t uid_max = make_kuid(&init_user_ns, info->uid_max);
++		kuid_t uid_min = make_kuid(net->user_ns, info->uid_min);
++		kuid_t uid_max = make_kuid(net->user_ns, info->uid_max);
+ 		if ((uid_gte(filp->f_cred->fsuid, uid_min) &&
+ 		     uid_lte(filp->f_cred->fsuid, uid_max)) ^
+ 		    !(info->invert & XT_OWNER_UID))
+@@ -60,8 +90,8 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	}
  
-+			iter.genmask	= nft_genmask_next(read_pnet(&set->pnet));
- 			iter.skip 	= 0;
- 			iter.count	= 0;
- 			iter.err	= 0;
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index 6fa0165..f39c53a 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -189,7 +189,6 @@ static void nft_hash_walk(const struct nft_ctx *ctx, const struct nft_set *set,
- 	struct nft_hash_elem *he;
- 	struct rhashtable_iter hti;
- 	struct nft_set_elem elem;
--	u8 genmask = nft_genmask_cur(read_pnet(&set->pnet));
- 	int err;
- 
- 	err = rhashtable_walk_init(&priv->ht, &hti, GFP_KERNEL);
-@@ -218,7 +217,7 @@ static void nft_hash_walk(const struct nft_ctx *ctx, const struct nft_set *set,
- 			goto cont;
- 		if (nft_set_elem_expired(&he->ext))
- 			goto cont;
--		if (!nft_set_elem_active(&he->ext, genmask))
-+		if (!nft_set_elem_active(&he->ext, iter->genmask))
- 			goto cont;
- 
- 		elem.priv = he;
-diff --git a/net/netfilter/nft_rbtree.c b/net/netfilter/nft_rbtree.c
-index f762094..7201d57 100644
---- a/net/netfilter/nft_rbtree.c
-+++ b/net/netfilter/nft_rbtree.c
-@@ -211,7 +211,6 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
- 	struct nft_rbtree_elem *rbe;
- 	struct nft_set_elem elem;
- 	struct rb_node *node;
--	u8 genmask = nft_genmask_cur(read_pnet(&set->pnet));
- 
- 	spin_lock_bh(&nft_rbtree_lock);
- 	for (node = rb_first(&priv->root); node != NULL; node = rb_next(node)) {
-@@ -219,7 +218,7 @@ static void nft_rbtree_walk(const struct nft_ctx *ctx,
- 
- 		if (iter->count < iter->skip)
- 			goto cont;
--		if (!nft_set_elem_active(&rbe->ext, genmask))
-+		if (!nft_set_elem_active(&rbe->ext, iter->genmask))
- 			goto cont;
- 
- 		elem.priv = rbe;
+ 	if (info->match & XT_OWNER_GID) {
+-		kgid_t gid_min = make_kgid(&init_user_ns, info->gid_min);
+-		kgid_t gid_max = make_kgid(&init_user_ns, info->gid_max);
++		kgid_t gid_min = make_kgid(net->user_ns, info->gid_min);
++		kgid_t gid_max = make_kgid(net->user_ns, info->gid_max);
+ 		if ((gid_gte(filp->f_cred->fsgid, gid_min) &&
+ 		     gid_lte(filp->f_cred->fsgid, gid_max)) ^
+ 		    !(info->invert & XT_OWNER_GID))
 -- 
-2.1.4
+2.8.0.rc3.226.g39d4020
 
-
---RnlQjJ0d97Da+TV1--
