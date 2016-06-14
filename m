@@ -1,31 +1,33 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 4/5] ipvs: Lock socket before setting SK_CAN_REUSE
-Date: Mon, 13 Jun 2016 20:18:23 -0700
-Message-ID: <1465874303.7945.181.camel@edumazet-glaptop3.roam.corp.google.com>
-References: <1465868613-26146-1-git-send-email-quentin@armitage.org.uk>
-	 <1465868613-26146-5-git-send-email-quentin@armitage.org.uk>
-	 <1465873924.7945.180.camel@edumazet-glaptop3.roam.corp.google.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [HEADS UP] scheduled downtime for netfilter.org
+Date: Tue, 14 Jun 2016 13:24:05 +0200
+Message-ID: <20160614112405.GA1999@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org
-To: Quentin Armitage <quentin@armitage.org.uk>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1465873924.7945.180.camel@edumazet-glaptop3.roam.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:52802 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750760AbcFNLYO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Jun 2016 07:24:14 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id CAE2C66436A
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 13:24:12 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id BA44064476
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 13:24:12 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 999AF6447B
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 13:24:08 +0200 (CEST)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 2016-06-13 at 20:12 -0700, Eric Dumazet wrote:
+Hi,
 
-> 
-> Have you tested this patch ?
+We'll be performing several maintainance tasks on the netfilter.org
+infrastructure next Thu 16th June 2016 starting 12:00 CEST (Central
+European Time).
 
-Hmm, please ignore this question ;)
+Sorry for the inconvenience.
+Thanks!
