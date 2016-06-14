@@ -1,81 +1,49 @@
-From: Quentin Armitage <quentin@armitage.org.uk>
-Subject: [PATCH v2 1/5] ipvs: Enable setting IPv6 multicast address for ipvs sync daemon backup
-Date: Tue, 14 Jun 2016 15:24:18 +0100
-Message-ID: <1465914262-30112-2-git-send-email-quentin@armitage.org.uk>
-References: <1465914262-30112-1-git-send-email-quentin@armitage.org.uk>
-Cc: Quentin Armitage <quentin@armitage.org.uk>
-To: Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <1465914262-30112-1-git-send-email-quentin@armitage.org.uk>
-Sender: lvs-devel-owner@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: fix buffer null termination
+Date: Tue, 14 Jun 2016 17:08:02 +0200
+Message-ID: <20160614150802.GA1029@salvia>
+References: <1465620484-5543-1-git-send-email-sandeepkishan108@gmail.com>
+ <CAJ3s=NBCvYnRaWcFb==vZqP1_YE6w=uKqbtBvESkCo1sED2CHg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Kishan Sandeep <sandeepkishan108@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJ3s=NBCvYnRaWcFb==vZqP1_YE6w=uKqbtBvESkCo1sED2CHg@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-When using HEAD from https://git.kernel.org/cgit/utils/kernel/ipvsadm/ipvsadm.git/,
-the command:
-ipvsadm --start-daemon backup --mcast-interface eth0.60 --mcast-group ff01::1:81
-fails with the error message:
-Argument list too long
+Cc'ing netfilter-devel.
 
-whereas both:
-ipvsadm --start-daemon master --mcast-interface eth0.60 --mcast-group ff01::1:81
-and:
-ipvsadm --start-daemon backup --mcast-interface eth0.60 --mcast-group 224.0.0.81
-are successful.
+On Tue, Jun 14, 2016 at 07:39:27PM +0530, Kishan Sandeep wrote:
+> + netdev
+> 
+> On Sat, Jun 11, 2016 at 10:18 AM, Kishan Sandeep
+> <sandeepkishan108@gmail.com> wrote:
+> > strncpy generally perferable fo non-terminated
+> > fixed-width strings. For NULL termination strlcpy
+> > is preferrable.
+> >
+> > Signed-off-by: Kishan Sandeep <sandeepkishan108@gmail.com>
+> > ---
+> >  net/netfilter/xt_repldata.h |    2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/net/netfilter/xt_repldata.h b/net/netfilter/xt_repldata.h
+> > index 8fd3241..a460211 100644
+> > --- a/net/netfilter/xt_repldata.h
+> > +++ b/net/netfilter/xt_repldata.h
+> > @@ -28,7 +28,7 @@
+> >         if (tbl == NULL) \
+> >                 return NULL; \
+> >         term = (struct type##_error *)&(((char *)tbl)[term_offset]); \
+> > -       strncpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
+> > +       strlcpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
 
-The error message "Argument list too long" isn't helpful. The error occurs
-because an IPv6 address is given in backup mode.
+I don't think this is actually fixing anything. Tables in x_tables
+have a known and fixed name that is defined from the kernel side, that
+is always smaller that the buffer we have there. So are you observing
+any real problem from there?
 
-The error is in make_receive_sock() in net/netfilter/ipvs/ip_vs_sync.c, since
-it fails to set the interface on the address or the socket before calling
-inet6_bind() (via sock->ops->bind), where the test 'if (!sk->sk_bound_dev_if)'
-failed.
-
-Setting sin6_scope_id on the sockaddr before calling inet6_bind() resolves
-the issue.
-
-Signed-off-by: Quentin Armitage <quentin@armitage.org.uk>
----
- net/netfilter/ipvs/ip_vs_sync.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-index 803001a..85b48f1 100644
---- a/net/netfilter/ipvs/ip_vs_sync.c
-+++ b/net/netfilter/ipvs/ip_vs_sync.c
-@@ -1545,7 +1545,7 @@ error:
- /*
-  *      Set up receiving multicast socket over UDP
-  */
--static struct socket *make_receive_sock(struct netns_ipvs *ipvs, int id)
-+static struct socket *make_receive_sock(struct netns_ipvs *ipvs, int id, int ifindex)
- {
- 	/* multicast addr */
- 	union ipvs_sockaddr mcast_addr;
-@@ -1566,6 +1566,7 @@ static struct socket *make_receive_sock(struct netns_ipvs *ipvs, int id)
- 		set_sock_size(sock->sk, 0, result);
- 
- 	get_mcast_sockaddr(&mcast_addr, &salen, &ipvs->bcfg, id);
-+	((struct sockaddr_in6 *)&mcast_addr)->sin6_scope_id = ifindex;
- 	result = sock->ops->bind(sock, (struct sockaddr *)&mcast_addr, salen);
- 	if (result < 0) {
- 		pr_err("Error binding to the multicast addr\n");
-@@ -1868,7 +1869,7 @@ int start_sync_thread(struct netns_ipvs *ipvs, struct ipvs_sync_daemon_cfg *c,
- 		if (state == IP_VS_STATE_MASTER)
- 			sock = make_send_sock(ipvs, id);
- 		else
--			sock = make_receive_sock(ipvs, id);
-+			sock = make_receive_sock(ipvs, id, dev->ifindex);
- 		if (IS_ERR(sock)) {
- 			result = PTR_ERR(sock);
- 			goto outtinfo;
--- 
-1.7.7.6
-
+Thanks.
