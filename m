@@ -1,47 +1,62 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2 v2,libnftnl] Check memory allocations in setters
-Date: Tue, 14 Jun 2016 17:50:03 +0200
-Message-ID: <20160614155003.GA6799@salvia>
-References: <20160610122246.1621-1-carlosfg@riseup.net>
- <20160610122246.1621-2-carlosfg@riseup.net>
+From: Kishan Sandeep <sandeepkishan108@gmail.com>
+Subject: Re: [PATCH] netfilter: fix buffer null termination
+Date: Tue, 14 Jun 2016 21:52:49 +0530
+Message-ID: <CAJ3s=ND18x4g4gwVOb0G4cqRbAiF-6F341gWJK7_vumc2BLB0w@mail.gmail.com>
+References: <1465620484-5543-1-git-send-email-sandeepkishan108@gmail.com>
+ <CAJ3s=NBCvYnRaWcFb==vZqP1_YE6w=uKqbtBvESkCo1sED2CHg@mail.gmail.com> <20160614150802.GA1029@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
+Content-Type: text/plain; charset=UTF-8
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33243 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751119AbcFNPuQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Jun 2016 11:50:16 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 806EFC22E3
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 17:50:14 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 717E49EBA8
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 17:50:14 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E596A9EBAF
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 17:50:08 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20160610122246.1621-2-carlosfg@riseup.net>
+Received: from mail-it0-f67.google.com ([209.85.214.67]:36562 "EHLO
+	mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752478AbcFNQWu (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Jun 2016 12:22:50 -0400
+In-Reply-To: <20160614150802.GA1029@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 10, 2016 at 02:22:46PM +0200, Carlos Falgueras Garc=EDa wro=
-te:
-> When you set an object attribute the memory is copied, sometimes an
-> allocations is needed and it must be checked. Before this patch all s=
-etters
-> method return void, so this patch makes all setters return int instea=
-d void
-> to communicate the error to user.
+Hi Pablo,
 
-This one triggered the large patcheset I just posted on the list.
+On Tue, Jun 14, 2016 at 8:38 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Cc'ing netfilter-devel.
+>
+> On Tue, Jun 14, 2016 at 07:39:27PM +0530, Kishan Sandeep wrote:
+>> + netdev
+>>
+>> On Sat, Jun 11, 2016 at 10:18 AM, Kishan Sandeep
+>> <sandeepkishan108@gmail.com> wrote:
+>> > strncpy generally perferable fo non-terminated
+>> > fixed-width strings. For NULL termination strlcpy
+>> > is preferrable.
+>> >
+>> > Signed-off-by: Kishan Sandeep <sandeepkishan108@gmail.com>
+>> > ---
+>> >  net/netfilter/xt_repldata.h |    2 +-
+>> >  1 file changed, 1 insertion(+), 1 deletion(-)
+>> >
+>> > diff --git a/net/netfilter/xt_repldata.h b/net/netfilter/xt_repldata.h
+>> > index 8fd3241..a460211 100644
+>> > --- a/net/netfilter/xt_repldata.h
+>> > +++ b/net/netfilter/xt_repldata.h
+>> > @@ -28,7 +28,7 @@
+>> >         if (tbl == NULL) \
+>> >                 return NULL; \
+>> >         term = (struct type##_error *)&(((char *)tbl)[term_offset]); \
+>> > -       strncpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
+>> > +       strlcpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
+>
+> I don't think this is actually fixing anything. Tables in x_tables
+> have a known and fixed name that is defined from the kernel side, that
+> is always smaller that the buffer we have there. So are you observing
+> any real problem from there?
+>
+> Thanks.
 
-Thanks anyway.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Not observed any real problem. Here the string is not NULL terminated with
+the use of strncpy - that is the problem. With the use of strlcpy we can make
+the string to terminated properly.
+
+Thanks!
