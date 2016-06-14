@@ -1,386 +1,304 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH libnftnl 7/9] src: check for flags before releasing attributes
-Date: Tue, 14 Jun 2016 15:18:43 +0200
-Message-ID: <1465910325-13286-7-git-send-email-pablo@netfilter.org>
+Subject: [PATCH libnftnl 8/9] tests: shuffle values that are injected
+Date: Tue, 14 Jun 2016 15:18:44 +0200
+Message-ID: <1465910325-13286-8-git-send-email-pablo@netfilter.org>
 References: <1465910325-13286-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55949 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55952 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752068AbcFNNS7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Jun 2016 09:18:59 -0400
+	id S1751393AbcFNNTD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Jun 2016 09:19:03 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 35371E7DBD
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 15:18:58 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 34371E7DC0
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 15:19:02 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 2253A9EBA8
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 15:18:58 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 1BC2C9EBA3
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 15:19:02 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 960739EBA8
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 15:18:55 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 53D779EBA0
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 15:18:56 +0200 (CEST)
 In-Reply-To: <1465910325-13286-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Now that unsetters don't set pointers to NULL, check if the attribute is
-set before trying to release it.
+Shuffle value that are used to set attributes, this variability should
+help us catch more problems in the future.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- src/chain.c          | 18 ++++++++++--------
- src/expr/immediate.c |  2 +-
- src/expr/log.c       |  2 +-
- src/expr/match.c     |  4 ++--
- src/expr/target.c    |  2 +-
- src/rule.c           | 20 +++++++++++---------
- src/set.c            | 14 ++++++++------
- src/set_elem.c       | 20 +++++++++-----------
- src/table.c          |  5 +++--
- 9 files changed, 46 insertions(+), 41 deletions(-)
+ tests/nft-chain-test.c          | 10 +++++-----
+ tests/nft-expr_bitwise-test.c   |  4 ++--
+ tests/nft-expr_cmp-test.c       |  2 +-
+ tests/nft-expr_counter-test.c   |  2 +-
+ tests/nft-expr_ct-test.c        |  2 +-
+ tests/nft-expr_exthdr-test.c    |  4 ++--
+ tests/nft-expr_immediate-test.c | 10 +++++-----
+ tests/nft-expr_limit-test.c     |  4 ++--
+ tests/nft-expr_log-test.c       |  2 +-
+ tests/nft-expr_lookup-test.c    |  2 +-
+ tests/nft-expr_meta-test.c      |  2 +-
+ tests/nft-expr_payload-test.c   |  6 +++---
+ tests/nft-expr_queue-test.c     |  6 +++---
+ tests/nft-expr_redir-test.c     |  6 +++---
+ tests/nft-expr_reject-test.c    |  4 ++--
+ tests/nft-expr_target-test.c    |  2 +-
+ 16 files changed, 34 insertions(+), 34 deletions(-)
 
-diff --git a/src/chain.c b/src/chain.c
-index e0f548c..86ccef6 100644
---- a/src/chain.c
-+++ b/src/chain.c
-@@ -95,11 +95,11 @@ EXPORT_SYMBOL(nftnl_chain_alloc);
+diff --git a/tests/nft-chain-test.c b/tests/nft-chain-test.c
+index 3f5c5a5..d678d46 100644
+--- a/tests/nft-chain-test.c
++++ b/tests/nft-chain-test.c
+@@ -79,12 +79,12 @@ int main(int argc, char *argv[])
+ 	nftnl_chain_set_u32(a, NFTNL_CHAIN_FAMILY, AF_INET);
+ 	nftnl_chain_set_str(a, NFTNL_CHAIN_TABLE, "Table");
+ 	nftnl_chain_set_u32(a, NFTNL_CHAIN_POLICY,0x12345678);
+-	nftnl_chain_set_u32(a, NFTNL_CHAIN_HOOKNUM, 0x12345678);
+-	nftnl_chain_set_s32(a, NFTNL_CHAIN_PRIO, 0x12345678);
+-	nftnl_chain_set_u32(a, NFTNL_CHAIN_USE, 0x12345678 );
++	nftnl_chain_set_u32(a, NFTNL_CHAIN_HOOKNUM, 0x34567812);
++	nftnl_chain_set_s32(a, NFTNL_CHAIN_PRIO, 0x56781234);
++	nftnl_chain_set_u32(a, NFTNL_CHAIN_USE, 0x78123456);
+ 	nftnl_chain_set_u64(a, NFTNL_CHAIN_PACKETS, 0x1234567812345678);
+-	nftnl_chain_set_u64(a, NFTNL_CHAIN_BYTES, 0x1234567812345678);
+-	nftnl_chain_set_u64(a, NFTNL_CHAIN_HANDLE, 0x1234567812345678);
++	nftnl_chain_set_u64(a, NFTNL_CHAIN_BYTES, 0x7812345678123456);
++	nftnl_chain_set_u64(a, NFTNL_CHAIN_HANDLE, 0x5678123456781234);
+ 	nftnl_chain_set_str(a, NFTNL_CHAIN_TYPE, "Prueba");
+ 	nftnl_chain_set_str(a, NFTNL_CHAIN_DEV, "eth0");
  
- void nftnl_chain_free(const struct nftnl_chain *c)
- {
--	if (c->table != NULL)
-+	if (c->flags & (1 << NFTNL_CHAIN_TABLE))
- 		xfree(c->table);
--	if (c->type != NULL)
-+	if (c->flags & (1 << NFTNL_CHAIN_TYPE))
- 		xfree(c->type);
--	if (c->dev != NULL)
-+	if (c->flags & (1 << NFTNL_CHAIN_DEV))
- 		xfree(c->dev);
+diff --git a/tests/nft-expr_bitwise-test.c b/tests/nft-expr_bitwise-test.c
+index 4b59751..64c1446 100644
+--- a/tests/nft-expr_bitwise-test.c
++++ b/tests/nft-expr_bitwise-test.c
+@@ -72,8 +72,8 @@ int main(int argc, char *argv[])
+ 		print_err("OOM");
  
- 	xfree(c);
-@@ -167,7 +167,7 @@ int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
- 		strncpy(c->name, data, NFT_CHAIN_MAXNAMELEN);
- 		break;
- 	case NFTNL_CHAIN_TABLE:
--		if (c->table)
-+		if (c->flags & (1 << NFTNL_CHAIN_TABLE))
- 			xfree(c->table);
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_SREG, 0x12345678);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_DREG, 0x12345678);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_LEN, 0x12345678);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_DREG, 0x78123456);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_BITWISE_LEN, 0x56781234);
+ 	nftnl_expr_set(ex, NFTNL_EXPR_BITWISE_MASK, &mask, sizeof(mask));
+ 	nftnl_expr_set(ex, NFTNL_EXPR_BITWISE_XOR, &xor, sizeof(xor));
  
- 		c->table = strdup(data);
-@@ -199,7 +199,7 @@ int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
- 		c->family = *((uint32_t *)data);
- 		break;
- 	case NFTNL_CHAIN_TYPE:
--		if (c->type)
-+		if (c->flags & (1 << NFTNL_CHAIN_TYPE))
- 			xfree(c->type);
+diff --git a/tests/nft-expr_cmp-test.c b/tests/nft-expr_cmp-test.c
+index 23292c9..ec00bb9 100644
+--- a/tests/nft-expr_cmp-test.c
++++ b/tests/nft-expr_cmp-test.c
+@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
  
- 		c->type = strdup(data);
-@@ -207,7 +207,7 @@ int nftnl_chain_set_data(struct nftnl_chain *c, uint16_t attr,
- 			return -1;
- 		break;
- 	case NFTNL_CHAIN_DEV:
--		if (c->dev)
-+		if (c->flags & (1 << NFTNL_CHAIN_DEV))
- 			xfree(c->dev);
+ 	nftnl_expr_set(ex, NFTNL_EXPR_CMP_DATA, &data_len, sizeof(data_len));
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_CMP_SREG, 0x12345678);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_CMP_OP, 0x12345678);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_CMP_OP, 0x78123456);
  
- 		c->dev = strdup(data);
-@@ -533,7 +533,8 @@ int nftnl_chain_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_chain *c)
- 		c->flags |= (1 << NFTNL_CHAIN_NAME);
- 	}
- 	if (tb[NFTA_CHAIN_TABLE]) {
--		xfree(c->table);
-+		if (c->flags & (1 << NFTNL_CHAIN_TABLE))
-+			xfree(c->table);
- 		c->table = strdup(mnl_attr_get_str(tb[NFTA_CHAIN_TABLE]));
- 		if (!c->table)
- 			return -1;
-@@ -562,7 +563,8 @@ int nftnl_chain_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_chain *c)
- 		c->flags |= (1 << NFTNL_CHAIN_HANDLE);
- 	}
- 	if (tb[NFTA_CHAIN_TYPE]) {
--		xfree(c->type);
-+		if (c->flags & (1 << NFTNL_CHAIN_TYPE))
-+			xfree(c->type);
- 		c->type = strdup(mnl_attr_get_str(tb[NFTA_CHAIN_TYPE]));
- 		if (!c->type)
- 			return -1;
-diff --git a/src/expr/immediate.c b/src/expr/immediate.c
-index 243f0e0..22ec864 100644
---- a/src/expr/immediate.c
-+++ b/src/expr/immediate.c
-@@ -43,7 +43,7 @@ nftnl_expr_immediate_set(struct nftnl_expr *e, uint16_t type,
- 		imm->data.verdict = *((uint32_t *)data);
- 		break;
- 	case NFTNL_EXPR_IMM_CHAIN:
--		if (imm->data.chain)
-+		if (e->flags & (1 << NFTNL_EXPR_IMM_CHAIN))
- 			xfree(imm->data.chain);
+ 	nftnl_rule_add_expr(a, ex);
  
- 		imm->data.chain = strdup(data);
-diff --git a/src/expr/log.c b/src/expr/log.c
-index 5b774a4..b9b3951 100644
---- a/src/expr/log.c
-+++ b/src/expr/log.c
-@@ -37,7 +37,7 @@ static int nftnl_expr_log_set(struct nftnl_expr *e, uint16_t type,
+diff --git a/tests/nft-expr_counter-test.c b/tests/nft-expr_counter-test.c
+index d515952..519bc1f 100644
+--- a/tests/nft-expr_counter-test.c
++++ b/tests/nft-expr_counter-test.c
+@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
+ 		print_err("OOM");
  
- 	switch(type) {
- 	case NFTNL_EXPR_LOG_PREFIX:
--		if (log->prefix)
-+		if (log->flags & (1 << NFTNL_EXPR_LOG_PREFIX))
- 			xfree(log->prefix);
+ 	nftnl_expr_set_u64(ex, NFTNL_EXPR_CTR_BYTES, 0x123456789abcdef0);
+-	nftnl_expr_set_u64(ex, NFTNL_EXPR_CTR_PACKETS, 0x123456789abcdef0);
++	nftnl_expr_set_u64(ex, NFTNL_EXPR_CTR_PACKETS, 0xf0123456789abcde);
+ 	nftnl_rule_add_expr(a, ex);
  
- 		log->prefix = strdup(data);
-diff --git a/src/expr/match.c b/src/expr/match.c
-index 2929b43..3342e2c 100644
---- a/src/expr/match.c
-+++ b/src/expr/match.c
-@@ -49,7 +49,7 @@ nftnl_expr_match_set(struct nftnl_expr *e, uint16_t type,
- 		mt->rev = *((uint32_t *)data);
- 		break;
- 	case NFTNL_EXPR_MT_INFO:
--		if (mt->data)
-+		if (e->flags & (1 << NFTNL_EXPR_MT_INFO))
- 			xfree(mt->data);
+ 	nlh = nftnl_rule_nlmsg_build_hdr(buf, NFT_MSG_NEWRULE, AF_INET, 0, 1234);
+diff --git a/tests/nft-expr_ct-test.c b/tests/nft-expr_ct-test.c
+index af69587..e98fbab 100644
+--- a/tests/nft-expr_ct-test.c
++++ b/tests/nft-expr_ct-test.c
+@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
  
- 		mt->data = data;
-@@ -146,7 +146,7 @@ static int nftnl_expr_match_parse(struct nftnl_expr *e, struct nlattr *attr)
- 		uint32_t len = mnl_attr_get_payload_len(tb[NFTA_MATCH_INFO]);
- 		void *match_data;
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_CT_KEY, 0x1234568);
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_CT_DIR, 0x12);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_CT_DREG, 0x12345678);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_CT_DREG, 0x78123456);
  
--		if (match->data)
-+		if (e->flags & (1 << NFTNL_EXPR_MT_INFO))
- 			xfree(match->data);
+ 	nftnl_rule_add_expr(a, ex);
  
- 		match_data = calloc(1, len);
-diff --git a/src/expr/target.c b/src/expr/target.c
-index 68a7d8a..d4c0091 100644
---- a/src/expr/target.c
-+++ b/src/expr/target.c
-@@ -49,7 +49,7 @@ nftnl_expr_target_set(struct nftnl_expr *e, uint16_t type,
- 		tg->rev = *((uint32_t *)data);
- 		break;
- 	case NFTNL_EXPR_TG_INFO:
--		if (tg->data)
-+		if (e->flags & (1 << NFTNL_EXPR_TG_INFO))
- 			xfree(tg->data);
+diff --git a/tests/nft-expr_exthdr-test.c b/tests/nft-expr_exthdr-test.c
+index 622015c..fef2dd0 100644
+--- a/tests/nft-expr_exthdr-test.c
++++ b/tests/nft-expr_exthdr-test.c
+@@ -63,8 +63,8 @@ int main(int argc, char *argv[])
  
- 		tg->data = data;
-diff --git a/src/rule.c b/src/rule.c
-index 375552e..c46c325 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -71,11 +71,11 @@ void nftnl_rule_free(const struct nftnl_rule *r)
- 	list_for_each_entry_safe(e, tmp, &r->expr_list, head)
- 		nftnl_expr_free(e);
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_EXTHDR_DREG, 0x12345678);
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_EXTHDR_TYPE, 0x12);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_EXTHDR_OFFSET, 0x12345678);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_EXTHDR_LEN, 0x12345678);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_EXTHDR_OFFSET, 0x78123456);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_EXTHDR_LEN, 0x56781234);
  
--	if (r->table != NULL)
-+	if (r->flags & (1 << (NFTNL_RULE_TABLE)))
- 		xfree(r->table);
--	if (r->chain != NULL)
-+	if (r->flags & (1 << (NFTNL_RULE_CHAIN)))
- 		xfree(r->chain);
--	if (r->user.data != NULL)
-+	if (r->flags & (1 << (NFTNL_RULE_USERDATA)))
- 		xfree(r->user.data);
+ 	nftnl_rule_add_expr(a, ex);
  
- 	xfree(r);
-@@ -129,7 +129,7 @@ int nftnl_rule_set_data(struct nftnl_rule *r, uint16_t attr,
+diff --git a/tests/nft-expr_immediate-test.c b/tests/nft-expr_immediate-test.c
+index abde2e1..695e0b0 100644
+--- a/tests/nft-expr_immediate-test.c
++++ b/tests/nft-expr_immediate-test.c
+@@ -56,8 +56,8 @@ int main(int argc, char *argv[])
+ 	char buf[4096];
+ 	struct nftnl_expr_iter *iter_a, *iter_b;
+ 	struct nftnl_expr *rule_a, *rule_b;
+-	uint32_t chain_t = 0x12345678;
+-	uint32_t data_t = 0x12345678;
++	uint32_t chain = 0x12345678;
++	uint32_t data = 0x56781234;
  
- 	switch(attr) {
- 	case NFTNL_RULE_TABLE:
--		if (r->table)
-+		if (r->flags & (1 << NFTNL_RULE_TABLE))
- 			xfree(r->table);
+ 	a = nftnl_rule_alloc();
+ 	b = nftnl_rule_alloc();
+@@ -68,9 +68,9 @@ int main(int argc, char *argv[])
+ 		print_err("OOM");
  
- 		r->table = strdup(data);
-@@ -137,7 +137,7 @@ int nftnl_rule_set_data(struct nftnl_rule *r, uint16_t attr,
- 			return -1;
- 		break;
- 	case NFTNL_RULE_CHAIN:
--		if (r->chain)
-+		if (r->flags & (1 << NFTNL_RULE_CHAIN))
- 			xfree(r->chain);
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_IMM_DREG, 0x1234568);
+-	nftnl_expr_set(ex, NFTNL_EXPR_IMM_DATA, &chain_t, sizeof(chain_t));
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_IMM_VERDICT, 0x12345678);
+-	nftnl_expr_set(ex, NFTNL_EXPR_IMM_CHAIN, &data_t, sizeof(data_t));
++	nftnl_expr_set(ex, NFTNL_EXPR_IMM_DATA, &data, sizeof(data));
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_IMM_VERDICT, 0x78123456);
++	nftnl_expr_set(ex, NFTNL_EXPR_IMM_CHAIN, &chain, sizeof(chain));
  
- 		r->chain = strdup(data);
-@@ -160,7 +160,7 @@ int nftnl_rule_set_data(struct nftnl_rule *r, uint16_t attr,
- 		r->position = *((uint64_t *)data);
- 		break;
- 	case NFTNL_RULE_USERDATA:
--		if (r->user.data != NULL)
-+		if (r->flags & (1 << NFTNL_RULE_USERDATA))
- 			xfree(r->user.data);
+ 	nftnl_rule_add_expr(a, ex);
  
- 		r->user.data = malloc(data_len);
-@@ -431,14 +431,16 @@ int nftnl_rule_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_rule *r)
- 		return -1;
+diff --git a/tests/nft-expr_limit-test.c b/tests/nft-expr_limit-test.c
+index 29fb489..2838941 100644
+--- a/tests/nft-expr_limit-test.c
++++ b/tests/nft-expr_limit-test.c
+@@ -66,10 +66,10 @@ int main(int argc, char *argv[])
+ 		print_err("OOM");
  
- 	if (tb[NFTA_RULE_TABLE]) {
--		xfree(r->table);
-+		if (r->flags & (1 << NFTNL_RULE_TABLE))
-+			xfree(r->table);
- 		r->table = strdup(mnl_attr_get_str(tb[NFTA_RULE_TABLE]));
- 		if (!r->table)
- 			return -1;
- 		r->flags |= (1 << NFTNL_RULE_TABLE);
- 	}
- 	if (tb[NFTA_RULE_CHAIN]) {
--		xfree(r->chain);
-+		if (r->flags & (1 << NFTNL_RULE_CHAIN))
-+			xfree(r->chain);
- 		r->chain = strdup(mnl_attr_get_str(tb[NFTA_RULE_CHAIN]));
- 		if (!r->chain)
- 			return -1;
-@@ -460,7 +462,7 @@ int nftnl_rule_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_rule *r)
- 		const void *udata =
- 			mnl_attr_get_payload(tb[NFTA_RULE_USERDATA]);
+ 	nftnl_expr_set_u64(ex, NFTNL_EXPR_LIMIT_RATE, 0x123456789abcdef0);
+-	nftnl_expr_set_u64(ex, NFTNL_EXPR_LIMIT_UNIT, 0x123456789abcdef0);
++	nftnl_expr_set_u64(ex, NFTNL_EXPR_LIMIT_UNIT, 0xf0123456789abcde);
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_LIMIT_BURST, 0x89123456);
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_LIMIT_TYPE, 0xdef01234);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_LIMIT_FLAGS, 0xdef01234);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_LIMIT_FLAGS, 0x34def012);
  
--		if (r->user.data)
-+		if (r->flags & (1 << NFTNL_RULE_USERDATA))
- 			xfree(r->user.data);
+ 	nftnl_rule_add_expr(a, ex);
  
- 		r->user.len = mnl_attr_get_payload_len(tb[NFTA_RULE_USERDATA]);
-diff --git a/src/set.c b/src/set.c
-index ccea313..132e913 100644
---- a/src/set.c
-+++ b/src/set.c
-@@ -44,9 +44,9 @@ void nftnl_set_free(const struct nftnl_set *s)
- {
- 	struct nftnl_set_elem *elem, *tmp;
+diff --git a/tests/nft-expr_log-test.c b/tests/nft-expr_log-test.c
+index 3815778..b7aa302 100644
+--- a/tests/nft-expr_log-test.c
++++ b/tests/nft-expr_log-test.c
+@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
  
--	if (s->table != NULL)
-+	if (s->flags & (1 << NFTNL_SET_TABLE))
- 		xfree(s->table);
--	if (s->name != NULL)
-+	if (s->flags & (1 << NFTNL_SET_NAME))
- 		xfree(s->name);
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_LOG_SNAPLEN, 0x12345678);
+ 	nftnl_expr_set_u16(ex, NFTNL_EXPR_LOG_GROUP, 0x1234);
+-	nftnl_expr_set_u16(ex, NFTNL_EXPR_LOG_QTHRESHOLD, 0x1234);
++	nftnl_expr_set_u16(ex, NFTNL_EXPR_LOG_QTHRESHOLD, 0x3412);
+ 	nftnl_expr_set_str(ex, NFTNL_EXPR_LOG_PREFIX, "test");
  
- 	list_for_each_entry_safe(elem, tmp, &s->element_list, head) {
-@@ -116,7 +116,7 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
+ 	nftnl_rule_add_expr(a, ex);
+diff --git a/tests/nft-expr_lookup-test.c b/tests/nft-expr_lookup-test.c
+index ad028e9..83fa829 100644
+--- a/tests/nft-expr_lookup-test.c
++++ b/tests/nft-expr_lookup-test.c
+@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
+ 		print_err("OOM");
  
- 	switch(attr) {
- 	case NFTNL_SET_TABLE:
--		if (s->table)
-+		if (s->flags & (1 << NFTNL_SET_TABLE))
- 			xfree(s->table);
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_LOOKUP_SREG, 0x12345678);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_LOOKUP_DREG, 0x12345678);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_LOOKUP_DREG, 0x78123456);
+ 	nftnl_expr_set(ex, NFTNL_EXPR_LOOKUP_SET, &lookup_set,
+ 			  sizeof(lookup_set));
  
- 		s->table = strdup(data);
-@@ -124,7 +124,7 @@ int nftnl_set_set_data(struct nftnl_set *s, uint16_t attr, const void *data,
- 			return -1;
- 		break;
- 	case NFTNL_SET_NAME:
--		if (s->name)
-+		if (s->flags & (1 << NFTNL_SET_NAME))
- 			xfree(s->name);
+diff --git a/tests/nft-expr_meta-test.c b/tests/nft-expr_meta-test.c
+index 82f8fcf..8fb7873 100644
+--- a/tests/nft-expr_meta-test.c
++++ b/tests/nft-expr_meta-test.c
+@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
+ 		print_err("OOM");
  
- 		s->name = strdup(data);
-@@ -439,14 +439,16 @@ int nftnl_set_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_set *s)
- 		return -1;
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_META_KEY, 0x1234568);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_META_DREG, 0x12345678);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_META_DREG, 0x78123456);
  
- 	if (tb[NFTA_SET_TABLE]) {
--		xfree(s->table);
-+		if (s->flags & (1 << NFTNL_SET_TABLE))
-+			xfree(s->table);
- 		s->table = strdup(mnl_attr_get_str(tb[NFTA_SET_TABLE]));
- 		if (!s->table)
- 			return -1;
- 		s->flags |= (1 << NFTNL_SET_TABLE);
- 	}
- 	if (tb[NFTA_SET_NAME]) {
--		xfree(s->name);
-+		if (s->flags & (1 << NFTNL_SET_NAME))
-+			xfree(s->name);
- 		s->name = strdup(mnl_attr_get_str(tb[NFTA_SET_NAME]));
- 		if (!s->name)
- 			return -1;
-diff --git a/src/set_elem.c b/src/set_elem.c
-index dbf4176..596ba8a 100644
---- a/src/set_elem.c
-+++ b/src/set_elem.c
-@@ -41,12 +41,8 @@ EXPORT_SYMBOL(nftnl_set_elem_alloc);
+ 	nftnl_rule_add_expr(a, ex);
  
- void nftnl_set_elem_free(struct nftnl_set_elem *s)
- {
--	if (s->flags & (1 << NFTNL_SET_ELEM_CHAIN)) {
--		if (s->data.chain) {
--			xfree(s->data.chain);
--			s->data.chain = NULL;
--		}
--	}
-+	if (s->flags & (1 << NFTNL_SET_ELEM_CHAIN))
-+		xfree(s->data.chain);
+diff --git a/tests/nft-expr_payload-test.c b/tests/nft-expr_payload-test.c
+index c652195..371372c 100644
+--- a/tests/nft-expr_payload-test.c
++++ b/tests/nft-expr_payload-test.c
+@@ -63,9 +63,9 @@ int main(int argc, char *argv[])
+ 		print_err("OOM");
  
- 	if (s->flags & (1 << NFTNL_SET_ELEM_EXPR))
- 		nftnl_expr_free(s->expr);
-@@ -107,7 +103,7 @@ int nftnl_set_elem_set(struct nftnl_set_elem *s, uint16_t attr,
- 		s->data.verdict = *((uint32_t *)data);
- 		break;
- 	case NFTNL_SET_ELEM_CHAIN:	/* NFTA_SET_ELEM_DATA */
--		if (s->data.chain)
-+		if (s->flags & (1 << NFTNL_SET_ELEM_CHAIN))
- 			xfree(s->data.chain);
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_PAYLOAD_DREG, 0x1234568);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_PAYLOAD_BASE, 0x12345678);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_PAYLOAD_OFFSET, 0x12345678);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_PAYLOAD_LEN, 0x12345678);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_PAYLOAD_BASE, 0x78123456);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_PAYLOAD_OFFSET, 0x56781234);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_PAYLOAD_LEN, 0x78561234);
  
- 		s->data.chain = strdup(data);
-@@ -122,7 +118,7 @@ int nftnl_set_elem_set(struct nftnl_set_elem *s, uint16_t attr,
- 		s->timeout = *((uint64_t *)data);
- 		break;
- 	case NFTNL_SET_ELEM_USERDATA: /* NFTA_SET_ELEM_USERDATA */
--		if (s->user.data != NULL)
-+		if (s->flags & (1 << NFTNL_SET_ELEM_USERDATA))
- 			xfree(s->user.data);
+ 	nftnl_rule_add_expr(a, ex);
  
- 		s->user.data = malloc(data_len);
-@@ -400,7 +396,7 @@ static int nftnl_set_elems_parse2(struct nftnl_set *s, const struct nlattr *nest
- 		const void *udata =
- 			mnl_attr_get_payload(tb[NFTA_SET_ELEM_USERDATA]);
+diff --git a/tests/nft-expr_queue-test.c b/tests/nft-expr_queue-test.c
+index 654e13c..1cc39aa 100644
+--- a/tests/nft-expr_queue-test.c
++++ b/tests/nft-expr_queue-test.c
+@@ -58,9 +58,9 @@ int main(int argc, char *argv[])
+ 	if (ex == NULL)
+ 		print_err("OOM");
  
--		if (e->user.data)
-+		if (e->flags & (1 << NFTNL_RULE_USERDATA))
- 			xfree(e->user.data);
+-	nftnl_expr_set_u16(ex, NFTNL_EXPR_QUEUE_NUM, 0x123);
+-	nftnl_expr_set_u16(ex, NFTNL_EXPR_QUEUE_TOTAL, 0x2);
+-	nftnl_expr_set_u16(ex, NFTNL_EXPR_QUEUE_FLAGS, 0x2);
++	nftnl_expr_set_u16(ex, NFTNL_EXPR_QUEUE_NUM, 0x01010);
++	nftnl_expr_set_u16(ex, NFTNL_EXPR_QUEUE_TOTAL, 0x1234);
++	nftnl_expr_set_u16(ex, NFTNL_EXPR_QUEUE_FLAGS, 0x4321);
  
- 		e->user.len  = mnl_attr_get_payload_len(tb[NFTA_SET_ELEM_USERDATA]);
-@@ -473,7 +469,8 @@ int nftnl_set_elems_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_set *s)
- 		return -1;
+ 	nftnl_rule_add_expr(a, ex);
  
- 	if (tb[NFTA_SET_ELEM_LIST_TABLE]) {
--		xfree(s->table);
-+		if (s->flags & (1 << NFTNL_SET_TABLE))
-+			xfree(s->table);
- 		s->table =
- 			strdup(mnl_attr_get_str(tb[NFTA_SET_ELEM_LIST_TABLE]));
- 		if (!s->table)
-@@ -481,7 +478,8 @@ int nftnl_set_elems_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_set *s)
- 		s->flags |= (1 << NFTNL_SET_TABLE);
- 	}
- 	if (tb[NFTA_SET_ELEM_LIST_SET]) {
--		xfree(s->name);
-+		if (s->flags & (1 << NFTNL_SET_NAME))
-+			xfree(s->name);
- 		s->name =
- 			strdup(mnl_attr_get_str(tb[NFTA_SET_ELEM_LIST_SET]));
- 		if (!s->name)
-diff --git a/src/table.c b/src/table.c
-index 03b618f..9231937 100644
---- a/src/table.c
-+++ b/src/table.c
-@@ -89,7 +89,7 @@ int nftnl_table_set_data(struct nftnl_table *t, uint16_t attr,
+diff --git a/tests/nft-expr_redir-test.c b/tests/nft-expr_redir-test.c
+index 978cac6..6c8caec 100644
+--- a/tests/nft-expr_redir-test.c
++++ b/tests/nft-expr_redir-test.c
+@@ -56,9 +56,9 @@ int main(int argc, char *argv[])
+ 	if (ex == NULL)
+ 		print_err("OOM");
  
- 	switch (attr) {
- 	case NFTNL_TABLE_NAME:
--		if (t->name)
-+		if (t->flags & (1 << NFTNL_TABLE_NAME))
- 			xfree(t->name);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_REDIR_REG_PROTO_MIN, 0x1234568);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_REDIR_REG_PROTO_MAX, 0x23456);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_REDIR_FLAGS, 0x1234568);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_REDIR_REG_PROTO_MIN, 0x12345678);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_REDIR_REG_PROTO_MAX, 0x56781234);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_REDIR_FLAGS, 0x12003400);
  
- 		t->name = strdup(data);
-@@ -227,7 +227,8 @@ int nftnl_table_nlmsg_parse(const struct nlmsghdr *nlh, struct nftnl_table *t)
- 		return -1;
+ 	nftnl_rule_add_expr(a, ex);
  
- 	if (tb[NFTA_TABLE_NAME]) {
--		xfree(t->name);
-+		if (t->flags & (1 << NFTNL_TABLE_NAME))
-+			xfree(t->name);
- 		t->name = strdup(mnl_attr_get_str(tb[NFTA_TABLE_NAME]));
- 		if (!t->name)
- 			return -1;
+diff --git a/tests/nft-expr_reject-test.c b/tests/nft-expr_reject-test.c
+index 5fa4cda..d8189ea 100644
+--- a/tests/nft-expr_reject-test.c
++++ b/tests/nft-expr_reject-test.c
+@@ -56,8 +56,8 @@ int main(int argc, char *argv[])
+ 	if (ex == NULL)
+ 		print_err("OOM");
+ 
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_REJECT_TYPE, 0x1234568);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_REJECT_CODE, 0x1234568);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_REJECT_TYPE, 0x12345678);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_REJECT_CODE, 0x45681234);
+ 
+ 	nftnl_rule_add_expr(a, ex);
+ 
+diff --git a/tests/nft-expr_target-test.c b/tests/nft-expr_target-test.c
+index 634fc0a..ba56b27 100644
+--- a/tests/nft-expr_target-test.c
++++ b/tests/nft-expr_target-test.c
+@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
+ 		print_err("OOM");
+ 
+ 	nftnl_expr_set(ex, NFTNL_EXPR_TG_NAME, "test", strlen("test"));
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_TG_REV, 0x12345678);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_TG_REV, 0x56781234);
+ 	nftnl_expr_set(ex, NFTNL_EXPR_TG_INFO, strdup(data), sizeof(data));
+ 	nftnl_rule_add_expr(a, ex);
+ 
 -- 
 2.1.4
 
