@@ -1,33 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [HEADS UP] scheduled downtime for netfilter.org
-Date: Tue, 14 Jun 2016 13:24:05 +0200
-Message-ID: <20160614112405.GA1999@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf-next] netfilter: nf_tables: fix a wrong check to skip the inactive rules
+Date: Tue, 14 Jun 2016 20:13:04 +0800
+Message-ID: <1465906384-55985-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>,
+	Patrick McHardy <kaber@trash.net>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52802 "EHLO mail.us.es"
+Received: from m12-17.163.com ([220.181.12.17]:48812 "EHLO m12-17.163.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750760AbcFNLYO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Jun 2016 07:24:14 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id CAE2C66436A
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 13:24:12 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id BA44064476
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 13:24:12 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 999AF6447B
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 13:24:08 +0200 (CEST)
-Content-Disposition: inline
+	id S1751140AbcFNMNs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Jun 2016 08:13:48 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-We'll be performing several maintainance tasks on the netfilter.org
-infrastructure next Thu 16th June 2016 starting 12:00 CEST (Central
-European Time).
+nft_genmask_cur has already done left-shift operator on the gencursor,
+so there's no need to do left-shift operator on it again.
 
-Sorry for the inconvenience.
-Thanks!
+Fixes: ea4bd995b0f2 ("netfilter: nf_tables: add transaction helper functions")
+Cc: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+---
+ net/netfilter/nf_tables_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_tables_core.c b/net/netfilter/nf_tables_core.c
+index e9f8dff..fb8b589 100644
+--- a/net/netfilter/nf_tables_core.c
++++ b/net/netfilter/nf_tables_core.c
+@@ -143,7 +143,7 @@ next_rule:
+ 	list_for_each_entry_continue_rcu(rule, &chain->rules, list) {
+ 
+ 		/* This rule is not active, skip. */
+-		if (unlikely(rule->genmask & (1 << gencursor)))
++		if (unlikely(rule->genmask & gencursor))
+ 			continue;
+ 
+ 		rulenum++;
+-- 
+2.5.5
+
+
