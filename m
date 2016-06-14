@@ -1,62 +1,46 @@
-From: Kishan Sandeep <sandeepkishan108@gmail.com>
-Subject: Re: [PATCH] netfilter: fix buffer null termination
-Date: Tue, 14 Jun 2016 21:52:49 +0530
-Message-ID: <CAJ3s=ND18x4g4gwVOb0G4cqRbAiF-6F341gWJK7_vumc2BLB0w@mail.gmail.com>
-References: <1465620484-5543-1-git-send-email-sandeepkishan108@gmail.com>
- <CAJ3s=NBCvYnRaWcFb==vZqP1_YE6w=uKqbtBvESkCo1sED2CHg@mail.gmail.com> <20160614150802.GA1029@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCHv4] extensions: libip6t_frag: Add translation to nft
+Date: Tue, 14 Jun 2016 18:33:29 +0200
+Message-ID: <20160614163329.GA1181@salvia>
+References: <20160608174725.GA21856@sonyv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Laura Garcia Liebana <nevola@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:36562 "EHLO
-	mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752478AbcFNQWu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Jun 2016 12:22:50 -0400
-In-Reply-To: <20160614150802.GA1029@salvia>
+Received: from mail.us.es ([193.147.175.20]:43153 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752631AbcFNQdg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 14 Jun 2016 12:33:36 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 31D35C2303
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 18:33:34 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 21E6C9EBA3
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 18:33:34 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 201CB9EBC2
+	for <netfilter-devel@vger.kernel.org>; Tue, 14 Jun 2016 18:33:32 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20160608174725.GA21856@sonyv>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
-
-On Tue, Jun 14, 2016 at 8:38 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Cc'ing netfilter-devel.
+On Wed, Jun 08, 2016 at 07:47:28PM +0200, Laura Garcia Liebana wrote:
+> $ sudo iptables-translate -t filter -A INPUT -m frag --fragid 100:200 --fraglast -j ACCEPT
+                                                                        ^^^^^^^^^^
+> nft add rule ip6 filter INPUT frag id 100-200 frag more-fragments 1 counter accept
+                                                     ^^^^^^^^^^^^^^^^
+> $ sudo iptables-translate -t filter -A INPUT -m frag --fragid 100:200 --fragfirst -j ACCEPT
+> nft add rule ip6 filter INPUT frag id 100-200 frag frag-off 0 counter accept
 >
-> On Tue, Jun 14, 2016 at 07:39:27PM +0530, Kishan Sandeep wrote:
->> + netdev
->>
->> On Sat, Jun 11, 2016 at 10:18 AM, Kishan Sandeep
->> <sandeepkishan108@gmail.com> wrote:
->> > strncpy generally perferable fo non-terminated
->> > fixed-width strings. For NULL termination strlcpy
->> > is preferrable.
->> >
->> > Signed-off-by: Kishan Sandeep <sandeepkishan108@gmail.com>
->> > ---
->> >  net/netfilter/xt_repldata.h |    2 +-
->> >  1 file changed, 1 insertion(+), 1 deletion(-)
->> >
->> > diff --git a/net/netfilter/xt_repldata.h b/net/netfilter/xt_repldata.h
->> > index 8fd3241..a460211 100644
->> > --- a/net/netfilter/xt_repldata.h
->> > +++ b/net/netfilter/xt_repldata.h
->> > @@ -28,7 +28,7 @@
->> >         if (tbl == NULL) \
->> >                 return NULL; \
->> >         term = (struct type##_error *)&(((char *)tbl)[term_offset]); \
->> > -       strncpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
->> > +       strlcpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
->
-> I don't think this is actually fixing anything. Tables in x_tables
-> have a known and fixed name that is defined from the kernel side, that
-> is always smaller that the buffer we have there. So are you observing
-> any real problem from there?
->
-> Thanks.
+> $ sudo iptables-translate -t filter -A INPUT -m frag --fraglast -j ACCEPT
+                                                       ^^^^^^^^^^
+> nft add rule ip6 filter INPUT frag more-fragments 0 counter accept
+                                     ^^^^^^^^^^^^^^^^
 
-Not observed any real problem. Here the string is not NULL terminated with
-the use of strncpy - that is the problem. With the use of strlcpy we can make
-the string to terminated properly.
+I'm going to mangle these inconsistencies in the patch description
+given the code is fine (you probably just forgot to update the
+patch description).
 
-Thanks!
+So applied, thanks.
