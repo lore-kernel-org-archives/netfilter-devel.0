@@ -1,44 +1,36 @@
-From: Laura Garcia <nevola@gmail.com>
-Subject: Re: [PATCH] extensions: libxt_conntrack: Add translation to nft
-Date: Wed, 15 Jun 2016 16:17:42 +0200
-Message-ID: <20160615141741.GB15155@sonyv>
-References: <20160614180242.GA26384@sonyv>
- <20160615122127.GA3188@salvia>
+From: Vishwanath Pai <vpai@akamai.com>
+Subject: Re: [PATCH] netfilter/nflog: nflog-range does not truncate packets
+Date: Wed, 15 Jun 2016 10:55:05 -0400
+Message-ID: <57616C49.7090403@akamai.com>
+References: <20160602002354.GG1644@akamai.com> <20160606223106.GA1621@salvia>
+ <57575367.4010604@akamai.com> <20160608121625.GA4097@salvia>
+ <5759AE1B.2080500@akamai.com> <575E2B49.7090809@akamai.com>
+ <20160615123945.GA3594@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	johunt@akamai.com, netdev@vger.kernel.org, pai.vishwain@gmail.com,
+	"Lubashev, Igor" <ilubashe@akamai.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lb0-f194.google.com ([209.85.217.194]:33951 "EHLO
-	mail-lb0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933001AbcFOORr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jun 2016 10:17:47 -0400
-Received: by mail-lb0-f194.google.com with SMTP id t6so293842lbv.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 07:17:46 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20160615122127.GA3188@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160615123945.GA3594@salvia>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jun 15, 2016 at 02:21:27PM +0200, Pablo Neira Ayuso wrote:
-> On Tue, Jun 14, 2016 at 08:02:45PM +0200, Laura Garcia Liebana wrote:
-> > Add translation of conntrack to nftables.
-> > 
-> > Examples:
-> > 
-> > $ sudo iptables-translate -t filter -A INPUT -m conntrack --ctstate NEW,RELATED -j ACCEPT
-> > nft add rule ip filter INPUT ct state { new,related } counter accept
+On 06/15/2016 08:39 AM, Pablo Neira Ayuso wrote:
+> But nlmsg_len should match len in this.
 > 
-> No need to use a set here, instead:
+> If we're just sending a part of the packet to userspace, then we
+> should adjust nlmsg_len to indicate exactly the netlink message length
+> that we're sending to userspace.
 > 
-> nft add rule ip filter INPUT ct state new,related counter accept
-> 
-> > $ sudo ip6tables-translate -t filter -A INPUT -m conntrack ! --ctstate NEW,RELATED -j ACCEPT
-> > nft add rule ip6 filter INPUT ct state != { new,related } counter accept
-> 
-> Same thing here.
-> 
-> Thanks.
+> Is your patch triggering this nlmsg_len != len?
 
-Ok, this will simplify the code.
+The value of len here is how many bytes were returned by recv. We do
+send the entire nlmsg_len to userspace, but recv cannot copy the full
+packet because the buffer is not big enough to hold this. They only
+allocate the buffer assuming that the packet won't be bigger than their
+snap len, but we send more data than their snap len and they don't
+handle this condition well.
