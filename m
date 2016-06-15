@@ -1,96 +1,154 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH v2 0/5] ipvs: fix backup sync daemon with IPv6, and minor
- updates
-Date: Wed, 15 Jun 2016 22:52:22 +0300 (EEST)
-Message-ID: <alpine.LFD.2.11.1606152209001.1950@ja.home.ssi.bg>
-References: <1465914262-30112-1-git-send-email-quentin@armitage.org.uk>  <alpine.LFD.2.11.1606150815500.2828@ja.home.ssi.bg> <1465978975.2737.264.camel@samson1.armitage.org.uk>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH] bridge: netfilter: spanning tree: Add masked_ether_addr_equal and neatening
+Date: Wed, 15 Jun 2016 13:58:45 -0700
+Message-ID: <f39576f17e9f5dee35258917917f2d740e820a77.1466024030.git.joe@perches.com>
+Cc: Stephen Hemminger <stephen@networkplumber.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org
-To: Quentin Armitage <quentin@armitage.org.uk>
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1465978975.2737.264.camel@samson1.armitage.org.uk>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+There is code duplication of a masked ethernet address comparison here
+so make it a separate function instead.
 
-	Hello,
+Miscellanea:
 
-On Wed, 15 Jun 2016, Quentin Armitage wrote:
+o Neaten alignment of FWINV macro uses to make it clearer for the reader
 
-> I am updating the patches in line with your comments, but I'm not sure about
-> a couple of points.
-> 
-> Patch 4:
-> 
-> You state that before bind(), such changes should be safe. However, from the
-> function make_send_sock(), when the functions set_mcast_if(),
-> set_mcast_loop(), set_mcast_ttl() and set_mcast_pmtudisc() are called before
-> connect(), they all lock the socket before modifying it. Patch 4 was
-> intended to make the setting of REUSE consistent.
-> 
-> If the locking is not necessary, would it be better to remove the locks from
-> the set_mcast_...() functions referred to above.
+Signed-off-by: Joe Perches <joe@perches.com>
+---
 
-	This is a slow path, so it does not matter much.
-There is no concurrent access to the socket, the only
-risk is some call into the stack that checks with lockdep
-for the missing lock. Such example but for another lock
-we already hold is ASSERT_RTNL in ip_mc_join_group. But for simple
-sk vars lock is not needed. You can safely remove locks before
-connect/bind if only sk fields are accessed directly.
-We can keep it only in join_mcast_group*(), especially
-because they are called after bind().
+This masked_ether_addr_equal function could go into etherdevice.h,
+but I don't see another use like it in kernel code.  Is there one?
 
-> Re patch 1 setting 'sock->sk->sk_bound_dev_if = ifindex;', I presume the
-> locking should be consistent with what is done in the other functions.
+ net/bridge/netfilter/ebt_stp.c | 62 ++++++++++++++++++++++++------------------
+ 1 file changed, 35 insertions(+), 27 deletions(-)
 
-	It is a simple var, so it can work without lock.
-
-> Your comments on the above would be really helpful.
-> 
-> Patch 5:
-> 
-> You state 'The indentation of existing pr_info in both cases should not be
-> changed". I'm not clear exactly what that means. Does it mean that the
-> spaces at the beginning of the pr_info() strings which report group, port
-> and ttl should be removed?
-
-	No, here is example from your patch:
-
-        pr_info("sync thread started: state = MASTER, mcast_ifn = %s, "
--               "syncid = %d, id = %d\n",
--               ipvs->mcfg.mcast_ifn, ipvs->mcfg.syncid, tinfo->id);
-+                       "syncid = %d, id = %d, maxlen = %d\n",
-+                       ipvs->mcfg.mcast_ifn, ipvs->mcfg.syncid,
-+                       tinfo->id, ipvs->mcfg.sync_maxlen);
-
-	"syncid = " was at the same column as "sync thread started",
-you added another tab, may be to align with the args in new pr_info.
-The result is:
-
-	pr_info("sync thread started: state = MASTER, mcast_ifn = %s, "
-			"syncid = %d, id = %d, maxlen = %d\n",
-			ipvs->mcfg.mcast_ifn, ipvs->mcfg.syncid,
-			tinfo->id, ipvs->mcfg.sync_maxlen);
-	<--- 2 TABs --->
-
-	But it should be:
-
-	pr_info("sync thread started: state = MASTER, mcast_ifn = %s, "
-		"syncid = %d, id = %d, maxlen = %d\n",
-		ipvs->mcfg.mcast_ifn, ipvs->mcfg.syncid,
-		tinfo->id, ipvs->mcfg.sync_maxlen);
-	< 1 TAB>
-
-	Also, the new pr_info calls exceed 80 columns.
-May be you can reduce the many spaces.
-
-Regards
+diff --git a/net/bridge/netfilter/ebt_stp.c b/net/bridge/netfilter/ebt_stp.c
+index e77f90b..46c3b5d 100644
+--- a/net/bridge/netfilter/ebt_stp.c
++++ b/net/bridge/netfilter/ebt_stp.c
+@@ -40,13 +40,25 @@ struct stp_config_pdu {
+ #define NR16(p) (p[0] << 8 | p[1])
+ #define NR32(p) ((p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3])
+ 
++static bool masked_ether_addr_equal(const u8 *addr1, const u8 *addr2,
++				    const u8 *mask)
++{
++	int i;
++
++	for (i = 0; i < ETH_ALEN; i++) {
++		if ((addr1[i] ^ addr2[i]) & mask[i])
++			return false;
++	}
++
++	return true;
++}
++
+ static bool ebt_filter_config(const struct ebt_stp_info *info,
+ 			      const struct stp_config_pdu *stpc)
+ {
+ 	const struct ebt_stp_config_info *c;
+ 	u16 v16;
+ 	u32 v32;
+-	int verdict, i;
+ 
+ 	c = &info->config;
+ 	if ((info->bitmask & EBT_STP_FLAGS) &&
+@@ -54,66 +66,62 @@ static bool ebt_filter_config(const struct ebt_stp_info *info,
+ 		return false;
+ 	if (info->bitmask & EBT_STP_ROOTPRIO) {
+ 		v16 = NR16(stpc->root);
+-		if (FWINV(v16 < c->root_priol ||
+-		    v16 > c->root_priou, EBT_STP_ROOTPRIO))
++		if (FWINV(v16 < c->root_priol || v16 > c->root_priou,
++			  EBT_STP_ROOTPRIO))
+ 			return false;
+ 	}
+ 	if (info->bitmask & EBT_STP_ROOTADDR) {
+-		verdict = 0;
+-		for (i = 0; i < 6; i++)
+-			verdict |= (stpc->root[2+i] ^ c->root_addr[i]) &
+-				   c->root_addrmsk[i];
+-		if (FWINV(verdict != 0, EBT_STP_ROOTADDR))
++		if (FWINV(!masked_ether_addr_equal(&stpc->root[2], c->root_addr,
++						   c->root_addrmsk),
++			  EBT_STP_ROOTADDR))
+ 			return false;
+ 	}
+ 	if (info->bitmask & EBT_STP_ROOTCOST) {
+ 		v32 = NR32(stpc->root_cost);
+-		if (FWINV(v32 < c->root_costl ||
+-		    v32 > c->root_costu, EBT_STP_ROOTCOST))
++		if (FWINV(v32 < c->root_costl || v32 > c->root_costu,
++			  EBT_STP_ROOTCOST))
+ 			return false;
+ 	}
+ 	if (info->bitmask & EBT_STP_SENDERPRIO) {
+ 		v16 = NR16(stpc->sender);
+-		if (FWINV(v16 < c->sender_priol ||
+-		    v16 > c->sender_priou, EBT_STP_SENDERPRIO))
++		if (FWINV(v16 < c->sender_priol || v16 > c->sender_priou,
++			  EBT_STP_SENDERPRIO))
+ 			return false;
+ 	}
+ 	if (info->bitmask & EBT_STP_SENDERADDR) {
+-		verdict = 0;
+-		for (i = 0; i < 6; i++)
+-			verdict |= (stpc->sender[2+i] ^ c->sender_addr[i]) &
+-				   c->sender_addrmsk[i];
+-		if (FWINV(verdict != 0, EBT_STP_SENDERADDR))
++		if (FWINV(!masked_ether_addr_equal(&stpc->sender[2],
++						   c->sender_addr,
++						   c->sender_addrmsk),
++			  EBT_STP_SENDERADDR))
+ 			return false;
+ 	}
+ 	if (info->bitmask & EBT_STP_PORT) {
+ 		v16 = NR16(stpc->port);
+-		if (FWINV(v16 < c->portl ||
+-		    v16 > c->portu, EBT_STP_PORT))
++		if (FWINV(v16 < c->portl || v16 > c->portu, EBT_STP_PORT))
+ 			return false;
+ 	}
+ 	if (info->bitmask & EBT_STP_MSGAGE) {
+ 		v16 = NR16(stpc->msg_age);
+-		if (FWINV(v16 < c->msg_agel ||
+-		    v16 > c->msg_ageu, EBT_STP_MSGAGE))
++		if (FWINV(v16 < c->msg_agel || v16 > c->msg_ageu,
++			  EBT_STP_MSGAGE))
+ 			return false;
+ 	}
+ 	if (info->bitmask & EBT_STP_MAXAGE) {
+ 		v16 = NR16(stpc->max_age);
+-		if (FWINV(v16 < c->max_agel ||
+-		    v16 > c->max_ageu, EBT_STP_MAXAGE))
++		if (FWINV(v16 < c->max_agel || v16 > c->max_ageu,
++			  EBT_STP_MAXAGE))
+ 			return false;
+ 	}
+ 	if (info->bitmask & EBT_STP_HELLOTIME) {
+ 		v16 = NR16(stpc->hello_time);
+-		if (FWINV(v16 < c->hello_timel ||
+-		    v16 > c->hello_timeu, EBT_STP_HELLOTIME))
++		if (FWINV(v16 < c->hello_timel || v16 > c->hello_timeu,
++			  EBT_STP_HELLOTIME))
+ 			return false;
+ 	}
+ 	if (info->bitmask & EBT_STP_FWDD) {
+ 		v16 = NR16(stpc->forward_delay);
+-		if (FWINV(v16 < c->forward_delayl ||
+-		    v16 > c->forward_delayu, EBT_STP_FWDD))
++		if (FWINV(v16 < c->forward_delayl || v16 > c->forward_delayu,
++			  EBT_STP_FWDD))
+ 			return false;
+ 	}
+ 	return true;
+-- 
+2.8.0.rc4.16.g56331f8
