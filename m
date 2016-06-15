@@ -1,79 +1,96 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH net-next] nfnetlink_queue: enable PID info retrieval
-Date: Wed, 15 Jun 2016 14:47:16 -0400
-Message-ID: <20160615184716.GM24102@mtj.duckdns.org>
-References: <1465505409-1232-1-git-send-email-saeedm@mellanox.com>
- <20160609213517.GA25288@breakpoint.cc>
- <5759EBF5.4010902@iogearbox.net>
- <5759FA28.3060900@iogearbox.net>
- <2ec75506-1ba0-5b16-4cd4-7b40cc969871@bmw-carit.de>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH v2 0/5] ipvs: fix backup sync daemon with IPv6, and minor
+ updates
+Date: Wed, 15 Jun 2016 22:52:22 +0300 (EEST)
+Message-ID: <alpine.LFD.2.11.1606152209001.1950@ja.home.ssi.bg>
+References: <1465914262-30112-1-git-send-email-quentin@armitage.org.uk>  <alpine.LFD.2.11.1606150815500.2828@ja.home.ssi.bg> <1465978975.2737.264.camel@samson1.armitage.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Daniel Borkmann <daniel@iogearbox.net>,
-	Florian Westphal <fw@strlen.de>,
-	Saeed Mahameed <saeedm@mellanox.com>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Yevgeny Petrilin <yevgenyp@mellanox.com>,
-	Andre Melkoumian <andre@mellanox.com>,
-	Matthew Finlay <matt@mellanox.com>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	john.fastabend@gmail.com, hannes@stressinduktion.org,
-	viro@zeniv.linux.org.uk
-To: Daniel Wagner <daniel.wagner@bmw-carit.de>
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org
+To: Quentin Armitage <quentin@armitage.org.uk>
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2ec75506-1ba0-5b16-4cd4-7b40cc969871@bmw-carit.de>
+In-Reply-To: <1465978975.2737.264.camel@samson1.armitage.org.uk>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
 
-On Fri, Jun 10, 2016 at 08:40:34AM +0200, Daniel Wagner wrote:
-> > [ Cc'ing John, Daniel, et al ]
-> > 
-> > Btw, while I just looked at scm_detach_fds(), I think commits ...
-> > 
-> >  * 48a87cc26c13 ("net: netprio: fd passed in SCM_RIGHTS datagram not set
-> > correctly")
-> >  * d84295067fc7 ("net: net_cls: fd passed in SCM_RIGHTS datagram not set
-> > correctly")
-> > 
-> > ... might not be correct, maybe I'm missing something ...? Lets say
-> > process A
-> > has a socket fd that it sends via SCM_RIGHTS to process B. Process A was
-> > the
-> > one that called sk_alloc() originally. Now in scm_detach_fds() we
-> > install a new
-> > fd for process B pointing to the same sock (file's private_data) and
-> > above commits
-> > update the cached socket cgroup data for net_cls/net_prio to the new
-> > process B.
-> > So, if process A for example still sends data over that socket, skbs
-> > will then
-> > wrongly match on B's cgroup membership instead of A's, no?
+	Hello,
+
+On Wed, 15 Jun 2016, Quentin Armitage wrote:
+
+> I am updating the patches in line with your comments, but I'm not sure about
+> a couple of points.
 > 
-> I can't remember the details right now (need to read up again but I wont
-> have time till Wednesday).
+> Patch 4:
 > 
-> From your analysis I would say that is not the desired effect. A should
-> match against its own cgroup and not the one of B.
+> You state that before bind(), such changes should be safe. However, from the
+> function make_send_sock(), when the functions set_mcast_if(),
+> set_mcast_loop(), set_mcast_ttl() and set_mcast_pmtudisc() are called before
+> connect(), they all lock the socket before modifying it. Patch 4 was
+> intended to make the setting of REUSE consistent.
+> 
+> If the locking is not necessary, would it be better to remove the locks from
+> the set_mcast_...() functions referred to above.
 
-We don't have a good answer for resources which are shared across
-different cgroups.  It is often too expensive to track such sharing
-accurately and crude approximation (creator-owned, last-used or
-whatever) is used widely even outside cgroup.  Different cgroup
-controllers tried different approaches but most are settling down for
-creator ownership with exceptions for high impact cases.
+	This is a slow path, so it does not matter much.
+There is no concurrent access to the socket, the only
+risk is some call into the stack that checks with lockdep
+for the missing lock. Such example but for another lock
+we already hold is ASSERT_RTNL in ip_mc_join_group. But for simple
+sk vars lock is not needed. You can safely remove locks before
+connect/bind if only sk fields are accessed directly.
+We can keep it only in join_mcast_group*(), especially
+because they are called after bind().
 
-I don't think there's a solution which satifies all cases here.  Given
-that, doing the minimum amount of work (not worrying about SCM_RIGHTS
-transfers) is the right thing to do, but we've had this re-labeling
-since 2012, so leaving as-is is likely the best option at this point.
+> Re patch 1 setting 'sock->sk->sk_bound_dev_if = ifindex;', I presume the
+> locking should be consistent with what is done in the other functions.
 
-Thanks.
+	It is a simple var, so it can work without lock.
 
--- 
-tejun
+> Your comments on the above would be really helpful.
+> 
+> Patch 5:
+> 
+> You state 'The indentation of existing pr_info in both cases should not be
+> changed". I'm not clear exactly what that means. Does it mean that the
+> spaces at the beginning of the pr_info() strings which report group, port
+> and ttl should be removed?
+
+	No, here is example from your patch:
+
+        pr_info("sync thread started: state = MASTER, mcast_ifn = %s, "
+-               "syncid = %d, id = %d\n",
+-               ipvs->mcfg.mcast_ifn, ipvs->mcfg.syncid, tinfo->id);
++                       "syncid = %d, id = %d, maxlen = %d\n",
++                       ipvs->mcfg.mcast_ifn, ipvs->mcfg.syncid,
++                       tinfo->id, ipvs->mcfg.sync_maxlen);
+
+	"syncid = " was at the same column as "sync thread started",
+you added another tab, may be to align with the args in new pr_info.
+The result is:
+
+	pr_info("sync thread started: state = MASTER, mcast_ifn = %s, "
+			"syncid = %d, id = %d, maxlen = %d\n",
+			ipvs->mcfg.mcast_ifn, ipvs->mcfg.syncid,
+			tinfo->id, ipvs->mcfg.sync_maxlen);
+	<--- 2 TABs --->
+
+	But it should be:
+
+	pr_info("sync thread started: state = MASTER, mcast_ifn = %s, "
+		"syncid = %d, id = %d, maxlen = %d\n",
+		ipvs->mcfg.mcast_ifn, ipvs->mcfg.syncid,
+		tinfo->id, ipvs->mcfg.sync_maxlen);
+	< 1 TAB>
+
+	Also, the new pr_info calls exceed 80 columns.
+May be you can reduce the many spaces.
+
+Regards
