@@ -1,80 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: fix buffer null termination
-Date: Wed, 15 Jun 2016 14:17:40 +0200
-Message-ID: <20160615121740.GA3088@salvia>
-References: <1465620484-5543-1-git-send-email-sandeepkishan108@gmail.com>
- <CAJ3s=NBCvYnRaWcFb==vZqP1_YE6w=uKqbtBvESkCo1sED2CHg@mail.gmail.com>
- <20160614150802.GA1029@salvia>
- <CAJ3s=ND18x4g4gwVOb0G4cqRbAiF-6F341gWJK7_vumc2BLB0w@mail.gmail.com>
+Subject: Re: [PATCH] extensions: libxt_conntrack: Add translation to nft
+Date: Wed, 15 Jun 2016 14:21:27 +0200
+Message-ID: <20160615122127.GA3188@salvia>
+References: <20160614180242.GA26384@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Kishan Sandeep <sandeepkishan108@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Laura Garcia Liebana <nevola@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49735 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:50672 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752984AbcFOMRx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jun 2016 08:17:53 -0400
+	id S1750976AbcFOMVb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jun 2016 08:21:31 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id ADB54E7DBA
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 14:17:51 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 70BAAE7DBC
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 14:21:30 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 9BB7E1B2FD4
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 14:17:51 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 61D8E1B300D
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 14:21:30 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 1F9ED1B2F07
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 14:17:46 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 5E0401B3000
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 14:21:28 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <CAJ3s=ND18x4g4gwVOb0G4cqRbAiF-6F341gWJK7_vumc2BLB0w@mail.gmail.com>
+In-Reply-To: <20160614180242.GA26384@sonyv>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jun 14, 2016 at 09:52:49PM +0530, Kishan Sandeep wrote:
-> Hi Pablo,
+On Tue, Jun 14, 2016 at 08:02:45PM +0200, Laura Garcia Liebana wrote:
+> Add translation of conntrack to nftables.
 > 
-> On Tue, Jun 14, 2016 at 8:38 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Cc'ing netfilter-devel.
-> >
-> > On Tue, Jun 14, 2016 at 07:39:27PM +0530, Kishan Sandeep wrote:
-> >> + netdev
-> >>
-> >> On Sat, Jun 11, 2016 at 10:18 AM, Kishan Sandeep
-> >> <sandeepkishan108@gmail.com> wrote:
-> >> > strncpy generally perferable fo non-terminated
-> >> > fixed-width strings. For NULL termination strlcpy
-> >> > is preferrable.
-> >> >
-> >> > Signed-off-by: Kishan Sandeep <sandeepkishan108@gmail.com>
-> >> > ---
-> >> >  net/netfilter/xt_repldata.h |    2 +-
-> >> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >> >
-> >> > diff --git a/net/netfilter/xt_repldata.h b/net/netfilter/xt_repldata.h
-> >> > index 8fd3241..a460211 100644
-> >> > --- a/net/netfilter/xt_repldata.h
-> >> > +++ b/net/netfilter/xt_repldata.h
-> >> > @@ -28,7 +28,7 @@
-> >> >         if (tbl == NULL) \
-> >> >                 return NULL; \
-> >> >         term = (struct type##_error *)&(((char *)tbl)[term_offset]); \
-> >> > -       strncpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
-> >> > +       strlcpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
-> >
-> > I don't think this is actually fixing anything. Tables in x_tables
-> > have a known and fixed name that is defined from the kernel side, that
-> > is always smaller that the buffer we have there. So are you observing
-> > any real problem from there?
-> >
-> > Thanks.
+> Examples:
 > 
-> Not observed any real problem. Here the string is not NULL terminated with
-> the use of strncpy - that is the problem. With the use of strlcpy we can make
-> the string to terminated properly.
+> $ sudo iptables-translate -t filter -A INPUT -m conntrack --ctstate NEW,RELATED -j ACCEPT
+> nft add rule ip filter INPUT ct state { new,related } counter accept
 
-1) Table names set from the kernel codebase, so they are always
-   way smaller than that.
+No need to use a set here, instead:
 
-2) We're not expecting the addition of new tables in the future that
-   we result in the hypothetical problem that you indicate.
+nft add rule ip filter INPUT ct state new,related counter accept
+
+> $ sudo ip6tables-translate -t filter -A INPUT -m conntrack ! --ctstate NEW,RELATED -j ACCEPT
+> nft add rule ip6 filter INPUT ct state != { new,related } counter accept
+
+Same thing here.
 
 Thanks.
