@@ -1,34 +1,38 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: conntrack: destroy kmemcache on module
- removal
-Date: Wed, 15 Jun 2016 11:36:03 +0200
-Message-ID: <20160615093602.GA2516@salvia>
-References: <1465572319-880-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH nf-next 1/3] netfilter: nf_tables: fix wrong check of
+ NFT_SET_MAP in nf_tables_bind_set
+Date: Wed, 15 Jun 2016 11:38:32 +0200
+Message-ID: <20160615093832.GA2533@salvia>
+References: <1465618828-22162-1-git-send-email-zlpnobody@163.com>
+ <1465618828-22162-2-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52700 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53709 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753162AbcFOJgK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jun 2016 05:36:10 -0400
+	id S1750976AbcFOJin (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jun 2016 05:38:43 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id DC0D2100786
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 11:36:05 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 2065710078D
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 11:38:41 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id CB4439EBAD
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 11:36:05 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 0DE489EBA7
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 11:38:41 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E8F5A9EBAD
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 11:36:03 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 210639EBAD
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 11:38:38 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1465572319-880-1-git-send-email-fw@strlen.de>
+In-Reply-To: <1465618828-22162-2-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 10, 2016 at 05:25:19PM +0200, Florian Westphal wrote:
-> I forgot to move the kmem_cache_destroy into the exit path.
+On Sat, Jun 11, 2016 at 12:20:26PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <liping.zhang@spreadtrum.com>
+> 
+> We should check "i" is used as a dictionary or not, "binding" is already
+> checked before.
 
-Applied to nf, thanks Florian.
-
+I've applied this to nf, I qualify this as a fix, thanks.
