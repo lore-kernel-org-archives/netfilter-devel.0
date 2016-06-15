@@ -1,125 +1,80 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH V2] net: Allow xt_owner in any user namespace
-Date: Wed, 15 Jun 2016 06:52:01 -0500
-Message-ID: <87inxaoeji.fsf@x220.int.ebiederm.org>
-References: <1465850579-23431-1-git-send-email-cernekee@chromium.org>
-	<20160614000223.GC16798@breakpoint.cc>
-	<87wplszfpc.fsf@x220.int.ebiederm.org> <20160614132318.GA13565@salvia>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: fix buffer null termination
+Date: Wed, 15 Jun 2016 14:17:40 +0200
+Message-ID: <20160615121740.GA3088@salvia>
+References: <1465620484-5543-1-git-send-email-sandeepkishan108@gmail.com>
+ <CAJ3s=NBCvYnRaWcFb==vZqP1_YE6w=uKqbtBvESkCo1sED2CHg@mail.gmail.com>
+ <20160614150802.GA1029@salvia>
+ <CAJ3s=ND18x4g4gwVOb0G4cqRbAiF-6F341gWJK7_vumc2BLB0w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Cc: Florian Westphal <fw@strlen.de>,
-	Kevin Cernekee <cernekee@chromium.org>, kaber@trash.net,
-	kadlec@blackhole.kfki.hu, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Kishan Sandeep <sandeepkishan108@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:45828 "EHLO
-	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753154AbcFOMEJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jun 2016 08:04:09 -0400
-In-Reply-To: <20160614132318.GA13565@salvia> (Pablo Neira Ayuso's message of
-	"Tue, 14 Jun 2016 15:23:18 +0200")
+Received: from mail.us.es ([193.147.175.20]:49735 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752984AbcFOMRx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jun 2016 08:17:53 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id ADB54E7DBA
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 14:17:51 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 9BB7E1B2FD4
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 14:17:51 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 1F9ED1B2F07
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 14:17:46 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <CAJ3s=ND18x4g4gwVOb0G4cqRbAiF-6F341gWJK7_vumc2BLB0w@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> writes:
+On Tue, Jun 14, 2016 at 09:52:49PM +0530, Kishan Sandeep wrote:
+> Hi Pablo,
+> 
+> On Tue, Jun 14, 2016 at 8:38 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > Cc'ing netfilter-devel.
+> >
+> > On Tue, Jun 14, 2016 at 07:39:27PM +0530, Kishan Sandeep wrote:
+> >> + netdev
+> >>
+> >> On Sat, Jun 11, 2016 at 10:18 AM, Kishan Sandeep
+> >> <sandeepkishan108@gmail.com> wrote:
+> >> > strncpy generally perferable fo non-terminated
+> >> > fixed-width strings. For NULL termination strlcpy
+> >> > is preferrable.
+> >> >
+> >> > Signed-off-by: Kishan Sandeep <sandeepkishan108@gmail.com>
+> >> > ---
+> >> >  net/netfilter/xt_repldata.h |    2 +-
+> >> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >> >
+> >> > diff --git a/net/netfilter/xt_repldata.h b/net/netfilter/xt_repldata.h
+> >> > index 8fd3241..a460211 100644
+> >> > --- a/net/netfilter/xt_repldata.h
+> >> > +++ b/net/netfilter/xt_repldata.h
+> >> > @@ -28,7 +28,7 @@
+> >> >         if (tbl == NULL) \
+> >> >                 return NULL; \
+> >> >         term = (struct type##_error *)&(((char *)tbl)[term_offset]); \
+> >> > -       strncpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
+> >> > +       strlcpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
+> >
+> > I don't think this is actually fixing anything. Tables in x_tables
+> > have a known and fixed name that is defined from the kernel side, that
+> > is always smaller that the buffer we have there. So are you observing
+> > any real problem from there?
+> >
+> > Thanks.
+> 
+> Not observed any real problem. Here the string is not NULL terminated with
+> the use of strncpy - that is the problem. With the use of strlcpy we can make
+> the string to terminated properly.
 
-> On Mon, Jun 13, 2016 at 09:06:55PM -0500, Eric W. Biederman wrote:
->> Florian Westphal <fw@strlen.de> writes:
->> 
->> > Kevin Cernekee <cernekee@chromium.org> wrote:
->> >> @@ -35,6 +63,7 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
->> >>  	const struct xt_owner_match_info *info = par->matchinfo;
->> >>  	const struct file *filp;
->> >>  	struct sock *sk = skb_to_full_sk(skb);
->> >> +	const struct net *net;
->> >>  
->> >>  	if (sk == NULL || sk->sk_socket == NULL)
->> >>  		return (info->match ^ info->invert) == 0;
->> >> @@ -50,9 +79,10 @@ owner_mt(const struct sk_buff *skb, struct xt_action_param *par)
->> >>  		return ((info->match ^ info->invert) &
->> >>  		       (XT_OWNER_UID | XT_OWNER_GID)) == 0;
->> >>  
->> >> +	net = sock_net(skb->sk);
->> >
->> > I think you need to use sock_net(sk) as skb_to_full_sk(skb) can return something
->> > other than skb->sk.
->> 
->> Actually this should be "par->net".  That did not exist a few years ago
->> when the patch was written but it does now, and that should simplify
->> things a little bit, and remove any guess work or uncertainty.
->
-> Right.
->
-> BTW, could you also send a follow up patch to update
-> net/netfilter/nft_meta.c? We have similar support for socket owner in
-> nf_tables as well (actually it will be a more simple patch that this,
-> I would expect).
+1) Table names set from the kernel codebase, so they are always
+   way smaller than that.
 
-That sounds worth doing.
+2) We're not expecting the addition of new tables in the future that
+   we result in the hypothetical problem that you indicate.
 
-At the very least we need a test that whoever sets the filter is
-in the initial user namespace or else the filter is just nonsense.
-
-I took a glance at the code and I completely don't remember the
-context in which .init and .eval methods run in so I am temporarily at a
-loss.
-
-That said I suspect we want something like the patch below.  I am a
-little uncertain if we want from_kuid or from_kuid_munged.  The
-difference is how we handle unmapped uids and gids (in the rare case
-they come up).  There are some nuances but in practice from_xxx_munged
-returns (u16)-1 when things don't map, and from_xxx returns (u32)-1
-when things don't map.
-
-Eric
-
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 16c50b0dd426..b0b832eddb0d 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -104,7 +104,7 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 			goto err;
- 		}
- 
--		*dest =	from_kuid_munged(&init_user_ns,
-+		*dest =	from_kuid_munged(pkt->net->user_ns,
- 				sk->sk_socket->file->f_cred->fsuid);
- 		read_unlock_bh(&sk->sk_callback_lock);
- 		break;
-@@ -119,7 +119,7 @@ void nft_meta_get_eval(const struct nft_expr *expr,
- 			read_unlock_bh(&sk->sk_callback_lock);
- 			goto err;
- 		}
--		*dest =	from_kgid_munged(&init_user_ns,
-+		*dest =	from_kgid_munged(pkt->net->user_ns,
- 				 sk->sk_socket->file->f_cred->fsgid);
- 		read_unlock_bh(&sk->sk_callback_lock);
- 		break;
-@@ -263,8 +263,6 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
- 	case NFT_META_MARK:
- 	case NFT_META_IIF:
- 	case NFT_META_OIF:
--	case NFT_META_SKUID:
--	case NFT_META_SKGID:
- #ifdef CONFIG_IP_ROUTE_CLASSID
- 	case NFT_META_RTCLASSID:
- #endif
-@@ -288,6 +286,12 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
- 		prandom_init_once(&nft_prandom_state);
- 		len = sizeof(u32);
- 		break;
-+	case NFT_META_SKUID:
-+	case NFT_META_SKGID:
-+		if (current_user_ns() != net->user_ns)
-+			return -EINVAL;
-+		len = sizeof(u32);
-+		break;
- 	default:
- 		return -EOPNOTSUPP;
- 	}
-
-
-
-Eric
-
+Thanks.
