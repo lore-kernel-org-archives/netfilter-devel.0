@@ -1,46 +1,32 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] extensions: libxt_conntrack: Add translation to nft
-Date: Wed, 15 Jun 2016 14:21:27 +0200
-Message-ID: <20160615122127.GA3188@salvia>
-References: <20160614180242.GA26384@sonyv>
+Subject: Re: [PATCH] ip6tables: Warn about use of DROP in nat table
+Date: Wed, 15 Jun 2016 14:28:50 +0200
+Message-ID: <20160615122850.GA3450@salvia>
+References: <1465563478-7602-1-git-send-email-twoerner@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Laura Garcia Liebana <nevola@gmail.com>
+To: Thomas Woerner <twoerner@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50672 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52418 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750976AbcFOMVb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Jun 2016 08:21:31 -0400
+	id S1752976AbcFOM26 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Jun 2016 08:28:58 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 70BAAE7DBC
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 14:21:30 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 48E15E7DBA
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 14:28:54 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 61D8E1B300D
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 14:21:30 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 395C69EBAA
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 14:28:54 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 5E0401B3000
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 14:21:28 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 424A79EBBA
+	for <netfilter-devel@vger.kernel.org>; Wed, 15 Jun 2016 14:28:51 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160614180242.GA26384@sonyv>
+In-Reply-To: <1465563478-7602-1-git-send-email-twoerner@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jun 14, 2016 at 08:02:45PM +0200, Laura Garcia Liebana wrote:
-> Add translation of conntrack to nftables.
-> 
-> Examples:
-> 
-> $ sudo iptables-translate -t filter -A INPUT -m conntrack --ctstate NEW,RELATED -j ACCEPT
-> nft add rule ip filter INPUT ct state { new,related } counter accept
+On Fri, Jun 10, 2016 at 02:57:58PM +0200, Thomas Woerner wrote:
+> Clone of 1eada72b with 9bb76094 and e0390bee on top.
 
-No need to use a set here, instead:
-
-nft add rule ip filter INPUT ct state new,related counter accept
-
-> $ sudo ip6tables-translate -t filter -A INPUT -m conntrack ! --ctstate NEW,RELATED -j ACCEPT
-> nft add rule ip6 filter INPUT ct state != { new,related } counter accept
-
-Same thing here.
-
-Thanks.
+Applied, thanks Thomas.
