@@ -1,56 +1,79 @@
-From: "Lubashev, Igor" <ilubashe@akamai.com>
-Subject: RE: [PATCH] netfilter/nflog: nflog-range does not truncate packets
-Date: Wed, 15 Jun 2016 15:13:15 +0000
-Message-ID: <c7780b528f80417bbac319767a2ecf65@usma1ex-dag1mb5.msg.corp.akamai.com>
-References: <20160602002354.GG1644@akamai.com> <20160606223106.GA1621@salvia>
- <57575367.4010604@akamai.com> <20160608121625.GA4097@salvia>
- <5759AE1B.2080500@akamai.com> <575E2B49.7090809@akamai.com>
- <20160615123945.GA3594@salvia> <57616C49.7090403@akamai.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH net-next] nfnetlink_queue: enable PID info retrieval
+Date: Wed, 15 Jun 2016 14:47:16 -0400
+Message-ID: <20160615184716.GM24102@mtj.duckdns.org>
+References: <1465505409-1232-1-git-send-email-saeedm@mellanox.com>
+ <20160609213517.GA25288@breakpoint.cc>
+ <5759EBF5.4010902@iogearbox.net>
+ <5759FA28.3060900@iogearbox.net>
+ <2ec75506-1ba0-5b16-4cd4-7b40cc969871@bmw-carit.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Cc: "kaber@trash.net" <kaber@trash.net>,
-	"kadlec@blackhole.kfki.hu" <kadlec@blackhole.kfki.hu>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"coreteam@netfilter.org" <coreteam@netfilter.org>,
-	"Hunt, Joshua" <johunt@akamai.com>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"pai.vishwain@gmail.com" <pai.vishwain@gmail.com>
-To: "Pai, Vishwanath" <vpai@akamai.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Daniel Borkmann <daniel@iogearbox.net>,
+	Florian Westphal <fw@strlen.de>,
+	Saeed Mahameed <saeedm@mellanox.com>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Yevgeny Petrilin <yevgenyp@mellanox.com>,
+	Andre Melkoumian <andre@mellanox.com>,
+	Matthew Finlay <matt@mellanox.com>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	john.fastabend@gmail.com, hannes@stressinduktion.org,
+	viro@zeniv.linux.org.uk
+To: Daniel Wagner <daniel.wagner@bmw-carit.de>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <57616C49.7090403@akamai.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <2ec75506-1ba0-5b16-4cd4-7b40cc969871@bmw-carit.de>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Vish, Pablo,
+Hello,
 
-I wonder about the value of sending more data than a client is willing to consume (setting aside the important fact that the client code crashes due to the extra data).
-
-It seems that we should either drop the nflog-range parameter from nflog altogether (and just use the len from the client) or allow nflog-range to further *restrict* the number of bytes sent to the client.
-
-The "further restrict" logic would make it easier to build iptables rules that vary nflog-range based on some match conditions, so a single client would get different packet length depending on what rules matched.
-
-Thoughts?
-
-- Igor
-
-
------Original Message-----
-From: Vishwanath Pai [mailto:vpai@akamai.com] 
-Sent: Wednesday, June 15, 2016 10:55 AM
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: kaber@trash.net; kadlec@blackhole.kfki.hu; netfilter-devel@vger.kernel.org; coreteam@netfilter.org; Hunt, Joshua <johunt@akamai.com>; netdev@vger.kernel.org; pai.vishwain@gmail.com; Lubashev, Igor <ilubashe@akamai.com>
-Subject: Re: [PATCH] netfilter/nflog: nflog-range does not truncate packets
-
-On 06/15/2016 08:39 AM, Pablo Neira Ayuso wrote:
-> But nlmsg_len should match len in this.
+On Fri, Jun 10, 2016 at 08:40:34AM +0200, Daniel Wagner wrote:
+> > [ Cc'ing John, Daniel, et al ]
+> > 
+> > Btw, while I just looked at scm_detach_fds(), I think commits ...
+> > 
+> >  * 48a87cc26c13 ("net: netprio: fd passed in SCM_RIGHTS datagram not set
+> > correctly")
+> >  * d84295067fc7 ("net: net_cls: fd passed in SCM_RIGHTS datagram not set
+> > correctly")
+> > 
+> > ... might not be correct, maybe I'm missing something ...? Lets say
+> > process A
+> > has a socket fd that it sends via SCM_RIGHTS to process B. Process A was
+> > the
+> > one that called sk_alloc() originally. Now in scm_detach_fds() we
+> > install a new
+> > fd for process B pointing to the same sock (file's private_data) and
+> > above commits
+> > update the cached socket cgroup data for net_cls/net_prio to the new
+> > process B.
+> > So, if process A for example still sends data over that socket, skbs
+> > will then
+> > wrongly match on B's cgroup membership instead of A's, no?
 > 
-> If we're just sending a part of the packet to userspace, then we 
-> should adjust nlmsg_len to indicate exactly the netlink message length 
-> that we're sending to userspace.
+> I can't remember the details right now (need to read up again but I wont
+> have time till Wednesday).
 > 
-> Is your patch triggering this nlmsg_len != len?
+> From your analysis I would say that is not the desired effect. A should
+> match against its own cgroup and not the one of B.
 
-The value of len here is how many bytes were returned by recv. We do send the entire nlmsg_len to userspace, but recv cannot copy the full packet because the buffer is not big enough to hold this. They only allocate the buffer assuming that the packet won't be bigger than their snap len, but we send more data than their snap len and they don't handle this condition well.
+We don't have a good answer for resources which are shared across
+different cgroups.  It is often too expensive to track such sharing
+accurately and crude approximation (creator-owned, last-used or
+whatever) is used widely even outside cgroup.  Different cgroup
+controllers tried different approaches but most are settling down for
+creator ownership with exceptions for high impact cases.
+
+I don't think there's a solution which satifies all cases here.  Given
+that, doing the minimum amount of work (not worrying about SCM_RIGHTS
+transfers) is the right thing to do, but we've had this re-labeling
+since 2012, so leaving as-is is likely the best option at this point.
+
+Thanks.
+
+-- 
+tejun
