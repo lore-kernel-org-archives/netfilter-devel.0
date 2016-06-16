@@ -1,321 +1,102 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] bridge: netfilter: spanning tree: Add
- masked_ether_addr_equal and neatening
-Date: Wed, 15 Jun 2016 23:04:04 -0700
-Message-ID: <1466057044.19647.42.camel@perches.com>
-References: <f39576f17e9f5dee35258917917f2d740e820a77.1466024030.git.joe@perches.com>
+From: Julian Anastasov <ja@ssi.bg>
+Subject: Re: [PATCH v3 0/4] ipvs: fix backup sync daemon with IPv6, and minor
+ updates
+Date: Thu, 16 Jun 2016 09:17:24 +0300 (EEST)
+Message-ID: <alpine.LFD.2.11.1606160912380.2490@ja.home.ssi.bg>
+References: <1465914262-30112-1-git-send-email-quentin@armitage.org.uk> <1466026964-14114-1-git-send-email-quentin@armitage.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Stephen Hemminger <stephen@networkplumber.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	bridge@lists.linux-foundation.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
 	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtprelay0174.hostedemail.com ([216.40.44.174]:41626 "EHLO
-	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751252AbcFPGEI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jun 2016 02:04:08 -0400
-In-Reply-To: <f39576f17e9f5dee35258917917f2d740e820a77.1466024030.git.joe@perches.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org
+To: Quentin Armitage <quentin@armitage.org.uk>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <1466026964-14114-1-git-send-email-quentin@armitage.org.uk>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 2016-06-15 at 13:58 -0700, Joe Perches wrote:
-> There is code duplication of a masked ethernet address comparison her=
-e
-> so make it a separate function instead.
->=20
-> Miscellanea:
->=20
-> o Neaten alignment of FWINV macro uses to make it clearer for the rea=
-der
->=20
-> Signed-off-by: Joe Perches <joe@perches.com>
-> ---
->=20
-> This masked_ether_addr_equal function could go into etherdevice.h,
-> but I don't see another use like it in kernel code.=A0=A0Is there one=
-?
 
-Turns out there are at least a few more uses in bridge/netfilter
+	Hello,
 
-=A0net/bridge/netfilter/ebt_arp.c
-=A0net/bridge/netfilter/ebtables.c
+On Wed, 15 Jun 2016, Quentin Armitage wrote:
 
-Maybe this?
----
-=46rom 770261c682a745b8de663a5756a66cd00bb5b79b Mon Sep 17 00:00:00 200=
-1
-Message-Id: <770261c682a745b8de663a5756a66cd00bb5b79b.1466056695.git.jo=
-e@perches.com>
-=46rom: Joe Perches <joe@perches.com>
-Date: Wed, 15 Jun 2016 13:45:54 -0700
-Subject: [PATCH] etherdevice.h & bridge: netfilter: Add and use
-=A0ether_addr_equal_masked
+> This series of patches arise from discovering that:
+> ipvsadm --start-daemon backup --mcast-group IPv6_address ...
+> would always fail.
+> 
+> The first patch resolves the problem. The second and third patches are
+> optimizations that were noticed while investigating the original problem.
+> The fourth patch adds a lock which appears to have been omitted, and the
+> final patch adds the recently added sync daemon multicast parameters to
+> the log messages that are written when the sync daemons start.
+> 
+> v2 fixes a compile error in a debug message identified by kbuild test
+> robot. Now compiles with CONFIG_IP_VS_DEBUG enabled. Patch 2/5 is modified
+> to correct the problem, and patch 3/5 is modifed to apply with the
+> modified patch 2/5.
+> 
+> v3 incorporates changes suggested by Julian Anastasov.
+> Patch 1 now sets 'sock->sk->sk_bound_dev_if = ifindex' rather than setting
+>         sin6_scope_id. Also remove the locks since unnecessary.
+> Patch 3 shortens the logged message in order not to exceed 80-char limit.
+> Patch 4 Removed, the locks aren't necessary
+> Patch 5 No longer changes indentation of existing pr_info. Also removes <>
+>         around commit IDs in commit description.
+> Patches 1, 2, 3, 5 are updated to resolve coding style warnings, and all
+> 	pass with 0 errors, warnings and checks.
+> Patch 5 now becomes patch 4.
+> 
+> The changes have all been tested and work as expected.
+> 
+> Quentin Armitage (4):
+>   ipvs: Enable setting IPv6 multicast address for ipvs
+>   ipvs: Stop calling __dev_get_by_name() repeatedly when starting sync
+>     daemon
+>   ipvs: Don't check result < 0 after setting result = 0
+>   ipvs: log additional sync daemon parameters
+> 
+>  net/netfilter/ipvs/ip_vs_sync.c |  105 +++++++++++++++++++--------------------
+>  1 files changed, 52 insertions(+), 53 deletions(-)
+> 
+> -- 
+> 1.7.7.6
 
-There are code duplications of a masked ethernet address comparison her=
-e
-so make it a separate function instead.
+	You should post first patch separately, not as a part
+from the patchset, by specifying the tree:
 
-Miscellanea:
+[PATCH v4 net] ipvs: ...
 
-o Neaten alignment of FWINV macro uses to make it clearer for the reade=
-r
+	The other 3 patches remain in this patchset,
+with added "net-next":
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
-=A0include/linux/etherdevice.h=A0=A0=A0=A0=A0| 22 ++++++++++++++++++
-=A0net/bridge/netfilter/ebt_arp.c=A0=A0| 17 +++++---------
-=A0net/bridge/netfilter/ebt_stp.c=A0=A0| 49 ++++++++++++++++++---------=
---------------
-=A0net/bridge/netfilter/ebtables.c | 17 +++++---------
-=A04 files changed, 56 insertions(+), 49 deletions(-)
+[PATCH v4 net-next */3] ipvs: ...
 
-diff --git a/include/linux/etherdevice.h b/include/linux/etherdevice.h
-index 37ff4a6..942a24c 100644
---- a/include/linux/etherdevice.h
-+++ b/include/linux/etherdevice.h
-@@ -374,6 +374,28 @@ static inline bool ether_addr_equal_unaligned(cons=
-t u8 *addr1, const u8 *addr2)
-=A0}
-=A0
-=A0/**
-+ * ether_addr_equal_masked - Compare two Ethernet addresses with a mas=
-k
-+ * @addr1: Pointer to a six-byte array containing the 1st Ethernet add=
-ress
-+ * @addr2: Pointer to a six-byte array containing the 2nd Ethernet add=
-ress
-+ * @mask: Pointer to a six-byte array containing the Ethernet address =
-bitmask
-+ *
-+ * Compare two Ethernet addresses with a mask, returns true if for eve=
-ry bit
-+ * set in the bitmask the equivalent bits in the ethernet addresses ar=
-e equal.
-+ */
-+static inline bool ether_addr_equal_masked(const u8 *addr1, const u8 *=
-addr2,
-+					=A0=A0=A0const u8 *mask)
-+{
-+	int i;
-+
-+	for (i =3D 0; i < ETH_ALEN; i++) {
-+		if ((addr1[i] ^ addr2[i]) & mask[i])
-+			return false;
-+	}
-+
-+	return true;
-+}
-+
-+/**
-=A0 * is_etherdev_addr - Tell if given Ethernet address belongs to the =
-device.
-=A0 * @dev: Pointer to a device structure
-=A0 * @addr: Pointer to a six-byte array containing the Ethernet addres=
-s
-diff --git a/net/bridge/netfilter/ebt_arp.c b/net/bridge/netfilter/ebt_=
-arp.c
-index cd457b8..cca0a89 100644
---- a/net/bridge/netfilter/ebt_arp.c
-+++ b/net/bridge/netfilter/ebt_arp.c
-@@ -65,7 +65,6 @@ ebt_arp_mt(const struct sk_buff *skb, struct xt_actio=
-n_param *par)
-=A0	if (info->bitmask & (EBT_ARP_SRC_MAC | EBT_ARP_DST_MAC)) {
-=A0		const unsigned char *mp;
-=A0		unsigned char _mac[ETH_ALEN];
--		uint8_t verdict, i;
-=A0
-=A0		if (ah->ar_hln !=3D ETH_ALEN || ah->ar_hrd !=3D htons(ARPHRD_ETHER=
-))
-=A0			return false;
-@@ -74,11 +73,9 @@ ebt_arp_mt(const struct sk_buff *skb, struct xt_acti=
-on_param *par)
-=A0						sizeof(_mac), &_mac);
-=A0			if (mp =3D=3D NULL)
-=A0				return false;
--			verdict =3D 0;
--			for (i =3D 0; i < 6; i++)
--				verdict |=3D (mp[i] ^ info->smaddr[i]) &
--				=A0=A0=A0=A0=A0=A0=A0info->smmsk[i];
--			if (FWINV(verdict !=3D 0, EBT_ARP_SRC_MAC))
-+			if (FWINV(!ether_addr_equal_masked(mp, info->smaddr,
-+							=A0=A0=A0info->smmsk),
-+				=A0=A0EBT_ARP_SRC_MAC))
-=A0				return false;
-=A0		}
-=A0
-@@ -88,11 +85,9 @@ ebt_arp_mt(const struct sk_buff *skb, struct xt_acti=
-on_param *par)
-=A0						sizeof(_mac), &_mac);
-=A0			if (mp =3D=3D NULL)
-=A0				return false;
--			verdict =3D 0;
--			for (i =3D 0; i < 6; i++)
--				verdict |=3D (mp[i] ^ info->dmaddr[i]) &
--					info->dmmsk[i];
--			if (FWINV(verdict !=3D 0, EBT_ARP_DST_MAC))
-+			if (FWINV(!ether_addr_equal_masked(mp, info->dmaddr,
-+							=A0=A0=A0info->dmmsk),
-+				=A0=A0EBT_ARP_DST_MAC))
-=A0				return false;
-=A0		}
-=A0	}
-diff --git a/net/bridge/netfilter/ebt_stp.c b/net/bridge/netfilter/ebt_=
-stp.c
-index e77f90b..45f73d5 100644
---- a/net/bridge/netfilter/ebt_stp.c
-+++ b/net/bridge/netfilter/ebt_stp.c
-@@ -46,7 +46,6 @@ static bool ebt_filter_config(const struct ebt_stp_in=
-fo *info,
-=A0	const struct ebt_stp_config_info *c;
-=A0	u16 v16;
-=A0	u32 v32;
--	int verdict, i;
-=A0
-=A0	c =3D &info->config;
-=A0	if ((info->bitmask & EBT_STP_FLAGS) &&
-@@ -54,66 +53,62 @@ static bool ebt_filter_config(const struct ebt_stp_=
-info *info,
-=A0		return false;
-=A0	if (info->bitmask & EBT_STP_ROOTPRIO) {
-=A0		v16 =3D NR16(stpc->root);
--		if (FWINV(v16 < c->root_priol ||
--		=A0=A0=A0=A0v16 > c->root_priou, EBT_STP_ROOTPRIO))
-+		if (FWINV(v16 < c->root_priol || v16 > c->root_priou,
-+			=A0=A0EBT_STP_ROOTPRIO))
-=A0			return false;
-=A0	}
-=A0	if (info->bitmask & EBT_STP_ROOTADDR) {
--		verdict =3D 0;
--		for (i =3D 0; i < 6; i++)
--			verdict |=3D (stpc->root[2+i] ^ c->root_addr[i]) &
--				=A0=A0=A0c->root_addrmsk[i];
--		if (FWINV(verdict !=3D 0, EBT_STP_ROOTADDR))
-+		if (FWINV(!ether_addr_equal_masked(&stpc->root[2], c->root_addr,
-+						=A0=A0=A0c->root_addrmsk),
-+			=A0=A0EBT_STP_ROOTADDR))
-=A0			return false;
-=A0	}
-=A0	if (info->bitmask & EBT_STP_ROOTCOST) {
-=A0		v32 =3D NR32(stpc->root_cost);
--		if (FWINV(v32 < c->root_costl ||
--		=A0=A0=A0=A0v32 > c->root_costu, EBT_STP_ROOTCOST))
-+		if (FWINV(v32 < c->root_costl || v32 > c->root_costu,
-+			=A0=A0EBT_STP_ROOTCOST))
-=A0			return false;
-=A0	}
-=A0	if (info->bitmask & EBT_STP_SENDERPRIO) {
-=A0		v16 =3D NR16(stpc->sender);
--		if (FWINV(v16 < c->sender_priol ||
--		=A0=A0=A0=A0v16 > c->sender_priou, EBT_STP_SENDERPRIO))
-+		if (FWINV(v16 < c->sender_priol || v16 > c->sender_priou,
-+			=A0=A0EBT_STP_SENDERPRIO))
-=A0			return false;
-=A0	}
-=A0	if (info->bitmask & EBT_STP_SENDERADDR) {
--		verdict =3D 0;
--		for (i =3D 0; i < 6; i++)
--			verdict |=3D (stpc->sender[2+i] ^ c->sender_addr[i]) &
--				=A0=A0=A0c->sender_addrmsk[i];
--		if (FWINV(verdict !=3D 0, EBT_STP_SENDERADDR))
-+		if (FWINV(!ether_addr_equal_masked(&stpc->sender[2],
-+						=A0=A0=A0c->sender_addr,
-+						=A0=A0=A0c->sender_addrmsk),
-+			=A0=A0EBT_STP_SENDERADDR))
-=A0			return false;
-=A0	}
-=A0	if (info->bitmask & EBT_STP_PORT) {
-=A0		v16 =3D NR16(stpc->port);
--		if (FWINV(v16 < c->portl ||
--		=A0=A0=A0=A0v16 > c->portu, EBT_STP_PORT))
-+		if (FWINV(v16 < c->portl || v16 > c->portu, EBT_STP_PORT))
-=A0			return false;
-=A0	}
-=A0	if (info->bitmask & EBT_STP_MSGAGE) {
-=A0		v16 =3D NR16(stpc->msg_age);
--		if (FWINV(v16 < c->msg_agel ||
--		=A0=A0=A0=A0v16 > c->msg_ageu, EBT_STP_MSGAGE))
-+		if (FWINV(v16 < c->msg_agel || v16 > c->msg_ageu,
-+			=A0=A0EBT_STP_MSGAGE))
-=A0			return false;
-=A0	}
-=A0	if (info->bitmask & EBT_STP_MAXAGE) {
-=A0		v16 =3D NR16(stpc->max_age);
--		if (FWINV(v16 < c->max_agel ||
--		=A0=A0=A0=A0v16 > c->max_ageu, EBT_STP_MAXAGE))
-+		if (FWINV(v16 < c->max_agel || v16 > c->max_ageu,
-+			=A0=A0EBT_STP_MAXAGE))
-=A0			return false;
-=A0	}
-=A0	if (info->bitmask & EBT_STP_HELLOTIME) {
-=A0		v16 =3D NR16(stpc->hello_time);
--		if (FWINV(v16 < c->hello_timel ||
--		=A0=A0=A0=A0v16 > c->hello_timeu, EBT_STP_HELLOTIME))
-+		if (FWINV(v16 < c->hello_timel || v16 > c->hello_timeu,
-+			=A0=A0EBT_STP_HELLOTIME))
-=A0			return false;
-=A0	}
-=A0	if (info->bitmask & EBT_STP_FWDD) {
-=A0		v16 =3D NR16(stpc->forward_delay);
--		if (FWINV(v16 < c->forward_delayl ||
--		=A0=A0=A0=A0v16 > c->forward_delayu, EBT_STP_FWDD))
-+		if (FWINV(v16 < c->forward_delayl || v16 > c->forward_delayu,
-+			=A0=A0EBT_STP_FWDD))
-=A0			return false;
-=A0	}
-=A0	return true;
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebt=
-ables.c
-index 5a61f35..5721a25 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -130,7 +130,6 @@ ebt_basic_match(const struct ebt_entry *e, const st=
-ruct sk_buff *skb,
-=A0	const struct ethhdr *h =3D eth_hdr(skb);
-=A0	const struct net_bridge_port *p;
-=A0	__be16 ethproto;
--	int verdict, i;
-=A0
-=A0	if (skb_vlan_tag_present(skb))
-=A0		ethproto =3D htons(ETH_P_8021Q);
-@@ -157,19 +156,15 @@ ebt_basic_match(const struct ebt_entry *e, const =
-struct sk_buff *skb,
-=A0		return 1;
-=A0
-=A0	if (e->bitmask & EBT_SOURCEMAC) {
--		verdict =3D 0;
--		for (i =3D 0; i < 6; i++)
--			verdict |=3D (h->h_source[i] ^ e->sourcemac[i]) &
--			=A0=A0=A0e->sourcemsk[i];
--		if (FWINV2(verdict !=3D 0, EBT_ISOURCE))
-+		if (FWINV2(!ether_addr_equal_masked(h->h_source,
-+						=A0=A0=A0=A0e->sourcemac, e->sourcemsk),
-+			=A0=A0=A0EBT_ISOURCE))
-=A0			return 1;
-=A0	}
-=A0	if (e->bitmask & EBT_DESTMAC) {
--		verdict =3D 0;
--		for (i =3D 0; i < 6; i++)
--			verdict |=3D (h->h_dest[i] ^ e->destmac[i]) &
--			=A0=A0=A0e->destmsk[i];
--		if (FWINV2(verdict !=3D 0, EBT_IDEST))
-+		if (FWINV2(!ether_addr_equal_masked(h->h_dest,
-+						=A0=A0=A0=A0e->destmac, e->destmsk),
-+			=A0=A0=A0EBT_IDEST))
-=A0			return 1;
-=A0	}
-=A0	return 0;
---=A0
-2.8.0.rc4.16.g56331f8
+Patch 1:
+
+	It is good to mention that problem happens for link-local
+addresses, not for site/org-local or global scope. By this way
+we are more precise when creating a bugfix, it avoids confusion.
+You can also check again the Subject and the commit message for
+improvements. It is up to you but here is an example:
+
+ipvs: fix bind to link-local mcast IPv6 address in backup
+
+	The empty line between Fixes and Signed-off-by should be
+removed.
+
+Patch 2-3: look OK
+
+Patch 4:
+
+	Some of the fields are unsigned, so %d should be %u:
+sync_maxlen, mcast_port, mcast_af, mcast_ttl
+
+Regards
 
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Julian Anastasov <ja@ssi.bg>
