@@ -1,48 +1,47 @@
-From: Joe Perches <joe@perches.com>
-Subject: rfc: netfilter: Unhide FWINV macro arguments ?
-Date: Thu, 16 Jun 2016 11:20:59 -0700
-Message-ID: <1466101259.19647.51.camel@perches.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH] configure: Fix logic for flex version check
+Date: Fri, 17 Jun 2016 03:36:14 +0530
+Message-ID: <1466114774-1831-1-git-send-email-shivanib134@gmail.com>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pa0-f67.google.com ([209.85.220.67]:35743 "EHLO
+	mail-pa0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754006AbcFPWGZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Jun 2016 18:06:25 -0400
+Received: by mail-pa0-f67.google.com with SMTP id hf6so4389580pac.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Jun 2016 15:06:25 -0700 (PDT)
+Received: from localhost.localdomain ([116.202.36.218])
+        by smtp.gmail.com with ESMTPSA id h6sm50587069pac.46.2016.06.16.15.06.23
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Thu, 16 Jun 2016 15:06:24 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-There are several FWINV #defines with identical form
-that hide a specific structure variable and dereference
-it with a invflags member.
+According to the previous logic of version check for flex, anything
+greater than 2.5.33 but within 2.5.x was acceptable. The issue was
+observed when a false warning generated for flex version 2.6.0.
+New logic works for basically everything greater than 2.5.33.
 
-$ git grep "define FWINV"
-include/linux/netfilter_bridge/ebtables.h:#define FWINV(bool,invflg) ((bool) ^ !!(info->invflags & invflg))
-net/bridge/netfilter/ebtables.c:#define FWINV2(bool, invflg) ((bool) ^ !!(e->invflags & invflg))
-net/ipv4/netfilter/arp_tables.c:#define FWINV(bool, invflg) ((bool) ^ !!(arpinfo->invflags & (invflg)))
-net/ipv4/netfilter/ip_tables.c:#define FWINV(bool, invflg) ((bool) ^ !!(ipinfo->invflags & (invflg)))
-net/ipv6/netfilter/ip6_tables.c:#define FWINV(bool, invflg) ((bool) ^ !!(ip6info->invflags & (invflg)))
-net/netfilter/xt_tcpudp.c:#define FWINVTCP(bool, invflg) ((bool) ^ !!(tcpinfo->invflags & (invflg)))
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-It might make sense to use a new macro like:
+diff --git a/configure.ac b/configure.ac
+index b170add..0040f0b 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -164,7 +164,7 @@ if test "x$enable_nftables" = "xyes"; then
+ 	flex_minor=`echo $flex_version| cut -d . -f 2`
+ 	flex_rev=`echo $flex_version| cut -d . -f 3`
+ 
+-	if test "$flex_major" -eq "2" && test "$flex_minor" -eq "5" && test "$flex_rev" -ge "33"; then
++	if (test "$flex_major" -eq "2" && test "$flex_minor" -eq "5" && test "$flex_rev" -ge "33") || (test "$flex_major" -eq "2" && test "$flex_minor" -gt "5") || test "$flex_major" -gt "2"; then
+ 		AC_MSG_RESULT([$flex_version. OK])
+ 	else
+ 		AC_MSG_WARN([flex version $flex_version found.
+-- 
+2.7.4
 
-#define INVFLAG(var, test, invflag)			\
-	((test) ^ !!((var)->invflags & (invflag)))
-
-and convert all the various FWINV style uses
-
-$ git grep --name-only "\bFWINV"
-include/linux/netfilter_bridge/ebtables.h
-net/bridge/netfilter/ebt_802_3.c
-net/bridge/netfilter/ebt_arp.c
-net/bridge/netfilter/ebt_ip.c
-net/bridge/netfilter/ebt_ip6.c
-net/bridge/netfilter/ebt_stp.c
-net/bridge/netfilter/ebtables.c
-net/ipv4/netfilter/arp_tables.c
-net/ipv4/netfilter/ip_tables.c
-net/ipv6/netfilter/ip6_tables.c
-net/netfilter/xt_tcpudp.c
-
-$ git grep "\bFWINV" | grep -v "#" | wc -l
-65
