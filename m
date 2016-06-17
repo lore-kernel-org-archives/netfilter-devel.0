@@ -1,152 +1,80 @@
-From: rodanber@gmail.com
-Subject: [PATCH] iptables: extensions: libxt_CONNMARK: Add translation to nft
-Date: Fri, 17 Jun 2016 18:10:50 +0200
-Message-ID: <1466179850-20928-1-git-send-email-rodanber@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	=?UTF-8?q?Roberto=20Garc=C3=ADa?= <rodanber@gmail.com>
-To: arturo.borrero.glez@gmail.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36669 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753109AbcFQQK7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Jun 2016 12:10:59 -0400
-Received: by mail-wm0-f67.google.com with SMTP id m124so810676wme.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 17 Jun 2016 09:10:58 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/7] Netfilter fixes for net
+Date: Fri, 17 Jun 2016 20:25:12 +0200
+Message-ID: <1466187919-12800-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-=46rom: Roberto Garc=C3=ADa <rodanber@gmail.com>
+Hi David,
 
-Add translation for the CONNMARK target to nftables.
+The following patchset contains Netfilter fixes for your net tree,
+they are rather small patches but fixing several outstanding bugs in
+nf_conntrack and nf_tables, as well as minor problems with missing
+SYNPROXY header uapi installation:
 
-The following options have no available translation:
+1) Oneliner not to leak conntrack kmemcache on module removal, this
+   problem was introduced in the previous merge window, patch from
+   Florian Westphal.
 
-  --save-mark [--nfmask nfmask] [--ctmask ctmask]
-  --restore-mark [--nfmask nfmask] [--ctmask ctmask]
+2) Two fixes for insufficient ruleset loop validation, one due to
+   incorrect flag check in nf_tables_bind_set() and another related to
+   silly wrong generation mask logic from the walk path, from Liping
+   Zhang.
 
-Examples:
+3) Fix double-free of anonymous sets on error, this fix simplifies the
+   code to let the abort path take care of releasing the set object,
+   also from Liping Zhang.
 
-  # iptables-translate -t mangle -A PREROUTING -j CONNMARK --set-mark 0=
-x16
-  nft add rule ip mangle PREROUTING counter ct mark set 0x16
+4) The introduction of helper function for transactions broke the skip
+   inactive rules logic from the nft_do_chain(), again from Liping
+   Zhang.
 
-  # iptables-translate -t mangle -A PREROUTING -j CONNMARK --set-xmark =
-0x16/0x12
-  nft add rule ip mangle PREROUTING counter ct mark set ct mark xor 0x1=
-6 and
-  0xffffffed
+5) Two patches to install uapi xt_SYNPROXY.h header and calm down
+   kbuild robot due to missing #include <linux/types.h>.
 
-  # iptables-translate -t mangle -A PREROUTING -j CONNMARK --and-mark 0=
-x16
-  nft add rule ip mangle PREROUTING counter ct mark set ct mark and 0x1=
-6
+You can pull these changes from:
 
-  # iptables-translate -t mangle -A PREROUTING -j CONNMARK --or-mark 0x=
-16
-  nft add rule ip mangle PREROUTING counter ct mark set ct mark or 0x16
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-  # iptables-translate -t mangle -A PREROUTING -j CONNMARK --save-mark
-  nft add rule ip mangle PREROUTING counter ct mark set mark
+Thanks!
 
-  # iptables-translate -t mangle -A PREROUTING -j CONNMARK --save-mark =
-\
-    --mask 0x12
-  nft add rule ip mangle PREROUTING counter ct mark set mark and 0x12
+----------------------------------------------------------------
 
-  # iptables-translate -t mangle -A PREROUTING -j CONNMARK --restore-ma=
-rk
-  nft add rule ip mangle PREROUTING counter meta mark set ct mark
+The following changes since commit 61e0979a497b07f5a82f3050e37ecc7093e2971d:
 
-  # iptables-translate -t mangle -A PREROUTING -j CONNMARK --restore-ma=
-rk \
-    --mask 0x12
-  nft add rule ip mangle PREROUTING counter meta mark set ct mark and 0=
-x12
+  Merge branch 'ovs-notifications' (2016-06-14 22:21:45 -0700)
 
-Signed-off-by: Roberto Garc=C3=ADa <rodanber@gmail.com>
----
- extensions/libxt_CONNMARK.c | 45 +++++++++++++++++++++++++++++++++++++=
-++++++++
- 1 file changed, 45 insertions(+)
+are available in the git repository at:
 
-diff --git a/extensions/libxt_CONNMARK.c b/extensions/libxt_CONNMARK.c
-index 42cf207..7940dcd 100644
---- a/extensions/libxt_CONNMARK.c
-+++ b/extensions/libxt_CONNMARK.c
-@@ -347,6 +347,50 @@ connmark_tg_save(const void *ip, const struct xt_e=
-ntry_target *target)
- 	}
- }
-=20
-+static int
-+connmark_tg_xlate(const void *ip, const struct xt_entry_target *target=
-,
-+		  struct xt_xlate *xl, int numeric)
-+{
-+	const struct xt_connmark_tginfo1 *info =3D (const void *)target->data=
-;
-+=09
-+	switch (info->mode) {
-+	case XT_CONNMARK_SET:
-+		xt_xlate_add(xl, "ct mark set ");
-+		if (info->ctmark =3D=3D 0)
-+			xt_xlate_add(xl, "ct mark and 0x%x", ~info->ctmask);
-+		else if (info->ctmark =3D=3D info->ctmask)
-+			xt_xlate_add(xl, "ct mark or 0x%x",
-+				     info->ctmark);
-+		else if (info->ctmask =3D=3D 0)
-+			xt_xlate_add(xl, "ct mark xor 0x%x",
-+				     info->ctmark);
-+		else if (info->ctmask =3D=3D 0xFFFFFFFFU)
-+			xt_xlate_add(xl, "0x%x ", info->ctmark);
-+		else
-+			xt_xlate_add(xl, "ct mark xor 0x%x and 0x%x",
-+				     info->ctmark, ~info->ctmask);
-+		break;
-+	case XT_CONNMARK_SAVE:
-+		xt_xlate_add(xl, "ct mark set mark");
-+		if (!(info->nfmask =3D=3D UINT32_MAX && info->ctmask =3D=3D UINT32_M=
-AX))
-+		{
-+			if (info->nfmask =3D=3D info->ctmask)
-+				xt_xlate_add(xl, " and 0x%x", info->nfmask);
-+		}
-+		break;
-+	case XT_CONNMARK_RESTORE:
-+		xt_xlate_add(xl, "meta mark set ct mark");
-+		if (!(info->nfmask =3D=3D UINT32_MAX && info->ctmask =3D=3D UINT32_M=
-AX))
-+		{
-+			if (info->nfmask =3D=3D info->ctmask)
-+				xt_xlate_add(xl, " and 0x%x", info->nfmask);
-+		}
-+		break;
-+	}
-+=09
-+	return 1;
-+}
-+
- static struct xtables_target connmark_tg_reg[] =3D {
- 	{
- 		.family        =3D NFPROTO_UNSPEC,
-@@ -377,6 +421,7 @@ static struct xtables_target connmark_tg_reg[] =3D =
-{
- 		.x6_parse      =3D connmark_tg_parse,
- 		.x6_fcheck     =3D connmark_tg_check,
- 		.x6_options    =3D connmark_tg_opts,
-+		.xlate	       =3D connmark_tg_xlate,
- 	},
- };
-=20
---=20
-2.8.0
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git HEAD
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+for you to fetch changes up to 1463847e93fe693e89c52b03ab4ede6800d717c1:
+
+  netfilter: xt_SYNPROXY: include missing <linux/types.h> (2016-06-17 13:47:40 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (1):
+      netfilter: conntrack: destroy kmemcache on module removal
+
+Liping Zhang (3):
+      netfilter: nf_tables: fix wrong check of NFT_SET_MAP in nf_tables_bind_set
+      netfilter: nf_tables: fix wrong destroy anonymous sets if binding fails
+      netfilter: nf_tables: fix a wrong check to skip the inactive rules
+
+Pablo Neira Ayuso (3):
+      netfilter: nf_tables: reject loops from set element jump to chain
+      netfilter: xt_SYNPROXY: add missing header to Kbuild
+      netfilter: xt_SYNPROXY: include missing <linux/types.h>
+
+ include/net/netfilter/nf_tables.h          |  1 +
+ include/uapi/linux/netfilter/Kbuild        |  1 +
+ include/uapi/linux/netfilter/xt_SYNPROXY.h |  2 ++
+ net/netfilter/nf_conntrack_core.c          |  2 ++
+ net/netfilter/nf_tables_api.c              | 24 +++++++++++-------------
+ net/netfilter/nf_tables_core.c             |  2 +-
+ net/netfilter/nft_hash.c                   |  3 +--
+ net/netfilter/nft_rbtree.c                 |  3 +--
+ 8 files changed, 20 insertions(+), 18 deletions(-)
