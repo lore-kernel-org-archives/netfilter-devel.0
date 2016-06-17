@@ -1,105 +1,50 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH v4 net] ipvs: fix bind to link-local mcast IPv6 address
- in backup
-Date: Fri, 17 Jun 2016 09:42:49 +0300 (EEST)
-Message-ID: <alpine.LFD.2.11.1606170935230.11309@ja.home.ssi.bg>
-References: <Message-id: <alpine.LFD.2.11.1606160912380.2490@ja.home.ssi.bg> <1466060414-12944-1-git-send-email-quentin@armitage.org.uk>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Wensong Zhang <wensong@linux-vs.org>,
-	Simon Horman <horms@verge.net.au>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org
-To: Quentin Armitage <quentin@armitage.org.uk>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1466060414-12944-1-git-send-email-quentin@armitage.org.uk>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf] netfilter: add missing xt_SYNPROXY.h header to Kbuild
+Date: Fri, 17 Jun 2016 12:58:22 +0200
+Message-ID: <1466161102-3326-1-git-send-email-pablo@netfilter.org>
+Cc: kernel@mattwhitlock.name
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:41711 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752988AbcFQK6h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 17 Jun 2016 06:58:37 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 0D523210572
+	for <netfilter-devel@vger.kernel.org>; Fri, 17 Jun 2016 12:58:35 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id F3DFA9EBA5
+	for <netfilter-devel@vger.kernel.org>; Fri, 17 Jun 2016 12:58:34 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 83F969EBA4
+	for <netfilter-devel@vger.kernel.org>; Fri, 17 Jun 2016 12:58:29 +0200 (CEST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Matt Whitlock says:
 
-	Hello,
+ Without this line, the file xt_SYNPROXY.h does not get installed in
+ /usr/include/linux/netfilter/, and thus user-space programs cannot make
+ use of it.
 
-On Thu, 16 Jun 2016, Quentin Armitage wrote:
+Reported-by: Matt Whitlock <kernel@mattwhitlock.name>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/uapi/linux/netfilter/Kbuild | 1 +
+ 1 file changed, 1 insertion(+)
 
-> When using HEAD from
-> https://git.kernel.org/cgit/utils/kernel/ipvsadm/ipvsadm.git/,
-> the command:
-> ipvsadm --start-daemon backup --mcast-interface eth0.60 \
->     --mcast-group ff02::1:81
-> fails with the error message:
-> Argument list too long
-> 
-> whereas both:
-> ipvsadm --start-daemon master --mcast-interface eth0.60 \
->     --mcast-group ff02::1:81
-> and:
-> ipvsadm --start-daemon backup --mcast-interface eth0.60 \
->     --mcast-group 224.0.0.81
-> are successful.
-> 
-> The error message "Argument list too long" isn't helpful. The error occurs
-> because an IPv6 address is given in backup mode.
-> 
-> The error is in make_receive_sock() in net/netfilter/ipvs/ip_vs_sync.c,
-> since it fails to set the interface on the address or the socket before
-> calling inet6_bind() (via sock->ops->bind), where the test
-> 'if (!sk->sk_bound_dev_if)' failed.
-> 
-> Setting sock->sk->sk_bound_dev_if on the socket before calling
-> inet6_bind() resolves the issue.
-> 
-> Fixes: d33288172e72 ("ipvs: add more mcast parameters for the sync daemon")
-> Signed-off-by: Quentin Armitage <quentin@armitage.org.uk>
+diff --git a/include/uapi/linux/netfilter/Kbuild b/include/uapi/linux/netfilter/Kbuild
+index 1d973d2..cd26d7a 100644
+--- a/include/uapi/linux/netfilter/Kbuild
++++ b/include/uapi/linux/netfilter/Kbuild
+@@ -33,6 +33,7 @@ header-y += xt_NFLOG.h
+ header-y += xt_NFQUEUE.h
+ header-y += xt_RATEEST.h
+ header-y += xt_SECMARK.h
++header-y += xt_SYNPROXY.h
+ header-y += xt_TCPMSS.h
+ header-y += xt_TCPOPTSTRIP.h
+ header-y += xt_TEE.h
+-- 
+2.1.4
 
-	Looks good to me, thanks!
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-	Simon, please apply to ipvs tree. Patch compiles
-also on stable 4.4.13, 4.5.7 and 4.6.2, so no need for
-special versions. The ack is also for the other 3 patches
-from v4 (for ipvs-next) but they depend on this patch.
-
-> ---
->  net/netfilter/ipvs/ip_vs_sync.c |    6 ++++--
->  1 files changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs_sync.c
-> index 803001a..1b07578 100644
-> --- a/net/netfilter/ipvs/ip_vs_sync.c
-> +++ b/net/netfilter/ipvs/ip_vs_sync.c
-> @@ -1545,7 +1545,8 @@ error:
->  /*
->   *      Set up receiving multicast socket over UDP
->   */
-> -static struct socket *make_receive_sock(struct netns_ipvs *ipvs, int id)
-> +static struct socket *make_receive_sock(struct netns_ipvs *ipvs, int id,
-> +					int ifindex)
->  {
->  	/* multicast addr */
->  	union ipvs_sockaddr mcast_addr;
-> @@ -1566,6 +1567,7 @@ static struct socket *make_receive_sock(struct netns_ipvs *ipvs, int id)
->  		set_sock_size(sock->sk, 0, result);
->  
->  	get_mcast_sockaddr(&mcast_addr, &salen, &ipvs->bcfg, id);
-> +	sock->sk->sk_bound_dev_if = ifindex;
->  	result = sock->ops->bind(sock, (struct sockaddr *)&mcast_addr, salen);
->  	if (result < 0) {
->  		pr_err("Error binding to the multicast addr\n");
-> @@ -1868,7 +1870,7 @@ int start_sync_thread(struct netns_ipvs *ipvs, struct ipvs_sync_daemon_cfg *c,
->  		if (state == IP_VS_STATE_MASTER)
->  			sock = make_send_sock(ipvs, id);
->  		else
-> -			sock = make_receive_sock(ipvs, id);
-> +			sock = make_receive_sock(ipvs, id, dev->ifindex);
->  		if (IS_ERR(sock)) {
->  			result = PTR_ERR(sock);
->  			goto outtinfo;
-> -- 
-> 1.7.7.6
-
-Regards
