@@ -1,49 +1,50 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: nf_tables: fix memory leak if expr init fails
-Date: Mon, 20 Jun 2016 21:11:45 +0800
-Message-ID: <1466428305-58285-1-git-send-email-zlpnobody@163.com>
+Subject: [PACTH nf-next] netfilter: nf_reject_ipv4: don't send tcp RST if the packet is non-TCP
+Date: Mon, 20 Jun 2016 21:26:28 +0800
+Message-ID: <1466429188-3942-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org,
 	Liping Zhang <liping.zhang@spreadtrum.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-13.163.com ([220.181.12.13]:45772 "EHLO m12-13.163.com"
+Received: from m12-12.163.com ([220.181.12.12]:39670 "EHLO m12-12.163.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752333AbcFTNMu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Jun 2016 09:12:50 -0400
+	id S1752266AbcFTN2Z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Jun 2016 09:28:25 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-If expr init fails then we need to free it.
+In iptables, if the user add a rule to send tcp RST and specify the
+non-TCP protocol, such as UDP, kernel will reject this request. But
+in nftables, this validity check only occurs in nft tool, i.e. only
+in userspace.
 
-So when the user add a nft rule as follows:
-  # nft add rule filter input tcp dport 22 flow table ssh \
-    { ip saddr limit rate 0/second }
-memory leak will happen.
+This means that user can add such a rule like follows via nfnetlink:
+  "nft add rule filter forward ip protocol udp reject with tcp reset"
+
+This will generate some confusing tcp RST packets. So we should send
+tcp RST only when it is TCP packet.
 
 Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- net/netfilter/nf_tables_api.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ net/ipv4/netfilter/nf_reject_ipv4.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 2c88187..cf7c745 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1724,9 +1724,11 @@ struct nft_expr *nft_expr_init(const struct nft_ctx *ctx,
+diff --git a/net/ipv4/netfilter/nf_reject_ipv4.c b/net/ipv4/netfilter/nf_reject_ipv4.c
+index b6ea57e..fd82202 100644
+--- a/net/ipv4/netfilter/nf_reject_ipv4.c
++++ b/net/ipv4/netfilter/nf_reject_ipv4.c
+@@ -24,6 +24,9 @@ const struct tcphdr *nf_reject_ip_tcphdr_get(struct sk_buff *oldskb,
+ 	if (ip_hdr(oldskb)->frag_off & htons(IP_OFFSET))
+ 		return NULL;
  
- 	err = nf_tables_newexpr(ctx, &info, expr);
- 	if (err < 0)
--		goto err2;
-+		goto err3;
- 
- 	return expr;
-+err3:
-+	kfree(expr);
- err2:
- 	module_put(info.ops->type->owner);
- err1:
++	if (ip_hdr(oldskb)->protocol != IPPROTO_TCP)
++		return NULL;
++
+ 	oth = skb_header_pointer(oldskb, ip_hdrlen(oldskb),
+ 				 sizeof(struct tcphdr), _oth);
+ 	if (oth == NULL)
 -- 
 1.7.9.5
 
