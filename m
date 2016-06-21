@@ -1,51 +1,41 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PACTH nf-next] netfilter: nf_reject_ipv4: don't send tcp RST if
- the packet is non-TCP
-Date: Tue, 21 Jun 2016 09:35:55 +0800
-Message-ID: <CAML_gOf0ofzsnsxP=8xW7tYfv+H91yMthLykUbOphBL0JEgJqQ@mail.gmail.com>
-References: <1466429188-3942-1-git-send-email-zlpnobody@163.com> <20160620154829.GD18341@localhost.localdomain>
+From: Salis Joshi <salis.joshi@gmail.com>
+Subject: Linux Module based on netfilter hooks
+Date: Tue, 21 Jun 2016 12:20:23 +0200
+Message-ID: <CAE34MW1VqoADpT_+JFrOq1+ieXq337ZhboW-4dn=0JyzQ9ezQw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: Liping Zhang <zlpnobody@163.com>, pablo@netfilter.org,
-	netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f51.google.com ([209.85.213.51]:33331 "EHLO
-	mail-vk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751225AbcFUBlO (ORCPT
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:33128 "EHLO
+	mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751623AbcFUKUn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Jun 2016 21:41:14 -0400
-Received: by mail-vk0-f51.google.com with SMTP id d185so2330368vkg.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Jun 2016 18:41:14 -0700 (PDT)
-In-Reply-To: <20160620154829.GD18341@localhost.localdomain>
+	Tue, 21 Jun 2016 06:20:43 -0400
+Received: by mail-qk0-f195.google.com with SMTP id a186so2034165qkf.0
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Jun 2016 03:20:43 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Marcelo,
+Hello,
 
-2016-06-20 23:48 GMT+08:00 Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>:
->
-> A different check/log is made for ip6:
-> nf_reject_ip6_tcphdr_get():
->         /* IP header checks: fragment, too short. */
->         if (proto != IPPROTO_TCP || *otcplen < sizeof(struct tcphdr)) {
->                 pr_debug("proto(%d) != IPPROTO_TCP or too short (len = %d)\n",
->                          proto, *otcplen);
->                 return NULL;
->         }
->
-> Would be nice to have some consistency on this log message as it
-> increases debug-ability.
->
+I am developing a new linux kernel module based on netfilter hooks. I
+am new in the area of linux kernel module development. And, I am
+having problems regarding the function definition of hook functions.
 
-Thanks for your opinion.
+I was referring to the code which used netfilter for my module. This
+reference code was based on linux kernel 2.X. I am using linux kernel
+4.4.X for my development and this same code serves many purpose to me.
+However, after I looked into the function definition of hook functions
+for linux kernel 4.4.X and tried to change the code accordingly, many
+problems are coming up.
 
-But you can see, there are many inconsistent things between
-nf_reject_ip6_tcphdr_get and nf_reject_ip_tcphdr_get.
+I was wondering, I you guys can help me with some samples for using
+netfilter hooks at local_out and local_in based on linux kernel 4.4.X.
+I was not able to find any samples/examples related to this linux
+kernel version on the web.
 
-For example, when tcp->rst is set, reject_ip6 will call
-pr_debug("RST is set\n"), while there's nothing in reject_ip4.
+Thanks in advance.
 
-IMO, these debug informations are almost useless, so there's
-no need to add this debug info only for consistent with nf_reject_ip6.
+-- 
+Best Regards
+Salis Joshi
