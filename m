@@ -1,59 +1,75 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH iptables] configure: Fix logic to show connlabel support
-Date: Wed, 22 Jun 2016 19:40:37 +0530
-Message-ID: <1466604637-26536-1-git-send-email-shivanib134@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [PATCH nft] tests: shell: cover transactions via nft -f using
+ flat syntax
+Date: Wed, 22 Jun 2016 16:16:27 +0200
+Message-ID: <CAOkSjBjZsn5ePJynyjdaEorcQHrQm4uo+62D7hZKJrdvvecFVg@mail.gmail.com>
+References: <1466594336-24231-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:36754 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750910AbcFVOKw (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35551 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751465AbcFVORB convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Jun 2016 10:10:52 -0400
-Received: by mail-pf0-f195.google.com with SMTP id i123so4160935pfg.3
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jun 2016 07:10:51 -0700 (PDT)
-Received: from localhost.localdomain ([116.202.32.104])
-        by smtp.gmail.com with ESMTPSA id v62sm187348pfv.50.2016.06.22.07.10.48
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Wed, 22 Jun 2016 07:10:49 -0700 (PDT)
+	Wed, 22 Jun 2016 10:17:01 -0400
+Received: by mail-wm0-f66.google.com with SMTP id a66so1557819wme.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jun 2016 07:16:54 -0700 (PDT)
+In-Reply-To: <1466594336-24231-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-With the earlier logic, when libnfnetlink and libnetfilter_conntrack
-were not installed, all the warnings showed up correctly but the final
-configuration showed:
+On 22 June 2016 at 13:18, Pablo Neira Ayuso <pablo@netfilter.org> wrote=
+:
+> This patch covers transactions using the flat syntax representation, =
+eg.
+>
+>         add table x
+>         add chain x y { type filter hook forward priority 0; }
+>         add chain x y { policy drop; }
+>
+> This also covers things like:
+>
+>         add element x whitelist { 1.1.1.1 }
+>         delete element x whitelist { 1.1.1.1 }
+>
+> The one above may look silly from a human behaviour point of view, bu=
+t
+> silly robots may very well behave like this.
+>
+> These tests require several kernel patches though in order to pass
+> successfully.
+>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-            connlabel support:                      yes
+I reviewed most of the testscases and they seem fine to me,
 
-which was faulty.
-This was happening because connlabel module was blacklisted first and
-then set to "no" if package requirements were not met.
-After this patch, iptables configuration shows up correctly.
+Acked-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 
-Fixes commit 3b7a227 (configure: Show support for connlabel)
+Side note:
 
-Tested before and after installing the dependencies.
+if you execute some of them without the kernel patches (so they fail),
+a segfault happens in nft (I guess related to cache handling).
 
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
----
- configure.ac | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+W: [FAILED] ./testcases/transactions/0037set_0: expected 0 but got 139
+=2E/testcases/transactions/0037set_0: line 19: 15139 Segmentation fault
+    $NFT -f $tmpfile
+W: [FAILED] ./testcases/transactions/0038set_0: expected 0 but got 139
+=2E/testcases/transactions/0038set_0: line 21: 15151 Segmentation fault
+    $NFT -f $tmpfile
+W: [FAILED] ./testcases/transactions/0039set_0: expected 0 but got 139
+=2E/testcases/transactions/0039set_0: line 21: 15163 Segmentation fault
+    $NFT -f $tmpfile
 
-diff --git a/configure.ac b/configure.ac
-index c91e9e7..131bc8b 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -173,9 +173,9 @@ if test "x$enable_connlabel" = "xyes"; then
- 		[nfconntrack=1], [nfconntrack=0])
- 
- 	if test "$nfconntrack" -ne 1; then
-+		enable_connlabel="no";
- 		blacklist_modules="$blacklist_modules connlabel";
- 		echo "WARNING: libnetfilter_conntrack not found, connlabel match will not be built";
--		enable_connlabel = "no";
- 	fi;
- else
- 	blacklist_modules="$blacklist_modules connlabel";
--- 
-2.7.4
 
+
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
