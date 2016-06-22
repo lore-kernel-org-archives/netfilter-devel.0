@@ -1,46 +1,80 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] Suricata meets Netfilter Conference on 27th June in
- Amsterdam, Netherlands
-Date: Wed, 22 Jun 2016 12:13:19 +0200
-Message-ID: <20160622101319.GA2791@salvia>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH] iptables: extensions: libxt_MARK: Fix translation of
+ --set-xmark option
+Date: Wed, 22 Jun 2016 12:23:42 +0200
+Message-ID: <20160622102342.GA6696@breakpoint.cc>
+References: <1466543023-15740-1-git-send-email-rodanber@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=iso-8859-15
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Victor Julien <victor@inliniac.net>
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
+Cc: arturo.borrero.glez@gmail.com, pablo@netfilter.org,
+	netfilter-devel@vger.kernel.org
+To: rodanber@gmail.com
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33136 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751209AbcFVKXv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Jun 2016 06:23:51 -0400
 Content-Disposition: inline
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1466543023-15740-1-git-send-email-rodanber@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+rodanber@gmail.com <rodanber@gmail.com> wrote:
+> From: Roberto Garc=EDa <rodanber@gmail.com>
+>=20
+> Fix translation of MARK target's --set-xmark option.
+>=20
+> Before:
+>=20
+>  # iptables-translate -t mangle -A PREROUTING -j MARK --set-xmark 0x6=
+4/0xaf
+>   nft add rule ip mangle PREROUTING counter meta mark set mark xor 0x=
+64 and 0xaf
+>=20
+> After:
+>=20
+>   # iptables-translate -t mangle -A PREROUTING -j MARK --set-xmark 0x=
+64/0xaf
+>   nft add rule ip mangle PREROUTING counter meta mark set mark xor 0x=
+64 and \
+>   0xffffff50
 
-I'm forwarding the original schedule that Victor Julien (Suricata) has
-prepared for the user day:
+Hmm, I wonder if this is correct...  iptables man page says:
 
-09h30 Welcoming
-10h   Suricata Intrusion Prevention with NFQUEUE (Andreas Herz)
-10h30 Shivani Bhardwaj : iptables-translate : Benefits and need
-10h45 SELKS =E2=80=93 Black (file) magic (Peter Manev)
-11h15 Break
-11h30 Amsterdamize your firewall (Eric Leblond)
-12h00  Vuurmuur Firewall (Victor Julien)
-12h30  Next steps for Linux Network stack, approaching 100Gbit/s (Jespe=
-r Brouer)
-13h15 Lunch break
-14h00 Netdev Keynote (David S. Miller)
-14h30 nftables tutorial (Pablo Neira)
-15h15 Suricata and Netfilter: The Mixed Mode (Giuseppe Longo)
-15h30 Break
-15h45 A Fast and Practical Software Packet Scheduling Architecture (Lui=
-gi Rizzo)
-16h15 Suricata 3.1 (Victor Julien)
-16h45 Fighting Word document with Suricata and Netfilter (Eric Leblond)
+ --set-xmark value[/mask]
+   Zeroes out the bits given by mask and XORs value into the packet
+   mark ("nfmark"). If mask is omitted, 0xFFFFFFFF is assumed.
 
-The event is free to attend, so if you're located in Amsterdam or its
-surroundings, please join us!
+So the iptables command is supposed to
 
-https://www.eventbrite.com/e/suricata-meets-netfilter-free-1-day-user-c=
-onference-tickets-25948425439
+   mark =3D skb->mark
+   mark =3D mark & ~0xaf
+   mark ^=3D 0x64
+   skb->mark =3D mark
 
-Hope to see you there!
+The proposed translation results in:
+nft --debug=3Dnetlink add rule ip mangle PREROUTING meta mark set mark =
+xor 0x64 and 0xffffff50
+ [ meta load mark =3D> reg 1 ]
+ [ bitwise reg 1 =3D (reg=3D1 & 0xffffffff ) ^ 0x00000040 ]
+ [ meta set mark with reg 1 ]
+
+ As you can see nft did perform the '0x64 and 0xffffff50' part in an
+ optimization pass so we end up not masking anything and then xor'ing
+ 0x40.
+
+I think this should be:
+nft --debug=3Dnetlink add rule ip mangle PREROUTING meta mark set mark =
+and 0xffffff50 xor 0x64
+ [ meta load mark =3D> reg 1 ]
+ [ bitwise reg 1 =3D (reg=3D1 & 0xffffff50 ) ^ 0x00000064 ]
+ [ meta set mark with reg 1 ]
+
+which -- afaiu -- matches what the xtables target would do.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
