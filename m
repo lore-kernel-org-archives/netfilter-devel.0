@@ -1,7 +1,7 @@
-From: Greg KH <greg@kroah.com>
+From: Willy Tarreau <w@1wt.eu>
 Subject: Re: [stable] netfilter fixes for CVE-2016-3134
-Date: Tue, 21 Jun 2016 22:07:02 -0700
-Message-ID: <20160622050702.GA21897@kroah.com>
+Date: Wed, 22 Jun 2016 08:02:45 +0200
+Message-ID: <20160622060245.GD32470@1wt.eu>
 References: <1466552471.27155.238.camel@decadent.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
@@ -10,11 +10,10 @@ Cc: stable <stable@vger.kernel.org>, netfilter-devel@vger.kernel.org,
 	Florian Westphal <fw@strlen.de>
 To: Ben Hutchings <ben@decadent.org.uk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:57832 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750816AbcFVFes (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Jun 2016 01:34:48 -0400
+Received: from wtarreau.pck.nerim.net ([62.212.114.60]:59458 "EHLO 1wt.eu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750959AbcFVGCv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Jun 2016 02:02:51 -0400
 Content-Disposition: inline
 In-Reply-To: <1466552471.27155.238.camel@decadent.org.uk>
 Sender: netfilter-devel-owner@vger.kernel.org
@@ -45,9 +44,9 @@ ining blob size
 >=20
 > Ben.
 
-Thanks, now applied where relevant.
+Queued for 3.10, thanks Ben.
 
-greg k-h
+Willy
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
