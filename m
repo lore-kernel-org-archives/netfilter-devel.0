@@ -1,73 +1,222 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 6/6] netfilter: nft_hash: support deletion of inactive elements
-Date: Wed, 22 Jun 2016 13:14:32 +0200
-Message-ID: <1466594072-24043-6-git-send-email-pablo@netfilter.org>
-References: <1466594072-24043-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH -next v3] netfilter: conntrack: allow increasing bucket size via sysctl too
+Date: Wed, 22 Jun 2016 13:26:10 +0200
+Message-ID: <1466594770-8610-1-git-send-email-fw@strlen.de>
+Cc: zlpnobody@gmail.com, Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44266 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751175AbcFVLQV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Jun 2016 07:16:21 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 29F4D492243
-	for <netfilter-devel@vger.kernel.org>; Wed, 22 Jun 2016 13:14:47 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 18EB29EBA5
-	for <netfilter-devel@vger.kernel.org>; Wed, 22 Jun 2016 13:14:47 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 58A5C9EBA5
-	for <netfilter-devel@vger.kernel.org>; Wed, 22 Jun 2016 13:14:41 +0200 (CEST)
-In-Reply-To: <1466594072-24043-1-git-send-email-pablo@netfilter.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33262 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751244AbcFVL0x (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Jun 2016 07:26:53 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-New elements are inactive in the preparation phase, and its
-NFT_SET_ELEM_BUSY_MASK flag is set on.
+No need to restrict this to module parameter.
 
-This busy flag doesn't allow us to delete it from the same transaction,
-following a sequence like:
+We export a copy of the real hash size -- when user alters the value we
+allocate the new table, copy entries etc before we update the real size
+to the requested one.
 
-	begin transaction
-	add element X
-	delete element X
-	end transaction
+This is also needed because the real size is used by concurrent readers
+and cannot be changed without synchronizing the conntrack generation
+seqcnt.
 
-This sequence is valid and may be triggered by robots. To resolve this
-problem, allow deactivating elements that are active in the current
-generation (ie. those that has been just added in this batch).
+We only allow changing this value from the initial net namespace.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Tested using http-client-benchmark vs. httpterm with concurrent
+
+while true;do
+ echo $RANDOM > /proc/sys/net/netfilter/nf_conntrack_buckets
+done
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nft_hash.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ Changes since v2:
+  add back nf_conntrack-sysctl.txt change
+  don't call synchronize_net twice
 
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index f39c53a..ea92481 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -153,9 +153,10 @@ static void *nft_hash_deactivate(const struct nft_set *set,
- 				 const struct nft_set_elem *elem)
+ Changes since v1:
+  place assignment inside CONFIG_SYSCL so we don't get build breakage.
+
+ Documentation/networking/nf_conntrack-sysctl.txt |  3 +-
+ include/net/netfilter/nf_conntrack.h             |  1 +
+ net/netfilter/nf_conntrack_core.c                | 41 ++++++++++++++++--------
+ net/netfilter/nf_conntrack_standalone.c          | 36 ++++++++++++++++++---
+ 4 files changed, 62 insertions(+), 19 deletions(-)
+
+diff --git a/Documentation/networking/nf_conntrack-sysctl.txt b/Documentation/networking/nf_conntrack-sysctl.txt
+index f55599c..4fb51d3 100644
+--- a/Documentation/networking/nf_conntrack-sysctl.txt
++++ b/Documentation/networking/nf_conntrack-sysctl.txt
+@@ -7,12 +7,13 @@ nf_conntrack_acct - BOOLEAN
+ 	Enable connection tracking flow accounting. 64-bit byte and packet
+ 	counters per flow are added.
+ 
+-nf_conntrack_buckets - INTEGER (read-only)
++nf_conntrack_buckets - INTEGER
+ 	Size of hash table. If not specified as parameter during module
+ 	loading, the default size is calculated by dividing total memory
+ 	by 16384 to determine the number of buckets but the hash table will
+ 	never have fewer than 32 and limited to 16384 buckets. For systems
+ 	with more than 4GB of memory it will be 65536 buckets.
++	This sysctl is only writeable in the initial net namespace.
+ 
+ nf_conntrack_checksum - BOOLEAN
+ 	0 - disabled
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index dd78bea..e7f6290 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -287,6 +287,7 @@ static inline bool nf_is_loopback_packet(const struct sk_buff *skb)
+ struct kernel_param;
+ 
+ int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp);
++int nf_conntrack_hash_resize(unsigned int hashsize);
+ extern unsigned int nf_conntrack_htable_size;
+ extern unsigned int nf_conntrack_max;
+ 
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index db2312e..13b736d 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1615,24 +1615,14 @@ void *nf_ct_alloc_hashtable(unsigned int *sizep, int nulls)
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_alloc_hashtable);
+ 
+-int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
++int nf_conntrack_hash_resize(unsigned int hashsize)
  {
- 	struct nft_hash *priv = nft_set_priv(set);
-+	struct net *net = read_pnet(&set->pnet);
- 	struct nft_hash_elem *he;
- 	struct nft_hash_cmp_arg arg = {
--		.genmask = nft_genmask_next(read_pnet(&set->pnet)),
-+		.genmask = nft_genmask_next(net),
- 		.set	 = set,
- 		.key	 = elem->key.val.data,
- 	};
-@@ -163,7 +164,8 @@ static void *nft_hash_deactivate(const struct nft_set *set,
- 	rcu_read_lock();
- 	he = rhashtable_lookup_fast(&priv->ht, &arg, nft_hash_params);
- 	if (he != NULL) {
--		if (!nft_set_elem_mark_busy(&he->ext))
-+		if (!nft_set_elem_mark_busy(&he->ext) ||
-+		    !nft_is_active(net, &he->ext))
- 			nft_set_elem_change_active(set, &he->ext);
- 		else
- 			he = NULL;
+-	int i, bucket, rc;
+-	unsigned int hashsize, old_size;
++	int i, bucket;
++	unsigned int old_size;
+ 	struct hlist_nulls_head *hash, *old_hash;
+ 	struct nf_conntrack_tuple_hash *h;
+ 	struct nf_conn *ct;
+ 
+-	if (current->nsproxy->net_ns != &init_net)
+-		return -EOPNOTSUPP;
+-
+-	/* On boot, we can set this without any fancy locking. */
+-	if (!nf_conntrack_htable_size)
+-		return param_set_uint(val, kp);
+-
+-	rc = kstrtouint(val, 0, &hashsize);
+-	if (rc)
+-		return rc;
+ 	if (!hashsize)
+ 		return -EINVAL;
+ 
+@@ -1640,6 +1630,12 @@ int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
+ 	if (!hash)
+ 		return -ENOMEM;
+ 
++	old_size = nf_conntrack_htable_size;
++	if (old_size == hashsize) {
++		nf_ct_free_hashtable(hash, hashsize);
++		return 0;
++	}
++
+ 	local_bh_disable();
+ 	nf_conntrack_all_lock();
+ 	write_seqcount_begin(&nf_conntrack_generation);
+@@ -1675,6 +1671,25 @@ int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
+ 	nf_ct_free_hashtable(old_hash, old_size);
+ 	return 0;
+ }
++
++int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
++{
++	unsigned int hashsize;
++	int rc;
++
++	if (current->nsproxy->net_ns != &init_net)
++		return -EOPNOTSUPP;
++
++	/* On boot, we can set this without any fancy locking. */
++	if (!nf_conntrack_htable_size)
++		return param_set_uint(val, kp);
++
++	rc = kstrtouint(val, 0, &hashsize);
++	if (rc)
++		return rc;
++
++	return nf_conntrack_hash_resize(hashsize);
++}
+ EXPORT_SYMBOL_GPL(nf_conntrack_set_hashsize);
+ 
+ module_param_call(hashsize, nf_conntrack_set_hashsize, param_get_uint,
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index f87e84e..a0cc191 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -434,8 +434,29 @@ static void nf_conntrack_standalone_fini_proc(struct net *net)
+ 
+ #ifdef CONFIG_SYSCTL
+ /* Log invalid packets of a given protocol */
+-static int log_invalid_proto_min = 0;
+-static int log_invalid_proto_max = 255;
++static int log_invalid_proto_min __read_mostly;
++static int log_invalid_proto_max __read_mostly = 255;
++
++/* size the user *wants to set */
++static unsigned int nf_conntrack_htable_size_user __read_mostly;
++
++static int
++nf_conntrack_hash_sysctl(struct ctl_table *table, int write,
++			 void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	int ret;
++
++	ret = proc_dointvec(table, write, buffer, lenp, ppos);
++	if (ret < 0 || !write)
++		return ret;
++
++	/* update ret, we might not be able to satisfy request */
++	ret = nf_conntrack_hash_resize(nf_conntrack_htable_size_user);
++
++	/* update it to the actual value used by conntrack */
++	nf_conntrack_htable_size_user = nf_conntrack_htable_size;
++	return ret;
++}
+ 
+ static struct ctl_table_header *nf_ct_netfilter_header;
+ 
+@@ -456,10 +477,10 @@ static struct ctl_table nf_ct_sysctl_table[] = {
+ 	},
+ 	{
+ 		.procname       = "nf_conntrack_buckets",
+-		.data           = &nf_conntrack_htable_size,
++		.data           = &nf_conntrack_htable_size_user,
+ 		.maxlen         = sizeof(unsigned int),
+-		.mode           = 0444,
+-		.proc_handler   = proc_dointvec,
++		.mode           = 0644,
++		.proc_handler   = nf_conntrack_hash_sysctl,
+ 	},
+ 	{
+ 		.procname	= "nf_conntrack_checksum",
+@@ -517,6 +538,9 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
+ 	if (net->user_ns != &init_user_ns)
+ 		table[0].procname = NULL;
+ 
++	if (!net_eq(&init_net, net))
++		table[2].mode = 0444;
++
+ 	net->ct.sysctl_header = register_net_sysctl(net, "net/netfilter", table);
+ 	if (!net->ct.sysctl_header)
+ 		goto out_unregister_netfilter;
+@@ -606,6 +630,8 @@ static int __init nf_conntrack_standalone_init(void)
+ 		ret = -ENOMEM;
+ 		goto out_sysctl;
+ 	}
++
++	nf_conntrack_htable_size_user = nf_conntrack_htable_size;
+ #endif
+ 
+ 	ret = register_pernet_subsys(&nf_conntrack_net_ops);
 -- 
-2.1.4
+2.7.3
 
