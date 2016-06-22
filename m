@@ -1,50 +1,52 @@
-From: Shivani Bhardwaj <shivanib134@gmail.com>
-Subject: [PATCH iptables] configure: Fix assignment statement
-Date: Thu, 23 Jun 2016 01:11:39 +0530
-Message-ID: <1466624499-10503-1-git-send-email-shivanib134@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:33750 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751286AbcFVTly (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Jun 2016 15:41:54 -0400
-Received: by mail-pa0-f66.google.com with SMTP id ts6so4625765pac.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jun 2016 12:41:54 -0700 (PDT)
-Received: from localhost.localdomain ([116.202.36.37])
-        by smtp.gmail.com with ESMTPSA id c8sm1617056pfb.33.2016.06.22.12.41.51
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
-        Wed, 22 Jun 2016 12:41:52 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Aaron Conole <aconole@bytheb.org>
+Subject: [RFC nf-next 0/3] Compact netfilter hooks list
+Date: Wed, 22 Jun 2016 17:34:28 -0400
+Message-ID: <1466631271-10737-1-git-send-email-aconole@bytheb.org>
+To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The assignment statement was interpreted as executing enable_connlabel
-command with the argument "no". This was due to the whitespaces in the
-assignment.
+This series makes a simple change to shrink the netfilter hook list
+from a double linked list, to a singly linked list.  Since the hooks
+are always traversed in-order, there is no need to maintain a previous
+pointer.
 
-Fixes the trivial bug introduced in commit 3b7a227 (configure: Show
-support for connlabel)
+This series is being submitted for early feedback. This was jointly
+developed by Florian Westphal.
 
-Reported-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
----
- configure.ac | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Aaron Conole (1):
+  netfilter: replace list_head with single linked list
 
-diff --git a/configure.ac b/configure.ac
-index c91e9e7..b47516b 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -175,7 +175,7 @@ if test "x$enable_connlabel" = "xyes"; then
- 	if test "$nfconntrack" -ne 1; then
- 		blacklist_modules="$blacklist_modules connlabel";
- 		echo "WARNING: libnetfilter_conntrack not found, connlabel match will not be built";
--		enable_connlabel = "no";
-+		enable_connlabel="no";
- 	fi;
- else
- 	blacklist_modules="$blacklist_modules connlabel";
+Florian Westphal (2):
+  netfilter: bridge: add and use br_nf_hook_thresh
+  netfilter: call nf_hook_state_init with rcu_read_lock held
+
+ include/linux/netdevice.h                      |   2 +-
+ include/linux/netfilter.h                      |  26 ++++--
+ include/linux/netfilter_ingress.h              |  15 ++--
+ include/net/netfilter/br_netfilter.h           |   6 ++
+ include/net/netfilter/nf_queue.h               |   9 +-
+ include/net/netns/netfilter.h                  |   2 +-
+ net/bridge/br_netfilter_hooks.c                |  50 +++++++++--
+ net/bridge/br_netfilter_ipv6.c                 |  12 ++-
+ net/bridge/netfilter/ebt_redirect.c            |   2 +-
+ net/bridge/netfilter/ebtables.c                |   2 +-
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |   2 +-
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |   2 +-
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |   2 +-
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   2 +-
+ net/netfilter/core.c                           | 120 +++++++++++++++----------
+ net/netfilter/nf_conntrack_core.c              |   2 +-
+ net/netfilter/nf_conntrack_h323_main.c         |   2 +-
+ net/netfilter/nf_conntrack_helper.c            |   2 +-
+ net/netfilter/nf_internals.h                   |  10 +--
+ net/netfilter/nf_queue.c                       |  15 ++--
+ net/netfilter/nfnetlink_cthelper.c             |   2 +-
+ net/netfilter/nfnetlink_log.c                  |   8 +-
+ net/netfilter/nfnetlink_queue.c                |   7 +-
+ net/netfilter/xt_helper.c                      |   2 +-
+ 24 files changed, 193 insertions(+), 111 deletions(-)
+
 -- 
-2.7.4
-
+2.5.5
