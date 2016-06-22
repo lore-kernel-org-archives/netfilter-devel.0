@@ -1,62 +1,46 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [PATCH] iptables: extensions: libxt_MARK: Fix translation of
- --set-xmark option
-Date: Wed, 22 Jun 2016 11:49:03 +0200
-Message-ID: <CAOkSjBjNL5i20ExhjWJnjt6w4cDnFzhReetjb9iCHQJmDQm=Aw@mail.gmail.com>
-References: <1466543023-15740-1-git-send-email-rodanber@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] Suricata meets Netfilter Conference on 27th June in
+ Amsterdam, Netherlands
+Date: Wed, 22 Jun 2016 12:13:19 +0200
+Message-ID: <20160622101319.GA2791@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: =?UTF-8?Q?Roberto_Garc=C3=ADa?= <rodanber@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:34052 "EHLO
-	mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751244AbcFVKEZ convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Jun 2016 06:04:25 -0400
-Received: by mail-lf0-f65.google.com with SMTP id l184so13074242lfl.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jun 2016 03:04:19 -0700 (PDT)
-In-Reply-To: <1466543023-15740-1-git-send-email-rodanber@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Victor Julien <victor@inliniac.net>
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 21 June 2016 at 23:03,  <rodanber@gmail.com> wrote:
-> From: Roberto Garc=C3=ADa <rodanber@gmail.com>
->
-> Fix translation of MARK target's --set-xmark option.
->
-> Before:
->
->  # iptables-translate -t mangle -A PREROUTING -j MARK --set-xmark 0x6=
-4/0xaf
->   nft add rule ip mangle PREROUTING counter meta mark set mark xor 0x=
-64 and 0xaf
->
-> After:
->
->   # iptables-translate -t mangle -A PREROUTING -j MARK --set-xmark 0x=
-64/0xaf
->   nft add rule ip mangle PREROUTING counter meta mark set mark xor 0x=
-64 and \
->   0xffffff50
->
-> Signed-off-by: Roberto Garc=C3=ADa <rodanber@gmail.com>
-> ---
->  extensions/libxt_MARK.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
+Hi,
 
-Seems good to me :-)
+I'm forwarding the original schedule that Victor Julien (Suricata) has
+prepared for the user day:
 
-Acked-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+09h30 Welcoming
+10h   Suricata Intrusion Prevention with NFQUEUE (Andreas Herz)
+10h30 Shivani Bhardwaj : iptables-translate : Benefits and need
+10h45 SELKS =E2=80=93 Black (file) magic (Peter Manev)
+11h15 Break
+11h30 Amsterdamize your firewall (Eric Leblond)
+12h00  Vuurmuur Firewall (Victor Julien)
+12h30  Next steps for Linux Network stack, approaching 100Gbit/s (Jespe=
+r Brouer)
+13h15 Lunch break
+14h00 Netdev Keynote (David S. Miller)
+14h30 nftables tutorial (Pablo Neira)
+15h15 Suricata and Netfilter: The Mixed Mode (Giuseppe Longo)
+15h30 Break
+15h45 A Fast and Practical Software Packet Scheduling Architecture (Lui=
+gi Rizzo)
+16h15 Suricata 3.1 (Victor Julien)
+16h45 Fighting Word document with Suricata and Netfilter (Eric Leblond)
 
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The event is free to attend, so if you're located in Amsterdam or its
+surroundings, please join us!
+
+https://www.eventbrite.com/e/suricata-meets-netfilter-free-1-day-user-c=
+onference-tickets-25948425439
+
+Hope to see you there!
