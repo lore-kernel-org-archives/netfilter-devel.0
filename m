@@ -1,33 +1,59 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH conntrack-tools] configure: Remove flex check warning
-Date: Wed, 22 Jun 2016 14:41:20 +0200
-Message-ID: <20160622124120.GB1171@salvia>
-References: <1466444552-8834-1-git-send-email-shivanib134@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+From: Shivani Bhardwaj <shivanib134@gmail.com>
+Subject: [PATCH iptables] configure: Fix logic to show connlabel support
+Date: Wed, 22 Jun 2016 19:40:37 +0530
+Message-ID: <1466604637-26536-1-git-send-email-shivanib134@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41671 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751214AbcFVMwT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Jun 2016 08:52:19 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id B6A1316ACC3
-	for <netfilter-devel@vger.kernel.org>; Wed, 22 Jun 2016 14:41:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id A887D9EBAA
-	for <netfilter-devel@vger.kernel.org>; Wed, 22 Jun 2016 14:41:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id BDC949EBAA
-	for <netfilter-devel@vger.kernel.org>; Wed, 22 Jun 2016 14:41:21 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1466444552-8834-1-git-send-email-shivanib134@gmail.com>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:36754 "EHLO
+	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750910AbcFVOKw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Jun 2016 10:10:52 -0400
+Received: by mail-pf0-f195.google.com with SMTP id i123so4160935pfg.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jun 2016 07:10:51 -0700 (PDT)
+Received: from localhost.localdomain ([116.202.32.104])
+        by smtp.gmail.com with ESMTPSA id v62sm187348pfv.50.2016.06.22.07.10.48
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-SHA bits=128/128);
+        Wed, 22 Jun 2016 07:10:49 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jun 20, 2016 at 11:12:32PM +0530, Shivani Bhardwaj wrote:
-> Remove the warning about outdated version of flex as it is not needed
-> anymore.
+With the earlier logic, when libnfnetlink and libnetfilter_conntrack
+were not installed, all the warnings showed up correctly but the final
+configuration showed:
 
-Also applied, thanks.
+            connlabel support:                      yes
+
+which was faulty.
+This was happening because connlabel module was blacklisted first and
+then set to "no" if package requirements were not met.
+After this patch, iptables configuration shows up correctly.
+
+Fixes commit 3b7a227 (configure: Show support for connlabel)
+
+Tested before and after installing the dependencies.
+
+Signed-off-by: Shivani Bhardwaj <shivanib134@gmail.com>
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index c91e9e7..131bc8b 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -173,9 +173,9 @@ if test "x$enable_connlabel" = "xyes"; then
+ 		[nfconntrack=1], [nfconntrack=0])
+ 
+ 	if test "$nfconntrack" -ne 1; then
++		enable_connlabel="no";
+ 		blacklist_modules="$blacklist_modules connlabel";
+ 		echo "WARNING: libnetfilter_conntrack not found, connlabel match will not be built";
+-		enable_connlabel = "no";
+ 	fi;
+ else
+ 	blacklist_modules="$blacklist_modules connlabel";
+-- 
+2.7.4
+
