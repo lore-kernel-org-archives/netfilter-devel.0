@@ -1,222 +1,90 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next v3] netfilter: conntrack: allow increasing bucket size via sysctl too
-Date: Wed, 22 Jun 2016 13:26:10 +0200
-Message-ID: <1466594770-8610-1-git-send-email-fw@strlen.de>
-Cc: zlpnobody@gmail.com, Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: =?UTF-8?Q?Roberto_Garc=c3=ada_Calero?= <rodanber@gmail.com>
+Subject: Re: [PATCH] iptables: extensions: libxt_MARK: Fix translation of
+ --set-xmark option
+Date: Wed, 22 Jun 2016 13:34:51 +0200
+Message-ID: <46dba554-6a95-f202-12c9-f6aaa0ffe9c8@gmail.com>
+References: <1466543023-15740-1-git-send-email-rodanber@gmail.com>
+ <20160622102342.GA6696@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: arturo.borrero.glez@gmail.com, pablo@netfilter.org,
+	netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33262 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751244AbcFVL0x (ORCPT
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:35536 "EHLO
+	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751434AbcFVLnA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Jun 2016 07:26:53 -0400
+	Wed, 22 Jun 2016 07:43:00 -0400
+Received: by mail-wm0-f47.google.com with SMTP id v199so83811421wmv.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jun 2016 04:41:58 -0700 (PDT)
+In-Reply-To: <20160622102342.GA6696@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-No need to restrict this to module parameter.
+I misunderstood the explanation of the option. I'm going to fix that=20
+right now.
 
-We export a copy of the real hash size -- when user alters the value we
-allocate the new table, copy entries etc before we update the real size
-to the requested one.
+Thanks for pointing out the error!
 
-This is also needed because the real size is used by concurrent readers
-and cannot be changed without synchronizing the conntrack generation
-seqcnt.
-
-We only allow changing this value from the initial net namespace.
-
-Tested using http-client-benchmark vs. httpterm with concurrent
-
-while true;do
- echo $RANDOM > /proc/sys/net/netfilter/nf_conntrack_buckets
-done
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- Changes since v2:
-  add back nf_conntrack-sysctl.txt change
-  don't call synchronize_net twice
-
- Changes since v1:
-  place assignment inside CONFIG_SYSCL so we don't get build breakage.
-
- Documentation/networking/nf_conntrack-sysctl.txt |  3 +-
- include/net/netfilter/nf_conntrack.h             |  1 +
- net/netfilter/nf_conntrack_core.c                | 41 ++++++++++++++++--------
- net/netfilter/nf_conntrack_standalone.c          | 36 ++++++++++++++++++---
- 4 files changed, 62 insertions(+), 19 deletions(-)
-
-diff --git a/Documentation/networking/nf_conntrack-sysctl.txt b/Documentation/networking/nf_conntrack-sysctl.txt
-index f55599c..4fb51d3 100644
---- a/Documentation/networking/nf_conntrack-sysctl.txt
-+++ b/Documentation/networking/nf_conntrack-sysctl.txt
-@@ -7,12 +7,13 @@ nf_conntrack_acct - BOOLEAN
- 	Enable connection tracking flow accounting. 64-bit byte and packet
- 	counters per flow are added.
- 
--nf_conntrack_buckets - INTEGER (read-only)
-+nf_conntrack_buckets - INTEGER
- 	Size of hash table. If not specified as parameter during module
- 	loading, the default size is calculated by dividing total memory
- 	by 16384 to determine the number of buckets but the hash table will
- 	never have fewer than 32 and limited to 16384 buckets. For systems
- 	with more than 4GB of memory it will be 65536 buckets.
-+	This sysctl is only writeable in the initial net namespace.
- 
- nf_conntrack_checksum - BOOLEAN
- 	0 - disabled
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index dd78bea..e7f6290 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -287,6 +287,7 @@ static inline bool nf_is_loopback_packet(const struct sk_buff *skb)
- struct kernel_param;
- 
- int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp);
-+int nf_conntrack_hash_resize(unsigned int hashsize);
- extern unsigned int nf_conntrack_htable_size;
- extern unsigned int nf_conntrack_max;
- 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index db2312e..13b736d 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1615,24 +1615,14 @@ void *nf_ct_alloc_hashtable(unsigned int *sizep, int nulls)
- }
- EXPORT_SYMBOL_GPL(nf_ct_alloc_hashtable);
- 
--int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
-+int nf_conntrack_hash_resize(unsigned int hashsize)
- {
--	int i, bucket, rc;
--	unsigned int hashsize, old_size;
-+	int i, bucket;
-+	unsigned int old_size;
- 	struct hlist_nulls_head *hash, *old_hash;
- 	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conn *ct;
- 
--	if (current->nsproxy->net_ns != &init_net)
--		return -EOPNOTSUPP;
--
--	/* On boot, we can set this without any fancy locking. */
--	if (!nf_conntrack_htable_size)
--		return param_set_uint(val, kp);
--
--	rc = kstrtouint(val, 0, &hashsize);
--	if (rc)
--		return rc;
- 	if (!hashsize)
- 		return -EINVAL;
- 
-@@ -1640,6 +1630,12 @@ int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
- 	if (!hash)
- 		return -ENOMEM;
- 
-+	old_size = nf_conntrack_htable_size;
-+	if (old_size == hashsize) {
-+		nf_ct_free_hashtable(hash, hashsize);
-+		return 0;
-+	}
-+
- 	local_bh_disable();
- 	nf_conntrack_all_lock();
- 	write_seqcount_begin(&nf_conntrack_generation);
-@@ -1675,6 +1671,25 @@ int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
- 	nf_ct_free_hashtable(old_hash, old_size);
- 	return 0;
- }
-+
-+int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
-+{
-+	unsigned int hashsize;
-+	int rc;
-+
-+	if (current->nsproxy->net_ns != &init_net)
-+		return -EOPNOTSUPP;
-+
-+	/* On boot, we can set this without any fancy locking. */
-+	if (!nf_conntrack_htable_size)
-+		return param_set_uint(val, kp);
-+
-+	rc = kstrtouint(val, 0, &hashsize);
-+	if (rc)
-+		return rc;
-+
-+	return nf_conntrack_hash_resize(hashsize);
-+}
- EXPORT_SYMBOL_GPL(nf_conntrack_set_hashsize);
- 
- module_param_call(hashsize, nf_conntrack_set_hashsize, param_get_uint,
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index f87e84e..a0cc191 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -434,8 +434,29 @@ static void nf_conntrack_standalone_fini_proc(struct net *net)
- 
- #ifdef CONFIG_SYSCTL
- /* Log invalid packets of a given protocol */
--static int log_invalid_proto_min = 0;
--static int log_invalid_proto_max = 255;
-+static int log_invalid_proto_min __read_mostly;
-+static int log_invalid_proto_max __read_mostly = 255;
-+
-+/* size the user *wants to set */
-+static unsigned int nf_conntrack_htable_size_user __read_mostly;
-+
-+static int
-+nf_conntrack_hash_sysctl(struct ctl_table *table, int write,
-+			 void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	int ret;
-+
-+	ret = proc_dointvec(table, write, buffer, lenp, ppos);
-+	if (ret < 0 || !write)
-+		return ret;
-+
-+	/* update ret, we might not be able to satisfy request */
-+	ret = nf_conntrack_hash_resize(nf_conntrack_htable_size_user);
-+
-+	/* update it to the actual value used by conntrack */
-+	nf_conntrack_htable_size_user = nf_conntrack_htable_size;
-+	return ret;
-+}
- 
- static struct ctl_table_header *nf_ct_netfilter_header;
- 
-@@ -456,10 +477,10 @@ static struct ctl_table nf_ct_sysctl_table[] = {
- 	},
- 	{
- 		.procname       = "nf_conntrack_buckets",
--		.data           = &nf_conntrack_htable_size,
-+		.data           = &nf_conntrack_htable_size_user,
- 		.maxlen         = sizeof(unsigned int),
--		.mode           = 0444,
--		.proc_handler   = proc_dointvec,
-+		.mode           = 0644,
-+		.proc_handler   = nf_conntrack_hash_sysctl,
- 	},
- 	{
- 		.procname	= "nf_conntrack_checksum",
-@@ -517,6 +538,9 @@ static int nf_conntrack_standalone_init_sysctl(struct net *net)
- 	if (net->user_ns != &init_user_ns)
- 		table[0].procname = NULL;
- 
-+	if (!net_eq(&init_net, net))
-+		table[2].mode = 0444;
-+
- 	net->ct.sysctl_header = register_net_sysctl(net, "net/netfilter", table);
- 	if (!net->ct.sysctl_header)
- 		goto out_unregister_netfilter;
-@@ -606,6 +630,8 @@ static int __init nf_conntrack_standalone_init(void)
- 		ret = -ENOMEM;
- 		goto out_sysctl;
- 	}
-+
-+	nf_conntrack_htable_size_user = nf_conntrack_htable_size;
- #endif
- 
- 	ret = register_pernet_subsys(&nf_conntrack_net_ops);
--- 
-2.7.3
-
+On 22/06/16 12:23, Florian Westphal wrote:
+> rodanber@gmail.com <rodanber@gmail.com> wrote:
+>> From: Roberto Garc=EDa <rodanber@gmail.com>
+>>
+>> Fix translation of MARK target's --set-xmark option.
+>>
+>> Before:
+>>
+>>  # iptables-translate -t mangle -A PREROUTING -j MARK --set-xmark 0x=
+64/0xaf
+>>   nft add rule ip mangle PREROUTING counter meta mark set mark xor 0=
+x64 and 0xaf
+>>
+>> After:
+>>
+>>   # iptables-translate -t mangle -A PREROUTING -j MARK --set-xmark 0=
+x64/0xaf
+>>   nft add rule ip mangle PREROUTING counter meta mark set mark xor 0=
+x64 and \
+>>   0xffffff50
+>
+> Hmm, I wonder if this is correct...  iptables man page says:
+>
+>  --set-xmark value[/mask]
+>    Zeroes out the bits given by mask and XORs value into the packet
+>    mark ("nfmark"). If mask is omitted, 0xFFFFFFFF is assumed.
+>
+> So the iptables command is supposed to
+>
+>    mark =3D skb->mark
+>    mark =3D mark & ~0xaf
+>    mark ^=3D 0x64
+>    skb->mark =3D mark
+>
+> The proposed translation results in:
+> nft --debug=3Dnetlink add rule ip mangle PREROUTING meta mark set mar=
+k xor 0x64 and 0xffffff50
+>  [ meta load mark =3D> reg 1 ]
+>  [ bitwise reg 1 =3D (reg=3D1 & 0xffffffff ) ^ 0x00000040 ]
+>  [ meta set mark with reg 1 ]
+>
+>  As you can see nft did perform the '0x64 and 0xffffff50' part in an
+>  optimization pass so we end up not masking anything and then xor'ing
+>  0x40.
+>
+> I think this should be:
+> nft --debug=3Dnetlink add rule ip mangle PREROUTING meta mark set mar=
+k and 0xffffff50 xor 0x64
+>  [ meta load mark =3D> reg 1 ]
+>  [ bitwise reg 1 =3D (reg=3D1 & 0xffffff50 ) ^ 0x00000064 ]
+>  [ meta set mark with reg 1 ]
+>
+> which -- afaiu -- matches what the xtables target would do.
+>
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
