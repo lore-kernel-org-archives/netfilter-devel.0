@@ -1,80 +1,41 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH] iptables: extensions: libxt_MARK: Fix translation of
- --set-xmark option
-Date: Wed, 22 Jun 2016 12:23:42 +0200
-Message-ID: <20160622102342.GA6696@breakpoint.cc>
-References: <1466543023-15740-1-git-send-email-rodanber@gmail.com>
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH -next v2] netfilter: conntrack: allow increasing bucket
+ size via sysctl too
+Date: Wed, 22 Jun 2016 18:47:11 +0800
+Message-ID: <CAML_gOdXwCqxKAyUKmpcDfLky_kvn=5=GrkG+zmh9NUQHJVPcg@mail.gmail.com>
+References: <1466534782-567-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: arturo.borrero.glez@gmail.com, pablo@netfilter.org,
-	netfilter-devel@vger.kernel.org
-To: rodanber@gmail.com
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:33136 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751209AbcFVKXv (ORCPT
+Received: from mail-vk0-f68.google.com ([209.85.213.68]:35882 "EHLO
+	mail-vk0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751586AbcFVLAL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Jun 2016 06:23:51 -0400
-Content-Disposition: inline
-In-Reply-To: <1466543023-15740-1-git-send-email-rodanber@gmail.com>
+	Wed, 22 Jun 2016 07:00:11 -0400
+Received: by mail-vk0-f68.google.com with SMTP id v188so7140343vkf.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jun 2016 03:59:19 -0700 (PDT)
+In-Reply-To: <1466534782-567-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-rodanber@gmail.com <rodanber@gmail.com> wrote:
-> From: Roberto Garc=EDa <rodanber@gmail.com>
->=20
-> Fix translation of MARK target's --set-xmark option.
->=20
-> Before:
->=20
->  # iptables-translate -t mangle -A PREROUTING -j MARK --set-xmark 0x6=
-4/0xaf
->   nft add rule ip mangle PREROUTING counter meta mark set mark xor 0x=
-64 and 0xaf
->=20
-> After:
->=20
->   # iptables-translate -t mangle -A PREROUTING -j MARK --set-xmark 0x=
-64/0xaf
->   nft add rule ip mangle PREROUTING counter meta mark set mark xor 0x=
-64 and \
->   0xffffff50
+Hi Florian,
 
-Hmm, I wonder if this is correct...  iptables man page says:
+2016-06-22 2:46 GMT+08:00 Florian Westphal <fw@strlen.de>:
+> @@ -1650,11 +1646,31 @@ int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
+>         write_seqcount_end(&nf_conntrack_generation);
+>         nf_conntrack_all_unlock();
+>         local_bh_enable();
+> +       synchronize_net();
 
- --set-xmark value[/mask]
-   Zeroes out the bits given by mask and XORs value into the packet
-   mark ("nfmark"). If mask is omitted, 0xFFFFFFFF is assumed.
+synchronize_net()  call here is redundant?
 
-So the iptables command is supposed to
+>
+>         synchronize_net();
+>         nf_ct_free_hashtable(old_hash, old_size);
+>         return 0;
+>  }
 
-   mark =3D skb->mark
-   mark =3D mark & ~0xaf
-   mark ^=3D 0x64
-   skb->mark =3D mark
-
-The proposed translation results in:
-nft --debug=3Dnetlink add rule ip mangle PREROUTING meta mark set mark =
-xor 0x64 and 0xffffff50
- [ meta load mark =3D> reg 1 ]
- [ bitwise reg 1 =3D (reg=3D1 & 0xffffffff ) ^ 0x00000040 ]
- [ meta set mark with reg 1 ]
-
- As you can see nft did perform the '0x64 and 0xffffff50' part in an
- optimization pass so we end up not masking anything and then xor'ing
- 0x40.
-
-I think this should be:
-nft --debug=3Dnetlink add rule ip mangle PREROUTING meta mark set mark =
-and 0xffffff50 xor 0x64
- [ meta load mark =3D> reg 1 ]
- [ bitwise reg 1 =3D (reg=3D1 & 0xffffff50 ) ^ 0x00000064 ]
- [ meta set mark with reg 1 ]
-
-which -- afaiu -- matches what the xtables target would do.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+And according to your patch version 1, it seems that you missed to update the
+Documentation/networking/nf_conntrack-sysctl.txt this time.
