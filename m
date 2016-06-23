@@ -1,48 +1,38 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] ipset: Backports for the nla_put_net64() API changes
-Date: Thu, 23 Jun 2016 12:37:44 +0200
-Message-ID: <20160623103744.GA10764@salvia>
-References: <20160623102211.GA31272@hydrogen>
+Subject: Re: [PATCH iptables 1/3] libxt_hashlimit: Prepare libxt_hashlimit.c
+ for revision 2
+Date: Thu, 23 Jun 2016 12:40:12 +0200
+Message-ID: <20160623104012.GB10493@salvia>
+References: <20160602001628.GD1644@akamai.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Cc: netfilter-devel@vger.kernel.org
-To: Neutron Soutmun <neo.neutron@gmail.com>
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	johunt@akamai.com, netdev@vger.kernel.org, pai.vishwain@gmail.com
+To: Vishwanath Pai <vpai@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47830 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48560 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751687AbcFWKht convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jun 2016 06:37:49 -0400
+	id S1751638AbcFWKkV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Jun 2016 06:40:21 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id B4C3AE7DAA
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:37:47 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 03E67E7DB6
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:40:20 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id A1ADB9EBCA
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:37:47 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id DCB409EBAD
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:40:19 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id F31109EBB2
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:37:44 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id C74489EBAD
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:40:17 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160623102211.GA31272@hydrogen>
+In-Reply-To: <20160602001628.GD1644@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 23, 2016 at 05:22:11PM +0700, Neutron Soutmun wrote:
-> * Backports the patch "libnl: nla_put_net64():align on a 64-bit area" [1]
->   by Nicolas Dichtel <nicolas.dichtel@6wind.com>
-> 
-> * Since the nla_put_net64() API has been changed, therefore, the
->   ip_set_compat.h.in should provides the macro IPSET_NLA_PUT_NET64 that
->   point to the nla_put_net64() with appropriate number of arguments.
-> 
->   The build script should distinguish the API changes by detect for
->   the existence of nla_put_64bit() function in include/net/netlink.h.
->   This function was added in the same patches set and called by
->   the nla_put_be64() that called by nla_put_net64() respectively.
+Not specifically related to this patch.
 
-What are you specifically fixing with this?
+It would be great if you can send us a patch to add new tests to
+iptables/extensions/libxt_hashlimit.t for this new higher resolution
+pps ratelimit.
 
-The pad attribute just makes sure that, after accessing a 64-bit
-payload attribute, the follow up attribute still gets aligned to
-64-bits.
+Thanks!
