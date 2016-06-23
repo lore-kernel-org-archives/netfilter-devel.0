@@ -1,45 +1,36 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PACTH nf-next] netfilter: nf_reject_ipv4: don't send tcp RST if
- the packet is non-TCP
-Date: Thu, 23 Jun 2016 19:33:28 +0200
-Message-ID: <20160623173328.GA2267@salvia>
-References: <1466429188-3942-1-git-send-email-zlpnobody@163.com>
+Subject: Re: [PATCH v2 1/2] netfilter/nflog: nflog-range does not truncate
+ packets
+Date: Thu, 23 Jun 2016 19:34:23 +0200
+Message-ID: <20160623173423.GA2284@salvia>
+References: <20160621185846.GA6646@akamai.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpnobody@163.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55523 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751272AbcFWRdj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jun 2016 13:33:39 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 1944E8D0523
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 19:33:32 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 0A3649EBB2
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 19:33:32 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id D03A29EBA9
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 19:33:29 +0200 (CEST)
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu, johunt@akamai.com,
+	daviem@davemloft.net, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, pai.vishwain@gmail.com,
+	ilubashe@akamai.com, jdollard@akamai.com
+To: Vishwanath Pai <vpai@akamai.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1466429188-3942-1-git-send-email-zlpnobody@163.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20160621185846.GA6646@akamai.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Jun 20, 2016 at 09:26:28PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
+On Tue, Jun 21, 2016 at 02:58:46PM -0400, Vishwanath Pai wrote:
+> netfilter/nflog: nflog-range does not truncate packets
 > 
-> In iptables, if the user add a rule to send tcp RST and specify the
-> non-TCP protocol, such as UDP, kernel will reject this request. But
-> in nftables, this validity check only occurs in nft tool, i.e. only
-> in userspace.
+> li->u.ulog.copy_len is currently ignored by the kernel, we should truncate
+> the packet to either li->u.ulog.copy_len (if set) or copy_range before
+> sending it to userspace. 0 is a valid input for copy_len, so add a new
+> flag to indicate whether this was option was specified by the user or not.
 > 
-> This means that user can add such a rule like follows via nfnetlink:
->   "nft add rule filter forward ip protocol udp reject with tcp reset"
+> Add two flags to indicate whether nflog-size/copy_len was set or not.
+> XT_NFLOG_F_COPY_LEN is for XT_NFLOG and NFLOG_F_COPY_LEN for nfnetlink_log
 > 
-> This will generate some confusing tcp RST packets. So we should send
-> tcp RST only when it is TCP packet.
+> On the userspace side, this was initially represented by the option
+> nflog-range, this will be replaced by --nflog-size now. --nflog-range would
+> still exist but does not do anything.
 
-Applied, thanks.
+Applied, thanks!
