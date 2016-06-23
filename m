@@ -1,36 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2 1/2] netfilter/nflog: nflog-range does not truncate
- packets
-Date: Thu, 23 Jun 2016 19:34:23 +0200
-Message-ID: <20160623173423.GA2284@salvia>
-References: <20160621185846.GA6646@akamai.com>
+Subject: Re: [PATCH] bridge: netfilter: spanning tree: Add
+ masked_ether_addr_equal and neatening
+Date: Thu, 23 Jun 2016 19:36:59 +0200
+Message-ID: <20160623173659.GA3474@salvia>
+References: <f39576f17e9f5dee35258917917f2d740e820a77.1466024030.git.joe@perches.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, kadlec@blackhole.kfki.hu, johunt@akamai.com,
-	daviem@davemloft.net, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, pai.vishwain@gmail.com,
-	ilubashe@akamai.com, jdollard@akamai.com
-To: Vishwanath Pai <vpai@akamai.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
+	linux-kernel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>
+To: Joe Perches <joe@perches.com>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
 Content-Disposition: inline
-In-Reply-To: <20160621185846.GA6646@akamai.com>
-Sender: netdev-owner@vger.kernel.org
+In-Reply-To: <f39576f17e9f5dee35258917917f2d740e820a77.1466024030.git.joe@perches.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jun 21, 2016 at 02:58:46PM -0400, Vishwanath Pai wrote:
-> netfilter/nflog: nflog-range does not truncate packets
+On Wed, Jun 15, 2016 at 01:58:45PM -0700, Joe Perches wrote:
+> There is code duplication of a masked ethernet address comparison here
+> so make it a separate function instead.
 > 
-> li->u.ulog.copy_len is currently ignored by the kernel, we should truncate
-> the packet to either li->u.ulog.copy_len (if set) or copy_range before
-> sending it to userspace. 0 is a valid input for copy_len, so add a new
-> flag to indicate whether this was option was specified by the user or not.
+> Miscellanea:
 > 
-> Add two flags to indicate whether nflog-size/copy_len was set or not.
-> XT_NFLOG_F_COPY_LEN is for XT_NFLOG and NFLOG_F_COPY_LEN for nfnetlink_log
-> 
-> On the userspace side, this was initially represented by the option
-> nflog-range, this will be replaced by --nflog-size now. --nflog-range would
-> still exist but does not do anything.
+> o Neaten alignment of FWINV macro uses to make it clearer for the reader
 
-Applied, thanks!
+Applied, thanks.
+
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+> 
+> This masked_ether_addr_equal function could go into etherdevice.h,
+> but I don't see another use like it in kernel code.  Is there one?
+
+This is specific of iptables, not even nftables would use this. So I
+would keep this in the iptables tree.
