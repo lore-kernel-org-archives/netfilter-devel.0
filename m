@@ -1,83 +1,60 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: xt_cpu: no need to check the validity
- of invert flag
-Date: Thu, 23 Jun 2016 13:11:18 +0200
-Message-ID: <20160623111118.GA2695@salvia>
-References: <1465388607-26771-1-git-send-email-zlpnobody@163.com>
+Subject: Re: [PATCH 2/3] netfilter: Create revision 2 of xt_hashlimit to
+ support higher pps rates
+Date: Thu, 23 Jun 2016 13:16:30 +0200
+Message-ID: <20160623111630.GA2717@salvia>
+References: <20160602001138.GB1644@akamai.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpnobody@163.com>
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	johunt@akamai.com, netdev@vger.kernel.org, pai.vishwain@gmail.com
+To: Vishwanath Pai <vpai@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56999 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:58264 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751788AbcFWLL0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jun 2016 07:11:26 -0400
+	id S1751821AbcFWLQk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Jun 2016 07:16:40 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id EDAAE1682E9
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 13:11:24 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 6032E168300
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 13:16:39 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id D7E0AA86A
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 13:11:24 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 52487FAB4F
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 13:16:39 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 2E06BFAB55
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 13:11:22 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 27DDC9EBAA
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 13:16:37 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1465388607-26771-1-git-send-email-zlpnobody@163.com>
+In-Reply-To: <20160602001138.GB1644@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 08, 2016 at 08:23:27PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
-> 
-> Instead, we can convert invert flag and ensure it is 1 or 0.
-> 
-> Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
-> ---
->  net/netfilter/xt_cpu.c | 12 +-----------
->  1 file changed, 1 insertion(+), 11 deletions(-)
-> 
-> diff --git a/net/netfilter/xt_cpu.c b/net/netfilter/xt_cpu.c
-> index c7a2e54..ca1eaaf 100644
-> --- a/net/netfilter/xt_cpu.c
-> +++ b/net/netfilter/xt_cpu.c
-> @@ -25,27 +25,17 @@ MODULE_DESCRIPTION("Xtables: CPU match");
->  MODULE_ALIAS("ipt_cpu");
->  MODULE_ALIAS("ip6t_cpu");
->  
-> -static int cpu_mt_check(const struct xt_mtchk_param *par)
-> -{
-> -	const struct xt_cpu_info *info = par->matchinfo;
-> -
-> -	if (info->invert & ~1)
-> -		return -EINVAL;
-> -	return 0;
-> -}
+On Wed, Jun 01, 2016 at 08:11:38PM -0400, Vishwanath Pai wrote:
+> +static void
+> +cfg_copy(struct hashlimit_cfg2 *to, void *from, int revision)
+> +{
+> +	if (revision == 1) {
+> +		struct hashlimit_cfg1 *cfg = (struct hashlimit_cfg1 *)from;
+> +
+> +		to->mode = cfg->mode;
+> +		to->avg = cfg->avg;
+> +		to->burst = cfg->burst;
+> +		to->size = cfg->size;
+> +		to->max = cfg->max;
+> +		to->gc_interval = cfg->gc_interval;
+> +		to->expire = cfg->expire;
+> +		to->srcmask = cfg->srcmask;
+> +		to->dstmask = cfg->dstmask;
+> +	} else if (revision == 2) {
+> +		memcpy(to, from, sizeof(struct hashlimit_cfg2));
+> +	} else {
+> +		BUG();
 
-This trick is there so we can convert info->invert to info->flags in
-the future without a new revision (given the binary interface did not
-change). I'm not convinced there is much of benefit from getting rid
-of this little extra _check() code that runs from the control plane
-path.
+BUG here is probably too much, this halts the system. I can see we
+only use this somewhere else in this code. Instead, I'd suggest you
+propagate an error back to userspace if this ever happen.
 
->  static bool cpu_mt(const struct sk_buff *skb, struct xt_action_param *par)
->  {
->  	const struct xt_cpu_info *info = par->matchinfo;
->  
-> -	return (info->cpu == smp_processor_id()) ^ info->invert;
-> +	return (info->cpu == smp_processor_id()) ^ !!info->invert;
->  }
->  
->  static struct xt_match cpu_mt_reg __read_mostly = {
->  	.name       = "cpu",
->  	.revision   = 0,
->  	.family     = NFPROTO_UNSPEC,
-> -	.checkentry = cpu_mt_check,
->  	.match      = cpu_mt,
->  	.matchsize  = sizeof(struct xt_cpu_info),
->  	.me         = THIS_MODULE,
-> -- 
-> 2.5.5
-> 
-> 
+I would like to see if this spots any problem with our test
+infrastructure under iptables/.
+
+Thanks.
