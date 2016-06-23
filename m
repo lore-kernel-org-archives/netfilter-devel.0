@@ -1,186 +1,179 @@
-From: Neutron Soutmun <neo.neutron@gmail.com>
-Subject: [PATCH] ipset: Backports for the nla_put_net64() API changes
-Date: Thu, 23 Jun 2016 17:22:11 +0700
-Message-ID: <20160623102211.GA31272@hydrogen>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [nf-next PATCH v5] netfilter: nf_tables: add support for inverted
+ logic in nft_lookup
+Date: Thu, 23 Jun 2016 12:24:08 +0200
+Message-ID: <146667735220.10551.13573034041353542334.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="KsGdsel6WgEHnImy"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:34614 "EHLO
-	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751369AbcFWKWR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jun 2016 06:22:17 -0400
-Received: by mail-pf0-f195.google.com with SMTP id 66so6472098pfy.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 03:22:16 -0700 (PDT)
-Received: from hydrogen (ppp-58-8-31-246.revip2.asianet.co.th. [58.8.31.246])
-        by smtp.gmail.com with ESMTPSA id ez6sm6295959pab.12.2016.06.23.03.22.14
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLSv1/SSLv3 cipher=OTHER);
-        Thu, 23 Jun 2016 03:22:15 -0700 (PDT)
-Content-Disposition: inline
+Received: from smtp3.cica.es ([150.214.5.190]:54753 "EHLO smtp.cica.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751480AbcFWKYN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Jun 2016 06:24:13 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by smtp.cica.es (Postfix) with ESMTP id 4F5E051F24B
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 10:24:10 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id B6HbokSBD7ql for <netfilter-devel@vger.kernel.org>;
+	Thu, 23 Jun 2016 12:24:05 +0200 (CEST)
+Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
+	(Authenticated sender: servers@cica.es)
+	by smtp.cica.es (Postfix) with ESMTP id 23AF751F242
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:24:04 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Introduce a new configuration option for this expression, which allows users
+to invert the logic of set lookups.
 
---KsGdsel6WgEHnImy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In _init() we will now return EINVAL if NFT_LOOKUP_F_INV is in anyway
+related to a map lookup.
 
-* Backports the patch "libnl: nla_put_net64():align on a 64-bit area" [1]
-  by Nicolas Dichtel <nicolas.dichtel@6wind.com>
+The code in the _eval() function has been untangled and updated to sopport the
+XOR of options, as we should consider 4 cases:
+ * lookup false, invert false -> NFT_BREAK
+ * lookup false, invert true -> return w/o NFT_BREAK
+ * lookup true, invert false -> return w/o NFT_BREAK
+ * lookup true, invert true -> NFT_BREAK
 
-* Since the nla_put_net64() API has been changed, therefore, the
-  ip_set_compat.h.in should provides the macro IPSET_NLA_PUT_NET64 that
-  point to the nla_put_net64() with appropriate number of arguments.
-
-  The build script should distinguish the API changes by detect for
-  the existence of nla_put_64bit() function in include/net/netlink.h.
-  This function was added in the same patches set and called by
-  the nla_put_be64() that called by nla_put_net64() respectively.
-
-[1] https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit?=
-id=3De9bbe898cbe89b17ad3993c136aa13d0431cd537
-
-Signed-off-by: Neutron Soutmun <neo.neutron@gmail.com>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- configure.ac                                            | 10 ++++++++++
- kernel/include/linux/netfilter/ipset/ip_set_compat.h.in |  7 +++++++
- kernel/include/linux/netfilter/ipset/ip_set_counter.h   | 10 ++++++----
- kernel/include/linux/netfilter/ipset/ip_set_skbinfo.h   |  7 ++++---
- kernel/include/uapi/linux/netfilter/ipset/ip_set.h      |  1 +
- 5 files changed, 28 insertions(+), 7 deletions(-)
+v2: better aling memory of struct nft_lookup, put 'bool invert' before bindings
+v3: include flags coherence validation
+v4: stronger validation in _init(), stronger validation in _eval(), also untangle
+    code, and update patch description
+v5: simplify _eval() with guidelines by Pablo, update patch description
 
-diff --git a/configure.ac b/configure.ac
-index 7156ab8..b73b3cc 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -250,6 +250,16 @@ else
- 	AC_SUBST(HAVE_NLA_PUT_BE64, undef)
- fi
-=20
-+AC_MSG_CHECKING([kernel source for nla_put_64bit])
-+if test -f $ksourcedir/include/net/netlink.h && \
-+   $GREP -q 'nla_put_64bit' $ksourcedir/include/net/netlink.h; then
-+	AC_MSG_RESULT(yes)
-+	AC_SUBST(HAVE_NLA_PUT_64BIT, define)
-+else
-+	AC_MSG_RESULT(no)
-+	AC_SUBST(HAVE_NLA_PUT_64BIT, undef)
-+fi
-+
- AC_MSG_CHECKING([kernel source for portid in nl_info])
- if test -f $ksourcedir/include/linux/netlink.h && \
-    $AWK '/^struct netlink_skb_parms/ {for(i=3D1; i<=3D5; i++) {getline; pr=
-int}}' $ksourcedir/include/linux/netlink.h | $GREP -q 'portid;'; then
-diff --git a/kernel/include/linux/netfilter/ipset/ip_set_compat.h.in b/kern=
-el/include/linux/netfilter/ipset/ip_set_compat.h.in
-index 15d0763..fe24255 100644
---- a/kernel/include/linux/netfilter/ipset/ip_set_compat.h.in
-+++ b/kernel/include/linux/netfilter/ipset/ip_set_compat.h.in
-@@ -10,6 +10,7 @@
- #@HAVE_ETHER_ADDR_EQUAL@ HAVE_ETHER_ADDR_EQUAL
- #@HAVE_NLA_PUT_BE16@ HAVE_NLA_PUT_BE16
- #@HAVE_NLA_PUT_BE64@ HAVE_NLA_PUT_BE64
-+#@HAVE_NLA_PUT_64BIT@ HAVE_NLA_PUT_64BIT
- #@HAVE_NL_INFO_PORTID@ HAVE_NL_INFO_PORTID
- #define HAVE_NETLINK_DUMP_START_ARGS	@HAVE_NETLINK_DUMP_START_ARGS@
- #@HAVE_NS_CAPABLE@ HAVE_NS_CAPABLE
-@@ -160,6 +161,12 @@ static inline int nla_put_net64(struct sk_buff *skb, i=
-nt attrtype, __be64 value)
- }
- #endif
-=20
-+#ifdef HAVE_NLA_PUT_64BIT
-+#define IPSET_NLA_PUT_NET64(skb, t, v, pa) nla_put_be64(skb, t, v, pa)
-+#else
-+#define IPSET_NLA_PUT_NET64(skb, t, v, pa) nla_put_be64(skb, t, v)
-+#endif
-+
- #ifdef HAVE_NL_INFO_PORTID
- #define NETLINK_PORTID(skb)	NETLINK_CB(skb).portid
- #else
-diff --git a/kernel/include/linux/netfilter/ipset/ip_set_counter.h b/kernel=
-/include/linux/netfilter/ipset/ip_set_counter.h
-index d61e0e5..f2f1e8f 100644
---- a/kernel/include/linux/netfilter/ipset/ip_set_counter.h
-+++ b/kernel/include/linux/netfilter/ipset/ip_set_counter.h
-@@ -53,10 +53,12 @@ ip_set_update_counter(struct ip_set_counter *counter,
- static inline bool
- ip_set_put_counter(struct sk_buff *skb, const struct ip_set_counter *count=
-er)
- {
--	return nla_put_net64(skb, IPSET_ATTR_BYTES,
--			     cpu_to_be64(ip_set_get_bytes(counter))) ||
--	       nla_put_net64(skb, IPSET_ATTR_PACKETS,
--			     cpu_to_be64(ip_set_get_packets(counter)));
-+	return IPSET_NLA_PUT_NET64(skb, IPSET_ATTR_BYTES,
-+				   cpu_to_be64(ip_set_get_bytes(counter)),
-+				   IPSET_ATTR_PAD) ||
-+	       IPSET_NLA_PUT_NET64(skb, IPSET_ATTR_PACKETS,
-+				   cpu_to_be64(ip_set_get_packets(counter)),
-+				   IPSET_ATTR_PAD);
- }
-=20
- static inline void
-diff --git a/kernel/include/linux/netfilter/ipset/ip_set_skbinfo.h b/kernel=
-/include/linux/netfilter/ipset/ip_set_skbinfo.h
-index b03dd6a..c6df3a1 100644
---- a/kernel/include/linux/netfilter/ipset/ip_set_skbinfo.h
-+++ b/kernel/include/linux/netfilter/ipset/ip_set_skbinfo.h
-@@ -23,9 +23,10 @@ ip_set_put_skbinfo(struct sk_buff *skb, const struct ip_=
-set_skbinfo *skbinfo)
- {
- 	/* Send nonzero parameters only */
- 	return ((skbinfo->skbmark || skbinfo->skbmarkmask) &&
--		nla_put_net64(skb, IPSET_ATTR_SKBMARK,
--			      cpu_to_be64((u64)skbinfo->skbmark << 32 |
--					  skbinfo->skbmarkmask))) ||
-+		IPSET_NLA_PUT_NET64(skb, IPSET_ATTR_SKBMARK,
-+				    cpu_to_be64((u64)skbinfo->skbmark << 32 |
-+						skbinfo->skbmarkmask),
-+				    IPSET_ATTR_PAD)) ||
- 	       (skbinfo->skbprio &&
- 		nla_put_net32(skb, IPSET_ATTR_SKBPRIO,
- 			      cpu_to_be32(skbinfo->skbprio))) ||
-diff --git a/kernel/include/uapi/linux/netfilter/ipset/ip_set.h b/kernel/in=
-clude/uapi/linux/netfilter/ipset/ip_set.h
-index def91b9..4a6776f 100644
---- a/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
-+++ b/kernel/include/uapi/linux/netfilter/ipset/ip_set.h
-@@ -118,6 +118,7 @@ enum {
- 	IPSET_ATTR_SKBMARK,
- 	IPSET_ATTR_SKBPRIO,
- 	IPSET_ATTR_SKBQUEUE,
-+	IPSET_ATTR_PAD,
- 	__IPSET_ATTR_ADT_MAX,
+ include/uapi/linux/netfilter/nf_tables.h |    6 +++++
+ net/netfilter/nft_lookup.c               |   37 ++++++++++++++++++++++++++----
+ 2 files changed, 38 insertions(+), 5 deletions(-)
+
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 6a4dbe0..01751fa 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -546,6 +546,10 @@ enum nft_cmp_attributes {
  };
- #define IPSET_ATTR_ADT_MAX	(__IPSET_ATTR_ADT_MAX - 1)
---=20
-2.8.1
+ #define NFTA_CMP_MAX		(__NFTA_CMP_MAX - 1)
+ 
++enum nft_lookup_flags {
++	NFT_LOOKUP_F_INV = (1 << 0),
++};
++
+ /**
+  * enum nft_lookup_attributes - nf_tables set lookup expression netlink attributes
+  *
+@@ -553,6 +557,7 @@ enum nft_cmp_attributes {
+  * @NFTA_LOOKUP_SREG: source register of the data to look for (NLA_U32: nft_registers)
+  * @NFTA_LOOKUP_DREG: destination register (NLA_U32: nft_registers)
+  * @NFTA_LOOKUP_SET_ID: uniquely identifies a set in a transaction (NLA_U32)
++ * @NFTA_LOOKUP_FLAGS: flags (NLA_U32: enum nft_lookup_flags)
+  */
+ enum nft_lookup_attributes {
+ 	NFTA_LOOKUP_UNSPEC,
+@@ -560,6 +565,7 @@ enum nft_lookup_attributes {
+ 	NFTA_LOOKUP_SREG,
+ 	NFTA_LOOKUP_DREG,
+ 	NFTA_LOOKUP_SET_ID,
++	NFTA_LOOKUP_FLAGS,
+ 	__NFTA_LOOKUP_MAX
+ };
+ #define NFTA_LOOKUP_MAX		(__NFTA_LOOKUP_MAX - 1)
+diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
+index b3c31ef..423da12 100644
+--- a/net/netfilter/nft_lookup.c
++++ b/net/netfilter/nft_lookup.c
+@@ -22,6 +22,7 @@ struct nft_lookup {
+ 	struct nft_set			*set;
+ 	enum nft_registers		sreg:8;
+ 	enum nft_registers		dreg:8;
++	bool				invert;
+ 	struct nft_set_binding		binding;
+ };
+ 
+@@ -32,14 +33,20 @@ static void nft_lookup_eval(const struct nft_expr *expr,
+ 	const struct nft_lookup *priv = nft_expr_priv(expr);
+ 	const struct nft_set *set = priv->set;
+ 	const struct nft_set_ext *ext;
++	bool found;
+ 
+-	if (set->ops->lookup(set, &regs->data[priv->sreg], &ext)) {
+-		if (set->flags & NFT_SET_MAP)
+-			nft_data_copy(&regs->data[priv->dreg],
+-				      nft_set_ext_data(ext), set->dlen);
++	found = set->ops->lookup(set, &regs->data[priv->sreg], &ext) ^
++		priv->invert;
++
++	if (!found) {
++		regs->verdict.code = NFT_BREAK;
+ 		return;
+ 	}
+-	regs->verdict.code = NFT_BREAK;
++
++	if (found && set->flags & NFT_SET_MAP)
++		nft_data_copy(&regs->data[priv->dreg],
++			      nft_set_ext_data(ext), set->dlen);
++
+ }
+ 
+ static const struct nla_policy nft_lookup_policy[NFTA_LOOKUP_MAX + 1] = {
+@@ -47,6 +54,7 @@ static const struct nla_policy nft_lookup_policy[NFTA_LOOKUP_MAX + 1] = {
+ 	[NFTA_LOOKUP_SET_ID]	= { .type = NLA_U32 },
+ 	[NFTA_LOOKUP_SREG]	= { .type = NLA_U32 },
+ 	[NFTA_LOOKUP_DREG]	= { .type = NLA_U32 },
++	[NFTA_LOOKUP_FLAGS]	= { .type = NLA_U32 },
+ };
+ 
+ static int nft_lookup_init(const struct nft_ctx *ctx,
+@@ -55,6 +63,7 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
+ {
+ 	struct nft_lookup *priv = nft_expr_priv(expr);
+ 	struct nft_set *set;
++	u32 flags;
+ 	int err;
+ 
+ 	if (tb[NFTA_LOOKUP_SET] == NULL ||
+@@ -79,7 +88,22 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
+ 	if (err < 0)
+ 		return err;
+ 
++	if (tb[NFTA_LOOKUP_FLAGS]) {
++		flags = ntohl(nla_get_be32(tb[NFTA_LOOKUP_FLAGS]));
++
++		if (flags & ~NFT_LOOKUP_F_INV)
++			return -EINVAL;
++
++		if (flags & NFT_LOOKUP_F_INV) {
++			if (set->flags & NFT_SET_MAP)
++				return -EINVAL;
++			priv->invert = true;
++		}
++	}
++
+ 	if (tb[NFTA_LOOKUP_DREG] != NULL) {
++		if (priv->invert)
++			return -EINVAL;
+ 		if (!(set->flags & NFT_SET_MAP))
+ 			return -EINVAL;
+ 
+@@ -112,6 +136,7 @@ static void nft_lookup_destroy(const struct nft_ctx *ctx,
+ static int nft_lookup_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ {
+ 	const struct nft_lookup *priv = nft_expr_priv(expr);
++	u32 flags = priv->invert ? NFT_LOOKUP_F_INV : 0;
+ 
+ 	if (nla_put_string(skb, NFTA_LOOKUP_SET, priv->set->name))
+ 		goto nla_put_failure;
+@@ -120,6 +145,8 @@ static int nft_lookup_dump(struct sk_buff *skb, const struct nft_expr *expr)
+ 	if (priv->set->flags & NFT_SET_MAP)
+ 		if (nft_dump_register(skb, NFTA_LOOKUP_DREG, priv->dreg))
+ 			goto nla_put_failure;
++	if (nla_put_be32(skb, NFTA_LOOKUP_FLAGS, htonl(flags)))
++		goto nla_put_failure;
+ 	return 0;
+ 
+ nla_put_failure:
 
-
---KsGdsel6WgEHnImy
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCAAGBQJXa7hTAAoJEJ0EcL2mzcRXz/QQALM4QLdwKPkkocJqS35NEQ4H
-9EWhh3Acv7JCIz5w8yeL3Uw1uhnc7x0OmutdafIXi6Eegz+fMOw/J5RGYGhhWvYk
-0jDyl7herMN8gB+Dhbn9jwT67u3PasgHvRoOv0E9bo/8MNNbHkIqpipdd+CiTASQ
-ga9GA+adrzwq+KMUYcm6C3T6KlQT4flCRXL+zVdBtwsN3oUqtcmMfdXgCiRmtMqI
-4cILSNCLRp8MeOJzs6+joihfVjNFV/f377wlwUXnifokt73aN3omZSf4KD8RPF1z
-749aD4h0cY+e3FUA6MiS4B9l4NaocIsT3pM9zHj5eN+5zFc6vahuL/HWJsiZXBN8
-Mxo5qWQ5+YqBnoFyF1fa77SSHfbVtvzCIdPkxuh3yfrX7PSl6NcxNfa/CdTtXtMg
-nx6D1E4PL4gzGPplQyX7KWg4J/6wPi0tVEe9iZU9f1yDsmsCkbDGl6CNkHpRlUGS
-lNWpdmMyPeVZ4NIeOCAo4MbVEi0Fpqn3eYNaL7gVALwk5BicFouEnrcqMSRzGvmg
-OYw2sPIM+VzYMAzZgsauKjROawyhRufEqbx0FttfMSBSnM3uOI1FyYGjyGloqJoR
-OtVY09NGKskYiiD6J0u3vsN0vrQkAF4H3XjYMoujzVzn9jSejxa1m2JOathJjG7m
-vHNTYq7dAcqDlTQ5Blrk
-=j0px
------END PGP SIGNATURE-----
-
---KsGdsel6WgEHnImy--
