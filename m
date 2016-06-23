@@ -1,29 +1,46 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH iptables] configure: Fix assignment statement
-Date: Thu, 23 Jun 2016 08:23:01 +0200
-Message-ID: <20160623062301.GB23098@breakpoint.cc>
-References: <1466624499-10503-1-git-send-email-shivanib134@gmail.com>
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [nf-next PATCH v4] netfilter: nf_tables: add support for inverted
+ logic in nft_lookup
+Date: Thu, 23 Jun 2016 09:32:24 +0200
+Message-ID: <CAOkSjBj9iKfOAimqNkKGutkr2XnUCH76PZ-ZjQngv6S+8LqZhg@mail.gmail.com>
+References: <146479452764.7621.9693339197925845407.stgit@nfdev2.cica.es> <20160622182230.GD8772@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Shivani Bhardwaj <shivanib134@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Development Mailing list
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35530 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751198AbcFWGXH (ORCPT
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:38164 "EHLO
+	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750959AbcFWHcp convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jun 2016 02:23:07 -0400
-Content-Disposition: inline
-In-Reply-To: <1466624499-10503-1-git-send-email-shivanib134@gmail.com>
+	Thu, 23 Jun 2016 03:32:45 -0400
+Received: by mail-wm0-f44.google.com with SMTP id r201so36394905wme.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 00:32:44 -0700 (PDT)
+In-Reply-To: <20160622182230.GD8772@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Shivani Bhardwaj <shivanib134@gmail.com> wrote:
-> The assignment statement was interpreted as executing enable_connlabel
-> command with the argument "no". This was due to the whitespaces in the
-> assignment.
-> 
-> Fixes the trivial bug introduced in commit 3b7a227 (configure: Show
-> support for connlabel)
+On 22 June 2016 at 20:22, Pablo Neira Ayuso <pablo@netfilter.org> wrote=
+:
+> On Wed, Jun 01, 2016 at 05:23:02PM +0200, Arturo Borrero Gonzalez wro=
+te:
+>> Introduce a new configuration option for this expression, which allo=
+ws users
+>> to invert the logic of set lookups.
+>
+> Any plan to add the missing nftables bits? Let me know, I would like
+> to have all the pieces in places so we can also add automated tests
+> for this.
 
-Applied, thanks for following up on this.
+Eventually yes, but not in the short term.
+
+
+--=20
+Arturo Borrero Gonz=C3=A1lez
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
