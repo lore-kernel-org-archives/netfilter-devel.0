@@ -1,141 +1,74 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [nf-next PATCH v4] netfilter: nf_tables: add support for inverted
- logic in nft_lookup
-Date: Thu, 23 Jun 2016 10:39:34 +0200
-Message-ID: <CAOkSjBhvhkoA9VTAZjMigSR2wgVo2Q6oKJi=WQCJt2Je9kt4rg@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nf-next PATCH v4] netfilter: nf_tables: add support for
+ inverted logic in nft_lookup
+Date: Thu, 23 Jun 2016 12:08:37 +0200
+Message-ID: <20160623100837.GA2521@salvia>
 References: <146479452764.7621.9693339197925845407.stgit@nfdev2.cica.es>
- <20160622182230.GD8772@salvia> <CAOkSjBj9iKfOAimqNkKGutkr2XnUCH76PZ-ZjQngv6S+8LqZhg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=001a1143b9ea8564c30535edff7f
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34740 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751642AbcFWIjz (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jun 2016 04:39:55 -0400
-Received: by mail-wm0-f67.google.com with SMTP id 187so8800158wmz.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 01:39:54 -0700 (PDT)
-In-Reply-To: <CAOkSjBj9iKfOAimqNkKGutkr2XnUCH76PZ-ZjQngv6S+8LqZhg@mail.gmail.com>
+Received: from mail.us.es ([193.147.175.20]:38779 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751626AbcFWKIr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Jun 2016 06:08:47 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id B964DE7DB0
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:08:44 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A7F5D9EBBD
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:08:44 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 8A9DF9EBB5
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:08:42 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <146479452764.7621.9693339197925845407.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---001a1143b9ea8564c30535edff7f
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On Wed, Jun 01, 2016 at 05:23:02PM +0200, Arturo Borrero Gonzalez wrote:
+> @@ -32,14 +33,19 @@ static void nft_lookup_eval(const struct nft_expr *expr,
+>  	const struct nft_lookup *priv = nft_expr_priv(expr);
+>  	const struct nft_set *set = priv->set;
+>  	const struct nft_set_ext *ext;
+> +	bool found;
+>  
+> -	if (set->ops->lookup(set, &regs->data[priv->sreg], &ext)) {
+> -		if (set->flags & NFT_SET_MAP)
+> -			nft_data_copy(&regs->data[priv->dreg],
+> -				      nft_set_ext_data(ext), set->dlen);
+> +	found = set->ops->lookup(set, &regs->data[priv->sreg], &ext);
+> +
+> +	if (!(found ^ priv->invert)) {
+> +		regs->verdict.code = NFT_BREAK;
+>  		return;
+>  	}
+> -	regs->verdict.code = NFT_BREAK;
+> +
+> +	if (set->flags & NFT_SET_MAP && found && !priv->invert)
 
-On 23 June 2016 at 09:32, Arturo Borrero Gonzalez
-<arturo.borrero.glez@gmail.com> wrote:
-> On 22 June 2016 at 20:22, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> On Wed, Jun 01, 2016 at 05:23:02PM +0200, Arturo Borrero Gonzalez wrote:
->>> Introduce a new configuration option for this expression, which allows =
-users
->>> to invert the logic of set lookups.
->>
->> Any plan to add the missing nftables bits? Let me know, I would like
->> to have all the pieces in places so we can also add automated tests
->> for this.
->
-> Eventually yes, but not in the short term.
->
+I think this is a bit defensive: if set->flags & NFT_SET_MAP evaluates
+true, then we can assume priv->invert is always false. We can just add
+a comment on top of this.
 
-BTW, if you would like to have it done now, I'm attaching the [half]
-patch I developed back in May.
+Note that, from the _init() path, we reject inversions with maps.
 
-AFAIK, this patch implements the user-to-kernel path but the
-kernel-to-user path was missing.
+So probably something like:
 
---=20
-Arturo Borrero Gonz=C3=A1lez
+        /* nft_lookup_init() already rejects maps with inverted lookups.
+         * We assume that inversion is always false with maps.
+         */
+	found = set->ops->lookup(set, &regs->data[priv->sreg], &ext) ^
+                priv->invert;
+        if (found && set->flags & NFT_SET_MAP)
+                nft_data_copy(...);
 
---001a1143b9ea8564c30535edff7f
-Content-Type: text/x-patch; charset=US-ASCII; name="lookup-inversion.patch"
-Content-Disposition: attachment; filename="lookup-inversion.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ips23zv10
+would be a bit more simple.
 
-ZXZhbHVhdGU6IGFkZCBzdXBwb3J0IGZvciBzZXQgbG9va3VwcyBpbnZlcnNpb24KCkZyb206IEFy
-dHVybyBCb3JyZXJvIEdvbnphbGV6IDxhcnR1cm8uYm9ycmVyby5nbGV6QGdtYWlsLmNvbT4KClNp
-Z25lZC1vZmYtYnk6IEFydHVybyBCb3JyZXJvIEdvbnphbGV6IDxhcnR1cm8uYm9ycmVyby5nbGV6
-QGdtYWlsLmNvbT4KLS0tCiBpbmNsdWRlL2V4cHJlc3Npb24uaCAgICAgIHwgICAgMSArCiBzcmMv
-ZXZhbHVhdGUuYyAgICAgICAgICAgIHwgICAxMyArKysrKysrKysrKysrCiBzcmMvZXhwcmVzc2lv
-bi5jICAgICAgICAgIHwgICAgMSArCiBzcmMvbmV0bGlua19kZWxpbmVhcml6ZS5jIHwgICAgOSAr
-KysrKysrKysKIHNyYy9uZXRsaW5rX2xpbmVhcml6ZS5jICAgfCAgICA5ICsrKysrKysrKwogNSBm
-aWxlcyBjaGFuZ2VkLCAzMyBpbnNlcnRpb25zKCspCgpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9leHBy
-ZXNzaW9uLmggYi9pbmNsdWRlL2V4cHJlc3Npb24uaAppbmRleCA2ZTVlODM1Li5jNmM2ZWY4IDEw
-MDY0NAotLS0gYS9pbmNsdWRlL2V4cHJlc3Npb24uaAorKysgYi9pbmNsdWRlL2V4cHJlc3Npb24u
-aApAQCAtODIsNiArODIsNyBAQCBlbnVtIG9wcyB7CiAJT1BfRkxBR0NNUCwKIAkvKiBTZXQgbG9v
-a3VwICovCiAJT1BfTE9PS1VQLAorCU9QX0xPT0tVUF9JTlYsCiAJX19PUF9NQVgKIH07CiAjZGVm
-aW5lIE9QX01BWAkJKF9fT1BfTUFYIC0gMSkKZGlmZiAtLWdpdCBhL3NyYy9ldmFsdWF0ZS5jIGIv
-c3JjL2V2YWx1YXRlLmMKaW5kZXggZjI0ZTVmMy4uZTFmYWE3OSAxMDA2NDQKLS0tIGEvc3JjL2V2
-YWx1YXRlLmMKKysrIGIvc3JjL2V2YWx1YXRlLmMKQEAgLTEzNTAsNiArMTM1MCwxNyBAQCBzdGF0
-aWMgaW50IGV4cHJfZXZhbHVhdGVfcmVsYXRpb25hbChzdHJ1Y3QgZXZhbF9jdHggKmN0eCwgc3Ry
-dWN0IGV4cHIgKipleHByKQogCQlyZXR1cm4gLTE7CiAJcmlnaHQgPSByZWwtPnJpZ2h0OwogCisJ
-aWYgKHJlbC0+b3AgPT0gT1BfTkVRKSB7CisJCXN3aXRjaCAocmlnaHQtPm9wcy0+dHlwZSkgewor
-CQljYXNlIEVYUFJfU0VUOgorCQljYXNlIEVYUFJfU0VUX1JFRjoKKwkJCXJlbC0+b3AgPSBPUF9M
-T09LVVBfSU5WOworCQkJYnJlYWs7CisJCWRlZmF1bHQ6CisJCQlicmVhazsKKwkJfQorCX0KKwog
-CWlmIChyZWwtPm9wID09IE9QX0lNUExJQ0lUKSB7CiAJCXN3aXRjaCAocmlnaHQtPm9wcy0+dHlw
-ZSkgewogCQljYXNlIEVYUFJfUkFOR0U6CkBAIC0xMzcyLDYgKzEzODMsNyBAQCBzdGF0aWMgaW50
-IGV4cHJfZXZhbHVhdGVfcmVsYXRpb25hbChzdHJ1Y3QgZXZhbF9jdHggKmN0eCwgc3RydWN0IGV4
-cHIgKipleHByKQogCQl9CiAJfQogCisKIAlpZiAoIWV4cHJfaXNfY29uc3RhbnQocmlnaHQpKQog
-CQlyZXR1cm4gZXhwcl9iaW5hcnlfZXJyb3IoY3R4LT5tc2dzLCByaWdodCwgcmVsLAogCQkJCQkg
-IlJpZ2h0IGhhbmQgc2lkZSBvZiByZWxhdGlvbmFsICIKQEAgLTEzODUsNiArMTM5Nyw3IEBAIHN0
-YXRpYyBpbnQgZXhwcl9ldmFsdWF0ZV9yZWxhdGlvbmFsKHN0cnVjdCBldmFsX2N0eCAqY3R4LCBz
-dHJ1Y3QgZXhwciAqKmV4cHIpCiAKIAlzd2l0Y2ggKHJlbC0+b3ApIHsKIAljYXNlIE9QX0xPT0tV
-UDoKKwljYXNlIE9QX0xPT0tVUF9JTlY6CiAJCXN3aXRjaCAocmlnaHQtPm9wcy0+dHlwZSkgewog
-CQljYXNlIEVYUFJfU0VUOgogCQkJLyogQSBsaXRlcmFsIHNldCBleHByZXNzaW9uIGltcGxpY2l0
-bHkgZGVjbGFyZXMKZGlmZiAtLWdpdCBhL3NyYy9leHByZXNzaW9uLmMgYi9zcmMvZXhwcmVzc2lv
-bi5jCmluZGV4IGExMGFmNWQuLjVkNmQ2YjMgMTAwNjQ0Ci0tLSBhL3NyYy9leHByZXNzaW9uLmMK
-KysrIGIvc3JjL2V4cHJlc3Npb24uYwpAQCAtNDUxLDYgKzQ1MSw3IEBAIGNvbnN0IGNoYXIgKmV4
-cHJfb3Bfc3ltYm9sc1tdID0gewogCVtPUF9HVEVdCT0gIj49IiwKIAlbT1BfUkFOR0VdCT0gIndp
-dGhpbiByYW5nZSIsCiAJW09QX0xPT0tVUF0JPSBOVUxMLAorCVtPUF9MT09LVVBfSU5WXQk9ICIh
-PSIsCiB9OwogCiBzdGF0aWMgdm9pZCB1bmFyeV9leHByX3ByaW50KGNvbnN0IHN0cnVjdCBleHBy
-ICpleHByKQpkaWZmIC0tZ2l0IGEvc3JjL25ldGxpbmtfZGVsaW5lYXJpemUuYyBiL3NyYy9uZXRs
-aW5rX2RlbGluZWFyaXplLmMKaW5kZXggNzczNTY5OS4uMzViYWQwMSAxMDA2NDQKLS0tIGEvc3Jj
-L25ldGxpbmtfZGVsaW5lYXJpemUuYworKysgYi9zcmMvbmV0bGlua19kZWxpbmVhcml6ZS5jCkBA
-IC0yNTksNiArMjU5LDcgQEAgc3RhdGljIHZvaWQgbmV0bGlua19wYXJzZV9sb29rdXAoc3RydWN0
-IG5ldGxpbmtfcGFyc2VfY3R4ICpjdHgsCiAJY29uc3QgY2hhciAqbmFtZTsKIAlzdHJ1Y3QgZXhw
-ciAqZXhwciwgKmxlZnQsICpyaWdodDsKIAlzdHJ1Y3Qgc2V0ICpzZXQ7CisJdWludDMyX3QgZmxh
-Z3M7CiAKIAluYW1lID0gbmZ0bmxfZXhwcl9nZXRfc3RyKG5sZSwgTkZUTkxfRVhQUl9MT09LVVBf
-U0VUKTsKIAlzZXQgID0gc2V0X2xvb2t1cChjdHgtPnRhYmxlLCBuYW1lKTsKQEAgLTI4MSwxMyAr
-MjgyLDIwIEBAIHN0YXRpYyB2b2lkIG5ldGxpbmtfcGFyc2VfbG9va3VwKHN0cnVjdCBuZXRsaW5r
-X3BhcnNlX2N0eCAqY3R4LAogCiAJcmlnaHQgPSBzZXRfcmVmX2V4cHJfYWxsb2MobG9jLCBzZXQp
-OwogCisJZmxhZ3MgPSBuZnRubF9leHByX2dldF91MzIobmxlLCBORlROTF9FWFBSX0xPT0tVUF9G
-TEFHUyk7CisKIAlpZiAobmZ0bmxfZXhwcl9pc19zZXQobmxlLCBORlROTF9FWFBSX0xPT0tVUF9E
-UkVHKSkgewogCQlkcmVnID0gbmV0bGlua19wYXJzZV9yZWdpc3RlcihubGUsIE5GVE5MX0VYUFJf
-TE9PS1VQX0RSRUcpOwogCQlleHByID0gbWFwX2V4cHJfYWxsb2MobG9jLCBsZWZ0LCByaWdodCk7
-CisJCWlmIChmbGFncyAmIE5GVF9MT09LVVBfRl9JTlYpCisJCQlleHByLT5vcCA9IE9QX0xPT0tV
-UF9JTlY7CisKIAkJaWYgKGRyZWcgIT0gTkZUX1JFR19WRVJESUNUKQogCQkJcmV0dXJuIG5ldGxp
-bmtfc2V0X3JlZ2lzdGVyKGN0eCwgZHJlZywgZXhwcik7CiAJfSBlbHNlIHsKIAkJZXhwciA9IHJl
-bGF0aW9uYWxfZXhwcl9hbGxvYyhsb2MsIE9QX0xPT0tVUCwgbGVmdCwgcmlnaHQpOworCQlpZiAo
-ZmxhZ3MgJiBORlRfTE9PS1VQX0ZfSU5WKQorCQkJZXhwci0+b3AgPSBPUF9MT09LVVBfSU5WOwog
-CX0KIAogCWN0eC0+c3RtdCA9IGV4cHJfc3RtdF9hbGxvYyhsb2MsIGV4cHIpOwpAQCAtMTE2OCw2
-ICsxMTc2LDcgQEAgc3RhdGljIHZvaWQgY3RfbWV0YV9jb21tb25fcG9zdHByb2Nlc3MoY29uc3Qg
-c3RydWN0IGV4cHIgKmV4cHIpCiAKIAlzd2l0Y2ggKGV4cHItPm9wKSB7CiAJY2FzZSBPUF9MT09L
-VVA6CisJY2FzZSBPUF9MT09LVVBfSU5WOgogCQlleHByX3NldF90eXBlKHJpZ2h0LCBsZWZ0LT5k
-dHlwZSwgbGVmdC0+Ynl0ZW9yZGVyKTsKIAkJaWYgKHJpZ2h0LT5kdHlwZSA9PSAmaW50ZWdlcl90
-eXBlKQogCQkJaW50ZWdlcl90eXBlX3Bvc3Rwcm9jZXNzKHJpZ2h0KTsKZGlmZiAtLWdpdCBhL3Ny
-Yy9uZXRsaW5rX2xpbmVhcml6ZS5jIGIvc3JjL25ldGxpbmtfbGluZWFyaXplLmMKaW5kZXggMDFh
-ODVkMC4uZjZmNjA4YyAxMDA2NDQKLS0tIGEvc3JjL25ldGxpbmtfbGluZWFyaXplLmMKKysrIGIv
-c3JjL25ldGxpbmtfbGluZWFyaXplLmMKQEAgLTE5MSw2ICsxOTEsMTAgQEAgc3RhdGljIHZvaWQg
-bmV0bGlua19nZW5fbWFwKHN0cnVjdCBuZXRsaW5rX2xpbmVhcml6ZV9jdHggKmN0eCwKIAluZnRu
-bF9leHByX3NldF91MzIobmxlLCBORlROTF9FWFBSX0xPT0tVUF9TRVRfSUQsCiAJCQkgICBleHBy
-LT5tYXBwaW5ncy0+c2V0LT5oYW5kbGUuc2V0X2lkKTsKIAorCWlmIChleHByLT5vcCA9PSBPUF9M
-T09LVVBfSU5WKQorCQluZnRubF9leHByX3NldF91MzIobmxlLCBORlROTF9FWFBSX0xPT0tVUF9G
-TEFHUywKKwkJCQkgICBORlRfTE9PS1VQX0ZfSU5WKTsKKwogCWlmIChkcmVnID09IE5GVF9SRUdf
-VkVSRElDVCkKIAkJcmVsZWFzZV9yZWdpc3RlcihjdHgsIGV4cHItPm1hcCk7CiAKQEAgLTIxNyw2
-ICsyMjEsMTAgQEAgc3RhdGljIHZvaWQgbmV0bGlua19nZW5fbG9va3VwKHN0cnVjdCBuZXRsaW5r
-X2xpbmVhcml6ZV9jdHggKmN0eCwKIAluZnRubF9leHByX3NldF91MzIobmxlLCBORlROTF9FWFBS
-X0xPT0tVUF9TRVRfSUQsCiAJCQkgICBleHByLT5yaWdodC0+c2V0LT5oYW5kbGUuc2V0X2lkKTsK
-IAorCWlmIChleHByLT5vcCA9PSBPUF9MT09LVVBfSU5WKQorCQluZnRubF9leHByX3NldF91MzIo
-bmxlLCBORlROTF9FWFBSX0xPT0tVUF9GTEFHUywKKwkJCQkgICBORlRfTE9PS1VQX0ZfSU5WKTsK
-KwogCXJlbGVhc2VfcmVnaXN0ZXIoY3R4LCBleHByLT5sZWZ0KTsKIAluZnRubF9ydWxlX2FkZF9l
-eHByKGN0eC0+bmxyLCBubGUpOwogfQpAQCAtNDMzLDYgKzQ0MSw3IEBAIHN0YXRpYyB2b2lkIG5l
-dGxpbmtfZ2VuX3JlbGF0aW9uYWwoc3RydWN0IG5ldGxpbmtfbGluZWFyaXplX2N0eCAqY3R4LAog
-CWNhc2UgT1BfRkxBR0NNUDoKIAkJcmV0dXJuIG5ldGxpbmtfZ2VuX2ZsYWdjbXAoY3R4LCBleHBy
-LCBkcmVnKTsKIAljYXNlIE9QX0xPT0tVUDoKKwljYXNlIE9QX0xPT0tVUF9JTlY6CiAJCXJldHVy
-biBuZXRsaW5rX2dlbl9sb29rdXAoY3R4LCBleHByLCBkcmVnKTsKIAlkZWZhdWx0OgogCQlCVUco
-ImludmFsaWQgcmVsYXRpb25hbCBvcGVyYXRpb24gJXVcbiIsIGV4cHItPm9wKTsK
---001a1143b9ea8564c30535edff7f--
+> +		nft_data_copy(&regs->data[priv->dreg],
+> +			      nft_set_ext_data(ext), set->dlen);
+> +
+>  }
+>  
+>  static const struct nla_policy nft_lookup_policy[NFTA_LOOKUP_MAX + 1] = {
