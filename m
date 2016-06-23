@@ -1,179 +1,96 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [nf-next PATCH v5] netfilter: nf_tables: add support for inverted
- logic in nft_lookup
-Date: Thu, 23 Jun 2016 12:24:08 +0200
-Message-ID: <146667735220.10551.13573034041353542334.stgit@nfdev2.cica.es>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH iptables 3/3] libxt_hashlimit: iptables-restore does not
+ work as expected with xt_hashlimit
+Date: Thu, 23 Jun 2016 12:25:11 +0200
+Message-ID: <20160623102511.GA10493@salvia>
+References: <20160602001759.GF1644@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	johunt@akamai.com, netdev@vger.kernel.org, pai.vishwain@gmail.com
+To: Vishwanath Pai <vpai@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:54753 "EHLO smtp.cica.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751480AbcFWKYN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jun 2016 06:24:13 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by smtp.cica.es (Postfix) with ESMTP id 4F5E051F24B
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 10:24:10 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-	by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id B6HbokSBD7ql for <netfilter-devel@vger.kernel.org>;
-	Thu, 23 Jun 2016 12:24:05 +0200 (CEST)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-	(Authenticated sender: servers@cica.es)
-	by smtp.cica.es (Postfix) with ESMTP id 23AF751F242
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:24:04 +0200 (CEST)
+Received: from mail.us.es ([193.147.175.20]:44051 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751638AbcFWKZU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Jun 2016 06:25:20 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 87333E7DB2
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:25:18 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 6C30326672A
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:25:18 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 446DF64482
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:25:16 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20160602001759.GF1644@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Introduce a new configuration option for this expression, which allows users
-to invert the logic of set lookups.
+On Wed, Jun 01, 2016 at 08:17:59PM -0400, Vishwanath Pai wrote:
+> libxt_hashlimit: iptables-restore does not work as expected with xt_hashlimit
+> 
+> Add the following iptables rule.
+> 
+> $ iptables -A INPUT -m hashlimit --hashlimit-above 200/sec \
+>   --hashlimit-burst 5 --hashlimit-mode srcip --hashlimit-name hashlimit1 \
+>   --hashlimit-htable-expire 30000 -j DROP
+> 
+> $ iptables-save > save.txt
+> 
+> Edit save.txt and change the value of --hashlimit-above to 300:
+> 
+> -A INPUT -m hashlimit --hashlimit-above 300/sec --hashlimit-burst 5 \
+> --hashlimit-mode srcip --hashlimit-name hashlimit2 \
+> --hashlimit-htable-expire 30000 -j DROP
+> 
+> Now restore save.txt
+> 
+> $ iptables-restore < save.txt
 
-In _init() we will now return EINVAL if NFT_LOOKUP_F_INV is in anyway
-related to a map lookup.
+In this case, we don't end up with two rules, we actually get one
+single hashlimit rule, given the sequence you provide.
 
-The code in the _eval() function has been untangled and updated to sopport the
-XOR of options, as we should consider 4 cases:
- * lookup false, invert false -> NFT_BREAK
- * lookup false, invert true -> return w/o NFT_BREAK
- * lookup true, invert false -> return w/o NFT_BREAK
- * lookup true, invert true -> NFT_BREAK
+        $ iptables-save > save.txt
+        ... edit save.txt
+        $ iptables-restore < save.txt
 
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
-v2: better aling memory of struct nft_lookup, put 'bool invert' before bindings
-v3: include flags coherence validation
-v4: stronger validation in _init(), stronger validation in _eval(), also untangle
-    code, and update patch description
-v5: simplify _eval() with guidelines by Pablo, update patch description
+> Now userspace thinks that the value of --hashlimit-above is 300 but it is
+> actually 200 in the kernel. This happens because when we add multiple
+> hash-limit rules with the same name they will share the same hashtable
+> internally. The kernel module tries to re-use the old hashtable without
+> updating the values.
+> 
+> There are multiple problems here:
+> 1) We can add two iptables rules with the same name, but kernel does not
+>    handle this well, one procfs file cannot work with two rules
+> 2) If the second rule has no effect because the hashtable has values from
+>    rule 1
+> 3) hashtable-restore does not work (as described above)
+> 
+> To fix this I have made the following design change:
+> 1) If a second rule is added with the same name as an existing rule,
+>    append a number when we create the procfs, for example hashlimit_1,
+>    hashlimit_2 etc
+> 2) Two rules will not share the same hashtable unless they are similar in
+>    every possible way
+> 3) This behavior has to be forced with a new userspace flag:
+>    --hashlimit-ehanced-procfs, if this flag is not passed we default to
+>    the old behavior. This is to make sure we do not break existing scripts
+>    that rely on the existing behavior.
 
- include/uapi/linux/netfilter/nf_tables.h |    6 +++++
- net/netfilter/nft_lookup.c               |   37 ++++++++++++++++++++++++++----
- 2 files changed, 38 insertions(+), 5 deletions(-)
+We discussed this in netdev0.1, and I think we agreed on adding a new
+option, something like --hashlimit-update that would force an update
+to the existing hashlimit internal state (that is identified by the
+hashlimit name).
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 6a4dbe0..01751fa 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -546,6 +546,10 @@ enum nft_cmp_attributes {
- };
- #define NFTA_CMP_MAX		(__NFTA_CMP_MAX - 1)
- 
-+enum nft_lookup_flags {
-+	NFT_LOOKUP_F_INV = (1 << 0),
-+};
-+
- /**
-  * enum nft_lookup_attributes - nf_tables set lookup expression netlink attributes
-  *
-@@ -553,6 +557,7 @@ enum nft_cmp_attributes {
-  * @NFTA_LOOKUP_SREG: source register of the data to look for (NLA_U32: nft_registers)
-  * @NFTA_LOOKUP_DREG: destination register (NLA_U32: nft_registers)
-  * @NFTA_LOOKUP_SET_ID: uniquely identifies a set in a transaction (NLA_U32)
-+ * @NFTA_LOOKUP_FLAGS: flags (NLA_U32: enum nft_lookup_flags)
-  */
- enum nft_lookup_attributes {
- 	NFTA_LOOKUP_UNSPEC,
-@@ -560,6 +565,7 @@ enum nft_lookup_attributes {
- 	NFTA_LOOKUP_SREG,
- 	NFTA_LOOKUP_DREG,
- 	NFTA_LOOKUP_SET_ID,
-+	NFTA_LOOKUP_FLAGS,
- 	__NFTA_LOOKUP_MAX
- };
- #define NFTA_LOOKUP_MAX		(__NFTA_LOOKUP_MAX - 1)
-diff --git a/net/netfilter/nft_lookup.c b/net/netfilter/nft_lookup.c
-index b3c31ef..423da12 100644
---- a/net/netfilter/nft_lookup.c
-+++ b/net/netfilter/nft_lookup.c
-@@ -22,6 +22,7 @@ struct nft_lookup {
- 	struct nft_set			*set;
- 	enum nft_registers		sreg:8;
- 	enum nft_registers		dreg:8;
-+	bool				invert;
- 	struct nft_set_binding		binding;
- };
- 
-@@ -32,14 +33,20 @@ static void nft_lookup_eval(const struct nft_expr *expr,
- 	const struct nft_lookup *priv = nft_expr_priv(expr);
- 	const struct nft_set *set = priv->set;
- 	const struct nft_set_ext *ext;
-+	bool found;
- 
--	if (set->ops->lookup(set, &regs->data[priv->sreg], &ext)) {
--		if (set->flags & NFT_SET_MAP)
--			nft_data_copy(&regs->data[priv->dreg],
--				      nft_set_ext_data(ext), set->dlen);
-+	found = set->ops->lookup(set, &regs->data[priv->sreg], &ext) ^
-+		priv->invert;
-+
-+	if (!found) {
-+		regs->verdict.code = NFT_BREAK;
- 		return;
- 	}
--	regs->verdict.code = NFT_BREAK;
-+
-+	if (found && set->flags & NFT_SET_MAP)
-+		nft_data_copy(&regs->data[priv->dreg],
-+			      nft_set_ext_data(ext), set->dlen);
-+
- }
- 
- static const struct nla_policy nft_lookup_policy[NFTA_LOOKUP_MAX + 1] = {
-@@ -47,6 +54,7 @@ static const struct nla_policy nft_lookup_policy[NFTA_LOOKUP_MAX + 1] = {
- 	[NFTA_LOOKUP_SET_ID]	= { .type = NLA_U32 },
- 	[NFTA_LOOKUP_SREG]	= { .type = NLA_U32 },
- 	[NFTA_LOOKUP_DREG]	= { .type = NLA_U32 },
-+	[NFTA_LOOKUP_FLAGS]	= { .type = NLA_U32 },
- };
- 
- static int nft_lookup_init(const struct nft_ctx *ctx,
-@@ -55,6 +63,7 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- {
- 	struct nft_lookup *priv = nft_expr_priv(expr);
- 	struct nft_set *set;
-+	u32 flags;
- 	int err;
- 
- 	if (tb[NFTA_LOOKUP_SET] == NULL ||
-@@ -79,7 +88,22 @@ static int nft_lookup_init(const struct nft_ctx *ctx,
- 	if (err < 0)
- 		return err;
- 
-+	if (tb[NFTA_LOOKUP_FLAGS]) {
-+		flags = ntohl(nla_get_be32(tb[NFTA_LOOKUP_FLAGS]));
-+
-+		if (flags & ~NFT_LOOKUP_F_INV)
-+			return -EINVAL;
-+
-+		if (flags & NFT_LOOKUP_F_INV) {
-+			if (set->flags & NFT_SET_MAP)
-+				return -EINVAL;
-+			priv->invert = true;
-+		}
-+	}
-+
- 	if (tb[NFTA_LOOKUP_DREG] != NULL) {
-+		if (priv->invert)
-+			return -EINVAL;
- 		if (!(set->flags & NFT_SET_MAP))
- 			return -EINVAL;
- 
-@@ -112,6 +136,7 @@ static void nft_lookup_destroy(const struct nft_ctx *ctx,
- static int nft_lookup_dump(struct sk_buff *skb, const struct nft_expr *expr)
- {
- 	const struct nft_lookup *priv = nft_expr_priv(expr);
-+	u32 flags = priv->invert ? NFT_LOOKUP_F_INV : 0;
- 
- 	if (nla_put_string(skb, NFTA_LOOKUP_SET, priv->set->name))
- 		goto nla_put_failure;
-@@ -120,6 +145,8 @@ static int nft_lookup_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 	if (priv->set->flags & NFT_SET_MAP)
- 		if (nft_dump_register(skb, NFTA_LOOKUP_DREG, priv->dreg))
- 			goto nla_put_failure;
-+	if (nla_put_be32(skb, NFTA_LOOKUP_FLAGS, htonl(flags)))
-+		goto nla_put_failure;
- 	return 0;
- 
- nla_put_failure:
+I think the problem here is that you may want to update the internal
+state of an existing hashlimit object, and currently this is not
+actually happening.
 
+With the explicit --hashlimit-update flag, from the kernel we really
+know that the user wants an update.
+
+Let me know, thanks.
