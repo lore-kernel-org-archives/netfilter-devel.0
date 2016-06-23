@@ -1,71 +1,29 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH v4 net] ipvs: fix bind to link-local mcast IPv6 address
- in backup
-Date: Thu, 23 Jun 2016 10:27:58 +0900
-Message-ID: <20160623012758.GC9412@verge.net.au>
-References: <alpine.LFD.2.11.1606160912380.2490@ja.home.ssi.bg>
- <1466060414-12944-1-git-send-email-quentin@armitage.org.uk>
- <alpine.LFD.2.11.1606170935230.11309@ja.home.ssi.bg>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH iptables] configure: Fix assignment statement
+Date: Thu, 23 Jun 2016 08:23:01 +0200
+Message-ID: <20160623062301.GB23098@breakpoint.cc>
+References: <1466624499-10503-1-git-send-email-shivanib134@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Quentin Armitage <quentin@armitage.org.uk>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org
-To: Julian Anastasov <ja@ssi.bg>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Shivani Bhardwaj <shivanib134@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:35530 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751198AbcFWGXH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Jun 2016 02:23:07 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.11.1606170935230.11309@ja.home.ssi.bg>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1466624499-10503-1-git-send-email-shivanib134@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jun 17, 2016 at 09:42:49AM +0300, Julian Anastasov wrote:
+Shivani Bhardwaj <shivanib134@gmail.com> wrote:
+> The assignment statement was interpreted as executing enable_connlabel
+> command with the argument "no". This was due to the whitespaces in the
+> assignment.
 > 
-> 	Hello,
-> 
-> On Thu, 16 Jun 2016, Quentin Armitage wrote:
-> 
-> > When using HEAD from
-> > https://git.kernel.org/cgit/utils/kernel/ipvsadm/ipvsadm.git/,
-> > the command:
-> > ipvsadm --start-daemon backup --mcast-interface eth0.60 \
-> >     --mcast-group ff02::1:81
-> > fails with the error message:
-> > Argument list too long
-> > 
-> > whereas both:
-> > ipvsadm --start-daemon master --mcast-interface eth0.60 \
-> >     --mcast-group ff02::1:81
-> > and:
-> > ipvsadm --start-daemon backup --mcast-interface eth0.60 \
-> >     --mcast-group 224.0.0.81
-> > are successful.
-> > 
-> > The error message "Argument list too long" isn't helpful. The error occurs
-> > because an IPv6 address is given in backup mode.
-> > 
-> > The error is in make_receive_sock() in net/netfilter/ipvs/ip_vs_sync.c,
-> > since it fails to set the interface on the address or the socket before
-> > calling inet6_bind() (via sock->ops->bind), where the test
-> > 'if (!sk->sk_bound_dev_if)' failed.
-> > 
-> > Setting sock->sk->sk_bound_dev_if on the socket before calling
-> > inet6_bind() resolves the issue.
-> > 
-> > Fixes: d33288172e72 ("ipvs: add more mcast parameters for the sync daemon")
-> > Signed-off-by: Quentin Armitage <quentin@armitage.org.uk>
-> 
-> 	Looks good to me, thanks!
-> 
-> Acked-by: Julian Anastasov <ja@ssi.bg>
-> 
-> 	Simon, please apply to ipvs tree. Patch compiles
-> also on stable 4.4.13, 4.5.7 and 4.6.2, so no need for
-> special versions. The ack is also for the other 3 patches
-> from v4 (for ipvs-next) but they depend on this patch.
+> Fixes the trivial bug introduced in commit 3b7a227 (configure: Show
+> support for connlabel)
 
-Thanks, done.
+Applied, thanks for following up on this.
