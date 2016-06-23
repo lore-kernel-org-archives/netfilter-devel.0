@@ -1,96 +1,48 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables 3/3] libxt_hashlimit: iptables-restore does not
- work as expected with xt_hashlimit
-Date: Thu, 23 Jun 2016 12:25:11 +0200
-Message-ID: <20160623102511.GA10493@salvia>
-References: <20160602001759.GF1644@akamai.com>
+Subject: Re: [PATCH] ipset: Backports for the nla_put_net64() API changes
+Date: Thu, 23 Jun 2016 12:37:44 +0200
+Message-ID: <20160623103744.GA10764@salvia>
+References: <20160623102211.GA31272@hydrogen>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	johunt@akamai.com, netdev@vger.kernel.org, pai.vishwain@gmail.com
-To: Vishwanath Pai <vpai@akamai.com>
+Content-Transfer-Encoding: 8BIT
+Cc: netfilter-devel@vger.kernel.org
+To: Neutron Soutmun <neo.neutron@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44051 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:47830 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751638AbcFWKZU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jun 2016 06:25:20 -0400
+	id S1751687AbcFWKht convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Jun 2016 06:37:49 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 87333E7DB2
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:25:18 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id B4C3AE7DAA
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:37:47 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6C30326672A
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:25:18 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A1ADB9EBCA
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:37:47 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 446DF64482
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:25:16 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id F31109EBB2
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:37:44 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160602001759.GF1644@akamai.com>
+In-Reply-To: <20160623102211.GA31272@hydrogen>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 01, 2016 at 08:17:59PM -0400, Vishwanath Pai wrote:
-> libxt_hashlimit: iptables-restore does not work as expected with xt_hashlimit
+On Thu, Jun 23, 2016 at 05:22:11PM +0700, Neutron Soutmun wrote:
+> * Backports the patch "libnl: nla_put_net64():align on a 64-bit area" [1]
+>   by Nicolas Dichtel <nicolas.dichtel@6wind.com>
 > 
-> Add the following iptables rule.
+> * Since the nla_put_net64() API has been changed, therefore, the
+>   ip_set_compat.h.in should provides the macro IPSET_NLA_PUT_NET64 that
+>   point to the nla_put_net64() with appropriate number of arguments.
 > 
-> $ iptables -A INPUT -m hashlimit --hashlimit-above 200/sec \
->   --hashlimit-burst 5 --hashlimit-mode srcip --hashlimit-name hashlimit1 \
->   --hashlimit-htable-expire 30000 -j DROP
-> 
-> $ iptables-save > save.txt
-> 
-> Edit save.txt and change the value of --hashlimit-above to 300:
-> 
-> -A INPUT -m hashlimit --hashlimit-above 300/sec --hashlimit-burst 5 \
-> --hashlimit-mode srcip --hashlimit-name hashlimit2 \
-> --hashlimit-htable-expire 30000 -j DROP
-> 
-> Now restore save.txt
-> 
-> $ iptables-restore < save.txt
+>   The build script should distinguish the API changes by detect for
+>   the existence of nla_put_64bit() function in include/net/netlink.h.
+>   This function was added in the same patches set and called by
+>   the nla_put_be64() that called by nla_put_net64() respectively.
 
-In this case, we don't end up with two rules, we actually get one
-single hashlimit rule, given the sequence you provide.
+What are you specifically fixing with this?
 
-        $ iptables-save > save.txt
-        ... edit save.txt
-        $ iptables-restore < save.txt
-
-> Now userspace thinks that the value of --hashlimit-above is 300 but it is
-> actually 200 in the kernel. This happens because when we add multiple
-> hash-limit rules with the same name they will share the same hashtable
-> internally. The kernel module tries to re-use the old hashtable without
-> updating the values.
-> 
-> There are multiple problems here:
-> 1) We can add two iptables rules with the same name, but kernel does not
->    handle this well, one procfs file cannot work with two rules
-> 2) If the second rule has no effect because the hashtable has values from
->    rule 1
-> 3) hashtable-restore does not work (as described above)
-> 
-> To fix this I have made the following design change:
-> 1) If a second rule is added with the same name as an existing rule,
->    append a number when we create the procfs, for example hashlimit_1,
->    hashlimit_2 etc
-> 2) Two rules will not share the same hashtable unless they are similar in
->    every possible way
-> 3) This behavior has to be forced with a new userspace flag:
->    --hashlimit-ehanced-procfs, if this flag is not passed we default to
->    the old behavior. This is to make sure we do not break existing scripts
->    that rely on the existing behavior.
-
-We discussed this in netdev0.1, and I think we agreed on adding a new
-option, something like --hashlimit-update that would force an update
-to the existing hashlimit internal state (that is identified by the
-hashlimit name).
-
-I think the problem here is that you may want to update the internal
-state of an existing hashlimit object, and currently this is not
-actually happening.
-
-With the explicit --hashlimit-update flag, from the kernel we really
-know that the user wants an update.
-
-Let me know, thanks.
+The pad attribute just makes sure that, after accessing a 64-bit
+payload attribute, the follow up attribute still gets aligned to
+64-bits.
