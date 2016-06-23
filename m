@@ -1,60 +1,65 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/3] netfilter: Create revision 2 of xt_hashlimit to
- support higher pps rates
-Date: Thu, 23 Jun 2016 13:16:30 +0200
-Message-ID: <20160623111630.GA2717@salvia>
-References: <20160602001138.GB1644@akamai.com>
+Subject: Re: [PATCH nf-next 1/4] netfilter: nf_log: handle NFPROTO_INET
+ properly in nf_logger_[find_get|put]
+Date: Thu, 23 Jun 2016 13:22:05 +0200
+Message-ID: <20160623112205.GA2873@salvia>
+References: <1465389800-27842-1-git-send-email-zlpnobody@163.com>
+ <1465389800-27842-2-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	johunt@akamai.com, netdev@vger.kernel.org, pai.vishwain@gmail.com
-To: Vishwanath Pai <vpai@akamai.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58264 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59783 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751821AbcFWLQk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jun 2016 07:16:40 -0400
+	id S1750785AbcFWLWL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Jun 2016 07:22:11 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 6032E168300
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 13:16:39 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 11CF216B287
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 13:22:10 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 52487FAB4F
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 13:16:39 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 032E0266759
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 13:22:10 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 27DDC9EBAA
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 13:16:37 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 36211266759
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 13:22:07 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160602001138.GB1644@akamai.com>
+In-Reply-To: <1465389800-27842-2-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 01, 2016 at 08:11:38PM -0400, Vishwanath Pai wrote:
-> +static void
-> +cfg_copy(struct hashlimit_cfg2 *to, void *from, int revision)
-> +{
-> +	if (revision == 1) {
-> +		struct hashlimit_cfg1 *cfg = (struct hashlimit_cfg1 *)from;
+On Wed, Jun 08, 2016 at 08:43:17PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <liping.zhang@spreadtrum.com>
+> 
+> When we request NFPROTO_INET, it means both NFPROTO_IPV4 and NFPROTO_IPV6.
+>
+> Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+> ---
+>  net/netfilter/nf_log.c | 20 ++++++++++++++++++++
+>  1 file changed, 20 insertions(+)
+> 
+> diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+> index a5d41df..73b845d 100644
+> --- a/net/netfilter/nf_log.c
+> +++ b/net/netfilter/nf_log.c
+> @@ -159,6 +159,20 @@ int nf_logger_find_get(int pf, enum nf_log_type type)
+>  	struct nf_logger *logger;
+>  	int ret = -ENOENT;
+>  
+> +	if (pf == NFPROTO_INET) {
+> +		ret = nf_logger_find_get(NFPROTO_IPV4, type);
+> +		if (ret < 0)
+> +			return ret;
 > +
-> +		to->mode = cfg->mode;
-> +		to->avg = cfg->avg;
-> +		to->burst = cfg->burst;
-> +		to->size = cfg->size;
-> +		to->max = cfg->max;
-> +		to->gc_interval = cfg->gc_interval;
-> +		to->expire = cfg->expire;
-> +		to->srcmask = cfg->srcmask;
-> +		to->dstmask = cfg->dstmask;
-> +	} else if (revision == 2) {
-> +		memcpy(to, from, sizeof(struct hashlimit_cfg2));
-> +	} else {
-> +		BUG();
+> +		ret = nf_logger_find_get(NFPROTO_IPV6, type);
+> +		if (ret < 0) {
+> +			nf_logger_put(NFPROTO_IPV4, type);
+> +			return ret;
+> +		}
+> +
+> +		return 0;
 
-BUG here is probably too much, this halts the system. I can see we
-only use this somewhere else in this code. Instead, I'd suggest you
-propagate an error back to userspace if this ever happen.
+This is already done from nft_log_init().
 
-I would like to see if this spots any problem with our test
-infrastructure under iptables/.
-
-Thanks.
+Are you observing any problem there?
