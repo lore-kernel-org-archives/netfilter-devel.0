@@ -1,55 +1,41 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nft shell tests
-Date: Thu, 23 Jun 2016 12:59:24 +0200
-Message-ID: <20160623105924.GA2149@salvia>
-References: <20160623104320.GA13710@salvia>
- <CAOkSjBgP8x8BY-9J5Vj69Su8oR8B4scoxXY77rwAGZkEXNDpog@mail.gmail.com>
+Subject: Re: [PATCH nf] netfilter: nf_tables: fix memory leak if expr init
+ fails
+Date: Thu, 23 Jun 2016 13:03:04 +0200
+Message-ID: <20160623110304.GA2312@salvia>
+References: <1466428305-58285-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54256 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:55069 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751835AbcFWK7c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jun 2016 06:59:32 -0400
+	id S1751524AbcFWLDX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Jun 2016 07:03:23 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 97299E7DB4
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:59:30 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id AA98210078E
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 13:03:21 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 874409EBA8
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:59:30 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 99129FAB59
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 13:03:21 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 5EA279EBB2
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 12:59:28 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id E470A9EBB2
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 13:03:15 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <CAOkSjBgP8x8BY-9J5Vj69Su8oR8B4scoxXY77rwAGZkEXNDpog@mail.gmail.com>
+In-Reply-To: <1466428305-58285-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 23, 2016 at 12:53:54PM +0200, Arturo Borrero Gonzalez wrote:
-> On 23 June 2016 at 12:43, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > Hi Arturo,
-> >
-> > I think it would be good if the run-test.sh script uses the binary
-> > in this tree, just like nft-tests.py. Instead of using the one that is
-> > available on the system.
-> >
-> > Let me know, thanks.
+On Mon, Jun 20, 2016 at 09:11:45PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <liping.zhang@spreadtrum.com>
 > 
-> You can use arbitrary binaries passing the NFT variable:
+> If expr init fails then we need to free it.
 > 
-> % NFT=../../src/nft ./run-tests.sh
-> 
-> would you like to change the behaviour to use the nft binary from src/
-> by default?
+> So when the user add a nft rule as follows:
+>   # nft add rule filter input tcp dport 22 flow table ssh \
+>     { ip saddr limit rate 0/second }
+> memory leak will happen.
 
-I think it's a good default to use the nft binary from src/
-
-Otherwise, if you forget to 'make install' you may end up testing
-something else :)
-
-This would be very useful for continuous integration as we don't need
-to install the binary itself on the test infrastructure to run the
-tests.
+Applied to nf, thanks!
