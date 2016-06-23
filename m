@@ -1,49 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH -next v3] netfilter: conntrack: allow increasing bucket
- size via sysctl too
-Date: Thu, 23 Jun 2016 19:41:03 +0200
-Message-ID: <20160623174103.GA3620@salvia>
-References: <1466594770-8610-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH v2 2/2] netfilter/nflog: nflog-range does not truncate
+ packets (userspace)
+Date: Thu, 23 Jun 2016 19:42:23 +0200
+Message-ID: <20160623174223.GA3648@salvia>
+References: <20160621190216.GB6646@akamai.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, zlpnobody@gmail.com
-To: Florian Westphal <fw@strlen.de>
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu, johunt@akamai.com,
+	davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, pai.vishwain@gmail.com,
+	ilubashe@akamai.com, jdollard@akamai.com
+To: Vishwanath Pai <vpai@akamai.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56954 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:57188 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751287AbcFWRlI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jun 2016 13:41:08 -0400
+	id S1750809AbcFWRma (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Jun 2016 13:42:30 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id E57908D051C
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 19:41:06 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 17E458D052C
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 19:42:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id D49789EBA8
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 19:41:06 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 094E09EBA8
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 19:42:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id C898B9EBAF
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 19:41:04 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 6917F9EBB0
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 19:42:24 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1466594770-8610-1-git-send-email-fw@strlen.de>
+In-Reply-To: <20160621190216.GB6646@akamai.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 22, 2016 at 01:26:10PM +0200, Florian Westphal wrote:
-> No need to restrict this to module parameter.
+On Tue, Jun 21, 2016 at 03:02:16PM -0400, Vishwanath Pai wrote:
+> netfilter/nflog: nflog-range does not truncate packets
 > 
-> We export a copy of the real hash size -- when user alters the value we
-> allocate the new table, copy entries etc before we update the real size
-> to the requested one.
+> The option --nflog-range has never worked, but we cannot just fix this
+> because users might be using this feature option and their behavior would
+> change. Instead add a new option --nflog-size. This option works the same
+> way nflog-range should have, and both of them are mutually exclusive. When
+> someone uses --nflog-range we print a warning message informing them that
+> this feature has no effect.
 > 
-> This is also needed because the real size is used by concurrent readers
-> and cannot be changed without synchronizing the conntrack generation
-> seqcnt.
+> To indicate the kernel that the user has set --nflog-size we have to pass a
+> new flag XT_NFLOG_F_COPY_LEN.
 > 
-> We only allow changing this value from the initial net namespace.
-> 
-> Tested using http-client-benchmark vs. httpterm with concurrent
-> 
-> while true;do
->  echo $RANDOM > /proc/sys/net/netfilter/nf_conntrack_buckets
-> done
+> Also updated the man page to reflect this.
 
-Applied, thanks Florian.
+Please, send me a v3 including tests, see:
+
+        iptables/extensions/libxt_NFLOG.t
+
+Thanks.
