@@ -1,60 +1,59 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] ipset: Backports for the nla_put_net64() API changes
-Date: Thu, 23 Jun 2016 20:04:54 +0200
-Message-ID: <20160623180454.GA15678@salvia>
-References: <20160623102211.GA31272@hydrogen>
- <20160623103744.GA10764@salvia>
- <CAMQP0smTrOCvq6nXH3u5VLfLdj1nf7_D6760RCmCUx6DfrynNA@mail.gmail.com>
+Subject: Re: [PATCH v4] xtables: Add an interval option for xtables lock wait
+Date: Thu, 23 Jun 2016 20:44:01 +0200
+Message-ID: <20160623184401.GA12620@salvia>
+References: <1465957673-1637-1-git-send-email-subashab@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Neutron Soutmun <neo.neutron@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
+To: Subash Abhinov Kasiviswanathan <subashab@codeaurora.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60905 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:38168 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751525AbcFWSFE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jun 2016 14:05:04 -0400
+	id S1751476AbcFWSoO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Jun 2016 14:44:14 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 128A4E7DA8
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 20:05:02 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 5A129EAA7D
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 20:44:10 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id F0BD1100A48
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 20:05:01 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 490C4100794
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 20:44:10 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 9728C100A51
-	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 20:04:59 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 2BD041150D3
+	for <netfilter-devel@vger.kernel.org>; Thu, 23 Jun 2016 20:44:07 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <CAMQP0smTrOCvq6nXH3u5VLfLdj1nf7_D6760RCmCUx6DfrynNA@mail.gmail.com>
+In-Reply-To: <1465957673-1637-1-git-send-email-subashab@codeaurora.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 23, 2016 at 06:41:45PM +0700, Neutron Soutmun wrote:
-> On Thu, Jun 23, 2016 at 5:37 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Thu, Jun 23, 2016 at 05:22:11PM +0700, Neutron Soutmun wrote:
-> >> * Backports the patch "libnl: nla_put_net64():align on a 64-bit area" [1]
-> >>   by Nicolas Dichtel <nicolas.dichtel@6wind.com>
-> >>
-> >> * Since the nla_put_net64() API has been changed, therefore, the
-> >>   ip_set_compat.h.in should provides the macro IPSET_NLA_PUT_NET64 that
-> >>   point to the nla_put_net64() with appropriate number of arguments.
-> >>
-> >>   The build script should distinguish the API changes by detect for
-> >>   the existence of nla_put_64bit() function in include/net/netlink.h.
-> >>   This function was added in the same patches set and called by
-> >>   the nla_put_be64() that called by nla_put_net64() respectively.
-> >
-> > What are you specifically fixing with this?
-> 
-> Sorry that the patch is not clear the point.
-> This patch is on top of the ipset master branch, http://git.netfilter.org/ipset,
-> which I face a problem to build the latest ipset kernel module against
-> the linux-4.7~rc4-1~exp1 (Debian Experimental).
-> 
-> Therefore, I have backported the patch from mainline and prepared the
-> macro for backward compatible which
-> the ipset kernel module could be compiled with earlier kernel version (< 4.7)
+Hi Subash,
 
-What is exactly the compilation error you get?
+On Tue, Jun 14, 2016 at 08:27:53PM -0600, Subash Abhinov Kasiviswanatha=
+n wrote:
+> ip[6]tables currently waits for 1 second for the xtables lock to be
+> freed if the -w option is used. We have seen that the lock is held
+> much less than that resulting in unnecessary delay when trying to
+> acquire the lock. This problem is even severe in case of latency
+> sensitive applications.
+>=20
+> Introduce a new option 'W' to specify the wait interval in decimal
+> format [seconds.microseconds]. If this option is not specified,
+> the command sleeps for 1 second by default.
 
-Userspace should refer to any of those _PAD attributes, so this should
-be fine.
+Compilation breaks with this patch:
+
+ xtables.c: In function =E2=80=98do_parse=E2=80=99:
+ xtables.c:1029:8: error: =E2=80=98restore=E2=80=99 undeclared (first u=
+se in this function)
+    if (restore) {
+        ^
+ xtables.c:1029:8: note: each undeclared identifier is reported only on=
+ce for each function it appears in
+ Makefile:778: recipe for target 'xtables_compat_multi-xtables.o' faile=
+d
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
