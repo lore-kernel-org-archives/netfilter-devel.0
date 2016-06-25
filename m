@@ -1,163 +1,137 @@
-From: Vishwanath Pai <vpai@akamai.com>
-Subject: [PATCH v3] netfilter/nflog: nflog-range does not truncate packets
- (userspace)
-Date: Fri, 24 Jun 2016 16:42:31 -0400
-Message-ID: <20160624204231.GA3062@akamai.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH iptables 3/3] libxt_hashlimit: iptables-restore does not
+ work as expected with xt_hashlimit
+Date: Sat, 25 Jun 2016 11:39:24 +0200
+Message-ID: <20160625093924.GC1289@salvia>
+References: <20160602001759.GF1644@akamai.com>
+ <20160623102511.GA10493@salvia>
+ <576D7AD2.6050107@akamai.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, kadlec@blackhole.kfki.hu, johunt@akamai.com,
-	davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, pai.vishwain@gmail.com,
-	ilubashe@akamai.com, jdollard@akamai.com
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	johunt@akamai.com, netdev@vger.kernel.org, pai.vishwain@gmail.com
+To: Vishwanath Pai <vpai@akamai.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:55580 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751185AbcFYJje (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 25 Jun 2016 05:39:34 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 93D22E8E88
+	for <netfilter-devel@vger.kernel.org>; Sat, 25 Jun 2016 11:39:32 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 7DFC89EBAF
+	for <netfilter-devel@vger.kernel.org>; Sat, 25 Jun 2016 11:39:32 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id F122E9EBA5
+	for <netfilter-devel@vger.kernel.org>; Sat, 25 Jun 2016 11:39:29 +0200 (CEST)
 Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <576D7AD2.6050107@akamai.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Added tests to libxt_NFLOG.t for the new option --nflog-size
+Hi,
 
---
+On Fri, Jun 24, 2016 at 02:24:18PM -0400, Vishwanath Pai wrote:
+> On 06/23/2016 06:25 AM, Pablo Neira Ayuso wrote:
+> > On Wed, Jun 01, 2016 at 08:17:59PM -0400, Vishwanath Pai wrote:
+> >> libxt_hashlimit: iptables-restore does not work as expected with xt_hashlimit
+> >>
+> >> Add the following iptables rule.
+> >>
+> >> $ iptables -A INPUT -m hashlimit --hashlimit-above 200/sec \
+> >>   --hashlimit-burst 5 --hashlimit-mode srcip --hashlimit-name hashlimit1 \
+> >>   --hashlimit-htable-expire 30000 -j DROP
+> >>
+> >> $ iptables-save > save.txt
+> >>
+> >> Edit save.txt and change the value of --hashlimit-above to 300:
+> >>
+> >> -A INPUT -m hashlimit --hashlimit-above 300/sec --hashlimit-burst 5 \
+> >> --hashlimit-mode srcip --hashlimit-name hashlimit2 \
+> >> --hashlimit-htable-expire 30000 -j DROP
+> >>
+> >> Now restore save.txt
+> >>
+> >> $ iptables-restore < save.txt
+> > 
+> > In this case, we don't end up with two rules, we actually get one
+> > single hashlimit rule, given the sequence you provide.
+> > 
+> >         $ iptables-save > save.txt
+> >         ... edit save.txt
+> >         $ iptables-restore < save.txt
+> > 
+> 
+> Yes, we end up with just one rule, but the kernel data structure is not
+> updated. Userspace thinks the value is 300/s but in the kernel it is
+> still 200/s.
 
-netfilter/nflog: nflog-range does not truncate packets
+Right, but the main point of this is to honor the new rule
+configuration, ie. to update the internal hashlimit configuration of
+the previous rules.
 
-The option --nflog-range has never worked, but we cannot just fix this
-because users might be using this feature option and their behavior would
-change. Instead add a new option --nflog-size. This option works the same
-way nflog-range should have, and both of them are mutually exclusive. When
-someone uses --nflog-range we print a warning message informing them that
-this feature has no effect.
+> >> Now userspace thinks that the value of --hashlimit-above is 300 but it is
+> >> actually 200 in the kernel. This happens because when we add multiple
+> >> hash-limit rules with the same name they will share the same hashtable
+> >> internally. The kernel module tries to re-use the old hashtable without
+> >> updating the values.
+> >>
+> >> There are multiple problems here:
+> >> 1) We can add two iptables rules with the same name, but kernel does not
+> >>    handle this well, one procfs file cannot work with two rules
+> >> 2) If the second rule has no effect because the hashtable has values from
+> >>    rule 1
+> >> 3) hashtable-restore does not work (as described above)
+> >>
+> >> To fix this I have made the following design change:
+> >> 1) If a second rule is added with the same name as an existing rule,
+> >>    append a number when we create the procfs, for example hashlimit_1,
+> >>    hashlimit_2 etc
+> >> 2) Two rules will not share the same hashtable unless they are similar in
+> >>    every possible way
+> >> 3) This behavior has to be forced with a new userspace flag:
+> >>    --hashlimit-ehanced-procfs, if this flag is not passed we default to
+> >>    the old behavior. This is to make sure we do not break existing scripts
+> >>    that rely on the existing behavior.
+> > 
+> > We discussed this in netdev0.1, and I think we agreed on adding a new
+> > option, something like --hashlimit-update that would force an update
+> > to the existing hashlimit internal state (that is identified by the
+> > hashlimit name).
+> > 
+> > I think the problem here is that you may want to update the internal
+> > state of an existing hashlimit object, and currently this is not
+> > actually happening.
+> > 
+> > With the explicit --hashlimit-update flag, from the kernel we really
+> > know that the user wants an update.
+> > 
+> > Let me know, thanks.
+> 
+> Yes, I believe you had a discussion about this with Josh Hunt. This
+> patch does add a new option, but it is called -enhanced-procfs instead.
+> I am open to renaming this to something else. I chose this name because
+> this patch will affect the names of the procfs files when multiple rules
+> with the same name exist. This generally does not happen, but is a side
+> effect of the way we create these files. In the case of restore example
+> above - we get the call to "hashlimit_mt_check" for the new rule before
+> the old rule is deleted, so there is a short window where we have two
+> rules in the kernel with the same name.
 
-To indicate the kernel that the user has set --nflog-size we have to pass a
-new flag XT_NFLOG_F_COPY_LEN.
+I see, but I'm not convinced about this /proc rename feature.
 
-Also updated the man page to reflect the new option and added tests to
-extensions/libxt_NFLOG.t
+I think the main point of this, as well as other entries in bugzilla
+related to this, is ability to update an existing hashlimit state.
 
-Reported-by: Joe Dollard <jdollard@akamai.com>
-Reviewed-by: Josh Hunt <johunt@akamai.com>
-Signed-off-by: Vishwanath Pai <vpai@akamai.com>
+So, I'm not proposing to rename --enhanced-procfs to something else,
+I think that a different approach consisting on adding a new option
+like --hashlimit-update that will update the internal state of an
+existing hashlimit object is just fine for your usecase, right?
 
-diff --git a/extensions/libxt_NFLOG.c b/extensions/libxt_NFLOG.c
-index f611631..8c67066 100644
---- a/extensions/libxt_NFLOG.c
-+++ b/extensions/libxt_NFLOG.c
-@@ -12,7 +12,10 @@ enum {
- 	O_GROUP = 0,
- 	O_PREFIX,
- 	O_RANGE,
-+	O_SIZE,
- 	O_THRESHOLD,
-+	F_RANGE = 1 << O_RANGE,
-+	F_SIZE = 1 << O_SIZE,
- };
- 
- #define s struct xt_nflog_info
-@@ -22,7 +25,9 @@ static const struct xt_option_entry NFLOG_opts[] = {
- 	{.name = "nflog-prefix", .id = O_PREFIX, .type = XTTYPE_STRING,
- 	 .min = 1, .flags = XTOPT_PUT, XTOPT_POINTER(s, prefix)},
- 	{.name = "nflog-range", .id = O_RANGE, .type = XTTYPE_UINT32,
--	 .flags = XTOPT_PUT, XTOPT_POINTER(s, len)},
-+	 .excl = F_SIZE, .flags = XTOPT_PUT, XTOPT_POINTER(s, len)},
-+	{.name = "nflog-size", .id = O_SIZE, .type = XTTYPE_UINT32,
-+	 .excl = F_RANGE, .flags = XTOPT_PUT, XTOPT_POINTER(s, len)},
- 	{.name = "nflog-threshold", .id = O_THRESHOLD, .type = XTTYPE_UINT16,
- 	 .flags = XTOPT_PUT, XTOPT_POINTER(s, threshold)},
- 	XTOPT_TABLEEND,
-@@ -33,7 +38,8 @@ static void NFLOG_help(void)
- {
- 	printf("NFLOG target options:\n"
- 	       " --nflog-group NUM		NETLINK group used for logging\n"
--	       " --nflog-range NUM		Number of byte to copy\n"
-+	       " --nflog-range NUM		This option has no effect, use --nflog-size\n"
-+	       " --nflog-size NUM		Number of bytes to copy\n"
- 	       " --nflog-threshold NUM		Message threshold of in-kernel queue\n"
- 	       " --nflog-prefix STRING		Prefix string for log messages\n");
- }
-@@ -57,6 +63,18 @@ static void NFLOG_parse(struct xt_option_call *cb)
- 	}
- }
- 
-+static void NFLOG_check(struct xt_fcheck_call *cb)
-+{
-+	struct xt_nflog_info *info = cb->data;
-+
-+	if (cb->xflags & F_RANGE)
-+		fprintf(stderr, "warn: --nflog-range has never worked and is no"
-+			" longer supported, please use --nflog-size insted\n");
-+
-+	if (cb->xflags & F_SIZE)
-+		info->flags |= XT_NFLOG_F_COPY_LEN;
-+}
-+
- static void nflog_print(const struct xt_nflog_info *info, char *prefix)
- {
- 	if (info->prefix[0] != '\0') {
-@@ -65,7 +83,9 @@ static void nflog_print(const struct xt_nflog_info *info, char *prefix)
- 	}
- 	if (info->group)
- 		printf(" %snflog-group %u", prefix, info->group);
--	if (info->len)
-+	if (info->len && info->flags & XT_NFLOG_F_COPY_LEN)
-+		printf(" %snflog-size %u", prefix, info->len);
-+	else if (info->len)
- 		printf(" %snflog-range %u", prefix, info->len);
- 	if (info->threshold != XT_NFLOG_DEFAULT_THRESHOLD)
- 		printf(" %snflog-threshold %u", prefix, info->threshold);
-@@ -117,6 +137,7 @@ static struct xtables_target nflog_target = {
- 	.userspacesize	= XT_ALIGN(sizeof(struct xt_nflog_info)),
- 	.help		= NFLOG_help,
- 	.init		= NFLOG_init,
-+	.x6_fcheck	= NFLOG_check,
- 	.x6_parse	= NFLOG_parse,
- 	.print		= NFLOG_print,
- 	.save		= NFLOG_save,
-diff --git a/extensions/libxt_NFLOG.man b/extensions/libxt_NFLOG.man
-index 1b6dbf1..318e630 100644
---- a/extensions/libxt_NFLOG.man
-+++ b/extensions/libxt_NFLOG.man
-@@ -17,6 +17,9 @@ A prefix string to include in the log message, up to 64 characters
- long, useful for distinguishing messages in the logs.
- .TP
- \fB\-\-nflog\-range\fP \fIsize\fP
-+This option has never worked, use --nflog-size instead
-+.TP
-+\fB\-\-nflog\-size\fP \fIsize\fP
- The number of bytes to be copied to userspace (only applicable for
- nfnetlink_log). nfnetlink_log instances may specify their own
- range, this option overrides it.
-diff --git a/extensions/libxt_NFLOG.t b/extensions/libxt_NFLOG.t
-index f9768aa..78076b5 100644
---- a/extensions/libxt_NFLOG.t
-+++ b/extensions/libxt_NFLOG.t
-@@ -7,6 +7,10 @@
- -j NFLOG --nflog-range 4294967295;=;OK
- -j NFLOG --nflog-range 4294967296;;FAIL
- -j NFLOG --nflog-range -1;;FAIL
-+-j NFLOG --nflog-size 1;=;OK
-+-j NFLOG --nflog-size 4294967295;=;OK
-+-j NFLOG --nflog-size 4294967296;;FAIL
-+-j NFLOG --nflog-size -1;;FAIL
- # ERROR: cannot find: iptables -I INPUT -j NFLOG --nflog-prefix  xxxxxx [...]
- # -j NFLOG --nflog-prefix xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;=;OK
- # ERROR: should fail: iptables -A INPUT -j NFLOG --nflog-prefix  xxxxxxx [...]
-diff --git a/include/linux/netfilter/xt_NFLOG.h b/include/linux/netfilter/xt_NFLOG.h
-index 87b5831..f330707 100644
---- a/include/linux/netfilter/xt_NFLOG.h
-+++ b/include/linux/netfilter/xt_NFLOG.h
-@@ -6,9 +6,13 @@
- #define XT_NFLOG_DEFAULT_GROUP		0x1
- #define XT_NFLOG_DEFAULT_THRESHOLD	0
- 
--#define XT_NFLOG_MASK			0x0
-+#define XT_NFLOG_MASK			0x1
-+
-+/* This flag indicates that 'len' field in xt_nflog_info is set*/
-+#define XT_NFLOG_F_COPY_LEN		0x1
- 
- struct xt_nflog_info {
-+	/* 'len' will be used iff you set XT_NFLOG_F_COPY_LEN in flags */
- 	__u32	len;
- 	__u16	group;
- 	__u16	threshold;
+> Other than that, we are doing exactly what you said, but creating a new
+> entry in the hashtable instead of updating it. The previous entry will
+> automatically be removed when the old rule is flushed/deleted.
+
+What I'm missing is why we need this /proc rename at all.
