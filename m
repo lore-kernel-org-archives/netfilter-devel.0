@@ -1,137 +1,71 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables 3/3] libxt_hashlimit: iptables-restore does not
- work as expected with xt_hashlimit
-Date: Sat, 25 Jun 2016 11:39:24 +0200
-Message-ID: <20160625093924.GC1289@salvia>
-References: <20160602001759.GF1644@akamai.com>
- <20160623102511.GA10493@salvia>
- <576D7AD2.6050107@akamai.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	johunt@akamai.com, netdev@vger.kernel.org, pai.vishwain@gmail.com
-To: Vishwanath Pai <vpai@akamai.com>
+From: Nicholas Vinson <nvinson234@gmail.com>
+Subject: [PATCH 1/1] nft: configure.ac: Replace magic dblatex dep.
+Date: Sat, 25 Jun 2016 09:28:09 -0700
+Message-ID: <20160625162809.11877-1-nvinson234@gmail.com>
+Cc: Nicholas Vinson <nvinson234@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55580 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751185AbcFYJje (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 25 Jun 2016 05:39:34 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 93D22E8E88
-	for <netfilter-devel@vger.kernel.org>; Sat, 25 Jun 2016 11:39:32 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 7DFC89EBAF
-	for <netfilter-devel@vger.kernel.org>; Sat, 25 Jun 2016 11:39:32 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id F122E9EBA5
-	for <netfilter-devel@vger.kernel.org>; Sat, 25 Jun 2016 11:39:29 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <576D7AD2.6050107@akamai.com>
+Received: from mail-pa0-f68.google.com ([209.85.220.68]:34211 "EHLO
+	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750872AbcFYQ2q (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 25 Jun 2016 12:28:46 -0400
+Received: by mail-pa0-f68.google.com with SMTP id us13so11589387pab.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 25 Jun 2016 09:28:46 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Add a configure switch to enable and disable PDF document generation.
+This switch is to replace the current method of automatically detecting
+dblatex and building the PDF documentation when present.
 
-On Fri, Jun 24, 2016 at 02:24:18PM -0400, Vishwanath Pai wrote:
-> On 06/23/2016 06:25 AM, Pablo Neira Ayuso wrote:
-> > On Wed, Jun 01, 2016 at 08:17:59PM -0400, Vishwanath Pai wrote:
-> >> libxt_hashlimit: iptables-restore does not work as expected with xt_hashlimit
-> >>
-> >> Add the following iptables rule.
-> >>
-> >> $ iptables -A INPUT -m hashlimit --hashlimit-above 200/sec \
-> >>   --hashlimit-burst 5 --hashlimit-mode srcip --hashlimit-name hashlimit1 \
-> >>   --hashlimit-htable-expire 30000 -j DROP
-> >>
-> >> $ iptables-save > save.txt
-> >>
-> >> Edit save.txt and change the value of --hashlimit-above to 300:
-> >>
-> >> -A INPUT -m hashlimit --hashlimit-above 300/sec --hashlimit-burst 5 \
-> >> --hashlimit-mode srcip --hashlimit-name hashlimit2 \
-> >> --hashlimit-htable-expire 30000 -j DROP
-> >>
-> >> Now restore save.txt
-> >>
-> >> $ iptables-restore < save.txt
-> > 
-> > In this case, we don't end up with two rules, we actually get one
-> > single hashlimit rule, given the sequence you provide.
-> > 
-> >         $ iptables-save > save.txt
-> >         ... edit save.txt
-> >         $ iptables-restore < save.txt
-> > 
-> 
-> Yes, we end up with just one rule, but the kernel data structure is not
-> updated. Userspace thinks the value is 300/s but in the kernel it is
-> still 200/s.
+Bug: 1074
+Signed-off-by: Nicholas Vinson <nvinson234@gmail.com>
+---
+ configure.ac | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-Right, but the main point of this is to honor the new rule
-configuration, ie. to update the internal hashlimit configuration of
-the previous rules.
+diff --git a/configure.ac b/configure.ac
+index 0e7edcf..cbc7868 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -22,6 +22,12 @@ AC_CONFIG_HEADER([config.h])
+ AC_DEFINE([_GNU_SOURCE], [], [Enable various GNU extensions])
+ AC_DEFINE([_STDC_FORMAT_MACROS], [], [printf-style format macros])
+ 
++AC_ARG_ENABLE([pdf-doc],
++	      AS_HELP_STRING([--disable-pdf-doc], [Disable PDF documentation]),
++	      AS_IF([test "x$enable_pdf_doc" = "xno"], [enable_pdf_doc=no],
++	      [enable_pdf_doc=yes]), [enable_pdf_doc=yes])
++AM_CONDITIONAL([BUILD_PDF], [test "x$enable_pdf_doc" == "xyes" ])
++
+ AC_ARG_ENABLE([debug],
+ 	      AS_HELP_STRING([--enable-debug], [Disable debugging]),
+ 	      AS_IF([test "x$enable_debug" = "xno"], [with_debug=no], [with_debug=yes]),
+@@ -63,11 +69,11 @@ AS_IF([test "$DOCBOOK2X_MAN" != "no"], [DB2MAN="$DOCBOOK2X_MAN"],
+ AC_SUBST(DB2MAN)
+ AM_CONDITIONAL([BUILD_MAN], [test -n "$DB2MAN"])
+ 
+-AC_CHECK_PROG(DBLATEX, [dblatex], [found], [no])
+-AS_IF([test "$DBLATEX" == "no"],
+-	[AC_MSG_WARN([dblatex not found, no PDF manpages will be built])]
+-)
+-AM_CONDITIONAL([BUILD_PDF], [test "$DBLATEX" == "found"])
++AM_COND_IF([BUILD_PDF], [
++	AC_CHECK_PROG(DBLATEX, [dblatex], [found], [no])
++	AS_IF([test "$DBLATEX" == "no"],
++	      [AC_MSG_ERROR([dblatex not found])])
++])
+ 
+ # Checks for libraries.
+ PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
+@@ -136,4 +142,5 @@ echo "
+ nft configuration:
+   cli support:			${with_cli}
+   enable debugging:		${with_debug}
+-  use mini-gmp:			${with_mini_gmp}"
++  use mini-gmp:			${with_mini_gmp}
++  enable pdf documentation:	${enable_pdf_doc}"
+-- 
+2.9.0
 
-> >> Now userspace thinks that the value of --hashlimit-above is 300 but it is
-> >> actually 200 in the kernel. This happens because when we add multiple
-> >> hash-limit rules with the same name they will share the same hashtable
-> >> internally. The kernel module tries to re-use the old hashtable without
-> >> updating the values.
-> >>
-> >> There are multiple problems here:
-> >> 1) We can add two iptables rules with the same name, but kernel does not
-> >>    handle this well, one procfs file cannot work with two rules
-> >> 2) If the second rule has no effect because the hashtable has values from
-> >>    rule 1
-> >> 3) hashtable-restore does not work (as described above)
-> >>
-> >> To fix this I have made the following design change:
-> >> 1) If a second rule is added with the same name as an existing rule,
-> >>    append a number when we create the procfs, for example hashlimit_1,
-> >>    hashlimit_2 etc
-> >> 2) Two rules will not share the same hashtable unless they are similar in
-> >>    every possible way
-> >> 3) This behavior has to be forced with a new userspace flag:
-> >>    --hashlimit-ehanced-procfs, if this flag is not passed we default to
-> >>    the old behavior. This is to make sure we do not break existing scripts
-> >>    that rely on the existing behavior.
-> > 
-> > We discussed this in netdev0.1, and I think we agreed on adding a new
-> > option, something like --hashlimit-update that would force an update
-> > to the existing hashlimit internal state (that is identified by the
-> > hashlimit name).
-> > 
-> > I think the problem here is that you may want to update the internal
-> > state of an existing hashlimit object, and currently this is not
-> > actually happening.
-> > 
-> > With the explicit --hashlimit-update flag, from the kernel we really
-> > know that the user wants an update.
-> > 
-> > Let me know, thanks.
-> 
-> Yes, I believe you had a discussion about this with Josh Hunt. This
-> patch does add a new option, but it is called -enhanced-procfs instead.
-> I am open to renaming this to something else. I chose this name because
-> this patch will affect the names of the procfs files when multiple rules
-> with the same name exist. This generally does not happen, but is a side
-> effect of the way we create these files. In the case of restore example
-> above - we get the call to "hashlimit_mt_check" for the new rule before
-> the old rule is deleted, so there is a short window where we have two
-> rules in the kernel with the same name.
-
-I see, but I'm not convinced about this /proc rename feature.
-
-I think the main point of this, as well as other entries in bugzilla
-related to this, is ability to update an existing hashlimit state.
-
-So, I'm not proposing to rename --enhanced-procfs to something else,
-I think that a different approach consisting on adding a new option
-like --hashlimit-update that will update the internal state of an
-existing hashlimit object is just fine for your usecase, right?
-
-> Other than that, we are doing exactly what you said, but creating a new
-> entry in the hashtable instead of updating it. The previous entry will
-> automatically be removed when the old rule is flushed/deleted.
-
-What I'm missing is why we need this /proc rename at all.
