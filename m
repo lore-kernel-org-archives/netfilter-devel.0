@@ -1,51 +1,47 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH iptables] extensions: libipt_realm: fix order of mask and id when do nft translation
-Date: Mon, 27 Jun 2016 21:57:25 +0800
-Message-ID: <1467035845-28485-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>,
-	Shivani Bhardwaj <shivanib134@gmail.com>
-To: pablo@netfilter.org
+From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
+Subject: [PATCH libnftnl] set: Fix nftnl_set_set_str
+Date: Mon, 27 Jun 2016 18:24:25 +0200
+Message-ID: <20160627162425.4376-1-carlosfg@riseup.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-17.163.com ([220.181.12.17]:34213 "EHLO m12-17.163.com"
+Received: from mx1.riseup.net ([198.252.153.129]:35713 "EHLO mx1.riseup.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751601AbcF0N61 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 27 Jun 2016 09:58:27 -0400
+	id S1751601AbcF0QYp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 27 Jun 2016 12:24:45 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+We need the string length
 
-Before:
-  # iptables-translate -A INPUT -m realm --realm 1/0xf
-  nft add rule ip filter INPUT rtclassid and 0x1 == 0xf counter
-
-Apply this patch:
-  # iptables-translate -A INPUT -m realm --realm 1/0xf
-  nft add rule ip filter INPUT rtclassid and 0xf == 0x1 counter
-
-Cc: Shivani Bhardwaj <shivanib134@gmail.com>
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+Signed-off-by: Carlos Falgueras Garc=C3=ADa <carlosfg@riseup.net>
 ---
- extensions/libipt_realm.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ src/set.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/extensions/libipt_realm.c b/extensions/libipt_realm.c
-index beb2491..0a4bc3b 100644
---- a/extensions/libipt_realm.c
-+++ b/extensions/libipt_realm.c
-@@ -115,8 +115,8 @@ print_realm_xlate(unsigned long id, unsigned long mask,
- 	const char *name = NULL;
- 
- 	if (mask != 0xffffffff)
--		xt_xlate_add(xl, " and 0x%lx %s 0x%lx ", id,
--			   op == XT_OP_EQ ? "==" : "!=", mask);
-+		xt_xlate_add(xl, " and 0x%lx %s 0x%lx ", mask,
-+			   op == XT_OP_EQ ? "==" : "!=", id);
- 	else {
- 		if (numeric == 0)
- 			name = xtables_lmap_id2name(realms, id);
--- 
-2.5.5
+diff --git a/src/set.c b/src/set.c
+index 879100c..edbcbe5 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -203,7 +203,7 @@ EXPORT_SYMBOL_ALIAS(nftnl_set_set_u64, nft_set_attr=
+_set_u64);
+=20
+ int nftnl_set_set_str(struct nftnl_set *s, uint16_t attr, const char *=
+str)
+ {
+-	return nftnl_set_set(s, attr, str);
++	return nftnl_set_set_data(s, attr, str, strlen(str));
+ }
+ EXPORT_SYMBOL_ALIAS(nftnl_set_set_str, nft_set_attr_set_str);
+=20
+--=20
+2.8.3
 
-
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
