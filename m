@@ -1,71 +1,51 @@
-From: Nicholas Vinson <nvinson234@gmail.com>
-Subject: [PATCH 1/1] nft: configure.ac: Replace magic dblatex dep.
-Date: Sat, 25 Jun 2016 09:28:09 -0700
-Message-ID: <20160625162809.11877-1-nvinson234@gmail.com>
-Cc: Nicholas Vinson <nvinson234@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH iptables] extensions: libipt_realm: fix order of mask and id when do nft translation
+Date: Mon, 27 Jun 2016 21:57:25 +0800
+Message-ID: <1467035845-28485-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>,
+	Shivani Bhardwaj <shivanib134@gmail.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f68.google.com ([209.85.220.68]:34211 "EHLO
-	mail-pa0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750872AbcFYQ2q (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 25 Jun 2016 12:28:46 -0400
-Received: by mail-pa0-f68.google.com with SMTP id us13so11589387pab.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 25 Jun 2016 09:28:46 -0700 (PDT)
+Received: from m12-17.163.com ([220.181.12.17]:34213 "EHLO m12-17.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751601AbcF0N61 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 27 Jun 2016 09:58:27 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add a configure switch to enable and disable PDF document generation.
-This switch is to replace the current method of automatically detecting
-dblatex and building the PDF documentation when present.
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Bug: 1074
-Signed-off-by: Nicholas Vinson <nvinson234@gmail.com>
+Before:
+  # iptables-translate -A INPUT -m realm --realm 1/0xf
+  nft add rule ip filter INPUT rtclassid and 0x1 == 0xf counter
+
+Apply this patch:
+  # iptables-translate -A INPUT -m realm --realm 1/0xf
+  nft add rule ip filter INPUT rtclassid and 0xf == 0x1 counter
+
+Cc: Shivani Bhardwaj <shivanib134@gmail.com>
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- configure.ac | 19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ extensions/libipt_realm.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index 0e7edcf..cbc7868 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -22,6 +22,12 @@ AC_CONFIG_HEADER([config.h])
- AC_DEFINE([_GNU_SOURCE], [], [Enable various GNU extensions])
- AC_DEFINE([_STDC_FORMAT_MACROS], [], [printf-style format macros])
+diff --git a/extensions/libipt_realm.c b/extensions/libipt_realm.c
+index beb2491..0a4bc3b 100644
+--- a/extensions/libipt_realm.c
++++ b/extensions/libipt_realm.c
+@@ -115,8 +115,8 @@ print_realm_xlate(unsigned long id, unsigned long mask,
+ 	const char *name = NULL;
  
-+AC_ARG_ENABLE([pdf-doc],
-+	      AS_HELP_STRING([--disable-pdf-doc], [Disable PDF documentation]),
-+	      AS_IF([test "x$enable_pdf_doc" = "xno"], [enable_pdf_doc=no],
-+	      [enable_pdf_doc=yes]), [enable_pdf_doc=yes])
-+AM_CONDITIONAL([BUILD_PDF], [test "x$enable_pdf_doc" == "xyes" ])
-+
- AC_ARG_ENABLE([debug],
- 	      AS_HELP_STRING([--enable-debug], [Disable debugging]),
- 	      AS_IF([test "x$enable_debug" = "xno"], [with_debug=no], [with_debug=yes]),
-@@ -63,11 +69,11 @@ AS_IF([test "$DOCBOOK2X_MAN" != "no"], [DB2MAN="$DOCBOOK2X_MAN"],
- AC_SUBST(DB2MAN)
- AM_CONDITIONAL([BUILD_MAN], [test -n "$DB2MAN"])
- 
--AC_CHECK_PROG(DBLATEX, [dblatex], [found], [no])
--AS_IF([test "$DBLATEX" == "no"],
--	[AC_MSG_WARN([dblatex not found, no PDF manpages will be built])]
--)
--AM_CONDITIONAL([BUILD_PDF], [test "$DBLATEX" == "found"])
-+AM_COND_IF([BUILD_PDF], [
-+	AC_CHECK_PROG(DBLATEX, [dblatex], [found], [no])
-+	AS_IF([test "$DBLATEX" == "no"],
-+	      [AC_MSG_ERROR([dblatex not found])])
-+])
- 
- # Checks for libraries.
- PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
-@@ -136,4 +142,5 @@ echo "
- nft configuration:
-   cli support:			${with_cli}
-   enable debugging:		${with_debug}
--  use mini-gmp:			${with_mini_gmp}"
-+  use mini-gmp:			${with_mini_gmp}
-+  enable pdf documentation:	${enable_pdf_doc}"
+ 	if (mask != 0xffffffff)
+-		xt_xlate_add(xl, " and 0x%lx %s 0x%lx ", id,
+-			   op == XT_OP_EQ ? "==" : "!=", mask);
++		xt_xlate_add(xl, " and 0x%lx %s 0x%lx ", mask,
++			   op == XT_OP_EQ ? "==" : "!=", id);
+ 	else {
+ 		if (numeric == 0)
+ 			name = xtables_lmap_id2name(realms, id);
 -- 
-2.9.0
+2.5.5
+
 
