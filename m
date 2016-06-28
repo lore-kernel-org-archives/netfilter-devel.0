@@ -1,43 +1,50 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] etherdevice.h & bridge: netfilter: Add and use
- ether_addr_equal_masked
-Date: Tue, 28 Jun 2016 09:01:12 -0400 (EDT)
-Message-ID: <20160628.090112.1438085992622018555.davem@davemloft.net>
-References: <20160624085752.GB1939@salvia>
-	<3dcddfef3b9ac0eceb2869d9e95ae857b509fabe.1466793022.git.joe@perches.com>
+From: Joe Stringer <joe-LZ6Gd1LRuIk@public.gmane.org>
+Subject: Re: [PATCH net] openvswitch: fix conntrack netlink event
+	delivery
+Date: Tue, 28 Jun 2016 15:18:04 +0200
+Message-ID: <CAPWQB7HUqyK8EiTZagaxV=g_3An9meNgtBAOWUh_UVDgWwuoPQ@mail.gmail.com>
+References: <1467115937-16197-1-git-send-email-samuel.gauthier@6wind.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
-	linux-kernel@vger.kernel.org, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
-	kaber@trash.net, pablo@netfilter.org
-To: joe@perches.com
-Return-path: <bridge-bounces@lists.linux-foundation.org>
-In-Reply-To: <3dcddfef3b9ac0eceb2869d9e95ae857b509fabe.1466793022.git.joe@perches.com>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: ovs dev <dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+ Joe Stringer <joestringer-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org>, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Justin Pettit <jpettit-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+To: Samuel Gauthier <samuel.gauthier-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <1467115937-16197-1-git-send-email-samuel.gauthier-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Joe Perches <joe@perches.com>
-Date: Fri, 24 Jun 2016 11:32:26 -0700
-
-> There are code duplications of a masked ethernet address comparison here
-> so make it a separate function instead.
-> 
-> Miscellanea:
-> 
-> o Neaten alignment of FWINV macro uses to make it clearer for the reader
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
-
-Pablo feel free to take this:
-
-Acked-by: David S. Miller <davem@davemloft.net>
+T24gMjggSnVuZSAyMDE2IGF0IDE0OjEyLCBTYW11ZWwgR2F1dGhpZXIgPHNhbXVlbC5nYXV0aGll
+ckA2d2luZC5jb20+IHdyb3RlOgo+IE9ubHkgdGhlIGZpcnN0IGFuZCBsYXN0IG5ldGxpbmsgbWVz
+c2FnZSBmb3IgYSBwYXJ0aWN1bGFyIGNvbm50cmFjayBhcmUKPiBhY3R1YWxseSBzZW50LiBUaGUg
+Zmlyc3QgbWVzc2FnZSBpcyBzZW50IHRocm91Z2ggbmZfY29ubnRyYWNrX2NvbmZpcm0gd2hlbgo+
+IHRoZSBjb25udHJhY2sgaXMgY29tbWl0dGVkLiBUaGUgbGFzdCBvbmUgaXMgc2VudCB3aGVuIHRo
+ZSBjb25udHJhY2sgaXMKPiBkZXN0cm95ZWQgb24gdGltZW91dC4gVGhlIG90aGVyIGNvbm50cmFj
+ayBzdGF0ZSBjaGFuZ2UgbWVzc2FnZXMgYXJlIG5vdAo+IGFkdmVydGlzZWQuCj4KPiBXaGVuIHRo
+ZSBjb25udHJhY2sgc3Vic3lzdGVtIGlzIHVzZWQgZnJvbSBuZXRmaWx0ZXIsIG5mX2Nvbm50cmFj
+a19jb25maXJtCj4gaXMgY2FsbGVkIGZvciBlYWNoIHBhY2tldCwgZnJvbSB0aGUgcG9zdHJvdXRp
+bmcgaG9vaywgd2hpY2ggaW4gdHVybiBjYWxscwo+IG5mX2N0X2RlbGl2ZXJfY2FjaGVkX2V2ZW50
+cyB0byBzZW5kIHRoZSBzdGF0ZSBjaGFuZ2UgbmV0bGluayBtZXNzYWdlcy4KPgo+IFRoaXMgY29t
+bWl0IGZpeGVzIHRoZSBwcm9ibGVtIGJ5IGNhbGxpbmcgbmZfY29ubnRyYWNrX2NvbmZpcm0gYWxs
+IHRoZSB0aW1lLAo+IGkuZSBub3Qgb25seSBpbiB0aGUgY29tbWl0IGNhc2UuCj4KPiBGaXhlczog
+N2Y4YTQzNmVhYTJjICgib3BlbnZzd2l0Y2g6IEFkZCBjb25udHJhY2sgYWN0aW9uIikKPiBDQzog
+Sm9lIFN0cmluZ2VyIDxqb2VzdHJpbmdlckBuaWNpcmEuY29tPgo+IENDOiBKdXN0aW4gUGV0dGl0
+IDxqcGV0dGl0QG5pY2lyYS5jb20+Cj4gQ0M6IEFuZHkgWmhvdSA8YXpob3VAbmljaXJhLmNvbT4K
+PiBDQzogVGhvbWFzIEdyYWYgPHRncmFmQHN1dWcuY2g+Cj4gU2lnbmVkLW9mZi1ieTogU2FtdWVs
+IEdhdXRoaWVyIDxzYW11ZWwuZ2F1dGhpZXJANndpbmQuY29tPgoKVGhpcyBicmVha3MgdGhlIHNl
+bWFudGljcyBvZiBPVlNfQ1RfQVRUUl9DT01NSVQuIElmIHlvdSBqdXN0IHdhbnQgdG8KZW5zdXJl
+IHRoYXQgbmZfY3RfZGVsaXZlcl9jYWNoZWRfZXZlbnRzKCkgaXMgcnVuLCB0aGVuIHdlIHNob3Vs
+ZCBjYWxsCnRvIHRoYXQgZm9yIGNvbmZpcm1lZCBjb25uZWN0aW9ucyBpbiB0aGUgbm9uLWNvbW1p
+dCBjYXNlLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpk
+ZXYgbWFpbGluZyBsaXN0CmRldkBvcGVudnN3aXRjaC5vcmcKaHR0cDovL29wZW52c3dpdGNoLm9y
+Zy9tYWlsbWFuL2xpc3RpbmZvL2Rldgo=
