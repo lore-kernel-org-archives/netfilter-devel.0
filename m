@@ -1,53 +1,66 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] ipset: Backports for the nla_put_net64() API changes
-Date: Tue, 28 Jun 2016 10:23:32 +0200 (CEST)
-Message-ID: <alpine.DEB.2.10.1606281022440.18118@blackhole.kfki.hu>
-References: <20160623102211.GA31272@hydrogen>
+From: Samuel Gauthier <samuel.gauthier-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH net] openvswitch: fix conntrack netlink event
+	delivery
+Date: Tue, 28 Jun 2016 14:12:17 +0200
+Message-ID: <1467115937-16197-1-git-send-email-samuel.gauthier@6wind.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Neutron Soutmun <neo.neutron@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:54423 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751879AbcF1IVz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Jun 2016 04:21:55 -0400
-In-Reply-To: <20160623102211.GA31272@hydrogen>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Joe Stringer <joestringer-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org>, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+ Justin Pettit <jpettit-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org>
+To: pshelar-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org,
+	davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 23 Jun 2016, Neutron Soutmun wrote:
-
-> * Backports the patch "libnl: nla_put_net64():align on a 64-bit area" [1]
->   by Nicolas Dichtel <nicolas.dichtel@6wind.com>
-> 
-> * Since the nla_put_net64() API has been changed, therefore, the
->   ip_set_compat.h.in should provides the macro IPSET_NLA_PUT_NET64 that
->   point to the nla_put_net64() with appropriate number of arguments.
-> 
->   The build script should distinguish the API changes by detect for
->   the existence of nla_put_64bit() function in include/net/netlink.h.
->   This function was added in the same patches set and called by
->   the nla_put_be64() that called by nla_put_net64() respectively.
-> 
-> [1] https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit?id=e9bbe898cbe89b17ad3993c136aa13d0431cd537
-> 
-> Signed-off-by: Neutron Soutmun <neo.neutron@gmail.com>
-> ---
->  configure.ac                                            | 10 ++++++++++
->  kernel/include/linux/netfilter/ipset/ip_set_compat.h.in |  7 +++++++
->  kernel/include/linux/netfilter/ipset/ip_set_counter.h   | 10 ++++++----
->  kernel/include/linux/netfilter/ipset/ip_set_skbinfo.h   |  7 ++++---
->  kernel/include/uapi/linux/netfilter/ipset/ip_set.h      |  1 +
->  5 files changed, 28 insertions(+), 7 deletions(-)
-
-Patch is applied, thank you. I couldn't find a simpler backport solution 
-either.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlecsik.jozsef@wigner.mta.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : Wigner Research Centre for Physics, Hungarian Academy of Sciences
-          H-1525 Budapest 114, POB. 49, Hungary
+T25seSB0aGUgZmlyc3QgYW5kIGxhc3QgbmV0bGluayBtZXNzYWdlIGZvciBhIHBhcnRpY3VsYXIg
+Y29ubnRyYWNrIGFyZQphY3R1YWxseSBzZW50LiBUaGUgZmlyc3QgbWVzc2FnZSBpcyBzZW50IHRo
+cm91Z2ggbmZfY29ubnRyYWNrX2NvbmZpcm0gd2hlbgp0aGUgY29ubnRyYWNrIGlzIGNvbW1pdHRl
+ZC4gVGhlIGxhc3Qgb25lIGlzIHNlbnQgd2hlbiB0aGUgY29ubnRyYWNrIGlzCmRlc3Ryb3llZCBv
+biB0aW1lb3V0LiBUaGUgb3RoZXIgY29ubnRyYWNrIHN0YXRlIGNoYW5nZSBtZXNzYWdlcyBhcmUg
+bm90CmFkdmVydGlzZWQuCgpXaGVuIHRoZSBjb25udHJhY2sgc3Vic3lzdGVtIGlzIHVzZWQgZnJv
+bSBuZXRmaWx0ZXIsIG5mX2Nvbm50cmFja19jb25maXJtCmlzIGNhbGxlZCBmb3IgZWFjaCBwYWNr
+ZXQsIGZyb20gdGhlIHBvc3Ryb3V0aW5nIGhvb2ssIHdoaWNoIGluIHR1cm4gY2FsbHMKbmZfY3Rf
+ZGVsaXZlcl9jYWNoZWRfZXZlbnRzIHRvIHNlbmQgdGhlIHN0YXRlIGNoYW5nZSBuZXRsaW5rIG1l
+c3NhZ2VzLgoKVGhpcyBjb21taXQgZml4ZXMgdGhlIHByb2JsZW0gYnkgY2FsbGluZyBuZl9jb25u
+dHJhY2tfY29uZmlybSBhbGwgdGhlIHRpbWUsCmkuZSBub3Qgb25seSBpbiB0aGUgY29tbWl0IGNh
+c2UuCgpGaXhlczogN2Y4YTQzNmVhYTJjICgib3BlbnZzd2l0Y2g6IEFkZCBjb25udHJhY2sgYWN0
+aW9uIikKQ0M6IEpvZSBTdHJpbmdlciA8am9lc3RyaW5nZXJAbmljaXJhLmNvbT4KQ0M6IEp1c3Rp
+biBQZXR0aXQgPGpwZXR0aXRAbmljaXJhLmNvbT4KQ0M6IEFuZHkgWmhvdSA8YXpob3VAbmljaXJh
+LmNvbT4KQ0M6IFRob21hcyBHcmFmIDx0Z3JhZkBzdXVnLmNoPgpTaWduZWQtb2ZmLWJ5OiBTYW11
+ZWwgR2F1dGhpZXIgPHNhbXVlbC5nYXV0aGllckA2d2luZC5jb20+Ci0tLQpUaGlzIHBhdGNoIHdh
+cyB0ZXN0ZWQgYWdhaW5zdCB0aGUgbmV0IHRyZWUsIGNoZWNraW5nIHRoZSBub3RpZmljYXRpb25z
+IHdpdGgKY29ubnRyYWNrIC1FLgoKRGF2aWQsIHRoaXMgcGF0Y2ggY29uZmxpY3RzIHdpdGggdGhl
+IHBhdGNoIDdkOTA0YzdiY2Q1MSAoIm9wZW52c3dpdGNoOiBPbmx5CnNldCBtYXJrIGFuZCBsYWJl
+bHMgd2l0aCBhIGNvbW1pdCBmbGFnLiIpIGZyb20gbmV0LW5leHQuIEkgY2FuIGhlbHAgc29sdmlu
+Zwp0aGUgY29uZmxpY3QgaWYgeW91IG5lZWQgdG8uCgogbmV0L29wZW52c3dpdGNoL2Nvbm50cmFj
+ay5jIHwgOCArKysrKy0tLQogMSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgMyBkZWxl
+dGlvbnMoLSkKCmRpZmYgLS1naXQgYS9uZXQvb3BlbnZzd2l0Y2gvY29ubnRyYWNrLmMgYi9uZXQv
+b3BlbnZzd2l0Y2gvY29ubnRyYWNrLmMKaW5kZXggM2Q1ZmVlZGU5NjJkLi40ZWE5N2YxYzM4NjEg
+MTAwNjQ0Ci0tLSBhL25ldC9vcGVudnN3aXRjaC9jb25udHJhY2suYworKysgYi9uZXQvb3BlbnZz
+d2l0Y2gvY29ubnRyYWNrLmMKQEAgLTgzNCw5ICs4MzQsNiBAQCBzdGF0aWMgaW50IG92c19jdF9j
+b21taXQoc3RydWN0IG5ldCAqbmV0LCBzdHJ1Y3Qgc3dfZmxvd19rZXkgKmtleSwKIAllcnIgPSBf
+X292c19jdF9sb29rdXAobmV0LCBrZXksIGluZm8sIHNrYik7CiAJaWYgKGVycikKIAkJcmV0dXJu
+IGVycjsKLQkvKiBUaGlzIGlzIGEgbm8tb3AgaWYgdGhlIGNvbm5lY3Rpb24gaGFzIGFscmVhZHkg
+YmVlbiBjb25maXJtZWQuICovCi0JaWYgKG5mX2Nvbm50cmFja19jb25maXJtKHNrYikgIT0gTkZf
+QUNDRVBUKQotCQlyZXR1cm4gLUVJTlZBTDsKIAogCXJldHVybiAwOwogfQpAQCAtODg4LDYgKzg4
+NSwxMSBAQCBpbnQgb3ZzX2N0X2V4ZWN1dGUoc3RydWN0IG5ldCAqbmV0LCBzdHJ1Y3Qgc2tfYnVm
+ZiAqc2tiLAogCWlmIChsYWJlbHNfbm9uemVybygmaW5mby0+bGFiZWxzLm1hc2spKQogCQllcnIg
+PSBvdnNfY3Rfc2V0X2xhYmVscyhza2IsIGtleSwgJmluZm8tPmxhYmVscy52YWx1ZSwKIAkJCQkJ
+JmluZm8tPmxhYmVscy5tYXNrKTsKKworCS8qIFRoaXMgaXMgYSBuby1vcCBpZiB0aGUgY29ubmVj
+dGlvbiBoYXMgYWxyZWFkeSBiZWVuIGNvbmZpcm1lZC4gKi8KKwlpZiAobmZfY29ubnRyYWNrX2Nv
+bmZpcm0oc2tiKSAhPSBORl9BQ0NFUFQpCisJCXJldHVybiAtRUlOVkFMOworCiBlcnI6CiAJc2ti
+X3B1c2goc2tiLCBuaF9vZnMpOwogCWlmIChlcnIpCi0tIAoyLjIuMS42Mi5nM2YxNTA5OAoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZGV2IG1haWxpbmcg
+bGlzdApkZXZAb3BlbnZzd2l0Y2gub3JnCmh0dHA6Ly9vcGVudnN3aXRjaC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9kZXYK
