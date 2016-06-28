@@ -1,62 +1,129 @@
-From: Samuel Gauthier <samuel.gauthier-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH net v2] openvswitch: fix conntrack netlink event
-	delivery
-Date: Tue, 28 Jun 2016 17:22:26 +0200
-Message-ID: <1467127346-23743-1-git-send-email-samuel.gauthier@6wind.com>
-References: <CAPWQB7HUqyK8EiTZagaxV=g_3An9meNgtBAOWUh_UVDgWwuoPQ@mail.gmail.com>
+From: rodanber@gmail.com
+Subject: [PATCH] iptables: extensions: libxt_ecn: Add translation to nft
+Date: Tue, 28 Jun 2016 21:58:57 +0200
+Message-ID: <1467143937-19755-1-git-send-email-rodanber@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Joe Stringer <joestringer-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org>, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
- Justin Pettit <jpettit-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org>
-To: pshelar-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org,
-	davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
-Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-In-Reply-To: <CAPWQB7HUqyK8EiTZagaxV=g_3An9meNgtBAOWUh_UVDgWwuoPQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://openvswitch.org/pipermail/dev>
-List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
-List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
- <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
-Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
-Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: pablo@netfilter.org,
+	=?UTF-8?q?Roberto=20Garc=C3=ADa?= <rodanber@gmail.com>
+To: arturo.borrero.glez@gmail.com, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35197 "EHLO
+	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752375AbcF1T76 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Jun 2016 15:59:58 -0400
+Received: by mail-wm0-f68.google.com with SMTP id a66so8618086wme.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Jun 2016 12:59:57 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-T25seSB0aGUgZmlyc3QgYW5kIGxhc3QgbmV0bGluayBtZXNzYWdlIGZvciBhIHBhcnRpY3VsYXIg
-Y29ubnRyYWNrIGFyZQphY3R1YWxseSBzZW50LiBUaGUgZmlyc3QgbWVzc2FnZSBpcyBzZW50IHRo
-cm91Z2ggbmZfY29ubnRyYWNrX2NvbmZpcm0gd2hlbgp0aGUgY29ubnRyYWNrIGlzIGNvbW1pdHRl
-ZC4gVGhlIGxhc3Qgb25lIGlzIHNlbnQgd2hlbiB0aGUgY29ubnRyYWNrIGlzCmRlc3Ryb3llZCBv
-biB0aW1lb3V0LiBUaGUgb3RoZXIgY29ubnRyYWNrIHN0YXRlIGNoYW5nZSBtZXNzYWdlcyBhcmUg
-bm90CmFkdmVydGlzZWQuCgpXaGVuIHRoZSBjb25udHJhY2sgc3Vic3lzdGVtIGlzIHVzZWQgZnJv
-bSBuZXRmaWx0ZXIsIG5mX2Nvbm50cmFja19jb25maXJtCmlzIGNhbGxlZCBmb3IgZWFjaCBwYWNr
-ZXQsIGZyb20gdGhlIHBvc3Ryb3V0aW5nIGhvb2ssIHdoaWNoIGluIHR1cm4gY2FsbHMKbmZfY3Rf
-ZGVsaXZlcl9jYWNoZWRfZXZlbnRzIHRvIHNlbmQgdGhlIHN0YXRlIGNoYW5nZSBuZXRsaW5rIG1l
-c3NhZ2VzLgoKVGhpcyBjb21taXQgZml4ZXMgdGhlIHByb2JsZW0gYnkgY2FsbGluZyBuZl9jdF9k
-ZWxpdmVyX2NhY2hlZF9ldmVudHMgaW4gdGhlCm5vbi1jb21taXQgY2FzZSBhcyB3ZWxsLgoKRml4
-ZXM6IDdmOGE0MzZlYWEyYyAoIm9wZW52c3dpdGNoOiBBZGQgY29ubnRyYWNrIGFjdGlvbiIpCkND
-OiBKb2UgU3RyaW5nZXIgPGpvZXN0cmluZ2VyQG5pY2lyYS5jb20+CkNDOiBKdXN0aW4gUGV0dGl0
-IDxqcGV0dGl0QG5pY2lyYS5jb20+CkNDOiBBbmR5IFpob3UgPGF6aG91QG5pY2lyYS5jb20+CkND
-OiBUaG9tYXMgR3JhZiA8dGdyYWZAc3V1Zy5jaD4KU2lnbmVkLW9mZi1ieTogU2FtdWVsIEdhdXRo
-aWVyIDxzYW11ZWwuZ2F1dGhpZXJANndpbmQuY29tPgotLS0KCnYxIC0+IHYyOiBkb24ndCBicmVh
-ayBPVlNfQ1RfQVRUUl9DT01NSVQgYXR0cmlidXRlCgpUaGlzIHBhdGNoIHdhcyB0ZXN0ZWQgYWdh
-aW5zdCB0aGUgbmV0IHRyZWUsIGNoZWNraW5nIHRoZSBub3RpZmljYXRpb25zIHdpdGgKY29ubnRy
-YWNrIC1FLgoKIG5ldC9vcGVudnN3aXRjaC9jb25udHJhY2suYyB8IDE0ICsrKysrKysrKysrKy0t
-CiAxIGZpbGUgY2hhbmdlZCwgMTIgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKCmRpZmYg
-LS1naXQgYS9uZXQvb3BlbnZzd2l0Y2gvY29ubnRyYWNrLmMgYi9uZXQvb3BlbnZzd2l0Y2gvY29u
-bnRyYWNrLmMKaW5kZXggM2Q1ZmVlZGU5NjJkLi5kODQzMTI1ODRlZTQgMTAwNjQ0Ci0tLSBhL25l
-dC9vcGVudnN3aXRjaC9jb25udHJhY2suYworKysgYi9uZXQvb3BlbnZzd2l0Y2gvY29ubnRyYWNr
-LmMKQEAgLTgxOCw4ICs4MTgsMTggQEAgc3RhdGljIGludCBvdnNfY3RfbG9va3VwKHN0cnVjdCBu
-ZXQgKm5ldCwgc3RydWN0IHN3X2Zsb3dfa2V5ICprZXksCiAJCSAqLwogCQlzdGF0ZSA9IE9WU19D
-U19GX1RSQUNLRUQgfCBPVlNfQ1NfRl9ORVcgfCBPVlNfQ1NfRl9SRUxBVEVEOwogCQlfX292c19j
-dF91cGRhdGVfa2V5KGtleSwgc3RhdGUsICZpbmZvLT56b25lLCBleHAtPm1hc3Rlcik7Ci0JfSBl
-bHNlCi0JCXJldHVybiBfX292c19jdF9sb29rdXAobmV0LCBrZXksIGluZm8sIHNrYik7CisJfSBl
-bHNlIHsKKwkJc3RydWN0IG5mX2Nvbm4gKmN0OworCQlpbnQgZXJyOworCisJCWVyciA9IF9fb3Zz
-X2N0X2xvb2t1cChuZXQsIGtleSwgaW5mbywgc2tiKTsKKwkJaWYgKGVycikKKwkJCXJldHVybiBl
-cnI7CisKKwkJY3QgPSAoc3RydWN0IG5mX2Nvbm4gKilza2ItPm5mY3Q7CisJCWlmIChjdCkKKwkJ
-CW5mX2N0X2RlbGl2ZXJfY2FjaGVkX2V2ZW50cyhjdCk7CisJfQogCiAJcmV0dXJuIDA7CiB9Ci0t
-IAoyLjIuMS42Mi5nM2YxNTA5OAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KZGV2IG1haWxpbmcgbGlzdApkZXZAb3BlbnZzd2l0Y2gub3JnCmh0dHA6Ly9v
-cGVudnN3aXRjaC5vcmcvbWFpbG1hbi9saXN0aW5mby9kZXYK
+=46rom: Roberto Garc=C3=ADa <rodanber@gmail.com>
+
+Add translation of the ecn match to nftables.
+
+Examples:
+  # iptables-translate -A INPUT -m ecn --ecn-ip-ect 0
+  nft add rule ip filter INPUT ip ecn not-ect counter
+
+  # iptables-translate -A INPUT -m ecn --ecn-ip-ect 1
+  nft add rule ip filter INPUT ip ecn ect1 counter
+
+  # iptables-translate -A INPUT -m ecn --ecn-ip-ect 2
+  nft add rule ip filter INPUT ip ecn ect0 counter
+
+  # iptables-translate -A INPUT -m ecn --ecn-ip-ect 3
+  nft add rule ip filter INPUT ip ecn ce counter
+
+  # iptables-translate -A INPUT -m ecn ! --ecn-ip-ect 0
+  nft add rule ip filter INPUT ip ecn !=3D not-ect counter
+
+  # iptables-translate -A INPUT -m ecn ! --ecn-ip-ect 1
+  nft add rule ip filter INPUT ip ecn !=3D ect1 counter
+
+  # iptables-translate -A INPUT -m ecn ! --ecn-ip-ect 2
+  nft add rule ip filter INPUT ip ecn !=3D ect0 counter
+
+  # iptables-translate -A INPUT -m ecn ! --ecn-ip-ect 3
+  nft add rule ip filter INPUT ip ecn !=3D ce counter
+
+Signed-off-by: Roberto Garc=C3=ADa <rodanber@gmail.com>
+---
+ extensions/libxt_ecn.c | 45 ++++++++++++++++++++++++++++++++++++++++++=
++++
+ 1 file changed, 45 insertions(+)
+
+diff --git a/extensions/libxt_ecn.c b/extensions/libxt_ecn.c
+index 286782a..8e0c35b 100644
+--- a/extensions/libxt_ecn.c
++++ b/extensions/libxt_ecn.c
+@@ -118,6 +118,50 @@ static void ecn_save(const void *ip, const struct =
+xt_entry_match *match)
+ 	}
+ }
+=20
++static int ecn_xlate(const void *ip, const struct xt_entry_match *matc=
+h,
++		     struct xt_xlate *xl, int numeric)
++{
++	const struct xt_ecn_info *einfo =3D
++		(const struct xt_ecn_info *)match->data;
++
++	if (einfo->operation & XT_ECN_OP_MATCH_IP) {
++		xt_xlate_add(xl, "ip ecn ");
++		if (einfo->invert) {
++			switch (einfo->ip_ect) {
++			case 0:
++				xt_xlate_add(xl, "!=3D not-ect ");
++				break;
++			case 1:
++				xt_xlate_add(xl, "!=3D ect1 ");
++				break;
++			case 2:
++				xt_xlate_add(xl, "!=3D ect0 ");
++				break;
++			case 3:
++				xt_xlate_add(xl, "!=3D ce ");
++				break;
++			}
++		} else {
++			switch (einfo->ip_ect) {
++			case 0:
++				xt_xlate_add(xl, "not-ect ");
++				break;
++			case 1:
++				xt_xlate_add(xl, "ect1 ");
++				break;
++			case 2:
++				xt_xlate_add(xl, "ect0 ");
++				break;
++			case 3:
++				xt_xlate_add(xl, "ce ");
++				break;
++			}
++		}
++		return 1;
++	} else
++		return 0;
++}
++
+ static struct xtables_match ecn_mt_reg =3D {
+ 	.name          =3D "ecn",
+ 	.version       =3D XTABLES_VERSION,
+@@ -130,6 +174,7 @@ static struct xtables_match ecn_mt_reg =3D {
+ 	.x6_parse      =3D ecn_parse,
+ 	.x6_fcheck     =3D ecn_check,
+ 	.x6_options    =3D ecn_opts,
++	.xlate	       =3D ecn_xlate,
+ };
+=20
+ void _init(void)
+--=20
+2.8.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
