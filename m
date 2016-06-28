@@ -1,129 +1,43 @@
-From: rodanber@gmail.com
-Subject: [PATCH] iptables: extensions: libxt_ecn: Add translation to nft
-Date: Tue, 28 Jun 2016 21:58:57 +0200
-Message-ID: <1467143937-19755-1-git-send-email-rodanber@gmail.com>
+From: Kevin Darbyshire-Bryant <kevin@darbyshire-bryant.me.uk>
+Subject: Advice requested: de-masquerading from a qdisc?
+Date: Tue, 28 Jun 2016 15:32:07 +0100
+Message-ID: <57728A67.2090708@darbyshire-bryant.me.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: pablo@netfilter.org,
-	=?UTF-8?q?Roberto=20Garc=C3=ADa?= <rodanber@gmail.com>
-To: arturo.borrero.glez@gmail.com, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:35197 "EHLO
-	mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752375AbcF1T76 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Jun 2016 15:59:58 -0400
-Received: by mail-wm0-f68.google.com with SMTP id a66so8618086wme.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Jun 2016 12:59:57 -0700 (PDT)
+Received: from mail-am1on0086.outbound.protection.outlook.com ([157.56.112.86]:60544
+	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752503AbcF1UJU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Jun 2016 16:09:20 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: Roberto Garc=C3=ADa <rodanber@gmail.com>
+Hello All,
 
-Add translation of the ecn match to nftables.
+First post and I'm very much in a position of not knowing what I don't 
+know, so be relatively gentle if you can :-)
 
-Examples:
-  # iptables-translate -A INPUT -m ecn --ecn-ip-ect 0
-  nft add rule ip filter INPUT ip ecn not-ect counter
+So, the basic question first:  Is it possible to access the NAT tables 
+to de-masquerade a packet from a qdisc?
 
-  # iptables-translate -A INPUT -m ecn --ecn-ip-ect 1
-  nft add rule ip filter INPUT ip ecn ect1 counter
+Longer question/background:  I'm slightly involved in a qdisc AQM 
+project (cake) that amongst other things has 'per host' flow grouping 
+modes.  Typically 2 qdiscs are instantiated, one on the WAN interface 
+for egress traffic and another on a WAN IFB interface for ingress.  This 
+is all fine for IPv6, but in typical usage where IPv4 masquerading is 
+involved, the only host the ingress qdisc sees is the router's public 
+IPv4.  Similarly the egress qdisc doesn't see the internal LAN addresses 
+as it's all post NAT.
 
-  # iptables-translate -A INPUT -m ecn --ecn-ip-ect 2
-  nft add rule ip filter INPUT ip ecn ect0 counter
+All I have in the qdisc is the skb...and it looks like the pointer to 
+the nfct structure can help me but.....I'm really at the starting end of 
+a learning vertical cliff.  Where should I start reading? :-)
 
-  # iptables-translate -A INPUT -m ecn --ecn-ip-ect 3
-  nft add rule ip filter INPUT ip ecn ce counter
+Thanks for your time,
 
-  # iptables-translate -A INPUT -m ecn ! --ecn-ip-ect 0
-  nft add rule ip filter INPUT ip ecn !=3D not-ect counter
+Kevin
 
-  # iptables-translate -A INPUT -m ecn ! --ecn-ip-ect 1
-  nft add rule ip filter INPUT ip ecn !=3D ect1 counter
 
-  # iptables-translate -A INPUT -m ecn ! --ecn-ip-ect 2
-  nft add rule ip filter INPUT ip ecn !=3D ect0 counter
-
-  # iptables-translate -A INPUT -m ecn ! --ecn-ip-ect 3
-  nft add rule ip filter INPUT ip ecn !=3D ce counter
-
-Signed-off-by: Roberto Garc=C3=ADa <rodanber@gmail.com>
----
- extensions/libxt_ecn.c | 45 ++++++++++++++++++++++++++++++++++++++++++=
-+++
- 1 file changed, 45 insertions(+)
-
-diff --git a/extensions/libxt_ecn.c b/extensions/libxt_ecn.c
-index 286782a..8e0c35b 100644
---- a/extensions/libxt_ecn.c
-+++ b/extensions/libxt_ecn.c
-@@ -118,6 +118,50 @@ static void ecn_save(const void *ip, const struct =
-xt_entry_match *match)
- 	}
- }
-=20
-+static int ecn_xlate(const void *ip, const struct xt_entry_match *matc=
-h,
-+		     struct xt_xlate *xl, int numeric)
-+{
-+	const struct xt_ecn_info *einfo =3D
-+		(const struct xt_ecn_info *)match->data;
-+
-+	if (einfo->operation & XT_ECN_OP_MATCH_IP) {
-+		xt_xlate_add(xl, "ip ecn ");
-+		if (einfo->invert) {
-+			switch (einfo->ip_ect) {
-+			case 0:
-+				xt_xlate_add(xl, "!=3D not-ect ");
-+				break;
-+			case 1:
-+				xt_xlate_add(xl, "!=3D ect1 ");
-+				break;
-+			case 2:
-+				xt_xlate_add(xl, "!=3D ect0 ");
-+				break;
-+			case 3:
-+				xt_xlate_add(xl, "!=3D ce ");
-+				break;
-+			}
-+		} else {
-+			switch (einfo->ip_ect) {
-+			case 0:
-+				xt_xlate_add(xl, "not-ect ");
-+				break;
-+			case 1:
-+				xt_xlate_add(xl, "ect1 ");
-+				break;
-+			case 2:
-+				xt_xlate_add(xl, "ect0 ");
-+				break;
-+			case 3:
-+				xt_xlate_add(xl, "ce ");
-+				break;
-+			}
-+		}
-+		return 1;
-+	} else
-+		return 0;
-+}
-+
- static struct xtables_match ecn_mt_reg =3D {
- 	.name          =3D "ecn",
- 	.version       =3D XTABLES_VERSION,
-@@ -130,6 +174,7 @@ static struct xtables_match ecn_mt_reg =3D {
- 	.x6_parse      =3D ecn_parse,
- 	.x6_fcheck     =3D ecn_check,
- 	.x6_options    =3D ecn_opts,
-+	.xlate	       =3D ecn_xlate,
- };
-=20
- void _init(void)
---=20
-2.8.0
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
