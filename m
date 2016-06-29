@@ -1,46 +1,47 @@
-From: Joe Stringer <joe@ovn.org>
-Subject: Re: [ovs-dev] [PATCH net v2] openvswitch: fix conntrack netlink event delivery
-Date: Wed, 29 Jun 2016 11:47:15 +0200
-Message-ID: <CAPWQB7F+JgzPtSf=aUAmuAa77L2EE0p7qMWRe_A4xfH-wwo3wg@mail.gmail.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH net v2] openvswitch: fix conntrack netlink
+ event delivery
+Date: Wed, 29 Jun 2016 08:16:53 -0400 (EDT)
+Message-ID: <20160629.081653.952362504263813618.davem@davemloft.net>
 References: <CAPWQB7HUqyK8EiTZagaxV=g_3An9meNgtBAOWUh_UVDgWwuoPQ@mail.gmail.com>
  <1467127346-23743-1-git-send-email-samuel.gauthier@6wind.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Pravin B Shelar <pshelar@nicira.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	ovs dev <dev@openvswitch.org>, netdev <netdev@vger.kernel.org>,
-	Joe Stringer <joestringer@nicira.com>,
-	netfilter-devel@vger.kernel.org, Justin Pettit <jpettit@nicira.com>
-To: Samuel Gauthier <samuel.gauthier@6wind.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:47361 "EHLO
-	relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752018AbcF2Jrl (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 Jun 2016 05:47:41 -0400
-In-Reply-To: <1467127346-23743-1-git-send-email-samuel.gauthier@6wind.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Cc: dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, joestringer-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org,
+ netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jpettit-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org
+To: samuel.gauthier-pdR9zngts4EAvxtiuMwx3w@public.gmane.org
+Return-path: <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+In-Reply-To: <1467127346-23743-1-git-send-email-samuel.gauthier-pdR9zngts4EAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <http://openvswitch.org/mailman/options/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://openvswitch.org/pipermail/dev>
+List-Post: <mailto:dev-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Help: <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=help>
+List-Subscribe: <http://openvswitch.org/mailman/listinfo/dev>,
+ <mailto:dev-request-yBygre7rU0TnMu66kgdUjQ@public.gmane.org?subject=subscribe>
+Errors-To: dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org
+Sender: "dev" <dev-bounces-yBygre7rU0TnMu66kgdUjQ@public.gmane.org>
+List-Id: netfilter-devel.vger.kernel.org
 
-On 28 June 2016 at 17:22, Samuel Gauthier <samuel.gauthier@6wind.com> wrote:
-> Only the first and last netlink message for a particular conntrack are
-> actually sent. The first message is sent through nf_conntrack_confirm when
-> the conntrack is committed. The last one is sent when the conntrack is
-> destroyed on timeout. The other conntrack state change messages are not
-> advertised.
->
-> When the conntrack subsystem is used from netfilter, nf_conntrack_confirm
-> is called for each packet, from the postrouting hook, which in turn calls
-> nf_ct_deliver_cached_events to send the state change netlink messages.
->
-> This commit fixes the problem by calling nf_ct_deliver_cached_events in the
-> non-commit case as well.
->
-> Fixes: 7f8a436eaa2c ("openvswitch: Add conntrack action")
-> CC: Joe Stringer <joestringer@nicira.com>
-> CC: Justin Pettit <jpettit@nicira.com>
-> CC: Andy Zhou <azhou@nicira.com>
-> CC: Thomas Graf <tgraf@suug.ch>
-> Signed-off-by: Samuel Gauthier <samuel.gauthier@6wind.com>
-
-Acked-by: Joe Stringer <joe@ovn.org>
+RnJvbTogU2FtdWVsIEdhdXRoaWVyIDxzYW11ZWwuZ2F1dGhpZXJANndpbmQuY29tPgpEYXRlOiBU
+dWUsIDI4IEp1biAyMDE2IDE3OjIyOjI2ICswMjAwCgo+IE9ubHkgdGhlIGZpcnN0IGFuZCBsYXN0
+IG5ldGxpbmsgbWVzc2FnZSBmb3IgYSBwYXJ0aWN1bGFyIGNvbm50cmFjayBhcmUKPiBhY3R1YWxs
+eSBzZW50LiBUaGUgZmlyc3QgbWVzc2FnZSBpcyBzZW50IHRocm91Z2ggbmZfY29ubnRyYWNrX2Nv
+bmZpcm0gd2hlbgo+IHRoZSBjb25udHJhY2sgaXMgY29tbWl0dGVkLiBUaGUgbGFzdCBvbmUgaXMg
+c2VudCB3aGVuIHRoZSBjb25udHJhY2sgaXMKPiBkZXN0cm95ZWQgb24gdGltZW91dC4gVGhlIG90
+aGVyIGNvbm50cmFjayBzdGF0ZSBjaGFuZ2UgbWVzc2FnZXMgYXJlIG5vdAo+IGFkdmVydGlzZWQu
+Cj4gCj4gV2hlbiB0aGUgY29ubnRyYWNrIHN1YnN5c3RlbSBpcyB1c2VkIGZyb20gbmV0ZmlsdGVy
+LCBuZl9jb25udHJhY2tfY29uZmlybQo+IGlzIGNhbGxlZCBmb3IgZWFjaCBwYWNrZXQsIGZyb20g
+dGhlIHBvc3Ryb3V0aW5nIGhvb2ssIHdoaWNoIGluIHR1cm4gY2FsbHMKPiBuZl9jdF9kZWxpdmVy
+X2NhY2hlZF9ldmVudHMgdG8gc2VuZCB0aGUgc3RhdGUgY2hhbmdlIG5ldGxpbmsgbWVzc2FnZXMu
+Cj4gCj4gVGhpcyBjb21taXQgZml4ZXMgdGhlIHByb2JsZW0gYnkgY2FsbGluZyBuZl9jdF9kZWxp
+dmVyX2NhY2hlZF9ldmVudHMgaW4gdGhlCj4gbm9uLWNvbW1pdCBjYXNlIGFzIHdlbGwuCj4gCj4g
+Rml4ZXM6IDdmOGE0MzZlYWEyYyAoIm9wZW52c3dpdGNoOiBBZGQgY29ubnRyYWNrIGFjdGlvbiIp
+Cj4gQ0M6IEpvZSBTdHJpbmdlciA8am9lc3RyaW5nZXJAbmljaXJhLmNvbT4KPiBDQzogSnVzdGlu
+IFBldHRpdCA8anBldHRpdEBuaWNpcmEuY29tPgo+IENDOiBBbmR5IFpob3UgPGF6aG91QG5pY2ly
+YS5jb20+Cj4gQ0M6IFRob21hcyBHcmFmIDx0Z3JhZkBzdXVnLmNoPgo+IFNpZ25lZC1vZmYtYnk6
+IFNhbXVlbCBHYXV0aGllciA8c2FtdWVsLmdhdXRoaWVyQDZ3aW5kLmNvbT4KCkFwcGxpZWQuCl9f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRldiBtYWlsaW5n
+IGxpc3QKZGV2QG9wZW52c3dpdGNoLm9yZwpodHRwOi8vb3BlbnZzd2l0Y2gub3JnL21haWxtYW4v
+bGlzdGluZm8vZGV2Cg==
