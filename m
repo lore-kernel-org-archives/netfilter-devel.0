@@ -1,23 +1,60 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: Remove references to obsolete
- CONFIG_IP_ROUTE_FWMARK
-Date: Thu, 30 Jun 2016 15:59:46 +0200
-Message-ID: <20160630135946.GA2499@salvia>
-References: <8e3e7f0b-73f7-3cde-509b-79403503c6de@sichert.me>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Moritz Sichert <moritz+linux@sichert.me>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <8e3e7f0b-73f7-3cde-509b-79403503c6de@sichert.me>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Aaron Conole <aconole@bytheb.org>
+Subject: [PATCH nf-next 0/3] Compact netfilter hooks list
+Date: Thu, 30 Jun 2016 17:19:32 -0400
+Message-ID: <1467321575-6107-1-git-send-email-aconole@bytheb.org>
+To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:33495 "EHLO
+	mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751981AbcF3VTl (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 30 Jun 2016 17:19:41 -0400
+Received: by mail-qk0-f195.google.com with SMTP id n132so19576502qka.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 30 Jun 2016 14:19:41 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 30, 2016 at 11:46:28AM +0200, Moritz Sichert wrote:
-> This option was removed in commit 47dcf0cb1005 ("[NET]: Rethink mark field
-> in struct flowi").
+This series makes a simple change to shrink the netfilter hook list
+from a double linked list, to a singly linked list.  Since the hooks
+are always traversed in-order, there is no need to maintain a previous
+pointer.
 
-Applied, thanks.
+This series is being submitted for early feedback. This was jointly
+developed by Florian Westphal.
+
+Aaron Conole (1):
+  netfilter: replace list_head with single linked list
+
+Florian Westphal (2):
+  netfilter: bridge: add and use br_nf_hook_thresh
+  netfilter: call nf_hook_state_init with rcu_read_lock held
+
+ include/linux/netdevice.h                      |   2 +-
+ include/linux/netfilter.h                      |  26 ++++--
+ include/linux/netfilter_ingress.h              |  15 ++--
+ include/net/netfilter/br_netfilter.h           |   6 ++
+ include/net/netfilter/nf_queue.h               |   9 +-
+ include/net/netns/netfilter.h                  |   2 +-
+ net/bridge/br_netfilter_hooks.c                |  50 +++++++++--
+ net/bridge/br_netfilter_ipv6.c                 |  12 ++-
+ net/bridge/netfilter/ebt_redirect.c            |   2 +-
+ net/bridge/netfilter/ebtables.c                |   2 +-
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |   2 +-
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |   2 +-
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |   2 +-
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   2 +-
+ net/netfilter/core.c                           | 120 +++++++++++++++----------
+ net/netfilter/nf_conntrack_core.c              |   2 +-
+ net/netfilter/nf_conntrack_h323_main.c         |   2 +-
+ net/netfilter/nf_conntrack_helper.c            |   2 +-
+ net/netfilter/nf_internals.h                   |  10 +--
+ net/netfilter/nf_queue.c                       |  15 ++--
+ net/netfilter/nfnetlink_cthelper.c             |   2 +-
+ net/netfilter/nfnetlink_log.c                  |   8 +-
+ net/netfilter/nfnetlink_queue.c                |   7 +-
+ net/netfilter/xt_helper.c                      |   2 +-
+ 24 files changed, 193 insertions(+), 111 deletions(-)
+
+-- 
+2.5.5
+
