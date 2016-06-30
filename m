@@ -1,47 +1,54 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] etherdevice.h & bridge: netfilter: Add and use
- ether_addr_equal_masked
-Date: Thu, 30 Jun 2016 11:26:50 +0200
-Message-ID: <20160630092650.GA2107@salvia>
-References: <20160624085752.GB1939@salvia>
-	<3dcddfef3b9ac0eceb2869d9e95ae857b509fabe.1466793022.git.joe@perches.com>
-	<20160628.090112.1438085992622018555.davem@davemloft.net>
+From: Moritz Sichert <moritz+linux@sichert.me>
+Subject: [PATCH] netfilter: Remove references to obsolete
+ CONFIG_IP_ROUTE_FWMARK
+Date: Thu, 30 Jun 2016 11:46:28 +0200
+Message-ID: <8e3e7f0b-73f7-3cde-509b-79403503c6de@sichert.me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
-	linux-kernel@vger.kernel.org, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
-	joe@perches.com, kaber@trash.net
-To: David Miller <davem@davemloft.net>
-Return-path: <bridge-bounces@lists.linux-foundation.org>
-Content-Disposition: inline
-In-Reply-To: <20160628.090112.1438085992622018555.davem@davemloft.net>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
-List-Post: <mailto:bridge@lists.linux-foundation.org>
-List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
-	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
-Sender: bridge-bounces@lists.linux-foundation.org
-Errors-To: bridge-bounces@lists.linux-foundation.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jun 28, 2016 at 09:01:12AM -0400, David Miller wrote:
-> From: Joe Perches <joe@perches.com>
-> Date: Fri, 24 Jun 2016 11:32:26 -0700
-> 
-> > There are code duplications of a masked ethernet address comparison here
-> > so make it a separate function instead.
-> > 
-> > Miscellanea:
-> > 
-> > o Neaten alignment of FWINV macro uses to make it clearer for the reader
-> > 
-> > Signed-off-by: Joe Perches <joe@perches.com>
-> 
-> Pablo feel free to take this:
-> 
-> Acked-by: David S. Miller <davem@davemloft.net>
+This option was removed in commit 47dcf0cb1005 ("[NET]: Rethink mark field
+in struct flowi").
 
-Applied, thanks!
+Signed-off-by: Moritz Sichert <moritz+linux@sichert.me>
+---
+ net/netfilter/Kconfig | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 95e757c..9266cee 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -609,9 +609,8 @@ config NETFILTER_XT_MARK
+ 	The target allows you to create rules in the "mangle" table which alter
+ 	the netfilter mark (nfmark) field associated with the packet.
+ 
+-	Prior to routing, the nfmark can influence the routing method (see
+-	"Use netfilter MARK value as routing key") and can also be used by
+-	other subsystems to change their behavior.
++	Prior to routing, the nfmark can influence the routing method and can
++	also be used by other subsystems to change their behavior.
+ 
+ config NETFILTER_XT_CONNMARK
+ 	tristate 'ctmark target and match support'
+@@ -753,9 +752,8 @@ config NETFILTER_XT_TARGET_HMARK
+ 
+ 	The target allows you to create rules in the "raw" and "mangle" tables
+ 	which set the skbuff mark by means of hash calculation within a given
+-	range. The nfmark can influence the routing method (see "Use netfilter
+-	MARK value as routing key") and can also be used by other subsystems to
+-	change their behaviour.
++	range. The nfmark can influence the routing method and can also be used
++	by other subsystems to change their behaviour.
+ 
+ 	To compile it as a module, choose M here. If unsure, say N.
+ 
+-- 
+2.9.0
