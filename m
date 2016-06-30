@@ -1,57 +1,47 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] Statement of netfilter project on GPL enforcement
-Date: Thu, 30 Jun 2016 01:11:23 +0200
-Message-ID: <20160629231123.GA2497@salvia>
+Subject: Re: [PATCH] etherdevice.h & bridge: netfilter: Add and use
+ ether_addr_equal_masked
+Date: Thu, 30 Jun 2016 11:26:50 +0200
+Message-ID: <20160630092650.GA2107@salvia>
+References: <20160624085752.GB1939@salvia>
+	<3dcddfef3b9ac0eceb2869d9e95ae857b509fabe.1466793022.git.joe@perches.com>
+	<20160628.090112.1438085992622018555.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: lwn@lwn.net
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, bridge@lists.linux-foundation.org,
+	linux-kernel@vger.kernel.org, coreteam@netfilter.org,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu,
+	joe@perches.com, kaber@trash.net
+To: David Miller <davem@davemloft.net>
+Return-path: <bridge-bounces@lists.linux-foundation.org>
 Content-Disposition: inline
-Sender: netfilter-owner@vger.kernel.org
+In-Reply-To: <20160628.090112.1438085992622018555.davem@davemloft.net>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/bridge/>
+List-Post: <mailto:bridge@lists.linux-foundation.org>
+List-Help: <mailto:bridge-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/bridge>,
+	<mailto:bridge-request@lists.linux-foundation.org?subject=subscribe>
+Sender: bridge-bounces@lists.linux-foundation.org
+Errors-To: bridge-bounces@lists.linux-foundation.org
 List-Id: netfilter-devel.vger.kernel.org
 
-The netfilter project [1] hereby declares its official endorsement of
-the Principles of Community-Oriented GPL Enforcement [2] (the
-"Principles") as published by the Software Freedom Conservancy [3] and
-the Free Software Foundation [4].
+On Tue, Jun 28, 2016 at 09:01:12AM -0400, David Miller wrote:
+> From: Joe Perches <joe@perches.com>
+> Date: Fri, 24 Jun 2016 11:32:26 -0700
+> 
+> > There are code duplications of a masked ethernet address comparison here
+> > so make it a separate function instead.
+> > 
+> > Miscellanea:
+> > 
+> > o Neaten alignment of FWINV macro uses to make it clearer for the reader
+> > 
+> > Signed-off-by: Joe Perches <joe@perches.com>
+> 
+> Pablo feel free to take this:
+> 
+> Acked-by: David S. Miller <davem@davemloft.net>
 
-The software of the netfilter project is primarily released under the
-GNU General Public License.  We strongly believe that license
-compliance is an important factor in the Free Software model.  In the
-absence of voluntary license compliance, license enforcement is a
-necessary tool to ensure all parties adhere to the same set of fair
-rules as set forth by the license.
-
-On the other hand, we also believe that any enforcement action should
-always be focused on compliance, never prioritize financial gain,
-never settle for less than compliance and consider legal action in
-court only as a last resort.
-
-We, the undersigned, pledge to perform license enforcement only in
-accordance with said "Principles".
-
-We also invite and encourage any other former or current netfilter
-developers and contributors to express their support for this
-statement by co-signing it. Please contact coreteam@netfilter.org for
-details.
-
-Amsterdam, June 29, 2016,
-
-Pablo Neira Ayuso (head of core team)
-Jozsef Kadlecsik (core team member)
-=46lorian Westphal (core team member)
-Eric Leblond (core team member)
-Harald Welte (emeritus core team member)
-
-A full copy of this statement and the "Principles=E2=80=9C is available=
- on our
-website [5].
-
-[1] http://www.netfilter.org
-[2] https://sfconservancy.org/copyleft-compliance/principles.html
-[3] https://sfconservancy.org
-[4] https://www.fsf.org
-[5] http://www.netfilter.org/files/statement.pdf
-
+Applied, thanks!
