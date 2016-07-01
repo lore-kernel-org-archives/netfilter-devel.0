@@ -1,81 +1,45 @@
-From: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-Subject: [PATCH v2] netfilter: nf_log: fix error on write NONE to logger choice sysctl
-Date: Fri,  1 Jul 2016 16:53:54 +0300
-Message-ID: <1467381234-20364-1-git-send-email-ptikhomirov@virtuozzo.com>
-References: <1467378972-16770-1-git-send-email-ptikhomirov@virtuozzo.com>
-Cc: Eric Leblond <eric@inl.fr>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Pavel Emelyanov <xemul@virtuozzo.com>,
-	Konstantin Khorenko <khorenko@virtuozzo.com>,
-	Pavel Tikhomirov <ptikhomirov@virtuozzo.com>,
-	<devel@openvz.org>
-To: "David S. Miller" <davem@davemloft.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1467378972-16770-1-git-send-email-ptikhomirov@virtuozzo.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/1] nft: configure.ac: Replace magic dblatex dep.
+Date: Fri, 1 Jul 2016 16:15:46 +0200
+Message-ID: <20160701141546.GA8164@salvia>
+References: <20160625162809.11877-1-nvinson234@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Nicholas Vinson <nvinson234@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:59363 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751932AbcGAOQA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 1 Jul 2016 10:16:00 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 45C191B1DFA
+	for <netfilter-devel@vger.kernel.org>; Fri,  1 Jul 2016 16:15:57 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 34395FAB51
+	for <netfilter-devel@vger.kernel.org>; Fri,  1 Jul 2016 16:15:57 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 3715BA5A9
+	for <netfilter-devel@vger.kernel.org>; Fri,  1 Jul 2016 16:15:55 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20160625162809.11877-1-nvinson234@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-It is hard to unbind nf-logger:
+On Sat, Jun 25, 2016 at 09:28:09AM -0700, Nicholas Vinson wrote:
+> Add a configure switch to enable and disable PDF document generation.
+> This switch is to replace the current method of automatically detecting
+> dblatex and building the PDF documentation when present.
 
-  echo NONE > /proc/sys/net/netfilter/nf_log/0
-  bash: echo: write error: No such file or directory
+I know I mentioned it was better to default this to yes on the
+bugzilla report, but I noticed this will just break many existing
+automated build infrastructure for everyone that have silently skipped
+building this.
 
-  sysctl -w net.netfilter.nf_log.0=NONE
-  sysctl: setting key "net.netfilter.nf_log.0": No such file or directory
-  net.netfilter.nf_log.0 = NONE
+So could you reverse the logic? I'd suggest something like:
 
-You need explicitly send '\0', for instance like:
+        --enable-pdf-doc
 
-  echo -e "NONE\0" > /proc/sys/net/netfilter/nf_log/0
+so the PDF documentation building is disabled by default.
 
-That seem to be strange, so fix it using proc_dostring.
-
-Now it works fine:
-   modprobe nfnetlink_log
-   echo nfnetlink_log > /proc/sys/net/netfilter/nf_log/0
-   cat /proc/sys/net/netfilter/nf_log/0
-   nfnetlink_log
-   echo NONE > /proc/sys/net/netfilter/nf_log/0
-   cat /proc/sys/net/netfilter/nf_log/0
-   NONE
-
-v2: add missed error check for proc_dostring
-
-Signed-off-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
----
- net/netfilter/nf_log.c | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index a5d41df..58ea5b0 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -398,16 +398,17 @@ static int nf_log_proc_dostring(struct ctl_table *table, int write,
- {
- 	const struct nf_logger *logger;
- 	char buf[NFLOGGER_NAME_LEN];
--	size_t size = *lenp;
- 	int r = 0;
- 	int tindex = (unsigned long)table->extra1;
- 	struct net *net = current->nsproxy->net_ns;
- 
- 	if (write) {
--		if (size > sizeof(buf))
--			size = sizeof(buf);
--		if (copy_from_user(buf, buffer, size))
--			return -EFAULT;
-+		struct ctl_table tmp = *table;
-+
-+		tmp.data = buf;
-+		r = proc_dostring(&tmp, write, buffer, lenp, ppos);
-+		if (r)
-+			return r;
- 
- 		if (!strcmp(buf, "NONE")) {
- 			nf_log_unbind_pf(net, tindex);
--- 
-2.5.5
+Thanks.
