@@ -1,51 +1,81 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH libmnl] Move declaration of visibility attributes before
- definition.
-Date: Fri, 1 Jul 2016 15:54:25 +0200
-Message-ID: <20160701135425.GA4438@salvia>
-References: <1457278391-10086-1-git-send-email-pefoley2@pefoley.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Peter Foley <pefoley2@pefoley.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55960 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750702AbcGANya (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Jul 2016 09:54:30 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id CE4F81B1DF1
-	for <netfilter-devel@vger.kernel.org>; Fri,  1 Jul 2016 15:54:28 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id C094EFAB46
-	for <netfilter-devel@vger.kernel.org>; Fri,  1 Jul 2016 15:54:28 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B86A8FAB46
-	for <netfilter-devel@vger.kernel.org>; Fri,  1 Jul 2016 15:54:26 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1457278391-10086-1-git-send-email-pefoley2@pefoley.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Subject: [PATCH v2] netfilter: nf_log: fix error on write NONE to logger choice sysctl
+Date: Fri,  1 Jul 2016 16:53:54 +0300
+Message-ID: <1467381234-20364-1-git-send-email-ptikhomirov@virtuozzo.com>
+References: <1467378972-16770-1-git-send-email-ptikhomirov@virtuozzo.com>
+Cc: Eric Leblond <eric@inl.fr>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Pavel Emelyanov <xemul@virtuozzo.com>,
+	Konstantin Khorenko <khorenko@virtuozzo.com>,
+	Pavel Tikhomirov <ptikhomirov@virtuozzo.com>,
+	<devel@openvz.org>
+To: "David S. Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1467378972-16770-1-git-send-email-ptikhomirov@virtuozzo.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Mar 06, 2016 at 10:33:11AM -0500, Peter Foley wrote:
-> When compiling with clang, the visibility attributes are ignored
-> since they are after the definition of the exported function.
-> 
-> Fix this by moving the attribute declaration before the function.
-> 
-> attr.c:439:1: error: attribute declaration must precede definition [-Werror,-Wignored-attributes]
-> EXPORT_SYMBOL(mnl_attr_put_u8);
-> ^
-> ./internal.h:7:41: note: expanded from macro 'EXPORT_SYMBOL'
->                                               ^
-> ./internal.h:6:35: note: expanded from macro '__visible'
->                                                ^
-> attr.c:435:6: note: previous definition is here
-> void mnl_attr_put_u8(struct nlmsghdr *nlh, uint16_t type, uint8_t data)
->      ^
+It is hard to unbind nf-logger:
 
-I don't like that we have to change coding style for this, but given
-many of you have follow up on this, I'm willing to help so I'm
-applying this.
+  echo NONE > /proc/sys/net/netfilter/nf_log/0
+  bash: echo: write error: No such file or directory
 
-Thanks for your patience.
+  sysctl -w net.netfilter.nf_log.0=NONE
+  sysctl: setting key "net.netfilter.nf_log.0": No such file or directory
+  net.netfilter.nf_log.0 = NONE
+
+You need explicitly send '\0', for instance like:
+
+  echo -e "NONE\0" > /proc/sys/net/netfilter/nf_log/0
+
+That seem to be strange, so fix it using proc_dostring.
+
+Now it works fine:
+   modprobe nfnetlink_log
+   echo nfnetlink_log > /proc/sys/net/netfilter/nf_log/0
+   cat /proc/sys/net/netfilter/nf_log/0
+   nfnetlink_log
+   echo NONE > /proc/sys/net/netfilter/nf_log/0
+   cat /proc/sys/net/netfilter/nf_log/0
+   NONE
+
+v2: add missed error check for proc_dostring
+
+Signed-off-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+---
+ net/netfilter/nf_log.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index a5d41df..58ea5b0 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -398,16 +398,17 @@ static int nf_log_proc_dostring(struct ctl_table *table, int write,
+ {
+ 	const struct nf_logger *logger;
+ 	char buf[NFLOGGER_NAME_LEN];
+-	size_t size = *lenp;
+ 	int r = 0;
+ 	int tindex = (unsigned long)table->extra1;
+ 	struct net *net = current->nsproxy->net_ns;
+ 
+ 	if (write) {
+-		if (size > sizeof(buf))
+-			size = sizeof(buf);
+-		if (copy_from_user(buf, buffer, size))
+-			return -EFAULT;
++		struct ctl_table tmp = *table;
++
++		tmp.data = buf;
++		r = proc_dostring(&tmp, write, buffer, lenp, ppos);
++		if (r)
++			return r;
+ 
+ 		if (!strcmp(buf, "NONE")) {
+ 			nf_log_unbind_pf(net, tindex);
+-- 
+2.5.5
