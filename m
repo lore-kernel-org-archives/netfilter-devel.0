@@ -1,7 +1,7 @@
-From: chleroy <chleroy@ce692ce0-f8e3-4c9c-b4d7-dcccc219094e.localdomain>
+From: Christophe Leroy <christophe.leroy@c-s.fr>
 Subject: [PATCH] netfilter: nf_conntrack_sip: CSeq 0 is a valid CSeq
-Date: Fri,  1 Jul 2016 11:45:41 +0200 (CEST)
-Message-ID: <20160701094541.2A8AA1A23A2@localhost.localdomain>
+Date: Fri,  1 Jul 2016 11:48:33 +0200 (CEST)
+Message-ID: <20160701094833.B281E1A23A2@localhost.localdomain>
 Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
 	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>,
