@@ -1,27 +1,49 @@
-From: Peter Foley <pefoley2@pefoley.com>
-Subject: Re: [PATCH libmnl] Move declaration of visibility attributes before definition.
-Date: Fri, 1 Jul 2016 10:43:55 -0400
-Message-ID: <CAOFdcFNx+EY7zOP5dyvjs90a8siS03NE6_yWjMe2YN3DxhUW4A@mail.gmail.com>
-References: <1457278391-10086-1-git-send-email-pefoley2@pefoley.com> <20160701135425.GA4438@salvia>
+From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
+Subject: [PATCH libnfntl v2] set: Fix nftnl_set_set_str
+Date: Fri,  1 Jul 2016 18:07:15 +0200
+Message-ID: <1467389235-26632-1-git-send-email-carlosfg@riseup.net>
+References: <20160701142247.GA8806@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vk0-f42.google.com ([209.85.213.42]:33849 "EHLO
-	mail-vk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752171AbcGAOoQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Jul 2016 10:44:16 -0400
-Received: by mail-vk0-f42.google.com with SMTP id c2so155943763vkg.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 01 Jul 2016 07:44:16 -0700 (PDT)
-In-Reply-To: <20160701135425.GA4438@salvia>
+Received: from mx1.riseup.net ([198.252.153.129]:53387 "EHLO mx1.riseup.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752151AbcGAQH4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 1 Jul 2016 12:07:56 -0400
+In-Reply-To: <20160701142247.GA8806@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jul 1, 2016 at 9:54 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> I don't like that we have to change coding style for this, but given
-> many of you have follow up on this, I'm willing to help so I'm
-> applying this.
+We need the string length
 
-Great, thanks!
+Signed-off-by: Carlos Falgueras Garc=C3=ADa <carlosfg@riseup.net>
+---
+ src/set.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/set.c b/src/set.c
+index 47e0c45..8a025ab 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -190,7 +190,7 @@ EXPORT_SYMBOL_ALIAS(nftnl_set_set_u64, nft_set_attr=
+_set_u64);
+=20
+ int nftnl_set_set_str(struct nftnl_set *s, uint16_t attr, const char *=
+str)
+ {
+-	return nftnl_set_set(s, attr, str);
++	return nftnl_set_set_data(s, attr, str, strlen(str) + 1);
+ }
+ EXPORT_SYMBOL_ALIAS(nftnl_set_set_str, nft_set_attr_set_str);
+=20
+--=20
+2.5.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
