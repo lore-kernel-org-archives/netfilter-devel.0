@@ -1,52 +1,39 @@
-From: =?UTF-8?Q?Carlos_Falgueras_Garc=c3=ada?= <carlosfg@riseup.net>
-Subject: Re: [PATCH libnftnl] set: Fix nftnl_set_set_str
-Date: Fri, 1 Jul 2016 18:13:16 +0200
-Message-ID: <5776969C.1060009@riseup.net>
-References: <20160627162425.4376-1-carlosfg@riseup.net>
- <20160701142247.GA8806@salvia>
+From: subashab@codeaurora.org
+Subject: Re: [PATCH v5] xtables: Add an interval option for xtables lock wait
+Date: Fri, 01 Jul 2016 11:14:58 -0600
+Message-ID: <384253a17bf0b4e253fc47a93588c51c@codeaurora.org>
+References: <1466729046-3070-1-git-send-email-subashab@codeaurora.org>
+ <20160701132216.GA3252@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:54983 "EHLO mx1.riseup.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750702AbcGAQNT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Jul 2016 12:13:19 -0400
-In-Reply-To: <20160701142247.GA8806@salvia>
+Received: from smtp.codeaurora.org ([198.145.29.96]:33471 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751953AbcGARPR (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 1 Jul 2016 13:15:17 -0400
+In-Reply-To: <20160701132216.GA3252@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 01/07/16 16:22, Pablo Neira Ayuso wrote:
-> On Mon, Jun 27, 2016 at 06:24:25PM +0200, Carlos Falgueras Garc=EDa w=
-rote:
->> We need the string length
->>
->> Signed-off-by: Carlos Falgueras Garc=EDa <carlosfg@riseup.net>
->> ---
->>   src/set.c | 2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/src/set.c b/src/set.c
->> index 879100c..edbcbe5 100644
->> --- a/src/set.c
->> +++ b/src/set.c
->> @@ -203,7 +203,7 @@ EXPORT_SYMBOL_ALIAS(nftnl_set_set_u64, nft_set_a=
-ttr_set_u64);
->>  =20
->>   int nftnl_set_set_str(struct nftnl_set *s, uint16_t attr, const ch=
-ar *str)
->>   {
->> -	return nftnl_set_set(s, attr, str);
->> +	return nftnl_set_set_data(s, attr, str, strlen(str));
-> I think this should be strlen(str) + 1 so we make sure the string is
-> nul-terminated.
-Thanks Pablo. I have sent a v2 and another patch to fix this error in=20
-other code parts.
+> I'm attaching a patch that applies on top of this.
+> 
+> That I can remember, you only needed to reduce the wait interval, not
+> to make it ever larger, so I'm simplifying this so -W only takes
+> microseconds.
+> 
+> I have only included some missing error check in case -W is specified
+> but -w is not.
+> 
+> I can collapse this patch to yours, unless you have any concern.
+
+Thanks Pablo. Sure, that is fine.
+
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora 
+Forum, a Linux Foundation Collaborative Project.
