@@ -1,118 +1,69 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libmnl 1.0.4 release
-Date: Sat, 2 Jul 2016 11:11:42 +0200
-Message-ID: <20160702091142.GA2457@salvia>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="CE+1k2dSO48ffgeK"
-Content-Transfer-Encoding: 8bit
-Cc: lwn@lwn.net
-To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf 3/3] netfilter: nf_ct_helper: unlink helper again when hash resize happen
+Date: Sat,  2 Jul 2016 18:59:27 +0800
+Message-ID: <1467457167-5363-4-git-send-email-zlpnobody@163.com>
+References: <1467457167-5363-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from m12-16.163.com ([220.181.12.16]:58710 "EHLO m12-16.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751161AbcGBLAJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 Jul 2016 07:00:09 -0400
+In-Reply-To: <1467457167-5363-1-git-send-email-zlpnobody@163.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+From: Liping Zhang <liping.zhang@spreadtrum.com>
+
+Similar to ctnl_untimeout, when hash resize happened, we should try
+to do unhelp from the 0# bucket again.
+
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+---
+ net/netfilter/nf_conntrack_helper.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 196cb39..9d02b75 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -392,6 +392,8 @@ static void __nf_conntrack_helper_unregister(struct nf_conntrack_helper *me,
+ 	struct nf_conntrack_expect *exp;
+ 	const struct hlist_node *next;
+ 	const struct hlist_nulls_node *nn;
++	unsigned int sequence;
++	spinlock_t *lock;
+ 	unsigned int i;
+ 	int cpu;
+ 
+@@ -422,14 +424,22 @@ static void __nf_conntrack_helper_unregister(struct nf_conntrack_helper *me,
+ 			unhelp(h, me);
+ 		spin_unlock_bh(&pcpu->lock);
+ 	}
++
+ 	local_bh_disable();
++restart:
++	sequence = read_seqcount_begin(&nf_conntrack_generation);
+ 	for (i = 0; i < nf_conntrack_htable_size; i++) {
+-		nf_conntrack_lock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
++		lock = &nf_conntrack_locks[i % CONNTRACK_LOCKS];
++		nf_conntrack_lock(lock);
++		if (read_seqcount_retry(&nf_conntrack_generation, sequence)) {
++			spin_unlock(lock);
++			goto restart;
++		}
+ 		if (i < nf_conntrack_htable_size) {
+ 			hlist_nulls_for_each_entry(h, nn, &nf_conntrack_hash[i], hnnode)
+ 				unhelp(h, me);
+ 		}
+-		spin_unlock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
++		spin_unlock(lock);
+ 	}
+ 	local_bh_enable();
+ }
+-- 
+2.5.5
 
 
---CE+1k2dSO48ffgeK
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-Hi!
-
-The Netfilter project presents:
-
-        libmnl 1.0.4
-
-libmnl is a minimalistic user-space library oriented to Netlink
-developers. There are a lot of common tasks in parsing, validating,
-constructing of both the Netlink header and TLVs that are repetitive
-and easy to get wrong. This library aims to provide simple helpers
-that allows you to re-use code and to avoid re-inventing the wheel.
-
-This release comes with improvements in the netlink message printing
-function, attribute validation for MNL_TYPE_MSEC and MNL_TYPE_U64,
-clang compilation fixes, the new mnl_socket_open2() and
-mnl_socket_fdopen() functions, missing handling for NLM_F_DUMP_INTR
-and documentation updates.
-
-See ChangeLog that comes attached to this email for more details.
-
-You can download it from:
-
-http://www.netfilter.org/projects/libmnl/downloads.html
-ftp://ftp.netfilter.org/pub/libmnl/
-
-Have fun!
-
---CE+1k2dSO48ffgeK
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: attachment; filename="changes-libmnl-1.0.4.txt"
-Content-Transfer-Encoding: 8bit
-
-Carlos Falgueras García (1):
-      nlmsg: Improve payload printing
-
-Eric Leblond (1):
-      doxygen: fix a variable name.
-
-Felix Janda (1):
-      examples/netfilter: Include <endian.h> for be64toh
-
-Guillaume Nault (1):
-      socket: introduce mnl_socket_open2()
-
-Gustavo Zacarias (1):
-      configure: uclinux is also linux
-
-Hisao Tanabe (1):
-      attr: minor doc fix in mnl_attr_next()
-
-Ken-ichirou MATSUZAWA (9):
-      examples: set attr table
-      examples: fix trivial error message
-      examples: use mnl_nlmsg_get_payload()
-      attr: validate MNL_TYPE_MSEC same as MNL_TYPE_U64
-      examples: made sub functions the same
-      examples: fix display condition
-      examples: use mnl_socket_setsockopt
-      socket: creating a struct mnl_socket from a pre-existing socket
-      doc: minor fix
-
-Markus Teich (1):
-      header: use sysconf() instead of getpagesize()
-
-Pablo Neira Ayuso (18):
-      examples: add genl-group-events
-      examples: add kobject-event
-      examples: rtnl-route-add improvements (including IPv6 support)
-      examples: rtnl-route-event: add example to listen to IPv4/IPv6 routes
-      examples: rtnl-route-event: update Makefile.am
-      examples: rtnl-route-add: fix typo in IPv6 support
-      examples: rtnl-route-dump: display also metric/priority
-      examples: rtnl-link-dump: display HW address
-      examples: add rtnl-addr-dump
-      examples: netfilter: add nfct-dump
-      include: cache copy of nfnetlink_conntrack.h
-      examples: netfilter: add nfct daemon skeleton code
-      include: don't force compiler to enter C++11 mode
-      include: cache copy of include/linux/socket.h
-      socket: calloc expects struct size as second parameter
-      example: netfilter: get rid of aligned_be64 definitions
-      src: cleanup function definitions
-      build: libmnl 1.0.4 release
-
-Peter Foley (1):
-      Move declaration of visibility attributes before definition.
-
-Philip Prindeville (1):
-      examples: rtnl-route-dump: add IPv6 support
-
-Shawn Landden (1):
-      doc: mnl_socket_open returns NULL on error
-
-Stephen Hemminger (2):
-      headers: update netlink.h to 3.9
-      callback: fix missing handling of NLM_F_DUMP_INTR
-
-
---CE+1k2dSO48ffgeK--
