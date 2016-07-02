@@ -1,105 +1,70 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf 1/3] netfilter: conntrack: fix race between
- nf_conntrack proc read and hash resize
-Date: Sat, 2 Jul 2016 19:46:12 +0200
-Message-ID: <20160702174612.GD24701@breakpoint.cc>
-References: <1467457167-5363-1-git-send-email-zlpnobody@163.com>
- <1467457167-5363-2-git-send-email-zlpnobody@163.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpnobody@163.com>
+From: Nicholas Vinson <nvinson234@gmail.com>
+Subject: [PATCH 1/1 rev. 1] nft: configure.ac: Replace magic dblatex dep.
+Date: Sat,  2 Jul 2016 11:34:20 -0700
+Message-ID: <20160702183420.18609-1-nvinson234@gmail.com>
+Cc: Nicholas Vinson <nvinson234@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53108 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752254AbcGBRqh (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33512 "EHLO
+	mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752354AbcGBSev (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 Jul 2016 13:46:37 -0400
-Content-Disposition: inline
-In-Reply-To: <1467457167-5363-2-git-send-email-zlpnobody@163.com>
+	Sat, 2 Jul 2016 14:34:51 -0400
+Received: by mail-pf0-f195.google.com with SMTP id c74so12762051pfb.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 02 Jul 2016 11:34:51 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Liping Zhang <zlpnobody@163.com> wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
->=20
-> When we do "cat /proc/net/nf_conntrack", and meanwhile resize the con=
-ntrack
-> hash table via /sys/module/nf_conntrack/parameters/hashsize, race wil=
-l
-> happen, because reader can observe a newly allocated hash but the old=
- size
-> (or vice versa). So oops will happen like follows=EF=BC=9A
->=20
->   BUG: unable to handle kernel NULL pointer dereference at 0000000000=
-000017
->   IP: [<ffffffffa0418e21>] seq_print_acct+0x11/0x50 [nf_conntrack]
->   Call Trace:
->   [<ffffffffa0412f4e>] ? ct_seq_show+0x14e/0x340 [nf_conntrack]
->   [<ffffffff81261a1c>] seq_read+0x2cc/0x390
->   [<ffffffff812a8d62>] proc_reg_read+0x42/0x70
->   [<ffffffff8123bee7>] __vfs_read+0x37/0x130
->   [<ffffffff81347980>] ? security_file_permission+0xa0/0xc0
->   [<ffffffff8123cf75>] vfs_read+0x95/0x140
->   [<ffffffff8123e475>] SyS_read+0x55/0xc0
->   [<ffffffff817c2572>] entry_SYSCALL_64_fastpath+0x1a/0xa4
->=20
-> It is very easy to reproduce this kernel crash.
-> 1. open one shell and input the following cmds:
->   while : ; do
->     echo $RANDOM > hashsize
->   done
-> 2. open more shells and input the following cmds:
->   while : ; do
->     cat /proc/net/nf_conntrack
->   done
-> 3. just wait a monent, oops will happen soon.
+Add a configure switch to enable and disable PDF document generation.
+This switch is to replace the current method of automatically detecting
+dblatex and building the PDF documentation when present.
 
-Good catch, but ...
+Signed-off-by: Nicholas Vinson <nvinson234@gmail.com>
+---
+ configure.ac | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-> diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/=
-netfilter/nf_conntrack_core.h
-> index 3e2f332..4f6453a 100644
-> --- a/include/net/netfilter/nf_conntrack_core.h
-> +++ b/include/net/netfilter/nf_conntrack_core.h
-> @@ -82,6 +82,7 @@ print_tuple(struct seq_file *s, const struct nf_con=
-ntrack_tuple *tuple,
->  #define CONNTRACK_LOCKS 1024
-> =20
->  extern struct hlist_nulls_head *nf_conntrack_hash;
-> +extern seqcount_t nf_conntrack_generation;
+diff --git a/configure.ac b/configure.ac
+index 0e7edcf..877f530 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -29,6 +29,12 @@ AC_ARG_ENABLE([debug],
+ AC_SUBST(with_debug)
+ AM_CONDITIONAL([BUILD_DEBUG], [test "x$with_debug" != xno])
+ 
++AC_ARG_ENABLE([pdf-doc],
++	      AS_HELP_STRING([--enable-pdf-doc], [Enable PDF documentation]),
++	      AS_IF([test "x$enable_pdf_doc" = "xno"], [enable_pdf_doc=no],
++	      [enable_pdf_doc=yes]), [enable_pdf_doc=no])
++AM_CONDITIONAL([BUILD_PDF], [test "x$enable_pdf_doc" == "xyes" ])
++
+ # Checks for programs.
+ AC_PROG_CC
+ AC_PROG_MKDIR_P
+@@ -63,11 +69,11 @@ AS_IF([test "$DOCBOOK2X_MAN" != "no"], [DB2MAN="$DOCBOOK2X_MAN"],
+ AC_SUBST(DB2MAN)
+ AM_CONDITIONAL([BUILD_MAN], [test -n "$DB2MAN"])
+ 
+-AC_CHECK_PROG(DBLATEX, [dblatex], [found], [no])
+-AS_IF([test "$DBLATEX" == "no"],
+-	[AC_MSG_WARN([dblatex not found, no PDF manpages will be built])]
+-)
+-AM_CONDITIONAL([BUILD_PDF], [test "$DBLATEX" == "found"])
++AM_COND_IF([BUILD_PDF], [
++	AC_CHECK_PROG(DBLATEX, [dblatex], [found], [no])
++	AS_IF([test "$DBLATEX" == "no"],
++	      [AC_MSG_ERROR([dblatex not found])])
++])
+ 
+ # Checks for libraries.
+ PKG_CHECK_MODULES([LIBMNL], [libmnl >= 1.0.3])
+@@ -136,4 +142,5 @@ echo "
+ nft configuration:
+   cli support:			${with_cli}
+   enable debugging:		${with_debug}
+-  use mini-gmp:			${with_mini_gmp}"
++  use mini-gmp:			${with_mini_gmp}
++  enable pdf documentation:	${enable_pdf_doc}"
+-- 
+2.9.0
 
-instead of this and the proliferation of this:
-
-> +	do {
-> +		sequence =3D read_seqcount_begin(&nf_conntrack_generation);
-> +		st->htable_size =3D nf_conntrack_htable_size;
-> +		st->hash =3D nf_conntrack_hash;
-> +	} while (read_seqcount_retry(&nf_conntrack_generation, sequence));
-> +
->  	return ct_get_idx(seq, *pos);
->  }
-
-I think it might be better to do something like
-
-/* must be called with rcu read lock held */
-unsigned int nf_conntrack_get_ht(struct hlist_nulls_head *h,
-			         unsigned int *buckets)
-{
-	do {
-		s =3D read_seq ...
-		size =3D nf_conntrack_htable_size;
-		ptr =3D nf_conntrack_hash;
-	} while ...
-
-	*h =3D ptr;
-	*buckets =3D size;
-
-	return s;
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
