@@ -1,71 +1,105 @@
-From: "Anders K. Pedersen" <akp@akp.dk>
-Subject: Re: nftables: Dynamically updating sets gives syntax error
-Date: Sat, 02 Jul 2016 16:12:56 +0200
-Message-ID: <1467468776.1011.14.camel@akp.dk>
-References: <1466861422.29189.75.camel@akp.dk>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf 1/3] netfilter: conntrack: fix race between
+ nf_conntrack proc read and hash resize
+Date: Sat, 2 Jul 2016 19:46:12 +0200
+Message-ID: <20160702174612.GD24701@breakpoint.cc>
+References: <1467457167-5363-1-git-send-email-zlpnobody@163.com>
+ <1467457167-5363-2-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <1466861422.29189.75.camel@akp.dk>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: Liping Zhang <zlpnobody@163.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53108 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752254AbcGBRqh (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 Jul 2016 13:46:37 -0400
+Content-Disposition: inline
+In-Reply-To: <1467457167-5363-2-git-send-email-zlpnobody@163.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
-
-On l=C3=B8r, 2016-06-25 at 15:30 +0200, Anders K. Pedersen wrote:
-> With nftables 0.6 I'm getting a syntax error, when I try to use the
-> feature that was introduced
-> by=C2=A0http://git.netfilter.org/nftables/commit
-> /?id=3Da9467e55973b10c2e8fe37525514c961580f8506=C2=A0. For example:
+Liping Zhang <zlpnobody@163.com> wrote:
+> From: Liping Zhang <liping.zhang@spreadtrum.com>
 >=20
-> # nft filter input set add tcp dport @myset
-> <cmdline>:1:26-30: Error: syntax error, unexpected dport
-> filter input set add tcp dport @myset
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0^^^^^
-> # nft filter input set add ip saddr timeout 10s @myset
-> <cmdline>:1:25-29: Error: syntax error, unexpected saddr
-> filter input set add ip saddr timeout 10s @myset
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0^^^^^
-> # nft filter input set update ip saddr timeout 10s @myset
-> <cmdline>:1:28-32: Error: syntax error, unexpected saddr
-> filter input set update ip saddr timeout 10s @myset
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0^^^^^
+> When we do "cat /proc/net/nf_conntrack", and meanwhile resize the con=
+ntrack
+> hash table via /sys/module/nf_conntrack/parameters/hashsize, race wil=
+l
+> happen, because reader can observe a newly allocated hash but the old=
+ size
+> (or vice versa). So oops will happen like follows=EF=BC=9A
+>=20
+>   BUG: unable to handle kernel NULL pointer dereference at 0000000000=
+000017
+>   IP: [<ffffffffa0418e21>] seq_print_acct+0x11/0x50 [nf_conntrack]
+>   Call Trace:
+>   [<ffffffffa0412f4e>] ? ct_seq_show+0x14e/0x340 [nf_conntrack]
+>   [<ffffffff81261a1c>] seq_read+0x2cc/0x390
+>   [<ffffffff812a8d62>] proc_reg_read+0x42/0x70
+>   [<ffffffff8123bee7>] __vfs_read+0x37/0x130
+>   [<ffffffff81347980>] ? security_file_permission+0xa0/0xc0
+>   [<ffffffff8123cf75>] vfs_read+0x95/0x140
+>   [<ffffffff8123e475>] SyS_read+0x55/0xc0
+>   [<ffffffff817c2572>] entry_SYSCALL_64_fastpath+0x1a/0xa4
+>=20
+> It is very easy to reproduce this kernel crash.
+> 1. open one shell and input the following cmds:
+>   while : ; do
+>     echo $RANDOM > hashsize
+>   done
+> 2. open more shells and input the following cmds:
+>   while : ; do
+>     cat /proc/net/nf_conntrack
+>   done
+> 3. just wait a monent, oops will happen soon.
 
-I did a git bisect on this and found that it was broken by
+Good catch, but ...
 
-commit a3e60492a684be09374d0649735da42bdadc6b48
-Author: Pablo Neira Ayuso <pablo@netfilter.org>
-Date:=C2=A0=C2=A0=C2=A0Sun Dec 27 22:15:17 2015 +0100
+> diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/=
+netfilter/nf_conntrack_core.h
+> index 3e2f332..4f6453a 100644
+> --- a/include/net/netfilter/nf_conntrack_core.h
+> +++ b/include/net/netfilter/nf_conntrack_core.h
+> @@ -82,6 +82,7 @@ print_tuple(struct seq_file *s, const struct nf_con=
+ntrack_tuple *tuple,
+>  #define CONNTRACK_LOCKS 1024
+> =20
+>  extern struct hlist_nulls_head *nf_conntrack_hash;
+> +extern seqcount_t nf_conntrack_generation;
 
-=C2=A0=C2=A0=C2=A0=C2=A0parser: restrict relational rhs expression recu=
-rsion
+instead of this and the proliferation of this:
 
-After studying it a bit I reverted a part of it with the following
-change, which made the commands above work again:
+> +	do {
+> +		sequence =3D read_seqcount_begin(&nf_conntrack_generation);
+> +		st->htable_size =3D nf_conntrack_htable_size;
+> +		st->hash =3D nf_conntrack_hash;
+> +	} while (read_seqcount_retry(&nf_conntrack_generation, sequence));
+> +
+>  	return ct_get_idx(seq, *pos);
+>  }
 
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -2054,7 +2054,7 @@ set_elem_option		:	TIMEOUT			time_spec
-=C2=A0			}
-=C2=A0			;
-=C2=A0
--set_lhs_expr		:	concat_rhs_expr
-+set_lhs_expr		:	concat_expr
-=C2=A0			|	multiton_rhs_expr
-=C2=A0			;
-=C2=A0
-The commit message indicated that it intended to handle rhs
-expressions, but this is a lhs expression, so maybe this change was
-unintended?
+I think it might be better to do something like
 
-Regards,
-Anders K. Pedersen
+/* must be called with rcu read lock held */
+unsigned int nf_conntrack_get_ht(struct hlist_nulls_head *h,
+			         unsigned int *buckets)
+{
+	do {
+		s =3D read_seq ...
+		size =3D nf_conntrack_htable_size;
+		ptr =3D nf_conntrack_hash;
+	} while ...
+
+	*h =3D ptr;
+	*buckets =3D size;
+
+	return s;
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
