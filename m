@@ -1,109 +1,77 @@
 From: Nick Vinson <nvinson234@gmail.com>
-Subject: Re: [PATCH 1/1 rev. 1] nft: configure.ac: Replace magic dblatex dep.
-Date: Sat, 2 Jul 2016 11:37:50 -0700
-Message-ID: <49591697-d895-7723-a20f-21b9712aed70@gmail.com>
-References: <20160702183420.18609-1-nvinson234@gmail.com>
+Subject: Re: [PATCH 1/1] nft: configure.ac: Replace magic dblatex dep.
+Date: Sat, 2 Jul 2016 11:40:49 -0700
+Message-ID: <b75d6d02-3cc6-6058-4022-bde1e70a8aa8@gmail.com>
+References: <20160625162809.11877-1-nvinson234@gmail.com>
+ <20160701141546.GA8164@salvia>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha256;
  protocol="application/pgp-signature";
- boundary="rHnobeCnbM9HkjAJJdoHGhMj8vQSpw562"
-Cc: Nicholas Vinson <nvinson234@gmail.com>
-To: netfilter-devel@vger.kernel.org
+ boundary="tt70wLTsDE6dPl0f6kOT4j6BtHu3Ekibo"
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:36689 "EHLO
-	mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750746AbcGBSh4 (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:33596 "EHLO
+	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750800AbcGBSkv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 Jul 2016 14:37:56 -0400
-Received: by mail-pa0-f66.google.com with SMTP id lm4so1104759pab.3
-        for <netfilter-devel@vger.kernel.org>; Sat, 02 Jul 2016 11:37:56 -0700 (PDT)
-In-Reply-To: <20160702183420.18609-1-nvinson234@gmail.com>
+	Sat, 2 Jul 2016 14:40:51 -0400
+Received: by mail-pf0-f194.google.com with SMTP id c74so12769450pfb.0
+        for <netfilter-devel@vger.kernel.org>; Sat, 02 Jul 2016 11:40:51 -0700 (PDT)
+In-Reply-To: <20160701141546.GA8164@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---rHnobeCnbM9HkjAJJdoHGhMj8vQSpw562
-Content-Type: multipart/mixed; boundary="LgiWT6Ocd8kBe9nfxdONl9C98A9SqfOnU"
+--tt70wLTsDE6dPl0f6kOT4j6BtHu3Ekibo
+Content-Type: multipart/mixed; boundary="mbDn39qaroiSvrRtPvwbnKd07eJLQ6xiu"
 From: Nick Vinson <nvinson234@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Cc: Nicholas Vinson <nvinson234@gmail.com>
-Message-ID: <49591697-d895-7723-a20f-21b9712aed70@gmail.com>
-Subject: Re: [PATCH 1/1 rev. 1] nft: configure.ac: Replace magic dblatex dep.
-References: <20160702183420.18609-1-nvinson234@gmail.com>
-In-Reply-To: <20160702183420.18609-1-nvinson234@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+Message-ID: <b75d6d02-3cc6-6058-4022-bde1e70a8aa8@gmail.com>
+Subject: Re: [PATCH 1/1] nft: configure.ac: Replace magic dblatex dep.
+References: <20160625162809.11877-1-nvinson234@gmail.com>
+ <20160701141546.GA8164@salvia>
+In-Reply-To: <20160701141546.GA8164@salvia>
 
---LgiWT6Ocd8kBe9nfxdONl9C98A9SqfOnU
+--mbDn39qaroiSvrRtPvwbnKd07eJLQ6xiu
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: quoted-printable
 
-The difference between this patch and the original one is that this
-patch defaults pdf documentation generation to 'disabled' instead of
-'enabled'.
+I reversed the logic.  I'm also considering this thread closed.  The new
+thread can be found with the subject "[PATCH 1/1 rev.1] nft:
+configure.ac: Replace magic dblatex dep."  If anyone could direct any
+further questions or comments to that thread, it would be much appreciate=
+d.
 
 Thanks,
 Nicholas Vinson
 
-On 07/02/2016 11:34 AM, Nicholas Vinson wrote:
-> Add a configure switch to enable and disable PDF document generation.
-> This switch is to replace the current method of automatically detecting=
-
-> dblatex and building the PDF documentation when present.
+On 07/01/2016 07:15 AM, Pablo Neira Ayuso wrote:
+> On Sat, Jun 25, 2016 at 09:28:09AM -0700, Nicholas Vinson wrote:
+>> Add a configure switch to enable and disable PDF document generation.
+>> This switch is to replace the current method of automatically detectin=
+g
+>> dblatex and building the PDF documentation when present.
 >=20
-> Signed-off-by: Nicholas Vinson <nvinson234@gmail.com>
-> ---
->  configure.ac | 19 +++++++++++++------
->  1 file changed, 13 insertions(+), 6 deletions(-)
+> I know I mentioned it was better to default this to yes on the
+> bugzilla report, but I noticed this will just break many existing
+> automated build infrastructure for everyone that have silently skipped
+> building this.
 >=20
-> diff --git a/configure.ac b/configure.ac
-> index 0e7edcf..877f530 100644
-> --- a/configure.ac
-> +++ b/configure.ac
-> @@ -29,6 +29,12 @@ AC_ARG_ENABLE([debug],
->  AC_SUBST(with_debug)
->  AM_CONDITIONAL([BUILD_DEBUG], [test "x$with_debug" !=3D xno])
-> =20
-> +AC_ARG_ENABLE([pdf-doc],
-> +	      AS_HELP_STRING([--enable-pdf-doc], [Enable PDF documentation]),=
-
-> +	      AS_IF([test "x$enable_pdf_doc" =3D "xno"], [enable_pdf_doc=3Dno=
-],
-> +	      [enable_pdf_doc=3Dyes]), [enable_pdf_doc=3Dno])
-> +AM_CONDITIONAL([BUILD_PDF], [test "x$enable_pdf_doc" =3D=3D "xyes" ])
-> +
->  # Checks for programs.
->  AC_PROG_CC
->  AC_PROG_MKDIR_P
-> @@ -63,11 +69,11 @@ AS_IF([test "$DOCBOOK2X_MAN" !=3D "no"], [DB2MAN=3D=
-"$DOCBOOK2X_MAN"],
->  AC_SUBST(DB2MAN)
->  AM_CONDITIONAL([BUILD_MAN], [test -n "$DB2MAN"])
-> =20
-> -AC_CHECK_PROG(DBLATEX, [dblatex], [found], [no])
-> -AS_IF([test "$DBLATEX" =3D=3D "no"],
-> -	[AC_MSG_WARN([dblatex not found, no PDF manpages will be built])]
-> -)
-> -AM_CONDITIONAL([BUILD_PDF], [test "$DBLATEX" =3D=3D "found"])
-> +AM_COND_IF([BUILD_PDF], [
-> +	AC_CHECK_PROG(DBLATEX, [dblatex], [found], [no])
-> +	AS_IF([test "$DBLATEX" =3D=3D "no"],
-> +	      [AC_MSG_ERROR([dblatex not found])])
-> +])
-> =20
->  # Checks for libraries.
->  PKG_CHECK_MODULES([LIBMNL], [libmnl >=3D 1.0.3])
-> @@ -136,4 +142,5 @@ echo "
->  nft configuration:
->    cli support:			${with_cli}
->    enable debugging:		${with_debug}
-> -  use mini-gmp:			${with_mini_gmp}"
-> +  use mini-gmp:			${with_mini_gmp}
-> +  enable pdf documentation:	${enable_pdf_doc}"
+> So could you reverse the logic? I'd suggest something like:
+>=20
+>         --enable-pdf-doc
+>=20
+> so the PDF documentation building is disabled by default.
+>=20
+> Thanks.
 >=20
 
 
---LgiWT6Ocd8kBe9nfxdONl9C98A9SqfOnU--
+--mbDn39qaroiSvrRtPvwbnKd07eJLQ6xiu--
 
---rHnobeCnbM9HkjAJJdoHGhMj8vQSpw562
+--tt70wLTsDE6dPl0f6kOT4j6BtHu3Ekibo
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: OpenPGP digital signature
 Content-Disposition: attachment; filename="signature.asc"
@@ -111,19 +79,19 @@ Content-Disposition: attachment; filename="signature.asc"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJXeAn/AAoJEAQpRPZaa5gq6o8P/3m7HnVwTlH1vpPNPPmmJREK
-EaFNlkE/QgdAV6mxUJQk4SE6G6xP6Xq7e/Fqpp+3eN/m1Jypg54anP6dZR2DqJvN
-FPElA/sOT9reXqXZVM2k6cuksMLR0Yhr8VPd6ZHqyYxJznRXTiv/A9SOMg2ZEGKR
-d/byZ3bQjvBp0UZNbi9QrndfiDT51QfWFPsZa3Dwomj6K8P5wt4geL1F+Tcp1bWt
-q9kDozG6MYdkHIPCJp62hGlqiXPNnUiAg+OBN5WnFT6I16t+xNjlgp7xG0A6w3dh
-tiVZPmyfce44HtlKnLB1Nb4E6vJuIdBgtT4ST9i8bAXKFQrWhqdLOS37V1S49gAq
-PyLrxmFgx4P2+XPpUcAzqbf5JXkfKPj5s/Y1egCszwudTRM1+XKW/EjLJQViCJVf
-aAH7FsfQ6GFvB2eTYH4kfx4z9bxwFNCgs1noP43n4mbNk7SesZE1AjGqh0EHC0QA
-HVXA/AyctLWmA01jd7eTGjXS3WePtpjAARsRwNq5nAwqf8Unqq7cntC9k2EpKUpC
-NIfewSImwajlw9Rg3q/6NtMbprbKFuvmQ3wTyyMQ7zf2Cgham36dCVlYryFL23iP
-Sayp94c/TaoNNclK03EH0yU4kP964PlPpnF+UKCEaFdnxlpsio/0lw7m3mwmlbkm
-RoH+XVN/Gx4ws+2NHf7D
-=gT0v
+iQIcBAEBCAAGBQJXeAqxAAoJEAQpRPZaa5gqo/IP/36e85WJQqbsdvjpt3AjldBJ
+M3h0+i/vtpUDLiHVkCvQTHm5unyFhHP3hGnqlM2qQMM4iUhiRlTzNRPdGiMHih+v
+OyZqy5rWK2VzEhN3/sh6fez7j+9Lh5rsNlp/6ULMTbA710ie5LJYoI1GzuvwStfY
+UqcD9zULv4EnpBUfY2IO/XG+M8X1VPJvWN8TNLFnZyB+FQHL3BxC67JZMJCP8IzW
+nyzELj5m2UC/WcuA1IZnBfaYZwXchkSXEp3JUrUCHdYpbKMajMJXtbHjCqrCxJwR
+xF4WcUC69b0780Z5pwzbKxHomia/x4JUEk/YKwWFuDVNGKWPr5a2UkM4JP0pXLSt
+q9dE1R6iI/b59z449PZE0G4TSdk9siEw6LiPblRBfsJoq2D5XC1DRZ5I1DqAruXI
+u7tw6ALiwqaPNn77uDY+DDaoTsZgdoBgxsoSsYv35AJoV1egsPjWyHP3FcQPxLDo
+M7a3UofveRJ9HgPIZ/g7bipQofuEROBfoYgekg94Ui7tG5URuzB3VfTE2W8mCiF2
+LPABAFzHBB94nmJD7nG9H76bNkE1fxChi9gmW9EIdKhz3aOTYGCrROaj3fcjxxOu
+uS5X1NVQV5R5Pb4adk2fmd/hzUZjJUFJlqpcfJX8zrcBicfllTEV4DAMBOp9bbvc
+lz7TzKJrKp6by8msy72b
+=4CHj
 -----END PGP SIGNATURE-----
 
---rHnobeCnbM9HkjAJJdoHGhMj8vQSpw562--
+--tt70wLTsDE6dPl0f6kOT4j6BtHu3Ekibo--
