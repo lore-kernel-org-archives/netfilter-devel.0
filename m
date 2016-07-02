@@ -1,139 +1,118 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH libnftnl] Fix string length calculations
-Date: Sat, 2 Jul 2016 08:54:48 +0200
-Message-ID: <20160702065316.GA26375@salvia>
-References: <20160701142247.GA8806@salvia>
- <1467389503-27143-1-git-send-email-carlosfg@riseup.net>
+Subject: [ANNOUNCE] libmnl 1.0.4 release
+Date: Sat, 2 Jul 2016 11:11:42 +0200
+Message-ID: <20160702091142.GA2457@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58872 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750766AbcGBGy6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 Jul 2016 02:54:58 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 6DE8FE7DAF
-	for <netfilter-devel@vger.kernel.org>; Sat,  2 Jul 2016 08:54:52 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 5FF609EBAB
-	for <netfilter-devel@vger.kernel.org>; Sat,  2 Jul 2016 08:54:52 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 423EA9EBA8
-	for <netfilter-devel@vger.kernel.org>; Sat,  2 Jul 2016 08:54:50 +0200 (CEST)
+Content-Type: multipart/mixed; boundary="CE+1k2dSO48ffgeK"
+Content-Transfer-Encoding: 8bit
+Cc: lwn@lwn.net
+To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1467389503-27143-1-git-send-email-carlosfg@riseup.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jul 01, 2016 at 06:11:43PM +0200, Carlos Falgueras Garc=EDa wro=
-te:
-> These lengths must be one character longer to take account the null
-> character
 
-Please, place the change for src/set.c in this patch so I only need to
-apply one patch.
+--CE+1k2dSO48ffgeK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Another comment below.
+Hi!
 
-> Signed-off-by: Carlos Falgueras Garc=EDa <carlosfg@riseup.net>
-> ---
->  src/chain.c    | 2 +-
->  src/rule.c     | 2 +-
->  src/set_elem.c | 2 +-
->  src/table.c    | 2 +-
->  src/trace.c    | 6 +++---
->  5 files changed, 7 insertions(+), 7 deletions(-)
->=20
-> diff --git a/src/chain.c b/src/chain.c
-> index bfffbe0..cab64b5 100644
-> --- a/src/chain.c
-> +++ b/src/chain.c
-> @@ -260,7 +260,7 @@ EXPORT_SYMBOL_ALIAS(nftnl_chain_set_u8, nft_chain=
-_attr_set_u8);
-> =20
->  int nftnl_chain_set_str(struct nftnl_chain *c, uint16_t attr, const =
-char *str)
->  {
-> -	return nftnl_chain_set_data(c, attr, str, strlen(str));
-> +	return nftnl_chain_set_data(c, attr, str, strlen(str) + 1);
->  }
->  EXPORT_SYMBOL_ALIAS(nftnl_chain_set_str, nft_chain_attr_set_str);
-> =20
-> diff --git a/src/rule.c b/src/rule.c
-> index c87fea7..2b23c8e 100644
-> --- a/src/rule.c
-> +++ b/src/rule.c
-> @@ -198,7 +198,7 @@ EXPORT_SYMBOL_ALIAS(nftnl_rule_set_u64, nft_rule_=
-attr_set_u64);
-> =20
->  int nftnl_rule_set_str(struct nftnl_rule *r, uint16_t attr, const ch=
-ar *str)
->  {
-> -	return nftnl_rule_set_data(r, attr, str, strlen(str));
-> +	return nftnl_rule_set_data(r, attr, str, strlen(str) + 1);
->  }
->  EXPORT_SYMBOL_ALIAS(nftnl_rule_set_str, nft_rule_attr_set_str);
-> =20
-> diff --git a/src/set_elem.c b/src/set_elem.c
-> index 00b7327..40b5bfe 100644
-> --- a/src/set_elem.c
-> +++ b/src/set_elem.c
-> @@ -149,7 +149,7 @@ EXPORT_SYMBOL_ALIAS(nftnl_set_elem_set_u64, nft_s=
-et_elem_attr_set_u64);
-> =20
->  int nftnl_set_elem_set_str(struct nftnl_set_elem *s, uint16_t attr, =
-const char *str)
->  {
-> -	return nftnl_set_elem_set(s, attr, str, strlen(str));
-> +	return nftnl_set_elem_set(s, attr, str, strlen(str) + 1);
->  }
->  EXPORT_SYMBOL_ALIAS(nftnl_set_elem_set_str, nft_set_elem_attr_set_st=
-r);
-> =20
-> diff --git a/src/table.c b/src/table.c
-> index 32d119f..966b923 100644
-> --- a/src/table.c
-> +++ b/src/table.c
-> @@ -131,7 +131,7 @@ EXPORT_SYMBOL_ALIAS(nftnl_table_set_u8, nft_table=
-_attr_set_u8);
-> =20
->  int nftnl_table_set_str(struct nftnl_table *t, uint16_t attr, const =
-char *str)
->  {
-> -	return nftnl_table_set_data(t, attr, str, 0);
-> +	return nftnl_table_set_data(t, attr, str, strlen(str) + 1);
->  }
->  EXPORT_SYMBOL_ALIAS(nftnl_table_set_str, nft_table_attr_set_str);
-> =20
-> diff --git a/src/trace.c b/src/trace.c
-> index d8f561d..1a50390 100644
-> --- a/src/trace.c
-> +++ b/src/trace.c
-> @@ -165,13 +165,13 @@ const void *nftnl_trace_get_data(const struct n=
-ftnl_trace *trace,
->  		*data_len =3D sizeof(uint32_t);
->  		return &trace->type;
->  	case NFTNL_TRACE_CHAIN:
-> -		*data_len =3D strlen(trace->chain);
-> +		*data_len =3D strlen(trace->chain) + 1;
->  		return trace->chain;
->  	case NFTNL_TRACE_TABLE:
-> -		*data_len =3D strlen(trace->table);
-> +		*data_len =3D strlen(trace->table) + 1;
->  		return trace->table;
->  	case NFTNL_TRACE_JUMP_TARGET:
-> -		*data_len =3D strlen(trace->jump_target);
-> +		*data_len =3D strlen(trace->jump_target) + 1;
->  		return trace->jump_target;
->  	case NFTNL_TRACE_TRANSPORT_HEADER:
->  		*data_len =3D trace->th.len;
+The Netfilter project presents:
 
-Are you really sure we need this chunk too?
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+        libmnl 1.0.4
+
+libmnl is a minimalistic user-space library oriented to Netlink
+developers. There are a lot of common tasks in parsing, validating,
+constructing of both the Netlink header and TLVs that are repetitive
+and easy to get wrong. This library aims to provide simple helpers
+that allows you to re-use code and to avoid re-inventing the wheel.
+
+This release comes with improvements in the netlink message printing
+function, attribute validation for MNL_TYPE_MSEC and MNL_TYPE_U64,
+clang compilation fixes, the new mnl_socket_open2() and
+mnl_socket_fdopen() functions, missing handling for NLM_F_DUMP_INTR
+and documentation updates.
+
+See ChangeLog that comes attached to this email for more details.
+
+You can download it from:
+
+http://www.netfilter.org/projects/libmnl/downloads.html
+ftp://ftp.netfilter.org/pub/libmnl/
+
+Have fun!
+
+--CE+1k2dSO48ffgeK
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: attachment; filename="changes-libmnl-1.0.4.txt"
+Content-Transfer-Encoding: 8bit
+
+Carlos Falgueras García (1):
+      nlmsg: Improve payload printing
+
+Eric Leblond (1):
+      doxygen: fix a variable name.
+
+Felix Janda (1):
+      examples/netfilter: Include <endian.h> for be64toh
+
+Guillaume Nault (1):
+      socket: introduce mnl_socket_open2()
+
+Gustavo Zacarias (1):
+      configure: uclinux is also linux
+
+Hisao Tanabe (1):
+      attr: minor doc fix in mnl_attr_next()
+
+Ken-ichirou MATSUZAWA (9):
+      examples: set attr table
+      examples: fix trivial error message
+      examples: use mnl_nlmsg_get_payload()
+      attr: validate MNL_TYPE_MSEC same as MNL_TYPE_U64
+      examples: made sub functions the same
+      examples: fix display condition
+      examples: use mnl_socket_setsockopt
+      socket: creating a struct mnl_socket from a pre-existing socket
+      doc: minor fix
+
+Markus Teich (1):
+      header: use sysconf() instead of getpagesize()
+
+Pablo Neira Ayuso (18):
+      examples: add genl-group-events
+      examples: add kobject-event
+      examples: rtnl-route-add improvements (including IPv6 support)
+      examples: rtnl-route-event: add example to listen to IPv4/IPv6 routes
+      examples: rtnl-route-event: update Makefile.am
+      examples: rtnl-route-add: fix typo in IPv6 support
+      examples: rtnl-route-dump: display also metric/priority
+      examples: rtnl-link-dump: display HW address
+      examples: add rtnl-addr-dump
+      examples: netfilter: add nfct-dump
+      include: cache copy of nfnetlink_conntrack.h
+      examples: netfilter: add nfct daemon skeleton code
+      include: don't force compiler to enter C++11 mode
+      include: cache copy of include/linux/socket.h
+      socket: calloc expects struct size as second parameter
+      example: netfilter: get rid of aligned_be64 definitions
+      src: cleanup function definitions
+      build: libmnl 1.0.4 release
+
+Peter Foley (1):
+      Move declaration of visibility attributes before definition.
+
+Philip Prindeville (1):
+      examples: rtnl-route-dump: add IPv6 support
+
+Shawn Landden (1):
+      doc: mnl_socket_open returns NULL on error
+
+Stephen Hemminger (2):
+      headers: update netlink.h to 3.9
+      callback: fix missing handling of NLM_F_DUMP_INTR
+
+
+--CE+1k2dSO48ffgeK--
