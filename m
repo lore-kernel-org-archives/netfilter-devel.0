@@ -1,142 +1,161 @@
-From: =?UTF-8?Q?Carlos_Falgueras_Garc=c3=ada?= <carlosfg@riseup.net>
-Subject: Re: [PATCH libnftnl] Fix string length calculations
-Date: Sun, 3 Jul 2016 12:13:18 +0200
-Message-ID: <5778E53E.60607@riseup.net>
-References: <20160701142247.GA8806@salvia>
- <1467389503-27143-1-git-send-email-carlosfg@riseup.net>
- <20160702065316.GA26375@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH -next] netfilter: conntrack: simplify early_drop
+Date: Sun,  3 Jul 2016 20:44:01 +0200
+Message-ID: <1467571441-26797-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:55818 "EHLO mx1.riseup.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751553AbcGCKNX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Jul 2016 06:13:23 -0400
-In-Reply-To: <20160702065316.GA26375@salvia>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53697 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752850AbcGCSno (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Jul 2016 14:43:44 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02/07/16 08:54, Pablo Neira Ayuso wrote:
-> On Fri, Jul 01, 2016 at 06:11:43PM +0200, Carlos Falgueras Garc=EDa w=
-rote:
->> These lengths must be one character longer to take account the null
->> character
-> Please, place the change for src/set.c in this patch so I only need t=
-o
-> apply one patch.
+We don't need to acquire the bucket lock during early drop, we can
+use lockless traveral just like ____nf_conntrack_find.
 
-I will send it now.
+The timer deletion serves as synchronization point, if another cpu
+attempts to evict same entry, only one will succeed with timer deletion.
 
-> Another comment below.
->
->> Signed-off-by: Carlos Falgueras Garc=EDa <carlosfg@riseup.net>
->> ---
->>   src/chain.c    | 2 +-
->>   src/rule.c     | 2 +-
->>   src/set_elem.c | 2 +-
->>   src/table.c    | 2 +-
->>   src/trace.c    | 6 +++---
->>   5 files changed, 7 insertions(+), 7 deletions(-)
->>
->> diff --git a/src/chain.c b/src/chain.c
->> index bfffbe0..cab64b5 100644
->> --- a/src/chain.c
->> +++ b/src/chain.c
->> @@ -260,7 +260,7 @@ EXPORT_SYMBOL_ALIAS(nftnl_chain_set_u8, nft_chai=
-n_attr_set_u8);
->>  =20
->>   int nftnl_chain_set_str(struct nftnl_chain *c, uint16_t attr, cons=
-t char *str)
->>   {
->> -	return nftnl_chain_set_data(c, attr, str, strlen(str));
->> +	return nftnl_chain_set_data(c, attr, str, strlen(str) + 1);
->>   }
->>   EXPORT_SYMBOL_ALIAS(nftnl_chain_set_str, nft_chain_attr_set_str);
->>  =20
->> diff --git a/src/rule.c b/src/rule.c
->> index c87fea7..2b23c8e 100644
->> --- a/src/rule.c
->> +++ b/src/rule.c
->> @@ -198,7 +198,7 @@ EXPORT_SYMBOL_ALIAS(nftnl_rule_set_u64, nft_rule=
-_attr_set_u64);
->>  =20
->>   int nftnl_rule_set_str(struct nftnl_rule *r, uint16_t attr, const =
-char *str)
->>   {
->> -	return nftnl_rule_set_data(r, attr, str, strlen(str));
->> +	return nftnl_rule_set_data(r, attr, str, strlen(str) + 1);
->>   }
->>   EXPORT_SYMBOL_ALIAS(nftnl_rule_set_str, nft_rule_attr_set_str);
->>  =20
->> diff --git a/src/set_elem.c b/src/set_elem.c
->> index 00b7327..40b5bfe 100644
->> --- a/src/set_elem.c
->> +++ b/src/set_elem.c
->> @@ -149,7 +149,7 @@ EXPORT_SYMBOL_ALIAS(nftnl_set_elem_set_u64, nft_=
-set_elem_attr_set_u64);
->>  =20
->>   int nftnl_set_elem_set_str(struct nftnl_set_elem *s, uint16_t attr=
-, const char *str)
->>   {
->> -	return nftnl_set_elem_set(s, attr, str, strlen(str));
->> +	return nftnl_set_elem_set(s, attr, str, strlen(str) + 1);
->>   }
->>   EXPORT_SYMBOL_ALIAS(nftnl_set_elem_set_str, nft_set_elem_attr_set_=
-str);
->>  =20
->> diff --git a/src/table.c b/src/table.c
->> index 32d119f..966b923 100644
->> --- a/src/table.c
->> +++ b/src/table.c
->> @@ -131,7 +131,7 @@ EXPORT_SYMBOL_ALIAS(nftnl_table_set_u8, nft_tabl=
-e_attr_set_u8);
->>  =20
->>   int nftnl_table_set_str(struct nftnl_table *t, uint16_t attr, cons=
-t char *str)
->>   {
->> -	return nftnl_table_set_data(t, attr, str, 0);
->> +	return nftnl_table_set_data(t, attr, str, strlen(str) + 1);
->>   }
->>   EXPORT_SYMBOL_ALIAS(nftnl_table_set_str, nft_table_attr_set_str);
->>  =20
->> diff --git a/src/trace.c b/src/trace.c
->> index d8f561d..1a50390 100644
->> --- a/src/trace.c
->> +++ b/src/trace.c
->> @@ -165,13 +165,13 @@ const void *nftnl_trace_get_data(const struct =
-nftnl_trace *trace,
->>   		*data_len =3D sizeof(uint32_t);
->>   		return &trace->type;
->>   	case NFTNL_TRACE_CHAIN:
->> -		*data_len =3D strlen(trace->chain);
->> +		*data_len =3D strlen(trace->chain) + 1;
->>   		return trace->chain;
->>   	case NFTNL_TRACE_TABLE:
->> -		*data_len =3D strlen(trace->table);
->> +		*data_len =3D strlen(trace->table) + 1;
->>   		return trace->table;
->>   	case NFTNL_TRACE_JUMP_TARGET:
->> -		*data_len =3D strlen(trace->jump_target);
->> +		*data_len =3D strlen(trace->jump_target) + 1;
->>   		return trace->jump_target;
->>   	case NFTNL_TRACE_TRANSPORT_HEADER:
->>   		*data_len =3D trace->th.len;
-> Are you really sure we need this chunk too?
-Yes, I think the user would expect that 'data_len' means data length=20
-instead of data length minus one.
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ include/net/netfilter/nf_conntrack.h |  1 +
+ net/netfilter/nf_conntrack_core.c    | 95 ++++++++++++++++++------------------
+ 2 files changed, 48 insertions(+), 48 deletions(-)
 
-When checking other getters I realized that in most cases we keep the=20
-parameter 'data_len' unset when the user ask for a string. Maybe we can=
-=20
-fix these behavior, I think it make more sense if our getters always=20
-return the data length instead of keep an inconstant behavior.
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 5d3397f..2a5133e 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -301,6 +301,7 @@ void nf_ct_tmpl_free(struct nf_conn *tmpl);
+ 
+ #define NF_CT_STAT_INC(net, count)	  __this_cpu_inc((net)->ct.stat->count)
+ #define NF_CT_STAT_INC_ATOMIC(net, count) this_cpu_inc((net)->ct.stat->count)
++#define NF_CT_STAT_ADD_ATOMIC(net, count, v) this_cpu_add((net)->ct.stat->count, (v))
+ 
+ #define MODULE_ALIAS_NFCT_HELPER(helper) \
+         MODULE_ALIAS("nfct-helper-" helper)
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index e17d5c7..95f6da4 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -817,67 +817,66 @@ EXPORT_SYMBOL_GPL(nf_conntrack_tuple_taken);
+ 
+ /* There's a small race here where we may free a just-assured
+    connection.  Too bad: we're in trouble anyway. */
+-static noinline int early_drop(struct net *net, unsigned int _hash)
++static unsigned int early_drop_list(struct net *net,
++				    struct hlist_nulls_head *head)
+ {
+-	/* Use oldest entry, which is roughly LRU */
+ 	struct nf_conntrack_tuple_hash *h;
+-	struct nf_conn *tmp;
+ 	struct hlist_nulls_node *n;
+-	unsigned int i, hash, sequence;
+-	struct nf_conn *ct = NULL;
+-	spinlock_t *lockp;
+-	bool ret = false;
++	unsigned int drops = 0;
++	struct nf_conn *tmp;
+ 
+-	i = 0;
++	hlist_nulls_for_each_entry_rcu(h, n, head, hnnode) {
++		tmp = nf_ct_tuplehash_to_ctrack(h);
+ 
+-	local_bh_disable();
+-restart:
+-	sequence = read_seqcount_begin(&nf_conntrack_generation);
+-	for (; i < NF_CT_EVICTION_RANGE; i++) {
+-		hash = scale_hash(_hash++);
+-		lockp = &nf_conntrack_locks[hash % CONNTRACK_LOCKS];
+-		nf_conntrack_lock(lockp);
+-		if (read_seqcount_retry(&nf_conntrack_generation, sequence)) {
+-			spin_unlock(lockp);
+-			goto restart;
+-		}
+-		hlist_nulls_for_each_entry_rcu(h, n, &nf_conntrack_hash[hash],
+-					       hnnode) {
+-			tmp = nf_ct_tuplehash_to_ctrack(h);
+-
+-			if (test_bit(IPS_ASSURED_BIT, &tmp->status) ||
+-			    !net_eq(nf_ct_net(tmp), net) ||
+-			    nf_ct_is_dying(tmp))
+-				continue;
+-
+-			if (atomic_inc_not_zero(&tmp->ct_general.use)) {
+-				ct = tmp;
+-				break;
+-			}
+-		}
++		if (test_bit(IPS_ASSURED_BIT, &tmp->status) ||
++		    !net_eq(nf_ct_net(tmp), net) ||
++		    nf_ct_is_dying(tmp))
++			continue;
+ 
+-		spin_unlock(lockp);
+-		if (ct)
+-			break;
++		if (!atomic_inc_not_zero(&tmp->ct_general.use))
++			continue;
++
++		/* kill only if still in same netns -- might have moved due to
++		 * SLAB_DESTROY_BY_RCU rules.
++		 *
++		 * We steal the timer reference.  If that fails timer has
++		 * already fired or someone else deleted it. Just drop ref
++		 * and move to next entry.
++		 */
++		if (net_eq(nf_ct_net(tmp), net) &&
++		    nf_ct_is_confirmed(tmp) &&
++		    del_timer(&tmp->timeout) &&
++		    nf_ct_delete(tmp, 0, 0))
++			drops++;
++
++		nf_ct_put(tmp);
+ 	}
+ 
+-	local_bh_enable();
++	return drops;
++}
+ 
+-	if (!ct)
+-		return false;
++static noinline int early_drop(struct net *net, unsigned int _hash)
++{
++	unsigned int i;
+ 
+-	/* kill only if in same netns -- might have moved due to
+-	 * SLAB_DESTROY_BY_RCU rules
+-	 */
+-	if (net_eq(nf_ct_net(ct), net) && del_timer(&ct->timeout)) {
+-		if (nf_ct_delete(ct, 0, 0)) {
+-			NF_CT_STAT_INC_ATOMIC(net, early_drop);
+-			ret = true;
++	for (i = 0; i < NF_CT_EVICTION_RANGE; i++) {
++		struct hlist_nulls_head *ct_hash;
++		unsigned hash, sequence, drops;
++
++		do {
++			sequence = read_seqcount_begin(&nf_conntrack_generation);
++			hash = scale_hash(_hash++);
++			ct_hash = nf_conntrack_hash;
++		} while (read_seqcount_retry(&nf_conntrack_generation, sequence));
++
++		drops = early_drop_list(net, &ct_hash[hash]);
++		if (drops) {
++			NF_CT_STAT_ADD_ATOMIC(net, early_drop, drops);
++			return true;
+ 		}
+ 	}
+ 
+-	nf_ct_put(ct);
+-	return ret;
++	return false;
+ }
+ 
+ static struct nf_conn *
+-- 
+2.7.3
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
