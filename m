@@ -1,97 +1,46 @@
-From: Nick Vinson <nvinson234@gmail.com>
-Subject: Re: [PATCH 1/1] nft: configure.ac: Replace magic dblatex dep.
-Date: Sat, 2 Jul 2016 11:40:49 -0700
-Message-ID: <b75d6d02-3cc6-6058-4022-bde1e70a8aa8@gmail.com>
-References: <20160625162809.11877-1-nvinson234@gmail.com>
- <20160701141546.GA8164@salvia>
+From: "Liping Zhang" <zlpnobody@163.com>
+Subject: Re: [PATCH nf 1/3] netfilter: conntrack: fix race between
+ nf_conntrack proc read and hash resize
+Date: Sun, 3 Jul 2016 10:22:10 +0800 (CST)
+Message-ID: <3d7eb75e.22de.155ae9025a4.Coremail.zlpnobody@163.com>
+References: <1467457167-5363-1-git-send-email-zlpnobody@163.com>
+ <1467457167-5363-2-git-send-email-zlpnobody@163.com>
+ <20160702174612.GD24701@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="tt70wLTsDE6dPl0f6kOT4j6BtHu3Ekibo"
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=GBK
+Content-Transfer-Encoding: base64
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	"Liping Zhang" <liping.zhang@spreadtrum.com>
+To: "Florian Westphal" <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:33596 "EHLO
-	mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750800AbcGBSkv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 Jul 2016 14:40:51 -0400
-Received: by mail-pf0-f194.google.com with SMTP id c74so12769450pfb.0
-        for <netfilter-devel@vger.kernel.org>; Sat, 02 Jul 2016 11:40:51 -0700 (PDT)
-In-Reply-To: <20160701141546.GA8164@salvia>
+Received: from m13-148.163.com ([220.181.13.148]:59513 "EHLO m13-148.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751480AbcGCChq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 Jul 2016 22:37:46 -0400
+In-Reply-To: <20160702174612.GD24701@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---tt70wLTsDE6dPl0f6kOT4j6BtHu3Ekibo
-Content-Type: multipart/mixed; boundary="mbDn39qaroiSvrRtPvwbnKd07eJLQ6xiu"
-From: Nick Vinson <nvinson234@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-Message-ID: <b75d6d02-3cc6-6058-4022-bde1e70a8aa8@gmail.com>
-Subject: Re: [PATCH 1/1] nft: configure.ac: Replace magic dblatex dep.
-References: <20160625162809.11877-1-nvinson234@gmail.com>
- <20160701141546.GA8164@salvia>
-In-Reply-To: <20160701141546.GA8164@salvia>
-
---mbDn39qaroiSvrRtPvwbnKd07eJLQ6xiu
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
-
-I reversed the logic.  I'm also considering this thread closed.  The new
-thread can be found with the subject "[PATCH 1/1 rev.1] nft:
-configure.ac: Replace magic dblatex dep."  If anyone could direct any
-further questions or comments to that thread, it would be much appreciate=
-d.
-
-Thanks,
-Nicholas Vinson
-
-On 07/01/2016 07:15 AM, Pablo Neira Ayuso wrote:
-> On Sat, Jun 25, 2016 at 09:28:09AM -0700, Nicholas Vinson wrote:
->> Add a configure switch to enable and disable PDF document generation.
->> This switch is to replace the current method of automatically detectin=
-g
->> dblatex and building the PDF documentation when present.
->=20
-> I know I mentioned it was better to default this to yes on the
-> bugzilla report, but I noticed this will just break many existing
-> automated build infrastructure for everyone that have silently skipped
-> building this.
->=20
-> So could you reverse the logic? I'd suggest something like:
->=20
->         --enable-pdf-doc
->=20
-> so the PDF documentation building is disabled by default.
->=20
-> Thanks.
->=20
-
-
---mbDn39qaroiSvrRtPvwbnKd07eJLQ6xiu--
-
---tt70wLTsDE6dPl0f6kOT4j6BtHu3Ekibo
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJXeAqxAAoJEAQpRPZaa5gqo/IP/36e85WJQqbsdvjpt3AjldBJ
-M3h0+i/vtpUDLiHVkCvQTHm5unyFhHP3hGnqlM2qQMM4iUhiRlTzNRPdGiMHih+v
-OyZqy5rWK2VzEhN3/sh6fez7j+9Lh5rsNlp/6ULMTbA710ie5LJYoI1GzuvwStfY
-UqcD9zULv4EnpBUfY2IO/XG+M8X1VPJvWN8TNLFnZyB+FQHL3BxC67JZMJCP8IzW
-nyzELj5m2UC/WcuA1IZnBfaYZwXchkSXEp3JUrUCHdYpbKMajMJXtbHjCqrCxJwR
-xF4WcUC69b0780Z5pwzbKxHomia/x4JUEk/YKwWFuDVNGKWPr5a2UkM4JP0pXLSt
-q9dE1R6iI/b59z449PZE0G4TSdk9siEw6LiPblRBfsJoq2D5XC1DRZ5I1DqAruXI
-u7tw6ALiwqaPNn77uDY+DDaoTsZgdoBgxsoSsYv35AJoV1egsPjWyHP3FcQPxLDo
-M7a3UofveRJ9HgPIZ/g7bipQofuEROBfoYgekg94Ui7tG5URuzB3VfTE2W8mCiF2
-LPABAFzHBB94nmJD7nG9H76bNkE1fxChi9gmW9EIdKhz3aOTYGCrROaj3fcjxxOu
-uS5X1NVQV5R5Pb4adk2fmd/hzUZjJUFJlqpcfJX8zrcBicfllTEV4DAMBOp9bbvc
-lz7TzKJrKp6by8msy72b
-=4CHj
------END PGP SIGNATURE-----
-
---tt70wLTsDE6dPl0f6kOT4j6BtHu3Ekibo--
+Pkdvb2QgY2F0Y2gsIGJ1dCAuLi4KPgo+PiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9uZXQvbmV0Zmls
+dGVyL25mX2Nvbm50cmFja19jb3JlLmggYi9pbmNsdWRlL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRy
+YWNrX2NvcmUuaAo+PiBpbmRleCAzZTJmMzMyLi40ZjY0NTNhIDEwMDY0NAo+PiAtLS0gYS9pbmNs
+dWRlL25ldC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2NvcmUuaAo+PiArKysgYi9pbmNsdWRlL25l
+dC9uZXRmaWx0ZXIvbmZfY29ubnRyYWNrX2NvcmUuaAo+PiBAQCAtODIsNiArODIsNyBAQCBwcmlu
+dF90dXBsZShzdHJ1Y3Qgc2VxX2ZpbGUgKnMsIGNvbnN0IHN0cnVjdCBuZl9jb25udHJhY2tfdHVw
+bGUgKnR1cGxlLAo+PiAgI2RlZmluZSBDT05OVFJBQ0tfTE9DS1MgMTAyNAo+PiAgCj4+ICBleHRl
+cm4gc3RydWN0IGhsaXN0X251bGxzX2hlYWQgKm5mX2Nvbm50cmFja19oYXNoOwo+PiArZXh0ZXJu
+IHNlcWNvdW50X3QgbmZfY29ubnRyYWNrX2dlbmVyYXRpb247Cj4KPmluc3RlYWQgb2YgdGhpcyBh
+bmQgdGhlIHByb2xpZmVyYXRpb24gb2YgdGhpczoKPgo+PiArCWRvIHsKPj4gKwkJc2VxdWVuY2Ug
+PSByZWFkX3NlcWNvdW50X2JlZ2luKCZuZl9jb25udHJhY2tfZ2VuZXJhdGlvbik7Cj4+ICsJCXN0
+LT5odGFibGVfc2l6ZSA9IG5mX2Nvbm50cmFja19odGFibGVfc2l6ZTsKPj4gKwkJc3QtPmhhc2gg
+PSBuZl9jb25udHJhY2tfaGFzaDsKPj4gKwl9IHdoaWxlIChyZWFkX3NlcWNvdW50X3JldHJ5KCZu
+Zl9jb25udHJhY2tfZ2VuZXJhdGlvbiwgc2VxdWVuY2UpKTsKPj4gKwo+PiAgCXJldHVybiBjdF9n
+ZXRfaWR4KHNlcSwgKnBvcyk7Cj4+ICB9Cj4KPkkgdGhpbmsgaXQgbWlnaHQgYmUgYmV0dGVyIHRv
+IGRvIHNvbWV0aGluZyBsaWtlCj4KPi8qIG11c3QgYmUgY2FsbGVkIHdpdGggcmN1IHJlYWQgbG9j
+ayBoZWxkICovCj51bnNpZ25lZCBpbnQgbmZfY29ubnRyYWNrX2dldF9odChzdHJ1Y3QgaGxpc3Rf
+bnVsbHNfaGVhZCAqaCwKPgkJCSAgICAgICAgIHVuc2lnbmVkIGludCAqYnVja2V0cykKPnsKPglk
+byB7Cj4JCXMgPSByZWFkX3NlcSAuLi4KPgkJc2l6ZSA9IG5mX2Nvbm50cmFja19odGFibGVfc2l6
+ZTsKPgkJcHRyID0gbmZfY29ubnRyYWNrX2hhc2g7Cj4JfSB3aGlsZSAuLi4KPgo+CSpoID0gcHRy
+Owo+CSpidWNrZXRzID0gc2l6ZTsKPgo+CXJldHVybiBzOwoKQWdyZWUuCgpBbmQgSSBhbHNvIGZp
+bmQgdGhlcmUncyBubyBuZWVkIHRvIHVzZSBuZl9jb25udHJhY2tfZ2VuZXJhdGlvbiBpbiBteSBw
+YXRjaCAjMiBhbmQgIzMuCldpbGwgc2VuZCBWMiBsYXRlci4KClRoYW5rcw==
