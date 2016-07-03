@@ -1,29 +1,35 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH libnetfilter_queue] src: check result of malloc when
- creating queue
-Date: Sun, 3 Jul 2016 09:55:47 +0200
-Message-ID: <20160703075547.GA1916@breakpoint.cc>
-References: <1467531482-28941-1-git-send-email-lists@inliniac.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/1 rev. 1] nft: configure.ac: Replace magic dblatex dep.
+Date: Sun, 3 Jul 2016 10:58:43 +0200
+Message-ID: <20160703085843.GA8839@salvia>
+References: <20160702183420.18609-1-nvinson234@gmail.com>
+ <49591697-d895-7723-a20f-21b9712aed70@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Victor Julien <victor@inliniac.net>
-To: lists@inliniac.net
+Cc: netfilter-devel@vger.kernel.org
+To: Nick Vinson <nvinson234@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53423 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750849AbcGCHzx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Jul 2016 03:55:53 -0400
+Received: from mail.us.es ([193.147.175.20]:49975 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751429AbcGCI6x (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Jul 2016 04:58:53 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id AE33BE5A58
+	for <netfilter-devel@vger.kernel.org>; Sun,  3 Jul 2016 10:58:50 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 91AA39EBAE
+	for <netfilter-devel@vger.kernel.org>; Sun,  3 Jul 2016 10:58:50 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 9149AB505B
+	for <netfilter-devel@vger.kernel.org>; Sun,  3 Jul 2016 10:58:48 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1467531482-28941-1-git-send-email-lists@inliniac.net>
+In-Reply-To: <49591697-d895-7723-a20f-21b9712aed70@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-lists@inliniac.net <lists@inliniac.net> wrote:
->  	qh = malloc(sizeof(*qh));
-> +	if (!qh)
-> +		return NULL;
+On Sat, Jul 02, 2016 at 11:37:50AM -0700, Nick Vinson wrote:
+> The difference between this patch and the original one is that this
+> patch defaults pdf documentation generation to 'disabled' instead of
+> 'enabled'.
 
-Applied, thanks for spotting this.
-
+Thanks for explaining, I have applied this.
