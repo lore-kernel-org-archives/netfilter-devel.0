@@ -1,48 +1,142 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v5] xtables: Add an interval option for xtables lock wait
-Date: Sun, 3 Jul 2016 11:16:53 +0200
-Message-ID: <20160703091653.GA12350@salvia>
-References: <1466729046-3070-1-git-send-email-subashab@codeaurora.org>
- <20160701132216.GA3252@salvia>
- <384253a17bf0b4e253fc47a93588c51c@codeaurora.org>
+From: =?UTF-8?Q?Carlos_Falgueras_Garc=c3=ada?= <carlosfg@riseup.net>
+Subject: Re: [PATCH libnftnl] Fix string length calculations
+Date: Sun, 3 Jul 2016 12:13:18 +0200
+Message-ID: <5778E53E.60607@riseup.net>
+References: <20160701142247.GA8806@salvia>
+ <1467389503-27143-1-git-send-email-carlosfg@riseup.net>
+ <20160702065316.GA26375@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Liping Zhang <zlpnobody@gmail.com>
-To: subashab@codeaurora.org
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54807 "EHLO mail.us.es"
+Received: from mx1.riseup.net ([198.252.153.129]:55818 "EHLO mx1.riseup.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750955AbcGCJQ6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Jul 2016 05:16:58 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 95468E5A5C
-	for <netfilter-devel@vger.kernel.org>; Sun,  3 Jul 2016 11:16:56 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 858739EBA8
-	for <netfilter-devel@vger.kernel.org>; Sun,  3 Jul 2016 11:16:56 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 7AC6FAD6F
-	for <netfilter-devel@vger.kernel.org>; Sun,  3 Jul 2016 11:16:54 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <384253a17bf0b4e253fc47a93588c51c@codeaurora.org>
+	id S1751553AbcGCKNX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Jul 2016 06:13:23 -0400
+In-Reply-To: <20160702065316.GA26375@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jul 01, 2016 at 11:14:58AM -0600, subashab@codeaurora.org wrote:
-> >I'm attaching a patch that applies on top of this.
-> >
-> >That I can remember, you only needed to reduce the wait interval, not
-> >to make it ever larger, so I'm simplifying this so -W only takes
-> >microseconds.
-> >
-> >I have only included some missing error check in case -W is specified
-> >but -w is not.
-> >
-> >I can collapse this patch to yours, unless you have any concern.
-> 
-> Thanks Pablo. Sure, that is fine.
+On 02/07/16 08:54, Pablo Neira Ayuso wrote:
+> On Fri, Jul 01, 2016 at 06:11:43PM +0200, Carlos Falgueras Garc=EDa w=
+rote:
+>> These lengths must be one character longer to take account the null
+>> character
+> Please, place the change for src/set.c in this patch so I only need t=
+o
+> apply one patch.
 
-OK, I have applied this. Please give it another review and follow up
-in case there's some fallout.
+I will send it now.
 
-Thanks.
+> Another comment below.
+>
+>> Signed-off-by: Carlos Falgueras Garc=EDa <carlosfg@riseup.net>
+>> ---
+>>   src/chain.c    | 2 +-
+>>   src/rule.c     | 2 +-
+>>   src/set_elem.c | 2 +-
+>>   src/table.c    | 2 +-
+>>   src/trace.c    | 6 +++---
+>>   5 files changed, 7 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/src/chain.c b/src/chain.c
+>> index bfffbe0..cab64b5 100644
+>> --- a/src/chain.c
+>> +++ b/src/chain.c
+>> @@ -260,7 +260,7 @@ EXPORT_SYMBOL_ALIAS(nftnl_chain_set_u8, nft_chai=
+n_attr_set_u8);
+>>  =20
+>>   int nftnl_chain_set_str(struct nftnl_chain *c, uint16_t attr, cons=
+t char *str)
+>>   {
+>> -	return nftnl_chain_set_data(c, attr, str, strlen(str));
+>> +	return nftnl_chain_set_data(c, attr, str, strlen(str) + 1);
+>>   }
+>>   EXPORT_SYMBOL_ALIAS(nftnl_chain_set_str, nft_chain_attr_set_str);
+>>  =20
+>> diff --git a/src/rule.c b/src/rule.c
+>> index c87fea7..2b23c8e 100644
+>> --- a/src/rule.c
+>> +++ b/src/rule.c
+>> @@ -198,7 +198,7 @@ EXPORT_SYMBOL_ALIAS(nftnl_rule_set_u64, nft_rule=
+_attr_set_u64);
+>>  =20
+>>   int nftnl_rule_set_str(struct nftnl_rule *r, uint16_t attr, const =
+char *str)
+>>   {
+>> -	return nftnl_rule_set_data(r, attr, str, strlen(str));
+>> +	return nftnl_rule_set_data(r, attr, str, strlen(str) + 1);
+>>   }
+>>   EXPORT_SYMBOL_ALIAS(nftnl_rule_set_str, nft_rule_attr_set_str);
+>>  =20
+>> diff --git a/src/set_elem.c b/src/set_elem.c
+>> index 00b7327..40b5bfe 100644
+>> --- a/src/set_elem.c
+>> +++ b/src/set_elem.c
+>> @@ -149,7 +149,7 @@ EXPORT_SYMBOL_ALIAS(nftnl_set_elem_set_u64, nft_=
+set_elem_attr_set_u64);
+>>  =20
+>>   int nftnl_set_elem_set_str(struct nftnl_set_elem *s, uint16_t attr=
+, const char *str)
+>>   {
+>> -	return nftnl_set_elem_set(s, attr, str, strlen(str));
+>> +	return nftnl_set_elem_set(s, attr, str, strlen(str) + 1);
+>>   }
+>>   EXPORT_SYMBOL_ALIAS(nftnl_set_elem_set_str, nft_set_elem_attr_set_=
+str);
+>>  =20
+>> diff --git a/src/table.c b/src/table.c
+>> index 32d119f..966b923 100644
+>> --- a/src/table.c
+>> +++ b/src/table.c
+>> @@ -131,7 +131,7 @@ EXPORT_SYMBOL_ALIAS(nftnl_table_set_u8, nft_tabl=
+e_attr_set_u8);
+>>  =20
+>>   int nftnl_table_set_str(struct nftnl_table *t, uint16_t attr, cons=
+t char *str)
+>>   {
+>> -	return nftnl_table_set_data(t, attr, str, 0);
+>> +	return nftnl_table_set_data(t, attr, str, strlen(str) + 1);
+>>   }
+>>   EXPORT_SYMBOL_ALIAS(nftnl_table_set_str, nft_table_attr_set_str);
+>>  =20
+>> diff --git a/src/trace.c b/src/trace.c
+>> index d8f561d..1a50390 100644
+>> --- a/src/trace.c
+>> +++ b/src/trace.c
+>> @@ -165,13 +165,13 @@ const void *nftnl_trace_get_data(const struct =
+nftnl_trace *trace,
+>>   		*data_len =3D sizeof(uint32_t);
+>>   		return &trace->type;
+>>   	case NFTNL_TRACE_CHAIN:
+>> -		*data_len =3D strlen(trace->chain);
+>> +		*data_len =3D strlen(trace->chain) + 1;
+>>   		return trace->chain;
+>>   	case NFTNL_TRACE_TABLE:
+>> -		*data_len =3D strlen(trace->table);
+>> +		*data_len =3D strlen(trace->table) + 1;
+>>   		return trace->table;
+>>   	case NFTNL_TRACE_JUMP_TARGET:
+>> -		*data_len =3D strlen(trace->jump_target);
+>> +		*data_len =3D strlen(trace->jump_target) + 1;
+>>   		return trace->jump_target;
+>>   	case NFTNL_TRACE_TRANSPORT_HEADER:
+>>   		*data_len =3D trace->th.len;
+> Are you really sure we need this chunk too?
+Yes, I think the user would expect that 'data_len' means data length=20
+instead of data length minus one.
+
+When checking other getters I realized that in most cases we keep the=20
+parameter 'data_len' unset when the user ask for a string. Maybe we can=
+=20
+fix these behavior, I think it make more sense if our getters always=20
+return the data length instead of keep an inconstant behavior.
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
