@@ -1,161 +1,41 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -next] netfilter: conntrack: simplify early_drop
-Date: Sun,  3 Jul 2016 20:44:01 +0200
-Message-ID: <1467571441-26797-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Toby DiPasquale <toby@cbcg.net>
+Subject: [PATCH] fix off-by-one in DecodeQ931
+Date: Sun, 3 Jul 2016 19:01:01 +0000 (UTC)
+Message-ID: <577960db.564e370a.24a9.375a@mx.google.com>
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:53697 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752850AbcGCSno (ORCPT
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:34130 "EHLO
+	mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932068AbcGCTAp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Jul 2016 14:43:44 -0400
+	Sun, 3 Jul 2016 15:00:45 -0400
+Received: by mail-qk0-f195.google.com with SMTP id j2so30748525qkf.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 03 Jul 2016 12:00:45 -0700 (PDT)
+Date: Sun, 13 Jul 2016 14:59:00 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We don't need to acquire the bucket lock during early drop, we can
-use lockless traveral just like ____nf_conntrack_find.
-
-The timer deletion serves as synchronization point, if another cpu
-attempts to evict same entry, only one will succeed with timer deletion.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack.h |  1 +
- net/netfilter/nf_conntrack_core.c    | 95 ++++++++++++++++++------------------
- 2 files changed, 48 insertions(+), 48 deletions(-)
+ net/netfilter/nf_conntrack_h323_asn1.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 5d3397f..2a5133e 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -301,6 +301,7 @@ void nf_ct_tmpl_free(struct nf_conn *tmpl);
+diff --git a/net/netfilter/nf_conntrack_h323_asn1.c b/net/netfilter/nf_conntrack_h323_asn1.c
+index bcd5ed6..89b2e46 100644
+--- a/net/netfilter/nf_conntrack_h323_asn1.c
++++ b/net/netfilter/nf_conntrack_h323_asn1.c
+@@ -846,9 +846,10 @@ int DecodeQ931(unsigned char *buf, size_t sz, Q931 *q931)
+ 	sz -= len;
  
- #define NF_CT_STAT_INC(net, count)	  __this_cpu_inc((net)->ct.stat->count)
- #define NF_CT_STAT_INC_ATOMIC(net, count) this_cpu_inc((net)->ct.stat->count)
-+#define NF_CT_STAT_ADD_ATOMIC(net, count, v) this_cpu_add((net)->ct.stat->count, (v))
- 
- #define MODULE_ALIAS_NFCT_HELPER(helper) \
-         MODULE_ALIAS("nfct-helper-" helper)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index e17d5c7..95f6da4 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -817,67 +817,66 @@ EXPORT_SYMBOL_GPL(nf_conntrack_tuple_taken);
- 
- /* There's a small race here where we may free a just-assured
-    connection.  Too bad: we're in trouble anyway. */
--static noinline int early_drop(struct net *net, unsigned int _hash)
-+static unsigned int early_drop_list(struct net *net,
-+				    struct hlist_nulls_head *head)
- {
--	/* Use oldest entry, which is roughly LRU */
- 	struct nf_conntrack_tuple_hash *h;
--	struct nf_conn *tmp;
- 	struct hlist_nulls_node *n;
--	unsigned int i, hash, sequence;
--	struct nf_conn *ct = NULL;
--	spinlock_t *lockp;
--	bool ret = false;
-+	unsigned int drops = 0;
-+	struct nf_conn *tmp;
- 
--	i = 0;
-+	hlist_nulls_for_each_entry_rcu(h, n, head, hnnode) {
-+		tmp = nf_ct_tuplehash_to_ctrack(h);
- 
--	local_bh_disable();
--restart:
--	sequence = read_seqcount_begin(&nf_conntrack_generation);
--	for (; i < NF_CT_EVICTION_RANGE; i++) {
--		hash = scale_hash(_hash++);
--		lockp = &nf_conntrack_locks[hash % CONNTRACK_LOCKS];
--		nf_conntrack_lock(lockp);
--		if (read_seqcount_retry(&nf_conntrack_generation, sequence)) {
--			spin_unlock(lockp);
--			goto restart;
--		}
--		hlist_nulls_for_each_entry_rcu(h, n, &nf_conntrack_hash[hash],
--					       hnnode) {
--			tmp = nf_ct_tuplehash_to_ctrack(h);
--
--			if (test_bit(IPS_ASSURED_BIT, &tmp->status) ||
--			    !net_eq(nf_ct_net(tmp), net) ||
--			    nf_ct_is_dying(tmp))
--				continue;
--
--			if (atomic_inc_not_zero(&tmp->ct_general.use)) {
--				ct = tmp;
--				break;
--			}
--		}
-+		if (test_bit(IPS_ASSURED_BIT, &tmp->status) ||
-+		    !net_eq(nf_ct_net(tmp), net) ||
-+		    nf_ct_is_dying(tmp))
-+			continue;
- 
--		spin_unlock(lockp);
--		if (ct)
--			break;
-+		if (!atomic_inc_not_zero(&tmp->ct_general.use))
-+			continue;
-+
-+		/* kill only if still in same netns -- might have moved due to
-+		 * SLAB_DESTROY_BY_RCU rules.
-+		 *
-+		 * We steal the timer reference.  If that fails timer has
-+		 * already fired or someone else deleted it. Just drop ref
-+		 * and move to next entry.
-+		 */
-+		if (net_eq(nf_ct_net(tmp), net) &&
-+		    nf_ct_is_confirmed(tmp) &&
-+		    del_timer(&tmp->timeout) &&
-+		    nf_ct_delete(tmp, 0, 0))
-+			drops++;
-+
-+		nf_ct_put(tmp);
- 	}
- 
--	local_bh_enable();
-+	return drops;
-+}
- 
--	if (!ct)
--		return false;
-+static noinline int early_drop(struct net *net, unsigned int _hash)
-+{
-+	unsigned int i;
- 
--	/* kill only if in same netns -- might have moved due to
--	 * SLAB_DESTROY_BY_RCU rules
--	 */
--	if (net_eq(nf_ct_net(ct), net) && del_timer(&ct->timeout)) {
--		if (nf_ct_delete(ct, 0, 0)) {
--			NF_CT_STAT_INC_ATOMIC(net, early_drop);
--			ret = true;
-+	for (i = 0; i < NF_CT_EVICTION_RANGE; i++) {
-+		struct hlist_nulls_head *ct_hash;
-+		unsigned hash, sequence, drops;
-+
-+		do {
-+			sequence = read_seqcount_begin(&nf_conntrack_generation);
-+			hash = scale_hash(_hash++);
-+			ct_hash = nf_conntrack_hash;
-+		} while (read_seqcount_retry(&nf_conntrack_generation, sequence));
-+
-+		drops = early_drop_list(net, &ct_hash[hash]);
-+		if (drops) {
-+			NF_CT_STAT_ADD_ATOMIC(net, early_drop, drops);
-+			return true;
- 		}
- 	}
- 
--	nf_ct_put(ct);
--	return ret;
-+	return false;
- }
- 
- static struct nf_conn *
+ 	/* Message Type */
+-	if (sz < 1)
++	if (sz < 2)
+ 		return H323_ERROR_BOUND;
+ 	q931->MessageType = *p++;
++	sz--;
+ 	PRINT("MessageType = %02X\n", q931->MessageType);
+ 	if (*p & 0x80) {
+ 		p++;
 -- 
-2.7.3
+2.7.4
 
