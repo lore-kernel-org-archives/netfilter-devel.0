@@ -1,243 +1,38 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH V2,nf 1/3] netfilter: conntrack: fix race between nf_conntrack proc read and hash resize
-Date: Sun,  3 Jul 2016 13:18:43 +0800
-Message-ID: <1467523125-61877-2-git-send-email-zlpnobody@163.com>
-References: <1467523125-61877-1-git-send-email-zlpnobody@163.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: fw@strlen.de, netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: pablo@netfilter.org
+From: lists@inliniac.net
+Subject: [PATCH libnetfilter_queue] src: check result of malloc when creating queue
+Date: Sun,  3 Jul 2016 09:38:02 +0200
+Message-ID: <1467531482-28941-1-git-send-email-lists@inliniac.net>
+Cc: Victor Julien <victor@inliniac.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-13.163.com ([220.181.12.13]:46971 "EHLO m12-13.163.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750745AbcGCFUq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Jul 2016 01:20:46 -0400
-In-Reply-To: <1467523125-61877-1-git-send-email-zlpnobody@163.com>
+Received: from static-27.netfusion.at ([83.215.238.27]:54890 "EHLO
+	mail.inliniac.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750849AbcGCHsm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 3 Jul 2016 03:48:42 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: Liping Zhang <liping.zhang@spreadtrum.com>
+From: Victor Julien <victor@inliniac.net>
 
-When we do "cat /proc/net/nf_conntrack", and meanwhile resize the connt=
-rack
-hash table via /sys/module/nf_conntrack/parameters/hashsize, race will
-happen, because reader can observe a newly allocated hash but the old s=
-ize
-(or vice versa). So oops will happen like follows=EF=BC=9A
-
-  BUG: unable to handle kernel NULL pointer dereference at 000000000000=
-0017
-  IP: [<ffffffffa0418e21>] seq_print_acct+0x11/0x50 [nf_conntrack]
-  Call Trace:
-  [<ffffffffa0412f4e>] ? ct_seq_show+0x14e/0x340 [nf_conntrack]
-  [<ffffffff81261a1c>] seq_read+0x2cc/0x390
-  [<ffffffff812a8d62>] proc_reg_read+0x42/0x70
-  [<ffffffff8123bee7>] __vfs_read+0x37/0x130
-  [<ffffffff81347980>] ? security_file_permission+0xa0/0xc0
-  [<ffffffff8123cf75>] vfs_read+0x95/0x140
-  [<ffffffff8123e475>] SyS_read+0x55/0xc0
-  [<ffffffff817c2572>] entry_SYSCALL_64_fastpath+0x1a/0xa4
-
-It is very easy to reproduce this kernel crash.
-1. open one shell and input the following cmds:
-  while : ; do
-    echo $RANDOM > /sys/module/nf_conntrack/parameters/hashsize
-  done
-2. open more shells and input the following cmds:
-  while : ; do
-    cat /proc/net/nf_conntrack
-  done
-3. just wait a monent, oops will happen soon.
-
-The solution in this patch is based on Florian's Commit 5e3c61f98175
-("netfilter: conntrack: fix lookup race during hash resize"). And
-add a wrapper function nf_conntrack_get_ht to get hash and hsize
-suggested by Florian Westphal.
-
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+Signed-off-by: Victor Julien <victor@inliniac.net>
 ---
- V2: Add nf_conntrack_get_ht wrapper function. I think in ____nf_conntr=
-ack_find
-     and nf_conntrack_tuple_taken, we can also use nf_conntrack_get_ht =
-to simplify
-     the source code, but it is unrelated to this bug fix. So I'd rathe=
-r take
-     another patch to do this thing.
+ src/libnetfilter_queue.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
- include/net/netfilter/nf_conntrack_core.h             |  2 ++
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c | 14 ++++++++++-=
----
- net/netfilter/nf_conntrack_core.c                     | 17 +++++++++++=
-++++++
- net/netfilter/nf_conntrack_standalone.c               | 14 +++++++++--=
----
- 4 files changed, 38 insertions(+), 9 deletions(-)
+diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
+index 5fbde5b..211a8ba 100644
+--- a/src/libnetfilter_queue.c
++++ b/src/libnetfilter_queue.c
+@@ -536,6 +536,8 @@ struct nfq_q_handle *nfq_create_queue(struct nfq_handle *h,
+ 		return NULL;
+ 
+ 	qh = malloc(sizeof(*qh));
++	if (!qh)
++		return NULL;
+ 
+ 	memset(qh, 0, sizeof(*qh));
+ 	qh->h = h;
+-- 
+2.7.4
 
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/ne=
-tfilter/nf_conntrack_core.h
-index 3e2f332..79d7ac5 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -51,6 +51,8 @@ bool nf_ct_invert_tuple(struct nf_conntrack_tuple *in=
-verse,
- 			const struct nf_conntrack_l3proto *l3proto,
- 			const struct nf_conntrack_l4proto *l4proto);
-=20
-+void nf_conntrack_get_ht(struct hlist_nulls_head **hash, unsigned int =
-*hsize);
-+
- /* Find a connection corresponding to a tuple. */
- struct nf_conntrack_tuple_hash *
- nf_conntrack_find_get(struct net *net,
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c b/ne=
-t/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-index c6f3c40..6392371 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-@@ -26,6 +26,8 @@
-=20
- struct ct_iter_state {
- 	struct seq_net_private p;
-+	struct hlist_nulls_head *hash;
-+	unsigned int htable_size;
- 	unsigned int bucket;
- };
-=20
-@@ -35,10 +37,10 @@ static struct hlist_nulls_node *ct_get_first(struct=
- seq_file *seq)
- 	struct hlist_nulls_node *n;
-=20
- 	for (st->bucket =3D 0;
--	     st->bucket < nf_conntrack_htable_size;
-+	     st->bucket < st->htable_size;
- 	     st->bucket++) {
- 		n =3D rcu_dereference(
--			hlist_nulls_first_rcu(&nf_conntrack_hash[st->bucket]));
-+			hlist_nulls_first_rcu(&st->hash[st->bucket]));
- 		if (!is_a_nulls(n))
- 			return n;
- 	}
-@@ -53,11 +55,11 @@ static struct hlist_nulls_node *ct_get_next(struct =
-seq_file *seq,
- 	head =3D rcu_dereference(hlist_nulls_next_rcu(head));
- 	while (is_a_nulls(head)) {
- 		if (likely(get_nulls_value(head) =3D=3D st->bucket)) {
--			if (++st->bucket >=3D nf_conntrack_htable_size)
-+			if (++st->bucket >=3D st->htable_size)
- 				return NULL;
- 		}
- 		head =3D rcu_dereference(
--			hlist_nulls_first_rcu(&nf_conntrack_hash[st->bucket]));
-+			hlist_nulls_first_rcu(&st->hash[st->bucket]));
- 	}
- 	return head;
- }
-@@ -75,7 +77,11 @@ static struct hlist_nulls_node *ct_get_idx(struct se=
-q_file *seq, loff_t pos)
- static void *ct_seq_start(struct seq_file *seq, loff_t *pos)
- 	__acquires(RCU)
- {
-+	struct ct_iter_state *st =3D seq->private;
-+
- 	rcu_read_lock();
-+
-+	nf_conntrack_get_ht(&st->hash, &st->htable_size);
- 	return ct_get_idx(seq, *pos);
- }
-=20
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_connt=
-rack_core.c
-index f204274..2d2472b 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -466,6 +466,23 @@ nf_ct_key_equal(struct nf_conntrack_tuple_hash *h,
- 	       net_eq(net, nf_ct_net(ct));
- }
-=20
-+/* must be called with rcu read lock held */
-+void nf_conntrack_get_ht(struct hlist_nulls_head **hash, unsigned int =
-*hsize)
-+{
-+	struct hlist_nulls_head *hptr;
-+	unsigned int sequence, hsz;
-+
-+	do {
-+		sequence =3D read_seqcount_begin(&nf_conntrack_generation);
-+		hsz =3D nf_conntrack_htable_size;
-+		hptr =3D nf_conntrack_hash;
-+	} while (read_seqcount_retry(&nf_conntrack_generation, sequence));
-+
-+	*hash =3D hptr;
-+	*hsize =3D hsz;
-+}
-+EXPORT_SYMBOL_GPL(nf_conntrack_get_ht);
-+
- /*
-  * Warning :
-  * - Caller must take a reference on returned object
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf=
-_conntrack_standalone.c
-index c026c47..f430b2f 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -48,6 +48,8 @@ EXPORT_SYMBOL_GPL(print_tuple);
-=20
- struct ct_iter_state {
- 	struct seq_net_private p;
-+	struct hlist_nulls_head *hash;
-+	unsigned int htable_size;
- 	unsigned int bucket;
- 	u_int64_t time_now;
- };
-@@ -58,9 +60,10 @@ static struct hlist_nulls_node *ct_get_first(struct =
-seq_file *seq)
- 	struct hlist_nulls_node *n;
-=20
- 	for (st->bucket =3D 0;
--	     st->bucket < nf_conntrack_htable_size;
-+	     st->bucket < st->htable_size;
- 	     st->bucket++) {
--		n =3D rcu_dereference(hlist_nulls_first_rcu(&nf_conntrack_hash[st->b=
-ucket]));
-+		n =3D rcu_dereference(
-+			hlist_nulls_first_rcu(&st->hash[st->bucket]));
- 		if (!is_a_nulls(n))
- 			return n;
- 	}
-@@ -75,12 +78,11 @@ static struct hlist_nulls_node *ct_get_next(struct =
-seq_file *seq,
- 	head =3D rcu_dereference(hlist_nulls_next_rcu(head));
- 	while (is_a_nulls(head)) {
- 		if (likely(get_nulls_value(head) =3D=3D st->bucket)) {
--			if (++st->bucket >=3D nf_conntrack_htable_size)
-+			if (++st->bucket >=3D st->htable_size)
- 				return NULL;
- 		}
- 		head =3D rcu_dereference(
--				hlist_nulls_first_rcu(
--					&nf_conntrack_hash[st->bucket]));
-+			hlist_nulls_first_rcu(&st->hash[st->bucket]));
- 	}
- 	return head;
- }
-@@ -102,6 +104,8 @@ static void *ct_seq_start(struct seq_file *seq, lof=
-f_t *pos)
-=20
- 	st->time_now =3D ktime_get_real_ns();
- 	rcu_read_lock();
-+
-+	nf_conntrack_get_ht(&st->hash, &st->htable_size);
- 	return ct_get_idx(seq, *pos);
- }
-=20
---=20
-2.5.5
-
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
