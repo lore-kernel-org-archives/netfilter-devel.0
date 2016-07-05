@@ -1,67 +1,59 @@
-From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Subject: Re: [PATCH] netfilter: physdev: physdev-is-out should not work with
- OUTPUT chain
-Date: Tue, 5 Jul 2016 18:00:12 -0300
-Message-ID: <20160705210012.GA9599@localhost.localdomain>
-References: <1467723336-27953-1-git-send-email-liuhangbin@gmail.com>
+From: Vishwanath Pai <vpai@akamai.com>
+Subject: Re: [PATCH 2/3] netfilter: Create revision 2 of xt_hashlimit to
+ support higher pps rates
+Date: Tue, 5 Jul 2016 18:39:49 -0400
+Message-ID: <577C3735.2060207@akamai.com>
+References: <20160602001138.GB1644@akamai.com> <20160623111630.GA2717@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Hangbin Liu <liuhangbin@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	johunt@akamai.com, netdev@vger.kernel.org, pai.vishwain@gmail.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42476 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751880AbcGEVAQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Jul 2016 17:00:16 -0400
-Content-Disposition: inline
-In-Reply-To: <1467723336-27953-1-git-send-email-liuhangbin@gmail.com>
+Received: from prod-mail-xrelay07.akamai.com ([23.79.238.175]:25162 "EHLO
+	prod-mail-xrelay07.akamai.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750992AbcGEWju (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Jul 2016 18:39:50 -0400
+In-Reply-To: <20160623111630.GA2717@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jul 05, 2016 at 08:55:36PM +0800, Hangbin Liu wrote:
-> physdev_mt() will check skb->nf_bridge first, which was alloced in
-> br_nf_pre_routing. So if we want to use --physdev-out and physdev-is-out,
-> we need to match it in FORWARD or POSTROUTING chain. physdev_mt_check()
-> only checked physdev-out and missed physdev-is-out. Fix it and update the
-> debug message to make it clearer.
+On 06/23/2016 07:16 AM, Pablo Neira Ayuso wrote:
+> On Wed, Jun 01, 2016 at 08:11:38PM -0400, Vishwanath Pai wrote:
+>> +static void
+>> +cfg_copy(struct hashlimit_cfg2 *to, void *from, int revision)
+>> +{
+>> +	if (revision == 1) {
+>> +		struct hashlimit_cfg1 *cfg = (struct hashlimit_cfg1 *)from;
+>> +
+>> +		to->mode = cfg->mode;
+>> +		to->avg = cfg->avg;
+>> +		to->burst = cfg->burst;
+>> +		to->size = cfg->size;
+>> +		to->max = cfg->max;
+>> +		to->gc_interval = cfg->gc_interval;
+>> +		to->expire = cfg->expire;
+>> +		to->srcmask = cfg->srcmask;
+>> +		to->dstmask = cfg->dstmask;
+>> +	} else if (revision == 2) {
+>> +		memcpy(to, from, sizeof(struct hashlimit_cfg2));
+>> +	} else {
+>> +		BUG();
 > 
-> Signed-off-by: Hangbin Liu <liuhangbin@gmail.com>
+> BUG here is probably too much, this halts the system. I can see we
+> only use this somewhere else in this code. Instead, I'd suggest you
+> propagate an error back to userspace if this ever happen.
+> 
+> I would like to see if this spots any problem with our test
+> infrastructure under iptables/.
+> 
+> Thanks.
+> 
 
-Reviewed-by: Marcelo R Leitner <marcelo.leitner@gmail.com>
-
-> ---
->  net/netfilter/xt_physdev.c | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
-> index 1caaccb..e5f1898 100644
-> --- a/net/netfilter/xt_physdev.c
-> +++ b/net/netfilter/xt_physdev.c
-> @@ -102,14 +102,14 @@ static int physdev_mt_check(const struct xt_mtchk_param *par)
->  	if (!(info->bitmask & XT_PHYSDEV_OP_MASK) ||
->  	    info->bitmask & ~XT_PHYSDEV_OP_MASK)
->  		return -EINVAL;
-> -	if (info->bitmask & XT_PHYSDEV_OP_OUT &&
-> +	if (info->bitmask & (XT_PHYSDEV_OP_OUT | XT_PHYSDEV_OP_ISOUT) &&
->  	    (!(info->bitmask & XT_PHYSDEV_OP_BRIDGED) ||
->  	     info->invert & XT_PHYSDEV_OP_BRIDGED) &&
->  	    par->hook_mask & ((1 << NF_INET_LOCAL_OUT) |
->  	    (1 << NF_INET_FORWARD) | (1 << NF_INET_POST_ROUTING))) {
-> -		pr_info("using --physdev-out in the OUTPUT, FORWARD and "
-> -			"POSTROUTING chains for non-bridged traffic is not "
-> -			"supported anymore.\n");
-> +		pr_info("using --physdev-out and --physdev-is-out are only"
-> +			"supported in the FORWARD and POSTROUTING chains with"
-> +			"bridged traffic.\n");
->  		if (par->hook_mask & (1 << NF_INET_LOCAL_OUT))
->  			return -EINVAL;
->  	}
-> -- 
-> 2.5.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+copy_cfg is only used internally by the kernel module and the value for
+revision is passed to the function by the module itself and not from
+userspace. I will remove BUG() and propagate the error back to the
+caller, will send a v2.
