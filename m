@@ -1,139 +1,76 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Multi-thread udp 4.7 regression, bisected to 71d8c47fc653
-Date: Tue, 5 Jul 2016 14:28:03 +0200
-Message-ID: <20160705122803.GA26862@salvia>
-References: <CAB9dFduvE0dKzZ8Dm5RVVrUAq1Auvj8t9xXAyARGyO4NmowvYw@mail.gmail.com>
- <20160627142238.GA10613@breakpoint.cc>
- <CAB9dFds=qY=Dk++p7qVX7a8aOOH4wn0rtL3m4poO6HMQPuPrnA@mail.gmail.com>
- <20160627153820.GB10613@breakpoint.cc>
- <CAB9dFdvQ4UyKNMmOSx+FePyR0_Q425XLJRb_k5h+4JOSkQkf3w@mail.gmail.com>
- <CAB9dFds7KQxihReHhW9CXJeY9+=4BPema3ZawVA89U45QL5uBw@mail.gmail.com>
+Subject: Re: [PATCH libnftnl] Fix string length calculations
+Date: Tue, 5 Jul 2016 14:31:25 +0200
+Message-ID: <20160705123125.GA27152@salvia>
+References: <20160701142247.GA8806@salvia>
+ <1467389503-27143-1-git-send-email-carlosfg@riseup.net>
+ <20160702065316.GA26375@salvia>
+ <5778E53E.60607@riseup.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="vtzGhvizbBRQ85DL"
-Cc: Florian Westphal <fw@strlen.de>, netdev <netdev@vger.kernel.org>,
-	regressions@leemhuis.info, netfilter-devel@vger.kernel.org
-To: Marc Dionne <marc.c.dionne@gmail.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36978 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37812 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932908AbcGEM2Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Jul 2016 08:28:16 -0400
+	id S1755046AbcGEMbb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Jul 2016 08:31:31 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 13A021F4B76
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jul 2016 14:28:12 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 52CA4209907
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jul 2016 14:31:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id F320BFAB51
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jul 2016 14:28:11 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 426899EBC2
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jul 2016 14:31:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 55FAE9EBB7
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jul 2016 14:28:08 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 36212FAB58
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jul 2016 14:31:27 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <CAB9dFds7KQxihReHhW9CXJeY9+=4BPema3ZawVA89U45QL5uBw@mail.gmail.com>
+In-Reply-To: <5778E53E.60607@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Sun, Jul 03, 2016 at 12:13:18PM +0200, Carlos Falgueras Garc=EDa wro=
+te:
+> >>diff --git a/src/trace.c b/src/trace.c
+> >>index d8f561d..1a50390 100644
+> >>--- a/src/trace.c
+> >>+++ b/src/trace.c
+> >>@@ -165,13 +165,13 @@ const void *nftnl_trace_get_data(const struct=
+ nftnl_trace *trace,
+> >>  		*data_len =3D sizeof(uint32_t);
+> >>  		return &trace->type;
+> >>  	case NFTNL_TRACE_CHAIN:
+> >>-		*data_len =3D strlen(trace->chain);
+> >>+		*data_len =3D strlen(trace->chain) + 1;
+> >>  		return trace->chain;
+> >>  	case NFTNL_TRACE_TABLE:
+> >>-		*data_len =3D strlen(trace->table);
+> >>+		*data_len =3D strlen(trace->table) + 1;
+> >>  		return trace->table;
+> >>  	case NFTNL_TRACE_JUMP_TARGET:
+> >>-		*data_len =3D strlen(trace->jump_target);
+> >>+		*data_len =3D strlen(trace->jump_target) + 1;
+> >>  		return trace->jump_target;
+> >>  	case NFTNL_TRACE_TRANSPORT_HEADER:
+> >>  		*data_len =3D trace->th.len;
+> >Are you really sure we need this chunk too?
+> Yes, I think the user would expect that 'data_len' means data length =
+instead
+> of data length minus one.
+>=20
+> When checking other getters I realized that in most cases we keep the
+> parameter 'data_len' unset when the user ask for a string. Maybe we c=
+an fix
+> these behavior, I think it make more sense if our getters always retu=
+rn the
+> data length instead of keep an inconstant behavior.
 
---vtzGhvizbBRQ85DL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+_get() for strings functions should retain the strlen() semantics.
 
-Hi,
-
-On Mon, Jul 04, 2016 at 09:35:28AM -0300, Marc Dionne wrote:
-> If there is no quick fix, seems like a revert should be considered:
-> - Looks to me like the commit attempts to fix a long standing bug
-> (exists at least as far back as 3.5,
-> https://bugzilla.kernel.org/show_bug.cgi?id=52991)
-> - The above bug has a simple workaround (at least for us) that we
-> implemented more than 3 years ago
-
-I guess the workaround consists of using a rule to NOTRACK this
-traffic. Or there is any custom patch that you've used on your side to
-resolve this?
-
-> - The commit reverts cleanly, restoring the original behaviour
-> - From that bug report, bind was one of the affected applications; I
-> would suspect that this regression is likely to affect bind as well
-> 
-> I'd be more than happy to test suggested fixes or give feedback with
-> debugging patches, etc.
-
-Could you monitor
-
-# conntrack -S
-
-or alternatively (if conntrack utility not available in your system):
-
-# cat /proc/net/stat/nf_conntrack
-
-?
-
-Please, watch for insert_failed and drop statistics.
-
-Are you observing any splat or just large packet drops? Could you
-compile your kernel with lockdep on and retest?
-
-Is there any chance I can get your test file that generates the UDP
-client threads to reproduce this here?
-
-I'm also attaching a patch to drop old ct that lost race path out from
-hashtable locks to avoid releasing the ct object while holding the
-locks, although I couldn't come up with any interaction so far
-triggering the condition that you're observing.
-
-Thanks.
-
---vtzGhvizbBRQ85DL
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="x.patch"
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 62c42e9..98a71f1 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -638,7 +638,8 @@ static void nf_ct_acct_merge(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
- /* Resolve race on insertion if this protocol allows this. */
- static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
- 			       enum ip_conntrack_info ctinfo,
--			       struct nf_conntrack_tuple_hash *h)
-+			       struct nf_conntrack_tuple_hash *h,
-+			       struct nf_conn **old_ct)
- {
- 	/* This is the conntrack entry already in hashes that won race. */
- 	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
-@@ -649,7 +650,7 @@ static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
- 	    !nf_ct_is_dying(ct) &&
- 	    atomic_inc_not_zero(&ct->ct_general.use)) {
- 		nf_ct_acct_merge(ct, ctinfo, (struct nf_conn *)skb->nfct);
--		nf_conntrack_put(skb->nfct);
-+		*old_ct = (struct nf_conn *)skb->nfct;
- 		/* Assign conntrack already in hashes to this skbuff. Don't
- 		 * modify skb->nfctinfo to ensure consistent stateful filtering.
- 		 */
-@@ -667,7 +668,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	const struct nf_conntrack_zone *zone;
- 	unsigned int hash, reply_hash;
- 	struct nf_conntrack_tuple_hash *h;
--	struct nf_conn *ct;
-+	struct nf_conn *ct, *old_ct = NULL;
- 	struct nf_conn_help *help;
- 	struct nf_conn_tstamp *tstamp;
- 	struct hlist_nulls_node *n;
-@@ -771,11 +772,14 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 
- out:
- 	nf_ct_add_to_dying_list(ct);
--	ret = nf_ct_resolve_clash(net, skb, ctinfo, h);
-+	ret = nf_ct_resolve_clash(net, skb, ctinfo, h, &old_ct);
- dying:
- 	nf_conntrack_double_unlock(hash, reply_hash);
- 	NF_CT_STAT_INC(net, insert_failed);
- 	local_bh_enable();
-+	if (old_ct)
-+		nf_ct_put(old_ct);
-+
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(__nf_conntrack_confirm);
-
---vtzGhvizbBRQ85DL--
+So I'd suggest you just fix the string setters.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
