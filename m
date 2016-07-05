@@ -1,42 +1,24 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] fix off-by-one in DecodeQ931
-Date: Tue, 5 Jul 2016 10:54:36 +0200
-Message-ID: <20160705085311.GA2332@salvia>
-References: <577960db.564e370a.24a9.375a@mx.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Toby DiPasquale <toby@cbcg.net>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next 0/2] netfilter: nat: simplify & convert bysrc hash to rhashtable
+Date: Tue,  5 Jul 2016 12:07:22 +0200
+Message-ID: <1467713244-8555-1-git-send-email-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58252 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754218AbcGEIyv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Jul 2016 04:54:51 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 20C95C22E9
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jul 2016 10:54:46 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 0F511FAB4F
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jul 2016 10:54:46 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id ADB659EBD4
-	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jul 2016 10:54:41 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <577960db.564e370a.24a9.375a@mx.google.com>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:56165 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751070AbcGEKHH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Jul 2016 06:07:07 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Tobias,
+As discussed during NFWS in Amsterdam this gets rid of the 'ct' backpointer
+in the nat extension structure.
 
-On Wed, Jul 13, 2016 at 02:59:00PM -0400, Toby DiPasquale wrote:
-> ---
->  net/netfilter/nf_conntrack_h323_asn1.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+We place nf_conn objects in the bysource table, then convert it to
+rhashtable to get parallel insert and automated sizing of the table.
 
-Please add a description to your patch and include your Signed-off-by.
+After these patches, we have one additional pointer in nf_conn
+(same size as before due to alignment), nat extension area is
+reduced to 8 byte instead of 32.
 
-For more info, have a look at:
-
-http://lxr.free-electrons.com/source/Documentation/SubmittingPatches
-
-Thanks.
