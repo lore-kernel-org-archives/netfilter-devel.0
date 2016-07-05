@@ -1,92 +1,67 @@
-From: Vishwanath Pai <vpai@akamai.com>
-Subject: Re: [PATCH iptables 3/3] libxt_hashlimit: iptables-restore does not
- work as expected with xt_hashlimit
-Date: Tue, 5 Jul 2016 16:13:06 -0400
-Message-ID: <577C14D2.3020005@akamai.com>
-References: <20160602001759.GF1644@akamai.com> <20160623102511.GA10493@salvia>
- <576D7AD2.6050107@akamai.com> <20160625093924.GC1289@salvia>
+From: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Subject: Re: [PATCH] netfilter: physdev: physdev-is-out should not work with
+ OUTPUT chain
+Date: Tue, 5 Jul 2016 18:00:12 -0300
+Message-ID: <20160705210012.GA9599@localhost.localdomain>
+References: <1467723336-27953-1-git-send-email-liuhangbin@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	johunt@akamai.com, netdev@vger.kernel.org, pai.vishwain@gmail.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20160625093924.GC1289@salvia>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Hangbin Liu <liuhangbin@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:42476 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751880AbcGEVAQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Jul 2016 17:00:16 -0400
+Content-Disposition: inline
+In-Reply-To: <1467723336-27953-1-git-send-email-liuhangbin@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 06/25/2016 05:39 AM, Pablo Neira Ayuso wrote:
-> I see, but I'm not convinced about this /proc rename feature.
+On Tue, Jul 05, 2016 at 08:55:36PM +0800, Hangbin Liu wrote:
+> physdev_mt() will check skb->nf_bridge first, which was alloced in
+> br_nf_pre_routing. So if we want to use --physdev-out and physdev-is-out,
+> we need to match it in FORWARD or POSTROUTING chain. physdev_mt_check()
+> only checked physdev-out and missed physdev-is-out. Fix it and update the
+> debug message to make it clearer.
 > 
-> I think the main point of this, as well as other entries in bugzilla
-> related to this, is ability to update an existing hashlimit state.
+> Signed-off-by: Hangbin Liu <liuhangbin@gmail.com>
+
+Reviewed-by: Marcelo R Leitner <marcelo.leitner@gmail.com>
+
+> ---
+>  net/netfilter/xt_physdev.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
 > 
-> So, I'm not proposing to rename --enhanced-procfs to something else,
-> I think that a different approach consisting on adding a new option
-> like --hashlimit-update that will update the internal state of an
-> existing hashlimit object is just fine for your usecase, right?
+> diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
+> index 1caaccb..e5f1898 100644
+> --- a/net/netfilter/xt_physdev.c
+> +++ b/net/netfilter/xt_physdev.c
+> @@ -102,14 +102,14 @@ static int physdev_mt_check(const struct xt_mtchk_param *par)
+>  	if (!(info->bitmask & XT_PHYSDEV_OP_MASK) ||
+>  	    info->bitmask & ~XT_PHYSDEV_OP_MASK)
+>  		return -EINVAL;
+> -	if (info->bitmask & XT_PHYSDEV_OP_OUT &&
+> +	if (info->bitmask & (XT_PHYSDEV_OP_OUT | XT_PHYSDEV_OP_ISOUT) &&
+>  	    (!(info->bitmask & XT_PHYSDEV_OP_BRIDGED) ||
+>  	     info->invert & XT_PHYSDEV_OP_BRIDGED) &&
+>  	    par->hook_mask & ((1 << NF_INET_LOCAL_OUT) |
+>  	    (1 << NF_INET_FORWARD) | (1 << NF_INET_POST_ROUTING))) {
+> -		pr_info("using --physdev-out in the OUTPUT, FORWARD and "
+> -			"POSTROUTING chains for non-bridged traffic is not "
+> -			"supported anymore.\n");
+> +		pr_info("using --physdev-out and --physdev-is-out are only"
+> +			"supported in the FORWARD and POSTROUTING chains with"
+> +			"bridged traffic.\n");
+>  		if (par->hook_mask & (1 << NF_INET_LOCAL_OUT))
+>  			return -EINVAL;
+>  	}
+> -- 
+> 2.5.5
 > 
->> > Other than that, we are doing exactly what you said, but creating a new
->> > entry in the hashtable instead of updating it. The previous entry will
->> > automatically be removed when the old rule is flushed/deleted.
-> What I'm missing is why we need this /proc rename at all.
-
-The reason we need the procfs rename feature is because it is broken at
-the moment. Let us assume someone adds two rules with the same name
-(intentionally or otherwise). We cannot prevent them from doing this or
-error out when someone does this because all of this is done in
-hashlimit_mt_check which is called for every iptables rule change, even
-an entirely different rule. I'll demonstrate two scenarios here. I have
-put debug printk statements which prints everytime hashlimit_mt_check is
-called.
-
-1) Add two rules with the same name but in different chains
-
-$ iptables -A chain1 -m hashlimit --hashlimit-above 200/sec \
-  --hashlimit-mode srcip --hashlimit-name hashlimit1 -j DROP
-
-$ dmesg -c
-[  103.965578] hashlimit_mt_check for rule hashlimit1
-
-
-$ iptables -A chain2 -m hashlimit --hashlimit-above 300/sec \
-   --hashlimit-mode srcip --hashlimit-name hashlimit1 -j DROP
-
-$ dmesg -c
-[  114.613758] hashlimit_mt_check for rule hashlimit1
-[  114.621360] hashlimit_mt_check for rule hashlimit1
-[  114.627411] hashlimit_mt_destroy on hashlimit1
-
-2) Replace an iptables rule with iptables-restore
-
-$ iptables -A chain1 -m hashlimit --hashlimit-above 200/sec \
-  --hashlimit-mode srcip --hashlimit-name hashlimit1 -j DROP
-
-$ iptables-save > /tmp/hashlimit
-
-$ vi /tmp/hashlimit (edit 200/s to 300/s)
-
-$ iptables-restore < /tmp/hashlimit
-
-$ dmesg -c
-[ 1585.411093] hashlimit_mt_check for rule hashlimit1
-[ 1585.418948] hashlimit_mt_destroy on hashlimit1
-
-In case 1 there exists two rules with the same name but we cannot have
-procfs files for both of the rules since they have to exist in the same
-directory. In case 2 there will be only one rule but there is a small
-window where two rules with same name exist. We cannot differentiate
-this from case 1. In both the cases we get the call for
-hashlimit_mt_check for the new rule before the old rule is deleted.
-
-Without the rename feature I do not know how to correctly handle the
-scenario where two rules with different parameters but the same name exist.
-
-I believe the rest of the patch handles the --hashlimit-update feature
-you mentioned, but instead of updating an existing object it creates a
-new one and the old object is deleted by the call to destroy. The
-hashtable match function is modified to include all parameters of the
-object and not just the name so that we can reuse objects that have the
-exact same features.
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
