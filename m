@@ -1,306 +1,139 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 2/6] netfilter: nat: convert nat bysrc hash to rhashtable
-Date: Tue,  5 Jul 2016 12:07:24 +0200
-Message-ID: <1467713244-8555-3-git-send-email-fw@strlen.de>
-References: <1467713244-8555-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Multi-thread udp 4.7 regression, bisected to 71d8c47fc653
+Date: Tue, 5 Jul 2016 14:28:03 +0200
+Message-ID: <20160705122803.GA26862@salvia>
+References: <CAB9dFduvE0dKzZ8Dm5RVVrUAq1Auvj8t9xXAyARGyO4NmowvYw@mail.gmail.com>
+ <20160627142238.GA10613@breakpoint.cc>
+ <CAB9dFds=qY=Dk++p7qVX7a8aOOH4wn0rtL3m4poO6HMQPuPrnA@mail.gmail.com>
+ <20160627153820.GB10613@breakpoint.cc>
+ <CAB9dFdvQ4UyKNMmOSx+FePyR0_Q425XLJRb_k5h+4JOSkQkf3w@mail.gmail.com>
+ <CAB9dFds7KQxihReHhW9CXJeY9+=4BPema3ZawVA89U45QL5uBw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="vtzGhvizbBRQ85DL"
+Cc: Florian Westphal <fw@strlen.de>, netdev <netdev@vger.kernel.org>,
+	regressions@leemhuis.info, netfilter-devel@vger.kernel.org
+To: Marc Dionne <marc.c.dionne@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:56168 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751427AbcGEKHN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Jul 2016 06:07:13 -0400
-In-Reply-To: <1467713244-8555-1-git-send-email-fw@strlen.de>
+Received: from mail.us.es ([193.147.175.20]:36978 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932908AbcGEM2Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Jul 2016 08:28:16 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 13A021F4B76
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jul 2016 14:28:12 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id F320BFAB51
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jul 2016 14:28:11 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 55FAE9EBB7
+	for <netfilter-devel@vger.kernel.org>; Tue,  5 Jul 2016 14:28:08 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <CAB9dFds7KQxihReHhW9CXJeY9+=4BPema3ZawVA89U45QL5uBw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It did use a fixed-size bucket list plus single lock to protect add/del.
 
-Unlike the main conntrack table we only need to add and remove keys.
-Convert it to rhashtable to get table autosizing and per-bucket locking.
+--vtzGhvizbBRQ85DL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-The maximum number of entries is -- as before -- tied to the number of
-conntracks so we do not need another upperlimit.
+Hi,
 
-The change does not handle rhashtable_remove_fast error, only possible
-"error" is -ENOENT, and that is something that can happen legitimetely,
-e.g. because nat module was inserted at a later time and no src manip
-took place yet.
+On Mon, Jul 04, 2016 at 09:35:28AM -0300, Marc Dionne wrote:
+> If there is no quick fix, seems like a revert should be considered:
+> - Looks to me like the commit attempts to fix a long standing bug
+> (exists at least as far back as 3.5,
+> https://bugzilla.kernel.org/show_bug.cgi?id=52991)
+> - The above bug has a simple workaround (at least for us) that we
+> implemented more than 3 years ago
 
-Tested with http-client-benchmark + httpterm with DNAT and SNAT rules
-in place.
+I guess the workaround consists of using a rule to NOTRACK this
+traffic. Or there is any custom patch that you've used on your side to
+resolve this?
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_conntrack.h |   3 +-
- include/net/netfilter/nf_nat.h       |   1 +
- net/netfilter/nf_nat_core.c          | 127 +++++++++++++++++++----------------
- 3 files changed, 72 insertions(+), 59 deletions(-)
+> - The commit reverts cleanly, restoring the original behaviour
+> - From that bug report, bind was one of the affected applications; I
+> would suspect that this regression is likely to affect bind as well
+> 
+> I'd be more than happy to test suggested fixes or give feedback with
+> debugging patches, etc.
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 1d9e6c8..f8a8155 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -17,6 +17,7 @@
- #include <linux/bitops.h>
- #include <linux/compiler.h>
- #include <linux/atomic.h>
-+#include <linux/rhashtable.h>
- 
- #include <linux/netfilter/nf_conntrack_tcp.h>
- #include <linux/netfilter/nf_conntrack_dccp.h>
-@@ -118,7 +119,7 @@ struct nf_conn {
- 	struct nf_ct_ext *ext;
- 
- #if IS_ENABLED(CONFIG_NF_NAT)
--	struct hlist_node	nat_bysource;
-+	struct rhash_head	nat_bysource;
- #endif
- 	/* Storage reserved for other modules, must be the last member */
- 	union nf_conntrack_proto proto;
-diff --git a/include/net/netfilter/nf_nat.h b/include/net/netfilter/nf_nat.h
-index 02515f7..c327a43 100644
---- a/include/net/netfilter/nf_nat.h
-+++ b/include/net/netfilter/nf_nat.h
-@@ -1,5 +1,6 @@
- #ifndef _NF_NAT_H
- #define _NF_NAT_H
-+#include <linux/rhashtable.h>
- #include <linux/netfilter_ipv4.h>
- #include <linux/netfilter/nf_nat.h>
- #include <net/netfilter/nf_conntrack_tuple.h>
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index 6e7a253..3d97fa3 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -30,17 +30,19 @@
- #include <net/netfilter/nf_conntrack_zones.h>
- #include <linux/netfilter/nf_nat.h>
- 
--static DEFINE_SPINLOCK(nf_nat_lock);
--
- static DEFINE_MUTEX(nf_nat_proto_mutex);
- static const struct nf_nat_l3proto __rcu *nf_nat_l3protos[NFPROTO_NUMPROTO]
- 						__read_mostly;
- static const struct nf_nat_l4proto __rcu **nf_nat_l4protos[NFPROTO_NUMPROTO]
- 						__read_mostly;
- 
--static struct hlist_head *nf_nat_bysource __read_mostly;
--static unsigned int nf_nat_htable_size __read_mostly;
--static unsigned int nf_nat_hash_rnd __read_mostly;
-+struct nf_nat_conn_key {
-+	const struct net *net;
-+	const struct nf_conntrack_tuple *tuple;
-+	const struct nf_conntrack_zone *zone;
-+};
-+
-+static struct rhashtable nf_nat_bysource_table;
- 
- inline const struct nf_nat_l3proto *
- __nf_nat_l3proto_find(u8 family)
-@@ -119,19 +121,17 @@ int nf_xfrm_me_harder(struct net *net, struct sk_buff *skb, unsigned int family)
- EXPORT_SYMBOL(nf_xfrm_me_harder);
- #endif /* CONFIG_XFRM */
- 
--/* We keep an extra hash for each conntrack, for fast searching. */
--static inline unsigned int
--hash_by_src(const struct net *n, const struct nf_conntrack_tuple *tuple)
-+static u32 nf_nat_bysource_hash(const void *data, u32 len, u32 seed)
+Could you monitor
+
+# conntrack -S
+
+or alternatively (if conntrack utility not available in your system):
+
+# cat /proc/net/stat/nf_conntrack
+
+?
+
+Please, watch for insert_failed and drop statistics.
+
+Are you observing any splat or just large packet drops? Could you
+compile your kernel with lockdep on and retest?
+
+Is there any chance I can get your test file that generates the UDP
+client threads to reproduce this here?
+
+I'm also attaching a patch to drop old ct that lost race path out from
+hashtable locks to avoid releasing the ct object while holding the
+locks, although I couldn't come up with any interaction so far
+triggering the condition that you're observing.
+
+Thanks.
+
+--vtzGhvizbBRQ85DL
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="x.patch"
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 62c42e9..98a71f1 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -638,7 +638,8 @@ static void nf_ct_acct_merge(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+ /* Resolve race on insertion if this protocol allows this. */
+ static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
+ 			       enum ip_conntrack_info ctinfo,
+-			       struct nf_conntrack_tuple_hash *h)
++			       struct nf_conntrack_tuple_hash *h,
++			       struct nf_conn **old_ct)
  {
--	unsigned int hash;
--
--	get_random_once(&nf_nat_hash_rnd, sizeof(nf_nat_hash_rnd));
-+	const struct nf_conntrack_tuple *t;
-+	const struct nf_conn *ct = data;
+ 	/* This is the conntrack entry already in hashes that won race. */
+ 	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
+@@ -649,7 +650,7 @@ static int nf_ct_resolve_clash(struct net *net, struct sk_buff *skb,
+ 	    !nf_ct_is_dying(ct) &&
+ 	    atomic_inc_not_zero(&ct->ct_general.use)) {
+ 		nf_ct_acct_merge(ct, ctinfo, (struct nf_conn *)skb->nfct);
+-		nf_conntrack_put(skb->nfct);
++		*old_ct = (struct nf_conn *)skb->nfct;
+ 		/* Assign conntrack already in hashes to this skbuff. Don't
+ 		 * modify skb->nfctinfo to ensure consistent stateful filtering.
+ 		 */
+@@ -667,7 +668,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 	const struct nf_conntrack_zone *zone;
+ 	unsigned int hash, reply_hash;
+ 	struct nf_conntrack_tuple_hash *h;
+-	struct nf_conn *ct;
++	struct nf_conn *ct, *old_ct = NULL;
+ 	struct nf_conn_help *help;
+ 	struct nf_conn_tstamp *tstamp;
+ 	struct hlist_nulls_node *n;
+@@ -771,11 +772,14 @@ __nf_conntrack_confirm(struct sk_buff *skb)
  
-+	t = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
- 	/* Original src, to ensure we map it consistently if poss. */
--	hash = jhash2((u32 *)&tuple->src, sizeof(tuple->src) / sizeof(u32),
--		      tuple->dst.protonum ^ nf_nat_hash_rnd ^ net_hash_mix(n));
- 
--	return reciprocal_scale(hash, nf_nat_htable_size);
-+	seed ^= net_hash_mix(nf_ct_net(ct));
-+	return jhash2((const u32 *)&t->src, sizeof(t->src) / sizeof(u32),
-+		      t->dst.protonum ^ seed);
- }
- 
- /* Is this tuple already taken? (not by us) */
-@@ -187,6 +187,26 @@ same_src(const struct nf_conn *ct,
- 		t->src.u.all == tuple->src.u.all);
- }
- 
-+static int nf_nat_bysource_cmp(struct rhashtable_compare_arg *arg,
-+			       const void *obj)
-+{
-+	const struct nf_nat_conn_key *key = arg->key;
-+	const struct nf_conn *ct = obj;
+ out:
+ 	nf_ct_add_to_dying_list(ct);
+-	ret = nf_ct_resolve_clash(net, skb, ctinfo, h);
++	ret = nf_ct_resolve_clash(net, skb, ctinfo, h, &old_ct);
+ dying:
+ 	nf_conntrack_double_unlock(hash, reply_hash);
+ 	NF_CT_STAT_INC(net, insert_failed);
+ 	local_bh_enable();
++	if (old_ct)
++		nf_ct_put(old_ct);
 +
-+	return same_src(ct, key->tuple) &&
-+	       net_eq(nf_ct_net(ct), key->net) &&
-+	       nf_ct_zone_equal(ct, key->zone, IP_CT_DIR_ORIGINAL);
-+}
-+
-+static struct rhashtable_params nf_nat_bysource_params = {
-+	.head_offset = offsetof(struct nf_conn, nat_bysource),
-+	.obj_hashfn = nf_nat_bysource_hash,
-+	.obj_cmpfn = nf_nat_bysource_cmp,
-+	.nelem_hint = 256,
-+	.min_size = 1024,
-+	.nulls_base = (1U << RHT_BASE_SHIFT),
-+};
-+
- /* Only called for SRC manip */
- static int
- find_appropriate_src(struct net *net,
-@@ -197,23 +217,23 @@ find_appropriate_src(struct net *net,
- 		     struct nf_conntrack_tuple *result,
- 		     const struct nf_nat_range *range)
- {
--	unsigned int h = hash_by_src(net, tuple);
- 	const struct nf_conn *ct;
-+	struct nf_nat_conn_key key = {
-+		.net = net,
-+		.tuple = tuple,
-+		.zone = zone
-+	};
- 
--	hlist_for_each_entry_rcu(ct, &nf_nat_bysource[h], nat_bysource) {
--		if (same_src(ct, tuple) &&
--		    net_eq(net, nf_ct_net(ct)) &&
--		    nf_ct_zone_equal(ct, zone, IP_CT_DIR_ORIGINAL)) {
--			/* Copy source part from reply tuple. */
--			nf_ct_invert_tuplepr(result,
--				       &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
--			result->dst = tuple->dst;
--
--			if (in_range(l3proto, l4proto, result, range))
--				return 1;
--		}
--	}
--	return 0;
-+	ct = rhashtable_lookup_fast(&nf_nat_bysource_table, &key,
-+				    nf_nat_bysource_params);
-+	if (!ct)
-+		return 0;
-+
-+	nf_ct_invert_tuplepr(result,
-+			     &ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-+	result->dst = tuple->dst;
-+
-+	return in_range(l3proto, l4proto, result, range);
- }
- 
- /* For [FUTURE] fragmentation handling, we want the least-used
-@@ -385,7 +405,6 @@ nf_nat_setup_info(struct nf_conn *ct,
- 		  const struct nf_nat_range *range,
- 		  enum nf_nat_manip_type maniptype)
- {
--	struct net *net = nf_ct_net(ct);
- 	struct nf_conntrack_tuple curr_tuple, new_tuple;
- 	struct nf_conn_nat *nat;
- 
-@@ -426,16 +445,13 @@ nf_nat_setup_info(struct nf_conn *ct,
- 	}
- 
- 	if (maniptype == NF_NAT_MANIP_SRC) {
--		unsigned int srchash;
--
--		srchash = hash_by_src(net,
--				      &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
--		spin_lock_bh(&nf_nat_lock);
--		/* nf_conntrack_alter_reply might re-allocate extension aera */
--		nat = nfct_nat(ct);
--		hlist_add_head_rcu(&ct->nat_bysource,
--				   &nf_nat_bysource[srchash]);
--		spin_unlock_bh(&nf_nat_lock);
-+		int err;
-+
-+		err = rhashtable_insert_fast(&nf_nat_bysource_table,
-+					     &ct->nat_bysource,
-+					     nf_nat_bysource_params);
-+		if (err)
-+			return NF_DROP;
- 	}
- 
- 	/* It's done. */
-@@ -536,6 +552,7 @@ static int nf_nat_proto_remove(struct nf_conn *i, void *data)
- static int nf_nat_proto_clean(struct nf_conn *ct, void *data)
- {
- 	struct nf_conn_nat *nat = nfct_nat(ct);
-+	int err;
- 
- 	if (nf_nat_proto_remove(ct, data))
- 		return 1;
-@@ -552,10 +569,10 @@ static int nf_nat_proto_clean(struct nf_conn *ct, void *data)
- 	if (!del_timer(&ct->timeout))
- 		return 1;
- 
--	spin_lock_bh(&nf_nat_lock);
--	hlist_del_rcu(&ct->nat_bysource);
- 	ct->status &= ~IPS_NAT_DONE_MASK;
--	spin_unlock_bh(&nf_nat_lock);
-+
-+	rhashtable_remove_fast(&nf_nat_bysource_table, &ct->nat_bysource,
-+			       nf_nat_bysource_params);
- 
- 	add_timer(&ct->timeout);
- 
-@@ -687,11 +704,8 @@ static void nf_nat_cleanup_conntrack(struct nf_conn *ct)
- 	if (nat == NULL)
- 		return;
- 
--	NF_CT_ASSERT(ct->status & IPS_SRC_NAT_DONE);
--
--	spin_lock_bh(&nf_nat_lock);
--	hlist_del_rcu(&ct->nat_bysource);
--	spin_unlock_bh(&nf_nat_lock);
-+	rhashtable_remove_fast(&nf_nat_bysource_table, &ct->nat_bysource,
-+			       nf_nat_bysource_params);
- }
- 
- static struct nf_ct_ext_type nat_extend __read_mostly = {
-@@ -826,16 +840,13 @@ static int __init nf_nat_init(void)
- {
- 	int ret;
- 
--	/* Leave them the same for the moment. */
--	nf_nat_htable_size = nf_conntrack_htable_size;
--
--	nf_nat_bysource = nf_ct_alloc_hashtable(&nf_nat_htable_size, 0);
--	if (!nf_nat_bysource)
--		return -ENOMEM;
-+	ret = rhashtable_init(&nf_nat_bysource_table, &nf_nat_bysource_params);
-+	if (ret)
-+		return ret;
- 
- 	ret = nf_ct_extend_register(&nat_extend);
- 	if (ret < 0) {
--		nf_ct_free_hashtable(nf_nat_bysource, nf_nat_htable_size);
-+		rhashtable_destroy(&nf_nat_bysource_table);
- 		printk(KERN_ERR "nf_nat_core: Unable to register extension\n");
- 		return ret;
- 	}
-@@ -859,7 +870,7 @@ static int __init nf_nat_init(void)
- 	return 0;
- 
-  cleanup_extend:
--	nf_ct_free_hashtable(nf_nat_bysource, nf_nat_htable_size);
-+	rhashtable_destroy(&nf_nat_bysource_table);
- 	nf_ct_extend_unregister(&nat_extend);
  	return ret;
  }
-@@ -877,8 +888,8 @@ static void __exit nf_nat_cleanup(void)
- #endif
- 	for (i = 0; i < NFPROTO_NUMPROTO; i++)
- 		kfree(nf_nat_l4protos[i]);
--	synchronize_net();
--	nf_ct_free_hashtable(nf_nat_bysource, nf_nat_htable_size);
-+
-+	rhashtable_destroy(&nf_nat_bysource_table);
- }
- 
- MODULE_LICENSE("GPL");
--- 
-2.7.3
+ EXPORT_SYMBOL_GPL(__nf_conntrack_confirm);
 
+--vtzGhvizbBRQ85DL--
