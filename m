@@ -1,45 +1,41 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 06/26] netfilter: conntrack: align nf_conn on cacheline
- boundary
-Date: Wed, 6 Jul 2016 17:01:25 +0200
-Message-ID: <20160706150125.GC2243@breakpoint.cc>
-References: <1467815048-2240-1-git-send-email-pablo@netfilter.org>
- <1467815048-2240-7-git-send-email-pablo@netfilter.org>
- <063D6719AE5E284EB5DD2968C1650D6D5F4F18C1@AcuExch.aculab.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/2 libnfntl] Fix nftnl_*_set_str
+Date: Wed, 6 Jul 2016 17:19:20 +0200
+Message-ID: <20160706151741.GA31894@salvia>
+References: <20160705123125.GA27152@salvia>
+ <1467738917-17597-1-git-send-email-carlosfg@riseup.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: 'Pablo Neira Ayuso' <pablo@netfilter.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"davem@davemloft.net" <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: David Laight <David.Laight@ACULAB.COM>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58642 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754174AbcGFPBf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Jul 2016 11:01:35 -0400
+Received: from mail.us.es ([193.147.175.20]:45644 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752169AbcGFPT3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 6 Jul 2016 11:19:29 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 7CB34190F2B
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Jul 2016 17:19:27 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 6B663FAB4E
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Jul 2016 17:19:27 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 546EFFAB4E
+	for <netfilter-devel@vger.kernel.org>; Wed,  6 Jul 2016 17:19:22 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D5F4F18C1@AcuExch.aculab.com>
+In-Reply-To: <1467738917-17597-1-git-send-email-carlosfg@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David Laight <David.Laight@ACULAB.COM> wrote:
-> From: Pablo Neira Ayuso
-> > Sent: 06 July 2016 15:24
-> > From: Florian Westphal <fw@strlen.de>
-> > 
-> > increases struct size by 32 bytes (288 -> 320), but it is the right thing,
-> > else any attempt to (re-)arrange nf_conn members by cacheline won't work.
-> ...
-> >  	nf_conntrack_cachep = kmem_cache_create("nf_conntrack",
-> >  						sizeof(struct nf_conn), 0,
-> > -						SLAB_DESTROY_BY_RCU, NULL);
-> > +						SLAB_DESTROY_BY_RCU | SLAB_HWCACHE_ALIGN, NULL);
-> 
-> What happens on systems with cache lines that are longer than 64 bytes?
+On Tue, Jul 05, 2016 at 07:15:16PM +0200, Carlos Falgueras Garc=EDa wro=
+te:
+> These lengths must be one character longer to take account the null
+> character
 
-Sorry, I don't have a secret decoder ring.
-
-HWCACHE_ALIGN is used for several other net slab caches, including
-skbuff, so why is this a problem here?
+Applied, thanks Carlos.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
