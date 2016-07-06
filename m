@@ -1,74 +1,40 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 03/26] netfilter: x_tables: fix possible ZERO_SIZE_PTR
- pointer dereferencing error.
-Date: Wed, 6 Jul 2016 21:11:28 +0300
-Message-ID: <46b1bb67-6261-c641-ce21-61c23beab191@cogentembedded.com>
+From: Stephen Hemminger <stephen@networkplumber.org>
+Subject: Re: [PATCH 01/26] bridge: netfilter: checkpatch data type fixes
+Date: Wed, 6 Jul 2016 14:32:48 -0700
+Message-ID: <20160706143248.3c5f6266@samsung9>
 References: <1467815048-2240-1-git-send-email-pablo@netfilter.org>
- <1467815048-2240-4-git-send-email-pablo@netfilter.org>
+	<1467815048-2240-2-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, davem@davemloft.net,
+	netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-lf0-f43.google.com ([209.85.215.43]:33452 "EHLO
-	mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755186AbcGFSLd (ORCPT
+Received: from mail-pf0-f179.google.com ([209.85.192.179]:33009 "EHLO
+	mail-pf0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755814AbcGFVcy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Jul 2016 14:11:33 -0400
-Received: by mail-lf0-f43.google.com with SMTP id f6so159898471lfg.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 06 Jul 2016 11:11:32 -0700 (PDT)
-In-Reply-To: <1467815048-2240-4-git-send-email-pablo@netfilter.org>
+	Wed, 6 Jul 2016 17:32:54 -0400
+Received: by mail-pf0-f179.google.com with SMTP id i123so83080075pfg.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 06 Jul 2016 14:32:53 -0700 (PDT)
+In-Reply-To: <1467815048-2240-2-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello.
+On Wed,  6 Jul 2016 16:23:43 +0200
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-On 07/06/2016 05:23 PM, Pablo Neira Ayuso wrote:
-
-> From: Xiubo Li <lixiubo@cmss.chinamobile.com>
->
-> Since we cannot make sure that the 'hook_mask' will always be none
-> zero here.
-
-    Non-zero, you mean?
-
-> If it equals to zero, the num_hooks will be zero too,
-> and then kmalloc() will return ZERO_SIZE_PTR, which is (void *)16.
->
-> Then the following error check will fails:
->   ops = kmalloc(sizeof(*ops) * num_hooks, GFP_KERNEL);
->   if (ops == NULL)
->           return ERR_PTR(-ENOMEM);
->
-> So this patch will fix this with just doing the zero check before
-> kmalloc() is called.
->
-> Maybe the case above will never happen here, but in theory.
->
-> Signed-off-by: Xiubo Li <lixiubo@cmss.chinamobile.com>
+> From: Tobin C Harding <me@tobin.cc>
+> 
+> checkpatch produces data type 'checks'.
+> 
+> This patch amends them by changing, for example:
+> uint8_t -> u8
+> 
+> Signed-off-by: Tobin C Harding <me@tobin.cc>
 > Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> ---
->  net/netfilter/x_tables.c | 3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-> index c69c892..8aff34e 100644
-> --- a/net/netfilter/x_tables.c
-> +++ b/net/netfilter/x_tables.c
-> @@ -1460,6 +1460,9 @@ xt_hook_ops_alloc(const struct xt_table *table, nf_hookfn *fn)
->  	uint8_t hooknum;
->  	struct nf_hook_ops *ops;
->
-> +	if (!num_hooks)
-> +		return ERR_PTR(-EINVAL);
-> +
->  	ops = kmalloc(sizeof(*ops) * num_hooks, GFP_KERNEL);
 
-    BTW, asking to be kcalloc() instead?
+Thanks, for fixing this. This is old.
 
-[...]
-
-MBR, Sergei
-
+Acked-by: Stephen Hemminger <stephen@networkplumber.org>
