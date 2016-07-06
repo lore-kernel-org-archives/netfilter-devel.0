@@ -1,27 +1,74 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/26] Netfilter updates for net-next
-Date: Wed, 06 Jul 2016 09:15:30 -0700 (PDT)
-Message-ID: <20160706.091530.9968542714401315.davem@davemloft.net>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH 03/26] netfilter: x_tables: fix possible ZERO_SIZE_PTR
+ pointer dereferencing error.
+Date: Wed, 6 Jul 2016 21:11:28 +0300
+Message-ID: <46b1bb67-6261-c641-ce21-61c23beab191@cogentembedded.com>
 References: <1467815048-2240-1-git-send-email-pablo@netfilter.org>
+ <1467815048-2240-4-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: pablo@netfilter.org
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([184.105.139.130]:58716 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753772AbcGFQPc (ORCPT
+Received: from mail-lf0-f43.google.com ([209.85.215.43]:33452 "EHLO
+	mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755186AbcGFSLd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Jul 2016 12:15:32 -0400
-In-Reply-To: <1467815048-2240-1-git-send-email-pablo@netfilter.org>
+	Wed, 6 Jul 2016 14:11:33 -0400
+Received: by mail-lf0-f43.google.com with SMTP id f6so159898471lfg.0
+        for <netfilter-devel@vger.kernel.org>; Wed, 06 Jul 2016 11:11:32 -0700 (PDT)
+In-Reply-To: <1467815048-2240-4-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Wed,  6 Jul 2016 16:23:42 +0200
+Hello.
 
-> The following patchset contains Netfilter updates for net-next,
-> they are:
+On 07/06/2016 05:23 PM, Pablo Neira Ayuso wrote:
 
-Pulled, thanks Pablo.
+> From: Xiubo Li <lixiubo@cmss.chinamobile.com>
+>
+> Since we cannot make sure that the 'hook_mask' will always be none
+> zero here.
+
+    Non-zero, you mean?
+
+> If it equals to zero, the num_hooks will be zero too,
+> and then kmalloc() will return ZERO_SIZE_PTR, which is (void *)16.
+>
+> Then the following error check will fails:
+>   ops = kmalloc(sizeof(*ops) * num_hooks, GFP_KERNEL);
+>   if (ops == NULL)
+>           return ERR_PTR(-ENOMEM);
+>
+> So this patch will fix this with just doing the zero check before
+> kmalloc() is called.
+>
+> Maybe the case above will never happen here, but in theory.
+>
+> Signed-off-by: Xiubo Li <lixiubo@cmss.chinamobile.com>
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> ---
+>  net/netfilter/x_tables.c | 3 +++
+>  1 file changed, 3 insertions(+)
+>
+> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+> index c69c892..8aff34e 100644
+> --- a/net/netfilter/x_tables.c
+> +++ b/net/netfilter/x_tables.c
+> @@ -1460,6 +1460,9 @@ xt_hook_ops_alloc(const struct xt_table *table, nf_hookfn *fn)
+>  	uint8_t hooknum;
+>  	struct nf_hook_ops *ops;
+>
+> +	if (!num_hooks)
+> +		return ERR_PTR(-EINVAL);
+> +
+>  	ops = kmalloc(sizeof(*ops) * num_hooks, GFP_KERNEL);
+
+    BTW, asking to be kcalloc() instead?
+
+[...]
+
+MBR, Sergei
+
