@@ -1,36 +1,45 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH 06/26] netfilter: conntrack: align nf_conn on cacheline
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 06/26] netfilter: conntrack: align nf_conn on cacheline
  boundary
-Date: Wed, 6 Jul 2016 14:45:29 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6D5F4F18C1@AcuExch.aculab.com>
+Date: Wed, 6 Jul 2016 17:01:25 +0200
+Message-ID: <20160706150125.GC2243@breakpoint.cc>
 References: <1467815048-2240-1-git-send-email-pablo@netfilter.org>
  <1467815048-2240-7-git-send-email-pablo@netfilter.org>
+ <063D6719AE5E284EB5DD2968C1650D6D5F4F18C1@AcuExch.aculab.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Cc: "davem@davemloft.net" <davem@davemloft.net>,
+Content-Type: text/plain; charset=us-ascii
+Cc: 'Pablo Neira Ayuso' <pablo@netfilter.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"davem@davemloft.net" <davem@davemloft.net>,
 	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: 'Pablo Neira Ayuso' <pablo@netfilter.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1467815048-2240-7-git-send-email-pablo@netfilter.org>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: David Laight <David.Laight@ACULAB.COM>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:58642 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754174AbcGFPBf (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 6 Jul 2016 11:01:35 -0400
+Content-Disposition: inline
+In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D5F4F18C1@AcuExch.aculab.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso
-> Sent: 06 July 2016 15:24
-> From: Florian Westphal <fw@strlen.de>
+David Laight <David.Laight@ACULAB.COM> wrote:
+> From: Pablo Neira Ayuso
+> > Sent: 06 July 2016 15:24
+> > From: Florian Westphal <fw@strlen.de>
+> > 
+> > increases struct size by 32 bytes (288 -> 320), but it is the right thing,
+> > else any attempt to (re-)arrange nf_conn members by cacheline won't work.
+> ...
+> >  	nf_conntrack_cachep = kmem_cache_create("nf_conntrack",
+> >  						sizeof(struct nf_conn), 0,
+> > -						SLAB_DESTROY_BY_RCU, NULL);
+> > +						SLAB_DESTROY_BY_RCU | SLAB_HWCACHE_ALIGN, NULL);
 > 
-> increases struct size by 32 bytes (288 -> 320), but it is the right thing,
-> else any attempt to (re-)arrange nf_conn members by cacheline won't work.
-...
->  	nf_conntrack_cachep = kmem_cache_create("nf_conntrack",
->  						sizeof(struct nf_conn), 0,
-> -						SLAB_DESTROY_BY_RCU, NULL);
-> +						SLAB_DESTROY_BY_RCU | SLAB_HWCACHE_ALIGN, NULL);
+> What happens on systems with cache lines that are longer than 64 bytes?
 
-What happens on systems with cache lines that are longer than 64 bytes?
-(I'm pretty sure some ppc systems have long cache lines.)
+Sorry, I don't have a secret decoder ring.
 
-	David
+HWCACHE_ALIGN is used for several other net slab caches, including
+skbuff, so why is this a problem here?
