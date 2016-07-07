@@ -1,44 +1,45 @@
 From: Simon Horman <horms@verge.net.au>
-Subject: [GIT PULL nf] Second Round of IPVS Fixes for v4.7
-Date: Thu,  7 Jul 2016 20:30:21 +0200
-Message-ID: <1467916222-15595-1-git-send-email-horms@verge.net.au>
+Subject: [GIT PULL nf-next] IPVS Updates for v4.8
+Date: Thu,  7 Jul 2016 20:40:39 +0200
+Message-ID: <1467916840-17005-1-git-send-email-horms@verge.net.au>
 Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org,
 	Wensong Zhang <wensong@linux-vs.org>,
 	Julian Anastasov <ja@ssi.bg>, Simon Horman <horms@verge.net.au>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:58384 "EHLO
+Received: from kirsty.vergenet.net ([202.4.237.240]:58535 "EHLO
 	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751062AbcGGSaf (ORCPT
+	with ESMTP id S1752702AbcGGSlT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Jul 2016 14:30:35 -0400
+	Thu, 7 Jul 2016 14:41:19 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi Pablo,
 
-please consider this IPVS fix for v4.7.
+please consider these enhancements to the IPVS. This alters the behaviour
+of the "least connection" schedulers such that pre-established connections
+are included in the active connection count. This avoids overloading
+servers when a large number of new connections arrive in a short space of
+time - e.g. when clients reconnect after a node or network failure.
 
-The fix from Quentin Armitage allows the backup sync daemon to
-be bound to a link-local mcast IPv6 address as is already the case
-for IPv4.
 
-The following changes since commit 62131e5d735226074cba53095545d76b491e5003:
+The following changes since commit c6ac37d8d8843fb1fdc34e4a2a41a4f027ab670c:
 
-  netfilter: nft_meta: set skb->nf_trace appropriately (2016-06-23 14:15:33 +0200)
+  netfilter: nf_log: fix error on write NONE to logger choice sysctl (2016-07-05 14:57:57 +0200)
 
 are available in the git repository at:
 
-  https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git tags/ipvs-fixes2-for-v4.7
+  https://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git tags/ipvs-for-v4.8
 
-for you to fetch changes up to 3777ed688fba82d0bd43f9fc1ebbc6abe788576d:
+for you to fetch changes up to be2cef49904b34dd5f75d96bbc8cd8341bab1bc0:
 
-  ipvs: fix bind to link-local mcast IPv6 address in backup (2016-07-07 20:21:32 +0200)
+  ipvs: count pre-established TCP states as active (2016-07-07 20:30:52 +0200)
 
 ----------------------------------------------------------------
-Quentin Armitage (1):
-      ipvs: fix bind to link-local mcast IPv6 address in backup
+Michal Kubecek (1):
+      ipvs: count pre-established TCP states as active
 
- net/netfilter/ipvs/ip_vs_sync.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ net/netfilter/ipvs/ip_vs_proto_tcp.c | 25 +++++++++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
