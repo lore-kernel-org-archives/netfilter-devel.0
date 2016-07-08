@@ -1,56 +1,54 @@
-From: Masashi Honma <masashi.honma@gmail.com>
+From: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: [RFC 5/7] net: Add allocation flag to rtnl_unicast()
-Date: Fri, 8 Jul 2016 12:15:35 +0900
-Message-ID: <577F1AD7.8040800@gmail.com>
+Date: Fri, 08 Jul 2016 06:00:31 +0200
+Message-ID: <1467950431.17638.6.camel@edumazet-glaptop3.roam.corp.google.com>
 References: <1467764916-4983-1-git-send-email-masashi.honma@gmail.com>
- <1467764916-4983-6-git-send-email-masashi.honma@gmail.com>
- <1467946591.1273.45.camel@edumazet-glaptop3.roam.corp.google.com>
+	 <1467764916-4983-6-git-send-email-masashi.honma@gmail.com>
+	 <1467946591.1273.45.camel@edumazet-glaptop3.roam.corp.google.com>
+	 <577F1AD7.8040800@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-wireless@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-audit@redhat.com, cluster-devel@redhat.com,
-	davem@davemloft.net, johannes@sipsolutions.net,
-	pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	dledford@redhat.com, sean.hefty@intel.com,
-	hal.rosenstock@gmail.com, paul@paul-moore.com, eparis@redhat.com,
-	zbr@ioremap.net, pshelar@nicira.com, ccaulfie@redhat.com,
-	teigland@redhat.com, bsingharora@gmail.com
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1467946591.1273.45.camel@edumazet-glaptop3.roam.corp.google.com>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-audit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, cluster-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org,
+	davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org,
+	pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org,
+	dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org,
+	hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, eparis-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org,
+	zbr-i6C2adt8DTjR7s880joybQ@public.gmane.org, pshelar-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org, ccaulfie-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org,
+	teigland-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, bsingharora-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: Masashi Honma <masashi.honma-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <577F1AD7.8040800-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On 2016=E5=B9=B407=E6=9C=8808=E6=97=A5 11:56, Eric Dumazet wrote:
->
-> Managing to mix GFP_ATOMIC and GFP_KERNEL almost randomly as you did =
-in
-> this patch is definitely not good.
->
-> Further more, RTNL is a mutex, held in control path, designed to allo=
-w
-> schedules and waiting for memory under pressure.
->
-> We do not want to encourage GFP_ATOMIC usage in control path.
->
-> Your patch series gives the wrong signal to developers.
->
->
->
+On Fri, 2016-07-08 at 12:15 +0900, Masashi Honma wrote:
+=
+> Thanks for comment.
+> 
+> I have selected GFP flags based on existing code.
+> 
+> I have selected GFP_ATOMIC in inet6_netconf_get_devconf() because
+> skb was allocated with GFP_ATOMIC.
 
-Thanks for comment.
+Point is : we should remove GFP_ATOMIC uses as much as we can.
 
-I have selected GFP flags based on existing code.
+Everytime we see one of them, we should think why it was added
+and if this is really needed.
 
-I have selected GFP_ATOMIC in inet6_netconf_get_devconf() because
-skb was allocated with GFP_ATOMIC.
+inet6_netconf_get_devconf() is a perfect example of one careless
+GFP_ATOMIC usage
 
-I have used GFP_KERNEL in inet6_rtm_getaddr() by same reason.
+https://patchwork.ozlabs.org/patch/646291/
 
- > I will send a patch against net/ipv4/devinet.c so that we remove
- > GFP_ATOMIC usage there.
 
-Thanks. I will modify my patch based on your new code.
+
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
