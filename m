@@ -1,47 +1,39 @@
-From: Eric Engestrom <eric.engestrom@imgtec.com>
-Subject: [PATCH 2/2] netfilter: add missing macro
-Date: Fri, 8 Jul 2016 17:29:11 +0100
-Message-ID: <20160708162911.18756-2-eric.engestrom@imgtec.com>
-References: <20160708162911.18756-1-eric.engestrom@imgtec.com>
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH v2 1/2] libxt_hashlimit: Prepare libxt_hashlimit.c for
+ revision 2
+Date: Fri, 8 Jul 2016 16:37:36 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6D5F4F3704@AcuExch.aculab.com>
+References: <20160707233419.GC5026@akamai.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Engestrom <eric@engestrom.ch>,
-	Eric Engestrom <eric.engestrom@imgtec.com>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	<netfilter-devel@vger.kernel.org>, <coreteam@netfilter.org>
-To: <linux-kernel@vger.kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160708162911.18756-1-eric.engestrom@imgtec.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Cc: "johunt@akamai.com" <johunt@akamai.com>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"coreteam@netfilter.org" <coreteam@netfilter.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"pai.vishwain@gmail.com" <pai.vishwain@gmail.com>
+To: 'Vishwanath Pai' <vpai@akamai.com>,
+	"pablo@netfilter.org" <pablo@netfilter.org>,
+	"kaber@trash.net" <kaber@trash.net>,
+	"kadlec@blackhole.kfki.hu" <kadlec@blackhole.kfki.hu>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160707233419.GC5026@akamai.com>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Signed-off-by: Eric Engestrom <eric.engestrom@imgtec.com>
----
+From: Vishwanath Pai
+> Sent: 08 July 2016 00:34
+> I am planning to add a revision 2 for the hashlimit xtables module to
+> support higher packets per second rates. This patch renames all the
+> functions and variables related to revision 1 by adding _v1 at the end of
+> the names.
 
-This can't compile without this macro=E2=80=A6 Is this header really us=
-ed by anyone?
-Should it be removed, to avoid bit-rot?
+Sounds backwards.
+If you need to change the default, and are changing all the callers,
+the just change it.
 
----
- include/uapi/linux/netfilter/xt_sctp.h | 2 ++
- 1 file changed, 2 insertions(+)
+If you think some users would still want 32bit limits, then you should
+(probably) use a _64 suffix for the new functions.
 
-diff --git a/include/uapi/linux/netfilter/xt_sctp.h b/include/uapi/linu=
-x/netfilter/xt_sctp.h
-index 58ffcfb..e4410db 100644
---- a/include/uapi/linux/netfilter/xt_sctp.h
-+++ b/include/uapi/linux/netfilter/xt_sctp.h
-@@ -3,6 +3,8 @@
-=20
- #include <linux/types.h>
-=20
-+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr)[0])
-+
- #define XT_SCTP_SRC_PORTS	        0x01
- #define XT_SCTP_DEST_PORTS	        0x02
- #define XT_SCTP_CHUNK_TYPES		0x04
---=20
-2.9.0
+	David
