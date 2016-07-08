@@ -1,46 +1,50 @@
-From: Vishwanath Pai <vpai@akamai.com>
-Subject: Re: [PATCH v2 1/2] libxt_hashlimit: Prepare libxt_hashlimit.c for
- revision 2
-Date: Fri, 8 Jul 2016 13:02:57 -0400
-Message-ID: <577FDCC1.4000509@akamai.com>
-References: <20160707233419.GC5026@akamai.com>
- <063D6719AE5E284EB5DD2968C1650D6D5F4F3704@AcuExch.aculab.com>
- <577FDACF.7020101@akamai.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH nf-next 3/3] netfilter: replace list_head with single
+ linked list
+Date: Sat, 9 Jul 2016 01:30:38 +0200
+Message-ID: <20160708233038.GA2067@breakpoint.cc>
+References: <1467321575-6107-1-git-send-email-aconole@bytheb.org>
+ <1467321575-6107-4-git-send-email-aconole@bytheb.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Cc: "johunt@akamai.com" <johunt@akamai.com>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"coreteam@netfilter.org" <coreteam@netfilter.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"pai.vishwain@gmail.com" <pai.vishwain@gmail.com>
-To: David Laight <David.Laight@ACULAB.COM>,
-	"pablo@netfilter.org" <pablo@netfilter.org>,
-	"kaber@trash.net" <kaber@trash.net>,
-	"kadlec@blackhole.kfki.hu" <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from prod-mail-xrelay05.akamai.com ([23.79.238.179]:27966 "EHLO
-	prod-mail-xrelay05.akamai.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755692AbcGHRDA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 Jul 2016 13:03:00 -0400
-In-Reply-To: <577FDACF.7020101@akamai.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Aaron Conole <aconole@bytheb.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1467321575-6107-4-git-send-email-aconole@bytheb.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 07/08/2016 12:54 PM, Vishwanath Pai wrote:
-> On 07/08/2016 12:37 PM, David Laight wrote:
->> If you think some users would still want 32bit limits, then you should
->> (probably) use a _64 suffix for the new functions.
->>
->> 	David
-> 
-> I am proposing a new revision for hashlimit that supports a higher rate
-> along with a few other changes/fixes (in separate patches). Hence the
-> prefix _v2 for the new functions.
-> 
-> - Vish
-> 
+Aaron Conole <aconole@bytheb.org> wrote:
+> --- a/net/netfilter/core.c
+> +++ b/net/netfilter/core
+[..]
+> +#define nf_entry_dereference(e) \
+> +	rcu_dereference_protected(e, lockdep_is_held(&nf_hook_mutex))
+>  
+> -static struct list_head *nf_find_hook_list(struct net *net,
+> -					   const struct nf_hook_ops *reg)
+> +static struct nf_hook_entry *nf_find_hook_list(struct net *net,
+> +					       const struct nf_hook_ops *reg)
+>  {
+> -	struct list_head *hook_list = NULL;
+> +	struct nf_hook_entry *hook_list = NULL;
+>  
+>  	if (reg->pf != NFPROTO_NETDEV)
+> -		hook_list = &net->nf.hooks[reg->pf][reg->hooknum];
+> +		hook_list = rcu_dereference(net->nf.hooks[reg->pf]
+> +					    [reg->hooknum]);
+>  	else if (reg->hooknum == NF_NETDEV_INGRESS) {
+>  #ifdef CONFIG_NETFILTER_INGRESS
+>  		if (reg->dev && dev_net(reg->dev) == net)
+> -			hook_list = &reg->dev->nf_hooks_ingress;
+> +			hook_list =
+> +				rcu_dereference(reg->dev->nf_hooks_ingress);
 
-I'm sorry _v1 for the old functions, the new functions (for rev2) don't
-have a suffix.
+Both of these should use nf_entry_dereference() to avoid the lockdep
+splat reported by kbuild robot:
+
+net/netfilter/core.c:75 suspicious rcu_dereference_check() usage!
+2 locks held by swapper/1:
+#0:  (rtnl_mutex){+.+.+.}, at: [<ffffffff81c2e567>] rtnl_lock+0x17/0x20
+#1:  (nf_hook_mutex){+.+...}, at: [<ffffffff81c58fcb>] nf_register_net_hook+0xcb/0x240
