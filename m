@@ -1,50 +1,41 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next 3/3] netfilter: replace list_head with single
- linked list
-Date: Sat, 9 Jul 2016 01:30:38 +0200
-Message-ID: <20160708233038.GA2067@breakpoint.cc>
-References: <1467321575-6107-1-git-send-email-aconole@bytheb.org>
- <1467321575-6107-4-git-send-email-aconole@bytheb.org>
+From: Masashi Honma <masashi.honma-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC 0/7] netlink: Add allocation flag to netlink_unicast()
+Date: Sat, 9 Jul 2016 12:52:16 +0900
+Message-ID: <578074F0.9030809@gmail.com>
+References: <1467764916-4983-1-git-send-email-masashi.honma@gmail.com>
+ <577DA3E1.6020103@gmail.com> <20160708160821.GA2048@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Aaron Conole <aconole@bytheb.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1467321575-6107-4-git-send-email-aconole@bytheb.org>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-audit-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, cluster-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org,
+	johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org, pablo-Cap9r6Oaw4JrovVCs/uTlw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org,
+	kadlec-K40Dz/62t/MgiyqX0sVFJYdd74u8MsAO@public.gmane.org, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org,
+	sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org,
+	paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org, eparis-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, zbr-i6C2adt8DTjR7s880joybQ@public.gmane.org,
+	pshelar-l0M0P4e3n4LQT0dZR+AlfA@public.gmane.org, ccaulfie-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, bsingharora-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: David Teigland <teigland-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20160708160821.GA2048-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Aaron Conole <aconole@bytheb.org> wrote:
-> --- a/net/netfilter/core.c
-> +++ b/net/netfilter/core
-[..]
-> +#define nf_entry_dereference(e) \
-> +	rcu_dereference_protected(e, lockdep_is_held(&nf_hook_mutex))
->  
-> -static struct list_head *nf_find_hook_list(struct net *net,
-> -					   const struct nf_hook_ops *reg)
-> +static struct nf_hook_entry *nf_find_hook_list(struct net *net,
-> +					       const struct nf_hook_ops *reg)
->  {
-> -	struct list_head *hook_list = NULL;
-> +	struct nf_hook_entry *hook_list = NULL;
->  
->  	if (reg->pf != NFPROTO_NETDEV)
-> -		hook_list = &net->nf.hooks[reg->pf][reg->hooknum];
-> +		hook_list = rcu_dereference(net->nf.hooks[reg->pf]
-> +					    [reg->hooknum]);
->  	else if (reg->hooknum == NF_NETDEV_INGRESS) {
->  #ifdef CONFIG_NETFILTER_INGRESS
->  		if (reg->dev && dev_net(reg->dev) == net)
-> -			hook_list = &reg->dev->nf_hooks_ingress;
-> +			hook_list =
-> +				rcu_dereference(reg->dev->nf_hooks_ingress);
+On 2016=E5=B9=B407=E6=9C=8809=E6=97=A5 01:08, David Teigland wrote:
+> On Thu, Jul 07, 2016 at 09:35:45AM +0900, Masashi Honma wrote:
+>> At the fs/dlm/netlink.c#dlm_timeout_warn(),
+>> prepare_data allocates buffer with GFP_NOFS
+>> and send_data() sends the buffer.
+>>
+>> But send_data() uses GFP_KERNEL or GFP_ATOMIC inside it.
+>> Should it be replaced by GFP_NOFS ?
+> That's old code that's never been used so it doesn't really matter.
+>
+I see. Thank you.
 
-Both of these should use nf_entry_dereference() to avoid the lockdep
-splat reported by kbuild robot:
-
-net/netfilter/core.c:75 suspicious rcu_dereference_check() usage!
-2 locks held by swapper/1:
-#0:  (rtnl_mutex){+.+.+.}, at: [<ffffffff81c2e567>] rtnl_lock+0x17/0x20
-#1:  (nf_hook_mutex){+.+...}, at: [<ffffffff81c58fcb>] nf_register_net_hook+0xcb/0x240
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireles=
+s" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
