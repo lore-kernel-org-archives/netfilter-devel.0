@@ -1,742 +1,1194 @@
 From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
-Subject: [PATCH nft v4 3/3] src: add xt compat support
-Date: Sat,  9 Jul 2016 12:24:54 +0200
-Message-ID: <20160709102454.2978-3-pablombg@gmail.com>
-References: <20160709102454.2978-1-pablombg@gmail.com>
-Cc: pablo@netfilter.org,
-	Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>,
-	"Pablo M . Bermudo Garay" <pablombg@gmail.com>
+Subject: [PATCH iptables] xtables-translate: fix multiple spaces issue
+Date: Sat,  9 Jul 2016 12:27:51 +0200
+Message-ID: <20160709102751.3792-1-pablombg@gmail.com>
+Cc: pablo@netfilter.org, "Pablo M. Bermudo Garay" <pablombg@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:36474 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751224AbcGIK1F (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35101 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751224AbcGIK3N (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 9 Jul 2016 06:27:05 -0400
-Received: by mail-wm0-f66.google.com with SMTP id x83so9725775wma.3
-        for <netfilter-devel@vger.kernel.org>; Sat, 09 Jul 2016 03:27:04 -0700 (PDT)
-In-Reply-To: <20160709102454.2978-1-pablombg@gmail.com>
+	Sat, 9 Jul 2016 06:29:13 -0400
+Received: by mail-wm0-f65.google.com with SMTP id k123so10863239wme.2
+        for <netfilter-devel@vger.kernel.org>; Sat, 09 Jul 2016 03:29:12 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira <pablo@netfilter.org>
+This patch fixes a multiple spaces issue. The problem arises when a rule
+set loaded through iptables-compat-restore is listed in nft.
 
-At compilation time, you have to pass this option.
-
-  # ./configure --with-xtables
-
-And libxtables needs to be installed in your system.
-
-This patch allows to list a ruleset containing xt extensions loaded
-through iptables-compat-restore tool.
-
-Example:
+Before this commit, two spaces were printed after every match
+translation:
 
 $ cat iptables-save
 *filter
 :INPUT ACCEPT [0:0]
-:FORWARD ACCEPT [0:0]
-:OUTPUT ACCEPT [0:0]
--A INPUT -p tcp -m multiport --dports 80,81 -j REJECT
+-A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p tcp -m multiport --dports 80:85 -m ttl --ttl-gt 5 -j ACCEPT
 COMMIT
 
 $ sudo iptables-compat-restore iptables-save
 
-$ sudo nft list chain filter INPUT
+$ sudo nft list ruleset
 table ip filter {
     chain INPUT {
         type filter hook input priority 0; policy accept;
-        ip protocol tcp tcp dport { 80,81} counter packets 0 bytes 0 reject
+        ct state related,established  counter packets 0 bytes 0 accept
+                                    ^^
+        ip protocol tcp tcp dport 80-85  ip ttl gt 5  counter packets 0 bytes 0 accept
+                                       ^^           ^^
     }
 }
 
-A translation of the extension is shown if this is available. In other
-case, match or target definition is preceded by a hash:
-
-$ sudo nft list chain mangle POSTROUTING
-table ip mangle {
-    chain POSTROUTING {
-        type filter hook postrouting priority -150; policy accept;
-        ip protocol tcp tcp dport 80 counter packets 0 bytes 0 # CLASSIFY set 20:10
-                                                              ^^^
-    }
-}
-
-If the whole ruleset is translatable, the users can (re)load it using
-"nft -f" and get nft native support for all their rules.
-
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
 ---
+ extensions/libip6t_ah.c      | 22 ++++++++------
+ extensions/libip6t_frag.c    | 33 ++++++++++++---------
+ extensions/libip6t_hbh.c     |  2 +-
+ extensions/libip6t_hl.c      |  2 +-
+ extensions/libip6t_mh.c      |  4 +--
+ extensions/libip6t_rt.c      | 13 +++++----
+ extensions/libipt_ah.c       |  4 +--
+ extensions/libipt_icmp.c     |  2 --
+ extensions/libipt_realm.c    |  6 ++--
+ extensions/libipt_ttl.c      |  2 +-
+ extensions/libxt_cgroup.c    |  4 +--
+ extensions/libxt_connmark.c  |  4 +--
+ extensions/libxt_conntrack.c | 68 +++++++++++++++++++++++++-------------------
+ extensions/libxt_cpu.c       |  2 +-
+ extensions/libxt_dccp.c      | 14 ++++-----
+ extensions/libxt_devgroup.c  | 10 ++++---
+ extensions/libxt_dscp.c      |  2 +-
+ extensions/libxt_ecn.c       |  8 +++---
+ extensions/libxt_esp.c       |  4 +--
+ extensions/libxt_helper.c    |  2 +-
+ extensions/libxt_ipcomp.c    |  2 +-
+ extensions/libxt_iprange.c   | 38 ++++++++++++++++---------
+ extensions/libxt_length.c    |  4 +--
+ extensions/libxt_limit.c     |  6 ++--
+ extensions/libxt_mac.c       |  1 -
+ extensions/libxt_mark.c      |  4 +--
+ extensions/libxt_multiport.c | 20 ++++++-------
+ extensions/libxt_owner.c     |  8 +++---
+ extensions/libxt_pkttype.c   |  2 +-
+ extensions/libxt_sctp.c      | 10 ++++---
+ extensions/libxt_tcp.c       | 14 +++++----
+ extensions/libxt_udp.c       | 10 ++++---
+ iptables/xtables-translate.c |  4 +++
+ 33 files changed, 185 insertions(+), 146 deletions(-)
 
-New version of the original work made by Arturo and Pablo.
-
-Changes in v4:
-  - Remove unused code.
-
-Work in progress: 
-  - Fix extra space between matches.
-  - Fix escaped quotation marks issue.
-  - Mark rules using xt compat support.
-
- configure.ac                               |  13 +-
- include/linux/netfilter/nf_tables_compat.h |  38 ++++
- include/statement.h                        |  34 +++
- include/xt.h                               |  39 ++++
- src/Makefile.am                            |   8 +
- src/evaluate.c                             |   1 +
- src/netlink_delinearize.c                  |   6 +
- src/statement.c                            |  25 +++
- src/xt.c                                   | 348 +++++++++++++++++++++++++++++
- 9 files changed, 511 insertions(+), 1 deletion(-)
- create mode 100644 include/linux/netfilter/nf_tables_compat.h
- create mode 100644 include/xt.h
- create mode 100644 src/xt.c
-
-diff --git a/configure.ac b/configure.ac
-index a1d7723..f281f21 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -98,6 +98,16 @@ AC_DEFINE([HAVE_LIBREADLINE], [1], [])
- AC_SUBST(with_cli)
- AM_CONDITIONAL([BUILD_CLI], [test "x$with_cli" != xno])
- 
-+AC_ARG_WITH([xtables], [AS_HELP_STRING([--with-xtables],
-+            [Use libxtables for iptables interaction)])],
-+	    [with_libxtables=yes], [with_libxtables=no])
-+AS_IF([test "x$with_libxtables" != xno], [
-+PKG_CHECK_MODULES([XTABLES], [xtables >= 1.4.21])
-+AC_DEFINE([HAVE_LIBXTABLES], [1], [0])
-+])
-+AC_SUBST(with_libxtables)
-+AM_CONDITIONAL([BUILD_XTABLES], [test "x$with_libxtables" == xyes])
-+
- # Checks for header files.
- AC_HEADER_STDC
- AC_HEADER_ASSERT
-@@ -147,4 +157,5 @@ nft configuration:
-   cli support:			${with_cli}
-   enable debugging:		${with_debug}
-   use mini-gmp:			${with_mini_gmp}
--  enable pdf documentation:	${enable_pdf_doc}"
-+  enable pdf documentation:	${enable_pdf_doc}
-+  libxtables support:		${with_libxtables}"
-diff --git a/include/linux/netfilter/nf_tables_compat.h b/include/linux/netfilter/nf_tables_compat.h
-new file mode 100644
-index 0000000..8310f5f
---- /dev/null
-+++ b/include/linux/netfilter/nf_tables_compat.h
-@@ -0,0 +1,38 @@
-+#ifndef _NFT_COMPAT_NFNETLINK_H_
-+#define _NFT_COMPAT_NFNETLINK_H_
-+
-+enum nft_target_attributes {
-+	NFTA_TARGET_UNSPEC,
-+	NFTA_TARGET_NAME,
-+	NFTA_TARGET_REV,
-+	NFTA_TARGET_INFO,
-+	__NFTA_TARGET_MAX
-+};
-+#define NFTA_TARGET_MAX		(__NFTA_TARGET_MAX - 1)
-+
-+enum nft_match_attributes {
-+	NFTA_MATCH_UNSPEC,
-+	NFTA_MATCH_NAME,
-+	NFTA_MATCH_REV,
-+	NFTA_MATCH_INFO,
-+	__NFTA_MATCH_MAX
-+};
-+#define NFTA_MATCH_MAX		(__NFTA_MATCH_MAX - 1)
-+
-+#define NFT_COMPAT_NAME_MAX	32
-+
-+enum {
-+	NFNL_MSG_COMPAT_GET,
-+	NFNL_MSG_COMPAT_MAX
-+};
-+
-+enum {
-+	NFTA_COMPAT_UNSPEC = 0,
-+	NFTA_COMPAT_NAME,
-+	NFTA_COMPAT_REV,
-+	NFTA_COMPAT_TYPE,
-+	__NFTA_COMPAT_MAX,
-+};
-+#define NFTA_COMPAT_MAX (__NFTA_COMPAT_MAX - 1)
-+
-+#endif
-diff --git a/include/statement.h b/include/statement.h
-index e9313ca..1b21551 100644
---- a/include/statement.h
-+++ b/include/statement.h
-@@ -148,6 +148,37 @@ struct flow_stmt {
- extern struct stmt *flow_stmt_alloc(const struct location *loc);
- 
- /**
-+ * enum nft_xt_type - xtables statement types
-+ *
-+ * @NFT_XT_MATCH:	match
-+ * @NFT_XT_TARGET:	target
-+ * @NFT_XT_WATCHER:	watcher (only for the bridge family)
-+ */
-+enum nft_xt_type {
-+	NFT_XT_MATCH = 0,
-+	NFT_XT_TARGET,
-+	NFT_XT_WATCHER,
-+	NFT_XT_MAX
-+};
-+
-+struct xtables_match;
-+struct xtables_target;
-+
-+struct xt_stmt {
-+	const char			*name;
-+	enum nft_xt_type		type;
-+	uint32_t			proto;
-+	union {
-+		struct xtables_match	*match;
-+		struct xtables_target	*target;
-+	};
-+	const char			*opts;
-+	void				*entry;
-+};
-+
-+extern struct stmt *xt_stmt_alloc(const struct location *loc);
-+
-+/**
-  * enum stmt_types - statement types
-  *
-  * @STMT_INVALID:	uninitialised
-@@ -168,6 +199,7 @@ extern struct stmt *flow_stmt_alloc(const struct location *loc);
-  * @STMT_SET:		set statement
-  * @STMT_DUP:		dup statement
-  * @STMT_FWD:		forward statement
-+ * @STMT_XT:		XT statement
-  */
- enum stmt_types {
- 	STMT_INVALID,
-@@ -188,6 +220,7 @@ enum stmt_types {
- 	STMT_SET,
- 	STMT_DUP,
- 	STMT_FWD,
-+	STMT_XT,
- };
- 
- /**
-@@ -243,6 +276,7 @@ struct stmt {
- 		struct set_stmt		set;
- 		struct dup_stmt		dup;
- 		struct fwd_stmt		fwd;
-+		struct xt_stmt		xt;
- 	};
- };
- 
-diff --git a/include/xt.h b/include/xt.h
-new file mode 100644
-index 0000000..753511e
---- /dev/null
-+++ b/include/xt.h
-@@ -0,0 +1,39 @@
-+#ifndef _NFT_XT_H_
-+#define _NFT_XT_H_
-+
-+struct netlink_linearize_ctx;
-+struct netlink_parse_ctx;
-+struct nftnl_expr;
-+struct rule_pp_ctx;
-+struct rule;
-+
-+#ifdef HAVE_LIBXTABLES
-+void xt_stmt_xlate(const struct stmt *stmt);
-+void xt_stmt_release(const struct stmt *stmt);
-+
-+void netlink_parse_target(struct netlink_parse_ctx *ctx,
-+			  const struct location *loc,
-+			  const struct nftnl_expr *nle);
-+void netlink_parse_match(struct netlink_parse_ctx *ctx,
-+			 const struct location *loc,
-+			 const struct nftnl_expr *nle);
-+void stmt_xt_postprocess(struct rule_pp_ctx *rctx, struct stmt *stmt,
-+			 struct rule *rule);
-+#else
-+static inline void xt_stmt_xlate(const struct stmt *stmt) {}
-+static inline void xt_stmt_release(const struct stmt *stmt) {}
-+
-+#include <erec.h>
-+
-+static inline void netlink_parse_target(struct netlink_parse_ctx *ctx,
-+					const struct location *loc,
-+					const struct nftnl_expr *nle) {}
-+static inline void netlink_parse_match(struct netlink_parse_ctx *ctx,
-+				       const struct location *loc,
-+				       const struct nftnl_expr *nle) {}
-+static inline void stmt_xt_postprocess(struct rule_pp_ctx *rctx,
-+				       struct stmt *stmt, struct rule *rule) {}
-+
-+#endif
-+
-+#endif /* _NFT_XT_H_ */
-diff --git a/src/Makefile.am b/src/Makefile.am
-index fd63219..8c59449 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -8,6 +8,9 @@ AM_CPPFLAGS += -DDEFAULT_INCLUDE_PATH="\"${sysconfdir}\"" \
- if BUILD_DEBUG
- AM_CPPFLAGS += -g -DDEBUG
- endif
-+if BUILD_XTABLES
-+AM_CPPFLAGS += ${XTABLES_CFLAGS}
-+endif
- 
- AM_CFLAGS = -Wall								\
- 	    -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations	\
-@@ -59,3 +62,8 @@ nft_SOURCES +=	mini-gmp.c
- endif
- 
- nft_LDADD	= ${LIBMNL_LIBS} ${LIBNFTNL_LIBS}
-+
-+if BUILD_XTABLES
-+nft_SOURCES +=	xt.c
-+nft_LDADD   +=  ${XTABLES_LIBS}
-+endif
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 1a02ecd..9342168 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -28,6 +28,7 @@
- #include <erec.h>
- #include <gmputil.h>
- #include <utils.h>
-+#include <xt.h>
- 
- static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr);
- 
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index fffbe26..257473a 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -26,6 +26,7 @@
- #include <erec.h>
- #include <sys/socket.h>
- #include <libnftnl/udata.h>
-+#include <xt.h>
- 
- static int netlink_parse_expr(const struct nftnl_expr *nle,
- 			      struct netlink_parse_ctx *ctx);
-@@ -986,6 +987,8 @@ static const struct {
- 	{ .name = "queue",	.parse = netlink_parse_queue },
- 	{ .name = "dynset",	.parse = netlink_parse_dynset },
- 	{ .name = "fwd",	.parse = netlink_parse_fwd },
-+	{ .name = "target",	.parse = netlink_parse_target },
-+	{ .name = "match",	.parse = netlink_parse_match },
- };
- 
- static int netlink_parse_expr(const struct nftnl_expr *nle,
-@@ -1798,6 +1801,9 @@ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *r
- 			if (stmt->fwd.to != NULL)
- 				expr_postprocess(&rctx, &stmt->fwd.to);
- 			break;
-+		case STMT_XT:
-+			stmt_xt_postprocess(&rctx, stmt, rule);
-+			break;
- 		default:
- 			break;
- 		}
-diff --git a/src/statement.c b/src/statement.c
-index 76f528b..7778a95 100644
---- a/src/statement.c
-+++ b/src/statement.c
-@@ -23,6 +23,7 @@
- #include <statement.h>
- #include <utils.h>
- #include <list.h>
-+#include <xt.h>
- 
- #include <netinet/in.h>
- #include <linux/netfilter/nf_nat.h>
-@@ -567,3 +568,27 @@ struct stmt *fwd_stmt_alloc(const struct location *loc)
+diff --git a/extensions/libip6t_ah.c b/extensions/libip6t_ah.c
+index 9c7bdd7..179390c 100644
+--- a/extensions/libip6t_ah.c
++++ b/extensions/libip6t_ah.c
+@@ -132,24 +132,28 @@ static int ah_xlate(const void *ip, const struct xt_entry_match *match,
+ 		    struct xt_xlate *xl, int numeric)
  {
- 	return stmt_alloc(loc, &fwd_stmt_ops);
+ 	const struct ip6t_ah *ahinfo = (struct ip6t_ah *)match->data;
++	char *space = "";
+ 
+ 	if (!(ahinfo->spis[0] == 0 && ahinfo->spis[1] == 0xFFFFFFFF)) {
+ 		xt_xlate_add(xl, "ah spi%s ",
+-			   (ahinfo->invflags & IP6T_AH_INV_SPI) ? " !=" : "");
+-	if (ahinfo->spis[0] != ahinfo->spis[1])
+-		xt_xlate_add(xl, "%u-%u ", ahinfo->spis[0], ahinfo->spis[1]);
+-	else
+-		xt_xlate_add(xl, "%u ", ahinfo->spis[0]);
++			(ahinfo->invflags & IP6T_AH_INV_SPI) ? " !=" : "");
++		if (ahinfo->spis[0] != ahinfo->spis[1])
++			xt_xlate_add(xl, "%u-%u", ahinfo->spis[0], 
++				     ahinfo->spis[1]);
++		else
++			xt_xlate_add(xl, "%u", ahinfo->spis[0]);
++		space = " ";
+ 	}
+ 
+ 	if (ahinfo->hdrlen != 0 || (ahinfo->invflags & IP6T_AH_INV_LEN)) {
+-		xt_xlate_add(xl, "ah hdrlength%s %u ",
+-			   (ahinfo->invflags & IP6T_AH_INV_LEN) ? " !=" : "",
+-			   ahinfo->hdrlen);
++		xt_xlate_add(xl, "%sah hdrlength%s %u", space,
++			     (ahinfo->invflags & IP6T_AH_INV_LEN) ? " !=" : "",
++			     ahinfo->hdrlen);
++		space = " ";
+ 	}
+ 
+ 	if (ahinfo->hdrres != 0)
+-		xt_xlate_add(xl, "ah reserved %u ", ahinfo->hdrres);
++		xt_xlate_add(xl, "%sah reserved %u", space, ahinfo->hdrres);
+ 
+ 	return 1;
  }
-+
-+static void xt_stmt_print(const struct stmt *stmt)
-+{
-+	xt_stmt_xlate(stmt);
-+}
-+
-+static void xt_stmt_destroy(struct stmt *stmt)
-+{
-+	xfree(stmt->xt.name);
-+	xfree(stmt->xt.opts);
-+	xt_stmt_release(stmt);
-+}
-+
-+static const struct stmt_ops xt_stmt_ops = {
-+	.type		= STMT_XT,
-+	.name		= "xt",
-+	.print		= xt_stmt_print,
-+	.destroy	= xt_stmt_destroy,
-+};
-+
-+struct stmt *xt_stmt_alloc(const struct location *loc)
-+{
-+	return stmt_alloc(loc, &xt_stmt_ops);
-+}
-diff --git a/src/xt.c b/src/xt.c
-new file mode 100644
-index 0000000..afcc836
---- /dev/null
-+++ b/src/xt.c
-@@ -0,0 +1,348 @@
-+/*
-+ * Copyright (c) 2013-2015 Pablo Neira Ayuso <pablo@netfilter.org>
-+ * Copyright (c) 2015 Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modifyi
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <stdlib.h>
-+#include <time.h>
-+#include <string.h>
-+#include <xtables.h>
-+#include <getopt.h>
-+#include <ctype.h>	/* for isspace */
-+#include <statement.h>
-+#include <netlink.h>
-+#include <xt.h>
-+#include <erec.h>
-+
-+#include <libmnl/libmnl.h>
-+#include <linux/netfilter/nfnetlink.h>
-+#include <linux/netfilter/nf_tables_compat.h>
-+#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter_ipv6/ip6_tables.h>
-+#include <linux/netfilter_arp/arp_tables.h>
-+#include <linux/netfilter_bridge/ebtables.h>
-+
-+void xt_stmt_xlate(const struct stmt *stmt)
-+{
-+	struct xt_xlate *xl = xt_xlate_alloc(10240);
-+
-+	switch (stmt->xt.type) {
-+	case NFT_XT_MATCH:
-+		if (stmt->xt.match == NULL && stmt->xt.opts) {
-+			printf("%s", stmt->xt.opts);
-+		} else if (stmt->xt.match->xlate) {
-+			stmt->xt.match->xlate(stmt->xt.entry,
-+					      stmt->xt.match->m, xl, 0);
-+				printf("%s", xt_xlate_get(xl));
-+		} else if (stmt->xt.match->print) {
-+			printf("#");
-+			stmt->xt.match->print(&stmt->xt.entry,
-+					      stmt->xt.match->m, 0);
+diff --git a/extensions/libip6t_frag.c b/extensions/libip6t_frag.c
+index 57487c4..e7a51d3 100644
+--- a/extensions/libip6t_frag.c
++++ b/extensions/libip6t_frag.c
+@@ -177,29 +177,36 @@ static int frag_xlate(const void *ip, const struct xt_entry_match *match,
+ 		      struct xt_xlate *xl, int numeric)
+ {
+ 	const struct ip6t_frag *fraginfo = (struct ip6t_frag *)match->data;
++	char *space= "";
+ 
+ 	if (!(fraginfo->ids[0] == 0 && fraginfo->ids[1] == 0xFFFFFFFF)) {
+ 		xt_xlate_add(xl, "frag id %s",
+ 			     (fraginfo->invflags & IP6T_FRAG_INV_IDS) ?
+ 			     "!= " : "");
+ 		if (fraginfo->ids[0] != fraginfo->ids[1])
+-			xt_xlate_add(xl, "%u-%u ", fraginfo->ids[0],
++			xt_xlate_add(xl, "%u-%u", fraginfo->ids[0],
+ 				     fraginfo->ids[1]);
+ 		else
+-			xt_xlate_add(xl, "%u ", fraginfo->ids[0]);
+-	}
+-
+-	if (fraginfo->flags & IP6T_FRAG_RES)
+-		xt_xlate_add(xl, "frag reserved 1 ");
++			xt_xlate_add(xl, "%u", fraginfo->ids[0]);
+ 
+-	if (fraginfo->flags & IP6T_FRAG_FST)
+-		xt_xlate_add(xl, "frag frag-off 0 ");
+-
+-	if (fraginfo->flags & IP6T_FRAG_MF)
+-		xt_xlate_add(xl, "frag more-fragments 1 ");
++		space = " ";
++	}
+ 
+-	if (fraginfo->flags & IP6T_FRAG_NMF)
+-		xt_xlate_add(xl, "frag more-fragments 0 ");
++	if (fraginfo->flags & IP6T_FRAG_RES) {
++		xt_xlate_add(xl, "%sfrag reserved 1", space);
++		space = " ";
++	}
++	if (fraginfo->flags & IP6T_FRAG_FST) {
++		xt_xlate_add(xl, "%sfrag frag-off 0", space);
++		space = " ";
++	}
++	if (fraginfo->flags & IP6T_FRAG_MF) {
++		xt_xlate_add(xl, "%sfrag more-fragments 1", space);
++		space = " ";
++	}
++	if (fraginfo->flags & IP6T_FRAG_NMF) {
++		xt_xlate_add(xl, "%sfrag more-fragments 0", space);
++	}
+ 
+ 	return 1;
+ }
+diff --git a/extensions/libip6t_hbh.c b/extensions/libip6t_hbh.c
+index 416681d..cb7e4e8 100644
+--- a/extensions/libip6t_hbh.c
++++ b/extensions/libip6t_hbh.c
+@@ -173,7 +173,7 @@ static int hbh_xlate(const void *ip, const struct xt_entry_match *match,
+ 	    (optinfo->flags & IP6T_OPTS_OPTS))
+ 		return 0;
+ 
+-	xt_xlate_add(xl, "hbh hdrlength %s%u ",
++	xt_xlate_add(xl, "hbh hdrlength %s%u",
+ 		     (optinfo->invflags & IP6T_OPTS_INV_LEN) ? "!= " : "",
+ 		     optinfo->hdrlen);
+ 
+diff --git a/extensions/libip6t_hl.c b/extensions/libip6t_hl.c
+index ee9c36b..50b47f4 100644
+--- a/extensions/libip6t_hl.c
++++ b/extensions/libip6t_hl.c
+@@ -95,7 +95,7 @@ static int hl_xlate(const void *ip, const struct xt_entry_match *match,
+ 	const struct ip6t_hl_info *info =
+ 		(struct ip6t_hl_info *) match->data;
+ 
+-	xt_xlate_add(xl, "ip6 hoplimit %s%u ", op[info->mode], info->hop_limit);
++	xt_xlate_add(xl, "ip6 hoplimit %s%u", op[info->mode], info->hop_limit);
+ 
+ 	return 1;
+ }
+diff --git a/extensions/libip6t_mh.c b/extensions/libip6t_mh.c
+index f4672da..4cf20c2 100644
+--- a/extensions/libip6t_mh.c
++++ b/extensions/libip6t_mh.c
+@@ -211,11 +211,11 @@ static int mh_xlate(const void *ip, const struct xt_entry_match *match,
+ 		return 1;
+ 
+ 	if (mhinfo->types[0] != mhinfo->types[1])
+-		xt_xlate_add(xl, "mh type %s%u-%u ",
++		xt_xlate_add(xl, "mh type %s%u-%u",
+ 			     mhinfo->invflags & IP6T_MH_INV_TYPE ? "!= " : "",
+ 			     mhinfo->types[0], mhinfo->types[1]);
+ 	else
+-		xt_xlate_add(xl, "mh type %s%u ",
++		xt_xlate_add(xl, "mh type %s%u",
+ 			     mhinfo->invflags & IP6T_MH_INV_TYPE ? "!= " : "",
+ 			     mhinfo->types[0]);
+ 
+diff --git a/extensions/libip6t_rt.c b/extensions/libip6t_rt.c
+index 14a7f7e..81e222e 100644
+--- a/extensions/libip6t_rt.c
++++ b/extensions/libip6t_rt.c
+@@ -249,26 +249,29 @@ static int rt_xlate(const void *ip, const struct xt_entry_match *match,
+ 		    struct xt_xlate *xl, int numeric)
+ {
+ 	const struct ip6t_rt *rtinfo = (struct ip6t_rt *)match->data;
++	char *space = "";
+ 
+ 	if (rtinfo->flags & IP6T_RT_TYP) {
+-		xt_xlate_add(xl, "rt type%s %u ",
++		xt_xlate_add(xl, "rt type%s %u",
+ 			     (rtinfo->invflags & IP6T_RT_INV_TYP) ? " !=" : "",
+ 			      rtinfo->rt_type);
++		space = " ";
+ 	}
+ 
+ 	if (!(rtinfo->segsleft[0] == 0 && rtinfo->segsleft[1] == 0xFFFFFFFF)) {
+-		xt_xlate_add(xl, "rt seg-left%s ",
++		xt_xlate_add(xl, "%srt seg-left%s ", space,
+ 			     (rtinfo->invflags & IP6T_RT_INV_SGS) ? " !=" : "");
+ 
+ 		if (rtinfo->segsleft[0] != rtinfo->segsleft[1])
+-			xt_xlate_add(xl, "%u-%u ", rtinfo->segsleft[0],
++			xt_xlate_add(xl, "%u-%u", rtinfo->segsleft[0],
+ 					rtinfo->segsleft[1]);
+ 		else
+-			xt_xlate_add(xl, "%u ", rtinfo->segsleft[0]);
++			xt_xlate_add(xl, "%u", rtinfo->segsleft[0]);
++		space = " ";
+ 	}
+ 
+ 	if (rtinfo->flags & IP6T_RT_LEN) {
+-		xt_xlate_add(xl, "rt hdrlength%s %u ",
++		xt_xlate_add(xl, "%srt hdrlength%s %u", space,
+ 			     (rtinfo->invflags & IP6T_RT_INV_LEN) ? " !=" : "",
+ 			      rtinfo->hdrlen);
+ 	}
+diff --git a/extensions/libipt_ah.c b/extensions/libipt_ah.c
+index b8953d7..7dff93d 100644
+--- a/extensions/libipt_ah.c
++++ b/extensions/libipt_ah.c
+@@ -101,10 +101,10 @@ static int ah_xlate(const void *ip, const struct xt_entry_match *match,
+ 		xt_xlate_add(xl, "ah spi%s ",
+ 			   (ahinfo->invflags & IPT_AH_INV_SPI) ? " !=" : "");
+ 		if (ahinfo->spis[0] != ahinfo->spis[1])
+-			xt_xlate_add(xl, "%u-%u ", ahinfo->spis[0],
++			xt_xlate_add(xl, "%u-%u", ahinfo->spis[0],
+ 				   ahinfo->spis[1]);
+ 		else
+-			xt_xlate_add(xl, "%u ", ahinfo->spis[0]);
++			xt_xlate_add(xl, "%u", ahinfo->spis[0]);
+ 	}
+ 
+ 	return 1;
+diff --git a/extensions/libipt_icmp.c b/extensions/libipt_icmp.c
+index fb6050a..342659e 100644
+--- a/extensions/libipt_icmp.c
++++ b/extensions/libipt_icmp.c
+@@ -280,8 +280,6 @@ static int icmp_xlate(const void *ip, const struct xt_entry_match *match,
+ 		if (!type_xlate_print(xl, info->type, info->code[0],
+ 				      info->code[1]))
+ 			return 0;
+-
+-		xt_xlate_add(xl, " ");
+ 	}
+ 	return 1;
+ }
+diff --git a/extensions/libipt_realm.c b/extensions/libipt_realm.c
+index 0a4bc3b..b5c9032 100644
+--- a/extensions/libipt_realm.c
++++ b/extensions/libipt_realm.c
+@@ -115,16 +115,16 @@ print_realm_xlate(unsigned long id, unsigned long mask,
+ 	const char *name = NULL;
+ 
+ 	if (mask != 0xffffffff)
+-		xt_xlate_add(xl, " and 0x%lx %s 0x%lx ", mask,
++		xt_xlate_add(xl, " and 0x%lx %s 0x%lx", mask,
+ 			   op == XT_OP_EQ ? "==" : "!=", id);
+ 	else {
+ 		if (numeric == 0)
+ 			name = xtables_lmap_id2name(realms, id);
+ 		if (name)
+-			xt_xlate_add(xl, "%s%s ",
++			xt_xlate_add(xl, "%s%s",
+ 				   op == XT_OP_EQ ? "" : "!= ", name);
+ 		else
+-			xt_xlate_add(xl, " %s0x%lx ",
++			xt_xlate_add(xl, " %s0x%lx",
+ 				   op == XT_OP_EQ ? "" : "!= ", id);
+ 	}
+ }
+diff --git a/extensions/libipt_ttl.c b/extensions/libipt_ttl.c
+index 01e085d..e1db0df 100644
+--- a/extensions/libipt_ttl.c
++++ b/extensions/libipt_ttl.c
+@@ -124,7 +124,7 @@ static int ttl_xlate(const void *ip, const struct xt_entry_match *match,
+ 			break;
+ 	}
+ 
+-	xt_xlate_add(xl, " %u ", info->ttl);
++	xt_xlate_add(xl, " %u", info->ttl);
+ 
+ 	return 1;
+ }
+diff --git a/extensions/libxt_cgroup.c b/extensions/libxt_cgroup.c
+index 1191815..fcd77c3 100644
+--- a/extensions/libxt_cgroup.c
++++ b/extensions/libxt_cgroup.c
+@@ -126,7 +126,7 @@ static int cgroup_xlate_v0(const void *ip, const struct xt_entry_match *match,
+ {
+ 	const struct xt_cgroup_info_v0 *info = (void *)match->data;
+ 
+-	xt_xlate_add(xl, "meta cgroup %s%u ", info->invert ? "!= " : "",
++	xt_xlate_add(xl, "meta cgroup %s%u", info->invert ? "!= " : "",
+ 		     info->id);
+ 	return 1;
+ }
+@@ -140,7 +140,7 @@ static int cgroup_xlate_v1(const void *ip, const struct xt_entry_match *match,
+ 		return 0;
+ 
+ 	if (info->has_classid)
+-		xt_xlate_add(xl, "meta cgroup %s%u ",
++		xt_xlate_add(xl, "meta cgroup %s%u",
+ 			     info->invert_classid ? "!= " : "",
+ 			     info->classid);
+ 
+diff --git a/extensions/libxt_connmark.c b/extensions/libxt_connmark.c
+index 958a50c..1630858 100644
+--- a/extensions/libxt_connmark.c
++++ b/extensions/libxt_connmark.c
+@@ -127,10 +127,10 @@ static void print_mark_xlate(unsigned int mark, unsigned int mask,
+ 			     struct xt_xlate *xl, uint32_t op)
+ {
+ 	if (mask != 0xffffffffU)
+-		xt_xlate_add(xl, " and 0x%x %s 0x%x ", mask,
++		xt_xlate_add(xl, " and 0x%x %s 0x%x", mask,
+ 			   op == XT_OP_EQ ? "==" : "!=", mark);
+ 	else
+-		xt_xlate_add(xl, " %s0x%x ",
++		xt_xlate_add(xl, " %s0x%x",
+ 			   op == XT_OP_EQ ? "" : "!= ", mark);
+ }
+ 
+diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
+index 2242489..4f3853c 100644
+--- a/extensions/libxt_conntrack.c
++++ b/extensions/libxt_conntrack.c
+@@ -1236,40 +1236,45 @@ static int _conntrack3_mt_xlate(const void *ip,
+ 				int family)
+ {
+ 	const struct xt_conntrack_mtinfo3 *sinfo = (const void *)match->data;
++	char *space = "";
+ 
+-	if (sinfo->match_flags & XT_CONNTRACK_DIRECTION)
+-		xt_xlate_add(xl, "ct direction %s ",
++	if (sinfo->match_flags & XT_CONNTRACK_DIRECTION) {
++		xt_xlate_add(xl, "ct direction %s",
+ 			     sinfo->invert_flags & XT_CONNTRACK_DIRECTION ?
+ 			     "reply" : "original");
++		space = " ";
++	}
+ 
+-	if (sinfo->match_flags & XT_CONNTRACK_PROTO)
+-		xt_xlate_add(xl, "ct %s protocol %s%u ",
++	if (sinfo->match_flags & XT_CONNTRACK_PROTO) {
++		xt_xlate_add(xl, "%sct %s protocol %s%u", space,
+ 			     sinfo->invert_flags & XT_CONNTRACK_DIRECTION ?
+ 			     "reply" : "original",
+ 			     sinfo->invert_flags & XT_CONNTRACK_PROTO ?
+ 			     "!= " : "",
+ 			     sinfo->l4proto);
++		space = " ";
++	}
+ 
+ 	if (sinfo->match_flags & XT_CONNTRACK_STATE) {
+-		xt_xlate_add(xl, "ct state %s",
++		xt_xlate_add(xl, "%sct state %s", space,
+ 			     sinfo->invert_flags & XT_CONNTRACK_STATE ?
+ 			     "!= " : "");
+ 		state_xlate_print(xl, sinfo->state_mask);
+-		xt_xlate_add(xl, " ");
++		space = " ";
+ 	}
+ 
+ 	if (sinfo->match_flags & XT_CONNTRACK_STATUS) {
+ 		if (sinfo->status_mask == 1)
+ 			return 0;
+-		xt_xlate_add(xl, "ct status %s",
++		xt_xlate_add(xl, "%sct status %s", space,
+ 			     sinfo->invert_flags & XT_CONNTRACK_STATUS ?
+ 			     "!= " : "");
+ 		status_xlate_print(xl, sinfo->status_mask);
+-		xt_xlate_add(xl, " ");
++		space = " ";
+ 	}
+ 
+ 	if (sinfo->match_flags & XT_CONNTRACK_EXPIRES) {
+-		xt_xlate_add(xl, "ct expiration %s",
++		xt_xlate_add(xl, "%sct expiration %s", space,
+ 			     sinfo->invert_flags & XT_CONNTRACK_EXPIRES ?
+ 			     "!= " : "");
+ 		if (sinfo->expires_max == sinfo->expires_min)
+@@ -1277,98 +1282,101 @@ static int _conntrack3_mt_xlate(const void *ip,
+ 		else
+ 			xt_xlate_add(xl, "%lu-%lu", sinfo->expires_min,
+ 				     sinfo->expires_max);
+-		xt_xlate_add(xl, " ");
++		space = " ";
+ 	}
+ 
+ 	if (sinfo->match_flags & XT_CONNTRACK_ORIGSRC) {
+ 		if (&sinfo->origsrc_addr == 0L)
+ 			return 0;
+ 
+-		xt_xlate_add(xl, "ct original saddr %s",
++		xt_xlate_add(xl, "%sct original saddr %s", space,
+ 			     sinfo->invert_flags & XT_CONNTRACK_ORIGSRC ?
+ 			     "!= " : "");
+ 		addr_xlate_print(xl, &sinfo->origsrc_addr,
+ 				 &sinfo->origsrc_mask, family);
+-		xt_xlate_add(xl, " ");
++		space = " ";
+ 	}
+ 
+ 	if (sinfo->match_flags & XT_CONNTRACK_ORIGDST) {
+ 		if (&sinfo->origdst_addr == 0L)
+ 			return 0;
+ 
+-		xt_xlate_add(xl, "ct original daddr %s",
++		xt_xlate_add(xl, "%sct original daddr %s", space,
+ 			     sinfo->invert_flags & XT_CONNTRACK_ORIGDST ?
+ 			     "!= " : "");
+ 		addr_xlate_print(xl, &sinfo->origdst_addr,
+ 				 &sinfo->origdst_mask, family);
+-		xt_xlate_add(xl, " ");
++		space = " ";
+ 	}
+ 
+ 	if (sinfo->match_flags & XT_CONNTRACK_REPLSRC) {
+ 		if (&sinfo->replsrc_addr == 0L)
+ 			return 0;
+ 
+-		xt_xlate_add(xl, "ct reply saddr %s",
++		xt_xlate_add(xl, "%sct reply saddr %s", space,
+ 			     sinfo->invert_flags & XT_CONNTRACK_REPLSRC ?
+ 			     "!= " : "");
+ 		addr_xlate_print(xl, &sinfo->replsrc_addr,
+ 				 &sinfo->replsrc_mask, family);
+-		xt_xlate_add(xl, " ");
++		space = " ";
+ 	}
+ 
+ 	if (sinfo->match_flags & XT_CONNTRACK_REPLDST) {
+ 		if (&sinfo->repldst_addr == 0L)
+ 			return 0;
+ 
+-		xt_xlate_add(xl, "ct reply daddr %s",
++		xt_xlate_add(xl, "%sct reply daddr %s", space,
+ 			     sinfo->invert_flags & XT_CONNTRACK_REPLDST ?
+ 			     "!= " : "");
+ 		addr_xlate_print(xl, &sinfo->repldst_addr,
+ 				 &sinfo->repldst_mask, family);
+-		xt_xlate_add(xl, " ");
++		space = " ";
+ 	}
+ 
+ 	if (sinfo->match_flags & XT_CONNTRACK_ORIGSRC_PORT) {
+-		xt_xlate_add(xl, "ct original proto-src %s",
++		xt_xlate_add(xl, "%sct original proto-src %s", space,
+ 			     sinfo->invert_flags & XT_CONNTRACK_ORIGSRC_PORT ?
+ 			     "!= " : "");
+ 		if (sinfo->origsrc_port == sinfo->origsrc_port_high)
+-			xt_xlate_add(xl, "%u ", sinfo->origsrc_port);
++			xt_xlate_add(xl, "%u", sinfo->origsrc_port);
+ 		else
+-			xt_xlate_add(xl, "%u-%u ", sinfo->origsrc_port,
++			xt_xlate_add(xl, "%u-%u", sinfo->origsrc_port,
+ 				     sinfo->origsrc_port_high);
++		space = " ";
+ 	}
+ 
+ 	if (sinfo->match_flags & XT_CONNTRACK_ORIGDST_PORT) {
+-		xt_xlate_add(xl, "ct original proto-dst %s",
++		xt_xlate_add(xl, "%sct original proto-dst %s", space,
+ 			     sinfo->invert_flags & XT_CONNTRACK_ORIGDST_PORT ?
+ 			     "!= " : "");
+ 		if (sinfo->origdst_port == sinfo->origdst_port_high)
+-			xt_xlate_add(xl, "%u ", sinfo->origdst_port);
++			xt_xlate_add(xl, "%u", sinfo->origdst_port);
+ 		else
+-			xt_xlate_add(xl, "%u-%u ", sinfo->origdst_port,
++			xt_xlate_add(xl, "%u-%u", sinfo->origdst_port,
+ 				     sinfo->origdst_port_high);
++		space = " ";
+ 	}
+ 
+ 	if (sinfo->match_flags & XT_CONNTRACK_REPLSRC_PORT) {
+-		xt_xlate_add(xl, "ct reply proto-src %s",
++		xt_xlate_add(xl, "%sct reply proto-src %s", space,
+ 			     sinfo->invert_flags & XT_CONNTRACK_REPLSRC_PORT ?
+ 			     "!= " : "");
+ 		if (sinfo->replsrc_port == sinfo->replsrc_port_high)
+-			xt_xlate_add(xl, "%u ", sinfo->replsrc_port);
++			xt_xlate_add(xl, "%u", sinfo->replsrc_port);
+ 		else
+-			xt_xlate_add(xl, "%u-%u ", sinfo->replsrc_port,
++			xt_xlate_add(xl, "%u-%u", sinfo->replsrc_port,
+ 				     sinfo->replsrc_port_high);
++		space = " ";
+ 	}
+ 
+ 	if (sinfo->match_flags & XT_CONNTRACK_REPLDST_PORT) {
+-		xt_xlate_add(xl, "ct reply proto-dst %s",
++		xt_xlate_add(xl, "%sct reply proto-dst %s", space,
+ 			     sinfo->invert_flags & XT_CONNTRACK_REPLDST_PORT ?
+ 			     "!= " : "", sinfo->repldst_port);
+ 		if (sinfo->repldst_port == sinfo->repldst_port_high)
+-			xt_xlate_add(xl, "%u ", sinfo->repldst_port);
++			xt_xlate_add(xl, "%u", sinfo->repldst_port);
+ 		else
+-			xt_xlate_add(xl, "%u-%u ", sinfo->repldst_port,
++			xt_xlate_add(xl, "%u-%u", sinfo->repldst_port,
+ 				     sinfo->repldst_port_high);
+ 	}
+ 
+diff --git a/extensions/libxt_cpu.c b/extensions/libxt_cpu.c
+index d453fad..97927fa 100644
+--- a/extensions/libxt_cpu.c
++++ b/extensions/libxt_cpu.c
+@@ -49,7 +49,7 @@ static int cpu_xlate(const void *ip, const struct xt_entry_match *match,
+ {
+ 	const struct xt_cpu_info *info = (void *)match->data;
+ 
+-	xt_xlate_add(xl, "cpu%s %u ", info->invert ? " !=" : "", info->cpu);
++	xt_xlate_add(xl, "cpu%s %u", info->invert ? " !=" : "", info->cpu);
+ 
+ 	return 1;
+ }
+diff --git a/extensions/libxt_dccp.c b/extensions/libxt_dccp.c
+index d442e37..179261f 100644
+--- a/extensions/libxt_dccp.c
++++ b/extensions/libxt_dccp.c
+@@ -299,7 +299,7 @@ static int dccp_type_xlate(const struct xt_dccp_info *einfo,
+ 	if (types & (1 << DCCP_PKT_INVALID))
+ 		return 0;
+ 
+-	xt_xlate_add(xl, "dccp type%s ", einfo->invflags ? " !=" : "");
++	xt_xlate_add(xl, " dccp type%s ", einfo->invflags ? " !=" : "");
+ 
+ 	if ((types != 0) && !(types == (types & -types))) {
+ 		xt_xlate_add(xl, "{");
+@@ -324,8 +324,6 @@ static int dccp_type_xlate(const struct xt_dccp_info *einfo,
+ 	if (set_need)
+ 		xt_xlate_add(xl, "}");
+ 
+-	xt_xlate_add(xl, " ");
+-
+ 	return 1;
+ }
+ 
+@@ -335,27 +333,29 @@ static int dccp_xlate(const void *ip, const struct xt_entry_match *match,
+ 	const struct xt_dccp_info *einfo =
+ 			(const struct xt_dccp_info *)match->data;
+ 	int ret = 1;
++	char *space = "";
+ 
+ 	xt_xlate_add(xl, "dccp ");
+ 
+ 	if (einfo->flags & XT_DCCP_SRC_PORTS) {
+ 		if (einfo->spts[0] != einfo->spts[1])
+-			xt_xlate_add(xl, "sport%s %u-%u ",
++			xt_xlate_add(xl, "sport%s %u-%u",
+ 				     einfo->invflags & XT_DCCP_SRC_PORTS ? " !=" : "",
+ 				     einfo->spts[0], einfo->spts[1]);
+ 		else
+-			xt_xlate_add(xl, "sport%s %u ",
++			xt_xlate_add(xl, "sport%s %u",
+ 				     einfo->invflags & XT_DCCP_SRC_PORTS ? " !=" : "",
+ 				     einfo->spts[0]);
++		space = " ";
+ 	}
+ 
+ 	if (einfo->flags & XT_DCCP_DEST_PORTS) {
+ 		if (einfo->dpts[0] != einfo->dpts[1])
+-			xt_xlate_add(xl, "dport%s %u-%u ",
++			xt_xlate_add(xl, "%sdport%s %u-%u", space,
+ 				     einfo->invflags & XT_DCCP_DEST_PORTS ? " !=" : "",
+ 				     einfo->dpts[0], einfo->dpts[1]);
+ 		else
+-			xt_xlate_add(xl, "dport%s %u ",
++			xt_xlate_add(xl, "%sdport%s %u", space,
+ 				     einfo->invflags & XT_DCCP_DEST_PORTS ? " !=" : "",
+ 				     einfo->dpts[0]);
+ 	}
+diff --git a/extensions/libxt_devgroup.c b/extensions/libxt_devgroup.c
+index f110ea7..41dae2f 100644
+--- a/extensions/libxt_devgroup.c
++++ b/extensions/libxt_devgroup.c
+@@ -158,15 +158,15 @@ print_devgroup_xlate(unsigned int id, uint32_t op,  unsigned int mask,
+ 	const char *name = NULL;
+ 
+ 	if (mask != 0xffffffff)
+-		xt_xlate_add(xl, "and 0x%x %s 0x%x ", mask,
++		xt_xlate_add(xl, "and 0x%x %s 0x%x", mask,
+ 			   op == XT_OP_EQ ? "==" : "!=", id);
+ 	else {
+ 		if (numeric == 0)
+ 			name = xtables_lmap_id2name(devgroups, id);
+ 		if (name)
+-			xt_xlate_add(xl, "%s ", name);
++			xt_xlate_add(xl, "%s", name);
+ 		else
+-			xt_xlate_add(xl, "%s0x%x ",
++			xt_xlate_add(xl, "%s0x%x",
+ 				   op == XT_OP_EQ ? "" : "!= ", id);
+ 	}
+ }
+@@ -175,6 +175,7 @@ static void devgroup_show_xlate(const struct xt_devgroup_info *info,
+ 				struct xt_xlate *xl, int numeric)
+ {
+ 	enum xt_op op = XT_OP_EQ;
++	char *space = "";
+ 
+ 	if (info->flags & XT_DEVGROUP_MATCH_SRC) {
+ 		if (info->flags & XT_DEVGROUP_INVERT_SRC)
+@@ -182,12 +183,13 @@ static void devgroup_show_xlate(const struct xt_devgroup_info *info,
+ 		xt_xlate_add(xl, "iifgroup ");
+ 		print_devgroup_xlate(info->src_group, op,
+ 				     info->src_mask, xl, numeric);
++		space = " ";
+ 	}
+ 
+ 	if (info->flags & XT_DEVGROUP_MATCH_DST) {
+ 		if (info->flags & XT_DEVGROUP_INVERT_DST)
+ 			op = XT_OP_NEQ;
+-		xt_xlate_add(xl, "oifgroup ");
++		xt_xlate_add(xl, "%soifgroup ", space);
+ 		print_devgroup_xlate(info->dst_group, op,
+ 				     info->dst_mask, xl, numeric);
+ 	}
+diff --git a/extensions/libxt_dscp.c b/extensions/libxt_dscp.c
+index adc7827..17433ef 100644
+--- a/extensions/libxt_dscp.c
++++ b/extensions/libxt_dscp.c
+@@ -97,7 +97,7 @@ static int __dscp_xlate(const void *ip, const struct xt_entry_match *match,
+ 	const struct xt_dscp_info *dinfo =
+ 		(const struct xt_dscp_info *)match->data;
+ 
+-	xt_xlate_add(xl, "dscp %s0x%02x ", dinfo->invert ? "!= " : "",
++	xt_xlate_add(xl, "dscp %s0x%02x", dinfo->invert ? "!= " : "",
+ 		     dinfo->dscp);
+ 
+ 	return 1;
+diff --git a/extensions/libxt_ecn.c b/extensions/libxt_ecn.c
+index 2856a31..969920d 100644
+--- a/extensions/libxt_ecn.c
++++ b/extensions/libxt_ecn.c
+@@ -133,16 +133,16 @@ static int ecn_xlate(const void *ip, const struct xt_entry_match *match,
+ 
+ 	switch (einfo->ip_ect) {
+ 	case 0:
+-		xt_xlate_add(xl, "not-ect ");
++		xt_xlate_add(xl, "not-ect");
+ 		break;
+ 	case 1:
+-		xt_xlate_add(xl, "ect1 ");
++		xt_xlate_add(xl, "ect1");
+ 		break;
+ 	case 2:
+-		xt_xlate_add(xl, "ect0 ");
++		xt_xlate_add(xl, "ect0");
+ 		break;
+ 	case 3:
+-		xt_xlate_add(xl, "ce ");
++		xt_xlate_add(xl, "ce");
+ 		break;
+ 	}
+ 	return 1;
+diff --git a/extensions/libxt_esp.c b/extensions/libxt_esp.c
+index bd7b643..5e8c58d 100644
+--- a/extensions/libxt_esp.c
++++ b/extensions/libxt_esp.c
+@@ -95,10 +95,10 @@ static int esp_xlate(const void *ip, const struct xt_entry_match *match,
+ 		xt_xlate_add(xl, "esp spi%s",
+ 			   (espinfo->invflags & XT_ESP_INV_SPI) ? " !=" : "");
+ 		if (espinfo->spis[0] != espinfo->spis[1])
+-			xt_xlate_add(xl, " %u-%u ", espinfo->spis[0],
++			xt_xlate_add(xl, " %u-%u", espinfo->spis[0],
+ 				   espinfo->spis[1]);
+ 		else
+-			xt_xlate_add(xl, " %u ", espinfo->spis[0]);
++			xt_xlate_add(xl, " %u", espinfo->spis[0]);
+ 	}
+ 
+ 	return 1;
+diff --git a/extensions/libxt_helper.c b/extensions/libxt_helper.c
+index a8b7c68..26e9569 100644
+--- a/extensions/libxt_helper.c
++++ b/extensions/libxt_helper.c
+@@ -50,7 +50,7 @@ static int helper_xlate(const void *ip, const struct xt_entry_match *match,
+ {
+ 	const struct xt_helper_info *info = (const void *)match->data;
+ 
+-	xt_xlate_add(xl, "ct helper%s \\\"%s\\\" ",
++	xt_xlate_add(xl, "ct helper%s \\\"%s\\\"",
+ 		   info->invert ? " !=" : "", info->name);
+ 
+ 	return 1;
+diff --git a/extensions/libxt_ipcomp.c b/extensions/libxt_ipcomp.c
+index 19b251a..5e72154 100644
+--- a/extensions/libxt_ipcomp.c
++++ b/extensions/libxt_ipcomp.c
+@@ -100,7 +100,7 @@ static int comp_xlate(const void *ip, const struct xt_entry_match *match,
+ {
+ 	const struct xt_ipcomp *compinfo = (struct xt_ipcomp *)match->data;
+ 
+-	xt_xlate_add(xl, "comp cpi %s%u ",
++	xt_xlate_add(xl, "comp cpi %s%u",
+ 		     (compinfo->invflags & XT_IPCOMP_INV_SPI) ? "!= " : "",
+ 		     compinfo->spis[0]);
+ 
+diff --git a/extensions/libxt_iprange.c b/extensions/libxt_iprange.c
+index 8da7de1..d68df48 100644
+--- a/extensions/libxt_iprange.c
++++ b/extensions/libxt_iprange.c
+@@ -319,17 +319,21 @@ static int iprange_xlate(const void *ip, const struct xt_entry_match *match,
+ 			 struct xt_xlate *xl, int numeric)
+ {
+ 	const struct ipt_iprange_info *info = (const void *)match->data;
++	char *space = "";
+ 
+ 	if (info->flags & IPRANGE_SRC) {
+ 		if (info->flags & IPRANGE_SRC_INV)
+ 			xt_xlate_add(xl, "!= ");
+ 		xt_xlate_add(xl, "ip saddr");
+ 		print_iprange_xlate(&info->src, xl);
++		space = " ";
+ 	}
+ 	if (info->flags & IPRANGE_DST) {
+-		if (info->flags & IPRANGE_DST_INV)
+-			xt_xlate_add(xl, "!= ");
+-		xt_xlate_add(xl, "ip daddr");
++		if (info->flags & IPRANGE_DST_INV) {
++			xt_xlate_add(xl, "%s!= ", space);
++			space = "";
 +		}
-+		break;
-+	case NFT_XT_WATCHER:
-+	case NFT_XT_TARGET:
-+		if (stmt->xt.target == NULL && stmt->xt.opts) {
-+			printf("%s", stmt->xt.opts);
-+		} else if (stmt->xt.target->xlate) {
-+			stmt->xt.target->xlate(stmt->xt.entry,
-+					       stmt->xt.target->t, xl, 0);
-+			printf("%s", xt_xlate_get(xl));
-+		} else if (stmt->xt.target->print) {
-+			printf("#");
-+			stmt->xt.target->print(NULL, stmt->xt.target->t, 0);
++		xt_xlate_add(xl, "%sip daddr", space);
+ 		print_iprange_xlate(&info->dst, xl);
+ 	}
+ 
+@@ -340,21 +344,25 @@ static int iprange_mt4_xlate(const void *ip, const struct xt_entry_match *match,
+ 			     struct xt_xlate *xl, int numeric)
+ {
+ 	const struct xt_iprange_mtinfo *info = (const void *)match->data;
++	char *space = "";
+ 
+ 	if (info->flags & IPRANGE_SRC) {
+ 		if (info->flags & IPRANGE_SRC_INV)
+ 			xt_xlate_add(xl, "!= ");
+ 		xt_xlate_add(xl, "ip saddr %s",
+ 			   xtables_ipaddr_to_numeric(&info->src_min.in));
+-		xt_xlate_add(xl, "-%s ",
++		xt_xlate_add(xl, "-%s",
+ 			   xtables_ipaddr_to_numeric(&info->src_max.in));
++		space = " ";
+ 	}
+ 	if (info->flags & IPRANGE_DST) {
+-		if (info->flags & IPRANGE_DST_INV)
+-			xt_xlate_add(xl, "!= ");
+-		xt_xlate_add(xl, "ip daddr %s",
++		if (info->flags & IPRANGE_DST_INV) {
++			xt_xlate_add(xl, "%s!= ", space);
++			space = "";
 +		}
-+		break;
-+	default:
-+		break;
-+	}
++		xt_xlate_add(xl, "%sip daddr %s", space,
+ 			   xtables_ipaddr_to_numeric(&info->dst_min.in));
+-		xt_xlate_add(xl, "-%s ",
++		xt_xlate_add(xl, "-%s",
+ 			   xtables_ipaddr_to_numeric(&info->dst_max.in));
+ 	}
+ 
+@@ -365,21 +373,25 @@ static int iprange_mt6_xlate(const void *ip, const struct xt_entry_match *match,
+ 			     struct xt_xlate *xl, int numeric)
+ {
+ 	const struct xt_iprange_mtinfo *info = (const void *)match->data;
++	char *space = "";
+ 
+ 	if (info->flags & IPRANGE_SRC) {
+ 		if (info->flags & IPRANGE_SRC_INV)
+ 			xt_xlate_add(xl, "!= ");
+ 		xt_xlate_add(xl, "ip saddr %s",
+ 			   xtables_ip6addr_to_numeric(&info->src_min.in6));
+-		xt_xlate_add(xl, "-%s ",
++		xt_xlate_add(xl, "-%s",
+ 			   xtables_ip6addr_to_numeric(&info->src_max.in6));
++		space = " ";
+ 	}
+ 	if (info->flags & IPRANGE_DST) {
+-		if (info->flags & IPRANGE_DST_INV)
+-			xt_xlate_add(xl, "!= ");
+-		xt_xlate_add(xl, "ip daddr %s",
++		if (info->flags & IPRANGE_DST_INV) {
++			xt_xlate_add(xl, "%s!= ", space);
++			space = "";
++		}
++		xt_xlate_add(xl, "%sip daddr %s", space,
+ 			   xtables_ip6addr_to_numeric(&info->dst_min.in6));
+-		xt_xlate_add(xl, "-%s ",
++		xt_xlate_add(xl, "-%s",
+ 			   xtables_ip6addr_to_numeric(&info->dst_max.in6));
+ 	}
+ 
+diff --git a/extensions/libxt_length.c b/extensions/libxt_length.c
+index 1335b4e..feb1d2b 100644
+--- a/extensions/libxt_length.c
++++ b/extensions/libxt_length.c
+@@ -63,9 +63,9 @@ static int length_xlate(const void *ip, const struct xt_entry_match *match,
+ 
+ 	xt_xlate_add(xl, "meta length %s", info->invert ? "!= " : "");
+ 	if (info->min == info->max)
+-		xt_xlate_add(xl, "%u ", info->min);
++		xt_xlate_add(xl, "%u", info->min);
+ 	else
+-		xt_xlate_add(xl, "%u-%u ", info->min, info->max);
++		xt_xlate_add(xl, "%u-%u", info->min, info->max);
+ 
+ 	return 1;
+ }
+diff --git a/extensions/libxt_limit.c b/extensions/libxt_limit.c
+index 6652849..c82d4df 100644
+--- a/extensions/libxt_limit.c
++++ b/extensions/libxt_limit.c
+@@ -164,7 +164,7 @@ static void print_rate_xlate(uint32_t period, struct xt_xlate *xl)
+ 	unsigned int i;
+ 
+ 	if (period == 0) {
+-		xt_xlate_add(xl, " %f ", INFINITY);
++		xt_xlate_add(xl, " %f", INFINITY);
+ 		return;
+ 	}
+ 
+@@ -173,7 +173,7 @@ static void print_rate_xlate(uint32_t period, struct xt_xlate *xl)
+ 		    rates_xlate[i].mult / period < rates_xlate[i].mult % period)
+ 			break;
+ 
+-	xt_xlate_add(xl, " %u/%s ", rates_xlate[i - 1].mult / period,
++	xt_xlate_add(xl, " %u/%s", rates_xlate[i - 1].mult / period,
+ 		   rates_xlate[i - 1].name);
+ }
+ 
+@@ -185,7 +185,7 @@ static int limit_xlate(const void *ip, const struct xt_entry_match *match,
+ 	xt_xlate_add(xl, "limit rate");
+ 	print_rate_xlate(r->avg, xl);
+ 	if (r->burst != 0)
+-		xt_xlate_add(xl, "burst %u packets ", r->burst);
++		xt_xlate_add(xl, " burst %u packets", r->burst);
+ 
+ 	return 1;
+ }
+diff --git a/extensions/libxt_mac.c b/extensions/libxt_mac.c
+index b416487..251134a 100644
+--- a/extensions/libxt_mac.c
++++ b/extensions/libxt_mac.c
+@@ -78,7 +78,6 @@ static void print_mac_xlate(const unsigned char *macaddress,
+ 	xt_xlate_add(xl, "%02x", macaddress[0]);
+ 	for (i = 1; i < ETH_ALEN; ++i)
+ 		xt_xlate_add(xl, ":%02x", macaddress[i]);
+-	xt_xlate_add(xl, " ");
+ }
+ 
+ static int mac_xlate(const void *ip, const struct xt_entry_match *match,
+diff --git a/extensions/libxt_mark.c b/extensions/libxt_mark.c
+index 6eccd5b..3711ec3 100644
+--- a/extensions/libxt_mark.c
++++ b/extensions/libxt_mark.c
+@@ -107,10 +107,10 @@ print_mark_xlate(struct xt_xlate *xl, unsigned int mark,
+ 		 unsigned int mask, uint32_t op)
+ {
+ 	if (mask != 0xffffffffU)
+-		xt_xlate_add(xl, " and 0x%x %s 0x%x ", mask,
++		xt_xlate_add(xl, " and 0x%x %s 0x%x", mask,
+ 			   op == XT_OP_EQ ? "==" : "!=", mark);
+ 	else
+-		xt_xlate_add(xl, " %s0x%x ",
++		xt_xlate_add(xl, " %s0x%x",
+ 			   op == XT_OP_EQ ? "" : "!= ", mark);
+ }
+ 
+diff --git a/extensions/libxt_multiport.c b/extensions/libxt_multiport.c
+index e420a0f..94b3f54 100644
+--- a/extensions/libxt_multiport.c
++++ b/extensions/libxt_multiport.c
+@@ -477,10 +477,10 @@ static int __multiport_xlate(const void *ip, const struct xt_entry_match *match,
+ 
+ 	switch (multiinfo->flags) {
+ 	case XT_MULTIPORT_SOURCE:
+-		xt_xlate_add(xl, "sport ");
++		xt_xlate_add(xl, " sport ");
+ 		break;
+ 	case XT_MULTIPORT_DESTINATION:
+-		xt_xlate_add(xl, "dport ");
++		xt_xlate_add(xl, " dport ");
+ 		break;
+ 	case XT_MULTIPORT_EITHER:
+ 		return 0;
+@@ -495,8 +495,6 @@ static int __multiport_xlate(const void *ip, const struct xt_entry_match *match,
+ 	if (multiinfo->count > 1)
+ 		xt_xlate_add(xl, "}");
+ 
+-	xt_xlate_add(xl, " ");
+-
+ 	return 1;
+ }
+ 
+@@ -505,7 +503,7 @@ static int multiport_xlate(const void *ip, const struct xt_entry_match *match,
+ {
+ 	uint8_t proto = ((const struct ipt_ip *)ip)->proto;
+ 
+-	xt_xlate_add(xl, "%s ", proto_to_name(proto));
++	xt_xlate_add(xl, "%s", proto_to_name(proto));
+ 	return __multiport_xlate(ip, match, xl, numeric);
+ }
+ 
+@@ -514,7 +512,7 @@ static int multiport_xlate6(const void *ip, const struct xt_entry_match *match,
+ {
+ 	uint8_t proto = ((const struct ip6t_ip6 *)ip)->proto;
+ 
+-	xt_xlate_add(xl, "%s ", proto_to_name(proto));
++	xt_xlate_add(xl, "%s", proto_to_name(proto));
+ 	return __multiport_xlate(ip, match, xl, numeric);
+ }
+ 
+@@ -528,10 +526,10 @@ static int __multiport_xlate_v1(const void *ip,
+ 
+ 	switch (multiinfo->flags) {
+ 	case XT_MULTIPORT_SOURCE:
+-		xt_xlate_add(xl, "sport ");
++		xt_xlate_add(xl, " sport ");
+ 		break;
+ 	case XT_MULTIPORT_DESTINATION:
+-		xt_xlate_add(xl, "dport ");
++		xt_xlate_add(xl, " dport ");
+ 		break;
+ 	case XT_MULTIPORT_EITHER:
+ 		return 0;
+@@ -554,8 +552,6 @@ static int __multiport_xlate_v1(const void *ip,
+ 	    (multiinfo->count > 1 && !multiinfo->pflags[0]))
+ 		xt_xlate_add(xl, "}");
+ 
+-	xt_xlate_add(xl, " ");
+-
+ 	return 1;
+ }
+ 
+@@ -565,7 +561,7 @@ static int multiport_xlate_v1(const void *ip,
+ {
+ 	uint8_t proto = ((const struct ipt_ip *)ip)->proto;
+ 
+-	xt_xlate_add(xl, "%s ", proto_to_name(proto));
++	xt_xlate_add(xl, "%s", proto_to_name(proto));
+ 	return __multiport_xlate_v1(ip, match, xl, numeric);
+ }
+ 
+@@ -575,7 +571,7 @@ static int multiport_xlate6_v1(const void *ip,
+ {
+ 	uint8_t proto = ((const struct ip6t_ip6 *)ip)->proto;
+ 
+-	xt_xlate_add(xl, "%s ", proto_to_name(proto));
++	xt_xlate_add(xl, "%s", proto_to_name(proto));
+ 	return __multiport_xlate_v1(ip, match, xl, numeric);
+ }
+ 
+diff --git a/extensions/libxt_owner.c b/extensions/libxt_owner.c
+index 1ee58ff..249ba5a 100644
+--- a/extensions/libxt_owner.c
++++ b/extensions/libxt_owner.c
+@@ -499,10 +499,10 @@ owner_mt_print_uid_xlate(const struct xt_owner_match_info *info,
+ 	xt_xlate_add(xl, "skuid%s ", info->invert ? " !=" : "");
+ 
+ 	if (info->uid_min != info->uid_max)
+-		xt_xlate_add(xl, "%u-%u ", (unsigned int)info->uid_min,
++		xt_xlate_add(xl, "%u-%u", (unsigned int)info->uid_min,
+ 			     (unsigned int)info->uid_max);
+ 	else
+-		xt_xlate_add(xl, "%u ", (unsigned int)info->uid_min);
++		xt_xlate_add(xl, "%u", (unsigned int)info->uid_min);
+ 
+ 	return 1;
+ }
+@@ -514,10 +514,10 @@ owner_mt_print_gid_xlate(const struct xt_owner_match_info *info,
+ 	xt_xlate_add(xl, "skgid%s ", info->invert ? " !=" : "");
+ 
+ 	if (info->gid_min != info->gid_max)
+-		xt_xlate_add(xl, "%u-%u ", (unsigned int)info->gid_min,
++		xt_xlate_add(xl, "%u-%u", (unsigned int)info->gid_min,
+ 			     (unsigned int)info->gid_max);
+ 	else
+-		xt_xlate_add(xl, "%u ", (unsigned int)info->gid_min);
++		xt_xlate_add(xl, "%u", (unsigned int)info->gid_min);
+ 
+ 	return 1;
+ }
+diff --git a/extensions/libxt_pkttype.c b/extensions/libxt_pkttype.c
+index c8123a2..a14409d 100644
+--- a/extensions/libxt_pkttype.c
++++ b/extensions/libxt_pkttype.c
+@@ -133,7 +133,7 @@ static void print_pkttype_xlate(const struct xt_pkttype_info *info,
+ 
+ 	for (i = 0; i < ARRAY_SIZE(supported_types_xlate); ++i) {
+ 		if (supported_types_xlate[i].pkttype == info->pkttype) {
+-			xt_xlate_add(xl, "%s ", supported_types_xlate[i].name);
++			xt_xlate_add(xl, "%s", supported_types_xlate[i].name);
+ 			return;
+ 		}
+ 	}
+diff --git a/extensions/libxt_sctp.c b/extensions/libxt_sctp.c
+index ae1969a..a04b4fc 100644
+--- a/extensions/libxt_sctp.c
++++ b/extensions/libxt_sctp.c
+@@ -490,6 +490,7 @@ static int sctp_xlate(const void *ip, const struct xt_entry_match *match,
+ {
+ 	const struct xt_sctp_info *einfo =
+ 		(const struct xt_sctp_info *)match->data;
++	char *space = "";
+ 
+ 	if (!einfo->flags)
+ 		return 0;
+@@ -498,22 +499,23 @@ static int sctp_xlate(const void *ip, const struct xt_entry_match *match,
+ 
+ 	if (einfo->flags & XT_SCTP_SRC_PORTS) {
+ 		if (einfo->spts[0] != einfo->spts[1])
+-			xt_xlate_add(xl, "sport%s %u-%u ",
++			xt_xlate_add(xl, "sport%s %u-%u",
+ 				     einfo->invflags & XT_SCTP_SRC_PORTS ? " !=" : "",
+ 				     einfo->spts[0], einfo->spts[1]);
+ 		else
+-			xt_xlate_add(xl, "sport%s %u ",
++			xt_xlate_add(xl, "sport%s %u",
+ 				     einfo->invflags & XT_SCTP_SRC_PORTS ? " !=" : "",
+ 				     einfo->spts[0]);
++		space = " ";
+ 	}
+ 
+ 	if (einfo->flags & XT_SCTP_DEST_PORTS) {
+ 		if (einfo->dpts[0] != einfo->dpts[1])
+-			xt_xlate_add(xl, "dport%s %u-%u ",
++			xt_xlate_add(xl, "%sdport%s %u-%u", space,
+ 				     einfo->invflags & XT_SCTP_DEST_PORTS ? " !=" : "",
+ 				     einfo->dpts[0], einfo->dpts[1]);
+ 		else
+-			xt_xlate_add(xl, "dport%s %u ",
++			xt_xlate_add(xl, "%sdport%s %u", space,
+ 				     einfo->invflags & XT_SCTP_DEST_PORTS ? " !=" : "",
+ 				     einfo->dpts[0]);
+ 	}
+diff --git a/extensions/libxt_tcp.c b/extensions/libxt_tcp.c
+index 2a14035..bc1d0af 100644
+--- a/extensions/libxt_tcp.c
++++ b/extensions/libxt_tcp.c
+@@ -397,33 +397,36 @@ static int tcp_xlate(const void *ip, const struct xt_entry_match *match,
+ 		     struct xt_xlate *xl, int numeric)
+ {
+ 	const struct xt_tcp *tcpinfo = (const struct xt_tcp *)match->data;
++	char *space= "";
+ 
+ 	if (tcpinfo->spts[0] != 0 || tcpinfo->spts[1] != 0xffff) {
+ 		if (tcpinfo->spts[0] != tcpinfo->spts[1]) {
+-			xt_xlate_add(xl, "tcp sport %s%u-%u ",
++			xt_xlate_add(xl, "tcp sport %s%u-%u",
+ 				   tcpinfo->invflags & XT_TCP_INV_SRCPT ?
+ 					"!= " : "",
+ 				   tcpinfo->spts[0], tcpinfo->spts[1]);
+ 		} else {
+-			xt_xlate_add(xl, "tcp sport %s%u ",
++			xt_xlate_add(xl, "tcp sport %s%u",
+ 				   tcpinfo->invflags & XT_TCP_INV_SRCPT ?
+ 					"!= " : "",
+ 				   tcpinfo->spts[0]);
+ 		}
++		space = " ";
+ 	}
+ 
+ 	if (tcpinfo->dpts[0] != 0 || tcpinfo->dpts[1] != 0xffff) {
+ 		if (tcpinfo->dpts[0] != tcpinfo->dpts[1]) {
+-			xt_xlate_add(xl, "tcp dport %s%u-%u ",
++			xt_xlate_add(xl, "%stcp dport %s%u-%u", space,
+ 				   tcpinfo->invflags & XT_TCP_INV_DSTPT ?
+ 					"!= " : "",
+ 				   tcpinfo->dpts[0], tcpinfo->dpts[1]);
+ 		} else {
+-			xt_xlate_add(xl, "tcp dport %s%u ",
++			xt_xlate_add(xl, "%stcp dport %s%u", space,
+ 				   tcpinfo->invflags & XT_TCP_INV_DSTPT ?
+ 					"!= " : "",
+ 				   tcpinfo->dpts[0]);
+ 		}
++		space = " ";
+ 	}
+ 
+ 	/* XXX not yet implemented */
+@@ -431,12 +434,11 @@ static int tcp_xlate(const void *ip, const struct xt_entry_match *match,
+ 		return 0;
+ 
+ 	if (tcpinfo->flg_mask || (tcpinfo->invflags & XT_TCP_INV_FLAGS)) {
+-		xt_xlate_add(xl, "tcp flags & ");
++		xt_xlate_add(xl, "%stcp flags & ", space);
+ 		print_tcp_xlate(xl, tcpinfo->flg_mask);
+ 		xt_xlate_add(xl, " %s ",
+ 			   tcpinfo->invflags & XT_TCP_INV_FLAGS ? "!=": "==");
+ 		print_tcp_xlate(xl, tcpinfo->flg_cmp);
+-		xt_xlate_add(xl, " ");
+ 	}
+ 
+ 	return 1;
+diff --git a/extensions/libxt_udp.c b/extensions/libxt_udp.c
+index 9af782e..d8e286a 100644
+--- a/extensions/libxt_udp.c
++++ b/extensions/libxt_udp.c
+@@ -156,29 +156,31 @@ static int udp_xlate(const void *ip, const struct xt_entry_match *match,
+ 		     struct xt_xlate *xl, int numeric)
+ {
+ 	const struct xt_udp *udpinfo = (struct xt_udp *)match->data;
++	char *space= "";
+ 
+ 	if (udpinfo->spts[0] != 0 || udpinfo->spts[1] != 0xFFFF) {
+ 		if (udpinfo->spts[0] != udpinfo->spts[1]) {
+-			xt_xlate_add(xl,"udp sport %s%u-%u ",
++			xt_xlate_add(xl,"udp sport %s%u-%u",
+ 				   udpinfo->invflags & XT_UDP_INV_SRCPT ?
+ 					 "!= ": "",
+ 				   udpinfo->spts[0], udpinfo->spts[1]);
+ 		} else {
+-			xt_xlate_add(xl, "udp sport %s%u ",
++			xt_xlate_add(xl, "udp sport %s%u",
+ 				   udpinfo->invflags & XT_UDP_INV_SRCPT ?
+ 					 "!= ": "",
+ 				   udpinfo->spts[0]);
+ 		}
++		space = " ";
+ 	}
+ 
+ 	if (udpinfo->dpts[0] != 0 || udpinfo->dpts[1] != 0xFFFF) {
+ 		if (udpinfo->dpts[0]  != udpinfo->dpts[1]) {
+-			xt_xlate_add(xl,"udp dport %s%u-%u ",
++			xt_xlate_add(xl,"%sudp dport %s%u-%u", space,
+ 				   udpinfo->invflags & XT_UDP_INV_SRCPT ?
+ 					 "!= ": "",
+ 				   udpinfo->dpts[0], udpinfo->dpts[1]);
+ 		} else {
+-			xt_xlate_add(xl,"udp dport %s%u ",
++			xt_xlate_add(xl,"%sudp dport %s%u", space,
+ 				   udpinfo->invflags & XT_UDP_INV_SRCPT ?
+ 					 "!= ": "",
+ 				   udpinfo->dpts[0]);
+diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
+index 3f3a3c7..71f1356 100644
+--- a/iptables/xtables-translate.c
++++ b/iptables/xtables-translate.c
+@@ -75,6 +75,10 @@ int xlate_matches(const struct iptables_command_state *cs, struct xt_xlate *xl)
+ 
+ 		ret = matchp->match->xlate((const void *)&cs->fw,
+ 					   matchp->match->m, xl, numeric);
 +
-+	xt_xlate_free(xl);
-+}
++		if (strcmp(matchp->match->name, "comment") != 0)
++			xt_xlate_add(xl, " ");
 +
-+void xt_stmt_release(const struct stmt *stmt)
-+{
-+	switch (stmt->xt.type) {
-+	case NFT_XT_MATCH:
-+		if (!stmt->xt.match)
-+			break;
-+		if (stmt->xt.match->m)
-+			xfree(stmt->xt.match->m);
-+		xfree(stmt->xt.match);
-+		break;
-+	case NFT_XT_WATCHER:
-+	case NFT_XT_TARGET:
-+		if (!stmt->xt.target)
-+			break;
-+		if (stmt->xt.target->t)
-+			xfree(stmt->xt.target->t);
-+		xfree(stmt->xt.target);
-+		break;
-+	default:
-+		break;
-+	}
-+	xfree(stmt->xt.entry);
-+}
-+
-+static void *xt_entry_alloc(struct xt_stmt *xt, uint32_t af)
-+{
-+	union nft_entry {
-+		struct ipt_entry ipt;
-+		struct ip6t_entry ip6t;
-+		struct arpt_entry arpt;
-+		struct ebt_entry ebt;
-+	} *entry;
-+
-+	entry = xmalloc(sizeof(union nft_entry));
-+
-+	switch (af) {
-+	case NFPROTO_IPV4:
-+		entry->ipt.ip.proto = xt->proto;
-+		break;
-+	case NFPROTO_IPV6:
-+		entry->ip6t.ipv6.proto = xt->proto;
-+		break;
-+	case NFPROTO_BRIDGE:
-+		entry->ebt.ethproto = xt->proto;
-+		break;
-+	case NFPROTO_ARP:
-+		entry->arpt.arp.arhln_mask = 0xff;
-+		entry->arpt.arp.arhln = 6;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return entry;
-+}
-+
-+static uint32_t xt_proto(const struct proto_ctx *pctx)
-+{
-+	const struct proto_desc *desc = NULL;
-+
-+	if (pctx->family == NFPROTO_BRIDGE) {
-+		desc = pctx->protocol[PROTO_BASE_NETWORK_HDR].desc;
-+		if (desc == NULL)
-+			return 0;
-+		if (strcmp(desc->name, "ip") == 0)
-+			return __constant_htons(ETH_P_IP);
-+		if (strcmp(desc->name, "ip6") == 0)
-+			return __constant_htons(ETH_P_IPV6);
-+		return 0;
-+	}
-+
-+	desc = pctx->protocol[PROTO_BASE_TRANSPORT_HDR].desc;
-+	if (desc == NULL)
-+		return 0;
-+	if (strcmp(desc->name, "tcp") == 0)
-+		return IPPROTO_TCP;
-+	else if (strcmp(desc->name, "udp") == 0)
-+		return IPPROTO_UDP;
-+	else if (strcmp(desc->name, "udplite") == 0)
-+		return IPPROTO_UDPLITE;
-+	else if (strcmp(desc->name, "sctp") == 0)
-+		return IPPROTO_SCTP;
-+	else if (strcmp(desc->name, "dccp") == 0)
-+		return IPPROTO_DCCP;
-+	else if (strcmp(desc->name, "esp") == 0)
-+		return IPPROTO_ESP;
-+	else if (strcmp(desc->name, "ah") == 0)
-+		return IPPROTO_AH;
-+
-+	return 0;
-+}
-+
-+static struct xtables_target *xt_target_clone(struct xtables_target *t)
-+{
-+	struct xtables_target *clone;
-+
-+	clone = xzalloc(sizeof(struct xtables_target));
-+	memcpy(clone, t, sizeof(struct xtables_target));
-+	return clone;
-+}
-+
-+static struct xtables_match *xt_match_clone(struct xtables_match *m)
-+{
-+	struct xtables_match *clone;
-+
-+	clone = xzalloc(sizeof(struct xtables_match));
-+	memcpy(clone, m, sizeof(struct xtables_match));
-+	return clone;
-+}
-+
-+/*
-+ * Delinearization
-+ */
-+
-+void netlink_parse_match(struct netlink_parse_ctx *ctx,
-+			 const struct location *loc,
-+			 const struct nftnl_expr *nle)
-+{
-+	struct stmt *stmt;
-+	const char *name;
-+	struct xtables_match *mt;
-+	const char *mtinfo;
-+	struct xt_entry_match *m;
-+	uint32_t mt_len;
-+
-+	xtables_set_nfproto(ctx->table->handle.family);
-+
-+	name = nftnl_expr_get_str(nle, NFT_EXPR_MT_NAME);
-+
-+	mt = xtables_find_match(name, XTF_TRY_LOAD, NULL);
-+	if (!mt)
-+		BUG("XT match %s not found\n", name);
-+
-+	mtinfo = nftnl_expr_get(nle, NFT_EXPR_MT_INFO, &mt_len);
-+
-+	m = xzalloc(sizeof(struct xt_entry_match) + mt_len);
-+	memcpy(&m->data, mtinfo, mt_len);
-+
-+	m->u.match_size = mt_len + XT_ALIGN(sizeof(struct xt_entry_match));
-+	m->u.user.revision = nftnl_expr_get_u32(nle, NFT_EXPR_MT_REV);
-+
-+	stmt = xt_stmt_alloc(loc);
-+	stmt->xt.name = strdup(name);
-+	stmt->xt.type = NFT_XT_MATCH;
-+	stmt->xt.match = xt_match_clone(mt);
-+	stmt->xt.match->m = m;
-+
-+	list_add_tail(&stmt->list, &ctx->rule->stmts);
-+}
-+
-+void netlink_parse_target(struct netlink_parse_ctx *ctx,
-+			  const struct location *loc,
-+			  const struct nftnl_expr *nle)
-+{
-+	struct stmt *stmt;
-+	const char *name;
-+	struct xtables_target *tg;
-+	const void *tginfo;
-+	struct xt_entry_target *t;
-+	size_t size;
-+	uint32_t tg_len;
-+
-+	xtables_set_nfproto(ctx->table->handle.family);
-+
-+	name = nftnl_expr_get_str(nle, NFT_EXPR_TG_NAME);
-+	tg = xtables_find_target(name, XTF_TRY_LOAD);
-+	if (!tg)
-+		BUG("XT target %s not found\n", name);
-+
-+	tginfo = nftnl_expr_get(nle, NFT_EXPR_TG_INFO, &tg_len);
-+
-+	size = XT_ALIGN(sizeof(struct xt_entry_target)) + tg_len;
-+	t = xzalloc(size);
-+	memcpy(&t->data, tginfo, tg_len);
-+	t->u.target_size = size;
-+	t->u.user.revision = nftnl_expr_get_u32(nle, NFT_EXPR_TG_REV);
-+	strcpy(t->u.user.name, tg->name);
-+
-+	stmt = xt_stmt_alloc(loc);
-+	stmt->xt.name = strdup(name);
-+	stmt->xt.type = NFT_XT_TARGET;
-+	stmt->xt.target = xt_target_clone(tg);
-+	stmt->xt.target->t = t;
-+
-+	list_add_tail(&stmt->list, &ctx->rule->stmts);
-+}
-+
-+static bool is_watcher(uint32_t family, struct stmt *stmt)
-+{
-+	if (family != NFPROTO_BRIDGE ||
-+	    stmt->xt.type != NFT_XT_TARGET)
-+		return false;
-+
-+	/* this has to be hardcoded :-( */
-+	if (strcmp(stmt->xt.name, "log") == 0)
-+		return true;
-+	else if (strcmp(stmt->xt.name, "nflog") == 0)
-+		return true;
-+
-+	return false;
-+}
-+
-+void stmt_xt_postprocess(struct rule_pp_ctx *rctx, struct stmt *stmt,
-+			 struct rule *rule)
-+{
-+	if (is_watcher(rctx->pctx.family, stmt))
-+		stmt->xt.type = NFT_XT_WATCHER;
-+
-+	stmt->xt.proto = xt_proto(&rctx->pctx);
-+	stmt->xt.entry = xt_entry_alloc(&stmt->xt, rctx->pctx.family);
-+}
-+
-+static int nft_xt_compatible_revision(const char *name, uint8_t rev, int opt)
-+{
-+	struct mnl_socket *nl;
-+	char buf[MNL_SOCKET_BUFFER_SIZE];
-+	struct nlmsghdr *nlh;
-+	uint32_t portid, seq, type;
-+	struct nfgenmsg *nfg;
-+	int ret = 0;
-+
-+	if (opt == IPT_SO_GET_REVISION_MATCH)
-+		type = 0;
-+	else
-+		type = 1;
-+
-+	nlh = mnl_nlmsg_put_header(buf);
-+	nlh->nlmsg_type = (NFNL_SUBSYS_NFT_COMPAT << 8) | NFNL_MSG_COMPAT_GET;
-+	nlh->nlmsg_flags = NLM_F_REQUEST | NLM_F_ACK;
-+	nlh->nlmsg_seq = seq = time(NULL);
-+
-+	nfg = mnl_nlmsg_put_extra_header(nlh, sizeof(*nfg));
-+	nfg->nfgen_family = AF_INET;
-+	nfg->version = NFNETLINK_V0;
-+	nfg->res_id = 0;
-+
-+	mnl_attr_put_strz(nlh, NFTA_COMPAT_NAME, name);
-+	mnl_attr_put_u32(nlh, NFTA_COMPAT_REV, htonl(rev));
-+	mnl_attr_put_u32(nlh, NFTA_COMPAT_TYPE, htonl(type));
-+
-+	nl = mnl_socket_open(NETLINK_NETFILTER);
-+	if (nl == NULL)
-+		return 0;
-+
-+	if (mnl_socket_bind(nl, 0, MNL_SOCKET_AUTOPID) < 0)
-+		goto err;
-+
-+	portid = mnl_socket_get_portid(nl);
-+
-+	if (mnl_socket_sendto(nl, nlh, nlh->nlmsg_len) < 0)
-+		goto err;
-+
-+	ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-+	if (ret == -1)
-+		goto err;
-+
-+	ret = mnl_cb_run(buf, ret, seq, portid, NULL, NULL);
-+	if (ret == -1)
-+		goto err;
-+
-+err:
-+	mnl_socket_close(nl);
-+
-+	return ret < 0 ? 0 : 1;
-+}
-+
-+static struct option original_opts[] = {
-+	{ NULL },
-+};
-+
-+static struct xtables_globals xt_nft_globals = {
-+	.program_name		= "nft",
-+	.program_version	= PACKAGE_VERSION,
-+	.orig_opts		= original_opts,
-+	.compat_rev		= nft_xt_compatible_revision,
-+};
-+
-+static void __init xt_init(void)
-+{
-+	/* Default to IPv4, but this changes in runtime */
-+	xtables_init_all(&xt_nft_globals, NFPROTO_IPV4);
-+}
+ 		if (!ret)
+ 			break;
+ 	}
 -- 
 2.9.0
 
