@@ -1,72 +1,211 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2] netfilter: add missing macro
-Date: Mon, 11 Jul 2016 12:41:10 +0200
-Message-ID: <20160711104110.GA1540@salvia>
-References: <20160708162911.18756-1-eric.engestrom@imgtec.com>
- <20160708162911.18756-2-eric.engestrom@imgtec.com>
+From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
+Subject: [PATCH v2, libnftnl] Fix nftnl_*_get to set data_len
+Date: Mon, 11 Jul 2016 13:41:07 +0200
+Message-ID: <1468237267-15246-1-git-send-email-carlosfg@riseup.net>
+References: <20160706152058.GB31894@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: linux-kernel@vger.kernel.org, Eric Engestrom <eric@engestrom.ch>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Eric Engestrom <eric.engestrom@imgtec.com>
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54211 "EHLO mail.us.es"
+Received: from mx1.riseup.net ([198.252.153.129]:53285 "EHLO mx1.riseup.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758363AbcGKKlR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Jul 2016 06:41:17 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id BEBDC17DB6D
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:41:14 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id A7389FAB54
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:41:14 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 7DE769EBD8
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:41:12 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20160708162911.18756-2-eric.engestrom@imgtec.com>
+	id S1753660AbcGKLlT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Jul 2016 07:41:19 -0400
+In-Reply-To: <20160706152058.GB31894@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jul 08, 2016 at 05:29:11PM +0100, Eric Engestrom wrote:
-> Signed-off-by: Eric Engestrom <eric.engestrom@imgtec.com>
-> ---
->=20
-> This can't compile without this macro=E2=80=A6 Is this header really =
-used by anyone?
-> Should it be removed, to avoid bit-rot?
+All getters must set the output parameter 'data_len'
 
-Probably better to define something like:
+Signed-off-by: Carlos Falgueras Garc=C3=ADa <carlosfg@riseup.net>
+---
+ src/chain.c       | 3 +++
+ src/expr.c        | 1 +
+ src/expr/dynset.c | 3 +++
+ src/expr/lookup.c | 3 +++
+ src/gen.c         | 1 +
+ src/rule.c        | 2 ++
+ src/set.c         | 2 ++
+ src/set_elem.c    | 6 ++++++
+ src/table.c       | 1 +
+ 9 files changed, 22 insertions(+)
 
-#define SCTP_BITMAP_LEN         (256 / sizeof (u_int32_t))
+diff --git a/src/chain.c b/src/chain.c
+index cab64b5..4c562fe 100644
+--- a/src/chain.c
++++ b/src/chain.c
+@@ -272,8 +272,10 @@ const void *nftnl_chain_get_data(const struct nftn=
+l_chain *c, uint16_t attr,
+=20
+ 	switch(attr) {
+ 	case NFTNL_CHAIN_NAME:
++		*data_len =3D strlen(c->name) + 1;
+ 		return c->name;
+ 	case NFTNL_CHAIN_TABLE:
++		*data_len =3D strlen(c->table) + 1;
+ 		return c->table;
+ 	case NFTNL_CHAIN_HOOKNUM:
+ 		*data_len =3D sizeof(uint32_t);
+@@ -303,6 +305,7 @@ const void *nftnl_chain_get_data(const struct nftnl=
+_chain *c, uint16_t attr,
+ 		*data_len =3D sizeof(uint32_t);
+ 		return c->type;
+ 	case NFTNL_CHAIN_DEV:
++		*data_len =3D strlen(c->dev) + 1;
+ 		return c->dev;
+ 	}
+ 	return NULL;
+diff --git a/src/expr.c b/src/expr.c
+index f802725..e5c1dd3 100644
+--- a/src/expr.c
++++ b/src/expr.c
+@@ -119,6 +119,7 @@ const void *nftnl_expr_get(const struct nftnl_expr =
+*expr,
+=20
+ 	switch(type) {
+ 	case NFTNL_EXPR_NAME:
++		*data_len =3D strlen(expr->ops->name) + 1;
+ 		ret =3D expr->ops->name;
+ 		break;
+ 	default:
+diff --git a/src/expr/dynset.c b/src/expr/dynset.c
+index 0404359..3f6fb08 100644
+--- a/src/expr/dynset.c
++++ b/src/expr/dynset.c
+@@ -88,10 +88,13 @@ nftnl_expr_dynset_get(const struct nftnl_expr *e, u=
+int16_t type,
+ 		*data_len =3D sizeof(dynset->timeout);
+ 		return &dynset->timeout;
+ 	case NFTNL_EXPR_DYNSET_SET_NAME:
++		*data_len =3D strlen(dynset->set_name) + 1;
+ 		return dynset->set_name;
+ 	case NFTNL_EXPR_DYNSET_SET_ID:
++		*data_len =3D sizeof(dynset->set_id) + 1;
+ 		return &dynset->set_id;
+ 	case NFTNL_EXPR_DYNSET_EXPR:
++		*data_len =3D 0;
+ 		return dynset->expr;
+ 	}
+ 	return NULL;
+diff --git a/src/expr/lookup.c b/src/expr/lookup.c
+index 7f68f74..a29b7e5 100644
+--- a/src/expr/lookup.c
++++ b/src/expr/lookup.c
+@@ -73,10 +73,13 @@ nftnl_expr_lookup_get(const struct nftnl_expr *e, u=
+int16_t type,
+ 		*data_len =3D sizeof(lookup->dreg);
+ 		return &lookup->dreg;
+ 	case NFTNL_EXPR_LOOKUP_SET:
++		*data_len =3D strlen(lookup->set_name) + 1;
+ 		return lookup->set_name;
+ 	case NFTNL_EXPR_LOOKUP_SET_ID:
++		*data_len =3D sizeof(lookup->set_id) + 1;
+ 		return &lookup->set_id;
+ 	case NFTNL_EXPR_LOOKUP_FLAGS:
++		*data_len =3D sizeof(lookup->flags) + 1;
+ 		return &lookup->flags;
+ 	}
+ 	return NULL;
+diff --git a/src/gen.c b/src/gen.c
+index 37a9049..ed815e5 100644
+--- a/src/gen.c
++++ b/src/gen.c
+@@ -100,6 +100,7 @@ const void *nftnl_gen_get_data(const struct nftnl_g=
+en *gen, uint16_t attr,
+=20
+ 	switch(attr) {
+ 	case NFTNL_GEN_ID:
++		*data_len =3D sizeof(gen->id) + 1;
+ 		return &gen->id;
+ 	}
+ 	return NULL;
+diff --git a/src/rule.c b/src/rule.c
+index 2b23c8e..a0edca7 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -213,8 +213,10 @@ const void *nftnl_rule_get_data(const struct nftnl=
+_rule *r, uint16_t attr,
+ 		*data_len =3D sizeof(uint32_t);
+ 		return &r->family;
+ 	case NFTNL_RULE_TABLE:
++		*data_len =3D strlen(r->table) + 1;
+ 		return r->table;
+ 	case NFTNL_RULE_CHAIN:
++		*data_len =3D strlen(r->chain) + 1;
+ 		return r->chain;
+ 	case NFTNL_RULE_HANDLE:
+ 		*data_len =3D sizeof(uint64_t);
+diff --git a/src/set.c b/src/set.c
+index e48ff78..8a592db 100644
+--- a/src/set.c
++++ b/src/set.c
+@@ -215,8 +215,10 @@ const void *nftnl_set_get_data(const struct nftnl_=
+set *s, uint16_t attr,
+=20
+ 	switch(attr) {
+ 	case NFTNL_SET_TABLE:
++		*data_len =3D strlen(s->table) + 1;
+ 		return s->table;
+ 	case NFTNL_SET_NAME:
++		*data_len =3D strlen(s->name) + 1;
+ 		return s->name;
+ 	case NFTNL_SET_FLAGS:
+ 		*data_len =3D sizeof(uint32_t);
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 40b5bfe..02808aa 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -160,25 +160,31 @@ const void *nftnl_set_elem_get(struct nftnl_set_e=
+lem *s, uint16_t attr, uint32_t
+=20
+ 	switch(attr) {
+ 	case NFTNL_SET_ELEM_FLAGS:
++		*data_len =3D sizeof(s->set_elem_flags) + 1;
+ 		return &s->set_elem_flags;
+ 	case NFTNL_SET_ELEM_KEY:	/* NFTA_SET_ELEM_KEY */
+ 		*data_len =3D s->key.len;
+ 		return &s->key.val;
+ 	case NFTNL_SET_ELEM_VERDICT:	/* NFTA_SET_ELEM_DATA */
++		*data_len =3D sizeof(s->data.verdict) + 1;
+ 		return &s->data.verdict;
+ 	case NFTNL_SET_ELEM_CHAIN:	/* NFTA_SET_ELEM_DATA */
++		*data_len =3D strlen(s->data.chain) + 1;
+ 		return s->data.chain;
+ 	case NFTNL_SET_ELEM_DATA:	/* NFTA_SET_ELEM_DATA */
+ 		*data_len =3D s->data.len;
+ 		return &s->data.val;
+ 	case NFTNL_SET_ELEM_TIMEOUT:	/* NFTA_SET_ELEM_TIMEOUT */
++		*data_len =3D sizeof(s->timeout) + 1;
+ 		return &s->timeout;
+ 	case NFTNL_SET_ELEM_EXPIRATION:	/* NFTA_SET_ELEM_EXPIRATION */
++		*data_len =3D sizeof(s->expiration) + 1;
+ 		return &s->expiration;
+ 	case NFTNL_SET_ELEM_USERDATA:
+ 		*data_len =3D s->user.len;
+ 		return s->user.data;
+ 	case NFTNL_SET_ELEM_EXPR:
++		*data_len =3D 0;
+ 		return s->expr;
+ 	}
+ 	return NULL;
+diff --git a/src/table.c b/src/table.c
+index 966b923..3d4d7b9 100644
+--- a/src/table.c
++++ b/src/table.c
+@@ -143,6 +143,7 @@ const void *nftnl_table_get_data(const struct nftnl=
+_table *t, uint16_t attr,
+=20
+ 	switch(attr) {
+ 	case NFTNL_TABLE_NAME:
++		*data_len =3D strlen(t->name) + 1;
+ 		return t->name;
+ 	case NFTNL_TABLE_FLAGS:
+ 		*data_len =3D sizeof(uint32_t);
+--=20
+2.5.1
 
-and use it consistently all around the code, so we can get rid of
-these ARRAY_SIZE() from the uapi header.
-
-> ---
->  include/uapi/linux/netfilter/xt_sctp.h | 2 ++
->  1 file changed, 2 insertions(+)
->=20
-> diff --git a/include/uapi/linux/netfilter/xt_sctp.h b/include/uapi/li=
-nux/netfilter/xt_sctp.h
-> index 58ffcfb..e4410db 100644
-> --- a/include/uapi/linux/netfilter/xt_sctp.h
-> +++ b/include/uapi/linux/netfilter/xt_sctp.h
-> @@ -3,6 +3,8 @@
-> =20
->  #include <linux/types.h>
-> =20
-> +#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr)[0])
-> +
->  #define XT_SCTP_SRC_PORTS	        0x01
->  #define XT_SCTP_DEST_PORTS	        0x02
->  #define XT_SCTP_CHUNK_TYPES		0x04
-> --=20
-> 2.9.0
->=20
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
