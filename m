@@ -1,74 +1,39 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 3/3] netfilter: replace list_head with single
- linked list
-Date: Mon, 11 Jul 2016 12:29:31 +0200
-Message-ID: <20160711102931.GA18199@salvia>
-References: <1467321575-6107-1-git-send-email-aconole@bytheb.org>
- <1467321575-6107-4-git-send-email-aconole@bytheb.org>
- <20160708233038.GA2067@breakpoint.cc>
+Subject: Re: [PATCH] fix off-by-one in DecodeQ931
+Date: Mon, 11 Jul 2016 12:33:33 +0200
+Message-ID: <20160711103333.GA20955@salvia>
+References: <57814fde.87a2370a.19369.49af@mx.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Aaron Conole <aconole@bytheb.org>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Toby DiPasquale <toby@cbcg.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50655 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:51883 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758136AbcGKK3r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Jul 2016 06:29:47 -0400
+	id S1030311AbcGKKdl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Jul 2016 06:33:41 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 69A4D17DB67
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:29:44 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 96D0717DB65
+	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:33:40 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 4DD699EBD2
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:29:44 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 803A9FAB51
+	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:33:40 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E7DA49EBDC
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:29:38 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 57C81FC61A
+	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:33:38 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160708233038.GA2067@breakpoint.cc>
+In-Reply-To: <57814fde.87a2370a.19369.49af@mx.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jul 09, 2016 at 01:30:38AM +0200, Florian Westphal wrote:
-> Aaron Conole <aconole@bytheb.org> wrote:
-> > --- a/net/netfilter/core.c
-> > +++ b/net/netfilter/core
-> [..]
-> > +#define nf_entry_dereference(e) \
-> > +	rcu_dereference_protected(e, lockdep_is_held(&nf_hook_mutex))
-> >  
-> > -static struct list_head *nf_find_hook_list(struct net *net,
-> > -					   const struct nf_hook_ops *reg)
-> > +static struct nf_hook_entry *nf_find_hook_list(struct net *net,
-> > +					       const struct nf_hook_ops *reg)
-> >  {
-> > -	struct list_head *hook_list = NULL;
-> > +	struct nf_hook_entry *hook_list = NULL;
-> >  
-> >  	if (reg->pf != NFPROTO_NETDEV)
-> > -		hook_list = &net->nf.hooks[reg->pf][reg->hooknum];
-> > +		hook_list = rcu_dereference(net->nf.hooks[reg->pf]
-> > +					    [reg->hooknum]);
-> >  	else if (reg->hooknum == NF_NETDEV_INGRESS) {
-> >  #ifdef CONFIG_NETFILTER_INGRESS
-> >  		if (reg->dev && dev_net(reg->dev) == net)
-> > -			hook_list = &reg->dev->nf_hooks_ingress;
-> > +			hook_list =
-> > +				rcu_dereference(reg->dev->nf_hooks_ingress);
+On Wed, Jul 13, 2016 at 02:59:00PM -0400, Toby DiPasquale wrote:
+> fix off-by-one in DecodeQ931
 > 
-> Both of these should use nf_entry_dereference() to avoid the lockdep
-> splat reported by kbuild robot:
-> 
-> net/netfilter/core.c:75 suspicious rcu_dereference_check() usage!
-> 2 locks held by swapper/1:
-> #0:  (rtnl_mutex){+.+.+.}, at: [<ffffffff81c2e567>] rtnl_lock+0x17/0x20
-> #1:  (nf_hook_mutex){+.+...}, at: [<ffffffff81c58fcb>] nf_register_net_hook+0xcb/0x240
+> This patch corrects an off-by-one error in the DecodeQ931 function in
+> the nf_conntrack_h323 module. This error could result in reading off
+> the end of a Q.931 frame.
 
-Aaron, please, send a v2.
+Applied to nf-next, thanks.
 
-I have a patchset that changes the footprint of the hook function as
-it was discussed during the last Netfilter Workshop that clashes with
-this.
-
-Thanks!
+I have fixed the timestamp since your clock doesn't look right as this
+was placed way ahead in the future.
