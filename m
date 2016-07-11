@@ -1,36 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH -next] netfilter: conntrack: simplify early_drop
-Date: Mon, 11 Jul 2016 12:11:18 +0200
-Message-ID: <20160711101118.GB18393@salvia>
-References: <1467571441-26797-1-git-send-email-fw@strlen.de>
+Subject: Re: [PATCH 2/2 libnfntl] Fix nftnl_*_get to set data_len
+Date: Mon, 11 Jul 2016 12:24:27 +0200
+Message-ID: <20160711102427.GA10548@salvia>
+References: <20160705123125.GA27152@salvia>
+ <1467738917-17597-1-git-send-email-carlosfg@riseup.net>
+ <1467738917-17597-2-git-send-email-carlosfg@riseup.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44406 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:49093 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757697AbcGKKLW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Jul 2016 06:11:22 -0400
+	id S1752968AbcGKKYo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Jul 2016 06:24:44 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 63FDD17AB6B
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:11:21 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 4AEE417DB60
+	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:24:31 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 3AF8FFF12D
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:11:21 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 3111B9EBD4
+	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:24:31 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 4687FFAB44
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:11:19 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id CF33E9EBD5
+	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:24:28 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1467571441-26797-1-git-send-email-fw@strlen.de>
+In-Reply-To: <1467738917-17597-2-git-send-email-carlosfg@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Jul 03, 2016 at 08:44:01PM +0200, Florian Westphal wrote:
-> We don't need to acquire the bucket lock during early drop, we can
-> use lockless traveral just like ____nf_conntrack_find.
-> 
-> The timer deletion serves as synchronization point, if another cpu
-> attempts to evict same entry, only one will succeed with timer deletion.
+Carlos,
 
-Applied, thanks Florian.
+Habla con Laura para ver c=F3mo lleva este cambio en la reuni=F3n:
+
+http://patchwork.ozlabs.org/patch/639253/
+
+Si ella no anda con tiempo, creo que t=FA tienes los conocimientos para
+hacer este cambio que describo ah=ED.
+
+No lo olvides. Gracias.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
