@@ -1,43 +1,67 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v3, libnftnl] Fix nftnl_*_get to set data_len
-Date: Mon, 11 Jul 2016 19:18:56 +0200
-Message-ID: <20160711171856.GA13568@salvia>
-References: <20160711114807.GA1788@salvia>
- <1468253260-9384-1-git-send-email-carlosfg@riseup.net>
+From: Aaron Conole <aconole@bytheb.org>
+Subject: Re: [PATCH nf-next 3/3] netfilter: replace list_head with single linked list
+Date: Mon, 11 Jul 2016 14:56:31 -0400
+Message-ID: <f7td1mkvw9s.fsf@redhat.com>
+References: <1467321575-6107-1-git-send-email-aconole@bytheb.org>
+	<1467321575-6107-4-git-send-email-aconole@bytheb.org>
+	<20160708233038.GA2067@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
+Content-Type: text/plain
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52859 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753768AbcGKRTJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Jul 2016 13:19:09 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 11F01C9EC3
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 19:19:03 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 04DB9CA0FF
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 19:19:03 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 0DE659EBAA
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 19:19:01 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1468253260-9384-1-git-send-email-carlosfg@riseup.net>
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:33812 "EHLO
+	mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932515AbcGKS4f (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Jul 2016 14:56:35 -0400
+Received: by mail-qt0-f195.google.com with SMTP id c52so2579033qte.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 11:56:34 -0700 (PDT)
+In-Reply-To: <20160708233038.GA2067@breakpoint.cc> (Florian Westphal's message
+	of "Sat, 9 Jul 2016 01:30:38 +0200")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jul 11, 2016 at 06:07:40PM +0200, Carlos Falgueras Garc=EDa wro=
-te:
-> All getters must set the output parameter 'data_len'
+Thanks for this;  I will send a v2 in the next two days.
 
-Applied.
+-Aaron
 
-Carlos, I have enhanced this description. Please, include more
-detailed justifications on your follow up patches. Thanks.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Florian Westphal <fw@strlen.de> writes:
+
+> Aaron Conole <aconole@bytheb.org> wrote:
+>> --- a/net/netfilter/core.c
+>> +++ b/net/netfilter/core
+> [..]
+>> +#define nf_entry_dereference(e) \
+>> +	rcu_dereference_protected(e, lockdep_is_held(&nf_hook_mutex))
+>>  
+>> -static struct list_head *nf_find_hook_list(struct net *net,
+>> -					   const struct nf_hook_ops *reg)
+>> +static struct nf_hook_entry *nf_find_hook_list(struct net *net,
+>> +					       const struct nf_hook_ops *reg)
+>>  {
+>> -	struct list_head *hook_list = NULL;
+>> +	struct nf_hook_entry *hook_list = NULL;
+>>  
+>>  	if (reg->pf != NFPROTO_NETDEV)
+>> -		hook_list = &net->nf.hooks[reg->pf][reg->hooknum];
+>> +		hook_list = rcu_dereference(net->nf.hooks[reg->pf]
+>> +					    [reg->hooknum]);
+>>  	else if (reg->hooknum == NF_NETDEV_INGRESS) {
+>>  #ifdef CONFIG_NETFILTER_INGRESS
+>>  		if (reg->dev && dev_net(reg->dev) == net)
+>> -			hook_list = &reg->dev->nf_hooks_ingress;
+>> +			hook_list =
+>> +				rcu_dereference(reg->dev->nf_hooks_ingress);
+>
+> Both of these should use nf_entry_dereference() to avoid the lockdep
+> splat reported by kbuild robot:
+>
+> net/netfilter/core.c:75 suspicious rcu_dereference_check() usage!
+> 2 locks held by swapper/1:
+> #0:  (rtnl_mutex){+.+.+.}, at: [<ffffffff81c2e567>] rtnl_lock+0x17/0x20
+> #1: (nf_hook_mutex){+.+...}, at: [<ffffffff81c58fcb>]
+> nf_register_net_hook+0xcb/0x240
+>
+
