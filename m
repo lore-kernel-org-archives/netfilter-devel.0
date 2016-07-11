@@ -1,51 +1,74 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2 libnfntl] Fix nftnl_*_get to set data_len
-Date: Mon, 11 Jul 2016 12:25:00 +0200
-Message-ID: <20160711102500.GA11905@salvia>
-References: <20160705123125.GA27152@salvia>
- <1467738917-17597-1-git-send-email-carlosfg@riseup.net>
- <1467738917-17597-2-git-send-email-carlosfg@riseup.net>
- <20160711102427.GA10548@salvia>
+Subject: Re: [PATCH nf-next 3/3] netfilter: replace list_head with single
+ linked list
+Date: Mon, 11 Jul 2016 12:29:31 +0200
+Message-ID: <20160711102931.GA18199@salvia>
+References: <1467321575-6107-1-git-send-email-aconole@bytheb.org>
+ <1467321575-6107-4-git-send-email-aconole@bytheb.org>
+ <20160708233038.GA2067@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: Aaron Conole <aconole@bytheb.org>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49315 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:50655 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752968AbcGKKZG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Jul 2016 06:25:06 -0400
+	id S1758136AbcGKK3r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Jul 2016 06:29:47 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id CB2A817DB61
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:25:04 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 69A4D17DB67
+	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:29:44 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B16F0FAB44
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:25:04 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 4DD699EBD2
+	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:29:44 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 27AF59EBD8
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:25:02 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id E7DA49EBDC
+	for <netfilter-devel@vger.kernel.org>; Mon, 11 Jul 2016 12:29:38 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160711102427.GA10548@salvia>
+In-Reply-To: <20160708233038.GA2067@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jul 11, 2016 at 12:24:27PM +0200, Pablo Neira Ayuso wrote:
-> Carlos,
->=20
-> Habla con Laura para ver c=F3mo lleva este cambio en la reuni=F3n:
->=20
-> http://patchwork.ozlabs.org/patch/639253/
->=20
-> Si ella no anda con tiempo, creo que t=FA tienes los conocimientos pa=
-ra
-> hacer este cambio que describo ah=ED.
->=20
-> No lo olvides. Gracias.
+On Sat, Jul 09, 2016 at 01:30:38AM +0200, Florian Westphal wrote:
+> Aaron Conole <aconole@bytheb.org> wrote:
+> > --- a/net/netfilter/core.c
+> > +++ b/net/netfilter/core
+> [..]
+> > +#define nf_entry_dereference(e) \
+> > +	rcu_dereference_protected(e, lockdep_is_held(&nf_hook_mutex))
+> >  
+> > -static struct list_head *nf_find_hook_list(struct net *net,
+> > -					   const struct nf_hook_ops *reg)
+> > +static struct nf_hook_entry *nf_find_hook_list(struct net *net,
+> > +					       const struct nf_hook_ops *reg)
+> >  {
+> > -	struct list_head *hook_list = NULL;
+> > +	struct nf_hook_entry *hook_list = NULL;
+> >  
+> >  	if (reg->pf != NFPROTO_NETDEV)
+> > -		hook_list = &net->nf.hooks[reg->pf][reg->hooknum];
+> > +		hook_list = rcu_dereference(net->nf.hooks[reg->pf]
+> > +					    [reg->hooknum]);
+> >  	else if (reg->hooknum == NF_NETDEV_INGRESS) {
+> >  #ifdef CONFIG_NETFILTER_INGRESS
+> >  		if (reg->dev && dev_net(reg->dev) == net)
+> > -			hook_list = &reg->dev->nf_hooks_ingress;
+> > +			hook_list =
+> > +				rcu_dereference(reg->dev->nf_hooks_ingress);
+> 
+> Both of these should use nf_entry_dereference() to avoid the lockdep
+> splat reported by kbuild robot:
+> 
+> net/netfilter/core.c:75 suspicious rcu_dereference_check() usage!
+> 2 locks held by swapper/1:
+> #0:  (rtnl_mutex){+.+.+.}, at: [<ffffffff81c2e567>] rtnl_lock+0x17/0x20
+> #1:  (nf_hook_mutex){+.+...}, at: [<ffffffff81c58fcb>] nf_register_net_hook+0xcb/0x240
 
-Sorry, I accidentally sent this email to the mailing list in Spanish.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Aaron, please, send a v2.
+
+I have a patchset that changes the footprint of the hook function as
+it was discussed during the last Netfilter Workshop that clashes with
+this.
+
+Thanks!
