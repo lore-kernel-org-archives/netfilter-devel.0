@@ -1,82 +1,44 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next 2/2] netfilter: conntrack: simplify the code by
- using nf_conntrack_get_ht
-Date: Tue, 12 Jul 2016 15:03:03 +0200
-Message-ID: <20160712130303.GE17163@breakpoint.cc>
-References: <1468323901-15767-1-git-send-email-zlpnobody@163.com>
- <1468323901-15767-2-git-send-email-zlpnobody@163.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Multi-thread udp 4.7 regression, bisected to 71d8c47fc653
+Date: Tue, 12 Jul 2016 16:25:17 +0200
+Message-ID: <20160712142517.GA1919@salvia>
+References: <CAB9dFduvE0dKzZ8Dm5RVVrUAq1Auvj8t9xXAyARGyO4NmowvYw@mail.gmail.com>
+ <20160627142238.GA10613@breakpoint.cc>
+ <CAB9dFds=qY=Dk++p7qVX7a8aOOH4wn0rtL3m4poO6HMQPuPrnA@mail.gmail.com>
+ <20160627153820.GB10613@breakpoint.cc>
+ <CAB9dFdvQ4UyKNMmOSx+FePyR0_Q425XLJRb_k5h+4JOSkQkf3w@mail.gmail.com>
+ <CAB9dFds7KQxihReHhW9CXJeY9+=4BPema3ZawVA89U45QL5uBw@mail.gmail.com>
+ <20160705122803.GA26862@salvia>
+ <CAB9dFdv_ShA2cSez7Ut31XnW7OWufV59bfG-zN4Z0K3CgPvwuA@mail.gmail.com>
+ <20160711162642.GA5462@salvia>
+ <CAB9dFdv8zzODKMr2Ane8jSKxNhJdDMyPZ8YaYJqL1cW0TFOO4g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpnobody@163.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:40185 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933088AbcGLNDM (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Jul 2016 09:03:12 -0400
+Cc: Florian Westphal <fw@strlen.de>, netdev <netdev@vger.kernel.org>,
+	Thorsten Leemhuis <regressions@leemhuis.info>,
+	netfilter-devel@vger.kernel.org
+To: Marc Dionne <marc.c.dionne@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1468323901-15767-2-git-send-email-zlpnobody@163.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <CAB9dFdv8zzODKMr2Ane8jSKxNhJdDMyPZ8YaYJqL1cW0TFOO4g@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Liping Zhang <zlpnobody@163.com> wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
+On Mon, Jul 11, 2016 at 06:17:39PM -0300, Marc Dionne wrote:
+> Hi Pablo,
 > 
-> Since Commit 64b87639c9cb ("netfilter: conntrack: fix race between
-> nf_conntrack proc read and hash resize") introdue the
-> nf_conntrack_get_ht, so there's no need to check nf_conntrack_generation
-> again and again to get the hash table and hash size.
+> Testing out your patch:
 > 
-> Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
-> ---
->  net/netfilter/nf_conntrack_core.c | 30 +++++++++++-------------------
->  1 file changed, 11 insertions(+), 19 deletions(-)
+> 1) With no NAT in place, the clash resolution happens, with no side
+> effects.  No EPERM errors are seen.
 > 
-> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-> index 2d46225..bafebf7 100644
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -461,7 +461,8 @@ nf_ct_key_equal(struct nf_conntrack_tuple_hash *h,
->  }
->  
->  /* must be called with rcu read lock held */
-> -void nf_conntrack_get_ht(struct hlist_nulls_head **hash, unsigned int *hsize)
-> +inline void
-> +nf_conntrack_get_ht(struct hlist_nulls_head **hash, unsigned int *hsize)
+> 2) With ip(6)table_nat loaded, the clash resolution fails and I get
+> some EPERM errors from sendmsg(), same as before 71d8c47fc653.
+> 
+> Turns out that even though I have no NAT rules in my iptables config,
+> the system also had firewalld active and that caused the modules to be
+> loaded.
+> 
+> So the bottom line is that the patch looks good to me..
 
-Which "inline void"?  This is very unusual.
-
-I would suggest to not add it, and ...
-
->  {
->  	struct hlist_nulls_head *hptr;
->  	unsigned int sequence, hsz;
-> @@ -489,14 +490,11 @@ ____nf_conntrack_find(struct net *net, const struct nf_conntrack_zone *zone,
->  	struct nf_conntrack_tuple_hash *h;
->  	struct hlist_nulls_head *ct_hash;
->  	struct hlist_nulls_node *n;
-> -	unsigned int bucket, sequence;
-> +	unsigned int bucket, hsize;
->  
->  begin:
-> -	do {
-> -		sequence = read_seqcount_begin(&nf_conntrack_generation);
-> -		bucket = scale_hash(hash);
-> -		ct_hash = nf_conntrack_hash;
-> -	} while (read_seqcount_retry(&nf_conntrack_generation, sequence));
-> +	nf_conntrack_get_ht(&ct_hash, &hsize);
-> +	bucket = reciprocal_scale(hash, hsize);
-
-leave ____nf_conntrack_find alone, but convert
-
-> @@ -801,18 +799,15 @@ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
-
-This one ..
-
-> @@ -878,14 +873,11 @@ static noinline int early_drop(struct net *net, unsigned int _hash)
-
-
-... and this one too.
-
+Thanks Marc, I'm going to apply this then.
