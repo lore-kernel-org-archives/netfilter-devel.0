@@ -1,98 +1,54 @@
-From: "Anders K. Pedersen" <akp@akp.dk>
-Subject: Re: nftables: Dynamically updating sets gives syntax error
-Date: Wed, 13 Jul 2016 09:14:32 +0200
-Message-ID: <1468394072.20551.169.camel@akp.dk>
-References: <1466861422.29189.75.camel@akp.dk>
- <1467468776.1011.14.camel@akp.dk> <20160712152207.GA2275@salvia>
+From: "Liping Zhang" <zlpnobody@163.com>
+Subject: Re: [PATCH nf-next 2/2] netfilter: conntrack: simplify the code by
+ using nf_conntrack_get_ht
+Date: Wed, 13 Jul 2016 16:13:28 +0800 (CST)
+Message-ID: <29dee028.ea85.155e3515e26.Coremail.zlpnobody@163.com>
+References: <1468323901-15767-1-git-send-email-zlpnobody@163.com>
+ <1468323901-15767-2-git-send-email-zlpnobody@163.com>
+ <20160712130303.GE17163@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=GBK
+Content-Transfer-Encoding: base64
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+	"Liping Zhang" <liping.zhang@spreadtrum.com>
+To: "Florian Westphal" <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 85.204.120.79.ip4.gigabit.dk ([85.204.120.79]:49161 "EHLO
-	mail.kbh.akp.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750854AbcGMHOu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Jul 2016 03:14:50 -0400
-In-Reply-To: <20160712152207.GA2275@salvia>
+Received: from m13-148.163.com ([220.181.13.148]:29674 "EHLO m13-148.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751220AbcGMIOU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Jul 2016 04:14:20 -0400
+In-Reply-To: <20160712130303.GE17163@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On tir, 2016-07-12 at 17:22 +0200, Pablo Neira Ayuso wrote:
-> On Sat, Jul 02, 2016 at 04:12:56PM +0200, Anders K. Pedersen wrote:
-> > Hello,
-> >=20
-> > On l=C3=B8r, 2016-06-25 at 15:30 +0200, Anders K. Pedersen wrote:
-> > > With nftables 0.6 I'm getting a syntax error, when I try to use
-> > > the
-> > > feature that was introduced
-> > > by=C2=A0http://git.netfilter.org/nftables/commit
-> > > /?id=3Da9467e55973b10c2e8fe37525514c961580f8506=C2=A0. For exampl=
-e:
-> > >=20
-> > > # nft filter input set add tcp dport @myset
-> > > <cmdline>:1:26-30: Error: syntax error, unexpected dport
-> > > filter input set add tcp dport @myset
-> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0^^^^^
-> > > # nft filter input set add ip saddr timeout 10s @myset
-> > > <cmdline>:1:25-29: Error: syntax error, unexpected saddr
-> > > filter input set add ip saddr timeout 10s @myset
-> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0^^^^^
-> > > # nft filter input set update ip saddr timeout 10s @myset
-> > > <cmdline>:1:28-32: Error: syntax error, unexpected saddr
-> > > filter input set update ip saddr timeout 10s @myset
-> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0^^^^^
-> >=20
-> > I did a git bisect on this and found that it was broken by
-> >=20
-> > commit a3e60492a684be09374d0649735da42bdadc6b48
-> > Author: Pablo Neira Ayuso <pablo@netfilter.org>
-> > Date:=C2=A0=C2=A0=C2=A0Sun Dec 27 22:15:17 2015 +0100
-> >=20
-> > =C2=A0=C2=A0=C2=A0=C2=A0parser: restrict relational rhs expression =
-recursion
-> >=20
-> > After studying it a bit I reverted a part of it with the following
-> > change, which made the commands above work again:
-> >=20
-> > --- a/src/parser_bison.y
-> > +++ b/src/parser_bison.y
-> > @@ -2054,7 +2054,7 @@ set_elem_option		:	TIMEO
-> > UT			time_spec
-> > =C2=A0			}
-> > =C2=A0			;
-> > =C2=A0
-> > -set_lhs_expr		:	concat_rhs_expr
-> > +set_lhs_expr		:	concat_expr
-> > =C2=A0			|	multiton_rhs_expr
-> > =C2=A0			;
-> > =C2=A0
-> > The commit message indicated that it intended to handle rhs
-> > expressions, but this is a lhs expression, so maybe this change was
-> > unintended?
->=20
-> Thanks for reporting. This results however in shift/reduce conflicts
-> in the grammar, just sent patches to address this:
->=20
-> http://patchwork.ozlabs.org/patch/647448/
-> http://patchwork.ozlabs.org/patch/647447/
->=20
-> Please, test and let me know if this works for you. Thanks.
-
-I applied these patches on top of current nftables git, and tested that
-they solve the problem. Thanks for fixing this.
-
-Regards,
-Anders K. Pedersen
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+SGkgRmxvcmlhbiwKCkF0IDIwMTYtMDctMTIgMjE6MDM6MDMsICJGbG9yaWFuIFdlc3RwaGFsIiA8
+ZndAc3RybGVuLmRlPiB3cm90ZToKPkxpcGluZyBaaGFuZyA8emxwbm9ib2R5QDE2My5jb20+IHdy
+b3RlOgo+PiAraW5saW5lIHZvaWQKPj4gK25mX2Nvbm50cmFja19nZXRfaHQoc3RydWN0IGhsaXN0
+X251bGxzX2hlYWQgKipoYXNoLCB1bnNpZ25lZCBpbnQgKmhzaXplKQo+Cj5XaGljaCAiaW5saW5l
+IHZvaWQiPyAgVGhpcyBpcyB2ZXJ5IHVudXN1YWwuCj4KPkkgd291bGQgc3VnZ2VzdCB0byBub3Qg
+YWRkIGl0LCBhbmQgLi4uCgpZZXMsIGJ1dCB3ZSBjYW4gc3RpbGwgZmluZCBhIHZlcnkgZmV3IHNh
+bXBsZSBjb2RlcyB1c2luZyBpbmxpbmUgd2l0aG91dCBzdGF0aWMgaW4gY3VycmVudCBrZXJuZWwg
+c291cmNlIHRyZWUuCkZvciBleGFtcGxlOgppbmxpbmUgdm9pZCByYWlzZV9zb2Z0aXJxX2lycW9m
+Zih1bnNpZ25lZCBpbnQgbnIpIHsgLi4uIH0KaW5saW5lIGNvbnN0IHN0cnVjdCBuZl9uYXRfbDNw
+cm90byAqIF9fbmZfbmF0X2wzcHJvdG9fZmluZCh1OCBmYW1pbHkpIHsgLi4uIH0KCkFuZCBmcm9t
+IHRoZSBkZXNjcmlwdGlvbiBvZiB0aGUgZ2NjJ3MgZG9jdW1lbnQoaHR0cHM6Ly9nY2MuZ251Lm9y
+Zy9vbmxpbmVkb2NzL2djYy9JbmxpbmUuaHRtbCk6CiJXaGVuIGFuIGlubGluZSBmdW5jdGlvbiBp
+cyBub3Qgc3RhdGljLCB0aGVuIHRoZSBjb21waWxlciBtdXN0IGFzc3VtZSB0aGF0IHRoZXJlIG1h
+eSBiZSBjYWxscyBmcm9tCm90aGVyIHNvdXJjZSBmaWxlczsgc2luY2UgYSBnbG9iYWwgc3ltYm9s
+IGNhbiBiZSBkZWZpbmVkIG9ubHkgb25jZSBpbiBhbnkgcHJvZ3JhbSwgdGhlIGZ1bmN0aW9uIG11
+c3QKbm90IGJlIGRlZmluZWQgaW4gdGhlIG90aGVyIHNvdXJjZSBmaWxlcywgc28gdGhlIGNhbGxz
+IHRoZXJlaW4gY2Fubm90IGJlIGludGVncmF0ZWQiLiAKCldlIGNhbiBmaW5kIHRoYXQgImlubGlu
+ZSB2b2lkIG5mX2Nvbm50cmFja19nZXRfaHQoKSB7IC4uLiB9IiBoZXJlIHdpbGwgYmUgaW50ZWdy
+YXRlZCBpbiBuZl9jb25udHJhY2tfY29yZS5jCmFuZCBpbiBvdGhlciBwbGFjZXMgd2lsbCBiZSBh
+IGZ1bmN0aW9uIGNhbGwuIEFuZCBJIHRlc3QgdGhpcyBvbiBteSB4ODYgbWVjaGFpbiwgaXQgd29y
+a3MgYXMgZXhwZWN0ZWQuCgo+bGVhdmUgX19fX25mX2Nvbm50cmFja19maW5kIGFsb25lLCBidXQg
+Y29udmVydAo+Cj4+IEBAIC04MDEsMTggKzc5OSwxNSBAQCBuZl9jb25udHJhY2tfdHVwbGVfdGFr
+ZW4oY29uc3Qgc3RydWN0IG5mX2Nvbm50cmFja190dXBsZSAqdHVwbGUsCj4KPlRoaXMgb25lIC4u
+Cj4KPj4gQEAgLTg3OCwxNCArODczLDExIEBAIHN0YXRpYyBub2lubGluZSBpbnQgZWFybHlfZHJv
+cChzdHJ1Y3QgbmV0ICpuZXQsIHVuc2lnbmVkIGludCBfaGFzaCkKPgo+Li4uIGFuZCB0aGlzIG9u
+ZSB0b28uCj4KCklNTywgbGVhdmUgX19fX25mX2Nvbm50cmFja19maW5kIGFsb25lIHNlZW1zIG5v
+dCB2ZXJ5IGdvb2QuIElmIHlvdSBzdHJvbmdseSBkaXNsaWtlICJpbmxpbmUgdm9pZCIsCkkgY2Fu
+IGtlZXAgbmZfY29ubnRyYWNrX2dldF9odCB1bmNoYW5nZWQuIEJ1dCBJIHdpbGwgY29udmVydCBh
+bGwgdGhlc2UgdGhyZWUgdG8gdXNlIG5mX2Nvbm50cmFja19nZXRfaHQuCkkgdGhpbmsgZXZlbiBp
+biBfX19fbmZfY29ubnRyYWNrX2ZpbmQsIGlubGluZSBuZl9jb25udHJhY2tfZ2V0X2h0IHdpbGwg
+ZWFybiB2ZXJ5IHZlcnkgbGl0dGxlIHBlcmZvcm1hY2UKaGVyZSwgYWxtb3N0IG5vbmUuCg==
