@@ -1,74 +1,103 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH iptables] extensions: libxt_connlabel: Add translation to nft
-Date: Sat, 16 Jul 2016 14:15:23 +0800
-Message-ID: <1468649723-13550-1-git-send-email-zlpnobody@163.com>
+Subject: [PATCH nf] netfilter: nft_ct: fix unpaired nf_connlabels_get/put call
+Date: Sat, 16 Jul 2016 14:27:21 +0800
+Message-ID: <1468650441-17407-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org,
 	Liping Zhang <liping.zhang@spreadtrum.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-13.163.com ([220.181.12.13]:42738 "EHLO m12-13.163.com"
+Received: from m12-12.163.com ([220.181.12.12]:41330 "EHLO m12-12.163.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751017AbcGPGQP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Jul 2016 02:16:15 -0400
+	id S1751017AbcGPG2C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 16 Jul 2016 02:28:02 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Add translation for connlabel to nftables.
-For examples:
+We only get nf_connlabels if the user add ct label set expr successfully,
+but we will also put nf_connlabels if the user delete ct lable get expr.
+This is mismathced, and will cause ct label expr cannot work properly.
 
-  # iptables-translate -A INPUT -m connlabel --label bit40
-  nft add rule ip filter INPUT ct label bit40 counter
-
-  # iptables-translate -A INPUT -m connlabel ! --label bit40 --set
-  nft add rule ip filter INPUT ct label set bit40 ct label != bit40 counter
+Also, if we init something fail, we should put nf_connlabels back.
+Otherwise, we may waste to alloc the memory that will never be used.
 
 Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- extensions/libxt_connlabel.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ net/netfilter/nft_ct.c | 25 +++++++++++++++++++------
+ 1 file changed, 19 insertions(+), 6 deletions(-)
 
-diff --git a/extensions/libxt_connlabel.c b/extensions/libxt_connlabel.c
-index 1f83095..e9aeca8 100644
---- a/extensions/libxt_connlabel.c
-+++ b/extensions/libxt_connlabel.c
-@@ -118,6 +118,27 @@ connlabel_mt_save(const void *ip, const struct xt_entry_match *match)
- 	connlabel_mt_print_op(info, "--");
- }
+diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
+index 81fbb45..4726a2e 100644
+--- a/net/netfilter/nft_ct.c
++++ b/net/netfilter/nft_ct.c
+@@ -359,6 +359,7 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+ 			   const struct nlattr * const tb[])
+ {
+ 	struct nft_ct *priv = nft_expr_priv(expr);
++	bool label_got = false;
+ 	unsigned int len;
+ 	int err;
  
-+static int
-+connlabel_mt_xlate(const void *ip, const struct xt_entry_match *match,
-+		   struct xt_xlate *xl, int numeric)
-+{
-+	const struct xt_connlabel_mtinfo *info = (const void *)match->data;
-+	const char *name = connlabel_get_name(info->bit);
+@@ -377,6 +378,7 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+ 		err = nf_connlabels_get(ctx->net, (len * BITS_PER_BYTE) - 1);
+ 		if (err)
+ 			return err;
++		label_got = true;
+ 		break;
+ #endif
+ 	default:
+@@ -386,17 +388,28 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
+ 	priv->sreg = nft_parse_register(tb[NFTA_CT_SREG]);
+ 	err = nft_validate_register_load(priv->sreg, len);
+ 	if (err < 0)
+-		return err;
++		goto err1;
+ 
+ 	err = nft_ct_l3proto_try_module_get(ctx->afi->family);
+ 	if (err < 0)
+-		return err;
++		goto err1;
+ 
+ 	return 0;
 +
-+	if (name == NULL)
-+		return 0;
-+
-+	if (info->options & XT_CONNLABEL_OP_SET)
-+		xt_xlate_add(xl, "ct label set %s ", name);
-+
-+	xt_xlate_add(xl, "ct label ");
-+	if (info->options & XT_CONNLABEL_OP_INVERT)
-+		xt_xlate_add(xl, "!= ");
-+	xt_xlate_add(xl, "%s", name);
-+
-+	return 1;
++err1:
++	if (label_got)
++		nf_connlabels_put(ctx->net);
++	return err;
 +}
 +
- static struct xtables_match connlabel_mt_reg = {
- 	.family        = NFPROTO_UNSPEC,
- 	.name          = "connlabel",
-@@ -129,6 +150,7 @@ static struct xtables_match connlabel_mt_reg = {
- 	.save          = connlabel_mt_save,
- 	.x6_parse      = connlabel_mt_parse,
- 	.x6_options    = connlabel_mt_opts,
-+	.xlate	       = connlabel_mt_xlate,
++static void nft_ct_get_destroy(const struct nft_ctx *ctx,
++			       const struct nft_expr *expr)
++{
++	nft_ct_l3proto_module_put(ctx->afi->family);
+ }
+ 
+-static void nft_ct_destroy(const struct nft_ctx *ctx,
+-			   const struct nft_expr *expr)
++static void nft_ct_set_destroy(const struct nft_ctx *ctx,
++			       const struct nft_expr *expr)
+ {
+ 	struct nft_ct *priv = nft_expr_priv(expr);
+ 
+@@ -468,7 +481,7 @@ static const struct nft_expr_ops nft_ct_get_ops = {
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ct)),
+ 	.eval		= nft_ct_get_eval,
+ 	.init		= nft_ct_get_init,
+-	.destroy	= nft_ct_destroy,
++	.destroy	= nft_ct_get_destroy,
+ 	.dump		= nft_ct_get_dump,
  };
  
- void _init(void)
+@@ -477,7 +490,7 @@ static const struct nft_expr_ops nft_ct_set_ops = {
+ 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ct)),
+ 	.eval		= nft_ct_set_eval,
+ 	.init		= nft_ct_set_init,
+-	.destroy	= nft_ct_destroy,
++	.destroy	= nft_ct_set_destroy,
+ 	.dump		= nft_ct_set_dump,
+ };
+ 
 -- 
 2.5.5
 
