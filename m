@@ -1,61 +1,75 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v3 nf] netfilter: x_tables: speed up jump target
- validation
-Date: Thu, 14 Jul 2016 23:28:57 +0200
-Message-ID: <20160714212857.GA6010@breakpoint.cc>
-References: <1468511486-17283-1-git-send-email-fw@strlen.de>
- <20160714180752.GA1471@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH iptables] extensions: libxt_connlabel: Add translation to nft
+Date: Sat, 16 Jul 2016 14:15:23 +0800
+Message-ID: <1468649723-13550-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:46296 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751229AbcGNV3F (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Jul 2016 17:29:05 -0400
-Content-Disposition: inline
-In-Reply-To: <20160714180752.GA1471@salvia>
+Received: from m12-13.163.com ([220.181.12.13]:42738 "EHLO m12-13.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751017AbcGPGQP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 16 Jul 2016 02:16:15 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Thu, Jul 14, 2016 at 05:51:26PM +0200, Florian Westphal wrote:
-> > The dummy ruleset I used to test the original validation change was broken,
-> > most rules were unreachable and were not tested by mark_source_chains().
-> >
-> > In some cases rulesets that used to load in a few seconds now require
-> > several minutes.
-> 
-> Thanks for fixing this so fast. I was a bit surprised this O(n!)
-> validation was only taking 11% more time when you first posted this
-> patchset.
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Indeed ...
+Add translation for connlabel to nftables.
+For examples:
 
-> > sample ruleset that shows the behaviour:
-> > 
-> > echo "*filter"
-> > for i in $(seq 0 100000);do
-> >         printf ":chain_%06x - [0:0]\n" $i
-> > done
-> > for i in $(seq 0 100000);do
-> >    printf -- "-A INPUT -j chain_%06x\n" $i
-> >    printf -- "-A INPUT -j chain_%06x\n" $i
-> >    printf -- "-A INPUT -j chain_%06x\n" $i
-> > done
-> > echo COMMIT
-> 
-> Not exactly related to this patch.
-> 
-> As I said in the workshop, I would really to love to see more tests in
-> our trees.
-> 
-> Is there any chance you can get reuse that tests/shell/ directory that
-> Arturo made for nftables and place this in one of those scripts? You
-> can inagurate it with this scripts, and others that you used to fix
-> the lack of sanity checks (those actually would require some little C
-> code though).
+  # iptables-translate -A INPUT -m connlabel --label bit40
+  nft add rule ip filter INPUT ct label bit40 counter
 
-Yes, I will see if I can do this.
+  # iptables-translate -A INPUT -m connlabel ! --label bit40 --set
+  nft add rule ip filter INPUT ct label set bit40 ct label != bit40 counter
+
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+---
+ extensions/libxt_connlabel.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/extensions/libxt_connlabel.c b/extensions/libxt_connlabel.c
+index 1f83095..e9aeca8 100644
+--- a/extensions/libxt_connlabel.c
++++ b/extensions/libxt_connlabel.c
+@@ -118,6 +118,27 @@ connlabel_mt_save(const void *ip, const struct xt_entry_match *match)
+ 	connlabel_mt_print_op(info, "--");
+ }
+ 
++static int
++connlabel_mt_xlate(const void *ip, const struct xt_entry_match *match,
++		   struct xt_xlate *xl, int numeric)
++{
++	const struct xt_connlabel_mtinfo *info = (const void *)match->data;
++	const char *name = connlabel_get_name(info->bit);
++
++	if (name == NULL)
++		return 0;
++
++	if (info->options & XT_CONNLABEL_OP_SET)
++		xt_xlate_add(xl, "ct label set %s ", name);
++
++	xt_xlate_add(xl, "ct label ");
++	if (info->options & XT_CONNLABEL_OP_INVERT)
++		xt_xlate_add(xl, "!= ");
++	xt_xlate_add(xl, "%s", name);
++
++	return 1;
++}
++
+ static struct xtables_match connlabel_mt_reg = {
+ 	.family        = NFPROTO_UNSPEC,
+ 	.name          = "connlabel",
+@@ -129,6 +150,7 @@ static struct xtables_match connlabel_mt_reg = {
+ 	.save          = connlabel_mt_save,
+ 	.x6_parse      = connlabel_mt_parse,
+ 	.x6_options    = connlabel_mt_opts,
++	.xlate	       = connlabel_mt_xlate,
+ };
+ 
+ void _init(void)
+-- 
+2.5.5
+
+
