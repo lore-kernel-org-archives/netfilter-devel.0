@@ -1,69 +1,39 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf] netfilter: nft_ct: fix unpaired nf_connlabels_get/put
- call
-Date: Sat, 16 Jul 2016 11:18:01 +0200
-Message-ID: <20160716091801.GB6123@breakpoint.cc>
-References: <1468650441-17407-1-git-send-email-zlpnobody@163.com>
+From: "Liping Zhang" <zlpnobody@163.com>
+Subject: Re: [PATCH iptables] extensions: libxt_connlabel: Add translation
+ to nft
+Date: Sat, 16 Jul 2016 17:28:34 +0800 (CST)
+Message-ID: <8a553bc.7699.155f309334d.Coremail.zlpnobody@163.com>
+References: <1468649723-13550-1-git-send-email-zlpnobody@163.com>
+ <20160716090439.GA6123@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=GBK
+Content-Transfer-Encoding: base64
 Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpnobody@163.com>
+	"Liping Zhang" <liping.zhang@spreadtrum.com>
+To: "Florian Westphal" <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:49023 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751017AbcGPJSX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Jul 2016 05:18:23 -0400
-Content-Disposition: inline
-In-Reply-To: <1468650441-17407-1-git-send-email-zlpnobody@163.com>
+Received: from m13-148.163.com ([220.181.13.148]:55383 "EHLO m13-148.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751384AbcGPJ3E (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 16 Jul 2016 05:29:04 -0400
+In-Reply-To: <20160716090439.GA6123@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Liping Zhang <zlpnobody@163.com> wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
-> 
-> We only get nf_connlabels if the user add ct label set expr successfully,
-> but we will also put nf_connlabels if the user delete ct lable get expr.
-> This is mismathced, and will cause ct label expr cannot work properly.
-> 
-> Also, if we init something fail, we should put nf_connlabels back.
-> Otherwise, we may waste to alloc the memory that will never be used.
-
-Acked-by: Florian Westphal <fw@strlen.de>
-
-Unrelated to your patch:
-
-I think its time to change conntrack labels to a pure 128 bit field:
-
-#define NF_CT_LABELS_MAX_SIZE ((XT_CONNLABEL_MAXBIT + 1) / BITS_PER_BYTE)
-
-struct nf_conn_labels {
-	unsigned long bits[NF_CT_LABELS_MAX_SIZE];
-};
-
-static inline struct nf_conn_labels *nf_ct_labels_ext_add(struct nf_conn *ct)
-{
-#ifdef CONFIG_NF_CONNTRACK_LABELS
-        struct nf_conn_labels *cl_ext;
-        struct net *net = nf_ct_net(ct);
-
-        if (net->ct.labels_used == 0)
-                return NULL;
-
-        cl_ext = nf_ct_ext_add_length(ct, NF_CT_EXT_LABELS,
-                                      sizeof(struct nf_conn_labels), GFP_ATOMIC);
-        if (cl_ext != NULL)
-                cl_ext->words = words;
-
-        return cl_ext;
-#else
-        return NULL;
-#endif
-}
-
-Most arches are 64bit so once one label is active we already allocate 16 bytes
-due to the padding hole in nf_conn_labels struct.
-
-OVS always asks for 128bit so in that case we'd only allocate 16 instead of the
-current 24 byte.
+QXQgMjAxNi0wNy0xNiAxNzowNDozOSwgIkZsb3JpYW4gV2VzdHBoYWwiIDxmd0BzdHJsZW4uZGU+
+IHdyb3RlOgo+TGlwaW5nIFpoYW5nIDx6bHBub2JvZHlAMTYzLmNvbT4gd3JvdGU6Cj4+IAo+PiAg
+ICMgaXB0YWJsZXMtdHJhbnNsYXRlIC1BIElOUFVUIC1tIGNvbm5sYWJlbCAhIC0tbGFiZWwgYml0
+NDAgLS1zZXQKPj4gICBuZnQgYWRkIHJ1bGUgaXAgZmlsdGVyIElOUFVUIGN0IGxhYmVsIHNldCBi
+aXQ0MCBjdCBsYWJlbCAhPSBiaXQ0MCBjb3VudGVyCj4KPlNob3VsZCBwcm9iYWJseSBiZToKPgo+
+Li4uIGN0IGxhYmVsIGFuZCBiaXQ0MCAhPSBiaXQ0MCAuLi4KPgo+IT0gYml0NDAgd2lsbCBiZSB0
+cnVlIGlmIGJpdDQwIGFuZCBhbm90aGVyIGJpdCBpcyBzZXQuCgpSaWdodCwgImN0IGxhYmVsIGJp
+dDQwIiBhbmQgImN0IGxhYmVsICE9IGJpdDQwIiBoYXZlIHRoZSBkaWZmZXJlbnQgc2VtYW50aWNz
+OgoKIyBuZnQgYWRkIHJ1bGUgZmlsdGVyIGlucHV0IGN0IGxhYmVsIGJpdDQwIC0tZGVidWc9bmV0
+bGluawppcCBmaWx0ZXIgaW5wdXQgCiAgWyBjdCBsb2FkIGxhYmVsID0+IHJlZyAxIF0KICBbIGJp
+dHdpc2UgcmVnIDEgPSAocmVnPTEgJiAweDAwMDAwMDAwIDB4MDAwMDAxMDAgMHgwMDAwMDAwMCAw
+eDAwMDAwMDAwICkgXiAweDAwMDAwMDAwIDB4MDAwMDAwMDAgMHgwMDAwMDAwMCAweDAwMDAwMDAw
+IF0KICBbIGNtcCBuZXEgcmVnIDEgMHgwMDAwMDAwMCAweDAwMDAwMDAwIDB4MDAwMDAwMDAgMHgw
+MDAwMDAwMCBdCgojIG5mdCBhZGQgcnVsZSBmaWx0ZXIgaW5wdXQgY3QgbGFiZWwgIT0gYml0NDAg
+LS1kZWJ1Zz1uZXRsaW5rCmlwIGZpbHRlciBpbnB1dCAKICBbIGN0IGxvYWQgbGFiZWwgPT4gcmVn
+IDEgXQogIFsgY21wIG5lcSByZWcgMSAweDAwMDAwMDAwIDB4MDAwMDAxMDAgMHgwMDAwMDAwMCAw
+eDAwMDAwMDAwIF0KCldpbGwgc2VuZCBWMiBsYXRlciwgVGhhbmtzLg==
