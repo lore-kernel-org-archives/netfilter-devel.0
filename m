@@ -1,113 +1,113 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next] netfilter: nf_tables: allow to filter out rules by table and chain
-Date: Tue, 19 Jul 2016 12:20:45 +0200
-Message-ID: <1468923645-11722-1-git-send-email-pablo@netfilter.org>
-Cc: jalvarez@toulouse.viveris.com
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51885 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752435AbcGSKVF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Jul 2016 06:21:05 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 9DCBA16B294
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Jul 2016 12:21:02 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8BD9010078E
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Jul 2016 12:21:02 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id ACFB21B328C
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Jul 2016 12:20:58 +0200 (CEST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Michal Kubecek <mkubecek@suse.cz>
+Subject: [PATCH stable-4.1 v2] netfilter: x_tables: fix stable backport
+Date: Tue, 19 Jul 2016 13:07:16 +0200 (CEST)
+Message-ID: <20160719110716.C5910A0EB7@unicorn.suse.cz>
+References: <20160719063308.EDD42A0B22@unicorn.suse.cz>
+Cc: stable@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, Florian Westphal <fw@strlen.de>,
+	Takashi Iwai <tiwai@suse.de>
+To: Sasha Levin <sasha.levin@oracle.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20160719063308.EDD42A0B22@unicorn.suse.cz>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-If the table and/or chain attributes are set in a rule dump request,
-we filter out the rules based on this selection.
+Stable-4.1 backport of mainline commit 364723410175 ("netfilter:
+x_tables: validate targets of jumps") doesn't handle correctly the fact
+that 4.1 kernel is missing commit 482cfc318559 ("netfilter: xtables:
+avoid percpu ruleset duplication") so that t->entries is still a per-cpu
+array in find_jump_target().
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Use the same fix as e.g. stable-3.14 backport.
+
+Fixes: 8163327a3a92 ("netfilter: x_tables: validate targets of jumps")
+Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
 ---
-Compiled tested only.
+ net/ipv4/netfilter/arp_tables.c | 5 +++--
+ net/ipv4/netfilter/ip_tables.c  | 5 +++--
+ net/ipv6/netfilter/ip6_tables.c | 5 +++--
+ 3 files changed, 9 insertions(+), 6 deletions(-)
 
- net/netfilter/nf_tables_api.c | 39 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
-
-diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
-index 0211eae..675ba82 100644
---- a/net/netfilter/nf_tables_api.c
-+++ b/net/netfilter/nf_tables_api.c
-@@ -1857,10 +1857,16 @@ err:
- 	return err;
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 2953ee9e5fa0..49e145640ee7 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -363,11 +363,12 @@ static inline bool unconditional(const struct arpt_entry *e)
  }
  
-+struct nft_rule_dump_ctx {
-+	char table[NFT_TABLE_MAXNAMELEN];
-+	char chain[NFT_CHAIN_MAXNAMELEN];
-+};
-+
- static int nf_tables_dump_rules(struct sk_buff *skb,
- 				struct netlink_callback *cb)
+ static bool find_jump_target(const struct xt_table_info *t,
++			     const void *entry0,
+ 			     const struct arpt_entry *target)
  {
- 	const struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
-+	const struct nft_rule_dump_ctx *ctx = cb->data;
- 	const struct nft_af_info *afi;
- 	const struct nft_table *table;
- 	const struct nft_chain *chain;
-@@ -1877,7 +1883,15 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
- 			continue;
+ 	struct arpt_entry *iter;
  
- 		list_for_each_entry_rcu(table, &afi->tables, list) {
-+			if (ctx->table[0] &&
-+			    strcmp(ctx->table, table->name) != 0)
-+				continue;
-+
- 			list_for_each_entry_rcu(chain, &table->chains, list) {
-+				if (ctx->chain[0] &&
-+				    strcmp(ctx->chain, chain->name) != 0)
-+					continue;
-+
- 				list_for_each_entry_rcu(rule, &chain->rules, list) {
- 					if (!nft_is_active(net, rule))
- 						goto cont;
-@@ -1907,6 +1921,12 @@ done:
- 	return skb->len;
+-	xt_entry_foreach(iter, t->entries, t->size) {
++	xt_entry_foreach(iter, entry0, t->size) {
+ 		 if (iter == target)
+ 			return true;
+ 	}
+@@ -469,7 +470,7 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
+ 						 pos, newpos);
+ 					e = (struct arpt_entry *)
+ 						(entry0 + newpos);
+-					if (!find_jump_target(newinfo, e))
++					if (!find_jump_target(newinfo, entry0, e))
+ 						return 0;
+ 				} else {
+ 					/* ... this is a fallthru */
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 3bcf28bf1525..52a883645899 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -439,11 +439,12 @@ ipt_do_table(struct sk_buff *skb,
  }
  
-+static int nf_tables_dump_rules_done(struct netlink_callback *cb)
-+{
-+	kfree(cb->data);
-+	return 0;
-+}
-+
- static int nf_tables_getrule(struct net *net, struct sock *nlsk,
- 			     struct sk_buff *skb, const struct nlmsghdr *nlh,
- 			     const struct nlattr * const nla[])
-@@ -1924,7 +1944,26 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
- 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
- 		struct netlink_dump_control c = {
- 			.dump = nf_tables_dump_rules,
-+			.done = nf_tables_dump_rules_done,
- 		};
-+
-+		if (nla[NFTA_RULE_TABLE] || nla[NFTA_RULE_CHAIN]) {
-+			struct nft_rule_dump_ctx *ctx;
-+
-+			ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-+			if (!ctx)
-+				return -ENOMEM;
-+
-+			if (nla[NFTA_RULE_TABLE])
-+				nla_strlcpy(ctx->table, nla[NFTA_RULE_TABLE],
-+					    sizeof(ctx->table));
-+			if (nla[NFTA_RULE_CHAIN])
-+				nla_strlcpy(ctx->chain, nla[NFTA_RULE_CHAIN],
-+					    sizeof(ctx->chain));
-+
-+			c.data = ctx;
-+		}
-+
- 		return netlink_dump_start(nlsk, skb, nlh, &c);
- 	}
+ static bool find_jump_target(const struct xt_table_info *t,
++			     const void *entry0,
+ 			     const struct ipt_entry *target)
+ {
+ 	struct ipt_entry *iter;
  
+-	xt_entry_foreach(iter, t->entries, t->size) {
++	xt_entry_foreach(iter, entry0, t->size) {
+ 		 if (iter == target)
+ 			return true;
+ 	}
+@@ -549,7 +550,7 @@ mark_source_chains(const struct xt_table_info *newinfo,
+ 						 pos, newpos);
+ 					e = (struct ipt_entry *)
+ 						(entry0 + newpos);
+-					if (!find_jump_target(newinfo, e))
++					if (!find_jump_target(newinfo, entry0, e))
+ 						return 0;
+ 				} else {
+ 					/* ... this is a fallthru */
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 5254d76dfce8..b77bf6dab70c 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -452,11 +452,12 @@ ip6t_do_table(struct sk_buff *skb,
+ }
+ 
+ static bool find_jump_target(const struct xt_table_info *t,
++			     const void *entry0,
+ 			     const struct ip6t_entry *target)
+ {
+ 	struct ip6t_entry *iter;
+ 
+-	xt_entry_foreach(iter, t->entries, t->size) {
++	xt_entry_foreach(iter, entry0, t->size) {
+ 		 if (iter == target)
+ 			return true;
+ 	}
+@@ -562,7 +563,7 @@ mark_source_chains(const struct xt_table_info *newinfo,
+ 						 pos, newpos);
+ 					e = (struct ip6t_entry *)
+ 						(entry0 + newpos);
+-					if (!find_jump_target(newinfo, e))
++					if (!find_jump_target(newinfo, entry0, e))
+ 						return 0;
+ 				} else {
+ 					/* ... this is a fallthru */
 -- 
-2.1.4
-
+2.9.2
