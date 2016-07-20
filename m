@@ -1,100 +1,58 @@
-From: =?utf-8?B?6auY5bOw?= <fgao@ikuai8.com>
-Subject: =?utf-8?Q?=E7=AD=94=E5=A4=8D:_=E7=AD=94=E5=A4=8D:_=5BPATCH_1/1=5D_netfilt?=
-	=?utf-8?Q?er:_Add_helper_array_register/un?=
-	=?utf-8?Q?register_functions?=
-Date: Wed, 20 Jul 2016 16:57:32 +0800
-Message-ID: <016801d1e264$c194b390$44be1ab0$@ikuai8.com>
-References: <1468813163-18139-1-git-send-email-fgao@ikuai8.com> <20160719181250.GA6116@salvia> <014e01d1e21e$062884b0$12798e10$@ikuai8.com> <20160720085018.GD1336@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: <kaber@trash.net>, <netfilter-devel@vger.kernel.org>,
-	<netdev@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<gfree.wind@gmail.com>
-To: "'Pablo Neira Ayuso'" <pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH iptables] connlabel: clarify default config path
+Date: Wed, 20 Jul 2016 11:58:24 +0200
+Message-ID: <1469008704-22989-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg321.qq.com ([14.17.32.30]:52683 "EHLO smtpbg321.qq.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753459AbcGTJLK convert rfc822-to-8bit (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:55250 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753172AbcGTJ6H (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Jul 2016 05:11:10 -0400
-In-Reply-To: <20160720085018.GD1336@salvia>
-Content-Language: zh-cn
+	Wed, 20 Jul 2016 05:58:07 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Ok, I get it.=20
-Thanks Pablo.
+Pablo suggested to print full config file path for connlabel.conf
+parsing errors.
 
-Another question, Liping found the port style of sip, irc, and tftp was=
- different with ftp.
-It should be use iterator "i" to generate name for them.
-Then should I update the original patch or create another one to correc=
-t it?
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ Pablo,
 
-BTW, I am sorry about that. I didn't notice there are two port styles.
+ I could also add the suggested nfct_labels_get_path() to lnf_conntrack
+ but that means next iptables-release depends on a new library version.
+ Given this name is set in stone anyway I would prefer this patch instead.
 
------=E9=82=AE=E4=BB=B6=E5=8E=9F=E4=BB=B6-----
-=E5=8F=91=E4=BB=B6=E4=BA=BA: Pablo Neira Ayuso [mailto:pablo@netfilter.=
-org]=20
-=E5=8F=91=E9=80=81=E6=97=B6=E9=97=B4: 2016=E5=B9=B47=E6=9C=8820=E6=97=A5=
- 16:50
-=E6=94=B6=E4=BB=B6=E4=BA=BA: =E9=AB=98=E5=B3=B0 <fgao@ikuai8.com>
-=E6=8A=84=E9=80=81: kaber@trash.net; netfilter-devel@vger.kernel.org; n=
-etdev@vger.kernel.org; linux-kernel@vger.kernel.org; gfree.wind@gmail.c=
-om
-=E4=B8=BB=E9=A2=98: Re: =E7=AD=94=E5=A4=8D: [PATCH 1/1] netfilter: Add =
-helper array register/unregister functions
+ Let me know, thanks.
+ I will send a separate patch to change nftables location.
 
-On Wed, Jul 20, 2016 at 08:31:13AM +0800, =E9=AB=98=E5=B3=B0 wrote:
-> Thanks Pablo.
->=20
-> I had used the script "checkpatch.pl" to check the patch file.
-> There was no indentation error reported.
->=20
-> So could you give me more tails please or point one indentation error=
-?
-> Then I could correct it by myself next time.
+diff --git a/extensions/libxt_connlabel.c b/extensions/libxt_connlabel.c
+index 7e4ff26..728f6ac 100644
+--- a/extensions/libxt_connlabel.c
++++ b/extensions/libxt_connlabel.c
+@@ -34,6 +34,8 @@ static const struct xt_option_entry connlabel_mt_opts[] = {
+  */
+ static void connlabel_open(void)
+ {
++	static const char fname[]="/etc/xtables/connlabel.conf";
++
+ 	if (map)
+ 		return;
+ 
+@@ -43,10 +45,10 @@ static void connlabel_open(void)
+ 
+ 	if (errno) {
+ 		xtables_error(RESOURCE_PROBLEM,
+-			"cannot open connlabel.conf: %s", strerror(errno));
++			"cannot open %s: %s", fname, strerror(errno));
+ 	} else {
+ 		xtables_error(RESOURCE_PROBLEM,
+-			"cannot parse label, maybe valid label map is empty");
++			"cannot parse %s: no labels found", fname);
+ 	}
+ }
+ 
+-- 
+2.7.3
 
-I'm refering to this specifically:
-
-static int function(int parameter1, struct another_structure *blah,
-                    int parameter2, unsigned int parameter3);
-                    ^
-
-It is just a comestic issue, but we consistently align function paramet=
-ers to the initial parens.
-
-As I said, I have just manually fixed this here, so no problem, just ke=
-ep this in mind for the next time.
-
-Another observation: You should bump patch version numbering in each re=
-vision and keep some history on its evolution.
-
-The area after the patch separator --- and before diff stats is good to=
- place volatile information that is only meaningful to the review proce=
-ss, I mean something like this:
-
-  subsystem: Patch title.
-
-  Patch description...
-
-  Signed-off-by: Lucas Skywalker <trotacielos@blackstar.org>
-  ---
-  v3: Address comments from Chebakia on possible backward compatibility
-      issues.
-  v2: New parameter to control something.
-  v1: Initial patch.
-
-  include/net/netfilter/nf_tables.h |  25 ++-
-  ...
-  diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilte=
-r/nf_tables.h
-
-Thanks.
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
