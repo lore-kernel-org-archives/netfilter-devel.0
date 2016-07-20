@@ -1,56 +1,55 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 iptables] connlabel: clarify default config path
-Date: Thu, 21 Jul 2016 00:23:13 +0200
-Message-ID: <1469053393-11397-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+Subject: Re: [PATCH nft] ct: use nftables sysconf location for connlabel
+ configuration
+Date: Thu, 21 Jul 2016 00:27:03 +0200
+Message-ID: <20160720222703.GC9123@breakpoint.cc>
+References: <1469009825-1188-1-git-send-email-fw@strlen.de>
+ <20160720161917.GA1413@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:56451 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:56504 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754700AbcGTWW7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755784AbcGTW1K (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Jul 2016 18:22:59 -0400
+	Wed, 20 Jul 2016 18:27:10 -0400
+Content-Disposition: inline
+In-Reply-To: <20160720161917.GA1413@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo suggested to print full config file path for connlabel.conf
-parsing errors.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Jul 20, 2016 at 12:17:05PM +0200, Florian Westphal wrote:
+> > Instead of using /etc/xtables use the nftables syconfdir.
+> > Also update error message to tell which label failed translation
+> > and which config file was used for this:
+> > 
+> > nft add filter input ct label foo
+> > <cmdline>:1:27-29: Error: /etc/nftables/connlabel.conf: could not parse conntrack label "foo"
+> > 
+> > Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> > Signed-off-by: Florian Westphal <fw@strlen.de>
+> > ---
+> >  src/Makefile.am | 2 ++
+> >  src/ct.c        | 7 +++++--
+> >  2 files changed, 7 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/src/Makefile.am b/src/Makefile.am
+> > index 8c59449..ff1dd6e 100644
+> > --- a/src/Makefile.am
+> > +++ b/src/Makefile.am
+> > @@ -27,6 +27,8 @@ parser_bison.o scanner.o: AM_CFLAGS += -Wno-missing-prototypes -Wno-missing-decl
+> >  
+> >  BUILT_SOURCES = parser_bison.h
+> >  
+> > +ct.o: AM_CFLAGS += -DCONNLABEL_PATH="\"${sysconfdir}/\""
+> 
+> I think we can simplify this by using DEFAULT_INCLUDE_PATH.
+> 
+> See patch attached, it applies on top of this one. Feel free to
+> collapse them.
 
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- extensions/libxt_connlabel.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/extensions/libxt_connlabel.c b/extensions/libxt_connlabel.c
-index 7e4ff26..2af5eca 100644
---- a/extensions/libxt_connlabel.c
-+++ b/extensions/libxt_connlabel.c
-@@ -34,6 +34,8 @@ static const struct xt_option_entry connlabel_mt_opts[] = {
-  */
- static void connlabel_open(void)
- {
-+	const char *fname;
-+
- 	if (map)
- 		return;
- 
-@@ -41,12 +43,13 @@ static void connlabel_open(void)
- 	if (map != NULL)
- 		return;
- 
-+	fname = nfct_labels_get_path();
- 	if (errno) {
- 		xtables_error(RESOURCE_PROBLEM,
--			"cannot open connlabel.conf: %s", strerror(errno));
-+			"cannot open %s: %s", fname, strerror(errno));
- 	} else {
- 		xtables_error(RESOURCE_PROBLEM,
--			"cannot parse label, maybe valid label map is empty");
-+			"cannot parse %s: no labels found", fname);
- 	}
- }
- 
--- 
-2.7.3
+Okay, I pushed it to nftables.git (with your patch collapsed).
 
