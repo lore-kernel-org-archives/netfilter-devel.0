@@ -1,62 +1,222 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next 3/3] netfilter: nft_log: fix snaplen does not
- truncate packets
-Date: Wed, 20 Jul 2016 10:25:21 +0200
-Message-ID: <20160720082521.GA1336@salvia>
-References: <1468845857-30291-1-git-send-email-zlpnobody@163.com>
- <1468845857-30291-4-git-send-email-zlpnobody@163.com>
- <20160719181600.GD6116@salvia>
- <60a932e7.d60.15605635cca.Coremail.zlpnobody@163.com>
+Subject: Re: [PATCH 1/1] netfilter: Add helper array register/unregister
+ functions
+Date: Wed, 20 Jul 2016 10:40:01 +0200
+Message-ID: <20160720084000.GB1336@salvia>
+References: <1468813163-18139-1-git-send-email-fgao@ikuai8.com>
+ <CAML_gOeTMwf2fDTwwJ9MbjPvnSSx8PDxBy55xE+7EMo5yy5UcA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpnobody@163.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50936 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752730AbcGTIZg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Jul 2016 04:25:36 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 570BD114804
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 Jul 2016 10:25:34 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 46EFAFAB5A
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 Jul 2016 10:25:34 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id A174AFAB5F
-	for <netfilter-devel@vger.kernel.org>; Wed, 20 Jul 2016 10:25:30 +0200 (CEST)
+Content-Type: multipart/mixed; boundary="jI8keyz6grp/JLjh"
+Cc: fgao@ikuai8.com, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, gfree.wind@gmail.com
+To: Liping Zhang <zlpnobody@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <60a932e7.d60.15605635cca.Coremail.zlpnobody@163.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <CAML_gOeTMwf2fDTwwJ9MbjPvnSSx8PDxBy55xE+7EMo5yy5UcA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jul 20, 2016 at 07:00:13AM +0800, Liping Zhang wrote:
-> At 2016-07-20 02:16:00, "Pablo Neira Ayuso" <pablo@netfilter.org> wrote:
-> >On Mon, Jul 18, 2016 at 08:44:17PM +0800, Liping Zhang wrote:
-> >> From: Liping Zhang <liping.zhang@spreadtrum.com>
-> >> 
-> >> There's a similar problem in xt_NFLOG, and was fixed by commit 7643507fe8b5
-> >> ("netfilter: xt_NFLOG: nflog-range does not truncate packets"). Only set
-> >> copy_len here does not work, so we should enable NF_LOG_F_COPY_LEN also.
+
+--jI8keyz6grp/JLjh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Wed, Jul 20, 2016 at 08:51:17AM +0800, Liping Zhang wrote:
+> 2016-07-18 11:39 GMT+08:00  <fgao@ikuai8.com>:
+> > From: Gao Feng <fgao@ikuai8.com>
 > >
-> >Applied, thanks.
-> >
-> >Will you send me a patch for nftables userspace to enable this flag?
-> >
-> >It would be good to update the translation to make sure --nflog-size
-> >map to snaplen and ignore --nflog-range.
+> > Add nf_ct_helper_init, nf_conntrack_helpers_register/unregister
+> > functions to enhance the conntrack helper codes.
 > 
-> I find that nftables already support this feature, the following command mean to truncate packets
-> to 100 bytes before logging to the userspace:
->   #nft add rule filter input log group 0 snaplen 100
+> I think this patch is breaking something ...
 > 
-> Before my patch, it does not work.
-> And after apply my patch, it works as expected.
+> This irc:
+> > -               if (ports[i] == IRC_PORT)
+> > -                       sprintf(irc[i].name, "irc");
+> > -               else
+> > -                       sprintf(irc[i].name, "irc-%u", i);
+> > -
+> > -               ret = nf_conntrack_helper_register(&irc[i]);
+> > +               nf_ct_helper_init(&irc[i], AF_INET, IPPROTO_TCP, "irc",
+> > +                                 IRC_PORT, ports[i], &irc_exp_policy, 0, 0,
+> > +                                 help, NULL, THIS_MODULE);
+> > +       }
+> 
+> This sip:
+> > -                       if (ports[i] == SIP_PORT)
+> > -                               sprintf(sip[i][j].name, "sip");
+> > -                       else
+> > -                               sprintf(sip[i][j].name, "sip-%u", i);
+> 
+> And this tftp:
+> > -                       if (ports[i] == TFTP_PORT)
+> > -                               sprintf(tftp[i][j].name, "tftp");
+> > -                       else
+> > -                               sprintf(tftp[i][j].name, "tftp-%u", i);
+> 
+> For example, if the user install the nf_conntrack_tftp module an
+> specify the ports to "69,10069",
+> then the helper name is "tftp" and "tftp-1".
+> 
+> But apply this patch, the helper name will be changed to "tftp" and
+> "tftp-10069", this may break the
+> existing iptables rules which used the helper match or CT target.
+>
+> And this was already discussed  at
+> https://patchwork.ozlabs.org/patch/622238/
 
-If I git grep NF_LOG_F_COPY_LEN from the nftables.git tree, I don't
-see any reference to this flag being set.
+Thanks for spotting this.
 
-Then, nft_log kernel has been actually working fine since the
-beginning. It would be good anyway if we set this flag on from
-userspace to leave things in consistent state.
+I'm going to collapse this patch that I'm attaching to Feng's work to
+address this.
+
+--jI8keyz6grp/JLjh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=x
+
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index 778f1fc..1eaac1f 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -60,7 +60,7 @@ struct nf_conntrack_helper *nf_conntrack_helper_try_module_get(const char *name,
+ 							       u8 protonum);
+ void nf_ct_helper_init(struct nf_conntrack_helper *helper,
+ 		       u16 l3num, u16 protonum, const char *name,
+-		       u16 default_port, u16 spec_port,
++		       u16 default_port, u16 spec_port, u32 id,
+ 		       const struct nf_conntrack_expect_policy *exp_pol,
+ 		       u32 expect_class_max, u32 data_len,
+ 		       int (*help)(struct sk_buff *skb, unsigned int protoff,
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index d47ada9..4314700 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -601,12 +601,12 @@ static int __init nf_conntrack_ftp_init(void)
+ 		 are tracked or not - YK */
+ 	for (i = 0; i < ports_c; i++) {
+ 		nf_ct_helper_init(&ftp[2 * i], AF_INET, IPPROTO_TCP, "ftp",
+-				  FTP_PORT, ports[i], &ftp_exp_policy, 0,
+-				  sizeof(struct nf_ct_ftp_master), help,
++				  FTP_PORT, ports[i], ports[i], &ftp_exp_policy,
++				  0, sizeof(struct nf_ct_ftp_master), help,
+ 				  nf_ct_ftp_from_nlattr, THIS_MODULE);
+ 		nf_ct_helper_init(&ftp[2 * i + 1], AF_INET6, IPPROTO_TCP, "ftp",
+-				  FTP_PORT, ports[i], &ftp_exp_policy, 0,
+-				  sizeof(struct nf_ct_ftp_master), help,
++				  FTP_PORT, ports[i], ports[i], &ftp_exp_policy,
++				  0, sizeof(struct nf_ct_ftp_master), help,
+ 				  nf_ct_ftp_from_nlattr, THIS_MODULE);
+ 	}
+ 
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index ed6c0e5..b989b81 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -467,7 +467,7 @@ EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
+ 
+ void nf_ct_helper_init(struct nf_conntrack_helper *helper,
+ 		       u16 l3num, u16 protonum, const char *name,
+-		       u16 default_port, u16 spec_port,
++		       u16 default_port, u16 spec_port, u32 id,
+ 		       const struct nf_conntrack_expect_policy *exp_pol,
+ 		       u32 expect_class_max, u32 data_len,
+ 		       int (*help)(struct sk_buff *skb, unsigned int protoff,
+@@ -490,8 +490,7 @@ void nf_ct_helper_init(struct nf_conntrack_helper *helper,
+ 	if (spec_port == default_port)
+ 		snprintf(helper->name, sizeof(helper->name), "%s", name);
+ 	else
+-		snprintf(helper->name, sizeof(helper->name), "%s-%u", name,
+-			 spec_port);
++		snprintf(helper->name, sizeof(helper->name), "%s-%u", name, id);
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_helper_init);
+ 
+diff --git a/net/netfilter/nf_conntrack_irc.c b/net/netfilter/nf_conntrack_irc.c
+index b93e5e7..1972a14 100644
+--- a/net/netfilter/nf_conntrack_irc.c
++++ b/net/netfilter/nf_conntrack_irc.c
+@@ -256,8 +256,8 @@ static int __init nf_conntrack_irc_init(void)
+ 
+ 	for (i = 0; i < ports_c; i++) {
+ 		nf_ct_helper_init(&irc[i], AF_INET, IPPROTO_TCP, "irc",
+-				  IRC_PORT, ports[i], &irc_exp_policy, 0, 0,
+-				  help, NULL, THIS_MODULE);
++				  IRC_PORT, ports[i], i, &irc_exp_policy,
++				  0, 0, help, NULL, THIS_MODULE);
+ 	}
+ 
+ 	ret = nf_conntrack_helpers_register(&irc[0], ports_c);
+diff --git a/net/netfilter/nf_conntrack_sane.c b/net/netfilter/nf_conntrack_sane.c
+index 536c208..9dcb9ee 100644
+--- a/net/netfilter/nf_conntrack_sane.c
++++ b/net/netfilter/nf_conntrack_sane.c
+@@ -195,11 +195,13 @@ static int __init nf_conntrack_sane_init(void)
+ 		 are tracked or not - YK */
+ 	for (i = 0; i < ports_c; i++) {
+ 		nf_ct_helper_init(&sane[2 * i], AF_INET, IPPROTO_TCP, "sane",
+-				  SANE_PORT, ports[i], &sane_exp_policy, 0,
++				  SANE_PORT, ports[i], ports[i],
++				  &sane_exp_policy, 0,
+ 				  sizeof(struct nf_ct_sane_master), help, NULL,
+ 				  THIS_MODULE);
+ 		nf_ct_helper_init(&sane[2 * i + 1], AF_INET6, IPPROTO_TCP, "sane",
+-				  SANE_PORT, ports[i], &sane_exp_policy, 0,
++				  SANE_PORT, ports[i], ports[i],
++				  &sane_exp_policy, 0,
+ 				  sizeof(struct nf_ct_sane_master), help, NULL,
+ 				  THIS_MODULE);
+ 	}
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 3feaab3..075286b 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -1630,22 +1630,22 @@ static int __init nf_conntrack_sip_init(void)
+ 		memset(&sip[i], 0, sizeof(sip[i]));
+ 
+ 		nf_ct_helper_init(&sip[4 * i], AF_INET, IPPROTO_UDP, "sip",
+-				  SIP_PORT, ports[i], &sip_exp_policy[0],
++				  SIP_PORT, ports[i], i, &sip_exp_policy[0],
+ 				  SIP_EXPECT_MAX,
+ 				  sizeof(struct nf_ct_sip_master), sip_help_udp,
+ 				  NULL, THIS_MODULE);
+ 		nf_ct_helper_init(&sip[4 * i + 1], AF_INET, IPPROTO_TCP, "sip",
+-				  SIP_PORT, ports[i], &sip_exp_policy[0],
++				  SIP_PORT, ports[i], i, &sip_exp_policy[0],
+ 				  SIP_EXPECT_MAX,
+ 				  sizeof(struct nf_ct_sip_master), sip_help_tcp,
+ 				  NULL, THIS_MODULE);
+ 		nf_ct_helper_init(&sip[4 * i + 2], AF_INET6, IPPROTO_UDP, "sip",
+-				  SIP_PORT, ports[i], &sip_exp_policy[0],
++				  SIP_PORT, ports[i], i, &sip_exp_policy[0],
+ 				  SIP_EXPECT_MAX,
+ 				  sizeof(struct nf_ct_sip_master), sip_help_udp,
+ 				  NULL, THIS_MODULE);
+ 		nf_ct_helper_init(&sip[4 * i + 3], AF_INET6, IPPROTO_TCP, "sip",
+-				  SIP_PORT, ports[i], &sip_exp_policy[0],
++				  SIP_PORT, ports[i], i, &sip_exp_policy[0],
+ 				  SIP_EXPECT_MAX,
+ 				  sizeof(struct nf_ct_sip_master), sip_help_tcp,
+ 				  NULL, THIS_MODULE);
+diff --git a/net/netfilter/nf_conntrack_tftp.c b/net/netfilter/nf_conntrack_tftp.c
+index 4d65321..b1227dc 100644
+--- a/net/netfilter/nf_conntrack_tftp.c
++++ b/net/netfilter/nf_conntrack_tftp.c
+@@ -118,11 +118,11 @@ static int __init nf_conntrack_tftp_init(void)
+ 
+ 	for (i = 0; i < ports_c; i++) {
+ 		nf_ct_helper_init(&tftp[2 * i], AF_INET, IPPROTO_UDP, "tftp",
+-				  TFTP_PORT, ports[i], &tftp_exp_policy, 0, 0,
+-				  tftp_help, NULL, THIS_MODULE);
++				  TFTP_PORT, ports[i], i, &tftp_exp_policy,
++				  0, 0, tftp_help, NULL, THIS_MODULE);
+ 		nf_ct_helper_init(&tftp[2 * i + 1], AF_INET6, IPPROTO_UDP, "tftp",
+-				  TFTP_PORT, ports[i], &tftp_exp_policy, 0, 0,
+-				  tftp_help, NULL, THIS_MODULE);
++				  TFTP_PORT, ports[i], i, &tftp_exp_policy,
++				  0, 0, tftp_help, NULL, THIS_MODULE);
+ 	}
+ 
+ 	ret = nf_conntrack_helpers_register(tftp, ports_c * 2);
+
+--jI8keyz6grp/JLjh--
