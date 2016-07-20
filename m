@@ -1,85 +1,62 @@
-From: =?utf-8?B?6auY5bOw?= <fgao@ikuai8.com>
-Subject: =?utf-8?Q?=E7=AD=94=E5=A4=8D:_=5BPATCH_1/1=5D_netfilter:_Add_h?=
-	=?utf-8?Q?elper_array_register/unregister_?=
-	=?utf-8?Q?functions?=
-Date: Wed, 20 Jul 2016 09:02:52 +0800
-Message-ID: <015201d1e222$71cfe330$556fa990$@ikuai8.com>
-References: <1468813163-18139-1-git-send-email-fgao@ikuai8.com> <CAML_gOeTMwf2fDTwwJ9MbjPvnSSx8PDxBy55xE+7EMo5yy5UcA@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next 3/3] netfilter: nft_log: fix snaplen does not
+ truncate packets
+Date: Wed, 20 Jul 2016 10:25:21 +0200
+Message-ID: <20160720082521.GA1336@salvia>
+References: <1468845857-30291-1-git-send-email-zlpnobody@163.com>
+ <1468845857-30291-4-git-send-email-zlpnobody@163.com>
+ <20160719181600.GD6116@salvia>
+ <60a932e7.d60.15605635cca.Coremail.zlpnobody@163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "'Pablo Neira Ayuso'" <pablo@netfilter.org>,
-	"'Patrick McHardy'" <kaber@trash.net>,
-	<netfilter-devel@vger.kernel.org>, <netdev@vger.kernel.org>,
-	<linux-kernel@vger.kernel.org>, <gfree.wind@gmail.com>
-To: "'Liping Zhang'" <zlpnobody@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <CAML_gOeTMwf2fDTwwJ9MbjPvnSSx8PDxBy55xE+7EMo5yy5UcA@mail.gmail.com>
-Content-Language: zh-cn
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: Liping Zhang <zlpnobody@163.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:50936 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752730AbcGTIZg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 20 Jul 2016 04:25:36 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 570BD114804
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Jul 2016 10:25:34 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 46EFAFAB5A
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Jul 2016 10:25:34 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A174AFAB5F
+	for <netfilter-devel@vger.kernel.org>; Wed, 20 Jul 2016 10:25:30 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <60a932e7.d60.15605635cca.Coremail.zlpnobody@163.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Oh, thanks Liping.
-I have not found the extra port styles are different of irc, sane and t=
-ftp with ftp.
+On Wed, Jul 20, 2016 at 07:00:13AM +0800, Liping Zhang wrote:
+> At 2016-07-20 02:16:00, "Pablo Neira Ayuso" <pablo@netfilter.org> wrote:
+> >On Mon, Jul 18, 2016 at 08:44:17PM +0800, Liping Zhang wrote:
+> >> From: Liping Zhang <liping.zhang@spreadtrum.com>
+> >> 
+> >> There's a similar problem in xt_NFLOG, and was fixed by commit 7643507fe8b5
+> >> ("netfilter: xt_NFLOG: nflog-range does not truncate packets"). Only set
+> >> copy_len here does not work, so we should enable NF_LOG_F_COPY_LEN also.
+> >
+> >Applied, thanks.
+> >
+> >Will you send me a patch for nftables userspace to enable this flag?
+> >
+> >It would be good to update the translation to make sure --nflog-size
+> >map to snaplen and ignore --nflog-range.
+> 
+> I find that nftables already support this feature, the following command mean to truncate packets
+> to 100 bytes before logging to the userspace:
+>   #nft add rule filter input log group 0 snaplen 100
+> 
+> Before my patch, it does not work.
+> And after apply my patch, it works as expected.
 
-Hi Pablo,
-Then should I modify the original patch or send a new one?
+If I git grep NF_LOG_F_COPY_LEN from the nftables.git tree, I don't
+see any reference to this flag being set.
 
-
------=E9=82=AE=E4=BB=B6=E5=8E=9F=E4=BB=B6-----
-=E5=8F=91=E4=BB=B6=E4=BA=BA: Liping Zhang [mailto:zlpnobody@gmail.com]=20
-=E5=8F=91=E9=80=81=E6=97=B6=E9=97=B4: 2016=E5=B9=B47=E6=9C=8820=E6=97=A5=
- 8:51
-=E6=94=B6=E4=BB=B6=E4=BA=BA: fgao@ikuai8.com
-=E6=8A=84=E9=80=81: Pablo Neira Ayuso <pablo@netfilter.org>; Patrick Mc=
-Hardy <kaber@trash.net>; netfilter-devel@vger.kernel.org; netdev@vger.k=
-ernel.org; linux-kernel@vger.kernel.org; gfree.wind@gmail.com
-=E4=B8=BB=E9=A2=98: Re: [PATCH 1/1] netfilter: Add helper array registe=
-r/unregister functions
-
-2016-07-18 11:39 GMT+08:00  <fgao@ikuai8.com>:
-> From: Gao Feng <fgao@ikuai8.com>
->
-> Add nf_ct_helper_init, nf_conntrack_helpers_register/unregister
-> functions to enhance the conntrack helper codes.
-
-I think this patch is breaking something ...
-
-This irc:
-> -               if (ports[i] =3D=3D IRC_PORT)
-> -                       sprintf(irc[i].name, "irc");
-> -               else
-> -                       sprintf(irc[i].name, "irc-%u", i);
-> -
-> -               ret =3D nf_conntrack_helper_register(&irc[i]);
-> +               nf_ct_helper_init(&irc[i], AF_INET, IPPROTO_TCP, "irc=
-",
-> +                                 IRC_PORT, ports[i], &irc_exp_policy=
-, 0, 0,
-> +                                 help, NULL, THIS_MODULE);
-> +       }
-
-This sip:
-> -                       if (ports[i] =3D=3D SIP_PORT)
-> -                               sprintf(sip[i][j].name, "sip");
-> -                       else
-> -                               sprintf(sip[i][j].name, "sip-%u", i);
-
-And this tftp:
-> -                       if (ports[i] =3D=3D TFTP_PORT)
-> -                               sprintf(tftp[i][j].name, "tftp");
-> -                       else
-> -                               sprintf(tftp[i][j].name, "tftp-%u", i=
-);
-
-=46or example, if the user install the nf_conntrack_tftp module an spec=
-ify the ports to "69,10069", then the helper name is "tftp" and "tftp-1=
-".
-
-But apply this patch, the helper name will be changed to "tftp" and "tf=
-tp-10069", this may break the existing iptables rules which used the he=
-lper match or CT target.
-
-And this was already discussed  at https://patchwork.ozlabs.org/patch/6=
-22238/
+Then, nft_log kernel has been actually working fine since the
+beginning. It would be good anyway if we set this flag on from
+userspace to leave things in consistent state.
