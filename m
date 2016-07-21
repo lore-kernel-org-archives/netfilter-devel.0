@@ -1,235 +1,130 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 1/2] netfilter: conntrack: support a fixed size of 128 distinct labels
-Date: Thu, 21 Jul 2016 12:51:16 +0200
-Message-ID: <1469098277-1227-2-git-send-email-fw@strlen.de>
+Subject: [PATCH 2/2] netfilter: connlabels: move set helper to xt_connlabel
+Date: Thu, 21 Jul 2016 12:51:17 +0200
+Message-ID: <1469098277-1227-3-git-send-email-fw@strlen.de>
 References: <1469098277-1227-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:57281 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:57283 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751892AbcGUKvE (ORCPT
+	by vger.kernel.org with ESMTP id S1751892AbcGUKvH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Jul 2016 06:51:04 -0400
+	Thu, 21 Jul 2016 06:51:07 -0400
 In-Reply-To: <1469098277-1227-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The conntrack label extension is currently variable-sized, e.g. if
-only 2 labels are used by iptables rules then the labels->bits[] array
-will only contain one element.
-
-We track size of each label storage area in the 'words' member.
-
-But in nftables and openvswitch we always have to ask for worst-case
-since we don't know what bit will be used at configuration time.
-
-As most arches are 64bit we need to allocate 24 bytes in this case:
-
-struct nf_conn_labels {
-    u8            words;   /*     0     1 */
-    /* XXX 7 bytes hole, try to pack */
-    long unsigned bits[2]; /*     8     24 */
-
-Make bits a fixed size and drop the words member, it simplifies
-the code and only increases memory requirements on x86 when
-less than 64bit labels are required.
-
-We still only allocate the extension if its needed.
+xt_connlabel is the only user so move it.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- include/net/netfilter/nf_conntrack_labels.h | 16 ++++------------
- net/netfilter/nf_conntrack_labels.c         | 13 +++----------
- net/netfilter/nf_conntrack_netlink.c        | 10 +++++-----
- net/netfilter/nft_ct.c                      | 13 +++----------
- net/netfilter/xt_connlabel.c                |  2 +-
- net/openvswitch/conntrack.c                 |  4 ++--
- 6 files changed, 18 insertions(+), 40 deletions(-)
+ include/net/netfilter/nf_conntrack_labels.h |  2 --
+ net/netfilter/nf_conntrack_labels.c         | 17 -----------------
+ net/netfilter/xt_connlabel.c                | 29 ++++++++++++++++-------------
+ 3 files changed, 16 insertions(+), 32 deletions(-)
 
 diff --git a/include/net/netfilter/nf_conntrack_labels.h b/include/net/netfilter/nf_conntrack_labels.h
-index c5f8fc73..0fd4989 100644
+index 0fd4989..4988146 100644
 --- a/include/net/netfilter/nf_conntrack_labels.h
 +++ b/include/net/netfilter/nf_conntrack_labels.h
-@@ -10,8 +10,7 @@
- #define NF_CT_LABELS_MAX_SIZE ((XT_CONNLABEL_MAXBIT + 1) / BITS_PER_BYTE)
- 
- struct nf_conn_labels {
--	u8 words;
--	unsigned long bits[];
-+	unsigned long bits[NF_CT_LABELS_MAX_SIZE / sizeof(long)];
- };
- 
- static inline struct nf_conn_labels *nf_ct_labels_find(const struct nf_conn *ct)
-@@ -26,20 +25,13 @@ static inline struct nf_conn_labels *nf_ct_labels_find(const struct nf_conn *ct)
- static inline struct nf_conn_labels *nf_ct_labels_ext_add(struct nf_conn *ct)
- {
- #ifdef CONFIG_NF_CONNTRACK_LABELS
--	struct nf_conn_labels *cl_ext;
- 	struct net *net = nf_ct_net(ct);
--	u8 words;
- 
--	words = ACCESS_ONCE(net->ct.label_words);
--	if (words == 0)
-+	if (net->ct.labels_used == 0)
- 		return NULL;
- 
--	cl_ext = nf_ct_ext_add_length(ct, NF_CT_EXT_LABELS,
--				      words * sizeof(long), GFP_ATOMIC);
--	if (cl_ext != NULL)
--		cl_ext->words = words;
--
--	return cl_ext;
-+	return nf_ct_ext_add_length(ct, NF_CT_EXT_LABELS,
-+				    sizeof(struct nf_conn_labels), GFP_ATOMIC);
- #else
- 	return NULL;
+@@ -37,8 +37,6 @@ static inline struct nf_conn_labels *nf_ct_labels_ext_add(struct nf_conn *ct)
  #endif
+ }
+ 
+-int nf_connlabel_set(struct nf_conn *ct, u16 bit);
+-
+ int nf_connlabels_replace(struct nf_conn *ct,
+ 			  const u32 *data, const u32 *mask, unsigned int words);
+ 
 diff --git a/net/netfilter/nf_conntrack_labels.c b/net/netfilter/nf_conntrack_labels.c
-index 252e6a7..7686200 100644
+index 7686200..bcab8bd 100644
 --- a/net/netfilter/nf_conntrack_labels.c
 +++ b/net/netfilter/nf_conntrack_labels.c
-@@ -20,7 +20,7 @@ int nf_connlabel_set(struct nf_conn *ct, u16 bit)
- {
- 	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
+@@ -16,23 +16,6 @@
  
--	if (!labels || BIT_WORD(bit) >= labels->words)
-+	if (!labels)
- 		return -ENOSPC;
+ static spinlock_t nf_connlabels_lock;
  
- 	if (test_bit(bit, labels->bits))
-@@ -60,7 +60,7 @@ int nf_connlabels_replace(struct nf_conn *ct,
- 	if (!labels)
- 		return -ENOSPC;
- 
--	size = labels->words * sizeof(long);
-+	size = sizeof(labels->bits);
- 	if (size < (words32 * sizeof(u32)))
- 		words32 = size / sizeof(u32);
- 
-@@ -80,16 +80,11 @@ EXPORT_SYMBOL_GPL(nf_connlabels_replace);
- 
- int nf_connlabels_get(struct net *net, unsigned int bits)
- {
--	size_t words;
+-int nf_connlabel_set(struct nf_conn *ct, u16 bit)
+-{
+-	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
 -
--	words = BIT_WORD(bits) + 1;
--	if (words > NF_CT_LABELS_MAX_SIZE / sizeof(long))
-+	if (BIT_WORD(bits) >= NF_CT_LABELS_MAX_SIZE / sizeof(long))
- 		return -ERANGE;
- 
- 	spin_lock(&nf_connlabels_lock);
- 	net->ct.labels_used++;
--	if (words > net->ct.label_words)
--		net->ct.label_words = words;
- 	spin_unlock(&nf_connlabels_lock);
- 
- 	return 0;
-@@ -100,8 +95,6 @@ void nf_connlabels_put(struct net *net)
- {
- 	spin_lock(&nf_connlabels_lock);
- 	net->ct.labels_used--;
--	if (net->ct.labels_used == 0)
--		net->ct.label_words = 0;
- 	spin_unlock(&nf_connlabels_lock);
- }
- EXPORT_SYMBOL_GPL(nf_connlabels_put);
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index a18d1ce..050bb34 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -346,25 +346,25 @@ static inline int ctnetlink_label_size(const struct nf_conn *ct)
- 
- 	if (!labels)
- 		return 0;
--	return nla_total_size(labels->words * sizeof(long));
-+	return nla_total_size(sizeof(labels->bits));
- }
- 
- static int
- ctnetlink_dump_labels(struct sk_buff *skb, const struct nf_conn *ct)
- {
- 	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
--	unsigned int len, i;
-+	unsigned int i;
- 
- 	if (!labels)
- 		return 0;
- 
--	len = labels->words * sizeof(long);
- 	i = 0;
- 	do {
- 		if (labels->bits[i] != 0)
--			return nla_put(skb, CTA_LABELS, len, labels->bits);
-+			return nla_put(skb, CTA_LABELS, sizeof(labels->bits),
-+				       labels->bits);
- 		i++;
--	} while (i < labels->words);
-+	} while (i < ARRAY_SIZE(labels->bits));
- 
- 	return 0;
- }
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 7ce8fd7..9772b5e 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -113,18 +113,11 @@ static void nft_ct_get_eval(const struct nft_expr *expr,
- #ifdef CONFIG_NF_CONNTRACK_LABELS
- 	case NFT_CT_LABELS: {
- 		struct nf_conn_labels *labels = nf_ct_labels_find(ct);
--		unsigned int size;
- 
--		if (!labels) {
-+		if (labels)
-+			memcpy(dest, labels->bits, NF_CT_LABELS_MAX_SIZE);
-+		else
- 			memset(dest, 0, NF_CT_LABELS_MAX_SIZE);
--			return;
--		}
+-	if (!labels)
+-		return -ENOSPC;
 -
--		size = labels->words * sizeof(long);
--		memcpy(dest, labels->bits, size);
--		if (size < NF_CT_LABELS_MAX_SIZE)
--			memset(((char *) dest) + size, 0,
--			       NF_CT_LABELS_MAX_SIZE - size);
- 		return;
- 	}
- #endif
+-	if (test_bit(bit, labels->bits))
+-		return 0;
+-
+-	if (!test_and_set_bit(bit, labels->bits))
+-		nf_conntrack_event_cache(IPCT_LABEL, ct);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(nf_connlabel_set);
+-
+ static int replace_u32(u32 *address, u32 mask, u32 new)
+ {
+ 	u32 old, tmp;
 diff --git a/net/netfilter/xt_connlabel.c b/net/netfilter/xt_connlabel.c
-index a79af25..c9fba8a 100644
+index c9fba8a..03d66f1 100644
 --- a/net/netfilter/xt_connlabel.c
 +++ b/net/netfilter/xt_connlabel.c
-@@ -25,7 +25,7 @@ static bool connlabel_match(const struct nf_conn *ct, u16 bit)
- 	if (!labels)
- 		return false;
+@@ -9,6 +9,7 @@
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
+ #include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_ecache.h>
+ #include <net/netfilter/nf_conntrack_labels.h>
+ #include <linux/netfilter/x_tables.h>
  
--	return BIT_WORD(bit) < labels->words && test_bit(bit, labels->bits);
-+	return test_bit(bit, labels->bits);
+@@ -18,21 +19,12 @@ MODULE_DESCRIPTION("Xtables: add/match connection trackling labels");
+ MODULE_ALIAS("ipt_connlabel");
+ MODULE_ALIAS("ip6t_connlabel");
+ 
+-static bool connlabel_match(const struct nf_conn *ct, u16 bit)
+-{
+-	struct nf_conn_labels *labels = nf_ct_labels_find(ct);
+-
+-	if (!labels)
+-		return false;
+-
+-	return test_bit(bit, labels->bits);
+-}
+-
+ static bool
+ connlabel_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+ 	const struct xt_connlabel_mtinfo *info = par->matchinfo;
+ 	enum ip_conntrack_info ctinfo;
++	struct nf_conn_labels *labels;
+ 	struct nf_conn *ct;
+ 	bool invert = info->options & XT_CONNLABEL_OP_INVERT;
+ 
+@@ -40,10 +32,21 @@ connlabel_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ 	if (ct == NULL || nf_ct_is_untracked(ct))
+ 		return invert;
+ 
+-	if (info->options & XT_CONNLABEL_OP_SET)
+-		return (nf_connlabel_set(ct, info->bit) == 0) ^ invert;
++	labels = nf_ct_labels_find(ct);
++	if (!labels)
++		return invert;
++
++	if (test_bit(info->bit, labels->bits))
++		return !invert;
++
++	if (info->options & XT_CONNLABEL_OP_SET) {
++		if (!test_and_set_bit(info->bit, labels->bits))
++			nf_conntrack_event_cache(IPCT_LABEL, ct);
++
++		return !invert;
++	}
+ 
+-	return connlabel_match(ct, info->bit) ^ invert;
++	return invert;
  }
  
- static bool
-diff --git a/net/openvswitch/conntrack.c b/net/openvswitch/conntrack.c
-index b4069a9..c644c78 100644
---- a/net/openvswitch/conntrack.c
-+++ b/net/openvswitch/conntrack.c
-@@ -135,7 +135,7 @@ static void ovs_ct_get_labels(const struct nf_conn *ct,
- 	struct nf_conn_labels *cl = ct ? nf_ct_labels_find(ct) : NULL;
- 
- 	if (cl) {
--		size_t len = cl->words * sizeof(long);
-+		size_t len = sizeof(cl->bits);
- 
- 		if (len > OVS_CT_LABELS_LEN)
- 			len = OVS_CT_LABELS_LEN;
-@@ -274,7 +274,7 @@ static int ovs_ct_set_labels(struct sk_buff *skb, struct sw_flow_key *key,
- 		nf_ct_labels_ext_add(ct);
- 		cl = nf_ct_labels_find(ct);
- 	}
--	if (!cl || cl->words * sizeof(long) < OVS_CT_LABELS_LEN)
-+	if (!cl || sizeof(cl->bits) < OVS_CT_LABELS_LEN)
- 		return -ENOSPC;
- 
- 	err = nf_connlabels_replace(ct, (u32 *)labels, (u32 *)mask,
+ static int connlabel_mt_check(const struct xt_mtchk_param *par)
 -- 
 2.7.3
 
