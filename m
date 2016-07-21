@@ -1,40 +1,32 @@
-From: fgao@ikuai8.com
-Subject: [PATCH 1/1] netfilter: udp: Remove a bit misleading comment in udp_pkt_to_tuple
-Date: Thu, 21 Jul 2016 17:26:47 +0800
-Message-ID: <1469093207-5958-1-git-send-email-fgao@ikuai8.com>
-Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, kaber@trash.net,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+From: Florian Westphal <fw@strlen.de>
+Subject: netfilter: connlabels: get rid of variable-size support
+Date: Thu, 21 Jul 2016 12:51:15 +0200
+Message-ID: <1469098277-1227-1-git-send-email-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg339.qq.com ([14.17.44.34]:41437 "EHLO smtpbg339.qq.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751126AbcGUJ2g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Jul 2016 05:28:36 -0400
+Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:57280 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751415AbcGUKvB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Jul 2016 06:51:01 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+As discussed earlier, lets make the current 128bit upper size
+the fixed standard size.
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- v1: Initial patch
+It allows to get rid of a few run-time tests and also reduces
+needed extension size with both openvswitch and nftables.
 
- net/netfilter/nf_conntrack_proto_udp.c | 1 -
- 1 file changed, 1 deletion(-)
+While at it, also move a helper that is only needed by the
+xt_connlabel match there.  Originally I kept this in the core
+because it wasn't yet clear if nft would needed it later.
 
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 4fd0405..bc8276b 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -44,7 +44,6 @@ static bool udp_pkt_to_tuple(const struct sk_buff *skb,
- 	const struct udphdr *hp;
- 	struct udphdr _hdr;
- 
--	/* Actually only need first 8 bytes. */
- 	hp = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
- 	if (hp == NULL)
- 		return false;
--- 
-1.9.1
-
+ include/net/netfilter/nf_conntrack_labels.h |   18 +++--------------
+ net/netfilter/nf_conntrack_labels.c         |   28 +--------------------------
+ net/netfilter/nf_conntrack_netlink.c        |   10 ++++-----
+ net/netfilter/nft_ct.c                      |   13 ++----------
+ net/netfilter/xt_connlabel.c                |   29 +++++++++++++++-------------
+ net/openvswitch/conntrack.c                 |    4 +--
+ 6 files changed, 32 insertions(+), 70 deletions(-)
 
