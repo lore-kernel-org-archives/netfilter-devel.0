@@ -1,55 +1,39 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nft] ct: use nftables sysconf location for connlabel
- configuration
-Date: Thu, 21 Jul 2016 00:27:03 +0200
-Message-ID: <20160720222703.GC9123@breakpoint.cc>
-References: <1469009825-1188-1-git-send-email-fw@strlen.de>
- <20160720161917.GA1413@salvia>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Kylie McClain <somasissounds@gmail.com>
+Subject: [PATCH] Fix test building on musl libc
+Date: Wed, 20 Jul 2016 23:55:21 -0400
+Message-ID: <20160721035521.26816-1-somasissounds@gmail.com>
+Cc: Kylie McClain <somasis@exherbo.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([80.244.247.6]:56504 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755784AbcGTW1K (ORCPT
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:36319 "EHLO
+	mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751290AbcGUDz1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Jul 2016 18:27:10 -0400
-Content-Disposition: inline
-In-Reply-To: <20160720161917.GA1413@salvia>
+	Wed, 20 Jul 2016 23:55:27 -0400
+Received: by mail-qk0-f196.google.com with SMTP id q8so5545006qke.3
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Jul 2016 20:55:26 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> On Wed, Jul 20, 2016 at 12:17:05PM +0200, Florian Westphal wrote:
-> > Instead of using /etc/xtables use the nftables syconfdir.
-> > Also update error message to tell which label failed translation
-> > and which config file was used for this:
-> > 
-> > nft add filter input ct label foo
-> > <cmdline>:1:27-29: Error: /etc/nftables/connlabel.conf: could not parse conntrack label "foo"
-> > 
-> > Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> > Signed-off-by: Florian Westphal <fw@strlen.de>
-> > ---
-> >  src/Makefile.am | 2 ++
-> >  src/ct.c        | 7 +++++--
-> >  2 files changed, 7 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/src/Makefile.am b/src/Makefile.am
-> > index 8c59449..ff1dd6e 100644
-> > --- a/src/Makefile.am
-> > +++ b/src/Makefile.am
-> > @@ -27,6 +27,8 @@ parser_bison.o scanner.o: AM_CFLAGS += -Wno-missing-prototypes -Wno-missing-decl
-> >  
-> >  BUILT_SOURCES = parser_bison.h
-> >  
-> > +ct.o: AM_CFLAGS += -DCONNLABEL_PATH="\"${sysconfdir}/\""
-> 
-> I think we can simplify this by using DEFAULT_INCLUDE_PATH.
-> 
-> See patch attached, it applies on top of this one. Feel free to
-> collapse them.
+From: Kylie McClain <somasis@exherbo.org>
 
-Okay, I pushed it to nftables.git (with your patch collapsed).
+On musl libc, sys/select.h is where FD_* definitions are located.
+---
+ examples/netfilter/nfct-daemon.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/examples/netfilter/nfct-daemon.c b/examples/netfilter/nfct-daemon.c
+index a97c2ec..d223ac2 100644
+--- a/examples/netfilter/nfct-daemon.c
++++ b/examples/netfilter/nfct-daemon.c
+@@ -13,6 +13,7 @@
+ #include <netinet/in.h>
+ #include <inttypes.h>
+ #include <errno.h>
++#include <sys/select.h>
+ 
+ #include <libmnl/libmnl.h>
+ #include <linux/netlink.h>
+-- 
+2.9.0
 
