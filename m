@@ -1,49 +1,66 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH libnftnl] expr: lookup: print flags only if they are available
-Date: Thu, 21 Jul 2016 19:16:23 +0200
-Message-ID: <1469121383-20673-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: fgao@ikuai8.com
+Subject: [PATCH 1/1] netfilter: h323: Use mod_timer instead of set_expect_timeout
+Date: Fri, 22 Jul 2016 12:59:15 +0800
+Message-ID: <1469163555-13170-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, kaber@trash.net,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37328 "EHLO mail.us.es"
+Received: from SMTPBG252.QQ.COM ([183.60.52.105]:52197 "EHLO smtpbg252.qq.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753300AbcGURQd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Jul 2016 13:16:33 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 66711210564
-	for <netfilter-devel@vger.kernel.org>; Thu, 21 Jul 2016 19:16:29 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 589D8FAB53
-	for <netfilter-devel@vger.kernel.org>; Thu, 21 Jul 2016 19:16:29 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 32A869D106
-	for <netfilter-devel@vger.kernel.org>; Thu, 21 Jul 2016 19:16:27 +0200 (CEST)
+	id S1750789AbcGVFAU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Jul 2016 01:00:20 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Follow same approach as with other objects, print what it is set only.
+From: Gao Feng <fgao@ikuai8.com>
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+It could simplify the codes without any side effect.
+The set_expect_timeout is used to modify the timer expired time.
+It tries to delete timer, and add it again.
+So we could use mod_timer directly.
+
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
 ---
- src/expr/lookup.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ v1: Intial Patch
 
-diff --git a/src/expr/lookup.c b/src/expr/lookup.c
-index 16cfce2..97478c2 100644
---- a/src/expr/lookup.c
-+++ b/src/expr/lookup.c
-@@ -264,8 +264,10 @@ nftnl_expr_lookup_snprintf_default(char *buf, size_t size,
- 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
- 	}
- 
--	ret = snprintf(buf + offset, len, "0x%x ", l->flags);
--	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_FLAGS)) {
-+		ret = snprintf(buf + offset, len, "0x%x ", l->flags);
-+		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+	}
- 
- 	return offset;
+ net/netfilter/nf_conntrack_h323_main.c | 15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+index 9511af0..bb77a97 100644
+--- a/net/netfilter/nf_conntrack_h323_main.c
++++ b/net/netfilter/nf_conntrack_h323_main.c
+@@ -1273,19 +1273,6 @@ static struct nf_conntrack_expect *find_expect(struct nf_conn *ct,
  }
+ 
+ /****************************************************************************/
+-static int set_expect_timeout(struct nf_conntrack_expect *exp,
+-			      unsigned int timeout)
+-{
+-	if (!exp || !del_timer(&exp->timeout))
+-		return 0;
+-
+-	exp->timeout.expires = jiffies + timeout * HZ;
+-	add_timer(&exp->timeout);
+-
+-	return 1;
+-}
+-
+-/****************************************************************************/
+ static int expect_q931(struct sk_buff *skb, struct nf_conn *ct,
+ 		       enum ip_conntrack_info ctinfo,
+ 		       unsigned int protoff, unsigned char **data,
+@@ -1486,7 +1473,7 @@ static int process_rcf(struct sk_buff *skb, struct nf_conn *ct,
+ 				 "timeout to %u seconds for",
+ 				 info->timeout);
+ 			nf_ct_dump_tuple(&exp->tuple);
+-			set_expect_timeout(exp, info->timeout);
++			mod_timer(&exp->timeout, jiffies + info->timeout * HZ);
+ 		}
+ 		spin_unlock_bh(&nf_conntrack_expect_lock);
+ 	}
 -- 
-2.1.4
+1.9.1
+
 
