@@ -1,66 +1,36 @@
-From: fgao@ikuai8.com
-Subject: [PATCH 1/1] netfilter: h323: Use mod_timer instead of set_expect_timeout
-Date: Fri, 22 Jul 2016 12:59:15 +0800
-Message-ID: <1469163555-13170-1-git-send-email-fgao@ikuai8.com>
-Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, kaber@trash.net,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+From: jalvarez <jalvarez@toulouse.viveris.com>
+Subject: Re: [PATCH libnftnl] examples: selective rule dumping
+Date: Fri, 22 Jul 2016 09:35:41 +0200
+Message-ID: <5791CCCD.8080808@toulouse.viveris.com>
+References: <20160721133630.GA2050@salvia>
+ <1469113181-5034-1-git-send-email-jalvarez@toulouse.viveris.com>
+ <20160721161329.GA1719@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from SMTPBG252.QQ.COM ([183.60.52.105]:52197 "EHLO smtpbg252.qq.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750789AbcGVFAU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Jul 2016 01:00:20 -0400
+Received: from mail.toulouse.viveris.com ([212.99.125.10]:40334 "EHLO
+	mailS.toulouse.viveris.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751648AbcGVHfp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Jul 2016 03:35:45 -0400
+In-Reply-To: <20160721161329.GA1719@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+On 21/07/2016 18:13, Pablo Neira Ayuso wrote:
+> Please, send me your Signed-off-by: and a couple of lines with a
+> description.
+>
+> No need to resend this patch, I'll amend this myself. But please
+> include it next time. Thanks.
 
-It could simplify the codes without any side effect.
-The set_expect_timeout is used to modify the timer expired time.
-It tries to delete timer, and add it again.
-So we could use mod_timer directly.
+I apologize, I forgot to add it this time. Here are the missing lines you requested.
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- v1: Intial Patch
 
- net/netfilter/nf_conntrack_h323_main.c | 15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+Improve nft-rule-get example to demonstrate selective rule dumping when table and / or chain attributes are set in a rule dump request. Usage is now as follows : nft-rule-get <family> [<table> <chain>] [<xml|json>].
 
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 9511af0..bb77a97 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -1273,19 +1273,6 @@ static struct nf_conntrack_expect *find_expect(struct nf_conn *ct,
- }
- 
- /****************************************************************************/
--static int set_expect_timeout(struct nf_conntrack_expect *exp,
--			      unsigned int timeout)
--{
--	if (!exp || !del_timer(&exp->timeout))
--		return 0;
--
--	exp->timeout.expires = jiffies + timeout * HZ;
--	add_timer(&exp->timeout);
--
--	return 1;
--}
--
--/****************************************************************************/
- static int expect_q931(struct sk_buff *skb, struct nf_conn *ct,
- 		       enum ip_conntrack_info ctinfo,
- 		       unsigned int protoff, unsigned char **data,
-@@ -1486,7 +1473,7 @@ static int process_rcf(struct sk_buff *skb, struct nf_conn *ct,
- 				 "timeout to %u seconds for",
- 				 info->timeout);
- 			nf_ct_dump_tuple(&exp->tuple);
--			set_expect_timeout(exp, info->timeout);
-+			mod_timer(&exp->timeout, jiffies + info->timeout * HZ);
- 		}
- 		spin_unlock_bh(&nf_conntrack_expect_lock);
- 	}
--- 
-1.9.1
-
+Signed-off-by: Josue Alvarez<jalvarez@toulouse.viveris.com>
 
