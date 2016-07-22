@@ -1,51 +1,66 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH libnftnl] examples: selective rule dumping
-Date: Fri, 22 Jul 2016 11:00:14 +0200
-Message-ID: <20160722090014.GA2004@salvia>
-References: <20160721133630.GA2050@salvia>
- <1469113181-5034-1-git-send-email-jalvarez@toulouse.viveris.com>
- <20160721161329.GA1719@salvia>
- <5791CCCD.8080808@toulouse.viveris.com>
+Subject: Re: [PATCH 2/2] netfilter: connlabels: move set helper to
+ xt_connlabel
+Date: Fri, 22 Jul 2016 17:09:27 +0200
+Message-ID: <20160722150926.GA21470@salvia>
+References: <1469098277-1227-1-git-send-email-fw@strlen.de>
+ <1469098277-1227-3-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: jalvarez <jalvarez@toulouse.viveris.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40614 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59239 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751441AbcGVJAW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Jul 2016 05:00:22 -0400
+	id S1751058AbcGVPJp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Jul 2016 11:09:45 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 82AFC11481D
-	for <netfilter-devel@vger.kernel.org>; Fri, 22 Jul 2016 11:00:17 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 523951DF891
+	for <netfilter-devel@vger.kernel.org>; Fri, 22 Jul 2016 17:09:43 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 714C7FEFBF
-	for <netfilter-devel@vger.kernel.org>; Fri, 22 Jul 2016 11:00:17 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 42279266747
+	for <netfilter-devel@vger.kernel.org>; Fri, 22 Jul 2016 17:09:43 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 4D162FF154
-	for <netfilter-devel@vger.kernel.org>; Fri, 22 Jul 2016 11:00:15 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 7BA94266733
+	for <netfilter-devel@vger.kernel.org>; Fri, 22 Jul 2016 17:09:38 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <5791CCCD.8080808@toulouse.viveris.com>
+In-Reply-To: <1469098277-1227-3-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jul 22, 2016 at 09:35:41AM +0200, jalvarez wrote:
-> On 21/07/2016 18:13, Pablo Neira Ayuso wrote:
-> >Please, send me your Signed-off-by: and a couple of lines with a
-> >description.
-> >
-> >No need to resend this patch, I'll amend this myself. But please
-> >include it next time. Thanks.
+On Thu, Jul 21, 2016 at 12:51:17PM +0200, Florian Westphal wrote:
+> xt_connlabel is the only user so move it.
 > 
-> I apologize, I forgot to add it this time. Here are the missing lines you requested.
-> 
-> Improve nft-rule-get example to demonstrate selective rule dumping
-> when table and / or chain attributes are set in a rule dump request.
-> Usage is now as follows : nft-rule-get <family> [<table> <chain>]
-> [<xml|json>].
-> 
-> Signed-off-by: Josue Alvarez<jalvarez@toulouse.viveris.com>
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  include/net/netfilter/nf_conntrack_labels.h |  2 --
+>  net/netfilter/nf_conntrack_labels.c         | 17 -----------------
+>  net/netfilter/xt_connlabel.c                | 29 ++++++++++++++++-------------
+>  3 files changed, 16 insertions(+), 32 deletions(-)
+>
+[...]
+> @@ -40,10 +32,21 @@ connlabel_mt(const struct sk_buff *skb, struct xt_action_param *par)
+>  	if (ct == NULL || nf_ct_is_untracked(ct))
+>  		return invert;
+>  
+> -	if (info->options & XT_CONNLABEL_OP_SET)
+> -		return (nf_connlabel_set(ct, info->bit) == 0) ^ invert;
+> +	labels = nf_ct_labels_find(ct);
+> +	if (!labels)
+> +		return invert;
+> +
+> +	if (test_bit(info->bit, labels->bits))
+> +		return !invert;
+> +
+> +	if (info->options & XT_CONNLABEL_OP_SET) {
+> +		if (!test_and_set_bit(info->bit, labels->bits))
+> +			nf_conntrack_event_cache(IPCT_LABEL, ct);
+> +
+> +		return !invert;
+> +	}
 
-OK, applied, thanks.
+This patch inverts the existing logic, right? So this is first testing
+for the bit, then setting it.
 
-Just for the record, I have also cleaned up a bit the code btw.
+Before this patch, I remember because of what we discussed wrt. the
+translation to nftables, was actually the opposite.
