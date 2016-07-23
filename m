@@ -1,108 +1,69 @@
-From: fgao@ikuai8.com
-Subject: [PATCH 1/1] netfilter: Only need first 4 bytes to get l4proto ports
-Date: Sat, 23 Jul 2016 19:21:47 +0800
-Message-ID: <1469272907-27761-1-git-send-email-fgao@ikuai8.com>
-Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, kaber@trash.net,
-	netfilter-devel@vger.kernel.org
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf-next] netfilter: nf_ct_h323: do not re-activate already expired timer
+Date: Sat, 23 Jul 2016 22:16:56 +0800
+Message-ID: <1469283416-25879-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>,
+	Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg342.qq.com ([14.17.44.37]:41227 "EHLO smtpbg342.qq.com"
+Received: from m12-14.163.com ([220.181.12.14]:59127 "EHLO m12-14.163.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751335AbcGWL0O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 23 Jul 2016 07:26:14 -0400
+	id S1751035AbcGWORa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 23 Jul 2016 10:17:30 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-We only need first 4 bytes instead of 8 bytes to get the ports of
-tcp/udp/dccp/sctp/udplite in their pkt_to_tuple function.
+Commit 96d1327ac2e3 ("netfilter: h323: Use mod_timer instead of
+set_expect_timeout") just simplify the source codes
+    if (!del_timer(&exp->timeout))
+        return 0;
+    add_timer(&exp->timeout);
+to mod_timer(&exp->timeout, jiffies + info->timeout * HZ);
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
+This is not correct, and introduce a race codition:
+    CPU0                     CPU1
+     -                     timer expire
+  process_rcf              expectation_timed_out
+  lock(exp_lock)              -
+  find_exp                 waiting exp_lock...
+  re-activate timer!!      waiting exp_lock...
+  unlock(exp_lock)         lock(exp_lock)
+     -                     unlink expect
+     -                     free(expect)
+     -                     unlock(exp_lock)
+So when the timer expires again, we will access the memory that
+was already freed.
+
+Replace mod_timer with mod_timer_pending here to fix this problem.
+
+Fixes: 96d1327ac2e3 ("netfilter: h323: Use mod_timer instead of set_expect_timeout")
+Cc: Gao Feng <fgao@ikuai8.com>
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- v3: Keep consistent for tcp/udp/dccp/sctp/udplite to get 4 bytes instead of 8 bytes
- v2: Use 4 bytes intead of 8 bytes, and add more description
- v1: Intial Patch
- net/netfilter/nf_conntrack_proto_dccp.c    | 3 ++-
- net/netfilter/nf_conntrack_proto_sctp.c    | 4 ++--
- net/netfilter/nf_conntrack_proto_tcp.c     | 4 ++--
- net/netfilter/nf_conntrack_proto_udp.c     | 4 ++--
- net/netfilter/nf_conntrack_proto_udplite.c | 3 ++-
- 5 files changed, 10 insertions(+), 8 deletions(-)
+When I found this problem and want to report it, it was a little too late.
+I find that this commit was already pushed to the cgit :(
 
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index 399a38f..a45bee5 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -402,7 +402,8 @@ static bool dccp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
- {
- 	struct dccp_hdr _hdr, *dh;
- 
--	dh = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
-+	/* Actually only need first 4 bytes to get ports. */
-+	dh = skb_header_pointer(skb, dataoff, 4, &_hdr);
- 	if (dh == NULL)
- 		return false;
- 
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 1d7ab96..e769f05 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -161,8 +161,8 @@ static bool sctp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
- 	const struct sctphdr *hp;
- 	struct sctphdr _hdr;
- 
--	/* Actually only need first 8 bytes. */
--	hp = skb_header_pointer(skb, dataoff, 8, &_hdr);
-+	/* Actually only need first 4 bytes to get ports. */
-+	hp = skb_header_pointer(skb, dataoff, 4, &_hdr);
- 	if (hp == NULL)
- 		return false;
- 
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 70c8381..4abe9e1 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -282,8 +282,8 @@ static bool tcp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
- 	const struct tcphdr *hp;
- 	struct tcphdr _hdr;
- 
--	/* Actually only need first 8 bytes. */
--	hp = skb_header_pointer(skb, dataoff, 8, &_hdr);
-+	/* Actually only need first 4 bytes to get ports. */
-+	hp = skb_header_pointer(skb, dataoff, 4, &_hdr);
- 	if (hp == NULL)
- 		return false;
- 
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 4fd0405..8a057e1 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -44,8 +44,8 @@ static bool udp_pkt_to_tuple(const struct sk_buff *skb,
- 	const struct udphdr *hp;
- 	struct udphdr _hdr;
- 
--	/* Actually only need first 8 bytes. */
--	hp = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
-+	/* Actually only need first 4 bytes to get ports. */
-+	hp = skb_header_pointer(skb, dataoff, 4, &_hdr);
- 	if (hp == NULL)
- 		return false;
- 
-diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
-index 9d692f5..029206e 100644
---- a/net/netfilter/nf_conntrack_proto_udplite.c
-+++ b/net/netfilter/nf_conntrack_proto_udplite.c
-@@ -54,7 +54,8 @@ static bool udplite_pkt_to_tuple(const struct sk_buff *skb,
- 	const struct udphdr *hp;
- 	struct udphdr _hdr;
- 
--	hp = skb_header_pointer(skb, dataoff, sizeof(_hdr), &_hdr);
-+	/* Actually only need first 4 bytes to get ports. */
-+	hp = skb_header_pointer(skb, dataoff, 4, &_hdr);
- 	if (hp == NULL)
- 		return false;
- 
+ net/netfilter/nf_conntrack_h323_main.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
+index bb77a97..5c0db5c 100644
+--- a/net/netfilter/nf_conntrack_h323_main.c
++++ b/net/netfilter/nf_conntrack_h323_main.c
+@@ -1473,7 +1473,8 @@ static int process_rcf(struct sk_buff *skb, struct nf_conn *ct,
+ 				 "timeout to %u seconds for",
+ 				 info->timeout);
+ 			nf_ct_dump_tuple(&exp->tuple);
+-			mod_timer(&exp->timeout, jiffies + info->timeout * HZ);
++			mod_timer_pending(&exp->timeout,
++					  jiffies + info->timeout * HZ);
+ 		}
+ 		spin_unlock_bh(&nf_conntrack_expect_lock);
+ 	}
 -- 
-1.9.1
+2.5.5
+
 
