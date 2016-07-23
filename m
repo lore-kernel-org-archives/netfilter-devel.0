@@ -1,193 +1,198 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 25/25] netfilter: nft_compat: fix crash when related match/target module is removed
-Date: Sat, 23 Jul 2016 13:02:25 +0200
-Message-ID: <1469271745-14523-26-git-send-email-pablo@netfilter.org>
-References: <1469271745-14523-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net
+Subject: [PATCH 00/25] Netfilter/IPVS updates for net-next
+Date: Sat, 23 Jul 2016 13:08:14 +0200
+Message-ID: <1469272119-29942-1-git-send-email-pablo@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35381 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35870 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751367AbcGWLDe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 23 Jul 2016 07:03:34 -0400
+	id S1751124AbcGWLJJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 23 Jul 2016 07:09:09 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id C15FDE7DAA
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:32 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 5F94EE7DA2
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:09:08 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id AE78BFF12B
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:32 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 49BA3FAB58
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:09:08 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 1E74CFAB53
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:29 +0200 (CEST)
-In-Reply-To: <1469271745-14523-1-git-send-email-pablo@netfilter.org>
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 9CA0C9EBD1
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:09:05 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+Sorry, resending this pull request, I modified my robot and it was not
+including explicit Cc to netdev.
 
-We "cache" the loaded match/target modules and reuse them, but when the
-modules are removed, we still point to them. Then we may end up with
-invalid memory references when using iptables-compat to add rules later.
+-o-
 
-Input the following commands will reproduce the kernel crash:
-  # iptables-compat -A INPUT -j LOG
-  # iptables-compat -D INPUT -j LOG
-  # rmmod xt_LOG
-  # iptables-compat -A INPUT -j LOG
-  BUG: unable to handle kernel paging request at ffffffffa05a9010
-  IP: [<ffffffff813f783e>] strcmp+0xe/0x30
-  Call Trace:
-  [<ffffffffa05acc43>] nft_target_select_ops+0x83/0x1f0 [nft_compat]
-  [<ffffffffa058a177>] nf_tables_expr_parse+0x147/0x1f0 [nf_tables]
-  [<ffffffffa058e541>] nf_tables_newrule+0x301/0x810 [nf_tables]
-  [<ffffffff8141ca00>] ? nla_parse+0x20/0x100
-  [<ffffffffa057fa8f>] nfnetlink_rcv+0x33f/0x53d [nfnetlink]
-  [<ffffffffa057f94b>] ? nfnetlink_rcv+0x1fb/0x53d [nfnetlink]
-  [<ffffffff817116b8>] netlink_unicast+0x178/0x220
-  [<ffffffff81711a5b>] netlink_sendmsg+0x2fb/0x3a0
-  [<ffffffff816b7fc8>] sock_sendmsg+0x38/0x50
-  [<ffffffff816b8a7e>] ___sys_sendmsg+0x28e/0x2a0
-  [<ffffffff816bcb7e>] ? release_sock+0x1e/0xb0
-  [<ffffffff81804ac5>] ? _raw_spin_unlock_bh+0x35/0x40
-  [<ffffffff816bcbe2>] ? release_sock+0x82/0xb0
-  [<ffffffff816b93d4>] __sys_sendmsg+0x54/0x90
-  [<ffffffff816b9422>] SyS_sendmsg+0x12/0x20
-  [<ffffffff81805172>] entry_SYSCALL_64_fastpath+0x1a/0xa9
+Hi David,
 
-So when nobody use the related match/target module, there's no need to
-"cache" it. And nft_[match|target]_release are useless anymore, remove
-them.
+The following patchset contains Netfilter/IPVS updates for net-next,
+they are:
 
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_compat.c | 43 ++++++++++++++++++++-----------------------
- 1 file changed, 20 insertions(+), 23 deletions(-)
+1) Count pre-established connections as active in "least connection"
+   schedulers such that pre-established connections to avoid overloading
+   backend servers on peak demands, from Michal Kubecek via Simon Horman.
 
-diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
-index 2e07cec..c21e7eb 100644
---- a/net/netfilter/nft_compat.c
-+++ b/net/netfilter/nft_compat.c
-@@ -23,6 +23,20 @@
- #include <linux/netfilter_arp/arp_tables.h>
- #include <net/netfilter/nf_tables.h>
- 
-+struct nft_xt {
-+	struct list_head	head;
-+	struct nft_expr_ops	ops;
-+	unsigned int		refcnt;
-+};
-+
-+static void nft_xt_put(struct nft_xt *xt)
-+{
-+	if (--xt->refcnt == 0) {
-+		list_del(&xt->head);
-+		kfree(xt);
-+	}
-+}
-+
- static int nft_compat_chain_validate_dependency(const char *tablename,
- 						const struct nft_chain *chain)
- {
-@@ -260,6 +274,7 @@ nft_target_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
- 	if (par.target->destroy != NULL)
- 		par.target->destroy(&par);
- 
-+	nft_xt_put(container_of(expr->ops, struct nft_xt, ops));
- 	module_put(target->me);
- }
- 
-@@ -442,6 +457,7 @@ nft_match_destroy(const struct nft_ctx *ctx, const struct nft_expr *expr)
- 	if (par.match->destroy != NULL)
- 		par.match->destroy(&par);
- 
-+	nft_xt_put(container_of(expr->ops, struct nft_xt, ops));
- 	module_put(match->me);
- }
- 
-@@ -612,11 +628,6 @@ static const struct nfnetlink_subsystem nfnl_compat_subsys = {
- 
- static LIST_HEAD(nft_match_list);
- 
--struct nft_xt {
--	struct list_head	head;
--	struct nft_expr_ops	ops;
--};
--
- static struct nft_expr_type nft_match_type;
- 
- static bool nft_match_cmp(const struct xt_match *match,
-@@ -653,6 +664,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 			if (!try_module_get(match->me))
- 				return ERR_PTR(-ENOENT);
- 
-+			nft_match->refcnt++;
- 			return &nft_match->ops;
- 		}
- 	}
-@@ -673,6 +685,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
- 		goto err;
- 	}
- 
-+	nft_match->refcnt = 1;
- 	nft_match->ops.type = &nft_match_type;
- 	nft_match->ops.size = NFT_EXPR_SIZE(XT_ALIGN(match->matchsize));
- 	nft_match->ops.eval = nft_match_eval;
-@@ -690,14 +703,6 @@ err:
- 	return ERR_PTR(err);
- }
- 
--static void nft_match_release(void)
--{
--	struct nft_xt *nft_match, *tmp;
--
--	list_for_each_entry_safe(nft_match, tmp, &nft_match_list, head)
--		kfree(nft_match);
--}
--
- static struct nft_expr_type nft_match_type __read_mostly = {
- 	.name		= "match",
- 	.select_ops	= nft_match_select_ops,
-@@ -744,6 +749,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 			if (!try_module_get(target->me))
- 				return ERR_PTR(-ENOENT);
- 
-+			nft_target->refcnt++;
- 			return &nft_target->ops;
- 		}
- 	}
-@@ -764,6 +770,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
- 		goto err;
- 	}
- 
-+	nft_target->refcnt = 1;
- 	nft_target->ops.type = &nft_target_type;
- 	nft_target->ops.size = NFT_EXPR_SIZE(XT_ALIGN(target->targetsize));
- 	nft_target->ops.init = nft_target_init;
-@@ -785,14 +792,6 @@ err:
- 	return ERR_PTR(err);
- }
- 
--static void nft_target_release(void)
--{
--	struct nft_xt *nft_target, *tmp;
--
--	list_for_each_entry_safe(nft_target, tmp, &nft_target_list, head)
--		kfree(nft_target);
--}
--
- static struct nft_expr_type nft_target_type __read_mostly = {
- 	.name		= "target",
- 	.select_ops	= nft_target_select_ops,
-@@ -835,8 +834,6 @@ static void __exit nft_compat_module_exit(void)
- 	nfnetlink_subsys_unregister(&nfnl_compat_subsys);
- 	nft_unregister_expr(&nft_target_type);
- 	nft_unregister_expr(&nft_match_type);
--	nft_match_release();
--	nft_target_release();
- }
- 
- MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_NFT_COMPAT);
--- 
-2.1.4
+2) Address a race condition when resizing the conntrack table by caching
+   the bucket size when fulling iterating over the hashtable in these
+   three possible scenarios: 1) dump via /proc/net/nf_conntrack,
+   2) unlinking userspace helper and 3) unlinking custom conntrack timeout.
+   From Liping Zhang.
 
+3) Revisit early_drop() path to perform lockless traversal on conntrack
+   eviction under stress, use del_timer() as synchronization point to
+   avoid two CPUs evicting the same entry, from Florian Westphal.
+
+4) Move NAT hlist_head to nf_conn object, this simplifies the existing
+   NAT extension and it doesn't increase size since recent patches to
+   align nf_conn, from Florian.
+
+5) Use rhashtable for the by-source NAT hashtable, also from Florian.
+
+6) Don't allow --physdev-is-out from OUTPUT chain, just like
+   --physdev-out is not either, from Hangbin Liu.
+
+7) Automagically set on nf_conntrack counters if the user tries to
+   match ct bytes/packets from nftables, from Liping Zhang.
+
+8) Remove possible_net_t fields in nf_tables set objects since we just
+   simply pass the net pointer to the backend set type implementations.
+
+9) Fix possible off-by-one in h323, from Toby DiPasquale.
+
+10) early_drop() may be called from ctnetlink patch, so we must hold
+    rcu read size lock from them too, this amends Florian's patch #3
+    coming in this batch, from Liping Zhang.
+
+11) Use binary search to validate jump offset in x_tables, this
+    addresses the O(n!) validation that was introduced recently
+    resolve security issues with unpriviledge namespaces, from Florian.
+
+12) Fix reference leak to connlabel in error path of nft_ct, from Zhang.
+
+13) Three updates for nft_log: Fix log prefix leak in error path. Bail
+    out on loglevel larger than debug in nft_log and set on the new
+    NF_LOG_F_COPY_LEN flag when snaplen is specified. Again from Zhang.
+
+14) Allow to filter rule dumps in nf_tables based on table and chain
+    names.
+
+15) Simplify connlabel to always use 128 bits to store labels and
+    get rid of unused function in xt_connlabel, from Florian.
+
+16) Replace set_expect_timeout() by mod_timer() from the h323 conntrack
+    helper, by Gao Feng.
+
+17) Put back x_tables module reference in nft_compat on error, from
+    Liping Zhang.
+
+18) Add a reference count to the x_tables extensions cache in
+    nft_compat, so we can remove them when unused and avoid a crash
+    if the extensions are rmmod, again from Zhang.
+
+You can pull these changes from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git
+
+Thanks!
+
+----------------------------------------------------------------
+
+The following changes since commit a90a6e55f34f28190e4dc2a6a3660ef157827a8f:
+
+  Merge tag 'mac80211-next-for-davem-2016-07-06' of git://git.kernel.org/pub/scm/linux/kernel/git/jberg/mac80211-next (2016-07-06 22:32:15 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git HEAD
+
+for you to fetch changes up to 4b512e1c1f8de6b9ceb796ecef8658e0a083cab7:
+
+  netfilter: nft_compat: fix crash when related match/target module is removed (2016-07-23 12:25:00 +0200)
+
+----------------------------------------------------------------
+Florian Westphal (7):
+      netfilter: conntrack: simplify early_drop
+      netfilter: move nat hlist_head to nf_conn
+      netfilter: nat: convert nat bysrc hash to rhashtable
+      netfilter: constify arg to is_dying/confirmed
+      netfilter: x_tables: speed up jump target validation
+      netfilter: conntrack: support a fixed size of 128 distinct labels
+      netfilter: connlabels: move set helper to xt_connlabel
+
+Gao Feng (2):
+      netfilter: Add helper array register/unregister functions
+      netfilter: h323: Use mod_timer instead of set_expect_timeout
+
+Hangbin Liu (1):
+      netfilter: physdev: physdev-is-out should not work with OUTPUT chain
+
+Liping Zhang (11):
+      netfilter: conntrack: fix race between nf_conntrack proc read and hash resize
+      netfilter: cttimeout: unlink timeout obj again when hash resize happen
+      netfilter: nf_ct_helper: unlink helper again when hash resize happen
+      netfilter: nft_ct: make byte/packet expr more friendly
+      netfilter: conntrack: protect early_drop by rcu read lock
+      netfilter: nft_ct: fix unpaired nf_connlabels_get/put call
+      netfilter: nft_log: fix possible memory leak if log expr init fail
+      netfilter: nft_log: check the validity of log level
+      netfilter: nft_log: fix snaplen does not truncate packets
+      netfilter: nft_compat: put back match/target module if init fail
+      netfilter: nft_compat: fix crash when related match/target module is removed
+
+Michal Kubecek (1):
+      ipvs: count pre-established TCP states as active
+
+Pablo Neira Ayuso (3):
+      netfilter: nf_tables: get rid of possible_net_t from set and basechain
+      Merge tag 'ipvs-for-v4.8' of https://git.kernel.org/.../horms/ipvs-next
+      netfilter: nf_tables: allow to filter out rules by table and chain
+
+Toby DiPasquale (1):
+      netfilter: nf_conntrack_h323: fix off-by-one in DecodeQ931
+
+ include/linux/netfilter/x_tables.h                 |   4 +
+ include/net/netfilter/nf_conntrack.h               |   9 +-
+ include/net/netfilter/nf_conntrack_core.h          |   2 +
+ include/net/netfilter/nf_conntrack_extend.h        |   3 -
+ include/net/netfilter/nf_conntrack_helper.h        |  15 +++
+ include/net/netfilter/nf_conntrack_labels.h        |  18 +--
+ include/net/netfilter/nf_nat.h                     |   3 +-
+ include/net/netfilter/nf_tables.h                  |  21 +--
+ net/ipv4/netfilter/arp_tables.c                    |  47 ++++---
+ net/ipv4/netfilter/ip_tables.c                     |  45 ++++---
+ .../netfilter/nf_conntrack_l3proto_ipv4_compat.c   |  14 +-
+ net/ipv6/netfilter/ip6_tables.c                    |  45 ++++---
+ net/netfilter/ipvs/ip_vs_proto_tcp.c               |  25 +++-
+ net/netfilter/nf_conntrack_core.c                  | 115 +++++++++-------
+ net/netfilter/nf_conntrack_extend.c                |  15 +--
+ net/netfilter/nf_conntrack_ftp.c                   |  58 +++-----
+ net/netfilter/nf_conntrack_h323_asn1.c             |   3 +-
+ net/netfilter/nf_conntrack_h323_main.c             |  15 +--
+ net/netfilter/nf_conntrack_helper.c                |  76 ++++++++++-
+ net/netfilter/nf_conntrack_irc.c                   |  36 ++---
+ net/netfilter/nf_conntrack_labels.c                |  28 +---
+ net/netfilter/nf_conntrack_netlink.c               |  10 +-
+ net/netfilter/nf_conntrack_sane.c                  |  57 +++-----
+ net/netfilter/nf_conntrack_sip.c                   |  75 ++++-------
+ net/netfilter/nf_conntrack_standalone.c            |  14 +-
+ net/netfilter/nf_conntrack_tftp.c                  |  48 +++----
+ net/netfilter/nf_nat_core.c                        | 149 ++++++++++-----------
+ net/netfilter/nf_tables_api.c                      |  48 ++++++-
+ net/netfilter/nfnetlink_cttimeout.c                |  20 ++-
+ net/netfilter/nft_compat.c                         |  75 ++++++-----
+ net/netfilter/nft_ct.c                             |  41 +++---
+ net/netfilter/nft_hash.c                           |  20 +--
+ net/netfilter/nft_log.c                            |  34 +++--
+ net/netfilter/nft_lookup.c                         |   2 +-
+ net/netfilter/nft_rbtree.c                         |  26 ++--
+ net/netfilter/x_tables.c                           |  50 +++++++
+ net/netfilter/xt_connlabel.c                       |  29 ++--
+ net/netfilter/xt_physdev.c                         |   8 +-
+ net/openvswitch/conntrack.c                        |   4 +-
+ 39 files changed, 718 insertions(+), 589 deletions(-)
