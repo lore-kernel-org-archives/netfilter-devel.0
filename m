@@ -1,52 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] netfilter: tcp/udp: Only get 4 bytes to get tcp/udp
- ports
-Date: Sat, 23 Jul 2016 12:29:52 +0200
-Message-ID: <20160723102952.GB3204@salvia>
-References: <1469203162-12717-1-git-send-email-fgao@ikuai8.com>
+Subject: Re: [PATCH nf-next 2/2] netfilter: nft_compat: fix crash when
+ related match/target module is removed
+Date: Sat, 23 Jul 2016 12:31:16 +0200
+Message-ID: <20160723103116.GB3282@salvia>
+References: <1469260832-58903-1-git-send-email-zlpnobody@163.com>
+ <1469260832-58903-2-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
-	gfree.wind@gmail.com
-To: fgao@ikuai8.com
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60841 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:60944 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750882AbcGWKaE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 23 Jul 2016 06:30:04 -0400
+	id S1750975AbcGWKb1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 23 Jul 2016 06:31:27 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 90C94E7DA8
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 12:30:02 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 3C883E7DA8
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 12:31:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 82D36FC61E
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 12:30:02 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 2FD08FF2C8
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 12:31:26 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6ED82FAB58
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 12:29:58 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 7B928FC61C
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 12:31:22 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1469203162-12717-1-git-send-email-fgao@ikuai8.com>
+In-Reply-To: <1469260832-58903-2-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jul 22, 2016 at 11:59:22PM +0800, fgao@ikuai8.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
+On Sat, Jul 23, 2016 at 04:00:32PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <liping.zhang@spreadtrum.com>
 > 
-> We use tcp/udp_pkt_to_tuple to get the ports of tcp/udp.
-> Actually only need to get 4 bytes by skb_header_pointer instead
-> of 8 bytes.
+> We "cache" the loaded match/target modules and reuse them, but when the
+> modules are removed, we still point to them. Then we may end up with
+> invalid memory references when using iptables-compat to add rules later.
 > 
-> Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> ---
->  v2: Use 4 bytes intead of 8 bytes, and add more description
->  v1: Initial Patch
-> 
->  net/netfilter/nf_conntrack_proto_tcp.c | 4 ++--
->  net/netfilter/nf_conntrack_proto_udp.c | 4 ++--
->  2 files changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-> index 70c8381..4abe9e1 100644
-> --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
+> Input the following commands will reproduce the kernel crash:
+>   # iptables-compat -A INPUT -j LOG
+>   # iptables-compat -D INPUT -j LOG
+>   # rmmod xt_LOG
+>   # iptables-compat -A INPUT -j LOG
+>   BUG: unable to handle kernel paging request at ffffffffa05a9010
 
-Could you also review other existing trackers? eg. SCTP.
+Applied, thanks Zhang.
