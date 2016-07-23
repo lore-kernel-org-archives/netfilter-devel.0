@@ -1,115 +1,38 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 15/25] netfilter: nft_ct: fix unpaired nf_connlabels_get/put call
-Date: Sat, 23 Jul 2016 13:08:29 +0200
-Message-ID: <1469272119-29942-16-git-send-email-pablo@netfilter.org>
-References: <1469272119-29942-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH iptables] extensions: libxt_connlabel: add unit test
+Date: Sat, 23 Jul 2016 13:14:16 +0200
+Message-ID: <20160723111416.GA12896@salvia>
+References: <1469257899-27058-1-git-send-email-zlpnobody@163.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35922 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36541 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751600AbcGWLJa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 23 Jul 2016 07:09:30 -0400
+	id S1751230AbcGWLO2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 23 Jul 2016 07:14:28 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id C5DC1E7DAA
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:09:29 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 9B1D7E7DA8
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:14:23 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B7826FF154
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:09:29 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 8CD52DA8F3
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:14:23 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 422E9FF154
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:09:26 +0200 (CEST)
-In-Reply-To: <1469272119-29942-1-git-send-email-pablo@netfilter.org>
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 3B628FAB53
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:14:19 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1469257899-27058-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+On Sat, Jul 23, 2016 at 03:11:39PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <liping.zhang@spreadtrum.com>
+> 
+> Add some unit tests for connlabel match extension:
+>   # ./iptables-test.py extensions/libxt_connlabel.t
+>   extensions/libxt_connlabel.t: OK
+>   1 test files, 7 unit tests, 7 passed
 
-We only get nf_connlabels if the user add ct label set expr successfully,
-but we will also put nf_connlabels if the user delete ct lable get expr.
-This is mismathced, and will cause ct label expr cannot work properly.
-
-Also, if we init something fail, we should put nf_connlabels back.
-Otherwise, we may waste to alloc the memory that will never be used.
-
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
-Acked-by: Florian Westphal <fw@strlen.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_ct.c | 25 +++++++++++++++++++------
- 1 file changed, 19 insertions(+), 6 deletions(-)
-
-diff --git a/net/netfilter/nft_ct.c b/net/netfilter/nft_ct.c
-index 7ce8fd7..d9e44ca 100644
---- a/net/netfilter/nft_ct.c
-+++ b/net/netfilter/nft_ct.c
-@@ -366,6 +366,7 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
- 			   const struct nlattr * const tb[])
- {
- 	struct nft_ct *priv = nft_expr_priv(expr);
-+	bool label_got = false;
- 	unsigned int len;
- 	int err;
- 
-@@ -384,6 +385,7 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
- 		err = nf_connlabels_get(ctx->net, (len * BITS_PER_BYTE) - 1);
- 		if (err)
- 			return err;
-+		label_got = true;
- 		break;
- #endif
- 	default:
-@@ -393,17 +395,28 @@ static int nft_ct_set_init(const struct nft_ctx *ctx,
- 	priv->sreg = nft_parse_register(tb[NFTA_CT_SREG]);
- 	err = nft_validate_register_load(priv->sreg, len);
- 	if (err < 0)
--		return err;
-+		goto err1;
- 
- 	err = nft_ct_l3proto_try_module_get(ctx->afi->family);
- 	if (err < 0)
--		return err;
-+		goto err1;
- 
- 	return 0;
-+
-+err1:
-+	if (label_got)
-+		nf_connlabels_put(ctx->net);
-+	return err;
-+}
-+
-+static void nft_ct_get_destroy(const struct nft_ctx *ctx,
-+			       const struct nft_expr *expr)
-+{
-+	nft_ct_l3proto_module_put(ctx->afi->family);
- }
- 
--static void nft_ct_destroy(const struct nft_ctx *ctx,
--			   const struct nft_expr *expr)
-+static void nft_ct_set_destroy(const struct nft_ctx *ctx,
-+			       const struct nft_expr *expr)
- {
- 	struct nft_ct *priv = nft_expr_priv(expr);
- 
-@@ -475,7 +488,7 @@ static const struct nft_expr_ops nft_ct_get_ops = {
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ct)),
- 	.eval		= nft_ct_get_eval,
- 	.init		= nft_ct_get_init,
--	.destroy	= nft_ct_destroy,
-+	.destroy	= nft_ct_get_destroy,
- 	.dump		= nft_ct_get_dump,
- };
- 
-@@ -484,7 +497,7 @@ static const struct nft_expr_ops nft_ct_set_ops = {
- 	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ct)),
- 	.eval		= nft_ct_set_eval,
- 	.init		= nft_ct_set_init,
--	.destroy	= nft_ct_destroy,
-+	.destroy	= nft_ct_set_destroy,
- 	.dump		= nft_ct_set_dump,
- };
- 
--- 
-2.1.4
-
+Applied, thanks!
