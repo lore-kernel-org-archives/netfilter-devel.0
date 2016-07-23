@@ -1,73 +1,124 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 23/25] netfilter: h323: Use mod_timer instead of set_expect_timeout
-Date: Sat, 23 Jul 2016 13:02:23 +0200
-Message-ID: <1469271745-14523-24-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 24/25] netfilter: nft_compat: put back match/target module if init fail
+Date: Sat, 23 Jul 2016 13:02:24 +0200
+Message-ID: <1469271745-14523-25-git-send-email-pablo@netfilter.org>
 References: <1469271745-14523-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35359 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35372 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751367AbcGWLD3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 23 Jul 2016 07:03:29 -0400
+	id S1751367AbcGWLDb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 23 Jul 2016 07:03:31 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 9C8D8E7DAE
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:28 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id E1E9CE7DAC
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8D09B9EBA5
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:28 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id CF360FAB59
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:29 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 718D4FEFBF
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:26 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id BCA47FF2D5
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:27 +0200 (CEST)
 In-Reply-To: <1469271745-14523-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Simplify the code without any side effect. The set_expect_timeout is
-used to modify the timer expired time.  It tries to delete timer, and
-add it again.  So we could use mod_timer directly.
+If the user specify the invalid NFTA_MATCH_INFO/NFTA_TARGET_INFO attr
+or memory alloc fail, we should call module_put to the related match
+or target. Otherwise, we cannot remove the module even nobody use it.
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_h323_main.c | 15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+ net/netfilter/nft_compat.c | 32 ++++++++++++++++++++++++--------
+ 1 file changed, 24 insertions(+), 8 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 9511af0..bb77a97 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -1273,19 +1273,6 @@ static struct nf_conntrack_expect *find_expect(struct nf_conn *ct,
+diff --git a/net/netfilter/nft_compat.c b/net/netfilter/nft_compat.c
+index 6228c42..2e07cec 100644
+--- a/net/netfilter/nft_compat.c
++++ b/net/netfilter/nft_compat.c
+@@ -634,6 +634,7 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 	struct xt_match *match;
+ 	char *mt_name;
+ 	u32 rev, family;
++	int err;
+ 
+ 	if (tb[NFTA_MATCH_NAME] == NULL ||
+ 	    tb[NFTA_MATCH_REV] == NULL ||
+@@ -660,13 +661,17 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 	if (IS_ERR(match))
+ 		return ERR_PTR(-ENOENT);
+ 
+-	if (match->matchsize > nla_len(tb[NFTA_MATCH_INFO]))
+-		return ERR_PTR(-EINVAL);
++	if (match->matchsize > nla_len(tb[NFTA_MATCH_INFO])) {
++		err = -EINVAL;
++		goto err;
++	}
+ 
+ 	/* This is the first time we use this match, allocate operations */
+ 	nft_match = kzalloc(sizeof(struct nft_xt), GFP_KERNEL);
+-	if (nft_match == NULL)
+-		return ERR_PTR(-ENOMEM);
++	if (nft_match == NULL) {
++		err = -ENOMEM;
++		goto err;
++	}
+ 
+ 	nft_match->ops.type = &nft_match_type;
+ 	nft_match->ops.size = NFT_EXPR_SIZE(XT_ALIGN(match->matchsize));
+@@ -680,6 +685,9 @@ nft_match_select_ops(const struct nft_ctx *ctx,
+ 	list_add(&nft_match->head, &nft_match_list);
+ 
+ 	return &nft_match->ops;
++err:
++	module_put(match->me);
++	return ERR_PTR(err);
  }
  
- /****************************************************************************/
--static int set_expect_timeout(struct nf_conntrack_expect *exp,
--			      unsigned int timeout)
--{
--	if (!exp || !del_timer(&exp->timeout))
--		return 0;
--
--	exp->timeout.expires = jiffies + timeout * HZ;
--	add_timer(&exp->timeout);
--
--	return 1;
--}
--
--/****************************************************************************/
- static int expect_q931(struct sk_buff *skb, struct nf_conn *ct,
- 		       enum ip_conntrack_info ctinfo,
- 		       unsigned int protoff, unsigned char **data,
-@@ -1486,7 +1473,7 @@ static int process_rcf(struct sk_buff *skb, struct nf_conn *ct,
- 				 "timeout to %u seconds for",
- 				 info->timeout);
- 			nf_ct_dump_tuple(&exp->tuple);
--			set_expect_timeout(exp, info->timeout);
-+			mod_timer(&exp->timeout, jiffies + info->timeout * HZ);
- 		}
- 		spin_unlock_bh(&nf_conntrack_expect_lock);
- 	}
+ static void nft_match_release(void)
+@@ -717,6 +725,7 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 	struct xt_target *target;
+ 	char *tg_name;
+ 	u32 rev, family;
++	int err;
+ 
+ 	if (tb[NFTA_TARGET_NAME] == NULL ||
+ 	    tb[NFTA_TARGET_REV] == NULL ||
+@@ -743,13 +752,17 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 	if (IS_ERR(target))
+ 		return ERR_PTR(-ENOENT);
+ 
+-	if (target->targetsize > nla_len(tb[NFTA_TARGET_INFO]))
+-		return ERR_PTR(-EINVAL);
++	if (target->targetsize > nla_len(tb[NFTA_TARGET_INFO])) {
++		err = -EINVAL;
++		goto err;
++	}
+ 
+ 	/* This is the first time we use this target, allocate operations */
+ 	nft_target = kzalloc(sizeof(struct nft_xt), GFP_KERNEL);
+-	if (nft_target == NULL)
+-		return ERR_PTR(-ENOMEM);
++	if (nft_target == NULL) {
++		err = -ENOMEM;
++		goto err;
++	}
+ 
+ 	nft_target->ops.type = &nft_target_type;
+ 	nft_target->ops.size = NFT_EXPR_SIZE(XT_ALIGN(target->targetsize));
+@@ -767,6 +780,9 @@ nft_target_select_ops(const struct nft_ctx *ctx,
+ 	list_add(&nft_target->head, &nft_target_list);
+ 
+ 	return &nft_target->ops;
++err:
++	module_put(target->me);
++	return ERR_PTR(err);
+ }
+ 
+ static void nft_target_release(void)
 -- 
 2.1.4
 
