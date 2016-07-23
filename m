@@ -1,38 +1,49 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables] extensions: libxt_connlabel: add unit test
-Date: Sat, 23 Jul 2016 13:14:16 +0200
-Message-ID: <20160723111416.GA12896@salvia>
-References: <1469257899-27058-1-git-send-email-zlpnobody@163.com>
+Subject: Re: [PATCH iptables 1/2] xtables-translate: add new field to
+ identify the caller
+Date: Sat, 23 Jul 2016 13:24:09 +0200
+Message-ID: <20160723112409.GA13371@salvia>
+References: <20160722154834.1802-1-pablombg@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org
+To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36541 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:37158 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751230AbcGWLO2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 23 Jul 2016 07:14:28 -0400
+	id S1751137AbcGWLYS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 23 Jul 2016 07:24:18 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 9B1D7E7DA8
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:14:23 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 01090E7DA2
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:24:17 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8CD52DA8F3
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:14:23 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id E4FD8FAB58
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:24:16 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 3B628FAB53
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:14:19 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id E99686DA2D
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:24:14 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1469257899-27058-1-git-send-email-zlpnobody@163.com>
+In-Reply-To: <20160722154834.1802-1-pablombg@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jul 23, 2016 at 03:11:39PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
+On Fri, Jul 22, 2016 at 05:48:33PM +0200, Pablo M. Bermudo Garay wrote:
+> In some cases, xlate functions must print a different result if they are
+> invoked from nft and not from a xtables-translate command.
 > 
-> Add some unit tests for connlabel match extension:
->   # ./iptables-test.py extensions/libxt_connlabel.t
->   extensions/libxt_connlabel.t: OK
->   1 test files, 7 unit tests, 7 passed
+> This commit adds a new boolean field to the xt_xlate struct. This
+> variable must be true when a xlate function is called from a nft
+> command. Additional code is required in nft in order to obtain this
+> behavior.
 
-Applied, thanks!
+Why not simply pass a new parameter to ->xlate()?
+
+This patch is anyway updating the binary interface and it makes this
+less obscure as it is part of the interface.
+
+The xlate structure hides the buffer intentionally to avoid exposing
+it the the backend extensions, the comments are also stored there to
+use native nf_tables comment support.
+
+But the only reason for this approach is that you're being lazy and
+you don't want to upgrade the footprint of every xlate extension ;-)
