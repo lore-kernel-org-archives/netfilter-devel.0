@@ -1,105 +1,79 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 01/25] ipvs: count pre-established TCP states as active
-Date: Sat, 23 Jul 2016 13:02:01 +0200
-Message-ID: <1469271745-14523-2-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 04/25] netfilter: nf_ct_helper: unlink helper again when hash resize happen
+Date: Sat, 23 Jul 2016 13:02:04 +0200
+Message-ID: <1469271745-14523-5-git-send-email-pablo@netfilter.org>
 References: <1469271745-14523-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35227 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35247 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750975AbcGWLCy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 23 Jul 2016 07:02:54 -0400
+	id S1751168AbcGWLDD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 23 Jul 2016 07:03:03 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 099ABE7DA2
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:02:53 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 32F78E7DA2
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:02 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id EC13FFB468
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:02:52 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 20676FB467
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:02 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id EEE146DA2D
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:02:48 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 13F196DB36
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:00 +0200 (CEST)
 In-Reply-To: <1469271745-14523-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Michal Kubecek <mkubecek@suse.cz>
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Some users observed that "least connection" distribution algorithm doesn't
-handle well bursts of TCP connections from reconnecting clients after
-a node or network failure.
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-This is because the algorithm counts active connection as worth 256
-inactive ones where for TCP, "active" only means TCP connections in
-ESTABLISHED state. In case of a connection burst, new connections are
-handled before previous ones have finished the three way handshaking so
-that all are still counted as "inactive", i.e. cheap ones. The become
-"active" quickly but at that time, all of them are already assigned to one
-real server (or few), resulting in highly unbalanced distribution.
+Similar to ctnl_untimeout, when hash resize happened, we should try
+to do unhelp from the 0# bucket again.
 
-Address this by counting the "pre-established" states as "active".
-
-Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
-Acked-by: Julian Anastasov <ja@ssi.bg>
-Signed-off-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/ipvs/ip_vs_proto_tcp.c | 25 +++++++++++++++++++++++--
- 1 file changed, 23 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_helper.c | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/ipvs/ip_vs_proto_tcp.c b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-index d7024b2..5117bcb 100644
---- a/net/netfilter/ipvs/ip_vs_proto_tcp.c
-+++ b/net/netfilter/ipvs/ip_vs_proto_tcp.c
-@@ -395,6 +395,20 @@ static const char *const tcp_state_name_table[IP_VS_TCP_S_LAST+1] = {
- 	[IP_VS_TCP_S_LAST]		=	"BUG!",
- };
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 3a1a88b..a4294e9 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -409,6 +409,8 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
+ 	struct nf_conntrack_expect *exp;
+ 	const struct hlist_node *next;
+ 	const struct hlist_nulls_node *nn;
++	unsigned int last_hsize;
++	spinlock_t *lock;
+ 	struct net *net;
+ 	unsigned int i;
  
-+static const bool tcp_state_active_table[IP_VS_TCP_S_LAST] = {
-+	[IP_VS_TCP_S_NONE]		=	false,
-+	[IP_VS_TCP_S_ESTABLISHED]	=	true,
-+	[IP_VS_TCP_S_SYN_SENT]		=	true,
-+	[IP_VS_TCP_S_SYN_RECV]		=	true,
-+	[IP_VS_TCP_S_FIN_WAIT]		=	false,
-+	[IP_VS_TCP_S_TIME_WAIT]		=	false,
-+	[IP_VS_TCP_S_CLOSE]		=	false,
-+	[IP_VS_TCP_S_CLOSE_WAIT]	=	false,
-+	[IP_VS_TCP_S_LAST_ACK]		=	false,
-+	[IP_VS_TCP_S_LISTEN]		=	false,
-+	[IP_VS_TCP_S_SYNACK]		=	true,
-+};
-+
- #define sNO IP_VS_TCP_S_NONE
- #define sES IP_VS_TCP_S_ESTABLISHED
- #define sSS IP_VS_TCP_S_SYN_SENT
-@@ -418,6 +432,13 @@ static const char * tcp_state_name(int state)
- 	return tcp_state_name_table[state] ? tcp_state_name_table[state] : "?";
+@@ -446,13 +448,18 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
+ 	rtnl_unlock();
+ 
+ 	local_bh_disable();
+-	for (i = 0; i < nf_conntrack_htable_size; i++) {
+-		nf_conntrack_lock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
+-		if (i < nf_conntrack_htable_size) {
+-			hlist_nulls_for_each_entry(h, nn, &nf_conntrack_hash[i], hnnode)
+-				unhelp(h, me);
++restart:
++	last_hsize = nf_conntrack_htable_size;
++	for (i = 0; i < last_hsize; i++) {
++		lock = &nf_conntrack_locks[i % CONNTRACK_LOCKS];
++		nf_conntrack_lock(lock);
++		if (last_hsize != nf_conntrack_htable_size) {
++			spin_unlock(lock);
++			goto restart;
+ 		}
+-		spin_unlock(&nf_conntrack_locks[i % CONNTRACK_LOCKS]);
++		hlist_nulls_for_each_entry(h, nn, &nf_conntrack_hash[i], hnnode)
++			unhelp(h, me);
++		spin_unlock(lock);
+ 	}
+ 	local_bh_enable();
  }
- 
-+static bool tcp_state_active(int state)
-+{
-+	if (state >= IP_VS_TCP_S_LAST)
-+		return false;
-+	return tcp_state_active_table[state];
-+}
-+
- static struct tcp_states_t tcp_states [] = {
- /*	INPUT */
- /*        sNO, sES, sSS, sSR, sFW, sTW, sCL, sCW, sLA, sLI, sSA	*/
-@@ -540,12 +561,12 @@ set_tcp_state(struct ip_vs_proto_data *pd, struct ip_vs_conn *cp,
- 
- 		if (dest) {
- 			if (!(cp->flags & IP_VS_CONN_F_INACTIVE) &&
--			    (new_state != IP_VS_TCP_S_ESTABLISHED)) {
-+			    !tcp_state_active(new_state)) {
- 				atomic_dec(&dest->activeconns);
- 				atomic_inc(&dest->inactconns);
- 				cp->flags |= IP_VS_CONN_F_INACTIVE;
- 			} else if ((cp->flags & IP_VS_CONN_F_INACTIVE) &&
--				   (new_state == IP_VS_TCP_S_ESTABLISHED)) {
-+				   tcp_state_active(new_state)) {
- 				atomic_inc(&dest->activeconns);
- 				atomic_dec(&dest->inactconns);
- 				cp->flags &= ~IP_VS_CONN_F_INACTIVE;
 -- 
 2.1.4
 
