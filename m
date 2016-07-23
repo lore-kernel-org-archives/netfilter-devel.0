@@ -1,61 +1,112 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 19/25] netfilter: nft_log: fix snaplen does not truncate packets
-Date: Sat, 23 Jul 2016 13:02:19 +0200
-Message-ID: <1469271745-14523-20-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 20/25] netfilter: nf_tables: allow to filter out rules by table and chain
+Date: Sat, 23 Jul 2016 13:02:20 +0200
+Message-ID: <1469271745-14523-21-git-send-email-pablo@netfilter.org>
 References: <1469271745-14523-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35325 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35328 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751432AbcGWLDX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 23 Jul 2016 07:03:23 -0400
+	id S1751438AbcGWLDZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 23 Jul 2016 07:03:25 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id BC232E7DAA
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:22 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 16AC3E7DAC
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id AE0F4FEFD1
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:22 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 07008FB467
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:24 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 86291FF2D6
-	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:20 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 04478FC618
+	for <netfilter-devel@vger.kernel.org>; Sat, 23 Jul 2016 13:03:22 +0200 (CEST)
 In-Reply-To: <1469271745-14523-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+If the table and/or chain attributes are set in a rule dump request,
+we filter out the rules based on this selection.
 
-There's a similar problem in xt_NFLOG, and was fixed by commit 7643507fe8b5
-("netfilter: xt_NFLOG: nflog-range does not truncate packets"). Only set
-copy_len here does not work, so we should enable NF_LOG_F_COPY_LEN also.
-
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_log.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ net/netfilter/nf_tables_api.c | 38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-diff --git a/net/netfilter/nft_log.c b/net/netfilter/nft_log.c
-index 5f6f088..24a73bb 100644
---- a/net/netfilter/nft_log.c
-+++ b/net/netfilter/nft_log.c
-@@ -92,6 +92,7 @@ static int nft_log_init(const struct nft_ctx *ctx,
- 	case NF_LOG_TYPE_ULOG:
- 		li->u.ulog.group = ntohs(nla_get_be16(tb[NFTA_LOG_GROUP]));
- 		if (tb[NFTA_LOG_SNAPLEN] != NULL) {
-+			li->u.ulog.flags |= NF_LOG_F_COPY_LEN;
- 			li->u.ulog.copy_len =
- 				ntohl(nla_get_be32(tb[NFTA_LOG_SNAPLEN]));
- 		}
-@@ -149,7 +150,7 @@ static int nft_log_dump(struct sk_buff *skb, const struct nft_expr *expr)
- 		if (nla_put_be16(skb, NFTA_LOG_GROUP, htons(li->u.ulog.group)))
- 			goto nla_put_failure;
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 0211eae..13d50e7 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1857,10 +1857,16 @@ err:
+ 	return err;
+ }
  
--		if (li->u.ulog.copy_len) {
-+		if (li->u.ulog.flags & NF_LOG_F_COPY_LEN) {
- 			if (nla_put_be32(skb, NFTA_LOG_SNAPLEN,
- 					 htonl(li->u.ulog.copy_len)))
- 				goto nla_put_failure;
++struct nft_rule_dump_ctx {
++	char table[NFT_TABLE_MAXNAMELEN];
++	char chain[NFT_CHAIN_MAXNAMELEN];
++};
++
+ static int nf_tables_dump_rules(struct sk_buff *skb,
+ 				struct netlink_callback *cb)
+ {
+ 	const struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
++	const struct nft_rule_dump_ctx *ctx = cb->data;
+ 	const struct nft_af_info *afi;
+ 	const struct nft_table *table;
+ 	const struct nft_chain *chain;
+@@ -1877,7 +1883,15 @@ static int nf_tables_dump_rules(struct sk_buff *skb,
+ 			continue;
+ 
+ 		list_for_each_entry_rcu(table, &afi->tables, list) {
++			if (ctx && ctx->table[0] &&
++			    strcmp(ctx->table, table->name) != 0)
++				continue;
++
+ 			list_for_each_entry_rcu(chain, &table->chains, list) {
++				if (ctx && ctx->chain[0] &&
++				    strcmp(ctx->chain, chain->name) != 0)
++					continue;
++
+ 				list_for_each_entry_rcu(rule, &chain->rules, list) {
+ 					if (!nft_is_active(net, rule))
+ 						goto cont;
+@@ -1907,6 +1921,12 @@ done:
+ 	return skb->len;
+ }
+ 
++static int nf_tables_dump_rules_done(struct netlink_callback *cb)
++{
++	kfree(cb->data);
++	return 0;
++}
++
+ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
+ 			     struct sk_buff *skb, const struct nlmsghdr *nlh,
+ 			     const struct nlattr * const nla[])
+@@ -1924,7 +1944,25 @@ static int nf_tables_getrule(struct net *net, struct sock *nlsk,
+ 	if (nlh->nlmsg_flags & NLM_F_DUMP) {
+ 		struct netlink_dump_control c = {
+ 			.dump = nf_tables_dump_rules,
++			.done = nf_tables_dump_rules_done,
+ 		};
++
++		if (nla[NFTA_RULE_TABLE] || nla[NFTA_RULE_CHAIN]) {
++			struct nft_rule_dump_ctx *ctx;
++
++			ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
++			if (!ctx)
++				return -ENOMEM;
++
++			if (nla[NFTA_RULE_TABLE])
++				nla_strlcpy(ctx->table, nla[NFTA_RULE_TABLE],
++					    sizeof(ctx->table));
++			if (nla[NFTA_RULE_CHAIN])
++				nla_strlcpy(ctx->chain, nla[NFTA_RULE_CHAIN],
++					    sizeof(ctx->chain));
++			c.data = ctx;
++		}
++
+ 		return netlink_dump_start(nlsk, skb, nlh, &c);
+ 	}
+ 
 -- 
 2.1.4
 
