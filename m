@@ -1,69 +1,30 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf-next] netfilter: nf_ct_h323: do not re-activate already expired timer
-Date: Sat, 23 Jul 2016 22:16:56 +0800
-Message-ID: <1469283416-25879-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>,
-	Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org
+From: Xin Long <lucien.xin@gmail.com>
+Subject: [ISSUE] nftables: !=range doesn't really work
+Date: Sun, 24 Jul 2016 16:17:49 +0800
+Message-ID: <CADvbK_e1GPX+jBDfDgAAppYaT-51HEpVxqr7ssC1O+Yf02QKJA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-14.163.com ([220.181.12.14]:59127 "EHLO m12-14.163.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751035AbcGWORa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 23 Jul 2016 10:17:30 -0400
+Received: from mail-qk0-f182.google.com ([209.85.220.182]:35924 "EHLO
+	mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751687AbcGXIRv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 24 Jul 2016 04:17:51 -0400
+Received: by mail-qk0-f182.google.com with SMTP id x1so134007499qkb.3
+        for <netfilter-devel@vger.kernel.org>; Sun, 24 Jul 2016 01:17:51 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+nftable transform 'x !=a-b' in wrong way:
+cmp x < a
+cmp x > b
 
-Commit 96d1327ac2e3 ("netfilter: h323: Use mod_timer instead of
-set_expect_timeout") just simplify the source codes
-    if (!del_timer(&exp->timeout))
-        return 0;
-    add_timer(&exp->timeout);
-to mod_timer(&exp->timeout, jiffies + info->timeout * HZ);
+which means x has to be x<a && x>b.
+but it should be x<a || x>b.
 
-This is not correct, and introduce a race codition:
-    CPU0                     CPU1
-     -                     timer expire
-  process_rcf              expectation_timed_out
-  lock(exp_lock)              -
-  find_exp                 waiting exp_lock...
-  re-activate timer!!      waiting exp_lock...
-  unlock(exp_lock)         lock(exp_lock)
-     -                     unlink expect
-     -                     free(expect)
-     -                     unlock(exp_lock)
-So when the timer expires again, we will access the memory that
-was already freed.
+It seems that the vm system in kernel is too simple and fast
+to provide some expr or process for this case, afaics.
 
-Replace mod_timer with mod_timer_pending here to fix this problem.
-
-Fixes: 96d1327ac2e3 ("netfilter: h323: Use mod_timer instead of set_expect_timeout")
-Cc: Gao Feng <fgao@ikuai8.com>
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
----
-When I found this problem and want to report it, it was a little too late.
-I find that this commit was already pushed to the cgit :(
-
- net/netfilter/nf_conntrack_h323_main.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index bb77a97..5c0db5c 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -1473,7 +1473,8 @@ static int process_rcf(struct sk_buff *skb, struct nf_conn *ct,
- 				 "timeout to %u seconds for",
- 				 info->timeout);
- 			nf_ct_dump_tuple(&exp->tuple);
--			mod_timer(&exp->timeout, jiffies + info->timeout * HZ);
-+			mod_timer_pending(&exp->timeout,
-+					  jiffies + info->timeout * HZ);
- 		}
- 		spin_unlock_bh(&nf_conntrack_expect_lock);
- 	}
--- 
-2.5.5
-
-
+does upstream have been preparing some fix for this ?
