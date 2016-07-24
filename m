@@ -1,44 +1,50 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ISSUE] nftables: !=range doesn't really work
-Date: Sun, 24 Jul 2016 12:58:41 +0200
-Message-ID: <20160724105841.GB17882@salvia>
-References: <CADvbK_e1GPX+jBDfDgAAppYaT-51HEpVxqr7ssC1O+Yf02QKJA@mail.gmail.com>
+Subject: [RFC] l2tp for nftables
+Date: Sun, 24 Jul 2016 19:25:30 +0200
+Message-ID: <20160724172530.GA1655@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Xin Long <lucien.xin@gmail.com>
+To: James Chapman <jchapman@katalix.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33410 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:56084 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752035AbcGXK6z (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Jul 2016 06:58:55 -0400
+	id S1752010AbcGXRZg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 24 Jul 2016 13:25:36 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 79B0DC510D
-	for <netfilter-devel@vger.kernel.org>; Sun, 24 Jul 2016 12:58:53 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 0D8D7EAA63
+	for <netfilter-devel@vger.kernel.org>; Sun, 24 Jul 2016 19:25:34 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6AAC4FEFBF
-	for <netfilter-devel@vger.kernel.org>; Sun, 24 Jul 2016 12:58:53 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 00060A8E1
+	for <netfilter-devel@vger.kernel.org>; Sun, 24 Jul 2016 19:25:33 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id EFEA59D5BE
-	for <netfilter-devel@vger.kernel.org>; Sun, 24 Jul 2016 12:58:50 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id D37EFA8E1
+	for <netfilter-devel@vger.kernel.org>; Sun, 24 Jul 2016 19:25:31 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <CADvbK_e1GPX+jBDfDgAAppYaT-51HEpVxqr7ssC1O+Yf02QKJA@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hi James,
 
-On Sun, Jul 24, 2016 at 04:17:49PM +0800, Xin Long wrote:
-> nftable transform 'x !=a-b' in wrong way:
-> cmp x < a
-> cmp x > b
-> 
-> which means x has to be x<a && x>b.
-> but it should be x<a || x>b.
-> 
-> It seems that the vm system in kernel is too simple and fast
-> to provide some expr or process for this case, afaics.
-> 
-> does upstream have been preparing some fix for this ?
+I'm looking what is missing to add l2tp for nftables, after a quick
+glance this is what I found.
 
-Will be sending a fix for this asap.
+The L2TPv3 over IP (after quick reading of the RFC) seems easy to add.
+I'm attaching a patch for the header layout definition (still parser
+side is missing, so this patch is incomplete).
+
+For L2TP over UDP, we need more infrastructure to match based the
+content of UDP tunnels. I think the port should be one of the key to
+look up for the possible protocol there, I can see 1701 is the L2TP
+port. Then, we can add a definition to match the L2TP_HDR_T_BIT and
+the version. On top of that, the sid and tid fields depend on the
+version number, so we need to have a way to register different
+interpretations based on the type, that should be possible from the
+evaluation phase (just after the parsing). Thus, the design changes
+with regards to xt_l2tp since in nft, the user will explicitly specify
+what L2TP over UDP protocol version whats to match (in xt_l2tp this
+occurs transparently to the user, in runtime from the packet path).
+
+Does this assesment look correct to you?
+
+Thanks!
