@@ -1,369 +1,127 @@
-From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCH libnftnl] expr: nth: match every n packets
-Date: Tue, 26 Jul 2016 16:23:11 +0200
-Message-ID: <20160726142308.GA18602@sonyv>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: nft_rbtree_lookup: BUG: unable to handle kernel NULL pointer
+ dereference
+Date: Tue, 26 Jul 2016 17:15:52 +0200
+Message-ID: <20160726151552.GA30809@breakpoint.cc>
+References: <1469539108.1032.30.camel@akp.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: "Anders K. Pedersen" <akp@akp.dk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33327 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751495AbcGZOXQ (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:59214 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756066AbcGZPP5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Jul 2016 10:23:16 -0400
-Received: by mail-wm0-f66.google.com with SMTP id o80so1941802wme.0
-        for <netfilter-devel@vger.kernel.org>; Tue, 26 Jul 2016 07:23:15 -0700 (PDT)
-Received: from sonyv ([91.126.73.162])
-        by smtp.gmail.com with ESMTPSA id d62sm2000359wmd.7.2016.07.26.07.23.13
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Tue, 26 Jul 2016 07:23:13 -0700 (PDT)
+	Tue, 26 Jul 2016 11:15:57 -0400
 Content-Disposition: inline
+In-Reply-To: <1469539108.1032.30.camel@akp.dk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Support for the nft nth expression within libnftnl.
+Anders K. Pedersen <akp@akp.dk> wrote:
+> Hello,
+>=20
+> While doing some tests with nftables, I've run into the the following
+> bug, which is easily reproducable:
+>=20
+> [ 1409.721487] BUG: unable to handle kernel NULL pointer dereference =
+at 0000000000000010
+> [ 1409.730512] IP: [<ffffffff81495de9>] nft_rbtree_lookup+0xa9/0x150
+> [ 1409.737525] PGD 0
+> [ 1409.739841] Oops: 0000 [#1] SMP
+> [ 1409.743445] Modules linked in:
+> [ 1409.746966] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.7.0 #1
+> [ 1409.753660] Hardware name: Dell Inc. PowerEdge R730/0H21J3, BIOS 2=
+=2E1.6 05/19/2016
+> [ 1409.762253] task: ffffffff8180b500 ti: ffffffff81800000 task.ti: f=
+fffffff81800000
+> [ 1409.770846] RIP: 0010:[<ffffffff81495de9>]  [<ffffffff81495de9>] n=
+ft_rbtree_lookup+0xa9/0x150
+> [ 1409.780651] RSP: 0018:ffff88085f2039c8  EFLAGS: 00010202
+> [ 1409.786745] RAX: ffff88083dc76f80 RBX: ffff88083dc76fa4 RCX: 00000=
+00000000002
+> [ 1409.794937] RDX: 0000000000000004 RSI: ffff88083dc76de0 RDI: ffff8=
+8083dc76fa4
+> [ 1409.803130] RBP: 0000000000000004 R08: 0000000000000000 R09: ffff8=
+8085f203aa0
+> [ 1409.811323] R10: ffff88083dc699e2 R11: ffff88085803d000 R12: ffff8=
+8085ae2f700
+> [ 1409.819517] R13: ffff88083dc76f80 R14: ffff88085f203aa0 R15: 00000=
+00000000000
+> [ 1409.827710] FS:  0000000000000000(0000) GS:ffff88085f200000(0000) =
+knlGS:0000000000000000
+> [ 1409.837006] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [ 1409.843594] CR2: 0000000000000010 CR3: 0000000001806000 CR4: 00000=
+000001406f0
+> [ 1409.851788] Stack:
+> [ 1409.854095]  ffffffff00000002 ffff8800785b0100 0000000000000000 ff=
+ff88085f203a20
+> [ 1409.862641]  ffff88085ae2f700 ffff880855e16428 ffff88085f203a90 00=
+00000000000002
+> [ 1409.871184]  00000000ffffffff ffff880855e16428 ffffffff81493a4e ff=
+ff880859d699d8
+> [ 1409.879736] Call Trace:
+> [ 1409.882539]  <IRQ>
+> [ 1409.884751]  [<ffffffff81493a4e>] ? nft_lookup_eval+0x2e/0x80
+[..]
 
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
----
- include/libnftnl/expr.h             |  10 ++
- include/linux/netfilter/nf_tables.h |  14 +++
- src/Makefile.am                     |   1 +
- src/expr/nth.c                      | 239 ++++++++++++++++++++++++++++++++++++
- src/expr_ops.c                      |   2 +
- 5 files changed, 266 insertions(+)
- create mode 100644 src/expr/nth.c
+> I have narrowed the rule set in use down to:
+>=20
+> table ip filter {
+> =A0=A0=A0=A0=A0=A0=A0=A0set bogons {
+> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0type ipv4_addr
+> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0flags interval
+> =A0=A0=A0=A0=A0=A0=A0=A0}
+>=20
+> =A0=A0=A0=A0=A0=A0=A0=A0chain prerouting {
+> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0type filter hook prer=
+outing priority -300; policy accept;
+> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0iif lo accept
+> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0ip daddr @bogons ip d=
+addr !=3D 224.0.0.0/4 log prefix "Bogon" group 0 snaplen 80 counter pac=
+kets 0 bytes 0 drop
+> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0ip saddr @bogons log =
+prefix "Bogon" group 0 snaplen 80 counter packets 0 bytes 0 drop
+> =A0=A0=A0=A0=A0=A0=A0=A0}
+> }
+>=20
+> With the following shell code, the box will crash quite quickly (with=
+in
+> seconds) during the "nft delete element" part:
+>=20
+> I=3D1
+> while : ; do
+> 	echo -n "${I} add"
+> 	nft add element ip filter bogons { 0.0.0.0/8 }
+> 	echo -n " delete"
+> 	nft delete element ip filter bogons { 0.0.0.0/8 }
+> 	echo
+> 	I=3D$[${I}+1]
+> done
 
-diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
-index 17f60bd..6d245cd 100644
---- a/include/libnftnl/expr.h
-+++ b/include/libnftnl/expr.h
-@@ -49,6 +49,11 @@ enum {
- };
- 
- enum {
-+	NFTNL_EXPR_NTH_DREG	= NFTNL_EXPR_BASE,
-+	NFTNL_EXPR_NTH_DATA,
-+};
-+
-+enum {
- 	NFTNL_EXPR_META_KEY	= NFTNL_EXPR_BASE,
- 	NFTNL_EXPR_META_DREG,
- 	NFTNL_EXPR_META_SREG,
-@@ -235,6 +240,11 @@ enum {
- };
- 
- enum {
-+	NFT_EXPR_NTH_DREG	= NFT_RULE_EXPR_ATTR_BASE,
-+	NFT_EXPR_NTH_DATA,
-+};
-+
-+enum {
- 	NFT_EXPR_META_KEY	= NFT_RULE_EXPR_ATTR_BASE,
- 	NFT_EXPR_META_DREG,
- 	NFT_EXPR_META_SREG,
-diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
-index 01751fa..f90ef48 100644
---- a/include/linux/netfilter/nf_tables.h
-+++ b/include/linux/netfilter/nf_tables.h
-@@ -667,6 +667,20 @@ enum nft_exthdr_attributes {
- #define NFTA_EXTHDR_MAX		(__NFTA_EXTHDR_MAX - 1)
- 
- /**
-+ * enum nft_nth_attributes - nf_tables nth expression attributes
-+ *
-+ * @NFTA_NTH_DREG: destination register (NLA_U32)
-+ * @NFTA_NTH_DATA: data input (NLA_NESTED)
-+ */
-+enum nft_nth_attributes {
-+	NFTA_NTH_UNSPEC,
-+	NFTA_NTH_DREG,
-+	NFTA_NTH_DATA,
-+	__NFTA_NTH_MAX
-+};
-+#define NFTA_NTH_MAX		(__NFTA_NTH_MAX - 1)
-+
-+/**
-  * enum nft_meta_keys - nf_tables meta expression keys
-  *
-  * @NFT_META_LEN: packet length (skb->len)
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 7e580e4..69b61ef 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -38,6 +38,7 @@ libnftnl_la_SOURCES = utils.c		\
- 		      expr/immediate.c	\
- 		      expr/match.c	\
- 		      expr/meta.c	\
-+		      expr/nth.c	\
- 		      expr/nat.c	\
- 		      expr/payload.c	\
- 		      expr/queue.c	\
-diff --git a/src/expr/nth.c b/src/expr/nth.c
-new file mode 100644
-index 0000000..4da2968
---- /dev/null
-+++ b/src/expr/nth.c
-@@ -0,0 +1,239 @@
-+/*
-+ * (C) 2016 by Laura Garcia <nevola@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published
-+ * by the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ */
-+
-+#include <stdio.h>
-+#include <stdint.h>
-+#include <string.h>
-+#include <arpa/inet.h>
-+#include <errno.h>
-+#include <linux/netfilter/nf_tables.h>
-+
-+#include "internal.h"
-+#include <libmnl/libmnl.h>
-+#include <libnftnl/expr.h>
-+#include <libnftnl/rule.h>
-+
-+
-+struct nftnl_expr_nth {
-+	enum nft_registers	dreg;
-+	union nftnl_data_reg	data;
-+};
-+
-+static int
-+nftnl_expr_nth_set(struct nftnl_expr *e, uint16_t type,
-+		   const void *data, uint32_t data_len)
-+{
-+	struct nftnl_expr_nth *nth = nftnl_expr_data(e);
-+
-+	switch (type) {
-+	case NFTNL_EXPR_NTH_DREG:
-+		nth->dreg = *((uint32_t *)data);
-+		break;
-+	case NFTNL_EXPR_NTH_DATA:
-+		memcpy(&nth->data.val, data, data_len);
-+		nth->data.len = data_len;
-+		break;
-+	default:
-+		return -1;
-+	}
-+	return 0;
-+}
-+
-+static const void *
-+nftnl_expr_nth_get(const struct nftnl_expr *e, uint16_t type,
-+		   uint32_t *data_len)
-+{
-+	struct nftnl_expr_nth *nth = nftnl_expr_data(e);
-+
-+	switch (type) {
-+	case NFTNL_EXPR_NTH_DREG:
-+		*data_len = sizeof(nth->dreg);
-+		return &nth->dreg;
-+	case NFTNL_EXPR_NTH_DATA:
-+		*data_len = nth->data.len;
-+		return &nth->data.val;
-+	}
-+	return NULL;
-+}
-+
-+static int nftnl_expr_nth_cb(const struct nlattr *attr, void *data)
-+{
-+	const struct nlattr **tb = data;
-+	int type = mnl_attr_get_type(attr);
-+
-+	if (mnl_attr_type_valid(attr, NFTA_NTH_MAX) < 0)
-+		return MNL_CB_OK;
-+
-+	switch (type) {
-+	case NFTA_NTH_DREG:
-+		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
-+			abi_breakage();
-+		break;
-+	case NFTA_NTH_DATA:
-+		if (mnl_attr_validate(attr, MNL_TYPE_BINARY) < 0)
-+			abi_breakage();
-+		break;
-+	}
-+
-+	tb[type] = attr;
-+	return MNL_CB_OK;
-+}
-+
-+static void
-+nftnl_expr_nth_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
-+{
-+	struct nftnl_expr_nth *nth = nftnl_expr_data(e);
-+
-+	if (e->flags & (1 << NFTNL_EXPR_NTH_DREG))
-+		mnl_attr_put_u32(nlh, NFTA_NTH_DREG, htonl(nth->dreg));
-+	if (e->flags & (1 << NFTNL_EXPR_NTH_DATA)) {
-+		struct nlattr *nest;
-+
-+		nest = mnl_attr_nest_start(nlh, NFTA_NTH_DATA);
-+		mnl_attr_put(nlh, NFTA_DATA_VALUE, nth->data.len,
-+			     nth->data.val);
-+		mnl_attr_nest_end(nlh, nest);
-+	}
-+}
-+
-+static int
-+nftnl_expr_nth_parse(struct nftnl_expr *e, struct nlattr *attr)
-+{
-+	struct nftnl_expr_nth *nth = nftnl_expr_data(e);
-+	struct nlattr *tb[NFTA_NTH_MAX+1] = {};
-+	int ret = 0;
-+
-+	if (mnl_attr_parse_nested(attr, nftnl_expr_nth_cb, tb) < 0)
-+		return -1;
-+
-+	if (tb[NFTA_NTH_DREG]) {
-+		nth->dreg = ntohl(mnl_attr_get_u32(tb[NFTA_NTH_DREG]));
-+		e->flags |= (1 << NFTNL_EXPR_NTH_DREG);
-+	}
-+	if (tb[NFTA_NTH_DATA]) {
-+		ret = nftnl_parse_data(&nth->data, tb[NFTA_NTH_DATA],
-+				       NULL);
-+		e->flags |= (1 << NFTA_NTH_DATA);
-+	}
-+
-+	return ret;
-+}
-+
-+static int nftnl_expr_nth_json_parse(struct nftnl_expr *e, json_t *root,
-+				     struct nftnl_parse_err *err)
-+{
-+#ifdef JSON_PARSING
-+	struct nftnl_expr_nth *nth = nftnl_expr_data(e);
-+	uint32_t reg;
-+
-+	if (nftnl_jansson_node_exist(root, "dreg")) {
-+		if (nftnl_jansson_parse_reg(root, "dreg", NFTNL_TYPE_U32,
-+					    &reg, err) == 0)
-+			nftnl_expr_set_u32(e, NFTNL_EXPR_NTH_DREG, reg);
-+	}
-+
-+	if (nftnl_jansson_data_reg_parse(root, "data",
-+					 &nth->data, err) == DATA_VALUE)
-+		e->flags |= (1 << NFTNL_EXPR_NTH_DATA);
-+
-+	return 0;
-+#else
-+	errno = EOPNOTSUPP;
-+	return -1;
-+#endif
-+}
-+
-+
-+static int nftnl_expr_nth_xml_parse(struct nftnl_expr *e,
-+				    mxml_node_t *tree,
-+				    struct nftnl_parse_err *err)
-+{
-+#ifdef XML_PARSING
-+	struct nftnl_expr_nth *nth = nftnl_expr_data(e);
-+	uint32_t dreg;
-+
-+	if (nftnl_mxml_reg_parse(tree, "dreg", &dreg, MXML_DESCEND_FIRST,
-+				 NFTNL_XML_OPT, err) == 0)
-+		nftnl_expr_set_u32(e, NFTNL_EXPR_NTH_DREG, dreg);
-+
-+	if (nftnl_mxml_data_reg_parse(tree, "data",
-+				      &nth->data, NFTNL_XML_MAND,
-+				      err) == DATA_VALUE)
-+		e->flags |= (1 << NFTNL_EXPR_NTH_DATA);
-+
-+	return 0;
-+#else
-+	errno = EOPNOTSUPP;
-+	return -1;
-+#endif
-+}
-+
-+static int
-+nftnl_expr_nth_snprintf_default(char *buf, size_t size,
-+				const struct nftnl_expr *e)
-+{
-+	struct nftnl_expr_nth *nth = nftnl_expr_data(e);
-+	int len = size, offset = 0, ret;
-+
-+	ret = nftnl_data_reg_snprintf(buf+offset, len, &nth->data,
-+				      NFTNL_OUTPUT_DEFAULT, 0,
-+				      DATA_VALUE);
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+
-+	ret = snprintf(buf, len, "load reg %u ",
-+		       nth->dreg);
-+	SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
-+
-+	return offset;
-+}
-+
-+static int nftnl_expr_nth_export(char *buf, size_t size,
-+				 const struct nftnl_expr *e, int type)
-+{
-+	struct nftnl_expr_nth *nth = nftnl_expr_data(e);
-+
-+	NFTNL_BUF_INIT(b, buf, size);
-+
-+	if (e->flags & (1 << NFTNL_EXPR_NTH_DREG))
-+		nftnl_buf_u32(&b, type, nth->dreg, DREG);
-+	if (e->flags & (1 << NFTNL_EXPR_NTH_DATA))
-+		nftnl_buf_reg(&b, type, &nth->data, DATA_VALUE, DATA);
-+
-+	return nftnl_buf_done(&b);
-+}
-+
-+static int
-+nftnl_expr_nth_snprintf(char *buf, size_t len, uint32_t type,
-+			uint32_t flags, const struct nftnl_expr *e)
-+{
-+	switch (type) {
-+	case NFTNL_OUTPUT_DEFAULT:
-+		return nftnl_expr_nth_snprintf_default(buf, len, e);
-+	case NFTNL_OUTPUT_XML:
-+	case NFTNL_OUTPUT_JSON:
-+		return nftnl_expr_nth_export(buf, len, e, type);
-+	default:
-+		break;
-+	}
-+	return -1;
-+}
-+
-+struct expr_ops expr_ops_nth = {
-+	.name		= "nth",
-+	.alloc_len	= sizeof(struct nftnl_expr_nth),
-+	.max_attr	= NFTA_NTH_MAX,
-+	.set		= nftnl_expr_nth_set,
-+	.get		= nftnl_expr_nth_get,
-+	.parse		= nftnl_expr_nth_parse,
-+	.build		= nftnl_expr_nth_build,
-+	.snprintf	= nftnl_expr_nth_snprintf,
-+	.xml_parse	= nftnl_expr_nth_xml_parse,
-+	.json_parse	= nftnl_expr_nth_json_parse,
-+};
-diff --git a/src/expr_ops.c b/src/expr_ops.c
-index ae515af..928bb5e 100644
---- a/src/expr_ops.c
-+++ b/src/expr_ops.c
-@@ -19,6 +19,7 @@ extern struct expr_ops expr_ops_lookup;
- extern struct expr_ops expr_ops_masq;
- extern struct expr_ops expr_ops_match;
- extern struct expr_ops expr_ops_meta;
-+extern struct expr_ops expr_ops_nth;
- extern struct expr_ops expr_ops_nat;
- extern struct expr_ops expr_ops_payload;
- extern struct expr_ops expr_ops_redir;
-@@ -43,6 +44,7 @@ static struct expr_ops *expr_ops[] = {
- 	&expr_ops_masq,
- 	&expr_ops_match,
- 	&expr_ops_meta,
-+	&expr_ops_nth,
- 	&expr_ops_nat,
- 	&expr_ops_payload,
- 	&expr_ops_redir,
--- 
-2.8.1
+Perfect.  Thanks for this detailed bug report!
 
+When the 'goto found' path is taken then 'parent' has already been set =
+in
+previous loop and might be NULL.
+
+diff --git a/net/netfilter/nft_rbtree.c b/net/netfilter/nft_rbtree.c
+--- a/net/netfilter/nft_rbtree.c
++++ b/net/netfilter/nft_rbtree.c
+@@ -72,6 +72,8 @@ static bool nft_rbtree_lookup(const struct net *net, =
+const struct nft_set *set,
+ 		else {
+ found:
+ 			if (!nft_set_elem_active(&rbe->ext, genmask)) {
++				if (parent =3D=3D NULL)
++					goto out;
+ 				parent =3D parent->rb_left;
+ 				continue;
+ 			}
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
