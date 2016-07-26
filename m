@@ -1,127 +1,245 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: nft_rbtree_lookup: BUG: unable to handle kernel NULL pointer
- dereference
-Date: Tue, 26 Jul 2016 17:15:52 +0200
-Message-ID: <20160726151552.GA30809@breakpoint.cc>
-References: <1469539108.1032.30.camel@akp.dk>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: nft_nth: match every n packets
+Date: Tue, 26 Jul 2016 18:17:34 +0200
+Message-ID: <20160726161734.GA21936@salvia>
+References: <20160726142207.GA18550@sonyv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: "Anders K. Pedersen" <akp@akp.dk>
+To: Laura Garcia Liebana <nevola@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:59214 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756066AbcGZPP5 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Jul 2016 11:15:57 -0400
+Received: from mail.us.es ([193.147.175.20]:49384 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753112AbcGZQRo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Jul 2016 12:17:44 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 89B571B7F91
+	for <netfilter-devel@vger.kernel.org>; Tue, 26 Jul 2016 18:17:41 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 76DDEFAB48
+	for <netfilter-devel@vger.kernel.org>; Tue, 26 Jul 2016 18:17:41 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 4B4D3FAB48
+	for <netfilter-devel@vger.kernel.org>; Tue, 26 Jul 2016 18:17:39 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1469539108.1032.30.camel@akp.dk>
+In-Reply-To: <20160726142207.GA18550@sonyv>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Anders K. Pedersen <akp@akp.dk> wrote:
-> Hello,
->=20
-> While doing some tests with nftables, I've run into the the following
-> bug, which is easily reproducable:
->=20
-> [ 1409.721487] BUG: unable to handle kernel NULL pointer dereference =
-at 0000000000000010
-> [ 1409.730512] IP: [<ffffffff81495de9>] nft_rbtree_lookup+0xa9/0x150
-> [ 1409.737525] PGD 0
-> [ 1409.739841] Oops: 0000 [#1] SMP
-> [ 1409.743445] Modules linked in:
-> [ 1409.746966] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.7.0 #1
-> [ 1409.753660] Hardware name: Dell Inc. PowerEdge R730/0H21J3, BIOS 2=
-=2E1.6 05/19/2016
-> [ 1409.762253] task: ffffffff8180b500 ti: ffffffff81800000 task.ti: f=
-fffffff81800000
-> [ 1409.770846] RIP: 0010:[<ffffffff81495de9>]  [<ffffffff81495de9>] n=
-ft_rbtree_lookup+0xa9/0x150
-> [ 1409.780651] RSP: 0018:ffff88085f2039c8  EFLAGS: 00010202
-> [ 1409.786745] RAX: ffff88083dc76f80 RBX: ffff88083dc76fa4 RCX: 00000=
-00000000002
-> [ 1409.794937] RDX: 0000000000000004 RSI: ffff88083dc76de0 RDI: ffff8=
-8083dc76fa4
-> [ 1409.803130] RBP: 0000000000000004 R08: 0000000000000000 R09: ffff8=
-8085f203aa0
-> [ 1409.811323] R10: ffff88083dc699e2 R11: ffff88085803d000 R12: ffff8=
-8085ae2f700
-> [ 1409.819517] R13: ffff88083dc76f80 R14: ffff88085f203aa0 R15: 00000=
-00000000000
-> [ 1409.827710] FS:  0000000000000000(0000) GS:ffff88085f200000(0000) =
-knlGS:0000000000000000
-> [ 1409.837006] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [ 1409.843594] CR2: 0000000000000010 CR3: 0000000001806000 CR4: 00000=
-000001406f0
-> [ 1409.851788] Stack:
-> [ 1409.854095]  ffffffff00000002 ffff8800785b0100 0000000000000000 ff=
-ff88085f203a20
-> [ 1409.862641]  ffff88085ae2f700 ffff880855e16428 ffff88085f203a90 00=
-00000000000002
-> [ 1409.871184]  00000000ffffffff ffff880855e16428 ffffffff81493a4e ff=
-ff880859d699d8
-> [ 1409.879736] Call Trace:
-> [ 1409.882539]  <IRQ>
-> [ 1409.884751]  [<ffffffff81493a4e>] ? nft_lookup_eval+0x2e/0x80
-[..]
+On Tue, Jul 26, 2016 at 04:22:10PM +0200, Laura Garcia Liebana wrote:
+> Add support for the nth expression in netfilter. A nft_nth structure is created with dreg (to store the result into a given register), data (a nft_data structure to store the input value, it must be > 0), every (to store the data) and counter (to store atomically the current value).
 
-> I have narrowed the rule set in use down to:
->=20
-> table ip filter {
-> =A0=A0=A0=A0=A0=A0=A0=A0set bogons {
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0type ipv4_addr
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0flags interval
-> =A0=A0=A0=A0=A0=A0=A0=A0}
->=20
-> =A0=A0=A0=A0=A0=A0=A0=A0chain prerouting {
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0type filter hook prer=
-outing priority -300; policy accept;
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0iif lo accept
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0ip daddr @bogons ip d=
-addr !=3D 224.0.0.0/4 log prefix "Bogon" group 0 snaplen 80 counter pac=
-kets 0 bytes 0 drop
-> =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0ip saddr @bogons log =
-prefix "Bogon" group 0 snaplen 80 counter packets 0 bytes 0 drop
-> =A0=A0=A0=A0=A0=A0=A0=A0}
-> }
->=20
-> With the following shell code, the box will crash quite quickly (with=
-in
-> seconds) during the "nft delete element" part:
->=20
-> I=3D1
-> while : ; do
-> 	echo -n "${I} add"
-> 	nft add element ip filter bogons { 0.0.0.0/8 }
-> 	echo -n " delete"
-> 	nft delete element ip filter bogons { 0.0.0.0/8 }
-> 	echo
-> 	I=3D$[${I}+1]
-> done
+Please, break lines at 80 characters for patch descriptions.
 
-Perfect.  Thanks for this detailed bug report!
+More comments below.
 
-When the 'goto found' path is taken then 'parent' has already been set =
-in
-previous loop and might be NULL.
+> Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+> ---
+>  include/net/netfilter/nft_nth.h          |  31 +++++++
+>  include/uapi/linux/netfilter/nf_tables.h |  15 ++++
+>  net/netfilter/Kconfig                    |   6 ++
+>  net/netfilter/Makefile                   |   1 +
+>  net/netfilter/nft_nth.c                  | 145 +++++++++++++++++++++++++++++++
+>  5 files changed, 198 insertions(+)
+>  create mode 100644 include/net/netfilter/nft_nth.h
+>  create mode 100644 net/netfilter/nft_nth.c
+> 
+> diff --git a/include/net/netfilter/nft_nth.h b/include/net/netfilter/nft_nth.h
+> new file mode 100644
+> index 0000000..0d8788d
+> --- /dev/null
+> +++ b/include/net/netfilter/nft_nth.h
+> @@ -0,0 +1,31 @@
+> +#ifndef _NFT_NTH_H_
+> +#define _NFT_NTH_H_
+> +
+> +struct nft_nth {
+> +	enum nft_registers      dreg:8;
+> +	struct nft_data         data;
 
-diff --git a/net/netfilter/nft_rbtree.c b/net/netfilter/nft_rbtree.c
---- a/net/netfilter/nft_rbtree.c
-+++ b/net/netfilter/nft_rbtree.c
-@@ -72,6 +72,8 @@ static bool nft_rbtree_lookup(const struct net *net, =
-const struct nft_set *set,
- 		else {
- found:
- 			if (!nft_set_elem_active(&rbe->ext, genmask)) {
-+				if (parent =3D=3D NULL)
-+					goto out;
- 				parent =3D parent->rb_left;
- 				continue;
- 			}
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You don't need this data variable, see below why.
+
+> +	u32		every;
+> +	struct nft_nth_priv *master __attribute__((aligned(8)));
+
+You can remove this master pointer, this was only required by xtables.
+
+Declare atomic_t counter here and initialize it from init().
+
+> +};
+> +
+> +struct nft_nth_priv {
+> +	atomic_t counter;
+> +} ____cacheline_aligned_in_smp;
+> +
+> +extern const struct nla_policy nft_nth_policy[];
+> +
+> +int nft_nth_init(const struct nft_ctx *ctx,
+> +		 const struct nft_expr *expr,
+> +		 const struct nlattr * const tb[]);
+> +
+> +int nft_nth_dump(struct sk_buff *skb,
+> +		 const struct nft_expr *expr);
+> +
+> +void nft_nth_eval(const struct nft_expr *expr,
+> +		  struct nft_regs *regs,
+> +		  const struct nft_pktinfo *pkt);
+> +
+> +void nft_nth_destroy(const struct nft_ctx *ctx,
+> +		     const struct nft_expr *expr);
+
+You don't need this header file. Make nft_nth_init() and other
+function static, see below.
+
+> diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+> index 6a4dbe0..5ba075a 100644
+> --- a/include/uapi/linux/netfilter/nf_tables.h
+> +++ b/include/uapi/linux/netfilter/nf_tables.h
+> @@ -1076,4 +1076,19 @@ enum nft_trace_types {
+>  	__NFT_TRACETYPE_MAX
+>  };
+>  #define NFT_TRACETYPE_MAX (__NFT_TRACETYPE_MAX - 1)
+> +
+> +/**
+> + * enum nft_nth_attributes - nf_tables nth expression netlink attributes
+> + * @NFTA_NTH_UNSPEC: unspecified attribute
+> + * @NFTA_NTH_DREG: destination register (NLA_U32)
+> + * @NFTA_NTH_DATA: source data (NLA_NESTED)
+
+Rename NTH_DATA to NTH_EVERY.
+
+> + */
+> +enum nft_nth_attributes {
+> +	NFTA_NTH_UNSPEC,
+> +	NFTA_NTH_DREG,
+> +	NFTA_NTH_DATA,
+> +	__NFTA_NTH_MAX
+> +};
+> +#define NFTA_NTH_MAX	(__NFTA_NTH_MAX - 1)
+> +
+>  #endif /* _LINUX_NF_TABLES_H */
+> diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+> index 95e757c..6f00d01 100644
+> --- a/net/netfilter/Kconfig
+> +++ b/net/netfilter/Kconfig
+> @@ -474,6 +474,12 @@ config NFT_META
+>  	  This option adds the "meta" expression that you can use to match and
+>  	  to set packet metainformation such as the packet mark.
+>  
+> +config NFT_NTH
+> +	tristate "Netfilter nf_tables nth module"
+> +	help
+> +	  This option adds the "nth" expression that you can use to match a
+> +	  packet every a specific given value.
+> +
+>  config NFT_CT
+>  	depends on NF_CONNTRACK
+>  	tristate "Netfilter nf_tables conntrack module"
+> diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+> index 6913454..2378f00 100644
+> --- a/net/netfilter/Makefile
+> +++ b/net/netfilter/Makefile
+> @@ -80,6 +80,7 @@ obj-$(CONFIG_NF_TABLES_NETDEV)	+= nf_tables_netdev.o
+>  obj-$(CONFIG_NFT_COMPAT)	+= nft_compat.o
+>  obj-$(CONFIG_NFT_EXTHDR)	+= nft_exthdr.o
+>  obj-$(CONFIG_NFT_META)		+= nft_meta.o
+> +obj-$(CONFIG_NFT_NTH)		+= nft_nth.o
+>  obj-$(CONFIG_NFT_CT)		+= nft_ct.o
+>  obj-$(CONFIG_NFT_LIMIT)		+= nft_limit.o
+>  obj-$(CONFIG_NFT_NAT)		+= nft_nat.o
+> diff --git a/net/netfilter/nft_nth.c b/net/netfilter/nft_nth.c
+> new file mode 100644
+> index 0000000..d0a5387
+> --- /dev/null
+> +++ b/net/netfilter/nft_nth.c
+> @@ -0,0 +1,145 @@
+> +/*
+> + * Copyright (c) 2016 Laura Garcia <nevola@gmail.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/init.h>
+> +#include <linux/module.h>
+> +#include <linux/netlink.h>
+> +#include <linux/netfilter.h>
+> +#include <linux/netfilter/nf_tables.h>
+> +#include <linux/in.h>
+> +#include <linux/ip.h>
+> +#include <linux/ipv6.h>
+> +#include <linux/smp.h>
+> +#include <linux/static_key.h>
+> +#include <net/netfilter/nf_tables.h>
+> +#include <net/netfilter/nf_tables_core.h>
+> +#include <net/netfilter/nft_nth.h>
+> +
+> +void nft_nth_eval(const struct nft_expr *expr,
+> +		  struct nft_regs *regs,
+> +		  const struct nft_pktinfo *pkt)
+> +{
+> +	struct nft_nth *nth = nft_expr_priv(expr);
+> +	u32 nval, oval;
+> +
+> +	do {
+> +		oval = atomic_read(&nth->master->counter);
+> +		nval = (oval+1 < nth->every) ? oval+1 : 0;
+> +	} while (atomic_cmpxchg(&nth->master->counter, oval, nval) != oval);
+> +
+> +	memcpy(&regs->data[nth->dreg], &nth->master->counter, sizeof(u32));
+> +}
+> +EXPORT_SYMBOL_GPL(nft_nth_eval);
+> +
+> +const struct nla_policy nft_nth_policy[NFTA_NTH_MAX + 1] = {
+> +	[NFTA_NTH_DREG]	= { .type = NLA_U32 },
+> +	[NFTA_NTH_DATA]	= { .type = NLA_NESTED },
+> +};
+> +
+> +int nft_nth_init(const struct nft_ctx *ctx,
+> +		 const struct nft_expr *expr,
+> +		 const struct nlattr * const tb[])
+
+This should be:
+
+static int nft_nth_init(const struct nft_ctx *ctx,
+                        const struct nft_expr *expr,
+                        const struct nlattr * const tb[])
+
+Same thing for every function.
+
+> +{
+> +	struct nft_nth *nth = nft_expr_priv(expr);
+> +	struct nft_data_desc desc;
+> +	int err = 0;
+> +
+> +	err = nft_data_init(NULL, &nth->data,
+> +			    sizeof(nth->data), &desc,
+> +			    tb[NFTA_NTH_DATA]);
+> +	if (err < 0)
+> +		goto err;
+> +
+> +	memcpy(&nth->every, &nth->data, sizeof(u32));
+> +	if (nth->every == 0)
+> +		return -EINVAL;
+
+You can simplify this above to something like:
+
+        priv->every = ntohl(nla_get_be32(tb[NFTA_NTH_EVERY]));
+
+> +
+> +	nth->dreg = nft_parse_register(tb[NFTA_NTH_DREG]);
+> +
+> +	nth->master = kzalloc(sizeof(*nth->master), GFP_KERNEL);
+> +	if (!nth->master)
+> +		return -ENOMEM;
+> +	atomic_set(&nth->master->counter, 0);
+> +
+> +err:
+> +	return err;
+> +}
+> +EXPORT_SYMBOL_GPL(nft_nth_init);
+
+No need to export these symbols.
