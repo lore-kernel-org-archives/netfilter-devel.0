@@ -1,47 +1,128 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables v2 2/2] xtables-translate: fix issue with quotes
-Date: Wed, 27 Jul 2016 13:58:29 +0200
-Message-ID: <20160727115829.GB10687@salvia>
-References: <20160726164524.29906-1-pablombg@gmail.com>
- <20160726164524.29906-2-pablombg@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nft] parser: compact list of rhs keyword expressions
+Date: Wed, 27 Jul 2016 18:18:16 +0200
+Message-ID: <1469636296-4452-1-git-send-email-fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35190 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754062AbcG0L6e (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Jul 2016 07:58:34 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id A08E11EC2C8
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Jul 2016 13:58:33 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 8F13FFF6DD
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Jul 2016 13:58:33 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 83019FF2FD
-	for <netfilter-devel@vger.kernel.org>; Wed, 27 Jul 2016 13:58:31 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20160726164524.29906-2-pablombg@gmail.com>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:34582 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757787AbcG0QSA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 27 Jul 2016 12:18:00 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Jul 26, 2016 at 06:45:24PM +0200, Pablo M. Bermudo Garay wrote:
-> Some translations included escaped quotes when they were called from
-> nft:
-> 
-> $ sudo nft list ruleset
-> table ip mangle {
->     chain FORWARD {
->         type filter hook forward priority -150; policy accept;
->         ct helper \"ftp\" counter packets 0 bytes 0
->                   ^^   ^^
->     }
-> }
-> 
-> This behavior is only correct when xlate functions are called from a
-> xtables-translate command. This patch solves that issue using a new
-> parameter (escape_quotes) in the xlate functions.
+Condenses the copy/pastry via a define, will make it less of a hassle
+to extend this list later if needed.
 
-Applied, thanks Pablo.
+Based on earlier patch from Pablo.
+
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ src/parser_bison.y | 65 +++++++++++++-----------------------------------------
+ 1 file changed, 15 insertions(+), 50 deletions(-)
+
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 119fd09..31257fd 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -96,6 +96,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ 
+ #define YYLLOC_DEFAULT(Current, Rhs, N)	location_update(&Current, Rhs, N)
+ 
++#define symbol_value(loc, str) \
++	symbol_expr_alloc(loc, SYMBOL_VALUE, current_scope(state), str)
+ %}
+ 
+ /* Declaration section */
+@@ -529,8 +531,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <expr>			flow_key_expr flow_key_expr_alloc
+ %destructor { expr_free($$); }	flow_key_expr flow_key_expr_alloc
+ 
+-%type <expr>			expr initializer_expr
+-%destructor { expr_free($$); }	expr initializer_expr
++%type <expr>			expr initializer_expr keyword_expr
++%destructor { expr_free($$); }	expr initializer_expr keyword_expr
+ 
+ %type <expr>			rhs_expr concat_rhs_expr basic_rhs_expr
+ %destructor { expr_free($$); }	rhs_expr concat_rhs_expr basic_rhs_expr
+@@ -2166,38 +2168,19 @@ concat_rhs_expr		:	basic_rhs_expr
+ 			}
+ 			;
+ 
++keyword_expr		:	ETHER                   { $$ = symbol_value(&@$, "ether"); }
++			|	IP			{ $$ = symbol_value(&@$, "ip"); }
++			|	IP6			{ $$ = symbol_value(&@$, "ip6"); }
++			|	VLAN			{ $$ = symbol_value(&@$, "vlan"); }
++			|	ARP			{ $$ = symbol_value(&@$, "arp"); }
++			|	DNAT			{ $$ = symbol_value(&@$, "dnat"); }
++			|	SNAT			{ $$ = symbol_value(&@$, "snat"); }
++			|	ECN			{ $$ = symbol_value(&@$, "ecn"); }
++			;
++
+ primary_rhs_expr	:	symbol_expr		{ $$ = $1; }
+ 			|	integer_expr		{ $$ = $1; }
+-			|	ETHER
+-			{
+-				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
+-						       current_scope(state),
+-						       "ether");
+-			}
+-			|	IP
+-			{
+-				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
+-						       current_scope(state),
+-						       "ip");
+-			}
+-			|	IP6
+-			{
+-				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
+-						       current_scope(state),
+-						       "ip6");
+-			}
+-			|	VLAN
+-			{
+-				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
+-						       current_scope(state),
+-						       "vlan");
+-			}
+-			|	ARP
+-			{
+-				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
+-						       current_scope(state),
+-						       "arp");
+-			}
++			|	keyword_expr		{ $$ = $1; }
+ 			|	TCP
+ 			{
+ 				uint8_t data = IPPROTO_TCP;
+@@ -2275,24 +2258,6 @@ primary_rhs_expr	:	symbol_expr		{ $$ = $1; }
+ 							 BYTEORDER_HOST_ENDIAN,
+ 							 sizeof(data) * BITS_PER_BYTE, &data);
+ 			}
+-			|	SNAT
+-			{
+-				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
+-						       current_scope(state),
+-						       "snat");
+-			}
+-			|	DNAT
+-			{
+-				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
+-						       current_scope(state),
+-						       "dnat");
+-			}
+-			|	ECN
+-			{
+-				$$ = symbol_expr_alloc(&@$, SYMBOL_VALUE,
+-						       current_scope(state),
+-						       "ecn");
+-			}
+ 			;
+ 
+ relational_op		:	EQ		{ $$ = OP_EQ; }
+-- 
+2.7.3
+
