@@ -1,191 +1,211 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [nft PATCH 5/7] tests: ip6 dscp, flowlabel and ecn test cases
-Date: Wed, 27 Jul 2016 02:43:14 +0200
-Message-ID: <1469580196-2100-6-git-send-email-fw@strlen.de>
+Subject: [nft PATCH 4/7] netlink: decode payload statment
+Date: Wed, 27 Jul 2016 02:43:13 +0200
+Message-ID: <1469580196-2100-5-git-send-email-fw@strlen.de>
 References: <1469580196-2100-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:60756 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:60764 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756066AbcG0BPQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753251AbcG0BPW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Jul 2016 21:15:16 -0400
+	Tue, 26 Jul 2016 21:15:22 -0400
 In-Reply-To: <1469580196-2100-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This allows nft to display payload set operations if the
+header isn't byte aligned or has non-byte divisible sizes.
+
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- tests/py/ip6/ip6.t              | 12 +++++++
- tests/py/ip6/ip6.t.payload.inet | 71 +++++++++++++++++++++++++++++++++++++++++
- tests/py/ip6/ip6.t.payload.ip6  | 57 +++++++++++++++++++++++++++++++++
- 3 files changed, 140 insertions(+)
+ src/netlink_delinearize.c | 165 ++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 160 insertions(+), 5 deletions(-)
 
-diff --git a/tests/py/ip6/ip6.t b/tests/py/ip6/ip6.t
-index 0a58fa8..7dea2f7 100644
---- a/tests/py/ip6/ip6.t
-+++ b/tests/py/ip6/ip6.t
-@@ -145,3 +145,15 @@ ip6 daddr != ::1234:1234:1234:1234:1234:1234:1234-1234:1234::1234:1234:1234:1234
- # limit impact to lo
- iif lo ip6 daddr set ::1;ok
- iif lo ip6 hoplimit set 1;ok
-+iif lo ip6 dscp set af42;ok
-+iif lo ip6 dscp set 63;ok;iif lo ip6 dscp set 0x3f
-+iif lo ip6 ecn set ect0;ok
-+iif lo ip6 ecn set ce;ok
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index ae87280..5e28111 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -1747,6 +1747,165 @@ static void stmt_expr_postprocess(struct rule_pp_ctx *ctx)
+ 		expr_postprocess_range(ctx, op);
+ }
+ 
++static void stmt_payload_binop_pp(struct rule_pp_ctx *ctx, struct expr *binop)
++{
++	struct expr *payload = binop->left;
++	struct expr *mask = binop->right;
++	unsigned int shift;
 +
-+iif lo ip6 flowlabel set 0;ok
-+iif lo ip6 flowlabel set 12345;ok
-+iif lo ip6 flowlabel set 0xfffff;ok;iif lo ip6 flowlabel set 1048575
++	assert(payload->ops->type == EXPR_PAYLOAD);
++	if (payload_expr_trim(payload, mask, &ctx->pctx, &shift)) {
++		__binop_adjust(binop, mask, shift);
++		payload_expr_complete(payload, &ctx->pctx);
++		expr_set_type(mask, payload->dtype,
++			      payload->byteorder);
++	}
++}
 +
-+iif lo ip6 ecn set 4;fail
-+iif lo ip6 dscp set 64;fail
-+iif lo ip6 flowlabel set 1048576;fail
-diff --git a/tests/py/ip6/ip6.t.payload.inet b/tests/py/ip6/ip6.t.payload.inet
-index 45bdd09..bf21b5b 100644
---- a/tests/py/ip6/ip6.t.payload.inet
-+++ b/tests/py/ip6/ip6.t.payload.inet
-@@ -530,3 +530,74 @@ inet test-inet input
-   [ cmp eq reg 1 0x0000000a ]
-   [ immediate reg 1 0x00000001 ]
-   [ payload write reg 1 => 1b @ network header + 7 csum_type 0 csum_off 0 ]
++static void stmt_payload_postprocess(struct rule_pp_ctx *ctx)
++{
++	struct stmt *stmt = ctx->stmt;
++	struct expr *expr, *binop, *payload, *value, *mask;
++	mpz_t bitmask;
 +
-+# iif lo ip6 dscp set af42
-+inet test-inet input
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x0000000a ]
-+  [ payload load 2b @ network header + 0 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00003ff0 ) ^ 0x00000009 ]
-+  [ payload write reg 1 => 2b @ network header + 0 csum_type 0 csum_off 0 ]
++	expr_postprocess(ctx, &stmt->payload.expr);
 +
-+# iif lo ip6 dscp set 63
-+inet test-inet input
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x0000000a ]
-+  [ payload load 2b @ network header + 0 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00003ff0 ) ^ 0x0000c00f ]
-+  [ payload write reg 1 => 2b @ network header + 0 csum_type 0 csum_off 0 ]
++	expr_set_type(stmt->payload.val,
++		      stmt->payload.expr->dtype,
++		      stmt->payload.expr->byteorder);
 +
-+# iif lo ip6 ecn set ect0
-+inet test-inet input
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x0000000a ]
-+  [ payload load 1b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000000cf ) ^ 0x00000020 ]
-+  [ payload write reg 1 => 1b @ network header + 1 csum_type 0 csum_off 0 ]
++	if (payload_is_known(stmt->payload.expr))
++		goto out;
 +
-+# iif lo ip6 ecn set ce
-+inet test-inet input
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x0000000a ]
-+  [ payload load 1b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000000cf ) ^ 0x00000030 ]
-+  [ payload write reg 1 => 1b @ network header + 1 csum_type 0 csum_off 0 ]
++	/*
++	 * expr_postprocess() failed to decode the payload information.
++	 *
++	 * We will now check if payload.val contains a binop that might
++	 * help us to figure it out.  Check if expr is one of the following:
++	 * I)
++	 *           binop (|)
++	 *       binop(&)   value/set
++	 * payload   value(mask)
++	 *
++	 * This is the normal case, the | RHS is the value the user wants
++	 * to set, the & RHS is the mask value that discards bits we need
++	 * to clear but retains everything unrelated to the set operation.
++	 *
++	 * IIa)
++	 *     binop (&)
++	 * payload   mask
++	 *
++	 * User specified a zero set value -- netlink bitwise decoding
++	 * discarded the redundant "| 0" part.
++	 *
++	 * IIb)
++	 *     binop (|)
++	 * payload     value/set
++	 *
++	 * This happens when user wants to set all bits, netlink bitwise
++	 * decoding changed '(payload & mask) ^ bits_to_set' into
++	 * 'payload | bits_to_set', discarding the redundant "& 0xfff...".
++	 */
++	expr = stmt->payload.val;
++	if (expr->ops->type != EXPR_BINOP)
++		goto out;
 +
-+# iif lo ip6 flowlabel set 0
-+inet test-inet input
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x0000000a ]
-+  [ payload load 3b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000000f0 ) ^ 0x00000000 ]
-+  [ payload write reg 1 => 3b @ network header + 1 csum_type 0 csum_off 0 ]
++	switch (expr->left->ops->type) {
++	case EXPR_BINOP: {/* I? */
++		mpz_t tmp;
 +
-+# iif lo ip6 flowlabel set 12345
-+inet test-inet input
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x0000000a ]
-+  [ payload load 3b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000000f0 ) ^ 0x00393000 ]
-+  [ payload write reg 1 => 3b @ network header + 1 csum_type 0 csum_off 0 ]
++		if (expr->op != OP_OR)
++			goto out;
 +
-+# iif lo ip6 flowlabel set 0xfffff
-+inet test-inet input
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ meta load nfproto => reg 1 ]
-+  [ cmp eq reg 1 0x0000000a ]
-+  [ payload load 3b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000000f0 ) ^ 0x00ffff0f ]
-+  [ payload write reg 1 => 3b @ network header + 1 csum_type 0 csum_off 0 ]
++		value = expr->right;
++		if (value->ops->type != EXPR_VALUE)
++			goto out;
 +
-diff --git a/tests/py/ip6/ip6.t.payload.ip6 b/tests/py/ip6/ip6.t.payload.ip6
-index 7e158a8..70d2ea0 100644
---- a/tests/py/ip6/ip6.t.payload.ip6
-+++ b/tests/py/ip6/ip6.t.payload.ip6
-@@ -392,3 +392,60 @@ ip6 test-ip6 input
-   [ cmp eq reg 1 0x00000001 ]
-   [ immediate reg 1 0x00000001 ]
-   [ payload write reg 1 => 1b @ network header + 7 csum_type 0 csum_off 0 ]
++		binop = expr->left;
++		if (binop->op != OP_AND)
++			goto out;
 +
-+# iif lo ip6 dscp set af42
-+ip6 test-ip6 input
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ network header + 0 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00003ff0 ) ^ 0x00000009 ]
-+  [ payload write reg 1 => 2b @ network header + 0 csum_type 0 csum_off 0 ]
++		payload = binop->left;
++		if (payload->ops->type != EXPR_PAYLOAD)
++			goto out;
 +
-+# iif lo ip6 dscp set 63
-+ip6 test-ip6 input
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 2b @ network header + 0 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00003ff0 ) ^ 0x0000c00f ]
-+  [ payload write reg 1 => 2b @ network header + 0 csum_type 0 csum_off 0 ]
++		if (!payload->ops->cmp(stmt->payload.expr, payload))
++			goto out;
 +
-+# iif lo ip6 ecn set ect0
-+ip6 test-ip6 input
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000000cf ) ^ 0x00000020 ]
-+  [ payload write reg 1 => 1b @ network header + 1 csum_type 0 csum_off 0 ]
++		mask = binop->right;
++		if (mask->ops->type != EXPR_VALUE)
++			goto out;
 +
-+# iif lo ip6 ecn set ce
-+ip6 test-ip6 input
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 1b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000000cf ) ^ 0x00000030 ]
-+  [ payload write reg 1 => 1b @ network header + 1 csum_type 0 csum_off 0 ]
++		mpz_init(tmp);
++		mpz_set(tmp, mask->value);
 +
-+# iif lo ip6 flowlabel set 0
-+ip6 test-ip6 input
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 3b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000000f0 ) ^ 0x00000000 ]
-+  [ payload write reg 1 => 3b @ network header + 1 csum_type 0 csum_off 0 ]
++		mpz_init_bitmask(bitmask, payload->len);
++		mpz_xor(bitmask, bitmask, mask->value);
++		mpz_xor(bitmask, bitmask, value->value);
++		mpz_set(mask->value, bitmask);
++		mpz_clear(bitmask);
 +
-+# iif lo ip6 flowlabel set 12345
-+ip6 test-ip6 input
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 3b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000000f0 ) ^ 0x00393000 ]
-+  [ payload write reg 1 => 3b @ network header + 1 csum_type 0 csum_off 0 ]
++		binop_postprocess(ctx, expr);
++		if (!payload_is_known(payload)) {
++			mpz_set(mask->value, tmp);
++			mpz_clear(tmp);
++			goto out;
++		}
 +
-+# iif lo ip6 flowlabel set 0xfffff
-+ip6 test-ip6 input
-+  [ meta load iif => reg 1 ]
-+  [ cmp eq reg 1 0x00000001 ]
-+  [ payload load 3b @ network header + 1 => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x000000f0 ) ^ 0x00ffff0f ]
-+  [ payload write reg 1 => 3b @ network header + 1 csum_type 0 csum_off 0 ]
++		mpz_clear(tmp);
++		expr_free(stmt->payload.expr);
++		stmt->payload.expr = expr_get(payload);
++		stmt->payload.val = expr_get(expr->right);
++		expr_free(expr);
++		break;
++	}
++	case EXPR_PAYLOAD: /* II? */
++		value = expr->right;
++		if (value->ops->type != EXPR_VALUE)
++			goto out;
 +
++		switch (expr->op) {
++		case OP_AND: /* IIa */
++			payload = expr->left;
++			mpz_init_bitmask(bitmask, payload->len);
++			mpz_xor(bitmask, bitmask, value->value);
++			mpz_set(value->value, bitmask);
++			break;
++		case OP_OR: /* IIb */
++			break;
++		default: /* No idea */
++			goto out;
++		}
++
++		stmt_payload_binop_pp(ctx, expr);
++		if (!payload_is_known(expr->left))
++			goto out;
++
++		expr_free(stmt->payload.expr);
++
++		switch (expr->op) {
++		case OP_AND:
++			/* Mask was used to match payload, i.e.
++			 * user asked to set zero value.
++			 */
++			mpz_set_ui(value->value, 0);
++			break;
++		default:
++			break;
++		}
++
++		stmt->payload.expr = expr_get(expr->left);
++		stmt->payload.val = expr_get(expr->right);
++		expr_free(expr);
++		break;
++	default: /* No idea */
++		goto out;
++	}
++
++ out:
++	expr_postprocess(ctx, &stmt->payload.val);
++}
++
+ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *rule)
+ {
+ 	struct rule_pp_ctx rctx;
+@@ -1763,11 +1922,7 @@ static void rule_parse_postprocess(struct netlink_parse_ctx *ctx, struct rule *r
+ 			stmt_expr_postprocess(&rctx);
+ 			break;
+ 		case STMT_PAYLOAD:
+-			expr_postprocess(&rctx, &stmt->payload.expr);
+-			expr_set_type(stmt->payload.val,
+-				      stmt->payload.expr->dtype,
+-				      stmt->payload.expr->byteorder);
+-			expr_postprocess(&rctx, &stmt->payload.val);
++			stmt_payload_postprocess(&rctx);
+ 			break;
+ 		case STMT_FLOW:
+ 			expr_postprocess(&rctx, &stmt->flow.key);
 -- 
 2.7.3
 
