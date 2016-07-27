@@ -1,50 +1,92 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [RFC nft] meta: deprecate unqualified meta statements
-Date: Wed, 27 Jul 2016 09:36:30 +0200
-Message-ID: <CAOkSjBhA-Xok-XmxbYqHqDiwnCXfNFTP-KoXgL8A-+BQsOoxDw@mail.gmail.com>
-References: <1469585853-6207-1-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailing list
-	<netfilter-devel@vger.kernel.org>
-To: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] parser_bison: keep map flag around when flags are specified
+Date: Wed, 27 Jul 2016 13:48:54 +0200
+Message-ID: <1469620134-7854-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:37419 "EHLO
-	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753144AbcG0Hgv convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Jul 2016 03:36:51 -0400
-Received: by mail-wm0-f52.google.com with SMTP id i5so48379638wmg.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Jul 2016 00:36:50 -0700 (PDT)
-In-Reply-To: <1469585853-6207-1-git-send-email-fw@strlen.de>
+Received: from mail.us.es ([193.147.175.20]:33205 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752930AbcG0LtG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 27 Jul 2016 07:49:06 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id C92221EC2C3
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 Jul 2016 13:49:03 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B4695FF154
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 Jul 2016 13:49:03 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 71CADFF2FD
+	for <netfilter-devel@vger.kernel.org>; Wed, 27 Jul 2016 13:48:59 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 27 July 2016 at 04:17, Florian Westphal <fw@strlen.de> wrote:
-> During NFWS we discussed reducing the number of keywords in nftables.
->
-> Obviously keywords are required for the parser to know what to expect=
-=2E
->
-> But always requiring the 'meta' keyword would allow us to handle
-> iif, oif, iifname etc without defining them in the scanner, i.e. we
-> could later use 'meta STRING' and resolve/map the keyword at run time
-> based on the meta template pseudo-header.
->
-> Note that this change does not yet reject 'iif eth0', this only makes
-> nft always print the 'meta' keyword when listing and updates the test
-> cases as required.
->
-> Signed-off-by: Florian Westphal <fw@strlen.de>
+If you add a map with timeouts, eg.
 
-If we are to break the syntax sooner or later, I would ask to be as
-soon as possible.
+  # nft add table x
+  # nft add map x y { type ipv4_addr : ipv4_addr\; flags timeout\; }
 
---=20
-Arturo Borrero Gonz=C3=A1lez
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The listing shows a set instead of a map:
+
+  # nft list ruleset
+  table ip x {
+          set y {
+                  type ipv4_addr
+                  flags timeout
+          }
+  }
+
+This patch fixes the parser to keep the map flag around when timeout
+flag (or any other flags) are specified.
+
+This patch also comes with a regression test.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/parser_bison.y                          |  2 +-
+ tests/shell/testcases/maps/map_with_flags_0 | 21 +++++++++++++++++++++
+ 2 files changed, 22 insertions(+), 1 deletion(-)
+ create mode 100755 tests/shell/testcases/maps/map_with_flags_0
+
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index e259fdc..a4f021a 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -1071,7 +1071,7 @@ map_block		:	/* empty */	{ $$ = $<set>-1; }
+ 			}
+ 			|	map_block	FLAGS		set_flag_list	stmt_seperator
+ 			{
+-				$1->flags = $3;
++				$1->flags |= $3;
+ 				$$ = $1;
+ 			}
+ 			|	map_block	ELEMENTS	'='		set_expr
+diff --git a/tests/shell/testcases/maps/map_with_flags_0 b/tests/shell/testcases/maps/map_with_flags_0
+new file mode 100755
+index 0000000..8774eb5
+--- /dev/null
++++ b/tests/shell/testcases/maps/map_with_flags_0
+@@ -0,0 +1,21 @@
++#!/bin/bash
++
++set -e
++
++$NFT add table x
++$NFT add map x y { type ipv4_addr : ipv4_addr\; flags timeout\; }
++
++EXPECTED="table ip x {
++	map y {
++		type ipv4_addr : ipv4_addr
++		flags timeout
++	}
++}"
++
++GET="$($NFT list ruleset)"
++
++if [ "$EXPECTED" != "$GET" ] ; then
++	DIFF="$(which diff)"
++	[ -x $DIFF ] && $DIFF -u <(echo "$EXPECTED") <(echo "$GET")
++	exit 1
++fi
+-- 
+2.1.4
+
