@@ -1,96 +1,132 @@
-From: Michal Kubecek <mkubecek@suse.cz>
-Subject: [PATCH RESEND nf] netfilter: avoid a race between nf_register_hook()
- and cleanup_net()
-Date: Fri, 29 Jul 2016 18:19:04 +0200 (CEST)
-Message-ID: <20160729161904.4F00BA0BD9@unicorn.suse.cz>
-References: <20160729150033.E0250A0BD9@unicorn.suse.cz>
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	"Eric W. Biederman" <ebiederm@xmission.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20160729150033.E0250A0BD9@unicorn.suse.cz>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH iptables] iptables-translate: add in/out ifname wildcard match translation to nft
+Date: Sat, 30 Jul 2016 13:20:59 +0800
+Message-ID: <1469856059-11891-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from m12-11.163.com ([220.181.12.11]:53059 "EHLO m12-11.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750744AbcG3FVo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 30 Jul 2016 01:21:44 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-There is a race condition between nf_{,un}register_hook() and
-cleanup_net() which can either trigger WARN check or cause a memory
-leak. The scenario is like this (2a and 2b are alternatives):
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-1.  cleanup_net() removes one or more struct net from net_namespace_list
-2a. nf_register_hook() adds per-netns hooks to all netns (but not those
-    removed in step 1) and adds the hook to global nf_hook_list
-2b. nf_unregister_hook() deletes per-netns hooks from all netns (but not
-    those removed in step 1) and removes the hook from nf_hook_list
-3.  cleanup_net() calls pernet subsystem exit functions for netns being
-    removed; one of them is netfilter_net_exit() which (among others)
-    calls nf_unregister_net_hook() to unregister per-netns hooks for all
-    hooks in nf_hook_list.
+In iptables, "-i eth+" means match all in ifname with the prefix "eth".
+But in nftables, this was changed to "iifname eth*". So we should handle
+this subtle difference.
 
-In case (a), per-netns hooks are never added as the namespace was
-already invisible to for_each_net() in step 2a but an attempt to remove
-them in step 3 (the hook is already in nf_hook_list) triggers a WARN
-check in nf_unregister_net_hook() (no real harm done, however). In case
-(b), the per-netns hook is removed neither in step 2b (netns is already
-invisible to for_each_net()) nor in step 3 (the hook is already removed
-from nf_hook_list), causing a memory leak.
+Apply this patch, translation will become:
+  # iptables-translate -A INPUT -i eth+
+  nft add rule ip filter INPUT iifname eth* counter
+  # ip6tables-translate -A OUTPUT ! -o eth+
+  nft add rule ip6 filter OUTPUT oifname != eth* counter
 
-Prevent the race by protecting the for_each_net() loop in
-nf_{,un}register_hook() (also) by net_mutex. There is already a
-precendens for this in rtnl_link_unregister() which addresses similar
-race.
-
-Fixes: 085db2c04557 ("netfilter: Per network namespace netfilter hooks.")
-Signed-off-by: Michal Kubecek <mkubecek@suse.cz>
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- net/netfilter/core.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ iptables/nft-ipv4.c          | 14 ++++----------
+ iptables/nft-ipv6.c          | 16 ++++------------
+ iptables/nft.h               |  2 ++
+ iptables/xtables-translate.c | 17 +++++++++++++++++
+ 4 files changed, 27 insertions(+), 22 deletions(-)
 
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index f39276d1c2d7..860978c9f82e 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -193,6 +193,8 @@ int nf_register_hook(struct nf_hook_ops *reg)
- 	struct net *net, *last;
+diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
+index 814ca14..50706cb 100644
+--- a/iptables/nft-ipv4.c
++++ b/iptables/nft-ipv4.c
+@@ -444,16 +444,10 @@ static int nft_ipv4_xlate(const void *data, struct xt_xlate *xl)
+ 	const char *comment;
  	int ret;
  
-+	/* prevent race with cleanup_net() */
-+	mutex_lock(&net_mutex);
- 	rtnl_lock();
- 	for_each_net(net) {
- 		ret = nf_register_net_hook(net, reg);
-@@ -201,6 +203,7 @@ int nf_register_hook(struct nf_hook_ops *reg)
- 	}
- 	list_add_tail(&reg->list, &nf_hook_list);
- 	rtnl_unlock();
-+	mutex_unlock(&net_mutex);
+-	if (cs->fw.ip.iniface[0] != '\0') {
+-		xt_xlate_add(xl, "iifname %s%s ",
+-			   cs->fw.ip.invflags & IPT_INV_VIA_IN ? "!= " : "",
+-			   cs->fw.ip.iniface);
+-	}
+-	if (cs->fw.ip.outiface[0] != '\0') {
+-		xt_xlate_add(xl, "oifname %s%s ",
+-			   cs->fw.ip.invflags & IPT_INV_VIA_OUT? "!= " : "",
+-			   cs->fw.ip.outiface);
+-	}
++	xlate_ifname(xl, "iifname", cs->fw.ip.iniface,
++		     cs->fw.ip.invflags & IPT_INV_VIA_IN);
++	xlate_ifname(xl, "oifname", cs->fw.ip.outiface,
++		     cs->fw.ip.invflags & IPT_INV_VIA_OUT);
  
- 	return 0;
- rollback:
-@@ -211,6 +214,7 @@ rollback:
- 		nf_unregister_net_hook(net, reg);
- 	}
- 	rtnl_unlock();
-+	mutex_unlock(&net_mutex);
- 	return ret;
- }
- EXPORT_SYMBOL(nf_register_hook);
-@@ -219,11 +223,14 @@ void nf_unregister_hook(struct nf_hook_ops *reg)
+ 	if (cs->fw.ip.flags & IPT_F_FRAG) {
+ 		xt_xlate_add(xl, "ip frag-off %s%x ",
+diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
+index bfbf8df..8ca523c 100644
+--- a/iptables/nft-ipv6.c
++++ b/iptables/nft-ipv6.c
+@@ -404,18 +404,10 @@ static int nft_ipv6_xlate(const void *data, struct xt_xlate *xl)
+ 	const char *comment;
+ 	int ret;
+ 
+-	if (cs->fw6.ipv6.iniface[0] != '\0') {
+-		xt_xlate_add(xl, "iifname %s%s ",
+-			   cs->fw6.ipv6.invflags & IP6T_INV_VIA_IN ?
+-				"!= " : "",
+-			   cs->fw6.ipv6.iniface);
+-	}
+-	if (cs->fw6.ipv6.outiface[0] != '\0') {
+-		xt_xlate_add(xl, "oifname %s%s ",
+-			   cs->fw6.ipv6.invflags & IP6T_INV_VIA_OUT ?
+-				"!= " : "",
+-			   cs->fw6.ipv6.outiface);
+-	}
++	xlate_ifname(xl, "iifname", cs->fw6.ipv6.iniface,
++		     cs->fw6.ipv6.invflags & IP6T_INV_VIA_IN);
++	xlate_ifname(xl, "oifname", cs->fw6.ipv6.outiface,
++		     cs->fw6.ipv6.invflags & IP6T_INV_VIA_OUT);
+ 
+ 	if (cs->fw6.ipv6.proto != 0) {
+ 		const struct protoent *pent =
+diff --git a/iptables/nft.h b/iptables/nft.h
+index 9e02eeb..8867434 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -165,6 +165,8 @@ bool xlate_find_match(const struct iptables_command_state *cs, const char *p_nam
+ int xlate_matches(const struct iptables_command_state *cs, struct xt_xlate *xl);
+ int xlate_action(const struct iptables_command_state *cs, bool goto_set,
+ 		 struct xt_xlate *xl);
++void xlate_ifname(struct xt_xlate *xl, const char *nftmeta, const char *ifname,
++		  bool invert);
+ 
+ /*
+  * ARP
+diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
+index 9044d27..3c577ed 100644
+--- a/iptables/xtables-translate.c
++++ b/iptables/xtables-translate.c
+@@ -34,6 +34,23 @@
+ #include "xshared.h"
+ #include "nft-shared.h"
+ 
++void xlate_ifname(struct xt_xlate *xl, const char *nftmeta, const char *ifname,
++		  bool invert)
++{
++	char iface[IFNAMSIZ];
++	int ifaclen;
++
++	if (ifname[0] == '\0')
++		return;
++
++	strcpy(iface, ifname);
++	ifaclen = strlen(iface);
++	if (iface[ifaclen - 1] == '+')
++		iface[ifaclen - 1] = '*';
++
++	xt_xlate_add(xl, "%s %s%s ", nftmeta, invert ? "!= " : "", iface);
++}
++
+ int xlate_action(const struct iptables_command_state *cs, bool goto_set,
+ 		 struct xt_xlate *xl)
  {
- 	struct net *net;
- 
-+	/* prevent race with cleanup_net() */
-+	mutex_lock(&net_mutex);
- 	rtnl_lock();
- 	list_del(&reg->list);
- 	for_each_net(net)
- 		nf_unregister_net_hook(net, reg);
- 	rtnl_unlock();
-+	mutex_unlock(&net_mutex);
- }
- EXPORT_SYMBOL(nf_unregister_hook);
- 
 -- 
-2.9.2
+2.5.5
+
+
