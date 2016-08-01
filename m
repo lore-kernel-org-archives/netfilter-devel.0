@@ -1,43 +1,69 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [nft PATCH 0/7] add payload set support for sub-byte sizes
-Date: Mon, 1 Aug 2016 12:35:38 +0200
-Message-ID: <20160801103538.GA2385@salvia>
-References: <1469580196-2100-1-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf] netfilter: nft_rbtree: ignore inactive matching element with no descendants
+Date: Mon,  1 Aug 2016 13:38:43 +0200
+Message-ID: <1470051523-12223-1-git-send-email-pablo@netfilter.org>
+Cc: fw@strlen.de, akp@akp.dk
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58507 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42673 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752102AbcHAKgm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Aug 2016 06:36:42 -0400
+	id S1753283AbcHALlB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Aug 2016 07:41:01 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 1DFE01B7FA1
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 12:35:46 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 6A803168395
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 13:39:27 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 0F195100791
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 12:35:46 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 5C2CBFF6FF
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 13:39:27 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 0B371FAB50
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 12:35:44 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1469580196-2100-1-git-send-email-fw@strlen.de>
+	by antivirus1-rhel7.int (Postfix) with ESMTP id EFA577E077
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 13:39:24 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jul 27, 2016 at 02:43:09AM +0200, Florian Westphal wrote:
-> This series adds support for setting ipv6 flowlabel and e.g.
-> ecn/dscp header fields for ipv4 and ipv6 by adding the needed
-> bitwise ops (and removing them during netlink decoding).
+If we find a matching element that is inactive with no descendants, we
+jump to the found label, then crash because of nul-dereference on the
+left branch.
 
-I'm hitting whitespace errors here:
+Fix this by checking that the element is active and not an interval end
+and skipping the logic that only applies to the tree iteration.
 
-        warning: 2 lines add whitespace errors
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+Slightly larger than Florian's fix but we get rid of the goto here that
+gcc consider branches with gotos as unlikely.
 
-Please, amend these and other nitpicks and push these series, we can
-later on refine them if needed.
+ net/netfilter/nft_rbtree.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
+diff --git a/net/netfilter/nft_rbtree.c b/net/netfilter/nft_rbtree.c
+index 6473936..ffe9ae0 100644
+--- a/net/netfilter/nft_rbtree.c
++++ b/net/netfilter/nft_rbtree.c
+@@ -70,7 +70,6 @@ static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
+ 		} else if (d > 0)
+ 			parent = parent->rb_right;
+ 		else {
+-found:
+ 			if (!nft_set_elem_active(&rbe->ext, genmask)) {
+ 				parent = parent->rb_left;
+ 				continue;
+@@ -84,9 +83,12 @@ found:
+ 		}
+ 	}
+ 
+-	if (set->flags & NFT_SET_INTERVAL && interval != NULL) {
+-		rbe = interval;
+-		goto found;
++	if (set->flags & NFT_SET_INTERVAL && interval != NULL &&
++	    nft_set_elem_active(&interval->ext, genmask) &&
++	    !nft_rbtree_interval_end(interval)) {
++		spin_unlock_bh(&nft_rbtree_lock);
++		*ext = &interval->ext;
++		return true;
+ 	}
+ out:
+ 	spin_unlock_bh(&nft_rbtree_lock);
+-- 
+2.1.4
 
-Thanks.
