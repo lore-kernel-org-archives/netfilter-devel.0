@@ -1,17 +1,17 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH -stable 3.18.y] netfilter: x_tables: speed up jump target validation
-Date: Mon,  1 Aug 2016 20:38:22 +0200
-Message-ID: <1470076704-13325-4-git-send-email-fw@strlen.de>
+Subject: [PATCH -stable 4.4.y] netfilter: x_tables: speed up jump target validation
+Date: Mon,  1 Aug 2016 20:38:24 +0200
+Message-ID: <1470076704-13325-6-git-send-email-fw@strlen.de>
 References: <1470076704-13325-1-git-send-email-fw@strlen.de>
 Cc: netfilter-devel@vger.kernel.org, stable@kernel.org,
 	alexander.levin@verizon.com, Florian Westphal <fw@strlen.de>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:46512 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:46520 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754887AbcHATPU (ORCPT
+	by vger.kernel.org with ESMTP id S1754451AbcHATRA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Aug 2016 15:15:20 -0400
+	Mon, 1 Aug 2016 15:17:00 -0400
 In-Reply-To: <1470076704-13325-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -58,7 +58,6 @@ Reported-by: Jeff Wu <wujiafu@gmail.com>
 Tested-by: Jeff Wu <wujiafu@gmail.com>
 Signed-off-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
  include/linux/netfilter/x_tables.h |  4 +++
  net/ipv4/netfilter/arp_tables.c    | 48 ++++++++++++++++++------------------
@@ -68,7 +67,7 @@ Signed-off-by: Florian Westphal <fw@strlen.de>
  5 files changed, 127 insertions(+), 65 deletions(-)
 
 diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 7741efa..cc615e2 100644
+index 04078e8..26a41dd 100644
 --- a/include/linux/netfilter/x_tables.h
 +++ b/include/linux/netfilter/x_tables.h
 @@ -243,6 +243,10 @@ int xt_check_entry_offsets(const void *base, const char *elems,
@@ -83,10 +82,10 @@ index 7741efa..cc615e2 100644
  		   bool inv_proto);
  int xt_check_target(struct xt_tgchk_param *, unsigned int size, u_int8_t proto,
 diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 655e1b0..b3bfa51 100644
+index 6e3e0e8..82a2e59 100644
 --- a/net/ipv4/netfilter/arp_tables.c
 +++ b/net/ipv4/netfilter/arp_tables.c
-@@ -363,23 +363,12 @@ static inline bool unconditional(const struct arpt_entry *e)
+@@ -367,23 +367,12 @@ static inline bool unconditional(const struct arpt_entry *e)
  	       memcmp(&e->arp, &uncond, sizeof(uncond)) == 0;
  }
  
@@ -112,7 +111,7 @@ index 655e1b0..b3bfa51 100644
  {
  	unsigned int hook;
  
-@@ -468,10 +457,11 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
+@@ -472,10 +461,11 @@ static int mark_source_chains(const struct xt_table_info *newinfo,
  					/* This a jump; chase it. */
  					duprintf("Jump rule %u -> %u\n",
  						 pos, newpos);
@@ -126,15 +125,15 @@ index 655e1b0..b3bfa51 100644
  				} else {
  					/* ... this is a fallthru */
  					newpos = pos + e->next_offset;
-@@ -631,6 +621,7 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
-                            const struct arpt_replace *repl)
+@@ -642,6 +632,7 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
+ 			   const struct arpt_replace *repl)
  {
  	struct arpt_entry *iter;
 +	unsigned int *offsets;
  	unsigned int i;
  	int ret = 0;
  
-@@ -644,8 +635,10 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
+@@ -655,6 +646,9 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
  	}
  
  	duprintf("translate_table: size %u\n", newinfo->size);
@@ -142,11 +141,9 @@ index 655e1b0..b3bfa51 100644
 +	if (!offsets)
 +		return -ENOMEM;
  	i = 0;
--
+ 
  	/* Walk through entries, checking offsets. */
- 	xt_entry_foreach(iter, entry0, newinfo->size) {
- 		ret = check_entry_size_and_hooks(iter, newinfo, entry0,
-@@ -654,7 +647,9 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
+@@ -665,7 +659,9 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
  						 repl->underflow,
  						 repl->valid_hooks);
  		if (ret != 0)
@@ -157,13 +154,13 @@ index 655e1b0..b3bfa51 100644
  		++i;
  		if (strcmp(arpt_get_target(iter)->u.user.name,
  		    XT_ERROR_TARGET) == 0)
-@@ -662,12 +657,13 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
+@@ -673,12 +669,12 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
  	}
  	duprintf("translate_table: ARPT_ENTRY_ITERATE gives %d\n", ret);
  	if (ret != 0)
 -		return ret;
+-
 +		goto out_free;
- 
 +	ret = -EINVAL;
  	if (i != repl->num_entries) {
  		duprintf("translate_table: %u not %u entries\n",
@@ -173,7 +170,7 @@ index 655e1b0..b3bfa51 100644
  	}
  
  	/* Check hooks all assigned */
-@@ -678,17 +674,20 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
+@@ -689,17 +685,20 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
  		if (newinfo->hook_entry[i] == 0xFFFFFFFF) {
  			duprintf("Invalid hook entry %u %u\n",
  				 i, repl->hook_entry[i]);
@@ -198,7 +195,7 @@ index 655e1b0..b3bfa51 100644
  
  	/* Finally, each sanity check must pass */
  	i = 0;
-@@ -715,6 +714,9 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
+@@ -720,6 +719,9 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
  	}
  
  	return ret;
@@ -209,10 +206,10 @@ index 655e1b0..b3bfa51 100644
  
  static void get_counters(const struct xt_table_info *t,
 diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 865e738..4e40f2e 100644
+index a399c54..2ba158f 100644
 --- a/net/ipv4/netfilter/ip_tables.c
 +++ b/net/ipv4/netfilter/ip_tables.c
-@@ -439,23 +439,12 @@ ipt_do_table(struct sk_buff *skb,
+@@ -443,23 +443,12 @@ ipt_do_table(struct sk_buff *skb,
  #endif
  }
  
@@ -238,7 +235,7 @@ index 865e738..4e40f2e 100644
  {
  	unsigned int hook;
  
-@@ -548,10 +537,11 @@ mark_source_chains(const struct xt_table_info *newinfo,
+@@ -552,10 +541,11 @@ mark_source_chains(const struct xt_table_info *newinfo,
  					/* This a jump; chase it. */
  					duprintf("Jump rule %u -> %u\n",
  						 pos, newpos);
@@ -252,15 +249,15 @@ index 865e738..4e40f2e 100644
  				} else {
  					/* ... this is a fallthru */
  					newpos = pos + e->next_offset;
-@@ -798,6 +788,7 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
-                 const struct ipt_replace *repl)
+@@ -811,6 +801,7 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
+ 		const struct ipt_replace *repl)
  {
  	struct ipt_entry *iter;
 +	unsigned int *offsets;
  	unsigned int i;
  	int ret = 0;
  
-@@ -811,6 +802,9 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
+@@ -824,6 +815,9 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
  	}
  
  	duprintf("translate_table: size %u\n", newinfo->size);
@@ -270,7 +267,7 @@ index 865e738..4e40f2e 100644
  	i = 0;
  	/* Walk through entries, checking offsets. */
  	xt_entry_foreach(iter, entry0, newinfo->size) {
-@@ -820,17 +814,20 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
+@@ -833,17 +827,20 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
  						 repl->underflow,
  						 repl->valid_hooks);
  		if (ret != 0)
@@ -293,7 +290,7 @@ index 865e738..4e40f2e 100644
  	}
  
  	/* Check hooks all assigned */
-@@ -841,17 +838,20 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
+@@ -854,17 +851,20 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
  		if (newinfo->hook_entry[i] == 0xFFFFFFFF) {
  			duprintf("Invalid hook entry %u %u\n",
  				 i, repl->hook_entry[i]);
@@ -318,7 +315,7 @@ index 865e738..4e40f2e 100644
  
  	/* Finally, each sanity check must pass */
  	i = 0;
-@@ -878,6 +878,9 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
+@@ -885,6 +885,9 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
  	}
  
  	return ret;
@@ -329,10 +326,10 @@ index 865e738..4e40f2e 100644
  
  static void
 diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 1b6ed70..cb3cc2a 100644
+index 22f39e0..c26bed9 100644
 --- a/net/ipv6/netfilter/ip6_tables.c
 +++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -449,23 +449,12 @@ ip6t_do_table(struct sk_buff *skb,
+@@ -455,23 +455,12 @@ ip6t_do_table(struct sk_buff *skb,
  #endif
  }
  
@@ -358,7 +355,7 @@ index 1b6ed70..cb3cc2a 100644
  {
  	unsigned int hook;
  
-@@ -558,10 +547,11 @@ mark_source_chains(const struct xt_table_info *newinfo,
+@@ -564,10 +553,11 @@ mark_source_chains(const struct xt_table_info *newinfo,
  					/* This a jump; chase it. */
  					duprintf("Jump rule %u -> %u\n",
  						 pos, newpos);
@@ -372,15 +369,15 @@ index 1b6ed70..cb3cc2a 100644
  				} else {
  					/* ... this is a fallthru */
  					newpos = pos + e->next_offset;
-@@ -808,6 +798,7 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
-                 const struct ip6t_replace *repl)
+@@ -823,6 +813,7 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
+ 		const struct ip6t_replace *repl)
  {
  	struct ip6t_entry *iter;
 +	unsigned int *offsets;
  	unsigned int i;
  	int ret = 0;
  
-@@ -821,6 +812,9 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
+@@ -836,6 +827,9 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
  	}
  
  	duprintf("translate_table: size %u\n", newinfo->size);
@@ -390,7 +387,7 @@ index 1b6ed70..cb3cc2a 100644
  	i = 0;
  	/* Walk through entries, checking offsets. */
  	xt_entry_foreach(iter, entry0, newinfo->size) {
-@@ -830,17 +824,20 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
+@@ -845,17 +839,20 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
  						 repl->underflow,
  						 repl->valid_hooks);
  		if (ret != 0)
@@ -413,7 +410,7 @@ index 1b6ed70..cb3cc2a 100644
  	}
  
  	/* Check hooks all assigned */
-@@ -851,17 +848,20 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
+@@ -866,17 +863,20 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
  		if (newinfo->hook_entry[i] == 0xFFFFFFFF) {
  			duprintf("Invalid hook entry %u %u\n",
  				 i, repl->hook_entry[i]);
@@ -438,7 +435,7 @@ index 1b6ed70..cb3cc2a 100644
  
  	/* Finally, each sanity check must pass */
  	i = 0;
-@@ -888,6 +888,9 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
+@@ -897,6 +897,9 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
  	}
  
  	return ret;
@@ -449,10 +446,10 @@ index 1b6ed70..cb3cc2a 100644
  
  static void
 diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 0c01ad4..4898993 100644
+index 25391fb..ecae65f 100644
 --- a/net/netfilter/x_tables.c
 +++ b/net/netfilter/x_tables.c
-@@ -704,6 +704,56 @@ int xt_check_entry_offsets(const void *base,
+@@ -701,6 +701,56 @@ int xt_check_entry_offsets(const void *base,
  }
  EXPORT_SYMBOL(xt_check_entry_offsets);
  
