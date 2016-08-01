@@ -1,41 +1,37 @@
-From: "Anders K. Pedersen" <akp@akp.dk>
-Subject: Re: [PATCH nf] netfilter: nft_rbtree: ignore inactive matching
- element with no descendants
-Date: Mon, 01 Aug 2016 16:27:38 +0200
-Message-ID: <1470061658.1097.5.camel@akp.dk>
-References: <1470051523-12223-1-git-send-email-pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [nft PATCH 0/7] add payload set support for sub-byte sizes
+Date: Mon, 1 Aug 2016 17:12:01 +0200
+Message-ID: <20160801151201.GB29772@breakpoint.cc>
+References: <1469580196-2100-1-git-send-email-fw@strlen.de>
+ <20160801103538.GA2385@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: fw@strlen.de
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 85.204.120.79.ip4.gigabit.dk ([85.204.120.79]:45576 "EHLO
-	mail.kbh.akp.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752834AbcHAO1o (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45758 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753985AbcHAPMG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Aug 2016 10:27:44 -0400
-In-Reply-To: <1470051523-12223-1-git-send-email-pablo@netfilter.org>
+	Mon, 1 Aug 2016 11:12:06 -0400
+Content-Disposition: inline
+In-Reply-To: <20160801103538.GA2385@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On man, 2016-08-01 at 13:38 +0200, Pablo Neira Ayuso wrote:
-> If we find a matching element that is inactive with no descendants,
-> we
-> jump to the found label, then crash because of nul-dereference on the
-> left branch.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Jul 27, 2016 at 02:43:09AM +0200, Florian Westphal wrote:
+> > This series adds support for setting ipv6 flowlabel and e.g.
+> > ecn/dscp header fields for ipv4 and ipv6 by adding the needed
+> > bitwise ops (and removing them during netlink decoding).
 > 
-> Fix this by checking that the element is active and not an interval
-> end
-> and skipping the logic that only applies to the tree iteration.
+> I'm hitting whitespace errors here:
 > 
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+>         warning: 2 lines add whitespace errors
+> 
+> Please, amend these and other nitpicks and push these series, we can
+> later on refine them if needed.
+> 
+> Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-I applied this on top of Linux 4.7 and verified that it solves the
-kernel BUGs, I previously ran into with nftables sets.
-
-Tested-by: Anders K. Pedersen <akp@akp.dk>
-
-Thanks,
-Anders K. Pedersen
+I pushed this to master, thanks for reviewing.
