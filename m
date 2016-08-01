@@ -1,69 +1,59 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf] netfilter: nft_rbtree: ignore inactive matching element with no descendants
-Date: Mon,  1 Aug 2016 13:38:43 +0200
-Message-ID: <1470051523-12223-1-git-send-email-pablo@netfilter.org>
-Cc: fw@strlen.de, akp@akp.dk
+Subject: [PATCH libnftnl] src: don't set data_len to zero when returning pointers
+Date: Mon,  1 Aug 2016 14:02:08 +0200
+Message-ID: <1470052928-13111-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42673 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:46887 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753283AbcHALlB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Aug 2016 07:41:01 -0400
+	id S1752179AbcHAMCx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Aug 2016 08:02:53 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 6A803168395
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 13:39:27 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 399C1168389
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 14:02:51 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 5C2CBFF6FF
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 13:39:27 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 2BCAC114D68
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 14:02:51 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id EFA577E077
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 13:39:24 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B4527FB468
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 14:02:44 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If we find a matching element that is inactive with no descendants, we
-jump to the found label, then crash because of nul-dereference on the
-left branch.
+nft already assumes that passing NULL as data_len is valid, otherwise
+it crashes. Fix this by leave data_len unset in this specific case.
 
-Fix this by checking that the element is active and not an interval end
-and skipping the logic that only applies to the tree iteration.
-
+Fixes: bda7102 ("src: Fix nftnl_*_get_data() to return the real attribute length")
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
-Slightly larger than Florian's fix but we get rid of the goto here that
-gcc consider branches with gotos as unlikely.
+ src/expr/dynset.c | 1 -
+ src/set_elem.c    | 1 -
+ 2 files changed, 2 deletions(-)
 
- net/netfilter/nft_rbtree.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nft_rbtree.c b/net/netfilter/nft_rbtree.c
-index 6473936..ffe9ae0 100644
---- a/net/netfilter/nft_rbtree.c
-+++ b/net/netfilter/nft_rbtree.c
-@@ -70,7 +70,6 @@ static bool nft_rbtree_lookup(const struct net *net, const struct nft_set *set,
- 		} else if (d > 0)
- 			parent = parent->rb_right;
- 		else {
--found:
- 			if (!nft_set_elem_active(&rbe->ext, genmask)) {
- 				parent = parent->rb_left;
- 				continue;
-@@ -84,9 +83,12 @@ found:
- 		}
+diff --git a/src/expr/dynset.c b/src/expr/dynset.c
+index 111bf8c..0eaa409 100644
+--- a/src/expr/dynset.c
++++ b/src/expr/dynset.c
+@@ -94,7 +94,6 @@ nftnl_expr_dynset_get(const struct nftnl_expr *e, uint16_t type,
+ 		*data_len = sizeof(dynset->set_id);
+ 		return &dynset->set_id;
+ 	case NFTNL_EXPR_DYNSET_EXPR:
+-		*data_len = 0;
+ 		return dynset->expr;
  	}
- 
--	if (set->flags & NFT_SET_INTERVAL && interval != NULL) {
--		rbe = interval;
--		goto found;
-+	if (set->flags & NFT_SET_INTERVAL && interval != NULL &&
-+	    nft_set_elem_active(&interval->ext, genmask) &&
-+	    !nft_rbtree_interval_end(interval)) {
-+		spin_unlock_bh(&nft_rbtree_lock);
-+		*ext = &interval->ext;
-+		return true;
+ 	return NULL;
+diff --git a/src/set_elem.c b/src/set_elem.c
+index 4e89210..7908661 100644
+--- a/src/set_elem.c
++++ b/src/set_elem.c
+@@ -184,7 +184,6 @@ const void *nftnl_set_elem_get(struct nftnl_set_elem *s, uint16_t attr, uint32_t
+ 		*data_len = s->user.len;
+ 		return s->user.data;
+ 	case NFTNL_SET_ELEM_EXPR:
+-		*data_len = 0;
+ 		return s->expr;
  	}
- out:
- 	spin_unlock_bh(&nft_rbtree_lock);
+ 	return NULL;
 -- 
 2.1.4
 
