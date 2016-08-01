@@ -1,79 +1,55 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH RESEND nf] netfilter: avoid a race between
- nf_register_hook() and cleanup_net()
-Date: Mon, 1 Aug 2016 14:34:35 +0200
-Message-ID: <20160801123435.GA14107@salvia>
-References: <20160729150033.E0250A0BD9@unicorn.suse.cz>
- <20160729161904.4F00BA0BD9@unicorn.suse.cz>
- <87shurb6ne.fsf@x220.int.ebiederm.org>
+Subject: Re: [RFC nft] meta: deprecate unqualified meta statements
+Date: Mon, 1 Aug 2016 14:48:03 +0200
+Message-ID: <20160801124803.GA14981@salvia>
+References: <1469585853-6207-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Michal Kubecek <mkubecek@suse.cz>,
-	Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:56293 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753361AbcHAMsJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Aug 2016 08:48:09 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id D805C1683AB
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 14:48:07 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id C5EC8FC61A
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 14:48:07 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 9F3427E077
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 14:48:05 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <87shurb6ne.fsf@x220.int.ebiederm.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1469585853-6207-1-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jul 30, 2016 at 08:24:37AM -0500, Eric W. Biederman wrote:
-> Michal Kubecek <mkubecek@suse.cz> writes:
+On Wed, Jul 27, 2016 at 04:17:33AM +0200, Florian Westphal wrote:
+> During NFWS we discussed reducing the number of keywords in nftables.
 > 
-> > There is a race condition between nf_{,un}register_hook() and
-> > cleanup_net() which can either trigger WARN check or cause a memory
-> > leak. The scenario is like this (2a and 2b are alternatives):
-> >
-> > 1.  cleanup_net() removes one or more struct net from net_namespace_list
-> > 2a. nf_register_hook() adds per-netns hooks to all netns (but not those
-> >     removed in step 1) and adds the hook to global nf_hook_list
-> > 2b. nf_unregister_hook() deletes per-netns hooks from all netns (but not
-> >     those removed in step 1) and removes the hook from nf_hook_list
-> > 3.  cleanup_net() calls pernet subsystem exit functions for netns being
-> >     removed; one of them is netfilter_net_exit() which (among others)
-> >     calls nf_unregister_net_hook() to unregister per-netns hooks for all
-> >     hooks in nf_hook_list.
-> >
-> > In case (a), per-netns hooks are never added as the namespace was
-> > already invisible to for_each_net() in step 2a but an attempt to remove
-> > them in step 3 (the hook is already in nf_hook_list) triggers a WARN
-> > check in nf_unregister_net_hook() (no real harm done, however). In case
-> > (b), the per-netns hook is removed neither in step 2b (netns is already
-> > invisible to for_each_net()) nor in step 3 (the hook is already removed
-> > from nf_hook_list), causing a memory leak.
-> >
-> > Prevent the race by protecting the for_each_net() loop in
-> > nf_{,un}register_hook() (also) by net_mutex. There is already a
-> > precendens for this in rtnl_link_unregister() which addresses similar
-> > race.
+> Obviously keywords are required for the parser to know what to expect.
 > 
-> So this analysis of a problem appears to be spot on.
+> But always requiring the 'meta' keyword would allow us to handle
+> iif, oif, iifname etc without defining them in the scanner, i.e. we
+> could later use 'meta STRING' and resolve/map the keyword at run time
+> based on the meta template pseudo-header.
 > 
-> Reviewed-by: "Eric W. Biederman" <ebiederm@xmission.com>
-> 
-> 
-> I really really want there to be a better way to do this, but it is
-> really not ok for a hook to continue it's life past
-> nf_unregister_net_hook as after that point the code may be removed
-> from the kernel (sigh).
-> 
-> Although keeping with the precedent and minimizing net_mutex
-> we could remove the WARN and keep nf_register_hook as it is.
-> But that sounds entirely too clever for a fix that will
-> probably be backported.
-> 
-> But that sounds entirely too clever for a fix that likely needs to be
-> backported.
+> Note that this change does not yet reject 'iif eth0', this only makes
+> nft always print the 'meta' keyword when listing and updates the test
+> cases as required.
 
-Please, propagate up to the caller to register and unregister the
-hooks from init_net and exit_net instead as I suggested time ago.
+The main problem I have hit with this unqualified meta statements is
+that I cannot reuse selectors from other statements, eg.
 
-I understand that this is not as small as this patch, and that this
-will require a bit more boiler plate code in iptable_*.c and nftables
-itself, but we'll avoid the dependencies with both rtnl_lock and
-net_lock.
+        dup to 1.2.3.4 device eth0
 
-Thanks.
+I had to use device here, when oif would have fit more naturally.
+
+Apart from that, I remember that the intention was to get the command
+line syntax more compact, that also results in more compact listings.
+
+If the main argument is to reduce the number of keywords, it would be
+good to see the patch that helps you reduce them after getting rid of
+this.
