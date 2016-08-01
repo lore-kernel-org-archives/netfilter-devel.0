@@ -1,36 +1,115 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 3/3] netfilter: nat: don't assign a null snat rule to
- bridged traffic if no matching
-Date: Sun, 31 Jul 2016 21:02:26 +0200
-Message-ID: <20160731190226.GB14216@breakpoint.cc>
-References: <1469915660-16904-1-git-send-email-xfan@codeaurora.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [nft PATCH 3/7] evaluate: add support to set IPv6 non-byte
+ header fields
+Date: Mon, 1 Aug 2016 12:29:10 +0200
+Message-ID: <20160801102910.GA3206@salvia>
+References: <1469580196-2100-1-git-send-email-fw@strlen.de>
+ <1469580196-2100-4-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, Xiaoping Fan <xfan@codeaurora.org>
-To: fxp2001640163@gmail.com
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:57137 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751162AbcHAK35 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Aug 2016 06:29:57 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id A019B1B7F98
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 12:29:14 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 8E0AAFF6FC
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 12:29:14 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 75953FB468
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 12:29:12 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1469915660-16904-1-git-send-email-xfan@codeaurora.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <1469580196-2100-4-git-send-email-fw@strlen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-fxp2001640163@gmail.com <fxp2001640163@gmail.com> wrote:
-> From: Xiaoping Fan <xfan@codeaurora.org>
+On Wed, Jul 27, 2016 at 02:43:12AM +0200, Florian Westphal wrote:
+> 'ip6 ecn set 1' will generate a zero-sized write operation.
+> Just like when matching on bit-sized header fields we need to
+> round up to a byte-sized quantity and add a mask to retain those
+> bits outside of the header bits that we want to change.
+>
+> Example:
 > 
-> In some case, bridged packet will come back again for routing. When bridge
-> netfilter is enabled, a null snat rule is assigned to bridged packet if no
-> matching in nat chain. Then nat rule matching is skipped when packet comes
-> back for routing. This result in private IP address exported to public
-> network. So we don't assign a null snat rule to bridged traffic if no
-> matching.
+> ip6 ecn set ce
+>   [ payload load 1b @ network header + 1 => reg 1 ]
+>   [ bitwise reg 1 = (reg=1 & 0x000000cf ) ^ 0x00000030 ]
+>   [ payload write reg 1 => 1b @ network header + 1 csum_type 0 csum_off 0 ]
+> 
+> 1. Load the full byte containing the ecn bits
+> 2 .Mask out everything *BUT* the ecn bits
+> 3 .Set the CE mark
+> 
+> This patch only works if the protcol doesn't need a checksum fixup.
+> Will address this in a followup patch.
+> 
+> This also doesn't yet include the needed reverse translation.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
+> ---
+>  src/evaluate.c | 81 +++++++++++++++++++++++++++++++++++++++++++++++++++++++---
+>  1 file changed, 77 insertions(+), 4 deletions(-)
+> 
+> diff --git a/src/evaluate.c b/src/evaluate.c
+> index 8116735..e6d4642 100644
+> --- a/src/evaluate.c
+> +++ b/src/evaluate.c
+> @@ -1608,13 +1608,86 @@ static int stmt_evaluate_verdict(struct eval_ctx *ctx, struct stmt *stmt)
+>  
+>  static int stmt_evaluate_payload(struct eval_ctx *ctx, struct stmt *stmt)
+>  {
+> +	struct expr *binop, *mask, *and, *payload_bytes;
+> +	unsigned int masklen, extra_len = 0;
+> +	unsigned int payload_byte_size;
+> +	uint8_t shift_imm, data[16];
 
-This looks bogus.
+Instead of hardcoding to our current maximum word size, I think you
+can extract this information from the ctx.
 
-However, we already have issue with existing iptables nat vs nftables
-nat.
+> +	struct expr *payload;
+> +	mpz_t bitmask, ff;
+> +
+>  	if (__expr_evaluate_payload(ctx, stmt->payload.expr) < 0)
+>  		return -1;
+>  
+> -	return stmt_evaluate_arg(ctx, stmt,
+> -				 stmt->payload.expr->dtype,
+> -				 stmt->payload.expr->len,
+> -				 &stmt->payload.val);
+> +	payload = stmt->payload.expr;
+> +	if (stmt_evaluate_arg(ctx, stmt, payload->dtype, payload->len,
+> +			      &stmt->payload.val) < 0)
+> +		return -1;
+> +
+> +	/* Normal case: byte sized and byte aligned */
+> +	if (payload->payload.offset % BITS_PER_BYTE == 0 &&
+> +	    payload->len % BITS_PER_BYTE == 0)
+> +		return 0;
 
-So I think it might make sense to delay NULL binding allocation until
-we confirm the conntrack so users don't have to rmmod iptable_nat
-anymore when they use nftables as well.
+This idiom is already used in expr_evaluate_payload(), so you can
+probably wrap this code in a function, eg. payload_needs_adjustment()
+in a follow up patch and we skip this comment on top of this function.
+
+> +
+> +	shift_imm = expr_offset_shift(payload, payload->payload.offset, &extra_len);
+> +	if (shift_imm) {
+> +		struct expr *off;
+> +
+> +		off = constant_expr_alloc(&payload->location,
+> +					  expr_basetype(payload),
+> +					  BYTEORDER_HOST_ENDIAN,
+> +					  sizeof(shift_imm), &shift_imm);
+> +
+> +		binop = binop_expr_alloc(&payload->location, OP_LSHIFT,
+> +					 stmt->payload.val, off);
+> +		binop->dtype		= payload->dtype;
+> +		binop->byteorder		= payload->byteorder;
+
+This indent doesn't look correct.
+
+I'd suggest you amend this before pushing this out.
