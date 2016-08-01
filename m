@@ -1,54 +1,95 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] parser: compact list of rhs keyword expressions
-Date: Mon, 1 Aug 2016 14:57:29 +0200
-Message-ID: <20160801125729.GA15004@salvia>
-References: <1469636296-4452-1-git-send-email-fw@strlen.de>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [nft PATCH 3/7] evaluate: add support to set IPv6 non-byte
+ header fields
+Date: Mon, 1 Aug 2016 16:23:59 +0200
+Message-ID: <20160801142359.GB29553@breakpoint.cc>
+References: <1469580196-2100-1-git-send-email-fw@strlen.de>
+ <1469580196-2100-4-git-send-email-fw@strlen.de>
+ <20160801102910.GA3206@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57397 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753700AbcHAM5j (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Aug 2016 08:57:39 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id D2ECB16839B
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 14:57:36 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id BF7E6ADF3
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 14:57:36 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 9AE15FAB4F
-	for <netfilter-devel@vger.kernel.org>; Mon,  1 Aug 2016 14:57:34 +0200 (CEST)
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45620 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751696AbcHAOYd (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Aug 2016 10:24:33 -0400
 Content-Disposition: inline
-In-Reply-To: <1469636296-4452-1-git-send-email-fw@strlen.de>
+In-Reply-To: <20160801102910.GA3206@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jul 27, 2016 at 06:18:16PM +0200, Florian Westphal wrote:
-> Condenses the copy/pastry via a define, will make it less of a hassle
-> to extend this list later if needed.
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> On Wed, Jul 27, 2016 at 02:43:12AM +0200, Florian Westphal wrote:
+> > 'ip6 ecn set 1' will generate a zero-sized write operation.
+> > Just like when matching on bit-sized header fields we need to
+> > round up to a byte-sized quantity and add a mask to retain those
+> > bits outside of the header bits that we want to change.
+> >
+> > Example:
+> > 
+> > ip6 ecn set ce
+> >   [ payload load 1b @ network header + 1 => reg 1 ]
+> >   [ bitwise reg 1 = (reg=1 & 0x000000cf ) ^ 0x00000030 ]
+> >   [ payload write reg 1 => 1b @ network header + 1 csum_type 0 csum_off 0 ]
+> > 
+> > 1. Load the full byte containing the ecn bits
+> > 2 .Mask out everything *BUT* the ecn bits
+> > 3 .Set the CE mark
+> > 
+> > This patch only works if the protcol doesn't need a checksum fixup.
+> > Will address this in a followup patch.
+> > 
+> > This also doesn't yet include the needed reverse translation.
+> > 
+> > Signed-off-by: Florian Westphal <fw@strlen.de>
+> > ---
+> >  src/evaluate.c | 81 +++++++++++++++++++++++++++++++++++++++++++++++++++++++---
+> >  1 file changed, 77 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/src/evaluate.c b/src/evaluate.c
+> > index 8116735..e6d4642 100644
+> > --- a/src/evaluate.c
+> > +++ b/src/evaluate.c
+> > @@ -1608,13 +1608,86 @@ static int stmt_evaluate_verdict(struct eval_ctx *ctx, struct stmt *stmt)
+> >  
+> >  static int stmt_evaluate_payload(struct eval_ctx *ctx, struct stmt *stmt)
+> >  {
+> > +	struct expr *binop, *mask, *and, *payload_bytes;
+> > +	unsigned int masklen, extra_len = 0;
+> > +	unsigned int payload_byte_size;
+> > +	uint8_t shift_imm, data[16];
+> 
+> Instead of hardcoding to our current maximum word size, I think you
+> can extract this information from the ctx.
 
-So the main goal of this is to find a solution for meta skuid, ct
-label and such that allow any arbitrary string as value.
+I changed it to data[NFT_REG_SIZE].
 
-I continued a patch on top of this to place in the keyword_expr rule
-the remaining keywords and return a symbol expression here.
+> This idiom is already used in expr_evaluate_payload(), so you can
+> probably wrap this code in a function, eg. payload_needs_adjustment()
+> in a follow up patch and we skip this comment on top of this function.
 
-I didn't finish this, but still MAP and SET tokens cannot be used from
-there as they are valid to show after the selectors (bison detects
-this by complaining on shift/reduce conflicts), so still the user
-cannot create a gid whose name is 'map'.
+Okay, can do this.
 
-Another possibility to display this values using quotes, so the
-scanner always handles them as arbitrary values.  So the syntax looks
-like:
+> > +
+> > +	shift_imm = expr_offset_shift(payload, payload->payload.offset, &extra_len);
+> > +	if (shift_imm) {
+> > +		struct expr *off;
+> > +
+> > +		off = constant_expr_alloc(&payload->location,
+> > +					  expr_basetype(payload),
+> > +					  BYTEORDER_HOST_ENDIAN,
+> > +					  sizeof(shift_imm), &shift_imm);
+> > +
+> > +		binop = binop_expr_alloc(&payload->location, OP_LSHIFT,
+> > +					 stmt->payload.val, off);
+> > +		binop->dtype		= payload->dtype;
+> > +		binop->byteorder		= payload->byteorder;
+> 
+> This indent doesn't look correct.
+> 
+> I'd suggest you amend this before pushing this out.
 
-        meta skuid "daemon"
-
-or
-        ct label "http"
-
->From a user side, it would be also visible that these are an arbitrary
-user-defined string.
+Will do, thanks!
