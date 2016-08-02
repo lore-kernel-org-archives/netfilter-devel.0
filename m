@@ -1,46 +1,38 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 1115/1285] Replace numeric parameter like 0444 with
+From: Jan Engelhardt <jengelh@inai.de>
+Subject: Re: [PATCH 1116/1285] Replace numeric parameter like 0444 with
  macro
-Date: Tue, 02 Aug 2016 10:59:01 -0700 (PDT)
-Message-ID: <20160802.105901.1278960621806579606.davem@davemloft.net>
-References: <20160802121749.24461-1-baolex.ni@intel.com>
-	<8737mns0qg.fsf@x220.int.ebiederm.org>
-	<20160802174733.GB4628@amd>
+Date: Tue, 2 Aug 2016 20:07:11 +0200 (CEST)
+Message-ID: <alpine.LSU.2.20.1608022006070.25634@nerf40.vanv.qr>
+References: <20160802121754.24527-1-baolex.ni@intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: ebiederm@xmission.com, baolex.ni@intel.com, pablo@netfilter.org,
-	kaber@trash.net, kadlec@blackhole.kfki.hu, jmorris@namei.org,
-	yoshfuji@linux-ipv6.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, k.kozlowski@samsung.com,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	johunt@akamai.com, vpai@akamai.com, chuansheng.liu@intel.com,
-	aryabinin@virtuozzo.com
-To: pavel@ucw.cz
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160802174733.GB4628@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Cc: Linux Networking Developer Mailing List <netdev@vger.kernel.org>,
+	lvs-devel@vger.kernel.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	chuansheng.liu@intel.com
+To: Baole Ni <baolex.ni@intel.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ares41.inai.de ([46.4.122.207]:47180 "EHLO ares41.inai.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932191AbcHBSQ5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Aug 2016 14:16:57 -0400
+In-Reply-To: <20160802121754.24527-1-baolex.ni@intel.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pavel Machek <pavel@ucw.cz>
-Date: Tue, 2 Aug 2016 19:47:33 +0200
 
-> But that does not make me like the series. And yes, hiding backdoor
-> in one of those would be way too easy...
+On Tuesday 2016-08-02 14:17, Baole Ni wrote:
 
-This is one of the worst patch series submissions in history.
-At vger.kernel.org postmaster I just spent 45 minutes dealing
-with the fallout.
+>I find that the developers often just specified the numeric value
+>when calling a macro which is defined with a parameter for access permission.
+>As we know, these numeric value for access permission have had the corresponding macro,
+>and that using macro can improve the robustness and readability of the code,
+>thus, I suggest replacing the numeric parameter with the macro.
+>
+> static int ip_vs_conn_tab_bits = CONFIG_IP_VS_TAB_BITS;
+>-module_param_named(conn_tab_bits, ip_vs_conn_tab_bits, int, 0444);
+>+module_param_named(conn_tab_bits, ip_vs_conn_tab_bits, int, S_IRUSR | S_IRGRP | S_IROTH);
 
-1200+ patches all at once, unacceptable.
-
-Every patch having the same Subject line text, unacceptable.
-
-Triggering rate limiting bounces on %50+ of all lkml recipients,
-unacceptable.
-
-This is why you don't spam lists with a thousand patches.
-
-If this is going to be properly submitted, it must be done in
-reasonable, bite size, pieces of 10 to 15 patches at a time.
+We have S_IRUGO for this.
