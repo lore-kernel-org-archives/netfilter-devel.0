@@ -1,78 +1,55 @@
-From: "Levin, Alexander" <alexander.levin@verizon.com>
-Subject: Re: [PATCH -stable 4.1.y] netfilter: x_tables: speed up jump target
- validation
-Date: Tue, 2 Aug 2016 14:26:42 -0400
-Message-ID: <124e6257-749b-6561-b706-15e02fb356b4@verizon.com>
-References: <1470076704-13325-1-git-send-email-fw@strlen.de>
- <1470076704-13325-5-git-send-email-fw@strlen.de>
+From: Jarod Wilson <jarod@redhat.com>
+Subject: Re: [PATCH 1116/1285] Replace numeric parameter like 0444 with macro
+Date: Tue, 2 Aug 2016 15:13:37 -0400
+Message-ID: <20160802191337.GD36313@redhat.com>
+References: <20160802121754.24527-1-baolex.ni@intel.com>
+ <alpine.LSU.2.20.1608022006070.25634@nerf40.vanv.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"stable@kernel.org" <stable@kernel.org>,
-	"Levin, Alexander" <alexander.levin@verizon.com>
-To: Florian Westphal <fw@strlen.de>,
-	"pablo@netfilter.org" <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from omzsmtpe03.verizonbusiness.com ([199.249.25.208]:20074 "EHLO
-	omzsmtpe03.verizonbusiness.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757222AbcHBSgo convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Aug 2016 14:36:44 -0400
-In-Reply-To: <1470076704-13325-5-git-send-email-fw@strlen.de>
-Content-Language: en-US
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Baole Ni <baolex.ni@intel.com>,
+	Linux Networking Developer Mailing List
+	<netdev@vger.kernel.org>, lvs-devel@vger.kernel.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	chuansheng.liu@intel.com
+To: Jan Engelhardt <jengelh@inai.de>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.20.1608022006070.25634@nerf40.vanv.qr>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On 08/01/2016 02:38 PM, Florian Westphal wrote:
-> [ Upstream commit f4dc77713f8016d2e8a3295e1c9c53a21f296def ]
+On Tue, Aug 02, 2016 at 08:07:11PM +0200, Jan Engelhardt wrote:
 > 
-> The dummy ruleset I used to test the original validation change was broken,
-> most rules were unreachable and were not tested by mark_source_chains().
+> On Tuesday 2016-08-02 14:17, Baole Ni wrote:
 > 
-> In some cases rulesets that used to load in a few seconds now require
-> several minutes.
+> >I find that the developers often just specified the numeric value
+> >when calling a macro which is defined with a parameter for access permission.
+> >As we know, these numeric value for access permission have had the corresponding macro,
+> >and that using macro can improve the robustness and readability of the code,
+> >thus, I suggest replacing the numeric parameter with the macro.
+> >
+> > static int ip_vs_conn_tab_bits = CONFIG_IP_VS_TAB_BITS;
+> >-module_param_named(conn_tab_bits, ip_vs_conn_tab_bits, int, 0444);
+> >+module_param_named(conn_tab_bits, ip_vs_conn_tab_bits, int, S_IRUSR | S_IRGRP | S_IROTH);
 > 
-> sample ruleset that shows the behaviour:
-> 
-> echo "*filter"
-> for i in $(seq 0 100000);do
->         printf ":chain_%06x - [0:0]\n" $i
-> done
-> for i in $(seq 0 100000);do
->    printf -- "-A INPUT -j chain_%06x\n" $i
->    printf -- "-A INPUT -j chain_%06x\n" $i
->    printf -- "-A INPUT -j chain_%06x\n" $i
-> done
-> echo COMMIT
-> 
-> [ pipe result into iptables-restore ]
-> 
-> This ruleset will be about 74mbyte in size, with ~500k searches
-> though all 500k[1] rule entries. iptables-restore will take forever
-> (gave up after 10 minutes)
-> 
-> Instead of always searching the entire blob for a match, fill an
-> array with the start offsets of every single ipt_entry struct,
-> then do a binary search to check if the jump target is present or not.
-> 
-> After this change ruleset restore times get again close to what one
-> gets when reverting 36472341017529e (~3 seconds on my workstation).
-> 
-> [1] every user-defined rule gets an implicit RETURN, so we get
-> 300k jumps + 100k userchains + 100k returns -> 500k rule entries
-> 
-> Fixes: 36472341017529e ("netfilter: x_tables: validate targets of jumps")
-> Reported-by: Jeff Wu <wujiafu@gmail.com>
-> Tested-by: Jeff Wu <wujiafu@gmail.com>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> We have S_IRUGO for this.
 
-Hi Florian,
+Aye, for further edification, Baole, please read include/linux/stat.h,
+particularly this part:
 
-This patch doesn't seem to apply on 4.1, does it have any dependencies
-that don't currently exist in the tree?
+#define S_IRWXUGO       (S_IRWXU|S_IRWXG|S_IRWXO)
+#define S_IALLUGO       (S_ISUID|S_ISGID|S_ISVTX|S_IRWXUGO)
+#define S_IRUGO         (S_IRUSR|S_IRGRP|S_IROTH)
+#define S_IWUGO         (S_IWUSR|S_IWGRP|S_IWOTH)
+#define S_IXUGO         (S_IXUSR|S_IXGRP|S_IXOTH)
 
+I suspect many of the patches in this set should be using one of the above
+defines instead, never mind the ridiculousness of firing off such a
+massive set at once, with every patch having the same (often not correct)
+title, and the highly questionable benefit of the set to begin with.
 
-Thanks,
-Sasha
+-- 
+Jarod Wilson
+jarod@redhat.com
