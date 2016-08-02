@@ -1,7 +1,7 @@
 From: Baole Ni <baolex.ni@intel.com>
-Subject: [PATCH 1118/1285] Replace numeric parameter like 0444 with macro
-Date: Tue,  2 Aug 2016 20:18:05 +0800
-Message-ID: <20160802121805.24659-1-baolex.ni@intel.com>
+Subject: [PATCH 1129/1285] Replace numeric parameter like 0444 with macro
+Date: Tue,  2 Aug 2016 20:18:58 +0800
+Message-ID: <20160802121858.25386-1-baolex.ni@intel.com>
 Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
 	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
 	chuansheng.liu@intel.com, baolex.ni@intel.com,
@@ -22,20 +22,20 @@ thus, I suggest replacing the numeric parameter with the macro.
 Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
 Signed-off-by: Baole Ni <baolex.ni@intel.com>
 ---
- net/netfilter/nf_conntrack_acct.c | 2 +-
+ net/netfilter/nf_conntrack_timestamp.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_conntrack_acct.c b/net/netfilter/nf_conntrack_acct.c
-index 45da11a..2cac5dd 100644
---- a/net/netfilter/nf_conntrack_acct.c
-+++ b/net/netfilter/nf_conntrack_acct.c
-@@ -20,7 +20,7 @@
+diff --git a/net/netfilter/nf_conntrack_timestamp.c b/net/netfilter/nf_conntrack_timestamp.c
+index 7a394df..c711c6a 100644
+--- a/net/netfilter/nf_conntrack_timestamp.c
++++ b/net/netfilter/nf_conntrack_timestamp.c
+@@ -17,7 +17,7 @@
  
- static bool nf_ct_acct __read_mostly;
+ static bool nf_ct_tstamp __read_mostly;
  
--module_param_named(acct, nf_ct_acct, bool, 0644);
-+module_param_named(acct, nf_ct_acct, bool, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
- MODULE_PARM_DESC(acct, "Enable connection tracking flow accounting.");
+-module_param_named(tstamp, nf_ct_tstamp, bool, 0644);
++module_param_named(tstamp, nf_ct_tstamp, bool, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+ MODULE_PARM_DESC(tstamp, "Enable connection tracking flow timestamping.");
  
  #ifdef CONFIG_SYSCTL
 -- 
