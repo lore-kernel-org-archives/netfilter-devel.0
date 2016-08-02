@@ -1,7 +1,7 @@
 From: Baole Ni <baolex.ni@intel.com>
-Subject: [PATCH 1099/1285] Replace numeric parameter like 0444 with macro
-Date: Tue,  2 Aug 2016 20:16:31 +0800
-Message-ID: <20160802121631.23400-1-baolex.ni@intel.com>
+Subject: [PATCH 1100/1285] Replace numeric parameter like 0444 with macro
+Date: Tue,  2 Aug 2016 20:16:37 +0800
+Message-ID: <20160802121637.23466-1-baolex.ni@intel.com>
 Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
 	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
 	chuansheng.liu@intel.com, baolex.ni@intel.com, aarcange@redhat.com,
@@ -23,21 +23,18 @@ thus, I suggest replacing the numeric parameter with the macro.
 Signed-off-by: Chuansheng Liu <chuansheng.liu@intel.com>
 Signed-off-by: Baole Ni <baolex.ni@intel.com>
 ---
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c | 2 +-
+ net/ipv4/netfilter/nf_nat_snmp_basic.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index ae1a71a..a49c83e 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -388,7 +388,7 @@ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 __read_mostly = {
- };
+diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+index c9b52c3..1948e60 100644
+--- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
++++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+@@ -1310,4 +1310,4 @@ static void __exit nf_nat_snmp_basic_fini(void)
+ module_init(nf_nat_snmp_basic_init);
+ module_exit(nf_nat_snmp_basic_fini);
  
- module_param_call(hashsize, nf_conntrack_set_hashsize, param_get_uint,
--		  &nf_conntrack_htable_size, 0600);
-+		  &nf_conntrack_htable_size, S_IRUSR | S_IWUSR);
- 
- MODULE_ALIAS("nf_conntrack-" __stringify(AF_INET));
- MODULE_ALIAS("ip_conntrack");
+-module_param(debug, int, 0600);
++module_param(debug, int, S_IRUSR | S_IWUSR);
 -- 
 2.9.2
