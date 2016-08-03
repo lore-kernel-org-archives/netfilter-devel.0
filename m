@@ -1,69 +1,51 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH nf-next] ipvs: use nf_ct_kill helper
-Date: Wed, 3 Aug 2016 10:37:21 +0300 (EEST)
-Message-ID: <alpine.LFD.2.11.1608031029420.1768@ja.home.ssi.bg>
-References: <1470185465-17983-1-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <1470185465-17983-1-git-send-email-fw@strlen.de>
-Sender: lvs-devel-owner@vger.kernel.org
+From: Christophe Leroy <christophe.leroy@c-s.fr>
+Subject: [PATCH v2] netfilter: nf_conntrack_sip: CSeq 0 is a valid CSeq
+Date: Wed,  3 Aug 2016 12:41:40 +0200 (CEST)
+Message-ID: <20160803104141.12CDB1A2394@localhost.localdomain>
+Cc: netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+Do not drop packet when CSeq is 0 as 0 is also a valid value for CSeq.
 
-	Hello,
+simple_strtoul() will return 0 either when all digits are 0
+or if there are no digits at all. Therefore when simple_strtoul()
+returns 0 we check if first character is digit 0 or not.
 
-On Wed, 3 Aug 2016, Florian Westphal wrote:
+Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
+---
+ v2: not using kstrtouint() anymore, as it required to use a temp buffer
 
-> Once timer is removed from nf_conn struct we cannot open-code
-> the removal sequence like this anymore.
-> 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
->  ipvs maintainers:
-> 
->  Alternatively I can do a 1:1 replacement of the del_timer() with a
->  test_and_set_bit().
-> 
->  Please let me know if you would prefer this,
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_nfct.c b/net/netfilter/ipvs/ip_vs_nfct.c
-> index f04fd8d..69ce16e 100644
-> --- a/net/netfilter/ipvs/ip_vs_nfct.c
-> +++ b/net/netfilter/ipvs/ip_vs_nfct.c
-> @@ -281,18 +281,7 @@ void ip_vs_conn_drop_conntrack(struct ip_vs_conn *cp)
->  	h = nf_conntrack_find_get(cp->ipvs->net, &nf_ct_zone_dflt, &tuple);
->  	if (h) {
->  		ct = nf_ct_tuplehash_to_ctrack(h);
-> -		/* Show what happens instead of calling nf_ct_kill() */
-> -		if (del_timer(&ct->timeout)) {
+ net/netfilter/nf_conntrack_sip.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-	May be it would be better to preserve the debug
-messages, i.e. if we replace del_timer with nf_ct_kill and
-remove the ct->timeout.function call below. I assume nf_ct_kill
-still returns such bool result. Then the debug messages should
-not be affected, I think.
-
-> -			IP_VS_DBG(7, "%s: ct=%p, deleted conntrack timer for tuple="
-> -				FMT_TUPLE "\n",
-> -				__func__, ct, ARG_TUPLE(&tuple));
-> -			if (ct->timeout.function)
-> -				ct->timeout.function(ct->timeout.data);
-> -		} else {
-> -			IP_VS_DBG(7, "%s: ct=%p, no conntrack timer for tuple="
-> -				FMT_TUPLE "\n",
-> -				__func__, ct, ARG_TUPLE(&tuple));
-> -		}
-> +		nf_ct_kill(ct);
->  		nf_ct_put(ct);
->  	} else {
->  		IP_VS_DBG(7, "%s: no conntrack for tuple=" FMT_TUPLE "\n",
-> -- 
-> 2.7.3
-
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 8d9db9d..7d77217 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -1383,7 +1383,7 @@ static int process_sip_response(struct sk_buff *skb, unsigned int protoff,
+ 		return NF_DROP;
+ 	}
+ 	cseq = simple_strtoul(*dptr + matchoff, NULL, 10);
+-	if (!cseq) {
++	if (!cseq && *(*dptr + matchoff) != '0') {
+ 		nf_ct_helper_log(skb, ct, "cannot get cseq");
+ 		return NF_DROP;
+ 	}
+@@ -1446,7 +1446,7 @@ static int process_sip_request(struct sk_buff *skb, unsigned int protoff,
+ 			return NF_DROP;
+ 		}
+ 		cseq = simple_strtoul(*dptr + matchoff, NULL, 10);
+-		if (!cseq) {
++		if (!cseq && *(*dptr + matchoff) != '0') {
+ 			nf_ct_helper_log(skb, ct, "cannot get cseq");
+ 			return NF_DROP;
+ 		}
+-- 
+2.1.0
