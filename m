@@ -1,51 +1,63 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: nfnetlink_queue: fix memory leak when attach expectation successfully
-Date: Mon,  8 Aug 2016 22:03:40 +0800
-Message-ID: <1470665020-19882-1-git-send-email-zlpnobody@163.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf] netfilter: nf_expect_proc: remove the redundant slash
+ when policy name is empty
+Date: Mon, 8 Aug 2016 16:06:23 +0200
+Message-ID: <20160808140623.GA5269@salvia>
+References: <1470664678-19155-1-git-send-email-zlpnobody@163.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org,
 	Liping Zhang <liping.zhang@spreadtrum.com>
-To: pablo@netfilter.org
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-17.163.com ([220.181.12.17]:50095 "EHLO m12-17.163.com"
+Received: from mail.us.es ([193.147.175.20]:60294 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750916AbcHHOEH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Aug 2016 10:04:07 -0400
+	id S1752495AbcHHOG3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Aug 2016 10:06:29 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 8EC6A1878A1
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2016 16:06:27 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 805A71B3328
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2016 16:06:27 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 69A8B1B3260
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2016 16:06:25 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1470664678-19155-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+On Mon, Aug 08, 2016 at 09:57:58PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <liping.zhang@spreadtrum.com>
+> 
+> The 'name' filed in struct nf_conntrack_expect_policy{} is not a
+> pointer, so check it is NULL or not will always return true. Even if the
+> name is empty, slash will always be displayed like follows:
+>   # cat /proc/net/nf_conntrack_expect
+>   297 l3proto = 2 proto=6 src=1.1.1.1 dst=2.2.2.2 sport=1 dport=1025 ftp/
+>                                                                         ^
+> 
+> Fixes: 3a8fc53a45c4 ("netfilter: nf_ct_helper: allocate 16 bytes for the helper and policy names")
+> Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+> ---
+>  net/netfilter/nf_conntrack_expect.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+> index 9e36931..a4f3cc8 100644
+> --- a/net/netfilter/nf_conntrack_expect.c
+> +++ b/net/netfilter/nf_conntrack_expect.c
+> @@ -574,7 +574,7 @@ static int exp_seq_show(struct seq_file *s, void *v)
+>  	helper = rcu_dereference(nfct_help(expect->master)->helper);
+>  	if (helper) {
+>  		seq_printf(s, "%s%s", expect->flags ? " " : "", helper->name);
+> -		if (helper->expect_policy[expect->class].name)
+> +		if (helper->expect_policy[expect->class].name[0] != '\0')
 
-User can use NFQA_EXP to attach expectations to conntracks, but we
-forget to put back nf_conntrack_expect when it is inserted successfully,
-i.e. in this normal case, expect's use refcnt will be 3. So even we
-unlink it and put it back later, the use refcnt is still 1, then the
-memory will be leaked forever.
+Good catch. I can simplify this here to:
 
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
----
- net/netfilter/nf_conntrack_netlink.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+                if (helper->expect_policy[expect->class].name[0])
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 050bb34..b9bfe64 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -2362,12 +2362,8 @@ ctnetlink_glue_attach_expect(const struct nlattr *attr, struct nf_conn *ct,
- 		return PTR_ERR(exp);
- 
- 	err = nf_ct_expect_related_report(exp, portid, report);
--	if (err < 0) {
--		nf_ct_expect_put(exp);
--		return err;
--	}
--
--	return 0;
-+	nf_ct_expect_put(exp);
-+	return err;
- }
- 
- static void ctnetlink_glue_seqadj(struct sk_buff *skb, struct nf_conn *ct,
--- 
-2.5.5
-
-
+We use similar idiom in other locations in the netfilter code. No need
+to resend if OK with it.
