@@ -1,63 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: nf_expect_proc: remove the redundant slash
- when policy name is empty
-Date: Mon, 8 Aug 2016 16:06:23 +0200
-Message-ID: <20160808140623.GA5269@salvia>
-References: <1470664678-19155-1-git-send-email-zlpnobody@163.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf] netfilter: nfnetlink_queue: reject verdict request from different portid
+Date: Mon,  8 Aug 2016 22:07:27 +0800
+Message-ID: <1470665247-20570-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org,
 	Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpnobody@163.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60294 "EHLO mail.us.es"
+Received: from m12-18.163.com ([220.181.12.18]:43879 "EHLO m12-18.163.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752495AbcHHOG3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Aug 2016 10:06:29 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 8EC6A1878A1
-	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2016 16:06:27 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 805A71B3328
-	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2016 16:06:27 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 69A8B1B3260
-	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2016 16:06:25 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1470664678-19155-1-git-send-email-zlpnobody@163.com>
+	id S1751736AbcHHOIG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Aug 2016 10:08:06 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 08, 2016 at 09:57:58PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
-> 
-> The 'name' filed in struct nf_conntrack_expect_policy{} is not a
-> pointer, so check it is NULL or not will always return true. Even if the
-> name is empty, slash will always be displayed like follows:
->   # cat /proc/net/nf_conntrack_expect
->   297 l3proto = 2 proto=6 src=1.1.1.1 dst=2.2.2.2 sport=1 dport=1025 ftp/
->                                                                         ^
-> 
-> Fixes: 3a8fc53a45c4 ("netfilter: nf_ct_helper: allocate 16 bytes for the helper and policy names")
-> Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
-> ---
->  net/netfilter/nf_conntrack_expect.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-> index 9e36931..a4f3cc8 100644
-> --- a/net/netfilter/nf_conntrack_expect.c
-> +++ b/net/netfilter/nf_conntrack_expect.c
-> @@ -574,7 +574,7 @@ static int exp_seq_show(struct seq_file *s, void *v)
->  	helper = rcu_dereference(nfct_help(expect->master)->helper);
->  	if (helper) {
->  		seq_printf(s, "%s%s", expect->flags ? " " : "", helper->name);
-> -		if (helper->expect_policy[expect->class].name)
-> +		if (helper->expect_policy[expect->class].name[0] != '\0')
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Good catch. I can simplify this here to:
+Like NFQNL_MSG_VERDICT_BATCH do, we should also reject the verdict
+request when the portid is not same with the initial portid(maybe
+from another process).
 
-                if (helper->expect_policy[expect->class].name[0])
+Fixes: 97d32cf9440d ("netfilter: nfnetlink_queue: batch verdict support")
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+---
+ net/netfilter/nfnetlink_queue.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-We use similar idiom in other locations in the netfilter code. No need
-to resend if OK with it.
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 5d36a09..f49f450 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1145,10 +1145,8 @@ static int nfqnl_recv_verdict(struct net *net, struct sock *ctnl,
+ 	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
+ 	int err;
+ 
+-	queue = instance_lookup(q, queue_num);
+-	if (!queue)
+-		queue = verdict_instance_lookup(q, queue_num,
+-						NETLINK_CB(skb).portid);
++	queue = verdict_instance_lookup(q, queue_num,
++					NETLINK_CB(skb).portid);
+ 	if (IS_ERR(queue))
+ 		return PTR_ERR(queue);
+ 
+-- 
+2.5.5
+
+
