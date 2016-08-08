@@ -1,66 +1,60 @@
-From: Julian Anastasov <ja@ssi.bg>
-Subject: Re: [PATCH nf-next v2] ipvs: use nf_ct_kill helper
-Date: Wed, 3 Aug 2016 21:37:16 +0300 (EEST)
-Message-ID: <alpine.LFD.2.11.1608032134370.1914@ja.home.ssi.bg>
-References: <1470230488-302-1-git-send-email-fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next] netfilter: nf_ct_h323: do not re-activate
+ already expired timer
+Date: Mon, 8 Aug 2016 13:07:20 +0200
+Message-ID: <20160808110720.GA4796@salvia>
+References: <1469283416-25879-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, lvs-devel@vger.kernel.org,
-	Simon Horman <horms@verge.net.au>
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>,
+	Gao Feng <fgao@ikuai8.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ja.ssi.bg ([178.16.129.10]:54707 "EHLO ja.ssi.bg"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755119AbcHCSiC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Aug 2016 14:38:02 -0400
-In-Reply-To: <1470230488-302-1-git-send-email-fw@strlen.de>
+Received: from mail.us.es ([193.147.175.20]:45006 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752072AbcHHLH2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Aug 2016 07:07:28 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 728F3186AD2
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2016 13:07:25 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 64AE0100A63
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2016 13:07:25 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A53B6FF6FB
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2016 13:07:21 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1469283416-25879-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-	Hello,
-
-On Wed, 3 Aug 2016, Florian Westphal wrote:
-
-> Once timer is removed from nf_conn struct we cannot open-code
-> the removal sequence anymore.
+On Sat, Jul 23, 2016 at 10:16:56PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <liping.zhang@spreadtrum.com>
 > 
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-
-	Looks good to me,
-
-Acked-by: Julian Anastasov <ja@ssi.bg>
-
-> ---
->  V2: keep debug messages around.
+> Commit 96d1327ac2e3 ("netfilter: h323: Use mod_timer instead of
+> set_expect_timeout") just simplify the source codes
+>     if (!del_timer(&exp->timeout))
+>         return 0;
+>     add_timer(&exp->timeout);
+> to mod_timer(&exp->timeout, jiffies + info->timeout * HZ);
 > 
->  net/netfilter/ipvs/ip_vs_nfct.c | 7 ++-----
->  1 file changed, 2 insertions(+), 5 deletions(-)
+> This is not correct, and introduce a race codition:
+>     CPU0                     CPU1
+>      -                     timer expire
+>   process_rcf              expectation_timed_out
+>   lock(exp_lock)              -
+>   find_exp                 waiting exp_lock...
+>   re-activate timer!!      waiting exp_lock...
+>   unlock(exp_lock)         lock(exp_lock)
+>      -                     unlink expect
+>      -                     free(expect)
+>      -                     unlock(exp_lock)
+> So when the timer expires again, we will access the memory that
+> was already freed.
 > 
-> diff --git a/net/netfilter/ipvs/ip_vs_nfct.c b/net/netfilter/ipvs/ip_vs_nfct.c
-> index f04fd8d..fc230d9 100644
-> --- a/net/netfilter/ipvs/ip_vs_nfct.c
-> +++ b/net/netfilter/ipvs/ip_vs_nfct.c
-> @@ -281,13 +281,10 @@ void ip_vs_conn_drop_conntrack(struct ip_vs_conn *cp)
->  	h = nf_conntrack_find_get(cp->ipvs->net, &nf_ct_zone_dflt, &tuple);
->  	if (h) {
->  		ct = nf_ct_tuplehash_to_ctrack(h);
-> -		/* Show what happens instead of calling nf_ct_kill() */
-> -		if (del_timer(&ct->timeout)) {
-> -			IP_VS_DBG(7, "%s: ct=%p, deleted conntrack timer for tuple="
-> +		if (nf_ct_kill(ct)) {
-> +			IP_VS_DBG(7, "%s: ct=%p, deleted conntrack for tuple="
->  				FMT_TUPLE "\n",
->  				__func__, ct, ARG_TUPLE(&tuple));
-> -			if (ct->timeout.function)
-> -				ct->timeout.function(ct->timeout.data);
->  		} else {
->  			IP_VS_DBG(7, "%s: ct=%p, no conntrack timer for tuple="
->  				FMT_TUPLE "\n",
-> -- 
-> 2.7.3
+> Replace mod_timer with mod_timer_pending here to fix this problem.
+> 
+> Fixes: 96d1327ac2e3 ("netfilter: h323: Use mod_timer instead of set_expect_timeout")
 
-Regards
-
---
-Julian Anastasov <ja@ssi.bg>
+Applied, thanks Zhang.
