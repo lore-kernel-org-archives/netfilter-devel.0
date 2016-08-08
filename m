@@ -1,7 +1,7 @@
 From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
-Subject: [PATCH 5/5, V2, nft] Implement deleting rule by description
-Date: Mon,  8 Aug 2016 14:42:35 +0200
-Message-ID: <20160808124235.11135-5-carlosfg@riseup.net>
+Subject: [PATCH 2/5, V2, libnftnl] rule: Implement internal expression iterator
+Date: Mon,  8 Aug 2016 14:42:32 +0200
+Message-ID: <20160808124235.11135-2-carlosfg@riseup.net>
 References: <20160808111758.4062-1-carlosfg@riseup.net>
  <20160808124235.11135-1-carlosfg@riseup.net>
 Mime-Version: 1.0
@@ -10,206 +10,77 @@ Content-Transfer-Encoding: 8bit
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:50048 "EHLO mx1.riseup.net"
+Received: from mx1.riseup.net ([198.252.153.129]:50006 "EHLO mx1.riseup.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752169AbcHHMnP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Aug 2016 08:43:15 -0400
+	id S1752169AbcHHMnM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Aug 2016 08:43:12 -0400
 In-Reply-To: <20160808124235.11135-1-carlosfg@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-	$ nft list -a ruleset
-	table ip t {
-		chain c {
-			ip saddr 1.1.1.1 counter packets 0 bytes 0 # handle 1
-			ip saddr 1.1.1.2 counter packets 0 bytes 0 # handle 2
-			ip saddr 1.1.1.2 counter packets 0 bytes 0 # handle 3
-			ip saddr 1.1.1.4 counter packets 0 bytes 0 # handle 4
-		}
-	}
-
-Before this patch:
-	$ nft delete rule table chain ip saddr 1.1.1.2 counter
-	<cmdline>:1:17-18: Error: syntax error, unexpected ip, expecting end of
-	file or newline or semicolon
-	delete rule t c ip saddr 1.1.1.2 counter
-	                ^^
-
-After this patch:
-	$ nft delete rule table chain ip saddr 1.1.1.2 counter
-	$ nft list -a ruleset
-	table ip t {
-		chain c {
-			ip saddr 1.1.1.1 counter packets 0 bytes 0 # handle 1
-			ip saddr 1.1.1.2 counter packets 0 bytes 0 # handle 3
-			ip saddr 1.1.1.4 counter packets 0 bytes 0 # handle 4
-		}
-	}
+Introduce nftnl_expr_iter_init() to allow stack allocated iterators for
+internal use.
 
 Signed-off-by: Carlos Falgueras García <carlosfg@riseup.net>
 ---
- src/evaluate.c     |  7 +++++++
- src/parser_bison.y | 28 +++++++++++++++++++++-------
- src/rule.c         | 45 +++++++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 71 insertions(+), 9 deletions(-)
+ src/rule.c | 30 +++++++++++++++++++-----------
+ 1 file changed, 19 insertions(+), 11 deletions(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 4611969..efd5f69 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2573,8 +2573,15 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
- 			return ret;
- 
- 		return setelem_evaluate(ctx, &cmd->expr);
-+		break;
- 	case CMD_OBJ_SET:
- 	case CMD_OBJ_RULE:
-+		// CMD_LIST force caching all ruleset
-+		ret = cache_update(CMD_LIST, ctx->msgs);
-+		if (ret < 0)
-+			return ret;
-+		return rule_evaluate(ctx, cmd->rule);
-+		break;
- 	case CMD_OBJ_CHAIN:
- 	case CMD_OBJ_TABLE:
- 		return 0;
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 8e83970..096a22a 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -425,8 +425,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %type <cmd>			base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
- %destructor { cmd_free($$); }	base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
- 
--%type <handle>			table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
--%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
-+%type <handle>			table_spec chain_spec chain_identifier handle_spec position_spec rule_position ruleset_spec
-+%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier handle_spec position_spec rule_position ruleset_spec
- %type <handle>			set_spec set_identifier
- %destructor { handle_free(&$$); } set_spec set_identifier
- %type <val>			family_spec family_spec_explicit chain_policy prio_spec
-@@ -438,7 +438,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %destructor { close_scope(state); table_free($$); }	table_block_alloc
- %type <chain>			chain_block_alloc chain_block
- %destructor { close_scope(state); chain_free($$); }	chain_block_alloc
--%type <rule>			rule rule_alloc
-+%type <rule>			rule ruleid_spec rule_alloc
- %destructor { rule_free($$); }	rule
- 
- %type <val>			set_flag_list	set_flag
-@@ -745,7 +745,7 @@ add_cmd			:	TABLE		table_spec
- 
- replace_cmd		:	RULE		ruleid_spec	rule
- 			{
--				$$ = cmd_alloc(CMD_REPLACE, CMD_OBJ_RULE, &$2, &@$, $3);
-+				$$ = cmd_alloc(CMD_REPLACE, CMD_OBJ_RULE, &$2->handle, &@$, $3);
- 			}
- 			;
- 
-@@ -790,7 +790,7 @@ delete_cmd		:	TABLE		table_spec
- 			}
- 			|	RULE		ruleid_spec
- 			{
--				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_RULE, &$2, &@$, NULL);
-+				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_RULE, &$2->handle, &@$, $2);
- 			}
- 			|	SET		set_spec
- 			{
-@@ -1280,8 +1280,22 @@ rule_position		:	chain_spec
- 
- ruleid_spec		:	chain_spec handle_spec
- 			{
--				$$ = $1;
--				handle_merge(&$$, &$2);
-+				$$ = rule_alloc(&@$, NULL);
-+				$$->handle = $1;
-+				handle_merge(&$$->handle, &$2);
-+			}
-+			|
-+				chain_spec rule
-+			{
-+				$$ = $2;
-+				handle_merge(&$$->handle, &$1);
-+			}
-+			|	chain_spec error
-+			{
-+				erec_queue(error(&@2, "Expected `handle' or rule description"),
-+					   state->msgs);
-+				$$ = rule_alloc(&@$, NULL);
-+				handle_merge(&$$->handle, &$1);
- 			}
- 			;
- 
 diff --git a/src/rule.c b/src/rule.c
-index 14e57f2..3f15ee5 100644
+index 30b8b5e..35b0f29 100644
 --- a/src/rule.c
 +++ b/src/rule.c
-@@ -402,6 +402,32 @@ void rule_print(const struct rule *rule)
- 		printf(" # handle %" PRIu64, rule->handle.handle.id);
- }
+@@ -29,6 +29,14 @@
+ #include <libnftnl/set.h>
+ #include <libnftnl/expr.h>
  
-+static struct rule *search_first_rule(const struct rule *rule)
-+{
-+	struct nftnl_rule *nlr1, *nlr2;
-+	struct rule *rule_idx;
-+	struct table *table;
-+	struct chain *chain;
++struct nftnl_expr_iter {
++	const struct nftnl_rule	*r;
++	struct nftnl_expr	*cur;
++};
 +
-+	table = table_lookup(&rule->handle);
-+	if (!table)
-+		return NULL;
-+	chain = chain_lookup(table, &rule->handle);
-+	if (!chain)
-+		return NULL;
++static void nftnl_expr_iter_init(const struct nftnl_rule *r,
++				 struct nftnl_expr_iter *iter);
 +
-+	nlr1 = alloc_nftnl_rule(&rule->handle);
-+	netlink_linearize_rule(NULL, nlr1, rule);
-+
-+	list_for_each_entry(rule_idx, &chain->rules, list) {
-+		nlr2 = alloc_nftnl_rule(&rule_idx->handle);
-+		netlink_linearize_rule(NULL, nlr2, rule_idx);
-+		if (nftnl_rule_cmp(nlr1, nlr2))
-+			return rule_idx;
-+	}
-+	return NULL;
-+}
-+
- struct rule *rule_lookup(const struct chain *chain, uint64_t handle)
- {
- 	struct rule *rule;
-@@ -1010,6 +1036,22 @@ static int do_delete_setelems(struct netlink_ctx *ctx, const struct handle *h,
- 	return 0;
- }
+ struct nftnl_rule {
+ 	struct list_head head;
  
-+static int do_delete_rule(struct netlink_ctx *ctx, const struct cmd *cmd)
+@@ -1025,10 +1033,16 @@ int nftnl_expr_foreach(struct nftnl_rule *r,
+ }
+ EXPORT_SYMBOL_ALIAS(nftnl_expr_foreach, nft_rule_expr_foreach);
+ 
+-struct nftnl_expr_iter {
+-	const struct nftnl_rule	*r;
+-	struct nftnl_expr	*cur;
+-};
++static void nftnl_expr_iter_init(const struct nftnl_rule *r,
++				 struct nftnl_expr_iter *iter)
 +{
-+	struct rule *rule;
-+
-+	// Delete by handle
-+	if (cmd->handle.handle.id)
-+		return netlink_del_rule_batch(ctx, &cmd->handle, &cmd->location);
-+
-+	// Delete by description
-+	rule = search_first_rule(cmd->rule);
-+	if (!rule)
-+		return 0;
-+	return netlink_del_rule_batch(ctx, &rule->handle,
-+				      &rule->handle.position.location);
++	iter->r = r;
++	if (list_empty(&r->expr_list))
++		iter->cur = NULL;
++	else
++		iter->cur = list_entry(r->expr_list.next, struct nftnl_expr,
++				       head);
 +}
-+
- static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
+ 
+ struct nftnl_expr_iter *nftnl_expr_iter_create(const struct nftnl_rule *r)
  {
- 	switch (cmd->obj) {
-@@ -1018,8 +1060,7 @@ static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_CHAIN:
- 		return netlink_delete_chain(ctx, &cmd->handle, &cmd->location);
- 	case CMD_OBJ_RULE:
--		return netlink_del_rule_batch(ctx, &cmd->handle,
--					      &cmd->location);
-+		return do_delete_rule(ctx, cmd);
- 	case CMD_OBJ_SET:
- 		return netlink_delete_set(ctx, &cmd->handle, &cmd->location);
- 	case CMD_OBJ_SETELEM:
+@@ -1037,13 +1051,7 @@ struct nftnl_expr_iter *nftnl_expr_iter_create(const struct nftnl_rule *r)
+ 	iter = calloc(1, sizeof(struct nftnl_expr_iter));
+ 	if (iter == NULL)
+ 		return NULL;
+-
+-	iter->r = r;
+-	if (list_empty(&r->expr_list))
+-		iter->cur = NULL;
+-	else
+-		iter->cur = list_entry(r->expr_list.next, struct nftnl_expr,
+-				       head);
++	nftnl_expr_iter_init(r, iter);
+ 
+ 	return iter;
+ }
 -- 
 2.8.3
 
