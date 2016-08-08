@@ -1,235 +1,130 @@
-From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
-Subject: [PATCH 3/4, nft] Simplify parser rule_spec tree
-Date: Mon,  8 Aug 2016 13:17:57 +0200
-Message-ID: <20160808111758.4062-3-carlosfg@riseup.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/4, libnftnl] rule: Implement internal expression
+ iterator
+Date: Mon, 8 Aug 2016 13:25:02 +0200
+Message-ID: <20160808112502.GA11574@salvia>
 References: <20160808111758.4062-1-carlosfg@riseup.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:45000 "EHLO mx1.riseup.net"
+Received: from mail.us.es ([193.147.175.20]:50690 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752204AbcHHLSP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Aug 2016 07:18:15 -0400
+	id S1752014AbcHHLZL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Aug 2016 07:25:11 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 18C71186AC3
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2016 13:25:10 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id F4187100A63
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2016 13:25:09 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A879D114D61
+	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2016 13:25:07 +0200 (CEST)
+Content-Disposition: inline
 In-Reply-To: <20160808111758.4062-1-carlosfg@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch separates the rule identification from the rule localization, so
-the logic moves from the evaluator to the parser. This allows to revert the
-patch "evaluate: improve rule managment checks"
-(4176c7d30c2ff1b3f52468fc9c08b8df83f979a8) and saves a lot of code.
+On Mon, Aug 08, 2016 at 01:17:55PM +0200, Carlos Falgueras García wrote:
+> With 'nftnl_expr_iter_init' we can create an expression iterator without
+> dynamic memory allocation.
 
-Signed-off-by: Carlos Falgueras GarcÃ­a <carlosfg@riseup.net>
----
- src/evaluate.c     | 68 +-----------------------------------------------------
- src/parser_bison.y | 51 +++++++++++++++++++++-------------------
- 2 files changed, 28 insertions(+), 91 deletions(-)
+I'd suggest this description:
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index f24e5f3..4611969 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -65,12 +65,6 @@ static int __fmtstring(4, 5) __stmt_binary_error(struct eval_ctx *ctx,
- 	__stmt_binary_error(ctx, &(s1)->location, NULL, fmt, ## args)
- #define cmd_error(ctx, fmt, args...) \
- 	__stmt_binary_error(ctx, &(ctx->cmd)->location, NULL, fmt, ## args)
--#define handle_error(ctx, fmt, args...) \
--	__stmt_binary_error(ctx, &ctx->cmd->handle.handle.location, NULL, fmt, ## args)
--#define position_error(ctx, fmt, args...) \
--	__stmt_binary_error(ctx, &ctx->cmd->handle.position.location, NULL, fmt, ## args)
--#define handle_position_error(ctx, fmt, args...) \
--	__stmt_binary_error(ctx, &ctx->cmd->handle.handle.location, &ctx->cmd->handle.position.location, fmt, ## args)
- 
- static int __fmtstring(3, 4) set_error(struct eval_ctx *ctx,
- 				       const struct set *set,
-@@ -2394,68 +2388,11 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
- 	return 0;
- }
- 
--static int rule_evaluate_cmd(struct eval_ctx *ctx)
--{
--	struct handle *handle = &ctx->cmd->handle;
--
--	/* allowed:
--	 * - insert [position] (no handle)
--	 * - add [position] (no handle)
--	 * - replace <handle> (no position)
--	 * - delete <handle> (no position)
--	 */
--
--	switch (ctx->cmd->op) {
--	case CMD_INSERT:
--		if (handle->handle.id && handle->position.id)
--			return handle_position_error(ctx, "use only `position'"
--						     " instead");
--
--		if (handle->handle.id)
--			return handle_error(ctx, "use `position' instead");
--		break;
--	case CMD_ADD:
--		if (handle->handle.id && handle->position.id)
--			return handle_position_error(ctx, "use only `position'"
--						     " instead");
--
--		if (handle->handle.id)
--			return handle_error(ctx, "use `position' instead");
--
--		break;
--	case CMD_REPLACE:
--		if (handle->handle.id && handle->position.id)
--			return handle_position_error(ctx, "use only `handle' "
--						     "instead");
--		if (handle->position.id)
--			return position_error(ctx, "use `handle' instead");
--		if (!handle->handle.id)
--			return cmd_error(ctx, "missing `handle'");
--		break;
--	case CMD_DELETE:
--		if (handle->handle.id && handle->position.id)
--			return handle_position_error(ctx, "use only `handle' "
--						     "instead");
--		if (handle->position.id)
--			return position_error(ctx, "use `handle' instead");
--		if (!handle->handle.id)
--			return cmd_error(ctx, "missing `handle'");
--		break;
--	default:
--		BUG("unkown command type %u\n", ctx->cmd->op);
--	}
--
--	return 0;
--}
--
- static int rule_evaluate(struct eval_ctx *ctx, struct rule *rule)
- {
- 	struct stmt *stmt, *tstmt = NULL;
- 	struct error_record *erec;
- 
--	if (rule_evaluate_cmd(ctx) < 0)
--		return -1;
--
- 	proto_ctx_init(&ctx->pctx, rule->handle.family);
- 	memset(&ctx->ectx, 0, sizeof(ctx->ectx));
- 
-@@ -2636,11 +2573,8 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
- 			return ret;
- 
- 		return setelem_evaluate(ctx, &cmd->expr);
--	case CMD_OBJ_RULE:
--		if (rule_evaluate_cmd(ctx) < 0)
--			return -1;
--		/* fall through */
- 	case CMD_OBJ_SET:
-+	case CMD_OBJ_RULE:
- 	case CMD_OBJ_CHAIN:
- 	case CMD_OBJ_TABLE:
- 		return 0;
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index d7cba23..8e83970 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -425,15 +425,12 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %type <cmd>			base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
- %destructor { cmd_free($$); }	base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
- 
--%type <handle>			table_spec chain_spec chain_identifier ruleid_spec ruleset_spec
--%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec ruleset_spec
-+%type <handle>			table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
-+%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
- %type <handle>			set_spec set_identifier
- %destructor { handle_free(&$$); } set_spec set_identifier
- %type <val>			family_spec family_spec_explicit chain_policy prio_spec
- 
--%type <handle_spec>		handle_spec
--%type <position_spec>		position_spec
--
- %type <string>			dev_spec
- %destructor { xfree($$); }	dev_spec
- 
-@@ -718,11 +715,11 @@ add_cmd			:	TABLE		table_spec
- 				close_scope(state);
- 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_CHAIN, &$2, &@$, $5);
- 			}
--			|	RULE		ruleid_spec	rule
-+			|	RULE		rule_position	rule
- 			{
- 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_RULE, &$2, &@$, $3);
- 			}
--			|	/* empty */	ruleid_spec	rule
-+			|	/* empty */	rule_position	rule
- 			{
- 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_RULE, &$1, &@$, $2);
- 			}
-@@ -777,7 +774,7 @@ create_cmd		:	TABLE		table_spec
- 			}
- 			;
- 
--insert_cmd		:	RULE		ruleid_spec	rule
-+insert_cmd		:	RULE		rule_position	rule
- 			{
- 				$$ = cmd_alloc(CMD_INSERT, CMD_OBJ_RULE, &$2, &@$, $3);
- 			}
-@@ -1250,35 +1247,41 @@ set_identifier		:	identifier
- 			}
- 			;
- 
--handle_spec		:	/* empty */
-+handle_spec		:	HANDLE		NUM
- 			{
--				memset(&$$, 0, sizeof($$));
-+				$$.handle.location	= @$;
-+				$$.handle.id		= $2;
- 			}
--			|	HANDLE		NUM
-+			;
-+
-+position_spec		:	POSITION	NUM
- 			{
--				memset(&$$, 0, sizeof($$));
--				$$.location	= @$;
--				$$.id		= $2;
-+				$$.position.location	= @$;
-+				$$.position.id		= $2;
- 			}
- 			;
- 
--position_spec		:	/* empty */
-+rule_position		:	chain_spec
- 			{
--				memset(&$$, 0, sizeof($$));
-+				$$ = $1;
- 			}
--			|	POSITION	NUM
-+			|	chain_spec position_spec
- 			{
--				memset(&$$, 0, sizeof($$));
--				$$.location	= @$;
--				$$.id		= $2;
-+				$$ = $1;
-+				handle_merge(&$$, &$2);
-+			}
-+			|	chain_spec error
-+			{
-+				erec_queue(error(&@2, "Expected `position' or nothing"),
-+					   state->msgs);
-+				$$ = $1;
- 			}
- 			;
- 
--ruleid_spec		:	chain_spec	handle_spec	position_spec
-+ruleid_spec		:	chain_spec handle_spec
- 			{
--				$$		= $1;
--				$$.handle	= $2;
--				$$.position	= $3;
-+				$$ = $1;
-+				handle_merge(&$$, &$2);
- 			}
- 			;
- 
--- 
-2.8.3
+Introduce nftnl_expr_iter_init() to allow stack allocated iterators
+for internal use.
 
+Another comment below.
+
+> Signed-off-by: Carlos Falgueras García <carlosfg@riseup.net>
+> ---
+>  include/internal.h |  1 +
+>  include/rule.h     | 15 +++++++++++++++
+>  src/rule.c         | 23 ++++++++++++-----------
+>  3 files changed, 28 insertions(+), 11 deletions(-)
+>  create mode 100644 include/rule.h
+> 
+> diff --git a/include/internal.h b/include/internal.h
+> index c74e2bf..f1b6511 100644
+> --- a/include/internal.h
+> +++ b/include/internal.h
+> @@ -12,6 +12,7 @@
+>  #include "set.h"
+>  #include "set_elem.h"
+>  #include "expr.h"
+> +#include "rule.h"
+>  #include "expr_ops.h"
+>  #include "buffer.h"
+>  
+> diff --git a/include/rule.h b/include/rule.h
+> new file mode 100644
+> index 0000000..e2ea578
+> --- /dev/null
+> +++ b/include/rule.h
+> @@ -0,0 +1,15 @@
+> +#ifndef _LIBNFTNL_RULE_INTERNAL_H_
+> +#define _LIBNFTNL_RULE_INTERNAL_H_
+> +
+> +#include <libnftnl/rule.h>
+> +#include <libnftnl/expr.h>
+> +
+> +struct nftnl_expr_iter {
+> +	const struct nftnl_rule	*r;
+> +	struct nftnl_expr	*cur;
+> +};
+> +
+> +void nftnl_expr_iter_init(const struct nftnl_rule *r,
+> +			  struct nftnl_expr_iter *iter);
+
+If nftnl_expr_iter_init() is only used from src/rule.c, then there is
+no need to expose this rule include/rule.h
+
+> +
+> +#endif
+> diff --git a/src/rule.c b/src/rule.c
+> index a0edca7..0cfddf2 100644
+> --- a/src/rule.c
+> +++ b/src/rule.c
+> @@ -1025,10 +1025,17 @@ int nftnl_expr_foreach(struct nftnl_rule *r,
+>  }
+>  EXPORT_SYMBOL_ALIAS(nftnl_expr_foreach, nft_rule_expr_foreach);
+>  
+> -struct nftnl_expr_iter {
+> -	struct nftnl_rule		*r;
+> -	struct nftnl_expr	*cur;
+> -};
+> +void nftnl_expr_iter_init(const struct nftnl_rule *r,
+> +			  struct nftnl_expr_iter *iter)
+> +{
+> +	iter->r = r;
+> +	if (list_empty(&r->expr_list))
+> +		iter->cur = NULL;
+> +	else
+> +		iter->cur = list_entry(r->expr_list.next, struct nftnl_expr,
+> +				       head);
+> +}
+> +EXPORT_SYMBOL(nftnl_expr_iter_init);
+>  
+>  struct nftnl_expr_iter *nftnl_expr_iter_create(struct nftnl_rule *r)
+>  {
+> @@ -1037,13 +1044,7 @@ struct nftnl_expr_iter *nftnl_expr_iter_create(struct nftnl_rule *r)
+>  	iter = calloc(1, sizeof(struct nftnl_expr_iter));
+>  	if (iter == NULL)
+>  		return NULL;
+> -
+> -	iter->r = r;
+> -	if (list_empty(&r->expr_list))
+> -		iter->cur = NULL;
+> -	else
+> -		iter->cur = list_entry(r->expr_list.next, struct nftnl_expr,
+> -				       head);
+> +	nftnl_expr_iter_init(r, iter);
+>  
+>  	return iter;
+>  }
+> -- 
+> 2.8.3
+> 
