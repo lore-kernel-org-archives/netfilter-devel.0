@@ -1,60 +1,27 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: nf_ct_h323: do not re-activate
- already expired timer
-Date: Mon, 8 Aug 2016 13:07:20 +0200
-Message-ID: <20160808110720.GA4796@salvia>
-References: <1469283416-25879-1-git-send-email-zlpnobody@163.com>
+Subject: Re: [PATCH v2] netfilter: nf_conntrack_sip: CSeq 0 is a valid CSeq
+Date: Mon, 8 Aug 2016 13:10:54 +0200
+Message-ID: <20160808111054.GA4915@salvia>
+References: <20160803104141.12CDB1A2394@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>,
-	Gao Feng <fgao@ikuai8.com>
-To: Liping Zhang <zlpnobody@163.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45006 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752072AbcHHLH2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Aug 2016 07:07:28 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 728F3186AD2
-	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2016 13:07:25 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 64AE0100A63
-	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2016 13:07:25 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id A53B6FF6FB
-	for <netfilter-devel@vger.kernel.org>; Mon,  8 Aug 2016 13:07:21 +0200 (CEST)
+Cc: Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	"David S. Miller" <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Christophe Leroy <christophe.leroy@c-s.fr>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1469283416-25879-1-git-send-email-zlpnobody@163.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20160803104141.12CDB1A2394@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Jul 23, 2016 at 10:16:56PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
+On Wed, Aug 03, 2016 at 12:41:40PM +0200, Christophe Leroy wrote:
+> Do not drop packet when CSeq is 0 as 0 is also a valid value for CSeq.
 > 
-> Commit 96d1327ac2e3 ("netfilter: h323: Use mod_timer instead of
-> set_expect_timeout") just simplify the source codes
->     if (!del_timer(&exp->timeout))
->         return 0;
->     add_timer(&exp->timeout);
-> to mod_timer(&exp->timeout, jiffies + info->timeout * HZ);
-> 
-> This is not correct, and introduce a race codition:
->     CPU0                     CPU1
->      -                     timer expire
->   process_rcf              expectation_timed_out
->   lock(exp_lock)              -
->   find_exp                 waiting exp_lock...
->   re-activate timer!!      waiting exp_lock...
->   unlock(exp_lock)         lock(exp_lock)
->      -                     unlink expect
->      -                     free(expect)
->      -                     unlock(exp_lock)
-> So when the timer expires again, we will access the memory that
-> was already freed.
-> 
-> Replace mod_timer with mod_timer_pending here to fix this problem.
-> 
-> Fixes: 96d1327ac2e3 ("netfilter: h323: Use mod_timer instead of set_expect_timeout")
+> simple_strtoul() will return 0 either when all digits are 0
+> or if there are no digits at all. Therefore when simple_strtoul()
+> returns 0 we check if first character is digit 0 or not.
 
-Applied, thanks Zhang.
+Applied, thanks.
