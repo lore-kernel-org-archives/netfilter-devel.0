@@ -1,38 +1,35 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] rule: Constify rule iterators
-Date: Tue, 9 Aug 2016 09:17:04 +0200
-Message-ID: <20160809071704.GB1866@salvia>
-References: <20160808144834.GB6264@salvia>
- <20160808181016.4411-1-carlosfg@riseup.net>
+Subject: Re: [PATCH iptables] xtables-compat: fix comments listing
+Date: Tue, 9 Aug 2016 10:41:55 +0200
+Message-ID: <20160809084155.GA9445@salvia>
+References: <20160802142947.1388-1-pablombg@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
+To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33450 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34298 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752209AbcHIHRQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Aug 2016 03:17:16 -0400
+	id S1751596AbcHIImD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Aug 2016 04:42:03 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 7EA94A4167
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 09:17:12 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 301BBD162F
+	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 10:41:59 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 7078F1B332B
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 09:17:12 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 2223B9663E
+	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 10:41:59 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 6D4141B3245
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 09:17:10 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 3A2EA9663E
+	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 10:41:57 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160808181016.4411-1-carlosfg@riseup.net>
+In-Reply-To: <20160802142947.1388-1-pablombg@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 08, 2016 at 08:10:16PM +0200, Carlos Falgueras García wrote:
-> Iterators do not modify objects which they iterate, so input pointer must
-> be const.
+On Tue, Aug 02, 2016 at 04:29:47PM +0200, Pablo M. Bermudo Garay wrote:
+> ip[6]tables-compat -L was not printing the comments since commit
+> d64ef34a9961 ("iptables-compat: use nft built-in comments support").
+> 
+> This patch solves the issue.
 
-Please, constify other iterators: chain, set, set_elem, table, and so
-on. So we get this code in sync too.
-
-Thanks.
+Applied, thanks.
