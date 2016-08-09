@@ -1,85 +1,83 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: nf_tables: rename set implementations
-Date: Tue,  9 Aug 2016 16:11:46 +0200
-Message-ID: <1470751906-1534-1-git-send-email-pablo@netfilter.org>
-Cc: nevola@gmail.com
-To: netfilter-devel@vger.kernel.org
+From: Laura Garcia <nevola@gmail.com>
+Subject: Re: [PATCH v2] netfilter: nft_nth: match every n packets
+Date: Tue, 9 Aug 2016 16:13:40 +0200
+Message-ID: <20160809141339.GA6805@sonyv>
+References: <20160727220053.GA26643@sonyv>
+ <20160727230105.GC2565@breakpoint.cc>
+ <20160728074252.GA28885@sonyv>
+ <20160728092059.GD2565@breakpoint.cc>
+ <20160809105253.GA11493@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52196 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751804AbcHIOMj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Aug 2016 10:12:39 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 647721878A9
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 16:12:35 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 5503AFC61A
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 16:12:35 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 0DCF9FF153
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 16:12:33 +0200 (CEST)
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35788 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751804AbcHIONo (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Aug 2016 10:13:44 -0400
+Received: by mail-wm0-f67.google.com with SMTP id i5so3372970wmg.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 09 Aug 2016 07:13:44 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20160809105253.GA11493@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Use nft_set_* prefix for backend set implementations, thus we can use
-nft_hash for the new hash expression.
+On Tue, Aug 09, 2016 at 12:52:53PM +0200, Pablo Neira Ayuso wrote:
+> On Thu, Jul 28, 2016 at 11:20:59AM +0200, Florian Westphal wrote:
+> > Laura Garcia <nevola@gmail.com> wrote:
+> > > On Thu, Jul 28, 2016 at 01:01:05AM +0200, Florian Westphal wrote:
+> > > > How exactly is this used by nftables?
+> > > > 
+> > > > AFAIU usespace will check if ->dreg is 0 or not, but does that make
+> > > > sense?
+> > > > 
+> > > > Seems to me it would be more straightforward to not use a dreg at all
+> > > > and just NFT_BREAK if nval != 0?
+> > > > 
+> > > 
+> > > The main idea is to provide a round robin like scheduling method, for
+> > > example:
+> > > 
+> > > ip daddr <ipsaddr> dnat nth 3 map {
+> > >         0: <ipdaddrA>,
+> > >         1: <ipdaddrB>,
+> > >         2: <ipdaddrC>
+> > > }
+> > > 
+> > 
+> > That makes sense, would be nice to place a small blurb in the commit
+> > message.
+> 
+> I'd suggest you rename this to nft_numgen.c where numgen stands for
+> 'number generator', then rename 'every' to 'until' (this sets the
+> upper limit in the generator) and add support for random too, so we
+> provide incremental and random number generators to start with and we
+> leave room to extend this with more number generators in the future if
+> needed.
+> 
+> Florian added random to meta, but I don't see an easy way to reuse
+> this with maps unless we introduce another modulus/scale expression,
+> and we should skip oversplitting expressions in way too basic
+> operations.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-Laura, I'm posting this patch that you need in first place before the hash
-expression.
+So, do you mean something like this?
 
- net/netfilter/Kconfig                            | 4 ++--
- net/netfilter/Makefile                           | 4 ++--
- net/netfilter/{nft_hash.c => nft_set_hash.c}     | 0
- net/netfilter/{nft_rbtree.c => nft_set_rbtree.c} | 0
- 4 files changed, 4 insertions(+), 4 deletions(-)
- rename net/netfilter/{nft_hash.c => nft_set_hash.c} (100%)
- rename net/netfilter/{nft_rbtree.c => nft_set_rbtree.c} (100%)
+ip daddr <ipsaddr> dnat numgen nth 3 map {
+        0: <ipdaddrA>,
+        1: <ipdaddrB>,
+        2: <ipdaddrC>
+}
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 9266cee..e5740e1 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -481,13 +481,13 @@ config NFT_CT
- 	  This option adds the "meta" expression that you can use to match
- 	  connection tracking information such as the flow state.
- 
--config NFT_RBTREE
-+config NFT_SET_RBTREE
- 	tristate "Netfilter nf_tables rbtree set module"
- 	help
- 	  This option adds the "rbtree" set type (Red Black tree) that is used
- 	  to build interval-based sets.
- 
--config NFT_HASH
-+config NFT_SET_HASH
- 	tristate "Netfilter nf_tables hash set module"
- 	help
- 	  This option adds the "hash" set type that is used to build one-way
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 6913454..101fb85 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -86,8 +86,8 @@ obj-$(CONFIG_NFT_NAT)		+= nft_nat.o
- obj-$(CONFIG_NFT_QUEUE)		+= nft_queue.o
- obj-$(CONFIG_NFT_REJECT) 	+= nft_reject.o
- obj-$(CONFIG_NFT_REJECT_INET)	+= nft_reject_inet.o
--obj-$(CONFIG_NFT_RBTREE)	+= nft_rbtree.o
--obj-$(CONFIG_NFT_HASH)		+= nft_hash.o
-+obj-$(CONFIG_NFT_SET_RBTREE)	+= nft_set_rbtree.o
-+obj-$(CONFIG_NFT_SET_HASH)	+= nft_set_hash.o
- obj-$(CONFIG_NFT_COUNTER)	+= nft_counter.o
- obj-$(CONFIG_NFT_LOG)		+= nft_log.o
- obj-$(CONFIG_NFT_MASQ)		+= nft_masq.o
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_set_hash.c
-similarity index 100%
-rename from net/netfilter/nft_hash.c
-rename to net/netfilter/nft_set_hash.c
-diff --git a/net/netfilter/nft_rbtree.c b/net/netfilter/nft_set_rbtree.c
-similarity index 100%
-rename from net/netfilter/nft_rbtree.c
-rename to net/netfilter/nft_set_rbtree.c
--- 
-2.1.4
+and
+
+ip daddr <ipsaddr> dnat numgen random 3 map {
+        0: <ipdaddrA>,
+        1: <ipdaddrB>,
+        2: <ipdaddrC>
+}
+
+Maybe _math_ could be a better name?
+The counter expression could be included as well.
 
