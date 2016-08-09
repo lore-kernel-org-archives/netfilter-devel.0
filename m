@@ -1,77 +1,67 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 1/3] scanner: honor absolute and relative paths via include file
-Date: Tue,  9 Aug 2016 11:29:40 +0200
-Message-ID: <1470734982-10298-1-git-send-email-pablo@netfilter.org>
-Cc: arturo.borrero.glez@gmail.com
-To: netfilter-devel@vger.kernel.org
+Subject: Re: [PATCH v2] netfilter: nft_nth: match every n packets
+Date: Tue, 9 Aug 2016 12:52:53 +0200
+Message-ID: <20160809105253.GA11493@salvia>
+References: <20160727220053.GA26643@sonyv>
+ <20160727230105.GC2565@breakpoint.cc>
+ <20160728074252.GA28885@sonyv>
+ <20160728092059.GD2565@breakpoint.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Laura Garcia <nevola@gmail.com>, netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54856 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:57274 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752183AbcHIJaR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Aug 2016 05:30:17 -0400
+	id S1752516AbcHIKxD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Aug 2016 06:53:03 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 06FDFE9761
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 11:30:12 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 87EB7153AA4
+	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 12:52:58 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id EA5CA9663B
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 11:30:11 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 777AEFF154
+	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 12:52:58 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 5D6C7FF2FE
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 11:30:09 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 8E78B1B3327
+	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 12:52:55 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20160728092059.GD2565@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If the path refers to an absolute or relative path, do not check for the
-default include paths, eg. /etc/nftables/.
+On Thu, Jul 28, 2016 at 11:20:59AM +0200, Florian Westphal wrote:
+> Laura Garcia <nevola@gmail.com> wrote:
+> > On Thu, Jul 28, 2016 at 01:01:05AM +0200, Florian Westphal wrote:
+> > > How exactly is this used by nftables?
+> > > 
+> > > AFAIU usespace will check if ->dreg is 0 or not, but does that make
+> > > sense?
+> > > 
+> > > Seems to me it would be more straightforward to not use a dreg at all
+> > > and just NFT_BREAK if nval != 0?
+> > > 
+> > 
+> > The main idea is to provide a round robin like scheduling method, for
+> > example:
+> > 
+> > ip daddr <ipsaddr> dnat nth 3 map {
+> >         0: <ipdaddrA>,
+> >         1: <ipdaddrB>,
+> >         2: <ipdaddrC>
+> > }
+> > 
+> 
+> That makes sense, would be nice to place a small blurb in the commit
+> message.
 
-Closes: https://bugzilla.netfilter.org/show_bug.cgi?id=1040
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- src/scanner.l | 24 +++++++++++++++++-------
- 1 file changed, 17 insertions(+), 7 deletions(-)
+I'd suggest you rename this to nft_numgen.c where numgen stands for
+'number generator', then rename 'every' to 'until' (this sets the
+upper limit in the generator) and add support for random too, so we
+provide incremental and random number generators to start with and we
+leave room to extend this with more number generators in the future if
+needed.
 
-diff --git a/src/scanner.l b/src/scanner.l
-index 88669d0..6f1a551 100644
---- a/src/scanner.l
-+++ b/src/scanner.l
-@@ -611,6 +611,13 @@ err:
- 	return -1;
- }
- 
-+static bool search_in_include_path(const char *filename)
-+{
-+	return (strncmp(filename, "./", strlen("./") != 0) &&
-+		strncmp(filename, "../", strlen("../") != 0) &&
-+		filename[0] != '/');
-+}
-+
- int scanner_include_file(void *scanner, const char *filename,
- 			 const struct location *loc)
- {
-@@ -622,13 +629,16 @@ int scanner_include_file(void *scanner, const char *filename,
- 	FILE *f;
- 
- 	f = NULL;
--	for (i = 0; i < INCLUDE_PATHS_MAX; i++) {
--		if (include_paths[i] == NULL)
--			break;
--		snprintf(buf, sizeof(buf), "%s/%s", include_paths[i], filename);
--		f = fopen(buf, "r");
--		if (f != NULL)
--			break;
-+	if (search_in_include_path(filename)) {
-+		for (i = 0; i < INCLUDE_PATHS_MAX; i++) {
-+			if (include_paths[i] == NULL)
-+				break;
-+			snprintf(buf, sizeof(buf), "%s/%s",
-+				 include_paths[i], filename);
-+			f = fopen(buf, "r");
-+			if (f != NULL)
-+				break;
-+		}
- 	}
- 	if (f == NULL) {
- 		f = fopen(filename, "r");
--- 
-2.1.4
-
+Florian added random to meta, but I don't see an easy way to reuse
+this with maps unless we introduce another modulus/scale expression,
+and we should skip oversplitting expressions in way too basic
+operations.
