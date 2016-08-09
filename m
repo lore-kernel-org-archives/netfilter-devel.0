@@ -1,305 +1,244 @@
-From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
-Subject: [PATCH, v2] Constify iterators
-Date: Tue,  9 Aug 2016 13:42:17 +0200
-Message-ID: <20160809114217.16093-1-carlosfg@riseup.net>
-References: <20160809071704.GB1866@salvia>
+From: Laura Garcia Liebana <nevola@gmail.com>
+Subject: [PATCH] netfilter: nft_hash: generate Jenkins Hash per source
+ register
+Date: Tue, 9 Aug 2016 16:03:16 +0200
+Message-ID: <20160809140313.GA6592@sonyv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: pablo@netfilter.org
+Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:59176 "EHLO mx1.riseup.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751596AbcHILm1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Aug 2016 07:42:27 -0400
-In-Reply-To: <20160809071704.GB1866@salvia>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35431 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932190AbcHIODV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Aug 2016 10:03:21 -0400
+Received: by mail-wm0-f66.google.com with SMTP id i5so3313357wmg.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 09 Aug 2016 07:03:20 -0700 (PDT)
+Received: from sonyv ([91.126.73.162])
+        by smtp.gmail.com with ESMTPSA id p23sm3536139wme.8.2016.08.09.07.03.18
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Tue, 09 Aug 2016 07:03:18 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Iterators do not modify objects which they iterate, so input pointer must
-be const.
+This patch adds a new hash expression, this provides jhash support but
+this can be extended to support for other hash functions.
 
-Signed-off-by: Carlos Falgueras García <carlosfg@riseup.net>
+The modulus and seed comes already come embedded into this new
+expression.
+
+Use case example:
+meta mark set hash ip saddr mod 10
+
+Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
 ---
- include/libnftnl/chain.h |  4 ++--
- include/libnftnl/rule.h  |  8 ++++----
- include/libnftnl/set.h   | 16 ++++++++--------
- include/libnftnl/table.h |  4 ++--
- src/chain.c              |  6 +++---
- src/rule.c               |  8 ++++----
- src/set.c                |  6 +++---
- src/set_elem.c           | 10 +++++-----
- src/table.c              |  6 +++---
- 9 files changed, 34 insertions(+), 34 deletions(-)
+ include/uapi/linux/netfilter/nf_tables.h |  20 +++++
+ net/netfilter/Kconfig                    |   6 ++
+ net/netfilter/Makefile                   |   1 +
+ net/netfilter/nft_hash.c                 | 134 +++++++++++++++++++++++++++++++
+ 4 files changed, 161 insertions(+)
+ create mode 100644 net/netfilter/nft_hash.c
 
-diff --git a/include/libnftnl/chain.h b/include/libnftnl/chain.h
-index ed21e48..26460a6 100644
---- a/include/libnftnl/chain.h
-+++ b/include/libnftnl/chain.h
-@@ -81,7 +81,7 @@ void nftnl_chain_list_del(struct nftnl_chain *c);
- 
- struct nftnl_chain_list_iter;
- 
--struct nftnl_chain_list_iter *nftnl_chain_list_iter_create(struct nftnl_chain_list *l);
-+struct nftnl_chain_list_iter *nftnl_chain_list_iter_create(const struct nftnl_chain_list *l);
- struct nftnl_chain *nftnl_chain_list_iter_next(struct nftnl_chain_list_iter *iter);
- void nftnl_chain_list_iter_destroy(struct nftnl_chain_list_iter *iter);
- 
-@@ -158,7 +158,7 @@ void nft_chain_list_del(struct nft_chain *c);
- 
- struct nft_chain_list_iter;
- 
--struct nft_chain_list_iter *nft_chain_list_iter_create(struct nft_chain_list *l);
-+struct nft_chain_list_iter *nft_chain_list_iter_create(const struct nft_chain_list *l);
- struct nft_chain *nft_chain_list_iter_next(struct nft_chain_list_iter *iter);
- void nft_chain_list_iter_destroy(struct nft_chain_list_iter *iter);
- 
-diff --git a/include/libnftnl/rule.h b/include/libnftnl/rule.h
-index 2776a77..e3bd6b8 100644
---- a/include/libnftnl/rule.h
-+++ b/include/libnftnl/rule.h
-@@ -70,7 +70,7 @@ int nftnl_expr_foreach(struct nftnl_rule *r,
- 
- struct nftnl_expr_iter;
- 
--struct nftnl_expr_iter *nftnl_expr_iter_create(struct nftnl_rule *r);
-+struct nftnl_expr_iter *nftnl_expr_iter_create(const struct nftnl_rule *r);
- struct nftnl_expr *nftnl_expr_iter_next(struct nftnl_expr_iter *iter);
- void nftnl_expr_iter_destroy(struct nftnl_expr_iter *iter);
- 
-@@ -86,7 +86,7 @@ int nftnl_rule_list_foreach(struct nftnl_rule_list *rule_list, int (*cb)(struct
- 
- struct nftnl_rule_list_iter;
- 
--struct nftnl_rule_list_iter *nftnl_rule_list_iter_create(struct nftnl_rule_list *l);
-+struct nftnl_rule_list_iter *nftnl_rule_list_iter_create(const struct nftnl_rule_list *l);
- struct nftnl_rule *nftnl_rule_list_iter_cur(struct nftnl_rule_list_iter *iter);
- struct nftnl_rule *nftnl_rule_list_iter_next(struct nftnl_rule_list_iter *iter);
- void nftnl_rule_list_iter_destroy(const struct nftnl_rule_list_iter *iter);
-@@ -153,7 +153,7 @@ int nft_rule_expr_foreach(struct nft_rule *r,
- 
- struct nft_rule_expr_iter;
- 
--struct nft_rule_expr_iter *nft_rule_expr_iter_create(struct nft_rule *r);
-+struct nft_rule_expr_iter *nft_rule_expr_iter_create(const struct nft_rule *r);
- struct nft_rule_expr *nft_rule_expr_iter_next(struct nft_rule_expr_iter *iter);
- void nft_rule_expr_iter_destroy(struct nft_rule_expr_iter *iter);
- 
-@@ -169,7 +169,7 @@ int nft_rule_list_foreach(struct nft_rule_list *rule_list, int (*cb)(struct nft_
- 
- struct nft_rule_list_iter;
- 
--struct nft_rule_list_iter *nft_rule_list_iter_create(struct nft_rule_list *l);
-+struct nft_rule_list_iter *nft_rule_list_iter_create(const struct nft_rule_list *l);
- struct nft_rule *nft_rule_list_iter_cur(struct nft_rule_list_iter *iter);
- struct nft_rule *nft_rule_list_iter_next(struct nft_rule_list_iter *iter);
- void nft_rule_list_iter_destroy(struct nft_rule_list_iter *iter);
-diff --git a/include/libnftnl/set.h b/include/libnftnl/set.h
-index 5266b6f..adeb16c 100644
---- a/include/libnftnl/set.h
-+++ b/include/libnftnl/set.h
-@@ -71,8 +71,8 @@ void nftnl_set_list_del(struct nftnl_set *s);
- int nftnl_set_list_foreach(struct nftnl_set_list *set_list, int (*cb)(struct nftnl_set *t, void *data), void *data);
- 
- struct nftnl_set_list_iter;
--struct nftnl_set_list_iter *nftnl_set_list_iter_create(struct nftnl_set_list *l);
--struct nftnl_set *nftnl_set_list_iter_cur(struct nftnl_set_list_iter *iter);
-+struct nftnl_set_list_iter *nftnl_set_list_iter_create(const struct nftnl_set_list *l);
-+struct nftnl_set *nftnl_set_list_iter_cur(const struct nftnl_set_list_iter *iter);
- struct nftnl_set *nftnl_set_list_iter_next(struct nftnl_set_list_iter *iter);
- void nftnl_set_list_iter_destroy(const struct nftnl_set_list_iter *iter);
- 
-@@ -133,8 +133,8 @@ int nftnl_set_elem_fprintf(FILE *fp, struct nftnl_set_elem *se, uint32_t type, u
- int nftnl_set_elem_foreach(struct nftnl_set *s, int (*cb)(struct nftnl_set_elem *e, void *data), void *data);
- 
- struct nftnl_set_elems_iter;
--struct nftnl_set_elems_iter *nftnl_set_elems_iter_create(struct nftnl_set *s);
--struct nftnl_set_elem *nftnl_set_elems_iter_cur(struct nftnl_set_elems_iter *iter);
-+struct nftnl_set_elems_iter *nftnl_set_elems_iter_create(const struct nftnl_set *s);
-+struct nftnl_set_elem *nftnl_set_elems_iter_cur(const struct nftnl_set_elems_iter *iter);
- struct nftnl_set_elem *nftnl_set_elems_iter_next(struct nftnl_set_elems_iter *iter);
- void nftnl_set_elems_iter_destroy(struct nftnl_set_elems_iter *iter);
- 
-@@ -207,8 +207,8 @@ void nft_set_list_del(struct nft_set *s);
- int nft_set_list_foreach(struct nft_set_list *set_list, int (*cb)(struct nft_set *t, void *data), void *data);
- 
- struct nft_set_list_iter;
--struct nft_set_list_iter *nft_set_list_iter_create(struct nft_set_list *l);
--struct nft_set *nft_set_list_iter_cur(struct nft_set_list_iter *iter);
-+struct nft_set_list_iter *nft_set_list_iter_create(const struct nft_set_list *l);
-+struct nft_set *nft_set_list_iter_cur(const struct nft_set_list_iter *iter);
- struct nft_set *nft_set_list_iter_next(struct nft_set_list_iter *iter);
- void nft_set_list_iter_destroy(struct nft_set_list_iter *iter);
- 
-@@ -269,8 +269,8 @@ int nft_set_elem_fprintf(FILE *fp, struct nft_set_elem *se, uint32_t type, uint3
- int nft_set_elem_foreach(struct nft_set *s, int (*cb)(struct nft_set_elem *e, void *data), void *data);
- 
- struct nft_set_elems_iter;
--struct nft_set_elems_iter *nft_set_elems_iter_create(struct nft_set *s);
--struct nft_set_elem *nft_set_elems_iter_cur(struct nft_set_elems_iter *iter);
-+struct nft_set_elems_iter *nft_set_elems_iter_create(const struct nft_set *s);
-+struct nft_set_elem *nft_set_elems_iter_cur(const struct nft_set_elems_iter *iter);
- struct nft_set_elem *nft_set_elems_iter_next(struct nft_set_elems_iter *iter);
- void nft_set_elems_iter_destroy(struct nft_set_elems_iter *iter);
- 
-diff --git a/include/libnftnl/table.h b/include/libnftnl/table.h
-index 1f9ab1c..296667b 100644
---- a/include/libnftnl/table.h
-+++ b/include/libnftnl/table.h
-@@ -69,7 +69,7 @@ void nftnl_table_list_del(struct nftnl_table *r);
- 
- struct nftnl_table_list_iter;
- 
--struct nftnl_table_list_iter *nftnl_table_list_iter_create(struct nftnl_table_list *l);
-+struct nftnl_table_list_iter *nftnl_table_list_iter_create(const struct nftnl_table_list *l);
- struct nftnl_table *nftnl_table_list_iter_next(struct nftnl_table_list_iter *iter);
- void nftnl_table_list_iter_destroy(const struct nftnl_table_list_iter *iter);
- 
-@@ -134,7 +134,7 @@ void nft_table_list_del(struct nft_table *r);
- 
- struct nft_table_list_iter;
- 
--struct nft_table_list_iter *nft_table_list_iter_create(struct nft_table_list *l);
-+struct nft_table_list_iter *nft_table_list_iter_create(const struct nft_table_list *l);
- struct nft_table *nft_table_list_iter_next(struct nft_table_list_iter *iter);
- void nft_table_list_iter_destroy(struct nft_table_list_iter *iter);
- 
-diff --git a/src/chain.c b/src/chain.c
-index 4c562fe..2c6ae70 100644
---- a/src/chain.c
-+++ b/src/chain.c
-@@ -1039,11 +1039,11 @@ int nftnl_chain_list_foreach(struct nftnl_chain_list *chain_list,
- EXPORT_SYMBOL_ALIAS(nftnl_chain_list_foreach, nft_chain_list_foreach);
- 
- struct nftnl_chain_list_iter {
--	struct nftnl_chain_list	*list;
--	struct nftnl_chain	*cur;
-+	const struct nftnl_chain_list	*list;
-+	struct nftnl_chain		*cur;
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 0e7928e..5e74c05 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -1097,4 +1097,24 @@ enum nft_nth_attributes {
  };
+ #define NFTA_NTH_MAX	(__NFTA_NTH_MAX - 1)
  
--struct nftnl_chain_list_iter *nftnl_chain_list_iter_create(struct nftnl_chain_list *l)
-+struct nftnl_chain_list_iter *nftnl_chain_list_iter_create(const struct nftnl_chain_list *l)
- {
- 	struct nftnl_chain_list_iter *iter;
++/**
++ * enum nft_hash_attributes - nf_tables hash expression netlink attributes
++ * @NFTA_HASH_UNSPEC: unspecified attribute
++ * @NFTA_HASH_SREG: source register (NLA_U32)
++ * @NFTA_HASH_DREG: destination register (NLA_U32)
++ * @NFTA_HASH_LEN: source data length (NLA_U32)
++ * @NFTA_HASH_MODULUS: modulus value (NLA_U32)
++ * @NFTA_HASH_SEED: seed value (NLA_U32)
++ */
++enum nft_hash_attributes {
++	NFTA_HASH_UNSPEC,
++	NFTA_HASH_SREG,
++	NFTA_HASH_DREG,
++	NFTA_HASH_LEN,
++	NFTA_HASH_MODULUS,
++	NFTA_HASH_SEED,
++	__NFTA_HASH_MAX,
++};
++#define NFTA_HASH_MAX	(__NFTA_HASH_MAX - 1)
++
+ #endif /* _LINUX_NF_TABLES_H */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index a2e4cf6..f821902 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -480,6 +480,12 @@ config NFT_NTH
+ 	  This option adds the "nth" expression that you can use to match a
+ 	  packet every a specific given value.
  
-diff --git a/src/rule.c b/src/rule.c
-index a0edca7..11fceca 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -1026,11 +1026,11 @@ int nftnl_expr_foreach(struct nftnl_rule *r,
- EXPORT_SYMBOL_ALIAS(nftnl_expr_foreach, nft_rule_expr_foreach);
- 
- struct nftnl_expr_iter {
--	struct nftnl_rule		*r;
-+	const struct nftnl_rule	*r;
- 	struct nftnl_expr	*cur;
- };
- 
--struct nftnl_expr_iter *nftnl_expr_iter_create(struct nftnl_rule *r)
-+struct nftnl_expr_iter *nftnl_expr_iter_create(const struct nftnl_rule *r)
- {
- 	struct nftnl_expr_iter *iter;
- 
-@@ -1142,11 +1142,11 @@ int nftnl_rule_list_foreach(struct nftnl_rule_list *rule_list,
- EXPORT_SYMBOL_ALIAS(nftnl_rule_list_foreach, nft_rule_list_foreach);
- 
- struct nftnl_rule_list_iter {
--	struct nftnl_rule_list	*list;
-+	const struct nftnl_rule_list	*list;
- 	struct nftnl_rule		*cur;
- };
- 
--struct nftnl_rule_list_iter *nftnl_rule_list_iter_create(struct nftnl_rule_list *l)
-+struct nftnl_rule_list_iter *nftnl_rule_list_iter_create(const struct nftnl_rule_list *l)
- {
- 	struct nftnl_rule_list_iter *iter;
- 
-diff --git a/src/set.c b/src/set.c
-index 8a592db..19ab371 100644
---- a/src/set.c
-+++ b/src/set.c
-@@ -1175,11 +1175,11 @@ int nftnl_set_list_foreach(struct nftnl_set_list *set_list,
- EXPORT_SYMBOL_ALIAS(nftnl_set_list_foreach, nft_set_list_foreach);
- 
- struct nftnl_set_list_iter {
--	struct nftnl_set_list	*list;
-+	const struct nftnl_set_list	*list;
- 	struct nftnl_set		*cur;
- };
- 
--struct nftnl_set_list_iter *nftnl_set_list_iter_create(struct nftnl_set_list *l)
-+struct nftnl_set_list_iter *nftnl_set_list_iter_create(const struct nftnl_set_list *l)
- {
- 	struct nftnl_set_list_iter *iter;
- 
-@@ -1197,7 +1197,7 @@ struct nftnl_set_list_iter *nftnl_set_list_iter_create(struct nftnl_set_list *l)
- }
- EXPORT_SYMBOL_ALIAS(nftnl_set_list_iter_create, nft_set_list_iter_create);
- 
--struct nftnl_set *nftnl_set_list_iter_cur(struct nftnl_set_list_iter *iter)
-+struct nftnl_set *nftnl_set_list_iter_cur(const struct nftnl_set_list_iter *iter)
- {
- 	return iter->cur;
- }
-diff --git a/src/set_elem.c b/src/set_elem.c
-index 7908661..ecda18f 100644
---- a/src/set_elem.c
-+++ b/src/set_elem.c
-@@ -274,7 +274,7 @@ void nftnl_set_elem_nlmsg_build_payload(struct nlmsghdr *nlh,
- }
- 
- static void nftnl_set_elem_nlmsg_build_def(struct nlmsghdr *nlh,
--					 struct nftnl_set *s)
-+					   const struct nftnl_set *s)
- {
- 	if (s->flags & (1 << NFTNL_SET_NAME))
- 		mnl_attr_put_strz(nlh, NFTA_SET_ELEM_LIST_SET, s->name);
-@@ -840,12 +840,12 @@ int nftnl_set_elem_foreach(struct nftnl_set *s,
- EXPORT_SYMBOL_ALIAS(nftnl_set_elem_foreach, nft_set_elem_foreach);
- 
- struct nftnl_set_elems_iter {
--	struct nftnl_set			*set;
--	struct list_head		*list;
-+	const struct nftnl_set		*set;
-+	const struct list_head		*list;
- 	struct nftnl_set_elem		*cur;
- };
- 
--struct nftnl_set_elems_iter *nftnl_set_elems_iter_create(struct nftnl_set *s)
-+struct nftnl_set_elems_iter *nftnl_set_elems_iter_create(const struct nftnl_set *s)
- {
- 	struct nftnl_set_elems_iter *iter;
- 
-@@ -865,7 +865,7 @@ struct nftnl_set_elems_iter *nftnl_set_elems_iter_create(struct nftnl_set *s)
- }
- EXPORT_SYMBOL_ALIAS(nftnl_set_elems_iter_create, nft_set_elems_iter_create);
- 
--struct nftnl_set_elem *nftnl_set_elems_iter_cur(struct nftnl_set_elems_iter *iter)
-+struct nftnl_set_elem *nftnl_set_elems_iter_cur(const struct nftnl_set_elems_iter *iter)
- {
- 	return iter->cur;
- }
-diff --git a/src/table.c b/src/table.c
-index 3d4d7b9..55ec4e1 100644
---- a/src/table.c
-+++ b/src/table.c
-@@ -544,11 +544,11 @@ int nftnl_table_list_foreach(struct nftnl_table_list *table_list,
- EXPORT_SYMBOL_ALIAS(nftnl_table_list_foreach, nft_table_list_foreach);
- 
- struct nftnl_table_list_iter {
--	struct nftnl_table_list	*list;
--	struct nftnl_table	*cur;
-+	const struct nftnl_table_list	*list;
-+	struct nftnl_table		*cur;
- };
- 
--struct nftnl_table_list_iter *nftnl_table_list_iter_create(struct nftnl_table_list *l)
-+struct nftnl_table_list_iter *nftnl_table_list_iter_create(const struct nftnl_table_list *l)
- {
- 	struct nftnl_table_list_iter *iter;
- 
++config NFT_HASH
++	tristate "Netfilter nf_tables hash module"
++	help
++	  This option adds the "hash" expression that you can use to perform
++	  a hash operation on registers.
++
+ config NFT_CT
+ 	depends on NF_CONNTRACK
+ 	tristate "Netfilter nf_tables conntrack module"
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 441a3c0..fd11c6d 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -81,6 +81,7 @@ obj-$(CONFIG_NFT_COMPAT)	+= nft_compat.o
+ obj-$(CONFIG_NFT_EXTHDR)	+= nft_exthdr.o
+ obj-$(CONFIG_NFT_META)		+= nft_meta.o
+ obj-$(CONFIG_NFT_NTH)		+= nft_nth.o
++obj-$(CONFIG_NFT_HASH)		+= nft_hash.o
+ obj-$(CONFIG_NFT_CT)		+= nft_ct.o
+ obj-$(CONFIG_NFT_LIMIT)		+= nft_limit.o
+ obj-$(CONFIG_NFT_NAT)		+= nft_nat.o
+diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
+new file mode 100644
+index 0000000..bb124aa
+--- /dev/null
++++ b/net/netfilter/nft_hash.c
+@@ -0,0 +1,134 @@
++/*
++ * Copyright (c) 2016 Laura Garcia <nevola@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/netlink.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++#include <linux/in.h>
++#include <linux/ip.h>
++#include <linux/ipv6.h>
++#include <linux/static_key.h>
++#include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_core.h>
++#include <linux/jhash.h>
++
++struct nft_hash {
++	enum nft_registers      sreg:8;
++	enum nft_registers      dreg:8;
++	u32			len:8;
++	u32			modulus;
++	u32			seed;
++};
++
++static void nft_hash_eval(const struct nft_expr *expr,
++			  struct nft_regs *regs,
++			  const struct nft_pktinfo *pkt)
++{
++	struct nft_hash *priv = nft_expr_priv(expr);
++	const void *data = &regs->data[priv->sreg];
++	u32 h;
++
++	h = reciprocal_scale(jhash(data, priv->len, priv->seed), priv->modulus);
++
++	regs->data[priv->dreg] = h;
++}
++
++const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] = {
++	[NFTA_HASH_SREG]		= { .type = NLA_U32 },
++	[NFTA_HASH_DREG]		= { .type = NLA_U32 },
++	[NFTA_HASH_LEN]			= { .type = NLA_U32 },
++	[NFTA_HASH_MODULUS]		= { .type = NLA_U32 },
++	[NFTA_HASH_SEED]		= { .type = NLA_U32 },
++};
++
++static int nft_hash_init(const struct nft_ctx *ctx,
++			 const struct nft_expr *expr,
++			 const struct nlattr * const tb[])
++{
++	struct nft_hash *priv = nft_expr_priv(expr);
++
++	if (!tb[NFTA_HASH_SREG] ||
++	    !tb[NFTA_HASH_DREG] ||
++	    !tb[NFTA_HASH_LEN])
++		return -EINVAL;
++
++	priv->sreg = nft_parse_register(tb[NFTA_HASH_SREG]);
++	priv->dreg = nft_parse_register(tb[NFTA_HASH_DREG]);
++
++	priv->len = ntohl(nla_get_be32(tb[NFTA_HASH_LEN]));
++	if (priv->len == 0)
++		return -EINVAL;
++
++	priv->modulus = ntohl(nla_get_be32(tb[NFTA_HASH_MODULUS]));
++	if (priv->modulus <= 1)
++		return -EINVAL;
++
++	priv->seed = ntohl(nla_get_be32(tb[NFTA_HASH_SEED]));
++
++	return 0;
++}
++
++static int nft_hash_dump(struct sk_buff *skb,
++			 const struct nft_expr *expr)
++{
++	const struct nft_hash *priv = nft_expr_priv(expr);
++
++	if (nft_dump_register(skb, NFTA_HASH_SREG, priv->sreg))
++		goto nla_put_failure;
++	if (nft_dump_register(skb, NFTA_HASH_DREG, priv->dreg))
++		goto nla_put_failure;
++	if (nft_dump_register(skb, NFTA_HASH_LEN, priv->len))
++		goto nla_put_failure;
++	if (nft_dump_register(skb, NFTA_HASH_MODULUS, priv->modulus))
++		goto nla_put_failure;
++	if (nft_dump_register(skb, NFTA_HASH_SEED, priv->seed))
++		goto nla_put_failure;
++
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static struct nft_expr_type nft_hash_type;
++static const struct nft_expr_ops nft_hash_ops = {
++	.type		= &nft_hash_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_hash)),
++	.eval		= nft_hash_eval,
++	.init		= nft_hash_init,
++	.dump		= nft_hash_dump,
++};
++
++static struct nft_expr_type nft_hash_type __read_mostly = {
++	.name		= "hash",
++	.ops		= &nft_hash_ops,
++	.policy		= nft_hash_policy,
++	.maxattr	= NFTA_HASH_MAX,
++	.owner		= THIS_MODULE,
++};
++
++static int __init nft_hash_module_init(void)
++{
++	return nft_register_expr(&nft_hash_type);
++}
++
++static void __exit nft_hash_module_exit(void)
++{
++	nft_unregister_expr(&nft_hash_type);
++}
++
++module_init(nft_hash_module_init);
++module_exit(nft_hash_module_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Laura Garcia <nevola@gmail.com>");
++MODULE_ALIAS_NFT_EXPR("hash");
 -- 
-2.8.3
+2.8.1
 
