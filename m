@@ -1,96 +1,39 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: nft_nth: match every n packets
-Date: Tue, 9 Aug 2016 16:26:18 +0200
-Message-ID: <20160809142618.GA1777@salvia>
-References: <20160727220053.GA26643@sonyv>
- <20160727230105.GC2565@breakpoint.cc>
- <20160728074252.GA28885@sonyv>
- <20160728092059.GD2565@breakpoint.cc>
- <20160809105253.GA11493@salvia>
- <20160809141339.GA6805@sonyv>
+From: vDev <vijaypas@gmail.com>
+Subject: Drop pings to other VLAN interfaces
+Date: Tue, 9 Aug 2016 10:03:56 -0500
+Message-ID: <CAC=w+U5rT5pmpDeVie4+aYF4erfO7671qsNch1=q0Vb8V9k_6g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Laura Garcia <nevola@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55024 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752802AbcHIO0s (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Aug 2016 10:26:48 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 5B4F61878AB
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 16:26:45 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 3AE06DA800
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 16:26:45 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B35A3DA7FA
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Aug 2016 16:26:42 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20160809141339.GA6805@sonyv>
+Received: from mail-ua0-f169.google.com ([209.85.217.169]:35676 "EHLO
+	mail-ua0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752597AbcHIPcD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Aug 2016 11:32:03 -0400
+Received: by mail-ua0-f169.google.com with SMTP id n59so24277519uan.2
+        for <netfilter-devel@vger.kernel.org>; Tue, 09 Aug 2016 08:32:03 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 09, 2016 at 04:13:40PM +0200, Laura Garcia wrote:
-> On Tue, Aug 09, 2016 at 12:52:53PM +0200, Pablo Neira Ayuso wrote:
-> > On Thu, Jul 28, 2016 at 11:20:59AM +0200, Florian Westphal wrote:
-> > > Laura Garcia <nevola@gmail.com> wrote:
-> > > > On Thu, Jul 28, 2016 at 01:01:05AM +0200, Florian Westphal wrote:
-> > > > > How exactly is this used by nftables?
-> > > > > 
-> > > > > AFAIU usespace will check if ->dreg is 0 or not, but does that make
-> > > > > sense?
-> > > > > 
-> > > > > Seems to me it would be more straightforward to not use a dreg at all
-> > > > > and just NFT_BREAK if nval != 0?
-> > > > > 
-> > > > 
-> > > > The main idea is to provide a round robin like scheduling method, for
-> > > > example:
-> > > > 
-> > > > ip daddr <ipsaddr> dnat nth 3 map {
-> > > >         0: <ipdaddrA>,
-> > > >         1: <ipdaddrB>,
-> > > >         2: <ipdaddrC>
-> > > > }
-> > > > 
-> > > 
-> > > That makes sense, would be nice to place a small blurb in the commit
-> > > message.
-> > 
-> > I'd suggest you rename this to nft_numgen.c where numgen stands for
-> > 'number generator', then rename 'every' to 'until' (this sets the
-> > upper limit in the generator) and add support for random too, so we
-> > provide incremental and random number generators to start with and we
-> > leave room to extend this with more number generators in the future if
-> > needed.
-> > 
-> > Florian added random to meta, but I don't see an easy way to reuse
-> > this with maps unless we introduce another modulus/scale expression,
-> > and we should skip oversplitting expressions in way too basic
-> > operations.
-> 
-> So, do you mean something like this?
-> 
-> ip daddr <ipsaddr> dnat numgen nth 3 map {
->         0: <ipdaddrA>,
->         1: <ipdaddrB>,
->         2: <ipdaddrC>
-> }
-> 
-> and
-> 
-> ip daddr <ipsaddr> dnat numgen random 3 map {
->         0: <ipdaddrA>,
->         1: <ipdaddrB>,
->         2: <ipdaddrC>
-> }
+We have a Linux gateway with multiple VLANs with the default policy
+being DROP. We have the following rules in the INPUT and OUTPUT chains
+of the filter table:
 
-Something like this, but I would like to have a better syntax for
-this.
+iptables -I INPUT -p icmp -j ACCEPT
+iptables -I OUTPUT -p icmp -j ACCEPT
 
-> Maybe _math_ could be a better name?
-> The counter expression could be included as well.
+to allow pings to and from the gateway. What would be the best way to
+allow pings from a host on a VLAN to the VLAN interface on the gateway
+and everywhere else EXCEPT to other VLAN interfaces on the gateway?
 
-We already have a counter expression ;-) So what counter expression
-are you refering to?
+For example, if the gateway's VLAN interfaces had IP addresses
+192.168.1.1/24 (vlan0) and 192.168.2.1/24 (vlan1) and host on vlan0
+with address 192.168.1.8 must be able to ping 192.168.1.1 and other
+public addresses EXCEPT 192.168.2.1. There could be many VLAN
+interfaces so excluding each one will be not so efficient. I'm trying
+to see if there's a better way that add specific DROP rules for each,
+which can lead to a good number of rules depending on the number of
+VLANs.
+
+Thanks in advance for your help.
