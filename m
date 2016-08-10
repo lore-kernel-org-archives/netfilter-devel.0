@@ -1,47 +1,72 @@
-From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
-Subject: [PATCH 2/3, libnftnl] expr: Fix lookup builder
-Date: Wed, 10 Aug 2016 17:12:04 +0200
-Message-ID: <20160810151205.24975-2-carlosfg@riseup.net>
-References: <20160810151205.24975-1-carlosfg@riseup.net>
+From: =?UTF-8?Q?Carlos_Falgueras_Garc=c3=ada?= <carlosfg@riseup.net>
+Subject: Re: [PATCH 1/4, V3, libnftnl] rule: Implement internal expression
+ iterator
+Date: Wed, 10 Aug 2016 13:56:32 +0200
+Message-ID: <d506f397-8795-4966-6408-c7d3caa4b082@riseup.net>
+References: <20160808144834.GB6264@salvia>
+ <20160810094857.14227-1-carlosfg@riseup.net> <20160810114140.GA9639@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 8bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:51717 "EHLO mx1.riseup.net"
+Received: from mx1.riseup.net ([198.252.153.129]:59023 "EHLO mx1.riseup.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933580AbcHJUcS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Aug 2016 16:32:18 -0400
-In-Reply-To: <20160810151205.24975-1-carlosfg@riseup.net>
+	id S932767AbcHJVMS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Aug 2016 17:12:18 -0400
+In-Reply-To: <20160810114140.GA9639@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Deleted wrong braces that cause unwanted behaviour.
+On 08/10/2016 01:41 PM, Pablo Neira Ayuso wrote:
+> On Wed, Aug 10, 2016 at 11:48:54AM +0200, Carlos Falgueras García wrote:
+>> Introduce nftnl_expr_iter_init() to allow stack allocated iterators for
+>> internal use.
+>
+> Applied with minor changes, see below.
+>>
+>> Signed-off-by: Carlos Falgueras García <carlosfg@riseup.net>
+>> ---
+>>  src/rule.c | 30 +++++++++++++++++++-----------
+>>  1 file changed, 19 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/src/rule.c b/src/rule.c
+>> index 11fceca..69ffc7e 100644
+>> --- a/src/rule.c
+>> +++ b/src/rule.c
+>> @@ -29,6 +29,14 @@
+>>  #include <libnftnl/set.h>
+>>  #include <libnftnl/expr.h>
+>>
+>> +struct nftnl_expr_iter {
+>> +	const struct nftnl_rule	*r;
+>> +	struct nftnl_expr	*cur;
+>> +};
+>> +
+>> +static void nftnl_expr_iter_init(const struct nftnl_rule *r,
+>> +				 struct nftnl_expr_iter *iter);
+>
+> No need for this forward declaration. I have removed this.
+>
+>> +
+>>  struct nftnl_rule {
+>>  	struct list_head head;
+>>
+>> @@ -1025,10 +1033,16 @@ int nftnl_expr_foreach(struct nftnl_rule *r,
+>>  }
+>>  EXPORT_SYMBOL_ALIAS(nftnl_expr_foreach, nft_rule_expr_foreach);
+>>
+>> -struct nftnl_expr_iter {
+>> -	const struct nftnl_rule	*r;
+>> -	struct nftnl_expr	*cur;
+>> -};
+>
+> I have kept this structure definition here, we don't have to scroll up
+> and down to get the context when looking at the iterators code.
+>
+> After my change, the patch looks even smaller.
+>
 
-Signed-off-by: Carlos Falgueras GarcÃ­a <carlosfg@riseup.net>
----
- src/expr/lookup.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/src/expr/lookup.c b/src/expr/lookup.c
-index 57612d1..60da653 100644
---- a/src/expr/lookup.c
-+++ b/src/expr/lookup.c
-@@ -122,12 +122,11 @@ nftnl_expr_lookup_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
- 		mnl_attr_put_u32(nlh, NFTA_LOOKUP_DREG, htonl(lookup->dreg));
- 	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_SET))
- 		mnl_attr_put_strz(nlh, NFTA_LOOKUP_SET, lookup->set_name);
--	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_SET_ID)) {
-+	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_SET_ID))
- 		mnl_attr_put_u32(nlh, NFTA_LOOKUP_SET_ID,
- 				 htonl(lookup->set_id));
- 	if (e->flags & (1 << NFTNL_EXPR_LOOKUP_FLAGS))
- 		mnl_attr_put_u32(nlh, NFTA_LOOKUP_FLAGS, htonl(lookup->flags));
--	}
- }
- 
- static int
--- 
-2.8.3
-
+But we will need it at the next patch, so I will include these changes 
+in the patch : 2/4 - "Implement rule comparison". It is ok?
