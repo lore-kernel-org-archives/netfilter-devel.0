@@ -1,77 +1,54 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/4, V3, libnftnl] rule: Implement internal expression
- iterator
-Date: Wed, 10 Aug 2016 13:41:40 +0200
-Message-ID: <20160810114140.GA9639@salvia>
-References: <20160808144834.GB6264@salvia>
- <20160810094857.14227-1-carlosfg@riseup.net>
+From: Loganaden Velvindron <logan@hackers.mu>
+Subject: [PATCH] nf-next: x_tables: Replace kmalloc(s*n) with
+ kmalloc_array(n,s)
+Date: Wed, 10 Aug 2016 18:11:51 +0400
+Message-ID: <20160810141146.GA22890@void>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org
-To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54126 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752586AbcHJSuC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Aug 2016 14:50:02 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id BE94A1878AF
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 13:41:43 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id ADCF8FF2D4
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 13:41:43 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 92B07A8E9
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 13:41:41 +0200 (CEST)
+Received: from walmailout10.yourhostingaccount.com ([65.254.253.86]:44146 "EHLO
+	walmailout10.yourhostingaccount.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S938826AbcHJSt3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Aug 2016 14:49:29 -0400
+Received: from mailscan14.yourhostingaccount.com ([10.1.15.14] helo=walmailscan14.yourhostingaccount.com)
+	by walmailout10.yourhostingaccount.com with esmtp (Exim)
+	id 1bXUEi-0008P9-IV
+	for netfilter-devel@vger.kernel.org; Wed, 10 Aug 2016 10:12:00 -0400
+Received: from [10.114.3.33] (helo=walimpout13)
+	by walmailscan14.yourhostingaccount.com with esmtp (Exim)
+	id 1bXUEi-0001L7-EV
+	for netfilter-devel@vger.kernel.org; Wed, 10 Aug 2016 10:12:00 -0400
+Received: from void.dhcp.mu.afrinic.net ([196.1.0.18]:19686 helo=void)
+	by walauthsmtp14.yourhostingaccount.com with esmtpa (Exim)
+	id 1bXUEf-0005VM-1R
+	for netfilter-devel@vger.kernel.org; Wed, 10 Aug 2016 10:11:57 -0400
 Content-Disposition: inline
-In-Reply-To: <20160810094857.14227-1-carlosfg@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 10, 2016 at 11:48:54AM +0200, Carlos Falgueras García wrote:
-> Introduce nftnl_expr_iter_init() to allow stack allocated iterators for
-> internal use.
+It is easier to check that the calculation doesn't wrap or return a smaller
+allocation.
 
-Applied with minor changes, see below.
-> 
-> Signed-off-by: Carlos Falgueras García <carlosfg@riseup.net>
-> ---
->  src/rule.c | 30 +++++++++++++++++++-----------
->  1 file changed, 19 insertions(+), 11 deletions(-)
-> 
-> diff --git a/src/rule.c b/src/rule.c
-> index 11fceca..69ffc7e 100644
-> --- a/src/rule.c
-> +++ b/src/rule.c
-> @@ -29,6 +29,14 @@
->  #include <libnftnl/set.h>
->  #include <libnftnl/expr.h>
->  
-> +struct nftnl_expr_iter {
-> +	const struct nftnl_rule	*r;
-> +	struct nftnl_expr	*cur;
-> +};
-> +
-> +static void nftnl_expr_iter_init(const struct nftnl_rule *r,
-> +				 struct nftnl_expr_iter *iter);
+Signed-off-by: Loganaden Velvindron <logan@hackers.mu>
+---
+ net/netfilter/x_tables.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-No need for this forward declaration. I have removed this.
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index e0aa7c1..c8f20f2 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1513,7 +1513,7 @@ xt_hook_ops_alloc(const struct xt_table *table, nf_hookfn *fn)
+ 	if (!num_hooks)
+ 		return ERR_PTR(-EINVAL);
+ 
+-	ops = kmalloc(sizeof(*ops) * num_hooks, GFP_KERNEL);
++	ops = kmalloc_array(num_hooks, sizeof(*ops), GFP_KERNEL);
+ 	if (ops == NULL)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-- 
+2.9.2
 
-> +
->  struct nftnl_rule {
->  	struct list_head head;
->  
-> @@ -1025,10 +1033,16 @@ int nftnl_expr_foreach(struct nftnl_rule *r,
->  }
->  EXPORT_SYMBOL_ALIAS(nftnl_expr_foreach, nft_rule_expr_foreach);
->  
-> -struct nftnl_expr_iter {
-> -	const struct nftnl_rule	*r;
-> -	struct nftnl_expr	*cur;
-> -};
-
-I have kept this structure definition here, we don't have to scroll up
-and down to get the context when looking at the iterators code.
-
-After my change, the patch looks even smaller.
