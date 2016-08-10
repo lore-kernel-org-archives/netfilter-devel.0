@@ -1,55 +1,77 @@
-From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCH 3/5] netfilter: nf_tables: Check u32 load in u8 nft_cmp
- attribute
-Date: Wed, 10 Aug 2016 17:31:24 +0200
-Message-ID: <1b5a19c8e8439e5e7b078f4572af69f6c180078f.1470842571.git.nevola@gmail.com>
-References: <cover.1470842571.git.nevola@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/4, V3, libnftnl] rule: Implement internal expression
+ iterator
+Date: Wed, 10 Aug 2016 13:41:40 +0200
+Message-ID: <20160810114140.GA9639@salvia>
+References: <20160808144834.GB6264@salvia>
+ <20160810094857.14227-1-carlosfg@riseup.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org
+To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34215 "EHLO
-	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935832AbcHJTkT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Aug 2016 15:40:19 -0400
-Received: by mail-wm0-f66.google.com with SMTP id q128so11552212wma.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 12:39:59 -0700 (PDT)
-Received: from sonyv ([91.126.73.162])
-        by smtp.gmail.com with ESMTPSA id g7sm43586353wjx.10.2016.08.10.08.31.26
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Wed, 10 Aug 2016 08:31:26 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:54126 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752586AbcHJSuC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Aug 2016 14:50:02 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id BE94A1878AF
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 13:41:43 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id ADCF8FF2D4
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 13:41:43 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 92B07A8E9
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 13:41:41 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <cover.1470842571.git.nevola@gmail.com>
+In-Reply-To: <20160810094857.14227-1-carlosfg@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix the direct assignment from u32 data input into the len attribute
-with a size of u8.
+On Wed, Aug 10, 2016 at 11:48:54AM +0200, Carlos Falgueras García wrote:
+> Introduce nftnl_expr_iter_init() to allow stack allocated iterators for
+> internal use.
 
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
----
- net/netfilter/nft_cmp.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Applied with minor changes, see below.
+> 
+> Signed-off-by: Carlos Falgueras García <carlosfg@riseup.net>
+> ---
+>  src/rule.c | 30 +++++++++++++++++++-----------
+>  1 file changed, 19 insertions(+), 11 deletions(-)
+> 
+> diff --git a/src/rule.c b/src/rule.c
+> index 11fceca..69ffc7e 100644
+> --- a/src/rule.c
+> +++ b/src/rule.c
+> @@ -29,6 +29,14 @@
+>  #include <libnftnl/set.h>
+>  #include <libnftnl/expr.h>
+>  
+> +struct nftnl_expr_iter {
+> +	const struct nftnl_rule	*r;
+> +	struct nftnl_expr	*cur;
+> +};
+> +
+> +static void nftnl_expr_iter_init(const struct nftnl_rule *r,
+> +				 struct nftnl_expr_iter *iter);
 
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index e25b35d..ca247e5 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -84,8 +84,11 @@ static int nft_cmp_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	if (err < 0)
- 		return err;
- 
--	priv->op  = ntohl(nla_get_be32(tb[NFTA_CMP_OP]));
-+	if (desc.len > U8_MAX)
-+		return -EINVAL;
- 	priv->len = desc.len;
-+	priv->op  = ntohl(nla_get_be32(tb[NFTA_CMP_OP]));
-+
- 	return 0;
- }
- 
--- 
-2.8.1
+No need for this forward declaration. I have removed this.
 
+> +
+>  struct nftnl_rule {
+>  	struct list_head head;
+>  
+> @@ -1025,10 +1033,16 @@ int nftnl_expr_foreach(struct nftnl_rule *r,
+>  }
+>  EXPORT_SYMBOL_ALIAS(nftnl_expr_foreach, nft_rule_expr_foreach);
+>  
+> -struct nftnl_expr_iter {
+> -	const struct nftnl_rule	*r;
+> -	struct nftnl_expr	*cur;
+> -};
+
+I have kept this structure definition here, we don't have to scroll up
+and down to get the context when looking at the iterators code.
+
+After my change, the patch looks even smaller.
