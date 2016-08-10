@@ -1,45 +1,35 @@
-From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCH 0/5] Check u32 load in u8 attributes
-Date: Wed, 10 Aug 2016 17:29:34 +0200
-Message-ID: <cover.1470842571.git.nevola@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH, v2] Constify iterators
+Date: Wed, 10 Aug 2016 10:30:59 +0200
+Message-ID: <20160810083059.GA21080@salvia>
+References: <20160809071704.GB1866@salvia>
+ <20160809114217.16093-1-carlosfg@riseup.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org
+To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34929 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934067AbcHJTJK (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Aug 2016 15:09:10 -0400
-Received: by mail-wm0-f65.google.com with SMTP id i5so11401916wmg.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 12:09:10 -0700 (PDT)
-Received: from sonyv (cli-5b7e49a2.wholesale.adamo.es. [91.126.73.162])
-        by smtp.gmail.com with ESMTPSA id i80sm8904837wmf.11.2016.08.10.08.29.36
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Wed, 10 Aug 2016 08:29:36 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:57102 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932650AbcHJTKA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Aug 2016 15:10:00 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 0AFF0A4172
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 10:31:15 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id EE052FF2D6
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 10:31:14 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id F3738FAB5F
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 10:31:11 +0200 (CEST)
 Content-Disposition: inline
+In-Reply-To: <20160809114217.16093-1-carlosfg@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The following patchset adds a check during the load of an u32 value
-into an u8 attribute which can cause an overflow.
+On Tue, Aug 09, 2016 at 01:42:17PM +0200, Carlos Falgueras García wrote:
+> Iterators do not modify objects which they iterate, so input pointer must
+> be const.
 
-
-Laura Garcia Liebana (5):
-  netfilter: nf_tables: Check u32 load in u8 nft_bitwise attribute
-  netfilter: nf_tables: Check u32 load in u8 nft_byteorder attribute
-  netfilter: nf_tables: Check u32 load in u8 nft_cmp attribute
-  netfilter: nf_tables: Check u32 load in u8 nft_immediate attribute
-  netfilter: nf_tables: Check u32 load in u8 nft_nat attribute
-
- net/netfilter/nft_bitwise.c   |  7 ++++++-
- net/netfilter/nft_byteorder.c | 13 +++++++++++--
- net/netfilter/nft_cmp.c       |  5 ++++-
- net/netfilter/nft_immediate.c |  3 +++
- net/netfilter/nft_nat.c       |  2 ++
- 5 files changed, 26 insertions(+), 4 deletions(-)
-
--- 
-2.8.1
-
+Applied, thanks!
