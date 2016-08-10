@@ -1,48 +1,64 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/9] netfilter: nf_tables: s/MFT_REG32_01/NFT_REG32_01
-Date: Wed, 10 Aug 2016 20:56:27 +0200
-Message-ID: <1470855394-7234-3-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 4/9] netfilter: nf_conntrack_sip: CSeq 0 is a valid CSeq
+Date: Wed, 10 Aug 2016 20:56:29 +0200
+Message-ID: <1470855394-7234-5-git-send-email-pablo@netfilter.org>
 References: <1470855394-7234-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54926 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:54940 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932604AbcHJS4o (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Aug 2016 14:56:44 -0400
+	id S932790AbcHJS4q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Aug 2016 14:56:46 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id CF8961EC2C8
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 20:56:42 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 85BC21F18CD
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 20:56:44 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id C18CC100A66
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 20:56:42 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 75A01100A5D
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 20:56:44 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id C400F100A65
-	for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 20:56:40 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 2642C100A5D
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 20:56:42 +0200 (CEST)
 In-Reply-To: <1470855394-7234-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-MFT_REG32_01 is a typo, rename this to NFT_REG32_01.
+From: Christophe Leroy <christophe.leroy@c-s.fr>
 
+Do not drop packet when CSeq is 0 as 0 is also a valid value for CSeq.
+
+simple_strtoul() will return 0 either when all digits are 0
+or if there are no digits at all. Therefore when simple_strtoul()
+returns 0 we check if first character is digit 0 or not.
+
+Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/uapi/linux/netfilter/nf_tables.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_sip.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 01751fa..c674ba2 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -24,7 +24,7 @@ enum nft_registers {
- 	__NFT_REG_MAX,
- 
- 	NFT_REG32_00	= 8,
--	MFT_REG32_01,
-+	NFT_REG32_01,
- 	NFT_REG32_02,
- 	NFT_REG32_03,
- 	NFT_REG32_04,
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 8d9db9d..7d77217 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -1383,7 +1383,7 @@ static int process_sip_response(struct sk_buff *skb, unsigned int protoff,
+ 		return NF_DROP;
+ 	}
+ 	cseq = simple_strtoul(*dptr + matchoff, NULL, 10);
+-	if (!cseq) {
++	if (!cseq && *(*dptr + matchoff) != '0') {
+ 		nf_ct_helper_log(skb, ct, "cannot get cseq");
+ 		return NF_DROP;
+ 	}
+@@ -1446,7 +1446,7 @@ static int process_sip_request(struct sk_buff *skb, unsigned int protoff,
+ 			return NF_DROP;
+ 		}
+ 		cseq = simple_strtoul(*dptr + matchoff, NULL, 10);
+-		if (!cseq) {
++		if (!cseq && *(*dptr + matchoff) != '0') {
+ 			nf_ct_helper_log(skb, ct, "cannot get cseq");
+ 			return NF_DROP;
+ 		}
 -- 
 2.1.4
 
