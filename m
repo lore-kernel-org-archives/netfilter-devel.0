@@ -1,52 +1,54 @@
-From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCH 4/5] netfilter: nf_tables: Check u32 load in u8 nft_immediate
- attribute
-Date: Wed, 10 Aug 2016 17:31:52 +0200
-Message-ID: <13f03298fe8c42993a4a56c3a2fe70cc67bd6bd5.1470842571.git.nevola@gmail.com>
-References: <cover.1470842571.git.nevola@gmail.com>
+From: Loganaden Velvindron <logan@hackers.mu>
+Subject: [PATCH] x_tables: Replace kmalloc(s*n) with kmalloc_array(n,s)
+Date: Wed, 10 Aug 2016 14:06:13 +0400
+Message-ID: <20160810100613.GA8870@void>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34861 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933631AbcHJTZp (ORCPT
+Received: from mail18.yourhostingaccount.com ([65.254.254.79]:58523 "EHLO
+	walmailout08.yourhostingaccount.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932533AbcHJTcR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Aug 2016 15:25:45 -0400
-Received: by mail-wm0-f67.google.com with SMTP id i5so11485698wmg.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 10 Aug 2016 12:25:44 -0700 (PDT)
-Received: from sonyv (cli-5b7e49a2.wholesale.adamo.es. [91.126.73.162])
-        by smtp.gmail.com with ESMTPSA id 190sm8906895wmk.13.2016.08.10.08.31.53
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Wed, 10 Aug 2016 08:31:54 -0700 (PDT)
+	Wed, 10 Aug 2016 15:32:17 -0400
+Received: from mailscan02.yourhostingaccount.com ([10.1.15.2] helo=walmailscan02.yourhostingaccount.com)
+	by walmailout08.yourhostingaccount.com with esmtp (Exim)
+	id 1bXQP0-00016d-4V
+	for netfilter-devel@vger.kernel.org; Wed, 10 Aug 2016 06:06:22 -0400
+Received: from [10.114.3.33] (helo=walimpout13)
+	by walmailscan02.yourhostingaccount.com with esmtp (Exim)
+	id 1bXQOz-0004QS-Vc
+	for netfilter-devel@vger.kernel.org; Wed, 10 Aug 2016 06:06:21 -0400
+Received: from [196.1.0.108] (port=31094 helo=void)
+	by walauthsmtp04.yourhostingaccount.com with esmtpa (Exim)
+	id 1bXQOw-0006gc-Er
+	for netfilter-devel@vger.kernel.org; Wed, 10 Aug 2016 06:06:18 -0400
 Content-Disposition: inline
-In-Reply-To: <cover.1470842571.git.nevola@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix the direct assignment from u32 data input into the dlen attribute
-with a size of u8.
+Replace kmalloc(s*n) with kmalloc_array(n,s), thus making it
+ easier to check that the calculation doesn't wrap or return a smaller
+ allocation
 
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+Signed-off-by: Loganaden Velvindron <logan@hackers.mu>
 ---
- net/netfilter/nft_immediate.c | 3 +++
- 1 file changed, 3 insertions(+)
+ net/netfilter/x_tables.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-index db3b746..6de590c 100644
---- a/net/netfilter/nft_immediate.c
-+++ b/net/netfilter/nft_immediate.c
-@@ -53,6 +53,9 @@ static int nft_immediate_init(const struct nft_ctx *ctx,
- 			    tb[NFTA_IMMEDIATE_DATA]);
- 	if (err < 0)
- 		return err;
-+
-+	if (desc.len > U8_MAX)
-+		return -EINVAL;
- 	priv->dlen = desc.len;
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index e0aa7c1..c8f20f2 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1513,7 +1513,7 @@ xt_hook_ops_alloc(const struct xt_table *table, nf_hookfn *fn)
+ 	if (!num_hooks)
+ 		return ERR_PTR(-EINVAL);
  
- 	priv->dreg = nft_parse_register(tb[NFTA_IMMEDIATE_DREG]);
+-	ops = kmalloc(sizeof(*ops) * num_hooks, GFP_KERNEL);
++	ops = kmalloc_array(num_hooks, sizeof(*ops), GFP_KERNEL);
+ 	if (ops == NULL)
+ 		return ERR_PTR(-ENOMEM);
+ 
 -- 
-2.8.1
+2.9.2
 
