@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 9/9] netfilter: nft_exthdr: Add size check on u8 nft_exthdr attributes
-Date: Wed, 10 Aug 2016 21:16:45 +0200
-Message-ID: <1470856605-7903-10-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 7/9] netfilter: nfnetlink_queue: reject verdict request from different portid
+Date: Wed, 10 Aug 2016 21:16:43 +0200
+Message-ID: <1470856605-7903-8-git-send-email-pablo@netfilter.org>
 References: <1470856605-7903-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,46 +10,36 @@ In-Reply-To: <1470856605-7903-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Laura Garcia Liebana <nevola@gmail.com>
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Fix the direct assignment of offset and length attributes included in
-nft_exthdr structure from u32 data to u8.
+Like NFQNL_MSG_VERDICT_BATCH do, we should also reject the verdict
+request when the portid is not same with the initial portid(maybe
+from another process).
 
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+Fixes: 97d32cf9440d ("netfilter: nfnetlink_queue: batch verdict support")
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+Reviewed-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nft_exthdr.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ net/netfilter/nfnetlink_queue.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nft_exthdr.c b/net/netfilter/nft_exthdr.c
-index ba7aed1..82c264e 100644
---- a/net/netfilter/nft_exthdr.c
-+++ b/net/netfilter/nft_exthdr.c
-@@ -59,6 +59,7 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
- 			   const struct nlattr * const tb[])
- {
- 	struct nft_exthdr *priv = nft_expr_priv(expr);
-+	u32 offset, len;
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 5d36a09..f49f450 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -1145,10 +1145,8 @@ static int nfqnl_recv_verdict(struct net *net, struct sock *ctnl,
+ 	struct nfnl_queue_net *q = nfnl_queue_pernet(net);
+ 	int err;
  
- 	if (tb[NFTA_EXTHDR_DREG] == NULL ||
- 	    tb[NFTA_EXTHDR_TYPE] == NULL ||
-@@ -66,9 +67,15 @@ static int nft_exthdr_init(const struct nft_ctx *ctx,
- 	    tb[NFTA_EXTHDR_LEN] == NULL)
- 		return -EINVAL;
+-	queue = instance_lookup(q, queue_num);
+-	if (!queue)
+-		queue = verdict_instance_lookup(q, queue_num,
+-						NETLINK_CB(skb).portid);
++	queue = verdict_instance_lookup(q, queue_num,
++					NETLINK_CB(skb).portid);
+ 	if (IS_ERR(queue))
+ 		return PTR_ERR(queue);
  
-+	offset = ntohl(nla_get_be32(tb[NFTA_EXTHDR_OFFSET]));
-+	len = ntohl(nla_get_be32(tb[NFTA_EXTHDR_LEN]));
-+
-+	if (offset > U8_MAX || len > U8_MAX)
-+		return -ERANGE;
-+
- 	priv->type   = nla_get_u8(tb[NFTA_EXTHDR_TYPE]);
--	priv->offset = ntohl(nla_get_be32(tb[NFTA_EXTHDR_OFFSET]));
--	priv->len    = ntohl(nla_get_be32(tb[NFTA_EXTHDR_LEN]));
-+	priv->offset = offset;
-+	priv->len    = len;
- 	priv->dreg   = nft_parse_register(tb[NFTA_EXTHDR_DREG]);
- 
- 	return nft_validate_register_store(ctx, priv->dreg, NULL,
 -- 
 2.1.4
