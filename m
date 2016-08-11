@@ -1,41 +1,42 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [libnftnl PATCH 0/7] A bunch of covscan detected fixes
-Date: Fri, 12 Aug 2016 01:33:32 +0200
-Message-ID: <1470958419-32602-1-git-send-email-phil@nwl.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 0/5] Check u32 load in u8 attributes
+Date: Fri, 12 Aug 2016 01:36:34 +0200
+Message-ID: <20160811233634.GA5208@salvia>
+References: <cover.1470842571.git.nevola@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Laura Garcia Liebana <nevola@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:53359 "EHLO mail.nwl.cc"
+Received: from mail.us.es ([193.147.175.20]:51590 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751570AbcHKXef (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Aug 2016 19:34:35 -0400
+	id S1750708AbcHKXgs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Aug 2016 19:36:48 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 0C5A91878BE
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2016 01:36:45 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id F16341B3245
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2016 01:36:44 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 0B7B6DA7E8
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2016 01:36:43 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <cover.1470842571.git.nevola@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The following series aims at fixing a number of issues identified by
-Coverity tool. Due to limited familiarity with the whole code layout, I
-am not sure all of them are really valid, but I tried my best to verify
-the concerns are legitimate and worth fixing.
+On Wed, Aug 10, 2016 at 05:29:34PM +0200, Laura Garcia Liebana wrote:
+> The following patchset adds a check during the load of an u32 value
+> into an u8 attribute which can cause an overflow.
 
-Phil Sutter (7):
-  set: prevent memleak in nftnl_jansson_parse_set_info()
-  ruleset: Prevent memleak in nftnl_ruleset_snprintf_*() functions
-  expr/ct: prevent array index overrun in ctkey2str()
-  expr/limit: Drop unreachable code in limit_to_type()
-  common: Avoid integer overflow in nftnl_batch_is_supported()
-  Avoid returning uninitialized data
-  ruleset: Initialize ctx.flags before calling nftnl_ruleset_ctx_set()
+Could you collapse them all in one single patch?
 
- src/chain.c      |  2 +-
- src/common.c     |  3 +++
- src/expr/ct.c    |  2 +-
- src/expr/limit.c |  1 -
- src/rule.c       |  2 +-
- src/ruleset.c    | 18 ++++++++++++++++++
- src/set.c        | 12 ++++++------
- src/table.c      |  2 +-
- 8 files changed, 31 insertions(+), 11 deletions(-)
+You can probably use this title:
 
--- 
-2.8.2
+        netfilter: nf_tables: Check for overflow of u8 fields from u32 netlink attributes
 
+And explicitly refer to 4da449ae1df in the description to link it to
+this one.
+
+Thanks.
