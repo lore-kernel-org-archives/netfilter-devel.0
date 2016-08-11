@@ -1,181 +1,106 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2, libnftnl] Use libnftnl comparators in all tests
-Date: Fri, 12 Aug 2016 01:32:22 +0200
-Message-ID: <20160811233222.GB5108@salvia>
-References: <20160811132507.17842-1-carlosfg@riseup.net>
- <20160811132507.17842-2-carlosfg@riseup.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org
-To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
+From: Phil Sutter <phil@nwl.cc>
+Subject: [libnftnl PATCH 2/7] ruleset: Prevent memleak in nftnl_ruleset_snprintf_*() functions
+Date: Fri, 12 Aug 2016 01:33:34 +0200
+Message-ID: <1470958419-32602-3-git-send-email-phil@nwl.cc>
+References: <1470958419-32602-1-git-send-email-phil@nwl.cc>
+Cc: netfilter-devel@vger.kernel.org, Phil Sutter <psutter@redhat.com>,
+	Arturo Borrero <arturo.borrero.glez@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51102 "EHLO mail.us.es"
+Received: from orbyte.nwl.cc ([151.80.46.58]:60455 "EHLO mail.nwl.cc"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751676AbcHKXc2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Aug 2016 19:32:28 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 38F981878BE
-	for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2016 01:32:26 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 28B9DFF154
-	for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2016 01:32:26 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id DD318FF153
-	for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2016 01:32:23 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20160811132507.17842-2-carlosfg@riseup.net>
+	id S1751497AbcHKXdx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Aug 2016 19:33:53 -0400
+In-Reply-To: <1470958419-32602-1-git-send-email-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Aug 11, 2016 at 03:25:07PM +0200, Carlos Falgueras García wrote:
-> Use 'nftnl_expr_cmp' and 'nftnl_rule_cmp' in all tests instead of custom
-> comparator for each one. If objects differ both are printed.
-> 
-> Signed-off-by: Carlos Falgueras García <carlosfg@riseup.net>
-> ---
->  tests/libtest.c                 | 22 +++++++++++++++++++++
->  tests/libtest.h                 |  9 +++++++++
->  tests/nft-expr_bitwise-test.c   | 29 +++------------------------
->  tests/nft-expr_byteorder-test.c | 24 +++-------------------
->  tests/nft-expr_cmp-test.c       | 21 +++-----------------
->  tests/nft-expr_counter-test.c   | 15 +++-----------
->  tests/nft-expr_ct-test.c        | 17 +++-------------
->  tests/nft-expr_dup-test.c       | 15 +++-----------
->  tests/nft-expr_exthdr-test.c    | 21 +++-----------------
->  tests/nft-expr_fwd-test.c       | 12 +++--------
->  tests/nft-expr_immediate-test.c | 44 ++++++-----------------------------------
->  tests/nft-expr_limit-test.c     | 24 +++-------------------
->  tests/nft-expr_log-test.c       | 21 +++-----------------
->  tests/nft-expr_lookup-test.c    | 27 +++----------------------
->  tests/nft-expr_masq-test.c      | 18 +++--------------
->  tests/nft-expr_match-test.c     | 22 +++------------------
->  tests/nft-expr_meta-test.c      | 15 +++-----------
->  tests/nft-expr_nat-test.c       | 30 +++-------------------------
->  tests/nft-expr_payload-test.c   | 21 +++-----------------
->  tests/nft-expr_queue-test.c     | 15 +++-----------
->  tests/nft-expr_redir-test.c     | 18 +++--------------
->  tests/nft-expr_reject-test.c    | 15 +++-----------
->  tests/nft-expr_target-test.c    | 22 +++------------------
->  tests/nft-rule-test.c           | 38 +++--------------------------------
->  24 files changed, 100 insertions(+), 415 deletions(-)
-> 
-> diff --git a/tests/libtest.c b/tests/libtest.c
-> index 91f2d5e..9ce38ff 100644
-> --- a/tests/libtest.c
-> +++ b/tests/libtest.c
-> @@ -11,6 +11,8 @@
->  #define COLOR_GREEN   "\x1b[32m"
->  #define COLOR_RESET   "\x1b[0m"
->  
-> +#define SNPRINTF_BUFF_LEN 1024
-> +
->  static bool test_ok = true;
->  
->  void __oom(const char *prog, const char *file, int line)
-> @@ -47,3 +49,23 @@ int test_exit(const char *prog)
->  		return EXIT_FAILURE;
->  	}
->  }
+From: Phil Sutter <psutter@redhat.com>
 
-Better place the definition here, close to where it is used and
-meaningful.
+This is an ugly aspect of the SNPRINTF_BUFFER_SIZE() macro: it contains
+a return statement and if that triggers, the function returns without
+freeing the iterator object. Therefore duplicate the 'ret < 0' check
+before calling it, freeing the iterator knowing that we will bail out
+immediately afterwards anyway.
 
-> +const char *rule2str(const struct nftnl_rule *r)
-> +{
-> +	static char buff[SNPRINTF_BUFF_LEN];
-> +
-> +	nftnl_rule_snprintf(buff, SNPRINTF_BUFF_LEN, r,
-> +			    NFTNL_OUTPUT_DEFAULT, 0);
+Cc: Arturo Borrero <arturo.borrero.glez@gmail.com>
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+ src/ruleset.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-This fits into one line:
+diff --git a/src/ruleset.c b/src/ruleset.c
+index 666bcc7a246b6..93cf95ab61e15 100644
+--- a/src/ruleset.c
++++ b/src/ruleset.c
+@@ -888,12 +888,16 @@ nftnl_ruleset_snprintf_table(char *buf, size_t size,
+ 	t = nftnl_table_list_iter_next(ti);
+ 	while (t != NULL) {
+ 		ret = nftnl_table_snprintf(buf+offset, len, t, type, flags);
++		if (ret < 0)
++			nftnl_table_list_iter_destroy(ti);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		t = nftnl_table_list_iter_next(ti);
+ 
+ 		ret = snprintf(buf+offset, len, "%s",
+ 			       nftnl_ruleset_o_separator(t, type));
++		if (ret < 0)
++			nftnl_table_list_iter_destroy(ti);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	}
+ 	nftnl_table_list_iter_destroy(ti);
+@@ -917,12 +921,16 @@ nftnl_ruleset_snprintf_chain(char *buf, size_t size,
+ 	c = nftnl_chain_list_iter_next(ci);
+ 	while (c != NULL) {
+ 		ret = nftnl_chain_snprintf(buf+offset, len, c, type, flags);
++		if (ret < 0)
++			nftnl_chain_list_iter_destroy(ci);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		c = nftnl_chain_list_iter_next(ci);
+ 
+ 		ret = snprintf(buf+offset, len, "%s",
+ 			       nftnl_ruleset_o_separator(c, type));
++		if (ret < 0)
++			nftnl_chain_list_iter_destroy(ci);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	}
+ 	nftnl_chain_list_iter_destroy(ci);
+@@ -946,12 +954,16 @@ nftnl_ruleset_snprintf_set(char *buf, size_t size,
+ 	s = nftnl_set_list_iter_next(si);
+ 	while (s != NULL) {
+ 		ret = nftnl_set_snprintf(buf+offset, len, s, type, flags);
++		if (ret < 0)
++			nftnl_set_list_iter_destroy(si);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		s = nftnl_set_list_iter_next(si);
+ 
+ 		ret = snprintf(buf+offset, len, "%s",
+ 			       nftnl_ruleset_o_separator(s, type));
++		if (ret < 0)
++			nftnl_set_list_iter_destroy(si);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	}
+ 	nftnl_set_list_iter_destroy(si);
+@@ -975,12 +987,16 @@ nftnl_ruleset_snprintf_rule(char *buf, size_t size,
+ 	r = nftnl_rule_list_iter_next(ri);
+ 	while (r != NULL) {
+ 		ret = nftnl_rule_snprintf(buf+offset, len, r, type, flags);
++		if (ret < 0)
++			nftnl_rule_list_iter_destroy(ri);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 
+ 		r = nftnl_rule_list_iter_next(ri);
+ 
+ 		ret = snprintf(buf+offset, len, "%s",
+ 			       nftnl_ruleset_o_separator(r, type));
++		if (ret < 0)
++			nftnl_rule_list_iter_destroy(ri);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 	}
+ 	nftnl_rule_list_iter_destroy(ri);
+-- 
+2.8.2
 
-	nftnl_rule_snprintf(buf, sizeof(buf), r, NFTNL_OUTPUT_DEFAULT, 0);
-
-> +
-> +	return buff;
-> +}
-> +
-> +const char *expr2str(const struct nftnl_expr *e)
-> +{
-> +	static char buff[SNPRINTF_BUFF_LEN];
-> +
-> +	nftnl_expr_snprintf(buff, SNPRINTF_BUFF_LEN, e,
-> +			    NFTNL_OUTPUT_DEFAULT, 0);
-> +
-> +	return buff;
-> +}
-> diff --git a/tests/libtest.h b/tests/libtest.h
-> index 810bd82..af469ce 100644
-> --- a/tests/libtest.h
-> +++ b/tests/libtest.h
-> @@ -1,9 +1,18 @@
->  #ifndef _TESTS_UTILS_H
->  #define _TESTS_UTILS_H
->  
-> +#include <stdbool.h>
-> +#include <libmnl/libmnl.h>
-> +#include <libnftnl/common.h>
-> +#include <libnftnl/rule.h>
-> +#include <libnftnl/expr.h>
-> +
->  #define oom(prog) __oom(prog, __FILE__, __LINE__)
->  void __oom(const char *prog, const char *file, int line);
->  void print_err(const char *fmt, ...);
->  int test_exit(const char *prog);
->  
-> +const char *rule2str(const struct nftnl_rule *r);
-> +const char *expr2str(const struct nftnl_expr *e);
-> +
->  #endif
-> diff --git a/tests/nft-expr_bitwise-test.c b/tests/nft-expr_bitwise-test.c
-> index bf76cb2..a661be6 100644
-> --- a/tests/nft-expr_bitwise-test.c
-> +++ b/tests/nft-expr_bitwise-test.c
-> @@ -21,31 +21,6 @@
->  
->  #include <libtest.h>
->  
-> -static void cmp_nftnl_expr(struct nftnl_expr *rule_a,
-> -			      struct nftnl_expr *rule_b)
-> -{
-> -	uint32_t maska, maskb;
-> -	uint32_t xora, xorb;
-> -
-> -	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_BITWISE_DREG) !=
-> -	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_BITWISE_DREG))
-> -		print_err("Expr BITWISE_DREG mismatches");
-> -	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_BITWISE_SREG) !=
-> -	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_BITWISE_SREG))
-> -		print_err("Expr BITWISE_SREG mismatches");
-> -	if (nftnl_expr_get_u16(rule_a, NFTNL_EXPR_BITWISE_LEN) !=
-> -	    nftnl_expr_get_u16(rule_b, NFTNL_EXPR_BITWISE_LEN))
-> -		print_err("Expr BITWISE_DREG mismatches");
-> -	nftnl_expr_get(rule_a, NFTNL_EXPR_BITWISE_MASK, &maska);
-> -	nftnl_expr_get(rule_b, NFTNL_EXPR_BITWISE_MASK, &maskb);
-> -	if (maska != maskb)
-> -		print_err("Size of BITWISE_MASK mismatches");
-> -	nftnl_expr_get(rule_a, NFTNL_EXPR_BITWISE_XOR, &xora);
-> -	nftnl_expr_get(rule_b, NFTNL_EXPR_BITWISE_XOR, &xorb);
-> -	if (xora != xorb)
-> -		print_err("Size of BITWISE_XOR mismatches");
-> -
-> -}
->  int main(int argc, char *argv[])
->  {
->  	struct nftnl_rule *a, *b = NULL;
-> @@ -96,7 +71,9 @@ int main(int argc, char *argv[])
->  	nftnl_expr_iter_destroy(iter_a);
->  	nftnl_expr_iter_destroy(iter_b);
->  
-> -	cmp_nftnl_expr(rule_a,rule_b);
-> +	if (!nftnl_expr_cmp(rule_a, rule_b))
-> +		print_err("expressions mismatches:\n\texpr 1: %s\n\texpr 2: %s",
-> +			  expr2str(rule_a), expr2str(rule_b));
-
-Better, add something like
-
-                print_expr_mismatch(rule_a, rule_b);
-
-This should be "expressions mismatch" instead of "expressions
-mismatches".
