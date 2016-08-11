@@ -1,48 +1,261 @@
-From: Josue Alvarez <jalvarez@toulouse.viveris.com>
-Subject: nfacct: setting quotas does not seem to work.
-Date: Thu, 11 Aug 2016 16:00:37 +0200
-Message-ID: <59114b3a-5fff-4099-e2f7-d749be4e1511@toulouse.viveris.com>
+From: Laura Garcia Liebana <nevola@gmail.com>
+Subject: [PATCH v5] netfilter: nf_tables: add hash expression
+Date: Thu, 11 Aug 2016 18:02:07 +0200
+Message-ID: <20160811160203.GA27819@sonyv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.toulouse.viveris.com ([212.99.125.10]:53613 "EHLO
-	mailS.toulouse.viveris.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752111AbcHKOAl (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33527 "EHLO
+	mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932594AbcHKQRK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Aug 2016 10:00:41 -0400
-Received: from [172.20.0.155] (unknown [172.20.0.155])
-	by mailS.toulouse.viveris.com (Postfix) with ESMTPSA id 9E5ABCC0085
-	for <netfilter-devel@vger.kernel.org>; Thu, 11 Aug 2016 16:00:38 +0200 (CEST)
+	Thu, 11 Aug 2016 12:17:10 -0400
+Received: by mail-wm0-f66.google.com with SMTP id o80so111316wme.0
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Aug 2016 09:17:09 -0700 (PDT)
+Received: from sonyv (cli-5b7e49a2.wholesale.adamo.es. [91.126.73.162])
+        by smtp.gmail.com with ESMTPSA id a184sm545137wmh.1.2016.08.11.09.02.09
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Thu, 11 Aug 2016 09:02:12 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+This patch adds a new hash expression, this provides jhash support but
+this can be extended to support for other hash functions.
 
-I tried to play a little bit with the quota features of the extended 
-accounting infrastructure.
-However, it seemed that the quotas were not registered when creating the 
-accounting objects.
+The modulus and seed already comes embedded into this new expression.
 
-Example :
-# nfacct add testquota packet 5
-# iptables -I OUTPUT -p icmp -m nfacct --nfacct-name testquota
-# nfacct get testquota
-{ pkts = 00000000000000000000, bytes = 00000000000000000000 } = testquota;
+Use case example:
+meta mark set hash ip saddr mod 10
 
-When I ping the machine, I see the counters go above 5 packets, however 
-I get no output when running :
-# nfacct monitor
+Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+---
+Changes in V2:
+	- Define len as u8 instead of u32
+	- Improved module description
+	- Remove unnecessary includes
+Changes in V3:
+	- Add null checks in init()
+	- Include registers load validation
+Changes in V4:
+	- Use ERANGE in some cases according to the lib/nlattr.c policy
+	- Typo fixed
+	- Use nft_validate_register_load instead of nft_validate_register_store
+Changes in V5:
+	- Use nft_validate_register_store for dreg in init()
 
-After a little bit of investigation in the code of nfacct, I checked 
-that the NFACCT_ATTR_FLAGS and NFACCT_ATTR_QUOTA attributes were set. (i 
-managed to call _nfacct_cmd_add with flags=NFACCT_F_QUOTA_PKTS).
+ include/uapi/linux/netfilter/nf_tables.h |  20 +++++
+ net/netfilter/Kconfig                    |   6 ++
+ net/netfilter/Makefile                   |   1 +
+ net/netfilter/nft_hash.c                 | 137 +++++++++++++++++++++++++++++++
+ 4 files changed, 164 insertions(+)
+ create mode 100644 net/netfilter/nft_hash.c
 
-However, the kernel code in netfilter/net/nfnetlink_acct.c somehow did 
-not "get" the flags : the execution didn't enter in the  "if 
-(tb[NFACCT_FLAGS]) { ... }" in nfnl_acct_new(). (checked that using printk).
+diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
+index 533507b..13d25b9 100644
+--- a/include/uapi/linux/netfilter/nf_tables.h
++++ b/include/uapi/linux/netfilter/nf_tables.h
+@@ -724,6 +724,26 @@ enum nft_meta_keys {
+ };
+ 
+ /**
++ * enum nft_hash_attributes - nf_tables hash expression netlink attributes
++ *
++ * @NFTA_HASH_SREG: source register (NLA_U32)
++ * @NFTA_HASH_DREG: destination register (NLA_U32)
++ * @NFTA_HASH_LEN: source data length (NLA_U32)
++ * @NFTA_HASH_MODULUS: modulus value (NLA_U32)
++ * @NFTA_HASH_SEED: seed value (NLA_U32)
++ */
++enum nft_hash_attributes {
++	NFTA_HASH_UNSPEC,
++	NFTA_HASH_SREG,
++	NFTA_HASH_DREG,
++	NFTA_HASH_LEN,
++	NFTA_HASH_MODULUS,
++	NFTA_HASH_SEED,
++	__NFTA_HASH_MAX,
++};
++#define NFTA_HASH_MAX	(__NFTA_HASH_MAX - 1)
++
++/**
+  * enum nft_meta_attributes - nf_tables meta expression netlink attributes
+  *
+  * @NFTA_META_DREG: destination register (NLA_U32)
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index a2e4cf6..1074700 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -569,6 +569,12 @@ config NFT_COMPAT
+ 	  x_tables match/target extensions over the nf_tables
+ 	  framework.
+ 
++config NFT_HASH
++	tristate "Netfilter nf_tables hash module"
++	help
++	  This option adds the "hash" expression that you can use to perform
++	  a hash operation on registers.
++
+ if NF_TABLES_NETDEV
+ 
+ config NF_DUP_NETDEV
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 441a3c0..faa277e 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -93,6 +93,7 @@ obj-$(CONFIG_NFT_COUNTER)	+= nft_counter.o
+ obj-$(CONFIG_NFT_LOG)		+= nft_log.o
+ obj-$(CONFIG_NFT_MASQ)		+= nft_masq.o
+ obj-$(CONFIG_NFT_REDIR)		+= nft_redir.o
++obj-$(CONFIG_NFT_HASH)		+= nft_hash.o
+ 
+ # nf_tables netdev
+ obj-$(CONFIG_NFT_DUP_NETDEV)	+= nft_dup_netdev.o
+diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
+new file mode 100644
+index 0000000..d15b686
+--- /dev/null
++++ b/net/netfilter/nft_hash.c
+@@ -0,0 +1,137 @@
++/*
++ * Copyright (c) 2016 Laura Garcia <nevola@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/netlink.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables.h>
++#include <net/netfilter/nf_tables_core.h>
++#include <linux/jhash.h>
++
++struct nft_hash {
++	enum nft_registers      sreg:8;
++	enum nft_registers      dreg:8;
++	u8			len;
++	u32			modulus;
++	u32			seed;
++};
++
++static void nft_hash_eval(const struct nft_expr *expr,
++			  struct nft_regs *regs,
++			  const struct nft_pktinfo *pkt)
++{
++	struct nft_hash *priv = nft_expr_priv(expr);
++	const void *data = &regs->data[priv->sreg];
++	u32 h;
++
++	h = reciprocal_scale(jhash(data, priv->len, priv->seed), priv->modulus);
++
++	regs->data[priv->dreg] = h;
++}
++
++const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] = {
++	[NFTA_HASH_SREG]		= { .type = NLA_U32 },
++	[NFTA_HASH_DREG]		= { .type = NLA_U32 },
++	[NFTA_HASH_LEN]			= { .type = NLA_U32 },
++	[NFTA_HASH_MODULUS]		= { .type = NLA_U32 },
++	[NFTA_HASH_SEED]		= { .type = NLA_U32 },
++};
++
++static int nft_hash_init(const struct nft_ctx *ctx,
++			 const struct nft_expr *expr,
++			 const struct nlattr * const tb[])
++{
++	struct nft_hash *priv = nft_expr_priv(expr);
++	u32 len;
++
++	if (!tb[NFTA_HASH_SREG] ||
++	    !tb[NFTA_HASH_DREG] ||
++	    !tb[NFTA_HASH_LEN]  ||
++	    !tb[NFTA_HASH_SEED] ||
++	    !tb[NFTA_HASH_MODULUS])
++		return -EINVAL;
++
++	priv->sreg = nft_parse_register(tb[NFTA_HASH_SREG]);
++	priv->dreg = nft_parse_register(tb[NFTA_HASH_DREG]);
++
++	len = ntohl(nla_get_be32(tb[NFTA_HASH_LEN]));
++	if (len == 0 || len > U8_MAX)
++		return -ERANGE;
++
++	priv->len = len;
++
++	priv->modulus = ntohl(nla_get_be32(tb[NFTA_HASH_MODULUS]));
++	if (priv->modulus <= 1)
++		return -ERANGE;
++
++	priv->seed = ntohl(nla_get_be32(tb[NFTA_HASH_SEED]));
++
++	return nft_validate_register_load(priv->sreg, len) &&
++	       nft_validate_register_store(ctx, priv->dreg, NULL,
++					   NFT_DATA_VALUE, sizeof(u32));
++}
++
++static int nft_hash_dump(struct sk_buff *skb,
++			 const struct nft_expr *expr)
++{
++	const struct nft_hash *priv = nft_expr_priv(expr);
++
++	if (nft_dump_register(skb, NFTA_HASH_SREG, priv->sreg))
++		goto nla_put_failure;
++	if (nft_dump_register(skb, NFTA_HASH_DREG, priv->dreg))
++		goto nla_put_failure;
++	if (nft_dump_register(skb, NFTA_HASH_LEN, priv->len))
++		goto nla_put_failure;
++	if (nft_dump_register(skb, NFTA_HASH_MODULUS, priv->modulus))
++		goto nla_put_failure;
++	if (nft_dump_register(skb, NFTA_HASH_SEED, priv->seed))
++		goto nla_put_failure;
++
++	return 0;
++
++nla_put_failure:
++	return -1;
++}
++
++static struct nft_expr_type nft_hash_type;
++static const struct nft_expr_ops nft_hash_ops = {
++	.type		= &nft_hash_type,
++	.size		= NFT_EXPR_SIZE(sizeof(struct nft_hash)),
++	.eval		= nft_hash_eval,
++	.init		= nft_hash_init,
++	.dump		= nft_hash_dump,
++};
++
++static struct nft_expr_type nft_hash_type __read_mostly = {
++	.name		= "hash",
++	.ops		= &nft_hash_ops,
++	.policy		= nft_hash_policy,
++	.maxattr	= NFTA_HASH_MAX,
++	.owner		= THIS_MODULE,
++};
++
++static int __init nft_hash_module_init(void)
++{
++	return nft_register_expr(&nft_hash_type);
++}
++
++static void __exit nft_hash_module_exit(void)
++{
++	nft_unregister_expr(&nft_hash_type);
++}
++
++module_init(nft_hash_module_init);
++module_exit(nft_hash_module_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Laura Garcia <nevola@gmail.com>");
++MODULE_ALIAS_NFT_EXPR("hash");
+-- 
+2.8.1
 
-Any idea how this could happen ?
-
-Thanks :)
