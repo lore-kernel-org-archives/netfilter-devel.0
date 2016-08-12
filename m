@@ -1,49 +1,37 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [libnftnl PATCH 0/7] A bunch of covscan detected fixes
-Date: Fri, 12 Aug 2016 10:40:40 +0200
-Message-ID: <20160812084040.GB1440@salvia>
-References: <1470958419-32602-1-git-send-email-phil@nwl.cc>
- <20160811235817.GA11124@salvia>
- <20160812000554.GA11290@salvia>
- <20160812004746.GG10197@orbyte.nwl.cc>
+Subject: Re: [PATCH 1/1] netfilter: Only need first 4 bytes to get l4proto
+ ports
+Date: Fri, 12 Aug 2016 12:16:55 +0200
+Message-ID: <20160812101655.GA2929@salvia>
+References: <1469272907-27761-1-git-send-email-fgao@ikuai8.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: Phil Sutter <phil@nwl.cc>, netfilter-devel@vger.kernel.org
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
+	gfree.wind@gmail.com
+To: fgao@ikuai8.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55390 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:57196 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752234AbcHLIks (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Aug 2016 04:40:48 -0400
+	id S1751230AbcHLKRD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Aug 2016 06:17:03 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id D71EFD162B
-	for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2016 10:40:44 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id A3F87D1633
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2016 12:17:00 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id C8ECC1B3334
-	for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2016 10:40:44 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 9690FDA7F7
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2016 12:17:00 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 7519A1B3336
-	for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2016 10:40:41 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id A52F4A827A
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2016 12:16:56 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160812004746.GG10197@orbyte.nwl.cc>
+In-Reply-To: <1469272907-27761-1-git-send-email-fgao@ikuai8.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Aug 12, 2016 at 02:47:46AM +0200, Phil Sutter wrote:
-> On Fri, Aug 12, 2016 at 02:05:54AM +0200, Pablo Neira Ayuso wrote:
-> > On Fri, Aug 12, 2016 at 01:58:17AM +0200, Pablo Neira Ayuso wrote:
-> > > On Fri, Aug 12, 2016 at 01:33:32AM +0200, Phil Sutter wrote:
-> > > > The following series aims at fixing a number of issues identified by
-> > > > Coverity tool. Due to limited familiarity with the whole code layout, I
-> > > > am not sure all of them are really valid, but I tried my best to verify
-> > > > the concerns are legitimate and worth fixing.
-> > > 
-> > > Applied, 1/7, 3/7, 4/7, 5/7, 7/7.
-> > > 
-> > > Kept back 2/7 and 6/7.
-> > 
-> > Sorry, I mean I kept back 5/7.
+On Sat, Jul 23, 2016 at 07:21:47PM +0800, fgao@ikuai8.com wrote:
+> From: Gao Feng <fgao@ikuai8.com>
 > 
-> Actually, you didn't. Patch 5/7 slipped through (d26feca2c9c19). Feel
-> free to revert if it's useless.
+> We only need first 4 bytes instead of 8 bytes to get the ports of
+> tcp/udp/dccp/sctp/udplite in their pkt_to_tuple function.
 
-Done.
+Applied, thanks.
