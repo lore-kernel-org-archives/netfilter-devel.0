@@ -1,50 +1,41 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: [libnftnl PATCH] utils: Don't return directly from SNPRINTF_BUFFER_SIZE
-Date: Fri, 12 Aug 2016 14:39:50 +0200
-Message-ID: <1471005590-18276-1-git-send-email-phil@nwl.cc>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnftnl PATCH] utils: Don't return directly from
+ SNPRINTF_BUFFER_SIZE
+Date: Fri, 12 Aug 2016 15:37:11 +0200
+Message-ID: <20160812133711.GA2036@salvia>
+References: <1471005590-18276-1-git-send-email-phil@nwl.cc>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, Phil Sutter <psutter@redhat.com>,
 	Arturo Borrero <arturo.borrero.glez@gmail.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Phil Sutter <phil@nwl.cc>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:45166 "EHLO mail.nwl.cc"
+Received: from mail.us.es ([193.147.175.20]:43996 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751993AbcHLMkD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Aug 2016 08:40:03 -0400
+	id S1752348AbcHLNhc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Aug 2016 09:37:32 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 29FE3D163B
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2016 15:37:29 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 1109DFF2D6
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2016 15:37:29 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 06E8EFAB4F
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Aug 2016 15:37:27 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1471005590-18276-1-git-send-email-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Phil Sutter <psutter@redhat.com>
+On Fri, Aug 12, 2016 at 02:39:50PM +0200, Phil Sutter wrote:
+> From: Phil Sutter <psutter@redhat.com>
+> 
+> Apart from being a bad idea in general, the return statement contained
+> in that macro in some cases leads to returning from functions without
+> properly cleaning up, thereby causing memory leaks.
+> 
+> Instead, just sanitize the value in 'ret' to not harm further calls of
+> snprintf() (as 'len' will eventually just become zero).
 
-Apart from being a bad idea in general, the return statement contained
-in that macro in some cases leads to returning from functions without
-properly cleaning up, thereby causing memory leaks.
-
-Instead, just sanitize the value in 'ret' to not harm further calls of
-snprintf() (as 'len' will eventually just become zero).
-
-Cc: Arturo Borrero <arturo.borrero.glez@gmail.com>
-Signed-off-by: Phil Sutter <phil@nwl.cc>
----
-This is actually v2 of "[libnftnl PATCH 2/7] ruleset: Prevent memleak in
-nftnl_ruleset_snprintf_*() functions" but since it's a completely
-different approach there was no use in keeping the old subject line.
----
- include/utils.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/include/utils.h b/include/utils.h
-index 21694b6ab1912..924df324aa603 100644
---- a/include/utils.h
-+++ b/include/utils.h
-@@ -54,7 +54,7 @@ void __nftnl_assert_attr_exists(uint16_t attr, uint16_t attr_max,
- 
- #define SNPRINTF_BUFFER_SIZE(ret, size, len, offset)	\
- 	if (ret < 0)					\
--		return ret;				\
-+		ret = 0;				\
- 	offset += ret;					\
- 	if (ret > len)					\
- 		ret = len;				\
--- 
-2.8.2
-
+Applied, thanks.
