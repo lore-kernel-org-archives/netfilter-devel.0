@@ -1,39 +1,47 @@
-From: Phil Sutter <phil@nwl.cc>
-Subject: Re: [libnftnl PATCH 0/7] A bunch of covscan detected fixes
-Date: Fri, 12 Aug 2016 02:47:46 +0200
-Message-ID: <20160812004746.GG10197@orbyte.nwl.cc>
-References: <1470958419-32602-1-git-send-email-phil@nwl.cc>
- <20160811235817.GA11124@salvia>
- <20160812000554.GA11290@salvia>
+From: Loganaden Velvindron <logan@hackers.mu>
+Subject: Re: [PATCH] nf-next: x_tables: Replace kmalloc(s*n) with
+ kmalloc_array(n,s)
+Date: Fri, 12 Aug 2016 11:12:06 +0400
+Message-ID: <20160812071204.GA16394@void>
+References: <20160810141146.GA22890@void>
+ <20160811231352.GA4972@salvia>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:58610 "EHLO mail.nwl.cc"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750958AbcHLArr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Aug 2016 20:47:47 -0400
+Received: from mailout04.yourhostingaccount.com ([65.254.254.70]:48738 "EHLO
+	walmailout04.yourhostingaccount.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751031AbcHLHm6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Aug 2016 03:42:58 -0400
+Received: from mailscan05.yourhostingaccount.com ([10.1.15.5] helo=walmailscan05.yourhostingaccount.com)
+	by walmailout04.yourhostingaccount.com with esmtp (Exim)
+	id 1bY6dg-0000TM-PH
+	for netfilter-devel@vger.kernel.org; Fri, 12 Aug 2016 03:12:20 -0400
+Received: from [10.114.3.31] (helo=walimpout11)
+	by walmailscan05.yourhostingaccount.com with esmtp (Exim)
+	id 1bY6dg-0008EJ-L3
+	for netfilter-devel@vger.kernel.org; Fri, 12 Aug 2016 03:12:20 -0400
 Content-Disposition: inline
-In-Reply-To: <20160812000554.GA11290@salvia>
+In-Reply-To: <20160811231352.GA4972@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Aug 12, 2016 at 02:05:54AM +0200, Pablo Neira Ayuso wrote:
-> On Fri, Aug 12, 2016 at 01:58:17AM +0200, Pablo Neira Ayuso wrote:
-> > On Fri, Aug 12, 2016 at 01:33:32AM +0200, Phil Sutter wrote:
-> > > The following series aims at fixing a number of issues identified by
-> > > Coverity tool. Due to limited familiarity with the whole code layout, I
-> > > am not sure all of them are really valid, but I tried my best to verify
-> > > the concerns are legitimate and worth fixing.
-> > 
-> > Applied, 1/7, 3/7, 4/7, 5/7, 7/7.
-> > 
-> > Kept back 2/7 and 6/7.
+On Fri, Aug 12, 2016 at 01:13:52AM +0200, Pablo Neira Ayuso wrote:
+> On Wed, Aug 10, 2016 at 06:11:51PM +0400, Loganaden Velvindron wrote:
+> > It is easier to check that the calculation doesn't wrap or return a smaller
+> > allocation.
 > 
-> Sorry, I mean I kept back 5/7.
+> Could you review the netfilter tree in search for similar kmalloc()
+> invocation that can be replaced? I could at least find one more at
+> quick glace.
+> 
+> Thanks.
 
-Actually, you didn't. Patch 5/7 slipped through (d26feca2c9c19). Feel
-free to revert if it's useless.
+Yes. I am currently working on that !
 
-Thanks, Phil
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
