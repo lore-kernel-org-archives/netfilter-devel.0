@@ -1,73 +1,87 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf 1/2] netfilter: nfnetlink_acct: fix race between nfacct del and xt_nfacct destroy
-Date: Sat, 13 Aug 2016 23:13:01 +0800
-Message-ID: <1471101182-15294-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: pablo@netfilter.org
+From: =?UTF-8?Q?Carlos_Falgueras_Garc=c3=ada?= <carlosfg@riseup.net>
+Subject: Re: [PATCH 1/4, V2, libnftnl] tests: Fix segfaults due outbound
+ access
+Date: Sat, 13 Aug 2016 17:25:19 +0200
+Message-ID: <55d5bbb9-bfba-5cb3-11d1-348ce2e20675@riseup.net>
+References: <20160811233222.GB5108@salvia>
+ <20160812201722.10134-1-carlosfg@riseup.net> <20160813101210.GD1376@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-12.163.com ([220.181.12.12]:42082 "EHLO m12-12.163.com"
+Received: from mx1.riseup.net ([198.252.153.129]:35652 "EHLO mx1.riseup.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752633AbcHMPN4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 13 Aug 2016 11:13:56 -0400
+	id S1752648AbcHMPZY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 13 Aug 2016 11:25:24 -0400
+In-Reply-To: <20160813101210.GD1376@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+On 08/13/2016 12:12 PM, Pablo Neira Ayuso wrote:
+> On Fri, Aug 12, 2016 at 10:17:19PM +0200, Carlos Falgueras García wrote:
+>> Changes random values for macros because the conversion to string of these
+>> values are performed by accessing to an array of strings.
+>
+> Then, we should fix the functions to return "unknown" for out of bound
+> access of the array.
+>
+> I think you have to fix this in the library, not the test.
 
-Suppose that we input the following commands at first:
-  # nfacct add test
-  # iptables -A INPUT -m nfacct --nfacct-name test
+The most common structure we have is this:
 
-And now "test" acct's refcnt is 2, but later when we try to delete the
-"test" nfacct and the related iptables rule at the same time, race maybe
-happen:
-      CPU0                                    CPU1
-  nfnl_acct_try_del                      nfnl_acct_put
-  atomic_dec_and_test //ref=1,testfail          -
-       -                                 atomic_dec_and_test //ref=0,testok
-       -                                 kfree_rcu
-  atomic_inc //ref=1                            -
+	static const char *element2str_array[MAX_ELEMENTS] {
+		[ELEMENT_1]	= "element 1",
+		...
+		[ELEMENT_N]	= "element N",
+	};
 
-So after the rcu grace period, nf_acct will be freed but it is still linked
-in the nfnl_acct_list, and we can access it later, then oops will happen.
+	static const char *element2str(uint32_t element) {
+		if (element < MAX_ELEMENT)
+			return "unkown";
+		return element2str_array[element];
+	}
 
-Convert atomic_dec_and_test and atomic_inc combinaiton to one atomic
-operation atomic_cmpxchg here to fix this problem.
+I think it is better if we change it to a switch-case statement. I think 
+a switch-case have the same performance and it is more robust due cases 
+like this:
 
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
----
- net/netfilter/nfnetlink_acct.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+netfilter.h:
+	enum {
+		NFPROTO_UNSPEC =  0,
+		NFPROTO_INET   =  1,
+		NFPROTO_IPV4   =  2,
+		NFPROTO_ARP    =  3,
+		NFPROTO_NETDEV =  5,
+		NFPROTO_BRIDGE =  7,
+		NFPROTO_IPV6   = 10,
+		NFPROTO_DECNET = 12,
+		NFPROTO_NUMPROTO,
+	};
 
-diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-index 1b4de4b..1f15535 100644
---- a/net/netfilter/nfnetlink_acct.c
-+++ b/net/netfilter/nfnetlink_acct.c
-@@ -326,16 +326,18 @@ static int nfnl_acct_try_del(struct nf_acct *cur)
- {
- 	int ret = 0;
- 
--	/* we want to avoid races with nfnl_acct_find_get. */
--	if (atomic_dec_and_test(&cur->refcnt)) {
-+	/*
-+	 * We want to avoid races with nfnl_acct_put. So only when the current
-+	 * refcnt is 1, we decrease it to 0.
-+	 */
-+	if (atomic_cmpxchg(&cur->refcnt, 1, 0) == 1) {
- 		/* We are protected by nfnl mutex. */
- 		list_del_rcu(&cur->head);
- 		kfree_rcu(cur, rcu_head);
- 	} else {
--		/* still in use, restore reference counter. */
--		atomic_inc(&cur->refcnt);
- 		ret = -EBUSY;
- 	}
-+
- 	return ret;
- }
- 
--- 
-2.5.5
+utils.c:
+	static const char *const nftnl_family_str[NFPROTO_NUMPROTO] = {
+		[NFPROTO_INET]		= "inet",
+		[NFPROTO_IPV4]		= "ip",
+		[NFPROTO_ARP]		= "arp",
+		[NFPROTO_NETDEV]	= "netdev",
+		[NFPROTO_BRIDGE]	= "bridge",
+		[NFPROTO_IPV6]		= "ip6",
+	};
 
+We do not have all element in the translation table and elements have 
+unconsecutives values.
 
+Another possible solution is something like this:
+
+	  static const char *element2str(uint32_t element) {
+	- 	if (element < MAX_ELEMENT)
+	+ 	if (element < MAX_ELEMENT || !element2str_array[element])
+	  		return "unkown";
+	  	return element2str_array[element];
+	  }
+
+What do you think?
+
+Thanks.
