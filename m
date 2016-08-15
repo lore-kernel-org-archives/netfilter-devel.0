@@ -1,77 +1,47 @@
-From: Kevin Cernekee <cernekee@chromium.org>
-Subject: [PATCH libnetfilter_conntrack] src: Make the library compile under clang
-Date: Sun, 14 Aug 2016 13:59:01 -0700
-Message-ID: <1471208341-24673-1-git-send-email-cernekee@chromium.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/4, V2, libnftnl] tests: Fix segfaults due outbound
+ access
+Date: Mon, 15 Aug 2016 11:12:39 +0200
+Message-ID: <20160815091239.GC3905@salvia>
+References: <20160811233222.GB5108@salvia>
+ <20160812201722.10134-1-carlosfg@riseup.net>
+ <20160813101210.GD1376@salvia>
+ <55d5bbb9-bfba-5cb3-11d1-348ce2e20675@riseup.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:34517 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750845AbcHNU7L (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 14 Aug 2016 16:59:11 -0400
-Received: by mail-pa0-f48.google.com with SMTP id fi15so10872527pac.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 14 Aug 2016 13:59:11 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:43034 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752289AbcHOJMp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Aug 2016 05:12:45 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 21D91A4165
+	for <netfilter-devel@vger.kernel.org>; Mon, 15 Aug 2016 11:12:42 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 15ECADA7F7
+	for <netfilter-devel@vger.kernel.org>; Mon, 15 Aug 2016 11:12:42 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 1A594DA7E7
+	for <netfilter-devel@vger.kernel.org>; Mon, 15 Aug 2016 11:12:40 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <55d5bbb9-bfba-5cb3-11d1-348ce2e20675@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-clang treats "char buffer[size]" inside a union as VLAIS unless |size|
-is const:
+On Sat, Aug 13, 2016 at 05:25:19PM +0200, Carlos Falgueras García wrote:
+> Another possible solution is something like this:
+> 
+> 	  static const char *element2str(uint32_t element) {
+> 	- 	if (element < MAX_ELEMENT)
+> 	+ 	if (element < MAX_ELEMENT || !element2str_array[element])
+> 	  		return "unkown";
+> 	  	return element2str_array[element];
+> 	  }
+> 
+> What do you think?
 
-src/conntrack/api.c:992:8: error: fields must have a constant size: 'variable length array in structure' extension will never be supported
-                char buffer[size];
-                     ^
-
-Signed-off-by: Kevin Cernekee <cernekee@chromium.org>
----
- src/conntrack/api.c | 4 ++--
- src/expect/api.c    | 4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/src/conntrack/api.c b/src/conntrack/api.c
-index e4d4acc312bb..bed2e42c8f43 100644
---- a/src/conntrack/api.c
-+++ b/src/conntrack/api.c
-@@ -955,7 +955,7 @@ int nfct_query(struct nfct_handle *h,
- 	       const enum nf_conntrack_query qt,
- 	       const void *data)
- {
--	size_t size = 4096;	/* enough for now */
-+	const size_t size = 4096;	/* enough for now */
- 	union {
- 		char buffer[size];
- 		struct nfnlhdr req;
-@@ -987,7 +987,7 @@ int nfct_send(struct nfct_handle *h,
- 	      const enum nf_conntrack_query qt,
- 	      const void *data)
- {
--	size_t size = 4096;	/* enough for now */
-+	const size_t size = 4096;	/* enough for now */
- 	union {
- 		char buffer[size];
- 		struct nfnlhdr req;
-diff --git a/src/expect/api.c b/src/expect/api.c
-index 8ff20e2821e3..3f1763038ede 100644
---- a/src/expect/api.c
-+++ b/src/expect/api.c
-@@ -669,7 +669,7 @@ int nfexp_query(struct nfct_handle *h,
- 	        const enum nf_conntrack_query qt,
- 	        const void *data)
- {
--	size_t size = 4096;	/* enough for now */
-+	const size_t size = 4096;	/* enough for now */
- 	union {
- 		char buffer[size];
- 		struct nfnlhdr req;
-@@ -701,7 +701,7 @@ int nfexp_send(struct nfct_handle *h,
- 	       const enum nf_conntrack_query qt,
- 	       const void *data)
- {
--	size_t size = 4096;	/* enough for now */
-+	const size_t size = 4096;	/* enough for now */
- 	union {
- 		char buffer[size];
- 		struct nfnlhdr req;
--- 
-2.8.0.rc3.226.g39d4020
-
+This only requires a oneliner patch and a very simple solution, please
+do this.
