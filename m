@@ -1,93 +1,53 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/2 v2 libnftnl] test: Use libnftnl comparators in all
- tests
-Date: Mon, 15 Aug 2016 14:27:32 +0200
-Message-ID: <20160815122732.GA14674@salvia>
-References: <fea97d91-a7b1-6287-e368-0615eb8b94b5@riseup.net>
- <20160815122343.29329-1-carlosfg@riseup.net>
- <20160815122343.29329-2-carlosfg@riseup.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org
-To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf] netfilter: conntrack: do not dump other netns's conntrack entries via proc
+Date: Mon, 15 Aug 2016 21:50:35 +0800
+Message-ID: <1471269035-4436-1-git-send-email-zlpnobody@163.com>
+Cc: fw@strlen.de, netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51028 "EHLO mail.us.es"
+Received: from m12-13.163.com ([220.181.12.13]:49150 "EHLO m12-13.163.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752785AbcHOM1i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Aug 2016 08:27:38 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 12B61A4188
-	for <netfilter-devel@vger.kernel.org>; Mon, 15 Aug 2016 14:27:36 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id F0742DA7E5
-	for <netfilter-devel@vger.kernel.org>; Mon, 15 Aug 2016 14:27:35 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E56CDDA7FC
-	for <netfilter-devel@vger.kernel.org>; Mon, 15 Aug 2016 14:27:33 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20160815122343.29329-2-carlosfg@riseup.net>
+	id S1752428AbcHONvk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Aug 2016 09:51:40 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 15, 2016 at 02:23:43PM +0200, Carlos Falgueras García wrote:
-> Use 'nftnl_expr_cmp' and 'nftnl_rule_cmp' in all tests instead of custom
-> comparator for each one. If objects differ both are printed.
->
-[...] 
-> diff --git a/tests/nft-chain-test.c b/tests/nft-chain-test.c
-> index b42fb86..1b6672a 100644
-> --- a/tests/nft-chain-test.c
-> +++ b/tests/nft-chain-test.c
-> @@ -19,43 +19,56 @@
->  
->  static void cmp_nftnl_chain(struct nftnl_chain *a, struct nftnl_chain *b)
->  {
-> +	bool test_ok = true;
-> +	bool ret;
->  
-> -	if (strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_NAME),
-> -		   nftnl_chain_get_str(b, NFTNL_CHAIN_NAME)) != 0)
-> -		print_err("Chain name mismatches");
-> -	if (strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_TABLE),
-> -		   nftnl_chain_get_str(b, NFTNL_CHAIN_TABLE)) != 0)
-> -		print_err("Chain table mismatches");
-> -	if (nftnl_chain_get_u32(a, NFTNL_CHAIN_FAMILY) !=
-> -	    nftnl_chain_get_u32(b, NFTNL_CHAIN_FAMILY))
-> -		print_err("Chain family mismatches");
-> -	if (nftnl_chain_get_u32(a, NFTNL_CHAIN_POLICY) !=
-> -	    nftnl_chain_get_u32(b, NFTNL_CHAIN_POLICY))
-> -		print_err("Chain policy mismatches");
-> -	if (nftnl_chain_get_u32(a, NFTNL_CHAIN_HOOKNUM) !=
-> -	    nftnl_chain_get_u32(b, NFTNL_CHAIN_HOOKNUM))
-> -		print_err("Chain hooknum mismatches");
-> -	if (nftnl_chain_get_s32(a, NFTNL_CHAIN_PRIO) !=
-> -	    nftnl_chain_get_s32(b, NFTNL_CHAIN_PRIO))
-> -		print_err("Chain Prio mismatches");
-> -	if (nftnl_chain_get_u32(a, NFTNL_CHAIN_USE) !=
-> -	    nftnl_chain_get_u32(b, NFTNL_CHAIN_USE))
-> -		print_err("Chain use mismatches");
-> -	if (nftnl_chain_get_u64(a, NFTNL_CHAIN_PACKETS) !=
-> -	    nftnl_chain_get_u64(b, NFTNL_CHAIN_PACKETS))
-> -		print_err("Chain packets mismatches");
-> -	if (nftnl_chain_get_u64(a, NFTNL_CHAIN_BYTES) !=
-> -	    nftnl_chain_get_u64(b, NFTNL_CHAIN_BYTES))
-> -		print_err("Chain bytes mismatches");
-> -	if (nftnl_chain_get_u64(a, NFTNL_CHAIN_HANDLE) !=
-> -	    nftnl_chain_get_u64(b, NFTNL_CHAIN_HANDLE))
-> -		print_err("Chain handle mismatches");
-> -	if (strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_TYPE),
-> -		   nftnl_chain_get_str(b, NFTNL_CHAIN_TYPE)) != 0)
-> -		print_err("Chain type mismatches");
-> -	if (strcmp(nftnl_chain_get_str(a, NFTNL_CHAIN_DEV),
-> -		   nftnl_chain_get_str(b, NFTNL_CHAIN_DEV)) != 0)
-> -		print_err("Chain device mismatches");
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-You description says your our aiming at expressions and rules, but
-this is also modifying chain.
+We should skip the conntracks that belong to a different namespace,
+otherwise other unrelated netns's conntrack entries will be dumped via
+/proc/net/nf_conntrack.
 
-Please, check this chunk out of this patch, same for other objects
-that are not expression and rules. This patch is already quite large
-so not need to get this more complicated.
+Fixes: 56d52d4892d0 ("netfilter: conntrack: use a single hashtable for all namespaces")
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+---
+ net/netfilter/nf_conntrack_standalone.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Thanks.
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 958a145..9f267c3 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -205,6 +205,7 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(hash);
+ 	const struct nf_conntrack_l3proto *l3proto;
+ 	const struct nf_conntrack_l4proto *l4proto;
++	struct net *net = seq_file_net(s);
+ 	int ret = 0;
+ 
+ 	NF_CT_ASSERT(ct);
+@@ -215,6 +216,9 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 	if (NF_CT_DIRECTION(hash))
+ 		goto release;
+ 
++	if (!net_eq(nf_ct_net(ct), net))
++		goto release;
++
+ 	l3proto = __nf_ct_l3proto_find(nf_ct_l3num(ct));
+ 	NF_CT_ASSERT(l3proto);
+ 	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
+-- 
+2.5.5
+
+
