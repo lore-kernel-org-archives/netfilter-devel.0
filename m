@@ -1,217 +1,438 @@
 From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
-Subject: [PATCH 3/3 v4 nft] Implement deleting rule by description
-Date: Tue, 16 Aug 2016 12:21:26 +0200
-Message-ID: <20160816102126.28662-3-carlosfg@riseup.net>
-References: <20160816102126.28662-1-carlosfg@riseup.net>
+Subject: [PATCH 1/3 v4 libnftnl] Implement rule comparison
+Date: Tue, 16 Aug 2016 12:21:24 +0200
+Message-ID: <20160816102126.28662-1-carlosfg@riseup.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:56252 "EHLO mx1.riseup.net"
+Received: from mx1.riseup.net ([198.252.153.129]:56238 "EHLO mx1.riseup.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751123AbcHPKVn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Aug 2016 06:21:43 -0400
-In-Reply-To: <20160816102126.28662-1-carlosfg@riseup.net>
+	id S1751123AbcHPKVj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Aug 2016 06:21:39 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch introduces deletion in a similar fashion as in iptables, thus,
-we can delete the first rule that matches our description, for example:
+This patch implements the function 'bool nftnl_rule_cmp(const struct
+nftnl_rule *r, const struct nftnl_rule *r2)' for rule comparison.
 
-	$ nft list -a ruleset
-	table ip t {
-		chain c {
-			ip saddr 1.1.1.1 counter packets 0 bytes 0 # handle 1
-			ip saddr 1.1.1.2 counter packets 0 bytes 0 # handle 2
-			ip saddr 1.1.1.2 counter packets 0 bytes 0 # handle 3
-			ip saddr 1.1.1.4 counter packets 0 bytes 0 # handle 4
-		}
-	}
-	$ nft delete rule table chain ip saddr 1.1.1.2 counter
-	$ nft list -a ruleset
-	table ip t {
-		chain c {
-			ip saddr 1.1.1.1 counter packets 0 bytes 0 # handle 1
-			ip saddr 1.1.1.2 counter packets 0 bytes 0 # handle 3
-			ip saddr 1.1.1.4 counter packets 0 bytes 0 # handle 4
-		}
-	}
-
-Also a custom error is thrown when user commits a syntax error:
-
-	$ nft delete rule t c position 3 ...
-	<cmdline>:1:17-24: Error: Expected `handle' or rule description
-	delete rule t c position 3 ...
+Expressions within rules need to be compared, so also has been created the
+function 'nftnl_expr_cmp' which calls new field within
+'nfntl_expr_<expression>': a function pointer to a comparator. The
+expressions that can be compared with memcmp have this new field set to
+NULL, otherwise they have implemented a comparator.
 
 Signed-off-by: Carlos Falgueras García <carlosfg@riseup.net>
 ---
- src/evaluate.c     |  6 ++++++
- src/parser_bison.y | 32 ++++++++++++++++++++++++--------
- src/rule.c         | 45 +++++++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 73 insertions(+), 10 deletions(-)
+ include/data_reg.h      |  3 +++
+ include/expr_ops.h      |  1 +
+ include/libnftnl/expr.h |  2 ++
+ include/libnftnl/rule.h |  2 ++
+ src/expr.c              | 14 ++++++++++++++
+ src/expr/data_reg.c     | 16 ++++++++++++++++
+ src/expr/dynset.c       | 26 ++++++++++++++++++++++++++
+ src/expr/immediate.c    | 18 ++++++++++++++++++
+ src/expr/log.c          | 24 ++++++++++++++++++++++++
+ src/expr/lookup.c       | 22 ++++++++++++++++++++++
+ src/expr/match.c        | 20 ++++++++++++++++++++
+ src/expr/target.c       | 20 ++++++++++++++++++++
+ src/libnftnl.map        |  5 +++++
+ src/rule.c              | 30 ++++++++++++++++++++++++++++++
+ 14 files changed, 203 insertions(+)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 2f94ac6..f7b349b 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -2661,7 +2661,13 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
+diff --git a/include/data_reg.h b/include/data_reg.h
+index e749b5b..3fec7cd 100644
+--- a/include/data_reg.h
++++ b/include/data_reg.h
+@@ -3,6 +3,7 @@
  
- 		return setelem_evaluate(ctx, &cmd->expr);
- 	case CMD_OBJ_SET:
-+		return 0;
- 	case CMD_OBJ_RULE:
-+		/* CMD_LIST force caching all ruleset */
-+		ret = cache_update(CMD_LIST, ctx->msgs);
-+		if (ret < 0)
-+			return ret;
-+		return rule_evaluate(ctx, cmd->rule);
- 	case CMD_OBJ_CHAIN:
- 	case CMD_OBJ_TABLE:
- 		return 0;
-diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 93c283f..713002e 100644
---- a/src/parser_bison.y
-+++ b/src/parser_bison.y
-@@ -427,8 +427,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %type <cmd>			base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
- %destructor { cmd_free($$); }	base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
+ #include <linux/netfilter/nf_tables.h>
+ #include <stdint.h>
++#include <stdbool.h>
+ #include <unistd.h>
  
--%type <handle>			table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
--%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
-+%type <handle>			table_spec chain_spec chain_identifier handle_spec position_spec rule_position ruleset_spec
-+%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier handle_spec position_spec rule_position ruleset_spec
- %type <handle>			set_spec set_identifier
- %destructor { handle_free(&$$); } set_spec set_identifier
- %type <val>			family_spec family_spec_explicit chain_policy prio_spec
-@@ -440,7 +440,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %destructor { close_scope(state); table_free($$); }	table_block_alloc
- %type <chain>			chain_block_alloc chain_block
- %destructor { close_scope(state); chain_free($$); }	chain_block_alloc
--%type <rule>			rule rule_alloc
-+%type <rule>			rule ruleid_spec rule_alloc
- %destructor { rule_free($$); }	rule
+ enum {
+@@ -27,6 +28,8 @@ int nftnl_data_reg_snprintf(char *buf, size_t size,
+ 			    const union nftnl_data_reg *reg,
+ 			    uint32_t output_format, uint32_t flags,
+ 			    int reg_type);
++bool nftnl_data_reg_cmp(const union nftnl_data_reg *r1,
++		        const union nftnl_data_reg *r2, int reg_type);
+ struct nlattr;
  
- %type <val>			set_flag_list	set_flag
-@@ -747,9 +747,10 @@ add_cmd			:	TABLE		table_spec
- 			}
- 			;
+ int nftnl_parse_data(union nftnl_data_reg *data, struct nlattr *attr, int *type);
+diff --git a/include/expr_ops.h b/include/expr_ops.h
+index 3c0cb18..a334732 100644
+--- a/include/expr_ops.h
++++ b/include/expr_ops.h
+@@ -13,6 +13,7 @@ struct expr_ops {
+ 	uint32_t alloc_len;
+ 	int	max_attr;
+ 	void	(*free)(const struct nftnl_expr *e);
++	bool    (*cmp)(const struct nftnl_expr *e1, const struct nftnl_expr *e2);
+ 	int	(*set)(struct nftnl_expr *e, uint16_t type, const void *data, uint32_t data_len);
+ 	const void *(*get)(const struct nftnl_expr *e, uint16_t type, uint32_t *data_len);
+ 	int 	(*parse)(struct nftnl_expr *e, struct nlattr *attr);
+diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
+index 17f60bd..8ae6f57 100644
+--- a/include/libnftnl/expr.h
++++ b/include/libnftnl/expr.h
+@@ -36,6 +36,8 @@ uint32_t nftnl_expr_get_u32(const struct nftnl_expr *expr, uint16_t type);
+ uint64_t nftnl_expr_get_u64(const struct nftnl_expr *expr, uint16_t type);
+ const char *nftnl_expr_get_str(const struct nftnl_expr *expr, uint16_t type);
  
--replace_cmd		:	RULE		ruleid_spec	rule
-+replace_cmd		:	RULE		chain_spec	handle_spec	rule
- 			{
--				$$ = cmd_alloc(CMD_REPLACE, CMD_OBJ_RULE, &$2, &@$, $3);
-+				handle_merge(&$2, &$3);
-+				$$ = cmd_alloc(CMD_REPLACE, CMD_OBJ_RULE, &$2, &@$, $4);
- 			}
- 			;
++bool nftnl_expr_cmp(const struct nftnl_expr *e1, const struct nftnl_expr *e2);
++
+ int nftnl_expr_snprintf(char *buf, size_t buflen, const struct nftnl_expr *expr, uint32_t type, uint32_t flags);
  
-@@ -794,7 +795,7 @@ delete_cmd		:	TABLE		table_spec
- 			}
- 			|	RULE		ruleid_spec
- 			{
--				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_RULE, &$2, &@$, NULL);
-+				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_RULE, &$2->handle, &@$, $2);
- 			}
- 			|	SET		set_spec
- 			{
-@@ -1285,8 +1286,23 @@ rule_position		:	chain_spec
+ enum {
+diff --git a/include/libnftnl/rule.h b/include/libnftnl/rule.h
+index e3bd6b8..adeedf2 100644
+--- a/include/libnftnl/rule.h
++++ b/include/libnftnl/rule.h
+@@ -50,6 +50,8 @@ uint64_t nftnl_rule_get_u64(const struct nftnl_rule *r, uint16_t attr);
  
- ruleid_spec		:	chain_spec handle_spec
- 			{
--				$$ = $1;
--				handle_merge(&$$, &$2);
-+				$$ = rule_alloc(&@$, NULL);
-+				$$->handle = $1;
-+				handle_merge(&$$->handle, &$2);
-+			}
-+			|
-+				chain_spec rule
-+			{
-+				$$ = $2;
-+				handle_merge(&$$->handle, &$1);
-+			}
-+			|	chain_spec err_recovering error
-+			{
-+				erec_queue(error(&@3, "Expected `handle' or rule description"),
-+					   state->msgs);
-+				state->err_recovering = false;
-+				$$ = rule_alloc(&@$, NULL);
-+				handle_merge(&$$->handle, &$1);
- 			}
- 			;
+ void nftnl_rule_add_expr(struct nftnl_rule *r, struct nftnl_expr *expr);
  
++bool nftnl_rule_cmp(const struct nftnl_rule *r1, const struct nftnl_rule *r2);
++
+ struct nlmsghdr;
+ 
+ void nftnl_rule_nlmsg_build_payload(struct nlmsghdr *nlh, struct nftnl_rule *t);
+diff --git a/src/expr.c b/src/expr.c
+index e5c1dd3..7f32055 100644
+--- a/src/expr.c
++++ b/src/expr.c
+@@ -203,6 +203,20 @@ const char *nftnl_expr_get_str(const struct nftnl_expr *expr, uint16_t type)
+ }
+ EXPORT_SYMBOL_ALIAS(nftnl_expr_get_str, nft_rule_expr_get_str);
+ 
++bool nftnl_expr_cmp(const struct nftnl_expr *e1, const struct nftnl_expr *e2)
++{
++	if (e1->flags != e2->flags)
++		return false;
++
++	if (strcmp(e1->ops->name, e2->ops->name))
++		return false;
++	if (e1->ops->cmp)
++		return e1->ops->cmp(e1, e2);
++	else
++		return !memcmp(e1->data, e2->data, e1->ops->alloc_len);
++}
++EXPORT_SYMBOL(nftnl_expr_cmp);
++
+ void
+ nftnl_expr_build_payload(struct nlmsghdr *nlh, struct nftnl_expr *expr)
+ {
+diff --git a/src/expr/data_reg.c b/src/expr/data_reg.c
+index 688823b..a954e95 100644
+--- a/src/expr/data_reg.c
++++ b/src/expr/data_reg.c
+@@ -379,6 +379,22 @@ int nftnl_data_reg_snprintf(char *buf, size_t size,
+ 	return -1;
+ }
+ 
++bool nftnl_data_reg_cmp(const union nftnl_data_reg *r1,
++		        const union nftnl_data_reg *r2, int reg_type)
++{
++	switch (reg_type) {
++	case DATA_VALUE:
++		return	r1->len == r2->len &&
++			!memcmp(r1->val, r2->val, r1->len);
++	case DATA_VERDICT:
++	case DATA_CHAIN:
++		return	r1->verdict == r2->verdict &&
++			!strcmp(r1->chain, r2->chain);
++	default:
++		return false;
++	}
++}
++
+ static int nftnl_data_parse_cb(const struct nlattr *attr, void *data)
+ {
+ 	const struct nlattr **tb = data;
+diff --git a/src/expr/dynset.c b/src/expr/dynset.c
+index 0eaa409..6fc5bc1 100644
+--- a/src/expr/dynset.c
++++ b/src/expr/dynset.c
+@@ -370,11 +370,37 @@ static void nftnl_expr_dynset_free(const struct nftnl_expr *e)
+ 	xfree(dynset->set_name);
+ }
+ 
++static bool nftnl_expr_dynset_cmp(const struct nftnl_expr *e1,
++				  const struct nftnl_expr *e2)
++{
++	struct nftnl_expr_dynset *d1 = nftnl_expr_data(e1);
++	struct nftnl_expr_dynset *d2 = nftnl_expr_data(e2);
++	bool eq = true;
++
++	if (e1->flags & (1 << NFTNL_EXPR_DYNSET_SREG_KEY))
++		eq &= d1->sreg_key == d2->sreg_key;
++	if (e1->flags & (1 << NFTNL_EXPR_DYNSET_SREG_DATA))
++		eq &= d1->sreg_data == d2->sreg_data;
++	if (e1->flags & (1 << NFTNL_EXPR_DYNSET_OP))
++		eq &= d1->op == d2->op;
++	if (e1->flags & (1 << NFTNL_EXPR_DYNSET_TIMEOUT))
++		eq &= d1->timeout == d2->timeout;
++	if (e1->flags & (1 << NFTNL_EXPR_DYNSET_EXPR))
++		eq &= nftnl_expr_cmp(d1->expr, d2->expr);
++	if (e1->flags & (1 << NFTNL_EXPR_DYNSET_SET_NAME))
++		eq &= !strcmp(d1->set_name, d2->set_name);
++	if (e1->flags & (1 << NFTNL_EXPR_DYNSET_SET_ID))
++		eq &= d1->set_id == d2->set_id;
++
++	return eq;
++}
++
+ struct expr_ops expr_ops_dynset = {
+ 	.name		= "dynset",
+ 	.alloc_len	= sizeof(struct nftnl_expr_dynset),
+ 	.max_attr	= NFTA_DYNSET_MAX,
+ 	.free		= nftnl_expr_dynset_free,
++	.cmp		= nftnl_expr_dynset_cmp,
+ 	.set		= nftnl_expr_dynset_set,
+ 	.get		= nftnl_expr_dynset_get,
+ 	.parse		= nftnl_expr_dynset_parse,
+diff --git a/src/expr/immediate.c b/src/expr/immediate.c
+index 22ec864..eba2e60 100644
+--- a/src/expr/immediate.c
++++ b/src/expr/immediate.c
+@@ -320,11 +320,29 @@ static void nftnl_expr_immediate_free(const struct nftnl_expr *e)
+ 		nftnl_free_verdict(&imm->data);
+ }
+ 
++static bool nftnl_expr_immediate_cmp(const struct nftnl_expr *e1,
++				     const struct nftnl_expr *e2)
++{
++	struct nftnl_expr_immediate *i1 = nftnl_expr_data(e1);
++	struct nftnl_expr_immediate *i2 = nftnl_expr_data(e2);
++	bool eq = true;
++
++	if (e1->flags & (1 << NFTNL_EXPR_IMM_DREG))
++		eq &= i1->dreg == i2->dreg;
++	if (e1->flags & (1 << NFTNL_EXPR_IMM_VERDICT))
++		eq &= nftnl_data_reg_cmp(&i1->data, &i2->data, DATA_VERDICT);
++	else if (e1->flags & (1 << NFTNL_EXPR_IMM_DATA))
++		eq &= nftnl_data_reg_cmp(&i1->data, &i2->data, DATA_VALUE);
++
++	return eq;
++}
++
+ struct expr_ops expr_ops_immediate = {
+ 	.name		= "immediate",
+ 	.alloc_len	= sizeof(struct nftnl_expr_immediate),
+ 	.max_attr	= NFTA_IMMEDIATE_MAX,
+ 	.free		= nftnl_expr_immediate_free,
++	.cmp		= nftnl_expr_immediate_cmp,
+ 	.set		= nftnl_expr_immediate_set,
+ 	.get		= nftnl_expr_immediate_get,
+ 	.parse		= nftnl_expr_immediate_parse,
+diff --git a/src/expr/log.c b/src/expr/log.c
+index b9b3951..b2aa259 100644
+--- a/src/expr/log.c
++++ b/src/expr/log.c
+@@ -336,11 +336,35 @@ static void nftnl_expr_log_free(const struct nftnl_expr *e)
+ 	xfree(log->prefix);
+ }
+ 
++static bool nftnl_expr_log_cmp(const struct nftnl_expr *e1,
++				     const struct nftnl_expr *e2)
++{
++	struct nftnl_expr_log *l1 = nftnl_expr_data(e1);
++	struct nftnl_expr_log *l2 = nftnl_expr_data(e2);
++	bool eq = true;
++
++	if (e1->flags & (1 << NFTNL_EXPR_LOG_SNAPLEN))
++		eq &= l1->snaplen == l2->snaplen;
++	if (e1->flags & (1 << NFTNL_EXPR_LOG_GROUP))
++		eq &= l1->group == l2->group;
++	if (e1->flags & (1 << NFTNL_EXPR_LOG_QTHRESHOLD))
++		eq &= l1->qthreshold == l2->qthreshold;
++	if (e1->flags & (1 << NFTNL_EXPR_LOG_LEVEL))
++		eq &= l1->level == l2->level;
++	if (e1->flags & (1 << NFTNL_EXPR_LOG_FLAGS))
++		eq &= l1->flags == l2->flags;
++	if (e1->flags & (1 << NFTNL_EXPR_LOG_PREFIX))
++		eq &= !strcmp(l1->prefix, l2->prefix);
++
++	return eq;
++}
++
+ struct expr_ops expr_ops_log = {
+ 	.name		= "log",
+ 	.alloc_len	= sizeof(struct nftnl_expr_log),
+ 	.max_attr	= NFTA_LOG_MAX,
+ 	.free		= nftnl_expr_log_free,
++	.cmp		= nftnl_expr_log_cmp,
+ 	.set		= nftnl_expr_log_set,
+ 	.get		= nftnl_expr_log_get,
+ 	.parse		= nftnl_expr_log_parse,
+diff --git a/src/expr/lookup.c b/src/expr/lookup.c
+index 639470d..31d588b 100644
+--- a/src/expr/lookup.c
++++ b/src/expr/lookup.c
+@@ -295,11 +295,33 @@ static void nftnl_expr_lookup_free(const struct nftnl_expr *e)
+ 	xfree(lookup->set_name);
+ }
+ 
++static bool nftnl_expr_lookup_cmp(const struct nftnl_expr *e1,
++				  const struct nftnl_expr *e2)
++{
++	struct nftnl_expr_lookup *l1 = nftnl_expr_data(e1);
++	struct nftnl_expr_lookup *l2 = nftnl_expr_data(e2);
++	bool eq = true;
++
++	if (e1->flags & (1 << NFTNL_EXPR_LOOKUP_SREG))
++		eq &= l1->sreg == l2->sreg;
++	if (e1->flags & (1 << NFTNL_EXPR_LOOKUP_DREG))
++		eq &= l1->dreg == l2->dreg;
++	if (e1->flags & (1 << NFTNL_EXPR_LOOKUP_SET))
++		eq &= !strcmp(l1->set_name, l2->set_name);
++	if (e1->flags & (1 << NFTNL_EXPR_LOOKUP_SET_ID))
++		eq &= l1->set_id == l2->set_id;
++	if (e1->flags & (1 << NFTNL_EXPR_LOOKUP_FLAGS))
++		eq &= l1->flags == l2->flags;
++
++	return eq;
++}
++
+ struct expr_ops expr_ops_lookup = {
+ 	.name		= "lookup",
+ 	.alloc_len	= sizeof(struct nftnl_expr_lookup),
+ 	.max_attr	= NFTA_LOOKUP_MAX,
+ 	.free		= nftnl_expr_lookup_free,
++	.cmp		= nftnl_expr_lookup_cmp,
+ 	.set		= nftnl_expr_lookup_set,
+ 	.get		= nftnl_expr_lookup_get,
+ 	.parse		= nftnl_expr_lookup_parse,
+diff --git a/src/expr/match.c b/src/expr/match.c
+index 3342e2c..c7b956b 100644
+--- a/src/expr/match.c
++++ b/src/expr/match.c
+@@ -240,11 +240,31 @@ static void nftnl_expr_match_free(const struct nftnl_expr *e)
+ 	xfree(match->data);
+ }
+ 
++static bool nftnl_expr_match_cmp(const struct nftnl_expr *e1,
++				 const struct nftnl_expr *e2)
++{
++	struct nftnl_expr_match *m1 = nftnl_expr_data(e1);
++	struct nftnl_expr_match *m2 = nftnl_expr_data(e2);
++	bool eq = true;
++
++	if (e1->flags & (1 << NFTNL_EXPR_MT_NAME))
++		eq &= !strcmp(m1->name, m2->name);
++	if (e1->flags & (1 << NFTNL_EXPR_MT_REV))
++		eq &= m1->rev == m2->rev;
++	if (e1->flags & (1 << NFTNL_EXPR_MT_INFO)) {
++		eq &= m1->data_len == m2->data_len;
++		eq &= !memcmp(m1->data, m2->data, m1->data_len);
++	}
++
++	return eq;
++}
++
+ struct expr_ops expr_ops_match = {
+ 	.name		= "match",
+ 	.alloc_len	= sizeof(struct nftnl_expr_match),
+ 	.max_attr	= NFTA_MATCH_MAX,
+ 	.free		= nftnl_expr_match_free,
++	.cmp		= nftnl_expr_match_cmp,
+ 	.set		= nftnl_expr_match_set,
+ 	.get		= nftnl_expr_match_get,
+ 	.parse		= nftnl_expr_match_parse,
+diff --git a/src/expr/target.c b/src/expr/target.c
+index d4c0091..fca5cb8 100644
+--- a/src/expr/target.c
++++ b/src/expr/target.c
+@@ -241,11 +241,31 @@ static void nftnl_expr_target_free(const struct nftnl_expr *e)
+ 	xfree(target->data);
+ }
+ 
++static bool nftnl_expr_target_cmp(const struct nftnl_expr *e1,
++				  const struct nftnl_expr *e2)
++{
++	struct nftnl_expr_target *t1 = nftnl_expr_data(e1);
++	struct nftnl_expr_target *t2 = nftnl_expr_data(e2);
++	bool eq = true;
++
++	if (e1->flags & (1 << NFTNL_EXPR_TG_NAME))
++		eq &= !strcmp(t1->name, t2->name);
++	if (e1->flags & (1 << NFTNL_EXPR_TG_REV))
++		eq &= t1->rev == t2->rev;
++	if (e1->flags & (1 << NFTNL_EXPR_TG_INFO)) {
++		eq &= t1->data_len == t2->data_len;
++		eq &= !memcmp(t1->data, t2->data, t1->data_len);
++	}
++
++	return eq;
++}
++
+ struct expr_ops expr_ops_target = {
+ 	.name		= "target",
+ 	.alloc_len	= sizeof(struct nftnl_expr_target),
+ 	.max_attr	= NFTA_TARGET_MAX,
+ 	.free		= nftnl_expr_target_free,
++	.cmp		= nftnl_expr_target_cmp,
+ 	.set		= nftnl_expr_target_set,
+ 	.get		= nftnl_expr_target_get,
+ 	.parse		= nftnl_expr_target_parse,
+diff --git a/src/libnftnl.map b/src/libnftnl.map
+index c38e081..abed8b9 100644
+--- a/src/libnftnl.map
++++ b/src/libnftnl.map
+@@ -528,3 +528,8 @@ LIBNFTNL_4.1 {
+ 	nftnl_udata_next;
+ 	nftnl_udata_parse;
+ } LIBNFTNL_4;
++
++LIBNFTNL_4.2 {
++	nftnl_rule_cmp;
++	nftnl_expr_cmp;
++} LIBNFTNL_4.1;
 diff --git a/src/rule.c b/src/rule.c
-index 14e57f2..d04c1ca 100644
+index 8aeefbe..9f833b4 100644
 --- a/src/rule.c
 +++ b/src/rule.c
-@@ -402,6 +402,32 @@ void rule_print(const struct rule *rule)
- 		printf(" # handle %" PRIu64, rule->handle.handle.id);
+@@ -1077,6 +1077,36 @@ void nftnl_expr_iter_destroy(struct nftnl_expr_iter *iter)
  }
+ EXPORT_SYMBOL_ALIAS(nftnl_expr_iter_destroy, nft_rule_expr_iter_destroy);
  
-+static struct rule *search_first_rule(const struct rule *rule)
++bool nftnl_rule_cmp(const struct nftnl_rule *r1, const struct nftnl_rule *r2)
 +{
-+	struct nftnl_rule *nlr1, *nlr2;
-+	struct rule *rule_idx;
-+	struct table *table;
-+	struct chain *chain;
++	struct nftnl_expr_iter it1, it2;
++	struct nftnl_expr *e1, *e2;
++	unsigned int eq = 1;
 +
-+	table = table_lookup(&rule->handle);
-+	if (!table)
-+		return NULL;
-+	chain = chain_lookup(table, &rule->handle);
-+	if (!chain)
-+		return NULL;
++	if (r1->flags & r1->flags & (1 << NFTNL_RULE_TABLE))
++		eq &= !strcmp(r1->table, r2->table);
++	if (r1->flags & r1->flags & (1 << NFTNL_RULE_CHAIN))
++		eq &= !strcmp(r1->chain, r2->chain);
++	if (r1->flags & r1->flags & (1 << NFTNL_RULE_COMPAT_FLAGS))
++		eq &= r1->compat.flags == r2->compat.flags;
++	if (r1->flags & r1->flags & (1 << NFTNL_RULE_COMPAT_PROTO))
++		eq &= r1->compat.proto == r2->compat.proto;
 +
-+	nlr1 = alloc_nftnl_rule(&rule->handle);
-+	netlink_linearize_rule(NULL, nlr1, rule);
++	nftnl_expr_iter_init(r1, &it1);
++	nftnl_expr_iter_init(r2, &it2);
++	e1 = nftnl_expr_iter_next(&it1);
++	e2 = nftnl_expr_iter_next(&it2);
++	while (eq && e1 && e2) {
++		eq = nftnl_expr_cmp(e1, e2);
 +
-+	list_for_each_entry(rule_idx, &chain->rules, list) {
-+		nlr2 = alloc_nftnl_rule(&rule_idx->handle);
-+		netlink_linearize_rule(NULL, nlr2, rule_idx);
-+		if (nftnl_rule_cmp(nlr1, nlr2))
-+			return rule_idx;
++		e1 = nftnl_expr_iter_next(&it1);
++		e2 = nftnl_expr_iter_next(&it2);
 +	}
-+	return NULL;
++
++	return eq;
 +}
++EXPORT_SYMBOL(nftnl_rule_cmp);
 +
- struct rule *rule_lookup(const struct chain *chain, uint64_t handle)
- {
- 	struct rule *rule;
-@@ -1010,6 +1036,22 @@ static int do_delete_setelems(struct netlink_ctx *ctx, const struct handle *h,
- 	return 0;
- }
- 
-+static int do_delete_rule(struct netlink_ctx *ctx, const struct cmd *cmd)
-+{
-+	struct rule *rule;
-+
-+	/* Delete by handle */
-+	if (cmd->handle.handle.id)
-+		return netlink_del_rule_batch(ctx, &cmd->handle, &cmd->location);
-+
-+	/* Delete by description */
-+	rule = search_first_rule(cmd->rule);
-+	if (!rule)
-+		return 0;
-+	return netlink_del_rule_batch(ctx, &rule->handle,
-+				      &rule->handle.position.location);
-+}
-+
- static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
- {
- 	switch (cmd->obj) {
-@@ -1018,8 +1060,7 @@ static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_CHAIN:
- 		return netlink_delete_chain(ctx, &cmd->handle, &cmd->location);
- 	case CMD_OBJ_RULE:
--		return netlink_del_rule_batch(ctx, &cmd->handle,
--					      &cmd->location);
-+		return do_delete_rule(ctx, cmd);
- 	case CMD_OBJ_SET:
- 		return netlink_delete_set(ctx, &cmd->handle, &cmd->location);
- 	case CMD_OBJ_SETELEM:
+ struct nftnl_rule_list {
+ 	struct list_head list;
+ };
 -- 
 2.8.3
 
