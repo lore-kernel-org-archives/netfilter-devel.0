@@ -1,53 +1,52 @@
-From: Michal Kubecek <mkubecek@suse.cz>
-Subject: Re: [PATCH nf-next] netfilter: allow logging from non-init namespaces
-Date: Tue, 16 Aug 2016 13:20:05 +0200
-Message-ID: <20160816112005.GA6621@unicorn.suse.cz>
-References: <20160428074838.0BBB5A0C94@unicorn.suse.cz>
- <20160512095726.GA1975@salvia>
- <20160516064316.GA6455@unicorn.suse.cz>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/3 v4 libnftnl] Implement rule comparison
+Date: Tue, 16 Aug 2016 13:57:49 +0200
+Message-ID: <20160816115749.GA2049@salvia>
+References: <20160816102126.28662-1-carlosfg@riseup.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Jonathan Corbet <corbet@lwn.net>, coreteam@netfilter.org,
-	netdev@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, bridge@lists.linux-foundation.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org
+To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:44778 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753136AbcHPL54 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Aug 2016 07:57:56 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id EE6A6186AC1
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Aug 2016 13:57:52 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id DF600CE156
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Aug 2016 13:57:52 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id DA56ECE155
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Aug 2016 13:57:50 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160516064316.GA6455@unicorn.suse.cz>
-Sender: linux-doc-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20160816102126.28662-1-carlosfg@riseup.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 16, 2016 at 08:43:16AM +0200, Michal Kubecek wrote:
-> On Thu, May 12, 2016 at 11:57:26AM +0200, Pablo Neira Ayuso wrote:
-> > On Wed, Apr 27, 2016 at 02:48:02PM +0200, Michal Kubecek wrote:
-> > > Commit 69b34fb996b2 ("netfilter: xt_LOG: add net namespace support for
-> > > xt_LOG") disabled logging packets using the LOG target from non-init
-> > > namespaces. The motivation was to prevent containers from flooding
-> > > kernel log of the host. The plan was to keep it that way until syslog
-> > > namespace implementation allows containers to log in a safe way.
-> > > 
-> > > However, the work on syslog namespace seems to have hit a dead end
-> > > somewhere in 2013 and there are users who want to use xt_LOG in all
-> > > network namespaces. This patch allows to do so by setting
-> > 
-> > I understand this stuff is tricky. Did you contact already namespace
-> > folks to see if they plan any move on this?
-> 
-> Not yet. I'll contact the people involved in the discussion about the
-> serires submitted in 2013 to check what their plans are (and if there
-> are any).
+On Tue, Aug 16, 2016 at 12:21:24PM +0200, Carlos Falgueras García wrote:
+> diff --git a/src/expr.c b/src/expr.c
+> index e5c1dd3..7f32055 100644
+> --- a/src/expr.c
+> +++ b/src/expr.c
+> @@ -203,6 +203,20 @@ const char *nftnl_expr_get_str(const struct nftnl_expr *expr, uint16_t type)
+>  }
+>  EXPORT_SYMBOL_ALIAS(nftnl_expr_get_str, nft_rule_expr_get_str);
+>  
+> +bool nftnl_expr_cmp(const struct nftnl_expr *e1, const struct nftnl_expr *e2)
+> +{
+> +	if (e1->flags != e2->flags)
+> +		return false;
+> +
+> +	if (strcmp(e1->ops->name, e2->ops->name))
+> +		return false;
+> +	if (e1->ops->cmp)
+> +		return e1->ops->cmp(e1, e2);
+> +	else
+> +		return !memcmp(e1->data, e2->data, e1->ops->alloc_len);
 
-Sorry for the delay, there were some security bugs so that this lost my
-attention.
-
-I did some asking around and the syslog namespace work is dead. There
-were some design issues that turned out to be hard to address and the
-overall consensus was that use cases like netfilter logging can be
-handled in a different way (e.g. using NFLOG target).
-
-Would the patch be acceptable? (It still applies cleanly to current
-nf-next tree but I can resend a rebased version if needed.)
-
-                                                         Michal Kubecek
+We cannot do memcmp() anymore, we have to add cmp() for each
+expression because of we have already discussed wrt. unset attributes.
