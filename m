@@ -1,96 +1,95 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2] netfilter: nf_tables: Check for overflow of u8 fields
- from u32 netlink attributes
-Date: Wed, 17 Aug 2016 17:53:59 +0200
-Message-ID: <20160817155359.GA16128@salvia>
-References: <20160814145933.GA22849@sonyv>
+From: Tommy Knowlton <tommy.knowlton@gmail.com>
+Subject: ulogd plugin development question
+Date: Wed, 17 Aug 2016 10:10:00 -0600
+Message-ID: <CAFJN8cshXGXyrPJ1shm_AWS4hmRhyV9wucBuV17RnRWq2JmfVw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Laura Garcia Liebana <nevola@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48016 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751993AbcHQQFC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Aug 2016 12:05:02 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 1698DD164D
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 17:54:11 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 0A34BFC61A
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 17:54:11 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id AC59DDA800
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 17:54:08 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20160814145933.GA22849@sonyv>
+Received: from mail-io0-f178.google.com ([209.85.223.178]:35730 "EHLO
+	mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753065AbcHQQKl (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Aug 2016 12:10:41 -0400
+Received: by mail-io0-f178.google.com with SMTP id m101so139582006ioi.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 09:10:41 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Aug 14, 2016 at 04:59:36PM +0200, Laura Garcia Liebana wrote:
-> diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-> index e25b35d..ca247e5 100644
-> --- a/net/netfilter/nft_cmp.c
-> +++ b/net/netfilter/nft_cmp.c
-> @@ -84,8 +84,11 @@ static int nft_cmp_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
->  	if (err < 0)
->  		return err;
->  
-> -	priv->op  = ntohl(nla_get_be32(tb[NFTA_CMP_OP]));
-> +	if (desc.len > U8_MAX)
-> +		return -EINVAL;
+I've got some questions about ulogd internals. I'm not sure this is
+the right list, but I can't find another that would seem to be any
+closer to the audience that I want to receive my questions.
 
-I suggest we use return -ERANGE instead of -EINVAL.
+If anyone knows where a list more directly involved with ulogd
+developers is hosted, please point me at that. I'll state my question
+here just in case any of those folks are also here.
 
->  	priv->len = desc.len;
-> +	priv->op  = ntohl(nla_get_be32(tb[NFTA_CMP_OP]));
+I develop and maintain my company's internal PaaS, which is based on
+open-source Cloud Foundry. I've been working recently to add logging
+when network packets from a containerized app get dropped by the
+platform, and other similar logging.
 
-Hm, I just noticed this priv->op is not validated either?
+I'm accomplishing the logging by adding iptables `-j NFLOG` rule, in
+conjunction with a couple of custom ulogd plugins. One plugin (filter)
+translates IP addresses to container guids, and another plugin
+(output) formats the message and forwards it to the logging component
+running on the vm that hosts the user-app containers.
 
-If so, we should add NFT_CMP_MAX to enum nft_cmp_ops and check if this
-is:
+The questions relate to an enhancement to the logging I've described
+above. In addition to "packet dropped by container security rules"
+logging, we also want to log conntrack events: new connection
+established, and destroy event on non-assured connection, i.e., "your
+container tried to make an outbound connection, the packets were not
+dropped by container security, but something else between here and
+there prevented establishment of a connection".
 
-        if (priv->op >= NFT_CMP_MAX)
-                return -ERANGE;
+I am trying to generalize the output plugin so that it receives its
+message format string from stack configuration in ulogd.conf. For
+example,
 
-You can send this in a follow up patch given that this doesn't match
-the description, or you rework the title and description to make this
-all fit in one logical change.
+> stack=diegolog:NFLOG,empty:BASE,empty:IP2STR,empty:DIEGOINSTANCE,droplogger:DROPSONDE
+>
+> [diegolog]
+> group=26
+>
+> [empty]
+>
+> [droplogger]
+> format="DROP {{ikey \"ip.daddr.str\"}}{{with ikey \"ip.protocol\"}}{{if eq . 6}}:{{ikey \"tcp.dport\"}}{{else if eq . 17}}:{{ikey \"udp.dport\"}}{{end}}{{end}} (seehttp://tiny/faq1)"
 
-> diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-> index db3b746..6de590c 100644
-> --- a/net/netfilter/nft_immediate.c
-> +++ b/net/netfilter/nft_immediate.c
-> @@ -53,6 +53,9 @@ static int nft_immediate_init(const struct nft_ctx *ctx,
->  			    tb[NFTA_IMMEDIATE_DATA]);
->  	if (err < 0)
->  		return err;
-> +
-> +	if (desc.len > U8_MAX)
-> +		return -EINVAL;
->  	priv->dlen = desc.len;
->  
->  	priv->dreg = nft_parse_register(tb[NFTA_IMMEDIATE_DREG]);
-> diff --git a/net/netfilter/nft_nat.c b/net/netfilter/nft_nat.c
-> index ee2d717..74f8293 100644
-> --- a/net/netfilter/nft_nat.c
-> +++ b/net/netfilter/nft_nat.c
-> @@ -148,6 +148,8 @@ static int nft_nat_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
->  	family = ntohl(nla_get_be32(tb[NFTA_NAT_FAMILY]));
->  	if (family != ctx->afi->family)
->  		return -EOPNOTSUPP;
-> +	if (family > U8_MAX)
-> +		return -EINVAL;
 
-I think we don't need this, because we check later on:
+(a side note: my ulogd plugins are written mainly in golang, with
+minimal C code for linkage - that's why the format string looks like a
+golang text/template template)
 
-        switch (family) {
-        case NFPROTO_IPV4:
-                ...
-        case NFPROTO_IPV6:
-                ...
-        default:
-                return -EAFNOSUPPORT;
-        }
+Up to this point, I've got "packet drop" logging working, with a
+_hard-coded_ log message. The above _configurable_ logging would be to
+support an enhancement to log "interesting" conntrack events - and we
+expect to discover additional definitions of "interesting" over time.
+Ideally, adding more container network logging will be a matter of
+declaring additional ulogd stacks and adding iptables rules `-j NFLOG`
+or `-j NFCT`, and more to the point, _not_ writing additional code in
+the ulogd plugins.
 
-So this check is superfluous, you can remove it.
+The problem is, and my reason for posting to the list, I don't yet see
+a good way to deal with the keys at plugin registration time. Ideally,
+I'd just register for all okeys produced by either
+ulogd_raw2packet_BASE.so or ulogd_inpflow_NFCT.so. The problem is
+illustrated by the packet-drop-logger configuration quoted above: not
+every stack is going to include a ulogd_inpflow_NFCT.so, and it's a
+downstream plugin (my custom DROPSONDE output) that needs to know, at
+plugin registration time, what ikeys it needs ulogd to wire up for it.
+I've tried registering ikeys for all okeys produced by the BASE and
+NFCT, but when ulogd tries to plumb the stack above (which does not
+include NFCT because there's no need in that case, it explodes because
+no plugin provides e.g. `orig.ip.saddr`.
+
+I'm wondering whether it's {possible, advisable}? to register the
+plugin with ulogd with some minimal (maybe even empty) set of ikeys,
+and then to "update" the plumbing at the time the pluginstance
+`configure` callback is called? Or, maybe someone close enough to
+ulogd can see another way for me to declaratively, in ulogd.conf,
+state the keys the my output plugin instance requires?
+
+Thanks,
+~ Tommy Knowlton
