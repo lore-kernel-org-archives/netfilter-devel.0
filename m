@@ -1,95 +1,95 @@
-From: Tommy Knowlton <tommy.knowlton@gmail.com>
-Subject: ulogd plugin development question
-Date: Wed, 17 Aug 2016 10:10:00 -0600
-Message-ID: <CAFJN8cshXGXyrPJ1shm_AWS4hmRhyV9wucBuV17RnRWq2JmfVw@mail.gmail.com>
+From: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
+Subject: Re: kernel panic TPROXY , vanilla 4.7.1
+Date: Wed, 17 Aug 2016 19:44:22 +0300
+Message-ID: <09c3ca74357572464b5ff280f1cd0ddc@nuclearcat.com>
+References: <627722c51d9ce454dfaf1a79519ceb59@nuclearcat.com>
+ <1471448525.29842.1.camel@edumazet-glaptop3.roam.corp.google.com>
+ <1471449871.29842.3.camel@edumazet-glaptop3.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-io0-f178.google.com ([209.85.223.178]:35730 "EHLO
-	mail-io0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753065AbcHQQKl (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Aug 2016 12:10:41 -0400
-Received: by mail-io0-f178.google.com with SMTP id m101so139582006ioi.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 09:10:41 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1471449871.29842.3.camel@edumazet-glaptop3.roam.corp.google.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-I've got some questions about ulogd internals. I'm not sure this is
-the right list, but I can't find another that would seem to be any
-closer to the audience that I want to receive my questions.
-
-If anyone knows where a list more directly involved with ulogd
-developers is hosted, please point me at that. I'll state my question
-here just in case any of those folks are also here.
-
-I develop and maintain my company's internal PaaS, which is based on
-open-source Cloud Foundry. I've been working recently to add logging
-when network packets from a containerized app get dropped by the
-platform, and other similar logging.
-
-I'm accomplishing the logging by adding iptables `-j NFLOG` rule, in
-conjunction with a couple of custom ulogd plugins. One plugin (filter)
-translates IP addresses to container guids, and another plugin
-(output) formats the message and forwards it to the logging component
-running on the vm that hosts the user-app containers.
-
-The questions relate to an enhancement to the logging I've described
-above. In addition to "packet dropped by container security rules"
-logging, we also want to log conntrack events: new connection
-established, and destroy event on non-assured connection, i.e., "your
-container tried to make an outbound connection, the packets were not
-dropped by container security, but something else between here and
-there prevented establishment of a connection".
-
-I am trying to generalize the output plugin so that it receives its
-message format string from stack configuration in ulogd.conf. For
-example,
-
-> stack=diegolog:NFLOG,empty:BASE,empty:IP2STR,empty:DIEGOINSTANCE,droplogger:DROPSONDE
->
-> [diegolog]
-> group=26
->
-> [empty]
->
-> [droplogger]
-> format="DROP {{ikey \"ip.daddr.str\"}}{{with ikey \"ip.protocol\"}}{{if eq . 6}}:{{ikey \"tcp.dport\"}}{{else if eq . 17}}:{{ikey \"udp.dport\"}}{{end}}{{end}} (seehttp://tiny/faq1)"
-
-
-(a side note: my ulogd plugins are written mainly in golang, with
-minimal C code for linkage - that's why the format string looks like a
-golang text/template template)
-
-Up to this point, I've got "packet drop" logging working, with a
-_hard-coded_ log message. The above _configurable_ logging would be to
-support an enhancement to log "interesting" conntrack events - and we
-expect to discover additional definitions of "interesting" over time.
-Ideally, adding more container network logging will be a matter of
-declaring additional ulogd stacks and adding iptables rules `-j NFLOG`
-or `-j NFCT`, and more to the point, _not_ writing additional code in
-the ulogd plugins.
-
-The problem is, and my reason for posting to the list, I don't yet see
-a good way to deal with the keys at plugin registration time. Ideally,
-I'd just register for all okeys produced by either
-ulogd_raw2packet_BASE.so or ulogd_inpflow_NFCT.so. The problem is
-illustrated by the packet-drop-logger configuration quoted above: not
-every stack is going to include a ulogd_inpflow_NFCT.so, and it's a
-downstream plugin (my custom DROPSONDE output) that needs to know, at
-plugin registration time, what ikeys it needs ulogd to wire up for it.
-I've tried registering ikeys for all okeys produced by the BASE and
-NFCT, but when ulogd tries to plumb the stack above (which does not
-include NFCT because there's no need in that case, it explodes because
-no plugin provides e.g. `orig.ip.saddr`.
-
-I'm wondering whether it's {possible, advisable}? to register the
-plugin with ulogd with some minimal (maybe even empty) set of ikeys,
-and then to "update" the plumbing at the time the pluginstance
-`configure` callback is called? Or, maybe someone close enough to
-ulogd can see another way for me to declaratively, in ulogd.conf,
-state the keys the my output plugin instance requires?
-
-Thanks,
-~ Tommy Knowlton
+On 2016-08-17 19:04, Eric Dumazet wrote:
+> On Wed, 2016-08-17 at 08:42 -0700, Eric Dumazet wrote:
+>> On Wed, 2016-08-17 at 17:31 +0300, Denys Fedoryshchenko wrote:
+>> > Hi!
+>> >
+>> > Tried to run squid on latest kernel, and hit a panic
+>> > Sometimes it just shows warning in dmesg (but doesnt work properly)
+>> > [   75.701666] IPv4: Attempt to release TCP socket in state 10
+>> > ffff88102d430780
+>> > [   83.866974] squid (2700) used greatest stack depth: 12912 bytes left
+>> > [   87.506644] IPv4: Attempt to release TCP socket in state 10
+>> > ffff880078a48780
+>> > [  114.704295] IPv4: Attempt to release TCP socket in state 10
+>> > ffff881029f8ad00
+>> >
+>> > I cannot catch yet oops/panic message, netconsole not working.
+>> >
+>> > After triggering warning message 3 times, i am unable to run squid
+>> > anymore (without reboot), and in netstat it doesnt show port running.
+>> >
+>> > firewall is:
+>> > *mangle
+>> > -A PREROUTING -p tcp -m socket -j DIVERT
+>> > -A PREROUTING -p tcp -m tcp --dport 80 -i eno1 -j TPROXY --on-port 3129
+>> > --on-ip 0.0.0.0 --tproxy-mark 0x1/0x1
+>> > -A DIVERT -j MARK --set-xmark 0x1/0xffffffff
+>> > -A DIVERT -j ACCEPT
+>> >
+>> > routing
+>> > ip rule add fwmark 1 lookup 100
+>> > ip route add local default dev eno1 table 100
+>> >
+>> >
+>> > squid config is default with tproxy option
+>> > http_port 3129 tproxy
+>> >
+>> 
+>> Hmppff... sorry for this, I will send a fix.
+>> 
+>> Thanks for the report !
+>> 
+> 
+> 
+> Could you try the following ?
+> 
+> Thanks !
+> 
+>  net/netfilter/xt_TPROXY.c |    4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
+> index 7f4414d26a66..663c4c3c9072 100644
+> --- a/net/netfilter/xt_TPROXY.c
+> +++ b/net/netfilter/xt_TPROXY.c
+> @@ -127,6 +127,8 @@ nf_tproxy_get_sock_v4(struct net *net, struct
+> sk_buff *skb, void *hp,
+>  						    daddr, dport,
+>  						    in->ifindex);
+> 
+> +			if (sk && !atomic_inc_not_zero(&sk->sk_refcnt))
+> +				sk = NULL;
+>  			/* NOTE: we return listeners even if bound to
+>  			 * 0.0.0.0, those are filtered out in
+>  			 * xt_socket, since xt_TPROXY needs 0 bound
+> @@ -195,6 +197,8 @@ nf_tproxy_get_sock_v6(struct net *net, struct
+> sk_buff *skb, int thoff, void *hp,
+>  						   daddr, ntohs(dport),
+>  						   in->ifindex);
+> 
+> +			if (sk && !atomic_inc_not_zero(&sk->sk_refcnt))
+> +				sk = NULL;
+>  			/* NOTE: we return listeners even if bound to
+>  			 * 0.0.0.0, those are filtered out in
+>  			 * xt_socket, since xt_TPROXY needs 0 bound
+Yes, everything fine after patch!
+Thanks a lot
