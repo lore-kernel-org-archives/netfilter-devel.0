@@ -1,61 +1,92 @@
-From: Peter Wu <peter@lekensteyn.nl>
-Subject: libipset developer documentation?
-Date: Wed, 17 Aug 2016 14:12:29 +0200
-Message-ID: <20160817121229.GC11256@al>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 00/10 nft] syntax updates
+Date: Wed, 17 Aug 2016 15:29:51 +0200
+Message-ID: <1471440601-5327-1-git-send-email-pablo@netfilter.org>
+Cc: fw@strlen.de
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lekensteyn.nl ([178.21.112.251]:46501 "EHLO lekensteyn.nl"
+Received: from mail.us.es ([193.147.175.20]:44000 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752513AbcHQMr4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Aug 2016 08:47:56 -0400
-Content-Disposition: inline
+	id S1750896AbcHQNaL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Aug 2016 09:30:11 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 74CC1E9762
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 15:30:08 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 638C9FF12D
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 15:30:08 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id CDE98DA7FE
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 15:30:05 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi,
 
-Recently I attempted to work on a new libipset program and also tried to
-review something I wrote in the past (ssh-blocker). In order to find
-some "best practices" or a reference manual, I went to:
+The following patchset is addressing part of the syntax issues that we
+have discussed during the NFWS.
 
-    http://ipset.netfilter.org/
+1) Quote user-defined strings from rule selectors. The current behaviour
+   is inconsistent since some selectors are quoting user-defined strings
+   and others do not, so let's quote them all.
 
-but surprisingly, it has no developer resources even though it is
-supposed to be an alternative for calling the ipset program directly
-(http://www.spinics.net/lists/netfilter/msg52100.html).
+2) Add 'to' for snat and dnat to keep it consistent with redirect,
+   masquerade, dup and fwd.
 
-Other things that I did in order to learn how to use libipset:
+3) Support for Ipv6 address between brackets.
 
- - Study ipset source code (stopped doing this since it is an
-   implementation, internal details could change in the future).
- - Write a Wireshark dissector for netlink/netfilter/ipset and study the
-   protocol communications when invoking the ipset tool directly
-   (merged in Wireshark v2.3.0rc0-324-gdd15a6d).
- - Compare said protocol with lib/PROTOCOL to figure out what data must
-   be set.
- - Open my ssh-blocker code, remove ipset_type_get() for IPSET_CMD_TEST
-   because it seems unnecessary according to lib/PROTOCOL.
- - Discover that libipset does not send netlink message. Found the error
-   reporting functions ipset_session_error and ipset_session_warning.
- - Look in ipset source code and discover that ipset_type_get() is not
-   that optional, it sets IPSET_OPT_FAMILY and IPSET_OPT_TYPE...
+4) Missing QUOTED_STRING and ASTERISK_STRING token descriptions.
 
-As you can see this involved a lot trial and error. Suggestions for
-improvement:
+5) Allow strings that start by _ and . so we comply with POSIX.1-2008.
 
- - Add information to README for help resources (IRC, mailing list).
- - Add a tutorial on how (not) to use libipset (initialization, how to
-   know what ipset_session_data_set to call, etc.)
- - API reference (like
-   https://www.infradead.org/~tgr/libnl/doc/api/group__core.html)
- - (Link to other resources I have missed?)
+6) Kill useless range patter from scanner.
 
-Other than the documentation issue, ipset has been a very useful tool
-for me, so thanks for that!
+7,8,9) Add meta priority support using minor:major syntax.
+
+10) Add colon after 'redirect to' for consistency with nat and
+   masquerade.
+
+Comments welcome.
+
+Pablo Neira Ayuso (10):
+  src: quote user-defined strings when used from rule selectors
+  src: add 'to' for snat and dnat
+  src: support for RFC2732 IPv6 address format with brackets
+  parser_bison: missing token string in QUOTED_ASTERISK and ASTERISK_STRING
+  scanner: allow strings starting by underscores and dots
+  scanner: remove range expression
+  src: rename datatype name from tc_handle to classid
+  src: simplify classid printing using %x instead of %04x
+  src: meta priority support using tc classid
+  parser_bison: redirect to :port for consistency with nat/masq statement
+
+ include/datatype.h                  |  6 +--
+ src/cli.c                           |  8 +++
+ src/ct.c                            |  2 +-
+ src/datatype.c                      | 12 +++--
+ src/erec.c                          |  1 +
+ src/main.c                          |  3 +-
+ src/meta.c                          | 66 ++++++++++++++-----------
+ src/parser_bison.y                  | 27 ++++++----
+ src/proto.c                         |  2 +-
+ src/scanner.l                       | 16 +++++-
+ src/statement.c                     | 26 ++++++++--
+ tests/py/any/meta.t                 | 80 ++++++++++++++++--------------
+ tests/py/any/meta.t.payload         | 99 ++++++++++++++++++++++++++++++++-----
+ tests/py/ip/dnat.t                  | 16 +++---
+ tests/py/ip/dnat.t.payload.ip       | 12 ++---
+ tests/py/ip/redirect.t              | 24 ++++-----
+ tests/py/ip/redirect.t.payload      | 20 ++++----
+ tests/py/ip/snat.t                  | 12 ++---
+ tests/py/ip/snat.t.payload          |  8 +--
+ tests/py/ip6/dnat.t                 |  5 +-
+ tests/py/ip6/dnat.t.payload.ip6     | 14 +++++-
+ tests/py/ip6/redirect.t             | 18 +++----
+ tests/py/ip6/redirect.t.payload.ip6 | 14 +++---
+ tests/py/ip6/snat.t                 |  4 +-
+ tests/py/ip6/snat.t.payload.ip6     |  4 +-
+ 25 files changed, 325 insertions(+), 174 deletions(-)
+
 -- 
-Kind regards,
-Peter Wu
-https://lekensteyn.nl
+2.1.4
+
