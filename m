@@ -1,63 +1,96 @@
-From: Laura Garcia <nevola@gmail.com>
-Subject: Re: [PATCH v3] netfilter: nft_numgen: add number generator expression
-Date: Wed, 17 Aug 2016 15:59:53 +0200
-Message-ID: <20160817135951.GA21214@sonyv>
-References: <20160813223941.GA11051@sonyv>
- <201608142357.TpQNQHIT%fengguang.wu@intel.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/3 v5 libnftnl] Implement rule comparison
+Date: Wed, 17 Aug 2016 16:10:48 +0200
+Message-ID: <20160817141048.GA8692@salvia>
+References: <20160817110010.28943-1-carlosfg@riseup.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kbuild-all@01.org, netfilter-devel@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org
+To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35528 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752829AbcHQN75 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Aug 2016 09:59:57 -0400
-Received: by mail-wm0-f65.google.com with SMTP id i5so24472860wmg.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 06:59:56 -0700 (PDT)
+Received: from mail.us.es ([193.147.175.20]:52470 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752713AbcHQOLP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Aug 2016 10:11:15 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+	by mail.us.es (Postfix) with ESMTP id 02EC5D1622
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 16:11:00 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id E76E8CE156
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 16:10:59 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+	by antivirus1-rhel7.int (Postfix) with ESMTP id E7774DA3B0
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 16:10:57 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <201608142357.TpQNQHIT%fengguang.wu@intel.com>
+In-Reply-To: <20160817110010.28943-1-carlosfg@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 15, 2016 at 12:03:19AM +0800, kbuild test robot wrote:
-> Hi Laura,
+On Wed, Aug 17, 2016 at 01:00:08PM +0200, Carlos Falgueras García wrote:
+> This patch implements the function 'bool nftnl_rule_cmp(const struct
+> nftnl_rule *r, const struct nftnl_rule *r2)' for rule comparison.
 > 
-> [auto build test ERROR on nf-next/master]
-> [also build test ERROR on v4.8-rc1 next-20160812]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Laura-Garcia-Liebana/netfilter-nft_numgen-add-number-generator-expression/20160814-185132
-> base:   https://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf-next.git master
-> config: i386-allyesconfig (attached as .config)
-> compiler: gcc-6 (Debian 6.1.1-9) 6.1.1 20160705
-> reproduce:
->         # save the attached .config to linux build tree
->         make ARCH=i386 
-> 
-> All errors (new ones prefixed by >>):
-> 
-> >> net/netfilter/nft_numgen.o:(.discard+0x0): multiple definition of `__pcpu_unique_nft_prandom_state'
->    net/netfilter/nft_meta.o:(.discard+0x0): first defined here
-> 
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+> Expressions within rules need to be compared, so also has been created the
+> function 'nftnl_expr_cmp' which calls new field within
+> 'nfntl_expr_<expression>': a function pointer to a comparator.
 
-Hi, I've been compiling with several options like:
+Applied, thanks.
 
-CONFIG_NFT_META=m
-CONFIG_NFT_NUMGEN=m
+I made some slight changes, see below.
 
-and
+> diff --git a/src/expr.c b/src/expr.c
+> index e5c1dd3..1f57fb2 100644
+> --- a/src/expr.c
+> +++ b/src/expr.c
+> @@ -203,6 +203,17 @@ const char *nftnl_expr_get_str(const struct nftnl_expr *expr, uint16_t type)
+>  }
+>  EXPORT_SYMBOL_ALIAS(nftnl_expr_get_str, nft_rule_expr_get_str);
+>  
+> +bool nftnl_expr_cmp(const struct nftnl_expr *e1, const struct nftnl_expr *e2)
+> +{
+> +	if (e1->flags != e2->flags || strcmp(e1->ops->name, e2->ops->name))
+> +		return false;
+> +	if (e1->ops->cmp)
+> +		return e1->ops->cmp(e1, e2);
+> +
+> +	return false;
+> +}
+> +EXPORT_SYMBOL(nftnl_expr_cmp);
 
-CONFIG_NFT_META=y
-CONFIG_NFT_NUMGEN=y
+_cmp() is now mandatory, so I have simplified this:
 
-but I was unable to reproduce it.
+bool nftnl_expr_cmp(const struct nftnl_expr *e1, const struct nftnl_expr *e2)
+{
+	if (e1->flags != e2->flags ||
+            strcmp(e1->ops->name, e2->ops->name) != 0)
+		return false;
 
-Anyway, I'll rename the identifier in a new patch.
+	return e1->ops->cmp(e1, e2);
+}
+EXPORT_SYMBOL(nftnl_expr_cmp);
 
-Thanks.
+> diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
+> index 2fd4b74..1cfef0f 100644
+> --- a/src/expr/bitwise.c
+> +++ b/src/expr/bitwise.c
+> @@ -310,10 +310,32 @@ nftnl_expr_bitwise_snprintf(char *buf, size_t size, uint32_t type,
+>  	return -1;
+>  }
+>  
+> +static bool nftnl_expr_bitwise_cmp(const struct nftnl_expr *e1,
+> +				   const struct nftnl_expr *e2)
+> +{
+> +	struct nftnl_expr_bitwise *b1 = nftnl_expr_data(e1);
+> +	struct nftnl_expr_bitwise *b2 = nftnl_expr_data(e2);
+> +	bool eq = true;
+> +
+> +	if (e1->flags & (1 << NFTNL_EXPR_BITWISE_SREG))
+> +		eq &= b1->sreg == b2->sreg;
 
+I have wrapped all this comparisons with parens.
+
+		eq &= (b1->sreg == b2->sreg);
+
+Not that the compiler was asking for this here, but I think it makes
+it a bit more readable for this specific case.
