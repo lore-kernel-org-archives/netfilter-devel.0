@@ -1,96 +1,84 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/3 v5 libnftnl] Implement rule comparison
-Date: Wed, 17 Aug 2016 16:10:48 +0200
-Message-ID: <20160817141048.GA8692@salvia>
-References: <20160817110010.28943-1-carlosfg@riseup.net>
+Subject: Re: [PATCH iptables 1/2] xtables-translate: add escape_quotes option
+ to comment_xlate
+Date: Wed, 17 Aug 2016 16:23:17 +0200
+Message-ID: <20160817142317.GA9755@salvia>
+References: <20160816174433.28272-1-pablombg@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed; boundary="k+w/mQv8wyuph6w0"
 Cc: netfilter-devel@vger.kernel.org
-To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
+To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52470 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:54628 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752713AbcHQOLP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Aug 2016 10:11:15 -0400
+	id S1751495AbcHQOXY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Aug 2016 10:23:24 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id 02EC5D1622
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 16:11:00 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id 429BAD1622
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 16:23:22 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E76E8CE156
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 16:10:59 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 30CB29663D
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 16:23:22 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E7774DA3B0
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 16:10:57 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 01253DA3B0
+	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 16:23:18 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160817110010.28943-1-carlosfg@riseup.net>
+In-Reply-To: <20160816174433.28272-1-pablombg@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 17, 2016 at 01:00:08PM +0200, Carlos Falgueras García wrote:
-> This patch implements the function 'bool nftnl_rule_cmp(const struct
-> nftnl_rule *r, const struct nftnl_rule *r2)' for rule comparison.
-> 
-> Expressions within rules need to be compared, so also has been created the
-> function 'nftnl_expr_cmp' which calls new field within
-> 'nfntl_expr_<expression>': a function pointer to a comparator.
 
-Applied, thanks.
+--k+w/mQv8wyuph6w0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I made some slight changes, see below.
+On Tue, Aug 16, 2016 at 07:44:32PM +0200, Pablo M. Bermudo Garay wrote:
+> The comment_xlate function was not supporting this option that is
+> necessary in some situations.
 
-> diff --git a/src/expr.c b/src/expr.c
-> index e5c1dd3..1f57fb2 100644
-> --- a/src/expr.c
-> +++ b/src/expr.c
-> @@ -203,6 +203,17 @@ const char *nftnl_expr_get_str(const struct nftnl_expr *expr, uint16_t type)
->  }
->  EXPORT_SYMBOL_ALIAS(nftnl_expr_get_str, nft_rule_expr_get_str);
->  
-> +bool nftnl_expr_cmp(const struct nftnl_expr *e1, const struct nftnl_expr *e2)
-> +{
-> +	if (e1->flags != e2->flags || strcmp(e1->ops->name, e2->ops->name))
-> +		return false;
-> +	if (e1->ops->cmp)
-> +		return e1->ops->cmp(e1, e2);
-> +
-> +	return false;
-> +}
-> +EXPORT_SYMBOL(nftnl_expr_cmp);
+I have applied what I'm attaching to this email, that is more simple
+than this and makes sure buffer is nul-terminated (given snprintf
+doesn't guarantee this).
 
-_cmp() is now mandatory, so I have simplified this:
+--k+w/mQv8wyuph6w0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=x
 
-bool nftnl_expr_cmp(const struct nftnl_expr *e1, const struct nftnl_expr *e2)
-{
-	if (e1->flags != e2->flags ||
-            strcmp(e1->ops->name, e2->ops->name) != 0)
-		return false;
+commit 3317b14f0d6fa0e460e4e758b7e3010f940d07bc
+Author: Pablo M. Bermudo Garay <pablombg@gmail.com>
+Date:   Tue Aug 16 19:44:32 2016 +0200
 
-	return e1->ops->cmp(e1, e2);
-}
-EXPORT_SYMBOL(nftnl_expr_cmp);
+    xtables-translate: add escape_quotes option to comment_xlate
+    
+    The comment_xlate function was not supporting this option that is
+    necessary in some situations.
+    
+    Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
+    Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-> diff --git a/src/expr/bitwise.c b/src/expr/bitwise.c
-> index 2fd4b74..1cfef0f 100644
-> --- a/src/expr/bitwise.c
-> +++ b/src/expr/bitwise.c
-> @@ -310,10 +310,32 @@ nftnl_expr_bitwise_snprintf(char *buf, size_t size, uint32_t type,
->  	return -1;
->  }
->  
-> +static bool nftnl_expr_bitwise_cmp(const struct nftnl_expr *e1,
-> +				   const struct nftnl_expr *e2)
-> +{
-> +	struct nftnl_expr_bitwise *b1 = nftnl_expr_data(e1);
-> +	struct nftnl_expr_bitwise *b2 = nftnl_expr_data(e2);
-> +	bool eq = true;
-> +
-> +	if (e1->flags & (1 << NFTNL_EXPR_BITWISE_SREG))
-> +		eq &= b1->sreg == b2->sreg;
+diff --git a/extensions/libxt_comment.c b/extensions/libxt_comment.c
+index 0e31edd..b635d16 100644
+--- a/extensions/libxt_comment.c
++++ b/extensions/libxt_comment.c
+@@ -52,9 +52,18 @@ static int comment_xlate(struct xt_xlate *xl,
+ 			 const struct xt_xlate_mt_params *params)
+ {
+ 	struct xt_comment_info *commentinfo = (void *)params->match->data;
++	char comment[XT_MAX_COMMENT_LEN];
+ 
+ 	commentinfo->comment[XT_MAX_COMMENT_LEN - 1] = '\0';
+-	xt_xlate_add_comment(xl, commentinfo->comment);
++	if (params->escape_quotes)
++		snprintf(comment, XT_MAX_COMMENT_LEN, "\\\"%s\\\"",
++			 commentinfo->comment);
++	else
++		snprintf(comment, XT_MAX_COMMENT_LEN, "\"%s\"",
++			 commentinfo->comment);
++
++	comment[XT_MAX_COMMENT_LEN - 1] = '\0';
++	xt_xlate_add_comment(xl, comment);
+ 
+ 	return 1;
+ }
 
-I have wrapped all this comparisons with parens.
-
-		eq &= (b1->sreg == b2->sreg);
-
-Not that the compiler was asking for this here, but I think it makes
-it a bit more readable for this specific case.
+--k+w/mQv8wyuph6w0--
