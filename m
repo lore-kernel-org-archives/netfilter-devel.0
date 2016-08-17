@@ -1,44 +1,88 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: nfnetlink_log: add "nf-logger-3-1"
- module alias name
-Date: Wed, 17 Aug 2016 17:45:28 +0200
-Message-ID: <20160817154528.GA16062@salvia>
-References: <1471099564-3743-1-git-send-email-zlpnobody@163.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: kernel panic TPROXY , vanilla 4.7.1
+Date: Wed, 17 Aug 2016 09:04:31 -0700
+Message-ID: <1471449871.29842.3.camel@edumazet-glaptop3.roam.corp.google.com>
+References: <627722c51d9ce454dfaf1a79519ceb59@nuclearcat.com>
+	 <1471448525.29842.1.camel@edumazet-glaptop3.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpnobody@163.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42874 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752009AbcHQPph (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Aug 2016 11:45:37 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id CD8D2D164B
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 17:45:35 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id B4CB4DA3B0
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 17:45:35 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id 9588FFB469
-	for <netfilter-devel@vger.kernel.org>; Wed, 17 Aug 2016 17:45:33 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1471099564-3743-1-git-send-email-zlpnobody@163.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Linux Kernel Network Developers <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Denys Fedoryshchenko <nuclearcat@nuclearcat.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1471448525.29842.1.camel@edumazet-glaptop3.roam.corp.google.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sat, Aug 13, 2016 at 10:46:04PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
+On Wed, 2016-08-17 at 08:42 -0700, Eric Dumazet wrote:
+> On Wed, 2016-08-17 at 17:31 +0300, Denys Fedoryshchenko wrote:
+> > Hi!
+> > 
+> > Tried to run squid on latest kernel, and hit a panic
+> > Sometimes it just shows warning in dmesg (but doesnt work properly)
+> > [   75.701666] IPv4: Attempt to release TCP socket in state 10 
+> > ffff88102d430780
+> > [   83.866974] squid (2700) used greatest stack depth: 12912 bytes left
+> > [   87.506644] IPv4: Attempt to release TCP socket in state 10 
+> > ffff880078a48780
+> > [  114.704295] IPv4: Attempt to release TCP socket in state 10 
+> > ffff881029f8ad00
+> > 
+> > I cannot catch yet oops/panic message, netconsole not working.
+> > 
+> > After triggering warning message 3 times, i am unable to run squid 
+> > anymore (without reboot), and in netstat it doesnt show port running.
+> > 
+> > firewall is:
+> > *mangle
+> > -A PREROUTING -p tcp -m socket -j DIVERT
+> > -A PREROUTING -p tcp -m tcp --dport 80 -i eno1 -j TPROXY --on-port 3129 
+> > --on-ip 0.0.0.0 --tproxy-mark 0x1/0x1
+> > -A DIVERT -j MARK --set-xmark 0x1/0xffffffff
+> > -A DIVERT -j ACCEPT
+> > 
+> > routing
+> > ip rule add fwmark 1 lookup 100
+> > ip route add local default dev eno1 table 100
+> > 
+> > 
+> > squid config is default with tproxy option
+> > http_port 3129 tproxy
+> > 
 > 
-> Otherwise, if nfnetlink_log.ko is not loaded, we cannot add rules
-> to log packets to the userspace when we specify it with arp family,
-> such as:
+> Hmppff... sorry for this, I will send a fix.
 > 
->   # nft add rule arp filter input log group 0
->   <cmdline>:1:1-37: Error: Could not process rule: No such file or
->   directory
->   add rule arp filter input log group 0
->   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> Thanks for the report !
+> 
 
-This qualifies as bugfix, so I'm applying this to nf. Thanks!
+
+Could you try the following ?
+
+Thanks !
+
+ net/netfilter/xt_TPROXY.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
+index 7f4414d26a66..663c4c3c9072 100644
+--- a/net/netfilter/xt_TPROXY.c
++++ b/net/netfilter/xt_TPROXY.c
+@@ -127,6 +127,8 @@ nf_tproxy_get_sock_v4(struct net *net, struct sk_buff *skb, void *hp,
+ 						    daddr, dport,
+ 						    in->ifindex);
+ 
++			if (sk && !atomic_inc_not_zero(&sk->sk_refcnt))
++				sk = NULL;
+ 			/* NOTE: we return listeners even if bound to
+ 			 * 0.0.0.0, those are filtered out in
+ 			 * xt_socket, since xt_TPROXY needs 0 bound
+@@ -195,6 +197,8 @@ nf_tproxy_get_sock_v6(struct net *net, struct sk_buff *skb, int thoff, void *hp,
+ 						   daddr, ntohs(dport),
+ 						   in->ifindex);
+ 
++			if (sk && !atomic_inc_not_zero(&sk->sk_refcnt))
++				sk = NULL;
+ 			/* NOTE: we return listeners even if bound to
+ 			 * 0.0.0.0, those are filtered out in
+ 			 * xt_socket, since xt_TPROXY needs 0 bound
