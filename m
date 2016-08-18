@@ -1,39 +1,34 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] netfilter: fix spelling mistake: "delimitter" -> "delimiter"
-Date: Thu, 18 Aug 2016 16:47:57 +0100
-Message-ID: <1471535277-15554-1-git-send-email-colin.king@canonical.com>
-Cc: linux-kernel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S . Miller" <davem@davemloft.net>,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        netdev@vger.kernel.org
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+Subject: Re: [PATCH iptables 1/2] xtables-translate: add escape_quotes option
+ to comment_xlate
+Date: Thu, 18 Aug 2016 17:59:30 +0200
+Message-ID: <CAAaDf4vWgD74bME7fBjErHud6zV0=tWrOf6ouNe_GHiEUFYU+Q@mail.gmail.com>
+References: <20160816174433.28272-1-pablombg@gmail.com> <20160817142317.GA9755@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-io0-f195.google.com ([209.85.223.195]:35335 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753925AbcHSDqj (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 18 Aug 2016 23:46:39 -0400
+Received: by mail-io0-f195.google.com with SMTP id q83so4062161iod.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2016 20:46:39 -0700 (PDT)
+In-Reply-To: <20160817142317.GA9755@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+2016-08-17 16:23 GMT+02:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> On Tue, Aug 16, 2016 at 07:44:32PM +0200, Pablo M. Bermudo Garay wrote:
+>> The comment_xlate function was not supporting this option that is
+>> necessary in some situations.
+>
+> I have applied what I'm attaching to this email, that is more simple
+> than this and makes sure buffer is nul-terminated (given snprintf
+> doesn't guarantee this).
 
-trivial fix to spelling mistake in pr_debug message
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- net/netfilter/nf_conntrack_ftp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index 4314700..b6934b5 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -237,7 +237,7 @@ static int try_eprt(const char *data, size_t dlen, struct nf_conntrack_man *cmd,
- 	}
- 	delim = data[0];
- 	if (isdigit(delim) || delim < 33 || delim > 126 || data[2] != delim) {
--		pr_debug("try_eprt: invalid delimitter.\n");
-+		pr_debug("try_eprt: invalid delimiter.\n");
- 		return 0;
- 	}
- 
--- 
-2.8.1
+Ok, the simplification seems great. But AFAIK both standards (C99+ and
+POSIX.1-2001+) guarantee that the string will be null-terminated. Am I
+wrong about that?
