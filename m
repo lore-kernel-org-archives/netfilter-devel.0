@@ -1,304 +1,139 @@
-From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCH v5] netfilter: nft_numgen: add number generator expression
-Date: Thu, 18 Aug 2016 12:13:13 +0200
-Message-ID: <20160818101310.GA27665@sonyv>
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH nf 1/2] netfilter: nfnetlink_acct: fix race between nfacct
+ del and xt_nfacct destroy
+Date: Thu, 18 Aug 2016 18:41:12 +0800
+Message-ID: <CAML_gOd71QecZabEgSz+YcGGsv66hJPZezudpt4YMp+WErUcnw@mail.gmail.com>
+References: <1471101182-15294-1-git-send-email-zlpnobody@163.com>
+ <20160817222634.GA2798@salvia> <20160817223741.GA5476@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: multipart/mixed; boundary=94eb2c122a9a891a56053a5638c0
+Cc: Liping Zhang <zlpnobody@163.com>, netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33198 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752696AbcHRKY7 (ORCPT
+Received: from mail-ua0-f193.google.com ([209.85.217.193]:35580 "EHLO
+	mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752435AbcHRKlO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Aug 2016 06:24:59 -0400
-Received: by mail-wm0-f65.google.com with SMTP id o80so4790607wme.0
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2016 03:24:59 -0700 (PDT)
-Received: from sonyv ([91.126.73.162])
-        by smtp.gmail.com with ESMTPSA id a2sm1485587wjg.46.2016.08.18.03.13.15
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Thu, 18 Aug 2016 03:13:15 -0700 (PDT)
-Content-Disposition: inline
+	Thu, 18 Aug 2016 06:41:14 -0400
+Received: by mail-ua0-f193.google.com with SMTP id 109so2896530uat.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2016 03:41:14 -0700 (PDT)
+In-Reply-To: <20160817223741.GA5476@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add support for the number generator expression in netfilter.
+--94eb2c122a9a891a56053a5638c0
+Content-Type: text/plain; charset=UTF-8
 
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
----
-Changes in V5:
-	- Reorder the functions
-	- Add attributes checks
-	- Use switch instead of if statements
+Hi Pablo,
 
- include/uapi/linux/netfilter/nf_tables.h |  25 ++++
- net/netfilter/Kconfig                    |   6 +
- net/netfilter/Makefile                   |   1 +
- net/netfilter/nft_numgen.c               | 192 +++++++++++++++++++++++++++++++
- 4 files changed, 224 insertions(+)
- create mode 100644 net/netfilter/nft_numgen.c
+2016-08-18 6:37 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+>
+> Wait. I noticed we have the same problem in cttimeout, so it would be
+> good to fix this in the same logical change.
+>
+> I'm attaching your original patch that I have mangled here, including
+> the cttimeout chunk.
+>
+> Let me know if you have any concern, otherwise I'll apply this new
+> version, thanks!
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index c674ba2..38fd1ef 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1082,4 +1082,29 @@ enum nft_trace_types {
- 	__NFT_TRACETYPE_MAX
- };
- #define NFT_TRACETYPE_MAX (__NFT_TRACETYPE_MAX - 1)
-+
-+/**
-+ * enum nft_ng_attributes - nf_tables number generator expression netlink
-+ *			    attributes
-+ *
-+ * @NFTA_NG_DREG: destination register (NLA_U32)
-+ * @NFTA_NG_UNTIL: source value to increment the counter until reset (NLA_U32)
-+ * @NFTA_NG_TYPE: operation type (NLA_U32)
-+ */
-+enum nft_ng_attributes {
-+	NFTA_NG_UNSPEC,
-+	NFTA_NG_DREG,
-+	NFTA_NG_UNTIL,
-+	NFTA_NG_TYPE,
-+	__NFTA_NG_MAX
-+};
-+#define NFTA_NG_MAX	(__NFTA_NG_MAX - 1)
-+
-+enum nft_ng_types {
-+	NFT_NG_INCREMENTAL,
-+	NFT_NG_RANDOM,
-+	__NFT_NG_MAX
-+};
-+#define NFT_NG_MAX	(__NFT_NG_MAX - 1)
-+
- #endif /* _LINUX_NF_TABLES_H */
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 9266cee..31def7d 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -474,6 +474,12 @@ config NFT_META
- 	  This option adds the "meta" expression that you can use to match and
- 	  to set packet metainformation such as the packet mark.
- 
-+config NFT_NUMGEN
-+	tristate "Netfilter nf_tables number generator module"
-+	help
-+	  This option adds the number generator expression used to perform
-+	  operations like the incremental counter until a reset value or random.
-+
- config NFT_CT
- 	depends on NF_CONNTRACK
- 	tristate "Netfilter nf_tables conntrack module"
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 6913454..81f22c3 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -80,6 +80,7 @@ obj-$(CONFIG_NF_TABLES_NETDEV)	+= nf_tables_netdev.o
- obj-$(CONFIG_NFT_COMPAT)	+= nft_compat.o
- obj-$(CONFIG_NFT_EXTHDR)	+= nft_exthdr.o
- obj-$(CONFIG_NFT_META)		+= nft_meta.o
-+obj-$(CONFIG_NFT_NUMGEN)	+= nft_numgen.o
- obj-$(CONFIG_NFT_CT)		+= nft_ct.o
- obj-$(CONFIG_NFT_LIMIT)		+= nft_limit.o
- obj-$(CONFIG_NFT_NAT)		+= nft_nat.o
-diff --git a/net/netfilter/nft_numgen.c b/net/netfilter/nft_numgen.c
-new file mode 100644
-index 0000000..b096c55
---- /dev/null
-+++ b/net/netfilter/nft_numgen.c
-@@ -0,0 +1,192 @@
-+/*
-+ * Copyright (c) 2016 Laura Garcia <nevola@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/netlink.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_tables.h>
-+#include <linux/static_key.h>
-+#include <net/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables_core.h>
-+
-+static DEFINE_PER_CPU(struct rnd_state, nft_numgen_prandom_state);
-+
-+struct nft_ng_inc {
-+	enum nft_registers      dreg:8;
-+	u32			until;
-+	atomic_t		counter;
-+};
-+
-+static void nft_ng_inc_eval(const struct nft_expr *expr,
-+			    struct nft_regs *regs,
-+			    const struct nft_pktinfo *pkt)
-+{
-+	struct nft_ng_inc *priv = nft_expr_priv(expr);
-+	u32 nval, oval;
-+
-+	do {
-+		oval = atomic_read(&priv->counter);
-+		nval = (oval + 1 < priv->until) ? oval + 1 : 0;
-+	} while (atomic_cmpxchg(&priv->counter, oval, nval) != oval);
-+
-+	memcpy(&regs->data[priv->dreg], &priv->counter, sizeof(u32));
-+}
-+
-+const struct nla_policy nft_ng_policy[NFTA_NG_MAX + 1] = {
-+	[NFTA_NG_DREG]		= { .type = NLA_U32 },
-+	[NFTA_NG_UNTIL]		= { .type = NLA_U32 },
-+	[NFTA_NG_TYPE]		= { .type = NLA_U32 },
-+};
-+
-+static int nft_ng_inc_init(const struct nft_ctx *ctx,
-+			   const struct nft_expr *expr,
-+			   const struct nlattr * const tb[])
-+{
-+	struct nft_ng_inc *priv = nft_expr_priv(expr);
-+
-+	priv->until = ntohl(nla_get_be32(tb[NFTA_NG_UNTIL]));
-+	if (priv->until == 0)
-+		return -ERANGE;
-+
-+	priv->dreg = nft_parse_register(tb[NFTA_NG_DREG]);
-+	atomic_set(&priv->counter, 0);
-+
-+	return nft_validate_register_store(ctx, priv->dreg, NULL,
-+					   NFT_DATA_VALUE, sizeof(u32));
-+}
-+
-+static int nft_ng_dump(struct sk_buff *skb, enum nft_registers dreg,
-+		       u32 until, enum nft_ng_types type)
-+{
-+	if (nft_dump_register(skb, NFTA_NG_DREG, dreg))
-+		goto nla_put_failure;
-+	if (nft_dump_register(skb, NFTA_NG_UNTIL, until))
-+		goto nla_put_failure;
-+	if (nft_dump_register(skb, NFTA_NG_TYPE, type))
-+		goto nla_put_failure;
-+
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
-+}
-+
-+static int nft_ng_inc_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+{
-+	const struct nft_ng_inc *priv = nft_expr_priv(expr);
-+
-+	return nft_ng_dump(skb, priv->dreg, priv->until, NFT_NG_INCREMENTAL);
-+}
-+
-+struct nft_ng_random {
-+	enum nft_registers      dreg:8;
-+	u32			until;
-+};
-+
-+static void nft_ng_random_eval(const struct nft_expr *expr,
-+			       struct nft_regs *regs,
-+			       const struct nft_pktinfo *pkt)
-+{
-+	struct nft_ng_random *priv = nft_expr_priv(expr);
-+	struct rnd_state *state = this_cpu_ptr(&nft_numgen_prandom_state);
-+
-+	regs->data[priv->dreg] = reciprocal_scale(prandom_u32_state(state),
-+						  priv->until);
-+}
-+
-+static int nft_ng_random_init(const struct nft_ctx *ctx,
-+			      const struct nft_expr *expr,
-+			      const struct nlattr * const tb[])
-+{
-+	struct nft_ng_random *priv = nft_expr_priv(expr);
-+
-+	priv->until = ntohl(nla_get_be32(tb[NFTA_NG_UNTIL]));
-+	if (priv->until == 0)
-+		return -ERANGE;
-+
-+	prandom_init_once(&nft_numgen_prandom_state);
-+
-+	priv->dreg = nft_parse_register(tb[NFTA_NG_DREG]);
-+
-+	return nft_validate_register_store(ctx, priv->dreg, NULL,
-+					   NFT_DATA_VALUE, sizeof(u32));
-+}
-+
-+static int nft_ng_random_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+{
-+	const struct nft_ng_random *priv = nft_expr_priv(expr);
-+
-+	return nft_ng_dump(skb, priv->dreg, priv->until, NFT_NG_RANDOM);
-+}
-+
-+static struct nft_expr_type nft_ng_type;
-+static const struct nft_expr_ops nft_ng_inc_ops = {
-+	.type		= &nft_ng_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ng_inc)),
-+	.eval		= nft_ng_inc_eval,
-+	.init		= nft_ng_inc_init,
-+	.dump		= nft_ng_inc_dump,
-+};
-+
-+static const struct nft_expr_ops nft_ng_random_ops = {
-+	.type		= &nft_ng_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_ng_random)),
-+	.eval		= nft_ng_random_eval,
-+	.init		= nft_ng_random_init,
-+	.dump		= nft_ng_random_dump,
-+};
-+
-+static const struct nft_expr_ops *
-+nft_ng_select_ops(const struct nft_ctx *ctx, const struct nlattr * const tb[])
-+{
-+	u32 type;
-+
-+	if (!tb[NFTA_NG_DREG]	||
-+	    !tb[NFTA_NG_UNTIL]	||
-+	    !tb[NFTA_NG_TYPE])
-+		return ERR_PTR(-EINVAL);
-+
-+	type = ntohl(nla_get_be32(tb[NFTA_NG_TYPE]));
-+
-+	switch (type) {
-+	case NFT_NG_INCREMENTAL:
-+		return &nft_ng_inc_ops;
-+	case NFT_NG_RANDOM:
-+		return &nft_ng_random_ops;
-+	}
-+
-+	return ERR_PTR(-EINVAL);
-+}
-+
-+static struct nft_expr_type nft_ng_type __read_mostly = {
-+	.name		= "numgen",
-+	.select_ops	= &nft_ng_select_ops,
-+	.policy		= nft_ng_policy,
-+	.maxattr	= NFTA_NG_MAX,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int __init nft_ng_module_init(void)
-+{
-+	return nft_register_expr(&nft_ng_type);
-+}
-+
-+static void __exit nft_ng_module_exit(void)
-+{
-+	nft_unregister_expr(&nft_ng_type);
-+}
-+
-+module_init(nft_ng_module_init);
-+module_exit(nft_ng_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Laura Garcia <nevola@gmail.com>");
-+MODULE_ALIAS_NFT_EXPR("numgen");
--- 
-2.8.1
+Not exactly right.
 
+Currently ctnl_timeout_try_del will not cause race with ctnl_timeout_put.
+In ctnl_timeout_put, it only decreases the timeout object's refcnt,
+but will not try to free it. This is different with nfnetlink_acct.
+
+But when we do "ip netns del xxx", this will cause a use after free error.
+In general, when we delete a netns, cttimeout_net_exit will be called
+before ipt_unregister_table, i.e. before ctnl_timeout_put.
+
+So after call kfree_rcu in cttimeout_net_exit, we will still decrease
+the timeout object's refcnt in ctnl_timeout_put. Kernel will complain
+about this:
+
+  =======================================================================
+  BUG kmalloc-96 (Tainted: G    B       E  ): Poison overwritten
+  -----------------------------------------------------------------------
+  INFO: 0xffff88002b5161e8-0xffff88002b5161e8. First byte 0x6a instead of
+  0x6b
+  INFO: Allocated in cttimeout_new_timeout+0xd4/0x240 [nfnetlink_cttimeout]
+  age=104 cpu=0 pid=3330
+  ___slab_alloc+0x4da/0x540
+  __slab_alloc+0x20/0x40
+  __kmalloc+0x1c8/0x240
+  cttimeout_new_timeout+0xd4/0x240 [nfnetlink_cttimeout]
+  nfnetlink_rcv_msg+0x21a/0x230 [nfnetlink]
+
+So I think it seems better that we take another patch to fix the
+problem in cttimeout.
+
+Attachment is my patch.
+
+--94eb2c122a9a891a56053a5638c0
+Content-Type: application/octet-stream;
+	name="0001-netfilter-cttimeout-fix-use-after-free-error-when-de.patch"
+Content-Disposition: attachment;
+	filename="0001-netfilter-cttimeout-fix-use-after-free-error-when-de.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_is0723tf1
+
+RnJvbSBkM2JiNDhmNzM5MTRkZjgzMTUxNmY5OWQ3NzViNDU0MjU5YTQwNThkIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBMaXBpbmcgWmhhbmcgPGxpcGluZy56aGFuZ0BzcHJlYWR0cnVt
+LmNvbT4KRGF0ZTogVGh1LCAxOCBBdWcgMjAxNiAxNjo1ODo0NiArMDgwMApTdWJqZWN0OiBbUEFU
+Q0ggbmZdIG5ldGZpbHRlcjogY3R0aW1lb3V0OiBmaXggdXNlIGFmdGVyIGZyZWUgZXJyb3Igd2hl
+biBkZWxldGUKIG5ldG5zCgpJbiBnZW5lcmFsLCB3aGVuIHdlIHdhbnQgdG8gZGVsZXRlIGEgbmV0
+bnMsIGN0dGltZW91dF9uZXRfZXhpdCB3aWxsCmJlIGNhbGxlZCBiZWZvcmUgaXB0X3VucmVnaXN0
+ZXJfdGFibGUsIGkuZS4gYmVmb3JlIGN0bmxfdGltZW91dF9wdXQuCgpCdXQgYWZ0ZXIgY2FsbCBr
+ZnJlZV9yY3UgaW4gY3R0aW1lb3V0X25ldF9leGl0LCB3ZSB3aWxsIHN0aWxsIGRlY3JlYXNlCnRo
+ZSB0aW1lb3V0IG9iamVjdCdzIHJlZmNudCBpbiBjdG5sX3RpbWVvdXRfcHV0LCB0aGlzIGlzIGlu
+Y29ycmVjdCwKYW5kIHdpbGwgY2F1c2UgYSB1c2UgYWZ0ZXIgZnJlZSBlcnJvci4KCkl0IGlzIGVh
+c3kgdG8gcmVwcm9kdWNlIHRoaXMgcHJvYmxlbToKICAjIHdoaWxlIDogOyBkbwogIGlwIG5ldG5z
+IGFkZCB4eHgKICBpcCBuZXRucyBleGVjIHh4eCBuZmN0IGFkZCB0aW1lb3V0IHRlc3R4IGluZXQg
+aWNtcCB0aW1lb3V0IDIwMAogIGlwIG5ldG5zIGV4ZWMgeHh4IGlwdGFibGVzIC10IHJhdyAtcCBp
+Y21wIC1JIE9VVFBVVCAtaiBDVCAtLXRpbWVvdXQgdGVzdHgKICBpcCBuZXRucyBkZWwgeHh4CiAg
+ZG9uZQoKICA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PQogIEJVRyBrbWFsbG9jLTk2IChUYWludGVkOiBHICAgIEIg
+ICAgICAgRSAgKTogUG9pc29uIG92ZXJ3cml0dGVuCiAgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KICBJTkZPOiAw
+eGZmZmY4ODAwMmI1MTYxZTgtMHhmZmZmODgwMDJiNTE2MWU4LiBGaXJzdCBieXRlIDB4NmEgaW5z
+dGVhZCBvZgogIDB4NmIKICBJTkZPOiBBbGxvY2F0ZWQgaW4gY3R0aW1lb3V0X25ld190aW1lb3V0
+KzB4ZDQvMHgyNDAgW25mbmV0bGlua19jdHRpbWVvdXRdCiAgYWdlPTEwNCBjcHU9MCBwaWQ9MzMz
+MAogIF9fX3NsYWJfYWxsb2MrMHg0ZGEvMHg1NDAKICBfX3NsYWJfYWxsb2MrMHgyMC8weDQwCiAg
+X19rbWFsbG9jKzB4MWM4LzB4MjQwCiAgY3R0aW1lb3V0X25ld190aW1lb3V0KzB4ZDQvMHgyNDAg
+W25mbmV0bGlua19jdHRpbWVvdXRdCiAgbmZuZXRsaW5rX3Jjdl9tc2crMHgyMWEvMHgyMzAgW25m
+bmV0bGlua10KICBbIC4uLiBdCgpTbyBvbmx5IHdoZW4gdGhlIHJlZmNudCBkZWNyZWFzZWQgdG8g
+MCwgd2UgY2FsbCBrZnJlZV9yY3UgdG8gZnJlZSB0aGUKdGltZW91dCBvYmplY3QuIEFuZCBsaWtl
+IG5mbmV0bGlua19hY2N0IGRvLCB1c2UgYXRvbWljX2NtcHhjaGcgdG8KYXZvaWQgcmFjZSBiZXR3
+ZWVuIGN0bmxfdGltZW91dF90cnlfZGVsIGFuZCBjdG5sX3RpbWVvdXRfcHV0LgoKU2lnbmVkLW9m
+Zi1ieTogTGlwaW5nIFpoYW5nIDxsaXBpbmcuemhhbmdAc3ByZWFkdHJ1bS5jb20+Ci0tLQogbmV0
+L25ldGZpbHRlci9uZm5ldGxpbmtfY3R0aW1lb3V0LmMgfCAxNiArKysrKysrKysrLS0tLS0tCiAx
+IGZpbGUgY2hhbmdlZCwgMTAgaW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkKCmRpZmYgLS1n
+aXQgYS9uZXQvbmV0ZmlsdGVyL25mbmV0bGlua19jdHRpbWVvdXQuYyBiL25ldC9uZXRmaWx0ZXIv
+bmZuZXRsaW5rX2N0dGltZW91dC5jCmluZGV4IDRjZGNkOTYuLjY4MjE2Y2QgMTAwNjQ0Ci0tLSBh
+L25ldC9uZXRmaWx0ZXIvbmZuZXRsaW5rX2N0dGltZW91dC5jCisrKyBiL25ldC9uZXRmaWx0ZXIv
+bmZuZXRsaW5rX2N0dGltZW91dC5jCkBAIC0zMzAsMTYgKzMzMCwxNiBAQCBzdGF0aWMgaW50IGN0
+bmxfdGltZW91dF90cnlfZGVsKHN0cnVjdCBuZXQgKm5ldCwgc3RydWN0IGN0bmxfdGltZW91dCAq
+dGltZW91dCkKIHsKIAlpbnQgcmV0ID0gMDsKIAotCS8qIHdlIHdhbnQgdG8gYXZvaWQgcmFjZXMg
+d2l0aCBuZl9jdF90aW1lb3V0X2ZpbmRfZ2V0LiAqLwotCWlmIChhdG9taWNfZGVjX2FuZF90ZXN0
+KCZ0aW1lb3V0LT5yZWZjbnQpKSB7CisJLyogV2Ugd2FudCB0byBhdm9pZCByYWNlcyB3aXRoIGN0
+bmxfdGltZW91dF9wdXQuIFNvIG9ubHkgd2hlbiB0aGUKKwkgKiBjdXJyZW50IHJlZmNudCBpcyAx
+LCB3ZSBkZWNyZWFzZSBpdCB0byAwLgorCSAqLworCWlmIChhdG9taWNfY21weGNoZygmdGltZW91
+dC0+cmVmY250LCAxLCAwKSA9PSAxKSB7CiAJCS8qIFdlIGFyZSBwcm90ZWN0ZWQgYnkgbmZubCBt
+dXRleC4gKi8KIAkJbGlzdF9kZWxfcmN1KCZ0aW1lb3V0LT5oZWFkKTsKIAkJbmZfY3RfbDRwcm90
+b19wdXQodGltZW91dC0+bDRwcm90byk7CiAJCWN0bmxfdW50aW1lb3V0KG5ldCwgdGltZW91dCk7
+CiAJCWtmcmVlX3JjdSh0aW1lb3V0LCByY3VfaGVhZCk7CiAJfSBlbHNlIHsKLQkJLyogc3RpbGwg
+aW4gdXNlLCByZXN0b3JlIHJlZmVyZW5jZSBjb3VudGVyLiAqLwotCQlhdG9taWNfaW5jKCZ0aW1l
+b3V0LT5yZWZjbnQpOwogCQlyZXQgPSAtRUJVU1k7CiAJfQogCXJldHVybiByZXQ7CkBAIC01NDMs
+NyArNTQzLDkgQEAgZXJyOgogCiBzdGF0aWMgdm9pZCBjdG5sX3RpbWVvdXRfcHV0KHN0cnVjdCBj
+dG5sX3RpbWVvdXQgKnRpbWVvdXQpCiB7Ci0JYXRvbWljX2RlYygmdGltZW91dC0+cmVmY250KTsK
+KwlpZiAoYXRvbWljX2RlY19hbmRfdGVzdCgmdGltZW91dC0+cmVmY250KSkKKwkJa2ZyZWVfcmN1
+KHRpbWVvdXQsIHJjdV9oZWFkKTsKKwogCW1vZHVsZV9wdXQoVEhJU19NT0RVTEUpOwogfQogI2Vu
+ZGlmIC8qIENPTkZJR19ORl9DT05OVFJBQ0tfVElNRU9VVCAqLwpAQCAtNTkxLDcgKzU5Myw5IEBA
+IHN0YXRpYyB2b2lkIF9fbmV0X2V4aXQgY3R0aW1lb3V0X25ldF9leGl0KHN0cnVjdCBuZXQgKm5l
+dCkKIAlsaXN0X2Zvcl9lYWNoX2VudHJ5X3NhZmUoY3VyLCB0bXAsICZuZXQtPm5mY3RfdGltZW91
+dF9saXN0LCBoZWFkKSB7CiAJCWxpc3RfZGVsX3JjdSgmY3VyLT5oZWFkKTsKIAkJbmZfY3RfbDRw
+cm90b19wdXQoY3VyLT5sNHByb3RvKTsKLQkJa2ZyZWVfcmN1KGN1ciwgcmN1X2hlYWQpOworCisJ
+CWlmIChhdG9taWNfZGVjX2FuZF90ZXN0KCZjdXItPnJlZmNudCkpCisJCQlrZnJlZV9yY3UoY3Vy
+LCByY3VfaGVhZCk7CiAJfQogfQogCi0tIAoyLjUuNQoK
+--94eb2c122a9a891a56053a5638c0--
