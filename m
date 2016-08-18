@@ -1,39 +1,39 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: nfacct: setting quotas does not seem to work.
-Date: Thu, 18 Aug 2016 16:54:12 +0200
-Message-ID: <20160818145412.GA2680@salvia>
-References: <59114b3a-5fff-4099-e2f7-d749be4e1511@toulouse.viveris.com>
- <20160817224457.GA5647@salvia>
- <b1ea3731-9745-dd6c-c281-692b09d5bced@toulouse.viveris.com>
+Subject: Re: [PATCH iptables 1/2] xtables-translate: add escape_quotes option
+ to comment_xlate
+Date: Thu, 18 Aug 2016 18:10:21 +0200
+Message-ID: <20160818161021.GA1018@salvia>
+References: <20160816174433.28272-1-pablombg@gmail.com>
+ <20160817142317.GA9755@salvia>
+ <CAAaDf4vWgD74bME7fBjErHud6zV0=tWrOf6ouNe_GHiEUFYU+Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Josue Alvarez <jalvarez@toulouse.viveris.com>
+To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:44951 "EHLO
+Received: from ganesha.gnumonks.org ([213.95.27.120]:45472 "EHLO
         ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753915AbcHSGsI (ORCPT
+        with ESMTP id S1755081AbcHSIRn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Aug 2016 02:48:08 -0400
+        Fri, 19 Aug 2016 04:17:43 -0400
 Content-Disposition: inline
-In-Reply-To: <b1ea3731-9745-dd6c-c281-692b09d5bced@toulouse.viveris.com>
+In-Reply-To: <CAAaDf4vWgD74bME7fBjErHud6zV0=tWrOf6ouNe_GHiEUFYU+Q@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Aug 18, 2016 at 09:34:04AM +0200, Josue Alvarez wrote:
-> On 18/08/2016 00:44, Pablo Neira Ayuso wrote:
-> >Probably using an old kernel version with no quota support?
+On Thu, Aug 18, 2016 at 05:59:30PM +0200, Pablo M. Bermudo Garay wrote:
+> 2016-08-17 16:23 GMT+02:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+> > On Tue, Aug 16, 2016 at 07:44:32PM +0200, Pablo M. Bermudo Garay wrote:
+> >> The comment_xlate function was not supporting this option that is
+> >> necessary in some situations.
+> >
+> > I have applied what I'm attaching to this email, that is more simple
+> > than this and makes sure buffer is nul-terminated (given snprintf
+> > doesn't guarantee this).
 > 
-> I found out that the issue came from libnetfilter_acct, from which I had one
-> package installed (1.0.2) and some binaries from the git version installed
-> with 'make install' from the sources. The linking happened on the 1.0.2,
-> which does not seem to support quotas (nfacct_attr_set and nfacct_attr_get
-> do not handle the cases NFACCT_ATTR_QUOTA and NFACCT_ATTR_FLAGS).
-> After removing that package it worked well.
-> 
-> By the way, there's actually no release of libnetfilter_acct with quota
-> support, am I wrong ?
-> That's not a problem for me, but it could be for other users.
+> Ok, the simplification seems great. But AFAIK both standards (C99+ and
+> POSIX.1-2001+) guarantee that the string will be null-terminated. Am I
+> wrong about that?
 
-Will include this in the scheduled release of libnetfilter_conntrack
-and conntrack-tools.
+If you write as many bytes as you can fit into the buffer, then
+snprintf doesn't guarantee a nul-terminated string.
