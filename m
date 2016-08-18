@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5/6] netfilter: nfnetlink_acct: fix race between nfacct del and xt_nfacct destroy
-Date: Thu, 18 Aug 2016 19:29:07 +0200
-Message-ID: <1471541348-1538-6-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 1/6] netfilter: conntrack: do not dump other netns's conntrack entries via proc
+Date: Thu, 18 Aug 2016 19:29:03 +0200
+Message-ID: <1471541348-1538-2-git-send-email-pablo@netfilter.org>
 References: <1471541348-1538-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -12,54 +12,39 @@ List-Id: netfilter-devel.vger.kernel.org
 
 From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Suppose that we input the following commands at first:
-  # nfacct add test
-  # iptables -A INPUT -m nfacct --nfacct-name test
+We should skip the conntracks that belong to a different namespace,
+otherwise other unrelated netns's conntrack entries will be dumped via
+/proc/net/nf_conntrack.
 
-And now "test" acct's refcnt is 2, but later when we try to delete the
-"test" nfacct and the related iptables rule at the same time, race maybe
-happen:
-      CPU0                                    CPU1
-  nfnl_acct_try_del                      nfnl_acct_put
-  atomic_dec_and_test //ref=1,testfail          -
-       -                                 atomic_dec_and_test //ref=0,testok
-       -                                 kfree_rcu
-  atomic_inc //ref=1                            -
-
-So after the rcu grace period, nf_acct will be freed but it is still linked
-in the nfnl_acct_list, and we can access it later, then oops will happen.
-
-Convert atomic_dec_and_test and atomic_inc combinaiton to one atomic
-operation atomic_cmpxchg here to fix this problem.
-
+Fixes: 56d52d4892d0 ("netfilter: conntrack: use a single hashtable for all namespaces")
 Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+Reviewed-by: Florian Westphal <fw@strlen.de>
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nfnetlink_acct.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/netfilter/nf_conntrack_standalone.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-index 796605b..70eb2f6a 100644
---- a/net/netfilter/nfnetlink_acct.c
-+++ b/net/netfilter/nfnetlink_acct.c
-@@ -326,14 +326,14 @@ static int nfnl_acct_try_del(struct nf_acct *cur)
- {
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 958a145..9f267c3 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -205,6 +205,7 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 	struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(hash);
+ 	const struct nf_conntrack_l3proto *l3proto;
+ 	const struct nf_conntrack_l4proto *l4proto;
++	struct net *net = seq_file_net(s);
  	int ret = 0;
  
--	/* we want to avoid races with nfnl_acct_find_get. */
--	if (atomic_dec_and_test(&cur->refcnt)) {
-+	/* We want to avoid races with nfnl_acct_put. So only when the current
-+	 * refcnt is 1, we decrease it to 0.
-+	 */
-+	if (atomic_cmpxchg(&cur->refcnt, 1, 0) == 1) {
- 		/* We are protected by nfnl mutex. */
- 		list_del_rcu(&cur->head);
- 		kfree_rcu(cur, rcu_head);
- 	} else {
--		/* still in use, restore reference counter. */
--		atomic_inc(&cur->refcnt);
- 		ret = -EBUSY;
- 	}
- 	return ret;
+ 	NF_CT_ASSERT(ct);
+@@ -215,6 +216,9 @@ static int ct_seq_show(struct seq_file *s, void *v)
+ 	if (NF_CT_DIRECTION(hash))
+ 		goto release;
+ 
++	if (!net_eq(nf_ct_net(ct), net))
++		goto release;
++
+ 	l3proto = __nf_ct_l3proto_find(nf_ct_l3num(ct));
+ 	NF_CT_ASSERT(l3proto);
+ 	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
 -- 
 2.1.4
