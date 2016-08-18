@@ -1,241 +1,95 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next] netfilter: nf_tables: add quota expression
-Date: Thu, 18 Aug 2016 01:46:06 +0200
-Message-ID: <1471477566-12618-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+Subject: Re: Snooping expected connections in a user CT helper
+Date: Thu, 18 Aug 2016 03:12:14 +0200
+Message-ID: <20160818011214.GA1463@salvia>
+References: <CAJzqFtacjKi+zQT3nS_0UJAr=LD8RWumM5+jeo8bbi-OVZR0Jg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, ashley.hughes@blueyonder.co.uk
+To: Kevin Cernekee <cernekee@chromium.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56280 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:35754 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752865AbcHQXqR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Aug 2016 19:46:17 -0400
+	id S1753429AbcHRBMV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Aug 2016 21:12:21 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-	by mail.us.es (Postfix) with ESMTP id BDB9FE8E86
-	for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2016 01:46:14 +0200 (CEST)
+	by mail.us.es (Postfix) with ESMTP id CB187E9768
+	for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2016 03:12:17 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id AB585100A57
-	for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2016 01:46:14 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id B7998100A5D
+	for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2016 03:12:17 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-	by antivirus1-rhel7.int (Postfix) with ESMTP id E9EDD100798
-	for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2016 01:46:09 +0200 (CEST)
+	by antivirus1-rhel7.int (Postfix) with ESMTP id 68865100A40
+	for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2016 03:12:15 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <CAJzqFtacjKi+zQT3nS_0UJAr=LD8RWumM5+jeo8bbi-OVZR0Jg@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds the quota expression. This new stateful expression
-integrate easily into the dynset expression to build 'hashquota' flow
-tables.
+Hi Kevin,
 
-Arguably, we could use instead "counter bytes > 1000" instead, but this
-approach has several problems:
+Let me comment on this to make sure I follow.
 
-1) We only support for one single stateful expression in dynamic set
-   definitions, and the expression above is a composite of two
-   expressions: get counter + comparison.
+On Tue, Aug 16, 2016 at 09:51:00PM -0700, Kevin Cernekee wrote:
+> Hi,
+> 
+> I am trying to extend the ssdp user helper in conntrackd to handle
+> event subscriptions on a UPnP control point.  The flow looks like
+> this:
+> 
+> 1) Outbound multicast M-SEARCH packet (dst: 1900/udp)
+>  - Create expectation for unicast reply from <any host> to source port
 
-2) We would need to restore the packed counter representation (that we
-   used to have) based on seqlock to synchronize this, since per-cpu is
-   not suitable for this.
+This creates the permanent expectation.
 
-So instead of bloating the counter expression back with the seqlock
-representation and extending the existing set infrastructure to make it
-more complex for the composite described above, let's follow the more
-simple approach of adding a quota expression that we can plug into our
-existing infrastructure.
+> 2) Inbound unicast reply (there may be several of these from different devices)
+>  - Find the device's URL, e.g.
+>    LOCATION: http://192.168.1.123:1400/xml/device_description.xml
+>  - Create expectation to track connections to this host:port (tcp)
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/netfilter/nf_tables.h |  19 +++++
- net/netfilter/Kconfig                    |   6 ++
- net/netfilter/Makefile                   |   1 +
- net/netfilter/nft_quota.c                | 121 +++++++++++++++++++++++++++++++
- 4 files changed, 147 insertions(+)
- create mode 100644 net/netfilter/nft_quota.c
+This packet is matching the permanent expectation.
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 6a4dbe0..826b643 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -874,6 +874,25 @@ enum nft_queue_attributes {
- #define NFT_QUEUE_FLAG_CPU_FANOUT	0x02 /* use current CPU (no hashing) */
- #define NFT_QUEUE_FLAG_MASK		0x03
- 
-+enum nft_quota_flags {
-+	NFT_QUOTA_F_INV		= (1 << 0),
-+};
-+
-+/**
-+ * enum nft_quota_attributes - nf_tables quota expression netlink attributes
-+ *
-+ * @NFTA_QUOTA_BYTES: quota in bytes (NLA_U16)
-+ * @NFTA_QUOTA_FLAGS: flags (NLA_U32)
-+ */
-+enum nft_quota_attributes {
-+	NFTA_QUOTA_UNSPEC,
-+	NFTA_QUOTA_BYTES,
-+	NFTA_QUOTA_FLAGS,
-+	NFTA_QUOTA_PAD,
-+	__NFTA_QUOTA_MAX
-+};
-+#define NFTA_QUOTA_MAX		(__NFTA_QUOTA_MAX - 1)
-+
- /**
-  * enum nft_reject_types - nf_tables reject expression reject types
-  *
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 95e757c..f323fcb 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -542,6 +542,12 @@ config NFT_QUEUE
- 	  This is required if you intend to use the userspace queueing
- 	  infrastructure (also known as NFQUEUE) from nftables.
- 
-+config NFT_QUOTA
-+	tristate "Netfilter nf_tables quota module"
-+	help
-+	  This option adds the "quota" expression that you can use to match
-+	  enforce bytes quotas.
-+
- config NFT_REJECT
- 	default m if NETFILTER_ADVANCED=n
- 	tristate "Netfilter nf_tables reject support"
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 6913454..e58572c 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -84,6 +84,7 @@ obj-$(CONFIG_NFT_CT)		+= nft_ct.o
- obj-$(CONFIG_NFT_LIMIT)		+= nft_limit.o
- obj-$(CONFIG_NFT_NAT)		+= nft_nat.o
- obj-$(CONFIG_NFT_QUEUE)		+= nft_queue.o
-+obj-$(CONFIG_NFT_QUOTA)		+= nft_quota.o
- obj-$(CONFIG_NFT_REJECT) 	+= nft_reject.o
- obj-$(CONFIG_NFT_REJECT_INET)	+= nft_reject_inet.o
- obj-$(CONFIG_NFT_RBTREE)	+= nft_rbtree.o
-diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
-new file mode 100644
-index 0000000..6eafbf9
---- /dev/null
-+++ b/net/netfilter/nft_quota.c
-@@ -0,0 +1,121 @@
-+/*
-+ * Copyright (c) 2016 Pablo Neira Ayuso <pablo@netfilter.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/atomic.h>
-+#include <linux/netlink.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/nf_tables.h>
-+#include <net/netfilter/nf_tables.h>
-+
-+struct nft_quota {
-+	u64		quota;
-+	bool		invert;
-+	atomic64_t	remain;
-+};
-+
-+static inline long nft_quota(struct nft_quota *priv,
-+			     const struct nft_pktinfo *pkt)
-+{
-+	return atomic64_sub_return(pkt->skb->len, &priv->remain);
-+}
-+
-+static void nft_quota_eval(const struct nft_expr *expr,
-+			   struct nft_regs *regs,
-+			   const struct nft_pktinfo *pkt)
-+{
-+	struct nft_quota *priv = nft_expr_priv(expr);
-+
-+	if (nft_quota(priv, pkt) < 0 && !priv->invert)
-+		regs->verdict.code = NFT_BREAK;
-+}
-+
-+static const struct nla_policy nft_quota_policy[NFTA_QUOTA_MAX + 1] = {
-+	[NFTA_QUOTA_BYTES]	= { .type = NLA_U64 },
-+	[NFTA_QUOTA_FLAGS]	= { .type = NLA_U32 },
-+};
-+
-+static int nft_quota_init(const struct nft_ctx *ctx,
-+			  const struct nft_expr *expr,
-+			  const struct nlattr * const tb[])
-+{
-+	struct nft_quota *priv = nft_expr_priv(expr);
-+	u32 flags = 0;
-+	u64 quota;
-+
-+	if (!tb[NFTA_QUOTA_BYTES])
-+		return -EINVAL;
-+
-+	quota = be64_to_cpu(nla_get_be64(tb[NFTA_QUOTA_BYTES]));
-+	if (quota > S64_MAX)
-+		return -EOVERFLOW;
-+
-+	if (tb[NFTA_QUOTA_FLAGS]) {
-+		flags = ntohl(nla_get_be32(tb[NFTA_QUOTA_FLAGS]));
-+		if (flags & ~NFT_QUOTA_F_INV)
-+			return -EINVAL;
-+	}
-+
-+	priv->quota = quota;
-+	priv->invert = (flags & NFT_QUOTA_F_INV) ? true : false;
-+	atomic64_set(&priv->remain, quota);
-+
-+	return 0;
-+}
-+
-+static int nft_quota_dump(struct sk_buff *skb, const struct nft_expr *expr)
-+{
-+	const struct nft_quota *priv = nft_expr_priv(expr);
-+	u32 flags = priv->invert ? NFT_QUOTA_F_INV : 0;
-+
-+	if (nla_put_be64(skb, NFTA_QUOTA_BYTES, cpu_to_be64(priv->quota),
-+			 NFTA_QUOTA_PAD) ||
-+	    nla_put_be32(skb, NFTA_QUOTA_FLAGS, htonl(flags)))
-+		goto nla_put_failure;
-+	return 0;
-+
-+nla_put_failure:
-+	return -1;
-+}
-+
-+static struct nft_expr_type nft_quota_type;
-+static const struct nft_expr_ops nft_quota_ops = {
-+	.type		= &nft_quota_type,
-+	.size		= NFT_EXPR_SIZE(sizeof(struct nft_quota)),
-+	.eval		= nft_quota_eval,
-+	.init		= nft_quota_init,
-+	.dump		= nft_quota_dump,
-+};
-+
-+static struct nft_expr_type nft_quota_type __read_mostly = {
-+	.name		= "quota",
-+	.ops		= &nft_quota_ops,
-+	.policy		= nft_quota_policy,
-+	.maxattr	= NFTA_QUOTA_MAX,
-+	.flags		= NFT_EXPR_STATEFUL,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int __init nft_quota_module_init(void)
-+{
-+        return nft_register_expr(&nft_quota_type);
-+}
-+
-+static void __exit nft_quota_module_exit(void)
-+{
-+        nft_unregister_expr(&nft_quota_type);
-+}
-+
-+module_init(nft_quota_module_init);
-+module_exit(nft_quota_module_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
-+MODULE_ALIAS_NFT_EXPR("quota");
--- 
-2.1.4
+Now you want to attach the ssdp helper to track traffic going to
+192.168.1.123:1400.
 
+Looking at ctnetlink, it should be possible to make it via
+CTA_EXPECT_HELP_NAME. Thus, by when we find a matching expectation,
+the helper is set to this new connection too.
+
+See line 1086 in nf_conntrack_core.c.
+
+> 3) Outbound connection to device's web server (there will be several of these)
+>  - Watch for a SUBSCRIBE request
+>  - Find the control point's callback URL, e.g.
+>    CALLBACK: <http://192.168.1.124:3500/notify>
+>  - Create expectation to open up inbound connections to this host:port
+
+This is the packet that goes over 192.168.1.123:1400 and creates an
+expectation again, right?
+
+> 4) Inbound connection to control point's web server
+>  - Once this is complete, the subscription should work
+
+... and this packet matches the expectation that was created in 3.
+
+> So, all of the port numbers except 1900 are dynamic, and thus each
+> stage depends on the result of the previous stage.  Therefore I need
+> the callback to inspect the traffic for stages (1)-(3).
+> 
+> Currently, ssdp_helper_cb() only gets called for stage (1).  Is there
+> something I can do when creating the expectation to tell netfilter
+> that I would like to receive callbacks when the unicast reply from (2)
+> is received?
+>
+> Alternatively, is there an iptables rule that I should be creating for
+> this purpose?  I tried this:
+> 
+>     iptables -t raw -I INPUT -m helper --helper ssdp -j CT --helper ssdp
+> 
+> but `-m helper` did not work in the raw table, and `-j CT` did not
+> work in the filter table.  `-m state --state RELATED` also did not
+> work in the raw table.
+
+You don't need this. It should be possible to set the helper that will
+be assigned to the related connection (the one that matches) with the
+existing code through the ctnetlink interface.
