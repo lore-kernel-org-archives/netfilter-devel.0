@@ -1,147 +1,109 @@
-From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCH v3] netfilter: nf_tables: Ensure init attributes are within
- the bounds
-Date: Thu, 18 Aug 2016 13:45:24 +0200
-Message-ID: <20160818114521.GA32566@sonyv>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf] netfilter: cttimeout: fix use after free error when delete netns
+Date: Thu, 18 Aug 2016 20:39:05 +0800
+Message-ID: <1471523945-37097-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
+	Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35190 "EHLO
-	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752483AbcHRLqB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Aug 2016 07:46:01 -0400
-Received: by mail-wm0-f67.google.com with SMTP id i5so5256243wmg.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2016 04:45:29 -0700 (PDT)
-Received: from sonyv (cli-5b7e49a2.wholesale.adamo.es. [91.126.73.162])
-        by smtp.gmail.com with ESMTPSA id d80sm31305080wmd.14.2016.08.18.04.45.26
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Thu, 18 Aug 2016 04:45:27 -0700 (PDT)
-Content-Disposition: inline
+Received: from m12-11.163.com ([220.181.12.11]:34688 "EHLO m12-11.163.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751505AbcHRMlM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Aug 2016 08:41:12 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Check for overflow of u8 fields from u32 netlink attributes and maximum
-values.
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Refer to 4da449ae1df
+In general, when we want to delete a netns, cttimeout_net_exit will
+be called before ipt_unregister_table, i.e. before ctnl_timeout_put.
 
-Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+But after call kfree_rcu in cttimeout_net_exit, we will still decrease
+the timeout object's refcnt in ctnl_timeout_put, this is incorrect,
+and will cause a use after free error.
+
+It is easy to reproduce this problem:
+  # while : ; do
+  ip netns add xxx
+  ip netns exec xxx nfct add timeout testx inet icmp timeout 200
+  ip netns exec xxx iptables -t raw -p icmp -I OUTPUT -j CT --timeout testx
+  ip netns del xxx
+  done
+
+  =======================================================================
+  BUG kmalloc-96 (Tainted: G    B       E  ): Poison overwritten
+  -----------------------------------------------------------------------
+  INFO: 0xffff88002b5161e8-0xffff88002b5161e8. First byte 0x6a instead of
+  0x6b
+  INFO: Allocated in cttimeout_new_timeout+0xd4/0x240 [nfnetlink_cttimeout]
+  age=104 cpu=0 pid=3330
+  ___slab_alloc+0x4da/0x540
+  __slab_alloc+0x20/0x40
+  __kmalloc+0x1c8/0x240
+  cttimeout_new_timeout+0xd4/0x240 [nfnetlink_cttimeout]
+  nfnetlink_rcv_msg+0x21a/0x230 [nfnetlink]
+  [ ... ]
+
+So only when the refcnt decreased to 0, we call kfree_rcu to free the
+timeout object. And like nfnetlink_acct do, use atomic_cmpxchg to
+avoid race between ctnl_timeout_try_del and ctnl_timeout_put.
+
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
-(was: netfilter: nf_tables: Check for overflow of u8 fields from u32
-netlink attributes)
+I find that my attachment patch is not showed at patchwork, so I send
+it again.
 
-Changes in V3:
-	- Use ERANGE instead of EINVAL when validating the value is
-within the bounds.
-	- Add op verification in nft_cmp_init().
-	- Remove additional bounds verification for family attribute in
-nft_nat_init().
+ net/netfilter/nfnetlink_cttimeout.c | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
- net/netfilter/nft_bitwise.c   |  7 ++++++-
- net/netfilter/nft_byteorder.c | 13 +++++++++++--
- net/netfilter/nft_cmp.c       |  7 ++++++-
- net/netfilter/nft_immediate.c |  3 +++
- 4 files changed, 26 insertions(+), 4 deletions(-)
-
-diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
-index d71cc18..6e09b1e 100644
---- a/net/netfilter/nft_bitwise.c
-+++ b/net/netfilter/nft_bitwise.c
-@@ -53,6 +53,7 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
- 	struct nft_bitwise *priv = nft_expr_priv(expr);
- 	struct nft_data_desc d1, d2;
- 	int err;
-+	u32 len;
- 
- 	if (tb[NFTA_BITWISE_SREG] == NULL ||
- 	    tb[NFTA_BITWISE_DREG] == NULL ||
-@@ -61,7 +62,11 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
- 	    tb[NFTA_BITWISE_XOR] == NULL)
- 		return -EINVAL;
- 
--	priv->len  = ntohl(nla_get_be32(tb[NFTA_BITWISE_LEN]));
-+	len  = ntohl(nla_get_be32(tb[NFTA_BITWISE_LEN]));
-+	if (len > U8_MAX)
-+		return -ERANGE;
-+	priv->len = len;
-+
- 	priv->sreg = nft_parse_register(tb[NFTA_BITWISE_SREG]);
- 	err = nft_validate_register_load(priv->sreg, priv->len);
- 	if (err < 0)
-diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
-index b78c28b..763cf15 100644
---- a/net/netfilter/nft_byteorder.c
-+++ b/net/netfilter/nft_byteorder.c
-@@ -100,6 +100,7 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index 4cdcd96..68216cd 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -330,16 +330,16 @@ static int ctnl_timeout_try_del(struct net *net, struct ctnl_timeout *timeout)
  {
- 	struct nft_byteorder *priv = nft_expr_priv(expr);
- 	int err;
-+	u32 len, size;
+ 	int ret = 0;
  
- 	if (tb[NFTA_BYTEORDER_SREG] == NULL ||
- 	    tb[NFTA_BYTEORDER_DREG] == NULL ||
-@@ -117,7 +118,10 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
- 		return -EINVAL;
+-	/* we want to avoid races with nf_ct_timeout_find_get. */
+-	if (atomic_dec_and_test(&timeout->refcnt)) {
++	/* We want to avoid races with ctnl_timeout_put. So only when the
++	 * current refcnt is 1, we decrease it to 0.
++	 */
++	if (atomic_cmpxchg(&timeout->refcnt, 1, 0) == 1) {
+ 		/* We are protected by nfnl mutex. */
+ 		list_del_rcu(&timeout->head);
+ 		nf_ct_l4proto_put(timeout->l4proto);
+ 		ctnl_untimeout(net, timeout);
+ 		kfree_rcu(timeout, rcu_head);
+ 	} else {
+-		/* still in use, restore reference counter. */
+-		atomic_inc(&timeout->refcnt);
+ 		ret = -EBUSY;
  	}
+ 	return ret;
+@@ -543,7 +543,9 @@ err:
  
--	priv->size = ntohl(nla_get_be32(tb[NFTA_BYTEORDER_SIZE]));
-+	size = ntohl(nla_get_be32(tb[NFTA_BYTEORDER_SIZE]));
-+	if (size > U8_MAX)
-+		return -ERANGE;
-+	priv->size = size;
- 	switch (priv->size) {
- 	case 2:
- 	case 4:
-@@ -128,7 +132,12 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
+ static void ctnl_timeout_put(struct ctnl_timeout *timeout)
+ {
+-	atomic_dec(&timeout->refcnt);
++	if (atomic_dec_and_test(&timeout->refcnt))
++		kfree_rcu(timeout, rcu_head);
++
+ 	module_put(THIS_MODULE);
+ }
+ #endif /* CONFIG_NF_CONNTRACK_TIMEOUT */
+@@ -591,7 +593,9 @@ static void __net_exit cttimeout_net_exit(struct net *net)
+ 	list_for_each_entry_safe(cur, tmp, &net->nfct_timeout_list, head) {
+ 		list_del_rcu(&cur->head);
+ 		nf_ct_l4proto_put(cur->l4proto);
+-		kfree_rcu(cur, rcu_head);
++
++		if (atomic_dec_and_test(&cur->refcnt))
++			kfree_rcu(cur, rcu_head);
  	}
- 
- 	priv->sreg = nft_parse_register(tb[NFTA_BYTEORDER_SREG]);
--	priv->len  = ntohl(nla_get_be32(tb[NFTA_BYTEORDER_LEN]));
-+
-+	len  = ntohl(nla_get_be32(tb[NFTA_BYTEORDER_LEN]));
-+	if (len > U8_MAX)
-+		return -ERANGE;
-+	priv->len = len;
-+
- 	err = nft_validate_register_load(priv->sreg, priv->len);
- 	if (err < 0)
- 		return err;
-diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
-index e25b35d..7412c82 100644
---- a/net/netfilter/nft_cmp.c
-+++ b/net/netfilter/nft_cmp.c
-@@ -84,8 +84,13 @@ static int nft_cmp_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
- 	if (err < 0)
- 		return err;
- 
--	priv->op  = ntohl(nla_get_be32(tb[NFTA_CMP_OP]));
-+	if (desc.len > U8_MAX)
-+		return -ERANGE;
- 	priv->len = desc.len;
-+	priv->op  = ntohl(nla_get_be32(tb[NFTA_CMP_OP]));
-+	if (priv->op >= NFT_CMP_MAX)
-+		return -ERANGE;
-+
- 	return 0;
  }
  
-diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
-index db3b746..b5f899c 100644
---- a/net/netfilter/nft_immediate.c
-+++ b/net/netfilter/nft_immediate.c
-@@ -53,6 +53,9 @@ static int nft_immediate_init(const struct nft_ctx *ctx,
- 			    tb[NFTA_IMMEDIATE_DATA]);
- 	if (err < 0)
- 		return err;
-+
-+	if (desc.len > U8_MAX)
-+		return -ERANGE;
- 	priv->dlen = desc.len;
- 
- 	priv->dreg = nft_parse_register(tb[NFTA_IMMEDIATE_DREG]);
 -- 
-2.8.1
+2.5.5
+
 
