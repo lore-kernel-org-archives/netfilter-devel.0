@@ -1,139 +1,147 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH nf 1/2] netfilter: nfnetlink_acct: fix race between nfacct
- del and xt_nfacct destroy
-Date: Thu, 18 Aug 2016 18:41:12 +0800
-Message-ID: <CAML_gOd71QecZabEgSz+YcGGsv66hJPZezudpt4YMp+WErUcnw@mail.gmail.com>
-References: <1471101182-15294-1-git-send-email-zlpnobody@163.com>
- <20160817222634.GA2798@salvia> <20160817223741.GA5476@salvia>
+From: Laura Garcia Liebana <nevola@gmail.com>
+Subject: [PATCH v3] netfilter: nf_tables: Ensure init attributes are within
+ the bounds
+Date: Thu, 18 Aug 2016 13:45:24 +0200
+Message-ID: <20160818114521.GA32566@sonyv>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=94eb2c122a9a891a56053a5638c0
-Cc: Liping Zhang <zlpnobody@163.com>, netfilter-devel@vger.kernel.org,
-	Liping Zhang <liping.zhang@spreadtrum.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ua0-f193.google.com ([209.85.217.193]:35580 "EHLO
-	mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752435AbcHRKlO (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35190 "EHLO
+	mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752483AbcHRLqB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Aug 2016 06:41:14 -0400
-Received: by mail-ua0-f193.google.com with SMTP id 109so2896530uat.2
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2016 03:41:14 -0700 (PDT)
-In-Reply-To: <20160817223741.GA5476@salvia>
+	Thu, 18 Aug 2016 07:46:01 -0400
+Received: by mail-wm0-f67.google.com with SMTP id i5so5256243wmg.2
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Aug 2016 04:45:29 -0700 (PDT)
+Received: from sonyv (cli-5b7e49a2.wholesale.adamo.es. [91.126.73.162])
+        by smtp.gmail.com with ESMTPSA id d80sm31305080wmd.14.2016.08.18.04.45.26
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=AES128-SHA bits=128/128);
+        Thu, 18 Aug 2016 04:45:27 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---94eb2c122a9a891a56053a5638c0
-Content-Type: text/plain; charset=UTF-8
+Check for overflow of u8 fields from u32 netlink attributes and maximum
+values.
 
-Hi Pablo,
+Refer to 4da449ae1df
 
-2016-08-18 6:37 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
->
-> Wait. I noticed we have the same problem in cttimeout, so it would be
-> good to fix this in the same logical change.
->
-> I'm attaching your original patch that I have mangled here, including
-> the cttimeout chunk.
->
-> Let me know if you have any concern, otherwise I'll apply this new
-> version, thanks!
+Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
+---
+(was: netfilter: nf_tables: Check for overflow of u8 fields from u32
+netlink attributes)
 
-Not exactly right.
+Changes in V3:
+	- Use ERANGE instead of EINVAL when validating the value is
+within the bounds.
+	- Add op verification in nft_cmp_init().
+	- Remove additional bounds verification for family attribute in
+nft_nat_init().
 
-Currently ctnl_timeout_try_del will not cause race with ctnl_timeout_put.
-In ctnl_timeout_put, it only decreases the timeout object's refcnt,
-but will not try to free it. This is different with nfnetlink_acct.
+ net/netfilter/nft_bitwise.c   |  7 ++++++-
+ net/netfilter/nft_byteorder.c | 13 +++++++++++--
+ net/netfilter/nft_cmp.c       |  7 ++++++-
+ net/netfilter/nft_immediate.c |  3 +++
+ 4 files changed, 26 insertions(+), 4 deletions(-)
 
-But when we do "ip netns del xxx", this will cause a use after free error.
-In general, when we delete a netns, cttimeout_net_exit will be called
-before ipt_unregister_table, i.e. before ctnl_timeout_put.
+diff --git a/net/netfilter/nft_bitwise.c b/net/netfilter/nft_bitwise.c
+index d71cc18..6e09b1e 100644
+--- a/net/netfilter/nft_bitwise.c
++++ b/net/netfilter/nft_bitwise.c
+@@ -53,6 +53,7 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
+ 	struct nft_bitwise *priv = nft_expr_priv(expr);
+ 	struct nft_data_desc d1, d2;
+ 	int err;
++	u32 len;
+ 
+ 	if (tb[NFTA_BITWISE_SREG] == NULL ||
+ 	    tb[NFTA_BITWISE_DREG] == NULL ||
+@@ -61,7 +62,11 @@ static int nft_bitwise_init(const struct nft_ctx *ctx,
+ 	    tb[NFTA_BITWISE_XOR] == NULL)
+ 		return -EINVAL;
+ 
+-	priv->len  = ntohl(nla_get_be32(tb[NFTA_BITWISE_LEN]));
++	len  = ntohl(nla_get_be32(tb[NFTA_BITWISE_LEN]));
++	if (len > U8_MAX)
++		return -ERANGE;
++	priv->len = len;
++
+ 	priv->sreg = nft_parse_register(tb[NFTA_BITWISE_SREG]);
+ 	err = nft_validate_register_load(priv->sreg, priv->len);
+ 	if (err < 0)
+diff --git a/net/netfilter/nft_byteorder.c b/net/netfilter/nft_byteorder.c
+index b78c28b..763cf15 100644
+--- a/net/netfilter/nft_byteorder.c
++++ b/net/netfilter/nft_byteorder.c
+@@ -100,6 +100,7 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
+ {
+ 	struct nft_byteorder *priv = nft_expr_priv(expr);
+ 	int err;
++	u32 len, size;
+ 
+ 	if (tb[NFTA_BYTEORDER_SREG] == NULL ||
+ 	    tb[NFTA_BYTEORDER_DREG] == NULL ||
+@@ -117,7 +118,10 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
+ 		return -EINVAL;
+ 	}
+ 
+-	priv->size = ntohl(nla_get_be32(tb[NFTA_BYTEORDER_SIZE]));
++	size = ntohl(nla_get_be32(tb[NFTA_BYTEORDER_SIZE]));
++	if (size > U8_MAX)
++		return -ERANGE;
++	priv->size = size;
+ 	switch (priv->size) {
+ 	case 2:
+ 	case 4:
+@@ -128,7 +132,12 @@ static int nft_byteorder_init(const struct nft_ctx *ctx,
+ 	}
+ 
+ 	priv->sreg = nft_parse_register(tb[NFTA_BYTEORDER_SREG]);
+-	priv->len  = ntohl(nla_get_be32(tb[NFTA_BYTEORDER_LEN]));
++
++	len  = ntohl(nla_get_be32(tb[NFTA_BYTEORDER_LEN]));
++	if (len > U8_MAX)
++		return -ERANGE;
++	priv->len = len;
++
+ 	err = nft_validate_register_load(priv->sreg, priv->len);
+ 	if (err < 0)
+ 		return err;
+diff --git a/net/netfilter/nft_cmp.c b/net/netfilter/nft_cmp.c
+index e25b35d..7412c82 100644
+--- a/net/netfilter/nft_cmp.c
++++ b/net/netfilter/nft_cmp.c
+@@ -84,8 +84,13 @@ static int nft_cmp_init(const struct nft_ctx *ctx, const struct nft_expr *expr,
+ 	if (err < 0)
+ 		return err;
+ 
+-	priv->op  = ntohl(nla_get_be32(tb[NFTA_CMP_OP]));
++	if (desc.len > U8_MAX)
++		return -ERANGE;
+ 	priv->len = desc.len;
++	priv->op  = ntohl(nla_get_be32(tb[NFTA_CMP_OP]));
++	if (priv->op >= NFT_CMP_MAX)
++		return -ERANGE;
++
+ 	return 0;
+ }
+ 
+diff --git a/net/netfilter/nft_immediate.c b/net/netfilter/nft_immediate.c
+index db3b746..b5f899c 100644
+--- a/net/netfilter/nft_immediate.c
++++ b/net/netfilter/nft_immediate.c
+@@ -53,6 +53,9 @@ static int nft_immediate_init(const struct nft_ctx *ctx,
+ 			    tb[NFTA_IMMEDIATE_DATA]);
+ 	if (err < 0)
+ 		return err;
++
++	if (desc.len > U8_MAX)
++		return -ERANGE;
+ 	priv->dlen = desc.len;
+ 
+ 	priv->dreg = nft_parse_register(tb[NFTA_IMMEDIATE_DREG]);
+-- 
+2.8.1
 
-So after call kfree_rcu in cttimeout_net_exit, we will still decrease
-the timeout object's refcnt in ctnl_timeout_put. Kernel will complain
-about this:
-
-  =======================================================================
-  BUG kmalloc-96 (Tainted: G    B       E  ): Poison overwritten
-  -----------------------------------------------------------------------
-  INFO: 0xffff88002b5161e8-0xffff88002b5161e8. First byte 0x6a instead of
-  0x6b
-  INFO: Allocated in cttimeout_new_timeout+0xd4/0x240 [nfnetlink_cttimeout]
-  age=104 cpu=0 pid=3330
-  ___slab_alloc+0x4da/0x540
-  __slab_alloc+0x20/0x40
-  __kmalloc+0x1c8/0x240
-  cttimeout_new_timeout+0xd4/0x240 [nfnetlink_cttimeout]
-  nfnetlink_rcv_msg+0x21a/0x230 [nfnetlink]
-
-So I think it seems better that we take another patch to fix the
-problem in cttimeout.
-
-Attachment is my patch.
-
---94eb2c122a9a891a56053a5638c0
-Content-Type: application/octet-stream;
-	name="0001-netfilter-cttimeout-fix-use-after-free-error-when-de.patch"
-Content-Disposition: attachment;
-	filename="0001-netfilter-cttimeout-fix-use-after-free-error-when-de.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_is0723tf1
-
-RnJvbSBkM2JiNDhmNzM5MTRkZjgzMTUxNmY5OWQ3NzViNDU0MjU5YTQwNThkIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBMaXBpbmcgWmhhbmcgPGxpcGluZy56aGFuZ0BzcHJlYWR0cnVt
-LmNvbT4KRGF0ZTogVGh1LCAxOCBBdWcgMjAxNiAxNjo1ODo0NiArMDgwMApTdWJqZWN0OiBbUEFU
-Q0ggbmZdIG5ldGZpbHRlcjogY3R0aW1lb3V0OiBmaXggdXNlIGFmdGVyIGZyZWUgZXJyb3Igd2hl
-biBkZWxldGUKIG5ldG5zCgpJbiBnZW5lcmFsLCB3aGVuIHdlIHdhbnQgdG8gZGVsZXRlIGEgbmV0
-bnMsIGN0dGltZW91dF9uZXRfZXhpdCB3aWxsCmJlIGNhbGxlZCBiZWZvcmUgaXB0X3VucmVnaXN0
-ZXJfdGFibGUsIGkuZS4gYmVmb3JlIGN0bmxfdGltZW91dF9wdXQuCgpCdXQgYWZ0ZXIgY2FsbCBr
-ZnJlZV9yY3UgaW4gY3R0aW1lb3V0X25ldF9leGl0LCB3ZSB3aWxsIHN0aWxsIGRlY3JlYXNlCnRo
-ZSB0aW1lb3V0IG9iamVjdCdzIHJlZmNudCBpbiBjdG5sX3RpbWVvdXRfcHV0LCB0aGlzIGlzIGlu
-Y29ycmVjdCwKYW5kIHdpbGwgY2F1c2UgYSB1c2UgYWZ0ZXIgZnJlZSBlcnJvci4KCkl0IGlzIGVh
-c3kgdG8gcmVwcm9kdWNlIHRoaXMgcHJvYmxlbToKICAjIHdoaWxlIDogOyBkbwogIGlwIG5ldG5z
-IGFkZCB4eHgKICBpcCBuZXRucyBleGVjIHh4eCBuZmN0IGFkZCB0aW1lb3V0IHRlc3R4IGluZXQg
-aWNtcCB0aW1lb3V0IDIwMAogIGlwIG5ldG5zIGV4ZWMgeHh4IGlwdGFibGVzIC10IHJhdyAtcCBp
-Y21wIC1JIE9VVFBVVCAtaiBDVCAtLXRpbWVvdXQgdGVzdHgKICBpcCBuZXRucyBkZWwgeHh4CiAg
-ZG9uZQoKICA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PQogIEJVRyBrbWFsbG9jLTk2IChUYWludGVkOiBHICAgIEIg
-ICAgICAgRSAgKTogUG9pc29uIG92ZXJ3cml0dGVuCiAgLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KICBJTkZPOiAw
-eGZmZmY4ODAwMmI1MTYxZTgtMHhmZmZmODgwMDJiNTE2MWU4LiBGaXJzdCBieXRlIDB4NmEgaW5z
-dGVhZCBvZgogIDB4NmIKICBJTkZPOiBBbGxvY2F0ZWQgaW4gY3R0aW1lb3V0X25ld190aW1lb3V0
-KzB4ZDQvMHgyNDAgW25mbmV0bGlua19jdHRpbWVvdXRdCiAgYWdlPTEwNCBjcHU9MCBwaWQ9MzMz
-MAogIF9fX3NsYWJfYWxsb2MrMHg0ZGEvMHg1NDAKICBfX3NsYWJfYWxsb2MrMHgyMC8weDQwCiAg
-X19rbWFsbG9jKzB4MWM4LzB4MjQwCiAgY3R0aW1lb3V0X25ld190aW1lb3V0KzB4ZDQvMHgyNDAg
-W25mbmV0bGlua19jdHRpbWVvdXRdCiAgbmZuZXRsaW5rX3Jjdl9tc2crMHgyMWEvMHgyMzAgW25m
-bmV0bGlua10KICBbIC4uLiBdCgpTbyBvbmx5IHdoZW4gdGhlIHJlZmNudCBkZWNyZWFzZWQgdG8g
-MCwgd2UgY2FsbCBrZnJlZV9yY3UgdG8gZnJlZSB0aGUKdGltZW91dCBvYmplY3QuIEFuZCBsaWtl
-IG5mbmV0bGlua19hY2N0IGRvLCB1c2UgYXRvbWljX2NtcHhjaGcgdG8KYXZvaWQgcmFjZSBiZXR3
-ZWVuIGN0bmxfdGltZW91dF90cnlfZGVsIGFuZCBjdG5sX3RpbWVvdXRfcHV0LgoKU2lnbmVkLW9m
-Zi1ieTogTGlwaW5nIFpoYW5nIDxsaXBpbmcuemhhbmdAc3ByZWFkdHJ1bS5jb20+Ci0tLQogbmV0
-L25ldGZpbHRlci9uZm5ldGxpbmtfY3R0aW1lb3V0LmMgfCAxNiArKysrKysrKysrLS0tLS0tCiAx
-IGZpbGUgY2hhbmdlZCwgMTAgaW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkKCmRpZmYgLS1n
-aXQgYS9uZXQvbmV0ZmlsdGVyL25mbmV0bGlua19jdHRpbWVvdXQuYyBiL25ldC9uZXRmaWx0ZXIv
-bmZuZXRsaW5rX2N0dGltZW91dC5jCmluZGV4IDRjZGNkOTYuLjY4MjE2Y2QgMTAwNjQ0Ci0tLSBh
-L25ldC9uZXRmaWx0ZXIvbmZuZXRsaW5rX2N0dGltZW91dC5jCisrKyBiL25ldC9uZXRmaWx0ZXIv
-bmZuZXRsaW5rX2N0dGltZW91dC5jCkBAIC0zMzAsMTYgKzMzMCwxNiBAQCBzdGF0aWMgaW50IGN0
-bmxfdGltZW91dF90cnlfZGVsKHN0cnVjdCBuZXQgKm5ldCwgc3RydWN0IGN0bmxfdGltZW91dCAq
-dGltZW91dCkKIHsKIAlpbnQgcmV0ID0gMDsKIAotCS8qIHdlIHdhbnQgdG8gYXZvaWQgcmFjZXMg
-d2l0aCBuZl9jdF90aW1lb3V0X2ZpbmRfZ2V0LiAqLwotCWlmIChhdG9taWNfZGVjX2FuZF90ZXN0
-KCZ0aW1lb3V0LT5yZWZjbnQpKSB7CisJLyogV2Ugd2FudCB0byBhdm9pZCByYWNlcyB3aXRoIGN0
-bmxfdGltZW91dF9wdXQuIFNvIG9ubHkgd2hlbiB0aGUKKwkgKiBjdXJyZW50IHJlZmNudCBpcyAx
-LCB3ZSBkZWNyZWFzZSBpdCB0byAwLgorCSAqLworCWlmIChhdG9taWNfY21weGNoZygmdGltZW91
-dC0+cmVmY250LCAxLCAwKSA9PSAxKSB7CiAJCS8qIFdlIGFyZSBwcm90ZWN0ZWQgYnkgbmZubCBt
-dXRleC4gKi8KIAkJbGlzdF9kZWxfcmN1KCZ0aW1lb3V0LT5oZWFkKTsKIAkJbmZfY3RfbDRwcm90
-b19wdXQodGltZW91dC0+bDRwcm90byk7CiAJCWN0bmxfdW50aW1lb3V0KG5ldCwgdGltZW91dCk7
-CiAJCWtmcmVlX3JjdSh0aW1lb3V0LCByY3VfaGVhZCk7CiAJfSBlbHNlIHsKLQkJLyogc3RpbGwg
-aW4gdXNlLCByZXN0b3JlIHJlZmVyZW5jZSBjb3VudGVyLiAqLwotCQlhdG9taWNfaW5jKCZ0aW1l
-b3V0LT5yZWZjbnQpOwogCQlyZXQgPSAtRUJVU1k7CiAJfQogCXJldHVybiByZXQ7CkBAIC01NDMs
-NyArNTQzLDkgQEAgZXJyOgogCiBzdGF0aWMgdm9pZCBjdG5sX3RpbWVvdXRfcHV0KHN0cnVjdCBj
-dG5sX3RpbWVvdXQgKnRpbWVvdXQpCiB7Ci0JYXRvbWljX2RlYygmdGltZW91dC0+cmVmY250KTsK
-KwlpZiAoYXRvbWljX2RlY19hbmRfdGVzdCgmdGltZW91dC0+cmVmY250KSkKKwkJa2ZyZWVfcmN1
-KHRpbWVvdXQsIHJjdV9oZWFkKTsKKwogCW1vZHVsZV9wdXQoVEhJU19NT0RVTEUpOwogfQogI2Vu
-ZGlmIC8qIENPTkZJR19ORl9DT05OVFJBQ0tfVElNRU9VVCAqLwpAQCAtNTkxLDcgKzU5Myw5IEBA
-IHN0YXRpYyB2b2lkIF9fbmV0X2V4aXQgY3R0aW1lb3V0X25ldF9leGl0KHN0cnVjdCBuZXQgKm5l
-dCkKIAlsaXN0X2Zvcl9lYWNoX2VudHJ5X3NhZmUoY3VyLCB0bXAsICZuZXQtPm5mY3RfdGltZW91
-dF9saXN0LCBoZWFkKSB7CiAJCWxpc3RfZGVsX3JjdSgmY3VyLT5oZWFkKTsKIAkJbmZfY3RfbDRw
-cm90b19wdXQoY3VyLT5sNHByb3RvKTsKLQkJa2ZyZWVfcmN1KGN1ciwgcmN1X2hlYWQpOworCisJ
-CWlmIChhdG9taWNfZGVjX2FuZF90ZXN0KCZjdXItPnJlZmNudCkpCisJCQlrZnJlZV9yY3UoY3Vy
-LCByY3VfaGVhZCk7CiAJfQogfQogCi0tIAoyLjUuNQoK
---94eb2c122a9a891a56053a5638c0--
