@@ -1,85 +1,78 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nf-next 6/6] netfilter: remove __nf_ct_kill_acct helper
-Date: Fri, 19 Aug 2016 13:36:15 +0200
-Message-ID: <1471606575-2197-7-git-send-email-fw@strlen.de>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH nf-next 2/6] netfilter: conntrack: get rid of conntrack
+ timer
+Date: Fri, 19 Aug 2016 07:37:45 -0700
+Message-ID: <1471617465.29842.102.camel@edumazet-glaptop3.roam.corp.google.com>
 References: <1471606575-2197-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+         <1471606575-2197-3-git-send-email-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:56094 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753120AbcHSLgR (ORCPT
+Received: from mail-pa0-f65.google.com ([209.85.220.65]:36378 "EHLO
+        mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753952AbcHSOj2 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Aug 2016 07:36:17 -0400
-In-Reply-To: <1471606575-2197-1-git-send-email-fw@strlen.de>
+        Fri, 19 Aug 2016 10:39:28 -0400
+Received: by mail-pa0-f65.google.com with SMTP id ez1so3534248pab.3
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Aug 2016 07:37:47 -0700 (PDT)
+In-Reply-To: <1471606575-2197-3-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-After timer removal this just calls nf_ct_delete so remove the __ prefix
-version and make nf_ct_kill a shorthand for nf_ct_delete.
+On Fri, 2016-08-19 at 13:36 +0200, Florian Westphal wrote:
+> With stats enabled this eats 80 bytes on x86_64 per nf_conn entry.
+> 
+> Remove it and use a 32bit jiffies value containing timestamp until
+> entry is valid.
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- include/net/netfilter/nf_conntrack.h | 13 +++----------
- net/netfilter/nf_conntrack_core.c    | 12 +++++-------
- 2 files changed, 8 insertions(+), 17 deletions(-)
+Great work !
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 6d8cf06..a3595c2 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -219,21 +219,14 @@ static inline void nf_ct_refresh(struct nf_conn *ct,
- 	__nf_ct_refresh_acct(ct, 0, skb, extra_jiffies, 0);
- }
- 
--bool __nf_ct_kill_acct(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
--		       const struct sk_buff *skb, int do_acct);
--
- /* kill conntrack and do accounting */
--static inline bool nf_ct_kill_acct(struct nf_conn *ct,
--				   enum ip_conntrack_info ctinfo,
--				   const struct sk_buff *skb)
--{
--	return __nf_ct_kill_acct(ct, ctinfo, skb, 1);
--}
-+bool nf_ct_kill_acct(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
-+		     const struct sk_buff *skb);
- 
- /* kill conntrack without accounting */
- static inline bool nf_ct_kill(struct nf_conn *ct)
- {
--	return __nf_ct_kill_acct(ct, 0, NULL, 0);
-+	return nf_ct_delete(ct, 0, 0);
- }
- 
- /* These are for NAT.  Icky. */
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index d5f8f34..282085c 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1422,17 +1422,15 @@ acct:
- }
- EXPORT_SYMBOL_GPL(__nf_ct_refresh_acct);
- 
--bool __nf_ct_kill_acct(struct nf_conn *ct,
--		       enum ip_conntrack_info ctinfo,
--		       const struct sk_buff *skb,
--		       int do_acct)
-+bool nf_ct_kill_acct(struct nf_conn *ct,
-+		     enum ip_conntrack_info ctinfo,
-+		     const struct sk_buff *skb)
- {
--	if (do_acct)
--		nf_ct_acct_update(ct, ctinfo, skb->len);
-+	nf_ct_acct_update(ct, ctinfo, skb->len);
- 
- 	return nf_ct_delete(ct, 0, 0);
- }
--EXPORT_SYMBOL_GPL(__nf_ct_kill_acct);
-+EXPORT_SYMBOL_GPL(nf_ct_kill_acct);
- 
- #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
- 
--- 
-2.7.3
+...
+
+> +/* caller must hold rcu readlock and none of the nf_conntrack_locks */
+> +static void nf_ct_gc_expired(struct nf_conn *ct)
+> +{
+> +	if (!atomic_inc_not_zero(&ct->ct_general.use))
+> +		return;
+> +
+> +	if (nf_ct_should_gc(ct))
+> +		nf_ct_kill(ct);
+> +
+> +	nf_ct_put(ct);
+> +}
+> +
+>  /*
+>   * Warning :
+>   * - Caller must take a reference on returned object
+> @@ -499,6 +505,17 @@ begin:
+>  	bucket = reciprocal_scale(hash, hsize);
+>  
+>  	hlist_nulls_for_each_entry_rcu(h, n, &ct_hash[bucket], hnnode) {
+> +		struct nf_conn *ct;
+> +
+> +		ct = nf_ct_tuplehash_to_ctrack(h);
+> +		if (nf_ct_is_expired(ct)) {
+> +			nf_ct_gc_expired(ct);
+> +			continue;
+> +		}
+> +
+> +		if (nf_ct_is_dying(ct))
+> +			continue;
+> +
+>  		if (nf_ct_key_equal(h, tuple, zone, net)) {
+>  			NF_CT_STAT_INC_ATOMIC(net, found);
+>  			return h;
+
+Florian, I do not see how this part is safe against concurrent lookups
+and deletes ?
+
+At least the hlist_nulls_for_each_entry_rcu() looks buggy, since
+fetching the next pointer would trigger a use after free ?
+
+Thanks !
+
+
 
