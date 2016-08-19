@@ -1,57 +1,44 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH nf-next 4/6] netfilter: conntrack: add gc worker to
- remove timed-out entries
-Date: Fri, 19 Aug 2016 17:22:20 +0200
-Message-ID: <20160819152220.GB11049@breakpoint.cc>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH nf-next 2/6] netfilter: conntrack: get rid of conntrack
+ timer
+Date: Fri, 19 Aug 2016 08:24:23 -0700
+Message-ID: <1471620263.29842.107.camel@edumazet-glaptop3.roam.corp.google.com>
 References: <1471606575-2197-1-git-send-email-fw@strlen.de>
- <1471606575-2197-5-git-send-email-fw@strlen.de>
- <1471617673.29842.105.camel@edumazet-glaptop3.roam.corp.google.com>
+         <1471606575-2197-3-git-send-email-fw@strlen.de>
+         <1471617465.29842.102.camel@edumazet-glaptop3.roam.corp.google.com>
+         <20160819151642.GA11049@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:57000 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754014AbcHSPWX (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:35757 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752784AbcHSPiF (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 19 Aug 2016 11:22:23 -0400
-Content-Disposition: inline
-In-Reply-To: <1471617673.29842.105.camel@edumazet-glaptop3.roam.corp.google.com>
+        Fri, 19 Aug 2016 11:38:05 -0400
+Received: by mail-pf0-f193.google.com with SMTP id h186so1638724pfg.2
+        for <netfilter-devel@vger.kernel.org>; Fri, 19 Aug 2016 08:38:05 -0700 (PDT)
+In-Reply-To: <20160819151642.GA11049@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> On Fri, 2016-08-19 at 13:36 +0200, Florian Westphal wrote:
-> > Conntrack gc worker to evict stale entries.
+On Fri, 2016-08-19 at 17:16 +0200, Florian Westphal wrote:
+
+> Hmm, ____nf_conntrack_find caller needs to hold rcu_read_lock,
+> in case object is free'd SLAB_DESTROY_BY_RCU should delay actual release
+> of the page.
+
+Well, point is that SLAB_DESTROY_BY_RCU means that we have no grace
+period, and object can be immediately reused and recycled.
+
+@next pointer can definitely be overwritten.
+
 > 
-> ...
+> Should be same as (old) 'death_by_timeout' timer firing during
+> hlist_nulls_for_each_entry_rcu walk.
 > 
-> > +
-> > +		hlist_nulls_for_each_entry_rcu(h, n, &ct_hash[i], hnnode) {
-> > +			tmp = nf_ct_tuplehash_to_ctrack(h);
-> > +
-> > +			if (nf_ct_is_expired(tmp)) {
-> > +				nf_ct_gc_expired(tmp);
-> > +				expired_count++;
-> > +				continue;
-> 
-> Same remark about hlist_nulls_for_each_entry_rcu() not 'safe' here
+> Thanks for looking at this Eric!
 
-Hmm, I am missing something, I will wait for your answer on my previous
-reply ...
-
-I though this was safe due to rcu -- another cpu could evict entry as
-well so we can always see 'free'd objects with refcnt 0.
-
-(nf_ct_gc_expired() skips those to avoid double-free).
-
-> > +		rcu_read_unlock();
-> > +		cond_resched();
-> 
-> This could use cond_resched_rcu_qs() 
-
-Indeed, I did not kown about this, nice!
-
-Will add it in V2, thanks!
 
