@@ -1,41 +1,145 @@
-From: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: [PATCH -next] netfilter: nft_hash: fix non static symbol warning
-Date: Sun, 21 Aug 2016 15:21:10 +0000
-Message-ID: <1471792870-16895-1-git-send-email-weiyj.lk@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Wei Yongjun <weiyj.lk@gmail.com>, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org,
-        Wei Yongjun <weiyongjun1@huawei.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-        Patrick McHardy <kaber@trash.net>,
-        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-        "David S. Miller" <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nf] netfilter: nft_reject: restrict to INPUT/FORWARD/OUTPUT
+Date: Mon, 22 Aug 2016 01:02:18 +0800
+Message-ID: <1471798938-28241-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
+        Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from m12-17.163.com ([220.181.12.17]:53811 "EHLO m12-17.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751515AbcHURCy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 21 Aug 2016 13:02:54 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Fixes the following sparse warning:
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-net/netfilter/nft_hash.c:40:25: warning:
- symbol 'nft_hash_policy' was not declared. Should it be static?
+After I add the nft rule "nft add rule filter prerouting reject
+with tcp reset", kernel panic happened on my system:
+  NULL pointer dereference at ...
+  IP: [<ffffffff81b9db2f>] nf_send_reset+0xaf/0x400
+  Call Trace:
+  [<ffffffff81b9da80>] ? nf_reject_ip_tcphdr_get+0x160/0x160
+  [<ffffffffa0928061>] nft_reject_ipv4_eval+0x61/0xb0 [nft_reject_ipv4]
+  [<ffffffffa08e836a>] nft_do_chain+0x1fa/0x890 [nf_tables]
+  [<ffffffffa08e8170>] ? __nft_trace_packet+0x170/0x170 [nf_tables]
+  [<ffffffffa06e0900>] ? nf_ct_invert_tuple+0xb0/0xc0 [nf_conntrack]
+  [<ffffffffa07224d4>] ? nf_nat_setup_info+0x5d4/0x650 [nf_nat]
+  [...]
 
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+Because in the PREROUTING chain, routing information is not exist,
+then we will dereference the NULL pointer and oops happen.
+
+So we restrict reject expression to INPUT, FORWARD and OUTPUT chain.
+This is consistent with iptables REJECT target.
+
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- net/netfilter/nft_hash.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/net/netfilter/nft_reject.h   |  4 ++++
+ net/ipv4/netfilter/nft_reject_ipv4.c |  1 +
+ net/ipv6/netfilter/nft_reject_ipv6.c |  1 +
+ net/netfilter/nft_reject.c           | 16 ++++++++++++++++
+ net/netfilter/nft_reject_inet.c      |  7 ++++++-
+ 5 files changed, 28 insertions(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_hash.c
-index b82ff29..e090aee 100644
---- a/net/netfilter/nft_hash.c
-+++ b/net/netfilter/nft_hash.c
-@@ -37,7 +37,7 @@ static void nft_hash_eval(const struct nft_expr *expr,
- 				 priv->modulus);
- }
+diff --git a/include/net/netfilter/nft_reject.h b/include/net/netfilter/nft_reject.h
+index 60fa153..02e28c5 100644
+--- a/include/net/netfilter/nft_reject.h
++++ b/include/net/netfilter/nft_reject.h
+@@ -8,6 +8,10 @@ struct nft_reject {
  
--const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] = {
-+static const struct nla_policy nft_hash_policy[NFTA_HASH_MAX + 1] = {
- 	[NFTA_HASH_SREG]	= { .type = NLA_U32 },
- 	[NFTA_HASH_DREG]	= { .type = NLA_U32 },
- 	[NFTA_HASH_LEN]		= { .type = NLA_U32 },
+ extern const struct nla_policy nft_reject_policy[];
+ 
++int nft_reject_validate(const struct nft_ctx *ctx,
++			const struct nft_expr *expr,
++			const struct nft_data **data);
++
+ int nft_reject_init(const struct nft_ctx *ctx,
+ 		    const struct nft_expr *expr,
+ 		    const struct nlattr * const tb[]);
+diff --git a/net/ipv4/netfilter/nft_reject_ipv4.c b/net/ipv4/netfilter/nft_reject_ipv4.c
+index c24f41c..2c2553b 100644
+--- a/net/ipv4/netfilter/nft_reject_ipv4.c
++++ b/net/ipv4/netfilter/nft_reject_ipv4.c
+@@ -46,6 +46,7 @@ static const struct nft_expr_ops nft_reject_ipv4_ops = {
+ 	.eval		= nft_reject_ipv4_eval,
+ 	.init		= nft_reject_init,
+ 	.dump		= nft_reject_dump,
++	.validate	= nft_reject_validate,
+ };
+ 
+ static struct nft_expr_type nft_reject_ipv4_type __read_mostly = {
+diff --git a/net/ipv6/netfilter/nft_reject_ipv6.c b/net/ipv6/netfilter/nft_reject_ipv6.c
+index 533cd57..92bda99 100644
+--- a/net/ipv6/netfilter/nft_reject_ipv6.c
++++ b/net/ipv6/netfilter/nft_reject_ipv6.c
+@@ -47,6 +47,7 @@ static const struct nft_expr_ops nft_reject_ipv6_ops = {
+ 	.eval		= nft_reject_ipv6_eval,
+ 	.init		= nft_reject_init,
+ 	.dump		= nft_reject_dump,
++	.validate	= nft_reject_validate,
+ };
+ 
+ static struct nft_expr_type nft_reject_ipv6_type __read_mostly = {
+diff --git a/net/netfilter/nft_reject.c b/net/netfilter/nft_reject.c
+index 0522fc9..c64de3f7 100644
+--- a/net/netfilter/nft_reject.c
++++ b/net/netfilter/nft_reject.c
+@@ -26,11 +26,27 @@ const struct nla_policy nft_reject_policy[NFTA_REJECT_MAX + 1] = {
+ };
+ EXPORT_SYMBOL_GPL(nft_reject_policy);
+ 
++int nft_reject_validate(const struct nft_ctx *ctx,
++			const struct nft_expr *expr,
++			const struct nft_data **data)
++{
++	return nft_chain_validate_hooks(ctx->chain,
++					(1 << NF_INET_LOCAL_IN) |
++					(1 << NF_INET_FORWARD) |
++					(1 << NF_INET_LOCAL_OUT));
++}
++EXPORT_SYMBOL_GPL(nft_reject_validate);
++
+ int nft_reject_init(const struct nft_ctx *ctx,
+ 		    const struct nft_expr *expr,
+ 		    const struct nlattr * const tb[])
+ {
+ 	struct nft_reject *priv = nft_expr_priv(expr);
++	int err;
++
++	err = nft_reject_validate(ctx, expr, NULL);
++	if (err < 0)
++		return err;
+ 
+ 	if (tb[NFTA_REJECT_TYPE] == NULL)
+ 		return -EINVAL;
+diff --git a/net/netfilter/nft_reject_inet.c b/net/netfilter/nft_reject_inet.c
+index 759ca52..e79d9ca 100644
+--- a/net/netfilter/nft_reject_inet.c
++++ b/net/netfilter/nft_reject_inet.c
+@@ -66,7 +66,11 @@ static int nft_reject_inet_init(const struct nft_ctx *ctx,
+ 				const struct nlattr * const tb[])
+ {
+ 	struct nft_reject *priv = nft_expr_priv(expr);
+-	int icmp_code;
++	int icmp_code, err;
++
++	err = nft_reject_validate(ctx, expr, NULL);
++	if (err < 0)
++		return err;
+ 
+ 	if (tb[NFTA_REJECT_TYPE] == NULL)
+ 		return -EINVAL;
+@@ -124,6 +128,7 @@ static const struct nft_expr_ops nft_reject_inet_ops = {
+ 	.eval		= nft_reject_inet_eval,
+ 	.init		= nft_reject_inet_init,
+ 	.dump		= nft_reject_inet_dump,
++	.validate	= nft_reject_validate,
+ };
+ 
+ static struct nft_expr_type nft_reject_inet_type __read_mostly = {
+-- 
+2.5.5
+
+
