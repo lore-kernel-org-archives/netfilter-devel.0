@@ -1,193 +1,94 @@
-From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
-Subject: [PATCH iptables 1/3] xtables-compat: remove useless functions
-Date: Sun, 21 Aug 2016 20:10:25 +0200
-Message-ID: <20160821181027.14622-1-pablombg@gmail.com>
-Cc: pablo@netfilter.org, "Pablo M. Bermudo Garay" <pablombg@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: Re: [PATCH iptables 2/3] xtables-compat: check if nft ruleset is compatible
+Date: Sun, 21 Aug 2016 22:25:58 +0200
+Message-ID: <CAOkSjBgx15vOVp6c-71L1bg+Aw300FagHecpXEtTWDEROJftRw@mail.gmail.com>
+References: <20160821181027.14622-1-pablombg@gmail.com> <20160821181027.14622-2-pablombg@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Cc: Netfilter Development Mailing list
+        <netfilter-devel@vger.kernel.org>,
+        Pablo Neira Ayuso <pablo@netfilter.org>
+To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35280 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752958AbcHUSLO (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:32967 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752420AbcHUU0U (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 Aug 2016 14:11:14 -0400
-Received: by mail-wm0-f66.google.com with SMTP id i5so10389304wmg.2
-        for <netfilter-devel@vger.kernel.org>; Sun, 21 Aug 2016 11:11:08 -0700 (PDT)
+        Sun, 21 Aug 2016 16:26:20 -0400
+Received: by mail-wm0-f68.google.com with SMTP id o80so10726905wme.0
+        for <netfilter-devel@vger.kernel.org>; Sun, 21 Aug 2016 13:26:19 -0700 (PDT)
+In-Reply-To: <20160821181027.14622-2-pablombg@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The static function nft_rule_list_get was exposed outside nft.c through
-the nft_rule_list_create function, but this was never used out there.
+On 21 August 2016 at 20:10, Pablo M. Bermudo Garay <pablombg@gmail.com> wro=
+te:
+> This patch adds a verification of the compatibility between the nft
+> ruleset and iptables. If the nft ruleset is not compatible with
+> iptables, the execution stops and an error message is displayed to the
+> user.
+>
+> This checking is triggered by xtables-compat -L and xtables-compat-save
+> commands.
+>
+> Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
+> ---
+>  iptables/nft.c          | 166 ++++++++++++++++++++++++++++++++++++++++++=
+++++++
+>  iptables/nft.h          |   2 +
+>  iptables/xtables-save.c |   5 ++
+>  iptables/xtables.c      |   5 ++
+>  4 files changed, 178 insertions(+)
+>
+> diff --git a/iptables/nft.c b/iptables/nft.c
+> index 247a60a..7389689 100644
+> --- a/iptables/nft.c
+> +++ b/iptables/nft.c
+> @@ -2698,3 +2698,169 @@ uint32_t nft_invflags2cmp(uint32_t invflags, uint=
+32_t flag)
+>
+>         return NFT_CMP_EQ;
+>  }
+> +
+> +static int nft_is_rule_compatible(struct nftnl_rule *rule)
+> +{
+> +       struct nftnl_expr_iter *iter;
+> +       struct nftnl_expr *expr;
+> +
+> +       iter =3D nftnl_expr_iter_create(rule);
+> +       if (iter =3D=3D NULL)
+> +               return -1;
+> +
+> +       expr =3D nftnl_expr_iter_next(iter);
+> +       while (expr !=3D NULL) {
+> +               const char *name =3D nftnl_expr_get_str(expr, NFTNL_EXPR_=
+NAME);
+> +
+> +               if (strcmp(name, "counter")   &&
+> +                   strcmp(name, "match")     &&
+> +                   strcmp(name, "target")    &&
+> +                   strcmp(name, "payload")   &&
+> +                   strcmp(name, "meta")      &&
+> +                   strcmp(name, "bitwise")   &&
+> +                   strcmp(name, "cmp")       &&
+> +                   strcmp(name, "immediate") &&
+> +                   strcmp(name, "match")     &&
+> +                   strcmp(name, "target")) {
+> +                       nftnl_expr_iter_destroy(iter);
+> +                       return 1;
+> +               }
+> +
+> +               expr =3D nftnl_expr_iter_next(iter);
+> +       }
+> +
+> +       nftnl_expr_iter_destroy(iter);
+> +       return 0;
+> +}
+> +
 
-A similar situation occurs with nftnl_rule_list_free and
-nft_rule_list_destroy.
+I don't fully understand this logic. It seems there are expression
+names which are repeated. Is that intended?
 
-This patch removes nft_rule_list_create and nft_rule_list_destroy for
-the sake of simplicity.
-
-Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
----
- iptables/nft.c | 38 ++++++++++++++------------------------
- iptables/nft.h |  3 ---
- 2 files changed, 14 insertions(+), 27 deletions(-)
-
-diff --git a/iptables/nft.c b/iptables/nft.c
-index 05ba57a..247a60a 100644
---- a/iptables/nft.c
-+++ b/iptables/nft.c
-@@ -1766,16 +1766,6 @@ static int __nft_rule_del(struct nft_handle *h, struct nftnl_rule_list *list,
- 	return 1;
- }
- 
--struct nftnl_rule_list *nft_rule_list_create(struct nft_handle *h)
--{
--	return nft_rule_list_get(h);
--}
--
--void nft_rule_list_destroy(struct nftnl_rule_list *list)
--{
--	nftnl_rule_list_free(list);
--}
--
- static struct nftnl_rule *
- nft_rule_find(struct nft_handle *h, struct nftnl_rule_list *list,
- 	      const char *chain, const char *table, void *data, int rulenum)
-@@ -1831,7 +1821,7 @@ int nft_rule_check(struct nft_handle *h, const char *chain,
- 
- 	nft_fn = nft_rule_check;
- 
--	list = nft_rule_list_create(h);
-+	list = nft_rule_list_get(h);
- 	if (list == NULL)
- 		return 0;
- 
-@@ -1839,7 +1829,7 @@ int nft_rule_check(struct nft_handle *h, const char *chain,
- 	if (ret == 0)
- 		errno = ENOENT;
- 
--	nft_rule_list_destroy(list);
-+	nftnl_rule_list_free(list);
- 
- 	return ret;
- }
-@@ -1853,7 +1843,7 @@ int nft_rule_delete(struct nft_handle *h, const char *chain,
- 
- 	nft_fn = nft_rule_delete;
- 
--	list = nft_rule_list_create(h);
-+	list = nft_rule_list_get(h);
- 	if (list == NULL)
- 		return 0;
- 
-@@ -1865,7 +1855,7 @@ int nft_rule_delete(struct nft_handle *h, const char *chain,
- 	} else
- 		errno = ENOENT;
- 
--	nft_rule_list_destroy(list);
-+	nftnl_rule_list_free(list);
- 
- 	return ret;
- }
-@@ -1906,7 +1896,7 @@ int nft_rule_insert(struct nft_handle *h, const char *chain,
- 	nft_fn = nft_rule_insert;
- 
- 	if (rulenum > 0) {
--		list = nft_rule_list_create(h);
-+		list = nft_rule_list_get(h);
- 		if (list == NULL)
- 			goto err;
- 
-@@ -1918,7 +1908,7 @@ int nft_rule_insert(struct nft_handle *h, const char *chain,
- 			r = nft_rule_find(h, list, chain, table, data,
- 					  rulenum - 1);
- 			if (r != NULL) {
--				nft_rule_list_destroy(list);
-+				nftnl_rule_list_free(list);
- 				return nft_rule_append(h, chain, table, data,
- 						       0, verbose);
- 			}
-@@ -1930,12 +1920,12 @@ int nft_rule_insert(struct nft_handle *h, const char *chain,
- 		handle = nftnl_rule_get_u64(r, NFTNL_RULE_HANDLE);
- 		DEBUGP("adding after rule handle %"PRIu64"\n", handle);
- 
--		nft_rule_list_destroy(list);
-+		nftnl_rule_list_free(list);
- 	}
- 
- 	return nft_rule_add(h, chain, table, data, handle, verbose);
- err:
--	nft_rule_list_destroy(list);
-+	nftnl_rule_list_free(list);
- 	return 0;
- }
- 
-@@ -1948,7 +1938,7 @@ int nft_rule_delete_num(struct nft_handle *h, const char *chain,
- 
- 	nft_fn = nft_rule_delete_num;
- 
--	list = nft_rule_list_create(h);
-+	list = nft_rule_list_get(h);
- 	if (list == NULL)
- 		return 0;
- 
-@@ -1963,7 +1953,7 @@ int nft_rule_delete_num(struct nft_handle *h, const char *chain,
- 	} else
- 		errno = ENOENT;
- 
--	nft_rule_list_destroy(list);
-+	nftnl_rule_list_free(list);
- 
- 	return ret;
- }
-@@ -1977,7 +1967,7 @@ int nft_rule_replace(struct nft_handle *h, const char *chain,
- 
- 	nft_fn = nft_rule_replace;
- 
--	list = nft_rule_list_create(h);
-+	list = nft_rule_list_get(h);
- 	if (list == NULL)
- 		return 0;
- 
-@@ -1993,7 +1983,7 @@ int nft_rule_replace(struct nft_handle *h, const char *chain,
- 	} else
- 		errno = ENOENT;
- 
--	nft_rule_list_destroy(list);
-+	nftnl_rule_list_free(list);
- 
- 	return ret;
- }
-@@ -2256,7 +2246,7 @@ int nft_rule_zero_counters(struct nft_handle *h, const char *chain,
- 
- 	nft_fn = nft_rule_delete;
- 
--	list = nft_rule_list_create(h);
-+	list = nft_rule_list_get(h);
- 	if (list == NULL)
- 		return 0;
- 
-@@ -2276,7 +2266,7 @@ int nft_rule_zero_counters(struct nft_handle *h, const char *chain,
- 			       false);
- 
- error:
--	nft_rule_list_destroy(list);
-+	nftnl_rule_list_free(list);
- 
- 	return ret;
- }
-diff --git a/iptables/nft.h b/iptables/nft.h
-index 52f2136..bcabf42 100644
---- a/iptables/nft.h
-+++ b/iptables/nft.h
-@@ -92,9 +92,6 @@ int nft_rule_save(struct nft_handle *h, const char *table, bool counters);
- int nft_rule_flush(struct nft_handle *h, const char *chain, const char *table);
- int nft_rule_zero_counters(struct nft_handle *h, const char *chain, const char *table, int rulenum);
- 
--struct nftnl_rule_list *nft_rule_list_create(struct nft_handle *h);
--void nft_rule_list_destroy(struct nftnl_rule_list *list);
--
- /*
-  * Operations used in userspace tools
-  */
--- 
-2.9.3
-
+--=20
+Arturo Borrero Gonz=C3=A1lez
