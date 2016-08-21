@@ -1,255 +1,198 @@
 From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
-Subject: [PATCH iptables 2/3] xtables-compat: check if nft ruleset is compatible
-Date: Sun, 21 Aug 2016 20:10:26 +0200
-Message-ID: <20160821181027.14622-2-pablombg@gmail.com>
+Subject: [PATCH iptables 3/3] xtables-compat: add rule cache
+Date: Sun, 21 Aug 2016 20:10:27 +0200
+Message-ID: <20160821181027.14622-3-pablombg@gmail.com>
 References: <20160821181027.14622-1-pablombg@gmail.com>
 Cc: pablo@netfilter.org, "Pablo M. Bermudo Garay" <pablombg@gmail.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36261 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752815AbcHUSLK (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35295 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752849AbcHUSLL (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 Aug 2016 14:11:10 -0400
-Received: by mail-wm0-f67.google.com with SMTP id i138so10363953wmf.3
-        for <netfilter-devel@vger.kernel.org>; Sun, 21 Aug 2016 11:11:09 -0700 (PDT)
+        Sun, 21 Aug 2016 14:11:11 -0400
+Received: by mail-wm0-f66.google.com with SMTP id i5so10389404wmg.2
+        for <netfilter-devel@vger.kernel.org>; Sun, 21 Aug 2016 11:11:10 -0700 (PDT)
 In-Reply-To: <20160821181027.14622-1-pablombg@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds a verification of the compatibility between the nft
-ruleset and iptables. If the nft ruleset is not compatible with
-iptables, the execution stops and an error message is displayed to the
-user.
+This patch adds a cache of rules within the nft handle. This feature is
+more useful after the new checks of ruleset compatibility, since the
+rule list is loaded twice consecutively.
 
-This checking is triggered by xtables-compat -L and xtables-compat-save
-commands.
+Now all the operations causing changes in the ruleset must invalidate
+the cache, a function called flush_rule_cache has been introduced for
+this purpose.
 
 Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
 ---
- iptables/nft.c          | 166 ++++++++++++++++++++++++++++++++++++++++++++++++
- iptables/nft.h          |   2 +
- iptables/xtables-save.c |   5 ++
- iptables/xtables.c      |   5 ++
- 4 files changed, 178 insertions(+)
+ iptables/nft.c | 35 +++++++++++++++++++++++------------
+ iptables/nft.h |  1 +
+ 2 files changed, 24 insertions(+), 12 deletions(-)
 
 diff --git a/iptables/nft.c b/iptables/nft.c
-index 247a60a..7389689 100644
+index 7389689..71bf6f7 100644
 --- a/iptables/nft.c
 +++ b/iptables/nft.c
-@@ -2698,3 +2698,169 @@ uint32_t nft_invflags2cmp(uint32_t invflags, uint32_t flag)
- 
- 	return NFT_CMP_EQ;
+@@ -780,8 +780,17 @@ int nft_init(struct nft_handle *h, struct builtin_table *t)
+ 	return 0;
  }
-+
-+static int nft_is_rule_compatible(struct nftnl_rule *rule)
-+{
-+	struct nftnl_expr_iter *iter;
-+	struct nftnl_expr *expr;
-+
-+	iter = nftnl_expr_iter_create(rule);
-+	if (iter == NULL)
-+		return -1;
-+
-+	expr = nftnl_expr_iter_next(iter);
-+	while (expr != NULL) {
-+		const char *name = nftnl_expr_get_str(expr, NFTNL_EXPR_NAME);
-+
-+		if (strcmp(name, "counter")   &&
-+		    strcmp(name, "match")     &&
-+		    strcmp(name, "target")    &&
-+		    strcmp(name, "payload")   &&
-+		    strcmp(name, "meta")      &&
-+		    strcmp(name, "bitwise")   &&
-+		    strcmp(name, "cmp")       &&
-+		    strcmp(name, "immediate") &&
-+		    strcmp(name, "match")     &&
-+		    strcmp(name, "target")) {
-+			nftnl_expr_iter_destroy(iter);
-+			return 1;
-+		}
-+
-+		expr = nftnl_expr_iter_next(iter);
-+	}
-+
-+	nftnl_expr_iter_destroy(iter);
-+	return 0;
-+}
-+
-+static int check_builtin_chain(const char *table, const char *chain)
-+{
-+	const char *cur_table;
-+	struct builtin_chain *chains;
-+	int i, j;
-+
-+	for (i = 0; i < TABLES_MAX; i++) {
-+		cur_table = xtables_ipv4[i].name;
-+		chains = xtables_ipv4[i].chains;
-+		if (strcmp(table, cur_table) == 0) {
-+			for (j = 0; j < NF_INET_NUMHOOKS && chains[j].name; j++) {
-+				if (strcmp(chain, chains[j].name) == 0)
-+					return 0;
-+			}
-+		}
-+	}
-+
-+	return 1;
-+}
-+
-+static int nft_are_chains_compatible(struct nft_handle *h)
-+{
-+	struct nftnl_chain_list *list;
-+	struct nftnl_chain_list_iter *iter;
-+	struct nftnl_chain *chain;
-+
-+	list = nftnl_chain_list_get(h);
-+	if (list == NULL)
-+		return -1;
-+
-+	iter = nftnl_chain_list_iter_create(list);
-+	if (iter == NULL)
-+		return -1;
-+
-+	chain = nftnl_chain_list_iter_next(iter);
-+	while (chain != NULL) {
-+		if (nft_chain_builtin(chain)) {
-+			const char *table = nftnl_chain_get(chain,
-+							    NFTNL_CHAIN_TABLE);
-+			const char *name = nftnl_chain_get(chain,
-+							   NFTNL_CHAIN_NAME);
-+
-+			if (check_builtin_chain(table, name) == 1) {
-+				nftnl_chain_list_iter_destroy(iter);
-+				nftnl_chain_list_free(list);
-+				return 1;
-+			}
-+		}
-+
-+		chain = nftnl_chain_list_iter_next(iter);
-+	}
-+
-+	nftnl_chain_list_iter_destroy(iter);
-+	nftnl_chain_list_free(list);
-+	return 0;
-+}
-+
-+static int nft_are_tables_compatible(struct nft_handle *h)
-+{
-+	struct nftnl_table_list *list;
-+	struct nftnl_table_list_iter *iter;
-+	struct nftnl_table *table;
-+
-+	list = nftnl_table_list_get(h);
-+	if (list == NULL)
-+		return -1;
-+
-+	iter = nftnl_table_list_iter_create(list);
-+	if (iter == NULL)
-+		return -1;
-+
-+	table = nftnl_table_list_iter_next(iter);
-+	while (table != NULL) {
-+		const char *name = nftnl_table_get(table, NFTNL_TABLE_NAME);
-+
-+		if (strcmp(name, "filter") &&
-+		    strcmp(name, "nat")    &&
-+		    strcmp(name, "mangle") &&
-+		    strcmp(name, "raw")    &&
-+		    strcmp(name, "security")) {
-+			nftnl_table_list_iter_destroy(iter);
-+			nftnl_table_list_free(list);
-+			return 1;
-+		}
-+
-+		table = nftnl_table_list_iter_next(iter);
-+	}
-+
-+	nftnl_table_list_iter_destroy(iter);
-+	nftnl_table_list_free(list);
-+	return 0;
-+}
-+
-+int nft_is_ruleset_compatible(struct nft_handle *h)
-+{
-+
-+	struct nftnl_rule_list *list;
-+	struct nftnl_rule_list_iter *iter;
-+	struct nftnl_rule *rule;
-+	int ret;
-+
-+	ret = nft_are_tables_compatible(h);
-+	if (ret != 0)
-+		return ret;
-+
-+	ret = nft_are_chains_compatible(h);
-+	if (ret != 0)
-+		return ret;
-+
-+	list = nft_rule_list_get(h);
-+	if (list == NULL)
-+		return -1;
-+
-+	iter = nftnl_rule_list_iter_create(list);
-+	if (iter == NULL)
-+		return -1;
-+
-+	rule = nftnl_rule_list_iter_next(iter);
-+	while (rule != NULL) {
-+		ret = nft_is_rule_compatible(rule);
-+		if (ret != 0) {
-+			nftnl_rule_list_iter_destroy(iter);
-+			return ret;
-+		}
-+
-+		rule = nftnl_rule_list_iter_next(iter);
-+	}
-+
-+	nftnl_rule_list_iter_destroy(iter);
-+	return 0;
-+}
-diff --git a/iptables/nft.h b/iptables/nft.h
-index bcabf42..f5449db 100644
---- a/iptables/nft.h
-+++ b/iptables/nft.h
-@@ -181,4 +181,6 @@ int nft_arp_rule_insert(struct nft_handle *h, const char *chain,
  
- void nft_rule_to_arpt_entry(struct nftnl_rule *r, struct arpt_entry *fw);
- 
-+int nft_is_ruleset_compatible(struct nft_handle *h);
++static void flush_rule_cache(struct nft_handle *h)
++{
++	if (h->rule_cache) {
++		nftnl_rule_list_free(h->rule_cache);
++		h->rule_cache = NULL;
++	}
++}
 +
- #endif
-diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
-index 50b5b5a..50ae8a5 100644
---- a/iptables/xtables-save.c
-+++ b/iptables/xtables-save.c
-@@ -138,6 +138,11 @@ xtables_save_main(int family, const char *progname, int argc, char *argv[])
- 		exit(1);
+ void nft_fini(struct nft_handle *h)
+ {
++	flush_rule_cache(h);
+ 	mnl_socket_close(h->nl);
+ 	free(mnl_nlmsg_batch_head(h->batch));
+ 	mnl_nlmsg_batch_stop(h->batch);
+@@ -1121,6 +1130,7 @@ nft_rule_append(struct nft_handle *h, const char *chain, const char *table,
+ 	if (batch_rule_add(h, type, r) < 0)
+ 		nftnl_rule_free(r);
+ 
++	flush_rule_cache(h);
+ 	return 1;
+ }
+ 
+@@ -1284,6 +1294,9 @@ static struct nftnl_rule_list *nft_rule_list_get(struct nft_handle *h)
+ 	struct nftnl_rule_list *list;
+ 	int ret;
+ 
++	if (h->rule_cache)
++		return h->rule_cache;
++
+ 	list = nftnl_rule_list_alloc();
+ 	if (list == NULL)
+ 		return 0;
+@@ -1297,6 +1310,7 @@ static struct nftnl_rule_list *nft_rule_list_get(struct nft_handle *h)
+ 		return NULL;
  	}
  
-+	if (nft_is_ruleset_compatible(&h) == 1) {
-+		printf("WARNING: You're using features from nft that we cannot map to iptables, please keep using nft.\n\n");
-+		exit(EXIT_SUCCESS);
-+	}
-+
- 	if (dump) {
- 		do_output(&h, tablename, show_counters);
- 		exit(0);
-diff --git a/iptables/xtables.c b/iptables/xtables.c
-index 48b9c51..ceae441 100644
---- a/iptables/xtables.c
-+++ b/iptables/xtables.c
-@@ -1253,6 +1253,11 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
- 	case CMD_LIST:
- 	case CMD_LIST|CMD_ZERO:
- 	case CMD_LIST|CMD_ZERO_NUM:
-+		if (nft_is_ruleset_compatible(h) == 1) {
-+			printf("WARNING: You're using features from nft that we cannot map to iptables, please keep using nft.\n\n");
-+			exit(EXIT_SUCCESS);
-+		}
-+
- 		ret = list_entries(h, p.chain, p.table, p.rulenum,
- 				   cs.options & OPT_VERBOSE,
- 				   cs.options & OPT_NUMERIC,
++	h->rule_cache = list;
+ 	return list;
+ }
+ 
+@@ -1333,7 +1347,6 @@ next:
+ 	}
+ 
+ 	nftnl_rule_list_iter_destroy(iter);
+-	nftnl_rule_list_free(list);
+ 
+ 	/* the core expects 1 for success and 0 for error */
+ 	return 1;
+@@ -1396,6 +1409,7 @@ next:
+ 	}
+ 
+ 	nftnl_chain_list_iter_destroy(iter);
++	flush_rule_cache(h);
+ err:
+ 	nftnl_chain_list_free(list);
+ 
+@@ -1829,8 +1843,6 @@ int nft_rule_check(struct nft_handle *h, const char *chain,
+ 	if (ret == 0)
+ 		errno = ENOENT;
+ 
+-	nftnl_rule_list_free(list);
+-
+ 	return ret;
+ }
+ 
+@@ -1855,7 +1867,7 @@ int nft_rule_delete(struct nft_handle *h, const char *chain,
+ 	} else
+ 		errno = ENOENT;
+ 
+-	nftnl_rule_list_free(list);
++	flush_rule_cache(h);
+ 
+ 	return ret;
+ }
+@@ -1879,6 +1891,7 @@ nft_rule_add(struct nft_handle *h, const char *chain,
+ 		return 0;
+ 	}
+ 
++	flush_rule_cache(h);
+ 	return 1;
+ }
+ 
+@@ -1908,7 +1921,7 @@ int nft_rule_insert(struct nft_handle *h, const char *chain,
+ 			r = nft_rule_find(h, list, chain, table, data,
+ 					  rulenum - 1);
+ 			if (r != NULL) {
+-				nftnl_rule_list_free(list);
++				flush_rule_cache(h);
+ 				return nft_rule_append(h, chain, table, data,
+ 						       0, verbose);
+ 			}
+@@ -1920,12 +1933,12 @@ int nft_rule_insert(struct nft_handle *h, const char *chain,
+ 		handle = nftnl_rule_get_u64(r, NFTNL_RULE_HANDLE);
+ 		DEBUGP("adding after rule handle %"PRIu64"\n", handle);
+ 
+-		nftnl_rule_list_free(list);
++		flush_rule_cache(h);
+ 	}
+ 
+ 	return nft_rule_add(h, chain, table, data, handle, verbose);
+ err:
+-	nftnl_rule_list_free(list);
++	flush_rule_cache(h);
+ 	return 0;
+ }
+ 
+@@ -1953,7 +1966,7 @@ int nft_rule_delete_num(struct nft_handle *h, const char *chain,
+ 	} else
+ 		errno = ENOENT;
+ 
+-	nftnl_rule_list_free(list);
++	flush_rule_cache(h);
+ 
+ 	return ret;
+ }
+@@ -1983,7 +1996,7 @@ int nft_rule_replace(struct nft_handle *h, const char *chain,
+ 	} else
+ 		errno = ENOENT;
+ 
+-	nftnl_rule_list_free(list);
++	flush_rule_cache(h);
+ 
+ 	return ret;
+ }
+@@ -2037,8 +2050,6 @@ next:
+ 
+ 	nftnl_rule_list_iter_destroy(iter);
+ err:
+-	nftnl_rule_list_free(list);
+-
+ 	if (ret == 0)
+ 		errno = ENOENT;
+ 
+@@ -2266,7 +2277,7 @@ int nft_rule_zero_counters(struct nft_handle *h, const char *chain,
+ 			       false);
+ 
+ error:
+-	nftnl_rule_list_free(list);
++	flush_rule_cache(h);
+ 
+ 	return ret;
+ }
+diff --git a/iptables/nft.h b/iptables/nft.h
+index f5449db..4126593 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -35,6 +35,7 @@ struct nft_handle {
+ 	struct mnl_nlmsg_batch	*batch;
+ 	struct nft_family_ops	*ops;
+ 	struct builtin_table	*tables;
++	struct nftnl_rule_list	*rule_cache;
+ 	bool			restore;
+ 	bool			batch_support;
+ };
 -- 
 2.9.3
 
