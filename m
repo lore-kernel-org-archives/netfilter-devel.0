@@ -1,145 +1,255 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: nft_reject: restrict to INPUT/FORWARD/OUTPUT
-Date: Mon, 22 Aug 2016 01:02:18 +0800
-Message-ID: <1471798938-28241-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: pablo@netfilter.org
+From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+Subject: [PATCH iptables 2/3] xtables-compat: check if nft ruleset is compatible
+Date: Sun, 21 Aug 2016 20:10:26 +0200
+Message-ID: <20160821181027.14622-2-pablombg@gmail.com>
+References: <20160821181027.14622-1-pablombg@gmail.com>
+Cc: pablo@netfilter.org, "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-17.163.com ([220.181.12.17]:53811 "EHLO m12-17.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751515AbcHURCy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 Aug 2016 13:02:54 -0400
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36261 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752815AbcHUSLK (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 21 Aug 2016 14:11:10 -0400
+Received: by mail-wm0-f67.google.com with SMTP id i138so10363953wmf.3
+        for <netfilter-devel@vger.kernel.org>; Sun, 21 Aug 2016 11:11:09 -0700 (PDT)
+In-Reply-To: <20160821181027.14622-1-pablombg@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+This patch adds a verification of the compatibility between the nft
+ruleset and iptables. If the nft ruleset is not compatible with
+iptables, the execution stops and an error message is displayed to the
+user.
 
-After I add the nft rule "nft add rule filter prerouting reject
-with tcp reset", kernel panic happened on my system:
-  NULL pointer dereference at ...
-  IP: [<ffffffff81b9db2f>] nf_send_reset+0xaf/0x400
-  Call Trace:
-  [<ffffffff81b9da80>] ? nf_reject_ip_tcphdr_get+0x160/0x160
-  [<ffffffffa0928061>] nft_reject_ipv4_eval+0x61/0xb0 [nft_reject_ipv4]
-  [<ffffffffa08e836a>] nft_do_chain+0x1fa/0x890 [nf_tables]
-  [<ffffffffa08e8170>] ? __nft_trace_packet+0x170/0x170 [nf_tables]
-  [<ffffffffa06e0900>] ? nf_ct_invert_tuple+0xb0/0xc0 [nf_conntrack]
-  [<ffffffffa07224d4>] ? nf_nat_setup_info+0x5d4/0x650 [nf_nat]
-  [...]
+This checking is triggered by xtables-compat -L and xtables-compat-save
+commands.
 
-Because in the PREROUTING chain, routing information is not exist,
-then we will dereference the NULL pointer and oops happen.
-
-So we restrict reject expression to INPUT, FORWARD and OUTPUT chain.
-This is consistent with iptables REJECT target.
-
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
 ---
- include/net/netfilter/nft_reject.h   |  4 ++++
- net/ipv4/netfilter/nft_reject_ipv4.c |  1 +
- net/ipv6/netfilter/nft_reject_ipv6.c |  1 +
- net/netfilter/nft_reject.c           | 16 ++++++++++++++++
- net/netfilter/nft_reject_inet.c      |  7 ++++++-
- 5 files changed, 28 insertions(+), 1 deletion(-)
+ iptables/nft.c          | 166 ++++++++++++++++++++++++++++++++++++++++++++++++
+ iptables/nft.h          |   2 +
+ iptables/xtables-save.c |   5 ++
+ iptables/xtables.c      |   5 ++
+ 4 files changed, 178 insertions(+)
 
-diff --git a/include/net/netfilter/nft_reject.h b/include/net/netfilter/nft_reject.h
-index 60fa153..02e28c5 100644
---- a/include/net/netfilter/nft_reject.h
-+++ b/include/net/netfilter/nft_reject.h
-@@ -8,6 +8,10 @@ struct nft_reject {
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 247a60a..7389689 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -2698,3 +2698,169 @@ uint32_t nft_invflags2cmp(uint32_t invflags, uint32_t flag)
  
- extern const struct nla_policy nft_reject_policy[];
- 
-+int nft_reject_validate(const struct nft_ctx *ctx,
-+			const struct nft_expr *expr,
-+			const struct nft_data **data);
+ 	return NFT_CMP_EQ;
+ }
 +
- int nft_reject_init(const struct nft_ctx *ctx,
- 		    const struct nft_expr *expr,
- 		    const struct nlattr * const tb[]);
-diff --git a/net/ipv4/netfilter/nft_reject_ipv4.c b/net/ipv4/netfilter/nft_reject_ipv4.c
-index c24f41c..2c2553b 100644
---- a/net/ipv4/netfilter/nft_reject_ipv4.c
-+++ b/net/ipv4/netfilter/nft_reject_ipv4.c
-@@ -46,6 +46,7 @@ static const struct nft_expr_ops nft_reject_ipv4_ops = {
- 	.eval		= nft_reject_ipv4_eval,
- 	.init		= nft_reject_init,
- 	.dump		= nft_reject_dump,
-+	.validate	= nft_reject_validate,
- };
- 
- static struct nft_expr_type nft_reject_ipv4_type __read_mostly = {
-diff --git a/net/ipv6/netfilter/nft_reject_ipv6.c b/net/ipv6/netfilter/nft_reject_ipv6.c
-index 533cd57..92bda99 100644
---- a/net/ipv6/netfilter/nft_reject_ipv6.c
-+++ b/net/ipv6/netfilter/nft_reject_ipv6.c
-@@ -47,6 +47,7 @@ static const struct nft_expr_ops nft_reject_ipv6_ops = {
- 	.eval		= nft_reject_ipv6_eval,
- 	.init		= nft_reject_init,
- 	.dump		= nft_reject_dump,
-+	.validate	= nft_reject_validate,
- };
- 
- static struct nft_expr_type nft_reject_ipv6_type __read_mostly = {
-diff --git a/net/netfilter/nft_reject.c b/net/netfilter/nft_reject.c
-index 0522fc9..c64de3f7 100644
---- a/net/netfilter/nft_reject.c
-+++ b/net/netfilter/nft_reject.c
-@@ -26,11 +26,27 @@ const struct nla_policy nft_reject_policy[NFTA_REJECT_MAX + 1] = {
- };
- EXPORT_SYMBOL_GPL(nft_reject_policy);
- 
-+int nft_reject_validate(const struct nft_ctx *ctx,
-+			const struct nft_expr *expr,
-+			const struct nft_data **data)
++static int nft_is_rule_compatible(struct nftnl_rule *rule)
 +{
-+	return nft_chain_validate_hooks(ctx->chain,
-+					(1 << NF_INET_LOCAL_IN) |
-+					(1 << NF_INET_FORWARD) |
-+					(1 << NF_INET_LOCAL_OUT));
++	struct nftnl_expr_iter *iter;
++	struct nftnl_expr *expr;
++
++	iter = nftnl_expr_iter_create(rule);
++	if (iter == NULL)
++		return -1;
++
++	expr = nftnl_expr_iter_next(iter);
++	while (expr != NULL) {
++		const char *name = nftnl_expr_get_str(expr, NFTNL_EXPR_NAME);
++
++		if (strcmp(name, "counter")   &&
++		    strcmp(name, "match")     &&
++		    strcmp(name, "target")    &&
++		    strcmp(name, "payload")   &&
++		    strcmp(name, "meta")      &&
++		    strcmp(name, "bitwise")   &&
++		    strcmp(name, "cmp")       &&
++		    strcmp(name, "immediate") &&
++		    strcmp(name, "match")     &&
++		    strcmp(name, "target")) {
++			nftnl_expr_iter_destroy(iter);
++			return 1;
++		}
++
++		expr = nftnl_expr_iter_next(iter);
++	}
++
++	nftnl_expr_iter_destroy(iter);
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(nft_reject_validate);
 +
- int nft_reject_init(const struct nft_ctx *ctx,
- 		    const struct nft_expr *expr,
- 		    const struct nlattr * const tb[])
- {
- 	struct nft_reject *priv = nft_expr_priv(expr);
-+	int err;
++static int check_builtin_chain(const char *table, const char *chain)
++{
++	const char *cur_table;
++	struct builtin_chain *chains;
++	int i, j;
 +
-+	err = nft_reject_validate(ctx, expr, NULL);
-+	if (err < 0)
-+		return err;
- 
- 	if (tb[NFTA_REJECT_TYPE] == NULL)
- 		return -EINVAL;
-diff --git a/net/netfilter/nft_reject_inet.c b/net/netfilter/nft_reject_inet.c
-index 759ca52..e79d9ca 100644
---- a/net/netfilter/nft_reject_inet.c
-+++ b/net/netfilter/nft_reject_inet.c
-@@ -66,7 +66,11 @@ static int nft_reject_inet_init(const struct nft_ctx *ctx,
- 				const struct nlattr * const tb[])
- {
- 	struct nft_reject *priv = nft_expr_priv(expr);
--	int icmp_code;
-+	int icmp_code, err;
++	for (i = 0; i < TABLES_MAX; i++) {
++		cur_table = xtables_ipv4[i].name;
++		chains = xtables_ipv4[i].chains;
++		if (strcmp(table, cur_table) == 0) {
++			for (j = 0; j < NF_INET_NUMHOOKS && chains[j].name; j++) {
++				if (strcmp(chain, chains[j].name) == 0)
++					return 0;
++			}
++		}
++	}
 +
-+	err = nft_reject_validate(ctx, expr, NULL);
-+	if (err < 0)
-+		return err;
++	return 1;
++}
++
++static int nft_are_chains_compatible(struct nft_handle *h)
++{
++	struct nftnl_chain_list *list;
++	struct nftnl_chain_list_iter *iter;
++	struct nftnl_chain *chain;
++
++	list = nftnl_chain_list_get(h);
++	if (list == NULL)
++		return -1;
++
++	iter = nftnl_chain_list_iter_create(list);
++	if (iter == NULL)
++		return -1;
++
++	chain = nftnl_chain_list_iter_next(iter);
++	while (chain != NULL) {
++		if (nft_chain_builtin(chain)) {
++			const char *table = nftnl_chain_get(chain,
++							    NFTNL_CHAIN_TABLE);
++			const char *name = nftnl_chain_get(chain,
++							   NFTNL_CHAIN_NAME);
++
++			if (check_builtin_chain(table, name) == 1) {
++				nftnl_chain_list_iter_destroy(iter);
++				nftnl_chain_list_free(list);
++				return 1;
++			}
++		}
++
++		chain = nftnl_chain_list_iter_next(iter);
++	}
++
++	nftnl_chain_list_iter_destroy(iter);
++	nftnl_chain_list_free(list);
++	return 0;
++}
++
++static int nft_are_tables_compatible(struct nft_handle *h)
++{
++	struct nftnl_table_list *list;
++	struct nftnl_table_list_iter *iter;
++	struct nftnl_table *table;
++
++	list = nftnl_table_list_get(h);
++	if (list == NULL)
++		return -1;
++
++	iter = nftnl_table_list_iter_create(list);
++	if (iter == NULL)
++		return -1;
++
++	table = nftnl_table_list_iter_next(iter);
++	while (table != NULL) {
++		const char *name = nftnl_table_get(table, NFTNL_TABLE_NAME);
++
++		if (strcmp(name, "filter") &&
++		    strcmp(name, "nat")    &&
++		    strcmp(name, "mangle") &&
++		    strcmp(name, "raw")    &&
++		    strcmp(name, "security")) {
++			nftnl_table_list_iter_destroy(iter);
++			nftnl_table_list_free(list);
++			return 1;
++		}
++
++		table = nftnl_table_list_iter_next(iter);
++	}
++
++	nftnl_table_list_iter_destroy(iter);
++	nftnl_table_list_free(list);
++	return 0;
++}
++
++int nft_is_ruleset_compatible(struct nft_handle *h)
++{
++
++	struct nftnl_rule_list *list;
++	struct nftnl_rule_list_iter *iter;
++	struct nftnl_rule *rule;
++	int ret;
++
++	ret = nft_are_tables_compatible(h);
++	if (ret != 0)
++		return ret;
++
++	ret = nft_are_chains_compatible(h);
++	if (ret != 0)
++		return ret;
++
++	list = nft_rule_list_get(h);
++	if (list == NULL)
++		return -1;
++
++	iter = nftnl_rule_list_iter_create(list);
++	if (iter == NULL)
++		return -1;
++
++	rule = nftnl_rule_list_iter_next(iter);
++	while (rule != NULL) {
++		ret = nft_is_rule_compatible(rule);
++		if (ret != 0) {
++			nftnl_rule_list_iter_destroy(iter);
++			return ret;
++		}
++
++		rule = nftnl_rule_list_iter_next(iter);
++	}
++
++	nftnl_rule_list_iter_destroy(iter);
++	return 0;
++}
+diff --git a/iptables/nft.h b/iptables/nft.h
+index bcabf42..f5449db 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -181,4 +181,6 @@ int nft_arp_rule_insert(struct nft_handle *h, const char *chain,
  
- 	if (tb[NFTA_REJECT_TYPE] == NULL)
- 		return -EINVAL;
-@@ -124,6 +128,7 @@ static const struct nft_expr_ops nft_reject_inet_ops = {
- 	.eval		= nft_reject_inet_eval,
- 	.init		= nft_reject_inet_init,
- 	.dump		= nft_reject_inet_dump,
-+	.validate	= nft_reject_validate,
- };
+ void nft_rule_to_arpt_entry(struct nftnl_rule *r, struct arpt_entry *fw);
  
- static struct nft_expr_type nft_reject_inet_type __read_mostly = {
++int nft_is_ruleset_compatible(struct nft_handle *h);
++
+ #endif
+diff --git a/iptables/xtables-save.c b/iptables/xtables-save.c
+index 50b5b5a..50ae8a5 100644
+--- a/iptables/xtables-save.c
++++ b/iptables/xtables-save.c
+@@ -138,6 +138,11 @@ xtables_save_main(int family, const char *progname, int argc, char *argv[])
+ 		exit(1);
+ 	}
+ 
++	if (nft_is_ruleset_compatible(&h) == 1) {
++		printf("WARNING: You're using features from nft that we cannot map to iptables, please keep using nft.\n\n");
++		exit(EXIT_SUCCESS);
++	}
++
+ 	if (dump) {
+ 		do_output(&h, tablename, show_counters);
+ 		exit(0);
+diff --git a/iptables/xtables.c b/iptables/xtables.c
+index 48b9c51..ceae441 100644
+--- a/iptables/xtables.c
++++ b/iptables/xtables.c
+@@ -1253,6 +1253,11 @@ int do_commandx(struct nft_handle *h, int argc, char *argv[], char **table,
+ 	case CMD_LIST:
+ 	case CMD_LIST|CMD_ZERO:
+ 	case CMD_LIST|CMD_ZERO_NUM:
++		if (nft_is_ruleset_compatible(h) == 1) {
++			printf("WARNING: You're using features from nft that we cannot map to iptables, please keep using nft.\n\n");
++			exit(EXIT_SUCCESS);
++		}
++
+ 		ret = list_entries(h, p.chain, p.table, p.rulenum,
+ 				   cs.options & OPT_VERBOSE,
+ 				   cs.options & OPT_NUMERIC,
 -- 
-2.5.5
-
+2.9.3
 
