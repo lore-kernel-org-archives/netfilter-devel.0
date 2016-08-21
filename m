@@ -1,219 +1,227 @@
 From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
-Subject: [PATCH 2/4 V6 nft] Implement deleting rule by description
-Date: Sun, 21 Aug 2016 23:22:08 +0200
-Message-ID: <20160821212210.26161-2-carlosfg@riseup.net>
-References: <20160821212210.26161-1-carlosfg@riseup.net>
+Subject: [PATCH 1/4 V6 nft] Simplify parser rule_spec tree
+Date: Sun, 21 Aug 2016 23:22:07 +0200
+Message-ID: <20160821212210.26161-1-carlosfg@riseup.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Cc: pablo@netfilter.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:34469 "EHLO mx1.riseup.net"
+Received: from mx1.riseup.net ([198.252.153.129]:34465 "EHLO mx1.riseup.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753230AbcHUVWk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 Aug 2016 17:22:40 -0400
-In-Reply-To: <20160821212210.26161-1-carlosfg@riseup.net>
+        id S1753207AbcHUVWi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 21 Aug 2016 17:22:38 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch introduces deletion in a similar fashion as in iptables, thus,
-we can delete the first rule that matches our description, for example:
-
-	$ nft list -a ruleset
-	table ip t {
-		chain c {
-			ip saddr 1.1.1.1 counter packets 0 bytes 0 # handle 1
-			ip saddr 1.1.1.2 counter packets 0 bytes 0 # handle 2
-			ip saddr 1.1.1.2 counter packets 0 bytes 0 # handle 3
-			ip saddr 1.1.1.4 counter packets 0 bytes 0 # handle 4
-		}
-	}
-	$ nft delete rule table chain ip saddr 1.1.1.2 counter
-	$ nft list -a ruleset
-	table ip t {
-		chain c {
-			ip saddr 1.1.1.1 counter packets 0 bytes 0 # handle 1
-			ip saddr 1.1.1.2 counter packets 0 bytes 0 # handle 3
-			ip saddr 1.1.1.4 counter packets 0 bytes 0 # handle 4
-		}
-	}
-
-The parser rule 'ruleid_spec' is now of the type 'struct rule' in order to
-hold a rule description. When rule is identified with its handle a dummy
-'struct rule' is allocated to hold the specified handle.
+This patch separates the rule identification from the rule localization, so
+the logic moves from the evaluator to the parser. This allows to revert the
+patch "evaluate: improve rule managment checks"
+(4176c7d30c2ff1b3f52468fc9c08b8df83f979a8) and saves a lot of code.
 
 Signed-off-by: Carlos Falgueras García <carlosfg@riseup.net>
 ---
- src/evaluate.c     |  6 ++++++
- src/parser_bison.y | 24 ++++++++++++++++--------
- src/rule.c         | 50 ++++++++++++++++++++++++++++++++++++++++++++++++--
- 3 files changed, 70 insertions(+), 10 deletions(-)
+ src/evaluate.c     | 68 +-----------------------------------------------------
+ src/parser_bison.y | 45 +++++++++++++++++-------------------
+ 2 files changed, 22 insertions(+), 91 deletions(-)
 
 diff --git a/src/evaluate.c b/src/evaluate.c
-index 2f94ac6..f7b349b 100644
+index 87f5a6d..2f94ac6 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -2661,7 +2661,13 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
+@@ -44,12 +44,6 @@ static const char *byteorder_names[] = {
+ 	__stmt_binary_error(ctx, &(s1)->location, NULL, fmt, ## args)
+ #define cmd_error(ctx, fmt, args...) \
+ 	__stmt_binary_error(ctx, &(ctx->cmd)->location, NULL, fmt, ## args)
+-#define handle_error(ctx, fmt, args...) \
+-	__stmt_binary_error(ctx, &ctx->cmd->handle.handle.location, NULL, fmt, ## args)
+-#define position_error(ctx, fmt, args...) \
+-	__stmt_binary_error(ctx, &ctx->cmd->handle.position.location, NULL, fmt, ## args)
+-#define handle_position_error(ctx, fmt, args...) \
+-	__stmt_binary_error(ctx, &ctx->cmd->handle.handle.location, &ctx->cmd->handle.position.location, fmt, ## args)
+ 
+ static int __fmtstring(3, 4) set_error(struct eval_ctx *ctx,
+ 				       const struct set *set,
+@@ -2481,68 +2475,11 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
+ 	return 0;
+ }
+ 
+-static int rule_evaluate_cmd(struct eval_ctx *ctx)
+-{
+-	struct handle *handle = &ctx->cmd->handle;
+-
+-	/* allowed:
+-	 * - insert [position] (no handle)
+-	 * - add [position] (no handle)
+-	 * - replace <handle> (no position)
+-	 * - delete <handle> (no position)
+-	 */
+-
+-	switch (ctx->cmd->op) {
+-	case CMD_INSERT:
+-		if (handle->handle.id && handle->position.id)
+-			return handle_position_error(ctx, "use only `position'"
+-						     " instead");
+-
+-		if (handle->handle.id)
+-			return handle_error(ctx, "use `position' instead");
+-		break;
+-	case CMD_ADD:
+-		if (handle->handle.id && handle->position.id)
+-			return handle_position_error(ctx, "use only `position'"
+-						     " instead");
+-
+-		if (handle->handle.id)
+-			return handle_error(ctx, "use `position' instead");
+-
+-		break;
+-	case CMD_REPLACE:
+-		if (handle->handle.id && handle->position.id)
+-			return handle_position_error(ctx, "use only `handle' "
+-						     "instead");
+-		if (handle->position.id)
+-			return position_error(ctx, "use `handle' instead");
+-		if (!handle->handle.id)
+-			return cmd_error(ctx, "missing `handle'");
+-		break;
+-	case CMD_DELETE:
+-		if (handle->handle.id && handle->position.id)
+-			return handle_position_error(ctx, "use only `handle' "
+-						     "instead");
+-		if (handle->position.id)
+-			return position_error(ctx, "use `handle' instead");
+-		if (!handle->handle.id)
+-			return cmd_error(ctx, "missing `handle'");
+-		break;
+-	default:
+-		BUG("unkown command type %u\n", ctx->cmd->op);
+-	}
+-
+-	return 0;
+-}
+-
+ static int rule_evaluate(struct eval_ctx *ctx, struct rule *rule)
+ {
+ 	struct stmt *stmt, *tstmt = NULL;
+ 	struct error_record *erec;
+ 
+-	if (rule_evaluate_cmd(ctx) < 0)
+-		return -1;
+-
+ 	proto_ctx_init(&ctx->pctx, rule->handle.family);
+ 	memset(&ctx->ectx, 0, sizeof(ctx->ectx));
+ 
+@@ -2723,11 +2660,8 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
+ 			return ret;
  
  		return setelem_evaluate(ctx, &cmd->expr);
+-	case CMD_OBJ_RULE:
+-		if (rule_evaluate_cmd(ctx) < 0)
+-			return -1;
+-		/* fall through */
  	case CMD_OBJ_SET:
-+		return 0;
- 	case CMD_OBJ_RULE:
-+		/* CMD_LIST force caching all ruleset */
-+		ret = cache_update(CMD_LIST, ctx->msgs);
-+		if (ret < 0)
-+			return ret;
-+		return rule_evaluate(ctx, cmd->rule);
++	case CMD_OBJ_RULE:
  	case CMD_OBJ_CHAIN:
  	case CMD_OBJ_TABLE:
  		return 0;
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 2ca7eea..beea38b 100644
+index e16b8a3..2ca7eea 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -425,8 +425,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+@@ -425,15 +425,12 @@ static void location_update(struct location *loc, struct location *rhs, int n)
  %type <cmd>			base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
  %destructor { cmd_free($$); }	base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
  
--%type <handle>			table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
--%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
-+%type <handle>			table_spec chain_spec chain_identifier handle_spec position_spec rule_position ruleset_spec
-+%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier handle_spec position_spec rule_position ruleset_spec
+-%type <handle>			table_spec chain_spec chain_identifier ruleid_spec ruleset_spec
+-%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec ruleset_spec
++%type <handle>			table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
++%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
  %type <handle>			set_spec set_identifier
  %destructor { handle_free(&$$); } set_spec set_identifier
  %type <val>			family_spec family_spec_explicit chain_policy prio_spec
-@@ -438,7 +438,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %destructor { close_scope(state); table_free($$); }	table_block_alloc
- %type <chain>			chain_block_alloc chain_block
- %destructor { close_scope(state); chain_free($$); }	chain_block_alloc
--%type <rule>			rule rule_alloc
-+%type <rule>			rule ruleid_spec rule_alloc
- %destructor { rule_free($$); }	rule
  
- %type <val>			set_flag_list	set_flag
-@@ -745,9 +745,10 @@ add_cmd			:	TABLE		table_spec
+-%type <handle_spec>		handle_spec
+-%type <position_spec>		position_spec
+-
+ %type <string>			dev_spec
+ %destructor { xfree($$); }	dev_spec
+ 
+@@ -720,11 +717,11 @@ add_cmd			:	TABLE		table_spec
+ 				close_scope(state);
+ 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_CHAIN, &$2, &@$, $5);
+ 			}
+-			|	RULE		ruleid_spec	rule
++			|	RULE		rule_position	rule
+ 			{
+ 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_RULE, &$2, &@$, $3);
+ 			}
+-			|	/* empty */	ruleid_spec	rule
++			|	/* empty */	rule_position	rule
+ 			{
+ 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_RULE, &$1, &@$, $2);
+ 			}
+@@ -779,7 +776,7 @@ create_cmd		:	TABLE		table_spec
  			}
  			;
  
--replace_cmd		:	RULE		ruleid_spec	rule
-+replace_cmd		:	RULE		chain_spec	handle_spec	rule
+-insert_cmd		:	RULE		ruleid_spec	rule
++insert_cmd		:	RULE		rule_position	rule
  			{
--				$$ = cmd_alloc(CMD_REPLACE, CMD_OBJ_RULE, &$2, &@$, $3);
-+				handle_merge(&$2, &$3);
-+				$$ = cmd_alloc(CMD_REPLACE, CMD_OBJ_RULE, &$2, &@$, $4);
+ 				$$ = cmd_alloc(CMD_INSERT, CMD_OBJ_RULE, &$2, &@$, $3);
+ 			}
+@@ -1252,35 +1249,35 @@ set_identifier		:	identifier
  			}
  			;
  
-@@ -792,7 +793,7 @@ delete_cmd		:	TABLE		table_spec
+-handle_spec		:	/* empty */
++handle_spec		:	HANDLE		NUM
+ 			{
+-				memset(&$$, 0, sizeof($$));
++				$$.handle.location	= @$;
++				$$.handle.id		= $2;
  			}
- 			|	RULE		ruleid_spec
+-			|	HANDLE		NUM
++			;
++
++position_spec		:	POSITION	NUM
  			{
--				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_RULE, &$2, &@$, NULL);
-+				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_RULE, &$2->handle, &@$, $2);
- 			}
- 			|	SET		set_spec
- 			{
-@@ -1276,8 +1277,15 @@ rule_position		:	chain_spec
- 
- ruleid_spec		:	chain_spec handle_spec
- 			{
--				$$ = $1;
--				handle_merge(&$$, &$2);
-+				$$ = rule_alloc(&@$, NULL);
-+				$$->handle = $1;
-+				handle_merge(&$$->handle, &$2);
-+			}
-+			|
-+				chain_spec rule
-+			{
-+				$$ = $2;
-+				handle_merge(&$$->handle, &$1);
+-				memset(&$$, 0, sizeof($$));
+-				$$.location	= @$;
+-				$$.id		= $2;
++				$$.position.location	= @$;
++				$$.position.id		= $2;
  			}
  			;
  
-diff --git a/src/rule.c b/src/rule.c
-index 14e57f2..e9672a7 100644
---- a/src/rule.c
-+++ b/src/rule.c
-@@ -20,6 +20,7 @@
- #include <rule.h>
- #include <utils.h>
- #include <netlink.h>
-+#include <erec.h>
+-position_spec		:	/* empty */
++rule_position		:	chain_spec
+ 			{
+-				memset(&$$, 0, sizeof($$));
++				$$ = $1;
+ 			}
+-			|	POSITION	NUM
++			|	chain_spec position_spec
+ 			{
+-				memset(&$$, 0, sizeof($$));
+-				$$.location	= @$;
+-				$$.id		= $2;
++				$$ = $1;
++				handle_merge(&$$, &$2);
+ 			}
+ 			;
  
- #include <libnftnl/common.h>
- #include <libnftnl/ruleset.h>
-@@ -402,6 +403,32 @@ void rule_print(const struct rule *rule)
- 		printf(" # handle %" PRIu64, rule->handle.handle.id);
- }
+-ruleid_spec		:	chain_spec	handle_spec	position_spec
++ruleid_spec		:	chain_spec handle_spec
+ 			{
+-				$$		= $1;
+-				$$.handle	= $2;
+-				$$.position	= $3;
++				$$ = $1;
++				handle_merge(&$$, &$2);
+ 			}
+ 			;
  
-+static struct rule *rule_find_first(const struct rule *rule)
-+{
-+	struct nftnl_rule *nlr1, *nlr2;
-+	struct rule *rule_idx;
-+	struct table *table;
-+	struct chain *chain;
-+
-+	table = table_lookup(&rule->handle);
-+	if (!table)
-+		return NULL;
-+	chain = chain_lookup(table, &rule->handle);
-+	if (!chain)
-+		return NULL;
-+
-+	nlr1 = alloc_nftnl_rule(&rule->handle);
-+	netlink_linearize_rule(NULL, nlr1, rule);
-+
-+	list_for_each_entry(rule_idx, &chain->rules, list) {
-+		nlr2 = alloc_nftnl_rule(&rule_idx->handle);
-+		netlink_linearize_rule(NULL, nlr2, rule_idx);
-+		if (nftnl_rule_cmp(nlr1, nlr2))
-+			return rule_idx;
-+	}
-+	return NULL;
-+}
-+
- struct rule *rule_lookup(const struct chain *chain, uint64_t handle)
- {
- 	struct rule *rule;
-@@ -1010,6 +1037,26 @@ static int do_delete_setelems(struct netlink_ctx *ctx, const struct handle *h,
- 	return 0;
- }
- 
-+static int do_delete_rule(struct netlink_ctx *ctx, const struct cmd *cmd)
-+{
-+	struct rule *rule;
-+
-+	/* Delete by handle */
-+	if (cmd->handle.handle.id)
-+		return netlink_del_rule_batch(ctx, &cmd->handle, &cmd->location);
-+
-+	/* Delete by description */
-+	rule = rule_find_first(cmd->rule);
-+	if (!rule) {
-+		struct error_record *e = erec_create(EREC_ERROR, &cmd->location,
-+			"Could not delete rule to batch: Rule not found");
-+		erec_queue(e, ctx->msgs);
-+		return -1;
-+	}
-+	return netlink_del_rule_batch(ctx, &rule->handle,
-+				      &rule->handle.position.location);
-+}
-+
- static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
- {
- 	switch (cmd->obj) {
-@@ -1018,8 +1065,7 @@ static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
- 	case CMD_OBJ_CHAIN:
- 		return netlink_delete_chain(ctx, &cmd->handle, &cmd->location);
- 	case CMD_OBJ_RULE:
--		return netlink_del_rule_batch(ctx, &cmd->handle,
--					      &cmd->location);
-+		return do_delete_rule(ctx, cmd);
- 	case CMD_OBJ_SET:
- 		return netlink_delete_set(ctx, &cmd->handle, &cmd->location);
- 	case CMD_OBJ_SETELEM:
 -- 
 2.8.3
 
