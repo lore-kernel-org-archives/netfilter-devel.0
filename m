@@ -1,94 +1,219 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: Re: [PATCH iptables 2/3] xtables-compat: check if nft ruleset is compatible
-Date: Sun, 21 Aug 2016 22:25:58 +0200
-Message-ID: <CAOkSjBgx15vOVp6c-71L1bg+Aw300FagHecpXEtTWDEROJftRw@mail.gmail.com>
-References: <20160821181027.14622-1-pablombg@gmail.com> <20160821181027.14622-2-pablombg@gmail.com>
+From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
+Subject: [PATCH 2/4 V6 nft] Implement deleting rule by description
+Date: Sun, 21 Aug 2016 23:22:08 +0200
+Message-ID: <20160821212210.26161-2-carlosfg@riseup.net>
+References: <20160821212210.26161-1-carlosfg@riseup.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Cc: Netfilter Development Mailing list
-        <netfilter-devel@vger.kernel.org>,
-        Pablo Neira Ayuso <pablo@netfilter.org>
-To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+Content-Transfer-Encoding: 8bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:32967 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752420AbcHUU0U (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 Aug 2016 16:26:20 -0400
-Received: by mail-wm0-f68.google.com with SMTP id o80so10726905wme.0
-        for <netfilter-devel@vger.kernel.org>; Sun, 21 Aug 2016 13:26:19 -0700 (PDT)
-In-Reply-To: <20160821181027.14622-2-pablombg@gmail.com>
+Received: from mx1.riseup.net ([198.252.153.129]:34469 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753230AbcHUVWk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 21 Aug 2016 17:22:40 -0400
+In-Reply-To: <20160821212210.26161-1-carlosfg@riseup.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 21 August 2016 at 20:10, Pablo M. Bermudo Garay <pablombg@gmail.com> wro=
-te:
-> This patch adds a verification of the compatibility between the nft
-> ruleset and iptables. If the nft ruleset is not compatible with
-> iptables, the execution stops and an error message is displayed to the
-> user.
->
-> This checking is triggered by xtables-compat -L and xtables-compat-save
-> commands.
->
-> Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
-> ---
->  iptables/nft.c          | 166 ++++++++++++++++++++++++++++++++++++++++++=
-++++++
->  iptables/nft.h          |   2 +
->  iptables/xtables-save.c |   5 ++
->  iptables/xtables.c      |   5 ++
->  4 files changed, 178 insertions(+)
->
-> diff --git a/iptables/nft.c b/iptables/nft.c
-> index 247a60a..7389689 100644
-> --- a/iptables/nft.c
-> +++ b/iptables/nft.c
-> @@ -2698,3 +2698,169 @@ uint32_t nft_invflags2cmp(uint32_t invflags, uint=
-32_t flag)
->
->         return NFT_CMP_EQ;
->  }
-> +
-> +static int nft_is_rule_compatible(struct nftnl_rule *rule)
-> +{
-> +       struct nftnl_expr_iter *iter;
-> +       struct nftnl_expr *expr;
-> +
-> +       iter =3D nftnl_expr_iter_create(rule);
-> +       if (iter =3D=3D NULL)
-> +               return -1;
-> +
-> +       expr =3D nftnl_expr_iter_next(iter);
-> +       while (expr !=3D NULL) {
-> +               const char *name =3D nftnl_expr_get_str(expr, NFTNL_EXPR_=
-NAME);
-> +
-> +               if (strcmp(name, "counter")   &&
-> +                   strcmp(name, "match")     &&
-> +                   strcmp(name, "target")    &&
-> +                   strcmp(name, "payload")   &&
-> +                   strcmp(name, "meta")      &&
-> +                   strcmp(name, "bitwise")   &&
-> +                   strcmp(name, "cmp")       &&
-> +                   strcmp(name, "immediate") &&
-> +                   strcmp(name, "match")     &&
-> +                   strcmp(name, "target")) {
-> +                       nftnl_expr_iter_destroy(iter);
-> +                       return 1;
-> +               }
-> +
-> +               expr =3D nftnl_expr_iter_next(iter);
-> +       }
-> +
-> +       nftnl_expr_iter_destroy(iter);
-> +       return 0;
-> +}
-> +
+This patch introduces deletion in a similar fashion as in iptables, thus,
+we can delete the first rule that matches our description, for example:
 
-I don't fully understand this logic. It seems there are expression
-names which are repeated. Is that intended?
+	$ nft list -a ruleset
+	table ip t {
+		chain c {
+			ip saddr 1.1.1.1 counter packets 0 bytes 0 # handle 1
+			ip saddr 1.1.1.2 counter packets 0 bytes 0 # handle 2
+			ip saddr 1.1.1.2 counter packets 0 bytes 0 # handle 3
+			ip saddr 1.1.1.4 counter packets 0 bytes 0 # handle 4
+		}
+	}
+	$ nft delete rule table chain ip saddr 1.1.1.2 counter
+	$ nft list -a ruleset
+	table ip t {
+		chain c {
+			ip saddr 1.1.1.1 counter packets 0 bytes 0 # handle 1
+			ip saddr 1.1.1.2 counter packets 0 bytes 0 # handle 3
+			ip saddr 1.1.1.4 counter packets 0 bytes 0 # handle 4
+		}
+	}
 
---=20
-Arturo Borrero Gonz=C3=A1lez
+The parser rule 'ruleid_spec' is now of the type 'struct rule' in order to
+hold a rule description. When rule is identified with its handle a dummy
+'struct rule' is allocated to hold the specified handle.
+
+Signed-off-by: Carlos Falgueras García <carlosfg@riseup.net>
+---
+ src/evaluate.c     |  6 ++++++
+ src/parser_bison.y | 24 ++++++++++++++++--------
+ src/rule.c         | 50 ++++++++++++++++++++++++++++++++++++++++++++++++--
+ 3 files changed, 70 insertions(+), 10 deletions(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 2f94ac6..f7b349b 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2661,7 +2661,13 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
+ 
+ 		return setelem_evaluate(ctx, &cmd->expr);
+ 	case CMD_OBJ_SET:
++		return 0;
+ 	case CMD_OBJ_RULE:
++		/* CMD_LIST force caching all ruleset */
++		ret = cache_update(CMD_LIST, ctx->msgs);
++		if (ret < 0)
++			return ret;
++		return rule_evaluate(ctx, cmd->rule);
+ 	case CMD_OBJ_CHAIN:
+ 	case CMD_OBJ_TABLE:
+ 		return 0;
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index 2ca7eea..beea38b 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -425,8 +425,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <cmd>			base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
+ %destructor { cmd_free($$); }	base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
+ 
+-%type <handle>			table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
+-%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
++%type <handle>			table_spec chain_spec chain_identifier handle_spec position_spec rule_position ruleset_spec
++%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier handle_spec position_spec rule_position ruleset_spec
+ %type <handle>			set_spec set_identifier
+ %destructor { handle_free(&$$); } set_spec set_identifier
+ %type <val>			family_spec family_spec_explicit chain_policy prio_spec
+@@ -438,7 +438,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %destructor { close_scope(state); table_free($$); }	table_block_alloc
+ %type <chain>			chain_block_alloc chain_block
+ %destructor { close_scope(state); chain_free($$); }	chain_block_alloc
+-%type <rule>			rule rule_alloc
++%type <rule>			rule ruleid_spec rule_alloc
+ %destructor { rule_free($$); }	rule
+ 
+ %type <val>			set_flag_list	set_flag
+@@ -745,9 +745,10 @@ add_cmd			:	TABLE		table_spec
+ 			}
+ 			;
+ 
+-replace_cmd		:	RULE		ruleid_spec	rule
++replace_cmd		:	RULE		chain_spec	handle_spec	rule
+ 			{
+-				$$ = cmd_alloc(CMD_REPLACE, CMD_OBJ_RULE, &$2, &@$, $3);
++				handle_merge(&$2, &$3);
++				$$ = cmd_alloc(CMD_REPLACE, CMD_OBJ_RULE, &$2, &@$, $4);
+ 			}
+ 			;
+ 
+@@ -792,7 +793,7 @@ delete_cmd		:	TABLE		table_spec
+ 			}
+ 			|	RULE		ruleid_spec
+ 			{
+-				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_RULE, &$2, &@$, NULL);
++				$$ = cmd_alloc(CMD_DELETE, CMD_OBJ_RULE, &$2->handle, &@$, $2);
+ 			}
+ 			|	SET		set_spec
+ 			{
+@@ -1276,8 +1277,15 @@ rule_position		:	chain_spec
+ 
+ ruleid_spec		:	chain_spec handle_spec
+ 			{
+-				$$ = $1;
+-				handle_merge(&$$, &$2);
++				$$ = rule_alloc(&@$, NULL);
++				$$->handle = $1;
++				handle_merge(&$$->handle, &$2);
++			}
++			|
++				chain_spec rule
++			{
++				$$ = $2;
++				handle_merge(&$$->handle, &$1);
+ 			}
+ 			;
+ 
+diff --git a/src/rule.c b/src/rule.c
+index 14e57f2..e9672a7 100644
+--- a/src/rule.c
++++ b/src/rule.c
+@@ -20,6 +20,7 @@
+ #include <rule.h>
+ #include <utils.h>
+ #include <netlink.h>
++#include <erec.h>
+ 
+ #include <libnftnl/common.h>
+ #include <libnftnl/ruleset.h>
+@@ -402,6 +403,32 @@ void rule_print(const struct rule *rule)
+ 		printf(" # handle %" PRIu64, rule->handle.handle.id);
+ }
+ 
++static struct rule *rule_find_first(const struct rule *rule)
++{
++	struct nftnl_rule *nlr1, *nlr2;
++	struct rule *rule_idx;
++	struct table *table;
++	struct chain *chain;
++
++	table = table_lookup(&rule->handle);
++	if (!table)
++		return NULL;
++	chain = chain_lookup(table, &rule->handle);
++	if (!chain)
++		return NULL;
++
++	nlr1 = alloc_nftnl_rule(&rule->handle);
++	netlink_linearize_rule(NULL, nlr1, rule);
++
++	list_for_each_entry(rule_idx, &chain->rules, list) {
++		nlr2 = alloc_nftnl_rule(&rule_idx->handle);
++		netlink_linearize_rule(NULL, nlr2, rule_idx);
++		if (nftnl_rule_cmp(nlr1, nlr2))
++			return rule_idx;
++	}
++	return NULL;
++}
++
+ struct rule *rule_lookup(const struct chain *chain, uint64_t handle)
+ {
+ 	struct rule *rule;
+@@ -1010,6 +1037,26 @@ static int do_delete_setelems(struct netlink_ctx *ctx, const struct handle *h,
+ 	return 0;
+ }
+ 
++static int do_delete_rule(struct netlink_ctx *ctx, const struct cmd *cmd)
++{
++	struct rule *rule;
++
++	/* Delete by handle */
++	if (cmd->handle.handle.id)
++		return netlink_del_rule_batch(ctx, &cmd->handle, &cmd->location);
++
++	/* Delete by description */
++	rule = rule_find_first(cmd->rule);
++	if (!rule) {
++		struct error_record *e = erec_create(EREC_ERROR, &cmd->location,
++			"Could not delete rule to batch: Rule not found");
++		erec_queue(e, ctx->msgs);
++		return -1;
++	}
++	return netlink_del_rule_batch(ctx, &rule->handle,
++				      &rule->handle.position.location);
++}
++
+ static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
+ {
+ 	switch (cmd->obj) {
+@@ -1018,8 +1065,7 @@ static int do_command_delete(struct netlink_ctx *ctx, struct cmd *cmd)
+ 	case CMD_OBJ_CHAIN:
+ 		return netlink_delete_chain(ctx, &cmd->handle, &cmd->location);
+ 	case CMD_OBJ_RULE:
+-		return netlink_del_rule_batch(ctx, &cmd->handle,
+-					      &cmd->location);
++		return do_delete_rule(ctx, cmd);
+ 	case CMD_OBJ_SET:
+ 		return netlink_delete_set(ctx, &cmd->handle, &cmd->location);
+ 	case CMD_OBJ_SETELEM:
+-- 
+2.8.3
+
