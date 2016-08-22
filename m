@@ -1,69 +1,82 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf 1/3] netfilter: nfnetlink: use list_for_each_entry_safe to delete all objects
-Date: Mon, 22 Aug 2016 21:58:16 +0800
-Message-ID: <1471874298-20503-1-git-send-email-zlpnobody@163.com>
+Subject: [PATCH nf 2/3] netfilter: cttimeout: put back l4proto when replacing timeout policy
+Date: Mon, 22 Aug 2016 21:58:17 +0800
+Message-ID: <1471874298-20503-2-git-send-email-zlpnobody@163.com>
+References: <1471874298-20503-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org,
         Liping Zhang <liping.zhang@spreadtrum.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-18.163.com ([220.181.12.18]:51753 "EHLO m12-18.163.com"
+Received: from m12-18.163.com ([220.181.12.18]:52217 "EHLO m12-18.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755218AbcHVN7K (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Aug 2016 09:59:10 -0400
+        id S1755702AbcHVN7S (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Aug 2016 09:59:18 -0400
+In-Reply-To: <1471874298-20503-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-cttimeout and acct objects are deleted from the list while traversing
-it, so use list_for_each_entry is unsafe here.
+We forget to call nf_ct_l4proto_put when replacing the existing
+timeout policy. Acctually, there's no need to get ct l4proto
+before doing replace, so we can move it to a later position.
 
 Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- net/netfilter/nfnetlink_acct.c      | 6 +++---
- net/netfilter/nfnetlink_cttimeout.c | 5 +++--
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ net/netfilter/nfnetlink_cttimeout.c | 33 +++++++++++++++------------------
+ 1 file changed, 15 insertions(+), 18 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
-index 70eb2f6a..d44d89b 100644
---- a/net/netfilter/nfnetlink_acct.c
-+++ b/net/netfilter/nfnetlink_acct.c
-@@ -343,12 +343,12 @@ static int nfnl_acct_del(struct net *net, struct sock *nfnl,
- 			 struct sk_buff *skb, const struct nlmsghdr *nlh,
- 			 const struct nlattr * const tb[])
- {
--	char *acct_name;
--	struct nf_acct *cur;
-+	struct nf_acct *cur, *tmp;
- 	int ret = -ENOENT;
-+	char *acct_name;
- 
- 	if (!tb[NFACCT_NAME]) {
--		list_for_each_entry(cur, &net->nfnl_acct_list, head)
-+		list_for_each_entry_safe(cur, tmp, &net->nfnl_acct_list, head)
- 			nfnl_acct_try_del(cur);
- 
- 		return 0;
 diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index 68216cd..f74fee1 100644
+index f74fee1..6844c7a 100644
 --- a/net/netfilter/nfnetlink_cttimeout.c
 +++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -350,12 +350,13 @@ static int cttimeout_del_timeout(struct net *net, struct sock *ctnl,
- 				 const struct nlmsghdr *nlh,
- 				 const struct nlattr * const cda[])
- {
--	struct ctnl_timeout *cur;
-+	struct ctnl_timeout *cur, *tmp;
- 	int ret = -ENOENT;
- 	char *name;
+@@ -98,31 +98,28 @@ static int cttimeout_new_timeout(struct net *net, struct sock *ctnl,
+ 		break;
+ 	}
  
- 	if (!cda[CTA_TIMEOUT_NAME]) {
--		list_for_each_entry(cur, &net->nfct_timeout_list, head)
-+		list_for_each_entry_safe(cur, tmp, &net->nfct_timeout_list,
-+					 head)
- 			ctnl_timeout_try_del(net, cur);
+-	l4proto = nf_ct_l4proto_find_get(l3num, l4num);
+-
+-	/* This protocol is not supportted, skip. */
+-	if (l4proto->l4proto != l4num) {
+-		ret = -EOPNOTSUPP;
+-		goto err_proto_put;
+-	}
+-
+ 	if (matching) {
+ 		if (nlh->nlmsg_flags & NLM_F_REPLACE) {
+ 			/* You cannot replace one timeout policy by another of
+ 			 * different kind, sorry.
+ 			 */
+ 			if (matching->l3num != l3num ||
+-			    matching->l4proto->l4proto != l4num) {
+-				ret = -EINVAL;
+-				goto err_proto_put;
+-			}
+-
+-			ret = ctnl_timeout_parse_policy(&matching->data,
+-							l4proto, net,
+-							cda[CTA_TIMEOUT_DATA]);
+-			return ret;
++			    matching->l4proto->l4proto != l4num)
++				return -EINVAL;
++
++			return ctnl_timeout_parse_policy(&matching->data,
++							 matching->l4proto, net,
++							 cda[CTA_TIMEOUT_DATA]);
+ 		}
+-		ret = -EBUSY;
++
++		return -EBUSY;
++	}
++
++	l4proto = nf_ct_l4proto_find_get(l3num, l4num);
++
++	/* This protocol is not supportted, skip. */
++	if (l4proto->l4proto != l4num) {
++		ret = -EOPNOTSUPP;
+ 		goto err_proto_put;
+ 	}
  
- 		return 0;
 -- 
 2.5.5
 
