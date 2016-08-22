@@ -1,48 +1,38 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nft] tests: shell: add testcase for reject expr
-Date: Mon, 22 Aug 2016 23:43:53 +0800
-Message-ID: <1471880633-21640-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: pablo@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nft 2/2] ct: display bit number instead of raw value
+Date: Mon, 22 Aug 2016 18:09:20 +0200
+Message-ID: <20160822160920.GB2570@salvia>
+References: <1471861047-7254-1-git-send-email-fw@strlen.de>
+ <1471861047-7254-2-git-send-email-fw@strlen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-14.163.com ([220.181.12.14]:45014 "EHLO m12-14.163.com"
+Received: from mail.us.es ([193.147.175.20]:45154 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754527AbcHVPom (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Aug 2016 11:44:42 -0400
+        id S932719AbcHVQJZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Aug 2016 12:09:25 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CD4B91F18DA
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 18:09:23 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BE942100A40
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 18:09:23 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B869F100A60
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 18:09:21 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <1471861047-7254-2-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+On Mon, Aug 22, 2016 at 12:17:27PM +0200, Florian Westphal wrote:
+> ... and add test cases for ct label.
+> Currently this dumped 'label 0x2', now 'label 1' would be shown.
+> 
+> This makes add/list behave the same.
+> 
+> Signed-off-by: Florian Westphal <fw@strlen.de>
 
-Reject expr is only valid in input/forward/output chain,
-and if user can add reject expr in prerouting chain, kernel
-panic will happen.
-
-So add a simple test case to cover this situation.
-
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
----
- tests/shell/testcases/chains/0012reject_in_prerouting_1 | 9 +++++++++
- 1 file changed, 9 insertions(+)
- create mode 100755 tests/shell/testcases/chains/0012reject_in_prerouting_1
-
-diff --git a/tests/shell/testcases/chains/0012reject_in_prerouting_1 b/tests/shell/testcases/chains/0012reject_in_prerouting_1
-new file mode 100755
-index 0000000..81cda0c
---- /dev/null
-+++ b/tests/shell/testcases/chains/0012reject_in_prerouting_1
-@@ -0,0 +1,9 @@
-+#!/bin/bash
-+
-+set -e
-+
-+$NFT add table t
-+$NFT add chain t prerouting {type filter hook prerouting priority 0 \; }
-+# wrong hook prerouting, only input/forward/output is valid
-+$NFT add rule t prerouting reject 2>/dev/null
-+echo "E: accepted reject in prerouting hook" >&2
--- 
-2.5.5
-
-
+Acked-by: Pablo Neira Ayuso <pablo@netfilter.org>
