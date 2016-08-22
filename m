@@ -1,107 +1,56 @@
-From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
-Subject: [PATCH 3/4 V6 nft] test: shell: Add tests for deleting rule by description
-Date: Sun, 21 Aug 2016 23:22:09 +0200
-Message-ID: <20160821212210.26161-3-carlosfg@riseup.net>
-References: <20160821212210.26161-1-carlosfg@riseup.net>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH nf-next 2/6] netfilter: conntrack: get rid of conntrack
+ timer
+Date: Sun, 21 Aug 2016 21:13:31 -0700
+Message-ID: <1471839211.14381.4.camel@edumazet-glaptop3.roam.corp.google.com>
+References: <1471606575-2197-1-git-send-email-fw@strlen.de>
+         <1471606575-2197-3-git-send-email-fw@strlen.de>
+         <1471617465.29842.102.camel@edumazet-glaptop3.roam.corp.google.com>
+         <20160819151642.GA11049@breakpoint.cc>
+         <1471620263.29842.107.camel@edumazet-glaptop3.roam.corp.google.com>
+         <20160819160446.GC11049@breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: pablo@netfilter.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.riseup.net ([198.252.153.129]:34475 "EHLO mx1.riseup.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753460AbcHUVWl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 21 Aug 2016 17:22:41 -0400
-In-Reply-To: <20160821212210.26161-1-carlosfg@riseup.net>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:36132 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750775AbcHVENe (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Aug 2016 00:13:34 -0400
+Received: by mail-pf0-f195.google.com with SMTP id y134so5516196pfg.3
+        for <netfilter-devel@vger.kernel.org>; Sun, 21 Aug 2016 21:13:34 -0700 (PDT)
+In-Reply-To: <20160819160446.GC11049@breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-They checks if commands like "nft delete rule <table> <chain> <rule desc>"
-works as is expected.
+On Fri, 2016-08-19 at 18:04 +0200, Florian Westphal wrote:
+> Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> > On Fri, 2016-08-19 at 17:16 +0200, Florian Westphal wrote:
+> > 
+> > > Hmm, ____nf_conntrack_find caller needs to hold rcu_read_lock,
+> > > in case object is free'd SLAB_DESTROY_BY_RCU should delay actual release
+> > > of the page.
+> > 
+> > Well, point is that SLAB_DESTROY_BY_RCU means that we have no grace
+> > period, and object can be immediately reused and recycled.
+> > 
+> > @next pointer can definitely be overwritten.
+> 
+> I see.  Isn't that detected by the nulls magic (to restart
+> lookup if entry was moved to other chain due to overwritten next pointer)?
 
-First one checks if command deletes only one of the matched rules.
-Second one checks if command fails when rule did not found.
+Well, you did not add the nulls magic in your code ;)
 
-Signed-off-by: Carlos Falgueras García <carlosfg@riseup.net>
----
- .../testcases/rule_management/0010delete-by-desc_0 | 39 ++++++++++++++++++++++
- .../testcases/rule_management/0011delete-by-desc_1 | 20 +++++++++++
- 2 files changed, 59 insertions(+)
- create mode 100755 tests/shell/testcases/rule_management/0010delete-by-desc_0
- create mode 100755 tests/shell/testcases/rule_management/0011delete-by-desc_1
+It might be fine, since it should be a rare event, and garbage
+collection is best effort, so you might add a comment in gc_worker() why
+it is probably overkill to restart the loop in this unlikely event.
 
-diff --git a/tests/shell/testcases/rule_management/0010delete-by-desc_0 b/tests/shell/testcases/rule_management/0010delete-by-desc_0
-new file mode 100755
-index 0000000..6afdec1
---- /dev/null
-+++ b/tests/shell/testcases/rule_management/0010delete-by-desc_0
-@@ -0,0 +1,39 @@
-+#!/bin/bash
-+
-+# positive tests for rule deletion by description:
-+#	$ nft delete rule <table> <chain> <rule description>
-+
-+RULE2DEL="ip saddr 1.1.1.1 counter"
-+
-+set -e
-+$NFT add table t
-+$NFT add chain t c
-+$NFT add rule t c ip saddr 1.1.1.1
-+$NFT add rule t c $RULE2DEL
-+$NFT add rule t c ip saddr 1.1.1.1 accept
-+$NFT add rule t c $RULE2DEL
-+
-+$NFT delete rule t c $RULE2DEL
-+if [ $? -ne 0 ]; then
-+	echo "E: unable to delete rule \"$RULE2DEL\"" >&2
-+	exit 1
-+fi
-+
-+set +e; # Next commands can return 0
-+REMAINS_RULE2DEL=$($NFT list -a ruleset | grep -c "$RULE2DEL")
-+REMAINS_RULES=$(( $($NFT list -a ruleset | wc -l) - 4 ))
-+set -e
-+
-+if   [ $REMAINS_RULE2DEL -eq 2 ]; then
-+	echo "E: First rule \"$RULE2DEL\" should have been deleted" >&2
-+	exit 1
-+elif [ $REMAINS_RULE2DEL -eq 0 ]; then
-+	echo "E: Second rule \"$RULE2DEL\" should not have been deleted" >&2
-+	exit 1
-+fi
-+
-+if [ $REMAINS_RULES -ne 3 ]; then
-+	echo "E: Rest of rules should not have been deleted" >&2
-+	$NFT list -a ruleset
-+	exit 1
-+fi
-diff --git a/tests/shell/testcases/rule_management/0011delete-by-desc_1 b/tests/shell/testcases/rule_management/0011delete-by-desc_1
-new file mode 100755
-index 0000000..3ddb5ef
---- /dev/null
-+++ b/tests/shell/testcases/rule_management/0011delete-by-desc_1
-@@ -0,0 +1,20 @@
-+#!/bin/bash
-+
-+# negative tests for rule deletion by description:
-+#	$ nft delete rule <table> <chain> <rule description>
-+
-+set -e
-+$NFT add table t
-+$NFT add chain t c
-+$NFT add rule t c ip saddr 1.1.1.1
-+$NFT add rule t c ip saddr 1.1.1.1 accept
-+
-+set +e; # Next command must fail
-+$NFT delete rule t c ip saddr 2.2.2.2
-+RET=$?
-+if [ $RET -ne 1 ]; then
-+	echo "E: Try to delete a nonexistent rule should throw an error" >&2
-+	exit $RET
-+fi
-+
-+exit $RET
--- 
-2.8.3
+BTW, maybe nf_conntrack_tuple_taken() should get the nulls magic check,
+as it is currently missing.
+
+
+
 
