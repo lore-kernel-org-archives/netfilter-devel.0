@@ -1,76 +1,97 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 2/2] ct: display bit number instead of raw value
-Date: Mon, 22 Aug 2016 12:17:27 +0200
-Message-ID: <1471861047-7254-2-git-send-email-fw@strlen.de>
-References: <1471861047-7254-1-git-send-email-fw@strlen.de>
+Subject: [PATCH nft 1/2] ct: allow numeric conntrack labels
+Date: Mon, 22 Aug 2016 12:17:26 +0200
+Message-ID: <1471861047-7254-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:34892 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:34890 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752485AbcHVKRY (ORCPT
+        by vger.kernel.org with ESMTP id S1752152AbcHVKRY (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
         Mon, 22 Aug 2016 06:17:24 -0400
-In-Reply-To: <1471861047-7254-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-... and add test cases for ct label.
-Currently this dumped 'label 0x2', now 'label 1' would be shown.
+When dumping labels in rule list we try to print a symbolic name.
+If we don't find one, we print the bit number instead.
 
-This makes add/list behave the same.
+This changes nft to also allow use of the number instead of a name
+when adding ct label rules so that such dumps can also be restored
+again.
+
+This is similar to other cases, e.g. skuid root vs skuid 0 which
+are both valid.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- src/ct.c                  |  2 +-
- tests/py/any/ct.t         |  4 ++++
- tests/py/any/ct.t.payload | 11 +++++++++++
- 3 files changed, 16 insertions(+), 1 deletion(-)
+ src/ct.c | 30 ++++++++++++++++++++++--------
+ 1 file changed, 22 insertions(+), 8 deletions(-)
 
 diff --git a/src/ct.c b/src/ct.c
-index 018ca0b..a682938 100644
+index 3575596..018ca0b 100644
 --- a/src/ct.c
 +++ b/src/ct.c
-@@ -113,7 +113,7 @@ static void ct_label_type_print(const struct expr *expr)
- 		return;
+@@ -13,13 +13,14 @@
+ #include <stddef.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+-#include <stdint.h>
++#include <inttypes.h>
+ #include <string.h>
+ 
+ #include <linux/netfilter/nf_tables.h>
+ #include <linux/netfilter/nf_conntrack_common.h>
+ #include <linux/netfilter/nf_conntrack_tuple_common.h>
+ 
++#include <errno.h>
+ #include <erec.h>
+ #include <expression.h>
+ #include <datatype.h>
+@@ -121,6 +122,7 @@ static struct error_record *ct_label_type_parse(const struct expr *sym,
+ 	const struct symbolic_constant *s;
+ 	const struct datatype *dtype;
+ 	uint8_t data[CT_LABEL_BIT_SIZE];
++	uint64_t bit;
+ 	mpz_t value;
+ 
+ 	for (s = ct_label_tbl->symbols; s->identifier != NULL; s++) {
+@@ -129,16 +131,28 @@ static struct error_record *ct_label_type_parse(const struct expr *sym,
  	}
- 	/* can happen when connlabel.conf is altered after rules were added */
--	gmp_printf("0x%Zx", expr->value);
-+	printf("%ld\n", (long)mpz_scan1(expr->value, 0));
- }
  
- static struct error_record *ct_label_type_parse(const struct expr *sym,
-diff --git a/tests/py/any/ct.t b/tests/py/any/ct.t
-index 4d13213..7fd4f2c 100644
---- a/tests/py/any/ct.t
-+++ b/tests/py/any/ct.t
-@@ -92,3 +92,7 @@ ct saddr 1.2.3.4;fail
- ct original mark 42;fail
- # swapped key and direction
- ct mark original;fail
+ 	dtype = sym->dtype;
+-	if (s->identifier == NULL)
+-		return error(&sym->location, "%s: could not parse %s \"%s\"",
+-			     CONNLABEL_CONF, dtype->desc, sym->identifier);
++	if (s->identifier == NULL) {
++		char *ptr;
 +
-+ct label 127;ok
-+ct label set 127;ok
-+ct label 128;fail
-diff --git a/tests/py/any/ct.t.payload b/tests/py/any/ct.t.payload
-index e64ce2f..97f292e 100644
---- a/tests/py/any/ct.t.payload
-+++ b/tests/py/any/ct.t.payload
-@@ -332,3 +332,14 @@ ip test-ip4 output
-   [ bitwise reg 1 = (reg=1 & 0x00000020 ) ^ 0x00000000 ]
-   [ cmp neq reg 1 0x00000000 ]
++		errno = 0;
++		bit = strtoull(sym->identifier, &ptr, 0);
++		if (*ptr)
++			return error(&sym->location, "%s: could not parse %s \"%s\"",
++				     CONNLABEL_CONF, dtype->desc, sym->identifier);
++		if (errno)
++			return error(&sym->location, "%s: could not parse %s \"%s\": %s",
++				     CONNLABEL_CONF, dtype->desc, sym->identifier, strerror(errno));
++
++	} else {
++		bit = s->value;
++	}
  
-+# ct label 127
-+ip test-ip4 output
-+  [ ct load label => reg 1 ]
-+  [ bitwise reg 1 = (reg=1 & 0x00000000 0x00000000 0x00000000 0x80000000 ) ^ 0x00000000 0x00000000 0x00000000 0x00000000 ]
-+  [ cmp neq reg 1 0x00000000 0x00000000 0x00000000 0x00000000 ]
-+
-+# ct label set 127
-+ip test-ip4 output
-+  [ immediate reg 1 0x00000000 0x00000000 0x00000000 0x80000000 ]
-+  [ ct set label with reg 1 ]
-+
+-	if (s->value >= CT_LABEL_BIT_SIZE)
+-		return error(&sym->location, "%s: out of range (%u max)",
+-			     s->identifier, s->value, CT_LABEL_BIT_SIZE);
++	if (bit >= CT_LABEL_BIT_SIZE)
++		return error(&sym->location, "%s: bit %" PRIu64 " out of range (%u max)",
++			     sym->identifier, bit, CT_LABEL_BIT_SIZE);
+ 
+ 	mpz_init2(value, dtype->size);
+-	mpz_setbit(value, s->value);
++	mpz_setbit(value, bit);
+ 	mpz_export_data(data, value, BYTEORDER_HOST_ENDIAN, sizeof(data));
+ 
+ 	*res = constant_expr_alloc(&sym->location, dtype,
 -- 
 2.7.3
 
