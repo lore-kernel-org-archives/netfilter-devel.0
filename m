@@ -1,97 +1,84 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH nft 1/2] ct: allow numeric conntrack labels
-Date: Mon, 22 Aug 2016 12:17:26 +0200
-Message-ID: <1471861047-7254-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: <netfilter-devel@vger.kernel.org>
+From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+Subject: [PATCH iptables v2 1/2] xtables-translate: add escape_quotes option to comment_xlate
+Date: Mon, 22 Aug 2016 12:56:14 +0200
+Message-ID: <20160822105615.32483-1-pablombg@gmail.com>
+Cc: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:34890 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752152AbcHVKRY (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35404 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752859AbcHVK4t (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Aug 2016 06:17:24 -0400
+        Mon, 22 Aug 2016 06:56:49 -0400
+Received: by mail-wm0-f66.google.com with SMTP id i5so12878388wmg.2
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 03:56:49 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When dumping labels in rule list we try to print a symbolic name.
-If we don't find one, we print the bit number instead.
+The comment_xlate function was not supporting this option that is
+necessary in some situations.
 
-This changes nft to also allow use of the number instead of a name
-when adding ct label rules so that such dumps can also be restored
-again.
-
-This is similar to other cases, e.g. skuid root vs skuid 0 which
-are both valid.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
+Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
 ---
- src/ct.c | 30 ++++++++++++++++++++++--------
- 1 file changed, 22 insertions(+), 8 deletions(-)
 
-diff --git a/src/ct.c b/src/ct.c
-index 3575596..018ca0b 100644
---- a/src/ct.c
-+++ b/src/ct.c
-@@ -13,13 +13,14 @@
- #include <stddef.h>
- #include <stdlib.h>
- #include <stdio.h>
--#include <stdint.h>
-+#include <inttypes.h>
- #include <string.h>
+Changes in v2:
+  - Ensure that the comment string is null-terminated.
+
+ extensions/libxt_comment.c | 11 ++++++++++-
+ iptables/nft-ipv4.c        |  2 +-
+ iptables/nft-ipv6.c        |  2 +-
+ 3 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/extensions/libxt_comment.c b/extensions/libxt_comment.c
+index 0e31edd..b635d16 100644
+--- a/extensions/libxt_comment.c
++++ b/extensions/libxt_comment.c
+@@ -52,9 +52,18 @@ static int comment_xlate(struct xt_xlate *xl,
+ 			 const struct xt_xlate_mt_params *params)
+ {
+ 	struct xt_comment_info *commentinfo = (void *)params->match->data;
++	char comment[XT_MAX_COMMENT_LEN];
  
- #include <linux/netfilter/nf_tables.h>
- #include <linux/netfilter/nf_conntrack_common.h>
- #include <linux/netfilter/nf_conntrack_tuple_common.h>
- 
-+#include <errno.h>
- #include <erec.h>
- #include <expression.h>
- #include <datatype.h>
-@@ -121,6 +122,7 @@ static struct error_record *ct_label_type_parse(const struct expr *sym,
- 	const struct symbolic_constant *s;
- 	const struct datatype *dtype;
- 	uint8_t data[CT_LABEL_BIT_SIZE];
-+	uint64_t bit;
- 	mpz_t value;
- 
- 	for (s = ct_label_tbl->symbols; s->identifier != NULL; s++) {
-@@ -129,16 +131,28 @@ static struct error_record *ct_label_type_parse(const struct expr *sym,
- 	}
- 
- 	dtype = sym->dtype;
--	if (s->identifier == NULL)
--		return error(&sym->location, "%s: could not parse %s \"%s\"",
--			     CONNLABEL_CONF, dtype->desc, sym->identifier);
-+	if (s->identifier == NULL) {
-+		char *ptr;
+ 	commentinfo->comment[XT_MAX_COMMENT_LEN - 1] = '\0';
+-	xt_xlate_add_comment(xl, commentinfo->comment);
++	if (params->escape_quotes)
++		snprintf(comment, XT_MAX_COMMENT_LEN, "\\\"%s\\\"",
++			 commentinfo->comment);
++	else
++		snprintf(comment, XT_MAX_COMMENT_LEN, "\"%s\"",
++			 commentinfo->comment);
 +
-+		errno = 0;
-+		bit = strtoull(sym->identifier, &ptr, 0);
-+		if (*ptr)
-+			return error(&sym->location, "%s: could not parse %s \"%s\"",
-+				     CONNLABEL_CONF, dtype->desc, sym->identifier);
-+		if (errno)
-+			return error(&sym->location, "%s: could not parse %s \"%s\": %s",
-+				     CONNLABEL_CONF, dtype->desc, sym->identifier, strerror(errno));
-+
-+	} else {
-+		bit = s->value;
-+	}
++	comment[XT_MAX_COMMENT_LEN - 1] = '\0';
++	xt_xlate_add_comment(xl, comment);
  
--	if (s->value >= CT_LABEL_BIT_SIZE)
--		return error(&sym->location, "%s: out of range (%u max)",
--			     s->identifier, s->value, CT_LABEL_BIT_SIZE);
-+	if (bit >= CT_LABEL_BIT_SIZE)
-+		return error(&sym->location, "%s: bit %" PRIu64 " out of range (%u max)",
-+			     sym->identifier, bit, CT_LABEL_BIT_SIZE);
+ 	return 1;
+ }
+diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
+index 50706cb..295dd42 100644
+--- a/iptables/nft-ipv4.c
++++ b/iptables/nft-ipv4.c
+@@ -490,7 +490,7 @@ static int nft_ipv4_xlate(const void *data, struct xt_xlate *xl)
  
- 	mpz_init2(value, dtype->size);
--	mpz_setbit(value, s->value);
-+	mpz_setbit(value, bit);
- 	mpz_export_data(data, value, BYTEORDER_HOST_ENDIAN, sizeof(data));
+ 	comment = xt_xlate_get_comment(xl);
+ 	if (comment)
+-		xt_xlate_add(xl, "comment \\\"%s\\\" ", comment);
++		xt_xlate_add(xl, "comment %s", comment);
  
- 	*res = constant_expr_alloc(&sym->location, dtype,
+ 	ret = xlate_action(cs, !!(cs->fw.ip.flags & IPT_F_GOTO), xl);
+ 
+diff --git a/iptables/nft-ipv6.c b/iptables/nft-ipv6.c
+index 8ca523c..8bebf6b 100644
+--- a/iptables/nft-ipv6.c
++++ b/iptables/nft-ipv6.c
+@@ -439,7 +439,7 @@ static int nft_ipv6_xlate(const void *data, struct xt_xlate *xl)
+ 
+ 	comment = xt_xlate_get_comment(xl);
+ 	if (comment)
+-		xt_xlate_add(xl, "comment \\\"%s\\\" ", comment);
++		xt_xlate_add(xl, "comment %s", comment);
+ 
+ 	ret = xlate_action(cs, !!(cs->fw6.ipv6.flags & IP6T_F_GOTO), xl);
+ 
 -- 
-2.7.3
+2.9.3
 
