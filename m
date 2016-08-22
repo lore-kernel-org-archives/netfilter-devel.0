@@ -1,46 +1,26 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: nf_tables: typo in trace attribute definition
-Date: Mon, 22 Aug 2016 11:37:36 +0200
-Message-ID: <1471858656-6553-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49840 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753485AbcHVJhs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Aug 2016 05:37:48 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 0C77A16417D
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 11:37:47 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id F0A5DFAB4F
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 11:37:46 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id ADAC8FAB4F
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 11:37:43 +0200 (CEST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: Re: [PATCH] netfilter: fix spelling mistake: "delimitter" ->
+ "delimiter"
+Date: Mon, 22 Aug 2016 11:43:46 +0200
+Message-ID: <20160822094346.GA10024@salvia>
+References: <1471535277-15554-1-git-send-email-colin.king@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
+        Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+        "David S . Miller" <davem@davemloft.net>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1471535277-15554-1-git-send-email-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Should be attributes, instead of attibutes, for consistency with other
-definitions.
+On Thu, Aug 18, 2016 at 04:47:57PM +0100, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+> 
+> trivial fix to spelling mistake in pr_debug message
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- include/uapi/linux/netfilter/nf_tables.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index 9841f79..6a7a9b7 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1071,7 +1071,7 @@ enum nft_gen_attributes {
-  * @NFTA_TRACE_NFPROTO: nf protocol processed (NLA_U32)
-  * @NFTA_TRACE_POLICY: policy that decided fate of packet (NLA_U32)
-  */
--enum nft_trace_attibutes {
-+enum nft_trace_attributes {
- 	NFTA_TRACE_UNSPEC,
- 	NFTA_TRACE_TABLE,
- 	NFTA_TRACE_CHAIN,
--- 
-2.1.4
-
+Applied.
