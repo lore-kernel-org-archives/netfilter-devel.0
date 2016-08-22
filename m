@@ -1,58 +1,66 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 3/4 V6 nft] test: shell: Add tests for deleting rule by
- description
-Date: Mon, 22 Aug 2016 18:27:19 +0200
-Message-ID: <20160822162719.GA13225@salvia>
-References: <20160821212210.26161-1-carlosfg@riseup.net>
- <20160821212210.26161-3-carlosfg@riseup.net>
- <20160822162050.GA9973@salvia>
- <20160822162146.GB9973@salvia>
+From: Brian Haley <brian.haley@hpe.com>
+Subject: [PATCH iptables] iptables-restore: add missing arguments to usage
+ message
+Date: Mon, 22 Aug 2016 14:47:15 -0400
+Message-ID: <7d2cbd95-2442-a2c2-4faa-e2da7f2f0507@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org
-To: Carlos Falgueras =?iso-8859-1?Q?Garc=EDa?= <carlosfg@riseup.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48774 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755650AbcHVQ1Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Aug 2016 12:27:24 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 283E01F18DA
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 18:27:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 198EFFB45D
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 18:27:23 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 46D00100A57
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 18:27:20 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20160822162146.GB9973@salvia>
+Received: from mail-by2nam03on0097.outbound.protection.outlook.com ([104.47.42.97]:37255
+        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752325AbcHVUTs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Aug 2016 16:19:48 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 22, 2016 at 06:21:46PM +0200, Pablo Neira Ayuso wrote:
-> Hi Carlos,
-> 
-> One of this test fails... so please send me a follow up to fix it.
-> 
-> W: [FAILED]     ./testcases/rule_management/0010delete-by-desc_0
-> 
-> This chunk also looks a bit strange to me.
-> 
-> set +e; # Next commands can return 0
-> REMAINS_RULE2DEL=$($NFT list -a ruleset | grep -c "$RULE2DEL")
-> REMAINS_RULES=$(( $($NFT list -a ruleset | wc -l) - 4 ))
-> set -e
-> 
-> Please, send me follow up patchset to fix this.
 
-Also hitting this.
+iptables-restore was missing -n, -T and -M from the
+usage message, added them to match the man page.
 
-rule.c: In function ‘rule_find_first’:
-rule.c:427:3: warning: implicit declaration of function
-‘nftnl_rule_cmp’ [-Wimplicit-function-declaration]
-   if (nftnl_rule_cmp(nlr1, nlr2))
-   ^
+Signed-off-by: Brian Haley <brian.haley@hpe.com>
 
-Sorry, I'm tossing this patchset, send a v7.
+diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
+index 9393924..dc0acb0 100644
+--- a/iptables/ip6tables-restore.c
++++ b/iptables/ip6tables-restore.c
+@@ -43,13 +43,14 @@ static void print_usage(const char *name, const char *version) __attribute__((no
+ 
+ static void print_usage(const char *name, const char *version)
+ {
+-	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h]\n"
++	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-T table] [-M command]\n"
+ 			"	   [ --counters ]\n"
+ 			"	   [ --verbose ]\n"
+ 			"	   [ --test ]\n"
+ 			"	   [ --help ]\n"
+ 			"	   [ --noflush ]\n"
+-			"          [ --modprobe=<command>]\n", name);
++			"	   [ --table=<TABLE> ]\n"
++			"          [ --modprobe=<command> ]\n", name);
+ 
+ 	exit(1);
+ }
+diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
+index 638b171..2f1522d 100644
+--- a/iptables/iptables-restore.c
++++ b/iptables/iptables-restore.c
+@@ -42,14 +42,14 @@ static void print_usage(const char *name, const char *version) __attribute__((no
+ 
+ static void print_usage(const char *name, const char *version)
+ {
+-	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h]\n"
++	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-T table] [-M command]\n"
+ 			"	   [ --counters ]\n"
+ 			"	   [ --verbose ]\n"
+ 			"	   [ --test ]\n"
+ 			"	   [ --help ]\n"
+ 			"	   [ --noflush ]\n"
+ 			"	   [ --table=<TABLE> ]\n"
+-			"          [ --modprobe=<command>]\n", name);
++			"          [ --modprobe=<command> ]\n", name);
+ 
+ 	exit(1);
+ }
