@@ -1,40 +1,43 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/1] netfilter: gre: Use the consitent GRE and PPTP
- struct instead of the structures defined in netfilter
-Date: Mon, 22 Aug 2016 11:22:09 +0200
-Message-ID: <20160822092209.GA2810@salvia>
-References: <1471618894-10582-1-git-send-email-fgao@ikuai8.com>
+Subject: Re: [PATCH v5] netfilter: nft_numgen: add number generator expression
+Date: Mon, 22 Aug 2016 11:32:19 +0200
+Message-ID: <20160822093219.GA5516@salvia>
+References: <20160818101310.GA27665@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
-        philipp@redfish-solutions.com, netdev@vger.kernel.org,
-        gfree.wind@gmail.com
-To: fgao@ikuai8.com
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Laura Garcia Liebana <nevola@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:48516 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751550AbcHVJc2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Aug 2016 05:32:28 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id A03161373AF
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 11:32:25 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 91A81FB45D
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 11:32:25 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9DCD5FB45D
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 11:32:20 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1471618894-10582-1-git-send-email-fgao@ikuai8.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <20160818101310.GA27665@sonyv>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Aug 19, 2016 at 11:01:34PM +0800, fgao@ikuai8.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
-> 
-> There are two structures which define the GRE header and PPTP
-> header. So it is unneccessary to define duplicated structures in
-> netfilter again.
+On Thu, Aug 18, 2016 at 12:13:13PM +0200, Laura Garcia Liebana wrote:
+> Add support for the number generator expression in netfilter.
 
-Please, split this change in smaller patches, I'd suggest one to
-replace GRE_* definitions and another to use generic GRE struct
-definitions, so this makes it is easier to review.
+Applied, thanks.
 
-> @@ -212,8 +212,8 @@ static bool gre_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
->  	if (!pgrehdr)
->  		return true;
->  
-> -	if (ntohs(grehdr->protocol) != GRE_PROTOCOL_PPTP) {
-> -		pr_debug("GRE_VERSION_PPTP but unknown proto\n");
-> +	if (grehdr->protocol != GRE_PROTO_PPP) {
-> +		pr_debug("Unknown GRE proto(0x%x)\n", ntohs(grehdr->protocol));
+I have rewritten the description to something larger. Writing larger
+description is good for the record, specifically it is good to
+indicate their purpose.
 
-Something is fishy here, grehdr->protocol used to have ntohs(), the
-pr_debug() still has it while the branch check does not.
+I have fixed this minor glitch here too.
+
+net/netfilter/nft_numgen.c:43:25: warning: symbol 'nft_ng_policy' was
+not declared. Should it be static?
+
+Thanks Laura!
