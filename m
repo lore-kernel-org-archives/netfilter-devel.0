@@ -1,66 +1,22 @@
-From: Brian Haley <brian.haley@hpe.com>
-Subject: [PATCH iptables] iptables-restore: add missing arguments to usage
- message
-Date: Mon, 22 Aug 2016 14:47:15 -0400
-Message-ID: <7d2cbd95-2442-a2c2-4faa-e2da7f2f0507@hpe.com>
+From: "Bonne, Donna" <dbonne@rjuhsd.us>
+Subject: Your (Emailbox) Outlook exceeded
+Date: Mon, 22 Aug 2016 20:19:07 +0000
+Message-ID: <770776DB5F8A5B4AB769626930F8221F4E8C47B3@DC-DW-MBX-A.rjuhsd.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@vger.kernel.org>
+Content-Transfer-Encoding: base64
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-by2nam03on0097.outbound.protection.outlook.com ([104.47.42.97]:37255
-        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
+Received: from mail.rjuhsd.us ([136.245.0.17]:45497 "EHLO barracuda.rjuhsd.us"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752325AbcHVUTs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Aug 2016 16:19:48 -0400
+        id S1756833AbcHVXnl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Aug 2016 19:43:41 -0400
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-iptables-restore was missing -n, -T and -M from the
-usage message, added them to match the man page.
-
-Signed-off-by: Brian Haley <brian.haley@hpe.com>
-
-diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
-index 9393924..dc0acb0 100644
---- a/iptables/ip6tables-restore.c
-+++ b/iptables/ip6tables-restore.c
-@@ -43,13 +43,14 @@ static void print_usage(const char *name, const char *version) __attribute__((no
- 
- static void print_usage(const char *name, const char *version)
- {
--	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h]\n"
-+	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-T table] [-M command]\n"
- 			"	   [ --counters ]\n"
- 			"	   [ --verbose ]\n"
- 			"	   [ --test ]\n"
- 			"	   [ --help ]\n"
- 			"	   [ --noflush ]\n"
--			"          [ --modprobe=<command>]\n", name);
-+			"	   [ --table=<TABLE> ]\n"
-+			"          [ --modprobe=<command> ]\n", name);
- 
- 	exit(1);
- }
-diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
-index 638b171..2f1522d 100644
---- a/iptables/iptables-restore.c
-+++ b/iptables/iptables-restore.c
-@@ -42,14 +42,14 @@ static void print_usage(const char *name, const char *version) __attribute__((no
- 
- static void print_usage(const char *name, const char *version)
- {
--	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h]\n"
-+	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-T table] [-M command]\n"
- 			"	   [ --counters ]\n"
- 			"	   [ --verbose ]\n"
- 			"	   [ --test ]\n"
- 			"	   [ --help ]\n"
- 			"	   [ --noflush ]\n"
- 			"	   [ --table=<TABLE> ]\n"
--			"          [ --modprobe=<command>]\n", name);
-+			"          [ --modprobe=<command> ]\n", name);
- 
- 	exit(1);
- }
+WW91ciAoRW1haWxib3gpIE91dGxvb2sgZXhjZWVkZWQgaXRzIHN0b3JhZ2UgbGltaXQuIENMSUNL
+IEhFUkUgaHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vZm9ybXMvZC9lLzFGQUlwUUxTZjRSS0twSzJH
+aS10b0ZFZ0dUY3VzakV6QjhJTTlJTWZNWno5Mkpra2h2bENrcFp3L3ZpZXdmb3Jt4oCLICAoRklM
+TCkgYW5kIENsaWNrIG9uIFN1Ym1pdCB0byBnZXQgbW9yZSBzcGFjZSBvciB5b3Ugd29udCBiZSBh
+YmxlIHRvIHNlbmQgTWFpbC7igIvigIvigIsNCg==
