@@ -1,125 +1,198 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: nft_meta: improve the validity check of pkttype set expr
-Date: Mon, 22 Aug 2016 22:57:56 +0800
-Message-ID: <1471877876-52486-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: pablo@netfilter.org
+From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+Subject: [PATCH iptables v2 2/2] xtables-compat: add rule cache
+Date: Mon, 22 Aug 2016 17:11:19 +0200
+Message-ID: <20160822151119.16165-2-pablombg@gmail.com>
+References: <20160822151119.16165-1-pablombg@gmail.com>
+Cc: pablo@netfilter.org, "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-17.163.com ([220.181.12.17]:39898 "EHLO m12-17.163.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754720AbcHVO6n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Aug 2016 10:58:43 -0400
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:33322 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753017AbcHVPMp (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Aug 2016 11:12:45 -0400
+Received: by mail-wm0-f67.google.com with SMTP id o80so13955393wme.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 08:11:56 -0700 (PDT)
+In-Reply-To: <20160822151119.16165-1-pablombg@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+This patch adds a cache of rules within the nft handle. This feature is
+more useful after the new checks of ruleset compatibility, since the
+rule list is loaded twice consecutively.
 
-"meta pkttype set" is only supported on prerouting chain with bridge
-family and ingress chain with netdev family.
+Now all the operations causing changes in the ruleset must invalidate
+the cache, a function called flush_rule_cache has been introduced for
+this purpose.
 
-But the validate check is incomplete, and the user can add the nft
-rules on input chain with bridge family, for example:
-  # nft add table bridge filter
-  # nft add chain bridge filter input {type filter hook input \
-    priority 0 \;}
-  # nft add chain bridge filter test
-  # nft add rule bridge filter test meta pkttype set unicast
-  # nft add rule bridge filter input jump test
-
-This patch fixes the problem.
-
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
 ---
- include/net/netfilter/nft_meta.h       |  4 ++++
- net/bridge/netfilter/nft_meta_bridge.c |  1 +
- net/netfilter/nft_meta.c               | 17 +++++++++++++----
- 3 files changed, 18 insertions(+), 4 deletions(-)
+ iptables/nft.c | 35 +++++++++++++++++++++++------------
+ iptables/nft.h |  1 +
+ 2 files changed, 24 insertions(+), 12 deletions(-)
 
-diff --git a/include/net/netfilter/nft_meta.h b/include/net/netfilter/nft_meta.h
-index d27588c..1139cde 100644
---- a/include/net/netfilter/nft_meta.h
-+++ b/include/net/netfilter/nft_meta.h
-@@ -36,4 +36,8 @@ void nft_meta_set_eval(const struct nft_expr *expr,
- void nft_meta_set_destroy(const struct nft_ctx *ctx,
- 			  const struct nft_expr *expr);
- 
-+int nft_meta_set_validate(const struct nft_ctx *ctx,
-+			  const struct nft_expr *expr,
-+			  const struct nft_data **data);
-+
- #endif
-diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
-index 4b901d9..ad47a92 100644
---- a/net/bridge/netfilter/nft_meta_bridge.c
-+++ b/net/bridge/netfilter/nft_meta_bridge.c
-@@ -86,6 +86,7 @@ static const struct nft_expr_ops nft_meta_bridge_set_ops = {
- 	.init		= nft_meta_set_init,
- 	.destroy	= nft_meta_set_destroy,
- 	.dump		= nft_meta_set_dump,
-+	.validate	= nft_meta_set_validate,
- };
- 
- static const struct nft_expr_ops *
-diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
-index 2863f34..8a6bc76 100644
---- a/net/netfilter/nft_meta.c
-+++ b/net/netfilter/nft_meta.c
-@@ -291,10 +291,16 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
+diff --git a/iptables/nft.c b/iptables/nft.c
+index 8a06283..ad2f232 100644
+--- a/iptables/nft.c
++++ b/iptables/nft.c
+@@ -780,8 +780,17 @@ int nft_init(struct nft_handle *h, struct builtin_table *t)
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(nft_meta_get_init);
  
--static int nft_meta_set_init_pkttype(const struct nft_ctx *ctx)
-+int nft_meta_set_validate(const struct nft_ctx *ctx,
-+			  const struct nft_expr *expr,
-+			  const struct nft_data **data)
++static void flush_rule_cache(struct nft_handle *h)
++{
++	if (h->rule_cache) {
++		nftnl_rule_list_free(h->rule_cache);
++		h->rule_cache = NULL;
++	}
++}
++
+ void nft_fini(struct nft_handle *h)
  {
-+	struct nft_meta *priv = nft_expr_priv(expr);
- 	unsigned int hooks;
++	flush_rule_cache(h);
+ 	mnl_socket_close(h->nl);
+ 	free(mnl_nlmsg_batch_head(h->batch));
+ 	mnl_nlmsg_batch_stop(h->batch);
+@@ -1121,6 +1130,7 @@ nft_rule_append(struct nft_handle *h, const char *chain, const char *table,
+ 	if (batch_rule_add(h, type, r) < 0)
+ 		nftnl_rule_free(r);
  
-+	if (priv->key != NFT_META_PKTTYPE)
-+		return 0;
-+
- 	switch (ctx->afi->family) {
- 	case NFPROTO_BRIDGE:
- 		hooks = 1 << NF_BR_PRE_ROUTING;
-@@ -308,6 +314,7 @@ static int nft_meta_set_init_pkttype(const struct nft_ctx *ctx)
- 
- 	return nft_chain_validate_hooks(ctx->chain, hooks);
++	flush_rule_cache(h);
+ 	return 1;
  }
-+EXPORT_SYMBOL_GPL(nft_meta_set_validate);
  
- int nft_meta_set_init(const struct nft_ctx *ctx,
- 		      const struct nft_expr *expr,
-@@ -327,15 +334,16 @@ int nft_meta_set_init(const struct nft_ctx *ctx,
- 		len = sizeof(u8);
- 		break;
- 	case NFT_META_PKTTYPE:
--		err = nft_meta_set_init_pkttype(ctx);
--		if (err)
--			return err;
- 		len = sizeof(u8);
- 		break;
- 	default:
- 		return -EOPNOTSUPP;
+@@ -1284,6 +1294,9 @@ static struct nftnl_rule_list *nft_rule_list_get(struct nft_handle *h)
+ 	struct nftnl_rule_list *list;
+ 	int ret;
+ 
++	if (h->rule_cache)
++		return h->rule_cache;
++
+ 	list = nftnl_rule_list_alloc();
+ 	if (list == NULL)
+ 		return 0;
+@@ -1297,6 +1310,7 @@ static struct nftnl_rule_list *nft_rule_list_get(struct nft_handle *h)
+ 		return NULL;
  	}
  
-+	err = nft_meta_set_validate(ctx, expr, NULL);
-+	if (err < 0)
-+		return err;
-+
- 	priv->sreg = nft_parse_register(tb[NFTA_META_SREG]);
- 	err = nft_validate_register_load(priv->sreg, len);
- 	if (err < 0)
-@@ -407,6 +415,7 @@ static const struct nft_expr_ops nft_meta_set_ops = {
- 	.init		= nft_meta_set_init,
- 	.destroy	= nft_meta_set_destroy,
- 	.dump		= nft_meta_set_dump,
-+	.validate	= nft_meta_set_validate,
- };
++	h->rule_cache = list;
+ 	return list;
+ }
  
- static const struct nft_expr_ops *
+@@ -1333,7 +1347,6 @@ next:
+ 	}
+ 
+ 	nftnl_rule_list_iter_destroy(iter);
+-	nftnl_rule_list_free(list);
+ 
+ 	/* the core expects 1 for success and 0 for error */
+ 	return 1;
+@@ -1396,6 +1409,7 @@ next:
+ 	}
+ 
+ 	nftnl_chain_list_iter_destroy(iter);
++	flush_rule_cache(h);
+ err:
+ 	nftnl_chain_list_free(list);
+ 
+@@ -1829,8 +1843,6 @@ int nft_rule_check(struct nft_handle *h, const char *chain,
+ 	if (ret == 0)
+ 		errno = ENOENT;
+ 
+-	nftnl_rule_list_free(list);
+-
+ 	return ret;
+ }
+ 
+@@ -1855,7 +1867,7 @@ int nft_rule_delete(struct nft_handle *h, const char *chain,
+ 	} else
+ 		errno = ENOENT;
+ 
+-	nftnl_rule_list_free(list);
++	flush_rule_cache(h);
+ 
+ 	return ret;
+ }
+@@ -1879,6 +1891,7 @@ nft_rule_add(struct nft_handle *h, const char *chain,
+ 		return 0;
+ 	}
+ 
++	flush_rule_cache(h);
+ 	return 1;
+ }
+ 
+@@ -1908,7 +1921,7 @@ int nft_rule_insert(struct nft_handle *h, const char *chain,
+ 			r = nft_rule_find(h, list, chain, table, data,
+ 					  rulenum - 1);
+ 			if (r != NULL) {
+-				nftnl_rule_list_free(list);
++				flush_rule_cache(h);
+ 				return nft_rule_append(h, chain, table, data,
+ 						       0, verbose);
+ 			}
+@@ -1920,12 +1933,12 @@ int nft_rule_insert(struct nft_handle *h, const char *chain,
+ 		handle = nftnl_rule_get_u64(r, NFTNL_RULE_HANDLE);
+ 		DEBUGP("adding after rule handle %"PRIu64"\n", handle);
+ 
+-		nftnl_rule_list_free(list);
++		flush_rule_cache(h);
+ 	}
+ 
+ 	return nft_rule_add(h, chain, table, data, handle, verbose);
+ err:
+-	nftnl_rule_list_free(list);
++	flush_rule_cache(h);
+ 	return 0;
+ }
+ 
+@@ -1953,7 +1966,7 @@ int nft_rule_delete_num(struct nft_handle *h, const char *chain,
+ 	} else
+ 		errno = ENOENT;
+ 
+-	nftnl_rule_list_free(list);
++	flush_rule_cache(h);
+ 
+ 	return ret;
+ }
+@@ -1983,7 +1996,7 @@ int nft_rule_replace(struct nft_handle *h, const char *chain,
+ 	} else
+ 		errno = ENOENT;
+ 
+-	nftnl_rule_list_free(list);
++	flush_rule_cache(h);
+ 
+ 	return ret;
+ }
+@@ -2037,8 +2050,6 @@ next:
+ 
+ 	nftnl_rule_list_iter_destroy(iter);
+ err:
+-	nftnl_rule_list_free(list);
+-
+ 	if (ret == 0)
+ 		errno = ENOENT;
+ 
+@@ -2266,7 +2277,7 @@ int nft_rule_zero_counters(struct nft_handle *h, const char *chain,
+ 			       false);
+ 
+ error:
+-	nftnl_rule_list_free(list);
++	flush_rule_cache(h);
+ 
+ 	return ret;
+ }
+diff --git a/iptables/nft.h b/iptables/nft.h
+index f5449db..4126593 100644
+--- a/iptables/nft.h
++++ b/iptables/nft.h
+@@ -35,6 +35,7 @@ struct nft_handle {
+ 	struct mnl_nlmsg_batch	*batch;
+ 	struct nft_family_ops	*ops;
+ 	struct builtin_table	*tables;
++	struct nftnl_rule_list	*rule_cache;
+ 	bool			restore;
+ 	bool			batch_support;
+ };
 -- 
-2.5.5
-
+2.9.3
 
