@@ -1,68 +1,124 @@
 From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf 3/3] netfilter: cttimeout: unlink timeout objs in the unconfirmed ct lists
-Date: Mon, 22 Aug 2016 21:58:18 +0800
-Message-ID: <1471874298-20503-3-git-send-email-zlpnobody@163.com>
-References: <1471874298-20503-1-git-send-email-zlpnobody@163.com>
+Subject: [PATCH nf] netfilter: nft_meta: improve the validity check of pkttype set expr
+Date: Mon, 22 Aug 2016 22:57:56 +0800
+Message-ID: <1471877876-52486-1-git-send-email-zlpnobody@163.com>
 Cc: netfilter-devel@vger.kernel.org,
         Liping Zhang <liping.zhang@spreadtrum.com>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-18.163.com ([220.181.12.18]:52082 "EHLO m12-18.163.com"
+Received: from m12-17.163.com ([220.181.12.17]:39898 "EHLO m12-17.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755278AbcHVN7R (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Aug 2016 09:59:17 -0400
-In-Reply-To: <1471874298-20503-1-git-send-email-zlpnobody@163.com>
+        id S1754720AbcHVO6n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Aug 2016 10:58:43 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-KASAN reported this bug:
-  BUG: KASAN: use-after-free in icmp_packet+0x25/0x50 [nf_conntrack_ipv4] at
-  addr ffff880002db08c8
-  Read of size 4 by task lt-nf-queue/19041
-  Call Trace:
-  <IRQ>  [<ffffffff815eeebb>] dump_stack+0x63/0x88
-  [<ffffffff813386f8>] kasan_report_error+0x528/0x560
-  [<ffffffff81338cc8>] kasan_report+0x58/0x60
-  [<ffffffffa07393f5>] ? icmp_packet+0x25/0x50 [nf_conntrack_ipv4]
-  [<ffffffff81337551>] __asan_load4+0x61/0x80
-  [<ffffffffa07393f5>] icmp_packet+0x25/0x50 [nf_conntrack_ipv4]
-  [<ffffffffa06ecaa0>] nf_conntrack_in+0x550/0x980 [nf_conntrack]
-  [<ffffffffa06ec550>] ? __nf_conntrack_confirm+0xb10/0xb10 [nf_conntrack]
-  [ ... ]
+"meta pkttype set" is only supported on prerouting chain with bridge
+family and ingress chain with netdev family.
 
-The main reason is that we missed to unlink the timeout objects in the
-unconfirmed ct lists, so we will access the timeout objects that have
-already been freed.
+But the validate check is incomplete, and the user can add the nft
+rules on input chain with bridge family, for example:
+  # nft add table bridge filter
+  # nft add chain bridge filter input {type filter hook input \
+    priority 0 \;}
+  # nft add chain bridge filter test
+  # nft add rule bridge filter test meta pkttype set unicast
+  # nft add rule bridge filter input jump test
+
+This patch fixes the problem.
 
 Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
 ---
- net/netfilter/nfnetlink_cttimeout.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ include/net/netfilter/nft_meta.h       |  4 ++++
+ net/bridge/netfilter/nft_meta_bridge.c |  1 +
+ net/netfilter/nft_meta.c               | 17 +++++++++++++----
+ 3 files changed, 18 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index 6844c7a..139e086 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -302,7 +302,16 @@ static void ctnl_untimeout(struct net *net, struct ctnl_timeout *timeout)
- 	const struct hlist_nulls_node *nn;
- 	unsigned int last_hsize;
- 	spinlock_t *lock;
--	int i;
-+	int i, cpu;
-+
-+	for_each_possible_cpu(cpu) {
-+		struct ct_pcpu *pcpu = per_cpu_ptr(net->ct.pcpu_lists, cpu);
-+
-+		spin_lock_bh(&pcpu->lock);
-+		hlist_nulls_for_each_entry(h, nn, &pcpu->unconfirmed, hnnode)
-+			untimeout(h, timeout);
-+		spin_unlock_bh(&pcpu->lock);
-+	}
+diff --git a/include/net/netfilter/nft_meta.h b/include/net/netfilter/nft_meta.h
+index d27588c..1139cde 100644
+--- a/include/net/netfilter/nft_meta.h
++++ b/include/net/netfilter/nft_meta.h
+@@ -36,4 +36,8 @@ void nft_meta_set_eval(const struct nft_expr *expr,
+ void nft_meta_set_destroy(const struct nft_ctx *ctx,
+ 			  const struct nft_expr *expr);
  
- 	local_bh_disable();
- restart:
++int nft_meta_set_validate(const struct nft_ctx *ctx,
++			  const struct nft_expr *expr,
++			  const struct nft_data **data);
++
+ #endif
+diff --git a/net/bridge/netfilter/nft_meta_bridge.c b/net/bridge/netfilter/nft_meta_bridge.c
+index 4b901d9..ad47a92 100644
+--- a/net/bridge/netfilter/nft_meta_bridge.c
++++ b/net/bridge/netfilter/nft_meta_bridge.c
+@@ -86,6 +86,7 @@ static const struct nft_expr_ops nft_meta_bridge_set_ops = {
+ 	.init		= nft_meta_set_init,
+ 	.destroy	= nft_meta_set_destroy,
+ 	.dump		= nft_meta_set_dump,
++	.validate	= nft_meta_set_validate,
+ };
+ 
+ static const struct nft_expr_ops *
+diff --git a/net/netfilter/nft_meta.c b/net/netfilter/nft_meta.c
+index 2863f34..8a6bc76 100644
+--- a/net/netfilter/nft_meta.c
++++ b/net/netfilter/nft_meta.c
+@@ -291,10 +291,16 @@ int nft_meta_get_init(const struct nft_ctx *ctx,
+ }
+ EXPORT_SYMBOL_GPL(nft_meta_get_init);
+ 
+-static int nft_meta_set_init_pkttype(const struct nft_ctx *ctx)
++int nft_meta_set_validate(const struct nft_ctx *ctx,
++			  const struct nft_expr *expr,
++			  const struct nft_data **data)
+ {
++	struct nft_meta *priv = nft_expr_priv(expr);
+ 	unsigned int hooks;
+ 
++	if (priv->key != NFT_META_PKTTYPE)
++		return 0;
++
+ 	switch (ctx->afi->family) {
+ 	case NFPROTO_BRIDGE:
+ 		hooks = 1 << NF_BR_PRE_ROUTING;
+@@ -308,6 +314,7 @@ static int nft_meta_set_init_pkttype(const struct nft_ctx *ctx)
+ 
+ 	return nft_chain_validate_hooks(ctx->chain, hooks);
+ }
++EXPORT_SYMBOL_GPL(nft_meta_set_validate);
+ 
+ int nft_meta_set_init(const struct nft_ctx *ctx,
+ 		      const struct nft_expr *expr,
+@@ -327,15 +334,16 @@ int nft_meta_set_init(const struct nft_ctx *ctx,
+ 		len = sizeof(u8);
+ 		break;
+ 	case NFT_META_PKTTYPE:
+-		err = nft_meta_set_init_pkttype(ctx);
+-		if (err)
+-			return err;
+ 		len = sizeof(u8);
+ 		break;
+ 	default:
+ 		return -EOPNOTSUPP;
+ 	}
+ 
++	err = nft_meta_set_validate(ctx, expr, NULL);
++	if (err < 0)
++		return err;
++
+ 	priv->sreg = nft_parse_register(tb[NFTA_META_SREG]);
+ 	err = nft_validate_register_load(priv->sreg, len);
+ 	if (err < 0)
+@@ -407,6 +415,7 @@ static const struct nft_expr_ops nft_meta_set_ops = {
+ 	.init		= nft_meta_set_init,
+ 	.destroy	= nft_meta_set_destroy,
+ 	.dump		= nft_meta_set_dump,
++	.validate	= nft_meta_set_validate,
+ };
+ 
+ static const struct nft_expr_ops *
 -- 
 2.5.5
 
