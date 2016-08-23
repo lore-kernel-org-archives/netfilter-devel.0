@@ -1,63 +1,87 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables v2 2/2] xtables-translate-restore: do not escape
- quotes
-Date: Tue, 23 Aug 2016 14:07:50 +0200
-Message-ID: <20160823120750.GA27760@salvia>
-References: <20160822105615.32483-1-pablombg@gmail.com>
- <20160822105615.32483-2-pablombg@gmail.com>
+Subject: Re: [PATCH iptables] iptables-restore: add missing arguments to
+ usage message
+Date: Tue, 23 Aug 2016 14:10:31 +0200
+Message-ID: <20160823121031.GA27842@salvia>
+References: <7d2cbd95-2442-a2c2-4faa-e2da7f2f0507@hpe.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+To: Brian Haley <brian.haley@hpe.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41288 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:41950 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753295AbcHWMJ0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Aug 2016 08:09:26 -0400
+        id S1752443AbcHWMLv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 23 Aug 2016 08:11:51 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 3FBE0B6C7E
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Aug 2016 14:07:57 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 73311B6C7E
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Aug 2016 14:10:41 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 303B1CE14C
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Aug 2016 14:07:57 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 61D92114D61
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Aug 2016 14:10:41 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 189DC114D76
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Aug 2016 14:07:55 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 8BFA29663F
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Aug 2016 14:10:32 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <20160822105615.32483-2-pablombg@gmail.com>
+In-Reply-To: <7d2cbd95-2442-a2c2-4faa-e2da7f2f0507@hpe.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 22, 2016 at 12:56:15PM +0200, Pablo M. Bermudo Garay wrote:
-> If quotes are escaped, nft -f is unable to parse and load the translated
-> ruleset.
+On Mon, Aug 22, 2016 at 02:47:15PM -0400, Brian Haley wrote:
 > 
-> Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
-> ---
+> iptables-restore was missing -n, -T and -M from the
+> usage message, added them to match the man page.
 > 
-> Changes in v2:
->   - Do not use strcmp against 'program_name' global, propagate 'bool restore'
->     argument instead.
+> Signed-off-by: Brian Haley <brian.haley@hpe.com>
 > 
->  iptables/nft-ipv4.c          |  6 +++---
->  iptables/nft-ipv6.c          |  7 ++++---
->  iptables/nft-shared.h        |  2 +-
->  iptables/nft.h               |  5 +++--
->  iptables/xtables-translate.c | 28 ++++++++++++++++++----------
->  5 files changed, 29 insertions(+), 19 deletions(-)
-> 
-> diff --git a/iptables/nft-ipv4.c b/iptables/nft-ipv4.c
-> index 295dd42..362036c 100644
-> --- a/iptables/nft-ipv4.c
-> +++ b/iptables/nft-ipv4.c
-> @@ -438,7 +438,7 @@ static void nft_ipv4_save_counters(const void *data)
->  	save_counters(cs->counters.pcnt, cs->counters.bcnt);
->  }
+> diff --git a/iptables/ip6tables-restore.c b/iptables/ip6tables-restore.c
+> index 9393924..dc0acb0 100644
+> --- a/iptables/ip6tables-restore.c
+> +++ b/iptables/ip6tables-restore.c
+> @@ -43,13 +43,14 @@ static void print_usage(const char *name, const char *version) __attribute__((no
 >  
-> -static int nft_ipv4_xlate(const void *data, struct xt_xlate *xl)
-> +static int nft_ipv4_xlate(const void *data, struct xt_xlate *xl, bool restore)
+>  static void print_usage(const char *name, const char *version)
+>  {
+> -	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h]\n"
+> +	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-T table] [-M command]\n"
 
-You better place this 'restore' as a field in iptables_command_state?
+Could you also propagate these changes to iptables/xtables-restore.c?
 
-This would require a bit of changes in iptables and ip6tables, but
-that sounds reasonable to me.
+Thanks!
+
+>  			"	   [ --counters ]\n"
+>  			"	   [ --verbose ]\n"
+>  			"	   [ --test ]\n"
+>  			"	   [ --help ]\n"
+>  			"	   [ --noflush ]\n"
+> -			"          [ --modprobe=<command>]\n", name);
+> +			"	   [ --table=<TABLE> ]\n"
+> +			"          [ --modprobe=<command> ]\n", name);
+>  
+>  	exit(1);
+>  }
+> diff --git a/iptables/iptables-restore.c b/iptables/iptables-restore.c
+> index 638b171..2f1522d 100644
+> --- a/iptables/iptables-restore.c
+> +++ b/iptables/iptables-restore.c
+> @@ -42,14 +42,14 @@ static void print_usage(const char *name, const char *version) __attribute__((no
+>  
+>  static void print_usage(const char *name, const char *version)
+>  {
+> -	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h]\n"
+> +	fprintf(stderr, "Usage: %s [-c] [-v] [-t] [-h] [-n] [-T table] [-M command]\n"
+>  			"	   [ --counters ]\n"
+>  			"	   [ --verbose ]\n"
+>  			"	   [ --test ]\n"
+>  			"	   [ --help ]\n"
+>  			"	   [ --noflush ]\n"
+>  			"	   [ --table=<TABLE> ]\n"
+> -			"          [ --modprobe=<command>]\n", name);
+> +			"          [ --modprobe=<command> ]\n", name);
+>  
+>  	exit(1);
+>  }
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
