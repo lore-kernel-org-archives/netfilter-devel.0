@@ -1,122 +1,63 @@
-From: fgao@ikuai8.com
-Subject: [PATCH v2 1/2 net-next] netfilter: gre: Use consistent GRE_* macros instead of ones defined by netfilter.
-Date: Tue, 23 Aug 2016 10:20:00 +0800
-Message-ID: <1471918800-5095-1-git-send-email-fgao@ikuai8.com>
-Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-        netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+From: Kevin Cernekee <cernekee@chromium.org>
+Subject: Re: Snooping expected connections in a user CT helper
+Date: Mon, 22 Aug 2016 20:34:41 -0700
+Message-ID: <CAJzqFtaj3V2viTtNjhoG5zPsz0XkPXi9XULRwz1PGOe3imq_XA@mail.gmail.com>
+References: <CAJzqFtacjKi+zQT3nS_0UJAr=LD8RWumM5+jeo8bbi-OVZR0Jg@mail.gmail.com>
+ <20160818011214.GA1463@salvia>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org, ashley.hughes@blueyonder.co.uk,
+        arequipeno@gmail.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from SMTPBG181.QQ.COM ([119.147.193.88]:45165 "EHLO smtpbg181.qq.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753175AbcHWC27 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Aug 2016 22:28:59 -0400
+Received: from mail-it0-f53.google.com ([209.85.214.53]:35528 "EHLO
+        mail-it0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751168AbcHWDfE (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 22 Aug 2016 23:35:04 -0400
+Received: by mail-it0-f53.google.com with SMTP id x131so125047459ite.0
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 20:35:04 -0700 (PDT)
+Received: from mail-it0-f49.google.com (mail-it0-f49.google.com. [209.85.214.49])
+        by smtp.gmail.com with ESMTPSA id o201sm738100iod.16.2016.08.22.20.35.02
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 22 Aug 2016 20:35:02 -0700 (PDT)
+Received: by mail-it0-f49.google.com with SMTP id e63so125101782ith.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 20:35:02 -0700 (PDT)
+In-Reply-To: <20160818011214.GA1463@salvia>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+On Wed, Aug 17, 2016 at 6:12 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Looking at ctnetlink, it should be possible to make it via
+> CTA_EXPECT_HELP_NAME. Thus, by when we find a matching expectation,
+> the helper is set to this new connection too.
+>
+> See line 1086 in nf_conntrack_core.c.
 
-There are already some GRE_* macros in kernel, so it is unnecessary
-to define these macros. And remove some useless macros
+Thanks, that works.  After setting the helper string, my callback is
+invoked for the replies.
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- v2: Split the original patch to review easily
- v1: Intial patch
+I'm running into a couple of other issues with the existing ssdp helper, though:
 
- include/linux/netfilter/nf_conntrack_proto_gre.h | 22 ++--------------------
- include/uapi/linux/if_tunnel.h                   |  1 +
- net/ipv4/netfilter/nf_nat_proto_gre.c            |  4 ++--
- net/netfilter/nf_conntrack_proto_gre.c           |  4 ++--
- 4 files changed, 7 insertions(+), 24 deletions(-)
+1) The code does not call cthelper_add_expect().  Nor do some of the
+other helpers, such as sane.  When I use a restrictive firewall
+configuration, the expectation is never created (according to
+`conntrack -L expect`) and all of the incoming SSDP replies are
+dropped.  Adding a call to cthelper_add_expect() fixes this.  Do we
+know the circumstances under which the current master branch is
+expected to work properly?
 
-diff --git a/include/linux/netfilter/nf_conntrack_proto_gre.h b/include/linux/netfilter/nf_conntrack_proto_gre.h
-index df78dc2..0189747 100644
---- a/include/linux/netfilter/nf_conntrack_proto_gre.h
-+++ b/include/linux/netfilter/nf_conntrack_proto_gre.h
-@@ -1,29 +1,11 @@
- #ifndef _CONNTRACK_PROTO_GRE_H
- #define _CONNTRACK_PROTO_GRE_H
- #include <asm/byteorder.h>
-+#include <net/gre.h>
-+#include <net/pptp.h>
- 
- /* GRE PROTOCOL HEADER */
- 
--/* GRE Version field */
--#define GRE_VERSION_1701	0x0
--#define GRE_VERSION_PPTP	0x1
--
--/* GRE Protocol field */
--#define GRE_PROTOCOL_PPTP	0x880B
--
--/* GRE Flags */
--#define GRE_FLAG_C		0x80
--#define GRE_FLAG_R		0x40
--#define GRE_FLAG_K		0x20
--#define GRE_FLAG_S		0x10
--#define GRE_FLAG_A		0x80
--
--#define GRE_IS_C(f)	((f)&GRE_FLAG_C)
--#define GRE_IS_R(f)	((f)&GRE_FLAG_R)
--#define GRE_IS_K(f)	((f)&GRE_FLAG_K)
--#define GRE_IS_S(f)	((f)&GRE_FLAG_S)
--#define GRE_IS_A(f)	((f)&GRE_FLAG_A)
--
- /* GRE is a mess: Four different standards */
- struct gre_hdr {
- #if defined(__LITTLE_ENDIAN_BITFIELD)
-diff --git a/include/uapi/linux/if_tunnel.h b/include/uapi/linux/if_tunnel.h
-index 361b9f0..1b27e2c 100644
---- a/include/uapi/linux/if_tunnel.h
-+++ b/include/uapi/linux/if_tunnel.h
-@@ -36,6 +36,7 @@
- #define GRE_IS_REC(f)		((f) & GRE_REC)
- #define GRE_IS_ACK(f)		((f) & GRE_ACK)
- 
-+#define GRE_VERSION_0		__cpu_to_be16(0x0000)
- #define GRE_VERSION_1		__cpu_to_be16(0x0001)
- #define GRE_PROTO_PPP		__cpu_to_be16(0x880b)
- #define GRE_PPTP_KEY_MASK	__cpu_to_be32(0xffff)
-diff --git a/net/ipv4/netfilter/nf_nat_proto_gre.c b/net/ipv4/netfilter/nf_nat_proto_gre.c
-index 9414923..93198d7 100644
---- a/net/ipv4/netfilter/nf_nat_proto_gre.c
-+++ b/net/ipv4/netfilter/nf_nat_proto_gre.c
-@@ -104,11 +104,11 @@ gre_manip_pkt(struct sk_buff *skb,
- 	if (maniptype != NF_NAT_MANIP_DST)
- 		return true;
- 	switch (greh->version) {
--	case GRE_VERSION_1701:
-+	case ntohs(GRE_VERSION_0):
- 		/* We do not currently NAT any GREv0 packets.
- 		 * Try to behave like "nf_nat_proto_unknown" */
- 		break;
--	case GRE_VERSION_PPTP:
-+	case ntohs(GRE_VERSION_1):
- 		pr_debug("call_id -> 0x%04x\n", ntohs(tuple->dst.u.gre.key));
- 		pgreh->call_id = tuple->dst.u.gre.key;
- 		break;
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index a96451a..deb239a 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -200,7 +200,7 @@ static bool gre_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
- 
- 	/* first only delinearize old RFC1701 GRE header */
- 	grehdr = skb_header_pointer(skb, dataoff, sizeof(_grehdr), &_grehdr);
--	if (!grehdr || grehdr->version != GRE_VERSION_PPTP) {
-+	if (!grehdr || grehdr->version != ntohs(GRE_VERSION_1)) {
- 		/* try to behave like "nf_conntrack_proto_generic" */
- 		tuple->src.u.all = 0;
- 		tuple->dst.u.all = 0;
-@@ -212,7 +212,7 @@ static bool gre_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
- 	if (!pgrehdr)
- 		return true;
- 
--	if (ntohs(grehdr->protocol) != GRE_PROTOCOL_PPTP) {
-+	if (grehdr->protocol != GRE_PROTO_PPP) {
- 		pr_debug("GRE_VERSION_PPTP but unknown proto\n");
- 		return false;
- 	}
--- 
-1.9.1
+2) Just noticed that the sane and tftp modules require Linux 3.12+.
+My test system is running 3.8.  Does ssdp have a similar restriction,
+and if so, what would need to be backported?
 
+3) It looks like each expectation matches, at most, one new
+connection.  So if my host multicasts an SSDP request and then 5 other
+hosts send replies (each coming from a unique IP/port), only one of
+them will match the expectation and create a state table entry.  Is
+this true, and if so, what is the best way to allow all 5 replies to
+be treated as related connections?
+
+4) Ashley's email address was bouncing due to an overzealous spam
+filter.  Will retry one last time.
