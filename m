@@ -1,63 +1,227 @@
-From: Kevin Cernekee <cernekee@chromium.org>
-Subject: Re: Snooping expected connections in a user CT helper
-Date: Mon, 22 Aug 2016 20:34:41 -0700
-Message-ID: <CAJzqFtaj3V2viTtNjhoG5zPsz0XkPXi9XULRwz1PGOe3imq_XA@mail.gmail.com>
-References: <CAJzqFtacjKi+zQT3nS_0UJAr=LD8RWumM5+jeo8bbi-OVZR0Jg@mail.gmail.com>
- <20160818011214.GA1463@salvia>
+From: =?UTF-8?q?Carlos=20Falgueras=20Garc=C3=ADa?= <carlosfg@riseup.net>
+Subject: [PATCH nft] Simplify parser rule_spec tree
+Date: Tue, 23 Aug 2016 09:40:45 +0200
+Message-ID: <20160823074045.31327-1-carlosfg@riseup.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Cc: netfilter-devel@vger.kernel.org, ashley.hughes@blueyonder.co.uk,
-        arequipeno@gmail.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Transfer-Encoding: 8bit
+Cc: pablo@netfilter.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-it0-f53.google.com ([209.85.214.53]:35528 "EHLO
-        mail-it0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751168AbcHWDfE (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 22 Aug 2016 23:35:04 -0400
-Received: by mail-it0-f53.google.com with SMTP id x131so125047459ite.0
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 20:35:04 -0700 (PDT)
-Received: from mail-it0-f49.google.com (mail-it0-f49.google.com. [209.85.214.49])
-        by smtp.gmail.com with ESMTPSA id o201sm738100iod.16.2016.08.22.20.35.02
-        for <netfilter-devel@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 22 Aug 2016 20:35:02 -0700 (PDT)
-Received: by mail-it0-f49.google.com with SMTP id e63so125101782ith.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Aug 2016 20:35:02 -0700 (PDT)
-In-Reply-To: <20160818011214.GA1463@salvia>
+Received: from mx1.riseup.net ([198.252.153.129]:41414 "EHLO mx1.riseup.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752999AbcHWHlC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 23 Aug 2016 03:41:02 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 17, 2016 at 6:12 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Looking at ctnetlink, it should be possible to make it via
-> CTA_EXPECT_HELP_NAME. Thus, by when we find a matching expectation,
-> the helper is set to this new connection too.
->
-> See line 1086 in nf_conntrack_core.c.
+This patch separates the rule identification from the rule localization, so
+the logic moves from the evaluator to the parser. This allows to revert the
+patch "evaluate: improve rule managment checks"
+(4176c7d30c2ff1b3f52468fc9c08b8df83f979a8) and saves a lot of code.
 
-Thanks, that works.  After setting the helper string, my callback is
-invoked for the replies.
+Signed-off-by: Carlos Falgueras García <carlosfg@riseup.net>
+---
+ src/evaluate.c     | 68 +-----------------------------------------------------
+ src/parser_bison.y | 43 +++++++++++++++++-----------------
+ 2 files changed, 22 insertions(+), 89 deletions(-)
 
-I'm running into a couple of other issues with the existing ssdp helper, though:
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 87f5a6d..2f94ac6 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -44,12 +44,6 @@ static const char *byteorder_names[] = {
+ 	__stmt_binary_error(ctx, &(s1)->location, NULL, fmt, ## args)
+ #define cmd_error(ctx, fmt, args...) \
+ 	__stmt_binary_error(ctx, &(ctx->cmd)->location, NULL, fmt, ## args)
+-#define handle_error(ctx, fmt, args...) \
+-	__stmt_binary_error(ctx, &ctx->cmd->handle.handle.location, NULL, fmt, ## args)
+-#define position_error(ctx, fmt, args...) \
+-	__stmt_binary_error(ctx, &ctx->cmd->handle.position.location, NULL, fmt, ## args)
+-#define handle_position_error(ctx, fmt, args...) \
+-	__stmt_binary_error(ctx, &ctx->cmd->handle.handle.location, &ctx->cmd->handle.position.location, fmt, ## args)
+ 
+ static int __fmtstring(3, 4) set_error(struct eval_ctx *ctx,
+ 				       const struct set *set,
+@@ -2481,68 +2475,11 @@ static int set_evaluate(struct eval_ctx *ctx, struct set *set)
+ 	return 0;
+ }
+ 
+-static int rule_evaluate_cmd(struct eval_ctx *ctx)
+-{
+-	struct handle *handle = &ctx->cmd->handle;
+-
+-	/* allowed:
+-	 * - insert [position] (no handle)
+-	 * - add [position] (no handle)
+-	 * - replace <handle> (no position)
+-	 * - delete <handle> (no position)
+-	 */
+-
+-	switch (ctx->cmd->op) {
+-	case CMD_INSERT:
+-		if (handle->handle.id && handle->position.id)
+-			return handle_position_error(ctx, "use only `position'"
+-						     " instead");
+-
+-		if (handle->handle.id)
+-			return handle_error(ctx, "use `position' instead");
+-		break;
+-	case CMD_ADD:
+-		if (handle->handle.id && handle->position.id)
+-			return handle_position_error(ctx, "use only `position'"
+-						     " instead");
+-
+-		if (handle->handle.id)
+-			return handle_error(ctx, "use `position' instead");
+-
+-		break;
+-	case CMD_REPLACE:
+-		if (handle->handle.id && handle->position.id)
+-			return handle_position_error(ctx, "use only `handle' "
+-						     "instead");
+-		if (handle->position.id)
+-			return position_error(ctx, "use `handle' instead");
+-		if (!handle->handle.id)
+-			return cmd_error(ctx, "missing `handle'");
+-		break;
+-	case CMD_DELETE:
+-		if (handle->handle.id && handle->position.id)
+-			return handle_position_error(ctx, "use only `handle' "
+-						     "instead");
+-		if (handle->position.id)
+-			return position_error(ctx, "use `handle' instead");
+-		if (!handle->handle.id)
+-			return cmd_error(ctx, "missing `handle'");
+-		break;
+-	default:
+-		BUG("unkown command type %u\n", ctx->cmd->op);
+-	}
+-
+-	return 0;
+-}
+-
+ static int rule_evaluate(struct eval_ctx *ctx, struct rule *rule)
+ {
+ 	struct stmt *stmt, *tstmt = NULL;
+ 	struct error_record *erec;
+ 
+-	if (rule_evaluate_cmd(ctx) < 0)
+-		return -1;
+-
+ 	proto_ctx_init(&ctx->pctx, rule->handle.family);
+ 	memset(&ctx->ectx, 0, sizeof(ctx->ectx));
+ 
+@@ -2723,11 +2660,8 @@ static int cmd_evaluate_delete(struct eval_ctx *ctx, struct cmd *cmd)
+ 			return ret;
+ 
+ 		return setelem_evaluate(ctx, &cmd->expr);
+-	case CMD_OBJ_RULE:
+-		if (rule_evaluate_cmd(ctx) < 0)
+-			return -1;
+-		/* fall through */
+ 	case CMD_OBJ_SET:
++	case CMD_OBJ_RULE:
+ 	case CMD_OBJ_CHAIN:
+ 	case CMD_OBJ_TABLE:
+ 		return 0;
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index bf43608..5f5318f 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -425,15 +425,12 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <cmd>			base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
+ %destructor { cmd_free($$); }	base_cmd add_cmd replace_cmd create_cmd insert_cmd delete_cmd list_cmd flush_cmd rename_cmd export_cmd monitor_cmd describe_cmd
+ 
+-%type <handle>			table_spec chain_spec chain_identifier ruleid_spec ruleset_spec
+-%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec ruleset_spec
++%type <handle>			table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
++%destructor { handle_free(&$$); } table_spec chain_spec chain_identifier ruleid_spec handle_spec position_spec rule_position ruleset_spec
+ %type <handle>			set_spec set_identifier
+ %destructor { handle_free(&$$); } set_spec set_identifier
+ %type <val>			family_spec family_spec_explicit chain_policy prio_spec
+ 
+-%type <handle_spec>		handle_spec
+-%type <position_spec>		position_spec
+-
+ %type <string>			dev_spec
+ %destructor { xfree($$); }	dev_spec
+ 
+@@ -720,11 +717,11 @@ add_cmd			:	TABLE		table_spec
+ 				close_scope(state);
+ 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_CHAIN, &$2, &@$, $5);
+ 			}
+-			|	RULE		ruleid_spec	rule
++			|	RULE		rule_position	rule
+ 			{
+ 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_RULE, &$2, &@$, $3);
+ 			}
+-			|	/* empty */	ruleid_spec	rule
++			|	/* empty */	rule_position	rule
+ 			{
+ 				$$ = cmd_alloc(CMD_ADD, CMD_OBJ_RULE, &$1, &@$, $2);
+ 			}
+@@ -779,7 +776,7 @@ create_cmd		:	TABLE		table_spec
+ 			}
+ 			;
+ 
+-insert_cmd		:	RULE		ruleid_spec	rule
++insert_cmd		:	RULE		rule_position	rule
+ 			{
+ 				$$ = cmd_alloc(CMD_INSERT, CMD_OBJ_RULE, &$2, &@$, $3);
+ 			}
+@@ -1252,35 +1249,37 @@ set_identifier		:	identifier
+ 			}
+ 			;
+ 
+-handle_spec		:	/* empty */
++handle_spec		:	HANDLE		NUM
+ 			{
+ 				memset(&$$, 0, sizeof($$));
++				$$.handle.location	= @$;
++				$$.handle.id		= $2;
+ 			}
+-			|	HANDLE		NUM
++			;
++
++position_spec		:	POSITION	NUM
+ 			{
+ 				memset(&$$, 0, sizeof($$));
+-				$$.location	= @$;
+-				$$.id		= $2;
++				$$.position.location	= @$;
++				$$.position.id		= $2;
+ 			}
+ 			;
+ 
+-position_spec		:	/* empty */
++rule_position		:	chain_spec
+ 			{
+-				memset(&$$, 0, sizeof($$));
++				$$ = $1;
+ 			}
+-			|	POSITION	NUM
++			|	chain_spec position_spec
+ 			{
+-				memset(&$$, 0, sizeof($$));
+-				$$.location	= @$;
+-				$$.id		= $2;
++				$$ = $1;
++				handle_merge(&$$, &$2);
+ 			}
+ 			;
+ 
+-ruleid_spec		:	chain_spec	handle_spec	position_spec
++ruleid_spec		:	chain_spec handle_spec
+ 			{
+-				$$		= $1;
+-				$$.handle	= $2;
+-				$$.position	= $3;
++				$$ = $1;
++				handle_merge(&$$, &$2);
+ 			}
+ 			;
+ 
+-- 
+2.9.3
 
-1) The code does not call cthelper_add_expect().  Nor do some of the
-other helpers, such as sane.  When I use a restrictive firewall
-configuration, the expectation is never created (according to
-`conntrack -L expect`) and all of the incoming SSDP replies are
-dropped.  Adding a call to cthelper_add_expect() fixes this.  Do we
-know the circumstances under which the current master branch is
-expected to work properly?
-
-2) Just noticed that the sane and tftp modules require Linux 3.12+.
-My test system is running 3.8.  Does ssdp have a similar restriction,
-and if so, what would need to be backported?
-
-3) It looks like each expectation matches, at most, one new
-connection.  So if my host multicasts an SSDP request and then 5 other
-hosts send replies (each coming from a unique IP/port), only one of
-them will match the expectation and create a state table entry.  Is
-this true, and if so, what is the best way to allow all 5 replies to
-be treated as related connections?
-
-4) Ashley's email address was bouncing due to an overzealous spam
-filter.  Will retry one last time.
