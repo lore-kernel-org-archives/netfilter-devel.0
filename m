@@ -1,91 +1,65 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v2 nf-next 3/7] netfilter: evict stale entries on netlink dumps
-Date: Wed, 24 Aug 2016 13:55:51 +0200
-Message-ID: <1472039755-14267-4-git-send-email-fw@strlen.de>
+Subject: [PATCH v2 nf-next 5/7] netfilter: conntrack: resched gc again if eviction rate is high
+Date: Wed, 24 Aug 2016 13:55:53 +0200
+Message-ID: <1472039755-14267-6-git-send-email-fw@strlen.de>
 References: <1472039755-14267-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45508 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45516 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932744AbcHXLzw (ORCPT
+        by vger.kernel.org with ESMTP id S932790AbcHXLz6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Aug 2016 07:55:52 -0400
+        Wed, 24 Aug 2016 07:55:58 -0400
 In-Reply-To: <1472039755-14267-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When dumping we already have to look at the entire table, so we might
-as well toss those entries whose timeout value is in the past.
+If we evicted a large fraction of the scanned conntrack entries re-schedule
+the next gc cycle for immediate execution.
 
-We also look at every entry during resize operations.
-However, eviction there is not as simple because we hold the
-global resize lock so we can't evict without adding a 'expired' list
-to drop from later.  Considering that resizes are very rare it doesn't
-seem worth doing it.
+This triggers during tests where load is high, then drops to zero and
+many connections will be in TW/CLOSE state with < 30 second timeouts.
+
+Without this change it will take several minutes until conntrack count
+comes back to normal.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/netfilter/nf_conntrack_netlink.c | 25 ++++++++++++++++++++++++-
- 1 file changed, 24 insertions(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_core.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 81fd34c..dedbe4b 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -815,14 +815,23 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- 	struct hlist_nulls_node *n;
- 	struct nfgenmsg *nfmsg = nlmsg_data(cb->nlh);
- 	u_int8_t l3proto = nfmsg->nfgen_family;
--	int res;
-+	struct nf_conn *nf_ct_evict[8];
-+	int res, i;
- 	spinlock_t *lockp;
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index e0a7889..f2133e8 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -938,6 +938,7 @@ static void gc_worker(struct work_struct *work)
+ {
+ 	unsigned int i, goal, buckets = 0, expired_count = 0;
+ 	unsigned long next_run = GC_INTERVAL;
++	unsigned int ratio, scanned = 0;
+ 	struct conntrack_gc_work *gc_work;
  
- 	last = (struct nf_conn *)cb->args[1];
-+	i = 0;
+ 	gc_work = container_of(work, struct conntrack_gc_work, dwork.work);
+@@ -962,6 +963,7 @@ static void gc_worker(struct work_struct *work)
+ 		hlist_nulls_for_each_entry_rcu(h, n, &ct_hash[i], hnnode) {
+ 			tmp = nf_ct_tuplehash_to_ctrack(h);
  
- 	local_bh_disable();
- 	for (; cb->args[0] < nf_conntrack_htable_size; cb->args[0]++) {
- restart:
-+		while (i) {
-+			i--;
-+			if (nf_ct_should_gc(nf_ct_evict[i]))
-+				nf_ct_kill(nf_ct_evict[i]);
-+			nf_ct_put(nf_ct_evict[i]);
-+		}
++			scanned++;
+ 			if (nf_ct_is_expired(tmp)) {
+ 				nf_ct_gc_expired(tmp);
+ 				expired_count++;
+@@ -981,6 +983,10 @@ static void gc_worker(struct work_struct *work)
+ 	if (gc_work->exiting)
+ 		return;
+ 
++	ratio = scanned ? expired_count * 100 / scanned : 0;
++	if (ratio >= 90)
++		next_run = 0;
 +
- 		lockp = &nf_conntrack_locks[cb->args[0] % CONNTRACK_LOCKS];
- 		nf_conntrack_lock(lockp);
- 		if (cb->args[0] >= nf_conntrack_htable_size) {
-@@ -834,6 +843,13 @@ restart:
- 			if (NF_CT_DIRECTION(h) != IP_CT_DIR_ORIGINAL)
- 				continue;
- 			ct = nf_ct_tuplehash_to_ctrack(h);
-+			if (nf_ct_is_expired(ct)) {
-+				if (i < ARRAY_SIZE(nf_ct_evict) &&
-+				    atomic_inc_not_zero(&ct->ct_general.use))
-+					nf_ct_evict[i++] = ct;
-+				continue;
-+			}
-+
- 			if (!net_eq(net, nf_ct_net(ct)))
- 				continue;
- 
-@@ -875,6 +891,13 @@ out:
- 	if (last)
- 		nf_ct_put(last);
- 
-+	while (i) {
-+		i--;
-+		if (nf_ct_should_gc(nf_ct_evict[i]))
-+			nf_ct_kill(nf_ct_evict[i]);
-+		nf_ct_put(nf_ct_evict[i]);
-+	}
-+
- 	return skb->len;
+ 	gc_work->last_bucket = i;
+ 	schedule_delayed_work(&gc_work->dwork, next_run);
  }
- 
 -- 
 2.7.3
 
