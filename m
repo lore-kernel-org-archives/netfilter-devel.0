@@ -1,39 +1,182 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH nf-next 7/7] netfilter: restart search if moved to other
- chain
-Date: Wed, 24 Aug 2016 06:20:48 -0700
-Message-ID: <1472044848.14381.75.camel@edumazet-glaptop3.roam.corp.google.com>
-References: <1472039755-14267-1-git-send-email-fw@strlen.de>
-         <1472039755-14267-8-git-send-email-fw@strlen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nf-next 2/2] netfilter: nf_tables: honor NLM_F_EXCL flag in set element insertion
+Date: Wed, 24 Aug 2016 16:23:15 +0200
+Message-ID: <1472048595-7214-2-git-send-email-pablo@netfilter.org>
+References: <1472048595-7214-1-git-send-email-pablo@netfilter.org>
+Cc: herbert@gondor.apana.org.au, tgraf@suug.ch
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f65.google.com ([209.85.220.65]:34829 "EHLO
-        mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755239AbcHXNUv (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 24 Aug 2016 09:20:51 -0400
-Received: by mail-pa0-f65.google.com with SMTP id cf3so1202068pad.2
-        for <netfilter-devel@vger.kernel.org>; Wed, 24 Aug 2016 06:20:50 -0700 (PDT)
-In-Reply-To: <1472039755-14267-8-git-send-email-fw@strlen.de>
+Received: from mail.us.es ([193.147.175.20]:38630 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753820AbcHXOXh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 Aug 2016 10:23:37 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 02AEA2273DC
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Aug 2016 16:23:28 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id E8578100A40
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Aug 2016 16:23:27 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0379A100A66
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Aug 2016 16:23:22 +0200 (CEST)
+In-Reply-To: <1472048595-7214-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 2016-08-24 at 13:55 +0200, Florian Westphal wrote:
-> In case nf_conntrack_tuple_taken did not find a conflicting entry
-> check that all entries in this hash slot were tested and restart
-> in case an entry was moved to another chain.
-> 
-> Reported-by: Eric Dumazet <edumazet@google.com>
-> Signed-off-by: Florian Westphal <fw@strlen.de>
-> ---
+If the NLM_F_EXCL flag is set, then new elements that clash with an
+existing one return EEXIST. In case you try to add an element whose
+data area differs from what we have, then this returns EBUSY. If no
+flag is specified at all, then this returns success to userspace.
 
-Fixes: ea781f197d6a ("netfilter: nf_conntrack: use SLAB_DESTROY_BY_RCU and get rid of call_rcu()")
-Acked-by: Eric Dumazet <edumazet@google.com>
+This patch also update the set insert operation so we can fetch the
+existing element that clashes with the one you want to add, we need
+this to make sure the element data doesn't differ.
 
-Thanks !
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ include/net/netfilter/nf_tables.h |  3 ++-
+ net/netfilter/nf_tables_api.c     | 20 +++++++++++++++-----
+ net/netfilter/nft_set_hash.c      | 11 ++++++++---
+ net/netfilter/nft_set_rbtree.c    | 12 ++++++++----
+ 4 files changed, 33 insertions(+), 13 deletions(-)
 
+diff --git a/include/net/netfilter/nf_tables.h b/include/net/netfilter/nf_tables.h
+index f2f1339..8972468 100644
+--- a/include/net/netfilter/nf_tables.h
++++ b/include/net/netfilter/nf_tables.h
+@@ -251,7 +251,8 @@ struct nft_set_ops {
+ 
+ 	int				(*insert)(const struct net *net,
+ 						  const struct nft_set *set,
+-						  const struct nft_set_elem *elem);
++						  const struct nft_set_elem *elem,
++						  struct nft_set_ext **ext);
+ 	void				(*activate)(const struct net *net,
+ 						    const struct nft_set *set,
+ 						    const struct nft_set_elem *elem);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 221d27f..bd9715e 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -3483,12 +3483,12 @@ static int nft_setelem_parse_flags(const struct nft_set *set,
+ }
+ 
+ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+-			    const struct nlattr *attr)
++			    const struct nlattr *attr, u32 nlmsg_flags)
+ {
+ 	struct nlattr *nla[NFTA_SET_ELEM_MAX + 1];
+ 	struct nft_data_desc d1, d2;
+ 	struct nft_set_ext_tmpl tmpl;
+-	struct nft_set_ext *ext;
++	struct nft_set_ext *ext, *ext2;
+ 	struct nft_set_elem elem;
+ 	struct nft_set_binding *binding;
+ 	struct nft_userdata *udata;
+@@ -3615,9 +3615,19 @@ static int nft_add_set_elem(struct nft_ctx *ctx, struct nft_set *set,
+ 		goto err4;
+ 
+ 	ext->genmask = nft_genmask_cur(ctx->net) | NFT_SET_ELEM_BUSY_MASK;
+-	err = set->ops->insert(ctx->net, set, &elem);
+-	if (err < 0)
++	err = set->ops->insert(ctx->net, set, &elem, &ext2);
++	if (err) {
++		if (err == -EEXIST) {
++			if (nft_set_ext_exists(ext, NFT_SET_EXT_DATA) &&
++			    nft_set_ext_exists(ext2, NFT_SET_EXT_DATA) &&
++			    memcmp(nft_set_ext_data(ext),
++				   nft_set_ext_data(ext2), set->dlen) != 0)
++				err = -EBUSY;
++			else if (!(nlmsg_flags & NLM_F_EXCL))
++				err = 0;
++		}
+ 		goto err5;
++	}
+ 
+ 	nft_trans_elem(trans) = elem;
+ 	list_add_tail(&trans->list, &ctx->net->nft.commit_list);
+@@ -3673,7 +3683,7 @@ static int nf_tables_newsetelem(struct net *net, struct sock *nlsk,
+ 		    !atomic_add_unless(&set->nelems, 1, set->size + set->ndeact))
+ 			return -ENFILE;
+ 
+-		err = nft_add_set_elem(&ctx, set, attr);
++		err = nft_add_set_elem(&ctx, set, attr, nlh->nlmsg_flags);
+ 		if (err < 0) {
+ 			atomic_dec(&set->nelems);
+ 			break;
+diff --git a/net/netfilter/nft_set_hash.c b/net/netfilter/nft_set_hash.c
+index 564fa79..95b3e74 100644
+--- a/net/netfilter/nft_set_hash.c
++++ b/net/netfilter/nft_set_hash.c
+@@ -126,7 +126,8 @@ err1:
+ }
+ 
+ static int nft_hash_insert(const struct net *net, const struct nft_set *set,
+-			   const struct nft_set_elem *elem)
++			   const struct nft_set_elem *elem,
++			   struct nft_set_ext **ext)
+ {
+ 	struct nft_hash *priv = nft_set_priv(set);
+ 	struct nft_hash_elem *he = elem->priv;
+@@ -135,9 +136,13 @@ static int nft_hash_insert(const struct net *net, const struct nft_set *set,
+ 		.set	 = set,
+ 		.key	 = elem->key.val.data,
+ 	};
++	struct nft_hash_elem *prev;
++	int ret;
+ 
+-	return rhashtable_lookup_insert_key(&priv->ht, &arg, &he->node,
+-					    nft_hash_params);
++	ret = rhashtable_lookup_get_insert_key(&priv->ht, &arg, &he->node,
++					       nft_hash_params, (void **)&prev);
++	*ext = &prev->ext;
++	return ret;
+ }
+ 
+ static void nft_hash_activate(const struct net *net, const struct nft_set *set,
+diff --git a/net/netfilter/nft_set_rbtree.c b/net/netfilter/nft_set_rbtree.c
+index 6473936..038682d 100644
+--- a/net/netfilter/nft_set_rbtree.c
++++ b/net/netfilter/nft_set_rbtree.c
+@@ -94,7 +94,8 @@ out:
+ }
+ 
+ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+-			       struct nft_rbtree_elem *new)
++			       struct nft_rbtree_elem *new,
++			       struct nft_set_ext **ext)
+ {
+ 	struct nft_rbtree *priv = nft_set_priv(set);
+ 	u8 genmask = nft_genmask_next(net);
+@@ -122,8 +123,10 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ 				else if (!nft_rbtree_interval_end(rbe) &&
+ 					 nft_rbtree_interval_end(new))
+ 					p = &parent->rb_right;
+-				else
++				else {
++					*ext = &rbe->ext;
+ 					return -EEXIST;
++				}
+ 			}
+ 		}
+ 	}
+@@ -133,13 +136,14 @@ static int __nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+ }
+ 
+ static int nft_rbtree_insert(const struct net *net, const struct nft_set *set,
+-			     const struct nft_set_elem *elem)
++			     const struct nft_set_elem *elem,
++			     struct nft_set_ext **ext)
+ {
+ 	struct nft_rbtree_elem *rbe = elem->priv;
+ 	int err;
+ 
+ 	spin_lock_bh(&nft_rbtree_lock);
+-	err = __nft_rbtree_insert(net, set, rbe);
++	err = __nft_rbtree_insert(net, set, rbe, ext);
+ 	spin_unlock_bh(&nft_rbtree_lock);
+ 
+ 	return err;
+-- 
+2.1.4
 
