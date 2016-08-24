@@ -1,47 +1,85 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: [PATCH nf-next 1/2] rhashtable: add
- rhashtable_lookup_get_insert_key()
-Date: Thu, 25 Aug 2016 12:21:22 +0800
-Message-ID: <20160825042122.GB9906@gondor.apana.org.au>
-References: <1472048595-7214-1-git-send-email-pablo@netfilter.org>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH v2 nf-next 4/7] netfilter: conntrack: add gc worker to
+ remove timed-out entries
+Date: Thu, 25 Aug 2016 01:50:19 +0200
+Message-ID: <20160824235019.GA19546@breakpoint.cc>
+References: <1472039755-14267-1-git-send-email-fw@strlen.de>
+ <1472039755-14267-5-git-send-email-fw@strlen.de>
+ <1472060441.14381.106.camel@edumazet-glaptop3.roam.corp.google.com>
+ <20160824201139.GA14379@breakpoint.cc>
+ <1472070642.14381.120.camel@edumazet-glaptop3.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, tgraf@suug.ch
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from helcar.hengli.com.au ([209.40.204.226]:37222 "EHLO
-        helcar.hengli.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755699AbcHYFEy (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:48454 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752541AbcHYFU6 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Aug 2016 01:04:54 -0400
+        Thu, 25 Aug 2016 01:20:58 -0400
 Content-Disposition: inline
-In-Reply-To: <1472048595-7214-1-git-send-email-pablo@netfilter.org>
+In-Reply-To: <1472070642.14381.120.camel@edumazet-glaptop3.roam.corp.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 24, 2016 at 04:23:14PM +0200, Pablo Neira Ayuso wrote:
-> This patch modifies __rhashtable_insert_fast() so it returns the
-> existing element that clashes with the one that you want to insert.
-> This adds a new rhashtable_lookup_get_insert_key() interface to fetch
-> this existing element.
+Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> On Wed, 2016-08-24 at 22:11 +0200, Florian Westphal wrote:
+> > Eric Dumazet <eric.dumazet@gmail.com> wrote:
+> > > On Wed, 2016-08-24 at 13:55 +0200, Florian Westphal wrote:
+> > > > Conntrack gc worker to evict stale entries.
+> > > 
+> > > 
+> > > >  static struct nf_conn *
+> > > >  __nf_conntrack_alloc(struct net *net,
+> > > >  		     const struct nf_conntrack_zone *zone,
+> > > > @@ -1527,6 +1597,7 @@ static int untrack_refs(void)
+> > > >  
+> > > >  void nf_conntrack_cleanup_start(void)
+> > > >  {
+> > > > +	conntrack_gc_work.exiting = true;
+> > > >  	RCU_INIT_POINTER(ip_ct_attach, NULL);
+> > > >  }
+> > > >  
+> > > > @@ -1536,6 +1607,9 @@ void nf_conntrack_cleanup_end(void)
+> > > >  	while (untrack_refs() > 0)
+> > > >  		schedule();
+> > > >  
+> > > > +	cancel_delayed_work_sync(&conntrack_gc_work.dwork);
+> > > > +	/* can be re-scheduled once */
+> > > 
+> > > Are you sure ?
+> > > 
+> > > As conntrack_gc_work.exiting = true, I do not see how this can happen ?
+> > 
+> > nf_conntrack_cleanup_start() sets exiting = true
+> > 
+> > current cpu blocks in
+> > 
+> > cancel_delayed_work_sync(&conntrack_gc_work.dwork);
+> > 
+> > Iff the work queue was running on other cpu but was already past
+> > gc_work->exiting check then when cancel_delayed_work_sync() (first one)
+> > returns it will have re-armed itself via schedule_delayed_work().
+> > 
+> > So I think the 2nd cancel_delayed_work_sync is needed.
+> > 
+> > Let me know if you'd like to see a v3 with more verbose
+> > comment about this.
 > 
-> nf_tables needs this change to improve handling of EEXIST cases via
-> honoring the NLM_F_EXCL flag and by checking if the data part of the
-> mapping matches what we have.
+> If you were using cancel_delayed_work() (instead of
+> cancel_delayed_work_sync()) I would understand the concern.
 > 
-> Cc: Herbert Xu <herbert@gondor.apana.org.au>
-> Cc: Thomas Graf <tgraf@suug.ch>
-> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> But here you are using the thing that was designed to exactly avoid the
+> issue, of both work running on another cpu and/or re-arming itself.
+> 
+> If what you are saying was true, we would have to fix hundreds of
+> cancel_delayed_work_sync() call sites ...
 
-I would prefer an interface where you returned the object if it
-exists, NULL if it does not and the insertion was successful, and
-an ERR_PTR otherwise.  But it's not a deal-breaker.
+Ok, I see, the _sync version indeed seems to be desgined to
+suppress/avoid re-arming.
 
-However, you missed the rhashtable_insert_slow path.  It too
-needs to be updated to incorporate your new logic.
+I will send a v3 without the 2nd cancel_delayed_work_sync, thanks Eric!
 
-Cheers,
--- 
-Email: Herbert Xu <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+(I will preserve/add your Acked-by tags to the unchanged patches so you
+ won't need to resend them).
