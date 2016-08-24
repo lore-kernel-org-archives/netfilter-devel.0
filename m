@@ -1,36 +1,81 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH v2 iptables] iptables-restore: add missing arguments to
- usage message
-Date: Tue, 23 Aug 2016 17:54:53 +0200
-Message-ID: <20160823155453.GA17182@salvia>
-References: <6deca21e-1daf-269a-da51-4673f911d58a@hpe.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Brian Haley <brian.haley@hpe.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH nf-next v2 0/7] netfilter: get rid of per-object conntrack timers
+Date: Wed, 24 Aug 2016 13:55:48 +0200
+Message-ID: <1472039755-14267-1-git-send-email-fw@strlen.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45090 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754250AbcHWPy6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 23 Aug 2016 11:54:58 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id D06028E4D8
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Aug 2016 17:54:56 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id C12DD9663F
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Aug 2016 17:54:56 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BE9D89663F
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Aug 2016 17:54:54 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <6deca21e-1daf-269a-da51-4673f911d58a@hpe.com>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:45498 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755963AbcHXLzn (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 24 Aug 2016 07:55:43 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 23, 2016 at 10:14:47AM -0400, Brian Haley wrote:
-> 
-> iptables-restore was missing -n, -T and -M from the
-> usage message, added them to match the man page.
-> Cleaned-up other *restore files as well.
+During NFWS 2016 it was mentioned that per-conntrack timers have
+two drawbacks:
+ - the 5-day default established timeout is very large and brings
+   extra constraints for the timer subsystem.
+ - most distros enable timer stats so timer struct eats 80 bytes
+   in each conntrack object.
 
-Applied, thanks.
+This series replaces the per-object struct timer with a u32 jiffie
+stamp and one global delayed work queue for conntrack eviction.
+Size of nf_conn struct is reduced to 256 bytes on x86_64.
+
+Eviction is performed from the packet path when doing table lookup, for
+cases where we have idle periods the work queue is used.
+
+No changes since v1, except addition of a comment in #3 and
+a one-line change (replace cond_reschd w. cond_resched_rcu_qs).
+
+Patch #7 was not part of v1.
+
+Tested with following script, conntrackd running in 'relible
+event mode' and httpterm running on other host:
+
+-----------------------------------------------------------
+random_resize() {
+        while true; do
+                RND=$RANDOM%256000
+                RND=$((RND+8192))
+                sysctl net.netfilter.nf_conntrack_buckets=$RND
+                sleep $((RANDOM % 120))
+        done
+}
+
+random_flush() {
+        while true; do
+                sleep $((RANDOM % 120))
+                conntrack -F
+        done
+}
+
+random_startstop() {
+        while true; do
+                sleep $((RANDOM % 120))
+                pkill -STOP conntrackd
+                sleep $((RANDOM % 10))
+                pkill -CONT conntrackd
+        done
+}
+
+http-client -u 1000 -t 3 -F 192.168.10.50 -G 192.168.10.17:8001 &
+http-client -u 1000 -t 3 -F 192.168.10.51 -G 192.168.10.17:8001 &
+http-client -u 1000 -t 3 -F 192.168.10.52 -G 192.168.10.17:8001 &
+
+random_resize &
+random_flush &
+random_startstop &
+
+wait
+-----------------------------------------------------------
+
+ include/net/netfilter/nf_conntrack.h        |   36 +++--
+ include/net/netfilter/nf_conntrack_ecache.h |   17 +-
+ net/netfilter/nf_conntrack_core.c           |  194 +++++++++++++++++++++-------
+ net/netfilter/nf_conntrack_ecache.c         |   22 ++-
+ net/netfilter/nf_conntrack_netlink.c        |   39 ++++-
+ net/netfilter/nf_conntrack_pptp.c           |    3 
+ net/netfilter/nf_nat_core.c                 |    6 
+ 7 files changed, 223 insertions(+), 94 deletions(-)
