@@ -1,408 +1,172 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v3 nf-next 3/7] netfilter: conntrack: get rid of conntrack timer
-Date: Thu, 25 Aug 2016 15:33:31 +0200
-Message-ID: <1472132015-10264-4-git-send-email-fw@strlen.de>
+Subject: [PATCH v3 nf-next 5/7] netfilter: conntrack: add gc worker to remove timed-out entries
+Date: Thu, 25 Aug 2016 15:33:33 +0200
+Message-ID: <1472132015-10264-6-git-send-email-fw@strlen.de>
 References: <1472132015-10264-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:49992 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:49998 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933523AbcHYNdg (ORCPT
+        by vger.kernel.org with ESMTP id S933975AbcHYNdn (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Aug 2016 09:33:36 -0400
+        Thu, 25 Aug 2016 09:33:43 -0400
 In-Reply-To: <1472132015-10264-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-With stats enabled this eats 80 bytes on x86_64 per nf_conn entry, as
-Eric Dumazet pointed out during netfilter workshop 2016.
+Conntrack gc worker to evict stale entries.
 
-Eric also says: "Another reason was the fact that Thomas was about to
-change max timer range [..]" (500462a9de657f8, 'timers: Switch to
-a non-cascading wheel').
+GC happens once every 5 seconds, but we only scan at most 1/64th of the
+table (and not more than 8k) buckets to avoid hogging cpu.
 
-Remove the timer and use a 32bit jiffies value containing timestamp until
-entry is valid.
+This means that a complete scan of the table will take several minutes
+of wall-clock time.
 
-During conntrack lookup, even before doing tuple comparision, check
-the timeout value and evict the entry in case it is too old.
+Considering that the gc run will never have to evict any entries
+during normal operation because those will happen from packet path
+this should be fine.
 
-The dying bit is used as a synchronization point to avoid races where
-multiple cpus try to evict the same entry.
+We only need gc to make sure userspace (conntrack event listeners)
+eventually learn of the timeout, and for resource reclaim in case the
+system becomes idle.
 
-Because lookup is always lockless, we need to bump the refcnt once
-when we evict, else we could try to evict already-dead entry that
-is being recycled.
+We do not disable BH and cond_resched for every bucket so this should
+not introduce noticeable latencies either.
 
-This is the standard/expected way when conntrack entries are destroyed.
+A followup patch will add a small change to speed up GC for the extreme
+case where most entries are timed out on an otherwise idle system.
 
-Followup patches will introduce garbage colliction via work queue
-and further places where we can reap obsoleted entries (e.g. during
-netlink dumps), this is needed to avoid expired conntracks from hanging
-around for too long when lookup rate is low after a busy period.
+v2: Use cond_resched_rcu_qs & add comment wrt. missing restart on
+nulls value change in gc worker, suggested by Eric Dumazet.
+
+v3: don't call cancel_delayed_work_sync twice (again, Eric).
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Eric Dumazet <edumazet@google.com>
 ---
- include/net/netfilter/nf_conntrack.h | 23 +++++++--
- net/netfilter/nf_conntrack_core.c    | 91 ++++++++++++++++++++----------------
- net/netfilter/nf_conntrack_netlink.c | 14 ++----
- net/netfilter/nf_conntrack_pptp.c    |  3 +-
- net/netfilter/nf_nat_core.c          |  6 ---
- 5 files changed, 74 insertions(+), 63 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 76 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 76 insertions(+)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 2a12748..7277751 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -42,7 +42,6 @@ union nf_conntrack_expect_proto {
- 
- #include <linux/types.h>
- #include <linux/skbuff.h>
--#include <linux/timer.h>
- 
- #ifdef CONFIG_NETFILTER_DEBUG
- #define NF_CT_ASSERT(x)		WARN_ON(!(x))
-@@ -73,7 +72,7 @@ struct nf_conn_help {
- #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
- 
- struct nf_conn {
--	/* Usage count in here is 1 for hash table/destruct timer, 1 per skb,
-+	/* Usage count in here is 1 for hash table, 1 per skb,
- 	 * plus 1 for any connection(s) we are `master' for
- 	 *
- 	 * Hint, SKB address this struct and refcnt via skb->nfct and
-@@ -96,8 +95,8 @@ struct nf_conn {
- 	/* Have we seen traffic both ways yet? (bitset) */
- 	unsigned long status;
- 
--	/* Timer function; drops refcnt when it goes off. */
--	struct timer_list timeout;
-+	/* jiffies32 when this ct is considered dead */
-+	u32 timeout;
- 
- 	possible_net_t ct_net;
- 
-@@ -291,14 +290,28 @@ static inline bool nf_is_loopback_packet(const struct sk_buff *skb)
- 	return skb->dev && skb->skb_iif && skb->dev->flags & IFF_LOOPBACK;
- }
- 
-+#define nfct_time_stamp ((u32)(jiffies))
-+
- /* jiffies until ct expires, 0 if already expired */
- static inline unsigned long nf_ct_expires(const struct nf_conn *ct)
- {
--	long timeout = (long)ct->timeout.expires - (long)jiffies;
-+	s32 timeout = ct->timeout - nfct_time_stamp;
- 
- 	return timeout > 0 ? timeout : 0;
- }
- 
-+static inline bool nf_ct_is_expired(const struct nf_conn *ct)
-+{
-+	return (__s32)(ct->timeout - nfct_time_stamp) <= 0;
-+}
-+
-+/* use after obtaining a reference count */
-+static inline bool nf_ct_should_gc(const struct nf_conn *ct)
-+{
-+	return nf_ct_is_expired(ct) && nf_ct_is_confirmed(ct) &&
-+	       !nf_ct_is_dying(ct);
-+}
-+
- struct kernel_param;
- 
- int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp);
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 887926a..87ee6da 100644
+index 87ee6da..f95a9e9 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -371,7 +371,6 @@ destroy_conntrack(struct nf_conntrack *nfct)
+@@ -72,11 +72,24 @@ EXPORT_SYMBOL_GPL(nf_conntrack_expect_lock);
+ struct hlist_nulls_head *nf_conntrack_hash __read_mostly;
+ EXPORT_SYMBOL_GPL(nf_conntrack_hash);
  
- 	pr_debug("destroy_conntrack(%p)\n", ct);
- 	NF_CT_ASSERT(atomic_read(&nfct->use) == 0);
--	NF_CT_ASSERT(!timer_pending(&ct->timeout));
- 
- 	if (unlikely(nf_ct_is_template(ct))) {
- 		nf_ct_tmpl_free(ct);
-@@ -434,35 +433,30 @@ bool nf_ct_delete(struct nf_conn *ct, u32 portid, int report)
- {
- 	struct nf_conn_tstamp *tstamp;
- 
-+	if (test_and_set_bit(IPS_DYING_BIT, &ct->status))
-+		return false;
++struct conntrack_gc_work {
++	struct delayed_work	dwork;
++	u32			last_bucket;
++	bool			exiting;
++};
 +
- 	tstamp = nf_conn_tstamp_find(ct);
- 	if (tstamp && tstamp->stop == 0)
- 		tstamp->stop = ktime_get_real_ns();
+ static __read_mostly struct kmem_cache *nf_conntrack_cachep;
+ static __read_mostly spinlock_t nf_conntrack_locks_all_lock;
+ static __read_mostly DEFINE_SPINLOCK(nf_conntrack_locks_all_lock);
+ static __read_mostly bool nf_conntrack_locks_all;
  
--	if (nf_ct_is_dying(ct))
--		goto delete;
--
- 	if (nf_conntrack_event_report(IPCT_DESTROY, ct,
- 				    portid, report) < 0) {
--		/* destroy event was not delivered */
-+		/* destroy event was not delivered. nf_ct_put will
-+		 * be done by event cache worker on redelivery.
-+		 */
- 		nf_ct_delete_from_lists(ct);
- 		nf_conntrack_ecache_delayed_work(nf_ct_net(ct));
- 		return false;
- 	}
- 
- 	nf_conntrack_ecache_work(nf_ct_net(ct));
--	set_bit(IPS_DYING_BIT, &ct->status);
-- delete:
- 	nf_ct_delete_from_lists(ct);
- 	nf_ct_put(ct);
- 	return true;
- }
- EXPORT_SYMBOL_GPL(nf_ct_delete);
- 
--static void death_by_timeout(unsigned long ul_conntrack)
--{
--	nf_ct_delete((struct nf_conn *)ul_conntrack, 0, 0);
--}
--
- static inline bool
- nf_ct_key_equal(struct nf_conntrack_tuple_hash *h,
- 		const struct nf_conntrack_tuple *tuple,
-@@ -480,6 +474,18 @@ nf_ct_key_equal(struct nf_conntrack_tuple_hash *h,
- 	       net_eq(net, nf_ct_net(ct));
++#define GC_MAX_BUCKETS_DIV	64u
++#define GC_MAX_BUCKETS		8192u
++#define GC_INTERVAL		(5 * HZ)
++#define GC_MAX_EVICTS		256u
++
++static struct conntrack_gc_work conntrack_gc_work;
++
+ void nf_conntrack_lock(spinlock_t *lock) __acquires(lock)
+ {
+ 	spin_lock(lock);
+@@ -928,6 +941,63 @@ static noinline int early_drop(struct net *net, unsigned int _hash)
+ 	return false;
  }
  
-+/* caller must hold rcu readlock and none of the nf_conntrack_locks */
-+static void nf_ct_gc_expired(struct nf_conn *ct)
++static void gc_worker(struct work_struct *work)
 +{
-+	if (!atomic_inc_not_zero(&ct->ct_general.use))
++	unsigned int i, goal, buckets = 0, expired_count = 0;
++	unsigned long next_run = GC_INTERVAL;
++	struct conntrack_gc_work *gc_work;
++
++	gc_work = container_of(work, struct conntrack_gc_work, dwork.work);
++
++	goal = min(nf_conntrack_htable_size / GC_MAX_BUCKETS_DIV, GC_MAX_BUCKETS);
++	i = gc_work->last_bucket;
++
++	do {
++		struct nf_conntrack_tuple_hash *h;
++		struct hlist_nulls_head *ct_hash;
++		struct hlist_nulls_node *n;
++		unsigned int hashsz;
++		struct nf_conn *tmp;
++
++		i++;
++		rcu_read_lock();
++
++		nf_conntrack_get_ht(&ct_hash, &hashsz);
++		if (i >= hashsz)
++			i = 0;
++
++		hlist_nulls_for_each_entry_rcu(h, n, &ct_hash[i], hnnode) {
++			tmp = nf_ct_tuplehash_to_ctrack(h);
++
++			if (nf_ct_is_expired(tmp)) {
++				nf_ct_gc_expired(tmp);
++				expired_count++;
++				continue;
++			}
++		}
++
++		/* could check get_nulls_value() here and restart if ct
++		 * was moved to another chain.  But given gc is best-effort
++		 * we will just continue with next hash slot.
++		 */
++		rcu_read_unlock();
++		cond_resched_rcu_qs();
++	} while (++buckets < goal &&
++		 expired_count < GC_MAX_EVICTS);
++
++	if (gc_work->exiting)
 +		return;
 +
-+	if (nf_ct_should_gc(ct))
-+		nf_ct_kill(ct);
-+
-+	nf_ct_put(ct);
++	gc_work->last_bucket = i;
++	schedule_delayed_work(&gc_work->dwork, next_run);
 +}
 +
- /*
-  * Warning :
-  * - Caller must take a reference on returned object
-@@ -499,6 +505,17 @@ begin:
- 	bucket = reciprocal_scale(hash, hsize);
++static void conntrack_gc_work_init(struct conntrack_gc_work *gc_work)
++{
++	INIT_DELAYED_WORK(&gc_work->dwork, gc_worker);
++	gc_work->exiting = false;
++}
++
+ static struct nf_conn *
+ __nf_conntrack_alloc(struct net *net,
+ 		     const struct nf_conntrack_zone *zone,
+@@ -1534,6 +1604,7 @@ static int untrack_refs(void)
  
- 	hlist_nulls_for_each_entry_rcu(h, n, &ct_hash[bucket], hnnode) {
-+		struct nf_conn *ct;
-+
-+		ct = nf_ct_tuplehash_to_ctrack(h);
-+		if (nf_ct_is_expired(ct)) {
-+			nf_ct_gc_expired(ct);
-+			continue;
-+		}
-+
-+		if (nf_ct_is_dying(ct))
-+			continue;
-+
- 		if (nf_ct_key_equal(h, tuple, zone, net)) {
- 			NF_CT_STAT_INC_ATOMIC(net, found);
- 			return h;
-@@ -597,7 +614,6 @@ nf_conntrack_hash_check_insert(struct nf_conn *ct)
- 				    zone, net))
- 			goto out;
- 
--	add_timer(&ct->timeout);
- 	smp_wmb();
- 	/* The caller holds a reference to this object */
- 	atomic_set(&ct->ct_general.use, 2);
-@@ -750,8 +766,7 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	/* Timer relative to confirmation time, not original
- 	   setting time, otherwise we'd get timer wrap in
- 	   weird delay cases. */
--	ct->timeout.expires += jiffies;
--	add_timer(&ct->timeout);
-+	ct->timeout += nfct_time_stamp;
- 	atomic_inc(&ct->ct_general.use);
- 	ct->status |= IPS_CONFIRMED;
- 
-@@ -815,8 +830,16 @@ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
- 
- 	hlist_nulls_for_each_entry_rcu(h, n, &ct_hash[hash], hnnode) {
- 		ct = nf_ct_tuplehash_to_ctrack(h);
--		if (ct != ignored_conntrack &&
--		    nf_ct_key_equal(h, tuple, zone, net)) {
-+
-+		if (ct == ignored_conntrack)
-+			continue;
-+
-+		if (nf_ct_is_expired(ct)) {
-+			nf_ct_gc_expired(ct);
-+			continue;
-+		}
-+
-+		if (nf_ct_key_equal(h, tuple, zone, net)) {
- 			NF_CT_STAT_INC_ATOMIC(net, found);
- 			rcu_read_unlock();
- 			return 1;
-@@ -850,6 +873,11 @@ static unsigned int early_drop_list(struct net *net,
- 	hlist_nulls_for_each_entry_rcu(h, n, head, hnnode) {
- 		tmp = nf_ct_tuplehash_to_ctrack(h);
- 
-+		if (nf_ct_is_expired(tmp)) {
-+			nf_ct_gc_expired(tmp);
-+			continue;
-+		}
-+
- 		if (test_bit(IPS_ASSURED_BIT, &tmp->status) ||
- 		    !net_eq(nf_ct_net(tmp), net) ||
- 		    nf_ct_is_dying(tmp))
-@@ -867,7 +895,6 @@ static unsigned int early_drop_list(struct net *net,
- 		 */
- 		if (net_eq(nf_ct_net(tmp), net) &&
- 		    nf_ct_is_confirmed(tmp) &&
--		    del_timer(&tmp->timeout) &&
- 		    nf_ct_delete(tmp, 0, 0))
- 			drops++;
- 
-@@ -937,8 +964,6 @@ __nf_conntrack_alloc(struct net *net,
- 	/* save hash for reusing when confirming */
- 	*(unsigned long *)(&ct->tuplehash[IP_CT_DIR_REPLY].hnnode.pprev) = hash;
- 	ct->status = 0;
--	/* Don't set timer yet: wait for confirmation */
--	setup_timer(&ct->timeout, death_by_timeout, (unsigned long)ct);
- 	write_pnet(&ct->ct_net, net);
- 	memset(&ct->__nfct_init_offset[0], 0,
- 	       offsetof(struct nf_conn, proto) -
-@@ -1312,7 +1337,6 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
- 			  unsigned long extra_jiffies,
- 			  int do_acct)
+ void nf_conntrack_cleanup_start(void)
  {
--	NF_CT_ASSERT(ct->timeout.data == (unsigned long)ct);
- 	NF_CT_ASSERT(skb);
- 
- 	/* Only update if this is not a fixed timeout */
-@@ -1320,18 +1344,10 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
- 		goto acct;
- 
- 	/* If not in hash table, timer will not be active yet */
--	if (!nf_ct_is_confirmed(ct)) {
--		ct->timeout.expires = extra_jiffies;
--	} else {
--		unsigned long newtime = jiffies + extra_jiffies;
--
--		/* Only update the timeout if the new timeout is at least
--		   HZ jiffies from the old timeout. Need del_timer for race
--		   avoidance (may already be dying). */
--		if (newtime - ct->timeout.expires >= HZ)
--			mod_timer_pending(&ct->timeout, newtime);
--	}
-+	if (nf_ct_is_confirmed(ct))
-+		extra_jiffies += nfct_time_stamp;
- 
-+	ct->timeout = extra_jiffies;
- acct:
- 	if (do_acct)
- 		nf_ct_acct_update(ct, ctinfo, skb->len);
-@@ -1346,11 +1362,7 @@ bool __nf_ct_kill_acct(struct nf_conn *ct,
- 	if (do_acct)
- 		nf_ct_acct_update(ct, ctinfo, skb->len);
- 
--	if (del_timer(&ct->timeout)) {
--		ct->timeout.function((unsigned long)ct);
--		return true;
--	}
--	return false;
-+	return nf_ct_delete(ct, 0, 0);
++	conntrack_gc_work.exiting = true;
+ 	RCU_INIT_POINTER(ip_ct_attach, NULL);
  }
- EXPORT_SYMBOL_GPL(__nf_ct_kill_acct);
  
-@@ -1485,11 +1497,8 @@ void nf_ct_iterate_cleanup(struct net *net,
+@@ -1543,6 +1614,7 @@ void nf_conntrack_cleanup_end(void)
+ 	while (untrack_refs() > 0)
+ 		schedule();
  
- 	while ((ct = get_next_corpse(net, iter, data, &bucket)) != NULL) {
- 		/* Time to push up daises... */
--		if (del_timer(&ct->timeout))
--			nf_ct_delete(ct, portid, report);
--
--		/* ... else the timer will get him soon. */
++	cancel_delayed_work_sync(&conntrack_gc_work.dwork);
+ 	nf_ct_free_hashtable(nf_conntrack_hash, nf_conntrack_htable_size);
  
-+		nf_ct_delete(ct, portid, report);
- 		nf_ct_put(ct);
- 		cond_resched();
+ 	nf_conntrack_proto_fini();
+@@ -1817,6 +1889,10 @@ int nf_conntrack_init_start(void)
  	}
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 68800c1..81fd34c 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1144,9 +1144,7 @@ static int ctnetlink_del_conntrack(struct net *net, struct sock *ctnl,
- 		}
- 	}
- 
--	if (del_timer(&ct->timeout))
--		nf_ct_delete(ct, NETLINK_CB(skb).portid, nlmsg_report(nlh));
--
-+	nf_ct_delete(ct, NETLINK_CB(skb).portid, nlmsg_report(nlh));
- 	nf_ct_put(ct);
- 
+ 	/*  - and look it like as a confirmed connection */
+ 	nf_ct_untracked_status_or(IPS_CONFIRMED | IPS_UNTRACKED);
++
++	conntrack_gc_work_init(&conntrack_gc_work);
++	schedule_delayed_work(&conntrack_gc_work.dwork, GC_INTERVAL);
++
  	return 0;
-@@ -1514,11 +1512,10 @@ static int ctnetlink_change_timeout(struct nf_conn *ct,
- {
- 	u_int32_t timeout = ntohl(nla_get_be32(cda[CTA_TIMEOUT]));
  
--	if (!del_timer(&ct->timeout))
--		return -ETIME;
-+	ct->timeout = nfct_time_stamp + timeout * HZ;
- 
--	ct->timeout.expires = jiffies + timeout * HZ;
--	add_timer(&ct->timeout);
-+	if (test_bit(IPS_DYING_BIT, &ct->status))
-+		return -ETIME;
- 
- 	return 0;
- }
-@@ -1716,9 +1713,8 @@ ctnetlink_create_conntrack(struct net *net,
- 
- 	if (!cda[CTA_TIMEOUT])
- 		goto err1;
--	ct->timeout.expires = ntohl(nla_get_be32(cda[CTA_TIMEOUT]));
- 
--	ct->timeout.expires = jiffies + ct->timeout.expires * HZ;
-+	ct->timeout = nfct_time_stamp + ntohl(nla_get_be32(cda[CTA_TIMEOUT])) * HZ;
- 
- 	rcu_read_lock();
-  	if (cda[CTA_HELP]) {
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
-index 5588c7a..f60a475 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -157,8 +157,7 @@ static int destroy_sibling_or_exp(struct net *net, struct nf_conn *ct,
- 		pr_debug("setting timeout of conntrack %p to 0\n", sibling);
- 		sibling->proto.gre.timeout	  = 0;
- 		sibling->proto.gre.stream_timeout = 0;
--		if (del_timer(&sibling->timeout))
--			sibling->timeout.function((unsigned long)sibling);
-+		nf_ct_kill(sibling);
- 		nf_ct_put(sibling);
- 		return 1;
- 	} else {
-diff --git a/net/netfilter/nf_nat_core.c b/net/netfilter/nf_nat_core.c
-index de31818..81ae41f 100644
---- a/net/netfilter/nf_nat_core.c
-+++ b/net/netfilter/nf_nat_core.c
-@@ -565,16 +565,10 @@ static int nf_nat_proto_clean(struct nf_conn *ct, void *data)
- 	 * Else, when the conntrack is destoyed, nf_nat_cleanup_conntrack()
- 	 * will delete entry from already-freed table.
- 	 */
--	if (!del_timer(&ct->timeout))
--		return 1;
--
- 	ct->status &= ~IPS_NAT_DONE_MASK;
--
- 	rhashtable_remove_fast(&nf_nat_bysource_table, &ct->nat_bysource,
- 			       nf_nat_bysource_params);
- 
--	add_timer(&ct->timeout);
--
- 	/* don't delete conntrack.  Although that would make things a lot
- 	 * simpler, we'd end up flushing all conntracks on nat rmmod.
- 	 */
+ err_proto:
 -- 
 2.7.3
 
