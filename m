@@ -1,37 +1,73 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf] netfilter: ebtables: put module reference when an
- incorrect extension is found
-Date: Thu, 25 Aug 2016 13:18:29 +0200
-Message-ID: <20160825111829.GA6490@salvia>
-References: <9117dc544fa8d93e00e1d6aeb2db97ffea89155f.1471939966.git.sd@queasysnail.net>
+Subject: Re: [PATCH v4] netfilter: nf_tables: Ensure init attributes are
+ within the bounds
+Date: Thu, 25 Aug 2016 13:29:36 +0200
+Message-ID: <20160825112936.GA11823@salvia>
+References: <20160818160623.GA25544@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Florian Westphal <fw@strlen.de>,
-        Phil Sutter <phil@nwl.cc>
-To: Sabrina Dubroca <sd@queasysnail.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Laura Garcia Liebana <nevola@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57172 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:59990 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751675AbcHYLSi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Aug 2016 07:18:38 -0400
+        id S1757635AbcHYL3p (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Aug 2016 07:29:45 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id DBC13F9478
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Aug 2016 13:18:36 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 2CAE2FB45D
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Aug 2016 13:29:43 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 23BDA114D64
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Aug 2016 13:18:36 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 6B5AD100A7E
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Aug 2016 13:29:42 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 11D97100A7B
-        for <netfilter-devel@vger.kernel.org>; Thu, 25 Aug 2016 13:18:34 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3BB0A1150B2
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Aug 2016 13:29:40 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <9117dc544fa8d93e00e1d6aeb2db97ffea89155f.1471939966.git.sd@queasysnail.net>
+In-Reply-To: <20160818160623.GA25544@sonyv>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Aug 23, 2016 at 10:20:31AM +0200, Sabrina Dubroca wrote:
-> commit bcf493428840 ("netfilter: ebtables: Fix extension lookup with
-> identical name") added a second lookup in case the extension that was
-> found during the first lookup matched another extension with the same
-> name, but didn't release the reference on the incorrect module.
+Hi Laura,
 
-Applied, thanks Sabrina.
+On Thu, Aug 18, 2016 at 06:06:26PM +0200, Laura Garcia Liebana wrote:
+> Check for overflow of u8 fields from u32 netlink attributes and maximum
+> values.
+
+After a closer look, this lack of validation seems more widespread
+than I initially expected.
+
+Look, other enums like:
+
+enum nft_set_policies {
+        NFT_SET_POL_PERFORMANCE,
+        NFT_SET_POL_MEMORY,
+};
+
+that has no _MAX definition are suspect, actually looking at
+net/netfilter/nf_tables_api.c more specifically at
+nft_select_set_ops() you'll notice that the switch there doesn't seem
+to reject anything over NFT_SET_POL_MEMORY.
+
+So I would review net/netfilter/nf_tables_api.c too.
+
+BTW, I think it is a good idea to add something like:
+
+	err = nft_parse_u8(ntohl(nla_get_be32(tb[NFTA_BITWISE_LEN]),
+                           &priv->len);
+        if (err < 0)
+                return err;
+
+that we can consistently use all over the code, instead of open
+coding:
+
+        len = ...
+        if (len > U8_MAX)
+                return -ERANGE;
+
+> Refer to 4da449ae1df
+
+Please, use this format instead to refer to patches:
+
+4da449a ("netfilter: nft_exthdr: Add size check on u8 nft_exthdr attributes")
+
+Thanks!
