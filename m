@@ -1,85 +1,53 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH v2 nf-next 4/7] netfilter: conntrack: add gc worker to
- remove timed-out entries
-Date: Thu, 25 Aug 2016 01:50:19 +0200
-Message-ID: <20160824235019.GA19546@breakpoint.cc>
-References: <1472039755-14267-1-git-send-email-fw@strlen.de>
- <1472039755-14267-5-git-send-email-fw@strlen.de>
- <1472060441.14381.106.camel@edumazet-glaptop3.roam.corp.google.com>
- <20160824201139.GA14379@breakpoint.cc>
- <1472070642.14381.120.camel@edumazet-glaptop3.roam.corp.google.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf] netfilter: nft_reject: restrict to
+ INPUT/FORWARD/OUTPUT
+Date: Thu, 25 Aug 2016 12:56:24 +0200
+Message-ID: <20160825105624.GA5242@salvia>
+References: <1471798938-28241-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: netfilter-devel@vger.kernel.org,
+        Liping Zhang <liping.zhang@spreadtrum.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:48454 "EHLO
-        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752541AbcHYFU6 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Aug 2016 01:20:58 -0400
+Received: from mail.us.es ([193.147.175.20]:50488 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755951AbcHYK5C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 25 Aug 2016 06:57:02 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id C5D92F9465
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Aug 2016 12:56:34 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id C96D2114D64
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Aug 2016 12:56:33 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 153E26DB34
+        for <netfilter-devel@vger.kernel.org>; Thu, 25 Aug 2016 12:56:29 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1472070642.14381.120.camel@edumazet-glaptop3.roam.corp.google.com>
+In-Reply-To: <1471798938-28241-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> On Wed, 2016-08-24 at 22:11 +0200, Florian Westphal wrote:
-> > Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> > > On Wed, 2016-08-24 at 13:55 +0200, Florian Westphal wrote:
-> > > > Conntrack gc worker to evict stale entries.
-> > > 
-> > > 
-> > > >  static struct nf_conn *
-> > > >  __nf_conntrack_alloc(struct net *net,
-> > > >  		     const struct nf_conntrack_zone *zone,
-> > > > @@ -1527,6 +1597,7 @@ static int untrack_refs(void)
-> > > >  
-> > > >  void nf_conntrack_cleanup_start(void)
-> > > >  {
-> > > > +	conntrack_gc_work.exiting = true;
-> > > >  	RCU_INIT_POINTER(ip_ct_attach, NULL);
-> > > >  }
-> > > >  
-> > > > @@ -1536,6 +1607,9 @@ void nf_conntrack_cleanup_end(void)
-> > > >  	while (untrack_refs() > 0)
-> > > >  		schedule();
-> > > >  
-> > > > +	cancel_delayed_work_sync(&conntrack_gc_work.dwork);
-> > > > +	/* can be re-scheduled once */
-> > > 
-> > > Are you sure ?
-> > > 
-> > > As conntrack_gc_work.exiting = true, I do not see how this can happen ?
-> > 
-> > nf_conntrack_cleanup_start() sets exiting = true
-> > 
-> > current cpu blocks in
-> > 
-> > cancel_delayed_work_sync(&conntrack_gc_work.dwork);
-> > 
-> > Iff the work queue was running on other cpu but was already past
-> > gc_work->exiting check then when cancel_delayed_work_sync() (first one)
-> > returns it will have re-armed itself via schedule_delayed_work().
-> > 
-> > So I think the 2nd cancel_delayed_work_sync is needed.
-> > 
-> > Let me know if you'd like to see a v3 with more verbose
-> > comment about this.
+On Mon, Aug 22, 2016 at 01:02:18AM +0800, Liping Zhang wrote:
+> From: Liping Zhang <liping.zhang@spreadtrum.com>
 > 
-> If you were using cancel_delayed_work() (instead of
-> cancel_delayed_work_sync()) I would understand the concern.
+> After I add the nft rule "nft add rule filter prerouting reject
+> with tcp reset", kernel panic happened on my system:
+>   NULL pointer dereference at ...
+>   IP: [<ffffffff81b9db2f>] nf_send_reset+0xaf/0x400
+>   Call Trace:
+>   [<ffffffff81b9da80>] ? nf_reject_ip_tcphdr_get+0x160/0x160
+>   [<ffffffffa0928061>] nft_reject_ipv4_eval+0x61/0xb0 [nft_reject_ipv4]
+>   [<ffffffffa08e836a>] nft_do_chain+0x1fa/0x890 [nf_tables]
+>   [<ffffffffa08e8170>] ? __nft_trace_packet+0x170/0x170 [nf_tables]
+>   [<ffffffffa06e0900>] ? nf_ct_invert_tuple+0xb0/0xc0 [nf_conntrack]
+>   [<ffffffffa07224d4>] ? nf_nat_setup_info+0x5d4/0x650 [nf_nat]
+>   [...]
 > 
-> But here you are using the thing that was designed to exactly avoid the
-> issue, of both work running on another cpu and/or re-arming itself.
+> Because in the PREROUTING chain, routing information is not exist,
+> then we will dereference the NULL pointer and oops happen.
 > 
-> If what you are saying was true, we would have to fix hundreds of
-> cancel_delayed_work_sync() call sites ...
+> So we restrict reject expression to INPUT, FORWARD and OUTPUT chain.
+> This is consistent with iptables REJECT target.
 
-Ok, I see, the _sync version indeed seems to be desgined to
-suppress/avoid re-arming.
-
-I will send a v3 without the 2nd cancel_delayed_work_sync, thanks Eric!
-
-(I will preserve/add your Acked-by tags to the unchanged patches so you
- won't need to resend them).
+Good catch, applied, thanks.
