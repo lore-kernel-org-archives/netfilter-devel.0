@@ -1,147 +1,85 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH v3 nf-next 2/7] netfilter: don't rely on DYING bit to detect when destroy event was sent
-Date: Thu, 25 Aug 2016 15:33:30 +0200
-Message-ID: <1472132015-10264-3-git-send-email-fw@strlen.de>
+Subject: [PATCH v3 nf-next 7/7] netfilter: remove __nf_ct_kill_acct helper
+Date: Thu, 25 Aug 2016 15:33:35 +0200
+Message-ID: <1472132015-10264-8-git-send-email-fw@strlen.de>
 References: <1472132015-10264-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:49990 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:50006 "EHLO
         Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933491AbcHYNdc (ORCPT
+        by vger.kernel.org with ESMTP id S933975AbcHYNdt (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 25 Aug 2016 09:33:32 -0400
+        Thu, 25 Aug 2016 09:33:49 -0400
 In-Reply-To: <1472132015-10264-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The reliable event delivery mode currently (ab)uses the DYING bit to
-detect which entries on the dying list have to be skipped when
-re-delivering events from the eache worker in reliable event mode.
+After timer removal this just calls nf_ct_delete so remove the __ prefix
+version and make nf_ct_kill a shorthand for nf_ct_delete.
 
-Currently when we delete the conntrack from main table we only set this
-bit if we could also deliver the netlink destroy event to userspace.
-
-If we fail we move it to the dying list, the ecache worker will
-reattempt event delivery for all confirmed conntracks on the dying list
-that do not have the DYING bit set.
-
-Once timer is gone, we can no longer use if (del_timer()) to detect
-when we 'stole' the reference count owned by the timer/hash entry, so
-we need some other way to avoid racing with other cpu.
-
-Pablo suggested to add a marker in the ecache extension that skips
-entries that have been unhashed from main table but are still waiting
-for the last reference count to be dropped (e.g. because one skb waiting
-on nfqueue verdict still holds a reference).
-
-We do this by adding a tristate.
-If we fail to deliver the destroy event, make a note of this in the
-eache extension.  The worker can then skip all entries that are in
-a different state.  Either they never delivered a destroy event,
-e.g. because the netlink backend was not loaded, or redelivery took
-place already.
-
-Once the conntrack timer is removed we will now be able to replace
-del_timer() test with test_and_set_bit(DYING, &ct->status) to avoid
-racing with other cpu that tries to evict the same conntrack.
-
-Because DYING will then be set right before we report the destroy event
-we can no longer skip event reporting when dying bit is set.
-
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Eric Dumazet <edumazet@google.com>
 ---
- include/net/netfilter/nf_conntrack_ecache.h | 17 ++++++++++++-----
- net/netfilter/nf_conntrack_ecache.c         | 22 ++++++++++++++--------
- 2 files changed, 26 insertions(+), 13 deletions(-)
+ include/net/netfilter/nf_conntrack.h | 13 +++----------
+ net/netfilter/nf_conntrack_core.c    | 12 +++++-------
+ 2 files changed, 8 insertions(+), 17 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
-index fa36447..12d967b 100644
---- a/include/net/netfilter/nf_conntrack_ecache.h
-+++ b/include/net/netfilter/nf_conntrack_ecache.h
-@@ -12,12 +12,19 @@
- #include <linux/netfilter/nf_conntrack_tuple_common.h>
- #include <net/netfilter/nf_conntrack_extend.h>
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 7277751..5041805 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -219,21 +219,14 @@ static inline void nf_ct_refresh(struct nf_conn *ct,
+ 	__nf_ct_refresh_acct(ct, 0, skb, extra_jiffies, 0);
+ }
  
-+enum nf_ct_ecache_state {
-+	NFCT_ECACHE_UNKNOWN,		/* destroy event not sent */
-+	NFCT_ECACHE_DESTROY_FAIL,	/* tried but failed to send destroy event */
-+	NFCT_ECACHE_DESTROY_SENT,	/* sent destroy event after failure */
-+};
-+
- struct nf_conntrack_ecache {
--	unsigned long cache;	/* bitops want long */
--	unsigned long missed;	/* missed events */
--	u16 ctmask;		/* bitmask of ct events to be delivered */
--	u16 expmask;		/* bitmask of expect events to be delivered */
--	u32 portid;		/* netlink portid of destroyer */
-+	unsigned long cache;		/* bitops want long */
-+	unsigned long missed;		/* missed events */
-+	u16 ctmask;			/* bitmask of ct events to be delivered */
-+	u16 expmask;			/* bitmask of expect events to be delivered */
-+	u32 portid;			/* netlink portid of destroyer */
-+	enum nf_ct_ecache_state state;	/* ecache state */
- };
+-bool __nf_ct_kill_acct(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
+-		       const struct sk_buff *skb, int do_acct);
+-
+ /* kill conntrack and do accounting */
+-static inline bool nf_ct_kill_acct(struct nf_conn *ct,
+-				   enum ip_conntrack_info ctinfo,
+-				   const struct sk_buff *skb)
+-{
+-	return __nf_ct_kill_acct(ct, ctinfo, skb, 1);
+-}
++bool nf_ct_kill_acct(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
++		     const struct sk_buff *skb);
  
- static inline struct nf_conntrack_ecache *
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index d28011b..da9df2d 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -49,8 +49,13 @@ static enum retry_state ecache_work_evict_list(struct ct_pcpu *pcpu)
+ /* kill conntrack without accounting */
+ static inline bool nf_ct_kill(struct nf_conn *ct)
+ {
+-	return __nf_ct_kill_acct(ct, 0, NULL, 0);
++	return nf_ct_delete(ct, 0, 0);
+ }
  
- 	hlist_nulls_for_each_entry(h, n, &pcpu->dying, hnnode) {
- 		struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
-+		struct nf_conntrack_ecache *e;
+ /* These are for NAT.  Icky. */
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 7c66ce40..ac1db40 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1430,17 +1430,15 @@ acct:
+ }
+ EXPORT_SYMBOL_GPL(__nf_ct_refresh_acct);
  
--		if (nf_ct_is_dying(ct))
-+		if (!nf_ct_is_confirmed(ct))
-+			continue;
-+
-+		e = nf_ct_ecache_find(ct);
-+		if (!e || e->state != NFCT_ECACHE_DESTROY_FAIL)
- 			continue;
+-bool __nf_ct_kill_acct(struct nf_conn *ct,
+-		       enum ip_conntrack_info ctinfo,
+-		       const struct sk_buff *skb,
+-		       int do_acct)
++bool nf_ct_kill_acct(struct nf_conn *ct,
++		     enum ip_conntrack_info ctinfo,
++		     const struct sk_buff *skb)
+ {
+-	if (do_acct)
+-		nf_ct_acct_update(ct, ctinfo, skb->len);
++	nf_ct_acct_update(ct, ctinfo, skb->len);
  
- 		if (nf_conntrack_event(IPCT_DESTROY, ct)) {
-@@ -58,8 +63,7 @@ static enum retry_state ecache_work_evict_list(struct ct_pcpu *pcpu)
- 			break;
- 		}
+ 	return nf_ct_delete(ct, 0, 0);
+ }
+-EXPORT_SYMBOL_GPL(__nf_ct_kill_acct);
++EXPORT_SYMBOL_GPL(nf_ct_kill_acct);
  
--		/* we've got the event delivered, now it's dying */
--		set_bit(IPS_DYING_BIT, &ct->status);
-+		e->state = NFCT_ECACHE_DESTROY_SENT;
- 		refs[evicted] = ct;
+ #if IS_ENABLED(CONFIG_NF_CT_NETLINK)
  
- 		if (++evicted >= ARRAY_SIZE(refs)) {
-@@ -130,7 +134,7 @@ int nf_conntrack_eventmask_report(unsigned int eventmask, struct nf_conn *ct,
- 	if (!e)
- 		goto out_unlock;
- 
--	if (nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct)) {
-+	if (nf_ct_is_confirmed(ct)) {
- 		struct nf_ct_event item = {
- 			.ct	= ct,
- 			.portid	= e->portid ? e->portid : portid,
-@@ -150,11 +154,13 @@ int nf_conntrack_eventmask_report(unsigned int eventmask, struct nf_conn *ct,
- 				 * triggered by a process, we store the PORTID
- 				 * to include it in the retransmission.
- 				 */
--				if (eventmask & (1 << IPCT_DESTROY) &&
--				    e->portid == 0 && portid != 0)
--					e->portid = portid;
--				else
-+				if (eventmask & (1 << IPCT_DESTROY)) {
-+					if (e->portid == 0 && portid != 0)
-+						e->portid = portid;
-+					e->state = NFCT_ECACHE_DESTROY_FAIL;
-+				} else {
- 					e->missed |= eventmask;
-+				}
- 			} else {
- 				e->missed &= ~missed;
- 			}
 -- 
 2.7.3
 
