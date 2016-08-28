@@ -1,39 +1,50 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables v3 1/2] xtables-compat: check if nft ruleset is
- compatible
-Date: Fri, 26 Aug 2016 19:36:36 +0200
-Message-ID: <20160826173636.GA31435@salvia>
-References: <20160826165844.6849-1-pablombg@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+From: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH nft] meta: fix memory leak in tc classid parser
+Date: Sun, 28 Aug 2016 16:36:22 +0800
+Message-ID: <1472373382-20104-1-git-send-email-zlpnobody@163.com>
+Cc: netfilter-devel@vger.kernel.org,
+        Liping Zhang <liping.zhang@spreadtrum.com>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58686 "EHLO mail.us.es"
+Received: from m12-15.163.com ([220.181.12.15]:37681 "EHLO m12-15.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751223AbcHZRgk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 26 Aug 2016 13:36:40 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 2FDA11022B8
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Aug 2016 19:36:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 20854DA3B0
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Aug 2016 19:36:39 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 201A0FF2FC
-        for <netfilter-devel@vger.kernel.org>; Fri, 26 Aug 2016 19:36:37 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20160826165844.6849-1-pablombg@gmail.com>
+        id S1755220AbcH1IhM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 28 Aug 2016 04:37:12 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Aug 26, 2016 at 06:58:43PM +0200, Pablo M. Bermudo Garay wrote:
-> This patch adds a verification of the compatibility between the nft
-> ruleset and iptables. Nft tables, chains and rules are checked to be
-> compatible with iptables. If something is not compatible, the execution
-> stops and an error message is displayed to the user.
-> 
-> This checking is triggered by xtables-compat -L and xtables-compat-save
-> commands.
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Applied, thanks.
+We forgot to free the str which was allocated by xstrdup,
+so memory leak will happen.
+
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+---
+ src/meta.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/meta.c b/src/meta.c
+index 5a6fee5..87eafee 100644
+--- a/src/meta.c
++++ b/src/meta.c
+@@ -90,7 +90,7 @@ static struct error_record *tchandle_type_parse(const struct expr *sym,
+ 						struct expr **res)
+ {
+ 	uint32_t handle;
+-	char *str;
++	char *str = NULL;
+ 
+ 	if (strcmp(sym->identifier, "root") == 0)
+ 		handle = TC_H_ROOT;
+@@ -127,6 +127,7 @@ static struct error_record *tchandle_type_parse(const struct expr *sym,
+ 		handle = strtoull(sym->identifier, NULL, 0);
+ 	}
+ out:
++	xfree(str);
+ 	*res = constant_expr_alloc(&sym->location, sym->dtype,
+ 				   BYTEORDER_HOST_ENDIAN,
+ 				   sizeof(handle) * BITS_PER_BYTE, &handle);
+-- 
+2.5.5
+
+
