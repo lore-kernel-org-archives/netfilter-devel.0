@@ -1,42 +1,41 @@
 From: fgao@ikuai8.com
-Subject: [PATCH nf-next] netfilter: log_arp: Use ARPHRD_ETHER instead of literal '1'
-Date: Sun, 28 Aug 2016 21:41:22 +0800
-Message-ID: <1472391682-13832-1-git-send-email-fgao@ikuai8.com>
+Subject: [PATCH nf-next] netfilter: log: Check param to avoid overflow in nf_log_set
+Date: Sun, 28 Aug 2016 22:30:18 +0800
+Message-ID: <1472394618-5711-1-git-send-email-fgao@ikuai8.com>
 Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from SMTPBG351.QQ.COM ([183.57.50.165]:35570 "EHLO smtpbg351.qq.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750884AbcH1Nu1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 28 Aug 2016 09:50:27 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: pablo@netfilter.org, kaber@trash.net, davem@davemloft.net,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 From: Gao Feng <fgao@ikuai8.com>
 
-There is one macro ARPHRD_ETHER which defines the ethernet proto for ARP,
-so we could use it instead of the literal number '1'.
+The nf_log_set is an interface function, so it should do the strict sanity
+check of parameters. Add  one sanity check for pf, it could not exceed
+NFPROTO_NUMPROTO, and print error log when pf is invalid.
 
 Signed-off-by: Gao Feng <fgao@ikuai8.com>
 ---
- net/ipv4/netfilter/nf_log_arp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_log.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/net/ipv4/netfilter/nf_log_arp.c b/net/ipv4/netfilter/nf_log_arp.c
-index e7ad950..cf8f2d4 100644
---- a/net/ipv4/netfilter/nf_log_arp.c
-+++ b/net/ipv4/netfilter/nf_log_arp.c
-@@ -62,7 +62,7 @@ static void dump_arp_packet(struct nf_log_buf *m,
- 	/* If it's for Ethernet and the lengths are OK, then log the ARP
- 	 * payload.
- 	 */
--	if (ah->ar_hrd != htons(1) ||
-+	if (ah->ar_hrd != htons(ARPHRD_ETHER) ||
- 	    ah->ar_hln != ETH_ALEN ||
- 	    ah->ar_pln != sizeof(__be32))
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index aa5847a..02ce0b9 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -43,8 +43,10 @@ void nf_log_set(struct net *net, u_int8_t pf, const struct nf_logger *logger)
+ {
+ 	const struct nf_logger *log;
+ 
+-	if (pf == NFPROTO_UNSPEC)
++	if (pf == NFPROTO_UNSPEC || pf >= NFPROTO_NUMPROTO) {
++		pr_err("Wrong pf(%d) for nf log", pf);
  		return;
++	}
+ 
+ 	mutex_lock(&nf_log_mutex);
+ 	log = nft_log_dereference(net->nf.nf_loggers[pf]);
 -- 
 1.9.1
-
-
