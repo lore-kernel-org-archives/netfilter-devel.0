@@ -1,43 +1,42 @@
-From: Liping Zhang <zlpnobody@163.com>
-Subject: [PATCH nf] netfilter: nf_tables_netdev: remove redundant ip_hdr assignment
-Date: Sun, 28 Aug 2016 16:59:52 +0800
-Message-ID: <1472374792-22765-1-git-send-email-zlpnobody@163.com>
-Cc: netfilter-devel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: pablo@netfilter.org
+From: fgao@ikuai8.com
+Subject: [PATCH nf-next] netfilter: log_arp: Use ARPHRD_ETHER instead of literal '1'
+Date: Sun, 28 Aug 2016 21:41:22 +0800
+Message-ID: <1472391682-13832-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, kaber@trash.net, kadlec@blackhole.kfki.hu,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from m12-13.163.com ([220.181.12.13]:49717 "EHLO m12-13.163.com"
+Received: from SMTPBG351.QQ.COM ([183.57.50.165]:35570 "EHLO smtpbg351.qq.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755236AbcH1JAZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 28 Aug 2016 05:00:25 -0400
+        id S1750884AbcH1Nu1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Sun, 28 Aug 2016 09:50:27 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+From: Gao Feng <fgao@ikuai8.com>
 
-We have already use skb_header_pointer to get the ip header pointer,
-so there's no need to use ip_hdr again. Moreover, in NETDEV INGRESS
-hook, ip header maybe not linear, so use ip_hdr is not appropriate,
-remove it.
+There is one macro ARPHRD_ETHER which defines the ethernet proto for ARP,
+so we could use it instead of the literal number '1'.
 
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
 ---
- net/netfilter/nf_tables_netdev.c | 1 -
- 1 file changed, 1 deletion(-)
+ net/ipv4/netfilter/nf_log_arp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/netfilter/nf_tables_netdev.c b/net/netfilter/nf_tables_netdev.c
-index 5eefe4a..75d696f 100644
---- a/net/netfilter/nf_tables_netdev.c
-+++ b/net/netfilter/nf_tables_netdev.c
-@@ -30,7 +30,6 @@ nft_netdev_set_pktinfo_ipv4(struct nft_pktinfo *pkt,
- 	if (!iph)
+diff --git a/net/ipv4/netfilter/nf_log_arp.c b/net/ipv4/netfilter/nf_log_arp.c
+index e7ad950..cf8f2d4 100644
+--- a/net/ipv4/netfilter/nf_log_arp.c
++++ b/net/ipv4/netfilter/nf_log_arp.c
+@@ -62,7 +62,7 @@ static void dump_arp_packet(struct nf_log_buf *m,
+ 	/* If it's for Ethernet and the lengths are OK, then log the ARP
+ 	 * payload.
+ 	 */
+-	if (ah->ar_hrd != htons(1) ||
++	if (ah->ar_hrd != htons(ARPHRD_ETHER) ||
+ 	    ah->ar_hln != ETH_ALEN ||
+ 	    ah->ar_pln != sizeof(__be32))
  		return;
- 
--	iph = ip_hdr(skb);
- 	if (iph->ihl < 5 || iph->version != 4)
- 		return;
- 
 -- 
-2.5.5
+1.9.1
 
 
