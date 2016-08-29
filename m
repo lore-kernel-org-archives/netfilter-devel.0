@@ -1,146 +1,100 @@
-From: Feng Gao <gfree.wind@gmail.com>
-Subject: Re: [PATCH v2 nf] netfilter: log: Check param to avoid overflow in nf_log_set
-Date: Mon, 29 Aug 2016 18:30:09 +0800
-Message-ID: <CA+6hz4oXVqwcaCH6aKVw-fq2JfmNCLAz-2WragGhdS5QvC_Sxg@mail.gmail.com>
-References: <1472466328-5595-1-git-send-email-fgao@ikuai8.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org,
-        Linux Kernel Network Developers <netdev@vger.kernel.org>
-To: Gao Feng <fgao@ikuai8.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1472466328-5595-1-git-send-email-fgao@ikuai8.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft] parser_bison: allow variable references in set elements definition
+Date: Mon, 29 Aug 2016 17:55:56 +0200
+Message-ID: <1472486156-21937-1-git-send-email-pablo@netfilter.org>
+Cc: andreas.hainke@foteviken.de
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:49114 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932166AbcH2P4J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 29 Aug 2016 11:56:09 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 61E8B11E5A5
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 17:56:05 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 53D18100A65
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 17:56:05 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 0CB99100A66
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 17:56:03 +0200 (CEST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 29, 2016 at 6:25 PM,  <fgao@ikuai8.com> wrote:
-> From: Gao Feng <fgao@ikuai8.com>
->
-> The nf_log_set is an interface function, so it should do the strict sanity
-> check of parameters. Convert the return value of nf_log_set as int instead
-> of void. When the pf is invalid, return -EOPNOTSUPP.
->
-> Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> ---
->  v2: Use ARRAY_SIZE(net->nf.nf_loggers) instead of NFPROTO_NUMPROTO;
->      Return error code -EOPNOTSUPP when pf is invalid;
->  v1: Initial patch
->
->  include/net/netfilter/nf_log.h       | 2 +-
->  net/bridge/netfilter/nf_log_bridge.c | 3 +--
->  net/ipv4/netfilter/nf_log_arp.c      | 3 +--
->  net/ipv4/netfilter/nf_log_ipv4.c     | 3 +--
->  net/ipv6/netfilter/nf_log_ipv6.c     | 3 +--
->  net/netfilter/nf_log.c               | 8 +++++---
->  6 files changed, 10 insertions(+), 12 deletions(-)
->
-> diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
-> index 83d855b..f4eebd0 100644
-> --- a/include/net/netfilter/nf_log.h
-> +++ b/include/net/netfilter/nf_log.h
-> @@ -60,7 +60,7 @@ struct nf_logger {
->  int nf_log_register(u_int8_t pf, struct nf_logger *logger);
->  void nf_log_unregister(struct nf_logger *logger);
->
-> -void nf_log_set(struct net *net, u_int8_t pf,
-> +int nf_log_set(struct net *net, u_int8_t pf,
->                 const struct nf_logger *logger);
->  void nf_log_unset(struct net *net, const struct nf_logger *logger);
->
-> diff --git a/net/bridge/netfilter/nf_log_bridge.c b/net/bridge/netfilter/nf_log_bridge.c
-> index 5d9953a..1663df5 100644
-> --- a/net/bridge/netfilter/nf_log_bridge.c
-> +++ b/net/bridge/netfilter/nf_log_bridge.c
-> @@ -50,8 +50,7 @@ static struct nf_logger nf_bridge_logger __read_mostly = {
->
->  static int __net_init nf_log_bridge_net_init(struct net *net)
->  {
-> -       nf_log_set(net, NFPROTO_BRIDGE, &nf_bridge_logger);
-> -       return 0;
-> +       return nf_log_set(net, NFPROTO_BRIDGE, &nf_bridge_logger);
->  }
->
->  static void __net_exit nf_log_bridge_net_exit(struct net *net)
-> diff --git a/net/ipv4/netfilter/nf_log_arp.c b/net/ipv4/netfilter/nf_log_arp.c
-> index e7ad950..73599f2 100644
-> --- a/net/ipv4/netfilter/nf_log_arp.c
-> +++ b/net/ipv4/netfilter/nf_log_arp.c
-> @@ -111,8 +111,7 @@ static struct nf_logger nf_arp_logger __read_mostly = {
->
->  static int __net_init nf_log_arp_net_init(struct net *net)
->  {
-> -       nf_log_set(net, NFPROTO_ARP, &nf_arp_logger);
-> -       return 0;
-> +       return nf_log_set(net, NFPROTO_ARP, &nf_arp_logger);
->  }
->
->  static void __net_exit nf_log_arp_net_exit(struct net *net)
-> diff --git a/net/ipv4/netfilter/nf_log_ipv4.c b/net/ipv4/netfilter/nf_log_ipv4.c
-> index 076aadd..20f2255 100644
-> --- a/net/ipv4/netfilter/nf_log_ipv4.c
-> +++ b/net/ipv4/netfilter/nf_log_ipv4.c
-> @@ -347,8 +347,7 @@ static struct nf_logger nf_ip_logger __read_mostly = {
->
->  static int __net_init nf_log_ipv4_net_init(struct net *net)
->  {
-> -       nf_log_set(net, NFPROTO_IPV4, &nf_ip_logger);
-> -       return 0;
-> +       return nf_log_set(net, NFPROTO_IPV4, &nf_ip_logger);
->  }
->
->  static void __net_exit nf_log_ipv4_net_exit(struct net *net)
-> diff --git a/net/ipv6/netfilter/nf_log_ipv6.c b/net/ipv6/netfilter/nf_log_ipv6.c
-> index 8dd8696..c1bcf69 100644
-> --- a/net/ipv6/netfilter/nf_log_ipv6.c
-> +++ b/net/ipv6/netfilter/nf_log_ipv6.c
-> @@ -379,8 +379,7 @@ static struct nf_logger nf_ip6_logger __read_mostly = {
->
->  static int __net_init nf_log_ipv6_net_init(struct net *net)
->  {
-> -       nf_log_set(net, NFPROTO_IPV6, &nf_ip6_logger);
-> -       return 0;
-> +       return nf_log_set(net, NFPROTO_IPV6, &nf_ip6_logger);
->  }
->
->  static void __net_exit nf_log_ipv6_net_exit(struct net *net)
-> diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-> index aa5847a..30a17d6 100644
-> --- a/net/netfilter/nf_log.c
-> +++ b/net/netfilter/nf_log.c
-> @@ -39,12 +39,12 @@ static struct nf_logger *__find_logger(int pf, const char *str_logger)
->         return NULL;
->  }
->
-> -void nf_log_set(struct net *net, u_int8_t pf, const struct nf_logger *logger)
-> +int nf_log_set(struct net *net, u_int8_t pf, const struct nf_logger *logger)
->  {
->         const struct nf_logger *log;
->
-> -       if (pf == NFPROTO_UNSPEC)
-> -               return;
-> +       if (pf == NFPROTO_UNSPEC || pf >= ARRAY_SIZE(net->nf.nf_loggers))
-> +               return -EOPNOTSUPP;
->
->         mutex_lock(&nf_log_mutex);
->         log = nft_log_dereference(net->nf.nf_loggers[pf]);
-> @@ -52,6 +52,8 @@ void nf_log_set(struct net *net, u_int8_t pf, const struct nf_logger *logger)
->                 rcu_assign_pointer(net->nf.nf_loggers[pf], logger);
->
->         mutex_unlock(&nf_log_mutex);
-> +
-> +       return 0;
->  }
->  EXPORT_SYMBOL(nf_log_set);
->
-> --
-> 1.9.1
->
+Andreas reports that he cannot use variables in set definitions:
 
-Sorry, this patch does not fix any bug.
-The subject should be "nf-next".
+	define s-ext-2-int = 10.10.10.10 . 25, 10.10.10.10 . 143
 
-Regards
-Feng
+        set s-ext-2-int {
+                type ipv4_addr . inet_service
+                elements =  { $s-ext-2-int }
+        }
+
+This syntax is not correct though, since the curly braces should be
+placed in the variable definition itself, so we have context to handle
+this variable as a list of set elements.
+
+The correct syntax that works after this patch is:
+
+	define s-ext-2-int = { 10.10.10.10 . 25, 10.10.10.10 . 143 }
+
+	table inet forward {
+        	set s-ext-2-int {
+	                type ipv4_addr . inet_service
+	                elements = $s-ext-2-int
+	        }
+	}
+
+Reported-by: Andreas Hainke <andreas.hainke@foteviken.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/parser_bison.y | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/src/parser_bison.y b/src/parser_bison.y
+index a87468e..aac10dc 100644
+--- a/src/parser_bison.y
++++ b/src/parser_bison.y
+@@ -525,8 +525,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <expr>			verdict_map_expr verdict_map_list_expr verdict_map_list_member_expr
+ %destructor { expr_free($$); }	verdict_map_expr verdict_map_list_expr verdict_map_list_member_expr
+ 
+-%type <expr>			set_expr set_list_expr set_list_member_expr
+-%destructor { expr_free($$); }	set_expr set_list_expr set_list_member_expr
++%type <expr>			set_expr set_block_expr set_list_expr set_list_member_expr
++%destructor { expr_free($$); }	set_expr set_block_expr set_list_expr set_list_member_expr
+ %type <expr>			set_elem_expr set_elem_expr_alloc set_lhs_expr set_rhs_expr
+ %destructor { expr_free($$); }	set_elem_expr set_elem_expr_alloc set_lhs_expr set_rhs_expr
+ %type <expr>			set_elem_expr_stmt set_elem_expr_stmt_alloc
+@@ -1061,7 +1061,7 @@ set_block		:	/* empty */	{ $$ = $<set>-1; }
+ 				$1->gc_int = $3 * 1000;
+ 				$$ = $1;
+ 			}
+-			|	set_block	ELEMENTS	'='		set_expr
++			|	set_block	ELEMENTS	'='		set_block_expr
+ 			{
+ 				$1->init = $4;
+ 				$$ = $1;
+@@ -1069,6 +1069,10 @@ set_block		:	/* empty */	{ $$ = $<set>-1; }
+ 			|	set_block	set_mechanism	stmt_seperator
+ 			;
+ 
++set_block_expr		:	set_expr
++			|	variable_expr
++			;
++
+ set_flag_list		:	set_flag_list	COMMA		set_flag
+ 			{
+ 				$$ = $1 | $3;
+@@ -1104,7 +1108,7 @@ map_block		:	/* empty */	{ $$ = $<set>-1; }
+ 				$1->flags |= $3;
+ 				$$ = $1;
+ 			}
+-			|	map_block	ELEMENTS	'='		set_expr
++			|	map_block	ELEMENTS	'='		set_block_expr
+ 			{
+ 				$1->init = $4;
+ 				$$ = $1;
+-- 
+2.1.4
+
