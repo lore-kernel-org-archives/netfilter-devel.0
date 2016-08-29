@@ -1,284 +1,183 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 3/8] src: add numgen expression
-Date: Mon, 29 Aug 2016 20:21:14 +0200
-Message-ID: <1472494879-16442-3-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 4/8] src: add hash expression
+Date: Mon, 29 Aug 2016 20:21:15 +0200
+Message-ID: <1472494879-16442-4-git-send-email-pablo@netfilter.org>
 References: <1472494879-16442-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48864 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48872 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752958AbcH2SVc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Aug 2016 14:21:32 -0400
+        id S1753566AbcH2SVe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 29 Aug 2016 14:21:34 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E05ED1324E4
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 20:21:30 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id E5CFC1324E2
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 20:21:31 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CA05D100A57
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 20:21:30 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id CF93B100A6A
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 20:21:31 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 34DDE100A6C
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 20:21:28 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 2C4A0100A76
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 20:21:29 +0200 (CEST)
 In-Reply-To: <1472494879-16442-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This new expression allows us to generate incremental and random numbers
-bound to a specified modulus value.
+This is special expression that transforms an input expression into a
+32-bit unsigned integer. This expression takes a modulus parameter to
+scale the result and the random seed so the hash result becomes harder
+to predict.
 
-The following rule sets the conntrack mark of 0 to the first packet seen,
-then 1 to second packet, then 0 again to the third packet and so on:
+You can use it to set the packet mark, eg.
 
- # nft add rule x y ct mark set numgen inc mod 2
+ # nft add rule x y meta mark set jhash ip saddr . ip daddr mod 2 seed 0xdeadbeef
 
-A more useful example is a simple load balancing scenario, where you can
-also use maps to set the destination NAT address based on this new numgen
-expression:
+You can combine this with maps too, eg.
 
- # nft add rule nat prerouting \
-	dnat to numgen inc mod 2 map { 0 : 192.168.10.100, 1 : 192.168.20.200 }
+ # nft add rule x y dnat to jhash ip saddr mod 2 seed 0xdeadbeef map { \
+	0 : 192.168.20.100, \
+	1 : 192.168.30.100 \
+   }
 
-So this is distributing new connections in a round-robin fashion between
-192.168.10.100 and 192.168.20.200. Don't forget the special NAT chain
-semantics: Only the first packet evaluates the rule, follow up packets
-rely on conntrack to apply the NAT information.
+Currently, this expression implements the jenkins hash implementation
+available in the Linux kernel:
 
-You can also emulate flow distribution with different backend weights
-using intervals:
+ http://lxr.free-electrons.com/source/include/linux/jhash.h
 
- # nft add rule nat prerouting \
-	dnat to numgen inc mod 10 map { 0-5 : 192.168.10.100, 6-9 : 192.168.20.200 }
-
-So 192.168.10.100 gets 60% of the workload, while 192.168.20.200 gets 40%.
-
-We can also be mixed with dynamic sets, thus weight can be updated in
-runtime.
+But it should be possible to extend it to support any other hash
+function type.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/Makefile.am          |  1 +
- include/expression.h         |  8 ++++++
- include/numgen.h             |  7 +++++
- src/Makefile.am              |  1 +
- src/evaluate.c               | 27 ++++++++++++++++++
- src/netlink_delinearize.c    | 18 ++++++++++++
- src/netlink_linearize.c      | 15 ++++++++++
- src/numgen.c                 | 68 ++++++++++++++++++++++++++++++++++++++++++++
- src/parser_bison.y           | 21 ++++++++++++--
- src/scanner.l                |  4 +++
- tests/py/ip/numgen.t         |  6 ++++
- tests/py/ip/numgen.t.payload | 24 ++++++++++++++++
- 12 files changed, 197 insertions(+), 3 deletions(-)
- create mode 100644 include/numgen.h
- create mode 100644 src/numgen.c
- create mode 100644 tests/py/ip/numgen.t
- create mode 100644 tests/py/ip/numgen.t.payload
+ include/expression.h       |  9 +++++++
+ include/hash.h             |  7 ++++++
+ src/Makefile.am            |  1 +
+ src/evaluate.c             | 21 ++++++++++++++++
+ src/hash.c                 | 60 ++++++++++++++++++++++++++++++++++++++++++++++
+ src/netlink_delinearize.c  | 32 +++++++++++++++++++++++++
+ src/netlink_linearize.c    | 23 ++++++++++++++++++
+ src/parser_bison.y         | 15 ++++++++++--
+ src/scanner.l              |  3 +++
+ tests/py/ip/hash.t         |  5 ++++
+ tests/py/ip/hash.t.payload | 17 +++++++++++++
+ 11 files changed, 191 insertions(+), 2 deletions(-)
+ create mode 100644 include/hash.h
+ create mode 100644 src/hash.c
+ create mode 100644 tests/py/ip/hash.t
+ create mode 100644 tests/py/ip/hash.t.payload
 
-diff --git a/include/Makefile.am b/include/Makefile.am
-index 58c58cb..940f2e5 100644
---- a/include/Makefile.am
-+++ b/include/Makefile.am
-@@ -17,6 +17,7 @@ noinst_HEADERS = 	cli.h		\
- 			headers.h	\
- 			list.h		\
- 			meta.h		\
-+			numgen.h	\
- 			netlink.h	\
- 			parser.h	\
- 			proto.h		\
 diff --git a/include/expression.h b/include/expression.h
-index 6e5e835..b6005ec 100644
+index b6005ec..6a509b3 100644
 --- a/include/expression.h
 +++ b/include/expression.h
-@@ -33,6 +33,7 @@
-  * @EXPR_UNARY:		byteorder conversion, generated during evaluation
+@@ -34,6 +34,7 @@
   * @EXPR_BINOP:		binary operations (bitwise, shifts)
   * @EXPR_RELATIONAL:	equality and relational expressions
-+ * @EXPR_NUMGEN:	number generation expression
+  * @EXPR_NUMGEN:	number generation expression
++ * @EXPR_HASH:		hash expression
   */
  enum expr_types {
  	EXPR_INVALID,
-@@ -55,6 +56,7 @@ enum expr_types {
- 	EXPR_UNARY,
+@@ -57,6 +58,7 @@ enum expr_types {
  	EXPR_BINOP,
  	EXPR_RELATIONAL,
-+	EXPR_NUMGEN,
+ 	EXPR_NUMGEN,
++	EXPR_HASH,
  };
  
  enum ops {
-@@ -170,6 +172,7 @@ enum expr_flags {
- 
- #include <payload.h>
+@@ -174,6 +176,7 @@ enum expr_flags {
  #include <exthdr.h>
-+#include <numgen.h>
+ #include <numgen.h>
  #include <meta.h>
++#include <hash.h>
  #include <ct.h>
  
-@@ -277,6 +280,11 @@ struct expr {
- 			enum nft_ct_keys	key;
- 			int8_t			direction;
- 		} ct;
+ /**
+@@ -285,6 +288,12 @@ struct expr {
+ 			enum nft_ng_types	type;
+ 			uint32_t		mod;
+ 		} numgen;
 +		struct {
-+			/* EXPR_NUMGEN */
-+			enum nft_ng_types	type;
++			/* EXPR_HASH */
++			struct expr		*expr;
 +			uint32_t		mod;
-+		} numgen;
++			uint32_t		seed;
++		} hash;
  	};
  };
  
-diff --git a/include/numgen.h b/include/numgen.h
+diff --git a/include/hash.h b/include/hash.h
 new file mode 100644
-index 0000000..bec18e5
+index 0000000..bc8c86a
 --- /dev/null
-+++ b/include/numgen.h
++++ b/include/hash.h
 @@ -0,0 +1,7 @@
-+#ifndef NFTABLES_NUMGEN_H
-+#define NFTABLES_NUMGEN_H
++#ifndef NFTABLES_HASH_H
++#define NFTABLES_HASH_H
 +
-+extern struct expr *numgen_expr_alloc(const struct location *loc,
-+				      enum nft_ng_types type, uint32_t until);
++extern struct expr *hash_expr_alloc(const struct location *loc,
++				    uint32_t modulus, uint32_t seed);
 +
-+#endif /* NFTABLES_NUMGEN_H */
++#endif /* NFTABLES_HASH_H */
 diff --git a/src/Makefile.am b/src/Makefile.am
-index 8c59449..241a078 100644
+index 241a078..63bbef2 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
-@@ -37,6 +37,7 @@ nft_SOURCES =	main.c				\
+@@ -36,6 +36,7 @@ nft_SOURCES =	main.c				\
+ 		proto.c				\
  		payload.c			\
  		exthdr.c			\
++		hash.c				\
  		meta.c				\
-+		numgen.c			\
+ 		numgen.c			\
  		ct.c				\
- 		netlink.c			\
- 		netlink_linearize.c		\
 diff --git a/src/evaluate.c b/src/evaluate.c
-index d669b85..ed722df 100644
+index ed722df..8f7824b 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -1158,6 +1158,31 @@ static int expr_evaluate_mapping(struct eval_ctx *ctx, struct expr **expr)
- 	return 0;
+@@ -1183,6 +1183,25 @@ static int expr_evaluate_numgen(struct eval_ctx *ctx, struct expr **exprp)
+ 	return expr_evaluate_primary(ctx, exprp);
  }
  
-+/* We got datatype context via statement. If the basetype is compatible, set
-+ * this expression datatype to the one of the statement to make it datatype
-+ * compatible. This is a more conservative approach than enabling datatype
-+ * compatibility between two different datatypes whose basetype is the same,
-+ * let's revisit this later once users come with valid usecases to generalize
-+ * this.
-+ */
-+static void expr_dtype_integer_compatible(struct eval_ctx *ctx,
-+					  struct expr *expr)
++static int expr_evaluate_hash(struct eval_ctx *ctx, struct expr **exprp)
 +{
-+	if (ctx->ectx.dtype &&
-+	    ctx->ectx.dtype->basetype == &integer_type &&
-+	    ctx->ectx.len == 4 * BITS_PER_BYTE) {
-+		expr->dtype = ctx->ectx.dtype;
-+		expr->len   = ctx->ectx.len;
-+	}
-+}
++	struct expr *expr = *exprp;
 +
-+static int expr_evaluate_numgen(struct eval_ctx *ctx, struct expr **exprp)
-+{
-+	expr_dtype_integer_compatible(ctx, *exprp);
++	expr_dtype_integer_compatible(ctx, expr);
 +
-+	return expr_evaluate_primary(ctx, exprp);
++	expr_set_context(&ctx->ectx, NULL, 0);
++	if (expr_evaluate(ctx, &expr->hash.expr) < 0)
++		return -1;
++
++	/* expr_evaluate_primary() sets the context to what to the input
++         * expression to be hashed. Since this input is transformed to a 4 bytes
++	 * integer, restore context to the datatype that results from hashing.
++	 */
++	expr_set_context(&ctx->ectx, expr->dtype, expr->len);
++
++	return 0;
 +}
 +
  /*
   * Transfer the invertible binops to the constant side of an equality
   * expression. A left shift is only invertible if the low n bits are
-@@ -1560,6 +1585,8 @@ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
- 		return expr_evaluate_mapping(ctx, expr);
- 	case EXPR_RELATIONAL:
+@@ -1587,6 +1606,8 @@ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
  		return expr_evaluate_relational(ctx, expr);
-+	case EXPR_NUMGEN:
-+		return expr_evaluate_numgen(ctx, expr);
+ 	case EXPR_NUMGEN:
+ 		return expr_evaluate_numgen(ctx, expr);
++	case EXPR_HASH:
++		return expr_evaluate_hash(ctx, expr);
  	default:
  		BUG("unknown expression type %s\n", (*expr)->ops->name);
  	}
-diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index e9e0a82..adcce67 100644
---- a/src/netlink_delinearize.c
-+++ b/src/netlink_delinearize.c
-@@ -507,6 +507,22 @@ static void netlink_parse_meta(struct netlink_parse_ctx *ctx,
- 		netlink_parse_meta_stmt(ctx, loc, nle);
- }
- 
-+static void netlink_parse_numgen(struct netlink_parse_ctx *ctx,
-+				 const struct location *loc,
-+				 const struct nftnl_expr *nle)
-+{
-+	enum nft_registers dreg;
-+	uint32_t type, until;
-+	struct expr *expr;
-+
-+	type  = nftnl_expr_get_u32(nle, NFTNL_EXPR_NG_TYPE);
-+	until = nftnl_expr_get_u32(nle, NFTNL_EXPR_NG_UNTIL);
-+
-+	expr = numgen_expr_alloc(loc, type, until);
-+	dreg = netlink_parse_register(nle, NFTNL_EXPR_NG_DREG);
-+	netlink_set_register(ctx, dreg, expr);
-+}
-+
- static void netlink_parse_ct_stmt(struct netlink_parse_ctx *ctx,
- 				  const struct location *loc,
- 				  const struct nftnl_expr *nle)
-@@ -1003,6 +1019,7 @@ static const struct {
- 	{ .name = "target",	.parse = netlink_parse_target },
- 	{ .name = "match",	.parse = netlink_parse_match },
- 	{ .name = "quota",	.parse = netlink_parse_quota },
-+	{ .name = "numgen",	.parse = netlink_parse_numgen },
- };
- 
- static int netlink_parse_expr(const struct nftnl_expr *nle,
-@@ -1622,6 +1639,7 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
- 	case EXPR_SET_REF:
- 	case EXPR_META:
- 	case EXPR_VERDICT:
-+	case EXPR_NUMGEN:
- 		break;
- 	case EXPR_CT:
- 		ct_expr_update_type(&ctx->pctx, expr);
-diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index a14d0ff..2c6848c 100644
---- a/src/netlink_linearize.c
-+++ b/src/netlink_linearize.c
-@@ -151,6 +151,19 @@ static void netlink_gen_meta(struct netlink_linearize_ctx *ctx,
- 	nftnl_rule_add_expr(ctx->nlr, nle);
- }
- 
-+static void netlink_gen_numgen(struct netlink_linearize_ctx *ctx,
-+			    const struct expr *expr,
-+			    enum nft_registers dreg)
-+{
-+	struct nftnl_expr *nle;
-+
-+	nle = alloc_nft_expr("numgen");
-+	netlink_put_register(nle, NFTNL_EXPR_NG_DREG, dreg);
-+	netlink_put_register(nle, NFTNL_EXPR_NG_TYPE, expr->numgen.type);
-+	nftnl_expr_set_u32(nle, NFTNL_EXPR_NG_UNTIL, expr->numgen.mod);
-+	nftnl_rule_add_expr(ctx->nlr, nle);
-+}
-+
- static void netlink_gen_ct(struct netlink_linearize_ctx *ctx,
- 			   const struct expr *expr,
- 			   enum nft_registers dreg)
-@@ -614,6 +627,8 @@ static void netlink_gen_expr(struct netlink_linearize_ctx *ctx,
- 		return netlink_gen_ct(ctx, expr, dreg);
- 	case EXPR_SET_ELEM:
- 		return netlink_gen_expr(ctx, expr->key, dreg);
-+	case EXPR_NUMGEN:
-+		return netlink_gen_numgen(ctx, expr, dreg);
- 	default:
- 		BUG("unknown expression type %s\n", expr->ops->name);
- 	}
-diff --git a/src/numgen.c b/src/numgen.c
+diff --git a/src/hash.c b/src/hash.c
 new file mode 100644
-index 0000000..d9a43aa
+index 0000000..125b320
 --- /dev/null
-+++ b/src/numgen.c
-@@ -0,0 +1,68 @@
++++ b/src/hash.c
+@@ -0,0 +1,60 @@
 +/*
-+ * Number generator expression definitions.
++ * Hash expression definitions.
 + *
 + * Copyright (c) 2016 Pablo Neira Ayuso <pablo@netfilter.org>
 + *
@@ -291,114 +190,191 @@ index 0000000..d9a43aa
 +#include <expression.h>
 +#include <datatype.h>
 +#include <gmputil.h>
-+#include <numgen.h>
++#include <hash.h>
 +#include <utils.h>
 +
-+static const char *numgen_type[NFT_NG_RANDOM + 1] = {
-+	[NFT_NG_INCREMENTAL]	= "inc",
-+	[NFT_NG_RANDOM]		= "random",
++static void hash_expr_print(const struct expr *expr)
++{
++	printf("jhash ");
++	expr_print(expr->hash.expr);
++	printf(" mod %u", expr->hash.mod);
++	if (expr->hash.seed)
++		printf(" seed 0x%x", expr->hash.seed);
++}
++
++static bool hash_expr_cmp(const struct expr *e1, const struct expr *e2)
++{
++	return expr_cmp(e1->hash.expr, e2->hash.expr) &&
++	       e1->hash.mod == e2->hash.mod &&
++	       e1->hash.seed == e2->hash.seed;
++}
++
++static void hash_expr_clone(struct expr *new, const struct expr *expr)
++{
++	new->hash.expr = expr_clone(expr->hash.expr);
++	new->hash.mod = expr->hash.mod;
++	new->hash.seed = expr->hash.seed;
++}
++
++static const struct expr_ops hash_expr_ops = {
++	.type		= EXPR_HASH,
++	.name		= "hash",
++	.print		= hash_expr_print,
++	.cmp		= hash_expr_cmp,
++	.clone		= hash_expr_clone,
 +};
 +
-+static const char *numgen_type_str(enum nft_ng_types type)
-+{
-+	if (type > NFT_NG_RANDOM)
-+		return "[unknown numgen]";
-+
-+	return numgen_type[type];
-+}
-+
-+static void numgen_expr_print(const struct expr *expr)
-+{
-+	printf("numgen %s mod %u", numgen_type_str(expr->numgen.type),
-+	       expr->numgen.mod);
-+}
-+
-+static bool numgen_expr_cmp(const struct expr *e1, const struct expr *e2)
-+{
-+	return e1->numgen.type == e2->numgen.type &&
-+	       e1->numgen.mod == e2->numgen.mod;
-+}
-+
-+static void numgen_expr_clone(struct expr *new, const struct expr *expr)
-+{
-+	new->numgen.type = expr->numgen.type;
-+	new->numgen.mod = expr->numgen.mod;
-+}
-+
-+static const struct expr_ops numgen_expr_ops = {
-+	.type		= EXPR_NUMGEN,
-+	.name		= "numgen",
-+	.print		= numgen_expr_print,
-+	.cmp		= numgen_expr_cmp,
-+	.clone		= numgen_expr_clone,
-+};
-+
-+struct expr *numgen_expr_alloc(const struct location *loc,
-+			       enum nft_ng_types type, uint32_t mod)
++struct expr *hash_expr_alloc(const struct location *loc, uint32_t mod,
++			     uint32_t seed)
 +{
 +	struct expr *expr;
 +
-+	expr = expr_alloc(loc, &numgen_expr_ops, &integer_type,
++	expr = expr_alloc(loc, &hash_expr_ops, &integer_type,
 +			  BYTEORDER_HOST_ENDIAN, 4 * BITS_PER_BYTE);
-+	expr->numgen.type  = type;
-+	expr->numgen.mod   = mod;
++	expr->hash.mod  = mod;
++	expr->hash.seed = seed;
 +
 +	return expr;
 +}
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index adcce67..1a1cfbd 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -463,6 +463,34 @@ static void netlink_parse_exthdr(struct netlink_parse_ctx *ctx,
+ 	netlink_set_register(ctx, dreg, expr);
+ }
+ 
++static void netlink_parse_hash(struct netlink_parse_ctx *ctx,
++			       const struct location *loc,
++			       const struct nftnl_expr *nle)
++{
++	enum nft_registers sreg, dreg;
++	struct expr *expr, *hexpr;
++	uint32_t mod, seed, len;
++
++	sreg = netlink_parse_register(nle, NFTNL_EXPR_HASH_SREG);
++	hexpr = netlink_get_register(ctx, loc, sreg);
++
++	seed = nftnl_expr_get_u32(nle, NFTNL_EXPR_HASH_SEED);
++	mod  = nftnl_expr_get_u32(nle, NFTNL_EXPR_HASH_MODULUS);
++	len = nftnl_expr_get_u32(nle, NFTNL_EXPR_HASH_LEN) * BITS_PER_BYTE;
++
++	if (hexpr->len < len) {
++		hexpr = netlink_parse_concat_expr(ctx, loc, sreg, len);
++		if (hexpr == NULL)
++			return;
++	}
++
++	expr = hash_expr_alloc(loc, mod, seed);
++	expr->hash.expr = hexpr;
++
++	dreg = netlink_parse_register(nle, NFTNL_EXPR_HASH_DREG);
++	netlink_set_register(ctx, dreg, expr);
++}
++
+ static void netlink_parse_meta_expr(struct netlink_parse_ctx *ctx,
+ 				    const struct location *loc,
+ 				    const struct nftnl_expr *nle)
+@@ -1020,6 +1048,7 @@ static const struct {
+ 	{ .name = "match",	.parse = netlink_parse_match },
+ 	{ .name = "quota",	.parse = netlink_parse_quota },
+ 	{ .name = "numgen",	.parse = netlink_parse_numgen },
++	{ .name = "hash",	.parse = netlink_parse_hash },
+ };
+ 
+ static int netlink_parse_expr(const struct nftnl_expr *nle,
+@@ -1641,6 +1670,9 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
+ 	case EXPR_VERDICT:
+ 	case EXPR_NUMGEN:
+ 		break;
++	case EXPR_HASH:
++		expr_postprocess(ctx, &expr->hash.expr);
++		break;
+ 	case EXPR_CT:
+ 		ct_expr_update_type(&ctx->pctx, expr);
+ 		break;
+diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
+index 2c6848c..5204154 100644
+--- a/src/netlink_linearize.c
++++ b/src/netlink_linearize.c
+@@ -104,6 +104,27 @@ static void netlink_gen_concat(struct netlink_linearize_ctx *ctx,
+ 	}
+ }
+ 
++static void netlink_gen_hash(struct netlink_linearize_ctx *ctx,
++			     const struct expr *expr,
++			     enum nft_registers dreg)
++{
++	enum nft_registers sreg;
++	struct nftnl_expr *nle;
++
++	sreg = get_register(ctx, expr->hash.expr);
++	netlink_gen_expr(ctx, expr->hash.expr, sreg);
++	release_register(ctx, expr->hash.expr);
++
++	nle = alloc_nft_expr("hash");
++	netlink_put_register(nle, NFTNL_EXPR_HASH_SREG, sreg);
++	netlink_put_register(nle, NFTNL_EXPR_HASH_DREG, dreg);
++	nftnl_expr_set_u32(nle, NFTNL_EXPR_HASH_LEN,
++			   div_round_up(expr->hash.expr->len, BITS_PER_BYTE));
++	nftnl_expr_set_u32(nle, NFTNL_EXPR_HASH_MODULUS, expr->hash.mod);
++	nftnl_expr_set_u32(nle, NFTNL_EXPR_HASH_SEED, expr->hash.seed);
++	nftnl_rule_add_expr(ctx->nlr, nle);
++}
++
+ static void netlink_gen_payload(struct netlink_linearize_ctx *ctx,
+ 				const struct expr *expr,
+ 				enum nft_registers dreg)
+@@ -629,6 +650,8 @@ static void netlink_gen_expr(struct netlink_linearize_ctx *ctx,
+ 		return netlink_gen_expr(ctx, expr->key, dreg);
+ 	case EXPR_NUMGEN:
+ 		return netlink_gen_numgen(ctx, expr, dreg);
++	case EXPR_HASH:
++		return netlink_gen_hash(ctx, expr, dreg);
+ 	default:
+ 		BUG("unknown expression type %s\n", expr->ops->name);
+ 	}
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 6b58fe7..23e8b27 100644
+index 23e8b27..dc79465 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -407,6 +407,10 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %token DUP			"dup"
- %token FWD			"fwd"
+@@ -411,6 +411,9 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token INC			"inc"
+ %token MOD			"mod"
  
-+%token NUMGEN			"numgen"
-+%token INC			"inc"
-+%token MOD			"mod"
++%token JHASH			"jhash"
++%token SEED			"seed"
 +
  %token POSITION			"position"
  %token COMMENT			"comment"
  
-@@ -552,8 +556,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+@@ -556,8 +559,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
  %type <expr>			arp_hdr_expr
  %destructor { expr_free($$); }	arp_hdr_expr
  %type <val>			arp_hdr_field
--%type <expr>			ip_hdr_expr	icmp_hdr_expr
--%destructor { expr_free($$); }	ip_hdr_expr	icmp_hdr_expr
-+%type <expr>			ip_hdr_expr	icmp_hdr_expr		numgen_expr
-+%destructor { expr_free($$); }	ip_hdr_expr	icmp_hdr_expr		numgen_expr
+-%type <expr>			ip_hdr_expr	icmp_hdr_expr		numgen_expr
+-%destructor { expr_free($$); }	ip_hdr_expr	icmp_hdr_expr		numgen_expr
++%type <expr>			ip_hdr_expr	icmp_hdr_expr		numgen_expr	hash_expr
++%destructor { expr_free($$); }	ip_hdr_expr	icmp_hdr_expr		numgen_expr	hash_expr
  %type <val>			ip_hdr_field	icmp_hdr_field
  %type <expr>			ip6_hdr_expr    icmp6_hdr_expr
  %destructor { expr_free($$); }	ip6_hdr_expr	icmp6_hdr_expr
-@@ -582,7 +586,7 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- 
- %type <expr>			meta_expr
- %destructor { expr_free($$); }	meta_expr
--%type <val>			meta_key	meta_key_qualified	meta_key_unqualified
-+%type <val>			meta_key	meta_key_qualified	meta_key_unqualified	numgen_type
- 
- %type <expr>			ct_expr
- %destructor { expr_free($$); }	ct_expr
-@@ -1967,6 +1971,7 @@ primary_expr		:	symbol_expr			{ $$ = $1; }
- 			|	exthdr_expr			{ $$ = $1; }
+@@ -1972,6 +1975,7 @@ primary_expr		:	symbol_expr			{ $$ = $1; }
  			|	meta_expr			{ $$ = $1; }
  			|	ct_expr				{ $$ = $1; }
-+			|	numgen_expr			{ $$ = $1; }
+ 			|	numgen_expr			{ $$ = $1; }
++			|	hash_expr			{ $$ = $1; }
  			|	'('	basic_expr	')'	{ $$ = $2; }
  			;
  
-@@ -2454,6 +2459,16 @@ meta_stmt		:	META	meta_key	SET	expr
+@@ -2469,6 +2473,13 @@ numgen_expr		:	NUMGEN	numgen_type	MOD	NUM
  			}
  			;
  
-+numgen_type		:	INC		{ $$ = NFT_NG_INCREMENTAL; }
-+			|	RANDOM		{ $$ = NFT_NG_RANDOM; }
-+			;
-+
-+numgen_expr		:	NUMGEN	numgen_type	MOD	NUM
++hash_expr		:	JHASH	expr	MOD	NUM	SEED	NUM
 +			{
-+				$$ = numgen_expr_alloc(&@$, $2, $4);
++				$$ = hash_expr_alloc(&@$, $4, $6);
++				$$->hash.expr = $2;
 +			}
 +			;
 +
@@ -406,59 +382,50 @@ index 6b58fe7..23e8b27 100644
  			{
  				$$ = ct_expr_alloc(&@$, $2, -1);
 diff --git a/src/scanner.l b/src/scanner.l
-index 53b79aa..cff375f 100644
+index cff375f..8b5a383 100644
 --- a/src/scanner.l
 +++ b/src/scanner.l
-@@ -467,6 +467,10 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "proto-dst"		{ return PROTO_DST; }
- "label"			{ return LABEL; }
+@@ -471,6 +471,9 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "inc"			{ return INC; }
+ "mod"			{ return MOD; }
  
-+"numgen"		{ return NUMGEN; }
-+"inc"			{ return INC; }
-+"mod"			{ return MOD; }
++"jhash"			{ return JHASH; }
++"seed"			{ return SEED; }
 +
  "dup"			{ return DUP; }
  "fwd"			{ return FWD; }
  
-diff --git a/tests/py/ip/numgen.t b/tests/py/ip/numgen.t
+diff --git a/tests/py/ip/hash.t b/tests/py/ip/hash.t
 new file mode 100644
-index 0000000..9ce0c71
+index 0000000..6dfa965
 --- /dev/null
-+++ b/tests/py/ip/numgen.t
-@@ -0,0 +1,6 @@
++++ b/tests/py/ip/hash.t
+@@ -0,0 +1,5 @@
 +:pre;type nat hook prerouting priority 0
 +*ip;test-ip4;pre
 +
-+ct mark set numgen inc mod 2;ok
-+dnat to numgen inc mod 2 map { 0 : 192.168.10.100, 1 : 192.168.20.200 };ok
-+dnat to numgen inc mod 10 map { 0-5 : 192.168.10.100, 6-9 : 192.168.20.200};ok
-diff --git a/tests/py/ip/numgen.t.payload b/tests/py/ip/numgen.t.payload
++ct mark set jhash ip saddr . ip daddr mod 2 seed 0xdeadbeef;ok
++dnat to jhash ip saddr mod 2 seed 0xdeadbeef map { 0 : 192.168.20.100, 1 : 192.168.30.100 };ok
+diff --git a/tests/py/ip/hash.t.payload b/tests/py/ip/hash.t.payload
 new file mode 100644
-index 0000000..cc07485
+index 0000000..429e2b7
 --- /dev/null
-+++ b/tests/py/ip/numgen.t.payload
-@@ -0,0 +1,24 @@
-+# ct mark set numgen inc mod 2
-+ip test-ip4 pre
-+  [ numgen reg 1 = inc(2)]
++++ b/tests/py/ip/hash.t.payload
+@@ -0,0 +1,17 @@
++# ct mark set jhash ip saddr . ip daddr mod 2 seed 0xdeadbeef
++ip test-ip4 pre 
++  [ payload load 4b @ network header + 12 => reg 2 ]
++  [ payload load 4b @ network header + 16 => reg 13 ]
++  [ hash reg 1 = jhash(reg 2, 8, 3735928559) % modulus 2]
 +  [ ct set mark with reg 1 ]
 +
-+# dnat to numgen inc mod 2 map { 0 : 192.168.10.100, 1 : 192.168.20.200 }
-+__map%d x b
-+__map%d x 0
-+        element 00000000  : 640aa8c0 0 [end]    element 01000000  : c814a8c0 0 [end]
-+ip test-ip4 pre 
-+  [ numgen reg 1 = inc(2)]
-+  [ lookup reg 1 set __map%d dreg 1 ]
-+  [ nat dnat ip addr_min reg 1 addr_max reg 0 ]
-+
-+# dnat to numgen inc mod 10 map { 0-5 : 192.168.10.100, 6-9 : 192.168.20.200}
-+__map%d test-ip4 f
++# dnat to jhash ip saddr mod 2 seed 0xdeadbeef map { 0 : 192.168.20.100, 1 : 192.168.30.100 }
++__map%d test-ip4 b
 +__map%d test-ip4 0
-+        element 00000000  : 640aa8c0 0 [end]    element 06000000  : c814a8c0 0 [end]    element 0a000000  : 1 [end]
-+ip test-ip4 pre
-+  [ numgen reg 1 = inc(10)]
-+  [ byteorder reg 1 = hton(reg 1, 4, 4) ]
++	element 00000000  : 6414a8c0 0 [end]	element 01000000  : 641ea8c0 0 [end]
++ip test-ip4 pre 
++  [ payload load 4b @ network header + 12 => reg 2 ]
++  [ hash reg 1 = jhash(reg 2, 4, 3735928559) % modulus 2]
 +  [ lookup reg 1 set __map%d dreg 1 ]
 +  [ nat dnat ip addr_min reg 1 addr_max reg 0 ]
 +
