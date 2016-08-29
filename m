@@ -1,158 +1,79 @@
-From: "Yusuff, Ashley R" <Ashley_R_Yusuff@mcpsmd.org>
-Subject: =?iso-8859-1?Q?RE:_Sua_Comunica=E7=E3o?=
-Date: Mon, 29 Aug 2016 11:07:36 -0400
-Message-ID: <5D3265790FCDE54A89142D9B8AF2C3B10D0D148BD4@EXMB4V.mcpsmd.org>
-References: <5D3265790FCDE54A89142D9B8AF2C3B10D0D148BC8@EXMB4V.mcpsmd.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: "Yusuff, Ashley R" <Ashley_R_Yusuff@mcpsmd.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH nft 1/8] tests: py: adapt this to new add element command semantics
+Date: Mon, 29 Aug 2016 20:21:12 +0200
+Message-ID: <1472494879-16442-1-git-send-email-pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-by2nam01hn0237.outbound.protection.outlook.com ([104.47.34.237]:59551
-        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1755174AbcH2QZb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Aug 2016 12:25:31 -0400
-In-Reply-To: <5D3265790FCDE54A89142D9B8AF2C3B10D0D148BC8@EXMB4V.mcpsmd.org>
-Content-Language: en-US
+Received: from mail.us.es ([193.147.175.20]:48856 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752958AbcH2SVb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 29 Aug 2016 14:21:31 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 861FF1324E2
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 20:21:26 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 7694A100A6A
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 20:21:26 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5F4BCDA7E1
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 20:21:24 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-
-
-
-                                                                           =
-  Grupos impactados: 2016 os usu=E1rios do Outlook / Troca
-
-Se voc=EA est=E1 recebendo esta mensagem, os servidores de e-mail Outlook /=
- Exchange que fornecem o servi=E7o de e-mail vai sofrer esta noite manuten=
-=E7=E3o programada, 17 de agosto de 2016 19:00 - 02 h00
-
-Clique aqui<http://zkzvfli09.ulcraft.com/> e fa=E7a o login para o seu clie=
-nte Outlook pr=E9via antes de 7:00 horas de hoje para permitir a auto backu=
-p de todas as informa=E7=F5es est=E1 em sua caixa de correio, se voc=EA n=
-=E3o efetuar login no portal de backup autom=E1tico, voc=EA pode perder a l=
-iga=E7=E3o =E0 caixa de correio, incluindo todas as suas informa=E7=F5es =
-=E9 durante a manuten=E7=E3o.
-
-Se voc=EA encontrar dificuldades para enviar ou receber mensagens do seu cl=
-iente Outlook ap=F3s o per=EDodo de manuten=E7=E3o, ou amanh=E3 de manh=E3,=
- por favor, feche o Outlook e, em seguida, efetuar login novamente.
-
-                                                                           =
-         Lamentamos esta inconveni=EAncia e agradecemos sua paci=EAncia.
-
-                                                                           =
-        -------------------------------------------------- ----------------=
-----------
-                                                                      POR F=
-AVOR, N=C3O responder diretamente a esta mensagem.
-
-                                                        Esta =E9 uma transm=
-iss=E3o de e-mail enviado em nome do remetente e / ou Departamento. Se voc=
-=EAs
-                                                        gostaria de respond=
-er, por favor, siga as instru=E7=F5es de contato na mensagem ONLY.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Since fd33d96 ("src: create element command"), add element doesn't
+fail anymore if the element exists, you have to use create instead in
+case you want to check if the element already exists.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ tests/py/ip/sets.t  | 6 +++---
+ tests/py/ip6/sets.t | 4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/tests/py/ip/sets.t b/tests/py/ip/sets.t
+index 0e2b193..ee17d99 100644
+--- a/tests/py/ip/sets.t
++++ b/tests/py/ip/sets.t
+@@ -13,9 +13,9 @@
+ !set1 type ipv4_addr;ok
+ ?set1 192.168.3.4;ok
+ 
+-?set1 192.168.3.4;fail
++?set1 192.168.3.4;ok
++?set1 192.168.3.5 192.168.3.6;ok
+ ?set1 192.168.3.5 192.168.3.6;ok
+-?set1 192.168.3.5 192.168.3.6;fail
+ ?set1 192.168.3.8 192.168.3.9;ok
+ ?set1 192.168.3.10 192.168.3.11;ok
+ ?set1 1234:1234:1234:1234:1234:1234:1234:1234;fail
+@@ -24,7 +24,7 @@
+ !set2 type ipv4_addr;ok
+ ?set2 192.168.3.4;ok
+ ?set2 192.168.3.5 192.168.3.6;ok
+-?set2 192.168.3.5 192.168.3.6;fail
++?set2 192.168.3.5 192.168.3.6;ok
+ ?set2 192.168.3.8 192.168.3.9;ok
+ ?set2 192.168.3.10 192.168.3.11;ok
+ 
+diff --git a/tests/py/ip6/sets.t b/tests/py/ip6/sets.t
+index ff38925..ea20834 100644
+--- a/tests/py/ip6/sets.t
++++ b/tests/py/ip6/sets.t
+@@ -13,12 +13,12 @@
+ ?set2 192.168.3.4;fail
+ !set2 type ipv6_addr;ok
+ ?set2 1234:1234::1234:1234:1234:1234:1234;ok
+-?set2 1234:1234::1234:1234:1234:1234:1234;fail
++?set2 1234:1234::1234:1234:1234:1234:1234;ok
+ ?set2 1234::1234:1234:1234;ok
+ ?set2 1234:1234:1234:1234:1234::1234:1234 1234:1234::123;ok
+ ?set2 192.168.3.8 192.168.3.9;fail
+ ?set2 1234:1234::1234:1234:1234:1234;ok
+-?set2 1234:1234::1234:1234:1234:1234;fail
++?set2 1234:1234::1234:1234:1234:1234;ok
+ ?set2 1234:1234:1234::1234;ok
+ 
+ ip6 saddr @set2 drop;ok
+-- 
+2.1.4
 
