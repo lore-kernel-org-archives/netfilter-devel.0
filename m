@@ -1,433 +1,392 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft 4/8] src: add hash expression
-Date: Mon, 29 Aug 2016 20:21:15 +0200
-Message-ID: <1472494879-16442-4-git-send-email-pablo@netfilter.org>
+Subject: [PATCH nft 2/8] src: add quota statement
+Date: Mon, 29 Aug 2016 20:21:13 +0200
+Message-ID: <1472494879-16442-2-git-send-email-pablo@netfilter.org>
 References: <1472494879-16442-1-git-send-email-pablo@netfilter.org>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48872 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:48858 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753566AbcH2SVe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 29 Aug 2016 14:21:34 -0400
+        id S1752993AbcH2SVb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 29 Aug 2016 14:21:31 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id E5CFC1324E2
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 20:21:31 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id CF93B100A6A
-        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 20:21:31 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 2C4A0100A76
+        by mail.us.es (Postfix) with ESMTP id B09811324E3
         for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 20:21:29 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 99ACF100A66
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 20:21:29 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 49D5F100A66
+        for <netfilter-devel@vger.kernel.org>; Mon, 29 Aug 2016 20:21:27 +0200 (CEST)
 In-Reply-To: <1472494879-16442-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is special expression that transforms an input expression into a
-32-bit unsigned integer. This expression takes a modulus parameter to
-scale the result and the random seed so the hash result becomes harder
-to predict.
+This new statement is stateful, so it can be used from flow tables, eg.
 
-You can use it to set the packet mark, eg.
+ # nft add rule filter input \
+        flow table http { ip saddr timeout 60s quota over 50 mbytes } drop
 
- # nft add rule x y meta mark set jhash ip saddr . ip daddr mod 2 seed 0xdeadbeef
-
-You can combine this with maps too, eg.
-
- # nft add rule x y dnat to jhash ip saddr mod 2 seed 0xdeadbeef map { \
-	0 : 192.168.20.100, \
-	1 : 192.168.30.100 \
-   }
-
-Currently, this expression implements the jenkins hash implementation
-available in the Linux kernel:
-
- http://lxr.free-electrons.com/source/include/linux/jhash.h
-
-But it should be possible to extend it to support any other hash
-function type.
+This basically sets a quota per source IP address of 50 mbytes after
+which packets are dropped. Note that the timeout releases the entry if
+no traffic is seen from this IP after 60 seconds.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/expression.h       |  9 +++++++
- include/hash.h             |  7 ++++++
- src/Makefile.am            |  1 +
- src/evaluate.c             | 21 ++++++++++++++++
- src/hash.c                 | 60 ++++++++++++++++++++++++++++++++++++++++++++++
- src/netlink_delinearize.c  | 32 +++++++++++++++++++++++++
- src/netlink_linearize.c    | 23 ++++++++++++++++++
- src/parser_bison.y         | 15 ++++++++++--
- src/scanner.l              |  3 +++
- tests/py/ip/hash.t         |  5 ++++
- tests/py/ip/hash.t.payload | 17 +++++++++++++
- 11 files changed, 191 insertions(+), 2 deletions(-)
- create mode 100644 include/hash.h
- create mode 100644 src/hash.c
- create mode 100644 tests/py/ip/hash.t
- create mode 100644 tests/py/ip/hash.t.payload
+ include/statement.h          | 10 +++++++++
+ src/evaluate.c               |  1 +
+ src/netlink_delinearize.c    | 14 ++++++++++++
+ src/netlink_linearize.c      | 16 ++++++++++++++
+ src/parser_bison.y           | 38 +++++++++++++++++++++++++++-----
+ src/scanner.l                |  2 ++
+ src/statement.c              | 26 ++++++++++++++++++++++
+ tests/py/any/quota.t         | 24 ++++++++++++++++++++
+ tests/py/any/quota.t.payload | 52 ++++++++++++++++++++++++++++++++++++++++++++
+ 9 files changed, 178 insertions(+), 5 deletions(-)
+ create mode 100644 tests/py/any/quota.t
+ create mode 100644 tests/py/any/quota.t.payload
 
-diff --git a/include/expression.h b/include/expression.h
-index b6005ec..6a509b3 100644
---- a/include/expression.h
-+++ b/include/expression.h
-@@ -34,6 +34,7 @@
-  * @EXPR_BINOP:		binary operations (bitwise, shifts)
-  * @EXPR_RELATIONAL:	equality and relational expressions
-  * @EXPR_NUMGEN:	number generation expression
-+ * @EXPR_HASH:		hash expression
-  */
- enum expr_types {
- 	EXPR_INVALID,
-@@ -57,6 +58,7 @@ enum expr_types {
- 	EXPR_BINOP,
- 	EXPR_RELATIONAL,
- 	EXPR_NUMGEN,
-+	EXPR_HASH,
- };
+diff --git a/include/statement.h b/include/statement.h
+index 1b21551..e278b70 100644
+--- a/include/statement.h
++++ b/include/statement.h
+@@ -105,6 +105,13 @@ struct queue_stmt {
  
- enum ops {
-@@ -174,6 +176,7 @@ enum expr_flags {
- #include <exthdr.h>
- #include <numgen.h>
- #include <meta.h>
-+#include <hash.h>
- #include <ct.h>
+ extern struct stmt *queue_stmt_alloc(const struct location *loc);
  
- /**
-@@ -285,6 +288,12 @@ struct expr {
- 			enum nft_ng_types	type;
- 			uint32_t		mod;
- 		} numgen;
-+		struct {
-+			/* EXPR_HASH */
-+			struct expr		*expr;
-+			uint32_t		mod;
-+			uint32_t		seed;
-+		} hash;
- 	};
- };
- 
-diff --git a/include/hash.h b/include/hash.h
-new file mode 100644
-index 0000000..bc8c86a
---- /dev/null
-+++ b/include/hash.h
-@@ -0,0 +1,7 @@
-+#ifndef NFTABLES_HASH_H
-+#define NFTABLES_HASH_H
-+
-+extern struct expr *hash_expr_alloc(const struct location *loc,
-+				    uint32_t modulus, uint32_t seed);
-+
-+#endif /* NFTABLES_HASH_H */
-diff --git a/src/Makefile.am b/src/Makefile.am
-index 241a078..63bbef2 100644
---- a/src/Makefile.am
-+++ b/src/Makefile.am
-@@ -36,6 +36,7 @@ nft_SOURCES =	main.c				\
- 		proto.c				\
- 		payload.c			\
- 		exthdr.c			\
-+		hash.c				\
- 		meta.c				\
- 		numgen.c			\
- 		ct.c				\
-diff --git a/src/evaluate.c b/src/evaluate.c
-index ed722df..8f7824b 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1183,6 +1183,25 @@ static int expr_evaluate_numgen(struct eval_ctx *ctx, struct expr **exprp)
- 	return expr_evaluate_primary(ctx, exprp);
- }
- 
-+static int expr_evaluate_hash(struct eval_ctx *ctx, struct expr **exprp)
-+{
-+	struct expr *expr = *exprp;
-+
-+	expr_dtype_integer_compatible(ctx, expr);
-+
-+	expr_set_context(&ctx->ectx, NULL, 0);
-+	if (expr_evaluate(ctx, &expr->hash.expr) < 0)
-+		return -1;
-+
-+	/* expr_evaluate_primary() sets the context to what to the input
-+         * expression to be hashed. Since this input is transformed to a 4 bytes
-+	 * integer, restore context to the datatype that results from hashing.
-+	 */
-+	expr_set_context(&ctx->ectx, expr->dtype, expr->len);
-+
-+	return 0;
-+}
-+
- /*
-  * Transfer the invertible binops to the constant side of an equality
-  * expression. A left shift is only invertible if the low n bits are
-@@ -1587,6 +1606,8 @@ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
- 		return expr_evaluate_relational(ctx, expr);
- 	case EXPR_NUMGEN:
- 		return expr_evaluate_numgen(ctx, expr);
-+	case EXPR_HASH:
-+		return expr_evaluate_hash(ctx, expr);
- 	default:
- 		BUG("unknown expression type %s\n", (*expr)->ops->name);
- 	}
-diff --git a/src/hash.c b/src/hash.c
-new file mode 100644
-index 0000000..125b320
---- /dev/null
-+++ b/src/hash.c
-@@ -0,0 +1,60 @@
-+/*
-+ * Hash expression definitions.
-+ *
-+ * Copyright (c) 2016 Pablo Neira Ayuso <pablo@netfilter.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <nftables.h>
-+#include <expression.h>
-+#include <datatype.h>
-+#include <gmputil.h>
-+#include <hash.h>
-+#include <utils.h>
-+
-+static void hash_expr_print(const struct expr *expr)
-+{
-+	printf("jhash ");
-+	expr_print(expr->hash.expr);
-+	printf(" mod %u", expr->hash.mod);
-+	if (expr->hash.seed)
-+		printf(" seed 0x%x", expr->hash.seed);
-+}
-+
-+static bool hash_expr_cmp(const struct expr *e1, const struct expr *e2)
-+{
-+	return expr_cmp(e1->hash.expr, e2->hash.expr) &&
-+	       e1->hash.mod == e2->hash.mod &&
-+	       e1->hash.seed == e2->hash.seed;
-+}
-+
-+static void hash_expr_clone(struct expr *new, const struct expr *expr)
-+{
-+	new->hash.expr = expr_clone(expr->hash.expr);
-+	new->hash.mod = expr->hash.mod;
-+	new->hash.seed = expr->hash.seed;
-+}
-+
-+static const struct expr_ops hash_expr_ops = {
-+	.type		= EXPR_HASH,
-+	.name		= "hash",
-+	.print		= hash_expr_print,
-+	.cmp		= hash_expr_cmp,
-+	.clone		= hash_expr_clone,
++struct quota_stmt {
++	uint64_t		bytes;
++	uint32_t		flags;
 +};
 +
-+struct expr *hash_expr_alloc(const struct location *loc, uint32_t mod,
-+			     uint32_t seed)
-+{
-+	struct expr *expr;
++struct stmt *quota_stmt_alloc(const struct location *loc);
 +
-+	expr = expr_alloc(loc, &hash_expr_ops, &integer_type,
-+			  BYTEORDER_HOST_ENDIAN, 4 * BITS_PER_BYTE);
-+	expr->hash.mod  = mod;
-+	expr->hash.seed = seed;
-+
-+	return expr;
-+}
+ #include <ct.h>
+ struct ct_stmt {
+ 	enum nft_ct_keys		key;
+@@ -200,6 +207,7 @@ extern struct stmt *xt_stmt_alloc(const struct location *loc);
+  * @STMT_DUP:		dup statement
+  * @STMT_FWD:		forward statement
+  * @STMT_XT:		XT statement
++ * @STMT_QUOTA:		quota statement
+  */
+ enum stmt_types {
+ 	STMT_INVALID,
+@@ -221,6 +229,7 @@ enum stmt_types {
+ 	STMT_DUP,
+ 	STMT_FWD,
+ 	STMT_XT,
++	STMT_QUOTA,
+ };
+ 
+ /**
+@@ -272,6 +281,7 @@ struct stmt {
+ 		struct masq_stmt	masq;
+ 		struct redir_stmt	redir;
+ 		struct queue_stmt	queue;
++		struct quota_stmt	quota;
+ 		struct ct_stmt		ct;
+ 		struct set_stmt		set;
+ 		struct dup_stmt		dup;
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 2f94ac6..d669b85 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -2366,6 +2366,7 @@ int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
+ 	switch (stmt->ops->type) {
+ 	case STMT_COUNTER:
+ 	case STMT_LIMIT:
++	case STMT_QUOTA:
+ 		return 0;
+ 	case STMT_EXPRESSION:
+ 		return stmt_evaluate_expr(ctx, stmt);
 diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
-index adcce67..1a1cfbd 100644
+index 12d0b4a..e9e0a82 100644
 --- a/src/netlink_delinearize.c
 +++ b/src/netlink_delinearize.c
-@@ -463,6 +463,34 @@ static void netlink_parse_exthdr(struct netlink_parse_ctx *ctx,
- 	netlink_set_register(ctx, dreg, expr);
+@@ -620,6 +620,19 @@ static void netlink_parse_limit(struct netlink_parse_ctx *ctx,
+ 	ctx->stmt = stmt;
  }
  
-+static void netlink_parse_hash(struct netlink_parse_ctx *ctx,
-+			       const struct location *loc,
-+			       const struct nftnl_expr *nle)
++static void netlink_parse_quota(struct netlink_parse_ctx *ctx,
++				const struct location *loc,
++				const struct nftnl_expr *nle)
 +{
-+	enum nft_registers sreg, dreg;
-+	struct expr *expr, *hexpr;
-+	uint32_t mod, seed, len;
++	struct stmt *stmt;
 +
-+	sreg = netlink_parse_register(nle, NFTNL_EXPR_HASH_SREG);
-+	hexpr = netlink_get_register(ctx, loc, sreg);
++	stmt = quota_stmt_alloc(loc);
++	stmt->quota.bytes = nftnl_expr_get_u64(nle, NFTNL_EXPR_QUOTA_BYTES);
++	stmt->quota.flags = nftnl_expr_get_u32(nle, NFTNL_EXPR_QUOTA_FLAGS);
 +
-+	seed = nftnl_expr_get_u32(nle, NFTNL_EXPR_HASH_SEED);
-+	mod  = nftnl_expr_get_u32(nle, NFTNL_EXPR_HASH_MODULUS);
-+	len = nftnl_expr_get_u32(nle, NFTNL_EXPR_HASH_LEN) * BITS_PER_BYTE;
-+
-+	if (hexpr->len < len) {
-+		hexpr = netlink_parse_concat_expr(ctx, loc, sreg, len);
-+		if (hexpr == NULL)
-+			return;
-+	}
-+
-+	expr = hash_expr_alloc(loc, mod, seed);
-+	expr->hash.expr = hexpr;
-+
-+	dreg = netlink_parse_register(nle, NFTNL_EXPR_HASH_DREG);
-+	netlink_set_register(ctx, dreg, expr);
++	ctx->stmt = stmt;
 +}
 +
- static void netlink_parse_meta_expr(struct netlink_parse_ctx *ctx,
- 				    const struct location *loc,
- 				    const struct nftnl_expr *nle)
-@@ -1020,6 +1048,7 @@ static const struct {
+ static void netlink_parse_reject(struct netlink_parse_ctx *ctx,
+ 				 const struct location *loc,
+ 				 const struct nftnl_expr *expr)
+@@ -989,6 +1002,7 @@ static const struct {
+ 	{ .name = "fwd",	.parse = netlink_parse_fwd },
+ 	{ .name = "target",	.parse = netlink_parse_target },
  	{ .name = "match",	.parse = netlink_parse_match },
- 	{ .name = "quota",	.parse = netlink_parse_quota },
- 	{ .name = "numgen",	.parse = netlink_parse_numgen },
-+	{ .name = "hash",	.parse = netlink_parse_hash },
++	{ .name = "quota",	.parse = netlink_parse_quota },
  };
  
  static int netlink_parse_expr(const struct nftnl_expr *nle,
-@@ -1641,6 +1670,9 @@ static void expr_postprocess(struct rule_pp_ctx *ctx, struct expr **exprp)
- 	case EXPR_VERDICT:
- 	case EXPR_NUMGEN:
- 		break;
-+	case EXPR_HASH:
-+		expr_postprocess(ctx, &expr->hash.expr);
-+		break;
- 	case EXPR_CT:
- 		ct_expr_update_type(&ctx->pctx, expr);
- 		break;
 diff --git a/src/netlink_linearize.c b/src/netlink_linearize.c
-index 2c6848c..5204154 100644
+index f4db685..a14d0ff 100644
 --- a/src/netlink_linearize.c
 +++ b/src/netlink_linearize.c
-@@ -104,6 +104,27 @@ static void netlink_gen_concat(struct netlink_linearize_ctx *ctx,
- 	}
+@@ -657,6 +657,19 @@ netlink_gen_limit_stmt(struct netlink_linearize_ctx *ctx,
  }
  
-+static void netlink_gen_hash(struct netlink_linearize_ctx *ctx,
-+			     const struct expr *expr,
-+			     enum nft_registers dreg)
+ static struct nftnl_expr *
++netlink_gen_quota_stmt(struct netlink_linearize_ctx *ctx,
++		       const struct stmt *stmt)
 +{
-+	enum nft_registers sreg;
 +	struct nftnl_expr *nle;
 +
-+	sreg = get_register(ctx, expr->hash.expr);
-+	netlink_gen_expr(ctx, expr->hash.expr, sreg);
-+	release_register(ctx, expr->hash.expr);
++	nle = alloc_nft_expr("quota");
++	nftnl_expr_set_u64(nle, NFTNL_EXPR_QUOTA_BYTES, stmt->quota.bytes);
++	nftnl_expr_set_u32(nle, NFTNL_EXPR_QUOTA_FLAGS, stmt->quota.flags);
 +
-+	nle = alloc_nft_expr("hash");
-+	netlink_put_register(nle, NFTNL_EXPR_HASH_SREG, sreg);
-+	netlink_put_register(nle, NFTNL_EXPR_HASH_DREG, dreg);
-+	nftnl_expr_set_u32(nle, NFTNL_EXPR_HASH_LEN,
-+			   div_round_up(expr->hash.expr->len, BITS_PER_BYTE));
-+	nftnl_expr_set_u32(nle, NFTNL_EXPR_HASH_MODULUS, expr->hash.mod);
-+	nftnl_expr_set_u32(nle, NFTNL_EXPR_HASH_SEED, expr->hash.seed);
-+	nftnl_rule_add_expr(ctx->nlr, nle);
++	return nle;
 +}
 +
- static void netlink_gen_payload(struct netlink_linearize_ctx *ctx,
- 				const struct expr *expr,
- 				enum nft_registers dreg)
-@@ -629,6 +650,8 @@ static void netlink_gen_expr(struct netlink_linearize_ctx *ctx,
- 		return netlink_gen_expr(ctx, expr->key, dreg);
- 	case EXPR_NUMGEN:
- 		return netlink_gen_numgen(ctx, expr, dreg);
-+	case EXPR_HASH:
-+		return netlink_gen_hash(ctx, expr, dreg);
++static struct nftnl_expr *
+ netlink_gen_stmt_stateful(struct netlink_linearize_ctx *ctx,
+ 			  const struct stmt *stmt)
+ {
+@@ -665,6 +678,8 @@ netlink_gen_stmt_stateful(struct netlink_linearize_ctx *ctx,
+ 		return netlink_gen_counter_stmt(ctx, stmt);
+ 	case STMT_LIMIT:
+ 		return netlink_gen_limit_stmt(ctx, stmt);
++	case STMT_QUOTA:
++		return netlink_gen_quota_stmt(ctx, stmt);
  	default:
- 		BUG("unknown expression type %s\n", expr->ops->name);
+ 		BUG("unknown stateful statement type %s\n", stmt->ops->name);
  	}
+@@ -1105,6 +1120,7 @@ static void netlink_gen_stmt(struct netlink_linearize_ctx *ctx,
+ 		return netlink_gen_fwd_stmt(ctx, stmt);
+ 	case STMT_COUNTER:
+ 	case STMT_LIMIT:
++	case STMT_QUOTA:
+ 		nle = netlink_gen_stmt_stateful(ctx, stmt);
+ 		nftnl_rule_add_expr(ctx->nlr, nle);
+ 		break;
 diff --git a/src/parser_bison.y b/src/parser_bison.y
-index 23e8b27..dc79465 100644
+index 8c0f625..6b58fe7 100644
 --- a/src/parser_bison.y
 +++ b/src/parser_bison.y
-@@ -411,6 +411,9 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %token INC			"inc"
- %token MOD			"mod"
+@@ -376,6 +376,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %token OVER			"over"
+ %token UNTIL			"until"
  
-+%token JHASH			"jhash"
-+%token SEED			"seed"
++%token QUOTA			"quota"
 +
- %token POSITION			"position"
- %token COMMENT			"comment"
+ %token NANOSECOND		"nanosecond"
+ %token MICROSECOND		"microsecond"
+ %token MILLISECOND		"millisecond"
+@@ -431,8 +433,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %destructor { handle_free(&$$); } set_spec set_identifier
+ %type <val>			family_spec family_spec_explicit chain_policy prio_spec
  
-@@ -556,8 +559,8 @@ static void location_update(struct location *loc, struct location *rhs, int n)
- %type <expr>			arp_hdr_expr
- %destructor { expr_free($$); }	arp_hdr_expr
- %type <val>			arp_hdr_field
--%type <expr>			ip_hdr_expr	icmp_hdr_expr		numgen_expr
--%destructor { expr_free($$); }	ip_hdr_expr	icmp_hdr_expr		numgen_expr
-+%type <expr>			ip_hdr_expr	icmp_hdr_expr		numgen_expr	hash_expr
-+%destructor { expr_free($$); }	ip_hdr_expr	icmp_hdr_expr		numgen_expr	hash_expr
- %type <val>			ip_hdr_field	icmp_hdr_field
- %type <expr>			ip6_hdr_expr    icmp6_hdr_expr
- %destructor { expr_free($$); }	ip6_hdr_expr	icmp6_hdr_expr
-@@ -1972,6 +1975,7 @@ primary_expr		:	symbol_expr			{ $$ = $1; }
- 			|	meta_expr			{ $$ = $1; }
- 			|	ct_expr				{ $$ = $1; }
- 			|	numgen_expr			{ $$ = $1; }
-+			|	hash_expr			{ $$ = $1; }
- 			|	'('	basic_expr	')'	{ $$ = $2; }
- 			;
+-%type <string>			dev_spec
+-%destructor { xfree($$); }	dev_spec
++%type <string>			dev_spec quota_unit
++%destructor { xfree($$); }	dev_spec quota_unit
  
-@@ -2469,6 +2473,13 @@ numgen_expr		:	NUMGEN	numgen_type	MOD	NUM
+ %type <table>			table_block_alloc table_block
+ %destructor { close_scope(state); table_free($$); }	table_block_alloc
+@@ -466,9 +468,9 @@ static void location_update(struct location *loc, struct location *rhs, int n)
+ %type <stmt>			log_stmt log_stmt_alloc
+ %destructor { stmt_free($$); }	log_stmt log_stmt_alloc
+ %type <val>			level_type
+-%type <stmt>			limit_stmt
+-%destructor { stmt_free($$); }	limit_stmt
+-%type <val>			limit_burst limit_mode time_unit
++%type <stmt>			limit_stmt quota_stmt
++%destructor { stmt_free($$); }	limit_stmt quota_stmt
++%type <val>			limit_burst limit_mode time_unit quota_mode
+ %type <stmt>			reject_stmt reject_stmt_alloc
+ %destructor { stmt_free($$); }	reject_stmt reject_stmt_alloc
+ %type <stmt>			nat_stmt nat_stmt_alloc masq_stmt masq_stmt_alloc redir_stmt redir_stmt_alloc
+@@ -1373,6 +1375,7 @@ stmt			:	verdict_stmt
+ 			|	meta_stmt
+ 			|	log_stmt
+ 			|	limit_stmt
++			|	quota_stmt
+ 			|	reject_stmt
+ 			|	nat_stmt
+ 			|	queue_stmt
+@@ -1542,6 +1545,31 @@ limit_stmt		:	LIMIT	RATE	limit_mode	NUM	SLASH	time_unit	limit_burst
  			}
  			;
  
-+hash_expr		:	JHASH	expr	MOD	NUM	SEED	NUM
++quota_mode		:	OVER		{ $$ = NFT_QUOTA_F_INV; }
++			|	UNTIL		{ $$ = 0; }
++			|	/* empty */	{ $$ = 0; }
++			;
++
++quota_unit		:	BYTES		{ $$ = xstrdup("bytes"); }
++			|	STRING		{ $$ = $1; }
++			;
++
++quota_stmt		:	QUOTA	quota_mode NUM quota_unit
 +			{
-+				$$ = hash_expr_alloc(&@$, $4, $6);
-+				$$->hash.expr = $2;
++				struct error_record *erec;
++				uint64_t rate;
++
++				erec = data_unit_parse(&@$, $4, &rate);
++				if (erec != NULL) {
++					erec_queue(erec, state->msgs);
++					YYERROR;
++				}
++				$$ = quota_stmt_alloc(&@$);
++				$$->quota.bytes	= $3 * rate;
++				$$->quota.flags	= $2;
 +			}
 +			;
 +
- ct_expr			: 	CT	ct_key
- 			{
- 				$$ = ct_expr_alloc(&@$, $2, -1);
+ limit_mode		:	OVER				{ $$ = NFT_LIMIT_F_INV; }
+ 			|	UNTIL				{ $$ = 0; }
+ 			|	/* empty */			{ $$ = 0; }
 diff --git a/src/scanner.l b/src/scanner.l
-index cff375f..8b5a383 100644
+index e9384fd..53b79aa 100644
 --- a/src/scanner.l
 +++ b/src/scanner.l
-@@ -471,6 +471,9 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
- "inc"			{ return INC; }
- "mod"			{ return MOD; }
+@@ -319,6 +319,8 @@ addrstring	({macaddr}|{ip4addr}|{ip6addr})
+ "until"			{ return UNTIL; }
+ "over"			{ return OVER; }
  
-+"jhash"			{ return JHASH; }
-+"seed"			{ return SEED; }
++"quota"			{ return QUOTA; }
 +
- "dup"			{ return DUP; }
- "fwd"			{ return FWD; }
+ "nanosecond"		{ return NANOSECOND; }
+ "microsecond"		{ return MICROSECOND; }
+ "millisecond"		{ return MILLISECOND; }
+diff --git a/src/statement.c b/src/statement.c
+index 59b133c..8ccd489 100644
+--- a/src/statement.c
++++ b/src/statement.c
+@@ -325,6 +325,32 @@ struct stmt *queue_stmt_alloc(const struct location *loc)
+ 	return stmt_alloc(loc, &queue_stmt_ops);
+ }
  
-diff --git a/tests/py/ip/hash.t b/tests/py/ip/hash.t
-new file mode 100644
-index 0000000..6dfa965
---- /dev/null
-+++ b/tests/py/ip/hash.t
-@@ -0,0 +1,5 @@
-+:pre;type nat hook prerouting priority 0
-+*ip;test-ip4;pre
++static void quota_stmt_print(const struct stmt *stmt)
++{
++	bool inv = stmt->quota.flags & NFT_QUOTA_F_INV;
++	const char *data_unit;
++	uint64_t bytes;
 +
-+ct mark set jhash ip saddr . ip daddr mod 2 seed 0xdeadbeef;ok
-+dnat to jhash ip saddr mod 2 seed 0xdeadbeef map { 0 : 192.168.20.100, 1 : 192.168.30.100 };ok
-diff --git a/tests/py/ip/hash.t.payload b/tests/py/ip/hash.t.payload
-new file mode 100644
-index 0000000..429e2b7
---- /dev/null
-+++ b/tests/py/ip/hash.t.payload
-@@ -0,0 +1,17 @@
-+# ct mark set jhash ip saddr . ip daddr mod 2 seed 0xdeadbeef
-+ip test-ip4 pre 
-+  [ payload load 4b @ network header + 12 => reg 2 ]
-+  [ payload load 4b @ network header + 16 => reg 13 ]
-+  [ hash reg 1 = jhash(reg 2, 8, 3735928559) % modulus 2]
-+  [ ct set mark with reg 1 ]
++	data_unit = get_rate(stmt->quota.bytes, &bytes);
++	printf("quota %s%"PRIu64" %s",
++	       inv ? "over " : "", bytes, data_unit);
++}
 +
-+# dnat to jhash ip saddr mod 2 seed 0xdeadbeef map { 0 : 192.168.20.100, 1 : 192.168.30.100 }
-+__map%d test-ip4 b
-+__map%d test-ip4 0
-+	element 00000000  : 6414a8c0 0 [end]	element 01000000  : 641ea8c0 0 [end]
-+ip test-ip4 pre 
-+  [ payload load 4b @ network header + 12 => reg 2 ]
-+  [ hash reg 1 = jhash(reg 2, 4, 3735928559) % modulus 2]
-+  [ lookup reg 1 set __map%d dreg 1 ]
-+  [ nat dnat ip addr_min reg 1 addr_max reg 0 ]
++static const struct stmt_ops quota_stmt_ops = {
++	.type		= STMT_QUOTA,
++	.name		= "quota",
++	.print		= quota_stmt_print,
++};
++
++struct stmt *quota_stmt_alloc(const struct location *loc)
++{
++	struct stmt *stmt;
++
++	stmt = stmt_alloc(loc, &quota_stmt_ops);
++	stmt->flags |= STMT_F_STATEFUL;
++	return stmt;
++}
++
+ static void reject_stmt_print(const struct stmt *stmt)
+ {
+ 	printf("reject");
+diff --git a/tests/py/any/quota.t b/tests/py/any/quota.t
+new file mode 100644
+index 0000000..9a8db11
+--- /dev/null
++++ b/tests/py/any/quota.t
+@@ -0,0 +1,24 @@
++:output;type filter hook output priority 0
++:ingress;type filter hook ingress device lo priority 0
++
++*ip;test-ip4;output
++*ip6;test-ip6;output
++*inet;test-inet;output
++*arp;test-arp;output
++*bridge;test-bridge;output
++*netdev;test-netdev;ingress
++
++quota 1025 bytes;ok
++quota 1 kbytes;ok
++quota 2 kbytes;ok
++quota 1025 kbytes;ok
++quota 1023 mbytes;ok
++quota 10230 mbytes;ok
++quota 1023000 mbytes;ok
++
++quota over 1 kbytes;ok
++quota over 2 kbytes;ok
++quota over 1025 kbytes;ok
++quota over 1023 mbytes;ok
++quota over 10230 mbytes;ok
++quota over 1023000 mbytes;ok
+diff --git a/tests/py/any/quota.t.payload b/tests/py/any/quota.t.payload
+new file mode 100644
+index 0000000..519db2c
+--- /dev/null
++++ b/tests/py/any/quota.t.payload
+@@ -0,0 +1,52 @@
++# quota 1025 bytes
++ip test-ip4 output 
++  [ quota bytes 1025 flags 0 ]
++
++# quota 1 kbytes
++ip test-ip4 output 
++  [ quota bytes 1024 flags 0 ]
++
++# quota 2 kbytes
++ip test-ip4 output 
++  [ quota bytes 2048 flags 0 ]
++
++# quota 1025 kbytes
++ip test-ip4 output 
++  [ quota bytes 1049600 flags 0 ]
++
++# quota 1023 mbytes
++ip test-ip4 output 
++  [ quota bytes 1072693248 flags 0 ]
++
++# quota 10230 mbytes
++ip test-ip4 output 
++  [ quota bytes 10726932480 flags 0 ]
++
++# quota 1023000 mbytes
++ip test-ip4 output 
++  [ quota bytes 1072693248000 flags 0 ]
++
++# quota over 1 kbytes
++ip test-ip4 output 
++  [ quota bytes 1024 flags 1 ]
++
++# quota over 2 kbytes
++ip test-ip4 output 
++  [ quota bytes 2048 flags 1 ]
++
++# quota over 1025 kbytes
++ip test-ip4 output 
++  [ quota bytes 1049600 flags 1 ]
++
++# quota over 1023 mbytes
++ip test-ip4 output 
++  [ quota bytes 1072693248 flags 1 ]
++
++# quota over 10230 mbytes
++ip test-ip4 output 
++  [ quota bytes 10726932480 flags 1 ]
++
++# quota over 1023000 mbytes
++ip test-ip4 output 
++  [ quota bytes 1072693248000 flags 1 ]
 +
 -- 
 2.1.4
