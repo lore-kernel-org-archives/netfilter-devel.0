@@ -1,91 +1,84 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/7] netfilter: cttimeout: put back l4proto when replacing timeout policy
-Date: Tue, 30 Aug 2016 13:26:19 +0200
-Message-ID: <1472556383-6787-4-git-send-email-pablo@netfilter.org>
-References: <1472556383-6787-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [conntrack-tools PATCH 1/4] src/main: refresh help message
+Date: Tue, 30 Aug 2016 14:20:35 +0200
+Message-ID: <147255963490.17411.649527820452381341.stgit@nfdev2.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42832 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758314AbcH3L0t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Aug 2016 07:26:49 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 20D7D1324F5
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 13:26:46 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 0CB58100A5D
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 13:26:46 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 03BBF100A7B
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 13:26:44 +0200 (CEST)
-In-Reply-To: <1472556383-6787-1-git-send-email-pablo@netfilter.org>
+Received: from smtp3.cica.es ([150.214.5.190]:37025 "EHLO smtp.cica.es"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1755916AbcH3MUc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Aug 2016 08:20:32 -0400
+Received: from localhost (unknown [127.0.0.1])
+        by smtp.cica.es (Postfix) with ESMTP id 80BF851F144
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 12:20:28 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id 3MLsT4ltIVYC for <netfilter-devel@vger.kernel.org>;
+        Tue, 30 Aug 2016 14:20:23 +0200 (CEST)
+Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
+        (Authenticated sender: servers@cica.es)
+        by smtp.cica.es (Postfix) with ESMTP id 8309B51EC20
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 14:20:23 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Liping Zhang <liping.zhang@spreadtrum.com>
+It seems there are two kind of options:
+ * general commands (-d, -v, -h, -C)
+ * client commands (which requires another conntrackd instance)
 
-We forget to call nf_ct_l4proto_put when replacing the existing
-timeout policy. Acctually, there's no need to get ct l4proto
-before doing replace, so we can move it to a later position.
+Refresh the help message to better reflect this.
 
-Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- net/netfilter/nfnetlink_cttimeout.c | 33 +++++++++++++++------------------
- 1 file changed, 15 insertions(+), 18 deletions(-)
+ src/main.c |   20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
-index f74fee1..6844c7a 100644
---- a/net/netfilter/nfnetlink_cttimeout.c
-+++ b/net/netfilter/nfnetlink_cttimeout.c
-@@ -98,31 +98,28 @@ static int cttimeout_new_timeout(struct net *net, struct sock *ctnl,
- 		break;
- 	}
+diff --git a/src/main.c b/src/main.c
+index d12fe18..2be9b2f 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -36,9 +36,12 @@
+ struct ct_general_state st;
+ struct ct_state state;
  
--	l4proto = nf_ct_l4proto_find_get(l3num, l4num);
--
--	/* This protocol is not supportted, skip. */
--	if (l4proto->l4proto != l4num) {
--		ret = -EOPNOTSUPP;
--		goto err_proto_put;
--	}
--
- 	if (matching) {
- 		if (nlh->nlmsg_flags & NLM_F_REPLACE) {
- 			/* You cannot replace one timeout policy by another of
- 			 * different kind, sorry.
- 			 */
- 			if (matching->l3num != l3num ||
--			    matching->l4proto->l4proto != l4num) {
--				ret = -EINVAL;
--				goto err_proto_put;
--			}
--
--			ret = ctnl_timeout_parse_policy(&matching->data,
--							l4proto, net,
--							cda[CTA_TIMEOUT_DATA]);
--			return ret;
-+			    matching->l4proto->l4proto != l4num)
-+				return -EINVAL;
-+
-+			return ctnl_timeout_parse_policy(&matching->data,
-+							 matching->l4proto, net,
-+							 cda[CTA_TIMEOUT_DATA]);
- 		}
--		ret = -EBUSY;
-+
-+		return -EBUSY;
-+	}
-+
-+	l4proto = nf_ct_l4proto_find_get(l3num, l4num);
-+
-+	/* This protocol is not supportted, skip. */
-+	if (l4proto->l4proto != l4num) {
-+		ret = -EOPNOTSUPP;
- 		goto err_proto_put;
- 	}
+-static const char usage_daemon_commands[] =
+-	"Daemon mode commands:\n"
+-	"  -d [options]\t\tRun in daemon mode\n";
++static const char usage_general_commands[] =
++	"General commands:\n"
++	"  -d, run in daemon mode\n"
++	"  -C [configfile], configuration file path\n"
++	"  -v, display conntrackd version\n"
++	"  -h, display this help information\n";
  
--- 
-2.1.4
+ static const char usage_client_commands[] =
+ 	"Client mode commands:\n"
+@@ -54,22 +57,15 @@ static const char usage_client_commands[] =
+ 	"  -n, request resync with other node (only FT-FW and NOTRACK modes)\n"
+ 	"  -B, force a bulk send to other replica firewalls\n"
+ 	"  -x, dump cache in XML format (requires -i or -e)\n"
+-	"  -t, reset the kernel timeout (see PurgeTimeout clause)\n"
+-	"  -v, display conntrackd version\n"
+-	"  -h, display this help information\n";
+-
+-static const char usage_options[] =
+-	"Options:\n"
+-	"  -C [configfile], configuration file path\n";
++	"  -t, reset the kernel timeout (see PurgeTimeout clause)\n";
+ 
+ static void
+ show_usage(char *progname)
+ {
+ 	fprintf(stdout, "Connection tracking userspace daemon v%s\n", VERSION);
+ 	fprintf(stdout, "Usage: %s [commands] [options]\n\n", progname);
+-	fprintf(stdout, "%s\n", usage_daemon_commands);
++	fprintf(stdout, "%s\n", usage_general_commands);
+ 	fprintf(stdout, "%s\n", usage_client_commands);
+-	fprintf(stdout, "%s\n", usage_options);
+ }
+ 
+ static void
 
