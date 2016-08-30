@@ -1,66 +1,40 @@
-From: Marco Angaroni <marcoangaroni@gmail.com>
-Subject: [PATCH 0/2] netfilter: allow tab character in SIP headers
-Date: Tue, 30 Aug 2016 18:52:22 +0200
-Message-ID: <20160830165222.pAgDVdNXQ%marcoangaroni@gmail.com>
-To: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH iptables v3 2/2] xtables-compat: add rule cache
+Date: Tue, 30 Aug 2016 18:58:22 +0200
+Message-ID: <20160830165822.GA1175@salvia>
+References: <20160826165844.6849-1-pablombg@gmail.com>
+ <20160826165844.6849-2-pablombg@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36389 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756306AbcH3Qw0 (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Aug 2016 12:52:26 -0400
+Received: from mail.us.es ([193.147.175.20]:57168 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758453AbcH3Q63 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Aug 2016 12:58:29 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 6B9ADA7E2E
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 18:58:26 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 5B7B21B3208
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 18:58:26 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 3F40BFF2D5
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 18:58:24 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <20160826165844.6849-2-pablombg@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Current parsing methods for SIP headers do not allow the presence of
-tab characters between header name and header value. As a result Call-ID
-SIP headers like the following are discarded by IPVS SIP persistence
-engine:
+On Fri, Aug 26, 2016 at 06:58:44PM +0200, Pablo M. Bermudo Garay wrote:
+> This patch adds a cache of rules within the nft handle. This feature is
+> useful since the whole ruleset was brought from the kernel for every
+> chain during listing operations. In addition with the new checks of
+> ruleset compatibility, the rule list is loaded one more time.
+> 
+> Now all the operations causing changes in the ruleset must invalidate
+> the cache, a function called flush_rule_cache has been introduced for
+> this purpose.
 
-"Call-ID\t: mycallid@abcde"
-"Call-ID:\tmycallid@abcde"
-
-In above examples Call-IDs are represented as strings in C language.
-Obviously in real message we have byte "09" before/after colon (":").
-
-Proposed fix is in nf_conntrack_sip module.
-Function sip_skip_whitespace() should skip tabs in addition to spaces,
-since in SIP grammar whitespace (WSP) corresponds to space or tab.
-
-Below is an extract of relevant SIP ABNF syntax.
-
-Call-ID  =  ( "Call-ID" / "i" ) HCOLON callid
-callid   =  word [ "@" word ]
-
-HCOLON  =  *( SP / HTAB ) ":" SWS
-SWS     =  [LWS] ; sep whitespace
-LWS     =  [*WSP CRLF] 1*WSP ; linear whitespace
-WSP     =  SP / HTAB
-word    =  1*(alphanum / "-" / "." / "!" / "%" / "*" /
-           "_" / "+" / "`" / "'" / "~" /
-           "(" / ")" / "<" / ">" /
-           ":" / "\" / DQUOTE /
-           "/" / "[" / "]" / "?" /
-           "{" / "}" )
-
-Signed-off-by: Marco Angaroni <marcoangaroni@gmail.com>
----
- net/netfilter/nf_conntrack_sip.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index f72ba55..4acd60e 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -329,7 +329,7 @@ static const char *sip_follow_continuation(const char *dptr, const char *limit)
- static const char *sip_skip_whitespace(const char *dptr, const char *limit)
- {
- 	for (; dptr < limit; dptr++) {
--		if (*dptr == ' ')
-+		if (*dptr == ' ' || *dptr == '\t')
- 			continue;
- 		if (*dptr != '\r' && *dptr != '\n')
- 			break;
--- 
-1.8.3.1
-
+Applied, thanks!
