@@ -1,40 +1,60 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH iptables v3 2/2] xtables-compat: add rule cache
-Date: Tue, 30 Aug 2016 18:58:22 +0200
-Message-ID: <20160830165822.GA1175@salvia>
-References: <20160826165844.6849-1-pablombg@gmail.com>
- <20160826165844.6849-2-pablombg@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Phil Sutter <phil@nwl.cc>
+Subject: [nft PATCH v2 1/4] evaluate: Fix datalen checks in expr_evaluate_string()
+Date: Tue, 30 Aug 2016 19:39:49 +0200
+Message-ID: <1472578792-2991-2-git-send-email-phil@nwl.cc>
+References: <1472578792-2991-1-git-send-email-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
-To: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57168 "EHLO mail.us.es"
+Received: from orbyte.nwl.cc ([151.80.46.58]:35277 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758453AbcH3Q63 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Aug 2016 12:58:29 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 6B9ADA7E2E
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 18:58:26 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 5B7B21B3208
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 18:58:26 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3F40BFF2D5
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 18:58:24 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <20160826165844.6849-2-pablombg@gmail.com>
+        id S932516AbcH3RkF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Aug 2016 13:40:05 -0400
+In-Reply-To: <1472578792-2991-1-git-send-email-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Aug 26, 2016 at 06:58:44PM +0200, Pablo M. Bermudo Garay wrote:
-> This patch adds a cache of rules within the nft handle. This feature is
-> useful since the whole ruleset was brought from the kernel for every
-> chain during listing operations. In addition with the new checks of
-> ruleset compatibility, the rule list is loaded one more time.
-> 
-> Now all the operations causing changes in the ruleset must invalidate
-> the cache, a function called flush_rule_cache has been introduced for
-> this purpose.
+I have been told that the flex scanner won't return empty strings, so
+strlen(data) should always be greater 0. To avoid a hard to debug issue
+though, add an assert() to make sure this is always the case before
+risking an unsigned variable underrun.
 
-Applied, thanks!
+A real issue though is the check for 'datalen - 1 >= 0', which will
+never fail due to datalen being unsigned. Fix this by incrementing both
+sides by one, hence checking 'datalen >= 1'.
+
+Signed-off-by: Phil Sutter <phil@nwl.cc>
+---
+Changes since v1:
+- Based on the assumption that strlen(data) should never be less than 1,
+  just add an assert() to be on the safe side.
+- By modifying the '>= 0' check a bit, we can get by without making
+  datalen a signed variable.
+---
+ src/evaluate.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/evaluate.c b/src/evaluate.c
+index 7eb28f2c4b72d..fb9b82534d520 100644
+--- a/src/evaluate.c
++++ b/src/evaluate.c
+@@ -221,6 +221,7 @@ static int expr_evaluate_string(struct eval_ctx *ctx, struct expr **exprp)
+ 	memset(data + len, 0, data_len - len);
+ 	mpz_export_data(data, expr->value, BYTEORDER_HOST_ENDIAN, len);
+ 
++	assert(strlen(data) > 0);
+ 	datalen = strlen(data) - 1;
+ 	if (data[datalen] != '*') {
+ 		/* We need to reallocate the constant expression with the right
+@@ -234,7 +235,7 @@ static int expr_evaluate_string(struct eval_ctx *ctx, struct expr **exprp)
+ 		return 0;
+ 	}
+ 
+-	if (datalen - 1 >= 0 &&
++	if (datalen >= 1 &&
+ 	    data[datalen - 1] == '\\') {
+ 		char unescaped_str[data_len];
+ 
+-- 
+2.8.2
+
