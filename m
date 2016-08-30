@@ -1,31 +1,31 @@
 From: Marco Angaroni <marcoangaroni@gmail.com>
-Subject: [PATCH 2/2] netfilter: correct allowed characters in
- Call-ID SIP header
-Date: Tue, 30 Aug 2016 18:48:24 +0200
-Message-ID: <20160830164824._3CVoDOGb%marcoangaroni@gmail.com>
+Subject: [PATCH 0/2] netfilter: allow tab character in SIP headers
+Date: Tue, 30 Aug 2016 18:52:22 +0200
+Message-ID: <20160830165222.pAgDVdNXQ%marcoangaroni@gmail.com>
 To: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34455 "EHLO
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:36389 "EHLO
         mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757751AbcH3Qs3 (ORCPT
+        with ESMTP id S1756306AbcH3Qw0 (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Aug 2016 12:48:29 -0400
+        Tue, 30 Aug 2016 12:52:26 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Current parsing methods for SIP header Call-ID do not check correctly all
-characters allowed by RFC 3261. In particular "," character is allowed 
-instead of "'" character. As a result Call-ID headers like the following
-are discarded by IPVS SIP persistence engine.
+Current parsing methods for SIP headers do not allow the presence of
+tab characters between header name and header value. As a result Call-ID
+SIP headers like the following are discarded by IPVS SIP persistence
+engine:
 
-Call-ID: -.!%*_+`'~()<>:\"/[]?{}
+"Call-ID\t: mycallid@abcde"
+"Call-ID:\tmycallid@abcde"
 
-Above example is composed using all non-alphanumeric characters listed
-in RFC 3261 for Call-ID header syntax.
+In above examples Call-IDs are represented as strings in C language.
+Obviously in real message we have byte "09" before/after colon (":").
 
-Proposed fix is in nf_conntrack_sip module; function iswordc() checks this
-range: (c >= '(' && c <= '/') which includes these characters: ()*+,-./
-They are all allowed except ",". Instead "'" is not included in the list.
+Proposed fix is in nf_conntrack_sip module.
+Function sip_skip_whitespace() should skip tabs in addition to spaces,
+since in SIP grammar whitespace (WSP) corresponds to space or tab.
 
 Below is an extract of relevant SIP ABNF syntax.
 
@@ -45,26 +45,22 @@ word    =  1*(alphanum / "-" / "." / "!" / "%" / "*" /
 
 Signed-off-by: Marco Angaroni <marcoangaroni@gmail.com>
 ---
- net/netfilter/nf_conntrack_sip.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_sip.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 4acd60e..8971109 100644
+index f72ba55..4acd60e 100644
 --- a/net/netfilter/nf_conntrack_sip.c
 +++ b/net/netfilter/nf_conntrack_sip.c
-@@ -83,9 +83,10 @@ static int digits_len(const struct nf_conn *ct, const char *dptr,
- static int iswordc(const char c)
+@@ -329,7 +329,7 @@ static const char *sip_follow_continuation(const char *dptr, const char *limit)
+ static const char *sip_skip_whitespace(const char *dptr, const char *limit)
  {
- 	if (isalnum(c) || c == '!' || c == '"' || c == '%' ||
--	    (c >= '(' && c <= '/') || c == ':' || c == '<' || c == '>' ||
-+	    (c >= '(' && c <= '+') || c == ':' || c == '<' || c == '>' ||
- 	    c == '?' || (c >= '[' && c <= ']') || c == '_' || c == '`' ||
--	    c == '{' || c == '}' || c == '~')
-+	    c == '{' || c == '}' || c == '~' || (c >= '-' && c <= '/') ||
-+	    c == '\'')
- 		return 1;
- 	return 0;
- }
+ 	for (; dptr < limit; dptr++) {
+-		if (*dptr == ' ')
++		if (*dptr == ' ' || *dptr == '\t')
+ 			continue;
+ 		if (*dptr != '\r' && *dptr != '\n')
+ 			break;
 -- 
 1.8.3.1
 
