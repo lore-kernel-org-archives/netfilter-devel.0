@@ -1,103 +1,33 @@
-From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [conntrack-tools PATCH 4/4] doc/manual/conntrack-tools: include
- some bits about init systems
-Date: Tue, 30 Aug 2016 14:20:50 +0200
-Message-ID: <147255965086.17411.4934850892465559614.stgit@nfdev2.cica.es>
-References: <147255963490.17411.649527820452381341.stgit@nfdev2.cica.es>
+From: hehuaniu <regidg@vip.mail.taobao.com>
+Subject: =?UTF-8?B?5r6z6Zeo6YeR5rKZ6ZuG5Zui77yM6KeG6KeJ55ub5a6077yM5aSp5aSp5Y+N?=  =?UTF-8?B?5rC0MS44Je+8jOm8juWKm+ebuOWKqe+8gShBRCk=?=
+Date: Tue, 30 Aug 2016 14:23:49 +0200
+Message-ID: <20160830122349.86F81206469@fhf16.ecritel.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:37049 "EHLO smtp.cica.es"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1758219AbcH3MUr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Aug 2016 08:20:47 -0400
-Received: from localhost (unknown [127.0.0.1])
-        by smtp.cica.es (Postfix) with ESMTP id D1B2151EC20
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 12:20:44 +0000 (UTC)
-Received: from smtp.cica.es ([127.0.0.1])
-        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id WUWbBdFi_55B for <netfilter-devel@vger.kernel.org>;
-        Tue, 30 Aug 2016 14:20:39 +0200 (CEST)
-Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
-        (Authenticated sender: servers@cica.es)
-        by smtp.cica.es (Postfix) with ESMTP id 7371B51F146
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 14:20:39 +0200 (CEST)
-In-Reply-To: <147255963490.17411.649527820452381341.stgit@nfdev2.cica.es>
+Received: from fhf16.ecritel.net ([213.218.148.27]:43346 "HELO
+        fhf16.ecritel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with SMTP id S1758132AbcH3MbI (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Aug 2016 08:31:08 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Update the conntrack-tools manual to include some bits regarding init systems
-and the integration with systemd.
 
-More on this topic here:
- http://ral-arturo.blogspot.com.es/2016/08/why-conntrackd-in-debian-is-better-with.html
+Ce message vous a été envoyé parce que "hehuaniu <regidg@vip.mail.taobao.com>" pense que vous trouverez la page "Sondage" www.hopital.fr intéressante.
 
-Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
----
- doc/manual/conntrack-tools.tmpl |   51 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 51 insertions(+)
+Lien vers la page:
+http://www.hopital.fr/Media/Sondage/Sondage3
 
-diff --git a/doc/manual/conntrack-tools.tmpl b/doc/manual/conntrack-tools.tmpl
-index 87a792e..5c12c4a 100644
---- a/doc/manual/conntrack-tools.tmpl
-+++ b/doc/manual/conntrack-tools.tmpl
-@@ -1185,4 +1185,55 @@ not enough space errors:                   0
- 
- </chapter>
- 
-+  <chapter id="system-integration"><title>System integration</title>
-+
-+  <para>
-+	You may want to integrate conntrackd into your system in order to build
-+	a robust firewall cluster. You should take a look at how the linux
-+	distro of your choose does this, as there are some interesting things
-+	to take into account.
-+  </para>
-+
-+  <para>
-+	Depending on the architecture of the firewall cluster, you may want to
-+	sync each node after a failback operation, so the new node
-+	inmediately knows the connection of the other. This is specially
-+	interesting in <emphasis>Active-Active</emphasis> mode.
-+  </para>
-+
-+  <para>
-+	This can be done using <emphasis>conntrackd -n</emphasis> just after
-+	the new node has joined the conntrackd cluster, for example at boot
-+	time. This operations requires the main conntrackd daemon to open the
-+	UNIX socket to receive the order from the
-+	<emphasis>conntrackd -n</emphasis> call.
-+  </para>
-+
-+  <para>
-+	Care must be taken that no race conditions happens (i.e, the UNIX
-+	socket is actually opened before <emphasis>conntrackd -n</emphasis> is
-+	launched). Otherwise, you may end with a new node (after failback)
-+	which doesn't know any connection states from the other node.
-+  </para>
-+
-+  <para>
-+	Since <emphasis>conntrack-tools 1.4.4</emphasis>, the conntrackd
-+	daemon includes integration with <emphasis>libsystemd</emphasis>. If
-+	conntrackd is configured at build time with this support
-+	(using <emphasis>--enable-systemd</emphasis>), the you can
-+	use <emphasis>Systemd on</emphasis> in the
-+	<emphasis>conntrackd.conf</emphasis> main configuration file.
-+	To benefit from this integration, you should use a systemd service file
-+	of <emphasis>Type=notify</emphasis>, which also includes support for
-+	the systemd watchdog.
-+  </para>
-+
-+  <para>
-+	Using systemd and conntrackd with libsystemd support and a service file
-+	of Type=notify means that conntrackd will notify of his readiness to
-+	systemd, so you can launch <emphasis>conntrackd -n</emphasis> safely,
-+	avoiding such race conditions.
-+  </para>
-+
-+  </chapter>
- </book>
+Commentaire par "hehuaniu <regidg@vip.mail.taobao.com>":
+荷官再现制服诱惑，畅享足球盛宴，上万种电子老虎机，各类彩票下注！
+全场最低1元投注即享天天反水1.2%,支付宝、微信、最低存款10元，安全快捷实时到账！
+澳门金沙集团，官网开户：http://www.834516.com/?netfilter-devel@vger.kernel.org
+我们坚持以信誉和口碑赢得市场，真诚服务，满意您所需要。
+------------------------------------------
+                    圣人求心，不求佛;愚人求佛不求心。
+
 
