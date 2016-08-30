@@ -1,55 +1,59 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH v2 4/4] evaluate: Avoid undefined behaviour in concat_subtype_id()
-Date: Tue, 30 Aug 2016 19:39:52 +0200
-Message-ID: <1472578792-2991-5-git-send-email-phil@nwl.cc>
+Subject: [nft PATCH v2 2/4] netlink_delinearize: Avoid potential null pointer deref
+Date: Tue, 30 Aug 2016 19:39:50 +0200
+Message-ID: <1472578792-2991-3-git-send-email-phil@nwl.cc>
 References: <1472578792-2991-1-git-send-email-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:46273 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:53972 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932463AbcH3RkY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Aug 2016 13:40:24 -0400
+        id S932463AbcH3Rkb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Aug 2016 13:40:31 -0400
 In-Reply-To: <1472578792-2991-1-git-send-email-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-For the left side of a concat expression, dtype is NULL and therefore
-off is 0. In that case the code expects to get a datatype of
-TYPE_INVALID, but this is fragile as the output of concat_subtype_id()
-is undefined for n > 32 / TYPE_BITS.
-
-To fix this, call datatype_lookup() directly passing the expected
-TYPE_INVALID as argument if off is 0.
+As netlink_get_register() may return NULL, we must not pass the returned
+data unchecked to expr_set_type() as that will dereference it. Since the
+parser has failed at that point anyway, by returning early we can skip
+the useless statement allocation that follows in
+netlink_parse_ct_stmt().
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
 Changes since v1:
-- Understood (and reproduced) when the situation causing the undefined
-  behaviour happens.
-- Understood what the code is supposed to do in that situation.
-- Based on the information at hand, implemented a solution which avoids
-  undefined behaviour.
+- Fix for the same problem in netlink_parse_meta_stmt(), too.
+- Print error message instead of silently failing.
+- Align coding style with other post netlink_get_register() checks.
 ---
- src/evaluate.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ src/netlink_delinearize.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 194a03495b5fd..c1ee6b1929551 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -962,7 +962,10 @@ static int expr_evaluate_concat(struct eval_ctx *ctx, struct expr **expr)
- 						 "expressions",
- 						 i->dtype->name);
+diff --git a/src/netlink_delinearize.c b/src/netlink_delinearize.c
+index 1a1cfbded4e1e..e3846a700ca8e 100644
+--- a/src/netlink_delinearize.c
++++ b/src/netlink_delinearize.c
+@@ -517,6 +517,9 @@ static void netlink_parse_meta_stmt(struct netlink_parse_ctx *ctx,
  
--		tmp = concat_subtype_lookup(type, --off);
-+		if (dtype == NULL)
-+			tmp = datatype_lookup(TYPE_INVALID);
-+		else
-+			tmp = concat_subtype_lookup(type, --off);
- 		expr_set_context(&ctx->ectx, tmp, tmp->size);
+ 	sreg = netlink_parse_register(nle, NFTNL_EXPR_META_SREG);
+ 	expr = netlink_get_register(ctx, loc, sreg);
++	if (expr == NULL)
++		return netlink_error(ctx, loc,
++				     "No expression in register %u", sreg);
  
- 		if (list_member_evaluate(ctx, &i) < 0)
+ 	key  = nftnl_expr_get_u32(nle, NFTNL_EXPR_META_KEY);
+ 	stmt = meta_stmt_alloc(loc, key, expr);
+@@ -562,6 +565,9 @@ static void netlink_parse_ct_stmt(struct netlink_parse_ctx *ctx,
+ 
+ 	sreg = netlink_parse_register(nle, NFTNL_EXPR_CT_SREG);
+ 	expr = netlink_get_register(ctx, loc, sreg);
++	if (expr == NULL)
++		return netlink_error(ctx, loc,
++				     "No expression in register %u", sreg);
+ 
+ 	key  = nftnl_expr_get_u32(nle, NFTNL_EXPR_CT_KEY);
+ 	stmt = ct_stmt_alloc(loc, key, expr);
 -- 
 2.8.2
 
