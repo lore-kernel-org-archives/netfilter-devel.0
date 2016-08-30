@@ -1,55 +1,103 @@
 From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Subject: [conntrack-tools PATCH 3/4] conntrackd.8: add reference to systemd
-Date: Tue, 30 Aug 2016 14:20:45 +0200
-Message-ID: <147255964566.17411.5301986542060967309.stgit@nfdev2.cica.es>
+Subject: [conntrack-tools PATCH 4/4] doc/manual/conntrack-tools: include
+ some bits about init systems
+Date: Tue, 30 Aug 2016 14:20:50 +0200
+Message-ID: <147255965086.17411.4934850892465559614.stgit@nfdev2.cica.es>
 References: <147255963490.17411.649527820452381341.stgit@nfdev2.cica.es>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp3.cica.es ([150.214.5.190]:37041 "EHLO smtp.cica.es"
+Received: from smtp3.cica.es ([150.214.5.190]:37049 "EHLO smtp.cica.es"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1758219AbcH3MUq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Aug 2016 08:20:46 -0400
+        id S1758219AbcH3MUr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Aug 2016 08:20:47 -0400
 Received: from localhost (unknown [127.0.0.1])
-        by smtp.cica.es (Postfix) with ESMTP id 0CCAD51F160
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 12:20:39 +0000 (UTC)
+        by smtp.cica.es (Postfix) with ESMTP id D1B2151EC20
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 12:20:44 +0000 (UTC)
 Received: from smtp.cica.es ([127.0.0.1])
         by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id fO3GMkQD88OK for <netfilter-devel@vger.kernel.org>;
-        Tue, 30 Aug 2016 14:20:34 +0200 (CEST)
+        with ESMTP id WUWbBdFi_55B for <netfilter-devel@vger.kernel.org>;
+        Tue, 30 Aug 2016 14:20:39 +0200 (CEST)
 Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
         (Authenticated sender: servers@cica.es)
-        by smtp.cica.es (Postfix) with ESMTP id 1D32C51F146
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 14:20:34 +0200 (CEST)
+        by smtp.cica.es (Postfix) with ESMTP id 7371B51F146
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 14:20:39 +0200 (CEST)
 In-Reply-To: <147255963490.17411.649527820452381341.stgit@nfdev2.cica.es>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add reference to systemd integration in the manpage.
+Update the conntrack-tools manual to include some bits regarding init systems
+and the integration with systemd.
 
+More on this topic here:
+ http://ral-arturo.blogspot.com.es/2016/08/why-conntrackd-in-debian-is-better-with.html
+
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- conntrackd.8 |    7 +++++++
- 1 file changed, 7 insertions(+)
+ doc/manual/conntrack-tools.tmpl |   51 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 51 insertions(+)
 
-diff --git a/conntrackd.8 b/conntrackd.8
-index bd195ec..6ccf261 100644
---- a/conntrackd.8
-+++ b/conntrackd.8
-@@ -145,6 +145,13 @@ event filtering. Otherwise, all the event filtering is done in userspace with
- the corresponding extra overhead. If you are not using the Filter clause in
- the configuration file, ignore this notice.
+diff --git a/doc/manual/conntrack-tools.tmpl b/doc/manual/conntrack-tools.tmpl
+index 87a792e..5c12c4a 100644
+--- a/doc/manual/conntrack-tools.tmpl
++++ b/doc/manual/conntrack-tools.tmpl
+@@ -1185,4 +1185,55 @@ not enough space errors:                   0
  
-+.SH SYSTEMD INTEGRATION
-+Starting with the 1.4.4 release, \fBconntrackd\fP includes integration with
-+\fBsystemd(1)\fP to use an unit file of \fIType=notify\fP and watchdog support.
+ </chapter>
+ 
++  <chapter id="system-integration"><title>System integration</title>
 +
-+The daemon should be configured at build time to include such support
-+and \fBconntrackd.conf(5)\fP should contain \fBSystemd on\fP.
++  <para>
++	You may want to integrate conntrackd into your system in order to build
++	a robust firewall cluster. You should take a look at how the linux
++	distro of your choose does this, as there are some interesting things
++	to take into account.
++  </para>
 +
- .SH INCOMPATIBILITIES
- During the 0.9.9 development, some important changes in the replication message
- format were introduced. Therefore, \fBconntrackd\fP >= 0.9.9 will not work
++  <para>
++	Depending on the architecture of the firewall cluster, you may want to
++	sync each node after a failback operation, so the new node
++	inmediately knows the connection of the other. This is specially
++	interesting in <emphasis>Active-Active</emphasis> mode.
++  </para>
++
++  <para>
++	This can be done using <emphasis>conntrackd -n</emphasis> just after
++	the new node has joined the conntrackd cluster, for example at boot
++	time. This operations requires the main conntrackd daemon to open the
++	UNIX socket to receive the order from the
++	<emphasis>conntrackd -n</emphasis> call.
++  </para>
++
++  <para>
++	Care must be taken that no race conditions happens (i.e, the UNIX
++	socket is actually opened before <emphasis>conntrackd -n</emphasis> is
++	launched). Otherwise, you may end with a new node (after failback)
++	which doesn't know any connection states from the other node.
++  </para>
++
++  <para>
++	Since <emphasis>conntrack-tools 1.4.4</emphasis>, the conntrackd
++	daemon includes integration with <emphasis>libsystemd</emphasis>. If
++	conntrackd is configured at build time with this support
++	(using <emphasis>--enable-systemd</emphasis>), the you can
++	use <emphasis>Systemd on</emphasis> in the
++	<emphasis>conntrackd.conf</emphasis> main configuration file.
++	To benefit from this integration, you should use a systemd service file
++	of <emphasis>Type=notify</emphasis>, which also includes support for
++	the systemd watchdog.
++  </para>
++
++  <para>
++	Using systemd and conntrackd with libsystemd support and a service file
++	of Type=notify means that conntrackd will notify of his readiness to
++	systemd, so you can launch <emphasis>conntrackd -n</emphasis> safely,
++	avoiding such race conditions.
++  </para>
++
++  </chapter>
+ </book>
 
