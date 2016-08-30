@@ -1,33 +1,68 @@
-From: hehuaniu <regidg@vip.mail.taobao.com>
-Subject: =?UTF-8?B?5r6z6Zeo6YeR5rKZ6ZuG5Zui77yM6KeG6KeJ55ub5a6077yM5aSp5aSp5Y+N?=  =?UTF-8?B?5rC0MS44Je+8jOm8juWKm+ebuOWKqe+8gShBRCk=?=
-Date: Tue, 30 Aug 2016 14:23:49 +0200
-Message-ID: <20160830122349.86F81206469@fhf16.ecritel.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH libnftnl] expr: numgen: add missing nftnl_expr_ng_cmp()
+Date: Tue, 30 Aug 2016 16:17:10 +0200
+Message-ID: <1472566630-15744-1-git-send-email-pablo@netfilter.org>
+Cc: nevola@gmail.com
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fhf16.ecritel.net ([213.218.148.27]:43346 "HELO
-        fhf16.ecritel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with SMTP id S1758132AbcH3MbI (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Aug 2016 08:31:08 -0400
-Content-Disposition: inline
+Received: from mail.us.es ([193.147.175.20]:59748 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751029AbcH3ORU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Aug 2016 10:17:20 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id AAE561D94AD
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 16:17:18 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9B2091B326F
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 16:17:18 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9C4E21B3552
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 16:17:13 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This patch adds the missing comparator interface, most likely due to
+race between the patchset that has added this and the introduction of
+numgen.
 
-Ce message vous a été envoyé parce que "hehuaniu <regidg@vip.mail.taobao.com>" pense que vous trouverez la page "Sondage" www.hopital.fr intéressante.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/expr/numgen.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-Lien vers la page:
-http://www.hopital.fr/Media/Sondage/Sondage3
-
-Commentaire par "hehuaniu <regidg@vip.mail.taobao.com>":
-荷官再现制服诱惑，畅享足球盛宴，上万种电子老虎机，各类彩票下注！
-全场最低1元投注即享天天反水1.2%,支付宝、微信、最低存款10元，安全快捷实时到账！
-澳门金沙集团，官网开户：http://www.834516.com/?netfilter-devel@vger.kernel.org
-我们坚持以信誉和口碑赢得市场，真诚服务，满意您所需要。
-------------------------------------------
-                    圣人求心，不求佛;愚人求佛不求心。
-
+diff --git a/src/expr/numgen.c b/src/expr/numgen.c
+index e8fa9a1..0669eda 100644
+--- a/src/expr/numgen.c
++++ b/src/expr/numgen.c
+@@ -238,10 +238,28 @@ nftnl_expr_ng_snprintf(char *buf, size_t len, uint32_t type,
+ 	return -1;
+ }
+ 
++static bool nftnl_expr_ng_cmp(const struct nftnl_expr *e1,
++			      const struct nftnl_expr *e2)
++{
++	struct nftnl_expr_ng *n1 = nftnl_expr_data(e1);
++	struct nftnl_expr_ng *n2 = nftnl_expr_data(e2);
++	bool eq = true;
++
++	if (e1->flags & (1 << NFTNL_EXPR_NG_DREG))
++		eq &= (n1->dreg == n2->dreg);
++	if (e1->flags & (1 << NFTNL_EXPR_NG_UNTIL))
++		eq &= (n1->until == n2->until);
++	if (e1->flags & (1 << NFTNL_EXPR_NG_TYPE))
++		eq &= (n1->type == n2->type);
++
++	return eq;
++}
++
+ struct expr_ops expr_ops_ng = {
+ 	.name		= "numgen",
+ 	.alloc_len	= sizeof(struct nftnl_expr_ng),
+ 	.max_attr	= NFTA_NG_MAX,
++	.cmp		= nftnl_expr_ng_cmp,
+ 	.set		= nftnl_expr_ng_set,
+ 	.get		= nftnl_expr_ng_get,
+ 	.parse		= nftnl_expr_ng_parse,
+-- 
+2.1.4
 
