@@ -1,36 +1,80 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nft] meta: fix memory leak in tc classid parser
-Date: Tue, 30 Aug 2016 12:43:45 +0200
-Message-ID: <20160830104345.GA2205@salvia>
-References: <1472373382-20104-1-git-send-email-zlpnobody@163.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: Liping Zhang <zlpnobody@163.com>
+Subject: [PATCH 2/7] netfilter: nfnetlink: use list_for_each_entry_safe to delete all objects
+Date: Tue, 30 Aug 2016 13:26:18 +0200
+Message-ID: <1472556383-6787-3-git-send-email-pablo@netfilter.org>
+References: <1472556383-6787-1-git-send-email-pablo@netfilter.org>
+Cc: davem@davemloft.net, netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53400 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:42812 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753282AbcH3Knv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Aug 2016 06:43:51 -0400
+        id S1758281AbcH3L0r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Aug 2016 07:26:47 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id C042C12A690
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 12:43:49 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id 9E4C21324F2
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 13:26:45 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id AFA37100A59
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 12:43:49 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 89C5B114D72
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 13:26:45 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 34491114D60
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 12:43:47 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <1472373382-20104-1-git-send-email-zlpnobody@163.com>
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1D5E1A827A
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 13:26:43 +0200 (CEST)
+In-Reply-To: <1472556383-6787-1-git-send-email-pablo@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Aug 28, 2016 at 04:36:22PM +0800, Liping Zhang wrote:
-> From: Liping Zhang <liping.zhang@spreadtrum.com>
-> 
-> We forgot to free the str which was allocated by xstrdup,
-> so memory leak will happen.
+From: Liping Zhang <liping.zhang@spreadtrum.com>
 
-Applied, thanks.
+cttimeout and acct objects are deleted from the list while traversing
+it, so use list_for_each_entry is unsafe here.
+
+Signed-off-by: Liping Zhang <liping.zhang@spreadtrum.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ net/netfilter/nfnetlink_acct.c      | 6 +++---
+ net/netfilter/nfnetlink_cttimeout.c | 5 +++--
+ 2 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/net/netfilter/nfnetlink_acct.c b/net/netfilter/nfnetlink_acct.c
+index 70eb2f6a..d44d89b 100644
+--- a/net/netfilter/nfnetlink_acct.c
++++ b/net/netfilter/nfnetlink_acct.c
+@@ -343,12 +343,12 @@ static int nfnl_acct_del(struct net *net, struct sock *nfnl,
+ 			 struct sk_buff *skb, const struct nlmsghdr *nlh,
+ 			 const struct nlattr * const tb[])
+ {
+-	char *acct_name;
+-	struct nf_acct *cur;
++	struct nf_acct *cur, *tmp;
+ 	int ret = -ENOENT;
++	char *acct_name;
+ 
+ 	if (!tb[NFACCT_NAME]) {
+-		list_for_each_entry(cur, &net->nfnl_acct_list, head)
++		list_for_each_entry_safe(cur, tmp, &net->nfnl_acct_list, head)
+ 			nfnl_acct_try_del(cur);
+ 
+ 		return 0;
+diff --git a/net/netfilter/nfnetlink_cttimeout.c b/net/netfilter/nfnetlink_cttimeout.c
+index 68216cd..f74fee1 100644
+--- a/net/netfilter/nfnetlink_cttimeout.c
++++ b/net/netfilter/nfnetlink_cttimeout.c
+@@ -350,12 +350,13 @@ static int cttimeout_del_timeout(struct net *net, struct sock *ctnl,
+ 				 const struct nlmsghdr *nlh,
+ 				 const struct nlattr * const cda[])
+ {
+-	struct ctnl_timeout *cur;
++	struct ctnl_timeout *cur, *tmp;
+ 	int ret = -ENOENT;
+ 	char *name;
+ 
+ 	if (!cda[CTA_TIMEOUT_NAME]) {
+-		list_for_each_entry(cur, &net->nfct_timeout_list, head)
++		list_for_each_entry_safe(cur, tmp, &net->nfct_timeout_list,
++					 head)
+ 			ctnl_timeout_try_del(net, cur);
+ 
+ 		return 0;
+-- 
+2.1.4
+
