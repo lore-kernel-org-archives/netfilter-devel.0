@@ -1,33 +1,31 @@
 From: Marco Angaroni <marcoangaroni@gmail.com>
-Subject: [PATCH 1/2] netfilter: correct parsing of continuation
- lines in SIP headers
-Date: Tue, 30 Aug 2016 18:48:19 +0200
-Message-ID: <20160830164819.A6zYgiNs5%marcoangaroni@gmail.com>
+Subject: [PATCH 2/2] netfilter: correct allowed characters in
+ Call-ID SIP header
+Date: Tue, 30 Aug 2016 18:48:24 +0200
+Message-ID: <20160830164824._3CVoDOGb%marcoangaroni@gmail.com>
 To: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34455 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757751AbcH3Qs3 (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Aug 2016 12:48:29 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Current parsing methods for SIP headers do not properly manage
-continuation lines: in case of Call-ID header the first character of
-Call-ID header value is truncated. As a result IPVS SIP persistence
-engine hashes over a call-id that is not exactly the one present in
-the originale message.
+Current parsing methods for SIP header Call-ID do not check correctly all
+characters allowed by RFC 3261. In particular "," character is allowed 
+instead of "'" character. As a result Call-ID headers like the following
+are discarded by IPVS SIP persistence engine.
 
-Example: "Call-ID: \r\n abcdeABCDE1234"
-results in extracted call-id equal to "bcdeABCDE1234".
+Call-ID: -.!%*_+`'~()<>:\"/[]?{}
 
-In above example Call-ID is represented as a string in C language.
-Obviously in real message the first bytes after colon (":") are
-"20 0d 0a 20".
+Above example is composed using all non-alphanumeric characters listed
+in RFC 3261 for Call-ID header syntax.
 
-Proposed fix is in nf_conntrack_sip module.
-Since sip_follow_continuation() function walks past the leading
-spaces or tabs of the continuation line, sip_skip_whitespace()
-should simply return the ouput of sip_follow_continuation().
-Otherwise another iteration of the for loop is done and dptr
-is incremented by one pointing to the second character of the
-first word in the header.
+Proposed fix is in nf_conntrack_sip module; function iswordc() checks this
+range: (c >= '(' && c <= '/') which includes these characters: ()*+,-./
+They are all allowed except ",". Instead "'" is not included in the list.
 
 Below is an extract of relevant SIP ABNF syntax.
 
@@ -47,22 +45,25 @@ word    =  1*(alphanum / "-" / "." / "!" / "%" / "*" /
 
 Signed-off-by: Marco Angaroni <marcoangaroni@gmail.com>
 ---
- net/netfilter/nf_conntrack_sip.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_sip.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 8971109..c23249e 100644
+index 4acd60e..8971109 100644
 --- a/net/netfilter/nf_conntrack_sip.c
 +++ b/net/netfilter/nf_conntrack_sip.c
-@@ -335,8 +335,7 @@ static const char *sip_skip_whitespace(const char *dptr, const char *limit)
- 		if (*dptr != '\r' && *dptr != '\n')
- 			break;
- 		dptr = sip_follow_continuation(dptr, limit);
--		if (dptr == NULL)
--			return NULL;
-+		return dptr;
- 	}
- 	return dptr;
+@@ -83,9 +83,10 @@ static int digits_len(const struct nf_conn *ct, const char *dptr,
+ static int iswordc(const char c)
+ {
+ 	if (isalnum(c) || c == '!' || c == '"' || c == '%' ||
+-	    (c >= '(' && c <= '/') || c == ':' || c == '<' || c == '>' ||
++	    (c >= '(' && c <= '+') || c == ':' || c == '<' || c == '>' ||
+ 	    c == '?' || (c >= '[' && c <= ']') || c == '_' || c == '`' ||
+-	    c == '{' || c == '}' || c == '~')
++	    c == '{' || c == '}' || c == '~' || (c >= '-' && c <= '/') ||
++	    c == '\'')
+ 		return 1;
+ 	return 0;
  }
 -- 
 1.8.3.1
