@@ -1,60 +1,56 @@
 From: Phil Sutter <phil@nwl.cc>
-Subject: [nft PATCH v2 1/4] evaluate: Fix datalen checks in expr_evaluate_string()
-Date: Tue, 30 Aug 2016 19:39:49 +0200
-Message-ID: <1472578792-2991-2-git-send-email-phil@nwl.cc>
+Subject: [nft PATCH v2 3/4] stmt_evaluate_reset: Have a generic fix for missing network context
+Date: Tue, 30 Aug 2016 19:39:51 +0200
+Message-ID: <1472578792-2991-4-git-send-email-phil@nwl.cc>
 References: <1472578792-2991-1-git-send-email-phil@nwl.cc>
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from orbyte.nwl.cc ([151.80.46.58]:35277 "EHLO mail.nwl.cc"
+Received: from orbyte.nwl.cc ([151.80.46.58]:51853 "EHLO mail.nwl.cc"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932516AbcH3RkF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Aug 2016 13:40:05 -0400
+        id S932463AbcH3RkL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Aug 2016 13:40:11 -0400
 In-Reply-To: <1472578792-2991-1-git-send-email-phil@nwl.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I have been told that the flex scanner won't return empty strings, so
-strlen(data) should always be greater 0. To avoid a hard to debug issue
-though, add an assert() to make sure this is always the case before
-risking an unsigned variable underrun.
+Commit 17b495957b29e ("evaluate: reject: fix crash if we have transport
+protocol conflict from inet") took care of a crash when using inet or
+bridge families, but since then netdev family has been added which also
+does not implicitly define the network context. Therefore the crash can
+be reproduced again using the following example:
 
-A real issue though is the check for 'datalen - 1 >= 0', which will
-never fail due to datalen being unsigned. Fix this by incrementing both
-sides by one, hence checking 'datalen >= 1'.
+nft add rule netdev filter e1000-ingress \
+		meta l4proto udp reject with tcp reset
+
+In order to fix this in a more generic way, have stmt_evaluate_reset()
+fall back to the generic proto_inet_service irrespective of the actual
+proto context.
 
 Signed-off-by: Phil Sutter <phil@nwl.cc>
 ---
 Changes since v1:
-- Based on the assumption that strlen(data) should never be less than 1,
-  just add an assert() to be on the safe side.
-- By modifying the '>= 0' check a bit, we can get by without making
-  datalen a signed variable.
+- Found the real cause for the problem after some more code and git
+  history research, so rewrote the patch from scratch.
 ---
- src/evaluate.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ src/evaluate.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
 diff --git a/src/evaluate.c b/src/evaluate.c
-index 7eb28f2c4b72d..fb9b82534d520 100644
+index fb9b82534d520..194a03495b5fd 100644
 --- a/src/evaluate.c
 +++ b/src/evaluate.c
-@@ -221,6 +221,7 @@ static int expr_evaluate_string(struct eval_ctx *ctx, struct expr **exprp)
- 	memset(data + len, 0, data_len - len);
- 	mpz_export_data(data, expr->value, BYTEORDER_HOST_ENDIAN, len);
- 
-+	assert(strlen(data) > 0);
- 	datalen = strlen(data) - 1;
- 	if (data[datalen] != '*') {
- 		/* We need to reallocate the constant expression with the right
-@@ -234,7 +235,7 @@ static int expr_evaluate_string(struct eval_ctx *ctx, struct expr **exprp)
+@@ -2167,9 +2167,7 @@ static int stmt_evaluate_reset(struct eval_ctx *ctx, struct stmt *stmt)
  		return 0;
- 	}
  
--	if (datalen - 1 >= 0 &&
-+	if (datalen >= 1 &&
- 	    data[datalen - 1] == '\\') {
- 		char unescaped_str[data_len];
+ 	base = pctx->protocol[PROTO_BASE_NETWORK_HDR].desc;
+-	if (base == NULL &&
+-	    (ctx->pctx.family == NFPROTO_INET ||
+-	     ctx->pctx.family == NFPROTO_BRIDGE))
++	if (base == NULL)
+ 		base = &proto_inet_service;
  
+ 	protonum = proto_find_num(base, desc);
 -- 
 2.8.2
 
