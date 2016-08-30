@@ -1,38 +1,44 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: log_arp: Use ARPHRD_ETHER instead of
- literal '1'
-Date: Tue, 30 Aug 2016 11:54:48 +0200
-Message-ID: <20160830095448.GB20414@salvia>
-References: <1472391682-13832-1-git-send-email-fgao@ikuai8.com>
+Subject: Re: [PATCH iptables 1/3] extensions: libipt_DNAT/SNAT: fix "OOM"
+ when do translation to nft
+Date: Tue, 30 Aug 2016 11:56:31 +0200
+Message-ID: <20160830095631.GA20699@salvia>
+References: <1472374248-21912-1-git-send-email-zlpnobody@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, kadlec@blackhole.kfki.hu,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
-        gfree.wind@gmail.com
-To: fgao@ikuai8.com
+Cc: netfilter-devel@vger.kernel.org,
+        Liping Zhang <liping.zhang@spreadtrum.com>
+To: Liping Zhang <zlpnobody@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34356 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:34816 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757521AbcH3Jy6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Aug 2016 05:54:58 -0400
+        id S1757856AbcH3J4h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Tue, 30 Aug 2016 05:56:37 -0400
 Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 60E4312A691
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 11:54:56 +0200 (CEST)
+        by mail.us.es (Postfix) with ESMTP id C718A12A689
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 11:56:35 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 51A36100A7F
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 11:54:56 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id B77E9100A77
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 11:56:35 +0200 (CEST)
 Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 3FA33100A7D
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 11:54:54 +0200 (CEST)
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 1203D9EBB8
+        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 11:56:33 +0200 (CEST)
 Content-Disposition: inline
-In-Reply-To: <1472391682-13832-1-git-send-email-fgao@ikuai8.com>
+In-Reply-To: <1472374248-21912-1-git-send-email-zlpnobody@163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Aug 28, 2016 at 09:41:22PM +0800, fgao@ikuai8.com wrote:
-> From: Gao Feng <fgao@ikuai8.com>
+On Sun, Aug 28, 2016 at 04:50:46PM +0800, Liping Zhang wrote:
+> From: Liping Zhang <liping.zhang@spreadtrum.com>
 > 
-> There is one macro ARPHRD_ETHER which defines the ethernet proto for ARP,
-> so we could use it instead of the literal number '1'.
+> When I want to translate SNAT target to nft rule, an error message
+> was printed out:
+>   # iptables-translate -A POSTROUTING -j SNAT --to-source 1.1.1.1
+>   iptables-translate v1.6.0: OOM
+> 
+> Because ipt_natinfo{} started with a xt_entry_target{}, so when we
+> get the ipt_natinfo pointer, we should use the target itself,
+> not its data pointer. Yes, it is a little tricky and it's different
+> with other targets.
 
-Also applied, thanks.
+Applied, thanks!
