@@ -1,77 +1,124 @@
-From: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
-Subject: [PATCH iptables v3] xtables-translate-restore: do not escape quotes
-Date: Wed, 31 Aug 2016 09:59:16 +0200
-Message-ID: <20160831075916.4432-1-pablombg@gmail.com>
-Cc: "Pablo M. Bermudo Garay" <pablombg@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34792 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758387AbcHaH7t (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Aug 2016 03:59:49 -0400
-Received: by mail-wm0-f65.google.com with SMTP id d196so2259782wmd.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Aug 2016 00:59:49 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: [PATCH 5/5] net/netfilter/nf_conntrack_core: update memory barriers.
+Date: Wed, 31 Aug 2016 15:42:30 +0200
+Message-ID: <1472650950-3131-6-git-send-email-manfred@colorfullife.com>
+References: <1472650950-3131-1-git-send-email-manfred@colorfullife.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, 1vier1@web.de,
+        Davidlohr Bueso <dave@stgolabs.net>,
+        Manfred Spraul <manfred@colorfullife.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+To: benh@kernel.crashing.org, paulmck@linux.vnet.ibm.com,
+        Ingo Molnar <mingo@elte.hu>, Boqun Feng <boqun.feng@gmail.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Andrew Morton <akpm@linux-foundation.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1472650950-3131-1-git-send-email-manfred@colorfullife.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-If quotes are escaped, nft -f is unable to parse and load the translated
-ruleset.
+As explained in commit 51d7d5205d33
+("powerpc: Add smp_mb() to arch_spin_is_locked()", for some architectures
+the ACQUIRE during spin_lock only applies to loading the lock, not to
+storing the lock state.
 
-Signed-off-by: Pablo M. Bermudo Garay <pablombg@gmail.com>
+nf_conntrack_lock() does not handle this correctly:
+    /* 1) Acquire the lock */
+    spin_lock(lock);
+    while (unlikely(nf_conntrack_locks_all)) {
+        spin_unlock(lock);
+
+spinlock_store_acquire() is missing between spin_lock and reading
+nf_conntrack_locks_all. In addition, reading nf_conntrack_locks_all
+needs ACQUIRE memory ordering.
+
+2nd, minor issue: If there would be many nf_conntrack_all_lock() callers,
+then nf_conntrack_lock() would loop forever.
+
+Therefore: Change nf_conntrack_lock and nf_conntract_lock_all() to the
+approach used by ipc/sem.c:
+
+- add spinlock_store_acquire()
+- add smp_load_acquire()
+- for nf_conntrack_lock, use spin_lock(&global_lock) instead of
+  spin_unlock_wait(&global_lock) and loop backward.
+- use smp_store_mb() instead of a raw smp_mb()
+
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+
 ---
 
-Changes in v3:
-  - Add a new field to the iptables_command_state struct instead of
-    propagate 'bool restore' argument.
+Question: Should I split this patch?
+First a patch that uses smp_mb(), with Cc: stable.
+The replace the smp_mb() with spinlock_store_acquire, not for stable
 
- iptables/xshared.h           | 1 +
- iptables/xtables-translate.c | 6 ++++--
- 2 files changed, 5 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_core.c | 36 ++++++++++++++++++++++--------------
+ 1 file changed, 22 insertions(+), 14 deletions(-)
 
-diff --git a/iptables/xshared.h b/iptables/xshared.h
-index 6eb8eb8..18b1cf3 100644
---- a/iptables/xshared.h
-+++ b/iptables/xshared.h
-@@ -63,6 +63,7 @@ struct iptables_command_state {
- 	int proto_used;
- 	const char *jumpto;
- 	char **argv;
-+	bool restore;
- };
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 7d90a5d..f840b0b 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -79,20 +79,29 @@ static __read_mostly bool nf_conntrack_locks_all;
  
- typedef int (*mainfunc_t)(int, char **);
-diff --git a/iptables/xtables-translate.c b/iptables/xtables-translate.c
-index 3c577ed..689533f 100644
---- a/iptables/xtables-translate.c
-+++ b/iptables/xtables-translate.c
-@@ -70,7 +70,7 @@ int xlate_action(const struct iptables_command_state *cs, bool goto_set,
- 				.ip		= (const void *)&cs->fw,
- 				.target		= cs->target->t,
- 				.numeric	= numeric,
--				.escape_quotes	= true,
-+				.escape_quotes	= !cs->restore,
- 			};
- 			ret = cs->target->xlate(xl, &params);
- 		}
-@@ -97,7 +97,7 @@ int xlate_matches(const struct iptables_command_state *cs, struct xt_xlate *xl)
- 			.ip		= (const void *)&cs->fw,
- 			.match		= matchp->match->m,
- 			.numeric	= numeric,
--			.escape_quotes	= true,
-+			.escape_quotes	= !cs->restore,
- 		};
+ void nf_conntrack_lock(spinlock_t *lock) __acquires(lock)
+ {
++	/* 1) Acquire the lock */
+ 	spin_lock(lock);
+-	while (unlikely(nf_conntrack_locks_all)) {
+-		spin_unlock(lock);
  
- 		if (!matchp->match->xlate)
-@@ -226,6 +226,8 @@ static int do_command_xlate(struct nft_handle *h, int argc, char *argv[],
- 
- 	do_parse(h, argc, argv, &p, &cs, &args);
- 
-+	cs.restore = restore;
+-		/*
+-		 * Order the 'nf_conntrack_locks_all' load vs. the
+-		 * spin_unlock_wait() loads below, to ensure
+-		 * that 'nf_conntrack_locks_all_lock' is indeed held:
+-		 */
+-		smp_rmb(); /* spin_lock(&nf_conntrack_locks_all_lock) */
+-		spin_unlock_wait(&nf_conntrack_locks_all_lock);
+-		spin_lock(lock);
+-	}
++	/* 2) Order storing the lock and reading nf_conntrack_locks_all */
++	spinlock_store_acquire();
 +
- 	if (!restore)
- 		printf("nft ");
++	/* 3) read nf_conntrack_locks_all, with ACQUIRE semantics */
++	if (likely(smp_load_acquire(&nf_conntrack_locks_all) == false))
++		return;
++
++	/* fast path failed, unlock */
++	spin_unlock(lock);
++
++	/* Slow path 1) get global lock */
++	spin_lock(&nf_conntrack_locks_all_lock);
++
++	/* Slow path 2) get the lock we want */
++	spin_lock(lock);
++
++	/* Slow path 3) release the global lock */
++	spin_unlock(&nf_conntrack_locks_all_lock);
+ }
++
+ EXPORT_SYMBOL_GPL(nf_conntrack_lock);
  
+ static void nf_conntrack_double_unlock(unsigned int h1, unsigned int h2)
+@@ -132,15 +141,14 @@ static void nf_conntrack_all_lock(void)
+ 	int i;
+ 
+ 	spin_lock(&nf_conntrack_locks_all_lock);
+-	nf_conntrack_locks_all = true;
+ 
+ 	/*
+-	 * Order the above store of 'nf_conntrack_locks_all' against
++	 * Order the store of 'nf_conntrack_locks_all' against
+ 	 * the spin_unlock_wait() loads below, such that if
+ 	 * nf_conntrack_lock() observes 'nf_conntrack_locks_all'
+ 	 * we must observe nf_conntrack_locks[] held:
+ 	 */
+-	smp_mb(); /* spin_lock(&nf_conntrack_locks_all_lock) */
++	smp_store_mb(nf_conntrack_locks_all, true);
+ 
+ 	for (i = 0; i < CONNTRACK_LOCKS; i++) {
+ 		spin_unlock_wait(&nf_conntrack_locks[i]);
 -- 
-2.9.3
-
+2.7.4
