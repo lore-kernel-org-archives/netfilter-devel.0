@@ -1,124 +1,79 @@
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: [PATCH 5/5] net/netfilter/nf_conntrack_core: update memory barriers.
-Date: Wed, 31 Aug 2016 15:42:30 +0200
-Message-ID: <1472650950-3131-6-git-send-email-manfred@colorfullife.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH 5/5] net/netfilter/nf_conntrack_core: update memory
+ barriers.
+Date: Wed, 31 Aug 2016 07:15:24 -0700
+Message-ID: <1472652924.14381.323.camel@edumazet-glaptop3.roam.corp.google.com>
 References: <1472650950-3131-1-git-send-email-manfred@colorfullife.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, 1vier1@web.de,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        Manfred Spraul <manfred@colorfullife.com>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-To: benh@kernel.crashing.org, paulmck@linux.vnet.ibm.com,
+         <1472650950-3131-6-git-send-email-manfred@colorfullife.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: benh@kernel.crashing.org, paulmck@linux.vnet.ibm.com,
         Ingo Molnar <mingo@elte.hu>, Boqun Feng <boqun.feng@gmail.com>,
         Peter Zijlstra <peterz@infradead.org>,
-        Andrew Morton <akpm@linux-foundation.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1472650950-3131-1-git-send-email-manfred@colorfullife.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+        Andrew Morton <akpm@linux-foundation.org>,
+        LKML <linux-kernel@vger.kernel.org>, 1vier1@web.de,
+        Davidlohr Bueso <dave@stgolabs.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+To: Manfred Spraul <manfred@colorfullife.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33136 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933214AbcHaOPa (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 31 Aug 2016 10:15:30 -0400
+In-Reply-To: <1472650950-3131-6-git-send-email-manfred@colorfullife.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-As explained in commit 51d7d5205d33
-("powerpc: Add smp_mb() to arch_spin_is_locked()", for some architectures
-the ACQUIRE during spin_lock only applies to loading the lock, not to
-storing the lock state.
+On Wed, 2016-08-31 at 15:42 +0200, Manfred Spraul wrote:
+> As explained in commit 51d7d5205d33
+> ("powerpc: Add smp_mb() to arch_spin_is_locked()", for some architectures
+> the ACQUIRE during spin_lock only applies to loading the lock, not to
+> storing the lock state.
+> 
+> nf_conntrack_lock() does not handle this correctly:
+>     /* 1) Acquire the lock */
+>     spin_lock(lock);
+>     while (unlikely(nf_conntrack_locks_all)) {
+>         spin_unlock(lock);
+> 
+> spinlock_store_acquire() is missing between spin_lock and reading
+> nf_conntrack_locks_all. In addition, reading nf_conntrack_locks_all
+> needs ACQUIRE memory ordering.
+> 
+> 2nd, minor issue: If there would be many nf_conntrack_all_lock() callers,
+> then nf_conntrack_lock() would loop forever.
+> 
+> Therefore: Change nf_conntrack_lock and nf_conntract_lock_all() to the
+> approach used by ipc/sem.c:
+> 
+> - add spinlock_store_acquire()
+> - add smp_load_acquire()
+> - for nf_conntrack_lock, use spin_lock(&global_lock) instead of
+>   spin_unlock_wait(&global_lock) and loop backward.
+> - use smp_store_mb() instead of a raw smp_mb()
+> 
+> Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+> Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+> Cc: netfilter-devel@vger.kernel.org
+> 
+> ---
+> 
+> Question: Should I split this patch?
+> First a patch that uses smp_mb(), with Cc: stable.
+> The replace the smp_mb() with spinlock_store_acquire, not for stable
 
-nf_conntrack_lock() does not handle this correctly:
-    /* 1) Acquire the lock */
-    spin_lock(lock);
-    while (unlikely(nf_conntrack_locks_all)) {
-        spin_unlock(lock);
+I guess it all depends on stable backports you believe are needed.
 
-spinlock_store_acquire() is missing between spin_lock and reading
-nf_conntrack_locks_all. In addition, reading nf_conntrack_locks_all
-needs ACQUIRE memory ordering.
+You probably should add the tags :
+Fixes: <12-digit-sha1> "patch title"
+that introduced the bug(s) you fix.
 
-2nd, minor issue: If there would be many nf_conntrack_all_lock() callers,
-then nf_conntrack_lock() would loop forever.
+By doing this archaeological research you will likely have a better
+answer ?
 
-Therefore: Change nf_conntrack_lock and nf_conntract_lock_all() to the
-approach used by ipc/sem.c:
+Thanks !
 
-- add spinlock_store_acquire()
-- add smp_load_acquire()
-- for nf_conntrack_lock, use spin_lock(&global_lock) instead of
-  spin_unlock_wait(&global_lock) and loop backward.
-- use smp_store_mb() instead of a raw smp_mb()
 
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org
-
----
-
-Question: Should I split this patch?
-First a patch that uses smp_mb(), with Cc: stable.
-The replace the smp_mb() with spinlock_store_acquire, not for stable
-
- net/netfilter/nf_conntrack_core.c | 36 ++++++++++++++++++++++--------------
- 1 file changed, 22 insertions(+), 14 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 7d90a5d..f840b0b 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -79,20 +79,29 @@ static __read_mostly bool nf_conntrack_locks_all;
- 
- void nf_conntrack_lock(spinlock_t *lock) __acquires(lock)
- {
-+	/* 1) Acquire the lock */
- 	spin_lock(lock);
--	while (unlikely(nf_conntrack_locks_all)) {
--		spin_unlock(lock);
- 
--		/*
--		 * Order the 'nf_conntrack_locks_all' load vs. the
--		 * spin_unlock_wait() loads below, to ensure
--		 * that 'nf_conntrack_locks_all_lock' is indeed held:
--		 */
--		smp_rmb(); /* spin_lock(&nf_conntrack_locks_all_lock) */
--		spin_unlock_wait(&nf_conntrack_locks_all_lock);
--		spin_lock(lock);
--	}
-+	/* 2) Order storing the lock and reading nf_conntrack_locks_all */
-+	spinlock_store_acquire();
-+
-+	/* 3) read nf_conntrack_locks_all, with ACQUIRE semantics */
-+	if (likely(smp_load_acquire(&nf_conntrack_locks_all) == false))
-+		return;
-+
-+	/* fast path failed, unlock */
-+	spin_unlock(lock);
-+
-+	/* Slow path 1) get global lock */
-+	spin_lock(&nf_conntrack_locks_all_lock);
-+
-+	/* Slow path 2) get the lock we want */
-+	spin_lock(lock);
-+
-+	/* Slow path 3) release the global lock */
-+	spin_unlock(&nf_conntrack_locks_all_lock);
- }
-+
- EXPORT_SYMBOL_GPL(nf_conntrack_lock);
- 
- static void nf_conntrack_double_unlock(unsigned int h1, unsigned int h2)
-@@ -132,15 +141,14 @@ static void nf_conntrack_all_lock(void)
- 	int i;
- 
- 	spin_lock(&nf_conntrack_locks_all_lock);
--	nf_conntrack_locks_all = true;
- 
- 	/*
--	 * Order the above store of 'nf_conntrack_locks_all' against
-+	 * Order the store of 'nf_conntrack_locks_all' against
- 	 * the spin_unlock_wait() loads below, such that if
- 	 * nf_conntrack_lock() observes 'nf_conntrack_locks_all'
- 	 * we must observe nf_conntrack_locks[] held:
- 	 */
--	smp_mb(); /* spin_lock(&nf_conntrack_locks_all_lock) */
-+	smp_store_mb(nf_conntrack_locks_all, true);
- 
- 	for (i = 0; i < CONNTRACK_LOCKS; i++) {
- 		spin_unlock_wait(&nf_conntrack_locks[i]);
--- 
-2.7.4
