@@ -1,34 +1,26 @@
-From: Liping Zhang <zlpnobody@gmail.com>
-Subject: Re: [PATCH iptables 2/3] extensions: libip[6]t_SNAT/DNAT: use the new
- nft syntax when do xlate
-Date: Wed, 31 Aug 2016 08:32:50 +0800
-Message-ID: <CAML_gOdXC0J-sFxVeFnL0pcQuGUUu13PY96dqjv6vaAqssvZsw@mail.gmail.com>
-References: <1472374248-21912-1-git-send-email-zlpnobody@163.com>
- <1472374248-21912-2-git-send-email-zlpnobody@163.com> <20160830095925.GB20699@salvia>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/7] Netfilter fixes for net
+Date: Tue, 30 Aug 2016 22:02:30 -0700 (PDT)
+Message-ID: <20160830.220230.275446025196188113.davem@davemloft.net>
+References: <1472556383-6787-1-git-send-email-pablo@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Cc: Liping Zhang <zlpnobody@163.com>, netfilter-devel@vger.kernel.org,
-        Liping Zhang <liping.zhang@spreadtrum.com>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ua0-f193.google.com ([209.85.217.193]:35737 "EHLO
-        mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751302AbcHaAdK (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Tue, 30 Aug 2016 20:33:10 -0400
-Received: by mail-ua0-f193.google.com with SMTP id 2so2593571uax.2
-        for <netfilter-devel@vger.kernel.org>; Tue, 30 Aug 2016 17:32:51 -0700 (PDT)
-In-Reply-To: <20160830095925.GB20699@salvia>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1472556383-6787-1-git-send-email-pablo@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-2016-08-30 17:59 GMT+08:00 Pablo Neira Ayuso <pablo@netfilter.org>:
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Tue, 30 Aug 2016 13:26:16 +0200
 
-> BTW, if you have some spare cycles, it would be great to use the
-> square brackets in the translation output too I think.
->
-> # ip6tables-translate -t nat -A PREROUTING -p tcp -j DNAT --to-destination [abcd::1]:30
-> nft add rule ip6 nat PREROUTING meta l4proto tcp counter dnat abcd::1 :30
+> The following patchset contains Netfilter fixes for your net tree,
+> they are:
+ ...
+> You can pull these changes from:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/pablo/nf.git
 
-OK. I will send another patch later.
-Thanks
+Pulled, thanks a lot Pablo.
