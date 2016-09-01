@@ -1,53 +1,56 @@
-From: fgao@ikuai8.com
-Subject: [PATCH v2 2/2 nf-next] netfilter: ftp: Remove the useless codes
-Date: Thu,  1 Sep 2016 18:59:02 +0800
-Message-ID: <1472727542-1088-1-git-send-email-fgao@ikuai8.com>
-Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, kadlec@blackhole.kfki.hu,
-        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH nf-next] netfilter: ftp: Remove the useless dlen==0
+ condition check in find_pattern
+Date: Thu, 1 Sep 2016 13:08:06 +0200
+Message-ID: <20160901110806.GA2872@salvia>
+References: <1472696057-15819-1-git-send-email-fgao@ikuai8.com>
+ <CA+6hz4o5ZqQBEND62wK3QswZd-vi0ark9aJWbjrPL9d_Aq2-ZQ@mail.gmail.com>
+ <20160901102001.GA2005@salvia>
+ <CA+6hz4qyjEV7wjTbWZbbP-c6npyq1He-4x5==3KD6OiwdQCdfQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: kadlec@blackhole.kfki.hu,
+        Netfilter Developer Mailing List
+        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org
+To: Feng Gao <gfree.wind@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg327.qq.com ([14.17.43.158]:54541 "EHLO smtpbg327.qq.com"
+Received: from mail.us.es ([193.147.175.20]:35416 "EHLO mail.us.es"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751606AbcIALIM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Sep 2016 07:08:12 -0400
+        id S1751606AbcIALIO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 1 Sep 2016 07:08:14 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id CD26CC0B4C
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Sep 2016 13:08:12 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id BB7AA1153FC
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Sep 2016 13:08:12 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 9F8A41150DD
+        for <netfilter-devel@vger.kernel.org>; Thu,  1 Sep 2016 13:08:07 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <CA+6hz4qyjEV7wjTbWZbbP-c6npyq1He-4x5==3KD6OiwdQCdfQ@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+On Thu, Sep 01, 2016 at 07:01:51PM +0800, Feng Gao wrote:
+> On Thu, Sep 1, 2016 at 6:20 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> > On Thu, Sep 01, 2016 at 10:26:08AM +0800, Feng Gao wrote:
+> >> On Thu, Sep 1, 2016 at 10:14 AM,  <fgao@ikuai8.com> wrote:
+[...]
+> >> Sorry, I forget one point. I also remove some codes which are
+> >> commented out by #if0.
+> >
+> > Please, do this in a separated patch. Thanks.
+> 
+> Done.
+> I thought the "#if 0" change is very tiny, and it did not deserve one commit.
+> 
+> Now I get it. It needs one separate commit, even though how tiny it is.
 
-There are some debug codes which are commented out in find_pattern by #if 0.
-Now clean them.
+Better split patches into logical changes.
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- v2: Splite the original patch to two commits
- v1: Initial patch
+In general, if you end up describing two changes that don't relate
+each other in the patch description, then this usually means you need
+two patches.
 
- net/netfilter/nf_conntrack_ftp.c | 10 ----------
- 1 file changed, 10 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index d49a2d4..77f05ac 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -310,16 +310,6 @@ static int find_pattern(const char *data, size_t dlen,
- 	}
- 
- 	if (strncasecmp(data, pattern, plen) != 0) {
--#if 0
--		size_t i;
--
--		pr_debug("ftp: string mismatch\n");
--		for (i = 0; i < plen; i++) {
--			pr_debug("ftp:char %u `%c'(%u) vs `%c'(%u)\n",
--				 i, data[i], data[i],
--				 pattern[i], pattern[i]);
--		}
--#endif
- 		return 0;
- 	}
- 
--- 
-1.9.1
-
-
+Thanks for addressing my feedback!
