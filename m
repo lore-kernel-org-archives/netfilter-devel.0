@@ -1,86 +1,43 @@
-From: Feng Gao <gfree.wind@gmail.com>
-Subject: Re: [PATCH nf-next] netfilter: ftp: Remove the useless dlen==0
- condition check in find_pattern
-Date: Thu, 1 Sep 2016 10:26:08 +0800
-Message-ID: <CA+6hz4o5ZqQBEND62wK3QswZd-vi0ark9aJWbjrPL9d_Aq2-ZQ@mail.gmail.com>
-References: <1472696057-15819-1-git-send-email-fgao@ikuai8.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: Pablo Neira Ayuso <pablo@netfilter.org>, kadlec@blackhole.kfki.hu,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org
+From: Kevin Cernekee <cernekee@chromium.org>
+Subject: [PATCH 2/3] conntrackd: cthelper: ftp: Fix debug print
+Date: Wed, 31 Aug 2016 21:27:54 -0700
+Message-ID: <1472704075-38007-2-git-send-email-cernekee@chromium.org>
+References: <1472704075-38007-1-git-send-email-cernekee@chromium.org>
+Cc: ashley.hughes@blueyonder.co.uk, netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ua0-f195.google.com ([209.85.217.195]:33591 "EHLO
-        mail-ua0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754393AbcIAC0K (ORCPT
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:34550 "EHLO
+        mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750858AbcIAE3X (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Aug 2016 22:26:10 -0400
-Received: by mail-ua0-f195.google.com with SMTP id a1so801088uaa.0
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Aug 2016 19:26:09 -0700 (PDT)
-In-Reply-To: <1472696057-15819-1-git-send-email-fgao@ikuai8.com>
+        Thu, 1 Sep 2016 00:29:23 -0400
+Received: by mail-pa0-f43.google.com with SMTP id fi15so25431540pac.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 31 Aug 2016 21:29:22 -0700 (PDT)
+In-Reply-To: <1472704075-38007-1-git-send-email-cernekee@chromium.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 1, 2016 at 10:14 AM,  <fgao@ikuai8.com> wrote:
-> From: Gao Feng <fgao@ikuai8.com>
->
-> The caller function "help" has already make sure the datalen could not be zero
-> before invoke find_pattern as a parameter by the following codes
->
->         if (dataoff >= skb->len) {
->                 pr_debug("ftp: dataoff(%u) >= skblen(%u)\n", dataoff,
->                          skb->len);
->                 return NF_ACCEPT;
->         }
->         datalen = skb->len - dataoff;
->
-> And the latter codes "ends_in_nl = (fb_ptr[datalen - 1] == '\n');" use datalen
-> directly without checking if it is zero.
->
-> So it is unneccessary to check it in find_pattern too.
->
-> Signed-off-by: Gao Feng <fgao@ikuai8.com>
-> ---
->  net/netfilter/nf_conntrack_ftp.c | 12 ------------
->  1 file changed, 12 deletions(-)
->
-> diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-> index b6934b5..77f05ac 100644
-> --- a/net/netfilter/nf_conntrack_ftp.c
-> +++ b/net/netfilter/nf_conntrack_ftp.c
-> @@ -301,8 +301,6 @@ static int find_pattern(const char *data, size_t dlen,
->         size_t i = plen;
->
->         pr_debug("find_pattern `%s': dlen = %Zu\n", pattern, dlen);
-> -       if (dlen == 0)
-> -               return 0;
->
->         if (dlen <= plen) {
->                 /* Short packet: try for partial? */
-> @@ -312,16 +310,6 @@ static int find_pattern(const char *data, size_t dlen,
->         }
->
->         if (strncasecmp(data, pattern, plen) != 0) {
-> -#if 0
-> -               size_t i;
-> -
-> -               pr_debug("ftp: string mismatch\n");
-> -               for (i = 0; i < plen; i++) {
-> -                       pr_debug("ftp:char %u `%c'(%u) vs `%c'(%u)\n",
-> -                                i, data[i], data[i],
-> -                                pattern[i], pattern[i]);
-> -               }
-> -#endif
->                 return 0;
->         }
->
-> --
-> 1.9.1
->
->
+matchoff is relative to dataoff, i.e. matchoff=0 (as utilized by
+nfq_tcp_mangle_ipv4()) points to the first byte of the TCP payload.
 
-Sorry, I forget one point. I also remove some codes which are
-commented out by #if0.
+Signed-off-by: Kevin Cernekee <cernekee@chromium.org>
+---
+ src/helpers/ftp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards
-Feng
+diff --git a/src/helpers/ftp.c b/src/helpers/ftp.c
+index 3da6e56..27ab5eb 100644
+--- a/src/helpers/ftp.c
++++ b/src/helpers/ftp.c
+@@ -511,7 +511,7 @@ ftp_helper_cb(struct pkt_buff *pkt, uint32_t protoff,
+ 		goto out_update_nl;
+ 
+ 	pr_debug("conntrack_ftp: match `%.*s' (%u bytes at %u)\n",
+-		 matchlen, pktb_network_header(pkt) + matchoff,
++		 matchlen, pktb_network_header(pkt) + dataoff + matchoff,
+ 		 matchlen, ntohl(th->seq) + matchoff);
+ 
+ 	/* We refer to the reverse direction ("!dir") tuples here,
+-- 
+1.9.1
+
