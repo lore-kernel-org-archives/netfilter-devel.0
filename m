@@ -1,131 +1,71 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nft] evaluate: display expression, statement and command name on debug
-Date: Wed, 31 Aug 2016 18:27:13 +0200
-Message-ID: <1472660833-20447-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
+From: fgao@ikuai8.com
+Subject: [PATCH nf-next] netfilter: ftp: Remove the useless dlen==0 condition check in find_pattern
+Date: Thu,  1 Sep 2016 10:14:17 +0800
+Message-ID: <1472696057-15819-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, kadlec@blackhole.kfki.hu,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50580 "EHLO mail.us.es"
+Received: from SMTPBG351.QQ.COM ([183.57.50.165]:48998 "EHLO smtpbg351.qq.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965016AbcHaQ1Y (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Wed, 31 Aug 2016 12:27:24 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id 5611DC0B43
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Aug 2016 18:27:21 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 44F25114D65
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Aug 2016 18:27:21 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 047A3114D65
-        for <netfilter-devel@vger.kernel.org>; Wed, 31 Aug 2016 18:27:18 +0200 (CEST)
+        id S1753708AbcIACPO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Wed, 31 Aug 2016 22:15:14 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Extend debugging knob for evaluation to display the command, the
-expression and statement names.
+From: Gao Feng <fgao@ikuai8.com>
 
- # nft --debug=eval add rule x y ip saddr 1.1.1.1 counter
- <cmdline>:1:1-37: Evaluate add
- add rule x y ip saddr 1.1.1.1 counter
- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The caller function "help" has already make sure the datalen could not be zero
+before invoke find_pattern as a parameter by the following codes
 
- <cmdline>:1:14-29: Evaluate expression
- add rule x y ip saddr 1.1.1.1 counter
-              ^^^^^^^^^^^^^^^^
- ip saddr $1.1.1.1
+	if (dataoff >= skb->len) {
+		pr_debug("ftp: dataoff(%u) >= skblen(%u)\n", dataoff,
+			 skb->len);
+		return NF_ACCEPT;
+	}
+	datalen = skb->len - dataoff;
 
- <cmdline>:1:14-29: Evaluate relational
- add rule x y ip saddr 1.1.1.1 counter
-              ^^^^^^^^^^^^^^^^
- ip saddr $1.1.1.1
+And the latter codes "ends_in_nl = (fb_ptr[datalen - 1] == '\n');" use datalen
+directly without checking if it is zero.
 
- <cmdline>:1:14-21: Evaluate payload
- add rule x y ip saddr 1.1.1.1 counter
-              ^^^^^^^^
- ip saddr
+So it is unneccessary to check it in find_pattern too.
 
- <cmdline>:1:23-29: Evaluate symbol
- add rule x y ip saddr 1.1.1.1 counter
-                       ^^^^^^^
-
- <cmdline>:1:23-29: Evaluate value
- add rule x y ip saddr 1.1.1.1 counter
-                       ^^^^^^^
- 1.1.1.1
-
- <cmdline>:1:31-37: Evaluate counter
- add rule x y ip saddr 1.1.1.1 counter
-                               ^^^^^^^
- counter packets 0 bytes 0
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
 ---
- src/evaluate.c | 34 +++++++++++++++++++++++++++++++---
- 1 file changed, 31 insertions(+), 3 deletions(-)
+ net/netfilter/nf_conntrack_ftp.c | 12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff --git a/src/evaluate.c b/src/evaluate.c
-index 7eb28f2..89e40ca 100644
---- a/src/evaluate.c
-+++ b/src/evaluate.c
-@@ -1585,7 +1585,8 @@ static int expr_evaluate(struct eval_ctx *ctx, struct expr **expr)
- #ifdef DEBUG
- 	if (debug_level & DEBUG_EVALUATION) {
- 		struct error_record *erec;
--		erec = erec_create(EREC_INFORMATIONAL, &(*expr)->location, "Evaluate");
-+		erec = erec_create(EREC_INFORMATIONAL, &(*expr)->location,
-+				   "Evaluate %s", (*expr)->ops->name);
- 		erec_print(stdout, erec); expr_print(*expr); printf("\n\n");
- 	}
- #endif
-@@ -2430,7 +2431,8 @@ int stmt_evaluate(struct eval_ctx *ctx, struct stmt *stmt)
- #ifdef DEBUG
- 	if (debug_level & DEBUG_EVALUATION) {
- 		struct error_record *erec;
--		erec = erec_create(EREC_INFORMATIONAL, &stmt->location, "Evaluate");
-+		erec = erec_create(EREC_INFORMATIONAL, &stmt->location,
-+				   "Evaluate %s", stmt->ops->name);
- 		erec_print(stdout, erec); stmt_print(stmt); printf("\n\n");
- 	}
- #endif
-@@ -2932,12 +2934,38 @@ static int cmd_evaluate_export(struct eval_ctx *ctx, struct cmd *cmd)
- 	return cache_update(cmd->op, ctx->msgs);
- }
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index b6934b5..77f05ac 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -301,8 +301,6 @@ static int find_pattern(const char *data, size_t dlen,
+ 	size_t i = plen;
  
-+#ifdef DEBUG
-+static const char *cmd_op_name[] = {
-+	[CMD_INVALID]	= "invalid",
-+	[CMD_ADD]	= "add",
-+	[CMD_REPLACE]	= "replace",
-+	[CMD_CREATE]	= "create",
-+	[CMD_INSERT]	= "insert",
-+	[CMD_DELETE]	= "delete",
-+	[CMD_LIST]	= "list",
-+	[CMD_FLUSH]	= "flush",
-+	[CMD_RENAME]	= "rename",
-+	[CMD_EXPORT]	= "export",
-+	[CMD_MONITOR]	= "monitor",
-+	[CMD_DESCRIBE]	= "describe",
-+};
-+
-+static const char *cmd_op_to_name(enum cmd_ops op)
-+{
-+	if (op > CMD_DESCRIBE)
-+		return "unknown";
-+
-+	return cmd_op_name[op];
-+}
-+#endif
-+
- int cmd_evaluate(struct eval_ctx *ctx, struct cmd *cmd)
- {
- #ifdef DEBUG
- 	if (debug_level & DEBUG_EVALUATION) {
- 		struct error_record *erec;
--		erec = erec_create(EREC_INFORMATIONAL, &cmd->location, "Evaluate");
-+		erec = erec_create(EREC_INFORMATIONAL, &cmd->location,
-+				   "Evaluate %s", cmd_op_to_name(cmd->op));
- 		erec_print(stdout, erec); printf("\n\n");
+ 	pr_debug("find_pattern `%s': dlen = %Zu\n", pattern, dlen);
+-	if (dlen == 0)
+-		return 0;
+ 
+ 	if (dlen <= plen) {
+ 		/* Short packet: try for partial? */
+@@ -312,16 +310,6 @@ static int find_pattern(const char *data, size_t dlen,
  	}
- #endif
+ 
+ 	if (strncasecmp(data, pattern, plen) != 0) {
+-#if 0
+-		size_t i;
+-
+-		pr_debug("ftp: string mismatch\n");
+-		for (i = 0; i < plen; i++) {
+-			pr_debug("ftp:char %u `%c'(%u) vs `%c'(%u)\n",
+-				 i, data[i], data[i],
+-				 pattern[i], pattern[i]);
+-		}
+-#endif
+ 		return 0;
+ 	}
+ 
 -- 
-2.1.4
+1.9.1
+
 
