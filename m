@@ -1,52 +1,74 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH 8/7] net/netfilter/nf_conntrack_core: Remove another
- memory barrier
-Date: Thu, 1 Sep 2016 18:41:26 +0200
-Message-ID: <20160901164126.GZ10153@twins.programming.kicks-ass.net>
-References: <1472743673-15585-1-git-send-email-manfred@colorfullife.com>
- <20160901153039.GN6721@arm.com>
+From: Kevin Cernekee <cernekee@chromium.org>
+Subject: Re: Snooping expected connections in a user CT helper
+Date: Thu, 1 Sep 2016 16:47:44 -0700
+Message-ID: <CAJzqFtaRHOLUG=Fma+A_0gOe3E3AUzheK4x7_t-2e+eebrpZtg@mail.gmail.com>
+References: <CAJzqFtacjKi+zQT3nS_0UJAr=LD8RWumM5+jeo8bbi-OVZR0Jg@mail.gmail.com>
+ <20160818011214.GA1463@salvia> <CAJzqFtaj3V2viTtNjhoG5zPsz0XkPXi9XULRwz1PGOe3imq_XA@mail.gmail.com>
+ <20160823153610.GA10746@salvia>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Manfred Spraul <manfred@colorfullife.com>,
-        benh@kernel.crashing.org, paulmck@linux.vnet.ibm.com,
-        Ingo Molnar <mingo@elte.hu>, Boqun Feng <boqun.feng@gmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        LKML <linux-kernel@vger.kernel.org>, 1vier1@web.de,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160901153039.GN6721@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Cc: netfilter-devel@vger.kernel.org, ashley.hughes@blueyonder.co.uk,
+        Ian Pilcher <arequipeno@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-it0-f48.google.com ([209.85.214.48]:36062 "EHLO
+        mail-it0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751970AbcIAXsH (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Thu, 1 Sep 2016 19:48:07 -0400
+Received: by mail-it0-f48.google.com with SMTP id i184so9495328itf.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 01 Sep 2016 16:48:06 -0700 (PDT)
+Received: from mail-it0-f42.google.com (mail-it0-f42.google.com. [209.85.214.42])
+        by smtp.gmail.com with ESMTPSA id f65sm611608ita.10.2016.09.01.16.48.05
+        for <netfilter-devel@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Thu, 01 Sep 2016 16:48:05 -0700 (PDT)
+Received: by mail-it0-f42.google.com with SMTP id i184so9494698itf.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 01 Sep 2016 16:48:05 -0700 (PDT)
+In-Reply-To: <20160823153610.GA10746@salvia>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 01, 2016 at 04:30:39PM +0100, Will Deacon wrote:
-> On Thu, Sep 01, 2016 at 05:27:52PM +0200, Manfred Spraul wrote:
-> > Since spin_unlock_wait() is defined as equivalent to spin_lock();
-> > spin_unlock(), the memory barrier before spin_unlock_wait() is
-> > also not required.
+On Tue, Aug 23, 2016 at 8:36 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+>> 2) Just noticed that the sane and tftp modules require Linux 3.12+.
+>> My test system is running 3.8.  Does ssdp have a similar restriction,
+>> and if so, what would need to be backported?
+>
+> Userspace expectation creation via nfqueue is available since 3.12.
+> The relevant code is under ctnetlink_nfqueue_attach_expect() in
+> nf_conntrack_netlink.c, if you want to follow that path, you'll have
+> to backport, then pull accumulated fixes by tracking my nf.git tree.
+>
+> I can have a look back and see what needs to be passed to -stable (up
+> to 3.12) if that makes it easier for you.
 
-Note that ACQUIRE+RELEASE isn't a barrier.
+Thanks for the offer.  I have switched to a different test device
+which is running Linux 3.14, and I added a note to the comments in
+ssdp.c regarding the 3.12+ requirement.
 
-Both are semi-permeable and things can cross in the middle, like:
+>> 3) It looks like each expectation matches, at most, one new
+>> connection.  So if my host multicasts an SSDP request and then 5 other
+>> hosts send replies (each coming from a unique IP/port), only one of
+>> them will match the expectation and create a state table entry.  Is
+>> this true, and if so, what is the best way to allow all 5 replies to
+>> be treated as related connections?
+>
+> If you set the permanent expectation flag, the expectation remains
+> there forever, so all 5 replies will go through as related. Permanent
+> expectations don't get removed by when we see a matching, they remain
+> there as long as the master conntrack is there in place.
 
+The patch that I sent out last night is able to handle scenarios in
+which the event occurs shortly after the subscription is established.
+But in my testing I am noticing two other problems:
 
-	x = 1;
-	LOCK
-	UNLOCK
-	r = y;
+1) Approximately two minutes after the subscription is set up, the
+expectation abruptly disappears.  This even happens if I set the
+timeout to 3600; it shows up in `conntrack -L expect` until the time
+column drops to ~3480, then it is gone.  This may be caused by the
+master conntrack expiring.  Is there a way to set up the expectation
+so that it persists for the entire timeout period?
 
-can (validly) get re-ordered like:
-
-	LOCK
-	r = y;
-	x = 1;
-	UNLOCK
-
-So if you want things ordered, as I think you do, I think the smp_mb()
-is still needed.
-
-RELEASE + ACQUIRE otoh, that is a load-store barrier (but not
-transitive).
+2) The timeout is not extended when there is activity on the
+expectation.  It would be good if it was extended any time there is
+new activity, in order to support long-lived subscriptions.
