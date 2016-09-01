@@ -1,56 +1,64 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH nf-next] netfilter: ftp: Remove the useless dlen==0
- condition check in find_pattern
-Date: Thu, 1 Sep 2016 13:08:06 +0200
-Message-ID: <20160901110806.GA2872@salvia>
-References: <1472696057-15819-1-git-send-email-fgao@ikuai8.com>
- <CA+6hz4o5ZqQBEND62wK3QswZd-vi0ark9aJWbjrPL9d_Aq2-ZQ@mail.gmail.com>
- <20160901102001.GA2005@salvia>
- <CA+6hz4qyjEV7wjTbWZbbP-c6npyq1He-4x5==3KD6OiwdQCdfQ@mail.gmail.com>
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: Re: [RFC 1/9] ipv6: implement dataplane support for rthdr type 4
+ (Segment Routing Header)
+Date: Thu, 1 Sep 2016 15:58:04 +0200
+Message-ID: <bf16f236-174e-7d1b-2b93-071552840995@6wind.com>
+References: <1472226767-9904-1-git-send-email-david.lebrun@uclouvain.be>
+ <1472226767-9904-2-git-send-email-david.lebrun@uclouvain.be>
+ <9a7b8a77-5832-1038-00f8-b24f8e7b8d4c@6wind.com>
+ <57C828EC.60501@uclouvain.be>
+Reply-To: nicolas.dichtel@6wind.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kadlec@blackhole.kfki.hu,
-        Netfilter Developer Mailing List
-        <netfilter-devel@vger.kernel.org>, coreteam@netfilter.org
-To: Feng Gao <gfree.wind@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35416 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751606AbcIALIO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Sep 2016 07:08:14 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id CD26CC0B4C
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Sep 2016 13:08:12 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id BB7AA1153FC
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Sep 2016 13:08:12 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9F8A41150DD
-        for <netfilter-devel@vger.kernel.org>; Thu,  1 Sep 2016 13:08:07 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <CA+6hz4qyjEV7wjTbWZbbP-c6npyq1He-4x5==3KD6OiwdQCdfQ@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+To: David Lebrun <david.lebrun@uclouvain.be>, netdev@vger.kernel.org,
+        netfilter-devel <netfilter-devel@vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <57C828EC.60501@uclouvain.be>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Sep 01, 2016 at 07:01:51PM +0800, Feng Gao wrote:
-> On Thu, Sep 1, 2016 at 6:20 PM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> > On Thu, Sep 01, 2016 at 10:26:08AM +0800, Feng Gao wrote:
-> >> On Thu, Sep 1, 2016 at 10:14 AM,  <fgao@ikuai8.com> wrote:
-[...]
-> >> Sorry, I forget one point. I also remove some codes which are
-> >> commented out by #if0.
-> >
-> > Please, do this in a separated patch. Thanks.
+Le 01/09/2016 à 15:11, David Lebrun a écrit :
+> On 08/31/2016 04:51 PM, Nicolas Dichtel wrote:
+[snip]
+>>> +config IPV6_SEG6
+>>> +	bool "IPv6: Segment Routing support"
+>>> +	depends on IPV6
+>>> +	---help---
+>>> +	  Experimental support for IPv6 Segment Routing dataplane as defined
+>>> +	  in IETF draft-ietf-6man-segment-routing-header-01. This option
+>>> +	  enables the processing of SR-enabled packets allowing the kernel
+>>> +	  to act as a segment endpoint (intermediate or egress).
+>>> +
+>>> +	  If unsure, say N.
+>>> +
+>> I don't think that the option is needed. At the end, every distributions will
+>> turn it on.
+>>
 > 
-> Done.
-> I thought the "#if 0" change is very tiny, and it did not deserve one commit.
+> Are you sure ? This is a rather specific feature, used in specific
+> environments. Not that I would mind removing the option if it makes sense.
+Check default config file of a standard distributions (ubuntu, debian, ...), all
+options are enabled (MIP6, SIT_6RD, PIMSM_v2, etc. ;-)).
+Anyway, one option is enough. You add 3 or 4 options in your series.
+
+[snip]
+
+>>> +
+>>> +	ip6_route_input(skb);
+>> The destination address has now changed and the packet is routed again.
+>> skb->nfct is not updated, it is intentional? I'm asking me if it's conceptually
+>> right.
+>>
 > 
-> Now I get it. It needs one separate commit, even though how tiny it is.
+> I fail to see any usecase where conntrack would run on SR-enabled
+> packets. Things such as NAT would just defeat the purpose.
 
-Better split patches into logical changes.
+I've added netfilter folks in CC, it would be good to have feedback from them.
 
-In general, if you end up describing two changes that don't relate
-each other in the patch description, then this usually means you need
-two patches.
+For new people, here is the thread:
+http://www.spinics.net/lists/netdev/msg392031.html
 
-Thanks for addressing my feedback!
+
+Regards,
+Nicolas
