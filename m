@@ -1,63 +1,85 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH nf-next 2/2] netfilter: nft_quota: introduce nft_overquota()
-Date: Fri,  2 Sep 2016 21:00:59 +0200
-Message-ID: <1472842859-21798-2-git-send-email-pablo@netfilter.org>
-References: <1472842859-21798-1-git-send-email-pablo@netfilter.org>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60648 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754155AbcIBTBI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Sep 2016 15:01:08 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AB60611E583
-        for <netfilter-devel@vger.kernel.org>; Fri,  2 Sep 2016 21:01:06 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9BF2C100A57
-        for <netfilter-devel@vger.kernel.org>; Fri,  2 Sep 2016 21:01:06 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id A31E1100A6A
-        for <netfilter-devel@vger.kernel.org>; Fri,  2 Sep 2016 21:01:04 +0200 (CEST)
-In-Reply-To: <1472842859-21798-1-git-send-email-pablo@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH 8/7] net/netfilter/nf_conntrack_core: Remove another
+ memory barrier
+Date: Fri, 2 Sep 2016 21:22:13 +0200
+Message-ID: <20160902192213.GM10153@twins.programming.kicks-ass.net>
+References: <1472743673-15585-1-git-send-email-manfred@colorfullife.com>
+ <20160901153039.GN6721@arm.com>
+ <20160901164126.GZ10153@twins.programming.kicks-ass.net>
+ <1971bcf8-0f42-c0b7-5e59-2ceaa6e024a7@colorfullife.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Will Deacon <will.deacon@arm.com>, benh@kernel.crashing.org,
+        paulmck@linux.vnet.ibm.com, Ingo Molnar <mingo@elte.hu>,
+        Boqun Feng <boqun.feng@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        LKML <linux-kernel@vger.kernel.org>, 1vier1@web.de,
+        Davidlohr Bueso <dave@stgolabs.net>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org
+To: Manfred Spraul <manfred@colorfullife.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1971bcf8-0f42-c0b7-5e59-2ceaa6e024a7@colorfullife.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This is patch renames the existing function to nft_overquota() and make
-it return a boolean that tells us if we have exceeded our byte quota.
-Just a cleanup.
+On Fri, Sep 02, 2016 at 08:35:55AM +0200, Manfred Spraul wrote:
+> On 09/01/2016 06:41 PM, Peter Zijlstra wrote:
+> >On Thu, Sep 01, 2016 at 04:30:39PM +0100, Will Deacon wrote:
+> >>On Thu, Sep 01, 2016 at 05:27:52PM +0200, Manfred Spraul wrote:
+> >>>Since spin_unlock_wait() is defined as equivalent to spin_lock();
+> >>>spin_unlock(), the memory barrier before spin_unlock_wait() is
+> >>>also not required.
+> >Note that ACQUIRE+RELEASE isn't a barrier.
+> >
+> >Both are semi-permeable and things can cross in the middle, like:
+> >
+> >
+> >	x = 1;
+> >	LOCK
+> >	UNLOCK
+> >	r = y;
+> >
+> >can (validly) get re-ordered like:
+> >
+> >	LOCK
+> >	r = y;
+> >	x = 1;
+> >	UNLOCK
+> >
+> >So if you want things ordered, as I think you do, I think the smp_mb()
+> >is still needed.
+> CPU1:
+> x=1; /* without WRITE_ONCE */
+> LOCK(l);
+> UNLOCK(l);
+> <do_semop>
+> smp_store_release(x,0)
+> 
+> 
+> CPU2;
+> LOCK(l)
+> if (smp_load_acquire(x)==1) goto slow_path
+> <do_semop>
+> UNLOCK(l)
+> 
+> Ordering is enforced because both CPUs access the same lock.
+> 
+> x=1 can't be reordered past the UNLOCK(l), I don't see that further
+> guarantees are necessary.
+> 
+> Correct?
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/nft_quota.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Correct, sadly implementations do not comply :/ In fact, even x86 is
+broken here.
 
-diff --git a/net/netfilter/nft_quota.c b/net/netfilter/nft_quota.c
-index 92b6ff1..c00104c 100644
---- a/net/netfilter/nft_quota.c
-+++ b/net/netfilter/nft_quota.c
-@@ -21,10 +21,10 @@ struct nft_quota {
- 	atomic64_t	remain;
- };
- 
--static inline long nft_quota(struct nft_quota *priv,
--			     const struct nft_pktinfo *pkt)
-+static inline bool nft_overquota(struct nft_quota *priv,
-+				 const struct nft_pktinfo *pkt)
- {
--	return atomic64_sub_return(pkt->skb->len, &priv->remain);
-+	return atomic64_sub_return(pkt->skb->len, &priv->remain) < 0;
- }
- 
- static void nft_quota_eval(const struct nft_expr *expr,
-@@ -33,7 +33,7 @@ static void nft_quota_eval(const struct nft_expr *expr,
- {
- 	struct nft_quota *priv = nft_expr_priv(expr);
- 
--	if ((nft_quota(priv, pkt) < 0) ^ priv->invert)
-+	if (nft_overquota(priv, pkt) ^ priv->invert)
- 		regs->verdict.code = NFT_BREAK;
- }
- 
--- 
-2.1.4
+I spoke to Will earlier today and he suggests either making
+spin_unlock_wait() stronger to avoids any and all such surprises or just
+getting rid of the thing.
 
+I'm not sure which way we should go, but please hold off on these two
+patches until I've had a chance to audit all of those implementations
+again.
+
+I'll try and have a look at your other patches before that.
