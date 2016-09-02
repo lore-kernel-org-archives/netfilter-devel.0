@@ -1,59 +1,94 @@
 From: Laura Garcia Liebana <nevola@gmail.com>
-Subject: [PATCH] netfilter: nft_numgen: add counter offset value and rename
+Subject: [PATCH libnftnl] expr: numgen: add counter offset value and rename
  until by modulus
-Date: Fri, 2 Sep 2016 10:39:37 +0200
-Message-ID: <20160902083935.GA10237@sonyv>
+Date: Fri, 2 Sep 2016 10:40:51 +0200
+Message-ID: <20160902084048.GA10287@sonyv>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:36005 "EHLO
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33053 "EHLO
         mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751647AbcIBIjm (ORCPT
+        with ESMTP id S1750873AbcIBIkz (ORCPT
         <rfc822;netfilter-devel@vger.kernel.org>);
-        Fri, 2 Sep 2016 04:39:42 -0400
-Received: by mail-wm0-f65.google.com with SMTP id i138so1894491wmf.3
-        for <netfilter-devel@vger.kernel.org>; Fri, 02 Sep 2016 01:39:41 -0700 (PDT)
+        Fri, 2 Sep 2016 04:40:55 -0400
+Received: by mail-wm0-f65.google.com with SMTP id w207so1907757wmw.0
+        for <netfilter-devel@vger.kernel.org>; Fri, 02 Sep 2016 01:40:55 -0700 (PDT)
 Received: from sonyv (cli-5b7e49a2.wholesale.adamo.es. [91.126.73.162])
-        by smtp.gmail.com with ESMTPSA id i80sm2474241wmf.11.2016.09.02.01.39.39
+        by smtp.gmail.com with ESMTPSA id d64sm2456886wmc.22.2016.09.02.01.40.53
         for <netfilter-devel@vger.kernel.org>
         (version=TLS1_2 cipher=AES128-SHA bits=128/128);
-        Fri, 02 Sep 2016 01:39:39 -0700 (PDT)
+        Fri, 02 Sep 2016 01:40:53 -0700 (PDT)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add support for an initialization counter value. With this option the
-sysadmin is able to start the counter when used with the increment
-type.
+Add support to pass through an offset value to the counter
+initialization. With this feature, the sysadmin is able to send an
+started value for the counter.
 
 Example:
 
 	meta mark set numgen inc mod 2 sum 100
 
-This will generate marks with the serie 100, 101, 100, 101, ...
+This will generate marks with series 100, 101, 100, 101, ...
 
-The _until_ attribute is renamed to _modulus_ as the behaviour is similar to
-other expresions with number limits(ex. nft_hash).
+The _modulus_ attribute will be reused as _until_, as it's similar to
+other expressions with value limits (ex. hash).
 
 Signed-off-by: Laura Garcia Liebana <nevola@gmail.com>
 ---
- include/uapi/linux/netfilter/nf_tables.h |  6 ++++--
- net/netfilter/nft_numgen.c               | 37 ++++++++++++++++++--------------
- 2 files changed, 25 insertions(+), 18 deletions(-)
+ include/buffer.h                    |  2 +-
+ include/libnftnl/expr.h             |  3 +-
+ include/linux/netfilter/nf_tables.h |  6 ++-
+ src/expr/numgen.c                   | 83 ++++++++++++++++++++++++-------------
+ tests/nft-expr_numgen-test.c        | 12 ++++--
+ 5 files changed, 70 insertions(+), 36 deletions(-)
 
-diff --git a/include/uapi/linux/netfilter/nf_tables.h b/include/uapi/linux/netfilter/nf_tables.h
-index e941139..4dbeeed 100644
---- a/include/uapi/linux/netfilter/nf_tables.h
-+++ b/include/uapi/linux/netfilter/nf_tables.h
-@@ -1151,14 +1151,16 @@ enum nft_trace_types {
-  *			    attributes
+diff --git a/include/buffer.h b/include/buffer.h
+index 8cfe377..448cccf 100644
+--- a/include/buffer.h
++++ b/include/buffer.h
+@@ -78,11 +78,11 @@ int nftnl_buf_reg(struct nftnl_buf *b, int type, union nftnl_data_reg *reg,
+ #define SREG_KEY		"sreg_key"
+ #define SREG_DATA		"sreg_data"
+ #define SREG			"sreg"
++#define SUM			"sum"
+ #define TABLE			"table"
+ #define TOTAL			"total"
+ #define TYPE			"type"
+ #define UNIT			"unit"
+-#define UNTIL			"until"
+ #define USE			"use"
+ #define XOR			"xor"
+ #define ADD			"add"
+diff --git a/include/libnftnl/expr.h b/include/libnftnl/expr.h
+index 8815154..3cf0db1 100644
+--- a/include/libnftnl/expr.h
++++ b/include/libnftnl/expr.h
+@@ -52,8 +52,9 @@ enum {
+ 
+ enum {
+ 	NFTNL_EXPR_NG_DREG	= NFTNL_EXPR_BASE,
+-	NFTNL_EXPR_NG_UNTIL,
++	NFTNL_EXPR_NG_MODULUS,
+ 	NFTNL_EXPR_NG_TYPE,
++	NFTNL_EXPR_NG_SUM,
+ };
+ 
+ enum {
+diff --git a/include/linux/netfilter/nf_tables.h b/include/linux/netfilter/nf_tables.h
+index 0b11abf..2718832 100644
+--- a/include/linux/netfilter/nf_tables.h
++++ b/include/linux/netfilter/nf_tables.h
+@@ -670,14 +670,16 @@ enum nft_exthdr_attributes {
+  * enum nft_ng_attributes - nf_tables number generator expression attributes
   *
   * @NFTA_NG_DREG: destination register (NLA_U32)
-- * @NFTA_NG_UNTIL: source value to increment the counter until reset (NLA_U32)
-+ * @NFTA_NG_MODULUS: maximum counter value (NLA_U32)
-  * @NFTA_NG_TYPE: operation type (NLA_U32)
-+ * @NFTA_NG_SUM: Offset to initiate the counter (NLA_U32)
+- * @NFTA_NG_UNTIL: limit value (NLA_U32)
++ * @NFTA_NG_MODULUS: maximum value to be returned (NLA_U32)
+  * @NFTA_NG_TYPE: type of operation (NLA_U32)
++ * @NFTA_NG_SUM: offset to be added to the counter (NLA_U32)
   */
  enum nft_ng_attributes {
  	NFTA_NG_UNSPEC,
@@ -64,131 +99,249 @@ index e941139..4dbeeed 100644
 +	NFTA_NG_SUM,
  	__NFTA_NG_MAX
  };
- #define NFTA_NG_MAX	(__NFTA_NG_MAX - 1)
-diff --git a/net/netfilter/nft_numgen.c b/net/netfilter/nft_numgen.c
-index e1d5a11..bfde6d0 100644
---- a/net/netfilter/nft_numgen.c
-+++ b/net/netfilter/nft_numgen.c
-@@ -21,7 +21,7 @@ static DEFINE_PER_CPU(struct rnd_state, nft_numgen_prandom_state);
+ #define NFTA_NG_MAX		(__NFTA_NG_MAX - 1)
+diff --git a/src/expr/numgen.c b/src/expr/numgen.c
+index 0669eda..c119d5f 100644
+--- a/src/expr/numgen.c
++++ b/src/expr/numgen.c
+@@ -22,8 +22,9 @@
  
- struct nft_ng_inc {
- 	enum nft_registers      dreg:8;
--	u32			until;
-+	u32			modulus;
- 	atomic_t		counter;
+ struct nftnl_expr_ng {
+ 	enum nft_registers	dreg;
+-	unsigned int		until;
++	unsigned int		modulus;
+ 	enum nft_ng_type	type;
++	unsigned int		sum;
  };
  
-@@ -34,7 +34,7 @@ static void nft_ng_inc_eval(const struct nft_expr *expr,
+ static int
+@@ -36,12 +37,15 @@ nftnl_expr_ng_set(struct nftnl_expr *e, uint16_t type,
+ 	case NFTNL_EXPR_NG_DREG:
+ 		ng->dreg = *((uint32_t *)data);
+ 		break;
+-	case NFTNL_EXPR_NG_UNTIL:
+-		ng->until = *((uint32_t *)data);
++	case NFTNL_EXPR_NG_MODULUS:
++		ng->modulus = *((uint32_t *)data);
+ 		break;
+ 	case NFTNL_EXPR_NG_TYPE:
+ 		ng->type = *((uint32_t *)data);
+ 		break;
++	case NFTNL_EXPR_NG_SUM:
++		ng->sum = *((uint32_t *)data);
++		break;
+ 	default:
+ 		return -1;
+ 	}
+@@ -58,12 +62,15 @@ nftnl_expr_ng_get(const struct nftnl_expr *e, uint16_t type,
+ 	case NFTNL_EXPR_NG_DREG:
+ 		*data_len = sizeof(ng->dreg);
+ 		return &ng->dreg;
+-	case NFTNL_EXPR_NG_UNTIL:
+-		*data_len = sizeof(ng->until);
+-		return &ng->until;
++	case NFTNL_EXPR_NG_MODULUS:
++		*data_len = sizeof(ng->modulus);
++		return &ng->modulus;
+ 	case NFTNL_EXPR_NG_TYPE:
+ 		*data_len = sizeof(ng->type);
+ 		return &ng->type;
++	case NFTNL_EXPR_NG_SUM:
++		*data_len = sizeof(ng->sum);
++		return &ng->sum;
+ 	}
+ 	return NULL;
+ }
+@@ -78,8 +85,9 @@ static int nftnl_expr_ng_cb(const struct nlattr *attr, void *data)
  
- 	do {
- 		oval = atomic_read(&priv->counter);
--		nval = (oval + 1 < priv->until) ? oval + 1 : 0;
-+		nval = (oval + 1 < priv->modulus) ? oval + 1 : 0;
- 	} while (atomic_cmpxchg(&priv->counter, oval, nval) != oval);
+ 	switch (type) {
+ 	case NFTA_NG_DREG:
+-	case NFTA_NG_UNTIL:
++	case NFTA_NG_MODULUS:
+ 	case NFTA_NG_TYPE:
++	case NFTA_NG_SUM:
+ 		if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0)
+ 			abi_breakage();
+ 		break;
+@@ -96,10 +104,12 @@ nftnl_expr_ng_build(struct nlmsghdr *nlh, const struct nftnl_expr *e)
  
- 	memcpy(&regs->data[priv->dreg], &priv->counter, sizeof(u32));
-@@ -42,8 +42,9 @@ static void nft_ng_inc_eval(const struct nft_expr *expr,
+ 	if (e->flags & (1 << NFTNL_EXPR_NG_DREG))
+ 		mnl_attr_put_u32(nlh, NFTA_NG_DREG, htonl(ng->dreg));
+-	if (e->flags & (1 << NFTNL_EXPR_NG_UNTIL))
+-		mnl_attr_put_u32(nlh, NFTA_NG_UNTIL, htonl(ng->until));
++	if (e->flags & (1 << NFTNL_EXPR_NG_MODULUS))
++		mnl_attr_put_u32(nlh, NFTA_NG_MODULUS, htonl(ng->modulus));
+ 	if (e->flags & (1 << NFTNL_EXPR_NG_TYPE))
+ 		mnl_attr_put_u32(nlh, NFTA_NG_TYPE, htonl(ng->type));
++	if (e->flags & (1 << NFTNL_EXPR_NG_SUM))
++		mnl_attr_put_u32(nlh, NFTA_NG_SUM, htonl(ng->sum));
+ }
  
- const struct nla_policy nft_ng_policy[NFTA_NG_MAX + 1] = {
- 	[NFTA_NG_DREG]		= { .type = NLA_U32 },
--	[NFTA_NG_UNTIL]		= { .type = NLA_U32 },
-+	[NFTA_NG_MODULUS]	= { .type = NLA_U32 },
- 	[NFTA_NG_TYPE]		= { .type = NLA_U32 },
-+	[NFTA_NG_SUM]		= { .type = NLA_U32 },
- };
+ static int
+@@ -116,14 +126,18 @@ nftnl_expr_ng_parse(struct nftnl_expr *e, struct nlattr *attr)
+ 		ng->dreg = ntohl(mnl_attr_get_u32(tb[NFTA_NG_DREG]));
+ 		e->flags |= (1 << NFTNL_EXPR_NG_DREG);
+ 	}
+-	if (tb[NFTA_NG_UNTIL]) {
+-		ng->until = ntohl(mnl_attr_get_u32(tb[NFTA_NG_UNTIL]));
+-		e->flags |= (1 << NFTNL_EXPR_NG_UNTIL);
++	if (tb[NFTA_NG_MODULUS]) {
++		ng->modulus = ntohl(mnl_attr_get_u32(tb[NFTA_NG_MODULUS]));
++		e->flags |= (1 << NFTNL_EXPR_NG_MODULUS);
+ 	}
+ 	if (tb[NFTA_NG_TYPE]) {
+ 		ng->type = ntohl(mnl_attr_get_u32(tb[NFTA_NG_TYPE]));
+ 		e->flags |= (1 << NFTNL_EXPR_NG_TYPE);
+ 	}
++	if (tb[NFTA_NG_SUM]) {
++		ng->sum = ntohl(mnl_attr_get_u32(tb[NFTA_NG_SUM]));
++		e->flags |= (1 << NFTNL_EXPR_NG_SUM);
++	}
  
- static int nft_ng_inc_init(const struct nft_ctx *ctx,
-@@ -51,27 +52,31 @@ static int nft_ng_inc_init(const struct nft_ctx *ctx,
- 			   const struct nlattr * const tb[])
+ 	return ret;
+ }
+@@ -132,20 +146,24 @@ static int nftnl_expr_ng_json_parse(struct nftnl_expr *e, json_t *root,
+ 				    struct nftnl_parse_err *err)
  {
- 	struct nft_ng_inc *priv = nft_expr_priv(expr);
-+	u32 sum = 0;
+ #ifdef JSON_PARSING
+-	uint32_t dreg, until, type;
++	uint32_t dreg, modulus, type, sum;
  
--	priv->until = ntohl(nla_get_be32(tb[NFTA_NG_UNTIL]));
--	if (priv->until == 0)
-+	if (tb[NFTA_NG_SUM])
-+		sum = ntohl(nla_get_be32(tb[NFTA_NG_SUM]));
+ 	if (nftnl_jansson_parse_reg(root, "dreg", NFTNL_TYPE_U32,
+ 				    &dreg, err) == 0)
+ 		nftnl_expr_set_u32(e, NFTNL_EXPR_NG_DREG, dreg);
+ 
+-	if (nftnl_jansson_parse_val(root, "until", NFTNL_TYPE_U32,
+-				    &until, err) == 0)
+-		nftnl_expr_set_u32(e, NFTNL_EXPR_NG_UNTIL, until);
++	if (nftnl_jansson_parse_val(root, "modulus", NFTNL_TYPE_U32,
++				    &modulus, err) == 0)
++		nftnl_expr_set_u32(e, NFTNL_EXPR_NG_MODULUS, modulus);
+ 
+ 	if (nftnl_jansson_parse_val(root, "type", NFTNL_TYPE_U32,
+ 				    &type, err) == 0)
+ 		nftnl_expr_set_u32(e, NFTNL_EXPR_NG_TYPE, type);
+ 
++	if (nftnl_jansson_parse_val(root, "sum", NFTNL_TYPE_U32,
++				    &sum, err) == 0)
++		nftnl_expr_set_u32(e, NFTNL_EXPR_NG_SUM, sum);
 +
-+	priv->modulus = ntohl(nla_get_be32(tb[NFTA_NG_MODULUS]));
-+	if (priv->modulus == 0 || sum >= priv->modulus)
- 		return -ERANGE;
+ 	return 0;
+ #else
+ 	errno = EOPNOTSUPP;
+@@ -159,22 +177,27 @@ static int nftnl_expr_ng_xml_parse(struct nftnl_expr *e,
+ 				   struct nftnl_parse_err *err)
+ {
+ #ifdef XML_PARSING
+-	uint32_t dreg, until, type;
++	uint32_t dreg, modulus, type, sum;
  
- 	priv->dreg = nft_parse_register(tb[NFTA_NG_DREG]);
- 	if (priv->dreg < 0)
- 		return -ERANGE;
+ 	if (nftnl_mxml_reg_parse(tree, "dreg", &dreg, MXML_DESCEND_FIRST,
+ 				 NFTNL_XML_MAND, err) == 0)
+ 		nftnl_expr_set_u32(e, NFTNL_EXPR_NG_DREG, dreg);
  
--	atomic_set(&priv->counter, 0);
-+	atomic_set(&priv->counter, sum);
+-	if (nftnl_mxml_num_parse(tree, "until", MXML_DESCEND_FIRST, BASE_DEC,
+-				 &until, NFTNL_TYPE_U32, NFTNL_XML_MAND,
+-				 err) == 0)
+-		nftnl_expr_set_u32(e, NFTNL_EXPR_NG_UNTIL, until);
++	if (nftnl_mxml_num_parse(tree, "modulus", MXML_DESCEND_FIRST,
++				 BASE_DEC, &modulus, NFTNL_TYPE_U32,
++				 NFTNL_XML_MAND, err) == 0)
++		nftnl_expr_set_u32(e, NFTNL_EXPR_NG_MODULUS, modulus);
  
- 	return nft_validate_register_store(ctx, priv->dreg, NULL,
- 					   NFT_DATA_VALUE, sizeof(u32));
+ 	if (nftnl_mxml_num_parse(tree, "type", MXML_DESCEND_FIRST, BASE_DEC,
+ 				 &type, NFTNL_TYPE_U32, NFTNL_XML_MAND,
+ 				 err) == 0)
+ 		nftnl_expr_set_u32(e, NFTNL_EXPR_NG_TYPE, type);
+ 
++	if (nftnl_mxml_num_parse(tree, "sum", MXML_DESCEND_FIRST, BASE_DEC,
++				&sum, NFTNL_TYPE_U32, NFTNL_XML_MAND,
++				err) == 0)
++		nftnl_expr_set_u32(e, NFTNL_EXPR_NG_SUM, sum);
++
+ 	return 0;
+ #else
+ 	errno = EOPNOTSUPP;
+@@ -191,13 +214,13 @@ nftnl_expr_ng_snprintf_default(char *buf, size_t size,
+ 
+ 	switch (ng->type) {
+ 	case NFT_NG_INCREMENTAL:
+-		ret = snprintf(buf, len, "reg %u = inc(%u) ", ng->dreg,
+-			       ng->until);
++		ret = snprintf(buf, len, "reg %u = %u + inc(%u)", ng->dreg,
++			       ng->sum, ng->modulus);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 		break;
+ 	case NFT_NG_RANDOM:
+ 		ret = snprintf(buf, len, "reg %u = random(%u) ", ng->dreg,
+-			       ng->until);
++			       ng->modulus);
+ 		SNPRINTF_BUFFER_SIZE(ret, size, len, offset);
+ 		break;
+ 	}
+@@ -214,10 +237,12 @@ static int nftnl_expr_ng_export(char *buf, size_t size,
+ 
+ 	if (e->flags & (1 << NFTNL_EXPR_NG_DREG))
+ 		nftnl_buf_u32(&b, type, ng->dreg, DREG);
+-	if (e->flags & (1 << NFTNL_EXPR_NG_UNTIL))
+-		nftnl_buf_u32(&b, type, ng->until, UNTIL);
++	if (e->flags & (1 << NFTNL_EXPR_NG_MODULUS))
++		nftnl_buf_u32(&b, type, ng->modulus, MODULUS);
+ 	if (e->flags & (1 << NFTNL_EXPR_NG_TYPE))
+ 		nftnl_buf_u32(&b, type, ng->type, TYPE);
++	if (e->flags & (1 << NFTNL_EXPR_NG_SUM))
++		nftnl_buf_u32(&b, type, ng->type, SUM);
+ 
+ 	return nftnl_buf_done(&b);
+ }
+@@ -247,10 +272,12 @@ static bool nftnl_expr_ng_cmp(const struct nftnl_expr *e1,
+ 
+ 	if (e1->flags & (1 << NFTNL_EXPR_NG_DREG))
+ 		eq &= (n1->dreg == n2->dreg);
+-	if (e1->flags & (1 << NFTNL_EXPR_NG_UNTIL))
+-		eq &= (n1->until == n2->until);
++	if (e1->flags & (1 << NFTNL_EXPR_NG_MODULUS))
++		eq &= (n1->modulus == n2->modulus);
+ 	if (e1->flags & (1 << NFTNL_EXPR_NG_TYPE))
+ 		eq &= (n1->type == n2->type);
++	if (e1->flags & (1 << NFTNL_EXPR_NG_SUM))
++		eq &= (n1->sum == n2->sum);
+ 
+ 	return eq;
+ }
+diff --git a/tests/nft-expr_numgen-test.c b/tests/nft-expr_numgen-test.c
+index b78ee76..b60d30c 100644
+--- a/tests/nft-expr_numgen-test.c
++++ b/tests/nft-expr_numgen-test.c
+@@ -33,12 +33,15 @@ static void cmp_nftnl_expr(struct nftnl_expr *rule_a,
+ 	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_NG_DREG) !=
+ 	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_NG_DREG))
+ 		print_err("Expr NFTNL_EXPR_NG_DREG mismatches");
+-	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_NG_UNTIL) !=
+-	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_NG_UNTIL))
+-		print_err("Expr NFTNL_EXPR_NG_UNTIL mismatches");
++	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_NG_MODULUS) !=
++	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_NG_MODULUS))
++		print_err("Expr NFTNL_EXPR_NG_MODULUS mismatches");
+ 	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_NG_TYPE) !=
+ 	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_NG_TYPE))
+ 		print_err("Expr NFTNL_EXPR_NG_TYPE mismatches");
++	if (nftnl_expr_get_u32(rule_a, NFTNL_EXPR_NG_SUM) !=
++	    nftnl_expr_get_u32(rule_b, NFTNL_EXPR_NG_SUM))
++		print_err("Expr NFTNL_EXPR_NG_SUM mismatches");
  }
  
- static int nft_ng_dump(struct sk_buff *skb, enum nft_registers dreg,
--		       u32 until, enum nft_ng_types type)
-+		       u32 modulus, enum nft_ng_types type)
- {
- 	if (nft_dump_register(skb, NFTA_NG_DREG, dreg))
- 		goto nla_put_failure;
--	if (nft_dump_register(skb, NFTA_NG_UNTIL, until))
-+	if (nft_dump_register(skb, NFTA_NG_MODULUS, modulus))
- 		goto nla_put_failure;
- 	if (nft_dump_register(skb, NFTA_NG_TYPE, type))
- 		goto nla_put_failure;
-@@ -86,12 +91,12 @@ static int nft_ng_inc_dump(struct sk_buff *skb, const struct nft_expr *expr)
- {
- 	const struct nft_ng_inc *priv = nft_expr_priv(expr);
+ int main(int argc, char *argv[])
+@@ -59,8 +62,9 @@ int main(int argc, char *argv[])
+ 		print_err("OOM");
  
--	return nft_ng_dump(skb, priv->dreg, priv->until, NFT_NG_INCREMENTAL);
-+	return nft_ng_dump(skb, priv->dreg, priv->modulus, NFT_NG_INCREMENTAL);
- }
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_NG_DREG, 0x1234568);
+-	nftnl_expr_set_u32(ex, NFTNL_EXPR_NG_UNTIL, 0x78123456);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_NG_MODULUS, 0x78123456);
+ 	nftnl_expr_set_u32(ex, NFTNL_EXPR_NG_TYPE, NFT_NG_INCREMENTAL);
++	nftnl_expr_set_u32(ex, NFTNL_EXPR_NG_SUM, 0x1000000);
  
- struct nft_ng_random {
- 	enum nft_registers      dreg:8;
--	u32			until;
-+	u32			modulus;
- };
- 
- static void nft_ng_random_eval(const struct nft_expr *expr,
-@@ -102,7 +107,7 @@ static void nft_ng_random_eval(const struct nft_expr *expr,
- 	struct rnd_state *state = this_cpu_ptr(&nft_numgen_prandom_state);
- 
- 	regs->data[priv->dreg] = reciprocal_scale(prandom_u32_state(state),
--						  priv->until);
-+						  priv->modulus);
- }
- 
- static int nft_ng_random_init(const struct nft_ctx *ctx,
-@@ -111,8 +116,8 @@ static int nft_ng_random_init(const struct nft_ctx *ctx,
- {
- 	struct nft_ng_random *priv = nft_expr_priv(expr);
- 
--	priv->until = ntohl(nla_get_be32(tb[NFTA_NG_UNTIL]));
--	if (priv->until == 0)
-+	priv->modulus = ntohl(nla_get_be32(tb[NFTA_NG_MODULUS]));
-+	if (priv->modulus == 0)
- 		return -ERANGE;
- 
- 	prandom_init_once(&nft_numgen_prandom_state);
-@@ -129,7 +134,7 @@ static int nft_ng_random_dump(struct sk_buff *skb, const struct nft_expr *expr)
- {
- 	const struct nft_ng_random *priv = nft_expr_priv(expr);
- 
--	return nft_ng_dump(skb, priv->dreg, priv->until, NFT_NG_RANDOM);
-+	return nft_ng_dump(skb, priv->dreg, priv->modulus, NFT_NG_RANDOM);
- }
- 
- static struct nft_expr_type nft_ng_type;
-@@ -154,8 +159,8 @@ nft_ng_select_ops(const struct nft_ctx *ctx, const struct nlattr * const tb[])
- {
- 	u32 type;
- 
--	if (!tb[NFTA_NG_DREG]	||
--	    !tb[NFTA_NG_UNTIL]	||
-+	if (!tb[NFTA_NG_DREG]	 ||
-+	    !tb[NFTA_NG_MODULUS] ||
- 	    !tb[NFTA_NG_TYPE])
- 		return ERR_PTR(-EINVAL);
+ 	nftnl_rule_add_expr(a, ex);
  
 -- 
 2.8.1
