@@ -1,48 +1,56 @@
-From: fgao@ikuai8.com
-Subject: [PATCH 2/2 nf-next] netfilter: seqadj: print the warning log when fail to add seqadj extension
-Date: Fri,  2 Sep 2016 09:50:36 +0800
-Message-ID: <1472781036-13547-1-git-send-email-fgao@ikuai8.com>
-Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
-To: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-        coreteam@netfilter.org, netdev@vger.kernel.org
+From: Liping Zhang <zlpnobody@gmail.com>
+Subject: Re: [PATCH 1/2 nf] netfilter: seqadj: Fix some possible panics of
+ seqadj when mem is exhausted
+Date: Fri, 2 Sep 2016 12:50:48 +0800
+Message-ID: <CAML_gOe+Ao5WEuVbTry_oekwsm2-ooZ074pgfpzxYzNehgLGjQ@mail.gmail.com>
+References: <1472780905-13094-1-git-send-email-fgao@ikuai8.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+        netfilter-devel@vger.kernel.org, coreteam@netfilter.org,
+        netdev@vger.kernel.org, Feng Gao <gfree.wind@gmail.com>
+To: fgao@ikuai8.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpbg328.qq.com ([14.17.43.160]:54563 "EHLO smtpbg328.qq.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750737AbcIBByV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Thu, 1 Sep 2016 21:54:21 -0400
+Received: from mail-vk0-f46.google.com ([209.85.213.46]:34737 "EHLO
+        mail-vk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750949AbcIBEuu (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Sep 2016 00:50:50 -0400
+In-Reply-To: <1472780905-13094-1-git-send-email-fgao@ikuai8.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Gao Feng <fgao@ikuai8.com>
+Hi Feng,
+2016-09-02 9:48 GMT+08:00  <fgao@ikuai8.com>:
+> From: Gao Feng <fgao@ikuai8.com>
+> @@ -171,6 +176,11 @@ int nf_ct_seq_adjust(struct sk_buff *skb,
+>         struct nf_ct_seqadj *this_way, *other_way;
+>         int res;
+>
+> +       if (unlikely(!seqadj)) {
 
-Print the warning log when fail to add seqadj extension like
-nf_ct_acct_ext_add does. It could be helpful to find the problem.
+IPS_SEQ_ADJUST_BIT will be tested before we call nf_ct_seq_adjust(),
+so I think seqadj
+will never be NULL here.
 
-Signed-off-by: Gao Feng <fgao@ikuai8.com>
----
- include/net/netfilter/nf_conntrack_seqadj.h | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+> +               WARN_ONCE(1, "Missing nfct_seqadj_ext_add() setup call\n");
+> +               return 0;
+> +       }
+> +
+>         this_way  = &seqadj->seq[dir];
+>         other_way = &seqadj->seq[!dir];
+>
+> @@ -218,8 +228,10 @@ s32 nf_ct_seq_offset(const struct nf_conn *ct,
+>         struct nf_conn_seqadj *seqadj = nfct_seqadj(ct);
+>         struct nf_ct_seqadj *this_way;
+>
+> -       if (!seqadj)
+> +       if (unlikely(!seqadj)) {
+> +               WARN_ONCE(1, "Missing nfct_seqadj_ext_add() setup call\n");
 
-diff --git a/include/net/netfilter/nf_conntrack_seqadj.h b/include/net/netfilter/nf_conntrack_seqadj.h
-index 4b33629..d548b9c 100644
---- a/include/net/netfilter/nf_conntrack_seqadj.h
-+++ b/include/net/netfilter/nf_conntrack_seqadj.h
-@@ -27,7 +27,13 @@ static inline struct nf_conn_seqadj *nfct_seqadj(const struct nf_conn *ct)
- 
- static inline struct nf_conn_seqadj *nfct_seqadj_ext_add(struct nf_conn *ct)
- {
--	return nf_ct_ext_add(ct, NF_CT_EXT_SEQADJ, GFP_ATOMIC);
-+	struct nf_conn_seqadj *seqadj = nf_ct_ext_add(ct, NF_CT_EXT_SEQADJ,
-+						      GFP_ATOMIC);
-+
-+	if (!seqadj)
-+		pr_warn("failed to add seqadj extension area");
-+
-+	return seqadj;
- }
- 
- int nf_ct_seqadj_init(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
--- 
-1.9.1
+But in nf_ct_seq_offset, seqadj is likely to be NULL, see the function
+call path:
+tcp_packet->tcp_in_window->nf_ct_seq_offset, so WARN_ONCE seems unnecessary.
 
-
+>                 return 0;
+> +       }
