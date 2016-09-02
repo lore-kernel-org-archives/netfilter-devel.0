@@ -1,73 +1,36 @@
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: Re: [PATCH 8/7] net/netfilter/nf_conntrack_core: Remove another
- memory barrier
-Date: Fri, 2 Sep 2016 08:35:55 +0200
-Message-ID: <1971bcf8-0f42-c0b7-5e59-2ceaa6e024a7@colorfullife.com>
-References: <1472743673-15585-1-git-send-email-manfred@colorfullife.com>
- <20160901153039.GN6721@arm.com>
- <20160901164126.GZ10153@twins.programming.kicks-ass.net>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 2/2 nf-next] netfilter: seqadj: print the warning log
+ when fail to add seqadj extension
+Date: Fri, 2 Sep 2016 08:54:45 +0200
+Message-ID: <20160902065445.GB8883@breakpoint.cc>
+References: <1472781036-13547-1-git-send-email-fgao@ikuai8.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: benh@kernel.crashing.org, paulmck@linux.vnet.ibm.com,
-        Ingo Molnar <mingo@elte.hu>, Boqun Feng <boqun.feng@gmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        LKML <linux-kernel@vger.kernel.org>, 1vier1@web.de,
-        Davidlohr Bueso <dave@stgolabs.net>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        netfilter-devel@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>,
-        Will Deacon <will.deacon@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160901164126.GZ10153@twins.programming.kicks-ass.net>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
+        coreteam@netfilter.org, netdev@vger.kernel.org,
+        gfree.wind@gmail.com
+To: fgao@ikuai8.com
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from Chamillionaire.breakpoint.cc ([146.0.238.67]:49080 "EHLO
+        Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751225AbcIBGyx (ORCPT
+        <rfc822;netfilter-devel@vger.kernel.org>);
+        Fri, 2 Sep 2016 02:54:53 -0400
+Content-Disposition: inline
+In-Reply-To: <1472781036-13547-1-git-send-email-fgao@ikuai8.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 09/01/2016 06:41 PM, Peter Zijlstra wrote:
-> On Thu, Sep 01, 2016 at 04:30:39PM +0100, Will Deacon wrote:
->> On Thu, Sep 01, 2016 at 05:27:52PM +0200, Manfred Spraul wrote:
->>> Since spin_unlock_wait() is defined as equivalent to spin_lock();
->>> spin_unlock(), the memory barrier before spin_unlock_wait() is
->>> also not required.
-> Note that ACQUIRE+RELEASE isn't a barrier.
->
-> Both are semi-permeable and things can cross in the middle, like:
->
->
-> 	x = 1;
-> 	LOCK
-> 	UNLOCK
-> 	r = y;
->
-> can (validly) get re-ordered like:
->
-> 	LOCK
-> 	r = y;
-> 	x = 1;
-> 	UNLOCK
->
-> So if you want things ordered, as I think you do, I think the smp_mb()
-> is still needed.
-CPU1:
-x=1; /* without WRITE_ONCE */
-LOCK(l);
-UNLOCK(l);
-<do_semop>
-smp_store_release(x,0)
+fgao@ikuai8.com <fgao@ikuai8.com> wrote:
+> From: Gao Feng <fgao@ikuai8.com>
+> 
+> Print the warning log when fail to add seqadj extension like
+> nf_ct_acct_ext_add does. It could be helpful to find the problem.
 
+Failure to add ext area means that we're pretty much completely out
+of memory.  There is nothing the user could do, so pr_warn (or any other
+log level ...) is not really helpful.
 
-CPU2;
-LOCK(l)
-if (smp_load_acquire(x)==1) goto slow_path
-<do_semop>
-UNLOCK(l)
+Besides, memory subsystem will already print diagnostic information in
+that case.
 
-Ordering is enforced because both CPUs access the same lock.
-
-x=1 can't be reordered past the UNLOCK(l), I don't see that further 
-guarantees are necessary.
-
-Correct?
-
---
-     Manfred
