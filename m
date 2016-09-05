@@ -1,181 +1,103 @@
-From: Kevin Cernekee <cernekee@chromium.org>
-Subject: [PATCH conntrack-tools] conntrackd: cthelper: Add new mdns helper
-Date: Sun,  4 Sep 2016 19:39:04 -0700
-Message-ID: <1473043144-37380-1-git-send-email-cernekee@chromium.org>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Subject: [conntrack-tools PATCH 4/4 v2] doc/manual/conntrack-tools: include
+ some bits about init systems
+Date: Mon, 05 Sep 2016 09:16:45 +0200
+Message-ID: <147305973403.17904.10544144874704834411.stgit@nfdev2.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:34052 "EHLO
-        mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754066AbcIECjh (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Sun, 4 Sep 2016 22:39:37 -0400
-Received: by mail-pa0-f45.google.com with SMTP id to9so18989285pac.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 04 Sep 2016 19:39:37 -0700 (PDT)
+Received: from smtp3.cica.es ([150.214.5.190]:38404 "EHLO smtp.cica.es"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1753859AbcIEHQn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 5 Sep 2016 03:16:43 -0400
+Received: from localhost (unknown [127.0.0.1])
+        by smtp.cica.es (Postfix) with ESMTP id 093CF51F243
+        for <netfilter-devel@vger.kernel.org>; Mon,  5 Sep 2016 07:16:40 +0000 (UTC)
+Received: from smtp.cica.es ([127.0.0.1])
+        by localhost (mail.cica.es [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id n_y0D-zC8OTn for <netfilter-devel@vger.kernel.org>;
+        Mon,  5 Sep 2016 09:16:34 +0200 (CEST)
+Received: from nfdev2.cica.es (nfdev2.cica.es [IPv6:2a00:9ac0:c1ca:31::221])
+        (Authenticated sender: servers@cica.es)
+        by smtp.cica.es (Postfix) with ESMTP id B665D51F23B
+        for <netfilter-devel@vger.kernel.org>; Mon,  5 Sep 2016 09:16:33 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This allows unicast replies to multicast DNS (mDNS / RFC6762) queries.
-These queries are often used when a full-featured mDNS service (such as
-avahi-daemon) is not running, or if an mDNS client does not have
-permission to bind to port 5353.
+Update the conntrack-tools manual to include some bits regarding init systems
+and the integration with systemd.
 
-Signed-off-by: Kevin Cernekee <cernekee@chromium.org>
+More on this topic here:
+ http://ral-arturo.blogspot.com.es/2016/08/why-conntrackd-in-debian-is-better-with.html
+
+Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
 ---
- doc/helper/conntrackd.conf | 12 ++++++-
- src/helpers/Makefile.am    |  5 +++
- src/helpers/mdns.c         | 89 ++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 105 insertions(+), 1 deletion(-)
- create mode 100644 src/helpers/mdns.c
+v2: include suggestions reported by Rami Rosen.
 
-diff --git a/doc/helper/conntrackd.conf b/doc/helper/conntrackd.conf
-index ec24e2a..7eae8bc 100644
---- a/doc/helper/conntrackd.conf
-+++ b/doc/helper/conntrackd.conf
-@@ -25,7 +25,9 @@ Helper {
- 		QueueLen 10240
+ doc/manual/conntrack-tools.tmpl |   51 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 51 insertions(+)
+
+diff --git a/doc/manual/conntrack-tools.tmpl b/doc/manual/conntrack-tools.tmpl
+index 87a792e..3e83d78 100644
+--- a/doc/manual/conntrack-tools.tmpl
++++ b/doc/manual/conntrack-tools.tmpl
+@@ -1185,4 +1185,55 @@ not enough space errors:                   0
  
- 		#
--		# Set the Expectation policy for this helper.
-+		# Set the Expectation policy for this helper.  This section
-+		# is optional; if left unspecified, the defaults from the
-+		# ctd_helper struct will be used.
- 		#
- 		Policy ftp {
- 			#
-@@ -70,6 +72,14 @@ Helper {
- 			ExpectTimeout 300
- 		}
- 	}
-+	Type mdns inet udp {
-+		QueueNum 6
-+		QueueLen 10240
-+		Policy mdns {
-+			ExpectMax 8
-+			ExpectTimeout 30
-+		}
-+	}
- 	Type ssdp inet udp {
- 		QueueNum 5
- 		QueueLen 10240
-diff --git a/src/helpers/Makefile.am b/src/helpers/Makefile.am
-index 78ef7aa..51f4887 100644
---- a/src/helpers/Makefile.am
-+++ b/src/helpers/Makefile.am
-@@ -3,6 +3,7 @@ include $(top_srcdir)/Make_global.am
- pkglib_LTLIBRARIES = ct_helper_amanda.la \
- 		     ct_helper_dhcpv6.la \
- 		     ct_helper_ftp.la	\
-+		     ct_helper_mdns.la	\
- 		     ct_helper_rpc.la	\
- 		     ct_helper_tftp.la	\
- 		     ct_helper_tns.la	\
-@@ -21,6 +22,10 @@ ct_helper_ftp_la_SOURCES = ftp.c
- ct_helper_ftp_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
- ct_helper_ftp_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
+ </chapter>
  
-+ct_helper_mdns_la_SOURCES = mdns.c
-+ct_helper_mdns_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
-+ct_helper_mdns_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
++  <chapter id="system-integration"><title>System integration</title>
 +
- ct_helper_rpc_la_SOURCES = rpc.c
- ct_helper_rpc_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_CONNTRACK_LIBS)
- ct_helper_rpc_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
-diff --git a/src/helpers/mdns.c b/src/helpers/mdns.c
-new file mode 100644
-index 0000000..7605589
---- /dev/null
-+++ b/src/helpers/mdns.c
-@@ -0,0 +1,89 @@
-+/*
-+ * Copyright (C) 2016 Google Inc.
-+ * Author: Kevin Cernekee <cernekee@chromium.org>
-+ *
-+ * This helper pokes a hole in the firewall for unicast mDNS replies
-+ * (RFC6762 section 5.1).  It is needed because the destination address of
-+ * the outgoing mDNS query (224.0.0.251) will not match the source address
-+ * of the incoming response (192.168.x.x or similar).  The helper is not used
-+ * for standard multicast queries/responses in which the sport and dport are
-+ * both 5353, because those can be handled by a standard filter/INPUT rule.
-+ *
-+ * Usage:
-+ *
-+ *     nfct add helper mdns inet udp
-+ *     iptables -t raw -A OUTPUT -p udp -d 224.0.0.251 '!' --sport 5353 \
-+ *         --dport 5353 -j CT --helper mdns
-+ *     iptables -t filter -A INPUT -p udp -d 224.0.0.251 --dport 5353 -j ACCEPT
-+ *     iptables -t filter -A INPUT -m state --state ESTABLISHED,RELATED \
-+ *         -j ACCEPT
-+ *
-+ * Requires Linux 3.12 or higher.  NAT is unsupported.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
++  <para>
++	You may want to integrate conntrackd into your system in order to build
++	a robust firewall cluster. You should take a look at how the linux
++	distro of your choose does this, as there are some interesting things
++	to take into account.
++  </para>
 +
-+#include "conntrackd.h"
-+#include "helper.h"
-+#include "myct.h"
-+#include "log.h"
++  <para>
++	Depending on the architecture of the firewall cluster, you may want to
++	sync each node after a fallback operation, so the new node
++	inmediately knows the connection of the other. This is specially
++	interesting in <emphasis>Active-Active</emphasis> mode.
++  </para>
 +
-+#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
-+#include <linux/netfilter.h>
++  <para>
++	This can be done using <emphasis>conntrackd -n</emphasis> just after
++	the new node has joined the conntrackd cluster, for example at boot
++	time. These operations require the main conntrackd daemon to open the
++	UNIX socket to receive the order from the
++	<emphasis>conntrackd -n</emphasis> call.
++  </para>
 +
-+static int mdns_helper_cb(struct pkt_buff *pkt, uint32_t protoff,
-+			  struct myct *myct, uint32_t ctinfo)
-+{
-+	struct nf_expect *exp;
-+	int dir = CTINFO2DIR(ctinfo);
-+	union nfct_attr_grp_addr saddr;
-+	uint16_t sport, dport;
++  <para>
++	Care must be taken that no race conditions happens (i.e, the UNIX
++	socket is actually opened before <emphasis>conntrackd -n</emphasis> is
++	launched). Otherwise, you may end with a new node (after fallback)
++	which doesn't know any connection states from the other node.
++  </para>
 +
-+	exp = nfexp_new();
-+	if (exp == NULL) {
-+		pr_debug("conntrack_mdns: failed to allocate expectation\n");
-+		return NF_ACCEPT;
-+	}
++  <para>
++	Since <emphasis>conntrack-tools 1.4.4</emphasis>, the conntrackd
++	daemon includes integration with <emphasis>libsystemd</emphasis>. If
++	conntrackd is configured at build time with this support
++	(using <emphasis>--enable-systemd</emphasis>), then you can
++	use <emphasis>Systemd on</emphasis> in the
++	<emphasis>conntrackd.conf</emphasis> main configuration file.
++	To benefit from this integration, you should use a systemd service file
++	of <emphasis>Type=notify</emphasis>, which also includes support for
++	the systemd watchdog.
++  </para>
 +
-+	cthelper_get_addr_src(myct->ct, dir, &saddr);
-+	cthelper_get_port_src(myct->ct, dir, &sport);
-+	cthelper_get_port_src(myct->ct, !dir, &dport);
++  <para>
++	Using systemd and conntrackd with libsystemd support and a service file
++	of Type=notify means that conntrackd will notify of its readiness to
++	systemd, so you can launch <emphasis>conntrackd -n</emphasis> safely,
++	avoiding such race conditions.
++  </para>
 +
-+	if (cthelper_expect_init(exp,
-+				 myct->ct,
-+				 0 /* class */,
-+				 NULL /* saddr */,
-+				 &saddr /* daddr */,
-+				 IPPROTO_UDP,
-+				 &dport /* sport */,
-+				 &sport /* dport */,
-+				 NF_CT_EXPECT_PERMANENT)) {
-+		pr_debug("conntrack_mdns: failed to init expectation\n");
-+		nfexp_destroy(exp);
-+		return NF_ACCEPT;
-+	}
-+
-+	myct->exp = exp;
-+	return NF_ACCEPT;
-+}
-+
-+static struct ctd_helper mdns_helper = {
-+	.name		= "mdns",
-+	.l4proto	= IPPROTO_UDP,
-+	.priv_data_len	= 0,
-+	.cb		= mdns_helper_cb,
-+	.policy		= {
-+		[0] = {
-+			.name		= "mdns",
-+			.expect_max	= 8,
-+			.expect_timeout	= 30,
-+		},
-+	},
-+};
-+
-+static void __attribute__ ((constructor)) mdns_init(void)
-+{
-+	helper_register(&mdns_helper);
-+}
--- 
-1.9.1
++  </chapter>
+ </book>
 
