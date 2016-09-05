@@ -1,70 +1,36 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 06/29] netfilter: nf_tables: rename set implementations
-Date: Mon,  5 Sep 2016 12:58:21 +0200
-Message-ID: <1473073124-5015-7-git-send-email-pablo@netfilter.org>
-References: <1473073124-5015-1-git-send-email-pablo@netfilter.org>
-Cc: davem@davemloft.net, netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1473073124-5015-1-git-send-email-pablo@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: Re: [conntrack-tools PATCH 1/4] src/main: refresh help message
+Date: Mon, 5 Sep 2016 14:21:14 +0200
+Message-ID: <20160905122114.GA13834@salvia>
+References: <147255963490.17411.649527820452381341.stgit@nfdev2.cica.es>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:35222 "EHLO mail.us.es"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755217AbcIEMVe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+        Mon, 5 Sep 2016 08:21:34 -0400
+Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
+        by mail.us.es (Postfix) with ESMTP id 21719A7E33
+        for <netfilter-devel@vger.kernel.org>; Mon,  5 Sep 2016 14:21:17 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 13F20114D6B
+        for <netfilter-devel@vger.kernel.org>; Mon,  5 Sep 2016 14:21:17 +0200 (CEST)
+Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
+        by antivirus1-rhel7.int (Postfix) with ESMTP id 159CF32CD
+        for <netfilter-devel@vger.kernel.org>; Mon,  5 Sep 2016 14:21:15 +0200 (CEST)
+Content-Disposition: inline
+In-Reply-To: <147255963490.17411.649527820452381341.stgit@nfdev2.cica.es>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Use nft_set_* prefix for backend set implementations, thus we can use
-nft_hash for the new hash expression.
+On Tue, Aug 30, 2016 at 02:20:35PM +0200, Arturo Borrero Gonzalez wrote:
+> It seems there are two kind of options:
+>  * general commands (-d, -v, -h, -C)
+>  * client commands (which requires another conntrackd instance)
+> 
+> Refresh the help message to better reflect this.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- net/netfilter/Kconfig                            | 4 ++--
- net/netfilter/Makefile                           | 4 ++--
- net/netfilter/{nft_hash.c => nft_set_hash.c}     | 0
- net/netfilter/{nft_rbtree.c => nft_set_rbtree.c} | 0
- 4 files changed, 4 insertions(+), 4 deletions(-)
- rename net/netfilter/{nft_hash.c => nft_set_hash.c} (100%)
- rename net/netfilter/{nft_rbtree.c => nft_set_rbtree.c} (100%)
-
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 9266cee..e5740e1 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -481,13 +481,13 @@ config NFT_CT
- 	  This option adds the "meta" expression that you can use to match
- 	  connection tracking information such as the flow state.
- 
--config NFT_RBTREE
-+config NFT_SET_RBTREE
- 	tristate "Netfilter nf_tables rbtree set module"
- 	help
- 	  This option adds the "rbtree" set type (Red Black tree) that is used
- 	  to build interval-based sets.
- 
--config NFT_HASH
-+config NFT_SET_HASH
- 	tristate "Netfilter nf_tables hash set module"
- 	help
- 	  This option adds the "hash" set type that is used to build one-way
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 6913454..101fb85 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -86,8 +86,8 @@ obj-$(CONFIG_NFT_NAT)		+= nft_nat.o
- obj-$(CONFIG_NFT_QUEUE)		+= nft_queue.o
- obj-$(CONFIG_NFT_REJECT) 	+= nft_reject.o
- obj-$(CONFIG_NFT_REJECT_INET)	+= nft_reject_inet.o
--obj-$(CONFIG_NFT_RBTREE)	+= nft_rbtree.o
--obj-$(CONFIG_NFT_HASH)		+= nft_hash.o
-+obj-$(CONFIG_NFT_SET_RBTREE)	+= nft_set_rbtree.o
-+obj-$(CONFIG_NFT_SET_HASH)	+= nft_set_hash.o
- obj-$(CONFIG_NFT_COUNTER)	+= nft_counter.o
- obj-$(CONFIG_NFT_LOG)		+= nft_log.o
- obj-$(CONFIG_NFT_MASQ)		+= nft_masq.o
-diff --git a/net/netfilter/nft_hash.c b/net/netfilter/nft_set_hash.c
-similarity index 100%
-rename from net/netfilter/nft_hash.c
-rename to net/netfilter/nft_set_hash.c
-diff --git a/net/netfilter/nft_rbtree.c b/net/netfilter/nft_set_rbtree.c
-similarity index 100%
-rename from net/netfilter/nft_rbtree.c
-rename to net/netfilter/nft_set_rbtree.c
--- 
-2.1.4
+Applied, thanks.
