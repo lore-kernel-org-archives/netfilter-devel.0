@@ -1,7 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 21/29] netfilter: restart search if moved to other chain
-Date: Mon,  5 Sep 2016 12:58:36 +0200
-Message-ID: <1473073124-5015-22-git-send-email-pablo@netfilter.org>
+Subject: [PATCH 17/29] netfilter: nf_tables: reject hook configuration updates on existing chains
+Date: Mon,  5 Sep 2016 12:58:32 +0200
+Message-ID: <1473073124-5015-18-git-send-email-pablo@netfilter.org>
 References: <1473073124-5015-1-git-send-email-pablo@netfilter.org>
 Cc: davem@davemloft.net, netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
@@ -10,45 +10,66 @@ In-Reply-To: <1473073124-5015-1-git-send-email-pablo@netfilter.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Florian Westphal <fw@strlen.de>
+Currently, if you add a base chain whose name clashes with an existing
+non-base chain, nf_tables doesn't complain about this. Similarly, if you
+update the chain type, the hook number and priority.
 
-In case nf_conntrack_tuple_taken did not find a conflicting entry
-check that all entries in this hash slot were tested and restart
-in case an entry was moved to another chain.
+With this patch, nf_tables bails out in case any of this unsupported
+operations occur by returning EBUSY.
 
-Reported-by: Eric Dumazet <edumazet@google.com>
-Fixes: ea781f197d6a ("netfilter: nf_conntrack: use SLAB_DESTROY_BY_RCU and get rid of call_rcu()")
-Signed-off-by: Florian Westphal <fw@strlen.de>
-Acked-by: Eric Dumazet <edumazet@google.com>
+ # nft add table x
+ # nft add chain x y
+ # nft add chain x y { type nat hook input priority 0\; }
+ <cmdline>:1:1-49: Error: Could not process rule: Device or resource busy
+ add chain x y { type nat hook input priority 0; }
+ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/nf_conntrack_core.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ net/netfilter/nf_tables_api.c | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 7d90a5d..887926a 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -809,6 +809,7 @@ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
- 	zone = nf_ct_zone(ignored_conntrack);
+diff --git a/net/netfilter/nf_tables_api.c b/net/netfilter/nf_tables_api.c
+index 463fcad..221d27f 100644
+--- a/net/netfilter/nf_tables_api.c
++++ b/net/netfilter/nf_tables_api.c
+@@ -1348,6 +1348,37 @@ static int nf_tables_newchain(struct net *net, struct sock *nlsk,
+ 		if (nlh->nlmsg_flags & NLM_F_REPLACE)
+ 			return -EOPNOTSUPP;
  
- 	rcu_read_lock();
-+ begin:
- 	nf_conntrack_get_ht(&ct_hash, &hsize);
- 	hash = __hash_conntrack(net, tuple, hsize);
- 
-@@ -822,6 +823,12 @@ nf_conntrack_tuple_taken(const struct nf_conntrack_tuple *tuple,
- 		}
- 		NF_CT_STAT_INC_ATOMIC(net, searched);
- 	}
++		if (nla[NFTA_CHAIN_HOOK]) {
++			struct nft_base_chain *basechain;
++			struct nft_chain_hook hook;
++			struct nf_hook_ops *ops;
 +
-+	if (get_nulls_value(n) != hash) {
-+		NF_CT_STAT_INC_ATOMIC(net, search_restart);
-+		goto begin;
-+	}
++			if (!(chain->flags & NFT_BASE_CHAIN))
++				return -EBUSY;
 +
- 	rcu_read_unlock();
++			err = nft_chain_parse_hook(net, nla, afi, &hook,
++						   create);
++			if (err < 0)
++				return err;
++
++			basechain = nft_base_chain(chain);
++			if (basechain->type != hook.type) {
++				nft_chain_release_hook(&hook);
++				return -EBUSY;
++			}
++
++			for (i = 0; i < afi->nops; i++) {
++				ops = &basechain->ops[i];
++				if (ops->hooknum != hook.num ||
++				    ops->priority != hook.priority ||
++				    ops->dev != hook.dev) {
++					nft_chain_release_hook(&hook);
++					return -EBUSY;
++				}
++			}
++			nft_chain_release_hook(&hook);
++		}
++
+ 		if (nla[NFTA_CHAIN_HANDLE] && name) {
+ 			struct nft_chain *chain2;
  
- 	return 0;
 -- 
 2.1.4
