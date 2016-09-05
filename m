@@ -1,44 +1,78 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [conntrack-tools PATCH 4/4 v2] doc/manual/conntrack-tools:
- include some bits about init systems
-Date: Mon, 5 Sep 2016 14:22:00 +0200
-Message-ID: <20160905122200.GD13834@salvia>
-References: <147305973403.17904.10544144874704834411.stgit@nfdev2.cica.es>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35602 "EHLO mail.us.es"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754545AbcIEMWK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 5 Sep 2016 08:22:10 -0400
-Received: from antivirus1-rhel7.int (unknown [192.168.2.11])
-        by mail.us.es (Postfix) with ESMTP id AF597A7E32
-        for <netfilter-devel@vger.kernel.org>; Mon,  5 Sep 2016 14:22:08 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 9E2F6114D73
-        for <netfilter-devel@vger.kernel.org>; Mon,  5 Sep 2016 14:22:08 +0200 (CEST)
-Received: from antivirus1-rhel7.int (localhost [127.0.0.1])
-        by antivirus1-rhel7.int (Postfix) with ESMTP id 56B07114D7A
-        for <netfilter-devel@vger.kernel.org>; Mon,  5 Sep 2016 14:22:05 +0200 (CEST)
-Content-Disposition: inline
-In-Reply-To: <147305973403.17904.10544144874704834411.stgit@nfdev2.cica.es>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: fgao@ikuai8.com
+Subject: [PATCH 2/2 nf] netfilter: seqadj: Fix the wrong ack adjust for the RST packet without ack
+Date: Mon,  5 Sep 2016 23:02:05 +0800
+Message-ID: <1473087725-22089-1-git-send-email-fgao@ikuai8.com>
+Cc: gfree.wind@gmail.com, Gao Feng <fgao@ikuai8.com>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org, fw@strlen.de,
+        coreteam@netfilter.org, netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Sep 05, 2016 at 09:16:45AM +0200, Arturo Borrero Gonzalez wrote:
-> Update the conntrack-tools manual to include some bits regarding init systems
-> and the integration with systemd.
-> 
-> More on this topic here:
->  http://ral-arturo.blogspot.com.es/2016/08/why-conntrackd-in-debian-is-better-with.html
-> 
-> Suggested-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> Signed-off-by: Arturo Borrero Gonzalez <arturo.borrero.glez@gmail.com>
-> ---
-> v2: include suggestions reported by Rami Rosen.
+From: Gao Feng <fgao@ikuai8.com>
 
-Applied, thanks.
+It is valid that the TCP RST packet which does not set ack flag, and bytes
+of ack number are zero. For these RST packets, seqadj could not adjust the
+ack number.
 
-Rami, thanks a lot for reviewing this too.
+Signed-off-by: Gao Feng <fgao@ikuai8.com>
+---
+ net/netfilter/nf_conntrack_seqadj.c | 34 +++++++++++++++++++---------------
+ 1 file changed, 19 insertions(+), 15 deletions(-)
+
+diff --git a/net/netfilter/nf_conntrack_seqadj.c b/net/netfilter/nf_conntrack_seqadj.c
+index 7f8d814..65bb4a6 100644
+--- a/net/netfilter/nf_conntrack_seqadj.c
++++ b/net/netfilter/nf_conntrack_seqadj.c
+@@ -182,30 +182,34 @@ int nf_ct_seq_adjust(struct sk_buff *skb,
+ 
+ 	tcph = (void *)skb->data + protoff;
+ 	spin_lock_bh(&ct->lock);
++
+ 	if (after(ntohl(tcph->seq), this_way->correction_pos))
+ 		seqoff = this_way->offset_after;
+ 	else
+ 		seqoff = this_way->offset_before;
+ 
+-	if (after(ntohl(tcph->ack_seq) - other_way->offset_before,
+-		  other_way->correction_pos))
+-		ackoff = other_way->offset_after;
+-	else
+-		ackoff = other_way->offset_before;
+-
+ 	newseq = htonl(ntohl(tcph->seq) + seqoff);
+-	newack = htonl(ntohl(tcph->ack_seq) - ackoff);
+-
+ 	inet_proto_csum_replace4(&tcph->check, skb, tcph->seq, newseq, false);
+-	inet_proto_csum_replace4(&tcph->check, skb, tcph->ack_seq, newack,
+-				 false);
+-
+-	pr_debug("Adjusting sequence number from %u->%u, ack from %u->%u\n",
+-		 ntohl(tcph->seq), ntohl(newseq), ntohl(tcph->ack_seq),
+-		 ntohl(newack));
+ 
++	pr_debug("Adjusting sequence number from %u->%u\n",
++		 ntohl(tcph->seq), ntohl(newseq));
+ 	tcph->seq = newseq;
+-	tcph->ack_seq = newack;
++
++	if (likely(tcph->ack)) {
++		if (after(ntohl(tcph->ack_seq) - other_way->offset_before,
++			  other_way->correction_pos))
++			ackoff = other_way->offset_after;
++		else
++			ackoff = other_way->offset_before;
++
++		newack = htonl(ntohl(tcph->ack_seq) - ackoff);
++		inet_proto_csum_replace4(&tcph->check, skb, tcph->ack_seq,
++					 newack, false);
++
++		pr_debug("Adjusting ack number from %u->%u\n",
++			 ntohl(tcph->ack_seq), ntohl(newack));
++		tcph->ack_seq = newack;
++	}
+ 
+ 	res = nf_ct_sack_adjust(skb, protoff, tcph, ct, ctinfo);
+ 	spin_unlock_bh(&ct->lock);
+-- 
+1.9.1
